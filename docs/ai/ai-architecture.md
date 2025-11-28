@@ -2,7 +2,7 @@
 
 ## 🏗️ Overview
 
-The AI Assistant is built on a **Hybrid Engine Architecture** that combines **Offline Capabilities** for speed and **Google Gemini 1.5 Flash** for intelligence. It features a unique "Thinking Process" visualization that exposes the AI's internal reasoning and tool usage to the user.
+The AI Assistant is built on a **Hybrid Engine Architecture** that intelligently switches between **Offline Capabilities** (Speed Layer) and **Google Gemini 1.5 Flash** (Intelligence Layer). This approach minimizes latency and cost while maximizing reasoning capabilities. It features a unique "Thinking Process" visualization that exposes the AI's internal reasoning and tool usage to the user.
 
 ## 🧩 Core Components
 
@@ -22,8 +22,8 @@ The AI Assistant is built on a **Hybrid Engine Architecture** that combines **Of
 - **Framework**: Next.js App Router + Vercel AI SDK (`streamText`)
 - **Model**: `google('gemini-1.5-flash')`
 - **Architecture**:
-  - **Offline Layer**: Handles simple queries (patterns, commands) locally without LLM.
-  - **Online Layer**: Uses Gemini 1.5 Flash for complex reasoning.
+  - **Offline Layer (Speed)**: Handles simple queries (patterns, commands) locally using `analyzePattern` and `recommendCommands`.
+  - **Online Layer (Intelligence)**: Uses Gemini 1.5 Flash for complex reasoning, RAG (`searchKnowledgeBase`), and ML predictions (`predictIncident`).
 - **System Prompt**: Enforces a structured thinking process and prioritizes offline tools for simple tasks.
 
 ## 🛠️ Tool System
@@ -32,28 +32,28 @@ The AI uses a multi-layer tool system to simulate human-like reasoning and optim
 
 ### A. Offline Tools (Speed Layer)
 
-Used for instant responses without incurring LLM costs.
+Used for instant responses without incurring LLM costs. These tools run locally on the server.
 
-1.  **`analyzePattern`**: Detects intent using regex patterns (e.g., "CPU status") -> Returns instant analysis.
+1.  **`analyzePattern`**: Detects intent using regex patterns (e.g., "CPU status", "Memory usage") -> Returns instant analysis.
 2.  **`recommendCommands`**: Suggests CLI commands based on keywords -> Returns command list.
 
 ### B. Thinking Tools (Cognitive Layer)
 
-Used to plan and analyze _before_ taking action.
+Used to plan and analyze _before_ taking action. These are internal reasoning steps.
 
 1.  **`analyzeIntent`**: Classifies user intent (Monitoring, Troubleshooting, Prediction, etc.).
 2.  **`analyzeComplexity`**: Scores query complexity to decide strategy (Offline vs Online).
-3.  **`selectRoute`**: Chooses the optimal execution path.
-4.  **`searchContext`**: Retrieves relevant history or knowledge.
+3.  **`selectRoute`**: Chooses the optimal execution path (Quick Response vs Comprehensive Analysis).
+4.  **`searchContext`**: Retrieves relevant history or knowledge to build context.
 5.  **`generateInsight`**: Synthesizes findings into actionable insights.
 
 ### C. Action Tools (Execution Layer)
 
 Used to fetch data or perform operations.
 
-1.  **`getServerMetrics`**: Retrieves server stats (CPU, Memory, Disk) using `scenario-loader`.
+1.  **`getServerMetrics`**: Retrieves server stats (CPU, Memory, Disk) using `scenario-loader` (Simulation).
 2.  **`predictIncident`**: **[Real GCP]** Calls Google Cloud Functions for ML-based anomaly detection.
-3.  **`searchKnowledgeBase`**: **[Real RAG]** Uses `SupabaseRAGEngine` (pgvector) to search actual knowledge base.
+3.  **`searchKnowledgeBase`**: **[Real RAG]** Uses `SupabaseRAGEngine` (pgvector) to search the actual knowledge base.
 4.  **`analyzeServerHealth`**: Performs comprehensive health analysis of all servers.
 
 ## 🔄 Data Flow

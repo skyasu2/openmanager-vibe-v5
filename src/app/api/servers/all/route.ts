@@ -3,6 +3,7 @@ import type { Server } from '@/types/server';
 import type { SortableKey } from '@/types/server-metrics';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import { getApiConfig, getSystemConfig } from '@/config/SystemConfiguration';
+import { withAuth } from '@/lib/auth/api-auth';
 
 /**
  * 🎯 결정론적 데이터 일관성 보장
@@ -65,7 +66,7 @@ function createServerComparator(
   return comparators[sortBy];
 }
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
 
@@ -232,4 +233,4 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     ); // 200 상태코드로 서비스 연속성 보장
   }
-}
+});

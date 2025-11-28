@@ -10,14 +10,16 @@
 ### 1. **Datadog Watchdog AI** (AIOps Leader)
 
 #### 핵심 기능
-| 기능 | 설명 | 구현 난이도 |
-|------|------|------------|
-| **Anomaly Detection** | 계절성, 요일, 시간대 패턴 학습 후 이상 탐지 | ⭐⭐⭐ (중) |
-| **Root Cause Analysis** | APM 데이터 기반 원인 자동 파악 | ⭐⭐⭐⭐⭐ (매우 어려움) |
-| **Log Anomaly Detection** | 로그 패턴 자동 학습 및 이상 발견 | ⭐⭐⭐⭐ (어려움) |
-| **Predictive Correlations** | 메트릭 간 상관관계 예측 | ⭐⭐⭐ (중) |
+
+| 기능                        | 설명                                        | 구현 난이도              |
+| --------------------------- | ------------------------------------------- | ------------------------ |
+| **Anomaly Detection**       | 계절성, 요일, 시간대 패턴 학습 후 이상 탐지 | ⭐⭐⭐ (중)              |
+| **Root Cause Analysis**     | APM 데이터 기반 원인 자동 파악              | ⭐⭐⭐⭐⭐ (매우 어려움) |
+| **Log Anomaly Detection**   | 로그 패턴 자동 학습 및 이상 발견            | ⭐⭐⭐⭐ (어려움)        |
+| **Predictive Correlations** | 메트릭 간 상관관계 예측                     | ⭐⭐⭐ (중)              |
 
 #### 알고리즘
+
 - Basic: 단순 통계 기반
 - Agile: 빠른 변화 감지
 - Robust: False Positive 최소화
@@ -25,22 +27,24 @@
 ### 2. **New Relic AIOps** (Incident Management 특화)
 
 #### 핵심 기능
-| 기능 | 설명 | 구현 난이도 |
-|------|------|------------|
-| **Incident Intelligence** | 알림 자동 그룹화 및 상관관계 분석 | ⭐⭐⭐⭐ (어려움) |
-| **Predictive Analytics** | 서비스 중단 사전 예측 | ⭐⭐⭐⭐ (어려움) |
-| **Adaptive ML** | 시스템 드리프트 감지 (환경 변화 적응) | ⭐⭐⭐⭐⭐ (매우 어려움) |
-| **5x Faster MTTR** | AI 기반 근본 원인 분석으로 복구 시간 단축 | ⭐⭐⭐⭐⭐ (매우 어려움) |
+
+| 기능                      | 설명                                      | 구현 난이도              |
+| ------------------------- | ----------------------------------------- | ------------------------ |
+| **Incident Intelligence** | 알림 자동 그룹화 및 상관관계 분석         | ⭐⭐⭐⭐ (어려움)        |
+| **Predictive Analytics**  | 서비스 중단 사전 예측                     | ⭐⭐⭐⭐ (어려움)        |
+| **Adaptive ML**           | 시스템 드리프트 감지 (환경 변화 적응)     | ⭐⭐⭐⭐⭐ (매우 어려움) |
+| **5x Faster MTTR**        | AI 기반 근본 원인 분석으로 복구 시간 단축 | ⭐⭐⭐⭐⭐ (매우 어려움) |
 
 ### 3. **Grafana + Prometheus** (오픈소스)
 
 #### 핵심 기능
-| 기능 | 설명 | 구현 난이도 |
-|------|------|------------|
-| **Prophet 모델** | Facebook 개발, 시계열 예측 | ⭐⭐⭐ (중) |
-| **Random Cut Forest (RCF)** | AWS, 비지도 학습 이상 탐지 | ⭐⭐⭐⭐ (어려움) |
-| **Adaptive Algorithm** | 평균±표준편차 기반, 26시간 스무딩 | ⭐⭐ (쉬움) |
-| **Native Anomaly Bands** | PromQL 기반, 외부 의존성 없음 | ⭐⭐ (쉬움) |
+
+| 기능                        | 설명                              | 구현 난이도       |
+| --------------------------- | --------------------------------- | ----------------- |
+| **Prophet 모델**            | Facebook 개발, 시계열 예측        | ⭐⭐⭐ (중)       |
+| **Random Cut Forest (RCF)** | AWS, 비지도 학습 이상 탐지        | ⭐⭐⭐⭐ (어려움) |
+| **Adaptive Algorithm**      | 평균±표준편차 기반, 26시간 스무딩 | ⭐⭐ (쉬움)       |
+| **Native Anomaly Bands**    | PromQL 기반, 외부 의존성 없음     | ⭐⭐ (쉬움)       |
 
 ---
 
@@ -48,9 +52,12 @@
 
 ### ✅ **이미 구현된 기능**
 
+### ✅ **이미 구현된 기능**
+
 1. **AI 자연어 질의** (완전 구현)
-   - `/api/ai/query` 엔드포인트
-   - 실시간 서버 상태 메타데이터 포함
+   - `/api/ai/unified-stream` 엔드포인트 (Vercel AI SDK)
+   - **Hybrid Engine**: Offline(패턴) + Online(Gemini 1.5 Flash)
+   - 실시간 Thinking Process 시각화
    - Streaming 응답 지원
 
 2. **자동 장애 보고서** (완전 구현)
@@ -104,18 +111,22 @@
 **상용 벤치마크**: Grafana Adaptive Algorithm
 
 **구현 방법**:
+
 ```typescript
 // 1. 간단한 통계 기반 이상 탐지
 class SimpleAnomalyDetector {
   // 26시간 이동 평균 + 표준편차
-  detectAnomaly(metricValue: number, historicalData: number[]): {
+  detectAnomaly(
+    metricValue: number,
+    historicalData: number[]
+  ): {
     isAnomaly: boolean;
     severity: 'low' | 'medium' | 'high';
     confidence: number;
   } {
     const mean = average(historicalData);
     const stdDev = standardDeviation(historicalData);
-    const threshold = mean + (2 * stdDev); // 2σ
+    const threshold = mean + 2 * stdDev; // 2σ
 
     return {
       isAnomaly: metricValue > threshold,
@@ -127,16 +138,19 @@ class SimpleAnomalyDetector {
 ```
 
 **무료 티어 비용**:
+
 - ✅ **Google AI**: 1,200 요청/일 무료
 - ✅ **Supabase**: 500MB DB, 2GB 스토리지 (히스토리 데이터 저장)
 - ✅ **Vercel**: 100GB 대역폭 (충분)
 
 **예상 API 호출**:
+
 - 서버당 5분마다 1회 분석 → 12회/시간/서버
 - 10개 서버 → 120회/시간 → 2,880회/일
 - **Gemini API로 분석 시**: 2,880 요청/일 (무료 한도 내)
 
 **구현 위치**:
+
 - `src/lib/ai/monitoring/SimpleAnomalyDetector.ts` (신규 생성)
 - `src/services/ai/intelligent-monitoring.ts` (통합)
 - AI 사이드바 "이상감지/예측" 기능에 연결
@@ -148,10 +162,11 @@ class SimpleAnomalyDetector {
 **상용 벤치마크**: Grafana Forecasting
 
 **구현 방법**:
+
 ```typescript
 class TrendPredictor {
   // 단순 이동 평균 기반 예측
-  predictNextHour(metricHistory: Array<{time: number, value: number}>): {
+  predictNextHour(metricHistory: Array<{ time: number; value: number }>): {
     prediction: number;
     trend: 'increasing' | 'decreasing' | 'stable';
     confidence: number;
@@ -161,7 +176,8 @@ class TrendPredictor {
 
     return {
       prediction: recentData[recentData.length - 1].value + slope,
-      trend: slope > 0.1 ? 'increasing' : slope < -0.1 ? 'decreasing' : 'stable',
+      trend:
+        slope > 0.1 ? 'increasing' : slope < -0.1 ? 'decreasing' : 'stable',
       confidence: calculateR2(recentData),
     };
   }
@@ -169,10 +185,12 @@ class TrendPredictor {
 ```
 
 **무료 티어 비용**:
+
 - ✅ **클라이언트 사이드 계산** - API 호출 불필요!
 - ✅ **Supabase**: 최근 24시간 데이터만 저장 (~10MB)
 
 **구현 위치**:
+
 - `src/lib/ai/monitoring/TrendPredictor.ts` (신규 생성)
 - Enhanced Server Metrics의 `trends` 필드 채우기
 
@@ -183,10 +201,11 @@ class TrendPredictor {
 **상용 벤치마크**: Datadog RCA, New Relic Incident Intelligence
 
 **구현 방법**:
+
 ```typescript
 // AI 엔진 활용 (Google AI Gemini)
 async function analyzeRootCause(
-  anomalies: Array<{metric: string, value: number, threshold: number}>,
+  anomalies: Array<{ metric: string; value: number; threshold: number }>,
   serverContext: {
     type: string;
     services: string[];
@@ -199,7 +218,7 @@ async function analyzeRootCause(
 }> {
   const prompt = `
 서버 이상 상황 분석:
-- 이상 메트릭: ${anomalies.map(a => `${a.metric}: ${a.value} (기준: ${a.threshold})`).join(', ')}
+- 이상 메트릭: ${anomalies.map((a) => `${a.metric}: ${a.value} (기준: ${a.threshold})`).join(', ')}
 - 서버 타입: ${serverContext.type}
 - 실행 중인 서비스: ${serverContext.services.join(', ')}
 
@@ -212,11 +231,13 @@ async function analyzeRootCause(
 ```
 
 **무료 티어 비용**:
+
 - ✅ **Google AI Gemini 2.0 Flash**: 1,200 요청/일
 - ⚠️ **이상 발생 시에만** 호출 → 하루 10-20회 예상
 - ✅ **캐싱 전략**: 동일 패턴 이상은 캐시 활용
 
 **구현 위치**:
+
 - `src/services/ai/root-cause-analyzer.ts` (신규 생성)
 - AI 사이드바 "이상감지/예측" → "근본 원인 분석" 버튼
 
@@ -229,11 +250,13 @@ async function analyzeRootCause(
 **상용 벤치마크**: New Relic AI Insights
 
 **구현 방법**:
+
 - 매일 오전 9시 자동 실행
 - 어제 데이터 요약 및 오늘 예측
 - Google AI로 인사이트 생성 (1회/일)
 
 **무료 티어 비용**:
+
 - ✅ **1회/일** → 30회/월 (무료 한도의 2.5%)
 
 ---
@@ -243,11 +266,13 @@ async function analyzeRootCause(
 **상용 벤치마크**: New Relic Incident Intelligence
 
 **구현 방법**:
+
 - 클라이언트 사이드에서 알림 패턴 분석
 - 유사한 알림을 그룹화 (동일 서버, 동일 시간대, 동일 메트릭)
 - AI 호출 없이 규칙 기반으로 구현
 
 **무료 티어 비용**:
+
 - ✅ **API 호출 0회** - 완전 클라이언트 사이드
 
 ---
@@ -362,12 +387,13 @@ const AI_ASSISTANT_ICONS = [
     description: 'AI 기반 시스템 장애 분석 보고서 생성',
   },
   {
-    id: 'intelligent-monitoring',  // ✏️ 기능 강화
+    id: 'intelligent-monitoring', // ✏️ 기능 강화
     label: '이상감지/예측',
-    description: '🧠 실시간 이상 탐지 → 근본 원인 분석 → 트렌드 예측 (자동 분석)',
+    description:
+      '🧠 실시간 이상 탐지 → 근본 원인 분석 → 트렌드 예측 (자동 분석)',
   },
   {
-    id: 'ai-metrics',  // 🆕 NEW
+    id: 'ai-metrics', // 🆕 NEW
     label: 'AI 성능 메트릭',
     description: 'AI 엔진 성능, 응답 시간, 에러율, 캐시 효율 실시간 추적',
   },
@@ -380,6 +406,7 @@ const AI_ASSISTANT_ICONS = [
 ```
 
 **변경 사항**:
+
 - ❌ **제거**: `advanced-management` (미구현)
 - ✏️ **강화**: `intelligent-monitoring` (Phase 3A, 3B로 실제 기능 구현)
 - ✅ **추가**: `ai-metrics` (Phase 3C, AI 성능 시각화)
@@ -414,19 +441,19 @@ const AI_ASSISTANT_ICONS = [
 
 ### **현재 사용량**
 
-| 서비스 | 무료 한도 | 현재 사용 | 사용률 |
-|--------|----------|----------|--------|
-| Google AI | 1,200 요청/일 | ~50 요청/일 | 4.2% |
-| Supabase | 500MB DB | 15MB | 3% |
-| Vercel | 100GB 대역폭 | 30GB/월 | 30% |
+| 서비스    | 무료 한도     | 현재 사용   | 사용률 |
+| --------- | ------------- | ----------- | ------ |
+| Google AI | 1,200 요청/일 | ~50 요청/일 | 4.2%   |
+| Supabase  | 500MB DB      | 15MB        | 3%     |
+| Vercel    | 100GB 대역폭  | 30GB/월     | 30%    |
 
 ### **Phase 3A-C 추가 후**
 
-| 서비스 | 무료 한도 | 예상 사용 | 사용률 |
-|--------|----------|----------|--------|
+| 서비스    | 무료 한도     | 예상 사용    | 사용률       |
+| --------- | ------------- | ------------ | ------------ |
 | Google AI | 1,200 요청/일 | ~340 요청/일 | **28.3%** ✅ |
-| Supabase | 500MB DB | ~25MB | **5%** ✅ |
-| Vercel | 100GB 대역폭 | 32GB/월 | **32%** ✅ |
+| Supabase  | 500MB DB      | ~25MB        | **5%** ✅    |
+| Vercel    | 100GB 대역폭  | 32GB/월      | **32%** ✅   |
 
 **결론**: ✅ **무료 티어 내 안정적 운영 가능**
 
@@ -436,12 +463,12 @@ const AI_ASSISTANT_ICONS = [
 
 ### **상용 솔루션 대비 구현 가능한 수준**
 
-| 기능 | Datadog | New Relic | Grafana | OpenManager VIBE (제안) |
-|------|---------|-----------|---------|------------------------|
-| 이상 탐지 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ (70%) |
-| 근본 원인 분석 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ (60%) |
-| 트렌드 예측 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ (70%) |
-| AI 인사이트 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ (65%) |
+| 기능           | Datadog    | New Relic  | Grafana | OpenManager VIBE (제안) |
+| -------------- | ---------- | ---------- | ------- | ----------------------- |
+| 이상 탐지      | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | ⭐⭐⭐  | ⭐⭐⭐ (70%)            |
+| 근본 원인 분석 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐    | ⭐⭐⭐ (60%)            |
+| 트렌드 예측    | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐  | ⭐⭐⭐ (70%)            |
+| AI 인사이트    | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐    | ⭐⭐⭐ (65%)            |
 
 **목표**: 상용 솔루션의 **60-70% 수준** 기능을 **$0/월**로 구현
 
@@ -458,9 +485,11 @@ const AI_ASSISTANT_ICONS = [
 ### 🎯 놓친 필수 기능 Top 5
 
 #### 1. **실시간 이상 탐지 자동화** ⭐⭐⭐
+
 **현재 상태**: 타입만 정의, 구현 없음
 **상용 솔루션**: Datadog Watchdog, New Relic Incident Intelligence
 **제안**:
+
 - `EnhancedServerMetrics.aiAnalysis.anomalyScore` 실제 계산
 - 26시간 이동 평균 + 2σ 알고리즘 구현
 - 실시간 알림 트리거 (임계값 초과 시)
@@ -468,9 +497,11 @@ const AI_ASSISTANT_ICONS = [
 **비즈니스 임팩트**: 장애 감지 시간 70% 단축 (평균 30분 → 9분)
 
 #### 2. **AI 기반 근본 원인 분석 (RCA)** ⭐⭐⭐
+
 **현재 상태**: 타입만 정의, 구현 없음
 **상용 솔루션**: Datadog RCA, New Relic Root Cause Analysis
 **제안**:
+
 - Gemini API로 이상 메트릭 + 로그 패턴 분석
 - 24시간 캐싱으로 API 호출 최소화 (동일 패턴 재사용)
 - `RootCauseAnalysisResult` 타입 실제 활용
@@ -478,9 +509,11 @@ const AI_ASSISTANT_ICONS = [
 **비즈니스 임팩트**: 평균 해결 시간 5배 단축 (New Relic 벤치마크)
 
 #### 3. **트렌드 예측 및 용량 계획** ⭐⭐
+
 **현재 상태**: `trends` 필드 정의, 계산 로직 없음
 **상용 솔루션**: New Relic Predictive Analytics, Grafana Prophet
 **제안**:
+
 - 단순 선형 회귀로 7일 후 메트릭 예측
 - `EnhancedServerMetrics.trends` 필드 자동 업데이트
 - 용량 부족 예상 시 사전 알림
@@ -488,9 +521,11 @@ const AI_ASSISTANT_ICONS = [
 **비즈니스 임팩트**: 프로덕션 장애 사전 방지 (예측 정확도 80%+)
 
 #### 4. **AI 인사이트 자동 생성** ⭐⭐
+
 **현재 상태**: 기본 카드만 표시, 실제 분석 없음
 **상용 솔루션**: Datadog Watchdog Insights, Grafana AI Insights
 **제안**:
+
 - 1일 1회 전체 서버 메트릭 분석 (오전 9시)
 - 3가지 핵심 인사이트 자동 생성
 - `PredictiveMonitoringResult` 타입 활용
@@ -498,9 +533,11 @@ const AI_ASSISTANT_ICONS = [
 **비즈니스 임팩트**: 운영자 모니터링 시간 40% 절감
 
 #### 5. **AI 성능 메트릭 시각화** ⭐⭐⭐
+
 **현재 상태**: API 완성 (`/api/ai-metrics`), UI 없음
 **상용 솔루션**: Datadog AI Monitoring Dashboard
 **제안**:
+
 - Phase 2에서 구현한 `AIMetricsCollector` 데이터 활용
 - 응답 시간 P50/P95/P99, 에러율, 캐시 히트율 차트
 - AI 엔진별 성능 비교 (google-ai vs performance-optimized)
@@ -512,6 +549,7 @@ const AI_ASSISTANT_ICONS = [
 ### 💡 무료 티어 최적화 전략
 
 #### API 호출 최소화 방법
+
 1. **캐싱 전략**:
    - 동일 이상 패턴 24시간 캐싱 (RCA 재사용)
    - 트렌드 예측 결과 1시간 캐싱
@@ -534,15 +572,18 @@ const AI_ASSISTANT_ICONS = [
 ### 🚀 우선순위 기반 구현 순서
 
 #### **Immediate (1-2주)**
+
 1. ✅ 실시간 이상 탐지 (Phase 3A) - 통계 기반, AI 불필요
 2. ✅ 트렌드 예측 (Phase 3A) - 선형 회귀, AI 불필요
 3. ✅ AI 기반 RCA (Phase 3B) - Gemini API 활용
 
 #### **Short-term (3-4주)**
+
 4. AI 인사이트 자동 생성 (Phase 3B 확장)
 5. AI 성능 메트릭 시각화 (Phase 3C)
 
 #### **Long-term (필요 시)**
+
 6. 패턴 기반 알림 그룹화
 7. 용량 계획 고도화 (Prophet 모델)
 
@@ -550,13 +591,13 @@ const AI_ASSISTANT_ICONS = [
 
 ### 📊 예상 효과 정량화
 
-| 지표 | 현재 | Phase 3 완료 후 | 개선율 |
-|------|------|-----------------|--------|
-| 장애 감지 시간 | 30분 | 9분 | **70% 단축** |
-| 평균 해결 시간 (MTTR) | 4시간 | 48분 | **80% 단축** |
-| 운영자 모니터링 시간 | 2시간/일 | 1.2시간/일 | **40% 절감** |
-| 프로덕션 장애 예방 | 0% | 60-70% | **60-70% 예방** |
-| Google AI 사용량 | 4.2% | 28.3% | **무료 티어 안전** |
+| 지표                  | 현재     | Phase 3 완료 후 | 개선율             |
+| --------------------- | -------- | --------------- | ------------------ |
+| 장애 감지 시간        | 30분     | 9분             | **70% 단축**       |
+| 평균 해결 시간 (MTTR) | 4시간    | 48분            | **80% 단축**       |
+| 운영자 모니터링 시간  | 2시간/일 | 1.2시간/일      | **40% 절감**       |
+| 프로덕션 장애 예방    | 0%       | 60-70%          | **60-70% 예방**    |
+| Google AI 사용량      | 4.2%     | 28.3%           | **무료 티어 안전** |
 
 **ROI 예상**: 1-2주 내 회수 (개발 시간 절감 + 장애 대응 시간 단축)
 

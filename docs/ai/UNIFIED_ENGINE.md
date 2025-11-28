@@ -1,17 +1,21 @@
 # Google AI 기반 Unified Engine 설계
 
-**버전**: 1.0.0
-**작성일**: 2025-11-15
-**상태**: 구현 완료 ✅
+**버전**: 1.0.0 (Legacy)
+**상태**: ⛔ Deprecated (Replaced by Vercel AI SDK Implementation)
+**참조**: 최신 아키텍처는 [ai-architecture.md](./ai-architecture.md)를 참조하세요.
+
+> **Note**: 이 문서는 초기 설계 당시의 Custom Engine 구현을 설명합니다. 현재 실제 구현은 `src/app/api/ai/unified-stream/route.ts`에서 Vercel AI SDK를 사용하여 **Hybrid Engine**으로 재구축되었습니다.
 
 ---
 
 ## 🎯 목표 및 동기
 
 ### 핵심 목표
+
 단일 Google AI 엔진으로 모든 AI 기능을 통합하여 **복잡도 60% 감소, 유지보수성 3배 향상**
 
 ### 주요 동기
+
 1. **단순화**: LOCAL/GOOGLE_AI 모드 분기 제거
 2. **일관성**: 단일 인터페이스, 일관된 동작
 3. **확장성**: Provider 추가로 기능 확장
@@ -85,6 +89,7 @@
 **위치**: `src/lib/ai/core/google-ai-unified-engine.ts`
 
 **책임**:
+
 - 모든 AI 쿼리 처리
 - Provider 컨텍스트 수집
 - 프롬프트 생성 (PromptBuilder 사용)
@@ -92,6 +97,7 @@
 - 응답 후처리 및 캐싱
 
 **인터페이스**:
+
 ```typescript
 interface IUnifiedEngine {
   /**
@@ -114,6 +120,7 @@ interface IUnifiedEngine {
 ```
 
 **주요 메서드**:
+
 ```typescript
 class GoogleAiUnifiedEngine implements IUnifiedEngine {
   private providers: Map<string, IContextProvider>;
@@ -152,7 +159,7 @@ class GoogleAiUnifiedEngine implements IUnifiedEngine {
     const enabledProviders = this.getEnabledProviders(request.scenario);
 
     // 병렬 실행으로 성능 최적화
-    const contextPromises = enabledProviders.map(provider =>
+    const contextPromises = enabledProviders.map((provider) =>
       provider.getContext(request.query, request.options)
     );
 
@@ -169,23 +176,26 @@ class GoogleAiUnifiedEngine implements IUnifiedEngine {
 **위치**: `src/lib/ai/core/prompt-builder.ts`
 
 **책임**:
+
 - Scenario별 프롬프트 템플릿 관리
 - 컨텍스트 주입
 - 토큰 최적화 (중요도에 따라 컨텍스트 우선순위 조정)
 
 **시나리오 타입**:
+
 ```typescript
 type AIScenario =
-  | 'failure-analysis'      // 장애 분석
-  | 'performance-report'    // 성능 리포트
-  | 'document-qa'           // 문서 Q/A
-  | 'dashboard-summary'     // 대시보드 요약
-  | 'general-query'         // 일반 쿼리
-  | 'incident-report'       // 사고 리포트
-  | 'optimization-advice';  // 최적화 조언
+  | 'failure-analysis' // 장애 분석
+  | 'performance-report' // 성능 리포트
+  | 'document-qa' // 문서 Q/A
+  | 'dashboard-summary' // 대시보드 요약
+  | 'general-query' // 일반 쿼리
+  | 'incident-report' // 사고 리포트
+  | 'optimization-advice'; // 최적화 조언
 ```
 
 **인터페이스**:
+
 ```typescript
 interface IPromptBuilder {
   /**
@@ -213,6 +223,7 @@ interface GoogleAIPrompt {
 ```
 
 **구현 예시**:
+
 ```typescript
 class PromptBuilder implements IPromptBuilder {
   private templates: Map<AIScenario, PromptTemplate>;
@@ -224,7 +235,10 @@ class PromptBuilder implements IPromptBuilder {
     const systemInstruction = this.buildSystemInstruction(template, scenario);
 
     // 2. 컨텍스트 조립
-    const contextText = this.assembleContexts(params.contexts, template.priority);
+    const contextText = this.assembleContexts(
+      params.contexts,
+      template.priority
+    );
 
     // 3. User message 생성
     const userMessage = this.buildUserMessage({
@@ -246,18 +260,20 @@ class PromptBuilder implements IPromptBuilder {
     // 우선순위에 따라 컨텍스트 정렬 및 조립
     const sorted = this.sortByPriority(contexts, priority);
 
-    return sorted.map(ctx => {
-      switch (ctx.type) {
-        case 'rag':
-          return this.formatRAGContext(ctx.data);
-        case 'ml':
-          return this.formatMLContext(ctx.data);
-        case 'rule':
-          return this.formatRuleContext(ctx.data);
-        default:
-          return '';
-      }
-    }).join('\n\n');
+    return sorted
+      .map((ctx) => {
+        switch (ctx.type) {
+          case 'rag':
+            return this.formatRAGContext(ctx.data);
+          case 'ml':
+            return this.formatMLContext(ctx.data);
+          case 'rule':
+            return this.formatRuleContext(ctx.data);
+          default:
+            return '';
+        }
+      })
+      .join('\n\n');
   }
 }
 ```
@@ -277,7 +293,10 @@ interface IContextProvider {
   name: string;
   type: 'rag' | 'ml' | 'rule';
 
-  getContext(query: string, options?: ProviderOptions): Promise<ProviderContext>;
+  getContext(
+    query: string,
+    options?: ProviderOptions
+  ): Promise<ProviderContext>;
   isEnabled(scenario: AIScenario): boolean;
 }
 
@@ -287,7 +306,10 @@ class RAGProvider implements IContextProvider {
 
   private ragEngine: SupabaseRAGEngine;
 
-  async getContext(query: string, options?: ProviderOptions): Promise<ProviderContext> {
+  async getContext(
+    query: string,
+    options?: ProviderOptions
+  ): Promise<ProviderContext> {
     const results = await this.ragEngine.searchSimilar(query, {
       maxResults: options?.maxResults || 5,
       threshold: 0.5,
@@ -328,14 +350,20 @@ class MLProvider implements IContextProvider {
 
   private mlEngine: LightweightMLEngine;
 
-  async getContext(query: string, options?: ProviderOptions): Promise<ProviderContext> {
+  async getContext(
+    query: string,
+    options?: ProviderOptions
+  ): Promise<ProviderContext> {
     // 쿼리에서 메트릭 데이터 추출 (options.data를 통해 전달받음)
     const metricData = options?.data;
     if (!metricData) {
       return this.emptyContext();
     }
 
-    const prediction = await this.mlEngine.predict('performance-predictor', metricData);
+    const prediction = await this.mlEngine.predict(
+      'performance-predictor',
+      metricData
+    );
 
     return {
       type: 'ml',
@@ -369,7 +397,10 @@ class RuleHintsProvider implements IContextProvider {
   name = 'RuleHintsProvider';
   type = 'rule' as const;
 
-  async getContext(query: string, options?: ProviderOptions): Promise<ProviderContext> {
+  async getContext(
+    query: string,
+    options?: ProviderOptions
+  ): Promise<ProviderContext> {
     const hints = this.analyzeQuery(query);
 
     return {
@@ -402,7 +433,8 @@ class RuleHintsProvider implements IContextProvider {
     if (lowerQuery.includes('memory') || lowerQuery.includes('메모리')) {
       hints.push({
         category: 'memory',
-        suggestion: '메모리 누수 가능성을 확인하세요. Swap 사용이 증가하면 RAM 추가가 필요합니다.',
+        suggestion:
+          '메모리 누수 가능성을 확인하세요. Swap 사용이 증가하면 RAM 추가가 필요합니다.',
         priority: 'medium',
       });
     }
@@ -509,6 +541,7 @@ Scenario: document-qa
 **엔드포인트**: `POST /api/ai/unified`
 
 **Request**:
+
 ```typescript
 interface UnifiedQueryRequest {
   query: string;
@@ -532,6 +565,7 @@ interface UnifiedQueryRequest {
 ```
 
 **Response**:
+
 ```typescript
 interface UnifiedQueryResponse {
   success: boolean;
@@ -557,13 +591,13 @@ interface UnifiedQueryResponse {
 
 ### 기존 엔드포인트 마이그레이션
 
-| 기존 엔드포인트 | 새 Scenario | 상태 |
-|----------------|-------------|------|
-| `/api/ai/query` | `general-query` | 통합 |
-| `/api/ai/incident-report` | `incident-report` | 통합 |
-| `/api/ai/insight-center` | `dashboard-summary` | 통합 |
-| `/api/ai/performance` | `performance-report` | 통합 |
-| `/api/ai/ultra-fast` | `general-query` | 통합 (캐싱 강화) |
+| 기존 엔드포인트           | 새 Scenario          | 상태             |
+| ------------------------- | -------------------- | ---------------- |
+| `/api/ai/query`           | `general-query`      | 통합             |
+| `/api/ai/incident-report` | `incident-report`    | 통합             |
+| `/api/ai/insight-center`  | `dashboard-summary`  | 통합             |
+| `/api/ai/performance`     | `performance-report` | 통합             |
+| `/api/ai/ultra-fast`      | `general-query`      | 통합 (캐싱 강화) |
 
 ---
 
@@ -572,6 +606,7 @@ interface UnifiedQueryResponse {
 ### 1. Unit 테스트
 
 **GoogleAiUnifiedEngine**:
+
 ```typescript
 describe('GoogleAiUnifiedEngine', () => {
   it('should gather contexts from all providers', async () => {
@@ -603,6 +638,7 @@ describe('GoogleAiUnifiedEngine', () => {
 ```
 
 **PromptBuilder**:
+
 ```typescript
 describe('PromptBuilder', () => {
   it('should build correct prompt for failure-analysis', () => {
@@ -687,6 +723,7 @@ describe('RAGProvider', () => {
 **목표**: 기본 동작하는 Unified Engine 완성
 
 **작업**:
+
 1. [x] 분석 문서 작성
 2. [x] 타입 정의 (`types.ts`)
 3. [x] GoogleAiUnifiedEngine 기본 구현
@@ -695,6 +732,7 @@ describe('RAGProvider', () => {
 6. [x] 기본 테스트 작성
 
 **검증**:
+
 - [x] `/api/ai/unified`로 쿼리 전송 시 응답 정상
 - [x] Google AI API 호출 성공
 - [x] 기본 프롬프트 생성 동작
@@ -704,6 +742,7 @@ describe('RAGProvider', () => {
 **목표**: RAG, ML, Rule Provider 완성
 
 **작업**:
+
 1. [x] RAGProvider 구현 (기존 SupabaseRAGEngine 래핑)
 2. [x] MLProvider 구현 (기존 LightweightMLEngine 래핑)
 3. [x] KoreanNLPProvider 구현 (RuleHints 대체)
@@ -712,6 +751,7 @@ describe('RAGProvider', () => {
 6. [x] Provider별 테스트
 
 **검증**:
+
 - [x] 각 Provider가 독립적으로 동작
 - [x] 컨텍스트가 올바르게 병합
 - [x] 실패한 Provider가 전체 쿼리에 영향 없음
@@ -721,6 +761,7 @@ describe('RAGProvider', () => {
 **목표**: 기존 UI를 새 엔진으로 연결
 
 **작업**:
+
 1. [x] `useAIEngine` 훅 업데이트
 2. [x] AI Assistant Modal 수정
 3. [x] Dashboard Summary 업데이트
@@ -728,6 +769,7 @@ describe('RAGProvider', () => {
 5. [x] 로딩 상태 개선
 
 **검증**:
+
 - [x] AI Assistant가 새 엔진으로 동작
 - [x] Dashboard Summary가 정상 표시
 - [x] 에러 메시지가 사용자 친화적
@@ -737,6 +779,7 @@ describe('RAGProvider', () => {
 **목표**: 성능 최적화 및 레거시 코드 제거
 
 **작업**:
+
 1. [x] LOCAL 모드 코드 제거
 2. [x] 불필요한 파일 삭제
 3. [x] 캐싱 최적화
@@ -745,6 +788,7 @@ describe('RAGProvider', () => {
 6. [x] 성능 테스트 및 튜닝
 
 **검증**:
+
 - [x] 응답 시간 500ms 이하 (90% 요청)
 - [x] 캐시 히트율 70% 이상
 - [x] 토큰 사용량 30% 감소
@@ -813,13 +857,13 @@ LOG_PROMPTS=false
 
 ## 📊 성능 목표
 
-| 메트릭 | 현재 | 목표 | 개선율 |
-|--------|------|------|--------|
-| 응답 시간 (P90) | 1200ms | 500ms | 58% |
-| 캐시 히트율 | 30% | 70% | 133% |
-| 토큰 사용량 | 1500 토큰/요청 | 1000 토큰/요청 | 33% |
-| 코드 복잡도 (파일 수) | 45개 | 18개 | 60% |
-| 테스트 커버리지 | 65% | 85% | 31% |
+| 메트릭                | 현재           | 목표           | 개선율 |
+| --------------------- | -------------- | -------------- | ------ |
+| 응답 시간 (P90)       | 1200ms         | 500ms          | 58%    |
+| 캐시 히트율           | 30%            | 70%            | 133%   |
+| 토큰 사용량           | 1500 토큰/요청 | 1000 토큰/요청 | 33%    |
+| 코드 복잡도 (파일 수) | 45개           | 18개           | 60%    |
+| 테스트 커버리지       | 65%            | 85%            | 31%    |
 
 ---
 
@@ -831,6 +875,7 @@ LOG_PROMPTS=false
 **가능성**: MEDIUM
 
 **완화 전략**:
+
 - 캐싱을 적극 활용 (70% 히트율 목표)
 - 토큰 사용량 모니터링
 - 할당량 근접 시 알림
@@ -842,6 +887,7 @@ LOG_PROMPTS=false
 **가능성**: LOW
 
 **완화 전략**:
+
 - 단계적 마이그레이션 (기존 엔드포인트 유지)
 - Feature flag로 신규/레거시 전환 가능
 - 철저한 regression 테스트
@@ -852,6 +898,7 @@ LOG_PROMPTS=false
 **가능성**: MEDIUM
 
 **완화 전략**:
+
 - Provider별 timeout 설정
 - Promise.allSettled로 부분 실패 허용
 - 최소 1개 Provider만 성공해도 진행
@@ -869,9 +916,9 @@ LOG_PROMPTS=false
 
 ## 📝 변경 이력
 
-| 버전 | 날짜 | 변경 내용 |
-|------|------|----------|
-| 1.0.0 | 2025-11-15 | 초기 설계 문서 작성 |
+| 버전  | 날짜       | 변경 내용                               |
+| ----- | ---------- | --------------------------------------- |
+| 1.0.0 | 2025-11-15 | 초기 설계 문서 작성                     |
 | 1.1.0 | 2025-11-16 | 전체 구현 완료, 마이그레이션 4단계 완료 |
 
 ---
@@ -879,6 +926,7 @@ LOG_PROMPTS=false
 **완료 상태**: ✅ 전체 구현 완료 (2025-11-16)
 
 **주요 성과**:
+
 - GoogleAiUnifiedEngine 구현 완료
 - 3개 Provider 통합 (RAG, ML, KoreanNLP)
 - 프론트엔드 AI Assistant 통합

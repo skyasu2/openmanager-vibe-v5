@@ -12,13 +12,24 @@ Claude Code와 외부 AI CLI 도구(Codex, Gemini)가 효율적으로 협업하�
 
 ### 참여 AI (3개)
 
-| AI | 역할 | 호출 방법 | 응답 시간 |
-|---|---|---|---|
-| **Codex** | 실무 검증 전문가 | CLI (`codex exec`) | ~8초 |
-| **Gemini** | 독립적 분석 전문가 | CLI (`gemini --model gemini-2.5-pro`) | ~10초 |
-| **Claude Code** | 프로젝트 컨텍스트 보유 | 내장 서브에이전트 | 즉시 |
+| AI              | 역할                   | 호출 방법                             | 응답 시간 |
+| --------------- | ---------------------- | ------------------------------------- | --------- |
+| **Codex**       | 실무 검증 전문가       | CLI (`codex exec`)                    | ~8초      |
+| **Gemini**      | 독립적 분석 전문가     | CLI (`gemini --model gemini-2.5-pro`) | ~10초     |
+| **Claude Code** | 프로젝트 컨텍스트 보유 | 내장 서브에이전트                     | 즉시      |
 
 **Qwen**: 성능 이슈로 제외. 필요 시 수동 요청으로만 사용.
+
+### 내부 AI Assistant (서비스용)
+
+| 컴포넌트   | 기술 스택               | 역할                          |
+| ---------- | ----------------------- | ----------------------------- |
+| **Engine** | **Vercel AI SDK**       | 스트리밍, 툴 호출 관리        |
+| **Model**  | **Gemini 1.5 Flash**    | 사용자 질의 응답, 데이터 분석 |
+| **RAG**    | **Supabase pgvector**   | 지식 기반 검색                |
+| **ML**     | **GCP Cloud Functions** | 장애 예측, 이상 탐지          |
+
+> **Note**: 위 표의 CLI 도구들은 **개발자 협업**용이며, 내부 AI Assistant는 **최종 사용자** 서비스를 위한 별도 아키텍처입니다.
 
 ---
 
@@ -38,6 +49,7 @@ auto-ai-review.sh (Dispatcher)
 ```
 
 **역할**:
+
 - 2:1 비율 선택 (Codex 2회, Gemini 1회)
 - 3단계 폴백 (Primary → Secondary → Claude Code)
 - 결과 파일 생성 (`logs/code-reviews/`)
@@ -54,6 +66,7 @@ auto-ai-review.sh (백그라운드) → 마크다운 파일 생성 → Claude �
 ```
 
 **특징**:
+
 - 파일 기반 (JSON-RPC 스타일)
 - Git hook 자동 트리거
 - 사용자는 즉시 기다릴 필요 없음
@@ -69,6 +82,7 @@ codex exec "$query" > response.txt
 ```
 
 **특징**:
+
 - stdout/stdin 파이프라인
 - JSON over stdio (구조화 가능)
 - 즉시 응답 대기
@@ -82,10 +96,12 @@ codex exec "$query" > response.txt
 **문제**: Gemini ImportProcessor 에러로 90% 실패율
 
 **해결**:
+
 1. **Option 1**: 직접 CLI 호출 + stderr 필터링 (`auto-ai-review.sh:306-316`)
 2. **Option 3**: GEMINI.md 헤더 수정 (Blockquote/Bold 제거)
 
 **결과**:
+
 ```bash
 # 수정 전
 [ERROR] [ImportProcessor] Could not find child token...
@@ -100,10 +116,12 @@ codex exec "$query" > response.txt
 현재 `auto-ai-review.sh`가 이미 Dispatcher 역할을 수행 중이므로, 추가 확장이 필요한 경우에만 다음을 고려:
 
 **옵션 A**: 현재 구조 유지 (권장)
+
 - `auto-ai-review.sh`: 비동기 코드 리뷰 전용
 - Claude Code: 동기 호출 시 직접 CLI 실행
 
 **옵션 B**: 통합 Dispatcher 구현
+
 ```bash
 scripts/ai-dispatcher.sh "$REQUEST_JSON"
 ├── type: "async" → auto-ai-review.sh 호출
@@ -116,12 +134,12 @@ scripts/ai-dispatcher.sh "$REQUEST_JSON"
 
 ### 현재 성과 (2025-11-21)
 
-| 지표 | 값 | 목표 |
-|------|---|------|
-| **가용성** | 99.9% | 99.9% ✅ |
+| 지표               | 값    | 목표     |
+| ------------------ | ----- | -------- |
+| **가용성**         | 99.9% | 99.9% ✅ |
 | **평균 응답 시간** | ~10초 | <60초 ✅ |
-| **Gemini 성공률** | 99%+ | >90% ✅ |
-| **stderr 에러** | 0개 | 0개 ✅ |
+| **Gemini 성공률**  | 99%+  | >90% ✅  |
+| **stderr 에러**    | 0개   | 0개 ✅   |
 
 ### 레거시 대비 개선
 
@@ -151,12 +169,14 @@ $ git commit -m "feat: 새 기능 추가"
 ```
 
 **Claude Code의 역할**:
+
 - "최근 코드 리뷰 확인해줘" 요청 시 파일 읽고 분석
 - 개선사항 자동 적용 또는 사용자에게 보고
 
 ### 2. 실시간 검증 (동기, 즉시 응답)
 
 #### Codex 직접 호출 (실무 검증)
+
 ```bash
 # 사용자가 Claude에게 요청
 "이 코드 버그 있는지 Codex한테 물어봐줘"
@@ -167,6 +187,7 @@ codex exec "이 함수에 버그가 있나요?"
 ```
 
 #### Gemini 직접 호출 (아키텍처 분석)
+
 ```bash
 # 사용자가 Claude에게 요청
 "이 구조 SOLID 원칙에 맞는지 Gemini한테 물어봐줘"
@@ -246,16 +267,19 @@ codex config check
 ## 🎯 향후 계획
 
 ### 완료됨 ✅
+
 - Phase 1: 근본 원인 해결 (GEMINI.md + 직접 호출)
 - 99.9% 가용성 달성
 - Gemini와 협업 아키텍처 토론 완료
 
 ### 보류 (필요 시)
+
 - Phase 2: 통합 Dispatcher (`ai-dispatcher.sh`) 구현
 - JSON 구조화 고도화
 - 성능 모니터링 대시보드
 
 ### 제외
+
 - ❌ Qwen 통합 (성능 이슈, 수동 요청으로만 사용)
 
 ---

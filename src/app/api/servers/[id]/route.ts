@@ -9,6 +9,7 @@ import {
   type ServerHistoryDataPoint,
 } from '@/schemas/server-schemas/server-details.schema';
 import debug from '@/utils/debug';
+import { withAuth } from '@/lib/auth/api-auth';
 
 // Database Server type from Supabase
 interface DatabaseServer {
@@ -41,263 +42,265 @@ interface DatabaseServer {
  * GET /api/servers/[id]
  * 특정 서버의 상세 정보 및 히스토리를 반환합니다 (Mock 데이터 기반)
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const startTime = Date.now();
+export const GET = withAuth(
+  async (
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+  ) => {
+    const startTime = Date.now();
 
-  try {
-    const { id } = await params;
-    const { searchParams } = new URL(request.url);
-    const includeHistory = searchParams.get('history') === 'true';
-    const range = searchParams.get('range') || '24h';
-    const format = searchParams.get('format') || 'enhanced'; // enhanced | legacy | prometheus
-    const includeMetrics = searchParams.get('include_metrics') === 'true';
-    const includePatterns = searchParams.get('include_patterns') === 'true';
+    try {
+      const { id } = await params;
+      const { searchParams } = new URL(request.url);
+      const includeHistory = searchParams.get('history') === 'true';
+      const range = searchParams.get('range') || '24h';
+      const format = searchParams.get('format') || 'enhanced'; // enhanced | legacy | prometheus
+      const includeMetrics = searchParams.get('include_metrics') === 'true';
+      const includePatterns = searchParams.get('include_patterns') === 'true';
 
-    debug.log(
-      `📊 서버 [${id}] 정보 조회: history=${includeHistory}, range=${range}, format=${format}`
-    );
-
-    // Mock 시스템에서 서버 찾기
-    const mockSystem = getMockSystem({
-      autoRotate: true,
-      rotationInterval: 30000,
-      speed: 1,
-    });
-
-    const servers = mockSystem.getServers();
-    const serverData = servers.find(
-      (server) =>
-        server.id === id || server.hostname === id || server.name === id
-    );
-
-    if (!serverData) {
-      debug.error(
-        '❌ Mock 시스템에서 서버 조회 실패:',
-        `서버 ID/hostname [${id}] 찾을 수 없음`
+      debug.log(
+        `📊 서버 [${id}] 정보 조회: history=${includeHistory}, range=${range}, format=${format}`
       );
-    }
 
-    const server = serverData as DatabaseServer | null;
+      // Mock 시스템에서 서버 찾기
+      const mockSystem = getMockSystem({
+        autoRotate: true,
+        rotationInterval: 30000,
+        speed: 1,
+      });
 
-    if (!server) {
-      // 사용 가능한 서버 목록을 Mock 시스템에서 가져오기
-      const availableServers = servers.slice(0, 10).map((s) => ({
-        id: s.id,
-        hostname: s.hostname,
-      }));
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Server not found',
-          message: `서버 '${id}'를 찾을 수 없습니다`,
-          available_servers: availableServers || [],
-          timestamp: new Date().toISOString(),
-        },
-        { status: 404 }
+      const servers = mockSystem.getServers();
+      const serverData = servers.find(
+        (server) =>
+          server.id === id || server.hostname === id || server.name === id
       );
-    }
 
-    debug.log(
-      `✅ 서버 [${id}] 발견: ${server.hostname} (${server.environment}/${server.role})`
-    );
+      if (!serverData) {
+        debug.error(
+          '❌ Mock 시스템에서 서버 조회 실패:',
+          `서버 ID/hostname [${id}] 찾을 수 없음`
+        );
+      }
 
-    // 3. 응답 형식에 따른 처리
-    if (format === 'prometheus') {
-      // 🗑️ Prometheus 형식은 더 이상 지원하지 않음
-      return NextResponse.json(
-        {
-          error: 'Prometheus format is no longer supported',
-          message: 'Please use JSON format instead',
-          server_id: server.id,
-        },
-        { status: 410 } // Gone
+      const server = serverData as DatabaseServer | null;
+
+      if (!server) {
+        // 사용 가능한 서버 목록을 Mock 시스템에서 가져오기
+        const availableServers = servers.slice(0, 10).map((s) => ({
+          id: s.id,
+          hostname: s.hostname,
+        }));
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Server not found',
+            message: `서버 '${id}'를 찾을 수 없습니다`,
+            available_servers: availableServers || [],
+            timestamp: new Date().toISOString(),
+          },
+          { status: 404 }
+        );
+      }
+
+      debug.log(
+        `✅ 서버 [${id}] 발견: ${server.hostname} (${server.environment}/${server.role})`
       );
-    } else if (format === 'legacy') {
-      // 레거시 형식
-      const legacyServer = {
-        id: server.id,
-        hostname: server.hostname || server.id,
-        name: `OpenManager-${server.id}`,
-        type: server.role || 'web',
-        environment: server.environment || 'onpremise',
-        location: getLocationByEnvironment(server.environment || 'onpremise'),
-        provider: getProviderByEnvironment(server.environment || 'onpremise'),
-        status: server.status,
-        cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
-        memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
-        disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
-        uptime:
-          typeof server.uptime === 'number'
-            ? formatUptime(server.uptime)
-            : server.uptime || '0d 0h 0m',
-        lastUpdate: new Date(server.lastUpdate || Date.now()),
-        alerts: Array.isArray(server.alerts)
-          ? server.alerts.length
-          : typeof server.alerts === 'number'
-            ? server.alerts
-            : 0,
-        services: generateServices(server.role || 'web'),
-        specs: generateSpecs(server.id),
-        os: generateSpecs(server.id).os,
-        ip: generateIP(server.id),
-        metrics: {
+
+      // 3. 응답 형식에 따른 처리
+      if (format === 'prometheus') {
+        // 🗑️ Prometheus 형식은 더 이상 지원하지 않음
+        return NextResponse.json(
+          {
+            error: 'Prometheus format is no longer supported',
+            message: 'Please use JSON format instead',
+            server_id: server.id,
+          },
+          { status: 410 } // Gone
+        );
+      } else if (format === 'legacy') {
+        // 레거시 형식
+        const legacyServer = {
+          id: server.id,
+          hostname: server.hostname || server.id,
+          name: `OpenManager-${server.id}`,
+          type: server.role || 'web',
+          environment: server.environment || 'onpremise',
+          location: getLocationByEnvironment(server.environment || 'onpremise'),
+          provider: getProviderByEnvironment(server.environment || 'onpremise'),
+          status: server.status,
           cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
           memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
           disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
-          network_in: Math.round(
-            server.metrics?.network ?? server.network ?? 0
-          ),
-          network_out: Math.round(
-            server.metrics?.network ?? server.network ?? 0
-          ),
-          response_time: 50,
-        },
-      };
-
-      // 히스토리 데이터 생성 (요청시)
-      let history = null;
-      if (includeHistory) {
-        history = generateServerHistory(server, range);
-      }
-
-      return NextResponse.json(
-        {
-          success: true,
-          server: legacyServer,
-          history,
-          meta: {
-            format: 'legacy',
-            include_history: includeHistory,
-            range,
-            timestamp: new Date().toISOString(),
-            processing_time_ms: Date.now() - startTime,
-          },
-        },
-        {
-          headers: {
-            // Legacy 형식도 30초 캐싱
-            'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
-            'CDN-Cache-Control': 'public, s-maxage=30',
-            'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
-          },
-        }
-      );
-    } else {
-      // Enhanced 형식 (기본)
-      const enhancedResponse = {
-        // 기본 서버 정보
-        server_info: {
-          id: server.id,
-          hostname: server.hostname,
-          environment: server.environment,
-          role: server.role,
-          status: server.status,
           uptime:
             typeof server.uptime === 'number'
               ? formatUptime(server.uptime)
               : server.uptime || '0d 0h 0m',
-          last_updated: server.lastUpdate,
-        },
-
-        // 현재 메트릭 (Supabase 데이터 구조에 맞게)
-        current_metrics: {
-          cpu_usage: server.metrics?.cpu ?? server.cpu ?? 0,
-          memory_usage: server.metrics?.memory ?? server.memory ?? 0,
-          disk_usage: server.metrics?.disk ?? server.disk ?? 0,
-          network_in: server.metrics?.network ?? server.network ?? 0,
-          network_out: server.metrics?.network ?? server.network ?? 0,
-          response_time: 50,
-        },
-
-        // 리소스 정보
-        resources: generateSpecs(server.id),
-        network: {
+          lastUpdate: new Date(server.lastUpdate || Date.now()),
+          alerts: Array.isArray(server.alerts)
+            ? server.alerts.length
+            : typeof server.alerts === 'number'
+              ? server.alerts
+              : 0,
+          services: generateServices(server.role || 'web'),
+          specs: generateSpecs(server.id),
+          os: generateSpecs(server.id).os,
           ip: generateIP(server.id),
-          hostname: server.hostname,
-          interface: 'eth0',
-        },
-
-        // 알람 정보
-        alerts: server.alerts || [],
-
-        // 서비스 정보
-        services: generateServices(server.role || 'web'),
-      };
-
-      // 패턴 정보 포함 (요청시) - Supabase에서는 패턴 정보를 별도 처리
-      let patternInfo = undefined;
-      let correlationMetrics = undefined;
-      if (includePatterns) {
-        // Supabase에서 패턴 정보를 별도 쿼리로 가져올 수 있음
-        // 현재는 기본값으로 설정
-        patternInfo = null;
-        correlationMetrics = null;
-      }
-
-      // 히스토리 데이터 (요청시)
-      let history: ServerHistory | undefined = undefined;
-      if (includeHistory) {
-        history = generateServerHistory(server, range);
-      }
-
-      // 메타데이터
-      const response = {
-        meta: {
-          request_info: {
-            server_id: id,
-            format,
-            include_history: includeHistory,
-            include_metrics: includeMetrics,
-            include_patterns: includePatterns,
-            range,
-            processing_time_ms: Date.now() - startTime,
-            timestamp: new Date().toISOString(),
+          metrics: {
+            cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
+            memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
+            disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
+            network_in: Math.round(
+              server.metrics?.network ?? server.network ?? 0
+            ),
+            network_out: Math.round(
+              server.metrics?.network ?? server.network ?? 0
+            ),
+            response_time: 50,
           },
-          dataSource: 'supabase-realtime',
-          scenario: 'production',
-        },
-        data: {
-          ...enhancedResponse,
-          pattern_info: patternInfo,
-          correlation_metrics: correlationMetrics,
-          history,
-        },
-      };
+        };
 
-      return NextResponse.json(response, {
-        headers: {
-          'X-Server-Id': server.id,
-          'X-Hostname': server.hostname || server.id,
-          'X-Server-Status': server.status,
-          'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
-          // 개별 서버 정보는 30초 캐싱
-          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
-          'CDN-Cache-Control': 'public, s-maxage=30',
-          'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
+        // 히스토리 데이터 생성 (요청시)
+        let history = null;
+        if (includeHistory) {
+          history = generateServerHistory(server, range);
+        }
+
+        return NextResponse.json(
+          {
+            success: true,
+            server: legacyServer,
+            history,
+            meta: {
+              format: 'legacy',
+              include_history: includeHistory,
+              range,
+              timestamp: new Date().toISOString(),
+              processing_time_ms: Date.now() - startTime,
+            },
+          },
+          {
+            headers: {
+              // Legacy 형식도 30초 캐싱
+              'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+              'CDN-Cache-Control': 'public, s-maxage=30',
+              'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
+            },
+          }
+        );
+      } else {
+        // Enhanced 형식 (기본)
+        const enhancedResponse = {
+          // 기본 서버 정보
+          server_info: {
+            id: server.id,
+            hostname: server.hostname,
+            environment: server.environment,
+            role: server.role,
+            status: server.status,
+            uptime:
+              typeof server.uptime === 'number'
+                ? formatUptime(server.uptime)
+                : server.uptime || '0d 0h 0m',
+            last_updated: server.lastUpdate,
+          },
+
+          // 현재 메트릭 (Supabase 데이터 구조에 맞게)
+          current_metrics: {
+            cpu_usage: server.metrics?.cpu ?? server.cpu ?? 0,
+            memory_usage: server.metrics?.memory ?? server.memory ?? 0,
+            disk_usage: server.metrics?.disk ?? server.disk ?? 0,
+            network_in: server.metrics?.network ?? server.network ?? 0,
+            network_out: server.metrics?.network ?? server.network ?? 0,
+            response_time: 50,
+          },
+
+          // 리소스 정보
+          resources: generateSpecs(server.id),
+          network: {
+            ip: generateIP(server.id),
+            hostname: server.hostname,
+            interface: 'eth0',
+          },
+
+          // 알람 정보
+          alerts: server.alerts || [],
+
+          // 서비스 정보
+          services: generateServices(server.role || 'web'),
+        };
+
+        // 패턴 정보 포함 (요청시) - Supabase에서는 패턴 정보를 별도 처리
+        let patternInfo = undefined;
+        let correlationMetrics = undefined;
+        if (includePatterns) {
+          // Supabase에서 패턴 정보를 별도 쿼리로 가져올 수 있음
+          // 현재는 기본값으로 설정
+          patternInfo = null;
+          correlationMetrics = null;
+        }
+
+        // 히스토리 데이터 (요청시)
+        let history: ServerHistory | undefined = undefined;
+        if (includeHistory) {
+          history = generateServerHistory(server, range);
+        }
+
+        // 메타데이터
+        const response = {
+          meta: {
+            request_info: {
+              server_id: id,
+              format,
+              include_history: includeHistory,
+              include_metrics: includeMetrics,
+              include_patterns: includePatterns,
+              range,
+              processing_time_ms: Date.now() - startTime,
+              timestamp: new Date().toISOString(),
+            },
+            dataSource: 'supabase-realtime',
+            scenario: 'production',
+          },
+          data: {
+            ...enhancedResponse,
+            pattern_info: patternInfo,
+            correlation_metrics: correlationMetrics,
+            history,
+          },
+        };
+
+        return NextResponse.json(response, {
+          headers: {
+            'X-Server-Id': server.id,
+            'X-Hostname': server.hostname || server.id,
+            'X-Server-Status': server.status,
+            'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
+            // 개별 서버 정보는 30초 캐싱
+            'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+            'CDN-Cache-Control': 'public, s-maxage=30',
+            'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
+          },
+        });
+      }
+    } catch (error) {
+      debug.error(`❌ 서버 [${(await params).id}] 정보 조회 실패:`, error);
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Server information retrieval failed',
+          message:
+            error instanceof Error
+              ? error.message
+              : '서버 정보 조회 중 오류가 발생했습니다',
+          timestamp: new Date().toISOString(),
         },
-      });
+        { status: 500 }
+      );
     }
-  } catch (error) {
-    debug.error(`❌ 서버 [${(await params).id}] 정보 조회 실패:`, error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Server information retrieval failed',
-        message:
-          error instanceof Error
-            ? error.message
-            : '서버 정보 조회 중 오류가 발생했습니다',
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 }
-    );
   }
-}
+);
 
 /**
  * 🌍 환경별 위치 반환

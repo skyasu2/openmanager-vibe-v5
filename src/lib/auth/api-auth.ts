@@ -120,15 +120,19 @@ export async function checkAPIAuth(request: NextRequest) {
  * 간단한 API 보호 래퍼
  * 사용법:
  * export const GET = withAuth(async (request) => { ... })
+ * export const GET = withAuth(async (request, context) => { ... }) // 동적 라우트
  */
-export function withAuth(
-  handler: (request: NextRequest) => Promise<NextResponse>
+export function withAuth<T = undefined>(
+  handler: T extends undefined
+    ? (request: NextRequest) => Promise<NextResponse>
+    : (request: NextRequest, context: T) => Promise<NextResponse>
 ) {
-  return async (request: NextRequest) => {
+  return async (request: NextRequest, context?: T) => {
     const authError = await checkAPIAuth(request);
     if (authError) return authError;
 
-    return handler(request);
+    // @ts-expect-error - TypeScript cannot infer the correct overload
+    return handler(request, context);
   };
 }
 
