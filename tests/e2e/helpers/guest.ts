@@ -93,6 +93,7 @@ export async function guestLogin(
 
 /**
  * AI 사이드바 토글을 열고 해당 locator를 반환합니다.
+ * 이미 열려있는 경우 버튼을 클릭하지 않습니다.
  */
 export async function openAiSidebar(
   page: Page,
@@ -105,6 +106,19 @@ export async function openAiSidebar(
     waitTimeout = TIMEOUTS.DOM_UPDATE,
   } = options;
 
+  // 먼저 사이드바가 이미 열려있는지 확인
+  for (const selector of sidebarSelectors) {
+    const sidebar = page.locator(selector).first();
+    const isVisible = await sidebar
+      .isVisible({ timeout: 1000 })
+      .catch(() => false);
+    if (isVisible) {
+      // 이미 열려있으면 바로 반환
+      return sidebar;
+    }
+  }
+
+  // 사이드바가 닫혀있으면 버튼을 찾아서 클릭
   let trigger: Locator | null = null;
   for (const selector of buttonSelectors) {
     const candidate = page.locator(selector).first();
