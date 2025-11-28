@@ -384,19 +384,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     return (
       <button
         type="button"
-        className={`md3-state-layer md3-card-hover group relative w-full cursor-pointer overflow-hidden rounded-2xl border text-left shadow-sm ${statusTheme.cardBg} ${statusTheme.cardBorder} ${variantStyles.container} focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:ring-offset-2`}
-        style={{
-          ...statusTheme.cardStyle,
-          transition: `all ${'300ms'} ${'cubic-bezier(0.2, 0.0, 0, 1.0)'}`,
-        }}
-        onMouseEnter={(e) => {
-          handleMouseEnter();
-          Object.assign(e.currentTarget.style, statusTheme.hoverStyle);
-        }}
-        onMouseLeave={(e) => {
-          handleMouseLeave();
-          Object.assign(e.currentTarget.style, statusTheme.cardStyle);
-        }}
+        className={`gpu-card-hover gpu-card-entrance md3-state-layer group relative w-full cursor-pointer overflow-hidden rounded-2xl border text-left shadow-sm ${statusTheme.cardBg} ${statusTheme.cardBorder} ${variantStyles.container} focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:ring-offset-2`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         aria-label={`${safeServer.name} 서버 - ${statusTheme.statusText} 상태. CPU ${Math.round((realtimeMetrics && realtimeMetrics.cpu) || 50)}%, 메모리 ${Math.round((realtimeMetrics && realtimeMetrics.memory) || 50)}% 사용 중`}

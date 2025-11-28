@@ -65,29 +65,29 @@ const MessageComponent = memo<{
       >
         {/* 아바타 */}
         <div
-          className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
+          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full shadow-sm ${
             message.role === 'user'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+              ? 'bg-blue-100 text-blue-600'
+              : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
           }`}
         >
           {message.role === 'user' ? (
-            <User className="h-3 w-3" />
+            <User className="h-4 w-4" />
           ) : (
-            <Bot className="h-3 w-3" />
+            <Bot className="h-4 w-4" />
           )}
         </div>
 
         {/* 메시지 콘텐츠 */}
         <div className="flex-1">
           <div
-            className={`rounded-lg p-3 ${
+            className={`rounded-2xl p-4 shadow-sm ${
               message.role === 'user'
-                ? 'bg-blue-500 text-white'
-                : 'border border-gray-200 bg-white'
+                ? 'rounded-tr-sm bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
             }`}
           >
-            <div className="whitespace-pre-wrap break-words text-sm">
+            <div className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
               {message.content}
             </div>
           </div>
@@ -141,7 +141,14 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     useState<AIAssistantFunction>('chat');
 
   // Vercel AI SDK useChat Hook (@ai-sdk/react v1.2.12)
-  const { messages, input, handleInputChange, handleSubmit, isLoading, reload } = useChat({
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    reload,
+  } = useChat({
     api: '/api/ai/unified-stream', // ✨ 포트폴리오용 Tools 포함
     onFinish: (message) => {
       // Optional: Sync to global store if needed
@@ -220,7 +227,9 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
             void handleSubmit(event); // void operator to ignore Promise return
           }}
           isGenerating={isLoading}
-          regenerateResponse={() => reload()}
+          regenerateResponse={() => {
+            void reload();
+          }}
           currentEngine="Vercel AI SDK"
         />
       );
@@ -241,8 +250,8 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
         aria-labelledby="ai-sidebar-v4-title"
         aria-modal="true"
         aria-hidden={!isOpen}
-        className={`fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl transition-transform duration-300 ease-in-out will-change-transform sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`gpu-sidebar-slide-in fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${
+          isOpen ? '' : 'gpu-sidebar-slide-out'
         } ${className}`}
       >
         <div className="flex min-w-0 flex-1 flex-col">

@@ -275,7 +275,7 @@ export default function EnhancedServerModal({
   return (
     <Fragment>
       <div
-        className="fixed relative inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+        className="gpu-modal-backdrop fixed relative inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
         role="presentation"
       >
         <button
@@ -285,7 +285,7 @@ export default function EnhancedServerModal({
           onClick={onClose}
         />
         <div
-          className="relative flex h-[95vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 sm:h-[90vh] sm:rounded-3xl"
+          className="gpu-modal-content relative flex h-[95vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 sm:h-[90vh] sm:rounded-3xl"
           role="dialog"
           aria-modal="true"
           tabIndex={-1}

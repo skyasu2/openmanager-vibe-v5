@@ -150,7 +150,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
       </div>
 
       {/* 입력 영역 */}
-      <div className="border-t border-gray-200 bg-white/80 p-3 backdrop-blur-sm">
+      <div className="border-t border-gray-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="flex items-end space-x-2">
           {/* 텍스트 입력 */}
           <div className="relative flex-1">
@@ -159,7 +159,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               onValueChange={setInputValue}
               onKeyboardShortcut={() => handleSendInput()}
               placeholder="시스템에 대해 질문해보세요..."
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
               minHeight={56}
               maxHeight={300}
               maxHeightVh={40}
@@ -174,11 +174,11 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               void handleSendInput();
             }}
             disabled={!inputValue.trim() || isGenerating}
-            className="rounded bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             title="메시지 전송"
             aria-label="메시지 전송"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-5 w-5" />
           </button>
         </div>
 
