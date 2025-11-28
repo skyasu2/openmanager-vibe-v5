@@ -5,6 +5,9 @@
 /* Material Design 3 토큰 시스템 Import */
 @import './material-tokens.css';
 
+/* GPU-Accelerated Animation Utilities (120fps target) */
+@import './animations-gpu.css';
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -1229,7 +1232,8 @@
 }
 
 @keyframes ai-icon-glow {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.5));
   }
@@ -1240,7 +1244,8 @@
 }
 
 @keyframes vibe-icon-pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1) rotate(0deg);
     filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6));
   }
@@ -1255,7 +1260,8 @@
 }
 
 @keyframes icon-hover-bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
