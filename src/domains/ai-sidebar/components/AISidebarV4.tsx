@@ -236,6 +236,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   return (
     <Fragment>
       <div
+        data-testid="ai-sidebar"
         role="dialog"
         aria-labelledby="ai-sidebar-v4-title"
         aria-modal="true"

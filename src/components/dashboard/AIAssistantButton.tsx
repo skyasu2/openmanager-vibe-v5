@@ -49,6 +49,7 @@ export const AIAssistantButton = memo(function AIAssistantButton({
     <div className="relative" suppressHydrationWarning>
       <button
         onClick={onClick}
+        data-testid="ai-assistant"
         className={`group relative transform overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 ${
           isMounted && (isOpen || isEnabled)
             ? 'scale-105 text-white shadow-lg shadow-purple-500/50'
