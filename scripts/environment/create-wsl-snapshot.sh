@@ -2,8 +2,19 @@
 # WSL 재설치 시 패키지 복원을 위한 스냅샷 생성 스크립트
 # 작성일: 2025-11-28
 
-OUTPUT_DIR="$HOME/wsl-restore-backup"
-mkdir -p "$OUTPUT_DIR"
+# 엄격 모드: 에러 발생 시 즉시 종료
+set -euo pipefail
+
+# 에러 발생 시 자동 처리
+trap 'echo "❌ 스냅샷 생성 중 오류 발생 (라인: $LINENO)"; exit 1' ERR
+
+# 타임스탬프 기반 백업 디렉토리 생성
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+OUTPUT_DIR="$HOME/wsl-restore-backup-$TIMESTAMP"
+mkdir -p "$OUTPUT_DIR" || {
+  echo "❌ 백업 디렉토리 생성 실패: $OUTPUT_DIR"
+  exit 1
+}
 
 echo "📦 WSL 패키지 스냅샷 생성 중..."
 echo "저장 위치: $OUTPUT_DIR"
