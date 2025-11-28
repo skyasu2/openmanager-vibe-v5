@@ -30,11 +30,14 @@ test.describe('AI 사이드바 실시간 검증 (Vercel)', () => {
         'button:has-text("🚀 시스템 시작"), button:has-text("시스템 시작")'
       )
       .first();
-    await startButton.waitFor({ state: 'visible', timeout: 10000 });
+    await startButton.waitFor({
+      state: 'visible',
+      timeout: TIMEOUTS.DASHBOARD_LOAD,
+    });
     await startButton.click();
 
     // 대시보드로 이동 및 로딩 대기
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    await page.waitForURL('**/dashboard', { timeout: TIMEOUTS.DASHBOARD_LOAD });
     await page.waitForLoadState('networkidle');
   });
 
@@ -218,18 +221,29 @@ test.describe('AI 사이드바 실시간 검증 (Vercel)', () => {
     // 첫 번째 메시지
     await input.fill('안녕하세요');
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(2000);
+
+    // 첫 번째 AI 응답 대기
+    const firstResponse = page
+      .locator('[data-testid="ai-message"], .ai-message, [role="article"]')
+      .first();
+    await expect(firstResponse).toBeVisible({ timeout: TIMEOUTS.AI_RESPONSE });
 
     // 두 번째 메시지
     await input.fill('제 이름을 기억하나요?');
     await page.keyboard.press('Enter');
+
+    // 두 번째 AI 응답 대기
+    const secondResponse = page
+      .locator('[data-testid="ai-message"], .ai-message, [role="article"]')
+      .last();
+    await expect(secondResponse).toBeVisible({ timeout: TIMEOUTS.AI_RESPONSE });
 
     // 히스토리 개수 확인 (사용자 2개 + AI 2개 = 최소 4개)
     const messages = page.locator(
       '[data-testid="ai-message"], .message, [role="article"]'
     );
     const count = await messages.count();
-    expect(count).toBeGreaterThanOrEqual(3); // 최소 3개 (첫 응답 + 두 번째 질문 + 두 번째 응답)
+    expect(count).toBeGreaterThanOrEqual(4); // 최소 4개 (사용자2 + AI2)
   });
 });
 
@@ -245,11 +259,14 @@ test.describe('AI 사이드바 성능 테스트', () => {
         'button:has-text("🚀 시스템 시작"), button:has-text("시스템 시작")'
       )
       .first();
-    await startButton.waitFor({ state: 'visible', timeout: 10000 });
+    await startButton.waitFor({
+      state: 'visible',
+      timeout: TIMEOUTS.DASHBOARD_LOAD,
+    });
     await startButton.click();
 
     // 대시보드로 이동 및 로딩 대기
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    await page.waitForURL('**/dashboard', { timeout: TIMEOUTS.DASHBOARD_LOAD });
     await page.waitForLoadState('networkidle');
 
     await openAiSidebar(page);

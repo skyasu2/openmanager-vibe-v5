@@ -61,6 +61,9 @@ export const TIMEOUTS = {
 
   /** AI 쿼리 처리 (180초) */
   AI_QUERY: 180000,
+
+  /** AI 응답 대기 (120초) - E2E 테스트용 */
+  AI_RESPONSE: 120000,
 } as const;
 
 /**
