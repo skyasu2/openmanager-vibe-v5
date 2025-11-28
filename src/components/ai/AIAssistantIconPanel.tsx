@@ -132,6 +132,7 @@ export default function AIAssistantIconPanel({
           return (
             <button
               key={item.id}
+              data-testid={`ai-function-${item.id}`}
               onClick={() => onFunctionChange(item.id)}
               className={`group relative h-12 w-12 flex-shrink-0 rounded-xl transition-all duration-200 active:scale-95 ${
                 isSelected
@@ -176,8 +177,9 @@ export default function AIAssistantIconPanel({
           return (
             <button
               key={item.id}
+              data-testid={`ai-function-${item.id}`}
               onClick={() => onFunctionChange(item.id)}
-              className={`group relative h-12 w-12 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 animate-fade-in ${
+              className={`animate-fade-in group relative h-12 w-12 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
                 isSelected
                   ? `bg-gradient-to-r ${item.gradient} scale-105 text-white shadow-lg`
                   : `${item.bgColor} ${item.color}`
@@ -189,9 +191,7 @@ export default function AIAssistantIconPanel({
 
               {/* 선택 표시 */}
               {isSelected && (
-                <div
-                  className="absolute -left-1 top-1/2 h-6 w-1 -translate-y-1/2 transform rounded-r-full bg-white animate-scale-y"
-                />
+                <div className="animate-scale-y absolute -left-1 top-1/2 h-6 w-1 -translate-y-1/2 transform rounded-r-full bg-white" />
               )}
 
               {/* 호버 툴팁 - 왼쪽으로 위치 변경 */}
