@@ -14,7 +14,21 @@ import { TIMEOUTS } from './helpers/timeouts';
 test.describe('대시보드 AI 사이드바 테스트', () => {
   test.beforeEach(async ({ page }) => {
     await guestLogin(page);
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+
+    // Fix: /main에서 "🚀 시스템 시작" 버튼 클릭하여 /dashboard로 이동
+    await page.waitForLoadState('networkidle');
+
+    const startButton = page
+      .locator(
+        'button:has-text("🚀 시스템 시작"), button:has-text("시스템 시작")'
+      )
+      .first();
+    await startButton.waitFor({ state: 'visible', timeout: 10000 });
+    await startButton.click();
+
+    // 대시보드로 이동 대기
+    await page.waitForURL('**/dashboard', { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
   });
 
   test('AI 사이드바 열기', async ({ page }) => {
@@ -26,7 +40,11 @@ test.describe('대시보드 AI 사이드바 테스트', () => {
     await openAiSidebar(page);
 
     // Fix: input/textarea는 텍스트 노드가 없으므로 placeholder 사용
-    const input = page.locator('textarea[placeholder*="메시지"], textarea[placeholder*="질문"], input[type="text"][placeholder*="AI"]').first();
+    const input = page
+      .locator(
+        'textarea[placeholder*="메시지"], textarea[placeholder*="질문"], input[type="text"][placeholder*="AI"]'
+      )
+      .first();
     await expect(input).toBeVisible({ timeout: TIMEOUTS.DOM_UPDATE });
   });
 
