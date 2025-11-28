@@ -132,7 +132,9 @@ export async function openAiSidebar(
   }
 
   if (!trigger) {
-    throw new Error('AI 토글 버튼을 찾을 수 없습니다.');
+    throw new Error(
+      `AI 토글 버튼을 찾을 수 없습니다. 시도한 셀렉터: ${buttonSelectors.join(', ')}`
+    );
   }
 
   await trigger.click();
