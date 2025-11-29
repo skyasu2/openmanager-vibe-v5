@@ -99,6 +99,8 @@
     "bundle:analyze": "BUNDLE_ANALYZE=browser npm run build",
     "git:pre-commit": "lint-staged",
     "git:pre-push": "npm run validate",
+    "review:show": "cat /tmp/validation-complete-latest.md 2>/dev/null || echo '❌ No recent review found.'",
+    "review:status": "ps aux | grep '[p]ost-commit-background.sh' > /dev/null && echo '🔄 AI Review is running...' || echo '✅ AI Review is NOT running.'",
     "check:usage": "node scripts/check-free-tier-usage.js",
     "perf:analyze": "node scripts/performance/core-web-vitals-analysis.js",
     "perf:report": "node scripts/performance/report.js",

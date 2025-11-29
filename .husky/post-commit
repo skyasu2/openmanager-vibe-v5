@@ -7,33 +7,15 @@
 
 set -e
 
-echo "🚀 Post-commit validation started (background, 5min timeout)..."
+echo "🚀 Post-commit validation started (background)..."
 
-# 1. ESLint 전체 검사 (백그라운드, 5분 타임아웃)
-if [ -f "scripts/lint/run-lint-check.sh" ]; then
-    echo "  🔍 ESLint check → logs/lint-reports/"
-    timeout 300 bash scripts/lint/run-lint-check.sh > /dev/null 2>&1 &
-fi
+# Run the orchestrator in the background, detached
+# nohup allows it to keep running even if the terminal closes (though in husky context it might be different, & is usually enough)
+(
+  nohup bash scripts/git/post-commit-background.sh > logs/post-commit.log 2>&1 &
+) &
 
-# 2. TypeScript 타입 체크 (백그라운드, 5분 타임아웃)
-if [ -f "scripts/typecheck/run-typecheck.sh" ]; then
-    echo "  📝 TypeScript check → logs/typecheck-reports/"
-    timeout 300 bash scripts/typecheck/run-typecheck.sh > /dev/null 2>&1 &
-fi
-
-# 3. Auto AI Code Review (Codex → Gemini Fallback, 백그라운드, 5분 타임아웃)
-if [ -f "scripts/code-review/auto-ai-review.sh" ]; then
-    echo "  🤖 AI code review → logs/code-reviews/"
-    timeout 300 bash scripts/code-review/auto-ai-review.sh > /dev/null 2>&1 &
-fi
-
-# 4. 통합 알림 생성 (모든 작업 완료 후)
-if [ -f "scripts/validation/create-summary.sh" ]; then
-    # 백그라운드 작업이 완료될 때까지 대기 (최대 310초)
-    (sleep 310 && bash scripts/validation/create-summary.sh > /dev/null 2>&1) &
-fi
-
-echo "✅ All background tasks started (5min timeout)."
-echo "💡 Results will be in logs/ and /tmp/validation-complete-*.md"
+echo "✅ Background tasks launched."
+echo "💡 Logs: logs/post-commit.log"
 
 exit 0

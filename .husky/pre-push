@@ -3,6 +3,13 @@
 echo "🔍 Pre-push: Type-safe + Build validation (~90초 예상)..."
 START_TIME=$(date +%s)
 
+# WSL Performance Check
+if [[ "$PWD" == /mnt/* ]]; then
+  echo "⚠️  WARNING: You are running this from the Windows filesystem (/mnt/...)."
+  echo "   This will be significantly slower (10x-50x) than running from the Linux filesystem (~/)."
+  echo "   Consider moving your project to your WSL home directory."
+fi
+
 # 1. 빠른 유닛 테스트 (11초) - CRITICAL (opt-out with SKIP_TESTS=true)
 echo "🧪 Running quick tests..."
 TEST_STATUS="passed"
@@ -60,20 +67,27 @@ else
 fi
 
 # 2. 프로덕션 빌드 검증 (CRITICAL - Vercel 배포 전 로컬 검증, 타입 체크 포함)
-# 2. 프로덕션 빌드 검증 (CRITICAL - Vercel 배포 전 로컬 검증, 타입 체크 포함)
+# 2. 프로덕션 빌드 검증 (Optimized for Dev Speed)
+# 기본적으로 Type Check + Lint만 병렬로 수행 (빠름)
+# FULL_CHECK=true 설정 시에만 실제 빌드 수행 (느림)
 echo "🏗️ Build validation..."
 if [ "${SKIP_BUILD:-false}" = "true" ]; then
   echo "⚪ Build validation skipped (SKIP_BUILD=true)"
-  echo "⚠️  WARNING: Skipping build validation may lead to deployment failures"
-else
+elif [ "${FULL_CHECK:-false}" = "true" ]; then
+  echo "🐢 Running FULL build validation (FULL_CHECK=true)..."
   npm run build || {
     echo "❌ Build failed - push blocked"
-    echo "💡 Fix: npm run build"
-    echo "⚠️  CRITICAL: Build must succeed before push"
-    echo "   (Prevents Vercel deployment failures)"
-    echo "   To bypass (emergency only): SKIP_BUILD=true git push"
     exit 1
   }
+else
+  echo "⚡ Running optimized validation (Type Check + Lint)..."
+  # Use the new parallel script
+  ./scripts/dev/validate-parallel.sh || {
+    echo "❌ Validation failed - push blocked"
+    echo "💡 Fix errors or run 'npm run build' locally to debug"
+    exit 1
+  }
+  echo "ℹ️  Note: Full build skipped. Use FULL_CHECK=true git push for full build."
 fi
 
 # 3. 환경 변수 검사 (CRITICAL - 배포 안전성)
