@@ -45,29 +45,52 @@ private async loadFromCustomSource(): Promise<Server[]> {
 
 ---
 
-## ⚠️ 레거시 파일 (Deprecated)
+## 🧪 레거시 Mock 시스템 (테스트/데모 전용)
 
-이 디렉토리의 다른 파일들은 **레거시**이며, **런타임에서 사용되지 않습니다**:
+이 디렉토리의 파일들은 **레거시 Mock 시스템**으로, **테스트 및 데모 목적으로만 사용**됩니다:
 
 - `fixedHourlyData.ts` - 구 시간별 데이터 시스템
-- `index.ts` - 레거시 Mock 시스템 진입점
+- `index.ts` - 레거시 Mock 시스템 진입점 (`getMockSystem()`)
 - `mockDataGenerator.ts` - 구 데이터 생성기
-- `mockDataRotator.ts` - 구 데이터 회전기
+- `mockDataRotator.ts` - 구 데이터 회전기 (30초 autoRotate)
 - `mockScenarios.ts` - 구 시나리오 시스템
 - `mockServerConfig.ts` - 구 서버 설정 (8개 서버)
 - `mockServerConfigExpanded.ts` - 구 확장 서버 설정 (15개 서버)
 
-### 왜 아직 존재하나요?
+### 현재 사용 위치
 
-1. **TypeScript import 호환성**: 일부 파일에서 import하지만 실제로 호출 안 됨
-2. **폴백 안전성**: 혹시 모를 오류 발생 시 폴백 로직 보존
-3. **점진적 제거**: 안전성 검증 후 향후 제거 예정
+레거시 Mock 시스템은 다음 API에서만 사용됩니다 (테스트/데모 전용):
 
-### 제거 계획
+1. **`/api/servers/mock/route.ts`** - Mock 시스템 전용 API (테스트용)
+2. **`/api/servers/realtime/route.ts`** - 실시간 데이터 API (30초 autoRotate)
+3. **`/api/servers/next/route.ts`** - 서버 페이지네이션 API
+4. **`/api/servers/[id]/route.ts`** - 개별 서버 조회 API
+5. **`/api/metrics/route.ts`** - Prometheus 메트릭 API
+6. **`/api/cache/optimize/route.ts`** - 캐시 최적화 API
+7. **`src/context/basic-context-manager.ts`** - AI 컨텍스트 관리
+8. **`/api/test/timezone/route.ts`** - 테스트 전용
 
-- **Phase 1** ✅: Scenario-loader 시스템 안정성 검증 완료 (2025-11-29)
-- **Phase 2** ⏳: 프로덕션 환경 3개월 운영 검증 (2025-12 ~ 2026-02)
-- **Phase 3** 📅: 레거시 파일 완전 제거 (2026-03)
+### 프로덕션 데이터 소스
+
+**프로덕션 환경에서는 scenario-loader (24시간 고정 데이터)를 사용**:
+
+- `/api/servers` - UnifiedServerDataSource → scenario-loader
+- `/api/servers/all` - UnifiedServerDataSource → scenario-loader
+- 클라이언트 Hook (`useFixed24hMetrics`) - 직접 scenario-loader 호출
+
+### 왜 유지하나요?
+
+1. **테스트/데모 목적**: 일부 API는 실시간 로테이션 기능 필요
+2. **TypeScript 호환성**: import 오류 방지
+3. **하위 호환성**: 기존 API 동작 유지
+
+### 제거 계획 없음
+
+레거시 Mock 시스템은 **영구 유지** 예정입니다:
+
+- 테스트 및 데모 목적으로 계속 사용
+- 24시간 고정 데이터와 병행 운영
+- 실제 서버 연결 계획 없음
 
 ---
 
@@ -89,14 +112,18 @@ UnifiedServerDataSource.ts (loadFromCustomSource)
 UI Components (ImprovedServerCard, DashboardContent)
 ```
 
-### 레거시 시스템 (Deprecated)
+### 레거시 Mock 시스템 (테스트/데모용)
 
 ```
-❌ src/mock/mockDataGenerator.ts
-❌ src/mock/mockDataRotator.ts
-❌ src/mock/index.ts
-  → 런타임에서 호출되지 않음
+🧪 src/mock/index.ts (getMockSystem)
+  ↓
+🧪 src/mock/mockDataGenerator.ts
+🧪 src/mock/mockDataRotator.ts (autoRotate 기능)
+  ↓
+🧪 /api/servers/mock, /api/servers/realtime (테스트/데모 전용)
 ```
+
+**용도**: 테스트, 데모, 실시간 로테이션 시뮬레이션
 
 ---
 
@@ -140,17 +167,35 @@ curl http://localhost:3000/api/servers
 
 ## 💡 FAQ
 
-### Q: 왜 레거시 파일을 바로 삭제하지 않나요?
+### Q: 레거시 Mock 시스템과 scenario-loader의 차이는?
 
-A: TypeScript import 오류를 피하고, 폴백 안전성을 보장하기 위함입니다. 프로덕션 환경에서 3개월 이상 안정적으로 운영된 후 제거할 예정입니다.
+A:
 
-### Q: 새로운 Mock 데이터를 추가하려면?
+- **scenario-loader** (프로덕션): 24시간 고정 데이터, 5분 단위 회전, Gemini 구현 (5/5 품질)
+- **레거시 Mock**: 실시간 로테이션 (30초), 테스트/데모 전용, 단순 패턴
 
-A: `src/services/scenario/scenario-loader.ts`의 `loadHourlyScenarioData()` 함수를 수정하거나, `scripts/generate-static-metrics.ts` 스크립트를 수정하여 JSON 파일을 재생성하세요.
+### Q: 어느 시스템을 사용해야 하나요?
+
+A:
+
+- **프로덕션 대시보드**: scenario-loader (UnifiedServerDataSource)
+- **테스트/데모**: 레거시 Mock (getMockSystem)
+- **실시간 시뮬레이션**: 레거시 Mock (/api/servers/realtime)
+
+### Q: 레거시 Mock 시스템을 제거할 계획인가요?
+
+A: **없습니다**. 테스트 및 데모 목적으로 영구 유지됩니다. 실제 서버 연결 계획도 없습니다.
+
+### Q: 새로운 프로덕션 데이터를 추가하려면?
+
+A: `scripts/generate-static-metrics.ts` 스크립트를 실행하여 24시간 JSON 파일을 재생성하세요. scenario-loader가 자동으로 로드합니다.
 
 ### Q: 실시간 데이터 회전은 어떻게 작동하나요?
 
-A: `scenario-loader.ts`가 KST(한국 시간) 기준으로 현재 시간(0-23시)을 계산하고, 해당 시간대의 JSON 파일을 로드합니다. 5분마다 자동으로 회전됩니다.
+A:
+
+- **scenario-loader**: KST 기준 현재 시간(0-23시) 자동 회전, 5분 단위
+- **레거시 Mock**: autoRotate 기능, 30초 간격, 수동 시간 점프 가능
 
 ---
 
