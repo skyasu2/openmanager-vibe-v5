@@ -3,9 +3,6 @@
  * AI 사이드바 도메인 통합 export
  */
 
-// 컴포넌트
-// AISidebarV3 archived to archive/deprecated/ai-sidebar-v3/
-
 // Hooks
 export {
   useAIThinking,
