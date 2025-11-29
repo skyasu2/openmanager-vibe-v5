@@ -23,9 +23,11 @@ import {
   Lightbulb,
 } from 'lucide-react';
 import { useServerDataStore } from '@/components/providers/StoreProvider';
-import type { EnhancedServerMetrics } from '@/types/unified-server';
+import type { EnhancedServerMetrics } from '@/types/server';
 import AIInsightsCard from './AIInsightsCard';
-import AIAssistantIconPanel, { type AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
+import AIAssistantIconPanel, {
+  type AIAssistantFunction,
+} from '@/components/ai/AIAssistantIconPanel';
 // AIModeSelector 제거 - 지능형 라우팅으로 자동 선택
 import FreeTierMonitor from '@/components/ai/FreeTierMonitor';
 import ThinkingProcessVisualizer from '@/components/ai/ThinkingProcessVisualizer';
@@ -35,7 +37,11 @@ import type { ThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
  * Helper function to extract numeric value from ServerMetrics union type
  */
 function extractNumericValue(
-  value: number | { usage: number; [key: string]: unknown } | { in: number; out: number; [key: string]: unknown } | { used: number; [key: string]: unknown }
+  value:
+    | number
+    | { usage: number; [key: string]: unknown }
+    | { in: number; out: number; [key: string]: unknown }
+    | { used: number; [key: string]: unknown }
 ): number {
   if (typeof value === 'number') {
     return value;
@@ -85,7 +91,9 @@ const QUESTION_EXAMPLES = [
 
 export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   // 실시간 서버 데이터 가져오기
-  const servers = useServerDataStore((state: { servers: EnhancedServerMetrics[] }) => state.servers);
+  const servers = useServerDataStore(
+    (state: { servers: EnhancedServerMetrics[] }) => state.servers
+  );
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -101,7 +109,8 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   const [activeTab, setActiveTab] = useState<'chat' | 'reports' | 'insights'>(
     'chat'
   );
-  const [selectedFunction, setSelectedFunction] = useState<AIAssistantFunction>('chat');
+  const [selectedFunction, setSelectedFunction] =
+    useState<AIAssistantFunction>('chat');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   // AI 모드는 지능형 라우팅으로 자동 선택 (사용자 선택 불필요)
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -159,16 +168,36 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
     try {
       // 실시간 서버 통계 계산
       const totalServers = servers.length;
-      const onlineServers = servers.filter((s: EnhancedServerMetrics) => s.status === 'online').length;
-      const warningServers = servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length;
-      const criticalServers = servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length;
+      const onlineServers = servers.filter(
+        (s: EnhancedServerMetrics) => s.status === 'online'
+      ).length;
+      const warningServers = servers.filter(
+        (s: EnhancedServerMetrics) => s.status === 'warning'
+      ).length;
+      const criticalServers = servers.filter(
+        (s: EnhancedServerMetrics) => s.status === 'critical'
+      ).length;
 
-      const avgCpu = servers.length > 0
-        ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + extractNumericValue(s.cpu), 0) / servers.length)
-        : 0;
-      const avgMemory = servers.length > 0
-        ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + extractNumericValue(s.memory), 0) / servers.length)
-        : 0;
+      const avgCpu =
+        servers.length > 0
+          ? Math.round(
+              servers.reduce(
+                (sum: number, s: EnhancedServerMetrics) =>
+                  sum + extractNumericValue(s.cpu),
+                0
+              ) / servers.length
+            )
+          : 0;
+      const avgMemory =
+        servers.length > 0
+          ? Math.round(
+              servers.reduce(
+                (sum: number, s: EnhancedServerMetrics) =>
+                  sum + extractNumericValue(s.memory),
+                0
+              ) / servers.length
+            )
+          : 0;
 
       // 🎯 실제 API 호출 (지능형 라우팅 자동 선택)
       const response = await fetch('/api/ai/query', {
@@ -222,7 +251,6 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
         responseTime: data.responseTime,
         confidence: data.confidence,
       });
-
     } catch (error) {
       console.error('❌ AI API 호출 실패:', error);
 
@@ -285,7 +313,9 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'chat' | 'reports' | 'insights')}
+              onClick={() =>
+                setActiveTab(tab.id as 'chat' | 'reports' | 'insights')
+              }
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'bg-blue-100 text-blue-700'
@@ -316,15 +346,17 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                     className={`max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}
                   >
                     {/* 사고 과정 시각화 (AI 응답만) */}
-                    {message.role === 'assistant' && message.thinkingSteps && message.thinkingSteps.length > 0 && (
-                      <div className="mb-2">
-                        <ThinkingProcessVisualizer 
-                          steps={message.thinkingSteps}
-                          isActive={false}
-                        />
-                      </div>
-                    )}
-                    
+                    {message.role === 'assistant' &&
+                      message.thinkingSteps &&
+                      message.thinkingSteps.length > 0 && (
+                        <div className="mb-2">
+                          <ThinkingProcessVisualizer
+                            steps={message.thinkingSteps}
+                            isActive={false}
+                          />
+                        </div>
+                      )}
+
                     <div
                       className={`rounded-lg p-3 ${
                         message.role === 'user'
@@ -416,7 +448,9 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
                 <button
-                  onClick={() => { void handleSendMessage(inputValue); }}
+                  onClick={() => {
+                    void handleSendMessage(inputValue);
+                  }}
                   disabled={!inputValue.trim() || isLoading}
                   className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -439,9 +473,33 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                 </div>
                 <div className="space-y-2 text-sm text-gray-600">
                   <div>• 총 서버: {servers.length}개</div>
-                  <div>• 정상: {servers.filter((s: EnhancedServerMetrics) => s.status === 'online').length}개</div>
-                  <div>• 경고: {servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length}개</div>
-                  <div>• 심각: {servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length}개</div>
+                  <div>
+                    • 정상:{' '}
+                    {
+                      servers.filter(
+                        (s: EnhancedServerMetrics) => s.status === 'online'
+                      ).length
+                    }
+                    개
+                  </div>
+                  <div>
+                    • 경고:{' '}
+                    {
+                      servers.filter(
+                        (s: EnhancedServerMetrics) => s.status === 'warning'
+                      ).length
+                    }
+                    개
+                  </div>
+                  <div>
+                    • 심각:{' '}
+                    {
+                      servers.filter(
+                        (s: EnhancedServerMetrics) => s.status === 'critical'
+                      ).length
+                    }
+                    개
+                  </div>
                   <div>
                     • 마지막 업데이트: {new Date().toLocaleTimeString('ko-KR')}
                   </div>
@@ -449,7 +507,11 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
               </div>
 
               <button
-                onClick={() => { void handleSendMessage('시스템 전체 장애 보고서를 생성해주세요'); }}
+                onClick={() => {
+                  void handleSendMessage(
+                    '시스템 전체 장애 보고서를 생성해주세요'
+                  );
+                }}
                 className="w-full rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 p-3 font-medium text-white transition-all hover:from-green-600 hover:to-emerald-700"
               >
                 <div className="flex items-center justify-center gap-2">
@@ -460,13 +522,17 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => { void handleSendMessage('성능 분석 보고서'); }}
+                  onClick={() => {
+                    void handleSendMessage('성능 분석 보고서');
+                  }}
                   className="rounded-lg bg-blue-50 p-3 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
                 >
                   성능 분석
                 </button>
                 <button
-                  onClick={() => { void handleSendMessage('보안 상태 보고서'); }}
+                  onClick={() => {
+                    void handleSendMessage('보안 상태 보고서');
+                  }}
                   className="rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
                 >
                   보안 점검
@@ -488,97 +554,139 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
             <AIInsightsCard className="mb-4" />
 
             {/* 🆕 Phase 3A: AI Analysis & Trends Visualization */}
-            <div className="space-y-3 mb-4">
-              {servers.map((server) => (
-                server.aiAnalysis && server.trends && (
-                  <div key={server.id} className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
-                    {/* Server Header */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-gray-800">{server.name}</h4>
-                        <p className="text-xs text-gray-500">{server.ip}</p>
+            <div className="mb-4 space-y-3">
+              {servers.map(
+                (server) =>
+                  server.aiAnalysis &&
+                  server.trends && (
+                    <div
+                      key={server.id}
+                      className="space-y-3 rounded-lg border border-gray-200 bg-white p-4"
+                    >
+                      {/* Server Header */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-gray-800">
+                            {server.name}
+                          </h4>
+                          <p className="text-xs text-gray-500">{server.ip}</p>
+                        </div>
+                        {/* Anomaly Score Badge */}
+                        <div
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            server.aiAnalysis.anomalyScore > 0.7
+                              ? 'bg-red-100 text-red-700'
+                              : server.aiAnalysis.anomalyScore > 0.4
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-green-100 text-green-700'
+                          }`}
+                        >
+                          이상도:{' '}
+                          {(server.aiAnalysis.anomalyScore * 100).toFixed(0)}%
+                        </div>
                       </div>
-                      {/* Anomaly Score Badge */}
-                      <div className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        server.aiAnalysis.anomalyScore > 0.7 ? 'bg-red-100 text-red-700' :
-                        server.aiAnalysis.anomalyScore > 0.4 ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-green-100 text-green-700'
-                      }`}>
-                        이상도: {(server.aiAnalysis.anomalyScore * 100).toFixed(0)}%
-                      </div>
-                    </div>
 
-                    {/* Trends */}
-                    <div className="grid grid-cols-4 gap-2">
-                      {(['cpu', 'memory', 'disk', 'network'] as const).map((metric) => {
-                        const trend = server.trends![metric];
-                        return (
-                          <div key={metric} className="text-center">
-                            <div className="text-xs text-gray-500 uppercase mb-1">{metric}</div>
-                            <div className={`text-lg font-semibold ${
-                              trend === 'increasing' ? 'text-red-600' :
-                              trend === 'decreasing' ? 'text-blue-600' :
-                              'text-gray-600'
-                            }`}>
-                              {trend === 'increasing' ? '↑' : trend === 'decreasing' ? '↓' : '→'}
-                            </div>
+                      {/* Trends */}
+                      <div className="grid grid-cols-4 gap-2">
+                        {(['cpu', 'memory', 'disk', 'network'] as const).map(
+                          (metric) => {
+                            const trend = server.trends![metric];
+                            return (
+                              <div key={metric} className="text-center">
+                                <div className="mb-1 text-xs uppercase text-gray-500">
+                                  {metric}
+                                </div>
+                                <div
+                                  className={`text-lg font-semibold ${
+                                    trend === 'increasing'
+                                      ? 'text-red-600'
+                                      : trend === 'decreasing'
+                                        ? 'text-blue-600'
+                                        : 'text-gray-600'
+                                  }`}
+                                >
+                                  {trend === 'increasing'
+                                    ? '↑'
+                                    : trend === 'decreasing'
+                                      ? '↓'
+                                      : '→'}
+                                </div>
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+
+                      {/* Predicted Issues */}
+                      {server.aiAnalysis.predictedIssues.length > 0 && (
+                        <div className="border-t border-gray-200 pt-3">
+                          <div className="mb-2 flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 text-orange-500" />
+                            <h5 className="text-sm font-medium text-gray-700">
+                              예측된 문제
+                            </h5>
                           </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Predicted Issues */}
-                    {server.aiAnalysis.predictedIssues.length > 0 && (
-                      <div className="border-t border-gray-200 pt-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertTriangle className="h-4 w-4 text-orange-500" />
-                          <h5 className="text-sm font-medium text-gray-700">예측된 문제</h5>
+                          <ul className="space-y-1">
+                            {server.aiAnalysis.predictedIssues.map(
+                              (issue, i) => (
+                                <li key={i} className="text-xs text-orange-700">
+                                  • {issue}
+                                </li>
+                              )
+                            )}
+                          </ul>
                         </div>
-                        <ul className="space-y-1">
-                          {server.aiAnalysis.predictedIssues.map((issue, i) => (
-                            <li key={i} className="text-xs text-orange-700">• {issue}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Recommendations */}
-                    {server.aiAnalysis.recommendations.length > 0 && (
-                      <div className="border-t border-gray-200 pt-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Lightbulb className="h-4 w-4 text-purple-500" />
-                          <h5 className="text-sm font-medium text-gray-700">권장 사항</h5>
+                      {/* Recommendations */}
+                      {server.aiAnalysis.recommendations.length > 0 && (
+                        <div className="border-t border-gray-200 pt-3">
+                          <div className="mb-2 flex items-center gap-2">
+                            <Lightbulb className="h-4 w-4 text-purple-500" />
+                            <h5 className="text-sm font-medium text-gray-700">
+                              권장 사항
+                            </h5>
+                          </div>
+                          <ul className="space-y-1">
+                            {server.aiAnalysis.recommendations
+                              .slice(0, 3)
+                              .map((rec, i) => (
+                                <li key={i} className="text-xs text-purple-700">
+                                  {rec}
+                                </li>
+                              ))}
+                          </ul>
                         </div>
-                        <ul className="space-y-1">
-                          {server.aiAnalysis.recommendations.slice(0, 3).map((rec, i) => (
-                            <li key={i} className="text-xs text-purple-700">{rec}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Confidence */}
-                    <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
-                      <span className="text-xs text-gray-500">분석 신뢰도</span>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-24 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full ${
-                              server.aiAnalysis.confidence > 0.7 ? 'bg-green-500' :
-                              server.aiAnalysis.confidence > 0.4 ? 'bg-yellow-500' :
-                              'bg-red-500'
-                            }`}
-                            style={{ width: `${server.aiAnalysis.confidence * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium text-gray-700">
-                          {(server.aiAnalysis.confidence * 100).toFixed(0)}%
+                      {/* Confidence */}
+                      <div className="flex items-center justify-between border-t border-gray-200 pt-3">
+                        <span className="text-xs text-gray-500">
+                          분석 신뢰도
                         </span>
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-200">
+                            <div
+                              className={`h-full ${
+                                server.aiAnalysis.confidence > 0.7
+                                  ? 'bg-green-500'
+                                  : server.aiAnalysis.confidence > 0.4
+                                    ? 'bg-yellow-500'
+                                    : 'bg-red-500'
+                              }`}
+                              style={{
+                                width: `${server.aiAnalysis.confidence * 100}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-medium text-gray-700">
+                            {(server.aiAnalysis.confidence * 100).toFixed(0)}%
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
-              ))}
+                  )
+              )}
             </div>
 
             <div className="space-y-3">
@@ -588,9 +696,13 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   <h3 className="font-medium text-purple-800">AI 추천</h3>
                 </div>
                 <p className="text-sm text-purple-700">
-                  {servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length > 0
+                  {servers.filter(
+                    (s: EnhancedServerMetrics) => s.status === 'critical'
+                  ).length > 0
                     ? `심각 상태 서버 ${servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length}개를 즉시 확인하세요.`
-                    : servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length > 0
+                    : servers.filter(
+                          (s: EnhancedServerMetrics) => s.status === 'warning'
+                        ).length > 0
                       ? `경고 상태 서버 ${servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length}개를 모니터링하세요.`
                       : '모든 서버가 정상 상태입니다.'}
                 </p>
@@ -602,7 +714,17 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   <h3 className="font-medium text-yellow-800">주의 사항</h3>
                 </div>
                 <p className="text-sm text-yellow-700">
-                  평균 CPU 사용률: {servers.length > 0 ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + extractNumericValue(s.cpu), 0) / servers.length) : 0}%
+                  평균 CPU 사용률:{' '}
+                  {servers.length > 0
+                    ? Math.round(
+                        servers.reduce(
+                          (sum: number, s: EnhancedServerMetrics) =>
+                            sum + extractNumericValue(s.cpu),
+                          0
+                        ) / servers.length
+                      )
+                    : 0}
+                  %
                 </p>
               </div>
 
@@ -612,7 +734,13 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   <h3 className="font-medium text-green-800">시스템 상태</h3>
                 </div>
                 <p className="text-sm text-green-700">
-                  {servers.length}개 서버 중 {servers.filter((s: EnhancedServerMetrics) => s.status === 'online').length}개가 정상 동작 중입니다.
+                  {servers.length}개 서버 중{' '}
+                  {
+                    servers.filter(
+                      (s: EnhancedServerMetrics) => s.status === 'online'
+                    ).length
+                  }
+                  개가 정상 동작 중입니다.
                 </p>
               </div>
             </div>

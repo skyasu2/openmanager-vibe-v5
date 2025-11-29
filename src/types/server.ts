@@ -339,6 +339,20 @@ export interface EnhancedServerMetrics {
     timestamp?: string;
     uptime?: number;
   };
+
+  // 🔧 AI 분석 및 트렌드 속성 (IntelligentMonitoringService 통합)
+  aiAnalysis?: {
+    anomalyScore: number;
+    predictedIssues: string[];
+    recommendations: string[];
+    confidence: number;
+  };
+  trends?: {
+    cpu: 'increasing' | 'decreasing' | 'stable';
+    memory: 'increasing' | 'decreasing' | 'stable';
+    disk: 'increasing' | 'decreasing' | 'stable';
+    network: 'increasing' | 'decreasing' | 'stable';
+  };
 }
 
 export interface ServerAlert {

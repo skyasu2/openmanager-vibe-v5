@@ -11,56 +11,11 @@
 import { createStore } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { calculateOptimalUpdateInterval } from '../config/serverConfig';
-import type { EnhancedServerMetrics } from '../types/unified-server';
+import type { EnhancedServerMetrics } from '../types/server';
 
 // 🎯 Single Source of Truth: UnifiedServerDataSource 사용
 
-/**
- * Server를 EnhancedServerMetrics로 변환
- */
-function mapServerToEnhanced(
-  server: import('../types/server').Server
-): EnhancedServerMetrics {
-  // uptime을 number로 변환
-  const uptimeNumber =
-    typeof server.uptime === 'number'
-      ? server.uptime
-      : parseInt(String(server.uptime), 10) || 0;
-
-  // 타입 변환: EnhancedServerMetrics는 'maintenance'와 'unknown'을 허용하지 않음
-  const enhancedStatus = (() => {
-    if (server.status === 'unknown' || server.status === 'maintenance') {
-      return 'offline';
-    }
-    return server.status;
-  })();
-
-  return {
-    // 기본 식별 정보
-    id: server.id,
-    hostname: server.hostname ?? server.id,
-    environment: server.environment,
-    role: server.role,
-    status: enhancedStatus,
-
-    // 메트릭 데이터
-    cpu: server.cpu,
-    memory: server.memory,
-    disk: server.disk,
-    network: server.network ?? 0,
-
-    // 성능 정보
-    responseTime: server.responseTime,
-    uptime: uptimeNumber,
-
-    // 타임스탬프 (현재 시간)
-    timestamp: new Date().toISOString(),
-
-    // UI에서 필요한 필드
-    name: server.name ?? server.id,
-    ip: server.ip ?? server.hostname,
-  };
-}
+import { mapServerToEnhanced } from '../utils/serverUtils';
 
 // 사용하지 않는 인터페이스들 제거
 

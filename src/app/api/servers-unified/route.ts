@@ -24,9 +24,11 @@ import type {
   ServerRole,
 } from '@/types/server';
 import type { HourlyServerData, RawServerData } from '@/types/server-metrics';
+import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import { createClient } from '@/lib/supabase/server';
 import fs from 'fs/promises';
 import path from 'path';
+import { mapServerToEnhanced } from '@/utils/serverUtils';
 
 /**
  * Supabase server_metrics 테이블 스키마 (snake_case)
@@ -86,249 +88,6 @@ const serversUnifiedRequestSchema = z.object({
 
 type ServersUnifiedRequest = z.infer<typeof serversUnifiedRequestSchema>;
 
-// 🗂️ 파일 캐시 시스템
-interface FileCache {
-  data: HourlyServerData;
-  timestamp: number;
-  hour: number;
-}
-
-const fileCache = new Map<string, FileCache>();
-const FILE_CACHE_TTL = 60000; // 1분 캐시
-
-/**
- * 🚀 캐시된 시간별 파일 읽기
- */
-async function readCachedHourlyFile(hour: number): Promise<HourlyServerData> {
-  const cacheKey = hour.toString().padStart(2, '0');
-  const cached = fileCache.get(cacheKey);
-
-  if (cached && Date.now() - cached.timestamp < FILE_CACHE_TTL) {
-    debug.log(`🎯 파일 캐시 히트: ${hour}시 데이터`);
-    return cached.data;
-  }
-
-  const filePath = path.join(
-    process.cwd(),
-    'public',
-    'server-scenarios',
-    'hourly-metrics',
-    `${cacheKey}.json`
-  );
-
-  try {
-    const rawData = await fs.readFile(filePath, 'utf8');
-    const hourlyData = JSON.parse(rawData);
-
-    fileCache.set(cacheKey, {
-      data: hourlyData,
-      timestamp: Date.now(),
-      hour,
-    });
-
-    debug.log(`✅ 파일 읽기 완료: ${hour}시 데이터`);
-    return hourlyData;
-  } catch {
-    console.error(`❌ 시간별 데이터 파일 오류: ${filePath}`);
-    throw new Error(`시간별 데이터 파일 누락: ${cacheKey}.json`);
-  }
-}
-
-/**
- * 🔄 시간별 시나리오 데이터 로드
- */
-async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]> {
-  try {
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    const currentSecond = now.getSeconds();
-
-    const segmentInHour = Math.floor((currentMinute * 60 + currentSecond) / 30);
-    const rotationMinute = segmentInHour % 60;
-
-    debug.log(
-      `🕒 시간별 데이터 회전: ${currentHour}:${currentMinute.toString().padStart(2, '0')}`
-    );
-
-    const hourlyData = await readCachedHourlyFile(currentHour);
-    return convertToEnhancedMetrics(hourlyData, currentHour, rotationMinute);
-  } catch (error) {
-    console.error('❌ 시간별 데이터 로드 실패:', error);
-    return generateFallbackServers();
-  }
-}
-
-/**
- * 🎯 Enhanced 메트릭으로 변환
- */
-function convertToEnhancedMetrics(
-  hourlyData: HourlyServerData,
-  currentHour: number,
-  rotationMinute: number
-): EnhancedServerMetrics[] {
-  const servers = hourlyData.servers || {};
-
-  // 10개 서버 보장
-  if (Object.keys(servers).length < 10) {
-    const missingCount = 10 - Object.keys(servers).length;
-    for (let i = 0; i < missingCount; i++) {
-      const serverIndex = Object.keys(servers).length + i + 1;
-      const serverTypes = ['security', 'backup', 'proxy', 'gateway'];
-      const serverType = serverTypes[i % serverTypes.length] ?? 'gateway';
-      const serverId = `${serverType}-server-${serverIndex}`;
-
-      servers[serverId] = {
-        id: serverId,
-        name: `${serverType.charAt(0).toUpperCase() + serverType.slice(1)} Server #${serverIndex}`,
-        hostname: `${serverType}-${serverIndex.toString().padStart(2, '0')}.prod.example.com`,
-        status: 'online',
-        type: serverType,
-        service: `${serverType} Service`,
-        location: 'us-east-1a',
-        environment: 'production',
-        provider: 'Auto-Generated',
-        uptime: 2592000 + Math.floor(Math.random() * 86400),
-        cpu: Math.floor(15 + Math.random() * 20),
-        memory: Math.floor(20 + Math.random() * 30),
-        disk: Math.floor(25 + Math.random() * 40),
-        network: Math.floor(5 + Math.random() * 25),
-        specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 200 },
-      };
-    }
-  }
-
-  return Object.values(servers).map((serverData: RawServerData, index) => {
-    const minuteFactor = rotationMinute / 59;
-    const fixedOffset = Math.sin(minuteFactor * 2 * Math.PI) * 2;
-    const serverOffset = (index * 3.7) % 10;
-    const fixedVariation = 1 + (fixedOffset + serverOffset) / 100;
-
-    return {
-      id: serverData.id || `server-${index}`,
-      name: serverData.name || `Server ${index + 1}`,
-      hostname: serverData.hostname || `server-${index}`,
-      status: serverData.status || 'online',
-      cpu: Math.round((serverData.cpu || 0) * fixedVariation),
-      cpu_usage: Math.round((serverData.cpu || 0) * fixedVariation),
-      memory: Math.round((serverData.memory || 0) * fixedVariation),
-      memory_usage: Math.round((serverData.memory || 0) * fixedVariation),
-      disk: Math.round((serverData.disk || 0) * fixedVariation),
-      disk_usage: Math.round((serverData.disk || 0) * fixedVariation),
-      network: Math.round((serverData.network || 20) * fixedVariation),
-      network_in: Math.round((serverData.network || 20) * 0.6 * fixedVariation),
-      network_out: Math.round(
-        (serverData.network || 20) * 0.4 * fixedVariation
-      ),
-      uptime: serverData.uptime || 86400,
-      responseTime: Math.round(
-        (serverData.responseTime || 200) * fixedVariation
-      ),
-      last_updated: new Date().toISOString(),
-      location: serverData.location || 'Seoul',
-      alerts: [],
-      ip: serverData.ip || `192.168.1.${100 + index}`,
-      os: serverData.os || 'Ubuntu 22.04 LTS',
-      type: serverData.type || 'web',
-      role: serverData.role || serverData.type || 'worker',
-      environment: serverData.environment || 'production',
-      provider: `DataCenter-${currentHour.toString().padStart(2, '0')}${rotationMinute.toString().padStart(2, '0')}`,
-      specs: {
-        cpu_cores: serverData.specs?.cpu_cores || 4,
-        memory_gb: serverData.specs?.memory_gb || 8,
-        disk_gb: serverData.specs?.disk_gb || 200,
-        network_speed: '1Gbps',
-      },
-      lastUpdate: new Date().toISOString(),
-      services: serverData.services || [],
-      systemInfo: {
-        os: serverData.os || 'Ubuntu 22.04 LTS',
-        uptime: Math.floor((serverData.uptime || 86400) / 3600) + 'h',
-        processes: (serverData.processes || 120) + Math.floor(serverOffset),
-        zombieProcesses:
-          serverData.status === 'critical'
-            ? 3
-            : serverData.status === 'warning'
-              ? 1
-              : 0,
-        loadAverage: `${(((serverData.cpu || 0) * fixedVariation) / 20).toFixed(2)}`,
-        lastUpdate: new Date().toISOString(),
-      },
-      networkInfo: {
-        interface: 'eth0',
-        receivedBytes: `${((serverData.network || 20) * 0.6 * fixedVariation).toFixed(1)} MB`,
-        sentBytes: `${((serverData.network || 20) * 0.4 * fixedVariation).toFixed(1)} MB`,
-        receivedErrors:
-          serverData.status === 'critical'
-            ? Math.floor(serverOffset % 5) + 1
-            : 0,
-        sentErrors:
-          serverData.status === 'critical'
-            ? Math.floor(serverOffset % 3) + 1
-            : 0,
-        status: serverData.status, // 🔧 수정: 직접 사용 (타입 통합 완료)
-      },
-    } as EnhancedServerMetrics;
-  });
-}
-
-/**
- * 🔄 폴백 서버 데이터 생성
- */
-function generateFallbackServers(): EnhancedServerMetrics[] {
-  return Array.from({ length: 10 }, (_, index) => ({
-    id: `fallback-${index + 1}`,
-    name: `Fallback Server ${index + 1}`,
-    hostname: `fallback-${index + 1}`,
-    status: 'warning' as const,
-    cpu: 45 + Math.floor(Math.random() * 20),
-    cpu_usage: 45 + Math.floor(Math.random() * 20),
-    memory: 60 + Math.floor(Math.random() * 15),
-    memory_usage: 60 + Math.floor(Math.random() * 15),
-    disk: 25 + Math.floor(Math.random() * 30),
-    disk_usage: 25 + Math.floor(Math.random() * 30),
-    network: 30 + Math.floor(Math.random() * 20),
-    network_in: 18 + Math.floor(Math.random() * 12),
-    network_out: 12 + Math.floor(Math.random() * 8),
-    uptime: 99900 + Math.floor(Math.random() * 100),
-    responseTime: 200 + Math.floor(Math.random() * 100),
-    last_updated: new Date().toISOString(),
-    location: 'Seoul',
-    alerts: [],
-    ip: `192.168.1.${100 + index}`,
-    os: 'Ubuntu 22.04 LTS',
-    type: (['web', 'api', 'database', 'cache'][index % 4] ||
-      'web') as ServerRole,
-    role: 'fallback',
-    environment: 'production',
-    provider: 'Fallback-System',
-    specs: {
-      cpu_cores: 4,
-      memory_gb: 8,
-      disk_gb: 200,
-      network_speed: '1Gbps',
-    },
-    lastUpdate: new Date().toISOString(),
-    services: [],
-    systemInfo: {
-      os: 'Ubuntu 22.04 LTS',
-      uptime: '24h',
-      processes: 120 + index * 10,
-      zombieProcesses: 0,
-      loadAverage: '1.5',
-      lastUpdate: new Date().toISOString(),
-    },
-    networkInfo: {
-      interface: 'eth0',
-      receivedBytes: '15.5 MB',
-      sentBytes: '8.2 MB',
-      receivedErrors: 0,
-      sentErrors: 0,
-      status: 'online', // 🔧 수정: 'healthy' → 'online' (ServerStatus 타입)
-    },
-  }));
-}
-
 /**
  * 🎯 실시간 서버 데이터 (Supabase 연동)
  */
@@ -366,9 +125,9 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
           alerts: [],
           ip: server.ip_address,
           os: server.os ?? 'Ubuntu 22.04 LTS',
-          role: (server.role ?? 'web') as ServerRole,
+          role: (server.role ?? 'web'),
           environment: (server.environment ??
-            'production') as ServerEnvironment,
+            'production'),
           provider: server.provider,
           specs: {
             cpu_cores: server.cpu_cores ?? 4,
@@ -399,17 +158,25 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
     );
   } catch (error) {
     console.error('❌ Supabase 실시간 데이터 오류:', error);
-    return await loadHourlyScenarioData();
+    // Fallback to UnifiedServerDataSource
+    const dataSource = getUnifiedServerDataSource();
+    const rawServers = await dataSource.getServers();
+    return rawServers.map(mapServerToEnhanced);
   }
 }
 
 /**
  * 🔍 특정 서버 상세 정보
  */
+/**
+ * 🔍 특정 서버 상세 정보
+ */
 async function getServerDetail(
   serverId: string
 ): Promise<EnhancedServerMetrics | null> {
-  const servers = await loadHourlyScenarioData();
+  const dataSource = getUnifiedServerDataSource();
+  const rawServers = await dataSource.getServers();
+  const servers = rawServers.map(mapServerToEnhanced);
   return servers.find((server) => server.id === serverId) || null;
 }
 
@@ -539,28 +306,40 @@ async function handleServersUnified(
     // 액션별 데이터 처리
     switch (action) {
       case 'list':
-        servers = enableRealtime
-          ? await getRealtimeServers()
-          : await loadHourlyScenarioData();
+        if (enableRealtime) {
+          servers = await getRealtimeServers();
+        } else {
+          const dataSource = getUnifiedServerDataSource();
+          const rawServers = await dataSource.getServers();
+          servers = rawServers.map(mapServerToEnhanced);
+        }
         break;
 
-      case 'cached':
-        servers = await loadHourlyScenarioData();
+      case 'cached': {
+        // UnifiedServerDataSource handles caching internally
+        const cachedDataSource = getUnifiedServerDataSource();
+        const rawCachedServers = await cachedDataSource.getServers();
+        servers = rawCachedServers.map(mapServerToEnhanced);
         additionalData.cacheInfo = {
           cached: true,
           cacheTime: new Date().toISOString(),
-          source: 'hourly-json-files',
+          source: 'unified-data-source',
         };
         break;
+      }
 
-      case 'mock':
-        servers = generateFallbackServers();
+      case 'mock': {
+        // Mock data is also served by UnifiedServerDataSource (configured as 'custom' or 'basic')
+        const mockDataSource = getUnifiedServerDataSource();
+        const rawMockServers = await mockDataSource.getServers();
+        servers = rawMockServers.map(mapServerToEnhanced);
         additionalData.mockInfo = {
           generated: true,
           serverCount: servers.length,
-          source: 'mock-generator',
+          source: 'unified-data-source',
         };
         break;
+      }
 
       case 'realtime':
         servers = await getRealtimeServers();
@@ -676,10 +455,7 @@ async function handleServersUnified(
       action,
       error: error instanceof Error ? error.message : 'Unknown error',
       fallback: true,
-      data:
-        action === 'detail' || action === 'processes'
-          ? null
-          : generateFallbackServers().slice(0, limit),
+      data: [],
       timestamp: new Date().toISOString(),
     };
   }

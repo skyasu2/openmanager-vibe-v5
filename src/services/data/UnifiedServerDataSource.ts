@@ -5,7 +5,12 @@
  */
 
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';
-import type { Server, ServerRole, ServerEnvironment } from '@/types/server';
+import type {
+  EnhancedServerMetrics,
+  Server,
+  ServerRole,
+  ServerEnvironment,
+} from '../types/server';
 
 // 🎯 Scenario-based failure data (Single Source of Truth)
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';

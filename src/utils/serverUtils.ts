@@ -8,7 +8,14 @@
  * - 상태 매핑
  */
 
-import type { Server, ServerAlert, Service, ServerRole, ServerEnvironment } from '@/types/server';
+import type {
+  Server,
+  ServerAlert,
+  Service,
+  ServerRole,
+  ServerEnvironment,
+  EnhancedServerMetrics,
+} from '@/types/server';
 import type { ServerStatus } from '@/types/server-enums'; // 🔧 추가: Single Source of Truth
 
 /**
@@ -42,7 +49,8 @@ export const serverTypeGuards = {
     );
   },
 
-  getStatus: (status: Server['status']): ServerStatus => { // 🔧 수정: ServerStatus 타입 사용
+  getStatus: (status: Server['status']): ServerStatus => {
+    // 🔧 수정: ServerStatus 타입 사용
     // 모든 상태를 그대로 반환 (이미 ServerStatus 타입)
     return status;
   },
@@ -125,7 +133,8 @@ export function normalizeServerData(server: unknown): Server {
     return typeof value === 'number' ? value : defaultValue;
   };
 
-  const getStatus = (): ServerStatus => { // 🔧 수정: ServerStatus 타입 사용
+  const getStatus = (): ServerStatus => {
+    // 🔧 수정: ServerStatus 타입 사용
     const status = s.status;
     // 'healthy' → 'online' 변환
     if (status === 'healthy') return 'online';
@@ -157,11 +166,17 @@ export function normalizeServerData(server: unknown): Server {
     provider: getString('provider', 'On-Premise'),
     lastUpdate: s.lastUpdate instanceof Date ? s.lastUpdate : new Date(),
     services: Array.isArray(s.services) ? (s.services as Service[]) : [],
-    networkStatus: (() => { // 🔧 수정: 'healthy' → 'online' 변환
+    networkStatus: (() => {
+      // 🔧 수정: 'healthy' → 'online' 변환
       const ns = s.networkStatus;
       if (ns === 'healthy') return 'online';
-      if (ns === 'offline' || ns === 'critical' || ns === 'online' ||
-          ns === 'warning' || ns === 'maintenance') {
+      if (
+        ns === 'offline' ||
+        ns === 'critical' ||
+        ns === 'online' ||
+        ns === 'warning' ||
+        ns === 'maintenance'
+      ) {
         return ns;
       }
       return undefined;
@@ -259,4 +274,69 @@ export function calculateServerHealth(server: Server): number {
     (100 - cpu) * 0.4 + (100 - memory) * 0.4 + (100 - disk) * 0.2;
 
   return Math.round(Math.max(0, Math.min(100, weightedScore)));
+}
+
+/**
+ * Server 객체를 EnhancedServerMetrics로 변환
+ */
+export function mapServerToEnhanced(server: Server): EnhancedServerMetrics {
+  // uptime을 number로 변환
+  const uptimeNumber =
+    typeof server.uptime === 'number'
+      ? server.uptime
+      : parseInt(String(server.uptime), 10) || 0;
+
+  // 타입 변환: EnhancedServerMetrics는 'maintenance'와 'unknown'을 허용하지 않음
+  const enhancedStatus = (() => {
+    if (server.status === 'unknown' || server.status === 'maintenance') {
+      return 'offline';
+    }
+    return server.status;
+  })();
+
+  return {
+    // 기본 식별 정보
+    id: server.id,
+    hostname: server.hostname ?? server.id,
+    environment: server.environment ?? 'production',
+    role: server.role ?? 'app',
+    status: enhancedStatus,
+
+    // 메트릭 데이터
+    cpu: server.cpu,
+    memory: server.memory,
+    disk: server.disk,
+    network: server.network ?? 0,
+
+    // 호환성 필드 매핑
+    cpu_usage: server.cpu,
+    memory_usage: server.memory,
+    disk_usage: server.disk,
+    network_in: (server.network ?? 0) / 2,
+    network_out: (server.network ?? 0) / 2,
+    alerts: [],
+
+    // 성능 정보
+    responseTime: server.responseTime ?? 0,
+    uptime: uptimeNumber,
+
+    // 타임스탬프 (현재 시간)
+    timestamp: new Date().toISOString(),
+    last_updated: new Date().toISOString(),
+
+    // UI에서 필요한 필드
+    name: server.name ?? server.id,
+    ip: server.ip ?? server.hostname,
+
+    // 추가 필드 (Optional)
+    location: server.location,
+    type: server.type,
+    provider: server.provider,
+    specs: server.specs,
+    lastUpdate: server.lastUpdate
+      ? new Date(server.lastUpdate).toISOString()
+      : undefined,
+    systemInfo: server.systemInfo,
+    networkInfo: server.networkInfo,
+  };
 }

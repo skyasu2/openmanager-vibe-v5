@@ -28,10 +28,7 @@ import {
   type TrendPrediction,
 } from '@/lib/ai/monitoring/TrendPredictor';
 
-import type {
-  EnhancedServerMetrics,
-  ServerMetrics,
-} from '@/types/unified-server';
+import type { EnhancedServerMetrics, ServerMetrics } from '@/types/server';
 
 /**
  * Helper function to extract numeric value from ServerMetrics union type
