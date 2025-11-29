@@ -558,8 +558,8 @@ describe('ResilientSupabaseClient', () => {
     it('should handle undefined window object', async () => {
       // Temporarily remove window
       const originalWindow = global.window;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (global as any).window;
+      // @ts-ignore
+      delete global.window;
 
       const mockData = [{ id: '1' }];
       mockFromChain.select.mockResolvedValue({

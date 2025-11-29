@@ -23,11 +23,8 @@ import type {
   ServerEnvironment,
   ServerRole,
 } from '@/types/server';
-import type { HourlyServerData, RawServerData } from '@/types/server-metrics';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import { createClient } from '@/lib/supabase/server';
-import fs from 'fs/promises';
-import path from 'path';
 import { mapServerToEnhanced } from '@/utils/serverUtils';
 
 /**
@@ -125,9 +122,8 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
           alerts: [],
           ip: server.ip_address,
           os: server.os ?? 'Ubuntu 22.04 LTS',
-          role: (server.role ?? 'web'),
-          environment: (server.environment ??
-            'production'),
+          role: server.role ?? 'web',
+          environment: server.environment ?? 'production',
           provider: server.provider,
           specs: {
             cpu_cores: server.cpu_cores ?? 4,

@@ -5,7 +5,6 @@
  */
 
 import { MockBase } from '../core/MockBase';
-import mockServers from '../data/servers.json';
 
 export class GCPMock extends MockBase {
   constructor() {
@@ -23,7 +22,7 @@ export class GCPMock extends MockBase {
    */
   async callUnifiedProcessor(
     query: string,
-    processors: string[] = ['korean_nlp', 'server_analyzer']
+    _processors: string[] = ['korean_nlp', 'server_analyzer']
   ): Promise<{
     success: boolean;
     data: unknown;

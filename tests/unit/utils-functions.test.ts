@@ -40,7 +40,9 @@ describe('Utils Functions', () => {
     });
 
     it('조건부 클래스명을 처리한다', () => {
-      expect(cn('base', true && 'conditional', false && 'hidden')).toBe(
+      const isTrue = true;
+      const isFalse = false;
+      expect(cn('base', isTrue && 'conditional', isFalse && 'hidden')).toBe(
         'base conditional'
       );
     });
@@ -86,7 +88,7 @@ describe('Utils Functions', () => {
       const id = generateSessionId();
       const parts = id.split('.');
       expect(parts).toHaveLength(2);
-      
+
       // 타임스탬프 부분이 유효한지 확인
       const timestamp = parseInt(parts[0], 36);
       expect(timestamp).toBeGreaterThan(0);
@@ -97,7 +99,7 @@ describe('Utils Functions', () => {
       const id = generateSessionId();
       const parts = id.split('.');
       const base58Part = parts[1];
-      
+
       // Base58에서 제외되는 문자들 (0, O, I, l)이 없어야 함
       expect(base58Part).not.toMatch(/[0OIl]/);
     });
@@ -349,7 +351,7 @@ describe('Utils Functions', () => {
       const failFn = vi.fn().mockRejectedValue(new Error('always fail'));
 
       // 🔧 수정: Promise rejection을 즉시 처리하여 unhandled rejection 방지
-      const failPromise = retry(failFn, 2, 10).catch(err => err);
+      const failPromise = retry(failFn, 2, 10).catch((err) => err);
 
       // 재시도 지연 시간을 빠르게 진행 (10ms * 1회)
       await vi.runAllTimersAsync();
@@ -421,10 +423,10 @@ describe('Utils Functions', () => {
       const data = [{ age: 30 }, { age: 20 }, { age: 25 }];
 
       const ascending = sortBy(data, 'age', 'asc');
-      expect(ascending.map(item => item.age)).toEqual([20, 25, 30]);
+      expect(ascending.map((item) => item.age)).toEqual([20, 25, 30]);
 
       const descending = sortBy(data, 'age', 'desc');
-      expect(descending.map(item => item.age)).toEqual([30, 25, 20]);
+      expect(descending.map((item) => item.age)).toEqual([30, 25, 20]);
     });
   });
 
