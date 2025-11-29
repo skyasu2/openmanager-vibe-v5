@@ -83,7 +83,11 @@ test.describe('기본 스모크 테스트', () => {
   });
 
   test('서버 API가 기본 응답을 제공한다', async ({ page }) => {
-    const serversResponse = await page.request.get('/api/servers');
+    const serversResponse = await page.request.get('/api/servers', {
+      headers: {
+        'x-test-secret': process.env.TEST_SECRET_KEY || '',
+      },
+    });
     if (serversResponse.status() === 403) {
       console.log('⚠️ 서버 API가 Vercel Security Checkpoint로 차단됨 - 건너뜀');
       return;

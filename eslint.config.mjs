@@ -277,8 +277,10 @@ export default tseslint.config(
   {
     files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
     languageOptions: {
+      parser: tseslint.parser, // TypeScript 파서 명시
       globals: {
         ...globals.jest,
+        ...globals.node, // E2E 테스트에서 process 사용
         vi: 'readonly',
       },
     },

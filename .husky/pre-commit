@@ -11,6 +11,7 @@ set -e
 
 # lint-staged: ESLint + Prettier (fast, staged files only)
 echo "🔍 Running lint-staged (ESLint + Prettier)..."
+export NODE_OPTIONS='--max-old-space-size=8192'
 npx lint-staged || {
   echo "❌ Linting/Formatting failed"
   echo "💡 Some files were auto-fixed. Please review and re-add them."

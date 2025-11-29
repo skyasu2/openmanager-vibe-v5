@@ -30,6 +30,15 @@ export async function checkAPIAuth(request: NextRequest) {
     return null; // 개발환경에서 인증 우회
   }
 
+  // 🧪 E2E 테스트 헤더 확인 (Playwright 테스트용)
+  const testSecret = request.headers.get('x-test-secret');
+  const envTestSecret = process.env.TEST_SECRET_KEY;
+
+  if (testSecret && envTestSecret && testSecret === envTestSecret) {
+    console.log('✅ [API Auth] E2E 테스트 모드 바이패스 활성화');
+    return null; // E2E 테스트 인증 통과
+  }
+
   // 🔑 테스트용 API 키 확인 (프로덕션 환경에서 Postman/curl 테스트용)
   const apiKey = request.headers.get('x-api-key');
   const envApiKey = process.env.TEST_API_KEY;

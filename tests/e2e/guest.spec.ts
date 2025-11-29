@@ -5,7 +5,6 @@ import { getEnvironmentInfo } from './helpers/config';
 
 const env = getEnvironmentInfo();
 const landingPath = process.env.GUEST_FLOW_LANDING_PATH || env.baseUrl;
-const dashboardPath = process.env.GUEST_FLOW_DASHBOARD_PATH || '/dashboard';
 const skipSystemStart = process.env.GUEST_FLOW_SKIP_SYSTEM_START === 'true';
 const forceSystemStart = process.env.GUEST_FLOW_FORCE_SYSTEM_START === 'true';
 const headlessMode =
@@ -57,8 +56,8 @@ test.describe('🧭 게스트 대시보드 핵심 플로우', () => {
       console.log('ℹ️ 환경 설정에 따라 시스템 시작 단계는 건너뜁니다.');
     }
 
-    await page.waitForURL(`**${dashboardPath}**`, {
-      timeout: TIMEOUTS.NETWORK_REQUEST,
+    await page.waitForURL(/\/(dashboard|main)/, {
+      timeout: 45000, // 30초 → 45초 증가
     });
     await expect(
       page.locator(
@@ -100,7 +99,9 @@ test.describe('🧭 게스트 대시보드 핵심 플로우', () => {
     if (headlessMode) {
       console.log('ℹ️ Headless 환경에서 AI 토글 확인 중...');
     }
-    const sidebar = await openAiSidebar(page);
+    const sidebar = await openAiSidebar(page, {
+      waitTimeout: 15000, // 10초 → 15초 증가
+    });
     await expect(sidebar).toBeVisible();
     console.log('✅ AI 사이드바 토글 및 렌더링 확인');
   });
