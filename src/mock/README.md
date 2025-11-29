@@ -9,7 +9,7 @@
 **Scenario-based Metrics System** (`src/services/scenario/scenario-loader.ts`)
 
 - **위치**: `src/services/scenario/scenario-loader.ts`
-- **데이터 소스**: `public/data/hourly-metrics/*.json` (24시간 × 15개 서버)
+- **데이터 소스**: `public/server-scenarios/hourly-metrics/*.json` (24시간 × 8개 서버 + 자동 생성 2개)
 - **생성 스크립트**: `scripts/generate-static-metrics.ts`
 - **클라이언트 Hook**: `src/hooks/useFixed24hMetrics.ts`
 - **품질**: ⭐⭐⭐⭐⭐ (5/5)
@@ -101,7 +101,7 @@ private async loadFromCustomSource(): Promise<Server[]> {
 ```
 scripts/generate-static-metrics.ts (Gemini 구현)
   ↓
-public/data/hourly-metrics/*.json (24시간 × 15개 서버, 192KB)
+public/server-scenarios/hourly-metrics/*.json (24시간 × 8개 서버 + 자동 2개, 192KB)
   ↓
 src/services/scenario/scenario-loader.ts (KST 회전)
   ↓

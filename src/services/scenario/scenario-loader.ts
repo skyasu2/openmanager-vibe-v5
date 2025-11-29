@@ -77,6 +77,43 @@ export interface EnhancedServerMetrics {
  * 하루가 끝나면 다시 처음부터 순환 (고정 패턴의 연속 회전)
  * KST(한국 시간) 기준으로 동기화
  */
+/**
+ * 🎯 **Single Source of Truth** - 24시간 시나리오 데이터 로더
+ *
+ * **절대 규칙**: 모든 서버 데이터는 이 함수를 통해서만 접근합니다.
+ * - ❌ JSON 파일 직접 import 금지
+ * - ❌ 새로운 데이터 소스 생성 금지
+ * - ❌ Mock 시스템 중복 생성 금지
+ *
+ * @returns {Promise<EnhancedServerMetrics[]>} 10개 서버 메트릭스 (8개 JSON + 2개 자동 생성)
+ *
+ * @description
+ * KST(한국 시간) 기반으로 24시간 데이터를 자동 회전시킵니다.
+ * - 시간대: 0-23시 (KST)
+ * - 회전 주기: 5분 단위 (동일 블록 내 동일 값)
+ * - 서버 수: 10개 보장 (부족 시 자동 생성)
+ * - 데이터 소스: `public/server-scenarios/hourly-metrics/*.json`
+ *
+ * @example
+ * // ✅ 올바른 사용 (AI Assistant)
+ * const servers = await loadHourlyScenarioData();
+ * console.log(servers.length); // 10
+ *
+ * @example
+ * // ✅ 올바른 사용 (UnifiedServerDataSource)
+ * const scenarioMetrics = await loadHourlyScenarioData();
+ * const servers = scenarioMetrics.map(m => convertToServer(m));
+ *
+ * @example
+ * // ❌ 절대 금지
+ * import data from '/public/fallback/servers.json';  // 직접 import
+ * const mockData = new CustomMockSystem().getServers();  // 중복 시스템
+ *
+ * @throws {Error} JSON 파일 로드 실패 시 (폴백 없음, 명시적 실패)
+ *
+ * @see {@link docs/architecture/DATA_ARCHITECTURE.md} 데이터 아키텍처 가이드
+ * @see {@link UnifiedServerDataSource} 통합 데이터 접근 계층
+ */
 export async function loadHourlyScenarioData(): Promise<
   EnhancedServerMetrics[]
 > {

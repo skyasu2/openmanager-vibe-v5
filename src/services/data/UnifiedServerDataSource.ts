@@ -74,6 +74,28 @@ export class UnifiedServerDataSource {
 
   /**
    * 🎯 서버 데이터 조회 (메인 인터페이스)
+   *
+   * **Single Source of Truth**: 모든 서버 데이터는 scenario-loader를 통해 제공됩니다.
+   *
+   * @returns {Promise<Server[]>} 10개 서버 데이터 (8개 JSON + 2개 자동 생성)
+   *
+   * @description
+   * - 데이터 소스: `scenario-loader` → `hourly-metrics/*.json`
+   * - 캐싱: 5분 TTL (성능 최적화)
+   * - 검증: 서버 수 및 필수 필드 확인
+   *
+   * @example
+   * // ✅ 올바른 사용 (싱글톤 패턴)
+   * const dataSource = UnifiedServerDataSource.getInstance();
+   * const servers = await dataSource.getServers();
+   *
+   * @example
+   * // ✅ 올바른 사용 (편의 함수)
+   * import { getServersFromUnifiedSource } from '@/services/data/UnifiedServerDataSource';
+   * const servers = await getServersFromUnifiedSource();
+   *
+   * @see {@link loadHourlyScenarioData} 실제 데이터 소스
+   * @see {@link docs/architecture/DATA_ARCHITECTURE.md} 아키텍처 가이드
    */
   public async getServers(): Promise<Server[]> {
     // 캐시 확인
