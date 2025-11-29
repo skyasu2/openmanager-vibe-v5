@@ -41,110 +41,7 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import debug from '@/utils/debug';
-// 🛡️ 베르셀 안전 유틸리티 import 추가 (Bundle-Safe Inline으로 l6 압축 방지)
-// import { handleVercelError } from '@/lib/utils/vercel-safe-utils'; // Unused
-
-// 🎯 Bundle-Safe Inline 매크로 - getSafeArrayLength (압축 방지)
-const getSafeArrayLength = (arr: unknown): number => {
-  try {
-    // 🛡️ Vercel 환경 Race Condition 완전 방어 - 5중 검증
-    if (arr === null || arr === undefined) return 0;
-    const arrType = typeof arr;
-    if (arrType !== 'object') return 0;
-    if (arr === null || arr === undefined) return 0;
-    const isArrayResult = Array.isArray(arr);
-    if (!isArrayResult) return 0;
-    if (!arr || !Array.isArray(arr)) return 0;
-    if (!Object.prototype.hasOwnProperty.call(arr, 'length')) return 0;
-
-    const lengthValue = (() => {
-      try {
-        const tempArr = arr as unknown[];
-        if (!tempArr || !Array.isArray(tempArr)) return 0;
-        const tempLength = tempArr.length;
-        if (typeof tempLength !== 'number') return 0;
-        return tempLength;
-      } catch {
-        return 0;
-      }
-    })();
-
-    if (isNaN(lengthValue) || lengthValue < 0) return 0;
-    return Math.floor(lengthValue);
-  } catch (error) {
-    console.error('🛡️ getSafeArrayLength Bundle-Safe error:', error);
-    return 0;
-  }
-};
-
-// 🎯 Bundle-Safe Inline 매크로 - vercelSafeLog (압축 방지)
-const vercelSafeLog = (message: string, data?: unknown): void => {
-  if (
-    typeof process !== 'undefined' &&
-    process.env &&
-    (process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined) &&
-    process.env.NODE_ENV === 'development'
-  ) {
-    console.log(`🛡️ [Vercel Safe] ${message}`, data);
-  }
-};
-
-// 🎯 타입 변환 헬퍼 함수 - 재사용 가능하도록 분리
-function convertServerToModalData(server: Server): ServerData {
-  return {
-    ...server,
-    hostname: server.hostname || server.name,
-    type: server.type || 'server',
-    environment: server.environment || 'production',
-    provider: server.provider || 'Unknown',
-    // 🚀 FIX: getSafeArrayLength로 베르셀 안전성 보장 (l6 TypeError 완전 해결)
-    alerts: (() => {
-      try {
-        if (Array.isArray(server.alerts)) {
-          return getSafeArrayLength(server.alerts);
-        }
-        if (typeof server.alerts === 'number') {
-          return Math.max(0, server.alerts);
-        }
-        return 0;
-      } catch (error) {
-        vercelSafeLog('convertServerToModalData alerts 처리 오류:', error);
-        return 0;
-      }
-    })(),
-    // 🛡️ services 배열도 베르셀 안전 처리
-    services: (() => {
-      try {
-        const serverServices = server.services || [];
-        if (!Array.isArray(serverServices)) {
-          return [];
-        }
-        return serverServices.map((service) => ({
-          name: service?.name || 'Unknown Service',
-          status: service?.status || 'running',
-          port: service?.port || 80,
-        }));
-      } catch (error) {
-        vercelSafeLog('convertServerToModalData services 처리 오류:', error);
-        return [];
-      }
-    })(),
-    lastUpdate: server.lastUpdate || new Date(),
-    uptime:
-      typeof server.uptime === 'number'
-        ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
-        : server.uptime || '0h 0m',
-    status: server.status, // 🔧 수정: ServerStatus 타입 직접 사용 (타입 통합 완료)
-    networkStatus:
-      server.status === 'online' // 🔧 수정: 'healthy' 제거 (타입 통합)
-        ? 'excellent'
-        : server.status === 'warning'
-          ? 'good'
-          : server.status === 'critical'
-            ? 'poor'
-            : 'offline',
-  };
-}
+import { convertServerToModalData } from '@/lib/utils/vercel-safety-utils';
 
 // --- Static Imports for Core Components (SSR bailout 해결) ---
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
@@ -318,43 +215,27 @@ class _DashboardErrorBoundary extends Component<
 
 // 🧪 테스트 모드 체크 함수 (컴포넌트 외부로 이동 - E2E 테스트용)
 function checkTestMode(): boolean {
-  console.log('🧪 [Dashboard] checkTestMode() 함수 실행 시작');
-
   // SSR 환경 체크
   if (typeof document === 'undefined' || typeof window === 'undefined') {
-    console.log('🧪 [Dashboard] SSR 환경 - 테스트 모드 체크 스킵');
     return false;
   }
 
   // 쿠키 체크
-  const allCookies = document.cookie;
-  console.log('🧪 [Dashboard] 전체 쿠키:', allCookies);
-
   const cookies = document.cookie.split(';').map((c) => c.trim());
   const hasTestMode = cookies.some((c) => c.startsWith('test_mode=enabled'));
   const hasTestToken = cookies.some((c) => c.startsWith('vercel_test_token='));
 
-  console.log('🧪 [Dashboard] test_mode 쿠키 존재:', hasTestMode);
-  console.log('🧪 [Dashboard] vercel_test_token 쿠키 존재:', hasTestToken);
-
   if (hasTestMode || hasTestToken) {
-    console.log('🧪 [Dashboard] 테스트 모드 감지 (쿠키) ✅');
     return true;
   }
 
   // localStorage 체크 (보조)
   const testModeEnabled = localStorage.getItem('test_mode_enabled') === 'true';
-  console.log(
-    '🧪 [Dashboard] localStorage test_mode_enabled:',
-    testModeEnabled
-  );
 
   if (testModeEnabled) {
-    console.log('🧪 [Dashboard] 테스트 모드 감지 (localStorage) ✅');
     return true;
   }
 
-  console.log('🧪 [Dashboard] 테스트 모드 감지 실패 ❌');
   return false;
 }
 
@@ -364,10 +245,6 @@ function DashboardPageContent() {
 
   useEffect(() => {
     renderCountRef.current++;
-    console.log('🔄 [DashboardClient] Render cycle', {
-      timestamp: Date.now(),
-      renderCount: renderCountRef.current,
-    });
   });
 
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
@@ -376,59 +253,19 @@ function DashboardPageContent() {
   // 🧪 테스트 모드 감지 - 즉시 동기적으로 체크 (useEffect 타이밍 이슈 해결)
   // FIX: Check BOTH cookie methods synchronously for E2E test reliability
   const [testModeDetected, setTestModeDetected] = useState(() => {
-    console.log('🔍 [DEBUG Step 1] testModeDetected initializer START', {
-      timestamp: Date.now(),
-      windowDefined: typeof window !== 'undefined',
-    });
-
     if (typeof window === 'undefined') {
-      console.log('🔍 [DEBUG Step 2] SSR mode detected - returning false');
       return false;
     }
-
-    console.log('🔍 [DEBUG Step 3] Client-side detected - checking cookies', {
-      cookieString: document.cookie,
-      cookieLength: document.cookie.length,
-      nodeEnv: process.env.NODE_ENV,
-      nextPublicEnv: process.env.NEXT_PUBLIC_NODE_ENV,
-    });
 
     // Check for test mode cookies first (works in all environments)
     const hasTestModeCookie = document.cookie.includes('test_mode=enabled');
     const hasTestToken = document.cookie.includes('vercel_test_token=');
 
-    console.log('🔍 [DEBUG Step 4] Cookie detection results', {
-      hasTestModeCookie,
-      hasTestToken,
-      cookieParts: document.cookie.split(';').map((c) => c.trim()),
-    });
-
     // 🔒 Production: Require BOTH cookies for security while allowing E2E tests
     if (process.env.NODE_ENV === 'production') {
-      console.log('🔍 [DEBUG Step 5] Production mode path entered');
       const isTestMode = hasTestModeCookie && hasTestToken;
-      console.log('🔍 [DEBUG Step 6] Test mode calculation', {
-        isTestMode,
-        hasTestModeCookie,
-        hasTestToken,
-        andResult: hasTestModeCookie && hasTestToken,
-      });
-
-      if (isTestMode) {
-        console.log(
-          '🧪 [Security] 프로덕션: 테스트 모드 쿠키 감지 - E2E 테스트 허용'
-        );
-      } else {
-        console.log(
-          '🔒 [Security] 프로덕션: 테스트 모드 쿠키 없음 - 일반 인증 필요'
-        );
-      }
       return isTestMode;
     }
-
-    console.log(
-      '🔍 [DEBUG Step 7] NOT production mode - using development path'
-    );
 
     // Development mode: use full detection logic with additional checks
     const functionBasedDetection = (() => {
@@ -459,20 +296,7 @@ function DashboardPageContent() {
       functionBasedDetection ||
       hasLocalStorageTestMode;
 
-    if (isTestMode) {
-      console.log(
-        '✅ [DashboardClient] 테스트 모드 감지 (초기 렌더) - dashboard-container 즉시 렌더링',
-        {
-          hasTestModeCookie,
-          hasTestToken,
-          functionBasedDetection,
-          hasLocalStorageTestMode,
-        }
-      );
-      return true;
-    }
-
-    return false;
+    return isTestMode;
   });
   // 🔧 FIX: Re-evaluate test mode after client-side mount
   // Problem: useState initializer runs during SSR (before cookies available)
@@ -481,11 +305,6 @@ function DashboardPageContent() {
     if (typeof window !== 'undefined') {
       const isTestMode = checkTestMode();
       if (isTestMode !== testModeDetected) {
-        console.log('🔄 [useEffect] Updating test mode detection:', {
-          before: testModeDetected,
-          after: isTestMode,
-          cookies: document.cookie,
-        });
         setTestModeDetected(isTestMode);
       }
     }
@@ -506,7 +325,6 @@ function DashboardPageContent() {
   const { isOpen: isAgentOpen, setOpen: setIsAgentOpen } = useAISidebarStore();
   const [authLoading, setAuthLoading] = useState(() => {
     if (checkTestMode()) {
-      console.log('🧪 Test mode detected - authLoading initialized to false');
       return false;
     }
     return true;
@@ -528,31 +346,12 @@ function DashboardPageContent() {
       const hasTestToken = document.cookie.includes('vercel_test_token=');
 
       if (hasTestModeCookie || hasTestToken) {
-        console.log(
-          '✅ [DashboardClient] 테스트 모드 감지 (post-hydration) - dashboard-container 즉시 렌더링'
-        );
         setTestModeDetected(true);
       }
     };
 
     detectTestMode();
   }, [isMounted]);
-
-  // 🎛️ 게스트 모드 디버그 로그 (빌드 캐시 무효화 + 디버깅)
-  useEffect(() => {
-    const guestModeStatus = isGuestFullAccessEnabled();
-    console.log('🎛️ [DashboardClient] Guest Mode Status:', {
-      enabled: guestModeStatus,
-      canAccessDashboard: permissions.canAccessDashboard,
-      isPinAuth: permissions.isPinAuthenticated,
-      shouldAllow:
-        permissions.canAccessDashboard ||
-        permissions.isPinAuthenticated ||
-        guestModeStatus,
-      timestamp: new Date().toISOString(),
-      buildVersion: '7.0.0-cache-fix',
-    });
-  }, [permissions.canAccessDashboard, permissions.isPinAuthenticated]);
 
   // 🔥 강화된 권한 체크 (비동기 인증 상태 타이밍 문제 해결)
   useEffect(() => {
@@ -563,9 +362,6 @@ function DashboardPageContent() {
 
     if (isGuestFullAccess) {
       // 🟢 게스트 전체 접근 모드: 즉시 허용
-      console.log(
-        '✅ DashboardClient: 게스트 전체 접근 모드 - 즉시 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)'
-      );
       setAuthLoading(false);
       return; // cleanup 불필요
     } else {
@@ -576,16 +372,7 @@ function DashboardPageContent() {
         testModeDetected ||
         isGuestFullAccessEnabled();
 
-      console.log('🔍 대시보드 권한 체크:', {
-        hookAuth: permissions.canAccessDashboard,
-        canAccess: canAccess,
-        userType: permissions.userType,
-        loading: permissions.userType === 'loading',
-        testModeDetected: testModeDetected,
-      });
-
       if (permissions.userType === 'loading') {
-        console.log('⏳ 권한 상태 로딩 중 - 알람 억제');
         return; // cleanup 불필요
       }
 
@@ -593,7 +380,6 @@ function DashboardPageContent() {
         !canAccess &&
         (permissions.userType === 'guest' || permissions.userType === 'github')
       ) {
-        console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
         toast({
           variant: 'destructive',
           title: '접근 권한 없음',
@@ -605,14 +391,6 @@ function DashboardPageContent() {
       }
 
       if (canAccess) {
-        console.log('✅ 대시보드 접근 권한 확인됨:', {
-          userType: permissions.userType,
-          userName: permissions.userName,
-          canAccessDashboard: permissions.canAccessDashboard,
-          isPinAuthenticated: permissions.isPinAuthenticated,
-          isGitHubAuthenticated: permissions.isGitHubAuthenticated,
-        });
-
         setAuthLoading(false);
       }
 
@@ -764,7 +542,6 @@ function DashboardPageContent() {
   const toggleAgent = useCallback(() => {
     // 🔒 AI 기능은 권한이 있는 사용자 또는 게스트 전체 접근 모드에서 사용 가능
     if (!permissions.canToggleAI && !isGuestFullAccessEnabled()) {
-      console.log('🚫 AI 사이드바 접근 차단 - AI 사용 권한 필요');
       // 토스트 메시지로 안내 (선택사항)
       return;
     }
@@ -798,7 +575,6 @@ function DashboardPageContent() {
       warning: number;
       offline: number;
     }) => {
-      console.log('📊 통계 업데이트 수신:', stats);
       setServerStats(stats);
     },
     []
@@ -843,18 +619,6 @@ function DashboardPageContent() {
 
   // 🔒 대시보드 접근 권한 확인 - PIN 인증한 게스트도 접근 가능
   // 🧪 FIX: 테스트 모드일 때는 로딩 상태 스킵 (E2E 테스트용)
-  // 🔍 DEBUG: 로딩 조건 평가 로그 추가
-  const testModeFromFunction = checkTestMode();
-  const loadingConditionValues = {
-    isMounted,
-    authLoading,
-    permissionsLoading: permissions.userType === 'loading',
-    checkTestMode: testModeFromFunction,
-    testModeDetected,
-    documentCookie: typeof document !== 'undefined' ? document.cookie : 'SSR',
-  };
-  console.log('🔍 [Loading Check] 조건 평가:', loadingConditionValues);
-
   // 🧪 FIX: 테스트 모드 감지를 가장 먼저 체크 (E2E 테스트 타임아웃 해결)
   // 핵심: 테스트 환경이면 로딩 체크를 완전히 스킵하여 dashboard-container가 즉시 렌더링되도록 함
   // ✅ FIX: Use testModeDetected state (updated by useEffect) instead of direct checkTestMode() call
@@ -867,18 +631,8 @@ function DashboardPageContent() {
     isMounted &&
     (authLoading || permissions.userType === 'loading')
   ) {
-    console.log(
-      '❌ [Loading Check] 로딩 UI 렌더링 - dashboard-container 차단!'
-    );
     return <AuthLoadingUI loadingMessage="권한을 확인하고 있습니다" />;
   }
-
-  console.log('✅ [Loading Check] 통과 - 권한 체크로 진행', {
-    isTestEnvironment,
-    isMounted,
-    authLoading,
-    permissionsLoading: permissions.userType === 'loading',
-  });
 
   // 🔒 대시보드 접근 권한이 없는 경우 (GitHub 로그인 또는 PIN 인증 또는 테스트 모드 또는 게스트 전체 접근 모드 필요)
   // 🧪 FIX: 테스트 모드 체크 추가 (E2E 테스트용)
@@ -893,20 +647,6 @@ function DashboardPageContent() {
   ) {
     return <UnauthorizedAccessUI />;
   }
-
-  // 🎯 DIAGNOSTIC: Final state check before dashboard-container return
-  console.log('🎯 [DashboardClient] About to return dashboard-container', {
-    timestamp: Date.now(),
-    isMounted,
-    testModeDetected,
-    checkTestMode: checkTestMode(),
-    authLoading,
-    permissionsUserType: permissions.userType,
-    canAccessDashboard: permissions.canAccessDashboard,
-    isPinAuth: permissions.isPinAuthenticated,
-    isGuestFullAccessEnabled: isGuestFullAccessEnabled(),
-    renderCount: renderCountRef.current,
-  });
 
   return (
     <div
@@ -997,13 +737,6 @@ function DashboardPageContent() {
 
 // 🎯 대시보드 클라이언트 컴포넌트
 export default function DashboardClient() {
-  // 🔍 DIAGNOSTIC: Check if wrapper component executes at all
-  console.log('🚀 [DashboardClient] Wrapper component executing', {
-    timestamp: Date.now(),
-    isSSR: typeof window === 'undefined',
-    location: typeof window !== 'undefined' ? window.location.href : 'SSR',
-  });
-
   return (
     <Suspense fallback={<ContentLoadingSkeleton />}>
       <DashboardPageContent />
