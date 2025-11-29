@@ -38,18 +38,14 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 | Endpoint                     | Method    | Description               | Status         | Replacement      |
 | ---------------------------- | --------- | ------------------------- | -------------- | ---------------- |
 | `/api/ai/korean-nlp`         | POST      | 한국어 NLP (GCP)          | **410 Gone**   | `unified-stream` |
-| `/api/ai/ml-analytics`       | POST      | ML 분석 (GCP)             | **410 Gone**   | `unified-stream` |
 | `/api/ai/thinking/stream-v2` | POST      | 레거시 Thinking Stream    | **Deprecated** | `unified-stream` |
 | `/api/ai/logging/stream`     | GET, POST | AI 로그 스트리밍 (Memory) | **Legacy**     | -                |
 
 ### Development/Testing 🧪
 
-| Endpoint                   | Method | Description             | Purpose     |
-| -------------------------- | ------ | ----------------------- | ----------- |
-| `/api/ai/edge-v2`          | POST   | Edge Runtime AI 테스트  | Development |
-| `/api/ai/google-ai/status` | GET    | Google AI API 상태 확인 | Monitoring  |
-| `/api/ai-analysis`         | POST   | AI 분석 테스트          | Development |
-| `/api/ai-metrics`          | GET    | AI 메트릭 수집          | Development |
+| Endpoint                   | Method | Description             | Purpose    |
+| -------------------------- | ------ | ----------------------- | ---------- |
+| `/api/ai/google-ai/status` | GET    | Google AI API 상태 확인 | Monitoring |
 
 ---
 
@@ -126,6 +122,8 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 
 ## 🧪 Development/Testing APIs (10개)
 
+## 🧪 Development/Testing APIs (8개)
+
 | Endpoint                     | Method | Description        | Purpose     |
 | ---------------------------- | ------ | ------------------ | ----------- |
 | `/api/test/timezone`         | GET    | 타임존 테스트      | Development |
@@ -133,8 +131,6 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 | `/api/debug/env`             | GET    | 환경 변수 디버그   | Development |
 | `/api/ab-test`               | GET    | A/B 테스트 플래그  | Development |
 | `/api/simulate/data`         | POST   | 데이터 시뮬레이션  | Development |
-| `/api/data-generator/start`  | POST   | 데이터 생성기 시작 | Development |
-| `/api/data-generator/status` | GET    | 데이터 생성기 상태 | Development |
 | `/api/agents/health`         | GET    | 에이전트 헬스 체크 | Development |
 | `/api/ping`                  | GET    | 서버 Ping          | Monitoring  |
 | `/api/time`                  | GET    | 서버 시간          | Utility     |

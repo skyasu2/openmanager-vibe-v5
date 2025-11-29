@@ -127,15 +127,17 @@ grep -r "'/api/ai-metrics'" src
 - [ ] `/api/data-generator/start` - 프로덕션 차단
 - [ ] `/api/data-generator/status` - 프로덕션 차단
 
-### Phase 21.3: Unused APIs 검증
+### Phase 21.3: Unused APIs 검증 ✅
 
-- [ ] `/api/ai-analysis` 사용 여부 확인
-- [ ] `/api/ai-metrics` 사용 여부 확인
-- [ ] `/api/ai/edge-v2` 사용 여부 확인
+- [x] `/api/ai-analysis` 사용 여부 확인 → **삭제 완료**
+- [x] `/api/ai-metrics` 사용 여부 확인 → **삭제 완료**
+- [x] `/api/ai/edge-v2` 사용 여부 확인 → **삭제 완료**
+- [x] `/api/data-generator` 사용 여부 확인 → **삭제 완료**
 
 ### Phase 21.4: Documentation
 
 - [x] `docs/api/endpoints.md` 작성
+- [ ] `docs/api/endpoints.md` 최신화 (삭제된 API 반영)
 - [ ] CHANGELOG 업데이트 (Breaking Changes)
 - [ ] Migration Guide 작성
 
