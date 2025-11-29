@@ -22,7 +22,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '🧠 이상감지/예측: 4단계 워크플로우 (이상탐지→근본원인→예측모니터링→AI인사이트)',
         '⚙️ AI 고급관리: ML 학습 센터 + 모델 관리 + 성능 모니터링',
         '📊 무료 티어 모니터: Vercel/Supabase/Google AI 사용량 실시간 추적 (60초 갱신)',
-        '🇰🇷 한국어 NLP: Google AI 기반 고도화된 의도 분석 및 엔티티 추출',
+        '🇰🇷 한국어 NLP: Google AI + GCP Functions(Python) 하이브리드 분석',
         '🎯 Provider 패턴: RAG/ML/NLP Provider로 확장 가능한 아키텍처',
         '⚡ 성능: 평균 응답 250-350ms, 캐시 히트 15ms (95% 단축), 85% 캐시 히트율',
         '💰 비용: 무료 티어 내 운영 ($0/월), 99.7% 시스템 가용성',
@@ -31,6 +31,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         'Google AI Unified Engine',
         'Gemini 2.5 Flash',
         'Supabase pgvector (RAG)',
+        'GCP Functions (Python ML)',
         'SimplifiedQueryEngine',
         'Provider Pattern',
         'Circuit Breaker + Retry',
@@ -43,11 +44,11 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'fullstack-ecosystem',
     title: '🏗️ 클라우드 플랫폼 활용',
     description:
-      '엔터프라이즈급 클라우드 인프라 구축. 핵심 플랫폼의 완전 통합으로 안정적이고 확장 가능한 시스템을 구현했습니다.',
+      '엔터프라이즈급 클라우드 인프라 구축. 3개 핵심 플랫폼의 완전 통합으로 안정적이고 확장 가능한 시스템을 구현했습니다.',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview: `Vercel + Supabase + Google AI 완전 통합! 핵심 플랫폼으로 엔터프라이즈급 인프라를 구축했습니다.`,
+      overview: `Vercel + Supabase + GCP 완전 통합! 3개 핵심 플랫폼으로 엔터프라이즈급 인프라를 구축했습니다.`,
       features: [
         '▲ Vercel 플랫폼: Next.js 15 완벽 최적화, 전 세계 CDN 배포, Edge Runtime 활용',
         '🚀 Vercel 성능: 자동 스케일링, 빌드 최적화, 무제한 프리뷰 배포 환경',
@@ -55,6 +56,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '🐘 Supabase 플랫폼: PostgreSQL 15 + pgVector AI 검색 + Row Level Security 완전 구현',
         '📊 Supabase 데이터: 실시간 구독, 사용자 인증, 즉시 동기화 완전 지원',
         '🔐 Supabase 보안: RLS 정책, JWT 토큰, 암호화 저장, API 키 관리',
+        '☁️ GCP Functions: Python 기반 ML/NLP 작업 및 OpenStack 연동 수행',
         '🔗 HTTP REST API: 직접 호출 방식 (SDK 미사용, 번들 크기 0KB)',
         '💰 무료 티어 최적화: Vercel 10/100GB (90% 여유), Supabase 50/500MB (90% 여유), Google AI 300/1200 요청/일 (80% 여유), 총 운영비 $0/월',
         '📡 12개 AI API 엔드포인트: /api/ai/query, /api/ai/incident-report, /api/ai/intelligent-monitoring 등',
