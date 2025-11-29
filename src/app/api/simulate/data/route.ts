@@ -85,7 +85,6 @@ export const GET = developmentOnly(function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-  }
 });
 
 /**

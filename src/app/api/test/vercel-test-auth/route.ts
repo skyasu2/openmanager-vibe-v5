@@ -349,7 +349,6 @@ export const POST = developmentOnly(async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-  }
 });
 
 /**
