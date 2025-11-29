@@ -44,9 +44,9 @@ export default defineConfig({
     deps: {
       optimizer: {
         web: {
-          enabled: true
-        }
-      }
+          enabled: true,
+        },
+      },
     },
     coverage: {
       enabled: false, // CI에서는 커버리지 비활성화
@@ -55,7 +55,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '../src'),
+      '@': path.resolve(__dirname, '../../src'),
     },
   },
 });

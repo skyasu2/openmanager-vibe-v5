@@ -1,3 +1,4 @@
+ 
 /**
  * 🕐 타임존 테스트 API
  *
@@ -5,9 +6,17 @@
  */
 
 import { NextResponse } from 'next/server';
-import { MockContextLoader } from '@/services/ai/MockContextLoader';
-import { getCurrentSimulatedHour } from '@/mock/fixedHourlyData';
-import { developmentOnly } from '@/lib/api/development-only';
+import { MockContextLoader } from '../../../../services/ai/MockContextLoader';
+import { developmentOnly } from '../../../../lib/api/development-only';
+
+// Helper to get current simulated hour (KST)
+function getCurrentSimulatedHour(): number {
+  const now = new Date();
+  const kstTime = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
+  );
+  return kstTime.getHours();
+}
 
 export const GET = developmentOnly(function GET() {
   try {

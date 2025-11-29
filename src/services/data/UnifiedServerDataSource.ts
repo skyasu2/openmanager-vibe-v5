@@ -1,14 +1,19 @@
+ 
 /**
  * 🎯 통합 서버 데이터 소스 관리자
  * 단일 진실 소스(Single Source of Truth) 원칙 적용
  * 모든 API가 동일한 데이터 소스를 사용하도록 보장
  */
 
-import { SystemConfigurationManager } from '@/config/SystemConfiguration';
-import type { Server, ServerRole, ServerEnvironment } from '@/types/server';
+import { SystemConfigurationManager } from '../../../config/SystemConfiguration';
+import type {
+  Server,
+  ServerRole,
+  ServerEnvironment,
+} from '../../../types/server';
 
 // 🎯 Scenario-based failure data (Single Source of Truth)
-import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
+import { loadHourlyScenarioData } from '../../scenario/scenario-loader';
 
 export interface ServerDataSourceConfig {
   totalServers: number;
