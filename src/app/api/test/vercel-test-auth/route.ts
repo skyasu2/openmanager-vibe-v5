@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { getServerGuestMode } from '@/config/guestMode.server';
+import { developmentOnly } from '@/lib/api/development-only';
+
 
 /**
  * 🚀 베르셀 친화적 AI 테스트 인증 API
@@ -160,10 +162,12 @@ function checkRateLimit(ip: string): {
   };
 }
 
+
+
 /**
  * POST: 테스트 인증 요청
  */
-export async function POST(request: NextRequest) {
+export const POST = developmentOnly(async function POST(request: NextRequest) {
   const guestMode = getServerGuestMode();
   const isGuestFullAccess = guestMode === 'full_access';
 
@@ -345,12 +349,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+  }
+});
 
 /**
  * GET: 테스트 API 상태 확인
  */
-export function GET(request: NextRequest) {
+export const GET = developmentOnly(function GET(request: NextRequest) {
   // 🛡️ Rate Limiting 체크
   const ip =
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -407,4 +412,4 @@ export function GET(request: NextRequest) {
   response.headers.set('X-RateLimit-Reset', resetTime.toString());
 
   return response;
-}
+});

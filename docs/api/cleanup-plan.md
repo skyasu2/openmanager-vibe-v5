@@ -112,20 +112,20 @@ grep -r "'/api/ai-metrics'" src
 
 - [x] `/api/ai/korean-nlp` - 410 Gone 처리 완료
 - [x] `/api/ai/ml-analytics` - 410 Gone 처리 완료
-- [ ] `/api/ai/thinking/stream-v2` 삭제
-- [ ] `/api/ai-unified/core` 삭제
-- [ ] `/api/ai-unified/ml` 삭제
-- [ ] `/api/ai-unified/monitoring` 삭제
-- [ ] `/api/ai-unified/streaming` 삭제
+- [x] `/api/ai/thinking/stream-v2` 삭제
+- [x] `/api/ai-unified/core` 삭제
+- [x] `/api/ai-unified/ml` 삭제
+- [x] `/api/ai-unified/monitoring` 삭제
+- [x] `/api/ai-unified/streaming` 삭제
 
-### Phase 21.2: Development APIs 보호
+### Phase 21.2: Development APIs 보호 ✅
 
-- [ ] `/api/test/timezone` - 프로덕션 차단
-- [ ] `/api/test/vercel-test-auth` - 프로덕션 차단
-- [ ] `/api/debug/env` - 프로덕션 차단
-- [ ] `/api/simulate/data` - 프로덕션 차단
-- [ ] `/api/data-generator/start` - 프로덕션 차단
-- [ ] `/api/data-generator/status` - 프로덕션 차단
+- [x] `/api/test/timezone` - 프로덕션 차단
+- [x] `/api/test/vercel-test-auth` - 프로덕션 차단
+- [x] `/api/debug/env` - 프로덕션 차단
+- [x] `/api/simulate/data` - 프로덕션 차단
+- [x] `/api/data-generator/start` - 프로덕션 차단 (삭제됨)
+- [x] `/api/data-generator/status` - 프로덕션 차단 (삭제됨)
 
 ### Phase 21.3: Unused APIs 검증 ✅
 

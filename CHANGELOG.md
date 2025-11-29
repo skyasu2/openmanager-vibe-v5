@@ -8,10 +8,12 @@
 > - [v5.66.40 ~ v5.67.21](./CHANGELOG-LEGACY-2.md) (2025-08-12 ~ 2025-08-17)
 > - [v5.0.0 ~ v5.65.6](./CHANGELOG-LEGACY.md) (2025-05 ~ 2025-08)
 
-## [Unreleased] - 2025-11-28
+## [Unreleased] - 2025-11-29
 
 ### 🚀 Features
 
+- **PM2 프로세스 관리**: PM2 프로세스 관리 시스템 구현 (WSL Best Practice Item 3+4) ([d1ce69f6](https://github.com/your-username/openmanager-vibe-v5/commit/d1ce69f6))
+- **GPU Animations**: GPU-accelerated animation system (Day 1/3 - 120fps target) ([f74e0b26](https://github.com/your-username/openmanager-vibe-v5/commit/f74e0b26))
 - refactor system boot, improve ai sidebar ux, and cleanup code ([7b86458f](https://github.com/your-username/openmanager-vibe-v5/commit/7b86458f))
 - refactor useServerDashboard hook and unify design consistency ([6a19f96d](https://github.com/your-username/openmanager-vibe-v5/commit/6a19f96d))
 - AI Assistant Engine improvements - Google AI routing & ML libraries ([5fa65c7a](https://github.com/your-username/openmanager-vibe-v5/commit/5fa65c7a))
@@ -39,8 +41,26 @@
 - 서버 카드 UI 개선 및 메트릭 차트 컴포넌트 분리 ([8b148e53](https://github.com/your-username/openmanager-vibe-v5/commit/8b148e53))
 - lint improvements for multiple components and services ([96023c77](https://github.com/your-username/openmanager-vibe-v5/commit/96023c77))
 
+### 🔒 Security
+
+- **API 인증**: 나머지 AI API 인증 적용 (raw-metrics, rag/benchmark) - 최종 ([fa33baeb](https://github.com/your-username/openmanager-vibe-v5/commit/fa33baeb))
+- **API 인증**: 주요 AI API 인증 미들웨어 적용 (3개) ([6ad1e38d](https://github.com/your-username/openmanager-vibe-v5/commit/6ad1e38d))
+- **API 인증**: AI 통합 스트리밍 API 인증 적용 ([bdf27866](https://github.com/your-username/openmanager-vibe-v5/commit/bdf27866))
+- **API 인증**: 서버 API 인증 미들웨어 적용 + withAuth 제네릭 타입 지원 ([a2db6238](https://github.com/your-username/openmanager-vibe-v5/commit/a2db6238))
+- **Shell Injection**: Shell Injection 방어 및 CI/CD 호환성 개선 ([76238c8e](https://github.com/your-username/openmanager-vibe-v5/commit/76238c8e))
+
+### 🔨 Refactor
+
+- **API 정리**: remove unused apis (phase 21.3) ([4b42b44e](https://github.com/your-username/openmanager-vibe-v5/commit/4b42b44e))
+- **레거시 제거**: remove legacy ai apis (phase 21.1) ([f76ed201](https://github.com/your-username/openmanager-vibe-v5/commit/f76ed201))
+- **레거시 제거**: remove legacy ai apis (phase 21.1) ([4c0518f2](https://github.com/your-username/openmanager-vibe-v5/commit/4c0518f2))
+- **AI 엔진**: optimize ai engine and gcp integration ([9fd88df6](https://github.com/your-username/openmanager-vibe-v5/commit/9fd88df6))
+- **대규모 정리**: 대규모 코드 정리 및 문서 자동화 시스템 구축 ([799e3a1b](https://github.com/your-username/openmanager-vibe-v5/commit/799e3a1b))
+
 ### 🐛 Bug Fixes
 
+- **UI**: ImprovedServerCard에 누락된 아이콘 import 추가 ([0a195df9](https://github.com/your-username/openmanager-vibe-v5/commit/0a195df9))
+- **Supabase**: SSR 안전성 개선 - 모듈 최상위 클라이언트 초기화 수정 ([229254c1](https://github.com/your-username/openmanager-vibe-v5/commit/229254c1))
 - add shebang to pre-push hook ([55f402f3](https://github.com/your-username/openmanager-vibe-v5/commit/55f402f3))
 - Remove side-effects from admin mode removal ([b20615e6](https://github.com/your-username/openmanager-vibe-v5/commit/b20615e6))
 - Use client-safe environment variable access ([4b24f1cc](https://github.com/your-username/openmanager-vibe-v5/commit/4b24f1cc))
@@ -61,7 +81,7 @@
 - 불필요한 @ts-expect-error 제거 및 타입 수정 ([31482219](https://github.com/your-username/openmanager-vibe-v5/commit/31482219))
 - Gemini CLI 리팩토링 후 사이드 이펙트 수정 ([d51e7d63](https://github.com/your-username/openmanager-vibe-v5/commit/d51e7d63))
 - 게스트 로그인 시 메인 페이지 건너뛰는 문제 수정 ([c9d89078](https://github.com/your-username/openmanager-vibe-v5/commit/c9d89078))
-- google-ai-manager 타입 에러 수정 (string  ([949ccef6](https://github.com/your-username/openmanager-vibe-v5/commit/949ccef6))
+- google-ai-manager 타입 에러 수정 (string ([949ccef6](https://github.com/your-username/openmanager-vibe-v5/commit/949ccef6))
 - GitHub Actions lint 에러 수정 (3 errors → 0) ([5b7261c9](https://github.com/your-username/openmanager-vibe-v5/commit/5b7261c9))
 - GitHub Actions 에러 수정 (7 errors, 10 warnings) ([7f0141b7](https://github.com/your-username/openmanager-vibe-v5/commit/7f0141b7))
 - CI 워크플로우 Node.js 버전 수정 및 분석 문서 추가 ([3bfbcc98](https://github.com/your-username/openmanager-vibe-v5/commit/3bfbcc98))
@@ -75,6 +95,11 @@
 
 ### 📚 Documentation
 
+- **AI 메모리**: AI 메모리 파일 및 문서 정리 ([81baf9e9](https://github.com/your-username/openmanager-vibe-v5/commit/81baf9e9))
+- **Performance**: GPU animation validation guide (Day 3/3 - 120fps verification) ([4502bca5](https://github.com/your-username/openmanager-vibe-v5/commit/4502bca5))
+- **WSL**: WSL 재설치 복원 가이드 추가 ([c7397df9](https://github.com/your-username/openmanager-vibe-v5/commit/c7397df9))
+- **WSL**: WSL 복원 가이드 최종 개선 - Gemini 추가 제안 100% 반영 ([362e97f2](https://github.com/your-username/openmanager-vibe-v5/commit/362e97f2))
+- **WSL**: WSL 복원 가이드 개선 - 코드 리뷰 제안 반영 ([f5934b31](https://github.com/your-username/openmanager-vibe-v5/commit/f5934b31))
 - Phase 4 재구조화 완료 - core vs environment 분리 ([fd125c98](https://github.com/your-username/openmanager-vibe-v5/commit/fd125c98))
 - update AI system documentation and fix ESLint errors ([7ce645c0](https://github.com/your-username/openmanager-vibe-v5/commit/7ce645c0))
 - docs: ([2c37e23d](https://github.com/your-username/openmanager-vibe-v5/commit/2c37e23d))

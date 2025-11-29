@@ -2,6 +2,8 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 
+import { developmentOnly } from '@/lib/api/development-only';
+
 // ⚡ Edge Runtime으로 전환 - 무료 티어 친화적 최적화
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -11,7 +13,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/simulate/data
  * 현재 시뮬레이션 데이터 및 진행 상황을 반환합니다
  */
-export function GET(request: NextRequest) {
+export const GET = developmentOnly(function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action') || 'current';
@@ -83,7 +85,8 @@ export function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+  }
+});
 
 /**
  * 단계별 설명 반환
