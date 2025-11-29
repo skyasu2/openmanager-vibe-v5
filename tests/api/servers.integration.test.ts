@@ -106,7 +106,7 @@ describe('Servers API Integration Tests', () => {
     global.fetch = vi
       .fn()
       .mockImplementation((url: string, options?: RequestInit) => {
-        let responseData = mockServerData;
+        let responseData: any = mockServerData;
 
         // Check if this is a POST request to /api/servers (should return 405)
         if (
@@ -277,7 +277,9 @@ describe('Servers API Integration Tests', () => {
 
         expect(server.id).toBeDefined();
         expect(server.name).toBeDefined();
-        expect(server.status).toMatch(/^(online|offline|warning|healthy)$/);
+        expect(server.status).toMatch(
+          /^(online|offline|warning|critical|healthy)$/
+        );
         expect(server.host).toBeDefined();
         expect(server.port).toBeDefined();
         expect(typeof server.port).toBe('number');

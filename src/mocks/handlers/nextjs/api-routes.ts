@@ -57,26 +57,14 @@ export const nextJsApiHandlers = [
       );
     }
 
-    // 필수 필드 검증
-    if (!body.engine) {
-      return HttpResponse.json(
-        {
-          error: 'engine 필드가 필요합니다',
-          status: 400,
-        },
-        { status: 400 }
-      );
-    }
+    // v4.0: engine 필드가 없거나 유효하지 않아도 UNIFIED로 처리 (하위 호환성)
+    const engine = body.engine || 'UNIFIED';
 
-    // 지원하지 않는 엔진 검증
+    // 지원하지 않는 엔진 검증 (v4.0에서는 무시하고 UNIFIED 사용하지만, 로그는 남김)
     const supportedEngines = ['UNIFIED', 'GOOGLE', 'OPENAI', 'COHERE'];
-    if (!supportedEngines.includes(body.engine)) {
-      return HttpResponse.json(
-        {
-          error: `지원하지 않는 엔진입니다: ${body.engine}`,
-          status: 400,
-        },
-        { status: 400 }
+    if (!supportedEngines.includes(engine)) {
+      console.log(
+        `[MSW] Unsupported engine requested: ${engine}, falling back to UNIFIED`
       );
     }
 

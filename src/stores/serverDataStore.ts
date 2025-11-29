@@ -12,7 +12,6 @@ import { createStore } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { calculateOptimalUpdateInterval } from '../config/serverConfig';
 import type { EnhancedServerMetrics } from '../types/unified-server';
-import { UnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 
 // 🎯 Single Source of Truth: UnifiedServerDataSource 사용
 
@@ -20,7 +19,7 @@ import { UnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource
  * Server를 EnhancedServerMetrics로 변환
  */
 function mapServerToEnhanced(
-  server: import('@/types/server').Server
+  server: import('../types/server').Server
 ): EnhancedServerMetrics {
   // uptime을 number로 변환
   const uptimeNumber =
@@ -137,20 +136,51 @@ export const createServerDataStore = (
       },
       ..._initialState,
 
-      // 서버 데이터 가져오기 (UnifiedServerDataSource 사용)
+      // 서버 데이터 가져오기 (API 사용)
       fetchServers: async () => {
-        console.log('🎯 fetchServers 함수 시작 - UnifiedServerDataSource 사용');
+        console.log('🎯 fetchServers 함수 시작 - API 사용');
 
         set({ isLoading: true, error: null });
 
         try {
-          console.log('🚀 UnifiedServerDataSource에서 데이터 로드 시작');
+          console.log('🚀 /api/servers/all 에서 데이터 로드 시작');
 
-          // 🎯 Single Source of Truth: UnifiedServerDataSource
-          const dataSource = UnifiedServerDataSource.getInstance();
-          const rawServers = await dataSource.getServers();
+          // 🎯 Client-side Fetching via API
+          const response = await fetch('/api/servers/all');
 
-          console.log('📡 UnifiedServerDataSource 데이터 수신 완료');
+          if (!response.ok) {
+            throw new Error(
+              `API Error: ${response.status} ${response.statusText}`
+            );
+          }
+
+          const result = await response.json();
+
+          if (!result.success || !result.data) {
+            // Fallback logic if API returns error structure
+            if (result.fallbackMode && result.data?.servers) {
+              console.warn('⚠️ API returned fallback data');
+              // Fallback data structure might be different, but let's assume it matches Server[]
+              // The API route returns { data: { servers: [...] } } for fallback?
+              // Let's check API route fallback return.
+              // It returns data: { servers: fallbackServers, total: 1 }
+              // So we need to handle that.
+              const rawServers = result.data.servers || [];
+              const enhancedServers = rawServers.map(mapServerToEnhanced);
+              set({
+                servers: enhancedServers,
+                isLoading: false,
+                lastUpdate: new Date(),
+                error: result.message || 'Fallback mode',
+              });
+              return;
+            }
+            throw new Error(result.message || 'Failed to fetch data');
+          }
+
+          const rawServers = result.data;
+
+          console.log('📡 API 데이터 수신 완료');
           console.log(`✅ 성공적으로 로드된 서버: ${rawServers.length}개`);
 
           // Server[] → EnhancedServerMetrics[] 변환
@@ -189,8 +219,6 @@ export const createServerDataStore = (
           const error = e instanceof Error ? e : new Error(String(e));
           console.error('❌ 서버 데이터 로드 최종 실패:');
           console.error('  - 오류 메시지:', error.message);
-          console.error('  - 오류 스택:', error.stack);
-          console.error('  - 오류 타입:', error.constructor.name);
 
           set({
             isLoading: false,

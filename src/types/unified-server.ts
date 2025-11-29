@@ -3,10 +3,174 @@
  * 모든 서버 관련 인터페이스를 이 파일에서 통합 관리
  */
 
-import type { ServerMetrics } from '@/core/types/server.types';
+import type { ServerMetrics } from './server-metrics';
+import type {
+  Service,
+  ProcessInfo,
+  ServerRole,
+  ServerSpecs,
+  SystemInfo,
+  NetworkInfo,
+  AlertSeverity,
+} from './server';
 
 // Re-export ServerMetrics for convenience
 export type { ServerMetrics };
+
+// ... (skip Server interface)
+
+// 확장된 서버 메트릭스 (AI 분석 포함)
+export interface EnhancedServerMetrics extends ServerMetrics {
+  // 기본 식별 정보
+  id: string;
+  hostname: string;
+  status: 'online' | 'offline' | 'warning' | 'critical';
+  environment?: string;
+  role?: string;
+
+  // 성능 정보
+
+  responseTime?: number;
+
+  // 서버 식별 정보 (UI에서 필요)
+  // name is inherited from ServerMetrics as required
+  ip?: string;
+
+  // AI 분석 결과
+  aiAnalysis?: {
+    anomalyScore: number;
+    predictedIssues: string[];
+    recommendations: string[];
+    confidence: number;
+  };
+
+  // 트렌드 예측
+  trends?: {
+    cpu: 'increasing' | 'decreasing' | 'stable';
+    memory: 'increasing' | 'decreasing' | 'stable';
+    disk: 'increasing' | 'decreasing' | 'stable';
+    network: 'increasing' | 'decreasing' | 'stable';
+  };
+
+  // 🔧 추가된 Enhanced 속성들
+  network_usage?: number;
+  timestamp?: string;
+  pattern_info?: unknown;
+  correlation_metrics?: unknown;
+  patternsEnabled?: boolean;
+  currentLoad?: number;
+  activeFailures?: number;
+
+  // 🔧 호환성을 위한 추가 속성들
+  // cpu, memory, disk, network are inherited from ServerMetrics as required
+
+  // 🔧 추가 호환성 필드들
+  connections?: number; // 연결 수
+  services?: Service[]; // 서비스 목록
+  processes?: ProcessInfo[]; // 프로세스 정보
+
+  // 🔧 서버 기본 정보 (API route에서 사용)
+  location?: string; // 서버 위치
+  type?: ServerRole; // 🔧 수정: ServerRole 타입 사용 (role과 중복되지만 호환성)
+  provider?: string; // 클라우드 제공자
+  specs?: ServerSpecs; // 서버 사양
+  lastUpdate?: string; // 마지막 업데이트 (ISO 문자열)
+  systemInfo?: SystemInfo; // 시스템 정보
+  networkInfo?: NetworkInfo; // 네트워크 정보
+
+  // 🔧 메타데이터 정보 (API route에서 사용)
+  metadata?: {
+    serverType?: ServerRole;
+    timeSlot?: number;
+    hour?: number;
+    minute?: number;
+    cycleInfo?: {
+      scenario?: {
+        affectedServers: string[];
+        name: string;
+      };
+      intensity: number;
+    };
+    scenarios?: Array<{
+      type: ServerRole;
+      severity: AlertSeverity;
+      description: string;
+    }>;
+    baseline?: {
+      cpu: number;
+      memory: number;
+      network: number;
+    };
+    timeInfo?: {
+      normalized: number;
+      actual: number;
+      cycle24h: number;
+      slot10min: number;
+      hour: number;
+      validUntil: number;
+    };
+    isAffectedByCurrentCycle?: boolean;
+    [key: string]: unknown;
+  };
+
+  // 🔧 기존 Server 타입과의 호환성을 위한 metrics 속성
+  metrics?: {
+    cpu?: {
+      usage: number;
+      cores?: number;
+      temperature?: number;
+    };
+    memory?: {
+      used?: number;
+      total?: number;
+      usage: number;
+    };
+    disk?: {
+      used?: number;
+      total?: number;
+      usage: number;
+    };
+    network?: {
+      bytesIn?: number;
+      bytesOut?: number;
+      packetsIn?: number;
+      packetsOut?: number;
+      in?: number;
+      out?: number;
+    };
+    timestamp?: string;
+    uptime?: number;
+  };
+}
+
+// ... (skip other interfaces)
+
+// 유틸리티 함수들
+export const calculateServerHealth = (metrics: ServerMetrics): number => {
+  const cpuValue = metrics.cpu;
+  const memoryValue = metrics.memory;
+  const diskValue = metrics.disk;
+
+  const cpuHealth = Math.max(0, 100 - cpuValue);
+  const memoryHealth = Math.max(0, 100 - memoryValue);
+  const diskHealth = Math.max(0, 100 - diskValue);
+
+  return Math.round((cpuHealth + memoryHealth + diskHealth) / 3);
+};
+
+export const hasHighCpuUsage = (
+  metrics: ServerMetrics,
+  threshold = 80
+): boolean => {
+  return metrics.cpu > threshold;
+};
+
+export const hasHighMemoryUsage = (
+  metrics: ServerMetrics,
+  threshold = 85
+): boolean => {
+  return metrics.memory > threshold;
+};
 
 // 기본 서버 인터페이스
 export interface Server {
@@ -34,29 +198,6 @@ export type ServerType =
   | 'storage';
 
 // 서버 메트릭은 중앙화된 타입 시스템에서 가져옴 (상단에서 import함)
-
-// 확장된 서버 메트릭스 (AI 분석 포함)
-export interface EnhancedServerMetrics extends ServerMetrics {
-  // 서버 식별 정보 (UI에서 필요)
-  name?: string;
-  ip?: string;
-
-  // AI 분석 결과
-  aiAnalysis?: {
-    anomalyScore: number;
-    predictedIssues: string[];
-    recommendations: string[];
-    confidence: number;
-  };
-
-  // 트렌드 예측
-  trends?: {
-    cpu: 'increasing' | 'decreasing' | 'stable';
-    memory: 'increasing' | 'decreasing' | 'stable';
-    disk: 'increasing' | 'decreasing' | 'stable';
-    network: 'increasing' | 'decreasing' | 'stable';
-  };
-}
 
 // 서버 알림
 export interface ServerAlert {
@@ -267,40 +408,6 @@ export const isServerOnline = (server: Server): boolean => {
 
 export const isServerCritical = (server: Server): boolean => {
   return server.status === 'critical';
-};
-
-export const hasHighCpuUsage = (
-  metrics: ServerMetrics,
-  threshold = 80
-): boolean => {
-  const cpuValue =
-    typeof metrics.cpu === 'number' ? metrics.cpu : metrics.cpu.usage;
-  return cpuValue > threshold;
-};
-
-export const hasHighMemoryUsage = (
-  metrics: ServerMetrics,
-  threshold = 85
-): boolean => {
-  const memoryValue =
-    typeof metrics.memory === 'number' ? metrics.memory : metrics.memory.usage;
-  return memoryValue > threshold;
-};
-
-// 유틸리티 함수들
-export const calculateServerHealth = (metrics: ServerMetrics): number => {
-  const cpuValue =
-    typeof metrics.cpu === 'number' ? metrics.cpu : metrics.cpu.usage;
-  const memoryValue =
-    typeof metrics.memory === 'number' ? metrics.memory : metrics.memory.usage;
-  const diskValue =
-    typeof metrics.disk === 'number' ? metrics.disk : metrics.disk.usage;
-
-  const cpuHealth = Math.max(0, 100 - cpuValue);
-  const memoryHealth = Math.max(0, 100 - memoryValue);
-  const diskHealth = Math.max(0, 100 - diskValue);
-
-  return Math.round((cpuHealth + memoryHealth + diskHealth) / 3);
 };
 
 export const getServerStatusColor = (status: Server['status']): string => {

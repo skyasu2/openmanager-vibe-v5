@@ -1,4 +1,7 @@
 /**
+ * @vitest-environment jsdom
+ */
+/**
  * AI 통합 모드 테스트 (v4.0)
  *
  * AI 모드 선택 UI 제거 후 UNIFIED 모드 전용 테스트

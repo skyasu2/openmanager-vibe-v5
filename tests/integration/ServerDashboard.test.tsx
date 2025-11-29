@@ -48,14 +48,30 @@ const mockState = vi.hoisted(() => {
     (server, i) => ({
       id: server.id,
       name: server.name,
+      hostname: server.name, // Added hostname
       type: server.type,
       status: server.status as 'online' | 'offline' | 'warning',
+      // Flat metrics (root level)
+      cpu: server.cpu,
+      memory: server.memory,
+      disk: server.disk,
+      network: server.network,
+      responseTime: 120 + i * 10,
+      uptime: server.uptime || 99.9,
+      // Optional metrics object (for compatibility if needed, but root is primary)
       metrics: {
-        cpu: server.cpu,
-        memory: server.memory,
-        disk: server.disk,
-        network: server.network,
-        responseTime: 120 + i * 10,
+        cpu: { usage: server.cpu, cores: 4, temperature: 45 },
+        memory: { used: server.memory, total: 16, usage: server.memory },
+        disk: { used: server.disk, total: 500, usage: server.disk },
+        network: {
+          bytesIn: 1000,
+          bytesOut: 500,
+          packetsIn: 10,
+          packetsOut: 5,
+          in: server.network,
+          out: server.network,
+        },
+        timestamp: server.timestamp,
         uptime: server.uptime || 99.9,
       },
       alerts: [],
@@ -65,6 +81,11 @@ const mockState = vi.hoisted(() => {
         | 'production'
         | 'staging'
         | 'development',
+      role: 'app', // Added role
+      ip: '192.168.1.1', // Added ip
+      os: 'Linux', // Added os
+      location: 'us-east-1', // Added location
+      lastUpdate: server.lastUpdated, // Added lastUpdate
     })
   );
 
@@ -84,14 +105,28 @@ export const resetMockServers = () => {
   mockState.servers = mockState.rawServers.map((server, i) => ({
     id: server.id,
     name: server.name,
+    hostname: server.name,
     type: server.type,
     status: server.status as 'online' | 'offline' | 'warning',
+    cpu: server.cpu,
+    memory: server.memory,
+    disk: server.disk,
+    network: server.network,
+    responseTime: 120 + i * 10,
+    uptime: server.uptime || 99.9,
     metrics: {
-      cpu: server.cpu,
-      memory: server.memory,
-      disk: server.disk,
-      network: server.network,
-      responseTime: 120 + i * 10,
+      cpu: { usage: server.cpu, cores: 4, temperature: 45 },
+      memory: { used: server.memory, total: 16, usage: server.memory },
+      disk: { used: server.disk, total: 500, usage: server.disk },
+      network: {
+        bytesIn: 1000,
+        bytesOut: 500,
+        packetsIn: 10,
+        packetsOut: 5,
+        in: server.network,
+        out: server.network,
+      },
+      timestamp: server.timestamp,
       uptime: server.uptime || 99.9,
     },
     alerts: [],
@@ -101,6 +136,11 @@ export const resetMockServers = () => {
       | 'production'
       | 'staging'
       | 'development',
+    role: 'app',
+    ip: '192.168.1.1',
+    os: 'Linux',
+    location: 'us-east-1',
+    lastUpdate: server.lastUpdated,
   }));
 };
 
@@ -111,14 +151,28 @@ export const toEnhancedServer = (
 ): EnhancedServerMetrics => ({
   id: server.id,
   name: server.name,
+  hostname: server.name,
   type: server.type,
   status: server.status as 'online' | 'offline' | 'warning',
+  cpu: server.cpu,
+  memory: server.memory,
+  disk: server.disk,
+  network: server.network,
+  responseTime: 120 + index * 10,
+  uptime: server.uptime || 99.9,
   metrics: {
-    cpu: server.cpu,
-    memory: server.memory,
-    disk: server.disk,
-    network: server.network,
-    responseTime: 120 + index * 10,
+    cpu: { usage: server.cpu, cores: 4, temperature: 45 },
+    memory: { used: server.memory, total: 16, usage: server.memory },
+    disk: { used: server.disk, total: 500, usage: server.disk },
+    network: {
+      bytesIn: 1000,
+      bytesOut: 500,
+      packetsIn: 10,
+      packetsOut: 5,
+      in: server.network,
+      out: server.network,
+    },
+    timestamp: server.timestamp,
     uptime: server.uptime || 99.9,
   },
   alerts: [],
@@ -128,6 +182,11 @@ export const toEnhancedServer = (
     | 'production'
     | 'staging'
     | 'development',
+  role: 'app',
+  ip: '192.168.1.1',
+  os: 'Linux',
+  location: 'us-east-1',
+  lastUpdate: server.lastUpdated,
 });
 
 // 🔍 [MODULE LEVEL] Test file loading diagnostics
@@ -153,14 +212,17 @@ vi.mock('@/hooks/useWorkerStats', () => ({
       averageUptime: 0,
       totalBandwidth: 0,
       typeDistribution: {},
-      performanceMetrics: { calculationTime: 0, serversProcessed: servers.length }
+      performanceMetrics: {
+        calculationTime: 0,
+        serversProcessed: servers.length,
+      },
     })),
-    isWorkerReady: () => false,  // Always false in tests - forces fallback path
+    isWorkerReady: () => false, // Always false in tests - forces fallback path
     restartWorker: vi.fn(),
     calculateCombinedStats: vi.fn(),
     calculatePagination: vi.fn(),
     applyFilters: vi.fn(),
-    pendingOperations: 0
+    pendingOperations: 0,
   }),
   calculateServerStatsFallback: vi.fn((servers) => ({
     total: servers.length,
@@ -173,8 +235,11 @@ vi.mock('@/hooks/useWorkerStats', () => ({
     averageUptime: 0,
     totalBandwidth: 0,
     typeDistribution: {},
-    performanceMetrics: { calculationTime: 0, serversProcessed: servers.length }
-  }))
+    performanceMetrics: {
+      calculationTime: 0,
+      serversProcessed: servers.length,
+    },
+  })),
 }));
 
 // 🔧 useServerDataStore Mock - Zustand store에 테스트 데이터 주입 (완전한 인터페이스)

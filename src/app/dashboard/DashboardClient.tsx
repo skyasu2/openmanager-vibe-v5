@@ -24,7 +24,6 @@ import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import type { Server } from '@/types/server';
-import type { ServerData } from '@/components/dashboard/EnhancedServerModal.types';
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import AuthLoadingUI from '@/components/shared/AuthLoadingUI';
@@ -562,7 +561,7 @@ function DashboardPageContent() {
 
   // 🔒 즉시 로그아웃 처리
   const handleLogoutNow = useCallback(() => {
-    forceLogout();
+    void forceLogout();
     setShowLogoutWarning(false);
     debug.log('🔒 사용자가 즉시 로그아웃을 선택했습니다');
   }, [forceLogout]);

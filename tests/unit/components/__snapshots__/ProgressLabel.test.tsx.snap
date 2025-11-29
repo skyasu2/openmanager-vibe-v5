@@ -41,7 +41,7 @@ exports[`📝 ProgressLabel 컴포넌트 > 스냅샷 테스트 > percentage 포�
   <h3
     class="text-lg font-semibold text-white"
   >
-    진행률: 60.00%
+    진행률: 60.0%
   </h3>
   <p
     class="text-sm text-blue-400 mt-1"

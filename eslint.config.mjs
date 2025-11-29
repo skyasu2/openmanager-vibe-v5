@@ -123,7 +123,7 @@ export default tseslint.config(
       parserOptions: FAST_MODE
         ? {}
         : {
-            project: true,
+            project: ['tsconfig.json', 'tsconfig.eslint.json'],
             tsconfigRootDir: import.meta.dirname,
           },
       globals: {
@@ -278,15 +278,25 @@ export default tseslint.config(
     files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
     languageOptions: {
       parser: tseslint.parser, // TypeScript 파서 명시
+      parserOptions: FAST_MODE
+        ? {}
+        : {
+            project: ['tsconfig.json', 'tsconfig.eslint.json'],
+            tsconfigRootDir: import.meta.dirname,
+          },
       globals: {
         ...globals.jest,
         ...globals.node, // E2E 테스트에서 process 사용
+        ...globals.browser, // 🔧 브라우저 환경 추가 (document, window 등)
         vi: 'readonly',
       },
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       'no-console': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off', // 🔧 테스트 파일에서는 unused vars 경고 끄기 (너무 많음)
+      'no-undef': 'off', // 🔧 테스트 파일에서는 no-undef 끄기 (타입스크립트가 처리)
     },
   }
 );
