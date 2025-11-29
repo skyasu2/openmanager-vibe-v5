@@ -7,7 +7,7 @@
  */
 
 import { execSync } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { aiVitals } from './ai-friendly-vitals';
 import type {
@@ -710,8 +710,6 @@ export class SubagentTestController {
   // 📁 로그 디렉토리 확인
   private ensureLogDirectory(): void {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { mkdirSync } = require('fs');
       mkdirSync(this.logDir, { recursive: true });
     } catch {
       // 이미 존재하거나 생성할 수 없는 경우 무시
@@ -721,8 +719,6 @@ export class SubagentTestController {
   // 🔍 테스트 히스토리 조회 (서브에이전트용)
   getTestHistory(limit: number = 10): SubagentTestResult[] {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { readdirSync } = require('fs');
       const logFiles = readdirSync(this.logDir)
         .filter((file: string) => file.endsWith('.json'))
         .sort()

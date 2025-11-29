@@ -7,8 +7,9 @@
 import { NextResponse } from 'next/server';
 import { MockContextLoader } from '@/services/ai/MockContextLoader';
 import { getCurrentSimulatedHour } from '@/mock/fixedHourlyData';
+import { developmentOnly } from '@/lib/api/development-only';
 
-export function GET() {
+export const GET = developmentOnly(function GET() {
   try {
     // MockContextLoader 인스턴스 생성
     const mockContextLoader = MockContextLoader.getInstance();
@@ -26,7 +27,7 @@ export function GET() {
       koreaTime: now.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
       koreaTimeString: now.toLocaleTimeString('ko-KR', {
         hour12: false,
-        timeZone: 'Asia/Seoul'
+        timeZone: 'Asia/Seoul',
       }),
 
       // MockContextLoader에서 제공하는 시간 정보
@@ -41,23 +42,25 @@ export function GET() {
         locale: Intl.DateTimeFormat().resolvedOptions().locale,
         nodeEnv: process.env.NODE_ENV,
         vercelRegion: process.env.VERCEL_REGION || 'N/A',
-      }
+      },
     };
 
     return NextResponse.json({
       success: true,
       message: '타임존 테스트 결과',
       data: timeInfo,
-      timestamp: now.toISOString()
+      timestamp: now.toISOString(),
     });
-
   } catch (error) {
     console.error('타임존 테스트 오류:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : '알 수 없는 오류',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
-}
+});

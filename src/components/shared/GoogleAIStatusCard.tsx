@@ -7,7 +7,7 @@
 import { FC } from 'react';
 import {
   useGoogleAIStatus,
-  useRefreshGoogleAIStatus,
+  useRefreshGoogleAIStatus as _useRefreshGoogleAIStatus,
 } from '@/hooks/api/useGoogleAIStatus';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
@@ -17,7 +17,7 @@ import {
   Brain,
   CheckCircle,
   Clock,
-  Key,
+  Key as _Key,
   RefreshCw,
   XCircle,
   Zap,

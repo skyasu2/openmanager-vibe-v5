@@ -111,7 +111,7 @@ const getServerMetrics = tool({
   }),
   execute: async ({
     serverId,
-    metric,
+    metric: _metric,
   }: {
     serverId?: string;
     metric: 'cpu' | 'memory' | 'disk' | 'all';

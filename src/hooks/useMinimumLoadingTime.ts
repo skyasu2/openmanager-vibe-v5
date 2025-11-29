@@ -158,10 +158,8 @@ export const useNaturalLoadingTime = ({
 
     console.log('🎬 자연스러운 시스템 로딩 시작');
 
-    // eslint-disable-next-line prefer-const -- 이후 setInterval/setTimeout에서 할당됨
     let intervalId: NodeJS.Timeout | undefined;
     let phaseTimer: NodeJS.Timeout | undefined;
-    // eslint-disable-next-line prefer-const -- 이후 setTimeout에서 할당됨
     let cleanupTimer: NodeJS.Timeout | undefined;
     let isCleanedUp = false;
 

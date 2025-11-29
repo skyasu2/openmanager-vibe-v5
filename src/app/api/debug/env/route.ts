@@ -11,8 +11,9 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { env, features, isProduction, isVercelProduction } from '@/env';
 import { authManager } from '@/lib/auth/auth';
+import { developmentOnly } from '@/lib/api/development-only';
 
-export function GET(request: NextRequest) {
+export const GET = developmentOnly(function GET(request: NextRequest) {
   try {
     // SECURITY: Admin 인증 필수
     const authHeader = request.headers.get('authorization');
@@ -138,7 +139,7 @@ export function GET(request: NextRequest) {
       }
     );
   }
-}
+});
 
 /**
  * 보안상의 이유로 POST/PUT/DELETE 방법은 허용하지 않음

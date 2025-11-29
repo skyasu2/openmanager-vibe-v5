@@ -3,6 +3,16 @@ import type { Server } from '@/types/server';
 import type { ServerMetrics } from '@/config/server-status-thresholds';
 import { determineServerStatus } from '@/config/server-status-thresholds';
 
+// 🎯 Type-safe wrapper for RawServerData with optional nested metrics
+type RawWithMetrics = RawServerData & {
+  metrics?: {
+    cpu?: number;
+    memory?: number;
+    disk?: number;
+    network?: number;
+  };
+};
+
 // 🎯 Enhanced Server 인터페이스 정의 (unknown 타입 대체)
 export interface EnhancedServer {
   id: string;
@@ -96,10 +106,11 @@ export function transformRawToServer(
   index: number = 0
 ): Server {
   // 🔄 안전한 fallback: raw.metrics.* 형태와 raw.* 형태 모두 지원
-  const cpu = (raw as any).metrics?.cpu ?? raw.cpu ?? 0;
-  const memory = (raw as any).metrics?.memory ?? raw.memory ?? 0;
-  const disk = (raw as any).metrics?.disk ?? raw.disk ?? 0;
-  const network = (raw as any).metrics?.network ?? raw.network ?? 0;
+  const rawWithMetrics = raw as RawWithMetrics;
+  const cpu = rawWithMetrics.metrics?.cpu ?? raw.cpu ?? 0;
+  const memory = rawWithMetrics.metrics?.memory ?? raw.memory ?? 0;
+  const disk = rawWithMetrics.metrics?.disk ?? raw.disk ?? 0;
+  const network = rawWithMetrics.metrics?.network ?? raw.network ?? 0;
 
   // 🚨 통합 기준으로 서버 상태 판별 (데이터 전처리 단계)
   const serverMetrics: ServerMetrics = {
@@ -157,10 +168,11 @@ function extractMetrics(
   raw: RawServerData
 ): Pick<EnhancedServer, 'cpu' | 'memory' | 'disk' | 'network'> {
   // 🔄 안전한 fallback: raw.metrics.* 형태와 raw.* 형태 모두 지원
-  const cpu = (raw as any).metrics?.cpu ?? raw.cpu ?? 0;
-  const memory = (raw as any).metrics?.memory ?? raw.memory ?? 0;
-  const disk = (raw as any).metrics?.disk ?? raw.disk ?? 0;
-  const network = (raw as any).metrics?.network ?? raw.network ?? 0;
+  const rawWithMetrics = raw as RawWithMetrics;
+  const cpu = rawWithMetrics.metrics?.cpu ?? raw.cpu ?? 0;
+  const memory = rawWithMetrics.metrics?.memory ?? raw.memory ?? 0;
+  const disk = rawWithMetrics.metrics?.disk ?? raw.disk ?? 0;
+  const network = rawWithMetrics.metrics?.network ?? raw.network ?? 0;
 
   return {
     cpu: Math.round(cpu),

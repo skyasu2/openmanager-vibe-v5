@@ -30,14 +30,14 @@ interface AnomalyFeedProps {
   showDetails?: boolean;
 }
 
-const severityColors = {
+const _severityColors = {
   low: 'bg-blue-100 text-blue-800 border-blue-200',
   medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   high: 'bg-orange-100 text-orange-800 border-orange-200',
   critical: 'bg-red-100 text-red-800 border-red-200',
 };
 
-const typeIcons = {
+const _typeIcons = {
   cpu: '🔥',
   memory: '💾',
   disk: '💿',
@@ -80,7 +80,7 @@ export function AnomalyFeed({
   maxItems = 20,
   autoRefresh = true,
   refreshInterval = 20000, // 20초로 통일
-  showDetails = true,
+  showDetails: _showDetails = true,
 }: AnomalyFeedProps) {
   const [manualRefresh, setManualRefresh] = useState(0);
 
@@ -131,8 +131,8 @@ export function AnomalyFeed({
     }
   };
 
-  // 수동 새로고침
-  const handleRefresh = () => {
+  // 수동 새로고침 (미래 사용 예정)
+  const _handleRefresh = () => {
     setManualRefresh((prev) => prev + 1);
     void mutate();
   };
