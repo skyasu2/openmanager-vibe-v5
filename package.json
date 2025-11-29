@@ -45,7 +45,7 @@
     "test:coverage": "vitest run --config config/testing/vitest.config.simple.ts --coverage",
     "test:watch": "vitest --config config/testing/vitest.config.simple.ts",
     "test:e2e": "playwright test",
-    "test:e2e:critical": "playwright test tests/e2e/basic-smoke.spec.ts tests/e2e/quick-check.spec.ts tests/e2e/admin-page-access.spec.ts --config playwright.config.ts",
+    "test:e2e:critical": "playwright test tests/e2e/smoke.spec.ts tests/e2e/guest.spec.ts tests/e2e/accessibility.spec.ts --config playwright.config.ts",
     "test:e2e:full": "playwright test --config playwright.config.ts",
     "test:e2e:local": "playwright test --config playwright.config.ts",
     "test:e2e:with-server": "PORT=3000 npm run dev:stable & sleep 5 && playwright test --config playwright.config.ts; kill %1",
