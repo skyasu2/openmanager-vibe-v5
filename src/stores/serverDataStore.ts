@@ -27,13 +27,21 @@ function mapServerToEnhanced(
       ? server.uptime
       : parseInt(String(server.uptime), 10) || 0;
 
+  // 타입 변환: EnhancedServerMetrics는 'maintenance'와 'unknown'을 허용하지 않음
+  const enhancedStatus = (() => {
+    if (server.status === 'unknown' || server.status === 'maintenance') {
+      return 'offline';
+    }
+    return server.status;
+  })();
+
   return {
     // 기본 식별 정보
     id: server.id,
-    hostname: server.hostname,
+    hostname: server.hostname ?? server.id,
     environment: server.environment,
     role: server.role,
-    status: server.status,
+    status: enhancedStatus,
 
     // 메트릭 데이터
     cpu: server.cpu,

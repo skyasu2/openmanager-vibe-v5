@@ -105,7 +105,10 @@ export class IntelligentMonitoringService {
       cpu: extractNumericValue(currentMetrics.cpu),
       memory: extractNumericValue(currentMetrics.memory),
       disk: extractNumericValue(currentMetrics.disk),
-      network: extractNumericValue(currentMetrics.network),
+      network:
+        currentMetrics.network !== undefined
+          ? extractNumericValue(currentMetrics.network)
+          : 0,
     };
 
     // Run anomaly detection
@@ -143,6 +146,16 @@ export class IntelligentMonitoringService {
     // Build enhanced metrics
     const enhancedMetrics: EnhancedServerMetrics = {
       ...currentMetrics,
+      // Ensure required fields are present
+      id:
+        'id' in currentMetrics && typeof currentMetrics.id === 'string'
+          ? currentMetrics.id
+          : 'unknown',
+      hostname:
+        'hostname' in currentMetrics &&
+        typeof currentMetrics.hostname === 'string'
+          ? currentMetrics.hostname
+          : 'unknown',
       aiAnalysis: {
         anomalyScore: aggregateAnomalyScore,
         predictedIssues,
@@ -175,7 +188,10 @@ export class IntelligentMonitoringService {
       cpu: extractNumericValue(currentMetrics.cpu),
       memory: extractNumericValue(currentMetrics.memory),
       disk: extractNumericValue(currentMetrics.disk),
-      network: extractNumericValue(currentMetrics.network),
+      network:
+        currentMetrics.network !== undefined
+          ? extractNumericValue(currentMetrics.network)
+          : 0,
     };
 
     const anomalies = this.anomalyDetector.detectAnomalies(
