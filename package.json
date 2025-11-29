@@ -50,7 +50,7 @@
     "test:e2e:local": "playwright test --config playwright.config.ts",
     "test:e2e:with-server": "PORT=3000 npm run dev:stable & sleep 5 && playwright test --config playwright.config.ts; kill %1",
     "test:comprehensive": "playwright test tests/e2e/comprehensive-user-flow.spec.ts --headed --timeout=120000",
-    "test:vercel:e2e": "PLAYWRIGHT_BASE_URL=\"https://openmanager-vibe-v5.vercel.app\" VERCEL_PRODUCTION_URL=\"https://openmanager-vibe-v5.vercel.app\" playwright test --config playwright.config.ts",
+    "test:vercel:e2e": "PLAYWRIGHT_BASE_URL=\"https://openmanager-vibe-v5.vercel.app\" VERCEL_PRODUCTION_URL=\"https://openmanager-vibe-v5.vercel.app\" playwright test --config playwright.config.vercel.ts",
     "test:vercel:comprehensive": "playwright test tests/e2e/comprehensive-user-flow.spec.ts --headed --timeout=120000 --reporter=list",
     "test:vercel": "./scripts/vercel-production-test.sh",
     "test:ai": "npm run test:vercel",
