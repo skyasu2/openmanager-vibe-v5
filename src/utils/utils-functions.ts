@@ -158,8 +158,15 @@ export function deepClone<T>(obj: T): T {
  * @param decimals - Number of decimal places
  * @returns Formatted percentage string
  */
-export function formatPercentage(value: number, decimals = 1): string {
-  return `${value.toFixed(decimals)}%`;
+export function formatPercentage(
+  value: number | null | undefined,
+  decimals = 1
+): string {
+  const num = Number(value);
+  if (isNaN(num)) {
+    return '0.00%';
+  }
+  return `${num.toFixed(decimals)}%`;
 }
 
 /**
@@ -432,11 +439,16 @@ export function isValidEmail(email: string): boolean {
  * Truncate string with ellipsis
  * @param str - String to truncate
  * @param length - Maximum length
+ * @param suffix - Suffix to add (default: '...')
  * @returns Truncated string
  */
-export function truncate(str: string, length: number): string {
+export function truncate(
+  str: string,
+  length: number,
+  suffix: string = '...'
+): string {
   if (str.length <= length) return str;
-  return str.substring(0, length) + '...';
+  return str.substring(0, length - suffix.length) + suffix;
 }
 
 /**
@@ -529,4 +541,40 @@ export function isEmpty(value: unknown): boolean {
   if (Array.isArray(value)) return value.length === 0;
   if (typeof value === 'object') return Object.keys(value).length === 0;
   return false;
+}
+
+/**
+ * 문자열을 슬러그로 변환합니다.
+ * @param str - 변환할 문자열
+ * @returns 슬러그 문자열
+ */
+export function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // 특수문자 제거
+    .replace(/[\s_-]+/g, '-') // 공백과 언더스코어를 하이픈으로
+    .replace(/^-+|-+$/g, ''); // 시작과 끝의 하이픈 제거
+}
+
+/**
+ * 두 날짜 사이의 차이를 계산합니다.
+ * @param date1 - 첫 번째 날짜
+ * @param date2 - 두 번째 날짜
+ * @returns 밀리초 단위의 차이
+ */
+export function dateDiff(date1: Date, date2: Date): number {
+  return Math.abs(date1.getTime() - date2.getTime());
+}
+
+/**
+ * UUID v4를 생성합니다.
+ * @returns UUID v4 문자열
+ */
+export function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
