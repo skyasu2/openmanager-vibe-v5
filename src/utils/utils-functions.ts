@@ -164,7 +164,7 @@ export function formatPercentage(
 ): string {
   const num = Number(value);
   if (isNaN(num)) {
-    return '0.00%';
+    return `${(0).toFixed(decimals)}%`;
   }
   return `${num.toFixed(decimals)}%`;
 }
