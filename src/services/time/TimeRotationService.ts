@@ -7,7 +7,16 @@
  * 사용자 요구사항: "24시간 데이터를 회전시키면서 30초마다 실제 시간이 흐르는 거처럼"
  */
 
-import { getCurrentSimulatedHour } from '../../mock/fixedHourlyData';
+// import { getCurrentSimulatedHour } from '../../mock/fixedHourlyData';
+
+// Helper to get current simulated hour (KST)
+function getCurrentSimulatedHour(): number {
+  const now = new Date();
+  const kstTime = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
+  );
+  return kstTime.getHours();
+}
 
 export interface TimeRotationState {
   // 시뮬레이션 시간
@@ -435,15 +444,18 @@ export class TimeRotationService {
     const pattern = TIME_OF_DAY_PATTERNS.find(
       (p) => p.hour === this.state.simulatedHour
     );
-    return pattern ?? TIME_OF_DAY_PATTERNS[0] ?? { 
-      hour: 0, 
-      label: 'default', 
-      cpuMultiplier: 1, 
-      memoryMultiplier: 1, 
-      diskMultiplier: 1, 
-      networkMultiplier: 1, 
-      alertProbability: 0.1 
-    };
+    return (
+      pattern ??
+      TIME_OF_DAY_PATTERNS[0] ?? {
+        hour: 0,
+        label: 'default',
+        cpuMultiplier: 1,
+        memoryMultiplier: 1,
+        diskMultiplier: 1,
+        networkMultiplier: 1,
+        alertProbability: 0.1,
+      }
+    );
   }
 
   /**
@@ -500,15 +512,18 @@ export class TimeRotationService {
   public getUpcomingPattern(): TimeOfDayPattern {
     const nextHour = (this.state.simulatedHour + 1) % 24;
     const pattern = TIME_OF_DAY_PATTERNS.find((p) => p.hour === nextHour);
-    return pattern ?? TIME_OF_DAY_PATTERNS[0] ?? { 
-      hour: 0, 
-      label: 'default', 
-      cpuMultiplier: 1, 
-      memoryMultiplier: 1, 
-      diskMultiplier: 1, 
-      networkMultiplier: 1, 
-      alertProbability: 0.1 
-    };
+    return (
+      pattern ??
+      TIME_OF_DAY_PATTERNS[0] ?? {
+        hour: 0,
+        label: 'default',
+        cpuMultiplier: 1,
+        memoryMultiplier: 1,
+        diskMultiplier: 1,
+        networkMultiplier: 1,
+        alertProbability: 0.1,
+      }
+    );
   }
 
   /**
