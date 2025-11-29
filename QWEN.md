@@ -56,7 +56,7 @@ qwen --approval-mode plan "시간 복잡도 분석"
 
 **효과**: 간단/복잡한 쿼리 모두 즉시 응답
 
-**상세**: @docs/ai/qwen-timeout-analysis-and-fix.md
+**상세**: <!-- Imported from: docs/ai/qwen-timeout-analysis-and-fix.md -->
 
 ---
 
@@ -104,7 +104,7 @@ QWEN_MODEL=qwen3
 
 **Optimization Standards**: Simplicity, Scalability, Readability
 
-**상세**: @docs/ai/ai-coding-standards.md (최적화 규칙)
+**상세**: <!-- Imported from: docs/ai/ai-coding-standards.md -->
 
 ---
 
@@ -117,7 +117,7 @@ QWEN_MODEL=qwen3
 3. Claude Code → Qwen 개선점 검토 및 수용/거부
 4. Claude Code → 최종 구현
 
-**상세**: @docs/ai/ai-collaboration-architecture.md (협업 전략)
+**상세**: <!-- Imported from: docs/ai/ai-collaboration-architecture.md -->
 
 ---
 
@@ -126,7 +126,7 @@ QWEN_MODEL=qwen3
 **Agentic Coding**: 자동 코드베이스 이해, 패턴 인식, 의존성 해결, 문서 생성
 **병렬 작업**: `qwen-code batch --tasks "..." --parallel --max-workers 4`
 
-**상세**: @docs/ai/ai-workflows.md (Qwen 고급 기능)
+**상세**: <!-- Imported from: docs/ai/ai-workflows.md -->
 
 ---
 
@@ -136,7 +136,7 @@ QWEN_MODEL=qwen3
 **Qwen Code**: 성능 분석, 알고리즘 최적화, 교차 검증
 **Gemini CLI**: 코드베이스 분석, 대규모 리팩토링
 
-**상세**: @docs/ai/ai-collaboration-architecture.md (AI 협업 체계)
+**상세**: <!-- Imported from: docs/ai/ai-collaboration-architecture.md -->
 
 ---
 
@@ -181,7 +181,7 @@ QWEN_MODEL=qwen3
 
 **특징**: 알고리즘 최적화, 제3자 관점, 무료 검증 (2,000/day)
 
-**상세**: @docs/ai/ai-usage-guidelines.md (Qwen 활용법)
+**상세**: <!-- Imported from: docs/ai/ai-usage-guidelines.md -->
 
 ---
 

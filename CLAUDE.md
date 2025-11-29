@@ -87,7 +87,7 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 3. 영향 범위 분석
 4. AI Cross-Check (Gemini)
 
-**상세**: @docs/ai/ai-coding-standards.md (Pre-Development Checklist)
+**상세**: <!-- Imported from: docs/ai/ai-coding-standards.md --> (Pre-Development Checklist)
 
 ### 🎯 구현 시 필수 작업
 
@@ -97,7 +97,7 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 2. 테스트 관리 (수정/생성/제거)
 3. Side-Effect 처리 (의존성, 환경변수, 타입, DB)
 
-**상세**: @docs/ai/ai-coding-standards.md (Implementation Checklist)
+**상세**: <!-- Imported from: docs/ai/ai-coding-standards.md --> (Implementation Checklist)
 
 ---
 
@@ -125,7 +125,7 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 
 **핵심**: codex-specialist, code-review, vercel-platform, security, test-automation
 
-**상세**: @docs/ai/subagents-complete-guide.md (371줄, 전체 목록)
+**상세**: <!-- Imported from: docs/ai/subagents-complete-guide.md --> (371줄, 전체 목록)
 **설정**: @config/ai/registry-core.yaml (SSOT)
 
 ### ⚡ 서브에이전트 활용 가이드
@@ -138,7 +138,7 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 - 🚀 배포: `Task vercel-platform-specialist "배포 최적화 검증"`
 - 📝 리뷰: `codex exec "변경사항 리뷰"`
 
-**상세 가이드**: @docs/ai/subagents-complete-guide.md (12개 에이전트, 활용 전략)
+**상세 가이드**: <!-- Imported from: docs/ai/subagents-complete-guide.md --> (12개 에이전트, 활용 전략)
 
 ---
 
@@ -226,7 +226,7 @@ npm run test:fast           # 21초 (44% 개선)
 - 4개 UI 컴포넌트 제거 (~1,196줄)
 - 완전한 하위 호환성 유지
 
-**상세**: @docs/ai/MODE-SELECTION-REMOVAL.md
+**상세**: <!-- Imported from: docs/ai/MODE-SELECTION-REMOVAL.md -->
 
 ---
 

@@ -37,4 +37,4 @@ gcloud functions deploy ai-query \
 
 ---
 
-**상세 내용**: @docs/ai/GCP_FUNCTIONS_INTEGRATION.md (1,324줄)
+**상세 내용**: <!-- Imported from: docs/ai/GCP_FUNCTIONS_INTEGRATION.md --> (1,324줄)

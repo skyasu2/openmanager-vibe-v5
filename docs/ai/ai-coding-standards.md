@@ -95,8 +95,8 @@
 ## 📚 관련 문서
 
 - **루트 파일**: CLAUDE.md, AGENTS.md (Codex), GEMINI.md, QWEN.md
-- **AI 벤치마크**: @docs/ai/ai-benchmarks.md
-- **협업 가이드**: @docs/ai/ai-collaboration-architecture.md
+- **AI 벤치마크**: <!-- Imported from: docs/ai/ai-benchmarks.md -->
+- **협업 가이드**: <!-- Imported from: docs/ai/ai-collaboration-architecture.md -->
 
 ---
 

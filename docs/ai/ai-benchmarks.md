@@ -106,8 +106,8 @@
 ## 📚 관련 문서
 
 - **상세 사용법**: AGENTS.md (Codex), GEMINI.md, QWEN.md
-- **코딩 규칙**: @docs/ai/ai-coding-standards.md
-- **자동 리뷰**: @scripts/code-review/auto-ai-review.sh
+- **코딩 규칙**: <!-- Imported from: docs/ai/ai-coding-standards.md -->
+- **자동 리뷰**: <!-- Imported from: scripts/code-review/auto-ai-review.sh -->
 
 ---
 

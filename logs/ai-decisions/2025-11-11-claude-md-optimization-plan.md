@@ -146,7 +146,7 @@
   - 언제: AI 교차검증 필요 시
   - 핵심: Codex(실무) + Gemini(설계) + Qwen(성능)
 
-- 서브에이전트 (@docs/ai/subagents-complete-guide.md)
+- 서브에이전트 (<!-- Imported from: docs/ai/subagents-complete-guide.md -->)
   - 언제: 전문 작업 위임 시
   - 핵심: 12개 에이전트, 역할별 분류
 

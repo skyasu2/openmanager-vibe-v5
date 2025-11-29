@@ -117,7 +117,7 @@ git diff | gemini TypeScript 타입 누락 확인
 **디버깅**: `tail error.log | gemini "에러 원인 분석"`
 **테스트**: `cat file.ts | gemini "Vitest 테스트 작성"`
 
-**상세**: @docs/ai/ai-workflows.md (워크플로우 예시 전체)
+**상세**: <!-- Imported from: docs/ai/ai-workflows.md --> (워크플로우 예시 전체)
 
 ---
 
@@ -133,7 +133,7 @@ git diff | gemini TypeScript 타입 누락 확인
 
 - 가독성, 간결함, 유지보수성, 테스트, 교차 검증
 
-**상세**: @docs/ai/ai-coding-standards.md (전체 코딩 규칙)
+**상세**: <!-- Imported from: docs/ai/ai-coding-standards.md --> (전체 코딩 규칙)
 
 ---
 
@@ -141,7 +141,7 @@ git diff | gemini TypeScript 타입 누락 확인
 
 Gemini CLI는 stateful 메모리 미지원 → 래퍼 스크립트 사용 권장
 
-**상세**: @docs/ai/ai-wrappers-guide.md (Gemini 래퍼 스크립트)
+**상세**: <!-- Imported from: docs/ai/ai-wrappers-guide.md --> (Gemini 래퍼 스크립트)
 
 ---
 
@@ -167,7 +167,7 @@ Gemini CLI는 stateful 메모리 미지원 → 래퍼 스크립트 사용 권장
 - **Codex CLI**: 코드 리뷰, 실무 구현
 - **Qwen CLI**: 성능 최적화, 알고리즘 분석
 
-**상세**: @docs/ai/ai-collaboration-architecture.md (협업 프로토콜)
+**상세**: <!-- Imported from: docs/ai/ai-collaboration-architecture.md --> (협업 프로토콜)
 
 ---
 
