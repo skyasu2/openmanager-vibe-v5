@@ -141,7 +141,7 @@ export class IntelligentMonitoringService {
     );
 
     // Build enhanced metrics
-    const enhancedMetrics: EnhancedServerMetrics = {
+    const enhancedMetrics = {
       ...currentMetrics,
       // Ensure required fields are present
       id:
@@ -165,7 +165,7 @@ export class IntelligentMonitoringService {
         disk: trendResults.disk?.trend || 'stable',
         network: trendResults.network?.trend || 'stable',
       },
-    };
+    } as EnhancedServerMetrics;
 
     return enhancedMetrics;
   }

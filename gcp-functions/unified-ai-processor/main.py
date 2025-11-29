@@ -7,9 +7,10 @@ Features:
 - Intelligent routing and fallback
 - Performance monitoring
 - 10-50x performance improvement over JavaScript
+- **Optimized**: Direct module integration (No internal HTTP calls)
 
 Author: AI Migration Team
-Version: 1.0.0 (Python)
+Version: 2.1.0 (Python Optimized)
 """
 
 import json
@@ -22,6 +23,10 @@ import functions_framework
 import httpx
 from cachetools import TTLCache
 import structlog
+
+# Import local modules
+from modules.nlp_engine import EnhancedKoreanNLPEngine
+from modules.ml_engine import MLAnalyticsEngine
 
 # Configure structured logging
 logger = structlog.get_logger()
@@ -58,12 +63,15 @@ class UnifiedResponse:
 
 
 class UnifiedAIProcessor:
-    """High-performance unified AI processing orchestrator"""
+    """High-performance unified AI processing orchestrator (Optimized)"""
     
     def __init__(self):
-        self.processor_endpoints = {
-            'korean_nlp': 'https://us-central1-openmanager-free-tier.cloudfunctions.net/enhanced-korean-nlp',
-            'ml_analytics': 'https://us-central1-openmanager-free-tier.cloudfunctions.net/ml-analytics-engine',
+        # Initialize local engines
+        self.nlp_engine = EnhancedKoreanNLPEngine()
+        self.ml_engine = MLAnalyticsEngine()
+        
+        # External endpoints (only for services not yet integrated)
+        self.external_endpoints = {
             'server_analyzer': 'https://us-central1-openmanager-free-tier.cloudfunctions.net/server-analyzer',
             'pattern_matcher': 'https://us-central1-openmanager-free-tier.cloudfunctions.net/pattern-matcher',
             'trend_predictor': 'https://us-central1-openmanager-free-tier.cloudfunctions.net/trend-predictor'
@@ -124,13 +132,19 @@ class UnifiedAIProcessor:
     
     async def _process_parallel(self, request: ProcessingRequest) -> List[ProcessingResult]:
         """Process request through multiple processors in parallel"""
+        tasks = []
+        
+        # Create an HTTP client for external calls if needed
         async with httpx.AsyncClient(timeout=10) as client:
-            tasks = []
-            
             for processor in request.processors:
-                if processor in self.processor_endpoints:
-                    task = self._call_processor(client, processor, request)
-                    tasks.append(task)
+                if processor == 'korean_nlp':
+                    tasks.append(self._run_local_nlp(request))
+                elif processor == 'ml_analytics':
+                    tasks.append(self._run_local_ml(request))
+                elif processor in self.external_endpoints:
+                    tasks.append(self._call_external_processor(client, processor, request))
+                else:
+                    logger.warning(f"Unknown processor requested: {processor}")
             
             results = await asyncio.gather(*tasks, return_exceptions=True)
             
@@ -149,14 +163,98 @@ class UnifiedAIProcessor:
                     processed_results.append(result)
             
             return processed_results
+
+    async def _run_local_nlp(self, request: ProcessingRequest) -> ProcessingResult:
+        """Run NLP engine locally"""
+        start_time = time.time()
+        try:
+            # Initialize if needed (it handles its own state)
+            await self.nlp_engine.initialize()
+            
+            result = await self.nlp_engine.analyze_query(request.query, request.context)
+            
+            return ProcessingResult(
+                processor='korean_nlp',
+                success=True,
+                data=asdict(result),
+                error=None,
+                processing_time=(time.time() - start_time) * 1000
+            )
+        except Exception as e:
+            logger.error("Local NLP failed", error=str(e))
+            return ProcessingResult(
+                processor='korean_nlp',
+                success=False,
+                data=None,
+                error=str(e),
+                processing_time=(time.time() - start_time) * 1000
+            )
+
+    async def _run_local_ml(self, request: ProcessingRequest) -> ProcessingResult:
+        """Run ML engine locally"""
+        start_time = time.time()
+        try:
+            # Extract metrics from context or options. 
+            # Note: The original ML engine expects 'metrics' list.
+            # We assume the caller passes metrics in context or we need to fetch them.
+            # For this optimization, we assume 'metrics' are passed in request.options or context.
+            metrics = request.options.get('metrics') or request.context.get('metrics') or []
+            
+            if not metrics:
+                return ProcessingResult(
+                    processor='ml_analytics',
+                    success=False,
+                    data=None,
+                    error="No metrics provided for ML analysis",
+                    processing_time=(time.time() - start_time) * 1000
+                )
+
+            result = await self.ml_engine.analyze_metrics(metrics, request.context)
+            
+            # Convert ML result to dict structure expected by aggregator
+            data = {
+                'anomalies': [
+                    {
+                        'is_anomaly': a.is_anomaly,
+                        'severity': a.severity,
+                        'confidence': a.confidence,
+                        'timestamp': a.timestamp.isoformat(),
+                        'value': a.value,
+                        'expected_range': list(a.expected_range)
+                    }
+                    for a in result.anomalies
+                ],
+                'trend': asdict(result.trend),
+                'patterns': result.patterns,
+                'recommendations': result.recommendations,
+                'health_scores': [asdict(h) for h in result.health_scores],
+                'clusters': result.clusters
+            }
+            
+            return ProcessingResult(
+                processor='ml_analytics',
+                success=True,
+                data=data,
+                error=None,
+                processing_time=(time.time() - start_time) * 1000
+            )
+        except Exception as e:
+            logger.error("Local ML failed", error=str(e))
+            return ProcessingResult(
+                processor='ml_analytics',
+                success=False,
+                data=None,
+                error=str(e),
+                processing_time=(time.time() - start_time) * 1000
+            )
     
-    async def _call_processor(self, client: httpx.AsyncClient, 
+    async def _call_external_processor(self, client: httpx.AsyncClient, 
                             processor: str, request: ProcessingRequest) -> ProcessingResult:
-        """Call individual processor"""
+        """Call external processor (Legacy/Remote)"""
         start_time = time.time()
         
         try:
-            endpoint = self.processor_endpoints[processor]
+            endpoint = self.external_endpoints[processor]
             
             # Prepare processor-specific payload
             payload = self._prepare_processor_payload(processor, request)
@@ -175,7 +273,7 @@ class UnifiedAIProcessor:
             )
             
         except Exception as e:
-            logger.error("Processor call failed", 
+            logger.error("External processor call failed", 
                         processor=processor, 
                         error=str(e))
             
@@ -195,11 +293,7 @@ class UnifiedAIProcessor:
         }
         
         # Add processor-specific fields
-        if processor == 'korean_nlp':
-            base_payload['features'] = request.options.get('nlp_features', {})
-        elif processor == 'ml_analytics':
-            base_payload['model'] = request.options.get('ml_model', 'auto')
-        elif processor == 'server_analyzer':
+        if processor == 'server_analyzer':
             base_payload['metrics'] = request.options.get('metrics', ['all'])
         
         return base_payload
@@ -223,26 +317,42 @@ class UnifiedAIProcessor:
                 total_weight += weight
                 
                 # Extract and merge insights
-                if 'confidence' in result.data:
-                    aggregated['confidence_score'] += result.data['confidence'] * weight
+                # Handle different data structures from different engines
                 
-                if 'insights' in result.data:
-                    aggregated['main_insights'].extend(result.data['insights'])
+                # NLP Engine Data
+                if result.processor == 'korean_nlp':
+                    data = result.data
+                    if 'quality_metrics' in data:
+                        aggregated['confidence_score'] += data['quality_metrics']['confidence'] * weight
+                    if 'entities' in data:
+                        # Convert entity list to dict
+                        for entity in data['entities']:
+                            e_type = entity['type']
+                            if e_type not in aggregated['entities']:
+                                aggregated['entities'][e_type] = []
+                            aggregated['entities'][e_type].append(entity)
+                    if 'response_guidance' in data:
+                         aggregated['main_insights'].append(f"Intent: {data['intent']}")
+
+                # ML Engine Data
+                elif result.processor == 'ml_analytics':
+                    data = result.data
+                    # ML engine doesn't return a single confidence score in the root, 
+                    # but we can infer from anomalies or trend confidence
+                    trend_conf = data.get('trend', {}).get('confidence', 0.8)
+                    aggregated['confidence_score'] += trend_conf * weight
+                    
+                    if 'anomalies' in data:
+                        aggregated['anomalies'].extend(data['anomalies'])
+                    if 'recommendations' in data:
+                        aggregated['main_insights'].extend(data['recommendations'])
                 
-                if 'entities' in result.data:
-                    for entity_type, entities in result.data['entities'].items():
-                        if entity_type not in aggregated['entities']:
-                            aggregated['entities'][entity_type] = []
-                        aggregated['entities'][entity_type].extend(entities)
-                
-                if 'metrics' in result.data:
-                    aggregated['metrics'].update(result.data['metrics'])
-                
-                if 'patterns' in result.data:
-                    aggregated['patterns'].extend(result.data['patterns'])
-                
-                if 'anomalies' in result.data:
-                    aggregated['anomalies'].extend(result.data['anomalies'])
+                # Generic/External Data
+                else:
+                    if 'confidence' in result.data:
+                        aggregated['confidence_score'] += result.data['confidence'] * weight
+                    if 'insights' in result.data:
+                        aggregated['main_insights'].extend(result.data['insights'])
         
         # Normalize confidence score
         if total_weight > 0:

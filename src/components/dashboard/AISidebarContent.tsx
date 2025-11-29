@@ -183,7 +183,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
           ? Math.round(
               servers.reduce(
                 (sum: number, s: EnhancedServerMetrics) =>
-                  sum + extractNumericValue(s.cpu),
+                  sum + extractNumericValue(s.cpu ?? 0),
                 0
               ) / servers.length
             )
@@ -193,7 +193,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
           ? Math.round(
               servers.reduce(
                 (sum: number, s: EnhancedServerMetrics) =>
-                  sum + extractNumericValue(s.memory),
+                  sum + extractNumericValue(s.memory ?? 0),
                 0
               ) / servers.length
             )
@@ -719,7 +719,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                     ? Math.round(
                         servers.reduce(
                           (sum: number, s: EnhancedServerMetrics) =>
-                            sum + extractNumericValue(s.cpu),
+                            sum + extractNumericValue(s.cpu ?? 0),
                           0
                         ) / servers.length
                       )
