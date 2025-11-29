@@ -56,7 +56,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '🐘 Supabase 플랫폼: PostgreSQL 15 + pgVector AI 검색 + Row Level Security 완전 구현',
         '📊 Supabase 데이터: 실시간 구독, 사용자 인증, 즉시 동기화 완전 지원',
         '🔐 Supabase 보안: RLS 정책, JWT 토큰, 암호화 저장, API 키 관리',
-        '☁️ GCP Functions: Python 기반 ML/NLP 작업 및 OpenStack 연동 수행',
+        '☁️ GCP Functions: Python 기반 ML/NLP 작업 및 Open Source 연동 수행',
         '🔗 HTTP REST API: 직접 호출 방식 (SDK 미사용, 번들 크기 0KB)',
         '💰 무료 티어 최적화: Vercel 10/100GB (90% 여유), Supabase 50/500MB (90% 여유), Google AI 300/1200 요청/일 (80% 여유), 총 운영비 $0/월',
         '📡 12개 AI API 엔드포인트: /api/ai/query, /api/ai/incident-report, /api/ai/intelligent-monitoring 등',
