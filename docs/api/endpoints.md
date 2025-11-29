@@ -1,0 +1,235 @@
+# API Endpoints Documentation
+
+**Last Updated**: 2025-11-29
+
+## Overview
+
+OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
+
+### 분류
+
+- **AI/ML**: 16개 (AI 어시스턴트, ML 분석, RAG)
+- **서버 관리**: 9개 (서버 메트릭, 상태 조회)
+- **시스템**: 7개 (시스템 초기화, 최적화)
+- **모니터링**: 6개 (성능, 메트릭, 알림)
+- **인증**: 4개 (Auth, CSRF)
+- **데이터베이스**: 3개 (상태, 리셋, Read-only)
+- **기타**: 33개 (테스트, 디버그, 캐시 등)
+
+---
+
+## 🤖 AI/ML APIs (16개)
+
+### Production (Active) ✅
+
+| Endpoint                         | Method    | Description                      | Auth | Status     |
+| -------------------------------- | --------- | -------------------------------- | ---- | ---------- |
+| `/api/ai/unified-stream`         | POST      | AI 통합 스트리밍 (Vercel AI SDK) | ✅   | **Active** |
+| `/api/ai/google-ai/generate`     | POST, GET | Google Gemini API 직접 호출      | ✅   | **Active** |
+| `/api/ai/incident-report`        | POST, GET | 자동 장애 보고서 생성            | ✅   | **Active** |
+| `/api/ai/intelligent-monitoring` | POST      | 지능형 모니터링 분석             | ✅   | **Active** |
+| `/api/ai/ml/train`               | POST      | ML 모델 학습 (패턴, 이상탐지)    | ✅   | **Active** |
+| `/api/ai/rag/benchmark`          | GET       | RAG 벡터 검색 성능 벤치마크      | ✅   | **Active** |
+| `/api/ai/raw-metrics`            | GET       | AI 분석용 순수 메트릭            | ✅   | **Active** |
+| `/api/ai/insight-center`         | POST      | AI 인사이트 센터                 | ❌   | **Active** |
+
+### Deprecated (Legacy) 🗑️
+
+| Endpoint                     | Method    | Description               | Status         | Replacement      |
+| ---------------------------- | --------- | ------------------------- | -------------- | ---------------- |
+| `/api/ai/korean-nlp`         | POST      | 한국어 NLP (GCP)          | **410 Gone**   | `unified-stream` |
+| `/api/ai/ml-analytics`       | POST      | ML 분석 (GCP)             | **410 Gone**   | `unified-stream` |
+| `/api/ai/thinking/stream-v2` | POST      | 레거시 Thinking Stream    | **Deprecated** | `unified-stream` |
+| `/api/ai/logging/stream`     | GET, POST | AI 로그 스트리밍 (Memory) | **Legacy**     | -                |
+
+### Development/Testing 🧪
+
+| Endpoint                   | Method | Description             | Purpose     |
+| -------------------------- | ------ | ----------------------- | ----------- |
+| `/api/ai/edge-v2`          | POST   | Edge Runtime AI 테스트  | Development |
+| `/api/ai/google-ai/status` | GET    | Google AI API 상태 확인 | Monitoring  |
+| `/api/ai-analysis`         | POST   | AI 분석 테스트          | Development |
+| `/api/ai-metrics`          | GET    | AI 메트릭 수집          | Development |
+
+---
+
+## 🖥️ Server Management APIs (9개)
+
+### Core Endpoints ✅
+
+| Endpoint                      | Method           | Description              | Auth | Cache |
+| ----------------------------- | ---------------- | ------------------------ | ---- | ----- |
+| `/api/servers/all`            | GET              | 모든 서버 목록 조회      | ✅   | 30s   |
+| `/api/servers`                | GET              | 서버 목록 (리다이렉트)   | ✅   | -     |
+| `/api/servers/[id]`           | GET, PUT, DELETE | 서버 상세 정보           | ✅   | -     |
+| `/api/servers/[id]/processes` | GET              | 서버 프로세스 목록       | ❌   | -     |
+| `/api/servers/realtime`       | GET              | 실시간 서버 메트릭 (SSE) | ❌   | -     |
+| `/api/servers/cached`         | GET              | 캐시된 서버 데이터       | ❌   | 60s   |
+| `/api/servers/next`           | POST             | 서버 생성/업데이트       | ❌   | -     |
+| `/api/servers-unified`        | GET              | 통합 서버 데이터         | ❌   | -     |
+
+### Mock/Testing 🧪
+
+| Endpoint            | Method | Description      | Purpose     |
+| ------------------- | ------ | ---------------- | ----------- |
+| `/api/servers/mock` | GET    | Mock 서버 데이터 | Development |
+
+---
+
+## ⚙️ System APIs (7개)
+
+| Endpoint                 | Method    | Description      | Auth | Status     |
+| ------------------------ | --------- | ---------------- | ---- | ---------- |
+| `/api/system/status`     | GET       | 시스템 전체 상태 | ❌   | **Active** |
+| `/api/system/initialize` | POST      | 시스템 초기화    | ❌   | **Active** |
+| `/api/system/start`      | POST      | 시스템 시작      | ❌   | **Active** |
+| `/api/system/optimize`   | POST      | 시스템 최적화    | ❌   | **Active** |
+| `/api/system/sync-data`  | POST      | 데이터 동기화    | ❌   | **Active** |
+| `/api/system/unified`    | GET       | 통합 시스템 정보 | ❌   | **Active** |
+| `/api/config/adaptive`   | GET, POST | 적응형 설정 관리 | ❌   | **Active** |
+
+---
+
+## 📊 Monitoring APIs (6개)
+
+| Endpoint                     | Method | Description              | Auth | Interval  |
+| ---------------------------- | ------ | ------------------------ | ---- | --------- |
+| `/api/metrics`               | GET    | 시스템 메트릭 조회       | ❌   | 5s        |
+| `/api/metrics/current`       | GET    | 현재 메트릭 스냅샷       | ❌   | Real-time |
+| `/api/metrics/hybrid-bridge` | GET    | 하이브리드 메트릭 브릿지 | ❌   | -         |
+| `/api/performance/metrics`   | GET    | 성능 메트릭              | ❌   | -         |
+| `/api/performance/history`   | GET    | 성능 히스토리            | ❌   | -         |
+| `/api/alerts/stream`         | GET    | 알림 스트리밍 (SSE)      | ❌   | Real-time |
+
+---
+
+## 🔐 Authentication APIs (4개)
+
+| Endpoint                        | Method | Description      | Status          |
+| ------------------------------- | ------ | ---------------- | --------------- |
+| `/api/auth/test`                | GET    | 인증 테스트      | **Active**      |
+| `/api/auth/debug`               | GET    | 인증 디버그 정보 | **Development** |
+| `/api/auth/error`               | GET    | 인증 에러 핸들링 | **Active**      |
+| `/api/auth/revoke-github-token` | POST   | GitHub 토큰 폐기 | **Active**      |
+
+---
+
+## 🗄️ Database APIs (3개)
+
+| Endpoint                      | Method    | Description         | Status     |
+| ----------------------------- | --------- | ------------------- | ---------- |
+| `/api/database/status`        | GET       | DB 연결 상태 확인   | **Active** |
+| `/api/database/reset-pool`    | POST      | DB 커넥션 풀 리셋   | **Active** |
+| `/api/database/readonly-mode` | GET, POST | Read-only 모드 관리 | **Active** |
+
+---
+
+## 🧪 Development/Testing APIs (10개)
+
+| Endpoint                     | Method | Description        | Purpose     |
+| ---------------------------- | ------ | ------------------ | ----------- |
+| `/api/test/timezone`         | GET    | 타임존 테스트      | Development |
+| `/api/test/vercel-test-auth` | GET    | Vercel 인증 테스트 | Development |
+| `/api/debug/env`             | GET    | 환경 변수 디버그   | Development |
+| `/api/ab-test`               | GET    | A/B 테스트 플래그  | Development |
+| `/api/simulate/data`         | POST   | 데이터 시뮬레이션  | Development |
+| `/api/data-generator/start`  | POST   | 데이터 생성기 시작 | Development |
+| `/api/data-generator/status` | GET    | 데이터 생성기 상태 | Development |
+| `/api/agents/health`         | GET    | 에이전트 헬스 체크 | Development |
+| `/api/ping`                  | GET    | 서버 Ping          | Monitoring  |
+| `/api/time`                  | GET    | 서버 시간          | Utility     |
+
+---
+
+## 🔧 Utility APIs (8개)
+
+| Endpoint                     | Method | Description      | Cache |
+| ---------------------------- | ------ | ---------------- | ----- |
+| `/api/cache/stats`           | GET    | 캐시 통계        | -     |
+| `/api/cache/optimize`        | POST   | 캐시 최적화      | -     |
+| `/api/csrf-token`            | GET    | CSRF 토큰 발급   | -     |
+| `/api/error-report`          | POST   | 에러 리포트 수집 | -     |
+| `/api/logs`                  | GET    | 시스템 로그 조회 | -     |
+| `/api/notes/setup`           | POST   | 노트 초기 설정   | -     |
+| `/api/notifications/browser` | POST   | 브라우저 알림    | -     |
+| `/api/health`                | GET    | 전체 헬스 체크   | -     |
+
+---
+
+## 📈 Analytics/Monitoring (5개)
+
+| Endpoint                | Method | Description         | Purpose    |
+| ----------------------- | ------ | ------------------- | ---------- |
+| `/api/dashboard`        | GET    | 대시보드 데이터     | Active     |
+| `/api/prediction`       | POST   | 예측 분석           | Active     |
+| `/api/enterprise`       | GET    | 엔터프라이즈 메트릭 | Active     |
+| `/api/web-vitals`       | POST   | Web Vitals 수집     | Monitoring |
+| `/api/universal-vitals` | POST   | Universal Vitals    | Monitoring |
+
+---
+
+## 🚀 Vercel/Deployment (3개)
+
+| Endpoint              | Method | Description        | Purpose    |
+| --------------------- | ------ | ------------------ | ---------- |
+| `/api/vercel-usage`   | GET    | Vercel 사용량 조회 | Monitoring |
+| `/api/version`        | GET    | 앱 버전 정보       | Info       |
+| `/api/version/status` | GET    | 버전 상태 체크     | Info       |
+
+---
+
+## 🔄 Unified AI APIs (4개)
+
+> **Note**: Legacy Unified AI 시스템 (Deprecated, `unified-stream`으로 통합됨)
+
+| Endpoint                     | Method | Description  | Status         |
+| ---------------------------- | ------ | ------------ | -------------- |
+| `/api/ai-unified/core`       | POST   | 코어 AI 처리 | **Deprecated** |
+| `/api/ai-unified/ml`         | POST   | ML 처리      | **Deprecated** |
+| `/api/ai-unified/monitoring` | POST   | 모니터링 AI  | **Deprecated** |
+| `/api/ai-unified/streaming`  | POST   | AI 스트리밍  | **Deprecated** |
+
+---
+
+## 🔒 Security (1개)
+
+| Endpoint                   | Method | Description     | Purpose  |
+| -------------------------- | ------ | --------------- | -------- |
+| `/api/security/csp-report` | POST   | CSP 위반 리포트 | Security |
+
+---
+
+## 🧹 Maintenance (1개)
+
+| Endpoint            | Method | Description      | Schedule |
+| ------------------- | ------ | ---------------- | -------- |
+| `/api/cron/cleanup` | GET    | 정기 클린업 작업 | Hourly   |
+
+---
+
+## 📊 요약
+
+### Status Distribution
+
+- **Active (Production)**: 42개 (54%)
+- **Deprecated**: 8개 (10%)
+- **Development/Testing**: 18개 (23%)
+- **Legacy (Unused)**: 10개 (13%)
+
+### Authentication Coverage
+
+- **Protected (withAuth)**: 9개 (12%)
+- **Public**: 69개 (88%)
+
+### Recommendations
+
+1. **API 정리**: Deprecated API 10개 제거 또는 410 Gone 처리
+2. **인증 강화**: 중요 API 20개 추가 인증 적용 검토
+3. **캐싱 최적화**: 서버 API 캐시 전략 표준화
+4. **문서화**: OpenAPI/Swagger 스펙 자동 생성 고려
+
+---
+
+**Generated**: 2025-11-29  
+**Total Endpoints**: 78  
+**Framework**: Next.js 15 App Router
