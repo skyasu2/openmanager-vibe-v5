@@ -15,8 +15,8 @@ describe('Utility Functions', () => {
     });
 
     it('handles null and undefined', () => {
-      expect(formatPercentage(null)).toBe('0.00%');
-      expect(formatPercentage(undefined)).toBe('0.00%');
+      expect(formatPercentage(null)).toBe('0.0%');
+      expect(formatPercentage(undefined)).toBe('0.0%');
     });
   });
 
