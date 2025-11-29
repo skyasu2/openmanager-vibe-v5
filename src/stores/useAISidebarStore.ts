@@ -151,92 +151,65 @@ export const useAIThinking = () => {
   // 실제 thinking 과정 시뮬레이션 (v4.0: UNIFIED 모드 전용)
   const simulateThinkingSteps = useCallback(
     (query: string, _mode: AIMode = 'UNIFIED') => {
-      // v4.0: 모든 모드가 UNIFIED로 통합되어 동일한 처리
-      // 레거시 모드 조건 제거 (하위 호환성 유지)
-      // eslint-disable-next-line no-constant-condition
-      if (false) {
-        // mode 조건 제거
-        // Google AI는 단순한 처리 과정
-        const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
-          {
-            id: crypto.randomUUID(),
-            step: 'API 호출 중...',
-            status: 'processing',
-            description: 'Google AI API를 호출하고 있습니다.',
-          },
-        ];
+      // Local AI는 상세한 thinking 과정
+      const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
+        {
+          id: crypto.randomUUID(),
+          step: '질문 분석',
+          status: 'processing',
+          description: `"${query}" 질문을 이해하고 의도를 파악하고 있습니다...`,
+        },
+        {
+          id: crypto.randomUUID(),
+          step: '데이터 수집',
+          status: 'processing',
+          description: '관련 시스템 데이터와 메트릭을 수집하고 있습니다...',
+        },
+        {
+          id: crypto.randomUUID(),
+          step: '분석 및 추론',
+          status: 'processing',
+          description: '수집된 데이터를 분석하고 패턴을 파악하고 있습니다...',
+        },
+        {
+          id: crypto.randomUUID(),
+          step: '답변 생성',
+          status: 'processing',
+          description: '최적의 답변을 생성하고 검증하고 있습니다...',
+        },
+      ];
 
-        steps.forEach((step) => addStep(step));
-
-        // 2초 후 완료
-        setTimeout(() => {
-          const firstStep = steps[0];
-          if (firstStep) {
-            updateStep(firstStep.id, { status: 'completed' });
-          }
-          completeThinking();
-        }, 2000);
-      } else {
-        // Local AI는 상세한 thinking 과정
-        const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
-          {
-            id: crypto.randomUUID(),
-            step: '질문 분석',
-            status: 'processing',
-            description: `"${query}" 질문을 이해하고 의도를 파악하고 있습니다...`,
-          },
-          {
-            id: crypto.randomUUID(),
-            step: '데이터 수집',
-            status: 'processing',
-            description: '관련 시스템 데이터와 메트릭을 수집하고 있습니다...',
-          },
-          {
-            id: crypto.randomUUID(),
-            step: '분석 및 추론',
-            status: 'processing',
-            description: '수집된 데이터를 분석하고 패턴을 파악하고 있습니다...',
-          },
-          {
-            id: crypto.randomUUID(),
-            step: '답변 생성',
-            status: 'processing',
-            description: '최적의 답변을 생성하고 검증하고 있습니다...',
-          },
-        ];
-
-        // 첫 번째 단계 시작
-        const firstStep = steps[0];
-        if (firstStep) {
-          addStep(firstStep);
-        }
-
-        // 단계별 진행 시뮬레이션
-        steps.forEach((step, index) => {
-          setTimeout(
-            () => {
-              if (index > 0) addStep(step); // 첫 번째는 이미 추가됨
-
-              // 이전 단계 완료
-              if (index > 0) {
-                const prevStep = steps[index - 1];
-                if (prevStep) {
-                  updateStep(prevStep.id, { status: 'completed' });
-                }
-              }
-
-              // 마지막 단계면 전체 완료
-              if (index === steps.length - 1) {
-                setTimeout(() => {
-                  updateStep(step.id, { status: 'completed' });
-                  completeThinking();
-                }, 1500);
-              }
-            },
-            (index + 1) * 1500
-          ); // 1.5초 간격으로 진행
-        });
+      // 첫 번째 단계 시작
+      const firstStep = steps[0];
+      if (firstStep) {
+        addStep(firstStep);
       }
+
+      // 단계별 진행 시뮬레이션
+      steps.forEach((step, index) => {
+        setTimeout(
+          () => {
+            if (index > 0) addStep(step); // 첫 번째는 이미 추가됨
+
+            // 이전 단계 완료
+            if (index > 0) {
+              const prevStep = steps[index - 1];
+              if (prevStep) {
+                updateStep(prevStep.id, { status: 'completed' });
+              }
+            }
+
+            // 마지막 단계면 전체 완료
+            if (index === steps.length - 1) {
+              setTimeout(() => {
+                updateStep(step.id, { status: 'completed' });
+                completeThinking();
+              }, 1500);
+            }
+          },
+          (index + 1) * 1500
+        ); // 1.5초 간격으로 진행
+      });
     },
     [addStep, updateStep, completeThinking]
   ); // addStep, updateStep, completeThinking 함수 의존성 복구

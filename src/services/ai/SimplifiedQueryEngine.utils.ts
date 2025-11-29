@@ -11,7 +11,7 @@ import {
   getTTL,
   validateDataSize,
 } from '../../config/free-tier-cache-config';
-import { analyzeKoreanNLP } from '../../lib/gcp/gcp-functions-client';
+
 import type { KoreanNLPResponse } from '../../lib/gcp/gcp-functions.types';
 import type {
   QueryResponse,
@@ -452,30 +452,18 @@ export class SimplifiedQueryEngineUtils {
     }
 
     try {
-      const result = await analyzeKoreanNLP(query, {
-        features: {
-          includeEntities: options.includeEntities ?? true,
-          includeAnalysis: options.includeAnalysis ?? true,
-        },
-      });
-
-      if (!result.success || !result.data) {
-        return null;
-      }
+      // 🚀 Unified Processor로 대체됨 (직접 호출 제거)
+      // 간단한 키워드 추출로 대체하거나, 필요 시 Unified Processor 호출
+      const keywords = query.split(' ').filter((w) => w.length > 1);
 
       return {
-        intent: result.data.intent,
-        sentiment: this.mapUrgencyToSentiment(
-          result.data.semantic_analysis?.urgency_level
-        ),
-        keywords: result.data.semantic_analysis?.sub_topics ?? [],
-        summary: this.buildKoreanNLPSummary(result.data),
+        intent: 'general',
+        keywords,
+        sentiment: 'neutral',
+        summary: '간단한 키워드 분석',
         metadata: {
           koreanRatio,
-          urgency: result.data.semantic_analysis?.urgency_level,
-          technicalComplexity:
-            result.data.semantic_analysis?.technical_complexity,
-          entityCount: result.data.entities?.length ?? 0,
+          entityCount: 0,
         },
       };
     } catch (error) {

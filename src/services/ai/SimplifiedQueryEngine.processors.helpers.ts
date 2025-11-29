@@ -21,7 +21,7 @@ import type {
   ServerStatusAnalysis,
 } from './SimplifiedQueryEngine.types';
 import type { EnhancedServerMetrics } from '@/types/server';
-import { processUnifiedAI } from '@/lib/gcp/gcp-functions-client';
+import { getGCPFunctionsClient } from '@/lib/gcp/gcp-functions-client';
 import type { UnifiedAIResponse } from '@/services/ai/formatters/unified-response-formatter'; // Correct import
 
 // ... (rest of the file)
@@ -357,36 +357,21 @@ export class SimplifiedQueryEngineHelpers {
     }
   ): Promise<{ summary: string | null; raw: UnifiedAIResponse | null }> {
     try {
-      const result = await processUnifiedAI({
-        query,
-        context: {
-          metadata: context?.metadata,
-          servers: context?.servers?.map((server) => ({
-            id: server.id,
-            status: server.status,
-            cpu: server.cpu,
-            memory: server.memory,
-          })),
-          ragSamples: ragResult?.results?.slice(0, 3) || [],
-        },
-        processors: [
-          'korean_nlp',
-          'ml_analytics',
-          'server_analyzer',
-          'pattern_matcher',
-        ],
-        options: {
-          nlp_features: { include_entities: true },
-        },
-      });
+      const client = getGCPFunctionsClient();
+      const result = await client.callUnifiedProcessor(query, [
+        'korean_nlp',
+        'ml_analytics',
+        'server_analyzer',
+        'pattern_matcher',
+      ]);
 
       if (!result.success || !result.data) {
         return { summary: null, raw: null };
       }
 
       return {
-        summary: this.formatUnifiedInsights(result.data),
-        raw: result.data,
+        summary: this.formatUnifiedInsights(result.data as UnifiedAIResponse),
+        raw: result.data as UnifiedAIResponse,
       };
     } catch (error) {
       console.warn('[UnifiedInsights] Cloud Functions 호출 실패:', error);

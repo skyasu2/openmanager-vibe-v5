@@ -81,7 +81,10 @@ export class MockScenarioManager {
     category?: 'technical' | 'business' | 'mixed' | 'edge-case'
   ) {
     // 실제 GCP Functions 사용
-    const { analyzeKoreanNLP } = await import('@/lib/gcp/gcp-functions-client');
+    const { getGCPFunctionsClient } = await import(
+      '@/lib/gcp/gcp-functions-client'
+    );
+    const client = getGCPFunctionsClient() as any;
 
     let scenarios: KoreanNLPScenario[] = [];
 
@@ -108,7 +111,9 @@ export class MockScenarioManager {
     const results = [];
     for (const scenario of scenarios) {
       try {
-        const result = await analyzeKoreanNLP(scenario.input, scenario.context);
+        const result = await client.callUnifiedProcessor(scenario.input, [
+          'korean_nlp',
+        ]);
 
         results.push({
           scenario,
@@ -285,7 +290,9 @@ export class MockScenarioManager {
     );
 
     // 실제 서비스와 연동 시 여기서 결과를 전송할 수 있음
-    // await analyzeMLMetrics(metrics, { anomalies, predictions });
+    // const { getGCPFunctionsClient } = await import('@/lib/gcp/gcp-functions-client');
+    // const client = getGCPFunctionsClient();
+    // await client.callUnifiedProcessor('ML Analysis', ['ml_analytics']);
   }
 }
 

@@ -41,31 +41,25 @@ Used for instant responses without incurring LLM costs. These tools run locally 
 
 Used to plan and analyze _before_ taking action. These are internal reasoning steps.
 
-1.  **`analyzeIntent`**: Classifies user intent (Monitoring, Troubleshooting, Prediction, etc.).
-2.  **`analyzeComplexity`**: Scores query complexity to decide strategy (Offline vs Online).
-3.  **`selectRoute`**: Chooses the optimal execution path (Quick Response vs Comprehensive Analysis).
-4.  **`searchContext`**: Retrieves relevant history or knowledge to build context.
-5.  **`generateInsight`**: Synthesizes findings into actionable insights.
+1.  **`analyzeRequest`**: Consolidates intent classification and complexity analysis into a single step to optimize token usage.
 
 ### C. Action Tools (Execution Layer)
 
 Used to fetch data or perform operations.
 
-1.  **`getServerMetrics`**: Retrieves server stats (CPU, Memory, Disk) using `scenario-loader` (Simulation).
-2.  **`predictIncident`**: **[Real GCP]** Calls Google Cloud Functions for ML-based anomaly detection.
+1.  **`callUnifiedProcessor`**: **[Real GCP]** Calls the unified Google Cloud Function for complex analysis (NLP + ML + Server Analysis).
+2.  **`getServerMetrics`**: Retrieves server stats (CPU, Memory, Disk) using `scenario-loader` (Simulation).
 3.  **`searchKnowledgeBase`**: **[Real RAG]** Uses `SupabaseRAGEngine` (pgvector) to search the actual knowledge base.
-4.  **`analyzeServerHealth`**: Performs comprehensive health analysis of all servers.
 
 ## 🔄 Data Flow
 
 1.  **User Query**: User types a message in `AISidebarV4`.
 2.  **API Request**: `useChat` sends POST request to `/api/ai/unified-stream`.
 3.  **AI Processing (Hybrid Routing)**:
-    - **Phase 1 (Thinking)**: Calls `analyzeIntent` -> `analyzeComplexity`.
+    - **Phase 1 (Thinking)**: Calls `analyzeRequest`.
     - **Phase 2 (Routing)**:
       - If **Simple**: Calls `analyzePattern` or `recommendCommands` (Offline).
-      - If **Complex**: Calls `searchKnowledgeBase` (RAG) or `predictIncident` (GCP).
-    - **Phase 3 (Insight)**: Calls `generateInsight`.
+      - If **Complex**: Calls `searchKnowledgeBase` (RAG) or `callUnifiedProcessor` (GCP).
 4.  **Streaming Response**:
     - Tool calls are streamed as `toolInvocations` (rendered as UI steps).
     - Final text response is streamed as markdown.
@@ -73,6 +67,6 @@ Used to fetch data or perform operations.
 
 ## 🔌 Integration Points
 
-- **GCP Integration**: `predictIncident` tool connects to external GCP Cloud Functions.
+- **GCP Integration**: `callUnifiedProcessor` tool connects to external GCP Cloud Functions.
 - **Supabase Integration**: `searchKnowledgeBase` connects to Supabase `pgvector` for RAG.
 - **Scenario Loader**: `getServerMetrics` uses `src/services/scenario/scenario-loader.ts` for consistent demo data.

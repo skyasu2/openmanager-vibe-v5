@@ -154,6 +154,22 @@ export class GCPFunctionsClient {
   }
 
   /**
+   * 통합 AI 프로세서 호출
+   */
+  async callUnifiedProcessor(
+    query: string,
+    processors: string[] = ['korean_nlp', 'server_analyzer']
+  ): Promise<Result<any>> {
+    return this.callFunction('unified-ai-processor', {
+      query,
+      processors,
+      context: {
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }
+
+  /**
    * 클라이언트 상태 조회
    */
   getStatus() {

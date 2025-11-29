@@ -349,18 +349,3 @@ export function getResilientAIClient(): ResilientAIClient {
 
   return globalResilientClient;
 }
-
-/**
- * 헬퍼 함수들
- */
-
-/**
- * ❌ Deprecated Functions (2025-11-22)
- *
- * 아래 함수들은 더 이상 사용되지 않습니다:
- * - analyzeKoreanNLPResilient: KoreanNLPProvider가 직접 호출
- * - analyzeMLMetricsResilient: MLProvider가 직접 호출
- * - processUnifiedAIResilient: GoogleAiUnifiedEngine으로 대체됨
- *
- * 참고: docs/analysis/gcp-functions-analysis-2025-11-22.md
- */

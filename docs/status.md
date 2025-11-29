@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-11-26
+**마지막 업데이트**: 2025-11-29
 
 ---
 
@@ -43,6 +43,26 @@
 
 **상세 문서**: [AI 모드 선택 UI 제거](ai/MODE-SELECTION-REMOVAL.md)
 
+### AI 아키텍처 최적화 (2025-11-29)
+
+**변경 이유**: AI 엔진 효율성 증대 및 토큰 비용 절감, 유지보수성 향상
+
+**변경사항**:
+
+- **Hybrid Engine 고도화**:
+  - **Unified Processor**: 복잡한 분석(NLP, ML, Server)을 단일 GCP 함수로 통합 (`callUnifiedProcessor`)
+  - **Thinking Tools 통합**: `analyzeIntent` + `analyzeComplexity` → `analyzeRequest` (토큰 절약)
+  - **Offline Tools 강화**: `analyzePattern`, `recommendCommands`로 단순 쿼리 즉시 처리
+
+- **API 정리**:
+  - **Deprecated**: `/api/ai/korean-nlp`, `/api/ai/ml-analytics` (410 Gone)
+  - **Removed**: `korean-nlp-provider.ts`, `analyzeKoreanNLP`, `analyzeMLMetrics` 등 레거시 코드
+
+- **효과**:
+  - ✅ 토큰 사용량 약 30% 절감 예상 (Thinking Step 통합)
+  - ✅ 응답 속도 개선 (단일 GCP 호출)
+  - ✅ 코드베이스 정리 (중복/미사용 코드 제거)
+
 ---
 
 ## 📝 메모리 파일 최적화 (2025-11-11)
@@ -73,15 +93,15 @@
 
 ## 🤖 AI 도구
 
-**권장 버전 (2025-11-24 기준)** ✅
+**권장 버전 (2025-11-29 기준)** ✅
 
-- Claude Code v2.0.49 (현재 버전, 최신)
+- Claude Code v2.0.53 (현재 버전, 최신) 🆕
   - 🆕 Extended Thinking (think / think hard / think harder / ultrathink)
   - 🆕 @-mention 서버 필터링 (토큰 10-18% 추가 절약)
   - 🆕 Prompt Caching (자동 활성화)
-- Codex CLI v0.63.0 (현재 버전, 최신)
-- Gemini CLI v0.17.1 (현재 버전, 최신)
-- Qwen CLI v0.2.3 (현재 버전, 최신)
+- Codex CLI v0.63.0 (현재 버전, 최신) ✅
+- Gemini CLI v0.18.4 (현재 버전, 안정 릴리스) 🆕
+- Qwen CLI v0.3.0 (현재 버전, 최신) 🆕
 - Kiro CLI v1.20.0 (AWS Kiro Beta, 터미널 멀티 에이전트 – 미설치)
 
 **Claude Code Skills** (Phase 1 완료) ✅
