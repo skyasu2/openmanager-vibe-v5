@@ -24,7 +24,8 @@ function getSessionSecret(): string {
   if (!secret) {
     // 프로덕션 환경에서는 경고 레벨 상향
     const isProduction = process.env.NODE_ENV === 'production';
-    const message = '⚠️ SESSION_SECRET not set, using default (insecure for production)';
+    const message =
+      '⚠️ SESSION_SECRET not set, using default (insecure for production)';
 
     if (isProduction) {
       console.error(message);
@@ -113,8 +114,8 @@ export function verifySignedSessionId(signedId: string): string | null {
       return null;
     }
 
-    const providedBuffer = Buffer.from(providedSignature, 'utf8');
-    const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
+    const providedBuffer = Buffer.from(providedSignature, 'hex');
+    const expectedBuffer = Buffer.from(expectedSignature, 'hex');
 
     if (!timingSafeEqual(providedBuffer, expectedBuffer)) {
       console.warn('🔐 Session signature mismatch: possible tampering');
