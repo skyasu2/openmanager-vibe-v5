@@ -43,6 +43,25 @@ export function useAutoLogout({
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
+  // 자동 로그아웃 처리 (resetTimers보다 먼저 정의)
+  const handleAutoLogout = useCallback(async () => {
+    try {
+      onLogout?.();
+
+      // 게스트 모드 - 로컬 스토리지 정리
+      localStorage.removeItem('auth_session_id');
+      localStorage.removeItem('auth_type');
+      setIsLoggedIn(false);
+      router.push(redirectPath);
+
+      console.log('🔐 자동 로그아웃 완료');
+    } catch (error) {
+      console.error('❌ 자동 로그아웃 실패:', error);
+      // 실패해도 로그인 페이지로 이동
+      router.push(redirectPath);
+    }
+  }, [onLogout, router, redirectPath]);
+
   // 타이머 초기화
   const resetTimers = useCallback(() => {
     if (timeoutRef.current) {
@@ -68,32 +87,19 @@ export function useAutoLogout({
         void handleAutoLogout();
       }, inactivityTimeout);
     }
-  }, [inactivityTimeout, warningTimeout, isLoggedIn, onWarning]);
+  }, [
+    inactivityTimeout,
+    warningTimeout,
+    isLoggedIn,
+    onWarning,
+    handleAutoLogout,
+  ]);
 
   // 활동 업데이트
   const updateActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
     resetTimers();
   }, [resetTimers]);
-
-  // 자동 로그아웃 처리
-  const handleAutoLogout = async () => {
-    try {
-      onLogout?.();
-
-      // 게스트 모드 - 로컬 스토리지 정리
-      localStorage.removeItem('auth_session_id');
-      localStorage.removeItem('auth_type');
-      setIsLoggedIn(false);
-      router.push(redirectPath);
-
-      console.log('🔐 자동 로그아웃 완료');
-    } catch (error) {
-      console.error('❌ 자동 로그아웃 실패:', error);
-      // 실패해도 로그인 페이지로 이동
-      router.push(redirectPath);
-    }
-  };
 
   // 강제 로그아웃
   const forceLogout = async () => {

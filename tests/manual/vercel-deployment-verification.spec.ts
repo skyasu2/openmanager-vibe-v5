@@ -184,7 +184,9 @@ test.describe('Vercel 배포 검증 및 E2E 테스트 분석', () => {
 
     await page.waitForTimeout(2000);
     console.log(`📡 네트워크 요청 (API): ${networkRequests.length}개`);
-    networkRequests.slice(0, 10).forEach((req) => console.log(`  ${req}`));
+    for (const req of networkRequests.slice(0, 10)) {
+      console.log(`  ${req}`);
+    }
 
     // 6. 최종 스크린샷
     await page.screenshot({

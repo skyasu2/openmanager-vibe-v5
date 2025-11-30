@@ -10,7 +10,6 @@
 
 import debug from '@/utils/debug';
 import type {
-  ErrorHandlingConfig,
   RecoveryConfig,
   RecoveryResult,
   ServiceError,
@@ -26,11 +25,6 @@ export class RecoveryService {
     backoffFactor: 2,
     timeout: 10000,
   };
-  // private config: ErrorHandlingConfig;
-
-  constructor(config: ErrorHandlingConfig) {
-    // this.config = config;
-  }
 
   /**
    * 에러 복구 시도

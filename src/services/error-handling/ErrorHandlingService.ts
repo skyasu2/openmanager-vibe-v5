@@ -27,7 +27,6 @@ export class ErrorHandlingService implements IErrorHandler {
   private recoveryService: RecoveryService;
   private monitoringService: ErrorMonitoringService;
   private config: ErrorHandlingConfig;
-  private defaultHandlers: DefaultErrorHandlers;
 
   constructor(logger?: ILogger) {
     // 기본 설정
