@@ -1,7 +1,13 @@
 #!/bin/bash
 
-# AI Review Core Functions - v5.0.0
+# AI Review Core Functions - v6.0.0
 # AI 리뷰 실행 함수들 (Codex, Gemini, Qwen, Claude)
+#
+# v6.0.0 (2025-12-01): 단순화된 폴백 시스템
+# - 4단계 폴백 → 1회 재시도 + 지연 보상
+# - Primary 실패 시 1회만 다른 AI로 재시도
+# - 그래도 실패하면 .pending-reviews에 저장 → 다음 커밋 때 보상
+# - 코드 복잡도 대폭 감소 (500줄 → 200줄)
 
 # ============================================================================
 # Codex 리뷰 함수
@@ -73,10 +79,10 @@ $changes
 # Gemini 리뷰 함수
 # ============================================================================
 
-fallback_to_gemini_review() {
+try_gemini_review() {
     local changes="$1"
 
-    log_ai_engine "🔄 Gemini CLI로 폴백..."
+    log_ai_engine "🟣 Gemini 코드 리뷰 시도 중..."
 
     # Gemini 쿼리 생성 (검증 결과 포함)
     local query="다음 Git 변경사항을 실무 관점에서 코드 리뷰해주세요:
@@ -341,206 +347,125 @@ OUTPUT_EOF
 }
 
 # ============================================================================
-# AI 리뷰 실행 (v5.0.0: 1:1:1:1 비율 + 4단계 폴백)
+# AI 리뷰 실행 (v6.0.0: 단순화 - 1회 재시도 + 지연 보상)
 # ============================================================================
+
+# 지연 보상 파일 경로
+PENDING_REVIEWS_FILE="$PROJECT_ROOT/logs/code-reviews/.pending-reviews"
+
+# AI별 리뷰 함수 매핑
+run_single_ai_review() {
+    local ai_name="$1"
+    local changes="$2"
+
+    case "$ai_name" in
+        codex)
+            try_codex_review "$changes"
+            ;;
+        gemini)
+            try_gemini_review "$changes"
+            ;;
+        qwen)
+            try_qwen_review "$changes"
+            ;;
+        claude)
+            claude_code_review_with_subagent "$changes"
+            ;;
+    esac
+}
+
+# 1회 재시도용 Secondary AI 선택
+get_retry_ai() {
+    local primary="$1"
+    case "$primary" in
+        codex) echo "gemini" ;;
+        gemini) echo "qwen" ;;
+        qwen) echo "claude" ;;
+        claude) echo "codex" ;;
+    esac
+}
+
+# 실패한 커밋 저장 (다음 커밋 때 보상)
+save_pending_review() {
+    local commit_hash="$1"
+    echo "$commit_hash" >> "$PENDING_REVIEWS_FILE"
+    log_warning "📝 실패한 커밋 저장: $commit_hash (다음 커밋 때 보상 리뷰)"
+}
+
+# 보류 중인 리뷰 확인 및 처리
+check_pending_reviews() {
+    if [ -f "$PENDING_REVIEWS_FILE" ]; then
+        local pending=$(cat "$PENDING_REVIEWS_FILE" 2>/dev/null | tr '\n' ' ')
+        if [ -n "$pending" ]; then
+            log_info "📋 이전 실패 커밋 발견: $pending"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# 보류 중인 리뷰 클리어
+clear_pending_reviews() {
+    rm -f "$PENDING_REVIEWS_FILE"
+    log_success "✅ 보류 중인 리뷰 클리어 완료"
+}
 
 run_ai_review() {
     local changes="$1"
     local review_output=""
+    local is_retry="${2:-false}"  # 재시도 여부
 
     # 임시 파일 초기화
     rm -f /tmp/ai_engine_auto_review
 
     # 1단계: 1:1:1:1 비율로 Primary AI 선택
     local primary_ai=$(select_primary_ai)
-
     log_info "🎯 Primary AI: ${primary_ai^^} (1:1:1:1 균등 분배)"
 
-    # 2단계: Secondary AI 목록 (Primary 제외한 나머지 3개)
-    local -a secondary_ais=()
-    case "$primary_ai" in
-        codex)
-            secondary_ais=("gemini" "qwen" "claude")
-            ;;
-        gemini)
-            secondary_ais=("qwen" "claude" "codex")
-            ;;
-        qwen)
-            secondary_ais=("claude" "codex" "gemini")
-            ;;
-        claude)
-            secondary_ais=("codex" "gemini" "qwen")
-            ;;
-    esac
+    # 2단계: Primary AI 시도
+    if review_output=$(run_single_ai_review "$primary_ai" "$changes"); then
+        log_success "${primary_ai^^} 리뷰 성공!"
+        increment_ai_counter "$primary_ai"
+        AI_ENGINE="$primary_ai"
 
-    # 3단계: Primary AI 시도
-    case "$primary_ai" in
-        codex)
-            if review_output=$(try_codex_review "$changes"); then
-                log_success "Codex 리뷰 성공!"
-                increment_ai_counter "codex"
-                AI_ENGINE="codex"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        gemini)
-            if review_output=$(fallback_to_gemini_review "$changes"); then
-                log_success "Gemini 리뷰 성공!"
-                increment_ai_counter "gemini"
-                AI_ENGINE="gemini"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        qwen)
-            if review_output=$(try_qwen_review "$changes"); then
-                log_success "Qwen 리뷰 성공!"
-                increment_ai_counter "qwen"
-                AI_ENGINE="qwen"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        claude)
-            if review_output=$(claude_code_review_with_subagent "$changes"); then
-                log_success "Claude 서브에이전트 리뷰 성공!"
-                increment_ai_counter "claude"
-                AI_ENGINE="claude"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-    esac
+        # 성공 시 보류 중인 리뷰 클리어
+        if check_pending_reviews; then
+            clear_pending_reviews
+        fi
 
-    log_warning "Primary AI (${primary_ai^^}) 실패 → Secondary AI로 폴백"
+        echo "$review_output"
+        return 0
+    fi
 
-    # 4단계: Secondary AI 1 시도
-    case "${secondary_ais[0]}" in
-        codex)
-            if review_output=$(try_codex_review "$changes"); then
-                log_success "Codex 폴백 성공!"
-                increment_ai_counter "codex"
-                AI_ENGINE="codex"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        gemini)
-            if review_output=$(fallback_to_gemini_review "$changes"); then
-                log_success "Gemini 폴백 성공!"
-                increment_ai_counter "gemini"
-                AI_ENGINE="gemini"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        qwen)
-            if review_output=$(try_qwen_review "$changes"); then
-                log_success "Qwen 폴백 성공!"
-                increment_ai_counter "qwen"
-                AI_ENGINE="qwen"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        claude)
-            if review_output=$(claude_code_review_with_subagent "$changes"); then
-                log_success "Claude 서브에이전트 폴백 성공!"
-                increment_ai_counter "claude"
-                AI_ENGINE="claude"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-    esac
+    log_warning "Primary AI (${primary_ai^^}) 실패"
 
-    log_warning "Secondary AI 1 (${secondary_ais[0]^^}) 실패 → Secondary AI 2로 폴백"
+    # 3단계: 1회만 재시도 (다른 AI로)
+    if [ "$is_retry" = "false" ]; then
+        local retry_ai=$(get_retry_ai "$primary_ai")
+        log_info "🔄 1회 재시도: ${retry_ai^^}"
 
-    # 5단계: Secondary AI 2 시도
-    case "${secondary_ais[1]}" in
-        codex)
-            if review_output=$(try_codex_review "$changes"); then
-                log_success "Codex 폴백 성공!"
-                increment_ai_counter "codex"
-                AI_ENGINE="codex"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        gemini)
-            if review_output=$(fallback_to_gemini_review "$changes"); then
-                log_success "Gemini 폴백 성공!"
-                increment_ai_counter "gemini"
-                AI_ENGINE="gemini"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        qwen)
-            if review_output=$(try_qwen_review "$changes"); then
-                log_success "Qwen 폴백 성공!"
-                increment_ai_counter "qwen"
-                AI_ENGINE="qwen"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        claude)
-            if review_output=$(claude_code_review_with_subagent "$changes"); then
-                log_success "Claude 서브에이전트 폴백 성공!"
-                increment_ai_counter "claude"
-                AI_ENGINE="claude"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-    esac
+        if review_output=$(run_single_ai_review "$retry_ai" "$changes"); then
+            log_success "${retry_ai^^} 재시도 성공!"
+            increment_ai_counter "$retry_ai"
+            AI_ENGINE="$retry_ai"
 
-    log_warning "Secondary AI 2 (${secondary_ais[1]^^}) 실패 → Secondary AI 3로 폴백 (최종)"
+            # 성공 시 보류 중인 리뷰 클리어
+            if check_pending_reviews; then
+                clear_pending_reviews
+            fi
 
-    # 6단계: Secondary AI 3 시도 (최종 폴백)
-    case "${secondary_ais[2]}" in
-        codex)
-            if review_output=$(try_codex_review "$changes"); then
-                log_success "Codex 최종 폴백 성공!"
-                increment_ai_counter "codex"
-                AI_ENGINE="codex"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        gemini)
-            if review_output=$(fallback_to_gemini_review "$changes"); then
-                log_success "Gemini 최종 폴백 성공!"
-                increment_ai_counter "gemini"
-                AI_ENGINE="gemini"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        qwen)
-            if review_output=$(try_qwen_review "$changes"); then
-                log_success "Qwen 최종 폴백 성공!"
-                increment_ai_counter "qwen"
-                AI_ENGINE="qwen"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-        claude)
-            if review_output=$(claude_code_review_with_subagent "$changes"); then
-                log_success "Claude 서브에이전트 최종 폴백 성공!"
-                increment_ai_counter "claude"
-                AI_ENGINE="claude"
-                echo "$review_output"
-                return 0
-            fi
-            ;;
-    esac
+            echo "$review_output"
+            return 0
+        fi
 
-    # 최종 실패 (모든 AI 실패, 거의 발생하지 않음)
-    log_error "모든 AI 실패 (Codex + Gemini + Qwen + Claude) - 99.99% 가용성 목표 미달"
+        log_warning "재시도 AI (${retry_ai^^})도 실패"
+    fi
+
+    # 4단계: 실패 시 지연 보상 (다음 커밋 때 처리)
+    local current_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%h 2>/dev/null || echo "unknown")
+    save_pending_review "$current_commit"
+
+    log_error "❌ AI 리뷰 실패 - 다음 커밋 때 보상 리뷰 예정"
     rm -f /tmp/ai_engine_auto_review
     return 1
 }

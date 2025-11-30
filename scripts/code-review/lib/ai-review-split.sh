@@ -71,7 +71,7 @@ $ai_review
 
 **생성 시간**: $(date '+%Y-%m-%d %H:%M:%S')
 **리뷰 파일**: \`$REVIEW_FILE\`
-**AI 엔진**: ${AI_ENGINE^^} ($([ "$AI_ENGINE" = "codex" ] && echo "Primary" || echo "Fallback"))
+**AI 엔진**: ${AI_ENGINE^^}
 EOF
 
     log_success "리뷰 리포트 생성 완료: $REVIEW_FILE"
