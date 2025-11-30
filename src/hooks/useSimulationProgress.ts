@@ -69,31 +69,17 @@ const useSimulationProgress = ({
   }, [data]);
 
   /**
-   * 🎯 Page Visibility 상태 감지
+   * 🎯 폴링 중단
    */
-  useEffect(() => {
-    if (!pauseWhenHidden) return;
-
-    const handleVisibilityChange = () => {
-      const isCurrentlyVisible = document.visibilityState === 'visible';
-      isVisibleRef.current = isCurrentlyVisible;
-
-      if (isCurrentlyVisible && isPaused && isPolling) {
-        console.log('📱 페이지가 활성화됨. 폴링 재개...');
-        setIsPaused(false);
-        void refresh(); // 즉시 데이터 갱신
-      } else if (!isCurrentlyVisible && isPolling) {
-        console.log('📱 페이지가 백그라운드로 이동. 폴링 일시정지...');
-        setIsPaused(true);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPaused, isPolling, pauseWhenHidden, refresh]);
+  const stopPolling = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsPolling(false);
+    setIsPaused(false);
+    console.log('⏹️ 시뮬레이션 폴링 중단');
+  }, []);
 
   /**
    * 🎯 캐시에서 데이터 조회
@@ -322,17 +308,33 @@ const useSimulationProgress = ({
   ]);
 
   /**
-   * 🎯 폴링 중단
+   * 🎯 Page Visibility 상태 감지
    */
-  const stopPolling = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setIsPolling(false);
-    setIsPaused(false);
-    console.log('⏹️ 시뮬레이션 폴링 중단');
-  }, []);
+  useEffect(() => {
+    if (!pauseWhenHidden) return;
+
+    const handleVisibilityChange = () => {
+      const isCurrentlyVisible = document.visibilityState === 'visible';
+      isVisibleRef.current = isCurrentlyVisible;
+
+      if (isCurrentlyVisible && isPaused && isPolling) {
+        console.log('📱 페이지가 활성화됨. 폴링 재개...');
+        setIsPaused(false);
+        void refresh(); // 즉시 데이터 갱신
+      } else if (!isCurrentlyVisible && isPolling) {
+        console.log('📱 페이지가 백그라운드로 이동. 폴링 일시정지...');
+        setIsPaused(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPaused, isPolling, pauseWhenHidden, refresh]);
+
+
 
   /**
    * 🎯 시뮬레이션 완료시 자동 폴링 중단

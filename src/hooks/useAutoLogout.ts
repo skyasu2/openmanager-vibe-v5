@@ -7,7 +7,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface UseAutoLogoutOptions {
   /** 비활성 시간 (밀리초) */
@@ -43,14 +43,8 @@ export function useAutoLogout({
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
-  // 활동 업데이트
-  const updateActivity = () => {
-    lastActivityRef.current = Date.now();
-    resetTimers();
-  };
-
   // 타이머 초기화
-  const resetTimers = () => {
+  const resetTimers = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -74,7 +68,13 @@ export function useAutoLogout({
         void handleAutoLogout();
       }, inactivityTimeout);
     }
-  };
+  }, [inactivityTimeout, warningTimeout, isLoggedIn, onWarning]);
+
+  // 활동 업데이트
+  const updateActivity = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    resetTimers();
+  }, [resetTimers]);
 
   // 자동 로그아웃 처리
   const handleAutoLogout = async () => {

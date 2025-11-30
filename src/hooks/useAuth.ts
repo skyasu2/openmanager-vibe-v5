@@ -4,7 +4,7 @@
  * OpenManager Vibe v5 게스트 인증 시스템 (Google OAuth 제거됨)
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { AuthUser } from '@/lib/auth/auth-state-manager';
 import { authStateManager } from '@/lib/auth/auth-state-manager';
 
@@ -80,7 +80,7 @@ export function useAuth(): UseAuthResult {
   };
 
   // 인증 상태 확인
-  const checkAuth = async (): Promise<void> => {
+  const checkAuth = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
 
@@ -116,7 +116,7 @@ export function useAuth(): UseAuthResult {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // 권한 확인 함수
   const hasPermission = (permission: string): boolean => {

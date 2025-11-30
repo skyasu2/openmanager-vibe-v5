@@ -23,7 +23,7 @@ interface UseSystemAutoShutdownOptions {
 }
 
 export function useSystemAutoShutdown({
-  warningMinutes = 5,
+  warningMinutes: _warningMinutes = 5,
   onWarning,
   onShutdown,
 }: UseSystemAutoShutdownOptions = {}) {

@@ -43,7 +43,7 @@ interface UseOptimizedRealtimeReturn<T = unknown> {
 
 export function useOptimizedRealtime<T = unknown>({
   dataType,
-  frequency = 'medium',
+  frequency: _frequency = 'medium',
   enableVisibilityOptimization = true,
   _initialData = null,
   onUpdate,

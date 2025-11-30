@@ -8,7 +8,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ErrorState } from '@/types/ai-thinking';
+import type { ErrorState } from '../types/ai-thinking';
 
 interface PerformanceMetric {
   operation: string;
@@ -63,6 +63,64 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       maxRetries: defaultConfig.maxRetries,
     }),
     [defaultConfig.maxRetries]
+  );
+
+  // 에러 해결
+  const resolveError = useCallback((error?: ErrorState) => {
+    if (error) {
+      setErrors((prev) => prev.filter((e) => e.timestamp !== error.timestamp));
+    }
+    setCurrentError(null);
+    console.log('✅ AI Error 해결됨:', error?.errorType);
+  }, []);
+
+  // 자동 복구 시도
+  const attemptAutoRecover = useCallback(
+    (error: ErrorState, context: string) => {
+      const retryKey = `${context}-${Date.now()}`;
+
+      const timeout = setTimeout(
+        () => {
+          console.log(
+            `🔄 자동 복구 시도 [${error.errorType}] - 시도 ${error.retryCount + 1}/${error.maxRetries}`
+          );
+
+          // 복구 전략
+          switch (error.errorType) {
+            case 'network':
+              // 네트워크 재연결 확인
+              if (navigator.onLine) {
+                resolveError(error);
+              }
+              break;
+
+            case 'timeout':
+              // 타임아웃은 즉시 재시도
+              resolveError(error);
+              break;
+
+            case 'processing':
+              // 서버 처리 오류는 잠시 후 재시도
+              setTimeout(() => resolveError(error), 2000);
+              break;
+
+            default:
+              // 기본적으로 에러 해결로 처리
+              resolveError(error);
+          }
+
+          retryTimeouts.current.delete(retryKey);
+        },
+        defaultConfig.retryDelay * (error.retryCount + 1)
+      ); // 지수 백오프
+
+      retryTimeouts.current.set(retryKey, timeout);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      defaultConfig.retryDelay, // 기본적으로 에러 해결로 처리
+      resolveError,
+    ]
   );
 
   // AI 에러 처리
@@ -140,63 +198,6 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
     ]
   );
 
-  // 자동 복구 시도
-  const attemptAutoRecover = useCallback(
-    (error: ErrorState, context: string) => {
-      const retryKey = `${context}-${Date.now()}`;
-
-      const timeout = setTimeout(
-        () => {
-          console.log(
-            `🔄 자동 복구 시도 [${error.errorType}] - 시도 ${error.retryCount + 1}/${error.maxRetries}`
-          );
-
-          // 복구 전략
-          switch (error.errorType) {
-            case 'network':
-              // 네트워크 재연결 확인
-              if (navigator.onLine) {
-                resolveError(error);
-              }
-              break;
-
-            case 'timeout':
-              // 타임아웃은 즉시 재시도
-              resolveError(error);
-              break;
-
-            case 'processing':
-              // 서버 처리 오류는 잠시 후 재시도
-              setTimeout(() => resolveError(error), 2000);
-              break;
-
-            default:
-              // 기본적으로 에러 해결로 처리
-              resolveError(error);
-          }
-
-          retryTimeouts.current.delete(retryKey);
-        },
-        defaultConfig.retryDelay * (error.retryCount + 1)
-      ); // 지수 백오프
-
-      retryTimeouts.current.set(retryKey, timeout);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      defaultConfig.retryDelay, // 기본적으로 에러 해결로 처리
-      resolveError,
-    ]
-  );
-
-  // 에러 해결
-  const resolveError = useCallback((error?: ErrorState) => {
-    if (error) {
-      setErrors((prev) => prev.filter((e) => e.timestamp !== error.timestamp));
-    }
-    setCurrentError(null);
-    console.log('✅ AI Error 해결됨:', error?.errorType);
-  }, []);
 
   // 모든 에러 클리어
   const clearErrors = useCallback(() => {
@@ -204,7 +205,9 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
     setCurrentError(null);
 
     // 진행 중인 재시도 취소
-    retryTimeouts.current.forEach((timeout) => clearTimeout(timeout));
+    for (const timeout of retryTimeouts.current.values()) {
+      clearTimeout(timeout);
+    }
     retryTimeouts.current.clear();
 
     console.log('🧹 모든 AI 에러 클리어됨');
@@ -302,7 +305,9 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       // 정리: 진행 중인 재시도 취소
       // eslint-disable-next-line react-hooks/exhaustive-deps
       const timeouts = retryTimeouts.current;
-      timeouts.forEach((timeout) => clearTimeout(timeout));
+      for (const timeout of timeouts.values()) {
+        clearTimeout(timeout);
+      }
       timeouts.clear();
     };
   }, [createError, currentError]);
