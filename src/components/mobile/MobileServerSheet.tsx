@@ -107,8 +107,6 @@ export default function MobileServerSheet({
       ? server.alerts
       : 0;
 
-
-
   return (
     <Fragment>
       {isOpen && (

@@ -109,15 +109,18 @@ export const MLLearningCenter: FC = () => {
   // AnomalyDetection 사용 제거
 
   // 학습 단계별 설명 가져오기
-  const getStepDescription = useCallback((progress: number, type: LearningType): string => {
-    if (progress < 20) return '데이터 수집 중...';
-    if (progress < 40)
-      return `${type === 'patterns' ? '패턴' : type === 'anomaly' ? '이상치' : type === 'incident' ? '장애 이력' : '시계열 데이터'} 분석 중...`;
-    if (progress < 60) return '모델 훈련 중...';
-    if (progress < 80) return '검증 중...';
-    if (progress < 100) return '결과 생성 중...';
-    return '학습 완료!';
-  }, []);
+  const getStepDescription = useCallback(
+    (progress: number, type: LearningType): string => {
+      if (progress < 20) return '데이터 수집 중...';
+      if (progress < 40)
+        return `${type === 'patterns' ? '패턴' : type === 'anomaly' ? '이상치' : type === 'incident' ? '장애 이력' : '시계열 데이터'} 분석 중...`;
+      if (progress < 60) return '모델 훈련 중...';
+      if (progress < 80) return '검증 중...';
+      if (progress < 100) return '결과 생성 중...';
+      return '학습 완료!';
+    },
+    []
+  );
 
   // 학습 시작 함수
   const startLearning = useCallback(

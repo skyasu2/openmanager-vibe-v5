@@ -364,7 +364,10 @@ export const useFormFieldAria = (props: FormFieldAriaProps) => {
           <>
             {props.label}
             {props.required && (
-              <span title={generateLabel('form.required')} aria-hidden="true"> *</span>
+              <span title={generateLabel('form.required')} aria-hidden="true">
+                {' '}
+                *
+              </span>
             )}
           </>
         ),
@@ -401,11 +404,7 @@ export const AriaLiveRegion: React.FC<{
   if (!isClient || !message) return null;
 
   return (
-    <output
-      className={className}
-      aria-live={priority}
-      aria-atomic="true"
-    >
+    <output className={className} aria-live={priority} aria-atomic="true">
       {message}
     </output>
   );

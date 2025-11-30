@@ -22,37 +22,38 @@ export default function DynamicPresets({
 }: DynamicPresetsProps) {
   const [presets, setPresets] = useState<string[]>([]);
 
-  const generateContextualQuestions = useCallback((
-    metrics: PresetsMetrics | unknown
-  ): string[] => {
-    const questions = [
-      '현재 시스템 전체 상태를 요약해줘',
-      'CPU 사용률이 높은 서버들을 분석해줘',
-      '메모리 최적화 방안을 추천해줘',
-      '서버 성능 트렌드를 분석해줘',
-      '시스템 보안 상태를 점검해줘',
-    ];
+  const generateContextualQuestions = useCallback(
+    (metrics: PresetsMetrics | unknown): string[] => {
+      const questions = [
+        '현재 시스템 전체 상태를 요약해줘',
+        'CPU 사용률이 높은 서버들을 분석해줘',
+        '메모리 최적화 방안을 추천해줘',
+        '서버 성능 트렌드를 분석해줘',
+        '시스템 보안 상태를 점검해줘',
+      ];
 
-    // 서버 메트릭스에 따른 동적 질문 생성
-    if (
-      metrics &&
-      typeof metrics === 'object' &&
-      'criticalServers' in metrics
-    ) {
-      const m = metrics as PresetsMetrics;
-      if (m.criticalServers && m.criticalServers > 0) {
-        questions.unshift('⚠️ 위험 상태 서버들을 즉시 점검해줘');
+      // 서버 메트릭스에 따른 동적 질문 생성
+      if (
+        metrics &&
+        typeof metrics === 'object' &&
+        'criticalServers' in metrics
+      ) {
+        const m = metrics as PresetsMetrics;
+        if (m.criticalServers && m.criticalServers > 0) {
+          questions.unshift('⚠️ 위험 상태 서버들을 즉시 점검해줘');
+        }
+        if (m.warningServers && m.warningServers > 2) {
+          questions.unshift('📊 경고 상태 서버들의 패턴을 분석해줘');
+        }
+        if (m.totalServers && m.totalServers > 10) {
+          questions.push('🔄 대규모 인프라 최적화 방안을 제안해줘');
+        }
       }
-      if (m.warningServers && m.warningServers > 2) {
-        questions.unshift('📊 경고 상태 서버들의 패턴을 분석해줘');
-      }
-      if (m.totalServers && m.totalServers > 10) {
-        questions.push('🔄 대규모 인프라 최적화 방안을 제안해줘');
-      }
-    }
 
-    return questions.slice(0, 4); // 최대 4개까지
-  }, []);
+      return questions.slice(0, 4); // 최대 4개까지
+    },
+    []
+  );
 
   useEffect(() => {
     // 15초마다 갱신

@@ -106,8 +106,6 @@ export const NotificationToast: FC = () => {
     removeNotification,
   ]);
 
-
-
   const getIcon = (type: string) => {
     switch (type) {
       case 'success':

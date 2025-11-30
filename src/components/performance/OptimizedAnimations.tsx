@@ -275,21 +275,15 @@ export const AnimationPerformanceMonitor = {
     animationCount++;
 
     if (animationCount > maxConcurrentAnimations) {
-      console.warn(
-        `⚠️ Too many concurrent animations: ${animationCount}`
-      );
+      console.warn(`⚠️ Too many concurrent animations: ${animationCount}`);
     }
 
-    console.log(
-      `🎭 Animation started: ${name} (total: ${animationCount})`
-    );
+    console.log(`🎭 Animation started: ${name} (total: ${animationCount})`);
   },
 
   endAnimation(name: string) {
     animationCount = Math.max(0, animationCount - 1);
-    console.log(
-      `✅ Animation ended: ${name} (total: ${animationCount})`
-    );
+    console.log(`✅ Animation ended: ${name} (total: ${animationCount})`);
   },
 
   getActiveAnimations() {

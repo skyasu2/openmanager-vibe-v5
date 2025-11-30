@@ -390,10 +390,7 @@ export const KeyboardNavigation: React.FC<KeyboardNavigationProps> = ({
       {children}
 
       {/* 🎯 키보드 네비게이션 도움말 (숨겨진 상태, 스크린 리더용) */}
-      <section
-        className="sr-only"
-        aria-label="키보드 네비게이션 도움말"
-      >
+      <section className="sr-only" aria-label="키보드 네비게이션 도움말">
         <h2>키보드 단축키</h2>
         <ul>
           <li>Tab: 다음 요소로 이동</li>

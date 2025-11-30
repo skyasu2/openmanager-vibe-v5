@@ -12,12 +12,7 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, Database, Monitor, Settings, X, Zap } from 'lucide-react';
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   InlineFeedbackContainer,

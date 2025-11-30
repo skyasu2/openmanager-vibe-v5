@@ -18,6 +18,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { useSystemChecklist } from '../../../hooks/useSystemChecklist';
 import type {
   DebugInfo,
   ErrorInfo,
@@ -31,7 +32,6 @@ import {
   getPriorityBorder,
   getStatusIcon,
 } from '../../../utils/system-checklist-icons';
-import { useSystemChecklist } from '../../../hooks/useSystemChecklist';
 
 // Window 인터페이스 확장 for 디버그 도구
 interface DebugTools {

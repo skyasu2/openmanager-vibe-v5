@@ -235,8 +235,6 @@ export const RealTimeLogMonitor: FC<RealTimeLogMonitorProps> = ({
     }
   }, []);
 
-
-
   /**
    * 로그 필터링
    */

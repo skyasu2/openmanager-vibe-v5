@@ -103,8 +103,6 @@ export default function SecurityDashboard() {
     return () => clearInterval(interval);
   }, [checkSecurityStatus]);
 
-
-
   const getSecurityScore = (): number => {
     if (!securityStatus) return 0;
 
