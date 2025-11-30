@@ -178,33 +178,35 @@ export class UnifiedServerDataSource {
     const scenarioMetrics = await loadHourlyScenarioData();
 
     // EnhancedServerMetrics[] → Server[] 변환
-    const servers: Server[] = scenarioMetrics.map((metric: EnhancedServerMetrics) => ({
-      id: metric.id,
-      name: metric.name,
-      hostname: metric.hostname,
-      status: metric.status as 'online' | 'warning' | 'critical',
-      cpu: metric.cpu,
-      memory: metric.memory,
-      disk: metric.disk,
-      network: metric.network,
-      uptime: metric.uptime / 1000 / 60 / 60 / 24, // ms → days (uptime은 일수)
-      responseTime: metric.responseTime,
-      lastUpdate: new Date(metric.last_updated),
-      ip: metric.ip,
-      os: metric.os,
-      type: metric.type as ServerRole, // type을 ServerRole로 변환
-      role: metric.role as ServerRole,
-      environment: metric.environment as ServerEnvironment,
-      location: metric.location,
-      alerts: metric.alerts as never[],
-      provider: metric.provider,
-      specs: {
-        cpu_cores: metric.specs.cpu_cores,
-        memory_gb: metric.specs.memory_gb,
-        disk_gb: metric.specs.disk_gb,
-        network_speed: metric.specs.network_speed,
-      },
-    }));
+    const servers: Server[] = scenarioMetrics.map(
+      (metric: EnhancedServerMetrics) => ({
+        id: metric.id,
+        name: metric.name,
+        hostname: metric.hostname,
+        status: metric.status as 'online' | 'warning' | 'critical',
+        cpu: metric.cpu,
+        memory: metric.memory,
+        disk: metric.disk,
+        network: metric.network,
+        uptime: metric.uptime / 1000 / 60 / 60 / 24, // ms → days (uptime은 일수)
+        responseTime: metric.responseTime,
+        lastUpdate: new Date(metric.last_updated),
+        ip: metric.ip,
+        os: metric.os,
+        type: metric.type as ServerRole, // type을 ServerRole로 변환
+        role: metric.role as ServerRole,
+        environment: metric.environment as ServerEnvironment,
+        location: metric.location,
+        alerts: metric.alerts as never[],
+        provider: metric.provider,
+        specs: {
+          cpu_cores: metric.specs.cpu_cores,
+          memory_gb: metric.specs.memory_gb,
+          disk_gb: metric.specs.disk_gb,
+          network_speed: metric.specs.network_speed,
+        },
+      })
+    );
 
     console.log(`✅ Loaded ${servers.length} servers from scenario-loader`);
     return servers;

@@ -12,7 +12,7 @@ import {
   BUSINESS_CONTEXT_CASES,
   COMPLEX_MIXED_CASES,
   EDGE_CASES,
-  KoreanNLPScenario,
+  type KoreanNLPScenario,
   TECHNICAL_MIXED_CASES,
 } from './korean-nlp-scenarios';
 import {
@@ -20,12 +20,12 @@ import {
   generateMetricsByWorkload,
   generatePredictions,
   ML_PATTERN_LIBRARY,
-  MLAnalyticsPattern,
+  type MLAnalyticsPattern,
 } from './ml-analytics-scenarios';
 import {
   ScenarioRunner,
   SCENARIO_LIBRARY as SERVER_SCENARIOS,
-  ServerScenario,
+  type ServerScenario,
 } from './server-monitoring-scenarios';
 
 /**

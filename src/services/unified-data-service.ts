@@ -128,7 +128,9 @@ export class UnifiedDataService {
     }
 
     // AI 분석 순수성을 위한 숨겨진 인사이트 (선택적)
-    let hiddenInsights: NonNullable<UnifiedDataResponse['aiContext']>['hiddenInsights'];
+    let hiddenInsights: NonNullable<
+      UnifiedDataResponse['aiContext']
+    >['hiddenInsights'];
     if (criticalServers.length > 0 || warningServers.length > 2) {
       hiddenInsights = {
         incidentType: this.inferIncidentType(servers, currentHour),
