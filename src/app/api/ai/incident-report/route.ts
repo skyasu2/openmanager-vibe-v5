@@ -8,7 +8,7 @@
  * - 패턴 학습 및 예측
  */
 
-import crypto from 'node:crypto';
+import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';

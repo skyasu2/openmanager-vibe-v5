@@ -10,7 +10,7 @@
  * - Redis 완전 제거, 메모리 기반 메트릭 수집
  */
 
-import * as os from 'node:os';
+import * as os from 'os';
 import { memoryOptimizer } from '../utils/MemoryOptimizer';
 
 interface PerformanceMetrics {

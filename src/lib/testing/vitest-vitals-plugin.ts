@@ -6,7 +6,7 @@
  * @auto-collect 테스트 실행 시간, 성공률, 커버리지 등을 자동으로 Vitals로 수집
  */
 
-import { performance } from 'node:perf_hooks';
+import { performance } from 'perf_hooks';
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 import { type UniversalVital, universalVitals } from './universal-vitals';
 

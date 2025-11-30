@@ -10,8 +10,8 @@
  * ✅ 리팩토링: 중복 코드 제거 - 통합 팩토리 사용
  */
 
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface DocumentEmbedding {
