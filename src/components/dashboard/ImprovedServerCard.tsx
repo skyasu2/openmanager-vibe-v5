@@ -33,14 +33,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
-import { useSafeServer } from '@/hooks/useSafeServer';
+import { useFixed24hMetrics } from '../../hooks/useFixed24hMetrics';
+import { useSafeServer } from '../../hooks/useSafeServer';
 import {
   getSafeServicesLength,
   getSafeValidServices,
   isValidServer,
   vercelSafeLog,
-} from '@/lib/utils/vercel-safe-utils';
+} from '../../lib/utils/vercel-safe-utils';
 import { LAYOUT } from '../../styles/design-constants';
 import type { Server as ServerType } from '../../types/server';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
@@ -262,6 +262,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                     className="text-base"
                     title={safeServer.os}
                     aria-label={`운영체제: ${safeServer.os}`}
+                    role="img"
                   >
                     {osIcon}
                   </span>
@@ -272,12 +273,12 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 style={statusTheme.accent}
               >
                 <MapPin className="h-3 w-3" aria-hidden="true" />
-                <span aria-label="서버 위치">{safeServer.location}</span>
+                <span title="서버 위치">{safeServer.location}</span>
                 {variantStyles.showDetails && (
                   <>
                     <span aria-hidden="true">•</span>
                     <Clock className="h-3 w-3" aria-hidden="true" />
-                    <span aria-label="현재 시간">
+                    <span title="현재 시간">
                       {new Date().toLocaleTimeString('ko-KR', {
                         hour12: false,
                         hour: '2-digit',
@@ -333,9 +334,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               </h4>
               <div className="ml-auto text-xs text-gray-500">Level 1</div>
             </div>
-            <div
+            <fieldset
               className="grid grid-cols-2 gap-6"
-              role="group"
               aria-label="주요 서버 메트릭"
             >
               <div className="flex transform flex-col items-center transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-lg">
@@ -390,7 +390,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   />
                 </div>
               </div>
-            </div>
+            </fieldset>
           </div>
 
           {/* 🔹 Level 2: 보조 메트릭 (디스크, 네트워크) - 호버 시 표시 */}
@@ -408,9 +408,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               </h4>
               <div className="ml-auto text-xs text-gray-500">Level 2</div>
             </div>
-            <div
+            <fieldset
               className="grid grid-cols-2 gap-4 opacity-90"
-              role="group"
               aria-label="보조 서버 메트릭"
             >
               <div className="flex transform justify-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 hover:opacity-100 hover:shadow-md">
@@ -431,7 +430,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   showLabel={true}
                 />
               </div>
-            </div>
+            </fieldset>
           </div>
 
           {/* 🔸 Level 3: 상세 정보 (운영체제, 업타임, IP 등) - 클릭 시 표시 */}
@@ -570,13 +569,12 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             }
           })() &&
           (showSecondaryInfo || !enableProgressiveDisclosure) && (
-            <footer
+            <aside
               className={`mt-4 transition-all duration-300 ${
                 showSecondaryInfo || !enableProgressiveDisclosure
                   ? 'translate-y-0 transform opacity-100'
                   : '-translate-y-2 transform opacity-0'
               }`}
-              role="complementary"
               aria-label="서비스 상태 목록"
             >
               <div className="flex flex-wrap gap-2">
@@ -616,7 +614,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                                   ? 'border-red-300 bg-red-50 text-red-700'
                                   : 'border-yellow-300 bg-yellow-50 text-yellow-700'
                             }`}
-                            role="status"
+                            role="img"
                             aria-label={`${serviceName} 서비스: ${
                               serviceStatus === 'running'
                                 ? '실행중'
@@ -625,15 +623,22 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                                   : '경고'
                             }`}
                           >
-                            <div
-                              className={`h-1.5 w-1.5 rounded-full ${
+                            <output
+                              role="img"
+                              className={`flex h-2 w-2 rounded-full ${
                                 serviceStatus === 'running'
                                   ? 'bg-green-500'
                                   : serviceStatus === 'stopped'
-                                    ? 'bg-red-500'
-                                    : 'bg-yellow-500'
+                                    ? 'bg-gray-400'
+                                    : 'animate-pulse bg-yellow-500'
                               }`}
-                              aria-hidden="true"
+                              aria-label={`${serviceName} 서비스: ${
+                                serviceStatus === 'running'
+                                  ? '실행 중'
+                                  : serviceStatus === 'stopped'
+                                    ? '중지됨'
+                                    : '경고'
+                              }`}
                             />
                             <span>{serviceName}</span>
                           </div>
@@ -677,6 +682,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                     return (
                       <div
                         className="flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500"
+                        role="img"
                         aria-label={`${remainingCount}개 서비스 더 있음`}
                       >
                         +{Math.max(0, remainingCount)} more
@@ -691,7 +697,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   }
                 })()}
               </div>
-            </footer>
+            </aside>
           )}
 
         {/* 호버 효과 - 블러 효과 제거됨 (사용자 피드백 반영) */}

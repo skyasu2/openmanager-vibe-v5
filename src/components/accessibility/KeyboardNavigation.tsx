@@ -14,7 +14,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import {
   getAccessibilityClasses,
   useAccessibility,
-} from '@/context/AccessibilityProvider';
+} from '../../context/AccessibilityProvider';
 
 interface KeyboardNavigationProps {
   children: React.ReactNode;
@@ -237,6 +237,7 @@ export const ArrowNavigationGrid: React.FC<ArrowNavigationGridProps> = ({
         : {};
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: resolvedRole provides interactive semantics (grid, listbox, menu)
     <div
       ref={gridRef}
       className={className}
@@ -389,9 +390,8 @@ export const KeyboardNavigation: React.FC<KeyboardNavigationProps> = ({
       {children}
 
       {/* 🎯 키보드 네비게이션 도움말 (숨겨진 상태, 스크린 리더용) */}
-      <div
+      <section
         className="sr-only"
-        role="region"
         aria-label="키보드 네비게이션 도움말"
       >
         <h2>키보드 단축키</h2>
@@ -404,7 +404,7 @@ export const KeyboardNavigation: React.FC<KeyboardNavigationProps> = ({
           <li>Home: 첫 번째 요소로 이동</li>
           <li>End: 마지막 요소로 이동</li>
         </ul>
-      </div>
+      </section>
     </div>
   );
 };

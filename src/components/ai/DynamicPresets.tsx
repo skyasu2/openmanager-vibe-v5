@@ -2,7 +2,7 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import { AlertTriangle, Lightbulb, Server, TrendingUp } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { timerManager } from '../../utils/TimerManager';
 
 interface PresetsMetrics {
@@ -22,7 +22,7 @@ export default function DynamicPresets({
 }: DynamicPresetsProps) {
   const [presets, setPresets] = useState<string[]>([]);
 
-  const generateContextualQuestions = (
+  const generateContextualQuestions = useCallback((
     metrics: PresetsMetrics | unknown
   ): string[] => {
     const questions = [
@@ -52,7 +52,7 @@ export default function DynamicPresets({
     }
 
     return questions.slice(0, 4); // 최대 4개까지
-  };
+  }, []);
 
   useEffect(() => {
     // 15초마다 갱신

@@ -17,7 +17,7 @@ import {
   User as UserIcon,
   XCircle,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -63,7 +63,7 @@ export default function AuthStatusChecker() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
     setIsLoading(true);
 
     try {
@@ -117,7 +117,7 @@ export default function AuthStatusChecker() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // 자동 새로고침
   useEffect(() => {

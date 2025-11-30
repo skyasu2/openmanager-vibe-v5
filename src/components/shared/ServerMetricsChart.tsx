@@ -187,9 +187,8 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
 
     return (
       <div className={`inline-flex flex-col items-center ${className}`}>
-        <div
+        <fieldset
           className="relative"
-          role="group"
           aria-label={`${chartTitle} ${Math.round(value)}%`}
         >
           <canvas ref={canvasRef} />
@@ -197,7 +196,7 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
           <span className="sr-only">
             {chartTitle}: {Math.round(value)}% ({status})
           </span>
-        </div>
+        </fieldset>
         {showLabel && (
           <span
             className={`mt-1 text-xs font-medium ${

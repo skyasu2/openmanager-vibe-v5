@@ -134,10 +134,16 @@ export const NetworkMonitoringCard = () => {
 
   useEffect(() => {
     // 초기 데이터 생성
-    const initialData = Array.from({ length: 20 }, (_, i) => {
-      const data = generateNetworkData(i > 0 ? history[i - 1] : undefined);
-      return { ...data, timestamp: new Date(Date.now() - (20 - i) * 5000) };
-    });
+    // 초기 데이터 생성
+    const initialData: NetworkMetrics[] = [];
+    for (let i = 0; i < 20; i++) {
+      const prevData = i > 0 ? initialData[i - 1] : undefined;
+      const data = generateNetworkData(prevData);
+      initialData.push({
+        ...data,
+        timestamp: new Date(Date.now() - (20 - i) * 5000),
+      });
+    }
     setHistory(initialData);
     setCurrentData(getSafeLastArrayItem(initialData, null) ?? null);
 
@@ -154,7 +160,7 @@ export const NetworkMonitoringCard = () => {
 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [history[i - 1]]);
+  }, []);
 
   if (!currentData) {
     return (

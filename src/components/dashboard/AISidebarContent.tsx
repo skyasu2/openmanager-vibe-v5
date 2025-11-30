@@ -21,7 +21,7 @@ import {
   TrendingUp,
   User,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import AIAssistantIconPanel, {
   type AIAssistantFunction,
 } from '@/components/ai/AIAssistantIconPanel';
@@ -116,6 +116,128 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // 🚀 실제 AI API 호출
+  const handleSendMessage = useCallback(
+    async (content: string) => {
+      if (!content.trim() || isLoading) return;
+
+      const userMessage: ChatMessage = {
+        id: Date.now().toString(),
+        content: content.trim(),
+        role: 'user',
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setInputValue('');
+      setIsLoading(true);
+
+      try {
+        // 실시간 서버 통계 계산
+        const totalServers = servers.length;
+        const onlineServers = servers.filter(
+          (s: EnhancedServerMetrics) => s.status === 'online'
+        ).length;
+        const warningServers = servers.filter(
+          (s: EnhancedServerMetrics) => s.status === 'warning'
+        ).length;
+        const criticalServers = servers.filter(
+          (s: EnhancedServerMetrics) => s.status === 'critical'
+        ).length;
+
+        const avgCpu =
+          servers.length > 0
+            ? Math.round(
+                servers.reduce(
+                  (sum: number, s: EnhancedServerMetrics) =>
+                    sum + extractNumericValue(s.cpu ?? 0),
+                  0
+                ) / servers.length
+              )
+            : 0;
+        const avgMemory =
+          servers.length > 0
+            ? Math.round(
+                servers.reduce(
+                  (sum: number, s: EnhancedServerMetrics) =>
+                    sum + extractNumericValue(s.memory ?? 0),
+                  0
+                ) / servers.length
+              )
+            : 0;
+
+        // 🎯 실제 API 호출 (지능형 라우팅 자동 선택)
+        const response = await fetch('/api/ai/query', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: content,
+            context: 'dashboard',
+            // mode 제거 - 백엔드에서 자동 라우팅
+            temperature: 0.7,
+            maxTokens: 1000,
+            includeThinking: true, // 사고 과정 포함
+            // 실시간 서버 메타데이터 포함
+            metadata: {
+              totalServers,
+              onlineServers,
+              warningServers,
+              criticalServers,
+              avgCpu,
+              avgMemory,
+              timestamp: new Date().toISOString(),
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`API 호출 실패: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // AI 응답을 메시지로 추가 (사고 과정 포함)
+        const assistantMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          content: data.response || data.answer || '응답을 받지 못했습니다.',
+          role: 'assistant',
+          timestamp: new Date(),
+          type: content.includes('보고서') ? 'report' : 'text',
+          thinkingSteps: data.thinkingSteps || [],
+          engine: data.engine,
+          responseTime: data.responseTime,
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+
+        // 성공 로그
+        console.log('✅ AI 응답 성공:', {
+          engine: data.engine,
+          responseTime: data.responseTime,
+          confidence: data.confidence,
+        });
+      } catch (error) {
+        console.error('❌ AI API 호출 실패:', error);
+
+        // 에러 메시지 추가
+        const errorMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          content: `죄송합니다. 일시적인 오류가 발생했습니다.\n\n현재 ${servers.length}개의 서버가 모니터링 중입니다:\n- 정상: ${servers.filter((s: EnhancedServerMetrics) => s.status === 'online').length}개\n- 경고: ${servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length}개\n- 심각: ${servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length}개\n\n잠시 후 다시 시도해주세요.`,
+          role: 'assistant',
+          timestamp: new Date(),
+          error: true,
+        };
+
+        setMessages((prev) => [...prev, errorMessage]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isLoading, servers]
+  );
+
   // AI 기능 변경 시 자동 처리
   useEffect(() => {
     if (selectedFunction === 'auto-report') {
@@ -142,132 +264,13 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   }, []);
 
   // 스크롤을 맨 아래로
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
   }, [scrollToBottom]);
-
-  // 🚀 실제 AI API 호출
-  const handleSendMessage = async (content: string) => {
-    if (!content.trim() || isLoading) return;
-
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content: content.trim(),
-      role: 'user',
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
-
-    try {
-      // 실시간 서버 통계 계산
-      const totalServers = servers.length;
-      const onlineServers = servers.filter(
-        (s: EnhancedServerMetrics) => s.status === 'online'
-      ).length;
-      const warningServers = servers.filter(
-        (s: EnhancedServerMetrics) => s.status === 'warning'
-      ).length;
-      const criticalServers = servers.filter(
-        (s: EnhancedServerMetrics) => s.status === 'critical'
-      ).length;
-
-      const avgCpu =
-        servers.length > 0
-          ? Math.round(
-              servers.reduce(
-                (sum: number, s: EnhancedServerMetrics) =>
-                  sum + extractNumericValue(s.cpu ?? 0),
-                0
-              ) / servers.length
-            )
-          : 0;
-      const avgMemory =
-        servers.length > 0
-          ? Math.round(
-              servers.reduce(
-                (sum: number, s: EnhancedServerMetrics) =>
-                  sum + extractNumericValue(s.memory ?? 0),
-                0
-              ) / servers.length
-            )
-          : 0;
-
-      // 🎯 실제 API 호출 (지능형 라우팅 자동 선택)
-      const response = await fetch('/api/ai/query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: content,
-          context: 'dashboard',
-          // mode 제거 - 백엔드에서 자동 라우팅
-          temperature: 0.7,
-          maxTokens: 1000,
-          includeThinking: true, // 사고 과정 포함
-          // 실시간 서버 메타데이터 포함
-          metadata: {
-            totalServers,
-            onlineServers,
-            warningServers,
-            criticalServers,
-            avgCpu,
-            avgMemory,
-            timestamp: new Date().toISOString(),
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API 호출 실패: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      // AI 응답을 메시지로 추가 (사고 과정 포함)
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        content: data.response || data.answer || '응답을 받지 못했습니다.',
-        role: 'assistant',
-        timestamp: new Date(),
-        type: content.includes('보고서') ? 'report' : 'text',
-        thinkingSteps: data.thinkingSteps || [],
-        engine: data.engine,
-        responseTime: data.responseTime,
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-
-      // 성공 로그
-      console.log('✅ AI 응답 성공:', {
-        engine: data.engine,
-        responseTime: data.responseTime,
-        confidence: data.confidence,
-      });
-    } catch (error) {
-      console.error('❌ AI API 호출 실패:', error);
-
-      // 에러 메시지 추가
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        content: `죄송합니다. 일시적인 오류가 발생했습니다.\n\n현재 ${servers.length}개의 서버가 모니터링 중입니다:\n- 정상: ${servers.filter((s: EnhancedServerMetrics) => s.status === 'online').length}개\n- 경고: ${servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length}개\n- 심각: ${servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length}개\n\n잠시 후 다시 시도해주세요.`,
-        role: 'assistant',
-        timestamp: new Date(),
-        error: true,
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="fixed inset-y-0 right-0 z-50 flex w-96 flex-col bg-white shadow-lg">

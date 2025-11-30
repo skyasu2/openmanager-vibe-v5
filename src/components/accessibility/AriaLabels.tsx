@@ -11,7 +11,7 @@
 'use client';
 
 import React, { useCallback, useMemo } from 'react';
-import { useAccessibility } from '@/context/AccessibilityProvider';
+import { useAccessibility } from '../../context/AccessibilityProvider';
 
 // 🌐 한국어 ARIA 레이블 사전
 const ariaLabels = {
@@ -364,7 +364,7 @@ export const useFormFieldAria = (props: FormFieldAriaProps) => {
           <>
             {props.label}
             {props.required && (
-              <span aria-label={generateLabel('form.required')}> *</span>
+              <span title={generateLabel('form.required')} aria-hidden="true"> *</span>
             )}
           </>
         ),
@@ -401,14 +401,13 @@ export const AriaLiveRegion: React.FC<{
   if (!isClient || !message) return null;
 
   return (
-    <div
+    <output
       className={className}
-      role="status"
       aria-live={priority}
       aria-atomic="true"
     >
       {message}
-    </div>
+    </output>
   );
 };
 

@@ -11,7 +11,7 @@
 'use client';
 
 import { AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { useGlobalSystemStore } from '@/stores/systemStore';
 
 interface DisplayNotification {
@@ -31,6 +31,23 @@ export const NotificationToast: FC = () => {
   const maxNotifications = 3; // 5개→3개로 축소
 
   // 시스템 이벤트 리스너 (서버 알림만 처리)
+  const getNotificationTitle = useCallback((level: string): string => {
+    switch (level) {
+      case 'critical':
+        return '🚨 심각한 문제 발생';
+      case 'warning':
+        return '⚠️ 주의 필요';
+      case 'success':
+        return '✅ 성공';
+      default:
+        return '📋 알림';
+    }
+  }, []);
+
+  const removeNotification = useCallback((id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
   useEffect(() => {
     const handleSystemEvent = (event: CustomEvent) => {
       const { type, level, message, serverId, serverName } = event.detail;
@@ -89,22 +106,7 @@ export const NotificationToast: FC = () => {
     removeNotification,
   ]);
 
-  const getNotificationTitle = (level: string): string => {
-    switch (level) {
-      case 'critical':
-        return '🚨 심각한 문제 발생';
-      case 'warning':
-        return '⚠️ 주의 필요';
-      case 'success':
-        return '✅ 성공';
-      default:
-        return '📋 알림';
-    }
-  };
 
-  const removeNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
 
   const getIcon = (type: string) => {
     switch (type) {

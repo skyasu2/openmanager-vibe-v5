@@ -264,41 +264,38 @@ export function OptimizedStaggerItem({
 /**
  * 애니메이션 성능 모니터링
  */
-export class AnimationPerformanceMonitor {
-  private static animationCount = 0;
-  private static maxConcurrentAnimations = 3;
+let animationCount = 0;
+const maxConcurrentAnimations = 3;
 
-  static startAnimation(name: string) {
-    AnimationPerformanceMonitor.animationCount++;
+/**
+ * 애니메이션 성능 모니터링
+ */
+export const AnimationPerformanceMonitor = {
+  startAnimation(name: string) {
+    animationCount++;
 
-    if (
-      AnimationPerformanceMonitor.animationCount >
-      AnimationPerformanceMonitor.maxConcurrentAnimations
-    ) {
+    if (animationCount > maxConcurrentAnimations) {
       console.warn(
-        `⚠️ Too many concurrent animations: ${AnimationPerformanceMonitor.animationCount}`
+        `⚠️ Too many concurrent animations: ${animationCount}`
       );
     }
 
     console.log(
-      `🎭 Animation started: ${name} (total: ${AnimationPerformanceMonitor.animationCount})`
+      `🎭 Animation started: ${name} (total: ${animationCount})`
     );
-  }
+  },
 
-  static endAnimation(name: string) {
-    AnimationPerformanceMonitor.animationCount = Math.max(
-      0,
-      AnimationPerformanceMonitor.animationCount - 1
-    );
+  endAnimation(name: string) {
+    animationCount = Math.max(0, animationCount - 1);
     console.log(
-      `✅ Animation ended: ${name} (total: ${AnimationPerformanceMonitor.animationCount})`
+      `✅ Animation ended: ${name} (total: ${animationCount})`
     );
-  }
+  },
 
-  static getActiveAnimations() {
-    return AnimationPerformanceMonitor.animationCount;
-  }
-}
+  getActiveAnimations() {
+    return animationCount;
+  },
+};
 
 /**
  * CSS 애니메이션 대체 (더 가벼운 옵션)

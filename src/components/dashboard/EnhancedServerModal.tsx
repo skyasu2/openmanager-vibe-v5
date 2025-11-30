@@ -225,27 +225,17 @@ export default function EnhancedServerModal({
     console.warn('⚠️ [EnhancedServerModal] 서버 데이터가 없습니다.');
     // 모달을 닫지 않고 오류 상태를 표시
     return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-        onClick={onClose}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            onClose();
-          }
-        }}
-      >
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <button
+          type="button"
+          className="absolute inset-0 h-full w-full cursor-default"
+          onClick={onClose}
+          aria-label="Close modal"
+        />
         <div
-          className="w-full max-w-md rounded-xl bg-white p-6 text-center"
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              onClose();
-            }
-          }}
-          role="presentation"
-          tabIndex={-1}
+          className="relative w-full max-w-md rounded-xl bg-white p-6 text-center"
+          role="alertdialog"
+          aria-modal="true"
         >
           <div className="mb-4 text-4xl text-red-500">⚠️</div>
           <h3 className="mb-2 text-lg font-semibold text-gray-900">
@@ -268,7 +258,7 @@ export default function EnhancedServerModal({
 
   return (
     <div
-      className="gpu-modal-backdrop fixed relative inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+      className="gpu-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
       role="presentation"
     >
       <button
@@ -277,11 +267,10 @@ export default function EnhancedServerModal({
         className="absolute inset-0 h-full w-full cursor-pointer"
         onClick={onClose}
       />
-      <div
+      <dialog
+        open
         className="gpu-modal-content relative flex h-[95vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 sm:h-[90vh] sm:rounded-3xl"
-        role="dialog"
         aria-modal="true"
-        tabIndex={-1}
       >
         {/* 헤더 - Miller's Rule 적용 (8개→5개 요소 축소) */}
         <div
@@ -657,7 +646,7 @@ export default function EnhancedServerModal({
             </div>
           </div>
         </div>
-      </div>
+      </dialog>
     </div>
   );
 }

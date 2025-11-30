@@ -107,24 +107,23 @@ export default function MobileServerSheet({
       ? server.alerts
       : 0;
 
-  const handleOverlayKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      onClose();
-    }
-  };
+
 
   return (
     <Fragment>
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* 배경 오버레이 */}
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm w-full h-full border-none cursor-default"
             onClick={onClose}
-            onKeyDown={handleOverlayKeyDown}
-            role="button"
-            tabIndex={0}
+            onKeyDown={(event: ReactKeyboardEvent<HTMLButtonElement>) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onClose();
+              }
+            }}
             aria-label="모바일 서버 시트를 닫기"
           />
 

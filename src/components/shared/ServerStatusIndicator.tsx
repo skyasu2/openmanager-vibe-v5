@@ -63,9 +63,8 @@ export const ServerStatusIndicator: React.FC<ServerStatusIndicatorProps> = memo(
     const statusStyle = statusStyles[status];
 
     return (
-      <div
+      <output
         className={`inline-flex items-center gap-1.5 ${className}`}
-        role="status"
         aria-label={`서버 상태: ${status}`}
       >
         <div
@@ -89,7 +88,7 @@ export const ServerStatusIndicator: React.FC<ServerStatusIndicatorProps> = memo(
                       : '알 수 없음'}
           </span>
         )}
-      </div>
+      </output>
     );
   }
 );

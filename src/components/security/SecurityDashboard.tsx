@@ -8,7 +8,7 @@ import {
   Info,
   Shield,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface SecurityStatus {
   csp: {
@@ -41,21 +41,7 @@ export default function SecurityDashboard() {
   const [showDetails, setShowDetails] = useState(false);
   const [lastCheck, setLastCheck] = useState<string>('');
 
-  useEffect(() => {
-    void checkSecurityStatus();
-
-    // 5분마다 보안 상태 확인
-    const interval = setInterval(
-      () => {
-        void checkSecurityStatus();
-      },
-      5 * 60 * 1000
-    );
-
-    return () => clearInterval(interval);
-  }, [checkSecurityStatus]);
-
-  const checkSecurityStatus = async () => {
+  const checkSecurityStatus = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -101,7 +87,23 @@ export default function SecurityDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void checkSecurityStatus();
+
+    // 5분마다 보안 상태 확인
+    const interval = setInterval(
+      () => {
+        void checkSecurityStatus();
+      },
+      5 * 60 * 1000
+    );
+
+    return () => clearInterval(interval);
+  }, [checkSecurityStatus]);
+
+
 
   const getSecurityScore = (): number => {
     if (!securityStatus) return 0;

@@ -13,7 +13,6 @@
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, Database, Monitor, Settings, X, Zap } from 'lucide-react';
 import {
-  type KeyboardEvent as ReactKeyboardEvent,
   useCallback,
   useEffect,
   useRef,
@@ -23,7 +22,7 @@ import { createPortal } from 'react-dom';
 import {
   InlineFeedbackContainer,
   useInlineFeedback,
-} from '@/components/ui/InlineFeedbackSystem';
+} from '../ui/InlineFeedbackSystem';
 import { GeneralSettingsTab } from './components/GeneralSettingsTab';
 import { GeneratorSettingsTab } from './components/GeneratorSettingsTab';
 import { MonitorSettingsTab } from './components/MonitorSettingsTab';
@@ -343,9 +342,10 @@ export function UnifiedSettingsPanel({
 
   if (!isOpen) return null;
 
-  const handleOverlayKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Escape') {
-      event.preventDefault();
+  // 오버레이 키보드 핸들러
+  const handleOverlayKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
       onClose();
     }
   };
@@ -354,10 +354,10 @@ export function UnifiedSettingsPanel({
     isOpen && (
       <>
         {/* 오버레이 */}
-        <div
-          className="fixed inset-0 z-[9998] bg-black/70"
+        <button
+          className="fixed inset-0 z-[9998] bg-black/70 w-full h-full cursor-default"
           onClick={onClose}
-          role="button"
+          type="button"
           aria-label="설정 패널 닫기"
           tabIndex={0}
           onKeyDown={handleOverlayKeyDown}

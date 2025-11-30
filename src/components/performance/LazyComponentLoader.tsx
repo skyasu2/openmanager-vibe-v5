@@ -136,56 +136,60 @@ export function useInteractionLoader() {
 /**
  * 성능 우선순위 기반 로더
  */
-export class PriorityLoader {
-  private static loadQueue: Array<{
-    component: () => Promise<React.ComponentType<unknown>>;
-    priority: number;
-    name: string;
-  }> = [];
+interface LoadQueueItem {
+  component: () => Promise<React.ComponentType<unknown>>;
+  priority: number;
+  name: string;
+}
 
-  private static isLoading = false;
+const loadQueue: LoadQueueItem[] = [];
+let isLoading = false;
 
-  static addToQueue(
+const processQueue = async () => {
+  if (loadQueue.length === 0 || isLoading) {
+    return;
+  }
+
+  isLoading = true;
+
+  while (loadQueue.length > 0) {
+    const queueItem = loadQueue.shift();
+    if (!queueItem) continue;
+
+    const { component, name } = queueItem;
+
+    try {
+      console.log(`🚀 Loading component: ${name}`);
+      await component();
+      console.log(`✅ Loaded component: ${name}`);
+    } catch (error) {
+      console.error(`❌ Failed to load component: ${name}`, error);
+    }
+
+    // 메인 스레드 블로킹 방지
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+
+  isLoading = false;
+};
+
+/**
+ * 성능 우선순위 기반 로더
+ */
+export const PriorityLoader = {
+  addToQueue(
     component: () => Promise<React.ComponentType<unknown>>,
     priority: number,
     name: string
   ) {
-    PriorityLoader.loadQueue.push({ component, priority, name });
-    PriorityLoader.loadQueue.sort((a, b) => a.priority - b.priority);
+    loadQueue.push({ component, priority, name });
+    loadQueue.sort((a, b) => a.priority - b.priority);
 
-    if (!PriorityLoader.isLoading) {
-      void PriorityLoader.processQueue();
+    if (!isLoading) {
+      void processQueue();
     }
-  }
-
-  private static async processQueue() {
-    if (PriorityLoader.loadQueue.length === 0 || PriorityLoader.isLoading) {
-      return;
-    }
-
-    PriorityLoader.isLoading = true;
-
-    while (PriorityLoader.loadQueue.length > 0) {
-      const queueItem = PriorityLoader.loadQueue.shift();
-      if (!queueItem) continue;
-
-      const { component, name } = queueItem;
-
-      try {
-        console.log(`🚀 Loading component: ${name}`);
-        await component();
-        console.log(`✅ Loaded component: ${name}`);
-      } catch (error) {
-        console.error(`❌ Failed to load component: ${name}`, error);
-      }
-
-      // 메인 스레드 블로킹 방지
-      await new Promise((resolve) => setTimeout(resolve, 5));
-    }
-
-    PriorityLoader.isLoading = false;
-  }
-}
+  },
+};
 
 /**
  * 컴포넌트별 최적화된 로딩 설정

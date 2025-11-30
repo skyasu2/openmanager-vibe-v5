@@ -19,7 +19,7 @@ import {
   Server,
   Wifi,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { formatPercentage } from '@/lib/utils';
 import debug from '@/utils/debug';
 
@@ -85,7 +85,7 @@ export default function InfrastructureOverviewPage({
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // 서버 데이터 가져오기 - 대시보드 API와 동일한 소스 사용
-  const fetchServerData = async () => {
+  const fetchServerData = useCallback(async () => {
     console.log('🚀 [InfrastructureOverviewPage] fetchServerData 함수 시작됨');
     try {
       const response = await fetch('/api/dashboard');
@@ -238,7 +238,7 @@ export default function InfrastructureOverviewPage({
         bandwidth: 0,
       });
     }
-  };
+  }, []);
 
   // Props 데이터 우선 사용, 없을 경우에만 API 호출
   useEffect(() => {

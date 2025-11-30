@@ -25,7 +25,7 @@ import {
   Trash2,
   XCircle,
 } from 'lucide-react';
-import { type FC, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 
 interface LogEntry {
   id: string;
@@ -92,29 +92,70 @@ export const RealTimeLogMonitor: FC<RealTimeLogMonitorProps> = ({
   const eventSourceRef = useRef<EventSource | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
-  // 컴포넌트 마운트시 자동 시작
-  useEffect(() => {
-    if (autoStart) {
-      startStreaming();
+  /**
+   * 실시간 스트리밍 중지
+   */
+  /**
+   * 실시간 스트리밍 중지
+   */
+  const stopStreaming = useCallback(() => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
     }
+    setIsStreaming(false);
+  }, []);
 
-    return () => {
-      stopStreaming();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart, startStreaming, stopStreaming]);
+  /**
+   * 세션 정보 업데이트
+   */
+  /**
+   * 세션 정보 업데이트
+   */
+  const updateSessionInfo = useCallback((log: LogEntry) => {
+    setSessions((prev) => {
+      const existingIndex = prev.findIndex(
+        (s) => s.sessionId === log.sessionId
+      );
 
-  // 로그 스크롤 자동
-  useEffect(() => {
-    if (logsEndRef.current) {
-      logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+      if (existingIndex !== -1) {
+        // 기존 세션 업데이트
+        const updated = [...prev];
+        const existingSession = updated[existingIndex];
+        if (existingSession) {
+          updated[existingIndex] = {
+            ...existingSession,
+            logCount: existingSession.logCount + 1,
+            status: log.metadata?.sessionEnd
+              ? log.level === 'SUCCESS'
+                ? 'completed'
+                : 'failed'
+              : 'active',
+          };
+        }
+        return updated;
+      } else {
+        // sessionId가 없으면 스킵
+        if (!log.sessionId) return prev;
+
+        // 새 세션 추가
+        const newSession: SessionInfo = {
+          sessionId: log.sessionId,
+          questionId: log.metadata?.questionId || 'unknown',
+          question: log.metadata?.question || log.message,
+          startTime: Date.now(),
+          status: 'active',
+          logCount: 1,
+        };
+        return [...prev, newSession];
+      }
+    });
   }, []);
 
   /**
    * 실시간 스트리밍 시작
    */
-  const startStreaming = () => {
+  const startStreaming = useCallback(() => {
     if (eventSourceRef.current) {
       stopStreaming();
     }
@@ -167,65 +208,34 @@ export const RealTimeLogMonitor: FC<RealTimeLogMonitorProps> = ({
           !eventSource.readyState ||
           eventSource.readyState === EventSource.CLOSED
         ) {
-          startStreaming();
+          if (autoStart) {
+            startStreaming();
+          }
         }
       }, 3000);
     };
-  };
+  }, [_selectedSession, maxLogs, updateSessionInfo, stopStreaming, autoStart]);
 
-  /**
-   * 실시간 스트리밍 중지
-   */
-  const stopStreaming = () => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
+  // 컴포넌트 마운트시 자동 시작
+  useEffect(() => {
+    if (autoStart) {
+      startStreaming();
     }
-    setIsStreaming(false);
-  };
 
-  /**
-   * 세션 정보 업데이트
-   */
-  const updateSessionInfo = (log: LogEntry) => {
-    setSessions((prev) => {
-      const existingIndex = prev.findIndex(
-        (s) => s.sessionId === log.sessionId
-      );
+    return () => {
+      stopStreaming();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, startStreaming, stopStreaming]);
 
-      if (existingIndex !== -1) {
-        // 기존 세션 업데이트
-        const updated = [...prev];
-        const existingSession = updated[existingIndex];
-        if (existingSession) {
-          updated[existingIndex] = {
-            ...existingSession,
-            logCount: existingSession.logCount + 1,
-            status: log.metadata?.sessionEnd
-              ? log.level === 'SUCCESS'
-                ? 'completed'
-                : 'failed'
-              : 'active',
-          };
-        }
-        return updated;
-      } else {
-        // sessionId가 없으면 스킵
-        if (!log.sessionId) return prev;
+  // 로그 스크롤 자동
+  useEffect(() => {
+    if (logsEndRef.current) {
+      logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
 
-        // 새 세션 추가
-        const newSession: SessionInfo = {
-          sessionId: log.sessionId,
-          questionId: log.metadata?.questionId || 'unknown',
-          question: log.metadata?.question || log.message,
-          startTime: Date.now(),
-          status: 'active',
-          logCount: 1,
-        };
-        return [...prev, newSession];
-      }
-    });
-  };
+
 
   /**
    * 로그 필터링

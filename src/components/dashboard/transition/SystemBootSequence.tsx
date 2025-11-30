@@ -19,7 +19,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import debug from '@/utils/debug';
+import debug from '../../../utils/debug';
 import type { Server } from '../../../types/server';
 
 interface SystemBootSequenceProps {
@@ -194,7 +194,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
     };
 
     const handleOverlayKeyDown = (
-      event: ReactKeyboardEvent<HTMLDivElement>
+      event: ReactKeyboardEvent<HTMLButtonElement>
     ) => {
       if (['Enter', ' '].includes(event.key)) {
         event.preventDefault();
@@ -203,11 +203,11 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
     };
 
     return (
-      <div
-        role="button"
+      <button
+        type="button"
         tabIndex={0}
         aria-label="로딩 화면을 종료하고 대시보드로 이동"
-        className="fixed inset-0 z-50 cursor-pointer bg-black"
+        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-green-500 font-mono cursor-pointer"
         onClick={handleOverlayActivate}
         onKeyDown={handleOverlayKeyDown}
       >
@@ -300,7 +300,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
             <div>⏱️ 자동 완료: 약 5초</div>
           </div>
         </div>
-      </div>
+      </button>
     );
   }
 );

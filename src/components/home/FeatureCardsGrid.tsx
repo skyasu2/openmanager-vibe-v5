@@ -10,11 +10,11 @@ import {
   useRef,
   useState,
 } from 'react';
-import FeatureCardModal from '@/components/shared/FeatureCardModal';
-import { FEATURE_CARDS_DATA } from '@/data/feature-cards.data';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import type { FeatureCard } from '@/types/feature-card.types';
-import { renderAIGradientWithAnimation } from '@/utils/text-rendering';
+import FeatureCardModal from '../shared/FeatureCardModal';
+import { FEATURE_CARDS_DATA } from '../../data/feature-cards.data';
+import { useUnifiedAdminStore } from '../../stores/useUnifiedAdminStore';
+import type { FeatureCard } from '../../types/feature-card.types';
+import { renderAIGradientWithAnimation } from '../../utils/text-rendering';
 
 // 개별 카드 컴포넌트를 메모이제이션
 const FeatureCardItem = memo(
@@ -28,7 +28,7 @@ const FeatureCardItem = memo(
     isAIDisabled: boolean;
   }) => {
     // 카드 타입별 스타일 헬퍼
-    const getCardStyles = (card: FeatureCard) => {
+    const getCardStyles = useCallback((card: FeatureCard) => {
       return {
         title: 'text-white/95 group-hover:text-white',
         description: 'text-white/80 group-hover:text-white/90 font-medium',
@@ -41,10 +41,10 @@ const FeatureCardItem = memo(
               : 'group-hover:ring-white/30',
         iconColor: 'text-white',
       };
-    };
+    }, []);
 
     // 아이콘 CSS 애니메이션 클래스 설정
-    const getIconAnimationClass = (card: FeatureCard) => {
+    const getIconAnimationClass = useCallback((card: FeatureCard) => {
       if (card.isAICard) {
         return 'animate-ai-icon';
       }
@@ -52,7 +52,7 @@ const FeatureCardItem = memo(
         return 'animate-vibe-icon';
       }
       return 'animate-icon-hover';
-    };
+    }, []);
 
     const cardStyles = useMemo(
       () => getCardStyles(card),
@@ -64,18 +64,17 @@ const FeatureCardItem = memo(
     );
 
     return (
-      <div
+      <button
+        type="button"
         key={card.id}
-        role="button"
-        tabIndex={0}
         aria-label={`${card.title} 상세 정보 보기`}
-        className={`group relative cursor-pointer ${
+        className={`w-full text-left group relative cursor-pointer ${
           card.isVibeCard
             ? 'transform-gpu hover:shadow-2xl hover:shadow-yellow-500/30'
             : ''
         }`}
         onClick={() => onCardClick(card.id)}
-        onKeyDown={(e) => {
+        onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onCardClick(card.id);
@@ -157,7 +156,7 @@ const FeatureCardItem = memo(
             className={`absolute inset-0 rounded-2xl ring-2 ring-transparent transition-all duration-300 ${cardStyles.hoverRing}`}
           />
         </div>
-      </div>
+      </button>
     );
   }
 );

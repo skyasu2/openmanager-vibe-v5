@@ -14,6 +14,7 @@
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
   useEffect,
   useState,
 } from 'react';
@@ -23,13 +24,13 @@ import type {
   NetworkRequest,
   PerformanceInfo,
   SystemChecklistProps,
-} from '@/types/system-checklist.types';
-import debug from '@/utils/debug';
+} from '../../../types/system-checklist';
+import debug from '../../../utils/debug';
 import {
   getComponentIcon,
   getPriorityBorder,
   getStatusIcon,
-} from '@/utils/system-checklist-icons';
+} from '../../../utils/system-checklist-icons';
 import { useSystemChecklist } from '../../../hooks/useSystemChecklist';
 
 // Window 인터페이스 확장 for 디버그 도구
@@ -147,7 +148,7 @@ export default function SystemChecklist({
   };
 
   // 🔍 성능 정보 업데이트
-  const updatePerformanceInfo = () => {
+  const updatePerformanceInfo = useCallback(() => {
     const responseTimes: number[] = [];
     let slowestComponent = '';
     let fastestComponent = '';
@@ -190,7 +191,7 @@ export default function SystemChecklist({
         averageResponseTime,
       },
     }));
-  };
+  }, [components, componentDefinitions]);
 
   // 🔍 디버깅 정보 실시간 업데이트
   useEffect(() => {
@@ -201,7 +202,6 @@ export default function SystemChecklist({
     }));
 
     updatePerformanceInfo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [components, updatePerformanceInfo]);
 
   // ✅ 완료 상태 모니터링 및 자동 전환
@@ -554,9 +554,10 @@ export default function SystemChecklist({
             };
 
             return (
-              <div
+              <button
+                type="button"
                 key={component.id}
-                className={`flex items-center rounded-xl border p-3 backdrop-blur-sm ${getPriorityBorder(component.priority)} ${
+                className={`w-full text-left flex items-center rounded-xl border p-3 backdrop-blur-sm ${getPriorityBorder(component.priority)} ${
                   status.status === 'completed'
                     ? 'bg-green-500/10'
                     : status.status === 'failed'
@@ -565,10 +566,9 @@ export default function SystemChecklist({
                         ? 'bg-blue-500/10'
                         : 'bg-gray-500/10'
                 } transition-all duration-300 ${isDiagnosticAvailable ? 'cursor-pointer hover:bg-red-500/20' : ''} `}
-                role={isDiagnosticAvailable ? 'button' : undefined}
-                tabIndex={isDiagnosticAvailable ? 0 : -1}
+                disabled={!isDiagnosticAvailable}
                 onClick={handleCardActivate}
-                onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
+                onKeyDown={(event: ReactKeyboardEvent<HTMLButtonElement>) => {
                   if (!isDiagnosticAvailable) return;
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
@@ -616,7 +616,7 @@ export default function SystemChecklist({
                     </div>
                   )}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -665,17 +665,16 @@ export default function SystemChecklist({
 
         {/* 완료 상태 표시 */}
         {showCompleted && (
-          <div
+          <button
+            type="button"
             className="absolute inset-0 flex items-center justify-center rounded-2xl border border-green-500/50 bg-green-500/20 backdrop-blur-sm duration-500 animate-in fade-in zoom-in"
-            role="button"
             tabIndex={0}
             aria-label="체크리스트 완료 후 다음 단계로 이동"
             onClick={() => {
-              // 클릭 시 다음 단계로 진행
               setShouldProceed(true);
               setTimeout(() => onComplete(), 100);
             }}
-            onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
+            onKeyDown={(event: ReactKeyboardEvent<HTMLButtonElement>) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
                 setShouldProceed(true);
@@ -722,7 +721,7 @@ export default function SystemChecklist({
                 </svg>
               </div>
             </div>
-          </div>
+          </button>
         )}
 
         {/* 스킵 버튼 (3초 후 표시) */}

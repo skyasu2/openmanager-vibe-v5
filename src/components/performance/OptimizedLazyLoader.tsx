@@ -166,22 +166,25 @@ export function OptimizedLazy({
 /**
  * 🎯 전략 5: 번들 크기 모니터링
  */
-export class BundleSizeTracker {
-  private static loadTimes: Record<string, number> = {};
+const loadTimes: Record<string, number> = {};
 
-  static trackComponentLoad(componentName: string, startTime: number) {
+/**
+ * 🎯 전략 5: 번들 크기 모니터링
+ */
+export const BundleSizeTracker = {
+  trackComponentLoad(componentName: string, startTime: number) {
     const loadTime = performance.now() - startTime;
-    BundleSizeTracker.loadTimes[componentName] = loadTime;
+    loadTimes[componentName] = loadTime;
 
     if (process.env.NODE_ENV === 'development') {
       console.log(`📦 ${componentName} loaded in ${loadTime.toFixed(2)}ms`);
     }
-  }
+  },
 
-  static getLoadReport() {
-    return BundleSizeTracker.loadTimes;
-  }
-}
+  getLoadReport() {
+    return loadTimes;
+  },
+};
 
 /**
  * 🎯 번들 크기 최적화된 컴포넌트 목록

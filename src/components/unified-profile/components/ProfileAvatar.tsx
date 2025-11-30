@@ -1,6 +1,7 @@
 'use client';
 
 import { Shield, UserCheck } from 'lucide-react';
+import Image from 'next/image';
 import { memo } from 'react';
 import type { ProfileAvatarProps } from '../types/profile.types';
 
@@ -80,6 +81,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Interactive role is conditionally applied
     <div
       className="relative"
       onClick={onClick}
@@ -97,10 +99,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       }
     >
       {userInfo?.avatar ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={userInfo.avatar}
           alt={getUserName()}
+          width={size === 'large' ? 40 : size === 'medium' ? 32 : 24}
+          height={size === 'large' ? 40 : size === 'medium' ? 32 : 24}
           className={`${sizeClasses[size]} rounded-full border-2 border-gray-200 object-cover`}
         />
       ) : (
