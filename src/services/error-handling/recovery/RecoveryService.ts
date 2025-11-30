@@ -26,9 +26,10 @@ export class RecoveryService {
     backoffFactor: 2,
     timeout: 10000,
   };
+  // private config: ErrorHandlingConfig;
 
   constructor(config: ErrorHandlingConfig) {
-    this.config = config;
+    // this.config = config;
   }
 
   /**
@@ -514,7 +515,9 @@ export class RecoveryService {
           (key) => key.startsWith('temp-') || key.startsWith('cache-')
         );
 
-        keysToRemove.forEach((key) => localStorage.removeItem(key));
+        keysToRemove.forEach((key) => {
+          localStorage.removeItem(key);
+        });
 
         // IndexedDB 정리 (가능한 경우)
         if ('indexedDB' in window) {

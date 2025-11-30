@@ -10,14 +10,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { aiLogger } from '../../lib/logger';
 
-interface IndexInfo {
-  name: string;
-  type: string;
-  table: string;
-  column: string;
-  created: boolean;
-}
-
 interface OptimizationResult {
   success: boolean;
   indexesCreated: number;

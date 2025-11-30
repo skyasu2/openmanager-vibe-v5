@@ -14,11 +14,11 @@ import type {
   UnifiedServerMetrics,
 } from './UnifiedMetricsManager.types';
 
-export class AIAnalyzer {
+export const AIAnalyzer = {
   /**
    * 🤖 Perform AI analysis on servers
    */
-  static async performAIAnalysis(
+  async performAIAnalysis(
     servers: UnifiedServerMetrics[],
     metrics: MetricsPerformanceData
   ): Promise<void> {
@@ -28,7 +28,7 @@ export class AIAnalyzer {
     try {
       // 서버별 AI 분석 수행
       const analysisPromises = servers.map(async (server) => {
-        const analysis = await AIAnalyzer.analyzeServer(server);
+        const analysis = await this.analyzeServer(server);
 
         // AI 분석 결과를 서버 객체에 추가
         server.ai_analysis = {
@@ -43,7 +43,7 @@ export class AIAnalyzer {
       await Promise.all(analysisPromises);
 
       // 전체 시스템 분석
-      const systemAnalysis = AIAnalyzer.analyzeSystemHealth(servers);
+      const systemAnalysis = this.analyzeSystemHealth(servers);
       console.log('📊 시스템 분석 결과:', systemAnalysis);
 
       const processingTime = Date.now() - startTime;
@@ -56,32 +56,30 @@ export class AIAnalyzer {
       console.error('❌ AI 분석 실패:', error);
       metrics.errors_count++;
     }
-  }
+  },
 
   /**
    * 📊 Individual server analysis
    */
-  private static async analyzeServer(server: UnifiedServerMetrics) {
+  async analyzeServer(server: UnifiedServerMetrics) {
     // Simulate AI analysis processing time
     await new Promise((resolve) => setTimeout(resolve, Math.random() * 50));
 
-    const prediction_score = AIAnalyzer.calculatePredictionScore(server);
-    const anomaly_score = AIAnalyzer.calculateAnomalyScore(server);
-    const recommendation = AIAnalyzer.generateRecommendation(server);
+    const prediction_score = this.calculatePredictionScore(server);
+    const anomaly_score = this.calculateAnomalyScore(server);
+    const recommendation = this.generateRecommendation(server);
 
     return {
       prediction_score,
       anomaly_score,
       recommendation,
     };
-  }
+  },
 
   /**
    * 🎯 Calculate prediction score for server performance
    */
-  private static calculatePredictionScore(
-    server: UnifiedServerMetrics
-  ): number {
+  calculatePredictionScore(server: UnifiedServerMetrics): number {
     let score = 100; // Start with perfect score
 
     // CPU usage impact
@@ -111,12 +109,12 @@ export class AIAnalyzer {
     }
 
     return Math.max(0, Math.min(100, score));
-  }
+  },
 
   /**
    * 🚨 Calculate anomaly score for unusual behavior detection
    */
-  private static calculateAnomalyScore(server: UnifiedServerMetrics): number {
+  calculateAnomalyScore(server: UnifiedServerMetrics): number {
     let anomalyScore = 0;
 
     // Check for unusual patterns
@@ -151,12 +149,12 @@ export class AIAnalyzer {
     }
 
     return Math.min(100, anomalyScore);
-  }
+  },
 
   /**
    * 💡 Generate actionable recommendations
    */
-  static generateRecommendation(server: UnifiedServerMetrics): string {
+  generateRecommendation(server: UnifiedServerMetrics): string {
     const recommendations: string[] = [];
 
     // CPU recommendations
@@ -221,14 +219,12 @@ export class AIAnalyzer {
           .slice(0, 3)
           .join(' ') // Max 3 recommendations
       : '✅ 서버가 정상 상태입니다.';
-  }
+  },
 
   /**
    * 🏥 Analyze overall system health
    */
-  static analyzeSystemHealth(
-    servers: UnifiedServerMetrics[]
-  ): AIAnalysisResult {
+  analyzeSystemHealth(servers: UnifiedServerMetrics[]): AIAnalysisResult {
     if (servers.length === 0) {
       return {
         analysis: 'no_servers',
@@ -264,12 +260,12 @@ export class AIAnalyzer {
       ).toFixed(1),
       timestamp: new Date().toISOString(),
     };
-  }
+  },
 
   /**
    * 🔮 Predict future server state
    */
-  static predictServerState(
+  predictServerState(
     server: UnifiedServerMetrics,
     timeHorizonMinutes: number = 30
   ): Partial<UnifiedServerMetrics> {
@@ -300,12 +296,12 @@ export class AIAnalyzer {
         Math.max(0, server.node_memory_usage_percent + memoryTrend)
       ),
     };
-  }
+  },
 
   /**
    * 📈 Calculate server efficiency score
    */
-  static calculateEfficiencyScore(server: UnifiedServerMetrics): number {
+  calculateEfficiencyScore(server: UnifiedServerMetrics): number {
     // Efficiency is inversely related to resource usage
     const cpuEfficiency = 100 - server.node_cpu_usage_percent;
     const memoryEfficiency = 100 - server.node_memory_usage_percent;
@@ -315,5 +311,5 @@ export class AIAnalyzer {
         : 50;
 
     return (cpuEfficiency + memoryEfficiency + responseTimeEfficiency) / 3;
-  }
-}
+  },
+};

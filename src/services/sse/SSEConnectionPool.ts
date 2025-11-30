@@ -20,12 +20,14 @@ export interface PooledConnection extends EventSource {
 }
 
 export class ServerlessSSEConnectionPool {
-  constructor(config: SSEConnectionPoolConfig = {}) {
-    this.config = {
-      maxPoolSize: config.maxPoolSize || 10,
-      idleTimeout: config.idleTimeout || 30000,
-      cleanupInterval: config.cleanupInterval || 5000,
-    };
+  // private config: Required<SSEConnectionPoolConfig>;
+
+  constructor(_config: SSEConnectionPoolConfig = {}) {
+    // this.config = {
+    //   maxPoolSize: config.maxPoolSize || 10,
+    //   idleTimeout: config.idleTimeout || 30000,
+    //   cleanupInterval: config.cleanupInterval || 5000,
+    // };
 
     console.warn('⚠️ SSE 연결 풀 비활성화 - 서버리스에서는 지속적 연결 불가');
     console.warn('📊 Vercel Dashboard: https://vercel.com/dashboard');

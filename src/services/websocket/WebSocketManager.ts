@@ -656,7 +656,9 @@ export class WebSocketManager {
     }
 
     // 모든 스트림 정리
-    this.streams.forEach((stream) => stream.complete());
+    for (const stream of this.streams.values()) {
+      stream.complete();
+    }
     this.streams.clear();
     this.clients.clear();
   }

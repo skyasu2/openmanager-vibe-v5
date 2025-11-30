@@ -57,11 +57,11 @@ interface BatchMetricResult {
  * - 확률적 이벤트 발생
  * - 서버간 연쇄 효과
  */
-export class RealisticVariationGenerator {
+export const RealisticVariationGenerator = {
   /**
    * FNV-1a 해시 기반 고성능 유사 랜덤 (20% 성능 향상)
    */
-  private static fnv1aHash(seed: number): number {
+  fnv1aHash(seed: number): number {
     let hash = 0x811c9dc5;
     const str = seed.toString();
     for (let i = 0; i < str.length; i++) {
@@ -69,19 +69,19 @@ export class RealisticVariationGenerator {
       hash = (hash * 0x01000193) >>> 0;
     }
     return hash / 0xffffffff;
-  }
+  },
 
   /**
    * 레거시 호환성을 위한 래퍼 (점진적 마이그레이션)
    */
-  private static seededRandom(seed: number): number {
-    return RealisticVariationGenerator.fnv1aHash(seed);
-  }
+  seededRandom(seed: number): number {
+    return this.fnv1aHash(seed);
+  },
 
   /**
    * 현실적 변동성 생성 - 시간대별 + 서버별 특성 반영
    */
-  static generateNaturalVariance(baseValue: number, serverId: string): number {
+  generateNaturalVariance(baseValue: number, serverId: string): number {
     const now = new Date();
     const timeSeed = Math.floor(Date.now() / 30000); // 30초마다 변경
     const serverSeed = serverId.charCodeAt(0) * 7; // 서버별 고유 패턴
@@ -89,7 +89,7 @@ export class RealisticVariationGenerator {
 
     // 기본 변동성 (±10%)
     const baseVariance =
-      (RealisticVariationGenerator.seededRandom(combinedSeed) - 0.5) * 20;
+      (this.seededRandom(combinedSeed) - 0.5) * 20;
 
     // 시간대별 패턴 (업무시간 vs 야간)
     const hour = now.getHours();
@@ -112,18 +112,18 @@ export class RealisticVariationGenerator {
     // 점진적 드리프트 (서버가 시간에 따라 자연스럽게 변화)
     const driftSeed = Math.floor(Date.now() / 300000); // 5분마다 변화
     const drift =
-      (RealisticVariationGenerator.seededRandom(driftSeed + serverSeed) - 0.5) *
+      (this.seededRandom(driftSeed + serverSeed) - 0.5) *
       5; // ±2.5% 드리프트
 
     // 최종 계산
     const finalVariance = baseVariance * timeMultiplier * dayMultiplier + drift;
     return Math.max(5, Math.min(95, baseValue + finalVariance));
-  }
+  },
 
   /**
    * 현실적 이벤트 시스템 - 시나리오 기반
    */
-  static checkRandomEvent(serverId: string): {
+  checkRandomEvent(serverId: string): {
     hasEvent: boolean;
     impact: number;
     type: string;
@@ -131,7 +131,7 @@ export class RealisticVariationGenerator {
   } {
     const timeSeed = Math.floor(Date.now() / 60000); // 1분마다 체크
     const serverSeed = serverId.charCodeAt(0) * 13;
-    const eventRoll = RealisticVariationGenerator.seededRandom(
+    const eventRoll = this.seededRandom(
       timeSeed + serverSeed
     );
 
@@ -175,7 +175,7 @@ export class RealisticVariationGenerator {
       const selected =
         severEvents[
           Math.floor(
-            RealisticVariationGenerator.seededRandom(timeSeed * 2) *
+            this.seededRandom(timeSeed * 2) *
               severEvents.length
           )
         ] ?? severEvents[0];
@@ -214,7 +214,7 @@ export class RealisticVariationGenerator {
       const selected =
         mediumEvents[
           Math.floor(
-            RealisticVariationGenerator.seededRandom(timeSeed * 3) *
+            this.seededRandom(timeSeed * 3) *
               mediumEvents.length
           )
         ] ?? mediumEvents[0];
@@ -249,7 +249,7 @@ export class RealisticVariationGenerator {
       const selected =
         minorEvents[
           Math.floor(
-            RealisticVariationGenerator.seededRandom(timeSeed * 4) *
+            this.seededRandom(timeSeed * 4) *
               minorEvents.length
           )
         ] ?? minorEvents[0];
@@ -267,12 +267,12 @@ export class RealisticVariationGenerator {
       type: '정상',
       description: '모든 시스템 정상 동작 중',
     };
-  }
+  },
 
   /**
    * 서버간 연쇄 효과 시뮬레이션
    */
-  static calculateCascadeEffect(
+  calculateCascadeEffect(
     serverType: string,
     otherServers: ServerBasicInfo[]
   ): number {
@@ -299,13 +299,13 @@ export class RealisticVariationGenerator {
     }
 
     return Math.min(cascadeImpact, 20); // 최대 20% 추가 부하
-  }
+  },
 
   /**
    * 배치 처리 시스템 - 30% 효율성 향상
    * 서버별 개별 처리 대신 배치로 매트릭 생성
    */
-  static generateBatchMetrics(
+  generateBatchMetrics(
     serverInfos: Array<{
       id: string;
       type: string;
@@ -322,33 +322,33 @@ export class RealisticVariationGenerator {
 
       // 기본 메트릭 생성
       const metrics = {
-        cpu: RealisticVariationGenerator.generateNaturalVariance(
+        cpu: this.generateNaturalVariance(
           baseMetrics.cpu,
           id
         ),
-        memory: RealisticVariationGenerator.generateNaturalVariance(
+        memory: this.generateNaturalVariance(
           baseMetrics.memory,
           id
         ),
-        disk: RealisticVariationGenerator.generateNaturalVariance(
+        disk: this.generateNaturalVariance(
           baseMetrics.disk,
           id
         ),
-        network: RealisticVariationGenerator.generateNaturalVariance(
+        network: this.generateNaturalVariance(
           baseMetrics.network,
           id
         ),
       };
 
       // 이벤트 확인
-      const events = RealisticVariationGenerator.checkRandomEvent(id);
+      const events = this.checkRandomEvent(id);
 
       return { id, metrics, events };
     });
 
     // 연쇄 효과 계산 (모든 서버 데이터를 기반으로)
     results.forEach((result) => {
-      const cascadeImpact = RealisticVariationGenerator.calculateCascadeEffect(
+      const cascadeImpact = this.calculateCascadeEffect(
         serverInfos.find((s) => s.id === result.id)?.type || 'unknown',
         results.map((r) => ({
           id: r.id,
@@ -368,5 +368,5 @@ export class RealisticVariationGenerator {
     });
 
     return results;
-  }
-}
+  },
+};

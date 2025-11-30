@@ -151,7 +151,9 @@ export class MemoryRAGCache {
         expiredEmbeddings.push(key);
       }
     }
-    expiredEmbeddings.forEach((key) => this.embeddingCache.delete(key));
+    expiredEmbeddings.forEach((key) => {
+      this.embeddingCache.delete(key);
+    });
 
     // 만료된 검색 결과 제거
     const expiredSearches: string[] = [];
@@ -160,6 +162,8 @@ export class MemoryRAGCache {
         expiredSearches.push(key);
       }
     }
-    expiredSearches.forEach((key) => this.searchCache.delete(key));
+    expiredSearches.forEach((key) => {
+      this.searchCache.delete(key);
+    });
   }
 }

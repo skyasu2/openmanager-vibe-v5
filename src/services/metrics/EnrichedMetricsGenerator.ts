@@ -39,9 +39,9 @@ interface ScenarioData {
   };
 }
 
-interface BaselineStorage {
-  [serverId: string]: BaselineData;
-}
+// interface BaselineStorage {
+//   [serverId: string]: BaselineData;
+// }
 
 // 10배 풍부한 메트릭 인터페이스
 export interface EnrichedMetrics {

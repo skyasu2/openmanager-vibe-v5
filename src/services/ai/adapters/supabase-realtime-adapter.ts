@@ -41,7 +41,7 @@ export class SupabaseRealtimeAdapter {
     userId?: string
   ): Promise<string> {
     try {
-      const { createClient } = await import('@/lib/supabase/server');
+      const { createClient } = await import('../../../lib/supabase/server');
       const supabase = await createClient();
       const { data, error } = await supabase
         .from('thinking_steps')
@@ -79,7 +79,7 @@ export class SupabaseRealtimeAdapter {
     updates: Partial<ThinkingStep>
   ): Promise<void> {
     try {
-      const { createClient } = await import('@/lib/supabase/server');
+      const { createClient } = await import('../../../lib/supabase/server');
       const supabase = await createClient();
       const { error } = await supabase
         .from('thinking_steps')
@@ -108,7 +108,7 @@ export class SupabaseRealtimeAdapter {
     afterId?: string
   ): Promise<ThinkingStep[]> {
     try {
-      const { createClient } = await import('@/lib/supabase/server');
+      const { createClient } = await import('../../../lib/supabase/server');
       const supabase = await createClient();
       let query = supabase
         .from('thinking_steps')
@@ -152,7 +152,7 @@ export class SupabaseRealtimeAdapter {
     onError?: (error: Error) => void
   ): Promise<() => void> {
     try {
-      const { createClient } = await import('@/lib/supabase/server');
+      const { createClient } = await import('../../../lib/supabase/server');
       const supabase = await createClient();
 
       // 기존 채널이 있으면 재사용
@@ -226,7 +226,7 @@ export class SupabaseRealtimeAdapter {
    */
   async clearSession(sessionId: string): Promise<void> {
     try {
-      const { createClient } = await import('@/lib/supabase/server');
+      const { createClient } = await import('../../../lib/supabase/server');
       const supabase = await createClient();
       const { error } = await supabase
         .from('thinking_steps')
@@ -252,7 +252,7 @@ export class SupabaseRealtimeAdapter {
     userId?: string
   ): Promise<string[]> {
     try {
-      const { createClient } = await import('@/lib/supabase/server');
+      const { createClient } = await import('../../../lib/supabase/server');
       const supabase = await createClient();
       const records = steps.map((step) => ({
         session_id: sessionId,
@@ -367,6 +367,6 @@ export const supabaseRealtimeAdapter = {
   },
 
   cleanup(): void {
-    return this.instance.cleanup();
+    this.instance.cleanup();
   },
 };
