@@ -48,9 +48,11 @@ export function useAutoLogout({
     try {
       onLogout?.();
 
-      // 게스트 모드 - 로컬 스토리지 정리
-      localStorage.removeItem('auth_session_id');
-      localStorage.removeItem('auth_type');
+      // 게스트 모드 - 로컬 스토리지 정리 (SSR 안전)
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_session_id');
+        localStorage.removeItem('auth_type');
+      }
       setIsLoggedIn(false);
       router.push(redirectPath);
 
@@ -102,9 +104,13 @@ export function useAutoLogout({
   }, [resetTimers]);
 
   // 강제 로그아웃
-  const forceLogout = async () => {
-    await handleAutoLogout();
-  };
+  const forceLogout = useCallback(async () => {
+    try {
+      await handleAutoLogout();
+    } catch (error) {
+      console.error('❌ 강제 로그아웃 실패:', error);
+    }
+  }, [handleAutoLogout]);
 
   // 수동 로그아웃
   const logout = async () => {
@@ -169,6 +175,12 @@ export function useAutoLogout({
   // 로그인 상태 확인
   useEffect(() => {
     const checkAuthStatus = () => {
+      // SSR 안전성 체크
+      if (typeof window === 'undefined') {
+        setIsLoggedIn(false);
+        return;
+      }
+
       const sessionId = localStorage.getItem('auth_session_id');
       const authType = localStorage.getItem('auth_type');
       setIsLoggedIn(!!sessionId && authType === 'guest');

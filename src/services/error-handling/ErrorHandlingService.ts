@@ -42,11 +42,8 @@ export class ErrorHandlingService implements IErrorHandler {
 
     // 모듈 초기화
     this.core = new ErrorHandlingCore(this.config);
-    this.recoveryService = new RecoveryService(this.config);
+    this.recoveryService = new RecoveryService();
     this.monitoringService = new ErrorMonitoringService(this.config);
-
-    // 기본 핸들러 설정
-    this.defaultHandlers = new DefaultErrorHandlers(this.core);
 
     // 복구 서비스와 모니터링 연동
     this.setupIntegrations();
