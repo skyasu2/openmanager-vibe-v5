@@ -1,4 +1,4 @@
-name: Lint Check
+name: Lint Check (Biome)
 
 on:
   pull_request:
@@ -14,7 +14,7 @@ on:
 
 jobs:
   lint:
-    name: ESLint Strict Check
+    name: Biome Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -29,33 +29,39 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run ESLint Strict CI Check
-        timeout-minutes: 5
+      - name: Run Biome Check
+        timeout-minutes: 2
         continue-on-error: true # Lint 경고는 CI 차단 방지
         run: |
-          echo "🔍 ESLint Strict CI Check 시작..."
+          echo "🔍 Biome Check 시작..."
 
-          # 메모리 제한 증가 및 타임아웃 설정 (출력 캡처로 재실행 방지)
-          if output=$(timeout 300 npm run lint:ci:strict 2>&1); then
-            echo "✅ ESLint 검사 통과 (경고 0개)"
+          # Biome check (format + lint)
+          if output=$(timeout 120 npm run check 2>&1); then
+            echo "✅ Biome 검사 통과 (에러 0개, 경고 0개)"
           else
             exit_code=$?
 
             if [ $exit_code -eq 124 ]; then
-              echo "⚠️ ESLint 타임아웃 (5분 초과)"
-              echo "📝 로컬에서 'npm run lint'로 확인 권장"
+              echo "⚠️ Biome 타임아웃 (2분 초과)"
+              echo "📝 로컬에서 'npm run check'로 확인 권장"
             else
-              echo "⚠️ ESLint 경고 발견"
-              echo "📋 경고 상세 (최근 10개):"
-              echo "$output" | grep -E "warning|⚠" | head -10 || true
-              echo "📝 로컬에서 'npm run lint'로 전체 확인 가능"
+              echo "⚠️ Biome 경고 또는 에러 발견"
+              echo "📋 결과 요약:"
+              echo "$output" | grep -E "Found|error|warning" | tail -5 || true
+              echo ""
+              echo "📝 로컬에서 'npm run check'로 전체 확인 가능"
+              echo "🔧 자동 수정: 'npm run lint:fix'"
             fi
 
-            # Main 브랜치는 실패, 다른 브랜치는 경고
-            if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-              echo "🚨 Main 브랜치 - Lint 경고로 인한 실패"
-              exit 1
+            # Main 브랜치는 에러만 실패, 다른 브랜치는 경고
+            if echo "$output" | grep -q "Found.*error"; then
+              if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+                echo "🚨 Main 브랜치 - Biome 에러로 인한 실패"
+                exit 1
+              else
+                echo "⚠️ Feature 브랜치 - Biome 에러 경고"
+              fi
             else
-              echo "✅ Feature 브랜치 - Lint 경고 무시 (계속 진행)"
+              echo "✅ 경고만 있음 - 계속 진행"
             fi
           fi

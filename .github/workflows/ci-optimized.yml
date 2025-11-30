@@ -93,22 +93,49 @@ jobs:
             exit 1
           fi
 
-      - name: Smart TypeScript Check
+      - name: Biome Check
+        timeout-minutes: 2
+        continue-on-error: true # Biome 경고는 CI 차단 방지
+        run: |
+          echo "🚀 Biome Check 시작..."
+
+          # Biome check (빠른 lint + format 검증)
+          if npm run check; then
+            echo "✅ Biome 검사 통과 (에러 0개)"
+          else
+            echo "⚠️ Biome에서 문제 발견"
+            echo "📋 요약: npm run check 실행 결과"
+            npm run check 2>&1 | grep -E "Found|error|warning" | tail -3 || true
+            echo ""
+            echo "💡 로컬에서 'npm run lint:fix'로 자동 수정 가능"
+
+            # main 브랜치는 에러만 실패, 다른 브랜치는 경고
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              # Main 브랜치에서 에러가 있으면 실패
+              if npm run check 2>&1 | grep -q "Found.*error"; then
+                echo "🚨 Main 브랜치 - Biome 에러로 인한 실패"
+                exit 1
+              else
+                echo "⚠️ Main 브랜치 - 경고만 있음 (계속 진행)"
+              fi
+            else
+              echo "⚠️ Feature 브랜치 - Biome 경고 (빌드 계속 진행)"
+            fi
+          fi
+
+      - name: TypeScript Check
         timeout-minutes: 2
         continue-on-error: true # TypeScript 에러도 CI 차단 방지
         run: |
-          echo "🚀 TypeScript 스마트 체크 시작..."
+          echo "🚀 TypeScript 체크 시작..."
 
-          # 변경된 파일만 스마트 체크 (성공하면 바로 끝)
-          if node scripts/dev/type-check-changed.js smart; then
-            echo "✅ 스마트 타입 체크 통과!"
+          # TypeScript 빠른 체크
+          if npm run type-check:fast; then
+            echo "✅ TypeScript 체크 통과!"
           else
-            echo "⚠️ 스마트 체크에서 문제 발견"
+            echo "⚠️ TypeScript 에러 발견"
             echo "💡 로컬 개발 환경에서 'npm run type-check'로 상세 확인 권장"
-            
-            # CI에서는 빠른 체크만 실행하고 경고로 처리
-            npm run type-check:fast
-            
+
             # main 브랜치는 실패, 다른 브랜치는 경고
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
               echo "🚨 Main 브랜치 - TypeScript 오류로 인한 실패"
