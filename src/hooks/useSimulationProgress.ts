@@ -334,8 +334,6 @@ const useSimulationProgress = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused, isPolling, pauseWhenHidden, refresh]);
 
-
-
   /**
    * 🎯 시뮬레이션 완료시 자동 폴링 중단
    */
