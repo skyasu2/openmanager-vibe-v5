@@ -78,9 +78,10 @@ async function main() {
   lintableFiles.forEach(f => console.log(` - ${f}`));
 
   try {
-    // Run ESLint on changed files
-    // We pass the file list to eslint
-    await runCommand('npx', ['eslint', '--fix', '--max-warnings=0', ...lintableFiles], 'ESLint');
+    // Run Biome Lint on changed files
+    // We pass the file list to biome
+    // Biome CLI accepts files as arguments
+    await runCommand('npx', ['biome', 'lint', '--write', '--error-on-warnings', ...lintableFiles], 'Biome Lint');
 
     // Run TSC (Incremental)
     // We don't pass files to TSC, we let it use the incremental cache
