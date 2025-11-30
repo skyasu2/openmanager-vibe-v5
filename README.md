@@ -1,209 +1,100 @@
-# 🌟 OpenManager VIBE v5
+# OpenManager VIBE v5
 
-> **AI 기반 서버 모니터링 학습용 토이프로젝트**  
-> 포트폴리오 & 실무 연습을 위한 바이브 코딩 프로젝트
+> **AI-Native Server Monitoring PoC**
+> Exploring the future of **AX (AI Experience)** in DevOps through **Vibe Coding**.
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5.5-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)](https://www.typescriptlang.org/)
-[![Vercel](https://img.shields.io/badge/Vercel-Deploy-green)](https://vercel.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-teal)](https://supabase.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5-black)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Realtime-teal)](https://supabase.com/)
+[![Google AI](https://img.shields.io/badge/Google_AI-Gemini_2.5-blue)](https://ai.google.dev/)
+[![Biome](https://img.shields.io/badge/Biome-Lint_%26_Format-orange)](https://biomejs.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict_Mode-blue)](https://www.typescriptlang.org/)
 
-## ✨ 핵심 특징
+## 👨‍💻 Project Philosophy
 
-### 🎯 프로젝트 특징
+This project is a **Proof of Concept (PoC)** designed to demonstrate advanced full-stack capabilities and the potential of **Human-AI Collaboration (Vibe Coding)**.
 
-- **AI 기반 개발 워크플로우**: Claude Code를 중심으로 Codex, Gemini, Qwen을 활용한 교차검증 및 개발 자동화
-- **무료 운영**: Vercel + Supabase 무료 티어 활용
-- **Mock 시뮬레이션**: 실제 서버 없이 현실적인 모니터링 구현
+It reimagines traditional server monitoring by integrating **AI** directly into the workflow, shifting from "Reactive Monitoring" to **"Predictive & Interactive Operations"**.
 
-### 🏗️ 기술 스택
+## 🏗️ System Architecture
 
-- **Frontend**: Next.js 15 + React 18 + TypeScript (strict)
-- **Backend**: Vercel Edge Functions + Supabase PostgreSQL
-- **AI Engine**: Google AI Unified Engine (RAG/ML/NLP 통합)
-- **데이터**: StaticDataLoader v5.71.0 (99.6% CPU 절약)
+Event-driven architecture optimized for real-time operations and AI-powered insights.
 
-### 📊 구현 현황
+```mermaid
+graph TD
+    User[User] -->|Next.js| Edge[Vercel Edge Functions]
+    Edge -->|Read/Write| DB[(Supabase PostgreSQL)]
+    Edge -->|RAG/Analysis| AI[Google AI Unified Engine]
+    
+    subgraph Realtime Layer
+        DB -->|CDC| Realtime[Supabase Realtime]
+        Realtime -->|WebSocket| User
+    end
 
-- **TypeScript**: strict 모드 적용, 타입 오류 0개
-- **응답시간**: 평균 152ms
-- **테스트**: E2E 98.2% 통과율
-- **운영비**: 무료 티어 활용으로 $0
+    subgraph Optimization
+        Static[StaticDataLoader v5] -->|Mock Metrics| DB
+    end
+```
 
-## 🚀 빠른 시작
+### Key Technical Achievements
 
-### 필수 준비사항
+- **Event-Driven Architecture**: Scalable real-time monitoring with WebSocket-based updates.
+- **StaticDataLoader v5**: Custom simulation engine with optimized CPU usage through intelligent caching.
+- **AI-Driven Operations**:
+    - **RAG Troubleshooting**: Vector search for instant error resolution.
+    - **Anomaly Prediction**: Real-time analysis of metric trends.
+    - **Multi-AI Validation**: Automated code review with fallback mechanisms.
 
-- Node.js v22+ | npm v10+ | Git
+## ✨ Core Features
 
-### 5분 설정
+### 1. ⚡ Real-time Performance
+- **GPU-Accelerated UI**: Smooth animations with hardware acceleration.
+- **WebSocket Integration**: Low-latency metric updates.
+- **Optimized Rendering**: React Server Components with intelligent hydration.
+
+### 2. 🤖 AI-Powered Operations
+- **Unified AI Engine**: Google Gemini 2.5 Flash with intelligent fallback routing.
+- **Automated Code Review**: Multi-AI cross-validation system with high availability.
+- **Context-Aware Analysis**: AI understands current system status and correlates data.
+- **RAG Integration**: Vector search for instant troubleshooting and documentation lookup.
+
+### 3. 🛡️ Development Quality
+- **Strict TypeScript**: Zero `any` policy with comprehensive type safety.
+- **Modern Tooling**: Biome (Lint/Format), Vitest (Unit/Integration), Playwright (E2E).
+- **Automated Testing**: Comprehensive test coverage with E2E validation.
+- **CI/CD Pipeline**: Continuous validation and deployment automation.
+
+## 🛠️ Tech Stack
+
+| Category | Technology | Key Capabilities |
+|----------|------------|------------------|
+| **Frontend** | Next.js 15 (App Router) | Server Components, Streaming, Edge Runtime |
+| **State** | Zustand + React Query | Optimistic updates, Server state sync |
+| **Database** | Supabase (PostgreSQL) | Real-time subscriptions, Vector search (pgvector) |
+| **AI Engine** | Google Gemini 2.5 Flash | Large context window, Function calling, RAG |
+| **Testing** | Vitest + Playwright | Unit/Integration testing, E2E automation |
+| **Code Quality** | Biome + TypeScript Strict | Fast linting/formatting, Type safety |
+| **Styling** | Tailwind CSS + Shadcn/UI | Utility-first CSS, Accessible components |
+
+## 🚀 Getting Started
+
+**Prerequisites**: Node.js v22+, npm v10+
 
 ```bash
+# 1. Clone & Install
 git clone https://github.com/your-username/openmanager-vibe-v5.git
 cd openmanager-vibe-v5
 npm install
-```
 
-환경 변수 설정:
-
-```bash
+# 2. Setup Environment
 cp .env.example .env.local
-# .env.local에서 SUPABASE_URL, SUPABASE_ANON_KEY 설정
+# Add SUPABASE_URL, SUPABASE_ANON_KEY, GOOGLE_AI_KEY
+
+# 3. Run Development Server
+npm run dev:stable
 ```
-
-개발 서버 실행:
-
-```bash
-npm run dev:stable  # 안정화된 서버 (권장)
-```
-
-→ **[📚 상세 설정 가이드](./docs/QUICK-START.md)**
-
-## 💡 주요 기능
-
-### 🖥️ 실시간 모니터링
-
-- **10개 서버 시뮬레이션**: web, api, database, cache 등 전문 서버 타입
-- **실시간 메트릭**: CPU, Memory, Disk, Network 사용률
-- **장애 시나리오**: 15+ 현실적 장애 상황 시뮬레이션
-
-### ⚡ GPU-Accelerated Animations
-
-- **120fps 목표**: 55fps → 120fps (118% 성능 향상)
-- **하드웨어 가속**: transform3d, will-change, cubic-bezier
-- **9가지 카테고리**: 카드, 모달, 사이드바, 버튼, 로딩 등
-- **접근성 지원**: prefers-reduced-motion 자동 대응
-
-→ **[📚 성능 검증 가이드](./docs/performance/gpu-animation-validation.md)**
-
-### 🤖 AI 어시스턴트 (Google AI Unified Engine)
-
-- **RAG 검색**: Supabase pgvector 기반 문서 검색 (3분 TTL 캐싱)
-- **ML 예측**: 성능 예측 및 이상 탐지 (실시간 분석)
-- **한국어 NLP**: 자연어 쿼리 처리 (통합 프롬프트 생성)
-- **Gemini 2.5 Flash**: 실시간 AI 응답 (1초 이내)
-
-### 🔐 PIN 인증 시스템
-
-- **다층 권한 관리**: 관리자/운영자/게스트 차등 접근
-- **기본 PIN**: 4231 (변경 가능)
-
-## 🏛️ 아키텍처 개요
-
-### 데이터 플로우
-
-```
-사용자 → Next.js Frontend → Vercel Edge Functions
-                           ↓
-        Supabase PostgreSQL ← StaticDataLoader v5.71.0
-                           ↓
-        Google AI Unified Engine → 실시간 응답 (RAG/ML/NLP 통합)
-```
-
-### 핵심 구조
-
-- **StaticDataLoader**: 99.6% CPU 절약, 92% 메모리 절약
-- **FNV-1a 해시**: 현실적인 서버 메트릭 생성
-- **실시간 WebSocket**: Supabase Realtime 활용
-
-## 🧪 개발 및 테스트
-
-### 테스트 전략
-
-```bash
-# Vercel 실제 환경 테스트 (권장)
-npm run test:vercel:e2e
-
-# 빠른 개발 검증
-npm run test:super-fast    # 11초
-
-# 종합 검증
-npm run validate:all       # Biome+타입+테스트
-```
-
-### 최적화 구현
-
-- **테스트 성능**: 멀티스레드 실행으로 44% 향상
-- **AI 연동**: 3-AI 병렬 검증 시스템 구현
-
-## 📚 학습 가치
-
-### 🎓 이 프로젝트로 배울 수 있는 것
-
-- **무료 인프라 구성**: Vercel + Supabase 무료 티어 활용법
-- **AI 연동**: 실시간 AI 분석 시스템 구현 방법
-- **Mock 데이터**: 실제 서버 없이 현실적인 시뮬레이션 구현
-- **TypeScript strict**: 엄격한 타입 시스템 적용 경험
-- **E2E 테스트**: Playwright를 활용한 실전 테스트 전략
-
-## 📚 문서 및 가이드
-
-### 📖 사용자 가이드
-
-- **[🚀 빠른 시작](./docs/QUICK-START.md)** - 5분 만에 시작하기
-- **[🛠️ 개발 가이드](./docs/DEVELOPMENT.md)** - AI 도구, MCP 서버, WSL 설정
-- **[📊 시스템 아키텍처](./docs/design/current/system-architecture-ai.md)** - AI 시스템 아키텍처
-
-### 🔗 전문 문서
-
-- **[📚 전체 문서 인덱스](./docs/README.md)** - 설계, API, 가이드
-- **[🤖 AI 시스템](./docs/ai/)** - AI 교차검증 시스템
-- **[🧪 테스트 전략](./docs/testing/README.md)** - Vercel 중심 테스트
-
-## 🤝 기여하기
-
-1. **Fork** 이 저장소
-2. **개발**: 기능 구현 및 테스트
-3. **검증**: `npm run validate:all` 통과 확인
-4. **PR 생성**: 상세한 설명과 함께
-
-### 개발 원칙
-
-- **Type-First**: 타입 정의 → 구현 → 리팩토링
-- **Side-Effect 고려**: 변경 시 영향 분석
-- **AI 활용**: 멀티 AI 도구로 코드 검증
-
-## 🚀 릴리즈 프로세스
-
-이 프로젝트는 `standard-version`을 사용하여 버전을 관리하고 CHANGELOG를 자동 생성합니다.
-
-### 릴리즈 명령어
-
-```bash
-# 1. 일반 릴리즈 (자동 버전 업)
-npm run release
-
-# 2. 특정 버전 릴리즈
-npm run release:patch  # 1.0.0 -> 1.0.1
-npm run release:minor  # 1.0.0 -> 1.1.0
-npm run release:major  # 1.0.0 -> 2.0.0
-
-# 3. 테스트 (Dry Run)
-npm run release:dry-run
-```
-
-### 릴리즈 워크플로우
-
-1. `develop` 브랜치에서 기능 개발 완료
-2. `main` 브랜치로 PR 및 병합
-3. `npm run release` 실행 (CHANGELOG 생성, package.json 업데이트, Git 태그 생성)
-4. `git push --follow-tags origin main` 으로 배포
-
-## 📄 라이선스
-
-MIT License - 자유롭게 사용, 수정, 배포 가능
 
 ---
 
-## 💭 개발자 노트
-
-이 프로젝트는 학습 목적으로 제작한 토이프로젝트입니다.  
-WSL 2 환경에서 Claude Code와 멀티 AI 도구(Codex, Gemini, Qwen)를 활용한 바이브 코딩으로 개발되었습니다.
-
-**개발 환경 상세**: [DEVELOPMENT.md](./docs/DEVELOPMENT.md)
-
----
-
-**📖 학습용 프로젝트**: 실제 서버 없이 모니터링 시스템 구현 연습  
-**🎯 적합한 대상**: DevOps 학습자, 포트폴리오 제작자  
-**🚀 시작하기**: [QUICK-START.md](./docs/QUICK-START.md)
+<div align="center">
+  <sub>Built with 💜 using Vibe Coding methodologies.</sub>
+</div>
