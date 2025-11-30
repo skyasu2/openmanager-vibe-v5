@@ -5,33 +5,23 @@
 
 'use client';
 
-import {
-  ArcElement,
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LinearScale,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-} from 'chart.js';
 import { type FC, useMemo } from 'react';
-import { Doughnut, Line } from 'react-chartjs-2';
+import {
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { usePerformanceMetrics } from '../hooks/usePerformanceMetrics';
 import { Alert as AlertType } from '../types/performance';
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
 interface PerformanceMonitorProps {
   updateInterval?: number;
   historyLimit?: number;
@@ -65,101 +55,38 @@ const PerformanceMonitor: FC<PerformanceMonitorProps> = ({
 
   // Chart data for metrics history
   const metricsChartData = useMemo(() => {
-    const history = performanceData.history;
-    const labels = history.map((metric) =>
-      new Date(metric.timestamp).toLocaleTimeString('en-US', {
+    return performanceData.history.map((metric) => ({
+      time: new Date(metric.timestamp).toLocaleTimeString('en-US', {
         hour12: false,
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-      })
-    );
-
-    return {
-      labels,
-      datasets: [
-        {
-          label: 'CPU %',
-          data: history.map((metric) => metric.cpu),
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          tension: 0.1,
-        },
-        {
-          label: 'Memory %',
-          data: history.map((metric) => metric.memory),
-          borderColor: 'rgb(54, 162, 235)',
-          backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          tension: 0.1,
-        },
-        {
-          label: 'Response Time (ms/10)',
-          data: history.map((metric) => metric.responseTime / 10),
-          borderColor: 'rgb(255, 205, 86)',
-          backgroundColor: 'rgba(255, 205, 86, 0.2)',
-          tension: 0.1,
-        },
-      ],
-    };
+      }),
+      cpu: metric.cpu,
+      memory: metric.memory,
+      responseTime: metric.responseTime / 10, // Scaled for visualization
+    }));
   }, [performanceData.history]);
 
-  // System health doughnut chart
+  // System health doughnut chart data
   const healthChartData = useMemo(() => {
     const score = systemHealth.score;
     const remaining = 100 - score;
 
-    return {
-      labels: ['Health Score', 'Issues'],
-      datasets: [
-        {
-          data: [score, remaining],
-          backgroundColor: [
-            systemHealth.status === 'healthy'
-              ? '#10B981'
-              : systemHealth.status === 'warning'
-                ? '#F59E0B'
-                : '#EF4444',
-            '#E5E7EB',
-          ],
-          borderWidth: 0,
-        },
-      ],
-    };
+    return [
+      {
+        name: 'Health Score',
+        value: score,
+        color:
+          systemHealth.status === 'healthy'
+            ? '#10B981'
+            : systemHealth.status === 'warning'
+              ? '#F59E0B'
+              : '#EF4444',
+      },
+      { name: 'Issues', value: remaining, color: '#E5E7EB' },
+    ];
   }, [systemHealth]);
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: 'Performance Metrics',
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100,
-      },
-    },
-  };
-
-  const healthChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-      },
-      title: {
-        display: true,
-        text: `System Health: ${systemHealth.status.toUpperCase()}`,
-      },
-    },
-  };
 
   const getAlertColor = (severity: AlertType['severity']) => {
     return severity === 'critical'
@@ -289,15 +216,68 @@ const PerformanceMonitor: FC<PerformanceMonitorProps> = ({
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Metrics History Chart */}
           <div className="rounded-lg border bg-white p-6 shadow-md lg:col-span-2">
+            <h3 className="mb-4 text-lg font-semibold text-gray-700">
+              Performance Metrics History
+            </h3>
             <div className="h-64">
-              <Line data={metricsChartData} options={chartOptions} />
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={metricsChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="cpu"
+                    stroke="rgb(255, 99, 132)"
+                    name="CPU %"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="memory"
+                    stroke="rgb(54, 162, 235)"
+                    name="Memory %"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="responseTime"
+                    stroke="rgb(255, 205, 86)"
+                    name="Response Time (ms/10)"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
           {/* System Health Chart */}
           <div className="rounded-lg border bg-white p-6 shadow-md">
+            <h3 className="mb-4 text-lg font-semibold text-gray-700">
+              System Health: {systemHealth.status.toUpperCase()}
+            </h3>
             <div className="h-64">
-              <Doughnut data={healthChartData} options={healthChartOptions} />
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={healthChartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {healthChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend verticalAlign="bottom" height={36} />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>

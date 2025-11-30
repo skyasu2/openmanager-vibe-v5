@@ -1,8 +1,8 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, CheckCircle2, ServerCrash, Zap } from 'lucide-react';
-import { FC, useState } from 'react';
-import useSWR from 'swr';
+import { type FC, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -20,6 +20,11 @@ interface AnomalyData {
   source?: 'metrics' | 'logs';
   description?: string;
   metric?: string;
+}
+
+interface AnomalyResponse {
+  success: boolean;
+  anomalies: AnomalyData[];
 }
 
 interface AnomalyFeedProps {
@@ -46,20 +51,20 @@ const _typeIcons = {
   error_rate: '❌',
 };
 
-// SWR fetcher 함수
-const fetcher = (url: string) =>
-  fetch(url, {
+// Fetcher function
+const fetchAnomalies = async (): Promise<AnomalyResponse> => {
+  const res = await fetch('/api/ai/anomaly-detection', {
     headers: {
       'Cache-Control': 'no-cache',
     },
-  }).then((res) => {
-    if (!res.ok) {
-      throw new Error(`이상 징후 데이터 조회 실패: ${res.status}`);
-    }
-    return res.json();
   });
+  if (!res.ok) {
+    throw new Error(`이상 징후 데이터 조회 실패: ${res.status}`);
+  }
+  return res.json();
+};
 
-// 아이콘 컴포넌트
+// Icon component
 const AnomalyIcon: FC<{ anomaly: AnomalyData }> = ({ anomaly }) => {
   if (anomaly.source === 'logs') {
     return (
@@ -79,24 +84,18 @@ export function AnomalyFeed({
   className = '',
   maxItems = 20,
   autoRefresh = true,
-  refreshInterval = 20000, // 20초로 통일
+  refreshInterval = 20000, // 20 seconds
   showDetails: _showDetails = true,
 }: AnomalyFeedProps) {
   const [manualRefresh, setManualRefresh] = useState(0);
 
-  // SWR을 사용한 데이터 페칭 (Dashboard 스타일)
-  const { data, error, isLoading, mutate } = useSWR(
-    `/api/ai/anomaly-detection?refresh=${manualRefresh}`,
-    fetcher,
-    {
-      refreshInterval: autoRefresh ? refreshInterval : 0,
-      revalidateOnFocus: false,
-      fallbackData: {
-        success: true,
-        anomalies: [],
-      },
-    }
-  );
+  // Data fetching using React Query
+  const { data, error, isLoading, refetch } = useQuery({
+    queryKey: ['anomalies', manualRefresh],
+    queryFn: fetchAnomalies,
+    refetchInterval: autoRefresh ? refreshInterval : false,
+    refetchOnWindowFocus: false,
+  });
 
   const anomalies: AnomalyData[] = data?.anomalies || [];
   const sortedAnomalies = anomalies
@@ -106,20 +105,20 @@ export function AnomalyFeed({
     )
     .slice(0, maxItems);
 
-  // 시간 포맷팅
+  // Time formatting
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
 
     if (diff < 60000) {
-      // 1분 미만
+      // Less than 1 minute
       return '방금 전';
     } else if (diff < 3600000) {
-      // 1시간 미만
+      // Less than 1 hour
       return `${Math.floor(diff / 60000)}분 전`;
     } else if (diff < 86400000) {
-      // 24시간 미만
+      // Less than 24 hours
       return `${Math.floor(diff / 3600000)}시간 전`;
     } else {
       return date.toLocaleDateString('ko-KR', {
@@ -131,13 +130,13 @@ export function AnomalyFeed({
     }
   };
 
-  // 수동 새로고침 (미래 사용 예정)
+  // Manual refresh (for future use)
   const _handleRefresh = () => {
     setManualRefresh((prev) => prev + 1);
-    void mutate();
+    void refetch();
   };
 
-  // Dashboard 스타일 렌더링
+  // Dashboard style rendering
   return (
     <Card className={`h-full border-slate-700 bg-slate-800/50 ${className}`}>
       <CardHeader>
@@ -150,7 +149,9 @@ export function AnomalyFeed({
         {isLoading && sortedAnomalies.length === 0 && (
           <p className="text-slate-400">피드 로딩 중...</p>
         )}
-        {error && <p className="text-red-400">오류: {error.message}</p>}
+        {error && (
+          <p className="text-red-400">오류: {(error as Error).message}</p>
+        )}
         {sortedAnomalies.length === 0 && !isLoading && (
           <div className="py-10 text-center text-slate-500">
             <CheckCircle2 className="mx-auto h-12 w-12" />
@@ -195,5 +196,5 @@ export function AnomalyFeed({
   );
 }
 
-// 기본 export와 named export 모두 제공
+// Default and named export
 export default AnomalyFeed;
