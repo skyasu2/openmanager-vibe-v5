@@ -11,7 +11,6 @@
 import type { ILogger } from '@/interfaces/services';
 import type { ErrorContext } from '@/types/ai-service-types';
 import { ErrorHandlingCore } from './core/ErrorHandlingCore';
-import { DefaultErrorHandlers } from './handlers/DefaultErrorHandlers';
 import { ErrorMonitoringService } from './monitoring/ErrorMonitoringService';
 import { RecoveryService } from './recovery/RecoveryService';
 import type {
