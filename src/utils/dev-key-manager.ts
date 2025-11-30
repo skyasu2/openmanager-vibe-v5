@@ -14,8 +14,8 @@
  * - 공개 버전: 완전한 보안 강화
  */
 
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from 'fs';
+import path from 'path';
 
 interface KeyStatus {
   service: string;

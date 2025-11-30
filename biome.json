@@ -55,7 +55,8 @@
       "style": {
         "noNonNullAssertion": "off",
         "useConst": "warn",
-        "useImportType": "warn"
+        "useImportType": "warn",
+        "useNodejsImportProtocol": "off"
       },
       "complexity": {
         "noUselessSwitchCase": "warn",
