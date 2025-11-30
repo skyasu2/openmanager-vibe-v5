@@ -118,7 +118,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   onClose,
   className = '',
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _sessionId,
+  sessionId: _sessionId,
   enableRealTimeThinking = true,
   onMessageSend,
 }) => {

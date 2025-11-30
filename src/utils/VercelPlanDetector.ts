@@ -64,7 +64,10 @@ export class VercelPlanDetector {
     ]);
 
     const validResults = detectionResults
-      .filter((result): result is PromiseFulfilledResult<Partial<VercelPlanInfo>> => result.status === 'fulfilled')
+      .filter(
+        (result): result is PromiseFulfilledResult<Partial<VercelPlanInfo>> =>
+          result.status === 'fulfilled'
+      )
       .map((result) => result.value);
 
     // 투표 시스템으로 최종 플랜 결정

@@ -3,7 +3,7 @@
  * 완전한 Supabase 클라이언트 Mock 및 Builder 패턴 제공
  */
 
-import { type Mock, expect, vi } from 'vitest';
+import { expect, type Mock, vi } from 'vitest';
 
 export interface MockQueryResponse<T = unknown> {
   data: T | null;

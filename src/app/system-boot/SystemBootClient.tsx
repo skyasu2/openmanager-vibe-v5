@@ -11,7 +11,13 @@ import {
   Zap,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { type ComponentType, type FC, useCallback, useEffect, useState } from 'react';
+import {
+  type ComponentType,
+  type FC,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
 import debug from '@/utils/debug';
 import { BootProgressBar } from './components/BootProgressBar';
@@ -204,8 +210,6 @@ export default function SystemBootClient() {
     stages.forEach,
     stages.length,
   ]);
-
-
 
   const currentStageData = stages.find((s) => s.name === currentStage) ||
     stages[0] || {

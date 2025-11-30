@@ -126,8 +126,7 @@ export const PerformanceMonitor = {
       const responseTime = Math.round((end - start) * 100) / 100; // 소수점 2자리
 
       // 기준값과 비교
-      const baseline =
-        this.getBaseline(engineType, 'responseTime') || 1000;
+      const baseline = this.getBaseline(engineType, 'responseTime') || 1000;
       const improvement = Math.round(
         ((baseline - responseTime) / baseline) * 100
       );
@@ -279,8 +278,10 @@ export const PerformanceMonitor = {
     const memoryBefore = this.getMemoryUsage();
 
     // 응답 시간 및 결과 측정
-    const { result, metrics: responseTime } =
-      await this.measureResponseTime(testFunction, engineType);
+    const { result, metrics: responseTime } = await this.measureResponseTime(
+      testFunction,
+      engineType
+    );
 
     const memoryAfter = this.getMemoryUsage();
 
@@ -336,10 +337,7 @@ export const PerformanceMonitor = {
   /**
    * 📊 메모리 최적화 분석
    */
-  calculateMemoryOptimization(
-    before: MemoryUsage,
-    after: MemoryUsage
-  ): string {
+  calculateMemoryOptimization(before: MemoryUsage, after: MemoryUsage): string {
     const diff = after.rss - before.rss;
     const percentage = Math.round((diff / before.rss) * 100);
 
@@ -358,22 +356,13 @@ export const PerformanceMonitor = {
     return typeof value === 'number' ? value : 0;
   },
 
-  updateBaselines(
-    engineType: string,
-    benchmark: PerformanceBenchmark
-  ): void {
+  updateBaselines(engineType: string, benchmark: PerformanceBenchmark): void {
     this.baselines.set(
       `${engineType}.responseTime`,
       benchmark.responseTime.responseTime
     );
-    this.baselines.set(
-      `${engineType}.memoryUsage`,
-      benchmark.memoryUsage.rss
-    );
-    this.baselines.set(
-      `${engineType}.accuracy`,
-      benchmark.accuracy.accuracy
-    );
+    this.baselines.set(`${engineType}.memoryUsage`, benchmark.memoryUsage.rss);
+    this.baselines.set(`${engineType}.accuracy`, benchmark.accuracy.accuracy);
   },
 
   /**

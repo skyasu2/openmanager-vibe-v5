@@ -88,8 +88,7 @@ export const RealisticVariationGenerator = {
     const combinedSeed = timeSeed + serverSeed;
 
     // 기본 변동성 (±10%)
-    const baseVariance =
-      (this.seededRandom(combinedSeed) - 0.5) * 20;
+    const baseVariance = (this.seededRandom(combinedSeed) - 0.5) * 20;
 
     // 시간대별 패턴 (업무시간 vs 야간)
     const hour = now.getHours();
@@ -111,9 +110,7 @@ export const RealisticVariationGenerator = {
 
     // 점진적 드리프트 (서버가 시간에 따라 자연스럽게 변화)
     const driftSeed = Math.floor(Date.now() / 300000); // 5분마다 변화
-    const drift =
-      (this.seededRandom(driftSeed + serverSeed) - 0.5) *
-      5; // ±2.5% 드리프트
+    const drift = (this.seededRandom(driftSeed + serverSeed) - 0.5) * 5; // ±2.5% 드리프트
 
     // 최종 계산
     const finalVariance = baseVariance * timeMultiplier * dayMultiplier + drift;
@@ -131,9 +128,7 @@ export const RealisticVariationGenerator = {
   } {
     const timeSeed = Math.floor(Date.now() / 60000); // 1분마다 체크
     const serverSeed = serverId.charCodeAt(0) * 13;
-    const eventRoll = this.seededRandom(
-      timeSeed + serverSeed
-    );
+    const eventRoll = this.seededRandom(timeSeed + serverSeed);
 
     const now = new Date();
     const hour = now.getHours();
@@ -174,10 +169,7 @@ export const RealisticVariationGenerator = {
       ];
       const selected =
         severEvents[
-          Math.floor(
-            this.seededRandom(timeSeed * 2) *
-              severEvents.length
-          )
+          Math.floor(this.seededRandom(timeSeed * 2) * severEvents.length)
         ] ?? severEvents[0];
       return {
         hasEvent: true,
@@ -213,10 +205,7 @@ export const RealisticVariationGenerator = {
       ];
       const selected =
         mediumEvents[
-          Math.floor(
-            this.seededRandom(timeSeed * 3) *
-              mediumEvents.length
-          )
+          Math.floor(this.seededRandom(timeSeed * 3) * mediumEvents.length)
         ] ?? mediumEvents[0];
       return {
         hasEvent: true,
@@ -248,10 +237,7 @@ export const RealisticVariationGenerator = {
       ];
       const selected =
         minorEvents[
-          Math.floor(
-            this.seededRandom(timeSeed * 4) *
-              minorEvents.length
-          )
+          Math.floor(this.seededRandom(timeSeed * 4) * minorEvents.length)
         ] ?? minorEvents[0];
       return {
         hasEvent: true,
@@ -322,22 +308,10 @@ export const RealisticVariationGenerator = {
 
       // 기본 메트릭 생성
       const metrics = {
-        cpu: this.generateNaturalVariance(
-          baseMetrics.cpu,
-          id
-        ),
-        memory: this.generateNaturalVariance(
-          baseMetrics.memory,
-          id
-        ),
-        disk: this.generateNaturalVariance(
-          baseMetrics.disk,
-          id
-        ),
-        network: this.generateNaturalVariance(
-          baseMetrics.network,
-          id
-        ),
+        cpu: this.generateNaturalVariance(baseMetrics.cpu, id),
+        memory: this.generateNaturalVariance(baseMetrics.memory, id),
+        disk: this.generateNaturalVariance(baseMetrics.disk, id),
+        network: this.generateNaturalVariance(baseMetrics.network, id),
       };
 
       // 이벤트 확인
