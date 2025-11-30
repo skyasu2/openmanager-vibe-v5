@@ -24,8 +24,6 @@ const isVitest =
   typeof process !== 'undefined' &&
   (process.env.VITEST === 'true' || process.env.NODE_ENV === 'test');
 
-
-
 describe('🔐 강화된 보안 서비스 단위 테스트', () => {
   let securityService: SecurityService;
 

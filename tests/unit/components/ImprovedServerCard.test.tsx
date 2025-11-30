@@ -144,9 +144,7 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
 
   describe('호버 인터랙션', () => {
     it('마우스 호버 시 스타일이 변경된다', async () => {
-      render(
-        <ImprovedServerCard server={mockServer} onClick={mockOnClick} />
-      );
+      render(<ImprovedServerCard server={mockServer} onClick={mockOnClick} />);
 
       const card = screen.getByRole('button', { name: /Web Server 01/ });
 

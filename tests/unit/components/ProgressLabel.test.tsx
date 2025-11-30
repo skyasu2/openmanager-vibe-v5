@@ -128,9 +128,7 @@ describe('📝 ProgressLabel 컴포넌트', () => {
     });
 
     it('에러 상태일 때 빨간색 스타일이 적용된다', () => {
-      render(
-        <ProgressLabel currentStep={0} totalSteps={5} error="에러" />
-      );
+      render(<ProgressLabel currentStep={0} totalSteps={5} error="에러" />);
 
       const errorText = screen.getByText(/❌ 에러/);
       expect(errorText.className).toContain('text-red-400');

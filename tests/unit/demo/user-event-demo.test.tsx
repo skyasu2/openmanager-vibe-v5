@@ -6,9 +6,9 @@
  * @created 2025-11-26
  */
 
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 // 간단한 데모 컴포넌트들
@@ -235,10 +235,7 @@ describe('💡 User Event 사용법 데모', () => {
       const handleMouseLeave = vi.fn();
 
       render(
-        <button
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
+        <button onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           호버 영역
         </button>
       );
@@ -353,5 +350,3 @@ describe('💡 User Event 사용법 데모', () => {
     });
   });
 });
-
-

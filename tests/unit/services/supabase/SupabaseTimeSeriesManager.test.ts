@@ -10,7 +10,6 @@ import type { ServerMetric } from '@/types/server-metrics';
 
 // Type definitions for test
 
-
 interface TimeSeriesRecord {
   session_id: string;
   server_id: string;
@@ -34,8 +33,6 @@ interface TimeSeriesQuery {
   orderBy?: string;
   ascending?: boolean;
 }
-
-
 
 interface AlertThreshold {
   metric:
