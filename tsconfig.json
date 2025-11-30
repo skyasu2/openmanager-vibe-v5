@@ -41,6 +41,7 @@
       "@/services/*": ["./src/services/*"],
       "@/core/*": ["./src/core/*"],
       "@/modules/*": ["./src/modules/*"],
+      "@/interfaces/*": ["./src/interfaces/*"],
       "@/test/*": ["./src/test/*"],
       "@/schemas/*": ["./src/schemas/*"],
       "~/*": ["./*"]

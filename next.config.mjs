@@ -320,7 +320,7 @@ const nextConfig = {
   },
 
   // 🔧 웹팩 설정 (번들 최적화)
-  webpack: (config, { isServer, dev }) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': join(process.cwd(), 'src'),

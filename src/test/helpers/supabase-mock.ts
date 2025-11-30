@@ -3,7 +3,7 @@
  * 완전한 Supabase 클라이언트 Mock 및 Builder 패턴 제공
  */
 
-import { vi } from 'vitest';
+import { type Mock, expect, vi } from 'vitest';
 
 export interface MockQueryResponse<T = unknown> {
   data: T | null;
@@ -177,6 +177,7 @@ export class SupabaseMockBuilder<T = unknown> {
     });
 
     // then 메서드 - Promise 체인용
+    // biome-ignore lint/suspicious/noThenProperty: Supabase QueryBuilder is Thenable
     mockBuilder.then = vi.fn().mockResolvedValue(defaultResponse);
 
     return mockBuilder as MockQueryBuilder;
@@ -288,11 +289,9 @@ export const TestUtils = {
   /**
    * Mock 함수 호출 횟수 초기화
    */
-  resetMocks: (mocks: unknown[]) => {
+  resetMocks: (mocks: Mock[]) => {
     mocks.forEach((mock) => {
-      if (mock && typeof mock.mockClear === 'function') {
-        mock.mockClear();
-      }
+      mock.mockClear();
     });
   },
 
@@ -304,7 +303,7 @@ export const TestUtils = {
   /**
    * Mock 응답 검증
    */
-  expectMockCalled: (mock: unknown, times: number = 1) => {
+  expectMockCalled: (mock: Mock, times: number = 1) => {
     expect(mock).toHaveBeenCalledTimes(times);
   },
 };

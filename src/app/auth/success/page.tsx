@@ -11,7 +11,7 @@
 
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import debug from '@/utils/debug';
 
@@ -26,12 +26,13 @@ export default function AuthSuccessPage() {
   }>({});
 
   // 🚀 성능 측정 헬퍼
-  const measureTime = (label: string, startTime: number) => {
+  // 🚀 성능 측정 헬퍼
+  const measureTime = useCallback((label: string, startTime: number) => {
     const duration = performance.now() - startTime;
     debug.log(`⏱️ ${label}: ${duration.toFixed(0)}ms`);
     setPerformanceMetrics((prev) => ({ ...prev, [label]: duration }));
     return duration;
-  };
+  }, []);
 
   useEffect(() => {
     const checkSessionAndRedirect = async () => {

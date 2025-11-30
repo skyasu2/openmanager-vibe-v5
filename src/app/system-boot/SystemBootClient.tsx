@@ -11,7 +11,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { type ComponentType, type FC, useEffect, useState } from 'react';
+import { type ComponentType, type FC, useCallback, useEffect, useState } from 'react';
 import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
 import debug from '@/utils/debug';
 import { BootProgressBar } from './components/BootProgressBar';
@@ -78,6 +78,23 @@ export default function SystemBootClient() {
       description: 'OpenManager가 준비되었습니다!',
     },
   ];
+
+  // 부팅 완료 - 부드러운 전환 후 대시보드로 이동
+  const handleBootComplete = useCallback(() => {
+    debug.log('🎉 시스템 로딩 완료 - 대시보드로 이동');
+    setBootState('completed');
+
+    // 완료 상태 표시
+    setCurrentStage('시스템 준비 완료');
+    setCurrentIcon(CheckCircle);
+    setProgress(100);
+    setIsTransitioning(false);
+
+    // 부드러운 전환을 위해 잠시 대기 후 이동
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 1000);
+  }, [router]);
 
   // 🚀 개선된 시스템 로딩 로직 (실제 시스템 상태와 동기화)
   useEffect(() => {
@@ -188,22 +205,7 @@ export default function SystemBootClient() {
     stages.length,
   ]);
 
-  // 부팅 완료 - 부드러운 전환 후 대시보드로 이동
-  const handleBootComplete = () => {
-    debug.log('🎉 시스템 로딩 완료 - 대시보드로 이동');
-    setBootState('completed');
 
-    // 완료 상태 표시
-    setCurrentStage('시스템 준비 완료');
-    setCurrentIcon(CheckCircle);
-    setProgress(100);
-    setIsTransitioning(false);
-
-    // 부드러운 전환을 위해 잠시 대기 후 이동
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 1000);
-  };
 
   const currentStageData = stages.find((s) => s.name === currentStage) ||
     stages[0] || {

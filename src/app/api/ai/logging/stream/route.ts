@@ -50,7 +50,9 @@ class MemoryLogStorage {
   }
 
   addLogs(logs: AILogEntry[]): void {
-    logs.forEach((log) => this.addLog(log));
+    for (const log of logs) {
+      this.addLog(log);
+    }
   }
 
   getLogs(
