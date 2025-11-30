@@ -6,6 +6,7 @@
  * @created 2025-11-26
  */
 
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -234,9 +235,12 @@ describe('💡 User Event 사용법 데모', () => {
       const handleMouseLeave = vi.fn();
 
       render(
-        <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <button
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           호버 영역
-        </div>
+        </button>
       );
 
       const element = screen.getByText('호버 영역');
@@ -350,5 +354,4 @@ describe('💡 User Event 사용법 데모', () => {
   });
 });
 
-// React import 추가
-import React from 'react';
+

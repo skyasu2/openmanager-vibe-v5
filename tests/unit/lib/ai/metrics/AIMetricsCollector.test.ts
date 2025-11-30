@@ -96,7 +96,9 @@ describe('AIMetricsCollector', () => {
       },
     ];
 
-    events.forEach((e) => collector.recordQuery(e));
+    events.forEach((e) => {
+      collector.recordQuery(e);
+    });
     const engineMetrics = collector.getEngineMetrics('google-ai');
 
     expect(engineMetrics?.averageResponseTime).toBe(200);
@@ -142,7 +144,9 @@ describe('AIMetricsCollector', () => {
       },
     ];
 
-    events.forEach((e) => collector.recordQuery(e));
+    events.forEach((e) => {
+      collector.recordQuery(e);
+    });
     const engineMetrics = collector.getEngineMetrics('google-ai');
 
     expect(engineMetrics?.cacheHitRate).toBe(0.5); // 2 out of 4
@@ -188,7 +192,9 @@ describe('AIMetricsCollector', () => {
       },
     ];
 
-    events.forEach((e) => collector.recordQuery(e));
+    events.forEach((e) => {
+      collector.recordQuery(e);
+    });
     const engineMetrics = collector.getEngineMetrics('google-ai');
 
     expect(engineMetrics?.complexityDistribution.simple).toBe(2);
@@ -231,7 +237,9 @@ describe('AIMetricsCollector', () => {
       },
     ];
 
-    events.forEach((e) => collector.recordQuery(e));
+    events.forEach((e) => {
+      collector.recordQuery(e);
+    });
     const engineMetrics = collector.getEngineMetrics('google-ai');
 
     expect(engineMetrics?.errorDistribution.timeout).toBe(2);
@@ -279,7 +287,9 @@ describe('AIMetricsCollector', () => {
       },
     ];
 
-    events.forEach((e) => collector.recordQuery(e));
+    events.forEach((e) => {
+      collector.recordQuery(e);
+    });
     const engineMetrics = collector.getEngineMetrics('google-ai');
 
     expect(engineMetrics?.errorRate).toBe(0.25); // 1 out of 4

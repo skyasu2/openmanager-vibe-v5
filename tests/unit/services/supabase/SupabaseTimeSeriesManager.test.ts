@@ -9,16 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ServerMetric } from '@/types/server-metrics';
 
 // Type definitions for test
-interface SupabaseClient {
-  from(table: string): any;
-  rpc<T = unknown>(
-    fn: string,
-    args?: Record<string, unknown>
-  ): Promise<{ data: T | null; error: any | null }>;
-  storage: {
-    from(bucket: string): any;
-  };
-}
+
 
 interface TimeSeriesRecord {
   session_id: string;
@@ -44,25 +35,7 @@ interface TimeSeriesQuery {
   ascending?: boolean;
 }
 
-interface AggregatedStats {
-  sessionId: string;
-  serverId?: string;
-  timeRange: { start: Date; end: Date };
-  metrics: {
-    avgCpuUsage: number;
-    maxCpuUsage: number;
-    avgMemoryUsage: number;
-    maxMemoryUsage: number;
-    avgDiskUsage: number;
-    avgNetworkUsage: number;
-    totalRequests: number;
-    avgResponseTime: number;
-    maxResponseTime: number;
-    avgErrorRate: number;
-    maxErrorRate: number;
-  };
-  dataPoints: number;
-}
+
 
 interface AlertThreshold {
   metric:
@@ -105,6 +78,7 @@ describe('SupabaseTimeSeriesManager', () => {
       order: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
       range: vi.fn().mockReturnThis(),
+      // biome-ignore lint/suspicious/noThenProperty: Mocking Promise-like object
       then: vi.fn().mockImplementation((callback) => {
         return Promise.resolve(callback({ data: [], error: null }));
       }),

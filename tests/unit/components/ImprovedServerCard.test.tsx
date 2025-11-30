@@ -144,7 +144,7 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
 
   describe('호버 인터랙션', () => {
     it('마우스 호버 시 스타일이 변경된다', async () => {
-      const { container } = render(
+      render(
         <ImprovedServerCard server={mockServer} onClick={mockOnClick} />
       );
 

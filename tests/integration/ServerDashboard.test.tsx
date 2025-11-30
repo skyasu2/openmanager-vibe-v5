@@ -18,8 +18,25 @@ import '@testing-library/jest-dom';
 import ServerDashboard from '@/components/dashboard/ServerDashboard';
 import { ServerDataStoreProvider } from '@/components/providers/StoreProvider';
 import { AccessibilityProvider } from '@/context/AccessibilityProvider';
-import type { HourlyServer } from '@/types/server';
-import type { EnhancedServerMetrics } from '@/types/server-enhanced';
+// import type { HourlyServer } from '@/types/server-metrics';
+import type { EnhancedServerMetrics } from '@/types/server';
+
+interface HourlyServer {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+  timestamp: string;
+  region?: string;
+  environment?: string;
+  tags?: string[];
+  lastUpdated?: string;
+  uptime?: number;
+}
 
 // 🔧 [VITEST HOISTING FIX] Use vi.hoisted() to ensure ALL data is available before vi.mock()
 // This prevents "Cannot access before initialization" errors
@@ -97,11 +114,11 @@ const mockState = vi.hoisted(() => {
 });
 
 // Helper functions to modify mock state
-export const setMockServers = (servers: EnhancedServerMetrics[]) => {
+const setMockServers = (servers: EnhancedServerMetrics[]) => {
   mockState.servers = servers;
 };
 
-export const resetMockServers = () => {
+const resetMockServers = () => {
   mockState.servers = mockState.rawServers.map((server, i) => ({
     id: server.id,
     name: server.name,
@@ -145,7 +162,7 @@ export const resetMockServers = () => {
 };
 
 // Helper function to convert HourlyServer to EnhancedServerMetrics
-export const toEnhancedServer = (
+const toEnhancedServer = (
   server: HourlyServer,
   index: number
 ): EnhancedServerMetrics => ({
@@ -353,9 +370,7 @@ describe('ServerDashboard - 통합 테스트', () => {
     vi.clearAllMocks();
   });
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+
 
   describe('기본 렌더링', () => {
     it('서버 대시보드가 정상적으로 렌더링된다', () => {

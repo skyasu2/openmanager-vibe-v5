@@ -305,7 +305,9 @@ describe.skip('AI Metrics Integration Tests', () => {
         },
       ];
 
-      events.forEach((e) => collector.recordQuery(e));
+      events.forEach((e) => {
+        collector.recordQuery(e);
+      });
 
       const metrics = collector.getMetrics();
       expect(metrics.cacheHitRate).toBeCloseTo(1 / 3, 2);
@@ -343,7 +345,9 @@ describe.skip('AI Metrics Integration Tests', () => {
         },
       ];
 
-      events.forEach((e) => collector.recordQuery(e));
+      events.forEach((e) => {
+        collector.recordQuery(e);
+      });
 
       const metrics = collector.getMetrics();
       expect(metrics.errorRate).toBeCloseTo(1 / 3, 2);

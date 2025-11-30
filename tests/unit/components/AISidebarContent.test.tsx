@@ -48,7 +48,7 @@ vi.mock('@/components/dashboard/AIInsightsCard', () => ({
 }));
 
 vi.mock('@/components/ai/AIAssistantIconPanel', () => ({
-  default: vi.fn(({ selectedFunction, onFunctionChange }) => (
+  default: vi.fn(({ selectedFunction: _selectedFunction, onFunctionChange }) => (
     <div data-testid="mock-ai-assistant-icon-panel">
       <button onClick={() => onFunctionChange('chat')}>Chat</button>
       <button onClick={() => onFunctionChange('auto-report')}>

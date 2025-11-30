@@ -94,7 +94,7 @@ function getTestUrl(): string {
 }
 
 test.describe('🌐 실제 환경 Web Vitals 측정', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page: _page }) => {
     // 타임아웃 설정 (Web Vitals 수집 시간 고려)
     test.setTimeout(30000);
   });

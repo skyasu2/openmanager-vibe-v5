@@ -202,7 +202,7 @@ describe('🎯 AIAssistantButton - User Event 테스트', () => {
 
   describe('Hydration 처리', () => {
     it('초기 렌더링에서 suppressHydrationWarning이 적용된다', () => {
-      const { container } = render(
+      render(
         <AIAssistantButton
           isOpen={false}
           isEnabled={false}
