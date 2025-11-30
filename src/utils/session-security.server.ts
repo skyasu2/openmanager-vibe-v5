@@ -9,21 +9,28 @@
  * - 서버 전용 (Node.js crypto 사용)
  */
 
-import { createHmac, randomBytes } from 'crypto';
+import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
 /**
  * 환경변수에서 세션 시크릿 가져오기
- * - 없으면 기본값 사용 (개발 환경용)
- * - 프로덕션에서는 반드시 설정 필요
+ * - 프로덕션에서는 반드시 SESSION_SECRET 설정 필요
+ * - 개발 환경에서는 기본값 사용 (보안 경고 출력)
+ *
+ * @security NEXT_PUBLIC_* 환경변수는 클라이언트에 노출되므로 사용하지 않음
  */
 function getSessionSecret(): string {
-  const secret =
-    process.env.SESSION_SECRET || process.env.NEXT_PUBLIC_SESSION_SECRET;
+  const secret = process.env.SESSION_SECRET;
 
   if (!secret) {
-    console.warn(
-      '⚠️ SESSION_SECRET not set, using default (insecure for production)'
-    );
+    // 프로덕션 환경에서는 경고 레벨 상향
+    const isProduction = process.env.NODE_ENV === 'production';
+    const message = '⚠️ SESSION_SECRET not set, using default (insecure for production)';
+
+    if (isProduction) {
+      console.error(message);
+    } else {
+      console.warn(message);
+    }
     return 'default-insecure-secret-change-me-in-production';
   }
 
@@ -99,18 +106,17 @@ export function verifySignedSessionId(signedId: string): string | null {
       .update(id)
       .digest('hex');
 
-    // Timing attack 방지: constant-time 비교
+    // Timing attack 방지: crypto.timingSafeEqual 사용 (네이티브 C++ 구현)
+    // Buffer 길이가 다르면 timingSafeEqual이 에러를 발생시키므로 먼저 체크
     if (providedSignature.length !== expectedSignature.length) {
+      console.warn('🔐 Session signature length mismatch');
       return null;
     }
 
-    let mismatch = 0;
-    for (let i = 0; i < providedSignature.length; i++) {
-      mismatch |=
-        providedSignature.charCodeAt(i) ^ expectedSignature.charCodeAt(i);
-    }
+    const providedBuffer = Buffer.from(providedSignature, 'utf8');
+    const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
 
-    if (mismatch !== 0) {
+    if (!timingSafeEqual(providedBuffer, expectedBuffer)) {
       console.warn('🔐 Session signature mismatch: possible tampering');
       return null;
     }
