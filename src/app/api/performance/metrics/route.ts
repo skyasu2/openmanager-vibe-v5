@@ -3,8 +3,8 @@
  * Provides real-time performance metrics for monitoring
  */
 
-import { PerformanceService } from '@/modules/performance-monitor/services/PerformanceService';
 import { NextRequest, NextResponse } from 'next/server';
+import { PerformanceService } from '@/modules/performance-monitor/services/PerformanceService';
 
 export function GET(_request: NextRequest) {
   try {
@@ -42,25 +42,24 @@ export async function POST(request: NextRequest) {
     const performanceService = PerformanceService.getInstance();
 
     switch (action) {
-      case 'resolve-alert':
-        {
-          if (!alertId) {
-            return NextResponse.json(
-              { error: 'Alert ID is required' },
-              { status: 400 }
-            );
-          }
-
-          const resolved = performanceService.resolveAlert(alertId);
-          if (!resolved) {
-            return NextResponse.json(
-              { error: 'Alert not found' },
-              { status: 404 }
-            );
-          }
-
-          return NextResponse.json({ success: true });
+      case 'resolve-alert': {
+        if (!alertId) {
+          return NextResponse.json(
+            { error: 'Alert ID is required' },
+            { status: 400 }
+          );
         }
+
+        const resolved = performanceService.resolveAlert(alertId);
+        if (!resolved) {
+          return NextResponse.json(
+            { error: 'Alert not found' },
+            { status: 404 }
+          );
+        }
+
+        return NextResponse.json({ success: true });
+      }
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }

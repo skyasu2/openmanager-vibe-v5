@@ -75,7 +75,7 @@ export class MetricsSimulator implements MetricsSource {
   }
 
   private generateSystemMetrics(
-    server: EnhancedServerMetrics,
+    _server: EnhancedServerMetrics,
     baseline: BaselineData | null,
     scenarios: ScenarioData[]
   ): EnrichedMetrics['system'] {
@@ -144,7 +144,7 @@ export class MetricsSimulator implements MetricsSource {
   }
 
   private generateApplicationMetrics(
-    server: EnhancedServerMetrics,
+    _server: EnhancedServerMetrics,
     hour: number,
     baseline: BaselineData | null
   ): EnrichedMetrics['application'] {
@@ -182,7 +182,7 @@ export class MetricsSimulator implements MetricsSource {
   }
 
   private generateBusinessMetrics(
-    server: EnhancedServerMetrics,
+    _server: EnhancedServerMetrics,
     dayOfWeek: number,
     hour: number
   ): EnrichedMetrics['business'] {

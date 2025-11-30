@@ -9,12 +9,12 @@
  */
 
 import type {
-  UnifiedServerMetrics,
+  ArchitectureType,
   ServerEnvironment,
+  ServerInitConfig,
   ServerRole,
   ServerStatus,
-  ServerInitConfig,
-  ArchitectureType,
+  UnifiedServerMetrics,
 } from './UnifiedMetricsManager.types';
 
 export class ServerFactory {
@@ -77,7 +77,7 @@ export class ServerFactory {
 
     serverConfigs.forEach(({ environment, role, count }) => {
       for (let i = 0; i < count && totalGenerated < maxServers; i++) {
-        const server = this.createServer(
+        const server = ServerFactory.createServer(
           `server-${environment.slice(0, 4)}-${role}-${String(serverIndex).padStart(2, '0')}`,
           environment,
           role
@@ -90,7 +90,7 @@ export class ServerFactory {
 
     // 🔄 Fill remaining servers (default to web servers)
     while (totalGenerated < maxServers) {
-      const server = this.createServer(
+      const server = ServerFactory.createServer(
         `server-auto-web-${String(serverIndex).padStart(2, '0')}`,
         'production',
         'web'
@@ -126,11 +126,27 @@ export class ServerFactory {
       status: 'healthy',
 
       // Basic metrics (realistic ranges)
-      node_cpu_usage_percent: this.generateRealisticValue(20, 80, role),
-      node_memory_usage_percent: this.generateRealisticValue(30, 85, role),
-      node_disk_usage_percent: this.generateRealisticValue(10, 70, role),
-      node_network_receive_rate_mbps: this.generateRealisticValue(1, 100, role),
-      node_network_transmit_rate_mbps: this.generateRealisticValue(
+      node_cpu_usage_percent: ServerFactory.generateRealisticValue(
+        20,
+        80,
+        role
+      ),
+      node_memory_usage_percent: ServerFactory.generateRealisticValue(
+        30,
+        85,
+        role
+      ),
+      node_disk_usage_percent: ServerFactory.generateRealisticValue(
+        10,
+        70,
+        role
+      ),
+      node_network_receive_rate_mbps: ServerFactory.generateRealisticValue(
+        1,
+        100,
+        role
+      ),
+      node_network_transmit_rate_mbps: ServerFactory.generateRealisticValue(
         1,
         100,
         role
@@ -139,7 +155,7 @@ export class ServerFactory {
 
       // Application metrics
       http_request_duration_seconds:
-        this.generateRealisticValue(0.1, 2.0, role) / 1000,
+        ServerFactory.generateRealisticValue(0.1, 2.0, role) / 1000,
       http_requests_total: Math.floor(Math.random() * 10000),
       http_requests_errors_total: Math.floor(Math.random() * 100),
 
@@ -165,7 +181,9 @@ export class ServerFactory {
 
     // Apply role-specific multipliers
     const multiplier =
-      this.roleMultipliers[role as keyof typeof this.roleMultipliers] || 1.0;
+      ServerFactory.roleMultipliers[
+        role as keyof typeof this.roleMultipliers
+      ] || 1.0;
 
     return Math.min(100, Math.max(0, baseValue * multiplier));
   }
@@ -248,19 +266,19 @@ export class ServerFactory {
 
     return {
       ...server,
-      node_cpu_usage_percent: this.applyFluctuation(
+      node_cpu_usage_percent: ServerFactory.applyFluctuation(
         server.node_cpu_usage_percent,
         fluctuation
       ),
-      node_memory_usage_percent: this.applyFluctuation(
+      node_memory_usage_percent: ServerFactory.applyFluctuation(
         server.node_memory_usage_percent,
         fluctuation
       ),
-      node_network_receive_rate_mbps: this.applyFluctuation(
+      node_network_receive_rate_mbps: ServerFactory.applyFluctuation(
         server.node_network_receive_rate_mbps,
         fluctuation * 2 // Network is more variable
       ),
-      node_network_transmit_rate_mbps: this.applyFluctuation(
+      node_network_transmit_rate_mbps: ServerFactory.applyFluctuation(
         server.node_network_transmit_rate_mbps,
         fluctuation * 2
       ),
@@ -286,7 +304,7 @@ export class ServerFactory {
   ): UnifiedServerMetrics[] {
     if (servers.length === 0) {
       console.log('📋 서버 목록이 비어있음, 에러 상태 서버 반환');
-      return this.generateErrorStateServers();
+      return ServerFactory.generateErrorStateServers();
     }
 
     const formattedServers = servers.map((server) => ({

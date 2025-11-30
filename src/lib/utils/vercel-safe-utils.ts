@@ -8,7 +8,7 @@
  * - 압축된 l6 함수에서 발생하는 베르셀 환경 특화 오류
  */
 
-import { Server, Service, ServerRole, ServerEnvironment } from '@/types/server';
+import { Server, ServerEnvironment, ServerRole, Service } from '@/types/server';
 
 /**
  * 차트 데이터 포인트 타입
@@ -137,7 +137,7 @@ export const getSafeArrayLength = (arr: unknown): number => {
     if (!arr || !Array.isArray(arr)) return 0;
 
     // 🛡️ length 속성 안전 접근 - hasOwnProperty 사용
-    if (!Object.prototype.hasOwnProperty.call(arr, 'length')) return 0;
+    if (!Object.hasOwn(arr, 'length')) return 0;
 
     // 🛡️ 최종 length 접근 - 완전 방어적 접근
     const lengthValue = (() => {
@@ -154,7 +154,7 @@ export const getSafeArrayLength = (arr: unknown): number => {
     })();
 
     // 🛡️ 최종 유효성 검증
-    if (isNaN(lengthValue) || lengthValue < 0) return 0;
+    if (Number.isNaN(lengthValue) || lengthValue < 0) return 0;
 
     return Math.floor(lengthValue);
   } catch (error) {
@@ -285,9 +285,9 @@ export const getSafeChartData = (
       const point = item as Record<string, unknown>;
       return (
         typeof point.value === 'number' &&
-        !isNaN(point.value) &&
+        !Number.isNaN(point.value) &&
         typeof point.x === 'number' &&
-        !isNaN(point.x)
+        !Number.isNaN(point.x)
       );
     });
 

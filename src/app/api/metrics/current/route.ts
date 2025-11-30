@@ -9,14 +9,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type {
-  EnhancedServerMetrics,
-  ServerRole,
-  AlertSeverity,
-  ServerAlert,
-} from '@/types/server';
-import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import { getSystemConfig } from '@/config/SystemConfiguration';
+import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
+import type {
+  AlertSeverity,
+  EnhancedServerMetrics,
+  ServerAlert,
+  ServerRole,
+} from '@/types/server';
 
 // 🔧 사이클 정보 타입
 interface CycleScenario {
@@ -203,7 +203,7 @@ function interpolate1MinVariation(
 function generateCycleScenarios(
   cycleInfo: CycleInfo,
   serverId: string,
-  serverRole: ServerRole,
+  _serverRole: ServerRole,
   normalizedTimestamp: number
 ): ServerAlert[] {
   if (!cycleInfo.scenario) {
@@ -314,7 +314,7 @@ function generateCycleBasedMetric(
     const cycleName = cycleInfo.scenario?.name as keyof typeof incidentEffects;
     const effects = cycleName ? incidentEffects[cycleName] : null;
 
-    if (effects && effects[metricType as keyof typeof effects]) {
+    if (effects?.[metricType as keyof typeof effects]) {
       cycleEffect =
         effects[metricType as keyof typeof effects] * cycleInfo.intensity;
     }

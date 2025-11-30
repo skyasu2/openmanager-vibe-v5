@@ -1,5 +1,5 @@
+import { normalMetrics, SERVERS } from '../constants';
 import { ScenarioTimeline } from '../types';
-import { SERVERS, normalMetrics } from '../constants';
 
 // 시나리오 4: 네트워크 병목 (18-24시)
 export const scenario4: ScenarioTimeline = {

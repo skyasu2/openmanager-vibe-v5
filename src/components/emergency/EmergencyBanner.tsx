@@ -1,7 +1,7 @@
 'use client';
 
-import { emergencyMode } from '@/lib/emergency-mode';
 import { useEffect, useState } from 'react';
+import { emergencyMode } from '@/lib/emergency-mode';
 
 export function EmergencyBanner() {
   const [isVisible, setIsVisible] = useState(false);

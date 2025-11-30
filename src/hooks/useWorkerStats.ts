@@ -8,7 +8,7 @@
  * - 대용량 데이터 처리 최적화
  */
 
-import { useRef, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { EnhancedServerData } from '@/types/dashboard/server-dashboard.types'; // 🔧 Phase 77: type-only import로 순환 참조 완전 차단
 
 export interface ServerStats {

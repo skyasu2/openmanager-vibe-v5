@@ -5,9 +5,9 @@
 
 'use client';
 
+import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
-import React, { Fragment, useState, useEffect, CSSProperties } from 'react';
-import type { ReactNode, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { CSSProperties, Fragment, useEffect, useState } from 'react';
 
 // 사용자 모션 설정 감지 (CSS 기반)
 const useReducedMotion = () => {
@@ -269,24 +269,34 @@ export class AnimationPerformanceMonitor {
   private static maxConcurrentAnimations = 3;
 
   static startAnimation(name: string) {
-    this.animationCount++;
+    AnimationPerformanceMonitor.animationCount++;
 
-    if (this.animationCount > this.maxConcurrentAnimations) {
-      console.warn(`⚠️ Too many concurrent animations: ${this.animationCount}`);
+    if (
+      AnimationPerformanceMonitor.animationCount >
+      AnimationPerformanceMonitor.maxConcurrentAnimations
+    ) {
+      console.warn(
+        `⚠️ Too many concurrent animations: ${AnimationPerformanceMonitor.animationCount}`
+      );
     }
 
     console.log(
-      `🎭 Animation started: ${name} (total: ${this.animationCount})`
+      `🎭 Animation started: ${name} (total: ${AnimationPerformanceMonitor.animationCount})`
     );
   }
 
   static endAnimation(name: string) {
-    this.animationCount = Math.max(0, this.animationCount - 1);
-    console.log(`✅ Animation ended: ${name} (total: ${this.animationCount})`);
+    AnimationPerformanceMonitor.animationCount = Math.max(
+      0,
+      AnimationPerformanceMonitor.animationCount - 1
+    );
+    console.log(
+      `✅ Animation ended: ${name} (total: ${AnimationPerformanceMonitor.animationCount})`
+    );
   }
 
   static getActiveAnimations() {
-    return this.animationCount;
+    return AnimationPerformanceMonitor.animationCount;
   }
 }
 

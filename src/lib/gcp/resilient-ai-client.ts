@@ -37,7 +37,6 @@ export class ResilientAIClient {
   // Circuit Breaker 설정
   private readonly FAILURE_THRESHOLD = 5;
   private readonly RECOVERY_TIMEOUT = 30000; // 30초
-  private readonly HALF_OPEN_MAX_CALLS = 3;
 
   // 재시도 설정
   private readonly MAX_RETRIES = 3;
@@ -169,7 +168,7 @@ export class ResilientAIClient {
           break;
         }
 
-        const delay = this.BASE_DELAY * Math.pow(2, attempt);
+        const delay = this.BASE_DELAY * 2 ** attempt;
         debug.log(
           `🔄 재시도 ${attempt + 1}/${this.MAX_RETRIES} (${delay}ms 대기)`
         );

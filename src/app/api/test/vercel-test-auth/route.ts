@@ -1,8 +1,7 @@
+import { timingSafeEqual } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { timingSafeEqual } from 'crypto';
 import { getServerGuestMode } from '@/config/guestMode.server';
 import { developmentOnly } from '@/lib/api/development-only';
-
 
 /**
  * 🚀 베르셀 친화적 AI 테스트 인증 API
@@ -161,8 +160,6 @@ function checkRateLimit(ip: string): {
     resetTime: record.resetTime,
   };
 }
-
-
 
 /**
  * POST: 테스트 인증 요청

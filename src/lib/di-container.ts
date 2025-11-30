@@ -86,7 +86,7 @@ export class DIContainer {
 
     const service = this.services.get(token);
     if (!service) {
-      throw new Error('Service not registered: ' + String(token));
+      throw new Error(`Service not registered: ${String(token)}`);
     }
 
     this.resolutionStack.push(token);
@@ -280,9 +280,7 @@ export function Injectable(
   token?: string | symbol,
   lifetime: ServiceLifetime = 'singleton'
 ) {
-  return function <T extends new (...args: unknown[]) => unknown>(
-    constructor: T
-  ) {
+  return <T extends new (...args: unknown[]) => unknown>(constructor: T) => {
     const serviceToken = token || constructor.name;
     registerService(serviceToken, constructor, lifetime);
     return constructor;
@@ -291,11 +289,11 @@ export function Injectable(
 
 // 간단한 의존성 주입 데코레이터 (메타데이터 없이)
 export function Inject(token: string | symbol) {
-  return function (
+  return (
     target: unknown,
-    propertyKey: string | symbol | undefined,
+    _propertyKey: string | symbol | undefined,
     parameterIndex: number
-  ) {
+  ) => {
     // 간단한 의존성 추적 (실제 프로젝트에서는 reflect-metadata 사용 권장)
     const typedTarget = target as Record<string, unknown>;
     if (!typedTarget.__dependencies) {

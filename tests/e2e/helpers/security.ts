@@ -1,8 +1,8 @@
+import * as path from 'node:path';
 import { Page } from '@playwright/test';
+import * as dotenv from 'dotenv';
 import { getTestBaseUrl, isVercelProduction } from './config';
 import { TIMEOUTS } from './timeouts';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 

@@ -5,7 +5,7 @@
 
 'use client';
 
-import { Check, AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, Check, X } from 'lucide-react';
 
 interface SystemStatusMinimalProps {
   status?: 'healthy' | 'warning' | 'error';

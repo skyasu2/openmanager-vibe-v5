@@ -11,8 +11,8 @@
 import type {
   CodeMetrics,
   CodeQualityAnalysis,
-  TechnicalDebtAnalysis,
   RefactoringSuggestion,
+  TechnicalDebtAnalysis,
 } from './insight-center.types';
 
 /**

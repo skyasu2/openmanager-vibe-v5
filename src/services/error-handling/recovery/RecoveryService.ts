@@ -8,18 +8,17 @@
  * - 복구 성공률 추적
  */
 
+import debug from '@/utils/debug';
 import type {
-  ServiceError,
+  ErrorHandlingConfig,
   RecoveryConfig,
   RecoveryResult,
-  ErrorHandlingConfig,
+  ServiceError,
 } from '../types/ErrorTypes';
-import debug from '@/utils/debug';
 
 export class RecoveryService {
   private recoveryAttempts = new Map<string, number>();
   private lastRecoveryTime = new Map<string, Date>();
-  private config: ErrorHandlingConfig;
   private defaultRecoveryConfig: RecoveryConfig = {
     maxRetries: 3,
     baseDelay: 1000,
@@ -116,7 +115,7 @@ export class RecoveryService {
 
     const delay = Math.min(
       this.defaultRecoveryConfig.baseDelay *
-        Math.pow(this.defaultRecoveryConfig.backoffFactor, attempts - 1),
+        this.defaultRecoveryConfig.backoffFactor ** (attempts - 1),
       this.defaultRecoveryConfig.maxDelay
     );
 

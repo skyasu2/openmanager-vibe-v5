@@ -643,8 +643,9 @@ export const SCENARIO_LIBRARY = {
 // 랜덤 시나리오 선택
 export function getRandomScenario(): ServerScenario {
   const scenarios = Object.values(SCENARIO_LIBRARY);
-  const randomScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
-  
+  const randomScenario =
+    scenarios[Math.floor(Math.random() * scenarios.length)];
+
   if (!randomScenario) {
     // Fallback scenario - Gemini 제안 반영
     return {
@@ -653,10 +654,10 @@ export function getRandomScenario(): ServerScenario {
       description: '기본 정상 상태',
       duration: 60,
       servers: [],
-      events: []
+      events: [],
     };
   }
-  
+
   return randomScenario;
 }
 

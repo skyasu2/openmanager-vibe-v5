@@ -36,8 +36,8 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export interface AdvancedNotification {
@@ -283,7 +283,6 @@ function NotificationItem({
           accent: 'bg-purple-500',
           textColor: 'text-white',
         };
-      case 'info':
       default:
         return {
           container: `${baseStyles} bg-blue-600/90 border border-blue-500/50`,
@@ -465,16 +464,14 @@ export function AdvancedNotificationContainer() {
 
       {/* 알림 목록 */}
       <div className="pointer-events-auto space-y-2">
-        <Fragment>
-          {notifications.map((notification, index) => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              onDismiss={handleDismiss}
-              index={index}
-            />
-          ))}
-        </Fragment>
+        {notifications.map((notification, index) => (
+          <NotificationItem
+            key={notification.id}
+            notification={notification}
+            onDismiss={handleDismiss}
+            index={index}
+          />
+        ))}
       </div>
     </div>,
     portalContainer

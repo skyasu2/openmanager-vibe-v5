@@ -12,14 +12,14 @@
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { ProcessManager } from '@/core/system/ProcessManager';
 import {
   getProcessConfigs,
   validateProcessConfigs,
 } from '@/core/system/process-configs';
-import { ProcessManager } from '@/core/system/ProcessManager';
 import { systemLogger } from '@/lib/logger';
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
 // 🔒 타입 안전성을 위한 인터페이스 정의
 interface EventData {

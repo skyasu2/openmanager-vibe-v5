@@ -74,7 +74,7 @@ export function useSystemAlerts() {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchAlerts]);
 
   return {
     alerts,

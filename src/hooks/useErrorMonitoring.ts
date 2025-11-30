@@ -7,7 +7,7 @@
  * - 성능 모니터링
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ErrorState } from '@/types/ai-thinking';
 
 interface PerformanceMetric {
@@ -71,7 +71,11 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       let errorType: ErrorState['errorType'] = 'unknown';
       let message = `${context}: `;
 
-      const errorObj = error as Error & { name?: string; code?: string; status?: number };
+      const errorObj = error as Error & {
+        name?: string;
+        code?: string;
+        status?: number;
+      };
 
       // 에러 타입 분석
       if (error instanceof TypeError || errorObj?.name === 'TypeError') {
@@ -86,10 +90,17 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       } else if (errorObj?.name === 'NetworkError' || !navigator.onLine) {
         errorType = 'network';
         message += '네트워크 연결에 문제가 있습니다.';
-      } else if (typeof errorObj?.status === 'number' && errorObj.status >= 400 && errorObj.status < 500) {
+      } else if (
+        typeof errorObj?.status === 'number' &&
+        errorObj.status >= 400 &&
+        errorObj.status < 500
+      ) {
         errorType = 'validation';
         message += '요청 데이터에 문제가 있습니다.';
-      } else if (typeof errorObj?.status === 'number' && errorObj.status >= 500) {
+      } else if (
+        typeof errorObj?.status === 'number' &&
+        errorObj.status >= 500
+      ) {
         errorType = 'processing';
         message += '서버에서 처리 중 오류가 발생했습니다.';
       } else {
@@ -121,7 +132,12 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       return errorState;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [createError, defaultConfig.enableAutoRecover, defaultConfig.maxRetries]
+    [
+      createError,
+      defaultConfig.enableAutoRecover,
+      defaultConfig.maxRetries,
+      attemptAutoRecover,
+    ]
   );
 
   // 자동 복구 시도
@@ -167,7 +183,10 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       retryTimeouts.current.set(retryKey, timeout);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [defaultConfig.retryDelay]
+    [
+      defaultConfig.retryDelay, // 기본적으로 에러 해결로 처리
+      resolveError,
+    ]
   );
 
   // 에러 해결

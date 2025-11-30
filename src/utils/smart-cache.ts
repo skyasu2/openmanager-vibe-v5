@@ -42,11 +42,6 @@ export class RequestScopedCache {
     dedupeTime: 2000,
   };
 
-  constructor() {
-    // 🚫 타이머 제거: 서버리스에서 지속적 타이머 금지
-    // 🚫 이벤트 리스너 제거: 전역 상태 유지 금지
-  }
-
   async query<T>(
     key: string,
     fetcher: () => Promise<T>,

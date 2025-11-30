@@ -1,4 +1,5 @@
 import { type FC } from 'react';
+
 /**
  * 🔘 StepDots Component
  *

@@ -1,6 +1,7 @@
 'use client';
 
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
+
 // SystemAlert type definition (moved from admin)
 interface SystemAlert {
   id: string;
@@ -11,7 +12,7 @@ interface SystemAlert {
   source: string;
   isClosable: boolean;
 }
-import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
+
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
@@ -22,7 +23,8 @@ import {
   Database,
   XCircle,
 } from 'lucide-react';
-import React, { Fragment, useEffect, useRef, useState, ReactNode } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 
 interface SystemEvent {
   id: string;
@@ -67,7 +69,7 @@ const getAlertIcon = (type: SystemAlert['type']) => {
 
 const formatTimeAgo = (date: string | Date): string => {
   const targetDate = date instanceof Date ? date : new Date(date);
-  const seconds = Math.floor((new Date().getTime() - targetDate.getTime()) / 1000);
+  const seconds = Math.floor((Date.now() - targetDate.getTime()) / 1000);
   if (seconds < 60) return `${seconds}초 전`;
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}분 전`;
@@ -174,7 +176,9 @@ export default function LiveSystemAlerts() {
     void pollAlerts();
 
     // 15초마다 폴링
-    const pollInterval = setInterval(() => { void pollAlerts(); }, 15000);
+    const pollInterval = setInterval(() => {
+      void pollAlerts();
+    }, 15000);
 
     return () => {
       clearInterval(pollInterval);
@@ -213,43 +217,41 @@ export default function LiveSystemAlerts() {
         variant="bordered"
       >
         <div className="relative h-32 overflow-hidden">
-          <Fragment>
-            {currentAlert && (
-              <div
-                key={currentAlert.id}
-                className={`absolute inset-0 rounded-lg border p-4 ${getAlertColor(currentAlert.type)}`}
-              >
-                <div className="flex h-full items-start gap-3">
-                  <div className="mt-1 flex-shrink-0">
-                    {getAlertIcon(currentAlert.type)}
-                  </div>
-                  <div className="flex h-full min-w-0 flex-1 flex-col justify-between">
-                    <div>
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="text-sm font-semibold">
-                          {currentAlert.type.toUpperCase()}
-                        </span>
-                        <span className="text-xs text-gray-600">•</span>
-                        <span className="text-sm font-medium">
-                          {(currentAlert as SystemAlert & { server?: string })
-                            .server || 'System'}
-                        </span>
-                      </div>
-                      <p
-                        className="mb-1 truncate text-sm font-medium"
-                        title={currentAlert.title}
-                      >
-                        {currentAlert.title}
-                      </p>
+          {currentAlert && (
+            <div
+              key={currentAlert.id}
+              className={`absolute inset-0 rounded-lg border p-4 ${getAlertColor(currentAlert.type)}`}
+            >
+              <div className="flex h-full items-start gap-3">
+                <div className="mt-1 flex-shrink-0">
+                  {getAlertIcon(currentAlert.type)}
+                </div>
+                <div className="flex h-full min-w-0 flex-1 flex-col justify-between">
+                  <div>
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className="text-sm font-semibold">
+                        {currentAlert.type.toUpperCase()}
+                      </span>
+                      <span className="text-xs text-gray-600">•</span>
+                      <span className="text-sm font-medium">
+                        {(currentAlert as SystemAlert & { server?: string })
+                          .server || 'System'}
+                      </span>
                     </div>
-                    <p className="self-end text-xs text-gray-600">
-                      {formatTimeAgo(currentAlert.timestamp)}
+                    <p
+                      className="mb-1 truncate text-sm font-medium"
+                      title={currentAlert.title}
+                    >
+                      {currentAlert.title}
                     </p>
                   </div>
+                  <p className="self-end text-xs text-gray-600">
+                    {formatTimeAgo(currentAlert.timestamp)}
+                  </p>
                 </div>
               </div>
-            )}
-          </Fragment>
+            </div>
+          )}
         </div>
       </CollapsibleCard>
 

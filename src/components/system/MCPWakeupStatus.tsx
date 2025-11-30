@@ -150,9 +150,7 @@ export function MCPWakeupStatus({
 
       {/* 단계별 안내 메시지 */}
       {stage === 'waking' && (
-        <div
-          className="mt-3 rounded border border-yellow-700/30 bg-yellow-900/20 p-2 text-xs text-yellow-300"
-        >
+        <div className="mt-3 rounded border border-yellow-700/30 bg-yellow-900/20 p-2 text-xs text-yellow-300">
           💡 Render 무료 플랜의 Cold Start로 인해 최대 3분까지 소요될 수
           있습니다.
         </div>
@@ -160,18 +158,14 @@ export function MCPWakeupStatus({
 
       {/* 에러 상태 안내 */}
       {(stage === 'timeout' || stage === 'error') && (
-        <div
-          className="mt-3 rounded border border-red-700/30 bg-red-900/20 p-2 text-xs text-red-300"
-        >
+        <div className="mt-3 rounded border border-red-700/30 bg-red-900/20 p-2 text-xs text-red-300">
           ⚠️ MCP 서버 연결에 실패했지만 로컬 모드로 계속 진행됩니다.
         </div>
       )}
 
       {/* 성공 상태 안내 */}
       {stage === 'ready' && (
-        <div
-          className="mt-3 rounded border border-green-700/30 bg-green-900/20 p-2 text-xs text-green-300"
-        >
+        <div className="mt-3 rounded border border-green-700/30 bg-green-900/20 p-2 text-xs text-green-300">
           ✅ MCP 서버가 성공적으로 활성화되었습니다!
         </div>
       )}

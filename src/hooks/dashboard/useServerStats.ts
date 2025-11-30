@@ -1,13 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useWorkerStats } from '../useWorkerStats';
+import { useEffect, useMemo, useState } from 'react';
 import {
   EnhancedServerData,
   ServerStats,
 } from '@/types/dashboard/server-dashboard.types';
 import {
-  calculateServerStats,
   adaptWorkerStatsToLegacy,
+  calculateServerStats,
 } from '@/utils/dashboard/server-utils';
+import { useWorkerStats } from '../useWorkerStats';
 
 export function useServerStats(actualServers: EnhancedServerData[]) {
   // 🚀 Web Worker 통계 계산 Hook

@@ -9,12 +9,12 @@
  */
 
 import type {
-  SystemMetrics,
-  DatabaseMetrics,
-  NetworkMetrics,
   Bottleneck,
   DatabaseAnalysis,
+  DatabaseMetrics,
+  NetworkMetrics,
   NetworkOptimization,
+  SystemMetrics,
 } from './insight-center.types';
 
 /**
@@ -83,7 +83,9 @@ export function identifyBottlenecks(metrics: SystemMetrics): Bottleneck[] {
       medium: 2,
       low: 3,
     };
-    return (severityOrder[a.severity] ?? 999) - (severityOrder[b.severity] ?? 999);
+    return (
+      (severityOrder[a.severity] ?? 999) - (severityOrder[b.severity] ?? 999)
+    );
   });
 }
 

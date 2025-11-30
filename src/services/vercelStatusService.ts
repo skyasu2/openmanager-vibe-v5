@@ -55,14 +55,13 @@ export class VercelStatusService {
   private static instance: VercelStatusService;
   private currentStatus: VercelStatus | null = null;
   private scalingConfig: ScalingConfig;
-  private lastCheck: number = 0;
   private checkInterval = 60 * 1000; // 1분마다 체크
 
   static getInstance(): VercelStatusService {
-    if (!this.instance) {
-      this.instance = new VercelStatusService();
+    if (!VercelStatusService.instance) {
+      VercelStatusService.instance = new VercelStatusService();
     }
-    return this.instance;
+    return VercelStatusService.instance;
   }
 
   private constructor() {
@@ -93,7 +92,8 @@ export class VercelStatusService {
 
       // 함수 타임아웃으로 계획 추정
       const functionTimeout = parseInt(
-        process.env.VERCEL_FUNCTION_TIMEOUT || '10'
+        process.env.VERCEL_FUNCTION_TIMEOUT || '10',
+        10
       );
 
       if (functionTimeout >= 300) {
@@ -122,7 +122,10 @@ export class VercelStatusService {
       plan,
       region: process.env.VERCEL_REGION || 'local',
       buildTime: Date.now(),
-      functionTimeout: parseInt(process.env.VERCEL_FUNCTION_TIMEOUT || '10'),
+      functionTimeout: parseInt(
+        process.env.VERCEL_FUNCTION_TIMEOUT || '10',
+        10
+      ),
       memoryLimit: this.getMemoryLimit(plan),
       executions: {
         used: 0,
@@ -273,13 +276,13 @@ export class VercelStatusService {
       const cpuMatch = metrics.match(
         /node_cpu_usage_percent{[^}]*}\s+([\d.]+)/
       );
-      const avgCpu = cpuMatch && cpuMatch[1] ? parseFloat(cpuMatch[1]) : 0;
+      const avgCpu = cpuMatch?.[1] ? parseFloat(cpuMatch[1]) : 0;
 
       // 메모리 사용률 파싱
       const memMatch = metrics.match(
         /node_memory_usage_percent{[^}]*}\s+([\d.]+)/
       );
-      const avgMemory = memMatch && memMatch[1] ? parseFloat(memMatch[1]) : 0;
+      const avgMemory = memMatch?.[1] ? parseFloat(memMatch[1]) : 0;
 
       // 부하 기반 동적 조절
       if (avgCpu > 80 || avgMemory > 80) {

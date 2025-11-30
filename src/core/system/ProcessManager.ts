@@ -8,7 +8,7 @@
  * - Graceful shutdown
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { systemLogger } from '../../lib/logger';
 import { SystemWatchdog } from './SystemWatchdog';
 

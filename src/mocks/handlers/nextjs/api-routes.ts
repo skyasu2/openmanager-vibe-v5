@@ -6,7 +6,7 @@
  * @endpoint http://localhost:3002/api/*
  */
 
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, http } from 'msw';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
 

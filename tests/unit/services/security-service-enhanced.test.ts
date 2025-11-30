@@ -12,10 +12,10 @@
  * @version 1.0.0
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  SecurityService,
   getSecurityService,
+  SecurityService,
 } from '@/services/security/SecurityService';
 
 // Environment detection - Skip Date Mock tests in Vitest due to context loss issues
@@ -260,7 +260,7 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       };
 
       // When: 성공적인 로그인
-      const result = await securityService.authenticateUser(
+      const _result = await securityService.authenticateUser(
         username,
         'admin123',
         clientInfo
@@ -404,9 +404,9 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       }
 
       // 새로운 테스트 세션 생성
-      const session1 = await securityService.createSession('user1');
+      const _session1 = await securityService.createSession('user1');
       const session2 = await securityService.createSession('user2');
-      const session3 = await securityService.createSession('user3');
+      const _session3 = await securityService.createSession('user3');
 
       // 일부 세션 로그아웃
       await securityService.logout(session2);
@@ -555,14 +555,14 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
 });
 
 // 테스트 헬퍼 함수들
-function createMockClientInfo(ip?: string, userAgent?: string) {
+function _createMockClientInfo(ip?: string, userAgent?: string) {
   return {
     ip: ip || `192.168.1.${Math.floor(Math.random() * 255)}`,
     userAgent: userAgent || 'Test Browser/1.0',
   };
 }
 
-function simulateDelayedExecution(ms: number): Promise<void> {
+function _simulateDelayedExecution(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 

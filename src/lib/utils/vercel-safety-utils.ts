@@ -7,8 +7,8 @@
  * - 개발 환경 안전 로깅
  */
 
-import type { Server } from '@/types/server';
 import type { ServerData } from '@/components/dashboard/EnhancedServerModal.types';
+import type { Server } from '@/types/server';
 
 /**
  * 🛡️ Array length 안전 검증
@@ -30,7 +30,7 @@ export const getSafeArrayLength = (arr: unknown): number => {
     const isArrayResult = Array.isArray(arr);
     if (!isArrayResult) return 0;
     if (!arr || !Array.isArray(arr)) return 0;
-    if (!Object.prototype.hasOwnProperty.call(arr, 'length')) return 0;
+    if (!Object.hasOwn(arr, 'length')) return 0;
 
     const lengthValue = (() => {
       try {
@@ -44,7 +44,7 @@ export const getSafeArrayLength = (arr: unknown): number => {
       }
     })();
 
-    if (isNaN(lengthValue) || lengthValue < 0) return 0;
+    if (Number.isNaN(lengthValue) || lengthValue < 0) return 0;
     return Math.floor(lengthValue);
   } catch (error) {
     console.error('🛡️ getSafeArrayLength error:', error);

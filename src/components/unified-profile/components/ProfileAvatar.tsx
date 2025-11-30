@@ -1,7 +1,7 @@
 'use client';
 
-import { memo } from 'react';
 import { Shield, UserCheck } from 'lucide-react';
+import { memo } from 'react';
 import type { ProfileAvatarProps } from '../types/profile.types';
 
 /**

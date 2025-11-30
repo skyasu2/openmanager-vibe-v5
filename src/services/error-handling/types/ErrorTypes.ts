@@ -95,9 +95,9 @@ export interface RecoveryResult {
   error?: string;
 }
 
-export interface ErrorHandlerFunction {
-  (error: ServiceError): void | Promise<void>;
-}
+export type ErrorHandlerFunction = (
+  error: ServiceError
+) => void | Promise<void>;
 
 export interface MonitoringEvent {
   type: 'error' | 'recovery' | 'fallback' | 'critical';

@@ -1,13 +1,13 @@
 /**
  * 🔄 Circuit Breaker Pattern Implementation
- * 
+ *
  * GCP VM 통신 실패 시 자동 차단 및 복구를 위한 Circuit Breaker 패턴
- * 
+ *
  * AI 교차 검증 기반:
  * - Codex: Circuit Breaker 패턴, 지수 백오프, 자동 복구
  * - Gemini: 3단계 폴백, 실패율 기반 차단
  * - Qwen: 적응형 타임아웃, 성능 최적화
- * 
+ *
  * 상태:
  * - CLOSED: 정상 동작, 모든 요청 허용
  * - OPEN: 차단 상태, 모든 요청 거부 (폴백 실행)
@@ -15,11 +15,11 @@
  */
 
 export interface CircuitBreakerConfig {
-  failureThreshold: number;      // 실패 임계값 (기본: 5회)
-  recoveryTimeout: number;       // 복구 대기 시간 (기본: 30초)
-  requestTimeout: number;        // 요청 타임아웃 (기본: 5초)
-  halfOpenMaxCalls: number;      // HALF_OPEN 시 최대 테스트 요청 수
-  successThreshold: number;      // HALF_OPEN → CLOSED 전환을 위한 성공 임계값
+  failureThreshold: number; // 실패 임계값 (기본: 5회)
+  recoveryTimeout: number; // 복구 대기 시간 (기본: 30초)
+  requestTimeout: number; // 요청 타임아웃 (기본: 5초)
+  halfOpenMaxCalls: number; // HALF_OPEN 시 최대 테스트 요청 수
+  successThreshold: number; // HALF_OPEN → CLOSED 전환을 위한 성공 임계값
 }
 
 export interface CircuitBreakerStats {
@@ -36,7 +36,7 @@ export interface CircuitBreakerStats {
 export enum CircuitBreakerState {
   CLOSED = 'CLOSED',
   OPEN = 'OPEN',
-  HALF_OPEN = 'HALF_OPEN'
+  HALF_OPEN = 'HALF_OPEN',
 }
 
 export interface CircuitBreakerResult<T> {
@@ -66,12 +66,12 @@ export class CircuitBreaker {
 
   constructor(config: Partial<CircuitBreakerConfig> = {}) {
     this.config = {
-      failureThreshold: 3,           // 🔄 개발 환경 고려: 3회 실패 후 차단 
+      failureThreshold: 3, // 🔄 개발 환경 고려: 3회 실패 후 차단
       recoveryTimeout: 2 * 60 * 1000, // 🔄 개발 환경 고려: 2분 후 복구 시도
-      requestTimeout: 8 * 1000,      // 🔄 개발 환경 고려: 8초 타임아웃 (gcp-vm-client와 동일)
-      halfOpenMaxCalls: 2,           // 🔄 개발 환경 고려: 2개 테스트 요청
-      successThreshold: 1,           // 🔄 1회 성공으로 복구 (유지)
-      ...config
+      requestTimeout: 8 * 1000, // 🔄 개발 환경 고려: 8초 타임아웃 (gcp-vm-client와 동일)
+      halfOpenMaxCalls: 2, // 🔄 개발 환경 고려: 2개 테스트 요청
+      successThreshold: 1, // 🔄 1회 성공으로 복구 (유지)
+      ...config,
     };
   }
 
@@ -89,7 +89,7 @@ export class CircuitBreaker {
     if (this.state === CircuitBreakerState.OPEN) {
       if (Date.now() < (this.nextRetryTime || 0)) {
         this.rejectedCount++;
-        
+
         if (fallback) {
           try {
             const fallbackData = await fallback();
@@ -97,14 +97,14 @@ export class CircuitBreaker {
               success: true,
               data: fallbackData,
               fallback: true,
-              circuitState: this.state
+              circuitState: this.state,
             };
           } catch (fallbackError) {
             return {
               success: false,
               error: fallbackError as Error,
               fallback: true,
-              circuitState: this.state
+              circuitState: this.state,
             };
           }
         }
@@ -112,7 +112,7 @@ export class CircuitBreaker {
         return {
           success: false,
           error: new Error('Circuit breaker is OPEN'),
-          circuitState: this.state
+          circuitState: this.state,
         };
       } else {
         // 복구 시간 도달 → HALF_OPEN으로 전환
@@ -126,7 +126,7 @@ export class CircuitBreaker {
     if (this.state === CircuitBreakerState.HALF_OPEN) {
       if (this.halfOpenCallCount >= this.config.halfOpenMaxCalls) {
         this.rejectedCount++;
-        
+
         if (fallback) {
           try {
             const fallbackData = await fallback();
@@ -134,14 +134,14 @@ export class CircuitBreaker {
               success: true,
               data: fallbackData,
               fallback: true,
-              circuitState: this.state
+              circuitState: this.state,
             };
           } catch (fallbackError) {
             return {
               success: false,
               error: fallbackError as Error,
               fallback: true,
-              circuitState: this.state
+              circuitState: this.state,
             };
           }
         }
@@ -149,7 +149,7 @@ export class CircuitBreaker {
         return {
           success: false,
           error: new Error('Circuit breaker HALF_OPEN limit reached'),
-          circuitState: this.state
+          circuitState: this.state,
         };
       }
       this.halfOpenCallCount++;
@@ -158,28 +158,30 @@ export class CircuitBreaker {
     // 요청 실행 (타임아웃 적용)
     try {
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), this.config.requestTimeout);
+        setTimeout(
+          () => reject(new Error('Request timeout')),
+          this.config.requestTimeout
+        );
       });
 
       const data = await Promise.race([operation(), timeoutPromise]);
       const responseTime = Date.now() - startTime;
-      
+
       // 성공 처리
       this.onSuccess(responseTime);
-      
+
       return {
         success: true,
         data,
         responseTime,
-        circuitState: this.state
+        circuitState: this.state,
       };
-
     } catch (error) {
       const responseTime = Date.now() - startTime;
-      
+
       // 실패 처리
       this.onFailure();
-      
+
       // 폴백 실행
       if (fallback) {
         try {
@@ -190,7 +192,7 @@ export class CircuitBreaker {
             error: error as Error,
             fallback: true,
             responseTime,
-            circuitState: this.state
+            circuitState: this.state,
           };
         } catch (fallbackError) {
           return {
@@ -198,7 +200,7 @@ export class CircuitBreaker {
             error: fallbackError as Error,
             fallback: true,
             responseTime,
-            circuitState: this.state
+            circuitState: this.state,
           };
         }
       }
@@ -207,7 +209,7 @@ export class CircuitBreaker {
         success: false,
         error: error as Error,
         responseTime,
-        circuitState: this.state
+        circuitState: this.state,
       };
     }
   }
@@ -219,7 +221,7 @@ export class CircuitBreaker {
     this.successCount++;
     this.failureCount = 0; // 연속 실패 카운트 리셋
     this.responseTimes.push(responseTime);
-    
+
     // 응답 시간 배열 크기 제한 (최근 100개만 유지)
     if (this.responseTimes.length > 100) {
       this.responseTimes.shift();
@@ -253,7 +255,9 @@ export class CircuitBreaker {
       if (this.failureCount >= this.config.failureThreshold) {
         this.state = CircuitBreakerState.OPEN;
         this.nextRetryTime = Date.now() + this.config.recoveryTimeout;
-        console.log(`🚨 Circuit Breaker: CLOSED → OPEN 전환 (${this.failureCount}회 연속 실패)`);
+        console.log(
+          `🚨 Circuit Breaker: CLOSED → OPEN 전환 (${this.failureCount}회 연속 실패)`
+        );
       }
     }
   }
@@ -266,11 +270,15 @@ export class CircuitBreaker {
       return this.config.requestTimeout;
     }
 
-    const avgResponseTime = this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length;
-    
+    const avgResponseTime =
+      this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length;
+
     // 평균 응답 시간의 3배, 최소 2초, 최대 10초
-    const adaptiveTimeout = Math.min(Math.max(avgResponseTime * 3, 2000), 10000);
-    
+    const adaptiveTimeout = Math.min(
+      Math.max(avgResponseTime * 3, 2000),
+      10000
+    );
+
     return adaptiveTimeout;
   }
 
@@ -278,9 +286,11 @@ export class CircuitBreaker {
    * Circuit Breaker 통계 정보
    */
   getStats(): CircuitBreakerStats {
-    const avgResponseTime = this.responseTimes.length > 0
-      ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
-      : 0;
+    const avgResponseTime =
+      this.responseTimes.length > 0
+        ? this.responseTimes.reduce((a, b) => a + b, 0) /
+          this.responseTimes.length
+        : 0;
 
     return {
       state: this.state,
@@ -290,7 +300,7 @@ export class CircuitBreaker {
       rejectedCount: this.rejectedCount,
       lastFailureTime: this.lastFailureTime,
       nextRetryTime: this.nextRetryTime,
-      averageResponseTime: Math.round(avgResponseTime)
+      averageResponseTime: Math.round(avgResponseTime),
     };
   }
 
@@ -307,7 +317,7 @@ export class CircuitBreaker {
     this.nextRetryTime = null;
     this.halfOpenCallCount = 0;
     this.responseTimes = [];
-    
+
     console.log('🔄 Circuit Breaker 리셋됨');
   }
 
@@ -331,11 +341,11 @@ export class CircuitBreaker {
  * 전역 Circuit Breaker 인스턴스 (GCP VM용)
  */
 export const gcpVmCircuitBreaker = new CircuitBreaker({
-  failureThreshold: 2,           // 🚨 무료티어 보호: 2회 연속 실패
+  failureThreshold: 2, // 🚨 무료티어 보호: 2회 연속 실패
   recoveryTimeout: 10 * 60 * 1000, // 🚨 무료티어 보호: 10분 복구 대기
-  requestTimeout: 3 * 1000,      // 🚨 무료티어 보호: 3초 타임아웃  
-  halfOpenMaxCalls: 1,           // 🚨 무료티어 보호: 1개 테스트 요청
-  successThreshold: 1            // 🚨 무료티어 보호: 1회 성공 시 복구
+  requestTimeout: 3 * 1000, // 🚨 무료티어 보호: 3초 타임아웃
+  halfOpenMaxCalls: 1, // 🚨 무료티어 보호: 1개 테스트 요청
+  successThreshold: 1, // 🚨 무료티어 보호: 1회 성공 시 복구
 });
 
 /**
@@ -353,21 +363,22 @@ export async function executeWithCircuitBreaker<T>(
  */
 export function monitorCircuitBreaker() {
   const stats = gcpVmCircuitBreaker.getStats();
-  
+
   console.log('📊 Circuit Breaker 상태:', {
     state: stats.state,
-    successRate: stats.totalRequests > 0 
-      ? `${Math.round((stats.successCount / stats.totalRequests) * 100)}%`
-      : 'N/A',
+    successRate:
+      stats.totalRequests > 0
+        ? `${Math.round((stats.successCount / stats.totalRequests) * 100)}%`
+        : 'N/A',
     totalRequests: stats.totalRequests,
     failures: stats.failureCount,
     rejected: stats.rejectedCount,
     avgResponseTime: `${stats.averageResponseTime}ms`,
-    nextRetry: stats.nextRetryTime 
+    nextRetry: stats.nextRetryTime
       ? new Date(stats.nextRetryTime).toISOString()
-      : null
+      : null,
   });
-  
+
   return stats;
 }
 

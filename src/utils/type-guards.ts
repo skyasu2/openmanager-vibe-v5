@@ -79,7 +79,7 @@ export function isFunction(
  * 숫자인지 확인하는 타입 가드
  */
 export function isNumber(value: unknown): value is number {
-  return typeof value === 'number' && !isNaN(value);
+  return typeof value === 'number' && !Number.isNaN(value);
 }
 
 /**

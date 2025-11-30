@@ -118,7 +118,7 @@ npm run test:vercel:e2e
 npm run test:super-fast    # 11초
 
 # 종합 검증
-npm run validate:all       # 린트+타입+테스트
+npm run validate:all       # Biome+타입+테스트
 ```
 
 ### 최적화 구현

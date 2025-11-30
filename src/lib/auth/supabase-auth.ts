@@ -9,11 +9,11 @@
 
 import type { AuthError, Session } from '@supabase/supabase-js';
 import {
-  validateRedirectUrl,
   guestSessionCookies,
+  validateRedirectUrl,
 } from '@/lib/security/secure-cookies';
-import { authStateManager } from './auth-state-manager';
 import { supabase } from '../supabase/client';
+import { authStateManager } from './auth-state-manager';
 
 /**
  * 🔧 Supabase 프로젝트 ID 동적 추출
@@ -459,8 +459,7 @@ async function isGitHubAuthenticatedLegacy(): Promise<boolean> {
   const session = await getSession();
   // GitHub OAuth 로그인 확인: 세션이 있고 GitHub 프로바이더인지 확인
   return !!(
-    session &&
-    session.user &&
+    session?.user &&
     (session.user.app_metadata?.provider === 'github' ||
       session.user.user_metadata?.provider === 'github')
   );

@@ -12,22 +12,28 @@ export function GET(_request: NextRequest) {
   try {
     const response = NextResponse.json({
       success: true,
-      message: 'CSRF token issued'
+      message: 'CSRF token issued',
     });
 
     // CSRF 토큰 생성 및 쿠키 설정
     const token = setupCSRFProtection(response);
 
-    console.log('✅ [CSRF API] 토큰 발급 완료:', token.substring(0, 10) + '...');
+    console.log(
+      '✅ [CSRF API] 토큰 발급 완료:',
+      `${token.substring(0, 10)}...`
+    );
 
     return response;
   } catch (error) {
     console.error('❌ [CSRF API] 토큰 발급 실패:', error);
 
-    return NextResponse.json({
-      success: false,
-      message: 'Failed to issue CSRF token'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to issue CSRF token',
+      },
+      { status: 500 }
+    );
   }
 }
 

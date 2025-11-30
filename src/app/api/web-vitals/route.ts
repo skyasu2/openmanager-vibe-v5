@@ -46,14 +46,17 @@ interface WebVitalsData {
 const VITALS_THRESHOLDS = {
   FCP: { good: 1800, poor: 3000 }, // ms
   LCP: { good: 2500, poor: 4000 }, // ms
-  CLS: { good: 0.1, poor: 0.25 },   // score
-  FID: { good: 100, poor: 300 },    // ms
-  INP: { good: 200, poor: 500 },    // ms
-  TTFB: { good: 800, poor: 1800 },  // ms
+  CLS: { good: 0.1, poor: 0.25 }, // score
+  FID: { good: 100, poor: 300 }, // ms
+  INP: { good: 200, poor: 500 }, // ms
+  TTFB: { good: 800, poor: 1800 }, // ms
 } as const;
 
 // 📈 메트릭 등급 계산
-function calculateRating(name: keyof typeof VITALS_THRESHOLDS, value: number): 'good' | 'needs-improvement' | 'poor' {
+function calculateRating(
+  name: keyof typeof VITALS_THRESHOLDS,
+  value: number
+): 'good' | 'needs-improvement' | 'poor' {
   const threshold = VITALS_THRESHOLDS[name];
   if (value <= threshold.good) return 'good';
   if (value <= threshold.poor) return 'needs-improvement';
@@ -63,8 +66,14 @@ function calculateRating(name: keyof typeof VITALS_THRESHOLDS, value: number): '
 // 📱 디바이스 타입 감지
 function getDeviceType(userAgent: string): 'mobile' | 'desktop' | 'tablet' {
   const ua = userAgent.toLowerCase();
-  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'tablet';
-  if (/mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(ua)) return 'mobile';
+  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua))
+    return 'tablet';
+  if (
+    /mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(
+      ua
+    )
+  )
+    return 'mobile';
   return 'desktop';
 }
 
@@ -74,19 +83,23 @@ function analyzeWebVitals(data: WebVitalsData) {
     overall: 'good' as 'good' | 'needs-improvement' | 'poor',
     score: 100,
     insights: [] as string[],
-    recommendations: [] as string[]
+    recommendations: [] as string[],
   };
 
   let poorCount = 0;
   let needsImprovementCount = 0;
 
-  data.metrics.forEach(metric => {
+  data.metrics.forEach((metric) => {
     if (metric.rating === 'poor') {
       poorCount++;
-      analysis.insights.push(`${metric.name}: ${metric.value}${metric.name === 'CLS' ? '' : 'ms'} (Poor)`);
+      analysis.insights.push(
+        `${metric.name}: ${metric.value}${metric.name === 'CLS' ? '' : 'ms'} (Poor)`
+      );
     } else if (metric.rating === 'needs-improvement') {
       needsImprovementCount++;
-      analysis.insights.push(`${metric.name}: ${metric.value}${metric.name === 'CLS' ? '' : 'ms'} (Needs Improvement)`);
+      analysis.insights.push(
+        `${metric.name}: ${metric.value}${metric.name === 'CLS' ? '' : 'ms'} (Needs Improvement)`
+      );
     }
   });
 
@@ -103,17 +116,17 @@ function analyzeWebVitals(data: WebVitalsData) {
   }
 
   // 개선 권장사항
-  if (data.metrics.some(m => m.name === 'LCP' && m.rating !== 'good')) {
+  if (data.metrics.some((m) => m.name === 'LCP' && m.rating !== 'good')) {
     analysis.recommendations.push('이미지 최적화 (WebP/AVIF 형식 사용)');
     analysis.recommendations.push('CDN 활용으로 컨텐츠 배포 최적화');
   }
 
-  if (data.metrics.some(m => m.name === 'CLS' && m.rating !== 'good')) {
+  if (data.metrics.some((m) => m.name === 'CLS' && m.rating !== 'good')) {
     analysis.recommendations.push('레이아웃 시프트 최소화 (이미지 크기 명시)');
     analysis.recommendations.push('폰트 로딩 최적화');
   }
 
-  if (data.metrics.some(m => m.name === 'FID' && m.rating !== 'good')) {
+  if (data.metrics.some((m) => m.name === 'FID' && m.rating !== 'good')) {
     analysis.recommendations.push('JavaScript 실행 시간 최소화');
     analysis.recommendations.push('코드 스플리팅으로 번들 크기 감소');
   }
@@ -130,7 +143,7 @@ export async function POST(request: NextRequest) {
     const startTime = Date.now();
 
     // 요청 데이터 파싱
-    const body = await request.json() as WebVitalsData;
+    const body = (await request.json()) as WebVitalsData;
 
     // 기본 검증
     if (!body.metrics || !Array.isArray(body.metrics)) {
@@ -141,9 +154,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 메트릭 등급 계산
-    const processedMetrics = body.metrics.map(metric => ({
+    const processedMetrics = body.metrics.map((metric) => ({
       ...metric,
-      rating: calculateRating(metric.name, metric.value)
+      rating: calculateRating(metric.name, metric.value),
     }));
 
     // 디바이스 타입 감지
@@ -154,7 +167,7 @@ export async function POST(request: NextRequest) {
     const analysis = analyzeWebVitals({
       ...body,
       metrics: processedMetrics,
-      deviceType
+      deviceType,
     });
 
     const processingTime = Date.now() - startTime;
@@ -172,9 +185,9 @@ export async function POST(request: NextRequest) {
         performance: {
           processingTime,
           edgeRegion: request.headers.get('cf-ray') || 'unknown',
-          runtime: 'edge'
-        }
-      }
+          runtime: 'edge',
+        },
+      },
     };
 
     // 🚀 Edge Runtime 최적화 헤더
@@ -186,11 +199,10 @@ export async function POST(request: NextRequest) {
       'X-Device-Type': deviceType,
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
+      'Access-Control-Allow-Headers': 'Content-Type',
     });
 
     return NextResponse.json(response, { headers });
-
   } catch (error) {
     console.error('Web Vitals API Error:', error);
 
@@ -199,7 +211,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: 'Web Vitals processing failed',
         message: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       { status: 500 }
     );
@@ -220,20 +232,20 @@ export function GET() {
       'Google 권장 기준 자동 등급 평가',
       '디바이스별 분석',
       'Edge Runtime 초저지연 처리',
-      '자동 성능 권장사항 제공'
+      '자동 성능 권장사항 제공',
     ],
     thresholds: VITALS_THRESHOLDS,
     supportedMetrics: ['FCP', 'LCP', 'CLS', 'FID', 'INP', 'TTFB'],
     timestamp: Date.now(),
-    version: '1.0.0'
+    version: '1.0.0',
   };
 
   return NextResponse.json(response, {
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'public, max-age=3600', // 1시간 캐시
-      'X-Runtime': 'edge'
-    }
+      'X-Runtime': 'edge',
+    },
   });
 }
 
@@ -248,7 +260,7 @@ export function OPTIONS() {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
-      'X-Runtime': 'edge'
-    }
+      'X-Runtime': 'edge',
+    },
   });
 }

@@ -7,7 +7,7 @@
  * @see https://platform.openai.com/docs/api-reference/chat/create
  */
 
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, http } from 'msw';
 
 const OPENAI_BASE_URL = 'https://api.openai.com';
 

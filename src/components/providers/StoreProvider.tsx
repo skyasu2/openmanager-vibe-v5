@@ -1,14 +1,13 @@
 'use client';
 
-import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
-import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 import { useStore } from 'zustand';
 
 import {
-  type ServerDataStore,
-  type ServerDataState,
   createServerDataStore,
+  type ServerDataState,
+  type ServerDataStore,
 } from '@/stores/serverDataStore';
 
 export const ServerDataStoreContext = createContext<ServerDataStore | null>(
@@ -43,13 +42,16 @@ const getStore = (): ServerDataStore => {
 
         // 🛠️ 개발자 도구 연동 (개발 편의성 향상)
         if (typeof window !== 'undefined') {
-          (window as unknown as Record<string, unknown>).__ZUSTAND_STORE__ = globalStore;
+          (window as unknown as Record<string, unknown>).__ZUSTAND_STORE__ =
+            globalStore;
         }
       }
     } catch (error) {
       // 🚨 프로덕션 에러 처리 (앱 크래시 방지)
       console.error('❌ Zustand 스토어 생성 실패:', error);
-      throw new Error('스토어 초기화에 실패했습니다. 페이지를 새로고침 해주세요.');
+      throw new Error(
+        '스토어 초기화에 실패했습니다. 페이지를 새로고침 해주세요.'
+      );
     }
   }
   return globalStore;

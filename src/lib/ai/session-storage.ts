@@ -7,8 +7,8 @@
  * ✅ Redis 대체 (Vercel 최적화)
  */
 
-import { EdgeLogger } from '../runtime/edge-runtime-utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { EdgeLogger } from '../runtime/edge-runtime-utils';
 
 // ==============================================
 // 🎯 AI 세션 관련 타입 정의

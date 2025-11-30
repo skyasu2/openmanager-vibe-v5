@@ -6,13 +6,13 @@
  */
 
 import {
-  IAIProcessor,
-  AIEngineType,
-  AIResponse,
-  AIQueryOptions,
   AIEngineConfig,
   AIEngineStatus,
+  AIEngineType,
+  AIQueryOptions,
+  AIResponse,
   ComplexityScore,
+  IAIProcessor,
 } from './AIEngineInterface';
 
 // 기본 설정값
@@ -235,7 +235,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
 
         if (attempt < maxRetries) {
           const delay = exponentialBackoff
-            ? retryDelay * Math.pow(2, attempt)
+            ? retryDelay * 2 ** attempt
             : retryDelay;
 
           console.log(
@@ -270,7 +270,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
   /**
    * 에러 응답 생성
    */
-  protected createErrorResponse(query: string, error: Error): AIResponse {
+  protected createErrorResponse(_query: string, error: Error): AIResponse {
     return {
       response: `Error processing query: ${error.message}`,
       metadata: {

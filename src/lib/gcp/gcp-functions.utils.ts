@@ -3,10 +3,10 @@
  */
 
 import type {
-  Result,
   GCPFunctionError,
   RateLimitConfig,
-  RateLimitState
+  RateLimitState,
+  Result,
 } from './gcp-functions.types';
 
 import { GCPFunctionErrorCode } from './gcp-functions.types';
@@ -24,7 +24,7 @@ export function checkRateLimit(
   const now = Date.now();
   const state = rateLimitStates.get(functionName) || {
     requests: [],
-    lastReset: now
+    lastReset: now,
   };
 
   // 윈도우가 지났으면 리셋
@@ -35,7 +35,7 @@ export function checkRateLimit(
 
   // 만료된 요청들 제거
   state.requests = state.requests.filter(
-    timestamp => now - timestamp < config.windowMs
+    (timestamp) => now - timestamp < config.windowMs
   );
 
   // 제한 확인
@@ -77,7 +77,7 @@ export async function fetchWithTimeout(
   try {
     const response = await fetch(url, {
       ...options,
-      signal: controller.signal
+      signal: controller.signal,
     });
     return response;
   } catch (_error) {
@@ -124,9 +124,9 @@ export async function retryWithBackoff<T>(
       }
 
       // 지수백오프 지연
-      const delay = baseDelay * Math.pow(2, attempt);
+      const delay = baseDelay * 2 ** attempt;
       const jitter = Math.random() * 200; // 200ms 지터
-      await new Promise(resolve => setTimeout(resolve, delay + jitter));
+      await new Promise((resolve) => setTimeout(resolve, delay + jitter));
 
       console.warn(
         `🔄 재시도 ${attempt + 1}/${maxRetries} (${delay + Math.round(jitter)}ms 지연)`
@@ -229,7 +229,7 @@ export function validateResponse<T>(data: unknown): Result<T> {
     return {
       success: false,
       error: 'Invalid response data format',
-      code: 400
+      code: 400,
     };
   }
 
@@ -245,7 +245,7 @@ export function validateResponse<T>(data: unknown): Result<T> {
     return {
       success: false,
       error: 'Response missing success field',
-      code: 400
+      code: 400,
     };
   }
 
@@ -254,18 +254,18 @@ export function validateResponse<T>(data: unknown): Result<T> {
       return {
         success: false,
         error: 'Response marked as success but data is missing',
-        code: 500
+        code: 500,
       };
     }
     return {
       success: true,
-      data: response.data
+      data: response.data,
     };
   } else {
     return {
       success: false,
       error: response.error || 'Unknown error',
-      code: response.code
+      code: response.code,
     };
   }
 }
@@ -273,7 +273,11 @@ export function validateResponse<T>(data: unknown): Result<T> {
 /**
  * 디버그 로깅 (개발환경에서만)
  */
-export function debugLog(functionName: string, message: string, data?: unknown): void {
+export function debugLog(
+  functionName: string,
+  message: string,
+  data?: unknown
+): void {
   if (process.env.NODE_ENV === 'development') {
     console.log(`🌐 [${functionName}] ${message}`, data || '');
   }

@@ -238,7 +238,7 @@ export class CacheManager {
     // 가장 많이 접근된 키들
     const mostAccessedKeys = entries
       .map(([key, entry]) => ({
-        key: key.substring(0, 50) + '...', // 키 길이 제한
+        key: `${key.substring(0, 50)}...`, // 키 길이 제한
         hits: entry.hitCount,
         lastAccessed: entry.lastAccessed,
       }))
@@ -315,7 +315,7 @@ export class CacheManager {
   }> {
     const now = Date.now();
     return Array.from(this.cache.entries()).map(([key, entry]) => ({
-      key: key.substring(0, 100) + '...', // 키 길이 제한
+      key: `${key.substring(0, 100)}...`, // 키 길이 제한
       timestamp: entry.timestamp,
       ttl: entry.ttl,
       hitCount: entry.hitCount,

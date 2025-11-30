@@ -1,14 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  safeFormatUptime,
   extractDaysFromUptime,
   isValidString,
-  safeIncludes,
   safeArrayAccess,
-  safePropertyAccess,
+  safeFormatUptime,
+  safeIncludes,
   safeJsonParse,
   safeNumber,
   safePercentage,
+  safePropertyAccess,
 } from '../../src/utils/safeFormat';
 
 describe('safeFormat', () => {

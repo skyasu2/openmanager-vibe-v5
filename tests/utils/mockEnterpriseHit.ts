@@ -11,7 +11,7 @@
  */
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3001';
-const TEST_SERVER_ID = 'db-master-01'; // 테스트할 서버 ID
+const _TEST_SERVER_ID = 'db-master-01'; // 테스트할 서버 ID
 
 interface TestResult {
   endpoint: string;
@@ -124,12 +124,12 @@ async function runEnterpriseTests() {
   );
 
   // 결과 요약
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   console.log('📊 테스트 결과 요약');
   console.log('='.repeat(60));
 
-  const successful = results.filter(r => r.success).length;
-  const failed = results.filter(r => !r.success).length;
+  const successful = results.filter((r) => r.success).length;
+  const failed = results.filter((r) => !r.success).length;
   const totalDuration = results.reduce((sum, r) => sum + r.duration, 0);
 
   console.log(`✅ 성공: ${successful}/${results.length}`);
@@ -140,17 +140,17 @@ async function runEnterpriseTests() {
   );
 
   // 실패한 테스트 상세
-  const failedTests = results.filter(r => !r.success);
+  const failedTests = results.filter((r) => !r.success);
   if (failedTests.length > 0) {
     console.log('\n🚨 실패한 테스트:');
-    failedTests.forEach(test => {
+    failedTests.forEach((test) => {
       console.log(`  - ${test.endpoint}: ${test.error}`);
     });
   }
 
   // 성공한 경우 주요 데이터 샘플 출력
   const enterpriseResult = results.find(
-    r => r.endpoint === '/api/enterprise' && r.success
+    (r) => r.endpoint === '/api/enterprise' && r.success
   );
   if (enterpriseResult?.data) {
     console.log('\n🏢 Enterprise 현황 샘플:');
@@ -179,7 +179,7 @@ async function runEnterpriseTests() {
 
 // 스크립트 직접 실행 시
 if (require.main === module) {
-  runEnterpriseTests().catch(error => {
+  runEnterpriseTests().catch((error) => {
     console.error('💥 테스트 실행 중 오류:', error);
     process.exit(1);
   });

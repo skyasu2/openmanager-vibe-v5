@@ -1,12 +1,12 @@
-import globals from 'globals';
 import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import eslintConfigPrettier from 'eslint-config-prettier';
 import nextPlugin from '@next/eslint-plugin-next';
-import reactPlugin from 'eslint-plugin-react';
-import hooksPlugin from 'eslint-plugin-react-hooks';
+import eslintConfigPrettier from 'eslint-config-prettier';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import k6Plugin from 'eslint-plugin-k6-linting-rules';
+import reactPlugin from 'eslint-plugin-react';
+import hooksPlugin from 'eslint-plugin-react-hooks';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 // 🚀 Performance: 타입 체킹을 환경변수로 제어 (lint-staged/pre-push에서 비활성화)
 // ESLINT_FAST=true: 타입 체킹 없이 빠른 린트만 실행

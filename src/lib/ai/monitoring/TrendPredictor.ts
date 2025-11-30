@@ -250,7 +250,7 @@ export class TrendPredictor {
     const ssResidual = y.reduce((sum, yi, i) => {
       const xi = x[i] ?? 0;
       const predicted = slope * xi + intercept;
-      return sum + Math.pow(yi - predicted, 2);
+      return sum + (yi - predicted) ** 2;
     }, 0);
     const r2 = ssTotal !== 0 ? 1 - ssResidual / ssTotal : 0;
 

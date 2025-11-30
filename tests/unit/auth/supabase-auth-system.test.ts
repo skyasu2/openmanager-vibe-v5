@@ -1,6 +1,6 @@
 /**
  * Supabase 인증 시스템 종합 테스트
- * 
+ *
  * 테스트 범위:
  * - GitHub OAuth 인증
  * - 게스트 인증
@@ -10,7 +10,7 @@
  * - 에러 처리
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock modules before importing the actual modules
 vi.mock('@/lib/supabase', () => ({
@@ -19,9 +19,11 @@ vi.mock('@/lib/supabase', () => ({
       signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
       getSession: vi.fn(),
-      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } }))
-    }
-  }
+      onAuthStateChange: vi.fn(() => ({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      })),
+    },
+  },
 }));
 
 vi.mock('@/lib/security/secure-cookies', () => ({
@@ -29,44 +31,44 @@ vi.mock('@/lib/security/secure-cookies', () => ({
   guestSessionCookies: {
     set: vi.fn(),
     get: vi.fn(),
-    clear: vi.fn()
-  }
+    clear: vi.fn(),
+  },
 }));
 
 vi.mock('@/services/system/SystemStateManager', () => ({
   SystemStateManager: vi.fn(() => ({
-    startSystem: vi.fn().mockResolvedValue({ success: true })
-  }))
+    startSystem: vi.fn().mockResolvedValue({ success: true }),
+  })),
 }));
 
 vi.mock('@/lib/auth-state-manager', () => ({
   authStateManager: {
     setGuestAuth: vi.fn(),
     clearAuth: vi.fn(),
-    getCurrentUser: vi.fn()
-  }
+    getCurrentUser: vi.fn(),
+  },
 }));
 
-// Import after mocking
-import { signInWithGitHub, type AuthUser, type AuthCallbackResult } from '../../../src/lib/supabase-auth';
-import { AuthStateManager, type AuthSession, type AuthResult } from '../../../src/services/auth/AuthStateManager';
-import { supabase } from '../../../src/lib/supabase';
 import { validateRedirectUrl } from '../../../src/lib/security/secure-cookies';
+import { supabase } from '../../../src/lib/supabase';
+// Import after mocking
+import { signInWithGitHub } from '../../../src/lib/supabase-auth';
+import { AuthStateManager } from '../../../src/services/auth/AuthStateManager';
 
 // Test data
-const mockGitHubUser = {
+const _mockGitHubUser = {
   id: 'github-123',
   email: 'test@example.com',
   name: 'Test User',
   avatar: 'https://github.com/avatar.jpg',
-  provider: 'github' as const
+  provider: 'github' as const,
 };
 
-const mockGuestUser = {
+const _mockGuestUser = {
   id: 'guest-001',
   name: '일반사용자',
   type: 'guest' as const,
-  permissions: ['dashboard:view', 'system:start', 'basic_interaction']
+  permissions: ['dashboard:view', 'system:start', 'basic_interaction'],
 };
 
 describe('Supabase Authentication System', () => {
@@ -75,16 +77,16 @@ describe('Supabase Authentication System', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     authManager = new AuthStateManager();
-    
+
     // Setup default mocks
     vi.mocked(validateRedirectUrl).mockReturnValue(true);
-    
+
     // Mock window.location
     Object.defineProperty(window, 'location', {
       value: {
-        origin: 'http://localhost:3000'
+        origin: 'http://localhost:3000',
       },
-      writable: true
+      writable: true,
     });
 
     // Mock environment variables
@@ -100,12 +102,12 @@ describe('Supabase Authentication System', () => {
     it('should successfully initiate GitHub OAuth login', async () => {
       const mockAuthData = {
         provider: 'github',
-        url: 'https://github.com/oauth/authorize?...'
+        url: 'https://github.com/oauth/authorize?...',
       };
 
       vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValue({
         data: mockAuthData,
-        error: null
+        error: null,
       });
 
       const result = await signInWithGitHub();
@@ -117,17 +119,17 @@ describe('Supabase Authentication System', () => {
         options: {
           redirectTo: 'http://localhost:3000/auth/callback',
           scopes: 'read:user user:email',
-          skipBrowserRedirect: false
-        }
+          skipBrowserRedirect: false,
+        },
       });
     });
 
     it('should handle OAuth authentication errors', async () => {
       const mockError = new Error('GitHub OAuth failed');
-      
+
       vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValue({
         data: null,
-        error: mockError
+        error: mockError,
       });
 
       const result = await signInWithGitHub();
@@ -142,7 +144,9 @@ describe('Supabase Authentication System', () => {
       const result = await signInWithGitHub();
 
       expect(result.error).toBeDefined();
-      expect(result.error?.message).toContain('보안상 허용되지 않은 리다이렉트 URL');
+      expect(result.error?.message).toContain(
+        '보안상 허용되지 않은 리다이렉트 URL'
+      );
     });
 
     it('should validate environment variables', async () => {
@@ -151,19 +155,21 @@ describe('Supabase Authentication System', () => {
       const result = await signInWithGitHub();
 
       expect(result.error).toBeDefined();
-      expect(result.error?.message).toContain('Supabase URL이 올바르게 설정되지 않았습니다');
+      expect(result.error?.message).toContain(
+        'Supabase URL이 올바르게 설정되지 않았습니다'
+      );
     });
 
     it('should detect different environments (local/vercel)', async () => {
       // Test Vercel environment
       Object.defineProperty(window, 'location', {
         value: { origin: 'https://app.vercel.app' },
-        writable: true
+        writable: true,
       });
 
       vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValue({
         data: { provider: 'github', url: 'test' },
-        error: null
+        error: null,
       });
 
       await signInWithGitHub();
@@ -173,8 +179,8 @@ describe('Supabase Authentication System', () => {
         options: {
           redirectTo: 'https://app.vercel.app/auth/callback',
           scopes: 'read:user user:email',
-          skipBrowserRedirect: false
-        }
+          skipBrowserRedirect: false,
+        },
       });
     });
 
@@ -216,17 +222,17 @@ describe('Supabase Authentication System', () => {
       expect(result.user?.permissions).toEqual([
         'dashboard:view',
         'system:start',
-        'basic_interaction'
+        'basic_interaction',
       ]);
     });
 
     it('should handle system startup errors gracefully', async () => {
       // Mock system startup failure
-      const mockSystemManager = {
-        startSystem: vi.fn().mockResolvedValue({ 
-          success: false, 
-          error: 'System startup failed' 
-        })
+      const _mockSystemManager = {
+        startSystem: vi.fn().mockResolvedValue({
+          success: false,
+          error: 'System startup failed',
+        }),
       };
 
       const result = await authManager.loginAsGuest();
@@ -238,7 +244,7 @@ describe('Supabase Authentication System', () => {
 
     it('should integrate with unified auth state manager', async () => {
       const { authStateManager } = await import('@/lib/auth-state-manager');
-      
+
       await authManager.loginAsGuest();
 
       expect(authStateManager.setGuestAuth).toHaveBeenCalledWith({
@@ -246,7 +252,7 @@ describe('Supabase Authentication System', () => {
         name: '일반사용자',
         email: undefined,
         avatar: undefined,
-        provider: 'guest'
+        provider: 'guest',
       });
     });
   });
@@ -301,7 +307,7 @@ describe('Supabase Authentication System', () => {
       const initialActivity = initialSession.lastActivity;
 
       // Wait a bit and update activity
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       authManager.updateSessionActivity(sessionId);
 
       const updatedSession = authManager.getSession(sessionId)!;
@@ -332,8 +338,14 @@ describe('Supabase Authentication System', () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
 
-      const canViewDashboard = authManager.canPerformAction(sessionId, 'view_dashboard');
-      const canManageUsers = authManager.canPerformAction(sessionId, 'manage_users');
+      const canViewDashboard = authManager.canPerformAction(
+        sessionId,
+        'view_dashboard'
+      );
+      const canManageUsers = authManager.canPerformAction(
+        sessionId,
+        'manage_users'
+      );
 
       expect(canViewDashboard).toBe(true);
       expect(canManageUsers).toBe(false);
@@ -357,21 +369,21 @@ describe('Supabase Authentication System', () => {
       const validUrls = [
         'http://localhost:3000/auth/callback',
         'https://app.vercel.app/auth/callback',
-        'https://openmanager-vibe.vercel.app/auth/callback'
+        'https://openmanager-vibe.vercel.app/auth/callback',
       ];
 
       const invalidUrls = [
         'https://malicious-site.com/auth/callback',
         'javascript:alert(1)',
-        'data:text/html,<script>alert(1)</script>'
+        'data:text/html,<script>alert(1)</script>',
       ];
 
-      validUrls.forEach(url => {
+      validUrls.forEach((url) => {
         vi.mocked(validateRedirectUrl).mockReturnValue(true);
         expect(validateRedirectUrl(url)).toBe(true);
       });
 
-      invalidUrls.forEach(url => {
+      invalidUrls.forEach((url) => {
         vi.mocked(validateRedirectUrl).mockReturnValue(false);
         expect(validateRedirectUrl(url)).toBe(false);
       });
@@ -379,14 +391,16 @@ describe('Supabase Authentication System', () => {
 
     it('should handle session hijacking attempts', async () => {
       const loginResult = await authManager.loginAsGuest();
-      const sessionId = loginResult.sessionId!;
+      const _sessionId = loginResult.sessionId!;
 
       // Simulate session ID manipulation
       const fakeSessionId = 'fake-session-id';
 
       expect(authManager.getSession(fakeSessionId)).toBeUndefined();
       expect(authManager.isSessionValid(fakeSessionId)).toBe(false);
-      expect(authManager.hasPermission(fakeSessionId, 'dashboard:view')).toBe(false);
+      expect(authManager.hasPermission(fakeSessionId, 'dashboard:view')).toBe(
+        false
+      );
     });
 
     it('should enforce session timeout', async () => {
@@ -407,7 +421,7 @@ describe('Supabase Authentication System', () => {
 
       // Guest users should not be able to get admin permissions
       const session = authManager.getSession(sessionId)!;
-      
+
       expect(session.user.type).toBe('guest');
       expect(session.user.permissions).not.toContain('admin:*');
       expect(session.user.permissions).not.toContain('system:admin');
@@ -421,7 +435,9 @@ describe('Supabase Authentication System', () => {
       const result = await signInWithGitHub();
 
       expect(result.error).toBeDefined();
-      expect(result.error?.message).toContain('Supabase URL이 올바르게 설정되지 않았습니다');
+      expect(result.error?.message).toContain(
+        'Supabase URL이 올바르게 설정되지 않았습니다'
+      );
     });
 
     it('should handle supabase client errors', async () => {
@@ -436,17 +452,19 @@ describe('Supabase Authentication System', () => {
     });
 
     it('should handle concurrent login attempts', async () => {
-      const promises = Array(5).fill(null).map(() => authManager.loginAsGuest());
+      const promises = Array(5)
+        .fill(null)
+        .map(() => authManager.loginAsGuest());
       const results = await Promise.all(promises);
 
       // All should succeed with unique sessions
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.success).toBe(true);
         expect(result.sessionId).toBeDefined();
       });
 
       // All sessions should be unique
-      const sessionIds = results.map(r => r.sessionId);
+      const sessionIds = results.map((r) => r.sessionId);
       const uniqueIds = new Set(sessionIds);
       expect(uniqueIds.size).toBe(sessionIds.length);
     });
@@ -468,8 +486,10 @@ describe('Supabase Authentication System', () => {
       // Mock system manager failure
       vi.doMock('@/lib/auth-state-manager', () => ({
         authStateManager: {
-          setGuestAuth: vi.fn().mockRejectedValue(new Error('Integration failed'))
-        }
+          setGuestAuth: vi
+            .fn()
+            .mockRejectedValue(new Error('Integration failed')),
+        },
       }));
 
       const result = await authManager.loginAsGuest();
@@ -487,10 +507,10 @@ describe('Supabase Authentication System', () => {
         '',
         '<script>alert(1)</script>',
         'javascript:alert(1)',
-        { malicious: 'object' }
+        { malicious: 'object' },
       ];
 
-      invalidInputs.forEach(input => {
+      invalidInputs.forEach((input) => {
         expect(authManager.hasPermission(input as any, 'test')).toBe(false);
         expect(authManager.isSessionValid(input as any)).toBe(false);
       });
@@ -504,18 +524,18 @@ describe('Supabase Authentication System', () => {
       expect(loginResult.success).toBe(true);
 
       const sessionId = loginResult.sessionId!;
-      
+
       // 2. Session validation
       expect(authManager.isSessionValid(sessionId)).toBe(true);
-      
+
       // 3. Permission check
       expect(authManager.hasPermission(sessionId, 'dashboard:view')).toBe(true);
-      
+
       // 4. Activity update
       authManager.updateSessionActivity(sessionId);
       const session = authManager.getSession(sessionId)!;
       expect(session.lastActivity).toBeGreaterThan(session.createdAt);
-      
+
       // 5. Logout
       const logoutResult = await authManager.logout(sessionId);
       expect(logoutResult.success).toBe(true);
@@ -524,10 +544,12 @@ describe('Supabase Authentication System', () => {
 
     it('should handle authentication state persistence', async () => {
       // Mock cookie/storage operations
-      const { guestSessionCookies } = await import('@/lib/security/secure-cookies');
-      
+      const { guestSessionCookies } = await import(
+        '@/lib/security/secure-cookies'
+      );
+
       const loginResult = await authManager.loginAsGuest();
-      const sessionId = loginResult.sessionId!;
+      const _sessionId = loginResult.sessionId!;
 
       // Verify session can be persisted and restored
       expect(guestSessionCookies.set).toHaveBeenCalledWith(

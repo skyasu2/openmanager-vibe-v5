@@ -11,8 +11,8 @@
  * - 배치 처리 지원
  */
 
+import crypto from 'node:crypto';
 import { aiLogger } from '../../lib/logger';
-import crypto from 'crypto';
 
 interface EmbeddingCache {
   embedding: number[];

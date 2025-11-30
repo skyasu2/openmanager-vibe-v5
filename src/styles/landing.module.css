@@ -16,7 +16,7 @@
 
 /* 파티클 배경 효과 */
 .splashContainer::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -111,7 +111,7 @@
 }
 
 .featureCard::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -190,7 +190,7 @@
 }
 
 .btnPrimary::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;

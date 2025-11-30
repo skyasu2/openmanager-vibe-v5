@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
-import { NextRequest, NextResponse } from 'next/server';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server';
 import { withDefault } from '@/types/type-utils';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 
@@ -55,13 +55,15 @@ export async function updateSession(
                     typeof v === 'number' ||
                     typeof v === 'boolean'
                       ? String(v)
-                      : (() => {
-                          try {
-                            return JSON.stringify(v);
-                          } catch {
-                            return '[unserializable]';
+                      : (
+                          () => {
+                            try {
+                              return JSON.stringify(v);
+                            } catch {
+                              return '[unserializable]';
+                            }
                           }
-                        })()
+                        )()
                   }`
               )
               .join('; ')}`;
@@ -89,13 +91,15 @@ export async function updateSession(
                     typeof v === 'number' ||
                     typeof v === 'boolean'
                       ? String(v)
-                      : (() => {
-                          try {
-                            return JSON.stringify(v);
-                          } catch {
-                            return '[unserializable]';
+                      : (
+                          () => {
+                            try {
+                              return JSON.stringify(v);
+                            } catch {
+                              return '[unserializable]';
+                            }
                           }
-                        })()
+                        )()
                   }`
               )
               .join('; ')}`;

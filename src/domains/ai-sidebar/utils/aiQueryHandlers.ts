@@ -3,8 +3,8 @@
  * AI 쿼리 처리 및 자동 보고서 생성 로직
  */
 
-import type { AIMode } from '@/types/ai-types';
 import type { ChatMessage } from '@/stores/useAISidebarStore';
+import type { AIMode } from '@/types/ai-types';
 
 export interface AIQueryResult {
   success: boolean;
@@ -65,7 +65,12 @@ export async function processRealAIQuery(
 
       // 성공 시 생각 과정을 저장하고 실시간 표시 중단
       setTimeout(
-        () => onThinkingStop(query, data.engine || 'unified-google-rag', processingTime),
+        () =>
+          onThinkingStop(
+            query,
+            data.engine || 'unified-google-rag',
+            processingTime
+          ),
         500
       );
 
@@ -204,7 +209,7 @@ export function detectAutoReportTrigger(
 export async function handleAIQuery({
   query,
   engine: _engine,
-  context: _context
+  context: _context,
 }: {
   query: string;
   engine: AIMode;
@@ -221,12 +226,14 @@ export async function handleAIQuery({
     () => {}
   );
 
-  return result.success ? {
-    response: result.content,
-    metadata: result.metadata
-  } : {
-    error: result.content
-  };
+  return result.success
+    ? {
+        response: result.content,
+        metadata: result.metadata,
+      }
+    : {
+        error: result.content,
+      };
 }
 
 /**
@@ -236,11 +243,11 @@ export function validateQuery(query: string): boolean {
   if (!query || query.trim().length === 0) {
     return false;
   }
-  
+
   if (query.length > 5000) {
     return false;
   }
-  
+
   return true;
 }
 

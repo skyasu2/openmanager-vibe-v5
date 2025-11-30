@@ -9,10 +9,10 @@
 
 'use client';
 
-import { Suspense, useEffect, useState, type ReactNode } from 'react';
+import { Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { type ReactNode, Suspense, useEffect, useState } from 'react';
 import MainPageSkeleton from '@/components/home/MainPageSkeleton';
 
 // 동적 로딩 컴포넌트들 - 초기 로드에서 제외

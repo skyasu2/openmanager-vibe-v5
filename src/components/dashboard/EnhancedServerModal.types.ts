@@ -14,7 +14,15 @@ import type { ServerStatus } from '@/types/server-enums'; // 🔧 수정: Single
 // 🔧 수정: re-export 제거, 직접 사용
 export type NetworkStatus = 'excellent' | 'good' | 'poor' | 'offline';
 export type LogLevel = 'info' | 'warn' | 'error';
-export type ServiceStatus = 'running' | 'stopped' | 'warning' | 'failed' | 'starting' | 'stopping' | 'error' | 'unknown';
+export type ServiceStatus =
+  | 'running'
+  | 'stopped'
+  | 'warning'
+  | 'failed'
+  | 'starting'
+  | 'stopping'
+  | 'error'
+  | 'unknown';
 export type TabId = 'overview' | 'metrics' | 'processes' | 'logs' | 'network';
 export type TimeRange = '5m' | '1h' | '6h' | '24h' | '7d';
 

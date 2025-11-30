@@ -15,7 +15,6 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-
 interface SystemLogEntry {
   id: string;
   level: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
@@ -131,7 +130,6 @@ class MemoryLogStream {
 
 export class CloudLoggingService {
   private supabase: SupabaseClient | null = null;
-  private supabaseInitialized = false;
   private static instance: CloudLoggingService;
   private config: LoggingConfig;
   private memoryStream: MemoryLogStream;
@@ -438,7 +436,7 @@ export class CloudLoggingService {
 
           // 에러율 계산
           const errorCount =
-            (levelCounts['ERROR'] || 0) + (levelCounts['CRITICAL'] || 0);
+            (levelCounts.ERROR || 0) + (levelCounts.CRITICAL || 0);
           supabaseStats.errorRate =
             data.length > 0 ? (errorCount / data.length) * 100 : 0;
         }

@@ -1,7 +1,14 @@
 'use client';
 
+import {
+  Activity,
+  AlertCircle,
+  Cloud,
+  Database,
+  TrendingUp,
+  Zap,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Activity, Database, Cloud, Zap, TrendingUp, AlertCircle } from 'lucide-react';
 
 interface FreeTierStats {
   vercel: { used: number; limit: number; unit: string };
@@ -19,14 +26,14 @@ export default function FreeTierMonitor() {
       try {
         const res = await fetch('/api/ai/cache-stats');
         const data = await res.json();
-        
+
         setStats({
           vercel: { used: 10, limit: 100, unit: 'GB' },
           supabase: { used: 50, limit: 500, unit: 'MB' },
-          googleAI: { 
-            used: data.googleAI?.dailyUsage || 0, 
-            limit: 1200, 
-            unit: '요청/일' 
+          googleAI: {
+            used: data.googleAI?.dailyUsage || 0,
+            limit: 1200,
+            unit: '요청/일',
           },
           cached: data.cached || false,
         });
@@ -44,9 +51,7 @@ export default function FreeTierMonitor() {
 
   if (loading) {
     return (
-      <div className="p-4 text-center text-sm text-gray-500">
-        로딩 중...
-      </div>
+      <div className="p-4 text-center text-sm text-gray-500">로딩 중...</div>
     );
   }
 
@@ -82,7 +87,9 @@ export default function FreeTierMonitor() {
   return (
     <div className="space-y-4 p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700">무료 티어 사용량</h3>
+        <h3 className="text-sm font-semibold text-gray-700">
+          무료 티어 사용량
+        </h3>
         <Activity className="h-4 w-4 text-gray-400" />
       </div>
 
@@ -99,7 +106,9 @@ export default function FreeTierMonitor() {
                   {service.name}
                 </span>
               </div>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${colorClass}`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${colorClass}`}
+              >
                 {percentage.toFixed(0)}%
               </span>
             </div>

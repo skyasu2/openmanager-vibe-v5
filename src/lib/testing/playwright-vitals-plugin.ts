@@ -6,9 +6,9 @@
  * @auto-collect E2E 테스트 시간, 페이지 로딩, 브라우저 성능 등을 자동으로 Vitals로 수집
  */
 
-import { test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { universalVitals, type UniversalVital } from './universal-vitals';
+import { test } from '@playwright/test';
+import { type UniversalVital, universalVitals } from './universal-vitals';
 
 // 🎯 Playwright Vitals 수집 상태
 interface PlaywrightVitalsState {

@@ -1,5 +1,5 @@
+import { normalMetrics, SERVERS } from '../constants';
 import { ScenarioTimeline } from '../types';
-import { SERVERS, normalMetrics } from '../constants';
 
 // 시나리오 2: Storage 부족 연쇄 장애 (6-12시)
 export const scenario2: ScenarioTimeline = {

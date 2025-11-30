@@ -64,9 +64,7 @@ export default function UnauthorizedAccessUI({
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600">
             <Shield className="h-8 w-8 text-white" />
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-white">
-            접근 권한 필요
-          </h2>
+          <h2 className="mb-2 text-2xl font-bold text-white">접근 권한 필요</h2>
           <p className="mb-6 text-gray-300">
             {requiresGitHub
               ? '대시보드 접근을 위해 GitHub 로그인 또는 관리자 PIN 인증이 필요합니다.'

@@ -1,17 +1,20 @@
 /**
  * SupabaseTimeSeriesManager 테스트
- * 
+ *
  * 테스트 대상: SupabaseTimeSeriesManager 클래스
  * 목표: 시계열 데이터 관리, 배치 처리, 집계 통계 검증
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ServerMetric } from '@/types/server-metrics';
 
 // Type definitions for test
 interface SupabaseClient {
   from(table: string): any;
-  rpc<T = unknown>(fn: string, args?: Record<string, unknown>): Promise<{ data: T | null; error: any | null }>;
+  rpc<T = unknown>(
+    fn: string,
+    args?: Record<string, unknown>
+  ): Promise<{ data: T | null; error: any | null }>;
   storage: {
     from(bucket: string): any;
   };
@@ -62,7 +65,12 @@ interface AggregatedStats {
 }
 
 interface AlertThreshold {
-  metric: 'cpu_usage' | 'memory_usage' | 'disk_usage' | 'error_rate' | 'response_time';
+  metric:
+    | 'cpu_usage'
+    | 'memory_usage'
+    | 'disk_usage'
+    | 'error_rate'
+    | 'response_time';
   operator: '>' | '<' | '>=' | '<=' | '=';
   value: number;
   duration: number;
@@ -77,9 +85,11 @@ describe('SupabaseTimeSeriesManager', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Import SupabaseTimeSeriesManager dynamically
-    const timeSeriesModule = await import('@/services/supabase/SupabaseTimeSeriesManager');
+    const timeSeriesModule = await import(
+      '@/services/supabase/SupabaseTimeSeriesManager'
+    );
     SupabaseTimeSeriesManager = timeSeriesModule.SupabaseTimeSeriesManager;
 
     // Mock query builder chain
@@ -103,7 +113,9 @@ describe('SupabaseTimeSeriesManager', () => {
 
     // Mock storage bucket
     mockStorageBucket = {
-      upload: vi.fn().mockResolvedValue({ data: { path: 'archive.json' }, error: null }),
+      upload: vi
+        .fn()
+        .mockResolvedValue({ data: { path: 'archive.json' }, error: null }),
       download: vi.fn().mockResolvedValue({ data: new Blob(), error: null }),
       remove: vi.fn().mockResolvedValue({ data: [], error: null }),
       list: vi.fn().mockResolvedValue({ data: [], error: null }),
@@ -151,7 +163,9 @@ describe('SupabaseTimeSeriesManager', () => {
 
       await manager.batchInsertMetrics(sessionId, metrics);
 
-      expect(mockSupabaseClient.from).toHaveBeenCalledWith('server_metrics_timeseries');
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith(
+        'server_metrics_timeseries'
+      );
       expect(mockQueryBuilder.insert).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
@@ -180,23 +194,31 @@ describe('SupabaseTimeSeriesManager', () => {
 
     it('should handle large batch sizes by splitting into chunks', async () => {
       const sessionId = 'session-large';
-      const largeMetrics: ServerMetric[] = Array.from({ length: 2500 }, (_, i) => ({
-        timestamp: new Date(`2025-08-02T10:${Math.floor(i / 60).toString().padStart(2, '0')}:${(i % 60).toString().padStart(2, '0')}Z`),
-        serverId: `server-${i}`,
-        cpu: 50 + (i % 50),
-        memory: 40 + (i % 60),
-        disk: 30 + (i % 70),
-        network: { in: 100 + i, out: 200 + i },
-        status: 'healthy' as const,
-        responseTime: 200 + i,
-        activeConnections: 10 + i,
-      }));
+      const largeMetrics: ServerMetric[] = Array.from(
+        { length: 2500 },
+        (_, i) => ({
+          timestamp: new Date(
+            `2025-08-02T10:${Math.floor(i / 60)
+              .toString()
+              .padStart(2, '0')}:${(i % 60).toString().padStart(2, '0')}Z`
+          ),
+          serverId: `server-${i}`,
+          cpu: 50 + (i % 50),
+          memory: 40 + (i % 60),
+          disk: 30 + (i % 70),
+          network: { in: 100 + i, out: 200 + i },
+          status: 'healthy' as const,
+          responseTime: 200 + i,
+          activeConnections: 10 + i,
+        })
+      );
 
       await manager.batchInsertMetrics(sessionId, largeMetrics);
 
       // Should be called 3 times (1000 + 1000 + 500)
       expect(mockQueryBuilder.insert).toHaveBeenCalledTimes(3);
-      expect(mockQueryBuilder.insert).toHaveBeenNthCalledWith(1, 
+      expect(mockQueryBuilder.insert).toHaveBeenNthCalledWith(
+        1,
         expect.any(Array)
       );
     });
@@ -249,20 +271,23 @@ describe('SupabaseTimeSeriesManager', () => {
       mockQueryBuilder.insert.mockRejectedValue(new Error('Insert failed'));
 
       const sessionId = 'session-fail';
-      const metrics: ServerMetric[] = [{
-        timestamp: new Date(),
-        serverId: 'server-1',
-        cpu: 50,
-        memory: 60,
-        disk: 70,
-        network: { in: 100, out: 200 },
-        status: 'healthy',
-        responseTime: 250,
-        activeConnections: 10,
-      }];
+      const metrics: ServerMetric[] = [
+        {
+          timestamp: new Date(),
+          serverId: 'server-1',
+          cpu: 50,
+          memory: 60,
+          disk: 70,
+          network: { in: 100, out: 200 },
+          status: 'healthy',
+          responseTime: 250,
+          activeConnections: 10,
+        },
+      ];
 
-      await expect(manager.batchInsertMetrics(sessionId, metrics))
-        .rejects.toThrow('Insert failed'); // Should propagate the error
+      await expect(
+        manager.batchInsertMetrics(sessionId, metrics)
+      ).rejects.toThrow('Insert failed'); // Should propagate the error
     });
   });
 
@@ -302,11 +327,22 @@ describe('SupabaseTimeSeriesManager', () => {
       const result = await manager.queryTimeSeriesData(query);
 
       expect(mockQueryBuilder.select).toHaveBeenCalledWith('*');
-      expect(mockQueryBuilder.eq).toHaveBeenCalledWith('session_id', 'session-123');
+      expect(mockQueryBuilder.eq).toHaveBeenCalledWith(
+        'session_id',
+        'session-123'
+      );
       expect(mockQueryBuilder.eq).toHaveBeenCalledWith('server_id', 'server-1');
-      expect(mockQueryBuilder.gte).toHaveBeenCalledWith('timestamp', '2025-08-02T09:00:00.000Z');
-      expect(mockQueryBuilder.lte).toHaveBeenCalledWith('timestamp', '2025-08-02T11:00:00.000Z');
-      expect(mockQueryBuilder.order).toHaveBeenCalledWith('timestamp', { ascending: true });
+      expect(mockQueryBuilder.gte).toHaveBeenCalledWith(
+        'timestamp',
+        '2025-08-02T09:00:00.000Z'
+      );
+      expect(mockQueryBuilder.lte).toHaveBeenCalledWith(
+        'timestamp',
+        '2025-08-02T11:00:00.000Z'
+      );
+      expect(mockQueryBuilder.order).toHaveBeenCalledWith('timestamp', {
+        ascending: true,
+      });
       expect(mockQueryBuilder.limit).toHaveBeenCalledWith(100);
       expect(result).toEqual(mockData);
     });
@@ -327,16 +363,19 @@ describe('SupabaseTimeSeriesManager', () => {
 
     it('should handle query errors', async () => {
       mockQueryBuilder.then.mockImplementation((callback) => {
-        return Promise.resolve(callback({
-          data: null,
-          error: { code: 'QUERY_ERROR', message: 'Query failed' },
-        }));
+        return Promise.resolve(
+          callback({
+            data: null,
+            error: { code: 'QUERY_ERROR', message: 'Query failed' },
+          })
+        );
       });
 
       const query: TimeSeriesQuery = { sessionId: 'session-error' };
 
-      await expect(manager.queryTimeSeriesData(query))
-        .rejects.toThrow('시계열 데이터 조회 실패: Query failed');
+      await expect(manager.queryTimeSeriesData(query)).rejects.toThrow(
+        '시계열 데이터 조회 실패: Query failed'
+      );
     });
 
     it('should return empty array when no data found', async () => {
@@ -370,7 +409,9 @@ describe('SupabaseTimeSeriesManager', () => {
       ];
 
       mockQueryBuilder.then.mockImplementation((callback) => {
-        return Promise.resolve(callback({ data: mockTimeSeriesData, error: null }));
+        return Promise.resolve(
+          callback({ data: mockTimeSeriesData, error: null })
+        );
       });
 
       const result = await manager.getSessionMetricsHistory('session-123');
@@ -383,7 +424,7 @@ describe('SupabaseTimeSeriesManager', () => {
         memory: 60.2,
         disk: 45.0,
         network: { in: 75, out: 75 }, // network_usage / 2
-      status: 'online',
+        status: 'online',
         responseTime: 250,
         activeConnections: 50,
       });
@@ -399,9 +440,17 @@ describe('SupabaseTimeSeriesManager', () => {
 
       await manager.getSessionMetricsHistory('session-123', startTime, endTime);
 
-      expect(mockQueryBuilder.gte).toHaveBeenCalledWith('timestamp', startTime.toISOString());
-      expect(mockQueryBuilder.lte).toHaveBeenCalledWith('timestamp', endTime.toISOString());
-      expect(mockQueryBuilder.order).toHaveBeenCalledWith('timestamp', { ascending: true });
+      expect(mockQueryBuilder.gte).toHaveBeenCalledWith(
+        'timestamp',
+        startTime.toISOString()
+      );
+      expect(mockQueryBuilder.lte).toHaveBeenCalledWith(
+        'timestamp',
+        endTime.toISOString()
+      );
+      expect(mockQueryBuilder.order).toHaveBeenCalledWith('timestamp', {
+        ascending: true,
+      });
     });
   });
 
@@ -445,7 +494,10 @@ describe('SupabaseTimeSeriesManager', () => {
         end: new Date('2025-08-02T10:02:00Z'),
       };
 
-      const result = await manager.getServerTimeSeriesAnalysis('server-1', timeRange);
+      const result = await manager.getServerTimeSeriesAnalysis(
+        'server-1',
+        timeRange
+      );
 
       expect(result).toMatchObject({
         sessionId: 'session-123',
@@ -478,8 +530,9 @@ describe('SupabaseTimeSeriesManager', () => {
         end: new Date('2025-08-02T11:00:00Z'),
       };
 
-      await expect(manager.getServerTimeSeriesAnalysis('server-empty', timeRange))
-        .rejects.toThrow('집계할 데이터가 없습니다.');
+      await expect(
+        manager.getServerTimeSeriesAnalysis('server-empty', timeRange)
+      ).rejects.toThrow('집계할 데이터가 없습니다.');
     });
   });
 
@@ -491,7 +544,9 @@ describe('SupabaseTimeSeriesManager', () => {
       ];
 
       mockQueryBuilder.then.mockImplementation((callback) => {
-        return Promise.resolve(callback({ data: mockDeletedData, error: null }));
+        return Promise.resolve(
+          callback({ data: mockDeletedData, error: null })
+        );
       });
 
       const deletedCount = await manager.cleanupExpiredData();
@@ -506,14 +561,17 @@ describe('SupabaseTimeSeriesManager', () => {
 
     it('should handle cleanup errors', async () => {
       mockQueryBuilder.then.mockImplementation((callback) => {
-        return Promise.resolve(callback({
-          data: null,
-          error: { code: 'DELETE_ERROR', message: 'Cleanup failed' },
-        }));
+        return Promise.resolve(
+          callback({
+            data: null,
+            error: { code: 'DELETE_ERROR', message: 'Cleanup failed' },
+          })
+        );
       });
 
-      await expect(manager.cleanupExpiredData())
-        .rejects.toThrow('만료 데이터 정리 실패: Cleanup failed');
+      await expect(manager.cleanupExpiredData()).rejects.toThrow(
+        '만료 데이터 정리 실패: Cleanup failed'
+      );
     });
 
     it('should return 0 when no data to delete', async () => {
@@ -578,8 +636,9 @@ describe('SupabaseTimeSeriesManager', () => {
         return Promise.resolve(callback({ data: [], error: null }));
       });
 
-      await expect(manager.calculateSessionAggregates('empty-session'))
-        .rejects.toThrow('세션 empty-session에 대한 데이터가 없습니다.');
+      await expect(
+        manager.calculateSessionAggregates('empty-session')
+      ).rejects.toThrow('세션 empty-session에 대한 데이터가 없습니다.');
     });
   });
 
@@ -604,7 +663,9 @@ describe('SupabaseTimeSeriesManager', () => {
 
       const result = await manager.archiveOldData(30);
 
-      expect(result).toContain('2개 레코드가 삭제되었습니다 (베르셀 환경에서 아카이브 업로드 건너뛰기)');
+      expect(result).toContain(
+        '2개 레코드가 삭제되었습니다 (베르셀 환경에서 아카이브 업로드 건너뛰기)'
+      );
       expect(mockStorageBucket.upload).not.toHaveBeenCalled();
       expect(mockQueryBuilder.delete).toHaveBeenCalled();
 
@@ -616,9 +677,7 @@ describe('SupabaseTimeSeriesManager', () => {
       process.env.NODE_ENV = 'development';
       delete process.env.VERCEL;
 
-      const mockOldData = [
-        { id: '1', created_at: '2025-07-01T10:00:00Z' },
-      ];
+      const mockOldData = [{ id: '1', created_at: '2025-07-01T10:00:00Z' }];
 
       mockQueryBuilder.then
         .mockImplementationOnce((callback) => {
@@ -653,14 +712,17 @@ describe('SupabaseTimeSeriesManager', () => {
 
     it('should handle archive query errors', async () => {
       mockQueryBuilder.then.mockImplementation((callback) => {
-        return Promise.resolve(callback({
-          data: null,
-          error: { code: 'QUERY_ERROR', message: 'Archive query failed' },
-        }));
+        return Promise.resolve(
+          callback({
+            data: null,
+            error: { code: 'QUERY_ERROR', message: 'Archive query failed' },
+          })
+        );
       });
 
-      await expect(manager.archiveOldData(30))
-        .rejects.toThrow('아카이브 대상 데이터 조회 실패: Archive query failed');
+      await expect(manager.archiveOldData(30)).rejects.toThrow(
+        '아카이브 대상 데이터 조회 실패: Archive query failed'
+      );
     });
   });
 
@@ -692,7 +754,10 @@ describe('SupabaseTimeSeriesManager', () => {
         { metric: 'response_time', operator: '>', value: 1000, duration: 300 },
       ];
 
-      const alerts = await manager.checkAlertThresholds('session-123', thresholds);
+      const alerts = await manager.checkAlertThresholds(
+        'session-123',
+        thresholds
+      );
 
       expect(alerts).toHaveLength(2);
       expect(alerts).toContainEqual({
@@ -735,7 +800,10 @@ describe('SupabaseTimeSeriesManager', () => {
         { metric: 'memory_usage', operator: '>', value: 80, duration: 300 },
       ];
 
-      const alerts = await manager.checkAlertThresholds('session-123', thresholds);
+      const alerts = await manager.checkAlertThresholds(
+        'session-123',
+        thresholds
+      );
 
       expect(alerts).toHaveLength(0);
     });
@@ -751,7 +819,9 @@ describe('SupabaseTimeSeriesManager', () => {
         'timestamp',
         expect.stringMatching(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/)
       );
-      expect(mockQueryBuilder.order).toHaveBeenCalledWith('timestamp', { ascending: false });
+      expect(mockQueryBuilder.order).toHaveBeenCalledWith('timestamp', {
+        ascending: false,
+      });
     });
   });
 
@@ -797,9 +867,15 @@ describe('SupabaseTimeSeriesManager', () => {
       expect(result.validRecords).toBe(1);
       expect(result.issues).toHaveLength(4);
       expect(result.issues).toContain('레코드 unknown에 필수 필드가 누락됨');
-      expect(result.issues).toContain('서버 의 CPU 사용률이 유효 범위를 벗어남: 150');
-      expect(result.issues).toContain('서버 의 메모리 사용률이 유효 범위를 벗어남: -10');
-      expect(result.issues).toContain('서버 의 에러율이 유효 범위를 벗어남: 110');
+      expect(result.issues).toContain(
+        '서버 의 CPU 사용률이 유효 범위를 벗어남: 150'
+      );
+      expect(result.issues).toContain(
+        '서버 의 메모리 사용률이 유효 범위를 벗어남: -10'
+      );
+      expect(result.issues).toContain(
+        '서버 의 에러율이 유효 범위를 벗어남: 110'
+      );
     });
 
     it('should return valid result when all data is correct', async () => {
@@ -852,20 +928,23 @@ describe('SupabaseTimeSeriesManager', () => {
         throw new Error('Supabase client error');
       });
 
-      const testMetrics: any[] = [{
-        timestamp: new Date(),
-        serverId: 'server-1',
-        cpu: 50,
-        memory: 60,
-        disk: 70,
-        network: { in: 100, out: 200 },
-        status: 'healthy',
-        responseTime: 250,
-        activeConnections: 10,
-      }];
+      const testMetrics: any[] = [
+        {
+          timestamp: new Date(),
+          serverId: 'server-1',
+          cpu: 50,
+          memory: 60,
+          disk: 70,
+          network: { in: 100, out: 200 },
+          status: 'healthy',
+          responseTime: 250,
+          activeConnections: 10,
+        },
+      ];
 
-      await expect(manager.batchInsertMetrics('session-error', testMetrics))
-        .rejects.toThrow('Supabase client error');
+      await expect(
+        manager.batchInsertMetrics('session-error', testMetrics)
+      ).rejects.toThrow('Supabase client error');
     });
 
     it('should handle malformed data transformations', async () => {
@@ -884,8 +963,9 @@ describe('SupabaseTimeSeriesManager', () => {
       ];
 
       // Should not throw during transformation
-      await expect(manager.batchInsertMetrics('session-malformed', malformedMetrics))
-        .resolves.not.toThrow();
+      await expect(
+        manager.batchInsertMetrics('session-malformed', malformedMetrics)
+      ).resolves.not.toThrow();
     });
 
     it('should handle very large time ranges efficiently', async () => {
@@ -900,35 +980,38 @@ describe('SupabaseTimeSeriesManager', () => {
       });
 
       // Should throw error when no data is available
-      await expect(manager.getServerTimeSeriesAnalysis('server-1', hugeTimeRange))
-        .rejects.toThrow('집계할 데이터가 없습니다.');
+      await expect(
+        manager.getServerTimeSeriesAnalysis('server-1', hugeTimeRange)
+      ).rejects.toThrow('집계할 데이터가 없습니다.');
     });
 
     it('should handle concurrent operations safely', async () => {
       const sessionId = 'concurrent-session';
-      const metrics: ServerMetric[] = [{
-        timestamp: new Date(),
-        serverId: 'server-1',
-        cpu: 50,
-        memory: 60,
-        disk: 70,
-        network: { in: 100, out: 200 },
-        status: 'healthy',
-        responseTime: 250,
-        activeConnections: 10,
-      }];
+      const metrics: ServerMetric[] = [
+        {
+          timestamp: new Date(),
+          serverId: 'server-1',
+          cpu: 50,
+          memory: 60,
+          disk: 70,
+          network: { in: 100, out: 200 },
+          status: 'healthy',
+          responseTime: 250,
+          activeConnections: 10,
+        },
+      ];
 
       // Mock for insert operations (batchInsertMetrics)
       mockQueryBuilder.insert.mockResolvedValue({ data: [], error: null });
-      
+
       // Mock for query operations (queryTimeSeriesData)
       mockQueryBuilder.then.mockImplementation((callback) => {
         return Promise.resolve(callback({ data: [], error: null }));
       });
-      
+
       // Mock for delete operations (cleanupExpiredData) - needs to chain with lte()
       mockQueryBuilder.delete.mockReturnValue({
-        lte: vi.fn().mockResolvedValue({ data: [], error: null })
+        lte: vi.fn().mockResolvedValue({ data: [], error: null }),
       });
 
       // Run concurrent operations
@@ -940,7 +1023,7 @@ describe('SupabaseTimeSeriesManager', () => {
 
       // All operations should complete without throwing
       const results = await Promise.all(operations);
-      
+
       expect(results).toHaveLength(3);
       expect(results[0]).toBeUndefined(); // batchInsertMetrics returns void
       expect(results[1]).toEqual([]); // queryTimeSeriesData returns empty array

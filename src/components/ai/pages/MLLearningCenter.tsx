@@ -9,20 +9,21 @@
 
 'use client';
 
-import React, { Fragment, useState, useCallback, createElement, FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  Brain,
-  FileSearch,
-  Target,
-  Loader2,
-  CheckCircle,
   AlertCircle,
   BarChart3,
+  Brain,
+  CheckCircle,
   Clock,
-  Zap,
   Database,
+  FileSearch,
+  Loader2,
+  Target,
+  Zap,
 } from 'lucide-react';
+import { createElement, FC, useCallback, useState } from 'react';
+
 // AnomalyDetection 제거 - 클라이언트에서 Redis 사용 불가
 // IncidentReportService 제거 - 클라이언트에서 Redis 사용 불가
 // GCPFunctionsService 제거 - 더 이상 사용하지 않음
@@ -312,7 +313,7 @@ export const MLLearningCenter: FC = () => {
         }));
       }
     },
-    [learningProgress]
+    [learningProgress, getStepDescription]
   );
 
   // 시간 포맷팅
@@ -344,11 +345,11 @@ export const MLLearningCenter: FC = () => {
           const isError = progress.status === 'error';
 
           return (
-            <div
-              key={button.id}
-            >
+            <div key={button.id}>
               <button
-                onClick={() => { void startLearning(button.id); }}
+                onClick={() => {
+                  void startLearning(button.id);
+                }}
                 disabled={isRunning}
                 className={`w-full rounded-xl border-2 p-6 transition-all ${
                   isRunning
@@ -399,7 +400,7 @@ export const MLLearningCenter: FC = () => {
                               ? 'bg-red-500'
                               : isCompleted
                                 ? 'bg-green-500'
-                                : 'bg-gradient-to-r ' + button.color
+                                : `bg-gradient-to-r ${button.color}`
                           }`}
                         />
                       </div>
@@ -425,75 +426,69 @@ export const MLLearningCenter: FC = () => {
       </div>
 
       {/* 학습 결과 표시 */}
-      <Fragment>
-        {selectedResult && (
-          <div
-            className="mt-8 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6"
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
-                <BarChart3 className="h-5 w-5 text-blue-600" />
-                최근 학습 결과
-              </h3>
-              <button
-                onClick={() => setSelectedResult(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="rounded-lg bg-white p-4">
-                <div className="mb-1 text-sm text-gray-600">발견한 패턴</div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {selectedResult.patternsLearned}개
-                </div>
-              </div>
-              <div className="rounded-lg bg-white p-4">
-                <div className="mb-1 text-sm text-gray-600">정확도 향상</div>
-                <div className="text-2xl font-bold text-green-600">
-                  +{selectedResult.accuracyImprovement}%
-                </div>
-              </div>
-              <div className="rounded-lg bg-white p-4">
-                <div className="mb-1 text-sm text-gray-600">신뢰도</div>
-                <div className="text-2xl font-bold text-purple-600">
-                  {((selectedResult.confidence || 0) * 100).toFixed(0)}%
-                </div>
-              </div>
-            </div>
-
-            {selectedResult.insights && (
-              <div className="mb-4">
-                <h4 className="mb-2 font-medium text-gray-700">
-                  주요 인사이트
-                </h4>
-                <ul className="space-y-1">
-                  {selectedResult.insights.map((insight, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2 text-sm text-gray-600"
-                    >
-                      <Zap className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
-                      {insight}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {selectedResult.nextRecommendation && (
-              <div className="rounded-lg bg-blue-100 p-3">
-                <p className="text-sm text-blue-800">
-                  <strong>다음 권장사항:</strong>{' '}
-                  {selectedResult.nextRecommendation}
-                </p>
-              </div>
-            )}
+      {selectedResult && (
+        <div className="mt-8 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+              <BarChart3 className="h-5 w-5 text-blue-600" />
+              최근 학습 결과
+            </h3>
+            <button
+              onClick={() => setSelectedResult(null)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
           </div>
-        )}
-      </Fragment>
+
+          <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-lg bg-white p-4">
+              <div className="mb-1 text-sm text-gray-600">발견한 패턴</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {selectedResult.patternsLearned}개
+              </div>
+            </div>
+            <div className="rounded-lg bg-white p-4">
+              <div className="mb-1 text-sm text-gray-600">정확도 향상</div>
+              <div className="text-2xl font-bold text-green-600">
+                +{selectedResult.accuracyImprovement}%
+              </div>
+            </div>
+            <div className="rounded-lg bg-white p-4">
+              <div className="mb-1 text-sm text-gray-600">신뢰도</div>
+              <div className="text-2xl font-bold text-purple-600">
+                {((selectedResult.confidence || 0) * 100).toFixed(0)}%
+              </div>
+            </div>
+          </div>
+
+          {selectedResult.insights && (
+            <div className="mb-4">
+              <h4 className="mb-2 font-medium text-gray-700">주요 인사이트</h4>
+              <ul className="space-y-1">
+                {selectedResult.insights.map((insight, idx) => (
+                  <li
+                    key={idx}
+                    className="flex items-start gap-2 text-sm text-gray-600"
+                  >
+                    <Zap className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+                    {insight}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {selectedResult.nextRecommendation && (
+            <div className="rounded-lg bg-blue-100 p-3">
+              <p className="text-sm text-blue-800">
+                <strong>다음 권장사항:</strong>{' '}
+                {selectedResult.nextRecommendation}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 학습 히스토리 */}
       {learningResults.length > 0 && (

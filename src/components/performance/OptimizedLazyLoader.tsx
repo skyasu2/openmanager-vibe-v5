@@ -5,9 +5,9 @@
 
 'use client';
 
-import { Suspense, lazy } from 'react';
-import type { ReactNode } from 'react';;
 import { Loader2 } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { lazy, Suspense } from 'react';
 
 // 최소 로딩 컴포넌트 (번들 크기 최소화)
 export const MinimalFallback = () => (
@@ -171,7 +171,7 @@ export class BundleSizeTracker {
 
   static trackComponentLoad(componentName: string, startTime: number) {
     const loadTime = performance.now() - startTime;
-    this.loadTimes[componentName] = loadTime;
+    BundleSizeTracker.loadTimes[componentName] = loadTime;
 
     if (process.env.NODE_ENV === 'development') {
       console.log(`📦 ${componentName} loaded in ${loadTime.toFixed(2)}ms`);
@@ -179,7 +179,7 @@ export class BundleSizeTracker {
   }
 
   static getLoadReport() {
-    return this.loadTimes;
+    return BundleSizeTracker.loadTimes;
   }
 }
 

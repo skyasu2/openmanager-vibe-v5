@@ -7,10 +7,10 @@
 
 'use client';
 
-// framer-motion 제거 - CSS 애니메이션 사용
-import { useSession, signIn, signOut } from '@/hooks/useSupabaseSession';
-import { useState } from 'react';
 import Image from 'next/image';
+import { useState } from 'react';
+// framer-motion 제거 - CSS 애니메이션 사용
+import { signIn, signOut, useSession } from '@/hooks/useSupabaseSession';
 
 export interface GitHubLoginButtonProps {
   onLoginError?: (error: string) => void;
@@ -90,9 +90,7 @@ export default function GitHubLoginButton({
       <div className={`space-y-4 ${className}`}>
         {/* 사용자 정보 표시 */}
         {showUserInfo && (
-          <div
-            className="rounded-lg border border-green-200 bg-green-50 p-4"
-          >
+          <div className="rounded-lg border border-green-200 bg-green-50 p-4">
             <div className="flex items-center space-x-3">
               {session.user?.image && (
                 <Image
@@ -118,7 +116,9 @@ export default function GitHubLoginButton({
 
         {/* 로그아웃 버튼 */}
         <button
-          onClick={() => { void handleGitHubLogout(); }}
+          onClick={() => {
+            void handleGitHubLogout();
+          }}
           disabled={isLoading}
           className={`flex w-full items-center justify-center rounded-lg border border-transparent px-4 py-3 text-sm font-medium text-white ${
             isLoading
@@ -161,7 +161,9 @@ export default function GitHubLoginButton({
   // 로그인 버튼
   return (
     <button
-      onClick={() => { void handleGitHubLogin(); }}
+      onClick={() => {
+        void handleGitHubLogin();
+      }}
       disabled={isLoading}
       className={`flex w-full items-center justify-center rounded-lg border border-transparent px-4 py-3 text-sm font-medium text-white ${
         isLoading

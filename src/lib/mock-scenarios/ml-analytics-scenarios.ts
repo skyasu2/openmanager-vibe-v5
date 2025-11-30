@@ -577,8 +577,7 @@ export function detectAnomalies(
     const window = metrics.slice(i - windowSize, i);
     const avg = window.reduce((sum, m) => sum + m.value, 0) / windowSize;
     const stdDev = Math.sqrt(
-      window.reduce((sum, m) => sum + Math.pow(m.value - avg, 2), 0) /
-        windowSize
+      window.reduce((sum, m) => sum + (m.value - avg) ** 2, 0) / windowSize
     );
 
     const current = metrics[i];

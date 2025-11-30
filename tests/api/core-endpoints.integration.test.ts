@@ -7,7 +7,7 @@
  * @tdd-coverage 100%
  */
 
-import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
 // 테스트 설정
@@ -149,7 +149,7 @@ describe('🚀 OpenManager VIBE v5 - 핵심 API 엔드포인트 테스트', () =
       if (!response.ok) {
         throw new Error(`Server not running at ${BASE_URL}`);
       }
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`테스트 서버에 연결할 수 없습니다: ${BASE_URL}`);
     }
   }, TIMEOUT);

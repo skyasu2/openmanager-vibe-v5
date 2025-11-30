@@ -4,9 +4,9 @@
  * Claude Code 최적화 Mock 시스템의 중앙 진입점
  */
 
+import { GCPMock } from './providers/GCPMock';
 import { GoogleAIMock } from './providers/GoogleAIMock';
 import { SupabaseMock } from './providers/SupabaseMock';
-import { GCPMock } from './providers/GCPMock';
 
 // Mock 인스턴스 캐시
 let googleAIMock: GoogleAIMock | null = null;
@@ -43,7 +43,6 @@ export function shouldUseMock(_serviceName?: string): boolean {
         process.env.NODE_ENV === 'development' ||
         process.env.NODE_ENV === 'test'
       );
-    case 'off':
     default:
       return false;
   }

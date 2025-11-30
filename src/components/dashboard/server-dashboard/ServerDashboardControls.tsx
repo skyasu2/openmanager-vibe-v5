@@ -1,7 +1,7 @@
 'use client';
 
 // React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
-import { Search, LayoutGrid, List } from 'lucide-react';
+import { LayoutGrid, List, Search } from 'lucide-react';
 import type { ViewMode } from '@/types/dashboard';
 
 interface ServerDashboardControlsProps {

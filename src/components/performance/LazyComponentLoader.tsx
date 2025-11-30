@@ -5,9 +5,9 @@
 
 'use client';
 
-import { Suspense, lazy } from 'react';
-import type { ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { lazy, Suspense } from 'react';
 
 interface LazyLoadConfig {
   // 로딩 딜레이 (ms)
@@ -90,7 +90,7 @@ export function LazyComponentWrapper({
 /**
  * 뷰포트 기반 지연 로딩 훅
  */
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function useIntersectionLoader(threshold = 0.1) {
   const [isVisible, setIsVisible] = useState(false);
@@ -150,23 +150,23 @@ export class PriorityLoader {
     priority: number,
     name: string
   ) {
-    this.loadQueue.push({ component, priority, name });
-    this.loadQueue.sort((a, b) => a.priority - b.priority);
+    PriorityLoader.loadQueue.push({ component, priority, name });
+    PriorityLoader.loadQueue.sort((a, b) => a.priority - b.priority);
 
-    if (!this.isLoading) {
-      void this.processQueue();
+    if (!PriorityLoader.isLoading) {
+      void PriorityLoader.processQueue();
     }
   }
 
   private static async processQueue() {
-    if (this.loadQueue.length === 0 || this.isLoading) {
+    if (PriorityLoader.loadQueue.length === 0 || PriorityLoader.isLoading) {
       return;
     }
 
-    this.isLoading = true;
+    PriorityLoader.isLoading = true;
 
-    while (this.loadQueue.length > 0) {
-      const queueItem = this.loadQueue.shift();
+    while (PriorityLoader.loadQueue.length > 0) {
+      const queueItem = PriorityLoader.loadQueue.shift();
       if (!queueItem) continue;
 
       const { component, name } = queueItem;
@@ -183,7 +183,7 @@ export class PriorityLoader {
       await new Promise((resolve) => setTimeout(resolve, 5));
     }
 
-    this.isLoading = false;
+    PriorityLoader.isLoading = false;
   }
 }
 

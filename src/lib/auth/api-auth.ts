@@ -4,10 +4,10 @@
  * 포트폴리오용 기본 보안 - 민감한 API만 보호
  */
 
+import { timingSafeEqual } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { timingSafeEqual } from 'crypto';
-import { securityLogger } from '../security/security-logger';
 import { SECURITY } from '@/config/constants';
+import { securityLogger } from '../security/security-logger';
 
 /**
  * API 인증 확인

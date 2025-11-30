@@ -134,7 +134,7 @@ export const useSystemState = (): UseSystemStateReturn => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userId] // systemState 제거 - 무한 루프 방지
+    [userId, systemState] // systemState 제거 - 무한 루프 방지
   );
 
   /**
@@ -142,10 +142,10 @@ export const useSystemState = (): UseSystemStateReturn => {
    */
   const refreshState = useCallback(async (): Promise<void> => {
     setIsLoading(true);
-    
+
     // fetchSystemState 로직 직접 구현
     const source = 'manual-refresh';
-    
+
     // 중복 요청 방지
     if (isRequestingRef.current) {
       console.log('⏸️ 이미 요청 중이므로 스킵');
@@ -307,7 +307,7 @@ export const useSystemState = (): UseSystemStateReturn => {
 
     // 🚨 페이지 포커스/가시성 이벤트 리스너 제거 - 과도한 API 호출 방지
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 빈 배열로 변경 - 마운트 시 한 번만 실행
+  }, [fetchSystemState]); // 빈 배열로 변경 - 마운트 시 한 번만 실행
 
   return {
     systemState,

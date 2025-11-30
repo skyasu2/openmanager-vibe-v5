@@ -5,7 +5,7 @@
  */
 
 import { useMemo } from 'react';
-import { env, isProduction, isDevelopment, isTest } from '@/env';
+import { env, isDevelopment, isProduction, isTest } from '@/env';
 import { apiCall, apiEndpoint } from '@/lib/api/api-config';
 
 // The logic from getSiteUrl is now replicated here using the centralized env object

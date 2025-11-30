@@ -6,17 +6,16 @@
  * - 인터페이스 호환성 보장
  */
 
+import { distributedErrorHandler } from '../errors/distributed-error-handler';
 import type {
   DistributedResponse,
-  SupabaseRAGRequest,
-  SupabaseRAGResponse,
   GCPFunctionRequest,
   GCPFunctionResponse,
+  SupabaseRAGRequest,
+  SupabaseRAGResponse,
   ThinkingStep,
 } from '../interfaces/distributed-ai.interface';
-
 import { getSupabaseRAGEngine } from '../supabase-rag-engine';
-import { distributedErrorHandler } from '../errors/distributed-error-handler';
 // supabaseRealtimeAdapter removed from barrel export - import directly from './supabase-realtime-adapter' with dynamic import
 
 /**

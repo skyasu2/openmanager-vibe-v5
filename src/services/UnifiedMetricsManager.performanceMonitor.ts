@@ -26,7 +26,7 @@ export class PerformanceMonitor {
     const performanceReport = {
       servers_count: serversSize,
       total_updates: metrics.total_updates,
-      avg_processing_time: metrics.avg_processing_time.toFixed(2) + 'ms',
+      avg_processing_time: `${metrics.avg_processing_time.toFixed(2)}ms`,
       errors_count: metrics.errors_count,
       ai_analysis_count: metrics.ai_analysis_count,
       scaling_decisions: metrics.scaling_decisions,
@@ -37,7 +37,7 @@ export class PerformanceMonitor {
     console.log('📈 통합 메트릭 관리자 성능:', performanceReport);
 
     // Performance warnings
-    this.checkPerformanceWarnings(performanceReport);
+    PerformanceMonitor.checkPerformanceWarnings(performanceReport);
   }
 
   /**
@@ -55,14 +55,14 @@ export class PerformanceMonitor {
     if (processingTime > 500) {
       console.warn(
         '⚠️ 평균 처리 시간이 500ms를 초과했습니다:',
-        processingTime + 'ms'
+        `${processingTime}ms`
       );
     }
 
     if (report.memory_heap_mb > 100) {
       console.warn(
         '⚠️ 힙 메모리 사용량이 높습니다:',
-        report.memory_heap_mb + 'MB'
+        `${report.memory_heap_mb}MB`
       );
     }
 
@@ -137,7 +137,7 @@ export class PerformanceMonitor {
     performanceScore = Math.max(0, performanceScore);
 
     // Generate recommendations
-    const recommendations = this.generateRecommendations({
+    const recommendations = PerformanceMonitor.generateRecommendations({
       avgProcessingTime: metrics.avg_processing_time,
       errorsCount: metrics.errors_count,
       memoryHeap: memoryUsage.heapUsed / 1024 / 1024,

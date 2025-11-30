@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Server } from '@/types/server';
 
 export function useServerFilter(servers: Server[]) {

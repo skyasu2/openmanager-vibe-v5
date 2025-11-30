@@ -1,9 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react';;
+import type { Meta, StoryObj } from '@storybook/react';
+
 import { Badge } from './badge';
-import {
-  mockServerStates,
-  a11yLabels,
-} from '../../stories/templates/StoryTemplate';
 import { Card, CardContent } from './card';
 
 const meta = {

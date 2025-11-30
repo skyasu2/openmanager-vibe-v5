@@ -7,9 +7,9 @@
  * ✅ 로컬 스토리지 + Supabase 하이브리드
  */
 
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AISessionData, AISessionSummary } from '@/lib/ai/session-storage';
 import { getAISessionStorage } from '@/lib/ai/session-storage';
-import { useCallback, useEffect, useRef, useState } from 'react';
 
 // ==============================================
 // 🎯 AI 세션 상태 타입 정의

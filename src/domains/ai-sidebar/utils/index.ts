@@ -3,11 +3,10 @@
  * AI 사이드바 유틸리티 함수 통합 export
  */
 
+export type { AIQueryResult, AutoReportTrigger } from './aiQueryHandlers';
 export {
-  processRealAIQuery,
+  detectAutoReportTrigger,
   generateAutoReport,
   handlePresetQuestion,
-  detectAutoReportTrigger,
+  processRealAIQuery,
 } from './aiQueryHandlers';
-
-export type { AIQueryResult, AutoReportTrigger } from './aiQueryHandlers';

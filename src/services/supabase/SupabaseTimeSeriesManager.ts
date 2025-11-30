@@ -486,11 +486,16 @@ export class SupabaseTimeSeriesManager {
       const disk = metric.disk ?? metric.systemMetrics?.diskUsage ?? 0;
       let networkUsage: number;
       if (metric.network) {
-        if (typeof metric.network === 'object' && 'in' in metric.network && 'out' in metric.network) {
+        if (
+          typeof metric.network === 'object' &&
+          'in' in metric.network &&
+          'out' in metric.network
+        ) {
           const networkObj = metric.network as { in: number; out: number };
           networkUsage = (networkObj.in + networkObj.out) / 2;
         } else {
-          networkUsage = typeof metric.network === 'number' ? metric.network : 0;
+          networkUsage =
+            typeof metric.network === 'number' ? metric.network : 0;
         }
       } else {
         networkUsage = metric.systemMetrics?.networkUsage ?? 0;

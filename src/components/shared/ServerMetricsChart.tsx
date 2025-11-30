@@ -9,7 +9,7 @@
  * - 접근성 향상
  */
 
-import React, { memo, useEffect, useRef, useCallback, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { ServerStatus } from '../../types/server';
 
 interface ServerMetricsChartProps {
@@ -192,10 +192,7 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
           role="group"
           aria-label={`${chartTitle} ${Math.round(value)}%`}
         >
-          <canvas
-            ref={canvasRef}
-            aria-hidden="true" // 이미 role="img"로 레이블링 되었기 때문
-          />
+          <canvas ref={canvasRef} />
           {/* 텍스트 기반 대체 - 스크린 리더용 */}
           <span className="sr-only">
             {chartTitle}: {Math.round(value)}% ({status})

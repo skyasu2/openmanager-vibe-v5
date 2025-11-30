@@ -251,10 +251,7 @@ export function classifyErrorType(safeError: SafeError): ErrorType {
     return 'LOADING_ERROR';
   }
 
-  if (
-    message.includes('api') ||
-    (safeError.code && safeError.code.includes('API'))
-  ) {
+  if (message.includes('api') || safeError.code?.includes('API')) {
     return 'API_ERROR';
   }
 
@@ -273,8 +270,8 @@ export function safeErrorLog(
   const errorType = classifyErrorType(safeError);
 
   // 콘솔 로깅
-  console.error(prefix + ':', safeError.message);
-  console.error('↳ Type: ' + errorType, 'Code: ' + (safeError.code || 'NONE'));
+  console.error(`${prefix}:`, safeError.message);
+  console.error(`↳ Type: ${errorType}`, `Code: ${safeError.code || 'NONE'}`);
 
   if (includeStack && safeError.stack) {
     console.error('↳ Stack:', safeError.stack);

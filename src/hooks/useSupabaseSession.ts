@@ -1,9 +1,9 @@
 'use client';
 
-import { supabase } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { clearAuthData } from '@/lib/auth/auth-state-manager';
+import { supabase } from '@/lib/supabase/client';
 
 // NextAuth 호환 세션 타입
 interface Session {
@@ -106,18 +106,20 @@ export function useSession(): UseSessionReturn {
     void checkSession();
 
     // 세션 변경 감지
-    const response = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        setStatus('authenticated');
-      } else {
-        setUser(null);
-        setStatus('unauthenticated');
-      }
+    const response = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+          setStatus('authenticated');
+        } else {
+          setUser(null);
+          setStatus('unauthenticated');
+        }
 
-      // 🎯 router.refresh() 제거: 불필요한 전체 페이지 리렌더링 방지
-      // React의 자연스러운 상태 전파를 통해 필요한 컴포넌트만 리렌더링
-    });
+        // 🎯 router.refresh() 제거: 불필요한 전체 페이지 리렌더링 방지
+        // React의 자연스러운 상태 전파를 통해 필요한 컴포넌트만 리렌더링
+      }
+    );
 
     return () => {
       if (response?.data?.subscription) {

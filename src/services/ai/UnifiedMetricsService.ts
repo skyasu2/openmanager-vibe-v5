@@ -64,10 +64,10 @@ export class UnifiedMetricsService {
   private constructor() {}
 
   static getInstance(): UnifiedMetricsService {
-    if (!this.instance) {
-      this.instance = new UnifiedMetricsService();
+    if (!UnifiedMetricsService.instance) {
+      UnifiedMetricsService.instance = new UnifiedMetricsService();
     }
-    return this.instance;
+    return UnifiedMetricsService.instance;
   }
 
   /**
@@ -95,14 +95,14 @@ export class UnifiedMetricsService {
 
       if (!response.ok) {
         throw new Error(
-          'API 호출 실패: ' + response.status + ' ' + response.statusText
+          `API 호출 실패: ${response.status} ${response.statusText}`
         );
       }
 
       const data: UnifiedMetricsResponse = await response.json();
 
       if (!data.success) {
-        throw new Error('메트릭 생성 실패: ' + JSON.stringify(data));
+        throw new Error(`메트릭 생성 실패: ${JSON.stringify(data)}`);
       }
 
       // 캐시 저장
@@ -357,7 +357,11 @@ export class UnifiedMetricsService {
         metadata: {
           serverType: 'web',
           scenarios: [
-            { type: 'fallback', severity: 'info', description: 'API 폴백 모드' },
+            {
+              type: 'fallback',
+              severity: 'info',
+              description: 'API 폴백 모드',
+            },
           ],
         },
       },

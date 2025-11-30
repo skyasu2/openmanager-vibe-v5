@@ -6,9 +6,9 @@
  * @created 2025-11-26
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import FeedbackButtons from '@/components/ai/FeedbackButtons';
 
 // InteractionLogger 모킹

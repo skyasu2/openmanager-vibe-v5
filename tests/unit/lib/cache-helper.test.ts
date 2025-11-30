@@ -5,14 +5,14 @@
  * @created 2025-08-10
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  getCacheService,
-  getCachedData,
-  setCachedData,
-  getCachedDataWithFallback,
-  invalidateCache,
   cacheWrapper,
+  getCachedData,
+  getCachedDataWithFallback,
+  getCacheService,
+  invalidateCache,
+  setCachedData,
 } from '@/lib/cache/cache-helper';
 
 describe('MemoryCacheService', () => {

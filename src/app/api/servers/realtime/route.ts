@@ -8,9 +8,9 @@
  * - 대시보드용 요약 데이터
  */
 
-import { getMockSystem } from '@/mock';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { getMockSystem } from '@/mock';
 import debug from '@/utils/debug';
 
 // 기본 경고 생성 함수 (폴백용)

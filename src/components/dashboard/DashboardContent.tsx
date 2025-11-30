@@ -2,16 +2,15 @@
 
 import dynamic from 'next/dynamic';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-
+// framer-motion 제거 - CSS 애니메이션 사용
+import debug from '@/utils/debug';
+import type { Server } from '../../types/server';
 import {
   safeConsoleError,
   safeErrorMessage,
 } from '../../utils/utils-functions';
-import type { Server } from '../../types/server';
-// framer-motion 제거 - CSS 애니메이션 사용
-import debug from '@/utils/debug';
-import type { DashboardStats } from './types/dashboard.types';
 import { DashboardSummary } from './DashboardSummary';
+import type { DashboardStats } from './types/dashboard.types';
 
 // framer-motion 제거됨
 
@@ -196,13 +195,13 @@ export default function DashboardContent({
     };
 
     // 안전하게 이벤트 리스너 추가
-    if (window && window.addEventListener) {
+    if (window?.addEventListener) {
       window.addEventListener('resize', resizeHandler);
     }
 
     return () => {
       clearInterval(timeInterval);
-      if (window && window.removeEventListener) {
+      if (window?.removeEventListener) {
         window.removeEventListener('resize', resizeHandler);
       }
     };

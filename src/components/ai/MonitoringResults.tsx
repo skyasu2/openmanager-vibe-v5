@@ -9,7 +9,6 @@
 
 'use client';
 
-import type { ExtendedIntelligentAnalysisResult } from '@/types/intelligent-monitoring.types';
 import {
   AlertTriangle,
   Lightbulb,
@@ -19,6 +18,7 @@ import {
   TrendingUp,
   XCircle,
 } from 'lucide-react';
+import type { ExtendedIntelligentAnalysisResult } from '@/types/intelligent-monitoring.types';
 
 interface MonitoringResultsProps {
   result: ExtendedIntelligentAnalysisResult | null;

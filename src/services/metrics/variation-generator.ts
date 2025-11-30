@@ -58,8 +58,6 @@ interface BatchMetricResult {
  * - 서버간 연쇄 효과
  */
 export class RealisticVariationGenerator {
-  private static seed = Date.now();
-
   /**
    * FNV-1a 해시 기반 고성능 유사 랜덤 (20% 성능 향상)
    */
@@ -77,7 +75,7 @@ export class RealisticVariationGenerator {
    * 레거시 호환성을 위한 래퍼 (점진적 마이그레이션)
    */
   private static seededRandom(seed: number): number {
-    return this.fnv1aHash(seed);
+    return RealisticVariationGenerator.fnv1aHash(seed);
   }
 
   /**
@@ -90,7 +88,8 @@ export class RealisticVariationGenerator {
     const combinedSeed = timeSeed + serverSeed;
 
     // 기본 변동성 (±10%)
-    const baseVariance = (this.seededRandom(combinedSeed) - 0.5) * 20;
+    const baseVariance =
+      (RealisticVariationGenerator.seededRandom(combinedSeed) - 0.5) * 20;
 
     // 시간대별 패턴 (업무시간 vs 야간)
     const hour = now.getHours();
@@ -112,7 +111,9 @@ export class RealisticVariationGenerator {
 
     // 점진적 드리프트 (서버가 시간에 따라 자연스럽게 변화)
     const driftSeed = Math.floor(Date.now() / 300000); // 5분마다 변화
-    const drift = (this.seededRandom(driftSeed + serverSeed) - 0.5) * 5; // ±2.5% 드리프트
+    const drift =
+      (RealisticVariationGenerator.seededRandom(driftSeed + serverSeed) - 0.5) *
+      5; // ±2.5% 드리프트
 
     // 최종 계산
     const finalVariance = baseVariance * timeMultiplier * dayMultiplier + drift;
@@ -130,7 +131,9 @@ export class RealisticVariationGenerator {
   } {
     const timeSeed = Math.floor(Date.now() / 60000); // 1분마다 체크
     const serverSeed = serverId.charCodeAt(0) * 13;
-    const eventRoll = this.seededRandom(timeSeed + serverSeed);
+    const eventRoll = RealisticVariationGenerator.seededRandom(
+      timeSeed + serverSeed
+    );
 
     const now = new Date();
     const hour = now.getHours();
@@ -171,7 +174,10 @@ export class RealisticVariationGenerator {
       ];
       const selected =
         severEvents[
-          Math.floor(this.seededRandom(timeSeed * 2) * severEvents.length)
+          Math.floor(
+            RealisticVariationGenerator.seededRandom(timeSeed * 2) *
+              severEvents.length
+          )
         ] ?? severEvents[0];
       return {
         hasEvent: true,
@@ -207,7 +213,10 @@ export class RealisticVariationGenerator {
       ];
       const selected =
         mediumEvents[
-          Math.floor(this.seededRandom(timeSeed * 3) * mediumEvents.length)
+          Math.floor(
+            RealisticVariationGenerator.seededRandom(timeSeed * 3) *
+              mediumEvents.length
+          )
         ] ?? mediumEvents[0];
       return {
         hasEvent: true,
@@ -239,7 +248,10 @@ export class RealisticVariationGenerator {
       ];
       const selected =
         minorEvents[
-          Math.floor(this.seededRandom(timeSeed * 4) * minorEvents.length)
+          Math.floor(
+            RealisticVariationGenerator.seededRandom(timeSeed * 4) *
+              minorEvents.length
+          )
         ] ?? minorEvents[0];
       return {
         hasEvent: true,
@@ -310,21 +322,33 @@ export class RealisticVariationGenerator {
 
       // 기본 메트릭 생성
       const metrics = {
-        cpu: this.generateNaturalVariance(baseMetrics.cpu, id),
-        memory: this.generateNaturalVariance(baseMetrics.memory, id),
-        disk: this.generateNaturalVariance(baseMetrics.disk, id),
-        network: this.generateNaturalVariance(baseMetrics.network, id),
+        cpu: RealisticVariationGenerator.generateNaturalVariance(
+          baseMetrics.cpu,
+          id
+        ),
+        memory: RealisticVariationGenerator.generateNaturalVariance(
+          baseMetrics.memory,
+          id
+        ),
+        disk: RealisticVariationGenerator.generateNaturalVariance(
+          baseMetrics.disk,
+          id
+        ),
+        network: RealisticVariationGenerator.generateNaturalVariance(
+          baseMetrics.network,
+          id
+        ),
       };
 
       // 이벤트 확인
-      const events = this.checkRandomEvent(id);
+      const events = RealisticVariationGenerator.checkRandomEvent(id);
 
       return { id, metrics, events };
     });
 
     // 연쇄 효과 계산 (모든 서버 데이터를 기반으로)
     results.forEach((result) => {
-      const cascadeImpact = this.calculateCascadeEffect(
+      const cascadeImpact = RealisticVariationGenerator.calculateCascadeEffect(
         serverInfos.find((s) => s.id === result.id)?.type || 'unknown',
         results.map((r) => ({
           id: r.id,

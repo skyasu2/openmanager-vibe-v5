@@ -34,11 +34,7 @@ export class AuthManager {
   private sessions: Map<string, AuthSession> = new Map();
   private authAttempts: AuthAttempt[] = [];
   private blockedIPs: Map<string, number> = new Map(); // IP -> 차단 해제 시간
-
-  private readonly MAX_FAILED_ATTEMPTS = 5;
-  private readonly BLOCK_DURATION = 15 * 60 * 1000; // 15분
   private readonly SESSION_DURATION = 60 * 60 * 1000; // 1시간
-  private readonly ADMIN_SESSION_DURATION = 8 * 60 * 60 * 1000; // 8시간
 
   /**
    * 데모 사용자 인증 (간소화된 인증)
@@ -231,23 +227,6 @@ export class AuthManager {
     }
   }
 
-  /**
-   * 헬퍼 메서드들
-   */
-
-  private validateTOTP(username: string, code: string): boolean {
-    // 실제 환경에서는 TOTP 라이브러리 사용
-    // 데모용으로 간단한 시간 기반 코드 생성
-    const now = Math.floor(Date.now() / 30000); // 30초 윈도우
-    const expectedCode = ((now + username.length) % 1000000)
-      .toString()
-      .padStart(6, '0');
-
-    // 🎯 포트폴리오 시연용 고정 코드 (베르셀 무료 티어 환경에 적합)
-    // 실제 TOTP와 병행하여 채용 담당자/방문자가 관리자 모드 시연 가능
-    return code === expectedCode || code === '123456';
-  }
-
   private isIPBlocked(ipAddress?: string): boolean {
     if (!ipAddress) return false;
 
@@ -262,55 +241,8 @@ export class AuthManager {
     return true;
   }
 
-  private handleFailedAuth(
-    ipAddress?: string,
-    userAgent?: string,
-    reason?: string
-  ): void {
-    this.logAuthAttempt({
-      ipAddress,
-      userAgent,
-      success: false,
-      failureReason: reason,
-    });
-
-    if (!ipAddress) return;
-
-    // 실패 횟수 계산
-    const recentFailures = this.authAttempts.filter(
-      (a) =>
-        a.ipAddress === ipAddress &&
-        !a.success &&
-        a.timestamp > Date.now() - 15 * 60 * 1000
-    ).length;
-
-    if (recentFailures >= this.MAX_FAILED_ATTEMPTS) {
-      this.blockedIPs.set(ipAddress, Date.now() + this.BLOCK_DURATION);
-      console.log(`🚫 IP blocked due to failed attempts: ${ipAddress}`);
-    }
-  }
-
-  private logAuthAttempt(attempt: Omit<AuthAttempt, 'id' | 'timestamp'>): void {
-    const authAttempt: AuthAttempt = {
-      id: this.generateId(),
-      timestamp: Date.now(),
-      ...attempt,
-    };
-
-    this.authAttempts.push(authAttempt);
-
-    // 로그 크기 제한 (최근 1000개만 유지)
-    if (this.authAttempts.length > 1000) {
-      this.authAttempts = this.authAttempts.slice(-1000);
-    }
-  }
-
   private generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
-  }
-
-  private generateId(): string {
-    return `auth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**

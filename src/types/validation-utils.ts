@@ -1,7 +1,7 @@
-import { z } from 'zod';
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getErrorMessage } from './type-utils';
-import { validateData, formatZodErrors } from './zod-utils';
+import { formatZodErrors, validateData } from './zod-utils';
 
 /**
  * ✅ 런타임 검증 유틸리티
@@ -207,7 +207,7 @@ export function safeJsonParse<T extends z.ZodTypeAny>(
   } catch (error) {
     return {
       success: false,
-      error: 'JSON 파싱 실패: ' + getErrorMessage(error),
+      error: `JSON 파싱 실패: ${getErrorMessage(error)}`,
     };
   }
 }
@@ -296,7 +296,12 @@ export function validateIpRange(
 ): boolean {
   const ipToNumber = (ip: string) => {
     const parts = ip.split('.').map(Number);
-    return ((parts[0] ?? 0) << 24) + ((parts[1] ?? 0) << 16) + ((parts[2] ?? 0) << 8) + (parts[3] ?? 0);
+    return (
+      ((parts[0] ?? 0) << 24) +
+      ((parts[1] ?? 0) << 16) +
+      ((parts[2] ?? 0) << 8) +
+      (parts[3] ?? 0)
+    );
   };
 
   const ipNum = ipToNumber(ip);

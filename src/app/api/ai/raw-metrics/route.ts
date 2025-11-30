@@ -1,12 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  safeServerStatus,
-  safeResponseTime,
-  safeConnections,
-} from '@/lib/utils/type-converters';
 import { withAuth } from '@/lib/auth/api-auth';
-import fs from 'fs';
-import path from 'path';
+import {
+  safeConnections,
+  safeResponseTime,
+  safeServerStatus,
+} from '@/lib/utils/type-converters';
 
 /**
  * 🤖 AI 분석 무결성 보장 API
@@ -292,7 +292,7 @@ function getBaseMetricsForType(type: string): {
 
   return (
     profiles[type] ??
-    profiles['worker'] ?? { cpu: 40, memory: 50, disk: 50, network: 25 }
+    profiles.worker ?? { cpu: 40, memory: 50, disk: 50, network: 25 }
   );
 }
 

@@ -4,7 +4,7 @@
  * 각 환경(development, test, production)에 맞는 API 설정 제공
  */
 
-import { env, isProduction, isDevelopment, isTest } from '@/env';
+import { env, isDevelopment, isProduction, isTest } from '@/env';
 
 // This logic is moved from the now-deleted env-config.ts
 function getSiteUrl(): string {
@@ -132,7 +132,7 @@ export function createApiHeaders(
   const headers: HeadersInit = {};
   headers['Content-Type'] = options.contentType || 'application/json';
   if (options.auth) {
-    headers['Authorization'] = `Bearer ${options.auth}`;
+    headers.Authorization = `Bearer ${options.auth}`;
   }
 
   const config = getApiConfig();

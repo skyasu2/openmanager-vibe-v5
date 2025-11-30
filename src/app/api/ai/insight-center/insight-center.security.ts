@@ -9,9 +9,9 @@
  */
 
 import type {
-  SecurityScanResult,
   SecurityAudit,
   SecurityRecommendation,
+  SecurityScanResult,
 } from './insight-center.types';
 
 /**
@@ -103,7 +103,9 @@ export function generateSecurityRecommendations(
   return allRecommendations.filter(
     (rec) =>
       !currentMeasures.some((measure) =>
-        measure.toLowerCase().includes(rec.measure.toLowerCase().split(' ')[0] || '')
+        measure
+          .toLowerCase()
+          .includes(rec.measure.toLowerCase().split(' ')[0] || '')
       )
   );
 }

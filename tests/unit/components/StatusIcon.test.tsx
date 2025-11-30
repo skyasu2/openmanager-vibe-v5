@@ -6,11 +6,11 @@
  * @created 2025-11-26
  */
 
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { axe } from 'jest-axe';
-import StatusIcon from '@/components/dashboard/StatusIcon';
 import { Server } from 'lucide-react';
+import { describe, expect, it } from 'vitest';
+import StatusIcon from '@/components/dashboard/StatusIcon';
 
 describe('🎯 StatusIcon 컴포넌트', () => {
   describe('기본 렌더링', () => {

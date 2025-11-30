@@ -1,15 +1,15 @@
 /**
  * 🛡️ Performance Guard Hook
- * 
+ *
  * Vercel Edge Runtime 성능 문제 예방 시스템
  * - 위험한 타이머 패턴 탐지
- * - 메모리 사용량 모니터링  
+ * - 메모리 사용량 모니터링
  * - localStorage 과도한 접근 방지
  */
 
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface PerformanceGuardOptions {
   /** 타이머 간격 최소값 (ms) */
@@ -33,14 +33,13 @@ export function usePerformanceGuard({
   minTimerInterval = 5000, // 5초 최소값
   memoryWarningThreshold = 100, // 100MB 경고
   localStorageAccessLimit = 60, // 분당 60회 제한
-  devOnly = true
+  devOnly = true,
 }: PerformanceGuardOptions = {}) {
-  
   const metricsRef = useRef<PerformanceMetrics>({
     timerCount: 0,
     memoryUsage: 0,
     localStorageAccesses: 0,
-    warningCount: 0
+    warningCount: 0,
   });
 
   const originalSetInterval = useRef<typeof setInterval>();
@@ -48,50 +47,65 @@ export function usePerformanceGuard({
   const originalLocalStorageSetItem = useRef<typeof localStorage.setItem>();
 
   // 위험한 타이머 패턴 탐지
-  const interceptSetInterval = useCallback((callback: () => void, delay: number) => {
-    metricsRef.current.timerCount++;
+  const interceptSetInterval = useCallback(
+    (callback: () => void, delay: number) => {
+      metricsRef.current.timerCount++;
 
-    if (delay < minTimerInterval) {
-      const warningMessage = `🚨 Performance Warning: Timer interval ${delay}ms is below recommended ${minTimerInterval}ms`;
-      console.warn(warningMessage, {
-        stackTrace: new Error().stack,
-        recommendation: `Use useUnifiedTimer or increase interval to ${minTimerInterval}ms+`
-      });
-      metricsRef.current.warningCount++;
+      if (delay < minTimerInterval) {
+        const warningMessage = `🚨 Performance Warning: Timer interval ${delay}ms is below recommended ${minTimerInterval}ms`;
+        console.warn(warningMessage, {
+          stackTrace: new Error().stack,
+          recommendation: `Use useUnifiedTimer or increase interval to ${minTimerInterval}ms+`,
+        });
+        metricsRef.current.warningCount++;
 
-      if (process.env.NODE_ENV === 'development') {
-        // 개발 환경에서 자동 수정 제안
-        console.group('🔧 Auto-fix suggestion:');
-        console.log('Replace with unified timer:');
-        console.log(`const timer = useUnifiedTimer();\ntimer.registerTask('task-id', ${Math.max(minTimerInterval, 30000)}, callback);`);
-        console.groupEnd();
+        if (process.env.NODE_ENV === 'development') {
+          // 개발 환경에서 자동 수정 제안
+          console.group('🔧 Auto-fix suggestion:');
+          console.log('Replace with unified timer:');
+          console.log(
+            `const timer = useUnifiedTimer();\ntimer.registerTask('task-id', ${Math.max(minTimerInterval, 30000)}, callback);`
+          );
+          console.groupEnd();
+        }
       }
-    }
 
-    const setIntervalFn = originalSetInterval.current ?? setInterval;
-    return setIntervalFn(callback, delay);
-  }, [minTimerInterval]);
+      const setIntervalFn = originalSetInterval.current ?? setInterval;
+      return setIntervalFn(callback, delay);
+    },
+    [minTimerInterval]
+  );
 
   // localStorage 접근 모니터링 (인터셉트 없이 카운팅만)
   const monitorLocalStorageAccess = useCallback(() => {
     // localStorage 접근 횟수 모니터링은 passive하게만 수행
     // 실제 intercept는 Vercel Edge Runtime과 충돌하므로 제거
-    console.log('🛡️ Performance Guard: localStorage monitoring enabled (passive mode)');
+    console.log(
+      '🛡️ Performance Guard: localStorage monitoring enabled (passive mode)'
+    );
   }, []);
 
   // 메모리 사용량 모니터링
   const checkMemoryUsage = useCallback(() => {
     if (typeof window !== 'undefined' && 'performance' in window) {
-      const memory = (performance as { memory?: { usedJSHeapSize?: number; jsHeapSizeLimit?: number } }).memory;
+      const memory = (
+        performance as {
+          memory?: { usedJSHeapSize?: number; jsHeapSizeLimit?: number };
+        }
+      ).memory;
       if (memory) {
         const usedMB = (memory.usedJSHeapSize ?? 0) / 1024 / 1024;
         metricsRef.current.memoryUsage = usedMB;
 
         if (usedMB > memoryWarningThreshold) {
-          console.warn(`🚨 Memory Warning: High memory usage detected (${usedMB.toFixed(1)}MB)`, {
-            threshold: memoryWarningThreshold,
-            recommendation: 'Check for memory leaks or optimize heavy components'
-          });
+          console.warn(
+            `🚨 Memory Warning: High memory usage detected (${usedMB.toFixed(1)}MB)`,
+            {
+              threshold: memoryWarningThreshold,
+              recommendation:
+                'Check for memory leaks or optimize heavy components',
+            }
+          );
           metricsRef.current.warningCount++;
         }
       }
@@ -104,11 +118,15 @@ export function usePerformanceGuard({
     if (devOnly && process.env.NODE_ENV !== 'development') {
       return;
     }
-    
+
     // Vercel 프로덕션 환경 감지 추가
-    const isVercelProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+    const isVercelProduction =
+      process.env.NODE_ENV === 'production' ||
+      process.env.VERCEL_ENV === 'production';
     if (isVercelProduction) {
-      console.log('🛡️ Performance Guard: Vercel 프로덕션 환경에서 localStorage intercept 비활성화');
+      console.log(
+        '🛡️ Performance Guard: Vercel 프로덕션 환경에서 localStorage intercept 비활성화'
+      );
       return;
     }
 
@@ -124,7 +142,7 @@ export function usePerformanceGuard({
     // 주기적 성능 체크 (30초마다)
     const performanceCheckInterval = setInterval(() => {
       checkMemoryUsage();
-      
+
       // 성능 메트릭스 주기적 리셋
       if (metricsRef.current.warningCount > 10) {
         metricsRef.current.warningCount = 0;
@@ -136,13 +154,13 @@ export function usePerformanceGuard({
       console.log('🛡️ Performance Guard activated:', {
         minTimerInterval,
         memoryWarningThreshold,
-        localStorageAccessLimit
+        localStorageAccessLimit,
       });
     }
 
     return () => {
       clearInterval(performanceCheckInterval);
-      
+
       // 원본 함수 복원
       if (originalSetInterval.current) {
         window.setInterval = originalSetInterval.current;
@@ -156,40 +174,57 @@ export function usePerformanceGuard({
         localStorage.setItem = originalSetItem;
       }
     };
-  }, [devOnly, minTimerInterval, memoryWarningThreshold, localStorageAccessLimit, interceptSetInterval, monitorLocalStorageAccess, checkMemoryUsage]);
+  }, [
+    devOnly,
+    minTimerInterval,
+    memoryWarningThreshold,
+    localStorageAccessLimit,
+    interceptSetInterval,
+    monitorLocalStorageAccess,
+    checkMemoryUsage,
+  ]);
 
   // 성능 메트릭스 반환
-  const getMetrics = useCallback(() => ({
-    ...metricsRef.current,
-    isEdgeRuntime: process.env.NEXT_RUNTIME === 'edge',
-    timestamp: Date.now()
-  }), []);
+  const getMetrics = useCallback(
+    () => ({
+      ...metricsRef.current,
+      isEdgeRuntime: process.env.NEXT_RUNTIME === 'edge',
+      timestamp: Date.now(),
+    }),
+    []
+  );
 
   // 성능 리포트 생성
   const generateReport = useCallback(() => {
     const metrics = getMetrics();
-    
+
     console.group('📊 Performance Report');
     console.log('Active Timers:', metrics.timerCount);
     console.log('Memory Usage:', `${metrics.memoryUsage.toFixed(1)}MB`);
-    console.log('LocalStorage Accesses:', `${metrics.localStorageAccesses}/min`);
+    console.log(
+      'LocalStorage Accesses:',
+      `${metrics.localStorageAccesses}/min`
+    );
     console.log('Warnings Generated:', metrics.warningCount);
-    console.log('Runtime Environment:', metrics.isEdgeRuntime ? 'Edge' : 'Node.js');
-    
+    console.log(
+      'Runtime Environment:',
+      metrics.isEdgeRuntime ? 'Edge' : 'Node.js'
+    );
+
     if (metrics.warningCount > 0) {
       console.warn('⚠️ Performance issues detected. Check warnings above.');
     } else {
       console.log('✅ No performance issues detected.');
     }
     console.groupEnd();
-    
+
     return metrics;
   }, [getMetrics]);
 
   return {
     getMetrics,
     generateReport,
-    warningCount: metricsRef.current.warningCount
+    warningCount: metricsRef.current.warningCount,
   };
 }
 
@@ -201,7 +236,9 @@ export const PerformanceUtils = {
   createSafeTimer: (callback: () => void, interval: number) => {
     const safeInterval = Math.max(interval, 5000); // 최소 5초
     if (interval < 5000) {
-      console.warn(`Timer interval adjusted from ${interval}ms to ${safeInterval}ms for Edge Runtime compatibility`);
+      console.warn(
+        `Timer interval adjusted from ${interval}ms to ${safeInterval}ms for Edge Runtime compatibility`
+      );
     }
     return setInterval(callback, safeInterval);
   },
@@ -209,13 +246,13 @@ export const PerformanceUtils = {
   // 캐시된 localStorage 접근
   createCachedLocalStorage: <T>(key: string, defaultValue: T, ttl = 60000) => {
     let cache: { value: T; timestamp: number } | null = null;
-    
+
     return {
       get: (): T => {
         if (cache && Date.now() - cache.timestamp < ttl) {
           return cache.value;
         }
-        
+
         try {
           const stored = localStorage.getItem(key);
           const value = stored ? JSON.parse(stored) : defaultValue;
@@ -225,7 +262,7 @@ export const PerformanceUtils = {
           return defaultValue;
         }
       },
-      
+
       set: (value: T): void => {
         try {
           localStorage.setItem(key, JSON.stringify(value));
@@ -233,7 +270,7 @@ export const PerformanceUtils = {
         } catch (error) {
           console.warn('localStorage.setItem failed:', error);
         }
-      }
+      },
     };
-  }
+  },
 };

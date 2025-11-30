@@ -9,8 +9,8 @@
 
 'use client';
 
+import { Activity, Brain, Database, Lightbulb, X, Zap } from 'lucide-react';
 import AIInsightsCard from '@/components/dashboard/AIInsightsCard';
-import { Brain, Database, Activity, Zap, Lightbulb, X } from 'lucide-react';
 
 interface MonitoringInsightsProps {
   showAIInsights: boolean;
@@ -38,8 +38,8 @@ export default function MonitoringInsights({
           <div className="rounded-lg border border-orange-200 bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-700">
-                <Lightbulb className="h-5 w-5 text-orange-600" />
-                💡 AI 인사이트 (자동 분석)
+                <Lightbulb className="h-5 w-5 text-orange-600" />💡 AI 인사이트
+                (자동 분석)
               </h3>
               <button
                 onClick={onCloseAIInsights}
@@ -71,8 +71,7 @@ export default function MonitoringInsights({
           <div className="rounded-lg border border-purple-200 bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-700">
-                <Brain className="h-5 w-5 text-purple-600" />
-                🧠 ML 학습 인사이트
+                <Brain className="h-5 w-5 text-purple-600" />🧠 ML 학습 인사이트
               </h3>
               <button
                 onClick={onCloseMLInsights}

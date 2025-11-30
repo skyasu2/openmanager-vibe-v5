@@ -6,9 +6,9 @@
  * @created 2025-11-26
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
 import type { Server } from '@/types/server';
 
@@ -138,9 +138,7 @@ describe('🎯 EnhancedServerModal - User Event 테스트', () => {
       render(<EnhancedServerModal server={null} onClose={mockOnClose} />);
 
       expect(screen.getByText('서버 데이터 오류')).toBeDefined();
-      expect(
-        screen.getByText('서버 정보를 불러올 수 없습니다.')
-      ).toBeDefined();
+      expect(screen.getByText('서버 정보를 불러올 수 없습니다.')).toBeDefined();
     });
 
     it('에러 상태에서 닫기 버튼이 작동한다', async () => {

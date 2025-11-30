@@ -69,12 +69,12 @@ export function extractDaysFromUptime(uptime: unknown): number {
       // "5 days", "3일" 등의 패턴 매칭
       const dayMatch = uptime.match(/(\d+)\s*(day|일)/i);
       if (dayMatch) {
-        return parseInt(dayMatch[1] ?? '0') || 0;
+        return parseInt(dayMatch[1] ?? '0', 10) || 0;
       }
 
       // 순수 숫자 문자열인 경우
       const numericValue = parseFloat(uptime);
-      if (!isNaN(numericValue)) {
+      if (!Number.isNaN(numericValue)) {
         return Math.floor(numericValue / 86400); // 초를 일로 변환
       }
     }
@@ -201,13 +201,13 @@ export function safeJsonParse<T>(jsonString: unknown, fallback: T): T {
  */
 export function safeNumber(value: unknown, fallback: number = 0): number {
   try {
-    if (typeof value === 'number' && !isNaN(value)) {
+    if (typeof value === 'number' && !Number.isNaN(value)) {
       return value;
     }
 
     if (typeof value === 'string') {
       const parsed = parseFloat(value);
-      if (!isNaN(parsed)) {
+      if (!Number.isNaN(parsed)) {
         return parsed;
       }
     }

@@ -6,14 +6,14 @@
  * @integration AI 워크플로우 + 기존 테스트 시스템 완전 통합
  */
 
-import { execSync } from 'child_process';
-import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
-import { join } from 'path';
-import { aiVitals } from './ai-friendly-vitals';
+import { execSync } from 'node:child_process';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type {
   AIFriendlyMetric,
   VitalsAnalysisResult,
 } from './ai-friendly-vitals';
+import { aiVitals } from './ai-friendly-vitals';
 
 // 🎯 서브에이전트용 테스트 결과 타입
 export interface SubagentTestResult {
@@ -527,15 +527,15 @@ export class SubagentTestController {
       /Test Files\s+(\d+) passed.*?Tests\s+(\d+) passed.*?(\d+) failed.*?(\d+) skipped/s
     );
     if (vitestMatch && vitestMatch.length >= 5) {
-      stats.passed = parseInt(vitestMatch[2] || '0');
-      stats.failed = parseInt(vitestMatch[3] || '0');
-      stats.skipped = parseInt(vitestMatch[4] || '0');
+      stats.passed = parseInt(vitestMatch[2] || '0', 10);
+      stats.failed = parseInt(vitestMatch[3] || '0', 10);
+      stats.skipped = parseInt(vitestMatch[4] || '0', 10);
       stats.total = stats.passed + stats.failed + stats.skipped;
     }
 
     // Jest/Vitest coverage 파싱
     const coverageMatch = output.match(/All files.*?(\d+\.?\d*)%/);
-    if (coverageMatch && coverageMatch[1]) {
+    if (coverageMatch?.[1]) {
       stats.coverage = parseFloat(coverageMatch[1]);
     }
 
@@ -544,9 +544,9 @@ export class SubagentTestController {
       /(\d+) passed.*?(\d+) failed.*?(\d+) skipped/
     );
     if (playwrightMatch && playwrightMatch.length >= 4 && stats.total === 0) {
-      stats.passed = parseInt(playwrightMatch[1] || '0');
-      stats.failed = parseInt(playwrightMatch[2] || '0');
-      stats.skipped = parseInt(playwrightMatch[3] || '0');
+      stats.passed = parseInt(playwrightMatch[1] || '0', 10);
+      stats.failed = parseInt(playwrightMatch[2] || '0', 10);
+      stats.skipped = parseInt(playwrightMatch[3] || '0', 10);
       stats.total = stats.passed + stats.failed + stats.skipped;
     }
 
@@ -556,7 +556,7 @@ export class SubagentTestController {
   // 🚨 에러 파싱
   private parseErrors(stdout: string, stderr: string): TestError[] {
     const errors: TestError[] = [];
-    const output = stdout + '\n' + stderr;
+    const output = `${stdout}\n${stderr}`;
 
     // TypeScript 에러
     const tsErrorMatches = output.match(
@@ -569,7 +569,7 @@ export class SubagentTestController {
         if (line && message) {
           errors.push({
             file: 'typescript',
-            line: parseInt(line),
+            line: parseInt(line, 10),
             message: message.trim(),
             category: 'syntax',
             severity: 'error',

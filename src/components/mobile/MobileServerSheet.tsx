@@ -1,22 +1,22 @@
 'use client';
 
-import {
-  useMemo,
-  Fragment,
-  type KeyboardEvent as ReactKeyboardEvent,
-} from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  X,
-  Server as ServerIcon,
   AlertTriangle,
-  Signal,
+  Building2,
   Clock,
-  MapPin,
   Cpu,
   Database,
-  Building2,
+  MapPin,
+  Server as ServerIcon,
+  Signal,
+  X,
 } from 'lucide-react';
+import {
+  Fragment,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useMemo,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import type { Server } from '@/types/server';
 

@@ -20,11 +20,11 @@
  * ```
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import {
+  closeAiSidebar,
   submitAiMessage,
   switchAiFunction,
-  closeAiSidebar,
 } from './helpers/ai-interaction';
 import { guestLogin, openAiSidebar } from './helpers/guest';
 import { TIMEOUTS } from './helpers/timeouts';

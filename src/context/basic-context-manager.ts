@@ -118,7 +118,6 @@ export class BasicContextManager {
   private updateInterval: NodeJS.Timeout | null = null;
   private readonly CACHE_KEY = 'openmanager:basic_context';
   private readonly TTL = 300; // 5분
-  private readonly MAX_HISTORY = 100; // 최대 100개 히스토리 유지
 
   constructor() {
     // 메모리 캐시 초기화
@@ -151,15 +150,19 @@ export class BasicContextManager {
     await this.collectBasicContext();
 
     // 주기적 업데이트 (5분마다)
-    this.updateInterval = setInterval(() => {
-      void (async () => {
-        try {
-          await this.collectBasicContext();
-        } catch (error) {
-          console.error('❌ BasicContextManager 주기적 업데이트 실패:', error);
-        }
-      })();
-    },
+    this.updateInterval = setInterval(
+      () => {
+        void (async () => {
+          try {
+            await this.collectBasicContext();
+          } catch (error) {
+            console.error(
+              '❌ BasicContextManager 주기적 업데이트 실패:',
+              error
+            );
+          }
+        })();
+      },
       5 * 60 * 1000
     ); // 5분
 
@@ -260,23 +263,31 @@ export class BasicContextManager {
         offline: servers.filter((s) => s.status === 'offline').length,
         warning: servers.filter((s) => s.status === 'warning').length,
         critical: servers.filter((s) => s.status === 'critical').length,
-        unknown: servers.filter((s) => s.status === 'unknown' || s.status === 'maintenance').length, // 🔧 수정: maintenance도 unknown으로 카운트
+        unknown: servers.filter(
+          (s) => s.status === 'unknown' || s.status === 'maintenance'
+        ).length, // 🔧 수정: maintenance도 unknown으로 카운트
       };
 
       return {
         total: servers.length,
         ...statusCounts,
-        list: servers.slice(0, 100).map((server) => ({  // 최대 100개만
+        list: servers.slice(0, 100).map((server) => ({
+          // 최대 100개만
           id: server.id,
           name: server.name || 'Unknown',
           status: server.status || 'offline',
           ip: server.ip || 'N/A',
           os: server.os || 'Unknown',
-          lastUpdate: server.lastUpdate ? new Date(server.lastUpdate).getTime() : Date.now(),
+          lastUpdate: server.lastUpdate
+            ? new Date(server.lastUpdate).getTime()
+            : Date.now(),
         })),
       };
     } catch (error) {
-      console.warn('⚠️ Mock 시스템 서버 데이터 수집 실패, 기본 데이터 사용:', error);
+      console.warn(
+        '⚠️ Mock 시스템 서버 데이터 수집 실패, 기본 데이터 사용:',
+        error
+      );
       return this.getDefaultServersData();
     }
   }
@@ -288,20 +299,28 @@ export class BasicContextManager {
     try {
       // Mock 시스템에서 critical/warning 서버를 기반으로 알림 생성
       const servers = this.mockSystem.getServers();
-      const problematicServers = servers.filter(s =>
-        s.status === 'critical' || s.status === 'warning'
+      const problematicServers = servers.filter(
+        (s) => s.status === 'critical' || s.status === 'warning'
       );
 
-      const mockAlerts = problematicServers.slice(0, 10).map((server, index) => ({
-        id: `alert-${server.id}-${Date.now()}-${index}`,
-        type: ['cpu', 'memory', 'disk', 'network'][Math.floor(Math.random() * 4)] as 'cpu' | 'memory' | 'disk' | 'network',
-        severity: server.status === 'critical' ? 'critical' as const : 'warning' as const,
-        message: server.status === 'critical'
-          ? `${server.name} 서버에서 심각한 성능 문제 감지됨`
-          : `${server.name} 서버 성능 경고`,
-        server: server.name,
-        timestamp: Date.now() - Math.random() * 24 * 60 * 60 * 1000, // 최근 24시간 내
-      }));
+      const mockAlerts = problematicServers
+        .slice(0, 10)
+        .map((server, index) => ({
+          id: `alert-${server.id}-${Date.now()}-${index}`,
+          type: ['cpu', 'memory', 'disk', 'network'][
+            Math.floor(Math.random() * 4)
+          ] as 'cpu' | 'memory' | 'disk' | 'network',
+          severity:
+            server.status === 'critical'
+              ? ('critical' as const)
+              : ('warning' as const),
+          message:
+            server.status === 'critical'
+              ? `${server.name} 서버에서 심각한 성능 문제 감지됨`
+              : `${server.name} 서버 성능 경고`,
+          server: server.name,
+          timestamp: Date.now() - Math.random() * 24 * 60 * 60 * 1000, // 최근 24시간 내
+        }));
 
       console.log(`🚨 ${mockAlerts.length}개 모의 알림 생성됨`);
 
@@ -391,7 +410,6 @@ export class BasicContextManager {
     console.log('⚙️ 기본 설정 로드됨');
     return settings;
   }
-
 
   /**
    * 📊 현재 컨텍스트 조회

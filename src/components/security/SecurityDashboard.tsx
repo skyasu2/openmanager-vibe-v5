@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import {
-  Shield,
   AlertTriangle,
   CheckCircle,
-  Info,
   Eye,
   EyeOff,
+  Info,
+  Shield,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface SecurityStatus {
   csp: {
@@ -45,10 +45,15 @@ export default function SecurityDashboard() {
     void checkSecurityStatus();
 
     // 5분마다 보안 상태 확인
-    const interval = setInterval(() => { void checkSecurityStatus(); }, 5 * 60 * 1000);
+    const interval = setInterval(
+      () => {
+        void checkSecurityStatus();
+      },
+      5 * 60 * 1000
+    );
 
     return () => clearInterval(interval);
-  }, []);
+  }, [checkSecurityStatus]);
 
   const checkSecurityStatus = async () => {
     try {
@@ -320,7 +325,9 @@ export default function SecurityDashboard() {
         <span>마지막 확인: {lastCheck}</span>
 
         <button
-          onClick={() => { void checkSecurityStatus(); }}
+          onClick={() => {
+            void checkSecurityStatus();
+          }}
           disabled={loading}
           className="rounded bg-blue-600/20 px-3 py-1 text-blue-400 transition-colors hover:bg-blue-600/30 disabled:opacity-50"
         >

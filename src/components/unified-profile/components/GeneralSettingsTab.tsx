@@ -6,9 +6,9 @@
 
 'use client';
 
-import { useInlineFeedback } from '@/components/ui/InlineFeedbackSystem';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Settings } from 'lucide-react';
+import { useInlineFeedback } from '@/components/ui/InlineFeedbackSystem';
 
 interface SettingsData {
   theme: string;

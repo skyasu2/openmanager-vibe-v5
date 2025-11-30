@@ -5,9 +5,9 @@
 
 import { generateMockServerData } from './src/mock/mockDataGenerator';
 import {
-  SERVERS,
   FAILURE_SCENARIOS,
   getCurrentScenarioInfo,
+  SERVERS,
 } from './src/mock/mockScenarios';
 
 console.log('🧪 Mock 데이터 시스템 검증 시작\n');

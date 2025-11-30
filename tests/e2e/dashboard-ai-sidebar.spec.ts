@@ -7,7 +7,7 @@
  * - 채팅 히스토리 표시
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { guestLogin, openAiSidebar } from './helpers/guest';
 import { TIMEOUTS } from './helpers/timeouts';
 

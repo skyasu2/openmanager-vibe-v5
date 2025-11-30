@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface ServerData {
   id: string;
@@ -226,7 +226,7 @@ export const useServerData = (
 
           // 지수 백오프로 재시도
           const retryDelay = Math.min(
-            1000 * Math.pow(2, retryCountRef.current - 1),
+            1000 * 2 ** (retryCountRef.current - 1),
             10000
           );
           retryTimeoutRef.current = setTimeout(() => {

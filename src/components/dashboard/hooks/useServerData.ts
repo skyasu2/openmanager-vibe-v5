@@ -21,14 +21,14 @@
  * 📅 생성일: 2025.06.14 (ServerDashboard 1522줄 분리 작업)
  */
 
+import { useCallback, useEffect, useState } from 'react';
 import { STATIC_ERROR_SERVERS } from '@/config/fallback-data';
 import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
-import type { Server, ServerRole, ServerEnvironment } from '@/types/server';
-import { useCallback, useEffect, useState } from 'react';
-import type { DashboardStats, ServerFilters } from '../types/dashboard.types';
+import { createTimerTask, useUnifiedTimer } from '@/hooks/useUnifiedTimer';
 // 🚀 Vercel 최적화: API 배칭 + 통합 타이머 시스템 통합
 import { getAPIBatcher } from '@/lib/api/api-batcher';
-import { useUnifiedTimer, createTimerTask } from '@/hooks/useUnifiedTimer';
+import type { Server, ServerEnvironment, ServerRole } from '@/types/server';
+import type { DashboardStats, ServerFilters } from '../types/dashboard.types';
 
 // 🎯 통합된 폴백 서버 데이터 사용 (하드코딩 제거)
 const fallbackServers: Server[] = STATIC_ERROR_SERVERS;

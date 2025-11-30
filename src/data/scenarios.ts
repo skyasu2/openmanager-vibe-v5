@@ -21,8 +21,8 @@ export interface ScenarioDefinition {
   affectedMetric: MetricType;
   severity: Severity;
   pattern: Pattern;
-  baseValue: number;  // 정상 시 기준값
-  peakValue: number;  // 장애 시 최고값
+  baseValue: number; // 정상 시 기준값
+  peakValue: number; // 장애 시 최고값
 }
 
 /**
@@ -183,6 +183,8 @@ export function getScenariosByMetric(metric: MetricType): ScenarioDefinition[] {
 /**
  * 심각도별 장애 시나리오 조회
  */
-export function getScenariosBySeverity(severity: Severity): ScenarioDefinition[] {
+export function getScenariosBySeverity(
+  severity: Severity
+): ScenarioDefinition[] {
   return FAILURE_SCENARIOS.filter((s) => s.severity === severity);
 }

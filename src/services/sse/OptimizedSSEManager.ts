@@ -13,9 +13,9 @@
  * - 하트비트 모니터링
  */
 
+import { isNotNullOrUndefined } from '@/types/type-utils';
 import { ServerlessSSEConnectionPool } from './SSEConnectionPool';
 import { SSEHealthMonitor } from './SSEHealthMonitor';
-import { isNotNullOrUndefined } from '@/types/type-utils';
 
 export interface SSEManagerConfig {
   baseUrl?: string;
@@ -129,7 +129,7 @@ export class OptimizedSSEManager {
 
     for (let i = 0; i < this.config.maxReconnectAttempts; i++) {
       if (this.config.exponentialBackoff) {
-        delays.push(baseDelay * Math.pow(2, i));
+        delays.push(baseDelay * 2 ** i);
       } else {
         delays.push(baseDelay);
       }

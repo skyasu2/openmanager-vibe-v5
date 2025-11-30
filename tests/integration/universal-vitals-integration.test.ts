@@ -6,13 +6,12 @@
  * @philosophy "메인테스트는 Vitals 기반으로 여러 테스트 도구 활용"의 실현
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { universalVitals } from '@/lib/testing/universal-vitals';
 import { VitestVitals } from '@/lib/testing/vitest-vitals-plugin';
 
 // 🎯 통합 테스트 시나리오: 다중 테스트 도구 Vitals 수집
 describe('🌐 Universal Vitals 통합 테스트', () => {
-
   beforeAll(() => {
     // Universal Vitals 시스템 초기화
     universalVitals.clearMetrics();
@@ -27,11 +26,13 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
   afterAll(async () => {
     // 최종 통합 리포트 생성 및 API 전송 시뮬레이션
     const finalReport = await generateIntegratedReport();
-    console.log('\n📊 [Universal Vitals Integration] 최종 통합 리포트:', finalReport);
+    console.log(
+      '\n📊 [Universal Vitals Integration] 최종 통합 리포트:',
+      finalReport
+    );
   });
 
   describe('🧪 Vitest Vitals 통합', () => {
-
     it('Vitest 테스트 실행 메트릭이 Universal Vitals로 수집됨', () => {
       const testName = 'sample-unit-test';
 
@@ -47,22 +48,29 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
 
       // Universal Vitals에서 메트릭 확인
       const metrics = universalVitals.getMetricsByCategory('test-execution');
-      const unitTestMetrics = metrics.filter(m => m.name === 'unit-test-time');
+      const unitTestMetrics = metrics.filter(
+        (m) => m.name === 'unit-test-time'
+      );
 
       expect(unitTestMetrics.length).toBeGreaterThan(0);
       expect(testVital.category).toBe('test-execution');
       expect(testVital.value).toBeGreaterThan(0);
       expect(testVital.rating).toBeOneOf(['good', 'needs-improvement', 'poor']);
 
-      console.log(`✅ Vitest 메트릭 수집됨: ${testName} (${testVital.value.toFixed(2)}ms)`);
+      console.log(
+        `✅ Vitest 메트릭 수집됨: ${testName} (${testVital.value.toFixed(2)}ms)`
+      );
     });
 
     it('메모리 사용량 메트릭이 Infrastructure Vitals로 수집됨', () => {
       const memoryUsage = VitestVitals.collectMemoryUsage('integration-test');
 
       if (memoryUsage > 0) {
-        const infraMetrics = universalVitals.getMetricsByCategory('infrastructure');
-        const memoryMetrics = infraMetrics.filter(m => m.name === 'memory-usage');
+        const infraMetrics =
+          universalVitals.getMetricsByCategory('infrastructure');
+        const memoryMetrics = infraMetrics.filter(
+          (m) => m.name === 'memory-usage'
+        );
 
         expect(memoryMetrics.length).toBeGreaterThan(0);
         expect(memoryUsage).toBeTypeOf('number');
@@ -77,51 +85,65 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
         lines: 95,
         functions: 88,
         branches: 92,
-        statements: 94
+        statements: 94,
       };
 
       VitestVitals.collectCoverage(mockCoverage);
 
-      const testMetrics = universalVitals.getMetricsByCategory('test-execution');
-      const coverageMetrics = testMetrics.filter(m => m.name.includes('coverage'));
+      const testMetrics =
+        universalVitals.getMetricsByCategory('test-execution');
+      const coverageMetrics = testMetrics.filter((m) =>
+        m.name.includes('coverage')
+      );
 
       expect(coverageMetrics.length).toBeGreaterThan(0);
 
-      const totalCoverageMetric = testMetrics.find(m => m.name === 'test-coverage');
+      const totalCoverageMetric = testMetrics.find(
+        (m) => m.name === 'test-coverage'
+      );
       expect(totalCoverageMetric).toBeDefined();
       expect(totalCoverageMetric?.value).toBeCloseTo(92.25); // 평균값
 
-      console.log(`📈 커버리지 메트릭 수집됨: ${totalCoverageMetric?.value.toFixed(1)}%`);
+      console.log(
+        `📈 커버리지 메트릭 수집됨: ${totalCoverageMetric?.value.toFixed(1)}%`
+      );
     });
   });
 
   describe('🚀 API Performance Vitals 시뮬레이션', () => {
-
     it('API 호출 성능이 API Performance Vitals로 수집됨', async () => {
       const apiEndpoint = '/api/universal-vitals';
 
       // API 호출 시뮬레이션
       universalVitals.startMeasurement('test-api-call', 'api-performance', {
         endpoint: apiEndpoint,
-        method: 'POST'
+        method: 'POST',
       });
 
       // 실제 API 호출 시뮬레이션 (100-500ms 지연)
       const simulatedDelay = 100 + Math.random() * 400;
-      await new Promise(resolve => setTimeout(resolve, simulatedDelay));
+      await new Promise((resolve) => setTimeout(resolve, simulatedDelay));
 
-      const apiVital = universalVitals.endMeasurement('test-api-call', 'api-performance', 'ms', {
-        statusCode: 200,
-        endpoint: apiEndpoint
-      });
+      const apiVital = universalVitals.endMeasurement(
+        'test-api-call',
+        'api-performance',
+        'ms',
+        {
+          statusCode: 200,
+          endpoint: apiEndpoint,
+        }
+      );
 
       // API Performance Vitals 확인
-      const apiMetrics = universalVitals.getMetricsByCategory('api-performance');
+      const apiMetrics =
+        universalVitals.getMetricsByCategory('api-performance');
       expect(apiMetrics.length).toBeGreaterThan(0);
       expect(apiVital.value).toBeCloseTo(simulatedDelay, -1); // 근사값 비교
       expect(apiVital.rating).toBeOneOf(['good', 'needs-improvement', 'poor']);
 
-      console.log(`🔗 API 메트릭 수집됨: ${apiEndpoint} (${apiVital.value.toFixed(0)}ms, ${apiVital.rating})`);
+      console.log(
+        `🔗 API 메트릭 수집됨: ${apiEndpoint} (${apiVital.value.toFixed(0)}ms, ${apiVital.rating})`
+      );
     });
 
     it('API 오류율 메트릭 수집', () => {
@@ -157,19 +179,23 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
         { totalCalls: 100, errorCalls: 5 }
       );
 
-      const apiMetrics = universalVitals.getMetricsByCategory('api-performance');
-      const errorRateMetric = apiMetrics.find(m => m.name === 'api-error-rate');
+      const apiMetrics =
+        universalVitals.getMetricsByCategory('api-performance');
+      const errorRateMetric = apiMetrics.find(
+        (m) => m.name === 'api-error-rate'
+      );
 
       expect(errorRateMetric).toBeDefined();
       expect(errorRateMetric?.value).toBe(5);
       expect(errorRateMetric?.rating).toBe('poor'); // 5%는 poor (임계값 초과)
 
-      console.log(`📊 API 오류율 메트릭: ${errorRate}% (${errorRateMetric?.rating})`);
+      console.log(
+        `📊 API 오류율 메트릭: ${errorRate}% (${errorRateMetric?.rating})`
+      );
     });
   });
 
   describe('🏗️ Build Performance Vitals 시뮬레이션', () => {
-
     it('빌드 시간 메트릭이 Build Performance Vitals로 수집됨', () => {
       // 빌드 프로세스 시뮬레이션
       universalVitals.startMeasurement('test-build', 'build-performance');
@@ -187,9 +213,15 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
 
       expect(buildVital.category).toBe('build-performance');
       expect(buildVital.value).toBe(simulatedBuildTime);
-      expect(buildVital.rating).toBeOneOf(['good', 'needs-improvement', 'poor']);
+      expect(buildVital.rating).toBeOneOf([
+        'good',
+        'needs-improvement',
+        'poor',
+      ]);
 
-      console.log(`🏗️ 빌드 메트릭 수집됨: ${(simulatedBuildTime / 1000).toFixed(1)}s (${buildVital.rating})`);
+      console.log(
+        `🏗️ 빌드 메트릭 수집됨: ${(simulatedBuildTime / 1000).toFixed(1)}s (${buildVital.rating})`
+      );
     });
 
     it('번들 크기 메트릭 수집', () => {
@@ -204,19 +236,23 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
         { bundleType: 'main', compressed: true }
       );
 
-      const buildMetrics = universalVitals.getMetricsByCategory('build-performance');
-      const bundleSizeMetric = buildMetrics.find(m => m.name === 'bundle-size');
+      const buildMetrics =
+        universalVitals.getMetricsByCategory('build-performance');
+      const bundleSizeMetric = buildMetrics.find(
+        (m) => m.name === 'bundle-size'
+      );
 
       expect(bundleSizeMetric).toBeDefined();
       expect(bundleSizeMetric?.value).toBe(bundleSize);
 
       const bundleSizeMB = bundleSize / 1024 / 1024;
-      console.log(`📦 번들 크기 메트릭: ${bundleSizeMB.toFixed(2)}MB (${bundleVital.rating})`);
+      console.log(
+        `📦 번들 크기 메트릭: ${bundleSizeMB.toFixed(2)}MB (${bundleVital.rating})`
+      );
     });
   });
 
   describe('🌐 Web Performance Vitals 시뮬레이션', () => {
-
     it('Web Vitals Core 메트릭 수집', () => {
       // LCP (Largest Contentful Paint)
       const lcpValue = 1500 + Math.random() * 2000; // 1.5-3.5초
@@ -248,10 +284,11 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
         { url: '/dashboard' }
       );
 
-      const webMetrics = universalVitals.getMetricsByCategory('web-performance');
-      expect(webMetrics.filter(m => m.name === 'LCP')).toHaveLength(1);
-      expect(webMetrics.filter(m => m.name === 'FID')).toHaveLength(1);
-      expect(webMetrics.filter(m => m.name === 'CLS')).toHaveLength(1);
+      const webMetrics =
+        universalVitals.getMetricsByCategory('web-performance');
+      expect(webMetrics.filter((m) => m.name === 'LCP')).toHaveLength(1);
+      expect(webMetrics.filter((m) => m.name === 'FID')).toHaveLength(1);
+      expect(webMetrics.filter((m) => m.name === 'CLS')).toHaveLength(1);
 
       console.log(`🌐 Core Web Vitals 수집완료:`);
       console.log(`  LCP: ${lcpValue.toFixed(0)}ms (${lcpVital.rating})`);
@@ -261,7 +298,6 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
   });
 
   describe('📊 통합 분석 및 리포팅', () => {
-
     it('모든 카테고리의 메트릭이 통합 수집됨', () => {
       const summary = universalVitals.getSummary();
 
@@ -292,14 +328,16 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
         data: {
           processed: report.metrics.length,
           analysis: report.analysis,
-          recommendations: report.recommendations
-        }
+          recommendations: report.recommendations,
+        },
       };
 
       expect(mockApiResponse.success).toBe(true);
       expect(mockApiResponse.data.processed).toBe(report.metrics.length);
 
-      console.log(`📤 통합 리포트 API 전송 시뮬레이션: ${report.metrics.length}개 메트릭 처리됨`);
+      console.log(
+        `📤 통합 리포트 API 전송 시뮬레이션: ${report.metrics.length}개 메트릭 처리됨`
+      );
     });
 
     it('성능 회귀 감지 시뮬레이션', async () => {
@@ -307,7 +345,7 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
       const baselineMetrics = [
         { name: 'unit-test-time', value: 45 },
         { name: 'api-response-time', value: 180 },
-        { name: 'build-time', value: 25000 }
+        { name: 'build-time', value: 25000 },
       ];
 
       // 현재 성능 메트릭 (일부 성능 저하)
@@ -321,10 +359,14 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
       );
 
       // 회귀 감지 시뮬레이션
-      const regressionDetected = currentApiTime > baselineMetrics[1].value * 1.5; // 50% 임계값
+      const regressionDetected =
+        currentApiTime > baselineMetrics[1].value * 1.5; // 50% 임계값
 
       if (regressionDetected) {
-        const regressionPercentage = ((currentApiTime - baselineMetrics[1].value) / baselineMetrics[1].value) * 100;
+        const regressionPercentage =
+          ((currentApiTime - baselineMetrics[1].value) /
+            baselineMetrics[1].value) *
+          100;
 
         universalVitals.collectVital(
           'performance-regression',
@@ -335,11 +377,13 @@ describe('🌐 Universal Vitals 통합 테스트', () => {
             metric: 'api-response-time',
             baseline: baselineMetrics[1].value,
             current: currentApiTime,
-            severity: 'high'
+            severity: 'high',
           }
         );
 
-        console.log(`🚨 성능 회귀 감지: API 응답시간 ${regressionPercentage.toFixed(1)}% 증가`);
+        console.log(
+          `🚨 성능 회귀 감지: API 응답시간 ${regressionPercentage.toFixed(1)}% 증가`
+        );
       }
 
       expect(regressionDetected).toBe(true);
@@ -358,8 +402,8 @@ async function generateIntegratedReport() {
     'api-performance': analyzeCategory('api-performance'),
     'build-performance': analyzeCategory('build-performance'),
     'web-performance': analyzeCategory('web-performance'),
-    'infrastructure': analyzeCategory('infrastructure'),
-    'reliability': analyzeCategory('reliability')
+    infrastructure: analyzeCategory('infrastructure'),
+    reliability: analyzeCategory('reliability'),
   };
 
   // 전체 점수 계산 (가중 평균)
@@ -376,15 +420,20 @@ async function generateIntegratedReport() {
     summary: {
       ...summary,
       overallScore,
-      overallRating: overallScore >= 80 ? 'good' : overallScore >= 60 ? 'needs-improvement' : 'poor'
+      overallRating:
+        overallScore >= 80
+          ? 'good'
+          : overallScore >= 60
+            ? 'needs-improvement'
+            : 'poor',
     },
     analysis: categoryAnalysis,
     recommendations,
     metadata: {
       testTools: ['vitest', 'playwright', 'api-tests'],
       environment: 'test',
-      integration: true
-    }
+      integration: true,
+    },
   };
 
   return report;
@@ -394,12 +443,13 @@ function analyzeCategory(category: string) {
   const metrics = universalVitals.getMetricsByCategory(category as any);
   if (metrics.length === 0) return null;
 
-  const good = metrics.filter(m => m.rating === 'good').length;
-  const poor = metrics.filter(m => m.rating === 'poor').length;
+  const good = metrics.filter((m) => m.rating === 'good').length;
+  const poor = metrics.filter((m) => m.rating === 'poor').length;
   const total = metrics.length;
 
   const score = Math.round((good / total) * 100);
-  const rating = score >= 80 ? 'good' : score >= 60 ? 'needs-improvement' : 'poor';
+  const rating =
+    score >= 80 ? 'good' : score >= 60 ? 'needs-improvement' : 'poor';
 
   return {
     totalMetrics: total,
@@ -407,7 +457,7 @@ function analyzeCategory(category: string) {
     poor,
     score,
     rating,
-    avgValue: metrics.reduce((sum, m) => sum + m.value, 0) / total
+    avgValue: metrics.reduce((sum, m) => sum + m.value, 0) / total,
   };
 }
 
@@ -419,11 +469,11 @@ function calculateOverallScore(summary: any) {
   const needsImprovementWeight = 60;
   const poorWeight = 20;
 
-  const weightedScore = (
-    (summary.good * goodWeight) +
-    (summary.needsImprovement * needsImprovementWeight) +
-    (summary.poor * poorWeight)
-  ) / total;
+  const weightedScore =
+    (summary.good * goodWeight +
+      summary.needsImprovement * needsImprovementWeight +
+      summary.poor * poorWeight) /
+    total;
 
   return Math.round(weightedScore);
 }
@@ -431,16 +481,25 @@ function calculateOverallScore(summary: any) {
 function generateRecommendations(metrics: any[]) {
   const recommendations: string[] = [];
 
-  const poorMetrics = metrics.filter(m => m.rating === 'poor');
+  const poorMetrics = metrics.filter((m) => m.rating === 'poor');
 
-  poorMetrics.forEach(metric => {
-    if (metric.category === 'api-performance' && metric.name.includes('response-time')) {
+  poorMetrics.forEach((metric) => {
+    if (
+      metric.category === 'api-performance' &&
+      metric.name.includes('response-time')
+    ) {
       recommendations.push('API 응답 시간 최적화 필요 - 캐싱 및 쿼리 최적화');
     }
-    if (metric.category === 'test-execution' && metric.name.includes('test-time')) {
+    if (
+      metric.category === 'test-execution' &&
+      metric.name.includes('test-time')
+    ) {
       recommendations.push('테스트 실행 시간 개선 - 병렬 실행 및 Mock 활용');
     }
-    if (metric.category === 'build-performance' && metric.name.includes('build-time')) {
+    if (
+      metric.category === 'build-performance' &&
+      metric.name.includes('build-time')
+    ) {
       recommendations.push('빌드 시간 단축 - 증분 빌드 및 캐싱 활용');
     }
     if (metric.category === 'web-performance') {

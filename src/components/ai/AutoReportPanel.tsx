@@ -9,17 +9,17 @@
 
 'use client';
 
-import React, { useMemo, useState, useCallback, useEffect, type FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  FileText,
-  Download,
+  Activity,
   AlertTriangle,
   CheckCircle,
   Clock,
+  Download,
+  FileText,
   TrendingUp,
-  Activity,
 } from 'lucide-react';
+import { type FC, useCallback, useEffect, useMemo, useState } from 'react';
 import BasePanelLayout from './shared/BasePanelLayout';
 
 interface ReportData {
@@ -47,9 +47,7 @@ interface AutoReportPanelProps {
   className?: string;
 }
 
-const AutoReportPanel: FC<AutoReportPanelProps> = ({
-  className = '',
-}) => {
+const AutoReportPanel: FC<AutoReportPanelProps> = ({ className = '' }) => {
   // 데이터 로딩 (30초마다 자동 새로고침)
   const [reports, setReports] = useState<ReportData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -106,7 +104,9 @@ const AutoReportPanel: FC<AutoReportPanelProps> = ({
 
   // 30초마다 자동 새로고침
   useEffect(() => {
-    const interval = setInterval(() => { void loadReports(); }, 30000);
+    const interval = setInterval(() => {
+      void loadReports();
+    }, 30000);
     return () => clearInterval(interval);
   }, [loadReports]);
 

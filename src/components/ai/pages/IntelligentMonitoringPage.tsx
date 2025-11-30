@@ -10,17 +10,17 @@
 
 'use client';
 
-import type {
-  IntelligentAnalysisRequest,
-  ExtendedIntelligentAnalysisResult,
-} from '@/types/intelligent-monitoring.types';
+import { Monitor, Pause, Play, RotateCcw, Shield } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import MonitoringInsights from '@/components/ai/MonitoringInsights';
+import MonitoringResults from '@/components/ai/MonitoringResults';
 import MonitoringWorkflow, {
   defaultWorkflowSteps,
 } from '@/components/ai/MonitoringWorkflow';
-import MonitoringResults from '@/components/ai/MonitoringResults';
-import { Monitor, Pause, Play, RotateCcw, Shield } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import type {
+  ExtendedIntelligentAnalysisResult,
+  IntelligentAnalysisRequest,
+} from '@/types/intelligent-monitoring.types';
 // MLDataManager 제거 - 클라이언트에서 Redis 사용 불가
 
 export default function IntelligentMonitoringPage() {

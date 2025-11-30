@@ -1,8 +1,8 @@
 import { ScenarioTimeline } from '../types';
-import { scenario1 } from './dbOverload';
-import { scenario2 } from './storageFull';
 import { scenario3 } from './cacheFailure';
+import { scenario1 } from './dbOverload';
 import { scenario4 } from './networkBottleneck';
+import { scenario2 } from './storageFull';
 
 export const SCENARIO_TIMELINES: ScenarioTimeline[] = [
   scenario1,

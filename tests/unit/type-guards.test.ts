@@ -2,13 +2,13 @@
  * 🧪 타입 가드 함수 단위 테스트
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   isErrorWithMessage,
   isRecord,
   isStringArray,
-  toSafeObject,
   toSafeArray,
+  toSafeObject,
   toSafeString,
 } from '../../src/types/common-replacements';
 

@@ -8,28 +8,27 @@
  * ✅ MCP 컨텍스트 통합
  */
 
-import type { AIMetadata } from '../../types/ai-service-types';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { embeddingService } from './embedding-service';
-import { PostgresVectorDB } from './postgres-vector-db';
+import { extractKeywords } from '../../services/rag/keyword-extractor';
+// Extracted Services
+import { MemoryRAGCache } from '../../services/rag/memory-rag-cache';
+import type { AIMetadata } from '../../types/ai-service-types';
 
 // Extracted Types
 import type {
   DocumentMetadata,
-  RAGSearchOptions,
   RAGEngineSearchResult,
+  RAGSearchOptions,
   RAGSearchResult,
 } from '../../types/rag/rag-types';
 
 // Extracted Utilities
 import {
-  convertDocumentMetadataToAIMetadata,
   convertAIMetadataToDocumentMetadata,
+  convertDocumentMetadataToAIMetadata,
 } from '../../utils/rag/rag-utils';
-
-// Extracted Services
-import { MemoryRAGCache } from '../../services/rag/memory-rag-cache';
-import { extractKeywords } from '../../services/rag/keyword-extractor';
+import { embeddingService } from './embedding-service';
+import { PostgresVectorDB } from './postgres-vector-db';
 
 export class SupabaseRAGEngine {
   private vectorDB: PostgresVectorDB;

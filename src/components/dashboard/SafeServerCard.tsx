@@ -1,11 +1,11 @@
-import React, { useMemo, useCallback } from 'react';
-import ImprovedServerCard from './ImprovedServerCard';
+import React, { useCallback, useMemo } from 'react';
 import type {
-  Server,
-  Service,
-  ServerAlert,
   AlertSeverity,
+  Server,
+  ServerAlert,
+  Service,
 } from '@/types/server';
+import ImprovedServerCard from './ImprovedServerCard';
 
 export interface SafeServerCardProps {
   server: Server;
@@ -94,27 +94,28 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({
 
       // 메트릭 데이터 - Server 타입 필수 속성
       cpu:
-        typeof server.cpu === 'number' && !isNaN(server.cpu)
+        typeof server.cpu === 'number' && !Number.isNaN(server.cpu)
           ? server.cpu
           : Math.random() * 80 + 10,
       memory:
-        typeof server.memory === 'number' && !isNaN(server.memory)
+        typeof server.memory === 'number' && !Number.isNaN(server.memory)
           ? server.memory
           : Math.random() * 70 + 15,
       disk:
-        typeof server.disk === 'number' && !isNaN(server.disk)
+        typeof server.disk === 'number' && !Number.isNaN(server.disk)
           ? server.disk
           : Math.random() * 60 + 20,
 
       // Server 타입 optional 속성들
       network:
-        typeof server.network === 'number' && !isNaN(server.network)
+        typeof server.network === 'number' && !Number.isNaN(server.network)
           ? server.network
           : Math.random() * 50 + 25,
       os: server.os || 'Ubuntu 22.04 LTS',
       ip: server.ip || `192.168.1.${10 + (index % 240)}`,
       responseTime:
-        typeof server.responseTime === 'number' && !isNaN(server.responseTime)
+        typeof server.responseTime === 'number' &&
+        !Number.isNaN(server.responseTime)
           ? server.responseTime
           : Math.floor(Math.random() * 100 + 50),
 
@@ -183,7 +184,7 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({
 
         // 숫자 타입 처리 (가장 일반적인 케이스)
         if (typeof server.alerts === 'number') {
-          return isNaN(server.alerts)
+          return Number.isNaN(server.alerts)
             ? 0
             : Math.max(0, Math.floor(server.alerts));
         }
@@ -230,7 +231,7 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({
         // 문자열을 숫자로 변환 시도
         if (typeof server.alerts === 'string') {
           const parsed = parseInt(server.alerts, 10);
-          return isNaN(parsed) ? 0 : Math.max(0, parsed);
+          return Number.isNaN(parsed) ? 0 : Math.max(0, parsed);
         }
 
         // 기본값

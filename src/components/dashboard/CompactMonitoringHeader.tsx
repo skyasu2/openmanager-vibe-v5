@@ -10,18 +10,18 @@
 
 'use client';
 
-import { useState, useEffect, type FC, type ElementType } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
+  BarChart3,
   Database,
-  Wifi,
-  WifiOff,
+  Monitor,
   RefreshCw,
   Settings,
-  BarChart3,
-  Monitor,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
+import { type ElementType, type FC, useEffect, useState } from 'react';
 import { useSystemIntegration } from '@/hooks/useSystemIntegration';
 
 interface CompactMonitoringHeaderProps {
@@ -50,7 +50,6 @@ const StatusIndicator: FC<{
       <div className="text-sm font-bold text-gray-900">{value}</div>
     </div>
   </div>
-
 );
 const ServerCountCard: FC<{
   count: number;
@@ -63,9 +62,11 @@ const ServerCountCard: FC<{
   </div>
 );
 
-export const CompactMonitoringHeader: FC<
-  CompactMonitoringHeaderProps
-> = ({ serverStats, onSettingsClick, className = '' }) => {
+export const CompactMonitoringHeader: FC<CompactMonitoringHeaderProps> = ({
+  serverStats,
+  onSettingsClick,
+  className = '',
+}) => {
   const systemIntegration = useSystemIntegration();
   const [lastRefresh, setLastRefresh] = useState(new Date());
 

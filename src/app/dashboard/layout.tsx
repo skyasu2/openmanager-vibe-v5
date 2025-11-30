@@ -1,6 +1,6 @@
 /**
  * Dashboard Layout - Force Dynamic Rendering
- * 
+ *
  * This layout ensures the entire /dashboard route is rendered dynamically
  * to avoid SSR issues with client-side hooks and authentication
  */

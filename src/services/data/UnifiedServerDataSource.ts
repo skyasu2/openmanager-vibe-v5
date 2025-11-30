@@ -5,10 +5,9 @@
  */
 
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';
-import type { Server, ServerRole, ServerEnvironment } from '@/types/server';
-
 // 🎯 Scenario-based failure data (Single Source of Truth)
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
+import type { Server, ServerEnvironment, ServerRole } from '@/types/server';
 
 export interface ServerDataSourceConfig {
   totalServers: number;
@@ -51,10 +50,10 @@ export class UnifiedServerDataSource {
   }
 
   public static getInstance(): UnifiedServerDataSource {
-    if (!this.instance) {
-      this.instance = new UnifiedServerDataSource();
+    if (!UnifiedServerDataSource.instance) {
+      UnifiedServerDataSource.instance = new UnifiedServerDataSource();
     }
-    return this.instance;
+    return UnifiedServerDataSource.instance;
   }
 
   /**

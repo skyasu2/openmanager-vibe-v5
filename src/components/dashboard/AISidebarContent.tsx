@@ -10,28 +10,28 @@
  * - ✅ 실제 서버 데이터 기반 응답
  */
 
-import { useState, useRef, useEffect } from 'react';
 import {
-  Send,
-  Bot,
-  User,
   AlertTriangle,
+  Bot,
   Brain,
-  FileText,
   Clock,
-  TrendingUp,
+  FileText,
   Lightbulb,
+  Send,
+  TrendingUp,
+  User,
 } from 'lucide-react';
-import { useServerDataStore } from '@/components/providers/StoreProvider';
-import type { EnhancedServerMetrics } from '@/types/server';
-import AIInsightsCard from './AIInsightsCard';
+import { useEffect, useRef, useState } from 'react';
 import AIAssistantIconPanel, {
   type AIAssistantFunction,
 } from '@/components/ai/AIAssistantIconPanel';
 // AIModeSelector 제거 - 지능형 라우팅으로 자동 선택
 import FreeTierMonitor from '@/components/ai/FreeTierMonitor';
 import ThinkingProcessVisualizer from '@/components/ai/ThinkingProcessVisualizer';
+import { useServerDataStore } from '@/components/providers/StoreProvider';
 import type { ThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
+import type { EnhancedServerMetrics } from '@/types/server';
+import AIInsightsCard from './AIInsightsCard';
 
 /**
  * Helper function to extract numeric value from ServerMetrics union type
@@ -130,7 +130,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
       setActiveTab('insights');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFunction]);
+  }, [selectedFunction, handleSendMessage]);
 
   // Placeholder 순환 (5초마다)
   useEffect(() => {
@@ -148,7 +148,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [scrollToBottom]);
 
   // 🚀 실제 AI API 호출
   const handleSendMessage = async (content: string) => {

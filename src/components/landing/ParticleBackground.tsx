@@ -30,9 +30,33 @@ export default function ParticleBackground() {
         </defs>
 
         {/* 정적 선들 */}
-        <line x1="10%" y1="20%" x2="90%" y2="80%" stroke="url(#lineGradient)" strokeWidth="1" className="animate-pulse" />
-        <line x1="20%" y1="10%" x2="80%" y2="90%" stroke="url(#lineGradient)" strokeWidth="1" className="animate-pulse" />
-        <line x1="30%" y1="70%" x2="70%" y2="30%" stroke="url(#lineGradient)" strokeWidth="1" className="animate-pulse" />
+        <line
+          x1="10%"
+          y1="20%"
+          x2="90%"
+          y2="80%"
+          stroke="url(#lineGradient)"
+          strokeWidth="1"
+          className="animate-pulse"
+        />
+        <line
+          x1="20%"
+          y1="10%"
+          x2="80%"
+          y2="90%"
+          stroke="url(#lineGradient)"
+          strokeWidth="1"
+          className="animate-pulse"
+        />
+        <line
+          x1="30%"
+          y1="70%"
+          x2="70%"
+          y2="30%"
+          stroke="url(#lineGradient)"
+          strokeWidth="1"
+          className="animate-pulse"
+        />
       </svg>
     </div>
   );

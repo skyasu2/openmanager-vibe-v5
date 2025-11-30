@@ -13,7 +13,7 @@
  * @see /tmp/ai-sidebar-verification-report.md - 코드 레벨 분석 보고서
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { guestLogin, openAiSidebar } from './helpers/guest';
 import { TIMEOUTS } from './helpers/timeouts';
 

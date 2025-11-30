@@ -2,12 +2,19 @@
  * AI 어시스턴트 데이터 훅
  */
 
-import { useState, useEffect, useCallback, useMemo, type Dispatch, type SetStateAction } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { toast } from 'react-hot-toast';
 import type {
+  ContextDocument,
   ResponseLogData,
   PatternSuggestion as SuggestionData,
-  ContextDocument,
   SystemHealth,
 } from '@/types/ai-assistant';
 
@@ -144,7 +151,9 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
           result.data.map((suggestion: Partial<SuggestionData>) => ({
             id: suggestion.id || Math.random().toString(36).substr(2, 9),
             originalQuery:
-              suggestion?.originalQuery || (suggestion as { query?: string })?.query || '쿼리 없음',
+              suggestion?.originalQuery ||
+              (suggestion as { query?: string })?.query ||
+              '쿼리 없음',
             suggestedPattern:
               suggestion.suggestedPattern ||
               (suggestion as { pattern?: string }).pattern ||
@@ -358,7 +367,9 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
       // 검색어 필터
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        const queryMatch = (log as { query?: string }).query?.toLowerCase().includes(searchLower);
+        const queryMatch = (log as { query?: string }).query
+          ?.toLowerCase()
+          .includes(searchLower);
         const responseMatch = log.response?.toLowerCase().includes(searchLower);
         return queryMatch || responseMatch;
       }

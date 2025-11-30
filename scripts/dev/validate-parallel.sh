@@ -20,15 +20,15 @@ run_type_check() {
   fi
 }
 
-# Function to run lint
+# Function to run lint (Biome)
 run_lint() {
-  echo "eslint..."
+  echo "biome..."
   npm run lint:quick > /dev/null 2>&1
   if [ $? -eq 0 ]; then
-    echo "✅ ESLint Passed"
+    echo "✅ Biome Passed"
     return 0
   else
-    echo "❌ ESLint Failed"
+    echo "❌ Biome Failed"
     npm run lint:quick # Run again to show output
     return 1
   fi

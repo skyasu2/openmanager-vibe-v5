@@ -2,7 +2,7 @@
  * 🎯 MCP 분석 통합 테스트
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
 
 describe('🎯 통합 Intent Classification 시스템', () => {

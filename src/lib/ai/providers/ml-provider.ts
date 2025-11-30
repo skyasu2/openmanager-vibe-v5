@@ -15,11 +15,11 @@
  */
 
 import type {
-  IContextProvider,
-  ProviderContext,
-  MLData,
-  ProviderOptions,
   AIScenario,
+  IContextProvider,
+  MLData,
+  ProviderContext,
+  ProviderOptions,
 } from '@/lib/ai/core/types';
 
 // ============================================================================

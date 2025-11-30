@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import debug from '@/utils/debug';
 import { withAuth } from '@/lib/auth/api-auth';
+import debug from '@/utils/debug';
 
 // 이 라우트는 /api/servers/all로 리다이렉트
 export const dynamic = 'force-dynamic';

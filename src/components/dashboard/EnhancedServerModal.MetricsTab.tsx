@@ -1,6 +1,5 @@
 'use client';
 
-import { type FC } from 'react';
 /**
  * 📊 Enhanced Server Modal Metrics Tab
  *
@@ -11,14 +10,15 @@ import { type FC } from 'react';
  * - Responsive grid layout
  */
 import { Pause, Play } from 'lucide-react';
+import { type FC } from 'react';
+import { getSafeLastArrayItem } from '@/lib/utils/vercel-safe-utils';
+import { RealtimeChart } from './EnhancedServerModal.components';
 import {
-  ServerData,
-  RealtimeData,
   ChartData,
+  RealtimeData,
+  ServerData,
 } from './EnhancedServerModal.types';
 import { getMetricColorByStatus } from './EnhancedServerModal.utils';
-import { RealtimeChart } from './EnhancedServerModal.components';
-import { getSafeLastArrayItem } from '@/lib/utils/vercel-safe-utils';
 
 /**
  * Metrics Tab Props

@@ -9,15 +9,23 @@
 
 'use client';
 
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
+import { type FC, lazy, Suspense } from 'react';
 import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
-// React import 제거 - Next.js 15 자동 JSX Transform 사용
-import { type FC, Suspense, lazy } from 'react';
 
 // 📦 동적 임포트로 초기 로딩 최적화
-const AutoReportPage = lazy(() => import('@/components/ai/pages/AutoReportPage'));
-const IntelligentMonitoringPage = lazy(() => import('@/components/ai/pages/IntelligentMonitoringPage'));
-const MLLearningCenter = lazy(() => import('@/components/ai/pages/MLLearningCenter').then(module => ({ default: module.MLLearningCenter })));
+const AutoReportPage = lazy(
+  () => import('@/components/ai/pages/AutoReportPage')
+);
+const IntelligentMonitoringPage = lazy(
+  () => import('@/components/ai/pages/IntelligentMonitoringPage')
+);
+const MLLearningCenter = lazy(() =>
+  import('@/components/ai/pages/MLLearningCenter').then((module) => ({
+    default: module.MLLearningCenter,
+  }))
+);
 
 // 🔄 로딩 스피너 컴포넌트
 const LoadingSpinner = () => (

@@ -9,22 +9,21 @@
  */
 
 import type { ILogger } from '@/interfaces/services';
-import type {
-  ServiceError,
-  IErrorHandler,
-  ErrorStats,
-  ErrorHandlingConfig,
-} from './types/ErrorTypes';
-import { createServiceError as createServiceErrorUtil } from './types/ErrorTypes';
 import type { ErrorContext } from '@/types/ai-service-types';
 import { ErrorHandlingCore } from './core/ErrorHandlingCore';
 import { DefaultErrorHandlers } from './handlers/DefaultErrorHandlers';
-import { RecoveryService } from './recovery/RecoveryService';
 import { ErrorMonitoringService } from './monitoring/ErrorMonitoringService';
+import { RecoveryService } from './recovery/RecoveryService';
+import type {
+  ErrorHandlingConfig,
+  ErrorStats,
+  IErrorHandler,
+  ServiceError,
+} from './types/ErrorTypes';
+import { createServiceError as createServiceErrorUtil } from './types/ErrorTypes';
 
 export class ErrorHandlingService implements IErrorHandler {
   private core: ErrorHandlingCore;
-  private defaultHandlers: DefaultErrorHandlers;
   private recoveryService: RecoveryService;
   private monitoringService: ErrorMonitoringService;
   private config: ErrorHandlingConfig;
@@ -248,7 +247,7 @@ export function getErrorHandlingService(
 // 기존 코드와의 호환성을 위한 export
 export { ErrorHandlingService as default };
 export type {
-  ServiceError,
-  IErrorHandler,
   ErrorStats,
+  IErrorHandler,
+  ServiceError,
 } from './types/ErrorTypes';

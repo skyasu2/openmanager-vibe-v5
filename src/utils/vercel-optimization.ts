@@ -1,6 +1,6 @@
 /**
  * 🚀 Vercel 환경 최적화 유틸리티
- * 
+ *
  * AI 교차검증 기반 Vercel 특화 최적화:
  * - Edge Runtime 호환성
  * - Cold Start 최소화
@@ -52,20 +52,24 @@ export function getVercelEnvironment(): VercelEnvironment {
       gitBranch: process.env.VERCEL_GIT_COMMIT_REF,
     };
   }
-  
+
   // 클라이언트 환경에서는 URL 기반 감지
   const hostname = window.location.hostname;
   const isVercel = hostname.includes('vercel.app');
-  
+
   return {
     isVercel,
     region: 'client-side', // 클라이언트에서는 region 정보 없음
-    environment: isVercel ? 
-      (hostname.includes('-git-') ? 'preview' : 'production') : 
-      'development',
+    environment: isVercel
+      ? hostname.includes('-git-')
+        ? 'preview'
+        : 'production'
+      : 'development',
     deploymentUrl: isVercel ? hostname : undefined,
-    gitBranch: isVercel && hostname.includes('-git-') ? 
-      hostname.split('-git-')[1]?.split('-')[0] : undefined,
+    gitBranch:
+      isVercel && hostname.includes('-git-')
+        ? hostname.split('-git-')[1]?.split('-')[0]
+        : undefined,
   };
 }
 
@@ -75,14 +79,14 @@ export function getVercelEnvironment(): VercelEnvironment {
 export class VercelPerformanceTracker {
   private metrics: Map<string, number> = new Map();
   private startTimes: Map<string, number> = new Map();
-  
+
   /**
    * 성능 측정 시작
    */
   start(label: string): void {
     this.startTimes.set(label, performance.now());
   }
-  
+
   /**
    * 성능 측정 종료 및 기록
    */
@@ -92,26 +96,26 @@ export class VercelPerformanceTracker {
       console.warn(`⚠️ 성능 측정 시작점을 찾을 수 없음: ${label}`);
       return 0;
     }
-    
+
     const duration = performance.now() - startTime;
     this.metrics.set(label, duration);
     this.startTimes.delete(label);
-    
+
     // Vercel 환경에서는 console.log가 모니터링됨
     if (getVercelEnvironment().isVercel) {
       console.log(`📊 Vercel Performance [${label}]: ${duration.toFixed(2)}ms`);
     }
-    
+
     return duration;
   }
-  
+
   /**
    * 모든 메트릭 가져오기
    */
   getMetrics(): Record<string, number> {
     return Object.fromEntries(this.metrics);
   }
-  
+
   /**
    * 메트릭 초기화
    */
@@ -131,11 +135,11 @@ export const performanceTracker = new VercelPerformanceTracker();
  */
 export async function preloadCriticalResources(): Promise<void> {
   const env = getVercelEnvironment();
-  
+
   if (!env.isVercel) return; // 로컬 환경에서는 스킵
-  
+
   performanceTracker.start('preload-resources');
-  
+
   try {
     // 1. DNS 사전 해결
     if (typeof document !== 'undefined') {
@@ -143,18 +147,18 @@ export async function preloadCriticalResources(): Promise<void> {
         'https://api.supabase.co',
         'https://fonts.googleapis.com',
       ];
-      
-      criticalDomains.forEach(domain => {
+
+      criticalDomains.forEach((domain) => {
         const link = document.createElement('link');
         link.rel = 'dns-prefetch';
         link.href = domain;
         document.head.appendChild(link);
       });
     }
-    
+
     // 2. 중요 API 엔드포인트 사전 로딩 (HEAD 요청)
     const criticalEndpoints = ['/api/system/status'];
-    
+
     await Promise.allSettled(
       criticalEndpoints.map(async (endpoint) => {
         try {
@@ -164,7 +168,7 @@ export async function preloadCriticalResources(): Promise<void> {
         }
       })
     );
-    
+
     console.log('🚀 Vercel 사전 로딩 완료');
   } catch (error) {
     console.warn('⚠️ 사전 로딩 중 일부 실패:', error);
@@ -178,7 +182,7 @@ export async function preloadCriticalResources(): Promise<void> {
  */
 export function getOptimizationConfig() {
   const env = getVercelEnvironment();
-  
+
   return {
     // 캐싱 설정
     cache: {
@@ -187,7 +191,7 @@ export function getOptimizationConfig() {
       // 프리뷰에서는 캐시 버스팅
       bustCache: env.environment === 'preview',
     },
-    
+
     // 네트워크 설정
     network: {
       // Vercel 환경에서는 더 긴 타임아웃
@@ -195,7 +199,7 @@ export function getOptimizationConfig() {
       // 프로덕션에서는 재시도
       retries: env.environment === 'production' ? 2 : 0,
     },
-    
+
     // 로깅 설정
     logging: {
       // 프로덕션에서는 에러만
@@ -203,7 +207,7 @@ export function getOptimizationConfig() {
       // Vercel Analytics 호환 포맷
       format: env.isVercel ? 'structured' : 'simple',
     },
-    
+
     // 성능 설정
     performance: {
       // 번들 분할 임계값
@@ -222,24 +226,25 @@ export function checkEdgeRuntimeCompatibility(): {
   issues: string[];
 } {
   const issues: string[] = [];
-  
+
   // Node.js API 사용 체크 (Edge Runtime에서 제한됨)
   if (typeof process !== 'undefined' && process.versions?.node) {
     // fs, path 등 Node.js 전용 API 사용 여부 체크는 정적 분석이 필요
     // 여기서는 기본적인 체크만 수행
   }
-  
+
   // 메모리 사용량 체크 (Edge Runtime은 128MB 제한)
   if (typeof performance !== 'undefined') {
     const extendedPerf = performance as ExtendedPerformance;
     if (extendedPerf.memory) {
       const memory = extendedPerf.memory;
-      if (memory.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB 이상
+      if (memory.usedJSHeapSize > 50 * 1024 * 1024) {
+        // 50MB 이상
         issues.push('높은 메모리 사용량 감지 (Edge Runtime 제한 고려 필요)');
       }
     }
   }
-  
+
   return {
     isCompatible: issues.length === 0,
     issues,
@@ -256,7 +261,7 @@ export function getDeploymentChecklist(): {
   const env = getVercelEnvironment();
   const optimization = getOptimizationConfig();
   const edgeCompatibility = checkEdgeRuntimeCompatibility();
-  
+
   return [
     {
       category: '환경 설정',
@@ -276,7 +281,8 @@ export function getDeploymentChecklist(): {
       items: [
         {
           name: '번들 크기',
-          status: optimization.performance.bundleThreshold < 300000 ? 'pass' : 'warn',
+          status:
+            optimization.performance.bundleThreshold < 300000 ? 'pass' : 'warn',
         },
         {
           name: '이미지 최적화',

@@ -9,18 +9,17 @@
 
 'use client';
 
-import {
-  Fragment,
-  useState,
-  useCallback,
-  useEffect,
-  memo,
-  type FC,
-  type KeyboardEvent as ReactKeyboardEvent,
-} from 'react';
-import debug from '@/utils/debug';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { useRouter } from 'next/navigation';
+import {
+  type FC,
+  memo,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
+import debug from '@/utils/debug';
 import type { Server } from '../../../types/server';
 
 interface SystemBootSequenceProps {
@@ -181,13 +180,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
       (
         window as { emergencyCompleteBootSequence?: () => void }
       ).emergencyCompleteBootSequence = handleFinalComplete;
-    }, [
-      handleFinalComplete,
-      currentStage,
-      isComplete,
-      progress,
-      servers,
-    ]);
+    }, [handleFinalComplete, currentStage, isComplete, progress, servers]);
 
     if (skipAnimation || isComplete) {
       return null;
@@ -270,35 +263,33 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
         </div>
 
         {/* 비상 완료 버튼 */}
-        <Fragment>
-          {showEmergencyButton && (
-            <div className="fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 transform">
-              <div className="max-w-sm rounded-lg border border-red-500/30 bg-black/90 p-4 text-white shadow-2xl backdrop-blur-sm">
-                <div className="space-y-3 text-center">
-                  <div className="text-sm font-medium text-red-400">
-                    🚨 로딩에 문제가 있나요?
-                  </div>
-                  <div className="text-xs leading-relaxed text-gray-300">
-                    로딩이 오래 걸리고 있습니다. 아래 버튼으로 바로 이동하세요.
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      debug.log('🚀 비상 완료 버튼 클릭');
-                      handleFinalComplete();
-                    }}
-                    className="w-full transform rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-medium transition-all duration-200 hover:scale-105 hover:from-blue-700 hover:to-purple-700 active:scale-95"
-                  >
-                    🚀 대시보드로 이동
-                  </button>
-                  <div className="text-xs text-gray-400">
-                    또는 화면 아무 곳이나 클릭하세요
-                  </div>
+        {showEmergencyButton && (
+          <div className="fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 transform">
+            <div className="max-w-sm rounded-lg border border-red-500/30 bg-black/90 p-4 text-white shadow-2xl backdrop-blur-sm">
+              <div className="space-y-3 text-center">
+                <div className="text-sm font-medium text-red-400">
+                  🚨 로딩에 문제가 있나요?
+                </div>
+                <div className="text-xs leading-relaxed text-gray-300">
+                  로딩이 오래 걸리고 있습니다. 아래 버튼으로 바로 이동하세요.
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    debug.log('🚀 비상 완료 버튼 클릭');
+                    handleFinalComplete();
+                  }}
+                  className="w-full transform rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-medium transition-all duration-200 hover:scale-105 hover:from-blue-700 hover:to-purple-700 active:scale-95"
+                >
+                  🚀 대시보드로 이동
+                </button>
+                <div className="text-xs text-gray-400">
+                  또는 화면 아무 곳이나 클릭하세요
                 </div>
               </div>
             </div>
-          )}
-        </Fragment>
+          </div>
+        )}
 
         {/* 사용자 안내 */}
         <div className="fixed bottom-4 left-4 max-w-xs rounded-lg border border-white/30 bg-black/50 p-4 text-sm text-white backdrop-blur-lg">

@@ -1,24 +1,24 @@
 /**
  * 📊 AI 성능 모니터링 컴포넌트
- * 
+ *
  * 실시간 AI 시스템 성능, 캐시 통계, 에러 분석 표시
  * AISidebarV3에 통합되어 개발자 도구로 사용
  */
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Activity, 
-  Zap, 
-  AlertTriangle, 
-  CheckCircle,
+import {
+  Activity,
+  AlertTriangle,
   BarChart3,
-  RefreshCw,
-  Database,
+  CheckCircle,
   Clock,
-  TrendingUp
+  Database,
+  RefreshCw,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface MonitoringData {
   timestamp: string;
@@ -62,9 +62,9 @@ interface AIPerformanceMonitorProps {
   refreshInterval?: number; // seconds
 }
 
-export default function AIPerformanceMonitor({ 
-  className = '', 
-  refreshInterval = 30 
+export default function AIPerformanceMonitor({
+  className = '',
+  refreshInterval = 30,
 }: AIPerformanceMonitorProps) {
   const [data, setData] = useState<MonitoringData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,13 +76,13 @@ export default function AIPerformanceMonitor({
     try {
       setError(null);
       const response = await fetch('/api/ai/monitoring');
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setData(result.data);
         setLastUpdated(new Date());
@@ -106,20 +106,27 @@ export default function AIPerformanceMonitor({
   useEffect(() => {
     if (!autoRefresh) return;
 
-    const interval = setInterval(() => { void fetchMonitoringData(); }, refreshInterval * 1000);
+    const interval = setInterval(() => {
+      void fetchMonitoringData();
+    }, refreshInterval * 1000);
     return () => clearInterval(interval);
   }, [fetchMonitoringData, refreshInterval, autoRefresh]);
 
-  const getStatusColor = (value: number, thresholds: { good: number; warning: number }) => {
+  const getStatusColor = (
+    value: number,
+    thresholds: { good: number; warning: number }
+  ) => {
     if (value >= thresholds.good) return 'text-green-600';
     if (value >= thresholds.warning) return 'text-yellow-600';
     return 'text-red-600';
   };
 
   const getStatusIcon = (status: 'active' | 'inactive') => {
-    return status === 'active' ? 
-      <CheckCircle className="h-4 w-4 text-green-600" /> : 
-      <AlertTriangle className="h-4 w-4 text-gray-400" />;
+    return status === 'active' ? (
+      <CheckCircle className="h-4 w-4 text-green-600" />
+    ) : (
+      <AlertTriangle className="h-4 w-4 text-gray-400" />
+    );
   };
 
   if (loading) {
@@ -127,7 +134,9 @@ export default function AIPerformanceMonitor({
       <div className={`bg-white border rounded-lg p-4 ${className}`}>
         <div className="flex items-center justify-center space-x-2">
           <RefreshCw className="h-4 w-4 animate-spin" />
-          <span className="text-sm text-gray-600">모니터링 데이터 로딩 중...</span>
+          <span className="text-sm text-gray-600">
+            모니터링 데이터 로딩 중...
+          </span>
         </div>
       </div>
     );
@@ -135,13 +144,17 @@ export default function AIPerformanceMonitor({
 
   if (error) {
     return (
-      <div className={`bg-red-50 border border-red-200 rounded-lg p-4 ${className}`}>
+      <div
+        className={`bg-red-50 border border-red-200 rounded-lg p-4 ${className}`}
+      >
         <div className="flex items-center space-x-2">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <span className="text-sm text-red-800">모니터링 오류: {error}</span>
         </div>
         <button
-          onClick={() => { void fetchMonitoringData(); }}
+          onClick={() => {
+            void fetchMonitoringData();
+          }}
           className="mt-2 text-xs text-red-700 hover:text-red-900 underline"
         >
           다시 시도
@@ -160,19 +173,25 @@ export default function AIPerformanceMonitor({
       <div className="flex items-center justify-between p-3 border-b bg-gray-50">
         <div className="flex items-center space-x-2">
           <Activity className="h-4 w-4 text-blue-600" />
-          <span className="font-semibold text-sm text-gray-800">AI 성능 모니터</span>
+          <span className="font-semibold text-sm text-gray-800">
+            AI 성능 모니터
+          </span>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`text-xs px-2 py-1 rounded ${
-              autoRefresh ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+              autoRefresh
+                ? 'bg-green-100 text-green-800'
+                : 'bg-gray-100 text-gray-600'
             }`}
           >
             {autoRefresh ? '자동' : '수동'}
           </button>
           <button
-            onClick={() => { void fetchMonitoringData(); }}
+            onClick={() => {
+              void fetchMonitoringData();
+            }}
             className="text-xs text-gray-600 hover:text-gray-800"
           >
             <RefreshCw className="h-3 w-3" />
@@ -186,9 +205,13 @@ export default function AIPerformanceMonitor({
           <div className="bg-blue-50 rounded p-2">
             <div className="flex items-center space-x-1 mb-1">
               <BarChart3 className="h-3 w-3 text-blue-600" />
-              <span className="text-xs font-medium text-blue-800">응답 시간</span>
+              <span className="text-xs font-medium text-blue-800">
+                응답 시간
+              </span>
             </div>
-            <div className={`text-sm font-bold ${getStatusColor(data.performance.avgResponseTime, { good: 300, warning: 500 })}`}>
+            <div
+              className={`text-sm font-bold ${getStatusColor(data.performance.avgResponseTime, { good: 300, warning: 500 })}`}
+            >
               {Math.round(data.performance.avgResponseTime)}ms
             </div>
             <div className="text-xs text-gray-600">
@@ -201,7 +224,9 @@ export default function AIPerformanceMonitor({
               <CheckCircle className="h-3 w-3 text-green-600" />
               <span className="text-xs font-medium text-green-800">성공률</span>
             </div>
-            <div className={`text-sm font-bold ${getStatusColor(data.performance.successRate, { good: 95, warning: 85 })}`}>
+            <div
+              className={`text-sm font-bold ${getStatusColor(data.performance.successRate, { good: 95, warning: 85 })}`}
+            >
               {data.performance.successRate.toFixed(1)}%
             </div>
             <div className="text-xs text-gray-600">
@@ -214,10 +239,14 @@ export default function AIPerformanceMonitor({
         <div className="bg-purple-50 rounded p-2">
           <div className="flex items-center space-x-1 mb-1">
             <Database className="h-3 w-3 text-purple-600" />
-            <span className="text-xs font-medium text-purple-800">캐시 히트율</span>
+            <span className="text-xs font-medium text-purple-800">
+              캐시 히트율
+            </span>
           </div>
           <div className="flex items-center justify-between">
-            <div className={`text-sm font-bold ${getStatusColor(data.cache.hitRate, { good: 60, warning: 40 })}`}>
+            <div
+              className={`text-sm font-bold ${getStatusColor(data.cache.hitRate, { good: 60, warning: 40 })}`}
+            >
               {data.cache.hitRate.toFixed(1)}%
             </div>
             <div className="text-xs text-purple-700">
@@ -240,7 +269,7 @@ export default function AIPerformanceMonitor({
             <Zap className="h-3 w-3" />
             <span>AI 엔진 상태</span>
           </div>
-          
+
           <div className="grid grid-cols-1 gap-2">
             {/* Local Engine */}
             <div className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
@@ -249,7 +278,8 @@ export default function AIPerformanceMonitor({
                 <span className="text-xs font-medium">Local</span>
               </div>
               <div className="text-xs text-gray-600">
-                {data.engines.local.requestCount}회 / {Math.round(data.engines.local.avgResponseTime)}ms
+                {data.engines.local.requestCount}회 /{' '}
+                {Math.round(data.engines.local.avgResponseTime)}ms
               </div>
             </div>
 
@@ -260,7 +290,8 @@ export default function AIPerformanceMonitor({
                 <span className="text-xs font-medium">Google AI</span>
               </div>
               <div className="text-xs text-gray-600">
-                {data.engines.googleAI.requestCount}회 / {Math.round(data.engines.googleAI.avgResponseTime)}ms
+                {data.engines.googleAI.requestCount}회 /{' '}
+                {Math.round(data.engines.googleAI.avgResponseTime)}ms
               </div>
             </div>
 
@@ -274,7 +305,8 @@ export default function AIPerformanceMonitor({
                   </span>
                 </div>
                 <div className="text-xs text-yellow-700 mt-1">
-                  {data.engines.googleAI.apiUsage.dailyRequests}/{data.engines.googleAI.apiUsage.dailyLimit} (일일)
+                  {data.engines.googleAI.apiUsage.dailyRequests}/
+                  {data.engines.googleAI.apiUsage.dailyLimit} (일일)
                 </div>
               </div>
             )}

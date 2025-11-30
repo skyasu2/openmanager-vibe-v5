@@ -9,9 +9,9 @@
  */
 
 import type {
-  UnifiedServerMetrics,
   AIAnalysisResult,
   MetricsPerformanceData,
+  UnifiedServerMetrics,
 } from './UnifiedMetricsManager.types';
 
 export class AIAnalyzer {
@@ -28,7 +28,7 @@ export class AIAnalyzer {
     try {
       // 서버별 AI 분석 수행
       const analysisPromises = servers.map(async (server) => {
-        const analysis = await this.analyzeServer(server);
+        const analysis = await AIAnalyzer.analyzeServer(server);
 
         // AI 분석 결과를 서버 객체에 추가
         server.ai_analysis = {
@@ -43,7 +43,7 @@ export class AIAnalyzer {
       await Promise.all(analysisPromises);
 
       // 전체 시스템 분석
-      const systemAnalysis = this.analyzeSystemHealth(servers);
+      const systemAnalysis = AIAnalyzer.analyzeSystemHealth(servers);
       console.log('📊 시스템 분석 결과:', systemAnalysis);
 
       const processingTime = Date.now() - startTime;
@@ -65,9 +65,9 @@ export class AIAnalyzer {
     // Simulate AI analysis processing time
     await new Promise((resolve) => setTimeout(resolve, Math.random() * 50));
 
-    const prediction_score = this.calculatePredictionScore(server);
-    const anomaly_score = this.calculateAnomalyScore(server);
-    const recommendation = this.generateRecommendation(server);
+    const prediction_score = AIAnalyzer.calculatePredictionScore(server);
+    const anomaly_score = AIAnalyzer.calculateAnomalyScore(server);
+    const recommendation = AIAnalyzer.generateRecommendation(server);
 
     return {
       prediction_score,
@@ -217,7 +217,9 @@ export class AIAnalyzer {
     }
 
     return recommendations.length > 0
-      ? recommendations.slice(0, 3).join(' ') // Max 3 recommendations
+      ? recommendations
+          .slice(0, 3)
+          .join(' ') // Max 3 recommendations
       : '✅ 서버가 정상 상태입니다.';
   }
 

@@ -316,6 +316,19 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       tags: ['유틸리티', '오픈소스', '스타일링'],
       type: 'opensource',
     },
+    {
+      name: 'Biome',
+      category: 'utility',
+      importance: 'high',
+      description: '차세대 고성능 린터 & 포맷터',
+      implementation:
+        'Rust 기반으로 ESLint/Prettier 대비 25배 빠른 속도, OOM 문제 해결',
+      version: '2.3.8',
+      status: 'active',
+      icon: '⚡',
+      tags: ['린터', '포맷터', 'Rust', '고성능'],
+      type: 'opensource',
+    },
   ],
   'cursor-ai': {
     current: [
@@ -360,10 +373,9 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         name: 'Claude Code Skills',
         category: 'ai',
         importance: 'high',
-        description:
-          '반복 작업 자동화 Skills (5개) - 평균 71.8% 토큰 절약',
+        description: '반복 작업 자동화 Skills (5개) - 평균 71.8% 토큰 절약',
         implementation: `자동화된 워크플로우:
-• lint-smoke: 린트 + 테스트 자동화 (62% 절약)
+• lint-smoke: Biome 린트 + 테스트 자동화 (62% 절약)
 • next-router-bottleneck: Next.js 성능 진단 (75% 절약)
 • ai-report-export: AI 리뷰 결과 문서화 (78% 절약)
 • playwright-triage: E2E 테스트 실패 분류 (77% 절약)

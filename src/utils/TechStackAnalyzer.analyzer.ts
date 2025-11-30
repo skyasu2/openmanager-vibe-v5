@@ -7,14 +7,14 @@
  * - Category sorting and importance ranking
  */
 
-import type { TechItem, TechCategory } from './TechStackAnalyzer.types';
-import { TECH_DATABASE } from './TechStackAnalyzer.database';
 import { CATEGORIES } from './TechStackAnalyzer.categories';
+import { TECH_DATABASE } from './TechStackAnalyzer.database';
 import {
-  parseTechString,
-  normalizeTechName,
   mergeDuplicateTechs,
+  normalizeTechName,
+  parseTechString,
 } from './TechStackAnalyzer.parser';
+import type { TechCategory, TechItem } from './TechStackAnalyzer.types';
 
 /**
  * 특정 기능 카드의 기술 스택을 분석 (중복 제거 적용)

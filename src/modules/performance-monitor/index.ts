@@ -14,14 +14,14 @@ export { PerformanceService } from './services/PerformanceService';
 
 // Types
 export type {
-  PerformanceMetric,
-  SystemHealth,
   Alert,
   AlertConfig,
-  PerformanceData,
-  WebSocketPerformanceMessage,
-  ChartDataPoint,
   ChartConfig,
+  ChartDataPoint,
+  PerformanceData,
+  PerformanceMetric,
+  SystemHealth,
+  WebSocketPerformanceMessage,
 } from './types/performance';
 
 // Utilities

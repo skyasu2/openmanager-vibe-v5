@@ -3,7 +3,10 @@
  * SystemChecklist 컴포넌트에서 분리된 아이콘 관련 함수들
  */
 
-import type { ComponentStatus, SystemComponent } from '@/hooks/useSystemChecklist';
+import type {
+  ComponentStatus,
+  SystemComponent,
+} from '@/hooks/useSystemChecklist';
 
 // 컴포넌트 아이콘 매핑 (텍스트 대신 시각적 아이콘)
 export const getComponentIcon = (name: string): string => {
@@ -33,18 +36,14 @@ export const getComponentIcon = (name: string): string => {
 export const getStatusIcon = (status: ComponentStatus): JSX.Element => {
   if (status.status === 'loading') {
     return (
-      <div
-        className="h-4 w-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin"
-      />
+      <div className="h-4 w-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
     );
   }
 
   switch (status.status) {
     case 'completed':
       return (
-        <div
-          className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500"
-        >
+        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500">
           <svg
             className="h-3 w-3 text-white"
             fill="none"
@@ -86,7 +85,9 @@ export const getStatusIcon = (status: ComponentStatus): JSX.Element => {
 };
 
 // 우선순위별 테두리 색상
-export const getPriorityBorder = (priority: SystemComponent['priority']): string => {
+export const getPriorityBorder = (
+  priority: SystemComponent['priority']
+): string => {
   switch (priority) {
     case 'critical':
       return 'border-red-500/50';

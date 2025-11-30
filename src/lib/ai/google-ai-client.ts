@@ -5,8 +5,8 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getGoogleAIKey, getGoogleAISecondaryKey } from './google-ai-manager';
 import debug from '@/utils/debug';
+import { getGoogleAIKey, getGoogleAISecondaryKey } from './google-ai-manager';
 
 /**
  * Google AI 클라이언트 가져오기
@@ -57,9 +57,9 @@ export function getGoogleAIModel(modelName: string = 'gemini-1.5-flash') {
   // 기존 generateContent 호출을 래핑하여 폴백 로직 추가
   const originalGenerateContent =
     generativeModel.generateContent.bind(generativeModel);
-  generativeModel.generateContent = async function (
+  generativeModel.generateContent = async (
     ...args: Parameters<typeof originalGenerateContent>
-  ) {
+  ) => {
     try {
       debug.log(`API 호출 시도 (키: ${currentKeySource})`);
       return await originalGenerateContent(...args);

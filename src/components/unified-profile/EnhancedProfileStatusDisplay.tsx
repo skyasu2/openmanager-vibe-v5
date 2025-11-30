@@ -1,6 +1,5 @@
 'use client';
 
-import { useSystemStatus } from '@/hooks/useSystemStatus';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
@@ -13,7 +12,8 @@ import {
   Server,
   Zap,
 } from 'lucide-react';
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
 
 interface EnhancedProfileStatusDisplayProps {
   compact?: boolean;
@@ -196,72 +196,70 @@ export function EnhancedProfileStatusDisplay({
       )}
 
       {/* 상세 정보 (토글 가능) */}
-      <Fragment>
-        {showDetails && !compact && (
-          <div
-            data-testid="detailed-info"
-            className="mt-3 border-t border-gray-200 pt-3"
-          >
-            <div className="mb-2 text-xs font-medium text-gray-600">
-              서비스 상태
-            </div>
-
-            <div className="space-y-2">
-              {/* 데이터베이스 상태 */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Database className="h-3 w-3 text-blue-500" />
-                  <span className="text-xs text-gray-700">데이터베이스</span>
-                </div>
-                <div
-                  data-testid="database-status"
-                  className={`h-2 w-2 rounded-full ${
-                    status?.services?.database ? 'bg-green-500' : 'bg-red-500'
-                  }`}
-                />
-              </div>
-
-              {/* 캐시 상태 */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-3 w-3 text-yellow-500" />
-                  <span className="text-xs text-gray-700">캐시</span>
-                </div>
-                <div
-                  data-testid="cache-status"
-                  className={`h-2 w-2 rounded-full ${
-                    status?.services?.cache ? 'bg-green-500' : 'bg-red-500'
-                  }`}
-                />
-              </div>
-
-              {/* AI 서비스 상태 */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Brain className="h-3 w-3 text-purple-500" />
-                  <span className="text-xs text-gray-700">AI 서비스</span>
-                </div>
-                <div
-                  data-testid="ai-status"
-                  className={`h-2 w-2 rounded-full ${
-                    status?.services?.ai ? 'bg-green-500' : 'bg-red-500'
-                  }`}
-                />
-              </div>
-            </div>
-
-            {/* 마지막 업데이트 시간 */}
-            {status?.lastUpdate && (
-              <div className="mt-3 border-t border-gray-200 pt-2">
-                <div className="text-xs text-gray-500">
-                  마지막 업데이트:{' '}
-                  {new Date(status.lastUpdate).toLocaleTimeString()}
-                </div>
-              </div>
-            )}
+      {showDetails && !compact && (
+        <div
+          data-testid="detailed-info"
+          className="mt-3 border-t border-gray-200 pt-3"
+        >
+          <div className="mb-2 text-xs font-medium text-gray-600">
+            서비스 상태
           </div>
-        )}
-      </Fragment>
+
+          <div className="space-y-2">
+            {/* 데이터베이스 상태 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Database className="h-3 w-3 text-blue-500" />
+                <span className="text-xs text-gray-700">데이터베이스</span>
+              </div>
+              <div
+                data-testid="database-status"
+                className={`h-2 w-2 rounded-full ${
+                  status?.services?.database ? 'bg-green-500' : 'bg-red-500'
+                }`}
+              />
+            </div>
+
+            {/* 캐시 상태 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="h-3 w-3 text-yellow-500" />
+                <span className="text-xs text-gray-700">캐시</span>
+              </div>
+              <div
+                data-testid="cache-status"
+                className={`h-2 w-2 rounded-full ${
+                  status?.services?.cache ? 'bg-green-500' : 'bg-red-500'
+                }`}
+              />
+            </div>
+
+            {/* AI 서비스 상태 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Brain className="h-3 w-3 text-purple-500" />
+                <span className="text-xs text-gray-700">AI 서비스</span>
+              </div>
+              <div
+                data-testid="ai-status"
+                className={`h-2 w-2 rounded-full ${
+                  status?.services?.ai ? 'bg-green-500' : 'bg-red-500'
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* 마지막 업데이트 시간 */}
+          {status?.lastUpdate && (
+            <div className="mt-3 border-t border-gray-200 pt-2">
+              <div className="text-xs text-gray-500">
+                마지막 업데이트:{' '}
+                {new Date(status.lastUpdate).toLocaleTimeString()}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
-import { ScenarioPoint, ServerStatus } from './types';
-import { SERVERS, normalMetrics } from './constants';
+import { normalMetrics, SERVERS } from './constants';
 import { SCENARIO_TIMELINES } from './scenarios';
+import { ScenarioPoint, ServerStatus } from './types';
 
 /**
  * 변화 곡선 생성 함수
@@ -23,7 +23,7 @@ export function generateCurve(
         break;
       case 'exponential':
         // 천천히 시작, 빠르게 증가
-        value = startValue + (endValue - startValue) * Math.pow(progress, 2);
+        value = startValue + (endValue - startValue) * progress ** 2;
         break;
       case 'spike':
         // 급격한 증가 후 유지

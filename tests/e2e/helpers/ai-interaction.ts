@@ -19,7 +19,7 @@
  * ```
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 import { TIMEOUTS } from './timeouts';
 
 /**

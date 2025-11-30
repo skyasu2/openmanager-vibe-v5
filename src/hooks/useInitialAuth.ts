@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { isVercel } from '@/env';
 import {
+  type AuthUser,
   getCurrentUser,
   isGitHubAuthenticated,
-  type AuthUser,
 } from '@/lib/auth/supabase-auth';
-import { isVercel } from '@/env';
 
 // This logic is now inlined from the old vercel-env.ts
 const _authRetryDelay = isVercel ? 5000 : 3000;
@@ -173,7 +173,7 @@ export function useInitialAuth() {
       console.log(debugWithEnv('🧹 useInitialAuth 타이머 정리 완료'));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initializeAuth]);
 
   useEffect(() => {
     return () => {

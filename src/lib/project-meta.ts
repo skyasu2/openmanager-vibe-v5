@@ -72,8 +72,7 @@ export function getProjectTimeline(): Array<{
     {
       phase: 'Phase 2: 핵심 시스템 구축',
       period: '2025.05.25 - 2025.06.15',
-      description:
-        'AI 엔진 통합, NTP 동기화, 한국시간 표준화, 시간 모듈 통합',
+      description: 'AI 엔진 통합, NTP 동기화, 한국시간 표준화, 시간 모듈 통합',
       status: 'completed',
     },
     {
@@ -112,9 +111,7 @@ export function getProjectProgress(): {
   const completed = timeline.filter(
     (phase) => phase.status === 'completed'
   ).length;
-  const inProgress = timeline.filter(
-    (phase) => phase.status === 'in-progress'
-  );
+  const inProgress = timeline.filter((phase) => phase.status === 'in-progress');
 
   return {
     completedPhases: completed,
@@ -138,7 +135,7 @@ export function isValidProjectDate(dateString: string): boolean {
     return (
       targetDate >= PROJECT_START &&
       targetDate <= now &&
-      !isNaN(targetDate.getTime())
+      !Number.isNaN(targetDate.getTime())
     );
   } catch {
     return false;

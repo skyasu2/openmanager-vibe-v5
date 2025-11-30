@@ -6,9 +6,9 @@
  * @created 2025-11-26
  */
 
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
+import { describe, expect, it } from 'vitest';
 import ProgressLabel from '@/components/dashboard/ProgressLabel';
 
 describe('📝 ProgressLabel 컴포넌트', () => {

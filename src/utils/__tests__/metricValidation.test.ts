@@ -4,13 +4,12 @@
  * 서버 메트릭의 안전한 처리를 위한 검증 로직 테스트
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
+  generateSafeMetricValue,
+  type ServerMetrics,
   validateMetricValue,
   validateServerMetrics,
-  generateSafeMetricValue,
-  type MetricType,
-  type ServerMetrics,
 } from '../metricValidation';
 
 describe('metricValidation', () => {

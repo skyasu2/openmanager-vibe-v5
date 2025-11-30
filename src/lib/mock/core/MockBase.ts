@@ -8,8 +8,8 @@
  * - 지연 시간 시뮬레이션
  */
 
-import { MockStats } from './MockStats';
 import { MockLogger } from './MockLogger';
+import { MockStats } from './MockStats';
 
 export interface MockOptions {
   enableLogging?: boolean;
@@ -59,7 +59,6 @@ export abstract class MockBase<T = unknown> {
       case 'dev':
         this.isEnabled = isDevelopment || isTest;
         break;
-      case 'off':
       default:
         this.isEnabled = false;
     }

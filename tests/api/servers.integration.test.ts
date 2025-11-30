@@ -1,6 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
-
-import { vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Servers API Integration Tests', () => {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';

@@ -20,7 +20,7 @@
  * ```
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { submitAiMessage } from './helpers/ai-interaction';
 import { guestLogin, openAiSidebar } from './helpers/guest';
 import { TIMEOUTS } from './helpers/timeouts';

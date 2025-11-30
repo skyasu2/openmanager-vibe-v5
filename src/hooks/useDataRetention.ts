@@ -8,13 +8,13 @@
  * - Phase 3 SSE 최적화 통합
  */
 
+import { useCallback, useEffect, useState } from 'react';
 import {
-  getDataRetentionScheduler,
   type CleanupResult,
+  getDataRetentionScheduler,
   type RetentionPolicy,
   type SchedulerStats,
 } from '@/lib/DataRetentionScheduler';
-import { useCallback, useEffect, useState } from 'react';
 
 interface UseDataRetentionReturn {
   stats: SchedulerStats | null;

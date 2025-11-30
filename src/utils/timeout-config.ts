@@ -20,8 +20,8 @@
  */
 const TIMEOUT_CONFIG = {
   GOOGLE_AI: 8000, // 🎯 넉넉한 타임아웃: 복잡한 쿼리 안정성 보장 (베르셀 10초 제한 고려)
-  LOCAL_AI: 3500,  // Local AI 충분한 타임아웃 (GCP Functions 응답 고려) - 환경변수와 일치
-  MCP_SERVER: 5000 // MCP 서버 기본 타임아웃 (Claude Code 개발용)
+  LOCAL_AI: 3500, // Local AI 충분한 타임아웃 (GCP Functions 응답 고려) - 환경변수와 일치
+  MCP_SERVER: 5000, // MCP 서버 기본 타임아웃 (Claude Code 개발용)
 };
 
 /**
@@ -46,9 +46,9 @@ export function getEnvironmentTimeouts() {
   });
 
   const result = {
-    GOOGLE_AI: parseInt(envGoogleAI || '') || TIMEOUT_CONFIG.GOOGLE_AI,
-    LOCAL_AI: parseInt(envLocalAI || '') || TIMEOUT_CONFIG.LOCAL_AI,
-    MCP_SERVER: parseInt(envMCP || '') || TIMEOUT_CONFIG.MCP_SERVER,
+    GOOGLE_AI: parseInt(envGoogleAI || '', 10) || TIMEOUT_CONFIG.GOOGLE_AI,
+    LOCAL_AI: parseInt(envLocalAI || '', 10) || TIMEOUT_CONFIG.LOCAL_AI,
+    MCP_SERVER: parseInt(envMCP || '', 10) || TIMEOUT_CONFIG.MCP_SERVER,
   };
 
   console.log('🎯 [DEBUG] Final timeout configuration:', result);

@@ -1,15 +1,15 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/api-auth';
 import { getMockSystem } from '@/mock';
 // server-details.schema에서 직접 import (올바른 구조를 위해)
 import {
-  type ServerService,
-  type ServerSpecs,
   type ServerHistory,
   type ServerHistoryDataPoint,
+  type ServerService,
+  type ServerSpecs,
 } from '@/schemas/server-schemas/server-details.schema';
 import debug from '@/utils/debug';
-import { withAuth } from '@/lib/auth/api-auth';
 
 // Database Server type from Supabase
 interface DatabaseServer {
@@ -231,8 +231,8 @@ export const GET = withAuth(
         };
 
         // 패턴 정보 포함 (요청시) - Supabase에서는 패턴 정보를 별도 처리
-        let patternInfo = undefined;
-        let correlationMetrics = undefined;
+        let patternInfo;
+        let correlationMetrics;
         if (includePatterns) {
           // Supabase에서 패턴 정보를 별도 쿼리로 가져올 수 있음
           // 현재는 기본값으로 설정
@@ -241,7 +241,7 @@ export const GET = withAuth(
         }
 
         // 히스토리 데이터 (요청시)
-        let history: ServerHistory | undefined = undefined;
+        let history: ServerHistory | undefined;
         if (includeHistory) {
           history = generateServerHistory(server, range);
         }
@@ -415,7 +415,7 @@ function generateSpecs(serverId: string): ServerSpecs {
   }, 0);
 
   const cpuCores = (Math.abs(hash) % 16) + 2; // 2-18 cores
-  const memoryGb = Math.pow(2, (Math.abs(hash >> 4) % 5) + 2); // 4, 8, 16, 32, 64 GB
+  const memoryGb = 2 ** ((Math.abs(hash >> 4) % 5) + 2); // 4, 8, 16, 32, 64 GB
   const diskGb = (Math.abs(hash >> 8) % 500) + 100; // 100-600 GB
 
   const osOptions = [
@@ -512,7 +512,7 @@ function generateServerHistory(
  */
 function parseTimeRange(timeRange: string): number {
   const unit = timeRange.slice(-1);
-  const value = parseInt(timeRange.slice(0, -1));
+  const value = parseInt(timeRange.slice(0, -1), 10);
 
   switch (unit) {
     case 'm':

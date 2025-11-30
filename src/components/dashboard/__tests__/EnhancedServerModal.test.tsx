@@ -2,11 +2,10 @@
  * 🧪 EnhancedServerModal 테스트
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
-import EnhancedServerModal from '../EnhancedServerModal';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Server } from '@/types/server';
+import EnhancedServerModal from '../EnhancedServerModal';
 
 // Mock Dependencies
 vi.mock('@/hooks/useFixed24hMetrics', () => ({

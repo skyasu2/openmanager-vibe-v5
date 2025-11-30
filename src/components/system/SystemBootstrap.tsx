@@ -1,7 +1,7 @@
 'use client';
 
-import { useGlobalSystemStore } from '@/stores/systemStore';
 import { useEffect, useState } from 'react';
+import { useGlobalSystemStore } from '@/stores/systemStore';
 
 /**
  * 🚀 시스템 부트스트랩 컴포넌트
@@ -170,10 +170,7 @@ export function SystemBootstrap(): JSX.Element | null {
             );
             setBootstrapStatus((prev) => ({ ...prev, supabase: 'success' }));
           } else {
-            console.warn(
-              '⚠️ Supabase 상태 확인 실패:',
-              supabaseResponse.status
-            );
+            console.warn('⚠️ Supabase 상태 확인 실패:', supabaseResponse.status);
             setBootstrapStatus((prev) => ({ ...prev, supabase: 'failed' }));
           }
         }
@@ -215,7 +212,9 @@ export function SystemBootstrap(): JSX.Element | null {
     };
 
     // 페이지 로드 후 5초 뒤에 부트스트랩 실행 (UI 렌더링 완료 후, 과도한 동시 요청 방지)
-    const timer = setTimeout(() => { void bootstrap(); }, 5000);
+    const timer = setTimeout(() => {
+      void bootstrap();
+    }, 5000);
 
     return () => {
       isMounted = false;

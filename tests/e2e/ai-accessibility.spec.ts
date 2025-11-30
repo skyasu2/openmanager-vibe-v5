@@ -20,7 +20,7 @@
  * ```
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { guestLogin, openAiSidebar } from './helpers/guest';
 import { TIMEOUTS } from './helpers/timeouts';
 
@@ -191,7 +191,7 @@ test.describe('AI 사이드바 접근성 (하루 2-3회 수동 실행)', () => {
       });
 
     // 폰트 크기 확인 (최소 12px 이상)
-    const fontSize = parseInt(sidebarStyles.fontSize);
+    const fontSize = parseInt(sidebarStyles.fontSize, 10);
     expect(fontSize).toBeGreaterThanOrEqual(12);
 
     // 배경색과 텍스트 색상이 설정되어 있는지 확인

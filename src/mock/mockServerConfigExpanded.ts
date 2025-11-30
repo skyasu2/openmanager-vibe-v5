@@ -285,12 +285,12 @@ export const serverInitialStatesExpanded = {
   'web-prd-01': { scenario: 'memory_critical' },
   'app-prd-01': { scenario: 'memory_leak' },
   'db-main-01': { scenario: 'memory_shortage' },
-  
+
   // Warning 서버들 (3개, 20%)
   'web-prd-02': { scenario: 'cpu_spike' },
   'api-prd-01': { scenario: 'high_latency' },
   'storage-nas-01': { scenario: 'cpu_high' },
-  
+
   // Online 서버들 (8개, 53.3%)
   'web-prd-03': { scenario: 'normal' },
   'api-prd-02': { scenario: 'normal' },

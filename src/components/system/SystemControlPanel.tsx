@@ -20,7 +20,7 @@ import {
   Shield,
   Square,
 } from 'lucide-react';
-import React, { Fragment, useState } from 'react';
+import { useState } from 'react';
 
 interface SystemOperation {
   success: boolean;
@@ -198,74 +198,72 @@ export function SystemControlPanel() {
         </div>
       </div>
 
-      <Fragment>
-        {!isCollapsed && (
-          <div className="space-y-4">
-            {/* 수동 제어 버튼들 */}
-            <div className="grid grid-cols-3 gap-3">
-              <button
-                onClick={handleStart}
-                disabled={isLoading}
-                className="flex items-center justify-center space-x-2 rounded-lg bg-green-600 px-4 py-3 text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Play className="h-4 w-4" />
-                <span className="text-sm font-medium">시작</span>
-              </button>
+      {!isCollapsed && (
+        <div className="space-y-4">
+          {/* 수동 제어 버튼들 */}
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              onClick={handleStart}
+              disabled={isLoading}
+              className="flex items-center justify-center space-x-2 rounded-lg bg-green-600 px-4 py-3 text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Play className="h-4 w-4" />
+              <span className="text-sm font-medium">시작</span>
+            </button>
 
-              <button
-                onClick={handleStop}
-                disabled={isLoading}
-                className="flex items-center justify-center space-x-2 rounded-lg bg-red-600 px-4 py-3 text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Square className="h-4 w-4" />
-                <span className="text-sm font-medium">중지</span>
-              </button>
+            <button
+              onClick={handleStop}
+              disabled={isLoading}
+              className="flex items-center justify-center space-x-2 rounded-lg bg-red-600 px-4 py-3 text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Square className="h-4 w-4" />
+              <span className="text-sm font-medium">중지</span>
+            </button>
 
-              <button
-                onClick={handleRestart}
-                disabled={isLoading}
-                className="flex items-center justify-center space-x-2 rounded-lg bg-orange-600 px-4 py-3 text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span className="text-sm font-medium">재시작</span>
-              </button>
-            </div>
-
-            {/* 로딩 상태 표시 */}
-            {isLoading && (
-              <div className="flex items-center justify-center space-x-2 py-4">
-                <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
-                <span className="text-sm text-gray-600">
-                  {operation} 작업 진행 중...
-                </span>
-              </div>
-            )}
-
-            {/* 알림 메시지 */}
-            {alerts.length > 0 && (
-              <div className="space-y-2">
-                {alerts.slice(-3).map((alert, index) => (
-                  <div
-                    key={index}
-                    className={`rounded-lg p-3 text-sm ${
-                      alert.type === 'success'
-                        ? 'border border-green-200 bg-green-50 text-green-800'
-                        : 'border border-red-200 bg-red-50 text-red-800'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span>{alert.message}</span>
-                      <span className="text-xs opacity-75">
-                        {alert.timestamp.toLocaleTimeString()}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <button
+              onClick={handleRestart}
+              disabled={isLoading}
+              className="flex items-center justify-center space-x-2 rounded-lg bg-orange-600 px-4 py-3 text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span className="text-sm font-medium">재시작</span>
+            </button>
           </div>
-        )}
-      </Fragment>
+
+          {/* 로딩 상태 표시 */}
+          {isLoading && (
+            <div className="flex items-center justify-center space-x-2 py-4">
+              <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
+              <span className="text-sm text-gray-600">
+                {operation} 작업 진행 중...
+              </span>
+            </div>
+          )}
+
+          {/* 알림 메시지 */}
+          {alerts.length > 0 && (
+            <div className="space-y-2">
+              {alerts.slice(-3).map((alert, index) => (
+                <div
+                  key={index}
+                  className={`rounded-lg p-3 text-sm ${
+                    alert.type === 'success'
+                      ? 'border border-green-200 bg-green-50 text-green-800'
+                      : 'border border-red-200 bg-red-50 text-red-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>{alert.message}</span>
+                    <span className="text-xs opacity-75">
+                      {alert.timestamp.toLocaleTimeString()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

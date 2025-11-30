@@ -8,13 +8,13 @@
  * - Optimistic Updates 지원
  */
 
-import { useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
-import { serverKeys } from './useServerQueries';
-import { predictionKeys } from './usePredictionQueries';
-import { systemKeys } from './useSystemQueries';
 import { FREE_TIER_INTERVALS } from '@/config/free-tier-intervals';
+import { predictionKeys } from './usePredictionQueries';
+import { serverKeys } from './useServerQueries';
+import { systemKeys } from './useSystemQueries';
 
 // 🌐 WebSocket 연결 상태
 type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
@@ -370,11 +370,7 @@ export const useRealtimePredictions = () => {
 
 // 🎯 통합 실시간 훅
 export const useRealtimeData = (
-  options: {
-    servers?: boolean;
-    predictions?: boolean;
-    alerts?: boolean;
-  } = {}
+  options: { servers?: boolean; predictions?: boolean; alerts?: boolean } = {}
 ) => {
   const {
     servers = true,

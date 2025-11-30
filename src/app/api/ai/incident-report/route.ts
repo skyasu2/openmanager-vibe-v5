@@ -8,12 +8,12 @@
  * - 패턴 학습 및 예측
  */
 
+import crypto from 'node:crypto';
+import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
 import { createClient } from '@/lib/supabase/server';
 import debug from '@/utils/debug';
-import crypto from 'crypto';
-import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -124,7 +124,10 @@ function validateMetrics(metrics: unknown[]): metrics is ServerMetric[] {
     return numericFields.every((field) => {
       const value = m[field];
       return (
-        typeof value === 'number' && !isNaN(value) && value >= 0 && value <= 100
+        typeof value === 'number' &&
+        !Number.isNaN(value) &&
+        value >= 0 &&
+        value <= 100
       );
     });
   });
@@ -210,7 +213,7 @@ function analyzePattern(anomalies: Anomaly[]): string {
  * Generate incident report
  */
 function generateReport(
-  metrics: ServerMetric[],
+  _metrics: ServerMetric[],
   anomalies: Anomaly[],
   pattern: string
 ): IncidentReport {
@@ -501,7 +504,7 @@ async function postHandler(request: NextRequest) {
         }
 
         // Handle notifications
-        let notifications = undefined;
+        let notifications;
         if (notify) {
           const alertKey = `${report.severity}-${pattern}`;
           const sent = shouldSendAlert(alertKey);

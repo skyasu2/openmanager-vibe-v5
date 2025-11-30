@@ -103,7 +103,7 @@ function predictFutureValue(
   const variance =
     historicalData.reduce((sum, val, i) => {
       const expected = slope * i + intercept;
-      return sum + Math.pow(val - expected, 2);
+      return sum + (val - expected) ** 2;
     }, 0) / historicalData.length;
 
   const confidence = Math.max(0, Math.min(1, 1 - variance / 100));
@@ -213,7 +213,7 @@ function forecastAnomalies(
   const avgCpu =
     recentData.reduce((sum, d) => sum + d.cpu, 0) / recentData.length;
   const stdCpu = Math.sqrt(
-    recentData.reduce((sum, d) => sum + Math.pow(d.cpu - avgCpu, 2), 0) /
+    recentData.reduce((sum, d) => sum + (d.cpu - avgCpu) ** 2, 0) /
       recentData.length
   );
 
@@ -253,7 +253,7 @@ function calculateAdaptiveThresholds(
 
   const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
   const std = Math.sqrt(
-    values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length
+    values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length
   );
 
   // Calculate percentiles for thresholds
@@ -286,7 +286,7 @@ function generateScalingRecommendations(
     recommendations.push({
       action: 'scale_up',
       resource: 'CPU',
-      amount: Math.ceil((predictedLoad.cpu - 70) / 10) + ' vCPUs',
+      amount: `${Math.ceil((predictedLoad.cpu - 70) / 10)} vCPUs`,
       urgency: predictedLoad.cpu > 90 ? 'immediate' : 'scheduled',
       cost_impact: 15 * Math.ceil((predictedLoad.cpu - 70) / 10),
       expected_improvement: `Reduce CPU usage to ~70%`,
@@ -297,7 +297,7 @@ function generateScalingRecommendations(
     recommendations.push({
       action: 'scale_up',
       resource: 'Memory',
-      amount: Math.ceil((predictedLoad.memory - 70) / 10) + ' GB',
+      amount: `${Math.ceil((predictedLoad.memory - 70) / 10)} GB`,
       urgency: predictedLoad.memory > 90 ? 'immediate' : 'scheduled',
       cost_impact: 10 * Math.ceil((predictedLoad.memory - 70) / 10),
       expected_improvement: `Reduce memory usage to ~70%`,

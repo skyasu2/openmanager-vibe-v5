@@ -7,7 +7,7 @@
  * @see https://supabase.com/docs/guides/api
  */
 
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, http } from 'msw';
 
 // .env.local에서 Supabase URL 가져오기
 const SUPABASE_URL =

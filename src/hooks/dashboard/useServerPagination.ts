@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { calculatePagination } from '@/utils/dashboard/server-utils';
 
 export function useServerPagination<T>(

@@ -10,9 +10,9 @@
  * ✅ 리팩토링: 중복 코드 제거 - 통합 팩토리 사용
  */
 
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 
 export interface DocumentEmbedding {
   id: string;
@@ -298,10 +298,7 @@ export class AdvancedContextManager {
         }
       }
     } catch (error) {
-      console.warn(
-        `⚠️ [AdvancedContext] 디렉토리 스캔 실패: ${dirPath}`,
-        error
-      );
+      console.warn(`⚠️ [AdvancedContext] 디렉토리 스캔 실패: ${dirPath}`, error);
     }
 
     return files;
@@ -369,7 +366,7 @@ export class AdvancedContextManager {
           currentChunk = '';
         }
       }
-      currentChunk += sentence + '. ';
+      currentChunk += `${sentence}. `;
     }
 
     // 마지막 청크 처리
@@ -417,7 +414,7 @@ export class AdvancedContextManager {
   private extractTitle(content: string, fileName: string): string {
     // 첫 번째 # 헤딩 찾기
     const headingMatch = content.match(/^#\s+(.+)$/m);
-    if (headingMatch && headingMatch[1]) {
+    if (headingMatch?.[1]) {
       return headingMatch[1].trim();
     }
 

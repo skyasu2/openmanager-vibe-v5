@@ -295,8 +295,8 @@ export interface SortOptions<T> {
 // Export all types from other files for backward compatibility
 export type { AlertSeverity } from './common';
 export type {
-  ServerStatus as ServerStatusLegacy,
   ServerHealth as ServerHealthLegacy,
   ServerMetrics as ServerMetricsLegacy,
   ServerSpecs as ServerSpecsLegacy,
+  ServerStatus as ServerStatusLegacy,
 } from './server-common';

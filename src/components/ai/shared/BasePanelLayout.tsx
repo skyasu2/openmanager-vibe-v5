@@ -8,10 +8,10 @@
 
 'use client';
 
-import React, { ReactNode, FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { RefreshCw, ExternalLink } from 'lucide-react';
+import { ExternalLink, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { FC, ReactNode } from 'react';
 
 interface FilterItem {
   id: string;
@@ -101,9 +101,7 @@ const BasePanelLayout: FC<BasePanelLayoutProps> = ({
             {/* 관리 페이지 링크 */}
             {adminPath && (
               <Link href={adminPath} target="_blank">
-                <button
-                  className="flex items-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/20 px-2 py-1 text-xs text-blue-300 transition-colors hover:bg-blue-500/30"
-                >
+                <button className="flex items-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/20 px-2 py-1 text-xs text-blue-300 transition-colors hover:bg-blue-500/30">
                   <ExternalLink className="h-3 w-3" />
                   {adminLabel}
                 </button>

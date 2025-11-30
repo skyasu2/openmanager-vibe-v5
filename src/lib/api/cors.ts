@@ -9,7 +9,9 @@ const getAllowedOrigin = () => {
     return 'http://localhost:3000';
   }
   // Vercel 프로덕션 도메인
-  return process.env.NEXT_PUBLIC_APP_URL || 'https://openmanager-vibe-v5.vercel.app';
+  return (
+    process.env.NEXT_PUBLIC_APP_URL || 'https://openmanager-vibe-v5.vercel.app'
+  );
 };
 
 export const corsHeaders = {

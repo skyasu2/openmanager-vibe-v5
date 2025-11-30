@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { IntentClassifier } from '../../../modules/ai-agent/processors/IntentClassifier';
+import { MockContextLoader } from '../MockContextLoader';
+import { ComplexityLevel } from '../SimplifiedQueryEngine.complexity-types';
 import { UnifiedQueryProcessor } from '../SimplifiedQueryEngine.processor.unified';
+import { SimplifiedQueryEngineHelpers } from '../SimplifiedQueryEngine.processors.helpers';
 import { SimplifiedQueryEngineUtils } from '../SimplifiedQueryEngine.utils';
 import { SupabaseRAGEngine } from '../supabase-rag-engine';
-import { MockContextLoader } from '../MockContextLoader';
-import { IntentClassifier } from '../../../modules/ai-agent/processors/IntentClassifier';
-import { SimplifiedQueryEngineHelpers } from '../SimplifiedQueryEngine.processors.helpers';
-import { ComplexityLevel } from '../SimplifiedQueryEngine.complexity-types';
 
 // Mocks
 vi.mock('../SimplifiedQueryEngine.utils');

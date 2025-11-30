@@ -23,9 +23,9 @@
  * - v2.0 (2025-11-24): Initial Supabase-based implementation
  */
 
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { EdgeLogger } from '../runtime/edge-runtime-utils';
 
 // ==============================================
@@ -59,7 +59,6 @@ interface RateLimitResult {
 
 class RateLimiter {
   private logger: EdgeLogger;
-  private readonly TABLE_NAME = 'rate_limits';
   private supabase: SupabaseClient | null = null;
   private supabaseInitialized = false;
 
@@ -247,7 +246,7 @@ export function withRateLimit(
         {
           status: 429,
           headers: {
-            'X-RateLimit-Limit': rateLimiter['config'].maxRequests.toString(),
+            'X-RateLimit-Limit': rateLimiter.config.maxRequests.toString(),
             'X-RateLimit-Remaining': result.remaining.toString(),
             'X-RateLimit-Reset': result.resetTime.toString(),
             'Retry-After': Math.ceil(
@@ -263,7 +262,7 @@ export function withRateLimit(
     // 성공한 응답에 레이트 리미트 헤더 추가
     response.headers.set(
       'X-RateLimit-Limit',
-      rateLimiter['config'].maxRequests.toString()
+      rateLimiter.config.maxRequests.toString()
     );
     response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
     response.headers.set('X-RateLimit-Reset', result.resetTime.toString());

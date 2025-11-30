@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 /* Material Design 3 토큰 시스템 Import */
-@import './material-tokens.css';
+@import "./material-tokens.css";
 
 /* GPU-Accelerated Animation Utilities (120fps target) */
-@import './animations-gpu.css';
+@import "./animations-gpu.css";
 
 @layer base {
   :root {
@@ -68,7 +68,7 @@
 /* AI Assistant Panel Styles */
 .ai-assistant-panel {
   font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
   box-shadow:
     -8px 0 32px rgba(0, 0, 0, 0.12),
     -4px 0 16px rgba(0, 0, 0, 0.08);
@@ -294,7 +294,7 @@
 }
 
 .ai-gradient-button::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -375,7 +375,7 @@
 }
 
 .enhanced-button::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -400,7 +400,7 @@
 }
 
 .status-dot::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -462,7 +462,7 @@
 }
 
 .feature-card-enhanced::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -630,13 +630,13 @@
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .ai-assistant-panel {
-    width: 350px !important;
+    width: 350px;
   }
 }
 
 @media (min-width: 1025px) {
   .ai-assistant-panel {
-    width: 420px !important;
+    width: 420px;
   }
 }
 
@@ -658,7 +658,7 @@
 
 /* 선택된 메뉴 아이템 표시 개선 */
 .ai-menu-item-selected::before {
-  content: '';
+  content: "";
   position: absolute;
   left: -12px;
   top: 50%;
@@ -966,7 +966,7 @@
 }
 
 .wave-particles::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -992,7 +992,7 @@
 }
 
 .wave-particles::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1097,7 +1097,7 @@
 }
 
 .enhanced-dark-background::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;

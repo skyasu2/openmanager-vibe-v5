@@ -4,12 +4,12 @@
  * Vercel 환경에서 세션 상태와 쿠키 정보를 확인합니다.
  */
 
-import { createClient } from '@/lib/supabase/server';
-import { createMiddlewareClient } from '@/lib/supabase/middleware';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createMiddlewareClient } from '@/lib/supabase/middleware';
+import { createClient } from '@/lib/supabase/server';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
           : 'MISSING',
       },
       supabase: {
-        url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...',
+        url: `${process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30)}...`,
         anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'MISSING',
         serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING',
       },
@@ -180,7 +180,7 @@ export async function GET(request: NextRequest) {
           : null,
         'GitHub OAuth App callback URL: ' +
           debugInfo.expectedUrls.githubCallback,
-        'Supabase redirect URLs: ' + debugInfo.expectedUrls.appCallback,
+        `Supabase redirect URLs: ${debugInfo.expectedUrls.appCallback}`,
       ].filter(Boolean),
     });
   } catch (error) {

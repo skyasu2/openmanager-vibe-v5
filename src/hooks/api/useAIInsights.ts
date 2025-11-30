@@ -71,7 +71,7 @@ export const useRefreshAIInsights = () => {
     void queryClient.invalidateQueries({ queryKey: ['ai-insights'] });
     console.log('🔄 AI 인사이트 수동 갱신 실행');
     return true; // 갱신 성공
-  }, [queryClient, MIN_REFRESH_INTERVAL]);
+  }, [queryClient]);
 };
 
 // 📊 인사이트 필터링 유틸리티

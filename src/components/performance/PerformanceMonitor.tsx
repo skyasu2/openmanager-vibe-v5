@@ -5,9 +5,9 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { Activity, Clock, Zap, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Activity, AlertTriangle, Clock, TrendingUp, Zap } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface WebVitals {
   lcp: number | null; // Largest Contentful Paint

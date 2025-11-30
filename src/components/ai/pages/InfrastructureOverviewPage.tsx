@@ -9,7 +9,6 @@
 
 'use client';
 
-import { formatPercentage } from '@/lib/utils';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
@@ -21,6 +20,7 @@ import {
   Wifi,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { formatPercentage } from '@/lib/utils';
 import debug from '@/utils/debug';
 
 interface InfrastructureStats {
@@ -211,10 +211,10 @@ export default function InfrastructureOverviewPage({
         onlineServers,
         offlineServers,
         alertCount,
-        totalCpu: isNaN(totalCpu) ? 0 : Math.round(totalCpu),
-        totalRam: isNaN(totalRam) ? 0 : Math.round(totalRam),
-        totalDisk: isNaN(totalDisk) ? 0 : Math.round(totalDisk),
-        bandwidth: isNaN(bandwidth) ? 0 : Math.round(bandwidth),
+        totalCpu: Number.isNaN(totalCpu) ? 0 : Math.round(totalCpu),
+        totalRam: Number.isNaN(totalRam) ? 0 : Math.round(totalRam),
+        totalDisk: Number.isNaN(totalDisk) ? 0 : Math.round(totalDisk),
+        bandwidth: Number.isNaN(bandwidth) ? 0 : Math.round(bandwidth),
       };
 
       debug.log('✅ 최종 통계:', safeStats);
@@ -292,7 +292,7 @@ export default function InfrastructureOverviewPage({
       console.log('🧹 [InfrastructureOverviewPage] cleanup - interval 제거');
       clearInterval(interval);
     };
-  }, [propServers, propStatsData]); // propServers, propStatsData 객체 의존성 복구
+  }, [propServers, propStatsData, fetchServerData]); // propServers, propStatsData 객체 의존성 복구
 
   const getStatusColor = (value: number) => {
     if (value >= 90) return 'text-red-600';

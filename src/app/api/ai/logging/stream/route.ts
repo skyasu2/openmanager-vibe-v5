@@ -10,12 +10,9 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import debug from '@/utils/debug';
-import {
-  AILogRequestSchema,
-  type AILogEntry,
-} from '@/schemas/api.schema';
+import { type AILogEntry, AILogRequestSchema } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 // 메모리 기반 로그 스토리지
 class MemoryLogStorage {
@@ -128,7 +125,7 @@ export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const level = searchParams.get('level') || 'all';
   const source = searchParams.get('source') || 'all';
-  const interval = parseInt(searchParams.get('interval') || '2000'); // 기본 2초
+  const interval = parseInt(searchParams.get('interval') || '2000', 10); // 기본 2초
 
   debug.log(
     `📡 AI 로그 스트리밍 시작 (Memory-based) - 레벨: ${level}, 소스: ${source}, 간격: ${interval}ms`
@@ -279,61 +276,60 @@ const postHandler = createApiRoute()
     enableLogging: true,
   })
   .build((_request, context) => {
-      const body = context.body;
+    const body = context.body;
 
-      debug.log(`📊 AI 로그 관리 액션 (Memory-based): ${body.action}`);
+    debug.log(`📊 AI 로그 관리 액션 (Memory-based): ${body.action}`);
 
-      const logStorage = getLogStorage();
+    const logStorage = getLogStorage();
 
-      switch (body.action) {
-        case 'write': {
-          const { logs } = body;
+    switch (body.action) {
+      case 'write': {
+        const { logs } = body;
 
-          // 메모리 스토리지에 로그 저장
-          logStorage.addLogs(
-            logs.map((log) => ({
-              ...log,
-              id:
-                log.id ||
-                `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              timestamp: log.timestamp || new Date().toISOString(),
-            }))
-          );
+        // 메모리 스토리지에 로그 저장
+        logStorage.addLogs(
+          logs.map((log) => ({
+            ...log,
+            id:
+              log.id ||
+              `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: log.timestamp || new Date().toISOString(),
+          }))
+        );
 
-          return {
-            success: true,
-            message: `${logs.length} logs written to memory storage`,
-            timestamp: new Date().toISOString(),
-          };
-        }
-
-        case 'clear':
-          // 메모리 로그 삭제
-          logStorage.clear();
-
-          return {
-            success: true,
-            message: 'Memory logs cleared successfully',
-            timestamp: new Date().toISOString(),
-          };
-
-        case 'export': {
-          // 메모리에서 로그 내보내기
-          const exportLogs = logStorage.exportAll();
-
-          return {
-            success: true,
-            logs: exportLogs,
-            count: exportLogs.length,
-            timestamp: new Date().toISOString(),
-          };
-        }
-
-        default:
-          throw new Error('Invalid action');
+        return {
+          success: true,
+          message: `${logs.length} logs written to memory storage`,
+          timestamp: new Date().toISOString(),
+        };
       }
+
+      case 'clear':
+        // 메모리 로그 삭제
+        logStorage.clear();
+
+        return {
+          success: true,
+          message: 'Memory logs cleared successfully',
+          timestamp: new Date().toISOString(),
+        };
+
+      case 'export': {
+        // 메모리에서 로그 내보내기
+        const exportLogs = logStorage.exportAll();
+
+        return {
+          success: true,
+          logs: exportLogs,
+          count: exportLogs.length,
+          timestamp: new Date().toISOString(),
+        };
+      }
+
+      default:
+        throw new Error('Invalid action');
     }
-  );
+  });
 
 /**
  * 📊 AI 로그 관리 API (Memory-based)

@@ -1,10 +1,10 @@
 import { memo } from 'react';
 import {
-  PieChart,
-  Pie,
   Cell,
-  ResponsiveContainer,
   Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
   Tooltip,
 } from 'recharts';
 
@@ -34,14 +34,17 @@ const AvailabilityTooltip = memo(({ active, payload }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     if (!data) return null;
-    
-    const total = (payload[0]?.payload?.value ?? 0) + (payload[1]?.payload?.value ?? 0);
+
+    const total =
+      (payload[0]?.payload?.value ?? 0) + (payload[1]?.payload?.value ?? 0);
     const percentage =
       total > 0 ? ((data.value / total) * 100).toFixed(1) : '0.0';
 
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-        <p className="font-semibold text-gray-800">{data.name ?? '알 수 없음'}</p>
+        <p className="font-semibold text-gray-800">
+          {data.name ?? '알 수 없음'}
+        </p>
         <div className="space-y-1">
           <p style={{ color: data.color }} className="text-sm">
             서버 수: {data.value ?? 0}개
@@ -90,7 +93,7 @@ const AvailabilityChart = memo<AvailabilityChartProps>(({ data }) => {
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            { }
+            {}
             <Pie
               data={data}
               cx="50%"

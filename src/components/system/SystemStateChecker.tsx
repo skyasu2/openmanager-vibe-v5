@@ -1,13 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  checkSystemState,
-  validateSystemForOperation,
-  type SystemStateInfo,
-} from '@/utils/systemStateChecker';
 import {
   AlertTriangle,
   CheckCircle,
@@ -16,6 +8,14 @@ import {
   Settings,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  checkSystemState,
+  type SystemStateInfo,
+  validateSystemForOperation,
+} from '@/utils/systemStateChecker';
 
 interface SystemStateCheckerProps {
   showDetails?: boolean;
@@ -47,7 +47,7 @@ export function SystemStateChecker({
 
   useEffect(() => {
     void fetchSystemState();
-  }, []);
+  }, [fetchSystemState]);
 
   useEffect(() => {
     if (autoRefresh && systemState?.isSystemActive) {
@@ -57,7 +57,7 @@ export function SystemStateChecker({
       return () => clearInterval(interval);
     }
     return undefined;
-  }, [autoRefresh, systemState?.isSystemActive]);
+  }, [autoRefresh, systemState?.isSystemActive, fetchSystemState]);
 
   const getStatusColor = (powerMode: string, isActive: boolean) => {
     if (!isActive) return 'destructive';

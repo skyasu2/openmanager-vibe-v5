@@ -7,7 +7,7 @@
  * @see https://ai.google.dev/api/rest/v1beta/models/generateContent
  */
 
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, http } from 'msw';
 
 const GOOGLE_AI_BASE_URL = 'https://generativelanguage.googleapis.com';
 

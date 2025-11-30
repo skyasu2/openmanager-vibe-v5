@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { Lightbulb, Server, TrendingUp, AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Lightbulb, Server, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { timerManager } from '../../utils/TimerManager';
 
 interface PresetsMetrics {
@@ -75,7 +75,7 @@ export default function DynamicPresets({
     return () => {
       timerManager.unregister('dynamic-presets-update');
     };
-  }, [serverMetrics]);
+  }, [serverMetrics, generateContextualQuestions]);
 
   const getQuestionIcon = (question: string) => {
     if (question.includes('위험') || question.includes('⚠️'))

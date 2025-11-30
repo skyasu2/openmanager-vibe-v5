@@ -6,8 +6,8 @@
 
 'use client';
 
-import { useEnvironment } from '@/hooks/useApiConfig';
 import { Badge } from '@/components/ui/badge';
+import { useEnvironment } from '@/hooks/useApiConfig';
 
 export function EnvironmentBadge() {
   const env = useEnvironment();

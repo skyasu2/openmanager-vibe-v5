@@ -7,10 +7,10 @@
  * @date 2025-11-21
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  IntelligentMonitoringService,
   getIntelligentMonitoringService,
+  IntelligentMonitoringService,
   type MetricHistory,
 } from '@/services/ai/IntelligentMonitoringService';
 import type { ServerMetrics } from '@/types/unified-server';

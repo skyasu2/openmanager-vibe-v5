@@ -153,7 +153,7 @@ describe('SystemStateManager', () => {
     });
 
     it('should maintain simulation state consistency', async () => {
-      const initialStatus = manager.getSystemStatus();
+      const _initialStatus = manager.getSystemStatus();
 
       await manager.startSimulation('fast');
       const runningStatus = manager.getSystemStatus();

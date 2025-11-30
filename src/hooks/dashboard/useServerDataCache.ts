@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { EnhancedServerData } from '@/types/dashboard/server-dashboard.types';
 
 /**

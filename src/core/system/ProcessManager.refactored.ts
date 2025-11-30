@@ -5,13 +5,13 @@
  * SystemWatchdog와의 직접 의존성을 제거하고 이벤트 기반 통신 사용
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { systemLogger } from '../../lib/logger';
 import {
   ISystemEventBus,
   ISystemEventEmitter,
-  SystemEventType,
   ProcessEventPayload,
+  SystemEventType,
   SystemStatusPayload,
 } from '../interfaces/SystemEventBus';
 
@@ -704,8 +704,12 @@ export class ProcessManager
       process.exit(0);
     };
 
-    process.on('SIGTERM', () => { void shutdownHandler('SIGTERM'); });
-    process.on('SIGINT', () => { void shutdownHandler('SIGINT'); });
+    process.on('SIGTERM', () => {
+      void shutdownHandler('SIGTERM');
+    });
+    process.on('SIGINT', () => {
+      void shutdownHandler('SIGINT');
+    });
   }
 
   private delay(ms: number): Promise<void> {

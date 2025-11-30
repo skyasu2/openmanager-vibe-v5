@@ -9,35 +9,35 @@
 
 'use client';
 
-import { useSystemStatus } from '@/hooks/useSystemStatus';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { useInitialAuth } from '@/hooks/useInitialAuth';
-import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import debug from '@/utils/debug';
-import { isVercel } from '@/env';
-import {
-  performanceTracker,
-  preloadCriticalResources,
-} from '@/utils/vercel-optimization';
-import { renderTextWithAIGradient } from '@/utils/text-rendering';
-import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
-import { OpenManagerLogo } from '@/components/shared/OpenManagerLogo';
+import { BarChart3, Bot, Loader2, LogIn, Play, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
-import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
 import AuthLoadingUI from '@/components/shared/AuthLoadingUI';
+import { OpenManagerLogo } from '@/components/shared/OpenManagerLogo';
+import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import {
   isGuestFullAccessEnabled,
   isGuestSystemStartEnabled,
 } from '@/config/guestMode';
+import { isVercel } from '@/env';
+import { useInitialAuth } from '@/hooks/useInitialAuth';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
+import debug from '@/utils/debug';
+import { renderTextWithAIGradient } from '@/utils/text-rendering';
 import {
+  authRetryDelay,
+  debugWithEnv,
+  envLabel,
   mountDelay,
   syncDebounce,
-  authRetryDelay,
-  envLabel,
-  debugWithEnv,
 } from '@/utils/vercel-env-utils';
+import {
+  performanceTracker,
+  preloadCriticalResources,
+} from '@/utils/vercel-optimization';
 
 const SYSTEM_START_COUNTDOWN_SECONDS = 3;
 const COUNTDOWN_INTERVAL_MS = 1000;
@@ -105,7 +105,7 @@ function Home() {
       if (shutdownTime) {
         const timeLeft = Math.max(
           0,
-          Math.floor((parseInt(shutdownTime) - Date.now()) / 60000)
+          Math.floor((parseInt(shutdownTime, 10) - Date.now()) / 60000)
         );
         message = `✅ 시스템 가동 중 (${timeLeft}분 후 자동 종료)`;
       }

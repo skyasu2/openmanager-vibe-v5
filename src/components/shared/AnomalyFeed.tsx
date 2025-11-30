@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, FC } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, ServerCrash, Zap, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ServerCrash, Zap } from 'lucide-react';
+import { FC, useState } from 'react';
 import useSWR from 'swr';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface AnomalyData {
   id: string;

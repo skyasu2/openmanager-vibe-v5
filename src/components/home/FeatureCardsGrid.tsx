@@ -1,12 +1,20 @@
 'use client';
 
-import FeatureCardModal from '@/components/shared/FeatureCardModal';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { renderAIGradientWithAnimation } from '@/utils/text-rendering';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { memo, useEffect, useMemo, useRef, useState, useCallback, type RefObject } from 'react';
-import type { FeatureCard} from '@/types/feature-card.types';
+import {
+  memo,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import FeatureCardModal from '@/components/shared/FeatureCardModal';
 import { FEATURE_CARDS_DATA } from '@/data/feature-cards.data';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import type { FeatureCard } from '@/types/feature-card.types';
+import { renderAIGradientWithAnimation } from '@/utils/text-rendering';
 
 // 개별 카드 컴포넌트를 메모이제이션
 const FeatureCardItem = memo(
@@ -46,8 +54,14 @@ const FeatureCardItem = memo(
       return 'animate-icon-hover';
     };
 
-    const cardStyles = useMemo(() => getCardStyles(card), [card]);
-    const iconAnimationClass = useMemo(() => getIconAnimationClass(card), [card]);
+    const cardStyles = useMemo(
+      () => getCardStyles(card),
+      [card, getCardStyles]
+    );
+    const iconAnimationClass = useMemo(
+      () => getIconAnimationClass(card),
+      [card, getIconAnimationClass]
+    );
 
     return (
       <div
@@ -82,9 +96,7 @@ const FeatureCardItem = memo(
 
           {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
           {card.isAICard && (
-            <div
-              className="animate-gradient-shift absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 bg-[length:200%_200%] opacity-90"
-            />
+            <div className="animate-gradient-shift absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 bg-[length:200%_200%] opacity-90" />
           )}
 
           {/* Vibe Coding 카드 특별 디자인 */}
@@ -114,7 +126,9 @@ const FeatureCardItem = memo(
               card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
             }`}
           >
-            <card.icon className={`h-6 w-6 ${cardStyles.iconColor} ${iconAnimationClass}`} />
+            <card.icon
+              className={`h-6 w-6 ${cardStyles.iconColor} ${iconAnimationClass}`}
+            />
           </div>
 
           {/* 모든 카드들의 통일된 컨텐츠 */}
@@ -154,12 +168,14 @@ export default function FeatureCardsGrid() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
 
-  const aiAgentEnabled = useUnifiedAdminStore(state => state.aiAgent.isEnabled);
+  const aiAgentEnabled = useUnifiedAdminStore(
+    (state) => state.aiAgent.isEnabled
+  );
 
   // 모달 외부 클릭 시 닫기 처리 - React Error #310 무한 루프 해결
   useEffect(() => {
     if (!selectedCard) return; // selectedCard가 없으면 이벤트 추가 안함
-    
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         modalRef.current &&
@@ -196,7 +212,7 @@ export default function FeatureCardsGrid() {
       // 모달을 항상 렌더링하고, AI 제한은 모달 내부에서 처리
       setSelectedCard(cardId);
       console.log('🎯 [FeatureCard] selectedCard 설정됨:', cardId);
-      
+
       // AI 필요한 기능에 대한 로그는 유지 (디버깅용)
       if (card?.requiresAI && !aiAgentEnabled) {
         console.warn(

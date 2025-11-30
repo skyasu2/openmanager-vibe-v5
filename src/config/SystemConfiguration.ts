@@ -230,7 +230,7 @@ export class SystemConfigurationManager {
 
     // Number 변환
     const numValue = Number(value);
-    if (!isNaN(numValue)) return numValue;
+    if (!Number.isNaN(numValue)) return numValue;
 
     // Array 변환 (콤마 구분)
     if (value.includes(',')) {

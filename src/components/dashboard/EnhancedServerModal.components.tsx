@@ -18,7 +18,7 @@ const getSafeArrayLength = (arr: unknown): number => {
     const isArrayResult = Array.isArray(arr);
     if (!isArrayResult) return 0;
     if (!arr || !Array.isArray(arr)) return 0;
-    if (!Object.prototype.hasOwnProperty.call(arr, 'length')) return 0;
+    if (!Object.hasOwn(arr, 'length')) return 0;
 
     const lengthValue = (() => {
       try {
@@ -32,7 +32,7 @@ const getSafeArrayLength = (arr: unknown): number => {
       }
     })();
 
-    if (isNaN(lengthValue) || lengthValue < 0) return 0;
+    if (Number.isNaN(lengthValue) || lengthValue < 0) return 0;
     return Math.floor(lengthValue);
   } catch (error) {
     console.error('🛡️ getSafeArrayLength Bundle-Safe error:', error);
@@ -87,7 +87,7 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
 }) => {
   // 🛡️ 베르셀 안전 데이터 길이 확인
   const safeDataLength = getSafeArrayLength(data);
-  
+
   // 데이터 포인트를 SVG 좌표로 변환 - 베르셀 안전 방식
   const points = data
     .map((value, index) => {
@@ -158,7 +158,9 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
           {/* 최신 값 포인트 강조 - 🛡️ 베르셀 완전 안전 수정 */}
           {safeDataLength > 0 && (
             <circle
-              cx={((safeDataLength - 1) / Math.max(safeDataLength - 1, 1)) * 100}
+              cx={
+                ((safeDataLength - 1) / Math.max(safeDataLength - 1, 1)) * 100
+              }
               cy={100 - Math.max(0, Math.min(100, lastValue))}
               r="2"
               fill={color}

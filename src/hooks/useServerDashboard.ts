@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { useServerDataStore } from '@/components/providers/StoreProvider';
 import {
   calculateTwoRowsLayout,
@@ -7,26 +8,25 @@ import {
   getDisplayModeConfig,
   type ServerDisplayMode,
 } from '@/config/display-config';
-import type { Server } from '@/types/server';
-import { useEffect, useMemo, useState } from 'react';
-import { useServerMetrics } from './useServerMetrics';
+import { useResponsivePageSize } from '@/hooks/dashboard/useResponsivePageSize';
+import { useServerDataCache } from '@/hooks/dashboard/useServerDataCache';
+import { useServerFilter } from '@/hooks/dashboard/useServerFilter';
+import { useServerPagination } from '@/hooks/dashboard/useServerPagination';
+import { useServerStats } from '@/hooks/dashboard/useServerStats';
 import {
+  DashboardTab,
   EnhancedServerData,
   ServerStats,
   ServerWithMetrics,
-  UseServerDashboardOptions,
   UseEnhancedServerDashboardProps,
   UseEnhancedServerDashboardReturn,
+  UseServerDashboardOptions,
   ViewMode,
-  DashboardTab,
 } from '@/types/dashboard/server-dashboard.types';
-import { formatUptime } from '@/utils/dashboard/server-utils';
-import { useServerPagination } from '@/hooks/dashboard/useServerPagination';
-import { useServerFilter } from '@/hooks/dashboard/useServerFilter';
-import { useServerStats } from '@/hooks/dashboard/useServerStats';
-import { useResponsivePageSize } from '@/hooks/dashboard/useResponsivePageSize';
-import { useServerDataCache } from '@/hooks/dashboard/useServerDataCache';
+import type { Server } from '@/types/server';
 import { transformServerData } from '@/utils/dashboard/server-transformer';
+import { formatUptime } from '@/utils/dashboard/server-utils';
+import { useServerMetrics } from './useServerMetrics';
 
 // 🎯 기존 useServerDashboard 훅 (하위 호환성 유지 + 성능 최적화)
 export function useServerDashboard(options: UseServerDashboardOptions = {}) {
@@ -89,7 +89,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       stopAutoRefresh();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchServers, startAutoRefresh, stopAutoRefresh]);
 
   // 실제 서버 데이터 사용 (메모이제이션 + 데이터 변환)
   const actualServers = useMemo(() => {
@@ -296,7 +296,7 @@ export function useEnhancedServerDashboard({
   // 🔄 페이지 리셋 (필터 변경 시)
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, locationFilter, displayMode]);
+  }, []);
 
   // 🔄 레이아웃 새로고침
   const refreshLayout = () => {

@@ -10,7 +10,7 @@
  * @priority HIGH - AI 교차검증에서 0% 커버리지로 확인됨
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 /**
  * calculatePagination 함수 복제 (테스트용)

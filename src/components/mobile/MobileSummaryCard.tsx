@@ -2,11 +2,11 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  ChevronRight,
   AlertTriangle,
   CheckCircle2,
-  XCircle,
+  ChevronRight,
   Clock,
+  XCircle,
 } from 'lucide-react';
 import type { Server } from '../../types/server';
 
@@ -82,9 +82,7 @@ export default function MobileSummaryCard({
   const StatusIcon = overall.icon;
 
   return (
-    <div
-      className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg"
-    >
+    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg">
       {/* 상단 헤더 - 전체 상태 */}
       <div
         className={`bg-gradient-to-r p-4 ${
@@ -123,36 +121,28 @@ export default function MobileSummaryCard({
       {/* 통계 요약 */}
       <div className="p-4">
         <div className="mb-4 grid grid-cols-4 gap-3">
-          <div
-            className="rounded-lg bg-gray-50 p-3 text-center"
-          >
+          <div className="rounded-lg bg-gray-50 p-3 text-center">
             <div className="text-2xl font-bold text-gray-900">
               {stats.total}
             </div>
             <div className="mt-1 text-xs text-gray-500">전체</div>
           </div>
 
-          <div
-            className="rounded-lg bg-green-50 p-3 text-center"
-          >
+          <div className="rounded-lg bg-green-50 p-3 text-center">
             <div className="text-2xl font-bold text-green-600">
               {stats.online}
             </div>
             <div className="mt-1 text-xs text-green-500">정상</div>
           </div>
 
-          <div
-            className="rounded-lg bg-yellow-50 p-3 text-center"
-          >
+          <div className="rounded-lg bg-yellow-50 p-3 text-center">
             <div className="text-2xl font-bold text-yellow-600">
               {stats.warning}
             </div>
             <div className="mt-1 text-xs text-yellow-500">주의</div>
           </div>
 
-          <div
-            className="rounded-lg bg-red-50 p-3 text-center"
-          >
+          <div className="rounded-lg bg-red-50 p-3 text-center">
             <div className="text-2xl font-bold text-red-600">
               {stats.offline}
             </div>
@@ -162,9 +152,7 @@ export default function MobileSummaryCard({
 
         {/* 중요 알림 */}
         {stats.criticalAlerts > 0 && (
-          <div
-            className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3"
-          >
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
             <div className="flex items-center space-x-2">
               <AlertTriangle className="h-5 w-5 text-red-500" />
               <span className="text-sm font-medium text-red-700">

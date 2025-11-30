@@ -214,7 +214,6 @@ export class ChartPerformanceBenchmark {
  */
 export class ChartLibraryComparator {
   private benchmarks: Map<string, ChartPerformanceBenchmark> = new Map();
-  private results: BenchmarkResult[] = [];
 
   /**
    * 새로운 라이브러리 벤치마크 추가
@@ -351,11 +350,11 @@ export function detectMemoryLeaks(
 export function profilePerformance(library: string) {
   const benchmark = new ChartPerformanceBenchmark(library);
 
-  return function <T extends (...args: unknown[]) => unknown>(
-    target: unknown,
-    propertyName: string,
+  return <T extends (...args: unknown[]) => unknown>(
+    _target: unknown,
+    _propertyName: string,
     descriptor: TypedPropertyDescriptor<T>
-  ) {
+  ) => {
     const method = descriptor.value;
     if (!method) {
       return descriptor;

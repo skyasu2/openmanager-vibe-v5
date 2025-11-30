@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
-import React from 'react';
 import DashboardHeader from '../DashboardHeader';
 
 // Mock dependencies
@@ -50,10 +49,10 @@ vi.mock('../AIAssistantButton', () => ({
   ),
 }));
 
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
 
 describe('DashboardHeader AI Interaction', () => {
   const mockSetOpen = vi.fn();

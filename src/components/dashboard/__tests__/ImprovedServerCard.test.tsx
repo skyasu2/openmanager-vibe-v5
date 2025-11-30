@@ -2,11 +2,11 @@
  * 🧪 ImprovedServerCard v3.1 실제 컴포넌트 테스트
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import ImprovedServerCard from '../ImprovedServerCard';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Server } from '@/types/server';
+import ImprovedServerCard from '../ImprovedServerCard';
 
 // Mock Dependencies
 vi.mock('../../../styles/design-constants', () => ({

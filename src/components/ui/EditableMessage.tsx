@@ -10,8 +10,8 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useCallback, type FC } from 'react';
-import { Edit3, Check, X, RotateCcw } from 'lucide-react';
+import { Check, Edit3, RotateCcw, X } from 'lucide-react';
+import { type FC, useCallback, useEffect, useRef, useState } from 'react';
 import { AutoResizeTextarea } from './AutoResizeTextarea';
 
 interface EditableMessageProps {

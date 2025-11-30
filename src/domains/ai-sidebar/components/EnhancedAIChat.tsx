@@ -1,9 +1,9 @@
 'use client';
 
-import React, { memo, type RefObject } from 'react';
 import { Bot, FileText, Send } from 'lucide-react';
-import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
+import React, { memo, type RefObject } from 'react';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
+import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 import { AIEngineIndicator } from './AIEngineIndicator';
 
 /**

@@ -1,10 +1,10 @@
+import type { EnhancedServerData } from '@/types/dashboard/server-dashboard.types';
 import type {
   Server,
-  ServerRole,
   ServerEnvironment,
+  ServerRole,
   Service,
 } from '@/types/server';
-import type { EnhancedServerData } from '@/types/dashboard/server-dashboard.types';
 
 /**
  * 🔄 Server Data Transformer

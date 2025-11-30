@@ -427,14 +427,22 @@ export function generateRandomKoreanQuery(): KoreanNLPScenario {
     };
   }
 
-  const serverItem = servers[Math.floor(Math.random() * servers.length)] ?? '웹서버';
-  const metricItem = metrics[Math.floor(Math.random() * metrics.length)] ?? 'CPU';
-  const timeItem = times[Math.floor(Math.random() * times.length)] ?? '지난 시간';
-  const issueItem = issues[Math.floor(Math.random() * issues.length)] ?? '성능 저하';
-  const thresholdItem = thresholds[Math.floor(Math.random() * thresholds.length)] ?? '80%';
-  const actionItem = actions[Math.floor(Math.random() * actions.length)] ?? '확인';
-  const serviceItem = services[Math.floor(Math.random() * services.length)] ?? 'Redis';
-  const problemItem = problems[Math.floor(Math.random() * problems.length)] ?? '응답 지연';
+  const serverItem =
+    servers[Math.floor(Math.random() * servers.length)] ?? '웹서버';
+  const metricItem =
+    metrics[Math.floor(Math.random() * metrics.length)] ?? 'CPU';
+  const timeItem =
+    times[Math.floor(Math.random() * times.length)] ?? '지난 시간';
+  const issueItem =
+    issues[Math.floor(Math.random() * issues.length)] ?? '성능 저하';
+  const thresholdItem =
+    thresholds[Math.floor(Math.random() * thresholds.length)] ?? '80%';
+  const actionItem =
+    actions[Math.floor(Math.random() * actions.length)] ?? '확인';
+  const serviceItem =
+    services[Math.floor(Math.random() * services.length)] ?? 'Redis';
+  const problemItem =
+    problems[Math.floor(Math.random() * problems.length)] ?? '응답 지연';
 
   const input = template
     .replace('{server}', serverItem)

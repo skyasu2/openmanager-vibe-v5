@@ -3,7 +3,7 @@
  * DOM testing 환경 설정
  */
 
-import { vi, expect } from 'vitest';
+import { expect, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import { toHaveNoViolations } from 'jest-axe';
 import {

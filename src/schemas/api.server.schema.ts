@@ -37,7 +37,14 @@ export const ServerMetricsSchema = z.object({
 export const ServerStatusSchema = z.object({
   id: IdSchema,
   name: z.string(),
-  status: z.enum(['online', 'offline', 'warning', 'critical', 'maintenance', 'unknown']), // 🔧 수정: 'error' → 'critical', 'unknown' 추가 (타입 통합)
+  status: z.enum([
+    'online',
+    'offline',
+    'warning',
+    'critical',
+    'maintenance',
+    'unknown',
+  ]), // 🔧 수정: 'error' → 'critical', 'unknown' 추가 (타입 통합)
   lastUpdate: TimestampSchema,
   location: z.string(),
   uptime: z.number().nonnegative(),
@@ -53,7 +60,14 @@ export const ServerPaginationQuerySchema = z.object({
   sortBy: z.enum(['name', 'status', 'cpu', 'memory', 'lastUpdate']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
   status: z
-    .enum(['online', 'offline', 'warning', 'critical', 'maintenance', 'unknown']) // 🔧 수정: 'error' → 'critical', 'unknown' 추가
+    .enum([
+      'online',
+      'offline',
+      'warning',
+      'critical',
+      'maintenance',
+      'unknown',
+    ]) // 🔧 수정: 'error' → 'critical', 'unknown' 추가
     .optional(),
   search: z.string().optional(),
 });

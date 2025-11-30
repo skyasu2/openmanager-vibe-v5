@@ -68,7 +68,6 @@ export class SystemWatchdog {
   private systemStatus?: SystemStatus;
   private readonly maxHistoryLength = 100;
   private readonly monitoringIntervalMs = 30000; // 30초 (과도한 헬스체크 방지)
-  private readonly maxDataPoints = 30; // 5분간 데이터 (30 * 10초)
 
   constructor(eventBus?: ISystemEventBus) {
     if (eventBus) {
@@ -452,7 +451,11 @@ export class SystemWatchdog {
     for (let i = 1; i < recentMemory.length; i++) {
       const currentValue = recentMemory[i]?.value;
       const previousValue = recentMemory[i - 1]?.value;
-      if (currentValue !== undefined && previousValue !== undefined && currentValue > previousValue) {
+      if (
+        currentValue !== undefined &&
+        previousValue !== undefined &&
+        currentValue > previousValue
+      ) {
         increasingCount++;
       }
     }

@@ -9,10 +9,10 @@
  */
 
 import type {
-  SettingsData,
-  GeneratorConfig,
   ApiResponse,
+  GeneratorConfig,
   HealthCheckResponse,
+  SettingsData,
 } from '../types/ProfileTypes';
 
 export class SettingsService {
@@ -325,14 +325,5 @@ export class SettingsService {
       backup: { lastBackup: '없음', autoBackup: false },
       theme: 'dark',
     };
-  }
-
-  private getDefaultNotificationSettings() {
-    // Vercel 환경에서는 콘솔 로깅만 지원
-    if (process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL === '1') {
-      return { email: false, webhook: false };
-    }
-
-    return { email: false, webhook: false };
   }
 }

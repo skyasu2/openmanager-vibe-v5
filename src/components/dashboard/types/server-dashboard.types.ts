@@ -3,7 +3,13 @@
  * any 타입 제거를 위한 명확한 타입 정의
  */
 
-import type { Server, Service, ServerAlert, ServerRole, ServerEnvironment } from '@/types/server';
+import type {
+  Server,
+  ServerAlert,
+  ServerEnvironment,
+  ServerRole,
+  Service,
+} from '@/types/server';
 
 // 서버 확장 타입 (any 타입 제거용)
 export interface ExtendedServer extends Omit<Server, 'type' | 'environment'> {

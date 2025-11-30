@@ -5,25 +5,18 @@
  * withAdminAuth 미들웨어로 보호된 API 엔드포인트 테스트
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // authManager를 먼저 모킹
 vi.mock('@/lib/auth');
 
+import { authManager } from '@/lib/auth/auth';
+import { GET as getBackupStatus } from '../../../src/app/api/admin/backup-status/route';
 import {
   GET as getThresholds,
   POST as updateThresholds,
 } from '../../../src/app/api/admin/thresholds/route';
-import {
-  GET as getDashboardConfig,
-  POST as updateDashboardConfig,
-} from '../../../src/app/api/admin/dashboard-config/route';
-import {
-  GET as getBackupStatus,
-  POST as manageBackup,
-} from '../../../src/app/api/admin/backup-status/route';
-import { authManager } from '@/lib/auth/auth';
 
 // Mock 타입 정의
 const mockAuthManager = {

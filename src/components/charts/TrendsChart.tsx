@@ -1,13 +1,13 @@
 import { memo } from 'react';
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
   CartesianGrid,
   Legend,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts';
 
 interface TrendDataPoint {
@@ -106,15 +106,13 @@ const TrendsChart = memo<TrendsChartProps>(({ data }) => {
               tickLine={false}
               axisLine={false}
             />
-            <YAxis
-              tick={{ fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
-            />
+            <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
             <Tooltip content={<TrendsTooltip />} />
             <Legend
               wrapperStyle={{ fontSize: '12px' }}
-              formatter={(value: string) => <span className="text-xs">{value}</span>}
+              formatter={(value: string) => (
+                <span className="text-xs">{value}</span>
+              )}
             />
             <Line
               type="monotone"

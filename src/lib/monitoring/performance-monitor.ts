@@ -245,11 +245,11 @@ export type { PerformanceMetric, PerformanceMetadata, PerformanceReport };
 
 // 헬퍼 함수: 성능 측정 데코레이터
 export function measurePerformance(type: 'query' | 'api', name: string) {
-  return function (
-    target: unknown,
+  return (
+    _target: unknown,
     propertyName: string,
     descriptor: PropertyDescriptor
-  ) {
+  ) => {
     // 테스트 환경에서 descriptor가 올바르게 전달되지 않는 경우 처리
     if (!descriptor || typeof descriptor.value !== 'function') {
       console.warn(

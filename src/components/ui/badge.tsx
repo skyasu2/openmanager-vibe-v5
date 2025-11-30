@@ -1,7 +1,7 @@
 'use client';
 
-import { type HTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { type HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -31,8 +31,7 @@ const badgeVariants = cva(
         destructive:
           'border-transparent bg-[var(--color-error-500)] text-white hover:opacity-90 focus:ring-red-400',
         // Info: 정보 상태
-        info:
-          'border-transparent bg-[var(--color-info-500)] text-white hover:opacity-90 focus:ring-blue-400',
+        info: 'border-transparent bg-[var(--color-info-500)] text-white hover:opacity-90 focus:ring-blue-400',
         // Secondary: 서피스 색상
         secondary:
           'border-transparent bg-[var(--color-surface-100)] text-gray-700 hover:bg-[var(--color-surface-200)] focus:ring-gray-400',

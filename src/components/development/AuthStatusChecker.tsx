@@ -7,21 +7,21 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Github,
+  RefreshCw,
+  User as UserIcon,
+  XCircle,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  RefreshCw,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  User as UserIcon,
-  Github,
-  Clock,
-} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase/client';
 
 interface GuestUserData {
   id?: string;
@@ -129,12 +129,12 @@ export default function AuthStatusChecker() {
     }
     // autoRefresh가 false인 경우 cleanup 함수 없음
     return undefined;
-  }, [autoRefresh]);
+  }, [autoRefresh, checkAuthStatus]);
 
   // 초기 로드
   useEffect(() => {
     void checkAuthStatus();
-  }, []);
+  }, [checkAuthStatus]);
 
   const getAuthStatusBadge = () => {
     if (!authStatus) return <Badge variant="secondary">로딩 중...</Badge>;

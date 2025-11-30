@@ -54,23 +54,23 @@ export const formatDate = (
  * 🎯 전략 2: 아이콘 최적화 (Lucide React 선별적 import)
  */
 export {
-  BarChart3,
-  Bot,
-  Loader2,
-  Play,
-  X,
-  LogIn,
-  Settings,
-  User,
-  Home,
   Activity,
   AlertCircle,
+  BarChart3,
+  Bot,
   CheckCircle,
-  Info,
-  Shield,
-  Zap,
-  Globe,
   Clock,
+  Globe,
+  Home,
+  Info,
+  Loader2,
+  LogIn,
+  Play,
+  Settings,
+  Shield,
+  User,
+  X,
+  Zap,
 } from 'lucide-react';
 
 /**
@@ -109,7 +109,7 @@ export class BundleAnalyzer {
   private static readonly isDev = process.env.NODE_ENV === 'development';
 
   static measureComponentRender(componentName: string) {
-    if (!this.isDev) return () => {};
+    if (!BundleAnalyzer.isDev) return () => {};
 
     const start = performance.now();
     return () => {
@@ -121,14 +121,12 @@ export class BundleAnalyzer {
   }
 
   static trackBundleSize(chunkName: string) {
-    if (!this.isDev) return;
+    if (!BundleAnalyzer.isDev) return;
 
     // 웹팩 청크 정보 로그
     console.log(`📦 Loading chunk: ${chunkName}`);
   }
 }
-
-import React from 'react';
 
 /**
  * 🎯 전략 6: 에러 바운더리 경량화

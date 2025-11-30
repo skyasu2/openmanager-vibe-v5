@@ -2,15 +2,14 @@
  * 🎨 Alert 컴포넌트 스토리북
  */
 
-import * as React from 'react';
-import type { Meta, StoryObj } from 'react';;
-import { Alert, AlertDescription, AlertTitle } from './alert';
 import {
   AlertCircle,
   AlertTriangle,
   CheckCircle,
   Info as InfoIcon,
 } from 'lucide-react';
+import type { Meta, StoryObj } from 'react';
+import { Alert, AlertDescription, AlertTitle } from './alert';
 
 const meta = {
   title: 'UI/Alert',

@@ -35,13 +35,13 @@ export function safeObjectAccess<T, K extends keyof T>(
 export function safeParseFloat(value: string | undefined): number {
   if (!value) return 0;
   const parsed = parseFloat(value);
-  return isNaN(parsed) ? 0 : parsed;
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 export function safeParseInt(value: string | undefined): number {
   if (!value) return 0;
   const parsed = parseInt(value, 10);
-  return isNaN(parsed) ? 0 : parsed;
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 // 배열이 비어있지 않은지 확인하는 타입 가드
@@ -210,7 +210,7 @@ export function isString(value: unknown): value is string {
 
 // 숫자인지 확인하는 타입 가드
 export function isNumber(value: unknown): value is number {
-  return typeof value === 'number' && !isNaN(value);
+  return typeof value === 'number' && !Number.isNaN(value);
 }
 
 // 불린인지 확인하는 타입 가드

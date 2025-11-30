@@ -1,10 +1,8 @@
-
-import { test, expect, Page } from '@playwright/test';
-import { resetGuestState, guestLogin } from './helpers/guest';
+import { expect, test } from '@playwright/test';
+import { guestLogin, resetGuestState } from './helpers/guest';
 import { ensureVercelBypassCookie } from './helpers/security';
 
 test.describe('♿ 접근성 (Accessibility) 검증', () => {
-  
   test.beforeEach(async ({ page }) => {
     await resetGuestState(page);
     await ensureVercelBypassCookie(page);
@@ -13,101 +11,117 @@ test.describe('♿ 접근성 (Accessibility) 검증', () => {
   test.afterEach(async ({ page }) => {
     await resetGuestState(page);
   });
-  
+
   test('키보드 네비게이션 테스트', async ({ page }) => {
     await page.goto('/');
-    
+
     const focusableElements = [];
     await page.keyboard.press('Tab');
-    
+
     for (let i = 0; i < 10; i++) {
       const focusedElement = await page.evaluate(() => {
         const focused = document.activeElement;
-        return focused ? {
-          tagName: focused.tagName,
-          role: focused.getAttribute('role'),
-          ariaLabel: focused.getAttribute('aria-label'),
-          textContent: focused.textContent?.substring(0, 50)
-        } : null;
+        return focused
+          ? {
+              tagName: focused.tagName,
+              role: focused.getAttribute('role'),
+              ariaLabel: focused.getAttribute('aria-label'),
+              textContent: focused.textContent?.substring(0, 50),
+            }
+          : null;
       });
-      
+
       if (focusedElement) {
         focusableElements.push(focusedElement);
-        console.log(`Tab ${i + 1}: ${focusedElement.tagName} - ${focusedElement.textContent || focusedElement.ariaLabel || 'No text'}`);
+        console.log(
+          `Tab ${i + 1}: ${focusedElement.tagName} - ${focusedElement.textContent || focusedElement.ariaLabel || 'No text'}`
+        );
       }
-      
+
       await page.keyboard.press('Tab');
       await page.waitForTimeout(100);
     }
-    
+
     expect(focusableElements.length).toBeGreaterThan(3);
     console.log('✅ 키보드 네비게이션 테스트 완료');
   });
 
   test('ARIA 라벨 및 역할 검증', async ({ page }) => {
     await guestLogin(page);
-    
+
     const ariaElements = await page.evaluate(() => {
-      const elements = Array.from(document.querySelectorAll('[aria-label], [aria-labelledby], [role]'));
-      return elements.map(el => ({
+      const elements = Array.from(
+        document.querySelectorAll('[aria-label], [aria-labelledby], [role]')
+      );
+      return elements.map((el) => ({
         tagName: el.tagName,
         role: el.getAttribute('role'),
         ariaLabel: el.getAttribute('aria-label'),
-        textContent: el.textContent?.substring(0, 30)
+        textContent: el.textContent?.substring(0, 30),
       }));
     });
-    
+
     console.log('📊 ARIA 접근성 요소 분석:');
     ariaElements.forEach((el, index) => {
-      console.log(`   ${index + 1}. ${el.tagName}: role="${el.role}", label="${el.ariaLabel}"`);
+      console.log(
+        `   ${index + 1}. ${el.tagName}: role="${el.role}", label="${el.ariaLabel}"`
+      );
     });
-    
+
     expect(ariaElements.length).toBeGreaterThan(5);
     console.log('✅ ARIA 접근성 검증 완료');
   });
 
   test('색상 대비 검증 (간이)', async ({ page }) => {
     await guestLogin(page);
-    
+
     const contrastResults = await page.evaluate(() => {
-      const textElements = Array.from(document.querySelectorAll('p, span, div, button, a')).slice(0, 20);
-      
-      return textElements.map(el => {
-        const styles = window.getComputedStyle(el);
-        return {
-          text: el.textContent?.substring(0, 30),
-          color: styles.color,
-          backgroundColor: styles.backgroundColor,
-        };
-      }).filter(item => item.text && item.text.trim().length > 0);
+      const textElements = Array.from(
+        document.querySelectorAll('p, span, div, button, a')
+      ).slice(0, 20);
+
+      return textElements
+        .map((el) => {
+          const styles = window.getComputedStyle(el);
+          return {
+            text: el.textContent?.substring(0, 30),
+            color: styles.color,
+            backgroundColor: styles.backgroundColor,
+          };
+        })
+        .filter((item) => item.text && item.text.trim().length > 0);
     });
-    
+
     console.log('📊 색상 대비 분석 (처음 10개):');
     contrastResults.slice(0, 10).forEach((item, index) => {
-      console.log(`   ${index + 1}. "${item.text}" - 색상: ${item.color}, 배경: ${item.backgroundColor}`);
+      console.log(
+        `   ${index + 1}. "${item.text}" - 색상: ${item.color}, 배경: ${item.backgroundColor}`
+      );
     });
-    
+
     expect(contrastResults.length).toBeGreaterThan(0);
     console.log('✅ 색상 대비 검증 완료 (수동 확인 필요)');
   });
 
   test('스크린 리더 호환성 (헤딩 구조)', async ({ page }) => {
     await guestLogin(page);
-    
+
     const headings = await page.evaluate(() => {
-      const headingElements = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-      return headingElements.map(el => ({
+      const headingElements = Array.from(
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+      );
+      return headingElements.map((el) => ({
         level: el.tagName,
         text: el.textContent?.trim(),
       }));
     });
-    
+
     console.log('📊 헤딩 구조 분석:');
     headings.forEach((heading, index) => {
       console.log(`   ${index + 1}. ${heading.level}: "${heading.text}"`);
     });
-    
-    const hasH1 = headings.some(h => h.level === 'H1');
+
+    const hasH1 = headings.some((h) => h.level === 'H1');
     expect(hasH1).toBe(true);
     console.log('✅ 스크린 리더 호환성 (헤딩 구조) 검증 완료');
   });

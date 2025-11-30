@@ -1,12 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSystemStatus } from '@/hooks/useSystemStatus';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { BarChart3, ChevronDown, LogOut, Power, Shield } from 'lucide-react';
-
+import { useCallback, useEffect, useMemo, useState } from 'react';
 // 프로필 컴포넌트 임포트
 import {
   ProfileAvatar,
@@ -14,16 +10,17 @@ import {
 } from '@/components/unified-profile/components/ProfileAvatar';
 import { ProfileDropdownMenu } from '@/components/unified-profile/components/ProfileDropdownMenu';
 import { EnhancedProfileStatusDisplay } from '@/components/unified-profile/EnhancedProfileStatusDisplay';
-
 // 프로필 훅 임포트
 import { useProfileAuth } from '@/components/unified-profile/hooks/useProfileAuth';
 import { useProfileMenu } from '@/components/unified-profile/hooks/useProfileMenu';
-
 // 타입 임포트
 import type {
   MenuItem,
   UnifiedProfileHeaderProps,
 } from '@/components/unified-profile/types/profile.types';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 /**
  * 통합 프로필 헤더 컴포넌트 (리팩토링 버전)

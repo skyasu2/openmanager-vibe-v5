@@ -7,7 +7,7 @@
  * @see https://docs.cohere.com/reference/generate
  */
 
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, http } from 'msw';
 
 const COHERE_BASE_URL = 'https://api.cohere.ai';
 

@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import {
-  IdSchema,
   EmailSchema,
+  IdSchema,
+  MetadataSchema,
   TimestampSchema,
   UrlSchema,
-  MetadataSchema,
 } from './common.schema';
 
 /**

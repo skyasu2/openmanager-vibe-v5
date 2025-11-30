@@ -1,7 +1,7 @@
 'use client';
 
 // React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
-import { Monitor, Network, Database, BarChart3 } from 'lucide-react';
+import { BarChart3, Database, Monitor, Network } from 'lucide-react';
 import type { DashboardTab } from '../../../hooks/useServerDashboard';
 
 interface ServerDashboardTabsProps {

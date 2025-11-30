@@ -1,10 +1,11 @@
 'use client';
 
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
-import { AlertTriangle, RefreshCw, Home, Settings, Bug } from 'lucide-react';
-import { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, Bug, Home, RefreshCw, Settings } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 // framer-motion 제거 - CSS 애니메이션 사용
 
 interface DashboardErrorProps {
@@ -91,14 +92,10 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-900 dark:to-slate-800">
-      <div
-        className="w-full max-w-2xl"
-      >
+      <div className="w-full max-w-2xl">
         <Card className={`${currentError.bgColor} border-2`}>
           <CardHeader className="text-center">
-            <div
-              className="mb-4 flex justify-center"
-            >
+            <div className="mb-4 flex justify-center">
               <div className={`rounded-full p-4 ${currentError.bgColor}`}>
                 <IconComponent className={`h-12 w-12 ${currentError.color}`} />
               </div>
@@ -218,9 +215,7 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
         </Card>
 
         {/* 시스템 상태 확인 */}
-        <div
-          className="mt-6 text-center"
-        >
+        <div className="mt-6 text-center">
           <Card className="bg-white/50 backdrop-blur-sm dark:bg-slate-900/50">
             <CardContent className="p-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -229,6 +224,7 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
                   href="/api/health"
                   target="_blank"
                   className="text-blue-600 hover:underline"
+                  rel="noopener"
                 >
                   여기를 클릭
                 </a>

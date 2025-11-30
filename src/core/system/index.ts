@@ -7,35 +7,35 @@
 
 // 리팩토링된 버전 export
 export { ProcessManager as ProcessManagerRefactored } from './ProcessManager.refactored';
-export { SystemWatchdog as SystemWatchdogRefactored } from './SystemWatchdog.refactored';
 export {
-  SystemBootstrapper,
   getSystemBootstrapper,
   resetSystemBootstrapper,
   type SystemBootstrapConfig,
+  SystemBootstrapper,
 } from './SystemBootstrapper';
+export { SystemWatchdog as SystemWatchdogRefactored } from './SystemWatchdog.refactored';
 
 // 내부 사용을 위한 import
-import { getSystemBootstrapper, type SystemBootstrapConfig } from './SystemBootstrapper';
+import {
+  getSystemBootstrapper,
+  type SystemBootstrapConfig,
+} from './SystemBootstrapper';
 
 // 기존 버전도 export (임시 - 점진적 마이그레이션용)
 export { ProcessManager } from './ProcessManager';
-export { SystemWatchdog } from './SystemWatchdog';
-
 // 공통 타입 export
 export type {
   ProcessConfig,
   ProcessState,
   SystemMetrics,
 } from './ProcessManager.refactored';
-
+// Process 설정 export
+export * from './process-configs';
+export { SystemWatchdog } from './SystemWatchdog';
 export type {
   SystemMetrics as WatchdogMetrics,
   WatchdogAlerts,
 } from './SystemWatchdog.refactored';
-
-// Process 설정 export
-export * from './process-configs';
 
 /**
  * 시스템 초기화 헬퍼 함수

@@ -1,14 +1,14 @@
 /**
  * 🛡️ Server Card Error Boundary
- * 
+ *
  * 실시간 데이터 업데이트 중 발생할 수 있는 예외상황을 처리하여
  * 전체 앱 크래시를 방지하는 에러 바운더리 컴포넌트
- * 
+ *
  * Codex 제안사항 반영: 프로덕션 환경에서의 안정성 확보
  */
 
-import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -32,17 +32,20 @@ class ServerCardErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // 🛡️ AI 교차검증: TypeError 특별 처리 - 30+ TypeError 원인 추적
-    const isTypeError = error.message.includes('.length') ||
-                       error.message.includes('undefined') ||
-                       error.message.includes('Cannot read property') ||
-                       error.message.includes('Cannot read properties');
+    const isTypeError =
+      error.message.includes('.length') ||
+      error.message.includes('undefined') ||
+      error.message.includes('Cannot read property') ||
+      error.message.includes('Cannot read properties');
 
     if (isTypeError) {
       console.error('🚨 ServerCard Race Condition TypeError 캐치됨:', {
         message: error.message,
         stack: error.stack?.split('\n').slice(0, 3).join('\n'),
-        componentStack: errorInfo.componentStack?.split('\n').slice(0, 5).join('\n') || 'No component stack available',
-        timestamp: new Date().toISOString()
+        componentStack:
+          errorInfo.componentStack?.split('\n').slice(0, 5).join('\n') ||
+          'No component stack available',
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -73,7 +76,7 @@ class ServerCardErrorBoundary extends Component<Props, State> {
             <div className="rounded-lg p-3 bg-red-100/80 backdrop-blur-sm">
               <AlertTriangle className="h-8 w-8 text-red-600" />
             </div>
-            
+
             <div className="text-center space-y-2">
               <h3 className="text-lg font-semibold text-gray-900">
                 서버 카드 오류

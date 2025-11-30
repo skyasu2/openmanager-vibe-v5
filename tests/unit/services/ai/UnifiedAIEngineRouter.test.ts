@@ -3,7 +3,7 @@
  * 핵심 기능만 테스트하여 유지보수성 향상
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the router module
 const mockRouteAIQuery = vi.fn();
@@ -13,8 +13,8 @@ vi.mock('@/services/ai/UnifiedAIEngineRouter', () => ({
   routeAIQuery: mockRouteAIQuery,
   getUnifiedAIRouter: mockGetUnifiedAIRouter,
   UnifiedAIEngineRouter: vi.fn(() => ({
-    route: vi.fn()
-  }))
+    route: vi.fn(),
+  })),
 }));
 
 describe('UnifiedAIEngineRouter (Simplified)', () => {
@@ -29,21 +29,21 @@ describe('UnifiedAIEngineRouter (Simplified)', () => {
         response: 'Test response',
         engine: 'local',
         confidence: 0.8,
-        processingTime: 100
+        processingTime: 100,
       };
 
       mockRouteAIQuery.mockResolvedValue(mockResponse);
 
       const result = await mockRouteAIQuery({
         query: 'Test query',
-        mode: 'auto'
+        mode: 'auto',
       });
 
       expect(result.success).toBe(true);
       expect(result.response).toBe('Test response');
       expect(mockRouteAIQuery).toHaveBeenCalledWith({
         query: 'Test query',
-        mode: 'auto'
+        mode: 'auto',
       });
     });
 
@@ -51,14 +51,14 @@ describe('UnifiedAIEngineRouter (Simplified)', () => {
       const mockError = {
         success: false,
         error: 'Test error',
-        fallbackUsed: true
+        fallbackUsed: true,
       };
 
       mockRouteAIQuery.mockResolvedValue(mockError);
 
       const result = await mockRouteAIQuery({
         query: 'Test query',
-        mode: 'google-ai'
+        mode: 'google-ai',
       });
 
       expect(result.success).toBe(false);
@@ -83,12 +83,12 @@ describe('UnifiedAIEngineRouter (Simplified)', () => {
         if (!params.query || params.query.trim() === '') {
           return Promise.resolve({
             success: false,
-            error: 'Query is required'
+            error: 'Query is required',
           });
         }
         return Promise.resolve({
           success: true,
-          response: 'Valid query processed'
+          response: 'Valid query processed',
         });
       });
 

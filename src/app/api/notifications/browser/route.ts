@@ -5,20 +5,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getErrorMessage } from '@/types/type-utils';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   NotificationRequestSchema,
-  NotificationResponseSchema,
-  NotificationStatusResponseSchema,
-  type NotificationStatus,
-  type TestNotificationData,
-  type ValidateNotificationData,
-  type UpdateNotificationSettings,
-
   type NotificationResponse,
+  NotificationResponseSchema,
+  type NotificationStatus,
   type NotificationStatusResponse,
+  NotificationStatusResponseSchema,
+  type TestNotificationData,
+  type UpdateNotificationSettings,
+  type ValidateNotificationData,
 } from '@/schemas/api.schema';
+import { getErrorMessage } from '@/types/type-utils';
 
 /**
  * 알림 상태 확인

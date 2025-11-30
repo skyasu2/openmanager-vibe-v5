@@ -10,7 +10,7 @@ import { type FC } from 'react';
  * - Smooth animations for log entries
  * - Log level indicators and timestamp formatting
  */
-import { RealtimeData, LogEntry, LogLevel } from './EnhancedServerModal.types';
+import { LogEntry, LogLevel, RealtimeData } from './EnhancedServerModal.types';
 
 /**
  * Logs Tab Props
@@ -40,7 +40,6 @@ const getLogLevelStyles = (level: LogLevel) => {
         badgeClass: 'bg-yellow-500 text-white',
         textClass: 'text-yellow-300',
       };
-    case 'info':
     default:
       return {
         containerClass: 'bg-green-500/10 border-l-4 border-green-500',
@@ -59,7 +58,7 @@ const getLogLevelStyles = (level: LogLevel) => {
 const formatTimestamp = (timestamp: string): string => {
   try {
     const date = new Date(timestamp);
-    return isNaN(date.getTime())
+    return Number.isNaN(date.getTime())
       ? new Date().toLocaleTimeString()
       : date.toLocaleTimeString();
   } catch {

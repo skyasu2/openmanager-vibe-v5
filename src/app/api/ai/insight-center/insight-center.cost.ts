@@ -9,11 +9,11 @@
  */
 
 import type {
-  InfrastructureInfo,
-  UtilizationMetric,
-  CostAnalysis,
-  ResourceOptimization,
   CloudMigrationAnalysis,
+  CostAnalysis,
+  InfrastructureInfo,
+  ResourceOptimization,
+  UtilizationMetric,
 } from './insight-center.types';
 
 /**

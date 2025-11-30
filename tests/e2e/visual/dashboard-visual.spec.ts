@@ -6,7 +6,7 @@
  * @created 2025-11-26
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('📸 대시보드 시각적 회귀 테스트', () => {
   test.beforeEach(async ({ page }) => {

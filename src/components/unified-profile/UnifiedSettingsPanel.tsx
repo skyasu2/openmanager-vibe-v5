@@ -10,21 +10,20 @@
 
 'use client';
 
-import {
-  InlineFeedbackContainer,
-  useInlineFeedback,
-} from '@/components/ui/InlineFeedbackSystem';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, Database, Monitor, Settings, X, Zap } from 'lucide-react';
 import {
-  Fragment,
+  type KeyboardEvent as ReactKeyboardEvent,
   useCallback,
   useEffect,
   useRef,
   useState,
-  type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
+import {
+  InlineFeedbackContainer,
+  useInlineFeedback,
+} from '@/components/ui/InlineFeedbackSystem';
 import { GeneralSettingsTab } from './components/GeneralSettingsTab';
 import { GeneratorSettingsTab } from './components/GeneratorSettingsTab';
 import { MonitorSettingsTab } from './components/MonitorSettingsTab';
@@ -352,102 +351,98 @@ export function UnifiedSettingsPanel({
   };
 
   return createPortal(
-    <Fragment>
-      {isOpen && (
-        <>
-          {/* 오버레이 */}
-          <div
-            className="fixed inset-0 z-[9998] bg-black/70"
-            onClick={onClose}
-            role="button"
-            aria-label="설정 패널 닫기"
-            tabIndex={0}
-            onKeyDown={handleOverlayKeyDown}
-          />
+    isOpen && (
+      <>
+        {/* 오버레이 */}
+        <div
+          className="fixed inset-0 z-[9998] bg-black/70"
+          onClick={onClose}
+          role="button"
+          aria-label="설정 패널 닫기"
+          tabIndex={0}
+          onKeyDown={handleOverlayKeyDown}
+        />
 
-          {/* 설정 패널 - 프로필 버튼 근처에 배치 */}
-          <div
-            ref={modalRef}
-            className="fixed z-[10000] flex h-[min(95vh,700px)] max-h-[95vh] min-h-[400px] w-[min(95vw,800px)] min-w-[320px] max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-gray-900/95 shadow-2xl backdrop-blur-xl"
-            style={{
-              top: `${modalPosition.top}px`,
-              left: `${modalPosition.left}px`,
-            }}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="settings-panel-title"
-            data-testid="unified-settings-modal"
-          >
-            {/* 헤더 */}
-            <header className="flex flex-shrink-0 items-center justify-between border-b border-white/10 p-4">
-              <h2
-                id="settings-panel-title"
-                className="flex items-center gap-2 text-xl font-bold text-white"
-              >
-                <Settings className="h-6 w-6" />
-                설정
-              </h2>
-              <button
-                onClick={onClose}
-                className="rounded-full p-2 text-gray-400 hover:bg-white/10 hover:text-white"
-                aria-label="Close settings panel"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </header>
+        {/* 설정 패널 - 프로필 버튼 근처에 배치 */}
+        <div
+          ref={modalRef}
+          className="fixed z-[10000] flex h-[min(95vh,700px)] max-h-[95vh] min-h-[400px] w-[min(95vw,800px)] min-w-[320px] max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-gray-900/95 shadow-2xl backdrop-blur-xl"
+          style={{
+            top: `${modalPosition.top}px`,
+            left: `${modalPosition.left}px`,
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="settings-panel-title"
+          data-testid="unified-settings-modal"
+        >
+          {/* 헤더 */}
+          <header className="flex flex-shrink-0 items-center justify-between border-b border-white/10 p-4">
+            <h2
+              id="settings-panel-title"
+              className="flex items-center gap-2 text-xl font-bold text-white"
+            >
+              <Settings className="h-6 w-6" />
+              설정
+            </h2>
+            <button
+              onClick={onClose}
+              className="rounded-full p-2 text-gray-400 hover:bg-white/10 hover:text-white"
+              aria-label="Close settings panel"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </header>
 
-            {/* 탭 네비게이션 */}
-            <nav className="flex-shrink-0 border-b border-white/10 p-4">
-              <div className="flex items-center justify-around overflow-x-auto rounded-lg bg-gray-800/50 p-1">
-                {(
-                  [
-                    ['ai', 'AI', Bot],
-                    ['generator', '데이터', Database],
-                    ['monitor', '모니터링', Monitor],
-                    ['optimization', '최적화', Zap],
-                    ['general', '일반', Settings],
-                  ] as const
-                ).map(([tabKey, tabName, Icon]) => (
-                  <button
-                    key={tabKey}
-                    onClick={() => setActiveTab(tabKey as SettingsTab)}
-                    className={`relative min-w-0 flex-shrink-0 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                      activeTab === tabKey
-                        ? 'text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    {activeTab === tabKey && (
-                      <div className="absolute inset-0 z-0 rounded-md bg-purple-500/30" />
-                    )}
-                    <div className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">
-                      <Icon className="h-4 w-4 flex-shrink-0" />
-                      <span className="truncate">{tabName}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </nav>
+          {/* 탭 네비게이션 */}
+          <nav className="flex-shrink-0 border-b border-white/10 p-4">
+            <div className="flex items-center justify-around overflow-x-auto rounded-lg bg-gray-800/50 p-1">
+              {(
+                [
+                  ['ai', 'AI', Bot],
+                  ['generator', '데이터', Database],
+                  ['monitor', '모니터링', Monitor],
+                  ['optimization', '최적화', Zap],
+                  ['general', '일반', Settings],
+                ] as const
+              ).map(([tabKey, tabName, Icon]) => (
+                <button
+                  key={tabKey}
+                  onClick={() => setActiveTab(tabKey as SettingsTab)}
+                  className={`relative min-w-0 flex-shrink-0 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                    activeTab === tabKey
+                      ? 'text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {activeTab === tabKey && (
+                    <div className="absolute inset-0 z-0 rounded-md bg-purple-500/30" />
+                  )}
+                  <div className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{tabName}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </nav>
 
-            {/* 탭 콘텐츠 */}
-            <main className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800 flex-1 overflow-y-auto p-4">
-              <Fragment>
-                <div key={activeTab}>{renderTabContent()}</div>
-              </Fragment>
-            </main>
+          {/* 탭 콘텐츠 */}
+          <main className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800 flex-1 overflow-y-auto p-4">
+            <div key={activeTab}>{renderTabContent()}</div>
+          </main>
 
-            {/* 피드백 컨테이너 */}
-            <footer className="flex-shrink-0 border-t border-white/10 p-4">
-              <InlineFeedbackContainer area="auth-section" />
-              <InlineFeedbackContainer area="generator-section" />
-              <InlineFeedbackContainer area="monitor-section" />
-              <InlineFeedbackContainer area="optimization-section" />
-              <InlineFeedbackContainer area="general-section" />
-            </footer>
-          </div>
-        </>
-      )}
-    </Fragment>,
+          {/* 피드백 컨테이너 */}
+          <footer className="flex-shrink-0 border-t border-white/10 p-4">
+            <InlineFeedbackContainer area="auth-section" />
+            <InlineFeedbackContainer area="generator-section" />
+            <InlineFeedbackContainer area="monitor-section" />
+            <InlineFeedbackContainer area="optimization-section" />
+            <InlineFeedbackContainer area="general-section" />
+          </footer>
+        </div>
+      </>
+    ),
     document.body
   );
 }

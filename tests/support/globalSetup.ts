@@ -1,5 +1,5 @@
+import * as path from 'node:path';
 import * as dotenv from 'dotenv';
-import * as path from 'path';
 
 /**
  * Playwright Global Setup

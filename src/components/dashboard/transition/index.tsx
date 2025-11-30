@@ -11,22 +11,20 @@
 // 🗑️ DashboardLoader 제거됨 - SystemBootSequence로 통합
 // export { default as DashboardLoader } from './DashboardLoader';
 
-export { default as SystemBootSequence } from './SystemBootSequence';
-export { default as SystemChecklist } from './SystemChecklist';
+// 🎬 순차적 로딩 관련 hooks (백업용)
+export { useSequentialLoadingTime } from '../../../hooks/useSequentialLoadingTime';
+export type {
+  ComponentStatus,
+  SystemComponent,
+} from '../../../hooks/useSystemChecklist';
+// 🔧 시스템 체크리스트 관련 hooks
+export { useSystemChecklist } from '../../../hooks/useSystemChecklist';
 export { default as ServerCardSpawner } from './ServerCardSpawner';
 // 🗑️ SequentialLoader 제거됨 - 백업으로 이동
 // export { default as SequentialLoader } from './SequentialLoader';
 export { default as SmoothTransition } from './SmoothTransition';
-
-// 🔧 시스템 체크리스트 관련 hooks
-export { useSystemChecklist } from '../../../hooks/useSystemChecklist';
-export type {
-  SystemComponent,
-  ComponentStatus,
-} from '../../../hooks/useSystemChecklist';
-
-// 🎬 순차적 로딩 관련 hooks (백업용)
-export { useSequentialLoadingTime } from '../../../hooks/useSequentialLoadingTime';
+export { default as SystemBootSequence } from './SystemBootSequence';
+export { default as SystemChecklist } from './SystemChecklist';
 
 // 타입 정의
 export interface TransitionConfig {

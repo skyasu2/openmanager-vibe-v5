@@ -1,14 +1,13 @@
 'use client';
 
-import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
-import { forwardRef, type ComponentPropsWithoutRef, type ElementRef } from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { cn } from '@/lib/utils';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import {
-  Check,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react';
+  type ComponentPropsWithoutRef,
+  type ElementRef,
+  forwardRef,
+} from 'react';
+import { cn } from '@/lib/utils';
 
 const Select = SelectPrimitive.Root;
 

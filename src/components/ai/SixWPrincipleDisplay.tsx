@@ -10,23 +10,23 @@
 
 'use client';
 
-import React, { useState, useCallback, createElement, Fragment, type FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  User,
-  FileText,
-  Clock,
-  MapPin,
-  HelpCircle,
-  Settings,
-  Copy,
-  CheckCircle,
+  AlertTriangle,
   BarChart3,
+  CheckCircle,
+  Clock,
+  Copy,
+  FileText,
+  HelpCircle,
   Info,
+  MapPin,
+  Settings,
   Shield,
   Star,
-  AlertTriangle,
+  User,
 } from 'lucide-react';
+import { createElement, type FC, useCallback, useState } from 'react';
 import type { SixWPrincipleResponse } from '@/types/ai-thinking';
 
 interface SixWPrincipleDisplayProps {
@@ -154,7 +154,6 @@ export const SixWPrincipleDisplay: FC<SixWPrincipleDisplayProps> = ({
     return AlertTriangle;
   }, []);
 
-
   return (
     <div className={`space-y-4 ${className}`}>
       {/* 헤더 */}
@@ -196,97 +195,91 @@ export const SixWPrincipleDisplay: FC<SixWPrincipleDisplayProps> = ({
 
       {/* 6W 원칙 카드들 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Fragment>
-          {principleConfig.map((config, index) => {
-            const {
-              key,
-              icon: IconComponent,
-              title,
-              description,
-              color,
-            } = config;
-            const content = String(response[key] || '정보 없음');
-            const isExpanded = expandedItems.has(key);
-            const isCopied = copiedItems.has(key);
+        {principleConfig.map((config, index) => {
+          const {
+            key,
+            icon: IconComponent,
+            title,
+            description,
+            color,
+          } = config;
+          const content = String(response[key] || '정보 없음');
+          const isExpanded = expandedItems.has(key);
+          const isCopied = copiedItems.has(key);
 
-            return (
-              <div
-                key={key}
-                className={`rounded-lg border-2 p-4 ${color} transition-all duration-200 hover:scale-102`}
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="space-y-3">
-                  {/* 카드 헤더 */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <IconComponent className="h-5 w-5" />
-                      <div>
-                        <h4 className="text-sm font-medium">{title}</h4>
-                        <p className="text-xs opacity-70">{description}</p>
-                      </div>
+          return (
+            <div
+              key={key}
+              className={`rounded-lg border-2 p-4 ${color} transition-all duration-200 hover:scale-102`}
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="space-y-3">
+                {/* 카드 헤더 */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <IconComponent className="h-5 w-5" />
+                    <div>
+                      <h4 className="text-sm font-medium">{title}</h4>
+                      <p className="text-xs opacity-70">{description}</p>
                     </div>
-
-                    {showCopyButtons && (
-                      <button
-                        onClick={() => { void handleCopy(content, key); }}
-                        className="rounded-md p-1.5 transition-colors hover:bg-white hover:bg-opacity-50"
-                      >
-                        {isCopied ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <Copy className="h-4 w-4 opacity-60 hover:opacity-100" />
-                        )}
-                      </button>
-                    )}
                   </div>
 
-                  {/* 내용 */}
-                  <div className="relative">
-                    <p
-                      className={`text-sm leading-relaxed transition-all duration-300 ${
-                        content.length > 100 && !isExpanded
-                          ? 'line-clamp-3'
-                          : ''
-                      }`}
+                  {showCopyButtons && (
+                    <button
+                      onClick={() => {
+                        void handleCopy(content, key);
+                      }}
+                      className="rounded-md p-1.5 transition-colors hover:bg-white hover:bg-opacity-50"
                     >
-                      {content}
-                    </p>
-
-                    {/* 확장/축소 버튼 */}
-                    {content.length > 100 && (
-                      <button
-                        onClick={() => toggleExpanded(key)}
-                        className="mt-2 text-xs underline opacity-70 hover:opacity-100"
-                      >
-                        {isExpanded ? '축소' : '더보기'}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* 복사 피드백 */}
-                  <Fragment>
-                    {isCopied && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white bg-opacity-90 transition-all duration-300">
-                        <div className="flex items-center space-x-2 text-green-600">
-                          <CheckCircle className="h-5 w-5" />
-                          <span className="text-sm font-medium">복사됨!</span>
-                        </div>
-                      </div>
-                    )}
-                  </Fragment>
+                      {isCopied ? (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4 opacity-60 hover:opacity-100" />
+                      )}
+                    </button>
+                  )}
                 </div>
+
+                {/* 내용 */}
+                <div className="relative">
+                  <p
+                    className={`text-sm leading-relaxed transition-all duration-300 ${
+                      content.length > 100 && !isExpanded ? 'line-clamp-3' : ''
+                    }`}
+                  >
+                    {content}
+                  </p>
+
+                  {/* 확장/축소 버튼 */}
+                  {content.length > 100 && (
+                    <button
+                      onClick={() => toggleExpanded(key)}
+                      className="mt-2 text-xs underline opacity-70 hover:opacity-100"
+                    >
+                      {isExpanded ? '축소' : '더보기'}
+                    </button>
+                  )}
+                </div>
+
+                {/* 복사 피드백 */}
+                {isCopied && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white bg-opacity-90 transition-all duration-300">
+                    <div className="flex items-center space-x-2 text-green-600">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="text-sm font-medium">복사됨!</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            );
-          })}
-        </Fragment>
+            </div>
+          );
+        })}
       </div>
       {/* 추가 정보 */}
       <div className="space-y-3">
         {/* 데이터 출처 */}
         {showSources && response.sources && response.sources.length > 0 && (
-          <div
-            className="rounded-lg border border-gray-200 bg-gray-50 p-3"
-          >
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
             <div className="mb-2 flex items-center space-x-2">
               <Info className="h-4 w-4 text-gray-600" />
               <span className="text-sm font-medium text-gray-900">
@@ -308,9 +301,7 @@ export const SixWPrincipleDisplay: FC<SixWPrincipleDisplayProps> = ({
         )}
 
         {/* 응답 요약 */}
-        <div
-          className="rounded-lg border border-blue-200 bg-blue-50 p-3"
-        >
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
           <div className="mb-2 flex items-center space-x-2">
             <BarChart3 className="h-4 w-4 text-blue-600" />
             <span className="text-sm font-medium text-blue-900">분석 요약</span>

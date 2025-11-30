@@ -1,4 +1,4 @@
-import React, { Fragment, type FC } from 'react';
+import { type FC } from 'react';
 /**
  * 📝 ProgressLabel Component
  *
@@ -79,20 +79,16 @@ const ProgressLabel: FC<ProgressLabelProps> = ({
       </h3>
 
       {/* 설명 텍스트 */}
-      <Fragment>
-        <p
-          key={stepDescription || currentStep}
-          className={`text-sm ${getTextColor()} mt-1`}
-        >
-          {getDescriptionText()}
-        </p>
-      </Fragment>
+      <p
+        key={stepDescription || currentStep}
+        className={`text-sm ${getTextColor()} mt-1`}
+      >
+        {getDescriptionText()}
+      </p>
 
       {/* 진행률 표시 (옵션) */}
       {showProgress && (
-        <div
-          className="mt-2 flex items-center space-x-2"
-        >
+        <div className="mt-2 flex items-center space-x-2">
           <div className="h-1 flex-1 rounded-full bg-gray-700/30">
             <div
               className={`h-full rounded-full ${

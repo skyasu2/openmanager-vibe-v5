@@ -9,8 +9,8 @@
  */
 
 import type {
-  ArchitectureInfo,
   ArchitectureImprovement,
+  ArchitectureInfo,
   ScalabilityAssessment,
 } from './insight-center.types';
 

@@ -6,20 +6,18 @@
  */
 
 import { systemLogger } from '../../lib/logger';
-import { ProcessManager } from './ProcessManager.refactored';
-import { SystemWatchdog } from './SystemWatchdog.refactored';
 import { SystemEventBus } from '../events/SystemEventHandler';
+import type {
+  SystemEventType,
+  WatchdogEventPayload,
+} from '../interfaces/SystemEventBus';
 import type {
   ProcessConfig,
   ProcessState,
   SystemMetrics,
 } from './ProcessManager.refactored';
-import type {
-  SystemEventType,
-  ProcessEventPayload as _ProcessEventPayload,
-  WatchdogEventPayload,
-  SystemStatusPayload as _SystemStatusPayload,
-} from '../interfaces/SystemEventBus';
+import { ProcessManager } from './ProcessManager.refactored';
+import { SystemWatchdog } from './SystemWatchdog.refactored';
 
 export interface SystemBootstrapConfig {
   enableWatchdog?: boolean;
@@ -297,9 +295,7 @@ export class SystemBootstrapper {
   ): void {
     // 재시작 횟수가 10회를 초과하면 경고
     if (metrics?.restartCount && metrics.restartCount > 10) {
-      systemLogger.error(
-        '⚠️ 과도한 프로세스 재시작. 안정성 문제를 확인하세요.'
-      );
+      systemLogger.error('⚠️ 과도한 프로세스 재시작. 안정성 문제를 확인하세요.');
     }
   }
 

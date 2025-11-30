@@ -18,7 +18,7 @@ import {
   Loader2,
   XCircle,
 } from 'lucide-react';
-import React, { Fragment, useEffect, useState, ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 export interface InlineFeedback {
   id: string;
@@ -211,7 +211,6 @@ function FeedbackDisplay({ feedback, compact = false }: FeedbackDisplayProps) {
             />
           ),
         };
-      case 'info':
       default:
         return {
           container: `${baseStyles} bg-blue-50 text-blue-800 border border-blue-200`,
@@ -263,13 +262,11 @@ export function InlineFeedbackContainer({
 
   return (
     <div className={`${className}`}>
-      <Fragment>
-        <FeedbackDisplay
-          key={feedback.id}
-          feedback={feedback}
-          compact={compact}
-        />
-      </Fragment>
+      <FeedbackDisplay
+        key={feedback.id}
+        feedback={feedback}
+        compact={compact}
+      />
     </div>
   );
 }

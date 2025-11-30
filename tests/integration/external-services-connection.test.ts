@@ -472,7 +472,7 @@ describe('🎭 목업 시스템 구성 상태 확인', () => {
     ];
 
     console.log('\n🎭 목업 모듈 상태:');
-    mockModules.forEach(module => {
+    mockModules.forEach((module) => {
       console.log(`✅ ${module}: 로드됨`);
     });
 

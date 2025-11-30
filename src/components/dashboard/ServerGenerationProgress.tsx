@@ -1,4 +1,4 @@
-import React, { Fragment, type FC } from 'react';
+import { type FC } from 'react';
 /**
  * 🚀 Server Generation Progress Component
  *
@@ -145,9 +145,7 @@ const ServerGenerationProgress: FC<ServerGenerationProgressProps> = ({
   };
 
   return (
-    <div
-      className="mb-6 rounded-lg border border-gray-700 bg-gray-900/50 p-6 backdrop-blur-sm"
-    >
+    <div className="mb-6 rounded-lg border border-gray-700 bg-gray-900/50 p-6 backdrop-blur-sm">
       {/* 헤더 */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -162,11 +160,7 @@ const ServerGenerationProgress: FC<ServerGenerationProgressProps> = ({
               }`}
             >
               {isComplete ? (
-                <div
-                  className="text-green-400"
-                >
-                  ✓
-                </div>
+                <div className="text-green-400">✓</div>
               ) : error ? (
                 <div className="text-red-400">✗</div>
               ) : (
@@ -175,9 +169,7 @@ const ServerGenerationProgress: FC<ServerGenerationProgressProps> = ({
             </div>
 
             {isGenerating && (
-              <div
-                className="absolute inset-0 rounded-full border-2 border-blue-400/30 animate-spin"
-              />
+              <div className="absolute inset-0 rounded-full border-2 border-blue-400/30 animate-spin" />
             )}
           </div>
 
@@ -205,7 +197,7 @@ const ServerGenerationProgress: FC<ServerGenerationProgressProps> = ({
             className="relative h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-1000 ease-out"
           >
             <div
-              className={`absolute inset-0 rounded-full bg-white/20 ${isGenerating ? "animate-pulse" : ""}`}
+              className={`absolute inset-0 rounded-full bg-white/20 ${isGenerating ? 'animate-pulse' : ''}`}
             />
           </div>
         </div>
@@ -222,10 +214,7 @@ const ServerGenerationProgress: FC<ServerGenerationProgressProps> = ({
       </div>
 
       {/* 현재 상태 메시지 */}
-      <div
-        key={currentMessage}
-        className="mb-4 flex items-center space-x-3"
-      >
+      <div key={currentMessage} className="mb-4 flex items-center space-x-3">
         <div
           className={`flex items-center space-x-2 rounded-lg px-3 py-2 ${
             isComplete
@@ -250,9 +239,7 @@ const ServerGenerationProgress: FC<ServerGenerationProgressProps> = ({
         </div>
 
         {isGenerating && nextServerType && (
-          <div
-            className="flex items-center space-x-2 text-sm text-gray-400"
-          >
+          <div className="flex items-center space-x-2 text-sm text-gray-400">
             <span>다음:</span>
             <div
               className={`flex items-center space-x-1 ${getServerColor(nextServerType)}`}
@@ -265,74 +252,56 @@ const ServerGenerationProgress: FC<ServerGenerationProgressProps> = ({
       </div>
 
       {/* 마지막 생성된 서버 정보 */}
-      <Fragment>
-        {lastGeneratedServer && (
-          <div
-            className="mb-4 rounded-lg border border-gray-600 bg-gray-800/50 p-4"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div
-                  className={`h-8 w-8 rounded-lg border ${getServerColor(lastGeneratedServer.type || '')} border-current/30 bg-current/10 flex items-center justify-center`}
-                >
-                  {getServerIcon(lastGeneratedServer.type || '')}
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-white">
-                    {lastGeneratedServer.hostname}
-                  </h4>
-                  <p className="text-sm text-gray-400">
-                    {lastGeneratedServer.name} • {lastGeneratedServer.location}
-                  </p>
-                </div>
+      {lastGeneratedServer && (
+        <div className="mb-4 rounded-lg border border-gray-600 bg-gray-800/50 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div
+                className={`h-8 w-8 rounded-lg border ${getServerColor(lastGeneratedServer.type || '')} border-current/30 bg-current/10 flex items-center justify-center`}
+              >
+                {getServerIcon(lastGeneratedServer.type || '')}
               </div>
 
-              <div className="flex items-center space-x-4 text-sm">
-                <div className="text-green-400">✓ 배포 완료</div>
-                <div className="text-gray-400">
-                  {lastGeneratedServer.provider?.toUpperCase()}
-                </div>
+              <div>
+                <h4 className="font-medium text-white">
+                  {lastGeneratedServer.hostname}
+                </h4>
+                <p className="text-sm text-gray-400">
+                  {lastGeneratedServer.name} • {lastGeneratedServer.location}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4 text-sm">
+              <div className="text-green-400">✓ 배포 완료</div>
+              <div className="text-gray-400">
+                {lastGeneratedServer.provider?.toUpperCase()}
               </div>
             </div>
           </div>
-        )}
-      </Fragment>
+        </div>
+      )}
 
       {/* 에러 메시지 */}
-      <Fragment>
-        {error && (
-          <div
-            className="rounded-lg border border-red-500/30 bg-red-500/20 p-3 text-sm text-red-400"
-          >
-            <div className="flex items-center space-x-2">
-              <span>⚠️</span>
-              <span>{error}</span>
-            </div>
+      {error && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/20 p-3 text-sm text-red-400">
+          <div className="flex items-center space-x-2">
+            <span>⚠️</span>
+            <span>{error}</span>
           </div>
-        )}
-      </Fragment>
+        </div>
+      )}
 
       {/* 완료 메시지 */}
-      <Fragment>
-        {isComplete && (
-          <div
-            className="py-4 text-center"
-          >
-            <div
-              className="mb-2 text-4xl"
-            >
-              🎉
-            </div>
-            <h4 className="mb-1 font-medium text-green-400">
-              인프라 배포 완료!
-            </h4>
-            <p className="text-sm text-gray-400">
-              총 {totalServers}개 서버가 성공적으로 배포되었습니다
-            </p>
-          </div>
-        )}
-      </Fragment>
+      {isComplete && (
+        <div className="py-4 text-center">
+          <div className="mb-2 text-4xl">🎉</div>
+          <h4 className="mb-1 font-medium text-green-400">인프라 배포 완료!</h4>
+          <p className="text-sm text-gray-400">
+            총 {totalServers}개 서버가 성공적으로 배포되었습니다
+          </p>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { Moon, Sun, Menu, X } from 'lucide-react';
+import { Menu, Moon, Sun, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface HeaderProps {
   isDark: boolean;

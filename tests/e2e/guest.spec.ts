@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
-import { guestLogin, resetGuestState, openAiSidebar } from './helpers/guest';
-import { TIMEOUTS } from './helpers/timeouts';
+import { expect, test } from '@playwright/test';
 import { getEnvironmentInfo } from './helpers/config';
+import { guestLogin, openAiSidebar, resetGuestState } from './helpers/guest';
+import { TIMEOUTS } from './helpers/timeouts';
 
 const env = getEnvironmentInfo();
 const landingPath = process.env.GUEST_FLOW_LANDING_PATH || env.baseUrl;

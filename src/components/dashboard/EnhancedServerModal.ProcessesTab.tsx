@@ -10,7 +10,7 @@ import { type FC } from 'react';
  * - Color-coded usage indicators
  * - Responsive table layout with smooth animations
  */
-import { RealtimeData, ProcessData } from './EnhancedServerModal.types';
+import { ProcessData, RealtimeData } from './EnhancedServerModal.types';
 
 /**
  * Processes Tab Props

@@ -1,7 +1,7 @@
 'use client';
 
-import type { ProcessInfo } from '@/types/ai-assistant-input-schema'; // 실제 데이터 타입 임포트
 import { useEffect, useState } from 'react';
+import type { ProcessInfo } from '@/types/ai-assistant-input-schema'; // 실제 데이터 타입 임포트
 
 interface ServerDetailProcessesProps {
   serverId?: string | null;
@@ -43,7 +43,9 @@ export function ServerDetailProcesses({
 
     // 120초마다 데이터 갱신
     // 🎯 데이터 생성기와 동기화: 30초 간격
-    const intervalId = setInterval(() => { void fetchProcesses(); }, 30000);
+    const intervalId = setInterval(() => {
+      void fetchProcesses();
+    }, 30000);
 
     // 컴포넌트 언마운트 시 인터벌 정리
     return () => clearInterval(intervalId);

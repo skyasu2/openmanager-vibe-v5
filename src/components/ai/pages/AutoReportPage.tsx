@@ -6,17 +6,17 @@
 
 'use client';
 
-import { useState } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  FileText,
-  Download,
-  RefreshCw,
   AlertTriangle,
   CheckCircle,
   Clock,
+  Download,
+  FileText,
+  RefreshCw,
   Server,
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface IncidentReport {
   id: string;

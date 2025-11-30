@@ -4,7 +4,7 @@
  * f129a18fb 커밋 복구를 위한 더미 구현
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export interface SystemIntegrationState {
   isConnected: boolean;
@@ -98,7 +98,7 @@ export function useSystemIntegration() {
     return true;
   }, []);
 
-  // 메트릭 업데이트 - 순환 의존성 해결  
+  // 메트릭 업데이트 - 순환 의존성 해결
   useEffect(() => {
     const interval = setInterval(() => {
       // updateMetrics 로직 직접 구현 - 함수 의존성 제거

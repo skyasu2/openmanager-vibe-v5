@@ -4,8 +4,8 @@
  * 🧠 AI 응답을 육하원칙(5W1H) 구조로 변환하는 커스텀 훅
  */
 
-import { useCallback, useState, useMemo } from 'react';
-import type { SixWPrincipleResponse, ErrorState } from '@/types/ai-thinking';
+import { useCallback, useMemo, useState } from 'react';
+import type { ErrorState, SixWPrincipleResponse } from '@/types/ai-thinking';
 
 interface FormatOptions {
   language: 'ko' | 'en';
@@ -236,7 +236,7 @@ export const useAIResponseFormatter = () => {
 
       const extract = (pattern: RegExp, fallback: string) => {
         const match = response.match(pattern);
-        return match && match[1] ? match[1].trim() : fallback;
+        return match?.[1] ? match[1].trim() : fallback;
       };
 
       return {

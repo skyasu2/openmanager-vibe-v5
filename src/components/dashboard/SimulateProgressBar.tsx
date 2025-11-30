@@ -9,7 +9,7 @@
  */
 
 import { Sparkles } from 'lucide-react';
-import { Fragment, memo, useCallback, useEffect, type FC } from 'react';
+import { type FC, memo, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast'; //
 import ProgressLabel from './ProgressLabel';
 import StatusIcon from './StatusIcon';
@@ -100,7 +100,8 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
         if (showToastNotifications) {
           toast({
             title: '성공',
-            description: '🎉 시뮬레이션 완료! 시스템이 성공적으로 준비되었습니다.',
+            description:
+              '🎉 시뮬레이션 완료! 시스템이 성공적으로 준비되었습니다.',
           });
         }
         const timer = setTimeout(onComplete, 1000);
@@ -181,13 +182,11 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
               >
                 {!error && (
                   <div
-                    className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent ${isActive && !isComplete ? "animate-pulse" : ""}`}
+                    className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent ${isActive && !isComplete ? 'animate-pulse' : ''}`}
                   />
                 )}
                 {isActive && !isComplete && !error && (
-                  <div
-                    className="absolute inset-0 bg-white/10"
-                  />
+                  <div className="absolute inset-0 bg-white/10" />
                 )}
               </div>
             </div>
@@ -219,28 +218,30 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
           </div>
         )}
 
-        <Fragment>
-          {isComplete && !error && (
-            <div className="mt-4 rounded-lg border border-green-500/20 bg-green-500/10 p-4">
-              <div className="flex items-center space-x-3">
-                <div>
-                  <Sparkles className="h-5 w-5 text-green-400" aria-hidden="true" />
+        {isComplete && !error && (
+          <div className="mt-4 rounded-lg border border-green-500/20 bg-green-500/10 p-4">
+            <div className="flex items-center space-x-3">
+              <div>
+                <Sparkles
+                  className="h-5 w-5 text-green-400"
+                  aria-hidden="true"
+                />
+              </div>
+              <div>
+                <div className="font-medium text-green-400">
+                  시뮬레이션 완료!
                 </div>
-                <div>
-                  <div className="font-medium text-green-400">
-                    시뮬레이션 완료!
-                  </div>
-                  <div className="text-sm text-green-300/80">
-                    시스템이 성공적으로 준비되었습니다.
-                  </div>
+                <div className="text-sm text-green-300/80">
+                  시스템이 성공적으로 준비되었습니다.
                 </div>
               </div>
             </div>
-          )}
-        </Fragment>
+          </div>
+        )}
       </div>
     );
-  });
+  }
+);
 
 SimulateProgressBar.displayName = 'SimulateProgressBar';
 

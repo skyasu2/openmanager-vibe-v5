@@ -1,17 +1,17 @@
 'use client';
 
-import { useAISidebarStore } from '@/stores/useAISidebarStore';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
 // 사용자 정보 관련 import는 UnifiedProfileHeader에서 처리됨
 import React, { memo } from 'react';
+import { OpenManagerLogo } from '@/components/shared/OpenManagerLogo';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { useAISidebarStore } from '@/stores/useAISidebarStore';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import debug from '@/utils/debug';
+import { AIAssistantButton } from './AIAssistantButton';
 import { RealTimeDisplay } from './RealTimeDisplay';
 import { SystemStatusBadge } from './SystemStatusBadge';
-import { AIAssistantButton } from './AIAssistantButton';
-import debug from '@/utils/debug';
-import { OpenManagerLogo } from '@/components/shared/OpenManagerLogo';
 
 // framer-motion 제거 - CSS 애니메이션 사용
 

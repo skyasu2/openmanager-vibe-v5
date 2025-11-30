@@ -17,7 +17,7 @@ const _initializeCrypto = () => {
         '⚠️ ENCRYPTION_KEY 환경변수가 설정되지 않았습니다. 암호화 기능이 제한됩니다.'
       );
       // 개발 환경에서만 임시 키 사용
-      const tempKey = 'dev-temp-key-' + Date.now();
+      const tempKey = `dev-temp-key-${Date.now()}`;
       enhancedCryptoManager._initializeMasterKey(tempKey);
       isInitialized = true;
       return;
@@ -173,7 +173,7 @@ export function testEncryption(testValue: string = 'test-encryption-value'): {
         decrypted === testValue ||
         (process.env.NODE_ENV === 'development' && decrypted === encrypted),
       originalValue: testValue,
-      encryptedValue: encrypted.substring(0, 20) + '...',
+      encryptedValue: `${encrypted.substring(0, 20)}...`,
       decryptedValue: decrypted,
     };
   } catch (error) {

@@ -173,7 +173,7 @@ Gemini CLI는 stateful 메모리 미지원 → 래퍼 스크립트 사용 권장
 
 ## 📊 현재 프로젝트 상태
 
-**기술 환경**: Node.js v22.21.1, TypeScript strict, ESLint + Prettier
+**기술 환경**: Node.js v22.21.1, TypeScript strict, Biome (Lint+Format)
 **AI 시스템**: UnifiedAIEngineRouter (Google AI + Supabase RAG)
 **성능**: Vercel 사용량 90% 절감, Edge Runtime 최적화
 **개발 도구**: Husky v10, TDD 98.2% 커버리지

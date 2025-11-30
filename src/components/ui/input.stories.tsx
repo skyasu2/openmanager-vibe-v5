@@ -1,11 +1,12 @@
-import type { Meta, StoryObj } from '@storybook/react';;
-import { Input } from './input';
-import { Button } from './button';
-import { Label } from './label';
-import { Card, CardContent, CardHeader, CardTitle } from './card';
-import { a11yLabels } from '../../stories/templates/StoryTemplate';
+import type { Meta, StoryObj } from '@storybook/react';
+
+import { Eye, EyeOff, Lock, Mail, Search, Server } from 'lucide-react';
 import { useState } from 'react';
-import { Search, Server, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
+import { a11yLabels } from '../../stories/templates/StoryTemplate';
+import { Button } from './button';
+import { Card, CardContent, CardHeader, CardTitle } from './card';
+import { Input } from './input';
+import { Label } from './label';
 
 const meta = {
   title: 'UI Components/Input',

@@ -27,9 +27,18 @@ const envSchema = z.object({
   SUPABASE_PROJECT_ID: z.string().min(1).optional(),
 
   // Caching
-  MEMORY_CACHE_ENABLED: z.string().transform(val => val === 'true').optional(),
-  MEMORY_CACHE_MAX_SIZE: z.string().transform(val => parseInt(val) || 100).optional(),
-  MEMORY_CACHE_TTL_SECONDS: z.string().transform(val => parseInt(val) || 900).optional(),
+  MEMORY_CACHE_ENABLED: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  MEMORY_CACHE_MAX_SIZE: z
+    .string()
+    .transform((val) => parseInt(val, 10) || 100)
+    .optional(),
+  MEMORY_CACHE_TTL_SECONDS: z
+    .string()
+    .transform((val) => parseInt(val, 10) || 900)
+    .optional(),
 
   // GCP
   GCP_PROJECT_ID: z.string().min(1).optional(),
@@ -48,10 +57,15 @@ const envSchema = z.object({
   GOOGLE_AI_ENABLED: z.string().optional(),
   GOOGLE_AI_QUOTA_PROTECTION: z.string().optional(),
   GOOGLE_AI_DAILY_LIMIT: z.string().optional(),
-  ENABLE_MCP: z.string().transform(val => val === 'true').optional(),
+  ENABLE_MCP: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
 
   // Next.js & Vercel
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  NODE_ENV: z
+    .enum(['development', 'production', 'test'])
+    .default('development'),
   VERCEL_ENV: z.enum(['development', 'preview', 'production']).optional(),
   VERCEL: z.string().optional(),
   VERCEL_URL: z.string().optional(),
@@ -82,11 +96,15 @@ function parseEnv(): Env {
     if (!result.success) {
       console.error('❌ 환경변수 검증 실패:', result.error.format());
 
-      const nodeEnv = (currentEnv as Record<string, string | undefined>).NODE_ENV || process.env.NODE_ENV;
+      const nodeEnv =
+        (currentEnv as Record<string, string | undefined>).NODE_ENV ||
+        process.env.NODE_ENV;
       const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
-      
+
       if (nodeEnv === 'development' || isBuild) {
-        console.warn('⚠️ 개발/빌드 환경: 필수 환경변수 누락 시 일부 기능이 제한될 수 있습니다.');
+        console.warn(
+          '⚠️ 개발/빌드 환경: 필수 환경변수 누락 시 일부 기능이 제한될 수 있습니다.'
+        );
         return result.error.formErrors.fieldErrors as unknown as Env;
       }
 
@@ -97,7 +115,10 @@ function parseEnv(): Env {
   } catch (error) {
     console.error('❌ 환경변수 파싱 오류:', error);
     const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
-    if (typeof process !== 'undefined' && (process.env.NODE_ENV === 'development' || isBuild)) {
+    if (
+      typeof process !== 'undefined' &&
+      (process.env.NODE_ENV === 'development' || isBuild)
+    ) {
       return {} as Env;
     }
 
@@ -117,7 +138,8 @@ export const isVercelProduction = env.VERCEL_ENV === 'production';
 
 // 특정 기능 활성화 검사
 export const features = {
-  supabase: !!env.NEXT_PUBLIC_SUPABASE_URL && !!env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  supabase:
+    !!env.NEXT_PUBLIC_SUPABASE_URL && !!env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   github: !!env.GITHUB_CLIENT_ID && !!env.GITHUB_CLIENT_SECRET,
   gcp: !!env.GCP_PROJECT_ID,
   ai: !!env.GOOGLE_AI_API_KEY,
@@ -127,7 +149,10 @@ export const features = {
 
 // 개발용 환경변수 상태 로깅
 if (isDevelopment) {
-  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.log('🔧 환경변수 기능 상태:', features);
+  if (
+    typeof process !== 'undefined' &&
+    process.env.NODE_ENV === 'development'
+  ) {
+    console.log('🔧 환경변수 기능 상태:', features);
   }
 }

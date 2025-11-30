@@ -1,11 +1,10 @@
 import { z } from 'zod';
 import {
-  IdSchema,
-  TimestampSchema,
-  PercentageSchema,
-  MetadataSchema,
-  _StatusSchema,
   HealthStatusSchema,
+  IdSchema,
+  MetadataSchema,
+  PercentageSchema,
+  TimestampSchema,
 } from './common.schema';
 
 /**

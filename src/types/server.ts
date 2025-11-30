@@ -1,25 +1,25 @@
 // 🔄 중복 제거: common.ts의 타입들 재사용
-import type { AlertSeverity, ServiceStatus } from './common';
-import type {
-  ServerHealth,
-  ServerMetrics,
-  ServerSpecs,
-  ServerStatus as CommonServerStatus,
-} from './server-common';
 
 // 🏗️ AI 교차검증 기반 새로운 타입 시스템 통합
 import type { ServerStatus as EnumServerStatus } from '@/schemas';
+import type { AlertSeverity, ServiceStatus } from './common';
+import type {
+  ServerStatus as CommonServerStatus,
+  ServerHealth,
+  ServerMetrics,
+  ServerSpecs,
+} from './server-common';
 import type {
   ServerEnvironment as EnumServerEnvironment,
   ServerRole as EnumServerRole,
 } from './server-enums';
 import {
-  isValidServerStatus,
-  isValidServerEnvironment,
-  isValidServerRole,
-  getDefaultServerStatus,
   getDefaultServerEnvironment,
   getDefaultServerRole,
+  getDefaultServerStatus,
+  isValidServerEnvironment,
+  isValidServerRole,
+  isValidServerStatus,
 } from './server-enums';
 
 // 타입 충돌 방지를 위해 타입 이름 변경

@@ -10,22 +10,19 @@
 import { User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import debug from '@/utils/debug';
-
-// Supabase Auth 관련 임포트
-import { signInWithGitHub } from '@/lib/auth/supabase-auth';
-
 // 게스트 로그인 관련 임포트 (lib/auth-state-manager로 통합)
 import type { AuthUser } from '@/lib/auth/auth-state-manager';
 import { authStateManager } from '@/lib/auth/auth-state-manager';
-
-// AI 텍스트 렌더링 유틸리티
-import { renderTextWithAIGradient } from '@/utils/text-rendering';
+// Supabase Auth 관련 임포트
+import { signInWithGitHub } from '@/lib/auth/supabase-auth';
 import {
   AI_GRADIENT_CLASSES,
-  PAGE_BACKGROUNDS,
   BUTTON_STYLES,
+  PAGE_BACKGROUNDS,
 } from '@/styles/design-constants';
+import debug from '@/utils/debug';
+// AI 텍스트 렌더링 유틸리티
+import { renderTextWithAIGradient } from '@/utils/text-rendering';
 
 interface GuestSessionData {
   sessionId: string;

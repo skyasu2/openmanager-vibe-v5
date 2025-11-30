@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# ESLint Comprehensive Check (Post-Commit Background)
-# 목적: 커밋 후 전체 ESLint 검사 (타임아웃 없음, 백그라운드)
-# 버전: 1.0.0
-# 날짜: 2025-11-27
+# Biome Comprehensive Check (Post-Commit Background)
+# 목적: 커밋 후 전체 Biome 검사 (타임아웃 없음, 백그라운드)
+# 버전: 2.0.0
+# 날짜: 2025-11-30
 
 set -euo pipefail
 
@@ -20,15 +20,15 @@ mkdir -p "$LOG_DIR"
 TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")
 LOG_FILE="$LOG_DIR/lint-$TIMESTAMP.md"
 
-echo "🔍 ESLint 전체 검사 시작..."
+echo "🔍 Biome 전체 검사 시작..."
 echo "📂 로그 파일: $LOG_FILE"
 
 # 시작 시간
 START_TIME=$(date +%s)
 
-# ESLint 실행 (타임아웃 없음, 전체 검사)
+# Biome 실행 (타임아웃 없음, 전체 검사)
 {
-  echo "# ESLint 검사 결과"
+  echo "# Biome 검사 결과"
   echo ""
   echo "**날짜**: $(date '+%Y-%m-%d %H:%M:%S')"
   echo "**커밋**: $(git rev-parse --short HEAD 2>/dev/null || echo 'N/A')"
@@ -37,7 +37,7 @@ START_TIME=$(date +%s)
   echo ""
 
   # 변경된 파일 목록
-  CHANGED_FILES=$(git diff --name-only HEAD~1 2>/dev/null | grep -E '\.(ts|tsx|js|jsx)$' || true)
+  CHANGED_FILES=$(git diff --name-only HEAD~1 2>/dev/null | grep -E '\.(ts|tsx|js|jsx|json|css)$' || true)
 
   if [ -n "$CHANGED_FILES" ]; then
     echo "## 변경된 파일"
@@ -48,15 +48,15 @@ START_TIME=$(date +%s)
     echo ""
   fi
 
-  echo "## ESLint 결과"
+  echo "## Biome 결과"
   echo ""
   echo '```'
 
-  # ESLint 실행 (FAST MODE, 캐시 사용)
-  if ESLINT_FAST=true npx eslint --cache src/ 2>&1; then
-    echo "✅ ESLint 검사 통과 (경고 없음)"
+  # Biome 실행 (Check & Format)
+  if npx @biomejs/biome check . 2>&1; then
+    echo "✅ Biome 검사 통과 (경고 없음)"
   else
-    echo "⚠️  ESLint 경고/오류 발견됨"
+    echo "⚠️  Biome 경고/오류 발견됨"
   fi
 
   echo '```'
@@ -72,5 +72,5 @@ START_TIME=$(date +%s)
 
 } > "$LOG_FILE" 2>&1
 
-echo "✅ ESLint 검사 완료 ($DURATION초)"
+echo "✅ Biome 검사 완료 ($DURATION초)"
 echo "📄 리포트: $LOG_FILE"

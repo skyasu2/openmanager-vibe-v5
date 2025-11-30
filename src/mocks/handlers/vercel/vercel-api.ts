@@ -7,7 +7,7 @@
  * @see https://vercel.com/docs/rest-api
  */
 
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, http } from 'msw';
 
 const VERCEL_API_BASE_URL = 'https://api.vercel.com';
 

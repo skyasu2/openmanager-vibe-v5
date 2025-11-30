@@ -1,11 +1,11 @@
 // 🎨 Lucide Icon 래퍼 컴포넌트
 // Font Awesome → Lucide React 완전 마이그레이션
 
-// React import 제거 - Next.js 15 자동 JSX Transform 사용
-import { type FC, type CSSProperties } from 'react';
-import { getLucideIcon, iconMapping } from '@/lib/utils/icon-mapping';
 import type { LucideIcon as LucideIconType } from 'lucide-react';
 import { Circle } from 'lucide-react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
+import { type CSSProperties, type FC } from 'react';
+import { getLucideIcon, iconMapping } from '@/lib/utils/icon-mapping';
 
 interface LucideIconProps {
   /** Font Awesome 클래스명 (예: "fas fa-cog") 또는 Lucide 아이콘명 */

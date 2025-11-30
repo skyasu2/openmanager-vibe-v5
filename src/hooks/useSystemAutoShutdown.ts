@@ -10,8 +10,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { SYSTEM_AUTO_SHUTDOWN_TIME } from '@/config/system-constants';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 interface UseSystemAutoShutdownOptions {
   /** 경고 시간 (분) */
@@ -83,9 +83,11 @@ export function useSystemAutoShutdown({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isSystemStarted,
-    warningMinutes,
     hasWarned5Min,
     hasWarned1Min,
+    getSystemRemainingTime,
+    onShutdown,
+    onWarning,
   ]); // 함수 참조들 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 시간 포맷팅 (MM:SS)

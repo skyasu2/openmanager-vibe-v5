@@ -1,7 +1,7 @@
 'use client';
 
 // Inspired by react-hot-toast library
-import { useState, useEffect, type ReactNode } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
 
@@ -180,7 +180,7 @@ function useToast() {
         listeners.splice(index, 1);
       }
     };
-  }, [state]);
+  }, []);
 
   return {
     ...state,

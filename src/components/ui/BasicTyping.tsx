@@ -57,9 +57,11 @@ const BasicTyping: FC<BasicTypingProps> = ({
           width: 0;
           animation: typing ${speedMap[speed]} steps(${text.length}, end)
             ${animationDelay} forwards
-            ${showCursor
-              ? `, blink-caret 0.75s step-end infinite ${animationDelay}`
-              : ''};
+            ${
+              showCursor
+                ? `, blink-caret 0.75s step-end infinite ${animationDelay}`
+                : ''
+            };
         }
 
         @keyframes typing {
@@ -71,8 +73,9 @@ const BasicTyping: FC<BasicTypingProps> = ({
           }
         }
 
-        ${showCursor
-          ? `
+        ${
+          showCursor
+            ? `
         @keyframes blink-caret {
           from, to { 
             border-color: transparent; 
@@ -98,7 +101,8 @@ const BasicTyping: FC<BasicTypingProps> = ({
           }
         }
         `
-          : ''}
+            : ''
+        }
 
         /* GPU 가속 최적화 */
         .typing-text {

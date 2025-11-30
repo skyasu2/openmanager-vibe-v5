@@ -9,7 +9,6 @@
 
 'use client';
 
-import { useMockDataLoader } from '@/hooks/useDataLoader';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
@@ -20,7 +19,8 @@ import {
   Target,
   Zap,
 } from 'lucide-react';
-import React, { useMemo, useState, type FC } from 'react';
+import { type FC, useMemo, useState } from 'react';
+import { useMockDataLoader } from '@/hooks/useDataLoader';
 import BasePanelLayout from './shared/BasePanelLayout';
 
 interface LogEntry {

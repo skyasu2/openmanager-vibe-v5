@@ -16,7 +16,7 @@ function profileTriggerLocator(page: Page) {
   );
 }
 
-function adminPageButtonLocator(page: Page) {
+function _adminPageButtonLocator(page: Page) {
   return page
     .locator(
       '[data-testid="admin-page"], button:has-text("관리자 페이지"), a:has-text("관리자 페이지")'
@@ -158,12 +158,17 @@ export async function enterPinAndSubmit(
  */
 export async function completeAdminModeActivationViaUI(
   page: Page,
-  pin: string = '4231'
+  _pin: string = '4231'
 ): Promise<void> {
-  console.log('ℹ️ 관리자 모드가 제거되어 헬퍼가 더 이상 UI 단계를 실행하지 않습니다.');
+  console.log(
+    'ℹ️ 관리자 모드가 제거되어 헬퍼가 더 이상 UI 단계를 실행하지 않습니다.'
+  );
   try {
     await openProfileDropdown(page);
   } catch (error) {
-    console.warn('⚠️ 프로필 드롭다운을 열 수 없어도 테스트를 계속합니다.', error);
+    console.warn(
+      '⚠️ 프로필 드롭다운을 열 수 없어도 테스트를 계속합니다.',
+      error
+    );
   }
 }

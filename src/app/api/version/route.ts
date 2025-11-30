@@ -34,37 +34,37 @@ export function GET() {
         ai_assistant: true,
         mock_simulation: true,
         realtime_monitoring: true,
-        edge_runtime: true // 신규 추가
+        edge_runtime: true, // 신규 추가
       },
       deployment: {
         status: 'active',
         last_updated: new Date().toISOString(),
         vercel_region: process.env.VERCEL_REGION || 'unknown',
         build_id: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || 'local',
-        runtime_type: 'edge'
-      }
+        runtime_type: 'edge',
+      },
     };
 
     return NextResponse.json(versionInfo, {
       headers: {
         'Cache-Control': 'public, max-age=300', // 5분 캐시
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
   } catch (error) {
     console.error('버전 정보 조회 실패:', error);
-    
+
     return NextResponse.json(
       {
         error: 'Failed to retrieve version information',
         version: 'unknown',
-        status: 'error'
+        status: 'error',
       },
-      { 
+      {
         status: 500,
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       }
     );
   }

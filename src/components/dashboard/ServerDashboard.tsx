@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
+import { Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
-import VirtualizedServerList from '@/components/dashboard/VirtualizedServerList';
 import SafeServerCard from '@/components/dashboard/SafeServerCard';
+import VirtualizedServerList from '@/components/dashboard/VirtualizedServerList';
 import { ServerCardErrorBoundary } from '@/components/development/ComponentErrorBoundary';
 import {
   Pagination,
@@ -22,13 +23,11 @@ import {
 } from '@/components/ui/select';
 import type { DashboardTab } from '@/hooks/useServerDashboard';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
-import { Loader2 } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import type { Server, ServerStatus } from '@/types/server';
 // react-window Grid는 사용하지 않음 (VirtualizedServerList에서 List 사용)
 import { usePerformanceTracking } from '@/utils/performance';
-import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
 import { serverTypeGuards } from '@/utils/serverUtils';
-import type { Server, ServerStatus } from '@/types/server';
+import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
 
 // 🚀 성능 최적화: statusPriority를 컴포넌트 외부로 이동 (매번 새로 생성 방지)
 const STATUS_PRIORITY = {

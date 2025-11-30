@@ -1,50 +1,50 @@
 // 🎨 Font Awesome → Lucide React 아이콘 매핑
 // Vercel CSP 최적화를 위한 완전한 아이콘 마이그레이션
 
-import { createElement, type ReactElement } from 'react';
 import {
-  // 시스템 관련
-  Settings,
+  Activity,
+  AlertCircle,
+  // 상태 관련
+  AlertTriangle,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  // 화살표
+  ArrowUp,
   Bot,
   Brain,
-  Database,
-  // UI/UX 관련
-  ChevronUp,
+  // 툴팁/UI
+  Check,
+  CheckCircle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  X,
-  Send,
-  // 상태 관련
-  AlertTriangle,
-  AlertCircle,
-  CheckCircle,
-  Lightbulb,
-  Info,
-  // 기타
-  History,
-  Search,
+  // UI/UX 관련
+  ChevronUp,
+  Circle,
+  Database,
   Eye,
   HelpCircle,
-  Circle,
+  // 기타
+  History,
+  Info,
+  Lightbulb,
+  Loader,
+  type LucideIcon,
+  PenTool,
+  Play,
+  RotateCcw,
+  Search,
+  Send,
+  // 시스템 관련
+  Settings,
+  Square,
+  Timer,
+  X,
   // 프로세스 관련
   Zap,
-  Play,
-  Square,
-  RotateCcw,
-  Activity,
-  // 화살표
-  ArrowUp,
-  ArrowDown,
-  ArrowRight,
-  ArrowLeft,
-  // 툴팁/UI
-  Check,
-  Timer,
-  Loader,
-  PenTool,
-  type LucideIcon,
 } from 'lucide-react';
+import { createElement, type ReactElement } from 'react';
 
 // Font Awesome → Lucide React 매핑 테이블
 export const iconMapping: Record<string, LucideIcon> = {

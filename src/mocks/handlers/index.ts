@@ -12,23 +12,18 @@
  */
 
 import { RequestHandler } from 'msw';
-
+import { cohereHandlers } from './ai/cohere';
 // AI 서비스 핸들러 (Google AI, OpenAI, Cohere)
 import { googleAIHandlers } from './ai/google-ai';
 import { openAIHandlers } from './ai/openai';
-import { cohereHandlers } from './ai/cohere';
-
-// Vercel 플랫폼 핸들러
-import { vercelHandlers } from './vercel/vercel-api';
-
-// Supabase 핸들러
-import { supabaseHandlers } from './supabase/supabase-api';
-
 // GCP VM 핸들러
 import { gcpVMHandlers } from './gcp/gcp-vm';
-
 // Next.js API Routes 핸들러
 import { nextJsApiHandlers } from './nextjs/api-routes';
+// Supabase 핸들러
+import { supabaseHandlers } from './supabase/supabase-api';
+// Vercel 플랫폼 핸들러
+import { vercelHandlers } from './vercel/vercel-api';
 
 /**
  * 전체 핸들러 레지스트리

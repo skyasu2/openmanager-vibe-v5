@@ -1,19 +1,19 @@
 'use client';
 
-import { useTimeControl } from '@/hooks/useTimeRotation';
-import { cn } from '@/lib/utils';
 import {
+  Briefcase,
+  ChevronDown,
+  Coffee,
+  Moon,
   Pause,
   Play,
+  RotateCcw,
   Square,
   Sun,
-  Moon,
-  Coffee,
-  Briefcase,
-  RotateCcw,
-  ChevronDown,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTimeControl } from '@/hooks/useTimeRotation';
+import { cn } from '@/lib/utils';
 
 interface TimeRotationDisplayProps {
   className?: string;

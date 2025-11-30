@@ -1,5 +1,5 @@
+import { normalMetrics, SERVERS } from '../constants';
 import { ScenarioTimeline } from '../types';
-import { SERVERS, normalMetrics } from '../constants';
 
 // 시나리오 1: DB 과부하 연쇄 장애 (0-6시)
 export const scenario1: ScenarioTimeline = {

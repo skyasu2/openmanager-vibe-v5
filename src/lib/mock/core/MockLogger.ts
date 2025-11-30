@@ -5,7 +5,6 @@
  */
 
 export class MockLogger {
-  private name: string;
   private enabled: boolean;
   private prefix: string;
 

@@ -9,7 +9,6 @@
 
 'use client';
 
-import { useAIInsights } from '@/hooks/api/useAIInsights';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
@@ -21,6 +20,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useAIInsights } from '@/hooks/api/useAIInsights';
 
 interface AIInsightsCardProps {
   className?: string;
@@ -100,7 +100,9 @@ export default function AIInsightsCard({
         </div>
 
         <button
-          onClick={() => { void handleRefresh(); }}
+          onClick={() => {
+            void handleRefresh();
+          }}
           disabled={isLoading || isRefreshing}
           className="rounded-lg p-2 transition-colors hover:bg-gray-100 disabled:opacity-50"
           title="인사이트 새로고침"

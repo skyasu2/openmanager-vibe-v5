@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import * as path from 'path';
+import * as path from 'node:path';
+import { expect, test } from '@playwright/test';
 
 /**
  * Vercel 배포 검증 및 E2E 테스트 실패 분석

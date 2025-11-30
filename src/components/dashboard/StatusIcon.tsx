@@ -1,4 +1,4 @@
-import { Fragment, type FC } from 'react';
+import { type FC } from 'react';
 /**
  * 🎯 StatusIcon Component
  *
@@ -12,21 +12,21 @@ import { Fragment, type FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { LucideIcon } from 'lucide-react';
 import {
-  Loader2,
-  CheckCircle,
+  Activity,
   AlertCircle,
-  Server,
-  Search,
   BarChart3,
+  Brain,
+  CheckCircle,
+  CheckSquare,
   Database,
   Globe,
-  Brain,
-  Activity,
+  Loader2,
   RotateCcw,
-  Zap,
+  Search,
+  Server,
   Shield,
-  CheckSquare,
   Sparkles,
+  Zap,
 } from 'lucide-react';
 
 interface StatusIconProps {
@@ -106,30 +106,24 @@ const StatusIcon: FC<StatusIconProps> = ({
       <div
         className={`${sizeClasses.container} flex items-center justify-center rounded-xl border-2 ${statusClasses.container}`}
       >
-        <Fragment>
-          <div
-            key={currentStep}
-          >
-            {error ? (
-              <AlertCircle className={`${sizeClasses.icon} text-red-400`} />
-            ) : isComplete ? (
-              <CheckCircle className={`${sizeClasses.icon} text-green-400`} />
-            ) : (
-              <IconComponent
-                className={`${sizeClasses.icon} ${statusClasses.icon} ${
-                  isActive && !isComplete ? "animate-pulse" : ""
-                }`}
-              />
-            )}
-          </div>
-        </Fragment>
+        <div key={currentStep}>
+          {error ? (
+            <AlertCircle className={`${sizeClasses.icon} text-red-400`} />
+          ) : isComplete ? (
+            <CheckCircle className={`${sizeClasses.icon} text-green-400`} />
+          ) : (
+            <IconComponent
+              className={`${sizeClasses.icon} ${statusClasses.icon} ${
+                isActive && !isComplete ? 'animate-pulse' : ''
+              }`}
+            />
+          )}
+        </div>
       </div>
 
       {/* 회전 링 (로딩 중일 때) */}
       {isActive && !isComplete && !error && (
-        <div
-          className="absolute inset-0 rounded-xl border-2 border-blue-400/30 animate-spin"
-        />
+        <div className="absolute inset-0 rounded-xl border-2 border-blue-400/30 animate-spin" />
       )}
     </div>
   );

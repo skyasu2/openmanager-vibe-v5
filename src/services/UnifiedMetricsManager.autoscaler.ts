@@ -9,11 +9,11 @@
  */
 
 import type {
-  UnifiedServerMetrics,
-  UnifiedMetricsConfig,
   MetricsPerformanceData,
   ServerEnvironment,
   ServerRole,
+  UnifiedMetricsConfig,
+  UnifiedServerMetrics,
 } from './UnifiedMetricsManager.types';
 
 export class Autoscaler {
@@ -34,7 +34,7 @@ export class Autoscaler {
 
     try {
       const serverList = Array.from(servers.values());
-      await this.simulateAutoscaling(
+      await Autoscaler.simulateAutoscaling(
         servers,
         serverList,
         config,

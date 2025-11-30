@@ -3,8 +3,8 @@
  * 테스트용 console.log를 대체하는 구조화된 로깅
  */
 
-import { createSafeError } from './error-handler';
 import type { SafeError } from './error-handler';
+import { createSafeError } from './error-handler';
 
 export enum LogLevel {
   DEBUG = 0,

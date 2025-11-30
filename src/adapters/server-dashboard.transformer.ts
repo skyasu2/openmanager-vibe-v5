@@ -1,7 +1,7 @@
-import type { RawServerData } from '@/types/server-metrics';
-import type { Server } from '@/types/server';
 import type { ServerMetrics } from '@/config/server-status-thresholds';
 import { determineServerStatus } from '@/config/server-status-thresholds';
+import type { Server } from '@/types/server';
+import type { RawServerData } from '@/types/server-metrics';
 
 // 🎯 Type-safe wrapper for RawServerData with optional nested metrics
 type RawWithMetrics = RawServerData & {
@@ -74,7 +74,6 @@ export const mapStatus = (
     case 'stopped':
     case 'maintenance':
       return 'offline';
-    case 'unknown':
     default:
       return 'offline';
   }

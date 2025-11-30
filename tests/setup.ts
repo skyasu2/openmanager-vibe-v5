@@ -9,7 +9,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
 
 // React 18 호환성 설정은 직접 구현
 if (typeof window !== 'undefined') {
-  // @ts-ignore
+  // @ts-expect-error
   window.React = require('react');
 }
 
@@ -131,7 +131,7 @@ afterEach(async () => {
   }
 
   // 비동기 작업 대기 (최대 100ms)
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await new Promise((resolve) => setTimeout(resolve, 100));
 });
 
 // 전체 테스트 종료 후 정리
@@ -152,7 +152,7 @@ afterAll(async () => {
   vi.clearAllTimers();
 
   // 모든 비동기 작업 완료 대기
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   // 🚨 CI 환경에서 강제 종료
   if (process.env.CI === 'true' || process.env.FORCE_EXIT === 'true') {
@@ -183,7 +183,7 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 // matchMedia mock
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -232,7 +232,7 @@ if (typeof process !== 'undefined' && process.on) {
     }
   });
 
-  process.on('uncaughtException', error => {
+  process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
     if (process.env.CI !== 'true') {
       process.exit(1);

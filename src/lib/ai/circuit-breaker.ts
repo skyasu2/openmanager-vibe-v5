@@ -26,7 +26,9 @@ export class AIServiceCircuitBreaker {
    */
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     if (this.isOpen()) {
-      const remainingTime = Math.ceil((this.resetTimeout - (Date.now() - this.lastFailTime)) / 1000);
+      const remainingTime = Math.ceil(
+        (this.resetTimeout - (Date.now() - this.lastFailTime)) / 1000
+      );
       throw new Error(
         `${this.serviceName} 서비스가 일시적으로 중단되었습니다. ${remainingTime}초 후 다시 시도해주세요.`
       );
@@ -38,17 +40,18 @@ export class AIServiceCircuitBreaker {
       return result;
     } catch (error) {
       this.onFailure();
-      
+
       // 원본 에러에 Circuit Breaker 정보 추가
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       const enhancedError = new Error(
         `${this.serviceName} 실행 실패 (${this.failures}/${this.threshold} 실패): ${errorMessage}`
       );
-      
+
       if (error instanceof Error) {
         enhancedError.stack = error.stack;
       }
-      
+
       throw enhancedError;
     }
   }
@@ -58,13 +61,14 @@ export class AIServiceCircuitBreaker {
    */
   private isOpen(): boolean {
     const isFailureThresholdExceeded = this.failures >= this.threshold;
-    const isWithinResetTimeout = Date.now() - this.lastFailTime < this.resetTimeout;
-    
+    const isWithinResetTimeout =
+      Date.now() - this.lastFailTime < this.resetTimeout;
+
     // 리셋 타임아웃이 지났으면 반개방 상태로 전환
     if (isFailureThresholdExceeded && !isWithinResetTimeout) {
       this.failures = this.threshold - 1; // 반개방 상태
     }
-    
+
     return isFailureThresholdExceeded && isWithinResetTimeout;
   }
 
@@ -97,8 +101,9 @@ export class AIServiceCircuitBreaker {
   } {
     const now = Date.now();
     const isOpen = this.isOpen();
-    const isHalfOpen = this.failures >= this.threshold - 1 && this.failures < this.threshold;
-    
+    const isHalfOpen =
+      this.failures >= this.threshold - 1 && this.failures < this.threshold;
+
     let state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
     if (isOpen) {
       state = 'OPEN';
@@ -117,7 +122,10 @@ export class AIServiceCircuitBreaker {
     };
 
     if (isOpen && this.lastFailTime > 0) {
-      result.resetTimeRemaining = Math.max(0, this.resetTimeout - (now - this.lastFailTime));
+      result.resetTimeRemaining = Math.max(
+        0,
+        this.resetTimeout - (now - this.lastFailTime)
+      );
     }
 
     return result;
@@ -154,12 +162,15 @@ class AICircuitBreakerManager {
    * 모든 Circuit Breaker 상태 반환
    */
   getAllStatus() {
-    const status: Record<string, ReturnType<AIServiceCircuitBreaker['getStatus']>> = {};
-    
+    const status: Record<
+      string,
+      ReturnType<AIServiceCircuitBreaker['getStatus']>
+    > = {};
+
     for (const [serviceName, breaker] of this.breakers.entries()) {
       status[serviceName] = breaker.getStatus();
     }
-    
+
     return status;
   }
 

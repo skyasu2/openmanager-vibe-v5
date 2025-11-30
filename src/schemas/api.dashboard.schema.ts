@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { TimestampSchema } from './common.schema';
-import { ServerStatusSchema } from './api.server.schema';
 import { AlertSchema } from './api.alert.schema';
+import { ServerStatusSchema } from './api.server.schema';
+import { TimestampSchema } from './common.schema';
 
 /**
  * 📊 대시보드 데이터 스키마

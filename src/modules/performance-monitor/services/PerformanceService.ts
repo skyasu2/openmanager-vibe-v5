@@ -3,7 +3,7 @@
  * Backend service for collecting and processing performance metrics
  */
 
-import { PerformanceMetric, Alert, SystemHealth } from '../types/performance';
+import { Alert, PerformanceMetric, SystemHealth } from '../types/performance';
 
 export class PerformanceService {
   private static instance: PerformanceService;
@@ -69,7 +69,7 @@ export class PerformanceService {
 
     // Node.js environment
     try {
-      const os = await import('os');
+      const os = await import('node:os');
       const cpus = os.cpus();
       let totalIdle = 0;
       let totalTick = 0;
@@ -97,7 +97,15 @@ export class PerformanceService {
     if (typeof window !== 'undefined') {
       // Browser environment
       if ('memory' in performance) {
-        const memory = (performance as { memory?: { usedJSHeapSize?: number; totalJSHeapSize?: number; jsHeapSizeLimit?: number } }).memory;
+        const memory = (
+          performance as {
+            memory?: {
+              usedJSHeapSize?: number;
+              totalJSHeapSize?: number;
+              jsHeapSizeLimit?: number;
+            };
+          }
+        ).memory;
         if (memory?.usedJSHeapSize && memory?.totalJSHeapSize) {
           return (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
         }
@@ -107,7 +115,7 @@ export class PerformanceService {
 
     // Node.js environment
     try {
-      const os = await import('os');
+      const os = await import('node:os');
       const totalMem = os.totalmem();
       const freeMem = os.freemem();
       const usedMem = totalMem - freeMem;
@@ -274,7 +282,7 @@ export class PerformanceService {
    */
   public getCurrentMetrics(): PerformanceMetric | null {
     return this.metrics.length > 0
-      ? this.metrics[this.metrics.length - 1] ?? null
+      ? (this.metrics[this.metrics.length - 1] ?? null)
       : null;
   }
 

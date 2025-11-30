@@ -10,7 +10,7 @@
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 /**
  * 인증 상태 인터페이스
@@ -67,11 +67,13 @@ export const useAuthStore = create<AuthState>()(
 
         // CustomEvent 발생 (레거시 호환)
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('auth-state-changed', {
-            detail: {
-              authType: params.authType,
-            }
-          }));
+          window.dispatchEvent(
+            new CustomEvent('auth-state-changed', {
+              detail: {
+                authType: params.authType,
+              },
+            })
+          );
         }
       },
 
@@ -87,11 +89,13 @@ export const useAuthStore = create<AuthState>()(
 
         // CustomEvent 발생 (레거시 호환)
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('auth-state-changed', {
-            detail: {
-              authType: 'github',
-            }
-          }));
+          window.dispatchEvent(
+            new CustomEvent('auth-state-changed', {
+              detail: {
+                authType: 'github',
+              },
+            })
+          );
         }
       },
 
@@ -107,11 +111,13 @@ export const useAuthStore = create<AuthState>()(
 
         // CustomEvent 발생 (레거시 호환)
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('auth-state-changed', {
-            detail: {
-              authType: null,
-            }
-          }));
+          window.dispatchEvent(
+            new CustomEvent('auth-state-changed', {
+              detail: {
+                authType: null,
+              },
+            })
+          );
         }
       },
     }),
@@ -126,10 +132,15 @@ export const useAuthStore = create<AuthState>()(
           console.log('🔐 [AuthStore] Rehydrate 완료:', state);
 
           // 레거시 localStorage 키 동기화 (읽기 전용)
-          const legacyAuthType = localStorage.getItem('auth_type') as 'guest' | 'github' | null;
+          const legacyAuthType = localStorage.getItem('auth_type') as
+            | 'guest'
+            | 'github'
+            | null;
 
           if (legacyAuthType !== state.authType) {
-            console.warn('🔐 [AuthStore] 레거시 localStorage와 불일치 감지, Zustand 우선');
+            console.warn(
+              '🔐 [AuthStore] 레거시 localStorage와 불일치 감지, Zustand 우선'
+            );
           }
         }
       },

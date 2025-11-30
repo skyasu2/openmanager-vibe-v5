@@ -70,7 +70,7 @@ function parseTimeRange(range: string): number {
   const multiplier = units[unit];
   if (!multiplier) return 60 * 60 * 1000; // 기본 1시간
 
-  return parseInt(value) * multiplier;
+  return parseInt(value, 10) * multiplier;
 }
 
 /**

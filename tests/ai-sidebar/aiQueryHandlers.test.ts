@@ -1,5 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { processRealAIQuery, formatErrorMessage, validateQuery } from '../../src/domains/ai-sidebar/utils/aiQueryHandlers';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  formatErrorMessage,
+  processRealAIQuery,
+  validateQuery,
+} from '../../src/domains/ai-sidebar/utils/aiQueryHandlers';
 
 // fetch mock
 global.fetch = vi.fn();
@@ -11,17 +15,17 @@ describe('aiQueryHandlers', () => {
 
   describe('processRealAIQuery', () => {
     it('sends query to unified endpoint', async () => {
-      const mockResponse = { 
+      const mockResponse = {
         success: true,
         response: 'AI 응답입니다',
         confidence: 0.8,
         engine: 'GOOGLE_AI',
-        metadata: { tokens: 100 }
+        metadata: { tokens: 100 },
       };
 
       (fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockResponse)
+        json: () => Promise.resolve(mockResponse),
       });
 
       // Mock functions for onThinkingStart/Stop
@@ -38,15 +42,15 @@ describe('aiQueryHandlers', () => {
 
       expect(fetch).toHaveBeenCalledWith('/api/ai/query', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
+        headers: {
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           query: '서버 상태는 어떤가요?',
           context: 'ai-sidebar',
           includeThinking: true,
-          sessionId: 'test-session-id'
-        })
+          sessionId: 'test-session-id',
+        }),
       });
 
       expect(result.success).toBe(true);
@@ -54,32 +58,50 @@ describe('aiQueryHandlers', () => {
     });
 
     it('ignores legacy engine flags', async () => {
-      const mockResponse = { 
+      const mockResponse = {
         success: true,
         response: 'Test response',
         confidence: 0.8,
-        engine: 'UNIFIED'
+        engine: 'UNIFIED',
       };
       (fetch as any).mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve(mockResponse)
+        json: () => Promise.resolve(mockResponse),
       });
 
       const onThinkingStart = vi.fn();
       const onThinkingStop = vi.fn();
 
-      await processRealAIQuery('test', 'GOOGLE_AI', 'test-session', onThinkingStart, onThinkingStop);
-      expect(fetch).toHaveBeenLastCalledWith('/api/ai/query', expect.any(Object));
+      await processRealAIQuery(
+        'test',
+        'GOOGLE_AI',
+        'test-session',
+        onThinkingStart,
+        onThinkingStop
+      );
+      expect(fetch).toHaveBeenLastCalledWith(
+        '/api/ai/query',
+        expect.any(Object)
+      );
 
-      await processRealAIQuery('test', 'LOCAL', 'test-session', onThinkingStart, onThinkingStop);
-      expect(fetch).toHaveBeenLastCalledWith('/api/ai/query', expect.any(Object));
+      await processRealAIQuery(
+        'test',
+        'LOCAL',
+        'test-session',
+        onThinkingStart,
+        onThinkingStop
+      );
+      expect(fetch).toHaveBeenLastCalledWith(
+        '/api/ai/query',
+        expect.any(Object)
+      );
     });
 
     it('handles API errors gracefully', async () => {
       (fetch as any).mockResolvedValueOnce({
         ok: false,
         status: 500,
-        statusText: 'Internal Server Error'
+        statusText: 'Internal Server Error',
       });
 
       const onThinkingStart = vi.fn();
@@ -142,7 +164,7 @@ describe('aiQueryHandlers', () => {
     it('formats network errors', () => {
       const error = new Error('Failed to fetch');
       const formatted = formatErrorMessage(error);
-      
+
       expect(formatted).toContain('네트워크 연결');
       expect(formatted).toContain('다시 시도');
     });
@@ -150,7 +172,7 @@ describe('aiQueryHandlers', () => {
     it('formats API errors', () => {
       const error = { status: 429, message: 'Rate limit exceeded' };
       const formatted = formatErrorMessage(error);
-      
+
       expect(formatted).toContain('API 한도');
       expect(formatted).toContain('잠시 후');
     });
@@ -158,7 +180,7 @@ describe('aiQueryHandlers', () => {
     it('formats timeout errors', () => {
       const error = { name: 'TimeoutError', message: 'Request timeout' };
       const formatted = formatErrorMessage(error);
-      
+
       expect(formatted).toContain('시간 초과');
       expect(formatted).toContain('다시 시도');
     });
@@ -166,7 +188,7 @@ describe('aiQueryHandlers', () => {
     it('formats general errors', () => {
       const error = new Error('Something went wrong');
       const formatted = formatErrorMessage(error);
-      
+
       expect(formatted).toContain('처리 중 오류');
       expect(formatted).toContain('Something went wrong');
     });

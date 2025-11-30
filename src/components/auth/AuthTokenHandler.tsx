@@ -5,8 +5,8 @@
 
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 
 export function AuthTokenHandler() {
@@ -17,7 +17,7 @@ export function AuthTokenHandler() {
       // URL 해시에서 토큰 확인
       const hash = window.location.hash;
 
-      if (hash && hash.includes('access_token=')) {
+      if (hash?.includes('access_token=')) {
         console.log('🔐 URL 해시에서 인증 토큰 발견');
 
         try {

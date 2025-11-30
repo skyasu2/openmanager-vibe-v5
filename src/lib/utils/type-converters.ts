@@ -9,15 +9,15 @@
  */
 
 import {
-  type ServerStatus,
-  type ServerEnvironment,
-  type ServerRole,
-  isValidServerStatus,
-  isValidServerEnvironment,
-  isValidServerRole,
-  getDefaultServerStatus,
   getDefaultServerEnvironment,
   getDefaultServerRole,
+  getDefaultServerStatus,
+  isValidServerEnvironment,
+  isValidServerRole,
+  isValidServerStatus,
+  type ServerEnvironment,
+  type ServerRole,
+  type ServerStatus,
 } from '@/types/server-enums';
 
 const stringifyForLog = (value: unknown): string => {
@@ -194,13 +194,17 @@ export function safeServerRole(value: unknown): ServerRole {
  * 유효하지 않은 숫자를 안전하게 처리 (0-100 범위 강제)
  */
 export function safeMetricValue(value: unknown, fallback: number = 0): number {
-  if (typeof value === 'number' && !isNaN(value) && isFinite(value)) {
+  if (
+    typeof value === 'number' &&
+    !Number.isNaN(value) &&
+    Number.isFinite(value)
+  ) {
     return Math.max(0, Math.min(100, value));
   }
 
   if (typeof value === 'string') {
     const parsed = parseFloat(value);
-    if (!isNaN(parsed) && isFinite(parsed)) {
+    if (!Number.isNaN(parsed) && Number.isFinite(parsed)) {
       return Math.max(0, Math.min(100, parsed));
     }
   }
@@ -215,8 +219,8 @@ export function safeMetricValue(value: unknown, fallback: number = 0): number {
 export function safeResponseTime(value: unknown, fallback: number = 0): number {
   if (
     typeof value === 'number' &&
-    !isNaN(value) &&
-    isFinite(value) &&
+    !Number.isNaN(value) &&
+    Number.isFinite(value) &&
     value >= 0
   ) {
     return Math.min(30000, value); // 30초 최대값
@@ -224,7 +228,7 @@ export function safeResponseTime(value: unknown, fallback: number = 0): number {
 
   if (typeof value === 'string') {
     const parsed = parseFloat(value);
-    if (!isNaN(parsed) && isFinite(parsed) && parsed >= 0) {
+    if (!Number.isNaN(parsed) && Number.isFinite(parsed) && parsed >= 0) {
       return Math.min(30000, parsed);
     }
   }
@@ -239,8 +243,8 @@ export function safeResponseTime(value: unknown, fallback: number = 0): number {
 export function safeConnections(value: unknown, fallback: number = 0): number {
   if (
     typeof value === 'number' &&
-    !isNaN(value) &&
-    isFinite(value) &&
+    !Number.isNaN(value) &&
+    Number.isFinite(value) &&
     value >= 0
   ) {
     return Math.floor(Math.min(10000, value)); // 10k 연결 최대값
@@ -248,7 +252,7 @@ export function safeConnections(value: unknown, fallback: number = 0): number {
 
   if (typeof value === 'string') {
     const parsed = parseInt(value, 10);
-    if (!isNaN(parsed) && parsed >= 0) {
+    if (!Number.isNaN(parsed) && parsed >= 0) {
       return Math.min(10000, parsed);
     }
   }

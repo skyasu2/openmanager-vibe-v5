@@ -89,10 +89,10 @@ export class DistributedErrorHandler {
   private constructor() {}
 
   static getInstance(): DistributedErrorHandler {
-    if (!this.instance) {
-      this.instance = new DistributedErrorHandler();
+    if (!DistributedErrorHandler.instance) {
+      DistributedErrorHandler.instance = new DistributedErrorHandler();
     }
-    return this.instance;
+    return DistributedErrorHandler.instance;
   }
 
   /**
@@ -241,7 +241,7 @@ export class DistributedErrorHandler {
     // 지수 백오프
     const baseDelay = 1; // 1초
     const maxDelay = 60; // 최대 60초
-    const delay = Math.min(baseDelay * Math.pow(2, errorCount), maxDelay);
+    const delay = Math.min(baseDelay * 2 ** errorCount, maxDelay);
 
     return delay;
   }

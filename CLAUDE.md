@@ -17,7 +17,7 @@
 ```bash
 # 개발
 npm run dev:stable          # 안정화된 개발 서버
-npm run validate:all        # 린트+타입+테스트
+npm run validate:all        # Biome+타입+테스트
 
 # 테스트 (Vercel 중심)
 npm run test:vercel:e2e     # Vercel E2E (권장)

@@ -169,6 +169,3 @@ export function isValidConfigurationStatus(
 ): status is ConfigurationStatus {
   return ['configured', 'partial', 'missing', 'invalid'].includes(status);
 }
-
-// Export the global ProcessEnv interface for use in other files
-export {};

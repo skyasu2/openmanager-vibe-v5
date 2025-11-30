@@ -450,7 +450,9 @@ export class EnvironmentSecurityScanner {
     let match;
     while ((match = envVarPattern.exec(clientCode)) !== null) {
       const varName = match[1];
-      if (varName && !varName.startsWith('NEXT_PUBLIC_') &&
+      if (
+        varName &&
+        !varName.startsWith('NEXT_PUBLIC_') &&
         this.sensitiveServerVars.includes(varName)
       ) {
         violations.push(varName);

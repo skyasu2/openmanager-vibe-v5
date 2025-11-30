@@ -126,7 +126,7 @@ export class AIResponseFilter {
 
     // 1. 길이 검증
     if (originalLength > this.config.maxResponseLength) {
-      filtered = filtered.substring(0, this.config.maxResponseLength) + '...';
+      filtered = `${filtered.substring(0, this.config.maxResponseLength)}...`;
       issuesDetected.push('response_too_long');
     }
 

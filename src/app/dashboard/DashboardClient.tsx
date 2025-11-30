@@ -7,45 +7,45 @@
  * 🔧 Fixed: TypeError w is not a function (usePerformanceGuard disabled)
  */
 
+import { AlertTriangle } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import {
+  Component,
+  type ErrorInfo,
+  type ReactNode,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
+import AuthLoadingUI from '@/components/shared/AuthLoadingUI';
+import UnauthorizedAccessUI from '@/components/shared/UnauthorizedAccessUI';
 import { NotificationToast } from '@/components/system/NotificationToast';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
+import { useToast } from '@/hooks/use-toast';
 // AISidebarV2는 필요시에만 동적 로드
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 // import { usePerformanceGuard } from '@/hooks/usePerformanceGuard'; // 🛡️ 성능 모니터링 - 임시 비활성화
 import { useServerDashboard } from '@/hooks/useServerDashboard';
-import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
-import { useToast } from '@/hooks/use-toast';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { cn } from '@/lib/utils';
+import { convertServerToModalData } from '@/lib/utils/vercel-safety-utils';
+import { systemInactivityService } from '@/services/system/SystemInactivityService';
 // Admin mode removed - Phase 2: Admin removal complete
 import { useAISidebarStore } from '@/stores/useAISidebarStore'; // AI 사이드바 상태
-import { cn } from '@/lib/utils';
-import { systemInactivityService } from '@/services/system/SystemInactivityService';
+import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import type { Server } from '@/types/server';
-import { AlertTriangle } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import AuthLoadingUI from '@/components/shared/AuthLoadingUI';
-import UnauthorizedAccessUI from '@/components/shared/UnauthorizedAccessUI';
-import {
-  Suspense,
-  useRef,
-  useCallback,
-  useEffect,
-  useState,
-  Component,
-  type ReactNode,
-  type ErrorInfo,
-} from 'react';
-import { useRouter } from 'next/navigation';
 import debug from '@/utils/debug';
-import { convertServerToModalData } from '@/lib/utils/vercel-safety-utils';
-
+import DashboardContent from '../../components/dashboard/DashboardContent';
 // --- Static Imports for Core Components (SSR bailout 해결) ---
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
-import DashboardContent from '../../components/dashboard/DashboardContent';
-import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
+
 const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl'),
   {
@@ -531,7 +531,7 @@ function DashboardPageContent() {
       );
       console.groupEnd();
     }
-  }, [warningCount]); // ✅ generateReport 함수 의존성 제거하여 순환 의존성 해결
+  }, []); // ✅ generateReport 함수 의존성 제거하여 순환 의존성 해결
 
   // 🕐 시간 포맷팅
   const remainingTimeFormatted = formatTime

@@ -10,9 +10,9 @@
 
 'use client';
 
-import { useEffect, useState, FC } from 'react';
+import { AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
+import { FC, useEffect, useState } from 'react';
 import { useGlobalSystemStore } from '@/stores/systemStore';
-import { X, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
 interface DisplayNotification {
   id: string;
@@ -82,7 +82,12 @@ export const NotificationToast: FC = () => {
         handleSystemEvent as EventListener
       );
     };
-  }, [reportServerNotification, isSessionActive]);
+  }, [
+    reportServerNotification,
+    isSessionActive,
+    getNotificationTitle,
+    removeNotification,
+  ]);
 
   const getNotificationTitle = (level: string): string => {
     switch (level) {
@@ -92,7 +97,6 @@ export const NotificationToast: FC = () => {
         return '⚠️ 주의 필요';
       case 'success':
         return '✅ 성공';
-      case 'info':
       default:
         return '📋 알림';
     }
@@ -110,7 +114,6 @@ export const NotificationToast: FC = () => {
         return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
       case 'error':
         return <AlertTriangle className="h-5 w-5 text-red-500" />;
-      case 'info':
       default:
         return <Info className="h-5 w-5 text-blue-500" />;
     }
@@ -124,7 +127,6 @@ export const NotificationToast: FC = () => {
         return 'bg-yellow-50 border-yellow-200';
       case 'error':
         return 'bg-red-50 border-red-200';
-      case 'info':
       default:
         return 'bg-blue-50 border-blue-200';
     }

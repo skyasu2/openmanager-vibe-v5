@@ -1,9 +1,8 @@
 'use client';
 
-import { ErrorInfo } from 'react';
-import type { ReactNode } from 'react';;
-import { Component } from 'react';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { Component, ErrorInfo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import debug from '@/utils/debug';
 
@@ -56,9 +55,7 @@ class ServerModalErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-          >
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
                 <AlertTriangle className="h-8 w-8 text-red-600" />

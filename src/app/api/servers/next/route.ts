@@ -1,15 +1,15 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMockSystem } from '@/mock';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import { getMockSystem } from '@/mock';
 import {
-  ServerPaginationQuerySchema,
-  ServerPaginatedResponseSchema,
+  type PaginatedServer,
   ServerBatchRequestSchema,
+  type ServerBatchResponse,
   ServerBatchResponseSchema,
   type ServerPaginatedResponse,
-  type ServerBatchResponse,
-  type PaginatedServer,
+  ServerPaginatedResponseSchema,
+  ServerPaginationQuerySchema,
 } from '@/schemas/api.schema';
 import type { ServerStatus } from '@/types/server-enums'; // 🔧 추가
 import { getErrorMessage } from '@/types/type-utils';

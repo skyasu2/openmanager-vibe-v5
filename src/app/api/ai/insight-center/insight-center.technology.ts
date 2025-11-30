@@ -9,10 +9,10 @@
  */
 
 import type {
-  TechStackRecommendations,
-  TechUpdate,
   TechAddition,
   TechReplacement,
+  TechStackRecommendations,
+  TechUpdate,
 } from './insight-center.types';
 
 /**

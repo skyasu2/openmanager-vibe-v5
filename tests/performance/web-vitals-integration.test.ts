@@ -6,7 +6,7 @@
  * @target 실제 Vercel 환경에서 Web Vitals 수집 및 분석
  */
 
-import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Web Vitals 타입 정의 (패키지가 Node.js 환경에서 제대로 작동하지 않을 때 대비)
 interface Metric {

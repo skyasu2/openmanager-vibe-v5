@@ -3,13 +3,13 @@
  * Provides historical performance metrics data
  */
 
-import { PerformanceService } from '@/modules/performance-monitor/services/PerformanceService';
 import { NextRequest, NextResponse } from 'next/server';
+import { PerformanceService } from '@/modules/performance-monitor/services/PerformanceService';
 
 export function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '100');
+    const limit = parseInt(searchParams.get('limit') || '100', 10);
     const format = searchParams.get('format') || 'json';
 
     const performanceService = PerformanceService.getInstance();

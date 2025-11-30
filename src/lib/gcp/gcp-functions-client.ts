@@ -8,25 +8,23 @@
  * - Rate limiting
  */
 
-import type { Result, GCPFunctionsClientConfig } from './gcp-functions.types';
-
-import { GCPFunctionErrorCode } from './gcp-functions.types';
-
 import {
   createConfig,
-  RATE_LIMIT_CONFIG,
   logConfiguration,
+  RATE_LIMIT_CONFIG,
 } from './gcp-functions.config';
+import type { GCPFunctionsClientConfig, Result } from './gcp-functions.types';
+import { GCPFunctionErrorCode } from './gcp-functions.types';
 import {
   checkRateLimit,
+  convertHttpError,
+  createGCPError,
+  createSafeUrl,
   createSecurityHeaders,
+  debugLog,
   fetchWithTimeout,
   retryWithBackoff,
-  createGCPError,
-  convertHttpError,
-  createSafeUrl,
   validateResponse,
-  debugLog,
 } from './gcp-functions.utils';
 
 /**

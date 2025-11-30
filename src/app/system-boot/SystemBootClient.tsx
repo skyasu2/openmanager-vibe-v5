@@ -10,13 +10,12 @@ import {
   Server as ServerIcon,
   Zap,
 } from 'lucide-react';
-import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, type ComponentType, type FC } from 'react';
+import { type ComponentType, type FC, useEffect, useState } from 'react';
+import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
 import debug from '@/utils/debug';
-
-import { SmoothLoadingSpinner } from './components/SmoothLoadingSpinner';
 import { BootProgressBar } from './components/BootProgressBar';
+import { SmoothLoadingSpinner } from './components/SmoothLoadingSpinner';
 
 export default function SystemBootClient() {
   const router = useRouter();
@@ -181,7 +180,13 @@ export default function SystemBootClient() {
       clearInterval(statusCheckInterval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient]);
+  }, [
+    isClient,
+    handleBootComplete,
+    progress, // 로딩 애니메이션 실행
+    stages.forEach,
+    stages.length,
+  ]);
 
   // 부팅 완료 - 부드러운 전환 후 대시보드로 이동
   const handleBootComplete = () => {

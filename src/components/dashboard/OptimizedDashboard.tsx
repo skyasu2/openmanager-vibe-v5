@@ -11,22 +11,21 @@
  * - AI 사이드바 통합
  */
 
+// framer-motion 제거 - CSS 애니메이션 사용
+import { LogOut, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+// 컴포넌트 import
+import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
+import { RealtimeClock } from '@/components/shared/RealtimeClock';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
+import { signOut, useSession } from '@/hooks/useSupabaseSession';
 import { useSystemIntegration } from '@/hooks/useSystemIntegration';
 import type { Server } from '@/types/server';
-// framer-motion 제거 - CSS 애니메이션 사용
-import { LogOut, User } from 'lucide-react';
-import { useSession, signOut } from '@/hooks/useSupabaseSession';
-import { useRouter } from 'next/navigation';
-import React, { Fragment, useEffect, useState } from 'react';
-
-// 컴포넌트 import
-import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import EnhancedServerModal from './EnhancedServerModal';
 import ServerDashboard from './ServerDashboard';
-import { RealtimeClock } from '@/components/shared/RealtimeClock';
 
 // AI 사이드바 제거 - DashboardClient에서 관리
 
@@ -137,16 +136,14 @@ export default function OptimizedDashboard({
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* 자동 로그아웃 경고 */}
-      <Fragment>
-        {showLogoutWarning && (
-          <AutoLogoutWarning
-            remainingTime={remainingTime}
-            isWarning={showLogoutWarning}
-            onExtendSession={handleExtendSession}
-            onLogoutNow={handleLogoutNow}
-          />
-        )}
-      </Fragment>
+      {showLogoutWarning && (
+        <AutoLogoutWarning
+          remainingTime={remainingTime}
+          isWarning={showLogoutWarning}
+          onExtendSession={handleExtendSession}
+          onLogoutNow={handleLogoutNow}
+        />
+      )}
 
       {/* 메인 레이아웃 */}
       <div className="flex transition-all duration-300">
@@ -243,56 +240,54 @@ export default function OptimizedDashboard({
       {/* AI 에이전트 토글 버튼 제거 - DashboardClient에서 관리 */}
 
       {/* 서버 상세 모달 */}
-      <Fragment>
-        {isServerModalOpen && selectedServer && selectedServer.hostname && (
-          <EnhancedServerModal
-            server={{
-              ...selectedServer,
-              id: selectedServer.id || selectedServer.hostname || 'unknown',
-              name:
-                selectedServer.name ||
-                selectedServer.hostname ||
-                'Unknown Server',
-              hostname:
-                selectedServer.hostname || selectedServer.name || 'Unknown',
-              type: selectedServer.type || 'unknown',
-              environment: selectedServer.environment || 'unknown',
-              location: selectedServer.location || 'unknown',
-              provider: selectedServer.provider || 'unknown',
-              status: selectedServer.status, // 🔧 수정: 직접 사용 (타입 통합 완료)
-              uptime:
-                typeof selectedServer.uptime === 'number'
-                  ? selectedServer.uptime.toString()
-                  : selectedServer.uptime,
-              alerts:
-                typeof selectedServer.alerts === 'number'
-                  ? selectedServer.alerts
-                  : Array.isArray(selectedServer.alerts)
-                    ? selectedServer.alerts.length
-                    : 0,
-              networkStatus: undefined, // 🔧 수정: 타입 불일치로 undefined 처리 (Server.networkStatus는 ServerStatus 형태)
-              lastUpdate: selectedServer.lastUpdate || new Date(),
-              cpu: selectedServer.cpu || 0,
-              memory: selectedServer.memory || 0,
-              disk: selectedServer.disk || 0,
-              network: selectedServer.network || 0,
-              services: (selectedServer.services || []).map((service) => ({
-                name: service.name,
-                status: service.status as
-                  | 'running'
-                  | 'stopped'
-                  | 'error'
-                  | 'starting'
-                  | 'stopping'
-                  | 'failed'
-                  | 'unknown',
-                port: service.port || 80,
-              })),
-            }}
-            onClose={handleServerModalClose}
-          />
-        )}
-      </Fragment>
+      {isServerModalOpen && selectedServer && selectedServer.hostname && (
+        <EnhancedServerModal
+          server={{
+            ...selectedServer,
+            id: selectedServer.id || selectedServer.hostname || 'unknown',
+            name:
+              selectedServer.name ||
+              selectedServer.hostname ||
+              'Unknown Server',
+            hostname:
+              selectedServer.hostname || selectedServer.name || 'Unknown',
+            type: selectedServer.type || 'unknown',
+            environment: selectedServer.environment || 'unknown',
+            location: selectedServer.location || 'unknown',
+            provider: selectedServer.provider || 'unknown',
+            status: selectedServer.status, // 🔧 수정: 직접 사용 (타입 통합 완료)
+            uptime:
+              typeof selectedServer.uptime === 'number'
+                ? selectedServer.uptime.toString()
+                : selectedServer.uptime,
+            alerts:
+              typeof selectedServer.alerts === 'number'
+                ? selectedServer.alerts
+                : Array.isArray(selectedServer.alerts)
+                  ? selectedServer.alerts.length
+                  : 0,
+            networkStatus: undefined, // 🔧 수정: 타입 불일치로 undefined 처리 (Server.networkStatus는 ServerStatus 형태)
+            lastUpdate: selectedServer.lastUpdate || new Date(),
+            cpu: selectedServer.cpu || 0,
+            memory: selectedServer.memory || 0,
+            disk: selectedServer.disk || 0,
+            network: selectedServer.network || 0,
+            services: (selectedServer.services || []).map((service) => ({
+              name: service.name,
+              status: service.status as
+                | 'running'
+                | 'stopped'
+                | 'error'
+                | 'starting'
+                | 'stopping'
+                | 'failed'
+                | 'unknown',
+              port: service.port || 80,
+            })),
+          }}
+          onClose={handleServerModalClose}
+        />
+      )}
     </div>
   );
 }

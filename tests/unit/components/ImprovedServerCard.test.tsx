@@ -6,9 +6,9 @@
  * @created 2025-11-26
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ImprovedServerCard from '@/components/dashboard/ImprovedServerCard';
 import type { Server } from '@/types/server';
 

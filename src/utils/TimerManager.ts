@@ -21,8 +21,6 @@ interface TimerConfig {
  * 모든 메서드는 경고 메시지만 출력하고 실제 동작하지 않음
  */
 class ServerlessTimerManager {
-  private timers = new Map<string, TimerConfig>();
-
   constructor() {
     console.warn(
       '⚠️ 서버리스 환경에서는 타이머 기능이 비활성화됩니다. Vercel Dashboard를 사용하세요.'

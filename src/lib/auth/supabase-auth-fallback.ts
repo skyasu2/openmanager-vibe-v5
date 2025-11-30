@@ -22,7 +22,7 @@ export async function signInWithMagicLink(email: string) {
 
     console.log(
       '✅ Magic Link 발송 완료 (이메일 도메인:',
-      email.split('@')[1] + ')'
+      `${email.split('@')[1]})`
     );
     return { success: true, message: '이메일을 확인해주세요!' };
   } catch (error) {

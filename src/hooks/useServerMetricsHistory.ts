@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { realtimeDataManager } from '@/services/realtime/RealtimeDataManager';
 
 const MAX_HISTORY_LENGTH = 30; // 30개 데이터 포인트 유지

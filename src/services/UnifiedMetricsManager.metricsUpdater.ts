@@ -9,10 +9,10 @@
  */
 
 import type {
-  UnifiedServerMetrics,
-  UnifiedMetricsConfig,
   MetricsPerformanceData,
   ServerStatus,
+  UnifiedMetricsConfig,
+  UnifiedServerMetrics,
 } from './UnifiedMetricsManager.types';
 
 export class MetricsUpdater {
@@ -32,7 +32,10 @@ export class MetricsUpdater {
 
       // Update all server metrics
       for (const [id, server] of servers) {
-        const updated = await this.updateServerMetrics(server, config);
+        const updated = await MetricsUpdater.updateServerMetrics(
+          server,
+          config
+        );
         servers.set(id, updated);
         updatedServers.push(updated);
       }
@@ -43,7 +46,7 @@ export class MetricsUpdater {
       }
 
       // Update performance metrics
-      this.updatePerformanceMetrics(startTime, metrics);
+      MetricsUpdater.updatePerformanceMetrics(startTime, metrics);
 
       console.log(
         `📊 메트릭 생성 완료: ${updatedServers.length}개 서버, ${Date.now() - startTime}ms`
@@ -64,7 +67,7 @@ export class MetricsUpdater {
     const updated = { ...server };
 
     // Apply realistic variations to metric values
-    updated.node_cpu_usage_percent = this.applyVariation(
+    updated.node_cpu_usage_percent = MetricsUpdater.applyVariation(
       server.node_cpu_usage_percent,
       0.95,
       1.05, // ±5% variation
@@ -72,7 +75,7 @@ export class MetricsUpdater {
       95 // 5-95% range
     );
 
-    updated.node_memory_usage_percent = this.applyVariation(
+    updated.node_memory_usage_percent = MetricsUpdater.applyVariation(
       server.node_memory_usage_percent,
       0.98,
       1.02, // ±2% variation (memory is stable)
@@ -80,7 +83,7 @@ export class MetricsUpdater {
       90
     );
 
-    updated.node_disk_usage_percent = this.applyVariation(
+    updated.node_disk_usage_percent = MetricsUpdater.applyVariation(
       server.node_disk_usage_percent,
       1.0,
       1.001, // Almost no variation (disk grows slowly)
@@ -89,7 +92,7 @@ export class MetricsUpdater {
     );
 
     // Network has larger variations
-    updated.node_network_receive_rate_mbps = this.applyVariation(
+    updated.node_network_receive_rate_mbps = MetricsUpdater.applyVariation(
       server.node_network_receive_rate_mbps,
       0.7,
       1.5, // ±30% variation
@@ -97,7 +100,7 @@ export class MetricsUpdater {
       1000
     );
 
-    updated.node_network_transmit_rate_mbps = this.applyVariation(
+    updated.node_network_transmit_rate_mbps = MetricsUpdater.applyVariation(
       server.node_network_transmit_rate_mbps,
       0.7,
       1.5,
@@ -122,7 +125,7 @@ export class MetricsUpdater {
       0.05 + (updated.node_cpu_usage_percent / 100) * 0.5;
 
     // Determine server status
-    updated.status = this.determineServerStatus(updated);
+    updated.status = MetricsUpdater.determineServerStatus(updated);
 
     // Update timestamp
     updated.timestamp = Date.now();
@@ -285,7 +288,10 @@ export class MetricsUpdater {
     const batchPromises = batches.map(async (batch) => {
       const updates = await Promise.all(
         batch.map(async ([id, server]) => {
-          const updated = await this.updateServerMetrics(server, config);
+          const updated = await MetricsUpdater.updateServerMetrics(
+            server,
+            config
+          );
           return [id, updated] as [string, UnifiedServerMetrics];
         })
       );

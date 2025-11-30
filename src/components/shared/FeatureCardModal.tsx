@@ -1,24 +1,24 @@
 'use client';
 
+// framer-motion 제거 - CSS 애니메이션 사용
+import { Bot, X, Zap } from 'lucide-react';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-// framer-motion 제거 - CSS 애니메이션 사용
-import { X, Bot, Zap } from 'lucide-react';
-import type {
-  FeatureCardModalProps,
-  TechItem,
-  ImportanceLevel,
-  TechCategory,
-  ImportanceStyle,
-  CategoryStyle,
-} from '@/types/feature-card.types';
 import {
-  TECH_STACKS_DATA,
-  IMPORTANCE_STYLES,
   CATEGORY_STYLES,
+  IMPORTANCE_STYLES,
+  TECH_STACKS_DATA,
   type VibeCodeData,
 } from '@/data/tech-stacks.data';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import type {
+  CategoryStyle,
+  FeatureCardModalProps,
+  ImportanceLevel,
+  ImportanceStyle,
+  TechCategory,
+  TechItem,
+} from '@/types/feature-card.types';
 
 // 🛡️ Codex 제안: 타입 가드 함수 (프로덕션 안정성 강화)
 const isValidCard = (
@@ -558,55 +558,54 @@ export default function FeatureCardModal({
         tabIndex={-1}
       >
         {/* Hook 안정화: 조건부 렌더링 제거, CSS로 가시성 제어 */}
-        <>
-          <div
-            className={`absolute left-0 right-0 top-0 h-48 bg-gradient-to-b ${gradient} opacity-20 blur-3xl`}
-          ></div>
-          <div className="relative z-10 flex h-full flex-col">
-            <header className="flex flex-shrink-0 items-center justify-between border-b border-gray-700/50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-800">
-                  <Icon
-                    className="h-5 w-5"
-                    style={{
-                      color: variant === 'home' ? 'white' : 'currentColor',
-                    }}
-                  />
-                </div>
-                <h2 className="text-lg font-semibold text-white">{title}</h2>
-              </div>
 
-              <div className="flex items-center gap-2">
-                {/* 바이브 코딩 카드 전용 히스토리 전환 버튼 */}
-                {cardData.id === 'cursor-ai' && (
-                  <button
-                    onClick={() => setIsHistoryView(!isHistoryView)}
-                    className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:from-amber-500 hover:to-orange-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                    aria-label={
-                      isHistoryView ? '현재 도구 보기' : '히스토리 보기'
-                    }
-                  >
-                    {isHistoryView ? '🔄 현재 도구' : '📚 발전 히스토리'}
-                  </button>
-                )}
-
-                <button
-                  onClick={onClose}
-                  className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
-                  aria-label="Close modal"
-                >
-                  <X size={20} />
-                </button>
+        <div
+          className={`absolute left-0 right-0 top-0 h-48 bg-gradient-to-b ${gradient} opacity-20 blur-3xl`}
+        ></div>
+        <div className="relative z-10 flex h-full flex-col">
+          <header className="flex flex-shrink-0 items-center justify-between border-b border-gray-700/50 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-800">
+                <Icon
+                  className="h-5 w-5"
+                  style={{
+                    color: variant === 'home' ? 'white' : 'currentColor',
+                  }}
+                />
               </div>
-            </header>
-            <div
-              className="overflow-y-auto scroll-smooth"
-              style={{ maxHeight: 'calc(85vh - 80px)' }}
-            >
-              {renderModalSafely()}
+              <h2 className="text-lg font-semibold text-white">{title}</h2>
             </div>
+
+            <div className="flex items-center gap-2">
+              {/* 바이브 코딩 카드 전용 히스토리 전환 버튼 */}
+              {cardData.id === 'cursor-ai' && (
+                <button
+                  onClick={() => setIsHistoryView(!isHistoryView)}
+                  className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:from-amber-500 hover:to-orange-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  aria-label={
+                    isHistoryView ? '현재 도구 보기' : '히스토리 보기'
+                  }
+                >
+                  {isHistoryView ? '🔄 현재 도구' : '📚 발전 히스토리'}
+                </button>
+              )}
+
+              <button
+                onClick={onClose}
+                className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
+                aria-label="Close modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </header>
+          <div
+            className="overflow-y-auto scroll-smooth"
+            style={{ maxHeight: 'calc(85vh - 80px)' }}
+          >
+            {renderModalSafely()}
           </div>
-        </>
+        </div>
       </div>
     </div>,
     document.body

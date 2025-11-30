@@ -310,7 +310,9 @@ export class ABTestManager {
       const metricsKey = `${this.CACHE_KEYS.METRICS}:${group}`;
 
       // 기존 메트릭 조회
-      const existingMetrics = this.memoryCache.get(metricsKey) as ABTestMetrics | null;
+      const existingMetrics = this.memoryCache.get(
+        metricsKey
+      ) as ABTestMetrics | null;
       let metrics: ABTestMetrics;
 
       if (existingMetrics) {
@@ -504,7 +506,9 @@ export class ABTestManager {
   // ==============================================
 
   private async getConfig(): Promise<ABTestConfig> {
-    const config = this.memoryCache.get(this.CACHE_KEYS.CONFIG) as ABTestConfig | null;
+    const config = this.memoryCache.get(
+      this.CACHE_KEYS.CONFIG
+    ) as ABTestConfig | null;
     return config || this.DEFAULT_CONFIG;
   }
 

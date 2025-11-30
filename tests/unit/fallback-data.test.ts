@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getApiKey,
   getInfrastructureUrl,
@@ -7,11 +8,10 @@ import {
   STATIC_ERROR_SERVERS,
   validateEnvironmentVariables,
 } from '@/config/fallback-data';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Fallback Data Configuration', () => {
   // 환경변수 백업을 위한 변수
-  const originalEnv = { ...process.env };
+  const _originalEnv = { ...process.env };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -35,7 +35,7 @@ describe('Fallback Data Configuration', () => {
     it('모든 서버가 올바른 구조를 가져야 함', () => {
       expect(STATIC_ERROR_SERVERS.length).toBeGreaterThan(0);
 
-      STATIC_ERROR_SERVERS.forEach(server => {
+      STATIC_ERROR_SERVERS.forEach((server) => {
         expect(server).toHaveProperty('id');
         expect(server).toHaveProperty('name');
         expect(server).toHaveProperty('status');
@@ -62,19 +62,19 @@ describe('Fallback Data Configuration', () => {
     });
 
     it('서버 ID가 고유해야 함', () => {
-      const ids = STATIC_ERROR_SERVERS.map(server => server.id);
+      const ids = STATIC_ERROR_SERVERS.map((server) => server.id);
       const uniqueIds = new Set(ids);
       expect(uniqueIds.size).toBe(ids.length);
     });
 
     it('서버 이름이 고유해야 함', () => {
-      const names = STATIC_ERROR_SERVERS.map(server => server.name);
+      const names = STATIC_ERROR_SERVERS.map((server) => server.name);
       const uniqueNames = new Set(names);
       expect(uniqueNames.size).toBe(names.length);
     });
 
     it('모든 서버가 에러 상태여야 함', () => {
-      STATIC_ERROR_SERVERS.forEach(server => {
+      STATIC_ERROR_SERVERS.forEach((server) => {
         expect(server.status).toBe('offline');
         expect(server.alerts).toBe(999);
         expect(server.environment).toBe('ERROR');
@@ -91,7 +91,7 @@ describe('Fallback Data Configuration', () => {
 
     it('필수 인프라 설정 키들이 존재해야 함', () => {
       const requiredKeys = ['redis', 'supabase', 'api'];
-      requiredKeys.forEach(key => {
+      requiredKeys.forEach((key) => {
         expect(INFRASTRUCTURE_CONFIG).toHaveProperty(key);
       });
     });

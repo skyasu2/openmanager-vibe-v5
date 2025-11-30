@@ -10,22 +10,22 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef, Fragment, type FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  Search,
-  Play,
-  Pause,
-  Trash2,
-  Download,
   Activity,
   AlertCircle,
   CheckCircle,
-  XCircle,
   Clock,
+  Download,
   Eye,
   EyeOff,
+  Pause,
+  Play,
+  Search,
+  Trash2,
+  XCircle,
 } from 'lucide-react';
+import { type FC, useEffect, useRef, useState } from 'react';
 
 interface LogEntry {
   id: string;
@@ -102,14 +102,14 @@ export const RealTimeLogMonitor: FC<RealTimeLogMonitorProps> = ({
       stopStreaming();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart]);
+  }, [autoStart, startStreaming, stopStreaming]);
 
   // 로그 스크롤 자동
   useEffect(() => {
     if (logsEndRef.current) {
       logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [logs]);
+  }, []);
 
   /**
    * 실시간 스트리밍 시작
@@ -212,7 +212,7 @@ export const RealTimeLogMonitor: FC<RealTimeLogMonitorProps> = ({
       } else {
         // sessionId가 없으면 스킵
         if (!log.sessionId) return prev;
-        
+
         // 새 세션 추가
         const newSession: SessionInfo = {
           sessionId: log.sessionId,
@@ -454,86 +454,82 @@ export const RealTimeLogMonitor: FC<RealTimeLogMonitorProps> = ({
 
       {/* 로그 목록 */}
       <div className="h-96 space-y-2 overflow-y-auto p-4">
-        <Fragment>
-          {filteredLogs.map((log, _index) => (
-            <div
-              key={log.id}
-              className="rounded-lg border p-3 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex flex-1 items-start space-x-3">
-                  {/* 레벨 배지 */}
-                  <div
-                    className={`inline-flex items-center space-x-1 rounded-full border px-2 py-1 text-xs font-medium ${getLogLevelStyle(log.level)}`}
-                  >
-                    {getLogLevelIcon(log.level)}
-                    <span>{log.level}</span>
-                  </div>
-
-                  {/* 로그 내용 */}
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center space-x-2">
-                      <span className="font-mono text-sm font-semibold text-blue-600 dark:text-blue-400">
-                        [{log.module}]
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(log.timestamp).toLocaleTimeString('ko-KR')}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        세션: {log.sessionId.slice(0, 8)}...
-                      </span>
-                    </div>
-
-                    <p className="mb-1 text-sm text-gray-900 dark:text-gray-100">
-                      {log.message}
-                    </p>
-
-                    {log.details && (
-                      <p className="font-mono text-xs text-gray-600 dark:text-gray-400">
-                        {log.details}
-                      </p>
-                    )}
-
-                    {/* 메타데이터 (펼쳐진 경우) */}
-                    {showDetails[log.id] && log.metadata && (
-                      <div
-                        className="mt-2 overflow-hidden rounded bg-gray-100 p-2 font-mono text-xs dark:bg-gray-600"
-                      >
-                        <div className="text-gray-700 dark:text-gray-300">
-                          <strong>메타데이터:</strong>
-                        </div>
-                        {Object.entries(log.metadata).map(([key, value]) => (
-                          <div
-                            key={key}
-                            className="text-gray-600 dark:text-gray-400"
-                          >
-                            <span className="text-blue-600 dark:text-blue-400">
-                              {key}:
-                            </span>{' '}
-                            {JSON.stringify(value)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+        {filteredLogs.map((log, _index) => (
+          <div
+            key={log.id}
+            className="rounded-lg border p-3 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex flex-1 items-start space-x-3">
+                {/* 레벨 배지 */}
+                <div
+                  className={`inline-flex items-center space-x-1 rounded-full border px-2 py-1 text-xs font-medium ${getLogLevelStyle(log.level)}`}
+                >
+                  {getLogLevelIcon(log.level)}
+                  <span>{log.level}</span>
                 </div>
 
-                {/* 상세 보기 토글 */}
-                <button
-                  onClick={() => toggleDetails(log.id)}
-                  className="ml-2 p-1 text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-300"
-                  title="상세 정보 보기"
-                >
-                  {showDetails[log.id] ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
+                {/* 로그 내용 */}
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center space-x-2">
+                    <span className="font-mono text-sm font-semibold text-blue-600 dark:text-blue-400">
+                      [{log.module}]
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(log.timestamp).toLocaleTimeString('ko-KR')}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      세션: {log.sessionId.slice(0, 8)}...
+                    </span>
+                  </div>
+
+                  <p className="mb-1 text-sm text-gray-900 dark:text-gray-100">
+                    {log.message}
+                  </p>
+
+                  {log.details && (
+                    <p className="font-mono text-xs text-gray-600 dark:text-gray-400">
+                      {log.details}
+                    </p>
                   )}
-                </button>
+
+                  {/* 메타데이터 (펼쳐진 경우) */}
+                  {showDetails[log.id] && log.metadata && (
+                    <div className="mt-2 overflow-hidden rounded bg-gray-100 p-2 font-mono text-xs dark:bg-gray-600">
+                      <div className="text-gray-700 dark:text-gray-300">
+                        <strong>메타데이터:</strong>
+                      </div>
+                      {Object.entries(log.metadata).map(([key, value]) => (
+                        <div
+                          key={key}
+                          className="text-gray-600 dark:text-gray-400"
+                        >
+                          <span className="text-blue-600 dark:text-blue-400">
+                            {key}:
+                          </span>{' '}
+                          {JSON.stringify(value)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* 상세 보기 토글 */}
+              <button
+                onClick={() => toggleDetails(log.id)}
+                className="ml-2 p-1 text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-300"
+                title="상세 정보 보기"
+              >
+                {showDetails[log.id] ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
-          ))}
-        </Fragment>
+          </div>
+        ))}
 
         {filteredLogs.length === 0 && (
           <div className="py-8 text-center text-gray-500 dark:text-gray-400">

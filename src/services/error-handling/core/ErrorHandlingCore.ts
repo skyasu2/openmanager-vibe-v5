@@ -10,10 +10,10 @@
 
 import type { ILogger } from '@/interfaces/services';
 import type {
-  ServiceError,
-  IErrorHandler,
   ErrorHandlerFunction,
   ErrorHandlingConfig,
+  IErrorHandler,
+  ServiceError,
 } from '../types/ErrorTypes';
 
 export class ErrorHandlingCore implements IErrorHandler {

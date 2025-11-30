@@ -27,7 +27,6 @@ class BrowserNotificationService {
   private isEnabled: boolean = false;
   private permission: NotificationPermission = 'default';
   private notificationHistory: NotificationOptions[] = [];
-  private duplicatePreventionTime = 5 * 60 * 1000; // 5분
   private maxHistorySize = 50; // 히스토리 크기 축소 (100 → 50)
 
   // 서버별 이전 상태 추적 (상태 변화 감지용)

@@ -7,8 +7,8 @@
  * - 저장소 키 분리로 충돌 방지
  */
 
-import { supabase } from '../supabase/client';
 import type { Session } from '@supabase/supabase-js';
+import { supabase } from '../supabase/client';
 
 // 통일된 키 접두사
 const AUTH_PREFIX = 'auth_';
@@ -92,7 +92,7 @@ export class AuthStateManager {
           user: githubUser,
           type: 'github',
           isAuthenticated: true,
-          sessionId: session.access_token?.substring(0, 8) + '...',
+          sessionId: `${session.access_token?.substring(0, 8)}...`,
         };
 
         this.setCachedState(state);
@@ -274,7 +274,7 @@ export class AuthStateManager {
             user: { ...user, provider: 'guest' },
             type: 'guest',
             isAuthenticated: true,
-            sessionId: sessionId.substring(0, 8) + '...',
+            sessionId: `${sessionId.substring(0, 8)}...`,
           };
         } catch (error) {
           console.warn('⚠️ 게스트 사용자 정보 파싱 실패:', error);
@@ -304,7 +304,7 @@ export class AuthStateManager {
           },
           type: 'guest',
           isAuthenticated: true,
-          sessionId: sessionId?.substring(0, 8) + '...',
+          sessionId: `${sessionId?.substring(0, 8)}...`,
         };
       }
     }

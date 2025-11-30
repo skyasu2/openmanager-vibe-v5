@@ -9,10 +9,10 @@
  * @date 2025-11-21
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import type { QueryEvent } from '@/lib/ai/metrics/AIMetricsCollector';
 import { AIMetricsCollector } from '@/lib/ai/metrics/AIMetricsCollector';
 import { ComplexityLevel } from '@/lib/ai/utils/QueryComplexityAnalyzer';
-import type { QueryEvent } from '@/lib/ai/metrics/AIMetricsCollector';
 
 // TODO: Fix path alias (@/) resolution in test environment
 // Tracked in improvement plan Task 1.3

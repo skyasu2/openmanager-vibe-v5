@@ -15,13 +15,13 @@
 
 import type {
   AIScenario,
-  GoogleAIPrompt,
-  PromptTemplate,
-  PromptParams,
-  ProviderContexts,
   ContextPriority,
-  RAGData,
+  GoogleAIPrompt,
   MLData,
+  PromptParams,
+  PromptTemplate,
+  ProviderContexts,
+  RAGData,
   RuleData,
 } from './types';
 
@@ -425,7 +425,7 @@ export class PromptBuilder {
     const targetLength = maxTokens * 4; // 토큰 → chars
     const truncated = userMessage.substring(0, targetLength);
 
-    return truncated + '\n\n...(컨텍스트 일부 생략됨)';
+    return `${truncated}\n\n...(컨텍스트 일부 생략됨)`;
   }
 
   /**

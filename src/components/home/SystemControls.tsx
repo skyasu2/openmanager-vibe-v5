@@ -1,15 +1,15 @@
 'use client';
 
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { useSystemStatus } from '@/hooks/useSystemStatus';
-import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { BarChart3, Bot, Loader2, LogIn, Play, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { memo, useMemo } from 'react';
 import {
   isGuestFullAccessEnabled,
   isGuestSystemStartEnabled,
 } from '@/config/guestMode';
-import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useMemo, memo } from 'react';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 interface SystemControlsProps {
   isGitHubUser: boolean;
@@ -30,7 +30,8 @@ const SystemControls = memo(function SystemControls({
 }: SystemControlsProps) {
   const router = useRouter();
   const { isSystemStarted } = useUnifiedAdminStore();
-  const { status: multiUserStatus, isLoading: statusLoading } = useSystemStatus();
+  const { status: multiUserStatus, isLoading: statusLoading } =
+    useSystemStatus();
   const permissions = useUserPermissions();
 
   const guestFullAccess = isGuestFullAccessEnabled();
@@ -109,9 +110,7 @@ const SystemControls = memo(function SystemControls({
                     className="absolute inset-0 overflow-hidden rounded-xl"
                     style={{ transformOrigin: 'left' }}
                   >
-                    <div
-                      className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40"
-                    />
+                    <div className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40" />
                   </div>
                 )}
                 <div className="relative z-10 flex items-center gap-3">
@@ -152,7 +151,8 @@ const SystemControls = memo(function SystemControls({
                 </h3>
                 <p className="mb-4 text-sm text-blue-100">
                   기본적으로 시스템 제어는 GitHub 사용자에게만 허용되지만,
-                  현재는 개발 편의성을 위해 게스트도 동일한 기능을 테스트 중입니다.
+                  현재는 개발 편의성을 위해 게스트도 동일한 기능을 테스트
+                  중입니다.
                 </p>
                 <p className="mb-4 text-xs text-blue-200/80">
                   💡 게스트 제한을 다시 적용하려면 환경 변수{' '}
@@ -191,7 +191,8 @@ const SystemControls = memo(function SystemControls({
             🎉 시스템이 성공적으로 시작되었습니다!
           </h2>
           <p className="mb-4 text-emerald-100">
-            모든 서비스가 정상 작동 중입니다. 대시보드에서 실시간 모니터링을 확인하세요.
+            모든 서비스가 정상 작동 중입니다. 대시보드에서 실시간 모니터링을
+            확인하세요.
           </p>
           <button
             onClick={onDashboardClick}
@@ -207,7 +208,8 @@ const SystemControls = memo(function SystemControls({
             시스템이 실행 중입니다
           </h3>
           <p className="mb-4 text-sm text-blue-100">
-            게스트 제한이 활성화된 경우 GitHub 로그인 후 대시보드에 접근할 수 있습니다.
+            게스트 제한이 활성화된 경우 GitHub 로그인 후 대시보드에 접근할 수
+            있습니다.
           </p>
           <button
             onClick={() => router.push('/login')}

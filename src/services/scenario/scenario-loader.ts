@@ -1,10 +1,10 @@
-import type { HourlyServerData, RawServerData } from '@/types/server-metrics';
-import { readCachedHourlyFile } from '@/utils/cache/file-cache';
-import { RealisticVariationGenerator } from '@/services/metrics/variation-generator';
 import {
   safeServerEnvironment,
   safeServerRole,
 } from '@/lib/utils/type-converters';
+import { RealisticVariationGenerator } from '@/services/metrics/variation-generator';
+import type { HourlyServerData, RawServerData } from '@/types/server-metrics';
+import { readCachedHourlyFile } from '@/utils/cache/file-cache';
 
 // Enhanced Server Metrics 인터페이스 (route.ts와 동기화 필요)
 export interface EnhancedServerMetrics {
@@ -292,7 +292,7 @@ function convertFixedRotationData(
       services: serverData.services || [],
       systemInfo: {
         os: serverData.os || 'Ubuntu 22.04 LTS',
-        uptime: Math.floor((serverData.uptime || 86400) / 3600) + 'h',
+        uptime: `${Math.floor((serverData.uptime || 86400) / 3600)}h`,
         processes: (serverData.processes || 120) + Math.floor(serverOffset),
         zombieProcesses:
           serverData.status === 'critical'

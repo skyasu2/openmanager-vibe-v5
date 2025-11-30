@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
 // framer-motion 제거 - CSS 애니메이션 사용
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
 // 🎯 Bundle-Safe Inline 매크로 - getSafe 함수들 (압축 방지)
 const getSafeArrayLength = (arr: unknown): number => {
   try {
@@ -13,7 +13,7 @@ const getSafeArrayLength = (arr: unknown): number => {
     const isArrayResult = Array.isArray(arr);
     if (!isArrayResult) return 0;
     if (!arr || !Array.isArray(arr)) return 0;
-    if (!Object.prototype.hasOwnProperty.call(arr, 'length')) return 0;
+    if (!Object.hasOwn(arr, 'length')) return 0;
 
     const lengthValue = (() => {
       try {
@@ -27,7 +27,7 @@ const getSafeArrayLength = (arr: unknown): number => {
       }
     })();
 
-    if (isNaN(lengthValue) || lengthValue < 0) return 0;
+    if (Number.isNaN(lengthValue) || lengthValue < 0) return 0;
     return Math.floor(lengthValue);
   } catch (error) {
     console.error('🛡️ getSafeArrayLength Bundle-Safe error:', error);
@@ -295,7 +295,7 @@ export default function ServerMetricsLineChart({
     if (historyData) {
       setHistoricalData(convertHistoryData(historyData));
     }
-  }, [historyData, type, convertHistoryData]);
+  }, [historyData, convertHistoryData]);
 
   const config = getMetricConfig(value, type, serverStatus);
 
@@ -541,7 +541,7 @@ export default function ServerMetricsLineChart({
                     d &&
                     typeof d === 'object' &&
                     typeof d.value === 'number' &&
-                    !isNaN(d.value)
+                    !Number.isNaN(d.value)
                 )
                 .map((d) => d.value);
 
@@ -558,7 +558,7 @@ export default function ServerMetricsLineChart({
                 if (!point || typeof point !== 'object') return null;
                 if (typeof point.x !== 'number' || typeof point.y !== 'number')
                   return null;
-                if (isNaN(point.x) || isNaN(point.y)) return null;
+                if (Number.isNaN(point.x) || Number.isNaN(point.y)) return null;
 
                 // 🛡️ 배열 경계 검사 및 안전한 접근
                 const isValidIndex =
@@ -582,7 +582,7 @@ export default function ServerMetricsLineChart({
                   if (!dataPoint || typeof dataPoint !== 'object') return 0;
                   if (
                     typeof dataPoint.value !== 'number' ||
-                    isNaN(dataPoint.value)
+                    Number.isNaN(dataPoint.value)
                   )
                     return 0;
                   return dataPoint.value;
@@ -659,7 +659,8 @@ export default function ServerMetricsLineChart({
               typeof lastPoint.y !== 'number'
             )
               return null;
-            if (isNaN(lastPoint.x) || isNaN(lastPoint.y)) return null;
+            if (Number.isNaN(lastPoint.x) || Number.isNaN(lastPoint.y))
+              return null;
 
             return (
               <circle

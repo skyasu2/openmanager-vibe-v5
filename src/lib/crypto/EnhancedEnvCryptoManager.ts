@@ -7,7 +7,7 @@
  * - Vercel 배포 환경 최적화
  */
 
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 
 export interface EncryptedEnvData {
   encrypted: string;
@@ -33,7 +33,6 @@ export class EnhancedEnvCryptoManager {
   private readonly KEY_LENGTH = 32;
   private readonly SALT_LENGTH = 32;
   private readonly IV_LENGTH = 16;
-  private readonly TAG_LENGTH = 16;
   private readonly PBKDF2_ITERATIONS = 100000;
   private readonly VERSION = '2.0';
 
@@ -78,7 +77,7 @@ export class EnhancedEnvCryptoManager {
    * 환경변수 암호화
    */
   encryptVariable(
-    key: string,
+    _key: string,
     value: string,
     password?: string
   ): EncryptedEnvData {

@@ -5,13 +5,13 @@
  */
 
 import { NextResponse } from 'next/server';
-import { getGoogleAIModel } from '@/lib/ai/google-ai-client'; // getGoogleAIModel now includes fallback logic
 import type { GoogleAIStatus } from '@/hooks/api/useGoogleAIStatus';
-import debug from '@/utils/debug';
+import { getGoogleAIModel } from '@/lib/ai/google-ai-client'; // getGoogleAIModel now includes fallback logic
 import googleAIManager, {
   getGoogleAIKey,
   getGoogleAISecondaryKey,
 } from '@/lib/ai/google-ai-manager';
+import debug from '@/utils/debug';
 
 // 🛡️ 기본 Google AI 상태 (fallback)
 const getDefaultGoogleAIStatus = (): GoogleAIStatus => ({

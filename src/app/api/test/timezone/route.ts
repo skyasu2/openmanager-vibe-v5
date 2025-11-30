@@ -5,8 +5,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { MockContextLoader } from '../../../../services/ai/MockContextLoader';
 import { developmentOnly } from '../../../../lib/api/development-only';
+import { MockContextLoader } from '../../../../services/ai/MockContextLoader';
 
 // Helper to get current simulated hour (KST)
 function getCurrentSimulatedHour(): number {

@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 // 🔄 타이머 설정 인터페이스
 interface TimerConfig {
@@ -40,7 +40,7 @@ class TimerManager {
       void (async () => {
         try {
           const timerInfo = this.timers.get(config.id);
-          if (timerInfo && timerInfo.enabled && !this.isDestroyed) {
+          if (timerInfo?.enabled && !this.isDestroyed) {
             await config.callback();
             timerInfo.runCount++;
           }

@@ -217,7 +217,7 @@ export default function ServerMetricsBarChart({
 
         {/* 시간 라벨 */}
         <div className="mt-2 flex justify-between px-1 text-xs text-gray-400">
-          {historicalData.map((dataPoint, index) => (
+          {historicalData.map((_dataPoint, index) => (
             <span
               key={index}
               className={`flex-1 text-center font-medium ${

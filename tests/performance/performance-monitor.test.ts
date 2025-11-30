@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { performanceMonitor, measurePerformance } from '@/lib/monitoring/performance-monitor';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { performanceMonitor } from '@/lib/monitoring/performance-monitor';
 
 describe('PerformanceMonitor', () => {
   beforeEach(() => {
@@ -27,7 +27,7 @@ describe('PerformanceMonitor', () => {
       const durations = [100, 200, 300];
 
       // When
-      durations.forEach(duration => {
+      durations.forEach((duration) => {
         performanceMonitor.recordQueryTime(queryType, duration);
       });
 
@@ -88,7 +88,7 @@ describe('PerformanceMonitor', () => {
 
       // Then
       expect(report.timestamp).toBeDefined();
-      expect(report.queries['SELECT_USER']).toEqual({
+      expect(report.queries.SELECT_USER).toEqual({
         avg: 150,
         count: 2,
         p95: 200,
@@ -197,16 +197,16 @@ describe('PerformanceMonitor', () => {
       // Given - 데코레이터를 수동으로 적용
       class TestService {
         async fetchData() {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
           return { success: true };
         }
       }
 
       const service = new TestService();
-      
+
       // 데코레이터 동작을 수동으로 구현
       const originalMethod = service.fetchData.bind(service);
-      service.fetchData = async function(...args: unknown[]) {
+      service.fetchData = async (...args: unknown[]) => {
         const start = Date.now();
         try {
           const result = await originalMethod(...args);
@@ -215,7 +215,9 @@ describe('PerformanceMonitor', () => {
           return result;
         } catch (error) {
           const duration = Date.now() - start;
-          performanceMonitor.recordQueryTime('TEST_QUERY', duration, { error: true });
+          performanceMonitor.recordQueryTime('TEST_QUERY', duration, {
+            error: true,
+          });
           throw error;
         }
       };
@@ -234,16 +236,16 @@ describe('PerformanceMonitor', () => {
       // Given - 데코레이터를 수동으로 적용
       class TestService {
         async failingMethod() {
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise((resolve) => setTimeout(resolve, 50));
           throw new Error('Test error');
         }
       }
 
       const service = new TestService();
-      
+
       // 데코레이터 동작을 수동으로 구현
       const originalMethod = service.failingMethod.bind(service);
-      service.failingMethod = async function(...args: unknown[]) {
+      service.failingMethod = async (...args: unknown[]) => {
         const start = Date.now();
         try {
           const result = await originalMethod(...args);
@@ -252,17 +254,19 @@ describe('PerformanceMonitor', () => {
           return result;
         } catch (error) {
           const duration = Date.now() - start;
-          performanceMonitor.recordApiLatency('ERROR_ENDPOINT', duration, { error: true });
+          performanceMonitor.recordApiLatency('ERROR_ENDPOINT', duration, {
+            error: true,
+          });
           throw error;
         }
       };
 
       // When/Then
       await expect(service.failingMethod()).rejects.toThrow('Test error');
-      
+
       const report = performanceMonitor.generateReport();
-      expect(report.apis['ERROR_ENDPOINT']).toBeDefined();
-      expect(report.apis['ERROR_ENDPOINT'].count).toBe(1);
+      expect(report.apis.ERROR_ENDPOINT).toBeDefined();
+      expect(report.apis.ERROR_ENDPOINT.count).toBe(1);
     });
   });
 });

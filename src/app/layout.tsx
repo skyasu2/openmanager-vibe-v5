@@ -1,13 +1,13 @@
-import { ClientProviders } from '@/components/providers/ClientProviders';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import type { ReactNode } from 'react';
+import { ClientProviders } from '@/components/providers/ClientProviders';
 import './globals.css';
-import { EmergencyBanner } from '@/components/emergency/EmergencyBanner';
 import { AuthTokenHandler } from '@/components/auth/AuthTokenHandler';
+import { EmergencyBanner } from '@/components/emergency/EmergencyBanner';
+import { CSRFTokenProvider } from '@/components/security/CSRFTokenProvider';
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 import { Toaster } from '@/components/ui/toaster';
-import { CSRFTokenProvider } from '@/components/security/CSRFTokenProvider';
 
 // Vercel Analytics & Speed Insights (무료 티어 최적화 - 비활성화)
 // import { SpeedInsights } from '@vercel/speed-insights/next';

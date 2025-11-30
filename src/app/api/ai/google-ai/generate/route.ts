@@ -7,19 +7,19 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { getGoogleAIModel } from '@/lib/ai/google-ai-client';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import { withAuth } from '@/lib/auth/api-auth';
 import {
-  GoogleAIGenerateRequestSchema,
-  GoogleAIGenerateResponseSchema,
-  GoogleAIStatusResponseSchema,
-  type GoogleAIGenerateResponse,
-  type GoogleAIStatusResponse,
   type GoogleAIErrorResponse,
+  GoogleAIGenerateRequestSchema,
+  type GoogleAIGenerateResponse,
+  GoogleAIGenerateResponseSchema,
+  type GoogleAIStatusResponse,
+  GoogleAIStatusResponseSchema,
 } from '@/schemas/api.schema';
-import { getErrorMessage } from '@/types/type-utils';
-import { getGoogleAIModel } from '@/lib/ai/google-ai-client';
 import { MockContextLoader } from '@/services/ai/MockContextLoader';
+import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
@@ -27,57 +27,121 @@ export const runtime = 'nodejs';
 // 지능적 컨텍스트 결정을 위한 질의 분석 시스템
 interface QueryAnalysis {
   needsServerData: boolean;
-  category: 'greeting' | 'server_status' | 'performance' | 'troubleshooting' | 'general' | 'thanks';
+  category:
+    | 'greeting'
+    | 'server_status'
+    | 'performance'
+    | 'troubleshooting'
+    | 'general'
+    | 'thanks';
   confidence: number;
 }
 
 // 향상된 질의 분석 함수
 function analyzeQuery(query: string): QueryAnalysis {
   const lowerQuery = query.toLowerCase().trim();
-  
+
   // 인사말 패턴
-  const greetingPatterns = ['안녕', 'hello', 'hi', '안녕하세요', '좋은', '반가워'];
-  if (greetingPatterns.some(pattern => lowerQuery.includes(pattern))) {
+  const greetingPatterns = [
+    '안녕',
+    'hello',
+    'hi',
+    '안녕하세요',
+    '좋은',
+    '반가워',
+  ];
+  if (greetingPatterns.some((pattern) => lowerQuery.includes(pattern))) {
     return { needsServerData: false, category: 'greeting', confidence: 0.9 };
   }
-  
+
   // 감사 인사 패턴
   const thanksPatterns = ['감사', 'thank', '고마워', '도움'];
-  if (thanksPatterns.some(pattern => lowerQuery.includes(pattern)) && lowerQuery.length < 50) {
+  if (
+    thanksPatterns.some((pattern) => lowerQuery.includes(pattern)) &&
+    lowerQuery.length < 50
+  ) {
     return { needsServerData: false, category: 'thanks', confidence: 0.9 };
   }
-  
+
   // 서버 상태 관련 키워드 (강화된 패턴)
   const serverKeywords = ['서버', 'server', '시스템', 'system'];
-  const statusKeywords = ['상태', 'status', '현재', 'current', '어떤', 'how', '확인', 'check', '모니터링', 'monitoring'];
-  const performanceKeywords = ['cpu', 'memory', 'disk', '메모리', '디스크', '성능', 'performance', '사용률', 'usage'];
-  const troubleshootingKeywords = ['문제', 'problem', 'error', '에러', '장애', 'issue', '경고', 'warning', '알림', 'alert'];
-  
-  const hasServerKeyword = serverKeywords.some(keyword => lowerQuery.includes(keyword));
-  const hasStatusKeyword = statusKeywords.some(keyword => lowerQuery.includes(keyword));
-  const hasPerformanceKeyword = performanceKeywords.some(keyword => lowerQuery.includes(keyword));
-  const hasTroubleshootingKeyword = troubleshootingKeywords.some(keyword => lowerQuery.includes(keyword));
-  
+  const statusKeywords = [
+    '상태',
+    'status',
+    '현재',
+    'current',
+    '어떤',
+    'how',
+    '확인',
+    'check',
+    '모니터링',
+    'monitoring',
+  ];
+  const performanceKeywords = [
+    'cpu',
+    'memory',
+    'disk',
+    '메모리',
+    '디스크',
+    '성능',
+    'performance',
+    '사용률',
+    'usage',
+  ];
+  const troubleshootingKeywords = [
+    '문제',
+    'problem',
+    'error',
+    '에러',
+    '장애',
+    'issue',
+    '경고',
+    'warning',
+    '알림',
+    'alert',
+  ];
+
+  const hasServerKeyword = serverKeywords.some((keyword) =>
+    lowerQuery.includes(keyword)
+  );
+  const hasStatusKeyword = statusKeywords.some((keyword) =>
+    lowerQuery.includes(keyword)
+  );
+  const hasPerformanceKeyword = performanceKeywords.some((keyword) =>
+    lowerQuery.includes(keyword)
+  );
+  const hasTroubleshootingKeyword = troubleshootingKeywords.some((keyword) =>
+    lowerQuery.includes(keyword)
+  );
+
   // 서버 상태 쿼리 판단
   if (hasServerKeyword && hasStatusKeyword) {
-    return { needsServerData: true, category: 'server_status', confidence: 0.95 };
+    return {
+      needsServerData: true,
+      category: 'server_status',
+      confidence: 0.95,
+    };
   }
-  
+
   // 성능 관련 쿼리
   if (hasPerformanceKeyword || (hasServerKeyword && hasPerformanceKeyword)) {
     return { needsServerData: true, category: 'performance', confidence: 0.9 };
   }
-  
+
   // 트러블슈팅 관련 쿼리
   if (hasTroubleshootingKeyword) {
-    return { needsServerData: true, category: 'troubleshooting', confidence: 0.85 };
+    return {
+      needsServerData: true,
+      category: 'troubleshooting',
+      confidence: 0.85,
+    };
   }
-  
+
   // 특정 서버 리소스 언급
   if (hasPerformanceKeyword) {
     return { needsServerData: true, category: 'performance', confidence: 0.8 };
   }
-  
+
   // 기본값: 일반적인 질문
   return { needsServerData: false, category: 'general', confidence: 0.6 };
 }
@@ -88,12 +152,15 @@ function _isServerStatusQuery(query: string): boolean {
 }
 
 // 지능적 컨텍스트를 포함한 프롬프트 생성
-function buildEnhancedPrompt(originalPrompt: string): { prompt: string; analysis: QueryAnalysis } {
+function buildEnhancedPrompt(originalPrompt: string): {
+  prompt: string;
+  analysis: QueryAnalysis;
+} {
   const analysis = analyzeQuery(originalPrompt);
   const mockContextLoader = MockContextLoader.getInstance();
-  
+
   const mockContext = mockContextLoader.getMockContext();
-  
+
   // 프로덕션에서는 간소화된 로깅
   if (process.env.NODE_ENV === 'development') {
     debug.log('🔍 질의 분석:', {
@@ -101,7 +168,7 @@ function buildEnhancedPrompt(originalPrompt: string): { prompt: string; analysis
       category: analysis.category,
       confidence: analysis.confidence,
       mockContextAvailable: !!mockContext,
-      serverCount: mockContext?.servers?.length || 0
+      serverCount: mockContext?.servers?.length || 0,
     });
   } else {
     // 프로덕션에서는 중요한 정보만 로깅
@@ -109,7 +176,7 @@ function buildEnhancedPrompt(originalPrompt: string): { prompt: string; analysis
       debug.warn('MockContext가 null입니다', { category: analysis.category });
     }
   }
-  
+
   // 서버 데이터가 필요하지 않은 경우
   if (!analysis.needsServerData || !mockContext) {
     if (analysis.needsServerData && !mockContext) {
@@ -117,15 +184,17 @@ function buildEnhancedPrompt(originalPrompt: string): { prompt: string; analysis
         needsServerData: analysis.needsServerData,
         mockContext: !!mockContext,
         category: analysis.category,
-        confidence: analysis.confidence
+        confidence: analysis.confidence,
       });
     } else {
       debug.log('ℹ️ Mock 데이터 사용하지 않음:', {
-        reason: !analysis.needsServerData ? 'needsServerData=false' : 'mockContext=null'
+        reason: !analysis.needsServerData
+          ? 'needsServerData=false'
+          : 'mockContext=null',
       });
     }
     let contextualPrompt = originalPrompt;
-    
+
     // 카테고리별 컨텍스트 추가
     switch (analysis.category) {
       case 'greeting':
@@ -138,17 +207,17 @@ function buildEnhancedPrompt(originalPrompt: string): { prompt: string; analysis
         contextualPrompt = `${originalPrompt}\n\n일반적인 질문에 대해 도움을 드리겠습니다. 만약 서버나 시스템 관련 정보가 필요하시면 구체적으로 말씀해 주세요.`;
         break;
     }
-    
+
     return { prompt: contextualPrompt, analysis };
   }
 
   // 실시간 서버 데이터만 제공 (시나리오 정보 제거)
   let enhancedPrompt = `사용자 질문: ${originalPrompt}\n\n`;
-  
+
   // 순수한 실시간 서버 메트릭만 제공
   enhancedPrompt += `📊 현재 실시간 서버 상태:\n`;
   enhancedPrompt += `⏰ 현재 시각: ${mockContext.currentTime}\n`;
-  
+
   enhancedPrompt += `📈 전체 서버 메트릭:\n`;
   enhancedPrompt += `- 전체 서버: ${mockContext.metrics.serverCount}대\n`;
   enhancedPrompt += `- 위험 상태: ${mockContext.metrics.criticalCount}대\n`;
@@ -157,12 +226,12 @@ function buildEnhancedPrompt(originalPrompt: string): { prompt: string; analysis
   enhancedPrompt += `- 평균 CPU: ${mockContext.metrics.avgCpu}%\n`;
   enhancedPrompt += `- 평균 메모리: ${mockContext.metrics.avgMemory}%\n`;
   enhancedPrompt += `- 평균 디스크: ${mockContext.metrics.avgDisk}%\n\n`;
-  
+
   enhancedPrompt += `📊 트렌드 분석:\n`;
   enhancedPrompt += `- CPU 트렌드: ${mockContext.trends.cpuTrend}\n`;
   enhancedPrompt += `- 메모리 트렌드: ${mockContext.trends.memoryTrend}\n`;
   enhancedPrompt += `- 알림 트렌드: ${mockContext.trends.alertTrend}\n\n`;
-  
+
   // 개별 서버 상세 정보 (상위 5개만)
   if (mockContext.servers.length > 0) {
     enhancedPrompt += `🖥️ 주요 서버 상세 정보:\n`;
@@ -173,9 +242,9 @@ function buildEnhancedPrompt(originalPrompt: string): { prompt: string; analysis
       enhancedPrompt += `   - 응답시간: ${server.responseTime || 'N/A'}ms\n\n`;
     });
   }
-  
+
   enhancedPrompt += `\n위의 실시간 서버 데이터를 객관적으로 분석하여 사용자의 질문에 답변해주세요. 데이터에서 관찰되는 패턴이나 이상 징후가 있다면 설명해주세요.`;
-  
+
   return { prompt: enhancedPrompt, analysis };
 }
 
@@ -191,36 +260,37 @@ const postHandler = createApiRoute()
     // 🔒 AI Assistant 전용 접근 제어
     const aiAssistantHeader = request.headers.get('X-AI-Assistant');
     const userAgent = request.headers.get('User-Agent') || '';
-    const isDiagnosticMode = request.headers.get('X-Diagnostic-Mode') === 'true';
-    
+    const isDiagnosticMode =
+      request.headers.get('X-Diagnostic-Mode') === 'true';
+
     // AI 어시스턴트에서 Google AI 모드로 호출된 경우만 허용
-    const isValidAIAssistant = 
+    const isValidAIAssistant =
       aiAssistantHeader === 'true' ||
       userAgent.includes('AI-Assistant') ||
       isDiagnosticMode; // 진단 모드 허용
-      
+
     if (!isValidAIAssistant) {
       debug.warn('❌ Google AI API 무단 접근 시도 차단됨', {
         aiAssistant: aiAssistantHeader,
         userAgent: userAgent.substring(0, 50),
-        diagnostic: isDiagnosticMode
+        diagnostic: isDiagnosticMode,
       });
-      
+
       // 구체적인 에러 메시지로 개선
       const errorDetails = {
         message: 'AI Assistant 전용 API 접근이 거부되었습니다.',
         requiredHeaders: [
           'X-AI-Assistant: true',
           'User-Agent containing AI-Assistant',
-          'X-Diagnostic-Mode: true (테스트용)'
+          'X-Diagnostic-Mode: true (테스트용)',
         ],
         currentHeaders: {
           'X-AI-Assistant': aiAssistantHeader,
           'User-Agent': userAgent.substring(0, 50),
-          'X-Diagnostic-Mode': isDiagnosticMode
-        }
+          'X-Diagnostic-Mode': isDiagnosticMode,
+        },
       };
-      
+
       throw new Error(JSON.stringify(errorDetails));
     }
 
@@ -232,8 +302,10 @@ const postHandler = createApiRoute()
 
     // 🚀 지능적 컨텍스트 결정을 통한 향상된 프롬프트 생성
     const { prompt: enhancedPrompt, analysis } = buildEnhancedPrompt(prompt);
-    
-    debug.log(`🎯 질의 분석 완료 - 카테고리: ${analysis.category}, 서버 데이터 필요: ${analysis.needsServerData}, 신뢰도: ${analysis.confidence}`);
+
+    debug.log(
+      `🎯 질의 분석 완료 - 카테고리: ${analysis.category}, 서버 데이터 필요: ${analysis.needsServerData}, 신뢰도: ${analysis.confidence}`
+    );
 
     // Google AI 모델 가져오기
     const generativeModel = getGoogleAIModel(model || 'gemini-1.5-flash');
@@ -310,7 +382,8 @@ export const POST = withAuth(async (request: NextRequest) => {
           {
             success: false,
             error: 'Access denied',
-            message: 'AI Assistant 전용 API 접근이 거부되었습니다. 필요한 헤더를 포함하여 다시 시도하세요.',
+            message:
+              'AI Assistant 전용 API 접근이 거부되었습니다. 필요한 헤더를 포함하여 다시 시도하세요.',
             timestamp: new Date().toISOString(),
           } satisfies GoogleAIErrorResponse,
           { status: 403 }
@@ -324,7 +397,8 @@ export const POST = withAuth(async (request: NextRequest) => {
         {
           success: false,
           error: 'API key not configured',
-          message: 'Google AI API 키가 설정되지 않았습니다. 환경변수를 확인하세요.',
+          message:
+            'Google AI API 키가 설정되지 않았습니다. 환경변수를 확인하세요.',
           timestamp: new Date().toISOString(),
         } satisfies GoogleAIErrorResponse,
         { status: 503 }

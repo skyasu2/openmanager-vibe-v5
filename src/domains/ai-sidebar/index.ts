@@ -5,33 +5,31 @@
 
 // Hooks
 export {
-  useAIThinking,
-  useAIEngine,
-  type UseAIThinkingReturn,
-  type UseAIEngineReturn,
   type CompletedThinking,
+  type UseAIEngineReturn,
+  type UseAIThinkingReturn,
+  useAIEngine,
+  useAIThinking,
 } from './hooks';
-
-// Utils
-export {
-  processRealAIQuery,
-  generateAutoReport,
-  handlePresetQuestion,
-  detectAutoReportTrigger,
-  type AIQueryResult,
-  type AutoReportTrigger as AutoReportTriggerType,
-} from './utils';
-
 // Types
 export type {
-  ThinkingStep,
-  AIResponse,
-  SessionInfo,
-  AISidebarState,
-  ChatMessage,
-  AutoReportTrigger,
   AIEngineInfo,
-  AISidebarProps,
+  AIResponse,
   AISidebarHandlers,
+  AISidebarProps,
+  AISidebarState,
+  AutoReportTrigger,
+  ChatMessage,
+  SessionInfo,
+  ThinkingStep,
   UseAISidebarReturn,
 } from './types';
+// Utils
+export {
+  type AIQueryResult,
+  type AutoReportTrigger as AutoReportTriggerType,
+  detectAutoReportTrigger,
+  generateAutoReport,
+  handlePresetQuestion,
+  processRealAIQuery,
+} from './utils';

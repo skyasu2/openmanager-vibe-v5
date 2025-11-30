@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 /**
  * 시스템 상태 배지 Props
@@ -35,7 +35,7 @@ interface SystemStatusBadgeProps {
 export const SystemStatusBadge = memo(function SystemStatusBadge({
   isActive,
   remainingTimeFormatted,
-  remainingTime
+  remainingTime,
 }: SystemStatusBadgeProps) {
   // 시스템 활성 상태이고 남은 시간이 있는 경우
   if (isActive && remainingTimeFormatted) {
@@ -63,9 +63,7 @@ export const SystemStatusBadge = memo(function SystemStatusBadge({
     return (
       <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-1">
         <div className="h-2 w-2 rounded-full bg-gray-400" />
-        <span className="text-sm font-medium text-gray-600">
-          시스템 종료됨
-        </span>
+        <span className="text-sm font-medium text-gray-600">시스템 종료됨</span>
       </div>
     );
   }

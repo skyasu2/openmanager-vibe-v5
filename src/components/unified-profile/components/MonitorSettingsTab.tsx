@@ -61,7 +61,9 @@ export function MonitorSettingsTab({
 
           <div className="grid grid-cols-1 gap-3">
             <button
-              onClick={() => { void onMonitorCheck(); }}
+              onClick={() => {
+                void onMonitorCheck();
+              }}
               className="rounded-lg border border-cyan-500/30 bg-cyan-500/20 px-4 py-3 text-sm font-medium text-cyan-300 transition-colors hover:bg-cyan-500/30"
             >
               <div className="flex flex-col items-center gap-1">

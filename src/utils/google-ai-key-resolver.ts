@@ -32,7 +32,7 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
 
     // 1. 환경변수 평문 키 확인
     const envKey = process.env.GOOGLE_AI_API_KEY;
-    if (envKey && envKey.startsWith('AIza')) {
+    if (envKey?.startsWith('AIza')) {
       console.log('✅ 환경변수 평문 키 발견');
       return {
         success: true,
@@ -66,7 +66,7 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
           encryptedData,
           envPassword
         );
-        if (decryptedKey && decryptedKey.startsWith('AIza')) {
+        if (decryptedKey?.startsWith('AIza')) {
           console.log('✅ 환경변수 암호화된 키 복호화 성공');
           return {
             success: true,
@@ -100,7 +100,7 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
           encryptedData,
           envPassword
         );
-        if (decryptedKey && decryptedKey.startsWith('AIza')) {
+        if (decryptedKey?.startsWith('AIza')) {
           console.log(`✅ 팀 설정 복호화 성공`);
           return {
             success: true,
@@ -143,7 +143,7 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
 export function getGoogleAIKey(): string | null {
   // 환경변수 평문 키 우선 확인
   const envKey = process.env.GOOGLE_AI_API_KEY;
-  if (envKey && envKey.startsWith('AIza')) {
+  if (envKey?.startsWith('AIza')) {
     return envKey;
   }
 
@@ -165,18 +165,13 @@ export function checkGoogleAIKeyStatus(): {
   isProduction: boolean;
 } {
   return {
-    hasEnvKey: !!(
-      process.env.GOOGLE_AI_API_KEY &&
-      process.env.GOOGLE_AI_API_KEY.startsWith('AIza')
-    ),
+    hasEnvKey: !!process.env.GOOGLE_AI_API_KEY?.startsWith('AIza'),
     hasEncryptedEnvKey: !!(
       process.env.GOOGLE_AI_ENCRYPTED_KEY &&
       process.env.GOOGLE_AI_ENCRYPTED_SALT &&
       process.env.GOOGLE_AI_ENCRYPTED_IV
     ),
-    hasTeamConfig: !!(
-      ENCRYPTED_GOOGLE_AI_CONFIG && ENCRYPTED_GOOGLE_AI_CONFIG.encryptedKey
-    ),
+    hasTeamConfig: !!ENCRYPTED_GOOGLE_AI_CONFIG?.encryptedKey,
     isProduction: process.env.NODE_ENV === 'production',
   };
 }

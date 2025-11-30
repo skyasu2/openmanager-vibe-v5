@@ -10,16 +10,16 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import { createClient } from '@/lib/supabase/server';
 import {
-  AuthTestResponseSchema,
+  type AuthDiagnostics,
   AuthDiagnosticsRequestSchema,
+  type AuthDiagnosticsResponse,
   AuthDiagnosticsResponseSchema,
   type AuthTestResponse,
+  AuthTestResponseSchema,
   type AuthTestResult,
-  type AuthDiagnostics,
-  type AuthDiagnosticsResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';

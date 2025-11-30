@@ -11,21 +11,21 @@
 
 // 통합 캐시에서 모든 기능을 재export
 export {
-  getCachedData,
-  setCachedData,
+  CacheNamespace,
   cacheOrFetch,
-  invalidateCache,
-  getCacheStats,
   createCachedResponse,
+  getCachedData,
+  getCacheStats,
+  invalidateCache,
+  setCachedData,
   UnifiedCacheService,
   unifiedCache,
-  CacheNamespace,
 } from './unified-cache';
 
 // 추가 호환성 함수들
 import {
-  UnifiedCacheService,
   CacheNamespace,
+  UnifiedCacheService,
   unifiedCache,
 } from './unified-cache';
 

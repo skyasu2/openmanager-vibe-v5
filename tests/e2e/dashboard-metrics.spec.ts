@@ -2,7 +2,7 @@
  * 대시보드 서버 메트릭 업데이트 테스트
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { guestLogin } from './helpers/guest';
 
 test.describe('대시보드 메트릭 업데이트 테스트', () => {
@@ -21,9 +21,13 @@ test.describe('대시보드 메트릭 업데이트 테스트', () => {
   });
 
   test('새로고침 버튼 존재 확인', async ({ page }) => {
-    const refreshButton = page.locator('button:has-text("새로고침"), button:has-text("Refresh"), button[aria-label*="새로고침"]').first();
+    const refreshButton = page
+      .locator(
+        'button:has-text("새로고침"), button:has-text("Refresh"), button[aria-label*="새로고침"]'
+      )
+      .first();
 
-    if (await refreshButton.count() > 0) {
+    if ((await refreshButton.count()) > 0) {
       await expect(refreshButton).toBeVisible();
     }
   });

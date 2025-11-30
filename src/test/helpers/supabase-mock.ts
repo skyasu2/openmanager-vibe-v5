@@ -115,32 +115,65 @@ export class SupabaseMockBuilder<T = unknown> {
 
     // 체인 가능한 메서드들
     const chainableMethods = [
-      'select', 'insert', 'upsert', 'update', 'delete',
-      'eq', 'neq', 'gt', 'gte', 'lt', 'lte',
-      'like', 'ilike', 'is', 'in', 'contains', 'containedBy',
-      'rangeGt', 'rangeGte', 'rangeLt', 'rangeLte', 'rangeAdjacent',
-      'overlaps', 'textSearch', 'match', 'not', 'or', 'filter',
-      'order', 'limit', 'range', 'returns'
+      'select',
+      'insert',
+      'upsert',
+      'update',
+      'delete',
+      'eq',
+      'neq',
+      'gt',
+      'gte',
+      'lt',
+      'lte',
+      'like',
+      'ilike',
+      'is',
+      'in',
+      'contains',
+      'containedBy',
+      'rangeGt',
+      'rangeGte',
+      'rangeLt',
+      'rangeLte',
+      'rangeAdjacent',
+      'overlaps',
+      'textSearch',
+      'match',
+      'not',
+      'or',
+      'filter',
+      'order',
+      'limit',
+      'range',
+      'returns',
     ];
 
     // 종료 메서드들
     const terminalMethods = [
-      'single', 'maybeSingle', 'csv', 'geojson', 'explain', 'rollback'
+      'single',
+      'maybeSingle',
+      'csv',
+      'geojson',
+      'explain',
+      'rollback',
     ];
 
     const mockBuilder: Partial<MockQueryBuilder> = {};
 
     // 체인 가능한 메서드들 - this 반환
-    chainableMethods.forEach(method => {
-      mockBuilder[method as keyof MockQueryBuilder] = vi.fn().mockReturnValue(mockBuilder);
+    chainableMethods.forEach((method) => {
+      mockBuilder[method as keyof MockQueryBuilder] = vi
+        .fn()
+        .mockReturnValue(mockBuilder);
     });
 
     // 종료 메서드들 - Promise 반환
-    terminalMethods.forEach(method => {
+    terminalMethods.forEach((method) => {
       const customResponse = this.customResponses.get(method);
-      mockBuilder[method as keyof MockQueryBuilder] = vi.fn().mockResolvedValue(
-        customResponse || defaultResponse
-      );
+      mockBuilder[method as keyof MockQueryBuilder] = vi
+        .fn()
+        .mockResolvedValue(customResponse || defaultResponse);
     });
 
     // then 메서드 - Promise 체인용
@@ -153,10 +186,7 @@ export class SupabaseMockBuilder<T = unknown> {
    * 기본 설정으로 Mock 생성
    */
   static createDefault(): MockQueryBuilder {
-    return new SupabaseMockBuilder()
-      .withData([])
-      .withError(null)
-      .build();
+    return new SupabaseMockBuilder().withData([]).withError(null).build();
   }
 
   /**
@@ -199,7 +229,9 @@ export class SupabaseMockBuilder<T = unknown> {
  * 완전한 Supabase 클라이언트 Mock
  */
 export function createSupabaseMock(builder?: SupabaseMockBuilder) {
-  const queryBuilder = builder ? builder.build() : SupabaseMockBuilder.createDefault();
+  const queryBuilder = builder
+    ? builder.build()
+    : SupabaseMockBuilder.createDefault();
 
   return {
     supabase: {
@@ -214,8 +246,12 @@ export function createSupabaseMock(builder?: SupabaseMockBuilder) {
         })),
       },
       auth: {
-        getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-        getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+        getUser: vi
+          .fn()
+          .mockResolvedValue({ data: { user: null }, error: null }),
+        getSession: vi
+          .fn()
+          .mockResolvedValue({ data: { session: null }, error: null }),
         signIn: vi.fn().mockResolvedValue({ data: null, error: null }),
         signOut: vi.fn().mockResolvedValue({ error: null }),
       },
@@ -253,7 +289,7 @@ export const TestUtils = {
    * Mock 함수 호출 횟수 초기화
    */
   resetMocks: (mocks: unknown[]) => {
-    mocks.forEach(mock => {
+    mocks.forEach((mock) => {
       if (mock && typeof mock.mockClear === 'function') {
         mock.mockClear();
       }
@@ -263,7 +299,7 @@ export const TestUtils = {
   /**
    * 비동기 테스트 대기
    */
-  waitFor: (ms: number) => new Promise(resolve => setTimeout(resolve, ms)),
+  waitFor: (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
 
   /**
    * Mock 응답 검증

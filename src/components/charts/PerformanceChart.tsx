@@ -1,10 +1,10 @@
 import { memo } from 'react';
 import {
-  PieChart,
-  Pie,
   Cell,
-  ResponsiveContainer,
   Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
   Tooltip,
 } from 'recharts';
 
@@ -63,7 +63,7 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          { }
+          {}
           <Pie
             data={data}
             cx="50%"

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PercentageSchema, IdSchema, TimestampSchema } from '../common.schema';
+import { IdSchema, PercentageSchema, TimestampSchema } from '../common.schema';
 
 /**
  * 📊 서버 메트릭 스키마

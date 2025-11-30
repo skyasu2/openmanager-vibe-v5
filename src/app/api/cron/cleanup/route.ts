@@ -1,9 +1,9 @@
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   MemoryMonitor,
   QuotaProtector,
 } from '@/config/free-tier-emergency-fix';
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 
 /**

@@ -17,18 +17,18 @@
  */
 
 import type {
-  GoogleGenerativeAI,
   GenerativeModel,
+  GoogleGenerativeAI,
 } from '@google/generative-ai';
 import { getGoogleAIClient } from '@/lib/ai/google-ai-client';
-import { getEnvironmentTimeouts } from '@/utils/timeout-config';
-import debug from '@/utils/debug';
 import {
+  checkGoogleAIRateLimit,
   getGoogleAIKey,
   getGoogleAISecondaryKey,
-  checkGoogleAIRateLimit,
   recordGoogleAIRequest,
 } from '@/lib/ai/google-ai-manager';
+import debug from '@/utils/debug';
+import { getEnvironmentTimeouts } from '@/utils/timeout-config';
 
 export interface DirectGoogleAIOptions {
   model: string;
@@ -61,10 +61,6 @@ export interface DirectGoogleAIResponse {
 export class DirectGoogleAIService {
   private genAI: GoogleGenerativeAI | null = null;
   private modelCache = new Map<string, GenerativeModel>();
-
-  constructor() {
-    // 초기화는 lazy loading으로 처리
-  }
 
   /**
    * 🔧 Google AI 클라이언트 초기화 (Lazy Loading + 안전 검증)

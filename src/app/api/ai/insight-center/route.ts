@@ -15,43 +15,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
-
+import {
+  assessScalability,
+  reviewArchitecture,
+} from './insight-center.architecture';
 // Import all modular components
 import {
-  calculateCodeHealth,
   analyzeCodeQuality,
   analyzeTechnicalDebt,
+  calculateCodeHealth,
   generateRefactoringSuggestions,
 } from './insight-center.code-quality';
-
 import {
-  identifyBottlenecks,
+  analyzeCloudMigration,
+  analyzeCosts,
+  optimizeResources,
+} from './insight-center.cost';
+import {
+  createRoadmap,
+  generateExecutiveSummary,
+} from './insight-center.executive';
+import {
   analyzeDatabasePerformance,
   generateNetworkOptimizations,
+  identifyBottlenecks,
 } from './insight-center.performance';
 
 import {
-  reviewArchitecture,
-  assessScalability,
-} from './insight-center.architecture';
-
-import { reviewTechStack } from './insight-center.technology';
-
-import {
-  analyzeCosts,
-  optimizeResources,
-  analyzeCloudMigration,
-} from './insight-center.cost';
-
-import {
-  performSecurityAudit,
   generateSecurityRecommendations,
+  performSecurityAudit,
 } from './insight-center.security';
-
-import {
-  generateExecutiveSummary,
-  createRoadmap,
-} from './insight-center.executive';
+import { reviewTechStack } from './insight-center.technology';
 
 export const runtime = 'nodejs';
 

@@ -18,17 +18,17 @@
  * - Code reuse maximized
  */
 
-// Import modular components
-import type {
-  TechItem,
-  TechCategory,
-  TechStackSummary,
-  TechAnalysisOptions,
-} from './TechStackAnalyzer.types';
 import {
   analyzeTechStack as analyzeStack,
   generateTechStackSummary as generateSummary,
 } from './TechStackAnalyzer.analyzer';
+// Import modular components
+import type {
+  TechAnalysisOptions,
+  TechCategory,
+  TechItem,
+  TechStackSummary,
+} from './TechStackAnalyzer.types';
 
 // Re-export types for backward compatibility
 export type { TechItem, TechCategory, TechStackSummary, TechAnalysisOptions };

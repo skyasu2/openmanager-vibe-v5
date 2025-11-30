@@ -10,8 +10,8 @@
  * - Redis 완전 제거, 메모리 기반 메트릭 수집
  */
 
+import * as os from 'node:os';
 import { memoryOptimizer } from '../utils/MemoryOptimizer';
-import * as os from 'os';
 
 interface PerformanceMetrics {
   timestamp: number;
@@ -122,10 +122,10 @@ export class PerformanceTester {
   }
 
   static getInstance(): PerformanceTester {
-    if (!this.instance) {
-      this.instance = new PerformanceTester();
+    if (!PerformanceTester.instance) {
+      PerformanceTester.instance = new PerformanceTester();
     }
-    return this.instance;
+    return PerformanceTester.instance;
   }
 
   /**
@@ -417,8 +417,7 @@ export class PerformanceTester {
     if (metrics.length > 0) {
       const recentMetric = metrics[metrics.length - 1];
       if (
-        recentMetric &&
-        recentMetric.systemMetrics &&
+        recentMetric?.systemMetrics &&
         recentMetric.systemMetrics.cpuUsage > 80
       ) {
         recommendations.push(

@@ -195,7 +195,8 @@ export async function GET(request: NextRequest) {
 
     const EMERGENCY_THROTTLE = process.env.EMERGENCY_THROTTLE === 'true';
     const MAX_REQUESTS_PER_MINUTE = parseInt(
-      process.env.MAX_STATUS_REQUESTS_PER_MINUTE || '60'
+      process.env.MAX_STATUS_REQUESTS_PER_MINUTE || '60',
+      10
     );
 
     if (EMERGENCY_THROTTLE) {
@@ -262,7 +263,7 @@ export async function GET(request: NextRequest) {
         const minimalResponse = {
           success: true,
           timestamp: now,
-          source: _context.source + '-minimal',
+          source: `${_context.source}-minimal`,
           state: {
             isRunning: false,
             startedBy: '',
@@ -288,7 +289,7 @@ export async function GET(request: NextRequest) {
           headers: {
             'Content-Type': 'application/json',
             'X-User-Id': userId,
-            'X-Request-Source': _context.source + '-minimal',
+            'X-Request-Source': `${_context.source}-minimal`,
             'Cache-Control': 'public, max-age=1800, s-maxage=1800', // 🚨 30분 캐싱
             'CDN-Cache-Control': 'max-age=1800',
             'Vercel-CDN-Cache-Control': 'max-age=1800',
@@ -301,7 +302,7 @@ export async function GET(request: NextRequest) {
       const responseData = {
         success: true,
         timestamp: now,
-        source: _context.source + '-cached',
+        source: `${_context.source}-cached`,
         state: systemState,
         isRunning: systemState.isRunning,
         startTime: systemState.startTime,
@@ -318,7 +319,7 @@ export async function GET(request: NextRequest) {
         headers: {
           'Content-Type': 'application/json',
           'X-User-Id': userId,
-          'X-Request-Source': _context.source + '-cached',
+          'X-Request-Source': `${_context.source}-cached`,
           'Cache-Control': 'public, max-age=300, s-maxage=300', // 🚨 5분 캐싱
           'CDN-Cache-Control': 'max-age=300',
           'Vercel-CDN-Cache-Control': 'max-age=300',

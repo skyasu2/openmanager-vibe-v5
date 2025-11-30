@@ -7,7 +7,14 @@
  * - 배경에서 부드러운 등장
  */
 
-import { Fragment, useState, useEffect, memo, useCallback, useMemo, type FC } from 'react';
+import {
+  type FC,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { Server } from '../../../types/server';
 
@@ -92,7 +99,10 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
     const groupedServers = useMemo(() => {
       // 🛡️ servers 배열 방어 코드 - undefined 방지
       if (!servers || !Array.isArray(servers) || servers.length === 0) {
-        console.warn('⚠️ ServerCardSpawner: servers가 비어있거나 유효하지 않음:', servers);
+        console.warn(
+          '⚠️ ServerCardSpawner: servers가 비어있거나 유효하지 않음:',
+          servers
+        );
         return [];
       }
 
@@ -151,9 +161,10 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
         groups.flatMap((group) => group.servers.map((s) => s.id))
       );
       // 🛡️ servers 재검증 - useMemo 내에서 servers가 변경될 수도 있음
-      const uncategorizedServers = servers && Array.isArray(servers) ? servers.filter(
-        (s) => !categorizedServerIds.has(s.id)
-      ) : [];
+      const uncategorizedServers =
+        servers && Array.isArray(servers)
+          ? servers.filter((s) => !categorizedServerIds.has(s.id))
+          : [];
 
       if (uncategorizedServers.length > 0) {
         groups.push({
@@ -179,9 +190,16 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
       }
 
       const currentGroup = groupedServers[currentGroupIndex];
-      if (!currentGroup || !currentGroup.servers || !Array.isArray(currentGroup.servers)) {
+      if (
+        !currentGroup ||
+        !currentGroup.servers ||
+        !Array.isArray(currentGroup.servers)
+      ) {
         // 🛡️ currentGroup.servers 방어 코드 추가
-        console.warn('⚠️ ServerCardSpawner: currentGroup 또는 servers 배열이 유효하지 않음:', currentGroup);
+        console.warn(
+          '⚠️ ServerCardSpawner: currentGroup 또는 servers 배열이 유효하지 않음:',
+          currentGroup
+        );
         return;
       }
 
@@ -197,7 +215,7 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
         console.warn('⚠️ ServerCardSpawner: serverToSpawn이 유효하지 않음:', {
           currentGroup: currentGroup?.type,
           currentServerInGroup,
-          serversLength: currentGroup.servers?.length
+          serversLength: currentGroup.servers?.length,
         });
         return;
       }
@@ -236,13 +254,7 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
       }, spawnDelay);
 
       return () => clearTimeout(timer);
-    }, [
-      isSpawning,
-      spawnNextServer,
-      spawnDelay,
-      currentGroupIndex,
-      currentServerInGroup,
-    ]);
+    }, [isSpawning, spawnNextServer, spawnDelay]);
 
     const currentGroup = groupedServers[currentGroupIndex];
     const totalServers = servers?.length || 0;
@@ -436,40 +448,38 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
           </div>
 
           {/* 현재 스포닝 타입 표시 */}
-          <Fragment>
-            {currentGroup && (
+          {currentGroup && (
+            <div
+              key={currentGroup.type}
+              style={{
+                marginTop: '2rem',
+                padding: '1rem',
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(16px)',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+              }}
+            >
               <div
-                key={currentGroup.type}
                 style={{
-                  marginTop: '2rem',
-                  padding: '1rem',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(16px)',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  fontWeight: '600',
+                  fontSize: '1rem',
                 }}
               >
-                <div
-                  style={{
-                    color: 'white',
-                    fontWeight: '600',
-                    fontSize: '1rem',
-                  }}
-                >
-                  현재 생성 중: {currentGroup.type}
-                </div>
-                <div
-                  style={{
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    fontSize: '0.875rem',
-                    marginTop: '0.25rem',
-                  }}
-                >
-                  {currentGroup?.servers?.length || 0}개 서버 초기화
-                </div>
+                현재 생성 중: {currentGroup.type}
               </div>
-            )}
-          </Fragment>
+              <div
+                style={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: '0.875rem',
+                  marginTop: '0.25rem',
+                }}
+              >
+                {currentGroup?.servers?.length || 0}개 서버 초기화
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 🚨 강제 표시 확인 메시지 */}
@@ -491,7 +501,8 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
         </div>
       </div>
     );
-  });
+  }
+);
 ServerCardSpawner.displayName = 'ServerCardSpawner';
 
 export default ServerCardSpawner;

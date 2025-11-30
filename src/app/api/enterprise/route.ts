@@ -1,23 +1,23 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-
+import { getCacheService } from '@/lib/cache/cache-helper';
 import {
   AI_RECOMMENDATIONS,
   CRITICAL_FAILURE_CHAINS,
   FAILURE_ANALYTICS,
   FAILURE_CORRELATIONS,
   FAILURE_TIMELINE,
-  WARNING_FAILURES,
   type FailureChain,
   type FailureCorrelation,
+  WARNING_FAILURES,
 } from '@/lib/enterprise/enterprise-failures';
 import {
   AUTOMATION_METRICS,
   BUSINESS_HOURS_PATTERNS,
   CAPACITY_PLANNING,
+  type CapacityPlan,
   getCurrentPerformanceMetrics,
   SLA_TARGETS,
-  type CapacityPlan,
 } from '@/lib/enterprise/enterprise-metrics';
 import {
   ENTERPRISE_SERVERS,
@@ -25,7 +25,6 @@ import {
   SERVER_STATS,
 } from '@/lib/enterprise/enterprise-servers';
 import type { ServerStatus } from '@/types/index';
-import { getCacheService } from '@/lib/cache/cache-helper';
 import debug from '@/utils/debug';
 
 /**
@@ -66,8 +65,8 @@ export async function GET(request: NextRequest) {
 
       if (!startStr || !endStr) return false;
 
-      const start = parseInt(startStr);
-      const end = parseInt(endStr);
+      const start = parseInt(startStr, 10);
+      const end = parseInt(endStr, 10);
 
       if (start <= end) {
         return currentHour >= start && currentHour < end;

@@ -7,12 +7,12 @@
 
 // 기존 AI 친화적 Vitals 타입 재사용
 import type {
+  ActionRecommendation,
   AIFriendlyMetric,
-  VitalsAnalysisResult,
-  MetricCollector,
   MetricAnalyzer,
+  MetricCollector,
   RegressionAlert,
-  ActionRecommendation
+  VitalsAnalysisResult,
 } from '../lib/testing/ai-friendly-vitals';
 
 // Re-export imported types for use in other modules
@@ -22,7 +22,7 @@ export type {
   MetricCollector,
   MetricAnalyzer,
   RegressionAlert,
-  ActionRecommendation
+  ActionRecommendation,
 };
 
 // 서브에이전트 전용 확장 타입들
@@ -203,11 +203,23 @@ export interface SubagentTestConfiguration {
 // 서브에이전트 테스트 이벤트 타입
 export type SubagentTestEvent =
   | { type: 'test:started'; payload: SubagentTestExecution }
-  | { type: 'test:progress'; payload: { id: string; progress: number; message: string } }
+  | {
+      type: 'test:progress';
+      payload: { id: string; progress: number; message: string };
+    }
   | { type: 'test:completed'; payload: SubagentTestReport }
-  | { type: 'test:failed'; payload: { id: string; error: Error; context: SubagentTestContext } }
-  | { type: 'analysis:generated'; payload: { id: string; insights: SubagentTestInsights } }
-  | { type: 'recommendations:updated'; payload: { id: string; recommendations: ActionRecommendation[] } };
+  | {
+      type: 'test:failed';
+      payload: { id: string; error: Error; context: SubagentTestContext };
+    }
+  | {
+      type: 'analysis:generated';
+      payload: { id: string; insights: SubagentTestInsights };
+    }
+  | {
+      type: 'recommendations:updated';
+      payload: { id: string; recommendations: ActionRecommendation[] };
+    };
 
 // 서브에이전트 상태 타입
 export interface SubagentTestState {
@@ -251,8 +263,12 @@ export interface ISubagentTestRunner {
   runTest(context: SubagentTestContext): Promise<SubagentTestReport>;
 
   // 분석 메서드
-  analyzeResults(execution: SubagentTestExecution): Promise<SubagentTestInsights>;
-  generateRecommendations(insights: SubagentTestInsights): ActionRecommendation[];
+  analyzeResults(
+    execution: SubagentTestExecution
+  ): Promise<SubagentTestInsights>;
+  generateRecommendations(
+    insights: SubagentTestInsights
+  ): ActionRecommendation[];
 
   // 유틸리티 메서드
   getHistory(limit?: number): SubagentTestReport[];
@@ -312,36 +328,59 @@ export const SubagentTestHelpers = {
   createContext: () => new SubagentTestContextBuilder(),
 
   // 우선순위별 예상 시간 계산
-  estimatedDuration: (priority: SubagentTestPriority, focus?: SubagentTestFocus): number => {
+  estimatedDuration: (
+    priority: SubagentTestPriority,
+    focus?: SubagentTestFocus
+  ): number => {
     const baseTimes = { fast: 3000, thorough: 45000, comprehensive: 120000 };
     const focusMultipliers = {
-      e2e: 3, api: 1.5, unit: 0.5, integration: 2, playwright: 2.5, vitals: 1.8
+      e2e: 3,
+      api: 1.5,
+      unit: 0.5,
+      integration: 2,
+      playwright: 2.5,
+      vitals: 1.8,
     };
 
     const baseTime = baseTimes[priority];
-    const multiplier = focus ? (focusMultipliers[focus] || 1) : 1;
+    const multiplier = focus ? focusMultipliers[focus] || 1 : 1;
 
     return Math.round(baseTime * multiplier);
   },
 
   // 권장사항 우선순위 정렬
-  sortRecommendations: (recommendations: ActionRecommendation[]): ActionRecommendation[] => {
-    const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
-    return [...recommendations].sort((a, b) =>
-      (priorityOrder[a.priority] ?? 999) - (priorityOrder[b.priority] ?? 999) ||
-      b.estimatedImpact - a.estimatedImpact
+  sortRecommendations: (
+    recommendations: ActionRecommendation[]
+  ): ActionRecommendation[] => {
+    const priorityOrder: Record<string, number> = {
+      critical: 0,
+      high: 1,
+      medium: 2,
+      low: 3,
+    };
+    return [...recommendations].sort(
+      (a, b) =>
+        (priorityOrder[a.priority] ?? 999) -
+          (priorityOrder[b.priority] ?? 999) ||
+        b.estimatedImpact - a.estimatedImpact
     );
   },
 
   // 성능 트렌드 분석
-  analyzeTrend: (reports: SubagentTestReport[]): 'improving' | 'stable' | 'declining' => {
+  analyzeTrend: (
+    reports: SubagentTestReport[]
+  ): 'improving' | 'stable' | 'declining' => {
     if (reports.length < 4) return 'stable';
 
     const recent = reports.slice(0, 2);
     const previous = reports.slice(2, 4);
 
-    const recentAvg = recent.reduce((sum, r) => sum + r.analysis.overallScore, 0) / recent.length;
-    const previousAvg = previous.reduce((sum, r) => sum + r.analysis.overallScore, 0) / previous.length;
+    const recentAvg =
+      recent.reduce((sum, r) => sum + r.analysis.overallScore, 0) /
+      recent.length;
+    const previousAvg =
+      previous.reduce((sum, r) => sum + r.analysis.overallScore, 0) /
+      previous.length;
 
     if (recentAvg > previousAvg + 5) return 'improving';
     if (recentAvg < previousAvg - 5) return 'declining';
@@ -349,87 +388,108 @@ export const SubagentTestHelpers = {
   },
 
   // 메트릭 집계
-  aggregateMetrics: (reports: SubagentTestReport[]): {
+  aggregateMetrics: (
+    reports: SubagentTestReport[]
+  ): {
     averageExecutionTime: number;
     averageSuccessRate: number;
     averageOverallScore: number;
     totalTests: number;
   } => {
     if (reports.length === 0) {
-      return { averageExecutionTime: 0, averageSuccessRate: 0, averageOverallScore: 0, totalTests: 0 };
+      return {
+        averageExecutionTime: 0,
+        averageSuccessRate: 0,
+        averageOverallScore: 0,
+        totalTests: 0,
+      };
     }
 
-    const totalExecutionTime = reports.reduce((sum, r) => sum + (r.execution.duration || 0), 0);
-    const totalTests = reports.reduce((sum, r) => sum + r.metrics.totalTests, 0);
-    const totalPassed = reports.reduce((sum, r) => sum + r.metrics.passedTests, 0);
-    const totalScore = reports.reduce((sum, r) => sum + r.analysis.overallScore, 0);
+    const totalExecutionTime = reports.reduce(
+      (sum, r) => sum + (r.execution.duration || 0),
+      0
+    );
+    const totalTests = reports.reduce(
+      (sum, r) => sum + r.metrics.totalTests,
+      0
+    );
+    const totalPassed = reports.reduce(
+      (sum, r) => sum + r.metrics.passedTests,
+      0
+    );
+    const totalScore = reports.reduce(
+      (sum, r) => sum + r.analysis.overallScore,
+      0
+    );
 
     return {
       averageExecutionTime: Math.round(totalExecutionTime / reports.length),
       averageSuccessRate: Math.round((totalPassed / totalTests) * 100),
       averageOverallScore: Math.round(totalScore / reports.length),
-      totalTests
+      totalTests,
     };
-  }
+  },
 };
 
 // 기본 설정 상수
 export const SUBAGENT_TEST_DEFAULTS: SubagentTestConfiguration = {
   defaultPriority: 'fast',
   timeoutSettings: {
-    fast: 30000,      // 30초
+    fast: 30000, // 30초
     thorough: 120000, // 2분
-    comprehensive: 300000 // 5분
+    comprehensive: 300000, // 5분
   },
   profiles: {
     'ultra-fast': {
-      command: 'npx vitest run --config config/testing/vitest.config.minimal.ts',
+      command:
+        'npx vitest run --config config/testing/vitest.config.minimal.ts',
       expectedDuration: 3000,
       coverage: '핵심 로직만',
       description: '서브에이전트 빠른 검증용',
-      requiredTools: ['vitest']
+      requiredTools: ['vitest'],
     },
     'smart-fast': {
-      command: 'npx vitest run --config config/testing/vitest.config.main.ts --reporter=dot',
+      command:
+        'npx vitest run --config config/testing/vitest.config.main.ts --reporter=dot',
       expectedDuration: 8000,
       coverage: '주요 컴포넌트',
       description: '서브에이전트 개발 중 검증용',
-      requiredTools: ['vitest']
+      requiredTools: ['vitest'],
     },
     'e2e-critical': {
       command: 'npm run test:vercel',
       expectedDuration: 45000,
       coverage: '실제 환경',
       description: '서브에이전트 최종 검증용',
-      requiredTools: ['playwright', 'vercel']
-    }
+      requiredTools: ['playwright', 'vercel'],
+    },
   },
   thresholds: {
     performance: {
       executionTime: 60000, // 1분
-      memoryUsage: 512 // MB
+      memoryUsage: 512, // MB
     },
     quality: {
       minimumCoverage: 80,
       maximumFailureRate: 5,
-      minimumOverallScore: 75
+      minimumOverallScore: 75,
     },
     stability: {
       maximumFlakyRate: 10,
-      minimumSuccessRate: 95
-    }
+      minimumSuccessRate: 95,
+    },
   },
   notifications: {
     criticalFailures: true,
     performanceRegressions: true,
     coverageDrops: true,
-    recommendations: true
+    recommendations: true,
   },
   subagentSettings: {
     autoAnalysis: true,
     autoRecommendations: true,
     autoActions: false, // 기본적으로 수동 승인
     verboseLogging: false,
-    memoryManagement: true
-  }
+    memoryManagement: true,
+  },
 };

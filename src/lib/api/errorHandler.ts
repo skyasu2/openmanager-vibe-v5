@@ -240,10 +240,10 @@ class ErrorTracker {
   }> = [];
 
   static getInstance(): ErrorTracker {
-    if (!this.instance) {
-      this.instance = new ErrorTracker();
+    if (!ErrorTracker.instance) {
+      ErrorTracker.instance = new ErrorTracker();
     }
-    return this.instance;
+    return ErrorTracker.instance;
   }
 
   trackError(type: ApiErrorType, path?: string): void {

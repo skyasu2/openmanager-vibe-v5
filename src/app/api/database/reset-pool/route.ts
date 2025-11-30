@@ -2,13 +2,12 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
-  DatabasePoolResetRequestSchema,
-  DatabasePoolResetResponseSchema,
-  DatabasePoolStatusResponseSchema,
-
-  type DatabasePoolResetResponse,
-  type DatabasePoolStatusResponse,
   type DatabasePoolConfig,
+  DatabasePoolResetRequestSchema,
+  type DatabasePoolResetResponse,
+  DatabasePoolResetResponseSchema,
+  type DatabasePoolStatusResponse,
+  DatabasePoolStatusResponseSchema,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';

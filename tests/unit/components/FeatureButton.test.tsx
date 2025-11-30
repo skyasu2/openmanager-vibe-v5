@@ -6,9 +6,9 @@
  * @created 2025-11-26
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import FeatureButton, {
   type FunctionTabType,
 } from '@/components/ai/FeatureButton';
@@ -301,18 +301,16 @@ describe('🎯 FeatureButton - User Event 테스트', () => {
       };
 
       const { rerender } = render(
-        <>
-          {tabs.map((t) => (
-            <FeatureButton
-              key={t.tab}
-              icon={t.icon}
-              tab={t.tab}
-              tooltip={t.tooltip}
-              isActive={activeTab === t.tab}
-              onClick={handleTabChange}
-            />
-          ))}
-        </>
+        tabs.map((t) => (
+          <FeatureButton
+            key={t.tab}
+            icon={t.icon}
+            tab={t.tab}
+            tooltip={t.tooltip}
+            isActive={activeTab === t.tab}
+            onClick={handleTabChange}
+          />
+        ))
       );
 
       // 초기 상태: qa 활성화
@@ -326,18 +324,16 @@ describe('🎯 FeatureButton - User Event 테스트', () => {
 
       // 리렌더링
       rerender(
-        <>
-          {tabs.map((t) => (
-            <FeatureButton
-              key={t.tab}
-              icon={t.icon}
-              tab={t.tab}
-              tooltip={t.tooltip}
-              isActive={activeTab === t.tab}
-              onClick={handleTabChange}
-            />
-          ))}
-        </>
+        tabs.map((t) => (
+          <FeatureButton
+            key={t.tab}
+            icon={t.icon}
+            tab={t.tab}
+            tooltip={t.tooltip}
+            isActive={activeTab === t.tab}
+            onClick={handleTabChange}
+          />
+        ))
       );
 
       // patterns 클릭

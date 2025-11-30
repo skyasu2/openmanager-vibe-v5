@@ -9,8 +9,12 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import {
+  AI_ENGINE_VERSIONS,
+  DATA_GENERATOR_VERSIONS,
+  VersionManager as ImportedVersionManager,
+} from '@/config/versions';
 import debug from '@/utils/debug';
-import { AI_ENGINE_VERSIONS, DATA_GENERATOR_VERSIONS, VersionManager as ImportedVersionManager } from '@/config/versions';
 
 // 🔒 타입 안전성을 위한 인터페이스 정의
 interface AIEngineVersions {
@@ -31,7 +35,8 @@ interface MasterAIEngine {
 
 // 안전한 import 처리
 const _AI_ENGINE_VERSIONS: AIEngineVersions | null = AI_ENGINE_VERSIONS;
-const _DATA_GENERATOR_VERSIONS: DataGeneratorVersions | null = DATA_GENERATOR_VERSIONS;
+const _DATA_GENERATOR_VERSIONS: DataGeneratorVersions | null =
+  DATA_GENERATOR_VERSIONS;
 // @ts-expect-error - VersionManager type mismatch
 const _VersionManager: VersionManager | null = ImportedVersionManager;
 let _masterAIEngine: MasterAIEngine | null = null;

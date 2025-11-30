@@ -1,10 +1,10 @@
 import {
-  useEffect,
-  useRef,
-  useState,
   DependencyList,
   EffectCallback,
   RefObject,
+  useEffect,
+  useRef,
+  useState,
 } from 'react';
 
 // 🛡️ 안전한 useEffect (자동 cleanup)
@@ -37,7 +37,7 @@ export function useSafeEffect(
 
 // 🔄 안전한 비동기 useEffect
 export function useAsyncEffect(
-  asyncEffect: () => Promise<void | (() => void)>,
+  asyncEffect: () => Promise<undefined | (() => void)>,
   deps?: DependencyList
 ): void {
   const isMountedRef = useRef(true);

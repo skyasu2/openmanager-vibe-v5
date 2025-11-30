@@ -5,11 +5,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PostgresVectorDB } from '@/services/ai/postgres-vector-db';
-import { embeddingService } from '@/services/ai/embedding-service';
-import { getSupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
-import { createClient } from '@/lib/supabase/server';
 import { withAuth } from '@/lib/auth/api-auth';
+import { createClient } from '@/lib/supabase/server';
+import { embeddingService } from '@/services/ai/embedding-service';
+import { PostgresVectorDB } from '@/services/ai/postgres-vector-db';
+import { getSupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
 import debug from '@/utils/debug';
 
 // Interface for PostgreSQL index information
@@ -24,7 +24,7 @@ export const GET = withAuth(async (request: NextRequest) => {
     const postgresVectorDB = new PostgresVectorDB(supabase);
     const searchParams = request.nextUrl.searchParams;
     const testQuery = searchParams.get('query') || '서버 상태 확인';
-    const iterations = parseInt(searchParams.get('iterations') || '10');
+    const iterations = parseInt(searchParams.get('iterations') || '10', 10);
 
     debug.log(`🚀 벤치마크 시작: "${testQuery}" (${iterations}회 반복)`);
 

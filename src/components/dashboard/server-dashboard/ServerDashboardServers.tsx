@@ -1,8 +1,5 @@
 'use client';
 
-import React, { Fragment } from 'react';
-import { type ServerDisplayMode } from '@/config/display-config';
-import ServerCardErrorBoundary from '@/components/error/ServerCardErrorBoundary';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   BarChart3,
@@ -15,6 +12,8 @@ import {
   List,
   Search,
 } from 'lucide-react';
+import ServerCardErrorBoundary from '@/components/error/ServerCardErrorBoundary';
+import { type ServerDisplayMode } from '@/config/display-config';
 import type { ViewMode } from '@/hooks/useServerDashboard';
 import type { Server } from '@/types/server';
 import SafeServerCard from '../SafeServerCard';
@@ -320,31 +319,33 @@ export function ServerDashboardServers({
         </div>
       ) : (
         <>
-          <Fragment>
-            <div
-              key={`${viewMode}-${currentPage}-${displayMode}`}
-              className={
-                viewMode === 'grid'
-                  ? gridLayout?.className ||
-                    'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                  : 'space-y-4'
-              }
-            >
-              {paginatedServers.map((server) => (
-                <div key={server.id}>
-                  <ServerCardErrorBoundary key={`boundary-dashboard-${server.id}`}>
-                    <SafeServerCard
-                      server={server}
-                      onClick={() => onServerSelect(server)}
-                      variant="compact"
-                    />
-                  </ServerCardErrorBoundary>
-                </div>
-              ))}
-            </div>
-          </Fragment>
+          <div
+            key={`${viewMode}-${currentPage}-${displayMode}`}
+            className={
+              viewMode === 'grid'
+                ? gridLayout?.className ||
+                  'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                : 'space-y-4'
+            }
+          >
+            {paginatedServers.map((server) => (
+              <div key={server.id}>
+                <ServerCardErrorBoundary
+                  key={`boundary-dashboard-${server.id}`}
+                >
+                  <SafeServerCard
+                    server={server}
+                    onClick={() => onServerSelect(server)}
+                    variant="compact"
+                  />
+                </ServerCardErrorBoundary>
+              </div>
+            ))}
+          </div>
 
-          {(!paginatedServers || !Array.isArray(paginatedServers) || paginatedServers.length === 0) && (
+          {(!paginatedServers ||
+            !Array.isArray(paginatedServers) ||
+            paginatedServers.length === 0) && (
             <div className="py-12 text-center">
               <div className="text-lg text-gray-500">검색 결과가 없습니다</div>
               <div className="mt-2 text-sm text-gray-400">

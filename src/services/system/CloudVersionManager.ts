@@ -9,7 +9,6 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-
 // 버전 관리 인터페이스
 export interface CloudVersion {
   id: string;
@@ -444,7 +443,7 @@ export class CloudVersionManager {
     try {
       // Node.js 환경에서만 파일 시스템 접근
       if (typeof window === 'undefined') {
-        const fs = await import('fs');
+        const fs = await import('node:fs');
         const packageJson = JSON.parse(
           fs.readFileSync('package.json', 'utf-8')
         );
@@ -459,7 +458,7 @@ export class CloudVersionManager {
   private async getGitInfo() {
     try {
       if (typeof window === 'undefined') {
-        const { execSync } = await import('child_process');
+        const { execSync } = await import('node:child_process');
         const commitHash = execSync('git rev-parse HEAD', {
           encoding: 'utf-8',
         }).trim();

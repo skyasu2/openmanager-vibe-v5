@@ -1,16 +1,16 @@
-import React from 'react';
-import { Server } from '@/types/server';
 import {
   Activity,
-  Server as ServerIcon,
   AlertTriangle,
   CheckCircle2,
-  XCircle,
   Cpu,
-  HardDrive,
   Database,
+  HardDrive,
   Network,
+  Server as ServerIcon,
+  XCircle,
 } from 'lucide-react';
+import React from 'react';
+import { Server } from '@/types/server';
 
 interface DashboardSummaryProps {
   servers: Server[];

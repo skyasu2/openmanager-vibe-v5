@@ -3,11 +3,7 @@
  * 사용법: npx ts-node test-curve-validation.ts
  */
 
-import {
-  generate24HourData,
-  getServerStatus,
-  SERVERS,
-} from './src/mock/mockScenarios';
+import { generate24HourData, getServerStatus } from './src/mock/mockScenarios';
 
 console.log('🧪 자연스러운 변화 곡선 검증\n');
 

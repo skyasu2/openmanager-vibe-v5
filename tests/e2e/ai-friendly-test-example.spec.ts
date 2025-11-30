@@ -1,14 +1,14 @@
-import { test, expect } from '@playwright/test';
-import {
-  enableVercelTestMode,
-  aiNavigate,
-  getVercelTestStatus,
-  cleanupVercelTestMode,
-} from './helpers/vercel-test-auth';
+import { expect, test } from '@playwright/test';
 import {
   ADMIN_FEATURES_REMOVED,
   ADMIN_FEATURES_SKIP_MESSAGE,
 } from './helpers/featureFlags';
+import {
+  aiNavigate,
+  cleanupVercelTestMode,
+  enableVercelTestMode,
+  getVercelTestStatus,
+} from './helpers/vercel-test-auth';
 
 /**
  * 🤖 AI 친화적 베르셀 테스트 예시

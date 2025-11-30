@@ -83,10 +83,14 @@ export const useSystemChecklist = ({
       const _animateProgress = () => {
         setComponents((prev) => {
           const current = prev[componentId];
-          if (!current || current.status !== 'loading' || current.progress >= 90) {
+          if (
+            !current ||
+            current.status !== 'loading' ||
+            current.progress >= 90
+          ) {
             return prev;
           }
-          
+
           const increment = Math.random() * 15 + 5; // 5-20% 증가
           const newProgress = Math.min(current.progress + increment, 90);
 

@@ -7,11 +7,11 @@
  * - 학습 결과 Supabase 저장
  */
 
+import crypto from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
 import { withAuth } from '@/lib/auth/api-auth';
-import crypto from 'crypto';
+import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
+import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 

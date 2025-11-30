@@ -93,7 +93,7 @@ const useSimulationProgress = ({
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPaused, isPolling]);
+  }, [isPaused, isPolling, pauseWhenHidden, refresh]);
 
   /**
    * 🎯 캐시에서 데이터 조회
@@ -240,7 +240,7 @@ const useSimulationProgress = ({
       if (retryCountRef.current < maxRetries) {
         retryCountRef.current += 1;
         const retryDelay = Math.min(
-          1000 * Math.pow(2, retryCountRef.current - 1),
+          1000 * 2 ** (retryCountRef.current - 1),
           10000
         ); // 지수 백오프, 최대 10초
         console.log(
@@ -318,6 +318,7 @@ const useSimulationProgress = ({
     pollInterval,
     maxRetries,
     pauseWhenHidden,
+    stopPolling,
   ]);
 
   /**
@@ -368,7 +369,7 @@ const useSimulationProgress = ({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 빈 의존성 배열로 한 번만 실행
+  }, [autoStart, isComplete, refresh, startPolling, stopPolling]); // 빈 의존성 배열로 한 번만 실행
 
   // Pause when page is hidden
   useEffect(() => {

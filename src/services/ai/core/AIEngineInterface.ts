@@ -9,8 +9,8 @@
 // 중앙 집중식 타입에서 import
 import type {
   AIEngineType,
-  ComplexityScore,
   AIMetadata,
+  ComplexityScore,
 } from '../../../types/core-types';
 
 // Re-export for external use
@@ -52,7 +52,7 @@ export interface AIQueryOptions {
   requiresRealtime?: boolean;
   allowFallback?: boolean;
   targetResponseTime?: number;
-  
+
   // 추가 쿼리 옵션들 (QueryProcessorBase에서 사용)
   maxRetries?: number;
   retryOnError?: boolean;
@@ -69,7 +69,7 @@ export interface AIEngineStatus {
   lastError?: string;
   capabilities: string[];
   metadata?: AIMetadata;
-  
+
   // 추가 상태 관리 속성들 (QueryProcessorBase에서 사용)
   healthy?: boolean;
   lastCheck?: Date;
@@ -129,11 +129,11 @@ export interface AIEngineConfig {
 export interface IAIProcessor {
   readonly engineType: AIEngineType;
   readonly status: AIEngineStatus;
-  
+
   // 핵심 프로세싱 메서드
   processQuery(query: string, options?: AIQueryOptions): Promise<AIResponse>;
   updateStatus(status: Partial<AIEngineStatus>): void;
-  
+
   // 성능 메서드 (config 매개변수 포함)
   initialize?(config: AIEngineConfig): Promise<void>;
   destroy?(): Promise<void>;

@@ -17,13 +17,13 @@
  * 각 시나리오마다 다른 프롬프트, Provider 활성화, 옵션이 적용됩니다.
  */
 export type AIScenario =
-  | 'failure-analysis'      // 장애 분석
-  | 'performance-report'    // 성능 리포트
-  | 'document-qa'           // 문서 Q/A
-  | 'dashboard-summary'     // 대시보드 요약
-  | 'general-query'         // 일반 쿼리
-  | 'incident-report'       // 사고 리포트
-  | 'optimization-advice';  // 최적화 조언
+  | 'failure-analysis' // 장애 분석
+  | 'performance-report' // 성능 리포트
+  | 'document-qa' // 문서 Q/A
+  | 'dashboard-summary' // 대시보드 요약
+  | 'general-query' // 일반 쿼리
+  | 'incident-report' // 사고 리포트
+  | 'optimization-advice'; // 최적화 조언
 
 /**
  * Provider 타입
@@ -200,7 +200,10 @@ export interface IContextProvider {
    * @param options - Provider 옵션
    * @returns Provider 컨텍스트
    */
-  getContext(query: string, options?: ProviderOptions): Promise<ProviderContext>;
+  getContext(
+    query: string,
+    options?: ProviderOptions
+  ): Promise<ProviderContext>;
 
   /**
    * 시나리오별 활성화 여부
@@ -786,5 +789,7 @@ export function isValidScenario(value: unknown): value is AIScenario {
     'incident-report',
     'optimization-advice',
   ];
-  return typeof value === 'string' && validScenarios.includes(value as AIScenario);
+  return (
+    typeof value === 'string' && validScenarios.includes(value as AIScenario)
+  );
 }

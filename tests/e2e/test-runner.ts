@@ -8,9 +8,9 @@
  * - CI/CD 파이프라인 통합 지원
  */
 
-import { spawn } from 'child_process';
-import * as path from 'path';
-import * as fs from 'fs';
+import { spawn } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { ADMIN_FEATURES_REMOVED } from './helpers/featureFlags';
 
 export interface TestConfig {
@@ -223,7 +223,7 @@ export class E2ETestRunner {
           try {
             const resultData = this.parsePlaywrightOutput(stdout);
             resolve(resultData);
-          } catch (error) {
+          } catch (_error) {
             resolve({
               passed: 1,
               failed: 0,
@@ -584,7 +584,7 @@ if (require.main === module) {
     } else if (arg === '--headed') {
       options.headless = false;
     } else if (arg.startsWith('--workers=')) {
-      options.workers = parseInt(arg.split('=')[1]);
+      options.workers = parseInt(arg.split('=')[1], 10);
     }
   });
 

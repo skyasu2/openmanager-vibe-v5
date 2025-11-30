@@ -10,7 +10,7 @@
  * @see src/services/scenario/scenario-loader.ts - 시나리오 기반 데이터
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { UnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type { Server } from '@/types/server';
 
@@ -119,7 +119,7 @@ export function useFixed24hMetrics(
       isMountedRef.current = false;
       clearInterval(intervalId);
     };
-  }, [serverId, updateInterval, updateMetrics]);
+  }, [updateInterval, updateMetrics]);
 
   return {
     currentMetrics,
@@ -186,7 +186,7 @@ export function useMultipleFixed24hMetrics(
   }, [serverIds]);
 
   // serverIds.join(',')을 별도 변수로 추출하여 의존성 배열의 복잡도를 줄임
-  const serverIdsKey = serverIds.join(',');
+  const _serverIdsKey = serverIds.join(',');
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -203,7 +203,7 @@ export function useMultipleFixed24hMetrics(
       isMountedRef.current = false;
       clearInterval(intervalId);
     };
-  }, [serverIdsKey, updateInterval, updateAllMetrics]);
+  }, [updateInterval, updateAllMetrics]);
 
   return {
     metricsMap,
@@ -278,7 +278,7 @@ export function useSingleMetric(
       isMountedRef.current = false;
       clearInterval(intervalId);
     };
-  }, [serverId, metricType, updateInterval, updateMetric]);
+  }, [updateInterval, updateMetric]);
 
   return { value, isLoading, error };
 }

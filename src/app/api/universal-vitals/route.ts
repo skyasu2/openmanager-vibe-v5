@@ -8,9 +8,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  UNIVERSAL_THRESHOLDS,
   UniversalVital,
   VitalCategory,
-  UNIVERSAL_THRESHOLDS,
 } from '@/lib/testing/universal-vitals';
 
 // ⚡ Edge Runtime으로 전환 - 빠른 메트릭 처리
@@ -128,7 +128,7 @@ class UniversalVitalsAnalyzer {
 
   // 📊 카테고리별 메트릭 분석
   private analyzeCategoryMetrics(
-    category: VitalCategory,
+    _category: VitalCategory,
     metrics: UniversalVital[]
   ) {
     const good = metrics.filter((m) => m.rating === 'good').length;

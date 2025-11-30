@@ -9,10 +9,10 @@
 
 'use client';
 
-import { useRealtimeData } from '@/hooks/api/useRealtimeQueries';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { AlertCircle, CheckCircle, RefreshCw, WifiOff } from 'lucide-react';
-import React, { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRealtimeData } from '@/hooks/api/useRealtimeQueries';
 
 interface RealtimeStatusProps {
   compact?: boolean;
@@ -103,9 +103,7 @@ export default function RealtimeStatus({
             className={`h-4 w-4 ${config.color} ${config.spin ? 'animate-spin' : ''}`}
           />
           {config.pulse && (
-            <div
-              className="absolute inset-0 h-4 w-4 rounded-full bg-green-400 opacity-30"
-            />
+            <div className="absolute inset-0 h-4 w-4 rounded-full bg-green-400 opacity-30" />
           )}
         </div>
         <span className={`text-sm font-medium ${config.color}`}>
@@ -127,9 +125,7 @@ export default function RealtimeStatus({
               className={`h-5 w-5 ${config.color} ${config.spin ? 'animate-spin' : ''}`}
             />
             {config.pulse && (
-              <div
-                className="absolute inset-0 h-5 w-5 rounded-full bg-green-400 opacity-30"
-              />
+              <div className="absolute inset-0 h-5 w-5 rounded-full bg-green-400 opacity-30" />
             )}
           </div>
           <div>
@@ -139,16 +135,14 @@ export default function RealtimeStatus({
         </div>
 
         {/* 재연결 버튼 */}
-        <Fragment>
-          {showReconnectButton && !isFullyConnected && (
-            <button
-              onClick={reconnectAll}
-              className="rounded bg-blue-500 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-600"
-            >
-              재연결
-            </button>
-          )}
-        </Fragment>
+        {showReconnectButton && !isFullyConnected && (
+          <button
+            onClick={reconnectAll}
+            className="rounded bg-blue-500 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-600"
+          >
+            재연결
+          </button>
+        )}
       </div>
 
       {/* 상세 정보 */}
@@ -220,52 +214,41 @@ export function FloatingRealtimeStatus() {
   const [isMinimized, setIsMinimized] = useState(true);
 
   return (
-    <div
-      className="fixed bottom-4 right-4 z-50"
-    >
-      <Fragment>
-        {isMinimized ? (
-          <button
-            key="minimized"
-            onClick={() => setIsMinimized(false)}
-            className="rounded-full bg-white p-3 shadow-lg transition-all hover:shadow-xl"
-          >
-            <RealtimeStatus compact />
-          </button>
-        ) : (
-          <div
-            key="expanded"
-            className="rounded-lg border bg-white shadow-xl"
-          >
-            <div className="flex items-center justify-between border-b p-2">
-              <span className="text-sm font-medium text-gray-700">
-                실시간 상태
-              </span>
-              <button
-                onClick={() => setIsMinimized(true)}
-                className="text-gray-400 hover:text-gray-600"
-                title="실시간 상태 최소화"
-                aria-label="실시간 상태 최소화"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div className="p-4">
-              <RealtimeStatus compact={false} showDetails />
-            </div>
+    <div className="fixed bottom-4 right-4 z-50">
+      {isMinimized ? (
+        <button
+          key="minimized"
+          onClick={() => setIsMinimized(false)}
+          className="rounded-full bg-white p-3 shadow-lg transition-all hover:shadow-xl"
+        >
+          <RealtimeStatus compact />
+        </button>
+      ) : (
+        <div key="expanded" className="rounded-lg border bg-white shadow-xl">
+          <div className="flex items-center justify-between border-b p-2">
+            <span className="text-sm font-medium text-gray-700">
+              실시간 상태
+            </span>
+            <button
+              onClick={() => setIsMinimized(true)}
+              className="text-gray-400 hover:text-gray-600"
+              title="실시간 상태 최소화"
+              aria-label="실시간 상태 최소화"
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
           </div>
-        )}
-      </Fragment>
+          <div className="p-4">
+            <RealtimeStatus compact={false} showDetails />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

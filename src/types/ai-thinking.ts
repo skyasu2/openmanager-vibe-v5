@@ -8,9 +8,17 @@ export interface AIThinkingStep {
   id: string;
   timestamp?: string | Date;
   // ai-sidebar-types.ts ThinkingStep과 완전 호환 - 모든 type 값 지원
-  type?: 
-    | 'analysis' | 'data_processing' | 'pattern_matching' | 'reasoning' | 'response_generation'
-    | 'analyzing' | 'processing' | 'generating' | 'completed' | 'error';
+  type?:
+    | 'analysis'
+    | 'data_processing'
+    | 'pattern_matching'
+    | 'reasoning'
+    | 'response_generation'
+    | 'analyzing'
+    | 'processing'
+    | 'generating'
+    | 'completed'
+    | 'error';
   title?: string;
   description?: string;
   progress?: number; // 0-100

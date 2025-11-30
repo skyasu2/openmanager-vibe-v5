@@ -10,13 +10,13 @@
 
 import { google } from '@ai-sdk/google';
 import { streamText, tool } from 'ai';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getGoogleAIKey } from '@/lib/ai/google-ai-manager';
-import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
-import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
-import { createClient } from '@/lib/supabase/server';
-import { NextRequest } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
+import { createClient } from '@/lib/supabase/server';
+import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
+import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;

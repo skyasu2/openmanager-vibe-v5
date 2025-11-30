@@ -10,6 +10,7 @@
  */
 
 import type { EnhancedServerMetrics } from '../../types/server';
+
 // BaselineStorageService removed - using FixedDataSystem instead
 // LongRunningScenarioEngine removed - using direct scenario generation
 
@@ -165,10 +166,6 @@ export class EnrichedMetricsGenerator {
   private static instance: EnrichedMetricsGenerator;
   private isRunning: boolean = false;
   private servers: Map<string, EnhancedServerMetrics> = new Map();
-
-  // 🔄 VM 환경 최적화
-  // private baselineStorage = BaselineStorageService.getInstance(); // BaselineStorageService removed
-  private baselineStorage: BaselineStorage | null = null;
   // LongRunningScenarioEngine removed - using direct scenario generation
   private scenarioEngine: {
     type?: string;
@@ -365,7 +362,7 @@ export class EnrichedMetricsGenerator {
    * 🖥️ 시스템 메트릭 생성 (5개 → 25개 확장)
    */
   private generateSystemMetrics(
-    server: EnhancedServerMetrics,
+    _server: EnhancedServerMetrics,
     baseline: BaselineData | null,
     scenarios: ScenarioData[]
   ): EnrichedMetrics['system'] {
@@ -438,7 +435,7 @@ export class EnrichedMetricsGenerator {
    * 🎯 애플리케이션 메트릭 생성 (신규)
    */
   private generateApplicationMetrics(
-    server: EnhancedServerMetrics,
+    _server: EnhancedServerMetrics,
     hour: number,
     baseline: BaselineData | null
   ): EnrichedMetrics['application'] {
@@ -479,7 +476,7 @@ export class EnrichedMetricsGenerator {
    * 💼 비즈니스 메트릭 생성 (신규)
    */
   private generateBusinessMetrics(
-    server: EnhancedServerMetrics,
+    _server: EnhancedServerMetrics,
     dayOfWeek: number,
     hour: number
   ): EnrichedMetrics['business'] {

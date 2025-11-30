@@ -18,9 +18,17 @@ export interface ThinkingStep {
   step?: string;
   content?: string;
   // AI 사고 과정의 모든 type 값들을 지원하도록 확장
-  type?: 
-    | 'analysis' | 'data_processing' | 'pattern_matching' | 'reasoning' | 'response_generation'
-    | 'analyzing' | 'processing' | 'generating' | 'completed' | 'error';
+  type?:
+    | 'analysis'
+    | 'data_processing'
+    | 'pattern_matching'
+    | 'reasoning'
+    | 'response_generation'
+    | 'analyzing'
+    | 'processing'
+    | 'generating'
+    | 'completed'
+    | 'error';
   timestamp?: string | Date;
   progress?: number;
   confidence?: number;
@@ -46,7 +54,6 @@ export interface SystemAlert {
   isClosable?: boolean;
   autoClose?: boolean | number;
 }
-
 
 /**
  * AI 쿼리 응답

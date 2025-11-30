@@ -8,23 +8,20 @@
  * - 지능형 폴백 체인
  */
 
+import {
+  gcpFunctionsAdapter,
+  supabaseRAGAdapter,
+} from '../adapters/service-adapters';
+import { distributedErrorHandler } from '../errors/distributed-error-handler';
 import type {
+  AIServiceType,
+  DistributedResponse,
   EdgeRouterConfig,
   EdgeRouterRequest,
   EdgeRouterResponse,
-  DistributedResponse,
-  AIServiceType,
   ServiceHealth,
 } from '../interfaces/distributed-ai.interface';
-
-import {
-  supabaseRAGAdapter,
-  gcpFunctionsAdapter,
-} from '../adapters/service-adapters';
-
 import { edgeCache } from './edge-cache';
-
-import { distributedErrorHandler } from '../errors/distributed-error-handler';
 // Node.js Runtime 사용 (안정성 우선)
 // Edge Runtime 제거: Vercel 경고 해결 및 안정성 확보
 export const preferredRegion = 'icn1'; // 서울 리전
@@ -196,7 +193,7 @@ export class EdgeAIRouter {
       // 동시 실행 제한
       if (promises.length >= this.config.maxConcurrency) {
         await Promise.race(promises);
-         
+
         void promises.splice(0, 1); // Promise 배열 관리 패턴
       }
     }
@@ -264,7 +261,7 @@ export class EdgeAIRouter {
         }
       } catch (error) {
         // 폴백 실패는 로그만
-        console.warn('Fallback service ' + service + ' failed:', error);
+        console.warn(`Fallback service ${service} failed:`, error);
       }
     }
   }
@@ -281,7 +278,7 @@ export class EdgeAIRouter {
 
     // Circuit Breaker 체크
     if (!this.canCallService(service)) {
-      throw new Error('Circuit breaker open for ' + service);
+      throw new Error(`Circuit breaker open for ${service}`);
     }
 
     const serviceRequest = {
@@ -337,7 +334,7 @@ export class EdgeAIRouter {
           break;
 
         default:
-          throw new Error('Unknown service: ' + service);
+          throw new Error(`Unknown service: ${service}`);
       }
 
       // 성공 시 Circuit Breaker 업데이트
@@ -357,7 +354,7 @@ export class EdgeAIRouter {
     request: EdgeRouterRequest
   ): Promise<DistributedResponse | null> {
     try {
-      const cacheKey = 'ai:response:' + this.generateCacheKey(request);
+      const cacheKey = `ai:response:${this.generateCacheKey(request)}`;
       const cachedData = await edgeCache.get(cacheKey);
 
       if (cachedData) {

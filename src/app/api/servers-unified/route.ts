@@ -16,15 +16,15 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import debug from '@/utils/debug';
+import { createClient } from '@/lib/supabase/server';
+import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type {
   EnhancedServerMetrics,
-  ServerStatus,
   ServerEnvironment,
   ServerRole,
+  ServerStatus,
 } from '@/types/server';
-import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
-import { createClient } from '@/lib/supabase/server';
+import debug from '@/utils/debug';
 import { mapServerToEnhanced } from '@/utils/serverUtils';
 
 /**
@@ -135,7 +135,7 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
           services: [],
           systemInfo: {
             os: server.os ?? 'Ubuntu 22.04 LTS',
-            uptime: Math.floor((server.uptime ?? 0) / 3600) + 'h',
+            uptime: `${Math.floor((server.uptime ?? 0) / 3600)}h`,
             processes: server.processes ?? 120,
             zombieProcesses: 0,
             loadAverage: `${((server.cpu_usage ?? 0) / 20).toFixed(2)}`,
@@ -264,7 +264,7 @@ function filterAndSortServers(
  * 🎯 메인 핸들러
  */
 async function handleServersUnified(
-  request: NextRequest,
+  _request: NextRequest,
   context: {
     body: {
       action: ServersUnifiedRequest['action'];

@@ -8,7 +8,7 @@
  * - 🔥 Vibe Coding
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { guestLogin } from './helpers/guest';
 
 test.describe('Feature Cards - Main Page', () => {
@@ -53,7 +53,9 @@ test.describe('Feature Cards - Main Page', () => {
     await expect(modal).toBeVisible();
 
     // 모달 제목 확인 (Strict Mode 준수: heading level 3로 구체화)
-    await expect(modal.getByRole('heading', { level: 3 })).toContainText('💻 기술 스택');
+    await expect(modal.getByRole('heading', { level: 3 })).toContainText(
+      '💻 기술 스택'
+    );
   });
 
   test('기술 스택 모달 - 최신 버전 확인', async ({ page }) => {
@@ -62,10 +64,10 @@ test.describe('Feature Cards - Main Page', () => {
 
     // 모달 내 최신 기술 버전 확인
     const modal = page.getByRole('dialog');
-    await expect(modal).toContainText('v15.4');  // Next.js
-    await expect(modal).toContainText('v5.7');   // TypeScript
-    await expect(modal).toContainText('v18.3');  // React
-    await expect(modal).toContainText('v3.4');   // Tailwind CSS
+    await expect(modal).toContainText('v15.4'); // Next.js
+    await expect(modal).toContainText('v5.7'); // TypeScript
+    await expect(modal).toContainText('v18.3'); // React
+    await expect(modal).toContainText('v3.4'); // Tailwind CSS
   });
 
   test('Vibe Coding 카드 클릭 시 모달 오픈 확인', async ({ page }) => {
@@ -77,7 +79,9 @@ test.describe('Feature Cards - Main Page', () => {
     await expect(modal).toBeVisible();
 
     // 모달 제목 확인 (Strict Mode 준수)
-    await expect(modal.getByRole('heading', { level: 3 })).toContainText('🔥 Vibe Coding');
+    await expect(modal.getByRole('heading', { level: 3 })).toContainText(
+      '🔥 Vibe Coding'
+    );
   });
 
   test('Vibe Coding 모달 - 워크플로우 확인', async ({ page }) => {
@@ -101,7 +105,9 @@ test.describe('Feature Cards - Main Page', () => {
     await expect(modal).toBeVisible();
 
     // 모달 제목 확인 (Strict Mode 준수)
-    await expect(modal.getByRole('heading', { level: 3 })).toContainText('🧠 AI 어시스턴트');
+    await expect(modal.getByRole('heading', { level: 3 })).toContainText(
+      '🧠 AI 어시스턴트'
+    );
   });
 
   test('AI 어시스턴트 모달 - AI 기능 확인', async ({ page }) => {
@@ -124,7 +130,9 @@ test.describe('Feature Cards - Main Page', () => {
     await expect(modal).toBeVisible();
 
     // 모달 제목 확인 (Strict Mode 준수)
-    await expect(modal.getByRole('heading', { level: 3 })).toContainText('🏗️ 클라우드 플랫폼 활용');
+    await expect(modal.getByRole('heading', { level: 3 })).toContainText(
+      '🏗️ 클라우드 플랫폼 활용'
+    );
   });
 
   test('클라우드 플랫폼 모달 - 3개 플랫폼 확인', async ({ page }) => {
@@ -196,7 +204,9 @@ test.describe('Feature Cards - Main Page', () => {
       // 모달 오픈 확인
       const modal = page.getByRole('dialog');
       await expect(modal).toBeVisible();
-      await expect(modal.getByRole('heading', { level: 3 })).toContainText(cardTitle);
+      await expect(modal.getByRole('heading', { level: 3 })).toContainText(
+        cardTitle
+      );
 
       // ESC로 닫기
       await page.keyboard.press('Escape');
@@ -213,7 +223,7 @@ test.describe('Feature Cards - Main Page', () => {
     const aiCard = page.locator('text=🧠 AI 어시스턴트').locator('..');
 
     // hover 전 상태
-    const beforeHover = await aiCard.boundingBox();
+    const _beforeHover = await aiCard.boundingBox();
 
     // hover
     await aiCard.hover();

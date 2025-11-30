@@ -1,20 +1,20 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { getSystemConfig } from '@/config/SystemConfiguration';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
-  DashboardResponseSchema,
   DashboardActionRequestSchema,
+  type DashboardActionResponse,
   DashboardActionResponseSchema,
   type DashboardResponse,
+  DashboardResponseSchema,
   type DashboardServer,
   type DashboardStats,
-  type DashboardActionResponse,
 } from '@/schemas/api.schema';
+import { getServerMetricsFromUnifiedSource } from '@/services/data/UnifiedServerDataSource';
+import type { Server } from '@/types/server';
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
-import { getServerMetricsFromUnifiedSource } from '@/services/data/UnifiedServerDataSource';
-import { getSystemConfig } from '@/config/SystemConfiguration';
-import type { Server } from '@/types/server';
 
 /**
  * 테스트 모드 감지
@@ -236,7 +236,7 @@ const getHandler = createApiRoute()
       environment: server.environment,
       uptime:
         typeof server.uptime === 'string'
-          ? parseInt(server.uptime) || 0
+          ? parseInt(server.uptime, 10) || 0
           : server.uptime,
       lastUpdate:
         server.lastUpdate instanceof Date

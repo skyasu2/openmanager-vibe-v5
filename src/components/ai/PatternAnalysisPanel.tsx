@@ -9,7 +9,6 @@
 
 'use client';
 
-import { useDataLoader } from '@/hooks/useDataLoader';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
@@ -21,7 +20,8 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
-import React, { useMemo, useState, type FC } from 'react';
+import { type FC, useMemo, useState } from 'react';
+import { useDataLoader } from '@/hooks/useDataLoader';
 import BasePanelLayout from './shared/BasePanelLayout';
 
 interface PatternData {
@@ -309,7 +309,9 @@ const PatternAnalysisPanel: FC<PatternAnalysisPanelProps> = ({
       adminLabel="상세분석"
       filters={patternTypes}
       selectedFilter={selectedType}
-      onFilterChange={(filterId: string) => setSelectedType(filterId as PatternData['type'])}
+      onFilterChange={(filterId: string) =>
+        setSelectedType(filterId as PatternData['type'])
+      }
       bottomInfo={{
         primary: '🤖 AI가 실시간으로 시스템 패턴을 분석합니다',
         secondary: '상세 패턴 분석 및 대응 전략은 관리자 페이지에서 확인하세요',
@@ -369,7 +371,9 @@ const PatternAnalysisPanel: FC<PatternAnalysisPanelProps> = ({
                   {(pattern.severity === 'high' ||
                     pattern.severity === 'medium') && (
                     <button
-                      onClick={() => { void generateAutoReportFromPattern(pattern); }}
+                      onClick={() => {
+                        void generateAutoReportFromPattern(pattern);
+                      }}
                       disabled={
                         autoReportStatus.isGenerating &&
                         autoReportStatus.lastPatternId === pattern.id

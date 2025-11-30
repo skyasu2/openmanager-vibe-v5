@@ -5,15 +5,17 @@
 
 'use client';
 
-import { lazy, useEffect, useState, type ReactNode } from 'react';
-import {
-  OptimizedLazy,
-} from '@/components/performance/OptimizedLazyLoader';
-import { BundleAnalyzer } from '@/lib/bundle-optimization';
-import { Loader2, BarChart3, Bot, Settings } from '@/lib/bundle-optimization';
-
+import { lazy, type ReactNode, useEffect, useState } from 'react';
+import { OptimizedLazy } from '@/components/performance/OptimizedLazyLoader';
 // 핵심 컴포넌트만 직접 import
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
+import {
+  BarChart3,
+  Bot,
+  BundleAnalyzer,
+  Loader2,
+  Settings,
+} from '@/lib/bundle-optimization';
 
 // 지연 로딩 컴포넌트들
 const LazyFeatureCards = lazy(() =>

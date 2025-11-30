@@ -6,7 +6,6 @@
 
 'use client';
 
-import { KST } from '@/lib/utils/time';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
@@ -18,6 +17,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useState } from 'react';
+import { KST } from '@/lib/utils/time';
 
 interface OptimizationSettingsTabProps {
   onOptimizationRun: () => Promise<void>;

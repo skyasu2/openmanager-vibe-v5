@@ -8,11 +8,11 @@
  * - 콜드 스타트 지연 최소화
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import type { Server } from '@/types/server';
-import { getAPIBatcher } from '@/lib/api/api-batcher';
 import type { APIRequest } from '@/lib/api/api-batcher';
+import { getAPIBatcher } from '@/lib/api/api-batcher';
+import type { Server } from '@/types/server';
 
 // 타입 정의
 interface UseRealtimeServersOptions {

@@ -1,4 +1,4 @@
-import { Page, BrowserContext } from '@playwright/test';
+import { BrowserContext, Page } from '@playwright/test';
 import { getTestBaseUrl } from './config';
 
 /**

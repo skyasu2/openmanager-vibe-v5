@@ -7,9 +7,9 @@
  * - 자동 롤백 설정
  */
 
-import { abTestManager, type ABTestGroup } from '@/lib/ab-test-manager';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { type ABTestGroup, abTestManager } from '@/lib/ab-test-manager';
 import debug from '@/utils/debug';
 
 // 🔒 타입 안전성을 위한 인터페이스 정의
@@ -516,7 +516,7 @@ function generateRecommendations(analysis: DetailedAnalysis): string[] {
   const totalRequests = analysis.trafficAnalysis.totalRequests;
   if (totalRequests < 100) {
     recommendations.push(
-      '📈 더 많은 테스트 데이터 수집 필요 (현재: ' + totalRequests + '개 요청)'
+      `📈 더 많은 테스트 데이터 수집 필요 (현재: ${totalRequests}개 요청)`
     );
   } else if (totalRequests > 1000) {
     recommendations.push('📊 충분한 테스트 데이터 확보: 신뢰할 수 있는 결과');

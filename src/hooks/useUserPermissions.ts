@@ -1,10 +1,10 @@
-import { useSession } from '@/hooks/useSupabaseSession';
-import { useAuth } from '@/hooks/useAuth';
-import type { UserPermissions, UserType } from '@/types/permissions.types';
 import {
   isGuestFullAccessEnabled,
   isGuestSystemStartEnabled,
 } from '@/config/guestMode';
+import { useAuth } from '@/hooks/useAuth';
+import { useSession } from '@/hooks/useSupabaseSession';
+import type { UserPermissions, UserType } from '@/types/permissions.types';
 
 /**
  * 관리자 모드 제거 이후, 게스트와 GitHub 사용자가 동일한 권한을 갖도록 단순화된 훅.

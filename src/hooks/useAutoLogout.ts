@@ -154,7 +154,11 @@ export function useAutoLogout({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, inactivityTimeout, warningTimeout]); // resetTimers, updateActivity는 ref 기반으로 안정적
+  }, [
+    // 초기 타이머 설정
+    resetTimers,
+    updateActivity,
+  ]); // resetTimers, updateActivity는 ref 기반으로 안정적
 
   // 로그인 상태 확인
   useEffect(() => {
@@ -176,7 +180,7 @@ export function useAutoLogout({
   useEffect(() => {
     resetTimers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn]); // resetTimers는 ref 기반으로 안정적
+  }, [resetTimers]); // resetTimers는 ref 기반으로 안정적
 
   return {
     logout,

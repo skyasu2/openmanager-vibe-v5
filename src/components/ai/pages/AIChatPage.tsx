@@ -6,11 +6,12 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { Send, User, Bot, Sparkles, AlertCircle } from 'lucide-react';
+import { AlertCircle, Bot, Send, Sparkles, User } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useAIThinking } from '@/stores/useAISidebarStore';
 import debug from '@/utils/debug';
+
 // import type { QueryResponse as UnifiedQueryResponse } from '@/services/ai/SimplifiedQueryEngine';
 // import ThinkingView from '../ThinkingView'; // 백업됨
 
@@ -49,7 +50,7 @@ export default function AIChatPage() {
   // 메시지 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [localMessages]);
+  }, []);
 
   // 통합 AI API 호출 함수
   const callUnifiedAI = async (

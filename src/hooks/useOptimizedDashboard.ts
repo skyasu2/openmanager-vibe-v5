@@ -8,11 +8,11 @@
 
 'use client';
 
+import { useCallback, useEffect, useMemo } from 'react';
 import { useAutoLogout } from './useAutoLogout';
 import { useSystemAutoShutdown } from './useSystemAutoShutdown';
 import { useSystemStatus } from './useSystemStatus';
-import { useUnifiedTimer, createTimerTask } from './useUnifiedTimer';
-import { useCallback, useEffect, useMemo } from 'react';
+import { createTimerTask, useUnifiedTimer } from './useUnifiedTimer';
 
 // Chrome 전용 Performance API 확장
 interface PerformanceMemory {
@@ -36,19 +36,19 @@ interface UseOptimizedDashboardProps {
   warningMinutes?: number;
   onWarning?: () => void;
   onLogout?: () => void;
-  
+
   // System shutdown 설정
   systemWarningMinutes?: number;
   onSystemWarning?: (remainingMinutes: number) => void;
   onSystemShutdown?: () => void;
-  
+
   // 통합 타이머 사용 여부 (실험적 기능)
   useUnifiedTimerMode?: boolean;
 }
 
 /**
  * 🚀 최적화된 대시보드 훅
- * 
+ *
  * 기존 훅들을 최적화된 설정으로 래핑하여 제공
  * 베르셀 프로덕션 환경에서의 성능 향상을 위해 설계됨
  */
@@ -62,10 +62,9 @@ export function useOptimizedDashboard({
   onSystemShutdown,
   useUnifiedTimerMode = false, // 기본값: false (기존 방식 사용)
 }: UseOptimizedDashboardProps = {}) {
-  
   // 🎛️ 통합 타이머 모드 (실험적)
   const unifiedTimer = useUnifiedTimer();
-  
+
   // 📊 기존 훅들 (최적화된 설정으로)
   const autoLogoutResult = useAutoLogout({
     timeoutMinutes,
@@ -109,43 +108,49 @@ export function useOptimizedDashboard({
   // 📈 성능 통계 (개발 모드에서만)
   const performanceStats = useMemo(() => {
     if (process.env.NODE_ENV !== 'development') return null;
-    
+
     return {
       mode: useUnifiedTimerMode ? 'unified' : 'standard',
       optimizations: [
         'useAutoLogout: 1s → 10s',
         'useSystemAutoShutdown: 1s → 5s',
-        'useSystemStatus: 30s → 300s (기존)'
+        'useSystemStatus: 30s → 300s (기존)',
       ],
-      expectedImprovement: '70-80% 타이머 부하 감소'
+      expectedImprovement: '70-80% 타이머 부하 감소',
     };
   }, [useUnifiedTimerMode]);
 
   // 🔧 추가 최적화 유틸리티
-  const optimizationUtils = useMemo(() => ({
-    // 메모리 사용량 확인
-    getMemoryUsage: () => {
-      if (typeof window !== 'undefined' && 'performance' in window) {
-        return (window.performance as ExtendedPerformance).memory;
-      }
-      return null;
-    },
-    
-    // 타이머 개수 확인
-    getActiveTimers: () => {
-      return useUnifiedTimerMode 
-        ? unifiedTimer.getAllTasks().filter(t => t.enabled).length
-        : 'standard mode (분리된 타이머들)';
-    },
-    
-    // 강제 가비지 컬렉션 (개발 환경)
-    forceGC: () => {
-      if (process.env.NODE_ENV === 'development' && (window as WindowWithGC).gc) {
-        (window as WindowWithGC).gc?.();
-        console.log('🗑️ 강제 가비지 컬렉션 실행');
-      }
-    }
-  }), [useUnifiedTimerMode, unifiedTimer]);
+  const optimizationUtils = useMemo(
+    () => ({
+      // 메모리 사용량 확인
+      getMemoryUsage: () => {
+        if (typeof window !== 'undefined' && 'performance' in window) {
+          return (window.performance as ExtendedPerformance).memory;
+        }
+        return null;
+      },
+
+      // 타이머 개수 확인
+      getActiveTimers: () => {
+        return useUnifiedTimerMode
+          ? unifiedTimer.getAllTasks().filter((t) => t.enabled).length
+          : 'standard mode (분리된 타이머들)';
+      },
+
+      // 강제 가비지 컬렉션 (개발 환경)
+      forceGC: () => {
+        if (
+          process.env.NODE_ENV === 'development' &&
+          (window as WindowWithGC).gc
+        ) {
+          (window as WindowWithGC).gc?.();
+          console.log('🗑️ 강제 가비지 컬렉션 실행');
+        }
+      },
+    }),
+    [useUnifiedTimerMode, unifiedTimer]
+  );
 
   // 📊 통합된 결과 반환
   return {
@@ -153,21 +158,21 @@ export function useOptimizedDashboard({
     autoLogout: autoLogoutResult,
     systemAutoShutdown: systemAutoShutdownResult,
     systemStatus: systemStatusResult,
-    
+
     // 통합 타이머 (실험적)
     unifiedTimer: useUnifiedTimerMode ? unifiedTimer : null,
-    
+
     // 성능 정보
     performanceStats,
     optimizationUtils,
-    
+
     // 설정 정보
     config: {
       mode: useUnifiedTimerMode ? 'unified' : 'standard',
       autoLogoutInterval: 10000, // 10초
       systemShutdownInterval: 5000, // 5초
       statusCheckInterval: 300000, // 5분
-    }
+    },
   };
 }
 
@@ -176,20 +181,30 @@ export function useOptimizedDashboard({
  */
 export function useDashboardPerformanceDebugger() {
   const startTime = useMemo(() => Date.now(), []);
-  
+
   const getPerformanceReport = useCallback(() => {
     const now = Date.now();
     const uptime = now - startTime;
-    
+
     return {
       uptime: `${Math.floor(uptime / 1000)}s`,
       memory: (performance as ExtendedPerformance).memory || 'not available',
       timers: {
         note: '기존 4개 독립 타이머 → 최적화된 2개 타이머',
-        before: ['useAutoLogout: 1s', 'useSystemAutoShutdown: 1s', 'useSystemStatus: 5min', 'useSystemIntegration: 5s'],
-        after: ['useAutoLogout: 10s', 'useSystemAutoShutdown: 5s', 'useSystemStatus: 5min', 'useSystemIntegration: 5s']
+        before: [
+          'useAutoLogout: 1s',
+          'useSystemAutoShutdown: 1s',
+          'useSystemStatus: 5min',
+          'useSystemIntegration: 5s',
+        ],
+        after: [
+          'useAutoLogout: 10s',
+          'useSystemAutoShutdown: 5s',
+          'useSystemStatus: 5min',
+          'useSystemIntegration: 5s',
+        ],
       },
-      improvement: '90% 인증 체크 부하 감소, 80% 시스템 체크 부하 감소'
+      improvement: '90% 인증 체크 부하 감소, 80% 시스템 체크 부하 감소',
     };
   }, [startTime]);
 

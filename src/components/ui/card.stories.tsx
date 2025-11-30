@@ -1,18 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/react';;
+import type { Meta, StoryObj } from '@storybook/react';
+
+import { Badge } from './badge';
+import { Button } from './button';
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
 } from './card';
-import { Button } from './button';
-import { Badge } from './badge';
-import {
-  mockServerStates,
-  a11yLabels,
-} from '../../stories/templates/StoryTemplate';
 
 const meta = {
   title: 'UI Components/Card',

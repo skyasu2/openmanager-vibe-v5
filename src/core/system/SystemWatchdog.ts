@@ -55,7 +55,6 @@ export class SystemWatchdog {
   }> = [];
   private readonly maxHistoryLength = 100;
   private readonly monitoringIntervalMs = 30000; // 30초 (과도한 헬스체크 방지)
-  private readonly maxDataPoints = 30; // 5분간 데이터 (30 * 10초)
 
   constructor(processManager: ProcessManager) {
     this.processManager = processManager;
@@ -353,7 +352,7 @@ export class SystemWatchdog {
     return {
       slope: slope / 1000, // timestamp를 초 단위로 변환 (ms → s)
       intercept,
-      correlation: isNaN(correlation) ? 0 : correlation,
+      correlation: Number.isNaN(correlation) ? 0 : correlation,
     };
   }
 

@@ -7,7 +7,7 @@
  * - Vercel 타임아웃 방지
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface Server {
   id: string;
@@ -221,23 +221,38 @@ export function useSequentialServerGeneration(
         try {
           const result = await generateNextServer();
 
-        if (result.success && result.server) {
-          const newServer = result.server;
+          if (result.success && result.server) {
+            const newServer = result.server;
 
-          setServers((prev) => [...prev, newServer]);
-          setStatus((prev) => ({
-            ...prev,
-            currentCount: result.currentCount,
-            progress: result.progress || 0,
-            nextServerType: result.nextServerType || null,
-            currentMessage: result.message || '서버 배포 중...',
-            lastGeneratedServer: newServer,
-            isComplete: result.isComplete,
-          }));
+            setServers((prev) => [...prev, newServer]);
+            setStatus((prev) => ({
+              ...prev,
+              currentCount: result.currentCount,
+              progress: result.progress || 0,
+              nextServerType: result.nextServerType || null,
+              currentMessage: result.message || '서버 배포 중...',
+              lastGeneratedServer: newServer,
+              isComplete: result.isComplete,
+            }));
 
-          onServerAdded?.(newServer);
+            onServerAdded?.(newServer);
 
-          if (result.isComplete) {
+            if (result.isComplete) {
+              if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+              }
+
+              setStatus((prev) => ({
+                ...prev,
+                isGenerating: false,
+                currentMessage: '🎉 모든 서버 배포 완료!',
+              }));
+
+              onComplete?.(servers);
+            }
+          } else {
+            // 오류 발생 시 중지
             if (intervalRef.current) {
               clearInterval(intervalRef.current);
               intervalRef.current = null;
@@ -246,44 +261,29 @@ export function useSequentialServerGeneration(
             setStatus((prev) => ({
               ...prev,
               isGenerating: false,
-              currentMessage: '🎉 모든 서버 배포 완료!',
+              error: result.error || '서버 생성 중 오류 발생',
+              currentMessage: '서버 생성 중단됨',
             }));
 
-            onComplete?.(servers);
+            onError?.(result.error || '서버 생성 중 오류 발생');
           }
-        } else {
-          // 오류 발생 시 중지
+        } catch (error) {
           if (intervalRef.current) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
           }
 
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
           setStatus((prev) => ({
             ...prev,
             isGenerating: false,
-            error: result.error || '서버 생성 중 오류 발생',
+            error: errorMessage,
             currentMessage: '서버 생성 중단됨',
           }));
 
-          onError?.(result.error || '서버 생성 중 오류 발생');
+          onError?.(errorMessage);
         }
-      } catch (error) {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
-
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
-        setStatus((prev) => ({
-          ...prev,
-          isGenerating: false,
-          error: errorMessage,
-          currentMessage: '서버 생성 중단됨',
-        }));
-
-        onError?.(errorMessage);
-      }
       })();
     }, intervalMs);
   }, [

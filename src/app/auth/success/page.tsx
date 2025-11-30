@@ -9,10 +9,10 @@
 
 // 클라이언트 컴포넌트 - 인증 페이지는 클라이언트에서 처리
 
-import React, { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase/client';
 import debug from '@/utils/debug';
 
 export default function AuthSuccessPage() {
@@ -266,7 +266,7 @@ export default function AuthSuccessPage() {
     void checkSessionAndRedirect();
     // performanceMetrics는 의도적으로 의존성에서 제외 (변경될 때마다 재실행 방지)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router]); // router 함수 의존성 복구
+  }, [router, measureTime, performanceMetrics]); // router 함수 의존성 복구
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">

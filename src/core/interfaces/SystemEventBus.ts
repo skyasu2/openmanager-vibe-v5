@@ -58,7 +58,12 @@ export interface ProcessEventPayload {
 
 // Watchdog 관련 페이로드
 export interface WatchdogEventPayload {
-  alertType?: 'memory-leak' | 'high-error-rate' | 'performance-degradation' | 'frequent-restarts' | 'metrics-update';
+  alertType?:
+    | 'memory-leak'
+    | 'high-error-rate'
+    | 'performance-degradation'
+    | 'frequent-restarts'
+    | 'metrics-update';
   severity: 'info' | 'warning' | 'error' | 'critical';
   message: string;
   metrics?: {

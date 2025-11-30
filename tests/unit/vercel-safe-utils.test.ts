@@ -3,15 +3,15 @@
  * 베르셀 환경에서 발생하는 undefined/null 접근 오류 방지 함수들의 테스트
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  isValidServer,
-  getSafeServicesLength,
-  getSafeValidServices,
   getSafeAlertsCount,
   getSafeArrayLength,
   getSafeProperty,
-  normalizeServerForVercel
+  getSafeServicesLength,
+  getSafeValidServices,
+  isValidServer,
+  normalizeServerForVercel,
 } from '../../src/lib/vercel-safe-utils';
 
 describe('vercel-safe-utils', () => {
@@ -20,7 +20,7 @@ describe('vercel-safe-utils', () => {
       const validServer = {
         id: 'server-1',
         name: 'Test Server',
-        status: 'online'
+        status: 'online',
       };
 
       expect(isValidServer(validServer)).toBe(true);
@@ -45,8 +45,8 @@ describe('vercel-safe-utils', () => {
         status: 'online',
         services: [
           { name: 'nginx', status: 'running' },
-          { name: 'nodejs', status: 'running' }
-        ]
+          { name: 'nodejs', status: 'running' },
+        ],
       };
 
       expect(getSafeServicesLength(server)).toBe(2);
@@ -62,7 +62,7 @@ describe('vercel-safe-utils', () => {
       const server = {
         id: 'server-1',
         name: 'Test Server',
-        status: 'online'
+        status: 'online',
       };
 
       expect(getSafeServicesLength(server)).toBe(0);
@@ -73,7 +73,7 @@ describe('vercel-safe-utils', () => {
         id: 'server-1',
         name: 'Test Server',
         status: 'online',
-        services: 'not-array'
+        services: 'not-array',
       };
 
       expect(getSafeServicesLength(server)).toBe(0);
@@ -93,8 +93,8 @@ describe('vercel-safe-utils', () => {
           { name: 'nodejs', status: 'running' },
           undefined,
           { status: 'running' }, // 이름 없음
-          { name: 'redis', status: 'stopped' }
-        ]
+          { name: 'redis', status: 'stopped' },
+        ],
       };
 
       const validServices = getSafeValidServices(server);
@@ -123,7 +123,7 @@ describe('vercel-safe-utils', () => {
       const alerts = [
         { message: 'Alert 1' },
         { message: 'Alert 2' },
-        { message: 'Alert 3' }
+        { message: 'Alert 3' },
       ];
 
       expect(getSafeAlertsCount(alerts)).toBe(3);
@@ -188,7 +188,7 @@ describe('vercel-safe-utils', () => {
         status: 'online',
         cpu: 75,
         memory: 60,
-        services: [{ name: 'nginx', status: 'running' }]
+        services: [{ name: 'nginx', status: 'running' }],
       };
 
       const normalized = normalizeServerForVercel(server);
@@ -212,7 +212,7 @@ describe('vercel-safe-utils', () => {
       const incompleteServer = {
         id: 'server-1',
         name: 'Test Server',
-        status: 'online'
+        status: 'online',
         // cpu, memory 등이 누락됨
       };
 
@@ -245,12 +245,12 @@ describe('vercel-safe-utils', () => {
         id: 'server-1',
         name: 'Test Server',
         status: 'online',
-        services: undefined
+        services: undefined,
       };
 
       expect(() => {
         const services = server?.services;
-        const length = services?.length; // 이런 패턴에서 오류 방지
+        const _length = services?.length; // 이런 패턴에서 오류 방지
         return getSafeArrayLength(services);
       }).not.toThrow();
     });

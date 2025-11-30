@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { timerManager } from '../utils/TimerManager';
 
 export interface RealTimeMetrics {

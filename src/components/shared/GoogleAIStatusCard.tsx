@@ -4,11 +4,6 @@
 
 'use client';
 
-import { FC } from 'react';
-import {
-  useGoogleAIStatus,
-  useRefreshGoogleAIStatus as _useRefreshGoogleAIStatus,
-} from '@/hooks/api/useGoogleAIStatus';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
@@ -17,12 +12,12 @@ import {
   Brain,
   CheckCircle,
   Clock,
-  Key as _Key,
   RefreshCw,
   XCircle,
   Zap,
 } from 'lucide-react';
-import React, { Fragment, useState } from 'react';
+import { FC, useState } from 'react';
+import { useGoogleAIStatus } from '@/hooks/api/useGoogleAIStatus';
 
 interface GoogleAIStatusCardProps {
   className?: string;
@@ -193,91 +188,89 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
         </div>
 
         {showDetails && status && (
-          <Fragment>
-            <div className="space-y-3">
-              <div className="mb-2 text-sm font-medium">API 키 상태</div>
+          <div className="space-y-3">
+            <div className="mb-2 text-sm font-medium">API 키 상태</div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">주 API 키</span>
+                {renderApiKeyStatus(
+                  status.apiKeyStatus.primary,
+                  status.primaryKeyId,
+                  status.primaryKeyConnected
+                )}
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">보조 API 키</span>
+                {renderApiKeyStatus(
+                  status.apiKeyStatus.secondary,
+                  status.secondaryKeyId,
+                  status.secondaryKeyConnected
+                )}
+              </div>
+            </div>
+
+            {status.model && (
+              <div className="flex items-center gap-2 text-sm">
+                <Zap className="h-4 w-4 text-purple-500" />
+                <span className="text-gray-600">모델:</span>
+                <span className="font-medium text-gray-800">
+                  {status.model}
+                </span>
+              </div>
+            )}
+
+            {status.performance?.averageResponseTime && (
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <span className="text-gray-600">평균 응답 시간:</span>
+                <span className="font-medium text-gray-800">
+                  {status.performance.averageResponseTime}ms
+                </span>
+              </div>
+            )}
+
+            {status.quotaStatus && (
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">주 API 키</span>
-                  {renderApiKeyStatus(
-                    status.apiKeyStatus.primary,
-                    status.primaryKeyId,
-                    status.primaryKeyConnected
-                  )}
+                <div className="flex items-center gap-2 text-sm">
+                  <BarChart3 className="h-4 w-4 text-green-500" />
+                  <span className="text-gray-600">일일 할당량:</span>
+                  <span className="font-medium text-gray-800">
+                    {status.quotaStatus.daily.used} /{' '}
+                    {status.quotaStatus.daily.limit}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">보조 API 키</span>
-                  {renderApiKeyStatus(
-                    status.apiKeyStatus.secondary,
-                    status.secondaryKeyId,
-                    status.secondaryKeyConnected
+                <div className="flex items-center gap-2 text-sm">
+                  <Activity className="h-4 w-4 text-blue-500" />
+                  <span className="text-gray-600">분당 할당량:</span>
+                  <span className="font-medium text-gray-800">
+                    {status.quotaStatus.perMinute.used} /{' '}
+                    {status.quotaStatus.perMinute.limit}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {status.features && (
+              <div className="mt-3">
+                <div className="mb-2 text-sm text-gray-600">활성 기능:</div>
+                <div className="flex flex-wrap gap-1">
+                  {Object.entries(
+                    status.features as Record<string, boolean>
+                  ).map(
+                    ([feature, enabled]) =>
+                      enabled && (
+                        <span
+                          key={feature}
+                          className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700"
+                        >
+                          {feature}
+                        </span>
+                      )
                   )}
                 </div>
               </div>
-
-              {status.model && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Zap className="h-4 w-4 text-purple-500" />
-                  <span className="text-gray-600">모델:</span>
-                  <span className="font-medium text-gray-800">
-                    {status.model}
-                  </span>
-                </div>
-              )}
-
-              {status.performance?.averageResponseTime && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-blue-500" />
-                  <span className="text-gray-600">평균 응답 시간:</span>
-                  <span className="font-medium text-gray-800">
-                    {status.performance.averageResponseTime}ms
-                  </span>
-                </div>
-              )}
-
-              {status.quotaStatus && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <BarChart3 className="h-4 w-4 text-green-500" />
-                    <span className="text-gray-600">일일 할당량:</span>
-                    <span className="font-medium text-gray-800">
-                      {status.quotaStatus.daily.used} /{' '}
-                      {status.quotaStatus.daily.limit}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Activity className="h-4 w-4 text-blue-500" />
-                    <span className="text-gray-600">분당 할당량:</span>
-                    <span className="font-medium text-gray-800">
-                      {status.quotaStatus.perMinute.used} /{' '}
-                      {status.quotaStatus.perMinute.limit}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {status.features && (
-                <div className="mt-3">
-                  <div className="mb-2 text-sm text-gray-600">활성 기능:</div>
-                  <div className="flex flex-wrap gap-1">
-                    {Object.entries(
-                      status.features as Record<string, boolean>
-                    ).map(
-                      ([feature, enabled]) =>
-                        enabled && (
-                          <span
-                            key={feature}
-                            className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700"
-                          >
-                            {feature}
-                          </span>
-                        )
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </Fragment>
+            )}
+          </div>
         )}
 
         {error && (

@@ -4,7 +4,7 @@
  *
  * 목표: 순수 Node.js crypto 모듈로 간소화
  * 🚨 Vercel 빌드 self 오류 완전 해결
- * 
+ *
  * Note: 'any' types are intentionally used for runtime environment setup
  */
 
@@ -103,13 +103,13 @@ if (typeof globalThis !== 'undefined') {
     void (async () => {
       try {
         // Node.js crypto 모듈을 브라우저 호환 형태로 노출
-        const crypto = await import('crypto');
+        const crypto = await import('node:crypto');
 
         // Web Crypto API 호환 인터페이스 제공
         glob.crypto = {
           // getRandomValues는 Web Crypto API와 호환되게
           getRandomValues: (arr: any) => {
-            if (arr && arr.length) {
+            if (arr?.length) {
               const randomBytes = crypto.randomBytes(arr.length);
               for (let i = 0; i < arr.length; i++) {
                 arr[i] = randomBytes[i];

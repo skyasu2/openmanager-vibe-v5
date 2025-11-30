@@ -1,6 +1,7 @@
 // Using mock system for real-time data
-import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
+
 import { IncidentReportService } from '@/services/ai/IncidentReportService';
+import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 /**
  * 🚀 WebSocket Manager v2.0
  *
@@ -12,8 +13,8 @@ import { IncidentReportService } from '@/services/ai/IncidentReportService';
  * - IncidentReportService 통합 장애 감지
  */
 
-import { Subject, BehaviorSubject, interval } from 'rxjs';
-import { throttleTime, distinctUntilChanged, filter } from 'rxjs/operators';
+import { BehaviorSubject, interval, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
 // GCPRealDataService 사용
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 

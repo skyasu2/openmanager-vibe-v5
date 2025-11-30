@@ -154,19 +154,19 @@ export async function monitorSSEStream(
   // SSE 이벤트 리스너 설정 (클라이언트 측 코드 주입)
   await page.evaluate(
     ({ endpoint: targetEndpoint }) => {
-      // @ts-ignore - window 객체에 SSE 이벤트 배열 추가
+      // @ts-expect-error - window 객체에 SSE 이벤트 배열 추가
       window.__sseEvents = [];
 
       // EventSource 모니터링 (브라우저 API)
       const originalEventSource = window.EventSource;
-      // @ts-ignore
+      // @ts-expect-error
       window.EventSource = class extends originalEventSource {
         constructor(url: string, config?: EventSourceInit) {
           super(url, config);
 
           if (url.includes(targetEndpoint)) {
             this.addEventListener('message', (event: MessageEvent) => {
-              // @ts-ignore
+              // @ts-expect-error
               window.__sseEvents.push({
                 type: 'message',
                 data: event.data,
@@ -176,7 +176,7 @@ export async function monitorSSEStream(
             });
 
             this.addEventListener('error', (event: Event) => {
-              // @ts-ignore
+              // @ts-expect-error
               window.__sseEvents.push({
                 type: 'error',
                 data: JSON.stringify(event),
@@ -218,7 +218,7 @@ export async function monitorSSEStream(
                   for (const line of lines) {
                     if (line.startsWith('data: ')) {
                       const data = line.substring(6);
-                      // @ts-ignore
+                      // @ts-expect-error
                       window.__sseEvents.push({
                         type: 'data',
                         data,
@@ -228,7 +228,7 @@ export async function monitorSSEStream(
                   }
                 }
               } catch (error) {
-                // @ts-ignore
+                // @ts-expect-error
                 window.__sseEvents.push({
                   type: 'error',
                   data: JSON.stringify(error),
@@ -250,7 +250,7 @@ export async function monitorSSEStream(
   while (Date.now() < endTime) {
     // 클라이언트 측 이벤트 수집
     const clientEvents = await page.evaluate(() => {
-      // @ts-ignore
+      // @ts-expect-error
       return window.__sseEvents ?? [];
     });
 
@@ -258,7 +258,7 @@ export async function monitorSSEStream(
 
     // 클라이언트 측 이벤트 배열 초기화
     await page.evaluate(() => {
-      // @ts-ignore
+      // @ts-expect-error
       window.__sseEvents = [];
     });
 
@@ -433,8 +433,8 @@ export async function compareSnapshots(
     const baselinePath = `${snapshotPath}/${baselineName}.png`;
 
     // 기준 스냅샷이 없으면 생성
-    const fs = await import('fs/promises');
-    const path = await import('path');
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
 
     const absoluteBaselinePath = path.resolve(baselinePath);
     const baselineDir = path.dirname(absoluteBaselinePath);

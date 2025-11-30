@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import bundleAnalyzer from '@next/bundle-analyzer';
 
 // package.json에서 버전 읽기
@@ -18,7 +18,7 @@ const nextConfig = {
   // 🚀 Next.js 15 기본 설정 - Vercel 호환
   output: undefined, // Vercel 자동 감지 사용
   trailingSlash: false,
-  
+
   // 실험적 기능 (Next.js 15 호환)
   experimental: {
     optimizePackageImports: [
@@ -37,7 +37,7 @@ const nextConfig = {
     optimizeCss: false, // critters 의존성 문제로 비활성화
     // Next.js 15에서 runtime, swcMinify 제거됨 - 기본 제공
   },
-  
+
   // 🚀 이미지 최적화 설정 (무료 티어 친화적 + 성능 우선)
   images: {
     unoptimized: false, // Next.js 이미지 최적화 활성화
@@ -65,10 +65,10 @@ const nextConfig = {
         hostname: '**.supabase.co',
         port: '',
         pathname: '/storage/v1/object/public/**',
-      }
-    ]
+      },
+    ],
   },
-  
+
   // 페이지 확장자 최소화
   pageExtensions: ['tsx', 'ts'],
 
@@ -89,7 +89,6 @@ const nextConfig = {
     'axios',
   ],
 
-
   // skipTrailingSlashRedirect를 root 레벨로 이동
   skipTrailingSlashRedirect: true,
 
@@ -101,25 +100,31 @@ const nextConfig = {
   // 컴파일러 최적화
   compiler: {
     // 미사용 코드 제거 (E2E 테스트 시 console.log 보존)
-    removeConsole: process.env.NODE_ENV === 'production' && process.env.PRESERVE_CONSOLE !== 'true',
+    removeConsole:
+      process.env.NODE_ENV === 'production' &&
+      process.env.PRESERVE_CONSOLE !== 'true',
     // React DevTools 제거 (프로덕션 + 테스트 모드)
-    reactRemoveProperties: process.env.NODE_ENV === 'production' || process.env.__NEXT_TEST_MODE === 'true',
+    reactRemoveProperties:
+      process.env.NODE_ENV === 'production' ||
+      process.env.__NEXT_TEST_MODE === 'true',
   },
 
   // 🚧 리라이트 설정 (개발 환경 전용 파일 보호)
   async rewrites() {
     return [
       // 개발 환경에서만 테스트 도구 접근 허용
-      ...(process.env.NODE_ENV === 'development' ? [
-        {
-          source: '/test-tools/:path*',
-          destination: '/tests/browser/:path*',
-        },
-        {
-          source: '/dev/:path*', 
-          destination: '/api/dev/:path*',
-        }
-      ] : []),
+      ...(process.env.NODE_ENV === 'development'
+        ? [
+            {
+              source: '/test-tools/:path*',
+              destination: '/tests/browser/:path*',
+            },
+            {
+              source: '/dev/:path*',
+              destination: '/api/dev/:path*',
+            },
+          ]
+        : []),
     ];
   },
 
@@ -149,7 +154,7 @@ const nextConfig = {
       return [];
     }
     // Vercel 환경에서 nonce 생성 (Edge Runtime 호환)
-    const generateNonce = () => {
+    const _generateNonce = () => {
       // Edge Runtime에서 안전한 nonce 생성
       const array = new Uint8Array(16);
       if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
@@ -224,7 +229,11 @@ const nextConfig = {
     const csp = Object.entries(cspDirectives)
       .filter(([_, values]) => values.length > 0)
       .map(([key, values]) => {
-        if (key === 'upgrade-insecure-requests' && values.length === 1 && values[0] === '') {
+        if (
+          key === 'upgrade-insecure-requests' &&
+          values.length === 1 &&
+          values[0] === ''
+        ) {
           return key;
         }
         return `${key} ${values.join(' ')}`;
@@ -260,7 +269,8 @@ const nextConfig = {
           // ⚡ 성능 최적화 (BF-Cache 친화적)
           {
             key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate, stale-while-revalidate=86400',
+            value:
+              'public, max-age=0, must-revalidate, stale-while-revalidate=86400',
           },
           // 📄 페이지별 BF-Cache 설정
           {
@@ -268,16 +278,18 @@ const nextConfig = {
             value: 'Accept-Encoding, User-Agent',
           },
           // 🚀 Vercel 전용 최적화 헤더
-          ...(isVercel ? [
-            {
-              key: 'X-Vercel-Cache',
-              value: 'HIT',
-            },
-            {
-              key: 'X-Edge-Runtime',
-              value: 'vercel',
-            },
-          ] : []),
+          ...(isVercel
+            ? [
+                {
+                  key: 'X-Vercel-Cache',
+                  value: 'HIT',
+                },
+                {
+                  key: 'X-Edge-Runtime',
+                  value: 'vercel',
+                },
+              ]
+            : []),
         ],
       },
       // 📊 API 경로별 특별 CSP 정책
@@ -296,7 +308,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: csp + '; require-trusted-types-for \'script\';',
+            value: `${csp}; require-trusted-types-for 'script';`,
           },
           {
             key: 'X-Admin-Security',
@@ -314,9 +326,12 @@ const nextConfig = {
       '@': join(process.cwd(), 'src'),
       // 기존 alias 유지
     };
-    
+
     // 🔧 강화된 devtools 완전 비활성화 (segment-explorer 버그 해결)
-    if (process.env.__NEXT_TEST_MODE === 'true' || process.env.NEXT_DISABLE_DEVTOOLS === '1') {
+    if (
+      process.env.__NEXT_TEST_MODE === 'true' ||
+      process.env.NEXT_DISABLE_DEVTOOLS === '1'
+    ) {
       // next-devtools 관련 모든 모듈 완전 차단
       config.resolve.alias = {
         ...config.resolve.alias,
@@ -358,7 +373,8 @@ const nextConfig = {
         'next/dist/client/dev/app-hot-reloader': false,
 
         // layout-router 안전 교체
-        'next/dist/client/components/layout-router': 'next/dist/client/components/layout-router.js',
+        'next/dist/client/components/layout-router':
+          'next/dist/client/components/layout-router.js',
       };
     }
 
@@ -371,24 +387,23 @@ const nextConfig = {
         tls: false,
         crypto: false,
       };
-      
+
       // 강화된 React 모듈 해결 설정
       config.resolve.alias = {
         ...config.resolve.alias,
-        'react': 'react',
+        react: 'react',
         'react-dom': 'react-dom',
         'react/jsx-runtime': 'react/jsx-runtime',
-        'react/jsx-dev-runtime': 'react/jsx-dev-runtime'
+        'react/jsx-dev-runtime': 'react/jsx-dev-runtime',
       };
 
       // React 모듈 검색 경로 명시적 설정
       config.resolve.modules = [
         'node_modules',
-        ...(config.resolve.modules || [])
+        ...(config.resolve.modules || []),
       ];
-      
-      // Next.js 기본 splitChunks 사용 (CSS 문제 해결)
 
+      // Next.js 기본 splitChunks 사용 (CSS 문제 해결)
     }
 
     // Next.js 기본 최적화 사용
@@ -407,25 +422,27 @@ const nextConfig = {
         },
       },
       // 프로덕션 빌드에서 테스트 파일 제외
-      ...(process.env.NODE_ENV === 'production' ? [
-        {
-          test: /\/tests\/.*\.(html|js|ts|tsx)$/,
-          use: 'ignore-loader',
-        },
-        {
-          test: /\/public\/test-.*\.html$/,
-          use: 'ignore-loader',
-        },
-        {
-          test: /\.(spec|test)\.(js|jsx|ts|tsx)$/,
-          use: 'ignore-loader',
-        }
-      ] : [])
+      ...(process.env.NODE_ENV === 'production'
+        ? [
+            {
+              test: /\/tests\/.*\.(html|js|ts|tsx)$/,
+              use: 'ignore-loader',
+            },
+            {
+              test: /\/public\/test-.*\.html$/,
+              use: 'ignore-loader',
+            },
+            {
+              test: /\.(spec|test)\.(js|jsx|ts|tsx)$/,
+              use: 'ignore-loader',
+            },
+          ]
+        : [])
     );
 
     config.ignoreWarnings = [
       /Critical dependency: the request of a dependency is an expression/,
-      // Module not found 경고 제거로 경로 문제 조기 발견 
+      // Module not found 경고 제거로 경로 문제 조기 발견
       /Can't resolve '\.\/.*\.node'/,
     ];
 

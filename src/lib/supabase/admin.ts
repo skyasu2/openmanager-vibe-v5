@@ -6,7 +6,6 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { env } from '@/env'; // Assuming env is available, otherwise use process.env
 
 if (typeof window !== 'undefined') {
   throw new Error('supabase/admin.ts should only be imported on the server.');

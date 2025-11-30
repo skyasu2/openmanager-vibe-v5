@@ -1,13 +1,11 @@
-import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
-import { forwardRef, type ComponentProps } from 'react';
-import { cn } from '@/lib/utils';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { type ComponentProps, forwardRef } from 'react';
 import type { ButtonProps } from '@/components/ui/button';
 import { buttonVariants } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const Pagination = ({ className, ...props }: ComponentProps<'nav'>) => (
   <nav
-    role="navigation"
     aria-label="pagination"
     className={cn('mx-auto flex w-full justify-center', className)}
     {...props}

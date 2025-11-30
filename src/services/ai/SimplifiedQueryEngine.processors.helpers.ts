@@ -9,20 +9,20 @@
  * - Confidence calculation
  */
 
-import { MockContextLoader } from './MockContextLoader';
-import { unifiedMetricsService } from './UnifiedMetricsService';
+import { getGCPFunctionsClient } from '@/lib/gcp/gcp-functions-client';
+import type { UnifiedAIResponse } from '@/services/ai/formatters/unified-response-formatter'; // Correct import
+import type { EnhancedServerMetrics } from '@/types/server';
 import type {
-  AIQueryContext,
   AIMetadata,
+  AIQueryContext,
   ServerArray,
 } from '../../types/ai-service-types';
+import { MockContextLoader } from './MockContextLoader';
 import type {
   MockContext,
   ServerStatusAnalysis,
 } from './SimplifiedQueryEngine.types';
-import type { EnhancedServerMetrics } from '@/types/server';
-import { getGCPFunctionsClient } from '@/lib/gcp/gcp-functions-client';
-import type { UnifiedAIResponse } from '@/services/ai/formatters/unified-response-formatter'; // Correct import
+import { unifiedMetricsService } from './UnifiedMetricsService';
 
 // ... (rest of the file)
 
@@ -317,7 +317,7 @@ export class SimplifiedQueryEngineHelpers {
     // 사용자 컨텍스트 추가
     if (context && Object.keys(context).length > 0) {
       prompt += '컨텍스트:\n';
-      prompt += JSON.stringify(context, null, 2) + '\n\n';
+      prompt += `${JSON.stringify(context, null, 2)}\n\n`;
     }
 
     // RAG 컨텍스트 추가
@@ -346,8 +346,8 @@ export class SimplifiedQueryEngineHelpers {
    */
   async fetchUnifiedInsights(
     query: string,
-    context: AIQueryContext | undefined,
-    ragResult?: {
+    _context: AIQueryContext | undefined,
+    _ragResult?: {
       results: Array<{
         id: string;
         content: string;
@@ -392,7 +392,7 @@ export class SimplifiedQueryEngineHelpers {
       sections.push(
         aggregated.main_insights
           .slice(0, 3)
-          .map((insight: string, index: number) => index + 1 + '. ' + insight)
+          .map((insight: string, index: number) => `${index + 1}. ${insight}`)
           .join('\n')
       );
     }
@@ -416,13 +416,13 @@ export class SimplifiedQueryEngineHelpers {
         })
         .join(', ');
       if (metricSummary) {
-        sections.push('주요 지표: ' + metricSummary);
+        sections.push(`주요 지표: ${metricSummary}`);
       }
     }
 
     const recommendations = data.additionalData?.recommendations;
     if (Array.isArray(recommendations) && recommendations.length > 0) {
-      sections.push('추천 조치: ' + recommendations.slice(0, 2).join(', '));
+      sections.push(`추천 조치: ${recommendations.slice(0, 2).join(', ')}`);
     }
 
     return sections.length > 0 ? sections.join('\n') : null;
@@ -566,10 +566,10 @@ export class SimplifiedQueryEngineHelpers {
       const greetingLower = greeting.toLowerCase();
       return (
         lower === greetingLower ||
-        lower === greetingLower + '!' ||
-        lower === greetingLower + '?' ||
-        lower === greetingLower + '.' ||
-        lower.startsWith(greetingLower + ' ')
+        lower === `${greetingLower}!` ||
+        lower === `${greetingLower}?` ||
+        lower === `${greetingLower}.` ||
+        lower.startsWith(`${greetingLower} `)
       );
     });
   }
@@ -578,7 +578,7 @@ export class SimplifiedQueryEngineHelpers {
    * 🚀 실시간 서버 응답 생성
    */
   private async generateRealTimeServerResponse(
-    originalQuery: string,
+    _originalQuery: string,
     lowerQuery: string
   ): Promise<string> {
     // 통합 메트릭 서비스에서 현재 상태 조회

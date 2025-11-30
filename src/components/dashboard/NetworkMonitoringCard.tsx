@@ -5,7 +5,6 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Activity,
   ArrowDown,
@@ -15,7 +14,9 @@ import {
   Wifi,
   WifiOff,
 } from 'lucide-react';
-import { useEffect, useState, ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 // 🎯 Bundle-Safe Inline 매크로 - getSafe 함수들 (압축 방지)
 const getSafeArrayLength = (arr: unknown): number => {
   try {
@@ -26,7 +27,7 @@ const getSafeArrayLength = (arr: unknown): number => {
     const isArrayResult = Array.isArray(arr);
     if (!isArrayResult) return 0;
     if (!arr || !Array.isArray(arr)) return 0;
-    if (!Object.prototype.hasOwnProperty.call(arr, 'length')) return 0;
+    if (!Object.hasOwn(arr, 'length')) return 0;
 
     const lengthValue = (() => {
       try {
@@ -40,7 +41,7 @@ const getSafeArrayLength = (arr: unknown): number => {
       }
     })();
 
-    if (isNaN(lengthValue) || lengthValue < 0) return 0;
+    if (Number.isNaN(lengthValue) || lengthValue < 0) return 0;
     return Math.floor(lengthValue);
   } catch (error) {
     console.error('🛡️ getSafeArrayLength Bundle-Safe error:', error);
@@ -143,7 +144,9 @@ export const NetworkMonitoringCard = () => {
     // 5초마다 데이터 업데이트
     const interval = setInterval(() => {
       setHistory((prev) => {
-        const newData = generateNetworkData(getSafeLastArrayItem(prev, undefined));
+        const newData = generateNetworkData(
+          getSafeLastArrayItem(prev, undefined)
+        );
         setCurrentData(newData);
         return [...prev.slice(-19), newData];
       });
@@ -151,7 +154,7 @@ export const NetworkMonitoringCard = () => {
 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [history[i - 1]]);
 
   if (!currentData) {
     return (
@@ -200,15 +203,25 @@ export const NetworkMonitoringCard = () => {
   }) => {
     // 🛡️ 베르셀 환경 안전 배열 처리
     if (!data || !Array.isArray(data) || getSafeArrayLength(data) === 0) {
-      return <div className="h-16 flex items-center justify-center text-gray-400 text-xs">데이터 없음</div>;
+      return (
+        <div className="h-16 flex items-center justify-center text-gray-400 text-xs">
+          데이터 없음
+        </div>
+      );
     }
 
     const safeDataLength = getSafeArrayLength(data);
     const points = data
       .map((value, index) => {
-        const x = safeDataLength > 1 ? (index / (safeDataLength - 1)) * 100 : 50;
-        const safeValidData = data.filter(v => typeof v === 'number' && !isNaN(v));
-        const maxValue = getSafeArrayLength(safeValidData) > 0 ? Math.max(...safeValidData) || 1 : 1;
+        const x =
+          safeDataLength > 1 ? (index / (safeDataLength - 1)) * 100 : 50;
+        const safeValidData = data.filter(
+          (v) => typeof v === 'number' && !Number.isNaN(v)
+        );
+        const maxValue =
+          getSafeArrayLength(safeValidData) > 0
+            ? Math.max(...safeValidData) || 1
+            : 1;
         const y = 100 - Math.max(0, Math.min(100, (value / maxValue) * 100));
         return `${x},${y}`;
       })

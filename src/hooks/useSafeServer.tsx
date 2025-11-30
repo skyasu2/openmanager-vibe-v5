@@ -1,15 +1,15 @@
-import { useMemo } from 'react';
-import { Server as ServerType } from '../types/server';
-import { getServerStatusTheme } from '../styles/design-constants';
 import {
   AlertCircle,
-  CheckCircle2,
-  Globe,
-  Database,
-  HardDrive,
   Archive,
+  CheckCircle2,
+  Database,
+  Globe,
+  HardDrive,
   Server,
 } from 'lucide-react';
+import { useMemo } from 'react';
+import { getServerStatusTheme } from '../styles/design-constants';
+import { Server as ServerType } from '../types/server';
 
 /**
  * 🛡️ 5-Layer Defense System for Server Objects
@@ -103,7 +103,6 @@ export const useSafeServer = (server: ServerType | undefined | null) => {
           return <HardDrive className="h-5 w-5" aria-hidden="true" />;
         case 'backup':
           return <Archive className="h-5 w-5" aria-hidden="true" />;
-        case 'app':
         default:
           return <Server className="h-5 w-5" aria-hidden="true" />;
       }

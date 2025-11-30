@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useSession, signOut } from '@/hooks/useSupabaseSession';
+import { useCallback, useEffect, useState } from 'react';
+import { signOut, useSession } from '@/hooks/useSupabaseSession';
 import { authStateManager, clearAuthData } from '@/lib/auth/auth-state-manager';
 // Unused imports removed: getCurrentUser, isGitHubAuthenticated, isGuestUser
 import type {
+  ProfileAuthHook,
   UserInfo,
   UserType,
-  ProfileAuthHook,
 } from '../types/profile.types';
 
 /**

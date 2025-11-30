@@ -278,7 +278,7 @@
 }
 
 .gpu-ripple::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -339,7 +339,7 @@
 }
 
 .gpu-progress::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -407,8 +407,8 @@
   .gpu-progress::before,
   .gpu-skeleton {
     /* Reduce to instant or very slow animation */
-    animation-duration: 0.01s !important;
-    transition-duration: 0.01s !important;
+    animation-duration: 0.01s;
+    transition-duration: 0.01s;
   }
 }
 

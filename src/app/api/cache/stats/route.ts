@@ -7,17 +7,17 @@
  * GET /api/cache/stats
  */
 
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import { getCacheStats } from '@/lib/cache/cache-helper';
 import {
-  CacheStatsResponseSchema,
   type CachePerformance,
   type CacheStats,
   type CacheStatsResponse,
+  CacheStatsResponseSchema,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';

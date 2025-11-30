@@ -242,10 +242,13 @@ export function pick<
   T extends z.ZodObject<z.ZodRawShape>,
   K extends keyof z.infer<T>,
 >(schema: T, keys: K[]) {
-  const pickObj = keys.reduce((acc, key) => {
-    acc[key as string] = true;
-    return acc;
-  }, {} as Record<string, true>);
+  const pickObj = keys.reduce(
+    (acc, key) => {
+      acc[key as string] = true;
+      return acc;
+    },
+    {} as Record<string, true>
+  );
   return schema.pick(pickObj);
 }
 
@@ -256,10 +259,13 @@ export function omit<
   T extends z.ZodObject<z.ZodRawShape>,
   K extends keyof z.infer<T>,
 >(schema: T, keys: K[]) {
-  const omitObj = keys.reduce((acc, key) => {
-    acc[key as string] = true;
-    return acc;
-  }, {} as Record<string, true>);
+  const omitObj = keys.reduce(
+    (acc, key) => {
+      acc[key as string] = true;
+      return acc;
+    },
+    {} as Record<string, true>
+  );
   return schema.omit(omitObj);
 }
 

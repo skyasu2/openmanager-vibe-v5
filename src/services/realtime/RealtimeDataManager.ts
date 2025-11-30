@@ -11,9 +11,7 @@
 type DataType = 'server' | 'network' | 'system' | 'metrics';
 type UpdateFrequency = 'high' | 'medium' | 'low';
 
-interface SubscriberCallback {
-  (data: unknown): void;
-}
+type SubscriberCallback = (data: unknown) => void;
 
 interface Subscriber {
   id: string;

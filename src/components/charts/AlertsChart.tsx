@@ -1,13 +1,13 @@
 import { memo } from 'react';
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  Cell,
-  Tooltip,
 } from 'recharts';
 
 interface ChartDataPoint {
@@ -88,11 +88,7 @@ const AlertsChart = memo<AlertsChartProps>(({ data }) => {
               tickLine={false}
               axisLine={false}
             />
-            <YAxis
-              tick={{ fontSize: 12 }}
-              tickLine={false}
-              axisLine={false}
-            />
+            <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
             <Tooltip content={<AlertsTooltip />} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {data.map((entry, index) => (

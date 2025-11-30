@@ -1,25 +1,32 @@
 /**
  * 🔐 강화된 보안 시스템 통합 테스트 스위트
- * 
+ *
  * 보안 강화 프로젝트에서 추가된 모든 보안 기능들을 검증합니다:
  * - 감사 로그 시스템
  * - 보안 위협 탐지
  * - 데이터 접근 패턴 모니터링
  * - RLS 정책 강화
  * - 시간별 서버 상태 보안
- * 
+ *
  * @author Test Automation Specialist (보안 강화 프로젝트)
  * @created 2025-08-19
  * @version 1.0.0
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
-import { SecurityService, getSecurityService } from '@/services/security/SecurityService';
-import { EnvironmentSecurityScanner, quickSecurityScan } from '@/utils/environment-security';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  getSecurityService,
+  SecurityService,
+} from '@/services/security/SecurityService';
+import {
+  EnvironmentSecurityScanner,
+  quickSecurityScan,
+} from '@/utils/environment-security';
 
 // Mock Supabase client for testing
-const mockSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
+const mockSupabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
 const mockSupabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'test-key';
 
 interface MockUser {
@@ -59,27 +66,27 @@ interface DataAccessPattern {
 }
 
 describe('🔐 강화된 보안 시스템 통합 테스트', () => {
-  let supabase: any;
+  let _supabase: any;
   let securityService: SecurityService;
   let testUser: MockUser;
   let adminUser: MockUser;
 
   beforeEach(async () => {
     // 테스트용 Supabase 클라이언트 초기화
-    supabase = createClient(mockSupabaseUrl, mockSupabaseKey);
+    _supabase = createClient(mockSupabaseUrl, mockSupabaseKey);
     securityService = getSecurityService();
-    
+
     // 테스트 사용자 설정
     testUser = {
       id: 'test-user-123',
       email: 'test@example.com',
-      role: 'user'
+      role: 'user',
     };
-    
+
     adminUser = {
       id: 'admin-user-456',
       email: 'admin@example.com',
-      role: 'admin'
+      role: 'admin',
     };
 
     // 환경변수 모킹
@@ -101,8 +108,8 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         password: 'testpass123',
         clientInfo: {
           ip: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 Test Browser'
-        }
+          userAgent: 'Mozilla/5.0 Test Browser',
+        },
       };
 
       // When: 사용자 인증 수행
@@ -114,7 +121,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
 
       // Then: 로그인 성공 및 감사 로그 확인
       expect(authResult.success).toBe(false); // Mock 사용자이므로 실패 예상
-      
+
       // 실제 구현에서는 감사 로그 테이블에서 확인
       // const auditLogs = await supabase
       //   .from('security_audit_logs')
@@ -131,15 +138,15 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
       const newRole = 'admin';
 
       // Mock: user_profiles 테이블 업데이트
-      const mockProfileUpdate = {
+      const _mockProfileUpdate = {
         id: 'profile-123',
         user_id: userId,
-        role: newRole
+        role: newRole,
       };
 
       // When: 역할 변경 트리거 시뮬레이션
       // 실제로는 audit_user_profile_changes() 트리거가 동작
-      
+
       // Then: 감사 로그에 역할 변경이 기록되어야 함
       const expectedLogEntry = {
         user_id: userId,
@@ -147,8 +154,8 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         resource_type: 'user_profile',
         metadata: {
           old_role: oldRole,
-          new_role: newRole
-        }
+          new_role: newRole,
+        },
       };
 
       expect(expectedLogEntry.action_type).toBe('role_change');
@@ -192,7 +199,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         action_type: 'login',
         resource_type: 'authentication',
         success: true,
-        created_at: oldTimestamp.toISOString()
+        created_at: oldTimestamp.toISOString(),
       };
 
       // When: cleanup_old_data_enhanced() 함수 실행
@@ -202,7 +209,9 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - 90);
 
-      expect(new Date(mockOldLog.created_at).getTime()).toBeLessThan(cutoffDate.getTime());
+      expect(new Date(mockOldLog.created_at).getTime()).toBeLessThan(
+        cutoffDate.getTime()
+      );
     });
   });
 
@@ -226,7 +235,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         threat_type: 'brute_force',
         severity: 'high',
         target_ip: attackerIp,
-        status: 'detected'
+        status: 'detected',
       };
 
       expect(expectedThreat.threat_type).toBe('brute_force');
@@ -239,22 +248,23 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
       const suspiciousQueries = [
         "SELECT * FROM users WHERE id = '1; DROP TABLE users; --'",
         "' OR 1=1 --",
-        "UNION SELECT password FROM admin_users"
+        'UNION SELECT password FROM admin_users',
       ];
 
       // When: 의심스러운 쿼리 실행 시도
       for (const query of suspiciousQueries) {
         // 실제로는 데이터베이스 로그 모니터링으로 탐지
-        const threatDetected = query.includes('DROP') || 
-                             query.includes('UNION') || 
-                             query.includes("' OR 1=1");
+        const threatDetected =
+          query.includes('DROP') ||
+          query.includes('UNION') ||
+          query.includes("' OR 1=1");
 
         // Then: SQL 인젝션 위협으로 분류되어야 함
         if (threatDetected) {
           const threat: Partial<SecurityThreat> = {
             threat_type: 'suspicious_query',
             severity: 'critical',
-            status: 'detected'
+            status: 'detected',
           };
 
           expect(threat.threat_type).toBe('suspicious_query');
@@ -272,12 +282,13 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         operation_type: 'SELECT',
         record_count: 10000, // 비정상적으로 많은 레코드
         execution_time_ms: 5000, // 오래 걸린 쿼리
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
 
       // When: 접근 패턴 분석
-      const isAbnormal = abnormalAccess.record_count > 1000 && 
-                        abnormalAccess.execution_time_ms > 3000;
+      const isAbnormal =
+        abnormalAccess.record_count > 1000 &&
+        abnormalAccess.execution_time_ms > 3000;
 
       // Then: 비정상 접근으로 탐지되어야 함
       if (isAbnormal) {
@@ -285,7 +296,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
           threat_type: 'anomalous_access',
           severity: 'medium',
           target_user_id: abnormalAccess.user_id,
-          status: 'detected'
+          status: 'detected',
         };
 
         expect(threat.threat_type).toBe('anomalous_access');
@@ -301,7 +312,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         severity: 'high',
         target_ip: '192.168.1.100',
         status: 'detected',
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
 
       // When & Then: RLS 정책 검증
@@ -334,12 +345,13 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         operation_type: 'SELECT',
         record_count: 24, // 24시간 데이터
         execution_time_ms: 150,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
 
       // When: 접근 패턴 분석
-      const isNormalPattern = accessPattern.record_count <= 100 && 
-                             accessPattern.execution_time_ms <= 1000;
+      const isNormalPattern =
+        accessPattern.record_count <= 100 &&
+        accessPattern.execution_time_ms <= 1000;
 
       // Then: 정상 패턴으로 기록되어야 함
       expect(isNormalPattern).toBe(true);
@@ -361,7 +373,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
           operation_type: 'UPDATE',
           record_count: 1,
           execution_time_ms: 100,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         };
 
         // Then: 업무시간 외 접근으로 표시되어야 함
@@ -380,7 +392,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         operation_type: 'SELECT',
         record_count: 100,
         execution_time_ms: 200,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
 
       // When & Then: RLS 정책에 의한 접근 제어
@@ -404,7 +416,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         const restrictedQuery = {
           table: 'hourly_server_states',
           filter: { status: 'critical' },
-          user: testUser
+          user: testUser,
         };
 
         // Then: RLS 정책에 의해 접근이 제한되어야 함
@@ -419,14 +431,15 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
       // Given: 관리자 사용자
       const adminQuery = {
         table: 'hourly_server_states',
-        user: adminUser
+        user: adminUser,
       };
 
       // When & Then: 관리자는 시간 제약 없이 접근 가능
       expect(adminQuery.user.role).toBe('admin');
-      
+
       // 실제로는 "Admin full access to hourly server states" 정책 적용
-      const hasAdminAccess = adminUser.role === 'admin' || adminUser.role === 'security_admin';
+      const hasAdminAccess =
+        adminUser.role === 'admin' || adminUser.role === 'security_admin';
       expect(hasAdminAccess).toBe(true);
     });
 
@@ -435,7 +448,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
       const onlineServerQuery = {
         table: 'hourly_server_states',
         filter: { status: 'online' },
-        user: testUser
+        user: testUser,
       };
 
       // When & Then: 온라인 서버는 시간 제약 없이 접근 가능
@@ -447,7 +460,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
   describe('환경변수 보안 스캔 통합 테스트', () => {
     it('보안 스캔이 새로운 보안 정책과 연동되어야 함', async () => {
       // Given: 환경변수 보안 스캐너
-      const scanner = new EnvironmentSecurityScanner();
+      const _scanner = new EnvironmentSecurityScanner();
 
       // When: 전체 보안 스캔 실행
       const scanResult = await quickSecurityScan();
@@ -461,7 +474,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
 
       // 권장사항에 감사 로그 활성화 포함 확인
       const hasAuditRecommendation = scanResult.recommendations.some(
-        rec => rec.includes('감사') || rec.includes('audit')
+        (rec) => rec.includes('감사') || rec.includes('audit')
       );
       expect(typeof hasAuditRecommendation).toBe('boolean');
     });
@@ -469,12 +482,12 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
     it('보안 점수가 위협 탐지 임계값과 연동되어야 함', async () => {
       // Given: 보안 스캔 결과
       const scanResult = await quickSecurityScan();
-      
+
       // When: 보안 점수가 낮을 때
       if (scanResult.score < 70) {
         // Then: 높은 경고 수준으로 설정되어야 함
-        const hasHighWarnings = scanResult.summary.critical > 0 || 
-                               scanResult.summary.warnings > 5;
+        const hasHighWarnings =
+          scanResult.summary.critical > 0 || scanResult.summary.warnings > 5;
         expect(typeof hasHighWarnings).toBe('boolean');
       }
 
@@ -492,12 +505,16 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         { metric: 'Active Threats', value: '2', status: 'danger' },
         { metric: 'Failed Logins (24h)', value: '5', status: 'warning' },
         { metric: 'Admin Actions (24h)', value: '12', status: 'info' },
-        { metric: 'RLS Coverage', value: '15/16 (93.8%)', status: 'success' }
+        { metric: 'RLS Coverage', value: '15/16 (93.8%)', status: 'success' },
       ];
 
       // When: 대시보드 데이터 검증
-      const activeThreats = mockDashboardData.find(d => d.metric === 'Active Threats');
-      const rlsCoverage = mockDashboardData.find(d => d.metric === 'RLS Coverage');
+      const activeThreats = mockDashboardData.find(
+        (d) => d.metric === 'Active Threats'
+      );
+      const rlsCoverage = mockDashboardData.find(
+        (d) => d.metric === 'RLS Coverage'
+      );
 
       // Then: 각 메트릭이 올바른 형식과 상태를 가져야 함
       expect(activeThreats?.status).toBe('danger');
@@ -510,14 +527,16 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
       const mockThreats = [
         { threat_type: 'brute_force', severity: 'high', count: 3 },
         { threat_type: 'sql_injection', severity: 'critical', count: 1 },
-        { threat_type: 'anomalous_access', severity: 'medium', count: 5 }
+        { threat_type: 'anomalous_access', severity: 'medium', count: 5 },
       ];
 
       // When: 심각도별 정렬
       const sortedThreats = mockThreats.sort((a, b) => {
         const severityOrder = { critical: 1, high: 2, medium: 3, low: 4 };
-        return severityOrder[a.severity as keyof typeof severityOrder] - 
-               severityOrder[b.severity as keyof typeof severityOrder];
+        return (
+          severityOrder[a.severity as keyof typeof severityOrder] -
+          severityOrder[b.severity as keyof typeof severityOrder]
+        );
       });
 
       // Then: critical이 가장 먼저 와야 함
@@ -537,7 +556,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         id: `log-${i}`,
         user_id: testUser.id,
         action_type: 'data_access',
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       }));
 
       const endTime = Date.now();
@@ -556,12 +575,12 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
       const mockQuery = {
         table: 'hourly_server_states',
         filter: { status: 'online' },
-        user: testUser
+        user: testUser,
       };
 
       // RLS 정책 적용 시뮬레이션
-      const hasAccess = mockQuery.filter.status === 'online' || 
-                       mockQuery.user.role === 'admin';
+      const hasAccess =
+        mockQuery.filter.status === 'online' || mockQuery.user.role === 'admin';
 
       const endTime = Date.now();
       const queryTime = endTime - startTime;
@@ -583,8 +602,8 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
         throw mockError;
       } catch (error) {
         // Then: 시스템은 계속 동작하고 fallback 로깅 사용
-        const fallbackLogged = error instanceof Error && 
-                              error.message.includes('Audit log');
+        const fallbackLogged =
+          error instanceof Error && error.message.includes('Audit log');
         expect(fallbackLogged).toBe(true);
       }
     });
@@ -608,7 +627,7 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
       const sensitiveLog = {
         user_email: 'user@example.com',
         ip_address: '192.168.1.100',
-        user_agent: 'Mozilla/5.0...'
+        user_agent: 'Mozilla/5.0...',
       };
 
       // When: 로그 저장 시 민감한 데이터 처리
@@ -626,12 +645,12 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
       // Given: 데이터 보존 정책
       const retentionPolicies = {
         security_audit_logs: 90, // 90일
-        security_threats: 30,    // 30일 (해결된 것만)
-        data_access_patterns: 14 // 14일
+        security_threats: 30, // 30일 (해결된 것만)
+        data_access_patterns: 14, // 14일
       };
 
       // When: 각 테이블의 데이터 보존 기간 확인
-      Object.entries(retentionPolicies).forEach(([table, days]) => {
+      Object.entries(retentionPolicies).forEach(([_table, days]) => {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - days);
 
@@ -644,16 +663,16 @@ describe('🔐 강화된 보안 시스템 통합 테스트', () => {
 });
 
 // 테스트 헬퍼 함수들
-function createMockUser(role: 'admin' | 'user' | 'security_admin'): MockUser {
+function _createMockUser(role: 'admin' | 'user' | 'security_admin'): MockUser {
   return {
     id: `${role}-${Math.random().toString(36).substr(2, 9)}`,
     email: `${role}@example.com`,
-    role
+    role,
   };
 }
 
-function createMockThreat(
-  type: string, 
+function _createMockThreat(
+  type: string,
   severity: 'low' | 'medium' | 'high' | 'critical'
 ): Partial<SecurityThreat> {
   return {
@@ -661,11 +680,11 @@ function createMockThreat(
     threat_type: type,
     severity,
     status: 'detected',
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   };
 }
 
-function simulateTimestamp(daysAgo: number): string {
+function _simulateTimestamp(daysAgo: number): string {
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
   return date.toISOString();
@@ -677,12 +696,14 @@ expect.extend({
     const pass = received >= floor && received <= ceiling;
     if (pass) {
       return {
-        message: () => `expected ${received} not to be within range ${floor} - ${ceiling}`,
+        message: () =>
+          `expected ${received} not to be within range ${floor} - ${ceiling}`,
         pass: true,
       };
     } else {
       return {
-        message: () => `expected ${received} to be within range ${floor} - ${ceiling}`,
+        message: () =>
+          `expected ${received} to be within range ${floor} - ${ceiling}`,
         pass: false,
       };
     }

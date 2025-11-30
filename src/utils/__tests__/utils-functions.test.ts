@@ -1,12 +1,11 @@
- 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  formatPercentage,
-  truncate,
-  slugify,
   dateDiff,
+  formatPercentage,
   generateUUID,
   isEmpty,
+  slugify,
+  truncate,
 } from '../utils-functions';
 
 describe('Utility Functions', () => {

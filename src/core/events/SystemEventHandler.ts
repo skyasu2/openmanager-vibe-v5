@@ -6,13 +6,13 @@
  */
 
 import {
+  EventListener,
   ISystemEventBus,
+  ProcessEventPayload,
   SystemEvent,
   SystemEventType,
-  EventListener,
-  ProcessEventPayload,
-  WatchdogEventPayload,
   SystemStatusPayload,
+  WatchdogEventPayload,
 } from '../interfaces/SystemEventBus';
 
 // 이벤트 핸들러 설정
@@ -167,7 +167,7 @@ export class SystemEventBus implements ISystemEventBus {
                 },
               });
             },
-            Math.pow(2, retryCount) * 1000
+            2 ** retryCount * 1000
           ); // Exponential backoff
         }
       }

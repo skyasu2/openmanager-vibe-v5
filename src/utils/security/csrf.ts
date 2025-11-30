@@ -29,9 +29,10 @@ export function verifyCSRFToken(request: NextRequest): boolean {
 
   // 2. 쿠키에서 CSRF 토큰 가져오기
   const cookieValue = request.cookies.get('csrf_token');
-  const cookieToken = typeof cookieValue === 'string'
-    ? cookieValue
-    : (cookieValue as { value?: string } | undefined)?.value;
+  const cookieToken =
+    typeof cookieValue === 'string'
+      ? cookieValue
+      : (cookieValue as { value?: string } | undefined)?.value;
 
   // 3. 둘 다 존재하고 일치하는지 확인
   if (!headerToken || !cookieToken) {
@@ -55,8 +56,10 @@ export function setCSRFCookie(response: NextResponse, token: string): void {
     'Path=/',
     'SameSite=Strict',
     'Max-Age=86400', // 24시간
-    secure && 'Secure'
-  ].filter(Boolean).join('; ');
+    secure && 'Secure',
+  ]
+    .filter(Boolean)
+    .join('; ');
 
   response.headers.append('Set-Cookie', cookieValue);
 }
@@ -94,8 +97,8 @@ export function setupCSRFProtection(response: NextResponse): string {
 export function getCSRFTokenFromCookie(): string {
   if (typeof document === 'undefined') return '';
 
-  const cookies = document.cookie.split(';').map(c => c.trim());
-  const csrfCookie = cookies.find(c => c.startsWith('csrf_token='));
+  const cookies = document.cookie.split(';').map((c) => c.trim());
+  const csrfCookie = cookies.find((c) => c.startsWith('csrf_token='));
 
   if (!csrfCookie) return '';
 

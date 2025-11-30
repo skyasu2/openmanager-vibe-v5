@@ -13,25 +13,24 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  Fragment,
+  type KeyboardEvent as ReactKeyboardEvent,
   useEffect,
   useState,
-  type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
-import debug from '@/utils/debug';
-import { useSystemChecklist } from '../../../hooks/useSystemChecklist';
 import type {
-  SystemChecklistProps,
   DebugInfo,
-  NetworkRequest,
   ErrorInfo,
+  NetworkRequest,
   PerformanceInfo,
+  SystemChecklistProps,
 } from '@/types/system-checklist.types';
+import debug from '@/utils/debug';
 import {
   getComponentIcon,
-  getStatusIcon,
   getPriorityBorder,
+  getStatusIcon,
 } from '@/utils/system-checklist-icons';
+import { useSystemChecklist } from '../../../hooks/useSystemChecklist';
 
 // Window 인터페이스 확장 for 디버그 도구
 interface DebugTools {
@@ -203,7 +202,7 @@ export default function SystemChecklist({
 
     updatePerformanceInfo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [components, componentDefinitions]);
+  }, [components, updatePerformanceInfo]);
 
   // ✅ 완료 상태 모니터링 및 자동 전환
   useEffect(() => {
@@ -334,7 +333,7 @@ export default function SystemChecklist({
         debug.group('⚡ 성능 분석');
         debug.log(
           '체크리스트 총 시간:',
-          debugInfo.performance.checklistDuration + 'ms'
+          `${debugInfo.performance.checklistDuration}ms`
         );
         debug.log(
           '가장 느린 컴포넌트:',
@@ -346,7 +345,7 @@ export default function SystemChecklist({
         );
         debug.log(
           '평균 응답 시간:',
-          debugInfo.performance.averageResponseTime + 'ms'
+          `${debugInfo.performance.averageResponseTime}ms`
         );
         debug.groupEnd();
 
@@ -665,82 +664,78 @@ export default function SystemChecklist({
         )}
 
         {/* 완료 상태 표시 */}
-        <Fragment>
-          {showCompleted && (
-            <div
-              className="absolute inset-0 flex items-center justify-center rounded-2xl border border-green-500/50 bg-green-500/20 backdrop-blur-sm duration-500 animate-in fade-in zoom-in"
-              role="button"
-              tabIndex={0}
-              aria-label="체크리스트 완료 후 다음 단계로 이동"
-              onClick={() => {
-                // 클릭 시 다음 단계로 진행
+        {showCompleted && (
+          <div
+            className="absolute inset-0 flex items-center justify-center rounded-2xl border border-green-500/50 bg-green-500/20 backdrop-blur-sm duration-500 animate-in fade-in zoom-in"
+            role="button"
+            tabIndex={0}
+            aria-label="체크리스트 완료 후 다음 단계로 이동"
+            onClick={() => {
+              // 클릭 시 다음 단계로 진행
+              setShouldProceed(true);
+              setTimeout(() => onComplete(), 100);
+            }}
+            onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
                 setShouldProceed(true);
                 setTimeout(() => onComplete(), 100);
-              }}
-              onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  setShouldProceed(true);
-                  setTimeout(() => onComplete(), 100);
-                }
-              }}
-            >
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500">
-                  <svg
-                    className="h-8 w-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-                <h3 className="mb-2 text-xl font-bold text-white">
-                  시스템 초기화 완료
-                </h3>
-                <p className="mb-3 text-sm text-gray-300">
-                  다음 단계로 진행합니다...
-                </p>
-                <div className="inline-flex items-center space-x-2 rounded-lg border border-green-400/50 bg-green-500/30 px-4 py-2">
-                  <span className="text-sm text-green-200">클릭하여 계속</span>
-                  <svg
-                    className="h-4 w-4 text-green-200"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
-                </div>
+              }
+            }}
+          >
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500">
+                <svg
+                  className="h-8 w-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-xl font-bold text-white">
+                시스템 초기화 완료
+              </h3>
+              <p className="mb-3 text-sm text-gray-300">
+                다음 단계로 진행합니다...
+              </p>
+              <div className="inline-flex items-center space-x-2 rounded-lg border border-green-400/50 bg-green-500/30 px-4 py-2">
+                <span className="text-sm text-green-200">클릭하여 계속</span>
+                <svg
+                  className="h-4 w-4 text-green-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
               </div>
             </div>
-          )}
-        </Fragment>
+          </div>
+        )}
 
         {/* 스킵 버튼 (3초 후 표시) */}
-        <Fragment>
-          {canSkip && !showCompleted && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={onComplete}
-                className="rounded-lg border border-blue-500/50 bg-blue-500/20 px-4 py-2 text-sm text-blue-300 transition-colors hover:bg-blue-500/30"
-              >
-                건너뛰기 (ESC)
-              </button>
-            </div>
-          )}
-        </Fragment>
+        {canSkip && !showCompleted && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={onComplete}
+              className="rounded-lg border border-blue-500/50 bg-blue-500/20 px-4 py-2 text-sm text-blue-300 transition-colors hover:bg-blue-500/30"
+            >
+              건너뛰기 (ESC)
+            </button>
+          </div>
+        )}
 
         {/* 단축키 안내 */}
         <div className="mt-6 text-center text-xs text-gray-500">

@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import type { EnhancedChatMessage, AIThinkingStep, ChatMessage } from '@/stores/useAISidebarStore';
+import { describe, expect, it } from 'vitest';
+import type {
+  AIThinkingStep,
+  ChatMessage,
+  EnhancedChatMessage,
+} from '@/stores/useAISidebarStore';
 
 describe('EnhancedChatMessage Type', () => {
   it('should be compatible with base ChatMessage', () => {
@@ -86,14 +90,19 @@ describe('EnhancedChatMessage Type', () => {
 
     expect(assistantMessage.role).toBe('assistant');
     expect(assistantMessage.thinkingSteps).toHaveLength(3);
-    expect(assistantMessage.thinkingSteps?.every(step => step.status === 'complete')).toBe(true);
+    expect(
+      assistantMessage.thinkingSteps?.every(
+        (step) => step.status === 'complete'
+      )
+    ).toBe(true);
     expect(assistantMessage.isCompleted).toBe(true);
   });
 
   it('should handle Google AI messages without thinking steps', () => {
     const googleAIMessage: EnhancedChatMessage = {
       id: 'google-1',
-      content: 'Based on the current metrics, your servers are performing well.',
+      content:
+        'Based on the current metrics, your servers are performing well.',
       role: 'assistant',
       timestamp: new Date(),
       engine: 'GOOGLE_AI',
@@ -122,7 +131,7 @@ describe('EnhancedChatMessage Type', () => {
         description: 'Starting the analysis process',
       },
       {
-        id: 'step-2', 
+        id: 'step-2',
         step: 'Data processing',
         status: 'complete',
         timestamp: new Date(),
@@ -219,7 +228,7 @@ describe('EnhancedChatMessage Type', () => {
     const message: EnhancedChatMessage = {
       id: 'timestamped-1',
       content: 'Processing complete',
-      role: 'assistant', 
+      role: 'assistant',
       timestamp: baseTimestamp,
       thinkingSteps: [
         {
@@ -231,7 +240,7 @@ describe('EnhancedChatMessage Type', () => {
         {
           id: 'step-2',
           step: 'Process',
-          status: 'complete', 
+          status: 'complete',
           timestamp: new Date('2025-08-25T11:59:45Z'),
         },
         {
@@ -244,8 +253,14 @@ describe('EnhancedChatMessage Type', () => {
     };
 
     const steps = message.thinkingSteps!;
-    expect(steps[0].timestamp.getTime()).toBeLessThan(message.timestamp.getTime());
-    expect(steps[1].timestamp.getTime()).toBeLessThan(message.timestamp.getTime());
-    expect(steps[2].timestamp.getTime()).toBeLessThanOrEqual(message.timestamp.getTime());
+    expect(steps[0].timestamp.getTime()).toBeLessThan(
+      message.timestamp.getTime()
+    );
+    expect(steps[1].timestamp.getTime()).toBeLessThan(
+      message.timestamp.getTime()
+    );
+    expect(steps[2].timestamp.getTime()).toBeLessThanOrEqual(
+      message.timestamp.getTime()
+    );
   });
 });

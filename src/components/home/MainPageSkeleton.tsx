@@ -22,17 +22,13 @@ export default function MainPageSkeleton() {
       {/* 메인 콘텐츠 스켈레톤 */}
       <div className="container relative z-10 mx-auto px-6 pt-8">
         {/* 타이틀 스켈레톤 */}
-        <div
-          className="mb-12 text-center"
-        >
+        <div className="mb-12 text-center">
           <div className="_animate-pulse mx-auto mb-4 h-12 w-96 rounded-lg bg-white/10" />
           <div className="_animate-pulse mx-auto h-6 w-64 rounded bg-white/10" />
         </div>
 
         {/* 제어 패널 스켈레톤 */}
-        <div
-          className="mb-12"
-        >
+        <div className="mb-12">
           <div className="mx-auto max-w-2xl text-center">
             <div className="mb-6 flex flex-col items-center space-y-4">
               <div className="_animate-pulse h-16 w-64 rounded-xl bg-white/10" />
@@ -44,10 +40,7 @@ export default function MainPageSkeleton() {
         {/* 기능 카드 그리드 스켈레톤 */}
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
           {[...Array(4)].map((_: undefined, i: number) => (
-            <div
-              key={i}
-              className="_animate-pulse rounded-2xl bg-white/10 p-4"
-            >
+            <div key={i} className="_animate-pulse rounded-2xl bg-white/10 p-4">
               <div className="mb-3 h-12 w-12 rounded-xl bg-white/20" />
               <div className="mb-2 h-6 w-3/4 rounded bg-white/20" />
               <div className="mb-1 h-4 w-full rounded bg-white/20" />

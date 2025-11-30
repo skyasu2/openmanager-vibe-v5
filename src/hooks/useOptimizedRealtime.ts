@@ -8,11 +8,11 @@
  * - 자동 구독/구독해제
  */
 
+import { type RefObject, useEffect, useRef, useState } from 'react';
 import {
   centralDataManager,
   updateDataVisibility,
 } from '@/services/realtime/CentralizedDataManager';
-import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useIntersectionObserver } from './useIntersectionObserver';
 
 type DataType = 'servers' | 'network' | 'system' | 'metrics';
@@ -129,7 +129,7 @@ export function useOptimizedRealtime<T = unknown>({
         unsubscribeRef.current = null;
       }
     };
-  }, [dataType, frequency]); // handleDataUpdate 의존성 제거
+  }, [dataType]); // handleDataUpdate 의존성 제거
 
   // 가시성 업데이트
   useEffect(() => {

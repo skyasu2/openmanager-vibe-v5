@@ -22,20 +22,20 @@
 
 // Import modular components
 import { getDataGeneratorConfig } from '../config/environment';
-import { ServerFactory } from './UnifiedMetricsManager.serverFactory';
 import { AIAnalyzer } from './UnifiedMetricsManager.aiAnalyzer';
 import { Autoscaler } from './UnifiedMetricsManager.autoscaler';
-import { Scheduler } from './UnifiedMetricsManager.scheduler';
 import { MetricsUpdater } from './UnifiedMetricsManager.metricsUpdater';
 import { PerformanceMonitor } from './UnifiedMetricsManager.performanceMonitor';
+import { Scheduler } from './UnifiedMetricsManager.scheduler';
+import { ServerFactory } from './UnifiedMetricsManager.serverFactory';
 import {
   DEFAULT_METRICS_CONFIG,
-  type UnifiedServerMetrics,
-  type UnifiedMetricsConfig,
   type MetricsPerformanceData,
   type ServerEnvironment,
   type ServerRole,
   type ServerStatus,
+  type UnifiedMetricsConfig,
+  type UnifiedServerMetrics,
 } from './UnifiedMetricsManager.types';
 
 // Re-export types for backward compatibility
@@ -50,7 +50,11 @@ export type {
 
 // Global access configuration
 if (typeof globalThis !== 'undefined') {
-  (globalThis as typeof globalThis & { getDataGeneratorConfig: typeof getDataGeneratorConfig }).getDataGeneratorConfig = getDataGeneratorConfig;
+  (
+    globalThis as typeof globalThis & {
+      getDataGeneratorConfig: typeof getDataGeneratorConfig;
+    }
+  ).getDataGeneratorConfig = getDataGeneratorConfig;
 }
 
 export class UnifiedMetricsManager {
@@ -72,10 +76,10 @@ export class UnifiedMetricsManager {
   }
 
   static getInstance(): UnifiedMetricsManager {
-    if (!this.instance) {
-      this.instance = new UnifiedMetricsManager();
+    if (!UnifiedMetricsManager.instance) {
+      UnifiedMetricsManager.instance = new UnifiedMetricsManager();
     }
-    return this.instance;
+    return UnifiedMetricsManager.instance;
   }
 
   /**

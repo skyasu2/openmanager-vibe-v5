@@ -143,7 +143,7 @@ export const EmptyStringToUndefined = z
 // 문자열을 숫자로 변환
 export const StringToNumber = z.string().transform((val, ctx) => {
   const parsed = parseFloat(val);
-  if (isNaN(parsed)) {
+  if (Number.isNaN(parsed)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'Invalid number string',

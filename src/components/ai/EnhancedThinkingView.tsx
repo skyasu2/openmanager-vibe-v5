@@ -20,7 +20,7 @@ import {
   Search,
   Zap,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState, Fragment, type FC } from 'react';
+import { type FC, useEffect, useRef, useState } from 'react';
 
 interface EnhancedThinkingStep {
   id: string;
@@ -93,9 +93,7 @@ const TypingText: FC<{ text: string; speed?: number }> = ({
     <span className="inline-block">
       {displayText}
       {currentIndex < text.length && (
-        <span
-          className="ml-1 inline-block h-4 w-0.5 bg-current"
-        />
+        <span className="ml-1 inline-block h-4 w-0.5 bg-current" />
       )}
     </span>
   );
@@ -130,7 +128,7 @@ export const EnhancedThinkingView: FC<EnhancedThinkingViewProps> = ({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [visibleSteps]);
+  }, []);
 
   if (!isThinking && steps.length === 0) {
     return null;
@@ -163,7 +161,7 @@ export const EnhancedThinkingView: FC<EnhancedThinkingViewProps> = ({
               <p className="text-xs text-gray-400">
                 &quot;
                 {currentQuestion.length > 40
-                  ? currentQuestion.substring(0, 40) + '...'
+                  ? `${currentQuestion.substring(0, 40)}...`
                   : currentQuestion}
                 &quot;
               </p>
@@ -177,85 +175,75 @@ export const EnhancedThinkingView: FC<EnhancedThinkingViewProps> = ({
               {visibleSteps.length}단계
             </span>
           )}
-          <div
-          >
+          <div>
             <ChevronDown className="h-4 w-4 text-gray-400" />
           </div>
         </div>
       </button>
 
       {/* 사고 과정 내용 */}
-      <Fragment>
-        {isExpanded && (
+      {isExpanded && (
+        <div className="border-t border-gray-700/50">
           <div
-            className="border-t border-gray-700/50"
+            ref={scrollRef}
+            className="scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600 max-h-48 space-y-2 overflow-y-auto p-3"
           >
-            <div
-              ref={scrollRef}
-              className="scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600 max-h-48 space-y-2 overflow-y-auto p-3"
-            >
-              <Fragment>
-                {visibleSteps.map((step, _index) => (
-                  <div
-                    key={step.id}
-                    className={`flex items-start gap-3 rounded-lg border p-2.5 ${getEngineColor(step.engine)}`}
-                  >
-                    {/* 엔진 아이콘 */}
-                    <div className="mt-0.5 flex-shrink-0">
-                      {getEngineIcon(step.engine)}
-                    </div>
+            {visibleSteps.map((step, _index) => (
+              <div
+                key={step.id}
+                className={`flex items-start gap-3 rounded-lg border p-2.5 ${getEngineColor(step.engine)}`}
+              >
+                {/* 엔진 아이콘 */}
+                <div className="mt-0.5 flex-shrink-0">
+                  {getEngineIcon(step.engine)}
+                </div>
 
-                    {/* 사고 내용 */}
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="text-xs font-medium text-white">
-                          {step.engine}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          {step.timestamp.toLocaleTimeString('ko-KR', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                          })}
-                        </span>
-                        {step.progress && (
-                          <span className="text-xs text-gray-400">
-                            {Math.round(step.progress * 100)}%
-                          </span>
-                        )}
-                      </div>
-
-                      {/* 타이핑 애니메이션으로 사고 과정 표시 */}
-                      <div className="text-sm leading-relaxed text-gray-200">
-                        {step.type === 'completed' ? (
-                          <span>{step.content}</span>
-                        ) : (
-                          <TypingText text={step.content} speed={25} />
-                        )}
-                      </div>
-                    </div>
+                {/* 사고 내용 */}
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="text-xs font-medium text-white">
+                      {step.engine}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {step.timestamp.toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })}
+                    </span>
+                    {step.progress && (
+                      <span className="text-xs text-gray-400">
+                        {Math.round(step.progress * 100)}%
+                      </span>
+                    )}
                   </div>
-                ))}
-              </Fragment>
 
-              {/* 현재 처리 중 표시 */}
-              {isThinking && (
-                <div
-                  className="flex items-center justify-center py-2"
-                >
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <div
-                    >
-                      <div className="h-2 w-2 rounded-full bg-blue-400" />
-                    </div>
-                    <span>AI가 분석하고 있습니다...</span>
+                  {/* 타이핑 애니메이션으로 사고 과정 표시 */}
+                  <div className="text-sm leading-relaxed text-gray-200">
+                    {step.type === 'completed' ? (
+                      <span>{step.content}</span>
+                    ) : (
+                      <TypingText text={step.content} speed={25} />
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            ))}
+
+            {/* 현재 처리 중 표시 */}
+            {isThinking && (
+              <div className="flex items-center justify-center py-2">
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div>
+                    <div className="h-2 w-2 rounded-full bg-blue-400" />
+                  </div>
+                  <span>AI가 분석하고 있습니다...</span>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </Fragment>
+        </div>
+      )}
     </div>
   );
 };

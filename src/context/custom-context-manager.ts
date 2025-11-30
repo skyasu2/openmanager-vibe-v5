@@ -170,7 +170,10 @@ export class CustomContextManager {
       this.supabaseInitialized = true;
       console.log('✅ [CustomContext] Supabase 클라이언트 초기화 완료');
     } catch (error) {
-      console.warn('⚠️ [CustomContext] Supabase 초기화 실패 - 로컬 캐시만 사용', error);
+      console.warn(
+        '⚠️ [CustomContext] Supabase 초기화 실패 - 로컬 캐시만 사용',
+        error
+      );
       this.supabase = null;
       this.supabaseInitialized = true;
     }

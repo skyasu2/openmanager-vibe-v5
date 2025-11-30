@@ -1,6 +1,7 @@
 'use client';
 
 import { type FC } from 'react';
+import { RealtimeChart } from './EnhancedServerModal.components';
 /**
  * 🌐 Enhanced Server Modal Network Tab
  *
@@ -12,12 +13,11 @@ import { type FC } from 'react';
  * - Server connection details and specifications
  */
 import {
-  ServerData,
-  RealtimeData,
-  NetworkStatus,
   NetworkData,
+  NetworkStatus,
+  RealtimeData,
+  ServerData,
 } from './EnhancedServerModal.types';
-import { RealtimeChart } from './EnhancedServerModal.components';
 
 // framer-motion을 동적 import로 처리
 

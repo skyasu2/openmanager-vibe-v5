@@ -245,7 +245,7 @@ export class DemoScenariosGenerator {
       case 'memory_leak':
         return {
           cpu: 1 + progress * 1.5,
-          memory: 1 + Math.pow(progress, 1.5) * 3.0, // 점진적 증가
+          memory: 1 + progress ** 1.5 * 3.0, // 점진적 증가
           network: 1,
           responseTime: 1 + progress * 2.0,
           connections: 1 + progress * 0.5,
@@ -265,7 +265,7 @@ export class DemoScenariosGenerator {
           cpu: 1 + Math.log(1 + progress) * 1.2,
           memory: 1 + progress * 0.8,
           network: 1,
-          responseTime: 1 + Math.pow(progress, 2) * 3.0, // 제곱 증가
+          responseTime: 1 + progress ** 2 * 3.0, // 제곱 증가
           connections: 1 - progress * 0.3, // 연결 수 감소
         };
 

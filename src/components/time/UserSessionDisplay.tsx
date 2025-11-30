@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, FC } from 'react';
-import { Clock, Play, Pause, RotateCw, AlertCircle, User } from 'lucide-react';
+import { AlertCircle, Clock, Pause, Play, RotateCw, User } from 'lucide-react';
+import { FC, useEffect, useState } from 'react';
 import {
-  userSessionService,
   type UserSession,
+  userSessionService,
 } from '@/services/time/UserSessionService';
 
 // framer-motion 제거됨
@@ -74,7 +74,7 @@ export const UserSessionDisplay: FC<UserSessionDisplayProps> = ({
 
   // 세션 시작/재시작
   const handleStartSession = () => {
-    userSessionService.startSession('user-' + Date.now());
+    userSessionService.startSession(`user-${Date.now()}`);
   };
 
   // 세션 일시정지/재개

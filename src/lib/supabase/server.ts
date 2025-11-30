@@ -6,8 +6,8 @@
 
 import { createServerClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies';
+import { cookies } from 'next/headers';
 
 export async function createClient(): Promise<SupabaseClient> {
   const cookieStore = await cookies();

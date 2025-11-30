@@ -62,7 +62,9 @@ export function ServerDetailNetwork({
       metrics !== null &&
       'networkThroughput' in metrics
     ) {
-      const metricsData = metrics as { networkThroughput?: { in: number; out: number } };
+      const metricsData = metrics as {
+        networkThroughput?: { in: number; out: number };
+      };
       return metricsData.networkThroughput ?? { in: 0, out: 0 };
     }
     return { in: 0, out: 0 };

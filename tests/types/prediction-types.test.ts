@@ -10,15 +10,15 @@
  *  - API 계약 검증
  */
 
-import { describe, it, expectTypeOf } from 'vitest';
+import { describe, expectTypeOf, it } from 'vitest';
 import type {
-  PredictionResult,
-  MetricDataPoint,
-  ServerMetrics,
   Incident,
   IncidentReport,
   IntegratedAnalysisResult,
+  MetricDataPoint,
+  PredictionResult,
   RuleBasedAnalysisResult,
+  ServerMetrics,
 } from '@/types/integrated-prediction-system.types';
 
 describe('🔮 Prediction System 타입 테스트', () => {

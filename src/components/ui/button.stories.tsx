@@ -1,31 +1,32 @@
-import type { Meta, StoryObj } from '@storybook/react';;
+import type { Meta, StoryObj } from '@storybook/react';
+
+import {
+  Brain,
+  ChevronRight,
+  Download,
+  Edit3,
+  ExternalLink,
+  Eye,
+  Github,
+  LogOut,
+  Minus,
+  Pause,
+  Play,
+  Plus,
+  RefreshCw,
+  Search,
+  Server,
+  Settings,
+  Shield,
+  Square,
+  Trash2,
+  Upload,
+} from 'lucide-react';
+import { useState } from 'react';
+import { a11yLabels } from '../../stories/templates/StoryTemplate';
+import { Badge } from './badge';
 import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
-import { Badge } from './badge';
-import { a11yLabels } from '../../stories/templates/StoryTemplate';
-import { useState } from 'react';
-import {
-  Play,
-  Pause,
-  Square,
-  RefreshCw,
-  Settings,
-  Download,
-  Upload,
-  Edit3,
-  Trash2,
-  Eye,
-  Server,
-  Brain,
-  Shield,
-  LogOut,
-  Github,
-  Plus,
-  Minus,
-  Search,
-  ChevronRight,
-  ExternalLink,
-} from 'lucide-react';
 
 const meta = {
   title: 'UI Components/Button',
@@ -825,9 +826,9 @@ export const AccessibilityTest: Story = {
           Tab 키로 포커스 이동, Enter/Space로 활성화
         </p>
         <div className="flex gap-2">
-          <Button tabIndex={1}>첫 번째 (Tab순서 1)</Button>
-          <Button tabIndex={3}>세 번째 (Tab순서 3)</Button>
-          <Button tabIndex={2}>두 번째 (Tab순서 2)</Button>
+          <Button tabIndex="0">첫 번째 (Tab순서 1)</Button>
+          <Button tabIndex="0">세 번째 (Tab순서 3)</Button>
+          <Button tabIndex="0">두 번째 (Tab순서 2)</Button>
         </div>
       </div>
 

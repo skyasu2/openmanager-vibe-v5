@@ -9,10 +9,10 @@ import { type ComponentType } from 'react';
 import {
   BarChart3,
   Bot,
+  Clock,
+  Globe,
   Shield,
   Zap,
-  Globe,
-  Clock,
 } from '@/lib/bundle-optimization';
 
 type FeatureCardData = {

@@ -1,36 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  memo,
-  Fragment,
-  type FC,
-} from 'react';
 import { useChat } from '@ai-sdk/react';
-import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
-import { EnhancedChatMessage } from '../../../stores/useAISidebarStore';
-
 // Icons
 import { Bot, User } from 'lucide-react';
-
-// Components
-import { AIFunctionPages } from './AIFunctionPages';
-import { AISidebarHeader } from './AISidebarHeader';
-import { EnhancedAIChat } from './EnhancedAIChat';
-import ThinkingProcessVisualizer from '../../../components/ai/ThinkingProcessVisualizer';
+import { type FC, memo, useEffect, useMemo, useRef, useState } from 'react';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '../../../components/ai/AIAssistantIconPanel';
-
+import ThinkingProcessVisualizer from '../../../components/ai/ThinkingProcessVisualizer';
+import { EnhancedChatMessage } from '../../../stores/useAISidebarStore';
 // Types
 import type {
   AISidebarV3Props,
   AIThinkingStep,
 } from '../types/ai-sidebar-types';
+// Components
+import { AIFunctionPages } from './AIFunctionPages';
+import { AISidebarHeader } from './AISidebarHeader';
+import { EnhancedAIChat } from './EnhancedAIChat';
 
 // 🎯 ThinkingProcessVisualizer 성능 최적화
 const MemoizedThinkingProcessVisualizer = memo(ThinkingProcessVisualizer);
@@ -186,7 +175,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   // 자동 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [enhancedMessages]);
+  }, []);
 
   // ESC 키로 사이드바 닫기
   useEffect(() => {
@@ -243,33 +232,31 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   };
 
   return (
-    <Fragment>
-      <div
-        data-testid="ai-sidebar"
-        role="dialog"
-        aria-labelledby="ai-sidebar-v4-title"
-        aria-modal="true"
-        aria-hidden={!isOpen}
-        className={`gpu-sidebar-slide-in fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${
-          isOpen ? '' : 'gpu-sidebar-slide-out'
-        } ${className}`}
-      >
-        <div className="flex min-w-0 flex-1 flex-col">
-          <AISidebarHeader onClose={onClose} />
-          <div className="flex-1 overflow-hidden pb-20 sm:pb-0">
-            {renderFunctionPage()}
-          </div>
-        </div>
-
-        <div className="hidden sm:block">
-          <AIAssistantIconPanel
-            selectedFunction={selectedFunction}
-            onFunctionChange={setSelectedFunction}
-            className="w-16 sm:w-20"
-          />
+    <div
+      data-testid="ai-sidebar"
+      role="dialog"
+      aria-labelledby="ai-sidebar-v4-title"
+      aria-modal="true"
+      aria-hidden={!isOpen}
+      className={`gpu-sidebar-slide-in fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${
+        isOpen ? '' : 'gpu-sidebar-slide-out'
+      } ${className}`}
+    >
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AISidebarHeader onClose={onClose} />
+        <div className="flex-1 overflow-hidden pb-20 sm:pb-0">
+          {renderFunctionPage()}
         </div>
       </div>
-    </Fragment>
+
+      <div className="hidden sm:block">
+        <AIAssistantIconPanel
+          selectedFunction={selectedFunction}
+          onFunctionChange={setSelectedFunction}
+          className="w-16 sm:w-20"
+        />
+      </div>
+    </div>
   );
 };
 

@@ -9,11 +9,7 @@
 
 'use client';
 
-import type {
-  ExtendedIntelligentAnalysisResult,
-  StepResult,
-  IntelligentAnalysisRequest,
-} from '@/types/intelligent-monitoring.types';
+import type { LucideIcon } from 'lucide-react';
 import {
   AlertTriangle,
   CheckCircle,
@@ -22,7 +18,11 @@ import {
   TrendingUp,
   XCircle,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import type {
+  ExtendedIntelligentAnalysisResult,
+  IntelligentAnalysisRequest,
+  StepResult,
+} from '@/types/intelligent-monitoring.types';
 
 type StepResultWithMeta = StepResult & {
   processingTime?: number;

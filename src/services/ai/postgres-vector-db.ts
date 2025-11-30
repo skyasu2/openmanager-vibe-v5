@@ -352,7 +352,6 @@ export class PostgresVectorDB {
           }
         } catch (e) {
           console.error(`임베딩 처리 오류 (${row.id}):`, e);
-          continue;
         }
       }
 

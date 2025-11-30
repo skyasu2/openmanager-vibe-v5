@@ -76,10 +76,10 @@ class DataRetentionScheduler {
   }
 
   static getInstance(): DataRetentionScheduler {
-    if (!this.instance) {
-      this.instance = new DataRetentionScheduler();
+    if (!DataRetentionScheduler.instance) {
+      DataRetentionScheduler.instance = new DataRetentionScheduler();
     }
-    return this.instance;
+    return DataRetentionScheduler.instance;
   }
 
   /**

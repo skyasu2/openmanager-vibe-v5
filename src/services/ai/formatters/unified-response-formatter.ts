@@ -10,12 +10,12 @@
 import type {
   AIServiceType,
   DistributedResponse,
-  ThinkingStep,
-  SupabaseRAGResponse,
-  GCPFunctionResponse,
-  RedisCacheResponse,
   EdgeRouterResponse,
+  GCPFunctionResponse,
   ProcessingStatus,
+  RedisCacheResponse,
+  SupabaseRAGResponse,
+  ThinkingStep,
 } from '../interfaces/distributed-ai.interface';
 
 export interface UnifiedAIResponse {
@@ -72,10 +72,10 @@ export class UnifiedResponseFormatter {
   private constructor() {}
 
   static getInstance(): UnifiedResponseFormatter {
-    if (!this.instance) {
-      this.instance = new UnifiedResponseFormatter();
+    if (!UnifiedResponseFormatter.instance) {
+      UnifiedResponseFormatter.instance = new UnifiedResponseFormatter();
     }
-    return this.instance;
+    return UnifiedResponseFormatter.instance;
   }
 
   /**
@@ -298,7 +298,7 @@ export class UnifiedResponseFormatter {
   }
 
   private generateRAGAnswer(
-    query: string,
+    _query: string,
     results: SupabaseRAGResponse['results']
   ): string {
     if (results.length === 0) {

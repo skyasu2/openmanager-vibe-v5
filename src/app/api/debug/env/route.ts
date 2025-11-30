@@ -10,8 +10,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { env, features, isProduction, isVercelProduction } from '@/env';
-import { authManager } from '@/lib/auth/auth';
 import { developmentOnly } from '@/lib/api/development-only';
+import { authManager } from '@/lib/auth/auth';
 
 export const GET = developmentOnly(function GET(request: NextRequest) {
   try {

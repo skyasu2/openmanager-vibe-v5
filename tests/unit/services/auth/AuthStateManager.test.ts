@@ -1,13 +1,13 @@
 /**
  * AuthStateManager 테스트
- * 
+ *
  * @created-date: 2025-08-02
- * 
+ *
  * 테스트 대상: AuthStateManager 클래스
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { AuthStateManager, type AuthUser, type AuthSession, type AuthResult } from '@/services/auth/AuthStateManager';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AuthStateManager } from '@/services/auth/AuthStateManager';
 import { SystemStateManager } from '@/services/system/SystemStateManager';
 
 // Mock SystemStateManager
@@ -58,7 +58,7 @@ describe('AuthStateManager', () => {
       expect(mockSystemManager.startSystem).toHaveBeenCalledWith({
         startedBy: expect.any(String),
         startedByName: '일반사용자',
-        authType: 'guest'
+        authType: 'guest',
       });
       expect(result.systemStarted).toBe(true);
     });
@@ -75,7 +75,9 @@ describe('AuthStateManager', () => {
 
     it('should handle system start failure gracefully', async () => {
       process.env.NODE_ENV = 'production';
-      mockSystemManager.startSystem.mockRejectedValue(new Error('System start failed'));
+      mockSystemManager.startSystem.mockRejectedValue(
+        new Error('System start failed')
+      );
 
       const result = await authManager.loginAsGuest();
 
@@ -136,7 +138,7 @@ describe('AuthStateManager', () => {
       const isValid = authManager.validateSession(sessionId);
 
       expect(isValid).toBe(false);
-      
+
       // Restore Date.now
       Date.now = originalNow;
     });
@@ -144,12 +146,12 @@ describe('AuthStateManager', () => {
     it('should update lastActivity when validating session', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
-      
+
       const originalSession = authManager.getSession(sessionId);
       const originalActivity = originalSession?.lastActivity;
 
       // Wait a bit and validate
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       authManager.validateSession(sessionId);
 
       const updatedSession = authManager.getSession(sessionId);
@@ -187,7 +189,7 @@ describe('AuthStateManager', () => {
       const session = authManager.getSession(sessionId);
 
       expect(session).toBeNull();
-      
+
       // Restore Date.now
       Date.now = originalNow;
     });
@@ -198,7 +200,10 @@ describe('AuthStateManager', () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
 
-      const hasPermission = authManager.hasPermission(sessionId, 'dashboard:view');
+      const hasPermission = authManager.hasPermission(
+        sessionId,
+        'dashboard:view'
+      );
 
       expect(hasPermission).toBe(true);
     });
@@ -207,13 +212,19 @@ describe('AuthStateManager', () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
 
-      const hasPermission = authManager.hasPermission(sessionId, 'admin:delete');
+      const hasPermission = authManager.hasPermission(
+        sessionId,
+        'admin:delete'
+      );
 
       expect(hasPermission).toBe(false);
     });
 
     it('should return false for non-existent session', () => {
-      const hasPermission = authManager.hasPermission('non-existent', 'dashboard:view');
+      const hasPermission = authManager.hasPermission(
+        'non-existent',
+        'dashboard:view'
+      );
 
       expect(hasPermission).toBe(false);
     });
@@ -226,10 +237,13 @@ describe('AuthStateManager', () => {
       const originalNow = Date.now;
       Date.now = vi.fn(() => originalNow() + 3 * 60 * 60 * 1000); // 3 hours later
 
-      const hasPermission = authManager.hasPermission(sessionId, 'dashboard:view');
+      const hasPermission = authManager.hasPermission(
+        sessionId,
+        'dashboard:view'
+      );
 
       expect(hasPermission).toBe(false);
-      
+
       // Restore Date.now
       Date.now = originalNow;
     });
@@ -287,7 +301,7 @@ describe('AuthStateManager', () => {
 
     it('should exclude expired sessions from active count', async () => {
       const loginResult = await authManager.loginAsGuest();
-      const sessionId = loginResult.sessionId!;
+      const _sessionId = loginResult.sessionId!;
 
       // Mock Date.now to simulate session expiration
       const originalNow = Date.now;
@@ -298,7 +312,7 @@ describe('AuthStateManager', () => {
       expect(stats.totalSessions).toBe(1); // Still in storage
       expect(stats.activeSessions).toBe(0); // But not active
       expect(stats.guestSessions).toBe(0);
-      
+
       // Restore Date.now
       Date.now = originalNow;
     });
@@ -306,14 +320,14 @@ describe('AuthStateManager', () => {
     it('should handle mixed active and expired sessions', async () => {
       // Create one session
       await authManager.loginAsGuest();
-      
+
       // Create and expire another session
       const expiredResult = await authManager.loginAsGuest();
-      
+
       // Mock only for the second session expiration check
       const originalNow = Date.now;
-      const mockNow = originalNow() + 3 * 60 * 60 * 1000; // 3 hours later
-      
+      const _mockNow = originalNow() + 3 * 60 * 60 * 1000; // 3 hours later
+
       // Force expiration by manually setting the session expiry
       const expiredSession = authManager.getSession(expiredResult.sessionId!);
       if (expiredSession) {
@@ -335,37 +349,39 @@ describe('AuthStateManager', () => {
 
       // Validate session
       expect(authManager.validateSession(sessionId)).toBe(true);
-      
+
       // Check permissions
       expect(authManager.hasPermission(sessionId, 'dashboard:view')).toBe(true);
-      
+
       // Get session
       const session = authManager.getSession(sessionId);
       expect(session).toBeDefined();
-      
+
       // Logout
       const logoutResult = authManager.logout(sessionId);
       expect(logoutResult.success).toBe(true);
-      
+
       // Verify cleanup
       expect(authManager.validateSession(sessionId)).toBe(false);
     });
 
     it('should handle concurrent guest logins', async () => {
-      const promises = Array.from({ length: 5 }, () => authManager.loginAsGuest());
+      const promises = Array.from({ length: 5 }, () =>
+        authManager.loginAsGuest()
+      );
       const results = await Promise.all(promises);
 
       // All should succeed
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.success).toBe(true);
         expect(result.user).toBeDefined();
         expect(result.sessionId).toBeDefined();
       });
 
       // All should have unique IDs
-      const userIds = results.map(r => r.user!.id);
-      const sessionIds = results.map(r => r.sessionId!);
-      
+      const userIds = results.map((r) => r.user!.id);
+      const sessionIds = results.map((r) => r.sessionId!);
+
       expect(new Set(userIds).size).toBe(5);
       expect(new Set(sessionIds).size).toBe(5);
 
@@ -383,15 +399,17 @@ describe('AuthStateManager', () => {
         throw new Error('SystemStateManager initialization failed');
       });
 
-      expect(() => new AuthStateManager()).toThrow('SystemStateManager initialization failed');
+      expect(() => new AuthStateManager()).toThrow(
+        'SystemStateManager initialization failed'
+      );
     });
 
     it('should handle system start timeout in production', async () => {
       process.env.NODE_ENV = 'production';
-      
+
       // Mock system start to never resolve (timeout)
-      mockSystemManager.startSystem.mockImplementation(() => 
-        new Promise(() => {}) // Never resolves
+      mockSystemManager.startSystem.mockImplementation(
+        () => new Promise(() => {}) // Never resolves
       );
 
       // This test would need a timeout mechanism in the actual implementation

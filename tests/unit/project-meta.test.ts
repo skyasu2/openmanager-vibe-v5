@@ -3,16 +3,16 @@
  * @vitest-environment node
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { 
-  getProjectDuration,
-  getVersionDate,
-  getProjectTimeline,
-  getProjectProgress,
-  isValidProjectDate,
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
   detectWrongDates,
   getNextVersion,
-  ProjectMeta
+  getProjectDuration,
+  getProjectProgress,
+  getProjectTimeline,
+  getVersionDate,
+  isValidProjectDate,
+  ProjectMeta,
 } from '../../src/lib/project-meta';
 
 describe('ProjectMeta Utilities', () => {
@@ -78,7 +78,9 @@ describe('ProjectMeta Utilities', () => {
         올바른 날짜: 2025-06-15
       `;
       const wrongDates = detectWrongDates(content);
-      expect(wrongDates).toEqual(expect.arrayContaining(['2025-07', '2025-12', '2024-01-01']));
+      expect(wrongDates).toEqual(
+        expect.arrayContaining(['2025-07', '2025-12', '2024-01-01'])
+      );
     });
   });
 
@@ -93,13 +95,15 @@ describe('ProjectMeta Utilities', () => {
 
   describe('ProjectMeta 단축 객체', () => {
     it('ProjectMeta 프로젝트 관리 함수들이 정상 작동해야 함', () => {
-        expect(ProjectMeta.isValidDate('2025-06-01')).toBe(true);
-        expect(ProjectMeta.checkWrongDates('2025-08-01')).toEqual(expect.arrayContaining(['2025-08']));
-        expect(ProjectMeta.duration().totalDays).toBeGreaterThanOrEqual(42);
-        expect(ProjectMeta.timeline()).toHaveLength(5);
-        expect(ProjectMeta.progress().progressPercentage).toBe(60);
-        expect(ProjectMeta.versionDate('1.0.0')).toBe('2025-05-20');
-        expect(ProjectMeta.nextVersion('5.41.0', 'minor')).toBe('5.42.0');
+      expect(ProjectMeta.isValidDate('2025-06-01')).toBe(true);
+      expect(ProjectMeta.checkWrongDates('2025-08-01')).toEqual(
+        expect.arrayContaining(['2025-08'])
+      );
+      expect(ProjectMeta.duration().totalDays).toBeGreaterThanOrEqual(42);
+      expect(ProjectMeta.timeline()).toHaveLength(5);
+      expect(ProjectMeta.progress().progressPercentage).toBe(60);
+      expect(ProjectMeta.versionDate('1.0.0')).toBe('2025-05-20');
+      expect(ProjectMeta.nextVersion('5.41.0', 'minor')).toBe('5.42.0');
     });
   });
 });

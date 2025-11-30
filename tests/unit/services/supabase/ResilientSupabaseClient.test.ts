@@ -5,7 +5,7 @@
  * 목표: 완전한 fallback 메커니즘과 resilient 기능 검증
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ResilientSupabaseClient } from '@/lib/supabase';
 import { resetSupabaseClient } from '@/lib/supabase-singleton';
 
@@ -558,7 +558,7 @@ describe('ResilientSupabaseClient', () => {
     it('should handle undefined window object', async () => {
       // Temporarily remove window
       const originalWindow = global.window;
-      // @ts-ignore
+      // @ts-expect-error
       delete global.window;
 
       const mockData = [{ id: '1' }];

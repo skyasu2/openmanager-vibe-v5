@@ -21,7 +21,7 @@
  * 📅 생성일: 2025.06.14 (ServerDashboard 1522줄 분리 작업)
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Server } from '@/types/server';
 import type { ServerFilters, ViewMode } from '../types/dashboard.types';
 

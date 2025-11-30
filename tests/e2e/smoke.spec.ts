@@ -3,7 +3,7 @@
  * 주요 페이지들이 올바르게 로드되는지 확인하는 기본적인 E2E 테스트
  */
 
-import { test, expect, Page } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 const SECURITY_CHECKPOINT_TITLE = 'Vercel Security Checkpoint';
 

@@ -20,8 +20,6 @@ export interface PooledConnection extends EventSource {
 }
 
 export class ServerlessSSEConnectionPool {
-  private config: Required<SSEConnectionPoolConfig>;
-
   constructor(config: SSEConnectionPoolConfig = {}) {
     this.config = {
       maxPoolSize: config.maxPoolSize || 10,
@@ -68,23 +66,6 @@ export class ServerlessSSEConnectionPool {
    */
   destroy(): void {
     console.warn('⚠️ SSE 리소스 정리 무시됨 - 서버리스에서는 자동 정리');
-  }
-
-  /**
-   * 🚫 유휴 연결 정리 타이머 비활성화
-   */
-  private startCleanupTimer(): void {
-    console.warn('⚠️ SSE 정리 타이머 무시됨 - 서버리스에서는 타이머 사용 금지');
-
-    // 🚫 setInterval 생성하지 않음
-    // this.cleanupInterval = setInterval(() => { ... }, this.config.cleanupInterval);
-  }
-
-  /**
-   * 🚫 유휴 연결 정리 비활성화
-   */
-  private cleanupIdleConnections(): void {
-    console.warn('⚠️ SSE 연결 정리 무시됨 - 서버리스 환경');
   }
 }
 

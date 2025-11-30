@@ -4,8 +4,8 @@
  * 공통으로 사용되는 테스트 유틸리티 함수들
  */
 
-import { waitFor as vitestWaitFor } from '@testing-library/react';
 import type { waitForOptions } from '@testing-library/react';
+import { waitFor as vitestWaitFor } from '@testing-library/react';
 
 /**
  * 기본 타임아웃이 설정된 waitFor 래퍼

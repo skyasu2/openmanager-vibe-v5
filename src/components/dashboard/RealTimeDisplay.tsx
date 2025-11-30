@@ -1,7 +1,7 @@
 'use client';
 
 import { Clock } from 'lucide-react';
-import React, { useEffect, useState, memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 /**
  * 실시간 시간 표시 컴포넌트

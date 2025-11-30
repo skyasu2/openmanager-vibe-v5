@@ -1,8 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import debug from '@/utils/debug';
-
 import { developmentOnly } from '@/lib/api/development-only';
+import debug from '@/utils/debug';
 
 // ⚡ Edge Runtime으로 전환 - 무료 티어 친화적 최적화
 export const runtime = 'edge';

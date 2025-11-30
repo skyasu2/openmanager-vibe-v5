@@ -14,8 +14,8 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 import {
-  createSuccessResponse,
   createErrorResponse,
+  createSuccessResponse,
   withErrorHandler,
 } from '../../../../lib/api/errorHandler';
 import { memoryOptimizer } from '../../../../utils/MemoryOptimizer';
@@ -232,8 +232,7 @@ function generateMemoryRecommendations(
 
   // RSS 메모리가 높은 경우
   if (
-    current &&
-    current.rss &&
+    current?.rss &&
     current.heapTotal &&
     current.rss > current.heapTotal * 1.5
   ) {
@@ -241,7 +240,7 @@ function generateMemoryRecommendations(
   }
 
   // 외부 메모리가 높은 경우
-  if (current && current.external && current.external > 100) {
+  if (current?.external && current.external > 100) {
     recommendations.push('🌐 외부 라이브러리 메모리 사용량 점검 필요');
   }
 

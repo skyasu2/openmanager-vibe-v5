@@ -8,7 +8,7 @@
  * - TypeScript 지원
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
 
@@ -319,7 +319,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
           forceNew: true,
         });
         const socket = socketRef.current;
-        
+
         // 연결 이벤트 바인딩 (connect 함수와 동일한 로직)
         socket.on('connect', () => {
           setConnectionState((prev) => ({
@@ -343,7 +343,8 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
             ...prev,
             isConnected: false,
             isConnecting: false,
-            error: error instanceof Error ? error.message : 'WebSocket 연결 오류',
+            error:
+              error instanceof Error ? error.message : 'WebSocket 연결 오류',
           }));
         });
       } catch (error: unknown) {
@@ -435,7 +436,7 @@ export const useServerWebSocket = (
       websocket.subscribe('alerts');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [websocket.isConnected]); // ✅ websocket 객체 의존성을 isConnected 원시값으로 변경하여 순환 의존성 해결
+  }, [websocket.isConnected, websocket.subscribe]); // ✅ websocket 객체 의존성을 isConnected 원시값으로 변경하여 순환 의존성 해결
 
   return {
     ...websocket,

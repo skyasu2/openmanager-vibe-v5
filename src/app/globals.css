@@ -51,28 +51,30 @@
   background:
     radial-gradient(
       ellipse at center,
-      rgba(103, 80, 164, 0.22) 0%, /* MD3 Primary Purple */
-      rgba(121, 134, 203, 0.16) 30%, /* MD3 Secondary Blue */
+      rgba(103, 80, 164, 0.22) 0% /* MD3 Primary Purple */,
+      rgba(121, 134, 203, 0.16) 30% /* MD3 Secondary Blue */,
       transparent 70%
     ),
     radial-gradient(
       ellipse at 80% 20%,
-      rgba(156, 39, 176, 0.24) 0%, /* MD3 Tertiary Purple */
-      rgba(186, 104, 200, 0.18) 30%, /* MD3 Purple Light */
+      rgba(156, 39, 176, 0.24) 0% /* MD3 Tertiary Purple */,
+      rgba(186, 104, 200, 0.18) 30% /* MD3 Purple Light */,
       transparent 70%
     ),
     radial-gradient(
       ellipse at 20% 80%,
-      rgba(233, 30, 99, 0.20) 0%, /* MD3 Accent Pink */
-      rgba(255, 138, 101, 0.14) 30%, /* MD3 Warm Orange */
+      rgba(233, 30, 99, 0.2) 0% /* MD3 Accent Pink */,
+      rgba(255, 138, 101, 0.14) 30% /* MD3 Warm Orange */,
       transparent 70%
     ),
     radial-gradient(
       ellipse at 60% 40%,
-      rgba(0, 150, 136, 0.12) 0%, /* MD3 Success Teal */
+      rgba(0, 150, 136, 0.12) 0% /* MD3 Success Teal */,
       transparent 60%
     );
-  animation: wave-drift 25s ease-in-out infinite, wave-glow 15s ease-in-out infinite alternate;
+  animation:
+    wave-drift 25s ease-in-out infinite,
+    wave-glow 15s ease-in-out infinite alternate;
   filter: blur(0.8px); /* 약간 강화된 블러 */
   /* GPU 가속 최적화 */
   transform: translateZ(0);
@@ -166,9 +168,15 @@
 }
 
 @keyframes ai-icon-simple {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.05); }
-  100% { transform: rotate(360deg) scale(1); }
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
 }
 
 /* Vibe 카드 아이콘 애니메이션 - GPU 최적화 */
@@ -212,8 +220,16 @@
 @media (max-width: 768px) {
   .wave-particles {
     background:
-      radial-gradient(ellipse at center, rgba(103, 80, 164, 0.12) 0%, transparent 70%),
-      radial-gradient(ellipse at 80% 20%, rgba(156, 39, 176, 0.08) 0%, transparent 70%);
+      radial-gradient(
+        ellipse at center,
+        rgba(103, 80, 164, 0.12) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse at 80% 20%,
+        rgba(156, 39, 176, 0.08) 0%,
+        transparent 70%
+      );
     animation: wave-drift-mobile 20s ease-in-out infinite;
     filter: blur(0.3px);
   }
@@ -228,7 +244,8 @@
 }
 
 @keyframes wave-drift-mobile {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0%) scale(1);
   }
   50% {
@@ -238,32 +255,40 @@
 
 /* 🔥 로그인 페이지 애니메이션 - CSP 호환 */
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes progress {
-  0% { width: 0%; }
-  100% { width: 100%; }
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
 }
 
 @keyframes pulse-click {
-  0% { 
+  0% {
     opacity: 1;
     transform: scale(1);
   }
-  100% { 
+  100% {
     opacity: 0;
     transform: scale(1.05);
   }
 }
 
 @keyframes fadeIn {
-  0% { 
+  0% {
     opacity: 0;
     transform: translateY(10px);
   }
-  100% { 
+  100% {
     opacity: 1;
     transform: translateY(0);
   }
@@ -294,17 +319,17 @@
   ._animate-progress,
   ._animate-pulse-click,
   ._animate-fadeIn {
-    animation: none !important;
+    animation: none;
   }
-  
+
   .wave-particles {
     opacity: 0.5;
   }
-  
+
   .animate-icon-hover {
     transition: none;
   }
-  
+
   .animate-icon-hover:hover {
     transform: none;
   }
@@ -321,12 +346,8 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   font-family:
-    'Noto Sans KR',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    'Malgun Gothic',
-    sans-serif;
+    "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Malgun Gothic", sans-serif;
   line-height: 1.6;
   color: var(--text-primary);
   background: #1e293b;
@@ -438,11 +459,12 @@ a {
 
 /* 🎯 framer-motion 대체 CSS 애니메이션 클래스들 */
 @keyframes gradient-x {
-  0%, 100% { 
-    background-position: 0% 50%; 
+  0%,
+  100% {
+    background-position: 0% 50%;
   }
-  50% { 
-    background-position: 100% 50%; 
+  50% {
+    background-position: 100% 50%;
   }
 }
 
@@ -728,33 +750,33 @@ a {
 @media (prefers-reduced-motion: reduce) {
   /* 웨이브 파티클 애니메이션 완전 비활성화 */
   .wave-particles {
-    animation: none !important;
-    opacity: 0.4 !important; /* 정적 상태로 유지 */
+    animation: none;
+    opacity: 0.4; /* 정적 상태로 유지 */
   }
-  
+
   /* 모든 회전/흔들림 애니메이션 비활성화 */
   .animate-ai-icon,
   .animate-vibe-icon,
   .animate-spin,
   .animate-reverse-spin,
   .animate-spin-slow {
-    animation: none !important;
-    transform: none !important;
+    animation: none;
+    transform: none;
   }
-  
+
   /* 기본 전환 효과만 유지 (0.2초 이내) */
   * {
-    animation-duration: 0.2s !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.2s !important;
+    animation-duration: 0.2s;
+    animation-iteration-count: 1;
+    transition-duration: 0.2s;
   }
-  
+
   /* 핑거 포인터 애니메이션 제거 */
   .finger-pointer-primary,
   .finger-pointer-dashboard,
   .finger-pointer-ai {
-    animation: none !important;
-    transform: none !important;
+    animation: none;
+    transform: none;
   }
 }
 
@@ -767,27 +789,27 @@ a {
     --text-primary: #000000;
     --text-secondary: #212121; /* 더 진한 회색으로 대비 강화 */
   }
-  
+
   /* 웨이브 파티클 투명도 증가 (고대비 환경에서 가시성 향상) */
   .wave-particles {
-    opacity: 0.6 !important;
-    filter: blur(0.3px) !important; /* 블러 감소 */
+    opacity: 0.6;
+    filter: blur(0.3px); /* 블러 감소 */
   }
-  
+
   /* 버튼 대비 강화 */
   .bg-gradient-to-r {
-    background: var(--primary) !important;
-    color: white !important;
-    border: 2px solid var(--primary) !important;
+    background: var(--primary);
+    color: white;
+    border: 2px solid var(--primary);
   }
-  
+
   /* 텍스트 대비 강화 */
   .text-white\/80 {
-    color: rgba(255, 255, 255, 0.95) !important;
+    color: rgba(255, 255, 255, 0.95);
   }
-  
+
   .text-white\/70 {
-    color: rgba(255, 255, 255, 0.90) !important;
+    color: rgba(255, 255, 255, 0.9);
   }
 }
 
@@ -1024,24 +1046,66 @@ a {
 }
 
 /* 📏 Spacing Utility Classes */
-.spacing-xs { padding: var(--spacing-1); }
-.spacing-sm { padding: var(--spacing-2); }
-.spacing-md { padding: var(--spacing-4); }
-.spacing-lg { padding: var(--spacing-6); }
-.spacing-xl { padding: var(--spacing-8); }
-.spacing-2xl { padding: var(--spacing-10); }
+.spacing-xs {
+  padding: var(--spacing-1);
+}
+.spacing-sm {
+  padding: var(--spacing-2);
+}
+.spacing-md {
+  padding: var(--spacing-4);
+}
+.spacing-lg {
+  padding: var(--spacing-6);
+}
+.spacing-xl {
+  padding: var(--spacing-8);
+}
+.spacing-2xl {
+  padding: var(--spacing-10);
+}
 
-.spacing-x-xs { padding-left: var(--spacing-1); padding-right: var(--spacing-1); }
-.spacing-x-sm { padding-left: var(--spacing-2); padding-right: var(--spacing-2); }
-.spacing-x-md { padding-left: var(--spacing-4); padding-right: var(--spacing-4); }
-.spacing-x-lg { padding-left: var(--spacing-6); padding-right: var(--spacing-6); }
-.spacing-x-xl { padding-left: var(--spacing-8); padding-right: var(--spacing-8); }
+.spacing-x-xs {
+  padding-left: var(--spacing-1);
+  padding-right: var(--spacing-1);
+}
+.spacing-x-sm {
+  padding-left: var(--spacing-2);
+  padding-right: var(--spacing-2);
+}
+.spacing-x-md {
+  padding-left: var(--spacing-4);
+  padding-right: var(--spacing-4);
+}
+.spacing-x-lg {
+  padding-left: var(--spacing-6);
+  padding-right: var(--spacing-6);
+}
+.spacing-x-xl {
+  padding-left: var(--spacing-8);
+  padding-right: var(--spacing-8);
+}
 
-.spacing-y-xs { padding-top: var(--spacing-1); padding-bottom: var(--spacing-1); }
-.spacing-y-sm { padding-top: var(--spacing-2); padding-bottom: var(--spacing-2); }
-.spacing-y-md { padding-top: var(--spacing-4); padding-bottom: var(--spacing-4); }
-.spacing-y-lg { padding-top: var(--spacing-6); padding-bottom: var(--spacing-6); }
-.spacing-y-xl { padding-top: var(--spacing-8); padding-bottom: var(--spacing-8); }
+.spacing-y-xs {
+  padding-top: var(--spacing-1);
+  padding-bottom: var(--spacing-1);
+}
+.spacing-y-sm {
+  padding-top: var(--spacing-2);
+  padding-bottom: var(--spacing-2);
+}
+.spacing-y-md {
+  padding-top: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+}
+.spacing-y-lg {
+  padding-top: var(--spacing-6);
+  padding-bottom: var(--spacing-6);
+}
+.spacing-y-xl {
+  padding-top: var(--spacing-8);
+  padding-bottom: var(--spacing-8);
+}
 
 /* ============================================
    🎨 Border Radius System
@@ -1069,13 +1133,16 @@ a {
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 
   /* Level 2: Moderate elevation (Dropdown, Tooltip) */
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
   /* Level 3: High elevation (Modal, Dialog) */
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
   /* Level 4: Very high elevation (Popover) */
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
   /* Level 5: Maximum elevation (Toast, Notification) */
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);

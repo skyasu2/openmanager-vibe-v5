@@ -244,5 +244,5 @@ export const ensureNumber = (
   value: number | undefined,
   fallback: number = 0
 ): number => {
-  return typeof value === 'number' && !isNaN(value) ? value : fallback;
+  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 };

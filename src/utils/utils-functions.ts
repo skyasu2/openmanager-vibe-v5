@@ -111,7 +111,7 @@ export function formatBytes(bytes: number, decimals = 2): string {
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  return `${parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
 
 /**
@@ -138,12 +138,12 @@ export function safeJsonParse<T = unknown>(jsonString: string, fallback: T): T {
 export function deepClone<T>(obj: T): T {
   if (obj === null || typeof obj !== 'object') return obj;
   if (obj instanceof Date) return new Date(obj.getTime()) as unknown as T;
-  if (obj instanceof Array)
+  if (Array.isArray(obj))
     return obj.map((item) => deepClone(item)) as unknown as T;
   if (typeof obj === 'object') {
     const clonedObj = {} as T;
     for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      if (Object.hasOwn(obj, key)) {
         clonedObj[key] = deepClone(obj[key]);
       }
     }
@@ -163,7 +163,7 @@ export function formatPercentage(
   decimals = 1
 ): string {
   const num = Number(value);
-  if (isNaN(num)) {
+  if (Number.isNaN(num)) {
     return `${(0).toFixed(decimals)}%`;
   }
   return `${num.toFixed(decimals)}%`;
@@ -572,7 +572,7 @@ export function dateDiff(date1: Date, date2: Date): number {
  * @returns UUID v4 문자열
  */
 export function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);

@@ -8,11 +8,11 @@
 'use client';
 
 import { ReactNode } from 'react';
-import SupabaseAuthProvider from './SupabaseAuthProvider';
-import QueryProvider from './QueryProvider';
-import { ServerDataStoreProvider } from './StoreProvider';
 // 🚀 Vercel 호환 접근성 Provider 추가
 import { AccessibilityProvider } from '@/context/AccessibilityProvider';
+import QueryProvider from './QueryProvider';
+import { ServerDataStoreProvider } from './StoreProvider';
+import SupabaseAuthProvider from './SupabaseAuthProvider';
 
 interface ClientProvidersProps {
   children: ReactNode;

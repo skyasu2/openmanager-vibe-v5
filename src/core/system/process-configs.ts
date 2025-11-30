@@ -8,8 +8,8 @@
  * - 복구 정책
  */
 
-import type { ProcessConfig } from './ProcessManager';
 import { systemLogger } from '../../lib/logger';
+import type { ProcessConfig } from './ProcessManager';
 
 // 🔧 전역 상태 타입 정의
 interface GlobalState {

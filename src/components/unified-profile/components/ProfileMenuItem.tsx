@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, type MouseEvent, type KeyboardEvent } from 'react';
+import { type KeyboardEvent, type MouseEvent, memo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { MenuItem } from '../types/profile.types';
 
@@ -71,7 +71,9 @@ export const ProfileMenuItem = memo(function ProfileMenuItem({
       <button
         id={id}
         data-testid={id}
-        onClick={(e) => { void handleClick(e); }}
+        onClick={(e) => {
+          void handleClick(e);
+        }}
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={`flex w-full cursor-pointer items-center px-4 py-2 text-sm transition-colors ${getColorClasses()}`}

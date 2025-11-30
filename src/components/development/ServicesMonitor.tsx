@@ -1,15 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import {
   Activity,
   CheckCircle,
@@ -22,6 +12,16 @@ import {
   Zap,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 interface ServiceStatus {
   name: string;
@@ -137,7 +137,9 @@ export function ServicesMonitor({
 
   useEffect(() => {
     if (autoRefresh) {
-      const interval = setInterval(() => { void fetchServicesStatus(); }, 10000);
+      const interval = setInterval(() => {
+        void fetchServicesStatus();
+      }, 10000);
       return () => clearInterval(interval);
     }
     return undefined;

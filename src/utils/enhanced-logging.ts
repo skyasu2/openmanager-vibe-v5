@@ -26,7 +26,7 @@ const currentLogLevel = config.isDevelopment ? LogLevel.VERBOSE : LogLevel.INFO;
 const safeStringify = (obj: unknown, maxDepth = 3): string => {
   const seen = new WeakSet();
 
-  const replacer = (key: string, value: unknown, depth = 0): unknown => {
+  const replacer = (_key: string, value: unknown, depth = 0): unknown => {
     // 최대 깊이 제한
     if (depth > maxDepth) {
       return '[Max Depth Reached]';

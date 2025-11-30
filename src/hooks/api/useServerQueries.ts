@@ -9,12 +9,12 @@
  */
 
 import {
-  useQuery,
-  useMutation,
-  useQueryClient,
   keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
 } from '@tanstack/react-query';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FREE_TIER_INTERVALS } from '@/config/free-tier-intervals';
 
@@ -255,8 +255,12 @@ export const useServerToggle = () => {
       );
 
       // 관련 쿼리 무효화
-      void queryClient.invalidateQueries({ queryKey: serverKeys.detail(serverId) });
-      void queryClient.invalidateQueries({ queryKey: serverKeys.metrics(serverId) });
+      void queryClient.invalidateQueries({
+        queryKey: serverKeys.detail(serverId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: serverKeys.metrics(serverId),
+      });
     },
 
     // 에러 시 롤백

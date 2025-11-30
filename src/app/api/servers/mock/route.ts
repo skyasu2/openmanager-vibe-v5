@@ -67,8 +67,8 @@ export function GET(request: NextRequest) {
 
       case 'jump': {
         // 특정 시간으로 점프
-        const hour = parseInt(searchParams.get('hour') || '0');
-        const minute = parseInt(searchParams.get('minute') || '0');
+        const hour = parseInt(searchParams.get('hour') || '0', 10);
+        const minute = parseInt(searchParams.get('minute') || '0', 10);
         mockSystem.jumpToTime(hour, minute);
 
         return NextResponse.json({

@@ -9,7 +9,7 @@
  * 3. 동시 사용자 시뮬레이션
  */
 
-const http = require('http');
+const http = require('node:http');
 
 class LoadTester {
   constructor() {
@@ -48,10 +48,10 @@ class LoadTester {
       }
 
       const startTime = Date.now();
-      const req = http.request(options, res => {
+      const req = http.request(options, (res) => {
         let responseData = '';
 
-        res.on('data', chunk => {
+        res.on('data', (chunk) => {
           responseData += chunk;
         });
 
@@ -66,7 +66,7 @@ class LoadTester {
         });
       });
 
-      req.on('error', err => {
+      req.on('error', (err) => {
         reject({
           error: err.message,
           responseTime: Date.now() - startTime,
@@ -270,7 +270,7 @@ class LoadTester {
 
       // 요청 간격 조절
       if (i % 3 === 0) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 
@@ -286,13 +286,15 @@ class LoadTester {
    * 📈 결과 분석 및 리포트 생성
    */
   generateReport() {
-    const systemStartSuccess = this.results.systemStart.filter(r => r.success);
-    const dataGenSuccess = this.results.dataGenerator.filter(r => r.success);
+    const systemStartSuccess = this.results.systemStart.filter(
+      (r) => r.success
+    );
+    const dataGenSuccess = this.results.dataGenerator.filter((r) => r.success);
     const totalErrors = this.results.errors.length;
 
     // 응답 시간 통계
-    const systemStartTimes = systemStartSuccess.map(r => r.totalResponseTime);
-    const dataGenTimes = dataGenSuccess.map(r => r.totalResponseTime);
+    const systemStartTimes = systemStartSuccess.map((r) => r.totalResponseTime);
+    const dataGenTimes = dataGenSuccess.map((r) => r.totalResponseTime);
 
     const systemStartStats = this.calculateStats(systemStartTimes);
     const dataGenStats = this.calculateStats(dataGenTimes);
@@ -303,8 +305,8 @@ class LoadTester {
           this.results.systemStart.length + this.results.dataGenerator.length,
         successfulTests: systemStartSuccess.length + dataGenSuccess.length,
         failedTests:
-          this.results.systemStart.filter(r => !r.success).length +
-          this.results.dataGenerator.filter(r => !r.success).length,
+          this.results.systemStart.filter((r) => !r.success).length +
+          this.results.dataGenerator.filter((r) => !r.success).length,
         errors: totalErrors,
         successRate: (
           ((systemStartSuccess.length + dataGenSuccess.length) /
@@ -316,13 +318,13 @@ class LoadTester {
       systemStart: {
         totalTests: this.results.systemStart.length,
         successful: systemStartSuccess.length,
-        failed: this.results.systemStart.filter(r => !r.success).length,
+        failed: this.results.systemStart.filter((r) => !r.success).length,
         responseTimeStats: systemStartStats,
       },
       dataGenerator: {
         totalTests: this.results.dataGenerator.length,
         successful: dataGenSuccess.length,
-        failed: this.results.dataGenerator.filter(r => !r.success).length,
+        failed: this.results.dataGenerator.filter((r) => !r.success).length,
         responseTimeStats: dataGenStats,
       },
       errors: this.results.errors,
@@ -354,7 +356,7 @@ class LoadTester {
   printReport() {
     const report = this.generateReport();
 
-    console.log('\n' + '='.repeat(80));
+    console.log(`\n${'='.repeat(80)}`);
     console.log('🚀 OpenManager v5.7.4 부하 테스트 결과');
     console.log('='.repeat(80));
 
@@ -391,7 +393,7 @@ class LoadTester {
       });
     }
 
-    console.log('\n' + '='.repeat(80));
+    console.log(`\n${'='.repeat(80)}`);
 
     return report;
   }
@@ -400,7 +402,7 @@ class LoadTester {
    * 💾 결과를 JSON 파일로 저장
    */
   async saveResults() {
-    const fs = require('fs').promises;
+    const fs = require('node:fs').promises;
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `load-test-results-${timestamp}.json`;
 

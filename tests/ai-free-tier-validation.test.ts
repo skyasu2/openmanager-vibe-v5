@@ -13,7 +13,7 @@
  * - 목적: 로컬 CI에서 불필요한 실패 방지
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 // Vercel 배포 환경에서만 실행 (로컬 환경에서는 스킵)
 const isVercelDeployment = !!process.env.NEXT_PUBLIC_VERCEL_URL;
@@ -148,7 +148,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
       });
-      const time1 = Date.now();
+      const _time1 = Date.now();
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -158,7 +158,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
       });
-      const time2 = Date.now();
+      const _time2 = Date.now();
 
       expect(response1.ok).toBe(true);
       expect(response2.ok).toBe(true);

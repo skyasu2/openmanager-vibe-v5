@@ -11,10 +11,10 @@
 // and handles OAuth callbacks at runtime, cannot be statically generated
 export const dynamic = 'force-dynamic';
 
-import { supabase } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { supabase } from '@/lib/supabase/client';
 import debug from '@/utils/debug';
 
 /**
@@ -126,7 +126,7 @@ export default function AuthCallbackPage() {
             const maxDelay = 2000; // 최대 지연 시간 50% 단축
             const jitter = Math.random() * 0.1; // 10% 지터로 thundering herd 방지
             const retryDelay = Math.min(
-              baseDelay * Math.pow(1.8, attempts) * (1 + jitter),
+              baseDelay * 1.8 ** attempts * (1 + jitter),
               maxDelay
             );
 

@@ -7,7 +7,7 @@
  * - 로그 버퍼 관리
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface RealTimeAILog {
   id: string;
@@ -248,7 +248,7 @@ export const useRealTimeAILogs = (
       clearLogs();
       reconnect();
     }
-  }, [sessionId, isConnected, clearLogs, reconnect]);
+  }, [isConnected, clearLogs, reconnect]);
 
   return {
     logs,

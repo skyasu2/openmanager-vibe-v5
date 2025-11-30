@@ -4,7 +4,7 @@
  * 환경별 자동 전환 로직 테스트
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 // Mock getAuthMethod 함수 (실제 구현은 admin.ts에 추가 필요)
 function getAuthMethod(): 'password' | 'bypass' {

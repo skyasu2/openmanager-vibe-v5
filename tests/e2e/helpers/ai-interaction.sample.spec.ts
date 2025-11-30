@@ -24,11 +24,11 @@
  * - MCP 로깅 검증
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import {
+  closeAiSidebar,
   submitAiMessage,
   switchAiFunction,
-  closeAiSidebar,
 } from './ai-interaction';
 import { guestLogin, openAiSidebar } from './guest';
 

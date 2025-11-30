@@ -1,7 +1,7 @@
 'use client';
 
+import { Cloud, Cpu, Info } from 'lucide-react';
 import React from 'react';
-import { Cpu, Cloud, Info } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,

@@ -4,15 +4,15 @@
  * UnifiedServerDataSource 기반 메트릭 훅의 정확한 동작을 검증
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Server } from '@/types/server';
 import {
+  getFixedMetricNow,
   useFixed24hMetrics,
   useMultipleFixed24hMetrics,
   useSingleMetric,
-  getFixedMetricNow,
 } from '../useFixed24hMetrics';
-import type { Server } from '@/types/server';
 
 // Mock UnifiedServerDataSource
 // Mock UnifiedServerDataSource

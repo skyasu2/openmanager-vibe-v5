@@ -5,8 +5,8 @@
  * 최상위 레벨 에러 처리 (500, unhandled errors)
  */
 
-import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useEffect, useMemo } from 'react';
 import debug from '@/utils/debug';
 
 // 클라이언트 컴포넌트에서 안전하게 환경 감지

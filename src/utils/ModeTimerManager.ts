@@ -23,7 +23,6 @@ interface ModeTimerConfig {
 
 class ModeTimerManager {
   private timers: Map<string, NodeJS.Timeout> = new Map();
-  private currentMode: 'ai' | 'monitoring' | 'auto' | null = null;
 
   // 🚫 모든 타이머 기능 비활성화
   stopAll(): void {
@@ -35,13 +34,6 @@ class ModeTimerManager {
       clearInterval(timer);
     }
     this.timers.clear();
-  }
-
-  // 🚫 타이머 등록 비활성화
-  private registerTimer(config: ModeTimerConfig): void {
-    console.log(`🚫 Timer registration blocked: ${config.id}`);
-    console.log('📊 Vercel 플랫폼 모니터링 사용 권장');
-    // 타이머 등록하지 않음
   }
 
   // 🚫 AI 모드 비활성화

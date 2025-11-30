@@ -15,7 +15,9 @@ export function GET() {
   try {
     const now = new Date();
     const utc = new Date(now.toUTCString());
-    const kst = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+    const kst = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
+    );
 
     const timeInfo = {
       timestamp: now.getTime(),
@@ -23,19 +25,28 @@ export function GET() {
       utc: {
         date: utc.toISOString().split('T')[0],
         time: utc.toTimeString().split(' ')[0],
-        full: utc.toUTCString()
+        full: utc.toUTCString(),
       },
       kst: {
         date: kst.toLocaleDateString('ko-KR'),
         time: kst.toLocaleTimeString('ko-KR'),
-        full: kst.toLocaleString('ko-KR')
+        full: kst.toLocaleString('ko-KR'),
       },
       unix: Math.floor(now.getTime() / 1000),
       runtime: 'edge',
       region: process.env.VERCEL_REGION || 'unknown',
       timezone_offset: -now.getTimezoneOffset(),
-      day_of_year: Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)),
-      week_number: Math.ceil((((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 86400000) + new Date(now.getFullYear(), 0, 1).getDay() + 1) / 7)
+      day_of_year: Math.floor(
+        (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) /
+          (1000 * 60 * 60 * 24)
+      ),
+      week_number: Math.ceil(
+        ((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) /
+          86400000 +
+          new Date(now.getFullYear(), 0, 1).getDay() +
+          1) /
+          7
+      ),
     };
 
     return NextResponse.json(timeInfo, {
@@ -46,24 +57,24 @@ export function GET() {
         'X-Runtime': 'edge',
         'X-Edge-Region': process.env.VERCEL_REGION || 'unknown',
         'X-Response-Time': '~3ms',
-        'Last-Modified': now.toUTCString()
-      }
+        'Last-Modified': now.toUTCString(),
+      },
     });
   } catch (error) {
     return NextResponse.json(
       {
-        timestamp: new Date().getTime(),
+        timestamp: Date.now(),
         iso: new Date().toISOString(),
         status: 'error',
         runtime: 'edge',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'X-Runtime': 'edge'
-        }
+          'X-Runtime': 'edge',
+        },
       }
     );
   }

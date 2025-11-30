@@ -14,8 +14,8 @@
  * - 공개 버전: 완전한 보안 강화
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 interface KeyStatus {
   service: string;
@@ -49,7 +49,6 @@ export interface KeyGroupValidation {
 export class DevKeyManager {
   private static instance: DevKeyManager;
   private isDevelopment: boolean;
-  private keyCache: Map<string, string> = new Map();
   private keys: Map<string, string> = new Map();
   private keyDefinitions: DevKey[] = [
     // Google AI API 키만 관리
@@ -61,11 +60,6 @@ export class DevKeyManager {
       description: 'Google AI Studio에서 발급받은 API 키',
     },
   ];
-
-  // 키 그룹 정의
-  private keyGroups: Record<string, string[]> = {
-    ai: ['GOOGLE_AI_API_KEY'],
-  };
 
   private constructor() {
     this.isDevelopment = process.env.NODE_ENV === 'development';
@@ -279,7 +273,7 @@ CRON_GEMINI_LEARNING=true
     this.keyDefinitions.forEach((keyDef) => {
       const value = this.getKey(keyDef.envKey);
       if (value) {
-        if (keyDef.validator && keyDef.validator(value)) {
+        if (keyDef.validator?.(value)) {
           results.push({
             key: keyDef.name,
             status: 'valid',

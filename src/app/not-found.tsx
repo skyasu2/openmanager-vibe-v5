@@ -1,6 +1,6 @@
 /**
  * 🚨 Custom 404 Not Found Page
- * 
+ *
  * Html import 에러를 우회하기 위한 커스텀 404 페이지
  * 서버 사이드 렌더링으로 작동 (SSG 비활성화)
  */
@@ -9,11 +9,10 @@
 export const dynamic = 'force-static';
 export const revalidate = 0;
 
+import { AlertCircle, ArrowLeft, Home, Search } from 'lucide-react';
 import Link from 'next/link';
-import { Home, Search, ArrowLeft, AlertCircle } from 'lucide-react';
 
 export default function NotFound() {
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
       <div className="mx-auto max-w-md space-y-8 p-8 text-center">

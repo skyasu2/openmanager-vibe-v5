@@ -3,12 +3,12 @@
  * Real-time performance monitoring with WebSocket integration
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  PerformanceMetric,
-  PerformanceData,
   Alert,
   AlertConfig,
+  PerformanceData,
+  PerformanceMetric,
   SystemHealth,
   WebSocketPerformanceMessage,
 } from '../types/performance';
@@ -314,7 +314,9 @@ export const usePerformanceMetrics = (
       void updatePerformanceData();
 
       // Set up polling interval as fallback
-      intervalRef.current = setInterval(() => { void updatePerformanceData(); }, updateInterval);
+      intervalRef.current = setInterval(() => {
+        void updatePerformanceData();
+      }, updateInterval);
 
       // Connect WebSocket for real-time updates
       connectWebSocket();

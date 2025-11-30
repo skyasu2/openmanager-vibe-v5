@@ -4,15 +4,15 @@
  * Shared types and interfaces for the SimplifiedQueryEngine system
  */
 
-import type { ComplexityScore } from './SimplifiedQueryEngine.complexity-types';
 import type { Entity } from '../../modules/ai-agent/processors/IntentClassifier';
 import type {
+  AIMetadata,
   AIQueryContext,
   AIQueryOptions,
-  AIMetadata,
 } from '../../types/ai-service-types';
 import type { AIMode } from '../../types/ai-types';
 import type { EnhancedServerMetrics } from '../../types/server';
+import type { ComplexityScore } from './SimplifiedQueryEngine.complexity-types';
 
 // 구글 AI 모델 정의 (성능 순)
 export type GoogleAIModel =

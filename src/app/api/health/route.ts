@@ -9,16 +9,16 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { env, isDevelopment } from '@/env';
+import { getApiConfig } from '@/lib/api/api-config';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import { getCacheStats } from '@/lib/cache/cache-helper';
+import { createClient } from '@/lib/supabase/server';
 import {
-  HealthCheckResponseSchema,
   type HealthCheckResponse,
+  HealthCheckResponseSchema,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
-import { createClient } from '@/lib/supabase/server';
-import { getCacheStats } from '@/lib/cache/cache-helper';
-import { getApiConfig } from '@/lib/api/api-config';
-import { env, isDevelopment } from '@/env';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';

@@ -236,8 +236,7 @@ export class BaselineOptimizer {
    * 🏗️ 서버 역할별 기본 부하 설정
    */
   private getServerBaseLoad(role: string, status: string): BaselineConfig {
-    const config =
-      this.HIGH_LOAD_CONFIGS[role] || this.HIGH_LOAD_CONFIGS['web'];
+    const config = this.HIGH_LOAD_CONFIGS[role] || this.HIGH_LOAD_CONFIGS.web;
 
     if (!config) {
       // 기본값 반환

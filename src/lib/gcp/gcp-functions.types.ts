@@ -3,7 +3,7 @@
  */
 
 // 기본 Result 타입 (discriminated union)
-export type Result<T> = 
+export type Result<T> =
   | { success: true; data: T }
   | { success: false; error: string; code?: number; details?: string };
 
@@ -118,7 +118,7 @@ export enum GCPFunctionErrorCode {
   NETWORK_ERROR = 'NETWORK_ERROR',
   SERVER_ERROR = 'SERVER_ERROR',
   CLIENT_ERROR = 'CLIENT_ERROR',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
 export interface GCPFunctionError extends Error {

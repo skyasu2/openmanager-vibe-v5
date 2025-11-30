@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import {
   IdSchema,
-  TimestampSchema,
   MetadataSchema,
   PercentageSchema,
+  TimestampSchema,
 } from './common.schema';
 
 /**

@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   classifyErrorType,
   createErrorBoundaryInfo,
@@ -10,7 +11,6 @@ import {
   safeErrorMessage,
   withErrorRecovery,
 } from '../../src/lib/error-handler';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock logger to prevent "No logError export" error
 vi.mock('@/lib/logger', () => ({

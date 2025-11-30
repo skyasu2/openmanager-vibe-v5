@@ -12,10 +12,9 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
-
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 // ⚠️ 관리자 권한 체크용 import
 import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
 
 interface UseRealAIOptions {
   enablePython?: boolean;

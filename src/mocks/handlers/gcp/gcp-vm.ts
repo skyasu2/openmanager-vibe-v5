@@ -7,7 +7,7 @@
  * @see .env.local의 GCP_VM_EXTERNAL_IP, MCP_SERVER_URL
  */
 
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, http } from 'msw';
 
 // .env.local에서 GCP VM URL 가져오기
 const GCP_VM_URL = process.env.MCP_SERVER_URL || 'http://35.209.146.37:10000';

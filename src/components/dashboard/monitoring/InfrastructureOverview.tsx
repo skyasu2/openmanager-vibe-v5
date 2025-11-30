@@ -2,17 +2,17 @@
 
 // React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 import {
-  Server,
-  Monitor,
   Activity,
-  HardDrive,
   Cpu,
-  MemoryStick,
   Globe,
+  HardDrive,
+  MemoryStick,
+  Monitor,
+  Server,
 } from 'lucide-react';
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
-import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 import { formatPercentage } from '@/lib/utils';
+import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 
 interface InfrastructureOverviewProps {
   stats: {

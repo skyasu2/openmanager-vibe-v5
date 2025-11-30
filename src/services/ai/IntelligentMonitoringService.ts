@@ -16,16 +16,16 @@
  */
 
 import {
-  SimpleAnomalyDetector,
+  type AnomalyDetectionResult,
   getAnomalyDetector,
   type MetricDataPoint,
-  type AnomalyDetectionResult,
+  SimpleAnomalyDetector,
 } from '@/lib/ai/monitoring/SimpleAnomalyDetector';
 
 import {
-  TrendPredictor,
   getTrendPredictor,
   type TrendPrediction,
+  TrendPredictor,
 } from '@/lib/ai/monitoring/TrendPredictor';
 
 import type { EnhancedServerMetrics, ServerMetrics } from '@/types/server';

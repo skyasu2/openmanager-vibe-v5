@@ -47,10 +47,7 @@ function generateMockProcesses(_serverId: string): ServerProcess[] {
   return processes;
 }
 
-export function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export function GET(_request: Request, { params }: { params: { id: string } }) {
   const serverId = params.id;
 
   if (!serverId) {

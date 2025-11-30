@@ -2,7 +2,7 @@
  * 🐛 디버그 유틸리티 - 프로덕션에서는 로그 비활성화
  */
 
-import { isDevelopment, env } from '@/env';
+import { env, isDevelopment } from '@/env';
 
 const isDebugEnabled = isDevelopment || env.NEXT_PUBLIC_DEBUG === 'true';
 

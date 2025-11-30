@@ -15,11 +15,11 @@
  */
 
 import type {
+  AIScenario,
   IContextProvider,
   ProviderContext,
-  RAGData,
   ProviderOptions,
-  AIScenario,
+  RAGData,
 } from '@/lib/ai/core/types';
 
 // Supabase RAG Engine 임포트 (기존 구현 재사용)

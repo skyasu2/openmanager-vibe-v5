@@ -5,9 +5,9 @@
  * 복구 가이드를 제공하는 컴포넌트
  */
 
+import { HelpCircle, Home, RefreshCw } from 'lucide-react';
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
-import { ReactNode, FC } from 'react';
-import { RefreshCw, Home, HelpCircle } from 'lucide-react';
+import { FC, ReactNode } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 
 export interface ErrorMessageProps {
@@ -139,9 +139,7 @@ export const ErrorMessage: FC<ErrorMessageProps> = ({
   const allActions = actions.length > 0 ? actions : defaultActions;
 
   const content = (
-    <div
-      className="mx-auto max-w-md space-y-6 text-center"
-    >
+    <div className="mx-auto max-w-md space-y-6 text-center">
       {/* 에러 아이콘 */}
       <div className="mb-4 text-6xl">{errorInfo.icon}</div>
 
@@ -219,13 +217,13 @@ export const ErrorMessage: FC<ErrorMessageProps> = ({
 };
 
 // 특정 에러 타입별 편의 컴포넌트들
-export const NetworkError: FC<Omit<ErrorMessageProps, 'type'>> = (
-  props
-) => <ErrorMessage {...props} type="network" />;
+export const NetworkError: FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
+  <ErrorMessage {...props} type="network" />
+);
 
-export const ServerError: FC<Omit<ErrorMessageProps, 'type'>> = (
-  props
-) => <ErrorMessage {...props} type="server" />;
+export const ServerError: FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
+  <ErrorMessage {...props} type="server" />
+);
 
 export const DataError: FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
   <ErrorMessage {...props} type="data" />

@@ -55,7 +55,7 @@ export class GoogleAIMock extends MockBase {
     const words = response.split(' ');
 
     for (const word of words) {
-      yield word + ' ';
+      yield `${word} `;
       await new Promise((resolve) => setTimeout(resolve, 20));
     }
   }

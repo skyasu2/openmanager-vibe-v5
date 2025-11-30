@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getMockConfig } from '@/config/mock-config';
 import {
-  timeRotationService,
   type TimeOfDayPattern,
   type TimeRotationState,
+  timeRotationService,
 } from '@/services/time/TimeRotationService';
 
 /**

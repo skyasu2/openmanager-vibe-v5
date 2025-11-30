@@ -10,10 +10,10 @@
  * Vercel 프로덕션 환경: https://openmanager-vibe-v5.vercel.app/
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { getTestBaseUrl } from './helpers/config';
-import { TIMEOUTS } from './helpers/timeouts';
 import { ensureVercelBypassCookie } from './helpers/security';
+import { TIMEOUTS } from './helpers/timeouts';
 
 const VERCEL_PRODUCTION_URL = getTestBaseUrl();
 
@@ -22,12 +22,11 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
-
   test('✅ 1. 루트 경로(/) 접근 시 /login 리다이렉트', async ({ page }) => {
     const startTime = Date.now();
 
     // 루트 경로 접근
-    const response = await page.goto(VERCEL_PRODUCTION_URL + '/', {
+    const _response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
       waitUntil: 'networkidle',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
@@ -46,7 +45,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
 
   test('✅ 2. 미들웨어 응답 헤더 확인', async ({ page }) => {
     // 루트 경로 접근하여 리다이렉트 응답 캡처
-    const response = await page.goto(VERCEL_PRODUCTION_URL + '/', {
+    const response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
       waitUntil: 'domcontentloaded',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
@@ -56,7 +55,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
 
     if (headers) {
       // Vercel 배포 헤더 확인
-      expect(headers['server']).toBe('Vercel');
+      expect(headers.server).toBe('Vercel');
 
       // Edge Runtime 헤더 확인 (있으면)
       if (headers['x-edge-runtime']) {
@@ -64,7 +63,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
       }
 
       console.log('✅ 미들웨어 헤더 검증 성공');
-      console.log('  - Server:', headers['server']);
+      console.log('  - Server:', headers.server);
       console.log('  - Cache:', headers['x-vercel-cache']);
     }
   });
@@ -77,7 +76,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
 
     // 여러 번 접근하여 안정성 확인
     for (let i = 0; i < 3; i++) {
-      const response = await page.goto(VERCEL_PRODUCTION_URL + '/', {
+      const _response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
         waitUntil: 'domcontentloaded',
         timeout: TIMEOUTS.NETWORK_REQUEST,
       });
@@ -95,7 +94,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
   test('✅ 4. 에러 처리 안정성 (무한 루프 방지)', async ({ page }) => {
     // /login 페이지 접근하여 무한 루프가 없는지 확인
 
-    const response = await page.goto(VERCEL_PRODUCTION_URL + '/login', {
+    const _response = await page.goto(`${VERCEL_PRODUCTION_URL}/login`, {
       waitUntil: 'networkidle',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
@@ -117,7 +116,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     for (let i = 0; i < iterations; i++) {
       const startTime = Date.now();
 
-      await page.goto(VERCEL_PRODUCTION_URL + '/', {
+      await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
         waitUntil: 'domcontentloaded',
         timeout: TIMEOUTS.NETWORK_REQUEST,
       });
@@ -127,7 +126,8 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     }
 
     // 평균 응답 시간 계산
-    const avgResponseTime = responseTimes.reduce((a, b) => a + b, 0) / iterations;
+    const avgResponseTime =
+      responseTimes.reduce((a, b) => a + b, 0) / iterations;
     const minResponseTime = Math.min(...responseTimes);
     const maxResponseTime = Math.max(...responseTimes);
 
@@ -145,7 +145,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     await context.addCookies([
       {
         name: 'guest_session_id',
-        value: 'test-guest-session-' + Date.now(),
+        value: `test-guest-session-${Date.now()}`,
         url: VERCEL_PRODUCTION_URL,
         httpOnly: false,
         sameSite: 'Lax',
@@ -160,7 +160,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     ]);
 
     // 루트 경로 접근
-    const response = await page.goto(VERCEL_PRODUCTION_URL + '/', {
+    const _response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
       waitUntil: 'networkidle',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
@@ -175,7 +175,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     // 시나리오: 루트 → 로그인 페이지 → 다시 루트
 
     // 1단계: 루트 접근 → /login 리다이렉트
-    await page.goto(VERCEL_PRODUCTION_URL + '/', {
+    await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
       waitUntil: 'networkidle',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
@@ -186,7 +186,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     expect(page.url()).toContain('/login');
 
     // 3단계: 다시 루트 접근 → /login 리다이렉트 (무한 루프 방지 확인)
-    await page.goto(VERCEL_PRODUCTION_URL + '/', {
+    await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
       waitUntil: 'networkidle',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });

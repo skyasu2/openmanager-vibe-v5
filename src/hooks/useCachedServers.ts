@@ -8,9 +8,9 @@
  * - 성능 최적화
  */
 
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import type { ServerInstance } from '@/types/data-generator';
-import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface CachedServerData {
   servers: ServerInstance[];

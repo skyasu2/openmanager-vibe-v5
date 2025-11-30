@@ -131,7 +131,7 @@ export class AIErrorHandler {
   static detectErrorType(error: unknown, provider?: string): AIErrorType {
     if (!error) return AIErrorType.UNKNOWN;
 
-    const errorMessage = this.toErrorMessage(error).toLowerCase();
+    const errorMessage = AIErrorHandler.toErrorMessage(error).toLowerCase();
     const errorName = error instanceof Error ? error.name.toLowerCase() : '';
 
     // Rate Limit Detection
@@ -282,16 +282,16 @@ export class AIErrorHandler {
   ): number {
     // Rate limit: longer delay
     if (errorType === AIErrorType.RATE_LIMIT) {
-      return Math.min(baseDelay * Math.pow(2, attempt) * 2, 30000); // Max 30s
+      return Math.min(baseDelay * 2 ** attempt * 2, 30000); // Max 30s
     }
 
     // Quota exceeded: very long delay
     if (errorType === AIErrorType.QUOTA_EXCEEDED) {
-      return Math.min(baseDelay * Math.pow(2, attempt) * 5, 60000); // Max 60s
+      return Math.min(baseDelay * 2 ** attempt * 5, 60000); // Max 60s
     }
 
     // Standard exponential backoff
-    return Math.min(baseDelay * Math.pow(2, attempt), 10000); // Max 10s
+    return Math.min(baseDelay * 2 ** attempt, 10000); // Max 10s
   }
 
   /**
@@ -316,12 +316,12 @@ export class AIErrorHandler {
       try {
         return await fn();
       } catch (error) {
-        const errorType = this.detectErrorType(error, provider);
-        const retryable = this.isRetryable(errorType);
+        const errorType = AIErrorHandler.detectErrorType(error, provider);
+        const retryable = AIErrorHandler.isRetryable(errorType);
 
         lastError = {
           type: errorType,
-          message: this.toErrorMessage(error),
+          message: AIErrorHandler.toErrorMessage(error),
           originalError: error,
           retryable,
           provider,
@@ -335,7 +335,11 @@ export class AIErrorHandler {
 
         // Calculate delay with exponential backoff
         // Special handling for specific error types
-        const actualDelay = this.getRetryDelay(errorType, attempt, baseDelay);
+        const actualDelay = AIErrorHandler.getRetryDelay(
+          errorType,
+          attempt,
+          baseDelay
+        );
 
         // Call retry callback if provided
         if (onRetry) {
@@ -367,12 +371,12 @@ export class AIErrorHandler {
    * 🛡️ Create AI Error from Unknown Error
    */
   static createAIError(error: unknown, provider?: string): AIError {
-    const errorType = this.detectErrorType(error, provider);
-    const retryable = this.isRetryable(errorType);
+    const errorType = AIErrorHandler.detectErrorType(error, provider);
+    const retryable = AIErrorHandler.isRetryable(errorType);
 
     return new AIError({
       type: errorType,
-      message: this.toErrorMessage(error),
+      message: AIErrorHandler.toErrorMessage(error),
       originalError: error,
       retryable,
       provider,
@@ -398,7 +402,7 @@ export class AIErrorHandler {
 
     console.error(`🚨 AI Error ${context ? `[${context}]` : ''}:`, {
       ...errorInfo,
-      message: this.toErrorMessage(errorInfo.message),
+      message: AIErrorHandler.toErrorMessage(errorInfo.message),
       time: new Date(errorInfo.timestamp).toISOString(),
     });
   }

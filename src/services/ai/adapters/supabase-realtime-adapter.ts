@@ -7,11 +7,11 @@
  * - RLS 보안 적용
  */
 
-import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import type {
-  ThinkingStep,
   AIServiceType,
   ProcessingStatus,
+  ThinkingStep,
 } from '../interfaces/distributed-ai.interface';
 
 // 테이블 타입 정의
@@ -31,10 +31,6 @@ interface ThinkingStepRecord {
 
 export class SupabaseRealtimeAdapter {
   private channels: Map<string, RealtimeChannel> = new Map();
-
-  constructor() {
-    // Using centralized supabase client with proper env handling
-  }
 
   /**
    * 생각 단계 추가

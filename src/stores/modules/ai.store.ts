@@ -1,6 +1,9 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { subscribeWithSelector } from 'zustand/middleware';
+import {
+  createJSONStorage,
+  persist,
+  subscribeWithSelector,
+} from 'zustand/middleware';
 
 /**
  * 🤖 AI Assistant Store Module

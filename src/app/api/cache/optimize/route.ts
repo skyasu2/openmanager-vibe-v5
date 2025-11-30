@@ -8,23 +8,23 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
-  warmupCache,
-  invalidateCache,
   getCacheService,
+  invalidateCache,
+  warmupCache,
 } from '@/lib/cache/cache-helper';
 import { getMockSystem } from '@/mock';
-import { createApiRoute } from '@/lib/api/zod-middleware';
-import debug from '@/utils/debug';
 import {
-  CacheOptimizeRequestSchema,
-  type CacheWarmupResponse,
   type CacheInvalidateResponse,
+  CacheOptimizeRequestSchema,
   type CacheOptimizeResponse,
   type CacheResetStatsResponse,
   type CacheStats,
+  type CacheWarmupResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
@@ -193,7 +193,7 @@ async function handleOptimize(): Promise<CacheOptimizeResponse> {
   }
 
   // 메모리 사용량 최적화
-  const memoryUsageKB = parseInt(stats.memoryUsage.replace('KB', '')) || 0;
+  const memoryUsageKB = parseInt(stats.memoryUsage.replace('KB', ''), 10) || 0;
   if (memoryUsageKB > 200000) {
     // 200MB 이상
     // 오래된 실시간 데이터 정리
@@ -231,7 +231,8 @@ async function handleResetStats(): Promise<CacheResetStatsResponse> {
   await cache.invalidateCache('*');
 
   const rawStats = cache.getStats();
-  const memoryUsageKB = parseInt(rawStats.memoryUsage.replace('KB', '')) || 0;
+  const memoryUsageKB =
+    parseInt(rawStats.memoryUsage.replace('KB', ''), 10) || 0;
   const newStats: CacheStats = {
     hits: rawStats.hits || 0,
     misses: rawStats.misses || 0,

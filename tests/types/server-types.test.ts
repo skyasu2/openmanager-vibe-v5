@@ -6,13 +6,12 @@
  * @created 2025-11-26
  */
 
-import { describe, it, expectTypeOf } from 'vitest';
+import { describe, expectTypeOf, it } from 'vitest';
 import type {
-  ServerInstance,
-  ServerStatus,
-  ServerMetrics,
   ServerHealth,
+  ServerInstance,
   ServerSpecs,
+  ServerStatus,
 } from '@/types/server';
 
 describe('🖥️ Server Types 타입 테스트', () => {

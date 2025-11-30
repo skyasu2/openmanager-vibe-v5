@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 
 /**
  * 📢 글로벌 알림 이벤트 버스 (SSE / WebSocket 용)

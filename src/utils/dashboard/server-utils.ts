@@ -1,8 +1,8 @@
+import { calculateServerStatsFallback } from '@/hooks/useWorkerStats';
 import {
   EnhancedServerData,
   ServerStats,
 } from '@/types/dashboard/server-dashboard.types';
-import { calculateServerStatsFallback } from '@/hooks/useWorkerStats';
 
 // 🛡️ 2025 모던 Type Guard 함수들 (Best Practices)
 export const isValidArray = <T>(value: unknown): value is T[] => {

@@ -7,26 +7,24 @@
  * - 상수 정의
  */
 
-// Types
-export type { BaseConfig, ModuleInfo, APIResponse, ErrorInfo } from './types';
-
-// Utils
-export {
-  generateId,
-  formatDate,
-  debounce,
-  throttle,
-  deepMerge,
-  validateConfig,
-} from './utils';
-
 // Constants
 export {
-  MODULE_VERSIONS,
   API_ENDPOINTS,
-  ERROR_CODES,
   DEFAULT_TIMEOUTS,
+  ERROR_CODES,
+  MODULE_VERSIONS,
 } from './constants';
+// Types
+export type { APIResponse, BaseConfig, ErrorInfo, ModuleInfo } from './types';
+// Utils
+export {
+  debounce,
+  deepMerge,
+  formatDate,
+  generateId,
+  throttle,
+  validateConfig,
+} from './utils';
 
 // Module info
 export const SHARED_MODULE_VERSION = '1.0.0';
@@ -41,7 +39,7 @@ export const checkModuleCompatibility = (
 ): boolean => {
   const reqParts = requiredVersion.split('.').map(Number);
   const curParts = currentVersion.split('.').map(Number);
-  
+
   const reqMajor = reqParts[0] ?? 0;
   const reqMinor = reqParts[1] ?? 0;
   const curMajor = curParts[0] ?? 0;

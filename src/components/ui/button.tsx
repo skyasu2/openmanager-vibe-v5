@@ -1,9 +1,9 @@
 'use client';
 
-import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
+import { type ButtonHTMLAttributes, forwardRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -95,10 +95,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading && (
-          <Loader2
-            className="mr-2 h-4 w-4 animate-spin"
-            aria-hidden="true"
-          />
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
         )}
         {children}
       </Comp>

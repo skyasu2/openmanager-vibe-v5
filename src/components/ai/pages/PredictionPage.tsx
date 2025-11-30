@@ -6,19 +6,19 @@
 
 'use client';
 
-import { useState } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  TrendingUp,
   AlertTriangle,
-  Target,
   Clock,
-  Server,
   Cpu,
   HardDrive,
-  Wifi,
   RefreshCw,
+  Server,
+  Target,
+  TrendingUp,
+  Wifi,
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface PredictionData {
   serverId: string;

@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { simulationEngine } from '../../services/simulationEngine';
 import { vercelStatusService } from '../../services/vercelStatusService';
 
@@ -74,10 +74,10 @@ export class SystemStateManager extends EventEmitter {
   }
 
   static getInstance(): SystemStateManager {
-    if (!this.instance) {
-      this.instance = new SystemStateManager();
+    if (!SystemStateManager.instance) {
+      SystemStateManager.instance = new SystemStateManager();
     }
-    return this.instance;
+    return SystemStateManager.instance;
   }
 
   /**

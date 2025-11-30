@@ -1,9 +1,6 @@
 {
   "projectType": "next-app",
-  "mainLanguages": [
-    "typescript",
-    "python"
-  ],
+  "mainLanguages": ["typescript", "python"],
   "developmentEnvironment": {
     "primary": "wsl-claude-code",
     "primaryUsage": "메인 개발 환경 (WSL 터미널 내)",
@@ -28,11 +25,7 @@
   "aiTools": {
     "primary": "claude-code",
     "location": "WSL 터미널",
-    "subAgents": [
-      "gemini-cli",
-      "codex-cli",
-      "qwen-cli"
-    ],
+    "subAgents": ["gemini-cli", "codex-cli", "qwen-cli"],
     "auxiliary": "github-copilot"
   },
   "priorityFiles": [
@@ -41,24 +34,14 @@
     "package.json",
     ".mcp.json"
   ],
-  "ignorePaths": [
-    "node_modules",
-    ".next",
-    "dist",
-    "logs",
-    "reports"
-  ],
+  "ignorePaths": ["node_modules", ".next", "dist", "logs", "reports"],
   "contextRules": {
     "includePatterns": [
       "src/**/*.{ts,tsx}",
       "scripts/**/*.{sh,ps1}",
       "docs/**/*.md"
     ],
-    "excludePatterns": [
-      "**/*.test.{ts,tsx}",
-      "**/*.spec.{ts,tsx}",
-      "**/test-*"
-    ]
+    "excludePatterns": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}", "**/test-*"]
   },
   "customCommands": {
     "dev": "npm run dev",

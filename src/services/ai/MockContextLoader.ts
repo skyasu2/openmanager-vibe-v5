@@ -5,8 +5,8 @@
  * 컨텍스트 정보를 제공
  */
 
-import type { Server } from '../../types/server';
 import { isMockMode } from '../../config/mock-config';
+import type { Server } from '../../types/server';
 import { UnifiedServerDataSource } from '../data/UnifiedServerDataSource';
 
 export interface MockContext {
@@ -315,24 +315,6 @@ export class MockContextLoader {
     } catch (error) {
       console.error('❌ UnifiedServerDataSource 컨텍스트 생성 실패:', error);
       return null;
-    }
-  }
-
-  /**
-   * 🔄 서버 상태 정규화
-   * EnhancedServerMetrics의 status를 MockContext가 기대하는 형태로 변환
-   */
-  private normalizeStatus(status: string): 'online' | 'warning' | 'critical' {
-    switch (status.toLowerCase()) {
-      case 'healthy':
-      case 'online':
-        return 'online';
-      case 'warning':
-        return 'warning';
-      case 'critical':
-        return 'critical';
-      default:
-        return 'online';
     }
   }
 }

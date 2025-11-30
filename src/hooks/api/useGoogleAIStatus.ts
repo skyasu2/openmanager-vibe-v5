@@ -1,5 +1,5 @@
-import { createTimeoutSignal } from '@/utils/createTimeoutSignal';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { createTimeoutSignal } from '@/utils/createTimeoutSignal';
 
 // 🤖 Google AI 상태 타입 정의
 export interface GoogleAIStatus {

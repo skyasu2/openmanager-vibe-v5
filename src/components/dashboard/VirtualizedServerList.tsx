@@ -6,13 +6,13 @@
  * 브라우저 크기에 맞게 자동 배치, 첫 줄만 표시하고 나머지는 펼치기
  */
 
+import { debounce } from 'lodash-es';
+import { useEffect, useState } from 'react';
 import SafeServerCard from '@/components/dashboard/SafeServerCard';
 import { ServerCardErrorBoundary } from '@/components/development/ComponentErrorBoundary';
-import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
-import { serverTypeGuards } from '@/utils/serverUtils';
 import type { Server, ServerStatus } from '@/types/server';
-import { useEffect, useState } from 'react';
-import { debounce } from 'lodash-es';
+import { serverTypeGuards } from '@/utils/serverUtils';
+import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
 
 interface VirtualizedServerListProps {
   servers: Server[];
@@ -114,7 +114,10 @@ export default function VirtualizedServerList({
         services: Array.isArray(server.services) ? server.services : [],
       };
     } catch (error) {
-      console.error(`⚠️ VirtualizedServerList: 서버[${index}] 데이터 매핑 오류:`, error);
+      console.error(
+        `⚠️ VirtualizedServerList: 서버[${index}] 데이터 매핑 오류:`,
+        error
+      );
       safeServerData = {
         id: serverId,
         name: serverName,
@@ -165,7 +168,12 @@ export default function VirtualizedServerList({
       <div className="mb-4 rounded-lg border border-purple-200 bg-purple-50 p-3">
         <div className="flex items-center gap-2">
           <div className="text-purple-600">
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -192,7 +200,9 @@ export default function VirtualizedServerList({
           gridTemplateColumns: `repeat(auto-fit, minmax(380px, 1fr))`,
         }}
       >
-        {servers.slice(0, visibleCount).map((server, index) => renderServer(server, index))}
+        {servers
+          .slice(0, visibleCount)
+          .map((server, index) => renderServer(server, index))}
       </div>
 
       {/* 더보기 버튼 */}

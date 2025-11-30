@@ -27,9 +27,9 @@ const FREE_TIER_LIMITS = {
 
 // 🚨 알림 임계값 설정
 const ALERT_THRESHOLDS = {
-  warning: 0.7,  // 70%
+  warning: 0.7, // 70%
   critical: 0.8, // 80%
-  danger: 0.9,   // 90%
+  danger: 0.9, // 90%
 } as const;
 
 // 📊 사용량 타입 정의
@@ -78,7 +78,7 @@ function calculateUsageStatus(used: number, limit: number) {
     percentage: Math.round(percentage * 100) / 100,
     remaining: limit - used,
     color,
-    daysLeft: calculateDaysLeft(percentage)
+    daysLeft: calculateDaysLeft(percentage),
   };
 }
 
@@ -89,7 +89,9 @@ function calculateDaysLeft(percentage: number): number | null {
   // 현재 월의 경과 일수
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const daysElapsed = Math.ceil((now.getTime() - startOfMonth.getTime()) / (1000 * 60 * 60 * 24));
+  const daysElapsed = Math.ceil(
+    (now.getTime() - startOfMonth.getTime()) / (1000 * 60 * 60 * 24)
+  );
 
   // 일일 평균 사용량 계산
   const dailyUsage = percentage / daysElapsed;
@@ -104,14 +106,20 @@ function calculateDaysLeft(percentage: number): number | null {
 function generateOptimizations(usage: VercelUsage) {
   const optimizations: string[] = [];
 
-  if (usage.bandwidth.status === 'critical' || usage.bandwidth.status === 'danger') {
+  if (
+    usage.bandwidth.status === 'critical' ||
+    usage.bandwidth.status === 'danger'
+  ) {
     optimizations.push('이미지 압축 강화 (WebP/AVIF 변환)');
     optimizations.push('불필요한 정적 파일 제거');
     optimizations.push('CDN 캐싱 기간 연장');
     optimizations.push('Gzip/Brotli 압축 활성화');
   }
 
-  if (usage.functionExecution.status === 'critical' || usage.functionExecution.status === 'danger') {
+  if (
+    usage.functionExecution.status === 'critical' ||
+    usage.functionExecution.status === 'danger'
+  ) {
     optimizations.push('Edge Runtime API 전환 가속화');
     optimizations.push('함수 실행 시간 최적화');
     optimizations.push('불필요한 API 호출 제거');
@@ -133,31 +141,34 @@ function generateMockUsage() {
   }
 
   // 현재 30% 사용량 기준으로 현실적인 값 생성
-  const bandwidthUsed = FREE_TIER_LIMITS.bandwidth * (0.25 + seededRandom(seed) * 0.15); // 25-40%
-  const functionUsed = FREE_TIER_LIMITS.functionExecution * (0.15 + seededRandom(seed + 1) * 0.20); // 15-35%
-  const buildTimeUsed = FREE_TIER_LIMITS.buildTime * (0.10 + seededRandom(seed + 2) * 0.15); // 10-25%
+  const bandwidthUsed =
+    FREE_TIER_LIMITS.bandwidth * (0.25 + seededRandom(seed) * 0.15); // 25-40%
+  const functionUsed =
+    FREE_TIER_LIMITS.functionExecution * (0.15 + seededRandom(seed + 1) * 0.2); // 15-35%
+  const buildTimeUsed =
+    FREE_TIER_LIMITS.buildTime * (0.1 + seededRandom(seed + 2) * 0.15); // 10-25%
 
   return {
     bandwidth: {
       used: Math.floor(bandwidthUsed),
       limit: FREE_TIER_LIMITS.bandwidth,
-      unit: 'bytes'
+      unit: 'bytes',
     },
     functionExecution: {
       used: Math.floor(functionUsed),
       limit: FREE_TIER_LIMITS.functionExecution,
-      unit: 'GB-seconds'
+      unit: 'GB-seconds',
     },
     buildTime: {
       used: Math.floor(buildTimeUsed),
       limit: FREE_TIER_LIMITS.buildTime,
-      unit: 'seconds'
+      unit: 'seconds',
     },
     deployments: {
       used: Math.floor(5 + seededRandom(seed + 3) * 10), // 5-15개
       limit: FREE_TIER_LIMITS.deployments,
-      unit: 'count'
-    }
+      unit: 'count',
+    },
   };
 }
 
@@ -176,40 +187,60 @@ export function GET(request: NextRequest) {
     const usage = {
       bandwidth: {
         ...rawUsage.bandwidth,
-        ...calculateUsageStatus(rawUsage.bandwidth.used, rawUsage.bandwidth.limit),
+        ...calculateUsageStatus(
+          rawUsage.bandwidth.used,
+          rawUsage.bandwidth.limit
+        ),
         friendlyUsed: formatBytes(rawUsage.bandwidth.used),
-        friendlyLimit: formatBytes(rawUsage.bandwidth.limit)
+        friendlyLimit: formatBytes(rawUsage.bandwidth.limit),
       },
       functionExecution: {
         ...rawUsage.functionExecution,
-        ...calculateUsageStatus(rawUsage.functionExecution.used, rawUsage.functionExecution.limit),
+        ...calculateUsageStatus(
+          rawUsage.functionExecution.used,
+          rawUsage.functionExecution.limit
+        ),
         friendlyUsed: formatGBSeconds(rawUsage.functionExecution.used),
-        friendlyLimit: formatGBSeconds(rawUsage.functionExecution.limit)
+        friendlyLimit: formatGBSeconds(rawUsage.functionExecution.limit),
       },
       buildTime: {
         ...rawUsage.buildTime,
-        ...calculateUsageStatus(rawUsage.buildTime.used, rawUsage.buildTime.limit),
+        ...calculateUsageStatus(
+          rawUsage.buildTime.used,
+          rawUsage.buildTime.limit
+        ),
         friendlyUsed: formatTime(rawUsage.buildTime.used),
-        friendlyLimit: formatTime(rawUsage.buildTime.limit)
+        friendlyLimit: formatTime(rawUsage.buildTime.limit),
       },
       deployments: {
         ...rawUsage.deployments,
-        ...calculateUsageStatus(rawUsage.deployments.used, rawUsage.deployments.limit)
-      }
+        ...calculateUsageStatus(
+          rawUsage.deployments.used,
+          rawUsage.deployments.limit
+        ),
+      },
     };
 
     // 🚨 전체 상태 평가
     const overallStatus = Object.values(usage)
-      .map(u => u.status)
-      .includes('danger') ? 'danger' :
-      Object.values(usage).map(u => u.status).includes('critical') ? 'critical' :
-      Object.values(usage).map(u => u.status).includes('warning') ? 'warning' : 'safe';
+      .map((u) => u.status)
+      .includes('danger')
+      ? 'danger'
+      : Object.values(usage)
+            .map((u) => u.status)
+            .includes('critical')
+        ? 'critical'
+        : Object.values(usage)
+              .map((u) => u.status)
+              .includes('warning')
+          ? 'warning'
+          : 'safe';
 
     // 🔧 최적화 권장사항
     const optimizations = generateOptimizations(usage);
 
     // ⚡ 자동 최적화 트리거 (80% 임계점)
-    const shouldOptimize = Object.values(usage).some(u => u.percentage >= 80);
+    const shouldOptimize = Object.values(usage).some((u) => u.percentage >= 80);
 
     const processingTime = Date.now() - startTime;
 
@@ -221,21 +252,21 @@ export function GET(request: NextRequest) {
         overall: {
           status: overallStatus,
           message: getStatusMessage(overallStatus),
-          shouldOptimize
+          shouldOptimize,
         },
         usage,
         optimizations,
         monitoring: {
-          nextCheck: Date.now() + (60 * 60 * 1000), // 1시간 후
+          nextCheck: Date.now() + 60 * 60 * 1000, // 1시간 후
           alertsEnabled: true,
-          thresholds: ALERT_THRESHOLDS
+          thresholds: ALERT_THRESHOLDS,
         },
         performance: {
           processingTime,
           runtime: 'edge',
-          region: request.headers.get('cf-ray') || 'unknown'
-        }
-      }
+          region: request.headers.get('cf-ray') || 'unknown',
+        },
+      },
     };
 
     // 🚀 Edge Runtime 최적화 헤더
@@ -245,11 +276,10 @@ export function GET(request: NextRequest) {
       'X-Runtime': 'edge',
       'X-Processing-Time': processingTime.toString(),
       'X-Overall-Status': overallStatus,
-      'X-Should-Optimize': shouldOptimize.toString()
+      'X-Should-Optimize': shouldOptimize.toString(),
     });
 
     return NextResponse.json(response, { headers });
-
   } catch (error) {
     console.error('Vercel Usage API Error:', error);
 
@@ -258,7 +288,7 @@ export function GET(request: NextRequest) {
         success: false,
         error: 'Vercel usage monitoring failed',
         message: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       { status: 500 }
     );
@@ -270,7 +300,7 @@ function formatBytes(bytes: number): string {
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   if (bytes === 0) return '0 B';
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
+  return `${Math.round((bytes / 1024 ** i) * 100) / 100} ${sizes[i]}`;
 }
 
 function formatGBSeconds(gbSeconds: number): string {
@@ -291,7 +321,7 @@ function getStatusMessage(status: string): string {
     safe: '✅ 모든 리소스가 안전한 수준입니다',
     warning: '⚠️ 일부 리소스 사용량이 70%를 초과했습니다',
     critical: '🚨 리소스 사용량이 80%를 초과했습니다. 최적화가 필요합니다',
-    danger: '🔥 리소스 사용량이 90%를 초과했습니다. 즉시 최적화하세요!'
+    danger: '🔥 리소스 사용량이 90%를 초과했습니다. 즉시 최적화하세요!',
   };
   return messages[status as keyof typeof messages] || '알 수 없는 상태';
 }
@@ -319,9 +349,9 @@ export async function POST(request: NextRequest) {
           '캐시 TTL 24시간으로 연장',
           'Edge Runtime API 우선 라우팅 활성화',
           '이미지 압축률 85%로 강화',
-          '불필요한 디버그 함수 비활성화'
+          '불필요한 디버그 함수 비활성화',
         ],
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     }
 
@@ -329,13 +359,12 @@ export async function POST(request: NextRequest) {
       { success: false, error: 'Invalid action' },
       { status: 400 }
     );
-
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
         error: 'Auto-optimization failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

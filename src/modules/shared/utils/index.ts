@@ -123,7 +123,10 @@ export const validateConfig = (config: BaseConfig): boolean => {
 /**
  * 안전한 JSON 파싱
  */
-export const safeJsonParse = <T = unknown>(json: string, defaultValue: T): T => {
+export const safeJsonParse = <T = unknown>(
+  json: string,
+  defaultValue: T
+): T => {
   try {
     return JSON.parse(json);
   } catch {

@@ -5,25 +5,23 @@
  * and other helper methods used by the SimplifiedQueryEngine
  */
 
-import type { AIQueryContext } from '../../types/ai-service-types';
 import {
   createCacheKey,
   getTTL,
   validateDataSize,
 } from '../../config/free-tier-cache-config';
-
-import type { KoreanNLPResponse } from '../../lib/gcp/gcp-functions.types';
+import type { AIQueryContext } from '../../types/ai-service-types';
+import {
+  ComplexityLevel,
+  ComplexityScore,
+} from './SimplifiedQueryEngine.complexity-types';
 import type {
-  QueryResponse,
   CacheEntry,
   CommandContext,
   NLPAnalysis,
+  QueryResponse,
   ThinkingStep,
 } from './SimplifiedQueryEngine.types';
-import {
-  ComplexityScore,
-  ComplexityLevel,
-} from './SimplifiedQueryEngine.complexity-types';
 
 /**
  * 🧰 SimplifiedQueryEngine 유틸리티 클래스
@@ -151,7 +149,7 @@ export class SimplifiedQueryEngineUtils {
         typeof context.timeRange === 'string'
           ? context.timeRange
           : JSON.stringify(context.timeRange);
-      parts.push('time-' + timeRange);
+      parts.push(`time-${timeRange}`);
     }
 
     if ('alertLevel' in context && context.alertLevel) {
@@ -159,7 +157,7 @@ export class SimplifiedQueryEngineUtils {
         typeof context.alertLevel === 'string'
           ? context.alertLevel
           : JSON.stringify(context.alertLevel);
-      parts.push('alert-' + alert);
+      parts.push(`alert-${alert}`);
     }
 
     return parts.length > 0 ? parts.join('|') : 'no-context';
@@ -441,7 +439,7 @@ export class SimplifiedQueryEngineUtils {
    */
   async callKoreanNLPFunction(
     query: string,
-    options: {
+    _options: {
       includeEntities?: boolean;
       includeAnalysis?: boolean;
     } = {}
@@ -470,39 +468,6 @@ export class SimplifiedQueryEngineUtils {
       console.error('한국어 NLP 처리 실패:', error);
       return null;
     }
-  }
-
-  private mapUrgencyToSentiment(
-    urgency?: 'low' | 'medium' | 'high' | 'critical'
-  ): NLPAnalysis['sentiment'] {
-    if (!urgency) return 'neutral';
-    if (urgency === 'low') return 'neutral';
-    if (urgency === 'medium') return 'negative';
-    return 'negative';
-  }
-
-  private buildKoreanNLPSummary(data: KoreanNLPResponse): string {
-    const parts: string[] = [];
-
-    if (data.semantic_analysis?.main_topic) {
-      parts.push(`주요 주제: ${data.semantic_analysis.main_topic}`);
-    }
-
-    if (data.response_guidance?.response_type) {
-      parts.push(`권장 응답 방식: ${data.response_guidance.response_type}`);
-    }
-
-    if (data.server_context?.target_servers?.length) {
-      parts.push(
-        `대상 서버: ${data.server_context.target_servers.slice(0, 3).join(', ')}`
-      );
-    }
-
-    if (parts.length === 0) {
-      return '한국어 분석이 완료되었습니다.';
-    }
-
-    return parts.join(' / ');
   }
 
   /**

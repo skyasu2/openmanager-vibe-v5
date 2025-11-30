@@ -22,8 +22,8 @@ export const queryClient = new QueryClient({
 
       // 네트워크 관련 - 🚨 비상 시 모든 자동 갱신 차단
       refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 재요청 비활성화
-      refetchOnReconnect: emergencyMode.isEmergencyMode() ? false : true, // 🚨 비상 시 재연결 갱신 차단
-      refetchOnMount: emergencyMode.isEmergencyMode() ? false : true, // 🚨 비상 시 마운트 갱신 차단
+      refetchOnReconnect: !emergencyMode.isEmergencyMode(), // 🚨 비상 시 재연결 갱신 차단
+      refetchOnMount: !emergencyMode.isEmergencyMode(), // 🚨 비상 시 마운트 갱신 차단
 
       // 서버 모니터링 특화 설정 - 🚨 자동 refetch 비활성화 (과도한 API 호출 방지)
       refetchInterval: false, // 🚨 모든 자동 갱신 비활성화 - 수동 새로고침만 허용
@@ -196,5 +196,4 @@ export const api = {
       return response.json();
     },
   },
-
 } as const;

@@ -5,19 +5,19 @@
 
 'use client';
 
-import { useMemo, type FC } from 'react';
 import {
-  Chart as ChartJS,
+  ArcElement,
   CategoryScale,
+  Chart as ChartJS,
+  Legend,
   LinearScale,
-  PointElement,
   LineElement,
+  PointElement,
   Title,
   Tooltip,
-  Legend,
-  ArcElement,
 } from 'chart.js';
-import { Line, Doughnut } from 'react-chartjs-2';
+import { type FC, useMemo } from 'react';
+import { Doughnut, Line } from 'react-chartjs-2';
 import { usePerformanceMetrics } from '../hooks/usePerformanceMetrics';
 import { Alert as AlertType } from '../types/performance';
 

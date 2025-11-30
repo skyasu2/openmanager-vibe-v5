@@ -6,10 +6,11 @@
 import type { ScenarioPoint } from './mockScenarios';
 import {
   generate24HourData,
-  SERVERS,
   getServerStatus as getMetricBasedStatus,
+  SERVERS,
 } from './mockScenarios';
 export type { ScenarioPoint };
+
 import type { Server } from '../types/server';
 
 export interface TimeSeriesData {

@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   calculatePercentage,
   clamp,
@@ -31,7 +32,6 @@ import {
   throttle,
   truncate,
 } from '@/utils/utils-functions';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Utils Functions', () => {
   describe('cn (className merger)', () => {

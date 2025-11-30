@@ -14,34 +14,40 @@
  * - ✅ 반응형 디자인 완전 지원
  */
 
-import React, { useCallback, useMemo } from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
 import {
-  Clock,
-  MapPin,
-  HardDrive,
+  Activity,
   ChevronDown,
   ChevronUp,
-  Activity,
-  Zap,
+  Clock,
   Globe,
+  HardDrive,
+  MapPin,
+  Zap,
 } from 'lucide-react';
-import { memo, useEffect, useState, useRef, type FC, Fragment } from 'react';
-
-// 공통 컴포넌트 import
-import { ServerStatusIndicator } from '../shared/ServerStatusIndicator';
-import { ServerMetricsChart } from '../shared/ServerMetricsChart';
-import type { Server as ServerType } from '../../types/server';
+import React, {
+  type FC,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
+import { useSafeServer } from '@/hooks/useSafeServer';
 import {
   getSafeServicesLength,
   getSafeValidServices,
-  vercelSafeLog,
   isValidServer,
+  vercelSafeLog,
 } from '@/lib/utils/vercel-safe-utils';
+import { LAYOUT } from '../../styles/design-constants';
+import type { Server as ServerType } from '../../types/server';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
-import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
-import { getServerStatusTheme, LAYOUT } from '../../styles/design-constants';
+import { ServerMetricsChart } from '../shared/ServerMetricsChart';
+// 공통 컴포넌트 import
+import { ServerStatusIndicator } from '../shared/ServerStatusIndicator';
 import { Sparkline } from '../shared/Sparkline';
-import { useSafeServer } from '@/hooks/useSafeServer';
 
 export interface ImprovedServerCardProps {
   server: ServerType;
@@ -217,7 +223,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
-        aria-label={`${safeServer.name} 서버 - ${statusTheme.statusText} 상태. CPU ${Math.round((realtimeMetrics && realtimeMetrics.cpu) || 50)}%, 메모리 ${Math.round((realtimeMetrics && realtimeMetrics.memory) || 50)}% 사용 중`}
+        aria-label={`${safeServer.name} 서버 - ${statusTheme.statusText} 상태. CPU ${Math.round(realtimeMetrics?.cpu || 50)}%, 메모리 ${Math.round(realtimeMetrics?.memory || 50)}% 사용 중`}
         tabIndex={0}
       >
         {/* 실시간 활동 인디케이터 */}
@@ -335,7 +341,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               <div className="flex transform flex-col items-center transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-lg">
                 <ServerMetricsChart
                   type="cpu"
-                  value={(realtimeMetrics && realtimeMetrics.cpu) || 50}
+                  value={realtimeMetrics?.cpu || 50}
                   status={safeServer.status}
                   size="md"
                   showLabel={true}
@@ -361,7 +367,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               <div className="flex transform flex-col items-center transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-lg">
                 <ServerMetricsChart
                   type="memory"
-                  value={(realtimeMetrics && realtimeMetrics.memory) || 50}
+                  value={realtimeMetrics?.memory || 50}
                   status={safeServer.status}
                   size="md"
                   showLabel={true}
@@ -410,7 +416,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               <div className="flex transform justify-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 hover:opacity-100 hover:shadow-md">
                 <ServerMetricsChart
                   type="disk"
-                  value={(realtimeMetrics && realtimeMetrics.disk) || 30}
+                  value={realtimeMetrics?.disk || 30}
                   status={safeServer.status}
                   size="md"
                   showLabel={true}
@@ -419,7 +425,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               <div className="flex transform justify-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 hover:opacity-100 hover:shadow-md">
                 <ServerMetricsChart
                   type="network"
-                  value={(realtimeMetrics && realtimeMetrics.network) || 25}
+                  value={realtimeMetrics?.network || 25}
                   status={safeServer.status}
                   size="md"
                   showLabel={true}
@@ -477,7 +483,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   IP 주소
                 </span>
                 <span className="font-mono font-medium text-gray-700">
-                  {server.ip || `192.168.1.${10 + (parseInt(server.id) % 240)}`}
+                  {server.ip ||
+                    `192.168.1.${10 + (parseInt(server.id, 10) % 240)}`}
                 </span>
               </div>
               <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
@@ -504,9 +511,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 <div className="flex flex-col items-center">
                   <ServerMetricsChart
                     type="cpu"
-                    value={Math.round(
-                      (realtimeMetrics && realtimeMetrics.cpu) || 50
-                    )}
+                    value={Math.round(realtimeMetrics?.cpu || 50)}
                     status={safeServer.status}
                     size="sm"
                     showLabel={true}
@@ -515,9 +520,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 <div className="flex flex-col items-center">
                   <ServerMetricsChart
                     type="memory"
-                    value={Math.round(
-                      (realtimeMetrics && realtimeMetrics.memory) || 50
-                    )}
+                    value={Math.round(realtimeMetrics?.memory || 50)}
                     status={safeServer.status}
                     size="sm"
                     showLabel={true}
@@ -526,9 +529,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 <div className="flex flex-col items-center">
                   <ServerMetricsChart
                     type="disk"
-                    value={Math.round(
-                      (realtimeMetrics && realtimeMetrics.disk) || 30
-                    )}
+                    value={Math.round(realtimeMetrics?.disk || 30)}
                     status={safeServer.status}
                     size="sm"
                     showLabel={true}
@@ -537,9 +538,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 <div className="flex flex-col items-center">
                   <ServerMetricsChart
                     type="network"
-                    value={Math.round(
-                      (realtimeMetrics && realtimeMetrics.network) || 25
-                    )}
+                    value={Math.round(realtimeMetrics?.network || 25)}
                     status={safeServer.status}
                     size="sm"
                     showLabel={true}
@@ -662,7 +661,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                       getSafeServicesLength(safeServer);
                     if (
                       typeof validServicesCount !== 'number' ||
-                      isNaN(validServicesCount)
+                      Number.isNaN(validServicesCount)
                     ) {
                       console.warn(
                         '⚠️ Layer 5: validServicesCount가 유효한 숫자가 아님'
@@ -696,14 +695,12 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           )}
 
         {/* 호버 효과 - 블러 효과 제거됨 (사용자 피드백 반영) */}
-        <Fragment>
-          {isHovered && (
-            <div
-              className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 to-purple-500/5"
-              aria-hidden="true"
-            />
-          )}
-        </Fragment>
+        {isHovered && (
+          <div
+            className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 to-purple-500/5"
+            aria-hidden="true"
+          />
+        )}
       </button>
     );
   }

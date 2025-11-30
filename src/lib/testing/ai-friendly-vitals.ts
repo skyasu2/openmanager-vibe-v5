@@ -8,8 +8,8 @@
 
 import {
   UniversalVital,
-  VitalCategory,
   universalVitals,
+  VitalCategory,
 } from './universal-vitals';
 
 // 🎯 AI 친화적 메트릭 표준 스키마

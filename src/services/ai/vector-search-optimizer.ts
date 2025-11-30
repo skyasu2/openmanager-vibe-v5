@@ -7,8 +7,8 @@
  * - 검색 쿼리 최적화
  */
 
-import { aiLogger } from '../../lib/logger';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { aiLogger } from '../../lib/logger';
 
 interface IndexInfo {
   name: string;
@@ -28,7 +28,6 @@ interface OptimizationResult {
 
 export class VectorSearchOptimizer {
   private supabase: SupabaseClient;
-  private indexes: Map<string, IndexInfo> = new Map();
 
   constructor(supabaseClient?: SupabaseClient) {
     if (supabaseClient) {
