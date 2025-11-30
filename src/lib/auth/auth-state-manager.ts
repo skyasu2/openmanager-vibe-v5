@@ -8,6 +8,10 @@
  */
 
 import type { Session } from '@supabase/supabase-js';
+import {
+  generateSignedSessionId,
+  verifySignedSessionId,
+} from '@/utils/session-security';
 import { supabase } from '../supabase/client';
 
 // 통일된 키 접두사
@@ -219,7 +223,8 @@ export class AuthStateManager {
 
     // 2. 게스트 세션 설정
     if (typeof window !== 'undefined') {
-      const sessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
+      // 🔐 서명된 세션 ID 생성 (HMAC SHA-256 위변조 방지)
+      const sessionId = generateSignedSessionId();
 
       // localStorage에 게스트 정보 저장
       localStorage.setItem('auth_type', 'guest');
@@ -268,13 +273,25 @@ export class AuthStateManager {
       const userStr = localStorage.getItem('auth_user');
 
       if (authType === 'guest' && sessionId && userStr) {
+        // 🔐 세션 ID 서명 검증
+        const verifiedId = verifySignedSessionId(sessionId);
+        if (!verifiedId) {
+          console.warn('🔐 세션 서명 검증 실패 - 로그아웃 처리');
+          this.clearStorage();
+          return {
+            user: null,
+            type: 'unknown' as const,
+            isAuthenticated: false,
+          };
+        }
+
         try {
           const user = JSON.parse(userStr);
           return {
             user: { ...user, provider: 'guest' },
             type: 'guest',
             isAuthenticated: true,
-            sessionId: `${sessionId.substring(0, 8)}...`,
+            sessionId: `${verifiedId.substring(0, 8)}...`,
           };
         } catch (error) {
           console.warn('⚠️ 게스트 사용자 정보 파싱 실패:', error);

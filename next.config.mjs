@@ -26,8 +26,6 @@ const nextConfig = {
       '@radix-ui/react-icons',
       '@heroicons/react',
       'react-hot-toast',
-      'chart.js',
-      'react-chartjs-2',
       'recharts',
       'd3',
     ],
@@ -260,6 +258,17 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          // 🛡️ Permissions Policy (Feature Policy 후속)
+          {
+            key: 'Permissions-Policy',
+            value:
+              'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+          },
+          // 🔐 Strict-Transport-Security (HSTS)
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
           },
           // 🔐 CSP 헤더 (Vercel 환경 최적화)
           {

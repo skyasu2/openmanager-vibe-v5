@@ -12,6 +12,7 @@ import {
   guestSessionCookies,
   validateRedirectUrl,
 } from '@/lib/security/secure-cookies';
+import { verifySignedSessionId } from '@/utils/session-security';
 import { supabase } from '../supabase/client';
 import { authStateManager } from './auth-state-manager';
 
@@ -438,10 +439,20 @@ export function isGuestUser(): boolean {
     if (typeof window !== 'undefined') {
       const authType = localStorage.getItem('auth_type');
       const sessionId = localStorage.getItem('auth_session_id');
-      const isGuest = authType === 'guest' && !!sessionId;
 
-      console.log('🔄 isGuestUser 간단 확인:', { isGuest });
-      return isGuest;
+      // 🔐 세션 ID 서명 검증
+      if (authType === 'guest' && sessionId) {
+        const verifiedId = verifySignedSessionId(sessionId);
+        const isGuest = !!verifiedId;
+
+        console.log('🔄 isGuestUser 간단 확인:', {
+          isGuest,
+          verified: !!verifiedId,
+        });
+        return isGuest;
+      }
+
+      return false;
     }
     return false;
   } catch (error) {
