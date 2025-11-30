@@ -338,11 +338,7 @@ export const AIErrorHandler = {
 
         // Calculate delay with exponential backoff
         // Special handling for specific error types
-        const actualDelay = this.getRetryDelay(
-          errorType,
-          attempt,
-          baseDelay
-        );
+        const actualDelay = this.getRetryDelay(errorType, attempt, baseDelay);
 
         // Call retry callback if provided
         if (onRetry) {

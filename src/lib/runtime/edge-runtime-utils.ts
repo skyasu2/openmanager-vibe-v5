@@ -172,10 +172,7 @@ export const EdgeHTTPClient = {
 
   async request<T>(url: string, config: RequestInit = {}): Promise<T> {
     const controller = new AbortController();
-    const id = setTimeout(
-      () => controller.abort(),
-      this.baseConfig.timeout
-    );
+    const id = setTimeout(() => controller.abort(), this.baseConfig.timeout);
 
     try {
       const response = await fetch(url, {

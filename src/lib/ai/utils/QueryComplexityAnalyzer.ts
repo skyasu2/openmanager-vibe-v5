@@ -143,22 +143,15 @@ export const QueryComplexityAnalyzer = {
   /**
    * 🎯 Main Analysis Method
    */
-  analyze(
-    query: string,
-    options: AnalysisOptions = {}
-  ): QueryComplexity {
+  analyze(query: string, options: AnalysisOptions = {}): QueryComplexity {
     const { hasContext, requiresRAG, requiresML, requiresNLP, customKeywords } =
       options;
 
     // Calculate complexity factors
     const lengthScore = this.calculateLengthScore(query);
-    const keywordScore = this.calculateKeywordScore(
-      query,
-      customKeywords
-    );
+    const keywordScore = this.calculateKeywordScore(query, customKeywords);
     const contextScore = hasContext ? 25 : 0;
-    const multiStepScore =
-      this.calculateMultiStepScore(query);
+    const multiStepScore = this.calculateMultiStepScore(query);
 
     // Total complexity score (0-100)
     const totalScore =
@@ -205,10 +198,7 @@ export const QueryComplexityAnalyzer = {
   /**
    * 🔑 Calculate Keyword Score (0-20)
    */
-  calculateKeywordScore(
-    query: string,
-    customKeywords?: string[]
-  ): number {
+  calculateKeywordScore(query: string, customKeywords?: string[]): number {
     const lowerQuery = query.toLowerCase();
     let keywordCount = 0;
 
