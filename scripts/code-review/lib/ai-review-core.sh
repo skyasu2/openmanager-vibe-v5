@@ -26,6 +26,9 @@ TypeScript: ${TS_SUMMARY:-실행 안 됨}
 - ESLint: ${LINT_LOG:-N/A}
 - TypeScript: ${TS_LOG:-N/A}
 
+## ⚠️ 문서/테스트 검증 경고
+$(cat logs/doc-validation-warning.txt 2>/dev/null || echo "없음")
+
 ---
 
 $changes
@@ -88,6 +91,9 @@ TypeScript: ${TS_SUMMARY:-실행 안 됨}
 **검증 로그 저장 위치**:
 - ESLint: ${LINT_LOG:-N/A}
 - TypeScript: ${TS_LOG:-N/A}
+
+## ⚠️ 문서/테스트 검증 경고
+$(cat logs/doc-validation-warning.txt 2>/dev/null || echo "없음")
 
 ---
 
@@ -158,6 +164,9 @@ TypeScript: ${TS_SUMMARY:-실행 안 됨}
 **검증 로그 저장 위치**:
 - ESLint: ${LINT_LOG:-N/A}
 - TypeScript: ${TS_LOG:-N/A}
+
+## ⚠️ 문서/테스트 검증 경고
+$(cat logs/doc-validation-warning.txt 2>/dev/null || echo "없음")
 
 ---
 

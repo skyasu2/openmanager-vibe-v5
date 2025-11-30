@@ -76,16 +76,24 @@ if [[ "$SOURCE_CHANGED" == true ]] && [[ "$DOC_CHANGED" == false ]]; then
 fi
 
 # ============================================================================
-# 4. 경고 출력 (Soft Warning - 커밋 차단 안 함)
+# 4. 경고 출력 및 저장 (AI 리뷰 연동)
 # ============================================================================
+WARNING_LOG="logs/doc-validation-warning.txt"
+mkdir -p logs
+rm -f "$WARNING_LOG"
+
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   echo ""
   echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo -e "${YELLOW}⚠️  문서/테스트 검증 경고${NC}"
   echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
+  # 로그 파일 헤더 작성
+  echo "⚠️ 문서/테스트 검증 경고:" > "$WARNING_LOG"
+
   for warning in "${WARNINGS[@]}"; do
     echo -e "${YELLOW}$warning${NC}"
+    echo "- $warning" >> "$WARNING_LOG"
   done
 
   echo ""
@@ -94,6 +102,12 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   echo -e "   - 문서 갱신: ./scripts/docs/update-changelog.sh"
   echo -e "   - README 업데이트: 주요 변경사항 반영"
   echo ""
+
+  # 권장 사항도 로그에 추가
+  echo "" >> "$WARNING_LOG"
+  echo "💡 권장 사항:" >> "$WARNING_LOG"
+  echo "   - 테스트 추가: npm run test:super-fast"
+  echo "   - 문서 갱신: ./scripts/docs/update-changelog.sh" >> "$WARNING_LOG"
 
   # CI/CD 환경 자동 통과 (인터랙티브 모드 제거)
   if [[ -t 0 ]] && [[ -z "${CI:-}" ]]; then
