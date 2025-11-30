@@ -468,3 +468,11 @@ docs/testing/pin-authentication-*.md
 .dev-server.pid
 dev-server.log
 .mcp.json.README.md
+
+# Biome and linting reports (temporary analysis files)
+biome_report*.txt
+biome_report*.json
+lint_*.txt
+lint_*.json
+type_check_report*.txt
+tsc_output*.txt
