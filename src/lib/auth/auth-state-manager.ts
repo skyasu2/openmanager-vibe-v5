@@ -11,7 +11,7 @@ import type { Session } from '@supabase/supabase-js';
 import {
   generateSignedSessionId,
   verifySignedSessionId,
-} from '@/utils/session-security';
+} from '@/utils/session-security.server';
 import { supabase } from '../supabase/client';
 
 // 통일된 키 접두사

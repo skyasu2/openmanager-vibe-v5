@@ -12,7 +12,7 @@ import {
   guestSessionCookies,
   validateRedirectUrl,
 } from '@/lib/security/secure-cookies';
-import { verifySignedSessionId } from '@/utils/session-security';
+import { verifySignedSessionId } from '@/utils/session-security.server';
 import { supabase } from '../supabase/client';
 import { authStateManager } from './auth-state-manager';
 

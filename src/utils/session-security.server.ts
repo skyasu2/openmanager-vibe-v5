@@ -1,14 +1,15 @@
 /**
- * 🔐 Session Security Utilities
+ * @file Server-only session security utilities
+ *
+ * DANGER: This file contains server-only code (Node.js 'crypto' module)
+ * and MUST NOT be imported into client-side components.
  *
  * 세션 ID 생성, 서명, 검증 유틸리티
  * - HMAC SHA-256 서명으로 위변조 방지
  * - 서버 전용 (Node.js crypto 사용)
- *
- * @warning 이 파일은 서버 사이드에서만 사용해야 합니다.
  */
 
-import type { BinaryLike } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 
 /**
  * 환경변수에서 세션 시크릿 가져오기
@@ -39,17 +40,13 @@ function getSessionSecret(): string {
  * // "550e8400-e29b-41d4-a716-446655440000.a1b2c3d4..."
  */
 export function generateSignedSessionId(): string {
-  // 동적 import로 서버 전용 모듈 로드
-  const crypto = require('crypto');
-
   // UUID v4 생성
-  const id = crypto.randomBytes(16).toString('hex');
+  const id = randomBytes(16).toString('hex');
   const formattedId = `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`;
 
   // HMAC SHA-256 서명 생성
   const secret = getSessionSecret();
-  const signature = crypto
-    .createHmac('sha256', secret)
+  const signature = createHmac('sha256', secret)
     .update(formattedId)
     .digest('hex');
 
@@ -97,10 +94,8 @@ export function verifySignedSessionId(signedId: string): string | null {
     }
 
     // 서명 재생성 및 비교
-    const crypto = require('crypto');
     const secret = getSessionSecret();
-    const expectedSignature = crypto
-      .createHmac('sha256', secret)
+    const expectedSignature = createHmac('sha256', secret)
       .update(id)
       .digest('hex');
 
