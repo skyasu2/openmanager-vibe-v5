@@ -146,71 +146,61 @@ export class EdgeCache {
 }
 
 // Edge Runtime 호환 HTTP 클라이언트
-export class EdgeHTTPClient {
-  private static baseConfig = {
-    timeout: 15000,
-    retries: 3,
-    retryDelay: 1000,
-  };
+export const EdgeHTTPClient = {
+  baseConfig: {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    timeout: 10000,
+  },
 
-  static async fetch(
-    url: string,
-    options: RequestInit = {},
-    config = EdgeHTTPClient.baseConfig
-  ): Promise<Response> {
-    const { timeout, retries, retryDelay } = config;
+  async get<T>(url: string, config: RequestInit = {}): Promise<T> {
+    return this.request<T>(url, { ...config, method: 'GET' });
+  },
 
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-        const response = await fetch(url, {
-          ...options,
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        return response;
-      } catch (error) {
-        if (attempt === retries) {
-          throw error;
-        }
-
-        await new Promise((resolve) =>
-          setTimeout(resolve, retryDelay * attempt)
-        );
-      }
-    }
-    // TypeScript를 위한 명시적 throw (실제로는 도달하지 않음)
-    throw new Error('모든 재시도 시도가 실패했습니다.');
-  }
-
-  static async get(url: string, config?: typeof EdgeHTTPClient.baseConfig) {
-    return await EdgeHTTPClient.fetch(url, { method: 'GET' }, config);
-  }
-
-  static async post(
+  async post<T>(
     url: string,
     data: unknown,
-    config?: typeof EdgeHTTPClient.baseConfig
-  ) {
-    return await EdgeHTTPClient.fetch(
-      url,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      },
-      config
+    config: RequestInit = {}
+  ): Promise<T> {
+    return this.request<T>(url, {
+      ...config,
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async request<T>(url: string, config: RequestInit = {}): Promise<T> {
+    const controller = new AbortController();
+    const id = setTimeout(
+      () => controller.abort(),
+      this.baseConfig.timeout
     );
-  }
-}
+
+    try {
+      const response = await fetch(url, {
+        ...this.baseConfig,
+        ...config,
+        signal: controller.signal,
+        headers: {
+          ...this.baseConfig.headers,
+          ...config.headers,
+        },
+      });
+
+      clearTimeout(id);
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      clearTimeout(id);
+      throw error;
+    }
+  },
+};
 
 // Edge Runtime 호환 상태 관리자
 export class EdgeStateManager {

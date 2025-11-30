@@ -105,11 +105,14 @@ export const isMobile = isClientSide && window.innerWidth <= 768;
 /**
  * 🎯 전략 5: 성능 모니터링 (개발 모드만)
  */
-export class BundleAnalyzer {
-  private static readonly isDev = process.env.NODE_ENV === 'development';
+/**
+ * 🎯 전략 5: 성능 모니터링 (개발 모드만)
+ */
+export const BundleAnalyzer = {
+  isDev: process.env.NODE_ENV === 'development',
 
-  static measureComponentRender(componentName: string) {
-    if (!BundleAnalyzer.isDev) return () => {};
+  measureComponentRender(componentName: string) {
+    if (!this.isDev) return () => {};
 
     const start = performance.now();
     return () => {
@@ -118,21 +121,21 @@ export class BundleAnalyzer {
         `⚡ ${componentName} rendered in ${(end - start).toFixed(2)}ms`
       );
     };
-  }
+  },
 
-  static trackBundleSize(chunkName: string) {
-    if (!BundleAnalyzer.isDev) return;
+  trackBundleSize(chunkName: string) {
+    if (!this.isDev) return;
 
     // 웹팩 청크 정보 로그
     console.log(`📦 Loading chunk: ${chunkName}`);
-  }
-}
+  },
+};
 
 /**
  * 🎯 전략 6: 에러 바운더리 경량화
  */
-export class LightErrorBoundary {
-  static createFallback(componentName: string) {
+export const LightErrorBoundary = {
+  createFallback(componentName: string) {
     const FallbackComponent = () => (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
         <h3 className="font-medium text-red-800">오류 발생</h3>
@@ -145,8 +148,8 @@ export class LightErrorBoundary {
     FallbackComponent.displayName = 'LightErrorBoundaryFallback';
 
     return FallbackComponent;
-  }
-}
+  },
+};
 
 /**
  * 🎯 전략 7: 메모이제이션 최적화

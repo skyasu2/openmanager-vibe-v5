@@ -15,14 +15,14 @@ export interface FallbackOptions {
   onFallback?: (error: Error) => void;
 }
 
-export class SmartFallback {
-  private static fallbackHistory = new Map<string, number>();
-  private static lastFallbackTime = new Map<string, number>();
+export const SmartFallback = {
+  fallbackHistory: new Map<string, number>(),
+  lastFallbackTime: new Map<string, number>(),
 
   /**
    * 스마트 실행 - 실패 시 자동 Mock 전환
    */
-  static async execute<T>(
+  async execute<T>(
     realFn: () => Promise<T>,
     mockFn: () => Promise<T>,
     options: FallbackOptions
@@ -42,7 +42,7 @@ export class SmartFallback {
     }
 
     // 최근 폴백 이력 확인 (5분 이내 3번 이상 실패 시 바로 Mock)
-    const recentFallbacks = SmartFallback.getRecentFallbackCount(serviceName);
+    const recentFallbacks = this.getRecentFallbackCount(serviceName);
     if (recentFallbacks >= 3) {
       console.log(
         `⚡ ${serviceName}: 잦은 실패로 Mock 자동 사용 (${recentFallbacks}회)`
@@ -57,7 +57,7 @@ export class SmartFallback {
       try {
         const result = await realFn();
         // 성공 시 폴백 이력 초기화
-        SmartFallback.clearFallbackHistory(serviceName);
+        this.clearFallbackHistory(serviceName);
         return result;
       } catch (error) {
         lastError = error as Error;
@@ -75,7 +75,7 @@ export class SmartFallback {
     // 모든 시도 실패 - Mock으로 폴백
     if (enableAutoFallback && mockFn) {
       console.log(`🔄 ${serviceName}: Mock으로 자동 전환`);
-      SmartFallback.recordFallback(serviceName);
+      this.recordFallback(serviceName);
 
       if (onFallback && lastError) {
         onFallback(lastError);
@@ -90,12 +90,12 @@ export class SmartFallback {
     }
 
     throw lastError;
-  }
+  },
 
   /**
    * 조건부 실행 - 컨텍스트에 따라 Mock/Real 선택
    */
-  static async executeConditional<T>(
+  async executeConditional<T>(
     condition: () => boolean,
     realFn: () => Promise<T>,
     mockFn: () => Promise<T>,
@@ -106,54 +106,54 @@ export class SmartFallback {
       return mockFn();
     }
 
-    return SmartFallback.execute(realFn, mockFn, {
+    return this.execute(realFn, mockFn, {
       serviceName,
       enableAutoFallback: true,
     });
-  }
+  },
 
   /**
    * 최근 폴백 횟수 조회
    */
-  private static getRecentFallbackCount(serviceName: string): number {
-    const history = SmartFallback.fallbackHistory.get(serviceName) || 0;
-    const lastTime = SmartFallback.lastFallbackTime.get(serviceName) || 0;
+  getRecentFallbackCount(serviceName: string): number {
+    const history = this.fallbackHistory.get(serviceName) || 0;
+    const lastTime = this.lastFallbackTime.get(serviceName) || 0;
     const now = Date.now();
 
     // 5분이 지났으면 카운트 리셋
     if (now - lastTime > 5 * 60 * 1000) {
-      SmartFallback.fallbackHistory.set(serviceName, 0);
+      this.fallbackHistory.set(serviceName, 0);
       return 0;
     }
 
     return history;
-  }
+  },
 
   /**
    * 폴백 기록
    */
-  private static recordFallback(serviceName: string): void {
-    const current = SmartFallback.fallbackHistory.get(serviceName) || 0;
-    SmartFallback.fallbackHistory.set(serviceName, current + 1);
-    SmartFallback.lastFallbackTime.set(serviceName, Date.now());
-  }
+  recordFallback(serviceName: string): void {
+    const current = this.fallbackHistory.get(serviceName) || 0;
+    this.fallbackHistory.set(serviceName, current + 1);
+    this.lastFallbackTime.set(serviceName, Date.now());
+  },
 
   /**
    * 폴백 이력 초기화
    */
-  private static clearFallbackHistory(serviceName: string): void {
-    SmartFallback.fallbackHistory.delete(serviceName);
-    SmartFallback.lastFallbackTime.delete(serviceName);
-  }
+  clearFallbackHistory(serviceName: string): void {
+    this.fallbackHistory.delete(serviceName);
+    this.lastFallbackTime.delete(serviceName);
+  },
 
   /**
    * 폴백 통계 조회
    */
-  static getFallbackStats(): Record<string, unknown> {
+  getFallbackStats(): Record<string, unknown> {
     const stats: Record<string, unknown> = {};
 
-    for (const [service, count] of SmartFallback.fallbackHistory.entries()) {
-      const lastTime = SmartFallback.lastFallbackTime.get(service);
+    for (const [service, count] of this.fallbackHistory.entries()) {
+      const lastTime = this.lastFallbackTime.get(service);
       stats[service] = {
         fallbackCount: count,
         lastFallback: lastTime ? new Date(lastTime).toISOString() : null,
@@ -161,8 +161,8 @@ export class SmartFallback {
     }
 
     return stats;
-  }
-}
+  },
+};
 
 /**
  * 간편 헬퍼 함수

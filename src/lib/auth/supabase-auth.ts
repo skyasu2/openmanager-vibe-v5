@@ -179,7 +179,9 @@ async function signOutLegacy(authType?: 'github' | 'guest') {
       const supabaseKeys = Object.keys(localStorage).filter(
         (key) => key.startsWith('sb-') || key.includes('supabase')
       );
-      supabaseKeys.forEach((key) => localStorage.removeItem(key));
+      for (const key of supabaseKeys) {
+        localStorage.removeItem(key);
+      }
     }
 
     // 쿠키 정리 (레거시)

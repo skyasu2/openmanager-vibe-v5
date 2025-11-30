@@ -149,7 +149,9 @@ class MemoryABTestCache<T = unknown> {
       }
     }
 
-    expiredKeys.forEach((key) => this.cache.delete(key));
+    expiredKeys.forEach((key) => {
+      this.cache.delete(key);
+    });
   }
 }
 
@@ -483,7 +485,9 @@ export class ABTestManager {
   async cleanup(): Promise<void> {
     try {
       const keys = this.memoryCache.keys('openmanager:ab_test:*');
-      keys.forEach((key) => this.memoryCache.delete(key));
+      keys.forEach((key) => {
+        this.memoryCache.delete(key);
+      });
       console.log('🧹 A/B 테스트 데이터 정리 완료');
     } catch (error) {
       console.error('❌ A/B 테스트 데이터 정리 실패:', error);

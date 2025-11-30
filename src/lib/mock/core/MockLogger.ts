@@ -7,9 +7,10 @@
 export class MockLogger {
   private enabled: boolean;
   private prefix: string;
+  // private name: string;
 
   constructor(name: string, enabled: boolean = true) {
-    this.name = name;
+    // this.name = name;
     this.enabled = enabled;
     this.prefix = `🎭 [${name}]`;
   }

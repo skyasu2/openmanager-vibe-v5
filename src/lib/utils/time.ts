@@ -29,22 +29,22 @@ interface NTPResponse {
   error?: string;
 }
 
-export class KoreanTimeUtil {
-  private static readonly TIMEZONE = 'Asia/Seoul';
-  private static readonly LOCALE = 'ko-KR';
+export const KoreanTimeUtil = {
+  TIMEZONE: 'Asia/Seoul',
+  LOCALE: 'ko-KR',
 
-  private static readonly NTP_SERVERS: NTPServer[] = [
+  NTP_SERVERS: [
     { name: 'Naver', host: 'time.naver.com', priority: 1 },
     { name: 'Google Korea', host: 'time.google.com', priority: 2 },
     { name: 'Korea NTP', host: 'time.kriss.re.kr', priority: 3 },
-  ];
+  ] as NTPServer[],
 
-  private static timeOffset: number = 0;
-  private static lastNTPSync: number = 0;
-  private static readonly NTP_CACHE_DURATION = 5 * 60 * 1000; // 5분
+  timeOffset: 0,
+  lastNTPSync: 0,
+  NTP_CACHE_DURATION: 5 * 60 * 1000, // 5분
 
-  private static async fetchNTPTime(): Promise<NTPResponse> {
-    for (const server of KoreanTimeUtil.NTP_SERVERS) {
+  async fetchNTPTime(): Promise<NTPResponse> {
+    for (const server of this.NTP_SERVERS) {
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3000);
@@ -74,7 +74,7 @@ export class KoreanTimeUtil {
         };
       } catch (error) {
         console.warn(
-          `[${KoreanTimeUtil.now()}] ⚠️ NTP 서버 ${server.name} 연결 실패:`,
+          `[${this.now()}] ⚠️ NTP 서버 ${server.name} 연결 실패:`,
           error
         );
       }
@@ -87,38 +87,38 @@ export class KoreanTimeUtil {
       success: false,
       error: 'All NTP servers failed, using local time',
     };
-  }
+  },
 
-  static async getNTPSyncedTime(): Promise<Date> {
+  async getNTPSyncedTime(): Promise<Date> {
     const now = Date.now();
-    if (now - KoreanTimeUtil.lastNTPSync < KoreanTimeUtil.NTP_CACHE_DURATION) {
-      return new Date(now + KoreanTimeUtil.timeOffset);
+    if (now - this.lastNTPSync < this.NTP_CACHE_DURATION) {
+      return new Date(now + this.timeOffset);
     }
 
     try {
-      const ntpResponse = await KoreanTimeUtil.fetchNTPTime();
+      const ntpResponse = await this.fetchNTPTime();
       if (ntpResponse.success) {
-        KoreanTimeUtil.timeOffset = ntpResponse.offset;
-        KoreanTimeUtil.lastNTPSync = now;
+        this.timeOffset = ntpResponse.offset;
+        this.lastNTPSync = now;
         console.log(
-          `[${KoreanTimeUtil.now()}] ✅ NTP 시간 동기화 성공: ${ntpResponse.server} (오프셋: ${ntpResponse.offset}ms)`
+          `[${this.now()}] ✅ NTP 시간 동기화 성공: ${ntpResponse.server} (오프셋: ${ntpResponse.offset}ms)`
         );
       } else {
         console.warn(
-          `[${KoreanTimeUtil.now()}] ⚠️ NTP 동기화 실패, 로컬 시간 사용: ${ntpResponse.error}`
+          `[${this.now()}] ⚠️ NTP 동기화 실패, 로컬 시간 사용: ${ntpResponse.error}`
         );
       }
-      return new Date(now + KoreanTimeUtil.timeOffset);
+      return new Date(now + this.timeOffset);
     } catch (error) {
-      console.error(`[${KoreanTimeUtil.now()}] ❌ NTP 동기화 오류:`, error);
+      console.error(`[${this.now()}] ❌ NTP 동기화 오류:`, error);
       return new Date();
     }
-  }
+  },
 
   // --- Start of original koreanTime.ts methods ---
-  static now(): string {
-    return `${new Date().toLocaleString(KoreanTimeUtil.LOCALE, {
-      timeZone: KoreanTimeUtil.TIMEZONE,
+  now(): string {
+    return `${new Date().toLocaleString(this.LOCALE, {
+      timeZone: this.TIMEZONE,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -126,12 +126,12 @@ export class KoreanTimeUtil {
       minute: '2-digit',
       second: '2-digit',
     })} (KST)`;
-  }
+  },
 
-  static async nowSynced(): Promise<string> {
-    const syncedTime = await KoreanTimeUtil.getNTPSyncedTime();
-    return `${syncedTime.toLocaleString(KoreanTimeUtil.LOCALE, {
-      timeZone: KoreanTimeUtil.TIMEZONE,
+  async nowSynced(): Promise<string> {
+    const syncedTime = await this.getNTPSyncedTime();
+    return `${syncedTime.toLocaleString(this.LOCALE, {
+      timeZone: this.TIMEZONE,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -139,17 +139,17 @@ export class KoreanTimeUtil {
       minute: '2-digit',
       second: '2-digit',
     })} (KST)`;
-  }
+  },
 
-  static nowISO(): string {
+  nowISO(): string {
     return new Date().toLocaleString('sv-SE', {
-      timeZone: KoreanTimeUtil.TIMEZONE,
+      timeZone: this.TIMEZONE,
     });
-  }
+  },
 
-  static fileTimestamp(): string {
-    const now = new Date().toLocaleString(KoreanTimeUtil.LOCALE, {
-      timeZone: KoreanTimeUtil.TIMEZONE,
+  fileTimestamp(): string {
+    const now = new Date().toLocaleString(this.LOCALE, {
+      timeZone: this.TIMEZONE,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -161,28 +161,28 @@ export class KoreanTimeUtil {
       .replace(/[년월일\s]/g, '')
       .replace(/:/g, '')
       .replace('.', '_');
-  }
+  },
 
-  static logTimestamp(): string {
-    return `[${KoreanTimeUtil.nowISO().replace('T', ' ')} KST]`;
-  }
+  logTimestamp(): string {
+    return `[${this.nowISO().replace('T', ' ')} KST]`;
+  },
 
-  static commitTimestamp(): string {
+  commitTimestamp(): string {
     const now = new Date().toLocaleString('sv-SE', {
-      timeZone: KoreanTimeUtil.TIMEZONE,
+      timeZone: this.TIMEZONE,
     });
     return `(${now.substring(0, 16)} KST)`;
-  }
+  },
 
-  static dateOnly(): string {
+  dateOnly(): string {
     return new Date().toLocaleDateString('sv-SE', {
-      timeZone: KoreanTimeUtil.TIMEZONE,
+      timeZone: this.TIMEZONE,
     });
-  }
+  },
 
-  static toKoreanTime(date: Date): string {
-    return `${date.toLocaleString(KoreanTimeUtil.LOCALE, {
-      timeZone: KoreanTimeUtil.TIMEZONE,
+  toKoreanTime(date: Date): string {
+    return `${date.toLocaleString(this.LOCALE, {
+      timeZone: this.TIMEZONE,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -190,80 +190,80 @@ export class KoreanTimeUtil {
       minute: '2-digit',
       second: '2-digit',
     })} (KST)`;
-  }
+  },
 
-  static isWorkingHours(): boolean {
+  isWorkingHours(): boolean {
     const now = new Date();
     const kstHour = parseInt(
       now.toLocaleString('en-US', {
-        timeZone: KoreanTimeUtil.TIMEZONE,
+        timeZone: this.TIMEZONE,
         hour: '2-digit',
         hour12: false,
       }),
       10
     );
     const kstDay = now.toLocaleDateString('en-US', {
-      timeZone: KoreanTimeUtil.TIMEZONE,
+      timeZone: this.TIMEZONE,
       weekday: 'short',
     });
     const isWeekday = !['Sat', 'Sun'].includes(kstDay);
     return isWeekday && kstHour >= 9 && kstHour < 18;
-  }
+  },
 
-  static toCronExpression(hour: number, minute: number = 0): string {
+  toCronExpression(hour: number, minute: number = 0): string {
     return `${minute} ${hour} * * *`;
-  }
+  },
 
-  static aiLogTimestamp(engineName: string): string {
-    return `${KoreanTimeUtil.logTimestamp()} [${engineName.toUpperCase()}]`;
-  }
+  aiLogTimestamp(engineName: string): string {
+    return `${this.logTimestamp()} [${engineName.toUpperCase()}]`;
+  },
 
-  static metricTimestamp(): number {
+  metricTimestamp(): number {
     return Date.now();
-  }
+  },
   // --- End of original koreanTime.ts methods ---
 
   // --- Start of integrated kst-time.ts methods ---
-  static getCurrentKST(): Date {
+  getCurrentKST(): Date {
     const now = new Date();
     return new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  }
+  },
 
-  static getKSTMinuteOfDay(): number {
-    const kst = KoreanTimeUtil.getCurrentKST();
+  getKSTMinuteOfDay(): number {
+    const kst = this.getCurrentKST();
     const hours = kst.getUTCHours();
     const minutes = kst.getUTCMinutes();
     return hours * 60 + minutes;
-  }
+  },
 
-  static getKST10MinSlotIndex(): number {
-    const minuteOfDay = KoreanTimeUtil.getKSTMinuteOfDay();
+  getKST10MinSlotIndex(): number {
+    const minuteOfDay = this.getKSTMinuteOfDay();
     return Math.floor(minuteOfDay / 10);
-  }
+  },
 
-  static getKST10MinSlotStart(): number {
-    return KoreanTimeUtil.getKST10MinSlotIndex() * 10;
-  }
+  getKST10MinSlotStart(): number {
+    return this.getKST10MinSlotIndex() * 10;
+  },
 
-  static minuteOfDayToTime(minuteOfDay: number): string {
+  minuteOfDayToTime(minuteOfDay: number): string {
     const hours = Math.floor(minuteOfDay / 60);
     const minutes = minuteOfDay % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-  }
+  },
 
-  static getCurrentKSTTime(): string {
-    const minuteOfDay = KoreanTimeUtil.getKSTMinuteOfDay();
-    return KoreanTimeUtil.minuteOfDayToTime(minuteOfDay);
-  }
+  getCurrentKSTTime(): string {
+    const minuteOfDay = this.getKSTMinuteOfDay();
+    return this.minuteOfDayToTime(minuteOfDay);
+  },
 
-  static getCurrentKST10MinSlotRange(): string {
-    const slotStart = KoreanTimeUtil.getKST10MinSlotStart();
-    const startTime = KoreanTimeUtil.minuteOfDayToTime(slotStart);
-    const endTime = KoreanTimeUtil.minuteOfDayToTime(slotStart + 9);
+  getCurrentKST10MinSlotRange(): string {
+    const slotStart = this.getKST10MinSlotStart();
+    const startTime = this.minuteOfDayToTime(slotStart);
+    const endTime = this.minuteOfDayToTime(slotStart + 9);
     return `${startTime}-${endTime}`;
-  }
+  },
   // --- End of integrated kst-time.ts methods ---
-}
+};
 
 /**
  * 전역에서 쉽게 사용할 수 있는 단축 함수 객체

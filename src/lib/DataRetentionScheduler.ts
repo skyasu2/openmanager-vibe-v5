@@ -137,7 +137,9 @@ class DataRetentionScheduler {
       },
     ];
 
-    defaultPolicies.forEach((policy) => this.addPolicy(policy));
+    defaultPolicies.forEach((policy) => {
+      this.addPolicy(policy);
+    });
   }
 
   /**

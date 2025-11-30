@@ -272,6 +272,7 @@ class SupabaseQueryBuilder {
   }
 
   // 쿼리 실행
+  // biome-ignore lint/suspicious/noThenProperty: Supabase query builder needs to be thenable
   then(
     resolve: (value: unknown) => unknown,
     reject?: (reason: unknown) => unknown

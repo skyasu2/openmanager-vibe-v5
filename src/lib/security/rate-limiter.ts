@@ -62,7 +62,7 @@ class RateLimiter {
   private supabase: SupabaseClient | null = null;
   private supabaseInitialized = false;
 
-  constructor(private config: RateLimitConfig) {
+  constructor(public config: RateLimitConfig) {
     this.logger = EdgeLogger.getInstance();
     // Supabase client will be initialized lazily on first use
   }
