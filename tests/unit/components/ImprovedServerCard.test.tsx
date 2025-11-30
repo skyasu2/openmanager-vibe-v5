@@ -214,7 +214,7 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
   describe('상태별 스타일', () => {
     it('online 상태일 때 녹색 테마를 적용한다', () => {
       const onlineServer = { ...mockServer, status: 'online' as const };
-      const { container } = render(
+      render(
         <ImprovedServerCard server={onlineServer} onClick={mockOnClick} />
       );
 

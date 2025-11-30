@@ -64,7 +64,10 @@ export const useDashboardToggleStore = create<DashboardToggleState>()(
       expandAll: () => {
         set((state) => ({
           sections: Object.keys(state.sections).reduce(
-            (acc, key) => ({ ...acc, [key]: true }),
+            (acc, key) => {
+              (acc as Record<string, boolean>)[key] = true;
+              return acc;
+            },
             {} as typeof state.sections
           ),
         }));
@@ -73,7 +76,10 @@ export const useDashboardToggleStore = create<DashboardToggleState>()(
       collapseAll: () => {
         set((state) => ({
           sections: Object.keys(state.sections).reduce(
-            (acc, key) => ({ ...acc, [key]: false }),
+            (acc, key) => {
+              (acc as Record<string, boolean>)[key] = false;
+              return acc;
+            },
             {} as typeof state.sections
           ),
         }));

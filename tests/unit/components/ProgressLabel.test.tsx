@@ -152,9 +152,7 @@ describe('📝 ProgressLabel 컴포넌트', () => {
     });
 
     it('완료 상태일 때 녹색 스타일이 적용된다', () => {
-      const { container } = render(
-        <ProgressLabel currentStep={4} totalSteps={5} />
-      );
+      render(<ProgressLabel currentStep={4} totalSteps={5} />);
 
       const completeText = screen.getByText(/성공적으로 완료되었습니다/);
       expect(completeText.className).toContain('text-green-400');
@@ -172,9 +170,7 @@ describe('📝 ProgressLabel 컴포넌트', () => {
 
   describe('진행 중 상태', () => {
     it('진행 중일 때 파란색 스타일이 적용된다', () => {
-      const { container } = render(
-        <ProgressLabel currentStep={2} totalSteps={5} />
-      );
+      render(<ProgressLabel currentStep={2} totalSteps={5} />);
 
       const progressText = screen.getByText('60%');
       expect(progressText.className).toContain('text-blue-400');
@@ -234,9 +230,7 @@ describe('📝 ProgressLabel 컴포넌트', () => {
     });
 
     it('currentStep이 totalSteps보다 클 때 100%로 제한된다', () => {
-      const { container } = render(
-        <ProgressLabel currentStep={10} totalSteps={5} />
-      );
+      render(<ProgressLabel currentStep={10} totalSteps={5} />);
 
       // 완료 메시지가 표시되어야 함
       expect(screen.getByText(/성공적으로 완료되었습니다/)).toBeDefined();

@@ -63,7 +63,7 @@ describe('🎯 AIAssistantButton - User Event 테스트', () => {
 
   describe('상태별 스타일', () => {
     it('비활성 상태일 때 회색 배경을 가진다', () => {
-      const { container } = render(
+      render(
         <AIAssistantButton
           isOpen={false}
           isEnabled={false}
@@ -77,7 +77,7 @@ describe('🎯 AIAssistantButton - User Event 테스트', () => {
     });
 
     it('열린 상태일 때 그라데이션 배경을 가진다', async () => {
-      const { container } = render(
+      render(
         <AIAssistantButton
           isOpen={true}
           isEnabled={false}
@@ -94,7 +94,7 @@ describe('🎯 AIAssistantButton - User Event 테스트', () => {
     });
 
     it('활성화 상태일 때 그라데이션 배경을 가진다', async () => {
-      const { container } = render(
+      render(
         <AIAssistantButton
           isOpen={false}
           isEnabled={true}
