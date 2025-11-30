@@ -81,12 +81,12 @@ export class DevKeyManager {
    * 🔄 환경변수에서 키 로드
    */
   private loadKeysFromEnv(): void {
-    this.keyDefinitions.forEach((keyDef) => {
+    for (const keyDef of this.keyDefinitions) {
       const value = process.env[keyDef.envKey];
       if (value) {
         this.keys.set(keyDef.envKey, value);
       }
-    });
+    }
 
     console.log(
       `🔑 개발 키 로드 완료: ${this.keys.size}/${this.keyDefinitions.length}개`
@@ -220,9 +220,9 @@ SKIP_ENV_VALIDATION=true
       },
     ];
 
-    categories.forEach((category) => {
+    for (const category of categories) {
       content += `# ${category.title}\n`;
-      category.keys.forEach((envKey) => {
+      for (const envKey of category.keys) {
         const keyDef = this.keyDefinitions.find((k) => k.envKey === envKey);
         const value = this.getKey(envKey);
 
@@ -231,9 +231,9 @@ SKIP_ENV_VALIDATION=true
         } else if (keyDef) {
           content += `# ${envKey}=  # ${keyDef.name} - 설정 필요\n`;
         }
-      });
+      }
       content += '\n';
-    });
+    }
 
     // 추가 설정들
     content += `# 🧠 AI 엔진 설정
@@ -270,7 +270,7 @@ CRON_GEMINI_LEARNING=true
     let invalid = 0;
     let missing = 0;
 
-    this.keyDefinitions.forEach((keyDef) => {
+    for (const keyDef of this.keyDefinitions) {
       const value = this.getKey(keyDef.envKey);
       if (value) {
         if (keyDef.validator?.(value)) {
@@ -298,7 +298,7 @@ CRON_GEMINI_LEARNING=true
           missing++;
         }
       }
-    });
+    }
 
     return {
       details: results,
@@ -323,7 +323,7 @@ CRON_GEMINI_LEARNING=true
 ---
 `;
 
-    details.forEach((result) => {
+    for (const result of details) {
       const icon =
         result.status === 'valid'
           ? '✅'
@@ -331,7 +331,7 @@ CRON_GEMINI_LEARNING=true
             ? '❌'
             : '❓';
       report += `${icon} [${result.status.toUpperCase()}] ${result.key}: ${result.message}\n`;
-    });
+    }
 
     return report;
   }

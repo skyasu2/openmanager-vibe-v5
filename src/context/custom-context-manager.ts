@@ -713,7 +713,9 @@ export class CustomContextManager {
             keysToDelete.push(key);
           }
         }
-        keysToDelete.forEach((key) => this.localCache.delete(key));
+        keysToDelete.forEach((key) => {
+          this.localCache.delete(key);
+        });
         console.log(
           `🗑️ [CustomContext] 패턴 캐시 정리 완료: ${pattern} (${keysToDelete.length}개)`
         );

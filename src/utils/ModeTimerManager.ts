@@ -14,15 +14,9 @@
  * 4. 서버리스 환경에서 지속적 상태 유지는 비효율적
  */
 
-interface ModeTimerConfig {
-  id: string;
-  callback: () => void | Promise<void>;
-  interval: number;
-  immediate?: boolean;
-}
-
 class ModeTimerManager {
   private timers: Map<string, NodeJS.Timeout> = new Map();
+  // private currentMode: 'ai' | 'monitoring' | 'auto' | null = null;
 
   // 🚫 모든 타이머 기능 비활성화
   stopAll(): void {
@@ -40,21 +34,21 @@ class ModeTimerManager {
   startAIMode(): void {
     console.log('🚫 AI Mode timers blocked - Use Vercel Dashboard');
     console.log('📊 실시간 모니터링: https://vercel.com/dashboard');
-    this.currentMode = null; // 모드 설정하지 않음
+    // this.currentMode = null; // 모드 설정하지 않음
   }
 
   // 🚫 모니터링 모드 비활성화
   startMonitoringMode(): void {
     console.log('🚫 Monitoring Mode timers blocked - Use Vercel Dashboard');
     console.log('📊 실시간 모니터링: https://vercel.com/dashboard');
-    this.currentMode = null; // 모드 설정하지 않음
+    // this.currentMode = null; // 모드 설정하지 않음
   }
 
   // 🚫 모드 전환 비활성화
   switchMode(mode: 'ai' | 'monitoring' | 'auto'): void {
     console.log(`🚫 Mode switching blocked: ${mode}`);
     console.log('📊 Vercel 대시보드에서 실시간 상태 확인 권장');
-    this.currentMode = null;
+    // this.currentMode = null;
   }
 
   // 현재 모드 반환 (항상 null)

@@ -52,7 +52,9 @@ export function parseTechString(techString: string): string[] {
     .filter((tech) => tech.length > 2)
     .filter((tech) => !['and', 'with', 'using', 'based', 'for'].includes(tech));
 
-  basicSplit.forEach((tech) => techs.add(tech));
+  basicSplit.forEach((tech) => {
+    techs.add(tech);
+  });
 
   return Array.from(techs);
 }

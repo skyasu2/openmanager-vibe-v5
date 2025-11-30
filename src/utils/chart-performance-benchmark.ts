@@ -214,6 +214,7 @@ export class ChartPerformanceBenchmark {
  */
 export class ChartLibraryComparator {
   private benchmarks: Map<string, ChartPerformanceBenchmark> = new Map();
+  // private results: BenchmarkResult[] = [];
 
   /**
    * 새로운 라이브러리 벤치마크 추가
@@ -244,12 +245,14 @@ export class ChartLibraryComparator {
     );
 
     // 성능 점수 기준으로 우승자 결정
-    const scores = results.map((result) => ({
-      library: result.library,
-      score: new ChartPerformanceBenchmark(
-        result.library
-      ).calculatePerformanceScore(result.metrics),
-    }));
+    const scores = results.map((result) => {
+      return {
+        library: result.library,
+        score: new ChartPerformanceBenchmark(
+          result.library
+        ).calculatePerformanceScore(result.metrics),
+      };
+    });
 
     const winner = scores.reduce((prev, current) =>
       prev.score > current.score ? prev : current
@@ -291,8 +294,10 @@ export class ChartLibraryComparator {
    * 벤치마크 리셋
    */
   resetAll(): void {
-    this.benchmarks.forEach((benchmark) => benchmark.reset());
-    this.results = [];
+    this.benchmarks.forEach((benchmark) => {
+      benchmark.reset();
+    });
+    // this.results = [];
   }
 }
 

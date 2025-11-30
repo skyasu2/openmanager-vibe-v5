@@ -11,11 +11,11 @@ export interface SystemComponent {
   id: string;
   name: string;
   description: string;
-  category?: string; // 컴포넌트 카테고리 (backend, frontend, database, etc.)
+  category?: string;
   icon: string;
   priority: 'critical' | 'high' | 'medium' | 'low';
-  estimatedTime: number; // 예상 완료 시간 (ms)
-  dependencies?: string[]; // 의존성 (다른 컴포넌트 완료 후 시작)
+  estimatedTime: number;
+  dependencies?: string[];
   checkFunction: () => Promise<boolean>;
 }
 
@@ -62,4 +62,47 @@ export interface NetworkRequestInfo {
   success: boolean;
   component: string;
   error?: string;
+}
+
+// Merged from system-checklist.types.ts
+
+export interface SystemChecklistProps {
+  onComplete: () => void;
+  skipCondition?: boolean;
+}
+
+export interface DebugInfo {
+  timestamp: string;
+  componentStates: Record<string, ComponentStatus>;
+  networkRequests: NetworkRequest[];
+  errors: ErrorInfo[];
+  performance: PerformanceInfo;
+  userAgent: string;
+  url: string;
+}
+
+export interface NetworkRequest {
+  url: string;
+  method: string;
+  status: number;
+  responseTime: number;
+  timestamp: string;
+  success: boolean;
+  error?: string;
+}
+
+export interface ErrorInfo {
+  component: string;
+  error: string;
+  stack?: string;
+  timestamp: string;
+  retryCount: number;
+}
+
+export interface PerformanceInfo {
+  startTime: number;
+  checklistDuration: number;
+  slowestComponent: string;
+  fastestComponent: string;
+  averageResponseTime: number;
 }

@@ -76,14 +76,14 @@ interface PerformanceReport {
 
 type BaselineValue = number | string;
 
-export class PerformanceMonitor {
-  private static baselines: Map<string, BaselineValue> = new Map();
-  private static measurements: PerformanceBenchmark[] = [];
+export const PerformanceMonitor = {
+  baselines: new Map<string, BaselineValue>(),
+  measurements: [] as PerformanceBenchmark[],
 
   /**
    * 📊 실제 메모리 사용량 측정 (Node.js process.memoryUsage())
    */
-  static getMemoryUsage(): MemoryUsage {
+  getMemoryUsage(): MemoryUsage {
     const usage = process.memoryUsage();
     const totalSystemMemory = 8 * 1024 * 1024 * 1024; // 8GB 기준 (실제 환경에서는 os.totalmem() 사용)
 
@@ -109,12 +109,12 @@ export class PerformanceMonitor {
       percentage,
       optimization,
     };
-  }
+  },
 
   /**
    * ⏱️ 응답 시간 정밀 측정 (performance.now() 사용)
    */
-  static async measureResponseTime<T>(
+  async measureResponseTime<T>(
     fn: () => Promise<T> | T,
     engineType: string = 'unknown'
   ): Promise<{ result: T; metrics: ResponseTimeMetrics }> {
@@ -127,7 +127,7 @@ export class PerformanceMonitor {
 
       // 기준값과 비교
       const baseline =
-        PerformanceMonitor.getBaseline(engineType, 'responseTime') || 1000;
+        this.getBaseline(engineType, 'responseTime') || 1000;
       const improvement = Math.round(
         ((baseline - responseTime) / baseline) * 100
       );
@@ -161,12 +161,12 @@ export class PerformanceMonitor {
       };
       throw errorWithMetrics;
     }
-  }
+  },
 
   /**
    * 🎯 AI 정확도 측정 (실제 예측 vs 실제 결과)
    */
-  static calculateAccuracy(
+  calculateAccuracy(
     predictions: Array<{ status: string; confidence?: number; value?: number }>,
     actuals: Array<{ status: string; value?: number }>
   ): AccuracyMetrics {
@@ -235,12 +235,12 @@ export class PerformanceMonitor {
       f1Score,
       sampleSize: minLength,
     };
-  }
+  },
 
   /**
    * 💻 CPU 사용률 측정 (Node.js 기반)
    */
-  static async getCPUUsage(): Promise<{ usage: number; category: string }> {
+  async getCPUUsage(): Promise<{ usage: number; category: string }> {
     return new Promise((resolve) => {
       const startUsage = process.cpuUsage();
       const startTime = process.hrtime();
@@ -263,12 +263,12 @@ export class PerformanceMonitor {
         resolve({ usage, category });
       }, 100); // 100ms 샘플링
     });
-  }
+  },
 
   /**
    * 📈 종합 성능 벤치마크 실행
    */
-  static async runBenchmark<T = unknown>(
+  async runBenchmark<T = unknown>(
     engineType: string,
     testFunction: () => Promise<T>,
     expectedResults?: T[]
@@ -276,13 +276,13 @@ export class PerformanceMonitor {
     console.log(`🔍 ${engineType} 성능 벤치마크 시작...`);
 
     // 메모리 사용량 측정
-    const memoryBefore = PerformanceMonitor.getMemoryUsage();
+    const memoryBefore = this.getMemoryUsage();
 
     // 응답 시간 및 결과 측정
     const { result, metrics: responseTime } =
-      await PerformanceMonitor.measureResponseTime(testFunction, engineType);
+      await this.measureResponseTime(testFunction, engineType);
 
-    const memoryAfter = PerformanceMonitor.getMemoryUsage();
+    const memoryAfter = this.getMemoryUsage();
 
     // 정확도 측정 (예상 결과가 있는 경우)
     let accuracy: AccuracyMetrics = {
@@ -303,13 +303,13 @@ export class PerformanceMonitor {
         status: string;
         value?: number;
       }>;
-      accuracy = PerformanceMonitor.calculateAccuracy(predictions, actuals);
+      accuracy = this.calculateAccuracy(predictions, actuals);
     }
 
     const benchmark: PerformanceBenchmark = {
       memoryUsage: {
         ...memoryAfter,
-        optimization: PerformanceMonitor.calculateMemoryOptimization(
+        optimization: this.calculateMemoryOptimization(
           memoryBefore,
           memoryAfter
         ),
@@ -321,8 +321,8 @@ export class PerformanceMonitor {
     };
 
     // 측정 결과 저장
-    PerformanceMonitor.measurements.push(benchmark);
-    PerformanceMonitor.updateBaselines(engineType, benchmark);
+    this.measurements.push(benchmark);
+    this.updateBaselines(engineType, benchmark);
 
     console.log(`✅ ${engineType} 벤치마크 완료:`, {
       메모리: `${benchmark.memoryUsage.rss}MB (${benchmark.memoryUsage.percentage}%)`,
@@ -331,12 +331,12 @@ export class PerformanceMonitor {
     });
 
     return benchmark;
-  }
+  },
 
   /**
    * 📊 메모리 최적화 분석
    */
-  private static calculateMemoryOptimization(
+  calculateMemoryOptimization(
     before: MemoryUsage,
     after: MemoryUsage
   ): string {
@@ -348,39 +348,39 @@ export class PerformanceMonitor {
     if (percentage < 10) return '안정적';
     if (percentage < 30) return `증가 (+${percentage}%)`;
     return `비효율적 (+${percentage}% 이상)`;
-  }
+  },
 
   /**
    * 📋 기준값 관리
    */
-  private static getBaseline(engineType: string, metric: string): number {
-    const value = PerformanceMonitor.baselines.get(`${engineType}.${metric}`);
+  getBaseline(engineType: string, metric: string): number {
+    const value = this.baselines.get(`${engineType}.${metric}`);
     return typeof value === 'number' ? value : 0;
-  }
+  },
 
-  private static updateBaselines(
+  updateBaselines(
     engineType: string,
     benchmark: PerformanceBenchmark
   ): void {
-    PerformanceMonitor.baselines.set(
+    this.baselines.set(
       `${engineType}.responseTime`,
       benchmark.responseTime.responseTime
     );
-    PerformanceMonitor.baselines.set(
+    this.baselines.set(
       `${engineType}.memoryUsage`,
       benchmark.memoryUsage.rss
     );
-    PerformanceMonitor.baselines.set(
+    this.baselines.set(
       `${engineType}.accuracy`,
       benchmark.accuracy.accuracy
     );
-  }
+  },
 
   /**
    * 📈 성능 리포트 생성
    */
-  static generatePerformanceReport(): PerformanceReport {
-    const recent = PerformanceMonitor.measurements.slice(-10); // 최근 10개
+  generatePerformanceReport(): PerformanceReport {
+    const recent = this.measurements.slice(-10); // 최근 10개
 
     if (recent.length === 0) {
       return {
@@ -415,14 +415,14 @@ export class PerformanceMonitor {
     );
 
     // 개선사항 계산
-    const improvements = PerformanceMonitor.calculateImprovements(recent);
+    const improvements = this.calculateImprovements(recent);
 
     return {
       summary: {
         avgResponseTime: `${avgResponseTime}ms`,
         avgMemoryUsage: `${avgMemory}MB`,
         avgAccuracy: `${avgAccuracy}%`,
-        totalMeasurements: PerformanceMonitor.measurements.length,
+        totalMeasurements: this.measurements.length,
         period:
           recent.length > 0
             ? `${recent[0]?.timestamp ?? 'N/A'} ~ ${recent[recent.length - 1]?.timestamp ?? 'N/A'}`
@@ -431,12 +431,12 @@ export class PerformanceMonitor {
       detailed: recent,
       improvements,
     };
-  }
+  },
 
   /**
    * 📊 개선사항 계산
    */
-  private static calculateImprovements(
+  calculateImprovements(
     measurements: PerformanceBenchmark[]
   ): PerformanceImprovements {
     if (measurements.length < 2)
@@ -477,35 +477,35 @@ export class PerformanceMonitor {
       memory: `${memoryImprovement > 0 ? '+' : ''}${memoryImprovement}%`,
       accuracy: `${accuracyImprovement > 0 ? '+' : ''}${accuracyImprovement}%`,
     };
-  }
+  },
 
   /**
    * 🔄 측정 데이터 초기화
    */
-  static clearMeasurements(): void {
-    PerformanceMonitor.measurements = [];
-    PerformanceMonitor.baselines.clear();
+  clearMeasurements(): void {
+    this.measurements = [];
+    this.baselines.clear();
     console.log('📊 성능 측정 데이터 초기화 완료');
-  }
+  },
 
   /**
    * 📊 실시간 성능 모니터링
    */
-  static startRealTimeMonitoring(intervalMs: number = 5000): NodeJS.Timeout {
+  startRealTimeMonitoring(intervalMs: number = 5000): NodeJS.Timeout {
     console.log(`🔄 실시간 성능 모니터링 시작 (${intervalMs}ms 간격)`);
 
     return setInterval(() => {
       void (async () => {
-        const memory = PerformanceMonitor.getMemoryUsage();
-        const cpu = await PerformanceMonitor.getCPUUsage();
+        const memory = this.getMemoryUsage();
+        const cpu = await this.getCPUUsage();
 
         console.log(
           `📊 [${new Date().toLocaleTimeString()}] 메모리: ${memory.rss}MB (${memory.percentage}%), CPU: ${cpu.usage}% (${cpu.category})`
         );
       })();
     }, intervalMs);
-  }
-}
+  },
+};
 
 // 전역 성능 측정 유틸리티
 export const perf = PerformanceMonitor;

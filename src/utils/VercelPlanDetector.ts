@@ -64,7 +64,7 @@ export class VercelPlanDetector {
     ]);
 
     const validResults = detectionResults
-      .filter((result) => result.status === 'fulfilled')
+      .filter((result): result is PromiseFulfilledResult<Partial<VercelPlanInfo>> => result.status === 'fulfilled')
       .map((result) => result.value);
 
     // 투표 시스템으로 최종 플랜 결정
@@ -304,7 +304,7 @@ export class VercelPlanDetector {
     };
 
     // 투표 집계
-    results.forEach((result) => {
+    for (const result of results) {
       if (result.plan && result.confidence && result.detectionMethods) {
         const plan = result.plan;
         const vote = planVotes[plan];
@@ -314,14 +314,14 @@ export class VercelPlanDetector {
           vote.methods.push(...result.detectionMethods);
         }
       }
-    });
+    }
 
     // 가중 점수 계산 (투표수 × 평균 신뢰도)
     let bestPlan = 'hobby';
     let bestScore = 0;
     const allMethods: string[] = [];
 
-    Object.entries(planVotes).forEach(([plan, data]) => {
+    for (const [plan, data] of Object.entries(planVotes)) {
       if (data.count > 0) {
         const avgConfidence = data.totalConfidence / data.count;
         const weightedScore = data.count * avgConfidence;
@@ -332,7 +332,7 @@ export class VercelPlanDetector {
           bestPlan = plan;
         }
       }
-    });
+    }
 
     // 최종 신뢰도 계산
     const finalConfidence = Math.min(0.95, bestScore / results.length);

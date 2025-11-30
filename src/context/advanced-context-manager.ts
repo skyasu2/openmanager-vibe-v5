@@ -679,7 +679,9 @@ export class AdvancedContextManager {
         });
 
       // 태그 추가
-      doc.metadata.tags.forEach((tag) => keywords.add(tag.toLowerCase()));
+      doc.metadata.tags.forEach((tag) => {
+        keywords.add(tag.toLowerCase());
+      });
 
       // 내용에서 중요 키워드 추출 (단순화된 방법)
       const words = doc.content.toLowerCase().match(/\b\w{3,}\b/g) || [];
@@ -695,7 +697,9 @@ export class AdvancedContextManager {
         .slice(0, 20)
         .map(([word]) => word);
 
-      topWords.forEach((word) => keywords.add(word));
+      topWords.forEach((word) => {
+        keywords.add(word);
+      });
 
       // 검색 인덱스에 추가
       keywords.forEach((keyword) => {

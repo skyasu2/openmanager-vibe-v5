@@ -12,6 +12,16 @@
  * 3. URL 인코딩/디코딩 정규화
  */
 
+// 정규식 상수 정의
+const KOREAN_PATTERN = /[ㄱ-ㅎㅏ-ㅣ가-힣]/;
+const BROKEN_PATTERN = /\uFFFD/;
+const BROKEN_CHARS_PATTERN = /\uFFFD+/g;
+const REPLACEMENT_CHAR_PATTERN = /\ufffd+/g;
+const SAFE_CHAR_PATTERN =
+  /[^\x20-\x7E\s\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g;
+const WHITESPACE_PATTERN = /\s+/g;
+const SPECIAL_CHAR_PATTERN = /[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g;
+
 /**
  * 🔧 안전한 한글 디코딩
  */
@@ -68,12 +78,10 @@ export function isValidKorean(text: string): boolean {
   if (!text || typeof text !== 'string') return false;
 
   // 한글 유니코드 범위 확인
-  const koreanPattern = /[ㄱ-ㅎㅏ-ㅣ가-힣]/;
-  const hasKorean = koreanPattern.test(text);
+  const hasKorean = KOREAN_PATTERN.test(text);
 
   // 깨진 문자 패턴 확인
-  const brokenPattern = /[����]/;
-  const hasBrokenChars = brokenPattern.test(text);
+  const hasBrokenChars = BROKEN_PATTERN.test(text);
 
   return hasKorean && !hasBrokenChars;
 }
@@ -93,10 +101,9 @@ export function safeKoreanLog(message: string, _data?: unknown): void {
 
     // 깨진 문자 패턴 복구 시도
     safeMessage = safeMessage
-      .replace(/�+/g, '') // 깨진 문자 제거
-      .replace(/\ufffd+/g, '') // 대체 문자 제거
-      // eslint-disable-next-line no-control-regex
-      .replace(/[^\u0001-\u007F\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '') // 한글과 ASCII만 유지 (null 문자 제외)
+      .replace(BROKEN_CHARS_PATTERN, '') // 깨진 문자 제거
+      .replace(REPLACEMENT_CHAR_PATTERN, '') // 대체 문자 제거
+      .replace(SAFE_CHAR_PATTERN, '') // 한글과 ASCII만 유지 (null 문자 제외)
       .trim();
 
     // 빈 문자열이 된 경우 원본 사용
@@ -128,13 +135,13 @@ export function safeProcessQuery(query: string): string {
     let processed = safeDecodeKorean(query);
 
     // 2. 공백 정규화
-    processed = processed.replace(/\s+/g, ' ').trim();
+    processed = processed.replace(WHITESPACE_PATTERN, ' ').trim();
 
     // 3. 특수문자 처리 (한글 보존)
-    processed = processed.replace(/[^\w\sㄱ-ㅎㅏ-ㅣ가-힣]/g, ' ');
+    processed = processed.replace(SPECIAL_CHAR_PATTERN, ' ');
 
     // 4. 다중 공백 제거
-    processed = processed.replace(/\s+/g, ' ').trim();
+    processed = processed.replace(WHITESPACE_PATTERN, ' ').trim();
 
     return processed;
   } catch {

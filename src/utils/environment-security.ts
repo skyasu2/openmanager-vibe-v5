@@ -595,6 +595,7 @@ export async function printSecurityReport(): Promise<void> {
   }
 
   console.log('');
-  console.log('권장사항:');
-  result.recommendations.forEach((rec) => console.log(`- ${rec}`));
+  for (const rec of result.recommendations) {
+    console.log(`- ${rec}`);
+  }
 }
