@@ -3,12 +3,14 @@
 echo "🔍 Pre-push: Type-safe + Build validation (~90초 예상)..."
 START_TIME=$(date +%s)
 
-# WSL Performance Check
-if [[ "$PWD" == /mnt/* ]]; then
-  echo "⚠️  WARNING: You are running this from the Windows filesystem (/mnt/...)."
-  echo "   This will be significantly slower (10x-50x) than running from the Linux filesystem (~/)."
-  echo "   Consider moving your project to your WSL home directory."
-fi
+# WSL Performance Check (POSIX-compatible syntax)
+case "$PWD" in
+  /mnt/*)
+    echo "⚠️  WARNING: You are running this from the Windows filesystem (/mnt/...)."
+    echo "   This will be significantly slower (10x-50x) than running from the Linux filesystem (~/)."
+    echo "   Consider moving your project to your WSL home directory."
+    ;;
+esac
 
 # 1. 빠른 유닛 테스트 (11초) - CRITICAL (opt-out with SKIP_TESTS=true)
 echo "🧪 Running quick tests..."

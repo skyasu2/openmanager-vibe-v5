@@ -243,35 +243,31 @@ npm run dev:playwright
 
 ### 2. 코드 품질 관리
 
-#### ESLint 명령어 (메모리 최적화)
+#### Biome 명령어 (Lint & Format)
+
+Biome은 ESLint와 Prettier를 대체하는 고성능 툴체인입니다.
 
 ```bash
-# 로컬 개발용 (완전한 타입 체킹)
-npm run lint                # 4GB 메모리, 전체 검사
-npm run lint:fix            # 4GB 메모리, 자동 수정
-npm run lint:strict         # 4GB 메모리, 경고 0개 강제
+# 로컬 개발용
+npm run lint                # 전체 검사 (Lint)
+npm run lint:fix            # 자동 수정 (Check --write)
+npm run format              # 포맷팅 (Format --write)
 
-# CI/CD용 (무료 티어 최적화)
-npm run lint:ci             # 2GB 메모리, FAST_MODE (타입 체킹 없음)
-npm run lint:ci:strict      # 2GB 메모리, FAST_MODE, 경고 0개
-
-# 빠른 검사용
-npm run lint:quick          # FAST_MODE, src 폴더만
-npm run lint:progressive    # 경고 50개까지 허용
+# CI/CD용
+npm run lint:ci             # CI 환경용 검사
+npm run lint:strict         # 경고를 에러로 처리
 ```
 
 **성능 비교:**
 
-- 기존 (`lint`): 150초+ → OOM 에러 발생 ❌
-- 개선 (`lint`): 4GB 메모리로 안정적 실행 ✅
-- 최적화 (`lint:ci`): 71초, 2GB 메모리 ✅
+- 기존 (ESLint): 150초+ → OOM 에러 발생 ❌
+- **개선 (Biome)**: **1초 미만** (99% 성능 향상) ✅
 
 **사용 권장사항:**
 
-- **로컬 개발**: `npm run lint` (완전한 타입 체킹)
-- **커밋 전**: `lint-staged`가 자동 실행 (TypeScript 타입 체크 포함)
-- **푸시 전**: `pre-push` 훅에서 빌드 검증
-- **CI/CD**: `npm run lint:ci` (GitHub Actions 무료 티어 보호)
+- **로컬 개발**: `npm run lint:fix`로 자동 수정
+- **커밋 전**: `lint-staged`가 자동 실행 (Biome Check)
+- **CI/CD**: `npm run lint:ci` (GitHub Actions)
 
 #### TypeScript 타입 체크
 
