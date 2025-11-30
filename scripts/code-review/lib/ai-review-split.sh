@@ -132,6 +132,11 @@ split_and_review() {
 
         local review_output
         if review_output=$(run_ai_review "$all_changes"); then
+            # Subshell에서 실행되므로 임시 파일에서 AI 엔진 이름 읽기
+            if [ -f /tmp/ai_engine_auto_review ]; then
+                AI_ENGINE=$(cat /tmp/ai_engine_auto_review)
+            fi
+            
             generate_review_report "$all_changes" "$review_output"
             show_review_summary "$REVIEW_FILE"
             return 0
@@ -191,6 +196,11 @@ split_and_review() {
         # AI 리뷰 실행
         local group_review
         if group_review=$(run_ai_review "$group_changes"); then
+            # Subshell에서 실행되므로 임시 파일에서 AI 엔진 이름 읽기
+            if [ -f /tmp/ai_engine_auto_review ]; then
+                AI_ENGINE=$(cat /tmp/ai_engine_auto_review)
+            fi
+
             # 리뷰 파일 생성 (part 번호 포함)
             local part_review_file="$REVIEW_DIR/review-${AI_ENGINE}-part${part}-$TODAY-$part_timestamp.md"
             REVIEW_FILE="$part_review_file"

@@ -10,13 +10,10 @@ set -e
 ./.husky/pre-commit-doc-validation || true
 
 # Biome: Check & Format (fast, staged files only)
-# ⚠️ Temporarily disabled during migration to Biome v2.3.8
-# TODO: Re-enable after fixing all lint warnings (46 errors, 83 warnings)
-# echo "🔍 Running Biome (Check & Format)..."
-# npx @biomejs/biome check --write --staged --no-errors-on-unmatched || {
-#   echo "❌ Biome check failed"
-#   exit 1
-# }
-echo "⏭️ Biome check temporarily disabled (migration in progress)"
+echo "🔍 Running Biome (Check & Format)..."
+npx @biomejs/biome check --write --staged --no-errors-on-unmatched || {
+  echo "❌ Biome check failed"
+  exit 1
+}
 
 exit 0
