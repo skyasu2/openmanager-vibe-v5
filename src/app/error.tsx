@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 
+// biome-ignore lint/suspicious/noShadowRestrictedNames: Next.js error page convention requires 'error' prop name
 export default function Error({
   error,
   reset,

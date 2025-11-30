@@ -8,7 +8,7 @@
  * - 모니터링과 AI 어시스턴트 공통 사용
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getSystemConfig } from '@/config/SystemConfiguration';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type {

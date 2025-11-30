@@ -10,7 +10,7 @@
 
 import { google } from '@ai-sdk/google';
 import { streamText, tool } from 'ai';
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getGoogleAIKey } from '@/lib/ai/google-ai-manager';
 import { withAuth } from '@/lib/auth/api-auth';

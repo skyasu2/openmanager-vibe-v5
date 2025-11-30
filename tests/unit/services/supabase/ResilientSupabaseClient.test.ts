@@ -6,7 +6,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ResilientSupabaseClient } from '@/lib/supabase';
+import type { ResilientSupabaseClient } from '@/lib/supabase';
 import { resetSupabaseClient } from '@/lib/supabase-singleton';
 
 // Type definitions for mock objects

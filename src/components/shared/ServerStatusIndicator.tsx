@@ -8,7 +8,8 @@
  * - 성능 추적 통합
  */
 
-import React, { memo } from 'react';
+import type React from 'react';
+import { memo } from 'react';
 import type { ServerStatus } from '../../types/server';
 
 interface ServerStatusIndicatorProps {

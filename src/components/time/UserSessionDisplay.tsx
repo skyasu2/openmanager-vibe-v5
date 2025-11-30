@@ -1,7 +1,7 @@
 'use client';
 
 import { AlertCircle, Clock, Pause, Play, RotateCw, User } from 'lucide-react';
-import { FC, useEffect, useState } from 'react';
+import { type FC, useEffect, useState } from 'react';
 import {
   type UserSession,
   userSessionService,

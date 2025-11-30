@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 // Edge Runtime 사용 (빠른 응답, 낮은 비용)
 // CSP 리포트는 실시간성이 덜 중요 - Node.js Runtime 사용

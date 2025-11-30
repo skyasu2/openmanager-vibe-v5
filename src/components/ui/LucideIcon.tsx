@@ -4,7 +4,7 @@
 import type { LucideIcon as LucideIconType } from 'lucide-react';
 import { Circle } from 'lucide-react';
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
-import { type CSSProperties, type FC } from 'react';
+import type { CSSProperties, FC } from 'react';
 import { getLucideIcon, iconMapping } from '@/lib/utils/icon-mapping';
 
 interface LucideIconProps {

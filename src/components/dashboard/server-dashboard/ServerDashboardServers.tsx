@@ -13,7 +13,7 @@ import {
   Search,
 } from 'lucide-react';
 import ServerCardErrorBoundary from '@/components/error/ServerCardErrorBoundary';
-import { type ServerDisplayMode } from '@/config/display-config';
+import type { ServerDisplayMode } from '@/config/display-config';
 import type { ViewMode } from '@/hooks/useServerDashboard';
 import type { Server } from '@/types/server';
 import SafeServerCard from '../SafeServerCard';

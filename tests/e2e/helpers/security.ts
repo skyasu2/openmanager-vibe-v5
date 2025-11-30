@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import * as dotenv from 'dotenv';
 import { getTestBaseUrl, isVercelProduction } from './config';
 import { TIMEOUTS } from './timeouts';

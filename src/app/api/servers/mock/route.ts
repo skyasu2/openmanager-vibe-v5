@@ -7,7 +7,7 @@
  * - AI 분석 가능한 메타데이터 포함
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getMockSystem, mockHelpers } from '@/mock';
 import debug from '@/utils/debug';
 

@@ -8,8 +8,8 @@
  * - 패턴 학습 및 예측
  */
 
-import crypto from 'crypto';
-import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'node:crypto';
+import { type NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
 import { createClient } from '@/lib/supabase/server';
@@ -504,7 +504,9 @@ async function postHandler(request: NextRequest) {
         }
 
         // Handle notifications
-        let notifications;
+        let notifications:
+          | { sent: boolean; channels: string[]; reason?: string }
+          | undefined;
         if (notify) {
           const alertKey = `${report.severity}-${pattern}`;
           const sent = shouldSendAlert(alertKey);

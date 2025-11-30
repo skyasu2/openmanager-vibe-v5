@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { NextRequest, NextResponse } from 'next/server';
+import fs from 'node:fs';
+import path from 'node:path';
+import { type NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import {
   safeConnections,
@@ -100,7 +100,7 @@ function loadPureRawMetrics(): Promise<RawServerMetric[]> {
       `${currentHour.toString().padStart(2, '0')}.json`
     );
 
-    let hourlyData;
+    let hourlyData: HourlyDataStructure;
 
     if (!fs.existsSync(filePath)) {
       const fallbackPath = path.join(
@@ -316,7 +316,7 @@ export const GET = withAuth(async (request: NextRequest) => {
     const limitedMetrics = rawMetrics.slice(0, limit);
 
     // 🧹 Format별 응답 (AI 분석 최적화)
-    let responseData;
+    let responseData: Partial<RawServerMetric>[] | RawServerMetric[];
 
     if (format === 'minimal') {
       // 🎯 최소 메트릭만 (AI 가벼운 분석용)

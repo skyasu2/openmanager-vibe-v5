@@ -15,7 +15,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getSecurityService,
-  SecurityService,
+  type SecurityService,
 } from '@/services/security/SecurityService';
 
 // Environment detection - Skip Date Mock tests in Vitest due to context loss issues

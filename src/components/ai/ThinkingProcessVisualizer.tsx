@@ -17,7 +17,13 @@ import {
   TrendingDown,
   Zap,
 } from 'lucide-react';
-import { ComponentType, FC, Fragment, useEffect, useState } from 'react';
+import {
+  type ComponentType,
+  type FC,
+  Fragment,
+  useEffect,
+  useState,
+} from 'react';
 import type { ThinkingStep as AIThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
 
 interface ThinkingProcessVisualizerProps {

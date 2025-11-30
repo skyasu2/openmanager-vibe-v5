@@ -11,7 +11,7 @@
 'use client';
 
 import { AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
-import { FC, useCallback, useEffect, useState } from 'react';
+import { type FC, useCallback, useEffect, useState } from 'react';
 import { useGlobalSystemStore } from '@/stores/systemStore';
 
 interface DisplayNotification {

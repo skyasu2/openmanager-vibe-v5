@@ -71,7 +71,16 @@ const envSchema = z.object({
   VERCEL_URL: z.string().optional(),
   VERCEL_REGION: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
-  NEXT_PUBLIC_VERCEL_URL: z.string().url().optional(),
+  // Vercel이 자동 설정하는 URL은 프로토콜 없이 제공될 수 있음 (예: "app.vercel.app")
+  NEXT_PUBLIC_VERCEL_URL: z
+    .string()
+    .transform((val) => {
+      if (!val) return val;
+      // 프로토콜이 없으면 https:// 추가
+      return val.startsWith('http') ? val : `https://${val}`;
+    })
+    .pipe(z.string().url())
+    .optional(),
   NEXT_PUBLIC_PROD_URL: z.string().url().optional(),
   NEXT_PUBLIC_TEST_URL: z.string().url().optional(),
   NEXT_PUBLIC_DEV_URL: z.string().url().optional(),

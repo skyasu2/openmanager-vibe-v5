@@ -10,8 +10,7 @@
  * - Zod 스키마로 타입 안전성 보장
  */
 
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
+import type { NextRequest, NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 import {
   createErrorResponse,
@@ -40,7 +39,10 @@ async function optimizeMemoryHandler(request: NextRequest) {
     );
 
     // 최적화 레벨에 따른 실행
-    let optimizationResult;
+    let optimizationResult: Awaited<
+      ReturnType<typeof memoryOptimizer.performAggressiveOptimization>
+    >;
+
     if (level === 'aggressive' || beforeStats.usagePercent > 80) {
       debug.log('🚀 극한 최적화 모드 실행');
       optimizationResult =

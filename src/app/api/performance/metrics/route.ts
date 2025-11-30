@@ -3,7 +3,7 @@
  * Provides real-time performance metrics for monitoring
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { PerformanceService } from '@/modules/performance-monitor/services/PerformanceService';
 
 export function GET(_request: NextRequest) {

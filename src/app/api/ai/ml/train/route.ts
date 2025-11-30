@@ -7,8 +7,8 @@
  * - 학습 결과 Supabase 저장
  */
 
-import crypto from 'crypto';
-import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'node:crypto';
+import { type NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
 import { createClient } from '@/lib/supabase/server';

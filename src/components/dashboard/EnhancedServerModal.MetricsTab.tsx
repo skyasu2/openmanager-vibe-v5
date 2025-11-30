@@ -10,10 +10,10 @@
  * - Responsive grid layout
  */
 import { Pause, Play } from 'lucide-react';
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { getSafeLastArrayItem } from '@/lib/utils/vercel-safe-utils';
 import { RealtimeChart } from './EnhancedServerModal.components';
-import {
+import type {
   ChartData,
   RealtimeData,
   ServerData,

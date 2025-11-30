@@ -4,7 +4,7 @@
  * 시스템 시작 시 데이터 동기화 및 백업 체크를 수행합니다
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { systemLogger } from '@/lib/logger';
 
 export async function POST(_request: NextRequest) {

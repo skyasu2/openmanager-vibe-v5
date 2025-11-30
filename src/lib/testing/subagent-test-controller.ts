@@ -6,9 +6,9 @@
  * @integration AI 워크플로우 + 기존 테스트 시스템 완전 통합
  */
 
-import { execSync } from 'child_process';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { execSync } from 'node:child_process';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type {
   AIFriendlyMetric,
   VitalsAnalysisResult,

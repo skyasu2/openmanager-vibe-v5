@@ -6,7 +6,7 @@
 
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
-import { FC } from 'react';
+import type { FC } from 'react';
 import type { TechCategory, TechItem } from '../../utils/TechStackAnalyzer';
 import { generateTechStackSummary } from '../../utils/TechStackAnalyzer';
 

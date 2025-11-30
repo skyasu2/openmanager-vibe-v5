@@ -11,7 +11,7 @@
 
 // React import 추가 - FC 타입을 위해 필요
 // framer-motion 제거 - CSS 애니메이션 사용
-import { type FC } from 'react';
+import type { FC } from 'react';
 
 export type FunctionTabType = 'qa' | 'report' | 'patterns' | 'logs' | 'context';
 

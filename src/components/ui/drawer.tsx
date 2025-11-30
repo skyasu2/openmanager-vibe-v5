@@ -1,9 +1,9 @@
 'use client';
 
 import {
-  ComponentProps,
-  ComponentPropsWithoutRef,
-  ElementRef,
+  type ComponentProps,
+  type ComponentPropsWithoutRef,
+  type ElementRef,
   forwardRef,
   type HTMLAttributes,
 } from 'react';

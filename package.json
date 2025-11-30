@@ -228,7 +228,7 @@
     "vitest": "^3.2.4"
   },
   "engines": {
-    "node": ">=22.21.1",
+    "node": ">=22.0.0 <23.0.0",
     "npm": ">=10.0.0"
   },
   "optionalDependencies": {

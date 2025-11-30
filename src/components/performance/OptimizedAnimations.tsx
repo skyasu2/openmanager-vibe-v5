@@ -7,7 +7,7 @@
 
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { CSSProperties, Fragment, useEffect, useState } from 'react';
+import { type CSSProperties, Fragment, useEffect, useState } from 'react';
 
 // 사용자 모션 설정 감지 (CSS 기반)
 const useReducedMotion = () => {

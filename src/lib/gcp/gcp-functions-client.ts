@@ -157,7 +157,7 @@ export class GCPFunctionsClient {
   async callUnifiedProcessor(
     query: string,
     processors: string[] = ['korean_nlp', 'server_analyzer']
-  ): Promise<Result<any>> {
+  ): Promise<Result<unknown>> {
     return this.callFunction('unified-ai-processor', {
       query,
       processors,

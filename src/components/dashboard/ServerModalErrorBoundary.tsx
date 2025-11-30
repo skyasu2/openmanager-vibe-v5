@@ -2,7 +2,7 @@
 
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Component, ErrorInfo } from 'react';
+import { Component, type ErrorInfo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import debug from '@/utils/debug';
 

@@ -4,7 +4,7 @@
  * - Zod 스키마로 타입 안전성 보장
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   NotificationRequestSchema,

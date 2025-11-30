@@ -10,10 +10,10 @@
  * - Real-time updates with animated indicators
  */
 import { Activity, Server as ServerIcon } from 'lucide-react';
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
 import { StatusLED } from './EnhancedServerModal.components';
-import { ServerData, StatusTheme } from './EnhancedServerModal.types';
+import type { ServerData, StatusTheme } from './EnhancedServerModal.types';
 
 // framer-motion을 동적 import로 처리
 

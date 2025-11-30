@@ -10,8 +10,8 @@
  * ✅ 리팩토링: 중복 코드 제거 - 통합 팩토리 사용
  */
 
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface DocumentEmbedding {
@@ -589,7 +589,7 @@ export class AdvancedContextManager {
     // Q&A 패턴 찾기
     const qaPattern =
       /(?:Q:|질문:|Question:)\s*(.+?)\s*(?:A:|답변:|Answer:)\s*(.+?)(?=\n\n|\nQ:|$)/g;
-    let match;
+    let match: RegExpExecArray | null;
 
     while ((match = qaPattern.exec(content)) !== null) {
       const question = match[1]?.trim() ?? '';
@@ -635,7 +635,7 @@ export class AdvancedContextManager {
     ];
 
     for (const errorPattern of errorPatterns) {
-      let match;
+      let match: RegExpExecArray | null;
       while ((match = errorPattern.pattern.exec(logDoc.content)) !== null) {
         const issue = match[1]?.trim() ?? '';
         if (!issue) continue;

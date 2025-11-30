@@ -9,7 +9,7 @@
  * - 서버 전용 (Node.js crypto 사용)
  */
 
-import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 
 /**
  * 환경변수에서 세션 시크릿 가져오기

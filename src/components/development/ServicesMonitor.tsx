@@ -102,7 +102,7 @@ export function ServicesMonitor({
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const text = await response.text();
-      let data;
+      let data: ServicesStatusResponse;
       try {
         data = JSON.parse(text);
       } catch (parseError) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { type FC } from 'react';
+import type { FC } from 'react';
 /**
  * ⚙️ Enhanced Server Modal Processes Tab
  *
@@ -10,7 +10,7 @@ import { type FC } from 'react';
  * - Color-coded usage indicators
  * - Responsive table layout with smooth animations
  */
-import { ProcessData, RealtimeData } from './EnhancedServerModal.types';
+import type { ProcessData, RealtimeData } from './EnhancedServerModal.types';
 
 /**
  * Processes Tab Props

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import type React from 'react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { AI_GRADIENT_STYLE } from '@/styles/design-constants';
 

@@ -2,7 +2,8 @@
  * 🔍 디버깅용 에러 바운더리 - 15개 TypeError 원인 추적
  * 각 서버 카드 컴포넌트를 개별 래핑하여 정확한 에러 발생 지점 식별
  */
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import type React from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;

@@ -8,7 +8,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { lazy, ReactNode, Suspense } from 'react';
+import { lazy, type ReactNode, Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 // React Query DevTools 동적 로드 (개발 환경에서만)

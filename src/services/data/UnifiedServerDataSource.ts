@@ -6,7 +6,10 @@
 
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';
 // 🎯 Scenario-based failure data (Single Source of Truth)
-import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
+import {
+  type EnhancedServerMetrics,
+  loadHourlyScenarioData,
+} from '@/services/scenario/scenario-loader';
 import type { Server, ServerEnvironment, ServerRole } from '@/types/server';
 
 export interface ServerDataSourceConfig {
@@ -175,7 +178,7 @@ export class UnifiedServerDataSource {
     const scenarioMetrics = await loadHourlyScenarioData();
 
     // EnhancedServerMetrics[] → Server[] 변환
-    const servers: Server[] = scenarioMetrics.map((metric: any) => ({
+    const servers: Server[] = scenarioMetrics.map((metric: EnhancedServerMetrics) => ({
       id: metric.id,
       name: metric.name,
       hostname: metric.hostname,

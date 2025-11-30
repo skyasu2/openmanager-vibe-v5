@@ -4,7 +4,7 @@
  * 시스템 초기화 엔드포인트를 호출하여 시스템을 시작합니다
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { systemLogger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {

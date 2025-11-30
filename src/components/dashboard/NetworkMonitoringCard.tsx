@@ -14,7 +14,7 @@ import {
   Wifi,
   WifiOff,
 } from 'lucide-react';
-import { ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // 🎯 Bundle-Safe Inline 매크로 - getSafe 함수들 (압축 방지)

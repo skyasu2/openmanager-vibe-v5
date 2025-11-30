@@ -25,7 +25,7 @@ import {
   Trash2,
   XCircle,
 } from 'lucide-react';
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { type FC, useCallback, useEffect, useRef, useState } from 'react';
 
 interface LogEntry {
   id: string;

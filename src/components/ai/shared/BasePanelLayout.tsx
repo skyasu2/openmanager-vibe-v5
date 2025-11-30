@@ -11,7 +11,7 @@
 // framer-motion 제거 - CSS 애니메이션 사용
 import { ExternalLink, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
-import { FC, ReactNode } from 'react';
+import type { FC, ReactNode } from 'react';
 
 interface FilterItem {
   id: string;

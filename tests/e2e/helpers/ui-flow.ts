@@ -5,7 +5,7 @@
  * @file tests/e2e/helpers/ui-flow.ts
  */
 
-import { expect, Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { TIMEOUTS } from './timeouts';
 
 const DASHBOARD_ROUTE_REGEX = /\/(dashboard|main)(\/|\?|$)/;

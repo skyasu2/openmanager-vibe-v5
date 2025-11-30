@@ -9,7 +9,7 @@
  * - 자동 스케일링 권장사항
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
 

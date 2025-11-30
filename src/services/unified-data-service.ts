@@ -74,7 +74,7 @@ export class UnifiedDataService {
       const data = await response.json();
 
       // 2단계: AI 메타데이터 생성 (요청 시에만)
-      let aiContext;
+      let aiContext: UnifiedDataResponse['aiContext'];
       if (includeAIMetadata && data.servers && data.servers.length > 0) {
         aiContext = await this.generateAIContext(data.servers, data.source);
       }
@@ -128,7 +128,7 @@ export class UnifiedDataService {
     }
 
     // AI 분석 순수성을 위한 숨겨진 인사이트 (선택적)
-    let hiddenInsights;
+    let hiddenInsights: NonNullable<UnifiedDataResponse['aiContext']>['hiddenInsights'];
     if (criticalServers.length > 0 || warningServers.length > 2) {
       hiddenInsights = {
         incidentType: this.inferIncidentType(servers, currentHour),

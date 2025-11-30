@@ -5,14 +5,14 @@
  * SystemWatchdog와의 직접 의존성을 제거하고 이벤트 기반 통신 사용
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { systemLogger } from '../../lib/logger';
 import {
-  ISystemEventBus,
-  ISystemEventEmitter,
-  ProcessEventPayload,
+  type ISystemEventBus,
+  type ISystemEventEmitter,
+  type ProcessEventPayload,
   SystemEventType,
-  SystemStatusPayload,
+  type SystemStatusPayload,
 } from '../interfaces/SystemEventBus';
 
 export interface ProcessConfig {

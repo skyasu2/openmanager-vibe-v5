@@ -1,5 +1,5 @@
-import { timingSafeEqual } from 'crypto';
-import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'node:crypto';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getServerGuestMode } from '@/config/guestMode.server';
 import { developmentOnly } from '@/lib/api/development-only';
 

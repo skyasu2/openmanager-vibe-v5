@@ -5,7 +5,7 @@
  * 토큰은 쿠키로 설정되며, 클라이언트는 이후 API 요청 시 헤더에 포함시킵니다.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { setupCSRFProtection } from '@/utils/security/csrf';
 
 export function GET(_request: NextRequest) {

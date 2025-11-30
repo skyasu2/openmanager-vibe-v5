@@ -6,7 +6,7 @@
  * - Common UI elements and visualizations
  */
 
-import { type FC } from 'react';
+import type { FC } from 'react';
 
 // 🎯 Bundle-Safe Inline 매크로 - getSafe 함수들 (압축 방지)
 const getSafeArrayLength = (arr: unknown): number => {

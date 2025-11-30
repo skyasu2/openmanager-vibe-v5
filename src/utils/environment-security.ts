@@ -447,7 +447,7 @@ export class EnvironmentSecurityScanner {
     const violations: string[] = [];
     const envVarPattern = /process\.env\.([A-Z_]+)/g;
 
-    let match;
+    let match: RegExpExecArray | null;
     while ((match = envVarPattern.exec(clientCode)) !== null) {
       const varName = match[1];
       if (

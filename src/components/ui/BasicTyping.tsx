@@ -11,7 +11,7 @@
 'use client';
 
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
-import { FC } from 'react';
+import type { FC } from 'react';
 
 interface BasicTypingProps {
   text: string;

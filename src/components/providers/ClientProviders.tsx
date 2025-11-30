@@ -7,7 +7,7 @@
 
 'use client';
 
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 // 🚀 Vercel 호환 접근성 Provider 추가
 import { AccessibilityProvider } from '@/context/AccessibilityProvider';
 import QueryProvider from './QueryProvider';

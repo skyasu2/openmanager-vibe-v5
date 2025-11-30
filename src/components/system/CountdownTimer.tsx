@@ -13,7 +13,7 @@
  */
 
 import { AlertCircle, AlertTriangle, Clock } from 'lucide-react';
-import { FC, useCallback, useEffect, useState } from 'react';
+import { type FC, useCallback, useEffect, useState } from 'react';
 
 interface CountdownTimerProps {
   endTime: number; // 종료 시간 (Unix timestamp)

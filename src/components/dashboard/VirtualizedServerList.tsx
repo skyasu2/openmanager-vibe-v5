@@ -56,7 +56,7 @@ export default function VirtualizedServerList({
     const serverId = server.id || `server-${index}`;
     const serverName = server.name || `서버-${index + 1}`;
 
-    let safeServerData;
+    let safeServerData: Server;
     try {
       const safeStatus: ServerStatus = (() => {
         const status = server.status;

@@ -7,10 +7,10 @@
 
 import { systemLogger } from '../../lib/logger';
 import {
-  ISystemEventBus,
+  type ISystemEventBus,
   SystemEventType,
-  SystemStatusPayload,
-  WatchdogEventPayload,
+  type SystemStatusPayload,
+  type WatchdogEventPayload,
 } from '../interfaces/SystemEventBus';
 
 export interface SystemMetrics {

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getApiConfig, getSystemConfig } from '@/config/SystemConfiguration';
 import { withAuth } from '@/lib/auth/api-auth';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';

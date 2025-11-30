@@ -10,7 +10,8 @@
 
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import type React from 'react';
+import { useCallback, useMemo } from 'react';
 import { useAccessibility } from '../../context/AccessibilityProvider';
 
 // 🌐 한국어 ARIA 레이블 사전

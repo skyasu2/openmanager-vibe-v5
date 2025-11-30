@@ -8,7 +8,7 @@
  * - Tab navigation types
  */
 
-import { ComponentType } from 'react';
+import type { ComponentType } from 'react';
 import type { ServerStatus } from '@/types/server-enums'; // 🔧 수정: Single Source of Truth
 
 // 🔧 수정: re-export 제거, 직접 사용

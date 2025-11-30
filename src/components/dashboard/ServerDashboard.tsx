@@ -321,7 +321,7 @@ export default function ServerDashboard({
                     const serverName = server.name || `서버-${index + 1}`;
 
                     // 🛡️ Gemini 권장: 안전한 서버 데이터 매핑 (과도한 방어 → 최적화된 방어)
-                    let safeServerData;
+                    let safeServerData: Server;
                     try {
                       // 🎯 Codex 권장: 안전한 상태 타입 캐스팅
                       const safeStatus: ServerStatus = (() => {

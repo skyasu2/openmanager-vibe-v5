@@ -44,12 +44,11 @@ export function blockInProduction(): NextResponse | null {
  * });
  * ```
  */
-export function developmentOnly<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  T extends (...args: any[]) => any,
->(handler: T): T {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return ((...args: any[]) => {
+// biome-ignore lint/suspicious/noExplicitAny: Generic wrapper for API route handlers requires flexible typing
+export function developmentOnly<T extends (...args: any[]) => any>(
+  handler: T
+): T {
+  return ((...args: Parameters<T>) => {
     const blockResponse = blockInProduction();
     if (blockResponse) {
       return blockResponse;

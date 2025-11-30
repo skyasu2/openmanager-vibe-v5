@@ -3,11 +3,11 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import { getMockSystem } from '@/mock';
 // server-details.schema에서 직접 import (올바른 구조를 위해)
-import {
-  type ServerHistory,
-  type ServerHistoryDataPoint,
-  type ServerService,
-  type ServerSpecs,
+import type {
+  ServerHistory,
+  ServerHistoryDataPoint,
+  ServerService,
+  ServerSpecs,
 } from '@/schemas/server-schemas/server-details.schema';
 import debug from '@/utils/debug';
 
@@ -231,8 +231,8 @@ export const GET = withAuth(
         };
 
         // 패턴 정보 포함 (요청시) - Supabase에서는 패턴 정보를 별도 처리
-        let patternInfo;
-        let correlationMetrics;
+        let patternInfo: unknown;
+        let correlationMetrics: unknown;
         if (includePatterns) {
           // Supabase에서 패턴 정보를 별도 쿼리로 가져올 수 있음
           // 현재는 기본값으로 설정

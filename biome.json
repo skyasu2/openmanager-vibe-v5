@@ -3,7 +3,8 @@
   "vcs": {
     "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": true
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
   },
   "files": {
     "ignoreUnknown": false,
@@ -24,6 +25,7 @@
       "!**/scripts",
       "!**/config",
       "!**/docs",
+      "!**/archive",
       "!**/*.min.js",
       "!**/*.d.ts",
       "!**/*.css"
@@ -53,20 +55,20 @@
       "style": {
         "noNonNullAssertion": "off",
         "useConst": "warn",
-        "useImportType": "off"
+        "useImportType": "warn"
       },
       "complexity": {
         "noUselessSwitchCase": "warn",
         "useOptionalChain": "warn"
       },
       "suspicious": {
-        "noExplicitAny": "off",
+        "noExplicitAny": "warn",
         "noArrayIndexKey": "off",
         "noConsole": { "level": "off", "options": { "allow": ["log"] } },
-        "noImplicitAnyLet": "off",
+        "noImplicitAnyLet": "warn",
         "noDocumentCookie": "off",
         "noAssignInExpressions": "off",
-        "noShadowRestrictedNames": "off"
+        "noShadowRestrictedNames": "warn"
       },
       "a11y": {
         "useButtonType": "off",
@@ -94,5 +96,45 @@
     "formatter": {
       "trailingCommas": "none"
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "src/**",
+        "!src/**/__tests__/**",
+        "!src/**/*.test.ts",
+        "!src/**/*.test.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "error",
+            "noImplicitAnyLet": "error"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["tests/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "warn",
+            "noImplicitAnyLet": "warn"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/polyfills.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off",
+            "noImplicitAnyLet": "off"
+          }
+        }
+      }
+    }
+  ]
 }

@@ -12,9 +12,10 @@
 
 'use client';
 
-import React, {
+import type React from 'react';
+import {
   createContext,
-  ReactNode,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,

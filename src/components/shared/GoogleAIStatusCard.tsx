@@ -16,7 +16,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import { FC, useState } from 'react';
+import { type FC, useState } from 'react';
 import { useGoogleAIStatus } from '@/hooks/api/useGoogleAIStatus';
 
 interface GoogleAIStatusCardProps {

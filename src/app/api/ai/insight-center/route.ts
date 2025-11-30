@@ -12,7 +12,7 @@
  * Modules: 8 specialized modules for improved maintainability
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
 import {

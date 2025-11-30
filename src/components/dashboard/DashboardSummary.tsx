@@ -10,7 +10,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import React from 'react';
-import { Server } from '@/types/server';
+import type { Server } from '@/types/server';
 
 interface DashboardSummaryProps {
   servers: Server[];

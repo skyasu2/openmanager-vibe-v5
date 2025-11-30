@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useChat } from '@ai-sdk/react';
@@ -10,7 +9,7 @@ import { useUserPermissions } from '@/hooks/useUserPermissions';
 import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '../../../components/ai/AIAssistantIconPanel';
 import ThinkingProcessVisualizer from '../../../components/ai/ThinkingProcessVisualizer';
-import { EnhancedChatMessage } from '../../../stores/useAISidebarStore';
+import type { EnhancedChatMessage } from '../../../stores/useAISidebarStore';
 // Types
 import type {
   AISidebarV3Props,
@@ -148,26 +147,41 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
 
   // Map Vercel messages to EnhancedChatMessage
   const enhancedMessages = useMemo(() => {
-    return messages.map(
-      (m: any): EnhancedChatMessage => ({
-        id: m.id,
-        role: m.role,
-        content:
-          m.content || m.parts?.find((p: any) => p.type === 'text')?.text || '',
-        timestamp: m.createdAt || new Date(),
-        isStreaming: isLoading && m.id === messages[messages.length - 1]?.id,
-        thinkingSteps: m.toolInvocations?.map((t: any) => ({
-          id: t.toolCallId,
-          step: t.toolName,
-          status: t.state === 'result' ? 'completed' : 'processing',
-          description:
-            t.state === 'result'
-              ? `Completed: ${JSON.stringify(t.result)}`
-              : `Executing ${t.toolName}...`,
-          timestamp: new Date(),
-        })),
-      })
-    );
+    return messages
+      .filter((m) => m.role !== 'data') // Filter out data messages
+      .map(
+        (m): EnhancedChatMessage => ({
+          id: m.id,
+          role: m.role as 'user' | 'assistant' | 'system' | 'thinking',
+          content:
+            m.content ||
+            (
+              m.parts as Array<{ type: string; text?: string }> | undefined
+            )?.find((p) => p.type === 'text')?.text ||
+            '',
+          timestamp: m.createdAt || new Date(),
+          isStreaming: isLoading && m.id === messages[messages.length - 1]?.id,
+          thinkingSteps: (
+            m.toolInvocations as
+              | Array<{
+                  toolCallId: string;
+                  toolName: string;
+                  state: string;
+                  result?: unknown;
+                }>
+              | undefined
+          )?.map((t) => ({
+            id: t.toolCallId,
+            step: t.toolName,
+            status: t.state === 'result' ? 'completed' : 'processing',
+            description:
+              t.state === 'result'
+                ? `Completed: ${JSON.stringify(t.result)}`
+                : `Executing ${t.toolName}...`,
+            timestamp: new Date(),
+          })),
+        })
+      );
   }, [messages, isLoading]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -207,12 +221,16 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           inputValue={input}
           setInputValue={(val) => {
             // Simulate event for handleInputChange
-            const event = { target: { value: val } } as any;
+            const event = {
+              target: { value: val },
+            } as React.ChangeEvent<HTMLInputElement>;
             handleInputChange(event);
           }}
           handleSendInput={() => {
             // Simulate event for handleSubmit
-            const event = { preventDefault: () => {} } as any;
+            const event = {
+              preventDefault: () => {},
+            } as React.FormEvent<HTMLFormElement>;
             void handleSubmit(event); // void operator to ignore Promise return
           }}
           isGenerating={isLoading}

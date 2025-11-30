@@ -22,7 +22,7 @@ import {
   Target,
   Zap,
 } from 'lucide-react';
-import { createElement, FC, useCallback, useState } from 'react';
+import { createElement, type FC, useCallback, useState } from 'react';
 
 // AnomalyDetection 제거 - 클라이언트에서 Redis 사용 불가
 // IncidentReportService 제거 - 클라이언트에서 Redis 사용 불가

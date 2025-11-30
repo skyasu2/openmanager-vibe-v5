@@ -426,21 +426,16 @@ export async function POST(request: NextRequest) {
     );
 
     const systemStateManager = getSystemStateManager();
-    let systemState;
+    let systemState: SystemState;
 
-    switch (action) {
-      case 'start':
-        systemState = await systemStateManager.startSystem(userId);
-        debug.log(`🚀 메모리 기반 시스템 시작됨 - 30분 타이머 활성화`);
-        break;
-
-      case 'stop':
-        systemState = await systemStateManager.stopSystem(userId);
-        debug.log(`🛑 메모리 기반 시스템 중지됨`);
-        break;
-
-      default:
-        throw new Error(`지원하지 않는 액션: ${action}`);
+    if (action === 'start') {
+      debug.log(`🚀 메모리 기반 시스템 시작됨 - 30분 타이머 활성화`);
+      systemState = await systemStateManager.startSystem(userId);
+    } else if (action === 'stop') {
+      debug.log(`🛑 메모리 기반 시스템 중지됨`);
+      systemState = await systemStateManager.stopSystem(userId);
+    } else {
+      throw new Error(`지원하지 않는 액션: ${action}`);
     }
 
     // 응답 데이터 구성

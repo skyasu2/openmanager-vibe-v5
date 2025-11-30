@@ -1,6 +1,6 @@
 'use client';
 
-import { type FC } from 'react';
+import type { FC } from 'react';
 /**
  * 📋 Enhanced Server Modal Logs Tab
  *
@@ -10,7 +10,11 @@ import { type FC } from 'react';
  * - Smooth animations for log entries
  * - Log level indicators and timestamp formatting
  */
-import { LogEntry, LogLevel, RealtimeData } from './EnhancedServerModal.types';
+import type {
+  LogEntry,
+  LogLevel,
+  RealtimeData,
+} from './EnhancedServerModal.types';
 
 /**
  * Logs Tab Props

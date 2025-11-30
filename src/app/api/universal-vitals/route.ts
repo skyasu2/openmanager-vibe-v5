@@ -6,11 +6,11 @@
  * @features 실시간 수집, 자동 분석, 성능 회귀 감지, 권장사항 제공
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import {
   UNIVERSAL_THRESHOLDS,
-  UniversalVital,
-  VitalCategory,
+  type UniversalVital,
+  type VitalCategory,
 } from '@/lib/testing/universal-vitals';
 
 // ⚡ Edge Runtime으로 전환 - 빠른 메트릭 처리

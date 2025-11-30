@@ -7,7 +7,7 @@
  * - Mock 시스템 기반 서버 데이터 활용
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   getCacheService,

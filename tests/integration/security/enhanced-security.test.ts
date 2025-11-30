@@ -17,7 +17,7 @@ import { createClient } from '@supabase/supabase-js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getSecurityService,
-  SecurityService,
+  type SecurityService,
 } from '@/services/security/SecurityService';
 import {
   EnvironmentSecurityScanner,

@@ -6,7 +6,7 @@
 
 'use client';
 
-import { type FC } from 'react';
+import type { FC } from 'react';
 
 export const TimerDebugPanel: FC = () => {
   // 타이머 디버그 패널 제거됨 (웹 알람 삭제에 따라)

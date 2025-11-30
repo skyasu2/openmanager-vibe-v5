@@ -82,7 +82,7 @@ export class MockScenarioManager {
     const { getGCPFunctionsClient } = await import(
       '@/lib/gcp/gcp-functions-client'
     );
-    const client = getGCPFunctionsClient() as any;
+    const client = getGCPFunctionsClient();
 
     let scenarios: KoreanNLPScenario[] = [];
 

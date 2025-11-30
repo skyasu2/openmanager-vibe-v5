@@ -18,8 +18,8 @@ import debug from '@/utils/debug';
 interface UnifiedQueryResponse {
   success: boolean;
   response?: string;
-  metadata?: any;
-  [key: string]: any;
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 interface Message {

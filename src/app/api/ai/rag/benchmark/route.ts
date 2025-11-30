@@ -4,7 +4,7 @@
  * pgvector 네이티브 vs 클라이언트 사이드 성능 비교
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import { createClient } from '@/lib/supabase/server';
 import { embeddingService } from '@/services/ai/embedding-service';

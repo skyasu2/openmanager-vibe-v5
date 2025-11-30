@@ -27,7 +27,7 @@ export function parseTechString(techString: string): string[] {
 
   // 각 패턴으로 기술명 추출
   patterns.forEach((pattern) => {
-    let match;
+    let match: RegExpExecArray | null;
     while ((match = pattern.exec(techString)) !== null) {
       const tech = match[1]?.trim().toLowerCase();
       if (!tech) continue;

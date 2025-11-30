@@ -23,7 +23,7 @@ import {
   Database,
   XCircle,
 } from 'lucide-react';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 
 interface SystemEvent {

@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { simulationEngine } from '../../services/simulationEngine';
 import { vercelStatusService } from '../../services/vercelStatusService';
 

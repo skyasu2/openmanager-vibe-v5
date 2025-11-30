@@ -7,7 +7,7 @@
  * - Vercel 배포 환경 최적화
  */
 
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 
 export interface EncryptedEnvData {
   encrypted: string;

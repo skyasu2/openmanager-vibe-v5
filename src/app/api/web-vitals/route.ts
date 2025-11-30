@@ -11,7 +11,7 @@
  * Edge Runtime으로 글로벌 배포 및 초저지연 수집
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 // ⚡ Edge Runtime으로 전환 - 무료 티어 친화적 최적화
 export const runtime = 'edge';

@@ -1,6 +1,6 @@
 'use client';
 
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { RealtimeChart } from './EnhancedServerModal.components';
 /**
  * 🌐 Enhanced Server Modal Network Tab
@@ -12,7 +12,7 @@ import { RealtimeChart } from './EnhancedServerModal.components';
  * - SVG-based traffic flow charts with gradients
  * - Server connection details and specifications
  */
-import {
+import type {
   NetworkData,
   NetworkStatus,
   RealtimeData,
