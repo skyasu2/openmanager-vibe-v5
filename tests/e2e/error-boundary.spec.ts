@@ -4,39 +4,25 @@
  * 에러 페이지, 404, 인증 에러 등의 에러 처리 테스트
  */
 
-import { expect, type Page, test } from '@playwright/test';
-
-const SECURITY_CHECKPOINT_TITLE = 'Vercel Security Checkpoint';
-
-async function isSecurityCheckpoint(page: Page) {
-  try {
-    const title = await page.title();
-    return title.includes(SECURITY_CHECKPOINT_TITLE);
-  } catch {
-    return false;
-  }
-}
+import { expect, test } from '@playwright/test';
+import {
+  skipIfSecurityBlocked,
+  skipIfSecurityCheckpoint,
+} from './helpers/security';
 
 test.describe('에러 바운더리 테스트', () => {
   test.describe('404 Not Found 페이지', () => {
     test('존재하지 않는 페이지에서 404 응답', async ({ page }) => {
       const response = await page.request.get('/this-page-does-not-exist-12345');
 
-      if (response.status() === 403) {
-        console.log('⚠️ Vercel Security Checkpoint로 차단됨 - 건너뜀');
-        return;
-      }
+      if (skipIfSecurityBlocked(response.status())) return;
 
       expect(response.status()).toBe(404);
     });
 
     test('404 페이지가 사용자 친화적 메시지를 표시한다', async ({ page }) => {
       await page.goto('/this-page-does-not-exist-12345');
-
-      if (await isSecurityCheckpoint(page)) {
-        console.log('⚠️ Vercel Security Checkpoint 감지 - 건너뜀');
-        return;
-      }
+      await skipIfSecurityCheckpoint(page);
 
       // 페이지가 렌더링되었는지 확인
       await page.waitForLoadState('networkidle');
@@ -46,11 +32,7 @@ test.describe('에러 바운더리 테스트', () => {
 
     test('404 페이지에서 홈으로 이동 가능', async ({ page }) => {
       await page.goto('/this-page-does-not-exist-12345');
-
-      if (await isSecurityCheckpoint(page)) {
-        console.log('⚠️ Vercel Security Checkpoint 감지 - 건너뜀');
-        return;
-      }
+      await skipIfSecurityCheckpoint(page);
 
       await page.waitForLoadState('networkidle');
 
@@ -66,22 +48,14 @@ test.describe('에러 바운더리 테스트', () => {
   test.describe('인증 에러 페이지', () => {
     test('인증 에러 페이지가 로드된다', async ({ page }) => {
       await page.goto('/auth/error');
-
-      if (await isSecurityCheckpoint(page)) {
-        console.log('⚠️ Vercel Security Checkpoint 감지 - 건너뜀');
-        return;
-      }
+      await skipIfSecurityCheckpoint(page);
 
       await expect(page).toHaveTitle(/OpenManager/);
     });
 
     test('인증 에러 페이지에 에러 메시지가 표시된다', async ({ page }) => {
       await page.goto('/auth/error?error=access_denied');
-
-      if (await isSecurityCheckpoint(page)) {
-        console.log('⚠️ Vercel Security Checkpoint 감지 - 건너뜀');
-        return;
-      }
+      await skipIfSecurityCheckpoint(page);
 
       await page.waitForLoadState('networkidle');
 
@@ -92,11 +66,7 @@ test.describe('에러 바운더리 테스트', () => {
 
     test('인증 에러 페이지에서 로그인으로 돌아갈 수 있다', async ({ page }) => {
       await page.goto('/auth/error');
-
-      if (await isSecurityCheckpoint(page)) {
-        console.log('⚠️ Vercel Security Checkpoint 감지 - 건너뜀');
-        return;
-      }
+      await skipIfSecurityCheckpoint(page);
 
       await page.waitForLoadState('networkidle');
 
@@ -113,10 +83,7 @@ test.describe('에러 바운더리 테스트', () => {
     test('잘못된 API 경로는 404를 반환한다', async ({ page }) => {
       const response = await page.request.get('/api/this-api-does-not-exist');
 
-      if (response.status() === 403) {
-        console.log('⚠️ Vercel Security Checkpoint로 차단됨 - 건너뜀');
-        return;
-      }
+      if (skipIfSecurityBlocked(response.status())) return;
 
       expect(response.status()).toBe(404);
     });
@@ -141,10 +108,7 @@ test.describe('에러 바운더리 테스트', () => {
         data: JSON.stringify({}), // 빈 요청
       });
 
-      if (response.status() === 403) {
-        console.log('⚠️ Vercel Security Checkpoint로 차단됨 - 건너뜀');
-        return;
-      }
+      if (skipIfSecurityBlocked(response.status())) return;
 
       // 빈 요청에 대해 400 또는 다른 에러 응답 예상
       expect([400, 401, 422, 500]).toContain(response.status());
@@ -205,21 +169,13 @@ test.describe('에러 바운더리 테스트', () => {
     test('에러 후 정상 페이지로 네비게이션 가능', async ({ page }) => {
       // 에러 페이지 방문
       await page.goto('/this-page-does-not-exist-12345');
-
-      if (await isSecurityCheckpoint(page)) {
-        console.log('⚠️ Vercel Security Checkpoint 감지 - 건너뜀');
-        return;
-      }
+      await skipIfSecurityCheckpoint(page);
 
       await page.waitForLoadState('networkidle');
 
       // 정상 페이지로 이동
       await page.goto('/login');
-
-      if (await isSecurityCheckpoint(page)) {
-        console.log('⚠️ Vercel Security Checkpoint 감지 - 건너뜀');
-        return;
-      }
+      await skipIfSecurityCheckpoint(page);
 
       await expect(page).toHaveTitle(/OpenManager/);
       await expect(page.locator('h1')).toBeVisible();
