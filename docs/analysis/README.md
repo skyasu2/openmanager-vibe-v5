@@ -1,31 +1,42 @@
-# Analysis 디렉터리
-
-**목적**: AI 엔진, 성능, 아키텍처 분석 보고서
-
-**파일 수**: 14개
-**용량**: 164K
-
+#---
+category: analysis
+purpose: technical_analysis_and_reports
+ai_optimized: true
+query_triggers:
+  - '기술 분석'
+  - '최적화 보고서'
+  - '아키텍처 검토'
+related_docs:
+  - 'docs/archive/README.md'
+last_updated: '2025-12-01'
 ---
 
-## 📊 주요 분석 보고서
+# 📊 분석 및 보고서 (Analysis)
 
-### AI 엔진 분석
+프로젝트의 주요 기술적 의사결정과 최적화 과정을 기록한 문서들입니다.
 
-- `AI-ENGINE-OPTIMIZATION-2025-11-20.md` - AI 엔진 최적화 분석
-- `ai-engine-refactoring-analysis-2025-11-22.md` - 리팩토링 분석
-- `ai-improvements-summary-2025-11-23.md` - 개선 사항 요약
-- `ai-sidebar-analysis-2025-11-20.md` - AI 사이드바 분석
+> **ℹ️ 참고**: 오래된 분석 보고서는 `docs/archive/`로 이동되었습니다.
 
-### GCP & 성능 분석
+## 📚 주요 문서
 
-- `gcp-functions-analysis-2025-11-22.md` - GCP Functions 분석
-- `idle-computing-analysis-2025-11-21.md` - 유휴 컴퓨팅 분석
-- `idle-computing-optimization-complete.md` - 최적화 완료 보고서
+- **[FEATURE-CARDS-REVIEW.md](./FEATURE-CARDS-REVIEW.md)**: 기능 카드 컴포넌트 리뷰
+- **[ai-sidebar-analysis.md](./ai-sidebar-analysis.md)**: AI 사이드바 구조 분석
+- **[gcp-functions-status.md](./gcp-functions-status.md)**: GCP Functions 현황
+- **[ui-ux-analysis.md](./ui-ux-analysis.md)**: UI/UX 분석 보고서
 
-### Feature Cards
+## 🔍 분석 카테고리
 
-- `FEATURE-CARDS-REVIEW.md` - Feature Cards 리뷰
-- `FEATURE-CARDS-UPDATE-SUMMARY.md` - 업데이트 요약
+### AI 엔진 & 최적화
+- AI 모델 성능 비교 및 최적화 전략
+- 토큰 사용량 및 비용 분석
+
+### 시스템 아키텍처
+- 컴포넌트 상호작용 분석
+- 사이드 이펙트 분석
+
+### UI/UX
+- 사용자 경험 개선 제안
+- 디자인 시스템 분석
 
 ---
 

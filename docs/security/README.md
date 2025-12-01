@@ -7,10 +7,11 @@ query_triggers:
   - 'API Keys'
   - 'Authentication'
   - 'Secrets Management'
+  - 'RLS'
 related_docs:
   - 'docs/architecture/SYSTEM-ARCHITECTURE-REVIEW.md'
   - 'docs/deploy/vercel.md'
-last_updated: '2025-11-20'
+last_updated: '2025-12-01'
 ---
 
 # 🔒 Security Guidelines
@@ -22,6 +23,21 @@ This document outlines key security principles and best practices for the OpenMa
 1.  **Principle of Least Privilege**: Services and users should only have the minimum permissions required to perform their functions.
 2.  **Defense in Depth**: Employ multiple layers of security controls.
 3.  **Secure by Default**: Configure systems to be secure out-of-the-box.
+
+## 🛡️ Data Security (RLS)
+
+### Row Level Security (RLS)
+
+All tables in Supabase must have RLS enabled.
+
+- **Public Access**: Disabled by default.
+- **Authenticated Access**: Users can only access their own data (`auth.uid() = user_id`).
+- **Service Role**: Only used in secure server-side contexts (Edge Functions) for admin tasks.
+
+### Authentication
+
+- **Supabase Auth**: Handles all user authentication (JWT).
+- **Next.js Middleware**: Protects routes (`/dashboard/*`) by verifying the session before rendering.
 
 ## Secrets Management
 

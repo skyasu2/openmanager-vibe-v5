@@ -54,40 +54,6 @@
 
 ## 📂 주요 디렉터리 (11개)
 
-각 디렉터리의 README.md를 통해 상세 문서 목록과 설명을 확인하세요.
-
-### 🏗️ 시스템 & 아키텍처
-
-| 디렉터리          | 설명                          | README                                |
-| ----------------- | ----------------------------- | ------------------------------------- |
-| **architecture/** | 시스템 아키텍처, API 설계, DB | [README](./architecture/README.md) ⭐ |
-| **design/**       | 설계 문서, ADR                | [README](./design/README.md)          |
-| **performance/**  | 성능 최적화                   | [README](./performance/README.md)     |
-
-### 🤖 AI & 개발
-
-| 디렉터리         | 설명                                   | README                               |
-| ---------------- | -------------------------------------- | ------------------------------------ |
-| **ai/**          | AI 시스템, 서브에이전트, GCP Functions | [README](./ai/README.md) ⭐          |
-| **development/** | 개발 환경, MCP, Playwright             | [README](./development/README.md) ⭐ |
-| **testing/**     | 테스트 전략, E2E, Vitest               | [README](./testing/README.md) ⭐     |
-
-### 🚀 운영 & 보안
-
-| 디렉터리             | 설명                      | README                                |
-| -------------------- | ------------------------- | ------------------------------------- |
-| **deploy/**          | 배포 가이드 (Vercel, GCP) | [README](./deploy/README.md)          |
-| **security/**        | 보안 정책, 취약점         | [README](./security/README.md)        |
-| **troubleshooting/** | 문제 해결 가이드          | [README](./troubleshooting/README.md) |
-
-### 📊 분석 & 기획
-
-| 디렉터리      | 설명               | README                         |
-| ------------- | ------------------ | ------------------------------ |
-| **analysis/** | 분석 보고서 (14개) | [README](./analysis/README.md) |
-| **planning/** | 기획 문서          | [README](./planning/README.md) |
-| **specs/**    | 기술 스펙          | -                              |
-| **guides/**   | 개발 가이드        | [README](./guides/README.md)   |
 
 ### 📦 기타
 

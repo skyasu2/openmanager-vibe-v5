@@ -61,33 +61,39 @@ core/
 - **warnings.md** - 배포 주의사항
 
 ---
-
-## 🏗️ 시스템 (architecture/)
-
-**시스템 아키텍처 전체 구조**
-
-- SYSTEM-ARCHITECTURE-CURRENT.md - v5.80.0 전체 구조
-- TECH-STACK-DETAILED.md - 기술 스택 상세
-- api/ - API 설계
-- decisions/ - ADR
-
+category: core
+purpose: core_system_documentation
+ai_optimized: true
+query_triggers:
+  - '핵심 아키텍처'
+  - '시스템 구조'
+  - '보안 정책'
+related_docs:
+  - 'docs/architecture/WEB_ARCHITECTURE.md'
+  - 'docs/architecture/BACKEND_ARCHITECTURE.md'
+last_updated: '2025-12-01'
 ---
 
-## 🔒 보안 & 성능
+# 🧩 Core Documentation
 
-### security/
+프로젝트의 핵심 아키텍처, 보안, 성능 표준을 정의하는 문서입니다.
 
-- 보안 정책 및 취약점 관리
+## 📚 주요 문서
 
-### performance/
+### Architecture
+- **[Web Architecture](../architecture/WEB_ARCHITECTURE.md)**: 프론트엔드 구조
+- **[Backend Architecture](../architecture/BACKEND_ARCHITECTURE.md)**: 백엔드 및 서비스 레이어
+- **[AI Engine Architecture](../architecture/AI_ENGINE_ARCHITECTURE.md)**: AI 엔진 구조
 
-- 성능 최적화 전략
+### Security
+- **[Security Guidelines](../security/README.md)**: 보안 가이드라인 (RLS, Auth)
 
-### monitoring/
+### Performance
+- **[Performance Standards](./performance/README.md)**: 성능 목표 및 측정 표준
 
-- 시스템 모니터링
+## 🔍 디렉터리 구조
 
----
-
-**Last Updated**: 2025-11-27
-**용도**: 메인 프로젝트 (배포/운영)
+- `architecture/`: 시스템 설계 및 구조
+- `security/`: 보안 정책 및 가이드
+- `performance/`: 성능 최적화 및 기준
+- `platforms/`: 플랫폼별 설정 (Vercel, Supabase, GCP)(배포/운영)

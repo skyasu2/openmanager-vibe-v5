@@ -11,7 +11,7 @@ related_docs:
   - 'docs/testing/testing-philosophy-detailed.md'
   - 'docs/testing/vitest-playwright-config-guide.md'
   - 'docs/testing/test-strategy-guide.md'
-last_updated: '2025-11-27'
+last_updated: '2025-12-01'
 ---
 
 # 🧪 OpenManager VIBE 테스트 시스템 가이드
@@ -23,7 +23,7 @@ last_updated: '2025-11-27'
 
 **클라우드 네이티브 환경을 위한 실용적 테스트 전략**
 
-## 📊 현재 상태 (2025-11-27 업데이트)
+## 📊 현재 상태 (2025-12-01 업데이트)
 
 **전체 현황**: ✅ 639/719 통과 (88.9%) | 20개 Skip | 평균 실행 시간 36초 | TypeScript 0 오류
 
@@ -34,24 +34,23 @@ last_updated: '2025-11-27'
 - **E2E Tests**: ✅ 100% 통과 (30개, Feature Cards 20개 포함)
 - **전체 평균**: ✅ 88.9% (목표 달성)
 
-## 📚 문서 인덱스 (36개 파일)
+## 📚 문서 인덱스
 
 ### 🎯 핵심 문서 (즉시 읽기)
 
 1. ⭐ **vercel-production-test-report.md** - Mock vs 실제 환경 차이점 검증
 2. ⭐ **e2e-testing-guide.md** - E2E 종합 가이드
-3. **testing-strategy-minimal.md** - Vercel-First 최소 전략
-4. **test-infrastructure-enhancement-report.md** - 테스트 인프라 강화 리포트 ([요약본](./test-infrastructure-summary.md))
-5. **universal-vitals-setup-guide.md** - Web Vitals 모니터링 ([요약본](./universal-vitals-summary.md))
+3. **test-infrastructure-enhancement-report.md** - 테스트 인프라 강화 리포트 ([요약본](./test-infrastructure-summary.md))
+4. **universal-vitals-setup-guide.md** - Web Vitals 모니터링 ([요약본](./universal-vitals-summary.md))
 
-### 카테고리별 문서 (36개)
+### 카테고리별 문서
 
-- **Vercel 프로덕션**: 8개 (실제 환경 테스트)
-- **E2E 테스트**: 5개 (Playwright 가이드)
-- **AI/서브에이전트**: 3개 (Multi-AI 검증)
-- **PIN 인증**: 2개 (수동 테스트)
-- **가이드**: 11개 (전략 및 템플릿)
-- **보고서**: 8개 (분석 및 결과)
+- **Vercel 프로덕션**: 실제 환경 테스트
+- **E2E 테스트**: Playwright 가이드
+- **AI/서브에이전트**: Multi-AI 검증
+- **PIN 인증**: 수동 테스트
+- **가이드**: 전략 및 템플릿
+- **보고서**: 분석 및 결과
 
 **전체 목록**: `ls testing/` 명령어로 확인
 

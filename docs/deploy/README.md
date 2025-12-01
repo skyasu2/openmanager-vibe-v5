@@ -62,63 +62,6 @@ const platformStatus = {
 };
 ```
 
-## 🔧 Quick Deploy Commands
-
-```bash
-# Full production deployment
-npm run build
-npm run validate:all
-vercel --prod
-
-# Environment setup
-npm run env:setup
-npm run env:check
-
-# Monitor deployment
-vercel logs --follow
-npm run monitor:free-tier
-```
-
-## 📈 Deployment Workflow
-
-### 1. Pre-deployment Checks
-
-```bash
-# Code quality
-npm run type-check    # TypeScript validation
-npm run lint:fix      # ESLint fixes
-npm run test          # Unit tests
-
-# Build validation
-npm run build         # Production build test
-npm run validate:all  # Complete validation
-```
-
-### 2. Environment Configuration
-
-```bash
-# Vercel dashboard setup
-1. Add environment variables
-2. Configure domains
-3. Set up redirects
-
-# Production variables
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-```
-
-### 3. Deployment Execution
-
-```bash
-# Deploy to production
-vercel --prod
-
-# Verify deployment
-vercel inspect
-curl -I https://openmanager-vibe-v5.vercel.app
-```
-
 ## 🛡️ Security & Optimization
 
 ### Security Headers

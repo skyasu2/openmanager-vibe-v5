@@ -11,10 +11,9 @@ query_triggers:
   - 'Playwright MCP'
 related_docs:
   - 'CLAUDE.md'
-  - 'docs/development/current-environment-guide.md'
   - 'docs/development/wsl-safety-guide.md'
   - 'docs/development/playwright-mcp-setup-guide.md'
-last_updated: '2025-10-16'
+last_updated: '2025-12-01'
 ---
 
 # 🚀 OpenManager VIBE v5 개발환경 문서
@@ -25,7 +24,6 @@ last_updated: '2025-10-16'
 
 ### 🎯 핵심 가이드
 
-- **[현재 개발환경 가이드](./current-environment-guide.md)** - 실제 운영 중인 환경 상태 및 사용법
 - **[환경 자동 설정](./environment-setup.md)** - 신규 환경 구축 및 자동화 스크립트
 - **[WSL 안전 가이드](./wsl-safety-guide.md)** - WSL 설정 변경 시 주의사항
 - **[Playwright MCP 설정 가이드](./playwright-mcp-setup-guide.md)** - WSL + 윈도우 크롬 E2E 테스트 환경
@@ -48,7 +46,7 @@ wsl && cd /mnt/d/cursor/openmanager-vibe-v5
 ./scripts/check-environment.sh
 
 # 개발 서버 시작
-npm run dev
+npm run dev:stable
 ```
 
 ### 신규 환경 구축
@@ -66,13 +64,13 @@ npm run dev
 
 ## 📊 현재 환경 사양
 
-### ✅ 최적화 완료 상태 (2025-09-21)
+### ✅ 최적화 완료 상태 (2025-12-01)
 
 ```
 📦 기본 도구:
-  - Node.js: v22.19.0 LTS
-  - npm: v11.6.0
-  - Claude Code: v1.0.119
+  - Node.js: v22.x (LTS)
+  - npm: v10+
+  - Claude Code: Latest
 
 🤖 AI CLI 도구:
   - ✅ Claude Code (메인)
@@ -89,7 +87,7 @@ npm run dev
   - 메모리: 19GB 할당 / 16GB 사용 가능
   - 스왑: 10GB
   - 프로세서: 8코어
-  - 커널: Linux 6.6.87.2-microsoft-standard-WSL2
+  - 커널: Linux 6.6.x-microsoft-standard-WSL2
 ```
 
 ## 🎯 성능 지표
