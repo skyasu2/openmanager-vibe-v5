@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "scan:unicode": "node scripts/dev/find-invalid-unicode.js",
+    "docs:validate": "bash scripts/docs/validate-docs.sh docs",
+    "docs:links": "find docs -name '*.md' -type f | head -20 | xargs npx markdown-link-check -q",
+    "docs:links:full": "find docs -name '*.md' -type f | xargs npx markdown-link-check -q",
     "check:claude": "wsl ./scripts/windows-support/utils/run-claude.sh",
     "claude:launch": "bash scripts/ai/launch-claude-wsl.sh",
     "claude:sanitize": "node scripts/diagnostics/claude-json-sanitize.js --write",
@@ -217,6 +220,7 @@
     "husky": "^9.1.7",
     "jest-axe": "^10.0.0",
     "jsdom": "^26.0.0",
+    "markdown-link-check": "^3.14.2",
     "msw": "^2.12.3",
     "playwright": "^1.55.0",
     "postcss": "^8.5.6",
