@@ -8,8 +8,8 @@ priority: critical
 related_docs:
   [
     '../mcp/advanced.md',
-    '../guides/wsl.md',
-    '../testing/README.md',
+    '../environment/guides/wsl.md',
+    '../environment/testing/README.md',
     'verification.md',
     '../README.md',
   ]
@@ -275,8 +275,8 @@ Task external-ai-orchestrator "인증 시스템 전체 검토"
 ### 🚀 워크플로우 시작 체인
 
 1. **[🔧 MCP Advanced](../mcp/advanced.md)** - 12개 MCP 서버 완전 설치 가이드
-2. **[🐧 WSL Guide](../guides/wsl.md)** - AI CLI 통합 환경 최적화
-3. **[📊 Testing](../testing/README.md)** - 98.2% 커버리지 달성법
+2. **[🐧 WSL Guide](../environment/guides/wsl.md)** - AI CLI 통합 환경 최적화
+3. **[📊 Testing](../environment/testing/README.md)** - 98.2% 커버리지 달성법
 
 ### 🤖 AI 시스템 심화 학습
 
@@ -288,7 +288,7 @@ Task external-ai-orchestrator "인증 시스템 전체 검토"
 
 1. **[⚡ Performance](../performance/README.md)** - 152ms 응답시간 달성
 2. **[🎲 Simulation](../simulation/README.md)** - Mock 시스템 완전 이해
-3. **[🛠️ Troubleshoot](../troubleshoot/common.md)** - 일반적인 문제 해결
+3. **[🛠️ Troubleshoot](../environment/troubleshooting/common.md)** - 일반적인 문제 해결
 
 ### 📚 메인 허브
 

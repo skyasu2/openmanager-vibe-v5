@@ -12,9 +12,9 @@ query_triggers:
 related_docs:
   - 'docs/performance/bundle.md'
   - 'docs/performance/charts.md'
-  - 'docs/testing/README.md'
-  - 'docs/guides/wsl.md'
-last_updated: '2025-10-16'
+  - 'docs/environment/testing/README.md'
+  - 'docs/environment/wsl/README.md'
+last_updated: '2025-12-01'
 ---
 
 # 🚀 Performance Optimization

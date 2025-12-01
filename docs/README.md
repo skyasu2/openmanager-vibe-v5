@@ -1,8 +1,8 @@
 # 📚 OpenManager VIBE v5 문서 인덱스
 
-> **전체 문서 수**: 219개의 마크다운 파일
-> **최종 업데이트**: 2025-11-27
-> **JBGE 준수율**: 97% (Phase 4 재구조화 완료)
+> **전체 문서 수**: 311개의 마크다운 파일
+> **최종 업데이트**: 2025-12-01
+> **JBGE 준수율**: 97% (Phase 5 중복 정리 완료)
 
 **1인 개발 + AI 협업**을 위한 문서 구조
 
@@ -59,8 +59,7 @@
 
 | 디렉터리     | 설명                    | README                        |
 | ------------ | ----------------------- | ----------------------------- |
-| **archive/** | 아카이브 (3개월 이상)   | [README](./archive/README.md) |
-| **temp/**    | 임시 파일 (24시간 보관) | [README](./temp/README.md)    |
+| **archive/** | 아카이브 (3개월 이상) | [README](./archive/README.md) |
 
 ---
 
@@ -78,10 +77,10 @@
 
 ### 아키텍처 & 시스템
 
-1. [architecture/SYSTEM-ARCHITECTURE-CURRENT.md](./architecture/SYSTEM-ARCHITECTURE-CURRENT.md) - v5.80.0 전체 구조
-2. [architecture/TECH-STACK-DETAILED.md](./architecture/TECH-STACK-DETAILED.md) 🆕 - 기술 스택 상세
-3. [architecture/api/endpoints.md](./architecture/api/endpoints.md) - 85개 API 엔드포인트
-4. [architecture/db/schema.md](./architecture/db/schema.md) - Supabase 스키마
+1. [core/architecture/SYSTEM-ARCHITECTURE-CURRENT.md](./core/architecture/SYSTEM-ARCHITECTURE-CURRENT.md) - v5.80.0 전체 구조
+2. [core/architecture/TECH-STACK-DETAILED.md](./core/architecture/TECH-STACK-DETAILED.md) 🆕 - 기술 스택 상세
+3. [core/architecture/api/endpoints.md](./core/architecture/api/endpoints.md) - 85개 API 엔드포인트
+4. [core/architecture/db/schema.md](./core/architecture/db/schema.md) - Supabase 스키마
 
 ### AI 시스템
 
@@ -95,16 +94,16 @@
 
 10. [development/README.md](./development/README.md) - 개발 환경 종합
 11. [development/mcp/README.md](./development/mcp/README.md) - MCP 서버 설정
-12. [testing/README.md](./testing/README.md) - 테스트 전략 종합
-13. [testing/testing-philosophy-detailed.md](./testing/testing-philosophy-detailed.md) 🆕 - 테스트 철학
-14. [testing/vitest-playwright-config-guide.md](./testing/vitest-playwright-config-guide.md) 🆕 - Vitest & Playwright
-15. [testing/test-infrastructure-summary.md](./testing/test-infrastructure-summary.md) 🆕 - 테스트 인프라 요약
+12. [environment/testing/README.md](./environment/testing/README.md) - 테스트 전략 종합
+13. [environment/testing/testing-philosophy-detailed.md](./environment/testing/testing-philosophy-detailed.md) 🆕 - 테스트 철학
+14. [environment/testing/vitest-playwright-config-guide.md](./environment/testing/vitest-playwright-config-guide.md) 🆕 - Vitest & Playwright
+15. [environment/testing/test-infrastructure-summary.md](./environment/testing/test-infrastructure-summary.md) 🆕 - 테스트 인프라 요약
 
 ### 배포 & 보안
 
-16. [deploy/README.md](./deploy/README.md) - 배포 가이드 (Vercel, GCP)
-17. [deploy/gcp-deployment-guide.md](./deploy/gcp-deployment-guide.md) - GCP 배포 상세
-18. [security/README.md](./security/README.md) - 보안 정책
+16. [core/platforms/deploy/README.md](./core/platforms/deploy/README.md) - 배포 가이드 (Vercel, GCP)
+17. [core/platforms/gcp/gcp-deployment-guide.md](./core/platforms/gcp/gcp-deployment-guide.md) - GCP 배포 상세
+18. [core/security/README.md](./core/security/README.md) - 보안 정책
 
 ### 분석 & 스펙
 
@@ -115,16 +114,17 @@
 
 ## 📊 문서 통계
 
-| 분류          | 파일 수 | 크기   |
-| ------------- | ------- | ------ |
-| **총합**      | 219개   | ~5.2MB |
-| architecture/ | 12개    | 368K   |
-| testing/      | 36개    | 897K   |
-| ai/           | 15개    | 368K   |
-| analysis/     | 14개    | 164K   |
-| development/  | 18개    | 298K   |
-| design/       | 25개    | 445K   |
-| 기타          | 99개    | ~2.7MB |
+| 분류           | 파일 수 | 설명               |
+| -------------- | ------- | ------------------ |
+| **총합**       | 311개   | ~3.8MB             |
+| environment/   | 100개   | 개발 환경 (테스트, 가이드 포함) |
+| core/          | 60개    | 메인 프로젝트 (아키텍처, 배포, 보안) |
+| archive/       | 40개    | 아카이브 (레거시 보고서) |
+| ai/            | 25개    | AI 시스템          |
+| design/        | 22개    | 디자인 문서        |
+| development/   | 20개    | 개발 가이드        |
+| analysis/      | 9개     | 분석 보고서        |
+| 기타           | 35개    | specs, standards 등 |
 
 ---
 
@@ -132,11 +132,12 @@
 
 ### 주제별 검색
 
-- **아키텍처**: architecture/, design/
+- **아키텍처**: core/architecture/, design/
 - **AI 시스템**: ai/, analysis/
-- **개발 환경**: development/, testing/
-- **배포**: deploy/, troubleshooting/
-- **보안**: security/
+- **개발 환경**: development/, environment/
+- **테스트**: environment/testing/
+- **배포**: core/platforms/
+- **보안**: core/security/
 
 ### 파일명 규칙
 
@@ -160,31 +161,21 @@ ls -lt docs/**/*.md | head -10
 
 ---
 
-## 🆕 신규 문서 (2025-11-27)
+## 🆕 최근 변경 (2025-12-01)
 
-**Phase 2 신규 문서** (3개):
+**Phase 5 중복 정리** (2025-12-01):
 
-- testing/testing-philosophy-detailed.md
-- testing/vitest-playwright-config-guide.md
-- architecture/TECH-STACK-DETAILED.md
+- ✅ 중복 폴더 106개 파일 정리 (424→318개)
+- ✅ testing/, troubleshooting/, guides/ → environment/로 통합
+- ✅ architecture/, deploy/, security/ → core/로 통합
+- ✅ 임시 파일 삭제
 
-**Phase 1 신규 문서** (8개):
+**주요 문서 경로 변경**:
 
-- ai/ai-coding-standards.md
-- ai/ai-benchmarks.md
-- ai/ai-usage-guidelines.md
-- ai/GCP-FUNCTIONS-SUMMARY.md
-- testing/test-infrastructure-summary.md
-- testing/universal-vitals-summary.md
-- specs/ai-engine-refactoring-summary.md
-- troubleshooting/playwright-mcp-summary.md
-
-**Phase 1 신규 README** (4개):
-
-- analysis/README.md
-- planning/README.md
-- archive/README.md
-- temp/README.md
+- testing/ → environment/testing/
+- architecture/ → core/architecture/
+- deploy/ → core/platforms/deploy/
+- security/ → core/security/
 
 ---
 
@@ -201,6 +192,6 @@ ls -lt docs/**/*.md | head -10
 
 ---
 
-**Last Updated**: 2025-11-27 by Claude Code
-**JBGE 준수율**: 94% (Phase 2 완료)
+**Last Updated**: 2025-12-01 by Claude Code
+**JBGE 준수율**: 97% (Phase 5 중복 정리 완료)
 **핵심 원칙**: "Just Barely Good Enough - 최소한의 루트 파일, 최대한의 상세 문서"

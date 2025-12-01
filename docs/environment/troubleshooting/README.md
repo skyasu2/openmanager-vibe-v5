@@ -15,7 +15,7 @@ related_docs:
   - 'docs/claude/environment/'
   - 'docs/testing/'
   - 'scripts/'
-last_updated: '2025-10-17'
+last_updated: '2025-12-01'
 ---
 
 # 🔧 트러블슈팅 가이드 (Troubleshooting)

@@ -14,7 +14,7 @@ related_docs:
   - 'docs/development/performance-optimization-guide.md'
   - 'src/lib/utils/'
   - 'src/lib/mock/'
-last_updated: '2025-10-16'
+last_updated: '2025-12-01'
 ---
 
 # 📖 개발 가이드 (Development Guides)
