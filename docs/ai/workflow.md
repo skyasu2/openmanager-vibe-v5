@@ -5,7 +5,7 @@ description: 4-AI 협업 실무 가이드와 성공 사례
 keywords: [AI교차검증, 워크플로우, Claude, Codex, Gemini, Qwen, 협업]
 ai_optimized: true
 priority: critical
-related_docs: ["../mcp/advanced.md", "../guides/wsl.md", "../testing/README.md", "verification.md", "../README.md"]
+related_docs: ["../mcp/advanced.md", "../environment/guides/wsl.md", "../environment/testing/README.md", "verification.md", "../README.md"]
 updated: "2025-09-09"
 ---
 
@@ -245,8 +245,8 @@ Task external-ai-orchestrator "인증 시스템 전체 검토"
 
 ### 🚀 워크플로우 시작 체인
 1. **[🔧 MCP Advanced](../mcp/advanced.md)** - 12개 MCP 서버 완전 설치 가이드
-2. **[🐧 WSL Guide](../guides/wsl.md)** - AI CLI 통합 환경 최적화
-3. **[📊 Testing](../testing/README.md)** - 98.2% 커버리지 달성법
+2. **[🐧 WSL Guide](../environment/guides/wsl.md)** - AI CLI 통합 환경 최적화
+3. **[📊 Testing](../environment/testing/README.md)** - 98.2% 커버리지 달성법
 
 ### 🤖 AI 시스템 심화 학습
 1. **[✅ AI Verification](verification.md)** - 3단계 레벨 기반 검증 시스템  
@@ -256,7 +256,7 @@ Task external-ai-orchestrator "인증 시스템 전체 검토"
 ### ⚡ 성능 최적화 체인  
 1. **[⚡ Performance](../performance/README.md)** - 152ms 응답시간 달성
 2. **[🎲 Simulation](../simulation/README.md)** - Mock 시스템 완전 이해
-3. **[🛠️ Troubleshoot](../troubleshoot/common.md)** - 일반적인 문제 해결
+3. **[🛠️ Troubleshoot](../environment/troubleshooting/common.md)** - 일반적인 문제 해결
 
 ### 📚 메인 허브
 - **[📋 문서 인덱스](../README.md)** - 전체 56개 문서 네비게이션

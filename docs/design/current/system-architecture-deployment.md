@@ -4,15 +4,15 @@ title: "배포 및 운영 아키텍처"
 keywords: ["deployment", "vercel", "operations", "monitoring", "performance"]
 priority: critical
 ai_optimized: true
-related_docs: ["system-architecture-overview.md", "system-architecture-ai.md", "deploy/vercel.md"]
-updated: "2025-09-16"
+related_docs: ["system-architecture-overview.md", "system-architecture-ai.md", "../../core/platforms/deploy/vercel.md"]
+updated: "2025-12-01"
 ---
 
 # 🚀 OpenManager VIBE v5.71.0 배포 및 운영 아키텍처
 
-**작성일**: 2025-09-14  
-**기준 버전**: v5.71.0 (현재 운영 중)  
-**목적**: Vercel 배포 최적화 및 운영 지표 문서화  
+**작성일**: 2025-12-01
+**기준 버전**: v5.80.0 (현재 운영 중)
+**목적**: Vercel 배포 최적화 및 운영 지표 문서화
 **특징**: Zero Warnings 달성, 99.95% 가동률, 100% 무료 운영
 
 ---
@@ -326,11 +326,11 @@ async function checkPerformance() {
 
 - **[시스템 아키텍처 개요](system-architecture-overview.md)** - API 구조 및 데이터 아키텍처
 - **[AI 시스템 아키텍처](system-architecture-ai.md)** - 4-AI 교차검증 시스템
-- **[Vercel 배포 가이드](../deploy/vercel.md)** - 배포 설정 및 최적화
-- **[성능 최적화 가이드](../performance/README.md)** - 성능 튜닝 및 모니터링
+- **[Vercel 배포 가이드](../../core/platforms/deploy/README.md)** - 배포 설정 및 최적화
+- **[성능 최적화 가이드](../../performance/README.md)** - 성능 튜닝 및 모니터링
 
 ---
 
-**마지막 업데이트**: 2025-09-16  
+**마지막 업데이트**: 2025-12-01  
 **이전 문서**: [AI 시스템 아키텍처](system-architecture-ai.md)  
 **전체 시리즈**: [시스템 아키텍처 개요](system-architecture-overview.md)

@@ -419,9 +419,9 @@ wsl --shutdown
 
 ### 📖 플레이라이트 테스트 가이드
 
-- **[E2E 테스트 가이드](../testing/e2e.md)** - 기본 E2E 테스트 실행 방법
-- **[종합 E2E 테스트 가이드](../testing/e2e-testing-guide.md)** - 베르셀 환경 테스트 전략 포함
-- **[PIN 인증 테스트 시나리오](../testing/pin-authentication-ai-assistant-test-scenario.md)** - 실제 베르셀 테스트 사례
+- **[E2E 테스트 가이드](../environment/testing/e2e.md)** - 기본 E2E 테스트 실행 방법
+- **[종합 E2E 테스트 가이드](../environment/testing/e2e-testing-guide.md)** - 베르셀 환경 테스트 전략 포함
+- **[PIN 인증 테스트 시나리오](../environment/testing/pin-authentication-ai-assistant-test-scenario.md)** - 실제 베르셀 테스트 사례
 
 ### 🛠️ 환경 설정 문서
 

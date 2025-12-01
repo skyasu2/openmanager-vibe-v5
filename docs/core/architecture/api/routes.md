@@ -10,7 +10,7 @@ related_docs:
     '../db/schema.md',
     '../design/api.md',
     'validation.md',
-    '../testing/README.md',
+    '../environment/testing/README.md',
   ]
 updated: '2025-09-09'
 ---

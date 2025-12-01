@@ -197,7 +197,7 @@ Presentation → API → Service → Data
 
 - **[AI 시스템](../ai/README.md)** - AI 통합 가이드
 - **[개발 환경](../development/README.md)** - 설정 가이드
-- **[테스트](../testing/README.md)** - 테스트 전략
+- **[테스트](../environment/testing/README.md)** - 테스트 전략
 
 ### 배포
 

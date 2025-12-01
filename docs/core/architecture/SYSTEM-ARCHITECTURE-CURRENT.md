@@ -418,7 +418,7 @@ logger.info('API 요청', {
 
 - **API 레퍼런스**: [api/endpoints.md](api/endpoints.md)
 - **AI 시스템**: [../ai/README.md](../ai/README.md)
-- **테스트 가이드**: [../testing/README.md](../testing/README.md)
+- **테스트 가이드**: [../environment/testing/README.md](../environment/testing/README.md)
 - **배포 가이드**: [../deploy/README.md](../deploy/README.md)
 
 ---

@@ -605,7 +605,7 @@ class ProductionMonitoringIntegration {
 - **[시스템 아키텍처 개요](system-architecture-overview.md)** - 전체 시스템 구조
 - **[AI 시스템 아키텍처](system-architecture-ai.md)** - AI 교차검증 시스템
 - **[배포 및 운영 아키텍처](system-architecture-deployment.md)** - Vercel 배포 최적화
-- **[테스트 실행 가이드](../guides/testing-guide.md)** - 실무 테스트 실행 방법
+- **[테스트 실행 가이드](../environment/guides/testing-guide.md)** - 실무 테스트 실행 방법
 
 ---
 

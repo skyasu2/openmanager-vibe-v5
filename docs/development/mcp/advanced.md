@@ -5,7 +5,7 @@ description: 12개 MCP 서버 완전 설치와 Serena AI 교차검증 해결
 keywords: [MCP, 서버, 설치, Serena, AI검증, 복구스크립트]
 ai_optimized: true
 priority: critical
-related_docs: ["../ai/workflow.md", "../guides/wsl.md", "../troubleshoot/common.md", "setup.md", "../README.md"]
+related_docs: ["../ai/workflow.md", "../environment/guides/wsl.md", "../environment/troubleshooting/common.md", "setup.md", "../README.md"]
 updated: "2025-09-09"
 ---
 
@@ -243,8 +243,8 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY)"
 
 ### 🚀 MCP 활용 워크플로우 시작
 1. **[🤖 AI Workflow](../ai/workflow.md)** - 4-AI 교차검증과 MCP 도구 연동
-2. **[🐧 WSL Guide](../guides/wsl.md)** - WSL 환경 최적화 (MCP 안정성 필수)
-3. **[🛠️ Troubleshoot](../troubleshoot/common.md)** - MCP 서버 문제 해결 가이드
+2. **[🐧 WSL Guide](../environment/guides/wsl.md)** - WSL 환경 최적화 (MCP 안정성 필수)
+3. **[🛠️ Troubleshoot](../environment/troubleshooting/common.md)** - MCP 서버 문제 해결 가이드
 
 ### 🔧 MCP 시스템 심화 학습
 1. **[📋 MCP Setup](setup.md)** - 환경별 초기 설치 가이드
@@ -253,7 +253,7 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY)"
 
 ### ⚡ 성능 및 최적화 체인
 1. **[⚡ Performance](../performance/README.md)** - MCP 서버 성능 최적화
-2. **[📊 Testing](../testing/README.md)** - MCP 도구 테스트 가이드  
+2. **[📊 Testing](../environment/testing/README.md)** - MCP 도구 테스트 가이드  
 3. **[🎨 UI Components](../ui/components.md)** - shadcn-ui MCP 46개 컴포넌트
 
 ### 🏗️ 설계 및 아키텍처

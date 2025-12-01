@@ -4,9 +4,9 @@ title: "Vercel Deployment Architecture"
 keywords: ["vercel", "deployment", "edge", "cdn", "infrastructure"]
 priority: medium
 ai_optimized: true
-related_docs: ["../features/monitoring.md", "../../deploy/vercel.md"]
-updated: "2025-09-16"
-version: "v5.77"
+related_docs: ["../features/monitoring.md", "../../core/platforms/deploy/README.md"]
+updated: "2025-12-01"
+version: "v5.80"
 ---
 
 # 배포 아키텍처

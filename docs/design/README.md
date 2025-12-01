@@ -12,7 +12,7 @@ related_docs:
   - 'docs/architecture/'
   - 'docs/claude/architecture/'
   - 'src/'
-last_updated: '2025-10-16'
+last_updated: '2025-12-01'
 ---
 
 # 📐 설계 문서 (Design Documents)

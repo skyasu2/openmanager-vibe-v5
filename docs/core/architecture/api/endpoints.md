@@ -303,7 +303,7 @@ sb-access-token=<token>
 
 - **시스템 아키텍처**: [../SYSTEM-ARCHITECTURE-CURRENT.md](../SYSTEM-ARCHITECTURE-CURRENT.md)
 - **AI 시스템**: [../../ai/README.md](../../ai/README.md)
-- **테스트 가이드**: [../../testing/README.md](../../testing/README.md)
+- **테스트 가이드**: [../../environment/testing/README.md](../../environment/testing/README.md)
 
 ---
 
