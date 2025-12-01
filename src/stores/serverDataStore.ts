@@ -117,10 +117,10 @@ export const createServerDataStore = (
         set({ isLoading: true, error: null, isFetching: true });
 
         try {
-          console.log('🚀 /api/servers/all 에서 데이터 로드 시작');
+          console.log('🚀 /api/servers-unified 에서 데이터 로드 시작');
 
-          // 🎯 Client-side Fetching via API
-          const response = await fetch('/api/servers/all');
+          // 🎯 Client-side Fetching via Unified API (인증 불필요, GuestMode 지원)
+          const response = await fetch('/api/servers-unified?limit=50');
 
           if (!response.ok) {
             throw new Error(
@@ -131,28 +131,10 @@ export const createServerDataStore = (
           const result = await response.json();
 
           if (!result.success || !result.data) {
-            // Fallback logic if API returns error structure
-            if (result.fallbackMode && result.data?.servers) {
-              console.warn('⚠️ API returned fallback data');
-              // Fallback data structure might be different, but let's assume it matches Server[]
-              // The API route returns { data: { servers: [...] } } for fallback?
-              // Let's check API route fallback return.
-              // It returns data: { servers: fallbackServers, total: 1 }
-              // So we need to handle that.
-              const rawServers = result.data.servers || [];
-              const enhancedServers = rawServers.map(mapServerToEnhanced);
-              set({
-                servers: enhancedServers,
-                isLoading: false,
-                lastUpdate: new Date(),
-                error: result.message || 'Fallback mode',
-                isFetching: false, // 🚀 폴백 시에도 플래그 리셋
-              });
-              return;
-            }
             throw new Error(result.message || 'Failed to fetch data');
           }
 
+          // servers-unified는 data 배열에 직접 서버 반환
           const rawServers = result.data;
 
           console.log('📡 API 데이터 수신 완료');

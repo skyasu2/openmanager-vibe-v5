@@ -590,10 +590,11 @@ export function useRealtimeServers(
 
     try {
       // API 배칭을 통한 최적화된 요청
+      // 🎯 servers-unified API 사용 (인증 불필요, GuestMode 지원)
       const batchedRequests: APIRequest[] = [
         {
-          id: 'servers-all',
-          endpoint: '/api/servers/all',
+          id: 'servers-unified',
+          endpoint: '/api/servers-unified?limit=50',
           priority: 'high', // 서버 목록은 고우선순위
           options: {
             method: 'GET',
@@ -638,11 +639,16 @@ export function useRealtimeServers(
 
       // 서버 데이터 처리
       if (serversResponse.status === 200 && serversResponse.data) {
-        const data = serversResponse.data as Record<string, unknown>;
+        const responseData = serversResponse.data as Record<string, unknown>;
+
+        // 🎯 servers-unified API 응답 구조 처리
+        // 새 API: { success: true, data: [...servers...] }
+        // 구 API: { servers: [...] }
+        const serversArray = responseData?.data ?? responseData?.servers;
 
         // 데이터 구조 검증 및 변환
-        if (data?.servers && Array.isArray(data.servers)) {
-          const transformedServers = data.servers.map(
+        if (serversArray && Array.isArray(serversArray)) {
+          const transformedServers = (serversArray as Array<{ status?: string; [key: string]: unknown }>).map(
             (s: { status?: string; [key: string]: unknown }) => {
               if (typeof s === 'object' && s !== null) {
                 return {

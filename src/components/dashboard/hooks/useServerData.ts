@@ -276,11 +276,12 @@ export const useServerData = (): UseServerDataReturn => {
       const batcher = getAPIBatcher();
 
       // 다중 API 엔드포인트를 배칭으로 호출
+      // 🎯 servers-unified API 사용 (인증 불필요, GuestMode 지원)
       const [serversResponse, _statusResponse, _metricsResponse] =
         await Promise.allSettled([
           batcher.request({
-            id: 'servers-all',
-            endpoint: '/api/servers/all',
+            id: 'servers-unified',
+            endpoint: '/api/servers-unified?limit=50',
             priority: 'high', // 서버 데이터는 높은 우선순위
           }),
           batcher.request({
