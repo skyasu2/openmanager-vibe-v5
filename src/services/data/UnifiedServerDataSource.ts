@@ -79,10 +79,11 @@ export class UnifiedServerDataSource {
    *
    * **Single Source of Truth**: 모든 서버 데이터는 scenario-loader를 통해 제공됩니다.
    *
-   * @returns {Promise<Server[]>} 10개 서버 데이터 (8개 JSON + 2개 자동 생성)
+   * @returns {Promise<Server[]>} 15개 서버 데이터 (24시간 회전 JSON)
    *
    * @description
-   * - 데이터 소스: `scenario-loader` → `hourly-metrics/*.json`
+   * - 서버 사이드: `scenario-loader` → `hourly-metrics/*.json` (fs 모듈 사용)
+   * - 클라이언트 사이드: `/api/servers-unified` API 사용 (브라우저 호환)
    * - 캐싱: 5분 TTL (성능 최적화)
    * - 검증: 서버 수 및 필수 필드 확인
    *
@@ -105,7 +106,12 @@ export class UnifiedServerDataSource {
       return this.cachedServers;
     }
 
-    // 데이터 소스별 로드
+    // 🚀 클라이언트 사이드 감지: 브라우저에서는 API 사용 (fs 모듈 없음)
+    if (typeof window !== 'undefined') {
+      return this.loadServersFromAPI();
+    }
+
+    // 서버 사이드: 파일 시스템 직접 접근
     const servers = await this.loadServersFromSource();
 
     // 검증
@@ -120,6 +126,48 @@ export class UnifiedServerDataSource {
     }
 
     return servers;
+  }
+
+  /**
+   * 🌐 클라이언트 사이드 API 호출 (브라우저 환경용)
+   *
+   * 브라우저에서는 fs 모듈을 사용할 수 없으므로 API를 통해 데이터 로드
+   */
+  private async loadServersFromAPI(): Promise<Server[]> {
+    try {
+      const response = await fetch('/api/servers-unified?limit=50');
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || 'Failed to fetch data from API');
+      }
+
+      const servers = result.data as Server[];
+
+      // 캐싱
+      if (this.config.enableCaching) {
+        this.cachedServers = servers;
+        this.cacheTimestamp = Date.now();
+      }
+
+      console.log(
+        `✅ [Client] Loaded ${servers.length} servers from /api/servers-unified`
+      );
+      return servers;
+    } catch (error) {
+      console.error('❌ [Client] API fetch failed:', error);
+      // 캐시된 데이터가 있으면 반환
+      if (this.cachedServers && this.cachedServers.length > 0) {
+        console.warn('⚠️ [Client] Using stale cache due to API error');
+        return this.cachedServers;
+      }
+      throw error;
+    }
   }
 
   /**
