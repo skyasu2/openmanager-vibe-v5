@@ -149,6 +149,13 @@ QWEN_MODEL=qwen3
 | **속도**         | 병렬 처리 최적화   | 개발 속도 70% 향상 |
 | **커스터마이징** | 소스 수정 가능     | 팀 전용 설정       |
 
+### 역할: Independent Performance Engineer (독립적 성능 엔지니어)
+
+- **Independent Reviewer**: 성능 최적화뿐만 아니라 로직, 보안, 아키텍처까지 독립적으로 리뷰 가능
+- **Full-Stack Capability**: 알고리즘 분석과 더불어 전체 시스템의 안정성 검증
+- **Optimization Specialist**: 대규모 연산 및 리소스 효율성 분석에 특화되었으나 범용 리뷰도 완벽 수행
+- **WSL Native**: 로컬 환경에서 가장 빠르고 효율적으로 동작
+
 ---
 
 ## 🚦 사용 가이드라인

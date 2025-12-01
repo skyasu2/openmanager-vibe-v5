@@ -97,7 +97,10 @@ npm run test     # Vitest (메인 설정)
 ### Codex CLI (본 문서)
 
 - **역할**: CLI 기반 코드 리뷰 & 검증, 자동 리뷰 시스템 1차 엔진
-- **Collaboration**: "Implementation Specialist" - Claude의 설계를 구체적인 코드로 구현
+- **Independent Reviewer**: 함수 단위 논리 검증뿐만 아니라 전체 문맥을 고려한 독립적 리뷰 수행
+- **Full-Stack Capability**: 비즈니스 로직, 엣지 케이스, 타입 안전성, 보안까지 포괄적 검토
+- **Precision Specialist**: 모호함 없는 정확한 코드 수정 제안 (HumanEval 94% 성능 기반)
+- **Practical Review**: 실무 관점에서 배포 가능한 수준인지 엄격하게 검증
 - **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` **v3.0.0** (600초, 포터블, 1인 개발자 컨텍스트 자동 주입)
 
 ### ✅ Pre-Implementation Checklist
