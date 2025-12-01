@@ -85,19 +85,19 @@ export interface EnhancedServerMetrics {
  * - ❌ 새로운 데이터 소스 생성 금지
  * - ❌ Mock 시스템 중복 생성 금지
  *
- * @returns {Promise<EnhancedServerMetrics[]>} 10개 서버 메트릭스 (8개 JSON + 2개 자동 생성)
+ * @returns {Promise<EnhancedServerMetrics[]>} 15개 서버 메트릭스 (연쇄 장애 시나리오)
  *
  * @description
  * KST(한국 시간) 기반으로 24시간 데이터를 자동 회전시킵니다.
  * - 시간대: 0-23시 (KST)
  * - 회전 주기: 5분 단위 (동일 블록 내 동일 값)
- * - 서버 수: 10개 보장 (부족 시 자동 생성)
- * - 데이터 소스: `public/server-scenarios/hourly-metrics/*.json`
+ * - 서버 수: 15개 (Web 3, API 2, DB 2, Cache 2, Storage 2, Infra 4)
+ * - 데이터 소스: `public/hourly-data/hour-XX.json`
  *
  * @example
  * // ✅ 올바른 사용 (AI Assistant)
  * const servers = await loadHourlyScenarioData();
- * console.log(servers.length); // 10
+ * console.log(servers.length); // 15
  *
  * @example
  * // ✅ 올바른 사용 (UnifiedServerDataSource)
@@ -165,9 +165,9 @@ function convertFixedRotationData(
   const servers = hourlyData.servers || {};
   const _scenario = hourlyData.scenario || `${currentHour}시 고정 패턴`;
 
-  // 🎯 10개 서버 보장: JSON에 8개만 있으면 2개 자동 생성 (성능 최적화)
-  if (Object.keys(servers).length < 10) {
-    const missingCount = 10 - Object.keys(servers).length;
+  // 🎯 15개 서버 보장: JSON에 부족하면 자동 생성 (성능 최적화)
+  if (Object.keys(servers).length < 15) {
+    const missingCount = 15 - Object.keys(servers).length;
 
     // 부족한 서버 자동 생성
     for (let i = 0; i < missingCount; i++) {

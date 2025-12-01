@@ -19,7 +19,7 @@ type LearningType = 'patterns' | 'anomaly' | 'incident' | 'prediction';
 
 /**
  * ML 학습을 위한 메트릭 데이터 타입
- * (Supabase server_metrics 테이블 스키마)
+ * (포트폴리오용 Mock 데이터 생성)
  */
 interface MLMetricData {
   cpu_usage: number;
@@ -57,44 +57,93 @@ interface TrainingResult {
   timestamp: string;
 }
 
-// 실제 서버 메트릭 데이터 조회
+// 🎯 하이브리드 아키텍처: Supabase server_metrics 테이블에서 실제 데이터 조회
+// Frontend: JSON 파일 (CDN), Backend/AI: Supabase (queryable)
 async function getServerMetrics(
   supabase: Awaited<ReturnType<typeof createClient>>,
   serverId?: string,
   timeRange = '24h'
 ): Promise<MLMetricData[]> {
-  try {
-    let query = supabase
-      .from('server_metrics')
-      .select('*')
-      .order('timestamp', { ascending: false });
+  // 시간 범위에 따라 조회할 시간대 수 결정
+  const hourLimits: Record<string, number> = {
+    '1h': 1,
+    '6h': 6,
+    '24h': 24,
+    '7d': 24, // 24시간 데이터만 있으므로 최대 24
+  };
+  const limit = hourLimits[timeRange] ?? 24;
 
-    if (serverId) {
-      query = query.eq('server_id', serverId);
-    }
+  // Supabase에서 server_metrics 조회
+  let query = supabase
+    .from('server_metrics')
+    .select('server_id, cpu, memory, disk, network, recorded_at')
+    .order('hour', { ascending: true })
+    .limit(limit * 8); // 8개 서버 × 시간대
 
-    // 시간 범위 필터링
-    const now = new Date();
-    const timeRangeMs: Record<string, number> = {
-      '1h': 60 * 60 * 1000,
-      '6h': 6 * 60 * 60 * 1000,
-      '24h': 24 * 60 * 60 * 1000,
-      '7d': 7 * 24 * 60 * 60 * 1000,
-    };
-
-    const defaultDuration = 24 * 60 * 60 * 1000;
-    const duration = timeRangeMs[timeRange] ?? defaultDuration;
-    const startTime = new Date(now.getTime() - duration);
-    query = query.gte('timestamp', startTime.toISOString());
-
-    const { data, error } = await query.limit(1000);
-
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error('서버 메트릭 조회 실패:', error);
-    return [];
+  if (serverId) {
+    query = query.eq('server_id', serverId);
   }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Supabase 메트릭 조회 실패:', error);
+    // 폴백: Mock 데이터 생성
+    return generateFallbackMetrics(serverId, timeRange);
+  }
+
+  if (!data || data.length === 0) {
+    console.warn('Supabase에 메트릭 데이터 없음, 폴백 사용');
+    return generateFallbackMetrics(serverId, timeRange);
+  }
+
+  // Supabase 데이터 → MLMetricData 변환
+  return data.map((row) => ({
+    cpu_usage: Number(row.cpu),
+    memory_usage: Number(row.memory),
+    disk_usage: Number(row.disk),
+    network_usage: Number(row.network),
+    timestamp: row.recorded_at,
+    server_id: row.server_id,
+  }));
+}
+
+// 폴백: Supabase 데이터 없을 때 Mock 생성
+function generateFallbackMetrics(serverId?: string, timeRange = '24h'): MLMetricData[] {
+  const now = new Date();
+  const timeRangeMs: Record<string, number> = {
+    '1h': 60 * 60 * 1000,
+    '6h': 6 * 60 * 60 * 1000,
+    '24h': 24 * 60 * 60 * 1000,
+    '7d': 7 * 24 * 60 * 60 * 1000,
+  };
+
+  const defaultDuration = 24 * 60 * 60 * 1000;
+  const duration = timeRangeMs[timeRange] ?? defaultDuration;
+  const interval = 5 * 60 * 1000;
+  const dataPoints = Math.min(Math.floor(duration / interval), 1000);
+
+  const mockData: MLMetricData[] = [];
+  const serverIds = serverId ? [serverId] : ['web-server-1', 'api-server-1', 'db-server-1'];
+
+  for (let i = 0; i < dataPoints; i++) {
+    const timestamp = new Date(now.getTime() - i * interval);
+    const baseServerId = serverIds[i % serverIds.length];
+    const hour = timestamp.getHours();
+    const isBusinessHour = hour >= 9 && hour <= 18;
+    const loadMultiplier = isBusinessHour ? 1.3 : 0.7;
+
+    mockData.push({
+      cpu_usage: Math.min(95, (20 + Math.random() * 40) * loadMultiplier),
+      memory_usage: Math.min(90, (30 + Math.random() * 35) * loadMultiplier),
+      disk_usage: 40 + Math.random() * 30,
+      network_usage: (10 + Math.random() * 50) * loadMultiplier,
+      timestamp: timestamp.toISOString(),
+      server_id: baseServerId,
+    });
+  }
+
+  return mockData;
 }
 
 // 패턴 학습 알고리즘
@@ -373,7 +422,7 @@ export const POST = withAuth(async (request: NextRequest) => {
       });
     }
 
-    // 실제 서버 메트릭 데이터 조회
+    // Mock 서버 메트릭 데이터 생성 (포트폴리오용)
     const metrics = await getServerMetrics(supabase, serverId, timeRange);
 
     if (metrics.length === 0) {

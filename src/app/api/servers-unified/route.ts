@@ -28,32 +28,23 @@ import debug from '@/utils/debug';
 import { mapServerToEnhanced } from '@/utils/serverUtils';
 
 /**
- * Supabase server_metrics 테이블 스키마 (snake_case)
+ * Supabase servers 테이블 스키마 (snake_case)
+ * 아키텍처: 메타데이터만 저장, 실시간 메트릭은 Vercel JSON
  */
-interface SupabaseServerMetrics {
-  id?: string;
-  name?: string;
-  hostname?: string;
-  status?: ServerStatus;
-  cpu_usage?: number;
-  memory_usage?: number;
-  disk_usage?: number;
-  network_usage?: number;
-  uptime?: number;
-  response_time?: number;
-  updated_at?: string;
-  location?: string;
-  ip_address?: string;
-  os?: string;
-  server_type?: string;
-  role?: ServerRole;
-  environment?: ServerEnvironment;
-  provider?: string;
+interface SupabaseServer {
+  id: string;
+  name: string;
+  hostname: string;
+  type: string; // 'web' | 'api' | 'database' | 'cache' | 'worker' | 'gateway' | 'monitoring'
+  location: string;
+  environment: string;
+  provider: string;
+  status: string; // 'active' | 'maintenance' | 'inactive'
   cpu_cores?: number;
   memory_gb?: number;
   disk_gb?: number;
-  processes?: number;
-  [key: string]: unknown;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // 📝 통합 요청 스키마
@@ -86,74 +77,86 @@ const serversUnifiedRequestSchema = z.object({
 type ServersUnifiedRequest = z.infer<typeof serversUnifiedRequestSchema>;
 
 /**
- * 🎯 실시간 서버 데이터 (Supabase 연동)
+ * 🎯 실시간 서버 데이터 (servers 테이블 + Mock 메트릭)
+ * 아키텍처: 메타데이터는 Supabase, 실시간 메트릭은 Vercel JSON
  */
 async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
   try {
     const supabase = await createClient();
     const { data: servers, error } = await supabase
-      .from('server_metrics')
+      .from('servers')
       .select('*')
+      .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(10);
 
     if (error) throw error;
 
+    // servers 테이블 스키마에 맞춘 매핑 + mock 메트릭 생성
     return (
       servers?.map(
-        (server: SupabaseServerMetrics): EnhancedServerMetrics => ({
-          id: server.id ?? '',
-          name: server.name || server.hostname || 'Unknown',
-          hostname: server.hostname ?? '',
-          status: server.status ?? 'offline',
-          cpu: server.cpu_usage,
-          cpu_usage: server.cpu_usage ?? 0,
-          memory: server.memory_usage,
-          memory_usage: server.memory_usage ?? 0,
-          disk: server.disk_usage,
-          disk_usage: server.disk_usage ?? 0,
-          network: server.network_usage ?? 0,
-          network_in: (server.network_usage ?? 0) * 0.6,
-          network_out: (server.network_usage ?? 0) * 0.4,
-          uptime: server.uptime ?? 0,
-          responseTime: server.response_time ?? 0,
-          last_updated: server.updated_at ?? new Date().toISOString(),
-          location: server.location ?? 'Seoul',
-          alerts: [],
-          ip: server.ip_address,
-          os: server.os ?? 'Ubuntu 22.04 LTS',
-          role: server.role ?? 'web',
-          environment: server.environment ?? 'production',
-          provider: server.provider,
-          specs: {
-            cpu_cores: server.cpu_cores ?? 4,
-            memory_gb: server.memory_gb ?? 8,
-            disk_gb: server.disk_gb ?? 200,
-            network_speed: '1Gbps',
-          },
-          lastUpdate: server.updated_at,
-          services: [],
-          systemInfo: {
-            os: server.os ?? 'Ubuntu 22.04 LTS',
-            uptime: `${Math.floor((server.uptime ?? 0) / 3600)}h`,
-            processes: server.processes ?? 120,
-            zombieProcesses: 0,
-            loadAverage: `${((server.cpu_usage ?? 0) / 20).toFixed(2)}`,
-            lastUpdate: server.updated_at ?? new Date().toISOString(),
-          },
-          networkInfo: {
-            interface: 'eth0',
-            receivedBytes: `${((server.network_usage || 0) * 0.6).toFixed(1)} MB`,
-            sentBytes: `${((server.network_usage || 0) * 0.4).toFixed(1)} MB`,
-            receivedErrors: 0,
-            sentErrors: 0,
-            status: 'online', // 🔧 수정: 'healthy' → 'online' (ServerStatus 타입)
-          },
-        })
+        (server): EnhancedServerMetrics => {
+          // Mock 메트릭 생성 (포트폴리오용 시뮬레이션)
+          const mockCpu = 20 + Math.random() * 60;
+          const mockMemory = 30 + Math.random() * 50;
+          const mockDisk = 40 + Math.random() * 40;
+          const mockNetwork = 10 + Math.random() * 90;
+          const mockUptime = 86400 + Math.random() * 604800; // 1-7일
+
+          return {
+            id: server.id ?? '',
+            name: server.name || server.hostname || 'Unknown',
+            hostname: server.hostname ?? '',
+            status: server.status === 'active' ? 'online' : 'offline',
+            cpu: mockCpu,
+            cpu_usage: mockCpu,
+            memory: mockMemory,
+            memory_usage: mockMemory,
+            disk: mockDisk,
+            disk_usage: mockDisk,
+            network: mockNetwork,
+            network_in: mockNetwork * 0.6,
+            network_out: mockNetwork * 0.4,
+            uptime: mockUptime,
+            responseTime: 50 + Math.random() * 150,
+            last_updated: server.updated_at ?? new Date().toISOString(),
+            location: server.location ?? '서울',
+            alerts: [],
+            ip: `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+            os: 'Ubuntu 22.04 LTS',
+            role: server.type as ServerRole ?? 'web',
+            environment: server.environment as ServerEnvironment ?? 'production',
+            provider: server.provider,
+            specs: {
+              cpu_cores: server.cpu_cores ?? 4,
+              memory_gb: server.memory_gb ?? 8,
+              disk_gb: server.disk_gb ?? 200,
+              network_speed: '1Gbps',
+            },
+            lastUpdate: server.updated_at,
+            services: [],
+            systemInfo: {
+              os: 'Ubuntu 22.04 LTS',
+              uptime: `${Math.floor(mockUptime / 3600)}h`,
+              processes: 100 + Math.floor(Math.random() * 50),
+              zombieProcesses: 0,
+              loadAverage: (mockCpu / 20).toFixed(2),
+              lastUpdate: server.updated_at ?? new Date().toISOString(),
+            },
+            networkInfo: {
+              interface: 'eth0',
+              receivedBytes: `${(mockNetwork * 0.6).toFixed(1)} MB`,
+              sentBytes: `${(mockNetwork * 0.4).toFixed(1)} MB`,
+              receivedErrors: 0,
+              sentErrors: 0,
+              status: 'online',
+            },
+          };
+        }
       ) || []
     );
   } catch (error) {
-    console.error('❌ Supabase 실시간 데이터 오류:', error);
+    console.error('❌ Supabase 서버 데이터 오류:', error);
     // Fallback to UnifiedServerDataSource
     const dataSource = getUnifiedServerDataSource();
     const rawServers = await dataSource.getServers();
