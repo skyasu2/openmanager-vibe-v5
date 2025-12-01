@@ -193,7 +193,7 @@
     "vaul": "^0.9.1",
     "web-vitals": "^5.1.0",
     "zod": "^3.23.8",
-    "zustand": "^4.5.7"
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
