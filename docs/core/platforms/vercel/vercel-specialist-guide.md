@@ -192,7 +192,7 @@ updated: '2025-09-17'
 - [베르셀 배포 가이드](vercel.md)
 - [Claude 서브에이전트 공식 가이드](../claude/sub-agents-official.md)
 - [MCP 통합 가이드](../mcp/integration.md)
-- [AI 시스템 가이드](../guides/ai-system.md)
+- [AI 시스템 가이드](../environment/guides/ai-system.md)
 
 ---
 

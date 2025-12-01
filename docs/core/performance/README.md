@@ -14,7 +14,7 @@ related_docs:
   - 'docs/performance/charts.md'
   - 'docs/testing/README.md'
   - 'docs/guides/wsl.md'
-last_updated: '2025-10-16'
+last_updated: '2025-12-01'
 ---
 
 # 🚀 Performance Optimization

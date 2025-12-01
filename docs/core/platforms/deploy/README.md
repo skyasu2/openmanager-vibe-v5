@@ -14,7 +14,7 @@ related_docs:
   - 'docs/deploy/env-setup.md'
   - 'docs/deploy/free-tier.md'
   - 'docs/architecture/actual-system-architecture-v5.77.md'
-last_updated: '2025-10-16'
+last_updated: '2025-12-01'
 ---
 
 # Deployment Guide

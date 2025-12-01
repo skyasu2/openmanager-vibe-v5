@@ -383,7 +383,7 @@ if (IS_DEV) {
 - [Vercel Edge Functions 문서](https://vercel.com/docs/functions/edge-functions)
 - [Vercel 최적화 전략](./vercel-optimization.md)
 - [무료 운영 전략](./zero-cost-operations.md)
-- [성능 테스트 가이드](../testing/vercel-first-strategy.md)
+- [성능 테스트 가이드](../environment/testing/vercel-first-strategy.md)
 
 ---
 
