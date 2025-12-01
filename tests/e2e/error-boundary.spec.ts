@@ -13,7 +13,9 @@ import {
 test.describe('에러 바운더리 테스트', () => {
   test.describe('404 Not Found 페이지', () => {
     test('존재하지 않는 페이지에서 404 응답', async ({ page }) => {
-      const response = await page.request.get('/this-page-does-not-exist-12345');
+      const response = await page.request.get(
+        '/this-page-does-not-exist-12345'
+      );
 
       if (skipIfSecurityBlocked(response.status())) return;
 
@@ -37,7 +39,9 @@ test.describe('에러 바운더리 테스트', () => {
       await page.waitForLoadState('networkidle');
 
       // 홈 또는 뒤로가기 링크 확인
-      const homeLink = page.locator('a[href="/"], a[href="/login"], a[href="/main"]').first();
+      const homeLink = page
+        .locator('a[href="/"], a[href="/login"], a[href="/main"]')
+        .first();
       if (await homeLink.isVisible()) {
         await homeLink.click();
         await expect(page).toHaveURL(/\/(login|main)?$/);
@@ -71,7 +75,9 @@ test.describe('에러 바운더리 테스트', () => {
       await page.waitForLoadState('networkidle');
 
       // 로그인 페이지로 이동하는 링크/버튼 확인
-      const loginLink = page.locator('a[href*="login"], button:has-text("로그인")').first();
+      const loginLink = page
+        .locator('a[href*="login"], button:has-text("로그인")')
+        .first();
       if (await loginLink.isVisible()) {
         await loginLink.click();
         await expect(page).toHaveURL(/\/login/);
