@@ -325,8 +325,8 @@ AI 어시스턴트 엔진은 다음과 같이 평가됩니다:
 ## 📚 관련 문서
 
 - [상세 아키텍처 리포트](./free-tier-architecture-report.md)
-- [시스템 아키텍처 문서](../design/current/system-architecture-ai.md)
-- [테스트 가이드](../environment/testing/README.md)
+- [시스템 아키텍처 문서](../../../../design/current/system-architecture-ai.md)
+- [테스트 가이드](../../testing/README.md)
 
 ---
 

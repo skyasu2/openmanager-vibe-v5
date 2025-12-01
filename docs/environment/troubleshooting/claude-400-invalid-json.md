@@ -5,7 +5,7 @@ description: "WSL에서 Claude Code 사용 시 'no low surrogate in string' 오�
 keywords: ['claude', 'error', 'json', 'wsl', 'unicode', 'troubleshoot']
 priority: medium
 ai_optimized: true
-related_docs: ['../environment/guides/wsl.md', 'common.md']
+related_docs: ['../wsl/README.md', 'common.md']
 updated: '2025-09-16'
 ---
 

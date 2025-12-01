@@ -8,8 +8,8 @@ priority: critical
 related_docs:
   [
     '../ai/workflow.md',
-    '../environment/guides/wsl.md',
-    '../environment/troubleshooting/common.md',
+    '../../wsl/README.md',
+    '../../troubleshooting/common.md',
     'setup.md',
     '../README.md',
   ]
@@ -278,8 +278,8 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY)"
 ### 🚀 MCP 활용 워크플로우 시작
 
 1. **[🤖 AI Workflow](../ai/workflow.md)** - 4-AI 교차검증과 MCP 도구 연동
-2. **[🐧 WSL Guide](../environment/guides/wsl.md)** - WSL 환경 최적화 (MCP 안정성 필수)
-3. **[🛠️ Troubleshoot](../environment/troubleshooting/common.md)** - MCP 서버 문제 해결 가이드
+2. **[🐧 WSL Guide](../../wsl/README.md)** - WSL 환경 최적화 (MCP 안정성 필수)
+3. **[🛠️ Troubleshoot](../../troubleshooting/common.md)** - MCP 서버 문제 해결 가이드
 
 ### 🔧 MCP 시스템 심화 학습
 
@@ -289,8 +289,8 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY)"
 
 ### ⚡ 성능 및 최적화 체인
 
-1. **[⚡ Performance](../performance/README.md)** - MCP 서버 성능 최적화
-2. **[📊 Testing](../environment/testing/README.md)** - MCP 도구 테스트 가이드
+1. **[⚡ Performance](../../performance/README.md)** - MCP 서버 성능 최적화
+2. **[📊 Testing](../../testing/README.md)** - MCP 도구 테스트 가이드
 3. **[🎨 UI Components](../ui/components.md)** - shadcn-ui MCP 46개 컴포넌트
 
 ### 🏗️ 설계 및 아키텍처
