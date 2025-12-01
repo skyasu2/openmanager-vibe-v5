@@ -108,7 +108,7 @@
 
 ### 분석 & 스펙
 
-19. [analysis/AI-ENGINE-OPTIMIZATION-2025-11-20.md](./analysis/AI-ENGINE-OPTIMIZATION-2025-11-20.md) - AI 최적화
+19. [archive/AI-ENGINE-OPTIMIZATION-2025-11-20.md](./archive/AI-ENGINE-OPTIMIZATION-2025-11-20.md) - AI 최적화 (archived)
 20. [specs/ai-engine-refactoring-summary.md](./specs/ai-engine-refactoring-summary.md) 🆕 - AI 리팩토링 요약
 
 ---

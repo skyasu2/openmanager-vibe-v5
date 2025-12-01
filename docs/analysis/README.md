@@ -1,4 +1,4 @@
-#---
+---
 category: analysis
 purpose: technical_analysis_and_reports
 ai_optimized: true

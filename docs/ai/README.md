@@ -220,7 +220,7 @@ qwen -p "메모리 효율적인 구현은?"
 
 ### 분석 & 기획
 
-- **[analysis/AI-ENGINE-OPTIMIZATION-2025-11-20.md](../analysis/AI-ENGINE-OPTIMIZATION-2025-11-20.md)** - AI 최적화
+- **[archive/AI-ENGINE-OPTIMIZATION-2025-11-20.md](../archive/AI-ENGINE-OPTIMIZATION-2025-11-20.md)** - AI 최적화 (archived)
 - **[specs/ai-engine-refactoring-summary.md](../specs/ai-engine-refactoring-summary.md)** - AI 리팩토링 요약
 
 ---
