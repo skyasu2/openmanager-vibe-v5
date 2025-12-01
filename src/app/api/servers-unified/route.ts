@@ -94,66 +94,65 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
 
     // servers 테이블 스키마에 맞춘 매핑 + mock 메트릭 생성
     return (
-      servers?.map(
-        (server): EnhancedServerMetrics => {
-          // Mock 메트릭 생성 (포트폴리오용 시뮬레이션)
-          const mockCpu = 20 + Math.random() * 60;
-          const mockMemory = 30 + Math.random() * 50;
-          const mockDisk = 40 + Math.random() * 40;
-          const mockNetwork = 10 + Math.random() * 90;
-          const mockUptime = 86400 + Math.random() * 604800; // 1-7일
+      servers?.map((server): EnhancedServerMetrics => {
+        // Mock 메트릭 생성 (포트폴리오용 시뮬레이션)
+        const mockCpu = 20 + Math.random() * 60;
+        const mockMemory = 30 + Math.random() * 50;
+        const mockDisk = 40 + Math.random() * 40;
+        const mockNetwork = 10 + Math.random() * 90;
+        const mockUptime = 86400 + Math.random() * 604800; // 1-7일
 
-          return {
-            id: server.id ?? '',
-            name: server.name || server.hostname || 'Unknown',
-            hostname: server.hostname ?? '',
-            status: server.status === 'active' ? 'online' : 'offline',
-            cpu: mockCpu,
-            cpu_usage: mockCpu,
-            memory: mockMemory,
-            memory_usage: mockMemory,
-            disk: mockDisk,
-            disk_usage: mockDisk,
-            network: mockNetwork,
-            network_in: mockNetwork * 0.6,
-            network_out: mockNetwork * 0.4,
-            uptime: mockUptime,
-            responseTime: 50 + Math.random() * 150,
-            last_updated: server.updated_at ?? new Date().toISOString(),
-            location: server.location ?? '서울',
-            alerts: [],
-            ip: `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+        return {
+          id: server.id ?? '',
+          name: server.name || server.hostname || 'Unknown',
+          hostname: server.hostname ?? '',
+          status: server.status === 'active' ? 'online' : 'offline',
+          cpu: mockCpu,
+          cpu_usage: mockCpu,
+          memory: mockMemory,
+          memory_usage: mockMemory,
+          disk: mockDisk,
+          disk_usage: mockDisk,
+          network: mockNetwork,
+          network_in: mockNetwork * 0.6,
+          network_out: mockNetwork * 0.4,
+          uptime: mockUptime,
+          responseTime: 50 + Math.random() * 150,
+          last_updated: server.updated_at ?? new Date().toISOString(),
+          location: server.location ?? '서울',
+          alerts: [],
+          ip: `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+          os: 'Ubuntu 22.04 LTS',
+          role: (server.type as ServerRole) ?? 'web',
+          environment:
+            (server.environment as ServerEnvironment) ?? 'production',
+          provider: server.provider,
+          specs: {
+            cpu_cores: server.cpu_cores ?? 4,
+            memory_gb: server.memory_gb ?? 8,
+            disk_gb: server.disk_gb ?? 200,
+            network_speed: '1Gbps',
+          },
+          lastUpdate: server.updated_at,
+          services: [],
+          systemInfo: {
             os: 'Ubuntu 22.04 LTS',
-            role: server.type as ServerRole ?? 'web',
-            environment: server.environment as ServerEnvironment ?? 'production',
-            provider: server.provider,
-            specs: {
-              cpu_cores: server.cpu_cores ?? 4,
-              memory_gb: server.memory_gb ?? 8,
-              disk_gb: server.disk_gb ?? 200,
-              network_speed: '1Gbps',
-            },
-            lastUpdate: server.updated_at,
-            services: [],
-            systemInfo: {
-              os: 'Ubuntu 22.04 LTS',
-              uptime: `${Math.floor(mockUptime / 3600)}h`,
-              processes: 100 + Math.floor(Math.random() * 50),
-              zombieProcesses: 0,
-              loadAverage: (mockCpu / 20).toFixed(2),
-              lastUpdate: server.updated_at ?? new Date().toISOString(),
-            },
-            networkInfo: {
-              interface: 'eth0',
-              receivedBytes: `${(mockNetwork * 0.6).toFixed(1)} MB`,
-              sentBytes: `${(mockNetwork * 0.4).toFixed(1)} MB`,
-              receivedErrors: 0,
-              sentErrors: 0,
-              status: 'online',
-            },
-          };
-        }
-      ) || []
+            uptime: `${Math.floor(mockUptime / 3600)}h`,
+            processes: 100 + Math.floor(Math.random() * 50),
+            zombieProcesses: 0,
+            loadAverage: (mockCpu / 20).toFixed(2),
+            lastUpdate: server.updated_at ?? new Date().toISOString(),
+          },
+          networkInfo: {
+            interface: 'eth0',
+            receivedBytes: `${(mockNetwork * 0.6).toFixed(1)} MB`,
+            sentBytes: `${(mockNetwork * 0.4).toFixed(1)} MB`,
+            receivedErrors: 0,
+            sentErrors: 0,
+            status: 'online',
+          },
+        };
+      }) || []
     );
   } catch (error) {
     console.error('❌ Supabase 서버 데이터 오류:', error);

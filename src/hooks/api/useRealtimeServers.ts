@@ -648,18 +648,18 @@ export function useRealtimeServers(
 
         // 데이터 구조 검증 및 변환
         if (serversArray && Array.isArray(serversArray)) {
-          const transformedServers = (serversArray as Array<{ status?: string; [key: string]: unknown }>).map(
-            (s: { status?: string; [key: string]: unknown }) => {
-              if (typeof s === 'object' && s !== null) {
-                return {
-                  ...s,
-                  status: mapStatus(s.status),
-                  lastUpdate: new Date(), // 실시간 타임스탬프
-                };
-              }
-              return s;
+          const transformedServers = (
+            serversArray as Array<{ status?: string; [key: string]: unknown }>
+          ).map((s: { status?: string; [key: string]: unknown }) => {
+            if (typeof s === 'object' && s !== null) {
+              return {
+                ...s,
+                status: mapStatus(s.status),
+                lastUpdate: new Date(), // 실시간 타임스탬프
+              };
             }
-          );
+            return s;
+          });
 
           // 시스템 상태 정보와 결합 (선택적)
           if (statusResponse.status === 200 && statusResponse.data) {

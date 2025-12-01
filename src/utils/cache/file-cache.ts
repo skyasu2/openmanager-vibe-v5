@@ -43,10 +43,7 @@ function transformNewFormatToLegacy(
   const dataPointCount = dataPoints.length;
 
   // 5분 단위로 dataPoint 인덱스 계산 (0-11)
-  const dataPointIndex = Math.min(
-    Math.floor(minute / 5),
-    dataPointCount - 1
-  );
+  const dataPointIndex = Math.min(Math.floor(minute / 5), dataPointCount - 1);
 
   const selectedDataPoint = dataPoints[dataPointIndex] || dataPoints[0];
   const servers = selectedDataPoint?.servers || {};
@@ -79,7 +76,9 @@ export async function readCachedHourlyFile(
   const cacheKey = hour.toString().padStart(2, '0');
 
   // KST 기준 현재 분 계산
-  const koreaTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' });
+  const koreaTime = new Date().toLocaleString('en-US', {
+    timeZone: 'Asia/Seoul',
+  });
   const currentMinute = new Date(koreaTime).getMinutes();
 
   // 5분 단위 캐시 키 (같은 시간대 내 5분마다 다른 dataPoint)

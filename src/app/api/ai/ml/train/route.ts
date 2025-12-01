@@ -109,7 +109,10 @@ async function getServerMetrics(
 }
 
 // 폴백: Supabase 데이터 없을 때 Mock 생성
-function generateFallbackMetrics(serverId?: string, timeRange = '24h'): MLMetricData[] {
+function generateFallbackMetrics(
+  serverId?: string,
+  timeRange = '24h'
+): MLMetricData[] {
   const now = new Date();
   const timeRangeMs: Record<string, number> = {
     '1h': 60 * 60 * 1000,
@@ -124,7 +127,9 @@ function generateFallbackMetrics(serverId?: string, timeRange = '24h'): MLMetric
   const dataPoints = Math.min(Math.floor(duration / interval), 1000);
 
   const mockData: MLMetricData[] = [];
-  const serverIds = serverId ? [serverId] : ['web-server-1', 'api-server-1', 'db-server-1'];
+  const serverIds = serverId
+    ? [serverId]
+    : ['web-server-1', 'api-server-1', 'db-server-1'];
 
   for (let i = 0; i < dataPoints; i++) {
     const timestamp = new Date(now.getTime() - i * interval);
