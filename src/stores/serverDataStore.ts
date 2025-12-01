@@ -34,6 +34,9 @@ export interface ServerDataState {
   autoRefreshIntervalId: NodeJS.Timeout | null;
   isAutoRefreshEnabled: boolean;
 
+  // 🚀 API 요청 중복 방지 플래그
+  isFetching: boolean;
+
   // 성능 메트릭
   performance: {
     totalRequests: number;
@@ -90,6 +93,7 @@ export const createServerDataStore = (
         prometheusHubStatus: null,
         autoRefreshIntervalId: null,
         isAutoRefreshEnabled: false,
+        isFetching: false, // 🚀 API 요청 중복 방지 플래그 초기값
         performance: {
           totalRequests: 0,
           avgResponseTime: 0,
@@ -101,9 +105,16 @@ export const createServerDataStore = (
 
       // 서버 데이터 가져오기 (API 사용)
       fetchServers: async () => {
+        // 🚀 API 요청 중복 방지: 이미 요청 중이면 스킵
+        const state = get();
+        if (state.isFetching) {
+          console.log('⏭️ fetchServers 스킵 - 이미 요청 중');
+          return;
+        }
+
         console.log('🎯 fetchServers 함수 시작 - API 사용');
 
-        set({ isLoading: true, error: null });
+        set({ isLoading: true, error: null, isFetching: true });
 
         try {
           console.log('🚀 /api/servers/all 에서 데이터 로드 시작');
@@ -135,6 +146,7 @@ export const createServerDataStore = (
                 isLoading: false,
                 lastUpdate: new Date(),
                 error: result.message || 'Fallback mode',
+                isFetching: false, // 🚀 폴백 시에도 플래그 리셋
               });
               return;
             }
@@ -172,6 +184,7 @@ export const createServerDataStore = (
               isLoading: false,
               lastUpdate: new Date(),
               error: null,
+              isFetching: false, // 🚀 요청 완료 플래그 리셋
             });
 
             console.log('✅ 서버 데이터 Zustand 스토어 업데이트 완료');
@@ -187,6 +200,7 @@ export const createServerDataStore = (
             isLoading: false,
             error: error.message,
             servers: [],
+            isFetching: false, // 🚀 에러 시에도 플래그 리셋
           });
         }
       },

@@ -13,7 +13,7 @@ import { useServerDataCache } from '@/hooks/dashboard/useServerDataCache';
 import { useServerFilter } from '@/hooks/dashboard/useServerFilter';
 import { useServerPagination } from '@/hooks/dashboard/useServerPagination';
 import { useServerStats } from '@/hooks/dashboard/useServerStats';
-import {
+import type {
   DashboardTab,
   EnhancedServerData,
   ServerStats,
@@ -42,24 +42,13 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   const isLoading = useServerDataStore((state) => state.isLoading);
   const error = useServerDataStore((state) => state.error);
-  const fetchServers = useServerDataStore((state) => state.fetchServers);
   const startAutoRefresh = useServerDataStore(
     (state) => state.startAutoRefresh
   );
   const stopAutoRefresh = useServerDataStore((state) => state.stopAutoRefresh);
 
-  // 즉시 fetchServers 실행 (조건부)
-  if (
-    (!cachedServers ||
-      !Array.isArray(cachedServers) ||
-      cachedServers.length === 0) &&
-    !isLoading &&
-    fetchServers
-  ) {
-    setTimeout(() => {
-      fetchServers();
-    }, 100);
-  }
+  // ⚠️ 렌더링 중 fetchServers 호출 제거 (API 과다 호출 방지)
+  // useEffect에서만 데이터를 로드하도록 변경
 
   // 🚀 화면 크기에 따른 초기 페이지 크기 설정
   const { pageSize: responsivePageSize, setPageSize: setResponsivePageSize } =
@@ -77,19 +66,15 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const { metricsHistory } = useServerMetrics();
 
   // 🚀 최적화된 서버 데이터 로드 및 자동 갱신 설정
+  // ⚠️ 수정: fetchServers 직접 호출 제거 (startAutoRefresh 내부에서 이미 수행)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Zustand store functions are stable, run only once on mount
   useEffect(() => {
-    fetchServers().catch((err) => {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('❌ fetchServers 호출 실패:', err);
-      }
-    });
-
+    // startAutoRefresh가 내부에서 즉시 fetchServers를 호출함
     startAutoRefresh();
     return () => {
       stopAutoRefresh();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchServers, startAutoRefresh, stopAutoRefresh]);
+  }, []);
 
   // 실제 서버 데이터 사용 (메모이제이션 + 데이터 변환)
   const actualServers = useMemo(() => {

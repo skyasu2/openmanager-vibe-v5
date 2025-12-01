@@ -20,7 +20,7 @@ import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { RealtimeClock } from '@/components/shared/RealtimeClock';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
-import { useServerDashboard } from '@/hooks/useServerDashboard';
+// ⚠️ useServerDashboard 제거 - ServerDashboard에서 호출하므로 중복 제거
 import { signOut, useSession } from '@/hooks/useSupabaseSession';
 import { useSystemIntegration } from '@/hooks/useSystemIntegration';
 import type { Server } from '@/types/server';
@@ -56,17 +56,11 @@ export default function OptimizedDashboard({
   const _healthStatus =
     systemStatus.systemStatus === 'running' ? 'healthy' : 'critical';
 
-  // 서버 데이터 (prop 우선, 없으면 hook 사용)
-  const {
-    paginatedServers: hookServers,
-    isLoading: hookIsLoading,
-    error: hookError,
-  } = useServerDashboard({});
-
-  const _servers = propServers || hookServers;
-  const _isLoading =
-    propIsLoading !== undefined ? propIsLoading : hookIsLoading;
-  const _error = propError !== undefined ? propError : hookError;
+  // ⚠️ 수정: useServerDashboard 중복 호출 제거 (ServerDashboard에서 이미 호출)
+  // ServerDashboard가 서버 데이터를 직접 관리하므로 여기서는 props만 사용
+  const _servers = propServers;
+  const _isLoading = propIsLoading;
+  const _error = propError;
 
   // 자동 로그아웃 훅
   const {
