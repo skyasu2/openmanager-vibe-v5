@@ -42,21 +42,21 @@ ai-tools:
 # ============================================================================
 subagents:
   active:
-    - codex-specialist                  # HIGH priority - Code review (CLI wrapper)
-    - code-review-specialist            # HIGH priority - Unified agent
-      # 3가지 기능 통합: General review + Codex auto-review + Multi-AI verification
-      # Workflow: .husky/post-commit → auto-codex-review.sh → review-*.md → Claude 분석
-      # Input: Git diff | Output: Markdown report with score (1-10)
-    - dev-environment-manager           # MEDIUM
-    - database-administrator            # HIGH
-    - vercel-platform-specialist        # HIGH
-    - debugger-specialist               # HIGH
-    - security-specialist               # CRITICAL
-    - test-automation-specialist        # HIGH
-    - documentation-manager             # MEDIUM
-    - structure-refactor-specialist     # MEDIUM
-    - ui-ux-specialist                  # MEDIUM
-    - gcp-cloud-functions-specialist    # HIGH
+    - codex-specialist                  # HIGH - Code review (CLI wrapper)
+    - code-review-specialist            # HIGH - 통합 코드 품질 검토
+    - database-administrator            # HIGH - Supabase 전문
+    - vercel-platform-specialist        # HIGH - 배포 관리
+    - debugger-specialist               # HIGH - 버그 분석
+    - security-specialist               # CRITICAL - 보안 감사
+    - test-automation-specialist        # HIGH - Vitest + Playwright
+    - documentation-manager             # MEDIUM - 문서 관리
+    - ui-ux-specialist                  # MEDIUM - UI 컴포넌트
+    - performance-specialist            # HIGH - Core Web Vitals, 번들 최적화 🆕
+
+  archived:  # 2025-12-01 최적화로 아카이브
+    - dev-environment-manager           # Claude 기본 기능으로 충분
+    - structure-refactor-specialist     # code-review에 통합
+    - gcp-cloud-functions-specialist    # Vercel이 주 플랫폼
 
 # 상세 정보: .claude/agents/*.md 참조
 # Workflow Integration:
@@ -68,21 +68,23 @@ subagents:
 # 3. Active MCP Servers (활성화된 MCP 서버만)
 # ============================================================================
 mcp-servers:
-  active:
-    - vercel          # v0.0.13, stdio, API_KEY
-    - supabase        # CLI
-    - serena          # Native, 코드 검색 전문
-    - context7        # CLI
-    - playwright      # CLI, v0.0.45
-    - shadcn-ui       # CLI
-    - memory          # CLI
-    - time            # Python
-    - sequential-thinking  # CLI
-    - filesystem      # CLI, 파일 시스템 작업 전문
+  active:  # 11/11 연결 완료 (2025-12-01)
+    - vercel          # @open-mcp/vercel, 배포 관리
+    - supabase        # @supabase/mcp-server-supabase, DB 관리
+    - serena          # 코드 검색 전문 (심볼, 구조 분석)
+    - context7        # 문서 조회
+    - playwright      # E2E 테스트
+    - shadcn-ui       # UI 컴포넌트
+    - memory          # 메모리 관리
+    - time            # 시간 유틸리티
+    - sequential-thinking  # 순차적 사고
+    - filesystem      # 파일 시스템 작업
+    - github          # GitHub 저장소 관리 🆕
 
 # 역할 구분:
 #   - serena: 코드 검색 (심볼, 구조 분석)
 #   - filesystem: 파일 작업 (읽기/쓰기, 디렉토리 탐색)
+#   - github: 저장소 관리 (PR, Issues)
 # 상세 정보: .mcp.json 참조
 
 # ============================================================================
