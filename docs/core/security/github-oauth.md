@@ -46,11 +46,12 @@ code_snippets: true
 ## Quick Implementation
 
 ```typescript
-// 1. Supabase Client Setup
+// 1. Imports
 import { supabase } from '@/lib/supabase/client';
+import { clearAuthData } from '@/lib/auth/auth-state-manager';
 
-// 2. GitHub Sign-In (with PKCE flow)
-export async function signInWithGitHub() {
+// 2. GitHub Sign-In (with PKCE flow - handled by Supabase)
+export async function signInWithGitHub(): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
@@ -65,9 +66,9 @@ export async function signInWithGitHub() {
 }
 
 // 3. Secure Session Check (JWT Validation) ⚠️ IMPORTANT
-export async function getSecureSession() {
-  // 🔐 getUser() validates JWT signature on server
-  // getSession() only checks local cache (insecure)
+export async function getSecureSession(): Promise<User | null> {
+  // 🔐 getUser() sends request to Supabase Auth server to validate JWT
+  // getSession() only checks local storage (insecure for sensitive ops)
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error) {
     console.warn('⚠️ JWT validation failed:', error.message);
@@ -76,10 +77,10 @@ export async function getSecureSession() {
   return user;
 }
 
-// 4. Sign Out
-export async function signOut() {
+// 4. Sign Out (with cleanup)
+export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
-  clearAuthData(); // AuthStateManager cleanup
+  clearAuthData(); // Clears localStorage auth data via AuthStateManager
 }
 ```
 
@@ -96,6 +97,30 @@ const { data: { session } } = await supabase.auth.getSession();
 
 // ✅ SECURE - validates JWT signature on server
 const { data: { user } } = await supabase.auth.getUser();
+```
+
+## Guest Authentication Security
+
+> **⚠️ Security Note**: Guest mode uses `localStorage` intentionally for demo/temporary access.
+
+| Aspect | Guest Mode | GitHub OAuth |
+|--------|------------|--------------|
+| Storage | localStorage | Supabase (secure cookies) |
+| Token Type | UUID session ID | JWT with server validation |
+| Permissions | Read-only, limited | Full access |
+| Use Case | Quick demo, trials | Production users |
+
+**Why localStorage for Guest?**
+- Guest sessions are **temporary** and have **limited permissions**
+- No sensitive data is stored (only session identifier)
+- Acceptable for demo/trial scenarios
+- **Not used for production authentication**
+
+```typescript
+// Guest ID generation (secure random)
+const guestId = `guest_${crypto.randomUUID()}`; // 128-bit entropy
+localStorage.setItem('auth_user', JSON.stringify({ id: guestId, ... }));
+localStorage.setItem('auth_type', 'guest');
 ```
 
 ## Environment Variables
