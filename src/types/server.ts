@@ -346,6 +346,14 @@ export interface EnhancedServerMetrics {
     predictedIssues: string[];
     recommendations: string[];
     confidence: number;
+    correlatedLogs?: {
+      id: string;
+      timestamp: string;
+      level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
+      message: string;
+      source?: string;
+    }[];
+    rootCauseAnalysis?: string[];
   };
   trends?: {
     cpu: 'increasing' | 'decreasing' | 'stable';

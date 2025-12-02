@@ -76,7 +76,10 @@ export default function IntelligentMonitoringPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(analysisConfig),
+        body: JSON.stringify({
+          action: 'analyze_server',
+          ...analysisConfig,
+        }),
       });
 
       if (!response.ok) {

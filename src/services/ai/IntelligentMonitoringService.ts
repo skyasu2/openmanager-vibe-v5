@@ -95,7 +95,13 @@ export class IntelligentMonitoringService {
    */
   public analyzeServerMetrics(
     currentMetrics: ServerMetrics,
-    historicalData: MetricHistory
+    historicalData: MetricHistory,
+    logs: Array<{
+      id: string;
+      timestamp: string;
+      level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
+      message: string;
+    }> = []
   ): EnhancedServerMetrics {
     // Extract current metric values (normalize union types to numbers)
     const currentValues = {
@@ -121,11 +127,18 @@ export class IntelligentMonitoringService {
     const aggregateAnomalyScore =
       this.anomalyDetector.calculateAggregateScore(anomalyResults);
 
-    // Generate recommendations
+    // Correlate logs with anomalies
+    const correlatedLogs = this.correlateLogsWithAnomalies(
+      anomalyResults,
+      logs
+    );
+
+    // Generate recommendations (now including log insights)
     const recommendations = this.generateRecommendations(
       anomalyResults,
       trendResults,
-      currentMetrics
+      currentMetrics,
+      correlatedLogs
     );
 
     // Identify predicted issues
@@ -158,6 +171,10 @@ export class IntelligentMonitoringService {
         predictedIssues,
         recommendations,
         confidence,
+        correlatedLogs,
+        rootCauseAnalysis: correlatedLogs.length > 0 
+          ? correlatedLogs.map(log => `Possible root cause: ${log.message}`)
+          : undefined
       },
       trends: {
         cpu: trendResults.cpu?.trend || 'stable',
@@ -221,14 +238,56 @@ export class IntelligentMonitoringService {
   // ============================================================================
 
   /**
+   * Correlate anomalies with system logs to find potential root causes.
+   */
+  private correlateLogsWithAnomalies(
+    anomalies: Record<string, AnomalyDetectionResult>,
+    logs: Array<{
+      id: string;
+      timestamp: string;
+      level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
+      message: string;
+    }>
+  ): Array<{
+    id: string;
+    timestamp: string;
+    level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
+    message: string;
+  }> {
+    // Define time window for correlation (e.g., +/- 5 minutes around now)
+    // Since we are analyzing current metrics, we look at recent logs
+    const now = Date.now();
+    const windowMs = 5 * 60 * 1000; // 5 minutes
+
+    // Filter logs that are errors or warnings within the time window
+    const recentErrorLogs = logs.filter((log) => {
+      const logTime = new Date(log.timestamp).getTime();
+      const isRecent = logTime >= now - windowMs && logTime <= now + windowMs;
+      const isError = log.level === 'ERROR' || log.level === 'WARN';
+      return isRecent && isError;
+    });
+
+    return recentErrorLogs.slice(0, 3); // Return top 3 correlated logs
+  }
+
+  /**
    * Generate actionable recommendations based on analysis results.
    */
   private generateRecommendations(
     anomalies: Record<string, AnomalyDetectionResult>,
     trends: Record<string, TrendPrediction>,
-    currentMetrics: ServerMetrics
+    currentMetrics: ServerMetrics,
+    correlatedLogs: Array<{ message: string }> = []
   ): string[] {
     const recommendations: string[] = [];
+
+    // Add log-based recommendations first (High Priority)
+    const firstLog = correlatedLogs[0];
+    if (correlatedLogs.length > 0 && firstLog) {
+      recommendations.push(
+        `🔍 Log Analysis: Detected ${correlatedLogs.length} recent error logs. Check: "${firstLog.message}"`
+      );
+    }
 
     // Check for high severity anomalies
     for (const [metric, result] of Object.entries(anomalies)) {
