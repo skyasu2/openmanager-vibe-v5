@@ -2,6 +2,7 @@
  * 🧠 ML 학습 센터 컴포넌트
  *
  * AI 고급관리 페이지에서 사용되는 ML 학습 기능
+ * - /api/ai/ml/train API 연동
  * - 수동 트리거 방식으로 무료 티어 안전
  * - 실시간 진행률 표시
  * - 학습 결과 시각화
@@ -9,7 +10,6 @@
 
 'use client';
 
-// framer-motion 제거 - CSS 애니메이션 사용
 import {
   AlertCircle,
   BarChart3,
@@ -24,12 +24,26 @@ import {
 } from 'lucide-react';
 import { createElement, type FC, useCallback, useState } from 'react';
 
-// AnomalyDetection 제거 - 클라이언트에서 Redis 사용 불가
-// IncidentReportService 제거 - 클라이언트에서 Redis 사용 불가
-// GCPFunctionsService 제거 - 더 이상 사용하지 않음
-
 // 학습 타입 정의
 type LearningType = 'patterns' | 'anomaly' | 'incident' | 'prediction';
+
+// API 응답 타입
+interface APITrainingResult {
+  id: string;
+  type: LearningType;
+  patternsLearned: number;
+  accuracyImprovement: number;
+  confidence: number;
+  insights: string[];
+  nextRecommendation: string;
+  metadata: {
+    processingTime: number;
+    dataPoints: number;
+    algorithm: string;
+    version: string;
+  };
+  timestamp: string;
+}
 
 interface LearningProgress {
   status: 'idle' | 'running' | 'completed' | 'error';
@@ -122,7 +136,7 @@ export const MLLearningCenter: FC = () => {
     []
   );
 
-  // 학습 시작 함수
+  // 학습 시작 함수 (API 연동)
   const startLearning = useCallback(
     async (type: LearningType) => {
       // 이미 실행 중이면 무시
@@ -141,7 +155,7 @@ export const MLLearningCenter: FC = () => {
 
       const startTime = Date.now();
 
-      // 진행률 업데이트 타이머
+      // 진행률 업데이트 타이머 (API 호출 중 UI 피드백용)
       const progressTimer = setInterval(() => {
         setLearningProgress((prev) => {
           const current = prev[type];
@@ -165,119 +179,39 @@ export const MLLearningCenter: FC = () => {
       }, 500);
 
       try {
-        let result: LearningResult;
+        // API 호출
+        const response = await fetch('/api/ai/ml/train', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type,
+            timeRange: '24h',
+            config: { sensitivity: 'medium' },
+          }),
+        });
 
-        switch (type) {
-          case 'patterns': {
-            // 패턴 학습 로직
-            await new Promise((resolve) => setTimeout(resolve, 3000)); // 시뮬레이션
-            result = {
-              type,
-              patternsLearned: 12,
-              accuracyImprovement: 15,
-              confidence: 0.87,
-              insights: [
-                'CPU 사용률이 85% 이상일 때 메모리 누수 패턴 발견',
-                '오전 10시-11시 트래픽 급증 패턴 확인',
-                'DB 쿼리 지연이 전체 성능에 영향',
-              ],
-              nextRecommendation: '네트워크 트래픽 데이터 추가 수집 권장',
-              timestamp: new Date(),
-            };
-            break;
-          }
-
-          case 'anomaly': {
-            // 이상 탐지 학습
-            // 임시 이상 탐지 데이터
-            const _anomalies = [
-              { type: 'CPU', severity: 'high', confidence: 0.92 },
-              { type: 'Memory', severity: 'medium', confidence: 0.85 },
-            ];
-            result = {
-              type,
-              patternsLearned: 8,
-              accuracyImprovement: 12,
-              confidence: 0.91,
-              insights: [
-                '비정상적인 메모리 사용 패턴 3개 발견',
-                '야간 시간대 CPU 스파이크 감지',
-                '네트워크 지연 시간 이상 패턴',
-              ],
-              nextRecommendation: '임계값 자동 조정 활성화 권장',
-              timestamp: new Date(),
-            };
-            break;
-          }
-
-          case 'incident': {
-            // 장애 케이스 학습 (목업 데이터)
-            const mockReports = [
-              {
-                severity: 'critical',
-                rootCause: 'DB 연결 풀 고갈',
-                affectedServers: [1, 2, 3],
-              },
-              {
-                severity: 'high',
-                rootCause: '메모리 누수',
-                affectedServers: [4, 5],
-              },
-              {
-                severity: 'medium',
-                rootCause: '네트워크 지연',
-                affectedServers: [6],
-              },
-              {
-                severity: 'critical',
-                rootCause: '디스크 공간 부족',
-                affectedServers: [7, 8, 9, 10],
-              },
-            ];
-
-            // 패턴 학습 시뮬레이션
-            await new Promise((resolve) => setTimeout(resolve, 2500));
-
-            result = {
-              type,
-              patternsLearned: mockReports.length,
-              accuracyImprovement: 15,
-              confidence: 0.93,
-              insights: [
-                `${mockReports.filter((p) => p.severity === 'critical').length}개의 심각한 장애 패턴 학습`,
-                '연쇄 장애 패턴 식별: DB → API → 웹서버',
-                '평균 복구 시간 단축 방법 학습',
-                '사전 경고 신호 패턴 업데이트',
-              ],
-              nextRecommendation:
-                mockReports.length > 10
-                  ? '충분한 데이터 확보. 자동 예측 모델 훈련 가능'
-                  : '더 많은 장애 보고서 데이터 수집 필요',
-              timestamp: new Date(),
-            };
-            break;
-          }
-
-          case 'prediction': {
-            // 예측 모델 훈련 시뮬레이션
-            // GCP ML Provider를 통한 실제 ML 분석 (학습 시뮬레이션)
-            await new Promise((resolve) => setTimeout(resolve, 2500));
-            result = {
-              type,
-              patternsLearned: 10,
-              accuracyImprovement: 20,
-              confidence: 0.85,
-              insights: [
-                '24시간 후 서버 부하 예측 정확도 향상',
-                '계절적 패턴 반영으로 예측력 개선',
-                '이벤트 기반 스파이크 예측 추가',
-              ],
-              nextRecommendation: '주말 데이터 추가 학습 권장',
-              timestamp: new Date(),
-            };
-            break;
-          }
+        if (!response.ok) {
+          throw new Error(`API 오류: ${response.status}`);
         }
+
+        const data = await response.json();
+
+        if (!data.success || !data.result) {
+          throw new Error(data.error || '학습 결과가 없습니다.');
+        }
+
+        const apiResult: APITrainingResult = data.result;
+
+        // API 응답을 UI 타입으로 변환
+        const result: LearningResult = {
+          type: apiResult.type,
+          patternsLearned: apiResult.patternsLearned,
+          accuracyImprovement: apiResult.accuracyImprovement,
+          confidence: apiResult.confidence,
+          insights: apiResult.insights,
+          nextRecommendation: apiResult.nextRecommendation,
+          timestamp: new Date(apiResult.timestamp),
+        };
 
         // 학습 완료
         clearInterval(progressTimer);
@@ -295,22 +229,23 @@ export const MLLearningCenter: FC = () => {
         setLearningResults((prev) => [result, ...prev].slice(0, 10)); // 최근 10개만 유지
         setSelectedResult(result);
 
-        // 학습 결과는 로컬에만 저장
-        console.log('✅ ML 학습 결과 저장 완료:', {
+        console.log('✅ ML 학습 결과:', {
           type,
           patternsLearned: result.patternsLearned,
           accuracyImprovement: result.accuracyImprovement,
           confidence: result.confidence,
+          cached: data.cached,
         });
-      } catch {
+      } catch (error) {
         // 에러 처리
         clearInterval(progressTimer);
+        console.error('ML 학습 실패:', error);
         setLearningProgress((prev) => ({
           ...prev,
           [type]: {
             status: 'error',
             progress: prev[type].progress,
-            currentStep: '학습 실패',
+            currentStep: error instanceof Error ? error.message : '학습 실패',
             timeElapsed: Date.now() - startTime,
           },
         }));

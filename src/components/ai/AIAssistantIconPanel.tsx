@@ -14,7 +14,6 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  Activity,
   Brain,
   FileText,
   MessageSquare,
@@ -28,8 +27,7 @@ export type AIAssistantFunction =
   | 'chat'
   | 'auto-report'
   | 'intelligent-monitoring'
-  | 'advanced-management'
-  | 'free-tier-monitor';
+  | 'advanced-management';
 
 interface AIAssistantIcon {
   id: AIAssistantFunction;
@@ -82,15 +80,6 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     color: 'text-gray-600',
     bgColor: 'bg-gray-50 hover:bg-gray-100',
     gradient: 'from-gray-500 to-slate-500',
-  },
-  {
-    id: 'free-tier-monitor',
-    icon: Activity,
-    label: '무료 티어 모니터',
-    description: 'Vercel, Supabase, Google AI 무료 티어 사용량 추적',
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-50 hover:bg-indigo-100',
-    gradient: 'from-indigo-500 to-purple-500',
   },
 ];
 

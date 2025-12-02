@@ -2,6 +2,7 @@
  * 📄 자동 장애 보고서 페이지 컴포넌트
  *
  * 실시간 장애 리포트 생성 및 관리
+ * - /api/ai/incident-report API 연동
  */
 
 'use client';
@@ -16,72 +17,195 @@ import {
   RefreshCw,
   Server,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useServerDataStore } from '@/components/providers/StoreProvider';
+import type { EnhancedServerMetrics } from '@/types/server';
 
 interface IncidentReport {
   id: string;
   title: string;
-  severity: 'critical' | 'warning' | 'info';
+  severity: 'critical' | 'warning' | 'info' | 'high' | 'medium' | 'low';
   timestamp: Date;
   affectedServers: string[];
   description: string;
   status: 'active' | 'resolved' | 'investigating';
+  pattern?: string;
+  recommendations?: Array<{
+    action: string;
+    priority: string;
+    expected_impact: string;
+  }>;
 }
 
-const MOCK_REPORTS: IncidentReport[] = [
-  {
-    id: '1',
-    title: 'Server-03 CPU 사용률 임계치 초과',
-    severity: 'critical',
-    timestamp: new Date(Date.now() - 30 * 60 * 1000),
-    affectedServers: ['Server-03'],
-    description: 'CPU 사용률이 95%를 초과하여 성능 저하가 예상됩니다.',
-    status: 'active',
-  },
-  {
-    id: '2',
-    title: '메모리 사용률 증가 추세',
-    severity: 'warning',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    affectedServers: ['Server-01', 'Server-05'],
-    description:
-      '지난 2시간 동안 메모리 사용률이 지속적으로 증가하고 있습니다.',
-    status: 'investigating',
-  },
-  {
-    id: '3',
-    title: '디스크 공간 부족 경고',
-    severity: 'warning',
-    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    affectedServers: ['Server-07'],
-    description: '디스크 사용률이 85%에 도달했습니다.',
-    status: 'resolved',
-  },
-];
+// API 응답 타입
+interface APIIncidentReport {
+  id: string;
+  title: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  affected_servers: string[];
+  pattern?: string;
+  recommendations?: Array<{
+    action: string;
+    priority: string;
+    expected_impact: string;
+  }>;
+  root_cause_analysis?: {
+    primary_cause: string;
+    contributing_factors: string[];
+    confidence: number;
+  };
+  created_at: string;
+}
+
+// 숫자 값 추출 헬퍼 함수
+function extractNumericValue(value: number | Record<string, unknown>): number {
+  if (typeof value === 'number') return value;
+  if (typeof value !== 'object' || value === null) return 0;
+
+  // 네트워크 타입: { in: number, out: number }
+  if ('in' in value && 'out' in value) {
+    const inVal = typeof value.in === 'number' ? value.in : 0;
+    const outVal = typeof value.out === 'number' ? value.out : 0;
+    return (inVal + outVal) / 2;
+  }
+  // 메모리 타입: { used: number }
+  if ('used' in value && typeof value.used === 'number') {
+    return value.used;
+  }
+  // 일반 타입: { usage: number }
+  if ('usage' in value && typeof value.usage === 'number') {
+    return value.usage;
+  }
+  return 0;
+}
 
 export default function AutoReportPage() {
-  const [reports, setReports] = useState<IncidentReport[]>(MOCK_REPORTS);
+  // 실시간 서버 데이터 가져오기
+  const servers = useServerDataStore(
+    (state: { servers: EnhancedServerMetrics[] }) => state.servers
+  );
+
+  const [reports, setReports] = useState<IncidentReport[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [_isLoading, setIsLoading] = useState(true);
+  const [_error, setError] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
 
-  const handleGenerateReport = () => {
+  // severity 매핑 함수 (순수 함수, 컴포넌트 상태에 의존하지 않음)
+  const mapSeverity = useCallback(
+    (apiSeverity: string): 'critical' | 'warning' | 'info' => {
+      switch (apiSeverity) {
+        case 'critical':
+        case 'high':
+          return 'critical';
+        case 'medium':
+          return 'warning';
+        default:
+          return 'info';
+      }
+    },
+    []
+  );
+
+  // API에서 보고서 목록 가져오기
+  const fetchReports = useCallback(async () => {
+    try {
+      setError(null);
+      const response = await fetch('/api/ai/incident-report');
+
+      if (!response.ok) {
+        throw new Error(`API 오류: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.reports) {
+        const mappedReports: IncidentReport[] = data.reports.map(
+          (report: APIIncidentReport) => ({
+            id: report.id,
+            title: report.title,
+            severity: mapSeverity(report.severity),
+            timestamp: new Date(report.created_at),
+            affectedServers: report.affected_servers || [],
+            description:
+              report.root_cause_analysis?.primary_cause ||
+              '상세 분석을 확인하세요.',
+            status: 'active' as const,
+            pattern: report.pattern,
+            recommendations: report.recommendations,
+          })
+        );
+        setReports(mappedReports);
+      }
+    } catch (err) {
+      console.error('보고서 조회 실패:', err);
+      setError('보고서를 불러오는데 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [mapSeverity]);
+
+  // 초기 로드
+  useEffect(() => {
+    void fetchReports();
+  }, [fetchReports]);
+
+  // 새 보고서 생성 (실제 API 호출)
+  const handleGenerateReport = async () => {
     setIsGenerating(true);
+    setError(null);
 
-    // 새 보고서 생성 시뮬레이션
-    setTimeout(() => {
-      const newReport: IncidentReport = {
-        id: Date.now().toString(),
-        title: '네트워크 지연 감지',
-        severity: 'warning',
-        timestamp: new Date(),
-        affectedServers: ['Server-02', 'Server-04'],
-        description: '평균 응답 시간이 200ms를 초과하고 있습니다.',
-        status: 'active',
-      };
+    try {
+      // 서버 메트릭 데이터 준비
+      const metrics = servers.map((server) => ({
+        server_id: server.id,
+        server_name: server.name,
+        cpu: extractNumericValue(server.cpu ?? 0),
+        memory: extractNumericValue(server.memory ?? 0),
+        disk: extractNumericValue(server.disk ?? 0),
+        network: extractNumericValue(server.network ?? 0),
+        timestamp: new Date().toISOString(),
+      }));
 
-      setReports((prev) => [newReport, ...prev]);
+      const response = await fetch('/api/ai/incident-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate',
+          metrics,
+          notify: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API 오류: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.report) {
+        const newReport: IncidentReport = {
+          id: data.report.id,
+          title: data.report.title,
+          severity: mapSeverity(data.report.severity),
+          timestamp: new Date(data.report.created_at),
+          affectedServers: data.report.affected_servers || [],
+          description:
+            data.report.root_cause_analysis?.primary_cause ||
+            '새로운 이상 징후가 감지되었습니다.',
+          status: 'active',
+          pattern: data.report.pattern,
+          recommendations: data.report.recommendations,
+        };
+
+        setReports((prev) => [newReport, ...prev]);
+      }
+    } catch (err) {
+      console.error('보고서 생성 실패:', err);
+      setError('보고서 생성에 실패했습니다.');
+    } finally {
       setIsGenerating(false);
-    }, 3000);
+    }
   };
 
   const getSeverityIcon = (severity: string) => {

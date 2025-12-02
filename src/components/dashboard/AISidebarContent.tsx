@@ -26,7 +26,6 @@ import AIAssistantIconPanel, {
   type AIAssistantFunction,
 } from '@/components/ai/AIAssistantIconPanel';
 // AIModeSelector 제거 - 지능형 라우팅으로 자동 선택
-import FreeTierMonitor from '@/components/ai/FreeTierMonitor';
 import ThinkingProcessVisualizer from '@/components/ai/ThinkingProcessVisualizer';
 import { useServerDataStore } from '@/components/providers/StoreProvider';
 import type { ThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
@@ -247,9 +246,6 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
       setActiveTab('chat');
       // auto-report 실행 후 다시 chat으로 돌아가기
       setTimeout(() => setSelectedFunction('chat'), 100);
-    } else if (selectedFunction === 'free-tier-monitor') {
-      // 무료 티어 모니터 탭으로 전환
-      setActiveTab('insights');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFunction, handleSendMessage]);
@@ -547,13 +543,6 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 
         {activeTab === 'insights' && (
           <div className="overflow-y-auto p-4">
-            {/* 무료 티어 모니터 (선택 시 상단 표시) */}
-            {selectedFunction === 'free-tier-monitor' && (
-              <div className="mb-4">
-                <FreeTierMonitor />
-              </div>
-            )}
-
             <AIInsightsCard className="mb-4" />
 
             {/* 🆕 Phase 3A: AI Analysis & Trends Visualization */}
