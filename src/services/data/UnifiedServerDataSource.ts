@@ -82,7 +82,7 @@ export class UnifiedServerDataSource {
    * @returns {Promise<Server[]>} 15개 서버 데이터 (24시간 회전 JSON)
    *
    * @description
-   * - 서버 사이드: `scenario-loader` → `hourly-metrics/*.json` (fs 모듈 사용)
+   * - 서버 사이드: `scenario-loader` → `hourly-data/hour-*.json` (fs 모듈 사용)
    * - 클라이언트 사이드: `/api/servers-unified` API 사용 (브라우저 호환)
    * - 캐싱: 5분 TTL (성능 최적화)
    * - 검증: 서버 수 및 필수 필드 확인

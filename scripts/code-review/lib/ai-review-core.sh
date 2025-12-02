@@ -129,33 +129,20 @@ $changes
 
 **참고**: 위 검증 결과는 실제 실행 결과입니다. 이를 바탕으로 리뷰해주세요."
 
-    # Gemini 실행 (직접 호출 + stderr 필터링) - Option 1
+    # Gemini 실행 (wrapper 사용) - Codex/Qwen과 동일한 패턴
     local gemini_output
-    local temp_stdout=$(mktemp)
-    local temp_stderr=$(mktemp)
+    local gemini_exit_code=0
 
-    # 함수 종료 시 임시 파일 자동 정리 (인터럽트 포함)
-    trap 'rm -f "$temp_stdout" "$temp_stderr"' RETURN
-
-    # Gemini 실행: stdout과 stderr 분리
-    if echo "$query" | gemini --model gemini-2.5-pro > "$temp_stdout" 2> "$temp_stderr"; then
-        # stderr 필터링: 무해한 에러 메시지 제거 (단일 정규식)
-        local filtered_errors=$(grep -vE "\[ImportProcessor\]|Loaded cached credentials|Got it|Attempt .* failed:" "$temp_stderr")
-
-        # stdout 읽기
-        gemini_output=$(cat "$temp_stdout")
-
-        # 실제 출력이 있는지 확인 (공백 제거 후)
-        if [ -n "$(echo "$gemini_output" | tr -d '[:space:]')" ]; then
-            echo "gemini" > /tmp/ai_engine_auto_review
-            echo "$gemini_output"
-            return 0
-        fi
+    if gemini_output=$("$PROJECT_ROOT/scripts/ai-subagents/gemini-wrapper.sh" "$query" 2>&1); then
+        # 파일 디스크립터를 통해 AI_ENGINE 전파
+        echo "gemini" > /tmp/ai_engine_auto_review
+        echo "$gemini_output"
+        return 0
+    else
+        gemini_exit_code=$?
+        log_error "Gemini 리뷰 실패 (Exit code: $gemini_exit_code)"
+        return 1
     fi
-
-    # 실패 (trap이 자동으로 cleanup 수행)
-    log_error "Gemini 리뷰 실패"
-    return 1
 }
 
 # ============================================================================

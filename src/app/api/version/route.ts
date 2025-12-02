@@ -5,10 +5,10 @@ export const runtime = 'edge';
 
 // 📦 정적 버전 정보 - 파일 시스템 의존성 제거
 const VERSION_INFO = {
-  version: '5.71.0',
+  version: '5.80.0',
   name: 'openmanager-vibe-v5',
   description: 'AI 기반 실시간 서버 모니터링 플랫폼',
-  nextjs_version: '15.4.5',
+  nextjs_version: '15.5.5',
 } as const;
 
 /**
