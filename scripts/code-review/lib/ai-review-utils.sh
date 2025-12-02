@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# AI Review Utilities - v6.0.0
+# AI Review Utilities - v6.1.0
 # 유틸리티 함수 모음 (로그, 카운터, 변경사항 수집 등)
-# v6.0.0 (2025-12-02): 순서 기반 AI 선택 (codex↔gemini 교대, qwen은 최종 폴백)
+# v6.1.0 (2025-12-02): 3-AI 순번 (codex→gemini→claude), 실패 시 즉시 qwen 폴백
 
 # 색상 정의
 RED='\033[0;31m'
@@ -123,22 +123,26 @@ increment_ai_counter() {
     esac
 }
 
-# 순서 기반 AI 선택 (v6.0.0: codex↔gemini 교대, qwen/claude는 폴백 전용)
+# 순서 기반 AI 선택 (v6.1.0: codex→gemini→claude 순번, qwen은 즉시 폴백)
 # - 이전 AI가 codex → 이번에 gemini
-# - 이전 AI가 gemini → 이번에 codex
-# - Qwen, Claude는 Primary에서 제외 (폴백으로만 사용)
+# - 이전 AI가 gemini → 이번에 claude
+# - 이전 AI가 claude → 이번에 codex
+# - Qwen은 Primary에서 제외 (실패 시 즉시 폴백으로 사용)
 select_primary_ai() {
     init_ai_counter
 
     local last_ai=$(get_last_ai)
 
-    # 순서 기반 선택: codex ↔ gemini 교대
+    # 순서 기반 선택: codex → gemini → claude → codex (순환)
     case "$last_ai" in
         codex)
             echo "gemini"
             ;;
-        gemini|qwen|claude|*)
-            # gemini 이후 또는 기타 모든 경우 → codex
+        gemini)
+            echo "claude"
+            ;;
+        claude|qwen|*)
+            # claude 이후 또는 기타 모든 경우 → codex
             echo "codex"
             ;;
     esac
