@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# AI Review Core Functions - v6.0.0
+# AI Review Core Functions - v6.1.0
 # AI 리뷰 실행 함수들 (Codex, Gemini, Qwen, Claude)
 #
-# v6.0.0 (2025-12-01): 단순화된 폴백 시스템
-# - 4단계 폴백 → 1회 재시도 + 지연 보상
-# - Primary 실패 시 1회만 다른 AI로 재시도
-# - 그래도 실패하면 .pending-reviews에 저장 → 다음 커밋 때 보상
-# - 코드 복잡도 대폭 감소 (500줄 → 200줄)
+# v6.1.0 (2025-12-02): 순서 기반 AI 선택 + Qwen 최종 폴백
+# - 라운드 로빈 → 순서 기반 (codex↔gemini 교대)
+# - Qwen은 Primary에서 제외, 최종 폴백으로만 사용
+# - 폴백 체인: Primary(codex/gemini) → 반대(gemini/codex) → Qwen → Claude
+# - last_ai 상태 추적으로 다음 리뷰 시 반대 AI 자동 선택
 
 # ============================================================================
 # Codex 리뷰 함수
@@ -381,14 +381,33 @@ run_single_ai_review() {
     esac
 }
 
-# 1회 재시도용 Secondary AI 선택
+# 1회 재시도용 Secondary AI 선택 (v6.0.0: codex↔gemini 먼저, qwen은 최종 폴백)
+# 폴백 체인: codex→gemini / gemini→codex / 둘 다 실패→qwen→claude
 get_retry_ai() {
     local primary="$1"
+    local attempt="${2:-1}"  # 1=첫 재시도, 2=두 번째 재시도(qwen)
+
     case "$primary" in
-        codex) echo "gemini" ;;
-        gemini) echo "qwen" ;;
-        qwen) echo "claude" ;;
-        claude) echo "codex" ;;
+        codex)
+            if [ "$attempt" -eq 1 ]; then
+                echo "gemini"  # codex 실패 → gemini 시도
+            else
+                echo "qwen"    # gemini도 실패 → qwen (최종 폴백)
+            fi
+            ;;
+        gemini)
+            if [ "$attempt" -eq 1 ]; then
+                echo "codex"   # gemini 실패 → codex 시도
+            else
+                echo "qwen"    # codex도 실패 → qwen (최종 폴백)
+            fi
+            ;;
+        qwen)
+            echo "claude"      # qwen 실패 → claude (절대 최종)
+            ;;
+        claude)
+            echo "codex"       # claude 실패 → codex로 돌아감
+            ;;
     esac
 }
 
@@ -417,22 +436,23 @@ clear_pending_reviews() {
     log_success "✅ 보류 중인 리뷰 클리어 완료"
 }
 
+# v6.0.0: 순서 기반 AI 선택 + 다단계 폴백 (codex↔gemini → qwen → claude)
 run_ai_review() {
     local changes="$1"
     local review_output=""
-    local is_retry="${2:-false}"  # 재시도 여부
 
     # 임시 파일 초기화
     rm -f /tmp/ai_engine_auto_review
 
-    # 1단계: 1:1:1:1 비율로 Primary AI 선택
+    # 1단계: 순서 기반으로 Primary AI 선택 (codex↔gemini 교대)
     local primary_ai=$(select_primary_ai)
-    log_info "🎯 Primary AI: ${primary_ai^^} (1:1:1:1 균등 분배)"
+    log_info "🎯 Primary AI: ${primary_ai^^} (순서 기반 선택)"
 
     # 2단계: Primary AI 시도
     if review_output=$(run_single_ai_review "$primary_ai" "$changes"); then
         log_success "${primary_ai^^} 리뷰 성공!"
         increment_ai_counter "$primary_ai"
+        set_last_ai "$primary_ai"  # 다음 번에 반대 AI 사용하도록 저장
         AI_ENGINE="$primary_ai"
 
         # 성공 시 보류 중인 리뷰 클리어
@@ -446,33 +466,70 @@ run_ai_review() {
 
     log_warning "Primary AI (${primary_ai^^}) 실패"
 
-    # 3단계: 1회만 재시도 (다른 AI로)
-    if [ "$is_retry" = "false" ]; then
-        local retry_ai=$(get_retry_ai "$primary_ai")
-        log_info "🔄 1회 재시도: ${retry_ai^^}"
+    # 3단계: 1차 재시도 (반대 AI로 - codex↔gemini)
+    local retry_ai_1=$(get_retry_ai "$primary_ai" 1)
+    log_info "🔄 1차 재시도: ${retry_ai_1^^}"
 
-        if review_output=$(run_single_ai_review "$retry_ai" "$changes"); then
-            log_success "${retry_ai^^} 재시도 성공!"
-            increment_ai_counter "$retry_ai"
-            AI_ENGINE="$retry_ai"
+    if review_output=$(run_single_ai_review "$retry_ai_1" "$changes"); then
+        log_success "${retry_ai_1^^} 재시도 성공!"
+        increment_ai_counter "$retry_ai_1"
+        set_last_ai "$retry_ai_1"  # 다음 번에 반대 AI 사용하도록 저장
+        AI_ENGINE="$retry_ai_1"
 
-            # 성공 시 보류 중인 리뷰 클리어
-            if check_pending_reviews; then
-                clear_pending_reviews
-            fi
-
-            echo "$review_output"
-            return 0
+        # 성공 시 보류 중인 리뷰 클리어
+        if check_pending_reviews; then
+            clear_pending_reviews
         fi
 
-        log_warning "재시도 AI (${retry_ai^^})도 실패"
+        echo "$review_output"
+        return 0
     fi
 
-    # 4단계: 실패 시 지연 보상 (다음 커밋 때 처리)
+    log_warning "1차 재시도 AI (${retry_ai_1^^})도 실패"
+
+    # 4단계: 2차 재시도 (Qwen - 최종 폴백)
+    local retry_ai_2=$(get_retry_ai "$primary_ai" 2)
+    log_info "🔄 2차 재시도 (최종 폴백): ${retry_ai_2^^}"
+
+    if review_output=$(run_single_ai_review "$retry_ai_2" "$changes"); then
+        log_success "${retry_ai_2^^} 최종 폴백 성공!"
+        increment_ai_counter "$retry_ai_2"
+        # Qwen은 last_ai에 저장하지 않음 (폴백 전용)
+        AI_ENGINE="$retry_ai_2"
+
+        # 성공 시 보류 중인 리뷰 클리어
+        if check_pending_reviews; then
+            clear_pending_reviews
+        fi
+
+        echo "$review_output"
+        return 0
+    fi
+
+    log_warning "2차 재시도 AI (${retry_ai_2^^})도 실패"
+
+    # 5단계: 절대 최종 폴백 (Claude)
+    log_info "🔄 절대 최종 폴백: CLAUDE"
+
+    if review_output=$(run_single_ai_review "claude" "$changes"); then
+        log_success "CLAUDE 절대 최종 폴백 성공!"
+        increment_ai_counter "claude"
+        AI_ENGINE="claude"
+
+        # 성공 시 보류 중인 리뷰 클리어
+        if check_pending_reviews; then
+            clear_pending_reviews
+        fi
+
+        echo "$review_output"
+        return 0
+    fi
+
+    # 6단계: 모든 AI 실패 → 지연 보상
     local current_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%h 2>/dev/null || echo "unknown")
     save_pending_review "$current_commit"
 
-    log_error "❌ AI 리뷰 실패 - 다음 커밋 때 보상 리뷰 예정"
+    log_error "❌ 모든 AI 리뷰 실패 (Codex, Gemini, Qwen, Claude) - 다음 커밋 때 보상 리뷰 예정"
     rm -f /tmp/ai_engine_auto_review
     return 1
 }

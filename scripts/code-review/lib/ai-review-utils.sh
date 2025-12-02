@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# AI Review Utilities - v5.0.0
+# AI Review Utilities - v6.0.0
 # 유틸리티 함수 모음 (로그, 카운터, 변경사항 수집 등)
+# v6.0.0 (2025-12-02): 순서 기반 AI 선택 (codex↔gemini 교대, qwen은 최종 폴백)
 
 # 색상 정의
 RED='\033[0;31m'
@@ -33,17 +34,18 @@ log_ai_engine() {
     echo -e "${MAGENTA}🤖 $1${NC}"
 }
 
-# AI 사용 카운터 초기화 (v5.0.0: qwen, claude 추가)
+# AI 사용 카운터 초기화 (v6.0.0: last_ai 추가)
 init_ai_counter() {
     if [ ! -f "$STATE_FILE" ]; then
         echo "codex_count=0" > "$STATE_FILE"
         echo "gemini_count=0" >> "$STATE_FILE"
         echo "qwen_count=0" >> "$STATE_FILE"
         echo "claude_count=0" >> "$STATE_FILE"
+        echo "last_ai=gemini" >> "$STATE_FILE"  # 초기값: gemini → 첫 실행 시 codex 선택
         log_info "상태 파일 초기화: $STATE_FILE"
     fi
 
-    # 🆕 마이그레이션: qwen_count, claude_count 없으면 추가
+    # 🆕 마이그레이션: qwen_count, claude_count, last_ai 없으면 추가
     if ! grep -q "^qwen_count=" "$STATE_FILE"; then
         echo "qwen_count=0" >> "$STATE_FILE"
         log_info "qwen_count 마이그레이션 완료"
@@ -52,6 +54,23 @@ init_ai_counter() {
         echo "claude_count=0" >> "$STATE_FILE"
         log_info "claude_count 마이그레이션 완료"
     fi
+    if ! grep -q "^last_ai=" "$STATE_FILE"; then
+        echo "last_ai=gemini" >> "$STATE_FILE"
+        log_info "last_ai 마이그레이션 완료"
+    fi
+}
+
+# 마지막 사용 AI 읽기
+get_last_ai() {
+    init_ai_counter
+    grep "^last_ai=" "$STATE_FILE" | cut -d'=' -f2
+}
+
+# 마지막 사용 AI 설정
+set_last_ai() {
+    local ai_name="$1"
+    init_ai_counter
+    sed -i "s/^last_ai=.*/last_ai=$ai_name/" "$STATE_FILE"
 }
 
 # AI 사용 카운터 읽기 (v5.0.0: qwen, claude 추가)
@@ -104,28 +123,24 @@ increment_ai_counter() {
     esac
 }
 
-# 1:1:1:1 비율로 AI 선택 (v5.0.0: Codex, Gemini, Qwen, Claude 균등 순환)
+# 순서 기반 AI 선택 (v6.0.0: codex↔gemini 교대, qwen/claude는 폴백 전용)
+# - 이전 AI가 codex → 이번에 gemini
+# - 이전 AI가 gemini → 이번에 codex
+# - Qwen, Claude는 Primary에서 제외 (폴백으로만 사용)
 select_primary_ai() {
     init_ai_counter
 
-    local codex_count=$(get_ai_counter "codex")
-    local gemini_count=$(get_ai_counter "gemini")
-    local qwen_count=$(get_ai_counter "qwen")
-    local claude_count=$(get_ai_counter "claude")
+    local last_ai=$(get_last_ai)
 
-    # 1:1:1:1 비율 계산: 총 사용 횟수를 4로 나눈 나머지로 판단
-    local total=$((codex_count + gemini_count + qwen_count + claude_count))
-    local remainder=$((total % 4))
-
-    # remainder 0 → Codex (25%)
-    # remainder 1 → Gemini (25%)
-    # remainder 2 → Qwen (25%)
-    # remainder 3 → Claude (25%)
-    case $remainder in
-        0) echo "codex" ;;
-        1) echo "gemini" ;;
-        2) echo "qwen" ;;
-        3) echo "claude" ;;
+    # 순서 기반 선택: codex ↔ gemini 교대
+    case "$last_ai" in
+        codex)
+            echo "gemini"
+            ;;
+        gemini|qwen|claude|*)
+            # gemini 이후 또는 기타 모든 경우 → codex
+            echo "codex"
+            ;;
     esac
 }
 
