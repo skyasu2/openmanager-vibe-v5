@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Qwen CLI Wrapper - YOLO Mode + stderr 필터링
-# 버전: 3.1.0
-# 날짜: 2025-12-02 (stdout/stderr 분리 + mktemp 에러처리 + trap EXIT)
+# 버전: 3.2.0
+# 날짜: 2025-12-02 (temp_stdout unbound variable 버그 수정)
 
 set -euo pipefail
 
@@ -49,6 +49,18 @@ log_warning() {
 # 고정 타임아웃 (10분)
 TIMEOUT_SECONDS=600
 
+# 전역 임시 파일 변수 (EXIT trap에서 접근 필요)
+QWEN_TEMP_STDOUT=""
+QWEN_TEMP_STDERR=""
+
+# 임시 파일 정리 함수 (trap에서 호출)
+cleanup_temp_files() {
+    rm -f "${QWEN_TEMP_STDOUT:-}" "${QWEN_TEMP_STDERR:-}" 2>/dev/null || true
+}
+
+# EXIT trap 설정 (스크립트 종료 시 임시 파일 정리)
+trap cleanup_temp_files EXIT
+
 # Qwen 실행 함수
 execute_qwen() {
     local query="$1"
@@ -62,20 +74,16 @@ $query"
     log_info "⚙️  Qwen YOLO Mode 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 10분)..."
 
     local start_time=$(date +%s)
-    local temp_stdout temp_stderr
     local exit_code=0
 
-    # v3.1.0: mktemp 에러 처리 강화 (Gemini와 동일)
-    if ! temp_stdout=$(mktemp) || ! temp_stderr=$(mktemp); then
+    # v3.2.0: 전역 변수 사용으로 EXIT trap에서 접근 가능
+    if ! QWEN_TEMP_STDOUT=$(mktemp) || ! QWEN_TEMP_STDERR=$(mktemp); then
         log_error "임시 파일 생성 실패 (디스크 공간 또는 권한 문제)"
         return 1
     fi
 
-    # 함수 종료 시 임시 파일 자동 정리 (EXIT로 변경 - 더 견고)
-    trap 'rm -f "$temp_stdout" "$temp_stderr"' EXIT
-
     # YOLO Mode: 모든 도구 자동 승인, 완전 무인 동작 (stderr 분리)
-    if timeout "${TIMEOUT_SECONDS}s" qwen --approval-mode yolo -p "$query" > "$temp_stdout" 2> "$temp_stderr"; then
+    if timeout "${TIMEOUT_SECONDS}s" qwen --approval-mode yolo -p "$query" > "$QWEN_TEMP_STDOUT" 2> "$QWEN_TEMP_STDERR"; then
         exit_code=0
     else
         exit_code=$?
@@ -85,10 +93,10 @@ $query"
     local duration=$((end_time - start_time))
 
     # stderr 필터링 (Qwen은 현재 무해한 에러 없음, 향후 대비)
-    local filtered_errors=$(cat "$temp_stderr" 2>/dev/null || true)
+    local filtered_errors=$(cat "$QWEN_TEMP_STDERR" 2>/dev/null || true)
 
     if [ $exit_code -eq 0 ]; then
-        local qwen_output=$(cat "$temp_stdout")
+        local qwen_output=$(cat "$QWEN_TEMP_STDOUT")
 
         # 실제 출력이 있는지 확인 (공백 제거 후)
         if [ -n "$(echo "$qwen_output" | tr -d '[:space:]')" ]; then
@@ -122,9 +130,9 @@ $query"
         log_error "Qwen 실행 오류 (종료 코드: $exit_code)"
 
         # stderr가 있으면 출력
-        if [ -s "$temp_stderr" ]; then
+        if [ -s "$QWEN_TEMP_STDERR" ]; then
             echo -e "${RED}stderr 내용:${NC}" >&2
-            cat "$temp_stderr" >&2
+            cat "$QWEN_TEMP_STDERR" >&2
         fi
 
         return $exit_code
@@ -134,7 +142,7 @@ $query"
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🟡 Qwen CLI Wrapper v3.1.0 - Claude Code 내부 도구${NC}
+${CYAN}🟡 Qwen CLI Wrapper v3.2.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
 ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
