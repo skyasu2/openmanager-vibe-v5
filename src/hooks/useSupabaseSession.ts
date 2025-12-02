@@ -38,7 +38,10 @@ export function useSession(): UseSessionReturn {
     const checkSession = async () => {
       try {
         // 🔐 getUser()는 서버에서 JWT 서명을 검증함 (getSession()은 로컬 캐시만 확인)
-        const { data: { user: validatedUser }, error } = await supabase.auth.getUser();
+        const {
+          data: { user: validatedUser },
+          error,
+        } = await supabase.auth.getUser();
         if (error) {
           console.warn('⚠️ JWT 검증 실패:', error.message);
         }
@@ -147,7 +150,10 @@ export function useSession(): UseSessionReturn {
 
   // 세션 업데이트 함수 - getUser()로 JWT 검증 활성화
   const update = async (): Promise<Session | null> => {
-    const { data: { user: validatedUser }, error } = await supabase.auth.getUser();
+    const {
+      data: { user: validatedUser },
+      error,
+    } = await supabase.auth.getUser();
     if (error) {
       console.warn('⚠️ 세션 업데이트 JWT 검증 실패:', error.message);
     }

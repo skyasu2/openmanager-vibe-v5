@@ -267,7 +267,10 @@ export class AuthStateManager {
   private async getSupabaseSession(): Promise<Session | null> {
     try {
       // 1. 먼저 getUser()로 JWT 검증 (보안 우선)
-      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user: validatedUser },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError) {
         console.warn('⚠️ JWT 검증 실패:', userError.message);
         return null;
@@ -277,7 +280,10 @@ export class AuthStateManager {
       }
 
       // 2. JWT가 유효하면 세션 정보도 가져옴 (토큰 정보 필요시)
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
       if (sessionError) {
         console.warn('⚠️ 세션 가져오기 실패:', sessionError.message);
         // JWT는 유효하므로 기본 세션 객체 생성

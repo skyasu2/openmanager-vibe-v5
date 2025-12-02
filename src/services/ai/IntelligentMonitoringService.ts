@@ -172,9 +172,10 @@ export class IntelligentMonitoringService {
         recommendations,
         confidence,
         correlatedLogs,
-        rootCauseAnalysis: correlatedLogs.length > 0 
-          ? correlatedLogs.map(log => `Possible root cause: ${log.message}`)
-          : undefined
+        rootCauseAnalysis:
+          correlatedLogs.length > 0
+            ? correlatedLogs.map((log) => `Possible root cause: ${log.message}`)
+            : undefined,
       },
       trends: {
         cpu: trendResults.cpu?.trend || 'stable',
