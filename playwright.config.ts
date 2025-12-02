@@ -111,10 +111,22 @@ export default defineConfig({
   ],
 
   /* Run local dev server before starting the tests */
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  webServer: process.env.PLAYWRIGHT_SKIP_SERVER
+    ? undefined // 이미 실행 중인 서버 사용 시 webServer 비활성화
+    : process.env.PLAYWRIGHT_USE_PRODUCTION
+      ? {
+          // 프로덕션 빌드 모드 - Next.js DevTools 문제 완전 회피
+          // 사용: PLAYWRIGHT_USE_PRODUCTION=1 npx playwright test
+          command: 'npm run start',
+          url: 'http://localhost:3000',
+          reuseExistingServer: true, // 프로덕션 모드에서는 항상 기존 서버 재사용
+          timeout: 30 * 1000, // 프로덕션은 빠름
+        }
+      : {
+          // 개발 모드 - DevTools 비활성화 (WSL + Playwright 호환성)
+          command: 'npm run dev:playwright',
+          url: 'http://localhost:3000',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120 * 1000,
+        },
 });

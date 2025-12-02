@@ -56,7 +56,8 @@ test.describe('기본 스모크 테스트', () => {
   });
 
   test('서버 API가 기본 응답을 제공한다', async ({ page }) => {
-    const serversResponse = await page.request.get('/api/servers', {
+    // 통합 서버 API 사용 (/api/servers는 308 리다이렉트를 반환)
+    const serversResponse = await page.request.get('/api/servers-unified', {
       headers: {
         'x-test-secret': process.env.TEST_SECRET_KEY || '',
       },
