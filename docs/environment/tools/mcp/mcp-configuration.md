@@ -1,8 +1,8 @@
 # MCP 서버 개인 설정
 
-**개인 MCP 환경**: 9개 서버 완벽 연결 (100% 성공률)
+**개인 MCP 환경**: 11개 서버 완벽 연결 (100% 성공률)
 
-## 📊 MCP 현황: 9/9개 연결, 완벽 작동 (2025-10-15 업데이트)
+## 📊 MCP 현황: 11/11개 연결, 완벽 작동 (2025-12-02 업데이트)
 
 | MCP 서버                | 연결 | WSL 성능     | 기능 테스트                                              | 상태             |
 | ----------------------- | ---- | ------------ | -------------------------------------------------------- | ---------------- |
@@ -15,10 +15,12 @@
 | **time**                | ✅   | ✅ 즉시 응답 | ✅ 시간대 변환                                           | **완전 작동**    |
 | **sequential-thinking** | ✅   | ✅ 즉시 응답 | ✅ 사고 프로세스                                         | **완전 작동**    |
 | **shadcn-ui**           | ✅   | ✅ 즉시 응답 | ✅ UI 컴포넌트 조회                                      | **완전 작동**    |
+| **filesystem**          | ✅   | ✅ 즉시 응답 | ✅ 로컬 파일 시스템 접근 (읽기/쓰기)                     | **완전 작동**    |
+| **github**              | ✅   | ✅ 즉시 응답 | ✅ GitHub 저장소 연동                                    | **완전 작동**    |
 
-## 🚀 성능 지표 (2025-10-17)
+## 🚀 성능 지표 (2025-12-02)
 
-- **연결 성공률**: 100% (9/9) 🏆
+- **연결 성공률**: 100% (11/11) 🏆
 - **Vercel MCP**: stdio + @open-mcp/vercel v0.0.13 적용 (Claude Code OAuth 버그 우회) ✅
 - **평균 응답속도**: 50ms 미만
 - **안정성**: 99.9% 가동률
@@ -26,9 +28,9 @@
 
 ## 🏗️ MCP 구성 아키텍처
 
-**9개 MCP 서버** = 전역 9개 (stdio 방식)
+**11개 MCP 서버** = 전역 11개 (stdio 방식)
 
-### 1️⃣ 전역 MCP 서버 (9개)
+### 1️⃣ 전역 MCP 서버 (11개)
 
 **위치**: `~/.claude.json` (전역) / `~/.claude/.mcp.json` (전역 대체 경로)
 
@@ -42,6 +44,8 @@
 | context7            | npx @upstash/context7-mcp                            | 라이브러리 문서           |
 | time                | uvx mcp-server-time                                  | 시간대 변환               |
 | serena              | /home/sky-note/.local/bin/serena-mcp-server          | 코드 분석                 |
+| filesystem          | npx @modelcontextprotocol/server-filesystem          | 파일 시스템 접근          |
+| github              | npx @modelcontextprotocol/server-github              | GitHub 연동               |
 | **vercel**          | **npx @open-mcp/vercel**                             | **배포 관리 (150+ 도구)** |
 
 ### 2️⃣ 인증 설정 (환경변수)
