@@ -77,6 +77,18 @@ test.describe('기본 스모크 테스트', () => {
     ).toBeTruthy();
   });
 
+  test('버전 API가 응답한다', async ({ page }) => {
+    // 버전 정보 API 테스트
+    const versionResponse = await page.request.get('/api/version');
+    if (skipIfSecurityBlocked(versionResponse.status())) return;
+
+    expect(versionResponse.ok()).toBeTruthy();
+
+    const versionData = await versionResponse.json();
+    expect(versionData).toBeDefined();
+    expect(versionData.version || versionData.data?.version).toBeDefined();
+  });
+
   test('정적 자산이 로드된다', async ({ page }) => {
     await page.goto('/login');
 
