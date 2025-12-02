@@ -98,3 +98,56 @@ export async function ensureVercelBypassCookie(page: Page): Promise<void> {
     );
   }
 }
+
+/**
+ * Next.js 개발 오버레이 포털을 숨깁니다.
+ * Dev 서버에서 E2E 테스트 시 오버레이가 테스트를 방해할 수 있습니다.
+ *
+ * @see https://stackoverflow.com/questions/79757200
+ */
+export async function hideNextJsDevOverlay(page: Page): Promise<void> {
+  try {
+    await page.evaluate(() => {
+      // Next.js 포털 요소 숨기기
+      const portal = document.querySelector('nextjs-portal');
+      if (portal instanceof HTMLElement) {
+        portal.style.display = 'none';
+      }
+
+      // Next.js 에러 오버레이 숨기기
+      const errorOverlay = document.querySelector(
+        '[data-nextjs-dialog-overlay]'
+      );
+      if (errorOverlay instanceof HTMLElement) {
+        errorOverlay.style.display = 'none';
+      }
+
+      // Next.js 개발 표시기 숨기기
+      const devIndicator = document.querySelector('[data-nextjs-toast]');
+      if (devIndicator instanceof HTMLElement) {
+        devIndicator.style.display = 'none';
+      }
+    });
+  } catch {
+    // 오버레이가 없거나 이미 숨겨진 경우 무시
+  }
+}
+
+/**
+ * 페이지 네비게이션 후 안전하게 Dev 오버레이를 숨깁니다.
+ * page.goto() 후에 호출하세요.
+ */
+export async function safeNavigateAndHideOverlay(
+  page: Page,
+  url: string,
+  options?: { timeout?: number }
+): Promise<void> {
+  await page.goto(url, {
+    waitUntil: 'domcontentloaded',
+    timeout: options?.timeout ?? TIMEOUTS.PAGE_LOAD,
+  });
+
+  // DOM 안정화 대기 후 오버레이 숨기기
+  await page.waitForTimeout(100);
+  await hideNextJsDevOverlay(page);
+}

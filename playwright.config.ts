@@ -128,5 +128,10 @@ export default defineConfig({
           url: 'http://localhost:3000',
           reuseExistingServer: !process.env.CI,
           timeout: 120 * 1000,
+          // Next.js devIndicators 완전 비활성화를 위한 환경변수
+          env: {
+            NEXT_PUBLIC_E2E_TESTING: 'true',
+            NEXT_DISABLE_DEVTOOLS: '1',
+          },
         },
 });

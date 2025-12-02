@@ -5,16 +5,20 @@
 
 import { expect, test } from '@playwright/test';
 import {
+  hideNextJsDevOverlay,
   skipIfSecurityBlocked,
   skipIfSecurityCheckpoint,
 } from './helpers/security';
 
 test.describe('기본 스모크 테스트', () => {
   test('로그인 페이지가 올바르게 로드된다', async ({ page }) => {
-    await page.goto('/login');
+    // Dev 서버에서 안정적인 로딩을 위해 networkidle 대기
+    await page.goto('/login', { waitUntil: 'networkidle' });
+    await hideNextJsDevOverlay(page);
     await skipIfSecurityCheckpoint(page);
 
-    await expect(page).toHaveTitle(/OpenManager/);
+    // 제목 로딩 대기 (Dev 서버에서 hydration 완료 필요)
+    await expect(page).toHaveTitle(/OpenManager/, { timeout: 30000 });
 
     // 기본 UI 요소들 확인
     await expect(page.locator('h1')).toBeVisible();

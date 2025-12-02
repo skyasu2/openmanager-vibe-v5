@@ -90,10 +90,14 @@ const nextConfig = {
   // skipTrailingSlashRedirect를 root 레벨로 이동
   skipTrailingSlashRedirect: true,
 
-  // 🚨 devtools 완전 비활성화 - SSR 호환성 (경고 수정)
-  devIndicators: {
-    position: 'bottom-right',
-  },
+  // 🚨 devtools 설정 - E2E 테스트 시 완전 비활성화
+  // NEXT_PUBLIC_E2E_TESTING=true 또는 PLAYWRIGHT_SKIP_SERVER=1 환경변수로 제어
+  devIndicators:
+    process.env.NEXT_PUBLIC_E2E_TESTING === 'true' ||
+    process.env.PLAYWRIGHT_SKIP_SERVER === '1' ||
+    process.env.NEXT_DISABLE_DEVTOOLS === '1'
+      ? false // E2E 테스트 시 완전 비활성화
+      : { position: 'bottom-right' },
 
   // 컴파일러 최적화
   compiler: {
