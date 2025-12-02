@@ -62,7 +62,7 @@ $changes
     local codex_output
     local codex_exit_code=0
 
-    if codex_output=$("$PROJECT_ROOT/scripts/ai-subagents/codex-wrapper.sh" "$query" 2>&1); then
+    if codex_output=$("$PROJECT_ROOT/scripts/ai-subagents/codex-wrapper.sh" "$query"); then
         # Rate limit 체크
         if detect_codex_rate_limit "$codex_output"; then
             log_warning "Codex 사용량 제한 감지 (Rate limit or quota exceeded)"
@@ -133,7 +133,7 @@ $changes
     local gemini_output
     local gemini_exit_code=0
 
-    if gemini_output=$("$PROJECT_ROOT/scripts/ai-subagents/gemini-wrapper.sh" "$query" 2>&1); then
+    if gemini_output=$("$PROJECT_ROOT/scripts/ai-subagents/gemini-wrapper.sh" "$query"); then
         # 파일 디스크립터를 통해 AI_ENGINE 전파
         echo "gemini" > /tmp/ai_engine_auto_review
         echo "$gemini_output"
@@ -198,7 +198,7 @@ $changes
     local qwen_output
     local qwen_exit_code=0
 
-    if qwen_output=$("$PROJECT_ROOT/scripts/ai-subagents/qwen-wrapper.sh" "$query" 2>&1); then
+    if qwen_output=$("$PROJECT_ROOT/scripts/ai-subagents/qwen-wrapper.sh" "$query"); then
         # 파일 디스크립터를 통해 AI_ENGINE 전파
         echo "qwen" > /tmp/ai_engine_auto_review
         echo "$qwen_output"

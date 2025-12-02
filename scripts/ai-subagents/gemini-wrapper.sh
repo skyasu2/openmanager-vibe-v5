@@ -29,22 +29,22 @@ mkdir -p "$LOG_DIR"
 
 # 로그 함수
 log_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
+    echo -e "${BLUE}ℹ️  $1${NC}" >&2
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: $1" >> "$LOG_FILE"
 }
 
 log_success() {
-    echo -e "${GREEN}✅ $1${NC}"
+    echo -e "${GREEN}✅ $1${NC}" >&2
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: $1" >> "$LOG_FILE"
 }
 
 log_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    echo -e "${YELLOW}⚠️  $1${NC}" >&2
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARNING: $1" >> "$LOG_FILE"
 }
 
 log_error() {
-    echo -e "${RED}❌ $1${NC}"
+    echo -e "${RED}❌ $1${NC}" >&2
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$LOG_FILE"
 }
 
@@ -120,12 +120,12 @@ $query"
         fi
     elif [ $exit_code -eq 124 ]; then
         log_error "Gemini 타임아웃 (${TIMEOUT_SECONDS}초 = 10분 초과)"
-        echo ""
-        echo -e "${YELLOW}💡 타임아웃 해결 방법:${NC}"
-        echo "  1️⃣  질문을 더 작은 단위로 분할하세요"
-        echo "  2️⃣  질문을 더 간결하게 만드세요"
-        echo "  3️⃣  핵심 부분만 먼저 질문하세요"
-        echo ""
+        echo "" >&2
+        echo -e "${YELLOW}💡 타임아웃 해결 방법:${NC}" >&2
+        echo "  1️⃣  질문을 더 작은 단위로 분할하세요" >&2
+        echo "  2️⃣  질문을 더 간결하게 만드세요" >&2
+        echo "  3️⃣  핵심 부분만 먼저 질문하세요" >&2
+        echo "" >&2
         return 124
     else
         log_error "Gemini 실행 오류 (종료 코드: $exit_code)"
@@ -203,16 +203,16 @@ main() {
         source "${PROJECT_ROOT}/.env.local" 2>/dev/null || true
     fi
 
-    echo ""
+    echo "" >&2
     log_info "🚀 Gemini Wrapper v3.2.0 시작"
-    echo ""
+    echo "" >&2
 
     if execute_gemini "$query" "$model"; then
-        echo ""
+        echo "" >&2
         log_success "✅ 완료"
         exit 0
     else
-        echo ""
+        echo "" >&2
         log_error "❌ 실패"
         exit 1
     fi
