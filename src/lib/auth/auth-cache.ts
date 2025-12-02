@@ -5,7 +5,7 @@
  * Vercel Edge Runtime과 호환되도록 설계됨
  */
 
-import { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 
 // 메모리 기반 캐시 (Edge Runtime 호환)
 const userCache = new Map<string, { user: User | null; timestamp: number }>();

@@ -11,7 +11,7 @@
  * - handlers/gcp/      - GCP VM Express Server API 핸들러
  */
 
-import { RequestHandler } from 'msw';
+import type { RequestHandler } from 'msw';
 import { cohereHandlers } from './ai/cohere';
 // AI 서비스 핸들러 (Google AI, OpenAI, Cohere)
 import { googleAIHandlers } from './ai/google-ai';

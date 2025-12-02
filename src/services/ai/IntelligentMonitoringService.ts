@@ -19,13 +19,13 @@ import {
   type AnomalyDetectionResult,
   getAnomalyDetector,
   type MetricDataPoint,
-  SimpleAnomalyDetector,
+  type SimpleAnomalyDetector,
 } from '@/lib/ai/monitoring/SimpleAnomalyDetector';
 
 import {
   getTrendPredictor,
   type TrendPrediction,
-  TrendPredictor,
+  type TrendPredictor,
 } from '@/lib/ai/monitoring/TrendPredictor';
 
 import type { EnhancedServerMetrics, ServerMetrics } from '@/types/server';

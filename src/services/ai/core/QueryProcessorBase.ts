@@ -5,7 +5,7 @@
  * 공통 로직을 제공하여 중복 코드를 제거합니다.
  */
 
-import {
+import type {
   AIEngineConfig,
   AIEngineStatus,
   AIEngineType,

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
+import type {
   EnhancedServerData,
   ServerStats,
 } from '@/types/dashboard/server-dashboard.types';

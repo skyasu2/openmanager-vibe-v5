@@ -1,4 +1,4 @@
-import { ScenarioPoint, Server, ServerType } from './types';
+import type { ScenarioPoint, Server, ServerType } from './types';
 
 // 15개 서버 정의 (기존과 동일)
 export const SERVERS: Server[] = [

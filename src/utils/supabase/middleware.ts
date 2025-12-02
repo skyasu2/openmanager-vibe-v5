@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { withDefault } from '@/types/type-utils';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 

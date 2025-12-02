@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { ApiResponse, isApiResponse } from '@/types/api-responses';
+import { type ApiResponse, isApiResponse } from '@/types/api-responses';
 
 /**
  * 환경별 기본 URL 가져오기

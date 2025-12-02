@@ -17,7 +17,7 @@ import type {
   AIQueryContext,
   ServerArray,
 } from '../../types/ai-service-types';
-import { MockContextLoader } from './MockContextLoader';
+import type { MockContextLoader } from './MockContextLoader';
 import type {
   MockContext,
   ServerStatusAnalysis,

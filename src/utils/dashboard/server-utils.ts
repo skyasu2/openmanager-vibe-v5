@@ -1,5 +1,5 @@
 import { calculateServerStatsFallback } from '@/hooks/useWorkerStats';
-import {
+import type {
   EnhancedServerData,
   ServerStats,
 } from '@/types/dashboard/server-dashboard.types';

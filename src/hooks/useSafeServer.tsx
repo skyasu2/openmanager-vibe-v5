@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { getServerStatusTheme } from '../styles/design-constants';
-import { Server as ServerType } from '../types/server';
+import type { Server as ServerType } from '../types/server';
 
 /**
  * 🛡️ 5-Layer Defense System for Server Objects

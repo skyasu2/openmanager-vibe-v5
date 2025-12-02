@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
+import type {
   Alert,
   AlertConfig,
   PerformanceData,

@@ -1,5 +1,5 @@
 import { normalMetrics, SERVERS } from '../constants';
-import { ScenarioTimeline } from '../types';
+import type { ScenarioTimeline } from '../types';
 
 // 시나리오 3: Cache 장애 (12-18시)
 export const scenario3: ScenarioTimeline = {

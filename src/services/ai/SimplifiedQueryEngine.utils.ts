@@ -13,7 +13,7 @@ import {
 import type { AIQueryContext } from '../../types/ai-service-types';
 import {
   ComplexityLevel,
-  ComplexityScore,
+  type ComplexityScore,
 } from './SimplifiedQueryEngine.complexity-types';
 import type {
   CacheEntry,

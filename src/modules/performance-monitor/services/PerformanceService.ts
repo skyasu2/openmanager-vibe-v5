@@ -3,7 +3,11 @@
  * Backend service for collecting and processing performance metrics
  */
 
-import { Alert, PerformanceMetric, SystemHealth } from '../types/performance';
+import type {
+  Alert,
+  PerformanceMetric,
+  SystemHealth,
+} from '../types/performance';
 
 export class PerformanceService {
   private static instance: PerformanceService;

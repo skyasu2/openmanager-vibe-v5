@@ -5,8 +5,8 @@
  * 600+ TypeScript 에러 해결을 위한 핵심 타입 정의
  */
 
-import { z } from 'zod';
-import {
+import type { z } from 'zod';
+import type {
   _StatusSchema,
   // 공통 스키마
   BaseResponseSchema,

@@ -6,7 +6,7 @@
  */
 
 import { createServerClient } from '@supabase/ssr';
-import { type NextRequest, NextResponse } from 'next/server';
+import type { NextRequest, NextResponse } from 'next/server';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 
 // Type for response with cookies (Next.js 15 TypeScript workaround)

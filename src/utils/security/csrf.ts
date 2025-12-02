@@ -7,7 +7,7 @@
  * - Secure 쿠키 설정
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest, NextResponse } from 'next/server';
 
 /**
  * CSRF 토큰 생성 (32자 랜덤)

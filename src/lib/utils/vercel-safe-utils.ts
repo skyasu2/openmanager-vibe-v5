@@ -8,7 +8,12 @@
  * - 압축된 l6 함수에서 발생하는 베르셀 환경 특화 오류
  */
 
-import { Server, ServerEnvironment, ServerRole, Service } from '@/types/server';
+import type {
+  Server,
+  ServerEnvironment,
+  ServerRole,
+  Service,
+} from '@/types/server';
 
 /**
  * 차트 데이터 포인트 타입

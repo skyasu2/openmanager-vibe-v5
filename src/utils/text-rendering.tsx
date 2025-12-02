@@ -4,7 +4,7 @@
  * AI 텍스트 그라데이션 등 공통 텍스트 렌더링 함수 제공
  */
 
-import React from 'react';
+import type React from 'react';
 
 import { AI_GRADIENT_CLASSES } from '@/styles/design-constants';
 

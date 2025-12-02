@@ -6,13 +6,13 @@
  */
 
 import {
-  EventListener,
-  ISystemEventBus,
-  ProcessEventPayload,
-  SystemEvent,
+  type EventListener,
+  type ISystemEventBus,
+  type ProcessEventPayload,
+  type SystemEvent,
   SystemEventType,
-  SystemStatusPayload,
-  WatchdogEventPayload,
+  type SystemStatusPayload,
+  type WatchdogEventPayload,
 } from '../interfaces/SystemEventBus';
 
 // 이벤트 핸들러 설정

@@ -1,4 +1,4 @@
-import { ScenarioTimeline } from '../types';
+import type { ScenarioTimeline } from '../types';
 import { scenario3 } from './cacheFailure';
 import { scenario1 } from './dbOverload';
 import { scenario4 } from './networkBottleneck';

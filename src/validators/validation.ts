@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { ApiError } from '@/types/common-replacements';
+import type { ApiError } from '@/types/common-replacements';
 import {
   validateQueryParams,
   validateRequestBody,

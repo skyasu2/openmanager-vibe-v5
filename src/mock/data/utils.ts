@@ -1,6 +1,6 @@
 import { normalMetrics, SERVERS } from './constants';
 import { SCENARIO_TIMELINES } from './scenarios';
-import { ScenarioPoint, ServerStatus } from './types';
+import type { ScenarioPoint, ServerStatus } from './types';
 
 /**
  * 변화 곡선 생성 함수

@@ -20,7 +20,7 @@ import {
   YAxis,
 } from 'recharts';
 import { usePerformanceMetrics } from '../hooks/usePerformanceMetrics';
-import { Alert as AlertType } from '../types/performance';
+import type { Alert as AlertType } from '../types/performance';
 
 interface PerformanceMonitorProps {
   updateInterval?: number;
