@@ -20,8 +20,12 @@ const TEST_SECRET_KEY = process.env.TEST_SECRET_KEY;
 
 // 🚨 환경변수 필수 검증 (테스트 실행 전 조기 실패)
 if (!TEST_SECRET_KEY) {
-  console.error('❌ [Security] TEST_SECRET_KEY 환경변수가 설정되지 않았습니다.');
-  console.error('   설정 방법: .env.e2e 파일에 TEST_SECRET_KEY="your-secret" 추가');
+  console.error(
+    '❌ [Security] TEST_SECRET_KEY 환경변수가 설정되지 않았습니다.'
+  );
+  console.error(
+    '   설정 방법: .env.e2e 파일에 TEST_SECRET_KEY="your-secret" 추가'
+  );
   throw new Error(
     'TEST_SECRET_KEY 환경변수 필수: .env.e2e 또는 CI/CD 환경에서 설정하세요.'
   );
