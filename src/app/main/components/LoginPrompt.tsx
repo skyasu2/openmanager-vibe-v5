@@ -37,7 +37,8 @@ export function LoginPrompt({ isMounted, guestModeMessage }: LoginPromptProps) {
         </button>
       </div>
       <p className="text-xs text-gray-400">
-        {guestModeMessage || '게스트 모드에서는 읽기 전용 기능만 사용 가능합니다.'}
+        {guestModeMessage ||
+          '게스트 모드에서는 읽기 전용 기능만 사용 가능합니다.'}
       </p>
     </div>
   );

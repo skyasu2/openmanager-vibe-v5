@@ -31,7 +31,10 @@ export function SystemStartSection({
   onSystemToggle,
 }: SystemStartSectionProps) {
   const showFingerPointer =
-    !systemStartCountdown && !isSystemStarting && !isSystemRunning && !isSystemStarted;
+    !systemStartCountdown &&
+    !isSystemStarting &&
+    !isSystemRunning &&
+    !isSystemStarted;
 
   return (
     <div className="mx-auto max-w-2xl text-center">

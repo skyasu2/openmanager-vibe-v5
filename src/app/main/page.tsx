@@ -205,7 +205,11 @@ function Home() {
   }
 
   // 게스트 시스템 시작이 비활성화된 경우에만 리다이렉트
-  if (!isAuthenticated && !guestSystemStartEnabled && !isGuestFullAccessEnabled()) {
+  if (
+    !isAuthenticated &&
+    !guestSystemStartEnabled &&
+    !isGuestFullAccessEnabled()
+  ) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="text-center text-white">
