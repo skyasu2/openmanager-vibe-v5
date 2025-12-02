@@ -38,6 +38,9 @@ export const BUILD_TIMESTAMP = '2025-10-21T13:05:00Z';
 const TRUTHY_VALUES = new Set(['1', 'true', 'yes', 'on', 'full_access']);
 const FALSY_VALUES = new Set(['0', 'false', 'no', 'off', 'restricted']);
 
+// 디버그 로그 한 번만 출력 (리렌더링 스팸 방지)
+let hasLoggedOnce = false;
+
 /**
  * boolean 형태의 환경 변수 값을 파싱합니다.
  *
@@ -86,9 +89,10 @@ export function getGuestMode(): GuestModeType {
     normalizeGuestModeValue(process.env.NEXT_PUBLIC_GUEST_MODE) ||
     GUEST_MODE.RESTRICTED;
 
-  // 디버그: 환경 변수 값 확인 (서버/클라이언트 모두)
-  if (typeof window !== 'undefined') {
-    console.log('🎛️ [GuestMode] Snapshot', {
+  // 디버그: 환경 변수 값 확인 (클라이언트, 한 번만)
+  if (typeof window !== 'undefined' && !hasLoggedOnce) {
+    hasLoggedOnce = true;
+    console.log('🎛️ [GuestMode] Init', {
       build: BUILD_TIMESTAMP,
       envBoolean: process.env.NEXT_PUBLIC_GUEST_FULL_ACCESS ?? null,
       envMode: process.env.NEXT_PUBLIC_GUEST_MODE ?? null,
