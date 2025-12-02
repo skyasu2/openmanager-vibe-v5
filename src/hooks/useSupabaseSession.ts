@@ -34,13 +34,16 @@ export function useSession(): UseSessionReturn {
   >('loading');
 
   useEffect(() => {
-    // 초기 세션 확인
+    // 초기 세션 확인 - getUser()로 JWT 검증 활성화 (보안 강화)
     const checkSession = async () => {
       try {
-        const response = await supabase.auth.getSession();
-        const session = response?.data?.session;
-        if (session?.user) {
-          setUser(session.user);
+        // 🔐 getUser()는 서버에서 JWT 서명을 검증함 (getSession()은 로컬 캐시만 확인)
+        const { data: { user: validatedUser }, error } = await supabase.auth.getUser();
+        if (error) {
+          console.warn('⚠️ JWT 검증 실패:', error.message);
+        }
+        if (validatedUser) {
+          setUser(validatedUser);
           setStatus('authenticated');
         } else {
           // 🎯 게스트 세션 확인 (AuthStateManager 키 체계 통일)
@@ -142,12 +145,14 @@ export function useSession(): UseSessionReturn {
       }
     : null;
 
-  // 세션 업데이트 함수
+  // 세션 업데이트 함수 - getUser()로 JWT 검증 활성화
   const update = async (): Promise<Session | null> => {
-    const response = await supabase.auth.getSession();
-    const session = response?.data?.session;
-    if (session?.user) {
-      setUser(session.user);
+    const { data: { user: validatedUser }, error } = await supabase.auth.getUser();
+    if (error) {
+      console.warn('⚠️ 세션 업데이트 JWT 검증 실패:', error.message);
+    }
+    if (validatedUser) {
+      setUser(validatedUser);
       setStatus('authenticated');
     }
     return data;

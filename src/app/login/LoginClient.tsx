@@ -277,11 +277,15 @@ export default function LoginClient() {
 
       debug.log('👤 게스트 로그인 시작...');
 
-      // 게스트 사용자 생성
+      // 🔐 게스트 사용자 생성 - 보안 강화된 ID 생성
+      const secureId = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}_${Math.random().toString(36).substring(2, 14)}`;
+
       const guestUser: AuthUser = {
-        id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `guest_${secureId}`,
         name: '게스트 사용자',
-        email: `guest_${Date.now()}@example.com`,
+        email: `guest_${secureId.substring(0, 8)}@example.com`,
         provider: 'guest',
       };
 

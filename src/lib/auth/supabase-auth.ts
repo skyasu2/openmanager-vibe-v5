@@ -208,16 +208,25 @@ async function signOutLegacy(authType?: 'github' | 'guest') {
 }
 
 /**
- * 현재 세션 가져오기
+ * 현재 세션 가져오기 (JWT 검증 포함)
+ * 🔐 보안 강화: getUser()로 JWT 서명 검증 후 세션 반환
  */
 export async function getSession(): Promise<Session | null> {
   try {
-    const response = await supabase.auth.getSession();
-    const session = response?.data?.session;
-    const error = response?.error;
+    // 1. 먼저 getUser()로 JWT 검증 (보안 우선)
+    const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.warn('⚠️ JWT 검증 실패:', userError.message);
+      return null;
+    }
+    if (!validatedUser) {
+      return null;
+    }
 
-    if (error) {
-      console.error('❌ 세션 가져오기 실패:', error);
+    // 2. JWT가 유효한 경우에만 세션 반환
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error('❌ 세션 가져오기 실패:', sessionError);
       return null;
     }
 

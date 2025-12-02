@@ -259,14 +259,36 @@ export class AuthStateManager {
   /**
    * Private 헬퍼 메서드들
    */
+  /**
+   * 🔐 Supabase 세션 가져오기 (getUser + getSession 조합)
+   * - getUser(): JWT 서명 검증 (보안 강화)
+   * - getSession(): 토큰 정보 필요시 사용
+   */
   private async getSupabaseSession(): Promise<Session | null> {
     try {
-      const response = await supabase.auth.getSession();
-      const session = response?.data?.session;
-      const error = response?.error;
-      if (error) {
-        console.warn('⚠️ Supabase 세션 가져오기 실패:', error.message);
+      // 1. 먼저 getUser()로 JWT 검증 (보안 우선)
+      const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.warn('⚠️ JWT 검증 실패:', userError.message);
         return null;
+      }
+      if (!validatedUser) {
+        return null;
+      }
+
+      // 2. JWT가 유효하면 세션 정보도 가져옴 (토큰 정보 필요시)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.warn('⚠️ 세션 가져오기 실패:', sessionError.message);
+        // JWT는 유효하므로 기본 세션 객체 생성
+        return {
+          user: validatedUser,
+          access_token: '',
+          refresh_token: '',
+          expires_in: 0,
+          expires_at: 0,
+          token_type: 'bearer',
+        } as Session;
       }
       return session || null;
     } catch (error) {
