@@ -110,35 +110,60 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 
 ### 외부 문서 참조 가이드
 
-| 문서                     | 언제 참조         | 핵심 내용                     |
-| ------------------------ | ----------------- | ----------------------------- |
-| subagents-complete-guide | 전문 작업 필요 시 | 12개 에이전트, 호출 방법      |
-| mcp-priority-guide.md    | MCP 도구 선택 시  | 작업별 우선순위, Before/After |
+| 문서                  | 언제 참조        | 핵심 내용                     |
+| --------------------- | ---------------- | ----------------------------- |
+| mcp-priority-guide.md | MCP 도구 선택 시 | 작업별 우선순위, Before/After |
+| 1_workflows.md        | 워크플로우 확인  | 일일 루틴, 스크립트 사용법    |
 
-**원칙**: 500줄+ 문서는 직접 참조 최소화, 1-2줄 요약으로 빠른 판단
+**원칙**: 500줄+ 문서는 직접 참조 최소화, 위 테이블로 빠른 판단
 
 ---
 
-## 🎭 서브에이전트 (12개)
+## 🎭 서브에이전트 & Skills
+
+### 서브에이전트 (10개 활성)
 
 **호출**: `Task [에이전트명] "[작업]"`
 
-**핵심**: codex-specialist, code-review, vercel-platform, security, test-automation
+| 우선순위 | 에이전트 | 용도 |
+|----------|----------|------|
+| CRITICAL | security-specialist | 보안 감사, 취약점 스캔 |
+| HIGH | debugger-specialist | 버그 분석, 근본 원인 추적 |
+| HIGH | code-review-specialist | 통합 코드 품질 검토 |
+| HIGH | test-automation-specialist | Vitest + Playwright 테스트 |
+| HIGH | vercel-platform-specialist | 배포 관리, Edge 최적화 |
+| HIGH | database-administrator | Supabase, RLS 정책 |
+| HIGH | performance-specialist | Core Web Vitals, 번들 최적화 |
+| MEDIUM | documentation-manager | JBGE 문서 관리 |
+| MEDIUM | ui-ux-specialist | shadcn/ui 컴포넌트 |
 
-**상세**: <!-- Imported from: docs/ai/subagents-complete-guide.md --> (371줄, 전체 목록)
+**빠른 예시**:
+```bash
+Task debugger-specialist "근본 원인 분석"
+Task security-specialist "긴급 보안 스캔"
+codex exec "변경사항 리뷰"
+```
+
+### Skills (5개, 평균 72% 토큰 절약)
+
+**호출**: `Skill [스킬명]`
+
+| 스킬 | 용도 | 절약률 |
+|------|------|--------|
+| lint-smoke | 린트 + 테스트 자동화 | 62% |
+| playwright-triage | E2E 테스트 실패 분류 | 77% |
+| ai-report-export | AI 리뷰 결과 문서화 | 78% |
+| next-router-bottleneck | Next.js 라우팅 성능 진단 | 75% |
+| security-audit-workflow | 배포 전 보안 감사 | 70% |
+
+**빠른 예시**:
+```bash
+Skill lint-smoke              # 코드 품질 검증
+Skill playwright-triage       # E2E 실패 분석
+Skill security-audit-workflow # 보안 스캔
+```
+
 **설정**: @config/ai/registry-core.yaml (SSOT)
-
-### ⚡ 서브에이전트 활용 가이드
-
-**핵심 명령어**:
-
-- 🐛 버그: `Task debugger-specialist "근본 원인 분석"`
-- 🚨 보안: `Task security-specialist "긴급 보안 스캔"`
-- 🧪 테스트: `Task test-automation-specialist "전체 테스트 진단"`
-- 🚀 배포: `Task vercel-platform-specialist "배포 최적화 검증"`
-- 📝 리뷰: `codex exec "변경사항 리뷰"`
-
-**상세 가이드**: <!-- Imported from: docs/ai/subagents-complete-guide.md --> (12개 에이전트, 활용 전략)
 
 ---
 
@@ -232,8 +257,8 @@ npm run test:fast           # 21초 (44% 개선)
 
 ## ⚡ Quick Reference
 
-**통합 워크플로우**: @docs/claude/1_workflows.md ✅ (일일 루틴 + Codex 리뷰 + 서브에이전트 + MCP 우선순위)
-**상세 가이드**: @docs/claude/environment/mcp/mcp-priority-guide.md
+**워크플로우**: @docs/claude/1_workflows.md (일일 루틴, 스크립트)
+**MCP 가이드**: @docs/claude/environment/mcp/mcp-priority-guide.md
 
 ---
 
