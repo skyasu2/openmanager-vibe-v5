@@ -22,30 +22,9 @@ import type {
   EnhancedServerMetrics,
   ServerEnvironment,
   ServerRole,
-  ServerStatus,
 } from '@/types/server';
 import debug from '@/utils/debug';
 import { mapServerToEnhanced } from '@/utils/serverUtils';
-
-/**
- * Supabase servers 테이블 스키마 (snake_case)
- * 아키텍처: 메타데이터만 저장, 실시간 메트릭은 Vercel JSON
- */
-interface SupabaseServer {
-  id: string;
-  name: string;
-  hostname: string;
-  type: string; // 'web' | 'api' | 'database' | 'cache' | 'worker' | 'gateway' | 'monitoring'
-  location: string;
-  environment: string;
-  provider: string;
-  status: string; // 'active' | 'maintenance' | 'inactive'
-  cpu_cores?: number;
-  memory_gb?: number;
-  disk_gb?: number;
-  created_at?: string;
-  updated_at?: string;
-}
 
 // 📝 통합 요청 스키마
 const serversUnifiedRequestSchema = z.object({
