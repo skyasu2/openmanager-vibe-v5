@@ -75,13 +75,7 @@ fi
 echo "🏗️ Build validation..."
 if [ "${SKIP_BUILD:-false}" = "true" ]; then
   echo "⚪ Build validation skipped (SKIP_BUILD=true)"
-elif [ "${FULL_CHECK:-false}" = "true" ]; then
-  echo "🐢 Running FULL build validation (FULL_CHECK=true)..."
-  npm run build || {
-    echo "❌ Build failed - push blocked"
-    exit 1
-  }
-else
+elif [ "${QUICK_PUSH:-false}" = "true" ]; then
   echo "⚡ Running optimized validation (Type Check + Lint)..."
   # Use the new parallel script
   ./scripts/dev/validate-parallel.sh || {
@@ -89,7 +83,14 @@ else
     echo "💡 Fix errors or run 'npm run build' locally to debug"
     exit 1
   }
-  echo "ℹ️  Note: Full build skipped. Use FULL_CHECK=true git push for full build."
+  echo "ℹ️  Note: Full build skipped (QUICK_PUSH=true). This is faster but less thorough."
+else
+  echo "🐢 Running FULL build validation (Default)..."
+  echo "   (Use QUICK_PUSH=true git push to skip full build and run only Type Check + Lint)"
+  npm run build || {
+    echo "❌ Build failed - push blocked"
+    exit 1
+  }
 fi
 
 # 3. 환경 변수 검사 (CRITICAL - 배포 안전성)
