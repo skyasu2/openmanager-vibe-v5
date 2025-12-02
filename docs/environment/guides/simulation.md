@@ -101,13 +101,13 @@ function fnvHashToGaussian(seed: string, mean: number, stdDev: number): number {
 ## 📁 데이터 구조
 
 ```
-public/server-scenarios/
-├── morning-scenario.json           # 06-12시
-├── afternoon-scenario.json         # 14-18시
-├── evening-scenario.json           # 18-22시
-├── night-maintenance-scenario.json # 22-06시
-├── lunch-peak-scenario.json        # 12-14시 피크
-└── servers-metadata.json           # 서버 메타데이터
+public/hourly-data/
+├── hour-00.json   # 00시 데이터 (15개 서버)
+├── hour-01.json   # 01시 데이터
+├── ...
+├── hour-17.json   # 17시 데이터 (기본 폴백)
+├── ...
+└── hour-23.json   # 23시 데이터
 ```
 
 ## 🚀 API 엔드포인트

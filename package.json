@@ -102,7 +102,6 @@
     "release:major": "standard-version --release-as major",
     "release:first": "standard-version --first-release",
     "release:dry-run": "standard-version --dry-run",
-    "generate:server-data": "node scripts/generate-hourly-metrics.js",
     "ci": "npm run validate:all",
     "health:check": "node scripts/health-check.js",
     "bundle:analyze": "BUNDLE_ANALYZE=browser npm run build",

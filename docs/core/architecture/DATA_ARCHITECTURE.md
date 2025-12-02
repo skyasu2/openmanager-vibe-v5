@@ -288,7 +288,7 @@ export async function GET() {
 **❌ 절대 금지**:
 
 ```typescript
-import data from '/public/server-scenarios/hourly-metrics/00.json';
+import data from '/public/hourly-data/hour-00.json';
 import fallback from '/public/fallback/servers.json';
 ```
 
