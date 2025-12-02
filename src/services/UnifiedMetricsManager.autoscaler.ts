@@ -16,6 +16,7 @@ import type {
   UnifiedServerMetrics,
 } from './UnifiedMetricsManager.types';
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for namespace organization
 export class Autoscaler {
   /**
    * ⚖️ Perform autoscaling analysis and simulation

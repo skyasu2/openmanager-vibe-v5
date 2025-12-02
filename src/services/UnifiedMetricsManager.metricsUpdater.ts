@@ -15,6 +15,7 @@ import type {
   UnifiedServerMetrics,
 } from './UnifiedMetricsManager.types';
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for namespace organization
 export class MetricsUpdater {
   /**
    * 📊 Generate and update all server metrics

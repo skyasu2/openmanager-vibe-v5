@@ -425,6 +425,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
       {children}
       {/* 🔊 ARIA Live 영역 (SSR 안전) */}
       {isClient && (
+        // biome-ignore lint/a11y/useSemanticElements: role="status" is intentional for screen reader announcements
         <div
           aria-live={state.ariaLive}
           aria-atomic="true"

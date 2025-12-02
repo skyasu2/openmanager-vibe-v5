@@ -280,10 +280,10 @@ export function Injectable(
   token?: string | symbol,
   lifetime: ServiceLifetime = 'singleton'
 ) {
-  return <T extends new (...args: unknown[]) => unknown>(constructor: T) => {
-    const serviceToken = token || constructor.name;
-    registerService(serviceToken, constructor, lifetime);
-    return constructor;
+  return <T extends new (...args: unknown[]) => unknown>(ctor: T) => {
+    const serviceToken = token || ctor.name;
+    registerService(serviceToken, ctor, lifetime);
+    return ctor;
   };
 }
 

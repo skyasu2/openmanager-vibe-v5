@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { IntentClassifier } from '../../../modules/ai-agent/processors/IntentClassifier';
 import { MockContextLoader } from '../MockContextLoader';
@@ -29,13 +30,38 @@ vi.mock('../../config/SystemConfiguration', () => ({
   },
 }));
 
+// Mock Types
+interface MockRagEngine {
+  _initialize: Mock;
+  healthCheck: Mock;
+}
+
+interface MockContextLoaderType {
+  getInstance: Mock;
+}
+
+interface MockIntentClassifierType {
+  classify: Mock;
+}
+
+interface MockUtilsType {
+  generateCacheKey: Mock;
+  getCachedResponse: Mock;
+  setCachedResponse: Mock;
+  analyzeComplexity: Mock;
+}
+
+interface MockProcessorsType {
+  processQuery: Mock;
+}
+
 describe('SimplifiedQueryEngine', () => {
   let engine: SimplifiedQueryEngine;
-  let mockRagEngine: any;
-  let mockContextLoader: any;
-  let mockIntentClassifier: any;
-  let mockUtils: any;
-  let mockProcessors: any;
+  let mockRagEngine: MockRagEngine;
+  let mockContextLoader: MockContextLoaderType;
+  let mockIntentClassifier: MockIntentClassifierType;
+  let mockUtils: MockUtilsType;
+  let mockProcessors: MockProcessorsType;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -47,13 +73,17 @@ describe('SimplifiedQueryEngine', () => {
         .fn()
         .mockResolvedValue({ status: 'healthy', vectorDB: true }),
     };
-    (getSupabaseRAGEngine as any).mockReturnValue(mockRagEngine);
-    (SupabaseRAGEngine as any).mockImplementation(() => mockRagEngine);
+    vi.mocked(getSupabaseRAGEngine).mockReturnValue(
+      mockRagEngine as unknown as SupabaseRAGEngine
+    );
+    vi.mocked(SupabaseRAGEngine).mockImplementation(
+      () => mockRagEngine as unknown as SupabaseRAGEngine
+    );
 
     mockContextLoader = {
       getInstance: vi.fn().mockReturnThis(),
     };
-    (MockContextLoader as any).getInstance = vi
+    (MockContextLoader as unknown as { getInstance: Mock }).getInstance = vi
       .fn()
       .mockReturnValue(mockContextLoader);
 
@@ -65,7 +95,9 @@ describe('SimplifiedQueryEngine', () => {
         needsNLP: false,
       }),
     };
-    (IntentClassifier as any).mockImplementation(() => mockIntentClassifier);
+    vi.mocked(IntentClassifier).mockImplementation(
+      () => mockIntentClassifier as unknown as IntentClassifier
+    );
 
     mockUtils = {
       generateCacheKey: vi.fn().mockReturnValue('test-cache-key'),
@@ -76,7 +108,9 @@ describe('SimplifiedQueryEngine', () => {
         score: 0.2,
       }),
     };
-    (SimplifiedQueryEngineUtils as any).mockImplementation(() => mockUtils);
+    vi.mocked(SimplifiedQueryEngineUtils).mockImplementation(
+      () => mockUtils as unknown as SimplifiedQueryEngineUtils
+    );
 
     mockProcessors = {
       processQuery: vi.fn().mockResolvedValue({
@@ -88,8 +122,8 @@ describe('SimplifiedQueryEngine', () => {
         processingTime: 100,
       }),
     };
-    (SimplifiedQueryEngineProcessors as any).mockImplementation(
-      () => mockProcessors
+    vi.mocked(SimplifiedQueryEngineProcessors).mockImplementation(
+      () => mockProcessors as unknown as SimplifiedQueryEngineProcessors
     );
 
     engine = new SimplifiedQueryEngine();

@@ -5,6 +5,7 @@
  */
 
 import { renderHook, waitFor } from '@testing-library/react';
+import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Server } from '@/types/server';
 import {
@@ -14,7 +15,11 @@ import {
   useSingleMetric,
 } from '../useFixed24hMetrics';
 
-// Mock UnifiedServerDataSource
+// Mock Types
+interface MockUnifiedServerDataSourceInstance {
+  getServers: Mock;
+}
+
 // Mock UnifiedServerDataSource
 vi.mock('@/services/data/UnifiedServerDataSource', () => {
   const mockGetServers = vi.fn();
@@ -74,9 +79,10 @@ describe('useFixed24hMetrics', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    const mockInstance = UnifiedServerDataSource.getInstance();
+    const mockInstance =
+      UnifiedServerDataSource.getInstance() as unknown as MockUnifiedServerDataSourceInstance;
     mockGetServers = vi.fn();
-    (mockInstance as any).getServers = mockGetServers;
+    mockInstance.getServers = mockGetServers;
   });
 
   afterEach(() => {
@@ -229,8 +235,9 @@ describe('useMultipleFixed24hMetrics', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Singleton instance is already mocked at top level
-    const mockInstance = UnifiedServerDataSource.getInstance();
-    mockGetServers = (mockInstance as any).getServers;
+    const mockInstance =
+      UnifiedServerDataSource.getInstance() as unknown as MockUnifiedServerDataSourceInstance;
+    mockGetServers = mockInstance.getServers;
   });
 
   afterEach(() => {
@@ -334,9 +341,10 @@ describe('useSingleMetric', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    const mockInstance = UnifiedServerDataSource.getInstance();
+    const mockInstance =
+      UnifiedServerDataSource.getInstance() as unknown as MockUnifiedServerDataSourceInstance;
     mockGetServers = vi.fn();
-    (mockInstance as any).getServers = mockGetServers;
+    mockInstance.getServers = mockGetServers;
   });
 
   afterEach(() => {
@@ -421,9 +429,10 @@ describe('getFixedMetricNow', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    const mockInstance = UnifiedServerDataSource.getInstance();
+    const mockInstance =
+      UnifiedServerDataSource.getInstance() as unknown as MockUnifiedServerDataSourceInstance;
     mockGetServers = vi.fn();
-    (mockInstance as any).getServers = mockGetServers;
+    mockInstance.getServers = mockGetServers;
   });
 
   afterEach(() => {

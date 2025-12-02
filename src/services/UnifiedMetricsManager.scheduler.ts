@@ -11,6 +11,7 @@
 import { TimerManager } from '../utils/TimerManager';
 import type { UnifiedMetricsConfig } from './UnifiedMetricsManager.types';
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for namespace organization
 export class Scheduler {
   /**
    * 🚀 Start unified schedulers

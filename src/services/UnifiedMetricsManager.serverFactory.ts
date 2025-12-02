@@ -17,6 +17,7 @@ import type {
   UnifiedServerMetrics,
 } from './UnifiedMetricsManager.types';
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for namespace organization
 export class ServerFactory {
   private static roleMultipliers = {
     database: 1.3, // DB servers have higher load

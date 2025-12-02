@@ -3,6 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import DashboardHeader from '../DashboardHeader';
 
+// Mock Types
+interface AIAssistantButtonMockProps {
+  isOpen: boolean;
+  isEnabled: boolean;
+  onClick: () => void;
+}
+
 // Mock dependencies
 vi.mock('@/stores/useAISidebarStore', () => ({
   useAISidebarStore: vi.fn(),
@@ -37,7 +44,11 @@ vi.mock('../SystemStatusBadge', () => ({
 
 // Mock AIAssistantButton to verify props and interaction
 vi.mock('../AIAssistantButton', () => ({
-  AIAssistantButton: ({ isOpen, isEnabled, onClick }: any) => (
+  AIAssistantButton: ({
+    isOpen,
+    isEnabled,
+    onClick,
+  }: AIAssistantButtonMockProps) => (
     <button
       data-testid="ai-assistant-button"
       onClick={onClick}
@@ -62,20 +73,20 @@ describe('DashboardHeader AI Interaction', () => {
     vi.clearAllMocks();
 
     // Default mock implementations
-    (useAISidebarStore as any).mockReturnValue({
+    vi.mocked(useAISidebarStore).mockReturnValue({
       isOpen: false,
       setOpen: mockSetOpen,
     });
 
-    (useUnifiedAdminStore as any).mockReturnValue({
+    vi.mocked(useUnifiedAdminStore).mockReturnValue({
       aiAgent: { isEnabled: true },
     });
 
-    (useUserPermissions as any).mockReturnValue({
+    vi.mocked(useUserPermissions).mockReturnValue({
       canToggleAI: true,
     });
 
-    (isGuestFullAccessEnabled as any).mockReturnValue(false);
+    vi.mocked(isGuestFullAccessEnabled).mockReturnValue(false);
   });
 
   it('renders AI Assistant button when user has permission', () => {
@@ -85,7 +96,7 @@ describe('DashboardHeader AI Interaction', () => {
   });
 
   it('does not render AI Assistant button when user lacks permission', () => {
-    (useUserPermissions as any).mockReturnValue({
+    vi.mocked(useUserPermissions).mockReturnValue({
       canToggleAI: false,
     });
 
@@ -95,10 +106,10 @@ describe('DashboardHeader AI Interaction', () => {
   });
 
   it('renders AI Assistant button when guest full access is enabled even without permission', () => {
-    (useUserPermissions as any).mockReturnValue({
+    vi.mocked(useUserPermissions).mockReturnValue({
       canToggleAI: false,
     });
-    (isGuestFullAccessEnabled as any).mockReturnValue(true);
+    vi.mocked(isGuestFullAccessEnabled).mockReturnValue(true);
 
     render(<DashboardHeader onNavigateHome={mockOnNavigateHome} />);
 
@@ -107,7 +118,7 @@ describe('DashboardHeader AI Interaction', () => {
 
   it('toggles AI sidebar state when button is clicked', () => {
     // Initial state: closed
-    (useAISidebarStore as any).mockReturnValue({
+    vi.mocked(useAISidebarStore).mockReturnValue({
       isOpen: false,
       setOpen: mockSetOpen,
     });
@@ -123,7 +134,7 @@ describe('DashboardHeader AI Interaction', () => {
 
   it('toggles AI sidebar state to closed when it is already open', () => {
     // Initial state: open
-    (useAISidebarStore as any).mockReturnValue({
+    vi.mocked(useAISidebarStore).mockReturnValue({
       isOpen: true,
       setOpen: mockSetOpen,
     });

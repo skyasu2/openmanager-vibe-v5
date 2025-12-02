@@ -25,7 +25,7 @@ export function useSafeEffect(
         cleanup();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // biome-ignore lint/correctness/useExhaustiveDependencies: deps is passed dynamically from caller
   }, deps);
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export function useAsyncEffect(
         cleanupRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // biome-ignore lint/correctness/useExhaustiveDependencies: deps is passed dynamically from caller
   }, deps);
 
   useEffect(() => {

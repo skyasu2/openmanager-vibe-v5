@@ -1,9 +1,13 @@
+import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { IntentClassifier } from '../../../modules/ai-agent/processors/IntentClassifier';
 import { MockContextLoader } from '../MockContextLoader';
 import { ComplexityLevel } from '../SimplifiedQueryEngine.complexity-types';
+import type { IntentResult } from '../SimplifiedQueryEngine.intent-types';
 import { UnifiedQueryProcessor } from '../SimplifiedQueryEngine.processor.unified';
 import { SimplifiedQueryEngineHelpers } from '../SimplifiedQueryEngine.processors.helpers';
+import type { ThinkingStep } from '../SimplifiedQueryEngine.response-types';
+import type { ComplexityResult } from '../SimplifiedQueryEngine.types';
 import { SimplifiedQueryEngineUtils } from '../SimplifiedQueryEngine.utils';
 import { SupabaseRAGEngine } from '../supabase-rag-engine';
 
@@ -14,13 +18,25 @@ vi.mock('../MockContextLoader');
 vi.mock('../../../modules/ai-agent/processors/IntentClassifier');
 vi.mock('../SimplifiedQueryEngine.processors.helpers');
 
+// Mock Types
+interface MockUtils {
+  safeInitThinkingSteps: Mock;
+  safeUpdateLastThinkingStep: Mock;
+  generateFormattedResponse: Mock;
+  generateCommandFallbackResponse: Mock;
+}
+
+interface MockRagEngine {
+  searchHybrid: Mock;
+}
+
 describe('UnifiedQueryProcessor', () => {
   let processor: UnifiedQueryProcessor;
-  let mockUtils: any;
-  let mockRagEngine: any;
-  let mockContextLoader: any;
-  let mockIntentClassifier: any;
-  let mockHelpers: any;
+  let mockUtils: MockUtils;
+  let mockRagEngine: MockRagEngine;
+  let mockContextLoader: MockContextLoader;
+  let mockIntentClassifier: IntentClassifier;
+  let mockHelpers: SimplifiedQueryEngineHelpers;
 
   beforeEach(() => {
     mockUtils = new SimplifiedQueryEngineUtils();
@@ -31,7 +47,7 @@ describe('UnifiedQueryProcessor', () => {
 
     // Setup default mock behaviors
     mockUtils.safeInitThinkingSteps.mockImplementation(
-      (steps: any) => steps || []
+      (steps: ThinkingStep[]) => steps || []
     );
     mockUtils.safeUpdateLastThinkingStep.mockImplementation(() => {});
     mockUtils.generateFormattedResponse.mockReturnValue('Formatted Response');
@@ -62,8 +78,8 @@ describe('UnifiedQueryProcessor', () => {
       factors: { length: 0, keywords: 0, patterns: 0, context: 0, language: 0 },
       recommendation: 'local',
       confidence: 1,
-    };
-    const thinkingSteps: any[] = [];
+    } as ComplexityResult;
+    const thinkingSteps: ThinkingStep[] = [];
 
     // Mock simple path execution (via private method access or behavior verification)
     // Since we can't easily mock private methods in TS without casting, we verify the output
@@ -77,8 +93,8 @@ describe('UnifiedQueryProcessor', () => {
       query,
       {},
       {},
-      intentResult as any,
-      complexity as any,
+      intentResult as IntentResult,
+      complexity,
       thinkingSteps,
       Date.now()
     );
@@ -108,8 +124,8 @@ describe('UnifiedQueryProcessor', () => {
       },
       recommendation: 'google-ai',
       confidence: 1,
-    };
-    const thinkingSteps: any[] = [];
+    } as ComplexityResult;
+    const thinkingSteps: ThinkingStep[] = [];
 
     // Mock complex path dependencies
     mockRagEngine.searchHybrid.mockResolvedValue({
@@ -122,8 +138,8 @@ describe('UnifiedQueryProcessor', () => {
       query,
       {},
       {},
-      intentResult as any,
-      complexity as any,
+      intentResult as IntentResult,
+      complexity,
       thinkingSteps,
       Date.now()
     );
@@ -153,8 +169,8 @@ describe('UnifiedQueryProcessor', () => {
       },
       recommendation: 'google-ai',
       confidence: 1,
-    };
-    const thinkingSteps: any[] = [];
+    } as ComplexityResult;
+    const thinkingSteps: ThinkingStep[] = [];
 
     // Mock complex path failure
     // We can simulate this by making a dependency throw
@@ -164,8 +180,8 @@ describe('UnifiedQueryProcessor', () => {
       query,
       {},
       {},
-      intentResult as any,
-      complexity as any,
+      intentResult as IntentResult,
+      complexity,
       thinkingSteps,
       Date.now()
     );
