@@ -192,8 +192,20 @@ function Home() {
     );
   }
 
-  // 미인증 리다이렉트 대기
-  if (!authReady || !isAuthenticated) {
+  // 미인증 상태 처리: 게스트 시스템 시작이 허용된 경우 메인 콘텐츠 표시
+  if (!authReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="text-center text-white">
+          <div className="mx-auto mb-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          <div className="text-sm">인증 확인 중... ({envLabel})</div>
+        </div>
+      </div>
+    );
+  }
+
+  // 게스트 시스템 시작이 비활성화된 경우에만 리다이렉트
+  if (!isAuthenticated && !guestSystemStartEnabled && !isGuestFullAccessEnabled()) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="text-center text-white">
