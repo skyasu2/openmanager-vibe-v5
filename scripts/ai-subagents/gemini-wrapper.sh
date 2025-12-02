@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Gemini CLI Wrapper - 600초 타임아웃 + stderr 필터링
-# 버전: 3.1.0
-# 날짜: 2025-12-02 (쿼리 이스케이핑 버그 수정 - bash -c echo → 임시파일 방식)
+# 버전: 3.2.0
+# 날짜: 2025-12-02 (mktemp 에러 처리 강화 + 임시파일 생성 검증)
 
 set -euo pipefail
 
@@ -66,16 +66,23 @@ $query"
     log_info "🟢 Gemini 실행 중 (모델: $model, 타임아웃 ${TIMEOUT_SECONDS}초 = 10분)..."
 
     local start_time=$(date +%s)
-    local temp_stdout=$(mktemp)
-    local temp_stderr=$(mktemp)
-    local temp_query=$(mktemp)
+    local temp_stdout temp_stderr temp_query
     local exit_code=0
+
+    # v3.2.0: mktemp 에러 처리 강화 (Qwen 리뷰 제안 반영)
+    if ! temp_stdout=$(mktemp) || ! temp_stderr=$(mktemp) || ! temp_query=$(mktemp); then
+        log_error "임시 파일 생성 실패 (디스크 공간 또는 권한 문제)"
+        return 1
+    fi
 
     # 함수 종료 시 임시 파일 자동 정리 (인터럽트 포함)
     trap 'rm -f "$temp_stdout" "$temp_stderr" "$temp_query"' RETURN
 
     # 쿼리를 임시 파일에 저장 (백틱/$()/특수문자 안전하게 처리)
-    printf '%s' "$query" > "$temp_query"
+    if ! printf '%s' "$query" > "$temp_query"; then
+        log_error "쿼리 파일 저장 실패"
+        return 1
+    fi
 
     # Gemini 실행 (stderr 분리) - 임시파일 방식으로 쿼리 전달 (v3.1.0)
     if timeout "${TIMEOUT_SECONDS}s" cat "$temp_query" | gemini --model "$model" > "$temp_stdout" 2> "$temp_stderr"; then
@@ -136,7 +143,7 @@ $query"
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🟢 Gemini CLI Wrapper v3.1.0 - Claude Code 내부 도구${NC}
+${CYAN}🟢 Gemini CLI Wrapper v3.2.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
 ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
@@ -197,7 +204,7 @@ main() {
     fi
 
     echo ""
-    log_info "🚀 Gemini Wrapper v3.1.0 시작"
+    log_info "🚀 Gemini Wrapper v3.2.0 시작"
     echo ""
 
     if execute_gemini "$query" "$model"; then
