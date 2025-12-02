@@ -18,6 +18,22 @@
 | **filesystem**          | ✅   | ✅ 즉시 응답 | ✅ 로컬 파일 시스템 접근 (읽기/쓰기)                     | **완전 작동**    |
 | **github**              | ✅   | ✅ 즉시 응답 | ✅ GitHub 저장소 연동                                    | **완전 작동**    |
 
+## 🌍 환경별 MCP 구성 (2025-12-02 기준)
+
+### 1️⃣ WSL (Claude Code) - 11개 서버
+- **전체 기능 사용**: 위 표의 11개 서버 모두 사용
+- **목적**: 풀스택 개발, 아키텍처 설계, 복잡한 추론
+
+### 2️⃣ Windows (Antigravity) - 2개 서버
+- **사용 서버**: `github`, `sequential-thinking`
+- **목적**: 코드 리뷰, 문서화, 작업 관리
+- **특이사항**: Docker 필수 (GitHub MCP)
+
+### 3️⃣ Codex - 1개 서버
+- **사용 서버**: `playwright`
+- **목적**: E2E 테스트, 브라우저 자동화
+
+
 ## 🚀 성능 지표 (2025-12-02)
 
 - **연결 성공률**: 100% (11/11) 🏆
@@ -45,7 +61,7 @@
 | time                | uvx mcp-server-time                                  | 시간대 변환               |
 | serena              | /home/sky-note/.local/bin/serena-mcp-server          | 코드 분석                 |
 | filesystem          | npx @modelcontextprotocol/server-filesystem          | 파일 시스템 접근          |
-| github              | npx @modelcontextprotocol/server-github              | GitHub 연동               |
+| github              | npx @modelcontextprotocol/server-github              | GitHub 연동 (Docker 필수) |
 | **vercel**          | **npx @open-mcp/vercel**                             | **배포 관리 (150+ 도구)** |
 
 ### 2️⃣ 인증 설정 (환경변수)
