@@ -50,6 +50,8 @@
     "test:coverage": "vitest run --config config/testing/vitest.config.simple.ts --coverage",
     "test:watch": "vitest --config config/testing/vitest.config.simple.ts",
     "test:e2e": "playwright test",
+    "test:e2e:no-ai": "playwright test --grep-invert '@ai-test' --config playwright.config.ts",
+    "test:e2e:ai-only": "playwright test --grep '@ai-test' --config playwright.config.ts",
     "test:e2e:critical": "playwright test tests/e2e/smoke.spec.ts tests/e2e/guest.spec.ts tests/e2e/accessibility.spec.ts --config playwright.config.ts",
     "test:e2e:full": "playwright test --config playwright.config.ts",
     "test:e2e:local": "playwright test --config playwright.config.ts",

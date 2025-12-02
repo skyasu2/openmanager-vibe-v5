@@ -25,7 +25,7 @@ import { submitAiMessage, switchAiFunction } from './helpers/ai-interaction';
 import { guestLogin, openAiSidebar } from './helpers/guest';
 import { TIMEOUTS } from './helpers/timeouts';
 
-test.describe('AI 사이드바 기능 전환 (하루 2-3회 수동 실행)', () => {
+test.describe('@ai-test AI 사이드바 기능 전환 (하루 2-3회 수동 실행)', () => {
   test.beforeEach(async ({ page }) => {
     // 게스트 로그인
     await guestLogin(page);

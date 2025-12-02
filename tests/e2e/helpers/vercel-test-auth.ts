@@ -15,9 +15,17 @@ import { getTestBaseUrl } from './config';
  * ```
  */
 
-// 🔐 환경변수에서 시크릿 키 가져오기
-const TEST_SECRET_KEY =
-  process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env';
+// 🔐 환경변수에서 시크릿 키 가져오기 (기본값 제거 - 보안 강화)
+const TEST_SECRET_KEY = process.env.TEST_SECRET_KEY;
+
+// 🚨 환경변수 필수 검증 (테스트 실행 전 조기 실패)
+if (!TEST_SECRET_KEY) {
+  console.error('❌ [Security] TEST_SECRET_KEY 환경변수가 설정되지 않았습니다.');
+  console.error('   설정 방법: .env.e2e 파일에 TEST_SECRET_KEY="your-secret" 추가');
+  throw new Error(
+    'TEST_SECRET_KEY 환경변수 필수: .env.e2e 또는 CI/CD 환경에서 설정하세요.'
+  );
+}
 
 export type TestMode = 'guest' | 'admin' | 'full_access';
 
