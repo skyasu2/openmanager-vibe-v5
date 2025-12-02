@@ -95,9 +95,8 @@ function loadPureRawMetrics(): Promise<RawServerMetric[]> {
     const filePath = path.join(
       process.cwd(),
       'public',
-      'server-scenarios',
-      'hourly-metrics',
-      `${currentHour.toString().padStart(2, '0')}.json`
+      'hourly-data',
+      `hour-${currentHour.toString().padStart(2, '0')}.json`
     );
 
     let hourlyData: HourlyDataStructure;
@@ -106,9 +105,8 @@ function loadPureRawMetrics(): Promise<RawServerMetric[]> {
       const fallbackPath = path.join(
         process.cwd(),
         'public',
-        'server-scenarios',
-        'hourly-metrics',
-        '17.json'
+        'hourly-data',
+        'hour-17.json'
       );
       hourlyData = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
     } else {
