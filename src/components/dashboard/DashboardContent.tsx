@@ -14,6 +14,10 @@ import type { DashboardStats } from './types/dashboard.types';
 
 // framer-motion 제거됨
 
+// 🛡️ 렌더링 로그 스팸 방지 (한 번만 로그)
+let hasLoggedRenderOnce = false;
+let hasLoggedModeOnce = false;
+
 interface DashboardStatus {
   isRunning?: boolean;
   lastUpdate?: string;
@@ -64,15 +68,18 @@ export default function DashboardContent({
   // mainContentVariants 제거
   isAgentOpen,
 }: DashboardContentProps) {
-  // 🚀 디버깅 로그
-  debug.log('🔍 DashboardContent 렌더링:', {
-    showSequentialGeneration,
-    serversCount: servers?.length,
-    selectedServer: selectedServer?.name,
-    isAgentOpen,
-    status: status?.type,
-    timestamp: new Date().toISOString(),
-  });
+  // 🚀 디버깅 로그 (한 번만 출력 - 리렌더링 스팸 방지)
+  if (!hasLoggedRenderOnce) {
+    hasLoggedRenderOnce = true;
+    debug.log('🔍 DashboardContent 초기 렌더링:', {
+      showSequentialGeneration,
+      serversCount: servers?.length,
+      selectedServer: selectedServer?.name,
+      isAgentOpen,
+      status: status?.type,
+      timestamp: new Date().toISOString(),
+    });
+  }
 
   // 🎯 서버 데이터에서 직접 통계 계산 (중복 API 호출 제거)
   const [statsLoading, _setStatsLoading] = useState(false);
@@ -279,8 +286,11 @@ export default function DashboardContent({
       );
     }
 
-    // 일반 대시보드 모드 - 반응형 그리드 레이아웃
-    debug.log('📊 일반 대시보드 모드 렌더링');
+    // 일반 대시보드 모드 - 반응형 그리드 레이아웃 (로그 한 번만)
+    if (!hasLoggedModeOnce) {
+      hasLoggedModeOnce = true;
+      debug.log('📊 일반 대시보드 모드 렌더링');
+    }
     return (
       <div className="animate-fade-in h-full w-full">
         <div className="mx-auto h-full max-w-none space-y-6 overflow-y-auto px-4 sm:px-6 lg:px-8 2xl:max-w-[1800px]">
