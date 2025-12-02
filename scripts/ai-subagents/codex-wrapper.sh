@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Codex CLI Wrapper - 600초 타임아웃 + stderr 필터링
-# 버전: 3.0.0
-# 날짜: 2025-11-21 (Gemini와 동일한 수준의 견고성 확보)
+# 버전: 3.1.0
+# 날짜: 2025-12-02 (stdout/stderr 분리 + mktemp 에러처리 + trap EXIT)
 
 set -euo pipefail
 
@@ -25,24 +25,24 @@ LOG_DIR="${PROJECT_ROOT}/logs/ai-perf"
 LOG_FILE="$LOG_DIR/codex-perf-$(date +%F).log"
 mkdir -p "$LOG_DIR"
 
-# 로그 함수
+# 로그 함수 (모두 stderr로 출력 - stdout은 AI 응답 전용)
 log_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
+    echo -e "${BLUE}ℹ️  $1${NC}" >&2
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: $1" >> "$LOG_FILE"
 }
 
 log_success() {
-    echo -e "${GREEN}✅ $1${NC}"
+    echo -e "${GREEN}✅ $1${NC}" >&2
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] SUCCESS: $1" >> "$LOG_FILE"
 }
 
 log_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    echo -e "${YELLOW}⚠️  $1${NC}" >&2
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARNING: $1" >> "$LOG_FILE"
 }
 
 log_error() {
-    echo -e "${RED}❌ $1${NC}"
+    echo -e "${RED}❌ $1${NC}" >&2
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$LOG_FILE"
 }
 
@@ -63,12 +63,17 @@ $query"
     log_info "🤖 Codex 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 10분)..."
 
     local start_time=$(date +%s)
-    local temp_stdout=$(mktemp)
-    local temp_stderr=$(mktemp)
+    local temp_stdout temp_stderr
     local exit_code=0
 
-    # 함수 종료 시 임시 파일 자동 정리 (인터럽트 포함)
-    trap 'rm -f "$temp_stdout" "$temp_stderr"' RETURN
+    # v3.1.0: mktemp 에러 처리 강화 (Gemini와 동일)
+    if ! temp_stdout=$(mktemp) || ! temp_stderr=$(mktemp); then
+        log_error "임시 파일 생성 실패 (디스크 공간 또는 권한 문제)"
+        return 1
+    fi
+
+    # 함수 종료 시 임시 파일 자동 정리 (EXIT로 변경 - 더 견고)
+    trap 'rm -f "$temp_stdout" "$temp_stderr"' EXIT
 
     # Codex 실행 (stderr 분리)
     if timeout "${TIMEOUT_SECONDS}s" codex exec "$query" > "$temp_stdout" 2> "$temp_stderr"; then
@@ -115,12 +120,12 @@ $query"
         fi
     elif [ $exit_code -eq 124 ]; then
         log_error "Codex 타임아웃 (${TIMEOUT_SECONDS}초 = 10분 초과)"
-        echo ""
-        echo -e "${YELLOW}💡 타임아웃 해결 방법:${NC}"
-        echo "  1️⃣  질문을 더 작은 단위로 분할하세요"
-        echo "  2️⃣  질문을 더 간결하게 만드세요"
-        echo "  3️⃣  핵심 부분만 먼저 질문하세요"
-        echo ""
+        echo "" >&2
+        echo -e "${YELLOW}💡 타임아웃 해결 방법:${NC}" >&2
+        echo "  1️⃣  질문을 더 작은 단위로 분할하세요" >&2
+        echo "  2️⃣  질문을 더 간결하게 만드세요" >&2
+        echo "  3️⃣  핵심 부분만 먼저 질문하세요" >&2
+        echo "" >&2
         return 124
     else
         log_error "Codex 실행 오류 (종료 코드: $exit_code)"
@@ -138,7 +143,7 @@ $query"
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🤖 Codex CLI Wrapper v3.0.0 - Claude Code 내부 도구${NC}
+${CYAN}🤖 Codex CLI Wrapper v3.1.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
 ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
@@ -198,16 +203,16 @@ main() {
     fi
 
     # 실행
-    echo ""
-    log_info "🚀 Codex Wrapper v3.0.0 시작"
-    echo ""
+    echo "" >&2
+    log_info "🚀 Codex Wrapper v3.1.0 시작"
+    echo "" >&2
 
     if execute_codex "$query"; then
-        echo ""
+        echo "" >&2
         log_success "✅ 완료"
         exit 0
     else
-        echo ""
+        echo "" >&2
         log_error "❌ 실패"
         exit 1
     fi
