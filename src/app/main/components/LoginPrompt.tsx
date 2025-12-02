@@ -1,0 +1,46 @@
+/**
+ * 🔐 로그인 유도 컴포넌트
+ *
+ * 게스트 사용자가 시스템 시작 권한이 없을 때 표시
+ */
+
+'use client';
+
+import { LogIn } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+interface LoginPromptProps {
+  isMounted: boolean;
+  guestModeMessage?: string;
+}
+
+export function LoginPrompt({ isMounted, guestModeMessage }: LoginPromptProps) {
+  const router = useRouter();
+
+  return (
+    <div className="text-center">
+      <div className="mb-4 rounded-xl border border-blue-400/30 bg-blue-500/10 p-4 sm:p-6">
+        {isMounted && (
+          <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />
+        )}
+        <h3 className="mb-2 text-lg font-semibold text-white">
+          GitHub 로그인이 필요합니다
+        </h3>
+        <p className="mb-4 text-sm text-blue-100">
+          시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수 있습니다.
+        </p>
+        <button
+          onClick={() => router.push('/login')}
+          className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+        >
+          로그인 페이지로 이동
+        </button>
+      </div>
+      <p className="text-xs text-gray-400">
+        {guestModeMessage || '게스트 모드에서는 읽기 전용 기능만 사용 가능합니다.'}
+      </p>
+    </div>
+  );
+}
+
+export default LoginPrompt;
