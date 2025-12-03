@@ -24,10 +24,7 @@ export default function DashboardLoading() {
         {/* 상단 통계 카드 */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse rounded-xl bg-white/5 p-4"
-            >
+            <div key={i} className="animate-pulse rounded-xl bg-white/5 p-4">
               <div className="mb-2 h-4 w-20 rounded bg-white/10" />
               <div className="h-8 w-16 rounded bg-white/20" />
             </div>
@@ -45,10 +42,7 @@ export default function DashboardLoading() {
         {/* 차트 영역 스켈레톤 */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {[...Array(2)].map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse rounded-xl bg-white/5 p-6"
-            >
+            <div key={i} className="animate-pulse rounded-xl bg-white/5 p-6">
               <div className="mb-4 h-6 w-32 rounded bg-white/10" />
               <div className="h-48 rounded-lg bg-white/10" />
             </div>
