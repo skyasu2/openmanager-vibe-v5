@@ -16,19 +16,21 @@ ai-tools:
 
   codex:
     current_version: "v0.63.0"
-    wrapper_version: "v2.5.0"
+    wrapper_version: "v3.2.0"
     status: "✅ Active"
-    role: "Code review and verification"
+    role: "Code review - Primary rotation (1:1:1)"
 
   gemini-cli:
     current_version: "v0.18.4"
+    wrapper_version: "v3.2.0"
     status: "✅ Active"
-    role: "Code review and verification (fallback)"
+    role: "Code review - Primary rotation (1:1:1)"
 
   qwen-cli:
     current_version: "v0.3.0"
+    wrapper_version: "v3.2.0"
     status: "✅ Active"
-    role: "Code review and verification (fallback)"
+    role: "Code review - Fallback only (not in primary)"
 
   kiro-cli:
     current_version: "v1.20.0"
@@ -59,8 +61,10 @@ subagents:
     - gcp-cloud-functions-specialist    # Vercel이 주 플랫폼
 
 # 상세 정보: .claude/agents/*.md 참조
-# Workflow Integration:
-#   - post-commit hook triggers auto-ai-review.sh (Codex → Gemini fallback, background)
+# Workflow Integration (v6.4.0):
+#   - post-commit hook triggers auto-ai-review.sh
+#   - Primary rotation: codex → gemini → claude (1:1:1 순환)
+#   - Fallback chain: Primary AI → Qwen → Claude Code
 #   - Claude Code analyzes generated review files from logs/code-reviews/
 #   - Legacy 3-AI verification system is deprecated (see archive/deprecated/3-ai-system/)
 

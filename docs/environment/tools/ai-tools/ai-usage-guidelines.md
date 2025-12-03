@@ -128,11 +128,11 @@
 4. **Qwen**: 성능 최적화 분석 (필요 시)
 5. **Claude Code**: 최종 통합 및 의사결정
 
-### 자동 코드 리뷰 (v5.0.0)
+### 자동 코드 리뷰 (v6.4.0)
 
 ```bash
 # .husky/post-commit → scripts/code-review/auto-ai-review.sh
-# 1:1:1:1 균등 분배 (Codex 25%, Gemini 25%, Qwen 25%, Claude 25%)
+# Primary 1:1:1 순환 (codex → gemini → claude), Qwen은 폴백 전용
 # 출력: logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md
 ```
 

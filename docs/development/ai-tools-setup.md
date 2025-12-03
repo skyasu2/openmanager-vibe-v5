@@ -136,7 +136,7 @@ codex exec "복잡한 알고리즘 최적화 분석"
 # 코드 리뷰
 codex exec "이 코드의 보안 취약점 분석"
 
-# 타임아웃 설정 (wrapper v2.5.0, 600초, PROJECT_ROOT 자동)
+# 타임아웃 설정 (wrapper v3.2.0, 600초, PROJECT_ROOT 자동)
 ./scripts/ai-subagents/codex-wrapper.sh
 
 # 컨텍스트: 1인 개발자 관점 prefix 자동 주입 (scripts/ai-subagents/codex-wrapper.sh)
@@ -187,7 +187,7 @@ gemini "아키텍처 검토" --model gemini-2.5-pro
 # 설계 분석
 gemini "SOLID 원칙 준수 여부 확인" --model gemini-2.5-pro
 
-# Wrapper 스크립트 (v2.5.0, 기본 모델 gemini-2.5-pro, 600초)
+# Wrapper 스크립트 (v3.2.0, 기본 모델 gemini-2.5-pro, 600초)
 ./scripts/ai-subagents/gemini-wrapper.sh
 
 # 성능: Codex rate limit 폴백 시 25~31초 (docs/status.md)
@@ -235,7 +235,7 @@ timeout 90 qwen --approval-mode yolo -p "리팩토링 전략"
 # Plan Mode (선택) - 세부 계획 수립
 qwen -p "성능 병목점 분석"
 
-# Wrapper 스크립트 (v2.5.0, YOLO 기본, 600초)
+# Wrapper 스크립트 (v3.2.0, YOLO 기본, 600초)
 ./scripts/ai-subagents/qwen-wrapper.sh
 
 # 성능: YOLO Mode 타임아웃 600초 (실제 응답 수초, logs/ai-perf/qwen-perf-*.log)

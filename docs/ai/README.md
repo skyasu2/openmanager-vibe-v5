@@ -131,17 +131,16 @@ qwen -p "시간복잡도는?"
 | **Gemini**      | v0.17.1 | 범용 개발 파트너 | ✅ 활성 |
 | **Qwen**        | v0.2.3  | 성능 최적화      | ✅ 활성 |
 
-### 자동 코드 리뷰 시스템 (v5.0.0)
+### 자동 코드 리뷰 시스템 (v6.4.0)
 
-**1:1:1:1 균등 분배** (Codex, Gemini, Qwen, Claude 각 25%):
+**Primary 1:1:1 순환** (codex → gemini → claude):
 
-- 1차: 순환적 균등 선택 (상태 파일 기반)
-- 2차: Primary AI 실패 → Secondary AI 1 폴백
-- 3차: Secondary AI 1 실패 → Secondary AI 2 폴백
-- 4차: Secondary AI 2 실패 → Secondary AI 3 폴백 (최종)
+- 1차: Primary AI 순환 선택 (상태 파일 기반, 1:1:1)
+- 2차: Primary AI 실패 → Qwen 즉시 폴백
+- 3차: Qwen 실패 → Claude Code 서브에이전트 (최종)
 - Git Hook: `.husky/post-commit` 자동 트리거
 - 출력: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
-- 가용성: **99.99%** (Codex OR Gemini OR Qwen OR Claude)
+- 가용성: **99.99%** (Primary OR Qwen OR Claude)
 
 **상세**: [@docs/status.md](../status.md) (코드 리뷰 시스템 상태)
 

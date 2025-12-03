@@ -54,8 +54,8 @@ npm run test     # Vitest (메인 설정)
 
 - **Codex CLI v0.58.0 (GPT-5)** – ChatGPT Plus $20/월, `config/ai/registry-core.yaml`
 - **응답 속도**: 6~12초 (자동 코드 리뷰 로그, `logs/code-reviews/*`)
-- **자동 코드 리뷰 1차 엔진**: `.husky/post-commit` → `scripts/code-review/auto-ai-review.sh` v4.3.0 (Codex 우선 4:1 비율 + Gemini 폴백, lint/typecheck 선행, `logs/code-reviews/*`, `docs/status.md`)
-- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` v3.0.0 (600초 타임아웃, stderr 분리, 1인 개발자 컨텍스트 자동 주입)
+- **자동 코드 리뷰**: `.husky/post-commit` → `scripts/code-review/auto-ai-review.sh` v6.4.0 (Primary 1:1:1 순환: codex→gemini→claude, Qwen 폴백, `logs/code-reviews/*`)
+- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` v3.2.0 (600초 타임아웃, stderr 분리, 1인 개발자 컨텍스트 자동 주입)
 - **철학**: "사용자 지침 준수 & 재현 가능성" (Codex 자기 분석)
 - **핵심 원칙**:
   - **Simplicity**: 코드는 읽기 쉽고 단순하게 유지 (KISS)
@@ -76,12 +76,12 @@ npm run test     # Vitest (메인 설정)
    ```
    프로젝트별 설정을 공유하려면 `~/.codex/` 하위 파일을 확인한 뒤 필요한 항목만 수동으로 커밋하세요.
 
-### 자동 코드 리뷰 파이프라인 (Codex 우선 4:1 + Gemini, Claude 폴백)
+### 자동 코드 리뷰 파이프라인 (Primary 1:1:1 순환 + Qwen/Claude 폴백)
 
 - **트리거**: `.husky/post-commit` → `scripts/code-review/auto-ai-review.sh` 백그라운드 실행
-- **엔진 로직**: Codex/Gemini 4:1 라운드로빈 + 상호 폴백, 최종 Claude Code 폴백 (`logs/code-reviews/.ai-usage-state` 관리)
-- **검증**: lint + typecheck 선행 실행(`logs/lint`, `logs/typecheck`)
-- **가용성**: Codex/Gemini/Claude 조합으로 99.9% (`docs/status.md`)
+- **Primary 로직**: codex → gemini → claude 순환 선택 (`last_ai` 기반, `.ai-usage-state` 관리)
+- **폴백**: Primary 실패 시 → Qwen 즉시 → Claude Code (code-review-specialist)
+- **가용성**: 99.99% (Primary OR Qwen OR Claude Code)
 - **출력**: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
 
 ### 📊 2025 벤치마크 성능 (GPT-5 Codex v0.58.0)
@@ -101,7 +101,7 @@ npm run test     # Vitest (메인 설정)
 - **Full-Stack Capability**: 비즈니스 로직, 엣지 케이스, 타입 안전성, 보안까지 포괄적 검토
 - **Precision Specialist**: 모호함 없는 정확한 코드 수정 제안 (HumanEval 94% 성능 기반)
 - **Practical Review**: 실무 관점에서 배포 가능한 수준인지 엄격하게 검증
-- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` **v3.0.0** (600초, 포터블, 1인 개발자 컨텍스트 자동 주입)
+- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` **v3.2.0** (600초, 포터블, 1인 개발자 컨텍스트 자동 주입)
 
 ### ✅ Pre-Implementation Checklist
 
@@ -154,10 +154,10 @@ Codex CLI는 다음 규칙을 준수하여 코드를 생성해야 합니다.
 - **Why 주석**: 코드가 "무엇"을 하는지보다 "왜" 그렇게 했는지 설명.
 - **자체 설명**: 이상적인 코드는 주석 없이도 이해 가능하도록 작성.
 
-## Codex Wrapper 스크립트 (v3.0.0)
+## Codex Wrapper 스크립트 (v3.2.0)
 
-**위치**: `scripts/ai-subagents/codex-wrapper.sh`  
-**버전**: v3.0.0 (2025-11-21, 포터블)  
+**위치**: `scripts/ai-subagents/codex-wrapper.sh`
+**버전**: v3.2.0 (2025-12-02, temp_stdout unbound variable 버그 수정)
 **목적**: Codex CLI 호출 시 600초 타임아웃과 안전한 로깅/컨텍스트 주입 제공
 
 ### 주요 기능
@@ -190,7 +190,7 @@ Codex CLI는 다음 규칙을 준수하여 코드를 생성해야 합니다.
 
 ### 다른 AI Wrapper 스크립트
 
-- Gemini/Qwen 래퍼는 동일한 포터블 구조(v3.0.0)이며 세부 설정은 각 전용 문서(`GEMINI.md`, `QWEN.md`)를 참고하세요.
+- Gemini/Qwen 래퍼는 동일한 포터블 구조(v3.2.0)이며 세부 설정은 각 전용 문서(`GEMINI.md`, `QWEN.md`)를 참고하세요.
 
 ## 추천 워크플로우
 
@@ -204,8 +204,8 @@ Codex CLI는 다음 규칙을 준수하여 코드를 생성해야 합니다.
 1. **CLAUDE ↔ Codex**
    - Claude Task에서 복잡한 문제 감지 시 "WSL Codex 분석" 요청
    - Codex 결과를 Claude 대화에 붙여 후속 작업
-2. **Codex ↔ Gemini**
-   - 자동 코드 리뷰: Codex 우선 4:1 비율 + Gemini 폴백(최종 Claude Code 폴백), `scripts/code-review/auto-ai-review.sh` 로그 `logs/code-reviews/*` 확인
+2. **Codex ↔ Gemini ↔ Claude**
+   - 자동 코드 리뷰: Primary 1:1:1 순환 (codex→gemini→claude) + Qwen/Claude 폴백, `logs/code-reviews/*` 확인
 3. **Gemini/Qwen과 병행**
    - `scripts/ai-subagents` 문서를 참고하여 필요 시 수동 호출
    - 자동 호출 스크립트가 필요하면 `archive/`에서 복원 후 업데이트 기록 남기기
