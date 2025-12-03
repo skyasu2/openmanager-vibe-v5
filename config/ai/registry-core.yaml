@@ -72,7 +72,7 @@ subagents:
 # 3. Active MCP Servers (활성화된 MCP 서버만)
 # ============================================================================
 mcp-servers:
-  active:  # 11/11 연결 완료 (2025-12-01)
+  active:  # 12/12 연결 (2025-12-03, brave-search 추가)
     - vercel          # @open-mcp/vercel, 배포 관리
     - supabase        # @supabase/mcp-server-supabase, DB 관리
     - serena          # 코드 검색 전문 (심볼, 구조 분석)
@@ -82,12 +82,15 @@ mcp-servers:
     - memory          # 메모리 관리
     - time            # 시간 유틸리티
     - sequential-thinking  # 순차적 사고
-    - filesystem      # 파일 시스템 작업
-    - github          # GitHub 저장소 관리 🆕
+    - github          # GitHub 저장소 관리
+    - tavily          # 웹 검색 API (1000 calls/month free)
+    - brave-search    # Brave 웹 검색 API (2000 queries/month free)
+
+  removed:  # 2025-12-03 제거
+    - filesystem      # Claude Code 내장 도구와 100% 중복 (Read/Write/Edit/Glob)
 
 # 역할 구분:
 #   - serena: 코드 검색 (심볼, 구조 분석)
-#   - filesystem: 파일 작업 (읽기/쓰기, 디렉토리 탐색)
 #   - github: 저장소 관리 (PR, Issues)
 # 상세 정보: .mcp.json 참조
 
