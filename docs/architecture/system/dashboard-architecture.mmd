@@ -73,10 +73,10 @@ flowchart TB
         AIAPI["/api/ai/query<br/>AI 쿼리"]
     end
 
-        subgraph DataSources["💾 Data Sources"]
-            Supabase[(Supabase<br/>Primary Database)]
-            MockData["Mock Providers<br/>(Testing/Fallback)"]
-        end
+    subgraph DataSources["💾 Data Sources"]
+        Supabase[(Supabase<br/>Primary Database)]
+        MockData["Mock Providers<br/>(Testing/Fallback)"]
+    end
 
     %% 페이지 흐름
     Page --> DashboardClient

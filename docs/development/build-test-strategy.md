@@ -8,7 +8,7 @@
 
 ```bash
 # WSL 네이티브 방식 (cross-env 불필요)
-npm run wsl:build  # 프로덕션 빌드 (2GB 메모리)
+npm run build  # 프로덕션 빌드 (2GB 메모리)
 
 # 기존 방식 (호환성 유지)
 npm run build      # cross-env 사용 (문제 발생 시)
@@ -20,7 +20,7 @@ npm run build:prod # DevTools 비활성화 빌드
 | 단계 | 명령어 | 소요시간 | 목적 |
 |------|---------|----------|------|
 | **Pre-build** | `npm run type-check` | 15초 | TypeScript 에러 사전 차단 |
-| **Build** | `npm run wsl:build` | 45초 | 실제 빌드 검증 |
+| **Build** | `npm run build` | 45초 | 실제 빌드 검증 |
 | **Post-build** | `npm run test:vercel:e2e` | 8분 | 실제 환경 E2E 테스트 |
 
 ## 🏗️ 빌드 최적화
@@ -32,7 +32,7 @@ npm run build:prod # DevTools 비활성화 빌드
 npm run type-check  # TSC wrapper 사용
 
 # 2단계: 점진적 빌드
-npm run wsl:build   # 최적화된 WSL 네이티브 빌드
+npm run build   # 최적화된 WSL 네이티브 빌드
 
 # 3단계: 검증
 npm run validate:quick  # 빌드 결과 검증
@@ -116,7 +116,7 @@ npm run test:vercel:e2e
 claude mcp list | grep playwright
 
 # Playwright 전용 개발 서버
-npm run wsl:playwright  # Playwright 최적화 설정
+npm run test:e2e  # Playwright E2E 테스트
 ```
 
 ### 실제 환경 테스트 전략
@@ -203,7 +203,7 @@ npm run clean:all    # 완전 정리 (node_modules 포함)
 # 단계적 복구
 npm install          # 의존성 재설치
 npm run type-check   # 타입 체크
-npm run wsl:build    # 빌드 재시도
+npm run build    # 빌드 재시도
 ```
 
 ### 테스트 실패 디버깅
@@ -272,13 +272,13 @@ npm run perf:react-optimize:dry
 
 ```bash
 # 매일 아침 개발 시작
-npm run wsl:claude      # Claude와 병행 개발 모드
+npm run wsl:dev         # Claude와 병행 개발 모드
 npm run test:super-fast # 11초 빠른 검증
 
 # 기능 완성 후
 npm run type-check      # TypeScript 검증
 npm run test:fast       # 21초 멀티스레드 테스트
-npm run wsl:build       # 빌드 검증
+npm run build       # 빌드 검증
 
 # 배포 전 최종 검증
 npm run test:vercel:e2e # 실제 환경 E2E 테스트

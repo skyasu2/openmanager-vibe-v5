@@ -4,7 +4,7 @@
 
 ## 🎯 개요
 
-Claude Code v1.0.124와 Next.js 개발 서버를 동시에 운영하는 최적화된 워크플로우입니다.
+Claude Code v2.0.55와 Next.js 개발 서버를 동시에 운영하는 최적화된 워크플로우입니다.
 
 ## 🚀 빠른 시작
 
@@ -12,20 +12,20 @@ Claude Code v1.0.124와 Next.js 개발 서버를 동시에 운영하는 최적�
 
 ```bash
 # 권장: Claude Code와 최적화된 병행 모드
-npm run wsl:claude
+npm run wsl:dev
 
-# 또는 전통적인 방식
-npm run wsl:stable
+# 또는 안정 모드
+npm run dev:stable
 ```
 
 ### 2. 개발 모드별 특징
 
 | 모드 | 용도 | 특징 |
 |------|------|------|
-| `wsl:stable` | 일반 개발 | 포그라운드 실행, Claude와 순차 사용 |
-| `wsl:claude` | Claude 병행 | 백그라운드 실행, Claude 동시 작업 |
-| `wsl:clean` | 디버깅 | 텔레메트리 비활성화, 최소 환경 |
-| `wsl:playwright` | E2E 테스트 | Playwright 최적화 설정 |
+| `dev:stable` | 일반 개발 | 포그라운드 실행, 안정적 |
+| `wsl:dev` | Claude 병행 | dev-safe.sh + dev:stable |
+| `test:e2e` | E2E 테스트 | Playwright 테스트 |
+| `test:vercel:e2e` | Vercel E2E | 프로덕션 환경 테스트 |
 
 ## 🔄 실무 워크플로우
 
@@ -33,13 +33,13 @@ npm run wsl:stable
 
 ```bash
 # 1. WSL 환경 정리 및 개발 서버 시작
-npm run wsl:claude
+npm run wsl:dev
 
 # 2. Claude Code 별도 터미널에서 시작
-claude --version  # v1.0.124 확인
+claude --version  # v2.0.55 확인
 
 # 3. 서버 상태 확인
-npm run wsl:status
+ps aux | grep next-server | grep -v grep
 ```
 
 ### Phase 2: 개발 작업
@@ -63,8 +63,8 @@ tail -f dev-server.log  # 개발 서버 로그
 # 3. 에러 발생 시 dev-server.log 확인
 
 # 수동 서버 재시작이 필요한 경우:
-npm run wsl:stop
-npm run wsl:claude
+pkill -f next-server
+npm run wsl:dev
 ```
 
 ## 🛠️ 충돌 방지 메커니즘
@@ -78,7 +78,7 @@ npm run wsl:claude
 - Port 3002: Admin Portal (필요시)
 
 # 수동 포트 정리
-npm run wsl:stop
+pkill -f next-server
 ```
 
 ### 2. 메모리 최적화
@@ -107,7 +107,7 @@ NEXT_TELEMETRY_DISABLED=1
 
 1. **개발 서버 상태 확인**
    ```bash
-   npm run wsl:status
+   ps aux | grep next-server | grep -v grep
    curl -s http://localhost:3000 > /dev/null && echo "서버 정상" || echo "서버 오류"
    ```
 
@@ -125,8 +125,8 @@ NEXT_TELEMETRY_DISABLED=1
 
 4. **긴급 복구**
    ```bash
-   npm run wsl:stop  # 모든 서버 종료
-   npm run wsl:stable  # 안정 모드로 재시작
+   pkill -f next-server  # 모든 서버 종료
+   npm run dev:stable  # 안정 모드로 재시작
    ```
 
 ## 📊 성능 모니터링
@@ -166,7 +166,7 @@ claude mcp list | head -5
 
 ```bash
 # 개발 서버 + Playwright 동시 실행
-Terminal 1: npm run wsl:playwright  # 테스트 전용 서버
+Terminal 1: npm run dev:stable     # 개발 서버
 Terminal 2: npm run test:e2e       # E2E 테스트 실행
 Terminal 3: Claude Code            # AI 보조 개발
 ```
@@ -187,14 +187,14 @@ npm run test:e2e
 
 1. **cross-env 오류**
    ```bash
-   # 해결: WSL 네이티브 스크립트 사용
-   npm run wsl:stable  # cross-env 불필요
+   # 해결: 안정 스크립트 사용
+   npm run dev:stable  # cross-env 불필요
    ```
 
 2. **포트 충돌**
    ```bash
-   # 해결: 자동 포트 정리
-   npm run wsl:stop && npm run wsl:claude
+   # 해결: 프로세스 종료 후 재시작
+   pkill -f next-server && npm run wsl:dev
    ```
 
 3. **메모리 부족**
@@ -214,16 +214,15 @@ npm run test:e2e
 
 ```bash
 # 1단계: 모든 프로세스 종료
-npm run wsl:stop
 pkill -f "next-server"
-pkill -f "claude"
+pkill -f "node"
 
 # 2단계: 환경 정리
 rm -f .dev-server.pid dev-server.log
 npm run clean
 
 # 3단계: 안전 모드 재시작
-npm run wsl:stable
+npm run dev:stable
 
 # 4단계: Claude Code 재연결
 claude --version

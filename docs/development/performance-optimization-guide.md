@@ -107,7 +107,7 @@ npm run perf:react-optimize  # React 메모리 최적화
 claude mcp list
 
 # 개발 서버 상태
-npm run wsl:status
+ps aux | grep next-server | grep -v grep
 ```
 
 #### Step 2: 로그 분석
@@ -137,7 +137,7 @@ npm run perf:all-benchmarks
 ```bash
 # 문제: cross-env 실행 불가
 # 해결: WSL 네이티브 스크립트 사용
-npm run wsl:stable  # cross-env 불필요한 네이티브 방식
+npm run dev:stable  # 최적화된 환경변수 설정
 
 # 기존 스크립트 호환성 유지
 npm run dev:stable  # 여전히 작동 (fallback)
@@ -146,7 +146,7 @@ npm run dev:stable  # 여전히 작동 (fallback)
 #### 포트 충돌 해결
 ```bash
 # 자동 해결
-npm run wsl:stop && npm run wsl:claude
+pkill -f next-server && npm run wsl:dev
 
 # 수동 해결
 ./scripts/dev-safe.sh  # AI 교차검증 기반 포트 정리
@@ -196,10 +196,10 @@ npm run test:quick  # 최소한의 핵심 테스트
 #### 개발 서버 성능 최적화
 ```bash
 # Hot Reload 최적화
-npm run wsl:stable  # 최적화된 환경변수 설정
+npm run dev:stable  # 최적화된 환경변수 설정
 
 # 메모리 사용량 최적화
-npm run wsl:clean   # 텔레메트리 및 DevTools 비활성화
+NEXT_TELEMETRY_DISABLED=1 npm run dev:stable  # 텔레메트리 비활성화
 ```
 
 ## 📊 성능 벤치마크 및 목표
@@ -242,9 +242,9 @@ npm run perf:react-optimize  # 자동 최적화 적용
 ### 1. 개발 서버 크래시
 ```bash
 # 즉시 복구
-npm run wsl:stop
+pkill -f next-server
 npm run clean
-npm run wsl:stable
+npm run dev:stable
 
 # 백업 복구
 ./scripts/maintenance/emergency-recovery.sh
@@ -257,7 +257,7 @@ echo 3 | sudo tee /proc/sys/vm/drop_caches
 
 # Node.js 메모리 한도 임시 증가
 export NODE_OPTIONS="--max-old-space-size=6144"
-npm run wsl:build
+npm run build
 ```
 
 ### 3. MCP 서버 연결 실패
@@ -321,7 +321,7 @@ git commit -am "WIP: 진행 중 작업 백업"
 
 # 안전한 실험
 git checkout -b feature/performance-experiment
-npm run wsl:build  # 실험적 변경 테스트
+npm run build  # 실험적 변경 테스트
 ```
 
 ### 환경 일관성 보장
@@ -344,7 +344,7 @@ npm run validate:all  # 타입 + 린트 + 테스트
 ```bash
 # 최적 패턴: 터미널 3개 활용
 Terminal 1: Claude Code 실행
-Terminal 2: npm run wsl:claude (백그라운드 개발 서버)
+Terminal 2: npm run wsl:dev (백그라운드 개발 서버)
 Terminal 3: tail -f dev-server.log (로그 모니터링)
 
 # 효율적 작업 순서
@@ -474,7 +474,7 @@ npm run build:vercel  # 압축 및 최적화 적용
 ## 🔗 관련 도구 및 스크립트
 
 ### 성능 최적화 도구
-- `/scripts/wsl-native-dev.sh` - WSL 네이티브 개발 환경
+- `/scripts/dev-safe.sh` - AI 교차검증 기반 개발 환경
 - `/scripts/wsl-monitor/` - WSL 성능 모니터링 도구
 - `/scripts/maintenance/emergency-recovery.sh` - 응급 복구 도구
 - `/scripts/dev-safe.sh` - AI 교차검증 기반 포트 관리

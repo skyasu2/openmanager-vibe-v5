@@ -207,13 +207,14 @@ npm run test:fast           # 21초 (44% 개선)
 **아키텍처 다이어그램 자동 생성**:
 
 ```bash
-# 기본 사용
+# 자동화 스크립트 (권장)
+./scripts/generate-diagrams.sh                    # docs/ 전체 .mmd 파일 변환
+./scripts/generate-diagrams.sh docs/arch/flow.mmd # 특정 파일만 변환
+
+# 수동 사용
 mmdc -i diagram.mmd -o output.png    # PNG 생성
 mmdc -i diagram.mmd -o output.svg    # SVG (벡터)
-
-# 옵션
--b white/transparent                  # 배경색
--t dark/forest/neutral               # 테마
+mmdc -i diagram.mmd -o output.png -b white -t neutral  # 옵션
 ```
 
 **활용 시나리오**:
