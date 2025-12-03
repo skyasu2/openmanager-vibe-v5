@@ -340,7 +340,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
           '현재 메인 개발 도구 - Anthropic의 공식 CLI 기반 AI 코딩 어시스턴트',
         implementation:
           'claude.ai/code로 제공되는 강력한 AI 개발 도구. Extended Thinking (Tab 키 또는 ultrathink로 심층 분석), @-mention 서버 필터링 (10-18% 토큰 절약), Prompt Caching 자동 활성화. Sonnet 4.5 모델 기반으로 복잡한 코딩 작업 자동화',
-        version: 'v2.0.49',
+        version: 'v2.0.55',
         status: 'active',
         icon: '🤖',
         tags: ['메인도구', 'AI개발', '자연어코딩', 'CLI'],
@@ -390,10 +390,10 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         category: 'ai',
         importance: 'critical',
         description:
-          'Codex → Gemini → Claude Code 자동 폴백 리뷰 시스템 (99.9% 가용성)',
+          '4-AI 균등분배 자동 리뷰 시스템 (Codex/Gemini/Qwen/Claude 1:1:1:1, 99.99% 가용성)',
         implementation:
-          '커밋 시 .husky/post-commit이 자동 트리거. Codex/Gemini가 변경 파일 리뷰 → Claude Code가 결과 분석 및 코드 개선 적용. 평균 응답 10초',
-        version: 'v3.2.0',
+          '커밋 시 .husky/post-commit이 자동 트리거. 1:1:1:1 순환 선택으로 Codex → Gemini → Qwen → Claude 균등 분배. Rate Limit 자동 감지 및 폴백. 평균 응답 10초',
+        version: 'v5.0',
         status: 'active',
         icon: '🔄',
         tags: ['자동리뷰', '폴백시스템', '고가용성'],
@@ -418,8 +418,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         importance: 'high',
         description: 'WSL 터미널에서 1M 토큰으로 대규모 분석 전용 도구',
         implementation:
-          '코드베이스 전체 분석, 대용량 로그 분석, Claude Code와 협업. Auto Code Review 시스템의 2차 폴백 리뷰어',
-        version: 'v0.17.1',
+          '코드베이스 전체 분석, 대용량 로그 분석, Claude Code와 협업. 4-AI 균등분배 시스템의 리뷰어 (25%)',
+        version: 'v0.18.4',
         status: 'active',
         icon: '✨',
         tags: ['대용량분석', '협업AI', '터미널'],
@@ -429,11 +429,11 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       {
         name: 'Qwen Code CLI',
         category: 'ai',
-        importance: 'medium',
-        description: '오픈소스 AI로 빠른 프로토타이핑과 알고리즘 검증',
+        importance: 'high',
+        description: '4-AI 균등분배 시스템의 리뷰어 (25%) + 프로토타이핑',
         implementation:
-          'WSL 환경에서 Qwen OAuth 통합, 2,000회/일 활용. 빠른 코드 스니펫 생성과 알고리즘 검증 담당',
-        version: 'v0.2.3',
+          'WSL 환경에서 Qwen OAuth 통합, 2,000회/일 활용. v5.0 균등분배에서 Codex/Gemini/Claude와 동등한 25% 비율',
+        version: 'v0.3.0',
         status: 'active',
         icon: '🧠',
         tags: ['오픈소스AI', '프로토타이핑', '검증'],
