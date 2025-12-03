@@ -1,4 +1,5 @@
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#3b82f6', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2563eb', 'lineColor': '#64748b', 'secondaryColor': '#10b981', 'tertiaryColor': '#f59e0b'}}}%%
+%% Dashboard Architecture - Updated 2025-12-04 based on live inspection
 flowchart TB
     subgraph Pages["📄 Pages (Next.js App Router)"]
         Page["/dashboard/page.tsx<br/>Server Component"]
@@ -11,20 +12,22 @@ flowchart TB
         DashboardClient["DashboardClient.tsx<br/>메인 클라이언트 컴포넌트"]
 
         subgraph HeaderSection["헤더 영역"]
-            DashboardHeader["DashboardHeader"]
+            DashboardHeader["DashboardHeader<br/>Logo + Time + AI Button + Profile"]
+            DemoModeBanner["DemoModeBanner<br/>🎭 Demo Mode 표시"]
         end
 
         subgraph ContentSection["콘텐츠 영역"]
             DashboardContent["DashboardContent"]
-            DashboardSummary["DashboardSummary<br/>통계 카드"]
+            DashboardSummary["DashboardSummary<br/>서버 통계 (Total/Online/Warning/Offline)"]
+            ResourceOverview["ResourceOverview<br/>CPU/Memory/Disk/Network 평균"]
             ServerDashboard["ServerDashboard<br/>(Dynamic Import)"]
         end
 
         subgraph ServerList["서버 목록"]
             Controls["ServerDashboardControls"]
-            Tabs["ServerDashboardTabs"]
-            VirtualList["VirtualizedServerList"]
-            ServerCard["ImprovedServerCard"]
+            ServerGrid["ServerGrid<br/>2-Column Responsive"]
+            ExpandButton["더보기 Button<br/>(동적 확장)"]
+            ServerCard["ServerCard<br/>3-Level Metrics"]
         end
 
         subgraph Modals["모달 (Dynamic)"]
@@ -38,6 +41,10 @@ flowchart TB
 
         subgraph AISidebar["AI 사이드바 (Unified)"]
             AISidebarV4["AISidebarV4<br/>(Unified Interface)"]
+            AIFeature1["자연어 질의<br/>Natural Language Query"]
+            AIFeature2["자동장애 보고서<br/>Auto Failure Report"]
+            AIFeature3["이상감지/예측<br/>Anomaly Detection"]
+            AIFeature4["AI 고급관리<br/>ML Training & Settings"]
         end
 
         subgraph SystemControls["시스템 제어"]
@@ -86,6 +93,7 @@ flowchart TB
 
     %% 클라이언트 컴포넌트 흐름
     DashboardClient --> DashboardHeader
+    DashboardClient --> DemoModeBanner
     DashboardClient --> DashboardContent
     DashboardClient --> AISidebarV4
     DashboardClient --> FloatingControl
@@ -94,12 +102,19 @@ flowchart TB
     DashboardClient --> ServerModal
 
     DashboardContent --> DashboardSummary
+    DashboardContent --> ResourceOverview
     DashboardContent --> ServerDashboard
 
     ServerDashboard --> Controls
-    ServerDashboard --> Tabs
-    ServerDashboard --> VirtualList
-    VirtualList --> ServerCard
+    ServerDashboard --> ServerGrid
+    ServerGrid --> ExpandButton
+    ServerGrid --> ServerCard
+
+    %% AI Sidebar 내부 기능
+    AISidebarV4 --> AIFeature1
+    AISidebarV4 --> AIFeature2
+    AISidebarV4 --> AIFeature3
+    AISidebarV4 --> AIFeature4
 
     ServerModal --> OverviewTab
     ServerModal --> MetricsTab
@@ -143,7 +158,7 @@ flowchart TB
     classDef dataStyle fill:#06b6d4,stroke:#0891b2,color:#fff
 
     class Page,Layout,Loading,ErrorPage pageStyle
-    class DashboardClient,DashboardHeader,DashboardContent,DashboardSummary,ServerDashboard,Controls,Tabs,VirtualList,ServerCard,ServerModal,OverviewTab,MetricsTab,LogsTab,ProcessesTab,NetworkTab,AISidebarV4,FloatingControl,Notification,AutoLogout clientStyle
+    class DashboardClient,DashboardHeader,DemoModeBanner,DashboardContent,DashboardSummary,ResourceOverview,ServerDashboard,Controls,ServerGrid,ExpandButton,ServerCard,ServerModal,OverviewTab,MetricsTab,LogsTab,ProcessesTab,NetworkTab,AISidebarV4,AIFeature1,AIFeature2,AIFeature3,AIFeature4,FloatingControl,Notification,AutoLogout clientStyle
     class useServerDashboard,useServerDataCache,useServerFilter,useServerPagination,useServerStats,useServerMetrics,useResponsivePageSize,useAutoLogout,useSystemStatus,useUserPermissions hookStyle
     class ServerDataStore,AISidebarStore,SystemStatusStore,AdminStore storeStyle
     class DashboardAPI,ServersAPI,AIAPI apiStyle
