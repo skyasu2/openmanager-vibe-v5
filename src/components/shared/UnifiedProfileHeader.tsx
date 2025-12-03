@@ -102,37 +102,33 @@ export default function UnifiedProfileHeader({
   const menuItems = useMemo<MenuItem[]>(() => {
     const items: MenuItem[] = [];
 
-    // GitHub 사용자 시스템 관리 메뉴
-    if (userType === 'github') {
-      // 시스템 상태 표시는 별도로 처리됨
+    // 🎯 시스템 관리 메뉴 (GitHub + 게스트 공통 - 게스트도 모든 기능 사용 가능)
+    // 로컬 상태 우선 + 서버 상태 보조로 즉시 반영 (논리합 사용)
+    if (isSystemStarted || systemStatus?.isRunning) {
+      items.push({
+        id: 'dashboard',
+        label: '대시보드 열기',
+        icon: BarChart3,
+        action: () => {
+          closeMenu();
+          setTimeout(() => navigateToDashboard(), 100);
+        },
+        visible: true,
+        badge: '모니터링',
+      });
 
-      // 🎯 로컬 상태 우선 + 서버 상태 보조로 즉시 반영 (논리합 사용)
-      if (isSystemStarted || systemStatus?.isRunning) {
-        items.push({
-          id: 'dashboard',
-          label: '대시보드 열기',
-          icon: BarChart3,
-          action: () => {
-            closeMenu();
-            setTimeout(() => navigateToDashboard(), 100);
-          },
-          visible: true,
-          badge: '모니터링',
-        });
-
-        items.push({
-          id: 'system-stop',
-          label: `시스템 종료 (${systemStatus?.userCount || 1}명 접속 중)`,
-          icon: Power,
-          action: handleSystemStop,
-          visible: true,
-          danger: true,
-          badge: '확인 후 종료',
-        });
-      }
+      items.push({
+        id: 'system-stop',
+        label: `시스템 종료 (${systemStatus?.userCount || 1}명 접속 중)`,
+        icon: Power,
+        action: handleSystemStop,
+        visible: true,
+        danger: true,
+        badge: '확인 후 종료',
+      });
     }
 
-    // 게스트 사용자 메뉴
+    // 게스트 사용자 전용 메뉴 (GitHub 계정 연동 안내)
     if (userType === 'guest') {
       items.push({
         id: 'github-login',
@@ -144,7 +140,8 @@ export default function UnifiedProfileHeader({
         },
         visible: true,
         badge: '계정 연동',
-        dividerBefore: true,
+        description: '데이터 영구 저장',
+        dividerBefore: items.length > 0, // 시스템 메뉴가 있을 때만 구분선
       });
     }
 
@@ -251,8 +248,8 @@ export default function UnifiedProfileHeader({
         onClose={closeMenu}
       />
 
-      {/* GitHub 사용자용 시스템 상태 표시 (드롭다운 내부에 위치) */}
-      {userType === 'github' && menuState.showProfileMenu && (
+      {/* 시스템 상태 표시 (GitHub + 게스트 공통 - 드롭다운 내부에 위치) */}
+      {menuState.showProfileMenu && (
         <div className="absolute right-0 z-[9998] mt-[280px] w-64">
           <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
             <EnhancedProfileStatusDisplay compact={false} />
