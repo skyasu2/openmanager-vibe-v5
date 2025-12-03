@@ -28,21 +28,39 @@ export interface ServerStats {
   };
 }
 
-// Type interfaces for server data transformation
+/**
+ * 🔧 서버 데이터 변환용 통합 인터페이스
+ *
+ * API 호환성 참고:
+ * - cpu/cpu_usage: 다양한 API 응답 형식 지원 (Supabase vs Mock vs Prometheus)
+ * - memory/memory_usage: 동일
+ * - disk/disk_usage: 동일
+ * - network/network_in/network_out/bandwidth: 네트워크 메트릭 다양한 표현 지원
+ */
 export interface EnhancedServerData {
   id: string;
   name?: string;
   hostname?: string;
   status: ServerStatus;
+  /** CPU 사용률 (0-100) - 표준 필드 */
   cpu?: number;
+  /** CPU 사용률 (0-100) - API 호환성용 별칭 */
   cpu_usage?: number;
+  /** 메모리 사용률 (0-100) - 표준 필드 */
   memory?: number;
+  /** 메모리 사용률 (0-100) - API 호환성용 별칭 */
   memory_usage?: number;
+  /** 디스크 사용률 (0-100) - 표준 필드 */
   disk?: number;
+  /** 디스크 사용률 (0-100) - API 호환성용 별칭 */
   disk_usage?: number;
+  /** 네트워크 사용률 (0-100) - 표준 필드 */
   network?: number;
+  /** 네트워크 수신량 (bytes/sec) */
   network_in?: number;
+  /** 네트워크 송신량 (bytes/sec) */
   network_out?: number;
+  /** 총 대역폭 사용량 (Mbps) */
   bandwidth?: number;
   uptime?: number;
   location?: string;
@@ -101,10 +119,17 @@ export interface UseServerDashboardOptions {
   }) => void;
 }
 
-// 🆕 새로운 Enhanced 훅 인터페이스
+/**
+ * 🆕 Enhanced 서버 대시보드 훅 Props
+ *
+ * @deprecated `_initialViewMode`와 `_initialDisplayMode`는 향후 제거 예정
+ * 현재는 기본값을 사용하며, 사용자 설정은 localStorage에 저장됨
+ */
 export interface UseEnhancedServerDashboardProps {
   servers: Server[];
+  /** @deprecated 미사용 - 향후 제거 예정 */
   _initialViewMode?: ViewMode;
+  /** @deprecated 미사용 - 향후 제거 예정 */
   _initialDisplayMode?: ServerDisplayMode;
 }
 

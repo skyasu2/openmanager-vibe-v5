@@ -26,6 +26,7 @@ interface UnifiedAdminState {
   getSystemRemainingTime: () => number;
   logout: () => void;
   setSettingsPanelOpen: (isOpen: boolean) => void;
+  toggleAI: () => void; // 🔧 인터페이스에 누락된 메서드 추가
 }
 
 export const useUnifiedAdminStore = create<UnifiedAdminState>()(

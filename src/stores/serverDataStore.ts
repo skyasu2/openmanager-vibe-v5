@@ -19,6 +19,14 @@ import { mapServerToEnhanced } from '../utils/serverUtils';
 
 // 사용하지 않는 인터페이스들 제거
 
+// 🔧 타입 구체화: unknown → 명시적 인터페이스
+export interface SystemManagerStatus {
+  isRunning: boolean;
+  lastHealthCheck: Date | null;
+  activeConnections: number;
+  errorCount: number;
+}
+
 export interface ServerDataState {
   // 데이터 상태
   servers: EnhancedServerMetrics[];
@@ -26,9 +34,9 @@ export interface ServerDataState {
   error: string | null;
   lastUpdate: Date | null;
 
-  // 통합 메트릭 관리자 상태
-  unifiedManagerStatus: unknown;
-  prometheusHubStatus: unknown;
+  // 통합 메트릭 관리자 상태 (타입 구체화)
+  unifiedManagerStatus: SystemManagerStatus | null;
+  prometheusHubStatus: SystemManagerStatus | null;
 
   // 자동 갱신 관련
   autoRefreshIntervalId: NodeJS.Timeout | null;
@@ -58,7 +66,15 @@ export interface ServerDataState {
   // 통합 시스템 제어
   startUnifiedSystem: () => Promise<void>;
   stopUnifiedSystem: () => void;
-  getSystemStatus: () => unknown;
+  getSystemStatus: () => {
+    totalServers: number;
+    healthyServers: number;
+    warningServers: number;
+    criticalServers: number;
+    isLoading: boolean;
+    error: string | null;
+    lastUpdate: Date | null;
+  };
 
   // 개별 서버 조회
   getServerById: (id: string) => EnhancedServerMetrics | undefined;

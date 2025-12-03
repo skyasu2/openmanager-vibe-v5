@@ -203,6 +203,30 @@ npm run test:fast           # 21초 (44% 개선)
 
 ---
 
+## 🎨 Mermaid CLI (v11.12.0)
+
+**아키텍처 다이어그램 자동 생성**:
+
+```bash
+# 기본 사용
+mmdc -i diagram.mmd -o output.png    # PNG 생성
+mmdc -i diagram.mmd -o output.svg    # SVG (벡터)
+
+# 옵션
+-b white/transparent                  # 배경색
+-t dark/forest/neutral               # 테마
+```
+
+**활용 시나리오**:
+- 시스템 아키텍처 시각화 (documentation-manager 연동)
+- API 플로우차트 자동 생성
+- DB 스키마 ER 다이어그램
+- 시퀀스 다이어그램 (API 호출 흐름)
+
+**저장 위치**: `docs/architecture/*.mmd` → PNG/SVG 변환
+
+---
+
 ## 🎯 현재 상태
 
 **상세**: @docs/status.md (종합 평가: 9.2/10)

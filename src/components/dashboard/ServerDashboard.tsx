@@ -354,7 +354,7 @@ export default function ServerDashboard({
                             'usage' in cpuData
                           )
                             return (cpuData as { usage: number }).usage;
-                          return Math.random() * 80 + 10; // 기본값
+                          return 0; // 🔧 데이터 없음 (랜덤 값 제거)
                         })(),
                         memory: (() => {
                           const memData = serverTypeGuards.getMemory(server);
@@ -365,7 +365,7 @@ export default function ServerDashboard({
                             'used' in memData
                           )
                             return (memData as { used: number }).used;
-                          return Math.random() * 70 + 15; // 기본값
+                          return 0; // 🔧 데이터 없음 (랜덤 값 제거)
                         })(),
                         disk: (() => {
                           const diskData = serverTypeGuards.getDisk(server);
@@ -376,7 +376,7 @@ export default function ServerDashboard({
                             'used' in diskData
                           )
                             return (diskData as { used: number }).used;
-                          return Math.random() * 60 + 20; // 기본값
+                          return 0; // 🔧 데이터 없음 (랜덤 값 제거)
                         })(),
                         network: (() => {
                           const netData = serverTypeGuards.getNetwork(server);
@@ -387,7 +387,7 @@ export default function ServerDashboard({
                             'in' in netData
                           )
                             return (netData as { in: number }).in;
-                          return Math.random() * 100 + 50; // 기본값
+                          return 0; // 🔧 데이터 없음 (랜덤 값 제거)
                         })(),
                         location: server.location || 'unknown',
                         uptime: formatUptime(server.uptime) || '0일',
@@ -409,10 +409,10 @@ export default function ServerDashboard({
                         id: serverId,
                         name: serverName,
                         status: 'offline' as const,
-                        cpu: Math.random() * 80 + 10,
-                        memory: Math.random() * 70 + 15,
-                        disk: Math.random() * 60 + 20,
-                        network: Math.random() * 100 + 50,
+                        cpu: 0, // 🔧 데이터 없음 (랜덤 값 제거)
+                        memory: 0, // 🔧 데이터 없음 (랜덤 값 제거)
+                        disk: 0, // 🔧 데이터 없음 (랜덤 값 제거)
+                        network: 0, // 🔧 데이터 없음 (랜덤 값 제거)
                         location: server?.location || 'unknown',
                         uptime: '0일',
                         ip: server?.ip || '192.168.1.100',

@@ -7,12 +7,9 @@
  * 🔧 Fixed: TypeError w is not a function (usePerformanceGuard disabled)
  */
 
-import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import {
-  Component,
-  type ErrorInfo,
   type ReactNode,
   Suspense,
   useCallback,
@@ -169,48 +166,7 @@ const ContentLoadingSkeleton = () => (
   </div>
 );
 
-// Error Boundary for Dashboard
-class _DashboardErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    debug.error('🚨 Dashboard Error:', error, errorInfo);
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex min-h-screen items-center justify-center bg-red-50 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-            <div className="text-center">
-              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-red-500" />
-              <h2 className="mb-2 text-xl font-semibold text-gray-900">
-                Dashboard Failed to Load
-              </h2>
-              <p className="mb-4 text-gray-600">
-                {this.state.error?.message || 'Unknown error'}
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="rounded-lg bg-blue-500 px-4 py-2 text-white"
-              >
-                Reload Page
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
+// 🔧 Error Boundary 클래스 제거됨 - React 19의 ErrorBoundary 또는 next.js error.tsx 사용 권장
 
 // 🧪 테스트 모드 체크 함수 (컴포넌트 외부로 이동 - E2E 테스트용)
 function checkTestMode(): boolean {
@@ -312,7 +268,8 @@ function DashboardPageContent() {
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
-  const [_showSystemWarning, setShowSystemWarning] = useState(false);
+  // 🔧 showSystemWarning - setter만 사용 (onWarning 콜백에서 설정, UI 반영은 NotificationToast로 대체)
+  const [, setShowSystemWarning] = useState(false);
   const isResizing = false;
 
   // 🔒 새로운 권한 시스템 사용
@@ -398,7 +355,8 @@ function DashboardPageContent() {
   }, [isMounted, permissions, router, testModeDetected, toast]);
 
   // 🎯 서버 통계 상태 관리 (상단 통계 카드용)
-  const [_serverStats, setServerStats] = useState({
+  // 🔧 serverStats - setter만 사용 (handleStatsUpdate에서 설정, 향후 상단 통계 카드 연동용)
+  const [, setServerStats] = useState({
     total: 0,
     online: 0,
     warning: 0,
@@ -406,8 +364,8 @@ function DashboardPageContent() {
   });
 
   // 🔄 실제 시스템 상태 확인
-  const { status: _systemStatus, isLoading: _systemStatusLoading } =
-    useSystemStatus();
+  // 🔧 useSystemStatus 반환값 미사용 - 향후 시스템 상태 표시용으로 보존
+  useSystemStatus();
 
   // 🛡️ 성능 가드 - 임시 비활성화 (TypeError 문제 해결 중)
   // const { warningCount, generateReport } = usePerformanceGuard({
@@ -425,7 +383,7 @@ function DashboardPageContent() {
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화 (1초→10초 최적화 적용)
   const {
     remainingTime,
-    isWarning: _isWarning,
+    // isWarning - 미사용 (showLogoutWarning 상태로 대체됨)
     resetTimer,
     forceLogout,
   } = useAutoLogout({
@@ -446,8 +404,7 @@ function DashboardPageContent() {
     isSystemActive,
     remainingTime: systemRemainingTime,
     formatTime,
-    isWarning: _isSystemWarning,
-    restartSystem: _restartSystem,
+    // isWarning, restartSystem - 미사용 (showSystemWarning 상태로 대체됨)
   } = useSystemAutoShutdown({
     warningMinutes: 5, // 5분 전 경고
     onWarning: (remainingMinutes) => {
@@ -498,7 +455,7 @@ function DashboardPageContent() {
     handleServerSelect,
     selectedServer: dashboardSelectedServer,
     handleModalClose: dashboardModalClose,
-    isLoading: _serverDataLoading,
+    // isLoading - 미사용 (별도 로딩 상태 관리)
   } = useServerDashboard({});
 
   // 🕐 Supabase에서 24시간 데이터를 직접 가져오므로 시간 회전 시스템 제거됨

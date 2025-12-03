@@ -1,7 +1,7 @@
 ---
 name: documentation-manager
-description: PROACTIVELY use for documentation management. 문서 관리 전문가. JBGE 원칙 적용, 루트 파일 정리, docs 폴더 체계화
-tools: Read, Write, Edit, MultiEdit, Glob, Grep, LS, mcp__context7__get_library_docs, mcp__memory__create_entities, mcp__serena__list_dir, mcp__serena__search_for_pattern, mcp__serena__write_memory, mcp__serena__read_memory
+description: PROACTIVELY use for documentation management. 문서 관리 전문가. JBGE 원칙 적용, 루트 파일 정리, docs 폴더 체계화, Mermaid 아키텍처 다이어그램 관리
+tools: Read, Write, Edit, MultiEdit, Glob, Grep, LS, Bash, mcp__context7__get_library_docs, mcp__memory__create_entities, mcp__serena__list_dir, mcp__serena__search_for_pattern, mcp__serena__write_memory, mcp__serena__read_memory
 model: inherit
 ---
 
@@ -257,8 +257,115 @@ const documentationHealthCheck = {
 };
 ```
 
+## 🎨 Mermaid 아키텍처 다이어그램 관리 🆕
+
+**Mermaid CLI (v11.12.0)**를 활용한 아키텍처 시각화 자동화:
+
+### 📐 다이어그램 저장 구조
+```
+docs/architecture/
+├── system/              # 시스템 아키텍처
+│   ├── overview.mmd     # 전체 구조
+│   └── overview.png     # 생성된 이미지
+├── api/                 # API 플로우
+│   ├── auth-flow.mmd    # 인증 흐름
+│   └── data-flow.mmd    # 데이터 흐름
+├── database/            # DB 스키마
+│   └── er-diagram.mmd   # ER 다이어그램
+└── sequence/            # 시퀀스 다이어그램
+    └── api-calls.mmd    # API 호출 흐름
+```
+
+### 🔧 다이어그램 생성 명령
+```bash
+# 단일 파일 변환
+mmdc -i docs/architecture/system/overview.mmd -o docs/architecture/system/overview.png -b white
+
+# 전체 변환 (docs/architecture 내 모든 .mmd)
+find docs/architecture -name "*.mmd" -exec sh -c 'mmdc -i "$1" -o "${1%.mmd}.png" -b white' _ {} \;
+
+# SVG 생성 (확대해도 선명)
+mmdc -i diagram.mmd -o diagram.svg -b transparent
+
+# 테마 적용
+mmdc -i diagram.mmd -o diagram.png -t dark
+```
+
+### 📋 문서 변경 시 다이어그램 동기화
+```typescript
+// 아키텍처 관련 코드 변경 감지 시 자동 업데이트 트리거
+const architectureDiagramSync = {
+  triggers: [
+    '새 API 엔드포인트 추가',
+    'DB 스키마 변경 (마이그레이션)',
+    '서비스 간 의존성 변경',
+    '인증/권한 플로우 수정'
+  ],
+
+  actions: [
+    '관련 .mmd 파일 업데이트',
+    'mmdc로 PNG/SVG 재생성',
+    '문서 내 이미지 링크 검증',
+    'git commit에 다이어그램 포함'
+  ],
+
+  // 자동 업데이트 명령
+  autoUpdate: async (changedFiles: string[]) => {
+    const affectedDiagrams = detectAffectedDiagrams(changedFiles);
+    for (const mmdFile of affectedDiagrams) {
+      await Bash({ command: `mmdc -i ${mmdFile} -o ${mmdFile.replace('.mmd', '.png')} -b white` });
+    }
+  }
+};
+```
+
+### 🎯 다이어그램 타입별 템플릿
+```mermaid
+%% 시스템 아키텍처 템플릿
+flowchart TB
+    subgraph Frontend["Frontend (Next.js)"]
+        UI[React Components]
+        Hooks[Custom Hooks]
+    end
+
+    subgraph Backend["Backend (API Routes)"]
+        API[API Endpoints]
+        Services[Services]
+    end
+
+    subgraph Data["Data Layer"]
+        Supabase[(Supabase)]
+        Cache[Cache]
+    end
+
+    UI --> Hooks --> API --> Services --> Supabase
+```
+
+```mermaid
+%% 시퀀스 다이어그램 템플릿
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant A as API
+    participant D as Database
+
+    U->>F: 요청
+    F->>A: API 호출
+    A->>D: 쿼리
+    D-->>A: 결과
+    A-->>F: 응답
+    F-->>U: 표시
+```
+
+### ✅ 다이어그램 품질 체크리스트
+- [ ] `.mmd` 파일과 `.png/.svg` 파일 동기화 확인
+- [ ] 문서 내 이미지 경로 유효성 검증
+- [ ] 다이어그램 내용이 실제 코드와 일치
+- [ ] 적절한 테마/배경색 적용
+- [ ] 복잡한 다이어그램은 서브그래프로 분리
+
 ## 한국어 문서화 정책
 - 주요 가이드는 한국어 우선
 - 기술 용어는 영어 병기
-- 코드 주석은 한국어 권장  
+- 코드 주석은 한국어 권장
 - 커밋 메시지는 한/영 혼용

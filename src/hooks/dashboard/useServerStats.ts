@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   EnhancedServerData,
   ServerStats,
@@ -18,6 +18,10 @@ export function useServerStats(actualServers: EnhancedServerData[]) {
   const [workerStats, setWorkerStats] = useState<ServerStats | null>(null);
   const [isCalculatingStats, setIsCalculatingStats] = useState(false);
 
+  // 🔧 Race Condition 방지: useRef로 최신 계산 상태 추적
+  const isCalculatingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // 🛡️ 안전한 Web Worker 계산 관리
   useEffect(() => {
     if (!actualServers || actualServers.length === 0) {
@@ -27,19 +31,31 @@ export function useServerStats(actualServers: EnhancedServerData[]) {
 
     // Web Worker 사용 조건: 준비 완료 + 10개 이상 서버
     if (isWorkerReady() && actualServers.length >= 10) {
-      if (!isCalculatingStats) {
+      // 🔧 useRef로 최신 상태 확인 (stale closure 방지)
+      if (!isCalculatingRef.current) {
+        isCalculatingRef.current = true;
         setIsCalculatingStats(true);
+
+        // 이전 요청 취소
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
 
         calculateStatsWorker(actualServers)
           .then((workerResult) => {
             const adaptedStats = adaptWorkerStatsToLegacy(workerResult);
             setWorkerStats(adaptedStats);
-            setIsCalculatingStats(false);
           })
           .catch((error) => {
-            console.error('❌ Web Worker 계산 실패, Fallback으로 대체:', error);
-            const fallbackStats = calculateServerStats(actualServers);
-            setWorkerStats(fallbackStats);
+            if (error?.name !== 'AbortError') {
+              console.error('❌ Web Worker 계산 실패, Fallback으로 대체:', error);
+              const fallbackStats = calculateServerStats(actualServers);
+              setWorkerStats(fallbackStats);
+            }
+          })
+          .finally(() => {
+            isCalculatingRef.current = false;
             setIsCalculatingStats(false);
           });
       }
@@ -48,7 +64,14 @@ export function useServerStats(actualServers: EnhancedServerData[]) {
       const syncStats = calculateServerStats(actualServers);
       setWorkerStats(syncStats);
     }
-  }, [actualServers, isWorkerReady, calculateStatsWorker, isCalculatingStats]);
+
+    // Cleanup: 컴포넌트 언마운트 시 진행 중인 계산 취소
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [actualServers, isWorkerReady, calculateStatsWorker]);
 
   // 🏗️ Clean Architecture: 순수 동기 stats 반환 (useMemo)
   const stats = useMemo(() => {
