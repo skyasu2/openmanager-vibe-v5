@@ -440,8 +440,8 @@ export default function SystemChecklist({
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 p-4">
       {/* 배경 애니메이션 */}
       <div className="absolute inset-0 opacity-10">
-        <div className="_animate-pulse absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500 blur-3xl" />
-        <div className="_animate-pulse absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500 blur-3xl delay-1000" />
+        <div className="animate-pulse absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500 blur-3xl" />
+        <div className="animate-pulse absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500 blur-3xl delay-1000" />
       </div>
 
       {/* 🛠️ 개발자 디버그 패널 */}

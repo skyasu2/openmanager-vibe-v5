@@ -139,7 +139,7 @@ export const NotificationToast: FC = () => {
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          className={` ${getBackgroundColor(notification.type)} _animate-in max-w-sm transform rounded-lg border p-4 shadow-lg transition-all duration-300 ease-in-out slide-in-from-right-full`}
+          className={` ${getBackgroundColor(notification.type)} animate-in max-w-sm transform rounded-lg border p-4 shadow-lg transition-all duration-300 ease-in-out slide-in-from-right-full`}
         >
           <div className="flex items-start gap-3">
             {getIcon(notification.type)}

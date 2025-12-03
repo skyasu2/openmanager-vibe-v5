@@ -205,7 +205,7 @@ export default function AIAssistantIconPanel({
       {/* 하단 상태 표시 */}
       <div className="mt-4 border-t border-gray-200 pt-2">
         <div className="text-center">
-          <div className="_animate-pulse mx-auto mb-1 h-2 w-2 rounded-full bg-green-400"></div>
+          <div className="animate-pulse mx-auto mb-1 h-2 w-2 rounded-full bg-green-400"></div>
           <p className="text-xs text-gray-500">AI 활성</p>
         </div>
       </div>

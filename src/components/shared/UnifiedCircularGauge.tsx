@@ -268,7 +268,7 @@ export default function UnifiedCircularGauge({
         {showAnimation && variant !== 'card' && percentage > 75 && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className="_animate-pulse h-3 w-3 rounded-full"
+              className="animate-pulse h-3 w-3 rounded-full"
               style={{
                 backgroundColor: config.color,
                 boxShadow: `0 0 10px ${config.color}50`,

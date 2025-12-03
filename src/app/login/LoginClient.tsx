@@ -49,11 +49,11 @@ const LoadingOverlay = ({ type }: { type: 'github' | 'guest' }) => {
   return (
     <>
       {/* Shimmer 효과 */}
-      <div className="_animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       {/* 프로그레스 바 */}
       <div
-        className={`_animate-progress absolute bottom-0 left-0 h-1 bg-gradient-to-r ${progressGradient}`}
+        className={`animate-progress absolute bottom-0 left-0 h-1 bg-gradient-to-r ${progressGradient}`}
       />
     </>
   );
@@ -398,7 +398,7 @@ export default function LoginClient() {
 
               {/* 클릭 펄스 애니메이션 */}
               {showPulse === 'github' && (
-                <div className="_animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/20" />
+                <div className="animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/20" />
               )}
 
               <svg
@@ -445,7 +445,7 @@ export default function LoginClient() {
 
               {/* 클릭 펄스 애니메이션 */}
               {showPulse === 'guest' && (
-                <div className="_animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/20" />
+                <div className="animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/20" />
               )}
 
               <User className="relative z-10 h-5 w-5" />
@@ -460,7 +460,7 @@ export default function LoginClient() {
 
           {/* 로딩 중 추가 안내 */}
           {isLoading && (
-            <div className="_animate-fadeIn mt-4 space-y-1 text-center">
+            <div className="animate-fadeIn mt-4 space-y-1 text-center">
               <p className="text-xs text-gray-300">예상 소요 시간: 3-5초</p>
               <p className="text-xs text-gray-400">
                 ESC 키를 눌러 취소할 수 있습니다

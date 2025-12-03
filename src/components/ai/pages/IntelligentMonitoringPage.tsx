@@ -189,7 +189,7 @@ export default function IntelligentMonitoringPage() {
             >
               {isAnalyzing ? (
                 <>
-                  <Pause className="_animate-pulse mr-2 inline h-4 w-4" />
+                  <Pause className="animate-pulse mr-2 inline h-4 w-4" />
                   분석 중...
                 </>
               ) : (
