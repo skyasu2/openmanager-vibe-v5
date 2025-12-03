@@ -55,7 +55,7 @@ export function EnhancedProfileStatusDisplay({
     return (
       <div
         data-testid="status-skeleton"
-        className={`${compact ? 'p-2' : 'p-3'} _animate-pulse rounded-lg bg-gray-50`}
+        className={`${compact ? 'p-2' : 'p-3'} animate-pulse rounded-lg bg-gray-50`}
       >
         <div className="flex items-center gap-2">
           <div className="h-4 w-4 rounded-full bg-gray-300" />
@@ -111,7 +111,7 @@ export function EnhancedProfileStatusDisplay({
             <Activity
               data-testid="system-status-indicator"
               className={`h-4 w-4 ${getStatusColor()} ${
-                status?.isRunning ? '_animate-pulse' : ''
+                status?.isRunning ? 'animate-pulse' : ''
               }`}
             />
             {status?.isStarting && (

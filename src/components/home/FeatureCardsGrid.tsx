@@ -102,8 +102,8 @@ const FeatureCardItem = memo(
           {card.isVibeCard && (
             <>
               {/* 장식 요소 */}
-              <div className="_animate-pulse absolute right-2 top-2 h-6 w-6 rounded-full bg-yellow-400/30"></div>
-              <div className="_animate-pulse absolute bottom-2 left-2 h-4 w-4 rounded-full bg-yellow-400/20"></div>
+              <div className="animate-pulse absolute right-2 top-2 h-6 w-6 rounded-full bg-yellow-400/30"></div>
+              <div className="animate-pulse absolute bottom-2 left-2 h-4 w-4 rounded-full bg-yellow-400/20"></div>
 
               {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
