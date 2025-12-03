@@ -21,7 +21,7 @@ const UnifiedProfileHeader = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="_animate-pulse h-10 w-10 rounded-full bg-white/10" />
+      <div className="animate-pulse h-10 w-10 rounded-full bg-white/10" />
     ),
   }
 );
@@ -31,7 +31,7 @@ const SystemControls = dynamic(
     ssr: false,
     loading: () => (
       <div className="mx-auto max-w-2xl text-center">
-        <div className="_animate-pulse mx-auto h-16 w-64 rounded-xl bg-white/10" />
+        <div className="animate-pulse mx-auto h-16 w-64 rounded-xl bg-white/10" />
       </div>
     ),
   }
@@ -43,7 +43,7 @@ const FeatureCardsGrid = dynamic(
     loading: () => (
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="_animate-pulse h-32 rounded-lg bg-white/10" />
+          <div key={i} className="animate-pulse h-32 rounded-lg bg-white/10" />
         ))}
       </div>
     ),
@@ -199,7 +199,7 @@ function MainContent() {
 
         <Suspense
           fallback={
-            <div className="_animate-pulse h-10 w-10 rounded-full bg-white/10" />
+            <div className="animate-pulse h-10 w-10 rounded-full bg-white/10" />
           }
         >
           <UnifiedProfileHeader />
@@ -229,7 +229,7 @@ function MainContent() {
           <Suspense
             fallback={
               <div className="mx-auto max-w-2xl text-center">
-                <div className="_animate-pulse mx-auto h-16 w-64 rounded-xl bg-white/10" />
+                <div className="animate-pulse mx-auto h-16 w-64 rounded-xl bg-white/10" />
               </div>
             }
           >
@@ -252,7 +252,7 @@ function MainContent() {
                 {[...Array(4)].map((_: undefined, i: number) => (
                   <div
                     key={i}
-                    className="_animate-pulse h-32 rounded-lg bg-white/10"
+                    className="animate-pulse h-32 rounded-lg bg-white/10"
                   />
                 ))}
               </div>

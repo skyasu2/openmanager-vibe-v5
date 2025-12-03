@@ -68,7 +68,7 @@ export const ServerStatusCard: Story = {
     <Card className="w-80">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <div className="_animate-pulse h-3 w-3 rounded-full bg-green-500" />웹
+          <div className="animate-pulse h-3 w-3 rounded-full bg-green-500" />웹
           서버 01
         </CardTitle>
         <CardDescription>Seoul DC1 · Ubuntu 22.04 LTS</CardDescription>
@@ -120,7 +120,7 @@ export const AIEngineCard: Story = {
     <Card className="w-80">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <div className="_animate-pulse h-3 w-3 rounded-full bg-purple-500" />
+          <div className="animate-pulse h-3 w-3 rounded-full bg-purple-500" />
           Multi-AI 엔진
         </CardTitle>
         <CardDescription>통합 AI 처리 시스템</CardDescription>
@@ -169,7 +169,7 @@ export const WarningCard: Story = {
     <Card className="w-80 border-orange-200 bg-orange-50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-orange-800">
-          <div className="_animate-pulse h-3 w-3 rounded-full bg-orange-500" />
+          <div className="animate-pulse h-3 w-3 rounded-full bg-orange-500" />
           DB 서버 02
         </CardTitle>
         <CardDescription className="text-orange-700">
@@ -321,7 +321,7 @@ export const DarkModeCard: Story = {
       <Card className="w-80 border-gray-700 bg-gray-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
-            <div className="_animate-pulse h-3 w-3 rounded-full bg-green-400" />
+            <div className="animate-pulse h-3 w-3 rounded-full bg-green-400" />
             다크모드 서버
           </CardTitle>
           <CardDescription className="text-gray-400">
@@ -379,7 +379,7 @@ export const AllStatesGrid: Story = {
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <div className="_animate-pulse h-2 w-2 rounded-full bg-green-500" />
+            <div className="animate-pulse h-2 w-2 rounded-full bg-green-500" />
             웹서버 01
           </CardTitle>
           <CardDescription className="text-sm">정상 운영 중</CardDescription>
@@ -393,7 +393,7 @@ export const AllStatesGrid: Story = {
       <Card className="w-full border-orange-200 bg-orange-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base text-orange-800">
-            <div className="_animate-pulse h-2 w-2 rounded-full bg-orange-500" />
+            <div className="animate-pulse h-2 w-2 rounded-full bg-orange-500" />
             DB서버 02
           </CardTitle>
           <CardDescription className="text-sm text-orange-700">

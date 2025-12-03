@@ -277,7 +277,7 @@ export default function AuthSuccessPage() {
             <Loader2 className="mx-auto h-16 w-16 animate-spin text-blue-500" />
           )}
           {status === 'success' && (
-            <CheckCircle className="_animate-bounce mx-auto h-16 w-16 text-green-500" />
+            <CheckCircle className="animate-bounce mx-auto h-16 w-16 text-green-500" />
           )}
           {status === 'error' && (
             <div className="mx-auto h-16 w-16 text-red-500">❌</div>

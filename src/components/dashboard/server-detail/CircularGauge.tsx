@@ -112,7 +112,7 @@ export default function CircularGauge({
         {showAnimation && percentage > 75 && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className="_animate-pulse h-3 w-3 rounded-full"
+              className="animate-pulse h-3 w-3 rounded-full"
               style={{
                 backgroundColor: statusColor,
                 boxShadow: `0 0 10px ${statusColor}50`,
