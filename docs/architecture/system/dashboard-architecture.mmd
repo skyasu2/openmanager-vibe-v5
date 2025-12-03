@@ -1,0 +1,150 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#3b82f6', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2563eb', 'lineColor': '#64748b', 'secondaryColor': '#10b981', 'tertiaryColor': '#f59e0b'}}}%%
+flowchart TB
+    subgraph Pages["📄 Pages (Next.js App Router)"]
+        Page["/dashboard/page.tsx<br/>Server Component"]
+        Layout["/dashboard/layout.tsx"]
+        Loading["/dashboard/loading.tsx"]
+        ErrorPage["/dashboard/error.tsx"]
+    end
+
+    subgraph ClientLayer["🖥️ Client Components"]
+        DashboardClient["DashboardClient.tsx<br/>메인 클라이언트 컴포넌트"]
+
+        subgraph HeaderSection["헤더 영역"]
+            DashboardHeader["DashboardHeader"]
+        end
+
+        subgraph ContentSection["콘텐츠 영역"]
+            DashboardContent["DashboardContent"]
+            DashboardSummary["DashboardSummary<br/>통계 카드"]
+            ServerDashboard["ServerDashboard<br/>(Dynamic Import)"]
+        end
+
+        subgraph ServerList["서버 목록"]
+            Controls["ServerDashboardControls"]
+            Tabs["ServerDashboardTabs"]
+            VirtualList["VirtualizedServerList"]
+            ServerCard["ImprovedServerCard"]
+        end
+
+        subgraph Modals["모달 (Dynamic)"]
+            ServerModal["EnhancedServerModal"]
+            OverviewTab["OverviewTab"]
+            MetricsTab["MetricsTab"]
+            LogsTab["LogsTab"]
+            ProcessesTab["ProcessesTab"]
+            NetworkTab["NetworkTab"]
+        end
+
+        subgraph AISidebar["AI 사이드바"]
+            AISidebarV4["AISidebarV4<br/>(Dynamic Import)"]
+        end
+
+        subgraph SystemControls["시스템 제어"]
+            FloatingControl["FloatingSystemControl"]
+            Notification["NotificationToast"]
+            AutoLogout["AutoLogoutWarning"]
+        end
+    end
+
+    subgraph Hooks["🪝 Custom Hooks"]
+        useServerDashboard["useServerDashboard<br/>메인 데이터 훅"]
+        useServerDataCache["useServerDataCache"]
+        useServerFilter["useServerFilter"]
+        useServerPagination["useServerPagination"]
+        useServerStats["useServerStats"]
+        useServerMetrics["useServerMetrics"]
+        useResponsivePageSize["useResponsivePageSize"]
+        useAutoLogout["useAutoLogout"]
+        useSystemStatus["useSystemStatus"]
+        useUserPermissions["useUserPermissions"]
+    end
+
+    subgraph Stores["📦 Zustand Stores"]
+        ServerDataStore["useServerDataStore<br/>서버 데이터"]
+        AISidebarStore["useAISidebarStore<br/>AI 상태"]
+        SystemStatusStore["useSystemStatusStore<br/>시스템 상태"]
+        AdminStore["useUnifiedAdminStore<br/>관리자"]
+    end
+
+    subgraph API["🌐 API Routes"]
+        DashboardAPI["/api/dashboard<br/>대시보드 데이터"]
+        ServersAPI["/api/servers-unified<br/>서버 통합 API"]
+        AIAPI["/api/ai/query<br/>AI 쿼리"]
+    end
+
+    subgraph DataSources["💾 Data Sources"]
+        Supabase[(Supabase<br/>hourly_server_states)]
+        MockData["Mock Providers<br/>(AWS/GCP/Azure)"]
+    end
+
+    %% 페이지 흐름
+    Page --> DashboardClient
+    Layout --> Page
+    Loading -.-> Page
+    ErrorPage -.-> Page
+
+    %% 클라이언트 컴포넌트 흐름
+    DashboardClient --> DashboardHeader
+    DashboardClient --> DashboardContent
+    DashboardClient --> AISidebarV4
+    DashboardClient --> FloatingControl
+    DashboardClient --> Notification
+    DashboardClient --> AutoLogout
+    DashboardClient --> ServerModal
+
+    DashboardContent --> DashboardSummary
+    DashboardContent --> ServerDashboard
+
+    ServerDashboard --> Controls
+    ServerDashboard --> Tabs
+    ServerDashboard --> VirtualList
+    VirtualList --> ServerCard
+
+    ServerModal --> OverviewTab
+    ServerModal --> MetricsTab
+    ServerModal --> LogsTab
+    ServerModal --> ProcessesTab
+    ServerModal --> NetworkTab
+
+    %% Hooks 연결
+    DashboardClient --> useServerDashboard
+    DashboardClient --> useAutoLogout
+    DashboardClient --> useSystemStatus
+    DashboardClient --> useUserPermissions
+
+    useServerDashboard --> useServerDataCache
+    useServerDashboard --> useServerFilter
+    useServerDashboard --> useServerPagination
+    useServerDashboard --> useServerStats
+    useServerDashboard --> useServerMetrics
+    useServerDashboard --> useResponsivePageSize
+
+    %% Store 연결
+    useServerDashboard --> ServerDataStore
+    DashboardClient --> AISidebarStore
+    DashboardClient --> SystemStatusStore
+    DashboardClient --> AdminStore
+
+    %% API 연결
+    ServerDataStore --> ServersAPI
+    AISidebarV4 --> AIAPI
+    DashboardAPI --> Supabase
+
+    ServersAPI --> Supabase
+    ServersAPI --> MockData
+
+    %% 스타일
+    classDef pageStyle fill:#3b82f6,stroke:#2563eb,color:#fff
+    classDef clientStyle fill:#10b981,stroke:#059669,color:#fff
+    classDef hookStyle fill:#8b5cf6,stroke:#7c3aed,color:#fff
+    classDef storeStyle fill:#f59e0b,stroke:#d97706,color:#fff
+    classDef apiStyle fill:#ef4444,stroke:#dc2626,color:#fff
+    classDef dataStyle fill:#06b6d4,stroke:#0891b2,color:#fff
+
+    class Page,Layout,Loading,ErrorPage pageStyle
+    class DashboardClient,DashboardHeader,DashboardContent,DashboardSummary,ServerDashboard,Controls,Tabs,VirtualList,ServerCard,ServerModal,OverviewTab,MetricsTab,LogsTab,ProcessesTab,NetworkTab,AISidebarV4,FloatingControl,Notification,AutoLogout clientStyle
+    class useServerDashboard,useServerDataCache,useServerFilter,useServerPagination,useServerStats,useServerMetrics,useResponsivePageSize,useAutoLogout,useSystemStatus,useUserPermissions hookStyle
+    class ServerDataStore,AISidebarStore,SystemStatusStore,AdminStore storeStyle
+    class DashboardAPI,ServersAPI,AIAPI apiStyle
+    class Supabase,MockData dataStyle

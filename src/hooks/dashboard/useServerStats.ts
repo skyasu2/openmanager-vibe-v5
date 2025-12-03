@@ -49,7 +49,10 @@ export function useServerStats(actualServers: EnhancedServerData[]) {
           })
           .catch((error) => {
             if (error?.name !== 'AbortError') {
-              console.error('❌ Web Worker 계산 실패, Fallback으로 대체:', error);
+              console.error(
+                '❌ Web Worker 계산 실패, Fallback으로 대체:',
+                error
+              );
               const fallbackStats = calculateServerStats(actualServers);
               setWorkerStats(fallbackStats);
             }
