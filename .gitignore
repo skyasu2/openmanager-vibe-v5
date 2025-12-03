@@ -476,3 +476,13 @@ lint_*.txt
 lint_*.json
 type_check_report*.txt
 tsc_output*.txt
+
+# 🔧 Maintenance & Analysis Output (임시 분석 결과)
+oldest_files*.json
+*-analysis-output.json
+cleanup-*.json
+maintenance-*.json
+
+# 🛠️ One-off utility scripts (일회성 유틸리티)
+scripts/find-oldest-files.js
+scripts/maintenance/cleanup-manager.js
