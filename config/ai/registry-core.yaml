@@ -3,7 +3,7 @@
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
 version: "2.0.3"  # registry-core 버전
-last_updated: "2025-12-02"
+last_updated: "2025-12-04"
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
@@ -21,7 +21,7 @@ ai-tools:
     role: "Code review - Primary rotation (1:1:1)"
 
   gemini-cli:
-    current_version: "v0.18.4"
+    current_version: "v0.19.1"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
     role: "Code review - Primary rotation (1:1:1)"
