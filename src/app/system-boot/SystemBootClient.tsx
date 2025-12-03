@@ -23,6 +23,52 @@ import debug from '@/utils/debug';
 import { BootProgressBar } from './components/BootProgressBar';
 import { SmoothLoadingSpinner } from './components/SmoothLoadingSpinner';
 
+// 로딩 단계 정의 (정적 데이터 - 컴포넌트 외부)
+const BOOT_STAGES = [
+  {
+    name: '시스템 초기화',
+    delay: 500,
+    icon: Loader2,
+    description: '시스템 환경 설정을 확인하고 있습니다...',
+  },
+  {
+    name: '서버 연결 확인',
+    delay: 1200,
+    icon: ServerIcon,
+    description: 'MCP 서버와 연결을 설정하고 있습니다...',
+  },
+  {
+    name: '데이터베이스 연결',
+    delay: 1900,
+    icon: Database,
+    description: 'Supabase 데이터베이스에 연결하고 있습니다...',
+  },
+  {
+    name: 'AI 엔진 로딩',
+    delay: 2600,
+    icon: Brain,
+    description: 'AI 분석 엔진을 초기화하고 있습니다...',
+  },
+  {
+    name: '서버 데이터 동기화',
+    delay: 3300,
+    icon: Cpu,
+    description: '실시간 서버 메트릭을 동기화하고 있습니다...',
+  },
+  {
+    name: '대시보드 준비',
+    delay: 4000,
+    icon: Monitor,
+    description: '모니터링 대시보드를 준비하고 있습니다...',
+  },
+  {
+    name: '시스템 시작 완료',
+    delay: 4700,
+    icon: CheckCircle,
+    description: 'OpenManager가 준비되었습니다!',
+  },
+] as const;
+
 export default function SystemBootClient() {
   const router = useRouter();
   const [bootState, setBootState] = useState<'running' | 'completed'>(
@@ -38,52 +84,6 @@ export default function SystemBootClient() {
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  // 실제 제품 로딩 과정
-  const stages = [
-    {
-      name: '시스템 초기화',
-      delay: 500,
-      icon: Loader2,
-      description: '시스템 환경 설정을 확인하고 있습니다...',
-    },
-    {
-      name: '서버 연결 확인',
-      delay: 1200,
-      icon: ServerIcon,
-      description: 'MCP 서버와 연결을 설정하고 있습니다...',
-    },
-    {
-      name: '데이터베이스 연결',
-      delay: 1900,
-      icon: Database,
-      description: 'Supabase 데이터베이스에 연결하고 있습니다...',
-    },
-    {
-      name: 'AI 엔진 로딩',
-      delay: 2600,
-      icon: Brain,
-      description: 'AI 분석 엔진을 초기화하고 있습니다...',
-    },
-    {
-      name: '서버 데이터 동기화',
-      delay: 3300,
-      icon: Cpu,
-      description: '실시간 서버 메트릭을 동기화하고 있습니다...',
-    },
-    {
-      name: '대시보드 준비',
-      delay: 4000,
-      icon: Monitor,
-      description: '모니터링 대시보드를 준비하고 있습니다...',
-    },
-    {
-      name: '시스템 시작 완료',
-      delay: 4700,
-      icon: CheckCircle,
-      description: 'OpenManager가 준비되었습니다!',
-    },
-  ];
 
   // 부팅 완료 - 부드러운 전환 후 대시보드로 이동
   const handleBootComplete = useCallback(() => {
@@ -102,66 +102,24 @@ export default function SystemBootClient() {
     }, 1000);
   }, [router]);
 
-  // 🚀 개선된 시스템 로딩 로직 (실제 시스템 상태와 동기화)
+  // 🚀 순수 타이머 기반 로딩 로직 (시간 벌기 용도)
   useEffect(() => {
     if (!isClient) return;
 
     debug.log('🚀 OpenManager 시스템 로딩 시작');
 
-    let systemReady = false;
-    let animationCompleted = false;
+    const timeouts: NodeJS.Timeout[] = [];
 
-    // 실제 시스템 상태를 주기적으로 체크
-    const checkSystemStatus = async () => {
-      try {
-        const response = await fetch('/api/system/status?source=boot-check');
-        if (response.ok) {
-          const data = await response.json();
-          debug.log('🔍 시스템 상태 체크:', {
-            isRunning: data.isRunning,
-            activeUsers: data.activeUsers,
-            success: data.success,
-          });
-
-          if (data.success && data.isRunning && !systemReady) {
-            debug.log('✅ 시스템이 준비되었습니다!');
-            systemReady = true;
-
-            // 애니메이션이 완료되었거나 최소 50% 진행되었으면 즉시 이동
-            if (animationCompleted || progress >= 50) {
-              handleBootComplete();
-            }
-            return true;
-          }
-        } else {
-          debug.log('⚠️ 시스템 상태 API 응답 오류:', response.status);
-        }
-      } catch {
-        debug.log('🔄 시스템 상태 체크 중... (네트워크 오류)');
-      }
-      return false;
-    };
-
-    // 시스템 상태를 1초마다 체크 (API 호출 최적화)
-    const statusCheckInterval = setInterval(() => {
-      void checkSystemStatus();
-    }, 1000);
-
-    // 초기 즉시 체크
-    void checkSystemStatus();
-
-    // 로딩 애니메이션 실행
-    stages.forEach(({ name, delay, icon }, index) => {
-      setTimeout(() => {
-        if (systemReady && animationCompleted) return; // 이미 완료되면 스킵
-
+    // 로딩 애니메이션 실행 (순수 타이머 방식)
+    BOOT_STAGES.forEach(({ name, delay, icon }, index) => {
+      const timeout = setTimeout(() => {
         // 페이드 트랜지션 시작
         setIsTransitioning(true);
 
         setTimeout(() => {
           setCurrentStage(name);
           setCurrentIcon(icon);
-          const newProgress = ((index + 1) / stages.length) * 100;
+          const newProgress = ((index + 1) / BOOT_STAGES.length) * 100;
           setProgress(newProgress);
 
           // 페이드 트랜지션 종료
@@ -169,50 +127,27 @@ export default function SystemBootClient() {
             setIsTransitioning(false);
           }, 150);
 
-          // 마지막 단계 완료
-          if (index === stages.length - 1) {
-            animationCompleted = true;
+          // 마지막 단계 완료 → 대시보드로 이동
+          if (index === BOOT_STAGES.length - 1) {
             debug.log('🎬 로딩 애니메이션 완료');
-
-            // 시스템이 준비되었으면 즉시 이동, 아니면 추가 대기
-            if (systemReady) {
-              setTimeout(() => handleBootComplete(), 500);
-            } else {
-              // 최대 5초 추가 대기 후 강제 이동 (시스템 시작에 더 많은 시간 제공)
-              setTimeout(() => {
-                void checkSystemStatus()
-                  .then((finalCheck) => {
-                    if (!finalCheck) {
-                      debug.log('⏰ 최대 대기 시간 초과 - 대시보드로 이동');
-                    }
-                    handleBootComplete();
-                  })
-                  .catch(() => {
-                    handleBootComplete();
-                  });
-                return; // Explicit void return for setTimeout callback
-              }, 5000);
-            }
+            setTimeout(() => handleBootComplete(), 500);
           }
         }, 150);
       }, delay);
+
+      timeouts.push(timeout);
     });
 
     // 컴포넌트 언마운트 시 정리
     return () => {
-      clearInterval(statusCheckInterval);
+      for (const t of timeouts) {
+        clearTimeout(t);
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isClient,
-    handleBootComplete,
-    progress, // 로딩 애니메이션 실행
-    stages.forEach,
-    stages.length,
-  ]);
+  }, [isClient, handleBootComplete]);
 
-  const currentStageData = stages.find((s) => s.name === currentStage) ||
-    stages[0] || {
+  const currentStageData = BOOT_STAGES.find((s) => s.name === currentStage) ||
+    BOOT_STAGES[0] || {
       name: '초기화 중',
       delay: 500,
       icon: Loader2,
