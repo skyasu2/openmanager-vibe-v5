@@ -240,9 +240,9 @@ export default function SystemBootClient() {
 
       {/* 부드러운 배경 오버레이 */}
       <div className="absolute inset-0">
-        <div className="_animate-pulse absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="_animate-pulse absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl" />
-        <div className="_animate-pulse absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-pink-500/5 blur-3xl" />
+        <div className="animate-pulse absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="animate-pulse absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl" />
+        <div className="animate-pulse absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-pink-500/5 blur-3xl" />
       </div>
 
       {/* 메인 로딩 화면 */}
@@ -327,7 +327,7 @@ export default function SystemBootClient() {
 
                     {/* 현재 단계 펄스 효과 */}
                     {isCurrentStep && (
-                      <div className="_animate-pulse absolute inset-0 rounded-xl border-2 border-white/50" />
+                      <div className="animate-pulse absolute inset-0 rounded-xl border-2 border-white/50" />
                     )}
 
                     {/* 완료 체크 마크 */}
@@ -357,7 +357,7 @@ export default function SystemBootClient() {
               잠시만 기다려주세요. 최고의 모니터링 경험을 준비하고 있습니다.
             </p>
             {bootState === 'completed' && (
-              <p className="_animate-pulse mt-2 text-green-400">
+              <p className="animate-pulse mt-2 text-green-400">
                 🎉 시스템 준비 완료! 대시보드로 이동 중...
               </p>
             )}
