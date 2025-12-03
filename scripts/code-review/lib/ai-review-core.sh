@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# AI Review Core Functions - v6.3.0
+# AI Review Core Functions - v6.4.0
 # AI 리뷰 실행 함수들 (Codex, Gemini, Qwen, Claude)
 #
-# v6.3.0 (2025-12-03): 3-AI 순번 + 즉시 Qwen 폴백 (rotation 즉시 진행)
+# v6.4.0 (2025-12-03): Rate Limit 감지 통합 + 초기 상태 버그 수정
 # - 순번: codex → gemini → claude (순환)
-# - 🆕 선택 즉시 rotation 진행 (성공/실패 관계없이 1:1:1 보장)
-# - 실패 시 즉시 qwen 폴백
+# - 🆕 Gemini/Qwen Rate Limit 감지 통합
+# - 🆕 초기 상태: last_ai=claude → 첫 선택 codex
 # - 폴백 체인: Primary(codex/gemini/claude) → Qwen → Claude(절대 최종)
 
 # ============================================================================
@@ -134,6 +134,12 @@ $changes
     local gemini_exit_code=0
 
     if gemini_output=$("$PROJECT_ROOT/scripts/ai-subagents/gemini-wrapper.sh" "$query"); then
+        # Rate limit 체크 (v6.4.0)
+        if detect_gemini_rate_limit "$gemini_output"; then
+            log_warning "Gemini 사용량 제한 감지 (Rate limit or quota exceeded)"
+            return 1  # 실패 반환 → Qwen으로 폴백
+        fi
+
         # 파일 디스크립터를 통해 AI_ENGINE 전파
         echo "gemini" > /tmp/ai_engine_auto_review
         echo "$gemini_output"
@@ -199,6 +205,12 @@ $changes
     local qwen_exit_code=0
 
     if qwen_output=$("$PROJECT_ROOT/scripts/ai-subagents/qwen-wrapper.sh" "$query"); then
+        # Rate limit 체크 (v6.4.0)
+        if detect_qwen_rate_limit "$qwen_output"; then
+            log_warning "Qwen 사용량 제한 감지 (Rate limit or throttled)"
+            return 1  # 실패 반환 → Claude로 폴백
+        fi
+
         # 파일 디스크립터를 통해 AI_ENGINE 전파
         echo "qwen" > /tmp/ai_engine_auto_review
         echo "$qwen_output"

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# AI Review Utilities - v6.3.0
+# AI Review Utilities - v6.4.0
 # 유틸리티 함수 모음 (로그, 카운터, 변경사항 수집 등)
-# v6.3.0 (2025-12-03): 3-AI 순번 + rotation 즉시 진행 (1:1:1 보장)
+# v6.4.0 (2025-12-03): 초기 상태 버그 수정 (last_ai=claude → 첫 선택 codex)
 
 # 색상 정의
 RED='\033[0;31m'
@@ -41,7 +41,7 @@ init_ai_counter() {
         echo "gemini_count=0" >> "$STATE_FILE"
         echo "qwen_count=0" >> "$STATE_FILE"
         echo "claude_count=0" >> "$STATE_FILE"
-        echo "last_ai=gemini" >> "$STATE_FILE"  # 초기값: gemini → 첫 실행 시 codex 선택
+        echo "last_ai=claude" >> "$STATE_FILE"  # 초기값: claude → 첫 실행 시 codex 선택 (v6.4.0 수정)
         log_info "상태 파일 초기화: $STATE_FILE"
     fi
 
@@ -55,7 +55,7 @@ init_ai_counter() {
         log_info "claude_count 마이그레이션 완료"
     fi
     if ! grep -q "^last_ai=" "$STATE_FILE"; then
-        echo "last_ai=gemini" >> "$STATE_FILE"
+        echo "last_ai=claude" >> "$STATE_FILE"  # v6.4.0: claude → 첫 선택 codex
         log_info "last_ai 마이그레이션 완료"
     fi
 }
