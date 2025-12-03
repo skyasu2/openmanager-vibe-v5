@@ -140,7 +140,6 @@ export default function UnifiedProfileHeader({
         },
         visible: true,
         badge: '계정 연동',
-        description: '데이터 영구 저장',
         dividerBefore: items.length > 0, // 시스템 메뉴가 있을 때만 구분선
       });
     }
