@@ -27,6 +27,9 @@ function generateClientSessionId(): string {
 // 통일된 키 접두사
 const AUTH_PREFIX = 'auth_';
 
+// 세션 최대 유효 기간: 30일 (밀리초)
+const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
 export interface AuthUser {
   id: string;
   email?: string;
@@ -235,20 +238,23 @@ export class AuthStateManager {
     if (typeof window !== 'undefined') {
       // 브라우저 호환 세션 ID 생성 (Web Crypto API 또는 폴백)
       const sessionId = generateClientSessionId();
+      const createdAt = Date.now();
 
       // localStorage에 게스트 정보 저장
       localStorage.setItem('auth_type', 'guest');
       localStorage.setItem('auth_session_id', sessionId);
       localStorage.setItem('auth_user', JSON.stringify(guestUser));
+      localStorage.setItem('auth_created_at', createdAt.toString()); // 30일 만료용
 
-      // 쿠키에 세션 ID 저장 (HttpOnly는 서버에서 설정)
-      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24시간
+      // 쿠키에 세션 ID 저장 (30일 만료)
+      const expires = new Date(Date.now() + SESSION_MAX_AGE_MS);
       document.cookie = `auth_session_id=${sessionId}; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
       document.cookie = `auth_type=guest; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
 
       console.log('✅ 게스트 로그인 설정 완료:', {
         sessionId,
         userId: guestUser.id,
+        expiresAt: expires.toISOString(),
       });
     }
 
@@ -309,8 +315,33 @@ export class AuthStateManager {
       const authType = localStorage.getItem('auth_type');
       const sessionId = localStorage.getItem('auth_session_id');
       const userStr = localStorage.getItem('auth_user');
+      const createdAtStr = localStorage.getItem('auth_created_at');
 
       if (authType === 'guest' && sessionId && userStr) {
+        // 30일 만료 체크
+        if (createdAtStr) {
+          const createdAt = parseInt(createdAtStr, 10);
+          const now = Date.now();
+          const age = now - createdAt;
+
+          if (age > SESSION_MAX_AGE_MS) {
+            console.log('⏰ 세션 만료됨 (30일 초과) - 자동 로그아웃');
+            // 만료된 세션 정리
+            this.clearStorage('guest');
+            return {
+              user: null,
+              type: 'unknown',
+              isAuthenticated: false,
+            };
+          }
+
+          // 남은 시간 로깅 (디버그용)
+          const remainingDays = Math.ceil(
+            (SESSION_MAX_AGE_MS - age) / (24 * 60 * 60 * 1000)
+          );
+          console.log(`🔐 세션 유효: ${remainingDays}일 남음`);
+        }
+
         try {
           const user = JSON.parse(userStr);
           return {
