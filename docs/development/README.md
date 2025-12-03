@@ -78,10 +78,10 @@ npm run dev:stable
   - ✅ Qwen CLI (알고리즘)
   - ✅ Codex CLI (실무)
 
-🔌 MCP 서버: 9/9 완전 연결
+🔌 MCP 서버: 12/12 완전 연결
   - context7, supabase, vercel, playwright (완전 작동)
-  - memory, time, sequential-thinking
-  - shadcn-ui, serena
+  - memory, time, sequential-thinking, github
+  - shadcn-ui, serena, tavily, brave-search
 
 💾 WSL 2 시스템:
   - 메모리: 19GB 할당 / 16GB 사용 가능

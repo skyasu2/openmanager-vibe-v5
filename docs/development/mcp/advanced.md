@@ -15,33 +15,35 @@ updated: "2025-09-09"
 
 ## 🎯 핵심 현황
 
-**설치 현황**: ✅ 11/12 정상 작동 (GitHub 토큰 문제만)
-**검증 환경**: WSL 2 + Claude Code v1.0.108
+**설치 현황**: ✅ 12/12 완벽 작동
+**검증 환경**: WSL 2 + Claude Code v2.0.55
 **해결 완료**: Serena MCP AI 교차검증 기반 완전 해결
 
 ## 📊 MCP 서버 상태
 
 | 서버 | 타입 | 설치 | 상태 | 특징 |
 |------|------|------|------|------|
-| `filesystem` | NPM | npx | ✅ Connected | 파일 시스템 직접 조작 |
 | `memory` | NPM | npx | ✅ Connected | 지식 그래프 관리 |
-| `github` | NPM | npx | ❌ Bad credentials | GitHub API (토큰 문제) |
+| `github` | NPM | npx | ✅ Connected | GitHub API 연동 |
 | `supabase` | NPM | npx | ✅ Connected | PostgreSQL DB 관리 |
-| `gcp` | NPM | node | ✅ Connected | Google Cloud 관리 |
-| `tavily` | NPM | npx | ✅ Connected | 웹 검색/크롤링 |
+| `tavily` | NPM | npx | ✅ Connected | 웹 검색 (1000 calls/month free) |
+| `brave-search` | NPM | npx | ✅ Connected | Brave 검색 (2000 queries/month) |
 | `playwright` | NPM | npx | ✅ Connected | 브라우저 자동화 |
 | `context7` | NPM | npx | ✅ Connected | 라이브러리 문서 |
 | `time` | UVX | uvx | ✅ Connected | 시간대 변환/관리 |
 | `serena` | SSE | uvx | ✅ Connected | 25개 코드 분석 도구 |
 | `sequential-thinking` | NPM | npx | ✅ Connected | 순차적 사고 처리 |
 | `shadcn-ui` | NPM | npx | ✅ Connected | UI 컴포넌트 v4 |
+| `vercel` | NPM | npx | ✅ Connected | 배포 관리 (150+ 도구) |
+
+**제거됨**: filesystem (Claude Code 내장 Read/Write/Edit/Glob와 100% 중복), gcp (Vercel이 주 플랫폼)
 
 ## 🚀 빠른 설치 (필수)
 
 ### 1-라인 일괄 설치
 
 ```bash
-npm install -g @modelcontextprotocol/server-filesystem @modelcontextprotocol/server-memory @modelcontextprotocol/server-github @supabase/mcp-server-supabase google-cloud-mcp tavily-mcp @executeautomation/playwright-mcp-server @modelcontextprotocol/server-sequential-thinking @upstash/context7-mcp @magnusrodseth/shadcn-mcp-server && curl -LsSf https://astral.sh/uv/install.sh | sh
+npm install -g @modelcontextprotocol/server-memory @modelcontextprotocol/server-github @supabase/mcp-server-supabase tavily-mcp @anthropic-ai/brave-search-mcp @executeautomation/playwright-mcp-server @modelcontextprotocol/server-sequential-thinking @upstash/context7-mcp @magnusrodseth/shadcn-mcp-server @open-mcp/vercel && curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ### 환경변수 설정
@@ -51,9 +53,10 @@ npm install -g @modelcontextprotocol/server-filesystem @modelcontextprotocol/ser
 GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxx
 SUPABASE_ACCESS_TOKEN=sbp_xxxx
 TAVILY_API_KEY=tvly-xxxx
+BRAVE_API_KEY=BSAxxxx
+VERCEL_TOKEN=your-vercel-token
 UPSTASH_REDIS_REST_URL=https://xxxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=AXXXxxxx
-GCP_PROJECT_ID=your-project-id
 ```
 
 ## 🤖 Serena MCP 완전 해결 (AI 교차검증 기반)
@@ -180,10 +183,6 @@ claude mcp list  # 연결 확인
 ```json
 {
   "mcpServers": {
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/절대경로/프로젝트"]
-    },
     "memory": {
       "command": "npx", 
       "args": ["-y", "@modelcontextprotocol/server-memory"]
@@ -230,12 +229,12 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY)"
 ## 🎯 성과
 
 - **설치 시간**: 15-30분 (자동화 시 10분)
-- **성공률**: 11/12 서버 정상 (92%)
+- **성공률**: 12/12 서버 정상 (100%)
 - **도구 수**: 100+ 개 MCP 도구 활용 가능
 - **AI 교차검증**: Serena MCP 100% 해결 완료
 - **자동 복구**: 6종 복구 스크립트로 신속 문제 해결
 
-**검증 완료**: 2025-08-20 WSL 2 + Ubuntu + Claude Code v1.0.84
+**검증 완료**: 2025-12-03 WSL 2 + Ubuntu + Claude Code v2.0.55
 
 ---
 
