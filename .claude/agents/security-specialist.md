@@ -1,7 +1,7 @@
 ---
 name: security-specialist
 description: CRITICAL - 종합 보안 전문가. 취약점 스캔, 인증/인가 검증, 배포 전 필수 보안 감사, SLA 99.9% 보장
-tools: Read, Grep, Bash, Glob, mcp__supabase__get_advisors, mcp__serena__search_for_pattern, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__think_about_collected_information
+tools: Read, Grep, Bash, Glob, mcp__supabase__get_advisors, mcp__serena__search_for_pattern, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__think_about_collected_information, mcp__tavily__tavily-search, mcp__brave-search__brave_web_search
 model: inherit
 ---
 
