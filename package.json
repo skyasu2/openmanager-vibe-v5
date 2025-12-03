@@ -7,7 +7,6 @@
     "docs:validate": "bash scripts/docs/validate-docs.sh docs",
     "docs:links": "find docs -name '*.md' -type f | head -20 | xargs npx markdown-link-check -q",
     "docs:links:full": "find docs -name '*.md' -type f | xargs npx markdown-link-check -q",
-
     "claude:launch": "bash scripts/ai/launch-claude-wsl.sh",
     "claude:sanitize": "node scripts/diagnostics/claude-json-sanitize.js --write",
     "mcp:status": "claude mcp list",
@@ -133,13 +132,11 @@
     "vitals:full-integration": "npm-run-all --parallel vitals:universal vitals:playwright-integration vitals:universal-api",
     "security:audit": "npm audit --audit-level=moderate && claude /security-review && node scripts/env/check-hardcoded-secrets.js",
     "ai-tools:check": "bash scripts/ai/health/check-ai-tools-updates.sh",
-
     "ai-tools:remove-cron": "bash scripts/setup-ai-tools-cron.sh",
     "env:check": "ts-node scripts/check-env.ts",
     "dev:tmux:enhanced": "bash scripts/dev-tmux-enhanced.sh",
     "dev:tmux:test": "AUTO_START_TEST_SERVER=true bash scripts/dev-tmux-enhanced.sh",
     "dev:tmux:clean": "tmux kill-session -t openmanager-dev",
-
     "wsl:dev": "bash scripts/dev-safe.sh && npm run dev:stable"
   },
   "dependencies": {
@@ -218,6 +215,7 @@
     "playwright": "^1.55.0",
     "postcss": "^8.5.6",
     "prettier-plugin-tailwindcss": "^0.6.14",
+    "rollup": "^4.53.3",
     "standard-version": "^9.5.0",
     "supertest": "^7.1.4",
     "tailwindcss": "^3.4.17",
@@ -230,7 +228,6 @@
     "npm": ">=10.0.0"
   },
   "optionalDependencies": {
-    "@biomejs/cli-linux-x64": "^2.3.8",
     "@biomejs/cli-win32-x64": "^2.3.8"
   },
   "packageManager": "npm@10.9.2",

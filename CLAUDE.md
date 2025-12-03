@@ -37,7 +37,7 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 
 # @-mention 서버 필터링 (v2.0.10+) 🔥
 @serena "코드 검색"             # Serena만 활성화 → 10-18% 추가 절약
-@filesystem "파일 작업"        # filesystem만 활성화
+@tavily "웹 검색"              # Tavily만 활성화
 @context7 "Next.js 15 문서"    # Context7만 활성화
 @vercel "배포 상태 확인"       # Vercel만 활성화
 ```
@@ -188,7 +188,7 @@ npm run test:fast           # 21초 (44% 개선)
 
 - 메모리: 20GB 할당
 - .wslconfig: `dnsTunneling=true`, `autoProxy=true` (필수)
-- MCP 상태: 9/9 연결 (완벽 연결!)
+- MCP 상태: 12/12 연결 (완벽 연결!)
 
 **MCP 연결**: 12/12 완벽 (100% 가동률) ✅
 
