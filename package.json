@@ -7,7 +7,7 @@
     "docs:validate": "bash scripts/docs/validate-docs.sh docs",
     "docs:links": "find docs -name '*.md' -type f | head -20 | xargs npx markdown-link-check -q",
     "docs:links:full": "find docs -name '*.md' -type f | xargs npx markdown-link-check -q",
-    "check:claude": "wsl ./scripts/windows-support/utils/run-claude.sh",
+
     "claude:launch": "bash scripts/ai/launch-claude-wsl.sh",
     "claude:sanitize": "node scripts/diagnostics/claude-json-sanitize.js --write",
     "mcp:status": "claude mcp list",
@@ -133,23 +133,15 @@
     "vitals:full-integration": "npm-run-all --parallel vitals:universal vitals:playwright-integration vitals:universal-api",
     "security:audit": "npm audit --audit-level=moderate && claude /security-review && node scripts/env/check-hardcoded-secrets.js",
     "ai-tools:check": "bash scripts/ai/health/check-ai-tools-updates.sh",
-    "ai-tools:update": "bash scripts/ai-tools-auto-update.sh",
+
     "ai-tools:remove-cron": "bash scripts/setup-ai-tools-cron.sh",
     "env:check": "ts-node scripts/check-env.ts",
     "dev:tmux:enhanced": "bash scripts/dev-tmux-enhanced.sh",
     "dev:tmux:test": "AUTO_START_TEST_SERVER=true bash scripts/dev-tmux-enhanced.sh",
     "dev:tmux:clean": "tmux kill-session -t openmanager-dev",
-    "dev:ai-safe": "bash scripts/dev-safe.sh && NODE_OPTIONS='--max-old-space-size=4096' next dev",
-    "dev:ai-safe:port": "bash scripts/dev-safe.sh npm run dev:ai-port",
-    "dev:ai-port": "node -e \"const { getAvailablePort } = require('./utils/dynamic-port'); getAvailablePort().then(port => { process.env.PORT = port; require('child_process').spawn('npm', ['run', 'dev'], { env: { ...process.env, PORT: port }, stdio: 'inherit' }); });\"",
-    "wsl:dev": "bash scripts/dev-safe.sh && npm run dev:stable",
-    "wsl:stable": "./scripts/wsl-native-dev.sh stable",
-    "wsl:clean": "./scripts/wsl-native-dev.sh clean",
-    "wsl:claude": "./scripts/wsl-native-dev.sh claude",
-    "wsl:playwright": "./scripts/wsl-native-dev.sh playwright",
-    "wsl:build": "./scripts/wsl-native-dev.sh build",
-    "wsl:status": "./scripts/wsl-native-dev.sh status",
-    "wsl:stop": "./scripts/wsl-native-dev.sh stop"
+
+    "wsl:dev": "bash scripts/dev-safe.sh && npm run dev:stable"
+
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.43",

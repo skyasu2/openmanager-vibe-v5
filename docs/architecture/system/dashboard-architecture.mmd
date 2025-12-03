@@ -36,8 +36,8 @@ flowchart TB
             NetworkTab["NetworkTab"]
         end
 
-        subgraph AISidebar["AI 사이드바"]
-            AISidebarV4["AISidebarV4<br/>(Dynamic Import)"]
+        subgraph AISidebar["AI 사이드바 (Unified)"]
+            AISidebarV4["AISidebarV4<br/>(Unified Interface)"]
         end
 
         subgraph SystemControls["시스템 제어"]
@@ -73,10 +73,10 @@ flowchart TB
         AIAPI["/api/ai/query<br/>AI 쿼리"]
     end
 
-    subgraph DataSources["💾 Data Sources"]
-        Supabase[(Supabase<br/>hourly_server_states)]
-        MockData["Mock Providers<br/>(AWS/GCP/Azure)"]
-    end
+        subgraph DataSources["💾 Data Sources"]
+            Supabase[(Supabase<br/>Primary Database)]
+            MockData["Mock Providers<br/>(Testing/Fallback)"]
+        end
 
     %% 페이지 흐름
     Page --> DashboardClient
