@@ -141,7 +141,6 @@
     "dev:tmux:clean": "tmux kill-session -t openmanager-dev",
 
     "wsl:dev": "bash scripts/dev-safe.sh && npm run dev:stable"
-
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.43",
