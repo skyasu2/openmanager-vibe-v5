@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# AI Review Utilities - v6.1.0
+# AI Review Utilities - v6.3.0
 # 유틸리티 함수 모음 (로그, 카운터, 변경사항 수집 등)
-# v6.1.0 (2025-12-02): 3-AI 순번 (codex→gemini→claude), 실패 시 즉시 qwen 폴백
+# v6.3.0 (2025-12-03): 3-AI 순번 + rotation 즉시 진행 (1:1:1 보장)
 
 # 색상 정의
 RED='\033[0;31m'
@@ -251,6 +251,30 @@ detect_codex_rate_limit() {
 
     # Rate limit 또는 quota exceeded 패턴 감지
     if echo "$output" | grep -qi "rate limit\|quota exceeded\|too many requests\|429"; then
+        return 0  # True: Rate limit 감지됨
+    fi
+
+    return 1  # False: 정상
+}
+
+# 🆕 v6.3.0: Gemini 사용량 제한 감지
+detect_gemini_rate_limit() {
+    local output="$1"
+
+    # Gemini API Rate limit 패턴 감지
+    if echo "$output" | grep -qiE "(429|rate.*limit|quota.*exceeded|too.*many.*requests|resource.*exhausted)"; then
+        return 0  # True: Rate limit 감지됨
+    fi
+
+    return 1  # False: 정상
+}
+
+# 🆕 v6.3.0: Qwen 사용량 제한 감지
+detect_qwen_rate_limit() {
+    local output="$1"
+
+    # Qwen API Rate limit 패턴 감지
+    if echo "$output" | grep -qiE "(429|rate.*limit|throttl|too.*many.*requests)"; then
         return 0  # True: Rate limit 감지됨
     fi
 

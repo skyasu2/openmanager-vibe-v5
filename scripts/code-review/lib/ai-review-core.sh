@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# AI Review Core Functions - v6.2.0
+# AI Review Core Functions - v6.3.0
 # AI 리뷰 실행 함수들 (Codex, Gemini, Qwen, Claude)
 #
-# v6.2.0 (2025-12-02): 3-AI 순번 + 즉시 Qwen 폴백
+# v6.3.0 (2025-12-03): 3-AI 순번 + 즉시 Qwen 폴백 (rotation 즉시 진행)
 # - 순번: codex → gemini → claude (순환)
-# - 실패 시 즉시 qwen 폴백 (다음 순번으로 넘어가지 않음)
+# - 🆕 선택 즉시 rotation 진행 (성공/실패 관계없이 1:1:1 보장)
+# - 실패 시 즉시 qwen 폴백
 # - 폴백 체인: Primary(codex/gemini/claude) → Qwen → Claude(절대 최종)
-# - last_ai 상태 추적으로 다음 리뷰 시 순번대로 AI 자동 선택
 
 # ============================================================================
 # Codex 리뷰 함수
@@ -422,9 +422,10 @@ clear_pending_reviews() {
     log_success "✅ 보류 중인 리뷰 클리어 완료"
 }
 
-# v6.2.0: 3-AI 순번 + 즉시 Qwen 폴백
+# v6.3.0: 3-AI 순번 + 즉시 Qwen 폴백 (rotation 즉시 진행)
 # - 순번: codex → gemini → claude (순환)
-# - 실패 시 즉시 qwen 폴백 (다음 순번으로 넘어가지 않음)
+# - 선택 즉시 rotation 진행 (성공/실패 관계없이 1:1:1 보장)
+# - 실패 시 즉시 qwen 폴백
 # - 폴백 체인: Primary → Qwen → Claude(절대 최종)
 run_ai_review() {
     local changes="$1"
@@ -437,11 +438,14 @@ run_ai_review() {
     local primary_ai=$(select_primary_ai)
     log_info "🎯 Primary AI: ${primary_ai^^} (3-AI 순번: codex→gemini→claude)"
 
+    # 🆕 v6.3.0: 선택 즉시 rotation 진행 (1:1:1 균등분배 보장)
+    # 성공/실패 관계없이 다음 호출에서는 다음 AI가 선택됨
+    set_last_ai "$primary_ai"
+
     # 2단계: Primary AI 시도
     if review_output=$(run_single_ai_review "$primary_ai" "$changes"); then
         log_success "${primary_ai^^} 리뷰 성공!"
         increment_ai_counter "$primary_ai"
-        set_last_ai "$primary_ai"  # 다음 번에 순번대로 다음 AI 사용
         AI_ENGINE="$primary_ai"
 
         # 성공 시 보류 중인 리뷰 클리어
