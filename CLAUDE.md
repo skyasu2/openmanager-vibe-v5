@@ -7,7 +7,7 @@
 ## 📦 핵심 정보
 
 **프로젝트**: OpenManager VIBE v5.80.0 - AI 기반 실시간 서버 모니터링 플랫폼
-**환경**: WSL + Claude Code v2.0.53 + Codex v0.63.0 리뷰
+**환경**: WSL + Claude Code v2.0.55 + Codex v0.63.0 리뷰
 **스택**: Next.js 15, React 18.3, TypeScript strict, Vercel + Supabase
 
 ---
@@ -47,14 +47,8 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 ## 📊 주간 메트릭 (logs/feedback/week1-checklist.md)
 
 - MCP 활용도: 65% → 90% 목표
-- 코드 리뷰: **Codex → Gemini → Claude** (auto-ai-review.sh v6.4.0) 🆕
-  - Primary 1:1:1 순환 (Codex → Gemini → Claude, 순서 기반)
-  - Qwen: 즉시 폴백 전용 (Primary 실패 시 자동 시도)
-  - Claude Code: 절대 최종 폴백 (code-review-specialist)
-  - **Wrapper 버전**: Codex v3.2.0, Gemini v3.2.0, Qwen v3.2.0 ✅
-  - **견고성**: stderr 분리 + trap + 공백 감지 + bash 명시적 호출
-  - 리뷰 파일: `review-{AI}-{DATE}-{TIME}.md`
-  - 99.99% 가용성 보장 (3단계 폴백 체인)
+- 코드 리뷰: **Primary 1:1:1 순환** (v6.4.0) → Qwen 폴백 → Claude Code 최종
+  - 상세: @docs/status.md (코드 리뷰 시스템 상태)
 - 토큰 효율: 45토큰 목표 (MCP 82% + @-mention 3%)
 
 ---
@@ -192,14 +186,10 @@ npm run test:fast           # 21초 (44% 개선)
 
 **MCP 연결**: 12/12 완벽 (100% 가동률) ✅
 
-**MCP 필요시 활용**: 복잡한 작업 시 전문 서버 사용
+**MCP 필요시 활용**: 12/12 서버 연결, 토큰 85% 절약 가능
 
-- **주요 서버**: serena (코드 검색), vercel (배포), context7 (문서), shadcn-ui (UI), github (저장소), tavily/brave-search (웹 검색)
-- **토큰 절약 효과**: 최대 85% (MCP 82% + @-mention 3%)
-- **전체 서버**: vercel, serena, supabase, context7, playwright, shadcn-ui, memory, time, sequential-thinking, github, tavily, brave-search
-- **제거됨**: filesystem (Claude Code 내장 Read/Write/Edit/Glob과 100% 중복)
-
-**상세**: @docs/claude/environment/mcp/mcp-priority-guide.md (514줄, Before/After 예시)
+- **서버 목록/역할**: @config/ai/registry-core.yaml (SSOT)
+- **활용 가이드**: @docs/claude/environment/mcp/mcp-priority-guide.md
 
 ---
 
@@ -230,7 +220,7 @@ mmdc -i diagram.mmd -o output.png -b white -t neutral  # 옵션
 
 ## 🎯 현재 상태
 
-**상세**: @docs/status.md (종합 평가: 9.2/10)
+**상세**: @docs/status.md (종합 평가: 9.0/10)
 
 ---
 

@@ -119,16 +119,12 @@
 
 ## 🤖 AI 도구
 
-**권장 버전 (2025-11-29 기준)** ✅
+**버전 정보**: @config/ai/registry-core.yaml (SSOT)
 
-- Claude Code v2.0.53 (현재 버전, 최신) 🆕
-  - 🆕 Extended Thinking (think / think hard / think harder / ultrathink)
-  - 🆕 @-mention 서버 필터링 (토큰 10-18% 추가 절약)
-  - 🆕 Prompt Caching (자동 활성화)
-- Codex CLI v0.63.0 (현재 버전, 최신) ✅
-- Gemini CLI v0.18.4 (현재 버전, 안정 릴리스) 🆕
-- Qwen CLI v0.3.0 (현재 버전, 최신) 🆕
-- Kiro CLI v1.20.0 (AWS Kiro Beta, 터미널 멀티 에이전트 – 미설치)
+**주요 기능** (Claude Code v2.0.55):
+- Extended Thinking (think / think hard / ultrathink)
+- @-mention 서버 필터링 (토큰 10-18% 추가 절약)
+- Prompt Caching (자동 활성화)
 
 **Claude Code Skills** (Phase 1 완료) ✅
 
