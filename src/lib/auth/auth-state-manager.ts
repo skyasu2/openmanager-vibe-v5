@@ -27,8 +27,8 @@ function generateClientSessionId(): string {
 // 통일된 키 접두사
 const AUTH_PREFIX = 'auth_';
 
-// 세션 최대 유효 기간: 30일 (밀리초)
-const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+// 세션 최대 유효 기간: 7일 (밀리초)
+const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface AuthUser {
   id: string;
@@ -244,9 +244,9 @@ export class AuthStateManager {
       localStorage.setItem('auth_type', 'guest');
       localStorage.setItem('auth_session_id', sessionId);
       localStorage.setItem('auth_user', JSON.stringify(guestUser));
-      localStorage.setItem('auth_created_at', createdAt.toString()); // 30일 만료용
+      localStorage.setItem('auth_created_at', createdAt.toString()); // 7일 만료용
 
-      // 쿠키에 세션 ID 저장 (30일 만료)
+      // 쿠키에 세션 ID 저장 (7일 만료)
       const expires = new Date(Date.now() + SESSION_MAX_AGE_MS);
       document.cookie = `auth_session_id=${sessionId}; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
       document.cookie = `auth_type=guest; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
@@ -318,14 +318,25 @@ export class AuthStateManager {
       const createdAtStr = localStorage.getItem('auth_created_at');
 
       if (authType === 'guest' && sessionId && userStr) {
-        // 30일 만료 체크
+        // 7일 만료 체크
         if (createdAtStr) {
           const createdAt = parseInt(createdAtStr, 10);
+          // createdAt이 유효한 숫자인지 확인
+          if (Number.isNaN(createdAt)) {
+            console.warn('⚠️ 유효하지 않은 세션 생성 시간 - 세션 정리');
+            this.clearStorage('guest');
+            return {
+              user: null,
+              type: 'unknown',
+              isAuthenticated: false,
+            };
+          }
+
           const now = Date.now();
           const age = now - createdAt;
 
           if (age > SESSION_MAX_AGE_MS) {
-            console.log('⏰ 세션 만료됨 (30일 초과) - 자동 로그아웃');
+            console.log('⏰ 세션 만료됨 (7일 초과) - 자동 로그아웃');
             // 만료된 세션 정리
             this.clearStorage('guest');
             return {
