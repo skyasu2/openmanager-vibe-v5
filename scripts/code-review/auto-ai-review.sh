@@ -2,12 +2,18 @@
 
 # Auto AI Code Review Script (1:1:1:1 비율) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 6.0.0
-# 날짜: 2025-12-01
-# 전략: 1:1:1:1 균등 분배 + 1회 재시도 + 지연 보상 (단순화)
+# 버전: 6.5.0
+# 날짜: 2025-12-07
+# 전략: 1:1:1:1 균등 분배 + 중복 방지 + 1회 재시도 + 지연 보상
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
+#
+# Changelog v6.5.0 (2025-12-07): 🔒 중복 리뷰 방지 기능 추가
+# - ✨ 신규: 커밋 해시 기반 중복 리뷰 방지 (.reviewed-commits)
+# - ✨ 신규: 락 파일로 동시 실행 방지 (.review-lock)
+# - ✨ 신규: 5분 타임아웃 후 자동 락 해제 (프로세스 충돌 방지)
+# - 🎯 효과: 동일 커밋 다중 리뷰 문제 해결 (5회 → 1회)
 #
 # Changelog v6.0.0 (2025-12-01): 🎯 단순화 - 1회 재시도 + 지연 보상
 # - ✨ 신규: 1회 재시도 후 지연 보상 시스템 (.pending-reviews)
@@ -187,18 +193,102 @@ source "$LIB_DIR/ai-review-core.sh"
 source "$LIB_DIR/ai-review-split.sh"
 
 # ============================================================================
+# 중복 리뷰 방지 함수 (v6.5.0)
+# ============================================================================
+
+# 락 파일 경로
+LOCK_FILE="$PROJECT_ROOT/logs/code-reviews/.review-lock"
+REVIEWED_COMMITS_FILE="$PROJECT_ROOT/logs/code-reviews/.reviewed-commits"
+
+# 커밋이 이미 리뷰되었는지 확인
+is_commit_reviewed() {
+    local commit_hash="$1"
+    local short_hash="${commit_hash:0:7}"
+
+    # 1. 리뷰 파일 존재 확인 (review-*-YYYY-MM-DD-*.md 패턴에서 커밋 해시 검색)
+    if ls "$REVIEW_DIR"/review-*-"$TODAY"-*.md 2>/dev/null | head -1 | xargs grep -l "$short_hash" >/dev/null 2>&1; then
+        return 0  # 이미 리뷰됨
+    fi
+
+    # 2. 리뷰된 커밋 목록 파일 확인
+    if [ -f "$REVIEWED_COMMITS_FILE" ] && grep -q "^$short_hash$" "$REVIEWED_COMMITS_FILE" 2>/dev/null; then
+        return 0  # 이미 리뷰됨
+    fi
+
+    return 1  # 리뷰 안 됨
+}
+
+# 커밋을 리뷰 완료로 마킹
+mark_commit_reviewed() {
+    local commit_hash="$1"
+    local short_hash="${commit_hash:0:7}"
+
+    echo "$short_hash" >> "$REVIEWED_COMMITS_FILE"
+
+    # 7일 이상 된 항목 정리 (파일 크기 관리)
+    if [ -f "$REVIEWED_COMMITS_FILE" ]; then
+        tail -100 "$REVIEWED_COMMITS_FILE" > "$REVIEWED_COMMITS_FILE.tmp" 2>/dev/null || true
+        mv "$REVIEWED_COMMITS_FILE.tmp" "$REVIEWED_COMMITS_FILE" 2>/dev/null || true
+    fi
+}
+
+# 락 파일로 동시 실행 방지
+acquire_lock() {
+    local lock_timeout=300  # 5분 타임아웃
+
+    # 오래된 락 파일 정리 (5분 이상)
+    if [ -f "$LOCK_FILE" ]; then
+        local lock_age=$(( $(date +%s) - $(stat -c %Y "$LOCK_FILE" 2>/dev/null || echo 0) ))
+        if [ "$lock_age" -gt "$lock_timeout" ]; then
+            log_warning "오래된 락 파일 정리 (${lock_age}초)"
+            rm -f "$LOCK_FILE"
+        fi
+    fi
+
+    # 락 획득 시도
+    if [ -f "$LOCK_FILE" ]; then
+        log_warning "다른 리뷰가 진행 중입니다 (락 파일 존재)"
+        return 1
+    fi
+
+    echo "$$" > "$LOCK_FILE"
+    return 0
+}
+
+# 락 해제
+release_lock() {
+    rm -f "$LOCK_FILE"
+}
+
+# ============================================================================
 # 메인 함수
 # ============================================================================
 
 main() {
-    log_info "🚀 Auto AI Review 시작 (v6.0.0 - 1회 재시도 + 지연 보상)"
+    log_info "🚀 Auto AI Review 시작 (v6.5.0 - 중복 방지 + 1회 재시도)"
     echo ""
+
+    # 0단계: 락 획득 (동시 실행 방지)
+    if ! acquire_lock; then
+        log_warning "⏭️  다른 리뷰가 진행 중 - 스킵"
+        exit 0
+    fi
+
+    # 종료 시 락 해제
+    trap 'release_lock' EXIT
 
     # 1단계: 실시간 검증 실행 (v5.0.0: 별도 스크립트로 분리)
     # run_verification  # Disabled: 별도 스크립트로 실행 (post-commit)
 
     # 2단계: 변경된 파일 목록 가져오기
     local last_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%H)
+
+    # 2-1단계: 중복 리뷰 체크 (v6.5.0)
+    if is_commit_reviewed "$last_commit"; then
+        log_warning "⏭️  이미 리뷰된 커밋입니다: ${last_commit:0:7}"
+        exit 0
+    fi
+
     local changed_files=$(git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$last_commit")
 
     if [ -z "$changed_files" ]; then
@@ -211,6 +301,9 @@ main() {
         log_error "AI 리뷰 실패"
         exit 1
     fi
+
+    # 4단계: 리뷰 완료 마킹 (v6.5.0: 중복 방지)
+    mark_commit_reviewed "$last_commit"
 
     log_success "✅ Auto AI Review 완료"
 }

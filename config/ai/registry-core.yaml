@@ -2,7 +2,7 @@
 # 핵심 정보만 포함, 상세 내역은 별도 문서 참조
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
-version: "2.0.5"  # registry-core 버전
+version: "2.0.8"  # registry-core 버전 (v6.7.0: Claude 리뷰 복원)
 last_updated: "2025-12-07"
 project: "OpenManager VIBE v5.80.0"
 
@@ -13,24 +13,25 @@ ai-tools:
   claude-code:
     current_version: "v2.0.60"
     status: "✅ Active"
+    role: "Code review - Primary rotation (codex→gemini→claude)"
 
   codex:
     current_version: "v0.63.0"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
-    role: "Code review - Primary rotation (1:1:1)"
+    role: "Code review - Primary rotation (codex→gemini→claude)"
 
   gemini-cli:
     current_version: "v0.19.1"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
-    role: "Code review - Primary rotation (1:1:1)"
+    role: "Code review - Primary rotation (codex→gemini→claude)"
 
   qwen-cli:
     current_version: "v0.4.0"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
-    role: "Code review - Fallback only (not in primary)"
+    role: "Code review - Fallback only (Primary→Qwen→Claude)"
 
   kiro-cli:
     current_version: "v1.20.0"
@@ -60,11 +61,13 @@ subagents:
     - gcp-cloud-functions-specialist    # Vercel이 주 플랫폼
 
 # 상세 정보: .claude/agents/*.md 참조
-# Workflow Integration (v6.4.0):
+# Workflow Integration (v6.7.0):
 #   - post-commit hook triggers auto-ai-review.sh
-#   - Primary rotation: codex → gemini → claude (1:1:1 순환)
-#   - Fallback chain: Primary AI → Qwen → Claude Code
-#   - Claude Code analyzes generated review files from logs/code-reviews/
+#   - Primary rotation: codex → gemini → claude (3-AI 1:1:1 순환)
+#   - Fallback chain: Primary AI → Qwen → Claude
+#   - v6.7.0 (2025-12-07): Claude CLI 올바른 사용법으로 복원
+#     - 이전 (잘못됨): echo "$query" | claude -p "Code Reviewer"
+#     - 현재 (올바름): claude -p "$query"
 #   - Legacy 3-AI verification system is deprecated (see archive/deprecated/3-ai-system/)
 
 # ============================================================================
@@ -94,7 +97,7 @@ mcp-servers:
 # 상세 정보: .mcp.json 참조
 
 # ============================================================================
-# 4. Claude Code Skills (Phase 1.2)
+# 4. Claude Code Skills (Phase 1.3)
 # ============================================================================
 skills:
   active:
@@ -104,9 +107,10 @@ skills:
     - playwright-triage       # 77% token savings (v1.1.0)
     - security-audit-workflow # 70% token savings (v1.0.0)
     - validation-analysis     # Post-commit validation (v1.0.0)
+    - ai-code-review          # 70% token savings (v1.0.0) 🆕
 
-  average_efficiency: "71.8%"
-  status: "✅ Phase 1.2 Complete (6 Skills)"
+  average_efficiency: "71.9%"
+  status: "✅ Phase 1.3 Complete (7 Skills)"
 
 # 상세 정보: .claude/skills/*/*.md 참조
 

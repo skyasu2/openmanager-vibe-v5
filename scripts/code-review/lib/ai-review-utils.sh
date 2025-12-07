@@ -123,17 +123,18 @@ increment_ai_counter() {
     esac
 }
 
-# 순서 기반 AI 선택 (v6.1.0: codex→gemini→claude 순번, qwen은 즉시 폴백)
+# 순서 기반 AI 선택 (v6.7.0: codex→gemini→claude 3-AI 순환 복원)
 # - 이전 AI가 codex → 이번에 gemini
 # - 이전 AI가 gemini → 이번에 claude
 # - 이전 AI가 claude → 이번에 codex
-# - Qwen은 Primary에서 제외 (실패 시 즉시 폴백으로 사용)
+# - Qwen: Primary에서 제외 (실패 시 즉시 폴백으로 사용)
+# - v6.7.0 (2025-12-07): Claude CLI 올바른 사용법으로 수정 후 복원
 select_primary_ai() {
     init_ai_counter
 
     local last_ai=$(get_last_ai)
 
-    # 순서 기반 선택: codex → gemini → claude → codex (순환)
+    # 순서 기반 선택: codex → gemini → claude → codex (3-AI 순환)
     case "$last_ai" in
         codex)
             echo "gemini"

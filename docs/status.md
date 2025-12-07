@@ -137,25 +137,25 @@
 - 예상 효과: 주당 30-40분 절감, 1-2주 내 ROI 회수
 - 상태: Registry 등록 완료, 테스트 검증 완료
 
-**자동 코드 리뷰 시스템** (v6.4.0 활성화) ✅ 🆕
+**자동 코드 리뷰 시스템** (v6.7.0 활성화) ✅ 🆕
 
-- **Primary 1:1:1 순환** (Codex → Gemini → Claude, 순서 기반) - 2025-12-03
+- **Primary 3-AI 순환** (Codex → Gemini → Claude, 순서 기반) - 2025-12-07
   - Primary: codex → gemini → claude 순환 선택 (last_ai 기반)
   - 폴백 1차: Primary 실패 시 → Qwen 즉시 시도
-  - 폴백 2차: Qwen 실패 시 → Claude Code (code-review-specialist)
+  - 폴백 2차: Qwen 실패 시 → Claude (Primary가 Claude가 아닌 경우)
   - Git Hook: `.husky/post-commit` 자동 트리거 (백그라운드 실행)
   - 출력: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
 - 특징:
-  - ✅ 99.99% 가용성 (Primary OR Qwen OR Claude Code)
+  - ✅ 99.99% 가용성 (Primary OR Qwen OR Claude)
   - ✅ 평균 응답 시간: ~10초 (레거시 대비 4.5배 빠름)
-  - ✅ Primary 1:1:1 순환 (상태 파일 `.ai-usage-state` 기반)
+  - ✅ Primary 3-AI 순환 (상태 파일 `.ai-usage-state` 기반)
   - ✅ Qwen: 폴백 전용 (Primary 실패 시 즉시 시도)
-  - ✅ Claude Code: 절대 최종 폴백 (code-review-specialist)
+  - ✅ Claude: 최종 폴백 (Qwen 실패 시, Primary가 Claude가 아닌 경우)
   - ✅ 실시간 Rate Limit 감지 및 자동 전환
   - ✅ **Wrapper 버전**: Codex v3.2.0, Gemini v3.2.0, Qwen v3.2.0
 - 참고:
+  - v6.7.0 (2025-12-07): Claude CLI 올바른 사용법으로 복원 (`claude -p "$query"`)
   - 레거시 3-AI 시스템 (v4.2.0)은 deprecated (2025-11-19)
-  - 상세: `archive/deprecated/3-ai-system/DEPRECATION_NOTICE.md`
 
 ---
 
@@ -243,18 +243,23 @@
 
 ## 🤖 코드 리뷰 시스템 상태
 
-**자동 코드 리뷰** (v6.4.0) - Primary 1:1:1 순환 + Qwen/Claude 폴백
+**자동 코드 리뷰** (v6.7.0) - Primary 3-AI 순환 + Qwen/Claude 폴백
 
-### 현재 시스템 (2025-12-03)
+### 현재 시스템 (2025-12-07)
 
-- **Primary 선택**: 1:1:1 순환 (codex → gemini → claude, last_ai 기반)
-- **폴백 1차**: Primary AI 실패 시 → Qwen 즉시 시도
-- **폴백 2차**: Qwen 실패 시 → Claude Code (code-review-specialist)
-- **가용성**: 99.99% (Primary OR Qwen OR Claude Code)
+- **Primary 선택**: 3-AI 순환 (codex → gemini → claude, last_ai 기반)
+- **폴백 체인**: Primary AI 실패 시 → Qwen → Claude
+- **가용성**: 99.99% (Primary OR Qwen OR Claude)
 - **트리거**: `.husky/post-commit` 자동 실행 (백그라운드)
 - **출력**: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
 - **평균 응답 시간**: ~10초
 - **Wrapper 버전**: v3.2.0 (Codex, Gemini, Qwen 모두 동일)
+
+### Claude CLI 수정 (v6.7.0, 2025-12-07)
+
+- **이전 (잘못됨)**: `echo "$query" | claude -p "Code Reviewer"` - 동작 안함
+- **현재 (올바름)**: `claude -p "$query"` - 정상 작동 확인
+- **변경**: Claude가 Primary 3-AI 순환 및 최종 폴백에 복원됨
 
 ### 레거시 시스템 (Deprecated)
 
