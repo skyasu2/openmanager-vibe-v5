@@ -121,7 +121,7 @@
 
 **버전 정보**: @config/ai/registry-core.yaml (SSOT)
 
-**주요 기능** (Claude Code v2.0.55):
+**주요 기능** (Claude Code v2.0.60):
 - Extended Thinking (think / think hard / ultrathink)
 - @-mention 서버 필터링 (토큰 10-18% 추가 절약)
 - Prompt Caching (자동 활성화)
@@ -222,13 +222,13 @@
 
 ---
 
-💡 **종합 평가**: 9.0/10 (우수, Claude Code v2.0.31 신규 기능 적용 완료) 🆕
+💡 **종합 평가**: 9.0/10 (우수, Claude Code v2.0.60 신규 기능 적용 완료)
 
 **최종 검증**: 2025-11-04 15:30 KST
 **환경 상태**: WSL 재설치 후 100% 복구, 코드 리뷰 시스템 정상 작동 확인
 
 - ✅ MCP 서버: 12/12 완벽 연결 (brave-search 추가, filesystem 제거)
-- ✅ AI CLI 도구: 4/4 정상 작동 (Codex v0.58.0, Gemini v0.15.4, Qwen v0.2.1 최신)
+- ✅ AI CLI 도구: 4/4 정상 작동 (Codex v0.63.0, Gemini v0.19.1, Qwen v0.4.0 최신)
 - ✅ Bash Wrapper: 3/3 정상 작동 (v2.5.0, 타임아웃 100% 안정)
 - ✅ Codex/Gemini: 자동 리뷰 시스템 정상 작동 (99.9% 가용성)
 - ✅ Node.js: v22.21.1 (안정성 검증 완료)

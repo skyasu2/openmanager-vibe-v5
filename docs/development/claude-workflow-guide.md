@@ -4,7 +4,7 @@
 
 ## 🎯 개요
 
-Claude Code v2.0.55와 Next.js 개발 서버를 동시에 운영하는 최적화된 워크플로우입니다.
+Claude Code v2.0.60와 Next.js 개발 서버를 동시에 운영하는 최적화된 워크플로우입니다.
 
 ## 🚀 빠른 시작
 
@@ -36,7 +36,7 @@ npm run dev:stable
 npm run wsl:dev
 
 # 2. Claude Code 별도 터미널에서 시작
-claude --version  # v2.0.55 확인
+claude --version  # v2.0.60 확인
 
 # 3. 서버 상태 확인
 ps aux | grep next-server | grep -v grep

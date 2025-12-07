@@ -16,7 +16,7 @@ updated: "2025-09-09"
 ## 🎯 핵심 현황
 
 **설치 현황**: ✅ 12/12 완벽 작동
-**검증 환경**: WSL 2 + Claude Code v2.0.55
+**검증 환경**: WSL 2 + Claude Code v2.0.60
 **해결 완료**: Serena MCP AI 교차검증 기반 완전 해결
 
 ## 📊 MCP 서버 상태
@@ -234,7 +234,7 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY)"
 - **AI 교차검증**: Serena MCP 100% 해결 완료
 - **자동 복구**: 6종 복구 스크립트로 신속 문제 해결
 
-**검증 완료**: 2025-12-03 WSL 2 + Ubuntu + Claude Code v2.0.55
+**검증 완료**: 2025-12-03 WSL 2 + Ubuntu + Claude Code v2.0.60
 
 ---
 

@@ -11,7 +11,7 @@ project: "OpenManager VIBE v5.80.0"
 # ============================================================================
 ai-tools:
   claude-code:
-    current_version: "v2.0.55"
+    current_version: "v2.0.60"
     status: "✅ Active"
 
   codex:
@@ -44,7 +44,6 @@ ai-tools:
 # ============================================================================
 subagents:
   active:
-    - codex-specialist                  # HIGH - Code review (CLI wrapper)
     - code-review-specialist            # HIGH - 통합 코드 품질 검토
     - database-administrator            # HIGH - Supabase 전문
     - vercel-platform-specialist        # HIGH - 배포 관리
@@ -95,7 +94,7 @@ mcp-servers:
 # 상세 정보: .mcp.json 참조
 
 # ============================================================================
-# 4. Claude Code Skills (Phase 1.1)
+# 4. Claude Code Skills (Phase 1.2)
 # ============================================================================
 skills:
   active:
@@ -103,10 +102,11 @@ skills:
     - next-router-bottleneck  # 75% token savings (v1.0.0)
     - ai-report-export        # 78% token savings (v1.1.0)
     - playwright-triage       # 77% token savings (v1.1.0)
-    - security-audit-workflow # 70% token savings (v1.0.0 NEW)
+    - security-audit-workflow # 70% token savings (v1.0.0)
+    - validation-analysis     # Post-commit validation (v1.0.0)
 
   average_efficiency: "71.8%"
-  status: "✅ Phase 1.1 Complete (5 Skills)"
+  status: "✅ Phase 1.2 Complete (6 Skills)"
 
 # 상세 정보: .claude/skills/*/*.md 참조
 

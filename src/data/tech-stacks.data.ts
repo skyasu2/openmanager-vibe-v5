@@ -340,7 +340,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
           '현재 메인 개발 도구 - Anthropic의 공식 CLI 기반 AI 코딩 어시스턴트',
         implementation:
           'claude.ai/code로 제공되는 강력한 AI 개발 도구. Extended Thinking (Tab 키 또는 ultrathink로 심층 분석), @-mention 서버 필터링 (10-18% 토큰 절약), Prompt Caching 자동 활성화. Sonnet 4.5 모델 기반으로 복잡한 코딩 작업 자동화',
-        version: 'v2.0.55',
+        version: 'v2.0.60',
         status: 'active',
         icon: '🤖',
         tags: ['메인도구', 'AI개발', '자연어코딩', 'CLI'],
