@@ -2,8 +2,8 @@
 # 핵심 정보만 포함, 상세 내역은 별도 문서 참조
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
-version: "2.0.4"  # registry-core 버전
-last_updated: "2025-12-04"
+version: "2.0.5"  # registry-core 버전
+last_updated: "2025-12-07"
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
@@ -27,7 +27,7 @@ ai-tools:
     role: "Code review - Primary rotation (1:1:1)"
 
   qwen-cli:
-    current_version: "v0.3.0"
+    current_version: "v0.4.0"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
     role: "Code review - Fallback only (not in primary)"
