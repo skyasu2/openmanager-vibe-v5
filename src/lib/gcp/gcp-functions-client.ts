@@ -168,6 +168,67 @@ export class GCPFunctionsClient {
   }
 
   /**
+   * 🆕 ML Trainer 호출 (GCP Cloud Functions)
+   * 무료 티어 200만 호출/월 활용
+   */
+  async callMLTrainer(params: {
+    type: 'patterns' | 'anomaly' | 'incident' | 'prediction';
+    metrics: Array<{
+      cpu_usage: number;
+      memory_usage: number;
+      disk_usage?: number;
+      network_usage?: number;
+      timestamp: string;
+      server_id?: string;
+    }>;
+    serverId?: string;
+    timeRange?: string;
+    config?: {
+      threshold?: number;
+      sensitivity?: 'low' | 'medium' | 'high';
+    };
+  }): Promise<Result<{
+    patternsLearned: number;
+    accuracyImprovement: number;
+    confidence: number;
+    insights: string[];
+    nextRecommendation: string;
+    metadata: {
+      processingTime: number;
+      dataPoints: number;
+      algorithm: string;
+      version: string;
+    };
+  }>> {
+    return this.callFunction('ml-trainer', {
+      ...params,
+      context: {
+        timestamp: new Date().toISOString(),
+        source: 'openmanager-vibe',
+      },
+    });
+  }
+
+  /**
+   * 🆕 패턴 분석기 호출 (GCP Cloud Functions)
+   */
+  async callPatternAnalyzer(params: {
+    query: string;
+    patterns?: string[];
+  }): Promise<Result<{
+    detectedPatterns: string[];
+    intent: string;
+    confidence: number;
+  }>> {
+    return this.callFunction('pattern-analyzer', {
+      ...params,
+      context: {
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }
+
+  /**
    * 클라이언트 상태 조회
    */
   getStatus() {

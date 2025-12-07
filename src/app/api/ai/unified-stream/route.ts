@@ -300,10 +300,13 @@ const analyzeRequest = tool({
       complexity = 3;
     }
 
+    // 🆕 복잡도 임계값 조정 (GCP 무료 티어 활용 극대화)
+    // 기존: 4-5 → GCP, 3 → RAG, 1-2 → Offline
+    // 변경: 3-5 → GCP, 2 → RAG, 1 → Offline
     const recommendation =
-      complexity >= 4
-        ? 'unified-processor' // GCP 통합 프로세서 사용
-        : complexity >= 3
+      complexity >= 3
+        ? 'unified-processor' // GCP 통합 프로세서 사용 (무료 200만 호출/월)
+        : complexity >= 2
           ? 'rag-search' // RAG 검색 사용
           : 'offline-tool'; // 오프라인 도구 사용
 
@@ -342,21 +345,23 @@ export const POST = withAuth(async (req: NextRequest) => {
         recommendCommands,
       },
       system: `당신은 **OpenManager Vibe**의 **AI 어시스턴트**입니다. (MVP/PoC 버전)
-목표: 최소한의 리소스로 정확하고 빠른 답변을 제공하는 것입니다.
+목표: GCP 무료 티어를 최대한 활용하여 정확하고 빠른 답변을 제공하는 것입니다.
 
-**🚨 처리 전략 (Hybrid Engine)**
+**🚨 처리 전략 (Hybrid Engine - GCP 최적화)**
 1. **analyzeRequest**를 가장 먼저 실행하여 전략을 수립하십시오.
-2. **Simple (복잡도 1-2)**: \`analyzePattern\` 또는 \`recommendCommands\` (Offline)를 사용하여 즉시 답변하십시오.
-3. **Moderate (복잡도 3)**: \`getServerMetrics\` 또는 \`searchKnowledgeBase\` (Single Tool)를 사용하십시오.
-4. **Complex (복잡도 4-5)**: \`callUnifiedProcessor\` (GCP)를 사용하여 심층 분석을 수행하십시오.
+2. **Simple (복잡도 1)**: \`analyzePattern\` 또는 \`recommendCommands\` (Offline)를 사용하십시오.
+3. **Moderate (복잡도 2)**: \`searchKnowledgeBase\` (RAG)를 사용하십시오.
+4. **Complex (복잡도 3-5)**: \`callUnifiedProcessor\` (GCP)를 적극 활용하십시오. 🆕
 
-**도구 사용 가이드:**
-- 단순 상태 확인 -> \`analyzePattern\`
-- 명령어 질문 -> \`recommendCommands\`
-- "서버 상태 어때?" -> \`getServerMetrics\`
-- "장애 원인 분석해줘" -> \`callUnifiedProcessor\` (processors: ['ml_analytics', 'server_analyzer'])
-- "해결 방법 알려줘" -> \`searchKnowledgeBase\`
+**도구 사용 가이드 (GCP 우선):**
+- "서버 상태 어때?" -> \`callUnifiedProcessor\` (GCP, processors: ['server_analyzer'])
+- "장애 원인 분석해줘" -> \`callUnifiedProcessor\` (GCP, processors: ['ml_analytics', 'server_analyzer'])
+- "추천해줘", "방법 알려줘" -> \`callUnifiedProcessor\` (GCP, processors: ['korean_nlp'])
+- 단순 상태 확인 -> \`analyzePattern\` (Offline)
+- 명령어 질문 -> \`recommendCommands\` (Offline)
+- "해결 방법 알려줘" -> \`searchKnowledgeBase\` (RAG)
 
+⚡ GCP 무료 티어: 월 200만 호출 (일 ~32,000회) - 적극 활용하십시오!
 항상 팩트 기반으로 답변하고, 불확실할 경우 솔직하게 모른다고 하십시오.`,
     });
 

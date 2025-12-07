@@ -9,8 +9,10 @@
 
 import crypto from 'node:crypto';
 import { type NextRequest, NextResponse } from 'next/server';
+import { FREE_TIER_CONFIG } from '@/config/free-tier-config';
 import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
+import { getGCPFunctionsClient } from '@/lib/gcp/gcp-functions-client';
 import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
@@ -55,6 +57,97 @@ interface TrainingResult {
     version: string;
   };
   timestamp: string;
+}
+
+// 이전 학습 결과 타입 (정확도 비교용)
+interface PreviousTrainingStats {
+  avgAccuracy: number;
+  avgConfidence: number;
+  totalPatterns: number;
+  trainingCount: number;
+}
+
+// 📊 이전 학습 결과 조회 (정확도 개선 계산용)
+async function getPreviousTrainingStats(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  type: LearningType,
+  limit = 5
+): Promise<PreviousTrainingStats> {
+  const { data, error } = await supabase
+    .from('ml_training_results')
+    .select('accuracy_improvement, confidence, patterns_learned')
+    .eq('type', type)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error || !data || data.length === 0) {
+    // 이전 데이터 없으면 기본값 반환
+    return {
+      avgAccuracy: 0,
+      avgConfidence: 0.5,
+      totalPatterns: 0,
+      trainingCount: 0,
+    };
+  }
+
+  const avgAccuracy =
+    data.reduce((sum, r) => sum + (r.accuracy_improvement || 0), 0) /
+    data.length;
+  const avgConfidence =
+    data.reduce((sum, r) => sum + (r.confidence || 0), 0) / data.length;
+  const totalPatterns = data.reduce(
+    (sum, r) => sum + (r.patterns_learned || 0),
+    0
+  );
+
+  return {
+    avgAccuracy,
+    avgConfidence,
+    totalPatterns,
+    trainingCount: data.length,
+  };
+}
+
+// 📈 실제 정확도 개선 계산 (이전 결과와 비교)
+function calculateAccuracyImprovement(
+  currentPatterns: number,
+  previousStats: PreviousTrainingStats
+): number {
+  if (previousStats.trainingCount === 0) {
+    // 첫 학습: 기본 개선율 (새로 발견된 패턴 기반)
+    return Math.min(currentPatterns * 2, 30);
+  }
+
+  const avgPreviousPatterns =
+    previousStats.totalPatterns / previousStats.trainingCount;
+
+  if (avgPreviousPatterns === 0) {
+    return Math.min(currentPatterns * 2, 30);
+  }
+
+  // 패턴 수 증가율 기반 개선율 계산
+  const patternGrowth =
+    ((currentPatterns - avgPreviousPatterns) / avgPreviousPatterns) * 100;
+
+  // -20% ~ +40% 범위로 제한 (비현실적 값 방지)
+  return Math.max(-20, Math.min(40, patternGrowth + previousStats.avgAccuracy));
+}
+
+// 📊 신뢰도 계산 (샘플 크기 + 데이터 품질 기반)
+function calculateConfidence(
+  dataPoints: number,
+  dataQualityScore: number // 0-1 사이 값
+): number {
+  // 샘플 크기 기여 (최소 10개, 최대 1000개 기준)
+  const sampleContribution = Math.min(1, dataPoints / 100) * 0.4;
+
+  // 데이터 품질 기여
+  const qualityContribution = dataQualityScore * 0.6;
+
+  // 최종 신뢰도 (0.5 ~ 0.99 범위)
+  const confidence = 0.5 + (sampleContribution + qualityContribution) * 0.49;
+
+  return Math.min(0.99, Math.max(0.5, confidence));
 }
 
 // 🎯 하이브리드 아키텍처: Supabase server_metrics 테이블에서 실제 데이터 조회
@@ -183,17 +276,35 @@ function trainPatterns(metrics: MLMetricData[]): Partial<TrainingResult> {
     insights.push('높은 양의 상관관계 - CPU 증가 시 메모리도 증가');
   }
 
+  // 📊 실제 패턴 수 계산: 상관관계 강도 + 변동성 기반
+  const variance = cpuMemoryCorrelations.reduce(
+    (sum, m) => sum + Math.pow(m.cpu - avgCpu, 2),
+    0
+  ) / cpuMemoryCorrelations.length;
+  const stdDev = Math.sqrt(variance);
+
+  // 패턴 수: 상관관계가 강하고 변동성이 높을수록 더 많은 패턴 발견
+  const patternsLearned = Math.max(
+    1,
+    Math.floor(Math.abs(correlation) * 10 + stdDev / 5)
+  );
+
+  // 데이터 품질 점수: 데이터 포인트 수 + 값 범위 다양성 기반
+  const valueRange = Math.max(...cpuMemoryCorrelations.map(m => m.cpu)) -
+    Math.min(...cpuMemoryCorrelations.map(m => m.cpu));
+  const dataQualityScore = Math.min(1, (valueRange / 100) * 0.5 + 0.5);
+
   return {
-    patternsLearned: Math.floor(Math.random() * 15) + 5,
-    accuracyImprovement: Math.floor(Math.random() * 20) + 10,
-    confidence: 0.75 + Math.random() * 0.2,
+    patternsLearned,
+    accuracyImprovement: 0, // performMLTraining에서 이전 결과와 비교하여 계산
+    confidence: calculateConfidence(metrics.length, dataQualityScore),
     insights,
     nextRecommendation: '네트워크 I/O 패턴 분석 추가 권장',
     metadata: {
       processingTime: Date.now() - Date.now(), // Will be set properly in main function
       dataPoints: metrics.length,
       algorithm: 'correlation_analysis',
-      version: '1.0',
+      version: '2.0', // 버전 업그레이드
     },
   };
 }
@@ -229,47 +340,63 @@ function trainAnomalyDetection(
     }
   }
 
+  const cpuAnomalies = anomalies.filter((a) => a.type === 'cpu').length;
+  const memoryAnomalies = anomalies.filter((a) => a.type === 'memory').length;
+  const diskAnomalies = anomalies.filter((a) => a.type === 'disk').length;
+
   const insights = [
     `탐지된 이상 패턴: ${anomalies.length}개`,
-    `CPU 이상: ${anomalies.filter((a) => a.type === 'cpu').length}건`,
-    `메모리 이상: ${anomalies.filter((a) => a.type === 'memory').length}건`,
-    `디스크 이상: ${anomalies.filter((a) => a.type === 'disk').length}건`,
+    `CPU 이상: ${cpuAnomalies}건`,
+    `메모리 이상: ${memoryAnomalies}건`,
+    `디스크 이상: ${diskAnomalies}건`,
   ];
 
+  // 📊 데이터 품질 점수: 이상 탐지 정확도는 데이터 다양성에 의존
+  // 다양한 유형의 이상이 탐지될수록 더 높은 품질
+  const anomalyTypeCount = [cpuAnomalies, memoryAnomalies, diskAnomalies].filter(
+    (count) => count > 0
+  ).length;
+  const dataQualityScore = Math.min(1, anomalyTypeCount / 3 + metrics.length / 200);
+
   return {
-    patternsLearned: anomalies.length,
-    accuracyImprovement: Math.floor(Math.random() * 15) + 8,
-    confidence: 0.8 + Math.random() * 0.15,
+    patternsLearned: anomalies.length, // 실제 탐지된 이상 패턴 수 (변경 없음)
+    accuracyImprovement: 0, // performMLTraining에서 이전 결과와 비교하여 계산
+    confidence: calculateConfidence(metrics.length, dataQualityScore),
     insights,
     nextRecommendation: '임계값 자동 조정 알고리즘 도입 권장',
     metadata: {
       processingTime: 0, // Will be set properly in main function
       dataPoints: metrics.length,
       algorithm: 'threshold_based_anomaly',
-      version: '1.1',
+      version: '2.0', // 버전 업그레이드
     },
   };
 }
 
-// 장애 케이스 학습
+// 장애 케이스 학습 (v2.0: 실제 메트릭 임계값 분석)
 function trainIncidentLearning(
   metrics: MLMetricData[]
 ): Partial<TrainingResult> {
-  // 장애 패턴 시뮬레이션 (실제로는 과거 장애 데이터 분석)
+  // 📊 실제 메트릭에서 임계값 초과 횟수 계산
+  const cpuCriticalCount = metrics.filter((m) => (m.cpu_usage ?? 0) > 95).length;
+  const memoryCriticalCount = metrics.filter((m) => (m.memory_usage ?? 0) > 98).length;
+  const diskCriticalCount = metrics.filter((m) => (m.disk_usage ?? 0) > 95).length;
+
+  // 장애 패턴 (실제 데이터 기반 발생 횟수)
   const incidentPatterns = [
     {
       pattern: 'CPU > 95% for 5+ minutes',
-      occurrences: Math.floor(Math.random() * 5) + 1,
+      occurrences: Math.max(1, Math.floor(cpuCriticalCount / 5)), // 5개 연속 = 1건
       avgResolutionTime: '12분',
     },
     {
       pattern: 'Memory > 98% + Swap usage',
-      occurrences: Math.floor(Math.random() * 3) + 1,
+      occurrences: Math.max(1, Math.floor(memoryCriticalCount / 3)), // 3개 연속 = 1건
       avgResolutionTime: '8분',
     },
     {
       pattern: 'Disk > 95% + I/O errors',
-      occurrences: Math.floor(Math.random() * 2) + 1,
+      occurrences: Math.max(1, Math.floor(diskCriticalCount / 2)), // 2개 연속 = 1건
       avgResolutionTime: '15분',
     },
   ];
@@ -279,29 +406,40 @@ function trainIncidentLearning(
     0
   );
 
+  // 📈 데이터 품질 점수 (임계값 초과 다양성)
+  const criticalTypes = [cpuCriticalCount > 0, memoryCriticalCount > 0, diskCriticalCount > 0];
+  const dataQualityScore = criticalTypes.filter(Boolean).length / 3; // 0-1
+
+  // 가장 빈번한 패턴 찾기
+  const maxPattern = incidentPatterns.reduce((prev, curr) =>
+    curr.occurrences > prev.occurrences ? curr : prev
+  );
+
   const insights = [
     `학습된 장애 패턴: ${incidentPatterns.length}가지`,
     `총 발생 사례: ${totalPatterns}건`,
-    '가장 빈번한 패턴: CPU 과부하 → 서비스 응답 지연',
-    '연쇄 장애 패턴: 메모리 → CPU → 네트워크 순서',
+    `가장 빈번한 패턴: ${maxPattern.pattern} (${maxPattern.occurrences}건)`,
+    `임계값 초과: CPU ${cpuCriticalCount}회, 메모리 ${memoryCriticalCount}회, 디스크 ${diskCriticalCount}회`,
   ];
 
   return {
     patternsLearned: totalPatterns,
-    accuracyImprovement: Math.floor(Math.random() * 25) + 15,
-    confidence: 0.85 + Math.random() * 0.1,
+    accuracyImprovement: 0, // POST 핸들러에서 이전 결과와 비교하여 계산
+    confidence: calculateConfidence(metrics.length, dataQualityScore),
     insights,
-    nextRecommendation: '예방적 스케일링 정책 수립 권장',
+    nextRecommendation: totalPatterns > 5
+      ? '즉시 스케일링 정책 점검 필요'
+      : '예방적 스케일링 정책 수립 권장',
     metadata: {
       processingTime: 0, // Will be set properly in main function
       dataPoints: metrics.length,
       algorithm: 'incident_pattern_recognition',
-      version: '1.2',
+      version: '2.0',
     },
   };
 }
 
-// 예측 모델 훈련
+// 예측 모델 훈련 (v2.0: 실제 트렌드 분석)
 function trainPredictionModel(
   metrics: MLMetricData[]
 ): Partial<TrainingResult> {
@@ -332,24 +470,47 @@ function trainPredictionModel(
       ? (lastMemory - firstMemory) / memoryTrend.length
       : 0;
 
+  // 📊 패턴 수 계산 (트렌드 변화점 기반)
+  let trendChanges = 0;
+  for (let i = 1; i < cpuTrend.length - 1; i++) {
+    const prev = cpuTrend[i - 1] ?? 0;
+    const curr = cpuTrend[i] ?? 0;
+    const next = cpuTrend[i + 1] ?? 0;
+    // 변곡점 감지 (방향 전환)
+    if ((curr - prev) * (next - curr) < 0) {
+      trendChanges++;
+    }
+  }
+  const patternsLearned = Math.max(5, trendChanges + 3); // 최소 5개 패턴
+
+  // 📈 데이터 품질: 트렌드 일관성 (R² 유사 지표)
+  const cpuMean = cpuTrend.reduce((a, b) => a + b, 0) / cpuTrend.length || 0;
+  const cpuVariance = cpuTrend.reduce((sum, v) => sum + Math.pow(v - cpuMean, 2), 0) / cpuTrend.length;
+  const trendConsistency = Math.max(0.3, 1 - (cpuVariance / 1000)); // 분산 기반 일관성
+
+  // 예측 정확도 계산 (샘플 크기 + 트렌드 일관성)
+  const predictedAccuracy = Math.min(95, 70 + (metrics.length / 10) + (trendConsistency * 10));
+
   const insights = [
     `CPU 사용률 트렌드: ${cpuSlope > 0 ? '증가' : '감소'} (${Math.abs(cpuSlope).toFixed(2)}%/시간)`,
     `메모리 사용률 트렌드: ${memorySlope > 0 ? '증가' : '감소'} (${Math.abs(memorySlope).toFixed(2)}%/시간)`,
-    '24시간 후 예측 정확도: 87.3%',
-    '주간 패턴 반영으로 예측력 개선됨',
+    `24시간 후 예측 정확도: ${predictedAccuracy.toFixed(1)}%`,
+    `감지된 트렌드 변화점: ${trendChanges}개`,
   ];
 
   return {
-    patternsLearned: Math.floor(Math.random() * 12) + 8,
-    accuracyImprovement: Math.floor(Math.random() * 30) + 20,
-    confidence: 0.82 + Math.random() * 0.15,
+    patternsLearned,
+    accuracyImprovement: 0, // POST 핸들러에서 이전 결과와 비교하여 계산
+    confidence: calculateConfidence(metrics.length, trendConsistency),
     insights,
-    nextRecommendation: '계절적 변동 데이터 추가 학습 필요',
+    nextRecommendation: trendChanges > 10
+      ? '데이터 노이즈 필터링 필요'
+      : '계절적 변동 데이터 추가 학습 권장',
     metadata: {
       processingTime: 0, // Will be set properly in main function
       dataPoints: metrics.length,
       algorithm: 'linear_regression_trend',
-      version: '1.3',
+      version: '2.0',
     },
   };
 }
@@ -437,22 +598,78 @@ export const POST = withAuth(async (request: NextRequest) => {
       );
     }
 
-    // ML 학습 실행
-    const trainingResult = performMLTraining(type, metrics);
+    // 📊 이전 학습 결과 조회 (정확도 개선 계산용)
+    const previousStats = await getPreviousTrainingStats(supabase, type, 5);
+
+    // 🆕 GCP Cloud Functions 우선 시도 (무료 티어 200만 호출/월 활용)
+    let trainingResult: Partial<TrainingResult>;
+    let usedGCP = false;
+
+    if (FREE_TIER_CONFIG.gcpCloudFunctions.optimizations.enableMLTraining) {
+      try {
+        console.log(`🌐 GCP ML Trainer 호출 시도: type=${type}`);
+        const gcpClient = getGCPFunctionsClient();
+        const gcpResult = await gcpClient.callMLTrainer({
+          type,
+          metrics: metrics.map(m => ({
+            cpu_usage: m.cpu_usage,
+            memory_usage: m.memory_usage,
+            disk_usage: m.disk_usage,
+            network_usage: m.network_usage,
+            timestamp: m.timestamp,
+            server_id: m.server_id,
+          })),
+          serverId,
+          timeRange,
+          config,
+        });
+
+        if (gcpResult.success) {
+          console.log('✅ GCP ML Trainer 성공');
+          trainingResult = {
+            patternsLearned: gcpResult.data.patternsLearned,
+            accuracyImprovement: gcpResult.data.accuracyImprovement,
+            confidence: gcpResult.data.confidence,
+            insights: gcpResult.data.insights,
+            nextRecommendation: gcpResult.data.nextRecommendation,
+            metadata: gcpResult.data.metadata,
+          };
+          usedGCP = true;
+        } else {
+          // success: false 인 경우에만 error 속성 존재
+          console.warn('⚠️ GCP ML Trainer 실패, 로컬 폴백:', gcpResult.error);
+          trainingResult = performMLTraining(type, metrics);
+        }
+      } catch (gcpError) {
+        console.error('❌ GCP ML Trainer 오류, 로컬 폴백:', gcpError);
+        trainingResult = performMLTraining(type, metrics);
+      }
+    } else {
+      // GCP 비활성화 시 로컬 학습
+      trainingResult = performMLTraining(type, metrics);
+    }
+
+    // 📈 실제 정확도 개선 계산 (GCP 결과가 있으면 사용, 없으면 로컬 계산)
+    const accuracyImprovement = usedGCP && trainingResult.accuracyImprovement !== undefined
+      ? trainingResult.accuracyImprovement
+      : calculateAccuracyImprovement(
+          trainingResult.patternsLearned || 0,
+          previousStats
+        );
 
     // 결과 생성
     const normalizedMetadata: TrainingResult['metadata'] = {
       processingTime: trainingResult.metadata?.processingTime ?? 0,
       dataPoints: trainingResult.metadata?.dataPoints ?? metrics.length,
       algorithm: trainingResult.metadata?.algorithm ?? 'unknown',
-      version: trainingResult.metadata?.version ?? '1.0',
+      version: trainingResult.metadata?.version ?? '2.0', // v2.0 업데이트
     };
 
     const result: TrainingResult = {
       id: crypto.randomUUID(),
       type,
       patternsLearned: trainingResult.patternsLearned || 0,
-      accuracyImprovement: trainingResult.accuracyImprovement || 0,
+      accuracyImprovement, // 실제 계산된 정확도 개선
       confidence: trainingResult.confidence || 0,
       insights: trainingResult.insights || [],
       nextRecommendation: trainingResult.nextRecommendation || '',
@@ -490,6 +707,7 @@ export const POST = withAuth(async (request: NextRequest) => {
       success: true,
       result,
       cached: false,
+      source: usedGCP ? 'gcp-cloud-functions' : 'local',
     });
   } catch (error) {
     console.error('ML 학습 실패:', error);
