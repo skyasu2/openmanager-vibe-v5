@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
-import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
-import { mapServerToEnhanced } from '@/utils/serverUtils';
-import type { EnhancedServerMetrics } from '@/types/server';
 import type { AIInsight } from '@/hooks/api/useAIInsights';
+import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
+import type { EnhancedServerMetrics } from '@/types/server';
+import { mapServerToEnhanced } from '@/utils/serverUtils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
  * 🧠 AI Insights Generator
- * 
+ *
  * Generates insights based on the same unified server data source used by the dashboard.
  * This ensures consistency between the dashboard metrics and AI insights.
  */
@@ -85,7 +85,8 @@ export async function GET() {
         id: `rec-opt-${Date.now()}`,
         type: 'recommendation',
         title: 'System Optimization',
-        description: 'All servers are running within normal parameters. Consider enabling auto-scaling for cost optimization.',
+        description:
+          'All servers are running within normal parameters. Consider enabling auto-scaling for cost optimization.',
         confidence: 0.8,
         severity: 'low',
         createdAt: now,
@@ -93,13 +94,15 @@ export async function GET() {
     }
 
     // Add a predictive insight (Mock for now, but consistent with general status)
-    const avgCpu = servers.reduce((acc, s) => acc + s.cpu_usage, 0) / (servers.length || 1);
+    const avgCpu =
+      servers.reduce((acc, s) => acc + s.cpu_usage, 0) / (servers.length || 1);
     if (avgCpu > 60) {
       insights.push({
         id: `pred-load-${Date.now()}`,
         type: 'prediction',
         title: 'Load Increasing',
-        description: 'Average CPU load is trending upwards. Expect peak load within 2 hours.',
+        description:
+          'Average CPU load is trending upwards. Expect peak load within 2 hours.',
         confidence: 0.75,
         severity: 'medium',
         createdAt: now,
