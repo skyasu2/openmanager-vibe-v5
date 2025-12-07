@@ -277,10 +277,9 @@ function trainPatterns(metrics: MLMetricData[]): Partial<TrainingResult> {
   }
 
   // 📊 실제 패턴 수 계산: 상관관계 강도 + 변동성 기반
-  const variance = cpuMemoryCorrelations.reduce(
-    (sum, m) => sum + Math.pow(m.cpu - avgCpu, 2),
-    0
-  ) / cpuMemoryCorrelations.length;
+  const variance =
+    cpuMemoryCorrelations.reduce((sum, m) => sum + (m.cpu - avgCpu) ** 2, 0) /
+    cpuMemoryCorrelations.length;
   const stdDev = Math.sqrt(variance);
 
   // 패턴 수: 상관관계가 강하고 변동성이 높을수록 더 많은 패턴 발견
@@ -290,8 +289,9 @@ function trainPatterns(metrics: MLMetricData[]): Partial<TrainingResult> {
   );
 
   // 데이터 품질 점수: 데이터 포인트 수 + 값 범위 다양성 기반
-  const valueRange = Math.max(...cpuMemoryCorrelations.map(m => m.cpu)) -
-    Math.min(...cpuMemoryCorrelations.map(m => m.cpu));
+  const valueRange =
+    Math.max(...cpuMemoryCorrelations.map((m) => m.cpu)) -
+    Math.min(...cpuMemoryCorrelations.map((m) => m.cpu));
   const dataQualityScore = Math.min(1, (valueRange / 100) * 0.5 + 0.5);
 
   return {
@@ -353,10 +353,15 @@ function trainAnomalyDetection(
 
   // 📊 데이터 품질 점수: 이상 탐지 정확도는 데이터 다양성에 의존
   // 다양한 유형의 이상이 탐지될수록 더 높은 품질
-  const anomalyTypeCount = [cpuAnomalies, memoryAnomalies, diskAnomalies].filter(
-    (count) => count > 0
-  ).length;
-  const dataQualityScore = Math.min(1, anomalyTypeCount / 3 + metrics.length / 200);
+  const anomalyTypeCount = [
+    cpuAnomalies,
+    memoryAnomalies,
+    diskAnomalies,
+  ].filter((count) => count > 0).length;
+  const dataQualityScore = Math.min(
+    1,
+    anomalyTypeCount / 3 + metrics.length / 200
+  );
 
   return {
     patternsLearned: anomalies.length, // 실제 탐지된 이상 패턴 수 (변경 없음)
@@ -378,9 +383,15 @@ function trainIncidentLearning(
   metrics: MLMetricData[]
 ): Partial<TrainingResult> {
   // 📊 실제 메트릭에서 임계값 초과 횟수 계산
-  const cpuCriticalCount = metrics.filter((m) => (m.cpu_usage ?? 0) > 95).length;
-  const memoryCriticalCount = metrics.filter((m) => (m.memory_usage ?? 0) > 98).length;
-  const diskCriticalCount = metrics.filter((m) => (m.disk_usage ?? 0) > 95).length;
+  const cpuCriticalCount = metrics.filter(
+    (m) => (m.cpu_usage ?? 0) > 95
+  ).length;
+  const memoryCriticalCount = metrics.filter(
+    (m) => (m.memory_usage ?? 0) > 98
+  ).length;
+  const diskCriticalCount = metrics.filter(
+    (m) => (m.disk_usage ?? 0) > 95
+  ).length;
 
   // 장애 패턴 (실제 데이터 기반 발생 횟수)
   const incidentPatterns = [
@@ -407,7 +418,11 @@ function trainIncidentLearning(
   );
 
   // 📈 데이터 품질 점수 (임계값 초과 다양성)
-  const criticalTypes = [cpuCriticalCount > 0, memoryCriticalCount > 0, diskCriticalCount > 0];
+  const criticalTypes = [
+    cpuCriticalCount > 0,
+    memoryCriticalCount > 0,
+    diskCriticalCount > 0,
+  ];
   const dataQualityScore = criticalTypes.filter(Boolean).length / 3; // 0-1
 
   // 가장 빈번한 패턴 찾기
@@ -427,9 +442,10 @@ function trainIncidentLearning(
     accuracyImprovement: 0, // POST 핸들러에서 이전 결과와 비교하여 계산
     confidence: calculateConfidence(metrics.length, dataQualityScore),
     insights,
-    nextRecommendation: totalPatterns > 5
-      ? '즉시 스케일링 정책 점검 필요'
-      : '예방적 스케일링 정책 수립 권장',
+    nextRecommendation:
+      totalPatterns > 5
+        ? '즉시 스케일링 정책 점검 필요'
+        : '예방적 스케일링 정책 수립 권장',
     metadata: {
       processingTime: 0, // Will be set properly in main function
       dataPoints: metrics.length,
@@ -485,11 +501,15 @@ function trainPredictionModel(
 
   // 📈 데이터 품질: 트렌드 일관성 (R² 유사 지표)
   const cpuMean = cpuTrend.reduce((a, b) => a + b, 0) / cpuTrend.length || 0;
-  const cpuVariance = cpuTrend.reduce((sum, v) => sum + Math.pow(v - cpuMean, 2), 0) / cpuTrend.length;
-  const trendConsistency = Math.max(0.3, 1 - (cpuVariance / 1000)); // 분산 기반 일관성
+  const cpuVariance =
+    cpuTrend.reduce((sum, v) => sum + (v - cpuMean) ** 2, 0) / cpuTrend.length;
+  const trendConsistency = Math.max(0.3, 1 - cpuVariance / 1000); // 분산 기반 일관성
 
   // 예측 정확도 계산 (샘플 크기 + 트렌드 일관성)
-  const predictedAccuracy = Math.min(95, 70 + (metrics.length / 10) + (trendConsistency * 10));
+  const predictedAccuracy = Math.min(
+    95,
+    70 + metrics.length / 10 + trendConsistency * 10
+  );
 
   const insights = [
     `CPU 사용률 트렌드: ${cpuSlope > 0 ? '증가' : '감소'} (${Math.abs(cpuSlope).toFixed(2)}%/시간)`,
@@ -503,9 +523,10 @@ function trainPredictionModel(
     accuracyImprovement: 0, // POST 핸들러에서 이전 결과와 비교하여 계산
     confidence: calculateConfidence(metrics.length, trendConsistency),
     insights,
-    nextRecommendation: trendChanges > 10
-      ? '데이터 노이즈 필터링 필요'
-      : '계절적 변동 데이터 추가 학습 권장',
+    nextRecommendation:
+      trendChanges > 10
+        ? '데이터 노이즈 필터링 필요'
+        : '계절적 변동 데이터 추가 학습 권장',
     metadata: {
       processingTime: 0, // Will be set properly in main function
       dataPoints: metrics.length,
@@ -611,7 +632,7 @@ export const POST = withAuth(async (request: NextRequest) => {
         const gcpClient = getGCPFunctionsClient();
         const gcpResult = await gcpClient.callMLTrainer({
           type,
-          metrics: metrics.map(m => ({
+          metrics: metrics.map((m) => ({
             cpu_usage: m.cpu_usage,
             memory_usage: m.memory_usage,
             disk_usage: m.disk_usage,
@@ -650,12 +671,13 @@ export const POST = withAuth(async (request: NextRequest) => {
     }
 
     // 📈 실제 정확도 개선 계산 (GCP 결과가 있으면 사용, 없으면 로컬 계산)
-    const accuracyImprovement = usedGCP && trainingResult.accuracyImprovement !== undefined
-      ? trainingResult.accuracyImprovement
-      : calculateAccuracyImprovement(
-          trainingResult.patternsLearned || 0,
-          previousStats
-        );
+    const accuracyImprovement =
+      usedGCP && trainingResult.accuracyImprovement !== undefined
+        ? trainingResult.accuracyImprovement
+        : calculateAccuracyImprovement(
+            trainingResult.patternsLearned || 0,
+            previousStats
+          );
 
     // 결과 생성
     const normalizedMetadata: TrainingResult['metadata'] = {

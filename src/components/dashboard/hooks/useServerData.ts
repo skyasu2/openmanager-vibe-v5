@@ -21,7 +21,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useServerDataStore } from '@/components/providers/StoreProvider';
-import type { Server, EnhancedServerMetrics } from '@/types/server';
+import type { EnhancedServerMetrics, Server } from '@/types/server';
 import type { DashboardStats, ServerFilters } from '../types/dashboard.types';
 
 // 🔄 기존 useServerDashboard와의 호환성을 위한 인터페이스 확장
@@ -32,7 +32,10 @@ export interface UseServerDataReturn {
   error: string | null;
   lastUpdate: Date;
   refreshData: () => void;
-  filterServers: (servers: EnhancedServerMetrics[], filters: ServerFilters) => EnhancedServerMetrics[];
+  filterServers: (
+    servers: EnhancedServerMetrics[],
+    filters: ServerFilters
+  ) => EnhancedServerMetrics[];
   mapStatus: (status: string) => 'online' | 'offline' | 'warning';
 
   // 기존 useServerDashboard 호환성
@@ -60,7 +63,9 @@ export const useServerData = (): UseServerDataReturn => {
   const errorStore = useServerDataStore((state) => state.error);
   const lastUpdateStore = useServerDataStore((state) => state.lastUpdate);
   const fetchServers = useServerDataStore((state) => state.fetchServers);
-  const startAutoRefresh = useServerDataStore((state) => state.startAutoRefresh);
+  const startAutoRefresh = useServerDataStore(
+    (state) => state.startAutoRefresh
+  );
   const stopAutoRefresh = useServerDataStore((state) => state.stopAutoRefresh);
 
   // 로컬 로딩 상태 (초기 로드용)
@@ -119,60 +124,69 @@ export const useServerData = (): UseServerDataReturn => {
   }, [fetchServers, startAutoRefresh, stopAutoRefresh, servers.length]);
 
   // 서버 우선순위 정렬 (심각→경고→정상)
-  const sortServersByPriority = useCallback((servers: EnhancedServerMetrics[]): EnhancedServerMetrics[] => {
-    const priorityOrder: Record<string, number> = {
-      offline: 0,
-      critical: 0,
-      unhealthy: 0,
-      warning: 1,
-      degraded: 1,
-      maintenance: 1,
-      online: 2,
-      healthy: 2,
-      running: 2,
-      active: 2,
-    };
-
-    return [...servers].sort((a, b) => {
-      const priorityA = priorityOrder[a.status] ?? 1;
-      const priorityB = priorityOrder[b.status] ?? 1;
-
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB;
-      }
-
-      // 같은 우선순위면 알림 수로 정렬
-      const getAlertCount = (s: EnhancedServerMetrics): number => {
-        if (typeof s.alerts === 'number') return s.alerts;
-        if (Array.isArray(s.alerts)) return s.alerts.length;
-        return 0;
+  const sortServersByPriority = useCallback(
+    (servers: EnhancedServerMetrics[]): EnhancedServerMetrics[] => {
+      const priorityOrder: Record<string, number> = {
+        offline: 0,
+        critical: 0,
+        unhealthy: 0,
+        warning: 1,
+        degraded: 1,
+        maintenance: 1,
+        online: 2,
+        healthy: 2,
+        running: 2,
+        active: 2,
       };
 
-      return getAlertCount(b) - getAlertCount(a);
-    });
-  }, []);
+      return [...servers].sort((a, b) => {
+        const priorityA = priorityOrder[a.status] ?? 1;
+        const priorityB = priorityOrder[b.status] ?? 1;
+
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+
+        // 같은 우선순위면 알림 수로 정렬
+        const getAlertCount = (s: EnhancedServerMetrics): number => {
+          if (typeof s.alerts === 'number') return s.alerts;
+          if (Array.isArray(s.alerts)) return s.alerts.length;
+          return 0;
+        };
+
+        return getAlertCount(b) - getAlertCount(a);
+      });
+    },
+    []
+  );
 
   // 통계 계산 함수
-  const calculateStats = useCallback((servers: EnhancedServerMetrics[]): DashboardStats => {
-    const stats = servers.reduce(
-      (acc, server) => {
-        acc.total++;
-        const status = mapStatus(server.status);
-        if (status === 'online') acc.online++;
-        else if (status === 'warning') acc.warning++;
-        else if (status === 'offline') acc.offline++;
-        else acc.unknown++;
-        return acc;
-      },
-      { total: 0, online: 0, warning: 0, offline: 0, unknown: 0 }
-    );
+  const calculateStats = useCallback(
+    (servers: EnhancedServerMetrics[]): DashboardStats => {
+      const stats = servers.reduce(
+        (acc, server) => {
+          acc.total++;
+          const status = mapStatus(server.status);
+          if (status === 'online') acc.online++;
+          else if (status === 'warning') acc.warning++;
+          else if (status === 'offline') acc.offline++;
+          else acc.unknown++;
+          return acc;
+        },
+        { total: 0, online: 0, warning: 0, offline: 0, unknown: 0 }
+      );
 
-    return stats;
-  }, [mapStatus]);
+      return stats;
+    },
+    [mapStatus]
+  );
 
   // 서버 필터링 함수
   const filterServers = useCallback(
-    (servers: EnhancedServerMetrics[], filters: ServerFilters): EnhancedServerMetrics[] => {
+    (
+      servers: EnhancedServerMetrics[],
+      filters: ServerFilters
+    ): EnhancedServerMetrics[] => {
       return servers.filter((server) => {
         // 상태 필터
         if (

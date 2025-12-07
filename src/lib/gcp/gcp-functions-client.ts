@@ -187,19 +187,21 @@ export class GCPFunctionsClient {
       threshold?: number;
       sensitivity?: 'low' | 'medium' | 'high';
     };
-  }): Promise<Result<{
-    patternsLearned: number;
-    accuracyImprovement: number;
-    confidence: number;
-    insights: string[];
-    nextRecommendation: string;
-    metadata: {
-      processingTime: number;
-      dataPoints: number;
-      algorithm: string;
-      version: string;
-    };
-  }>> {
+  }): Promise<
+    Result<{
+      patternsLearned: number;
+      accuracyImprovement: number;
+      confidence: number;
+      insights: string[];
+      nextRecommendation: string;
+      metadata: {
+        processingTime: number;
+        dataPoints: number;
+        algorithm: string;
+        version: string;
+      };
+    }>
+  > {
     return this.callFunction('ml-trainer', {
       ...params,
       context: {
@@ -215,11 +217,13 @@ export class GCPFunctionsClient {
   async callPatternAnalyzer(params: {
     query: string;
     patterns?: string[];
-  }): Promise<Result<{
-    detectedPatterns: string[];
-    intent: string;
-    confidence: number;
-  }>> {
+  }): Promise<
+    Result<{
+      detectedPatterns: string[];
+      intent: string;
+      confidence: number;
+    }>
+  > {
     return this.callFunction('pattern-analyzer', {
       ...params,
       context: {
