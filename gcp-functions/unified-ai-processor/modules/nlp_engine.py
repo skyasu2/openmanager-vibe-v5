@@ -1,38 +1,16 @@
 """
-Enhanced Korean NLP Engine (Cloud Run / Cloud Functions Compatible)
-
-Features:
-- Hybrid Intent Classification (Rule-based + ML)
-- In-memory TF-IDF + Logistic Regression Model
-- High-performance Korean Text Processing
-- 10-50x performance improvement over JavaScript
-
-Deployment:
-- Cloud Run: docker build & gcloud run deploy
-- Cloud Functions: gcloud functions deploy (legacy)
-- Local: python main.py or docker-compose up
-
-Author: AI Migration Team
-Version: 3.0.0 (Cloud Run Optimized)
+NLP Engine Module (Extracted from enhanced-korean-nlp)
+For use by Unified AI Processor - No internal HTTP calls
 """
 
-import os
-import json
 import time
-import re
-import asyncio
 import numpy as np
-from datetime import datetime
-from typing import Dict, List, Optional, Union, Any
-from dataclasses import dataclass, asdict
-
-from flask import Flask, request, jsonify
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
-# Flask app for Cloud Run
-app = Flask(__name__)
 
 @dataclass
 class Entity:
@@ -41,12 +19,14 @@ class Entity:
     confidence: float
     normalized: str
 
+
 @dataclass
 class SemanticAnalysis:
     main_topic: str
     sub_topics: List[str]
     urgency_level: str
     technical_complexity: float
+
 
 @dataclass
 class ServerContext:
@@ -55,6 +35,7 @@ class ServerContext:
     time_range: Optional[Dict[str, str]] = None
     comparison_type: Optional[str] = None
 
+
 @dataclass
 class ResponseGuidance:
     response_type: str
@@ -62,12 +43,14 @@ class ResponseGuidance:
     visualization_suggestions: List[str]
     follow_up_questions: List[str]
 
+
 @dataclass
 class QualityMetrics:
     confidence: float
     processing_time: float
     analysis_depth: float
     context_relevance: float
+
 
 @dataclass
 class EnhancedKoreanAnalysis:
@@ -80,16 +63,13 @@ class EnhancedKoreanAnalysis:
 
 
 class HybridIntentClassifier:
-    """
-    Hybrid Classifier combining Rule-based patterns with ML (TF-IDF + LR)
-    Trains a lightweight model in-memory on initialization.
-    """
+    """Hybrid Classifier combining Rule-based patterns with ML (TF-IDF + LR)"""
+
     def __init__(self):
         self.pipeline = None
         self.is_trained = False
         self.confidence_threshold = 0.6
-        
-        # Training Data (Small, high-quality dataset for portfolio demo)
+
         self.training_data = [
             ("서버 상태 확인해줘", "inquiry"),
             ("현재 CPU 사용량 알려줘", "inquiry"),
@@ -105,47 +85,46 @@ class HybridIntentClassifier:
             ("반가워", "general"),
             ("도움말 보여줘", "general")
         ]
-        
+
     def train(self):
         """Train the lightweight model in-memory"""
-        if self.is_trained: return
-        
-        print("🎓 Training Hybrid Intent Classifier (In-Memory)...")
+        if self.is_trained:
+            return
+
         X = [text for text, label in self.training_data]
         y = [label for text, label in self.training_data]
-        
+
         self.pipeline = Pipeline([
             ('tfidf', TfidfVectorizer(ngram_range=(1, 2), min_df=1)),
             ('clf', LogisticRegression(random_state=42, C=10.0))
         ])
-        
+
         self.pipeline.fit(X, y)
         self.is_trained = True
-        print("✅ Training Complete")
 
     def predict(self, text: str) -> Dict[str, Any]:
         """Predict intent with probabilities"""
-        if not self.is_trained: self.train()
-        
+        if not self.is_trained:
+            self.train()
+
         # 1. Rule-based Check (Fast Path)
         rule_intent = self._check_rules(text)
         if rule_intent:
             return {"intent": rule_intent, "confidence": 0.95, "source": "rule"}
-            
+
         # 2. ML Prediction (Fallback)
         try:
             probas = self.pipeline.predict_proba([text])[0]
             max_idx = np.argmax(probas)
             intent = self.pipeline.classes_[max_idx]
             confidence = probas[max_idx]
-            
+
             if confidence < self.confidence_threshold:
                 return {"intent": "general", "confidence": confidence, "source": "ml_low_confidence"}
-                
+
             return {"intent": intent, "confidence": float(confidence), "source": "ml"}
-            
+
         except Exception as e:
-            print(f"ML Prediction failed: {e}")
             return {"intent": "general", "confidence": 0.0, "source": "fallback"}
 
     def _check_rules(self, text: str) -> Optional[str]:
@@ -162,8 +141,8 @@ class HybridIntentClassifier:
 
 
 class EnhancedKoreanNLPEngine:
-    """High-performance Korean NLP Engine (Portfolio Edition)"""
-    
+    """High-performance Korean NLP Engine"""
+
     def __init__(self):
         self.initialized = False
         self.classifier = HybridIntentClassifier()
@@ -192,40 +171,29 @@ class EnhancedKoreanNLPEngine:
         }
 
     async def initialize(self):
-        if self.initialized: return
-        print("🚀 Enhanced Korean NLP Engine initializing...")
-        self.classifier.train() # Train ML model
+        if self.initialized:
+            return
+        self.classifier.train()
         self.initialized = True
-        print("🎯 Engine ready")
 
     async def analyze_query(self, query: str, context: Optional[Dict] = None) -> EnhancedKoreanAnalysis:
         await self.initialize()
         start_time = time.time()
-        
-        # 1. Hybrid Intent Classification
+
         ml_result = self.classifier.predict(query)
         intent = ml_result['intent']
-        
-        # 2. Entity Extraction (Regex + Dictionary)
         entities = self._extract_entities(query)
-        
-        # 3. Semantic Analysis
         semantic_analysis = self._perform_semantic_analysis(query, intent)
-        
-        # 4. Context Analysis
         context_analysis = self._perform_context_analysis(query)
-        
-        # 5. Response Guidance
         response_guidance = self._generate_response_guidance(intent, semantic_analysis, context_analysis)
-        
-        # 6. Quality Metrics
+
         quality_metrics = QualityMetrics(
             confidence=ml_result['confidence'],
             processing_time=(time.time() - start_time) * 1000,
             analysis_depth=0.8,
             context_relevance=0.9
         )
-        
+
         return EnhancedKoreanAnalysis(
             intent=intent,
             entities=entities,
@@ -237,7 +205,6 @@ class EnhancedKoreanNLPEngine:
 
     def _extract_entities(self, query: str) -> List[Entity]:
         entities = []
-        # Simple dictionary matching for demo
         for category, types in self.domain_vocabulary.items():
             for type_name, keywords in types.items():
                 if any(k in query.lower() for k in keywords):
@@ -267,85 +234,3 @@ class EnhancedKoreanNLPEngine:
             visualization_suggestions=["Line Chart"] if "cpu" in str(context.metrics) else [],
             follow_up_questions=["더 자세한 로그를 보시겠습니까?"]
         )
-
-
-# Global instance
-korean_nlp_engine = EnhancedKoreanNLPEngine()
-
-
-@app.route('/', methods=['GET', 'POST', 'OPTIONS'])
-@app.route('/analyze', methods=['GET', 'POST', 'OPTIONS'])
-def enhanced_korean_nlp():
-    """
-    Cloud Run / Cloud Functions compatible entry point
-    Expects JSON payload: {
-        "query": "분석할 쿼리",
-        "context": {...}
-    }
-    """
-
-    # Handle CORS preflight
-    if request.method == 'OPTIONS':
-        return '', 204, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Max-Age': '3600'
-        }
-
-    # Health check for GET requests
-    if request.method == 'GET':
-        return jsonify({
-            'status': 'healthy',
-            'service': 'enhanced-korean-nlp',
-            'version': '3.0.0',
-            'timestamp': datetime.now().isoformat()
-        })
-
-    try:
-        if not request.is_json:
-            return jsonify({
-                'success': False,
-                'error': 'Content-Type must be application/json',
-                'service': 'enhanced-korean-nlp'
-            }), 400
-
-        data = request.get_json()
-        query = data.get('query', '')
-        context = data.get('context', {})
-
-        if not query:
-            return jsonify({
-                'success': False,
-                'error': 'Query parameter is required',
-                'service': 'enhanced-korean-nlp'
-            }), 400
-
-        result = asyncio.run(korean_nlp_engine.analyze_query(query, context))
-
-        response = {
-            'success': True,
-            'data': asdict(result),
-            'service': 'enhanced-korean-nlp',
-            'version': '3.0.0',
-            'timestamp': datetime.now().isoformat()
-        }
-        return jsonify(response)
-
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'service': 'enhanced-korean-nlp',
-            'version': '3.0.0',
-            'timestamp': datetime.now().isoformat()
-        }), 500
-
-
-if __name__ == '__main__':
-    # Run Flask app for local development or Cloud Run
-    port = int(os.environ.get('PORT', 8080))
-    debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
-
-    print(f"Starting Enhanced Korean NLP Engine on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=debug)

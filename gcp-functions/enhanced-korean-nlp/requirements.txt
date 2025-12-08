@@ -1,8 +1,8 @@
-# 🇰🇷 Enhanced Korean NLP - Python Dependencies
-# 한국어 자연어 처리 - 2025-11-20 업데이트
+# 🇰🇷 Enhanced Korean NLP - Python Dependencies (Cloud Run Compatible)
+# 한국어 자연어 처리 - 2025-12-08 업데이트
 
-# Functions Framework
-functions-framework==3.4.0
+# Web Framework (Cloud Run)
+flask==3.0.3                        # Cloud Run / Flask App
 
 # NLP Core
 konlpy==0.6.0                       # 한국어 형태소 분석

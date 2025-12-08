@@ -1,8 +1,8 @@
-# 🧠 ML Analytics Engine - Python Dependencies (GCP Functions Compatible)
-# 머신러닝 분석 및 예측 - 2025-11-20 업데이트
+# 🧠 ML Analytics Engine - Python Dependencies (Cloud Run Compatible)
+# 머신러닝 분석 및 예측 - 2025-12-08 업데이트
 
-# Functions Framework (필수)
-functions-framework==3.4.0          # GCP Functions (최신)
+# Web Framework (Cloud Run)
+flask==3.0.3                        # Cloud Run / Flask App
 
 # Core ML Libraries (2025 최신 버전)
 numpy==1.26.4                       # 수치 계산

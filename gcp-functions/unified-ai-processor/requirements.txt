@@ -1,8 +1,8 @@
-# 🤖 Unified AI Processor - Python Dependencies
-# 통합 AI 처리 엔진 - 2025-11-20 업데이트
+# 🤖 Unified AI Processor - Python Dependencies (Cloud Run Compatible)
+# 통합 AI 처리 엔진 - 2025-12-08 업데이트
 
-# Functions Framework
-functions-framework==3.8.1
+# Web Framework (Cloud Run)
+flask==3.0.3                        # Cloud Run / Flask App
 
 # Core Libraries
 numpy==1.26.4

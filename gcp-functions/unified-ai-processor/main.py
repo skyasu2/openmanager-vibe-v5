@@ -1,5 +1,5 @@
 """
-Unified AI Processor (GCP Functions)
+Unified AI Processor (Cloud Run / Cloud Functions Compatible)
 
 Features:
 - AI orchestration and coordination
@@ -9,17 +9,24 @@ Features:
 - 10-50x performance improvement over JavaScript
 - **Optimized**: Direct module integration (No internal HTTP calls)
 
+Deployment:
+- Cloud Run: docker build & gcloud run deploy
+- Cloud Functions: gcloud functions deploy (legacy)
+- Local: python main.py or docker-compose up
+
 Author: AI Migration Team
-Version: 2.1.0 (Python Optimized)
+Version: 3.0.0 (Cloud Run Optimized)
 """
 
+import os
 import json
 import time
 import asyncio
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
-import functions_framework
+
+from flask import Flask, request, jsonify
 import httpx
 from cachetools import TTLCache
 import structlog
@@ -30,6 +37,9 @@ from modules.ml_engine import MLAnalyticsEngine
 
 # Configure structured logging
 logger = structlog.get_logger()
+
+# Flask app for Cloud Run
+app = Flask(__name__)
 
 # Global cache (5 minutes TTL)
 response_cache = TTLCache(maxsize=1000, ttl=300)
@@ -399,10 +409,11 @@ class UnifiedAIProcessor:
 processor = UnifiedAIProcessor()
 
 
-@functions_framework.http
-def unified_ai_processor(request):
+@app.route('/', methods=['GET', 'POST', 'OPTIONS'])
+@app.route('/process', methods=['GET', 'POST', 'OPTIONS'])
+def unified_ai_processor():
     """
-    GCP Functions entry point for Unified AI Processor
+    Cloud Run / Cloud Functions compatible entry point
     Expects JSON payload: {
         "query": "분석할 쿼리",
         "context": {...},
@@ -410,55 +421,58 @@ def unified_ai_processor(request):
         "options": {...}
     }
     """
-    
-    # Handle CORS
+
+    # Handle CORS preflight
     if request.method == 'OPTIONS':
-        headers = {
+        return '', 204, {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type',
             'Access-Control-Max-Age': '3600'
         }
-        return ('', 204, headers)
-    
-    headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
-    }
-    
+
+    # Health check for GET requests
+    if request.method == 'GET':
+        return jsonify({
+            'status': 'healthy',
+            'service': 'unified-ai-processor',
+            'version': '3.0.0',
+            'timestamp': datetime.now().isoformat()
+        })
+
     try:
         # Parse request
         if not request.is_json:
-            return (json.dumps({
+            return jsonify({
                 'success': False,
                 'error': 'Content-Type must be application/json',
-                'function_name': 'unified-ai-processor'
-            }), 400, headers)
-        
+                'service': 'unified-ai-processor'
+            }), 400
+
         data = request.get_json()
-        
+
         # Validate required fields
         if not data.get('query'):
-            return (json.dumps({
+            return jsonify({
                 'success': False,
                 'error': 'Query parameter is required',
-                'function_name': 'unified-ai-processor'
-            }), 400, headers)
-        
+                'service': 'unified-ai-processor'
+            }), 400
+
         # Build processing request
         proc_request = ProcessingRequest(
             query=data['query'],
             context=data.get('context', {}),
-            processors=data.get('processors', ['korean_nlp', 'server_analyzer']),
+            processors=data.get('processors', ['korean_nlp', 'ml_analytics']),
             options=data.get('options', {})
         )
-        
+
         logger.info("Processing unified AI request", query=proc_request.query)
-        
+
         # Process request
         result = asyncio.run(processor.process_request(proc_request))
-        
-        # Convert to JSON-serializable format
+
+        # Build response
         response = {
             'success': result.success,
             'data': {
@@ -467,8 +481,8 @@ def unified_ai_processor(request):
                 'recommendations': result.recommendations,
                 'cache_hit': result.cache_hit
             },
-            'function_name': 'unified-ai-processor',
-            'source': 'gcp-functions',
+            'service': 'unified-ai-processor',
+            'version': '3.0.0',
             'timestamp': datetime.now().isoformat(),
             'performance': {
                 'total_processing_time_ms': result.total_processing_time,
@@ -477,38 +491,29 @@ def unified_ai_processor(request):
                 'cache_hit': result.cache_hit
             }
         }
-        
-        logger.info("Unified AI processing completed", 
+
+        logger.info("Unified AI processing completed",
                    success=result.success,
                    processing_time=result.total_processing_time)
-        
-        return (json.dumps(response), 200, headers)
-        
+
+        return jsonify(response)
+
     except Exception as e:
         logger.error("Unified AI processing error", error=str(e))
-        
-        error_response = {
+
+        return jsonify({
             'success': False,
             'error': str(e),
-            'function_name': 'unified-ai-processor',
-            'source': 'gcp-functions',
+            'service': 'unified-ai-processor',
+            'version': '3.0.0',
             'timestamp': datetime.now().isoformat()
-        }
-        
-        return (json.dumps(error_response), 500, headers)
+        }), 500
 
 
 if __name__ == '__main__':
-    # Local testing
-    async def test():
-        test_request = ProcessingRequest(
-            query="웹서버 CPU 사용률 분석해주세요",
-            context={'server_id': 'web-001'},
-            processors=['korean_nlp'],
-            options={}
-        )
-        
-        result = await processor.process_request(test_request)
-        print("Test result:", asdict(result))
-    
-    asyncio.run(test())
+    # Run Flask app for local development or Cloud Run
+    port = int(os.environ.get('PORT', 8080))
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+
+    logger.info(f"Starting Unified AI Processor on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=debug)
