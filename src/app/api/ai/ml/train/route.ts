@@ -2,7 +2,8 @@
  * 🧠 ML 학습 트리거 API
  *
  * POST /api/ai/ml/train
- * - 4가지 ML 학습 타입 지원
+ * - 2가지 ML 학습 타입 지원: patterns, incident
+ * - anomaly/prediction은 IntelligentMonitoringPage에서 제공 (중복 제거)
  * - 실제 서버 메트릭 데이터 기반 학습
  * - 학습 결과 Supabase 저장
  */
@@ -17,7 +18,8 @@ import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 
-type LearningType = 'patterns' | 'anomaly' | 'incident' | 'prediction';
+// anomaly/prediction은 IntelligentMonitoringPage에서 제공 (중복 제거)
+type LearningType = 'patterns' | 'incident';
 
 /**
  * ML 학습을 위한 메트릭 데이터 타입
@@ -548,15 +550,10 @@ function performMLTraining(
     case 'patterns':
       result = trainPatterns(metrics);
       break;
-    case 'anomaly':
-      result = trainAnomalyDetection(metrics);
-      break;
     case 'incident':
       result = trainIncidentLearning(metrics);
       break;
-    case 'prediction':
-      result = trainPredictionModel(metrics);
-      break;
+    // anomaly/prediction은 IntelligentMonitoringPage에서 제공
     default:
       throw new Error('지원하지 않는 학습 타입입니다.');
   }
@@ -587,12 +584,10 @@ export const POST = withAuth(async (request: NextRequest) => {
     const body: TrainRequest = await request.json();
     const { type, serverId, timeRange = '24h', config } = body;
 
-    if (
-      !type ||
-      !['patterns', 'anomaly', 'incident', 'prediction'].includes(type)
-    ) {
+    // anomaly/prediction은 IntelligentMonitoringPage에서 제공 (중복 제거)
+    if (!type || !['patterns', 'incident'].includes(type)) {
       return NextResponse.json(
-        { error: '유효하지 않은 학습 타입입니다.' },
+        { error: '유효하지 않은 학습 타입입니다. (지원: patterns, incident)' },
         { status: 400 }
       );
     }

@@ -49,11 +49,11 @@ const LoadingOverlay = ({ type }: { type: 'github' | 'guest' }) => {
   return (
     <>
       {/* Shimmer 효과 */}
-      <div className="animate-shimmer absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent" />
+      <div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       {/* 프로그레스 바 */}
       <div
-        className={`animate-progress absolute bottom-0 left-0 h-1 bg-linear-to-r ${progressGradient}`}
+        className={`animate-progress absolute bottom-0 left-0 h-1 bg-gradient-to-r ${progressGradient}`}
       />
     </>
   );
@@ -327,7 +327,7 @@ export default function LoginClient() {
   // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
   if (!isClient) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-black">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
         <div className="text-white">Loading...</div>
       </div>
     );

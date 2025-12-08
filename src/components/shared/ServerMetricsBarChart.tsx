@@ -191,7 +191,7 @@ export default function ServerMetricsBarChart({
                     }}
                   >
                     {/* 그라데이션 효과 */}
-                    <div className="absolute inset-0 bg-linear-to-t from-black/10 to-white/20" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-white/20" />
 
                     {/* 현재값 강조 효과 */}
                     {isCurrentValue && showRealTimeUpdates && (

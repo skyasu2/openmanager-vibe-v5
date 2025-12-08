@@ -15,7 +15,7 @@ Deployment:
 - Local: python main.py or docker-compose up
 
 Author: AI Migration Team
-Version: 3.0.0 (Cloud Run Optimized)
+Version: 3.1.0 (Fully Integrated - Gateway + Rule Engine + Health)
 """
 
 import os
@@ -34,6 +34,8 @@ import structlog
 # Import local modules
 from modules.nlp_engine import EnhancedKoreanNLPEngine
 from modules.ml_engine import MLAnalyticsEngine
+from modules.gateway import GatewayRouter, route_query, RoutingDecision
+from modules.rule_engine import RuleEngine, process_query as process_rule_query, RuleMatch
 
 # Configure structured logging
 logger = structlog.get_logger()
@@ -74,25 +76,24 @@ class UnifiedResponse:
 
 class UnifiedAIProcessor:
     """High-performance unified AI processing orchestrator (Optimized)"""
-    
+
     def __init__(self):
         # Initialize local engines
         self.nlp_engine = EnhancedKoreanNLPEngine()
         self.ml_engine = MLAnalyticsEngine()
-        
-        # External endpoints (only for services not yet integrated)
+        self.gateway_router = GatewayRouter()
+        self.rule_engine = RuleEngine()
+
+        # External endpoints (legacy - most functionality now integrated locally)
         self.external_endpoints = {
             'server_analyzer': 'https://us-central1-openmanager-free-tier.cloudfunctions.net/server-analyzer',
-            'pattern_matcher': 'https://us-central1-openmanager-free-tier.cloudfunctions.net/pattern-matcher',
-            'trend_predictor': 'https://us-central1-openmanager-free-tier.cloudfunctions.net/trend-predictor'
         }
-        
+
         self.processor_weights = {
             'korean_nlp': 0.25,
             'ml_analytics': 0.20,
-            'server_analyzer': 0.25,
-            'pattern_matcher': 0.15,
-            'trend_predictor': 0.15
+            'rule_engine': 0.25,
+            'server_analyzer': 0.30
         }
     
     async def process_request(self, request: ProcessingRequest) -> UnifiedResponse:
@@ -151,6 +152,8 @@ class UnifiedAIProcessor:
                     tasks.append(self._run_local_nlp(request))
                 elif processor == 'ml_analytics':
                     tasks.append(self._run_local_ml(request))
+                elif processor == 'rule_engine':
+                    tasks.append(self._run_local_rule_engine(request))
                 elif processor in self.external_endpoints:
                     tasks.append(self._call_external_processor(client, processor, request))
                 else:
@@ -257,7 +260,41 @@ class UnifiedAIProcessor:
                 error=str(e),
                 processing_time=(time.time() - start_time) * 1000
             )
-    
+
+    async def _run_local_rule_engine(self, request: ProcessingRequest) -> ProcessingResult:
+        """Run Rule Engine locally (fast-path for common queries)"""
+        start_time = time.time()
+        try:
+            result = self.rule_engine.process(request.query)
+
+            data = {
+                'matched': result.matched,
+                'rule_id': result.rule_id,
+                'response': result.response,
+                'confidence': result.confidence,
+                'category': result.category,
+                'match_type': result.match_type,
+                'keywords': result.keywords,
+                'processing_time_ms': result.processing_time_ms
+            }
+
+            return ProcessingResult(
+                processor='rule_engine',
+                success=True,
+                data=data,
+                error=None,
+                processing_time=(time.time() - start_time) * 1000
+            )
+        except Exception as e:
+            logger.error("Local Rule Engine failed", error=str(e))
+            return ProcessingResult(
+                processor='rule_engine',
+                success=False,
+                data=None,
+                error=str(e),
+                processing_time=(time.time() - start_time) * 1000
+            )
+
     async def _call_external_processor(self, client: httpx.AsyncClient, 
                             processor: str, request: ProcessingRequest) -> ProcessingResult:
         """Call external processor (Legacy/Remote)"""
@@ -357,6 +394,17 @@ class UnifiedAIProcessor:
                     if 'recommendations' in data:
                         aggregated['main_insights'].extend(data['recommendations'])
                 
+                # Rule Engine Data
+                elif result.processor == 'rule_engine':
+                    data = result.data
+                    aggregated['confidence_score'] += data.get('confidence', 0.5) * weight
+                    if data.get('matched') and data.get('response'):
+                        aggregated['main_insights'].append(f"[Rule] {data['response'][:100]}")
+                    if data.get('keywords'):
+                        if 'keywords' not in aggregated:
+                            aggregated['keywords'] = []
+                        aggregated['keywords'].extend(data['keywords'])
+
                 # Generic/External Data
                 else:
                     if 'confidence' in result.data:
@@ -507,6 +555,239 @@ def unified_ai_processor():
             'service': 'unified-ai-processor',
             'version': '3.0.0',
             'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Comprehensive health check endpoint"""
+    try:
+        # Check all components
+        health_status = {
+            'status': 'healthy',
+            'service': 'unified-ai-processor',
+            'version': '3.1.0',
+            'timestamp': datetime.now().isoformat(),
+            'components': {
+                'nlp_engine': {
+                    'status': 'ready' if processor.nlp_engine else 'not_initialized',
+                    'initialized': processor.nlp_engine.initialized if processor.nlp_engine else False
+                },
+                'ml_engine': {
+                    'status': 'ready',
+                    'type': 'local'
+                },
+                'rule_engine': {
+                    'status': 'ready',
+                    'stats': processor.rule_engine.get_stats()
+                },
+                'gateway_router': {
+                    'status': 'ready',
+                    'available_processors': processor.gateway_router.AVAILABLE_PROCESSORS,
+                    'stats': processor.gateway_router.get_stats()
+                }
+            },
+            'cache': {
+                'size': len(response_cache),
+                'max_size': response_cache.maxsize
+            }
+        }
+
+        return jsonify(health_status)
+
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
+@app.route('/gateway', methods=['POST', 'OPTIONS'])
+def gateway_route():
+    """
+    Gateway endpoint for intelligent routing decisions
+    Migrated from ai-gateway/index.js
+    """
+    if request.method == 'OPTIONS':
+        return '', 204, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type'
+        }
+
+    try:
+        if not request.is_json:
+            return jsonify({'error': 'Content-Type must be application/json'}), 400
+
+        data = request.get_json()
+        query = data.get('query', '')
+        mode = data.get('mode', 'auto')
+        context = data.get('context', {})
+
+        if not query:
+            return jsonify({'error': 'Query parameter is required'}), 400
+
+        # Get routing decision
+        decision = processor.gateway_router.determine_route(query, mode, context)
+
+        return jsonify({
+            'success': True,
+            'routing': {
+                'primary_processor': decision.primary_processor,
+                'fallback_processors': decision.fallback_processors,
+                'mode': decision.mode,
+                'confidence': decision.confidence,
+                'reason': decision.reason
+            },
+            'service': 'unified-ai-processor',
+            'endpoint': 'gateway',
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        logger.error("Gateway routing error", error=str(e))
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'service': 'unified-ai-processor',
+            'endpoint': 'gateway'
+        }), 500
+
+
+@app.route('/rules', methods=['POST', 'OPTIONS'])
+def rules_process():
+    """
+    Rule Engine endpoint for fast-path pattern matching
+    Migrated from rule-engine/index.js
+    """
+    if request.method == 'OPTIONS':
+        return '', 204, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type'
+        }
+
+    try:
+        if not request.is_json:
+            return jsonify({'error': 'Content-Type must be application/json'}), 400
+
+        data = request.get_json()
+        query = data.get('query', '')
+
+        if not query:
+            return jsonify({'error': 'Query parameter is required'}), 400
+
+        # Process through rule engine
+        result = processor.rule_engine.process(query)
+
+        return jsonify({
+            'success': True,
+            'result': {
+                'matched': result.matched,
+                'rule_id': result.rule_id,
+                'response': result.response,
+                'confidence': result.confidence,
+                'category': result.category,
+                'match_type': result.match_type,
+                'keywords': result.keywords,
+                'processing_time_ms': result.processing_time_ms
+            },
+            'stats': processor.rule_engine.get_stats(),
+            'service': 'unified-ai-processor',
+            'endpoint': 'rules',
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        logger.error("Rule Engine error", error=str(e))
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'service': 'unified-ai-processor',
+            'endpoint': 'rules'
+        }), 500
+
+
+@app.route('/smart', methods=['POST', 'OPTIONS'])
+def smart_process():
+    """
+    Smart endpoint combining gateway routing with rule engine fast-path
+    Automatically routes to the best processor based on query analysis
+    """
+    if request.method == 'OPTIONS':
+        return '', 204, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type'
+        }
+
+    try:
+        if not request.is_json:
+            return jsonify({'error': 'Content-Type must be application/json'}), 400
+
+        data = request.get_json()
+        query = data.get('query', '')
+        context = data.get('context', {})
+
+        if not query:
+            return jsonify({'error': 'Query parameter is required'}), 400
+
+        start_time = time.time()
+
+        # 1. Try Rule Engine first (fast-path)
+        rule_result = processor.rule_engine.process(query)
+
+        if rule_result.matched and rule_result.confidence >= 0.8:
+            # High-confidence rule match - return immediately
+            return jsonify({
+                'success': True,
+                'source': 'rule_engine',
+                'response': rule_result.response,
+                'confidence': rule_result.confidence,
+                'category': rule_result.category,
+                'processing_time_ms': (time.time() - start_time) * 1000,
+                'service': 'unified-ai-processor',
+                'endpoint': 'smart',
+                'timestamp': datetime.now().isoformat()
+            })
+
+        # 2. Get routing decision for more complex processing
+        routing = processor.gateway_router.determine_route(query, 'auto', context)
+
+        # 3. Process with primary processor
+        proc_request = ProcessingRequest(
+            query=query,
+            context=context,
+            processors=[routing.primary_processor],
+            options=data.get('options', {})
+        )
+
+        result = asyncio.run(processor.process_request(proc_request))
+
+        return jsonify({
+            'success': result.success,
+            'source': routing.primary_processor,
+            'routing': {
+                'mode': routing.mode,
+                'confidence': routing.confidence,
+                'reason': routing.reason
+            },
+            'data': result.aggregated_data,
+            'recommendations': result.recommendations,
+            'processing_time_ms': (time.time() - start_time) * 1000,
+            'service': 'unified-ai-processor',
+            'endpoint': 'smart',
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        logger.error("Smart processing error", error=str(e))
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'service': 'unified-ai-processor',
+            'endpoint': 'smart'
         }), 500
 
 

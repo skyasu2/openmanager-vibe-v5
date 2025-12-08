@@ -51,8 +51,8 @@ export function SystemStartSection({
               className="absolute inset-0 overflow-hidden rounded-xl"
               style={{ transformOrigin: 'left' }}
             >
-              <div className="h-full bg-linear-to-r from-red-600/40 via-red-500/40 to-red-400/40" />
-              <div className="absolute inset-0 h-full w-full bg-linear-to-r from-transparent via-white/10 to-transparent" />
+              <div className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40" />
+              <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
             </div>
           )}
           <div className="relative z-10 flex items-center gap-3">

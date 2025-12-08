@@ -139,11 +139,11 @@ export default function AIChatPage() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-linear-to-br from-blue-50 to-cyan-50">
+    <div className="flex h-full flex-col bg-gradient-to-br from-blue-50 to-cyan-50">
       {/* 헤더 */}
       <div className="border-b border-blue-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="flex items-center space-x-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-blue-500 to-cyan-500">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500">
             <Bot className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -187,7 +187,7 @@ export default function AIChatPage() {
                     ? 'bg-blue-500 text-white'
                     : message.type === 'error'
                       ? 'bg-red-500 text-white'
-                      : 'bg-linear-to-r from-purple-500 to-pink-500 text-white'
+                      : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                 }`}
               >
                 {message.type === 'user' ? (
@@ -237,7 +237,7 @@ export default function AIChatPage() {
         {isThinking && (
           <div className="flex justify-start">
             <div className="flex max-w-[80%] items-start space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-r from-purple-500 to-pink-500">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
                 <Sparkles
                   className="h-4 w-4 animate-pulse text-white"
                   aria-hidden="true"

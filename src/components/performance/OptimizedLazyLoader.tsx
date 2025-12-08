@@ -74,7 +74,7 @@ export const LazyLightChart = lazy(() =>
       data: unknown[];
       type?: 'line' | 'bar';
     }) => (
-      <div className="h-64 w-full rounded-lg bg-linear-to-br from-blue-50 to-indigo-50 p-4">
+      <div className="h-64 w-full rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
         <div className="mb-2 text-sm text-gray-600">성능 차트 (경량 버전)</div>
         <div className="flex h-48 items-end justify-around rounded bg-white/50 p-2">
           {data.slice(0, 10).map((_, i) => (
@@ -98,7 +98,7 @@ export const LazyLightChart = lazy(() =>
 export const LazyAIAssistantDashboard = lazy(() =>
   Promise.resolve({
     default: () => (
-      <div className="rounded-lg bg-linear-to-br from-purple-50 to-pink-50 p-6">
+      <div className="rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 p-6">
         <h3 className="mb-2 text-lg font-semibold text-gray-900">
           AI 어시스턴트
         </h3>
@@ -114,7 +114,7 @@ export const LazyAIAssistantDashboard = lazy(() =>
 export const LazyGCPMonitoring = lazy(() =>
   Promise.resolve({
     default: () => (
-      <div className="rounded-lg bg-linear-to-br from-green-50 to-emerald-50 p-6">
+      <div className="rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 p-6">
         <h3 className="mb-2 text-lg font-semibold text-gray-900">
           GCP 모니터링
         </h3>

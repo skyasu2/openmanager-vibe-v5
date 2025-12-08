@@ -270,7 +270,7 @@ export default function AuthSuccessPage() {
   }, [router, measureTime, performanceMetrics]); // router 함수 의존성 복구
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-black">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       <div className="text-center">
         <div className="mb-8">
           {status === 'checking' && (

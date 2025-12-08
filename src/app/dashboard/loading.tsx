@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
 
 export default function DashboardLoading() {
   return (
-    <div className="flex min-h-screen flex-col bg-linear-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
       {/* 헤더 스켈레톤 */}
       <header className="flex items-center justify-between border-b border-white/10 p-4">
         <div className="flex items-center gap-3">

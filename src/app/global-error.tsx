@@ -59,7 +59,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   }, [error, clientEnv]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-red-900 via-gray-900 to-red-900">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-900 via-gray-900 to-red-900">
       <div className="mx-auto max-w-md space-y-6 p-8 text-center">
         <div className="flex justify-center">
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-600/20">

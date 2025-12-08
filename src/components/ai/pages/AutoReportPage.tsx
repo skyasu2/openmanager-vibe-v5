@@ -11,8 +11,10 @@
 import {
   AlertTriangle,
   CheckCircle,
+  CheckSquare,
   Clock,
   Download,
+  Eye,
   FileText,
   RefreshCw,
   Server,
@@ -87,9 +89,10 @@ export default function AutoReportPage() {
 
   const [reports, setReports] = useState<IncidentReport[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [_isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [_error, setError] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
+  const [selectedReport, setSelectedReport] = useState<string | null>(null);
 
   // severity 매핑 함수 (순수 함수, 컴포넌트 상태에 의존하지 않음)
   const mapSeverity = useCallback(
@@ -250,13 +253,58 @@ export default function AutoReportPage() {
       ? reports
       : reports.filter((report) => report.severity === selectedSeverity);
 
+  // 보고서 상태 변경 (해결 처리)
+  const handleResolve = (reportId: string) => {
+    setReports((prev) =>
+      prev.map((report) =>
+        report.id === reportId
+          ? { ...report, status: 'resolved' as const }
+          : report
+      )
+    );
+  };
+
+  // 상세보기 토글
+  const toggleDetail = (reportId: string) => {
+    setSelectedReport((prev) => (prev === reportId ? null : reportId));
+  };
+
+  // Skeleton 컴포넌트
+  const ReportSkeleton = () => (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="animate-pulse rounded-lg border border-gray-200 bg-white p-4"
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="h-4 w-4 rounded bg-gray-200" />
+              <div className="h-4 w-32 rounded bg-gray-200" />
+            </div>
+            <div className="h-3 w-16 rounded bg-gray-200" />
+          </div>
+          <div className="mb-3 h-3 w-full rounded bg-gray-200" />
+          <div className="mb-3 h-3 w-3/4 rounded bg-gray-200" />
+          <div className="flex items-center justify-between">
+            <div className="h-3 w-24 rounded bg-gray-200" />
+            <div className="flex space-x-2">
+              <div className="h-6 w-12 rounded-full bg-gray-200" />
+              <div className="h-6 w-6 rounded bg-gray-200" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
-    <div className="flex h-full flex-col bg-linear-to-br from-red-50 to-pink-50">
+    <div className="flex h-full flex-col bg-gradient-to-br from-red-50 to-pink-50">
       {/* 헤더 */}
       <div className="border-b border-red-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-red-500 to-pink-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-red-500 to-pink-500">
               <FileText className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -318,68 +366,139 @@ export default function AutoReportPage() {
 
       {/* 보고서 목록 */}
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
-        {filteredReports.map((report, index) => (
-          <div
-            key={report.id}
-            className={`rounded-lg border p-4 animate-fade-in transition-shadow hover:shadow-md ${getSeverityColor(report.severity)}`}
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <div className="mb-2 flex items-start justify-between">
-              <div className="flex items-center space-x-2">
-                {getSeverityIcon(report.severity)}
-                <h3 className="font-medium text-gray-800">{report.title}</h3>
-                {getStatusIcon(report.status)}
-              </div>
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-gray-400" />
-                <span className="text-xs text-gray-500">
-                  {report.timestamp.toLocaleTimeString()}
-                </span>
-              </div>
-            </div>
+        {/* Skeleton 로딩 */}
+        {isLoading && <ReportSkeleton />}
 
-            <p className="mb-3 text-sm text-gray-600">{report.description}</p>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Server className="h-4 w-4 text-gray-400" />
-                <span className="text-xs text-gray-500">
-                  영향받는 서버: {report.affectedServers.join(', ')}
-                </span>
+        {/* 보고서 카드 */}
+        {!isLoading &&
+          filteredReports.map((report, index) => (
+            <div
+              key={report.id}
+              className={`rounded-lg border p-4 animate-fade-in transition-shadow hover:shadow-md ${getSeverityColor(report.severity)}`}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div className="mb-2 flex items-start justify-between">
+                <div className="flex items-center space-x-2">
+                  {getSeverityIcon(report.severity)}
+                  <h3 className="font-medium text-gray-800">{report.title}</h3>
+                  {getStatusIcon(report.status)}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                  <span className="text-xs text-gray-500">
+                    {report.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
               </div>
 
-              <div className="flex space-x-2">
-                <span
-                  className={`rounded-full px-2 py-1 text-xs ${
-                    report.status === 'active'
-                      ? 'bg-red-100 text-red-700'
+              <p className="mb-3 text-sm text-gray-600">{report.description}</p>
+
+              {/* 상세 정보 (확장 시) */}
+              {selectedReport === report.id && report.recommendations && (
+                <div className="mb-3 rounded-lg bg-white/60 p-3">
+                  <h4 className="mb-2 text-xs font-semibold text-gray-700">
+                    권장 조치
+                  </h4>
+                  <ul className="space-y-1">
+                    {report.recommendations.map((rec, i) => (
+                      <li key={i} className="text-xs text-gray-600">
+                        • {rec.action}{' '}
+                        <span className="text-gray-400">
+                          (우선순위: {rec.priority})
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Server className="h-4 w-4 text-gray-400" />
+                  <span className="text-xs text-gray-500">
+                    영향받는 서버: {report.affectedServers.join(', ') || '없음'}
+                  </span>
+                </div>
+
+                <div className="flex items-center space-x-1">
+                  <span
+                    className={`rounded-full px-2 py-1 text-xs ${
+                      report.status === 'active'
+                        ? 'bg-red-100 text-red-700'
+                        : report.status === 'investigating'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-green-100 text-green-700'
+                    }`}
+                  >
+                    {report.status === 'active'
+                      ? '활성'
                       : report.status === 'investigating'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-green-100 text-green-700'
-                  }`}
-                >
-                  {report.status === 'active'
-                    ? '활성'
-                    : report.status === 'investigating'
-                      ? '조사중'
-                      : '해결됨'}
-                </span>
+                        ? '조사중'
+                        : '해결됨'}
+                  </span>
 
-                <button
-                  className="p-1 text-gray-400 transition-all duration-200 hover:text-gray-600 hover:scale-110 active:scale-90"
-                  title="보고서 다운로드"
-                >
-                  <Download className="h-4 w-4" />
-                </button>
+                  {/* 상세보기 버튼 */}
+                  <button
+                    onClick={() => toggleDetail(report.id)}
+                    className={`rounded p-1.5 transition-all duration-200 hover:scale-110 active:scale-90 ${
+                      selectedReport === report.id
+                        ? 'bg-blue-100 text-blue-600'
+                        : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                    }`}
+                    title="상세보기"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+
+                  {/* 해결 버튼 */}
+                  {report.status !== 'resolved' && (
+                    <button
+                      onClick={() => handleResolve(report.id)}
+                      className="rounded p-1.5 text-gray-400 transition-all duration-200 hover:scale-110 hover:bg-green-100 hover:text-green-600 active:scale-90"
+                      title="해결 완료"
+                    >
+                      <CheckSquare className="h-4 w-4" />
+                    </button>
+                  )}
+
+                  {/* 다운로드 버튼 */}
+                  <button
+                    className="rounded p-1.5 text-gray-400 transition-all duration-200 hover:scale-110 hover:bg-gray-100 hover:text-gray-600 active:scale-90"
+                    title="보고서 다운로드"
+                  >
+                    <Download className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {filteredReports.length === 0 && (
-          <div className="py-8 text-center">
-            <FileText className="mx-auto mb-2 h-12 w-12 text-gray-300" />
-            <p className="text-gray-500">해당 조건의 보고서가 없습니다.</p>
+        {/* 개선된 빈 상태 */}
+        {!isLoading && filteredReports.length === 0 && (
+          <div className="py-12 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <FileText className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="mb-2 text-lg font-medium text-gray-700">
+              보고서가 없습니다
+            </h3>
+            <p className="mb-4 text-sm text-gray-500">
+              {selectedSeverity === 'all'
+                ? '새 보고서를 생성하여 장애 현황을 분석해보세요.'
+                : `'${selectedSeverity}' 심각도의 보고서가 없습니다.`}
+            </p>
+            {selectedSeverity === 'all' && (
+              <button
+                onClick={handleGenerateReport}
+                disabled={isGenerating}
+                className="inline-flex items-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-sm text-white transition-all hover:bg-red-600 hover:scale-105 active:scale-95 disabled:opacity-50"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`}
+                />
+                <span>첫 보고서 생성하기</span>
+              </button>
+            )}
           </div>
         )}
       </div>

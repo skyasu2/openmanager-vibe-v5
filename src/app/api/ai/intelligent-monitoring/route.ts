@@ -384,46 +384,6 @@ async function postHandler(request: NextRequest) {
         });
       }
 
-      case 'analyze_patterns': {
-        const { server_id } = body;
-
-        // Simplified pattern analysis
-        const patterns = [
-          {
-            pattern_type: 'daily_peak',
-            frequency: 'daily',
-            next_occurrence: '2024-01-02T10:00:00Z',
-            confidence: 0.75,
-          },
-        ];
-
-        return NextResponse.json({
-          success: true,
-          server_id,
-          patterns,
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      case 'seasonal_analysis': {
-        const { server_id } = body;
-
-        return NextResponse.json({
-          success: true,
-          server_id,
-          seasonal_patterns: {
-            daily_peak_hours: ['09:00', '14:00', '16:00'],
-            weekly_peak_days: ['Monday', 'Tuesday', 'Thursday'],
-            monthly_trends: {
-              start_of_month: 'high',
-              mid_month: 'normal',
-              end_of_month: 'low',
-            },
-          },
-          timestamp: new Date().toISOString(),
-        });
-      }
-
       case 'calculate_thresholds': {
         const { server_id, metric_type, learning_period } = body;
 
@@ -448,110 +408,6 @@ async function postHandler(request: NextRequest) {
         });
       }
 
-      case 'adapt_thresholds': {
-        const { server_id, context } = body;
-
-        const adapted = {
-          business_hours: {
-            cpu: 85,
-            memory: 80,
-            disk: 75,
-            network: 90,
-          },
-          off_hours: {
-            cpu: 70,
-            memory: 65,
-            disk: 60,
-            network: 75,
-          },
-        };
-
-        return NextResponse.json({
-          success: true,
-          server_id,
-          context,
-          adapted_thresholds: adapted,
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      case 'threshold_recommendations': {
-        const { server_id, false_positive_rate } = body;
-
-        const recommendations = [
-          {
-            metric: 'cpu',
-            current_threshold: 90,
-            recommended_threshold: 85,
-            reason: 'High false positive rate detected',
-          },
-        ];
-
-        return NextResponse.json({
-          success: true,
-          server_id,
-          false_positive_rate,
-          recommendations,
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      case 'learn_patterns': {
-        // incident_history from body is available but not used in simplified implementation
-
-        return NextResponse.json({
-          success: true,
-          learned_patterns: {
-            recurring_issues: [
-              { type: 'cpu_spike', frequency: 'daily', time: '10:00' },
-            ],
-            resolution_patterns: [
-              {
-                issue: 'cpu_spike',
-                resolution: 'auto_scale',
-                success_rate: 0.85,
-              },
-            ],
-          },
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      case 'evaluate_learning': {
-        const { server_id } = body;
-
-        return NextResponse.json({
-          success: true,
-          server_id,
-          learning_metrics: {
-            accuracy: 0.82,
-            precision: 0.78,
-            recall: 0.85,
-            improvement_trend: 'positive',
-          },
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      case 'multi_metric_analysis': {
-        const { server_id } = body;
-        // metrics from body is available but not used in simplified implementation
-
-        return NextResponse.json({
-          success: true,
-          server_id,
-          correlations: {
-            cpu_memory: 0.75,
-            cpu_network: 0.62,
-            memory_network: 0.58,
-          },
-          compound_patterns: [
-            { pattern: 'cpu_memory_spike', frequency: 'weekly' },
-          ],
-          timestamp: new Date().toISOString(),
-        });
-      }
-
       case 'scaling_recommendations': {
         const { server_id, current_metrics, predicted_load } = body;
 
@@ -564,46 +420,6 @@ async function postHandler(request: NextRequest) {
           success: true,
           server_id,
           scaling_recommendations: recommendations,
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      case 'cost_optimized_scaling': {
-        const { server_id, budget_constraint } = body;
-
-        return NextResponse.json({
-          success: true,
-          server_id,
-          optimized_plan: {
-            total_cost: Math.min(budget_constraint, 85),
-            actions: [
-              { action: 'scale_up', resource: 'CPU', timing: 'scheduled' },
-            ],
-            expected_performance: 'Maintain 80% performance within budget',
-          },
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      case 'schedule_scaling': {
-        const { server_id } = body;
-        // predicted_patterns from body is available but not used in simplified implementation
-
-        return NextResponse.json({
-          success: true,
-          server_id,
-          scaling_schedule: [
-            {
-              time: '08:30',
-              action: 'scale_up',
-              preemptive: true,
-            },
-            {
-              time: '18:00',
-              action: 'scale_down',
-              preemptive: false,
-            },
-          ],
           timestamp: new Date().toISOString(),
         });
       }
@@ -777,14 +593,21 @@ async function getHandler(_request: NextRequest): Promise<NextResponse> {
         predictive_alerts: true,
         anomaly_forecasting: true,
         adaptive_thresholds: true,
-        pattern_learning: true,
-        auto_scaling: true,
+        scaling_recommendations: true,
+        intelligent_analysis: true,
       },
+      supported_actions: [
+        'predict',
+        'forecast_anomalies',
+        'calculate_thresholds',
+        'scaling_recommendations',
+        'analyze_server',
+      ],
       configuration: {
         max_prediction_horizon: '24 hours',
         min_historical_data: '2 data points',
         supported_metrics: ['cpu', 'memory', 'disk', 'network'],
-        learning_algorithms: ['linear_regression', 'statistical_analysis'],
+        algorithms: ['linear_regression', 'statistical_analysis'],
       },
     });
   } catch (error) {

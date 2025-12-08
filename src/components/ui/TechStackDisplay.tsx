@@ -36,10 +36,10 @@ const colorMap = {
 // 중요도별 스타일
 const importanceStyles = {
   critical:
-    'ring-2 ring-red-400/50 bg-linear-to-br from-red-500/20 to-pink-500/20 shadow-lg shadow-red-500/20',
-  high: 'ring-2 ring-yellow-400/30 bg-linear-to-br from-yellow-500/10 to-orange-500/10',
+    'ring-2 ring-red-400/50 bg-gradient-to-br from-red-500/20 to-pink-500/20 shadow-lg shadow-red-500/20',
+  high: 'ring-2 ring-yellow-400/30 bg-gradient-to-br from-yellow-500/10 to-orange-500/10',
   showcase:
-    'ring-2 ring-purple-400/40 bg-linear-to-br from-purple-500/15 to-indigo-500/15',
+    'ring-2 ring-purple-400/40 bg-gradient-to-br from-purple-500/15 to-indigo-500/15',
   medium: 'ring-1 ring-blue-400/20',
   low: 'ring-1 ring-gray-400/10',
 };
@@ -261,7 +261,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
 
       {/* 하단 요약 */}
       {!compact && (
-        <div className="mt-6 rounded-xl border border-blue-500/20 bg-linear-to-r from-blue-900/20 to-purple-900/20 p-4">
+        <div className="mt-6 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-900/20 to-purple-900/20 p-4">
           <div className="text-center text-xs text-gray-300">
             <div className="mb-2 font-medium">🎯 기술 스택 요약</div>
             <div className="flex justify-center gap-6">

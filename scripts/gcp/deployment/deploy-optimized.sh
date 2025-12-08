@@ -88,7 +88,8 @@ deploy_python_function() {
     
     # 배포
     gcloud functions deploy "$func_name" \
-        --runtime python310 \
+        --gen2 \
+        --runtime python311 \
         --trigger-http \
         --allow-unauthenticated \
         --memory="$memory" \
@@ -133,7 +134,8 @@ deploy_nodejs_function() {
     
     # 배포
     gcloud functions deploy "$func_name" \
-        --runtime nodejs20 \
+        --gen2 \
+        --runtime nodejs22 \
         --trigger-http \
         --allow-unauthenticated \
         --memory="$memory" \
@@ -161,14 +163,14 @@ deploy_all() {
     local failed_functions=()
     
     # Python Functions
-    deploy_python_function "enhanced-korean-nlp" "$base_dir/enhanced-korean-nlp" "256MB" "60s" || failed_functions+=("enhanced-korean-nlp")
-    deploy_python_function "ml-analytics-engine" "$base_dir/ml-analytics-engine" "384MB" "45s" || failed_functions+=("ml-analytics-engine")
+    
+    deploy_python_function "ml-analytics-engine" "$base_dir/ml-analytics-engine" "512MB" "45s" || failed_functions+=("ml-analytics-engine")
     deploy_python_function "unified-ai-processor" "$base_dir/unified-ai-processor" "512MB" "120s" || failed_functions+=("unified-ai-processor")
     
     # Node.js Functions
-    deploy_nodejs_function "ai-gateway" "$base_dir/ai-gateway" "256MB" "60s" "aiGateway" || failed_functions+=("ai-gateway")
-    deploy_nodejs_function "health-check" "$base_dir/health" "128MB" "10s" "healthCheck" || failed_functions+=("health-check")
-    deploy_nodejs_function "rule-engine" "$base_dir/rule-engine" "256MB" "30s" "ruleEngine" || failed_functions+=("rule-engine")
+    deploy_nodejs_function "ai-gateway" "$base_dir/ai-gateway" "512MB" "60s" "aiGateway" || failed_functions+=("ai-gateway")
+    deploy_nodejs_function "health-check" "$base_dir/health" "512MB" "10s" "healthCheck" || failed_functions+=("health-check")
+    deploy_nodejs_function "rule-engine" "$base_dir/rule-engine" "512MB" "30s" "ruleEngine" || failed_functions+=("rule-engine")
     
     log_info "================================"
     
@@ -185,7 +187,6 @@ verify_deployment() {
     log_info "배포 검증 중..."
     
     local functions=(
-        "enhanced-korean-nlp"
         "ml-analytics-engine"
         "unified-ai-processor"
         "ai-gateway"

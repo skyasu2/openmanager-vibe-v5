@@ -242,7 +242,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
                 </span>
               </div>
               <div className="h-2 w-full rounded-full bg-gray-700">
-                <div className="h-2 rounded-full bg-linear-to-r from-blue-500 to-purple-500" />
+                <div className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" />
               </div>
             </div>
 
@@ -279,7 +279,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
                     debug.log('🚀 비상 완료 버튼 클릭');
                     handleFinalComplete();
                   }}
-                  className="w-full transform rounded-lg bg-linear-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-medium transition-all duration-200 hover:scale-105 hover:from-blue-700 hover:to-purple-700 active:scale-95"
+                  className="w-full transform rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-medium transition-all duration-200 hover:scale-105 hover:from-blue-700 hover:to-purple-700 active:scale-95"
                 >
                   🚀 대시보드로 이동
                 </button>

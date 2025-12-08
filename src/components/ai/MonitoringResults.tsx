@@ -12,6 +12,7 @@
 import {
   AlertTriangle,
   Lightbulb,
+  RefreshCw,
   Search,
   Shield,
   Target,
@@ -24,27 +25,84 @@ interface MonitoringResultsProps {
   result: ExtendedIntelligentAnalysisResult | null;
   error: string | null;
   getSeverityColor: (severity: string) => string;
+  onRetry?: () => void;
+  isAnalyzing?: boolean;
+  onStartAnalysis?: () => void;
 }
 
 export default function MonitoringResults({
   result,
   error,
   getSeverityColor,
+  onRetry,
+  isAnalyzing = false,
+  onStartAnalysis,
 }: MonitoringResultsProps) {
   // 오류 표시
   if (error) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-        <div className="flex items-center space-x-2">
-          <XCircle className="h-5 w-5 text-red-600" />
-          <h3 className="font-medium text-red-800">분석 실행 오류</h3>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <XCircle className="h-5 w-5 text-red-600" />
+            <h3 className="font-medium text-red-800">분석 실행 오류</h3>
+          </div>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="flex items-center space-x-1.5 rounded-lg bg-red-100 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-200"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span>다시 시도</span>
+            </button>
+          )}
         </div>
         <p className="mt-2 text-red-700">{error}</p>
       </div>
     );
   }
 
-  // 결과가 없으면 렌더링하지 않음
+  // 🎯 Empty State: 분석 전 상태
+  if (!result && !isAnalyzing) {
+    return (
+      <div className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-8">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-teal-100">
+            <Search className="h-8 w-8 text-emerald-600" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-gray-800">
+            AI 분석 준비 완료
+          </h3>
+          <p className="mx-auto mb-4 max-w-md text-sm text-gray-600">
+            위에서 분석 설정을 확인한 후 &quot;분석 시작&quot; 버튼을 클릭하세요.
+            이상탐지, 근본원인분석, 예측모니터링을 자동으로 수행합니다.
+          </p>
+          <div className="mb-4 flex flex-wrap justify-center gap-2">
+            <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">
+              🚨 이상 탐지
+            </span>
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+              🔍 근본 원인 분석
+            </span>
+            <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">
+              🔮 예측 모니터링
+            </span>
+          </div>
+          {onStartAnalysis && (
+            <button
+              onClick={onStartAnalysis}
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-lg"
+            >
+              <TrendingUp className="h-4 w-4" />
+              분석 시작하기
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // 분석 중일 때는 표시하지 않음 (Workflow에서 표시)
   if (!result) {
     return null;
   }

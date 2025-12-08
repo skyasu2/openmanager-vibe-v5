@@ -1,19 +1,18 @@
 /**
- * 🤖 AI 통합 쿼리 API v2.0 (Non-Streaming JSON)
+ * 🤖 AI 통합 쿼리 API v3.2 (PDF Support)
  *
- * 4-모델 라우팅 아키텍처:
- * 1. Router (8B): llama-3.1-8b-instant로 빠른 복잡도 분류
- * 2. Simple (1-3): Gemini 2.5 Flash → Llama 8B 폴백
- * 3. Complex (4-5): Gemini 2.5 Pro → Llama 70B 폴백
+ * * v3.2 Upgrade: PDF Text Extraction (backend-side) using pdf-parse.
  *
  * POST /api/ai/query
  */
 
 import { google } from '@ai-sdk/google';
 import { groq } from '@ai-sdk/groq';
-import { generateText, tool } from 'ai';
+import { generateText, tool, type CoreMessage } from 'ai';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+// @ts-ignore
+import pdf from 'pdf-parse'; 
 import {
   checkGoogleAIRateLimit,
   getGoogleAIKey,
@@ -29,13 +28,10 @@ import { createClient } from '@/lib/supabase/server';
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
 
-// 최대 실행 시간: 30초
-export const maxDuration = 30;
+// 최대 실행 시간: 60초 (PDF 파싱 고려)
+export const maxDuration = 60;
 
-// ============================================================================
-// Tools (unified-stream과 동일)
-// ============================================================================
-
+// ... [Existing Tools: callUnifiedProcessor, getServerMetrics, searchKnowledgeBase, analyzePattern, recommendCommands, analyzeRequest] ...
 const callUnifiedProcessor = tool({
   description:
     '복잡한 분석 요청을 통합 AI 프로세서로 처리합니다 (GCP Cloud Functions)',
@@ -302,16 +298,20 @@ const analyzeRequest = tool({
   },
 });
 
+
 // ============================================================================
 // Request/Response Types
 // ============================================================================
 
 interface QueryRequest {
   query: string;
+  images?: string[]; // Base64 encoded images
+  documents?: { name: string; content: string }[]; // Base64 encoded docs (PDFs)
   context?: string;
   temperature?: number;
   maxTokens?: number;
   includeThinking?: boolean;
+  thinking?: boolean;
   metadata?: {
     totalServers?: number;
     onlineServers?: number;
@@ -323,119 +323,282 @@ interface QueryRequest {
   };
 }
 
-// ============================================================================
-// Model Configuration (4-Model Architecture)
-// ============================================================================
-
-/**
- * 모델 선택 결과
- */
+// ... [Existing ModelSelection and selectModels] ...
 interface ModelSelection {
   primary: ReturnType<typeof google> | ReturnType<typeof groq>;
-  fallback: ReturnType<typeof groq> | null;
+  fallback: ReturnType<typeof groq> | ReturnType<typeof google> | null;
   primaryName: string;
   fallbackName: string | null;
-  isComplex: boolean;
+  level: 1 | 2 | 3 | 4 | 5 | 'thinking' | 'multimodal';
+  useTools: boolean;
+  maxTokens: number;
+  temperature: number;
 }
 
-/**
- * 복잡도에 따른 모델 선택
- * - Simple (1-3): Flash 계열 (빠른 응답)
- * - Complex (4-5): Pro 계열 (깊은 분석)
- */
-function selectModels(complexity: number): ModelSelection {
-  const isComplex = complexity >= 4;
-
+function selectModels(
+  complexity: number,
+  thinking: boolean = false,
+  hasImages: boolean = false
+): ModelSelection {
   const googleApiKey = getGoogleAIKey();
   const googleRateCheck = checkGoogleAIRateLimit();
   const groqAvailable = isGroqAIAvailable();
-  const groqRateCheck = checkGroqAIRateLimit();
+  const groq8bCheck = checkGroqAIRateLimit('llama-3.1-8b-instant' as GroqModel);
+  const groq70bCheck = checkGroqAIRateLimit(
+    'llama-3.3-70b-versatile' as GroqModel
+  );
 
   const googleAvailable = googleApiKey && googleRateCheck.allowed;
-  const groqAllowed = groqAvailable && groqRateCheck.allowed;
+  const groq8bAllowed = groqAvailable && groq8bCheck.allowed;
+  const groq70bAllowed = groqAvailable && groq70bCheck.allowed;
 
-  // Complex (4-5): Pro 모델
-  if (isComplex) {
+  if (hasImages) {
+    if (googleAvailable) {
+      return {
+        primary: google('gemini-2.5-flash'),
+        fallback: google('gemini-2.5-pro'),
+        primaryName: 'gemini-2.5-flash',
+        fallbackName: 'gemini-2.5-pro',
+        level: 'multimodal',
+        useTools: true,
+        maxTokens: 4096,
+        temperature: 0.5,
+      };
+    }
+    throw new Error('이미지 분석을 위한 Google AI 모델 사용이 불가능합니다.');
+  }
+
+  if (thinking) {
     if (googleAvailable) {
       return {
         primary: google('gemini-2.5-pro'),
-        fallback: groqAllowed ? groq('llama-3.3-70b-versatile') : null,
+        fallback: groq70bAllowed ? groq('llama-3.3-70b-versatile') : null,
         primaryName: 'gemini-2.5-pro',
-        fallbackName: groqAllowed ? 'llama-3.3-70b-versatile' : null,
-        isComplex: true,
+        fallbackName: groq70bAllowed ? 'llama-3.3-70b-versatile' : null,
+        level: 'thinking',
+        useTools: true,
+        maxTokens: 8192,
+        temperature: 0.7,
       };
     }
-    // Google 불가 → Groq 70B 사용
-    if (groqAllowed) {
+    if (groq70bAllowed) {
       return {
         primary: groq('llama-3.3-70b-versatile'),
         fallback: null,
         primaryName: 'llama-3.3-70b-versatile',
         fallbackName: null,
-        isComplex: true,
+        level: 'thinking',
+        useTools: true,
+        maxTokens: 4096,
+        temperature: 0.7,
       };
     }
   }
 
-  // Simple (1-3): Flash 모델
-  if (googleAvailable) {
-    return {
-      primary: google('gemini-2.5-flash'),
-      fallback: groqAllowed ? groq('llama-3.1-8b-instant') : null,
-      primaryName: 'gemini-2.5-flash',
-      fallbackName: groqAllowed ? 'llama-3.1-8b-instant' : null,
-      isComplex: false,
-    };
+  if (complexity === 5) {
+    if (googleAvailable) {
+      return {
+        primary: google('gemini-2.5-flash'),
+        fallback: groq70bAllowed ? groq('llama-3.3-70b-versatile') : null,
+        primaryName: 'gemini-2.5-flash',
+        fallbackName: groq70bAllowed ? 'llama-3.3-70b-versatile' : null,
+        level: 5,
+        useTools: true,
+        maxTokens: 4096,
+        temperature: 0.6,
+      };
+    }
+    if (groq70bAllowed) {
+      return {
+        primary: groq('llama-3.3-70b-versatile'),
+        fallback: groq8bAllowed ? groq('llama-3.1-8b-instant') : null,
+        primaryName: 'llama-3.3-70b-versatile',
+        fallbackName: groq8bAllowed ? 'llama-3.1-8b-instant' : null,
+        level: 5,
+        useTools: true,
+        maxTokens: 4096,
+        temperature: 0.6,
+      };
+    }
   }
-  // Google 불가 → Groq 8B 사용
-  if (groqAllowed) {
+
+  if (complexity === 4) {
+    if (groq70bAllowed) {
+      return {
+        primary: groq('llama-3.3-70b-versatile'),
+        fallback: googleAvailable ? google('gemini-2.5-flash') : null,
+        primaryName: 'llama-3.3-70b-versatile',
+        fallbackName: googleAvailable ? 'gemini-2.5-flash' : null,
+        level: 4,
+        useTools: true,
+        maxTokens: 4096,
+        temperature: 0.5,
+      };
+    }
+    if (googleAvailable) {
+      return {
+        primary: google('gemini-2.5-flash'),
+        fallback: groq8bAllowed ? groq('llama-3.1-8b-instant') : null,
+        primaryName: 'gemini-2.5-flash',
+        fallbackName: groq8bAllowed ? 'llama-3.1-8b-instant' : null,
+        level: 4,
+        useTools: true,
+        maxTokens: 4096,
+        temperature: 0.5,
+      };
+    }
+  }
+
+  if (complexity >= 2 && complexity <= 3) {
+    if (groq8bAllowed) {
+      return {
+        primary: groq('llama-3.1-8b-instant'),
+        fallback: googleAvailable ? google('gemini-2.5-flash') : null,
+        primaryName: 'llama-3.1-8b-instant',
+        fallbackName: googleAvailable ? 'gemini-2.5-flash' : null,
+        level: complexity as 2 | 3,
+        useTools: true,
+        maxTokens: 2048,
+        temperature: 0.4,
+      };
+    }
+    if (googleAvailable) {
+      return {
+        primary: google('gemini-2.5-flash'),
+        fallback: null,
+        primaryName: 'gemini-2.5-flash',
+        fallbackName: null,
+        level: complexity as 2 | 3,
+        useTools: true,
+        maxTokens: 2048,
+        temperature: 0.4,
+      };
+    }
+  }
+
+  if (groq8bAllowed) {
     return {
       primary: groq('llama-3.1-8b-instant'),
-      fallback: null,
+      fallback: googleAvailable ? google('gemini-2.5-flash') : null,
       primaryName: 'llama-3.1-8b-instant',
-      fallbackName: null,
-      isComplex: false,
+      fallbackName: googleAvailable ? 'gemini-2.5-flash' : null,
+      level: 1,
+      useTools: false,
+      maxTokens: 1024,
+      temperature: 0.3,
     };
   }
 
-  // 모든 AI 사용 불가
+  if (googleAvailable) {
+    return {
+      primary: google('gemini-2.5-flash'),
+      fallback: null,
+      primaryName: 'gemini-2.5-flash',
+      fallbackName: null,
+      level: 1,
+      useTools: false,
+      maxTokens: 1024,
+      temperature: 0.3,
+    };
+  }
+
   throw new Error('AI API가 모두 사용 불가합니다 (Google AI, Groq)');
 }
 
 // ============================================================================
-// POST Handler (4-Model Routing Architecture)
+// POST Handler (5-Level Routing Architecture v3.2)
 // ============================================================================
 
 export const POST = withAuth(async (req: NextRequest) => {
   const startTime = Date.now();
 
   try {
+    // 📂 Payload Parsing
     const body: QueryRequest = await req.json();
-    const { query, metadata, includeThinking = false } = body;
+    const {
+      images,
+      documents,
+      metadata,
+      includeThinking = false,
+      thinking = false,
+    } = body;
+    
+    let { query } = body;
 
-    if (!query || typeof query !== 'string') {
+    if ((!query || typeof query !== 'string') && !(images && images.length > 0) && !(documents && documents.length > 0)) {
       return Response.json(
-        { error: 'query 파라미터가 필요합니다' },
+        { error: 'query, images 또는 documents 파라미터가 필요합니다' },
         { status: 400 }
       );
+    }
+    
+    // 📝 Document Parsing (PDF/TXT)
+    let documentContext = '';
+    const parsingSteps: string[] = [];
+
+    if (documents && documents.length > 0) {
+      parsingSteps.push(`📄 문서 ${documents.length}개 처리 시작`);
+      
+      for (const doc of documents) {
+        try {
+          let text = '';
+          if (doc.name.toLowerCase().endsWith('.pdf')) {
+             const buffer = Buffer.from(doc.content, 'base64');
+             const data = await pdf(buffer);
+             text = data.text;
+             parsingSteps.push(`✅ PDF 파싱 성공: ${doc.name} (${text.length}자)`);
+          } else {
+             // TXT, MD, etc (assume base64 encoded text or just plain text if decoded)
+             // Check if content is base64
+             try {
+                text = Buffer.from(doc.content, 'base64').toString('utf-8');
+             } catch {
+                text = doc.content;
+             }
+             parsingSteps.push(`✅ 텍스트 로드 성공: ${doc.name}`);
+          }
+
+          documentContext += `\n--- [Document: ${doc.name}] ---\n${text.slice(0, 30000)}\n---------------------------\n`; // 30k chars limit per doc for safety
+        } catch (e: any) {
+          console.error(`❌ 문서 파싱 실패 (${doc.name}):`, e);
+          parsingSteps.push(`❌ 파싱 실패 (${doc.name}): ${e.message}`);
+        }
+      }
+    }
+
+    if (documentContext) {
+      query += `\n\n[첨부 문서 내용]\n${documentContext}`;
     }
 
     // ============================================================
     // Step 1: Router (8B) - 빠른 복잡도 분류
     // ============================================================
-    const classification = await classifyQuery(query);
-    const { complexity, intent, reasoning: routingReason } = classification;
+    let complexity = 1;
+    let intent = 'general';
+    let routingReason = 'default';
 
-    console.log(
-      `📡 [AI Router] Intent: ${intent}, Complexity: ${complexity}/5, Reason: ${routingReason}`
-    );
+    if (images && images.length > 0) {
+      complexity = 5;
+      intent = 'multimodal_analysis';
+      routingReason = 'Image input detected -> Force Multimodal';
+    } else if (documents && documents.length > 0) {
+      // 문서가 있으면 분석 필요하므로 복잡도 상향
+      complexity = 4; // Use Groq 70B or Gemini Flash
+      intent = 'document_analysis';
+      routingReason = 'Document attached';
+    } else {
+      const classification = await classifyQuery(query);
+      complexity = classification.complexity;
+      intent = classification.intent;
+      routingReason = classification.reasoning;
+    }
 
     // ============================================================
-    // Step 2: Model Selection (4-Model Architecture)
+    // Step 2: Model Selection (5-Level Architecture)
     // ============================================================
     let modelSelection: ModelSelection;
     try {
-      modelSelection = selectModels(complexity);
+      modelSelection = selectModels(complexity, thinking, !!(images && images.length > 0));
     } catch (error) {
       return Response.json(
         {
@@ -448,15 +611,38 @@ export const POST = withAuth(async (req: NextRequest) => {
       );
     }
 
-    const { primary, fallback, primaryName, fallbackName, isComplex } =
-      modelSelection;
+    const {
+      primary,
+      fallback,
+      primaryName,
+      fallbackName,
+      level,
+      useTools,
+      maxTokens,
+      temperature,
+    } = modelSelection;
 
-    // ============================================================
-    // Step 3: System Prompt 구성
-    // ============================================================
+    // ... [System Prompt & Tool Selection logic same as before but now includes documents in context implicitly] ...
+    
+    // Level 표시 문자열 생성
+    const levelDisplay =
+      level === 'multimodal'
+        ? '🖼️ Vision (Gemini)'
+        : level === 'thinking'
+          ? '🧠 Thinking (Pro)'
+          : level === 5
+            ? '⚡ Advanced (Flash)'
+            : level === 4
+              ? '📊 Complex (70B)'
+              : level >= 2
+                ? '🔧 Tool-enabled (8B)'
+                : '💬 Direct (8B)';
+
     const systemPrompt = `당신은 **OpenManager Vibe**의 **AI 어시스턴트**입니다.
-현재 모드: ${isComplex ? '🧠 Deep Reasoning (Pro)' : '⚡ Fast Response (Flash)'}
+현재 모드: ${levelDisplay}
 질문 의도: ${intent} (복잡도: ${complexity}/5)
+${thinking ? '🧠 **Thinking 모드 활성화**: 깊은 추론과 상세한 분석을 제공합니다.\n' : ''}
+${documentContext ? '📄 **문서 첨부됨**: 제공된 문서 내용을 기반으로 답변하십시오.\n' : ''}
 
 **현재 대시보드 컨텍스트:**
 ${
@@ -470,10 +656,15 @@ ${
     : '메타데이터 없음'
 }
 
-**🚨 처리 전략 (4-Model Routing)**
-- 복잡도 1-2: 단순 조회 → \`analyzePattern\`, \`recommendCommands\`
-- 복잡도 3: 지식 기반 → \`searchKnowledgeBase\`
-- 복잡도 4-5: 심층 분석 → \`callUnifiedProcessor\`
+**🚨 처리 전략 (5-Level Routing v3.2)**
+- Level 1: 간단한 인사, FAQ → 직접 응답 (도구 없이)
+- Level 2-3: 서버 상태, 메트릭 조회 → \`getServerMetrics\`, \`searchKnowledgeBase\`
+- Level 4: 복잡한 분석, 문서 요약 → \`callUnifiedProcessor\`
+- Level 5: 고급 분석, 예측 → 모든 도구 활용
+- Thinking: 심층 추론, 전략 수립 → 종합적 분석
+- Multimodal: 이미지 분석 모드.
+
+${useTools ? '**사용 가능한 도구:** getServerMetrics, searchKnowledgeBase, callUnifiedProcessor, analyzePattern, recommendCommands' : '**직접 응답 모드:** 도구 없이 즉시 답변합니다.'}
 
 항상 팩트 기반으로 답변하고, 불확실할 경우 솔직히 모른다고 하십시오.
 한국어로 응답하십시오.`;
@@ -487,11 +678,14 @@ ${
     const thinkingSteps: string[] = [];
 
     if (includeThinking) {
+      if (parsingSteps.length > 0) thinkingSteps.push(...parsingSteps);
       thinkingSteps.push(`🔍 Router: ${intent} (복잡도 ${complexity}/5)`);
-      thinkingSteps.push(`🎯 선택된 모델: ${primaryName}`);
+      thinkingSteps.push(`🎯 Level: ${level} → ${primaryName}`);
+      thinkingSteps.push(`🔧 Tools: ${useTools ? '활성화' : '비활성화'}`);
+      if (thinking) thinkingSteps.push(`🧠 Thinking 모드: 활성화`);
     }
 
-    const tools = {
+    const allTools = {
       analyzeRequest,
       callUnifiedProcessor,
       getServerMetrics,
@@ -500,80 +694,71 @@ ${
       recommendCommands,
     };
 
+    const tools = useTools ? allTools : undefined;
+
+    // messages 구성
+    const userMessageContent: any[] = [{ type: 'text', text: query }];
+    if (images && images.length > 0) {
+        images.forEach((img) => {
+            userMessageContent.push({ type: 'image', image: img });
+        });
+    }
+
     try {
       const result = await generateText({
         model: primary,
-        messages: [{ role: 'user', content: query }],
+        messages: [{ role: 'user', content: userMessageContent }] as CoreMessage[],
         tools,
         system: systemPrompt,
-        maxOutputTokens: isComplex ? 4096 : 2048,
-        temperature: isComplex ? 0.7 : 0.5,
+        maxOutputTokens: maxTokens,
+        temperature: temperature,
       });
 
       responseText = result.text || '응답을 생성하지 못했습니다.';
 
-      // Tool calls 기록
       if (includeThinking && result.toolCalls && result.toolCalls.length > 0) {
         for (const toolCall of result.toolCalls) {
-          const toolArgs = 'args' in toolCall ? toolCall.args : {};
-          thinkingSteps.push(
-            `🔧 ${toolCall.toolName}: ${JSON.stringify(toolArgs)}`
-          );
+            thinkingSteps.push(`🔧 ${toolCall.toolName}: ${JSON.stringify('args' in toolCall ? toolCall.args : {})}`);
         }
       }
-
-      // 사용량 기록
       if (includeThinking && result.usage) {
-        thinkingSteps.push(
-          `📊 토큰: ${result.usage.totalTokens} (input: ${result.usage.inputTokens}, output: ${result.usage.outputTokens})`
-        );
+        thinkingSteps.push(`📊 토큰: ${result.usage.totalTokens}`);
       }
+
     } catch (primaryError) {
-      console.warn(
-        `⚠️ Primary Model (${primaryName}) 실패:`,
-        primaryError instanceof Error ? primaryError.message : primaryError
-      );
+      console.warn(`⚠️ Primary Model (${primaryName}) 실패:`, primaryError);
 
-      // ============================================================
-      // Step 5: Fallback Model 실행
-      // ============================================================
       if (fallback && fallbackName) {
-        console.log(`🔄 Fallback 전환: ${primaryName} → ${fallbackName}`);
-
-        if (includeThinking) {
-          thinkingSteps.push(`⚠️ ${primaryName} 실패 → ${fallbackName} 전환`);
-        }
-
+        if (includeThinking) thinkingSteps.push(`⚠️ ${primaryName} 실패 → ${fallbackName} 전환`);
+        
         try {
+          // Fallback logic specific to multimodal (exclude images if needed)
+           let fallbackMessages: CoreMessage[] = [{ role: 'user', content: userMessageContent }] as CoreMessage[];
+           if (!fallbackName.includes('gemini') && !fallbackName.includes('vision')) {
+               fallbackMessages = [{ role: 'user', content: query }]; // 문서 내용은 쿼리에 포함되어 있으므로 OK
+           }
+
           const fallbackResult = await generateText({
             model: fallback,
-            messages: [{ role: 'user', content: query }],
+            messages: fallbackMessages,
             tools,
-            system: systemPrompt + '\n(Note: Fallback model active)',
-            maxOutputTokens: isComplex ? 4096 : 2048,
-            temperature: isComplex ? 0.7 : 0.5,
+            system: systemPrompt + '\n(Fallback mode)',
+            maxOutputTokens: maxTokens,
+            temperature: temperature,
           });
 
           responseText = fallbackResult.text || '응답을 생성하지 못했습니다.';
           usedEngine = fallbackName;
           fallbackUsed = true;
-
-          // Tool calls 기록
-          if (
-            includeThinking &&
-            fallbackResult.toolCalls &&
-            fallbackResult.toolCalls.length > 0
-          ) {
-            for (const toolCall of fallbackResult.toolCalls) {
-              const toolArgs = 'args' in toolCall ? toolCall.args : {};
-              thinkingSteps.push(
-                `🔧 ${toolCall.toolName}: ${JSON.stringify(toolArgs)}`
-              );
-            }
+          
+          if (includeThinking && fallbackResult.toolCalls) {
+             for (const toolCall of fallbackResult.toolCalls) {
+                 thinkingSteps.push(`🔧 ${toolCall.toolName}`);
+             }
           }
+
         } catch (fallbackError) {
-          console.error('❌ Fallback Model도 실패:', fallbackError);
-          throw primaryError; // 원래 오류 전파
+          throw primaryError;
         }
       } else {
         throw primaryError;
@@ -582,41 +767,19 @@ ${
 
     const responseTime = Date.now() - startTime;
 
-    // ============================================================
-    // Step 6: 응답 반환
-    // ============================================================
     return Response.json({
       response: responseText,
       thinkingSteps,
       engine: usedEngine,
-      routing: {
-        complexity,
-        intent,
-        reason: routingReason,
-        isComplex,
-      },
+      routing: { level, complexity, intent },
       fallbackUsed,
-      fallbackReason: fallbackUsed
-        ? `${primaryName} 실패 → ${fallbackName}`
-        : undefined,
       responseTime,
-      confidence: fallbackUsed ? 0.8 : isComplex ? 0.9 : 0.85,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('❌ AI 쿼리 처리 실패:', error);
-
-    const responseTime = Date.now() - startTime;
-
     return Response.json(
-      {
-        error: 'AI 쿼리 처리 중 오류가 발생했습니다.',
-        response:
-          '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-        engine: 'error-fallback',
-        responseTime,
-        timestamp: new Date().toISOString(),
-      },
+      { error: 'AI 쿼리 처리 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

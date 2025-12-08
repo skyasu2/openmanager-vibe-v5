@@ -311,7 +311,7 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({ className = '' }) => {
       title="AI 어시스턴트 로그"
       subtitle={`실시간 AI 활동 추적 (${logStats.total}개 로그, ${logStats.sessions}개 세션)`}
       icon={<Brain className="h-4 w-4 text-white" />}
-      iconGradient="bg-linear-to-br from-purple-500 to-pink-600"
+      iconGradient="bg-gradient-to-br from-purple-500 to-pink-600"
       onRefresh={reload}
       isLoading={isLoading}
       adminPath="/admin/ai-assistant"
@@ -351,7 +351,7 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({ className = '' }) => {
               ([sessionId, sessionLogs]) => (
                 <div
                   key={sessionId}
-                  className="rounded-lg border border-purple-200 bg-linear-to-r from-purple-50 to-blue-50 p-4"
+                  className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4"
                 >
                   <div className="mb-3 flex items-center justify-between">
                     <div>

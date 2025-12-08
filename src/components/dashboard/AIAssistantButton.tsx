@@ -77,7 +77,7 @@ export const AIAssistantButton = memo(function AIAssistantButton({
         {/* 호버 시 빛나는 효과 */}
         {isMounted && (isOpen || isEnabled) && (
           <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-            <div className="absolute inset-0 animate-pulse-glow bg-linear-to-r from-white/20 via-white/40 to-white/20" />
+            <div className="absolute inset-0 animate-pulse-glow bg-gradient-to-r from-white/20 via-white/40 to-white/20" />
           </div>
         )}
 

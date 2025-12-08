@@ -80,7 +80,7 @@ export function ServerDetailNetwork({
 
       {/* 네트워크 상세 카드들 */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <div className="transform rounded-xl border border-emerald-200 bg-linear-to-br from-emerald-50 to-green-100 p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+        <div className="transform rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-100 p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <div className="text-sm font-medium text-emerald-600">
               활성 연결
@@ -98,7 +98,7 @@ export function ServerDetailNetwork({
           )}
         </div>
 
-        <div className="transform rounded-xl border border-blue-200 bg-linear-to-br from-blue-50 to-cyan-100 p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+        <div className="transform rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-100 p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <div className="text-sm font-medium text-blue-600">지연 시간</div>
             <i className="fas fa-clock text-blue-500"></i>
@@ -115,7 +115,7 @@ export function ServerDetailNetwork({
           )}
         </div>
 
-        <div className="transform rounded-xl border border-purple-200 bg-linear-to-br from-purple-50 to-violet-100 p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+        <div className="transform rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-violet-100 p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <div className="text-sm font-medium text-purple-600">패킷 In</div>
             <i className="fas fa-download text-purple-500"></i>
@@ -131,7 +131,7 @@ export function ServerDetailNetwork({
           )}
         </div>
 
-        <div className="transform rounded-xl border border-orange-200 bg-linear-to-br from-orange-50 to-amber-100 p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+        <div className="transform rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-100 p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <div className="text-sm font-medium text-orange-600">패킷 Out</div>
             <i className="fas fa-upload text-orange-500"></i>

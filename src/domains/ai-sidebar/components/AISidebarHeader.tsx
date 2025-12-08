@@ -21,10 +21,10 @@ export const AISidebarHeader: FC<AISidebarHeaderProps> = ({
   onClose,
 }: AISidebarHeaderProps) => {
   return (
-    <header className="flex items-center justify-between border-b border-gray-200 bg-linear-to-r from-purple-50 to-blue-50 p-3 sm:p-4">
+    <header className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50 p-3 sm:p-4">
       <div className="flex min-w-0 items-center space-x-2 sm:space-x-3">
         {/* AI 아이콘 - 반응형 크기 */}
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-blue-600 sm:h-10 sm:w-10">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 sm:h-10 sm:w-10">
           <Brain
             className="h-4 w-4 text-white sm:h-5 sm:w-5"
             aria-hidden="true"

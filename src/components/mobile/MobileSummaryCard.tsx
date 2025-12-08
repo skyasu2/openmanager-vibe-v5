@@ -85,7 +85,7 @@ export default function MobileSummaryCard({
     <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg">
       {/* 상단 헤더 - 전체 상태 */}
       <div
-        className={`bg-linear-to-r p-4 ${
+        className={`bg-gradient-to-r p-4 ${
           overall.color === 'red'
             ? 'from-red-500 to-red-600'
             : overall.color === 'yellow'

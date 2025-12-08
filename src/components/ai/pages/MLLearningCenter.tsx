@@ -17,15 +17,16 @@ import {
   CheckCircle,
   Clock,
   Database,
-  FileSearch,
   Loader2,
-  Target,
+  Play,
+  RotateCcw,
+  Settings,
   Zap,
 } from 'lucide-react';
 import { createElement, type FC, useCallback, useState } from 'react';
 
-// 학습 타입 정의
-type LearningType = 'patterns' | 'anomaly' | 'incident' | 'prediction';
+// 학습 타입 정의 (anomaly, prediction은 IntelligentMonitoringPage에서 제공)
+type LearningType = 'patterns' | 'incident';
 
 // API 응답 타입
 interface APITrainingResult {
@@ -63,7 +64,7 @@ interface LearningResult {
   timestamp: Date;
 }
 
-// 학습 버튼 설정
+// 학습 버튼 설정 (anomaly/prediction은 이상감지/예측 페이지에서 제공)
 const LEARNING_BUTTONS = [
   {
     id: 'patterns' as LearningType,
@@ -74,28 +75,12 @@ const LEARNING_BUTTONS = [
     bgColor: 'bg-blue-50',
   },
   {
-    id: 'anomaly' as LearningType,
-    icon: FileSearch,
-    label: '이상 패턴 분석',
-    description: '비정상적인 동작 패턴을 탐지합니다',
-    color: 'from-amber-500 to-orange-500',
-    bgColor: 'bg-amber-50',
-  },
-  {
     id: 'incident' as LearningType,
     icon: AlertCircle,
     label: '장애 케이스 학습',
     description: '과거 장애 사례를 분석하여 예방책을 학습합니다',
     color: 'from-red-500 to-pink-500',
     bgColor: 'bg-red-50',
-  },
-  {
-    id: 'prediction' as LearningType,
-    icon: Target,
-    label: '예측 모델 훈련',
-    description: '미래 서버 상태를 예측하는 모델을 개선합니다',
-    color: 'from-purple-500 to-indigo-500',
-    bgColor: 'bg-purple-50',
   },
 ];
 
@@ -104,14 +89,7 @@ export const MLLearningCenter: FC = () => {
     Record<LearningType, LearningProgress>
   >({
     patterns: { status: 'idle', progress: 0, currentStep: '', timeElapsed: 0 },
-    anomaly: { status: 'idle', progress: 0, currentStep: '', timeElapsed: 0 },
     incident: { status: 'idle', progress: 0, currentStep: '', timeElapsed: 0 },
-    prediction: {
-      status: 'idle',
-      progress: 0,
-      currentStep: '',
-      timeElapsed: 0,
-    },
   });
 
   const [learningResults, setLearningResults] = useState<LearningResult[]>([]);
@@ -127,7 +105,7 @@ export const MLLearningCenter: FC = () => {
     (progress: number, type: LearningType): string => {
       if (progress < 20) return '데이터 수집 중...';
       if (progress < 40)
-        return `${type === 'patterns' ? '패턴' : type === 'anomaly' ? '이상치' : type === 'incident' ? '장애 이력' : '시계열 데이터'} 분석 중...`;
+        return `${type === 'patterns' ? '패턴' : '장애 이력'} 분석 중...`;
       if (progress < 60) return '모델 훈련 중...';
       if (progress < 80) return '검증 중...';
       if (progress < 100) return '결과 생성 중...';
@@ -262,51 +240,82 @@ export const MLLearningCenter: FC = () => {
     return minutes > 0 ? `${minutes}분 ${remainingSeconds}초` : `${seconds}초`;
   };
 
+  // 전체 초기화
+  const resetAll = () => {
+    setLearningProgress({
+      patterns: { status: 'idle', progress: 0, currentStep: '', timeElapsed: 0 },
+      incident: { status: 'idle', progress: 0, currentStep: '', timeElapsed: 0 },
+    });
+    setLearningResults([]);
+    setSelectedResult(null);
+  };
+
+  // 학습 중인지 확인
+  const isAnyLearning = Object.values(learningProgress).some(
+    (p) => p.status === 'running'
+  );
+
   return (
-    <div className="space-y-6 p-6">
-      {/* 헤더 */}
-      <div className="mb-8 text-center">
-        <h2 className="mb-2 text-2xl font-bold text-gray-800">
-          🧠 ML 학습 센터
-        </h2>
-        <p className="text-gray-600">
-          서버 모니터링 데이터를 학습하여 시스템을 더욱 똑똑하게 만듭니다
+    <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-indigo-50 p-4">
+      {/* 헤더 - IntelligentMonitoringPage 스타일 */}
+      <div className="mb-6">
+        <div className="mb-2 flex items-center justify-between">
+          <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-800">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500">
+              <Settings className="h-5 w-5 text-white" />
+            </div>
+            AI 고급관리
+          </h1>
+
+          {/* 실행 버튼들 */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={resetAll}
+              disabled={isAnyLearning}
+              className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200 disabled:opacity-50"
+            >
+              <RotateCcw className="mr-1 inline h-4 w-4" />
+              초기화
+            </button>
+          </div>
+        </div>
+        <p className="text-sm text-gray-600">
+          서버 모니터링 데이터를 학습하여 AI 시스템의 정확도를 향상시킵니다
+        </p>
+      </div>
+
+      {/* 학습 기능 설명 카드 */}
+      <div className="mb-4 rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 p-4">
+        <div className="mb-2 flex items-center space-x-2">
+          <div className="h-2 w-2 rounded-full bg-indigo-500"></div>
+          <span className="text-sm font-medium text-indigo-800">
+            ML 학습 시스템
+          </span>
+        </div>
+        <p className="text-xs text-indigo-700">
+          실제 Supabase 데이터를 기반으로 패턴 분석 및 장애 케이스를 학습합니다.
+          GCP Cloud Functions와 연동되어 고급 ML 처리를 수행합니다.
         </p>
       </div>
 
       {/* 학습 버튼 그리드 */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
         {LEARNING_BUTTONS.map((button) => {
           const progress = learningProgress[button.id];
           const isRunning = progress.status === 'running';
           const isCompleted = progress.status === 'completed';
           const isError = progress.status === 'error';
+          const isIdle = progress.status === 'idle';
 
           return (
-            <div key={button.id}>
-              <button
-                onClick={() => {
-                  void startLearning(button.id);
-                }}
-                disabled={isRunning}
-                className={`w-full rounded-xl border-2 p-6 transition-all ${
-                  isRunning
-                    ? 'cursor-not-allowed border-gray-300 bg-gray-50'
-                    : isCompleted
-                      ? 'border-green-300 bg-green-50 hover:border-green-400'
-                      : isError
-                        ? 'border-red-300 bg-red-50 hover:border-red-400'
-                        : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-lg'
-                }`}
-              >
-                <div className="mb-4 flex items-start justify-between">
-                  <div
-                    className={`rounded-lg bg-linear-to-br p-3 ${button.color}`}
-                  >
-                    {createElement(button.icon, {
-                      className: 'w-6 h-6 text-white',
-                    })}
-                  </div>
+            <div key={button.id} className="rounded-xl border border-gray-200 bg-white p-6 transition-all hover:shadow-md">
+              <div className="mb-4 flex items-start justify-between">
+                <div className={`rounded-lg bg-gradient-to-br p-3 ${button.color}`}>
+                  {createElement(button.icon, {
+                    className: 'w-6 h-6 text-white',
+                  })}
+                </div>
+                <div className="flex items-center gap-2">
                   {isRunning && (
                     <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
                   )}
@@ -315,49 +324,85 @@ export const MLLearningCenter: FC = () => {
                   )}
                   {isError && <AlertCircle className="h-5 w-5 text-red-500" />}
                 </div>
+              </div>
 
-                <div className="text-left">
-                  <h3 className="mb-1 font-semibold text-gray-800">
-                    {button.label}
-                  </h3>
-                  <p className="mb-3 text-sm text-gray-600">
-                    {button.description}
-                  </p>
+              <div className="text-left">
+                <h3 className="mb-1 font-semibold text-gray-800">
+                  {button.label}
+                </h3>
+                <p className="mb-4 text-sm text-gray-600">
+                  {button.description}
+                </p>
 
-                  {/* 진행률 표시 */}
-                  {(isRunning || isCompleted || isError) && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>{progress.currentStep}</span>
-                        <span>{progress.progress}%</span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                        <div
-                          className={`h-full rounded-full ${
-                            isError
-                              ? 'bg-red-500'
-                              : isCompleted
-                                ? 'bg-green-500'
-                                : `bg-linear-to-r ${button.color}`
-                          }`}
-                        />
-                      </div>
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>
-                          <Clock className="mr-1 inline h-3 w-3" />
-                          {formatTime(progress.timeElapsed)}
-                        </span>
-                        {progress.estimatedTimeRemaining && isRunning && (
-                          <span>
-                            남은 시간: ~
-                            {formatTime(progress.estimatedTimeRemaining)}
-                          </span>
-                        )}
-                      </div>
+                {/* 진행률 표시 */}
+                {(isRunning || isCompleted || isError) && (
+                  <div className="mb-4 space-y-2">
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>{progress.currentStep}</span>
+                      <span>{progress.progress}%</span>
                     </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          isError
+                            ? 'bg-red-500'
+                            : isCompleted
+                              ? 'bg-green-500'
+                              : 'bg-gradient-to-r from-blue-500 to-cyan-500'
+                        }`}
+                        style={{ width: `${progress.progress}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>
+                        <Clock className="mr-1 inline h-3 w-3" />
+                        {formatTime(progress.timeElapsed)}
+                      </span>
+                      {progress.estimatedTimeRemaining && isRunning && (
+                        <span>
+                          남은 시간: ~{formatTime(progress.estimatedTimeRemaining)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 학습 시작 버튼 */}
+                <button
+                  onClick={() => {
+                    void startLearning(button.id);
+                  }}
+                  disabled={isRunning}
+                  className={`w-full rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                    isRunning
+                      ? 'cursor-not-allowed bg-gray-100 text-gray-400'
+                      : isCompleted
+                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                        : isError
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                          : 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600'
+                  }`}
+                >
+                  {isRunning ? (
+                    <>학습 중...</>
+                  ) : isCompleted ? (
+                    <>
+                      <Play className="mr-1 inline h-4 w-4" />
+                      재학습
+                    </>
+                  ) : isError ? (
+                    <>
+                      <RotateCcw className="mr-1 inline h-4 w-4" />
+                      다시 시도
+                    </>
+                  ) : (
+                    <>
+                      <Play className="mr-1 inline h-4 w-4" />
+                      {isIdle ? '학습 시작' : '학습'}
+                    </>
                   )}
-                </div>
-              </button>
+                </button>
+              </div>
             </div>
           );
         })}
@@ -365,7 +410,7 @@ export const MLLearningCenter: FC = () => {
 
       {/* 학습 결과 표시 */}
       {selectedResult && (
-        <div className="mt-8 rounded-xl border border-blue-200 bg-linear-to-br from-blue-50 to-indigo-50 p-6">
+        <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
               <BarChart3 className="h-5 w-5 text-blue-600" />
@@ -428,19 +473,52 @@ export const MLLearningCenter: FC = () => {
         </div>
       )}
 
+      {/* Empty State - 학습 전 */}
+      {learningResults.length === 0 && !selectedResult && !isAnyLearning && (
+        <div className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-8">
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-purple-100">
+              <Brain className="h-8 w-8 text-indigo-600" />
+            </div>
+            <h3 className="mb-2 text-lg font-semibold text-gray-800">
+              ML 학습 준비 완료
+            </h3>
+            <p className="mx-auto mb-4 max-w-md text-sm text-gray-600">
+              위의 학습 버튼을 클릭하여 서버 모니터링 데이터 패턴을 학습하세요.
+              학습된 패턴은 이상 감지 및 예측의 정확도를 향상시킵니다.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                🧠 패턴 학습
+              </span>
+              <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                🚨 장애 케이스
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 학습 히스토리 */}
       {learningResults.length > 0 && (
-        <div className="mt-8">
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-800">
             <Database className="h-5 w-5 text-gray-600" />
             학습 히스토리
+            <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+              {learningResults.length}개
+            </span>
           </h3>
           <div className="space-y-2">
             {learningResults.map((result, idx) => (
               <button
                 key={idx}
                 onClick={() => setSelectedResult(result)}
-                className="w-full rounded-lg bg-gray-50 p-3 text-left transition-colors hover:bg-gray-100"
+                className={`w-full rounded-lg border p-3 text-left transition-all hover:shadow-sm ${
+                  selectedResult === result
+                    ? 'border-indigo-300 bg-indigo-50'
+                    : 'border-gray-100 bg-gray-50 hover:border-gray-200 hover:bg-gray-100'
+                }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">

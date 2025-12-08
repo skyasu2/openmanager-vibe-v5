@@ -274,7 +274,7 @@ export default function EnhancedServerModal({
       >
         {/* 헤더 - Miller's Rule 적용 (8개→5개 요소 축소) */}
         <div
-          className={`bg-linear-to-r ${statusTheme.gradient} p-4 text-white sm:p-6`}
+          className={`bg-gradient-to-r ${statusTheme.gradient} p-4 text-white sm:p-6`}
         >
           <div className="flex items-center justify-between">
             {/* 💡 핵심 정보 통합 (3개 요소) */}
@@ -472,7 +472,7 @@ export default function EnhancedServerModal({
         </div>
 
         {/* 콘텐츠 영역 - 모듈화된 탭 컴포넌트 시스템 */}
-        <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 via-gray-50 to-gray-100">
+        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100">
           <div key={selectedTab} className="p-4 sm:p-6">
             {/* 📊 통합 탭 시스템 (5개→3개로 통합) */}
             {selectedTab === 'overview' && (
@@ -586,7 +586,7 @@ export default function EnhancedServerModal({
         </div>
 
         {/* 하단 상태 요약 - 모바일 최적화 */}
-        <div className="border-t border-gray-200 bg-linear-to-r from-gray-50 to-gray-100 px-4 py-2 sm:px-6 sm:py-3">
+        <div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-2 sm:px-6 sm:py-3">
           <div className="flex items-center justify-between">
             {/* 핵심 상태 정보만 표시 (모바일 최적화) */}
             <div className="flex items-center gap-2 text-xs sm:gap-4 sm:text-sm">

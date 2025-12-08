@@ -48,6 +48,33 @@ interface MonitoringWorkflowProps {
   getStatusColor: (status: string) => string;
 }
 
+// 🎨 Skeleton 컴포넌트
+function SkeletonCard({ step }: { step: WorkflowStep }) {
+  const Icon = step.icon;
+  return (
+    <div className="animate-pulse rounded-lg border-2 border-gray-200 bg-gray-50 p-4">
+      <div className="mb-2 flex items-center space-x-3">
+        <div className={`rounded-lg p-2 ${step.bgColor}`}>
+          <Icon className={`h-5 w-5 ${step.color} opacity-50`} />
+        </div>
+        <div className="flex-1">
+          <div className="h-4 w-24 rounded bg-gray-200" />
+          <div className="mt-2 flex items-center space-x-2">
+            <div className="h-4 w-4 rounded-full bg-gray-200" />
+            <div className="h-3 w-12 rounded bg-gray-200" />
+          </div>
+        </div>
+      </div>
+      <div className="mb-3 h-3 w-full rounded bg-gray-200" />
+      <div className="space-y-2">
+        <div className="h-3 w-20 rounded bg-gray-200" />
+        <div className="h-3 w-16 rounded bg-gray-200" />
+        <div className="mt-2 h-12 w-full rounded bg-gray-100" />
+      </div>
+    </div>
+  );
+}
+
 export default function MonitoringWorkflow({
   isAnalyzing,
   currentStep,
@@ -60,6 +87,27 @@ export default function MonitoringWorkflow({
     return null;
   }
 
+  // 진행률 계산
+  const calculateProgress = (): number => {
+    if (!result) return isAnalyzing ? 10 : 0;
+
+    const stepIds = ['anomalyDetection', 'rootCauseAnalysis', 'predictiveMonitoring'] as const;
+    const enabledSteps = stepIds.filter(
+      (id) => analysisConfig.includeSteps[id as keyof typeof analysisConfig.includeSteps]
+    );
+
+    if (enabledSteps.length === 0) return 100;
+
+    const completedSteps = enabledSteps.filter((id) => {
+      const stepResult = result[id as keyof typeof result] as StepResultWithMeta | undefined;
+      return stepResult?.status === 'completed';
+    });
+
+    return Math.round((completedSteps.length / enabledSteps.length) * 100);
+  };
+
+  const progress = calculateProgress();
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
       <div className="mb-4 flex items-center justify-between">
@@ -67,17 +115,121 @@ export default function MonitoringWorkflow({
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <Clock className="h-4 w-4" />
           <span>{currentStep}</span>
+          <span className="ml-2 font-medium text-emerald-600">{progress}%</span>
         </div>
       </div>
 
       {/* 진행률 바 */}
-      <div className="mb-6 h-2 w-full rounded-full bg-gray-200">
-        <div className="h-2 rounded-full bg-linear-to-r from-emerald-500 to-teal-500" />
+      <div className="mb-4 h-2 w-full rounded-full bg-gray-200">
+        <div
+          className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      {/* 🎯 단계별 진행 인디케이터 */}
+      <div className="mb-6 flex items-center justify-between">
+        {workflowSteps.map((step, index) => {
+          const isEnabled = analysisConfig.includeSteps[
+            step.id as keyof typeof analysisConfig.includeSteps
+          ];
+
+          let stepStatus: 'completed' | 'current' | 'pending' | 'disabled' = 'pending';
+
+          if (!isEnabled) {
+            stepStatus = 'disabled';
+          } else if (result) {
+            const stepResult = (() => {
+              switch (step.id) {
+                case 'anomalyDetection': return result.anomalyDetection;
+                case 'rootCauseAnalysis': return result.rootCauseAnalysis;
+                case 'predictiveMonitoring': return result.predictiveMonitoring;
+                default: return undefined;
+              }
+            })();
+
+            if (stepResult?.status === 'completed') {
+              stepStatus = 'completed';
+            } else if (isAnalyzing) {
+              // 이전 단계가 모두 완료되면 현재 단계
+              const prevSteps = workflowSteps.slice(0, index);
+              const allPrevCompleted = prevSteps.every((s) => {
+                const prevEnabled = analysisConfig.includeSteps[
+                  s.id as keyof typeof analysisConfig.includeSteps
+                ];
+                if (!prevEnabled) return true;
+                const prev = (() => {
+                  switch (s.id) {
+                    case 'anomalyDetection': return result.anomalyDetection;
+                    case 'rootCauseAnalysis': return result.rootCauseAnalysis;
+                    case 'predictiveMonitoring': return result.predictiveMonitoring;
+                    default: return undefined;
+                  }
+                })();
+                return prev?.status === 'completed';
+              });
+              if (allPrevCompleted) stepStatus = 'current';
+            }
+          } else if (isAnalyzing && index === 0) {
+            stepStatus = 'current';
+          }
+
+          const Icon = step.icon;
+
+          return (
+            <div key={step.id} className="flex flex-1 items-center">
+              {/* 단계 원형 아이콘 */}
+              <div className="flex flex-col items-center">
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${
+                    stepStatus === 'completed'
+                      ? 'border-emerald-500 bg-emerald-500 text-white'
+                      : stepStatus === 'current'
+                        ? `border-${step.color.split('-')[1]}-500 ${step.bgColor} animate-pulse`
+                        : stepStatus === 'disabled'
+                          ? 'border-gray-200 bg-gray-100 text-gray-400'
+                          : 'border-gray-300 bg-white text-gray-500'
+                  }`}
+                >
+                  {stepStatus === 'completed' ? (
+                    <CheckCircle className="h-5 w-5" />
+                  ) : (
+                    <Icon className={`h-5 w-5 ${stepStatus === 'current' ? step.color : ''}`} />
+                  )}
+                </div>
+                <span className={`mt-1 text-xs font-medium ${
+                  stepStatus === 'completed'
+                    ? 'text-emerald-600'
+                    : stepStatus === 'current'
+                      ? step.color
+                      : 'text-gray-500'
+                }`}>
+                  {step.title}
+                </span>
+              </div>
+
+              {/* 연결선 (마지막 단계 제외) */}
+              {index < workflowSteps.length - 1 && (
+                <div className={`mx-2 h-0.5 flex-1 ${
+                  stepStatus === 'completed'
+                    ? 'bg-emerald-500'
+                    : 'bg-gray-200'
+                }`} />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* 3단계 워크플로우 시각화 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {workflowSteps.map((step) => {
+        {/* 🎨 Skeleton 표시: 분석 중이고 결과가 없을 때 */}
+        {isAnalyzing && !result && workflowSteps.map((step) => (
+          <SkeletonCard key={`skeleton-${step.id}`} step={step} />
+        ))}
+
+        {/* 실제 결과 표시 */}
+        {result && workflowSteps.map((step) => {
           // 타입 안전성을 위한 명시적 타입 가드
           let stepResult: StepResultWithMeta | undefined;
 

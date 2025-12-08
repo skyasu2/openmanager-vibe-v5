@@ -144,7 +144,7 @@ export const EnhancedThinkingView: FC<EnhancedThinkingViewProps> = ({
         className="flex w-full items-center justify-between p-3 transition-colors hover:bg-gray-800/30"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-blue-600">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-blue-600">
             {isThinking ? (
               <Loader2 className="h-3 w-3 animate-spin text-white" />
             ) : (

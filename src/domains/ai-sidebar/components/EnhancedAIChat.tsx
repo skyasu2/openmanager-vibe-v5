@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, FileText, Send } from 'lucide-react';
+import { Bot, Brain, FileText, Send } from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
@@ -12,6 +12,10 @@ import { AIEngineIndicator } from './AIEngineIndicator';
 interface EnhancedAIChatProps {
   /** Real-time thinking 활성화 여부 */
   enableRealTimeThinking: boolean;
+  /** Thinking 모드 토글 상태 */
+  thinkingEnabled?: boolean;
+  /** Thinking 모드 토글 핸들러 */
+  onThinkingToggle?: (enabled: boolean) => void;
   /** 자동 장애 보고서 트리거 상태 */
   autoReportTrigger: {
     shouldGenerate: boolean;
@@ -58,6 +62,8 @@ interface EnhancedAIChatProps {
  */
 export const EnhancedAIChat = memo(function EnhancedAIChat({
   enableRealTimeThinking,
+  thinkingEnabled = false,
+  onThinkingToggle,
   autoReportTrigger,
   allMessages,
   limitedMessages,
@@ -72,12 +78,12 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   routingReason,
 }: EnhancedAIChatProps) {
   return (
-    <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
+    <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-blue-50">
       {/* 헤더 - 모델 선택 */}
       <div className="border-b border-gray-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-blue-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-600">
               <Bot className="h-4 w-4 text-white" />
             </div>
             <div>
@@ -102,7 +108,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
       <div className="flex-1 space-y-3 overflow-y-auto scroll-smooth p-3 will-change-scroll sm:space-y-4 sm:p-4">
         {/* 자동장애보고서 알림 */}
         {autoReportTrigger.shouldGenerate && (
-          <div className="rounded-lg border border-red-200 bg-linear-to-r from-red-50 to-orange-50 p-3">
+          <div className="rounded-lg border border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <FileText className="h-4 w-4 text-red-600" />
@@ -123,7 +129,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         {/* 빈 메시지 상태 */}
         {allMessages.length === 0 && (
           <div className="py-8 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-r from-purple-500 to-blue-600">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-blue-600">
               <Bot className="h-6 w-6 text-white" />
             </div>
             <h3 className="mb-2 text-lg font-medium text-gray-900">
@@ -174,7 +180,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               void handleSendInput();
             }}
             disabled={!inputValue.trim() || isGenerating}
-            className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             title="메시지 전송"
             aria-label="메시지 전송"
           >
@@ -184,14 +190,39 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
 
         {/* 하단 컨트롤 영역 */}
         <div className="mt-2 flex items-center justify-between">
-          {/* 왼쪽: AI 모드 선택기 (Cursor 스타일) */}
-          <div />
+          {/* 왼쪽: Thinking 토글 버튼 */}
+          {enableRealTimeThinking && onThinkingToggle && (
+            <button
+              onClick={() => onThinkingToggle(!thinkingEnabled)}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
+                thinkingEnabled
+                  ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              }`}
+              title={
+                thinkingEnabled ? 'Thinking 모드 끄기' : 'Thinking 모드 켜기'
+              }
+              aria-pressed={thinkingEnabled}
+            >
+              <Brain
+                className={`h-3.5 w-3.5 ${thinkingEnabled ? 'text-purple-600' : 'text-gray-400'}`}
+              />
+              <span>Thinking</span>
+              <span
+                className={`ml-0.5 h-2 w-2 rounded-full transition-colors ${
+                  thinkingEnabled ? 'bg-purple-500' : 'bg-gray-300'
+                }`}
+              />
+            </button>
+          )}
+          {/* 왼쪽 빈 공간 (Thinking 비활성화 시) */}
+          {(!enableRealTimeThinking || !onThinkingToggle) && <div />}
 
           {/* 오른쪽: 키보드 단축키 힌트 */}
           <div className="text-xs text-gray-500">
             <span>Ctrl+Enter로 전송</span>
-            {enableRealTimeThinking && (
-              <span className="ml-2 text-emerald-600">• Thinking 활성</span>
+            {thinkingEnabled && (
+              <span className="ml-2 text-purple-600">• Thinking 활성</span>
             )}
           </div>
         </div>

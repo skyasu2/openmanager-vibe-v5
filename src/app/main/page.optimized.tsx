@@ -95,14 +95,14 @@ export default function OptimizedMainPage() {
 
   if (!isClientMounted) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-blue-50 to-indigo-50">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
         <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-linear-to-br from-blue-50 to-indigo-50">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       <WaveBackground />
 
       {/* 헤더 */}

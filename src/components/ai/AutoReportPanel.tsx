@@ -179,7 +179,7 @@ const AutoReportPanel: FC<AutoReportPanelProps> = ({ className = '' }) => {
       title="자동 보고서"
       subtitle="AI가 자동 생성한 분석 보고서"
       icon={<FileText className="h-4 w-4 text-white" />}
-      iconGradient="bg-linear-to-br from-green-500 to-blue-600"
+      iconGradient="bg-gradient-to-br from-green-500 to-blue-600"
       onRefresh={reload}
       isLoading={isLoading}
       adminPath="/admin"

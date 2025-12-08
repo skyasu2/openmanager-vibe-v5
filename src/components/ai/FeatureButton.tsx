@@ -38,7 +38,7 @@ const FeatureButton: FC<FeatureButtonProps> = ({
         onClick={() => onClick(tab)}
         className={`relative flex h-12 w-12 items-center justify-center rounded-xl border border-transparent text-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
           isActive
-            ? 'border-purple-300/50 bg-linear-to-br from-purple-500 to-pink-500 text-white shadow-lg'
+            ? 'border-purple-300/50 bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg'
             : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/70 hover:text-white'
         } ${className} `}
       >

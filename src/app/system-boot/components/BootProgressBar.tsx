@@ -18,7 +18,7 @@ export const BootProgressBar = ({ progress }: BootProgressBarProps) => {
       {/* 진행률 바 컨테이너 */}
       <div className="relative h-4 overflow-hidden rounded-full border border-white/20 bg-white/10 shadow-lg">
         {/* 배경 그라데이션 효과 */}
-        <div className="absolute inset-0 rounded-full bg-linear-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10" />
 
         {/* 메인 진행률 바 */}
         <div
@@ -32,10 +32,10 @@ export const BootProgressBar = ({ progress }: BootProgressBarProps) => {
           }}
         >
           {/* 진행률 바 내부 반짝임 효과 */}
-          <div className="animate-shimmer absolute inset-0 bg-linear-to-r from-transparent via-white/40 to-transparent" />
+          <div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
 
           {/* 진행률 바 상단 하이라이트 */}
-          <div className="absolute left-0 right-0 top-0 h-1 rounded-full bg-linear-to-r from-white/30 via-white/50 to-white/30" />
+          <div className="absolute left-0 right-0 top-0 h-1 rounded-full bg-gradient-to-r from-white/30 via-white/50 to-white/30" />
         </div>
 
         {/* 진행률 포인터 - 부드러운 트랜지션 */}

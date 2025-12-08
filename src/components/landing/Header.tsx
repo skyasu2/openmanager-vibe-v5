@@ -40,7 +40,7 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
         <div className="flex h-16 items-center justify-between">
           {/* 로고 & 브랜딩 */}
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-r from-blue-500 to-purple-600 shadow-lg">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
               <span className="text-lg font-bold text-white">OM</span>
             </div>
             <div className="hidden sm:block">

@@ -37,7 +37,7 @@ export function GuestRestrictionModal({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="border-yellow-500/30 bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 sm:max-w-md">
+      <DialogContent className="border-yellow-500/30 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 sm:max-w-md">
         <DialogHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-500/20">
             <AlertTriangle className="h-6 w-6 text-yellow-500" />
@@ -82,7 +82,7 @@ export function GuestRestrictionModal({
           </Button>
           <Button
             onClick={handleLoginRedirect}
-            className="w-full bg-linear-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 sm:w-auto"
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 sm:w-auto"
           >
             <Github className="mr-2 h-4 w-4" />
             GitHub 로그인

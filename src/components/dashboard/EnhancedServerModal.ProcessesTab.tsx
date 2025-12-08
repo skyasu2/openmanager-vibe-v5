@@ -58,7 +58,7 @@ export const ProcessesTab: FC<ProcessesTabProps> = ({ realtimeData }) => {
       <div>
         {/* 헤더 섹션 */}
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
+          <h3 className="bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
             실행 중인 프로세스
           </h3>
 
@@ -74,7 +74,7 @@ export const ProcessesTab: FC<ProcessesTabProps> = ({ realtimeData }) => {
         {/* 프로세스 테이블 */}
         <div className="overflow-hidden rounded-2xl bg-white shadow-xl">
           {/* 테이블 헤더 */}
-          <div className="bg-linear-to-r from-purple-500 to-pink-500 p-4">
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4">
             <div className="grid grid-cols-4 gap-4 font-semibold text-white">
               <div>프로세스 이름</div>
               <div>PID</div>

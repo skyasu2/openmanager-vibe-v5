@@ -80,7 +80,7 @@ export const CompactMonitoringHeader: FC<CompactMonitoringHeaderProps> = ({
 
   return (
     <div
-      className={`h-[33vh] border-b border-gray-200 bg-linear-to-br from-blue-50 to-cyan-50 ${className}`}
+      className={`h-[33vh] border-b border-gray-200 bg-gradient-to-br from-blue-50 to-cyan-50 ${className}`}
     >
       <div className="mx-auto h-full max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         {/* 헤더 타이틀 */}

@@ -9,8 +9,11 @@
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   AlertTriangle,
+  Bell,
+  CheckCircle,
   Clock,
   Cpu,
+  Eye,
   HardDrive,
   RefreshCw,
   Server,
@@ -30,6 +33,33 @@ interface PredictionData {
   confidence: number;
   factors: string[];
 }
+
+// Skeleton 로딩 컴포넌트
+const PredictionSkeleton = () => (
+  <div className="animate-pulse rounded-lg border-2 border-gray-200 bg-gray-50 p-4">
+    <div className="mb-3 flex items-start justify-between">
+      <div className="flex items-center space-x-3">
+        <div className="h-5 w-5 rounded bg-gray-300" />
+        <div>
+          <div className="mb-2 h-4 w-24 rounded bg-gray-300" />
+          <div className="h-3 w-40 rounded bg-gray-200" />
+        </div>
+      </div>
+      <div className="text-right">
+        <div className="mb-1 h-8 w-12 rounded bg-gray-300" />
+        <div className="h-2 w-16 rounded bg-gray-200" />
+      </div>
+    </div>
+    <div className="mb-3">
+      <div className="mb-1 h-2 w-full rounded bg-gray-200" />
+      <div className="h-2 w-full rounded-full bg-gray-200" />
+    </div>
+    <div className="flex space-x-2">
+      <div className="h-6 w-20 rounded-full bg-gray-200" />
+      <div className="h-6 w-24 rounded-full bg-gray-200" />
+    </div>
+  </div>
+);
 
 const MOCK_PREDICTIONS: PredictionData[] = [
   {
@@ -83,6 +113,12 @@ export default function PredictionPage() {
     useState<PredictionData[]>(MOCK_PREDICTIONS);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedRisk, setSelectedRisk] = useState<string>('all');
+  const [expandedPrediction, setExpandedPrediction] = useState<string | null>(
+    null
+  );
+  const [acknowledgedIds, setAcknowledgedIds] = useState<Set<string>>(
+    new Set()
+  );
 
   const handleAnalyze = () => {
     setIsAnalyzing(true);
@@ -132,6 +168,16 @@ export default function PredictionPage() {
     }
   };
 
+  // 확인 처리
+  const handleAcknowledge = (serverId: string) => {
+    setAcknowledgedIds((prev) => new Set([...prev, serverId]));
+  };
+
+  // 상세 토글
+  const toggleDetail = (serverId: string) => {
+    setExpandedPrediction((prev) => (prev === serverId ? null : serverId));
+  };
+
   const getFactorIcon = (factor: string) => {
     if (factor.includes('CPU')) return <Cpu className="h-4 w-4" />;
     if (factor.includes('메모리')) return <HardDrive className="h-4 w-4" />;
@@ -146,12 +192,12 @@ export default function PredictionPage() {
       : predictions.filter((p) => p.riskLevel === selectedRisk);
 
   return (
-    <div className="flex h-full flex-col bg-linear-to-br from-purple-50 to-indigo-50">
+    <div className="flex h-full flex-col bg-gradient-to-br from-purple-50 to-indigo-50">
       {/* 헤더 */}
       <div className="border-b border-purple-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-indigo-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500">
               <TrendingUp className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -220,7 +266,12 @@ export default function PredictionPage() {
         {filteredPredictions.map((prediction, _index) => (
           <div
             key={prediction.serverId}
-            className={`rounded-lg border-2 p-4 ${getRiskColor(prediction.riskLevel)} transition-shadow hover:shadow-lg`}
+            className={`rounded-lg border-2 p-4 ${getRiskColor(prediction.riskLevel)} transition-shadow hover:shadow-lg ${
+              prediction.riskLevel === 'critical' &&
+              !acknowledgedIds.has(prediction.serverId)
+                ? 'animate-pulse ring-2 ring-red-400 ring-offset-2'
+                : ''
+            } ${acknowledgedIds.has(prediction.serverId) ? 'opacity-60' : ''}`}
           >
             <div className="mb-3 flex items-start justify-between">
               <div className="flex items-center space-x-3">
@@ -251,7 +302,7 @@ export default function PredictionPage() {
               </div>
               <div className="h-2 w-full rounded-full bg-gray-200">
                 <div
-                  className={`h-2 rounded-full ${
+                  className={`h-2 rounded-full transition-all duration-500 ${
                     prediction.riskLevel === 'critical'
                       ? 'bg-red-500'
                       : prediction.riskLevel === 'high'
@@ -260,6 +311,7 @@ export default function PredictionPage() {
                           ? 'bg-yellow-500'
                           : 'bg-green-500'
                   }`}
+                  style={{ width: `${prediction.probability}%` }}
                 />
               </div>
             </div>
@@ -290,13 +342,75 @@ export default function PredictionPage() {
                 ))}
               </div>
             </div>
+
+            {/* 액션 버튼 */}
+            <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-3">
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => toggleDetail(prediction.serverId)}
+                  className="flex items-center space-x-1 rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-700 transition-colors hover:bg-gray-200"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  <span>{expandedPrediction === prediction.serverId ? '닫기' : '상세보기'}</span>
+                </button>
+                {!acknowledgedIds.has(prediction.serverId) && (
+                  <button
+                    onClick={() => handleAcknowledge(prediction.serverId)}
+                    className="flex items-center space-x-1 rounded-lg bg-green-100 px-3 py-1.5 text-xs text-green-700 transition-colors hover:bg-green-200"
+                  >
+                    <CheckCircle className="h-3.5 w-3.5" />
+                    <span>확인</span>
+                  </button>
+                )}
+              </div>
+              <button
+                className="flex items-center space-x-1 rounded-lg bg-blue-100 px-3 py-1.5 text-xs text-blue-700 transition-colors hover:bg-blue-200"
+              >
+                <Bell className="h-3.5 w-3.5" />
+                <span>알림 설정</span>
+              </button>
+            </div>
+
+            {/* 확인된 표시 */}
+            {acknowledgedIds.has(prediction.serverId) && (
+              <div className="mt-2 flex items-center space-x-1 text-xs text-green-600">
+                <CheckCircle className="h-3 w-3" />
+                <span>확인됨</span>
+              </div>
+            )}
           </div>
         ))}
 
-        {filteredPredictions.length === 0 && (
-          <div className="py-8 text-center">
-            <TrendingUp className="mx-auto mb-2 h-12 w-12 text-gray-300" />
-            <p className="text-gray-500">해당 위험도의 예측이 없습니다.</p>
+        {/* Skeleton 로딩 */}
+        {isAnalyzing && (
+          <div className="space-y-3">
+            <PredictionSkeleton />
+            <PredictionSkeleton />
+            <PredictionSkeleton />
+          </div>
+        )}
+
+        {/* 빈 상태 */}
+        {!isAnalyzing && filteredPredictions.length === 0 && (
+          <div className="py-12 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
+              <TrendingUp className="h-8 w-8 text-purple-500" />
+            </div>
+            <h3 className="mb-2 font-medium text-gray-800">
+              {selectedRisk === 'all' ? '예측 데이터 없음' : `${selectedRisk === 'critical' ? '심각' : selectedRisk === 'high' ? '높음' : selectedRisk === 'medium' ? '보통' : '낮음'} 위험도 없음`}
+            </h3>
+            <p className="mb-4 text-sm text-gray-500">
+              {selectedRisk === 'all'
+                ? '현재 분석된 예측 데이터가 없습니다.'
+                : '해당 위험도의 예측이 없습니다.'}
+            </p>
+            <button
+              onClick={handleAnalyze}
+              className="inline-flex items-center space-x-2 rounded-lg bg-purple-500 px-4 py-2 text-sm text-white transition-colors hover:bg-purple-600"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span>AI 분석 시작</span>
+            </button>
           </div>
         )}
       </div>

@@ -23,7 +23,7 @@ const buttonVariants = cva(
       variant: {
         // Primary: 브랜드 그라데이션 (Stage 1 통일)
         default:
-          'bg-linear-to-r from-purple-500 via-pink-500 to-cyan-500 text-white shadow-xs hover:opacity-90 focus-visible:ring-purple-400',
+          'bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 text-white shadow-xs hover:opacity-90 focus-visible:ring-purple-400',
         // Destructive: 에러 색상
         destructive:
           'bg-(--color-error-500) text-white shadow-xs hover:opacity-90 focus-visible:ring-red-400',

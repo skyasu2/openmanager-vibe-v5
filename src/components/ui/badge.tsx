@@ -20,7 +20,7 @@ const badgeVariants = cva(
       variant: {
         // Primary: 브랜드 색상
         default:
-          'border-transparent bg-linear-to-r from-purple-500 via-pink-500 to-cyan-500 text-white hover:opacity-90 focus:ring-purple-400',
+          'border-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 text-white hover:opacity-90 focus:ring-purple-400',
         // Success: 성공 상태
         success:
           'border-transparent bg-(--color-success-500) text-white hover:opacity-90 focus:ring-green-400',

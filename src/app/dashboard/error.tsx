@@ -91,7 +91,7 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
   const IconComponent = currentError.icon;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-900 dark:to-slate-800">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-900 dark:to-slate-800">
       <div className="w-full max-w-2xl">
         <Card className={`${currentError.bgColor} border-2`}>
           <CardHeader className="text-center">

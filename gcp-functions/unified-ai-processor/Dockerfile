@@ -1,20 +1,15 @@
-# Python 3.10 with KoNLPy support (Java required)
-# Unified AI Processor - Cloud Run Optimized
-# Version: 3.0.0
+# Python 3.10 - Unified AI Processor - Cloud Run Optimized
+# Version: 3.1.0 (2025-12-09) - Java 제거 (KoNLPy 미사용)
 FROM python:3.10-slim
 
 # Install system dependencies
 # - build-essential: for numpy/pandas compilation
-# - default-jdk: required for KoNLPy (Korean NLP)
-# - g++: for C++ dependencies
+# - g++: for C++ dependencies (spaCy, scikit-learn)
+# Note: Java (default-jdk) removed - KoNLPy no longer used
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    default-jdk \
     g++ \
     && rm -rf /var/lib/apt/lists/*
-
-# Set Java environment for KoNLPy
-ENV JAVA_HOME=/usr/lib/jvm/default-java
 
 WORKDIR /app
 

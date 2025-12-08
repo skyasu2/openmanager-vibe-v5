@@ -68,7 +68,7 @@ const SmoothTransition: FC<SmoothTransitionProps> = memo(
 
     // 기본 로딩 컴포넌트
     const defaultLoadingComponent = (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-slate-50 to-blue-50">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-500" />
           <p className="font-medium text-gray-600">

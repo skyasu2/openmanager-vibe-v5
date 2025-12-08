@@ -49,7 +49,7 @@ const MessageComponent = memo<{
         <MemoizedThinkingProcessVisualizer
           steps={message.thinkingSteps as AIThinkingStep[]}
           isActive={message.isStreaming || false}
-          className="rounded-lg border border-purple-200 bg-linear-to-r from-purple-50 to-blue-50 p-4"
+          className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4"
         />
       </div>
     );
@@ -70,7 +70,7 @@ const MessageComponent = memo<{
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-xs ${
             message.role === 'user'
               ? 'bg-blue-100 text-blue-600'
-              : 'bg-linear-to-br from-purple-500 to-pink-500 text-white'
+              : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
           }`}
         >
           {message.role === 'user' ? (
@@ -85,7 +85,7 @@ const MessageComponent = memo<{
           <div
             className={`rounded-2xl p-4 shadow-xs ${
               message.role === 'user'
-                ? 'rounded-tr-sm bg-linear-to-br from-blue-500 to-blue-600 text-white'
+                ? 'rounded-tr-sm bg-gradient-to-br from-blue-500 to-blue-600 text-white'
                 : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
             }`}
           >
@@ -144,6 +144,9 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
 
   // 🔧 수동 입력 상태 관리 (@ai-sdk/react v2.x 마이그레이션)
   const [input, setInput] = useState('');
+
+  // 🧠 Thinking 모드 상태 관리
+  const [thinkingEnabled, setThinkingEnabled] = useState(false);
 
   // Vercel AI SDK useChat Hook (@ai-sdk/react v2.x)
   const { messages, sendMessage, status, setMessages } = useChat({
@@ -267,6 +270,8 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
       return (
         <EnhancedAIChat
           enableRealTimeThinking={enableRealTimeThinking}
+          thinkingEnabled={thinkingEnabled}
+          onThinkingToggle={setThinkingEnabled}
           autoReportTrigger={{ shouldGenerate: false }}
           allMessages={enhancedMessages}
           limitedMessages={enhancedMessages}
@@ -276,15 +281,19 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           setInputValue={setInput}
           handleSendInput={() => {
             if (input.trim()) {
-              // @ai-sdk/react v2.x: sendMessage API
-              void sendMessage({ text: input });
+              // @ai-sdk/react v2.x: sendMessage API with thinking in metadata
+              void sendMessage({
+                text: input,
+                metadata: { thinking: thinkingEnabled },
+              });
             }
           }}
           isGenerating={isLoading}
           regenerateResponse={() => {
             regenerateLastResponse();
           }}
-          currentEngine="Vercel AI SDK"
+          currentEngine={thinkingEnabled ? 'Thinking Mode' : 'Vercel AI SDK'}
+          routingReason={thinkingEnabled ? '심층 추론 활성화' : undefined}
         />
       );
     }

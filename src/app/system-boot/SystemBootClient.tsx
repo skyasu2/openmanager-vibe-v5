@@ -188,7 +188,7 @@ export default function SystemBootClient() {
 
           {/* 제품 브랜드 */}
           <h1 className="mb-4 text-5xl font-bold">
-            <span className="bg-linear-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               OpenManager
             </span>
           </h1>
@@ -201,7 +201,7 @@ export default function SystemBootClient() {
           {/* 🎯 부드러운 아이콘 교체 시스템 - 현재 단계 아이콘 */}
           <div className="relative mx-auto mb-6 h-20 w-20">
             <div className="absolute inset-0">
-              <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl bg-linear-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-2xl">
+              <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-2xl">
                 {/* 아이콘 - 페이드 트랜지션 추가 */}
                 <div
                   className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
@@ -243,7 +243,7 @@ export default function SystemBootClient() {
                     <div
                       className={`relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl transition-all duration-300 ${
                         isActive
-                          ? 'bg-linear-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-lg'
+                          ? 'bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-lg'
                           : 'border border-white/20 bg-white/10 text-white/40'
                       }`}
                     >
@@ -257,7 +257,7 @@ export default function SystemBootClient() {
 
                     {/* 글로우 효과 */}
                     {isActive && (
-                      <div className="absolute inset-0 rounded-xl bg-linear-to-br from-blue-500/20 via-purple-600/20 to-pink-500/20 blur-lg" />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 via-purple-600/20 to-pink-500/20 blur-lg" />
                     )}
 
                     {/* 현재 단계 펄스 효과 */}
@@ -276,7 +276,7 @@ export default function SystemBootClient() {
                     {/* 연결선 */}
                     {index < 5 && (
                       <div
-                        className="absolute -right-3 top-1/2 h-0.5 w-6 bg-linear-to-r from-white/30 to-transparent"
+                        className="absolute -right-3 top-1/2 h-0.5 w-6 bg-gradient-to-r from-white/30 to-transparent"
                         style={{ transformOrigin: 'left' }}
                       />
                     )}

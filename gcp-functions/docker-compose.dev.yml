@@ -22,33 +22,11 @@ services:
       - FLASK_DEBUG=true
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/ || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-
-  # Enhanced Korean NLP - Intent & Entity Extraction
-  enhanced-korean-nlp:
-    build:
-      context: ./enhanced-korean-nlp
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8080"
-    volumes:
-      - ./enhanced-korean-nlp:/app
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PORT=8080
-      - FLASK_DEBUG=true
-      - JAVA_HOME=/usr/lib/jvm/default-java
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 90s
 
   # Unified AI Processor - Orchestration & Aggregation
   unified-ai-processor:
@@ -66,14 +44,14 @@ services:
       - JAVA_HOME=/usr/lib/jvm/default-java
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/ || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 90s
     # Note: unified-ai-processor has local engines, no network dependency
 
-# Network configuration (optional - all containers can communicate)
+    # Network configuration (optional - all containers can communicate)
 networks:
   default:
     name: cloud-run-dev

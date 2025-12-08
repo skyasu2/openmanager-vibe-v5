@@ -14,7 +14,7 @@ export default function ParticleBackground() {
       </div>
 
       {/* 글로우 효과 */}
-      <div className="absolute inset-0 bg-linear-to-t from-slate-900/60 via-transparent to-slate-900/60" />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-slate-900/60" />
 
       {/* 네트워크 느낌의 선들 */}
       <svg

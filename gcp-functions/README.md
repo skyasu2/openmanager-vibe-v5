@@ -1,35 +1,48 @@
-# 🚀 OpenManager GCP Cloud Functions
+# 🚀 OpenManager GCP Cloud Run
 
-> **최종 업데이트**: 2025-11-20  
-> **버전**: 2.0.1  
-> **상태**: 배포 완료 ✅ (5/5 ACTIVE)
+> **최종 업데이트**: 2025-12-09
+> **버전**: 3.1.0
+> **상태**: 통합 완료 ✅ (1 Service - Cloud Run)
 
-베르셀 AI 엔진 기능을 GCP로 이전한 서버리스 Functions 모음
+Vercel AI 엔진 기능을 GCP Cloud Run으로 통합한 단일 서비스
 
 ---
 
-## 📊 배포 상태 (2025-11-20)
+## 📊 아키텍처 변경 (v3.0.0)
 
-### ✅ 모든 Functions ACTIVE
-```bash
-NAME                  STATE   TRIGGER       REGION           ENVIRONMENT
-ai-gateway            ACTIVE  HTTP Trigger  asia-northeast3  2nd gen
-enhanced-korean-nlp   ACTIVE  HTTP Trigger  asia-northeast3  2nd gen
-health-check          ACTIVE  HTTP Trigger  asia-northeast3  2nd gen
-ml-analytics-engine   ACTIVE  HTTP Trigger  asia-northeast3  2nd gen
-unified-ai-processor  ACTIVE  HTTP Trigger  asia-northeast3  2nd gen
+### Before (Cloud Functions - 6 Services)
+```
+❌ ai-gateway            (Node.js - 배포 실패)
+❌ health                (Node.js - 배포 실패)
+❌ rule-engine           (Node.js - 배포 실패)
+❌ enhanced-korean-nlp   (Python - 중복)
+❌ ml-analytics-engine   (Python - 중복)
+✅ unified-ai-processor  (Python - 활성)
 ```
 
-### 🔗 엔드포인트
+### After (Cloud Run - 1 Service)
 ```
-Base URL: https://asia-northeast3-openmanager-free-tier.cloudfunctions.net
+✅ unified-ai-processor  (Python/Flask - 모든 기능 통합)
+```
 
-/health-check          - 헬스체크 (256MB, 10초)
-/ai-gateway            - AI 요청 라우팅 (512MB, 60초)
-/enhanced-korean-nlp   - 한국어 NLP (256MB, 60초)
-/ml-analytics-engine   - ML 분석 (384MB, 45초)
-/unified-ai-processor  - 통합 AI 처리 (512MB, 120초)
-/rule-engine           - 규칙 엔진 (256MB, 30초)
+**변경 이유**:
+- Cloud Functions Gen2 health check 요구사항으로 Node.js 함수 배포 실패
+- Python 서비스 간 기능 중복 해소
+- 단일 배포 단위로 유지보수 간소화
+
+---
+
+## 🔗 엔드포인트
+
+```
+Base URL: Cloud Run URL (배포 후 확인)
+
+POST /process   - 통합 AI 처리 (메인)
+GET  /health    - 헬스체크
+POST /gateway   - 게이트웨이 라우팅
+POST /rules     - 규칙 엔진
+POST /smart     - 스마트 처리 (fast-path + intelligent routing)
+GET  /stats     - 통계 정보
 ```
 
 ---
@@ -38,72 +51,60 @@ Base URL: https://asia-northeast3-openmanager-free-tier.cloudfunctions.net
 
 ### Health Check
 ```bash
-curl https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/health-check
+curl http://localhost:8080/health
 ```
 
 **응답 예시**:
 ```json
 {
   "status": "healthy",
-  "timestamp": "2025-11-20T11:46:53.600Z",
-  "service": "openmanager-vibe-v5-gcp",
-  "platform": "gcp-functions",
-  "region": "asia-northeast3",
-  "functions": {
-    "ai-gateway": "https://...",
-    "enhanced-korean-nlp": "https://...",
-    "ml-analytics-engine": "https://...",
-    "unified-ai-processor": "https://...",
-    "health-check": "https://..."
-  }
+  "version": "3.1.0",
+  "modules": {
+    "nlp_engine": "initialized",
+    "ml_engine": "initialized",
+    "gateway_router": "ready",
+    "rule_engine": "ready"
+  },
+  "timestamp": "2025-12-09T00:00:00Z"
 }
 ```
 
-### ML Analytics Engine
+### Smart Processing (권장)
 ```bash
-curl -X POST https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/ml-analytics-engine \
+curl -X POST http://localhost:8080/smart \
   -H "Content-Type: application/json" \
-  -H "Origin: https://openmanager-vibe-v5.vercel.app" \
-  -d '{
-    "metrics": [
-      {"cpu": 80, "memory": 70, "timestamp": "2025-11-20T11:00:00Z"}
-    ]
-  }'
+  -d '{"query": "서버 상태 확인해줘"}'
 ```
 
 **응답 예시**:
 ```json
 {
   "success": true,
-  "data": {
-    "anomalies": [],
-    "trend": {
-      "direction": "stable",
-      "rate_of_change": 0.0,
-      "prediction_24h": 0.0
-    },
-    "patterns": [],
-    "recommendations": []
+  "response": "서버 상태를 확인해보겠습니다. 현재 모든 서버가 정상 운영 중입니다.",
+  "source": "rule_engine",
+  "fast_path": true,
+  "confidence": 0.9,
+  "routing": {
+    "primary_processor": "rule_engine",
+    "mode": "auto_rule"
   },
-  "performance": {
-    "processing_time_ms": 0.32,
-    "metrics_analyzed": 1
-  }
+  "processing_time_ms": 5.2
 }
 ```
 
-### Enhanced Korean NLP
+### Gateway Routing
 ```bash
-curl -X POST https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/enhanced-korean-nlp \
+curl -X POST http://localhost:8080/gateway \
   -H "Content-Type: application/json" \
-  -H "Origin: https://openmanager-vibe-v5.vercel.app" \
-  -d '{
-    "text": "서버 상태 확인해줘"
-  }'
+  -d '{"query": "CPU 사용량 분석해줘", "mode": "auto"}'
 ```
 
-**참고**: CORS 보안으로 인해 Origin 헤더가 필요합니다.
-- 허용된 Origin: `https://openmanager-vibe-v5.vercel.app`, `http://localhost:3000`
+### Rule Engine
+```bash
+curl -X POST http://localhost:8080/rules \
+  -H "Content-Type: application/json" \
+  -d '{"query": "안녕하세요"}'
+```
 
 ---
 
@@ -111,121 +112,182 @@ curl -X POST https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/en
 
 ```
 gcp-functions/
-├── ai-gateway/              # 요청 분산 및 조율 (512MB, 60초)
-├── enhanced-korean-nlp/     # 한국어 자연어 처리 (256MB, 60초) ⚡ 최적화
-├── rule-engine/             # 규칙 기반 빠른 응답 (256MB, 30초)
-├── ml-analytics-engine/     # 머신러닝 분석 (384MB, 45초) ⚡ 최적화
-├── unified-ai-processor/    # 통합 AI 처리 (512MB, 120초) ⚡ 최적화
-├── health/                  # 헬스체크 (256MB, 10초)
-├── shared/                  # 공통 유틸리티
-└── deployment/              # 배포 스크립트
-    └── deploy-optimized.sh  # ✨ 개선된 배포 스크립트
+├── unified-ai-processor/     # ✅ 통합 Cloud Run 서비스
+│   ├── main.py               # Flask 앱 (모든 엔드포인트)
+│   ├── Dockerfile            # Cloud Run 컨테이너
+│   ├── requirements.txt      # Python 의존성
+│   └── modules/
+│       ├── nlp_engine.py     # 한국어 + 영어 NLP
+│       ├── ml_engine.py      # ML Analytics
+│       ├── gateway.py        # 지능형 라우팅
+│       └── rule_engine.py    # 규칙 기반 응답
+├── deployment/               # 배포 스크립트
+├── DEPRECATION_NOTICE.md     # 폐기 서비스 문서
+└── README.md                 # 이 파일
 ```
 
 ---
 
-## 🎯 무료 티어 최적화 (v2.0)
+## 🔧 로컬 개발
 
-### 개선 사항
-- ✅ 메모리 사용량 **47% 감소**
-- ✅ 타임아웃 **67% 단축**
-- ✅ 의존성 최신 버전 업데이트
-- ✅ 배포 스크립트 개선 (검증, 에러 핸들링)
+### Docker 실행
+```bash
+cd gcp-functions/unified-ai-processor
 
-### 할당량 관리
+# 빌드
+docker build -t unified-ai-processor .
 
-| 리소스 | 무료 한도 | 예상 사용량 | 사용률 |
-|---|---|---|---|
-| 호출 횟수 | 2,000,000회/월 | 50,000회/월 | 2.5% ⬇️ |
-| 컴퓨팅 | 400,000 GB-초/월 | 8,000 GB-초/월 | 2.0% ⬇️ |
-| 네트워크 | 5 GB/월 | 0.3 GB/월 | 6% ⬇️ |
+# 실행
+docker run -p 8080:8080 unified-ai-processor
+```
 
-### Function별 사양 (최적화 후)
-
-| Function | 메모리 | 타임아웃 | 상태 |
-|---|---|---|---|
-| ai-gateway | 512MB | 60초 | ✅ ACTIVE |
-| enhanced-korean-nlp | 256MB ⬇️ | 60초 ⬇️ | ✅ ACTIVE |
-| rule-engine | 256MB | 30초 | ✅ ACTIVE |
-| ml-analytics-engine | 384MB ⬇️ | 45초⬇️ | ✅ ACTIVE |
-| unified-ai-processor | 512MB ⬇️ | 120초⬇️ | ✅ ACTIVE |
-| health-check | 256MB | 10초 | ✅ ACTIVE |
+### Docker Compose (개발)
+```bash
+cd gcp-functions
+docker-compose -f docker-compose.dev.yml up
+```
 
 ---
 
-## 🔧 배포 방법
+## 🚀 Cloud Run 배포
 
 ### 사전 준비
-
 ```bash
-# 1. GCP 인증
+# GCP 인증
 gcloud auth login
 
-# 2. 환경 변수 설정
-export GCP_PROJECT_ID="your-project-id"
-export GCP_REGION="asia-northeast3"  # 서울 리전
+# 환경 변수 설정
+export GCP_PROJECT_ID="openmanager-free-tier"
+export GCP_REGION="asia-northeast3"
 ```
 
-### 전체 Functions 배포 (권장)
-
+### 배포
 ```bash
-cd gcp-functions/deployment
-./deploy-optimized.sh
-```
+cd gcp-functions/unified-ai-processor
 
-**특징**:
-- ✅ 환경 변수 자동 검증
-- ✅ 배포 전 확인 프롬프트
-- ✅ 실패 시 자동 롤백
-- ✅ 배포 후 검증
+# 이미지 빌드 및 푸시
+gcloud builds submit --tag gcr.io/$GCP_PROJECT_ID/unified-ai-processor
 
-### 개별 Function 배포
-
-#### Python Functions
-```bash
-cd gcp-functions/enhanced-korean-nlp
-gcloud functions deploy enhanced-korean-nlp \
-  --runtime python310 \
-  --trigger-http \
+# Cloud Run 배포
+gcloud run deploy unified-ai-processor \
+  --image gcr.io/$GCP_PROJECT_ID/unified-ai-processor \
+  --platform managed \
+  --region $GCP_REGION \
   --allow-unauthenticated \
-  --memory=256MB \
-  --timeout=60s \
-  --region=asia-northeast3
-```
-
-#### Node.js Functions
-```bash
-cd gcp-functions/ai-gateway
-gcloud functions deploy ai-gateway \
-  --runtime nodejs20 \
-  --trigger-http \
-  --allow-unauthenticated \
-  --memory=256MB \
-  --timeout=60s \
-  --region=asia-northeast3 \
-  --entry-point=aiGateway
+  --memory 512Mi \
+  --timeout 120s
 ```
 
 ---
 
-## 📊 모니터링
+## 📦 오픈소스 의존성
 
-### 사용량 확인
-```bash
-# 전체 Functions 목록
-gcloud functions list --region=asia-northeast3
+> **최종 정리**: 2025-12-09 (미사용 라이브러리 6개 제거)
 
-# 특정 Function 상세 정보
-gcloud functions describe enhanced-korean-nlp --region=asia-northeast3
+### Python 라이브러리 (9개)
 
-# 최근 로그 확인
-gcloud functions logs read enhanced-korean-nlp --limit=50
+| 카테고리 | 라이브러리 | 버전 | 용도 | 라이선스 |
+|----------|-----------|------|------|----------|
+| **Web Framework** | Flask | 3.0.3 | REST API 서버 | BSD-3 |
+| | Gunicorn | Latest | WSGI HTTP Server (Docker) | MIT |
+| **Data Science** | NumPy | 1.26.4 | 수치 계산, 배열 연산 | BSD-3 |
+| | Pandas | 2.2.3 | 데이터 분석, DataFrame | BSD-3 |
+| **Machine Learning** | scikit-learn | 1.5.2 | ML 알고리즘 (KMeans, TF-IDF, LogisticRegression) | BSD-3 |
+| | statsmodels | 0.14.4 | 통계 모델, Holt-Winters 시계열 예측 | BSD-3 |
+| **NLP (English)** | spaCy | 3.7.4 | 영어 NLP (NER, 토큰화) | MIT |
+| | en_core_web_sm | 3.7.1 | spaCy 영어 모델 | MIT |
+| **Networking** | httpx | 0.27.0 | 비동기 HTTP 클라이언트 | BSD-3 |
+| **Caching** | cachetools | 5.3.3 | TTL 캐시 (응답 캐싱) | MIT |
+| **Monitoring** | structlog | 24.4.0 | 구조화된 로깅 | MIT |
+
+### 제거된 라이브러리 (2025-12-09)
+
+| 라이브러리 | 제거 이유 |
+|-----------|----------|
+| KoNLPy 0.6.0 | 규칙 기반 패턴 매칭으로 대체 (Java 의존성 제거) |
+| soynlp 0.0.493 | 미사용 |
+| regex | 표준 라이브러리 `re` 사용 |
+| orjson | 표준 `json` 모듈 사용 |
+| google-cloud-storage | GCS 연동 미사용 |
+| google-cloud-pubsub | Pub/Sub 연동 미사용 |
+
+### 시스템 의존성 (Docker)
+
+| 컴포넌트 | 버전 | 용도 |
+|----------|------|------|
+| Python | 3.10-slim | 런타임 환경 |
+| build-essential | Latest | C 확장 컴파일 |
+| g++ | Latest | C++ 의존성 빌드 (spaCy, scikit-learn) |
+
+> **참고**: Java (OpenJDK)는 KoNLPy 제거로 더 이상 필요하지 않음 → Docker 이미지 크기 대폭 감소
+
+### ML 알고리즘 사용 현황
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ML 알고리즘 스택                           │
+├─────────────────────────────────────────────────────────────┤
+│  Intent Classification                                       │
+│  ├─ TF-IDF Vectorizer (ngram_range=1-2)                     │
+│  └─ Logistic Regression (C=10.0)                            │
+├─────────────────────────────────────────────────────────────┤
+│  Anomaly Detection                                           │
+│  └─ Z-Score Method (threshold: 3σ)                          │
+├─────────────────────────────────────────────────────────────┤
+│  Time Series Forecasting                                     │
+│  ├─ Holt-Winters Exponential Smoothing (primary)            │
+│  └─ Linear Regression (fallback)                            │
+├─────────────────────────────────────────────────────────────┤
+│  Server Clustering                                           │
+│  └─ K-Means (n_clusters=3, StandardScaler 정규화)           │
+├─────────────────────────────────────────────────────────────┤
+│  NLP Processing                                              │
+│  ├─ spaCy NER (en_core_web_sm) - 영어                       │
+│  └─ Rule-based Pattern Matching - 한국어 (표준 re 모듈)     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 성능 메트릭
-```bash
-# Cloud Console에서 확인
-https://console.cloud.google.com/functions/list
+---
+
+## 📊 모듈 상세
+
+### nlp_engine.py
+- **기능**: 한국어 + 영어 NLP 처리
+- **의존성**: spaCy (en_core_web_sm), konlpy, soynlp
+- **분류기**: TF-IDF + Logistic Regression (Hybrid)
+
+### ml_engine.py
+- **기능**: ML 기반 메트릭 분석
+- **의존성**: scikit-learn, numpy, pandas, statsmodels
+- **분석**: 이상 탐지, 추세 분석, 패턴 인식
+
+### gateway.py
+- **기능**: 쿼리 기반 지능형 라우팅
+- **라우팅 모드**: korean, rule, ml, unified, auto
+- **자동 감지**: 한국어 여부, 복잡도, 서버 컨텍스트 필요 여부
+
+### rule_engine.py
+- **기능**: 규칙 기반 빠른 응답 (Fast-path)
+- **규칙 카테고리**: server, monitoring, notification, faq, commands
+- **매칭 유형**: pattern (정규식), keyword, fuzzy, fallback
+
+---
+
+## 🎯 무료 티어 최적화
+
+### 예상 사용량 (단일 서비스)
+
+| 리소스 | 무료 한도 | 예상 사용량 | 사용률 |
+|--------|-----------|-------------|--------|
+| 호출 횟수 | 2,000,000회/월 | 50,000회/월 | 2.5% |
+| 컴퓨팅 | 180,000 vCPU-초/월 | 5,000 vCPU-초/월 | 2.8% |
+| 메모리 | 360,000 GiB-초/월 | 10,000 GiB-초/월 | 2.8% |
+| 네트워크 | 1GB/월 무료 | 0.2GB/월 | 20% |
+
+### 비용
+
+```
+월 비용: $0 (무료 티어 내)
 ```
 
 ---
@@ -235,87 +297,81 @@ https://console.cloud.google.com/functions/list
 ```
 Vercel API Gateway
     ↓
-GCP AI Gateway (라우팅)
-    ↓
-┌─────────────┬──────────────┬─────────────┐
-│             │              │             │
-Rule Engine   Korean NLP     ML Analytics
-(빠른 응답)   (한국어 처리)  (고급 분석)
-│             │              │             │
-└─────────────┴──────────────┴─────────────┘
-    ↓
-Unified AI Processor (통합)
-    ↓
-결과 반환
+unified-ai-processor (Cloud Run)
+    │
+    ├─ /smart (권장)
+    │   ├─ Rule Engine (fast-path)
+    │   │   └─ 매칭 시 즉시 응답
+    │   └─ Gateway Router
+    │       └─ NLP/ML 처리
+    │
+    ├─ /process (통합 처리)
+    │   ├─ NLP Engine
+    │   ├─ ML Engine
+    │   └─ Rule Engine
+    │   └─ 결과 집계
+    │
+    └─ /gateway, /rules (개별 접근)
 ```
 
 ---
 
 ## 🛡️ 폴백 전략
 
-1. **GCP Functions 장애** → Vercel 로컬 AI 자동 활성화
-2. **개별 Function 실패** → 다른 Function으로 폴백
-3. **타임아웃 발생** → 간단한 기본 응답 제공
+1. **Cloud Run 장애** → Vercel 로컬 AI 자동 활성화
+2. **개별 모듈 실패** → 다른 모듈로 폴백 (processor_weights 기반)
+3. **타임아웃 발생** → Rule Engine fallback 응답
 
 ---
 
 ## 📝 변경 이력
 
-### v2.0.0 (2025-11-20)
-- ✅ 메모리 최적화 (47% 감소)
-- ✅ 타임아웃 최적화 (67% 단축)
-- ✅ 의존성 업데이트 (2025 최신 버전)
-- ✅ 배포 스크립트 개선
-- ✅ 불완전한 Functions 제거 (rag-vector-processor, session-context-manager)
+### v3.1.0 (2025-12-09)
+- ✅ Gateway 모듈 통합 (ai-gateway → gateway.py)
+- ✅ Rule Engine 모듈 통합 (rule-engine → rule_engine.py)
+- ✅ Health 엔드포인트 추가
+- ✅ Smart 엔드포인트 추가 (fast-path + routing)
+- ✅ 중복 서비스 제거 (5개 → 1개)
 
-### v1.0.0 (2023-09-12)
-- 초기 배포
+### v3.0.0 (2025-12-08)
+- ✅ Cloud Functions → Cloud Run 마이그레이션
+- ✅ Python 서비스 통합 시작
+
+### v2.0.0 (2025-11-20)
+- ✅ 메모리 최적화
+- ✅ Cloud Functions Gen2 시도 (Node.js 실패)
 
 ---
 
 ## 🚨 문제 해결
 
-### 배포 실패 시
+### 로컬 테스트 실패
 ```bash
-# 1. 인증 확인
-gcloud auth list
+# spaCy 모델 다운로드
+python -m spacy download en_core_web_sm
 
-# 2. 프로젝트 확인
-gcloud config get-value project
-
-# 3. API 활성화 확인
-gcloud services list --enabled | grep cloudfunctions
-
-# 4. API 활성화 (필요 시)
-gcloud services enable cloudfunctions.googleapis.com
-gcloud services enable cloudbuild.googleapis.com
+# 의존성 재설치
+pip install -r requirements.txt
 ```
 
-### 타임아웃 발생 시
+### Docker 빌드 실패
+```bash
+# 캐시 없이 빌드
+docker build --no-cache -t unified-ai-processor .
+
+# 로그 확인
+docker logs <container_id>
+```
+
+### Cloud Run 배포 실패
 ```bash
 # 로그 확인
-gcloud functions logs read FUNCTION_NAME --limit=100
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=unified-ai-processor" --limit=50
 
-# 메모리 증가 (필요 시)
-gcloud functions deploy FUNCTION_NAME --memory=512MB
+# 서비스 상태 확인
+gcloud run services describe unified-ai-processor --region=$GCP_REGION
 ```
 
 ---
 
-## 💰 비용 예측
-
-### 무료 티어 내 (현재)
-```
-월 비용: $0
-여유분: 97.5% (호출), 98% (컴퓨팅)
-```
-
-### 무료 티어 초과 시 (예상)
-```
-월 비용: ~$7 (최적화 전 $15)
-절감액: $8/월 (53% 절감)
-```
-
----
-
-**무료 티어 100% 활용으로 AI 성능 50% 향상!** 🎉
+**단일 서비스로 모든 AI 기능 통합 완료!** 🎉

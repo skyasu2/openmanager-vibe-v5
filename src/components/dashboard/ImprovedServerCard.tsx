@@ -502,7 +502,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             </div>
 
             {/* 성능 요약 */}
-            <div className="rounded-lg border border-blue-100 bg-linear-to-r from-blue-50 to-purple-50 px-3 py-3">
+            <div className="rounded-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-3">
               <div className="mb-2 text-xs uppercase tracking-wide text-gray-500">
                 성능 요약
               </div>
@@ -703,7 +703,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         {/* 호버 효과 - 블러 효과 제거됨 (사용자 피드백 반영) */}
         {isHovered && (
           <div
-            className="pointer-events-none absolute inset-0 rounded-xl bg-linear-to-br from-blue-500/5 to-purple-500/5"
+            className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 to-purple-500/5"
             aria-hidden="true"
           />
         )}
