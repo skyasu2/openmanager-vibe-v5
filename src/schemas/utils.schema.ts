@@ -234,9 +234,11 @@ export function partial<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
 /**
  * 깊은 부분적인 스키마를 만드는 헬퍼
  * @deprecated Zod v4에서 deepPartial()이 제거됨. partial()을 대신 사용하세요.
+ * @warning partial()은 1단계만 optional로 만듭니다. 중첩 객체가 있다면 별도 처리 필요.
+ * @see https://github.com/colinhacks/zod/issues/2854
  */
 export function deepPartial<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
-  // Zod v4에서 deepPartial()이 제거되어 partial()로 대체
+  // Zod v4에서 deepPartial()이 제거됨 - partial()은 1단계만 처리하므로 동작 차이 있음
   return schema.partial();
 }
 

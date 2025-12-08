@@ -71,6 +71,7 @@ export const DiskInfoSchema = z.object({
 
 export const NetworkInterfaceSchema = z.object({
   name: z.string(),
+  // Zod v4 마이그레이션: z.string().ip() 제거 - 다양한 IP 형식(IPv4/IPv6/CIDR) 유연성 확보
   ip: z.string().optional(),
   mac: z.string().optional(),
   speed: z.number().optional(), // Mbps
@@ -102,6 +103,7 @@ export const ProcessSchema = z.object({
 export const ServerConfigSchema = z.object({
   hostname: z.string(),
   domain: z.string().optional(),
+  // Zod v4 마이그레이션: z.string().ip() 제거 - 다양한 IP 형식(IPv4/IPv6/CIDR) 유연성 확보
   ip: z.string(),
   port: z.number().int().min(1).max(65535).optional(),
   ssl: z.boolean().default(false),
