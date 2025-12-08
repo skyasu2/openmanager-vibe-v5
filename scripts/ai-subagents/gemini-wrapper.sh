@@ -87,7 +87,7 @@ $query"
         return 1
     fi
 
-    # Gemini 실행 (stderr 분리) - 임시파일 방식으로 쿼리 전달 (v3.1.0)
+    # Gemini 실행 (stderr 분리) - 임시파일 방식으로 쿼리 전달 (v3.3.0)
     if timeout "${TIMEOUT_SECONDS}s" cat "$temp_query" | gemini --model "$model" > "$temp_stdout" 2> "$temp_stderr"; then
         exit_code=0
     else

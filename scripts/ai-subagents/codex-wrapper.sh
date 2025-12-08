@@ -215,7 +215,7 @@ main() {
 
     # 실행
     echo "" >&2
-    log_info "🚀 Codex Wrapper v3.1.0 시작"
+    log_info "🚀 Codex Wrapper v3.3.0 시작"
     echo "" >&2
 
     if execute_codex "$query"; then
