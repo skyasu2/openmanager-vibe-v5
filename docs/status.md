@@ -106,8 +106,8 @@
 - config/ai/registry-core.yaml (144줄) - AI Registry SSOT
 - docs/status.md (200줄) - 프로젝트 현재 상태
 - docs/claude/1_workflows.md (~1,000줄) - 통합 워크플로우 (신규)
-- docs/ai/subagents-complete-guide.md (371줄)
-- docs/claude/environment/mcp/mcp-priority-guide.md (514줄)
+- docs/development/ai/claude-code/subagents-complete-guide.md (371줄)
+- docs/environment/tools/mcp/mcp-priority-guide.md (514줄)
 
 **제거 파일** (Phase 1 완료):
 

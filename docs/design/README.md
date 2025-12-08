@@ -9,7 +9,7 @@ query_triggers:
   - 'AI 시스템 설계'
   - '모니터링 아키텍처'
 related_docs:
-  - 'docs/architecture/'
+  - 'docs/core/architecture/'
   - 'docs/claude/architecture/'
   - 'src/'
 last_updated: '2025-12-01'
@@ -149,7 +149,7 @@ src/          (실제 코드)
 
 ### 새 기능 설계 시
 
-- `core/architecture.md` → 전체 구조 확인
+- `docs/core/architecture/architecture.md` → 전체 구조 확인
 - `specs/work-plan-template.md` → 템플릿
 - `features/[topic].md` → 일반 설계
 - `current/[feature]-v5.XX.md` → 구체적 구현

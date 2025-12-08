@@ -1,7 +1,7 @@
 # 🛠️ 사용 가능한 도구 가이드
 
 **목적**: 필요할 때 찾아 쓸 수 있는 도구 카탈로그
-**참조**: [서브에이전트 완전 가이드](ai/subagents-complete-guide.md)
+**참조**: [서브에이전트 완전 가이드](./subagents-complete-guide.md)
 
 ---
 
@@ -33,7 +33,7 @@ structure-refactor-specialist: "아키텍처 개선해줘"
 ui-ux-specialist: "UI 개선 제안해줘"
 ```
 
-**전체 목록**: docs/ai/subagents-complete-guide.md 참조
+**전체 목록**: docs/development/ai/claude-code/subagents-complete-guide.md 참조
 
 ---
 
@@ -118,8 +118,8 @@ Git 커밋 시 자동으로 코드 리뷰가 실행됩니다.
 
 ## 📚 추가 자료
 
-- **서브에이전트 상세 가이드**: docs/ai/subagents-complete-guide.md
-- **MCP 우선순위 가이드**: docs/claude/environment/mcp/mcp-priority-guide.md
+- **서브에이전트 상세 가이드**: docs/development/ai/claude-code/subagents-complete-guide.md
+- **MCP 우선순위 가이드**: docs/environment/tools/mcp/mcp-priority-guide.md
 - **통합 워크플로우**: docs/claude/1_workflows.md
 
 ---

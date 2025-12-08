@@ -8,7 +8,7 @@ query_triggers:
   - 'Authentication'
   - 'Secrets Management'
 related_docs:
-  - 'docs/architecture/SYSTEM-ARCHITECTURE-REVIEW.md'
+  - 'docs/core/architecture/SYSTEM-ARCHITECTURE-REVIEW.md'
   - 'docs/deploy/vercel.md'
 last_updated: '2025-11-20'
 ---

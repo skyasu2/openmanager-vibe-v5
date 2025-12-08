@@ -132,8 +132,8 @@ maintenance_frequency:
 # ============================================================================
 docs:
   main: "CLAUDE.md"
-  subagents: "docs/ai/subagents-complete-guide.md"
-  mcp_guide: "docs/claude/environment/mcp/mcp-priority-guide.md"
+  subagents: "docs/development/ai/claude-code/subagents-complete-guide.md"
+  mcp_guide: "docs/environment/tools/mcp/mcp-priority-guide.md"
   changelog: "config/ai/changelog.yaml"
 
 # End of AI Registry Core

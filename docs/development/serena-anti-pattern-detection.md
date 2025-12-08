@@ -68,7 +68,7 @@ git commit -m "feat: 새 기능"
 ./scripts/serena-pattern-validator.sh
 
 # 특정 디렉토리 검증
-./scripts/serena-pattern-validator.sh docs/claude/environment/mcp
+./scripts/serena-pattern-validator.sh docs/environment/tools/mcp
 
 # 리포트 파일 지정
 ./scripts/serena-pattern-validator.sh . /tmp/my-report.txt
@@ -78,7 +78,7 @@ git commit -m "feat: 새 기능"
 
 ```
 🔍 Serena Anti-pattern Validator v1.0.0
-📂 Scan Directory: docs/claude/environment/mcp
+📂 Scan Directory: docs/environment/tools/mcp
 
 📊 총 10개 파일 검사 중...
 
@@ -193,7 +193,7 @@ mcp__serena__search_for_pattern({
 // ✅ 권장
 mcp__serena__search_for_pattern({
   substring_pattern: 'skip_ignored_files.*권장',
-  relative_path: 'docs/claude/environment/mcp', // 범위 제한
+  relative_path: 'docs/environment/tools/mcp', // 범위 제한
   max_answer_chars: 10000,
 });
 ```

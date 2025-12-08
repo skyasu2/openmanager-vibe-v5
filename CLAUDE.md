@@ -266,7 +266,7 @@ mmdc -i diagram.mmd -o output.png -b white -t neutral  # 옵션
 - 4개 UI 컴포넌트 제거 (~1,196줄)
 - 완전한 하위 호환성 유지
 
-**상세**: <!-- Imported from: docs/ai/MODE-SELECTION-REMOVAL.md -->
+**상세**: <!-- Imported from: docs/core/ai/MODE-SELECTION-REMOVAL.md -->
 
 ---
 

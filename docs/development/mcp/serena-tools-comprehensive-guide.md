@@ -38,7 +38,7 @@ mcp__serena__list_dir({
 // ✅ 권장: 특정 파일/디렉토리 대상 검색
 mcp__serena__search_for_pattern({
   substring_pattern: "skip_ignored_files.*권장",
-  relative_path: "docs/claude/environment/mcp",  // 범위 제한
+  relative_path: "docs/environment/tools/mcp",  // 범위 제한
   max_answer_chars: 10000  // 토큰 제한
 })
 ```

@@ -10,7 +10,7 @@ query_triggers:
   - 'Mock 시스템'
   - '시뮬레이션 환경'
 related_docs:
-  - 'docs/architecture/type-system-consistency.md'
+  - 'docs/core/architecture/type-system-consistency.md'
   - 'docs/development/performance-optimization-guide.md'
   - 'src/lib/utils/'
   - 'src/lib/mock/'
@@ -110,7 +110,7 @@ useEffect(() => {
 
 **중요도**: 🔴 **HIGH** - 타입 안전성 기준
 
-**관련**: architecture/type-system-consistency.md (더 상세)
+**관련**: docs/core/architecture/type-system-consistency.md (더 상세)
 
 ---
 
@@ -182,7 +182,7 @@ useEffect(() => {
 
 1. `mock-system.md` (5분) - 기본 개념
 2. `simulation.md` (15분) - 실제 설정
-3. `architecture/simulation-setup.md` (20분) - 아키텍처
+3. `docs/core/architecture/simulation-setup.md` (20분) - 아키텍처
 
 ---
 
@@ -191,8 +191,8 @@ useEffect(() => {
 **참고 순서**:
 
 1. `types.md` (15분) - 기본 타입 가이드
-2. `architecture/type-system-consistency.md` (15분) - 일관성 원칙
-3. `architecture/typescript-any-removal-project-report.md` (20분) - any 제거 전략
+2. `docs/core/architecture/type-system-consistency.md` (15분) - 일관성 원칙
+3. `docs/core/architecture/typescript-any-removal-project-report.md` (20분) - any 제거 전략
 
 ---
 
@@ -207,7 +207,7 @@ useEffect(() => {
 
 ### 아키텍처
 
-- **docs/architecture/** - 시스템 아키텍처 및 표준
+- **docs/core/architecture/** - 시스템 아키텍처 및 표준
   - `type-system-consistency.md` - 타입 일관성
   - `simulation-setup.md` - 시뮬레이션 아키텍처
   - `typescript-any-removal-project-report.md` - any 제거
