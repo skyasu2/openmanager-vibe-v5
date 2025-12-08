@@ -8,8 +8,11 @@ import numpy as np
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
+import spacy
 
 
 @dataclass
@@ -83,7 +86,21 @@ class HybridIntentClassifier:
             ("디스크 용량 늘려야 할까?", "optimization"),
             ("안녕", "general"),
             ("반가워", "general"),
-            ("도움말 보여줘", "general")
+            ("도움말 보여줘", "general"),
+            # English Data
+            ("check server status", "inquiry"),
+            ("show me cpu usage", "inquiry"),
+            ("server is down", "troubleshooting"),
+            ("analyze error logs", "troubleshooting"),
+            ("why is it so slow?", "troubleshooting"),
+            ("find memory leak cause", "analysis"),
+            ("analyze traffic patterns", "analysis"),
+            ("how to optimize performance", "optimization"),
+            ("suggest cost saving", "optimization"),
+            ("increase disk space?", "optimization"),
+            ("hello", "general"),
+            ("hi", "general"),
+            ("help", "general")
         ]
 
     def train(self):
@@ -134,9 +151,27 @@ class HybridIntentClassifier:
             'analysis': ['분석', '원인', '이유', '패턴'],
             'inquiry': ['확인', '조회', '보여줘', '알려줘', '상태']
         }
+        
+        # English Rules
+        english_rules = {
+            'troubleshooting': ['error', 'fail', 'down', 'crash', 'dead', 'slow'],
+            'optimization': ['optimize', 'improve', 'tune', 'fast'],
+            'analysis': ['analyze', 'cause', 'reason', 'pattern', 'why'],
+            'inquiry': ['check', 'show', 'status', 'usage', 'health'],
+            'log_analysis': ['log', 'trace', 'dump', 'fatal', 'exception', 'stacktrace']
+        }
+        
+        # Check Korean Rules
         for intent, keywords in rules.items():
             if any(k in text for k in keywords):
                 return intent
+                
+        # Check English Rules (Case-insensitive)
+        text_lower = text.lower()
+        for intent, keywords in english_rules.items():
+            if any(k in text_lower for k in keywords):
+                return intent
+                
         return None
 
 
@@ -148,6 +183,7 @@ class EnhancedKoreanNLPEngine:
         self.classifier = HybridIntentClassifier()
         self.domain_vocabulary = self._load_vocabulary()
         self.korean_patterns = self._load_patterns()
+        self.nlp = None
 
     def _load_vocabulary(self):
         return {
@@ -167,13 +203,28 @@ class EnhancedKoreanNLPEngine:
     def _load_patterns(self):
         return {
             'server_names': r'([a-zA-Z0-9가-힣-]+서버|[a-zA-Z0-9가-힣-]+-\d+)',
-            'time_expressions': [(r'(\d+)시간', 'hour'), (r'(\d+)분', 'minute')]
+            'time_expressions': [(r'(\d+)시간', 'hour'), (r'(\d+)분', 'minute')],
+            'log_patterns': {
+                'ip_address': r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b',
+                'error_code': r'\b(500|404|403|502|503)\b',
+                'severity': r'\b(FATAL|ERROR|WARN|INFO|DEBUG)\b'
+            }
         }
 
     async def initialize(self):
         if self.initialized:
             return
         self.classifier.train()
+        
+        # Load English Model
+        try:
+            self.nlp = spacy.load("en_core_web_sm")
+        except OSError:
+            # Fallback if model requires download (for local dev)
+            from spacy.cli import download
+            download("en_core_web_sm")
+            self.nlp = spacy.load("en_core_web_sm")
+            
         self.initialized = True
 
     async def analyze_query(self, query: str, context: Optional[Dict] = None) -> EnhancedKoreanAnalysis:
@@ -209,6 +260,39 @@ class EnhancedKoreanNLPEngine:
             for type_name, keywords in types.items():
                 if any(k in query.lower() for k in keywords):
                     entities.append(Entity(category[:-1], type_name, 0.9, type_name))
+                if any(k in query.lower() for k in keywords):
+                    entities.append(Entity(category[:-1], type_name, 0.9, type_name))
+        
+        # 0. Log Pattern Matching (Priority)
+        import re
+        for p_type, pattern in self.korean_patterns.get('log_patterns', {}).items():
+            matches = re.finditer(pattern, query)
+            for m in matches:
+                 entities.append(Entity("log_pattern", p_type, 1.0, m.group()))
+        
+        # Helper for English NLP using spaCy
+        if self.nlp:
+            doc = self.nlp(query)
+            
+            # 1. Named Entities (NER)
+            for ent in doc.ents:
+                # Map spaCy labels to our domain
+                e_type = "unknown"
+                if ent.label_ in ["ORG", "PRODUCT"]:
+                    e_type = "server_component"
+                elif ent.label_ in ["PERCENT", "QUANTITY"]:
+                    e_type = "metric_value"
+                elif ent.label_ == "DATE":
+                    e_type = "time_range"
+                
+                if not any(e.value == ent.text for e in entities):
+                    entities.append(Entity("english_ner", e_type, 0.85, ent.text))
+            
+            # 2. Noun Chunks (better than TextBlob)
+            for chunk in doc.noun_chunks:
+                if not any(e.value == chunk.text for e in entities):
+                    entities.append(Entity("english_phrase", "noun_chunk", 0.75, chunk.text))
+            
         return entities
 
     def _perform_semantic_analysis(self, query: str, intent: str) -> SemanticAnalysis:
