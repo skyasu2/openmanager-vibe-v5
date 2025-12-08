@@ -268,7 +268,7 @@ export default function ServerDashboard({
                       <select
                         value={paginationInfo.pageSize}
                         onChange={(e) => changePageSize(Number(e.target.value))}
-                        className="rounded border border-blue-300 bg-blue-100 px-2 py-1 text-sm text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="rounded border border-blue-300 bg-blue-100 px-2 py-1 text-sm text-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                         aria-label="페이지당 표시할 서버 개수 선택"
                       >
                         <option value={4}>4개씩</option>

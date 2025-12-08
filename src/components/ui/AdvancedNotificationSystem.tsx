@@ -340,7 +340,7 @@ function NotificationItem({
         {/* 헤더 */}
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0">{styles.icon}</div>
+            <div className="shrink-0">{styles.icon}</div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center space-x-2">
                 <h3
@@ -362,7 +362,7 @@ function NotificationItem({
                 e.stopPropagation();
                 handleDismiss();
               }}
-              className="ml-2 flex-shrink-0 rounded-full p-1 transition-colors hover:bg-white/20"
+              className="ml-2 shrink-0 rounded-full p-1 transition-colors hover:bg-white/20"
             >
               <X className="h-4 w-4 text-white opacity-70 hover:opacity-100" />
             </button>
@@ -449,7 +449,7 @@ export function AdvancedNotificationContainer() {
     document.getElementById('advanced-notification-portal') || document.body;
 
   return createPortal(
-    <div className="pointer-events-none fixed right-4 top-4 z-[99999]">
+    <div className="pointer-events-none fixed right-4 top-4 z-99999">
       {/* 전체 알림 제어 */}
       {notifications.length > 1 && (
         <div className="pointer-events-auto mb-4">

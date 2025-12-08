@@ -19,9 +19,9 @@ export default function IntelligentMonitoringModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="h-[90vh] w-full max-w-6xl overflow-hidden rounded-xl bg-white shadow-2xl">
         {/* 모달 헤더 */}
-        <div className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-4">
+        <div className="flex items-center justify-between border-b border-gray-200 bg-linear-to-r from-emerald-50 to-teal-50 p-4">
           <div className="flex items-center space-x-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r from-emerald-500 to-teal-500">
               <Monitor className="h-5 w-5 text-white" />
             </div>
             <div>

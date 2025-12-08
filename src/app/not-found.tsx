@@ -14,7 +14,7 @@ import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-blue-900 to-purple-900">
       <div className="mx-auto max-w-md space-y-8 p-8 text-center">
         {/* 404 아이콘 */}
         <div className="flex justify-center">

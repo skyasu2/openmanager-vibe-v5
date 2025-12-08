@@ -223,7 +223,7 @@ export default function LiveSystemAlerts() {
               className={`absolute inset-0 rounded-lg border p-4 ${getAlertColor(currentAlert.type)}`}
             >
               <div className="flex h-full items-start gap-3">
-                <div className="mt-1 flex-shrink-0">
+                <div className="mt-1 shrink-0">
                   {getAlertIcon(currentAlert.type)}
                 </div>
                 <div className="flex h-full min-w-0 flex-1 flex-col justify-between">

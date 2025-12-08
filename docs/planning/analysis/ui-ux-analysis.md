@@ -5,7 +5,7 @@
 ### Design System & Aesthetics
 
 - **Framework**: Tailwind CSS with custom animations and Material Design 3 tokens.
-- **Visual Style**: Modern, clean, and card-centric. Uses glassmorphism effects (`backdrop-blur`) and smooth gradients.
+- **Visual Style**: Modern, clean, and card-centric. Uses glassmorphism effects (`backdrop-blur-sm`) and smooth gradients.
 - **Color Palette**: Semantic colors for status (Green/Yellow/Red) combined with a sleek dark/light mode system.
 - **Typography**: `Noto Sans KR` for readability, optimized for dashboard data.
 

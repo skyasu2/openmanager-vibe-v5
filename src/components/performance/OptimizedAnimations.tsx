@@ -295,7 +295,7 @@ export const AnimationPerformanceMonitor = {
  * CSS 애니메이션 대체 (더 가벼운 옵션)
  */
 export const cssOnlyAnimations = {
-  fadeIn: 'animate-fadeIn',
+  fadeIn: 'animate-fade-in',
   slideUp: 'animate-slideUp',
   scaleIn: 'animate-scaleIn',
   bounce: 'animate-bounce',

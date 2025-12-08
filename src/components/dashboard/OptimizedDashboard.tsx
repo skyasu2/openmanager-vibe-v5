@@ -118,7 +118,7 @@ export default function OptimizedDashboard({
   // 로딩 상태
   if (status === 'loading' || !session) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-violet-900">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-blue-900 via-purple-900 to-violet-900">
         <div className="text-center text-white">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
           <p className="text-lg">시스템 초기화 중...</p>
@@ -148,7 +148,7 @@ export default function OptimizedDashboard({
             <div className="flex items-center justify-between">
               {/* 브랜드 로고 */}
               <div className="flex items-center space-x-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-blue-500 to-purple-600">
                   <span className="text-xl font-bold text-white">O</span>
                 </div>
                 <div>

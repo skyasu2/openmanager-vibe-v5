@@ -17,26 +17,26 @@ import { cn } from '@/lib/utils';
  * - Color: var(--color-primary-500), var(--color-error-500), etc.
  */
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         // Primary: 브랜드 그라데이션 (Stage 1 통일)
         default:
-          'bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 text-white shadow-sm hover:opacity-90 focus-visible:ring-purple-400',
+          'bg-linear-to-r from-purple-500 via-pink-500 to-cyan-500 text-white shadow-xs hover:opacity-90 focus-visible:ring-purple-400',
         // Destructive: 에러 색상
         destructive:
-          'bg-[var(--color-error-500)] text-white shadow-sm hover:opacity-90 focus-visible:ring-red-400',
+          'bg-(--color-error-500) text-white shadow-xs hover:opacity-90 focus-visible:ring-red-400',
         // Outline: 테두리만
         outline:
-          'border border-[var(--color-neutral-300)] bg-white hover:bg-gray-50 focus-visible:ring-gray-400',
+          'border border-neutral-300 bg-white hover:bg-gray-50 focus-visible:ring-gray-400',
         // Secondary: 서피스 색상
         secondary:
-          'bg-[var(--color-surface-100)] text-gray-700 border border-[var(--color-neutral-300)] shadow-sm hover:bg-[var(--color-surface-200)] focus-visible:ring-gray-400',
+          'bg-(--color-surface-100) text-gray-700 border border-neutral-300 shadow-xs hover:bg-(--color-surface-200) focus-visible:ring-gray-400',
         // Ghost: 투명
         ghost: 'hover:bg-gray-100 focus-visible:ring-gray-400',
         // Link: 링크 스타일
-        link: 'text-[var(--color-primary-500)] underline-offset-4 hover:underline',
+        link: 'text-primary-500 underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-9 px-4 py-2 text-sm',

@@ -271,7 +271,7 @@ export function ServerDashboardServers({
                     }
                     className={`flex items-center gap-1 rounded-md px-3 py-1 text-xs transition-colors ${
                       displayMode === option.value
-                        ? 'bg-white text-blue-600 shadow-sm'
+                        ? 'bg-white text-blue-600 shadow-xs'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                     title={option.label}
@@ -290,7 +290,7 @@ export function ServerDashboardServers({
               onClick={() => onViewModeChange('grid')}
               className={`rounded-md p-2 transition-colors ${
                 viewMode === 'grid'
-                  ? 'bg-white text-blue-600 shadow-sm'
+                  ? 'bg-white text-blue-600 shadow-xs'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
               aria-label="그리드 뷰"
@@ -301,7 +301,7 @@ export function ServerDashboardServers({
               onClick={() => onViewModeChange('list')}
               className={`rounded-md p-2 transition-colors ${
                 viewMode === 'list'
-                  ? 'bg-white text-blue-600 shadow-sm'
+                  ? 'bg-white text-blue-600 shadow-xs'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
               aria-label="리스트 뷰"

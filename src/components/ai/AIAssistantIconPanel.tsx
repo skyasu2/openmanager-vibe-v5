@@ -123,16 +123,16 @@ export default function AIAssistantIconPanel({
               key={item.id}
               data-testid={`ai-function-${item.id}`}
               onClick={() => onFunctionChange(item.id)}
-              className={`group relative h-12 w-12 flex-shrink-0 rounded-xl transition-all duration-200 active:scale-95 ${
+              className={`group relative h-12 w-12 shrink-0 rounded-xl transition-all duration-200 active:scale-95 ${
                 isSelected
-                  ? `bg-gradient-to-r ${item.gradient} scale-105 text-white shadow-lg`
+                  ? `bg-linear-to-r ${item.gradient} scale-105 text-white shadow-lg`
                   : `${item.bgColor} ${item.color}`
               } `}
             >
               <Icon className="mx-auto h-5 w-5" />
 
               {/* 모바일 툴팁 (상단 표시) */}
-              <div className="pointer-events-none absolute bottom-full left-1/2 z-[60] mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+              <div className="pointer-events-none absolute bottom-full left-1/2 z-60 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
                 {item.label}
                 <div className="absolute left-1/2 top-full -translate-x-1/2 transform">
                   <div className="border-2 border-transparent border-t-gray-900"></div>
@@ -151,7 +151,7 @@ export default function AIAssistantIconPanel({
     >
       {/* 헤더 */}
       <div className="mb-2 text-center">
-        <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-500">
+        <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-blue-500">
           <Brain className="h-4 w-4 text-white" />
         </div>
         <p className="text-xs font-medium text-gray-600">AI 기능</p>
@@ -170,7 +170,7 @@ export default function AIAssistantIconPanel({
               onClick={() => onFunctionChange(item.id)}
               className={`animate-fade-in group relative h-12 w-12 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
                 isSelected
-                  ? `bg-gradient-to-r ${item.gradient} scale-105 text-white shadow-lg`
+                  ? `bg-linear-to-r ${item.gradient} scale-105 text-white shadow-lg`
                   : `${item.bgColor} ${item.color}`
               } `}
               title={`${item.label}\n${item.description}`}
@@ -185,7 +185,7 @@ export default function AIAssistantIconPanel({
 
               {/* 호버 툴팁 - 왼쪽으로 위치 변경 */}
               <div
-                className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-[60] min-w-max max-w-[200px] whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
+                className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-60 min-w-max max-w-[200px] whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
               >
                 <div className="font-medium">{item.label}</div>
                 <div className="mt-1 text-xs text-gray-300">

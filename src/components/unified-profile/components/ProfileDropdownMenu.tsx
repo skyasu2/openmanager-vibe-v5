@@ -48,7 +48,7 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
     <>
       {isOpen && (
         <div
-          className="absolute right-0 z-[9999] mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg"
+          className="absolute right-0 z-9999 mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="profile-menu-button"
@@ -68,7 +68,7 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
                   {getUserName()}
                   <UserTypeIcon
                     userType={userType}
-                    className="h-4 w-4 flex-shrink-0"
+                    className="h-4 w-4 shrink-0"
                   />
                 </div>
 

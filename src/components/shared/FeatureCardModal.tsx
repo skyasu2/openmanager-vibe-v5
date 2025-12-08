@@ -315,7 +315,7 @@ export default function FeatureCardModal({
       {/* 헤더 섹션 */}
       <div className="mb-8 text-center">
         <div
-          className={`mx-auto mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center`}
+          className={`mx-auto mb-4 h-16 w-16 rounded-2xl bg-linear-to-br ${gradient} flex items-center justify-center`}
         >
           <Icon className="h-8 w-8 text-white" />
         </div>
@@ -337,9 +337,9 @@ export default function FeatureCardModal({
 
       {/* AI 제한 경고 배너 */}
       {requiresAI && !aiAgentEnabled && (
-        <div className="mb-8 rounded-xl border-2 border-orange-500/30 bg-gradient-to-r from-orange-500/20 via-amber-500/15 to-orange-500/20 p-4">
+        <div className="mb-8 rounded-xl border-2 border-orange-500/30 bg-linear-to-r from-orange-500/20 via-amber-500/15 to-orange-500/20 p-4">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/30">
                 <Bot className="h-5 w-5 text-orange-300" />
               </div>
@@ -546,7 +546,7 @@ export default function FeatureCardModal({
       {/* 모달 컨텐츠 - Hook 안정화를 위해 항상 렌더링 */}
       <div
         ref={modalRef}
-        className={`relative max-h-[85vh] w-full max-w-3xl transform overflow-hidden rounded-2xl border border-gray-600/50 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-transform duration-300 ${
+        className={`relative max-h-[85vh] w-full max-w-3xl transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-transform duration-300 ${
           !cardData.id ? 'hidden' : ''
         }`}
         data-modal-content="portal-unified-v4-ai-cross-verified"
@@ -560,10 +560,10 @@ export default function FeatureCardModal({
         {/* Hook 안정화: 조건부 렌더링 제거, CSS로 가시성 제어 */}
 
         <div
-          className={`absolute left-0 right-0 top-0 h-48 bg-gradient-to-b ${gradient} opacity-20 blur-3xl`}
+          className={`absolute left-0 right-0 top-0 h-48 bg-linear-to-b ${gradient} opacity-20 blur-3xl`}
         ></div>
         <div className="relative z-10 flex h-full flex-col">
-          <header className="flex flex-shrink-0 items-center justify-between border-b border-gray-700/50 p-4">
+          <header className="flex shrink-0 items-center justify-between border-b border-gray-700/50 p-4">
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-800">
                 <Icon
@@ -581,7 +581,7 @@ export default function FeatureCardModal({
               {cardData.id === 'cursor-ai' && (
                 <button
                   onClick={() => setIsHistoryView(!isHistoryView)}
-                  className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:from-amber-500 hover:to-orange-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="rounded-lg bg-linear-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:from-amber-500 hover:to-orange-500 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50"
                   aria-label={
                     isHistoryView ? '현재 도구 보기' : '히스토리 보기'
                   }

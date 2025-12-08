@@ -61,7 +61,7 @@ export function renderAIGradientWithAnimation(text: string): React.ReactNode {
       return (
         <span
           key={index}
-          className={`${AI_GRADIENT_CLASSES} animate-gradient-x bg-[length:200%_200%] bg-clip-text font-bold text-transparent`}
+          className={`${AI_GRADIENT_CLASSES} animate-gradient-x bg-size-[200%_200%] bg-clip-text font-bold text-transparent`}
         >
           {part}
         </span>

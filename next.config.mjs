@@ -80,8 +80,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false, // 타입 오류는 반드시 수정
   },
-  eslint: {
-    ignoreDuringBuilds: true, // ESLint 경고는 빌드 차단하지 않음
+  // Note: eslint 설정은 Next.js 16에서 제거됨 - next lint CLI 옵션 사용
+
+  // 🚀 Turbopack 설정 (Next.js 16 기본 빌드러)
+  turbopack: {
+    // webpack config와 공존 허용 (마이그레이션 중)
   },
 
   // 서버 외부 패키지 설정 (번들 크기 감소)

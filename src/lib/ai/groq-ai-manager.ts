@@ -1,19 +1,24 @@
 /**
- * Groq AI API 키 관리자 v1.0
+ * Groq AI Manager v2.0 - Vercel AI SDK 통합
  *
- * Google Gemini API 폴백으로 사용
+ * @ai-sdk/groq를 사용한 현대적인 Groq 통합
  * 무료 티어: 14,400 RPD, 30 RPM (llama-3.1-8b-instant)
  *
  * 모델 옵션:
  * - llama-3.1-8b-instant: 30 RPM, 14,400 RPD, 6K TPM (빠른 응답)
  * - llama-3.3-70b-versatile: 30 RPM, 1,000 RPD, 12K TPM (고품질)
- * - qwen3-32b: 60 RPM, 1,000 RPD, 6K TPM (균형)
+ * - qwen-qwq-32b: 30 RPM, 1,000 RPD, 6K TPM (reasoning 지원)
+ *
+ * @see https://sdk.vercel.ai/providers/ai-sdk-providers/groq
  */
+
+import { groq } from '@ai-sdk/groq';
+import { type CoreMessage, generateText, streamText } from 'ai';
 
 export type GroqModel =
   | 'llama-3.1-8b-instant'
   | 'llama-3.3-70b-versatile'
-  | 'qwen3-32b';
+  | 'qwen-qwq-32b';
 
 interface GroqRateLimits {
   rpm: number; // Requests Per Minute
@@ -24,8 +29,39 @@ interface GroqRateLimits {
 const MODEL_LIMITS: Record<GroqModel, GroqRateLimits> = {
   'llama-3.1-8b-instant': { rpm: 30, rpd: 14400, tpm: 6000 },
   'llama-3.3-70b-versatile': { rpm: 30, rpd: 1000, tpm: 12000 },
-  'qwen3-32b': { rpm: 60, rpd: 1000, tpm: 6000 },
+  'qwen-qwq-32b': { rpm: 30, rpd: 1000, tpm: 6000 },
 };
+
+// Reasoning 지원 모델
+const REASONING_MODELS: GroqModel[] = ['qwen-qwq-32b'];
+
+interface GenerateOptions {
+  model?: GroqModel;
+  maxTokens?: number;
+  temperature?: number;
+  systemPrompt?: string;
+  /** Reasoning mode (qwen-qwq-32b only) */
+  enableReasoning?: boolean;
+  /** Reasoning effort: 'low' | 'medium' | 'high' */
+  reasoningEffort?: 'low' | 'medium' | 'high';
+}
+
+interface GenerateResult {
+  success: boolean;
+  text?: string;
+  error?: string;
+  model?: string;
+  reasoning?: string;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+}
+
+interface StreamOptions extends GenerateOptions {
+  messages?: CoreMessage[];
+}
 
 class GroqAIManager {
   private static instance: GroqAIManager;
@@ -58,7 +94,6 @@ class GroqAIManager {
    */
   getAPIKey(): string | null {
     if (this.apiKey) {
-      console.log('🔑 Groq API 키 소스: 환경변수');
       return this.apiKey;
     }
     return null;
@@ -93,6 +128,7 @@ class GroqAIManager {
     isAvailable: boolean;
     defaultModel: GroqModel;
     modelLimits: GroqRateLimits;
+    supportsReasoning: boolean;
   } {
     const apiKey = this.getAPIKey();
     return {
@@ -100,6 +136,7 @@ class GroqAIManager {
       isAvailable: apiKey !== null,
       defaultModel: this.defaultModel,
       modelLimits: MODEL_LIMITS[this.defaultModel],
+      supportsReasoning: REASONING_MODELS.includes(this.defaultModel),
     };
   }
 
@@ -181,29 +218,22 @@ class GroqAIManager {
   }
 
   /**
-   * Groq API 호출 (직접 fetch)
+   * 🤖 Groq API 호출 (Vercel AI SDK - generateText)
+   *
+   * @example
+   * ```ts
+   * const result = await generateGroqText('서버 상태 분석해줘', {
+   *   model: 'qwen-qwq-32b',
+   *   enableReasoning: true,
+   *   reasoningEffort: 'medium',
+   * });
+   * ```
    */
   async generateText(
     prompt: string,
-    options?: {
-      model?: GroqModel;
-      maxTokens?: number;
-      temperature?: number;
-      systemPrompt?: string;
-    }
-  ): Promise<{
-    success: boolean;
-    text?: string;
-    error?: string;
-    model?: string;
-    usage?: {
-      promptTokens: number;
-      completionTokens: number;
-      totalTokens: number;
-    };
-  }> {
-    const apiKey = this.getAPIKey();
-    if (!apiKey) {
+    options?: GenerateOptions
+  ): Promise<GenerateResult> {
+    if (!this.isAPIKeyAvailable()) {
       return { success: false, error: 'Groq API 키가 설정되지 않았습니다.' };
     }
 
@@ -213,61 +243,56 @@ class GroqAIManager {
     }
 
     const model = options?.model || this.defaultModel;
+    const supportsReasoning = REASONING_MODELS.includes(model);
 
     try {
-      const messages: Array<{ role: 'system' | 'user'; content: string }> = [];
+      const messages: CoreMessage[] = [];
 
       if (options?.systemPrompt) {
         messages.push({ role: 'system', content: options.systemPrompt });
       }
       messages.push({ role: 'user', content: prompt });
 
-      const response = await fetch(
-        'https://api.groq.com/openai/v1/chat/completions',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            max_tokens: options?.maxTokens || 2048,
-            temperature: options?.temperature ?? 0.7,
+      // Vercel AI SDK 기반 호출
+      const result = await generateText({
+        model: groq(model),
+        messages,
+        maxOutputTokens: options?.maxTokens || 2048,
+        temperature: options?.temperature ?? 0.7,
+        // Reasoning 지원 (qwen-qwq-32b only)
+        ...(supportsReasoning &&
+          options?.enableReasoning && {
+            experimental_providerOptions: {
+              groq: {
+                reasoningFormat: 'parsed',
+                ...(options.reasoningEffort && {
+                  reasoningEffort: options.reasoningEffort,
+                }),
+              },
+            },
           }),
-          signal: AbortSignal.timeout(30000),
-        }
-      );
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage =
-          (errorData as { error?: { message?: string } })?.error?.message ||
-          `HTTP ${response.status}`;
-        return { success: false, error: `Groq API 오류: ${errorMessage}` };
-      }
-
-      const data = (await response.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
-        usage?: {
-          prompt_tokens?: number;
-          completion_tokens?: number;
-          total_tokens?: number;
-        };
-      };
       this.recordRequest();
 
-      const text = data.choices?.[0]?.message?.content || '';
+      // Reasoning 결과 추출 (providerMetadata에서)
+      let reasoning: string | undefined;
+      if (supportsReasoning && options?.enableReasoning) {
+        const providerMeta = result.providerMetadata?.groq as
+          | { reasoning?: string }
+          | undefined;
+        reasoning = providerMeta?.reasoning;
+      }
 
       return {
         success: true,
-        text,
+        text: result.text,
         model,
+        reasoning,
         usage: {
-          promptTokens: data.usage?.prompt_tokens || 0,
-          completionTokens: data.usage?.completion_tokens || 0,
-          totalTokens: data.usage?.total_tokens || 0,
+          promptTokens: result.usage?.inputTokens || 0,
+          completionTokens: result.usage?.outputTokens || 0,
+          totalTokens: result.usage?.totalTokens || 0,
         },
       };
     } catch (error) {
@@ -279,11 +304,85 @@ class GroqAIManager {
       };
     }
   }
+
+  /**
+   * 🌊 Groq API 스트리밍 호출 (Vercel AI SDK - streamText)
+   *
+   * @example
+   * ```ts
+   * const stream = await groqManager.streamText('분석해줘', {
+   *   model: 'llama-3.3-70b-versatile',
+   * });
+   * return stream.toTextStreamResponse();
+   * ```
+   */
+  async streamTextResponse(
+    prompt: string,
+    options?: StreamOptions
+  ): Promise<ReturnType<typeof streamText> | null> {
+    if (!this.isAPIKeyAvailable()) {
+      console.error('Groq API 키가 설정되지 않았습니다.');
+      return null;
+    }
+
+    const rateCheck = this.checkRateLimit(options?.model);
+    if (!rateCheck.allowed) {
+      console.error(rateCheck.reason);
+      return null;
+    }
+
+    const model = options?.model || this.defaultModel;
+    const supportsReasoning = REASONING_MODELS.includes(model);
+
+    const messages: CoreMessage[] = options?.messages || [];
+
+    if (messages.length === 0) {
+      if (options?.systemPrompt) {
+        messages.push({ role: 'system', content: options.systemPrompt });
+      }
+      messages.push({ role: 'user', content: prompt });
+    }
+
+    this.recordRequest();
+
+    // Vercel AI SDK streamText 반환
+    return streamText({
+      model: groq(model),
+      messages,
+      maxOutputTokens: options?.maxTokens || 2048,
+      temperature: options?.temperature ?? 0.7,
+      // Reasoning 지원
+      ...(supportsReasoning &&
+        options?.enableReasoning && {
+          experimental_providerOptions: {
+            groq: {
+              reasoningFormat: 'parsed',
+              ...(options.reasoningEffort && {
+                reasoningEffort: options.reasoningEffort,
+              }),
+            },
+          },
+        }),
+    });
+  }
+
+  /**
+   * 🧠 Groq 모델 Provider 가져오기 (직접 사용)
+   *
+   * @example
+   * ```ts
+   * const model = getGroqModel('llama-3.3-70b-versatile');
+   * const result = await generateText({ model, messages: [...] });
+   * ```
+   */
+  getModel(modelId?: GroqModel) {
+    return groq(modelId || this.defaultModel);
+  }
 }
 
 const groqAIManager = GroqAIManager.getInstance();
 
-// 내보내기
+// 내보내기 - 기존 API 호환성 유지
 export const getGroqAIKey = () => groqAIManager.getAPIKey();
 export const isGroqAIAvailable = () => groqAIManager.isAPIKeyAvailable();
 export const getGroqAIStatus = () => groqAIManager.getKeyStatus();
@@ -292,11 +391,13 @@ export const checkGroqAIRateLimit = (model?: GroqModel) =>
 export const recordGroqAIRequest = () => groqAIManager.recordRequest();
 export const getGroqAIRateLimitStatus = (model?: GroqModel) =>
   groqAIManager.getRateLimitStatus(model);
-export const generateGroqText = (
-  prompt: string,
-  options?: Parameters<typeof groqAIManager.generateText>[1]
-) => groqAIManager.generateText(prompt, options);
+export const generateGroqText = (prompt: string, options?: GenerateOptions) =>
+  groqAIManager.generateText(prompt, options);
+export const streamGroqText = (prompt: string, options?: StreamOptions) =>
+  groqAIManager.streamTextResponse(prompt, options);
 export const setGroqDefaultModel = (model: GroqModel) =>
   groqAIManager.setDefaultModel(model);
+export const getGroqModel = (modelId?: GroqModel) =>
+  groqAIManager.getModel(modelId);
 
 export default groqAIManager;

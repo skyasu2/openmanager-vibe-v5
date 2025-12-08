@@ -54,7 +54,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
   return (
     <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
       {/* 1. Total Servers (Large) */}
-      <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:col-span-2 lg:col-span-1">
+      <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-xs md:col-span-2 lg:col-span-1">
         <div className="absolute right-0 top-0 p-4 opacity-5 transition-opacity group-hover:opacity-10">
           <ServerIcon size={120} />
         </div>
@@ -117,7 +117,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
       </div>
 
       {/* 3. Resource Usage (Medium) */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:col-span-2 lg:col-span-2">
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-xs md:col-span-2 lg:col-span-2">
         <h3 className="mb-6 flex items-center gap-2 font-semibold text-gray-900">
           <Activity size={18} className="text-blue-500" />
           Resource Overview

@@ -1,13 +1,16 @@
 /**
- * 🤖 AI 통합 쿼리 API (Non-Streaming JSON)
+ * 🤖 AI 통합 쿼리 API v2.0 (Non-Streaming JSON)
  *
- * AISidebarContent.tsx에서 사용하는 AI 쿼리 엔드포인트
- * unified-stream의 tools를 재사용하되 JSON 응답 반환
+ * 4-모델 라우팅 아키텍처:
+ * 1. Router (8B): llama-3.1-8b-instant로 빠른 복잡도 분류
+ * 2. Simple (1-3): Gemini 2.5 Flash → Llama 8B 폴백
+ * 3. Complex (4-5): Gemini 2.5 Pro → Llama 70B 폴백
  *
  * POST /api/ai/query
  */
 
 import { google } from '@ai-sdk/google';
+import { groq } from '@ai-sdk/groq';
 import { generateText, tool } from 'ai';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
@@ -17,9 +20,10 @@ import {
 } from '@/lib/ai/google-ai-manager';
 import {
   checkGroqAIRateLimit,
-  generateGroqText,
+  type GroqModel,
   isGroqAIAvailable,
 } from '@/lib/ai/groq-ai-manager';
+import { classifyQuery } from '@/lib/ai/query-classifier';
 import { withAuth } from '@/lib/auth/api-auth';
 import { createClient } from '@/lib/supabase/server';
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
@@ -320,7 +324,86 @@ interface QueryRequest {
 }
 
 // ============================================================================
-// POST Handler
+// Model Configuration (4-Model Architecture)
+// ============================================================================
+
+/**
+ * 모델 선택 결과
+ */
+interface ModelSelection {
+  primary: ReturnType<typeof google> | ReturnType<typeof groq>;
+  fallback: ReturnType<typeof groq> | null;
+  primaryName: string;
+  fallbackName: string | null;
+  isComplex: boolean;
+}
+
+/**
+ * 복잡도에 따른 모델 선택
+ * - Simple (1-3): Flash 계열 (빠른 응답)
+ * - Complex (4-5): Pro 계열 (깊은 분석)
+ */
+function selectModels(complexity: number): ModelSelection {
+  const isComplex = complexity >= 4;
+
+  const googleApiKey = getGoogleAIKey();
+  const googleRateCheck = checkGoogleAIRateLimit();
+  const groqAvailable = isGroqAIAvailable();
+  const groqRateCheck = checkGroqAIRateLimit();
+
+  const googleAvailable = googleApiKey && googleRateCheck.allowed;
+  const groqAllowed = groqAvailable && groqRateCheck.allowed;
+
+  // Complex (4-5): Pro 모델
+  if (isComplex) {
+    if (googleAvailable) {
+      return {
+        primary: google('gemini-2.5-pro'),
+        fallback: groqAllowed ? groq('llama-3.3-70b-versatile') : null,
+        primaryName: 'gemini-2.5-pro',
+        fallbackName: groqAllowed ? 'llama-3.3-70b-versatile' : null,
+        isComplex: true,
+      };
+    }
+    // Google 불가 → Groq 70B 사용
+    if (groqAllowed) {
+      return {
+        primary: groq('llama-3.3-70b-versatile'),
+        fallback: null,
+        primaryName: 'llama-3.3-70b-versatile',
+        fallbackName: null,
+        isComplex: true,
+      };
+    }
+  }
+
+  // Simple (1-3): Flash 모델
+  if (googleAvailable) {
+    return {
+      primary: google('gemini-2.5-flash'),
+      fallback: groqAllowed ? groq('llama-3.1-8b-instant') : null,
+      primaryName: 'gemini-2.5-flash',
+      fallbackName: groqAllowed ? 'llama-3.1-8b-instant' : null,
+      isComplex: false,
+    };
+  }
+  // Google 불가 → Groq 8B 사용
+  if (groqAllowed) {
+    return {
+      primary: groq('llama-3.1-8b-instant'),
+      fallback: null,
+      primaryName: 'llama-3.1-8b-instant',
+      fallbackName: null,
+      isComplex: false,
+    };
+  }
+
+  // 모든 AI 사용 불가
+  throw new Error('AI API가 모두 사용 불가합니다 (Google AI, Groq)');
+}
+
+// ============================================================================
+// POST Handler (4-Model Routing Architecture)
 // ============================================================================
 
 export const POST = withAuth(async (req: NextRequest) => {
@@ -337,47 +420,43 @@ export const POST = withAuth(async (req: NextRequest) => {
       );
     }
 
-    // AI 엔진 선택 로직: Google AI → Groq 폴백
-    const googleApiKey = getGoogleAIKey();
-    const googleRateCheck = checkGoogleAIRateLimit();
-    const groqAvailable = isGroqAIAvailable();
-    const groqRateCheck = checkGroqAIRateLimit();
+    // ============================================================
+    // Step 1: Router (8B) - 빠른 복잡도 분류
+    // ============================================================
+    const classification = await classifyQuery(query);
+    const { complexity, intent, reasoning: routingReason } = classification;
 
-    // 사용 가능한 엔진 결정
-    let useGroqFallback = false;
-    let engineReason = '';
+    console.log(
+      `📡 [AI Router] Intent: ${intent}, Complexity: ${complexity}/5, Reason: ${routingReason}`
+    );
 
-    if (!googleApiKey) {
-      if (groqAvailable && groqRateCheck.allowed) {
-        useGroqFallback = true;
-        engineReason = 'Google AI API 키 미설정 → Groq 폴백';
-      } else {
-        return Response.json(
-          {
-            error:
-              'AI API 키가 설정되지 않았습니다 (Google AI, Groq 모두 사용 불가)',
-          },
-          { status: 500 }
-        );
-      }
-    } else if (!googleRateCheck.allowed) {
-      if (groqAvailable && groqRateCheck.allowed) {
-        useGroqFallback = true;
-        engineReason = `Google AI Rate Limit (${googleRateCheck.reason}) → Groq 폴백`;
-        console.log(`⚠️ ${engineReason}`);
-      } else {
-        return Response.json(
-          {
-            error: `AI Rate Limit 초과: Google (${googleRateCheck.reason}), Groq (${groqRateCheck.reason || '키 미설정'})`,
-          },
-          { status: 429 }
-        );
-      }
+    // ============================================================
+    // Step 2: Model Selection (4-Model Architecture)
+    // ============================================================
+    let modelSelection: ModelSelection;
+    try {
+      modelSelection = selectModels(complexity);
+    } catch (error) {
+      return Response.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : 'AI 모델 선택 중 오류 발생',
+        },
+        { status: 500 }
+      );
     }
 
-    // 메타데이터를 포함한 시스템 프롬프트 구성
-    const systemPrompt = `당신은 **OpenManager Vibe**의 **AI 어시스턴트**입니다. (MVP/PoC 버전)
-목표: GCP 무료 티어를 최대한 활용하여 정확하고 빠른 답변을 제공하는 것입니다.
+    const { primary, fallback, primaryName, fallbackName, isComplex } =
+      modelSelection;
+
+    // ============================================================
+    // Step 3: System Prompt 구성
+    // ============================================================
+    const systemPrompt = `당신은 **OpenManager Vibe**의 **AI 어시스턴트**입니다.
+현재 모드: ${isComplex ? '🧠 Deep Reasoning (Pro)' : '⚡ Fast Response (Flash)'}
+질문 의도: ${intent} (복잡도: ${complexity}/5)
 
 **현재 대시보드 컨텍스트:**
 ${
@@ -391,70 +470,49 @@ ${
     : '메타데이터 없음'
 }
 
-**🚨 처리 전략 (Hybrid Engine - GCP 최적화)**
-1. **analyzeRequest**를 가장 먼저 실행하여 전략을 수립하십시오.
-2. **Simple (복잡도 1)**: \`analyzePattern\` 또는 \`recommendCommands\` (Offline)를 사용하십시오.
-3. **Moderate (복잡도 2)**: \`searchKnowledgeBase\` (RAG)를 사용하십시오.
-4. **Complex (복잡도 3-5)**: \`callUnifiedProcessor\` (GCP)를 적극 활용하십시오.
+**🚨 처리 전략 (4-Model Routing)**
+- 복잡도 1-2: 단순 조회 → \`analyzePattern\`, \`recommendCommands\`
+- 복잡도 3: 지식 기반 → \`searchKnowledgeBase\`
+- 복잡도 4-5: 심층 분석 → \`callUnifiedProcessor\`
 
-항상 팩트 기반으로 답변하고, 불확실할 경우 솔직하게 모른다고 하십시오.
+항상 팩트 기반으로 답변하고, 불확실할 경우 솔직히 모른다고 하십시오.
 한국어로 응답하십시오.`;
 
-    // AI 호출: Groq 폴백 또는 Google Gemini
+    // ============================================================
+    // Step 4: Primary Model 실행
+    // ============================================================
     let responseText = '';
-    let usedEngine = '';
+    let usedEngine = primaryName;
+    let fallbackUsed = false;
     const thinkingSteps: string[] = [];
 
-    if (useGroqFallback) {
-      // 🚀 Groq 폴백 사용 (llama-3.1-8b-instant)
-      console.log(`🔄 Groq 폴백 사용: ${engineReason}`);
+    if (includeThinking) {
+      thinkingSteps.push(`🔍 Router: ${intent} (복잡도 ${complexity}/5)`);
+      thinkingSteps.push(`🎯 선택된 모델: ${primaryName}`);
+    }
 
-      const groqResult = await generateGroqText(query, {
-        systemPrompt,
-        maxTokens: 2048,
-        temperature: 0.7,
-      });
+    const tools = {
+      analyzeRequest,
+      callUnifiedProcessor,
+      getServerMetrics,
+      searchKnowledgeBase,
+      analyzePattern,
+      recommendCommands,
+    };
 
-      if (!groqResult.success) {
-        // Groq도 실패하면 에러 반환
-        return Response.json(
-          { error: `Groq API 오류: ${groqResult.error}` },
-          { status: 500 }
-        );
-      }
-
-      responseText = groqResult.text || '응답을 생성하지 못했습니다.';
-      usedEngine = `groq/${groqResult.model || 'llama-3.1-8b-instant'}`;
-
-      if (includeThinking) {
-        thinkingSteps.push(`🔄 ${engineReason}`);
-        if (groqResult.usage) {
-          thinkingSteps.push(
-            `📊 토큰: ${groqResult.usage.totalTokens} (prompt: ${groqResult.usage.promptTokens}, completion: ${groqResult.usage.completionTokens})`
-          );
-        }
-      }
-    } else {
-      // 🌟 Google Gemini 2.5 Flash 사용 (기본) - 1.5는 단종 예정
-      // Free tier: 10 RPM, 250 RPD (2.5 Flash) vs 5 RPM, 25 RPD (2.5 Pro)
+    try {
       const result = await generateText({
-        model: google('gemini-2.5-flash-preview-05-20'),
+        model: primary,
         messages: [{ role: 'user', content: query }],
-        tools: {
-          analyzeRequest,
-          callUnifiedProcessor,
-          getServerMetrics,
-          searchKnowledgeBase,
-          analyzePattern,
-          recommendCommands,
-        },
+        tools,
         system: systemPrompt,
+        maxOutputTokens: isComplex ? 4096 : 2048,
+        temperature: isComplex ? 0.7 : 0.5,
       });
 
       responseText = result.text || '응답을 생성하지 못했습니다.';
-      usedEngine = 'gemini-2.5-flash';
 
-      // 사고 과정 추출 (tool calls)
+      // Tool calls 기록
       if (includeThinking && result.toolCalls && result.toolCalls.length > 0) {
         for (const toolCall of result.toolCalls) {
           const toolArgs = 'args' in toolCall ? toolCall.args : {};
@@ -463,19 +521,86 @@ ${
           );
         }
       }
+
+      // 사용량 기록
+      if (includeThinking && result.usage) {
+        thinkingSteps.push(
+          `📊 토큰: ${result.usage.totalTokens} (input: ${result.usage.inputTokens}, output: ${result.usage.outputTokens})`
+        );
+      }
+    } catch (primaryError) {
+      console.warn(
+        `⚠️ Primary Model (${primaryName}) 실패:`,
+        primaryError instanceof Error ? primaryError.message : primaryError
+      );
+
+      // ============================================================
+      // Step 5: Fallback Model 실행
+      // ============================================================
+      if (fallback && fallbackName) {
+        console.log(`🔄 Fallback 전환: ${primaryName} → ${fallbackName}`);
+
+        if (includeThinking) {
+          thinkingSteps.push(`⚠️ ${primaryName} 실패 → ${fallbackName} 전환`);
+        }
+
+        try {
+          const fallbackResult = await generateText({
+            model: fallback,
+            messages: [{ role: 'user', content: query }],
+            tools,
+            system: systemPrompt + '\n(Note: Fallback model active)',
+            maxOutputTokens: isComplex ? 4096 : 2048,
+            temperature: isComplex ? 0.7 : 0.5,
+          });
+
+          responseText = fallbackResult.text || '응답을 생성하지 못했습니다.';
+          usedEngine = fallbackName;
+          fallbackUsed = true;
+
+          // Tool calls 기록
+          if (
+            includeThinking &&
+            fallbackResult.toolCalls &&
+            fallbackResult.toolCalls.length > 0
+          ) {
+            for (const toolCall of fallbackResult.toolCalls) {
+              const toolArgs = 'args' in toolCall ? toolCall.args : {};
+              thinkingSteps.push(
+                `🔧 ${toolCall.toolName}: ${JSON.stringify(toolArgs)}`
+              );
+            }
+          }
+        } catch (fallbackError) {
+          console.error('❌ Fallback Model도 실패:', fallbackError);
+          throw primaryError; // 원래 오류 전파
+        }
+      } else {
+        throw primaryError;
+      }
     }
 
     const responseTime = Date.now() - startTime;
 
-    // 응답 반환
+    // ============================================================
+    // Step 6: 응답 반환
+    // ============================================================
     return Response.json({
       response: responseText,
       thinkingSteps,
       engine: usedEngine,
-      fallbackUsed: useGroqFallback,
-      fallbackReason: useGroqFallback ? engineReason : undefined,
+      routing: {
+        complexity,
+        intent,
+        reason: routingReason,
+        isComplex,
+      },
+      fallbackUsed,
+      fallbackReason: fallbackUsed
+        ? `${primaryName} 실패 → ${fallbackName}`
+        : undefined,
       responseTime,
-      confidence: useGroqFallback ? 0.8 : 0.85, // Groq는 약간 낮은 신뢰도
+      confidence: fallbackUsed ? 0.8 : isComplex ? 0.9 : 0.85,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

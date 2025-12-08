@@ -23,7 +23,7 @@ interface EnhancedAIChatProps {
   /** 제한된 메시지 배열 (최대 개수 적용) */
   limitedMessages: EnhancedChatMessage[];
   /** 메시지 끝 참조 (자동 스크롤용) */
-  messagesEndRef: RefObject<HTMLDivElement>;
+  messagesEndRef: RefObject<HTMLDivElement | null>;
   /** 메시지 컴포넌트 */
   MessageComponent: React.ComponentType<{
     message: EnhancedChatMessage;
@@ -72,12 +72,12 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   routingReason,
 }: EnhancedAIChatProps) {
   return (
-    <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
       {/* 헤더 - 모델 선택 */}
       <div className="border-b border-gray-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-blue-600">
               <Bot className="h-4 w-4 text-white" />
             </div>
             <div>
@@ -99,10 +99,10 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
       </div>
 
       {/* 메시지 영역 */}
-      <div className="flex-1 space-y-3 overflow-y-auto scroll-smooth p-3 [will-change:scroll-position] sm:space-y-4 sm:p-4">
+      <div className="flex-1 space-y-3 overflow-y-auto scroll-smooth p-3 will-change-scroll sm:space-y-4 sm:p-4">
         {/* 자동장애보고서 알림 */}
         {autoReportTrigger.shouldGenerate && (
-          <div className="rounded-lg border border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-3">
+          <div className="rounded-lg border border-red-200 bg-linear-to-r from-red-50 to-orange-50 p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <FileText className="h-4 w-4 text-red-600" />
@@ -123,7 +123,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         {/* 빈 메시지 상태 */}
         {allMessages.length === 0 && (
           <div className="py-8 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-blue-600">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-r from-purple-500 to-blue-600">
               <Bot className="h-6 w-6 text-white" />
             </div>
             <h3 className="mb-2 text-lg font-medium text-gray-900">
@@ -159,7 +159,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               onValueChange={setInputValue}
               onKeyboardShortcut={() => handleSendInput()}
               placeholder="시스템에 대해 질문해보세요..."
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] shadow-xs transition-all focus:border-blue-500 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10"
               minHeight={56}
               maxHeight={300}
               maxHeightVh={40}
@@ -174,7 +174,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               void handleSendInput();
             }}
             disabled={!inputValue.trim() || isGenerating}
-            className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             title="메시지 전송"
             aria-label="메시지 전송"
           >

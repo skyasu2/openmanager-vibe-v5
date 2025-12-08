@@ -274,7 +274,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
       <div className="border-b border-gray-200 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-blue-600">
               <Bot className="h-4 w-4 text-white" />
             </div>
             <div>
@@ -444,7 +444,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   }}
                   placeholder={QUESTION_EXAMPLES[placeholderIndex]}
                   disabled={isLoading}
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
                 <button
                   onClick={() => {
@@ -511,7 +511,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                     '시스템 전체 장애 보고서를 생성해주세요'
                   );
                 }}
-                className="w-full rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 p-3 font-medium text-white transition-all hover:from-green-600 hover:to-emerald-700"
+                className="w-full rounded-lg bg-linear-to-r from-green-500 to-emerald-600 p-3 font-medium text-white transition-all hover:from-green-600 hover:to-emerald-700"
               >
                 <div className="flex items-center justify-center gap-2">
                   <FileText className="h-4 w-4" />
@@ -682,7 +682,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
             </div>
 
             <div className="space-y-3">
-              <div className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
+              <div className="rounded-lg border border-purple-200 bg-linear-to-r from-purple-50 to-blue-50 p-4">
                 <div className="mb-2 flex items-center gap-2">
                   <Lightbulb className="h-4 w-4 text-purple-600" />
                   <h3 className="font-medium text-purple-800">AI 추천</h3>
@@ -700,7 +700,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                 </p>
               </div>
 
-              <div className="rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-4">
+              <div className="rounded-lg border border-yellow-200 bg-linear-to-r from-yellow-50 to-orange-50 p-4">
                 <div className="mb-2 flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-yellow-600" />
                   <h3 className="font-medium text-yellow-800">주의 사항</h3>
@@ -720,7 +720,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                 </p>
               </div>
 
-              <div className="rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4">
+              <div className="rounded-lg border border-green-200 bg-linear-to-r from-green-50 to-emerald-50 p-4">
                 <div className="mb-2 flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-green-600" />
                   <h3 className="font-medium text-green-800">시스템 상태</h3>

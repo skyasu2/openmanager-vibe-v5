@@ -123,7 +123,7 @@ export default function GitHubLoginButton({
           className={`flex w-full items-center justify-center rounded-lg border border-transparent px-4 py-3 text-sm font-medium text-white ${
             isLoading
               ? 'cursor-not-allowed bg-gray-600'
-              : 'bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
+              : 'bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
           } transition-colors duration-200`}
         >
           {isLoading ? (
@@ -168,7 +168,7 @@ export default function GitHubLoginButton({
       className={`flex w-full items-center justify-center rounded-lg border border-transparent px-4 py-3 text-sm font-medium text-white ${
         isLoading
           ? 'cursor-not-allowed bg-gray-600'
-          : 'bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2'
+          : 'bg-gray-800 hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2'
       } transition-all duration-200 ${className} `}
     >
       {isLoading ? (

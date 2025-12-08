@@ -1063,7 +1063,7 @@ if (confidence >= 0.8) {
 1. **기본 모달 렌더링** (3 tests)
    - Dialog role 확인 (role="dialog")
    - 서버명 표시
-   - Overlay backdrop-blur 표시
+   - Overlay backdrop-blur-sm 표시
 
 2. **onClose 호출** (3 tests) ⭐
    - Overlay 클릭

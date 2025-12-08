@@ -274,7 +274,7 @@ export default function EnhancedServerModal({
       >
         {/* 헤더 - Miller's Rule 적용 (8개→5개 요소 축소) */}
         <div
-          className={`bg-gradient-to-r ${statusTheme.gradient} p-4 text-white sm:p-6`}
+          className={`bg-linear-to-r ${statusTheme.gradient} p-4 text-white sm:p-6`}
         >
           <div className="flex items-center justify-between">
             {/* 💡 핵심 정보 통합 (3개 요소) */}
@@ -285,14 +285,14 @@ export default function EnhancedServerModal({
               <div className="min-w-0 flex-1">
                 {/* 1️⃣ 서버명 + 상태 + 헬스점수 통합 (모바일 최적화) */}
                 <h2 className="flex items-center gap-2 text-lg font-bold sm:gap-3 sm:text-2xl">
-                  <span className="truncate drop-shadow-sm">
+                  <span className="truncate drop-shadow-xs">
                     {safeServer.name}
                   </span>
-                  <span className="flex-shrink-0 text-xl sm:text-2xl">
+                  <span className="shrink-0 text-xl sm:text-2xl">
                     {statusTheme.icon}
                   </span>
                   {safeServer.health?.score !== undefined && (
-                    <div className="flex-shrink-0 rounded-lg bg-white/30 px-1.5 py-1 text-xs font-bold backdrop-blur-sm sm:px-2 sm:text-sm">
+                    <div className="shrink-0 rounded-lg bg-white/30 px-1.5 py-1 text-xs font-bold backdrop-blur-sm sm:px-2 sm:text-sm">
                       {Math.round(safeServer.health.score)}%
                     </div>
                   )}
@@ -321,7 +321,7 @@ export default function EnhancedServerModal({
             </div>
 
             {/* 💡 핵심 액션만 (2개 요소) */}
-            <div className="flex flex-shrink-0 items-center gap-2 sm:gap-3">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               {/* 3️⃣ 실시간 모니터링 토글 (모바일 최적화) */}
               <button
                 onClick={() => setIsRealtime(!isRealtime)}
@@ -451,13 +451,13 @@ export default function EnhancedServerModal({
                   }`}
                 >
                   <Icon
-                    className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-gray-700' : 'text-white/90'}`}
+                    className={`h-4 w-4 shrink-0 ${isActive ? 'text-gray-700' : 'text-white/90'}`}
                   />
                   <span className="hidden sm:inline">{tab.label}</span>
                   <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
 
                   {/* 탭별 상태 인디케이터 */}
-                  <div className="flex flex-shrink-0 items-center gap-1">
+                  <div className="flex shrink-0 items-center gap-1">
                     {getTabIndicator(tab.id)}
                   </div>
 
@@ -472,7 +472,7 @@ export default function EnhancedServerModal({
         </div>
 
         {/* 콘텐츠 영역 - 모듈화된 탭 컴포넌트 시스템 */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100">
+        <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 via-gray-50 to-gray-100">
           <div key={selectedTab} className="p-4 sm:p-6">
             {/* 📊 통합 탭 시스템 (5개→3개로 통합) */}
             {selectedTab === 'overview' && (
@@ -481,7 +481,7 @@ export default function EnhancedServerModal({
                 <OverviewTab server={safeServer} statusTheme={statusTheme} />
 
                 {/* 📈 핵심 메트릭 요약 */}
-                <div className="rounded-xl bg-white p-4 shadow-sm">
+                <div className="rounded-xl bg-white p-4 shadow-xs">
                   <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
                     <BarChart3 className="h-5 w-5 text-blue-600" />
                     핵심 성능 지표
@@ -551,7 +551,7 @@ export default function EnhancedServerModal({
                 />
 
                 {/* 📊 프로세스 정보 통합 */}
-                <div className="rounded-xl bg-white p-4 shadow-sm">
+                <div className="rounded-xl bg-white p-4 shadow-xs">
                   <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
                     <Cpu className="h-5 w-5 text-green-600" />
                     실행 중인 프로세스
@@ -564,7 +564,7 @@ export default function EnhancedServerModal({
             {selectedTab === 'logs' && (
               <div className="space-y-6">
                 {/* 🎯 기존 로그 탭 */}
-                <div className="rounded-xl bg-white p-4 shadow-sm">
+                <div className="rounded-xl bg-white p-4 shadow-xs">
                   <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
                     <FileText className="h-5 w-5 text-blue-600" />
                     시스템 로그
@@ -573,7 +573,7 @@ export default function EnhancedServerModal({
                 </div>
 
                 {/* 🌐 네트워크 정보 통합 */}
-                <div className="rounded-xl bg-white p-4 shadow-sm">
+                <div className="rounded-xl bg-white p-4 shadow-xs">
                   <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
                     <Network className="h-5 w-5 text-purple-600" />
                     네트워크 상태
@@ -586,7 +586,7 @@ export default function EnhancedServerModal({
         </div>
 
         {/* 하단 상태 요약 - 모바일 최적화 */}
-        <div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-2 sm:px-6 sm:py-3">
+        <div className="border-t border-gray-200 bg-linear-to-r from-gray-50 to-gray-100 px-4 py-2 sm:px-6 sm:py-3">
           <div className="flex items-center justify-between">
             {/* 핵심 상태 정보만 표시 (모바일 최적화) */}
             <div className="flex items-center gap-2 text-xs sm:gap-4 sm:text-sm">

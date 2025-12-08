@@ -146,7 +146,7 @@ export function SystemControlPanel() {
 
   // 🎨 UI 렌더링 (Vercel 플랫폼 모니터링 안내 포함)
   return (
-    <div className="rounded-lg border bg-white p-6 shadow-sm">
+    <div className="rounded-lg border bg-white p-6 shadow-xs">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <Shield className="h-6 w-6 text-blue-600" />

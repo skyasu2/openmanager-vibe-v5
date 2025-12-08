@@ -144,7 +144,7 @@ graph TB
 ### 최종 합의: 8.8/10 HIGH 등급
 ```typescript
 // Material Design 3 + Glassmorphism (블러 제거)
-<div className="group bg-gradient-to-br from-white/90 to-gray-50/90 
+<div className="group bg-linear-to-br from-white/90 to-gray-50/90 
                 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 
                 transition-all duration-300 rounded-xl border border-gray-200/60">
   {/* ARIA 접근성 완전 구현 */}

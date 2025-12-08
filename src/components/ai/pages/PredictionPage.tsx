@@ -146,12 +146,12 @@ export default function PredictionPage() {
       : predictions.filter((p) => p.riskLevel === selectedRisk);
 
   return (
-    <div className="flex h-full flex-col bg-gradient-to-br from-purple-50 to-indigo-50">
+    <div className="flex h-full flex-col bg-linear-to-br from-purple-50 to-indigo-50">
       {/* 헤더 */}
       <div className="border-b border-purple-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-indigo-500">
               <TrendingUp className="h-5 w-5 text-white" />
             </div>
             <div>

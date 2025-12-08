@@ -179,7 +179,7 @@ export const EditableMessage: FC<EditableMessageProps> = ({
     <div className={`group relative ${className}`}>
       {/* 메시지 텍스트 */}
       <div
-        className={`whitespace-pre-wrap break-words text-sm ${role === 'user' ? 'text-gray-800' : 'text-gray-700'} ${!readOnly ? 'pr-8' : ''} `}
+        className={`whitespace-pre-wrap wrap-break-word text-sm ${role === 'user' ? 'text-gray-800' : 'text-gray-700'} ${!readOnly ? 'pr-8' : ''} `}
       >
         {originalText}
       </div>

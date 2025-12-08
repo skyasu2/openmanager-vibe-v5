@@ -332,7 +332,7 @@ export const RealTimeLogMonitor: FC<RealTimeLogMonitorProps> = ({
 
   return (
     <div
-      className={`rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 ${className}`}
+      className={`rounded-lg border bg-white shadow-xs dark:border-gray-700 dark:bg-gray-800 ${className}`}
     >
       {/* 헤더 */}
       <div className="flex items-center justify-between border-b p-4 dark:border-gray-700">

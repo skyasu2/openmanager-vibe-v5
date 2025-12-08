@@ -47,7 +47,7 @@ export default function ResultCard({
         return {
           border: 'border-red-200',
           bg: 'bg-red-50',
-          header: 'bg-gradient-to-r from-red-500 to-red-600',
+          header: 'bg-linear-to-r from-red-500 to-red-600',
           icon: 'fas fa-exclamation-triangle',
           iconBg: 'bg-red-100 text-red-600',
         };
@@ -55,7 +55,7 @@ export default function ResultCard({
         return {
           border: 'border-yellow-200',
           bg: 'bg-yellow-50',
-          header: 'bg-gradient-to-r from-yellow-500 to-yellow-600',
+          header: 'bg-linear-to-r from-yellow-500 to-yellow-600',
           icon: 'fas fa-exclamation-circle',
           iconBg: 'bg-yellow-100 text-yellow-600',
         };
@@ -63,7 +63,7 @@ export default function ResultCard({
         return {
           border: 'border-green-200',
           bg: 'bg-green-50',
-          header: 'bg-gradient-to-r from-green-500 to-green-600',
+          header: 'bg-linear-to-r from-green-500 to-green-600',
           icon: 'fas fa-check-circle',
           iconBg: 'bg-green-100 text-green-600',
         };
@@ -71,7 +71,7 @@ export default function ResultCard({
         return {
           border: 'border-purple-200',
           bg: 'bg-purple-50',
-          header: 'bg-gradient-to-r from-purple-500 to-purple-600',
+          header: 'bg-linear-to-r from-purple-500 to-purple-600',
           icon: 'fas fa-lightbulb',
           iconBg: 'bg-purple-100 text-purple-600',
         };
@@ -164,7 +164,7 @@ export default function ResultCard({
               {data.metrics.map((metric, index) => (
                 <div
                   key={index}
-                  className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm"
+                  className="rounded-xl border border-gray-100 bg-white p-3 shadow-xs"
                 >
                   <div className="mb-1 text-xs text-gray-500">
                     {metric.label}

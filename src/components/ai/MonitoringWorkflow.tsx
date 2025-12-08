@@ -72,7 +72,7 @@ export default function MonitoringWorkflow({
 
       {/* 진행률 바 */}
       <div className="mb-6 h-2 w-full rounded-full bg-gray-200">
-        <div className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" />
+        <div className="h-2 rounded-full bg-linear-to-r from-emerald-500 to-teal-500" />
       </div>
 
       {/* 3단계 워크플로우 시각화 */}

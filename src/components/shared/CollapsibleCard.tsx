@@ -34,7 +34,7 @@ export default function CollapsibleCard({
   size = 'md',
 }: CollapsibleCardProps) {
   const baseClasses = {
-    default: 'bg-white rounded-lg shadow-sm',
+    default: 'bg-white rounded-lg shadow-xs',
     bordered: 'bg-white rounded-lg border border-gray-200',
     elevated: 'bg-white rounded-lg shadow-md',
   };
@@ -61,7 +61,7 @@ export default function CollapsibleCard({
         aria-controls="collapsible-card-content"
       >
         <div className="flex items-center gap-3">
-          {icon && <div className="flex-shrink-0">{icon}</div>}
+          {icon && <div className="shrink-0">{icon}</div>}
           <div>
             <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
             {subtitle && (
@@ -71,7 +71,7 @@ export default function CollapsibleCard({
         </div>
 
         {/* 토글 버튼 */}
-        <div className="flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-100">
+        <div className="shrink-0 rounded-full p-1 transition-colors hover:bg-gray-100">
           <ChevronDown className="h-5 w-5 text-gray-500" />
         </div>
       </button>

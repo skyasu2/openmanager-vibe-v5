@@ -207,7 +207,7 @@ export const ThinkingProcessVisualizer: FC<ThinkingProcessVisualizerProps> = ({
               >
                 {/* 아이콘 */}
                 <div
-                  className={`flex-shrink-0 rounded-full p-2 ${
+                  className={`shrink-0 rounded-full p-2 ${
                     step.status === 'completed' ? 'bg-white' : 'bg-white/50'
                   }`}
                 >
@@ -262,7 +262,7 @@ export const ThinkingProcessVisualizer: FC<ThinkingProcessVisualizerProps> = ({
                 </div>
 
                 {/* 상태 아이콘 */}
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <StatusIcon className={`h-4 w-4 ${config.color}`} />
                 </div>
               </div>

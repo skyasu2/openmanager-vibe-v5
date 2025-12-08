@@ -183,7 +183,7 @@ export default function ServerMetricsBarChart({
 
                   {/* 실제 데이터 막대 */}
                   <div
-                    className={`relative w-full overflow-hidden rounded-sm shadow-sm ${config.barColor} ${isCurrentValue ? 'opacity-100 shadow-md' : 'opacity-80'} `}
+                    className={`relative w-full overflow-hidden rounded-sm shadow-xs ${config.barColor} ${isCurrentValue ? 'opacity-100 shadow-md' : 'opacity-80'} `}
                     style={{
                       height: `${height}%`,
                       position: 'absolute',
@@ -191,7 +191,7 @@ export default function ServerMetricsBarChart({
                     }}
                   >
                     {/* 그라데이션 효과 */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-white/20" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/10 to-white/20" />
 
                     {/* 현재값 강조 효과 */}
                     {isCurrentValue && showRealTimeUpdates && (
@@ -204,7 +204,7 @@ export default function ServerMetricsBarChart({
                     dataPoint.value ===
                       Math.max(...historicalData.map((d) => d.value))) && (
                     <div
-                      className={`absolute -top-7 left-1/2 -translate-x-1/2 transform rounded-full px-1.5 py-0.5 text-xs font-bold ${config.bgColor} ${config.textColor} whitespace-nowrap shadow-sm`}
+                      className={`absolute -top-7 left-1/2 -translate-x-1/2 transform rounded-full px-1.5 py-0.5 text-xs font-bold ${config.bgColor} ${config.textColor} whitespace-nowrap shadow-xs`}
                     >
                       {dataPoint.value}%
                     </div>

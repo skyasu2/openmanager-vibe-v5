@@ -75,7 +75,7 @@ export function TimeRotationDisplay({
   return (
     <div
       className={cn(
-        'rounded-xl border border-gray-200 bg-white shadow-sm',
+        'rounded-xl border border-gray-200 bg-white shadow-xs',
         className
       )}
     >

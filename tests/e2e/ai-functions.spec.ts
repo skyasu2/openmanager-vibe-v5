@@ -54,7 +54,7 @@ test.describe('@ai-test AI 사이드바 기능 전환 (하루 2-3회 수동 실�
     // 활성 상태 확인 (그라데이션 배경 또는 scale-105 클래스)
     const chatButtonClass = await chatButton.getAttribute('class');
     const isActive =
-      chatButtonClass?.includes('bg-gradient-to-r') ||
+      chatButtonClass?.includes('bg-linear-to-r') ||
       chatButtonClass?.includes('scale-105');
 
     expect(isActive).toBe(true);
@@ -74,7 +74,7 @@ test.describe('@ai-test AI 사이드바 기능 전환 (하루 2-3회 수동 실�
     );
     const buttonClass = await autoReportButton.getAttribute('class');
     const isActive =
-      buttonClass?.includes('bg-gradient-to-r') ||
+      buttonClass?.includes('bg-linear-to-r') ||
       buttonClass?.includes('scale-105');
 
     expect(isActive).toBe(true);
@@ -111,7 +111,7 @@ test.describe('@ai-test AI 사이드바 기능 전환 (하루 2-3회 수동 실�
     );
     const buttonClass = await advancedButton.getAttribute('class');
     const isActive =
-      buttonClass?.includes('bg-gradient-to-r') ||
+      buttonClass?.includes('bg-linear-to-r') ||
       buttonClass?.includes('scale-105');
 
     expect(isActive).toBe(true);
@@ -157,7 +157,7 @@ test.describe('@ai-test AI 사이드바 기능 전환 (하루 2-3회 수동 실�
     const chatButton = page.locator('[data-testid="ai-function-chat"]');
     const buttonClass = await chatButton.getAttribute('class');
     const isActive =
-      buttonClass?.includes('bg-gradient-to-r') ||
+      buttonClass?.includes('bg-linear-to-r') ||
       buttonClass?.includes('scale-105');
 
     expect(isActive).toBe(true);
@@ -195,7 +195,7 @@ test.describe('@ai-test AI 사이드바 기능 전환 (하루 2-3회 수동 실�
     const chatButton = page.locator('[data-testid="ai-function-chat"]');
     const buttonClass = await chatButton.getAttribute('class');
     const isActive =
-      buttonClass?.includes('bg-gradient-to-r') ||
+      buttonClass?.includes('bg-linear-to-r') ||
       buttonClass?.includes('scale-105');
 
     expect(isActive).toBe(true);

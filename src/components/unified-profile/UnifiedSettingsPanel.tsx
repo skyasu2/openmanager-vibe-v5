@@ -350,7 +350,7 @@ export function UnifiedSettingsPanel({
       <>
         {/* 오버레이 */}
         <button
-          className="fixed inset-0 z-[9998] bg-black/70 w-full h-full cursor-default"
+          className="fixed inset-0 z-9998 bg-black/70 w-full h-full cursor-default"
           onClick={onClose}
           type="button"
           aria-label="설정 패널 닫기"
@@ -361,7 +361,7 @@ export function UnifiedSettingsPanel({
         {/* 설정 패널 - 프로필 버튼 근처에 배치 */}
         <div
           ref={modalRef}
-          className="fixed z-[10000] flex h-[min(95vh,700px)] max-h-[95vh] min-h-[400px] w-[min(95vw,800px)] min-w-[320px] max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-gray-900/95 shadow-2xl backdrop-blur-xl"
+          className="fixed z-10000 flex h-[min(95vh,700px)] max-h-[95vh] min-h-[400px] w-[min(95vw,800px)] min-w-[320px] max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-gray-900/95 shadow-2xl backdrop-blur-xl"
           style={{
             top: `${modalPosition.top}px`,
             left: `${modalPosition.left}px`,
@@ -372,7 +372,7 @@ export function UnifiedSettingsPanel({
           data-testid="unified-settings-modal"
         >
           {/* 헤더 */}
-          <header className="flex flex-shrink-0 items-center justify-between border-b border-white/10 p-4">
+          <header className="flex shrink-0 items-center justify-between border-b border-white/10 p-4">
             <h2
               id="settings-panel-title"
               className="flex items-center gap-2 text-xl font-bold text-white"
@@ -390,7 +390,7 @@ export function UnifiedSettingsPanel({
           </header>
 
           {/* 탭 네비게이션 */}
-          <nav className="flex-shrink-0 border-b border-white/10 p-4">
+          <nav className="shrink-0 border-b border-white/10 p-4">
             <div className="flex items-center justify-around overflow-x-auto rounded-lg bg-gray-800/50 p-1">
               {(
                 [
@@ -404,7 +404,7 @@ export function UnifiedSettingsPanel({
                 <button
                   key={tabKey}
                   onClick={() => setActiveTab(tabKey as SettingsTab)}
-                  className={`relative min-w-0 flex-shrink-0 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`relative min-w-0 shrink-0 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                     activeTab === tabKey
                       ? 'text-white'
                       : 'text-gray-400 hover:text-white'
@@ -414,7 +414,7 @@ export function UnifiedSettingsPanel({
                     <div className="absolute inset-0 z-0 rounded-md bg-purple-500/30" />
                   )}
                   <div className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">
-                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <Icon className="h-4 w-4 shrink-0" />
                     <span className="truncate">{tabName}</span>
                   </div>
                 </button>
@@ -428,7 +428,7 @@ export function UnifiedSettingsPanel({
           </main>
 
           {/* 피드백 컨테이너 */}
-          <footer className="flex-shrink-0 border-t border-white/10 p-4">
+          <footer className="shrink-0 border-t border-white/10 p-4">
             <InlineFeedbackContainer area="auth-section" />
             <InlineFeedbackContainer area="generator-section" />
             <InlineFeedbackContainer area="monitor-section" />

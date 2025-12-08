@@ -133,7 +133,7 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
 
     return (
       <div
-        className={`border border-gray-700/50 bg-gradient-to-br from-gray-900/80 to-gray-800/80 shadow-xl backdrop-blur-lg ${getVariantClasses()}`}
+        className={`border border-gray-700/50 bg-linear-to-br from-gray-900/80 to-gray-800/80 shadow-xl backdrop-blur-lg ${getVariantClasses()}`}
       >
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -178,11 +178,11 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
             <div className="h-4 w-full overflow-hidden rounded-full border border-gray-600/30 bg-gray-700/50 backdrop-blur-sm">
               <div
                 style={{ width: `${calculatedProgress}%` }}
-                className={`h-full bg-gradient-to-r ${getProgressColor()} relative overflow-hidden rounded-full transition-all duration-800 ease-out`}
+                className={`h-full bg-linear-to-r ${getProgressColor()} relative overflow-hidden rounded-full transition-all duration-800 ease-out`}
               >
                 {!error && (
                   <div
-                    className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent ${isActive && !isComplete ? 'animate-pulse' : ''}`}
+                    className={`absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent ${isActive && !isComplete ? 'animate-pulse' : ''}`}
                   />
                 )}
                 {isActive && !isComplete && !error && (

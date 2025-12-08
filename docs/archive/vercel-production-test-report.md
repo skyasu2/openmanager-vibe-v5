@@ -29,7 +29,7 @@
 ```html
 <!-- 실제 베르셀 환경 DOM -->
 <div
-  class="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black"
+  class="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-black"
 >
   <div class="text-white">Loading...</div>
 </div>

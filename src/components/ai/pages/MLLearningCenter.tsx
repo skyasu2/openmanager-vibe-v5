@@ -301,7 +301,7 @@ export const MLLearningCenter: FC = () => {
               >
                 <div className="mb-4 flex items-start justify-between">
                   <div
-                    className={`rounded-lg bg-gradient-to-br p-3 ${button.color}`}
+                    className={`rounded-lg bg-linear-to-br p-3 ${button.color}`}
                   >
                     {createElement(button.icon, {
                       className: 'w-6 h-6 text-white',
@@ -338,7 +338,7 @@ export const MLLearningCenter: FC = () => {
                               ? 'bg-red-500'
                               : isCompleted
                                 ? 'bg-green-500'
-                                : `bg-gradient-to-r ${button.color}`
+                                : `bg-linear-to-r ${button.color}`
                           }`}
                         />
                       </div>
@@ -365,7 +365,7 @@ export const MLLearningCenter: FC = () => {
 
       {/* 학습 결과 표시 */}
       {selectedResult && (
-        <div className="mt-8 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+        <div className="mt-8 rounded-xl border border-blue-200 bg-linear-to-br from-blue-50 to-indigo-50 p-6">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
               <BarChart3 className="h-5 w-5 text-blue-600" />
@@ -409,7 +409,7 @@ export const MLLearningCenter: FC = () => {
                     key={idx}
                     className="flex items-start gap-2 text-sm text-gray-600"
                   >
-                    <Zap className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+                    <Zap className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                     {insight}
                   </li>
                 ))}

@@ -36,10 +36,10 @@ const colorMap = {
 // 중요도별 스타일
 const importanceStyles = {
   critical:
-    'ring-2 ring-red-400/50 bg-gradient-to-br from-red-500/20 to-pink-500/20 shadow-lg shadow-red-500/20',
-  high: 'ring-2 ring-yellow-400/30 bg-gradient-to-br from-yellow-500/10 to-orange-500/10',
+    'ring-2 ring-red-400/50 bg-linear-to-br from-red-500/20 to-pink-500/20 shadow-lg shadow-red-500/20',
+  high: 'ring-2 ring-yellow-400/30 bg-linear-to-br from-yellow-500/10 to-orange-500/10',
   showcase:
-    'ring-2 ring-purple-400/40 bg-gradient-to-br from-purple-500/15 to-indigo-500/15',
+    'ring-2 ring-purple-400/40 bg-linear-to-br from-purple-500/15 to-indigo-500/15',
   medium: 'ring-1 ring-blue-400/20',
   low: 'ring-1 ring-gray-400/10',
 };
@@ -136,12 +136,12 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
                           {tech.name}
                         </h5>
                         {tech.isCore && (
-                          <span className="flex-shrink-0 rounded border border-amber-500/30 bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-300">
+                          <span className="shrink-0 rounded border border-amber-500/30 bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-300">
                             핵심
                           </span>
                         )}
                         {tech.usageCount && tech.usageCount > 1 && (
-                          <span className="flex-shrink-0 rounded border border-purple-500/30 bg-purple-500/20 px-1.5 py-0.5 text-xs text-purple-300">
+                          <span className="shrink-0 rounded border border-purple-500/30 bg-purple-500/20 px-1.5 py-0.5 text-xs text-purple-300">
                             {tech.usageCount}회 사용
                           </span>
                         )}
@@ -179,7 +179,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
                     </div>
 
                     {/* 중요도 표시 */}
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <div
                         className={`h-2 w-2 rounded-full ${
                           tech.importance === 'critical'
@@ -261,7 +261,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
 
       {/* 하단 요약 */}
       {!compact && (
-        <div className="mt-6 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-900/20 to-purple-900/20 p-4">
+        <div className="mt-6 rounded-xl border border-blue-500/20 bg-linear-to-r from-blue-900/20 to-purple-900/20 p-4">
           <div className="text-center text-xs text-gray-300">
             <div className="mb-2 font-medium">🎯 기술 스택 요약</div>
             <div className="flex justify-center gap-6">

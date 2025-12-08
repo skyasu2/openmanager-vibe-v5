@@ -157,7 +157,7 @@ export default function FeedbackButtons({
               id="detailed-reason-select"
               value={detailedReason}
               onChange={(e) => setDetailedReason(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               <option value="">선택해주세요</option>
               <option value="incorrect_information">정보가 틀렸습니다</option>
@@ -184,7 +184,7 @@ export default function FeedbackButtons({
               onChange={(e) => setAdditionalComments(e.target.value)}
               placeholder="어떤 점을 개선하면 좋을지 알려주세요..."
               rows={3}
-              className="w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 

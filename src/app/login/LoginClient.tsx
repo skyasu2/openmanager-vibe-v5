@@ -49,11 +49,11 @@ const LoadingOverlay = ({ type }: { type: 'github' | 'guest' }) => {
   return (
     <>
       {/* Shimmer 효과 */}
-      <div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="animate-shimmer absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent" />
 
       {/* 프로그레스 바 */}
       <div
-        className={`animate-progress absolute bottom-0 left-0 h-1 bg-gradient-to-r ${progressGradient}`}
+        className={`animate-progress absolute bottom-0 left-0 h-1 bg-linear-to-r ${progressGradient}`}
       />
     </>
   );
@@ -327,7 +327,7 @@ export default function LoginClient() {
   // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
   if (!isClient) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-black">
         <div className="text-white">Loading...</div>
       </div>
     );
@@ -342,7 +342,7 @@ export default function LoginClient() {
         <div className="mb-8 text-center">
           {/* ✨ 개선된 로고: Sparkles 아이콘 제거 -> 그라데이션 스퀘어 컨셉 */}
           <div
-            className={`mx-auto mb-4 flex h-12 w-12 animate-gradient-x items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} bg-[length:200%_200%] shadow-lg shadow-purple-500/50 sm:h-16 sm:w-16`}
+            className={`mx-auto mb-4 flex h-12 w-12 animate-gradient-x items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} bg-size-[200%_200%] shadow-lg shadow-purple-500/50 sm:h-16 sm:w-16`}
           />
           <h1 className="mb-2 text-3xl font-bold text-white">OpenManager</h1>
           <p className="text-base text-gray-300">
@@ -460,7 +460,7 @@ export default function LoginClient() {
 
           {/* 로딩 중 추가 안내 */}
           {isLoading && (
-            <div className="animate-fadeIn mt-4 space-y-1 text-center">
+            <div className="animate-fade-in mt-4 space-y-1 text-center">
               <p className="text-xs text-gray-300">예상 소요 시간: 3-5초</p>
               <p className="text-xs text-gray-400">
                 ESC 키를 눌러 취소할 수 있습니다

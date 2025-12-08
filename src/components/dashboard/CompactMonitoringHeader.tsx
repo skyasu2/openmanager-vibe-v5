@@ -41,7 +41,7 @@ const StatusIndicator: FC<{
   value: string | number;
   icon: ElementType;
 }> = ({ isActive, label, value, icon: Icon }) => (
-  <div className="flex items-center gap-2 rounded-lg bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm">
+  <div className="flex items-center gap-2 rounded-lg bg-white/80 px-3 py-2 shadow-xs backdrop-blur-sm">
     <Icon
       className={`h-4 w-4 ${isActive ? 'text-green-500' : 'text-red-500'}`}
     />
@@ -80,7 +80,7 @@ export const CompactMonitoringHeader: FC<CompactMonitoringHeaderProps> = ({
 
   return (
     <div
-      className={`h-[33vh] border-b border-gray-200 bg-gradient-to-br from-blue-50 to-cyan-50 ${className}`}
+      className={`h-[33vh] border-b border-gray-200 bg-linear-to-br from-blue-50 to-cyan-50 ${className}`}
     >
       <div className="mx-auto h-full max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         {/* 헤더 타이틀 */}
@@ -118,7 +118,7 @@ export const CompactMonitoringHeader: FC<CompactMonitoringHeaderProps> = ({
         {/* 메인 컨텐츠 영역 */}
         <div className="grid h-[calc(100%-60px)] grid-cols-1 gap-4 lg:grid-cols-12">
           {/* 서버 통계 (왼쪽) */}
-          <div className="rounded-lg bg-white/80 p-4 shadow-sm backdrop-blur-sm lg:col-span-3">
+          <div className="rounded-lg bg-white/80 p-4 shadow-xs backdrop-blur-sm lg:col-span-3">
             <div className="mb-3 flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-blue-600" />
               <h3 className="font-semibold text-gray-900">서버 현황</h3>
@@ -182,7 +182,7 @@ export const CompactMonitoringHeader: FC<CompactMonitoringHeaderProps> = ({
           </div>
 
           {/* 시스템 요약 (오른쪽) */}
-          <div className="rounded-lg bg-white/80 p-4 shadow-sm backdrop-blur-sm lg:col-span-3">
+          <div className="rounded-lg bg-white/80 p-4 shadow-xs backdrop-blur-sm lg:col-span-3">
             <h3 className="mb-3 font-semibold text-gray-900">시스템 요약</h3>
 
             <div className="space-y-2 text-sm">

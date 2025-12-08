@@ -437,7 +437,7 @@ export default function SystemChecklist({
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 p-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-linear-to-br from-slate-900 via-blue-900 to-slate-800 p-4">
       {/* 배경 애니메이션 */}
       <div className="absolute inset-0 opacity-10">
         <div className="animate-pulse absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500 blur-3xl" />
@@ -509,7 +509,7 @@ export default function SystemChecklist({
       >
         {/* 로고 섹션 */}
         <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-2xl">
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r from-blue-500 to-purple-600 shadow-2xl">
             <span className="text-2xl font-bold text-white">OM</span>
           </div>
           <h1 className="mb-2 text-2xl font-bold text-white">OpenManager</h1>
@@ -528,7 +528,7 @@ export default function SystemChecklist({
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-gray-700/50">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 ease-out"
+              className="h-full rounded-full bg-linear-to-r from-blue-500 to-green-500 transition-all duration-500 ease-out"
               style={{ width: `${totalProgress}%` }}
             />
           </div>
@@ -750,7 +750,7 @@ export default function SystemChecklist({
               window.history.back();
             }
           }}
-          className="flex items-center space-x-2 rounded-lg border border-gray-600/50 bg-gray-700/80 px-4 py-2 text-gray-300 backdrop-blur-sm transition-all duration-200 hover:bg-gray-600/80 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          className="flex items-center space-x-2 rounded-lg border border-gray-600/50 bg-gray-700/80 px-4 py-2 text-gray-300 backdrop-blur-sm transition-all duration-200 hover:bg-gray-600/80 hover:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500/50"
           title="이전 페이지로 돌아가기"
         >
           <svg

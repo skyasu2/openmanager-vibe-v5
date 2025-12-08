@@ -119,7 +119,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
   const [state, setState] = useState<AccessibilityState>(defaultState);
   const [isClient, setIsClient] = useState(false);
   const focusTrapRef = useRef<string | null>(null);
-  const announcementTimeoutRef = useRef<NodeJS.Timeout>();
+  const announcementTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // 🛡️ 베르셀 하이드레이션 안전성: 클라이언트 사이드 감지
   useEffect(() => {
@@ -456,7 +456,7 @@ export const getAccessibilityClasses = (
       large: 'text-lg',
       xlarge: 'text-xl',
     }[fontSize],
-    focusRing: 'focus:ring-4 focus:ring-blue-500/20 focus:outline-none',
+    focusRing: 'focus:ring-4 focus:ring-blue-500/20 focus:outline-hidden',
     skipLink:
       'sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded',
   };

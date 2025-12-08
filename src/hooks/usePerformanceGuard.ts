@@ -42,9 +42,13 @@ export function usePerformanceGuard({
     warningCount: 0,
   });
 
-  const originalSetInterval = useRef<typeof setInterval>();
-  const originalLocalStorageGetItem = useRef<typeof localStorage.getItem>();
-  const originalLocalStorageSetItem = useRef<typeof localStorage.setItem>();
+  const originalSetInterval = useRef<typeof setInterval | undefined>(undefined);
+  const originalLocalStorageGetItem = useRef<
+    typeof localStorage.getItem | undefined
+  >(undefined);
+  const originalLocalStorageSetItem = useRef<
+    typeof localStorage.setItem | undefined
+  >(undefined);
 
   // 위험한 타이머 패턴 탐지
   const interceptSetInterval = useCallback(

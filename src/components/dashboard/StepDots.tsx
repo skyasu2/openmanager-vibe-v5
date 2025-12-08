@@ -81,7 +81,7 @@ const StepDots: FC<StepDotsProps> = ({
             disabled={!onStepClick || index > currentStep}
             aria-label={`단계 ${index + 1}`}
             aria-pressed={index === currentStep}
-            className={`${sizeClasses.dot} relative rounded-full transition-all duration-300 ${getDotColor(index)} ${onStepClick && index <= currentStep ? 'cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400' : 'cursor-default'}`}
+            className={`${sizeClasses.dot} relative rounded-full transition-all duration-300 ${getDotColor(index)} ${onStepClick && index <= currentStep ? 'cursor-pointer focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400' : 'cursor-default'}`}
             onClick={() => handleDotClick(index)}
           >
             {/* 현재 단계 펄스 효과 */}

@@ -136,6 +136,12 @@ const requiredEnvVars: Record<string, EnvConfig> = {
     example: 'https://unified-ai-processor-xxxxx-xx.a.run.app',
     required: false,
     category: 'GCP Functions'
+  },
+  'GROQ_API_KEY': {
+    description: 'Groq API Key (for fast routing & fallback)',
+    example: 'gsk_...',
+    required: false,
+    category: 'Groq AI'
   }
 };
 
@@ -209,6 +215,12 @@ function validateEnvironmentVariable(key: string, config: EnvConfig, value?: str
   if (key.includes('GOOGLE_AI_API_KEY') && !value.startsWith('AIza')) {
     result.status = 'warning';
     result.message = 'Google AI API 키 형식이 아닌 것 같습니다';
+    return result;
+  }
+
+  if (key.includes('GROQ_API_KEY') && !value.startsWith('gsk_')) {
+    result.status = 'warning';
+    result.message = 'Groq API 키 형식이 아닌 것 같습니다 (gsk_로 시작해야 함)';
     return result;
   }
 

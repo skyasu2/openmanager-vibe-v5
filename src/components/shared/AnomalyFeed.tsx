@@ -145,7 +145,7 @@ export function AnomalyFeed({
           실시간 이상 징후 피드
         </CardTitle>
       </CardHeader>
-      <CardContent className="max-h-[30rem] overflow-y-auto pr-2">
+      <CardContent className="max-h-120 overflow-y-auto pr-2">
         {isLoading && sortedAnomalies.length === 0 && (
           <p className="text-slate-400">피드 로딩 중...</p>
         )}

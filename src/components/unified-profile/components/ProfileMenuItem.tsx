@@ -81,9 +81,7 @@ export const ProfileMenuItem = memo(function ProfileMenuItem({
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
       >
-        <Icon
-          className={`mr-3 h-4 w-4 flex-shrink-0 ${getIconColorClasses()}`}
-        />
+        <Icon className={`mr-3 h-4 w-4 shrink-0 ${getIconColorClasses()}`} />
 
         <div className="flex-1 text-left">
           <span className="block">{label}</span>
@@ -96,7 +94,7 @@ export const ProfileMenuItem = memo(function ProfileMenuItem({
 
         {badge && (
           <span
-            className={`ml-auto flex-shrink-0 text-xs ${
+            className={`ml-auto shrink-0 text-xs ${
               danger ? 'text-red-500' : 'text-gray-500'
             }`}
           >

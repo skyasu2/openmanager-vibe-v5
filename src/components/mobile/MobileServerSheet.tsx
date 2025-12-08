@@ -231,7 +231,7 @@ export default function MobileServerSheet({
                     {metrics.map((metric, _index) => (
                       <div
                         key={metric.label}
-                        className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                        className="rounded-lg border border-gray-200 bg-white p-4 shadow-xs"
                       >
                         <div className="flex items-center space-x-3">
                           <div className={`rounded-lg p-2 ${metric.color}`}>

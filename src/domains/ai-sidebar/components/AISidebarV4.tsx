@@ -1,6 +1,7 @@
 'use client';
 
-import { useChat } from '@ai-sdk/react';
+import { type UIMessage, useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 // Icons
 import { Bot, User } from 'lucide-react';
 import { type FC, memo, useEffect, useMemo, useRef, useState } from 'react';
@@ -20,6 +21,19 @@ import { AIFunctionPages } from './AIFunctionPages';
 import { AISidebarHeader } from './AISidebarHeader';
 import { EnhancedAIChat } from './EnhancedAIChat';
 
+// v2.x UIMessage에서 텍스트 콘텐츠 추출 헬퍼
+function extractTextFromMessage(message: UIMessage): string {
+  if (!message.parts || message.parts.length === 0) {
+    return '';
+  }
+  return message.parts
+    .filter(
+      (part): part is { type: 'text'; text: string } => part.type === 'text'
+    )
+    .map((part) => part.text)
+    .join('');
+}
+
 // 🎯 ThinkingProcessVisualizer 성능 최적화
 const MemoizedThinkingProcessVisualizer = memo(ThinkingProcessVisualizer);
 
@@ -35,7 +49,7 @@ const MessageComponent = memo<{
         <MemoizedThinkingProcessVisualizer
           steps={message.thinkingSteps as AIThinkingStep[]}
           isActive={message.isStreaming || false}
-          className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4"
+          className="rounded-lg border border-purple-200 bg-linear-to-r from-purple-50 to-blue-50 p-4"
         />
       </div>
     );
@@ -53,10 +67,10 @@ const MessageComponent = memo<{
       >
         {/* 아바타 */}
         <div
-          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full shadow-sm ${
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-xs ${
             message.role === 'user'
               ? 'bg-blue-100 text-blue-600'
-              : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+              : 'bg-linear-to-br from-purple-500 to-pink-500 text-white'
           }`}
         >
           {message.role === 'user' ? (
@@ -69,13 +83,13 @@ const MessageComponent = memo<{
         {/* 메시지 콘텐츠 */}
         <div className="flex-1">
           <div
-            className={`rounded-2xl p-4 shadow-sm ${
+            className={`rounded-2xl p-4 shadow-xs ${
               message.role === 'user'
-                ? 'rounded-tr-sm bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                ? 'rounded-tr-sm bg-linear-to-br from-blue-500 to-blue-600 text-white'
                 : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
             }`}
           >
-            <div className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
+            <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
               {message.content}
             </div>
           </div>
@@ -128,60 +142,100 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   const [selectedFunction, setSelectedFunction] =
     useState<AIAssistantFunction>('chat');
 
-  // Vercel AI SDK useChat Hook (@ai-sdk/react v1.2.12)
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    isLoading,
-    reload,
-  } = useChat({
-    api: '/api/ai/unified-stream', // ✨ 포트폴리오용 Tools 포함
-    onFinish: (message) => {
+  // 🔧 수동 입력 상태 관리 (@ai-sdk/react v2.x 마이그레이션)
+  const [input, setInput] = useState('');
+
+  // Vercel AI SDK useChat Hook (@ai-sdk/react v2.x)
+  const { messages, sendMessage, status, setMessages } = useChat({
+    // v2.x: transport 옵션으로 API 엔드포인트 설정
+    transport: new DefaultChatTransport({
+      api: '/api/ai/unified-stream', // ✨ 포트폴리오용 Tools 포함
+    }),
+    onFinish: () => {
       // Optional: Sync to global store if needed
       onMessageSend?.(input);
-      console.log('AI response finished:', message);
+      setInput(''); // 입력 초기화
     },
   });
 
-  // Map Vercel messages to EnhancedChatMessage
+  // v2.x: 재생성 함수 (마지막 assistant 메시지 제거 후 재전송)
+  const regenerateLastResponse = () => {
+    if (messages.length < 2) return;
+    // 마지막 assistant 메시지 찾아서 제거
+    const lastUserMessageIndex = [...messages]
+      .reverse()
+      .findIndex((m) => m.role === 'user');
+    if (lastUserMessageIndex === -1) return;
+    const actualIndex = messages.length - 1 - lastUserMessageIndex;
+    const lastUserMessage = messages[actualIndex];
+    if (!lastUserMessage) return;
+    // assistant 메시지들 제거하고 user 메시지 재전송
+    const textContent = extractTextFromMessage(lastUserMessage);
+    if (textContent) {
+      setMessages(messages.slice(0, actualIndex));
+      void sendMessage({ text: textContent });
+    }
+  };
+
+  // isLoading 호환성 유지 (v2.x status values: 'ready' | 'submitted' | 'streaming' | 'error')
+  const isLoading = status === 'streaming' || status === 'submitted';
+
+  // Map Vercel v2.x UIMessage to EnhancedChatMessage
   const enhancedMessages = useMemo(() => {
     return messages
-      .filter((m) => m.role !== 'data') // Filter out data messages
-      .map(
-        (m): EnhancedChatMessage => ({
+      .filter(
+        (m) =>
+          m.role === 'user' || m.role === 'assistant' || m.role === 'system'
+      )
+      .map((m): EnhancedChatMessage => {
+        // v2.x/v5.x: parts 배열에서 텍스트 추출
+        const textContent = extractTextFromMessage(m);
+
+        // v5.x: tool parts는 type이 'tool-${toolName}' 형태
+        // state: 'input-streaming' | 'input-available' | 'output-available' | 'output-error'
+        const toolParts =
+          m.parts?.filter(
+            (part): part is typeof part & { toolCallId: string } =>
+              part.type.startsWith('tool-') && 'toolCallId' in part
+          ) ?? [];
+
+        // tool parts를 thinking steps로 변환
+        const thinkingSteps = toolParts.map((toolPart) => {
+          // type에서 tool name 추출 (예: 'tool-getServerMetrics' -> 'getServerMetrics')
+          const toolName = toolPart.type.slice(5);
+          const state = (toolPart as { state?: string }).state;
+          const output = (toolPart as { output?: unknown }).output;
+
+          const isCompleted =
+            state === 'output-available' || output !== undefined;
+          const hasError = state === 'output-error';
+
+          return {
+            id: toolPart.toolCallId,
+            step: toolName,
+            status: hasError
+              ? ('failed' as const)
+              : isCompleted
+                ? ('completed' as const)
+                : ('processing' as const),
+            description: hasError
+              ? `Error: ${(toolPart as { errorText?: string }).errorText || 'Unknown error'}`
+              : isCompleted
+                ? `Completed: ${JSON.stringify(output)}`
+                : `Executing ${toolName}...`,
+            timestamp: new Date(),
+          };
+        });
+
+        return {
           id: m.id,
           role: m.role as 'user' | 'assistant' | 'system' | 'thinking',
-          content:
-            m.content ||
-            (
-              m.parts as Array<{ type: string; text?: string }> | undefined
-            )?.find((p) => p.type === 'text')?.text ||
-            '',
-          timestamp: m.createdAt || new Date(),
+          content: textContent,
+          timestamp: new Date(), // v2.x: createdAt 직접 없음, 현재 시간 사용
           isStreaming: isLoading && m.id === messages[messages.length - 1]?.id,
-          thinkingSteps: (
-            m.toolInvocations as
-              | Array<{
-                  toolCallId: string;
-                  toolName: string;
-                  state: string;
-                  result?: unknown;
-                }>
-              | undefined
-          )?.map((t) => ({
-            id: t.toolCallId,
-            step: t.toolName,
-            status: t.state === 'result' ? 'completed' : 'processing',
-            description:
-              t.state === 'result'
-                ? `Completed: ${JSON.stringify(t.result)}`
-                : `Executing ${t.toolName}...`,
-            timestamp: new Date(),
-          })),
-        })
-      );
+          thinkingSteps: thinkingSteps.length > 0 ? thinkingSteps : undefined,
+        };
+      });
   }, [messages, isLoading]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -219,23 +273,16 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           messagesEndRef={messagesEndRef}
           MessageComponent={MessageComponent}
           inputValue={input}
-          setInputValue={(val) => {
-            // Simulate event for handleInputChange
-            const event = {
-              target: { value: val },
-            } as React.ChangeEvent<HTMLInputElement>;
-            handleInputChange(event);
-          }}
+          setInputValue={setInput}
           handleSendInput={() => {
-            // Simulate event for handleSubmit
-            const event = {
-              preventDefault: () => {},
-            } as React.FormEvent<HTMLFormElement>;
-            void handleSubmit(event); // void operator to ignore Promise return
+            if (input.trim()) {
+              // @ai-sdk/react v2.x: sendMessage API
+              void sendMessage({ text: input });
+            }
           }}
           isGenerating={isLoading}
           regenerateResponse={() => {
-            void reload();
+            regenerateLastResponse();
           }}
           currentEngine="Vercel AI SDK"
         />

@@ -74,7 +74,8 @@ export default defineConfig({
       ],
       reporter: ['text', 'json', 'html', 'lcov'],
       reportsDirectory: './coverage',
-      all: true, // 모든 소스 파일 측정 (테스트 안 된 파일도 포함)
+      // ⚠️ Vitest 4.0: coverage.all 옵션 제거됨 (deprecated)
+      // 대안: include 배열로 측정 대상 명시적 지정 (위에서 설정됨)
 
       // ✅ 커버리지 목표 설정
       thresholds: {

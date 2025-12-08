@@ -116,7 +116,7 @@ function AuthCheck({ children }: { children: ReactNode }) {
 
   if (authState.isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      <div className="min-h-screen bg-linear-to-br from-gray-900 via-blue-900 to-purple-900">
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
             <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-white" />
@@ -178,14 +178,14 @@ function MainContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div className="min-h-screen bg-linear-to-br from-gray-900 via-blue-900 to-purple-900">
       {/* 웨이브 효과는 CSS로만 구현하여 성능 개선 */}
       <div className="wave-particles" />
 
       {/* 헤더 */}
       <header className="relative z-50 flex items-center justify-between p-6">
         <div className="flex items-center space-x-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-purple-600 shadow-lg">
             <i
               className="fas fa-server text-lg text-white"
               aria-hidden="true"
@@ -211,7 +211,7 @@ function MainContent() {
         {/* 타이틀 섹션 - 정적 콘텐츠 */}
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-3xl font-bold md:text-5xl">
-            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               AI
             </span>{' '}
             <span className="font-semibold text-white">기반</span>{' '}

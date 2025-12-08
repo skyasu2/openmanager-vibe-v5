@@ -130,7 +130,7 @@ export function MCPWakeupStatus({
 
         <div className="h-2 w-full rounded-full bg-gray-700">
           <div
-            className={`h-2 rounded-full bg-gradient-to-r ${getStageColor()}`}
+            className={`h-2 rounded-full bg-linear-to-r ${getStageColor()}`}
           />
         </div>
       </div>

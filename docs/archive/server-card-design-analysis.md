@@ -81,7 +81,7 @@
 export const SERVER_STATUS_COLORS = {
   online: {
     background:
-      'bg-gradient-to-br from-white/90 via-emerald-50/50 to-emerald-100/50',
+      'bg-linear-to-br from-white/90 via-emerald-50/50 to-emerald-100/50',
     border: 'border-emerald-200/50 hover:border-emerald-400/80',
     graphColor: '#10b981', // emerald-500
   },
@@ -125,10 +125,10 @@ export const SERVER_STATUS_COLORS = {
 
 ```typescript
 // 호버 블러 효과 제거 (Before)
-background: 'bg-gradient-to-br from-white/80 ... backdrop-blur-sm';
+background: 'bg-linear-to-br from-white/80 ... backdrop-blur-sm';
 
 // 개선 후 (After)
-background: 'bg-gradient-to-br from-white/95 ...'; // 투명도 80% → 95%
+background: 'bg-linear-to-br from-white/95 ...'; // 투명도 80% → 95%
 // backdrop-blur-sm 완전 제거
 ```
 
@@ -361,7 +361,7 @@ const variantStyles = useMemo(() => {
 export const SERVER_STATUS_COLORS = {
   online: {
     background:
-      'bg-gradient-to-br from-white/90 via-emerald-50/50 to-emerald-100/50',
+      'bg-linear-to-br from-white/90 via-emerald-50/50 to-emerald-100/50',
     border: 'border-emerald-200/50 hover:border-emerald-400/80',
     text: 'text-emerald-800',
     badge: 'bg-emerald-100 text-emerald-800',
@@ -506,10 +506,10 @@ Rendered UI (사용자 화면)
 
 ```typescript
 // Before (v3.0)
-background: 'bg-gradient-to-br from-white/80 via-emerald-50/50 to-emerald-100/50 backdrop-blur-sm';
+background: 'bg-linear-to-br from-white/80 via-emerald-50/50 to-emerald-100/50 backdrop-blur-sm';
 
 // After (v3.1)
-background: 'bg-gradient-to-br from-white/95 via-emerald-50/50 to-emerald-100/50';
+background: 'bg-linear-to-br from-white/95 via-emerald-50/50 to-emerald-100/50';
 // backdrop-blur-sm 완전 제거, 투명도 80% → 95% 향상
 ```
 
@@ -973,7 +973,7 @@ focus: ring - emerald - 500;
 export const SERVER_STATUS_COLORS_DARK = {
   online: {
     background:
-      'bg-gradient-to-br from-gray-900/95 via-emerald-900/30 to-emerald-800/20',
+      'bg-linear-to-br from-gray-900/95 via-emerald-900/30 to-emerald-800/20',
     border: 'border-emerald-700/50 hover:border-emerald-500/80',
     text: 'text-emerald-200',
     badge: 'bg-emerald-900/50 text-emerald-200',

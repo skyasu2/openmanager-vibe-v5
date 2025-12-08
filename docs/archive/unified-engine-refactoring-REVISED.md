@@ -286,7 +286,7 @@ export const UnifiedEngineBadge: FC<UnifiedEngineBadgeProps> = ({
   return (
     <div className="flex items-center gap-2">
       {/* 통합 파이프라인 배지 */}
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-linear-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
         <span className="text-xs font-medium text-purple-700">
           🔄 통합 AI 파이프라인
         </span>

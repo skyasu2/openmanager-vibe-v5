@@ -35,7 +35,7 @@ export default function MonitoringInsights({
       {/* AI 인사이트 통합 섹션 */}
       {showAIInsights && (
         <div className="mb-6">
-          <div className="rounded-lg border border-orange-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-orange-200 bg-white p-4 shadow-xs">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-700">
                 <Lightbulb className="h-5 w-5 text-orange-600" />💡 AI 인사이트
@@ -50,7 +50,7 @@ export default function MonitoringInsights({
                 <X className="h-4 w-4 text-gray-500" />
               </button>
             </div>
-            <div className="mb-3 rounded-lg bg-gradient-to-r from-orange-50 to-yellow-50 p-3">
+            <div className="mb-3 rounded-lg bg-linear-to-r from-orange-50 to-yellow-50 p-3">
               <p className="text-sm text-orange-800">
                 🤖 <strong>자동 분석 모드:</strong> 시스템 데이터를 실시간으로
                 분석하여 인사이트를 자동 생성합니다.
@@ -68,7 +68,7 @@ export default function MonitoringInsights({
       {/* ML 학습 인사이트 섹션 */}
       {showMLInsights && (
         <div className="mb-6">
-          <div className="rounded-lg border border-purple-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-purple-200 bg-white p-4 shadow-xs">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-700">
                 <Brain className="h-5 w-5 text-purple-600" />🧠 ML 학습 인사이트
@@ -138,7 +138,7 @@ export default function MonitoringInsights({
               </div>
             </div>
 
-            <div className="mt-3 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 p-2">
+            <div className="mt-3 rounded-lg bg-linear-to-r from-purple-50 to-indigo-50 p-2">
               <p className="text-xs text-purple-800">
                 <strong>💪 ML 강화:</strong> 학습된 패턴을 활용하여 더 정확한
                 이상감지와 예측이 가능합니다. 캐싱으로 응답 속도가 크게

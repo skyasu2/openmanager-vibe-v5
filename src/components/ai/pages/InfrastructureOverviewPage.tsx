@@ -342,7 +342,7 @@ export default function InfrastructureOverviewPage({
       </div>
 
       {/* 메인 통계 카드 */}
-      <div className="mb-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+      <div className="mb-3 rounded-lg border border-gray-200 bg-white p-3 shadow-xs">
         <h3 className="mb-2 text-sm font-semibold text-gray-700">
           📊 전체 인프라 현황
         </h3>
@@ -387,7 +387,7 @@ export default function InfrastructureOverviewPage({
       </div>
 
       {/* 리소스 사용률 */}
-      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-xs">
         <h3 className="mb-2 text-sm font-semibold text-gray-700">
           💻 평균 리소스 사용률
         </h3>

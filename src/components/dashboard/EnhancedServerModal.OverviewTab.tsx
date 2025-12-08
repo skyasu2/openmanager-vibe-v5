@@ -41,7 +41,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({ server, statusTheme }) => {
       {/* 3D 게이지들 - 개선된 디자인 */}
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
+          <h3 className="bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
             실시간 리소스 모니터링
           </h3>
           <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({ server, statusTheme }) => {
         </div>
 
         <div
-          className={`grid grid-cols-1 gap-8 rounded-2xl bg-gradient-to-br ${statusTheme.bgLight} border backdrop-blur-sm ${statusTheme.borderColor} p-8 shadow-xl md:grid-cols-3`}
+          className={`grid grid-cols-1 gap-8 rounded-2xl bg-linear-to-br ${statusTheme.bgLight} border backdrop-blur-sm ${statusTheme.borderColor} p-8 shadow-xl md:grid-cols-3`}
         >
           {/* CPU 게이지 */}
           <div>
@@ -93,7 +93,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({ server, statusTheme }) => {
         <div className="group">
           <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all duration-300 hover:shadow-2xl">
             {/* 배경 그라데이션 효과 */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-50" />
+            <div className="absolute inset-0 bg-linear-to-br from-blue-50 to-transparent opacity-50" />
 
             <div className="relative">
               <div className="mb-4 flex items-center gap-3">
@@ -156,7 +156,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({ server, statusTheme }) => {
         <div className="group">
           <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all duration-300 hover:shadow-2xl">
             {/* 배경 그라데이션 효과 */}
-            <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-transparent opacity-50" />
+            <div className="absolute inset-0 bg-linear-to-br from-green-50 to-transparent opacity-50" />
 
             <div className="relative">
               <div className="mb-4 flex items-center gap-3">
@@ -171,7 +171,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({ server, statusTheme }) => {
                   server.services.map((service, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between rounded-lg bg-gradient-to-r from-gray-50 to-transparent p-3 transition-all hover:from-gray-100"
+                      className="flex items-center justify-between rounded-lg bg-linear-to-r from-gray-50 to-transparent p-3 transition-all hover:from-gray-100"
                     >
                       <div className="flex items-center gap-3">
                         <StatusLED
@@ -187,12 +187,12 @@ export const OverviewTab: FC<OverviewTabProps> = ({ server, statusTheme }) => {
                       </div>
 
                       <span
-                        className={`rounded-full px-3 py-1.5 text-xs font-bold shadow-sm ${
+                        className={`rounded-full px-3 py-1.5 text-xs font-bold shadow-xs ${
                           service.status === 'running'
-                            ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800'
+                            ? 'bg-linear-to-r from-green-100 to-green-200 text-green-800'
                             : service.status === 'stopped'
-                              ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800'
-                              : 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800'
+                              ? 'bg-linear-to-r from-red-100 to-red-200 text-red-800'
+                              : 'bg-linear-to-r from-amber-100 to-amber-200 text-amber-800'
                         }`}
                       >
                         {service.status === 'running'

@@ -1,29 +1,37 @@
-# Python 3.10 - Cloud Run Optimized
-# ML Analytics Engine - Time Series & Anomaly Detection
-# Version: 3.0.0
-FROM python:3.10-slim
+# 🐳 Stage 1: Builder (Compile dependencies)
+FROM python:3.10-slim as builder
 
-# Install system dependencies (numpy/pandas compilation)
+WORKDIR /app
+
+# Install build tools for NumPy/Extensions
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-
-# Copy requirements first for cache efficiency
 COPY requirements.txt .
 
-# Install Python dependencies (including gunicorn for production)
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+# Install dependencies to /install directory
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# 🐳 Stage 2: Runner (Lightweight Runtime)
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Copy installed dependencies from builder
+COPY --from=builder /install /usr/local
 
 # Copy application code
 COPY main.py .
 
-# Cloud Run uses PORT environment variable
+# Environment Configuration
 ENV PORT=8080
+ENV PYTHONUNBUFFERED=1
+
+# Expose Port
 EXPOSE 8080
 
-# Run with Gunicorn for production (Cloud Run compatible)
-# Workers: 1 (Cloud Run scales via instances, not workers)
-# Timeout: 300s (for long ML processing)
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 300 main:app
+# Run with Gunicorn (Optimized for Cloud Run)
+# Threads: 8 (Good for I/O bound tasks like external API calls if any)
+# Workers: 1 (Cloud Run scales via instances)
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app

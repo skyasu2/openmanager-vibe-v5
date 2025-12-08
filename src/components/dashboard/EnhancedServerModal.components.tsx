@@ -101,7 +101,7 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
   const lastValue = getSafeLastArrayItem(data, 0);
 
   return (
-    <div className="rounded-lg border bg-white p-4 shadow-sm">
+    <div className="rounded-lg border bg-white p-4 shadow-xs">
       {/* 차트 제목 */}
       <h4 className="mb-2 text-sm font-medium text-gray-700">{label}</h4>
 
@@ -152,7 +152,7 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
             strokeWidth="3"
             points={points}
             vectorEffect="non-scaling-stroke"
-            className="drop-shadow-sm"
+            className="drop-shadow-xs"
           />
 
           {/* 최신 값 포인트 강조 - 🛡️ 베르셀 완전 안전 수정 */}
@@ -164,7 +164,7 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
               cy={100 - Math.max(0, Math.min(100, lastValue))}
               r="2"
               fill={color}
-              className="drop-shadow-sm"
+              className="drop-shadow-xs"
             />
           )}
         </svg>
@@ -221,7 +221,7 @@ export const StatusLED: FC<StatusLEDProps> = ({
 
   return (
     <div
-      className={`rounded-full shadow-sm ${getStatusColor()} ${
+      className={`rounded-full shadow-xs ${getStatusColor()} ${
         animated ? 'animate-pulse' : ''
       }`}
       style={{
@@ -289,10 +289,10 @@ export const StatusBadge: FC<StatusBadgeProps> = ({
 }) => {
   const getVariantClasses = () => {
     const variants = {
-      success: 'bg-gradient-to-r from-green-100 to-green-200 text-green-800',
-      warning: 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800',
-      error: 'bg-gradient-to-r from-red-100 to-red-200 text-red-800',
-      info: 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800',
+      success: 'bg-linear-to-r from-green-100 to-green-200 text-green-800',
+      warning: 'bg-linear-to-r from-yellow-100 to-yellow-200 text-yellow-800',
+      error: 'bg-linear-to-r from-red-100 to-red-200 text-red-800',
+      info: 'bg-linear-to-r from-blue-100 to-blue-200 text-blue-800',
     };
     return variants[variant];
   };
@@ -308,7 +308,7 @@ export const StatusBadge: FC<StatusBadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full font-bold shadow-sm ${getVariantClasses()} ${getSizeClasses()} `}
+      className={`inline-flex items-center rounded-full font-bold shadow-xs ${getVariantClasses()} ${getSizeClasses()} `}
     >
       {status}
     </span>

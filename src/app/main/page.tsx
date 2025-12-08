@@ -198,7 +198,7 @@ function Home() {
   // 미인증 상태 처리: 게스트 시스템 시작이 허용된 경우 메인 콘텐츠 표시
   if (!authReady) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="text-center text-white">
           <div className="mx-auto mb-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
           <div className="text-sm">인증 확인 중... ({envLabel})</div>
@@ -214,7 +214,7 @@ function Home() {
     !isGuestFullAccessEnabled()
   ) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="text-center text-white">
           <div className="mx-auto mb-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
           <div className="text-sm">리다이렉션 중... ({envLabel})</div>
@@ -249,7 +249,7 @@ function Home() {
         {/* 타이틀 */}
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-3xl font-bold md:text-5xl">
-            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               {renderTextWithAIGradient('AI', isMounted)}
             </span>{' '}
             <span className="font-semibold text-white">기반</span>{' '}

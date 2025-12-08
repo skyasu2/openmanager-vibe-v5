@@ -1,20 +1,15 @@
-# 🧠 ML Analytics Engine - Python Dependencies (Cloud Run Compatible)
-# 머신러닝 분석 및 예측 - 2025-12-08 업데이트
+# 🧠 ML Analytics Engine - Python Dependencies (Optimized Lightweight)
+# 머신러닝 분석 및 예측 - 2025-12-08 업데이트 (Numpy Pure Optimization)
 
 # Web Framework (Cloud Run)
 flask==3.0.3                        # Cloud Run / Flask App
+gunicorn==21.2.0                    # Production Server
 
-# Core ML Libraries (2025 최신 버전)
-numpy==1.26.4                       # 수치 계산
-scikit-learn==1.4.1.post1           # 머신러닝
-pandas==2.2.1                       # 데이터 처리
-statsmodels==0.14.1                 # 통계 모델링
+# Core Optimization (Replacing Pandas/Scikit-learn)
+numpy==1.26.4                       # 수치 계산 (The only heavy dependency)
 
 # Data Processing
 orjson==3.10.10                     # 빠른 JSON 처리
-
-# Cloud Integration
-google-cloud-storage==2.18.2        # GCS 모델 저장소
 
 # Monitoring
 structlog==24.4.0                   # 로깅

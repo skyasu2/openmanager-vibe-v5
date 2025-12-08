@@ -265,7 +265,7 @@ export default function DashboardContent({
     if (showSequentialGeneration) {
       debug.log('🔄 시퀀셜 생성 모드 렌더링');
       return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
+        <div className="min-h-screen bg-linear-to-br from-purple-50 to-blue-50 p-6">
           <div className="mx-auto max-w-7xl">
             <div className="rounded-lg bg-white p-6 shadow-lg">
               <h2 className="mb-4 text-2xl font-bold text-gray-900">
@@ -296,7 +296,7 @@ export default function DashboardContent({
         <div className="mx-auto h-full max-w-none space-y-6 overflow-y-auto px-4 sm:px-6 lg:px-8 2xl:max-w-[1800px]">
           {/* 🎯 목업 데이터 모드 표시 */}
           {servers && servers.length > 0 && (
-            <div className="mb-4 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
+            <div className="mb-4 rounded-lg border border-purple-200 bg-linear-to-r from-purple-50 to-blue-50 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-3 w-3 animate-pulse rounded-full bg-purple-500"></div>

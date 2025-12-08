@@ -1,25 +1,27 @@
-/**
- * 🤖 AI 통합 스트리밍 API (Vercel AI SDK)
- *
- * 목표: 포트폴리오용 AI 어시스턴트 시뮬레이션 (MVP/PoC 최적화)
- * - 사용자 규모: 일일 5명, 동시 2명 예상
- * - 전략: Hybrid Engine (Local Speed + Cloud Intelligence)
- *
- * POST /api/ai/unified-stream
- */
-
 import { google } from '@ai-sdk/google';
-import { streamText, tool } from 'ai';
+import { groq } from '@ai-sdk/groq';
+import { type CoreMessage, streamText, tool } from 'ai';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getGoogleAIKey } from '@/lib/ai/google-ai-manager';
+import { classifyQuery } from '@/lib/ai/query-classifier'; // [NEW]
 import { withAuth } from '@/lib/auth/api-auth';
 import { createClient } from '@/lib/supabase/server';
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
 
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
+// Allow streaming responses up to 60 seconds (increased for Pro model)
+export const maxDuration = 60;
+
+// [Previous Tools Definition Omitted for Brevity - They are preserved in the file context or should be re-declared if replacing whole file.
+// Since replace_file_content replaces a block, I need to be careful.
+// The user prompt implies I should rewrite the file or careful replace.
+// I will rewrite the Import section and the POST handler, keeping the tools in between if possible,
+// BUT replace_file_content with Line 1-373 overwrites EVERYTHING.
+// I must include all tools in the ReplacementContent to avoid deleting them.
+// I will copy the tools from the previous `view_file` output]
+
+// ... [The previous tools code is identical, so I will include them below] ...
 
 // ============================================================================
 // 📊 Action Tools (Execution Layer)
@@ -262,109 +264,97 @@ const recommendCommands = tool({
 });
 
 // ============================================================================
-// 🧠 Thinking Tools (Cognitive Layer) - Optimized
+// 🧠 Main Handler with Dynamic Routing
 // ============================================================================
 
-/**
- * 💡 Thinking Tool: 통합 요청 분석 (Intent + Complexity)
- * 토큰 절약을 위해 두 단계를 하나로 통합
- */
-const analyzeRequest = tool({
-  description: '질문의 의도와 복잡도를 한 번에 분석합니다 (Thinking Step)',
-  inputSchema: z.object({
-    query: z.string().describe('사용자 질문'),
-  }),
-  execute: async ({ query }: { query: string }) => {
-    const lowerQuery = query.toLowerCase();
-    let intent = 'general';
-    let complexity = 1; // 1(Simple) ~ 5(Complex)
-
-    // 의도 및 복잡도 분석 로직
-    if (
-      lowerQuery.includes('cpu') ||
-      lowerQuery.includes('메모리') ||
-      lowerQuery.includes('상태')
-    ) {
-      intent = 'monitoring';
-      complexity = 2;
-    } else if (
-      lowerQuery.includes('장애') ||
-      lowerQuery.includes('원인') ||
-      lowerQuery.includes('분석')
-    ) {
-      intent = 'analysis';
-      complexity = 4; // 복잡한 분석 필요
-    } else if (lowerQuery.includes('추천') || lowerQuery.includes('방법')) {
-      intent = 'guide';
-      complexity = 3;
-    }
-
-    // 🆕 복잡도 임계값 조정 (GCP 무료 티어 활용 극대화)
-    // 기존: 4-5 → GCP, 3 → RAG, 1-2 → Offline
-    // 변경: 3-5 → GCP, 2 → RAG, 1 → Offline
-    const recommendation =
-      complexity >= 3
-        ? 'unified-processor' // GCP 통합 프로세서 사용 (무료 200만 호출/월)
-        : complexity >= 2
-          ? 'rag-search' // RAG 검색 사용
-          : 'offline-tool'; // 오프라인 도구 사용
-
-    return {
-      intent,
-      complexity,
-      recommendation,
-      reasoning: `의도: ${intent}, 복잡도: ${complexity} -> 전략: ${recommendation}`,
-    };
-  },
-});
-
-/**
- * POST 핸들러
- */
 export const POST = withAuth(async (req: NextRequest) => {
   try {
-    const { messages } = await req.json();
+    const { messages }: { messages: CoreMessage[] } = await req.json();
     const apiKey = getGoogleAIKey();
 
     if (!apiKey) {
       return new Response('Google AI API Key not found', { status: 500 });
     }
 
-    const result = streamText({
-      model: google('gemini-1.5-flash'),
-      messages,
-      tools: {
-        // 🧠 Thinking Tools (Optimized)
-        analyzeRequest,
-        // 📊 Action Tools
-        callUnifiedProcessor, // New!
-        getServerMetrics,
-        searchKnowledgeBase,
-        analyzePattern,
-        recommendCommands,
-      },
-      system: `당신은 **OpenManager Vibe**의 **AI 어시스턴트**입니다. (MVP/PoC 버전)
-목표: GCP 무료 티어를 최대한 활용하여 정확하고 빠른 답변을 제공하는 것입니다.
+    // 1. 유저의 마지막 질문 추출
+    const lastMessage =
+      messages.length > 0 ? messages[messages.length - 1] : null;
+    const userQuery =
+      lastMessage && typeof lastMessage.content === 'string'
+        ? lastMessage.content
+        : 'System status check';
 
-**🚨 처리 전략 (Hybrid Engine - GCP 최적화)**
-1. **analyzeRequest**를 가장 먼저 실행하여 전략을 수립하십시오.
-2. **Simple (복잡도 1)**: \`analyzePattern\` 또는 \`recommendCommands\` (Offline)를 사용하십시오.
-3. **Moderate (복잡도 2)**: \`searchKnowledgeBase\` (RAG)를 사용하십시오.
-4. **Complex (복잡도 3-5)**: \`callUnifiedProcessor\` (GCP)를 적극 활용하십시오. 🆕
+    // 2. [Router] Groq를 사용한 초기 분류 (Fast!)
+    // 0.2초 이내에 답변이 결정됩니다.
+    const { complexity, intent } = await classifyQuery(userQuery);
 
-**도구 사용 가이드 (GCP 우선):**
-- "서버 상태 어때?" -> \`callUnifiedProcessor\` (GCP, processors: ['server_analyzer'])
-- "장애 원인 분석해줘" -> \`callUnifiedProcessor\` (GCP, processors: ['ml_analytics', 'server_analyzer'])
-- "추천해줘", "방법 알려줘" -> \`callUnifiedProcessor\` (GCP, processors: ['korean_nlp'])
+    console.log(`📡 [AI Router] Intent: ${intent}, Complexity: ${complexity}`);
+
+    // 3. 모델 선택 로직 (Dynamic Model Selection)
+    // Complexity 1-3: Flash (Fast/Cheap) -> Fallback: Llama 8B
+    // Complexity 4-5: Pro (Reasoning) -> Fallback: Llama 70B
+    const isComplex = complexity >= 4;
+
+    const primaryModel = isComplex
+      ? google('gemini-2.5-pro') // Pro (Reasoning) - Updated to 2.5
+      : google('gemini-2.5-flash'); // Flash (Speed) - Updated to 2.5
+
+    const fallbackModel = isComplex
+      ? groq('llama-3.3-70b-versatile') // High Intelligence Fallback
+      : groq('llama-3.1-8b-instant'); // High Speed Fallback
+
+    const systemPrompt = `당신은 **OpenManager Vibe**의 **AI 어시스턴트**입니다.
+현재 모드: ${isComplex ? '🧠 Deep Reasoning (Gemini 2.5 Pro)' : '⚡ Fast Response (Gemini 2.5 Flash)'}
+사용자 질문 의도: ${intent} (복잡도: ${complexity}/5)
+
+목표: 정확하고 빠른 답변을 제공하십시오.
+
+**도구 사용 가이드:**
+- "서버 상태 어때?" -> \`getServerMetrics\`
+- "장애 원인 분석해줘" -> \`callUnifiedProcessor\`
+- "해결 방법 알려줘" -> \`searchKnowledgeBase\`
 - 단순 상태 확인 -> \`analyzePattern\` (Offline)
-- 명령어 질문 -> \`recommendCommands\` (Offline)
-- "해결 방법 알려줘" -> \`searchKnowledgeBase\` (RAG)
 
-⚡ GCP 무료 티어: 월 200만 호출 (일 ~32,000회) - 적극 활용하십시오!
-항상 팩트 기반으로 답변하고, 불확실할 경우 솔직하게 모른다고 하십시오.`,
-    });
+항상 팩트 기반으로 답변하고, 불확실할 경우 솔직하게 모른다고 하십시오.`;
 
-    return result.toTextStreamResponse();
+    try {
+      // 4. Primary Model 실행
+      return streamText({
+        model: primaryModel,
+        messages,
+        system: systemPrompt,
+        tools: {
+          callUnifiedProcessor,
+          getServerMetrics,
+          searchKnowledgeBase,
+          analyzePattern,
+          recommendCommands,
+        },
+      }).toTextStreamResponse();
+    } catch (error) {
+      console.warn(
+        `⚠️ Primary Model Failed. Switching to Fallback (${isComplex ? 'Llama 70B' : 'Llama 8B'}). Error:`,
+        error
+      );
+
+      // 5. Fallback Model 실행
+      if (process.env.GROQ_API_KEY) {
+        return streamText({
+          model: fallbackModel,
+          messages,
+          system: systemPrompt + '\n(Note: Fallback model active)',
+          tools: {
+            callUnifiedProcessor,
+            getServerMetrics,
+            searchKnowledgeBase,
+            analyzePattern,
+            recommendCommands,
+          },
+        }).toTextStreamResponse();
+      }
+
+      throw error;
+    }
   } catch (error) {
     console.error('❌ AI 스트리밍 처리 실패:', error);
     return new Response('AI streaming failed', { status: 500 });

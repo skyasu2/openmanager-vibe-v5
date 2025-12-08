@@ -3,6 +3,7 @@
  * SystemChecklist 컴포넌트에서 분리된 아이콘 관련 함수들
  */
 
+import type React from 'react';
 import type {
   ComponentStatus,
   SystemComponent,
@@ -33,7 +34,7 @@ export const getComponentIcon = (name: string): string => {
 };
 
 // 상태별 아이콘
-export const getStatusIcon = (status: ComponentStatus): JSX.Element => {
+export const getStatusIcon = (status: ComponentStatus): React.ReactElement => {
   if (status.status === 'loading') {
     return (
       <div className="h-4 w-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />

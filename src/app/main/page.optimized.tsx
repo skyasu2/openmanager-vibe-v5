@@ -46,7 +46,7 @@ const AnimatedCard = ({
   delay?: number;
 }) => (
   <div
-    className="animate-fadeIn opacity-0"
+    className="animate-fade-in opacity-0"
     style={{
       animationDelay: `${delay}ms`,
       animationFillMode: 'forwards',
@@ -95,14 +95,14 @@ export default function OptimizedMainPage() {
 
   if (!isClientMounted) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-blue-50 to-indigo-50">
         <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="relative min-h-screen bg-linear-to-br from-blue-50 to-indigo-50">
       <WaveBackground />
 
       {/* 헤더 */}
@@ -133,7 +133,7 @@ export default function OptimizedMainPage() {
         {/* 통계 카드들 */}
         <AnimatedCard delay={300}>
           <div className="mb-16 grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="rounded-lg bg-white/80 p-6 shadow-sm backdrop-blur-sm">
+            <div className="rounded-lg bg-white/80 p-6 shadow-xs backdrop-blur-sm">
               <div className="mb-2 flex items-center gap-3">
                 <BarChart3 className="h-5 w-5 text-blue-600" />
                 <h3 className="font-semibold text-gray-900">실시간 모니터링</h3>
@@ -145,7 +145,7 @@ export default function OptimizedMainPage() {
               </div>
             </div>
 
-            <div className="rounded-lg bg-white/80 p-6 shadow-sm backdrop-blur-sm">
+            <div className="rounded-lg bg-white/80 p-6 shadow-xs backdrop-blur-sm">
               <div className="mb-2 flex items-center gap-3">
                 <Bot className="h-5 w-5 text-purple-600" />
                 <h3 className="font-semibold text-gray-900">AI 분석</h3>
@@ -157,7 +157,7 @@ export default function OptimizedMainPage() {
               </div>
             </div>
 
-            <div className="rounded-lg bg-white/80 p-6 shadow-sm backdrop-blur-sm">
+            <div className="rounded-lg bg-white/80 p-6 shadow-xs backdrop-blur-sm">
               <div className="mb-2 flex items-center gap-3">
                 <Settings className="h-5 w-5 text-orange-600" />
                 <h3 className="font-semibold text-gray-900">무료 티어</h3>
@@ -212,7 +212,7 @@ export default function OptimizedMainPage() {
             transform: translateY(0);
           }
         }
-        .animate-fadeIn {
+        .animate-fade-in {
           animation: fadeIn 0.6s ease-out;
         }
       `}</style>

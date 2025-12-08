@@ -89,7 +89,7 @@ export default function DynamicPresets({
   };
 
   return (
-    <div className="space-y-3 rounded-lg bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+    <div className="space-y-3 rounded-lg bg-linear-to-br from-purple-50 to-blue-50 p-4">
       <div className="flex items-center gap-2">
         <Lightbulb className="h-5 w-5 text-purple-600" />
         <p className="text-sm font-medium text-purple-700">
@@ -102,7 +102,7 @@ export default function DynamicPresets({
           <button
             key={`${preset}-${index}`}
             onClick={() => onSelect(preset)}
-            className="group w-full rounded-lg border bg-white px-3 py-3 text-left text-sm shadow-sm transition-all duration-200 hover:border-purple-200 hover:bg-purple-50 hover:shadow"
+            className="group w-full rounded-lg border bg-white px-3 py-3 text-left text-sm shadow-xs transition-all duration-200 hover:border-purple-200 hover:bg-purple-50 hover:shadow-sm"
           >
             <div className="flex items-start gap-2">
               {getQuestionIcon(preset)}

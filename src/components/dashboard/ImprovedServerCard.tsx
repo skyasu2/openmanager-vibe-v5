@@ -218,7 +218,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     return (
       <button
         type="button"
-        className={`gpu-card-hover gpu-card-entrance md3-state-layer group relative w-full cursor-pointer overflow-hidden rounded-2xl border text-left shadow-sm ${statusTheme.cardBg} ${statusTheme.cardBorder} ${variantStyles.container} focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:ring-offset-2`}
+        className={`gpu-card-hover gpu-card-entrance md3-state-layer group relative w-full cursor-pointer overflow-hidden rounded-2xl border text-left shadow-xs ${statusTheme.cardBg} ${statusTheme.cardBorder} ${variantStyles.container} focus:outline-hidden focus:ring-4 focus:ring-blue-500/20 focus:ring-offset-2`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
@@ -241,7 +241,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         <header className="mb-4 flex items-start justify-between">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div
-              className="rounded-lg p-2.5 shadow-sm"
+              className="rounded-lg p-2.5 shadow-xs"
               style={statusTheme.statusColor}
               role="img"
               aria-label={`서버 타입: ${safeServer.type}`}
@@ -296,7 +296,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               status={safeServer.status}
               size="md"
               showText={true}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium shadow-sm"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium shadow-xs"
             />
 
             {/* Progressive Disclosure 확장/축소 버튼 */}
@@ -304,7 +304,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               <button
                 type="button"
                 onClick={handleExpandToggle}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20"
                 aria-label={
                   showTertiaryInfo ? '상세 정보 숨기기' : '상세 정보 보기'
                 }
@@ -502,7 +502,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             </div>
 
             {/* 성능 요약 */}
-            <div className="rounded-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-3">
+            <div className="rounded-lg border border-blue-100 bg-linear-to-r from-blue-50 to-purple-50 px-3 py-3">
               <div className="mb-2 text-xs uppercase tracking-wide text-gray-500">
                 성능 요약
               </div>
@@ -607,7 +607,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                         return (
                           <div
                             key={`${safeServer.id}-service-${idx}`}
-                            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-sm transition-colors ${
+                            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-xs transition-colors ${
                               serviceStatus === 'running'
                                 ? 'border-green-300 bg-green-50 text-green-700'
                                 : serviceStatus === 'stopped'
@@ -703,7 +703,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         {/* 호버 효과 - 블러 효과 제거됨 (사용자 피드백 반영) */}
         {isHovered && (
           <div
-            className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 to-purple-500/5"
+            className="pointer-events-none absolute inset-0 rounded-xl bg-linear-to-br from-blue-500/5 to-purple-500/5"
             aria-hidden="true"
           />
         )}

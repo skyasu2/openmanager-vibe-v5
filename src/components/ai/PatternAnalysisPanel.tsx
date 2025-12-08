@@ -302,7 +302,7 @@ const PatternAnalysisPanel: FC<PatternAnalysisPanelProps> = ({
       title="패턴 분석"
       subtitle="AI가 감지한 시스템 패턴"
       icon={<BarChart3 className="h-4 w-4 text-white" />}
-      iconGradient="bg-gradient-to-br from-orange-500 to-pink-600"
+      iconGradient="bg-linear-to-br from-orange-500 to-pink-600"
       onRefresh={reload}
       isLoading={isLoading}
       adminPath="/admin"

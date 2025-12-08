@@ -46,7 +46,7 @@ await page.waitForSelector('main, [data-testid="main-content"]', {
 
 ```html
 <div
-  class="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black"
+  class="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-black"
 >
   <div class="text-white">Loading...</div>
 </div>

@@ -164,7 +164,7 @@ export const NetworkMonitoringCard = () => {
 
   if (!currentData) {
     return (
-      <Card className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
+      <Card className="bg-linear-to-br from-blue-50/50 to-indigo-50/50">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-base font-medium">
             네트워크 모니터링
@@ -237,7 +237,7 @@ export const NetworkMonitoringCard = () => {
     const gradientId = `network-gradient-${label}-${Math.random()}`;
 
     return (
-      <div className="rounded-lg bg-white/60 p-3 shadow-sm">
+      <div className="rounded-lg bg-white/60 p-3 shadow-xs">
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="text-gray-600">{icon}</div>
@@ -276,7 +276,7 @@ export const NetworkMonitoringCard = () => {
   };
 
   return (
-    <Card className="border-blue-200/50 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 backdrop-blur-sm">
+    <Card className="border-blue-200/50 bg-linear-to-br from-blue-50/50 to-indigo-50/50 backdrop-blur-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base font-medium">

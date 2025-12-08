@@ -340,7 +340,7 @@ export const ChatExport: FC<ChatExportProps> = ({
                 onChange={(e) => setKeywordInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
                 placeholder="키워드 입력..."
-                className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none"
+                className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-hidden"
               />
               <button
                 onClick={addKeyword}
@@ -388,7 +388,7 @@ export const ChatExport: FC<ChatExportProps> = ({
                   : 'border-gray-200 bg-white hover:border-gray-300'
               } `}
             >
-              <format.icon className="h-5 w-5 flex-shrink-0" />
+              <format.icon className="h-5 w-5 shrink-0" />
               <div className="min-w-0 flex-1">
                 <div className="font-medium">{format.name}</div>
                 <div className="text-xs text-gray-500">

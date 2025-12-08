@@ -102,7 +102,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
       <div className="animate-fade-in">
         {/* 헤더 섹션 */}
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
+          <h3 className="bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
             실시간 메트릭 모니터링
           </h3>
 
@@ -111,8 +111,8 @@ export const MetricsTab: FC<MetricsTabProps> = ({
             onClick={onToggleRealtime}
             className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold shadow-lg transition-all hover:scale-105 active:scale-95 ${
               isRealtime
-                ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600'
-                : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600'
+                ? 'bg-linear-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600'
+                : 'bg-linear-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600'
             }`}
           >
             {isRealtime ? (
@@ -139,7 +139,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
             >
               {/* 배경 그라데이션 */}
               <div
-                className={`absolute inset-0 bg-gradient-to-br ${chart.gradient} opacity-5`}
+                className={`absolute inset-0 bg-linear-to-br ${chart.gradient} opacity-5`}
               />
 
               <div className="relative">
@@ -152,7 +152,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
 
                   {/* 현재 값 표시 */}
                   <div
-                    className={`bg-gradient-to-r text-2xl font-bold ${chart.gradient} bg-clip-text text-transparent`}
+                    className={`bg-linear-to-r text-2xl font-bold ${chart.gradient} bg-clip-text text-transparent`}
                   >
                     {getSafeLastArrayItem(chart.data, 0).toFixed(1) || '0'}%
                   </div>
@@ -192,7 +192,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
             return (
               <div
                 key={idx}
-                className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
+                className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs"
               >
                 <div className="mb-2 flex items-center gap-2">
                   <span className="text-lg">{chart.icon}</span>

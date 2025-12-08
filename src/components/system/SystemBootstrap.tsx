@@ -1,5 +1,6 @@
 'use client';
 
+import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useGlobalSystemStore } from '@/stores/systemStore';
 
@@ -13,7 +14,7 @@ import { useGlobalSystemStore } from '@/stores/systemStore';
  * - Google AI 연결 확인
  * - 시스템 초기화 상태 관리
  */
-export function SystemBootstrap(): JSX.Element | null {
+export function SystemBootstrap(): React.ReactNode {
   const { state: systemState, isSessionActive } = useGlobalSystemStore();
 
   const [bootstrapStatus, setBootstrapStatus] = useState({

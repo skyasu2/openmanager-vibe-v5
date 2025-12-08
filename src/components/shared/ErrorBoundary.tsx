@@ -29,7 +29,7 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
       <div className="mx-4 w-full max-w-md">
         <div className="rounded-lg border border-red-200 bg-white p-6 shadow-lg">
           <div className="mb-4 flex items-center">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 className="h-8 w-8 text-red-500"
                 fill="none"
@@ -76,13 +76,13 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
           <div className="flex space-x-3">
             <button
               onClick={resetErrorBoundary}
-              className="flex-1 rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              className="flex-1 rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
               다시 시도
             </button>
             <button
               onClick={() => (window.location.href = '/main')}
-              className="flex-1 rounded-md bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              className="flex-1 rounded-md bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             >
               홈으로 이동
             </button>

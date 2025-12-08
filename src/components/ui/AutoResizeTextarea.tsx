@@ -135,7 +135,7 @@ export const AutoResizeTextarea = memo(
           className={`
           resize-none 
           transition-all duration-200 ease-out
-          focus:outline-none
+          focus:outline-hidden
           touch-manipulation
           ${className}
         `.trim()}

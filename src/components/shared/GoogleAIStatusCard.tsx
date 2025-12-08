@@ -140,7 +140,7 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
     >
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-blue-500 to-purple-600">
             <Brain className="h-5 w-5 text-white" />
           </div>
           <div>

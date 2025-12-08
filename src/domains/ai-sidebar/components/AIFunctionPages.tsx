@@ -104,7 +104,7 @@ export const AIFunctionPages: FC<AIFunctionPagesProps> = ({
   return (
     <div className={`flex h-full flex-col ${className}`}>
       {/* AI 기능 아이콘 패널 */}
-      <div className="flex-shrink-0" data-testid="ai-function-navigation">
+      <div className="shrink-0" data-testid="ai-function-navigation">
         <AIAssistantIconPanel
           selectedFunction={selectedFunction}
           onFunctionChange={onFunctionChange}

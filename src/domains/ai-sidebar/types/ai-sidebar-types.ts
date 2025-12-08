@@ -182,7 +182,7 @@ export interface UseAISidebarReturn {
   state: AISidebarState;
   handlers: AISidebarHandlers;
   refs: {
-    messagesEndRef: RefObject<HTMLDivElement>;
+    messagesEndRef: RefObject<HTMLDivElement | null>;
     inputRef: RefObject<HTMLTextAreaElement>;
   };
 }

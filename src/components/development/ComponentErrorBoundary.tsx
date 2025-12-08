@@ -76,10 +76,10 @@ export class ComponentErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         this.props.fallback || (
-          <div className="border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-xl shadow-sm">
+          <div className="border border-amber-200 bg-linear-to-br from-amber-50 to-orange-50 p-6 rounded-xl shadow-xs">
             {/* 🎨 Gemini 권장: 사용자 친화적 아이콘과 메시지 */}
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
                   <svg
                     className="w-5 h-5 text-amber-600"
@@ -189,7 +189,7 @@ export const ServerCardErrorBoundary: React.FC<{
     serverId={serverId}
     fallback={
       // 🎨 Gemini 권장: 서버 카드와 일관된 디자인 시스템
-      <div className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 min-h-[240px] flex flex-col justify-center items-center">
+      <div className="bg-linear-to-br from-slate-50 to-slate-100 border border-slate-200 p-6 rounded-xl shadow-xs hover:shadow-md transition-shadow duration-200 min-h-[240px] flex flex-col justify-center items-center">
         {/* 🎯 Codex 권장: 직관적인 아이콘과 상태 표시 */}
         <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mb-4">
           <svg

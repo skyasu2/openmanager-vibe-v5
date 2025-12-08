@@ -61,7 +61,7 @@ export default function UnauthorizedAccessUI({
     <FullScreenLayout>
       <div className="mx-auto max-w-md p-6 text-center">
         <div className="mb-6">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-linear-to-r from-blue-500 to-purple-600">
             <Shield className="h-8 w-8 text-white" />
           </div>
           <h2 className="mb-2 text-2xl font-bold text-white">접근 권한 필요</h2>
@@ -75,7 +75,7 @@ export default function UnauthorizedAccessUI({
         <div className="space-y-3">
           <button
             onClick={handleLoginClick}
-            className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white transition-all duration-200 hover:from-blue-600 hover:to-blue-700"
+            className="w-full rounded-lg bg-linear-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white transition-all duration-200 hover:from-blue-600 hover:to-blue-700"
           >
             {requiresGitHub ? 'GitHub 로그인' : '로그인'}
           </button>

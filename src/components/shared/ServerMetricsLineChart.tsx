@@ -511,7 +511,7 @@ export default function ServerMetricsLineChart({
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="drop-shadow-sm filter"
+            className="drop-shadow-xs filter"
           />
 
           {/* 데이터 포인트 - AI 교차검증 기반 이중 안전장치 ⭐⭐ */}
@@ -609,7 +609,7 @@ export default function ServerMetricsLineChart({
                           height="18"
                           rx="3"
                           fill={config.lineColor}
-                          className="drop-shadow-sm filter"
+                          className="drop-shadow-xs filter"
                         />
                         <text
                           x={point.x}

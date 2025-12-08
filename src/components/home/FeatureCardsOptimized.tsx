@@ -92,11 +92,11 @@ const FeatureCard = ({ feature }: { feature: FeatureCardData }) => {
 
   return (
     <div className="group relative">
-      <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-gray-200 to-gray-300 opacity-25 blur transition duration-300 group-hover:opacity-100"></div>
-      <div className="relative rounded-lg bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+      <div className="absolute -inset-1 rounded-lg bg-linear-to-r from-gray-200 to-gray-300 opacity-25 blur-sm transition duration-300 group-hover:opacity-100"></div>
+      <div className="relative rounded-lg bg-white p-6 shadow-xs transition-all duration-300 hover:shadow-md">
         <div className="mb-4 flex items-start justify-between">
           <div
-            className={`rounded-lg bg-gradient-to-r p-3 ${colorClasses[feature.color as keyof typeof colorClasses]} shadow-sm`}
+            className={`rounded-lg bg-linear-to-r p-3 ${colorClasses[feature.color as keyof typeof colorClasses]} shadow-xs`}
           >
             <Icon className="h-6 w-6 text-white" />
           </div>
@@ -117,7 +117,7 @@ const FeatureCard = ({ feature }: { feature: FeatureCardData }) => {
 
         {/* 간단한 호버 인디케이터 */}
         <div
-          className="absolute bottom-0 left-0 h-1 w-full rounded-b-lg bg-gradient-to-r opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="absolute bottom-0 left-0 h-1 w-full rounded-b-lg bg-linear-to-r opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           style={{
             backgroundImage: `linear-gradient(to right, var(--${feature.color}-500), var(--${feature.color}-600))`,
           }}

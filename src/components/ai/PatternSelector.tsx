@@ -38,7 +38,7 @@ export default function PatternSelector({
       className={`rounded-2xl border border-gray-200 bg-white p-4 shadow-lg ${className}`}
     >
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-indigo-600">
           <i className="fas fa-cogs text-sm text-white"></i>
         </div>
         <div>
@@ -108,7 +108,7 @@ export default function PatternSelector({
 
             {/* 호버 효과 */}
             {!pattern.active && (
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+              <div className="absolute inset-0 rounded-xl bg-linear-to-r from-indigo-500/5 to-purple-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
             )}
           </button>
         ))}

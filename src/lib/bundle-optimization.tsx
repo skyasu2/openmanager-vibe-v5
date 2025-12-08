@@ -91,7 +91,7 @@ export const buttonVariants = {
 };
 
 export const cardVariants = {
-  default: 'bg-white shadow-sm border border-gray-200 rounded-lg p-6',
+  default: 'bg-white shadow-xs border border-gray-200 rounded-lg p-6',
   elevated: 'bg-white shadow-md border border-gray-200 rounded-lg p-6',
   bordered: 'bg-white border-2 border-gray-300 rounded-lg p-6',
 };
