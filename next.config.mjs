@@ -15,11 +15,11 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 🚀 Next.js 15 기본 설정 - Vercel 호환
+  // 🚀 Next.js 16 기본 설정 - Vercel 호환
   output: undefined, // Vercel 자동 감지 사용
   trailingSlash: false,
 
-  // 실험적 기능 (Next.js 15 호환)
+  // 실험적 기능 (Next.js 16 호환)
   experimental: {
     optimizePackageImports: [
       'lucide-react',
