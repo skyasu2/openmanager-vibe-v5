@@ -221,27 +221,33 @@ tests/api/core-endpoints.integration.test.ts
 
 ### 4.1 번들 크기 최적화
 
-**현재 상태**: 미측정
+**현재 상태**: ✅ 완료 (2025-12-08)
 
-**목표**: 초기 로드 < 500KB
+**목표**: 초기 로드 < 500KB ✅ 달성
 
-**작업 계획**:
+**측정 결과** (First Load JS):
 
-```bash
-# 1. 번들 분석
-npm run build
-npx @next/bundle-analyzer
+| 라우트 | 크기 | 상태 |
+|--------|------|------|
+| /main | 228 KB | ✅ < 500KB |
+| /dashboard | 224 KB | ✅ < 500KB |
+| /login | 182 KB | ✅ < 500KB |
+| /system-boot | 127 KB | ✅ < 500KB |
+| Shared chunks | 103 KB | 공통 모듈 |
 
-# 2. 동적 import 적용
-- 큰 라이브러리 lazy load
-- 라우트별 코드 스플리팅
+**대형 의존성 분석**:
+- @supabase: 564KB (serverExternalPackages로 서버 전용)
+- react-dom: 530KB (Next.js 필수)
+- zod v4: 488KB (optimizePackageImports 적용)
+- @ai-sdk/react: 360KB (optimizePackageImports 적용)
 
-# 3. 트리 쉐이킹 최적화
-- 사용하지 않는 코드 제거
-```
+**적용된 최적화**:
+1. `optimizePackageImports`에 zod, @ai-sdk/react, date-fns, lodash 추가
+2. 기존 serverExternalPackages 설정 유지 (@supabase, sharp 등)
+3. Next.js 15 기본 트리 쉐이킹 활용
 
-**예상 시간**: 3-4시간  
-**위험도**: 중간
+**소요 시간**: 1시간
+**위험도**: 낮음 (목표 이미 달성)
 
 ---
 

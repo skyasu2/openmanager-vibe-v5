@@ -28,6 +28,12 @@ const nextConfig = {
       'react-hot-toast',
       'recharts',
       'd3',
+      // Phase 4.1: 번들 크기 최적화 (2025-12-08)
+      'zod',
+      '@ai-sdk/react',
+      '@ai-sdk/ui-utils',
+      'date-fns',
+      'lodash',
     ],
     // Vercel 무료 티어 최적화
     serverMinification: true,
