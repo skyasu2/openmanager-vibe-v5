@@ -11,7 +11,15 @@ import { google } from '@ai-sdk/google';
 import { generateText, tool } from 'ai';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { getGoogleAIKey } from '@/lib/ai/google-ai-manager';
+import {
+  checkGoogleAIRateLimit,
+  getGoogleAIKey,
+} from '@/lib/ai/google-ai-manager';
+import {
+  checkGroqAIRateLimit,
+  generateGroqText,
+  isGroqAIAvailable,
+} from '@/lib/ai/groq-ai-manager';
 import { withAuth } from '@/lib/auth/api-auth';
 import { createClient } from '@/lib/supabase/server';
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
@@ -329,12 +337,42 @@ export const POST = withAuth(async (req: NextRequest) => {
       );
     }
 
-    const apiKey = getGoogleAIKey();
-    if (!apiKey) {
-      return Response.json(
-        { error: 'Google AI API Key not configured' },
-        { status: 500 }
-      );
+    // AI 엔진 선택 로직: Google AI → Groq 폴백
+    const googleApiKey = getGoogleAIKey();
+    const googleRateCheck = checkGoogleAIRateLimit();
+    const groqAvailable = isGroqAIAvailable();
+    const groqRateCheck = checkGroqAIRateLimit();
+
+    // 사용 가능한 엔진 결정
+    let useGroqFallback = false;
+    let engineReason = '';
+
+    if (!googleApiKey) {
+      if (groqAvailable && groqRateCheck.allowed) {
+        useGroqFallback = true;
+        engineReason = 'Google AI API 키 미설정 → Groq 폴백';
+      } else {
+        return Response.json(
+          {
+            error:
+              'AI API 키가 설정되지 않았습니다 (Google AI, Groq 모두 사용 불가)',
+          },
+          { status: 500 }
+        );
+      }
+    } else if (!googleRateCheck.allowed) {
+      if (groqAvailable && groqRateCheck.allowed) {
+        useGroqFallback = true;
+        engineReason = `Google AI Rate Limit (${googleRateCheck.reason}) → Groq 폴백`;
+        console.log(`⚠️ ${engineReason}`);
+      } else {
+        return Response.json(
+          {
+            error: `AI Rate Limit 초과: Google (${googleRateCheck.reason}), Groq (${groqRateCheck.reason || '키 미설정'})`,
+          },
+          { status: 429 }
+        );
+      }
     }
 
     // 메타데이터를 포함한 시스템 프롬프트 구성
@@ -362,41 +400,82 @@ ${
 항상 팩트 기반으로 답변하고, 불확실할 경우 솔직하게 모른다고 하십시오.
 한국어로 응답하십시오.`;
 
-    // AI 호출 (generateText - non-streaming)
-    const result = await generateText({
-      model: google('gemini-1.5-flash'),
-      messages: [{ role: 'user', content: query }],
-      tools: {
-        analyzeRequest,
-        callUnifiedProcessor,
-        getServerMetrics,
-        searchKnowledgeBase,
-        analyzePattern,
-        recommendCommands,
-      },
-      system: systemPrompt,
-    });
-
-    const responseTime = Date.now() - startTime;
-
-    // 사고 과정 추출 (tool calls)
+    // AI 호출: Groq 폴백 또는 Google Gemini
+    let responseText = '';
+    let usedEngine = '';
     const thinkingSteps: string[] = [];
-    if (includeThinking && result.toolCalls && result.toolCalls.length > 0) {
-      for (const toolCall of result.toolCalls) {
-        const toolArgs = 'args' in toolCall ? toolCall.args : {};
-        thinkingSteps.push(
-          `🔧 ${toolCall.toolName}: ${JSON.stringify(toolArgs)}`
+
+    if (useGroqFallback) {
+      // 🚀 Groq 폴백 사용 (llama-3.1-8b-instant)
+      console.log(`🔄 Groq 폴백 사용: ${engineReason}`);
+
+      const groqResult = await generateGroqText(query, {
+        systemPrompt,
+        maxTokens: 2048,
+        temperature: 0.7,
+      });
+
+      if (!groqResult.success) {
+        // Groq도 실패하면 에러 반환
+        return Response.json(
+          { error: `Groq API 오류: ${groqResult.error}` },
+          { status: 500 }
         );
+      }
+
+      responseText = groqResult.text || '응답을 생성하지 못했습니다.';
+      usedEngine = `groq/${groqResult.model || 'llama-3.1-8b-instant'}`;
+
+      if (includeThinking) {
+        thinkingSteps.push(`🔄 ${engineReason}`);
+        if (groqResult.usage) {
+          thinkingSteps.push(
+            `📊 토큰: ${groqResult.usage.totalTokens} (prompt: ${groqResult.usage.promptTokens}, completion: ${groqResult.usage.completionTokens})`
+          );
+        }
+      }
+    } else {
+      // 🌟 Google Gemini 2.5 Flash 사용 (기본) - 1.5는 단종 예정
+      // Free tier: 10 RPM, 250 RPD (2.5 Flash) vs 5 RPM, 25 RPD (2.5 Pro)
+      const result = await generateText({
+        model: google('gemini-2.5-flash-preview-05-20'),
+        messages: [{ role: 'user', content: query }],
+        tools: {
+          analyzeRequest,
+          callUnifiedProcessor,
+          getServerMetrics,
+          searchKnowledgeBase,
+          analyzePattern,
+          recommendCommands,
+        },
+        system: systemPrompt,
+      });
+
+      responseText = result.text || '응답을 생성하지 못했습니다.';
+      usedEngine = 'gemini-2.5-flash';
+
+      // 사고 과정 추출 (tool calls)
+      if (includeThinking && result.toolCalls && result.toolCalls.length > 0) {
+        for (const toolCall of result.toolCalls) {
+          const toolArgs = 'args' in toolCall ? toolCall.args : {};
+          thinkingSteps.push(
+            `🔧 ${toolCall.toolName}: ${JSON.stringify(toolArgs)}`
+          );
+        }
       }
     }
 
+    const responseTime = Date.now() - startTime;
+
     // 응답 반환
     return Response.json({
-      response: result.text || '응답을 생성하지 못했습니다.',
+      response: responseText,
       thinkingSteps,
-      engine: 'gemini-1.5-flash',
+      engine: usedEngine,
+      fallbackUsed: useGroqFallback,
+      fallbackReason: useGroqFallback ? engineReason : undefined,
       responseTime,
-      confidence: 0.85,
+      confidence: useGroqFallback ? 0.8 : 0.85, // Groq는 약간 낮은 신뢰도
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

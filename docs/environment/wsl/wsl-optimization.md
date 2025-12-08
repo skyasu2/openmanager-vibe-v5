@@ -30,17 +30,19 @@ swap=10GB               # 스왑 메모리
 # CPU 설정
 processors=8            # CPU 코어 수
 
-# 네트워킹 (MCP 서버 필수)
+# Networking (Required for MCP Servers)
 networkingMode=mirrored # 미러 모드 필수
 dnsTunneling=true       # MCP DNS 해석 필수
 autoProxy=true          # MCP 프록시 연결 필수
-
-# 성능 최적화
-autoMemoryReclaim=gradual  # 점진적 메모리 회수 (dropcache 금지)
-sparseVhd=true            # VHD 압축 활성화
+firewall=true           # Windows 방화벽 규칙 적용
 
 # GUI 지원
 guiApplications=true      # GUI 애플리케이션 지원
+
+[experimental]
+# 성능 최적화 (실험적 기능)
+autoMemoryReclaim=gradual  # 점진적 메모리 회수
+sparseVhd=true            # VHD 압축 활성화
 ```
 
 ## ⚠️ 설정 변경 주의사항
@@ -77,6 +79,14 @@ useWindowsDriver=true    # 실험적 기능으로 불안정
 2. `claude mcp status` 명령으로 MCP 서버 상태 확인
 3. 모든 서버가 정상 연결되는지 검증
 4. 응답 시간이 50ms 이내인지 확인
+
+## 🛑 트러블슈팅: 프리징 및 연결 에러 분석
+
+| 증상/원인 | 해결책 | 설정 항목 |
+|---|---|---|
+| **네트워크 연결 에러** (connect failed: 101) | 방화벽 연동 (Mirrored 모드) | `firewall=true` |
+| **메모리 미회수** (시스템 느려짐) | 점진적 메모리 반환 활성화 | `[experimental]`<br>`autoMemoryReclaim=gradual` |
+| **디스크 I/O 지연** | VHD 압축 활성화 | `[experimental]`<br>`sparseVhd=true` |
 
 ## 🚀 성능 최적화 팁
 

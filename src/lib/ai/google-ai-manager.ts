@@ -15,9 +15,11 @@ import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
  * - 서로 다른 계정의 키를 사용하여 Rate Limit 우회 시도는 ToS 위반
  * - 계정 정지 위험
  *
- * 🚦 Rate Limiting (Free Tier):
- * - gemini-2.0-flash: 15 RPM, 250,000 TPM, 1,000 RPD
+ * 🚦 Rate Limiting (Free Tier - 2025):
+ * - gemini-2.5-flash: 10 RPM, 250 RPD (무료 티어)
+ * - gemini-2.5-pro: 5 RPM, 25 RPD (매우 제한적)
  * - RPD 할당량은 매일 자정(Pacific Time)에 초기화
+ * - Groq 폴백: 30 RPM, 14,400 RPD (llama-3.1-8b-instant)
  */
 class GoogleAIManager {
   private static instance: GoogleAIManager;
@@ -198,7 +200,7 @@ class GoogleAIManager {
   }
 
   /**
-   * 🚦 Rate Limit 체크 (15 RPM, 1,000 RPD)
+   * 🚦 Rate Limit 체크 (10 RPM, 250 RPD - Gemini 2.5 Flash Free Tier)
    * @returns {allowed: boolean, reason?: string}
    */
   checkRateLimit(): { allowed: boolean; reason?: string } {
@@ -218,19 +220,19 @@ class GoogleAIManager {
     );
     const requestsPerMinute = this.requestLog.length;
 
-    // RPM 한도 체크 (15 RPM)
-    if (requestsPerMinute >= 15) {
+    // RPM 한도 체크 (10 RPM - Gemini 2.5 Flash Free Tier)
+    if (requestsPerMinute >= 10) {
       return {
         allowed: false,
-        reason: `Rate limit exceeded: ${requestsPerMinute} requests in the last minute (max 15 RPM)`,
+        reason: `Rate limit exceeded: ${requestsPerMinute} requests in the last minute (max 10 RPM)`,
       };
     }
 
-    // RPD 한도 체크 (1,000 RPD)
-    if (this.dailyRequestCount >= 1000) {
+    // RPD 한도 체크 (250 RPD - Gemini 2.5 Flash Free Tier)
+    if (this.dailyRequestCount >= 250) {
       return {
         allowed: false,
-        reason: `Daily quota exceeded: ${this.dailyRequestCount} requests today (max 1,000 RPD)`,
+        reason: `Daily quota exceeded: ${this.dailyRequestCount} requests today (max 250 RPD)`,
       };
     }
 
@@ -264,8 +266,8 @@ class GoogleAIManager {
     return {
       requestsLastMinute,
       requestsToday: this.dailyRequestCount,
-      remainingRPM: Math.max(0, 15 - requestsLastMinute),
-      remainingRPD: Math.max(0, 1000 - this.dailyRequestCount),
+      remainingRPM: Math.max(0, 10 - requestsLastMinute), // Gemini 2.5 Flash: 10 RPM
+      remainingRPD: Math.max(0, 250 - this.dailyRequestCount), // Gemini 2.5 Flash: 250 RPD
     };
   }
 
