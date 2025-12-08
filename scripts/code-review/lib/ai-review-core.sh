@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# AI Review Core Functions - v6.9.1
+# AI Review Core Functions - v6.9.2
 # AI 리뷰 실행 함수들 (Codex, Gemini, Qwen - Claude 제거됨)
 #
+# v6.9.2 (2025-12-08): handle_review_success() 헬퍼 함수 추출 (DRY)
 # v6.9.1 (2025-12-08): 1:1:1 순환 버그 수정 + Claude 완전 제거
 # - 3-AI 순환: codex → gemini → qwen → codex
 # - 상호 폴백: 각 AI 실패 시 다른 두 AI로 순차 폴백
@@ -531,6 +532,27 @@ clear_pending_reviews() {
     log_success "✅ 보류 중인 리뷰 클리어 완료"
 }
 
+# 🆕 v6.9.2: 리뷰 성공 처리 헬퍼 (DRY 원칙)
+# - 반복되는 성공 로직을 단일 함수로 통합
+# - Gemini 코드 리뷰 제안 반영 (2025-12-08)
+handle_review_success() {
+    local ai="$1"
+    local output="$2"
+    local message="${3:-리뷰 성공}"
+
+    log_success "${ai^^} ${message}!"
+    increment_ai_counter "$ai"
+    set_last_ai "$ai"  # v6.9.1: 성공한 AI만 저장
+    AI_ENGINE="$ai"
+
+    # 성공 시 보류 중인 리뷰 클리어
+    if check_pending_reviews; then
+        clear_pending_reviews
+    fi
+
+    echo "$output"
+}
+
 # v6.9.0: 3-AI 1:1:1 순환 + 상호 폴백 체인
 # - 순번: codex → gemini → qwen (3-AI 순환, Claude 제외)
 # - 선택 즉시 rotation 진행 (성공/실패 관계없이 1:1:1 보장)
@@ -574,17 +596,7 @@ run_ai_review() {
 
     # 2단계: Primary AI 시도
     if review_output=$(run_single_ai_review "$primary_ai" "$changes"); then
-        log_success "${primary_ai^^} 리뷰 성공!"
-        increment_ai_counter "$primary_ai"
-        set_last_ai "$primary_ai"  # 🆕 v6.9.1: 성공한 AI만 저장
-        AI_ENGINE="$primary_ai"
-
-        # 성공 시 보류 중인 리뷰 클리어
-        if check_pending_reviews; then
-            clear_pending_reviews
-        fi
-
-        echo "$review_output"
+        handle_review_success "$primary_ai" "$review_output" "리뷰 성공"
         return 0
     fi
 
@@ -594,17 +606,7 @@ run_ai_review() {
     log_info "🔄 폴백 1차: ${fallback1^^}"
 
     if review_output=$(run_single_ai_review "$fallback1" "$changes"); then
-        log_success "${fallback1^^} 폴백 성공!"
-        increment_ai_counter "$fallback1"
-        set_last_ai "$fallback1"  # 🆕 v6.9.1: 성공한 AI만 저장
-        AI_ENGINE="$fallback1"
-
-        # 성공 시 보류 중인 리뷰 클리어
-        if check_pending_reviews; then
-            clear_pending_reviews
-        fi
-
-        echo "$review_output"
+        handle_review_success "$fallback1" "$review_output" "폴백 성공"
         return 0
     fi
 
@@ -614,17 +616,7 @@ run_ai_review() {
     log_info "🔄 폴백 2차: ${fallback2^^}"
 
     if review_output=$(run_single_ai_review "$fallback2" "$changes"); then
-        log_success "${fallback2^^} 최종 폴백 성공!"
-        increment_ai_counter "$fallback2"
-        set_last_ai "$fallback2"  # 🆕 v6.9.1: 성공한 AI만 저장
-        AI_ENGINE="$fallback2"
-
-        # 성공 시 보류 중인 리뷰 클리어
-        if check_pending_reviews; then
-            clear_pending_reviews
-        fi
-
-        echo "$review_output"
+        handle_review_success "$fallback2" "$review_output" "최종 폴백 성공"
         return 0
     fi
 
