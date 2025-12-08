@@ -21,7 +21,7 @@ openmanager-vibe-v5/
 ├── 📄 package.json                 # 프로젝트 설정
 ├── 📄 next.config.mjs              # Next.js 설정
 ├── 📄 tsconfig.json                # TypeScript 설정
-├── 📄 tailwind.config.ts           # Tailwind CSS 설정
+├── 📄 postcss.config.mjs            # PostCSS + Tailwind v4 설정
 ├── 📄 .gitignore                   # Git 제외 파일 (아카이브/백업 포함)
 ├── 📄 .vercelignore                # Vercel 배포 제외 파일
 ├── 📄 .env.local                   # 환경변수 (Git 제외)
