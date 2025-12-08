@@ -12,9 +12,14 @@
  *   node scripts/git/update-docs.js --commit  # 업데이트 후 자동 커밋
  */
 
-const ChangelogUpdater = require('./update-changelog');
-const ReadmeUpdater = require('./update-readme');
+const fs = require('fs');
+const path = require('path');
 const { execSync } = require('child_process');
+
+// Optional: ChangelogUpdater (파일이 삭제된 경우 graceful 처리)
+const changelogPath = path.join(__dirname, 'update-changelog.js');
+const ChangelogUpdater = fs.existsSync(changelogPath) ? require('./update-changelog') : null;
+const ReadmeUpdater = require('./update-readme');
 
 class DocsUpdater {
   constructor() {
@@ -87,12 +92,17 @@ class DocsUpdater {
 
     // CHANGELOG 업데이트
     if (this.target === 'all' || this.target === 'changelog') {
-      console.log('📝 CHANGELOG.md 업데이트 중...');
-      console.log('─'.repeat(60));
-      const changelogUpdater = new ChangelogUpdater();
-      changelogUpdater.run();
-      updatedFiles.push('CHANGELOG.md');
-      console.log('');
+      if (ChangelogUpdater) {
+        console.log('📝 CHANGELOG.md 업데이트 중...');
+        console.log('─'.repeat(60));
+        const changelogUpdater = new ChangelogUpdater();
+        changelogUpdater.run();
+        updatedFiles.push('CHANGELOG.md');
+        console.log('');
+      } else {
+        console.log('⚠️  CHANGELOG 업데이트 스킵 (update-changelog.js 없음)');
+        console.log('');
+      }
     }
 
     // README 업데이트
