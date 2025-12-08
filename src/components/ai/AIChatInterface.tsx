@@ -25,7 +25,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef } from 'react';
 import ThinkingProcessVisualizer from '@/components/ai/ThinkingProcessVisualizer';
 import { useServerDataStore } from '@/components/providers/StoreProvider';
-import { useAIChatStore, type ChatMessage } from '@/stores/ai-chat-store';
+import { type ChatMessage, useAIChatStore } from '@/stores/ai-chat-store';
 import type { EnhancedServerMetrics } from '@/types/server';
 
 function extractNumericValue(value: unknown): number {
@@ -45,7 +45,11 @@ interface AIChatInterfaceProps {
   onClose?: () => void;
 }
 
-export default function AIChatInterface({ mode, embedded, onClose }: AIChatInterfaceProps) {
+export default function AIChatInterface({
+  mode,
+  embedded,
+  onClose,
+}: AIChatInterfaceProps) {
   const router = useRouter();
   const servers = useServerDataStore(
     (state: { servers: EnhancedServerMetrics[] }) => state.servers
@@ -92,9 +96,9 @@ export default function AIChatInterface({ mode, embedded, onClose }: AIChatInter
         if (event.target?.result) {
           const type = file.type.startsWith('image/') ? 'image' : 'file';
           addAttachment({
-              type,
-              url: event.target!.result as string,
-              name: file.name,
+            type,
+            url: event.target!.result as string,
+            name: file.name,
           });
         }
       };
@@ -137,8 +141,12 @@ export default function AIChatInterface({ mode, embedded, onClose }: AIChatInter
 
       try {
         const totalServers = servers.length;
-        const warningServers = servers.filter((s) => s.status === 'warning').length;
-        const criticalServers = servers.filter((s) => s.status === 'critical').length;
+        const warningServers = servers.filter(
+          (s) => s.status === 'warning'
+        ).length;
+        const criticalServers = servers.filter(
+          (s) => s.status === 'critical'
+        ).length;
         const avgCpu = Math.round(
           servers.reduce((sum, s) => sum + extractNumericValue(s.cpu ?? 0), 0) /
             (servers.length || 1)
@@ -170,24 +178,23 @@ export default function AIChatInterface({ mode, embedded, onClose }: AIChatInter
         const data = await response.json();
 
         addMessage({
-            id: (Date.now() + 1).toString(),
-            content: data.response || '응답 없음',
-            role: 'assistant',
-            timestamp: new Date(),
-            thinkingSteps: data.thinkingSteps,
-            engine: data.engine,
-            responseTime: data.responseTime,
+          id: (Date.now() + 1).toString(),
+          content: data.response || '응답 없음',
+          role: 'assistant',
+          timestamp: new Date(),
+          thinkingSteps: data.thinkingSteps,
+          engine: data.engine,
+          responseTime: data.responseTime,
         });
-
       } catch (error: any) {
         if (error.name !== 'AbortError') {
           console.error('AI Error:', error);
           addMessage({
-              id: Date.now().toString(),
-              content: '오류가 발생했습니다. 다시 시도해주세요.',
-              role: 'assistant',
-              error: true,
-              timestamp: new Date(),
+            id: Date.now().toString(),
+            content: '오류가 발생했습니다. 다시 시도해주세요.',
+            role: 'assistant',
+            error: true,
+            timestamp: new Date(),
           });
         }
       } finally {
@@ -195,7 +202,16 @@ export default function AIChatInterface({ mode, embedded, onClose }: AIChatInter
         abortControllerRef.current = null;
       }
     },
-    [isLoading, servers, isThinkingMode, attachments, addMessage, setInputValue, clearAttachments, setIsLoading]
+    [
+      isLoading,
+      servers,
+      isThinkingMode,
+      attachments,
+      addMessage,
+      setInputValue,
+      clearAttachments,
+      setIsLoading,
+    ]
   );
 
   const handleStop = () => abortControllerRef.current?.abort();
@@ -230,9 +246,9 @@ export default function AIChatInterface({ mode, embedded, onClose }: AIChatInter
       if (event.target?.result) {
         const type = file.type.startsWith('image/') ? 'image' : 'file';
         addAttachment({
-            type,
-            url: event.target!.result as string,
-            name: file.name,
+          type,
+          url: event.target!.result as string,
+          name: file.name,
         });
       }
     };
@@ -257,48 +273,52 @@ export default function AIChatInterface({ mode, embedded, onClose }: AIChatInter
   const containerClasses = embedded
     ? 'flex flex-col h-full w-full bg-[#1e1e1e] text-gray-100'
     : mode === 'sidebar'
-    ? 'fixed inset-y-0 right-0 z-50 flex w-[480px] flex-col border-l border-gray-800 bg-[#1e1e1e] text-gray-100 shadow-2xl'
-    : 'flex flex-col h-full w-full bg-[#1e1e1e] text-gray-100';
+      ? 'fixed inset-y-0 right-0 z-50 flex w-[480px] flex-col border-l border-gray-800 bg-[#1e1e1e] text-gray-100 shadow-2xl'
+      : 'flex flex-col h-full w-full bg-[#1e1e1e] text-gray-100';
 
   return (
     <div className={containerClasses}>
       {/* 🔹 Header */}
       {!embedded && (
-      <div className="flex items-center justify-between border-b border-gray-800 bg-[#252526] p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-            <Bot className="h-5 w-5 text-white" />
+        <div className="flex items-center justify-between border-b border-gray-800 bg-[#252526] p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+              <Bot className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-gray-200">
+                AI Assistant {mode === 'fullscreen' ? '(Full Page)' : ''}
+              </h2>
+              <p className="text-[10px] text-gray-400">
+                {isThinkingMode ? 'Gemini 3 Pro (High)' : 'Gemini 2.5 (Auto)'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-sm font-semibold text-gray-200">
-              AI Assistant {mode === 'fullscreen' ? '(Full Page)' : ''}
-            </h2>
-            <p className="text-[10px] text-gray-400">
-              {isThinkingMode ? 'Gemini 3 Pro (High)' : 'Gemini 2.5 (Auto)'}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1">
             {/* Maximize/Minimize Button */}
             <button
-                onClick={toggleFullscreen}
-                className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white"
-                title={mode === 'sidebar' ? "전체 화면으로 전환" : "돌아가기"}
+              onClick={toggleFullscreen}
+              className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white"
+              title={mode === 'sidebar' ? '전체 화면으로 전환' : '돌아가기'}
             >
-                {mode === 'sidebar' ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-5 w-5" />}
+              {mode === 'sidebar' ? (
+                <Maximize2 className="h-4 w-4" />
+              ) : (
+                <Minimize2 className="h-5 w-5" />
+              )}
             </button>
-            
+
             {/* Close Button (Sidebar Only) */}
             {mode === 'sidebar' && (
-                <button
+              <button
                 onClick={onClose}
                 className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white"
-                >
+              >
                 <X className="h-5 w-5" />
-                </button>
+              </button>
             )}
+          </div>
         </div>
-      </div>
       )}
 
       {/* 🔹 Chat Area */}
@@ -307,7 +327,9 @@ export default function AIChatInterface({ mode, embedded, onClose }: AIChatInter
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
-        <div className={`flex-1 space-y-6 overflow-y-auto p-4 custom-scrollbar ${mode === 'fullscreen' && !embedded ? 'max-w-4xl mx-auto w-full' : ''}`}>
+        <div
+          className={`flex-1 space-y-6 overflow-y-auto p-4 custom-scrollbar ${mode === 'fullscreen' && !embedded ? 'max-w-4xl mx-auto w-full' : ''}`}
+        >
           {messages.map((message) => (
             <div
               key={message.id}
@@ -366,7 +388,9 @@ export default function AIChatInterface({ mode, embedded, onClose }: AIChatInter
             </div>
           ))}
           {isLoading && (
-            <div className={`flex items-center gap-2 text-xs text-gray-500 animate-pulse ${mode === 'fullscreen' ? 'pl-2' : ''}`}>
+            <div
+              className={`flex items-center gap-2 text-xs text-gray-500 animate-pulse ${mode === 'fullscreen' ? 'pl-2' : ''}`}
+            >
               <Bot className="h-3 w-3" />
               <span>AI가 답변을 생성하고 있습니다...</span>
             </div>
@@ -376,113 +400,119 @@ export default function AIChatInterface({ mode, embedded, onClose }: AIChatInter
       </div>
 
       {/* 🔹 Input Area */}
-      <div className={`border-t border-gray-800 bg-[#252526] p-4 ${mode === 'fullscreen' && !embedded ? 'pb-8' : ''}`}>
-         <div className={mode === 'fullscreen' && !embedded ? 'max-w-4xl mx-auto w-full' : ''}>
-            {attachments.length > 0 && (
+      <div
+        className={`border-t border-gray-800 bg-[#252526] p-4 ${mode === 'fullscreen' && !embedded ? 'pb-8' : ''}`}
+      >
+        <div
+          className={
+            mode === 'fullscreen' && !embedded ? 'max-w-4xl mx-auto w-full' : ''
+          }
+        >
+          {attachments.length > 0 && (
             <div className="mb-2 flex gap-2 overflow-x-auto">
-                {attachments.map((file, i) => (
+              {attachments.map((file, i) => (
                 <div key={i} className="relative group">
-                    {file.type === 'image' ? (
+                  {file.type === 'image' ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                        src={file.url}
-                        alt="preview"
-                        className="h-16 w-16 rounded-md object-cover border border-gray-600"
+                      src={file.url}
+                      alt="preview"
+                      className="h-16 w-16 rounded-md object-cover border border-gray-600"
                     />
-                    ) : (
+                  ) : (
                     <div className="flex h-16 w-16 items-center justify-center rounded-md border border-gray-600 bg-gray-800">
-                        <FileText className="h-6 w-6 text-gray-400" />
+                      <FileText className="h-6 w-6 text-gray-400" />
                     </div>
-                    )}
-                    <button
+                  )}
+                  <button
                     onClick={() => removeAttachment(i)}
                     className="absolute -top-1 -right-1 rounded-full bg-red-500 p-0.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
+                  >
                     <X className="h-3 w-3" />
-                    </button>
+                  </button>
                 </div>
-                ))}
+              ))}
             </div>
-            )}
+          )}
 
-            <div className="flex flex-col rounded-xl border border-gray-700 bg-[#1e1e1e] transition-colors focus-within:border-gray-600">
+          <div className="flex flex-col rounded-xl border border-gray-700 bg-[#1e1e1e] transition-colors focus-within:border-gray-600">
             <textarea
-                ref={textareaRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => {
+              ref={textareaRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    void handleSendMessage(inputValue);
+                  e.preventDefault();
+                  void handleSendMessage(inputValue);
                 }
-                }}
-                onPaste={handlePaste}
-                placeholder="무엇이든 물어보세요... (Shift+Enter 줄바꿈)"
-                className="max-h-60 min-h-[50px] w-full resize-none bg-transparent p-3 text-sm text-gray-200 placeholder:text-gray-600 focus:outline-hidden"
-                disabled={isLoading}
+              }}
+              onPaste={handlePaste}
+              placeholder="무엇이든 물어보세요... (Shift+Enter 줄바꿈)"
+              className="max-h-60 min-h-[50px] w-full resize-none bg-transparent p-3 text-sm text-gray-200 placeholder:text-gray-600 focus:outline-hidden"
+              disabled={isLoading}
             />
 
             <div className="flex items-center justify-between border-t border-gray-800/50 p-2">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={handleFileSelect}
-                    accept="image/*,.pdf,.txt,.md"
-                    multiple={false}
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFileSelect}
+                  accept="image/*,.pdf,.txt,.md"
+                  multiple={false}
                 />
                 <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-800 hover:text-gray-200"
-                    title="파일/이미지 추가"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+                  title="파일/이미지 추가"
                 >
-                    <Plus className="h-5 w-5" />
+                  <Plus className="h-5 w-5" />
                 </button>
 
                 <button
-                    onClick={() => setIsThinkingMode(!isThinkingMode)}
-                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  onClick={() => setIsThinkingMode(!isThinkingMode)}
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     isThinkingMode
-                        ? 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
-                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                    }`}
+                      ? 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
                 >
-                    <ChevronUp className="h-3 w-3" />
-                    <span>{isThinkingMode ? 'Planning' : 'Auto'}</span>
+                  <ChevronUp className="h-3 w-3" />
+                  <span>{isThinkingMode ? 'Planning' : 'Auto'}</span>
                 </button>
 
                 <button className="hidden items-center gap-1.5 rounded-full bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-gray-700 sm:flex">
-                    <ChevronUp className="h-3 w-3" />
-                    <span>{isThinkingMode ? 'Gemini 3 Pro' : 'Gemini 2.5'}</span>
+                  <ChevronUp className="h-3 w-3" />
+                  <span>{isThinkingMode ? 'Gemini 3 Pro' : 'Gemini 2.5'}</span>
                 </button>
-                </div>
+              </div>
 
-                <div>
+              <div>
                 {isLoading ? (
-                    <button
+                  <button
                     onClick={handleStop}
                     className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-700 text-white hover:bg-red-600 transition-all"
-                    >
+                  >
                     <Square className="h-4 w-4 fill-current" />
-                    </button>
+                  </button>
                 ) : (
-                    <button
+                  <button
                     onClick={() => void handleSendMessage(inputValue)}
                     disabled={!inputValue.trim() && attachments.length === 0}
                     className="flex h-9 w-9 items-center justify-center rounded-full bg-[#007fd4] text-white transition-all hover:bg-[#0060a0] disabled:bg-gray-800 disabled:text-gray-600"
-                    >
+                  >
                     <ArrowUp className="h-5 w-5" />
-                    </button>
+                  </button>
                 )}
-                </div>
+              </div>
             </div>
-            </div>
+          </div>
 
-            <div className="mt-2 text-center text-[10px] text-gray-600">
+          <div className="mt-2 text-center text-[10px] text-gray-600">
             Generative AI can make mistakes. Verify important info.
-            </div>
-         </div>
+          </div>
+        </div>
       </div>
     </div>
   );

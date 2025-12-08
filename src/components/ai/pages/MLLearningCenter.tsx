@@ -243,8 +243,18 @@ export const MLLearningCenter: FC = () => {
   // 전체 초기화
   const resetAll = () => {
     setLearningProgress({
-      patterns: { status: 'idle', progress: 0, currentStep: '', timeElapsed: 0 },
-      incident: { status: 'idle', progress: 0, currentStep: '', timeElapsed: 0 },
+      patterns: {
+        status: 'idle',
+        progress: 0,
+        currentStep: '',
+        timeElapsed: 0,
+      },
+      incident: {
+        status: 'idle',
+        progress: 0,
+        currentStep: '',
+        timeElapsed: 0,
+      },
     });
     setLearningResults([]);
     setSelectedResult(null);
@@ -308,9 +318,14 @@ export const MLLearningCenter: FC = () => {
           const isIdle = progress.status === 'idle';
 
           return (
-            <div key={button.id} className="rounded-xl border border-gray-200 bg-white p-6 transition-all hover:shadow-md">
+            <div
+              key={button.id}
+              className="rounded-xl border border-gray-200 bg-white p-6 transition-all hover:shadow-md"
+            >
               <div className="mb-4 flex items-start justify-between">
-                <div className={`rounded-lg bg-gradient-to-br p-3 ${button.color}`}>
+                <div
+                  className={`rounded-lg bg-gradient-to-br p-3 ${button.color}`}
+                >
                   {createElement(button.icon, {
                     className: 'w-6 h-6 text-white',
                   })}
@@ -360,7 +375,8 @@ export const MLLearningCenter: FC = () => {
                       </span>
                       {progress.estimatedTimeRemaining && isRunning && (
                         <span>
-                          남은 시간: ~{formatTime(progress.estimatedTimeRemaining)}
+                          남은 시간: ~
+                          {formatTime(progress.estimatedTimeRemaining)}
                         </span>
                       )}
                     </div>

@@ -22,7 +22,8 @@ export function HistoryView() {
               <span className="text-xs text-gray-500">2h ago</span>
             </div>
             <p className="line-clamp-2 text-xs text-gray-400">
-              Analyzed the root cause of the CPU spike on server-alpha-01. Found a memory leak...
+              Analyzed the root cause of the CPU spike on server-alpha-01. Found
+              a memory leak...
             </p>
           </div>
         ))}
@@ -31,7 +32,11 @@ export function HistoryView() {
   );
 }
 
-export function ToolsView({ onRunTool }: { onRunTool?: (prompt: string) => void }) {
+export function ToolsView({
+  onRunTool,
+}: {
+  onRunTool?: (prompt: string) => void;
+}) {
   const handleToolClick = (toolName: string, prompt: string) => {
     if (onRunTool) {
       onRunTool(prompt);
@@ -46,44 +51,68 @@ export function ToolsView({ onRunTool }: { onRunTool?: (prompt: string) => void 
       </h2>
       <div className="grid grid-cols-1 gap-4">
         {/* Automated Failure Report */}
-        <button 
-          onClick={() => handleToolClick('Failure Report', 'Please analyze the current server logs and metrics to generate a comprehensive failure root cause report. Identify any critical anomalies.')}
+        <button
+          onClick={() =>
+            handleToolClick(
+              'Failure Report',
+              'Please analyze the current server logs and metrics to generate a comprehensive failure root cause report. Identify any critical anomalies.'
+            )
+          }
           className="w-full text-left cursor-pointer rounded-xl border border-gray-800 bg-[#252526] p-4 transition-colors hover:bg-[#2a2a2d] focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
             <Activity className="h-6 w-6" />
           </div>
-          <h3 className="mb-1 font-semibold text-gray-200">Automated Failure Report</h3>
+          <h3 className="mb-1 font-semibold text-gray-200">
+            Automated Failure Report
+          </h3>
           <p className="text-xs text-gray-400">
-            Analyze logs and metrics to generate a comprehensive failure root cause report.
+            Analyze logs and metrics to generate a comprehensive failure root
+            cause report.
           </p>
         </button>
 
         {/* Anomaly Prediction */}
-        <button 
-          onClick={() => handleToolClick('Anomaly Prediction', 'Based on the historical data and current trends, predict any potential system anomalies or load spikes for the next 24 hours.')}
+        <button
+          onClick={() =>
+            handleToolClick(
+              'Anomaly Prediction',
+              'Based on the historical data and current trends, predict any potential system anomalies or load spikes for the next 24 hours.'
+            )
+          }
           className="w-full text-left cursor-pointer rounded-xl border border-gray-800 bg-[#252526] p-4 transition-colors hover:bg-[#2a2a2d] focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400">
             <Layout className="h-6 w-6" />
           </div>
-          <h3 className="mb-1 font-semibold text-gray-200">Anomaly Prediction</h3>
+          <h3 className="mb-1 font-semibold text-gray-200">
+            Anomaly Prediction
+          </h3>
           <p className="text-xs text-gray-400">
-            Forecast future system anomalies and load spikes using historical data.
+            Forecast future system anomalies and load spikes using historical
+            data.
           </p>
         </button>
 
         {/* Advanced Functions */}
-        <button 
-          onClick={() => handleToolClick('Advanced Functions', 'List all available advanced diagnostic tools and optimization scripts I can run on the infrastructure.')}
+        <button
+          onClick={() =>
+            handleToolClick(
+              'Advanced Functions',
+              'List all available advanced diagnostic tools and optimization scripts I can run on the infrastructure.'
+            )
+          }
           className="w-full text-left cursor-pointer rounded-xl border border-gray-800 bg-[#252526] p-4 transition-colors hover:bg-[#2a2a2d] focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400">
             <Settings className="h-6 w-6" />
           </div>
-          <h3 className="mb-1 font-semibold text-gray-200">Advanced AI Functions</h3>
+          <h3 className="mb-1 font-semibold text-gray-200">
+            Advanced AI Functions
+          </h3>
           <p className="text-xs text-gray-400">
-            Access deep diagnostic tools, system optimization, and automated remediation.
+            Access deep diagnostic tools, system optimization, and automated
+            remediation.
           </p>
         </button>
       </div>

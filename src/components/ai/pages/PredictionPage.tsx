@@ -351,7 +351,11 @@ export default function PredictionPage() {
                   className="flex items-center space-x-1 rounded-lg bg-gray-100 px-3 py-1.5 text-xs text-gray-700 transition-colors hover:bg-gray-200"
                 >
                   <Eye className="h-3.5 w-3.5" />
-                  <span>{expandedPrediction === prediction.serverId ? '닫기' : '상세보기'}</span>
+                  <span>
+                    {expandedPrediction === prediction.serverId
+                      ? '닫기'
+                      : '상세보기'}
+                  </span>
                 </button>
                 {!acknowledgedIds.has(prediction.serverId) && (
                   <button
@@ -363,9 +367,7 @@ export default function PredictionPage() {
                   </button>
                 )}
               </div>
-              <button
-                className="flex items-center space-x-1 rounded-lg bg-blue-100 px-3 py-1.5 text-xs text-blue-700 transition-colors hover:bg-blue-200"
-              >
+              <button className="flex items-center space-x-1 rounded-lg bg-blue-100 px-3 py-1.5 text-xs text-blue-700 transition-colors hover:bg-blue-200">
                 <Bell className="h-3.5 w-3.5" />
                 <span>알림 설정</span>
               </button>
@@ -397,7 +399,9 @@ export default function PredictionPage() {
               <TrendingUp className="h-8 w-8 text-purple-500" />
             </div>
             <h3 className="mb-2 font-medium text-gray-800">
-              {selectedRisk === 'all' ? '예측 데이터 없음' : `${selectedRisk === 'critical' ? '심각' : selectedRisk === 'high' ? '높음' : selectedRisk === 'medium' ? '보통' : '낮음'} 위험도 없음`}
+              {selectedRisk === 'all'
+                ? '예측 데이터 없음'
+                : `${selectedRisk === 'critical' ? '심각' : selectedRisk === 'high' ? '높음' : selectedRisk === 'medium' ? '보통' : '낮음'} 위험도 없음`}
             </h3>
             <p className="mb-4 text-sm text-gray-500">
               {selectedRisk === 'all'

@@ -8,11 +8,11 @@
 
 import { google } from '@ai-sdk/google';
 import { groq } from '@ai-sdk/groq';
-import { generateText, tool, type CoreMessage } from 'ai';
+import { type CoreMessage, generateText, tool } from 'ai';
 import type { NextRequest } from 'next/server';
+// @ts-expect-error
+import pdf from 'pdf-parse';
 import { z } from 'zod';
-// @ts-ignore
-import pdf from 'pdf-parse'; 
 import {
   checkGoogleAIRateLimit,
   getGoogleAIKey,
@@ -298,7 +298,6 @@ const analyzeRequest = tool({
   },
 });
 
-
 // ============================================================================
 // Request/Response Types
 // ============================================================================
@@ -522,40 +521,46 @@ export const POST = withAuth(async (req: NextRequest) => {
       includeThinking = false,
       thinking = false,
     } = body;
-    
+
     let { query } = body;
 
-    if ((!query || typeof query !== 'string') && !(images && images.length > 0) && !(documents && documents.length > 0)) {
+    if (
+      (!query || typeof query !== 'string') &&
+      !(images && images.length > 0) &&
+      !(documents && documents.length > 0)
+    ) {
       return Response.json(
         { error: 'query, images 또는 documents 파라미터가 필요합니다' },
         { status: 400 }
       );
     }
-    
+
     // 📝 Document Parsing (PDF/TXT)
     let documentContext = '';
     const parsingSteps: string[] = [];
 
     if (documents && documents.length > 0) {
       parsingSteps.push(`📄 문서 ${documents.length}개 처리 시작`);
-      
+
       for (const doc of documents) {
         try {
           let text = '';
           if (doc.name.toLowerCase().endsWith('.pdf')) {
-             const buffer = Buffer.from(doc.content, 'base64');
-             const data = await pdf(buffer);
-             text = data.text;
-             parsingSteps.push(`✅ PDF 파싱 성공: ${doc.name} (${text.length}자)`);
+            const buffer = Buffer.from(doc.content, 'base64');
+            const data = await pdf(buffer);
+            text = data.text;
+            parsingSteps.push(
+              `✅ PDF 파싱 성공: ${doc.name} (${text.length}자)`
+            );
           } else {
-             // TXT, MD, etc (assume base64 encoded text or just plain text if decoded)
-             // Check if content is base64
-             try {
-                text = Buffer.from(doc.content, 'base64').toString('utf-8');
-             } catch {
-                text = doc.content;
-             }
-             parsingSteps.push(`✅ 텍스트 로드 성공: ${doc.name}`);
+            // TXT, MD, etc (assume base64 encoded text or just plain text if decoded)
+            // Check if content is base64
+            try {
+              text = Buffer.from(doc.content, 'base64').toString('utf-8');
+            } catch {
+              text = doc.content;
+            }
+            parsingSteps.push(`✅ 텍스트 로드 성공: ${doc.name}`);
           }
 
           documentContext += `\n--- [Document: ${doc.name}] ---\n${text.slice(0, 30000)}\n---------------------------\n`; // 30k chars limit per doc for safety
@@ -598,7 +603,11 @@ export const POST = withAuth(async (req: NextRequest) => {
     // ============================================================
     let modelSelection: ModelSelection;
     try {
-      modelSelection = selectModels(complexity, thinking, !!(images && images.length > 0));
+      modelSelection = selectModels(
+        complexity,
+        thinking,
+        !!(images && images.length > 0)
+      );
     } catch (error) {
       return Response.json(
         {
@@ -623,7 +632,7 @@ export const POST = withAuth(async (req: NextRequest) => {
     } = modelSelection;
 
     // ... [System Prompt & Tool Selection logic same as before but now includes documents in context implicitly] ...
-    
+
     // Level 표시 문자열 생성
     const levelDisplay =
       level === 'multimodal'
@@ -699,15 +708,17 @@ ${useTools ? '**사용 가능한 도구:** getServerMetrics, searchKnowledgeBase
     // messages 구성
     const userMessageContent: any[] = [{ type: 'text', text: query }];
     if (images && images.length > 0) {
-        images.forEach((img) => {
-            userMessageContent.push({ type: 'image', image: img });
-        });
+      images.forEach((img) => {
+        userMessageContent.push({ type: 'image', image: img });
+      });
     }
 
     try {
       const result = await generateText({
         model: primary,
-        messages: [{ role: 'user', content: userMessageContent }] as CoreMessage[],
+        messages: [
+          { role: 'user', content: userMessageContent },
+        ] as CoreMessage[],
         tools,
         system: systemPrompt,
         maxOutputTokens: maxTokens,
@@ -718,25 +729,32 @@ ${useTools ? '**사용 가능한 도구:** getServerMetrics, searchKnowledgeBase
 
       if (includeThinking && result.toolCalls && result.toolCalls.length > 0) {
         for (const toolCall of result.toolCalls) {
-            thinkingSteps.push(`🔧 ${toolCall.toolName}: ${JSON.stringify('args' in toolCall ? toolCall.args : {})}`);
+          thinkingSteps.push(
+            `🔧 ${toolCall.toolName}: ${JSON.stringify('args' in toolCall ? toolCall.args : {})}`
+          );
         }
       }
       if (includeThinking && result.usage) {
         thinkingSteps.push(`📊 토큰: ${result.usage.totalTokens}`);
       }
-
     } catch (primaryError) {
       console.warn(`⚠️ Primary Model (${primaryName}) 실패:`, primaryError);
 
       if (fallback && fallbackName) {
-        if (includeThinking) thinkingSteps.push(`⚠️ ${primaryName} 실패 → ${fallbackName} 전환`);
-        
+        if (includeThinking)
+          thinkingSteps.push(`⚠️ ${primaryName} 실패 → ${fallbackName} 전환`);
+
         try {
           // Fallback logic specific to multimodal (exclude images if needed)
-           let fallbackMessages: CoreMessage[] = [{ role: 'user', content: userMessageContent }] as CoreMessage[];
-           if (!fallbackName.includes('gemini') && !fallbackName.includes('vision')) {
-               fallbackMessages = [{ role: 'user', content: query }]; // 문서 내용은 쿼리에 포함되어 있으므로 OK
-           }
+          let fallbackMessages: CoreMessage[] = [
+            { role: 'user', content: userMessageContent },
+          ] as CoreMessage[];
+          if (
+            !fallbackName.includes('gemini') &&
+            !fallbackName.includes('vision')
+          ) {
+            fallbackMessages = [{ role: 'user', content: query }]; // 문서 내용은 쿼리에 포함되어 있으므로 OK
+          }
 
           const fallbackResult = await generateText({
             model: fallback,
@@ -750,13 +768,12 @@ ${useTools ? '**사용 가능한 도구:** getServerMetrics, searchKnowledgeBase
           responseText = fallbackResult.text || '응답을 생성하지 못했습니다.';
           usedEngine = fallbackName;
           fallbackUsed = true;
-          
-          if (includeThinking && fallbackResult.toolCalls) {
-             for (const toolCall of fallbackResult.toolCalls) {
-                 thinkingSteps.push(`🔧 ${toolCall.toolName}`);
-             }
-          }
 
+          if (includeThinking && fallbackResult.toolCalls) {
+            for (const toolCall of fallbackResult.toolCalls) {
+              thinkingSteps.push(`🔧 ${toolCall.toolName}`);
+            }
+          }
         } catch (fallbackError) {
           throw primaryError;
         }

@@ -74,8 +74,9 @@ export default function MonitoringResults({
             AI 분석 준비 완료
           </h3>
           <p className="mx-auto mb-4 max-w-md text-sm text-gray-600">
-            위에서 분석 설정을 확인한 후 &quot;분석 시작&quot; 버튼을 클릭하세요.
-            이상탐지, 근본원인분석, 예측모니터링을 자동으로 수행합니다.
+            위에서 분석 설정을 확인한 후 &quot;분석 시작&quot; 버튼을
+            클릭하세요. 이상탐지, 근본원인분석, 예측모니터링을 자동으로
+            수행합니다.
           </p>
           <div className="mb-4 flex flex-wrap justify-center gap-2">
             <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">
