@@ -55,7 +55,7 @@ npm run test     # Vitest (메인 설정)
 - **Codex CLI v0.58.0 (GPT-5)** – ChatGPT Plus $20/월, `config/ai/registry-core.yaml`
 - **응답 속도**: 6~12초 (자동 코드 리뷰 로그, `logs/code-reviews/*`)
 - **자동 코드 리뷰**: `.husky/post-commit` → `scripts/code-review/auto-ai-review.sh` v6.4.0 (Primary 1:1:1 순환: codex→gemini→claude, Qwen 폴백, `logs/code-reviews/*`)
-- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` v3.2.0 (600초 타임아웃, stderr 분리, 1인 개발자 컨텍스트 자동 주입)
+- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` v3.3.0 (600초 타임아웃, stderr 분리, **Senior Full-Stack Developer 컨텍스트 적용**)
 - **철학**: "사용자 지침 준수 & 재현 가능성" (Codex 자기 분석)
 - **핵심 원칙**:
   - **Simplicity**: 코드는 읽기 쉽고 단순하게 유지 (KISS)
@@ -101,7 +101,7 @@ npm run test     # Vitest (메인 설정)
 - **Full-Stack Capability**: 비즈니스 로직, 엣지 케이스, 타입 안전성, 보안까지 포괄적 검토
 - **Precision Specialist**: 모호함 없는 정확한 코드 수정 제안 (HumanEval 94% 성능 기반)
 - **Practical Review**: 실무 관점에서 배포 가능한 수준인지 엄격하게 검증
-- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` **v3.2.0** (600초, 포터블, 1인 개발자 컨텍스트 자동 주입)
+- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` **v3.3.0** (600초, 포터블, **Senior Full-Stack Developer 컨텍스트**)
 
 ### ✅ Pre-Implementation Checklist
 
@@ -164,7 +164,7 @@ Codex CLI는 다음 규칙을 준수하여 코드를 생성해야 합니다.
 
 1. **고정 타임아웃 600초** – 복잡한 분석도 한 번에 처리 (`timeout 600s`)
 2. **PROJECT_ROOT 자동 계산** – 어떤 작업 디렉터리에서도 실행 가능 (PATH에 npm global bin 추가)
-3. **1인 개발자 컨텍스트 프롬프트 자동 주입** – ROI 중심 관점 유지
+3. **Senior Full-Stack Developer 컨텍스트 자동 주입** – 포괄적이고 전문적인 리뷰 관점 유지
 4. **stderr 분리 + 토큰/시간 로깅** – `logs/ai-perf/codex-perf-YYYY-MM-DD.log`에 기록, 공백 응답/타임아웃 안내 포함
 5. **`.env.local` 자동 로드** – 프로젝트 루트에 존재하면 환경 변수 주입
 

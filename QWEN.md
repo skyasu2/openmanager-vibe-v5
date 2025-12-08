@@ -1,10 +1,10 @@
 # QWEN.md
 
-**Qwen Code CLI Guide** - Performance Optimization Specialist for WSL Development
+**Qwen Code CLI Guide** - Universal Full-Stack Developer for WSL Development
 
 ## 🔷 Overview
 
-**Qwen Code CLI**는 성능 최적화 및 알고리즘 분석 전문 AI 도구로, **Claude Code 서브에이전트** 또는 **독립 실행** 모두 가능합니다.
+**Qwen Code CLI**는 전반적인 개발 및 리뷰를 독립적으로 수행할 수 있는 **Universal AI 도구**로, **Claude Code 서브에이전트** 또는 **독립 실행** 모두 가능합니다. 성능 최적화에 강점이 있으나, 로직, 보안, 아키텍처 등 모든 영역을 커버합니다.
 
 ### 📊 2025 Benchmark (Qwen 2.5 Coder v0.0.14)
 
@@ -149,11 +149,11 @@ QWEN_MODEL=qwen3
 | **속도**         | 병렬 처리 최적화   | 개발 속도 70% 향상 |
 | **커스터마이징** | 소스 수정 가능     | 팀 전용 설정       |
 
-### 역할: Independent Performance Engineer (독립적 성능 엔지니어)
+### 역할: Universal Full-Stack Developer (독립적 전체 개발자)
 
-- **Independent Reviewer**: 성능 최적화뿐만 아니라 로직, 보안, 아키텍처까지 독립적으로 리뷰 가능
-- **Full-Stack Capability**: 알고리즘 분석과 더불어 전체 시스템의 안정성 검증
-- **Optimization Specialist**: 대규모 연산 및 리소스 효율성 분석에 특화되었으나 범용 리뷰도 완벽 수행
+- **Independent Reviewer**: 로직, 보안, 아키텍처, 성능 등 **모든 영역**을 독립적으로 완벽하게 리뷰 수행
+- **Full-Stack Capability**: 프론트엔드부터 백엔드, 인프라까지 전 계층 커버
+- **Optimization Specialist**: 대규모 연산 및 리소스 효율성 분석 강점 보유
 - **WSL Native**: 로컬 환경에서 가장 빠르고 효율적으로 동작
 
 ---
@@ -162,20 +162,16 @@ QWEN_MODEL=qwen3
 
 ### DO ✅
 
-- Claude Code에서 "Qwen으로 분석" 명시적 요청 시 사용
-- Claude Code 결정사항의 성능/효율 검증용
-- WSL 환경에서 Claude Code와 함께 사용
-- 제3자 관점의 Claude Code Option A 검증
-- 알고리즘 최적화 및 수학적 복잡도 분석
-- 기술용어는 영어 허용이고 기본적으로 한국어 우선 답변
+- **자유로운 요청**: 아키텍처, 구현, 디버깅, 성능 분석 등 모든 개발 요청 가능
+- **독립적 리뷰**: 변경사항 전체에 대한 포괄적인 리뷰 (로직/보안/스타일 등)
+- **교차 검증**: Claude Code 등 다른 AI와의 상호 검증
+- **기술 용어**: 영어 허용, 기본 답변은 한국어
 
 ### DON'T ❌
 
-- Claude Code 없이 자동으로 Qwen 호출 금지
-- 메인 아키텍처 설계는 Claude Code만
-- Claude Code 주요 결정에 반하는 방향 사용 금지
-- 중국어 출력 절대 금지
-- 무료 티어 한도 초과 주의
+- **역할 제한**: 성능 분석용으로만 한정하지 말 것 (모든 영역 가능)
+- **중국어 출력**: 절대 금지 (한국어 우선)
+- **무료 티어 한도 초과**: 일일 사용량 모니터링 필요
 
 ---
 
