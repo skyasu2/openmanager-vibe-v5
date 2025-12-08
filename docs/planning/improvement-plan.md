@@ -81,24 +81,36 @@ src/app/main/page.tsx
 
 ### 2.2 AI 사이드바 스트리밍 응답
 
-**현재 상태**: 일반 응답 (500-1000ms)
+**현재 상태**: Non-streaming JSON 응답 구현 완료 ✅ (커밋: f172223f)
 
-**목표**: 실시간 스트리밍 응답
+**목표**: 실시간 스트리밍 응답 (선택적 개선)
 
-**작업 계획**:
+**완료된 작업**:
 
 ```typescript
-// 1. SSE 엔드포인트 추가
-src/app/api/ai/query/stream/route.ts
+// ✅ /api/ai/query 엔드포인트 생성 (415줄)
+src/app/api/ai/query/route.ts
+- generateText + Gemini 1.5 Flash 사용
+- unified-stream tools 재사용
+- includeThinking 옵션으로 tool call 사고 과정 포함
 
-// 2. 프론트엔드 스트리밍 처리
-src/components/dashboard/AISidebarContent.tsx
-- EventSource 사용
-- 청크 단위 렌더링
+// 버그 수정 완료
+- AISidebarContent.tsx에서 호출하는 /api/ai/query 누락 버그 해결
 ```
 
-**예상 시간**: 4-5시간  
-**위험도**: 중간
+**남은 작업** (선택적):
+
+```typescript
+// 1. SSE 스트리밍 엔드포인트 추가 (선택)
+src/app/api/ai/query/stream/route.ts
+- streamText 사용
+
+// 2. 프론트엔드 스트리밍 처리 (선택)
+- EventSource 또는 fetch streaming
+```
+
+**예상 시간**: 2-3시간 (선택적 스트리밍)
+**위험도**: 낮음
 
 ---
 
