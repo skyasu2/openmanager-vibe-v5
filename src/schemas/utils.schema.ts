@@ -125,7 +125,10 @@ export function exclusiveFields<T extends z.ZodRawShape>(
   errorMessage = 'Only one of these fields can be provided'
 ) {
   return z.object(shape).superRefine((data, ctx) => {
-    const providedFields = fields.filter((field) => data[field] !== undefined);
+    const dataRecord = data as Record<string, unknown>;
+    const providedFields = fields.filter(
+      (field) => dataRecord[field as string] !== undefined
+    );
     if (providedFields.length > 1) {
       providedFields.forEach((field) => {
         ctx.addIssue({
@@ -230,9 +233,11 @@ export function partial<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
 
 /**
  * 깊은 부분적인 스키마를 만드는 헬퍼
+ * @deprecated Zod v4에서 deepPartial()이 제거됨. partial()을 대신 사용하세요.
  */
 export function deepPartial<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
-  return schema.deepPartial();
+  // Zod v4에서 deepPartial()이 제거되어 partial()로 대체
+  return schema.partial();
 }
 
 /**

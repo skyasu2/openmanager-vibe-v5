@@ -15,7 +15,7 @@ export const ApiSuccessResponseSchema = <T extends z.ZodTypeAny>(
   BaseResponseSchema.extend({
     success: z.literal(true),
     data: dataSchema,
-    metadata: z.record(z.string()).optional(),
+    metadata: z.record(z.string(), z.string()).optional(),
   });
 
 export const ApiErrorResponseSchema = ErrorResponseSchema.extend({

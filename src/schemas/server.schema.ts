@@ -71,7 +71,7 @@ export const DiskInfoSchema = z.object({
 
 export const NetworkInterfaceSchema = z.object({
   name: z.string(),
-  ip: z.string().ip().optional(),
+  ip: z.string().optional(),
   mac: z.string().optional(),
   speed: z.number().optional(), // Mbps
   bytesIn: z.number().nonnegative(),
@@ -102,7 +102,7 @@ export const ProcessSchema = z.object({
 export const ServerConfigSchema = z.object({
   hostname: z.string(),
   domain: z.string().optional(),
-  ip: z.string().ip(),
+  ip: z.string(),
   port: z.number().int().min(1).max(65535).optional(),
   ssl: z.boolean().default(false),
   sslPort: z.number().int().min(1).max(65535).optional(),
@@ -170,7 +170,7 @@ export const ServerEventSchema = z.object({
   timestamp: TimestampSchema,
   severity: z.enum(['info', 'warning', 'error', 'critical']),
   message: z.string(),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
   user: z.string().optional(),
   automated: z.boolean().default(false),
 });
@@ -203,7 +203,7 @@ export const ServerGroupSchema = z.object({
 export const MetricPointSchema = z.object({
   timestamp: TimestampSchema,
   value: z.number(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const ServerMetricsHistorySchema = z.object({

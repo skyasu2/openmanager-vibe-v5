@@ -84,7 +84,7 @@ export const ServerBatchActionSchema = z.enum([
 export const ServerBatchRequestSchema = z.object({
   action: ServerBatchActionSchema,
   serverIds: z.array(z.string()).min(1),
-  settings: z.record(z.unknown()).optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const ServerBatchResponseSchema = z.object({
@@ -93,7 +93,7 @@ export const ServerBatchResponseSchema = z.object({
   serverIds: z.array(z.string()).optional(),
   estimatedDuration: z.number().optional(),
   timestamp: z.string(),
-  settings: z.record(z.unknown()).optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
   results: z
     .array(
       z.object({

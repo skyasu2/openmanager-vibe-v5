@@ -26,7 +26,7 @@ export const ApiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
   BaseApiResponseSchema.extend({
     data: dataSchema.optional(),
     error: z.string().optional(),
-    metadata: z.record(z.string()).optional(),
+    metadata: z.record(z.string(), z.string()).optional(),
   });
 
 export type ApiResponse<T = unknown> = {
@@ -43,6 +43,7 @@ export type ApiResponse<T = unknown> = {
 export const HealthCheckResponseSchema = z.object({
   status: z.enum(['healthy', 'degraded', 'unhealthy']),
   services: z.record(
+    z.string(),
     z.object({
       status: z.enum(['connected', 'disconnected', 'error']),
       latency: z.number().optional(),
@@ -60,7 +61,7 @@ export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
 // 🤖 MCP 쿼리 API 스키마
 export const MCPQueryRequestSchema = z.object({
   query: z.string().min(1).max(1000),
-  context: z.record(z.string()).optional(),
+  context: z.record(z.string(), z.string()).optional(),
   sessionId: z.string().optional(),
   userId: z.string().optional(),
 });
@@ -153,7 +154,7 @@ export const ErrorResponseSchema = z.object({
   success: z.literal(false),
   error: z.string(),
   errorCode: z.string().optional(),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
   timestamp: z.string(),
 });
 

@@ -88,7 +88,7 @@ const DashboardResponseSchema = z.object({
   data: z.object({
     success: z.boolean(),
     data: z.object({
-      servers: z.record(z.any()),
+      servers: z.record(z.string(), z.any()),
       stats: z.object({
         totalServers: z.number(),
         onlineServers: z.number(),

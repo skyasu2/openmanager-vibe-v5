@@ -204,7 +204,11 @@ export function conditionalValidation<T extends z.ZodObject<z.ZodRawShape>>(
 
         if (!result.success) {
           result.error.issues.forEach((issue) => {
-            ctx.addIssue(issue);
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: issue.message,
+              path: issue.path,
+            });
           });
         }
       }

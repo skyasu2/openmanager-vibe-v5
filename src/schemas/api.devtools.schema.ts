@@ -123,7 +123,10 @@ export const ErrorReportSchema = z.object({
   updatedAt: z.string().datetime(),
   resolvedAt: z.string().datetime().optional(),
   metadata: z
-    .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
+    .record(
+      z.string(),
+      z.union([z.string(), z.number(), z.boolean(), z.null()])
+    )
     .optional(),
 });
 
@@ -134,7 +137,10 @@ export const ErrorReportRequestSchema = z.object({
   category: z.string().min(1),
   affectedSystems: z.array(z.string()).optional(),
   metadata: z
-    .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
+    .record(
+      z.string(),
+      z.union([z.string(), z.number(), z.boolean(), z.null()])
+    )
     .optional(),
 });
 

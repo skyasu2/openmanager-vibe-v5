@@ -43,7 +43,7 @@ export const ServerStatusSchema = z.object({
   uptime: z.number().nonnegative(),
   metrics: ServerMetricsSchema,
   tags: z.array(z.string()).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // ===== 타입 내보내기 =====

@@ -50,7 +50,7 @@ export const ServerStatusSchema = z.object({
   uptime: z.number().nonnegative(),
   metrics: ServerMetricsSchema,
   tags: z.array(z.string()).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 // ===== 서버 페이지네이션 스키마 =====
 
@@ -101,8 +101,8 @@ export const ServerBatchRequestSchema = z.object({
     'batch-configure',
     'health-check',
   ]),
-  options: z.record(z.unknown()).optional(),
-  settings: z.record(z.unknown()).optional(), // Deprecated: use options instead, kept for backward compatibility
+  options: z.record(z.string(), z.unknown()).optional(),
+  settings: z.record(z.string(), z.unknown()).optional(), // Deprecated: use options instead, kept for backward compatibility
 });
 
 export const ServerBatchResponseSchema = z.object({

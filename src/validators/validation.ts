@@ -206,8 +206,8 @@ export function composeMiddleware(
  * 페이지네이션 쿼리 스키마
  */
 export const paginationQuerySchema = z.object({
-  page: z.string().regex(/^\d+$/).transform(Number).default('1'),
-  limit: z.string().regex(/^\d+$/).transform(Number).default('20'),
+  page: z.string().regex(/^\d+$/).transform(Number).default(1),
+  limit: z.string().regex(/^\d+$/).transform(Number).default(20),
   sort: z.string().optional(),
   order: z.enum(['asc', 'desc']).default('desc'),
 });

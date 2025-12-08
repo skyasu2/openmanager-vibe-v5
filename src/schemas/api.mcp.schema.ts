@@ -11,7 +11,7 @@ import { IdSchema, TimestampSchema } from './common.schema';
 
 export const MCPQueryRequestSchema = z.object({
   query: z.string().min(1).max(1000),
-  context: z.record(z.string()).optional(),
+  context: z.record(z.string(), z.string()).optional(),
   sessionId: z.string().optional(),
   userId: z.string().optional(),
   options: z
@@ -62,6 +62,7 @@ export const MCPContextIntegrationRequestSchema = z.object({
   pathFilters: z.array(z.string()).optional(),
   data: z
     .record(
+      z.string(),
       z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])
     )
     .optional(),
@@ -77,6 +78,7 @@ export const MCPContextIntegrationResponseSchema = z.object({
   data: z.unknown().optional(),
   result: z
     .record(
+      z.string(),
       z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])
     )
     .optional(),
@@ -198,7 +200,7 @@ export const MCPContextSchema = z.object({
   sessionId: z.string().optional(),
   userId: z.string().optional(),
   timestamp: TimestampSchema,
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const LocalContextBundleSchema = z.object({

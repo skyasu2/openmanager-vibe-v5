@@ -18,7 +18,7 @@ export const HealthCheckServiceSchema = z.object({
 
 export const HealthCheckResponseSchema = z.object({
   status: HealthStatusSchema,
-  services: z.record(HealthCheckServiceSchema),
+  services: z.record(z.string(), HealthCheckServiceSchema),
   uptime: z.number(),
   version: z.string(),
   timestamp: TimestampSchema,

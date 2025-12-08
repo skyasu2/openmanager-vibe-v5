@@ -113,7 +113,7 @@ export async function validateDatabaseConfig(): Promise<DatabaseValidationResult
     const validation = DatabaseConfigSchema.safeParse(config);
 
     if (!validation.success) {
-      result.errors = validation.error.errors.map(
+      result.errors = validation.error.issues.map(
         (err) => `${err.path.join('.')}: ${err.message}`
       );
       return result;

@@ -194,9 +194,9 @@ export async function safeApiCall<T>(
     console.error(`❌ 타입 안전한 API 호출 실패: ${endpoint}`, error);
 
     if (error instanceof z.ZodError) {
-      console.error('스키마 검증 실패:', error.errors);
+      console.error('스키마 검증 실패:', error.issues);
       throw new Error(
-        `응답 데이터 형식 오류: ${error.errors.map((e) => e.message).join(', ')}`
+        `응답 데이터 형식 오류: ${error.issues.map((e) => e.message).join(', ')}`
       );
     }
 
@@ -260,7 +260,7 @@ export async function safeApiPost<TRequest, TResponse>(
     } catch (error) {
       if (error instanceof z.ZodError) {
         throw new Error(
-          `요청 데이터 형식 오류: ${error.errors.map((e) => e.message).join(', ')}`
+          `요청 데이터 형식 오류: ${error.issues.map((e) => e.message).join(', ')}`
         );
       }
       throw error;

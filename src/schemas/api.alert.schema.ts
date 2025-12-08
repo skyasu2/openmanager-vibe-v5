@@ -23,7 +23,7 @@ export const AlertSchema = z.object({
   resolved: z.boolean(),
   resolvedAt: TimestampSchema.optional(),
   resolvedBy: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // ===== 타입 내보내기 =====

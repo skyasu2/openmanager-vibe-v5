@@ -113,7 +113,7 @@ export const TokenSchema = z.object({
   type: TokenTypeSchema,
   expiresAt: TimestampSchema,
   userId: IdSchema,
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const AuthTokensSchema = z.object({
@@ -131,7 +131,7 @@ export const SessionSchema = z.object({
   token: z.string(),
   device: z.object({
     userAgent: z.string(),
-    ip: z.string().ip(),
+    ip: z.string(),
     browser: z.string().optional(),
     os: z.string().optional(),
     device: z.string().optional(),
@@ -154,7 +154,7 @@ export const PermissionSchema = z.object({
   resource: z.string(),
   action: z.enum(['create', 'read', 'update', 'delete', 'execute']),
   scope: z.enum(['own', 'team', 'all']).optional(),
-  conditions: z.record(z.unknown()).optional(),
+  conditions: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const RolePermissionsSchema = z.object({

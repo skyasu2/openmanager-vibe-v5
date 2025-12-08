@@ -32,7 +32,7 @@ export const MonitoringTargetSchema = z.object({
   endpoint: z.string().optional(),
   enabled: z.boolean().default(true),
   tags: z.array(z.string()).default([]),
-  config: z.record(z.unknown()).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
 });
 
 // ===== 모니터링 메트릭 =====
@@ -69,7 +69,7 @@ export const MetricDefinitionSchema = z.object({
 export const MetricValueSchema = z.object({
   timestamp: TimestampSchema,
   value: z.number(),
-  labels: z.record(z.string()).optional(),
+  labels: z.record(z.string(), z.string()).optional(),
 });
 
 export const MetricDataSchema = z.object({
@@ -122,11 +122,11 @@ export const AlertRuleSchema = z.object({
   logic: z.enum(['all', 'any']).default('all'),
   severity: PrioritySchema,
   cooldown: z.number().nonnegative().default(300), // seconds
-  annotations: z.record(z.string()).optional(),
+  annotations: z.record(z.string(), z.string()).optional(),
   actions: z.array(
     z.object({
       type: z.enum(['email', 'sms', 'webhook', 'slack', 'pagerduty']),
-      config: z.record(z.unknown()),
+      config: z.record(z.string(), z.unknown()),
     })
   ),
 });
@@ -152,9 +152,9 @@ export const AlertInstanceSchema = z.object({
   resolvedAt: TimestampSchema.optional(),
   lastNotifiedAt: TimestampSchema.optional(),
   notificationCount: z.number().nonnegative().default(0),
-  values: z.record(z.number()),
-  labels: z.record(z.string()).optional(),
-  annotations: z.record(z.string()).optional(),
+  values: z.record(z.string(), z.number()),
+  labels: z.record(z.string(), z.string()).optional(),
+  annotations: z.record(z.string(), z.string()).optional(),
   silencedUntil: TimestampSchema.optional(),
 });
 
@@ -186,12 +186,12 @@ export const DashboardPanelSchema = z.object({
     z.object({
       metric: z.string(),
       targetId: IdSchema.optional(),
-      filters: z.record(z.string()).optional(),
+      filters: z.record(z.string(), z.string()).optional(),
       aggregation: z.string().optional(),
       groupBy: z.array(z.string()).optional(),
     })
   ),
-  options: z.record(z.unknown()).optional(),
+  options: z.record(z.string(), z.unknown()).optional(),
   refreshInterval: z.number().positive().optional(), // seconds
 });
 
@@ -206,7 +206,7 @@ export const DashboardSchema = z.object({
         name: z.string(),
         type: z.enum(['query', 'custom', 'constant']),
         value: z.union([z.string(), z.array(z.string())]),
-        options: z.record(z.unknown()).optional(),
+        options: z.record(z.string(), z.unknown()).optional(),
       })
     )
     .optional(),
@@ -218,7 +218,7 @@ export const DashboardSchema = z.object({
     .optional(),
   refreshInterval: z.number().positive().optional(),
   tags: z.array(z.string()).default([]),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // ===== 로그 =====
@@ -242,7 +242,7 @@ export const LogEntrySchema = z.object({
     file: z.string().optional(),
     line: z.number().optional(),
   }),
-  context: z.record(z.unknown()).optional(),
+  context: z.record(z.string(), z.unknown()).optional(),
   traceId: z.string().optional(),
   spanId: z.string().optional(),
   userId: z.string().optional(),

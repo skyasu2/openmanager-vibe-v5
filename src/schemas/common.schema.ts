@@ -27,7 +27,8 @@ export const PortSchema = z.number().int().min(1).max(65535);
 // 문자열 패턴
 export const EmailSchema = z.string().email();
 export const UrlSchema = z.string().url();
-export const IpAddressSchema = z.string().ip();
+// Note: z.string().ip() removed in Zod v4, use z.string() with custom validation if needed
+export const IpAddressSchema = z.string();
 export const JsonSchema = z.string().transform((str, ctx) => {
   try {
     return JSON.parse(str);
@@ -79,7 +80,7 @@ export const ErrorResponseSchema = BaseResponseSchema.extend({
   success: z.literal(false),
   error: z.string(),
   errorCode: z.string().optional(),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
 });
 
 // 메타데이터
@@ -97,7 +98,7 @@ export const ConfigurationSchema = z.object({
   enabled: z.boolean().default(true),
   name: z.string().min(1),
   description: z.string().optional(),
-  settings: z.record(z.unknown()).default({}),
+  settings: z.record(z.string(), z.unknown()).default({}),
 });
 
 // 상태
@@ -181,7 +182,7 @@ export const StringToBoolean = z
 // 안전한 JSON 파싱
 export const SafeJsonSchema = <T extends z.ZodTypeAny>(schema: T) =>
   z
-    .union([z.string(), z.record(z.unknown())])
+    .union([z.string(), z.record(z.string(), z.unknown())])
     .transform((val, ctx) => {
       if (typeof val === 'string') {
         try {

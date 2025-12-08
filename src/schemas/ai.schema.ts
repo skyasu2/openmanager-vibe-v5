@@ -132,8 +132,8 @@ export const AnomalyDetectionSchema = z.object({
   confidence: PercentageSchema,
   description: z.string(),
   detectedAt: TimestampSchema,
-  metrics: z.record(z.number()),
-  baseline: z.record(z.number()).optional(),
+  metrics: z.record(z.string(), z.number()),
+  baseline: z.record(z.string(), z.number()).optional(),
   recommendation: z.string().optional(),
   falsePositive: z.boolean().default(false),
 });
@@ -188,7 +188,7 @@ export const AIInsightSchema = z.object({
       implementation: z.string().optional(),
     })
   ),
-  supportingData: z.record(z.unknown()).optional(),
+  supportingData: z.record(z.string(), z.unknown()).optional(),
   generatedAt: TimestampSchema,
   expiresAt: TimestampSchema.optional(),
 });
@@ -254,7 +254,7 @@ export const KoreanNLPResponseSchema = z.object({
     }),
   ]),
   processingTime: z.number(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // ===== AI 학습 =====
@@ -262,7 +262,7 @@ export const KoreanNLPResponseSchema = z.object({
 export const TrainingDataSchema = z.object({
   id: IdSchema,
   type: z.enum(['metrics', 'logs', 'events', 'feedback']),
-  data: z.array(z.record(z.unknown())),
+  data: z.array(z.record(z.string(), z.unknown())),
   labels: z.array(z.unknown()).optional(),
   metadata: MetadataSchema,
 });
@@ -276,7 +276,7 @@ export const ModelTrainingRequestSchema = z.object({
     batchSize: z.number().positive().optional(),
     learningRate: z.number().positive().optional(),
     validationSplit: z.number().min(0).max(1).optional(),
-    customParams: z.record(z.unknown()).optional(),
+    customParams: z.record(z.string(), z.unknown()).optional(),
   }),
   evaluationMetrics: z.array(z.string()).optional(),
 });

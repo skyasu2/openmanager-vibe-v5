@@ -96,7 +96,7 @@ export const DashboardStatsSchema = z.object({
 
 export const DashboardDataSchema = z.object({
   stats: DashboardStatsSchema,
-  servers: z.record(DashboardServerSchema), // Server data as key-value pairs with proper schema
+  servers: z.record(z.string(), DashboardServerSchema), // Server data as key-value pairs with proper schema
   recentAlerts: z.array(AlertSchema),
   systemHealth: z.enum(['excellent', 'good', 'warning', 'critical']),
   timestamp: TimestampSchema,
@@ -155,7 +155,7 @@ export const DashboardActionDataSchema = z.union([
     source: z.enum(['file', 'url', 'database']).optional(),
     fileData: z.string().optional(), // Base64 encoded file
     url: z.string().url().optional(),
-    mapping: z.record(z.string()).optional(), // Field mapping
+    mapping: z.record(z.string(), z.string()).optional(), // Field mapping
   }),
 ]);
 
@@ -243,7 +243,7 @@ export const DashboardOptimizedServerSchema = z.object({
 export const DashboardOptimizedResponseSchema = z.object({
   success: z.boolean(),
   data: z.object({
-    servers: z.record(DashboardOptimizedServerSchema),
+    servers: z.record(z.string(), DashboardOptimizedServerSchema),
     stats: z.object({
       total: z.number(),
       online: z.number(),
