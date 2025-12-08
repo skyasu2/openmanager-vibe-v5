@@ -80,7 +80,7 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 3. 영향 범위 분석
 4. AI Cross-Check (Gemini)
 
-**상세**: <!-- Imported from: docs/ai/ai-coding-standards.md --> (Pre-Development Checklist)
+**상세**: <!-- Imported from: docs/development/standards/git-hooks-best-practices.md --> (Pre-Development Checklist)
 
 ### 🎯 구현 시 필수 작업
 
@@ -90,7 +90,7 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 2. 테스트 관리 (수정/생성/제거)
 3. Side-Effect 처리 (의존성, 환경변수, 타입, DB)
 
-**상세**: <!-- Imported from: docs/ai/ai-coding-standards.md --> (Implementation Checklist)
+**상세**: <!-- Imported from: docs/development/standards/typescript-rules.md --> (Implementation Checklist)
 
 ---
 
@@ -189,7 +189,7 @@ npm run test:fast           # 21초 (44% 개선)
 **MCP 필요시 활용**: 12/12 서버 연결, 토큰 85% 절약 가능
 
 - **서버 목록/역할**: @config/ai/registry-core.yaml (SSOT)
-- **활용 가이드**: @docs/claude/environment/mcp/mcp-priority-guide.md
+- **활용 가이드**: @docs/development/setup/mcp-priority-guide.md
 
 ---
 
@@ -200,7 +200,7 @@ npm run test:fast           # 21초 (44% 개선)
 ```bash
 # 자동화 스크립트 (권장)
 ./scripts/generate-diagrams.sh                    # docs/ 전체 .mmd 파일 변환
-./scripts/generate-diagrams.sh docs/arch/flow.mmd # 특정 파일만 변환
+./scripts/generate-diagrams.sh docs/core/architecture/flow.mmd # 특정 파일만 변환
 
 # 수동 사용
 mmdc -i diagram.mmd -o output.png    # PNG 생성
@@ -214,7 +214,7 @@ mmdc -i diagram.mmd -o output.png -b white -t neutral  # 옵션
 - DB 스키마 ER 다이어그램
 - 시퀀스 다이어그램 (API 호출 흐름)
 
-**저장 위치**: `docs/architecture/*.mmd` → PNG/SVG 변환
+**저장 위치**: `docs/core/architecture/*.mmd` → PNG/SVG 변환
 
 ---
 
@@ -230,7 +230,7 @@ mmdc -i diagram.mmd -o output.png -b white -t neutral  # 옵션
 **주간 관리 (2개)**: MCP 헬스체크, AI 도구 확인
 **개발 워크플로우 (10개)**: dev-server-manager, git-push-safe, run-tests
 
-**상세**: @docs/claude/1_workflows.md (스크립트 전체 목록 및 사용법)
+**상세**: @docs/development/workflows/1_workflows.md (스크립트 전체 목록 및 사용법)
 
 ---
 
@@ -241,7 +241,7 @@ mmdc -i diagram.mmd -o output.png -b white -t neutral  # 옵션
 **AI 도구**: `"dev-environment-manager야, AI 도구 헬스 체크해줘"`
 **MCP**: `claude mcp list` 또는 `./scripts/mcp/mcp-health-check.sh`
 
-**상세**: @docs/claude/1_workflows.md (트러블슈팅 가이드)
+**상세**: @docs/development/workflows/1_workflows.md (트러블슈팅 가이드)
 
 ---
 
@@ -272,8 +272,8 @@ mmdc -i diagram.mmd -o output.png -b white -t neutral  # 옵션
 
 ## ⚡ Quick Reference
 
-**워크플로우**: @docs/claude/1_workflows.md (일일 루틴, 스크립트)
-**MCP 가이드**: @docs/claude/environment/mcp/mcp-priority-guide.md
+**워크플로우**: @docs/development/workflows/1_workflows.md (일일 루틴, 스크립트)
+**MCP 가이드**: @docs/development/setup/mcp-priority-guide.md
 
 ---
 

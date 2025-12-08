@@ -117,7 +117,7 @@ git diff | gemini TypeScript 타입 누락 확인
 **디버깅**: `tail error.log | gemini "에러 원인 분석"`
 **테스트**: `cat file.ts | gemini "Vitest 테스트 작성"`
 
-**상세**: <!-- Imported from: docs/ai/ai-workflows.md --> (워크플로우 예시 전체)
+**상세**: <!-- Imported from: docs/development/workflows/1_workflows.md --> (워크플로우 예시 전체)
 
 ---
 
@@ -133,7 +133,7 @@ git diff | gemini TypeScript 타입 누락 확인
 
 - 가독성, 간결함, 유지보수성, 테스트, 교차 검증
 
-**상세**: <!-- Imported from: docs/ai/ai-coding-standards.md --> (전체 코딩 규칙)
+**상세**: <!-- Imported from: docs/development/standards/typescript-rules.md --> (전체 코딩 규칙)
 
 ---
 

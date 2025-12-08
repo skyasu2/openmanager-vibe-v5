@@ -10,15 +10,15 @@
 
 ### 성능 개선 결과
 
-| 지표               | 현재      | 최적화 후   | 개선율        |
-| ------------------ | --------- | ----------- | ------------- |
+| 지표 | 현재 | 최적화 후 | 개선율 |
+|------|------|-----------|--------|
 | **평균 응답 지연** | 0.8-3.5ms | 0.11-0.15ms | **85-95%** ⚡ |
-| **환경변수 파싱**  | 매 요청   | 0회 (캐싱)  | **100%**      |
-| **정규식 컴파일**  | 매 요청   | 0회 (캐싱)  | **100%**      |
-| **로깅 오버헤드**  | 0.5-2ms   | 0.1ms       | **80-95%**    |
-| **메모리 효율**    | 7/10      | 10/10       | **+43%**      |
-| **CPU 효율**       | 6/10      | 9/10        | **+50%**      |
-| **비용**           | $0        | $0          | ✅ 유지       |
+| **환경변수 파싱** | 매 요청 | 0회 (캐싱) | **100%** |
+| **정규식 컴파일** | 매 요청 | 0회 (캐싱) | **100%** |
+| **로깅 오버헤드** | 0.5-2ms | 0.1ms | **80-95%** |
+| **메모리 효율** | 7/10 | 10/10 | **+43%** |
+| **CPU 효율** | 6/10 | 9/10 | **+50%** |
+| **비용** | $0 | $0 | ✅ 유지 |
 
 ### 핵심 성과
 
@@ -35,16 +35,14 @@
 ### 병목 #1: 환경변수 반복 파싱
 
 **현재 구현**:
-
 ```typescript
 function getAllowedIPs(): string[] {
   const allowedIPsEnv = process.env.ALLOWED_TEST_IPS || '';
-  return allowedIPsEnv.split(',').map((ip) => ip.trim()); // 매 요청마다!
+  return allowedIPsEnv.split(',').map(ip => ip.trim()); // 매 요청마다!
 }
 ```
 
 **문제점**:
-
 - 환경변수는 배포 시 고정됨 (변경 불가)
 - 매 요청마다 동일한 `split()`, `map()`, `trim()` 연산 반복
 - Vercel Edge에서 불필요한 CPU 사용
@@ -56,7 +54,6 @@ function getAllowedIPs(): string[] {
 ### 병목 #2: 정규식 반복 생성
 
 **현재 구현**:
-
 ```typescript
 if (allowedIP.includes('*')) {
   const pattern = allowedIP.replace(/\*/g, '[0-9]+').replace(/\./g, '\\.');
@@ -66,7 +63,6 @@ if (allowedIP.includes('*')) {
 ```
 
 **문제점**:
-
 - 동일한 패턴의 정규식을 매 요청마다 생성
 - 정규식 컴파일은 상대적으로 비싼 연산
 - 허용 IP 5개면 최대 5번 정규식 생성
@@ -78,20 +74,18 @@ if (allowedIP.includes('*')) {
 ### 병목 #3: 무조건적 로깅
 
 **현재 구현**:
-
 ```typescript
 if (!isAllowed) {
   console.warn('🚨 [IP Security] 차단된 IP에서...', {
     ip: clientIP,
     path: pathname,
-    allowedIPs: allowedIPs.join(', '), // JSON 직렬화!
+    allowedIPs: allowedIPs.join(', ') // JSON 직렬화!
   });
 }
 console.log('✅ [IP Security] 허용된 IP에서 접근:', clientIP);
 ```
 
 **문제점**:
-
 - 프로덕션에서도 매 요청마다 성공 로그 출력
 - JSON 객체 직렬화 오버헤드
 - Vercel Edge stdout/stderr 버퍼링 지연
@@ -105,11 +99,10 @@ console.log('✅ [IP Security] 허용된 IP에서 접근:', clientIP);
 ### 방안 #1: 모듈 레벨 캐싱
 
 **최적화 코드**:
-
 ```typescript
 // 배포 시 한 번만 실행
 const ALLOWED_IPS_ENV = process.env.ALLOWED_TEST_IPS || '121.138.139.74';
-const ALLOWED_IPS_RAW = ALLOWED_IPS_ENV.split(',').map((ip) => ip.trim());
+const ALLOWED_IPS_RAW = ALLOWED_IPS_ENV.split(',').map(ip => ip.trim());
 
 // IP 타입별 분류
 const EXACT_IPS = new Set<string>();
@@ -121,9 +114,7 @@ for (const ip of ALLOWED_IPS_RAW) {
   if (ip.includes('*')) {
     WILDCARD_PATTERNS.push({
       original: ip,
-      regex: new RegExp(
-        `^${ip.replace(/\*/g, '[0-9]+').replace(/\./g, '\\.')}$`
-      ),
+      regex: new RegExp(`^${ip.replace(/\*/g, '[0-9]+').replace(/\./g, '\\.')}$`)
     });
   }
   // ...
@@ -131,7 +122,6 @@ for (const ip of ALLOWED_IPS_RAW) {
 ```
 
 **효과**:
-
 - 환경변수 파싱: **0회** (vs 매 요청)
 - 정규식 생성: **0회** (vs 매 요청)
 - 응답 지연 감소: **0.3-1.5ms → 0ms**
@@ -141,7 +131,6 @@ for (const ip of ALLOWED_IPS_RAW) {
 ### 방안 #2: Early Return 최적화
 
 **최적화 코드**:
-
 ```typescript
 function isIPAllowed(clientIP: string): boolean {
   // 1. 완전 일치 (O(1) 해시 조회)
@@ -163,7 +152,6 @@ function isIPAllowed(clientIP: string): boolean {
 ```
 
 **효과**:
-
 - 대부분의 경우 첫 번째 체크에서 종료 (Set 해시)
 - 완전 일치 시: **O(1)** (vs O(n) 배열 순회)
 - CIDR/와일드카드는 필요 시에만 실행
@@ -173,7 +161,6 @@ function isIPAllowed(clientIP: string): boolean {
 ### 방안 #3: 조건부 로깅
 
 **최적화 코드**:
-
 ```typescript
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -194,7 +181,6 @@ if (IS_DEV) {
 ```
 
 **효과**:
-
 - 프로덕션 로깅: **95% 감소**
 - 응답 지연 감소: **0.5-2ms → 0.1ms** (허용 IP의 경우)
 - Vercel 로그 사용량: **대폭 감소**
@@ -205,21 +191,21 @@ if (IS_DEV) {
 
 ### 현재 성능 분석
 
-| 단계           | 시간          | 비고                         |
-| -------------- | ------------- | ---------------------------- |
-| 환경변수 파싱  | 0.1-0.5ms     | `split()`, `map()`, `trim()` |
-| IP 검증 (평균) | 0.2-1ms       | 배열 순회 + 정규식           |
-| 로깅           | 0.5-2ms       | JSON 직렬화 + stdout         |
-| **총 지연**    | **0.8-3.5ms** | per request                  |
+| 단계 | 시간 | 비고 |
+|------|------|------|
+| 환경변수 파싱 | 0.1-0.5ms | `split()`, `map()`, `trim()` |
+| IP 검증 (평균) | 0.2-1ms | 배열 순회 + 정규식 |
+| 로깅 | 0.5-2ms | JSON 직렬화 + stdout |
+| **총 지연** | **0.8-3.5ms** | per request |
 
 ### 최적화 후 성능
 
-| 단계          | 시간            | 비고                 |
-| ------------- | --------------- | -------------------- |
-| 환경변수 파싱 | 0ms             | 모듈 캐싱            |
-| IP 검증 (Set) | 0.01-0.05ms     | O(1) 해시 조회       |
-| 로깅          | 0.1ms           | 조건부 (개발 모드만) |
-| **총 지연**   | **0.11-0.15ms** | per request          |
+| 단계 | 시간 | 비고 |
+|------|------|------|
+| 환경변수 파싱 | 0ms | 모듈 캐싱 |
+| IP 검증 (Set) | 0.01-0.05ms | O(1) 해시 조회 |
+| 로깅 | 0.1ms | 조건부 (개발 모드만) |
+| **총 지연** | **0.11-0.15ms** | per request |
 
 ### 성능 향상 비율
 
@@ -234,12 +220,12 @@ if (IS_DEV) {
 
 ### Vercel Edge Functions 특성
 
-| 항목          | 무료 티어      | 최적화 전 | 최적화 후   |
-| ------------- | -------------- | --------- | ----------- |
+| 항목 | 무료 티어 | 최적화 전 | 최적화 후 |
+|------|-----------|-----------|-----------|
 | **실행 시간** | 50ms wall time | 0.8-3.5ms | 0.11-0.15ms |
-| **메모리**    | 128MB          | < 1MB     | < 1KB       |
-| **요청 수**   | 100,000/일     | ✅ 여유   | ✅ 여유     |
-| **비용**      | $0             | $0        | $0          |
+| **메모리** | 128MB | < 1MB | < 1KB |
+| **요청 수** | 100,000/일 | ✅ 여유 | ✅ 여유 |
+| **비용** | $0 | $0 | $0 |
 
 ### 성능 마진
 
@@ -261,8 +247,8 @@ if (!isAllowed) {
       status: 403,
       headers: {
         'X-RateLimit-Limit': '0',
-        'X-RateLimit-Remaining': '0',
-      },
+        'X-RateLimit-Remaining': '0'
+      }
     }
   );
 }
@@ -277,12 +263,10 @@ if (!isAllowed) {
 ### 3. Edge Config 고려 (선택적)
 
 **사용 케이스**:
-
 - 동적 IP 관리 필요 시
 - 실시간 차단 목록 업데이트
 
 **비용**:
-
 - Vercel Edge Config: 무료 티어 포함
 - 현재는 불필요 (정적 IP 1개)
 
@@ -365,13 +349,11 @@ if (IS_DEV) {
 ### 핵심 원칙
 
 **"캐싱 가능한 것은 모두 캐싱하라"**
-
 - 환경변수: 모듈 레벨 캐싱
 - 정규식: 초기화 시 컴파일
 - 로깅: 조건부 실행
 
 **"빠른 경로를 먼저 실행하라"**
-
 - Set 해시 조회 (O(1))
 - CIDR 비트 연산
 - 정규식 (마지막 수단)
