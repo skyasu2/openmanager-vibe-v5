@@ -323,21 +323,21 @@ daily_checklist:
 risks:
   technical:
     - risk: "[기술적 위험 1]"
-      probability: "[High/Medium/Low]"
-      impact: "[High/Medium/Low]"
-      mitigation: "[대응 방안]"
+    - probability: "[High/Medium/Low]"
+    - impact: "[High/Medium/Low]"
+    - mitigation: "[대응 방안]"
       
   schedule:
     - risk: "[일정 위험 1]"
-      probability: "[High/Medium/Low]"
-      impact: "[High/Medium/Low]"
-      mitigation: "[대응 방안]"
+    - probability: "[High/Medium/Low]"
+    - impact: "[High/Medium/Low]"
+    - mitigation: "[대응 방안]"
       
   resources:
     - risk: "[리소스 위험 1]"
-      probability: "[High/Medium/Low]"
-      impact: "[High/Medium/Low]"
-      mitigation: "[대응 방안]"
+    - probability: "[High/Medium/Low]"
+    - impact: "[High/Medium/Low]"
+    - mitigation: "[대응 방안]"
 ```
 
 ## 🔧 도구 및 자원

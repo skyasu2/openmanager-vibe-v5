@@ -476,6 +476,13 @@ lint_*.txt
 lint_*.json
 type_check_report*.txt
 tsc_output*.txt
+tsc_*.log
+build_*.txt
+build_*.log
+test_*.log
+test_*.txt
+vitest_*.log
+.mcp.json.tmp
 
 # 🔧 Maintenance & Analysis Output (임시 분석 결과, 루트 스코프)
 /oldest_files*.json
