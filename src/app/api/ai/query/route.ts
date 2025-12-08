@@ -44,8 +44,12 @@ const callUnifiedProcessor = tool({
   }) => {
     try {
       const gcpEndpoint =
-        process.env.NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT ||
-        'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/unified-ai-processor';
+        process.env.NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT;
+      if (!gcpEndpoint) {
+        throw new Error(
+          'NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT is not configured'
+        );
+      }
 
       const allServers = await loadHourlyScenarioData();
       const serverIds = allServers.map((s) => s.id);

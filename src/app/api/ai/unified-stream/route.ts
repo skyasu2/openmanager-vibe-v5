@@ -49,8 +49,7 @@ const callUnifiedProcessor = tool({
   }) => {
     try {
       const gcpEndpoint =
-        process.env.NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT ||
-        'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/unified-ai-processor';
+        process.env.NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT || '';
 
       // 컨텍스트 데이터 로드 (서버 ID 등)
       const allServers = await loadHourlyScenarioData();

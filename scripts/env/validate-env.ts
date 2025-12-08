@@ -120,20 +120,20 @@ const requiredEnvVars: Record<string, EnvConfig> = {
 
   // GCP Functions
   'GCP_KOREAN_NLP_ENDPOINT': {
-    description: 'GCP Korean NLP Function URL',
-    example: 'https://your-region-your-project.cloudfunctions.net/enhanced-korean-nlp',
+    description: 'GCP Korean NLP Cloud Run URL',
+    example: 'https://enhanced-korean-nlp-xxxxx-xx.a.run.app',
     required: false,
     category: 'GCP Functions'
   },
   'GCP_ML_ANALYTICS_ENDPOINT': {
-    description: 'GCP ML Analytics Function URL',
-    example: 'https://your-region-your-project.cloudfunctions.net/ml-analytics-engine',
+    description: 'GCP ML Analytics Cloud Run URL',
+    example: 'https://ml-analytics-engine-xxxxx-xx.a.run.app',
     required: false,
     category: 'GCP Functions'
   },
   'GCP_AI_PROCESSOR_ENDPOINT': {
-    description: 'GCP AI Processor Function URL',
-    example: 'https://your-region-your-project.cloudfunctions.net/unified-ai-processor',
+    description: 'GCP AI Processor Cloud Run URL',
+    example: 'https://unified-ai-processor-xxxxx-xx.a.run.app',
     required: false,
     category: 'GCP Functions'
   }

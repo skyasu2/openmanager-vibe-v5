@@ -9,9 +9,7 @@ import type {
 
 // 기본 설정
 export const GCP_FUNCTIONS_CONFIG: GCPFunctionsClientConfig = {
-  baseUrl:
-    process.env.NEXT_PUBLIC_GCP_FUNCTIONS_URL ||
-    'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net',
+  baseUrl: process.env.NEXT_PUBLIC_GCP_FUNCTIONS_URL || '',
   timeout: 5000, // 5초 (실측 230ms의 20배 여유)
   maxRetries: 1, // 1회 재시도만
   retryDelay: 1000, // 1초 후 재시도
@@ -50,7 +48,9 @@ export function getEnvironmentConfig(): Partial<GCPFunctionsClientConfig> {
 export function validateConfig(config: GCPFunctionsClientConfig): boolean {
   // Base URL 검증
   if (!config.baseUrl || !config.baseUrl.startsWith('https://')) {
-    console.error('❌ Invalid base URL in GCP Functions config');
+    console.error(
+      '❌ GCP Functions Base URL이 설정되지 않았거나 유효하지 않습니다.'
+    );
     return false;
   }
 
