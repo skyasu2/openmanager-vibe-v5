@@ -34,8 +34,8 @@ updated: '2025-09-16'
    - .claude/.claude.json, .claude/settings.local.json 내의 비정상 유니코드를 정규화합니다.
 
 3. 레포 내 텍스트 파일 점검(선택)
-   - npm run scan:unicode
-   - UTF-16/32 BOM, 잘못된 서러게이트, 제어문자를 보고서로 확인합니다.
+   - `grep -rP '[\x00-\x08\x0B\x0C\x0E-\x1F]' src/` 로 제어문자 검색
+   - UTF-16/32 BOM, 잘못된 서러게이트, 제어문자를 수동으로 확인합니다.
 
 추가 권장 설정(WSL)
 

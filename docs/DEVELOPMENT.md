@@ -204,7 +204,7 @@ Task({
 # Vercel 환경 통합 테스트
 npm run test:vercel:full    # 종합 프로덕션 테스트
 npm run test:vercel:e2e     # E2E 테스트 (실제 환경)
-npm run test:vercel         # 프로덕션 테스트
+npm run test:vercel:e2e     # 프로덕션 테스트
 
 # AI 개발 최적화 테스트
 npm run test:ai             # AI 개발 기본 (Vercel 환경)

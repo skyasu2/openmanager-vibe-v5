@@ -419,7 +419,7 @@ npm run subagent:plan --dry-run
 npm run subagent:trend
 
 # 시스템 상태 종합 진단
-npm run health:check
+npm run validate:all
 ```
 
 ---

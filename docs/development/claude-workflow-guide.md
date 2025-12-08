@@ -245,7 +245,7 @@ claude mcp list
 npm run perf:quick
 
 # 개발 효율성 측정
-npm run verify:fast  # AI CLI 검증
+npm run validate:quick  # 빠른 타입 체크 + 린트
 
 # 종합 품질 체크
 npm run validate:all

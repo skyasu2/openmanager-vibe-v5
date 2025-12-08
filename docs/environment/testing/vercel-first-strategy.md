@@ -47,7 +47,7 @@ npm run test:vercel:full    # 전체 프로덕션 테스트
 npm run test:vercel:e2e     # 18개 Playwright 테스트
 
 # 프로덕션 환경 검증
-npm run test:vercel         # 배포 후 즉시 실행
+npm run test:vercel:e2e     # 배포 후 즉시 실행
 ```
 
 **포함 내용**:

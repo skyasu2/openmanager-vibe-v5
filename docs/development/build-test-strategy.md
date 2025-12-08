@@ -151,7 +151,7 @@ npm run perf:quick              # 빠른 성능 측정
 npm run perf:all-benchmarks     # 종합 벤치마크
 
 # 개발 효율성 측정
-npm run verify:fast             # AI CLI 검증 (96.4% 성능 향상)
+npm run validate:quick          # 빠른 타입 체크 + 린트
 npm run perf:precommit-benchmark # 사전 커밋 성능 측정
 ```
 
@@ -237,7 +237,7 @@ export NODE_OPTIONS="--max-old-space-size=4096 --gc-interval=100"
 npm run test:api  # API Routes 성능 테스트
 
 # Vercel 실제 환경 테스트
-npm run test:vercel  # 실제 배포 환경에서 검증
+npm run test:vercel:e2e  # 실제 배포 환경에서 검증
 ```
 
 ## 📈 성능 측정 및 개선
