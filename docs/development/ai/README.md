@@ -1,47 +1,59 @@
 ---
 category: development-ai
-purpose: development_ai_tools
+purpose: development_ai_tools_hub
 last_updated: '2025-12-08'
 ---
 
-# 개발용 AI (Claude, Codex, Gemini, Qwen)
+# 개발용 AI 도구
 
 개발 시 사용하는 AI 도구 및 방법론
 
-## 필수 문서
+## 디렉토리 구조
 
-| 문서 | 설명 | 중요도 |
-|------|------|--------|
-| [subagents-complete-guide.md](./subagents-complete-guide.md) | 9개 서브에이전트 활용법 | HIGH |
-| [ai-coding-standards.md](./ai-coding-standards.md) | AI 코딩 규칙 통합 | HIGH |
-| [ai-usage-guidelines.md](./ai-usage-guidelines.md) | AI 사용 가이드라인 | HIGH |
+```
+docs/development/ai/
+├── claude-code/           # Claude Code 전용 기능
+│   ├── subagents-complete-guide.md
+│   └── weekly-subagent-reminder.md
+│
+├── codex/                 # OpenAI Codex CLI
+│   └── README.md
+│
+├── gemini/                # Google Gemini CLI
+│   └── README.md
+│
+├── qwen/                  # Alibaba Qwen CLI
+│   ├── qwen-timeout-analysis-and-fix.md
+│   └── README.md
+│
+├── common/                # 공통/Multi-AI
+│   ├── ai-coding-standards.md
+│   ├── ai-collaboration-architecture.md
+│   ├── ai-benchmarks.md
+│   ├── ai-usage-guidelines.md
+│   ├── ai-wrappers-guide.md
+│   ├── cli-strategy.md
+│   ├── verification.md
+│   └── workflow.md
+│
+└── README.md              # 이 파일
+```
 
 ## 도구별 가이드
 
-| 문서 | 설명 |
-|------|------|
-| [ai-wrappers-guide.md](./ai-wrappers-guide.md) | Codex/Gemini/Qwen 래퍼 가이드 |
-| [ai-benchmarks.md](./ai-benchmarks.md) | AI 도구 성능 비교 |
-| [qwen-timeout-analysis-and-fix.md](./qwen-timeout-analysis-and-fix.md) | Qwen 타임아웃 문제 해결 |
-| [cli-strategy.md](./cli-strategy.md) | CLI 전략 |
-
-## 워크플로우
-
-| 문서 | 설명 |
-|------|------|
-| [ai-collaboration-architecture.md](./ai-collaboration-architecture.md) | Multi-AI 협업 방법론 |
-| [workflow.md](./workflow.md) | 개발 워크플로우 |
-| [verification.md](./verification.md) | 검증 시스템 |
-| [weekly-subagent-reminder.md](./weekly-subagent-reminder.md) | 주간 리마인더 |
-
----
+| 도구 | 버전 | 역할 | 가이드 |
+|------|------|------|--------|
+| Claude Code | v2.0.60 | Lead + 서브에이전트 | [claude-code/](./claude-code/) |
+| Codex | v0.63.0 | Primary 3-AI 순환 | [codex/](./codex/) |
+| Gemini | v0.19.1 | Primary 3-AI 순환 | [gemini/](./gemini/) |
+| Qwen | v0.4.0 | Fallback 리뷰 | [qwen/](./qwen/) |
 
 ## 빠른 참조
 
 ```bash
-# 서브에이전트 호출
+# Claude Code 서브에이전트
 Task code-review-specialist "변경사항 리뷰"
-Task debugger-specialist "버그 근본 원인 분석"
+Task debugger-specialist "버그 분석"
 
 # CLI 도구
 codex exec "코드 리뷰"
