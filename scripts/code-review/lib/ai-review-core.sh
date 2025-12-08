@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# AI Review Core Functions - v6.4.0
-# AI 리뷰 실행 함수들 (Codex, Gemini, Qwen, Claude)
+# AI Review Core Functions - v6.9.1
+# AI 리뷰 실행 함수들 (Codex, Gemini, Qwen - Claude 제거됨)
 #
-# v6.4.0 (2025-12-03): Rate Limit 감지 통합 + 초기 상태 버그 수정
-# - 순번: codex → gemini → claude (순환)
-# - 🆕 Gemini/Qwen Rate Limit 감지 통합
-# - 🆕 초기 상태: last_ai=claude → 첫 선택 codex
-# - 폴백 체인: Primary(codex/gemini/claude) → Qwen → Claude(절대 최종)
+# v6.9.1 (2025-12-08): 1:1:1 순환 버그 수정 + Claude 완전 제거
+# - 3-AI 순환: codex → gemini → qwen → codex
+# - 상호 폴백: 각 AI 실패 시 다른 두 AI로 순차 폴백
+# - 🆕 set_last_ai를 성공 후에만 호출 (1:1:1 균등분배 보장)
+# - 🆕 Claude 완전 제거 (Claude Code 세션 내 자기 호출 불가)
 
 # ============================================================================
 # Codex 리뷰 함수
@@ -550,9 +550,9 @@ run_ai_review() {
     local primary_ai=$(select_primary_ai)
     log_info "🎯 Primary AI: ${primary_ai^^} (3-AI 순번: codex→gemini→qwen)"
 
-    # 🆕 v6.3.0: 선택 즉시 rotation 진행 (1:1:1 균등분배 보장)
-    # 성공/실패 관계없이 다음 호출에서는 다음 AI가 선택됨
-    set_last_ai "$primary_ai"
+    # 🆕 v6.9.1: 성공한 AI만 last_ai에 저장 (1:1:1 균등분배 보장)
+    # - 이전 (v6.3.0): 선택 즉시 저장 → 폴백 성공 시 같은 AI 두 번 선택 문제
+    # - 현재 (v6.9.1): 리뷰 성공 후 저장 → 실제 사용된 AI 기반 순환
 
     # 폴백 AI 결정 (각 AI는 다른 AI로 폴백)
     # codex → gemini → qwen → codex
@@ -576,6 +576,7 @@ run_ai_review() {
     if review_output=$(run_single_ai_review "$primary_ai" "$changes"); then
         log_success "${primary_ai^^} 리뷰 성공!"
         increment_ai_counter "$primary_ai"
+        set_last_ai "$primary_ai"  # 🆕 v6.9.1: 성공한 AI만 저장
         AI_ENGINE="$primary_ai"
 
         # 성공 시 보류 중인 리뷰 클리어
@@ -595,6 +596,7 @@ run_ai_review() {
     if review_output=$(run_single_ai_review "$fallback1" "$changes"); then
         log_success "${fallback1^^} 폴백 성공!"
         increment_ai_counter "$fallback1"
+        set_last_ai "$fallback1"  # 🆕 v6.9.1: 성공한 AI만 저장
         AI_ENGINE="$fallback1"
 
         # 성공 시 보류 중인 리뷰 클리어
@@ -614,6 +616,7 @@ run_ai_review() {
     if review_output=$(run_single_ai_review "$fallback2" "$changes"); then
         log_success "${fallback2^^} 최종 폴백 성공!"
         increment_ai_counter "$fallback2"
+        set_last_ai "$fallback2"  # 🆕 v6.9.1: 성공한 AI만 저장
         AI_ENGINE="$fallback2"
 
         # 성공 시 보류 중인 리뷰 클리어

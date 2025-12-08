@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# AI Review Utilities - v6.4.0
+# AI Review Utilities - v6.9.1
 # 유틸리티 함수 모음 (로그, 카운터, 변경사항 수집 등)
-# v6.4.0 (2025-12-03): 초기 상태 버그 수정 (last_ai=claude → 첫 선택 codex)
+# v6.9.1 (2025-12-08): Claude 제거 완료, 3-AI 전용 (codex/gemini/qwen)
 
 # 색상 정의
 RED='\033[0;31m'
@@ -34,30 +34,26 @@ log_ai_engine() {
     echo -e "${MAGENTA}🤖 $1${NC}"
 }
 
-# AI 사용 카운터 초기화 (v6.0.0: last_ai 추가)
+# AI 사용 카운터 초기화 (v6.9.1: claude 제거, 3-AI만)
 init_ai_counter() {
     if [ ! -f "$STATE_FILE" ]; then
         echo "codex_count=0" > "$STATE_FILE"
         echo "gemini_count=0" >> "$STATE_FILE"
         echo "qwen_count=0" >> "$STATE_FILE"
-        echo "claude_count=0" >> "$STATE_FILE"
-        echo "last_ai=claude" >> "$STATE_FILE"  # 초기값: claude → 첫 실행 시 codex 선택 (v6.4.0 수정)
+        echo "last_ai=qwen" >> "$STATE_FILE"  # v6.9.1: qwen → 첫 실행 시 codex 선택
         log_info "상태 파일 초기화: $STATE_FILE"
     fi
 
-    # 🆕 마이그레이션: qwen_count, claude_count, last_ai 없으면 추가
+    # 🆕 마이그레이션: qwen_count, last_ai 없으면 추가 (claude_count 제거됨)
     if ! grep -q "^qwen_count=" "$STATE_FILE"; then
         echo "qwen_count=0" >> "$STATE_FILE"
         log_info "qwen_count 마이그레이션 완료"
     fi
-    if ! grep -q "^claude_count=" "$STATE_FILE"; then
-        echo "claude_count=0" >> "$STATE_FILE"
-        log_info "claude_count 마이그레이션 완료"
-    fi
     if ! grep -q "^last_ai=" "$STATE_FILE"; then
-        echo "last_ai=claude" >> "$STATE_FILE"  # v6.4.0: claude → 첫 선택 codex
+        echo "last_ai=qwen" >> "$STATE_FILE"  # v6.9.1: qwen → 첫 선택 codex
         log_info "last_ai 마이그레이션 완료"
     fi
+    # v6.9.1: claude_count는 더 이상 추가하지 않음 (기존 파일에는 유지)
 }
 
 # 마지막 사용 AI 읽기

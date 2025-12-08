@@ -2,7 +2,7 @@
 # 핵심 정보만 포함, 상세 내역은 별도 문서 참조
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
-version: "2.1.0"  # registry-core 버전 (v6.9.0: 3-AI 1:1:1 순환)
+version: "2.1.1"  # registry-core 버전 (v6.9.1: set_last_ai 버그 수정)
 last_updated: "2025-12-08"
 project: "OpenManager VIBE v5.80.0"
 
@@ -61,13 +61,14 @@ subagents:
     - gcp-cloud-functions-specialist    # Vercel이 주 플랫폼
 
 # 상세 정보: .claude/agents/*.md 참조
-# Workflow Integration (v6.9.0):
+# Workflow Integration (v6.9.1):
 #   - post-commit hook triggers auto-ai-review.sh
 #   - Primary rotation: codex → gemini → qwen (3-AI 1:1:1 순환)
 #   - Fallback chain: 각 AI가 다른 두 AI로 순차 폴백
 #     - codex 실패 → gemini → qwen
 #     - gemini 실패 → qwen → codex
 #     - qwen 실패 → codex → gemini
+#   - v6.9.1 (2025-12-08): set_last_ai 버그 수정 - 성공한 AI만 저장
 #   - v6.9.0 (2025-12-08): Claude 제거 - Claude Code 세션 내 자기 호출 불가
 #   - Legacy 3-AI verification system is deprecated (see archive/deprecated/3-ai-system/)
 
