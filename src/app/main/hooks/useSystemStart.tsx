@@ -65,6 +65,9 @@ export function useSystemStart(options: UseSystemStartOptions) {
   );
   const [isSystemStarting, setIsSystemStarting] = useState(false);
 
+  // 게스트 제한 모달 상태 (alert 대체)
+  const [showGuestRestriction, setShowGuestRestriction] = useState(false);
+
   // ESC 키로 카운트다운 취소
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
@@ -166,9 +169,8 @@ export function useSystemStart(options: UseSystemStartOptions) {
 
     const isGuest = !isGitHubUser;
     if (isGuest && !guestSystemStartEnabled) {
-      alert(
-        '⚠️ 게스트 모드는 시스템을 시작할 수 없습니다.\n\nGitHub 로그인을 이용해주세요.'
-      );
+      // alert 대신 모달 표시
+      setShowGuestRestriction(true);
       return;
     }
 
@@ -307,6 +309,10 @@ export function useSystemStart(options: UseSystemStartOptions) {
     isSystemStarted,
     multiUserStatus,
     statusLoading,
+
+    // 게스트 제한 모달 상태
+    showGuestRestriction,
+    dismissGuestRestriction: () => setShowGuestRestriction(false),
 
     // 계산된 값
     statusInfo,

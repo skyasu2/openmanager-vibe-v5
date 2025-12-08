@@ -41,6 +41,7 @@ import {
 } from '@/utils/vercel-optimization';
 import {
   DashboardSection,
+  GuestRestrictionModal,
   LoginPrompt,
   MainPageErrorBoundary,
   SystemStartSection,
@@ -80,6 +81,8 @@ function Home() {
     isSystemStarting,
     isSystemStarted,
     multiUserStatus,
+    showGuestRestriction,
+    dismissGuestRestriction,
     statusInfo,
     buttonConfig,
     handleSystemToggle,
@@ -301,6 +304,12 @@ function Home() {
           </p>
         </div>
       </div>
+
+      {/* 게스트 제한 모달 */}
+      <GuestRestrictionModal
+        open={showGuestRestriction}
+        onClose={dismissGuestRestriction}
+      />
     </div>
   );
 }

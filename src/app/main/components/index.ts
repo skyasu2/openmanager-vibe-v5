@@ -3,6 +3,7 @@
  */
 
 export { DashboardSection } from './DashboardSection';
+export { GuestRestrictionModal } from './GuestRestrictionModal';
 export { LoginPrompt } from './LoginPrompt';
 export { MainPageErrorBoundary } from './MainPageErrorBoundary';
 export { SystemStartSection } from './SystemStartSection';
