@@ -123,27 +123,28 @@ increment_ai_counter() {
     esac
 }
 
-# 순서 기반 AI 선택 (v6.7.0: codex→gemini→claude 3-AI 순환 복원)
+# 순서 기반 AI 선택 (v6.9.0: codex→gemini→qwen 3-AI 순환)
 # - 이전 AI가 codex → 이번에 gemini
-# - 이전 AI가 gemini → 이번에 claude
-# - 이전 AI가 claude → 이번에 codex
-# - Qwen: Primary에서 제외 (실패 시 즉시 폴백으로 사용)
-# - v6.7.0 (2025-12-07): Claude CLI 올바른 사용법으로 수정 후 복원
+# - 이전 AI가 gemini → 이번에 qwen
+# - 이전 AI가 qwen → 이번에 codex
+# - Claude 제거됨: Claude Code 세션 내 자기 호출 충돌 문제
+# - v6.9.0 (2025-12-08): 3-AI 1:1:1 순환 (codex → gemini → qwen)
+#   → 각 AI 실패 시 다른 AI로 폴백
 select_primary_ai() {
     init_ai_counter
 
     local last_ai=$(get_last_ai)
 
-    # 순서 기반 선택: codex → gemini → claude → codex (3-AI 순환)
+    # 순서 기반 선택: codex → gemini → qwen → codex (3-AI 순환)
     case "$last_ai" in
         codex)
             echo "gemini"
             ;;
         gemini)
-            echo "claude"
+            echo "qwen"
             ;;
-        claude|qwen|*)
-            # claude 이후 또는 기타 모든 경우 → codex
+        qwen|claude|*)
+            # qwen 이후 또는 기타 모든 경우 → codex
             echo "codex"
             ;;
     esac

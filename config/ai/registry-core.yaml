@@ -2,8 +2,8 @@
 # 핵심 정보만 포함, 상세 내역은 별도 문서 참조
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
-version: "2.0.8"  # registry-core 버전 (v6.7.0: Claude 리뷰 복원)
-last_updated: "2025-12-07"
+version: "2.1.0"  # registry-core 버전 (v6.9.0: 3-AI 1:1:1 순환)
+last_updated: "2025-12-08"
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
@@ -13,25 +13,25 @@ ai-tools:
   claude-code:
     current_version: "v2.0.60"
     status: "✅ Active"
-    role: "Code review - Primary rotation (codex→gemini→claude)"
+    role: "Interactive development (NOT for auto code review)"
 
   codex:
     current_version: "v0.63.0"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
-    role: "Code review - Primary rotation (codex→gemini→claude)"
+    role: "Code review - 3-AI rotation (codex→gemini→qwen)"
 
   gemini-cli:
     current_version: "v0.19.1"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
-    role: "Code review - Primary rotation (codex→gemini→claude)"
+    role: "Code review - 3-AI rotation (codex→gemini→qwen)"
 
   qwen-cli:
     current_version: "v0.4.0"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
-    role: "Code review - Fallback only (Primary→Qwen→Claude)"
+    role: "Code review - 3-AI rotation (codex→gemini→qwen)"
 
   kiro-cli:
     current_version: "v1.20.0"
@@ -61,13 +61,14 @@ subagents:
     - gcp-cloud-functions-specialist    # Vercel이 주 플랫폼
 
 # 상세 정보: .claude/agents/*.md 참조
-# Workflow Integration (v6.7.0):
+# Workflow Integration (v6.9.0):
 #   - post-commit hook triggers auto-ai-review.sh
-#   - Primary rotation: codex → gemini → claude (3-AI 1:1:1 순환)
-#   - Fallback chain: Primary AI → Qwen → Claude
-#   - v6.7.0 (2025-12-07): Claude CLI 올바른 사용법으로 복원
-#     - 이전 (잘못됨): echo "$query" | claude -p "Code Reviewer"
-#     - 현재 (올바름): claude -p "$query"
+#   - Primary rotation: codex → gemini → qwen (3-AI 1:1:1 순환)
+#   - Fallback chain: 각 AI가 다른 두 AI로 순차 폴백
+#     - codex 실패 → gemini → qwen
+#     - gemini 실패 → qwen → codex
+#     - qwen 실패 → codex → gemini
+#   - v6.9.0 (2025-12-08): Claude 제거 - Claude Code 세션 내 자기 호출 불가
 #   - Legacy 3-AI verification system is deprecated (see archive/deprecated/3-ai-system/)
 
 # ============================================================================

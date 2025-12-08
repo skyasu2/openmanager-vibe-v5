@@ -531,13 +531,14 @@ clear_pending_reviews() {
     log_success "✅ 보류 중인 리뷰 클리어 완료"
 }
 
-# v6.7.0: 3-AI 순번 + Qwen/Claude 폴백 체인 복원
-# - 순번: codex → gemini → claude (3-AI 순환)
+# v6.9.0: 3-AI 1:1:1 순환 + 상호 폴백 체인
+# - 순번: codex → gemini → qwen (3-AI 순환, Claude 제외)
 # - 선택 즉시 rotation 진행 (성공/실패 관계없이 1:1:1 보장)
-# - 실패 시 폴백 체인: Primary → Qwen → Claude
-# - v6.7.0 (2025-12-07): Claude CLI 올바른 사용법으로 복원
-#   - 이전 (잘못됨): echo "$query" | claude -p "Code Reviewer"
-#   - 현재 (올바름): claude -p "$query"
+# - 실패 시 폴백 체인: 각 AI는 다른 두 AI로 순차 폴백
+#   - codex 실패 → gemini → qwen
+#   - gemini 실패 → qwen → codex
+#   - qwen 실패 → codex → gemini
+# - v6.9.0 (2025-12-08): Claude 제거 (Claude Code 내부 자기 호출 불가)
 run_ai_review() {
     local changes="$1"
     local review_output=""
@@ -545,13 +546,31 @@ run_ai_review() {
     # 임시 파일 초기화
     rm -f /tmp/ai_engine_auto_review
 
-    # 1단계: 순서 기반으로 Primary AI 선택 (codex → gemini → claude 3-AI 순환)
+    # 1단계: 순서 기반으로 Primary AI 선택 (codex → gemini → qwen 3-AI 순환)
     local primary_ai=$(select_primary_ai)
-    log_info "🎯 Primary AI: ${primary_ai^^} (3-AI 순번: codex→gemini→claude)"
+    log_info "🎯 Primary AI: ${primary_ai^^} (3-AI 순번: codex→gemini→qwen)"
 
     # 🆕 v6.3.0: 선택 즉시 rotation 진행 (1:1:1 균등분배 보장)
     # 성공/실패 관계없이 다음 호출에서는 다음 AI가 선택됨
     set_last_ai "$primary_ai"
+
+    # 폴백 AI 결정 (각 AI는 다른 AI로 폴백)
+    # codex → gemini → qwen → codex
+    local fallback1="" fallback2=""
+    case "$primary_ai" in
+        codex)
+            fallback1="gemini"
+            fallback2="qwen"
+            ;;
+        gemini)
+            fallback1="qwen"
+            fallback2="codex"
+            ;;
+        qwen)
+            fallback1="codex"
+            fallback2="gemini"
+            ;;
+    esac
 
     # 2단계: Primary AI 시도
     if review_output=$(run_single_ai_review "$primary_ai" "$changes"); then
@@ -568,16 +587,15 @@ run_ai_review() {
         return 0
     fi
 
-    log_warning "Primary AI (${primary_ai^^}) 실패 → 즉시 Qwen 폴백"
+    log_warning "Primary AI (${primary_ai^^}) 실패 → 폴백 1차: ${fallback1^^}"
 
-    # 3단계: 즉시 Qwen 폴백 (다음 순번으로 넘어가지 않음!)
-    log_info "🔄 즉시 폴백 1차: QWEN"
+    # 3단계: 폴백 1차 시도
+    log_info "🔄 폴백 1차: ${fallback1^^}"
 
-    if review_output=$(run_single_ai_review "qwen" "$changes"); then
-        log_success "QWEN 즉시 폴백 성공!"
-        increment_ai_counter "qwen"
-        # Qwen은 last_ai에 저장하지 않음 (폴백 전용, 순번에 영향 없음)
-        AI_ENGINE="qwen"
+    if review_output=$(run_single_ai_review "$fallback1" "$changes"); then
+        log_success "${fallback1^^} 폴백 성공!"
+        increment_ai_counter "$fallback1"
+        AI_ENGINE="$fallback1"
 
         # 성공 시 보류 중인 리뷰 클리어
         if check_pending_reviews; then
@@ -588,36 +606,30 @@ run_ai_review() {
         return 0
     fi
 
-    # 4단계: Claude 최종 폴백 (Primary가 Claude가 아닌 경우에만)
-    if [ "$primary_ai" != "claude" ]; then
-        log_warning "QWEN 폴백 실패 → Claude 최종 폴백 시도"
-        log_info "🔄 즉시 폴백 2차: CLAUDE"
+    log_warning "폴백 1차 (${fallback1^^}) 실패 → 폴백 2차: ${fallback2^^}"
 
-        if review_output=$(run_single_ai_review "claude" "$changes"); then
-            log_success "CLAUDE 최종 폴백 성공!"
-            increment_ai_counter "claude"
-            # Claude 폴백도 last_ai에 저장하지 않음 (폴백 전용)
-            AI_ENGINE="claude"
+    # 4단계: 폴백 2차 시도
+    log_info "🔄 폴백 2차: ${fallback2^^}"
 
-            # 성공 시 보류 중인 리뷰 클리어
-            if check_pending_reviews; then
-                clear_pending_reviews
-            fi
+    if review_output=$(run_single_ai_review "$fallback2" "$changes"); then
+        log_success "${fallback2^^} 최종 폴백 성공!"
+        increment_ai_counter "$fallback2"
+        AI_ENGINE="$fallback2"
 
-            echo "$review_output"
-            return 0
+        # 성공 시 보류 중인 리뷰 클리어
+        if check_pending_reviews; then
+            clear_pending_reviews
         fi
+
+        echo "$review_output"
+        return 0
     fi
 
     # 5단계: 모든 AI 실패 → 지연 보상
     local current_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%h 2>/dev/null || echo "unknown")
     save_pending_review "$current_commit"
 
-    if [ "$primary_ai" = "claude" ]; then
-        log_error "❌ 모든 AI 리뷰 실패 (${primary_ai^^}, Qwen) - 다음 커밋 때 보상 리뷰 예정"
-    else
-        log_error "❌ 모든 AI 리뷰 실패 (${primary_ai^^}, Qwen, Claude) - 다음 커밋 때 보상 리뷰 예정"
-    fi
+    log_error "❌ 모든 AI 리뷰 실패 (${primary_ai^^}→${fallback1^^}→${fallback2^^}) - 다음 커밋 때 보상 리뷰 예정"
     rm -f /tmp/ai_engine_auto_review
     return 1
 }
