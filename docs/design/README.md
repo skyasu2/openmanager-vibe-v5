@@ -73,7 +73,7 @@ design/
 
 **주요 문서**:
 
-- `architecture.md` - 전체 시스템 아키텍처
+- `SYSTEM-ARCHITECTURE-CURRENT.md` - 전체 시스템 아키텍처
   - 4계층: Frontend / API / Service / Data
   - 227K 코드라인, TypeScript strict 100%
 - `consistency.md` - 데이터 일관성 전략
@@ -149,7 +149,7 @@ src/          (실제 코드)
 
 ### 새 기능 설계 시
 
-- `docs/core/architecture/architecture.md` → 전체 구조 확인
+- `docs/core/architecture/SYSTEM-ARCHITECTURE-CURRENT.md` → 전체 구조 확인
 - `specs/work-plan-template.md` → 템플릿
 - `features/[topic].md` → 일반 설계
 - `current/[feature]-v5.XX.md` → 구체적 구현

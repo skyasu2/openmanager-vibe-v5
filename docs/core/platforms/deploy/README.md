@@ -13,7 +13,7 @@ related_docs:
   - 'docs/deploy/vercel.md'
   - 'docs/deploy/env-setup.md'
   - 'docs/deploy/free-tier.md'
-  - 'docs/core/architecture/actual-system-architecture-v5.77.md'
+  - 'docs/core/architecture/SYSTEM-ARCHITECTURE-CURRENT.md'
 last_updated: '2025-12-01'
 ---
 

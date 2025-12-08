@@ -238,12 +238,12 @@ useEffect(() => {
 
 **타입 시스템**:
 
-- guides/types.md (기본) → architecture/type-system-consistency.md (상세)
+- guides/types.md (기본) → docs/core/architecture/type-system-consistency.md (상세)
 - 변경 시 두 문서 동기화 필요
 
 **시뮬레이션**:
 
-- guides/mock-system.md (개요) → guides/simulation.md (설정) → architecture/simulation-setup.md (아키텍처)
+- guides/mock-system.md (개요) → guides/simulation.md (설정) → docs/core/architecture/simulation-setup.md (아키텍처)
 - 3단계 문서 일관성 유지
 
 **최적화**:

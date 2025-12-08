@@ -136,9 +136,8 @@ GET /api/ai/cache-stats
 
 ## 🔗 관련 문서
 
-- [무료 티어 아키텍처 검증 리포트](./free-tier-architecture-report.md)
-- [검증 요약](./VERIFICATION-SUMMARY.md)
-- [빠른 검증 가이드](./QUICK-VERIFICATION.md)
+- [무료 티어 최적화 가이드](../../development/deploy/free-tier.md)
+- [시스템 아키텍처](../architecture/SYSTEM-ARCHITECTURE-CURRENT.md)
 
 ---
 
