@@ -15,9 +15,9 @@
 
 | 서비스명 (Service) | 컨테이너 이름 | 포트 | 역할 및 설명 |
 |-------------------|--------------|------|-------------|
-| **unified-ai-processor** | `unified-ai-processor` | `8082` | **AI 오케스트레이터 (메인)**<br>- Next.js 앱의 AI 요청을 받아 처리<br>- NLP, Rule Engine, LLM 호출 등을 조율 |
-| **mock-ai** | `mock-ai` | `8083` | **가짜 AI (Mock)**<br>- 비용 없는 빠른 테스트용<br>- 실제 LLM 대신 사전에 정의된 응답 반환 |
-| **ml-analytics-engine** | `ml-analytics-engine` | `8080` | **머신러닝 엔진**<br>- 시계열 데이터 분석 및 이상 징후 탐지<br>- Processor 내부에서 호출됨 (외부 노출 X) |
+| **unified-ai-processor** | `unified-ai-processor` | `8082` | **AI 오케스트레이터 (메인)**<br>- Next.js 앱의 AI 요청을 받아 처리<br>- NLP, Rule Engine, LLM 호출 등을 조율<br>- ⚠️ `http://localhost:8082` (Base URL 권장) |
+| **mock-ai** | `mock-ai` | `8083` | **가짜 AI (Mock)**<br>- 비용 없는 빠른 테스트용<br>- 실제 LLM 대신 사전에 정의된 응답 반환<br>- ⚠️ `http://localhost:8083/process` (`/process` 필수) |
+| ~~ml-analytics-engine~~ | - | - | **⚠️ DEPRECATED**<br>- unified-ai-processor에 통합됨 (효율성 향상)<br>- docker-compose.dev.yml에서 주석 처리됨 |
 
 ### 🚀 실행 방법 (WSL 권장)
 ```bash
