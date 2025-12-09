@@ -30,6 +30,20 @@
 
 ---
 
+## 🔥 인프라 및 정리 (2025-12-09)
+
+**Docker 환경 재정비**:
+- **목적 명확화**: 문서(`LOCAL_STACK_SETUP.md`)에 Docker 환경의 이중 목적(Cloud Run 시뮬레이션, Supabase 에뮬레이션) 명시
+- **불필요 설정 제거**: `ml-analytics-engine` (Deprecated) 관련 Docker 설정(`docker-compose.dev.yml`) 및 스크립트(`run-docker-functions.sh`) 제거
+
+**GCP Functions 최적화**:
+- **ml-analytics-engine 완전 제거**: `unified-ai-processor`로 기능 통합 완료에 따른 레거시 코드 및 설정 청산
+
+**Git 관리 강화**:
+- **.gitignore 업데이트**: Python 가상환경 폴더 `.venv/` 제외 처리 (대량의 불필요 파일 커밋 방지)
+
+---
+
 ## 📚 문서 정리 (2025-12-01)
 
 **Phase 5 완료** - JBGE 원칙 기반 중복 제거

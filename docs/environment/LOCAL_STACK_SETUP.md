@@ -1,14 +1,18 @@
 # 🏗️ Local Full Stack Setup Guide
 
-This guide describes how to run the **entire infrastructure** locally using Docker, replacing Cloud services (GCP, Supabase) with local containers.
+이 가이드는 로컬 Docker 환경을 사용하여 전체 인프라를 실행하는 방법을 설명합니다. 현재 프로젝트의 Docker 환경은 다음 두 가지 주요 목적을 위해 설계되었습니다:
+
+1.  **GCP Cloud Run 배포 시뮬레이션**: Python 기반의 Cloud Functions(Unified AI Processor 등)를 실제 GCP 환경과 동일하게 로컬에서 실행하고 테스트합니다.
+2.  **클라우드 서비스 로컬 에뮬레이션**: Supabase(Postgres, Auth, Realtime 등)와 같은 관리형 클라우드 서비스를 로컬 Docker 컨테이너로 대체하여 개발 및 테스트 비용을 절감합니다.
 
 ## 🎯 Architecture
 
-| Service | Cloud | Local Replacement | Port |
-|---------|-------|-------------------|------|
-| **Database** | Supabase (Cloud) | **Supabase CLI** (Docker) | `54322`, `54321` |
-| **AI Processing** | Google Cloud Run | **Unified AI Processor** (Local Docker) | `8082` |
-| **AI Intelligence** | Gemini API | **Mock AI** (Local Docker) | `8083` |
+| Service | Cloud | Local Replacement | Port | Purpose |
+|---------|-------|-------------------|------|---------|
+| **Database** | Supabase (Cloud) | **Supabase** (Local Docker) | `54322`, `54321` | 클라우드 DB 등 전체 환경 에뮬레이션 |
+| **AI Processing** | Google Cloud Run | **Unified AI Processor** | `8082` | Cloud Run 배포 전 로컬 시뮬레이션 |
+| **GCP Functions** | Google Cloud Run | **Enhanced Korean NLP** | `8081` | NLP/ML 엔진 로컬 테스트 |
+| **AI Intelligence** | Gemini API | **Mock AI** | `8083` | LLM API 비용 절감 및 시뮬레이션 |
 
 ---
 

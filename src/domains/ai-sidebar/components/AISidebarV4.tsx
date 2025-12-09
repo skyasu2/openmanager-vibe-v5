@@ -5,11 +5,11 @@ import { DefaultChatTransport } from 'ai';
 // Icons
 import { Bot, User } from 'lucide-react';
 import { type FC, memo, useEffect, useMemo, useRef, useState } from 'react';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
-import { useUserPermissions } from '@/hooks/useUserPermissions';
 import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '../../../components/ai/AIAssistantIconPanel';
 import ThinkingProcessVisualizer from '../../../components/ai/ThinkingProcessVisualizer';
+import { isGuestFullAccessEnabled } from '../../../config/guestMode';
+import { useUserPermissions } from '../../../hooks/useUserPermissions';
 import type { EnhancedChatMessage } from '../../../stores/useAISidebarStore';
 // Types
 import type {

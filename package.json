@@ -173,7 +173,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
-    "@biomejs/cli-linux-x64": "^2.3.8",
     "@faker-js/faker": "^9.9.0",
     "@next/bundle-analyzer": "^15.5.0",
     "@playwright/test": "^1.57.0",
@@ -215,7 +214,8 @@
     "npm": ">=10.0.0"
   },
   "optionalDependencies": {
-    "@biomejs/cli-win32-x64": "^2.3.8"
+    "@biomejs/cli-win32-x64": "^2.3.8",
+    "@biomejs/cli-linux-x64": "^2.3.8"
   },
   "packageManager": "npm@10.9.2",
   "browserslist": {
