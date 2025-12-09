@@ -46,8 +46,13 @@ Update `.env.local` to point to the Mock AI service instead of the real AI Proce
 **Scenario A: Direct Mock (Bypass Processor)**
 ```env
 # .env.local
+# ⚠️ Note: mock-ai requires /process path (unlike unified-processor which accepts both / and /process)
 NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT="http://localhost:8083/process"
 ```
+
+> 💡 **Endpoint 차이점**:
+> - `unified-ai-processor` (8082): `http://localhost:8082` (Base URL 권장)
+> - `mock-ai` (8083): `http://localhost:8083/process` (`/process` 필수)
 
 **Scenario B: Processor -> Mock (Advanced)**
 If you want to test the Processor logic but mock the LLM, you would need to configure the Unified Processor to call the Mock AI. (Currently configured for Scenario A).
