@@ -55,9 +55,10 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
     <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
       {/* 1. Total Servers (Large) */}
       <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-xs md:col-span-2 lg:col-span-1">
-        <div className="absolute right-0 top-0 p-4 opacity-5 transition-opacity group-hover:opacity-10">
-          <ServerIcon size={120} />
-        </div>
+        {/* 배경 아이콘 완전 제거 - SVG stroke 아티팩트 발생으로 hidden 처리 */}
+        {/* <div className="absolute right-0 top-0 p-4 opacity-[0.03] transition-opacity group-hover:opacity-[0.06]">
+          <ServerIcon size={120} strokeWidth={1} />
+        </div> */}
         <div className="relative z-10">
           <div className="mb-2 flex items-center gap-2 text-gray-500">
             <ServerIcon size={18} />
