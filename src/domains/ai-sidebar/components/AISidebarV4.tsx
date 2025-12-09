@@ -103,6 +103,13 @@ const MessageComponent = memo<{
                 ? new Date(message.timestamp).toLocaleTimeString()
                 : message.timestamp.toLocaleTimeString()}
             </p>
+            {/* 처리 시간 표시 (assistant 메시지만) */}
+            {message.role === 'assistant' &&
+              message.metadata?.processingTime && (
+                <p className="text-xs text-gray-400">
+                  {message.metadata.processingTime}ms
+                </p>
+              )}
           </div>
 
           {/* EnhancedChatMessage의 thinking steps 표시 (assistant 메시지에서) */}

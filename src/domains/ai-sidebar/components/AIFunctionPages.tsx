@@ -21,11 +21,6 @@ const AutoReportPage = lazy(
 const IntelligentMonitoringPage = lazy(
   () => import('@/components/ai/pages/IntelligentMonitoringPage')
 );
-const MLLearningCenter = lazy(() =>
-  import('@/components/ai/pages/MLLearningCenter').then((module) => ({
-    default: module.MLLearningCenter,
-  }))
-);
 
 // 🔄 로딩 스피너 컴포넌트
 const LoadingSpinner = () => (
@@ -76,15 +71,6 @@ export const AIFunctionPages: FC<AIFunctionPagesProps> = ({
           <div data-testid="intelligent-monitoring-page">
             <Suspense fallback={<LoadingSpinner />}>
               <IntelligentMonitoringPage />
-            </Suspense>
-          </div>
-        );
-
-      case 'advanced-management':
-        return (
-          <div data-testid="advanced-management-page">
-            <Suspense fallback={<LoadingSpinner />}>
-              <MLLearningCenter />
             </Suspense>
           </div>
         );

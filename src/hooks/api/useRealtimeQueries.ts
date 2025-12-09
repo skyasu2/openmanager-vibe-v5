@@ -12,9 +12,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { FREE_TIER_INTERVALS } from '@/config/free-tier-intervals';
-import { predictionKeys } from './usePredictionQueries';
 import { serverKeys } from './useServerQueries';
 import { systemKeys } from './useSystemQueries';
+
+// 🔮 Prediction Query Keys (인라인 정의 - usePredictionQueries.ts에서 이동)
+const predictionKeys = {
+  all: ['predictions'] as const,
+  list: (filters: string) =>
+    [...predictionKeys.all, 'list', { filters }] as const,
+};
 
 // 🌐 WebSocket 연결 상태
 type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';

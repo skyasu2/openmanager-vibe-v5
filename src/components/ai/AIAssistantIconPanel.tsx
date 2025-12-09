@@ -2,32 +2,22 @@
  * 🤖 AI 어시스턴트 기능 아이콘 패널
  *
  * 사이드바 오른쪽에 세로로 배치되는 AI 기능 아이콘들
- * - AI 채팅
- * - 자동 장애 보고서
- * - 장애 예측
- * - AI 고급 관리
- * - 패턴 분석
- * - 로그 분석
+ * - AI 채팅: 자연어로 시스템 질의 및 대화
+ * - 자동 장애 보고서: AI 기반 장애 분석 + 장애 케이스 학습
+ * - 이상감지/예측: 통합 AI 분석 + 패턴 학습 + 예측 분석
  */
 
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import {
-  Brain,
-  FileText,
-  MessageSquare,
-  Monitor,
-  Settings,
-} from 'lucide-react';
+import { Brain, FileText, MessageSquare, Monitor } from 'lucide-react';
 import type { ComponentType } from 'react';
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 export type AIAssistantFunction =
   | 'chat'
   | 'auto-report'
-  | 'intelligent-monitoring'
-  | 'advanced-management';
+  | 'intelligent-monitoring';
 
 interface AIAssistantIcon {
   id: AIAssistantFunction;
@@ -65,21 +55,10 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     icon: Monitor,
     label: '이상감지/예측',
     description:
-      '🧠 통합 AI 분석: 이상탐지→근본원인→예측모니터링→AI인사이트 (자동분석)',
+      '🧠 통합 AI 분석: 이상탐지→근본원인→예측모니터링→패턴학습→예측분석',
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-50 hover:bg-emerald-100',
     gradient: 'from-emerald-500 to-teal-500',
-  },
-
-  // === 관리 기능 ===
-  {
-    id: 'advanced-management',
-    icon: Settings,
-    label: 'AI 고급관리',
-    description: 'ML 학습 기능 및 AI 시스템 관리',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50 hover:bg-gray-100',
-    gradient: 'from-gray-500 to-slate-500',
   },
 ];
 
