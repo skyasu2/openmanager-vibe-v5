@@ -161,10 +161,11 @@ const searchKnowledgeBase = tool({
       .describe('질문 의도 (analyzeRequest 결과 활용)'),
     complexityHint: z
       .number()
+      .int() // 정수만 허용 (NaN, Infinity, 소수 방지)
       .min(1)
       .max(5)
       .optional()
-      .describe('복잡도 힌트 1-5 (높을수록 더 많은 결과 반환)'),
+      .describe('복잡도 힌트 1-5 정수 (높을수록 더 많은 결과 반환)'),
   }),
   execute: async ({
     query,
@@ -196,6 +197,12 @@ const searchKnowledgeBase = tool({
       };
 
       const category = queryIntent ? intentCategoryMap[queryIntent] : undefined;
+
+      // 카테고리 매핑 미스매치 경고 (DB 스키마와 동기화 필요)
+      if (queryIntent && category === undefined && queryIntent !== 'general') {
+        console.warn(`⚠️ Unknown intent->category mapping: ${queryIntent}`);
+      }
+
       const maxResults = getMaxResults(complexityHint);
 
       const searchResult = await ragEngine.searchHybrid(query, {
@@ -219,7 +226,12 @@ const searchKnowledgeBase = tool({
           similarity: r.similarity,
         })),
         _source: 'Supabase pgvector',
-        _meta: { intent: queryIntent, complexity: complexityHint, category, maxResults },
+        _meta: {
+          intent: queryIntent,
+          complexity: complexityHint,
+          category,
+          maxResults,
+        },
       };
     } catch (error) {
       console.error('❌ RAG 검색 실패:', error);
