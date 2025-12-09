@@ -6,26 +6,6 @@ version: '3.8'
 # Or use: ./scripts/dev/run-docker-functions.sh
 
 services:
-  # ML Analytics Engine (Integrated into Unified Processor - Disabled for efficiency)
-  # ml-analytics-engine:
-  #   build:
-  #     context: ./ml-analytics-engine
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8080:8080"
-  #   volumes:
-  #     - ./ml-analytics-engine:/app
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #     - PORT=8080
-  #     - FLASK_DEBUG=true
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: [ "CMD-SHELL", "curl -f http://localhost:8080/ || exit 1" ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 60s
 
   # Unified AI Processor - Orchestration & Aggregation
   unified-ai-processor:

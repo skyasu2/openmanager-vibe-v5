@@ -25,19 +25,19 @@ show_help() {
     echo "  help      Show this help message"
     echo ""
     echo "Services (Flask + Gunicorn, Cloud Run compatible):"
-    echo "  ml-analytics-engine     Port 8080 - Time Series & ML Analytics"
+
     echo "  enhanced-korean-nlp     Port 8081 - Korean NLP Processing"
     echo "  unified-ai-processor    Port 8082 - AI Orchestration"
     echo ""
     echo "Examples:"
     echo "  $0                          # Start all services"
     echo "  $0 build                    # Build and start all services"
-    echo "  $0 up ml-analytics-engine   # Start only ML engine"
+
     echo "  $0 logs enhanced-korean-nlp # Show logs for NLP service"
     echo "  $0 down                     # Stop all services"
     echo ""
     echo "Endpoints (after startup):"
-    echo "  http://localhost:8080  - ml-analytics-engine"
+
     echo "  http://localhost:8081  - enhanced-korean-nlp"
     echo "  http://localhost:8082  - unified-ai-processor"
 }
@@ -74,7 +74,7 @@ case "${1:-up}" in
             docker-compose -f docker-compose.dev.yml up "$2"
         else
             echo "📍 All services starting..."
-            echo "  - ml-analytics-engine:    http://localhost:8080"
+
             echo "  - enhanced-korean-nlp:    http://localhost:8081"
             echo "  - unified-ai-processor:   http://localhost:8082"
             docker-compose -f docker-compose.dev.yml up
