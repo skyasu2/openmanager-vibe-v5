@@ -28,7 +28,7 @@ Next.js 앱이 로컬 Docker 서비스를 바라보도록 `.env.local`을 수정
 # NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT="https://...cloudfunctions.net/unified-ai-processor"
 
 # 로컬 Docker 엔드포인트 (변경)
-NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT="http://localhost:8082/process"
+NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT="http://localhost:8082"
 ```
 
 ---
