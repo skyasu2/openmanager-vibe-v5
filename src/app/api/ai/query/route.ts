@@ -180,42 +180,18 @@ const searchKnowledgeBase = tool({
       const supabase = await createClient();
       const ragEngine = new SupabaseRAGEngine(supabase);
 
-      // Intent → Category 매핑 (command_vectors 테이블 카테고리 기준)
-      const intentCategoryMap: Record<string, string | undefined> = {
-        monitoring: 'server_monitoring',
-        analysis: 'troubleshooting',
-        guide: 'linux', // 일반 가이드는 linux 명령어 중심
-        general: undefined, // 카테고리 제한 없음
-      };
-
-      // 복잡도 기반 maxResults 조정 (1-2: 2개, 3-4: 4개, 5: 5개)
-      const getMaxResults = (complexity?: number): number => {
-        if (!complexity) return 3; // 기본값
-        if (complexity <= 2) return 2;
-        if (complexity <= 4) return 4;
-        return 5;
-      };
-
-      const category = queryIntent ? intentCategoryMap[queryIntent] : undefined;
-
-      // 카테고리 매핑 미스매치 경고 (DB 스키마와 동기화 필요)
-      if (queryIntent && category === undefined && queryIntent !== 'general') {
-        console.warn(`⚠️ Unknown intent->category mapping: ${queryIntent}`);
-      }
-
-      const maxResults = getMaxResults(complexityHint);
-
-      const searchResult = await ragEngine.searchHybrid(query, {
-        maxResults,
+      // 🎯 searchWithContext()로 단순화 - Intent/Complexity 매핑은 RAG Engine 내부에서 처리
+      const searchResult = await ragEngine.searchWithContext(query, {
+        intent: queryIntent,
+        complexity: complexityHint,
         enableKeywordFallback: true,
-        category, // RAGSearchOptions의 category 활용
       });
 
       if (!searchResult.success || searchResult.results.length === 0) {
         return {
           success: false,
           message: '관련된 문서를 찾을 수 없습니다.',
-          _meta: { intent: queryIntent, complexity: complexityHint, category },
+          _meta: searchResult._meta,
         };
       }
 
@@ -226,12 +202,7 @@ const searchKnowledgeBase = tool({
           similarity: r.similarity,
         })),
         _source: 'Supabase pgvector',
-        _meta: {
-          intent: queryIntent,
-          complexity: complexityHint,
-          category,
-          maxResults,
-        },
+        _meta: searchResult._meta,
       };
     } catch (error) {
       console.error('❌ RAG 검색 실패:', error);

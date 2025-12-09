@@ -17,6 +17,9 @@ import type { AIMetadata } from '../../types/ai-service-types';
 // Extracted Types
 import type {
   DocumentMetadata,
+  QueryIntent,
+  RAGContextSearchOptions,
+  RAGContextSearchResult,
   RAGEngineSearchResult,
   RAGSearchOptions,
   RAGSearchResult,
@@ -199,6 +202,83 @@ export class SupabaseRAGEngine {
         error: error instanceof Error ? error.message : '알 수 없는 오류',
       };
     }
+  }
+
+  /**
+   * 🎯 컨텍스트 기반 검색 (Intent + Complexity 자동 처리)
+   *
+   * - Intent → Category 자동 매핑 (command_vectors 테이블 기준)
+   * - Complexity → MaxResults 자동 조정
+   * - searchHybrid 기반, 메타데이터 강화된 결과 반환
+   */
+  async searchWithContext(
+    query: string,
+    options: RAGContextSearchOptions = {}
+  ): Promise<RAGContextSearchResult> {
+    const { intent, complexity, ...baseOptions } = options;
+
+    // Intent → Category 매핑 (command_vectors 테이블 카테고리 기준)
+    const resolvedCategory = this.resolveIntentToCategory(intent);
+
+    // 카테고리 매핑 경고 (unknown intent)
+    if (intent && resolvedCategory === undefined && intent !== 'general') {
+      console.warn(
+        `⚠️ Unknown intent->category mapping: ${intent}, proceeding without category filter`
+      );
+    }
+
+    // Complexity → MaxResults 매핑 (1-2: 2개, 3-4: 4개, 5: 5개)
+    const resolvedMaxResults = this.resolveComplexityToMaxResults(complexity);
+
+    // searchHybrid 호출 (기존 로직 재사용)
+    const result = await this.searchHybrid(query, {
+      ...baseOptions,
+      category: resolvedCategory,
+      maxResults: resolvedMaxResults,
+      enableKeywordFallback: baseOptions.enableKeywordFallback ?? true,
+    });
+
+    // 메타데이터 강화된 결과 반환
+    return {
+      ...result,
+      _meta: {
+        intent,
+        complexity,
+        resolvedCategory,
+        resolvedMaxResults,
+      },
+    };
+  }
+
+  /**
+   * 🏷️ Intent → Category 매핑
+   * @private
+   */
+  private resolveIntentToCategory(intent?: QueryIntent): string | undefined {
+    if (!intent) return undefined;
+
+    // command_vectors 테이블의 실제 카테고리와 매핑
+    const intentCategoryMap: Record<QueryIntent, string | undefined> = {
+      monitoring: 'server_monitoring',
+      analysis: 'troubleshooting',
+      guide: 'linux', // 일반 가이드는 linux 명령어 중심
+      general: undefined, // 카테고리 제한 없음
+    };
+
+    return intentCategoryMap[intent];
+  }
+
+  /**
+   * 📊 Complexity → MaxResults 매핑
+   * @private
+   */
+  private resolveComplexityToMaxResults(complexity?: number): number {
+    if (!complexity || complexity < 1 || complexity > 5) {
+      return 3; // 기본값
+    }
+    if (complexity <= 2) return 2;
+    if (complexity <= 4) return 4;
+    return 5;
   }
 
   /**

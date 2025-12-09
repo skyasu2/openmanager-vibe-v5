@@ -53,3 +53,30 @@ export interface RAGSearchResult {
   similarity: number;
   metadata?: AIMetadata;
 }
+
+/**
+ * 🎯 쿼리 의도 타입 (AI analyzeRequest 결과)
+ */
+export type QueryIntent = 'monitoring' | 'analysis' | 'guide' | 'general';
+
+/**
+ * 🔍 컨텍스트 기반 검색 옵션
+ */
+export interface RAGContextSearchOptions extends RAGSearchOptions {
+  /** 쿼리 의도 (자동 카테고리 매핑) */
+  intent?: QueryIntent;
+  /** 복잡도 힌트 1-5 (자동 maxResults 조정) */
+  complexity?: number;
+}
+
+/**
+ * 📊 컨텍스트 검색 결과 (메타데이터 포함)
+ */
+export interface RAGContextSearchResult extends RAGEngineSearchResult {
+  _meta: {
+    intent?: QueryIntent;
+    complexity?: number;
+    resolvedCategory?: string;
+    resolvedMaxResults: number;
+  };
+}
