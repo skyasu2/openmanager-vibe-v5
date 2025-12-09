@@ -564,9 +564,10 @@ export const POST = withAuth(async (req: NextRequest) => {
           }
 
           documentContext += `\n--- [Document: ${doc.name}] ---\n${text.slice(0, 30000)}\n---------------------------\n`; // 30k chars limit per doc for safety
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error(`❌ 문서 파싱 실패 (${doc.name}):`, e);
-          parsingSteps.push(`❌ 파싱 실패 (${doc.name}): ${e.message}`);
+          const errorMessage = e instanceof Error ? e.message : String(e);
+          parsingSteps.push(`❌ 파싱 실패 (${doc.name}): ${errorMessage}`);
         }
       }
     }
@@ -706,7 +707,9 @@ ${useTools ? '**사용 가능한 도구:** getServerMetrics, searchKnowledgeBase
     const tools = useTools ? allTools : undefined;
 
     // messages 구성
-    const userMessageContent: any[] = [{ type: 'text', text: query }];
+    const userMessageContent: Array<
+      { type: 'text'; text: string } | { type: 'image'; image: string }
+    > = [{ type: 'text', text: query }];
     if (images && images.length > 0) {
       images.forEach((img) => {
         userMessageContent.push({ type: 'image', image: img });
