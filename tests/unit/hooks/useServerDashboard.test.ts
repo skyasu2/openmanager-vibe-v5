@@ -1,301 +1,173 @@
 /**
- * @file useServerDashboard.test.ts
- * @description useServerDashboard 훅의 핵심 로직 단위 테스트
+ * 🧪 useServerDashboard Hook 테스트
  *
- * 테스트 범위:
- * - calculatePagination 함수 (Lines 160-175)
- * - 페이지 계산 로직
- * - 경계값 및 엣지 케이스
- *
- * @priority HIGH - AI 교차검증에서 0% 커버리지로 확인됨
+ * @description 서버 대시보드 로직의 핵심 Hook 테스트 (데이터 로드, 페이지네이션, 선택 로직)
  */
 
-import { describe, expect, it } from 'vitest';
+import { act, renderHook } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useServerDataStore } from '../../../src/components/providers/StoreProvider';
+import { useServerDashboard } from '../../../src/hooks/useServerDashboard';
 
-/**
- * calculatePagination 함수 복제 (테스트용)
- * 실제 구현: src/hooks/useServerDashboard.ts Lines 160-175
- */
-const calculatePagination = <T>(
-  items: T[],
-  currentPage: number,
-  itemsPerPage: number
-): { paginatedItems: T[]; totalPages: number } => {
-  // 유효성 검증
-  if (!Array.isArray(items) || items.length === 0) {
-    return { paginatedItems: [], totalPages: 0 };
-  }
+// Mock dependencies
+vi.mock('../../../src/components/providers/StoreProvider', () => ({
+  useServerDataStore: vi.fn(),
+}));
 
-  const totalPages = Math.ceil(items.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedItems = items.slice(startIndex, endIndex);
+vi.mock('../../../src/hooks/dashboard/useServerDataCache', () => ({
+  useServerDataCache: vi.fn(() => ({ cachedServers: [] })),
+}));
 
-  return { paginatedItems, totalPages };
-};
+vi.mock('../../../src/hooks/dashboard/useResponsivePageSize', () => ({
+  useResponsivePageSize: vi.fn(() => ({
+    pageSize: 12,
+    setPageSize: vi.fn(),
+  })),
+}));
 
-describe('useServerDashboard - calculatePagination', () => {
-  describe('정상 케이스', () => {
-    it('17개 아이템을 3개씩 페이지네이션 - 첫 페이지', () => {
-      const items = Array.from({ length: 17 }, (_, i) => ({
-        id: i + 1,
-        name: `Server ${i + 1}`,
-      }));
-      const result = calculatePagination(items, 1, 3);
+vi.mock('../../../src/hooks/dashboard/useServerPagination', () => ({
+  useServerPagination: vi.fn(() => ({
+    paginatedItems: [],
+    totalPages: 1,
+    currentPage: 1,
+    setCurrentPage: vi.fn(),
+    setPageSize: vi.fn(),
+  })),
+}));
 
-      expect(result.totalPages).toBe(6); // 17 / 3 = 5.67 → ceil = 6
-      expect(result.paginatedItems).toHaveLength(3);
-      expect(result.paginatedItems[0]).toEqual({ id: 1, name: 'Server 1' });
-      expect(result.paginatedItems[2]).toEqual({ id: 3, name: 'Server 3' });
-    });
+vi.mock('../../../src/hooks/dashboard/useServerStats', () => ({
+  useServerStats: vi.fn(() => ({
+    stats: { total: 0, online: 0, warning: 0, offline: 0, unknown: 0 },
+  })),
+}));
 
-    it('17개 아이템을 3개씩 페이지네이션 - 마지막 페이지 (2개만)', () => {
-      const items = Array.from({ length: 17 }, (_, i) => ({
-        id: i + 1,
-        name: `Server ${i + 1}`,
-      }));
-      const result = calculatePagination(items, 6, 3);
+vi.mock('../../../src/hooks/useServerMetrics', () => ({
+  useServerMetrics: vi.fn(() => ({
+    metricsHistory: [],
+  })),
+}));
 
-      expect(result.totalPages).toBe(6);
-      expect(result.paginatedItems).toHaveLength(2); // 17 % 3 = 2
-      expect(result.paginatedItems[0]).toEqual({ id: 16, name: 'Server 16' });
-      expect(result.paginatedItems[1]).toEqual({ id: 17, name: 'Server 17' });
-    });
+// Mock timer functions
+vi.useFakeTimers();
 
-    it('17개 아이템을 6개씩 페이지네이션 (모바일)', () => {
-      const items = Array.from({ length: 17 }, (_, i) => ({ id: i + 1 }));
-      const result = calculatePagination(items, 1, 6);
+describe('📊 useServerDashboard Hook', () => {
+  const mockStartAutoRefresh = vi.fn();
+  const mockStopAutoRefresh = vi.fn();
 
-      expect(result.totalPages).toBe(3); // 17 / 6 = 2.83 → ceil = 3
-      expect(result.paginatedItems).toHaveLength(6);
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
 
-    it('17개 아이템을 9개씩 페이지네이션 (태블릿)', () => {
-      const items = Array.from({ length: 17 }, (_, i) => ({ id: i + 1 }));
-      const result = calculatePagination(items, 1, 9);
-
-      expect(result.totalPages).toBe(2); // 17 / 9 = 1.89 → ceil = 2
-      expect(result.paginatedItems).toHaveLength(9);
-    });
-
-    it('17개 아이템을 15개씩 페이지네이션 (데스크톱 - 모두 보기)', () => {
-      const items = Array.from({ length: 17 }, (_, i) => ({ id: i + 1 }));
-      const result = calculatePagination(items, 1, 15);
-
-      expect(result.totalPages).toBe(2); // 17 / 15 = 1.13 → ceil = 2
-      expect(result.paginatedItems).toHaveLength(15);
-    });
-
-    it('정확히 나누어떨어지는 경우 (12개 / 4개)', () => {
-      const items = Array.from({ length: 12 }, (_, i) => ({ id: i + 1 }));
-      const result = calculatePagination(items, 1, 4);
-
-      expect(result.totalPages).toBe(3); // 12 / 4 = 3
-      expect(result.paginatedItems).toHaveLength(4);
+    // Setup Store mock
+    (useServerDataStore as any).mockImplementation((selector: any) => {
+      // Mock selector logic
+      const state = {
+        servers: [],
+        isLoading: false,
+        error: null,
+        startAutoRefresh: mockStartAutoRefresh,
+        stopAutoRefresh: mockStopAutoRefresh,
+      };
+      return selector(state);
     });
   });
 
-  describe('경계값 테스트', () => {
-    it('빈 배열 처리', () => {
-      const result = calculatePagination([], 1, 3);
-
-      expect(result.totalPages).toBe(0);
-      expect(result.paginatedItems).toHaveLength(0);
-      expect(result.paginatedItems).toEqual([]);
+  describe('Lifecycle & Initialization', () => {
+    it('마운트 시 자동 새로고침을 시작한다', () => {
+      renderHook(() => useServerDashboard());
+      expect(mockStartAutoRefresh).toHaveBeenCalled();
     });
 
-    it('단일 아이템', () => {
-      const items = [{ id: 1, name: 'Single Server' }];
-      const result = calculatePagination(items, 1, 3);
+    it('언마운트 시 자동 새로고침을 중지한다', () => {
+      const { unmount } = renderHook(() => useServerDashboard());
+      unmount();
+      expect(mockStopAutoRefresh).toHaveBeenCalled();
+    });
+  });
 
-      expect(result.totalPages).toBe(1);
-      expect(result.paginatedItems).toHaveLength(1);
-      expect(result.paginatedItems[0]).toEqual({
-        id: 1,
-        name: 'Single Server',
+  describe('Server Selection', () => {
+    const mockServer = {
+      id: 'server-1',
+      name: 'Test Server',
+      status: 'online',
+      metrics: { cpu: 50, memory: 60, disk: 70, network: 80 },
+    };
+
+    it('서버를 선택할 수 있다', () => {
+      const { result } = renderHook(() => useServerDashboard());
+
+      act(() => {
+        result.current.handleServerSelect(mockServer as any);
       });
+
+      expect(result.current.selectedServer).toEqual(mockServer);
     });
 
-    it('페이지 크기가 아이템 수보다 큰 경우', () => {
-      const items = Array.from({ length: 5 }, (_, i) => ({ id: i + 1 }));
-      const result = calculatePagination(items, 1, 10);
+    it('선택된 서버를 해제(모달 닫기)할 수 있다', () => {
+      const { result } = renderHook(() => useServerDashboard());
 
-      expect(result.totalPages).toBe(1);
-      expect(result.paginatedItems).toHaveLength(5);
-    });
+      // Select first
+      act(() => {
+        result.current.handleServerSelect(mockServer as any);
+      });
+      expect(result.current.selectedServer).toEqual(mockServer);
 
-    it('존재하지 않는 페이지 요청 (페이지 번호 초과)', () => {
-      const items = Array.from({ length: 10 }, (_, i) => ({ id: i + 1 }));
-      const result = calculatePagination(items, 10, 3); // 3페이지까지만 존재
-
-      expect(result.totalPages).toBe(4); // 10 / 3 = 3.33 → ceil = 4
-      expect(result.paginatedItems).toHaveLength(0); // 범위 밖
-    });
-  });
-
-  describe('엣지 케이스', () => {
-    it('null 배열 처리 (타입 에러 방어)', () => {
-      // @ts-expect-error - 의도적으로 잘못된 타입 테스트
-      const result = calculatePagination(null, 1, 3);
-
-      expect(result.totalPages).toBe(0);
-      expect(result.paginatedItems).toEqual([]);
-    });
-
-    it('undefined 배열 처리 (타입 에러 방어)', () => {
-      // @ts-expect-error - 의도적으로 잘못된 타입 테스트
-      const result = calculatePagination(undefined, 1, 3);
-
-      expect(result.totalPages).toBe(0);
-      expect(result.paginatedItems).toEqual([]);
-    });
-
-    it('페이지 0 요청 (비정상 값)', () => {
-      const items = Array.from({ length: 10 }, (_, i) => ({ id: i + 1 }));
-      const result = calculatePagination(items, 0, 3);
-
-      // startIndex = (0 - 1) * 3 = -3
-      // endIndex = -3 + 3 = 0
-      // slice(-3, 0) → 빈 배열 (start >= end)
-      expect(result.totalPages).toBe(4);
-      expect(result.paginatedItems).toHaveLength(0);
-    });
-
-    it('음수 페이지 요청', () => {
-      const items = Array.from({ length: 10 }, (_, i) => ({ id: i + 1 }));
-      const result = calculatePagination(items, -1, 3);
-
-      // startIndex = (-1 - 1) * 3 = -6
-      // slice(-6, -3) → 일부 요소 반환
-      expect(result.totalPages).toBe(4);
-      // 음수 인덱스는 배열 끝에서부터 계산되므로 결과가 있을 수 있음
-    });
-
-    it('페이지 크기 0 (무한 페이지)', () => {
-      const items = Array.from({ length: 10 }, (_, i) => ({ id: i + 1 }));
-      const result = calculatePagination(items, 1, 0);
-
-      // Math.ceil(10 / 0) = Infinity
-      expect(result.totalPages).toBe(Infinity);
-      expect(result.paginatedItems).toHaveLength(0); // slice(0, 0) = []
-    });
-
-    it('매우 큰 배열 (성능 테스트)', () => {
-      const largeArray = Array.from({ length: 10000 }, (_, i) => ({
-        id: i + 1,
-      }));
-      const result = calculatePagination(largeArray, 1, 15);
-
-      expect(result.totalPages).toBe(667); // 10000 / 15 = 666.67 → ceil = 667
-      expect(result.paginatedItems).toHaveLength(15);
-      expect(result.paginatedItems[0]).toEqual({ id: 1 });
+      // Deselect
+      act(() => {
+        result.current.handleModalClose();
+      });
+      expect(result.current.selectedServer).toBeNull();
     });
   });
 
-  describe('실제 사용 시나리오 (17개 서버)', () => {
-    const mockServers = Array.from({ length: 17 }, (_, i) => ({
-      id: `server-${i + 1}`,
-      name: `Server ${i + 1}`,
-      status: i % 3 === 0 ? 'offline' : 'online',
-    }));
+  describe('Metrics Calculation', () => {
+    const mockServerWithMetrics = {
+      id: 'server-1',
+      name: 'Test Server',
+      status: 'online',
+      cpu: 45,
+      memory: 60,
+      disk: 75,
+      network: 30,
+      uptime: 1000,
+    };
 
-    it('초기 로딩: 3개씩 첫 페이지 (성능 최적화)', () => {
-      const result = calculatePagination(mockServers, 1, 3);
+    it('선택된 서버의 메트릭을 계산하여 반환한다', () => {
+      const { result } = renderHook(() => useServerDashboard());
 
-      expect(result.totalPages).toBe(6);
-      expect(result.paginatedItems).toHaveLength(3);
-      expect(result.paginatedItems.map((s) => s.id)).toEqual([
-        'server-1',
-        'server-2',
-        'server-3',
-      ]);
+      act(() => {
+        result.current.handleServerSelect(mockServerWithMetrics as any);
+      });
+
+      const metrics = result.current.selectedServerMetrics;
+      expect(metrics).toBeDefined();
+      expect(metrics?.cpu).toBe(45);
+      expect(metrics?.memory).toBe(60);
+      expect(metrics?.disk).toBe(75);
+      expect(metrics?.network).toBe(30);
     });
 
-    it('사용자가 6개씩 선택 (모바일 뷰)', () => {
-      const result = calculatePagination(mockServers, 1, 6);
-
-      expect(result.totalPages).toBe(3);
-      expect(result.paginatedItems).toHaveLength(6);
-    });
-
-    it('사용자가 "모두 보기" 선택 (15개)', () => {
-      const result = calculatePagination(mockServers, 1, 15);
-
-      expect(result.totalPages).toBe(2);
-      expect(result.paginatedItems).toHaveLength(15);
-    });
-
-    it('두 번째 페이지로 이동 (15개씩, 마지막 2개)', () => {
-      const result = calculatePagination(mockServers, 2, 15);
-
-      expect(result.totalPages).toBe(2);
-      expect(result.paginatedItems).toHaveLength(2); // 17 - 15 = 2
-      expect(result.paginatedItems.map((s) => s.id)).toEqual([
-        'server-16',
-        'server-17',
-      ]);
-    });
-
-    it('페이지 크기 변경 시 첫 페이지로 리셋 (6 → 9)', () => {
-      // 첫 번째: 6개씩, 2페이지
-      const page2_size6 = calculatePagination(mockServers, 2, 6);
-      expect(page2_size6.paginatedItems).toHaveLength(6);
-      expect(page2_size6.paginatedItems[0].id).toBe('server-7');
-
-      // 크기 변경 후: 9개씩, 1페이지로 리셋 (실제 hook 동작)
-      const page1_size9 = calculatePagination(mockServers, 1, 9);
-      expect(page1_size9.paginatedItems).toHaveLength(9);
-      expect(page1_size9.paginatedItems[0].id).toBe('server-1');
+    it('서버가 선택되지 않았으면 메트릭은 null이다', () => {
+      const { result } = renderHook(() => useServerDashboard());
+      expect(result.current.selectedServerMetrics).toBeNull();
     });
   });
 
-  describe('타입 안정성', () => {
-    it('다양한 객체 타입 처리 (string[])', () => {
-      const stringArray = ['A', 'B', 'C', 'D', 'E'];
-      const result = calculatePagination(stringArray, 1, 2);
+  describe('Loading State Optimization', () => {
+    it('로딩 중이고 데이터가 없으면 isLoading은 true이다', () => {
+      // Mock loading state
+      (useServerDataStore as any).mockImplementation((selector: any) => {
+        const state = {
+          servers: [],
+          isLoading: true,
+          error: null,
+          startAutoRefresh: mockStartAutoRefresh,
+          stopAutoRefresh: mockStopAutoRefresh,
+        };
+        return selector(state);
+      });
 
-      expect(result.totalPages).toBe(3);
-      expect(result.paginatedItems).toEqual(['A', 'B']);
-    });
-
-    it('다양한 객체 타입 처리 (number[])', () => {
-      const numberArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      const result = calculatePagination(numberArray, 2, 3);
-
-      expect(result.totalPages).toBe(4);
-      expect(result.paginatedItems).toEqual([4, 5, 6]);
-    });
-
-    it('복잡한 객체 배열 처리', () => {
-      interface ComplexServer {
-        id: string;
-        metrics: { cpu: number; memory: number };
-        nested: { deep: { value: string } };
-      }
-
-      const complexServers: ComplexServer[] = [
-        {
-          id: '1',
-          metrics: { cpu: 45, memory: 62 },
-          nested: { deep: { value: 'a' } },
-        },
-        {
-          id: '2',
-          metrics: { cpu: 78, memory: 88 },
-          nested: { deep: { value: 'b' } },
-        },
-        {
-          id: '3',
-          metrics: { cpu: 12, memory: 34 },
-          nested: { deep: { value: 'c' } },
-        },
-      ];
-
-      const result = calculatePagination(complexServers, 1, 2);
-
-      expect(result.totalPages).toBe(2);
-      expect(result.paginatedItems).toHaveLength(2);
-      expect(result.paginatedItems[0].nested.deep.value).toBe('a');
+      const { result } = renderHook(() => useServerDashboard());
+      expect(result.current.isLoading).toBe(true);
     });
   });
 });

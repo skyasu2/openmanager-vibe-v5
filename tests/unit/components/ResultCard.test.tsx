@@ -9,7 +9,9 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import ResultCard, { type ResultCardData } from '@/components/ai/ResultCard';
+import ResultCard, {
+  type ResultCardData,
+} from '../../../src/components/ai/ResultCard';
 
 describe('🎯 ResultCard - User Event 테스트', () => {
   let user: ReturnType<typeof userEvent.setup>;

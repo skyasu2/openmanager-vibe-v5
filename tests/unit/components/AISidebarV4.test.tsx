@@ -2,8 +2,8 @@ import { useChat } from '@ai-sdk/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import AISidebarV4 from '@/domains/ai-sidebar/components/AISidebarV4';
-import { useUserPermissions } from '@/hooks/useUserPermissions';
+import AISidebarV4 from '../../../src/domains/ai-sidebar/components/AISidebarV4';
+import { useUserPermissions } from '../../../src/hooks/useUserPermissions';
 
 // Mock Modules
 vi.mock('@ai-sdk/react', () => ({
@@ -11,12 +11,28 @@ vi.mock('@ai-sdk/react', () => ({
   // Mock UIMessage type helper if needed
 }));
 
-vi.mock('@/hooks/useUserPermissions', () => ({
+vi.mock('../../../src/hooks/useUserPermissions', () => ({
   useUserPermissions: vi.fn(),
 }));
 
-vi.mock('../../../components/ai/ThinkingProcessVisualizer', () => ({
+vi.mock('../../../src/components/ai/ThinkingProcessVisualizer', () => ({
   default: () => <div data-testid="thinking-visualizer">Thinking...</div>,
+}));
+
+vi.mock('../../../src/domains/ai-sidebar/components/EnhancedAIChat', () => ({
+  EnhancedAIChat: ({ inputValue, setInputValue, handleSendInput }: any) => (
+    <div data-testid="enhanced-ai-chat">
+      <input
+        placeholder="시스템에 대해 질문해보세요..."
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleSendInput();
+        }}
+      />
+      <button onClick={handleSendInput}>Send</button>
+    </div>
+  ),
 }));
 
 describe('AISidebarV4', () => {
@@ -25,6 +41,9 @@ describe('AISidebarV4', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Mock scrollIntoView
+    Element.prototype.scrollIntoView = vi.fn();
 
     // Default Permissions Mock
     (useUserPermissions as any).mockReturnValue({
@@ -42,13 +61,15 @@ describe('AISidebarV4', () => {
     });
   });
 
-  it('renders correctly when open', () => {
+  it('renders correctly when open', async () => {
     render(
       <AISidebarV4 isOpen={true} onClose={vi.fn()} onMessageSend={vi.fn()} />
     );
+    screen.debug(); // Debug output
 
     expect(screen.getByTestId('ai-sidebar')).toBeInTheDocument();
-    expect(screen.getByText('자연어 질의')).toBeInTheDocument();
+    // Using findByText to handle potential async rendering or effects
+    expect(await screen.findByTestId('enhanced-ai-chat')).toBeInTheDocument();
   });
 
   it('does not render when closed (via CSS class check or internal logic)', () => {

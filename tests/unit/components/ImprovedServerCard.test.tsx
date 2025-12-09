@@ -9,11 +9,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import ImprovedServerCard from '@/components/dashboard/ImprovedServerCard';
-import type { Server } from '@/types/server';
+import ImprovedServerCard from '../../../src/components/dashboard/ImprovedServerCard';
+import type { Server } from '../../../src/types/server';
 
 // Mock dependencies
-vi.mock('@/hooks/useFixed24hMetrics', () => ({
+vi.mock('../../../src/hooks/useFixed24hMetrics', () => ({
   useFixed24hMetrics: vi.fn(() => ({
     currentMetrics: {
       cpu: 45.2,
@@ -24,7 +24,7 @@ vi.mock('@/hooks/useFixed24hMetrics', () => ({
   })),
 }));
 
-vi.mock('@/components/shared/ServerMetricsChart', () => ({
+vi.mock('../../../src/components/shared/ServerMetricsChart', () => ({
   ServerMetricsChart: vi.fn(() => (
     <div data-testid="mock-metrics-chart">Mock Chart</div>
   )),

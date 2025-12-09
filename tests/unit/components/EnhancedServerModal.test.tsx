@@ -9,37 +9,52 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
-import type { Server } from '@/types/server';
+import EnhancedServerModal from '../../../src/components/dashboard/EnhancedServerModal';
+import type { Server } from '../../../src/types/server';
 
 // Mock 5개 탭 컴포넌트
-vi.mock('@/components/dashboard/EnhancedServerModal.OverviewTab', () => ({
-  OverviewTab: vi.fn(() => (
-    <div data-testid="mock-overview-tab">Overview Tab</div>
-  )),
-}));
+vi.mock(
+  '../../../src/components/dashboard/EnhancedServerModal.OverviewTab',
+  () => ({
+    OverviewTab: vi.fn(() => (
+      <div data-testid="mock-overview-tab">Overview Tab</div>
+    )),
+  })
+);
 
-vi.mock('@/components/dashboard/EnhancedServerModal.MetricsTab', () => ({
-  MetricsTab: vi.fn(() => (
-    <div data-testid="mock-metrics-tab">Metrics Tab</div>
-  )),
-}));
+vi.mock(
+  '../../../src/components/dashboard/EnhancedServerModal.MetricsTab',
+  () => ({
+    MetricsTab: vi.fn(() => (
+      <div data-testid="mock-metrics-tab">Metrics Tab</div>
+    )),
+  })
+);
 
-vi.mock('@/components/dashboard/EnhancedServerModal.ProcessesTab', () => ({
-  ProcessesTab: vi.fn(() => (
-    <div data-testid="mock-processes-tab">Processes Tab</div>
-  )),
-}));
+vi.mock(
+  '../../../src/components/dashboard/EnhancedServerModal.ProcessesTab',
+  () => ({
+    ProcessesTab: vi.fn(() => (
+      <div data-testid="mock-processes-tab">Processes Tab</div>
+    )),
+  })
+);
 
-vi.mock('@/components/dashboard/EnhancedServerModal.LogsTab', () => ({
-  LogsTab: vi.fn(() => <div data-testid="mock-logs-tab">Logs Tab</div>),
-}));
+vi.mock(
+  '../../../src/components/dashboard/EnhancedServerModal.LogsTab',
+  () => ({
+    LogsTab: vi.fn(() => <div data-testid="mock-logs-tab">Logs Tab</div>),
+  })
+);
 
-vi.mock('@/components/dashboard/EnhancedServerModal.NetworkTab', () => ({
-  NetworkTab: vi.fn(() => (
-    <div data-testid="mock-network-tab">Network Tab</div>
-  )),
-}));
+vi.mock(
+  '../../../src/components/dashboard/EnhancedServerModal.NetworkTab',
+  () => ({
+    NetworkTab: vi.fn(() => (
+      <div data-testid="mock-network-tab">Network Tab</div>
+    )),
+  })
+);
 
 describe('🎯 EnhancedServerModal - User Event 테스트', () => {
   let user: ReturnType<typeof userEvent.setup>;

@@ -16,7 +16,8 @@ export default defineConfig({
       'tests/unit/time.test.ts',
       'tests/unit/project-meta.test.ts',
       'tests/unit/safe-format.test.ts',
-      'tests/unit/error-handler.test.ts',
+      'tests/unit/safe-format.test.ts',
+      'tests/unit/lib/errorHandler.test.ts',
     ],
     exclude: [
       'node_modules/**',
