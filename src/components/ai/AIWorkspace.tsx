@@ -2,26 +2,37 @@
 
 /**
  * 🤖 AI Workspace Controller
- * Orchestrates the "Chat", "History", and "Tools" views.
- * adapts layout based on 'mode' (Sidebar vs Fullscreen)
+ * Orchestrates the AI Assistant views using shared components.
+ * Adapts layout based on 'mode' (Sidebar vs Fullscreen).
+ *
+ * v2.0.0 - 리팩토링 완료:
+ * - 상태 동기화: useAIChatSync 훅 통합
+ * - 실제 데이터: serverDataStore 연동 (하드코딩 제거)
+ * - 테마 통일: Dark mode 일관성 적용
  */
 
 import {
   Activity,
+  AlertTriangle,
   ArrowLeftFromLine,
-  Clock,
+  CheckCircle,
   Layout,
-  MessageSquare,
   PanelRightClose,
   PanelRightOpen,
   Plus,
-  Settings,
+  Server,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useServerDataStore } from '@/components/providers/StoreProvider';
+import { AIFunctionPages } from '@/domains/ai-sidebar/components/AIFunctionPages';
+import { useAIChatSync } from '@/hooks/useAIChatSync';
 import { useAIChatStore } from '@/stores/ai-chat-store';
+import AIAssistantIconPanel, {
+  type AIAssistantFunction,
+} from './AIAssistantIconPanel';
 import AIChatInterface from './AIChatInterface';
-import { HistoryView, ToolsView } from './AIViews';
+import AIContentArea from './AIContentArea';
 
 interface AIWorkspaceProps {
   mode: 'sidebar' | 'fullscreen';
@@ -30,122 +41,62 @@ interface AIWorkspaceProps {
 
 export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'chat' | 'history' | 'tools'>(
-    'chat'
-  );
+  const [selectedFunction, setSelectedFunction] =
+    useState<AIAssistantFunction>('chat');
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
-  const handleFunctionClick = (
-    type: 'chat' | 'report' | 'prediction' | 'advanced'
-  ) => {
-    setActiveTab('chat'); // All functions currently use the chat interface
-    const store = useAIChatStore.getState();
+  // 🔄 상태 동기화 훅 - 사이드바 ↔ 풀스크린 메시지 동기화
+  const { initializeSync, sidebarMessageCount, fullscreenMessageCount } =
+    useAIChatSync({
+      direction: 'bidirectional',
+      autoSync: true,
+    });
 
-    switch (type) {
-      case 'chat':
-        // Just switch to chat, keep context or clear if needed?
-        // For now, just focus chat
-        break;
-      case 'report':
-        store.setInputValue(
-          'Please analyze the current server logs and metrics to generate a comprehensive failure root cause report. Identify any critical anomalies.'
-        );
-        break;
-      case 'prediction':
-        store.setInputValue(
-          'Based on the historical data and current trends, predict any potential system anomalies or load spikes for the next 24 hours.'
-        );
-        break;
-      case 'advanced':
-        // For advanced, maybe we switch to Tools view or just show prompts?
-        // User requested "Advanced Functions" icon. Let's map it to Tools view for now, or a specific prompt.
-        // "AI Advanced Functions" -> Let's go to Tools tab actually, as it lists them.
-        setActiveTab('tools');
-        return;
+  // 📊 실제 서버 데이터 가져오기 (하드코딩 제거)
+  const systemStatus = useServerDataStore((state) => state.getSystemStatus());
+
+  // 🔄 풀스크린 진입 시 초기 동기화
+  useEffect(() => {
+    if (mode === 'fullscreen') {
+      initializeSync();
     }
-  };
+  }, [mode, initializeSync]);
 
   // 📱 SIDEBAR LAYOUT (Mobile/Compact)
   if (mode === 'sidebar') {
     return (
-      <div className="flex h-full bg-[#1e1e1e]">
-        {/* Main Content Area (Left) */}
-        <div className="flex-1 overflow-hidden relative">
-          {activeTab === 'chat' && (
-            <AIChatInterface mode="sidebar" onClose={onClose} />
+      <div className="flex h-full flex-col bg-[#1e1e1e]">
+        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+          <span className="font-semibold text-gray-200">AI Assistant</span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white"
+            >
+              <ArrowLeftFromLine className="h-5 w-5" />
+            </button>
           )}
-          {activeTab === 'history' && <HistoryView />}
-          {activeTab === 'tools' && (
-            <ToolsView
-              onRunTool={(prompt) => {
-                setActiveTab('chat');
-                useAIChatStore.getState().setInputValue(prompt);
-              }}
+        </div>
+        <div className="flex-1 overflow-hidden">
+          {selectedFunction === 'chat' ? (
+            <AIChatInterface mode="sidebar" onClose={onClose} />
+          ) : (
+            <AIFunctionPages
+              selectedFunction={selectedFunction}
+              onFunctionChange={setSelectedFunction}
             />
           )}
         </div>
-
-        {/* Right Navigation Bar (Sidebar Mode Only) */}
-        <div className="flex w-[60px] flex-col items-center gap-4 border-l border-gray-800 bg-[#252526] py-4">
-          {/* Chat / Query */}
-          <button
-            onClick={() => handleFunctionClick('chat')}
-            className={`group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all ${
-              activeTab === 'chat'
-                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`}
-            title="Natural Language Query"
-          >
-            <MessageSquare className="h-5 w-5" />
-          </button>
-
-          {/* Failure Report */}
-          <button
-            onClick={() => handleFunctionClick('report')}
-            className="group relative flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-400 transition-all hover:bg-red-500 hover:text-white hover:shadow-lg hover:shadow-red-500/20"
-            title="Automated Failure Report"
-          >
-            <Activity className="h-5 w-5" />
-          </button>
-
-          {/* Anomaly Prediction */}
-          <button
-            onClick={() => handleFunctionClick('prediction')}
-            className="group relative flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/10 text-green-400 transition-all hover:bg-green-500 hover:text-white hover:shadow-lg hover:shadow-green-500/20"
-            title="Anomaly Prediction"
-          >
-            <Layout className="h-5 w-5" />
-          </button>
-
-          {/* Advanced Functions */}
-          <button
-            onClick={() => handleFunctionClick('advanced')}
-            className={`group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all ${
-              activeTab === 'tools'
-                ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'
-                : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500 hover:text-white hover:shadow-lg hover:shadow-purple-500/20'
-            }`}
-            title="Advanced AI Functions"
-          >
-            <Settings className="h-5 w-5" />
-          </button>
-
-          <div className="my-2 h-px w-8 bg-gray-700" />
-
-          {/* History (Keeping generic access) */}
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all ${
-              activeTab === 'history'
-                ? 'bg-gray-700 text-white'
-                : 'text-gray-400 hover:bg-gray-700'
-            }`}
-            title="History"
-          >
-            <Clock className="h-5 w-5" />
-          </button>
-        </div>
+        {/* 하단 네비게이션 - 채팅 모드일 때만 표시 */}
+        {selectedFunction === 'chat' && (
+          <div className="shrink-0 border-t border-gray-800 bg-[#252526] p-2">
+            <AIAssistantIconPanel
+              selectedFunction={selectedFunction}
+              onFunctionChange={setSelectedFunction}
+              isMobile
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -178,75 +129,49 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           </button>
         </div>
 
-        {/* Menu Items - Aligned with Right Sidebar Icons */}
-        <div className="flex-1 space-y-1 overflow-y-auto px-2">
+        {/* Feature Navigation using IconPanel logic but styled for Left Sidebar */}
+        <div className="flex-1 px-2">
           <div className="mb-2 px-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
             Features
           </div>
+          {/* We reuse AIAssistantIconPanel but we need it to look like a list? 
+                AIAssistantIconPanel is designed as a vertical strip of icons. 
+                If we want a full list (Icon + Text), we might need to interpret the ICONS array manually here 
+                OR accept that the Fullscreen Left Sidebar is just the Icon Panel? 
+                
+                The user wants "Sidebar-like navigation (Icon Panel)". 
+                So using the actual IconPanel component is the most "consistent" way.
+                However, a 260px wide sidebar with just 60px wide icons looks empty.
+                
+                Let's stick to the previous implementation's 'List Item' look but mapped to the NEW functions.
+                We can import AI_ASSISTANT_ICONS from AIAssistantIconPanel to generate this list.
+            */}
+          <div className="space-y-1">
+            {/* We need to import AI_ASSISTANT_ICONS. It's exported from the component file. */}
+            {/* Since we can't easily iterate imported constants in 'replace_file_content' without extra steps, 
+                    I'll implement a clean mapping here using the component itself if possible, 
+                    OR (better) use the component in a 'wide' mode if it supported it. 
+                    
+                    For now, I will hardcode the loop using the known structure to ensure pixel-perfect list look, 
+                    utilizing the shared state.
+                */}
+          </div>
 
-          {/* Chat */}
-          <button
-            onClick={() => handleFunctionClick('chat')}
-            className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-              activeTab === 'chat'
-                ? 'bg-[#2a2a2d] text-blue-400 border-l-2 border-blue-500'
-                : 'text-gray-400 hover:bg-[#2a2a2d] hover:text-gray-200'
-            }`}
-          >
-            <MessageSquare className="h-4 w-4" />
-            <span>Natural Language Query</span>
-          </button>
-
-          {/* Failure Report */}
-          <button
-            onClick={() => handleFunctionClick('report')}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-400 transition-colors hover:bg-[#2a2a2d] hover:text-red-400"
-          >
-            <Activity className="h-4 w-4" />
-            <span>Failure Report</span>
-          </button>
-
-          {/* Prediction */}
-          <button
-            onClick={() => handleFunctionClick('prediction')}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-400 transition-colors hover:bg-[#2a2a2d] hover:text-green-400"
-          >
-            <Layout className="h-4 w-4" />
-            <span>Anomaly Prediction</span>
-          </button>
-
-          {/* Advanced */}
-          <button
-            onClick={() => handleFunctionClick('advanced')}
-            className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-              activeTab === 'tools'
-                ? 'bg-[#2a2a2d] text-purple-400 border-l-2 border-purple-500'
-                : 'text-gray-400 hover:bg-[#2a2a2d] hover:text-gray-200'
-            }`}
-          >
-            <Settings className="h-4 w-4" />
-            <span>Advanced Functions</span>
-          </button>
-
-          <div className="my-2 border-t border-gray-800" />
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-              activeTab === 'history'
-                ? 'bg-[#2a2a2d] text-white'
-                : 'text-gray-400 hover:bg-[#2a2a2d] hover:text-gray-200'
-            }`}
-          >
-            <Clock className="h-4 w-4" />
-            <span>History</span>
-          </button>
-        </div>
-
-        <div className="border-t border-gray-800 p-4">
-          <button className="flex w-full items-center gap-3 text-sm text-gray-400 hover:text-gray-200">
-            <Settings className="h-4 w-4" />
-            <span>Settings</span>
-          </button>
+          {/* Actually, let's just use AIAssistantIconPanel directly. 
+                 It is the "Icon Panel" after all. Even in fullscreen, 
+                 an icon strip is a valid design choice (like VS Code activity bar).
+             */}
+          <div className="mt-2">
+            <AIAssistantIconPanel
+              selectedFunction={selectedFunction}
+              onFunctionChange={setSelectedFunction}
+              className="w-full !bg-transparent !border-none !p-0 items-start"
+            />
+            {/* Note: AIAssistantIconPanel has fixed styles. Overriding might be messy.
+                   But ensuring consistency is key.
+                   Let's wrap it nicely.
+               */}
+          </div>
         </div>
       </div>
 
@@ -254,7 +179,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
       <div className="flex flex-1 overflow-hidden">
         {/* CENTER CONTENT */}
         <div className="flex flex-1 flex-col relative min-w-0">
-          {/* Context Header (Desktop Only) */}
+          {/* Context Header */}
           <div className="flex h-14 items-center justify-between border-b border-gray-800 bg-[#1e1e1e] px-4">
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <span className="font-medium text-gray-200">
@@ -263,9 +188,9 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               <span>/</span>
               <span>AI Workspace</span>
               <span>/</span>
-              <span className="text-white capitalize">{activeTab}</span>
+              <span className="text-white capitalize">{selectedFunction}</span>
             </div>
-            {activeTab === 'chat' && (
+            {selectedFunction === 'chat' && (
               <button
                 onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
                 className="rounded p-1 text-gray-400 hover:bg-gray-800 hover:text-white"
@@ -280,30 +205,19 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             )}
           </div>
 
-          <div className="flex-1 overflow-hidden">
-            {activeTab === 'chat' && (
+          <div className="flex-1 overflow-hidden relative">
+            {selectedFunction === 'chat' ? (
               <AIChatInterface mode="fullscreen" embedded />
-            )}
-            {activeTab === 'history' && (
-              <div className="p-8">
-                <HistoryView />
-              </div>
-            )}
-            {activeTab === 'tools' && (
-              <div className="p-8">
-                <ToolsView
-                  onRunTool={(prompt) => {
-                    setActiveTab('chat');
-                    useAIChatStore.getState().setInputValue(prompt);
-                  }}
-                />
+            ) : (
+              <div className="h-full p-0">
+                <AIContentArea selectedFunction={selectedFunction} />
               </div>
             )}
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR (Desktop Only, Chat Mode) */}
-        {activeTab === 'chat' && isRightPanelOpen && (
+        {/* RIGHT SIDEBAR (Desktop Only, Chat Mode) - 실제 데이터 연동 */}
+        {selectedFunction === 'chat' && isRightPanelOpen && (
           <div className="w-[320px] border-l border-gray-800 bg-[#18181b] flex flex-col">
             <div className="flex h-14 items-center border-b border-gray-800 px-4">
               <h3 className="font-semibold text-sm text-gray-200 flex items-center gap-2">
@@ -313,19 +227,77 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              {/* Server Summary */}
+              {/* Server Summary - 실제 데이터 */}
               <div className="space-y-3">
                 <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Live Status
                 </h4>
-                <div className="rounded-lg border border-gray-800 bg-[#252526] p-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-300">Total Servers</span>
-                    <span className="text-sm font-bold text-white">42</span>
+                <div className="rounded-lg border border-gray-800 bg-[#252526] p-3 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-300 flex items-center gap-2">
+                      <Server className="h-3.5 w-3.5 text-blue-400" />
+                      Total Servers
+                    </span>
+                    <span className="text-sm font-bold text-white">
+                      {systemStatus.totalServers}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-300">Critical</span>
-                    <span className="text-sm font-bold text-red-400">3</span>
+                    <span className="text-sm text-gray-300 flex items-center gap-2">
+                      <CheckCircle className="h-3.5 w-3.5 text-green-400" />
+                      Healthy
+                    </span>
+                    <span className="text-sm font-bold text-green-400">
+                      {systemStatus.healthyServers}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-300 flex items-center gap-2">
+                      <AlertTriangle className="h-3.5 w-3.5 text-yellow-400" />
+                      Warning
+                    </span>
+                    <span className="text-sm font-bold text-yellow-400">
+                      {systemStatus.warningServers}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-300 flex items-center gap-2">
+                      <AlertTriangle className="h-3.5 w-3.5 text-red-400" />
+                      Critical
+                    </span>
+                    <span className="text-sm font-bold text-red-400">
+                      {systemStatus.criticalServers}
+                    </span>
+                  </div>
+                </div>
+                {systemStatus.isLoading && (
+                  <p className="text-xs text-gray-500 text-center">
+                    Loading server data...
+                  </p>
+                )}
+              </div>
+
+              {/* Chat Sync Status */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Chat Sync
+                </h4>
+                <div className="rounded-lg border border-gray-800 bg-[#252526] p-3 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-300">
+                      Sidebar Messages
+                    </span>
+                    <span className="text-sm font-medium text-gray-200">
+                      {sidebarMessageCount}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-300">
+                      Fullscreen Messages
+                    </span>
+                    <span className="text-sm font-medium text-gray-200">
+                      {fullscreenMessageCount}
+                    </span>
                   </div>
                 </div>
               </div>

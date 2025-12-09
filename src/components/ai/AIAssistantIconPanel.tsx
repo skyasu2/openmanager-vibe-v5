@@ -37,8 +37,8 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     icon: MessageSquare,
     label: '자연어 질의',
     description: '자연어로 시스템 질의 및 대화',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50 hover:bg-blue-100',
+    color: 'text-blue-400',
+    bgColor: 'bg-blue-900/30 hover:bg-blue-800/40',
     gradient: 'from-blue-500 to-cyan-500',
   },
   {
@@ -46,8 +46,8 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     icon: FileText,
     label: '자동장애 보고서',
     description: 'AI 기반 시스템 장애 분석 보고서 생성',
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-50 hover:bg-pink-100',
+    color: 'text-pink-400',
+    bgColor: 'bg-pink-900/30 hover:bg-pink-800/40',
     gradient: 'from-pink-500 to-rose-500',
   },
   {
@@ -56,8 +56,8 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     label: '이상감지/예측',
     description:
       '🧠 통합 AI 분석: 이상탐지→근본원인→예측모니터링→패턴학습→예측분석',
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-50 hover:bg-emerald-100',
+    color: 'text-emerald-400',
+    bgColor: 'bg-emerald-900/30 hover:bg-emerald-800/40',
     gradient: 'from-emerald-500 to-teal-500',
   },
 ];
@@ -126,14 +126,14 @@ export default function AIAssistantIconPanel({
 
   return (
     <div
-      className={`flex flex-col space-y-2 border-l border-gray-200 bg-white p-3 ${className}`}
+      className={`flex flex-col space-y-2 border-l border-gray-700 bg-[#1e1e1e] p-3 ${className}`}
     >
       {/* 헤더 */}
       <div className="mb-2 text-center">
         <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-500">
           <Brain className="h-4 w-4 text-white" />
         </div>
-        <p className="text-xs font-medium text-gray-600">AI 기능</p>
+        <p className="text-xs font-medium text-gray-400">AI 기능</p>
       </div>
 
       {/* 아이콘 버튼들 */}
@@ -182,7 +182,7 @@ export default function AIAssistantIconPanel({
       </div>
 
       {/* 하단 상태 표시 */}
-      <div className="mt-4 border-t border-gray-200 pt-2">
+      <div className="mt-4 border-t border-gray-700 pt-2">
         <div className="text-center">
           <div className="animate-pulse mx-auto mb-1 h-2 w-2 rounded-full bg-green-400"></div>
           <p className="text-xs text-gray-500">AI 활성</p>
