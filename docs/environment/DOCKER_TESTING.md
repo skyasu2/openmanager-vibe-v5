@@ -16,7 +16,7 @@ npm run dev:docker:ai
 
 이 명령어는 다음 서비스들을 로컬 컨테이너로 띄웁니다:
 - **Unified AI Processor**: `http://localhost:8082`
-- **Machine Learning Engine**: `http://localhost:8080` (내부 통신용)
+- **Mock AI** (선택): `http://localhost:8083/process`
 
 ### 3. 환경 변수 연결
 Next.js 앱이 로컬 Docker 서비스를 바라보도록 `.env.local`을 수정하세요:

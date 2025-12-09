@@ -17,7 +17,6 @@
 |-------------------|--------------|------|-------------|
 | **unified-ai-processor** | `unified-ai-processor` | `8082` | **AI 오케스트레이터 (메인)**<br>- Next.js 앱의 AI 요청을 받아 처리<br>- NLP, Rule Engine, LLM 호출 등을 조율<br>- ⚠️ `http://localhost:8082` (Base URL 권장) |
 | **mock-ai** | `mock-ai` | `8083` | **가짜 AI (Mock)**<br>- 비용 없는 빠른 테스트용<br>- 실제 LLM 대신 사전에 정의된 응답 반환<br>- ⚠️ `http://localhost:8083/process` (`/process` 필수) |
-| ~~ml-analytics-engine~~ | - | - | **⚠️ DEPRECATED**<br>- unified-ai-processor에 통합됨 (효율성 향상)<br>- docker-compose.dev.yml에서 주석 처리됨 |
 
 ### 🚀 실행 방법 (WSL 권장)
 ```bash
@@ -28,7 +27,7 @@ bash scripts/dev/run-docker-functions.sh
 ```
 
 ### ☁️ Dev/Prod Parity (개발/운영 일치)
-`unified-ai-processor` 및 `ml-analytics-engine`은 **Google Cloud Run** 배포에 사용되는 `Dockerfile`을 그대로 로컬에서 사용합니다.
+`unified-ai-processor`는 **Google Cloud Run** 배포에 사용되는 `Dockerfile`을 그대로 로컬에서 사용합니다.
 - **Local**: `docker-compose`가 오케스트레이션 담당.
 - **Cloud**: Google Cloud Run이 오케스트레이션 담당.
 -> 이를 통해 **"로컬에서 되면 클라우드에서도 된다"**를 보장합니다.
@@ -62,7 +61,7 @@ npx supabase stop
 ## 📡 3. 네트워크 통신 흐름
 
 1.  **Next.js (Host/WSL)** -> 요청 -> **Kong (54321)** -> **Supabase Services**
-2.  **Next.js (Host/WSL)** -> 요청 -> **Unified Processor (8082)** -> **ML Engine (8080)** / **Mock AI (8083)**
+2.  **Next.js (Host/WSL)** -> 요청 -> **Unified Processor (8082)** 또는 **Mock AI (8083)**
 
 ## 💻 WSL 사용자 주의사항
 
