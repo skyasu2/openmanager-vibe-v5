@@ -155,21 +155,60 @@ const searchKnowledgeBase = tool({
   description: '과거 장애 이력 및 해결 방법을 검색합니다 (Real RAG)',
   inputSchema: z.object({
     query: z.string().describe('검색 쿼리'),
+    queryIntent: z
+      .enum(['monitoring', 'analysis', 'guide', 'general'])
+      .optional()
+      .describe('질문 의도 (analyzeRequest 결과 활용)'),
+    complexityHint: z
+      .number()
+      .min(1)
+      .max(5)
+      .optional()
+      .describe('복잡도 힌트 1-5 (높을수록 더 많은 결과 반환)'),
   }),
-  execute: async ({ query }: { query: string }) => {
+  execute: async ({
+    query,
+    queryIntent,
+    complexityHint,
+  }: {
+    query: string;
+    queryIntent?: 'monitoring' | 'analysis' | 'guide' | 'general';
+    complexityHint?: number;
+  }) => {
     try {
       const supabase = await createClient();
       const ragEngine = new SupabaseRAGEngine(supabase);
 
+      // Intent → Category 매핑 (command_vectors 테이블 카테고리 기준)
+      const intentCategoryMap: Record<string, string | undefined> = {
+        monitoring: 'server_monitoring',
+        analysis: 'troubleshooting',
+        guide: 'linux', // 일반 가이드는 linux 명령어 중심
+        general: undefined, // 카테고리 제한 없음
+      };
+
+      // 복잡도 기반 maxResults 조정 (1-2: 2개, 3-4: 4개, 5: 5개)
+      const getMaxResults = (complexity?: number): number => {
+        if (!complexity) return 3; // 기본값
+        if (complexity <= 2) return 2;
+        if (complexity <= 4) return 4;
+        return 5;
+      };
+
+      const category = queryIntent ? intentCategoryMap[queryIntent] : undefined;
+      const maxResults = getMaxResults(complexityHint);
+
       const searchResult = await ragEngine.searchHybrid(query, {
-        maxResults: 3,
+        maxResults,
         enableKeywordFallback: true,
+        category, // RAGSearchOptions의 category 활용
       });
 
       if (!searchResult.success || searchResult.results.length === 0) {
         return {
           success: false,
           message: '관련된 문서를 찾을 수 없습니다.',
+          _meta: { intent: queryIntent, complexity: complexityHint, category },
         };
       }
 
@@ -180,6 +219,7 @@ const searchKnowledgeBase = tool({
           similarity: r.similarity,
         })),
         _source: 'Supabase pgvector',
+        _meta: { intent: queryIntent, complexity: complexityHint, category, maxResults },
       };
     } catch (error) {
       console.error('❌ RAG 검색 실패:', error);
