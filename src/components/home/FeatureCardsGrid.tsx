@@ -82,7 +82,7 @@ const FeatureCardItem = memo(
         }}
       >
         <div
-          className={`cubic-bezier(0.4, 0, 0.2, 1) relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300 hover:bg-white/20 ${
+          className={`relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300 ease-out hover:bg-white/20 ${
             card.isSpecial
               ? 'border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10'
               : ''
@@ -95,7 +95,10 @@ const FeatureCardItem = memo(
 
           {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
           {card.isAICard && (
-            <div className="animate-gradient-shift absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 bg-size-[200%_200%] opacity-90" />
+            <div
+              className="animate-gradient-shift absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 opacity-90"
+              style={{ backgroundSize: '200% 200%' }}
+            />
           )}
 
           {/* Vibe Coding 카드 특별 디자인 */}
@@ -107,7 +110,10 @@ const FeatureCardItem = memo(
 
               {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
-                <div className="animate-gradient-shift absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 bg-size-[200%_200%] opacity-90" />
+                <div
+                  className="animate-gradient-shift absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 opacity-90"
+                  style={{ backgroundSize: '200% 200%' }}
+                />
               </div>
 
               {/* 텍스트 가독성을 위한 오버레이 */}

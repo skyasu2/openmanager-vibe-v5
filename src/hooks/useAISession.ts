@@ -19,7 +19,7 @@ export interface AISessionState {
   sessionId: string | null;
   currentQuery: string;
   currentResponse: string;
-  mode: 'LOCAL' | 'GOOGLE_AI';
+  mode: 'UNIFIED';
   isLoading: boolean;
   error: string | null;
   confidence: number;
@@ -69,7 +69,7 @@ export function useAISession(
     sessionId: null,
     currentQuery: '',
     currentResponse: '',
-    mode: 'LOCAL',
+    mode: 'UNIFIED',
     isLoading: false,
     error: null,
     confidence: 0,
@@ -163,7 +163,7 @@ export function useAISession(
       isLoading: false,
       currentQuery: '',
       currentResponse: '',
-      mode: 'LOCAL',
+      mode: 'UNIFIED',
       error: null,
       thinkingProcess: [],
       confidence: 0,
@@ -183,7 +183,7 @@ export function useAISession(
    * 🔄 AI 쿼리 시작
    */
   const startQuery = useCallback(
-    (query: string, mode: 'LOCAL' | 'GOOGLE_AI' = 'LOCAL') => {
+    (query: string, mode: 'UNIFIED' = 'UNIFIED') => {
       let sessionId = sessionState.sessionId;
 
       // 세션이 없으면 새로 생성
@@ -385,7 +385,7 @@ export function useAISession(
       isLoading: false,
       currentQuery: '',
       currentResponse: '',
-      mode: 'LOCAL',
+      mode: 'UNIFIED',
       error: null,
       thinkingProcess: [],
       confidence: 0,

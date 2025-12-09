@@ -25,7 +25,7 @@ export function getSupabaseClient(): SupabaseClient {
     );
   }
 
-  if (!global.__supabaseInstance) {
+  if (!globalThis.__supabaseInstance) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -33,7 +33,7 @@ export function getSupabaseClient(): SupabaseClient {
       throw new Error('Missing Supabase environment variables');
     }
 
-    global.__supabaseInstance = createClient(url, key, {
+    globalThis.__supabaseInstance = createClient(url, key, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -43,7 +43,7 @@ export function getSupabaseClient(): SupabaseClient {
     });
   }
 
-  return global.__supabaseInstance;
+  return globalThis.__supabaseInstance;
 }
 
 // Lazy initialization to prevent SSR errors during module evaluation
