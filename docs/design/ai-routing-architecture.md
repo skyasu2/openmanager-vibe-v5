@@ -24,29 +24,58 @@ graph TD
 
 ## Routing Logic
 
-### 1. Classification (The Router)
-- **Engine**: Groq (Llama-3.1-8b-instant)
-- **Latency**: < 200ms
-- **Cost**: Negligible (approx. $0.05 / 1M tokens)
-- **Function**: Classifies intent and complexity (1-5).
+### 1. Dynamic Model Router (DMR)
 
-### 2. Primary Execution
-| Complexity | Engine | Use Case |
-| :--- | :--- | :--- |
-| **Simple (1-3)** | **Gemini 1.5/2.0 Flash** | Greetings, status checks, CLI command lookup. |
-| **Complex (4-5)** | **Gemini 1.5/2.0 Pro** | Root cause analysis, code generation, log correlation. |
+The **Dynamic Model Router** is the core intelligence that intercepts every user query and decides the optimal processing path. It uses a preliminary analysis step to categorize intent and complexity.
 
-### 3. Fallback Mechanism (High Availability)
-If the primary Google model fails (e.g., 429 Too Many Requests, 500 Error):
-- **For Flash**: Seamlessly switches to **Llama 3.1 8B** (Groq).
-- **For Pro**: Seamlessly switches to **Llama 3.3 70B** (Groq).
+### Routing Logic (v3.2)
 
-## Configuration
-Requires the following environment variables:
-```bash
-# Primary
-GOOGLE_AI_API_KEY=...
+The router evaluates the query's **complexity (1-5)** and **intent** to select the appropriate model and toolset.
 
-# Router & Fallback
-GROQ_API_KEY=gsk_...
+| Complexity | Intent Examples | Primary Model | Fallback Model | Latency Target |
+| :--- | :--- | :--- | :--- | :--- |
+| **Level 1** | Greetings, FAQ | **Groq Llama 3.1 8B** | Gemini 2.5 Flash | < 300ms |
+| **Level 2** | Server Status (Simple) | **Gemini 2.5 Flash** | - | < 800ms |
+| **Level 3** | Simple Metrics | **Gemini 2.5 Flash** | Groq Llama 3.1 8B | < 1.5s |
+| **Level 4** | Document Analysis, Pattern Analysis | **Gemini 2.5 Flash** | Groq Llama 3.1 8B | < 3s |
+| **Level 5** | Complex Reasoning, Prediction | **Gemini 2.5 Pro** | Groq Llama 3.3 70B | Variable (Streaming) |
+
+> **Note**: **Gemini 2.5 Flash** is now the default workhorse for most tasks due to its speed/cost efficiency. **Gemini 2.5 Pro** is reserved for "Thinking Mode" and complex reasoning tasks.
+
+---
+
+## 2. Integration with Unified AI Processor
+
+For high-complexity tasks (typically Level 4+ or specific analytic intents), the Router delegates execution to the **Unified AI Processor** (Python/GCP).
+
+-   **Endpoint**: `/api/ai/unified-stream` (Streaming) or `/api/ai/query` (Legacy/Sync)
+-   **Role**: The Next.js API acts as a gateway. It calls the local `UnifiedAIProcessor` class (or external GCP Function if configured) to perform heavy lifting like:
+    -   Korean NLP processing (KoNLPy)
+    -   ML-based Anomaly Detection (Scikit-learn)
+    -   RAG (Supabase pgvector)
+
+### Architecture Flow
+
+```mermaid
+graph TD
+    User[User Query] --> Router[Next.js API Route /api/ai/unified-stream]
+    Router --> Classifier{Query Classifier}
+    
+    Classifier -- Simple (L1-3) --> Direct[Direct Response / Tool Call]
+    Classifier -- Complex (L4-5) --> Unified[Unified Processor (Python)]
+    
+    Direct --> Gemini[Gemini 2.5 Flash]
+    Unified --> GeminiPro[Gemini 2.5 Pro (Reasoning)]
+    
+    Unified --> NLP[NLP Engine]
+    Unified --> ML[ML Analytics]
+    Unified --> RAG[Knowledge Base]
 ```
+
+## 3. Environment Configuration
+
+Ensure the following environment variables are set in `.env.local`:
+
+-   `GOOGLE_AI_API_KEY`: API Key for Gemini 2.5
+-   `GROQ_API_KEY`: API Key for Groq (Llama models)
+-   `NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT`: (Optional) URL for external GCP Cloud Function deployment

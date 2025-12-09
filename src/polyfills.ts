@@ -64,9 +64,17 @@ if (isNodeEnvironment && !isBrowserEnvironment) {
   if (typeof glob.document === 'undefined') {
     glob.document = {
       createElement: () => ({}),
+      createElementNS: () => ({}),
+      querySelector: () => null,
       querySelectorAll: () => [],
+      getElementById: () => null,
+      getElementsByClassName: () => [],
+      getElementsByTagName: () => [],
       addEventListener: () => {},
       removeEventListener: () => {},
+      head: { appendChild: () => {} },
+      body: { appendChild: () => {} },
+      documentElement: { style: {} },
     };
   }
 

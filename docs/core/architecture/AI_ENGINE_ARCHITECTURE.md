@@ -2,43 +2,66 @@
 
 ## Overview
 
-The AI Engine is the core of the **AX (AI Experience)**, providing intelligent insights, anomaly detection, and automated troubleshooting. It uses a **Unified Processor** architecture to efficiently route requests to the best available AI model.
+The AI Engine for OpenManager Vibe is a **Hybrid Intelligence System** that combines fast local processing with powerful cloud-based reasoning. It leverages **Google's Gemini 2.5** models for state-of-the-art performance and **Groq** for high-speed routing.
 
-## 🏗️ Core Stack
+## Core Components
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Primary Model** | Google Gemini 2.5 | High performance, large context window |
-| **Fallback Models** | Claude 3.5, GPT-4o | Reliability, cross-validation |
-| **Orchestrator** | Unified Processor | Request routing, context management |
-| **Memory** | Supabase PostgreSQL | Long-term memory, vector storage |
-| **Streaming** | Supabase Realtime | Live "Thinking" steps streaming |
+### 1. Unified Intelligence Processor (v3.1.0)
+The central nervous system of the AI, orchestrating all analysis and response generation.
 
-## 📐 Architecture Diagram
+-   **Location**: `gcp-functions/unified-ai-processor/main.py` (Python)
+-   **Orchestrator**: `UnifiedAIProcessor` class.
+-   **Sub-Engines**:
+    -   **Gateway Router**: Routes requests to specific sub-engines.
+    -   **Korean NLP Engine**: Specialized Korean language processing using `KoNLPy`.
+    -   **ML Analytics Engine**: Scikit-learn based anomaly detection and trend analysis.
+    -   **Rule Engine**: Deterministic rules for known operational scenarios.
+
+### 2. Model Stack
+-   **Primary (Reasoning)**: **Gemini 2.5 Pro** - Detailed analysis, complex troubleshooting ("Thinking Mode").
+-   **Primary (Speed)**: **Gemini 2.5 Flash** - Quick responses, UI interactions, routine checks.
+-   **Fallback**: **Groq (Llama 3.1/3.3)** - High-speed redundancy if Google AI is unavailable.
+
+### 3. Data & Memory
+-   **Vector Store**: Supabase (pgvector) for RAG (Retrieval Augmented Generation).
+-   **Realtime**: Supabase Realtime for live dashboard updates.
+-   **State Management**: `zustand` stores for client-side chat history and "Thinking Steps" visualization.
+
+## API Architecture
+
+> [!WARNING]
+> **Architecture Note**: There are currently two parallel API implementations.
+> 1.  **`/api/ai/unified-stream` (Recommended)**: Utilizes Vercel AI SDK for **streaming responses**, tool calling, and "Thinking Process" visualization. Used by the **AI Sidebar**.
+> 2.  **`/api/ai/query` (Legacy)**: Standard request/response endpoint. Used by the **Fullscreen AI Workspace**. *Planned for deprecation/refactoring.*
+
+## Architecture Diagram
 
 ```mermaid
 graph TD
-    Request[User Request] --> Unified[Unified Processor]
+    Client[Client UI] -->|Stream Request| API[Next.js API (/api/ai/unified-stream)]
     
-    subgraph "AI Orchestration"
-        Unified --> Router[Model Router]
-        Router -->|Primary| Gemini[Google Gemini 2.5]
-        Router -->|Fallback 1| Claude[Claude 3.5 Sonnet]
-        Router -->|Fallback 2| GPT[GPT-4o]
+    subgraph "Next.js Server (Edge/Node)"
+        API --> Router{Dynamic Router}
+        Router -- "Simple/Visual" --> GeminiFlash[Gemini 2.5 Flash]
+        Router -- "Complex/Thinking" --> GeminiPro[Gemini 2.5 Pro]
         
-        Gemini -.->|Error| Claude
-        Claude -.->|Error| GPT
+        GeminiFlash -- Tool Call --> UnifiedProc[Unified AI Processor]
+        GeminiPro -- Tool Call --> UnifiedProc
     end
     
-    subgraph "Context & Memory"
-        Unified -->|RAG| VectorDB[(Supabase Vector)]
-        Unified -->|History| ChatLogs[(Chat History)]
+    subgraph "Unified AI Processor (Python)"
+        UnifiedProc --> NLP[NLP Engine]
+        UnifiedProc --> ML[ML Analytic Engine]
+        UnifiedProc --> Rules[Rule Engine]
     end
     
-    subgraph "Realtime Feedback"
-        Unified -->|Stream| Adapter[Supabase Realtime Adapter]
-        Adapter -->|WebSocket| Client[Client UI]
+    subgraph "Data Layer"
+        UnifiedProc --> DB[(Supabase PG)]
+        UnifiedProc --> RAG[(Vector Store)]
     end
+    
+    UnifiedProc -->|Analysis Result| GeminiPro
+    GeminiPro -->|Streaming Response| Client
 ```
 
 ## 🧩 Key Components

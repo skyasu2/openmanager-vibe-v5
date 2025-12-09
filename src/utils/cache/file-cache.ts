@@ -1,14 +1,13 @@
-import fs from 'fs/promises';
-import path from 'path';
 import type { FileCache, HourlyServerData } from '@/types/server-metrics';
 
 /**
- * 파일 캐시 시스템
+ * 파일 캐시 시스템 (브라우저/서버 호환)
  *
  * 5분 TTL로 시간별 메트릭 JSON 파일을 캐싱합니다.
  * I/O 성능 최적화를 위해 Map 기반 인메모리 캐시 사용.
  *
  * @description
+ * v5.80.0 업그레이드: fs/promises → fetch API로 변경 (Next.js 16 호환)
  * 새로운 JSON 구조 (dataPoints 배열)를 기존 구조 (servers 직접)로 변환합니다.
  * - 입력: { hour, scenario, dataPoints: [{ timestamp, servers }], metadata }
  * - 출력: { servers, scenario, summary }
@@ -16,6 +15,30 @@ import type { FileCache, HourlyServerData } from '@/types/server-metrics';
 
 const fileCache = new Map<string, FileCache>();
 const FILE_CACHE_TTL = 300000; // 5분 캐시 TTL (성능 최적화)
+
+// 브라우저/서버 환경 감지
+const isServer = typeof window === 'undefined';
+
+/**
+ * 파일 경로에서 데이터 읽기 (환경별 분기)
+ */
+async function readFileContent(filePath: string): Promise<string> {
+  if (isServer) {
+    // 서버: 동적 import로 fs 사용 (빌드 시 클라이언트 번들에 포함 안됨)
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const fullPath = path.join(process.cwd(), filePath);
+    await fs.access(fullPath);
+    return fs.readFile(fullPath, 'utf8');
+  } else {
+    // 브라우저: fetch API 사용
+    const response = await fetch(filePath);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response.text();
+  }
+}
 
 /**
  * 새로운 JSON 형식을 기존 형식으로 변환
@@ -93,19 +116,15 @@ export async function readCachedHourlyFile(
   }
 
   // 캐시 미스: 파일 읽기 (15개 서버 시나리오 데이터)
-  const filePath = path.join(
-    process.cwd(),
-    'public',
-    'hourly-data',
-    `hour-${cacheKey}.json`
-  );
+  // 서버: public/hourly-data/hour-XX.json (절대 경로)
+  // 브라우저: /hourly-data/hour-XX.json (URL 경로)
+  const filePath = isServer
+    ? `public/hourly-data/hour-${cacheKey}.json`
+    : `/hourly-data/hour-${cacheKey}.json`;
 
   try {
-    // 🚀 병렬 파일 체크 및 읽기 (로그 최적화)
-    const [, rawData] = await Promise.all([
-      fs.access(filePath), // 파일 존재 확인
-      fs.readFile(filePath, 'utf8'), // 파일 읽기
-    ]);
+    // 🚀 환경별 파일 읽기 (브라우저/서버 호환)
+    const rawData = await readFileContent(filePath);
 
     const parsedData = JSON.parse(rawData);
 

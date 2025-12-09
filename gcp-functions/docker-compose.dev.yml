@@ -6,27 +6,26 @@ version: '3.8'
 # Or use: ./scripts/dev/run-docker-functions.sh
 
 services:
-  # ML Analytics Engine - Time Series & Anomaly Detection
-  ml-analytics-engine:
-    build:
-      context: ./ml-analytics-engine
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    volumes:
-      # Mount source code for live reloading
-      - ./ml-analytics-engine:/app
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PORT=8080
-      - FLASK_DEBUG=true
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:8080/ || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+  # ML Analytics Engine (Integrated into Unified Processor - Disabled for efficiency)
+  # ml-analytics-engine:
+  #   build:
+  #     context: ./ml-analytics-engine
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - ./ml-analytics-engine:/app
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #     - PORT=8080
+  #     - FLASK_DEBUG=true
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "curl -f http://localhost:8080/ || exit 1" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 60s
 
   # Unified AI Processor - Orchestration & Aggregation
   unified-ai-processor:
@@ -51,6 +50,22 @@ services:
       start_period: 90s
     # Note: unified-ai-processor has local engines, no network dependency
 
+    # Mock AI Server - Lightweight AI Simulation
+  mock-ai:
+    build:
+      context: ./mock-ai
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8080"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=8080
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8080/health\")' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     # Network configuration (optional - all containers can communicate)
 networks:
   default:

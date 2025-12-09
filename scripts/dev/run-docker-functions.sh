@@ -45,8 +45,17 @@ show_help() {
 # Check if Docker is running
 check_docker() {
     if ! docker info > /dev/null 2>&1; then
-        echo "❌ Docker is not running. Please start Docker Desktop/Daemon first."
+        echo "❌ Docker is not running. Please start Docker Desktop first."
+        if grep -q Microsoft /proc/version; then
+            echo "💡 WSL detected: Ensure 'WSL Integration' is enabled in Docker Desktop settings."
+        fi
         exit 1
+    fi
+}
+
+check_wsl() {
+    if grep -q Microsoft /proc/version; then
+        echo "🐧 Running in WSL environment"
     fi
 }
 

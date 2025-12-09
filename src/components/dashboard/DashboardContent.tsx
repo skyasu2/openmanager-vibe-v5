@@ -296,37 +296,37 @@ export default function DashboardContent({
         <div className="mx-auto h-full max-w-none space-y-6 overflow-y-auto px-4 sm:px-6 lg:px-8 2xl:max-w-[1800px]">
           {/* 🎯 목업 데이터 모드 표시 */}
           {servers && servers.length > 0 && (
-            <div className="mb-4 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-3 w-3 animate-pulse rounded-full bg-purple-500"></div>
+            <div className="mb-4 overflow-hidden rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <div className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-purple-500"></div>
                   <span className="font-medium text-purple-800">
                     🎭 DEMO MODE - 온프레미스 서버 시뮬레이션
                   </span>
-                  <span className="rounded-full bg-purple-100 px-2 py-1 text-xs text-purple-600">
+                  <span className="shrink-0 rounded-full bg-purple-100 px-2 py-1 text-xs text-purple-600">
                     목업 데이터
                   </span>
-                  <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-600">
+                  <span className="shrink-0 rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-600">
                     24시간 시나리오
                   </span>
                 </div>
-                <div className="flex items-center gap-4 text-sm">
+                <div className="flex shrink-0 flex-wrap items-center gap-2 text-sm sm:gap-4">
                   <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-full bg-gray-400"></div>
-                    <span className="text-gray-700">
+                    <div className="h-2 w-2 shrink-0 rounded-full bg-gray-400"></div>
+                    <span className="whitespace-nowrap text-gray-700">
                       총 {serverStats.total}대
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                    <span className="text-green-600">
+                    <div className="h-2 w-2 shrink-0 rounded-full bg-green-500"></div>
+                    <span className="whitespace-nowrap text-green-600">
                       정상 {serverStats.online}대
                     </span>
                   </div>
                   {serverStats.warning > 0 && (
                     <div className="flex items-center gap-1">
-                      <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-500"></div>
-                      <span className="text-yellow-600">
+                      <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-yellow-500"></div>
+                      <span className="whitespace-nowrap text-yellow-600">
                         경고 {serverStats.warning}대
                       </span>
                     </div>
@@ -334,8 +334,8 @@ export default function DashboardContent({
                   {/* critical 상태는 warning으로 통합됨 - 별도 표시 제거 */}
                   {serverStats.offline > 0 && (
                     <div className="flex items-center gap-1">
-                      <div className="h-2 w-2 animate-pulse rounded-full bg-red-500"></div>
-                      <span className="text-red-600">
+                      <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-red-500"></div>
+                      <span className="whitespace-nowrap text-red-600">
                         오프라인 {serverStats.offline}대
                       </span>
                     </div>
@@ -344,12 +344,12 @@ export default function DashboardContent({
               </div>
 
               {/* 📊 상세 통계 정보 */}
-              <div className="mt-2 border-t border-green-200/50 pt-2">
-                <div className="flex items-center justify-between text-xs text-green-700">
-                  <span>
+              <div className="mt-2 border-t border-purple-200/50 pt-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-purple-700">
+                  <span className="whitespace-nowrap">
                     마지막 업데이트: {new Date().toLocaleTimeString('ko-KR')}
                   </span>
-                  <span>
+                  <span className="whitespace-nowrap">
                     정상 비율:{' '}
                     {serverStats.total > 0
                       ? Math.round(

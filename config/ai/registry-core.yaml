@@ -11,18 +11,18 @@ project: "OpenManager VIBE v5.80.0"
 # ============================================================================
 ai-tools:
   claude-code:
-    current_version: "v2.0.60"
+    current_version: "v2.0.61"
     status: "✅ Active"
     role: "Interactive development (NOT for auto code review)"
 
   codex:
-    current_version: "v0.63.0"
+    current_version: "v0.66.0"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
     role: "Code review - 3-AI rotation (codex→gemini→qwen)"
 
   gemini-cli:
-    current_version: "v0.19.1"
+    current_version: "v0.19.4"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
     role: "Code review - 3-AI rotation (codex→gemini→qwen)"

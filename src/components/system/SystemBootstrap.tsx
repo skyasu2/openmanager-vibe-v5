@@ -39,7 +39,14 @@ export function SystemBootstrap(): React.ReactNode {
 
       // 🎯 세션 캐시 확인 (브라우저 세션 동안 한 번만 체크)
       const sessionKey = 'system-bootstrap-cache';
-      const cachedBootstrap = sessionStorage.getItem(sessionKey);
+      let cachedBootstrap: string | null = null;
+      try {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          cachedBootstrap = sessionStorage.getItem(sessionKey);
+        }
+      } catch {
+        console.warn('[SystemBootstrap] sessionStorage.getItem failed');
+      }
 
       if (cachedBootstrap) {
         try {

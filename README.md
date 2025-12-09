@@ -132,6 +132,11 @@ graph TD
 | **Code Quality** | Biome + TypeScript Strict | 압도적인 린팅 속도, 타입 안정성 |
 | **Styling** | Tailwind CSS + Shadcn/UI | 유틸리티 퍼스트 CSS, 접근성 높은 컴포넌트 |
 
+## 📚 문서 (Documentation)
+
+- [**Docker Ecosystem**](docs/environment/DOCKER_ECOSYSTEM.md): 로컬 Docker 컨테이너(App + Supabase + Mock AI) 전체 목록 및 역할
+- [**Deployment Guide**](gcp-functions/deployment/deploy-instructions.md): Cloud Run 배포 가이드
+
 ## 🚀 시작하기
 
 **필수 요구사항**: Node.js v22+, npm v10+

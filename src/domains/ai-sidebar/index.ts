@@ -25,6 +25,8 @@ export type {
   UseAISidebarReturn,
 } from './types';
 // Utils
+// Utils: No exports (all legacy utils deleted)
+/*
 export {
   type AIQueryResult,
   type AutoReportTrigger as AutoReportTriggerType,
@@ -33,3 +35,4 @@ export {
   handlePresetQuestion,
   processRealAIQuery,
 } from './utils';
+*/

@@ -10,7 +10,7 @@ export async function register() {
     try {
       // 이 import는 Zod 스키마를 사용하여 환경 변수를 즉시 검증합니다.
       // 실패 시, 앱 시작이 중단됩니다.
-      await import('./src/env.js');
+      await import('./src/env');
       console.log('✅ 통합 환경변수 검증 완료');
     } catch (error) {
       console.error(
@@ -37,19 +37,14 @@ export async function register() {
       }
     }
 
-    // 🎯 통합 설정 관리자 초기화 (사이드 이펙트 최적화)
-    try {
-      const { initializeConfig } = await import('./config/index.js');
-      await initializeConfig();
-      console.log('🚀 통합 설정 관리자 초기화 완료');
-    } catch (error) {
-      console.error('❌ 통합 설정 관리자 초기화 실패:', error.message);
-    }
+    // 🎯 통합 설정 관리자 초기화 (비활성화 - 파일 존재하지 않음)
+    // NOTE: config/index.js가 존재하지 않아 초기화 건너뜀
+    // 필요시 src/lib/config 모듈 활용
 
     // 테스트 모드에서 브라우저 API polyfill 로드
     if (process.env.__NEXT_TEST_MODE === 'true') {
       try {
-        require('./src/test/polyfills.js');
+        require('./src/polyfills');
         console.log('🧪 테스트 모드: 브라우저 API polyfill 로드됨');
       } catch (error) {
         console.warn('⚠️ Polyfill 로드 실패:', error.message);

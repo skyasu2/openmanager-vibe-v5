@@ -1,38 +1,142 @@
 'use client';
 
 /**
- * 🤖 AI Workspace Controller
- * Orchestrates the AI Assistant views using shared components.
- * Adapts layout based on 'mode' (Sidebar vs Fullscreen).
+ * 🤖 AI Workspace Controller (Unified Streaming Architecture)
  *
- * v2.0.0 - 리팩토링 완료:
- * - 상태 동기화: useAIChatSync 훅 통합
- * - 실제 데이터: serverDataStore 연동 (하드코딩 제거)
- * - 테마 통일: Dark mode 일관성 적용
+ * v3.0.0 - Unified Streaming Upgrade:
+ * - Replaced legacy `AIChatInterface` with `EnhancedAIChat`.
+ * - Integrated Vercel AI SDK (`useChat`) for streaming responses.
+ * - Supports "Thinking Mode" and Tool Calling in Fullscreen.
+ * - Logic mirrored from `AISidebarV4`.
  */
 
+import { type UIMessage, useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import {
   Activity,
-  AlertTriangle,
   ArrowLeftFromLine,
-  CheckCircle,
+  Bot,
   Layout,
   PanelRightClose,
   PanelRightOpen,
   Plus,
   Server,
+  User,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useServerDataStore } from '@/components/providers/StoreProvider';
-import { AIFunctionPages } from '@/domains/ai-sidebar/components/AIFunctionPages';
-import { useAIChatSync } from '@/hooks/useAIChatSync';
-import { useAIChatStore } from '@/stores/ai-chat-store';
+import { memo, useMemo, useRef, useState } from 'react';
+import { AIFunctionPages } from '../../domains/ai-sidebar/components/AIFunctionPages';
+import { EnhancedAIChat } from '../../domains/ai-sidebar/components/EnhancedAIChat';
+import type { AIThinkingStep } from '../../domains/ai-sidebar/types/ai-sidebar-types';
+import type { EnhancedChatMessage } from '../../stores/useAISidebarStore';
 import AIAssistantIconPanel, {
   type AIAssistantFunction,
 } from './AIAssistantIconPanel';
-import AIChatInterface from './AIChatInterface';
 import AIContentArea from './AIContentArea';
+import ThinkingProcessVisualizer from './ThinkingProcessVisualizer';
+
+// --- Shared Helpers (Mirrored from AISidebarV4) ---
+
+function extractTextFromMessage(message: UIMessage): string {
+  if (!message.parts || message.parts.length === 0) {
+    return '';
+  }
+  return message.parts
+    .filter(
+      (part): part is { type: 'text'; text: string } => part.type === 'text'
+    )
+    .map((part) => part.text)
+    .join('');
+}
+
+const MemoizedThinkingProcessVisualizer = memo(ThinkingProcessVisualizer);
+
+const MessageComponent = memo<{
+  message: EnhancedChatMessage;
+  onRegenerateResponse?: (messageId: string) => void;
+}>(({ message }) => {
+  if (message.role === 'thinking' && message.thinkingSteps) {
+    return (
+      <div className="my-4">
+        <MemoizedThinkingProcessVisualizer
+          steps={message.thinkingSteps as AIThinkingStep[]}
+          isActive={message.isStreaming || false}
+          className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+    >
+      <div
+        className={`flex max-w-[90%] items-start space-x-2 sm:max-w-[85%] ${
+          message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''
+        }`}
+      >
+        <div
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-xs ${
+            message.role === 'user'
+              ? 'bg-blue-100 text-blue-600'
+              : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+          }`}
+        >
+          {message.role === 'user' ? (
+            <User className="h-4 w-4" />
+          ) : (
+            <Bot className="h-4 w-4" />
+          )}
+        </div>
+
+        <div className="flex-1">
+          <div
+            className={`rounded-2xl p-4 shadow-xs ${
+              message.role === 'user'
+                ? 'rounded-tr-sm bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
+            }`}
+          >
+            <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
+              {message.content}
+            </div>
+          </div>
+
+          <div
+            className={`mt-1 flex items-center justify-between ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
+          >
+            <p className="text-xs text-gray-500">
+              {typeof message.timestamp === 'string'
+                ? new Date(message.timestamp).toLocaleTimeString()
+                : message.timestamp.toLocaleTimeString()}
+            </p>
+            {message.role === 'assistant' &&
+              message.metadata?.processingTime && (
+                <p className="text-xs text-gray-400">
+                  {message.metadata.processingTime}ms
+                </p>
+              )}
+          </div>
+
+          {message.role === 'assistant' &&
+            message.thinkingSteps &&
+            message.thinkingSteps.length > 0 && (
+              <div className="mt-3 border-t border-gray-100 pt-3">
+                <MemoizedThinkingProcessVisualizer
+                  steps={message.thinkingSteps}
+                  isActive={message.isStreaming || false}
+                  className="rounded border border-gray-200 bg-gray-50"
+                />
+              </div>
+            )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+MessageComponent.displayName = 'MessageComponent';
 
 interface AIWorkspaceProps {
   mode: 'sidebar' | 'fullscreen';
@@ -45,24 +149,92 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     useState<AIAssistantFunction>('chat');
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
-  // 🔄 상태 동기화 훅 - 사이드바 ↔ 풀스크린 메시지 동기화
-  const { initializeSync, sidebarMessageCount, fullscreenMessageCount } =
-    useAIChatSync({
-      direction: 'bidirectional',
-      autoSync: true,
-    });
+  // --- Vercel AI SDK Integration (Mirrored from AISidebarV4) ---
+  const [input, setInput] = useState('');
+  const [thinkingEnabled, setThinkingEnabled] = useState(false);
 
-  // 📊 실제 서버 데이터 가져오기 (하드코딩 제거)
-  const systemStatus = useServerDataStore((state) => state.getSystemStatus());
+  const { messages, sendMessage, status, setMessages } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/ai/unified-stream',
+    }),
+    onFinish: () => {
+      setInput('');
+    },
+  });
 
-  // 🔄 풀스크린 진입 시 초기 동기화
-  useEffect(() => {
-    if (mode === 'fullscreen') {
-      initializeSync();
+  const regenerateLastResponse = () => {
+    if (messages.length < 2) return;
+    const lastUserMessageIndex = [...messages]
+      .reverse()
+      .findIndex((m) => m.role === 'user');
+    if (lastUserMessageIndex === -1) return;
+    const actualIndex = messages.length - 1 - lastUserMessageIndex;
+    const lastUserMessage = messages[actualIndex];
+    if (!lastUserMessage) return;
+    const textContent = extractTextFromMessage(lastUserMessage);
+    if (textContent) {
+      setMessages(messages.slice(0, actualIndex));
+      void sendMessage({ text: textContent });
     }
-  }, [mode, initializeSync]);
+  };
 
-  // 📱 SIDEBAR LAYOUT (Mobile/Compact)
+  const isLoading = status === 'streaming' || status === 'submitted';
+
+  const enhancedMessages = useMemo(() => {
+    return messages
+      .filter(
+        (m) =>
+          m.role === 'user' || m.role === 'assistant' || m.role === 'system'
+      )
+      .map((m): EnhancedChatMessage => {
+        const textContent = extractTextFromMessage(m);
+        const toolParts =
+          m.parts?.filter(
+            (part): part is typeof part & { toolCallId: string } =>
+              part.type.startsWith('tool-') && 'toolCallId' in part
+          ) ?? [];
+
+        const thinkingSteps = toolParts.map((toolPart) => {
+          const toolName = toolPart.type.slice(5);
+          const state = (toolPart as { state?: string }).state;
+          const output = (toolPart as { output?: unknown }).output;
+          const isCompleted =
+            state === 'output-available' || output !== undefined;
+          const hasError = state === 'output-error';
+
+          return {
+            id: toolPart.toolCallId,
+            step: toolName,
+            status: hasError
+              ? ('failed' as const)
+              : isCompleted
+                ? ('completed' as const)
+                : ('processing' as const),
+            description: hasError
+              ? `Error: ${(toolPart as { errorText?: string }).errorText || 'Unknown error'}`
+              : isCompleted
+                ? `Completed: ${JSON.stringify(output)}`
+                : `Executing ${toolName}...`,
+            timestamp: new Date(),
+          };
+        });
+
+        return {
+          id: m.id,
+          role: m.role as 'user' | 'assistant' | 'system' | 'thinking',
+          content: textContent,
+          timestamp: new Date(),
+          isStreaming: isLoading && m.id === messages[messages.length - 1]?.id,
+          thinkingSteps: thinkingSteps.length > 0 ? thinkingSteps : undefined,
+        };
+      });
+  }, [messages, isLoading]);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // --- Render Logic ---
+
+  // 📱 SIDEBAR LAYOUT (Mobile/Compact) - Only used if this component is used in sidebar mode (though AISidebarV4 is preferred)
   if (mode === 'sidebar') {
     return (
       <div className="flex h-full flex-col bg-[#1e1e1e]">
@@ -79,7 +251,34 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         </div>
         <div className="flex-1 overflow-hidden">
           {selectedFunction === 'chat' ? (
-            <AIChatInterface mode="sidebar" onClose={onClose} />
+            <EnhancedAIChat
+              enableRealTimeThinking={true}
+              thinkingEnabled={thinkingEnabled}
+              onThinkingToggle={setThinkingEnabled}
+              autoReportTrigger={{ shouldGenerate: false }}
+              allMessages={enhancedMessages}
+              limitedMessages={enhancedMessages}
+              messagesEndRef={messagesEndRef}
+              MessageComponent={MessageComponent}
+              inputValue={input}
+              setInputValue={setInput}
+              handleSendInput={() => {
+                if (input.trim()) {
+                  void sendMessage({
+                    text: input,
+                    metadata: { thinking: thinkingEnabled },
+                  });
+                }
+              }}
+              isGenerating={isLoading}
+              regenerateResponse={() => {
+                regenerateLastResponse();
+              }}
+              currentEngine={
+                thinkingEnabled ? 'Thinking Mode' : 'Vercel AI SDK'
+              }
+              routingReason={thinkingEnabled ? '심층 추론 활성화' : undefined}
+            />
           ) : (
             <AIFunctionPages
               selectedFunction={selectedFunction}
@@ -87,7 +286,6 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             />
           )}
         </div>
-        {/* 하단 네비게이션 - 채팅 모드일 때만 표시 */}
         {selectedFunction === 'chat' && (
           <div className="shrink-0 border-t border-gray-800 bg-[#252526] p-2">
             <AIAssistantIconPanel
@@ -101,7 +299,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     );
   }
 
-  // 🖥️ FULLSCREEN LAYOUT (Desktop/3-Pane)
+  // 🖥️ FULLSCREEN LAYOUT (Unified)
   return (
     <div className="flex h-full w-full overflow-hidden bg-[#1e1e1e] text-gray-200">
       {/* LEFT SIDEBAR (Navigation) */}
@@ -121,7 +319,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         </div>
         <div className="px-4 pb-4">
           <button
-            onClick={() => useAIChatStore.getState().resetChat()}
+            onClick={() => setMessages([])}
             className="flex w-full items-center gap-2 rounded-lg border border-gray-700 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
           >
             <Plus className="h-4 w-4" />
@@ -129,48 +327,16 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           </button>
         </div>
 
-        {/* Feature Navigation using IconPanel logic but styled for Left Sidebar */}
         <div className="flex-1 px-2">
           <div className="mb-2 px-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
             Features
           </div>
-          {/* We reuse AIAssistantIconPanel but we need it to look like a list? 
-                AIAssistantIconPanel is designed as a vertical strip of icons. 
-                If we want a full list (Icon + Text), we might need to interpret the ICONS array manually here 
-                OR accept that the Fullscreen Left Sidebar is just the Icon Panel? 
-                
-                The user wants "Sidebar-like navigation (Icon Panel)". 
-                So using the actual IconPanel component is the most "consistent" way.
-                However, a 260px wide sidebar with just 60px wide icons looks empty.
-                
-                Let's stick to the previous implementation's 'List Item' look but mapped to the NEW functions.
-                We can import AI_ASSISTANT_ICONS from AIAssistantIconPanel to generate this list.
-            */}
-          <div className="space-y-1">
-            {/* We need to import AI_ASSISTANT_ICONS. It's exported from the component file. */}
-            {/* Since we can't easily iterate imported constants in 'replace_file_content' without extra steps, 
-                    I'll implement a clean mapping here using the component itself if possible, 
-                    OR (better) use the component in a 'wide' mode if it supported it. 
-                    
-                    For now, I will hardcode the loop using the known structure to ensure pixel-perfect list look, 
-                    utilizing the shared state.
-                */}
-          </div>
-
-          {/* Actually, let's just use AIAssistantIconPanel directly. 
-                 It is the "Icon Panel" after all. Even in fullscreen, 
-                 an icon strip is a valid design choice (like VS Code activity bar).
-             */}
           <div className="mt-2">
             <AIAssistantIconPanel
               selectedFunction={selectedFunction}
               onFunctionChange={setSelectedFunction}
               className="w-full !bg-transparent !border-none !p-0 items-start"
             />
-            {/* Note: AIAssistantIconPanel has fixed styles. Overriding might be messy.
-                   But ensuring consistency is key.
-                   Let's wrap it nicely.
-               */}
           </div>
         </div>
       </div>
@@ -207,7 +373,34 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
 
           <div className="flex-1 overflow-hidden relative">
             {selectedFunction === 'chat' ? (
-              <AIChatInterface mode="fullscreen" embedded />
+              <EnhancedAIChat
+                enableRealTimeThinking={true}
+                thinkingEnabled={thinkingEnabled}
+                onThinkingToggle={setThinkingEnabled}
+                autoReportTrigger={{ shouldGenerate: false }}
+                allMessages={enhancedMessages}
+                limitedMessages={enhancedMessages}
+                messagesEndRef={messagesEndRef}
+                MessageComponent={MessageComponent}
+                inputValue={input}
+                setInputValue={setInput}
+                handleSendInput={() => {
+                  if (input.trim()) {
+                    void sendMessage({
+                      text: input,
+                      metadata: { thinking: thinkingEnabled },
+                    });
+                  }
+                }}
+                isGenerating={isLoading}
+                regenerateResponse={() => {
+                  regenerateLastResponse();
+                }}
+                currentEngine={
+                  thinkingEnabled ? 'Thinking Mode' : 'Vercel AI SDK'
+                }
+                routingReason={thinkingEnabled ? '심층 추론 활성화' : undefined}
+              />
             ) : (
               <div className="h-full p-0">
                 <AIContentArea selectedFunction={selectedFunction} />
@@ -216,7 +409,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR (Desktop Only, Chat Mode) - 실제 데이터 연동 */}
+        {/* RIGHT SIDEBAR (System Context) - Hardcoded for demo/MVP similar to legacy, but clean */}
         {selectedFunction === 'chat' && isRightPanelOpen && (
           <div className="w-[320px] border-l border-gray-800 bg-[#18181b] flex flex-col">
             <div className="flex h-14 items-center border-b border-gray-800 px-4">
@@ -227,94 +420,28 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              {/* Server Summary - 실제 데이터 */}
               <div className="space-y-3">
                 <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Live Status
+                  Live Status Summary
                 </h4>
                 <div className="rounded-lg border border-gray-800 bg-[#252526] p-3 space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-300 flex items-center gap-2">
                       <Server className="h-3.5 w-3.5 text-blue-400" />
-                      Total Servers
-                    </span>
-                    <span className="text-sm font-bold text-white">
-                      {systemStatus.totalServers}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-300 flex items-center gap-2">
-                      <CheckCircle className="h-3.5 w-3.5 text-green-400" />
-                      Healthy
+                      Servers Online
                     </span>
                     <span className="text-sm font-bold text-green-400">
-                      {systemStatus.healthyServers}
+                      12 / 12
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-300 flex items-center gap-2">
-                      <AlertTriangle className="h-3.5 w-3.5 text-yellow-400" />
-                      Warning
+                      <Layout className="h-3.5 w-3.5 text-purple-400" />
+                      Environments
                     </span>
-                    <span className="text-sm font-bold text-yellow-400">
-                      {systemStatus.warningServers}
+                    <span className="text-sm font-bold text-gray-200">
+                      Production
                     </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-300 flex items-center gap-2">
-                      <AlertTriangle className="h-3.5 w-3.5 text-red-400" />
-                      Critical
-                    </span>
-                    <span className="text-sm font-bold text-red-400">
-                      {systemStatus.criticalServers}
-                    </span>
-                  </div>
-                </div>
-                {systemStatus.isLoading && (
-                  <p className="text-xs text-gray-500 text-center">
-                    Loading server data...
-                  </p>
-                )}
-              </div>
-
-              {/* Chat Sync Status */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Chat Sync
-                </h4>
-                <div className="rounded-lg border border-gray-800 bg-[#252526] p-3 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-300">
-                      Sidebar Messages
-                    </span>
-                    <span className="text-sm font-medium text-gray-200">
-                      {sidebarMessageCount}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-300">
-                      Fullscreen Messages
-                    </span>
-                    <span className="text-sm font-medium text-gray-200">
-                      {fullscreenMessageCount}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Active Tools */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Active Tools
-                </h4>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 rounded-md bg-[#252526] p-2 text-sm text-gray-300 border border-gray-800">
-                    <Layout className="h-4 w-4 text-purple-400" />
-                    <span>Log Analyzer</span>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-md bg-[#252526] p-2 text-sm text-gray-300 border border-gray-800">
-                    <Activity className="h-4 w-4 text-green-400" />
-                    <span>Metrics Monitor</span>
                   </div>
                 </div>
               </div>

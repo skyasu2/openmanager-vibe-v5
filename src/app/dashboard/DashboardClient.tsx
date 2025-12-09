@@ -175,8 +175,9 @@ function checkTestMode(): boolean {
     return false;
   }
 
-  // 쿠키 체크
-  const cookies = document.cookie.split(';').map((c) => c.trim());
+  // 쿠키 체크 - 🔒 FIX: Safe access pattern for document.cookie
+  const cookieStr = typeof document.cookie === 'string' ? document.cookie : '';
+  const cookies = cookieStr.split(';').map((c) => c.trim());
   const hasTestMode = cookies.some((c) => c.startsWith('test_mode=enabled'));
   const hasTestToken = cookies.some((c) => c.startsWith('vercel_test_token='));
 
@@ -184,11 +185,17 @@ function checkTestMode(): boolean {
     return true;
   }
 
-  // localStorage 체크 (보조)
-  const testModeEnabled = localStorage.getItem('test_mode_enabled') === 'true';
+  // localStorage 체크 (보조) - 🔒 FIX: Safe access pattern for localStorage
+  try {
+    const testModeEnabled =
+      typeof localStorage !== 'undefined' &&
+      localStorage.getItem('test_mode_enabled') === 'true';
 
-  if (testModeEnabled) {
-    return true;
+    if (testModeEnabled) {
+      return true;
+    }
+  } catch {
+    // localStorage가 비활성화된 환경 (시크릿 모드 등)에서 무시
   }
 
   return false;
@@ -213,8 +220,13 @@ function DashboardPageContent() {
     }
 
     // Check for test mode cookies first (works in all environments)
-    const hasTestModeCookie = document.cookie.includes('test_mode=enabled');
-    const hasTestToken = document.cookie.includes('vercel_test_token=');
+    // 🔒 FIX: Safe access pattern for document.cookie to prevent undefined errors
+    const cookieString =
+      typeof document !== 'undefined' && typeof document.cookie === 'string'
+        ? document.cookie
+        : '';
+    const hasTestModeCookie = cookieString.includes('test_mode=enabled');
+    const hasTestToken = cookieString.includes('vercel_test_token=');
 
     // 🔒 Production: Require BOTH cookies for security while allowing E2E tests
     if (process.env.NODE_ENV === 'production') {
@@ -298,8 +310,11 @@ function DashboardPageContent() {
     const detectTestMode = () => {
       if (typeof document === 'undefined') return;
 
-      const hasTestModeCookie = document.cookie.includes('test_mode=enabled');
-      const hasTestToken = document.cookie.includes('vercel_test_token=');
+      // 🔒 FIX: Safe access pattern for document.cookie
+      const cookieStr =
+        typeof document.cookie === 'string' ? document.cookie : '';
+      const hasTestModeCookie = cookieStr.includes('test_mode=enabled');
+      const hasTestToken = cookieStr.includes('vercel_test_token=');
 
       if (hasTestModeCookie || hasTestToken) {
         setTestModeDetected(true);
@@ -608,9 +623,10 @@ function DashboardPageContent() {
     <div
       data-testid="dashboard-container"
       data-test-mode={testModeDetected.toString()}
-      data-cookies-present={(
-        typeof document !== 'undefined' && document.cookie.includes('test_mode')
-      ).toString()}
+      data-cookies-present={String(
+        typeof document !== 'undefined' &&
+          Boolean(document.cookie?.includes('test_mode'))
+      )}
       data-hydration-complete={isMounted.toString()}
       data-check-test-mode-result={checkTestMode().toString()}
       className={cn(

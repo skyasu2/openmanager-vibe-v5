@@ -73,14 +73,26 @@ export default function AuthStatusChecker() {
         error: sessionError,
       } = await supabase.auth.getSession();
 
-      // 게스트 세션 확인
-      const guestSessionId = localStorage.getItem('auth_session_id');
-      const authType = localStorage.getItem('auth_type');
-      const guestUserData = localStorage.getItem('auth_user');
+      // 게스트 세션 확인 (SSR-safe)
+      let guestSessionId: string | null = null;
+      let authType: string | null = null;
+      let guestUserData: string | null = null;
+      let cookieSessionId = false;
+      let cookieAuthType = false;
 
-      // 쿠키 확인
-      const cookieSessionId = document.cookie.includes('guest_session_id=');
-      const cookieAuthType = document.cookie.includes('auth_type=guest');
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          guestSessionId = localStorage.getItem('auth_session_id');
+          authType = localStorage.getItem('auth_type');
+          guestUserData = localStorage.getItem('auth_user');
+        }
+        if (typeof document !== 'undefined') {
+          cookieSessionId = document.cookie.includes('guest_session_id=');
+          cookieAuthType = document.cookie.includes('auth_type=guest');
+        }
+      } catch {
+        console.warn('[AuthStatusChecker] Browser storage access failed');
+      }
 
       const status: AuthStatus = {
         timestamp: new Date().toISOString(),

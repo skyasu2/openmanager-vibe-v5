@@ -111,7 +111,7 @@ export default function AIAssistantIconPanel({
               <Icon className="mx-auto h-5 w-5" />
 
               {/* 모바일 툴팁 (상단 표시) */}
-              <div className="pointer-events-none absolute bottom-full left-1/2 z-60 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+              <div className="pointer-events-none absolute bottom-full left-1/2 z-[60] mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
                 {item.label}
                 <div className="absolute left-1/2 top-full -translate-x-1/2 transform">
                   <div className="border-2 border-transparent border-t-gray-900"></div>
@@ -159,12 +159,12 @@ export default function AIAssistantIconPanel({
 
               {/* 선택 표시 */}
               {isSelected && (
-                <div className="animate-scale-y absolute -left-1 top-1/2 h-6 w-1 -translate-y-1/2 transform rounded-r-full bg-white" />
+                <div className="animate-fade-in absolute -left-1 top-1/2 h-6 w-1 -translate-y-1/2 transform rounded-r-full bg-white" />
               )}
 
               {/* 호버 툴팁 - 왼쪽으로 위치 변경 */}
               <div
-                className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-60 min-w-max max-w-[200px] whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
+                className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-[60] min-w-max max-w-[200px] whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
               >
                 <div className="font-medium">{item.label}</div>
                 <div className="mt-1 text-xs text-gray-300">

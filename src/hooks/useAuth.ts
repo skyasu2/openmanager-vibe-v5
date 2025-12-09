@@ -8,6 +8,28 @@ import { useCallback, useEffect, useState } from 'react';
 import type { AuthUser } from '@/lib/auth/auth-state-manager';
 import { authStateManager } from '@/lib/auth/auth-state-manager';
 
+// Safe localStorage access helpers (SSR compatible)
+function safeGetItem(key: string): string | null {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem(key);
+    }
+  } catch {
+    console.warn(`[useAuth] localStorage.getItem('${key}') failed`);
+  }
+  return null;
+}
+
+function safeRemoveItem(key: string): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    console.warn(`[useAuth] localStorage.removeItem('${key}') failed`);
+  }
+}
+
 export interface UseAuthResult {
   user: AuthUser | null;
   isLoading: boolean;
@@ -42,9 +64,9 @@ export function useAuth(): UseAuthResult {
       // AuthStateManager를 통한 게스트 인증 설정
       await authStateManager.setGuestAuth(guestUser);
 
-      // 세션 ID 가져오기
+      // 세션 ID 가져오기 (safe access)
       const newSessionId =
-        localStorage.getItem('auth_session_id') || `guest_${Date.now()}`;
+        safeGetItem('auth_session_id') || `guest_${Date.now()}`;
 
       setUser(guestUser);
       setSessionId(newSessionId);
@@ -69,9 +91,9 @@ export function useAuth(): UseAuthResult {
       setUser(null);
       setSessionId(null);
 
-      // 로컬 스토리지 정리
-      localStorage.removeItem('auth_session_id');
-      localStorage.removeItem('auth_type');
+      // 로컬 스토리지 정리 (safe access)
+      safeRemoveItem('auth_session_id');
+      safeRemoveItem('auth_type');
 
       console.log('로그아웃 완료');
     } catch (error) {
@@ -84,8 +106,9 @@ export function useAuth(): UseAuthResult {
     try {
       setIsLoading(true);
 
-      const storedSessionId = localStorage.getItem('auth_session_id');
-      const authType = localStorage.getItem('auth_type');
+      // Safe localStorage access (SSR compatible)
+      const storedSessionId = safeGetItem('auth_session_id');
+      const authType = safeGetItem('auth_type');
 
       if (!storedSessionId || authType !== 'guest') {
         setUser(null);
@@ -103,9 +126,9 @@ export function useAuth(): UseAuthResult {
         setUser(currentState.user);
         setSessionId(storedSessionId);
       } else {
-        // 세션이 만료된 경우 로컬 스토리지 정리
-        localStorage.removeItem('auth_session_id');
-        localStorage.removeItem('auth_type');
+        // 세션이 만료된 경우 로컬 스토리지 정리 (safe access)
+        safeRemoveItem('auth_session_id');
+        safeRemoveItem('auth_type');
         setUser(null);
         setSessionId(null);
       }

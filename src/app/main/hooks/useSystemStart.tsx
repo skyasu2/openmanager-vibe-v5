@@ -123,10 +123,14 @@ export function useSystemStart(options: UseSystemStartOptions) {
       };
     }
     if (multiUserStatus?.isRunning || isSystemStarted) {
-      const shutdownTime =
-        typeof window !== 'undefined'
-          ? localStorage.getItem('system_auto_shutdown')
-          : null;
+      let shutdownTime: string | null = null;
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          shutdownTime = localStorage.getItem('system_auto_shutdown');
+        }
+      } catch {
+        // localStorage가 비활성화된 환경에서 무시
+      }
       let message = '✅ 시스템 가동 중 - 대시보드로 이동';
       if (shutdownTime) {
         const timeLeft = Math.max(

@@ -1,6 +1,8 @@
 /**
  * 🤖 AI 통합 쿼리 API v3.2 (PDF Support)
  *
+ * @deprecated This endpoint is legacy and will be removed. Use /api/ai/unified-stream instead.
+ *
  * * v3.2 Upgrade: PDF Text Extraction (backend-side) using pdf-parse.
  *
  * POST /api/ai/query
