@@ -20,6 +20,7 @@ export interface RAGSearchOptions {
   cached?: boolean;
   enableKeywordFallback?: boolean; // 키워드 기반 fallback 활성화
   useLocalEmbeddings?: boolean; // 로컬 임베딩 강제 사용
+  _intent?: QueryIntent; // Phase 3: 캐시 메타데이터용 (내부 사용)
 }
 
 export interface RAGEngineSearchResult {
@@ -79,4 +80,23 @@ export interface RAGContextSearchResult extends RAGEngineSearchResult {
     resolvedCategory?: string;
     resolvedMaxResults: number;
   };
+}
+
+/**
+ * 🕐 Intent 기반 캐시 TTL 설정 (초)
+ */
+export const INTENT_TTL_SECONDS: Record<QueryIntent, number> = {
+  monitoring: 3600, // 1시간 - 서버 메트릭은 자주 변경
+  analysis: 21600, // 6시간 - 트러블슈팅 데이터는 안정적
+  guide: 86400, // 24시간 - 가이드는 거의 변경 없음
+  general: 10800, // 3시간 - 기본값
+};
+
+/**
+ * 📦 캐시 엔트리 메타데이터
+ */
+export interface CacheEntryMeta {
+  intent?: QueryIntent;
+  category?: string;
+  scenarioDay: number; // 24시간 로테이션 일자 (Date.now() / 86400000 정수)
 }

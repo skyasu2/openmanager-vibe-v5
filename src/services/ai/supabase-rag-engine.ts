@@ -230,12 +230,13 @@ export class SupabaseRAGEngine {
     // Complexity → MaxResults 매핑 (1-2: 2개, 3-4: 4개, 5: 5개)
     const resolvedMaxResults = this.resolveComplexityToMaxResults(complexity);
 
-    // searchHybrid 호출 (기존 로직 재사용)
+    // searchHybrid 호출 (기존 로직 재사용, Phase 3: intent 전달)
     const result = await this.searchHybrid(query, {
       ...baseOptions,
       category: resolvedCategory,
       maxResults: resolvedMaxResults,
       enableKeywordFallback: baseOptions.enableKeywordFallback ?? true,
+      _intent: intent, // Phase 3: 캐시 메타데이터용
     });
 
     // 메타데이터 강화된 결과 반환
@@ -374,9 +375,19 @@ export class SupabaseRAGEngine {
           cached: false,
         };
 
-        // 메모리 캐시 저장
+        // 메모리 캐시 저장 (Phase 3: Intent 메타데이터 포함)
         if (cached) {
-          this.memoryCache.setSearchResult(cacheKey, result);
+          if (options._intent) {
+            // Phase 3: Intent 기반 TTL 적용을 위해 메타데이터 포함 저장
+            this.memoryCache.setSearchResultWithMeta(
+              cacheKey,
+              result,
+              options._intent,
+              category
+            );
+          } else {
+            this.memoryCache.setSearchResult(cacheKey, result);
+          }
         }
 
         return result;

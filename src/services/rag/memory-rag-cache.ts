@@ -1,6 +1,14 @@
-import type { RAGEngineSearchResult } from '../../types/rag/rag-types';
+import type {
+  CacheEntryMeta,
+  QueryIntent,
+  RAGEngineSearchResult,
+} from '../../types/rag/rag-types';
+import { INTENT_TTL_SECONDS } from '../../types/rag/rag-types';
 
-// 메모리 기반 RAG 캐시 클래스
+// 24시간 로테이션 일자 계산 (UTC 기준)
+const getCurrentScenarioDay = (): number => Math.floor(Date.now() / 86400000); // 86400000ms = 24시간
+
+// 메모리 기반 RAG 캐시 클래스 (Phase 3: Intent 기반 TTL + 24시간 로테이션)
 export class MemoryRAGCache {
   private embeddingCache = new Map<
     string,
@@ -16,12 +24,14 @@ export class MemoryRAGCache {
       result: RAGEngineSearchResult;
       timestamp: number;
       hits: number;
+      meta?: CacheEntryMeta; // Phase 3: Intent/Category 메타데이터
     }
   >();
 
   private maxEmbeddingSize = 500; // 최대 500개 임베딩 (성능 최적화)
   private maxSearchSize = 100; // 최대 100개 검색 결과 (캐시 히트율 향상)
-  private ttlSeconds = 10800; // 3시간 TTL (성능 최적화)
+  private ttlSeconds = 10800; // 3시간 기본 TTL (Intent 없을 때)
+  private lastScenarioDay = getCurrentScenarioDay(); // 24시간 로테이션 추적
 
   // 임베딩 캐시 관리
   getEmbedding(key: string): number[] | null {
@@ -49,12 +59,20 @@ export class MemoryRAGCache {
     });
   }
 
-  // 검색 결과 캐시 관리
+  // 검색 결과 캐시 관리 (Phase 3: Intent 기반 TTL)
   getSearchResult(key: string): RAGEngineSearchResult | null {
+    // 24시간 로테이션 체크 (시나리오 데이터 갱신)
+    this.checkAndRotateScenarios();
+
     const item = this.searchCache.get(key);
     if (!item) return null;
 
-    if (Date.now() - item.timestamp > this.ttlSeconds * 1000) {
+    // Intent 기반 TTL 계산
+    const ttl = item.meta?.intent
+      ? INTENT_TTL_SECONDS[item.meta.intent]
+      : this.ttlSeconds;
+
+    if (Date.now() - item.timestamp > ttl * 1000) {
       this.searchCache.delete(key);
       return null;
     }
@@ -72,6 +90,29 @@ export class MemoryRAGCache {
       result,
       timestamp: Date.now(),
       hits: 0,
+    });
+  }
+
+  // Phase 3: Intent/Category와 함께 검색 결과 저장
+  setSearchResultWithMeta(
+    key: string,
+    result: RAGEngineSearchResult,
+    intent?: QueryIntent,
+    category?: string
+  ): void {
+    if (this.searchCache.size >= this.maxSearchSize) {
+      this.evictLeastUsedSearch();
+    }
+
+    this.searchCache.set(key, {
+      result,
+      timestamp: Date.now(),
+      hits: 0,
+      meta: {
+        intent,
+        category,
+        scenarioDay: getCurrentScenarioDay(),
+      },
     });
   }
 
@@ -137,6 +178,35 @@ export class MemoryRAGCache {
     if (leastUsedKey) {
       this.searchCache.delete(leastUsedKey);
     }
+  }
+
+  // Phase 3: 24시간 로테이션 체크 및 시나리오 캐시 무효화
+  private checkAndRotateScenarios(): void {
+    const currentDay = getCurrentScenarioDay();
+    if (currentDay !== this.lastScenarioDay) {
+      // 새로운 날 -> 시나리오 데이터 갱신 필요
+      console.log(
+        `🔄 24시간 시나리오 로테이션: Day ${this.lastScenarioDay} -> ${currentDay}`
+      );
+      this.invalidateSearchCache();
+      this.lastScenarioDay = currentDay;
+    }
+  }
+
+  // Phase 3: Intent별 선택적 캐시 무효화
+  invalidateByIntent(intent: QueryIntent): void {
+    const keysToDelete: string[] = [];
+    for (const [key, item] of this.searchCache) {
+      if (item.meta?.intent === intent) {
+        keysToDelete.push(key);
+      }
+    }
+    for (const key of keysToDelete) {
+      this.searchCache.delete(key);
+    }
+    console.log(
+      `🗑️ Intent '${intent}' 캐시 무효화: ${keysToDelete.length}개 항목 제거`
+    );
   }
 
   // 정리
