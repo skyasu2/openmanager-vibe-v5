@@ -31,10 +31,9 @@ import type { EnhancedServerMetrics } from '@/types/server';
 function extractNumericValue(value: unknown): number {
   if (typeof value === 'number') return value;
   if (typeof value === 'object' && value !== null) {
-    if ('usage' in value && typeof (value as any).usage === 'number')
-      return (value as any).usage;
-    if ('used' in value && typeof (value as any).used === 'number')
-      return (value as any).used;
+    const obj = value as Record<string, unknown>;
+    if ('usage' in obj && typeof obj.usage === 'number') return obj.usage;
+    if ('used' in obj && typeof obj.used === 'number') return obj.used;
   }
   return 0;
 }
@@ -88,7 +87,7 @@ export default function AIChatInterface({
 
   // File Upload Handler
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       const file = e.target.files[0];
       const reader = new FileReader();
 
@@ -186,8 +185,10 @@ export default function AIChatInterface({
           engine: data.engine,
           responseTime: data.responseTime,
         });
-      } catch (error: any) {
-        if (error.name !== 'AbortError') {
+      } catch (error: unknown) {
+        const isAbortError =
+          error instanceof Error && error.name === 'AbortError';
+        if (!isAbortError) {
           console.error('AI Error:', error);
           addMessage({
             id: Date.now().toString(),
@@ -326,6 +327,8 @@ export default function AIChatInterface({
         className="flex flex-1 flex-col overflow-hidden bg-[#1e1e1e]"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
+        role="region"
+        aria-label="Chat area with drag and drop support"
       >
         <div
           className={`flex-1 space-y-6 overflow-y-auto p-4 custom-scrollbar ${mode === 'fullscreen' && !embedded ? 'max-w-4xl mx-auto w-full' : ''}`}
