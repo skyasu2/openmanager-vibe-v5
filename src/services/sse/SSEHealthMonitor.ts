@@ -4,11 +4,20 @@
  * @description
  * 테스트를 통과하는 최소한의 SSE 연결 건강 상태 모니터링
  * 연결 품질과 안정성을 추적합니다.
+ *
+ * v5.80.1 변경사항:
+ * - 모니터링 주기 1초 → 5분으로 변경 (Vercel 사용량 최적화)
+ * - SystemInactivityService 통합 (시스템 비활성 시 자동 중지)
  */
 
+import { systemInactivityService } from '../system/SystemInactivityService';
+
 export interface SSEHealthMonitorConfig {
+  /** 모니터링 주기 (기본값: 5분 = 300000ms) */
   checkInterval?: number;
+  /** 타임아웃 임계값 (기본값: 5초) */
   timeoutThreshold?: number;
+  /** 오류 임계값 (기본값: 3) */
   errorThreshold?: number;
 }
 
@@ -26,10 +35,12 @@ export class SSEHealthMonitor {
   private startTime: Date;
   private monitoringInterval?: NodeJS.Timeout;
   private isMonitoring = false;
+  private systemResumeHandler?: () => void;
 
   constructor(config: SSEHealthMonitorConfig = {}) {
+    // 기본값: 5분 (300000ms) - Vercel 사용량 최적화
     this.config = {
-      checkInterval: config.checkInterval || 1000,
+      checkInterval: config.checkInterval || 300000, // 5분
       timeoutThreshold: config.timeoutThreshold || 5000,
       errorThreshold: config.errorThreshold || 3,
     };
@@ -95,6 +106,7 @@ export class SSEHealthMonitor {
 
   /**
    * 🔄 모니터링 시작 (서버리스 환경에서 비활성화)
+   * SystemInactivityService와 통합되어 시스템 비활성 시 자동 중지
    */
   startMonitoring(): void {
     const isVercel = process.env.VERCEL === '1';
@@ -114,8 +126,34 @@ export class SSEHealthMonitor {
 
     if (this.isMonitoring) return;
 
+    // SystemInactivityService에 백그라운드 작업 등록
+    systemInactivityService.registerBackgroundTask(
+      'sse-health-monitor',
+      'SSE 건강 모니터링',
+      () =>
+        void this.performHealthCheck().catch((e) =>
+          this.recordError(`모니터링 체크 실패: ${e}`)
+        ),
+      this.config.checkInterval
+    );
+
+    // 시스템 재개 이벤트 리스너 등록
+    this.systemResumeHandler = () => {
+      console.log('🔄 시스템 재개 - SSE 모니터링 재시작');
+      this.healthStatus.isHealthy = true;
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('system-resume', this.systemResumeHandler);
+    }
+
     this.isMonitoring = true;
+
+    // 자체 인터벌도 유지 (백업용)
     this.monitoringInterval = setInterval(() => {
+      // 시스템이 활성 상태일 때만 실행
+      if (!systemInactivityService.isActive()) return;
+
       void (async () => {
         try {
           await this.performHealthCheck();
@@ -125,8 +163,9 @@ export class SSEHealthMonitor {
       })();
     }, this.config.checkInterval);
 
+    const intervalMinutes = Math.round(this.config.checkInterval / 60000);
     console.log(
-      `🔄 SSE 건강 모니터링 시작 (${this.config.checkInterval}ms 간격) - 로컬 환경`
+      `🔄 SSE 건강 모니터링 시작 (${intervalMinutes}분 간격, SystemInactivityService 통합) - 로컬 환경`
     );
   }
 
@@ -138,6 +177,16 @@ export class SSEHealthMonitor {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = undefined;
     }
+
+    // SystemInactivityService에서 백그라운드 작업 해제
+    systemInactivityService.unregisterBackgroundTask('sse-health-monitor');
+
+    // 시스템 재개 이벤트 리스너 제거
+    if (this.systemResumeHandler && typeof window !== 'undefined') {
+      window.removeEventListener('system-resume', this.systemResumeHandler);
+      this.systemResumeHandler = undefined;
+    }
+
     this.isMonitoring = false;
     console.log('⏹️ SSE 건강 모니터링 중지');
   }
@@ -156,6 +205,12 @@ export class SSEHealthMonitor {
       consecutiveErrors: 0,
       uptime: 0,
     };
+
+    // 시스템 재개 이벤트 리스너 정리 (stopMonitoring에서 누락된 경우 대비)
+    if (this.systemResumeHandler && typeof window !== 'undefined') {
+      window.removeEventListener('system-resume', this.systemResumeHandler);
+      this.systemResumeHandler = undefined;
+    }
 
     console.log('🗑️ SSE 건강 모니터 파기 완료');
   }

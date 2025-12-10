@@ -4,6 +4,10 @@
  * E2E 테스트 및 기본 시스템 상태 확인용
  * Zod 스키마와 타입 안전성이 적용된 예시
  *
+ * v5.80.1 변경사항:
+ * - 60초 TTL 메모리 캐싱 추가 (Vercel 사용량 최적화)
+ * - Cache-Control 헤더 설정
+ *
  * GET /api/health
  */
 
@@ -22,7 +26,35 @@ import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic'; // 수동 테스트 전용, 자동 호출 금지
+export const dynamic = 'force-dynamic'; // 캐시는 응답 레벨에서 처리
+
+/** 헬스체크 캐시 (60초 TTL) */
+interface HealthCache {
+  data: HealthCheckResponse | null;
+  timestamp: number;
+}
+
+const HEALTH_CACHE_TTL = 60000; // 60초
+let healthCache: HealthCache = {
+  data: null,
+  timestamp: 0,
+};
+
+/** 캐시가 유효한지 확인 */
+function isCacheValid(): boolean {
+  return (
+    healthCache.data !== null &&
+    Date.now() - healthCache.timestamp < HEALTH_CACHE_TTL
+  );
+}
+
+/** 캐시 업데이트 */
+function updateCache(data: HealthCheckResponse): void {
+  healthCache = {
+    data,
+    timestamp: Date.now(),
+  };
+}
 
 // 서비스 상태 체크 함수들 - 실제 구현
 async function checkDatabaseStatus(): Promise<
@@ -232,20 +264,47 @@ const healthCheckHandler = createApiRoute()
 
 export async function GET(request: NextRequest) {
   try {
+    // 캐시된 응답이 있으면 즉시 반환 (60초 TTL)
+    if (isCacheValid() && healthCache.data) {
+      debug.log('📦 Health check cache hit');
+      return NextResponse.json(
+        {
+          ...healthCache.data,
+          // 캐시된 응답임을 표시
+          cached: true,
+          cacheAge: Math.floor((Date.now() - healthCache.timestamp) / 1000),
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=60, stale-while-revalidate=30',
+            'X-Cache': 'HIT',
+          },
+        }
+      );
+    }
+
     const apiConfig = getApiConfig();
     const response = await healthCheckHandler(request);
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'X-Cache': 'MISS',
     };
 
     if (apiConfig.cache.enabled) {
       headers['Cache-Control'] =
         `public, max-age=${apiConfig.cache.ttl}, stale-while-revalidate=30`;
     } else {
-      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      headers['Cache-Control'] =
+        'public, max-age=60, stale-while-revalidate=30';
     }
 
-    const body = await response.json();
+    const body = (await response.json()) as HealthCheckResponse;
+
+    // 캐시 업데이트
+    updateCache(body);
+    debug.log('📦 Health check cache updated');
+
     return NextResponse.json(body, { headers });
   } catch (error) {
     debug.error('❌ Health check failed:', error);

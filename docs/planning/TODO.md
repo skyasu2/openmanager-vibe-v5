@@ -11,12 +11,11 @@
 - [ ] SWR 전략 적용
 - [ ] TTL 계층화 (5분/30분/1시간)
 
-### 2. AI Health Check 최적화 (2시간)
+### 2. AI Health Check 최적화 (2시간) ✅
 
-- [ ] SSE 모니터링 주기 5분으로 변경
-- [ ] SystemInactivityService 통합 (시스템 종료 시 자동 중지)
-- [ ] API Health 캐싱 구현 (60초 TTL)
-- 📋 **상세 계획**: [implementation_plan.md](../../.gemini/antigravity/brain/e2bb801c-4702-481d-a5de-0f17bb920ded/implementation_plan.md)
+- [x] SSE 모니터링 주기 5분으로 변경
+- [x] SystemInactivityService 통합 (시스템 종료 시 자동 중지)
+- [x] API Health 캐싱 구현 (60초 TTL)
 
 ---
 
@@ -47,6 +46,7 @@
 
 | 작업 | 완료일 | 문서 |
 |------|--------|------|
+| AI Health Check 최적화 | 2025-12-10 | [링크](../archive/completed/2025-12-ai-health-check-optimization-completed.md) |
 | unified-ai-processor v3.3.0 | 2025-12-10 | [링크](../archive/completed/2025-12-unified-ai-processor-v3.3.0-completed.md) |
 | RAG 엔진 리팩토링 | 2025-12-10 | [링크](../archive/completed/2025-12-rag-refactoring-completed.md) |
 | 이미지 최적화 | 2025-12-10 | [링크](../archive/completed/2025-12-image-optimization-completed.md) |
