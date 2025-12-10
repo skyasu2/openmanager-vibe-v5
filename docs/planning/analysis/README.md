@@ -20,8 +20,10 @@ last_updated: '2025-12-01'
 ## 📚 주요 문서
 
 - **[FEATURE-CARDS-REVIEW.md](./FEATURE-CARDS-REVIEW.md)**: 기능 카드 컴포넌트 리뷰
-- **[ai-sidebar-analysis.md](./ai-sidebar-analysis.md)**: AI 사이드바 구조 분석
-- **[gcp-functions-status.md](./gcp-functions-status.md)**: GCP Functions 현황
+- **[ai-architecture-report.md](./ai-architecture-report.md)**: AI 아키텍처 보고서 (Quad Engine)
+- **[ai-review-performance-report.md](./ai-review-performance-report.md)**: AI 리뷰 성능 분석
+- **[ai-tool-comparison.md](./ai-tool-comparison.md)**: AI 도구 비교 (Claude/Codex/Gemini/Qwen)
+- **[component-interaction.md](./component-interaction.md)**: 컴포넌트 상호작용 분석
 - **[ui-ux-analysis.md](./ui-ux-analysis.md)**: UI/UX 분석 보고서
 
 ## 🔍 분석 카테고리
