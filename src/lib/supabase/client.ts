@@ -61,8 +61,22 @@ export function getDefaultSupabaseClient(): SupabaseClient {
 }
 
 /**
- * @deprecated Use getDefaultSupabaseClient() instead for better SSR safety
- * This export is kept for backwards compatibility but may cause SSR issues
+ * Lazy-initialized Supabase client getter
+ * This is the RECOMMENDED way to access the Supabase client
+ *
+ * @example
+ * // In component or hook:
+ * const client = getSupabase();
+ * await client.auth.signInWithOAuth({ provider: 'github' });
+ */
+export function getSupabase(): SupabaseClient {
+  return getSupabaseClient();
+}
+
+/**
+ * @deprecated Use getSupabase() or getDefaultSupabaseClient() instead
+ * This export may cause PKCE flow failures due to SSR/CSR mismatch
+ * Kept for backwards compatibility - will be removed in next major version
  */
 export const supabase =
   typeof window !== 'undefined' ? getSupabaseClient() : ({} as SupabaseClient);

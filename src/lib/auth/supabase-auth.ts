@@ -12,8 +12,11 @@ import {
   guestSessionCookies,
   validateRedirectUrl,
 } from '@/lib/security/secure-cookies';
-import { supabase } from '../supabase/client';
+import { getSupabase } from '../supabase/client';
 import { authStateManager } from './auth-state-manager';
+
+// 런타임에 클라이언트를 가져오는 헬퍼 (PKCE flow를 위해 필수)
+const getClient = () => getSupabase();
 
 /**
  * 🔧 Supabase 프로젝트 ID 동적 추출
@@ -99,7 +102,7 @@ export async function signInWithGitHub() {
       throw new Error('Supabase Anon Key가 올바르게 설정되지 않았습니다.');
     }
 
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await getClient().auth.signInWithOAuth({
       provider: 'github',
       options: {
         redirectTo: redirectUrl,
@@ -162,7 +165,7 @@ async function signOutLegacy(authType?: 'github' | 'guest') {
 
     // Supabase 세션 정리 (GitHub OAuth)
     if (!authType || authType === 'github') {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await getClient().auth.signOut();
       if (error) {
         console.warn('⚠️ Supabase 로그아웃 실패:', error);
       }
@@ -217,7 +220,7 @@ export async function getSession(): Promise<Session | null> {
     const {
       data: { user: validatedUser },
       error: userError,
-    } = await supabase.auth.getUser();
+    } = await getClient().auth.getUser();
     if (userError) {
       console.warn('⚠️ JWT 검증 실패:', userError.message);
       return null;
@@ -230,7 +233,7 @@ export async function getSession(): Promise<Session | null> {
     const {
       data: { session },
       error: sessionError,
-    } = await supabase.auth.getSession();
+    } = await getClient().auth.getSession();
     if (sessionError) {
       console.error('❌ 세션 가져오기 실패:', sessionError);
       return null;
@@ -493,7 +496,7 @@ async function isGitHubAuthenticatedLegacy(): Promise<boolean> {
  * 인증 상태 변경 리스너
  */
 export function onAuthStateChange(callback: (session: Session | null) => void) {
-  const { data: authListener } = supabase.auth.onAuthStateChange(
+  const { data: authListener } = getClient().auth.onAuthStateChange(
     (event, session) => {
       console.log('🔄 Auth 상태 변경:', event, 'userId:', session?.user?.id);
       callback(session);
@@ -508,7 +511,7 @@ export function onAuthStateChange(callback: (session: Session | null) => void) {
  */
 export async function handleAuthCallback(): Promise<AuthCallbackResult> {
   try {
-    const response = await supabase.auth.getSession();
+    const response = await getClient().auth.getSession();
     const session = response?.data?.session;
     const error = response?.error;
 
@@ -536,7 +539,7 @@ export async function handleAuthCallback(): Promise<AuthCallbackResult> {
  */
 export async function refreshSession() {
   try {
-    const response = await supabase.auth.refreshSession();
+    const response = await getClient().auth.refreshSession();
     const session = response?.data?.session;
     const error = response?.error;
 

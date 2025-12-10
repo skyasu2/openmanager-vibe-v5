@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabase } from '@/lib/supabase/client';
 import debug from '@/utils/debug';
 
 /**
@@ -116,7 +116,7 @@ export default function AuthCallbackPage() {
         const maxAttempts = isVercel ? 10 : 8; // 재시도 횟수 증가 (6→10, 4→8)
 
         do {
-          const result = await supabase.auth.getSession();
+          const result = await getSupabase().auth.getSession();
           session = result.data.session;
           sessionError = result.error;
 
@@ -185,7 +185,7 @@ export default function AuthCallbackPage() {
           );
 
           // 추가 세션 유효성 검증
-          const finalSessionCheck = await supabase.auth.getSession();
+          const finalSessionCheck = await getSupabase().auth.getSession();
           const sessionValid = !!finalSessionCheck.data.session?.access_token;
 
           debug.log('🍪 세션 완전성 검증:', {
@@ -230,7 +230,7 @@ export default function AuthCallbackPage() {
             await new Promise((resolve) => setTimeout(resolve, finalRetryWait));
 
             // 최종 세션 확인 (더 엄격한 검증)
-            const finalCheck = await supabase.auth.getSession();
+            const finalCheck = await getSupabase().auth.getSession();
             const finalSession = finalCheck.data.session;
 
             debug.log('🔍 최종 세션 검증:', {
