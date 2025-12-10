@@ -14,7 +14,7 @@ interface ExtendedPerformance extends Performance {
 }
 
 /**
- * OpenManager v5.44.3 - 데이터 보존 스케줄러 (2025-07-02 18:10 KST)
+ * OpenManager v5.80.0 - 데이터 보존 스케줄러 (2025-07-02 18:10 KST)
  * - 메모리 기반 데이터 정리 (무설정 배포)
  * - 자동화된 데이터 생명주기 관리
  * - 주기적 메모리 최적화

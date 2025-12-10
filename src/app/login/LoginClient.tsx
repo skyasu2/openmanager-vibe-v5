@@ -485,7 +485,7 @@ export default function LoginClient() {
         {/* 푸터 */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-400">
-            OpenManager Vibe v5.44.3 • Supabase Auth (GitHub OAuth + 게스트)
+            OpenManager Vibe v5.80.0 • Supabase Auth (GitHub OAuth + 게스트)
           </p>
         </div>
       </div>
