@@ -17,6 +17,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FREE_TIER_INTERVALS } from '@/config/free-tier-intervals';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 // 🎯 타입 정의
 export interface Server {
@@ -136,13 +137,20 @@ export const useServers = (options?: {
   refetchInterval?: number;
   enabled?: boolean;
 }) => {
+  // 🔒 시스템 시작 상태에 따른 폴링 제어
+  const isSystemStarted = useUnifiedAdminStore(
+    (state) => state.isSystemStarted
+  );
+
   return useQuery({
     queryKey: serverKeys.lists(),
     queryFn: fetchServers,
-    refetchInterval:
-      options?.refetchInterval ?? FREE_TIER_INTERVALS.API_POLLING_INTERVAL, // 환경변수 기반 자동 갱신
+    // ⚡ 시스템 중지 시 폴링 비활성화 → API 호출 절감
+    refetchInterval: isSystemStarted
+      ? (options?.refetchInterval ?? FREE_TIER_INTERVALS.API_POLLING_INTERVAL)
+      : false,
     staleTime: 10000, // 10초 동안 stale하지 않음
-    enabled: options?.enabled ?? true,
+    enabled: (options?.enabled ?? true) && isSystemStarted,
     retry: (failureCount, error) => {
       // 404는 재시도하지 않음
       if (error instanceof Error && error.message.includes('404')) {
@@ -160,12 +168,20 @@ export const useServers = (options?: {
 
 // 📊 서버 상세정보 조회
 export const useServerDetail = (serverId: string, enabled: boolean = true) => {
+  // 🔒 시스템 시작 상태에 따른 폴링 제어
+  const isSystemStarted = useUnifiedAdminStore(
+    (state) => state.isSystemStarted
+  );
+
   return useQuery({
     queryKey: serverKeys.detail(serverId),
     queryFn: () => fetchServerDetail(serverId),
-    enabled: !!serverId && enabled,
+    enabled: !!serverId && enabled && isSystemStarted,
     staleTime: 5000,
-    refetchInterval: FREE_TIER_INTERVALS.API_POLLING_INTERVAL, // 환경변수 기반 설정
+    // ⚡ 시스템 중지 시 폴링 비활성화 → API 호출 절감
+    refetchInterval: isSystemStarted
+      ? FREE_TIER_INTERVALS.API_POLLING_INTERVAL
+      : false,
     retry: 2,
     placeholderData: keepPreviousData,
     meta: {
@@ -180,12 +196,18 @@ export const useServerMetrics = (
   timeRange: string = '1h',
   options?: { enabled?: boolean }
 ) => {
+  // 🔒 시스템 시작 상태에 따른 폴링 제어
+  const isSystemStarted = useUnifiedAdminStore(
+    (state) => state.isSystemStarted
+  );
+
   return useQuery({
     queryKey: serverKeys.metricsWithRange(serverId, timeRange),
     queryFn: () => fetchServerMetrics(serverId, timeRange),
-    enabled: !!serverId && (options?.enabled ?? true),
+    enabled: !!serverId && (options?.enabled ?? true) && isSystemStarted,
     staleTime: 60000, // 1분
-    refetchInterval: 60000, // 1분 간격
+    // ⚡ 시스템 중지 시 폴링 비활성화 → API 호출 절감
+    refetchInterval: isSystemStarted ? 60000 : false, // 1분 간격
     retry: 1,
     placeholderData: keepPreviousData,
     select: (data) => {
@@ -391,6 +413,10 @@ export const useServerSearch = (
 // 🌐 실시간 연결 상태 (Server-Sent Events)
 export const useServerConnection = () => {
   const queryClient = useQueryClient();
+  // 🔒 시스템 시작 상태에 따른 SSE 연결 제어
+  const isSystemStarted = useUnifiedAdminStore(
+    (state) => state.isSystemStarted
+  );
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<
     'connecting' | 'connected' | 'disconnected' | 'error'
@@ -498,22 +524,27 @@ export const useServerConnection = () => {
     setConnectionStatus('disconnected');
   }, []);
 
-  // 자동 연결/해제
+  // ⚡ 시스템 시작 상태에 따른 자동 연결/해제
   useEffect(() => {
-    connect();
+    if (isSystemStarted) {
+      connect();
+    } else {
+      disconnect();
+    }
 
     return () => {
       disconnect();
     };
-  }, [connect, disconnect]);
+  }, [connect, disconnect, isSystemStarted]);
 
-  // 페이지 가시성 변경 시 연결 관리
+  // 페이지 가시성 변경 시 연결 관리 (시스템 시작 상태 확인)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         console.log('📴 페이지 숨김 - SSE 일시정지');
         disconnect();
-      } else {
+      } else if (isSystemStarted) {
+        // ⚡ 시스템이 시작된 경우에만 재연결
         console.log('👁️ 페이지 표시 - SSE 재연결');
         connect();
       }
@@ -522,7 +553,7 @@ export const useServerConnection = () => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () =>
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [connect, disconnect]);
+  }, [connect, disconnect, isSystemStarted]);
 
   return {
     isConnected,
