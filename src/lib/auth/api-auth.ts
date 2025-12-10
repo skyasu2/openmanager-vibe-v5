@@ -7,6 +7,7 @@
 import { timingSafeEqual } from 'crypto';
 import { type NextRequest, NextResponse } from 'next/server';
 import { SECURITY } from '@/config/constants';
+import { isGuestFullAccessEnabledServer } from '@/config/guestMode.server';
 import { securityLogger } from '../security/security-logger';
 
 /**
@@ -14,12 +15,14 @@ import { securityLogger } from '../security/security-logger';
  * - GitHub OAuth 로그인 여부만 확인
  * - 복잡한 권한 시스템 없음
  * - 테스트용 API 키 지원 (프로덕션 환경에서 외부 도구 테스트용)
+ * - 게스트 풀 액세스 모드 지원 (NEXT_PUBLIC_GUEST_FULL_ACCESS=true)
  *
  * ⚠️ 보안 참고:
  * - API 키 인증 시 사용자 세션 컨텍스트 없음
  * - 다른 로직에서 session.user.id 사용 시 에러 발생 가능
  * - 테스트 목적으로만 사용 권장
  * - TEST_API_KEY 길이는 앱 시작 시점에 검증됨 (instrumentation.ts)
+ * - 게스트 풀 액세스 모드 시 AI 기능 등 모든 API 접근 허용
  */
 export async function checkAPIAuth(request: NextRequest) {
   // 개발 환경에서는 AI 테스트를 위해 인증 우회
@@ -28,6 +31,11 @@ export async function checkAPIAuth(request: NextRequest) {
     process.env.NODE_ENV === 'test'
   ) {
     return null; // 개발환경에서 인증 우회
+  }
+
+  // 🎭 게스트 풀 액세스 모드: 로그인 없이도 AI 기능 사용 허용
+  if (isGuestFullAccessEnabledServer()) {
+    return null; // 게스트 풀 액세스 활성화 시 인증 우회
   }
 
   // 🧪 E2E 테스트 헤더 확인 (Playwright 테스트용)
