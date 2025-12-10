@@ -21,8 +21,6 @@ import {
   PAGE_BACKGROUNDS,
 } from '@/styles/design-constants';
 import debug from '@/utils/debug';
-// AI 텍스트 렌더링 유틸리티
-import { renderTextWithAIGradient } from '@/utils/text-rendering';
 
 interface GuestSessionData {
   sessionId: string;
@@ -338,21 +336,28 @@ export default function LoginClient() {
       className={`flex min-h-screen items-center justify-center ${PAGE_BACKGROUNDS.DARK_PAGE_BG} p-3 sm:p-4`}
     >
       <div className="w-full max-w-md">
-        {/* 헤더 */}
-        <div className="mb-8 text-center">
-          {/* ✨ 개선된 로고: Sparkles 아이콘 제거 -> 그라데이션 스퀘어 컨셉 */}
-          <div
-            className={`mx-auto mb-4 flex h-12 w-12 animate-gradient-x items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} bg-size-[200%_200%] shadow-lg shadow-purple-500/50 sm:h-16 sm:w-16`}
-          />
-          <h1 className="mb-2 text-3xl font-bold text-white">OpenManager</h1>
-          <p className="text-base text-gray-300">
-            {renderTextWithAIGradient('AI 서버 모니터링 시스템', isClient)}
-          </p>
-        </div>
+        {/* 로그인 Card (로고, 타이틀, 폼 통합) */}
+        <div className="rounded-2xl border border-gray-700/50 bg-gray-800/90 p-8 shadow-2xl backdrop-blur-sm sm:p-10">
+          {/* 헤더 (Card 내부) */}
+          <div className="mb-8 text-center">
+            {/* ✨ 로고: 그라데이션 스퀘어 */}
+            <div
+              className={`mx-auto mb-5 flex h-14 w-14 animate-gradient-x items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-purple-500/30 sm:h-16 sm:w-16`}
+              style={{ backgroundSize: '200% 200%' }}
+            />
+            <h1 className="mb-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              OpenManager
+            </h1>
+            <p className="text-sm font-medium text-gray-400 sm:text-base">
+              AI 서버 모니터링 시스템
+            </p>
+          </div>
 
-        {/* 로그인 폼 */}
-        <div className="rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-2xl sm:p-8">
-          <h2 className="mb-6 text-center text-xl font-semibold text-white">
+          {/* 구분선 */}
+          <div className="mb-8 border-t border-gray-700/50" />
+
+          {/* 로그인 섹션 */}
+          <h2 className="mb-6 text-center text-lg font-medium text-gray-200">
             로그인 방식을 선택하세요
           </h2>
 
@@ -469,24 +474,32 @@ export default function LoginClient() {
           )}
 
           {/* 안내 텍스트 */}
-          <div className="mt-6 space-y-2 text-center text-sm text-gray-300">
-            <p>
-              🔐 <strong>GitHub 로그인</strong>: 개인화된 설정과 고급 기능
+          <div className="mt-8 space-y-3 rounded-lg bg-gray-900/50 p-4 text-center text-sm">
+            <p className="text-gray-300">
+              <span className="mr-1.5">🔐</span>
+              <strong className="text-white">GitHub 로그인</strong>
+              <span className="text-gray-400">
+                {' '}
+                — 개인화된 설정과 고급 기능
+              </span>
             </p>
-            <p>
-              👤 <strong>게스트 모드</strong>: 인증 없이 기본 기능 사용
-            </p>
-            <p className="mt-4 text-xs text-gray-400">
-              모든 로그인 방식은 OpenManager 메인 페이지(/main)로 이동합니다
+            <p className="text-gray-300">
+              <span className="mr-1.5">👤</span>
+              <strong className="text-white">게스트 모드</strong>
+              <span className="text-gray-400"> — 인증 없이 기본 기능 사용</span>
             </p>
           </div>
-        </div>
 
-        {/* 푸터 */}
-        <div className="mt-8 text-center">
-          <p className="text-xs text-gray-400">
-            OpenManager Vibe v5.80.0 • Supabase Auth (GitHub OAuth + 게스트)
-          </p>
+          {/* 푸터 (Card 내부) */}
+          <div className="mt-8 border-t border-gray-700/50 pt-6 text-center">
+            <p className="flex items-center justify-center gap-2 text-sm text-gray-400">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
+              OpenManager Vibe v5.80.0
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              Supabase Auth • GitHub OAuth + 게스트 모드
+            </p>
+          </div>
         </div>
       </div>
     </div>

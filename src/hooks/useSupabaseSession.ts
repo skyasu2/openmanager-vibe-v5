@@ -3,7 +3,7 @@
 import type { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { clearAuthData } from '@/lib/auth/auth-state-manager';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabase } from '@/lib/supabase/client';
 
 // NextAuth 호환 세션 타입
 interface Session {
@@ -41,7 +41,7 @@ export function useSession(): UseSessionReturn {
         const {
           data: { user: validatedUser },
           error,
-        } = await supabase.auth.getUser();
+        } = await getSupabase().auth.getUser();
         if (error) {
           console.warn('⚠️ JWT 검증 실패:', error.message);
         }
@@ -112,7 +112,7 @@ export function useSession(): UseSessionReturn {
     void checkSession();
 
     // 세션 변경 감지
-    const response = supabase.auth.onAuthStateChange(
+    const response = getSupabase().auth.onAuthStateChange(
       async (_event, session) => {
         if (session?.user) {
           setUser(session.user);
@@ -153,7 +153,7 @@ export function useSession(): UseSessionReturn {
     const {
       data: { user: validatedUser },
       error,
-    } = await supabase.auth.getUser();
+    } = await getSupabase().auth.getUser();
     if (error) {
       console.warn('⚠️ 세션 업데이트 JWT 검증 실패:', error.message);
     }
@@ -180,7 +180,7 @@ export async function signOut(options?: { callbackUrl?: string }) {
     console.log('🚪 Supabase 로그아웃 시작');
 
     // Supabase 세션 종료 (핵심 동작)
-    await supabase.auth.signOut();
+    await getSupabase().auth.signOut();
 
     // AuthStateManager를 통한 통합 세션 정리
     if (typeof window !== 'undefined') {
@@ -246,7 +246,7 @@ export async function signIn(
         environment: process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV,
       });
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await getSupabase().auth.signInWithOAuth({
         provider: 'github',
         options: {
           redirectTo,

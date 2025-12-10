@@ -65,7 +65,10 @@
 
   --backdrop-blur-xs: 2px;
 
-  --font-sans: Noto Sans KR, sans-serif;
+  /* 폰트: Inter(영문) + Noto Sans KR(한글) - layout.tsx에서 로드 */
+  --font-sans: var(--font-inter), var(--font-noto-sans-kr), ui-sans-serif,
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -579,9 +582,7 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  font-family:
-    "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "Malgun Gothic", sans-serif;
+  /* font-family는 layout.tsx의 font-sans 클래스로 적용됨 */
   line-height: 1.6;
   color: var(--text-primary);
   background: #1e293b;

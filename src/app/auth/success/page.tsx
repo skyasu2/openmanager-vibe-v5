@@ -12,7 +12,7 @@
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabase } from '@/lib/supabase/client';
 import debug from '@/utils/debug';
 
 export default function AuthSuccessPage() {
@@ -61,7 +61,7 @@ export default function AuthSuccessPage() {
 
         // 이벤트 기반 세션 감지
         const sessionPromise = new Promise<boolean>((resolve) => {
-          const unsubscribe = supabase.auth.onAuthStateChange(
+          const unsubscribe = getSupabase().auth.onAuthStateChange(
             (event, session) => {
               if (event === 'SIGNED_IN' && session) {
                 debug.log('🎉 이벤트 기반 세션 감지!');
@@ -80,7 +80,9 @@ export default function AuthSuccessPage() {
 
         // 즉시 세션 확인과 이벤트 기반 감지를 병렬로
         const [immediateSession, eventSession] = await Promise.all([
-          supabase.auth.getSession().then(({ data }) => !!data.session?.user),
+          getSupabase()
+            .auth.getSession()
+            .then(({ data }) => !!data.session?.user),
           sessionPromise,
         ]);
 
@@ -98,7 +100,7 @@ export default function AuthSuccessPage() {
         const refreshStart = performance.now();
 
         // 세션이 없거나 만료 임박한 경우만 새로고침
-        const { data: currentSession } = await supabase.auth.getSession();
+        const { data: currentSession } = await getSupabase().auth.getSession();
         if (
           !currentSession.session ||
           (currentSession.session.expires_at &&
@@ -107,7 +109,8 @@ export default function AuthSuccessPage() {
               60000)
         ) {
           debug.log('🔄 세션 새로고침 필요함...');
-          const { error: refreshError } = await supabase.auth.refreshSession();
+          const { error: refreshError } =
+            await getSupabase().auth.refreshSession();
           if (refreshError) {
             debug.warn('⚠️ 세션 새로고침 실패:', refreshError);
           }
@@ -126,8 +129,8 @@ export default function AuthSuccessPage() {
 
         // 첫 번째 시도는 즉시
         const [sessionResult, userResult] = await Promise.all([
-          supabase.auth.getSession(),
-          supabase.auth.getUser(),
+          getSupabase().auth.getSession(),
+          getSupabase().auth.getUser(),
         ]);
 
         session = sessionResult.data.session;
@@ -144,7 +147,7 @@ export default function AuthSuccessPage() {
             setTimeout(resolve, isVercel ? 500 : 300)
           );
 
-          const retryResult = await supabase.auth.getUser();
+          const retryResult = await getSupabase().auth.getUser();
           user = retryResult.data.user;
           error = retryResult.error;
         }
