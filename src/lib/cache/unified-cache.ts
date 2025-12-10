@@ -1,5 +1,5 @@
 /**
- * 🚀 통합 캐시 시스템 v3.0
+ * 🚀 통합 캐시 시스템 v3.1
  *
  * 3개의 중복 캐시 시스템을 하나로 통합
  * - Memory 기반 LRU 캐시 (cache-helper.ts)
@@ -13,6 +13,11 @@
  * - 자동 TTL 관리
  * - LRU 정책
  * - 통계 및 메트릭
+ *
+ * v3.1 변경사항 (2025-12-10):
+ * - TTL 계층화 상수 추가 (SHORT/MEDIUM/LONG/STATIC)
+ * - SWR 전략 프리셋 추가
+ * - Vercel CDN 헤더 최적화
  */
 
 // 타입 정의
@@ -56,6 +61,61 @@ export enum CacheNamespace {
   SERVER_METRICS = 'server_metrics',
   USER_SESSION = 'user_session',
 }
+
+/**
+ * 📊 TTL 계층화 상수 (v3.1)
+ *
+ * 데이터 특성에 따른 표준 TTL 값
+ * - SHORT: 실시간 데이터 (메트릭, 상태)
+ * - MEDIUM: 준실시간 데이터 (서버 목록, 대시보드)
+ * - LONG: 느린 변경 데이터 (설정, 사용자 정보)
+ * - STATIC: 거의 변경 없는 데이터 (버전, 메타데이터)
+ */
+export const CacheTTL = {
+  /** 실시간 데이터: 30초 (메트릭, 상태 체크) */
+  SHORT: 30,
+  /** 준실시간: 5분 (서버 목록, 대시보드) */
+  MEDIUM: 300,
+  /** 느린 변경: 30분 (설정, 세션) */
+  LONG: 1800,
+  /** 정적 데이터: 1시간 (버전, 메타데이터) */
+  STATIC: 3600,
+} as const;
+
+/**
+ * 📡 SWR 전략 프리셋 (v3.1)
+ *
+ * stale-while-revalidate 비율 기반 설정
+ * - TTL의 2배를 SWR로 설정 (Vercel 권장)
+ */
+export const SWRPreset = {
+  /** 실시간: 30s TTL + 60s SWR */
+  REALTIME: {
+    maxAge: 0,
+    sMaxAge: CacheTTL.SHORT,
+    staleWhileRevalidate: CacheTTL.SHORT * 2,
+  },
+  /** 대시보드: 5분 TTL + 10분 SWR */
+  DASHBOARD: {
+    maxAge: 60,
+    sMaxAge: CacheTTL.MEDIUM,
+    staleWhileRevalidate: CacheTTL.MEDIUM * 2,
+  },
+  /** 설정: 30분 TTL + 1시간 SWR */
+  CONFIG: {
+    maxAge: CacheTTL.MEDIUM,
+    sMaxAge: CacheTTL.LONG,
+    staleWhileRevalidate: CacheTTL.LONG * 2,
+  },
+  /** 정적: 1시간 TTL + 2시간 SWR */
+  STATIC: {
+    maxAge: CacheTTL.LONG,
+    sMaxAge: CacheTTL.STATIC,
+    staleWhileRevalidate: CacheTTL.STATIC * 2,
+  },
+} as const;
+
+export type SWRPresetKey = keyof typeof SWRPreset;
 
 /**
  * 통합 캐시 서비스
@@ -479,24 +539,87 @@ export function cacheWrapper<T extends unknown[], R>(
   };
 }
 
-// Next.js Response 헬퍼
-export function createCachedResponse<T>(
-  data: T,
+/**
+ * 🔧 캐시 헤더 생성 유틸리티 (v3.1)
+ *
+ * Vercel CDN 최적화 헤더 포함
+ */
+export function createCacheHeaders(
   options: {
-    status?: number;
     maxAge?: number;
     sMaxAge?: number;
     staleWhileRevalidate?: number;
+    isPrivate?: boolean;
   } = {}
+): Record<string, string> {
+  const {
+    maxAge = 0,
+    sMaxAge = CacheTTL.SHORT,
+    staleWhileRevalidate = CacheTTL.SHORT * 2,
+    isPrivate = false,
+  } = options;
+
+  const cacheControl = [
+    isPrivate ? 'private' : 'public',
+    `max-age=${maxAge}`,
+    `s-maxage=${sMaxAge}`,
+    `stale-while-revalidate=${staleWhileRevalidate}`,
+  ].join(', ');
+
+  return {
+    'Cache-Control': cacheControl,
+    'CDN-Cache-Control': `public, s-maxage=${sMaxAge}`,
+    'Vercel-CDN-Cache-Control': `public, s-maxage=${sMaxAge}`,
+  };
+}
+
+/**
+ * 🎯 SWR 프리셋으로 캐시 헤더 생성 (v3.1)
+ *
+ * @example
+ * const headers = createCacheHeadersFromPreset('REALTIME');
+ * // { 'Cache-Control': 'public, max-age=0, s-maxage=30, stale-while-revalidate=60', ... }
+ */
+export function createCacheHeadersFromPreset(
+  preset: SWRPresetKey,
+  isPrivate = false
+): Record<string, string> {
+  const config = SWRPreset[preset];
+  return createCacheHeaders({ ...config, isPrivate });
+}
+
+// Next.js Response 헬퍼 (v3.1 개선)
+export function createCachedResponse<T>(
+  data: T,
+  options:
+    | {
+        status?: number;
+        maxAge?: number;
+        sMaxAge?: number;
+        staleWhileRevalidate?: number;
+        isPrivate?: boolean;
+      }
+    | { status?: number; preset: SWRPresetKey; isPrivate?: boolean } = {}
 ): Response {
+  let cacheOptions: {
+    maxAge?: number;
+    sMaxAge?: number;
+    staleWhileRevalidate?: number;
+    isPrivate?: boolean;
+  };
+
+  if ('preset' in options) {
+    cacheOptions = {
+      ...SWRPreset[options.preset],
+      isPrivate: options.isPrivate,
+    };
+  } else {
+    cacheOptions = options;
+  }
+
   const headers = new Headers({
     'Content-Type': 'application/json',
-    'Cache-Control': [
-      'public',
-      `max-age=${options.maxAge ?? 0}`,
-      `s-maxage=${options.sMaxAge ?? 60}`,
-      `stale-while-revalidate=${options.staleWhileRevalidate ?? 300}`,
-    ].join(', '),
+    ...createCacheHeaders(cacheOptions),
   });
 
   return new Response(JSON.stringify(data), {

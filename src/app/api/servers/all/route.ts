@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getApiConfig, getSystemConfig } from '@/config/SystemConfiguration';
 import { withAuth } from '@/lib/auth/api-auth';
+import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type { Server } from '@/types/server';
 import type { SortableKey } from '@/types/server-metrics';
@@ -144,7 +145,8 @@ export const GET = withAuth(async (request: NextRequest) => {
       },
       {
         headers: {
-          'Cache-Control': `public, max-age=60, s-maxage=${apiConfig.timeoutMs / 1000}`,
+          // 📊 DASHBOARD 프리셋: 5분 TTL + 10분 SWR (서버 목록 데이터)
+          ...createCacheHeadersFromPreset('DASHBOARD'),
           'X-Data-Source': 'unified-system',
           'X-Server-Count': total.toString(),
         },

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 
 // ⚡ Edge Runtime으로 전환 - 60% 응답시간 개선 예상
 export const runtime = 'edge';
@@ -45,9 +46,10 @@ export function GET() {
       },
     };
 
+    // 📦 STATIC 프리셋: 1시간 TTL + 2시간 SWR (정적 버전 정보)
     return NextResponse.json(versionInfo, {
       headers: {
-        'Cache-Control': 'public, max-age=300', // 5분 캐시
+        ...createCacheHeadersFromPreset('STATIC'),
         'Content-Type': 'application/json',
       },
     });

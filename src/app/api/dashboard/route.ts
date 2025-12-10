@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getSystemConfig } from '@/config/SystemConfiguration';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 import {
   DashboardActionRequestSchema,
   type DashboardActionResponse,
@@ -331,10 +332,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         ? await response.json()
         : response;
 
+    // 📊 REALTIME 프리셋: 30s TTL + 60s SWR (실시간 대시보드)
     return NextResponse.json(responseData, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
+        ...createCacheHeadersFromPreset('REALTIME'),
         'X-Data-Source': 'Supabase-Realtime',
         'X-Response-Time': `${responseData.metadata?.processingTime || 0}ms`,
         'X-Server-Count':

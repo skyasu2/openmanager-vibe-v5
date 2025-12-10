@@ -12,6 +12,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 
 // ⚡ Edge Runtime으로 전환 - 무료 티어 친화적 최적화
 export const runtime = 'edge';
@@ -240,10 +241,11 @@ export function GET() {
     version: '1.0.0',
   };
 
+  // 📦 STATIC 프리셋: 1시간 TTL + 2시간 SWR (설정 정보)
   return NextResponse.json(response, {
     headers: {
+      ...createCacheHeadersFromPreset('STATIC'),
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=3600', // 1시간 캐시
       'X-Runtime': 'edge',
     },
   });

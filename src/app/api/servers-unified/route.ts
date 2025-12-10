@@ -16,6 +16,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 import { createClient } from '@/lib/supabase/server';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type {
@@ -466,12 +467,16 @@ export async function GET(request: NextRequest) {
     includeMetrics: true,
   };
 
+  // 📊 DASHBOARD 프리셋: 5분 TTL + 10분 SWR (서버 목록 데이터)
   return NextResponse.json(
     await handleServersUnified(request, {
       body: defaultRequest,
       query: {},
       params: {},
-    })
+    }),
+    {
+      headers: createCacheHeadersFromPreset('DASHBOARD'),
+    }
   );
 }
 

@@ -10,6 +10,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 import { getMockSystem } from '@/mock';
 import debug from '@/utils/debug';
 
@@ -59,11 +60,9 @@ export function GET() {
       timestamp: new Date().toISOString(),
     };
 
+    // 📊 DASHBOARD 프리셋: 5분 TTL + 10분 SWR (목업 메트릭)
     return NextResponse.json(metrics, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-        'CDN-Cache-Control': 'public, s-maxage=60',
-      },
+      headers: createCacheHeadersFromPreset('DASHBOARD'),
     });
   } catch (error) {
     debug.error('❌ Failed to fetch metrics:', error);

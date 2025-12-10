@@ -10,6 +10,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSystemConfig } from '@/config/SystemConfiguration';
+import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type {
   AlertSeverity,
@@ -587,10 +588,11 @@ export async function GET(_request: NextRequest) {
       },
     };
 
-    // 성능 모니터링 헤더
+    // 📊 REALTIME 프리셋: 실시간 메트릭 - 30초 TTL + 60초 SWR
+    const cacheHeaders = createCacheHeadersFromPreset('REALTIME', true); // private
     const headers = new Headers({
       'Content-Type': 'application/json',
-      'Cache-Control': 'private, max-age=30', // 30초 캐싱
+      ...cacheHeaders,
       'X-Timestamp-Normalized': normalizedTime.toString(),
       'X-Processing-Time': processingTime.toString(),
       'X-Data-Version': 'unified-v1.0',

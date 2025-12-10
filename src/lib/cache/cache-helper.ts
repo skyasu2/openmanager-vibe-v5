@@ -9,14 +9,19 @@
  * - 기존 코드는 이 파일을 계속 사용할 수 있습니다
  */
 
+export type { SWRPresetKey } from './unified-cache';
 // 통합 캐시에서 모든 기능을 재export
 export {
   CacheNamespace,
+  CacheTTL,
   cacheOrFetch,
   createCachedResponse,
+  createCacheHeaders,
+  createCacheHeadersFromPreset,
   getCachedData,
   getCacheStats,
   invalidateCache,
+  SWRPreset,
   setCachedData,
   UnifiedCacheService,
   unifiedCache,

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 
 // ⚡ Edge Runtime으로 전환 - 60% 응답시간 개선 예상
 export const runtime = 'edge';
@@ -49,11 +50,12 @@ export function GET() {
       ),
     };
 
+    // 📊 REALTIME 프리셋: 실시간 시간 데이터 - 30초 TTL + 60초 SWR
     return NextResponse.json(timeInfo, {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=1, stale-while-revalidate=30',
+        ...createCacheHeadersFromPreset('REALTIME'),
         'X-Runtime': 'edge',
         'X-Edge-Region': process.env.VERCEL_REGION || 'unknown',
         'X-Response-Time': '~3ms',
