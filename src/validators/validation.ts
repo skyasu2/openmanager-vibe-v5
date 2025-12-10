@@ -204,10 +204,11 @@ export function composeMiddleware(
 
 /**
  * 페이지네이션 쿼리 스키마
+ * Zod v4 coerce API 사용 - 문자열을 자동으로 숫자로 변환
  */
 export const paginationQuerySchema = z.object({
-  page: z.string().regex(/^\d+$/).default('1').transform(Number),
-  limit: z.string().regex(/^\d+$/).default('20').transform(Number),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
   sort: z.string().optional(),
   order: z.enum(['asc', 'desc']).default('desc'),
 });
