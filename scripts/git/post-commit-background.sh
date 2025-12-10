@@ -21,6 +21,13 @@ if [ -f "scripts/code-review/auto-ai-review.sh" ]; then
     pids+=($!)
 fi
 
+# 2. Test Review Report (Non-blocking, informational only)
+if [ -f "scripts/dev/generate-test-review-report.sh" ]; then
+    echo "  📊 Generating Test Review Report..."
+    bash scripts/dev/generate-test-review-report.sh > "$LOG_DIR/test-review.log" 2>&1 &
+    pids+=($!)
+fi
+
 # Wait for all tasks to complete
 if [ ${#pids[@]} -gt 0 ]; then
     echo "⏳ Waiting for ${#pids[@]} background tasks..."

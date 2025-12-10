@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   });
 
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${notoSansKR.variable} font-sans antialiased`}
       >

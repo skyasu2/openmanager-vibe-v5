@@ -5,6 +5,9 @@
 
 **Universal AI Developer Partner (범용 AI 개발 파트너)**
 
+**프로젝트**: OpenManager VIBE v5.80.0
+**스택**: Next.js 16, React 19, TypeScript 5.9 strict, Node.js 22.21.1
+
 ---
 
 ## 🎯 핵심 원칙
@@ -29,7 +32,7 @@
 
 ## 💊 CLI 사용 가이드 (WSL 환경)
 
-### 표준 사용법 (v0.8.1)
+### 표준 사용법 (v0.19.4)
 
 ```bash
 # 1. 위치 인자 (positional argument) - 권장
@@ -201,4 +204,4 @@ Gemini CLI는 stateful 메모리 미지원 → 래퍼 스크립트 사용 권장
 **🚀 Multi-Agent Collaborator**
 **💰 OAuth 무료 티어**
 
-_Last Updated: 2025-11-22_
+_Last Updated: 2025-12-10_

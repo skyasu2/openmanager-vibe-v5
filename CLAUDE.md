@@ -9,7 +9,7 @@
 ## 📦 핵심 정보
 
 **프로젝트**: OpenManager VIBE v5.80.0 - AI 기반 실시간 서버 모니터링 플랫폼
-**환경**: WSL + Claude Code v2.0.60 + Codex v0.63.0 리뷰
+**환경**: WSL + Claude Code v2.0.61 + Codex v0.66.0 리뷰
 **스택**: Next.js 16, React 19, TypeScript 5.9 strict, Vercel + Supabase
 
 ---
@@ -116,7 +116,7 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 
 ## 🎭 서브에이전트 & Skills
 
-### 서브에이전트 (10개 활성)
+### 서브에이전트 (8개 활성)
 
 **호출**: `Task [에이전트명] "[작업]"`
 
@@ -124,13 +124,12 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 |----------|----------|------|
 | CRITICAL | security-specialist | 보안 감사, 취약점 스캔 |
 | HIGH | debugger-specialist | 버그 분석, 근본 원인 추적 |
+| HIGH | architecture-specialist | 아키텍처 설계, 모듈화/리팩토링 |
 | HIGH | code-review-specialist | 통합 코드 품질 검토 |
 | HIGH | test-automation-specialist | Vitest + Playwright 테스트 |
-| HIGH | vercel-platform-specialist | 배포 관리, Edge 최적화 |
-| HIGH | database-administrator | Supabase, RLS 정책 |
 | HIGH | performance-specialist | Core Web Vitals, 번들 최적화 |
+| HIGH | ui-ux-specialist | UI/UX, React 19 호환성 |
 | MEDIUM | documentation-manager | JBGE 문서 관리 |
-| MEDIUM | ui-ux-specialist | shadcn/ui 컴포넌트 |
 
 **빠른 예시**:
 ```bash
@@ -139,7 +138,7 @@ Task security-specialist "긴급 보안 스캔"
 codex exec "변경사항 리뷰"
 ```
 
-### Skills (5개, 평균 72% 토큰 절약)
+### Skills (7개, 평균 72% 토큰 절약)
 
 **호출**: `Skill [스킬명]`
 
@@ -150,6 +149,8 @@ codex exec "변경사항 리뷰"
 | ai-report-export | AI 리뷰 결과 문서화 | 78% |
 | next-router-bottleneck | Next.js 라우팅 성능 진단 | 75% |
 | security-audit-workflow | 배포 전 보안 감사 | 70% |
+| validation-analysis | 커밋 후 검증 분석 | - |
+| ai-code-review | AI 코드 리뷰 오케스트레이션 | 70% |
 
 **빠른 예시**:
 ```bash

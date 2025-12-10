@@ -117,16 +117,31 @@ npm run env:check || {
   exit 1
 }
 
-# 4. 민감 파일 체크 (보안)
-echo "🔒 Security check..."
-# Robust security check with fallback for shallow clones/missing remote
-SENSITIVE_FILES=$(git diff origin/main...HEAD --name-only 2>/dev/null) || \
-  SENSITIVE_FILES=$(git diff HEAD~1 --name-only --diff-filter=d 2>/dev/null || true)
-SENSITIVE_FILES=$(echo "$SENSITIVE_FILES" | grep -E '\.(env|key|pem)$' || true)
-if [ -n "$SENSITIVE_FILES" ]; then
-  echo "❌ 민감한 파일이 포함되어 있습니다:"
-  echo "$SENSITIVE_FILES"
-  exit 1
+# 4. 서브에이전트 검사 (보안 + 테스트 검토)
+echo "🔍 Subagent checks (Security + Test Review)..."
+if [ "${SKIP_SUBAGENT_CHECKS:-false}" = "true" ]; then
+  echo "⚪ Subagent checks skipped (SKIP_SUBAGENT_CHECKS=true)"
+else
+  if [ -x "./scripts/dev/run-subagent-checks.sh" ]; then
+    ./scripts/dev/run-subagent-checks.sh || {
+      echo "❌ Subagent checks failed - push blocked"
+      echo ""
+      echo "💡 Fix security issues or run:"
+      echo "   SKIP_SUBAGENT_CHECKS=true git push"
+      exit 1
+    }
+  else
+    echo "⚠️  Subagent checks script not found, running basic security check..."
+    # Fallback: 기본 민감 파일 체크
+    SENSITIVE_FILES=$(git diff origin/main...HEAD --name-only 2>/dev/null) || \
+      SENSITIVE_FILES=$(git diff HEAD~1 --name-only --diff-filter=d 2>/dev/null || true)
+    SENSITIVE_FILES=$(echo "$SENSITIVE_FILES" | grep -E '\.(env|key|pem)$' || true)
+    if [ -n "$SENSITIVE_FILES" ]; then
+      echo "❌ 민감한 파일이 포함되어 있습니다:"
+      echo "$SENSITIVE_FILES"
+      exit 1
+    fi
+  fi
 fi
 
 # 5. package.json 검증

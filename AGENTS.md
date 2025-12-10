@@ -9,6 +9,8 @@ Maintained for active Codex CLI usage in WSL2
 
 > **이 문서는 Codex CLI 설정 및 사용 지침의 공식 레퍼런스입니다.**
 > **Environment**: Windows 11 + WSL2 (Ubuntu)
+> **프로젝트**: OpenManager VIBE v5.80.0
+> **스택**: Next.js 16, React 19, TypeScript 5.9 strict, Node.js 22.21.1
 > **다른 AI 도구**: `CLAUDE.md` (Claude Code/Multi-AI MCP), `GEMINI.md` (Gemini), `QWEN.md` (Qwen)
 >
 > ⚠️ **중요**: `scripts/ai-subagents/` 디렉토리는 **Claude Code의 Task tool 서브에이전트가 아닙니다**.
@@ -29,8 +31,8 @@ Maintained for active Codex CLI usage in WSL2
 | 프로젝트 버전      | 5.80.0                              | `package.json`                |
 | Node.js            | 22.21.1                             | `.nvmrc`                      |
 | npm                | 10.9.2                              | `package.json:packageManager` |
-| Next.js            | ^15.5.5                             | `package.json`                |
-| TypeScript         | ^5.7.2                              | `package.json`                |
+| Next.js            | 16                                  | `package.json`                |
+| TypeScript         | 5.9                                 | `package.json`                |
 | 주요 테스트 러너   | Vitest, Playwright                  | `package.json`                |
 | 기본 작업 디렉터리 | `/mnt/d/cursor/openmanager-vibe-v5` | 현 세션                       |
 
@@ -51,7 +53,7 @@ npm run test     # Vitest (메인 설정)
 
 ### 개요
 
-- **Codex CLI v0.58.0 (GPT-5)** – ChatGPT Plus $20/월, `config/ai/registry-core.yaml`
+- **Codex CLI v0.66.0 (GPT-5)** – ChatGPT Plus $20/월, `config/ai/registry-core.yaml`
 - **응답 속도**: 6~12초 (자동 코드 리뷰 로그, `logs/code-reviews/*`)
 - **자동 코드 리뷰**: `.husky/post-commit` → `scripts/code-review/auto-ai-review.sh` v6.4.0 (Primary 1:1:1 순환: codex→gemini→claude, Qwen 폴백, `logs/code-reviews/*`)
 - **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` v3.3.0 (600초 타임아웃, stderr 분리, **Senior Full-Stack Developer 컨텍스트 적용**)
@@ -83,7 +85,7 @@ npm run test     # Vitest (메인 설정)
 - **가용성**: 99.99% (Primary OR Qwen OR Claude Code)
 - **출력**: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
 
-### 📊 2025 벤치마크 성능 (GPT-5 Codex v0.58.0)
+### 📊 2025 벤치마크 성능 (GPT-5 Codex v0.66.0)
 
 - **HumanEval**: 94% pass@1 (함수 단위 문제 해결 최강)
 - **SWE-bench Verified**: 74.5% (다중 파일 버그 수정)
@@ -114,9 +116,9 @@ npm run test     # Vitest (메인 설정)
 
 | 도구                       | 현재 버전 | 참고 문서   |
 | -------------------------- | --------- | ----------- |
-| Claude Code / Multi-AI MCP | v2.0.37   | `CLAUDE.md` |
-| Gemini CLI                 | v0.15.4   | `GEMINI.md` |
-| Qwen CLI                   | v0.2.1    | `QWEN.md`   |
+| Claude Code / Multi-AI MCP | v2.0.61   | `CLAUDE.md` |
+| Gemini CLI                 | v0.19.4   | `GEMINI.md` |
+| Qwen CLI                   | v0.4.0    | `QWEN.md`   |
 
 ## 📜 Codex 핵심 코딩 규칙 (Codex Coding Standards)
 

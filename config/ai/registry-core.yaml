@@ -2,8 +2,8 @@
 # 핵심 정보만 포함, 상세 내역은 별도 문서 참조
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
-version: "2.1.2"  # registry-core 버전 (v6.9.2: handle_review_success 헬퍼 추출)
-last_updated: "2025-12-08"
+version: "2.3.0"  # registry-core 버전 (v2.3.0: architecture-specialist 추가, 8개 서브에이전트)
+last_updated: "2025-12-10"
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
@@ -35,7 +35,7 @@ ai-tools:
 
   kiro-cli:
     current_version: "v1.20.0"
-    status: "🆕 Beta (Not Installed)"
+    status: "✅ Active (Manual Usage)"
     role: "Terminal multi-agent orchestrator (chat/agent/doctor/settings)"
 
 # 상세 정보: config/ai/changelog.yaml 참조
@@ -45,20 +45,18 @@ ai-tools:
 # ============================================================================
 subagents:
   active:
-    - code-review-specialist            # HIGH - 통합 코드 품질 검토
-    - database-administrator            # HIGH - Supabase 전문
-    - vercel-platform-specialist        # HIGH - 배포 관리
+    - code-review-specialist            # HIGH - 직접 코드 리뷰 + 리뷰 결과 분석
+    - architecture-specialist           # HIGH - 아키텍처 설계, 모듈화, 구조 리팩토링
     - debugger-specialist               # HIGH - 버그 분석
     - security-specialist               # CRITICAL - 보안 감사
     - test-automation-specialist        # HIGH - Vitest + Playwright
+    - performance-specialist            # HIGH - Core Web Vitals, 번들 최적화
+    - ui-ux-specialist                  # HIGH - UI 컴포넌트, UX 엔지니어링 (React 19 대응)
     - documentation-manager             # MEDIUM - 문서 관리
-    - ui-ux-specialist                  # MEDIUM - UI 컴포넌트
-    - performance-specialist            # HIGH - Core Web Vitals, 번들 최적화 🆕
 
-  archived:  # 2025-12-01 최적화로 아카이브
-    - dev-environment-manager           # Claude 기본 기능으로 충분
-    - structure-refactor-specialist     # code-review에 통합
-    - gcp-cloud-functions-specialist    # Vercel이 주 플랫폼
+  # archived 섹션 삭제됨 (2025-12-10)
+  # 삭제된 서브에이전트: dev-environment-manager, structure-refactor-specialist,
+  # gcp-cloud-functions-specialist, vercel-platform-specialist, database-administrator
 
 # 상세 정보: .claude/agents/*.md 참조
 # Workflow Integration (v6.9.1):
@@ -87,8 +85,8 @@ mcp-servers:
     - time            # 시간 유틸리티
     - sequential-thinking  # 순차적 사고
     - github          # GitHub 저장소 관리
-    - tavily          # 웹 검색 API (1000 calls/month free)
-    - brave-search    # Brave 웹 검색 API (2000 queries/month free)
+    - tavily          # 웹 검색 (심층 리서치, 1000/mo)
+    - brave-search    # 웹 검색 (신속 팩트체크/버전확인, 2000/mo)
 
   removed:  # 2025-12-03 제거
     - filesystem      # Claude Code 내장 도구와 100% 중복 (Read/Write/Edit/Glob)
@@ -126,7 +124,7 @@ quick_commands:
 
 maintenance_frequency:
   mcp_health: "주 1회 (월요일)"
-  ai_tools_health: "필요 시 (dev-environment-manager 사용)"
+  ai_tools_health: "필요 시 (Claude Code 직접 확인)"
   docs_sync: "월 1회"
 
 # ============================================================================
