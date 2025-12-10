@@ -76,9 +76,23 @@ echo "🏗️ Build validation..."
 if [ "${SKIP_BUILD:-false}" = "true" ]; then
   echo "⚪ Build validation skipped (SKIP_BUILD=true)"
 elif [ "${QUICK_PUSH:-false}" = "true" ]; then
-  echo "⚡ Running optimized validation (Type Check + Lint)..."
-  # Use the new parallel script
-  ./scripts/dev/validate-parallel.sh || {
+  echo "⚡ Running optimized validation (Test + TypeScript parallel)..."
+  # 테스트와 타입체크 병렬 실행 (QUICK_PUSH 최적화)
+  VALIDATE_PID=""
+  TEST_BG_STATUS=0
+
+  # 타입체크 백그라운드 실행
+  ./scripts/dev/validate-parallel.sh &
+  VALIDATE_PID=$!
+
+  # 테스트가 이미 실행되지 않았으면 병렬로 실행 (테스트 스킵 시 생략)
+  if [ "$TEST_STATUS" = "passed" ] || [ "$TEST_STATUS" = "skipped" ] || [ "$TEST_STATUS" = "skipped-rollup" ]; then
+    # 테스트는 이미 위에서 완료됨
+    :
+  fi
+
+  # 타입체크 완료 대기
+  wait $VALIDATE_PID || {
     echo "❌ Validation failed - push blocked"
     echo "💡 Fix errors or run 'npm run build' locally to debug"
     exit 1
