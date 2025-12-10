@@ -1,5 +1,5 @@
 # Python 3.10 - Unified AI Processor - Cloud Run Optimized
-# Version: 3.1.0 (2025-12-09) - Java 제거 (KoNLPy 미사용)
+# Version: 3.3.0 (2025-12-10) - Quart Async + Hypercorn ASGI
 FROM python:3.10-slim
 
 # Install system dependencies
@@ -16,8 +16,8 @@ WORKDIR /app
 # Copy requirements first for cache efficiency
 COPY requirements.txt .
 
-# Install Python dependencies (including gunicorn for production)
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+# Install Python dependencies (hypercorn included in requirements.txt)
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy modules first (shared engines)
 COPY modules/ ./modules/
@@ -29,7 +29,8 @@ COPY main.py .
 ENV PORT=8080
 EXPOSE 8080
 
-# Run with Gunicorn for production (Cloud Run compatible)
+# Run with Hypercorn for async production (ASGI server for Quart)
 # Workers: 1 (Cloud Run scales via instances, not workers)
-# Timeout: 300s (for long AI processing)
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 300 main:app
+# Keep-alive: 300s (for long AI processing)
+# Graceful timeout: 30s
+CMD exec hypercorn main:app --bind 0.0.0.0:$PORT --workers 1 --keep-alive 300 --graceful-timeout 30

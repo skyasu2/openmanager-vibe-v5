@@ -1,8 +1,9 @@
 # 🤖 Unified AI Processor - Python Dependencies (Cloud Run Compatible)
 # 통합 AI 처리 엔진 - 2025-12-09 업데이트 (미사용 라이브러리 제거)
 
-# Web Framework (Cloud Run)
-flask==3.0.3                        # Cloud Run / Flask App
+# Web Framework (Cloud Run) - Async
+quart==0.19.6                       # Flask-compatible async framework
+hypercorn==0.17.3                   # ASGI server for Quart (async)
 
 # Core Libraries
 numpy==1.26.4                       # 수치 계산, 배열 연산
