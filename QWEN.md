@@ -2,6 +2,8 @@
 
 **Qwen Code CLI Guide** - Universal Full-Stack Developer for WSL Development
 
+<!-- Version: 1.0.0 | Author: Antigravity -->
+
 ## 🔷 Overview
 
 **Qwen Code CLI**는 전반적인 개발 및 리뷰를 독립적으로 수행할 수 있는 **Universal AI 도구**로, **Claude Code 서브에이전트** 또는 **독립 실행** 모두 가능합니다. 성능 최적화에 강점이 있으나, 로직, 보안, 아키텍처 등 모든 영역을 커버합니다.

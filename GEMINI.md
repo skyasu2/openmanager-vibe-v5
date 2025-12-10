@@ -1,6 +1,6 @@
 # GEMINI.md - Gemini CLI 사용 가이드
 
-최종 수정일: 2025년 11월 26일
+<!-- Version: 1.0.0 | Author: Antigravity -->
 질의 답변시 한국어 사용 원칙: **모든 답변은 무조건 한국어로 제공합니다.** (기술 용어는 영어 병기 허용)
 
 **Universal AI Developer Partner (범용 AI 개발 파트너)**

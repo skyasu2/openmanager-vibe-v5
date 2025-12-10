@@ -5,10 +5,9 @@ Maintained for active Codex CLI usage in WSL2
 
 # 🤖 AGENTS.md - Codex CLI 전용 레퍼런스
 
+<!-- Version: 1.0.0 | Author: Antigravity -->
+
 > **이 문서는 Codex CLI 설정 및 사용 지침의 공식 레퍼런스입니다.**
-> **OpenManager VIBE v5 Codex CLI 연동 안내**
-> **Language Policy**: 한국어 우선, 기술용어 영어 허용
-> **Last Updated**: 2025-11-27
 > **Environment**: Windows 11 + WSL2 (Ubuntu)
 > **다른 AI 도구**: `CLAUDE.md` (Claude Code/Multi-AI MCP), `GEMINI.md` (Gemini), `QWEN.md` (Qwen)
 >

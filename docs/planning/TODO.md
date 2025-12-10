@@ -1,7 +1,6 @@
 # TODO - OpenManager VIBE v5
 
-> **갱신**: 2025-12-10
-> **버전**: v5.80.0
+<!-- Version: 5.80.0 | Author: Antigravity -->
 
 ---
 

@@ -4,9 +4,13 @@ import { type CoreMessage, streamText, tool } from 'ai';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getGoogleAIKey } from '@/lib/ai/google-ai-manager';
-import { classifyQuery } from '@/lib/ai/query-classifier'; // [NEW]
 import { withAuth } from '@/lib/auth/api-auth';
 import { createClient } from '@/lib/supabase/server';
+import {
+  type RoutingDecision,
+  recordModelFailure,
+  routeQueryEnhanced,
+} from '@/services/ai/smart-routing-engine';
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
 
@@ -284,28 +288,48 @@ export const POST = withAuth(async (req: NextRequest) => {
         ? lastMessage.content
         : 'System status check';
 
-    // 2. [Router] Groq를 사용한 초기 분류 (Fast!)
-    // 0.2초 이내에 답변이 결정됩니다.
-    const { complexity, intent } = await classifyQuery(userQuery);
+    // 2. [Smart Router] 향상된 라우팅 결정 (Circuit Breaker + Load Balancing)
+    let decision: RoutingDecision;
+    try {
+      decision = routeQueryEnhanced(userQuery);
+      console.log(
+        `📡 [AI Router] Decision: ${decision.primaryModel} (Level: ${decision.level})`
+      );
+    } catch (error) {
+      console.error('❌ Router Error:', error);
+      // Fallback if router fails completely
+      return new Response('AI Service Unavailable: No models available', {
+        status: 503,
+      });
+    }
 
-    console.log(`📡 [AI Router] Intent: ${intent}, Complexity: ${complexity}`);
+    // 3. 모델 인스턴스 매핑
+    // 타입 안전성을 위해 문자열 키로 매핑
+    const getModelInstance = (modelId: string) => {
+      switch (modelId) {
+        case 'gemini-2.5-pro':
+          return google('gemini-2.5-pro');
+        case 'gemini-2.5-flash':
+          return google('gemini-2.5-flash');
+        case 'llama-3.3-70b-versatile':
+          return groq('llama-3.3-70b-versatile');
+        case 'llama-3.1-8b-instant':
+          return groq('llama-3.1-8b-instant');
+        case 'qwen-qwq-32b':
+          return groq('qwen-qwq-32b');
+        default:
+          return google('gemini-2.5-flash'); // Ultimate fallback
+      }
+    };
 
-    // 3. 모델 선택 로직 (Dynamic Model Selection)
-    // Complexity 1-3: Flash (Fast/Cheap) -> Fallback: Llama 8B
-    // Complexity 4-5: Pro (Reasoning) -> Fallback: Llama 70B
-    const isComplex = complexity >= 4;
-
-    const primaryModel = isComplex
-      ? google('gemini-2.5-pro') // Pro (Reasoning) - Updated to 2.5
-      : google('gemini-2.5-flash'); // Flash (Speed) - Updated to 2.5
-
-    const fallbackModel = isComplex
-      ? groq('llama-3.3-70b-versatile') // High Intelligence Fallback
-      : groq('llama-3.1-8b-instant'); // High Speed Fallback
+    const primaryModel = getModelInstance(decision.primaryModel);
+    const fallbackModel = decision.fallbackModel
+      ? getModelInstance(decision.fallbackModel)
+      : null;
 
     const systemPrompt = `당신은 **OpenManager Vibe**의 **AI 어시스턴트**입니다.
-현재 모드: ${isComplex ? '🧠 Deep Reasoning (Gemini 2.5 Pro)' : '⚡ Fast Response (Gemini 2.5 Flash)'}
-사용자 질문 의도: ${intent} (복잡도: ${complexity}/5)
+현재 모드: ${decision.level === 'thinking' ? '🧠 Deep Reasoning' : '⚡ Fast Response'} (${decision.primaryModel})
+라우팅 이유: ${decision.reasoning.join(' -> ')}
 
 목표: 정확하고 빠른 답변을 제공하십시오.
 
@@ -317,9 +341,9 @@ export const POST = withAuth(async (req: NextRequest) => {
 
 항상 팩트 기반으로 답변하고, 불확실할 경우 솔직하게 모른다고 하십시오.`;
 
+    // 4. 스트림 실행 및 에러 핸들링 (Circuit Breaker 연동)
     try {
-      // 4. Primary Model 실행
-      return streamText({
+      const result = await streamText({
         model: primaryModel,
         messages,
         system: systemPrompt,
@@ -330,19 +354,33 @@ export const POST = withAuth(async (req: NextRequest) => {
           analyzePattern,
           recommendCommands,
         },
-      }).toTextStreamResponse();
+        onFinish: (_result) => {
+          // 성공 기록 (Latency는 정확하지 않지만 대략적으로 사용)
+          // streamText는 onFinish 시점에 전체 텍스트가 생성됨
+          // 대략적인 성공 마킹
+          // recordModelSuccess(decision.primaryModel, 1000);
+          // Note: onFinish is client-side in some contexts, but here it's server.
+          // We'll leave telemetry simpler for now to avoid complexity in this lambda.
+        },
+      });
+
+      return result.toTextStreamResponse();
     } catch (error) {
       console.warn(
-        `⚠️ Primary Model Failed. Switching to Fallback (${isComplex ? 'Llama 70B' : 'Llama 8B'}). Error:`,
+        `⚠️ Primary Model (${decision.primaryModel}) Failed. Error:`,
         error
       );
 
-      // 5. Fallback Model 실행
-      if (process.env.GROQ_API_KEY) {
+      // 실패 기록
+      recordModelFailure(decision.primaryModel);
+
+      // 5. Fallback 실행
+      if (fallbackModel) {
+        console.log(`🔄 Switching to Fallback: ${decision.fallbackModel}`);
         return streamText({
           model: fallbackModel,
           messages,
-          system: systemPrompt + '\n(Note: Fallback model active)',
+          system: `${systemPrompt}\n(Note: Fallback model active)`,
           tools: {
             callUnifiedProcessor,
             getServerMetrics,

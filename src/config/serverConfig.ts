@@ -25,7 +25,7 @@ export interface ServerGenerationConfig {
     tolerancePercent: number; // 허용 오차 비율
   };
 
-  // 서버 타입 할당 설정 (8개 서버 전용)
+  // 서버 타입 할당 설정 (동적 서버 수 지원)
   serverTypes?: {
     orderedTypes: string[]; // 서버 타입 순서대로 할당
     statusMapping: {
@@ -65,16 +65,13 @@ export const DEFAULT_SERVER_COUNT = 15;
 export function calculateServerConfig(
   serverCount: number = DEFAULT_SERVER_COUNT
 ): ServerGenerationConfig {
-  // 🎯 사용자 요구사항에 따른 서버 상태 분포 (8개 기준)
-  const criticalPercent = 0.25; // 25% 심각 상태 (8개 중 2개)
-  const warningPercent = 0.375; // 37.5% 경고 상태 (8개 중 3개)
+  // 🎯 서버 상태 분포 비율 (DEFAULT_SERVER_COUNT=15 기준)
+  const criticalPercent = 0.25; // 25% 심각 상태
+  const warningPercent = 0.375; // 37.5% 경고 상태
   const tolerancePercent = 0.05; // 5% 변동값 (±5%)
 
-  // 심각 상태 서버 수 계산 (8개 기준 2개 고정)
-  const criticalCount =
-    serverCount === 8
-      ? 2
-      : Math.max(1, Math.floor(serverCount * criticalPercent));
+  // 심각 상태 서버 수 계산 (비율 기반)
+  const criticalCount = Math.max(1, Math.floor(serverCount * criticalPercent));
 
   // 페이지네이션 설정 (서버 개수에 따라 조정)
   const defaultPageSize =
@@ -200,13 +197,13 @@ export function calculateOptimalCollectionInterval(): number {
 }
 
 /**
- * 🎯 기본 서버 설정 (8개 서버 기준)
+ * 🎯 기본 서버 설정 (DEFAULT_SERVER_COUNT 기준)
  */
 export const DEFAULT_SERVER_CONFIG =
   calculateServerConfig(DEFAULT_SERVER_COUNT);
 
 /**
- * 🌍 환경별 서버 설정 (로컬/Vercel 통일, 8개 서버 전용)
+ * 🌍 환경별 서버 설정 (로컬/Vercel 통일)
  */
 export function getEnvironmentServerConfig(): ServerGenerationConfig {
   // 환경 변수에서 서버 개수 읽기
@@ -217,7 +214,7 @@ export function getEnvironmentServerConfig(): ServerGenerationConfig {
     ? parseInt(process.env.MAX_SERVERS)
     : undefined;
 
-  // 기본값: 8개 고정 (사용자 요구사항)
+  // 기본값: DEFAULT_SERVER_COUNT (15개)
   let serverCount = DEFAULT_SERVER_COUNT;
 
   // 환경변수로 오버라이드 가능
@@ -237,7 +234,7 @@ export function getEnvironmentServerConfig(): ServerGenerationConfig {
 export const ACTIVE_SERVER_CONFIG = getEnvironmentServerConfig();
 
 /**
- * 🏢 서버 인덱스로 타입 가져오기 (0-7 인덱스)
+ * 🏢 서버 인덱스로 타입 가져오기
  */
 export function getServerTypeByIndex(index: number): string {
   const config = ACTIVE_SERVER_CONFIG;
@@ -263,7 +260,7 @@ export function getServerTypeByIndex(index: number): string {
 }
 
 /**
- * 🚦 서버 인덱스로 상태 가져오기 (0-7 인덱스)
+ * 🚦 서버 인덱스로 상태 가져오기
  */
 export function getServerStatusByIndex(
   index: number
@@ -322,7 +319,7 @@ export function logServerConfig(
     `  ⚠️  경고 상태: ${Math.round(config.scenario.warningPercent * 100)}%`
   );
 
-  // 8개 서버 타입 정보 추가 로깅
+  // 서버 타입 정보 로깅
   if (config.serverTypes) {
     console.log('  🏢 서버 타입 할당:');
     const { serverTypes } = config;

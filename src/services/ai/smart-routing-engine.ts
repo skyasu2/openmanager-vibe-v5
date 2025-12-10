@@ -1471,5 +1471,6 @@ export const decrementModelLoad = (model: AIModel) =>
 export type {
   EnhancedRoutingDecision,
   RouteScore,
+  RoutingDecision,
   TaskType,
 } from '../../types/ai/routing-types';

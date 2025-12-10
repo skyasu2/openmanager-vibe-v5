@@ -1,6 +1,6 @@
 # 🗂️ Documentation Reference (문서 관리 인덱스)
 > **최종 갱신**: 2025-12-08
-> **버전**: v1.0.0 (Unified Structure)
+> **버전**: v5.80.0
 
 ## 📌 Directory Structure (디렉토리 구조)
 
@@ -54,6 +54,16 @@ docs/
 ### 3. 개발 표준 변경 시
 *   **위치**: `docs/development/standards/`
 *   **알림**: 변경 사항을 팀원(또는 AI Agent)에게 공유 필수
+
+### 4. 문서 버전 관리 (v1.0.0+)
+*   **원칙**: 문서 상단에 주석(`<!-- -->`)으로 버전과 수정자를 명시합니다.
+*   **형식**: `<!-- Version: 1.0.0 | Author: {AI_NAME} -->`
+*   **갱신**: 내용 변경 시 버전을 올리고, 수정한 AI의 이름을 기입합니다.
+    ```markdown
+    # Document Title
+    
+    <!-- Version: 1.1.0 | Author: Gemini -->
+    ```
 
 ---
 
