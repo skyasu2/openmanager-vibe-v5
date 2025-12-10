@@ -16,7 +16,6 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 import { createClient } from '@/lib/supabase/server';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type {
@@ -467,7 +466,8 @@ export async function GET(request: NextRequest) {
     includeMetrics: true,
   };
 
-  // 📊 DASHBOARD 프리셋: 5분 TTL + 10분 SWR (서버 목록 데이터)
+  // 📊 DASHBOARD: 5분 TTL, SWR 비활성화 (서버 목록 최적화)
+  // 서버 목록은 5분 캐시로 충분, SWR 불필요
   return NextResponse.json(
     await handleServersUnified(request, {
       body: defaultRequest,
@@ -475,7 +475,12 @@ export async function GET(request: NextRequest) {
       params: {},
     }),
     {
-      headers: createCacheHeadersFromPreset('DASHBOARD'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=0',
+        'CDN-Cache-Control': 'public, s-maxage=300',
+        'Vercel-CDN-Cache-Control': 'public, s-maxage=300',
+      },
     }
   );
 }

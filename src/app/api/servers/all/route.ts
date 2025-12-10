@@ -1,10 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getApiConfig, getSystemConfig } from '@/config/SystemConfiguration';
 import { withAuth } from '@/lib/auth/api-auth';
-import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type { Server } from '@/types/server';
 import type { SortableKey } from '@/types/server-metrics';
+
+// 🔄 ISR: 5분마다 자동 재생성 (SWR 대체)
+export const revalidate = 300;
 
 /**
  * 🎯 결정론적 데이터 일관성 보장
@@ -145,8 +147,12 @@ export const GET = withAuth(async (request: NextRequest) => {
       },
       {
         headers: {
-          // 📊 DASHBOARD 프리셋: 5분 TTL + 10분 SWR (서버 목록 데이터)
-          ...createCacheHeadersFromPreset('DASHBOARD'),
+          'Content-Type': 'application/json',
+          // 📊 DASHBOARD: 5분 TTL, SWR 비활성화 (ISR 사용)
+          // ISR로 자동 재생성되므로 SWR 불필요
+          'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=0',
+          'CDN-Cache-Control': 'public, s-maxage=300',
+          'Vercel-CDN-Cache-Control': 'public, s-maxage=300',
           'X-Data-Source': 'unified-system',
           'X-Server-Count': total.toString(),
         },

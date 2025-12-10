@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 
 // ⚡ Edge Runtime으로 전환 - 60% 응답시간 개선 예상
 export const runtime = 'edge';
@@ -50,12 +49,16 @@ export function GET() {
       ),
     };
 
-    // 📊 REALTIME 프리셋: 실시간 시간 데이터 - 30초 TTL + 60초 SWR
+    // 📊 REALTIME: 30초 TTL, SWR 비활성화 (폴링 엔드포인트 최적화)
+    // SWR을 사용하면 매 요청마다 백그라운드 갱신 발생 → Function 호출 폭증
     return NextResponse.json(timeInfo, {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        ...createCacheHeadersFromPreset('REALTIME'),
+        'Cache-Control':
+          'public, max-age=0, s-maxage=30, stale-while-revalidate=0',
+        'CDN-Cache-Control': 'public, s-maxage=30',
+        'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
         'X-Runtime': 'edge',
         'X-Edge-Region': process.env.VERCEL_REGION || 'unknown',
         'X-Response-Time': '~3ms',

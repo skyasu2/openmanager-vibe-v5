@@ -10,7 +10,6 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 import { getMockSystem } from '@/mock';
 import debug from '@/utils/debug';
 
@@ -60,9 +59,15 @@ export function GET() {
       timestamp: new Date().toISOString(),
     };
 
-    // 📊 DASHBOARD 프리셋: 5분 TTL + 10분 SWR (목업 메트릭)
+    // 📊 DASHBOARD: 5분 TTL, SWR 비활성화 (목업 메트릭 최적화)
+    // 메트릭은 5분 캐시로 충분, SWR 불필요
     return NextResponse.json(metrics, {
-      headers: createCacheHeadersFromPreset('DASHBOARD'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=0',
+        'CDN-Cache-Control': 'public, s-maxage=300',
+        'Vercel-CDN-Cache-Control': 'public, s-maxage=300',
+      },
     });
   } catch (error) {
     debug.error('❌ Failed to fetch metrics:', error);

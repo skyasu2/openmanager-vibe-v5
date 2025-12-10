@@ -10,7 +10,6 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSystemConfig } from '@/config/SystemConfiguration';
-import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type {
   AlertSeverity,
@@ -588,11 +587,13 @@ export async function GET(_request: NextRequest) {
       },
     };
 
-    // 📊 REALTIME 프리셋: 실시간 메트릭 - 30초 TTL + 60초 SWR
-    const cacheHeaders = createCacheHeadersFromPreset('REALTIME', true); // private
+    // 📊 REALTIME: 30초 TTL, SWR 비활성화 (실시간 메트릭 최적화)
+    // 메트릭은 자주 폴링되므로 SWR 백그라운드 갱신 불필요
     const headers = new Headers({
       'Content-Type': 'application/json',
-      ...cacheHeaders,
+      'Cache-Control': 'private, max-age=0, s-maxage=30, stale-while-revalidate=0',
+      'CDN-Cache-Control': 'public, s-maxage=30',
+      'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
       'X-Timestamp-Normalized': normalizedTime.toString(),
       'X-Processing-Time': processingTime.toString(),
       'X-Data-Version': 'unified-v1.0',

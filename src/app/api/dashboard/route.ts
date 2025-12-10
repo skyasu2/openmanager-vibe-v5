@@ -2,7 +2,6 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getSystemConfig } from '@/config/SystemConfiguration';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 import {
   DashboardActionRequestSchema,
   type DashboardActionResponse,
@@ -332,11 +331,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         ? await response.json()
         : response;
 
-    // 📊 REALTIME 프리셋: 30s TTL + 60s SWR (실시간 대시보드)
+    // 📊 REALTIME: 30초 TTL, SWR 비활성화 (실시간 대시보드 최적화)
+    // 대시보드는 자주 폴링되므로 SWR 백그라운드 갱신 불필요
     return NextResponse.json(responseData, {
       status: 200,
       headers: {
-        ...createCacheHeadersFromPreset('REALTIME'),
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=0, s-maxage=30, stale-while-revalidate=0',
+        'CDN-Cache-Control': 'public, s-maxage=30',
+        'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
         'X-Data-Source': 'Supabase-Realtime',
         'X-Response-Time': `${responseData.metadata?.processingTime || 0}ms`,
         'X-Server-Count':

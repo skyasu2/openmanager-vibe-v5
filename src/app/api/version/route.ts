@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createCacheHeadersFromPreset } from '@/lib/cache/unified-cache';
 
 // ⚡ Edge Runtime으로 전환 - 60% 응답시간 개선 예상
 export const runtime = 'edge';
@@ -46,11 +45,14 @@ export function GET() {
       },
     };
 
-    // 📦 STATIC 프리셋: 1시간 TTL + 2시간 SWR (정적 버전 정보)
+    // 📦 STATIC: 1시간 TTL, SWR 비활성화 (정적 버전 정보)
+    // 버전은 거의 변경되지 않으므로 SWR 불필요
     return NextResponse.json(versionInfo, {
       headers: {
-        ...createCacheHeadersFromPreset('STATIC'),
         'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=0',
+        'CDN-Cache-Control': 'public, s-maxage=3600',
+        'Vercel-CDN-Cache-Control': 'public, s-maxage=3600',
       },
     });
   } catch (error) {
