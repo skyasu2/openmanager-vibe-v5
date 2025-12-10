@@ -2,19 +2,23 @@
 
 # Parallel Validation Script
 # Runs Type Check and Lint in parallel to save time
+# QUICK_PUSH mode: TypeScript only (lint skipped for speed)
 
-echo "🚀 Starting Parallel Validation (Type Check + Lint)..."
+echo "🚀 Starting Parallel Validation..."
 start_time=$(date +%s)
+
+# Check if QUICK_PUSH is enabled (lint will be skipped)
+SKIP_LINT="${SKIP_LINT:-${QUICK_PUSH:-false}}"
 
 # Function to run type check
 run_type_check() {
-  echo "typescript..."
+  echo "  📘 TypeScript..."
   npm run type-check > /dev/null 2>&1
   if [ $? -eq 0 ]; then
-    echo "✅ TypeScript Passed"
+    echo "  ✅ TypeScript Passed"
     return 0
   else
-    echo "❌ TypeScript Failed"
+    echo "  ❌ TypeScript Failed"
     npm run type-check # Run again to show output
     return 1
   fi
@@ -22,31 +26,40 @@ run_type_check() {
 
 # Function to run lint (Biome)
 run_lint() {
-  echo "biome..."
+  echo "  🔍 Biome..."
   npm run lint:quick > /dev/null 2>&1
   if [ $? -eq 0 ]; then
-    echo "✅ Biome Passed"
+    echo "  ✅ Biome Passed"
     return 0
   else
-    echo "❌ Biome Failed"
+    echo "  ❌ Biome Failed"
     npm run lint:quick # Run again to show output
     return 1
   fi
 }
 
-# Run in parallel
+# Run type check (always required)
 run_type_check &
 PID_TYPE=$!
 
-run_lint &
-PID_LINT=$!
+# Run lint only if not skipped
+if [ "$SKIP_LINT" = "true" ]; then
+  echo "  ⚪ Biome lint skipped (QUICK_PUSH mode)"
+  STATUS_LINT=0
+else
+  run_lint &
+  PID_LINT=$!
+fi
 
-# Wait for both
+# Wait for type check
 wait $PID_TYPE
 STATUS_TYPE=$?
 
-wait $PID_LINT
-STATUS_LINT=$?
+# Wait for lint if it was started
+if [ "$SKIP_LINT" != "true" ]; then
+  wait $PID_LINT
+  STATUS_LINT=$?
+fi
 
 end_time=$(date +%s)
 duration=$((end_time - start_time))
