@@ -1,70 +1,36 @@
 {
   "_metadata": {
-    "version": "4.0.0",
+    "version": "5.0.0",
     "created": "2025-08-18",
-    "updated": "2025-10-06",
-    "purpose": "Claude Code 서브에이전트와 MCP 서버 최적 매핑 (12개 완전 구조)",
-    "target_utilization": "100% (완전 달성)",
+    "updated": "2025-12-10",
+    "purpose": "Claude Code 서브에이전트와 MCP 서버 최적 매핑 (7개 활성 구조)",
+    "target_utilization": "100%",
     "collaboration_systems": {
-      "claude_subagents_total": "12개 (spec-driven-specialist 제거)",
-      "internal_agents": "12개 Claude 내장 서브에이전트",
-      "ai_cli_wrappers": "3개 외부 AI CLI 연동 (codex, gemini, qwen)",
-      "multi_ai_mcp": "1개 Multi-AI MCP 통합 (v1.4.0)",
-      "ai_verification_system": "3-AI 교차검증 (히스토리 자동 저장)",
-      "priority_order": "Claude Code > Multi-AI MCP > 서브에이전트 직접 호출"
+      "claude_subagents_total": "7개 (최적화 완료)",
+      "internal_agents": "7개 Claude 내장 서브에이전트",
+      "ai_cli_wrappers": "3개 외부 AI CLI (codex, gemini, qwen) - 별도 관리",
+      "priority_order": "Claude Code > 서브에이전트 직접 호출"
     },
     "recent_changes": {
-      "2025-10-06_spec_driven_removal": {
-        "agent_count": "13개 → 12개 (spec-driven-specialist 제거)",
-        "reason": "계획 대비 결과 분석 기능은 documentation-manager로 충분",
-        "optimization_focus": "역할 중복 제거, 간결성 향상"
-      },
-      "2025-10-05_multi_ai_integration": {
-        "agent_count": "12개 (Multi-AI MCP 추가로 교차검증 강화)",
-        "mcp_servers": "9개 → 10개 (Multi-AI MCP 추가)",
-        "gcp_mcp_decision": "GCP MCP 비공식 판단, CLI/SDK 사용으로 충분 - 완전 제외",
-        "working_servers": "10개 완전 작동 (100% 성공률)",
-        "utilization_target": "100% 유지"
-      },
-      "2025-09-19_optimization": {
-        "agent_count": "22개 → 15개 (32% 최적화)",
-        "working_servers": "9개 완전 작동 (100% 성공률)",
-        "utilization_target": "100% 달성",
-        "optimization_focus": "AI 교차검증 9.17/10점 달성"
-      },
-      "removed_agents": [
-        "central-supervisor",
-        "verification-specialist",
-        "external-ai-orchestrator",
-        "ai-verification-coordinator",
-        "mcp-server-administrator",
-        "ai-systems-specialist",
-        "gcp-vm-specialist",
-        "spec-driven-specialist"
-      ],
-      "renamed_agents": ["design-architect → ui-ux-specialist"],
-      "unified_agents": [
-        "security-auditor + security-reviewer → security-specialist"
-      ],
-      "new_features": [
-        "12개 최적화 구조",
-        "외부 AI CLI 직접 연동",
-        "호출 방식 개선"
-      ],
-      "mcp_utilization": "100% (12개 에이전트 모두 MCP 도구 완전 활용)"
+      "2025-12-10_optimization": {
+        "agent_count": "12개 → 7개 (42% 최적화)",
+        "reason": "역할 중복 제거, MCP/CLI 도구로 대체 가능한 에이전트 제거",
+        "removed_agents": [
+          "database-administrator (Supabase MCP로 대체)",
+          "vercel-platform-specialist (Vercel MCP로 대체)",
+          "dev-environment-manager (Claude 기본 기능으로 충분)",
+          "structure-refactor-specialist (code-review에 통합)",
+          "gcp-cloud-functions-specialist (Vercel이 주 플랫폼)"
+        ]
+      }
     }
   },
 
   "mcp_server_priorities": {
-    "tier1_essential": ["memory", "multi-ai", "shadcn-ui", "time"],
-    "tier2_specialized": [
-      "sequential-thinking",
-      "context7",
-      "serena",
-      "vercel"
-    ],
-    "tier3_database_dev": ["supabase", "playwright"],
-    "tier4_archived": ["filesystem", "github", "gcp", "tavily"]
+    "tier1_essential": ["serena", "memory", "context7"],
+    "tier2_specialized": ["supabase", "vercel", "playwright", "shadcn-ui"],
+    "tier3_utility": ["sequential-thinking", "time", "github"],
+    "tier4_search": ["tavily", "brave-search"]
   },
 
   "agent_mcp_mapping": {
@@ -77,299 +43,147 @@
         "mcp__serena__find_symbol",
         "mcp__serena__find_referencing_symbols",
         "mcp__serena__search_for_pattern",
-        "mcp__serena__get_symbols_overview"
-      ],
-      "specialization": "통합 코드 품질 검토 + 디버깅 분석 전문가"
-    },
-
-    "codex-specialist": {
-      "mcp_access": "ENHANCED+",
-      "primary_tools": ["sequential-thinking", "serena"],
-      "secondary_tools": ["memory"],
-      "external_tools": ["Bash"],
-      "utilization_target": "90%",
-      "capabilities": [
-        "mcp__sequential-thinking__sequentialthinking",
-        "mcp__serena__find_symbol",
-        "mcp__serena__replace_symbol_body",
         "mcp__serena__get_symbols_overview",
-        "mcp__serena__find_referencing_symbols",
-        "mcp__serena__search_for_pattern",
-        "mcp__memory__create_entities",
-        "bash_command_execution"
+        "mcp__serena__think_about_collected_information"
       ],
-      "specialization": "외부 AI CLI 연동 - 논리적 분석과 실무 코딩, ChatGPT Codex CLI 실행"
-    },
-
-    "database-administrator": {
-      "mcp_access": "FULL",
-      "primary_tools": ["supabase"],
-      "secondary_tools": ["memory"],
-      "utilization_target": "95%",
-      "capabilities": [
-        "mcp__supabase__execute_sql",
-        "mcp__supabase__list_tables",
-        "mcp__supabase__apply_migration",
-        "mcp__supabase__get_advisors",
-        "mcp__supabase__generate_typescript_types"
-      ],
-      "specialization": "Supabase PostgreSQL 전문, RLS 정책, 쿼리 최적화"
+      "specialization": "통합 코드 품질 검토 + 코드리뷰 결과 분석"
     },
 
     "debugger-specialist": {
       "mcp_access": "ENHANCED",
       "primary_tools": ["serena"],
-      "secondary_tools": ["memory"],
+      "secondary_tools": ["memory", "tavily", "brave-search"],
       "utilization_target": "85%",
       "capabilities": [
         "mcp__serena__find_referencing_symbols",
         "mcp__serena__search_for_pattern",
-        "mcp__serena__think_about_collected_information"
+        "mcp__serena__find_symbol",
+        "mcp__serena__get_symbols_overview",
+        "mcp__serena__think_about_collected_information",
+        "mcp__tavily__tavily-search",
+        "mcp__brave-search__brave_web_search"
       ],
       "specialization": "근본 원인 분석 및 버그 해결 전문가"
     },
 
-    "dev-environment-manager": {
-      "mcp_access": "ENHANCED",
-      "primary_tools": ["memory", "time"],
-      "secondary_tools": ["serena"],
-      "utilization_target": "75%",
-      "capabilities": [
-        "mcp__memory__create_entities",
-        "mcp__time__get_current_time",
-        "mcp__serena__get_current_config"
-      ],
-      "specialization": "WSL 최적화, Node.js 버전 관리, 환경 설정"
-    },
-
-    "documentation-manager": {
-      "mcp_access": "ENHANCED",
-      "primary_tools": ["memory", "context7"],
-      "secondary_tools": ["serena"],
-      "utilization_target": "80%",
-      "capabilities": [
-        "mcp__context7__get_library_docs",
-        "mcp__memory__create_entities",
-        "mcp__serena__write_memory"
-      ],
-      "specialization": "AI 친화적 문서 관리, JBGE 원칙 적용"
-    },
-
-    "gcp-cloud-functions-specialist": {
-      "mcp_access": "BASIC",
-      "primary_tools": ["serena"],
-      "secondary_tools": ["memory"],
-      "external_tools": ["Bash (gcloud CLI)"],
-      "utilization_target": "60%",
-      "capabilities": [
-        "Read",
-        "Write",
-        "Edit",
-        "Bash",
-        "Grep",
-        "mcp__serena__list_dir",
-        "mcp__serena__search_for_pattern",
-        "mcp__serena__write_memory",
-        "bash_gcloud_commands"
-      ],
-      "specialization": "GCP Cloud Functions 배포 및 최적화",
-      "deployed_functions": [
-        "enhanced-korean-nlp (256Mi, Python 3.11)",
-        "ml-analytics-engine (256Mi, Python 3.11)",
-        "unified-ai-processor (256Mi, Python 3.11)"
-      ],
-      "project": "openmanager-free-tier",
-      "region": "asia-northeast3"
-    },
-
-    "multi-ai-verification-specialist": {
-      "mcp_access": "FULL",
-      "primary_tools": ["multi-ai"],
-      "secondary_tools": [],
-      "utilization_target": "100%",
-      "capabilities": [
-        "mcp__multi_ai__queryAllAIs",
-        "mcp__multi_ai__queryWithPriority",
-        "mcp__multi_ai__getHistory",
-        "mcp__multi_ai__searchHistory",
-        "mcp__multi_ai__getHistoryStats",
-        "mcp__multi_ai__getPerformanceStats"
-      ],
-      "specialization": "Multi-AI MCP 기반 3-AI 교차검증 전문가 (Codex + Gemini + Qwen)"
-    },
-
-    "gemini-specialist": {
-      "mcp_access": "ENHANCED+",
-      "primary_tools": ["sequential-thinking", "serena"],
-      "secondary_tools": ["memory", "shadcn-ui"],
-      "external_tools": ["Bash"],
-      "utilization_target": "90%",
-      "capabilities": [
-        "mcp__sequential-thinking__sequentialthinking",
-        "mcp__serena__get_symbols_overview",
-        "mcp__serena__search_for_pattern",
-        "mcp__serena__find_symbol",
-        "mcp__serena__replace_symbol_body",
-        "mcp__serena__find_referencing_symbols",
-        "mcp__serena__list_dir",
-        "mcp__shadcn-ui__get_component",
-        "mcp__memory__create_entities",
-        "bash_command_execution"
-      ],
-      "specialization": "외부 AI CLI 연동 - 시스템 아키텍처 분석, Google Gemini CLI 실행"
-    },
-
-    "qwen-specialist": {
-      "mcp_access": "ENHANCED+",
-      "primary_tools": ["sequential-thinking", "serena"],
-      "secondary_tools": ["memory"],
-      "external_tools": ["Bash"],
-      "utilization_target": "90%",
-      "capabilities": [
-        "mcp__sequential-thinking__sequentialthinking",
-        "mcp__serena__find_symbol",
-        "mcp__serena__find_referencing_symbols",
-        "mcp__serena__get_symbols_overview",
-        "mcp__serena__search_for_pattern",
-        "mcp__serena__replace_symbol_body",
-        "mcp__memory__create_entities",
-        "bash_command_execution"
-      ],
-      "specialization": "외부 AI CLI 연동 - 알고리즘 최적화, 성능 분석, Qwen CLI 실행"
-    },
-
     "security-specialist": {
       "mcp_access": "ENHANCED",
-      "primary_tools": ["supabase", "serena"],
-      "secondary_tools": ["memory"],
+      "primary_tools": ["serena", "supabase"],
+      "secondary_tools": ["memory", "tavily", "brave-search"],
       "utilization_target": "90%",
       "capabilities": [
         "mcp__supabase__get_advisors",
         "mcp__serena__search_for_pattern",
-        "mcp__serena__find_symbol"
-      ],
-      "specialization": "종합 보안 전문가 (auditor + reviewer 통합)"
-    },
-
-    "structure-refactor-specialist": {
-      "mcp_access": "ENHANCED",
-      "primary_tools": ["serena"],
-      "secondary_tools": ["memory"],
-      "utilization_target": "90%",
-      "capabilities": [
-        "Read",
-        "Write",
-        "Edit",
-        "MultiEdit",
-        "Glob",
-        "TodoWrite",
-        "mcp__serena__get_symbols_overview",
         "mcp__serena__find_symbol",
-        "mcp__serena__replace_symbol_body",
-        "mcp__serena__insert_after_symbol",
-        "mcp__serena__replace_regex",
-        "mcp__serena__write_memory"
+        "mcp__serena__find_referencing_symbols",
+        "mcp__serena__think_about_collected_information",
+        "mcp__tavily__tavily-search",
+        "mcp__brave-search__brave_web_search"
       ],
-      "specialization": "프로젝트 구조 정리, 아키텍처 리팩토링 (12개 핵심 도구)"
+      "specialization": "종합 보안 전문가, 포트폴리오 적합 실용적 보안 검증"
     },
 
     "test-automation-specialist": {
       "mcp_access": "ENHANCED",
-      "primary_tools": ["playwright"],
-      "secondary_tools": ["memory", "serena"],
+      "primary_tools": ["playwright", "serena"],
+      "secondary_tools": ["memory"],
       "utilization_target": "85%",
       "capabilities": [
         "mcp__playwright__browser_navigate",
-        "mcp__playwright__browser_screenshot",
+        "mcp__playwright__browser_snapshot",
         "mcp__playwright__browser_click",
-        "mcp__serena__execute_shell_command"
+        "mcp__serena__get_symbols_overview",
+        "mcp__serena__find_symbol",
+        "mcp__serena__find_referencing_symbols",
+        "mcp__serena__execute_shell_command",
+        "mcp__serena__think_about_collected_information"
       ],
       "specialization": "테스트 자동화, Vitest + Playwright E2E 전문"
+    },
+
+    "documentation-manager": {
+      "mcp_access": "ENHANCED",
+      "primary_tools": ["memory", "context7", "serena"],
+      "secondary_tools": [],
+      "utilization_target": "80%",
+      "capabilities": [
+        "mcp__context7__get_library_docs",
+        "mcp__memory__create_entities",
+        "mcp__serena__list_dir",
+        "mcp__serena__search_for_pattern",
+        "mcp__serena__write_memory",
+        "mcp__serena__read_memory"
+      ],
+      "specialization": "JBGE 원칙 기반 문서 관리, Mermaid 아키텍처 다이어그램"
     },
 
     "ui-ux-specialist": {
       "mcp_access": "ENHANCED",
       "primary_tools": ["shadcn-ui", "serena"],
-      "secondary_tools": ["memory"],
+      "secondary_tools": ["memory", "sequential-thinking"],
       "utilization_target": "80%",
       "capabilities": [
         "mcp__shadcn-ui__get_component",
         "mcp__serena__get_symbols_overview",
-        "mcp__serena__find_symbol"
+        "mcp__serena__find_symbol",
+        "mcp__serena__find_referencing_symbols",
+        "mcp__serena__write_memory",
+        "mcp__serena__read_memory",
+        "mcp__memory__create_entities",
+        "mcp__sequential-thinking__sequentialthinking"
       ],
-      "specialization": "내장 UI/UX 전문가, 디자인 시스템 구축"
+      "specialization": "UI/UX 전문가, 디자인 시스템 구축, 사용자 경험 최적화"
     },
 
-    "vercel-platform-specialist": {
+    "performance-specialist": {
       "mcp_access": "ENHANCED",
-      "primary_tools": ["vercel", "serena"],
+      "primary_tools": ["serena", "playwright"],
       "secondary_tools": ["memory"],
-      "utilization_target": "90%",
+      "utilization_target": "85%",
       "capabilities": [
-        "mcp__vercel__search_vercel_documentation",
-        "mcp__vercel__createdeployment",
-        "mcp__vercel__getprojects",
-        "mcp__vercel__getproject",
-        "mcp__vercel__getdeployments",
-        "mcp__vercel__getdeployment",
-        "mcp__vercel__get_deployment_build_logs",
-        "mcp__serena__search_for_pattern",
         "mcp__serena__find_symbol",
-        "mcp__serena__write_memory"
+        "mcp__serena__find_referencing_symbols",
+        "mcp__serena__get_symbols_overview",
+        "mcp__serena__search_for_pattern",
+        "mcp__playwright__browser_navigate",
+        "mcp__playwright__browser_snapshot"
       ],
-      "specialization": "Vercel 플랫폼 완전 관리, 배포 자동화, 성능 최적화"
+      "specialization": "Next.js 성능 최적화, Core Web Vitals, 번들 최적화"
     }
   },
 
   "utilization_improvement_strategy": {
     "current_state": {
       "mcp_utilization": "100%",
-      "fully_working_servers": 10,
-      "partially_working_servers": 0,
-      "task_enabled_agents": 12,
-      "mcp_enabled_agents": 12,
-      "enhanced_plus_agents": 5,
-      "status": "완벽한 달성 - 10/10 서버 정상 작동, 매핑 정확성 100%"
+      "fully_working_servers": 12,
+      "task_enabled_agents": 7,
+      "mcp_enabled_agents": 7,
+      "status": "최적화 완료 - 7개 서브에이전트 모두 MCP 도구 활용"
     },
 
     "achievement": {
-      "mcp_utilization": "21.1% → 100% (완전 달성)",
-      "mapping_accuracy": "60% → 100% (매핑 파일 정확성 완전 달성)",
-      "enhanced_plus_access": "0개 → 5개 (AI 3총사 + vercel + gcp)",
-      "fully_working_servers": "4개 → 10개 (250% 증가)",
-      "agent_optimization": "22개 → 12개 (45% 최적화)",
-      "ai_verification_score": "9.17/10점 달성",
-      "historic_milestone": "12개 서브에이전트 최적화 + 매핑 정확성 100% 달성"
+      "mcp_utilization": "100% (완전 달성)",
+      "mapping_accuracy": "100%",
+      "agent_optimization": "12개 → 7개 (42% 최적화)",
+      "historic_milestone": "7개 서브에이전트 최적화 + MCP 12/12 서버 정상 연결"
     }
   },
 
   "auto_trigger_rules": {
-    "sdd_workflow_triggers": {
-      "keywords": {
-        "요구사항": "documentation-manager 서브에이전트 자동 제안",
-        "requirements": "documentation-manager 서브에이전트 자동 제안",
-        "설계": "ui-ux-specialist 서브에이전트 자동 제안",
-        "design": "ui-ux-specialist 서브에이전트 자동 제안",
-        "작업분해": "structure-refactor-specialist 서브에이전트 자동 제안",
-        "SDD": "documentation-manager 서브에이전트 자동 제안"
-      },
-      "context_detection": "문서 경로에 requirements/, design/, tasks/ 감지 시 해당 전문가 자동 제안"
-    },
-
-    "mcp_utilization_boost": {
-      "condition": "MCP 도구 사용 가능한 에이전트 호출 시",
-      "action": "자동으로 관련 MCP 도구 추천 및 활용"
-    },
-
-    "multi_ai_collaboration": {
-      "high_complexity": "복잡도 높은 작업 시 codex-specialist 자동 제안",
-      "large_scale_analysis": "대규모 분석 시 gemini-specialist 자동 제안",
-      "rapid_prototyping": "프로토타이핑 시 qwen-specialist 자동 제안"
+    "agent_triggers": {
+      "코드 리뷰": "code-review-specialist",
+      "버그": "debugger-specialist",
+      "보안": "security-specialist",
+      "테스트": "test-automation-specialist",
+      "문서": "documentation-manager",
+      "UI": "ui-ux-specialist",
+      "UX": "ui-ux-specialist",
+      "성능": "performance-specialist"
     },
 
     "fallback_strategy": {
       "mcp_server_failure": "대안 MCP 서버 자동 선택",
-      "external_ai_unavailable": "내부 에이전트로 자동 폴백"
+      "agent_unavailable": "Claude Code 직접 처리"
     }
   }
 }
