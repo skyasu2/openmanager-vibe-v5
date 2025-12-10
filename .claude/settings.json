@@ -30,16 +30,6 @@
             "timeout": 5
           }
         ]
-      },
-      {
-        "matcher": "Bash\\(git.*push",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '🔍 Subagent checks will run via pre-push hook...' && [ -x './scripts/dev/run-subagent-checks.sh' ] && ./scripts/dev/run-subagent-checks.sh --quick 2>/dev/null || true",
-            "timeout": 60
-          }
-        ]
       }
     ]
   }
