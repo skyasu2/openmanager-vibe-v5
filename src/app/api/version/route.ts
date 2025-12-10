@@ -50,7 +50,8 @@ export function GET() {
     return NextResponse.json(versionInfo, {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=0',
+        'Cache-Control':
+          'public, max-age=300, s-maxage=3600, stale-while-revalidate=0',
         'CDN-Cache-Control': 'public, s-maxage=3600',
         'Vercel-CDN-Cache-Control': 'public, s-maxage=3600',
       },

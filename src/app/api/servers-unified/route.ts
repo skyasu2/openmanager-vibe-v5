@@ -477,7 +477,8 @@ export async function GET(request: NextRequest) {
     {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=0',
+        'Cache-Control':
+          'public, max-age=60, s-maxage=300, stale-while-revalidate=0',
         'CDN-Cache-Control': 'public, s-maxage=300',
         'Vercel-CDN-Cache-Control': 'public, s-maxage=300',
       },

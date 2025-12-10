@@ -150,7 +150,8 @@ export const GET = withAuth(async (request: NextRequest) => {
           'Content-Type': 'application/json',
           // 📊 DASHBOARD: 5분 TTL, SWR 비활성화 (ISR 사용)
           // ISR로 자동 재생성되므로 SWR 불필요
-          'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=0',
+          'Cache-Control':
+            'public, max-age=60, s-maxage=300, stale-while-revalidate=0',
           'CDN-Cache-Control': 'public, s-maxage=300',
           'Vercel-CDN-Cache-Control': 'public, s-maxage=300',
           'X-Data-Source': 'unified-system',

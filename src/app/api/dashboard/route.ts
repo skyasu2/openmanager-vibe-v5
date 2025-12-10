@@ -337,7 +337,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=0, s-maxage=30, stale-while-revalidate=0',
+        'Cache-Control':
+          'public, max-age=0, s-maxage=30, stale-while-revalidate=0',
         'CDN-Cache-Control': 'public, s-maxage=30',
         'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
         'X-Data-Source': 'Supabase-Realtime',
