@@ -392,9 +392,23 @@ export default function LoginClient() {
             로그인 방식을 선택하세요
           </h2>
 
+          {/* 🔊 스크린 리더를 위한 로딩 상태 알림 (시각적으로 숨김) */}
+          <div
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            className="sr-only"
+          >
+            {isLoading && loadingMessage}
+          </div>
+
           {/* 🚨 에러 메시지 표시 */}
           {errorMessage && (
-            <div className="mb-6 rounded-lg border border-red-600/30 bg-red-900/20 p-4">
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="mb-6 rounded-lg border border-red-600/30 bg-red-900/20 p-4"
+            >
               <p className="flex items-center gap-2 text-sm font-medium text-red-300">
                 <span>❌</span>
                 {errorMessage}
@@ -418,7 +432,11 @@ export default function LoginClient() {
 
           {/* ✅ 성공 메시지 표시 */}
           {successMessage && (
-            <div className="mb-6 rounded-lg border border-green-600/30 bg-green-900/20 p-4">
+            <div
+              role="status"
+              aria-live="polite"
+              className="mb-6 rounded-lg border border-green-600/30 bg-green-900/20 p-4"
+            >
               <p className="flex items-center gap-2 text-sm font-medium text-green-300">
                 <span>✅</span>
                 {successMessage}
@@ -434,7 +452,9 @@ export default function LoginClient() {
                 void handleGitHubLogin();
               }}
               disabled={isLoading}
-              className={`${BUTTON_STYLES.primary} w-full py-4 text-base shadow-lg shadow-blue-900/20 transition-transform active:scale-[0.98]`}
+              aria-label="GitHub 계정으로 로그인"
+              aria-busy={loadingType === 'github'}
+              className={`${BUTTON_STYLES.primary} w-full py-4 text-base shadow-lg shadow-blue-900/20 transition-transform active:scale-[0.98] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && <LoadingOverlay type="github" />}
@@ -472,7 +492,7 @@ export default function LoginClient() {
                 <div className="w-full border-t border-gray-700" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-[#161f32] px-4 text-gray-500 font-medium">
+                <span className="bg-[#161f32] px-4 text-gray-400 font-medium">
                   또는
                 </span>
               </div>
@@ -485,7 +505,9 @@ export default function LoginClient() {
                 void handleGuestLogin();
               }}
               disabled={isLoading}
-              className="group relative flex w-full items-center justify-center gap-2 rounded-xl border border-gray-600 bg-transparent px-4 py-3.5 text-base font-medium text-gray-300 transition-all hover:bg-gray-800 hover:text-white hover:border-gray-500 active:scale-[0.99] disabled:opacity-50"
+              aria-label="게스트 모드로 체험하기"
+              aria-busy={loadingType === 'guest'}
+              className="group relative flex w-full items-center justify-center gap-2 rounded-xl border border-gray-600 bg-transparent px-4 py-3.5 text-base font-medium text-gray-300 transition-all hover:bg-gray-800 hover:text-white hover:border-gray-500 active:scale-[0.99] disabled:opacity-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none"
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && <LoadingOverlay type="guest" />}
@@ -511,7 +533,7 @@ export default function LoginClient() {
               <p className="text-xs text-blue-400 font-medium">
                 예상 소요 시간: 3-5초
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-400">
                 ESC 키를 눌러 취소할 수 있습니다
               </p>
             </div>
@@ -525,20 +547,20 @@ export default function LoginClient() {
               <strong className="block mb-1 text-gray-200">
                 GitHub 로그인
               </strong>
-              <span className="text-gray-500 font-medium">
+              <span className="text-gray-400 font-medium">
                 개인화 설정 저장
               </span>
             </div>
             <div className="rounded-xl bg-gray-800/50 p-3 transition-colors hover:bg-gray-800">
               <p className="mb-1 text-lg">👤</p>
               <strong className="block mb-1 text-gray-200">게스트 모드</strong>
-              <span className="text-gray-500 font-medium">빠른 기능 체험</span>
+              <span className="text-gray-400 font-medium">빠른 기능 체험</span>
             </div>
           </div>
 
           {/* 푸터 (Card 내부) */}
           <div className="mt-8 border-t border-gray-700/50 pt-6 text-center">
-            <p className="flex items-center justify-center gap-2 text-xs font-medium text-gray-500">
+            <p className="flex items-center justify-center gap-2 text-xs font-medium text-gray-400">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
               OpenManager Vibe v5.80.0
             </p>
