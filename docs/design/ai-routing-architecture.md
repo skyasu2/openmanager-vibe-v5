@@ -1,46 +1,96 @@
 # Dynamic AI Model Routing Architecture
 
 ## Overview
-OpenManager Vibe v5 uses a **Dynamic Model Router** to optimize for both speed and intelligence while minimizing costs. Instead of sending all queries to a single model, the system analyzes the complexity of each request and routes it to the most appropriate AI engine.
+OpenManager Vibe v5 uses **SmartRoutingEngine** - a multi-dimensional AI routing engine that optimizes for quality, cost, latency, and availability. The system implements industry best practices including RouteLLM-style scoring, Circuit Breaker pattern, and adaptive load balancing.
 
 ## Architecture Diagram
 
 ```mermaid
 graph TD
-    User[User Query] --> Router{Groq Classifier<br/>(Llama-3.1-8b-instant)}
-    
-    Router -->|Complexity 1-3| Flash[Gemini 1.5/2.0 Flash]
-    Router -->|Complexity 4-5| Pro[Gemini 1.5/2.0 Pro]
-    
-    Flash -->|Success| Response
-    Flash -->|Error/Rate Limit| FallbackFlash[Groq<br/>Llama-3.1-8b]
-    
-    Pro -->|Success| Response
-    Pro -->|Error/Rate Limit| FallbackPro[Groq<br/>Llama-3.3-70b]
-    
-    FallbackFlash --> Response
-    FallbackPro --> Response
+    User[User Query] --> Engine[SmartRoutingEngine]
+
+    subgraph "Multi-Dimensional Scoring"
+        Engine --> Score[RouteLLM-style Scoring]
+        Score --> Q[Quality Score]
+        Score --> C[Cost Score]
+        Score --> L[Latency Score]
+        Score --> A[Availability Score]
+        Score --> Cap[Capability Score]
+    end
+
+    subgraph "Health Management"
+        Engine --> CB[Circuit Breaker]
+        CB -->|Closed| Healthy[Model Available]
+        CB -->|Open| Blocked[Model Blocked]
+        CB -->|Half-Open| Test[Testing Recovery]
+    end
+
+    subgraph "Load Balancing"
+        Engine --> LB{Load Balancer}
+        LB -->|Round Robin| RR[Sequential Selection]
+        LB -->|Least Loaded| LL[Lowest Active Requests]
+        LB -->|Weighted Random| WR[Score-based Random]
+        LB -->|Adaptive| AD[Dynamic Best Selection]
+    end
+
+    Healthy --> Response[AI Response]
+    Test --> Response
 ```
 
-## Routing Logic
+## Key Features (v5.80.0)
 
-### 1. Dynamic Model Router (DMR)
+### 1. RouteLLM-style Multi-Dimensional Scoring
 
-The **Dynamic Model Router** is the core intelligence that intercepts every user query and decides the optimal processing path. It uses a preliminary analysis step to categorize intent and complexity.
+Each model is scored across 5 dimensions with configurable weights:
 
-### Routing Logic (v3.2)
+| Dimension | Weight | Description |
+|-----------|--------|-------------|
+| Quality | 0.25 | Model capability and output quality |
+| Cost | 0.20 | Token cost efficiency |
+| Latency | 0.20 | Response speed |
+| Capability | 0.20 | Feature support (tools, vision, reasoning) |
+| Availability | 0.15 | Rate limit and health status |
 
-The router evaluates the query's **complexity (1-5)** and **intent** to select the appropriate model and toolset.
+### 2. Task-Based Model Specialization
 
-| Complexity | Intent Examples | Primary Model | Fallback Model | Latency Target |
-| :--- | :--- | :--- | :--- | :--- |
-| **Level 1** | Greetings, FAQ | **Groq Llama 3.1 8B** | Gemini 2.5 Flash | < 300ms |
-| **Level 2** | Server Status (Simple) | **Gemini 2.5 Flash** | - | < 800ms |
-| **Level 3** | Simple Metrics | **Gemini 2.5 Flash** | Groq Llama 3.1 8B | < 1.5s |
-| **Level 4** | Document Analysis, Pattern Analysis | **Gemini 2.5 Flash** | Groq Llama 3.1 8B | < 3s |
-| **Level 5** | Complex Reasoning, Prediction | **Gemini 2.5 Pro** | Groq Llama 3.3 70B | Variable (Streaming) |
+| Task Type | Specialized Models | Use Case |
+|-----------|-------------------|----------|
+| `fast-response` | llama-3.1-8b-instant | Simple queries, greetings |
+| `reasoning` | qwen-qwq-32b, gemini-2.5-pro | Complex analysis |
+| `code-generation` | llama-3.3-70b-versatile | Code tasks |
+| `vision` | gemini-2.5-flash, gemini-2.5-pro | Image analysis |
+| `general` | All models | Default routing |
 
-> **Note**: **Gemini 2.5 Flash** is now the default workhorse for most tasks due to its speed/cost efficiency. **Gemini 2.5 Pro** is reserved for "Thinking Mode" and complex reasoning tasks.
+### 3. Circuit Breaker Pattern
+
+Protects against cascading failures:
+
+| State | Behavior | Transition |
+|-------|----------|------------|
+| **Closed** | Normal operation | → Open (3 consecutive failures) |
+| **Open** | Block requests | → Half-Open (after 30s cooldown) |
+| **Half-Open** | Test with single request | → Closed (success) or Open (failure) |
+
+### 4. Load Balancing Strategies
+
+| Strategy | Algorithm | Best For |
+|----------|-----------|----------|
+| `round-robin` | Sequential rotation | Even distribution |
+| `least-loaded` | Minimum active requests | High throughput |
+| `weighted-random` | Score-weighted random | Quality optimization |
+| `adaptive` | Score × Success Rate | Production (default) |
+
+## Routing Logic (v5.80.0)
+
+| Complexity | Intent Examples | Primary Model | Fallback Chain | Latency Target |
+|------------|-----------------|---------------|----------------|----------------|
+| **Level 1** | Greetings, FAQ | llama-3.1-8b-instant | gemini-2.5-flash | < 300ms |
+| **Level 2** | Server Status | gemini-2.5-flash | llama-3.1-8b | < 800ms |
+| **Level 3** | Simple Metrics | gemini-2.5-flash | llama-3.3-70b | < 1.5s |
+| **Level 4** | Pattern Analysis | llama-3.3-70b-versatile | gemini-2.5-flash | < 3s |
+| **Level 5** | Complex Reasoning | gemini-2.5-pro | qwen-qwq-32b | Variable |
+
+> **Note**: Model selection is now dynamic based on real-time health, load, and availability.
 
 ---
 

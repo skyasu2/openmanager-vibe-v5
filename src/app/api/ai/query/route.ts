@@ -25,10 +25,18 @@ import {
   isGroqAIAvailable,
 } from '@/lib/ai/groq-ai-manager';
 import { classifyQuery } from '@/lib/ai/query-classifier';
+import {
+  convertToExtendedSelection,
+  type ExtendedModelSelection,
+  isSmartRoutingEnabled,
+} from '@/lib/ai/routing-adapter';
 import { withAuth } from '@/lib/auth/api-auth';
 import { createClient } from '@/lib/supabase/server';
+import { smartRoutingEngine } from '@/services/ai/smart-routing-engine';
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
+import type { AIModel } from '@/types/ai/routing-types';
+import type { QueryIntent } from '@/types/rag/rag-types';
 
 // 최대 실행 시간: 60초 (PDF 파싱 고려)
 export const maxDuration = 60;
@@ -347,7 +355,11 @@ interface QueryRequest {
   };
 }
 
-// ... [Existing ModelSelection and selectModels] ...
+// ============================================================================
+// Legacy Model Selection (v3.2 - Deprecated)
+// ⚠️ 이 구현은 SmartRoutingEngine으로 점진적 마이그레이션 예정
+// @see src/services/ai/smart-routing-engine.ts (v5.80.0+)
+// ============================================================================
 interface ModelSelection {
   primary: ReturnType<typeof google> | ReturnType<typeof groq>;
   fallback: ReturnType<typeof groq> | ReturnType<typeof google> | null;
@@ -359,6 +371,11 @@ interface ModelSelection {
   temperature: number;
 }
 
+/**
+ * @deprecated v5.80.0 이후 SmartRoutingEngine 사용 권장
+ * 레거시 5-Level 모델 선택 함수 (점진적 마이그레이션 중)
+ * @see SmartRoutingEngine.routeEnhanced() for modern routing
+ */
 function selectModels(
   complexity: number,
   thinking: boolean = false,
@@ -530,6 +547,54 @@ function selectModels(
 }
 
 // ============================================================================
+// Smart Routing Wrapper (v5.80.0)
+// SmartRoutingEngine 통합 - 레거시 selectModels 폴백 지원
+// ============================================================================
+
+/**
+ * 스마트 라우팅 모델 선택
+ * SmartRoutingEngine 사용 시 ExtendedModelSelection 반환
+ * 비활성화/실패 시 레거시 selectModels로 폴백
+ */
+function selectModelsWithSmartRouting(
+  query: string,
+  complexity: number,
+  intent: string,
+  thinking: boolean = false,
+  hasImages: boolean = false
+): ExtendedModelSelection | ModelSelection {
+  // Feature flag 확인
+  if (!isSmartRoutingEnabled()) {
+    console.log('📍 Smart Routing disabled, using legacy selectModels');
+    return selectModels(complexity, thinking, hasImages);
+  }
+
+  try {
+    // SmartRoutingEngine 사용
+    const decision = smartRoutingEngine.routeEnhanced(query, {
+      intent: intent as QueryIntent | 'coding' | undefined,
+      complexity,
+      hasImages,
+      thinkingRequested: thinking,
+    });
+
+    // ExtendedModelSelection으로 변환
+    const extended = convertToExtendedSelection(decision);
+
+    console.log(
+      `🚀 Smart Routing: ${decision.primaryModel} (${decision.selectionMethod}) ` +
+        `| Fallback: ${decision.fallbackModel ?? 'none'} | Task: ${decision.taskType}`
+    );
+
+    return extended;
+  } catch (error) {
+    // SmartRoutingEngine 실패 시 레거시 폴백
+    console.warn('⚠️ Smart Routing failed, falling back to legacy:', error);
+    return selectModels(complexity, thinking, hasImages);
+  }
+}
+
+// ============================================================================
 // POST Handler (5-Level Routing Architecture v3.2)
 // ============================================================================
 
@@ -606,31 +671,33 @@ export const POST = withAuth(async (req: NextRequest) => {
     // ============================================================
     let complexity = 1;
     let intent = 'general';
-    let routingReason = 'default';
+    let _routingReason = 'default';
 
     if (images && images.length > 0) {
       complexity = 5;
       intent = 'multimodal_analysis';
-      routingReason = 'Image input detected -> Force Multimodal';
+      _routingReason = 'Image input detected -> Force Multimodal';
     } else if (documents && documents.length > 0) {
       // 문서가 있으면 분석 필요하므로 복잡도 상향
       complexity = 4; // Use Groq 70B or Gemini Flash
       intent = 'document_analysis';
-      routingReason = 'Document attached';
+      _routingReason = 'Document attached';
     } else {
       const classification = await classifyQuery(query);
       complexity = classification.complexity;
       intent = classification.intent;
-      routingReason = classification.reasoning;
+      _routingReason = classification.reasoning;
     }
 
     // ============================================================
-    // Step 2: Model Selection (5-Level Architecture)
+    // Step 2: Model Selection (SmartRoutingEngine v5.80.0)
     // ============================================================
-    let modelSelection: ModelSelection;
+    let modelSelection: ModelSelection | ExtendedModelSelection;
     try {
-      modelSelection = selectModels(
+      modelSelection = selectModelsWithSmartRouting(
+        query,
         complexity,
+        intent,
         thinking,
         !!(images && images.length > 0)
       );
@@ -755,6 +822,10 @@ ${useTools ? '**사용 가능한 도구:** getServerMetrics, searchKnowledgeBase
 
       responseText = result.text || '응답을 생성하지 못했습니다.';
 
+      // Circuit Breaker: Primary 성공 기록
+      const primaryLatency = Date.now() - startTime;
+      smartRoutingEngine.recordSuccess(primaryName as AIModel, primaryLatency);
+
       if (includeThinking && result.toolCalls && result.toolCalls.length > 0) {
         for (const toolCall of result.toolCalls) {
           thinkingSteps.push(
@@ -767,6 +838,9 @@ ${useTools ? '**사용 가능한 도구:** getServerMetrics, searchKnowledgeBase
       }
     } catch (primaryError) {
       console.warn(`⚠️ Primary Model (${primaryName}) 실패:`, primaryError);
+
+      // Circuit Breaker: Primary 실패 기록
+      smartRoutingEngine.recordFailure(primaryName as AIModel);
 
       if (fallback && fallbackName) {
         if (includeThinking)
@@ -788,7 +862,7 @@ ${useTools ? '**사용 가능한 도구:** getServerMetrics, searchKnowledgeBase
             model: fallback,
             messages: fallbackMessages,
             tools,
-            system: systemPrompt + '\n(Fallback mode)',
+            system: `${systemPrompt}\n(Fallback mode)`,
             maxOutputTokens: maxTokens,
             temperature: temperature,
           });
@@ -797,12 +871,21 @@ ${useTools ? '**사용 가능한 도구:** getServerMetrics, searchKnowledgeBase
           usedEngine = fallbackName;
           fallbackUsed = true;
 
+          // Circuit Breaker: Fallback 성공 기록
+          const fallbackLatency = Date.now() - startTime;
+          smartRoutingEngine.recordSuccess(
+            fallbackName as AIModel,
+            fallbackLatency
+          );
+
           if (includeThinking && fallbackResult.toolCalls) {
             for (const toolCall of fallbackResult.toolCalls) {
               thinkingSteps.push(`🔧 ${toolCall.toolName}`);
             }
           }
-        } catch (fallbackError) {
+        } catch (_fallbackError) {
+          // Circuit Breaker: Fallback 실패 기록
+          smartRoutingEngine.recordFailure(fallbackName as AIModel);
           throw primaryError;
         }
       } else {
@@ -812,11 +895,26 @@ ${useTools ? '**사용 가능한 도구:** getServerMetrics, searchKnowledgeBase
 
     const responseTime = Date.now() - startTime;
 
+    // SmartRouting 메타데이터 추출 (있는 경우)
+    const routingMeta =
+      'routingMeta' in modelSelection ? modelSelection.routingMeta : undefined;
+
     return Response.json({
       response: responseText,
       thinkingSteps,
       engine: usedEngine,
-      routing: { level, complexity, intent },
+      routing: {
+        level,
+        complexity,
+        intent,
+        // SmartRouting 메타데이터 (선택적)
+        ...(routingMeta && {
+          reasoning: routingMeta.reasoning,
+          expectedLatencyMs: routingMeta.expectedLatencyMs,
+          qualityScore: routingMeta.qualityScore,
+          selectionMethod: routingMeta.selectionMethod,
+        }),
+      },
       fallbackUsed,
       responseTime,
       timestamp: new Date().toISOString(),
