@@ -32,6 +32,8 @@ export class MemoryRAGCache {
   private maxSearchSize = 100; // 최대 100개 검색 결과 (캐시 히트율 향상)
   private ttlSeconds = 10800; // 3시간 기본 TTL (Intent 없을 때)
   private lastScenarioDay = getCurrentScenarioDay(); // 24시간 로테이션 추적
+  private lastRotationCheck = 0; // Phase 3.2: 마지막 로테이션 체크 시간
+  private readonly rotationCheckIntervalMs = 3600000; // 1시간 간격으로 체크 (성능 최적화)
 
   // 임베딩 캐시 관리
   getEmbedding(key: string): number[] | null {
@@ -61,16 +63,14 @@ export class MemoryRAGCache {
 
   // 검색 결과 캐시 관리 (Phase 3: Intent 기반 TTL)
   getSearchResult(key: string): RAGEngineSearchResult | null {
-    // 24시간 로테이션 체크 (시나리오 데이터 갱신)
-    this.checkAndRotateScenarios();
+    // 24시간 로테이션 체크 (시나리오 데이터 갱신) - 최적화된 빈도
+    this.checkAndRotateScenariosOptimized();
 
     const item = this.searchCache.get(key);
     if (!item) return null;
 
-    // Intent 기반 TTL 계산
-    const ttl = item.meta?.intent
-      ? INTENT_TTL_SECONDS[item.meta.intent]
-      : this.ttlSeconds;
+    // Intent 기반 TTL 계산 (안전한 접근)
+    const ttl = this.getEffectiveTTL(item.meta?.intent);
 
     if (Date.now() - item.timestamp > ttl * 1000) {
       this.searchCache.delete(key);
@@ -79,6 +79,18 @@ export class MemoryRAGCache {
 
     item.hits++;
     return item.result;
+  }
+
+  // Phase 3.1: 안전한 TTL 계산 (undefined 방지)
+  private getEffectiveTTL(intent?: QueryIntent): number {
+    if (!intent) return this.ttlSeconds;
+
+    const intentTtl = INTENT_TTL_SECONDS[intent];
+    // 타입 안전: undefined 또는 유효하지 않은 값 방지
+    if (typeof intentTtl === 'number' && intentTtl > 0) {
+      return intentTtl;
+    }
+    return this.ttlSeconds;
   }
 
   setSearchResult(key: string, result: RAGEngineSearchResult): void {
@@ -191,6 +203,17 @@ export class MemoryRAGCache {
       this.invalidateSearchCache();
       this.lastScenarioDay = currentDay;
     }
+  }
+
+  // Phase 3.2: 최적화된 로테이션 체크 (매 호출 대신 1시간 간격)
+  private checkAndRotateScenariosOptimized(): void {
+    const now = Date.now();
+    // 마지막 체크로부터 1시간 이내면 스킵 (성능 최적화)
+    if (now - this.lastRotationCheck < this.rotationCheckIntervalMs) {
+      return;
+    }
+    this.lastRotationCheck = now;
+    this.checkAndRotateScenarios();
   }
 
   // Phase 3: Intent별 선택적 캐시 무효화
