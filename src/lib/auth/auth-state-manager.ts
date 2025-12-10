@@ -8,7 +8,10 @@
  */
 
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '../supabase/client';
+import { getSupabase } from '../supabase/client';
+
+// 런타임에 클라이언트를 가져오는 헬퍼 (PKCE flow를 위해 필수)
+const getClient = () => getSupabase();
 
 /**
  * 브라우저 호환 세션 ID 생성
@@ -183,7 +186,7 @@ export class AuthStateManager {
       if (!authType || authType === 'github') {
         console.log('🔄 Supabase 세션 정리 중...');
         try {
-          const { error } = await supabase.auth.signOut();
+          const { error } = await getClient().auth.signOut();
           if (error) {
             console.warn('⚠️ Supabase 로그아웃 실패:', error.message);
           } else {
@@ -223,7 +226,7 @@ export class AuthStateManager {
       const existingSession = await this.getSupabaseSession();
       if (existingSession?.user) {
         console.log('🔄 기존 GitHub 세션 발견 - 정리 중...');
-        await supabase.auth.signOut();
+        await getClient().auth.signOut();
         console.log('✅ 기존 GitHub 세션 정리 완료');
       }
     } catch (error) {
@@ -276,7 +279,7 @@ export class AuthStateManager {
       const {
         data: { user: validatedUser },
         error: userError,
-      } = await supabase.auth.getUser();
+      } = await getClient().auth.getUser();
       if (userError) {
         console.warn('⚠️ JWT 검증 실패:', userError.message);
         return null;
@@ -289,7 +292,7 @@ export class AuthStateManager {
       const {
         data: { session },
         error: sessionError,
-      } = await supabase.auth.getSession();
+      } = await getClient().auth.getSession();
       if (sessionError) {
         console.warn('⚠️ 세션 가져오기 실패:', sessionError.message);
         // JWT는 유효하므로 기본 세션 객체 생성
