@@ -131,11 +131,26 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 | HIGH | ui-ux-specialist | UI/UX, React 19 호환성 |
 | MEDIUM | documentation-manager | JBGE 문서 관리 |
 
+### 🔄 자율 활용 원칙
+
+**Claude Code가 자동으로 서브에이전트 호출**:
+
+| 상황 | 서브에이전트 |
+|------|-------------|
+| **커밋/푸시 시** 보안 파일 변경 (auth, env, api) | `security-specialist` |
+| **커밋/푸시 시** 소스 코드 변경 | `test-automation-specialist` |
+| 아키텍처/구조 변경 | `architecture-specialist` |
+| 복잡한 로직, 중요 PR | `code-review-specialist` |
+| 버그 분석/디버깅 | `debugger-specialist` |
+| 성능 이슈 의심 | `performance-specialist` |
+| UI 컴포넌트 작업 | `ui-ux-specialist` |
+| 문서 정리 필요 시 | `documentation-manager` |
+
 **빠른 예시**:
 ```bash
+Task security-specialist "staged 파일 보안 점검"
+Task test-automation-specialist "변경 파일 테스트 커버리지 확인"
 Task debugger-specialist "근본 원인 분석"
-Task security-specialist "긴급 보안 스캔"
-codex exec "변경사항 리뷰"
 ```
 
 ### Skills (7개, 평균 72% 토큰 절약)
@@ -241,8 +256,7 @@ mmdc -i diagram.mmd -o output.png -b white -t neutral  # 옵션
 
 **TypeScript**: `npm run type-check`
 **Vercel 배포**: `npm run build` → Vercel 로그 확인
-**AI 도구**: `"dev-environment-manager야, AI 도구 헬스 체크해줘"`
-**MCP**: `claude mcp list` 또는 `./scripts/mcp/mcp-health-check.sh`
+**MCP/AI 도구**: `claude mcp list` 또는 `./scripts/mcp/mcp-health-check.sh`
 
 **상세**: @docs/development/workflows/1_workflows.md (트러블슈팅 가이드)
 
