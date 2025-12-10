@@ -19,7 +19,6 @@ last_updated: '2025-12-01'
 
 ## 📚 주요 문서
 
-- **[FEATURE-CARDS-REVIEW.md](./FEATURE-CARDS-REVIEW.md)**: 기능 카드 컴포넌트 리뷰
 - **[ai-architecture-report.md](./ai-architecture-report.md)**: AI 아키텍처 보고서 (Quad Engine)
 - **[ai-review-performance-report.md](./ai-review-performance-report.md)**: AI 리뷰 성능 분석
 - **[ai-tool-comparison.md](./ai-tool-comparison.md)**: AI 도구 비교 (Claude/Codex/Gemini/Qwen)
