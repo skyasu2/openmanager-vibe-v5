@@ -6,13 +6,7 @@
 
 ## 🟡 MEDIUM - 주간 작업
 
-### 1. 이미지 최적화 (3시간)
-
-- [ ] Next.js Image 컴포넌트 적용
-- [ ] WebP 자동 변환
-- [ ] priority/placeholder 설정
-
-### 2. 캐싱 전략 개선 (6시간)
+### 1. 캐싱 전략 개선 (6시간)
 
 - [ ] SWR 전략 적용
 - [ ] TTL 계층화 (5분/30분/1시간)
@@ -21,17 +15,7 @@
 
 ## 🟢 LOW - 장기 계획
 
-### 3. RAG 엔진 리팩토링 (8시간)
-
-**파일**: `src/services/ai/supabase-rag-engine.ts` (1100줄)
-
-분리 대상:
-- `src/types/rag/rag-types.ts` ✅ 완료
-- `src/utils/rag/rag-utils.ts`
-- `src/services/rag/memory-rag-cache.ts` ✅ 완료
-- `src/services/rag/keyword-extractor.ts`
-
-### 4. 기능 확장
+### 2. 기능 확장
 
 | 기능 | 설명 | 난이도 |
 |------|------|--------|
@@ -41,20 +25,26 @@
 
 ---
 
-## 📊 우선순위 매트릭스
+## ⚡ Quick Wins
 
-| 작업 | 긴급도 | 영향도 | 시간 | 상태 |
-|------|--------|--------|------|------|
-| Dead Code 정리 | ⭐⭐ | 낮음 | 30분 | 대기 |
-| resize debounce | ⭐⭐ | 낮음 | 20분 | 대기 |
-| 이미지 최적화 | ⭐ | 낮음 | 3시간 | 대기 |
+| 작업 | 시간 | 상태 |
+|------|------|------|
+| resize debounce 적용 | 20분 | 대기 |
+| Dead Code 정리 (4개 파일) | 30분 | 대기 |
 
 ---
 
 ## 📦 완료 아카이브
 
 완료된 작업은 아래 문서로 이동:
-- [unified-ai-processor v3.3.0](../archive/completed/2025-12-unified-ai-processor-v3.3.0-completed.md)
+
+| 작업 | 완료일 | 문서 |
+|------|--------|------|
+| unified-ai-processor v3.3.0 | 2025-12-10 | [링크](../archive/completed/2025-12-unified-ai-processor-v3.3.0-completed.md) |
+| RAG 엔진 리팩토링 | 2025-12-10 | [링크](../archive/completed/2025-12-rag-refactoring-completed.md) |
+| 이미지 최적화 | 2025-12-10 | [링크](../archive/completed/2025-12-image-optimization-completed.md) |
+| Biome 경고 해결 | 2025-12-08 | [링크](../archive/completed/2025-biome-warnings-completed.md) |
+| 메이저 버전 업그레이드 | 2025-12-08 | [링크](../archive/completed/2025-major-version-upgrade-completed.md) |
 
 ---
 
