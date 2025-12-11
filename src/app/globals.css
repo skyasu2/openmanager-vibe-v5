@@ -245,34 +245,88 @@
 /* Google Fonts를 로컬로 이동 (CDN 제거) */
 /* 시스템 폰트 우선순위로 변경 */
 
-:root {
-  /* 컬러 시스템 */
-  --primary: #1a73e8;
-  --primary-light: #e8f0fe;
-  --primary-dark: #0d47a1;
-  --secondary: #34a853;
-  --accent: #ea4335;
-  --warning: #fbbc04;
+/* Tailwind v4 테마 토큰(HSL 필요) + 기존 커스텀 토큰 */
+@layer base {
+  :root {
+    /* Tailwind 색상 토큰: hsl(var(--token)) 형태로 소비됨 */
+    --background: 217 33% 17%;
+    --foreground: 210 40% 98%;
+    --card: 217 33% 20%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217 33% 20%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 214 82% 51%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 136 53% 43%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 215 19% 35%;
+    --muted-foreground: 215 20% 75%;
+    --accent: 5 81% 56%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 24%;
+    --input: 217 33% 24%;
+    --ring: 214 82% 51%;
+    --radius: 0.5rem;
 
-  /* 배경 그라데이션 */
-  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --bg-gradient-alt: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    /* 커스텀 컬러 토큰 (직접 색상 값 사용) */
+    --primary-light: #e8f0fe;
+    --primary-dark: #0d47a1;
+    --warning: #fbbc04;
 
-  /* 텍스트 (WCAG 4.5:1 대비 기준 적용) */
-  --text-primary: #1f2937;
-  --text-secondary: #4b5563; /* #6b7280 → #4b5563 (대비 향상: 7.0:1) */
-  --text-muted: #6b7280; /* 기존 색상을 muted로 이동 */
-  --text-white: #ffffff;
+    /* 배경 그라데이션 */
+    --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --bg-gradient-alt: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 
-  /* 카드 스타일 */
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
+    /* 텍스트 (WCAG 4.5:1 대비 기준 적용) */
+    --text-primary: #e2e8f0;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-white: #ffffff;
 
-  /* 그림자 */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    /* 카드 스타일 */
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+
+    /* 그림자 */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark {
+    --background: 217 33% 14%;
+    --foreground: 210 40% 98%;
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 214 82% 51%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 24%;
+    --input: 217 33% 24%;
+    --ring: 214 82% 51%;
+    --radius: 0.5rem;
+  }
+
+  /* 기본 배경/텍스트 토큰을 전체 문서에 적용 */
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 /* 🌊 웨이브 파티클 배경 효과 - Material Design 3 최적화 */
@@ -584,9 +638,8 @@ body {
   overflow-x: hidden;
   /* font-family는 layout.tsx의 font-sans 클래스로 적용됨 */
   line-height: 1.6;
-  color: var(--text-primary);
-  background: #1e293b;
-  /* 다크 배경 기본 설정 */
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
 }
 
 a {
@@ -1018,9 +1071,9 @@ a {
 /* 고대비 모드 지원 - WCAG 2.1 AA 준수 */
 @media (prefers-contrast: high) {
   :root {
-    --primary: #0056b3; /* 4.5:1 대비비 확보 */
-    --secondary: #006600; /* 4.5:1 대비비 확보 */
-    --accent: #d32f2f; /* 4.5:1 대비비 확보 */
+    --primary: 211 100% 35%; /* 4.5:1 대비비 확보 */
+    --secondary: 120 100% 20%; /* 4.5:1 대비비 확보 */
+    --accent: 0 65% 51%; /* 4.5:1 대비비 확보 */
     --text-primary: #000000;
     --text-secondary: #212121; /* 더 진한 회색으로 대비 강화 */
   }
