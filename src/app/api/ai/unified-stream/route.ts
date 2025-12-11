@@ -2,7 +2,7 @@ import { google } from '@ai-sdk/google';
 import { groq } from '@ai-sdk/groq';
 import { type CoreMessage, streamText, tool } from 'ai';
 import type { NextRequest } from 'next/server';
-import { z } from 'zod';
+import * as z from 'zod';
 import { getGoogleAIKey } from '@/lib/ai/google-ai-manager';
 import { withAuth } from '@/lib/auth/api-auth';
 import { createClient } from '@/lib/supabase/server';

@@ -12,9 +12,18 @@ import { google } from '@ai-sdk/google';
 import { groq } from '@ai-sdk/groq';
 import { type CoreMessage, generateText, tool } from 'ai';
 import type { NextRequest } from 'next/server';
-// @ts-expect-error
-import pdf from 'pdf-parse';
-import { z } from 'zod';
+
+// pdf-parse v3 API - PDFParse 클래스 사용
+import { PDFParse } from 'pdf-parse';
+
+const pdfParse = async (buffer: Buffer): Promise<{ text: string }> => {
+  const parser = new PDFParse({ data: buffer });
+  const result = await parser.getText();
+  await parser.destroy();
+  return { text: result.text };
+};
+
+import * as z from 'zod';
 import {
   checkGoogleAIRateLimit,
   getGoogleAIKey,
@@ -167,11 +176,11 @@ const searchKnowledgeBase = tool({
       .enum(['monitoring', 'analysis', 'guide', 'general'])
       .optional()
       .describe('질문 의도 (analyzeRequest 결과 활용)'),
+    // 🔧 Zod v4 ESM 호환: .int() 대신 .refine(Number.isInteger) 사용
     complexityHint: z
       .number()
-      .int() // 정수만 허용 (NaN, Infinity, 소수 방지)
-      .min(1)
-      .max(5)
+      .refine(Number.isInteger, { message: 'Must be an integer' })
+      .refine((n) => n >= 1 && n <= 5, { message: 'Must be between 1 and 5' })
       .optional()
       .describe('복잡도 힌트 1-5 정수 (높을수록 더 많은 결과 반환)'),
   }),
@@ -637,7 +646,7 @@ export const POST = withAuth(async (req: NextRequest) => {
           let text = '';
           if (doc.name.toLowerCase().endsWith('.pdf')) {
             const buffer = Buffer.from(doc.content, 'base64');
-            const data = await pdf(buffer);
+            const data = await pdfParse(buffer);
             text = data.text;
             parsingSteps.push(
               `✅ PDF 파싱 성공: ${doc.name} (${text.length}자)`

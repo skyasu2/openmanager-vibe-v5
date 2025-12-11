@@ -1,6 +1,6 @@
 import { groq } from '@ai-sdk/groq';
 import { generateObject } from 'ai';
-import { z } from 'zod';
+import * as z from 'zod';
 
 // Define the classification schema
 const classificationSchema = z.object({

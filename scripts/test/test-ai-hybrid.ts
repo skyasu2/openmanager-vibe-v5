@@ -6,7 +6,7 @@
  * (실제 API 호출은 서버가 실행 중이어야 하므로, 여기서는 로직 검증에 집중합니다)
  */
 
-import { z } from 'zod';
+import * as z from 'zod';
 
 // Mock Tools Definition (from route.ts)
 const analyzePattern = {
