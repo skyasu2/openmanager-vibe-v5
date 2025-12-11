@@ -10,7 +10,7 @@
  */
 
 import { create } from 'zustand';
-import type { ThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
+import type { ThinkingStep } from '../domains/ai-sidebar/types';
 
 export interface ChatMessage {
   id: string;

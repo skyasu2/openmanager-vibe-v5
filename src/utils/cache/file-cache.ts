@@ -20,16 +20,55 @@ const FILE_CACHE_TTL = 300000; // 5분 캐시 TTL (성능 최적화)
 const isServer = typeof window === 'undefined';
 
 /**
- * 파일 경로에서 데이터 읽기 (환경별 분기)
+ * 서버 베이스 URL 구성 (Vercel 환경 지원)
+ */
+function getServerBaseUrl(): string {
+  // Vercel 배포 환경
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  // 사용자 정의 앱 URL
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  // 로컬 개발 환경
+  return 'http://localhost:3000';
+}
+
+/**
+ * 파일 경로에서 데이터 읽기 (Vercel 서버리스 호환)
+ *
+ * @description
+ * v5.80.0 수정: Vercel 서버리스 환경에서 fs 모듈 대신 fetch API 사용
+ * - Vercel 서버리스 함수에서 process.cwd()가 public/ 디렉토리를 찾지 못함
+ * - 해결: 서버 사이드에서도 자체 URL로 fetch 요청
  */
 async function readFileContent(filePath: string): Promise<string> {
   if (isServer) {
-    // 서버: 동적 import로 fs 사용 (빌드 시 클라이언트 번들에 포함 안됨)
-    const fs = await import('fs/promises');
-    const path = await import('path');
-    const fullPath = path.join(process.cwd(), filePath);
-    await fs.access(fullPath);
-    return fs.readFile(fullPath, 'utf8');
+    // 🚀 Vercel 서버리스 환경: fetch API 사용 (fs 대신)
+    const baseUrl = getServerBaseUrl();
+    // public/hourly-data/hour-XX.json → /hourly-data/hour-XX.json
+    const urlPath = filePath.startsWith('public/')
+      ? filePath.replace('public/', '/')
+      : filePath.startsWith('/')
+        ? filePath
+        : `/${filePath}`;
+    const fullUrl = `${baseUrl}${urlPath}`;
+
+    const response = await fetch(fullUrl, {
+      // 캐시 방지 (항상 최신 데이터)
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Server fetch failed: ${response.status} ${response.statusText} (${fullUrl})`
+      );
+    }
+    return response.text();
   } else {
     // 브라우저: fetch API 사용
     const response = await fetch(filePath);
