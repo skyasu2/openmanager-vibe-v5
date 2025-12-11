@@ -4,12 +4,11 @@
  * OpenManager Vibe v5 상태 관리 모듈 통합 (Google OAuth 제거됨)
  */
 
-import { useServerDataStore } from '@/components/providers/StoreProvider';
+import { useServerQuery } from '@/hooks/useServerQuery';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { useUnifiedAdminStore } from '../useUnifiedAdminStore';
 
 // 기본 스토어들 익스포트
-export { useServerDataStore } from '@/components/providers/StoreProvider';
 export { useUnifiedAdminStore } from '../useUnifiedAdminStore';
 
 // 특정 기능별 통합 훅
@@ -43,18 +42,15 @@ export const useSystemAuth = () => {
 
 // 서버 데이터 관련 통합 훅
 export const useServerManagement = () => {
-  const servers = useServerDataStore((state) => state.servers);
-  const isLoading = useServerDataStore((state) => state.isLoading);
-  const error = useServerDataStore((state) => state.error);
-  const actions = useServerDataStore((state) => state.actions);
+  const { data: servers = [], isLoading, error, refetch } = useServerQuery();
   const { isSystemStarted } = useUnifiedAdminStore();
 
   return {
     servers: isSystemStarted ? servers : [],
     isLoading: isSystemStarted ? isLoading : false,
-    error: isSystemStarted ? error : null,
-    updateServer: actions?.updateServer,
-    refreshServers: actions?.refreshServers,
+    error: isSystemStarted ? (error?.message || null) : null,
+    updateServer: undefined, // Removed as we use React Query
+    refreshServers: async () => { await refetch(); },
     isSystemActive: isSystemStarted,
   };
 };
@@ -88,7 +84,7 @@ export const resetAllStores = () => {
 // 스토어 상태 디버깅 (개발용)
 export const debugStores = () => {
   if (process.env.NODE_ENV === 'development') {
-    const servers = {}; // useServerDataStore.getState();
+    const servers = {}; // React Query Cache isn't easily accessible here without queryClient
     const auth = useUnifiedAdminStore.getState();
 
     console.group('🔍 Store Debug Info');

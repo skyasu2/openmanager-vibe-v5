@@ -1,26 +1,5 @@
-/**
- * 🔧 useServerData Hook
- *
- * ⚠️ 중요: 이 파일은 ServerDashboard 핵심 모듈입니다 - 삭제 금지!
- *
- * 서버 데이터 관리 전용 훅 (Refactored)
- * - 전역 serverDataStore 사용 (Single Source of Truth)
- * - 실시간 데이터 동기화 보장
- * - 불필요한 로컬 상태 및 목업 제거
- *
- * 📍 사용처:
- * - src/components/dashboard/ServerDashboard.tsx (메인 대시보드)
- *
- * 🔄 의존성:
- * - @/components/providers/StoreProvider (전역 스토어)
- * - ../types/dashboard.types (타입 정의)
- * - ../../../types/server (Server 타입)
- *
- * 📅 수정일: 2025.12.07 (데이터 소스 통합 리팩토링)
- */
-
 import { useCallback, useEffect, useState } from 'react';
-import { useServerDataStore } from '@/components/providers/StoreProvider';
+import { useServerQuery } from '@/hooks/useServerQuery';
 import type { EnhancedServerMetrics } from '@/types/server';
 import type { DashboardStats, ServerFilters } from '../types/dashboard.types';
 
@@ -57,19 +36,20 @@ export interface UseServerDataReturn {
 }
 
 export const useServerData = (): UseServerDataReturn => {
-  // 🎯 전역 스토어 구독
-  const servers = useServerDataStore((state) => state.servers);
-  const isLoadingStore = useServerDataStore((state) => state.isLoading);
-  const errorStore = useServerDataStore((state) => state.error);
-  const lastUpdateStore = useServerDataStore((state) => state.lastUpdate);
-  const fetchServers = useServerDataStore((state) => state.fetchServers);
-  const startAutoRefresh = useServerDataStore(
-    (state) => state.startAutoRefresh
-  );
-  const stopAutoRefresh = useServerDataStore((state) => state.stopAutoRefresh);
+  // 🎯 React Query로 데이터 가져오기
+  const { data: servers = [], isLoading, error: queryError, refetch } = useServerQuery();
+  const error = queryError ? queryError.message : null;
+  const lastUpdate = new Date(); // React Query handles cache time, simplified here
 
-  // 로컬 로딩 상태 (초기 로드용)
+  // 로컬 로딩 상태 (초기 로드용) - React Query isLoading으로 대체 가능하지만 호환성 유지를 위해 남김
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  useEffect(() => {
+      if (!isLoading) {
+          setIsInitialLoading(false);
+      }
+  }, [isLoading]);
+
 
   // 서버 상태 매핑 함수
   const mapStatus = useCallback(
@@ -98,30 +78,9 @@ export const useServerData = (): UseServerDataReturn => {
     []
   );
 
-  // 데이터 초기화 및 자동 갱신 시작
-  useEffect(() => {
-    const initData = async () => {
-      try {
-        // 데이터가 없으면 로드
-        if (servers.length === 0) {
-          await fetchServers();
-        }
-        // 자동 갱신 시작 (스토어 내부에서 중복 실행 방지됨)
-        startAutoRefresh();
-      } catch (error) {
-        console.error('Failed to initialize server data:', error);
-      } finally {
-        setIsInitialLoading(false);
-      }
-    };
 
-    initData();
+  // React Query handles auto-refresh via refetchInterval
 
-    return () => {
-      // 페이지를 떠날 때 갱신 중지 (리소스 절약)
-      stopAutoRefresh();
-    };
-  }, [fetchServers, startAutoRefresh, stopAutoRefresh, servers.length]);
 
   // 서버 우선순위 정렬 (심각→경고→정상)
   const sortServersByPriority = useCallback(
@@ -225,12 +184,12 @@ export const useServerData = (): UseServerDataReturn => {
 
   // 호환성을 위한 래퍼 함수
   const refreshData = useCallback(() => {
-    void fetchServers();
-  }, [fetchServers]);
+    void refetch();
+  }, [refetch]);
 
   const batchedRefreshData = useCallback(async () => {
-    await fetchServers();
-  }, [fetchServers]);
+    await refetch();
+  }, [refetch]);
 
   // 정렬된 서버 목록
   const sortedServers = sortServersByPriority(servers);
@@ -238,14 +197,13 @@ export const useServerData = (): UseServerDataReturn => {
   // 통계 계산
   const stats = calculateStats(servers);
 
-  const loading = isLoadingStore || isInitialLoading;
-  const lastUpdate = lastUpdateStore || new Date();
-
+  const loading = isLoading || isInitialLoading;
+  
   return {
     servers: sortedServers,
     stats,
     loading,
-    error: errorStore,
+    error,
     lastUpdate,
     refreshData,
     filterServers,

@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { useGlobalSystemStore } from '@/stores/systemStore';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 /**
  * 🚀 시스템 부트스트랩 컴포넌트
@@ -15,7 +15,7 @@ import { useGlobalSystemStore } from '@/stores/systemStore';
  * - 시스템 초기화 상태 관리
  */
 export function SystemBootstrap(): React.ReactNode {
-  const { state: systemState, isSessionActive } = useGlobalSystemStore();
+  const { isSystemStarted } = useUnifiedAdminStore();
 
   const [bootstrapStatus, setBootstrapStatus] = useState({
     mcp: 'pending' as 'pending' | 'success' | 'failed',
@@ -27,7 +27,7 @@ export function SystemBootstrap(): React.ReactNode {
 
   useEffect(() => {
     // 🚨 중요: 시스템이 시작되지 않은 상태에서는 부트스트랩 실행 안 함
-    if (systemState === 'inactive' || !isSessionActive) {
+    if (!isSystemStarted) {
       console.log('💤 시스템 부트스트랩 대기 중 - 시스템 시작 후 실행됩니다');
       return;
     }
@@ -228,7 +228,7 @@ export function SystemBootstrap(): React.ReactNode {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [systemState, isSessionActive, bootstrapStatus]);
+  }, [isSystemStarted, bootstrapStatus]);
 
   // 시스템 초기화 상태 표시 제거됨 (웹 알람 삭제에 따라)
   return null;

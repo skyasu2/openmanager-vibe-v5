@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useServerDataStore } from '@/components/providers/StoreProvider';
+
 import {
   calculateTwoRowsLayout,
   generateDisplayInfo,
@@ -28,27 +28,21 @@ import { transformServerData } from '@/utils/dashboard/server-transformer';
 import { formatUptime } from '@/utils/dashboard/server-utils';
 import { useServerMetrics } from './useServerMetrics';
 
+import { useServerQuery } from '@/hooks/useServerQuery';
+
 // 🎯 기존 useServerDashboard 훅 (하위 호환성 유지 + 성능 최적화)
 export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const { onStatsUpdate } = options;
 
-  // Zustand 스토어에서 서버 데이터 가져오기
-  const rawServers = useServerDataStore((state) => state.servers);
+  // React Query로 데이터 가져오기
+  const { data: rawServers = [], isLoading, error: queryError } = useServerQuery();
+  
+  const error = queryError ? queryError.message : null;
 
   // 🛡️ Race Condition 방어: 캐싱 훅 사용
   const { cachedServers } = useServerDataCache(
     rawServers as unknown as EnhancedServerData[]
   );
-
-  const isLoading = useServerDataStore((state) => state.isLoading);
-  const error = useServerDataStore((state) => state.error);
-  const startAutoRefresh = useServerDataStore(
-    (state) => state.startAutoRefresh
-  );
-  const stopAutoRefresh = useServerDataStore((state) => state.stopAutoRefresh);
-
-  // ⚠️ 렌더링 중 fetchServers 호출 제거 (API 과다 호출 방지)
-  // useEffect에서만 데이터를 로드하도록 변경
 
   // 🚀 화면 크기에 따른 초기 페이지 크기 설정
   const { pageSize: responsivePageSize, setPageSize: setResponsivePageSize } =
@@ -65,16 +59,8 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // 서버 메트릭 훅
   const { metricsHistory } = useServerMetrics();
 
-  // 🚀 최적화된 서버 데이터 로드 및 자동 갱신 설정
-  // ⚠️ 수정: fetchServers 직접 호출 제거 (startAutoRefresh 내부에서 이미 수행)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Zustand store functions are stable, run only once on mount
-  useEffect(() => {
-    // startAutoRefresh가 내부에서 즉시 fetchServers를 호출함
-    startAutoRefresh();
-    return () => {
-      stopAutoRefresh();
-    };
-  }, []);
+  // 🚀 React Query가 자동 갱신을 처리하므로 별도 useEffect 제거
+
 
   // 실제 서버 데이터 사용 (메모이제이션 + 데이터 변환)
   const actualServers = useMemo(() => {

@@ -12,7 +12,7 @@
 
 import { AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
 import { type FC, useCallback, useEffect, useState } from 'react';
-import { useGlobalSystemStore } from '@/stores/systemStore';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 interface DisplayNotification {
   id: string;
@@ -26,7 +26,7 @@ interface DisplayNotification {
 
 export const NotificationToast: FC = () => {
   const [notifications, setNotifications] = useState<DisplayNotification[]>([]);
-  const { reportServerNotification, isSessionActive } = useGlobalSystemStore();
+  const { isSystemStarted: _isSystemStarted } = useUnifiedAdminStore();
 
   const maxNotifications = 3; // 5개→3개로 축소
 
@@ -71,11 +71,7 @@ export const NotificationToast: FC = () => {
         timestamp: Date.now(),
       };
 
-      // 전역 상태에 서버 알림 보고 (웹 알림 발송)
-      if (isSessionActive && serverId && serverName) {
-        const status = level === 'critical' ? 'critical' : 'warning';
-        reportServerNotification(serverId, serverName, status);
-      }
+      // 전역 상태에 서버 알림 보고 로직 제거 (UI 표시만 수행)
 
       setNotifications((prev) => {
         const newNotifications = [notification, ...prev].slice(
@@ -99,12 +95,7 @@ export const NotificationToast: FC = () => {
         handleSystemEvent as EventListener
       );
     };
-  }, [
-    reportServerNotification,
-    isSessionActive,
-    getNotificationTitle,
-    removeNotification,
-  ]);
+  }, [getNotificationTitle, removeNotification]);
 
   const getIcon = (type: string) => {
     switch (type) {

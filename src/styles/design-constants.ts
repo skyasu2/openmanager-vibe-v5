@@ -174,7 +174,7 @@ export const PAGE_BACKGROUNDS = {
 export const BUTTON_STYLES = {
   // GitHub 버튼 - 녹색 배경 (#2DD36F)
   github:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-[#2DD36F] px-5 py-4 text-[17px] font-semibold text-white shadow-[0_4px_14px_0_rgba(45,211,111,0.39)] transition-all duration-300 hover:bg-[#28C765] hover:shadow-[0_6px_20px_rgba(45,211,111,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-[#16a34a] px-5 py-4 text-[17px] font-semibold text-white shadow-[0_4px_14px_0_rgba(22,163,74,0.39)] transition-all duration-300 hover:bg-[#15803d] hover:shadow-[0_6px_20px_rgba(22,163,74,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
   // 게스트/일반 버튼 - 흰색 배경 + 테두리
   secondary:
     'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-gray-600/50 bg-[#0F1115] px-5 py-4 text-[17px] font-medium text-gray-200 transition-all duration-300 hover:bg-gray-800/50 hover:border-gray-500 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',

@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { safeErrorLog, safeErrorMessage } from '../lib/error-handler';
 import { systemLogger } from '../lib/logger';
-import { useGlobalSystemStore } from '../stores/systemStore';
+
 
 type AIAgentState = {
   isEnabled: boolean;
@@ -55,11 +55,9 @@ export function useSystemControl(): UseSystemControlReturn {
     getSystemRemainingTime,
   } = useUnifiedAdminStore();
 
-  const globalStore = useGlobalSystemStore();
-
   // 기본값으로 안전하게 처리
-  const state = globalStore.state || 'inactive';
-  const _sessionInfo = globalStore.getSessionInfo();
+  const state = unifiedSystemStarted ? 'active' : 'inactive';
+  const _sessionInfo = { isActive: unifiedSystemStarted };
 
   // 누락된 속성들을 기본값으로 설정
   const aiAgent = { isEnabled: false };
@@ -529,15 +527,15 @@ export function useSystemControl(): UseSystemControlReturn {
     stopSystem,
     restartSystem,
     checkStatus,
-    state,
-    isSystemActive,
-    isSystemPaused: false, // SystemState에 'paused'가 없으므로 false로 설정
+    state: unifiedSystemStarted ? 'active' : 'inactive',
+    isSystemActive: unifiedSystemStarted,
+    isSystemPaused: false,
     formattedTime,
     aiAgent,
     isPaused,
     pauseReason,
     isUserSession: userInitiated,
-    shouldAutoStop: shouldAutoStop, // 함수 호출 제거
+    shouldAutoStop: shouldAutoStop,
     startFullSystem: startFullSystem as SystemActionFunction,
     stopFullSystem: stopFullSystem as SystemActionFunction,
     pauseFullSystem: pauseFullSystem as SystemActionFunction,

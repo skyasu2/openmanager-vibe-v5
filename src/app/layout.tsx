@@ -36,13 +36,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  // 🔍 DIAGNOSTIC: Verify layout executes
-  console.log('🔍 [RootLayout] Layout component executing', {
-    timestamp: Date.now(),
-    isSSR: typeof window === 'undefined',
-    childrenType: typeof children,
-    hasChildren: !!children,
-  });
+
 
   return (
     <html lang="ko" suppressHydrationWarning>
@@ -55,13 +49,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <AuthTokenHandler />
             <SystemBootstrap />
             <Toaster />
-            {(() => {
-              console.log('🔍 [RootLayout] About to render children', {
-                timestamp: Date.now(),
-                isSSR: typeof window === 'undefined',
-              });
-              return children;
-            })()}
+            {children}
           </CSRFTokenProvider>
         </ClientProviders>
         {/* Vercel Analytics 비활성화 - 무료 티어 최적화 (6개 404 에러 제거) */}

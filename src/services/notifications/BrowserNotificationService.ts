@@ -11,6 +11,7 @@
 'use client';
 
 import { shouldSendWebNotification } from '@/config/server-status-thresholds';
+import { toast } from '@/hooks/use-toast';
 
 interface NotificationOptions {
   title: string;
@@ -82,17 +83,23 @@ class BrowserNotificationService {
     serverName: string,
     currentStatus: 'healthy' | 'warning' | 'critical'
   ): void {
-    if (!this.isEnabled) return;
-
     const previousStatus = this.previousServerStates.get(serverId);
 
-    // 통합 기준으로 웹 알림 발송 여부 결정
+    // 통합 기준으로 알림 발송 여부 결정
     if (shouldSendWebNotification(currentStatus, previousStatus)) {
-      this.sendNotification(
-        this.getStatusMessage(serverName, currentStatus, previousStatus),
-        currentStatus === 'critical' ? 'critical' : 'warning',
-        serverId
-      );
+      const message = this.getStatusMessage(serverName, currentStatus, previousStatus);
+      const variant = 
+        currentStatus === 'critical' ? 'destructive' : 
+        currentStatus === 'warning' ? 'warning' : 'success';
+
+      // 🔔 서버 알림은 이제 Toast로 표시 (좌측 하단)
+      toast({
+        title: serverName,
+        description: message,
+        variant: variant,
+      });
+      
+      console.log(`💬 Toast 알림 발송: ${message}`);
     }
 
     // 현재 상태 저장
@@ -108,25 +115,26 @@ class BrowserNotificationService {
     previousStatus?: 'healthy' | 'warning' | 'critical'
   ): string {
     if (currentStatus === 'critical') {
-      return `🚨 ${serverName} 서버가 심각한 상태입니다`;
+      return `${serverName} 서버가 심각한 상태입니다`;
     }
 
     if (currentStatus === 'warning' && previousStatus === 'healthy') {
-      return `⚠️ ${serverName} 서버에 주의가 필요합니다`;
+      return `${serverName} 서버에 주의가 필요합니다`;
     }
 
     if (
       previousStatus === 'critical' &&
       (currentStatus === 'warning' || currentStatus === 'healthy')
     ) {
-      return `✅ ${serverName} 서버가 복구되었습니다`;
+      return `${serverName} 서버가 복구되었습니다`;
     }
 
-    return `📊 ${serverName} 서버 상태가 변경되었습니다`;
+    return `${serverName} 서버 상태가 변경되었습니다`;
   }
 
   /**
-   * 🔔 웹 알림 발송 (SSR 최적화)
+   * 🔔 웹 알림 발송 (System Alert Only)
+   * 이제 서버 알림에는 사용되지 않고, 시스템 알림(예: 30분 종료)에만 사용됨
    */
   private sendNotification(
     message: string,
@@ -141,12 +149,12 @@ class BrowserNotificationService {
     if (!this.isEnabled) return;
 
     try {
-      const notification = new Notification('OpenManager 서버 알림', {
+      const notification = new Notification('OpenManager 시스템 알림', {
         body: message,
         icon: '/favicon.ico',
         badge: '/favicon.ico',
-        tag: serverId || 'system', // 같은 서버의 알림은 교체
-        requireInteraction: type === 'critical', // Critical은 사용자 상호작용 필요
+        tag: 'system-alert', 
+        requireInteraction: true, // 시스템 알림은 중요하므로 상호작용 필요
         silent: false,
       });
 
@@ -155,19 +163,7 @@ class BrowserNotificationService {
         window.focus();
         notification.close();
       };
-
-      // 히스토리에 저장
-      this.addToHistory({
-        title: 'OpenManager 서버 알림',
-        message,
-        severity: type === 'critical' ? 'critical' : 'warning',
-        serverId,
-        type: 'server_alert',
-        icon: '/favicon.ico',
-        tag: serverId || 'system',
-        silent: false,
-      });
-
+      
       console.log(`🔔 웹 알림 발송: ${message}`);
     } catch (error) {
       console.error('❌ 웹 알림 발송 실패:', error);
@@ -175,9 +171,10 @@ class BrowserNotificationService {
   }
 
   /**
-   * 📚 히스토리 관리
+   * 📚 히스토리 관리 (Deprecated likely, but keeping for compatibility if needed)
    */
   private addToHistory(options: NotificationOptions): void {
+     // 히스토리 로직 유지
     this.notificationHistory.unshift(options);
 
     // 필요시에만 히스토리 정리 (30분 이상 된 항목만 제거)

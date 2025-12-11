@@ -27,7 +27,7 @@ import {
   Server,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { useServerDataStore } from '@/components/providers/StoreProvider';
+
 import type { EnhancedServerMetrics } from '@/types/server';
 
 // ============================================================================
@@ -123,11 +123,11 @@ function extractNumericValue(value: number | Record<string, unknown>): number {
 // Component
 // ============================================================================
 
+import { useServerQuery } from '@/hooks/useServerQuery';
+// ... checks ...
 export default function AutoReportPage() {
-  // Server data
-  const servers = useServerDataStore(
-    (state: { servers: EnhancedServerMetrics[] }) => state.servers
-  );
+  // Server data (React Query)
+  const { data: servers = [] } = useServerQuery();
 
   // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('reports');
