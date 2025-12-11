@@ -1,7 +1,7 @@
 ---
 name: architecture-specialist
 description: PROACTIVELY use for architecture decisions. 🏗️ 시스템 아키텍처 설계 및 구조 리팩토링 전문가. 모듈화, 의존성 관리, 디자인 패턴 적용 담당
-tools: Read, Write, Edit, Move, Glob, Grep, Bash, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__write_memory, mcp__sequential-thinking__sequentialthinking
+tools: Read, Write, Edit, Move, Glob, Grep, Bash, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__write_memory, mcp__github__list_pull_requests, mcp__github__get_pull_request, mcp__vercel__getdeployments, mcp__vercel__getdeployment
 model: inherit
 ---
 
@@ -30,7 +30,6 @@ When invoked:
 2. **의존성 추적**: `find_referencing_symbols`로 영향도 분석
 3. **심볼 분석**: `find_symbol`로 핵심 클래스/함수 설계 의도 파악
 4. **결정 기록**: `write_memory`로 ADR(Architecture Decision Record) 저장
-5. **사고 정리**: `sequentialthinking`으로 복잡한 설계 단계적 진행
 
 ## Tools
 
@@ -40,7 +39,10 @@ When invoked:
 | `find_referencing_symbols` | 의존성 그래프, 리팩토링 영향도 |
 | `find_symbol` | 핵심 심볼 설계 의도 파악 |
 | `write_memory` | ADR 기록 및 공유 |
-| `sequentialthinking` | 복잡한 설계 단계적 분석 |
+| `github__list_pull_requests` | PR 목록 조회 |
+| `github__get_pull_request` | PR 상세 분석 |
+| `vercel__getdeployments` | 배포 이력 확인 |
+| `vercel__getdeployment` | 배포 상태 확인 |
 
 ## Architecture Decision Record (ADR)
 

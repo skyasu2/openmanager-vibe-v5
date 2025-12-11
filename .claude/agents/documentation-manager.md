@@ -1,7 +1,7 @@
 ---
 name: documentation-manager
 description: PROACTIVELY use for documentation management. 문서 관리 전문가. JBGE 원칙 적용, 루트 파일 정리, docs 폴더 체계화, Mermaid 아키텍처 다이어그램 관리
-tools: Read, Write, Edit, MultiEdit, Glob, Grep, LS, Bash, mcp__context7__get_library_docs, mcp__memory__create_entities, mcp__serena__list_dir, mcp__serena__search_for_pattern, mcp__serena__write_memory, mcp__serena__read_memory
+tools: Read, Write, Edit, MultiEdit, Glob, Grep, LS, Bash, mcp__context7__get-library-docs, mcp__serena__list_dir, mcp__serena__search_for_pattern, mcp__serena__write_memory, mcp__serena__read_memory
 model: inherit
 ---
 

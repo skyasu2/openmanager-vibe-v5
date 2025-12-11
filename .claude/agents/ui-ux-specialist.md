@@ -1,7 +1,7 @@
 ---
 name: ui-ux-specialist
 description: PROACTIVELY use for UI/UX improvements. UI/UX 전문가. 사용자 인터페이스 개선, 디자인 시스템 구축, 사용자 경험 최적화, React 19 호환성
-tools: Read, Write, Edit, MultiEdit, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__shadcn-ui__get_component, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__write_memory, mcp__serena__read_memory
+tools: Read, Write, Edit, MultiEdit, Glob, Grep, mcp__context7__get-library-docs, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__write_memory, mcp__serena__read_memory, mcp__figma__get_design_context, mcp__figma__get_screenshot, mcp__figma__get_variable_defs
 model: inherit
 ---
 
@@ -33,7 +33,7 @@ When invoked:
 1. **구조 분석**: `get_symbols_overview`로 컴포넌트 구조 파악
 2. **심볼 분석**: `find_symbol`로 UI 컴포넌트 의존성 분석
 3. **영향 추적**: `find_referencing_symbols`로 컴포넌트 관계 파악
-4. **컴포넌트 참조**: `mcp__shadcn-ui__get_component`로 shadcn/ui 활용
+4. **컴포넌트 참조**: `context7__get-library-docs`로 shadcn/ui 문서 조회
 5. **설계 기록**: `write_memory`로 UI/UX 개선 계획 저장
 
 ## Tools
@@ -43,9 +43,25 @@ When invoked:
 | `get_symbols_overview` | 컴포넌트 구조 파악 |
 | `find_symbol` | UI 컴포넌트 분석 |
 | `find_referencing_symbols` | 컴포넌트 관계 파악 |
-| `mcp__shadcn-ui__get_component` | shadcn/ui 참조 |
+| `context7__get-library-docs` | shadcn/ui 문서 조회 |
 | `write_memory` | 설계 결정 기록 |
-| `sequentialthinking` | 복잡한 UI 설계 단계적 진행 |
+| `figma__get_design_context` | Figma Design-to-Code (6회/월) |
+| `figma__get_variable_defs` | 디자인 시스템 변수 추출 |
+| `figma__get_screenshot` | 디자인 미리보기 |
+
+## Figma MCP 활용 (Starter 무료 플랜)
+
+> ⚠️ **월 6회 한도** - 신중하게 사용
+
+**우선순위**:
+1. `get_design_context` - 코드 생성용 전체 컨텍스트 (권장)
+2. `get_variable_defs` - 디자인 토큰 추출
+3. `get_screenshot` - 디자인 확인 (마지막 수단)
+
+**활용 전략**:
+- 디자인 확정 후 한 번에 추출
+- 단순 UI는 shadcn/ui + Tailwind로 직접 작성
+- Figma는 복잡한 커스텀 디자인에만 사용
 
 ## Tech Stack
 - Next.js 16 + React 19

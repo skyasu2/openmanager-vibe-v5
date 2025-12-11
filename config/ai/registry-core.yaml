@@ -2,7 +2,7 @@
 # 핵심 정보만 포함, 상세 내역은 별도 문서 참조
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
-version: "2.4.0"  # registry-core 버전 (v2.4.0: AI 도구 버전 업데이트)
+version: "2.5.0"  # registry-core 버전 (v2.5.0: MCP 정리 - memory/time/shadcn-ui/sequential-thinking 제거, figma 추가)
 last_updated: "2025-12-11"
 project: "OpenManager VIBE v5.80.0"
 
@@ -74,22 +74,23 @@ subagents:
 # 3. Active MCP Servers (활성화된 MCP 서버만)
 # ============================================================================
 mcp-servers:
-  active:  # 12/12 연결 (2025-12-03, brave-search 추가)
-    - vercel          # @open-mcp/vercel, 배포 관리
-    - supabase        # @supabase/mcp-server-supabase, DB 관리
-    - serena          # 코드 검색 전문 (심볼, 구조 분석)
-    - context7        # 문서 조회
-    - playwright      # E2E 테스트
-    - shadcn-ui       # UI 컴포넌트
-    - memory          # 메모리 관리
-    - time            # 시간 유틸리티
-    - sequential-thinking  # 순차적 사고
-    - github          # GitHub 저장소 관리
-    - tavily          # 웹 검색 (심층 리서치, 1000/mo)
-    - brave-search    # 웹 검색 (신속 팩트체크/버전확인, 2000/mo)
+  active:  # 9/9 연결 (2025-12-11, MCP 정리 완료)
+    - vercel          # @open-mcp/vercel, 배포 관리 (무제한)
+    - supabase        # @supabase/mcp-server-supabase, DB 관리 (무제한)
+    - serena          # 코드 검색/메모리 (심볼, 구조 분석) (무제한)
+    - context7        # 라이브러리 공식 문서 조회 (무제한)
+    - playwright      # E2E 테스트 자동화 (무제한)
+    - figma           # Design-to-Code (HTTP 원격, **6회/월 Starter**)
+    - github          # GitHub 저장소 관리 (무제한)
+    - tavily          # 웹 검색 - 심층 리서치 (1,000/월)
+    - brave-search    # 웹 검색 - 팩트체크/버전확인 (2,000/월)
 
-  removed:  # 2025-12-03 제거
-    - filesystem      # Claude Code 내장 도구와 100% 중복 (Read/Write/Edit/Glob)
+  removed:  # 2025-12-11 정리
+    - filesystem      # Claude Code 내장 도구와 100% 중복
+    - memory          # Serena write_memory/read_memory로 대체
+    - time            # 사용 빈도 낮음, 대안 존재
+    - shadcn-ui       # Context7로 문서 조회 가능
+    - sequential-thinking  # Claude 자체 추론 + TodoWrite로 대체
 
 # 역할 구분:
 #   - serena: 코드 검색 (심볼, 구조 분석)
