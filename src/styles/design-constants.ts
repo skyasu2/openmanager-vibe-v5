@@ -172,10 +172,10 @@ export const PAGE_BACKGROUNDS = {
 
 // ===== 버튼 스타일 시스템 =====
 export const BUTTON_STYLES = {
-  // 기본 액션 버튼 (GitHub 로그인 등)
+  // 기본 액션 버튼 (GitHub 로그인 등) - py는 사용처에서 지정
   primary:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-gray-600 bg-[#24292e] px-4 py-3 text-white shadow-xl transition-all duration-200 hover:bg-[#1a1e22] hover:shadow-2xl disabled:cursor-progress disabled:opacity-70',
-  // 강조 액션 버튼 (게스트 로그인 등)
+    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-gray-600 bg-[#24292e] px-4 text-white shadow-xl transition-all duration-200 hover:bg-[#1a1e22] hover:shadow-2xl disabled:cursor-progress disabled:opacity-70',
+  // 강조 액션 버튼 (게스트 로그인 등) - py는 사용처에서 지정
   accent:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 text-white shadow-xl transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 text-white shadow-xl transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl disabled:cursor-progress disabled:opacity-70',
 } as const;

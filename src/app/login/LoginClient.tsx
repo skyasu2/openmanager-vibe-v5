@@ -454,7 +454,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="GitHub 계정으로 로그인"
               aria-busy={loadingType === 'github'}
-              className={`${BUTTON_STYLES.primary} w-full py-5 text-lg shadow-lg shadow-blue-900/20 transition-transform active:scale-[0.98] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none`}
+              className={`${BUTTON_STYLES.primary} py-5 w-full text-lg shadow-lg shadow-blue-900/20 transition-transform active:scale-[0.98] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && <LoadingOverlay type="github" />}
@@ -507,7 +507,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="게스트 모드로 체험하기"
               aria-busy={loadingType === 'guest'}
-              className="group relative flex w-full items-center justify-center gap-2 rounded-xl border border-gray-500 bg-gray-800/50 px-4 py-4.5 text-lg font-semibold text-gray-200 transition-all hover:bg-gray-700 hover:text-white hover:border-gray-400 active:scale-[0.99] disabled:opacity-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none"
+              className="group relative flex w-full items-center justify-center gap-2 rounded-xl border border-gray-500 bg-gray-800/50 px-4 py-5 text-lg font-semibold text-gray-200 transition-all hover:bg-gray-700 hover:text-white hover:border-gray-400 active:scale-[0.99] disabled:opacity-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none"
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && <LoadingOverlay type="guest" />}

@@ -66,7 +66,7 @@ const nextConfig = {
 
     // 🚀 무료 티어 최적화 추가 설정
     loader: 'default', // Vercel 기본 로더 사용 (최적화됨)
-    domains: [], // 외부 도메인 제한으로 보안 강화
+    // Note: images.domains는 Next.js 16에서 deprecated - remotePatterns만 사용
     remotePatterns: [
       // 필요한 외부 이미지만 허용
       {

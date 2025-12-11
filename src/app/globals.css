@@ -1,8 +1,7 @@
-@import 'tailwindcss';
+/* Tailwind v4: src 디렉토리 명시적 스캔 */
+@import 'tailwindcss' source('../');
 
 @plugin 'tailwindcss-animate';
-
-@source '../**/*.{js,ts,jsx,tsx,mdx}';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -626,9 +625,8 @@
   }
 }
 
+/* Tailwind preflight가 box-sizing 처리, padding/margin은 유틸리티에 위임 */
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
