@@ -362,11 +362,11 @@ export default function LoginClient() {
     >
       <div className="w-full max-w-md">
         {/* 로그인 Card (로고, 타이틀, 폼 통합) */}
-        {/* 🎨 [2] 내부 여백 확대: p-8/10 -> p-10/12 */}
+        {/* 🎨 [2] 다크 카드 배경 + 반전된 버튼 색상 */}
         <div className="relative overflow-hidden rounded-3xl border border-gray-700/50 bg-[#0f172a]/80 p-10 shadow-2xl backdrop-blur-xl sm:p-12">
-          {/* 웨이브 배경 효과 (카드 내부) */}
-          <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-blue-500/10 blur-[60px]" />
-          <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-purple-500/10 blur-[60px]" />
+          {/* 웨이브 배경 효과 (카드 내부) - 다크 톤 */}
+          <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-blue-600/20 blur-[60px]" />
+          <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-purple-600/20 blur-[60px]" />
 
           {/* 헤더 (Card 내부) */}
           <div className="relative mb-10 flex flex-col items-center text-center">
@@ -375,7 +375,7 @@ export default function LoginClient() {
               className={`mb-6 flex h-20 w-20 animate-gradient-x items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-purple-500/30 sm:h-24 sm:w-24`}
               style={{ backgroundSize: '200% 200%' }}
             />
-            {/* 🎨 [2] 로고와 타이틀 간격 확대 */}
+            {/* 🎨 [2] 로고와 타이틀 간격 확대 - 라이트 텍스트 */}
             <h1 className="mb-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
               OpenManager
             </h1>
@@ -388,7 +388,7 @@ export default function LoginClient() {
           {/* <div className="mb-8 border-t border-gray-700/50" /> */}
 
           {/* 로그인 섹션 */}
-          <h2 className="mb-8 text-center text-lg font-medium text-gray-200">
+          <h2 className="mb-8 text-center text-lg font-medium text-gray-300">
             로그인 방식을 선택하세요
           </h2>
 
@@ -454,7 +454,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="GitHub 계정으로 로그인"
               aria-busy={loadingType === 'github'}
-              className={`${BUTTON_STYLES.primary} py-5 w-full text-lg shadow-lg shadow-blue-900/20 transition-transform active:scale-[0.98] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none`}
+              className={`${BUTTON_STYLES.github} focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && <LoadingOverlay type="github" />}
@@ -475,13 +475,13 @@ export default function LoginClient() {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="relative z-10 font-semibold tracking-wide text-white">
+              <span className="relative z-10 font-semibold tracking-wide text-gray-900">
                 {loadingType === 'github'
                   ? loadingMessage
                   : 'GitHub로 계속하기'}
               </span>
               {loadingType === 'github' && (
-                <div className="relative z-10 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <div className="relative z-10 h-4 w-4 animate-spin rounded-full border-2 border-gray-900 border-t-transparent" />
               )}
             </button>
 
@@ -489,10 +489,10 @@ export default function LoginClient() {
             {/* 🎨 [4] 구분선 스타일 개선 */}
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-700" />
+                <div className="w-full border-t border-gray-600" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-[#161f32] px-4 text-gray-400 font-medium">
+                <span className="bg-[#0f172a] px-4 text-gray-400 font-medium">
                   또는
                 </span>
               </div>
@@ -507,7 +507,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="게스트 모드로 체험하기"
               aria-busy={loadingType === 'guest'}
-              className="group relative flex w-full items-center justify-center gap-2 rounded-xl border border-gray-500 bg-gray-800/50 px-4 py-5 text-lg font-semibold text-gray-200 transition-all hover:bg-gray-700 hover:text-white hover:border-gray-400 active:scale-[0.99] disabled:opacity-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none"
+              className={`${BUTTON_STYLES.secondary} focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && <LoadingOverlay type="guest" />}

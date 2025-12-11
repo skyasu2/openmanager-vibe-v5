@@ -208,13 +208,15 @@ const nextConfig = {
         'data:', // Base64 이미지
         'blob:', // 동적 이미지
         'https:', // 외부 이미지 허용
-        'https://vnswjnltnhpsueosfhmw.supabase.co', // Supabase Storage
-      ],
+        process.env.NEXT_PUBLIC_SUPABASE_URL ||
+          'https://vnswjnltnhpsueosfhmw.supabase.co', // Supabase Storage
+      ].filter(Boolean),
       'connect-src': [
         "'self'",
         'https://vercel.live', // Vercel Toolbar
-        'https://api.openmanager.dev', // 자체 API
-        'https://vnswjnltnhpsueosfhmw.supabase.co', // Supabase
+        process.env.NEXT_PUBLIC_API_URL || 'https://api.openmanager.dev', // 자체 API
+        process.env.NEXT_PUBLIC_SUPABASE_URL ||
+          'https://vnswjnltnhpsueosfhmw.supabase.co', // Supabase
         'https://generativelanguage.googleapis.com', // Google AI
         'https://va.vercel-scripts.com', // Vercel Analytics
         'https://vitals.vercel-insights.com', // Speed Insights
