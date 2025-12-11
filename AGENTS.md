@@ -53,7 +53,7 @@ npm run test     # Vitest (메인 설정)
 
 ### 개요
 
-- **Codex CLI v0.66.0 (GPT-5)** – ChatGPT Plus $20/월, `config/ai/registry-core.yaml`
+- **Codex CLI v0.69.0 (GPT-5)** – ChatGPT Plus $20/월, `config/ai/registry-core.yaml`
 - **응답 속도**: 6~12초 (자동 코드 리뷰 로그, `logs/code-reviews/*`)
 - **자동 코드 리뷰**: `.husky/post-commit` → `scripts/code-review/auto-ai-review.sh` v6.4.0 (Primary 1:1:1 순환: codex→gemini→claude, Qwen 폴백, `logs/code-reviews/*`)
 - **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` v3.3.0 (600초 타임아웃, stderr 분리, **Senior Full-Stack Developer 컨텍스트 적용**)
@@ -85,7 +85,7 @@ npm run test     # Vitest (메인 설정)
 - **가용성**: 99.99% (Primary OR Qwen OR Claude Code)
 - **출력**: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
 
-### 📊 2025 벤치마크 성능 (GPT-5 Codex v0.66.0)
+### 📊 2025 벤치마크 성능 (GPT-5 Codex v0.69.0)
 
 - **HumanEval**: 94% pass@1 (함수 단위 문제 해결 최강)
 - **SWE-bench Verified**: 74.5% (다중 파일 버그 수정)
@@ -116,8 +116,8 @@ npm run test     # Vitest (메인 설정)
 
 | 도구                       | 현재 버전 | 참고 문서   |
 | -------------------------- | --------- | ----------- |
-| Claude Code / Multi-AI MCP | v2.0.61   | `CLAUDE.md` |
-| Gemini CLI                 | v0.19.4   | `GEMINI.md` |
+| Claude Code / Multi-AI MCP | v2.0.62   | `CLAUDE.md` |
+| Gemini CLI                 | v0.20.0   | `GEMINI.md` |
 | Qwen CLI                   | v0.4.0    | `QWEN.md`   |
 
 ## 📜 Codex 핵심 코딩 규칙 (Codex Coding Standards)
@@ -219,6 +219,7 @@ Codex CLI는 다음 규칙을 준수하여 코드를 생성해야 합니다.
 
 ## 업데이트 로그
 
+- **2025-12-11**: Codex CLI v0.69.0 버전 갱신 반영.
 - **2025-11-27**: Codex wrapper v3.0.0 및 자동 코드 리뷰 스크립트 v4.3.0(4:1 비율, lint/typecheck, Claude 폴백) 반영. Gemini/Qwen 래퍼 안내를 전용 문서 참조로 단순화.
 - **2025-11-20**: Codex CLI v0.58.0, Wrapper v2.5.0(600초) 및 자동 코드 리뷰 파이프라인 정보 반영. Node 22.21.1/Next ^15.5.5 테이블 갱신.
 - **2025-10-10**: Codex Wrapper v2.0.0 반영 (타임아웃 300초, 재시도 제거), Qwen v2.1.0 참조 추가.
