@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 // 실제 사용을 위해 유형을 가져옵니다. ESLint에서는 사용하지 않는다고 표시될 수 있지만
 // Zod 스키마와 TypeScript 타입 간의 일관성을 위해 필요합니다.
 /* import type { 

@@ -14,7 +14,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import * as z from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import { createClient } from '@/lib/supabase/server';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
