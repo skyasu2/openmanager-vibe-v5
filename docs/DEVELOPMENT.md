@@ -7,7 +7,6 @@
 - [🏗️ 개발 환경 설정](#개발-환경-설정)
 - [🤖 AI 도구 통합](#ai-도구-통합)
 - [🔌 MCP 서버 설정](#mcp-서버-설정)
-- [🎯 서브에이전트 시스템](#서브에이전트-시스템)
 - [🧪 테스트 실행](#테스트-실행)
 - [📚 개발 워크플로우](#개발-워크플로우)
 
@@ -16,8 +15,19 @@
 ### Prerequisites
 
 - **Windows 11 + WSL 2** (권장 개발 환경)
-- Node.js v22 이상 (WSL 내부 설치)
-- npm 10.x 이상
+- Node.js v22.21.1 (`.nvmrc` 참조)
+- npm 10.9.2 이상
+- Docker Desktop (AI 서비스용)
+
+### 기술 스택 (v5.80.0)
+
+```
+Next.js 16 (App Router)
+React 19
+TypeScript 5.9 (strict mode)
+Supabase (PostgreSQL + Realtime)
+Tailwind CSS + Shadcn/UI
+```
 - Git
 - **Claude Code v1.0.119** (메인 AI 개발 도구)
 

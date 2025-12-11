@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-11
+**마지막 업데이트**: 2025-12-12
 
 ---
 
@@ -18,6 +18,24 @@
 - **Animation**: Framer Motion (via `tailwindcss-animate`)
 
 **State & Data**
+- **Zustand**: Global client state
+- **React Query**: Server state synchronization
+- **Supabase**: PostgreSQL + Realtime + Auth
+
+## 📚 Documentation Status
+
+**총 문서 수**: 198개 (최적화 완료)
+- **Core**: 70개 (아키텍처, AI, 성능, 보안, 플랫폼)
+- **Development**: 75개 (AI 도구, MCP, 테스팅, 표준, 워크플로우)
+- **Environment**: 15개 (WSL, Docker, 트러블슈팅)
+- **Planning**: 12개 (분석, 템플릿)
+- **Archive**: 17개 (정리 완료: 59개→17개)
+- **API**: 1개 (통합 완료)
+
+**최근 최적화**:
+- 중복 문서 제거: 42개 (아카이브) + 16개 (일반)
+- 통합 완료: MCP, Docker, AI 도구, 아키텍처
+- 구조 정리: design→architecture, specs→planning
 - **State Mgmt**: Zustand `v5.0.9`
 - **Data Fetching**: TanStack Query `v5.90.11`
 - **Backend/DB**: Supabase JS `v2.86.0` (SSR `v0.8.0`)
@@ -25,7 +43,7 @@
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
 - **Models**: Google Gemini 2.5 Flash (Primary), Claude 3.5 Sonnet (Fallback)
-- **Tools**: MCP (Model Context Protocol) 12/12 Server Connected
+- **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
 
 **Quality Control**
 - **Test**: Vitest `v4.0.15`, Playwright `v1.57.0`
@@ -54,7 +72,7 @@
 | **Test** | ✅ 98.2% | 134/134 Tests Passing (Super-fast mode) |
 | **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
 | **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
-| **MCP** | ✅ 12/12 | 모든 MCP 서버 정상 연결 (Brave Search 포함) |
+| **MCP** | ✅ 9/9 | 모든 MCP 서버 정상 연결 (Figma 포함) |
 | **Vercel** | ✅ Deployed | Production 배포 정상 |
 
 ---

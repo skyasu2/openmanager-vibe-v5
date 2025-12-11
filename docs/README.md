@@ -1,5 +1,5 @@
 # 🗂️ Documentation Reference (문서 관리 인덱스)
-> **최종 갱신**: 2025-12-08
+> **최종 갱신**: 2025-12-12
 > **버전**: v5.80.0
 
 ## 📌 Directory Structure (디렉토리 구조)
@@ -9,20 +9,32 @@
 ```
 docs/
 ├── 🏗️ core/                # 시스템 핵심 아키텍처 및 설계
-│   ├── architecture/      # 전체 시스템 구조, 기술 스택
-│   ├── design/            # UI/UX, 상세 컴포넌트 설계
-│   ├── monitoring/        # 모니터링 시스템, 로깅, 알림
+│   ├── architecture/      # 전체 시스템 구조, 기술 스택 (통합됨)
+│   ├── ai/                # 배포용 AI 기능
 │   ├── performance/       # 성능 분석 리포트, 최적화 가이드
-│   ├── security/          # 보안 정책, 감사 기록
+│   ├── security/          # 보안 정책, 감사 기록 (통합됨)
 │   └── platforms/         # Vercel, Supabase, GCP 등 플랫폼별 설정
 │
-├── 📝 development/         # 개발자 실무 가이드
-│   ├── standards/         # 코딩 컨벤션, Git 규칙, 브랜치 전략
-│   ├── workflows/         # 개발, 배포, 테스트 워크플로우
-│   ├── quality/           # 린트, 테스트 커버리지, 코드 품질 리포트
-│   └── setup/             # 환경 설정, 초기 세팅 가이드
+├── 📝 development/         # 개발자 실무 가이드 (통합됨)
+│   ├── ai/                # AI 도구 (Claude Code, CLI 도구들)
+│   ├── mcp/               # MCP 서버 설정 (통합됨)
+│   ├── testing/           # 테스트 전략 및 가이드 (통합됨)
+│   ├── standards/         # 코딩 컨벤션, Git 규칙
+│   └── workflows/         # 개발, 배포 워크플로우
 │
-├── 📅 planning/            # 기획 및 작업 계획
+├── 🌐 environment/         # 환경 설정 (Docker, WSL 통합됨)
+│   ├── wsl/               # WSL 최적화 가이드
+│   ├── tools/             # Claude Code 도구
+│   └── troubleshooting/   # 문제 해결 가이드
+│
+├── 📅 planning/            # 기획 및 작업 계획 (specs 통합됨)
+│   ├── analysis/          # 분석 보고서
+│   ├── archive/           # 계획 아카이브
+│   └── templates/         # 작업 계획 템플릿
+│
+├── 📚 api/                 # API 문서 (통합됨)
+└── 📦 archive/             # 완료된 작업 기록 (정리됨: 59개→17개)
+```
 │   ├── improvement-plan.md     # 현재 진행 중인 개선 계획
 │   ├── major-upgrade-plan.md   # 메이저 업그레이드 (Next 16, React 19)
 │   ├── analysis/          # 사전 기술 검토 및 분석

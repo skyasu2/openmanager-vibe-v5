@@ -229,3 +229,21 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 **Generated**: 2025-11-29  
 **Total Endpoints**: 78  
 **Framework**: Next.js 15 App Router
+
+## API 아키텍처
+
+### 라우팅 구조
+- RESTful 설계 원칙 준수
+- 버전 관리: `/api/v1/`, `/api/v2/`
+- 리소스 기반 URL 구조
+
+### 스키마 검증
+- Zod를 통한 런타임 타입 검증
+- TypeScript 타입과 동기화
+- 요청/응답 데이터 검증
+
+### 검증 규칙
+- 필수 필드 검증
+- 데이터 타입 검증
+- 비즈니스 로직 검증
+- 보안 검증 (XSS, SQL Injection 방지)
