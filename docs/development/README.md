@@ -1,289 +1,392 @@
 ---
-category: development
-purpose: wsl_development_environment_and_tools
+category: guides
+purpose: development_utilities_and_best_practices
 ai_optimized: true
 query_triggers:
-  - 'WSL 개발환경'
-  - 'AI CLI 도구'
-  - 'MCP 서버 설정'
-  - '개발 워크플로우'
-  - '환경 트러블슈팅'
-  - 'Playwright MCP'
+  - 'Side Effects 최적화'
+  - 'useEffect 최적화'
+  - '타입 시스템'
+  - '유틸리티 함수'
+  - 'Mock 시스템'
+  - '시뮬레이션 환경'
 related_docs:
-  - 'CLAUDE.md'
-  - 'docs/development/wsl-safety-guide.md'
-  - 'docs/development/playwright-mcp-setup-guide.md'
+  - 'docs/core/architecture/type-system-consistency.md'
+  - 'docs/development/performance-optimization-guide.md'
+  - 'src/lib/utils/'
+  - 'src/lib/mock/'
 last_updated: '2025-12-01'
 ---
 
-# 🚀 OpenManager VIBE v5 개발환경 문서
+# 📖 개발 가이드 (Development Guides)
 
-**WSL 2 기반 멀티 AI 통합 개발환경** - Claude Code 메인 + 3개 AI 협업 시스템
+**목적**: 실용적 개발 가이드, 유틸리티, Mock 시스템
 
-## 📚 문서 구성
+---
 
-### 🎯 핵심 가이드
-
-- **[환경 자동 설정](./environment-setup.md)** - 신규 환경 구축 및 자동화 스크립트
-- **[WSL 안전 가이드](./wsl-safety-guide.md)** - WSL 설정 변경 시 주의사항
-- **[Playwright MCP 설정 가이드](./playwright-mcp-setup-guide.md)** - WSL + 윈도우 크롬 E2E 테스트 환경
-
-### 🔗 관련 문서
-
-- **[프로젝트 메인 가이드](../../CLAUDE.md)** - Claude Code 메모리 시스템 파일
-- **[MCP 서버 설정](../mcp/setup-guide.md)** - 9개 MCP 서버 완전 가이드
-- **[AI 시스템 가이드](../AI-SYSTEMS.md)** - 멀티 AI 협업 전략
-
-## 🚀 빠른 시작
-
-### 기존 환경 사용자 (즉시 시작)
-
-```bash
-# WSL 접속 및 프로젝트 이동
-wsl && cd /mnt/d/cursor/openmanager-vibe-v5
-
-# 환경 상태 확인
-./scripts/check-environment.sh
-
-# 개발 서버 시작
-npm run dev:stable
-```
-
-### 신규 환경 구축
-
-```bash
-# 1. 자동 환경 설정
-./scripts/setup-dev-environment.sh
-
-# 2. WSL 최적화 (선택사항)
-./scripts/optimize-wsl-memory.sh
-
-# 3. 환경 검증
-./scripts/check-environment.sh
-```
-
-## 📊 현재 환경 사양
-
-### ✅ 최적화 완료 상태 (2025-12-01)
+## 📂 디렉토리 구조
 
 ```
-📦 기본 도구:
-  - Node.js: v22.x (LTS)
-  - npm: v10+
-  - Claude Code: Latest
-
-🤖 AI CLI 도구:
-  - ✅ Claude Code (메인)
-  - ✅ Gemini CLI (아키텍처)
-  - ✅ Qwen CLI (알고리즘)
-  - ✅ Codex CLI (실무)
-
-🔌 MCP 서버: 12/12 완전 연결
-  - context7, supabase, vercel, playwright (완전 작동)
-  - memory, time, sequential-thinking, github
-  - shadcn-ui, serena, tavily, brave-search
-
-💾 WSL 2 시스템:
-  - 메모리: 19GB 할당 / 16GB 사용 가능
-  - 스왑: 10GB
-  - 프로세서: 8코어
-  - 커널: Linux 6.6.x-microsoft-standard-WSL2
+guides/
+└── (6개) - 개발 유틸리티, 타입 시스템, Mock/시뮬레이션 가이드
 ```
 
-## 🎯 성능 지표
+**총 6개 파일** (24-54일 전)
 
-### 📈 달성된 성과
+---
 
-- **🏆 MCP 서버 연결률**: 100% (9/9)
-- **⚡ 응답 속도**: 평균 50ms (최적화 상태)
-- **💾 메모리 여유도**: 84% (효율적 활용)
-- **🤖 AI 협업 효율성**: 4배 생산성 증가
-- **🚀 베르셀 배포**: 100% 성공률 (Zero Warnings)
+## 🎯 주요 문서 (카테고리별)
 
-### ⏱️ 개발 성능 벤치마크
+### 1. 최적화 가이드 (1개)
 
-```
-🔧 개발 서버 시작: ~3초
-📝 타입 체크: ~8초
-🏗️ 전체 빌드: ~35초
-🧪 테스트 실행: 98.2% 통과, 평균 6ms/테스트
-```
+#### ⭐ side-effects-optimization-guide.md (10K, 23일 전)
 
-## 🛠️ 개발 워크플로우
+**Side Effects 최적화 가이드**
 
-### 📝 일반적인 개발 세션
+- **목적**: React 컴포넌트 Side Effects 최적화 전략
+- **핵심 내용**:
+  - useEffect 최적화 패턴
+  - 의존성 배열 관리
+  - 메모이제이션 전략 (useMemo, useCallback)
+  - 불필요한 리렌더링 방지
 
-```bash
-# 1. 환경 확인 및 개발 시작
-./scripts/dev-start.sh
+**중요도**: 🔴 **HIGH** - 성능 최적화 핵심
 
-# 2. 코드 품질 검증
-npm run validate:all
+**예시**:
 
-# 3. AI 협업 활용
-claude                         # 메인 개발
-codex exec "실무 분석 요청"    # GPT-5 실무 통합
-gemini "아키텍처 검토 요청"    # 구조 분석
-timeout 60 qwen -p "최적화"    # 성능 최적화
+```typescript
+// ❌ 비효율적 - 매 렌더링마다 실행
+useEffect(() => {
+  fetchData();
+});
+
+// ✅ 효율적 - 필요할 때만 실행
+useEffect(() => {
+  fetchData();
+}, [dependencies]);
 ```
 
-### 🤖 서브에이전트 활용
+---
 
-```bash
-# Claude Code 서브에이전트 호출
-"codex-specialist 서브에이전트를 사용하여 실무 통합 분석해주세요"
-"gemini-specialist 서브에이전트를 사용하여 아키텍처 검토해주세요"
-"qwen-specialist 서브에이전트를 사용하여 성능 최적화해주세요"
+### 2. 시뮬레이션 시스템 (2개)
 
-# 3-AI 교차검증
-"이 코드를 3개 AI로 교차검증해줘"
+#### simulation.md (6.2K, 18일 전)
+
+**시뮬레이션 환경 설정**
+
+- **목적**: 서버 상태 시뮬레이션 시스템 가이드
+- **핵심 내용**:
+  - Mock 데이터 생성
+  - 시뮬레이션 시나리오
+  - 실시간 상태 업데이트
+
+**중요도**: 🟡 **MEDIUM** - 개발/테스트 환경
+
+---
+
+#### mock-system.md (2.4K, 54일 전)
+
+**Mock 시스템 기본**
+
+- **목적**: Mock 데이터 시스템 개요
+- **핵심 내용**:
+  - Mock 데이터 구조
+  - Mock API 패턴
+
+**관계**: simulation.md가 더 최신이고 상세함
+
+---
+
+### 3. 유틸리티 가이드 (3개)
+
+#### types.md (6.0K, 54일 전)
+
+**타입 시스템 가이드**
+
+- **목적**: TypeScript 타입 정의 및 활용
+- **핵심 내용**:
+  - 공통 타입 정의
+  - 타입 가드
+  - 유틸리티 타입 활용
+
+**중요도**: 🔴 **HIGH** - 타입 안전성 기준
+
+**관련**: docs/core/architecture/type-system-consistency.md (더 상세)
+
+---
+
+#### utils.md (6.0K, 54일 전)
+
+**유틸리티 함수 가이드**
+
+- **목적**: 공통 유틸리티 함수 설명
+- **핵심 내용**:
+  - 데이터 변환 함수
+  - 검증 함수
+  - 포맷팅 함수
+
+**중요도**: 🟡 **MEDIUM** - 코드 재사용
+
+---
+
+#### auth-complete.ts (3.5K, 54일 전)
+
+**인증 시스템 예제**
+
+- **목적**: 완전한 인증 시스템 TypeScript 예제
+- **핵심 내용**:
+  - 인증 플로우
+  - 세션 관리
+  - 보안 패턴
+
+**참고**: 실제 구현은 src/lib/auth/
+
+---
+
+## 📊 문서 통계 (2025-10-16)
+
+| 카테고리       | 파일 수 | 최신 업데이트 | 평균 크기 | 중요도    |
+| -------------- | ------- | ------------- | --------- | --------- |
+| **최적화**     | 1       | 23일 전       | 10K       | 🔴 HIGH   |
+| **시뮬레이션** | 2       | 18일 전       | 4.3K      | 🟡 MEDIUM |
+| **유틸리티**   | 3       | 54일 전       | 5.2K      | 🔴 HIGH   |
+| **합계**       | **6**   | -             | **5.3K**  | -         |
+
+**특징**:
+
+- ✅ 안정적 (대부분 18-54일 전 작성, 변경 없음)
+- ✅ 실용적 (코드 예제 포함)
+- ✅ 보완 관계 (architecture/, development/ 문서와 연계)
+
+---
+
+## 💡 빠른 참조
+
+### 성능 최적화 시
+
+**필수 읽기**:
+
+1. `side-effects-optimization-guide.md` (10분)
+2. `development/performance-optimization-guide.md` (20분)
+
+**체크리스트**:
+
+- [ ] useEffect 의존성 배열 최적화
+- [ ] useMemo/useCallback 적절한 사용
+- [ ] 불필요한 리렌더링 제거
+
+---
+
+### Mock/시뮬레이션 환경 설정 시
+
+**단계별 가이드**:
+
+1. `mock-system.md` (5분) - 기본 개념
+2. `simulation.md` (15분) - 실제 설정
+3. `docs/core/architecture/simulation-setup.md` (20분) - 아키텍처
+
+---
+
+### 타입 시스템 작업 시
+
+**참고 순서**:
+
+1. `types.md` (15분) - 기본 타입 가이드
+2. `docs/core/architecture/type-system-consistency.md` (15분) - 일관성 원칙
+3. `docs/core/architecture/typescript-any-removal-project-report.md` (20분) - any 제거 전략
+
+---
+
+## 🔗 관련 문서
+
+### 상세 가이드
+
+- **docs/development/** - 개발 환경, 빌드, 성능 최적화
+  - `README.md` - 개발 가이드 통합
+  - `performance-optimization-guide.md` - 성능 최적화 상세
+  - `build-test-strategy.md` - 빌드 및 테스트
+
+### 아키텍처
+
+- **docs/core/architecture/** - 시스템 아키텍처 및 표준
+  - `type-system-consistency.md` - 타입 일관성
+  - `simulation-setup.md` - 시뮬레이션 아키텍처
+  - `typescript-any-removal-project-report.md` - any 제거
+
+### 실제 구현
+
+- **src/lib/utils/** - 유틸리티 함수 구현
+- **src/lib/auth/** - 인증 시스템 구현
+- **src/lib/mock/** - Mock 시스템 구현
+
+---
+
+## 🎯 Document Index (AI Query Guide)
+
+### 코드 리뷰 시
+
+**체크 항목**:
+
+- [ ] **타입 안전성**: types.md 기준 준수
+- [ ] **Side Effects**: side-effects-optimization-guide.md 패턴
+- [ ] **유틸리티**: utils.md 재사용 가능 여부
+
+---
+
+## 🚨 주의사항
+
+### 문서 연계성
+
+**타입 시스템**:
+
+- guides/types.md (기본) → docs/core/architecture/type-system-consistency.md (상세)
+- 변경 시 두 문서 동기화 필요
+
+**시뮬레이션**:
+
+- guides/mock-system.md (개요) → guides/simulation.md (설정) → docs/core/architecture/simulation-setup.md (아키텍처)
+- 3단계 문서 일관성 유지
+
+**최적화**:
+
+- guides/side-effects-optimization-guide.md (React) → development/performance-optimization-guide.md (전체)
+- 보완 관계 유지
+
+---
+
+### 레거시 vs 최신
+
+**54일 전 문서** (types.md, utils.md, auth-complete.ts):
+
+- ✅ 여전히 유효 (기본 개념 안정적)
+- ⚠️ 최신 패턴은 실제 코드 (src/) 참조
+
+**18-23일 전 문서** (simulation.md, side-effects-optimization-guide.md):
+
+- ✅ 최신 상태 유지
+- ✅ 적극 활용 권장
+
+---
+
+## 🎯 핵심 원칙
+
+> **"재사용 가능한 코드, 명확한 타입, 최적화된 Side Effects"**
+
+**코드 품질**:
+
+- ✅ 타입 안전성 100% (types.md 기준)
+- ✅ 유틸리티 재사용 (utils.md 패턴)
+- ✅ Side Effects 최소화 (optimization-guide 준수)
+
+**개발 효율**:
+
+- ✅ Mock 시스템 활용 (빠른 개발)
+- ✅ 시뮬레이션 환경 (안전한 테스트)
+- ✅ 실제 코드 참조 (최신 패턴)
+
+**문서 활용**:
+
+- ✅ 기본 개념 → guides/
+- ✅ 상세 설명 → architecture/, development/
+- ✅ 실제 구현 → src/
+
+---
+
+## 💡 빠른 팁
+
+### Side Effects 최적화
+
+```typescript
+// ❌ 안 좋은 예
+useEffect(() => {
+  // 매 렌더링마다 실행
+  const data = complexCalculation();
+  setData(data);
+});
+
+// ✅ 좋은 예
+const memoizedData = useMemo(() => {
+  return complexCalculation();
+}, [dependencies]);
+
+useEffect(() => {
+  setData(memoizedData);
+}, [memoizedData]);
 ```
 
-## 🚨 트러블슈팅
+---
 
-### 🔧 자주 발생하는 문제들
+### 타입 안전성
 
-#### MCP 서버 연결 문제
+```typescript
+// ❌ 안 좋은 예
+const data: any = fetchData();
 
-```bash
-# 상태 확인
-claude mcp list
+// ✅ 좋은 예
+interface ServerData {
+  id: string;
+  status: 'online' | 'offline';
+  metrics: ServerMetrics;
+}
 
-# 재시작
-claude mcp restart
-
-# 환경변수 재로드
-source ./scripts/setup-mcp-env.sh
+const data: ServerData = fetchData();
 ```
 
-#### 메모리 부족 경고
+---
 
-```bash
-# 메모리 상태 확인
-free -h
+### 유틸리티 재사용
 
-# WSL 모니터링
-./scripts/wsl-monitor/wsl-monitor.sh --once
+```typescript
+// ❌ 안 좋은 예 - 반복 코드
+const formatted1 = new Date(data1.timestamp).toLocaleDateString();
+const formatted2 = new Date(data2.timestamp).toLocaleDateString();
 
-# 응급 복구
-./scripts/maintenance/emergency-recovery.sh
+// ✅ 좋은 예 - 유틸리티 활용
+import { formatDate } from '@/lib/utils/date';
+
+const formatted1 = formatDate(data1.timestamp);
+const formatted2 = formatDate(data2.timestamp);
 ```
-
-#### AI CLI 도구 연결 실패
-
-```bash
-# 전체 AI 도구 테스트
-./scripts/test-ai-tools.sh
-
-# 개별 도구 인증 확인
-codex auth status    # Codex 인증
-gemini config list   # Gemini 설정
-qwen --help         # Qwen 상태
-```
-
-#### Playwright MCP 브라우저 문제
-
-```bash
-# 플레이라이트 브라우저 상태 확인
-npx playwright --version
-
-# 브라우저 재설치
-npx playwright install --with-deps
-
-# 윈도우 크롬 경로 확인
-ls -la "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
-```
-
-## 📋 체크리스트
-
-### ✅ 환경 설정 완료 확인
-
-- [ ] Node.js v22.19.0 설치됨
-- [ ] npm v11.6.0 설치됨
-- [ ] Claude Code v1.0.119 정상 작동
-- [ ] AI CLI 도구 4개 모두 설치됨
-- [ ] MCP 서버 9개 연결 성공
-- [ ] Playwright MCP 서버 연결 및 브라우저 설정 완료
-- [ ] WSL 메모리 19GB 할당 완료
-- [ ] 프로젝트 의존성 설치 완료
-
-### ✅ 일일 개발 시작 체크
-
-- [ ] WSL 시스템 상태 정상
-- [ ] MCP 서버 연결 상태 확인 (playwright 포함)
-- [ ] AI 도구 응답 상태 확인
-- [ ] 개발 서버 정상 시작
-- [ ] 타입 체크 통과
-- [ ] E2E 테스트 환경 준비 (선택사항)
-
-## 🎨 개발 팁
-
-### 💡 효율적인 개발을 위한 권장사항
-
-1. **🚀 WSL 우선**: 모든 개발 작업은 WSL에서 수행
-2. **🤖 AI 역할 분담**: 각 AI 도구의 특화 분야 활용
-3. **📊 주기적 모니터링**: WSL 성능 상태 주기적 확인
-4. **🔄 환경 백업**: 중요한 설정은 스크립트로 자동화
-5. **⚡ 메모리 최적화**: Node.js 옵션으로 대용량 프로젝트 대응
-6. **🎭 E2E 테스트**: Playwright MCP로 프론트엔드 QA 자동화
-
-### 🎯 성능 최적화 팁
-
-- **Node.js 메모리**: `NODE_OPTIONS="--max-old-space-size=12288"`
-- **WSL 설정**: 19GB 메모리 + 미러 네트워킹 모드
-- **MCP 최적화**: CLI-only 방식으로 응답속도 4배 향상
-- **AI 협업**: 병렬 작업으로 개발 생산성 극대화
-- **Playwright 최적화**: 윈도우 크롬 브라우저 연동으로 안정성 확보
 
 ---
 
 **Last Updated**: 2025-10-16 by Claude Code
-**핵심 철학**: "WSL + Multi-AI 협업으로 개발 생산성 4배 증가"
+**핵심 철학**: "실용성과 재사용성의 균형"
 
----
+## 🤖 AI 도구 통합
 
-## Best Practices and Checklists
+### 설치된 AI CLI 도구
 
-*The following best practices were extracted from a side-effects analysis report generated on 2025-09-24.*
+| 도구 | 버전 | 요금제 | 역할 |
+|------|------|--------|------|
+| **Claude Code** | v2.0.37 | Max ($200/월) | 메인 개발 환경 |
+| **OpenAI CLI (Codex)** | v0.58.0 | Plus ($20/월) | 직접 CLI 실행 |
+| **Google Gemini CLI** | v0.15.4 | 무료 (60 RPM) | 직접 CLI 실행 |
+| **Qwen Code** | v0.2.1 | 무료 (60 RPM) | 설정 최적화 |
+| **Kiro CLI** | v1.20.0 | Beta (AWS) | 멀티 에이전트 터미널 |
 
-### Recommended Development Server Command
-
-To ensure a stable development environment and avoid port conflicts from multiple running instances, always use the `dev:stable` script.
-
+### Claude Code 신규 기능
 ```bash
-# Recommended command to start the development server
-npm run dev:stable
+# 버전 확인
+claude --version  # v2.0.37
+
+# MCP 서버 관리
+claude mcp list
+claude mcp add SERVER_NAME -s local -- COMMAND
 ```
 
-### Side Effect Prevention Checklist
+## 🧪 빌드 및 테스트 전략
 
-To maintain system stability and code quality, please review this checklist during development:
+### TypeScript Strict 모드 빌드
+```bash
+# WSL 네이티브 방식
+npm run build      # 프로덕션 빌드 (2GB 메모리)
+npm run build:prod # DevTools 비활성화 빌드
+```
 
-- [ ] **Maintain TypeScript Strict Mode**: Do not introduce `any` types. Ensure all new code is fully type-safe.
-- [ ] **Update Tests with API Routes**: When an API route is changed or created, the corresponding integration and unit tests must be updated in the same commit.
-- [ ] **Verify After Config Changes**: Any changes to configuration files must be followed by a full build (`npm run build`) and test run (`npm test`) to validate system integrity.
-- [ ] **Ensure Single Dev Server Instance**: Avoid running multiple `npm run dev` instances simultaneously to prevent port conflicts and memory issues. Use `npm run dev:stable`.
-
----
-## Development Philosophy
-
-*The following principles are based on a development process optimization report from 2025-09-21. They reflect a pragmatic approach tailored to a 1-person AI-assisted development reality.*
-
-### 1. Pragmatism Over Dogma
-
-Formal, heavy processes have been actively simplified or removed in favor of more lightweight, on-demand tools.
-
-- **Test-Driven Development (TDD)**: The formal infrastructure for TDD was removed as it was not being actively used. The project instead relies on a strong `Type-First` approach and maintaining a high test coverage (~98%) to ensure quality.
-- **Spec-Driven Development (SDD)**: A complex, 4-stage SDD process was replaced with a lightweight system using the `spec-driven-specialist` sub-agent. This allows for documenting ideas and features as needed, rather than enforcing a rigid upfront specification process.
-
-### 2. Deployment Stability is Paramount
-
-- **GitHub Actions**: A complex set of 7+ GitHub Actions workflows was causing deployment instability. These were pruned to a minimal set of 3 essential workflows, which resolved deployment-blocking issues. E2E tests, while valuable, were disabled from the critical path to ensure CI/CD runs smoothly.
-
-### 3. Trust the AI, but Verify
-
-- The development workflow relies heavily on a multi-AI collaboration system. Each AI has a specialized role (Architecture, Performance, Practical Implementation), and their cross-verification is a key part of the quality process. However, the final decision always rests with the lead developer (or lead AI) who provides the project context.
-
-### 4. On-Demand Documentation
-
-- Rather than extensive upfront design documents, the project prefers to capture architectural decisions and key "whys" in Architectural Decision Records (ADRs) or in targeted, practical guides. This keeps the documentation relevant and less burdensome to maintain.
+### 단계별 검증 체계
+| 단계 | 명령어 | 소요시간 | 목적 |
+|------|--------|----------|------|
+| 1 | `npm run lint` | 30초 | 코드 스타일 검증 |
+| 2 | `npm run typecheck` | 45초 | 타입 안전성 검증 |
+| 3 | `npm run test` | 2분 | 단위 테스트 |
+| 4 | `npm run build` | 3분 | 빌드 검증 |

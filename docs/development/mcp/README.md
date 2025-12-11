@@ -9,38 +9,42 @@ MCP(Model Context Protocol)는 Claude Code의 기능을 확장하는 플러그�
 
 ## 📊 현재 상태 (2025-09-21)
 
-| MCP 서버 | 연결 | 기능 테스트 | 주요 기능 |
-|----------|------|-------------|----------|
-| **🎉 context7** | ✅ | ✅ 완전 작동 | 라이브러리 문서 검색 |
-| **🎉 supabase** | ✅ | ✅ 완전 작동 | PostgreSQL DB 관리 |
-| **🎉 vercel** | ✅ | ✅ 완전 작동 | 프로젝트 배포 관리 |
-| **memory** | ✅ | ⏳ 연결됨 | 지식 그래프 관리 |
-| **time** | ✅ | ⏳ 연결됨 | 시간대 변환 |
-| **sequential-thinking** | ✅ | ⏳ 연결됨 | 단계적 사고 프로세스 |
-| **shadcn-ui** | ✅ | ⏳ 연결됨 | UI 컴포넌트 제공 |
-| **🎉 serena** | ✅ | ✅ 완전 작동 | 코드베이스 분석 |
-| **🎉 playwright** | ✅ | ✅ 완전 작동 | WSL+윈도우 크롬 E2E 테스트 |
+| MCP 서버                | 연결 | 기능 테스트  | 주요 기능                  |
+| ----------------------- | ---- | ------------ | -------------------------- |
+| **🎉 context7**         | ✅   | ✅ 완전 작동 | 라이브러리 문서 검색       |
+| **🎉 supabase**         | ✅   | ✅ 완전 작동 | PostgreSQL DB 관리         |
+| **🎉 vercel**           | ✅   | ✅ 완전 작동 | 프로젝트 배포 관리         |
+| **memory**              | ✅   | ⏳ 연결됨    | 지식 그래프 관리           |
+| **time**                | ✅   | ⏳ 연결됨    | 시간대 변환                |
+| **sequential-thinking** | ✅   | ⏳ 연결됨    | 단계적 사고 프로세스       |
+| **shadcn-ui**           | ✅   | ⏳ 연결됨    | UI 컴포넌트 제공           |
+| **🎉 serena**           | ✅   | ✅ 완전 작동 | 코드베이스 분석            |
+| **🎉 playwright**       | ✅   | ✅ 완전 작동 | WSL+윈도우 크롬 E2E 테스트 |
 
 **9개 서버 연결** | **CLI-only 방식** | **5개 완전 작동**
 
 ## 🚀 빠른 시작
 
 ### 1. MCP 서버 상태 확인
+
 ```bash
 claude mcp list
 ```
 
 ### 2. 환경변수 로드
+
 ```bash
 source ./scripts/setup-mcp-env.sh
 ```
 
 ### 3. 자동 건강 체크
+
 ```bash
 ./scripts/mcp-health-check.sh
 ```
 
 ### 4. 핵심 서버 테스트
+
 ```bash
 # Context7 - 라이브러리 검색
 mcp__context7__resolve-library-id "react"
@@ -55,18 +59,21 @@ mcp__vercel__list_teams
 ## 🔧 핵심 서버 활용법
 
 ### Context7 - 라이브러리 문서
+
 ```bash
 # React 관련 문서 검색
 mcp__context7__resolve-library-id "react"
 ```
 
 ### Supabase - 데이터베이스
+
 ```bash
 # 테이블 목록 확인
 mcp__supabase__list_tables
 ```
 
 ### Vercel - 배포 관리
+
 ```bash
 # 팀 정보 확인
 mcp__vercel__list_teams
@@ -74,11 +81,11 @@ mcp__vercel__list_teams
 
 ## ⚡ 자동화 도구
 
-| 스크립트 | 기능 | 실행 시간 |
-|----------|------|----------|
-| `setup-mcp-env.sh` | 토큰 관리 자동화 | 2-3분 |
-| `mcp-health-check.sh` | 상태 모니터링 | 30초 |
-| `mcp-complete-recovery.sh` | 완전 복구 | 5-10분 |
+| 스크립트                   | 기능             | 실행 시간 |
+| -------------------------- | ---------------- | --------- |
+| `setup-mcp-env.sh`         | 토큰 관리 자동화 | 2-3분     |
+| `mcp-health-check.sh`      | 상태 모니터링    | 30초      |
+| `mcp-complete-recovery.sh` | 완전 복구        | 5-10분    |
 
 ## 🎯 권장 설정 방식
 
