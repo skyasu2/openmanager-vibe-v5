@@ -393,11 +393,7 @@ export default function LoginClient() {
           </h2>
 
           {/* 🔊 스크린 리더를 위한 로딩 상태 알림 (시각적으로 숨김) */}
-          <output
-            aria-live="polite"
-            aria-atomic="true"
-            className="sr-only"
-          >
+          <output aria-live="polite" aria-atomic="true" className="sr-only">
             {isLoading && loadingMessage}
           </output>
 

@@ -24,7 +24,9 @@ describe('MemoryCacheService', () => {
     await cacheService.invalidateCache(); // 전체 캐시 클리어
     cacheService.resetStats();
     // maxSize를 기본값으로 리셋 (싱글톤의 private 속성에 접근)
-    (cacheService as { unifiedCache: { maxSize: number } }).unifiedCache.maxSize = 100;
+    (
+      cacheService as { unifiedCache: { maxSize: number } }
+    ).unifiedCache.maxSize = 100;
   });
 
   afterEach(() => {
@@ -68,7 +70,9 @@ describe('MemoryCacheService', () => {
   describe('LRU 캐시 관리', () => {
     it('최대 크기를 초과하면 가장 적게 사용된 항목을 제거해야 함', async () => {
       // maxSize를 작게 설정하기 위해 private 속성에 접근
-      (cacheService as { unifiedCache: { maxSize: number } }).unifiedCache.maxSize = 3;
+      (
+        cacheService as { unifiedCache: { maxSize: number } }
+      ).unifiedCache.maxSize = 3;
 
       // 3개 항목 추가
       await cacheService.set('key1', 'value1');
@@ -91,7 +95,9 @@ describe('MemoryCacheService', () => {
 
     it('같은 히트 수일 때 가장 오래된 항목을 제거해야 함', async () => {
       vi.useFakeTimers();
-      (cacheService as { unifiedCache: { maxSize: number } }).unifiedCache.maxSize = 2;
+      (
+        cacheService as { unifiedCache: { maxSize: number } }
+      ).unifiedCache.maxSize = 2;
 
       await cacheService.set('old', 'old-value');
 
