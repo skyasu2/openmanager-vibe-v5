@@ -8,7 +8,7 @@
  */
 
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { z } from 'zod';
+import * as z from 'zod';
 
 // 테스트 설정
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
