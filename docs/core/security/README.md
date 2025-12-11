@@ -1,53 +1,62 @@
 ---
 category: security
-purpose: Security best practices and guidelines
+purpose: security_policies_and_guidelines
 ai_optimized: true
 query_triggers:
-  - 'Security'
-  - 'API Keys'
-  - 'Authentication'
-  - 'Secrets Management'
+  - '보안 정책'
+  - '인증 시스템'
+  - 'OAuth 설정'
 related_docs:
-  - 'docs/core/architecture/SYSTEM-ARCHITECTURE-REVIEW.md'
-  - 'docs/deploy/vercel.md'
-last_updated: '2025-11-20'
+  - 'docs/core/security/'
+last_updated: '2025-12-12'
 ---
 
-# 🔒 Security Guidelines
+# 🔒 보안 정책 및 가이드
 
-This document outlines key security principles and best practices for the OpenManager VIBE project.
+OpenManager VIBE v5의 보안 정책과 구현 가이드입니다.
 
-## Core Principles
+## 🔐 인증 시스템
 
-1.  **Principle of Least Privilege**: Services and users should only have the minimum permissions required to perform their functions.
-2.  **Defense in Depth**: Employ multiple layers of security controls.
-3.  **Secure by Default**: Configure systems to be secure out-of-the-box.
+### GitHub OAuth
+- **Provider**: Supabase Auth + GitHub OAuth
+- **Scope**: 기본 프로필 정보 (email, name, avatar)
+- **Session**: JWT 토큰 기반 세션 관리
+- **Storage**: HttpOnly 쿠키 (XSS 방지)
 
-## Secrets Management
+### 로컬 스토리지 마이그레이션
+- **기존**: localStorage 기반 세션
+- **현재**: HttpOnly 쿠키로 마이그레이션 완료
+- **보안 향상**: XSS 공격 벡터 제거
 
-### 🚨 Never Pass Secrets as Command-Line Arguments
+## 🛡️ Supabase 보안 현황
 
-A critical security vulnerability was discovered and fixed where API keys and other secrets were being passed as command-line arguments to a server process (specifically, the `Context7` MCP server).
+### 현재 보안 상태 (무료 티어)
+- **API 인증**: Admin 인증 시스템 적용
+- **환경변수 보호**: 민감한 데이터 노출 제거
+- **RLS 정책**: Row Level Security 활용
+- **읽기 전용 모드**: 포트폴리오 데모용 안전 설정
 
-**The Problem:**
-Passing secrets on the command line exposes them to other users on the system who can view the running process list (e.g., using `ps aux`).
+### 적용된 보안 조치
+- `/api/debug/env` 엔드포인트 Admin 인증 추가
+- 민감한 환경변수 완전 보호
+- Supabase 기본 보안 정책 활용
 
+## 🔧 보안 설정 가이드
+
+### 환경변수 관리
 ```bash
-# VULNERABLE PATTERN - DO NOT USE
-node server.js --api-key="ctx7sk-aa497c7f-f6b0-46c4-9490-1bba844b4f13"
+# 필수 보안 환경변수
+SUPABASE_SERVICE_ROLE_KEY=  # 서버 전용
+NEXTAUTH_SECRET=            # JWT 서명 키
+GITHUB_CLIENT_SECRET=       # OAuth 시크릿
 ```
 
-**The Solution:**
-All secrets, API keys, and other sensitive configuration **must** be passed via environment variables. This prevents them from being exposed in the process list.
+### API 보안
+- **Rate Limiting**: Vercel Edge Functions 기본 제한
+- **CORS**: 도메인별 접근 제어
+- **Input Validation**: Zod 스키마 검증
 
-```bash
-# SECURE PATTERN - USE THIS
-export CONTEXT7_API_KEY="ctx7sk-aa497c7f-f6b0-46c4-9490-1bba844b4f13"
-node server.js
-```
+## 📚 상세 문서
 
-This lesson was learned from the `mcp-improvement-analysis-report.md` (2025-09-20) and is a strict policy for all services in this project.
-
-## File Permissions
-
-Due to limitations of the WSL file system when interacting with Windows, some file permissions may appear overly permissive (e.g., `777`). While not ideal, the risk is considered low in the context of a local development environment. However, on any production Linux system, file permissions for sensitive files like `.env.local` should be set to `600`.
+- **[GitHub OAuth](./github-oauth.md)**: GitHub OAuth 설정 및 구현
+- **[localStorage 마이그레이션](./localStorage-to-cookie-migration.md)**: 보안 강화를 위한 쿠키 마이그레이션
