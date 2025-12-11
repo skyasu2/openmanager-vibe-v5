@@ -20,16 +20,33 @@ const FILE_CACHE_TTL = 300000; // 5분 캐시 TTL (성능 최적화)
 const isServer = typeof window === 'undefined';
 
 /**
+ * 프로덕션 URL (하드코딩 - Vercel 서버리스 폴백용)
+ * VERCEL_URL 환경 변수가 서버리스 런타임에서 사용 불가할 경우 사용
+ */
+const PRODUCTION_URL = 'https://openmanager-vibe-v5.vercel.app';
+
+/**
  * 서버 베이스 URL 구성 (Vercel 환경 지원)
+ *
+ * @description
+ * Vercel 서버리스 함수에서 환경 변수 접근 순서:
+ * 1. VERCEL_URL (Vercel 자동 설정)
+ * 2. NEXT_PUBLIC_APP_URL (사용자 정의)
+ * 3. PRODUCTION_URL (하드코딩 폴백)
+ * 4. localhost (로컬 개발)
  */
 function getServerBaseUrl(): string {
-  // Vercel 배포 환경
+  // Vercel 배포 환경 (빌드 타임 + 런타임)
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
   // 사용자 정의 앱 URL
   if (process.env.NEXT_PUBLIC_APP_URL) {
     return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  // Vercel 프로덕션 환경 감지 (VERCEL_URL 없이 VERCEL=1인 경우)
+  if (process.env.VERCEL === '1') {
+    return PRODUCTION_URL;
   }
   // 로컬 개발 환경
   return 'http://localhost:3000';
@@ -178,9 +195,18 @@ export async function readCachedHourlyFile(
     });
 
     return hourlyData;
-  } catch {
-    console.error(`❌ [FILE-ERROR] 시간별 데이터 파일 없음: ${filePath}`);
-    throw new Error(`베르셀 시간별 데이터 파일 누락: ${cacheKey}.json`);
+  } catch (error) {
+    const baseUrl = getServerBaseUrl();
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [FILE-ERROR] 시간별 데이터 파일 로드 실패:`);
+    console.error(`  - 파일경로: ${filePath}`);
+    console.error(`  - 베이스URL: ${baseUrl}`);
+    console.error(`  - VERCEL_URL: ${process.env.VERCEL_URL || 'undefined'}`);
+    console.error(`  - VERCEL: ${process.env.VERCEL || 'undefined'}`);
+    console.error(`  - 오류: ${errorMsg}`);
+    throw new Error(
+      `베르셀 시간별 데이터 파일 누락: ${cacheKey}.json (baseUrl: ${baseUrl})`
+    );
   }
 }
 
