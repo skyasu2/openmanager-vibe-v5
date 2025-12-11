@@ -6,10 +6,11 @@ query_triggers:
   - '개발 환경 설정'
   - 'WSL 설정'
   - 'AI 도구 설정'
+  - 'Docker 설정'
 related_docs:
   - 'docs/development/README.md'
   - 'docs/environment/wsl/wsl-optimization.md'
-last_updated: '2025-12-01'
+last_updated: '2025-12-12'
 ---
 
 # 💻 Environment 문서 (개발 환경)
@@ -20,20 +21,70 @@ last_updated: '2025-12-01'
 
 이 디렉터리는 **개발자가 로컬에서 개발하기 위한 모든 설정**에 관한 문서를 포함합니다.
 
-- WSL, Node.js 환경 설정
-- Claude Code, AI 도구 (Codex, Gemini, Qwen)
-- 개발 워크플로우 및 트러블슈팅
+## 🐳 Docker Ecosystem
+
+로컬 환경은 **AI Services** (Custom)와 **Supabase Services** (Managed) 두 그룹으로 구성됩니다.
+
+### AI Services (Custom Managed)
+
+| 서비스명 | 컨테이너 이름 | 포트 | 역할 |
+|---------|--------------|------|------|
+| **unified-ai-processor** | `unified-ai-processor` | `8082` | AI 오케스트레이터 (메인) |
+| **mock-ai** | `mock-ai` | `8083` | 가짜 AI (테스트용) |
+
+```bash
+# AI 서비스 실행
+npm run dev:docker:ai
+```
+
+### Supabase Services (Supabase CLI Managed)
+
+| 서비스명 | 외부 포트 | 역할 |
+|---------|----------|------|
+| **supabase-db** | `54322` | PostgreSQL 데이터베이스 |
+| **supabase-rest** | `54321` | PostgREST API |
+| **supabase-studio** | `54323` | 관리 대시보드 |
+
+```bash
+# Supabase 실행
+npx supabase start
+```
+
+## 🏗️ Local Full Stack Setup
+
+### 1. Database Setup
+```bash
+npx supabase start -y
+```
+- **Dashboard**: `http://localhost:54323`
+- **API URL**: `http://localhost:54321`
+
+### 2. AI Services Setup
+```bash
+cd gcp-functions
+docker-compose -f docker-compose.dev.yml up mock-ai
+```
+
+### 3. Environment Configuration
+```env
+# .env.local
+NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT="http://localhost:8083/process"
+```
+
+## 💻 WSL 사용자 주의사항
+
+1. **Docker Desktop 설정**: WSL Integration 활성화 필수
+2. **파일 권한**: WSL 리눅스 파일 시스템 사용 권장
+3. **Localhost 접근**: WSL2에서 `localhost` 공유됨
 
 ## 📂 디렉터리 구조
 
 ```
 environment/
 ├── wsl/                   # WSL 설정
-├── tools/                 # 개발 도구 (Claude Code, MCP, AI CLI)
-├── workflows/             # 개발 워크플로우
-├── testing/               # 테스트 전략
+├── tools/                 # 개발 도구 (Claude Code)
 ├── troubleshooting/       # 문제 해결
-└── guides/                # 개발 가이드
+└── README.md              # 이 파일
 ```
 
 ## 📚 주요 문서
@@ -43,17 +94,18 @@ environment/
 - **[WSL Monitoring](./wsl/wsl-monitoring-guide.md)**: WSL 모니터링
 
 ### 개발 도구 (tools/)
-- **[Claude Code](./tools/claude-code/claude-code-v2.0.31-best-practices.md)**: Claude Code 베스트 프랙티스
-- **[MCP Setup](./tools/mcp/README.md)**: MCP 서버 설정 가이드
-- **[AI Tools](./tools/ai-tools/README.md)**: AI 시스템 전체 개요
+- **[Claude Code](./tools/claude-code/claude-code-hooks-guide.md)**: Claude Code 가이드
 
-### 개발 워크플로우 (workflows/)
-- **[Build & Test Strategy](./workflows/build-test-strategy.md)**: 빌드 및 테스트 전략
-- **[Performance Optimization](./workflows/performance-optimization-guide.md)**: 성능 최적화
+### 문제 해결 (troubleshooting/)
+- **[Common Issues](./troubleshooting/common.md)**: 일반적인 문제들
+- **[Build Issues](./troubleshooting/build.md)**: 빌드 관련 문제
 
-## 💡 빠른 시작
+## 🧹 정리
 
-1. **WSL 설정**: `wsl/wsl-optimization.md` 참조
-2. **Claude Code 설정**: `tools/claude-code/` 참조
-3. **AI 도구 설정**: `tools/ai-tools/README.md` 참조
-4. **MCP 서버 설정**: `tools/mcp/README.md` 참조
+```bash
+# AI 서비스 중지
+cd gcp-functions && docker-compose -f docker-compose.dev.yml down
+
+# Supabase 중지
+npx supabase stop
+```
