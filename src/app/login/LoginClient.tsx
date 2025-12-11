@@ -372,8 +372,7 @@ export default function LoginClient() {
           <div className="relative mb-10 flex flex-col items-center text-center">
             {/* ✨ 로고: 그라데이션 스퀘어 - 중앙 정렬 강화 */}
             <div
-              className={`mb-6 flex h-16 w-16 animate-gradient-x items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-purple-500/30 sm:h-20 sm:w-20`}
-              style={{ backgroundSize: '200% 200%' }}
+              className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-purple-500/30 sm:h-20 sm:w-20`}
             />
             {/* 🎨 [2] 로고와 타이틀 간격 확대 - 라이트 텍스트 (PC 최적화) */}
             <h1 className="mb-3 text-3xl font-bold tracking-tight text-white sm:text-[2.5rem]">
@@ -511,8 +510,8 @@ export default function LoginClient() {
                 <div className="animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/10" />
               )}
 
-              <User className="h-5 w-5 text-gray-600 transition-colors" />
-              <span className="relative z-10">
+              <User className="h-5 w-5 text-gray-400 transition-colors group-hover:text-gray-200" />
+              <span className="relative z-10 tracking-wide">
                 {loadingType === 'guest' ? loadingMessage : '게스트로 체험하기'}
               </span>
               {loadingType === 'guest' && (
@@ -536,19 +535,25 @@ export default function LoginClient() {
           {/* 안내 텍스트 */}
           {/* 🎨 [5] 텍스트 가독성 개선 */}
           <div className="mt-10 grid grid-cols-2 gap-4 text-center text-xs">
-            <div className="rounded-xl bg-gray-800/50 p-3 transition-colors hover:bg-gray-800">
-              <p className="mb-1 text-lg">🔐</p>
-              <strong className="block mb-1 text-gray-200">
+            <div className="group rounded-xl bg-gray-800/50 p-3 transition-all duration-300 hover:bg-gray-800 hover:shadow-lg hover:-translate-y-1">
+              <p className="mb-2 text-xl transition-transform group-hover:scale-110">
+                🔐
+              </p>
+              <strong className="block mb-1 text-gray-100 font-semibold tracking-tight">
                 GitHub 로그인
               </strong>
-              <span className="text-gray-400 font-medium">
+              <span className="text-gray-400 font-medium group-hover:text-gray-300 transition-colors">
                 AI 어시스턴트 직접 체험
               </span>
             </div>
-            <div className="rounded-xl bg-gray-800/50 p-3 transition-colors hover:bg-gray-800">
-              <p className="mb-1 text-lg">👤</p>
-              <strong className="block mb-1 text-gray-200">게스트 모드</strong>
-              <span className="text-gray-400 font-medium">
+            <div className="group rounded-xl bg-gray-800/50 p-3 transition-all duration-300 hover:bg-gray-800 hover:shadow-lg hover:-translate-y-1">
+              <p className="mb-2 text-xl transition-transform group-hover:scale-110">
+                👤
+              </p>
+              <strong className="block mb-1 text-gray-100 font-semibold tracking-tight">
+                게스트 모드
+              </strong>
+              <span className="text-gray-400 font-medium group-hover:text-gray-300 transition-colors">
                 프로젝트 소개 확인
               </span>
             </div>
