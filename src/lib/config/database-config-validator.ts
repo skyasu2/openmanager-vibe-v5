@@ -8,7 +8,7 @@
  * - 무료 티어 최적 설정 가이드
  */
 
-import { z } from 'zod';
+import * as z from 'zod';
 
 // 환경변수 스키마 정의
 const DatabaseConfigSchema = z.object({

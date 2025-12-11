@@ -7,7 +7,7 @@
  * - 기본값 및 검증
  */
 
-import { z } from 'zod';
+import * as z from 'zod';
 import type { Environment } from '../types/common';
 
 // 설정 스키마 정의

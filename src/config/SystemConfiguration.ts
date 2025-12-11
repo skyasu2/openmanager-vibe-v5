@@ -3,12 +3,18 @@
  * 모든 하드코딩된 값들을 환경변수 기반으로 동적 관리
  */
 
-import { z } from 'zod';
+import * as z from 'zod';
+
+// 🔧 Zod v4 ESM 호환 정수 검증 헬퍼
+// Zod v4의 .int() 메서드는 webpack 번들링 시 'int is not defined' 오류 발생
+// .refine(Number.isInteger) 패턴으로 대체하여 런타임 안정성 확보
+const safeInt = () =>
+  z.number().refine(Number.isInteger, { message: 'Must be an integer' });
 
 // 📊 서버 설정 스키마 (타입 안전성 보장)
 export const ServerConfigSchema = z.object({
   // 기본 서버 설정
-  totalServers: z.number().int().min(1).max(50).default(15),
+  totalServers: safeInt().min(1).max(50).default(15),
   serverTypes: z
     .array(z.string())
     .min(1)
@@ -35,8 +41,8 @@ export const ServerConfigSchema = z.object({
 
   // API 응답 설정
   api: z.object({
-    defaultPageSize: z.number().int().min(5).max(100).default(10),
-    maxPageSize: z.number().int().min(10).max(200).default(50),
+    defaultPageSize: safeInt().min(5).max(100).default(10),
+    maxPageSize: safeInt().min(10).max(200).default(50),
     enablePagination: z.boolean().default(true),
     timeoutMs: z.number().min(1000).max(30000).default(10000),
   }),
@@ -45,8 +51,8 @@ export const ServerConfigSchema = z.object({
   performance: z.object({
     enableCache: z.boolean().default(true),
     cacheTtlMs: z.number().min(1000).default(300000), // 5분
-    batchSize: z.number().int().min(1).max(1000).default(100),
-    maxConcurrentRequests: z.number().int().min(1).max(50).default(10),
+    batchSize: safeInt().min(1).max(1000).default(100),
+    maxConcurrentRequests: safeInt().min(1).max(50).default(10),
   }),
 
   // 환경별 설정
