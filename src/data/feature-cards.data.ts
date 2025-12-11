@@ -4,6 +4,7 @@
  */
 
 import { Bot, Database, Sparkles, Zap } from 'lucide-react';
+import { MCP_SERVERS } from '@/config/constants';
 import type { FeatureCard } from '@/types/feature-card.types';
 
 export const FEATURE_CARDS_DATA: FeatureCard[] = [
@@ -129,7 +130,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '🔍 Multi-Perspective: Codex(구현 검증), Gemini(구조 분석), Qwen(최적화 제안)',
         '📊 Quality Gate: 3단계 검증을 통과해야 배포 가능한 엄격한 품질 관리',
         '💰 Cost Efficiency: 단순 검증은 경량 모델, 심층 분석은 고성능 모델 사용',
-        '🔧 11개 MCP 서버: IDE와 긴밀하게 통합된 도구 체인 활용',
+        `🔧 ${MCP_SERVERS.TOTAL_ACTIVE}개 MCP 서버: IDE와 긴밀하게 통합된 도구 체인 활용`,
         '🎯 Human-AI Synergy: 개발자는 결정에 집중하고 검증은 AI가 전담',
       ],
       technologies: [

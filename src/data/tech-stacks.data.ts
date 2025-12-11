@@ -3,6 +3,7 @@
  * 각 Feature Card의 모달에서 표시되는 상세 기술 스택 정보
  */
 
+import { MCP_SERVERS } from '@/config/constants';
 import type { TechItem } from '../types/feature-card.types';
 
 // 바이브 코딩 전용 현재/히스토리 구분 타입
@@ -350,9 +351,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         name: 'MCP 서버',
         category: 'ai',
         importance: 'high',
-        description:
-          'Claude Code의 기능을 확장하는 Model Context Protocol 서버들 (11개)',
-        implementation: `핵심 9개 서버로 개발 효율성 극대화:
+        description: `Claude Code의 기능을 확장하는 Model Context Protocol 서버들 (${MCP_SERVERS.TOTAL_ACTIVE}개)`,
+        implementation: `핵심 ${MCP_SERVERS.TOTAL_ACTIVE}개 서버로 개발 효율성 극대화:
 • vercel: Vercel 플랫폼 배포 및 관리
 • supabase: PostgreSQL 데이터베이스 직접 작업
 • serena: 고급 코드 분석 및 리팩토링
