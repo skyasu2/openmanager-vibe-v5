@@ -546,7 +546,7 @@
 }
 
 /* 🔥 로그인 페이지 애니메이션 - CSP 호환 */
-/* shimmer keyframe은 @layer premium-components에 정의됨 (라인 ~151) */
+/* shimmer keyframe은 @theme 블록에 정의됨 (라인 ~153) */
 
 @keyframes progress {
   0% {
@@ -568,7 +568,7 @@
   }
 }
 
-/* fadeIn keyframe은 @layer premium-components에 정의됨 (라인 ~180) */
+/* fadeIn keyframe은 @theme 블록에 정의됨 (라인 ~184) */
 
 ._animate-shimmer {
   animation: shimmer 1.5s ease-in-out infinite;
@@ -655,7 +655,7 @@ a {
 }
 
 /* 전역 애니메이션 */
-/* fadeIn keyframe은 @layer premium-components에 정의됨 (라인 ~180) */
+/* fadeIn keyframe은 @theme 블록에 정의됨 (라인 ~184) */
 
 @keyframes slideIn {
   from {
@@ -680,7 +680,7 @@ a {
   }
 }
 
-/* gradient-shift keyframe은 @layer premium-components에 정의됨 (라인 ~210) */
+/* gradient-shift keyframe은 @theme 블록에 정의됨 (라인 ~209) */
 
 @keyframes pulse {
   0%,
@@ -703,7 +703,7 @@ a {
   }
 }
 
-/* shimmer keyframe은 @layer premium-components에 정의됨 (라인 ~151) */
+/* shimmer keyframe은 @theme 블록에 정의됨 (라인 ~153) */
 
 /* 🎯 framer-motion 대체 CSS 애니메이션 클래스들 */
 @keyframes gradient-x {

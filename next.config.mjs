@@ -2,6 +2,15 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import bundleAnalyzer from '@next/bundle-analyzer';
 
+// CSP 환경 변수 정규화 헬퍼 (path 제거, origin만 추출)
+function safeOrigin(value, fallback) {
+  try {
+    return value ? new URL(value).origin : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 // package.json에서 버전 읽기
 const packageJson = JSON.parse(
   readFileSync(join(process.cwd(), 'package.json'), 'utf8')
@@ -208,15 +217,22 @@ const nextConfig = {
         'data:', // Base64 이미지
         'blob:', // 동적 이미지
         'https:', // 외부 이미지 허용
-        process.env.NEXT_PUBLIC_SUPABASE_URL ||
-          'https://vnswjnltnhpsueosfhmw.supabase.co', // Supabase Storage
+        safeOrigin(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          'https://vnswjnltnhpsueosfhmw.supabase.co'
+        ), // Supabase Storage
       ].filter(Boolean),
       'connect-src': [
         "'self'",
         'https://vercel.live', // Vercel Toolbar
-        process.env.NEXT_PUBLIC_API_URL || 'https://api.openmanager.dev', // 자체 API
-        process.env.NEXT_PUBLIC_SUPABASE_URL ||
-          'https://vnswjnltnhpsueosfhmw.supabase.co', // Supabase
+        safeOrigin(
+          process.env.NEXT_PUBLIC_API_URL,
+          'https://api.openmanager.dev'
+        ), // 자체 API
+        safeOrigin(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          'https://vnswjnltnhpsueosfhmw.supabase.co'
+        ), // Supabase
         'https://generativelanguage.googleapis.com', // Google AI
         'https://va.vercel-scripts.com', // Vercel Analytics
         'https://vitals.vercel-insights.com', // Speed Insights

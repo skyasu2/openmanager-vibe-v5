@@ -511,7 +511,7 @@ export default function LoginClient() {
                 <div className="animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/10" />
               )}
 
-              <User className="h-5 w-5 transition-colors" />
+              <User className="h-5 w-5 text-gray-600 transition-colors" />
               <span className="relative z-10">
                 {loadingType === 'guest' ? loadingMessage : '게스트로 체험하기'}
               </span>
@@ -542,13 +542,15 @@ export default function LoginClient() {
                 GitHub 로그인
               </strong>
               <span className="text-gray-400 font-medium">
-                개인화 설정 저장
+                AI 어시스턴트 직접 체험
               </span>
             </div>
             <div className="rounded-xl bg-gray-800/50 p-3 transition-colors hover:bg-gray-800">
               <p className="mb-1 text-lg">👤</p>
               <strong className="block mb-1 text-gray-200">게스트 모드</strong>
-              <span className="text-gray-400 font-medium">빠른 기능 체험</span>
+              <span className="text-gray-400 font-medium">
+                프로젝트 소개 확인
+              </span>
             </div>
           </div>
 
