@@ -393,14 +393,13 @@ export default function LoginClient() {
           </h2>
 
           {/* 🔊 스크린 리더를 위한 로딩 상태 알림 (시각적으로 숨김) */}
-          <div
-            role="status"
+          <output
             aria-live="polite"
             aria-atomic="true"
             className="sr-only"
           >
             {isLoading && loadingMessage}
-          </div>
+          </output>
 
           {/* 🚨 에러 메시지 표시 */}
           {errorMessage && (
@@ -432,8 +431,7 @@ export default function LoginClient() {
 
           {/* ✅ 성공 메시지 표시 */}
           {successMessage && (
-            <div
-              role="status"
+            <output
               aria-live="polite"
               className="mb-6 rounded-lg border border-green-600/30 bg-green-900/20 p-4"
             >
@@ -441,7 +439,7 @@ export default function LoginClient() {
                 <span>✅</span>
                 {successMessage}
               </p>
-            </div>
+            </output>
           )}
 
           <div className="space-y-6">

@@ -10,7 +10,6 @@
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import {
-  type ReactNode,
   Suspense,
   useCallback,
   useEffect,

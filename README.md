@@ -3,7 +3,7 @@
 > **AI-Native 서버 모니터링 PoC**
 > **Vibe Coding**을 통해 DevOps의 미래인 **AX (AI Experience)**를 탐구합니다.
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5-black)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.0-black)](https://nextjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Realtime-teal)](https://supabase.com/)
 [![Google AI](https://img.shields.io/badge/Google_AI-Gemini_2.5-blue)](https://ai.google.dev/)
 [![Biome](https://img.shields.io/badge/Biome-Lint_%26_Format-orange)](https://biomejs.dev/)
@@ -124,7 +124,7 @@ graph TD
 
 | 카테고리 | 기술 | 선정 이유 |
 |----------|------|-----------|
-| **Frontend** | Next.js 15 (App Router) | 서버 컴포넌트, 스트리밍, 엣지 런타임 |
+| **Frontend** | Next.js 16 (App Router) | 서버 컴포넌트, 스트리밍, 엣지 런타임 |
 | **State** | Zustand + React Query | 서버 상태 동기화, 낙관적 업데이트 |
 | **Database** | Supabase (PostgreSQL) | 실시간 구독, 벡터 검색 (pgvector) |
 | **AI Engine** | Google Gemini 2.5 Flash | 긴 컨텍스트 윈도우, 빠른 응답 속도 |

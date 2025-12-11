@@ -4,7 +4,7 @@
  * @description 시스템 핵심 에러 처리 로직 검증 (SafeError 변환, 분류, 자동 복구 판단)
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   classifyErrorType,
   createSafeError,

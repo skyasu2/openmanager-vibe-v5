@@ -17,7 +17,6 @@ import {
   CheckCircle,
   Clock,
   Cpu,
-  Eye,
   HardDrive,
   Loader2,
   Monitor,

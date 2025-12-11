@@ -88,7 +88,7 @@ describe('AuthStateManager', () => {
 
     it('should handle login failure gracefully', async () => {
       // Force an error by mocking generateGuestId to throw
-      vi.spyOn(authManager as any, 'generateGuestId').mockImplementation(() => {
+      vi.spyOn(authManager as { generateGuestId: () => string }, 'generateGuestId').mockImplementation(() => {
         throw new Error('ID generation failed');
       });
 

@@ -1,7 +1,12 @@
 /**
- * 🎯 통합 서버 데이터 소스 관리자
- * 단일 진실 소스(Single Source of Truth) 원칙 적용
- * 모든 API가 동일한 데이터 소스를 사용하도록 보장
+ * 🎯 Unified Server Data Source
+ *
+ * Single Source of Truth for all server-related data in the application.
+ * Manages caching, validation, and data synchronization between client/server.
+ *
+ * @created 2025-12-01
+ * @author AI Assistant
+ * @version 2.0.0 (SSOT Architecture Implemented)
  */
 
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';

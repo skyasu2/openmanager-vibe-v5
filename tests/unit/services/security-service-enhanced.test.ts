@@ -107,7 +107,7 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
         if (args.length === 0) {
           return mockFutureTime;
         }
-        return new (Date as any)(...args);
+        return new (Date as DateConstructor)(...args);
       });
 
       // Then: 만료된 세션은 무효해야 함
@@ -215,7 +215,7 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
         if (args.length === 0) {
           return mockExpiredTime;
         }
-        return new (Date as any)(...args);
+        return new (Date as DateConstructor)(...args);
       });
 
       // When: 만료된 세션으로 접근 시도
@@ -491,8 +491,8 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
 
     it('null/undefined 매개변수 처리가 안전해야 함', async () => {
       // Given: null/undefined 매개변수들
-      const nullSessionId = null as any;
-      const undefinedResource = undefined as any;
+      const nullSessionId = null as string | null;
+      const undefinedResource = undefined as string | undefined;
 
       // When & Then: 안전하게 처리되어야 함
       const result1 = await securityService.validateSession(nullSessionId);

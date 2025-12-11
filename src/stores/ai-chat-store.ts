@@ -1,3 +1,14 @@
+/**
+ * 🧠 AI Chat Store
+ *
+ * Manages the global state for the AI Assistant chat interface.
+ * Handles messages, thinking process modes, and multi-modal attachments.
+ *
+ * @created 2025-11-29
+ * @author AI Assistant
+ * @version 1.2.0 (Models & Thinking Mode Integrated)
+ */
+
 import { create } from 'zustand';
 import type { ThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
 

@@ -18,14 +18,14 @@ interface TestResult {
   status: number;
   success: boolean;
   duration: number;
-  data?: any;
+  data?: unknown;
   error?: string;
 }
 
 async function testEndpoint(
   endpoint: string,
   method: 'GET' | 'POST' = 'GET',
-  body?: any
+  body?: unknown
 ): Promise<TestResult> {
   const start = Date.now();
   const url = `${BASE_URL}${endpoint}`;

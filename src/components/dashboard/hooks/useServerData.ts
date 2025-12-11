@@ -21,7 +21,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useServerDataStore } from '@/components/providers/StoreProvider';
-import type { EnhancedServerMetrics, Server } from '@/types/server';
+import type { EnhancedServerMetrics } from '@/types/server';
 import type { DashboardStats, ServerFilters } from '../types/dashboard.types';
 
 // 🔄 기존 useServerDashboard와의 호환성을 위한 인터페이스 확장

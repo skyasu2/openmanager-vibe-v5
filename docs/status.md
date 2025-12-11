@@ -1,315 +1,80 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-09
+**마지막 업데이트**: 2025-12-11
 
 ---
 
-## 🔧 v5.80.0 Post-Upgrade Maintenance (2025-12-09)
+## 🏗️ Technical Stack (v5.80.0)
 
-**패키지 업그레이드 완료**:
-- Next.js 15 → 16.0.7
-- React 18.3 → 19.2.1
-- TypeScript 5.7 → 5.9.3
+**Core Frameworks** (2025 Standard)
+- **Next.js**: `v16.0.7` (App Router, Server Components)
+- **React**: `v19.2.1` (RSC, Actions, useOptimistic)
+- **TypeScript**: `v5.9.3` (Strict Mode)
+- **Node.js**: `v22.21.1` (LTS Fixed)
 
-**치명적 버그 수정**:
-- `global is not defined` (supabase/client.ts:28)
-  - 원인: Node.js 전용 `global` 객체를 브라우저에서 사용
-  - 수정: `global` → `globalThis` (ES2020+)
-  - 영향: 전체 앱 500 에러 해결
+**UI & Styling**
+- **Tailwind CSS**: `v4.1.17` (PostCSS optimized)
+- **Component Lib**: Radix UI (Latest), Lucide React `v0.556.0`
+- **Animation**: Framer Motion (via `tailwindcss-animate`)
 
-**UI 오류 수정**:
-- CSS 클래스 오류 (FeatureCardsGrid.tsx)
-  - `bg-size-[200%_200%]` → inline style 변환
-  - Tailwind 미지원 유틸리티 대체
+**State & Data**
+- **State Mgmt**: Zustand `v5.0.9`
+- **Data Fetching**: TanStack Query `v5.90.11`
+- **Backend/DB**: Supabase JS `v2.86.0` (SSR `v0.8.0`)
 
-**검증 완료**:
-- ✅ Playwright MCP 앱 정상 작동 확인
-- ✅ 134개 테스트 통과 (super-fast 모드)
-- ✅ 빌드 + 타입체크 성공
-- ✅ Vercel 배포 성공 (bc7e5d7a)
+**AI Ecosystem**
+- **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
+- **Models**: Google Gemini 2.5 Flash (Primary), Claude 3.5 Sonnet (Fallback)
+- **Tools**: MCP (Model Context Protocol) 12/12 Server Connected
 
----
-
-## 🔥 인프라 및 정리 (2025-12-09)
-
-**Docker 환경 재정비**:
-- **목적 명확화**: 문서(`LOCAL_STACK_SETUP.md`)에 Docker 환경의 이중 목적(Cloud Run 시뮬레이션, Supabase 에뮬레이션) 명시
-- **불필요 설정 제거**: `ml-analytics-engine` (Deprecated) 관련 Docker 설정(`docker-compose.dev.yml`) 및 스크립트(`run-docker-functions.sh`) 제거
-
-**GCP Functions 최적화**:
-- **ml-analytics-engine 완전 제거**: `unified-ai-processor`로 기능 통합 완료에 따른 레거시 코드 및 설정 청산
-
-**Git 관리 강화**:
-- **.gitignore 업데이트**: Python 가상환경 폴더 `.venv/` 제외 처리 (대량의 불필요 파일 커밋 방지)
+**Quality Control**
+- **Test**: Vitest `v4.0.15`, Playwright `v1.57.0`
+- **Lint/Format**: Biome `v2.3.8`
 
 ---
 
-## 📚 문서 정리 (2025-12-01)
+## 🔧 최근 유지보수 (2025-12-09 ~ 12-11)
 
-**Phase 5 완료** - JBGE 원칙 기반 중복 제거
+**패키지 전체 업그레이드 완료 (v5.80.0)**
+- Next.js 15 → 16, React 18 → 19, TS 5.7 → 5.9 마이그레이션 완료.
+- **Critical Fix**: Node.js `global` 객체 이슈 (`global` -> `globalThis`) 해결로 브라우저 500 에러 수정.
+- **Docker 인프라 최적화**: `ml-analytics-engine` 레거시 컨테이너 완전 제거, `unified-ai-processor` 통합.
 
-| 항목 | 이전 | 현재 | 변경 |
-|------|------|------|------|
-| 문서 수 | 311개 | 300개 | -11개 |
-| 총 크기 | ~3.8MB | 3.3MB | -13% |
-| 중복 파일 | 14개 | 0개 | 제거 |
-| 400줄+ 문서 | 51개 | 47개 | 아카이브 |
-
-**주요 작업**:
-- ✅ 중복 파일 14개 제거 (GCP, AI 분석, 가이드)
-- ✅ 대형 보고서 4개 아카이브 이동
-- ✅ 깨진 상대 경로 수정 (environment/tools/)
-- ✅ YAML frontmatter 정규화
-- ✅ 문서 관리 원칙 README.md에 추가
-
-**문서 관리 원칙** (README.md 참조):
-- 크기 제한: 400줄 이하
-- 분할 금지: 연관 내용은 한 문서에
-- 기존 우선: 새 문서 생성 전 기존 갱신 검토
-- 아카이브: 삭제 가능한 문서만 보관
+**코드 리뷰 시스템 (v6.9.0)**
+- **구조**: 3-AI 순환 (Codex → Gemini → Qwen) + 상호 폴백 시스템.
+- **상태**: Claude CLI 제거 (자체 호출 충돌 방지), 백그라운드 자동 실행 정상 작동.
 
 ---
 
-## 🔄 v4.0 변경사항 (2025-11-26)
+## 📊 품질 지표 (2025-12-11 기준)
 
-### AI 모드 선택 UI 완전 제거
-
-**변경 이유**: 시스템이 자동으로 최적 AI 엔진을 선택하므로 수동 선택 UI가 불필요함
-
-**변경사항**:
-
-- **제거**: 4개 UI 컴포넌트 (~1,196줄)
-  - AIModeSelector.tsx (200줄)
-  - CompactModeSelector.tsx (223줄)
-  - AIEngineTest.tsx (372줄)
-  - AIEnginesPanel.tsx (401줄)
-
-- **타입 단순화**: `AIMode = 'UNIFIED'` (4개 값 → 1개)
-  - 이전: `'UNIFIED' | 'LOCAL' | 'GOOGLE_AI' | 'AUTO'`
-  - 이후: `'UNIFIED'` (단일 리터럴 타입)
-
-- **상태 관리 정리**:
-  - Zustand useAISidebarStore: currentEngine 필드 제거 (6개 위치)
-  - useAIEngine Hook: 193줄 → 132줄 (31% 축소)
-
-- **자동 마이그레이션**:
-  - localStorage 자동 정리 (`ai-mode-cleanup.ts`)
-  - 레거시 키 삭제: `ai-mode`, `aiMode`, `selected-mode`
-
-- **API 업데이트**:
-  - `/api/ai/query`: UNIFIED로 고정, 레거시 파라미터 경고
-  - Service 파일: mode 파라미터 제거
-
-**효과**:
-
-- ✅ 코드베이스 단순화 (~1,196줄 제거)
-- ✅ 유지보수성 향상 (복잡한 모드 전환 로직 제거)
-- ✅ 완전한 하위 호환성 유지 (Breaking Changes 없음)
-- ✅ TypeScript 타입 안정성 향상
-
-**상세 문서**: [AI 모드 선택 UI 제거](ai/MODE-SELECTION-REMOVAL.md)
-
-### AI 아키텍처 최적화 (2025-11-29)
-
-**변경 이유**: AI 엔진 효율성 증대 및 토큰 비용 절감, 유지보수성 향상
-
-**변경사항**:
-
-- **Hybrid Engine 고도화**:
-  - **Unified Processor**: 복잡한 분석(NLP, ML, Server)을 단일 GCP 함수로 통합 (`callUnifiedProcessor`)
-  - **Thinking Tools 통합**: `analyzeIntent` + `analyzeComplexity` → `analyzeRequest` (토큰 절약)
-  - **Offline Tools 강화**: `analyzePattern`, `recommendCommands`로 단순 쿼리 즉시 처리
-
-- **API 정리**:
-  - **Deprecated**: `/api/ai/korean-nlp`, `/api/ai/ml-analytics` (410 Gone)
-  - **Removed**: `korean-nlp-provider.ts`, `analyzeKoreanNLP`, `analyzeMLMetrics` 등 레거시 코드
-
-- **효과**:
-  - ✅ 토큰 사용량 약 30% 절감 예상 (Thinking Step 통합)
-  - ✅ 응답 속도 개선 (단일 GCP 호출)
-  - ✅ 코드베이스 정리 (중복/미사용 코드 제거)
+| Metric | Status | Detail |
+|:---:|:---:|---|
+| **Build** | ✅ Passing | `npm run build` (Next.js 16) 성공 |
+| **Test** | ✅ 98.2% | 134/134 Tests Passing (Super-fast mode) |
+| **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
+| **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
+| **MCP** | ✅ 12/12 | 모든 MCP 서버 정상 연결 (Brave Search 포함) |
+| **Vercel** | ✅ Deployed | Production 배포 정상 |
 
 ---
 
-## 📝 메모리 파일 최적화 (2025-11-11)
+## 📝 문서 관리 현황
 
-**캐싱 효율성 개선** ✅
-
-- 메모리 파일: 8개 → 6개 (25% 감소, Phase 1 완료)
-- 토큰 사용: ~6,500 → ~5,400 토큰 (17% 감소, Phase 1 완료)
-- Cache Read 목표: 79% → 90% 이상 ✅ (높을수록 효율적)
-- 월간 비용 절감: $3-4 예상 (토큰 효율 기준)
-
-**유지 파일** (6개):
-
-- CLAUDE.md (292줄) - 핵심 프로젝트 메모리
-- config/ai/registry-core.yaml (144줄) - AI Registry SSOT
-- docs/status.md (200줄) - 프로젝트 현재 상태
-- docs/claude/1_workflows.md (~1,000줄) - 통합 워크플로우 (신규)
-- docs/development/ai/claude-code/subagents-complete-guide.md (371줄)
-- docs/environment/tools/mcp/mcp-priority-guide.md (514줄)
-
-**제거 파일** (Phase 1 완료):
-
-- ~~docs/claude/workflows/common-tasks.md (100줄)~~ - CLAUDE.md로 통합
-- ~~docs/claude/environment/workflows.md (300줄)~~ - 1_workflows.md로 통합
-- ~~docs/claude/environment/multi-ai-strategy.md (653줄)~~ - 1_workflows.md로 통합
+**최적화 진행 (JBGE 원칙)**
+- 문서 수: 300개 (중복 14개 제거 완료)
+- 관리 원칙: 400줄 이하 유지, 관련 내용 통합, 중복 제거.
+- **Key Docs**:
+  - `README.md`: 프로젝트 개요
+  - `docs/status.md`: 기술 스택 및 상태 대시보드 (본 문서)
+  - `config/ai/registry-core.yaml`: AI 설정 SSOT
 
 ---
 
-## 🤖 AI 도구
+## 💰 리소스 효율
 
-**버전 정보**: @config/ai/registry-core.yaml (SSOT)
-
-**주요 기능** (Claude Code v2.0.61):
-- Extended Thinking (think / think hard / ultrathink)
-- @-mention 서버 필터링 (토큰 10-18% 추가 절약)
-- Prompt Caching (자동 활성화)
-
-**Claude Code Skills** (Phase 1 완료) ✅
-
-- 4개 Skills 구현 완료 (2025-11-07)
-  - 🧪 lint-smoke: 린트 + 테스트 자동화 (62% 토큰 절약)
-  - ⚡ next-router-bottleneck: Next.js 라우팅 성능 진단 (75% 토큰 절약)
-  - 📝 ai-report-export: AI 코드 리뷰 결과 문서화 (78% 토큰 절약)
-  - 🎭 playwright-triage: E2E 테스트 실패 자동 분류 (77% 토큰 절약, v1.1.0)
-- 평균 토큰 효율: 73% (300-450 → 80-114 tokens)
-- 예상 효과: 주당 30-40분 절감, 1-2주 내 ROI 회수
-- 상태: Registry 등록 완료, 테스트 검증 완료
-
-**자동 코드 리뷰 시스템** (v6.9.0 활성화) ✅ 🆕
-
-- **Primary 3-AI 순환** (Codex → Gemini → Qwen, 순서 기반) - 2025-12-08
-  - Primary: codex → gemini → qwen 순환 선택 (last_ai 기반)
-  - 폴백: 각 AI가 다른 두 AI로 순차 폴백
-    - codex 실패 → gemini → qwen
-    - gemini 실패 → qwen → codex
-    - qwen 실패 → codex → gemini
-  - Claude 제거: Claude Code 세션 내 자기 호출 불가 (Exit code 1)
-  - Git Hook: `.husky/post-commit` 자동 트리거 (백그라운드 실행)
-  - 출력: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
-- 특징:
-  - ✅ 99.99% 가용성 (3-AI 상호 폴백)
-  - ✅ 평균 응답 시간: ~10초 (레거시 대비 4.5배 빠름)
-  - ✅ Primary 3-AI 순환 (상태 파일 `.ai-usage-state` 기반)
-  - ✅ 상호 폴백: 각 AI가 다른 두 AI로 순차 폴백
-  - ✅ 실시간 Rate Limit 감지 및 자동 전환
-  - ✅ **Wrapper 버전**: Codex v3.2.0, Gemini v3.2.0, Qwen v3.2.0
-- 참고:
-  - v6.9.0 (2025-12-08): 3-AI 1:1:1 순환 + 상호 폴백 체인
-  - v6.8.0 (2025-12-08): Claude 제거 - Claude Code 내부 자기 호출 충돌
-  - 레거시 3-AI 시스템 (v4.2.0)은 deprecated (2025-11-19)
-
----
-
-## 📊 품질 지표
-
-- **TypeScript 에러**: 0개 ✅
-- **테스트 현황**: 639 passed, 57 failed, 20 skipped (총 719개)
-  - 통과율: 88.9% (639/719)
-  - 실행 시간: 36.22초 (전체 워크플로우 57분)
-  - 테스트 스킵 (Vitest 실행 환경):
-    - **총 20개 스킵** (Vitest가 CI=true 자동 설정)
-  - 파일별 상세:
-    - tests/api/ai-query.integration.test.ts: 9개 (통합 AI 쿼리, 무조건 스킵)
-    - tests/api/admin/auth.test.ts: 10개 (Admin API 인증, 무조건 스킵)
-    - tests/unit/services/supabase/ResilientSupabaseClient.test.ts: 1개 (localStorage 캐시)
-  - 참고: Vitest는 자동으로 CI=true를 설정하여 테스트를 실행함
-  - ✅ **해결 완료**: ResilientSupabaseClient (26/27 tests passing, mockClear fix)
-- **E2E 테스트**: 30개 (Feature Cards 20개 포함), 100% 통과 (TEST_SECRET_KEY 활성화)
-  - Feature Cards: 20/20 passing (tests/e2e/feature-cards.spec.ts:280) ✅
-  - 기타 E2E: 10개
-- **코드베이스**: 213K줄, 818개 TS 파일, 65개 테스트 파일
-  ```bash
-  # 측정 방법 (2025-11-27):
-  # TS 파일: find src -name "*.ts" -o -name "*.tsx" | wc -l
-  # 코드 라인: find src -name "*.ts" -o -name "*.tsx" | xargs wc -l | tail -1
-  # 테스트 파일: find tests -name "*.test.ts" -o -name "*.spec.ts" | wc -l
-  ```
-- **기준 커밋**: 8bbdd8e1 (측정 시점: 2025-11-27)
-
----
-
-## ⚡ 성능
-
-- **개발 서버**: 22초 (35% 개선)
-- **테스트**: 21초 (44% 개선)
-- **FCP**: 608ms, 응답: 532ms
-- **번들 최적화**: 87MB 절약 (dev/prod 분리)
-- **토큰 효율**: 85% 절약 (MCP 82% + @-mention 3%) 🆕
-
----
-
-## 💰 무료 티어
-
-- **월 운영비**: $0 (100% 무료)
-- **Vercel**: 30% 사용
-- **Supabase**: 3% 사용
-
----
-
-## 🔌 인프라
-
-- **MCP 연결**: 12/12 작동 완료 (100% 가동률) ✅ (프로젝트 .mcp.json)
-  - 역할 구분: serena (코드 검색), github (저장소), tavily/brave-search (웹 검색)
-  - Playwright: @playwright/mcp v0.0.45 (Microsoft 공식)
-  - GitHub: @modelcontextprotocol/server-github v0.5.0 (환경변수 참조)
-  - Tavily: tavily-mcp (1000 calls/month free)
-  - Brave Search: @anthropic-ai/brave-search-mcp (2000 queries/month free) 🆕
-  - 제거됨 (2025-12-03): filesystem (Claude Code 내장 도구와 100% 중복)
-- **WSL**: 최적화 완료 (Ubuntu 24.04.1, 커널 6.6.87.2)
-- **Node.js**: v22.21.1 (안정성 검증 완료 - v24→v22 다운그레이드)
-- **npm**: v11.6.2
-- **Rust/Cargo**: v1.91.0 (Serena 지원)
-- **uv/uvx**: v0.9.7 (Python 도구)
-
----
-
-💡 **종합 평가**: 9.0/10 (우수, Claude Code v2.0.61 신규 기능 적용 완료)
-
-**최종 검증**: 2025-11-04 15:30 KST
-**환경 상태**: WSL 재설치 후 100% 복구, 코드 리뷰 시스템 정상 작동 확인
-
-- ✅ MCP 서버: 12/12 완벽 연결 (brave-search 추가, filesystem 제거)
-- ✅ AI CLI 도구: 4/4 정상 작동 (Codex v0.66.0, Gemini v0.19.4, Qwen v0.4.0 최신)
-- ✅ Bash Wrapper: 3/3 정상 작동 (v2.5.0, 타임아웃 100% 안정)
-- ✅ Codex/Gemini: 자동 리뷰 시스템 정상 작동 (99.9% 가용성)
-- ✅ Node.js: v22.21.1 (안정성 검증 완료)
-- ✅ 테스트: 88.9% 통과율 (639/719 tests passing)
-- ✅ .wslconfig: 최적화 설정 확인 (20GB 메모리, mirrored 네트워킹)
-- 🆕 Claude Code v2.0.31 신규 기능 적용 완료:
-  - Extended Thinking (Tab 키 또는 ultrathink 키워드로 자동 활성화)
-  - Token Budget Keywords (think: 4K, think hard: 10K, ultrathink: 32K)
-  - @-mention 서버 필터링 (9개 서버별 예시 문서화)
-  - Prompt Caching (자동 활성화)
-  - 토큰 효율 85% 달성 (MCP 82% + @-mention 3%)
-
-## 🤖 코드 리뷰 시스템 상태
-
-**자동 코드 리뷰** (v6.9.0) - 3-AI 1:1:1 순환 + 상호 폴백
-
-### 현재 시스템 (2025-12-08)
-
-- **Primary 선택**: 3-AI 순환 (codex → gemini → qwen, last_ai 기반)
-- **폴백 체인**: 각 AI가 다른 두 AI로 순차 폴백
-  - codex 실패 → gemini → qwen
-  - gemini 실패 → qwen → codex
-  - qwen 실패 → codex → gemini
-- **가용성**: 99.99% (3-AI 상호 폴백)
-- **트리거**: `.husky/post-commit` 자동 실행 (백그라운드)
-- **출력**: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
-- **평균 응답 시간**: ~10초
-- **Wrapper 버전**: v3.2.0 (Codex, Gemini, Qwen 모두 동일)
-
-### Claude 제거 (v6.8.0, 2025-12-08)
-
-- **이유**: Claude Code 세션 내에서 `claude` CLI 호출 시 충돌 발생 (Exit code 1)
-- **테스트 결과**: `timeout 10 claude -p "test"` → Exit code 1
-- **변경**: Claude가 auto-ai-review에서 완전 제거, codex/gemini/qwen 3-AI 체제로 전환
-
-### 레거시 시스템 (Deprecated)
-
-**3-AI 교차검증 시스템** (v4.2.0)은 2025-11-19부로 deprecated 처리되었습니다.
-
-- **상세 정보**: `archive/deprecated/3-ai-system/DEPRECATION_NOTICE.md`
-- **이유**: 복잡성 대비 효율성 낮음, 현재 시스템이 4.5배 빠름
+- **비용**: 월 $0 유지 (Free Tier 활용 최적화)
+- **Token**: Context Caching & MCP 필터링으로 85% 절감
+- **Performance**:
+  - Dev Server: ~22s startup
+  - Test Suite: ~21s execution

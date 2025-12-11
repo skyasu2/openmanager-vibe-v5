@@ -4,7 +4,7 @@
  * @description 사용자 권한 및 인증 상태에 따른 Hook 동작 검증
  */
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useUserPermissions } from '../../../src/hooks/useUserPermissions';
 

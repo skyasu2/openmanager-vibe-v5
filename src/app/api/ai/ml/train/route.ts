@@ -312,7 +312,7 @@ function trainPatterns(metrics: MLMetricData[]): Partial<TrainingResult> {
 }
 
 // 이상 패턴 분석
-function trainAnomalyDetection(
+function _trainAnomalyDetection(
   metrics: MLMetricData[]
 ): Partial<TrainingResult> {
   // 임계값 기반 이상 탐지
@@ -458,7 +458,7 @@ function trainIncidentLearning(
 }
 
 // 예측 모델 훈련 (v2.0: 실제 트렌드 분석)
-function trainPredictionModel(
+function _trainPredictionModel(
   metrics: MLMetricData[]
 ): Partial<TrainingResult> {
   // 간단한 시계열 트렌드 분석
