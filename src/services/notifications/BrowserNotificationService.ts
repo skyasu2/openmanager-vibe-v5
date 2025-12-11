@@ -28,7 +28,6 @@ class BrowserNotificationService {
   private isEnabled: boolean = false;
   private permission: NotificationPermission = 'default';
   private notificationHistory: NotificationOptions[] = [];
-  private maxHistorySize = 50; // 히스토리 크기 축소 (100 → 50)
 
   // 서버별 이전 상태 추적 (상태 변화 감지용)
   private previousServerStates = new Map<
@@ -87,10 +86,17 @@ class BrowserNotificationService {
 
     // 통합 기준으로 알림 발송 여부 결정
     if (shouldSendWebNotification(currentStatus, previousStatus)) {
-      const message = this.getStatusMessage(serverName, currentStatus, previousStatus);
-      const variant = 
-        currentStatus === 'critical' ? 'destructive' : 
-        currentStatus === 'warning' ? 'warning' : 'success';
+      const message = this.getStatusMessage(
+        serverName,
+        currentStatus,
+        previousStatus
+      );
+      const variant =
+        currentStatus === 'critical'
+          ? 'destructive'
+          : currentStatus === 'warning'
+            ? 'warning'
+            : 'success';
 
       // 🔔 서버 알림은 이제 Toast로 표시 (좌측 하단)
       toast({
@@ -98,7 +104,7 @@ class BrowserNotificationService {
         description: message,
         variant: variant,
       });
-      
+
       console.log(`💬 Toast 알림 발송: ${message}`);
     }
 
@@ -138,8 +144,8 @@ class BrowserNotificationService {
    */
   private sendNotification(
     message: string,
-    type: 'critical' | 'warning' | 'info',
-    serverId?: string
+    _type: 'critical' | 'warning' | 'info',
+    _serverId?: string
   ): void {
     // 🚀 브라우저 환경 체크 (로그 스팸 제거)
     if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -153,7 +159,7 @@ class BrowserNotificationService {
         body: message,
         icon: '/favicon.ico',
         badge: '/favicon.ico',
-        tag: 'system-alert', 
+        tag: 'system-alert',
         requireInteraction: true, // 시스템 알림은 중요하므로 상호작용 필요
         silent: false,
       });
@@ -163,26 +169,10 @@ class BrowserNotificationService {
         window.focus();
         notification.close();
       };
-      
+
       console.log(`🔔 웹 알림 발송: ${message}`);
     } catch (error) {
       console.error('❌ 웹 알림 발송 실패:', error);
-    }
-  }
-
-  /**
-   * 📚 히스토리 관리 (Deprecated likely, but keeping for compatibility if needed)
-   */
-  private addToHistory(options: NotificationOptions): void {
-     // 히스토리 로직 유지
-    this.notificationHistory.unshift(options);
-
-    // 필요시에만 히스토리 정리 (30분 이상 된 항목만 제거)
-    if (this.notificationHistory.length > this.maxHistorySize) {
-      this.notificationHistory = this.notificationHistory.slice(
-        0,
-        this.maxHistorySize
-      );
     }
   }
 

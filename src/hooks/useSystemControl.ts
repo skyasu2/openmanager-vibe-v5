@@ -5,7 +5,6 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { safeErrorLog, safeErrorMessage } from '../lib/error-handler';
 import { systemLogger } from '../lib/logger';
 
-
 type AIAgentState = {
   isEnabled: boolean;
   state?: 'disabled' | 'enabled' | 'processing' | 'idle';
@@ -56,7 +55,7 @@ export function useSystemControl(): UseSystemControlReturn {
   } = useUnifiedAdminStore();
 
   // 기본값으로 안전하게 처리
-  const state = unifiedSystemStarted ? 'active' : 'inactive';
+  const _state = unifiedSystemStarted ? 'active' : 'inactive';
   const _sessionInfo = { isActive: unifiedSystemStarted };
 
   // 누락된 속성들을 기본값으로 설정
@@ -82,7 +81,7 @@ export function useSystemControl(): UseSystemControlReturn {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const isSystemActive = unifiedSystemStarted;
+  const _isSystemActive = unifiedSystemStarted;
 
   const formatTime = (ms: number) => {
     const minutes = Math.floor(ms / (1000 * 60));

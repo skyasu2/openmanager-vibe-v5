@@ -4,8 +4,8 @@
  * OpenManager Vibe v5 상태 관리 모듈 통합 (Google OAuth 제거됨)
  */
 
-import { useServerQuery } from '@/hooks/useServerQuery';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
+import { useServerQuery } from '@/hooks/useServerQuery';
 import { useUnifiedAdminStore } from '../useUnifiedAdminStore';
 
 // 기본 스토어들 익스포트
@@ -48,9 +48,11 @@ export const useServerManagement = () => {
   return {
     servers: isSystemStarted ? servers : [],
     isLoading: isSystemStarted ? isLoading : false,
-    error: isSystemStarted ? (error?.message || null) : null,
+    error: isSystemStarted ? error?.message || null : null,
     updateServer: undefined, // Removed as we use React Query
-    refreshServers: async () => { await refetch(); },
+    refreshServers: async () => {
+      await refetch();
+    },
     isSystemActive: isSystemStarted,
   };
 };

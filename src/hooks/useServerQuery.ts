@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { mapServerToEnhanced } from '@/utils/serverUtils';
 import type { EnhancedServerMetrics } from '@/types/server';
+import { mapServerToEnhanced } from '@/utils/serverUtils';
 
 const fetchServers = async (): Promise<EnhancedServerMetrics[]> => {
   const response = await fetch('/api/servers-unified?limit=50');

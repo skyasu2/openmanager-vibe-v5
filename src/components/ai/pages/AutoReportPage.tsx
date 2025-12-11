@@ -28,8 +28,6 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
-import type { EnhancedServerMetrics } from '@/types/server';
-
 // ============================================================================
 // Types
 // ============================================================================

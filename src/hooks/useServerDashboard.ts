@@ -13,6 +13,7 @@ import { useServerDataCache } from '@/hooks/dashboard/useServerDataCache';
 import { useServerFilter } from '@/hooks/dashboard/useServerFilter';
 import { useServerPagination } from '@/hooks/dashboard/useServerPagination';
 import { useServerStats } from '@/hooks/dashboard/useServerStats';
+import { useServerQuery } from '@/hooks/useServerQuery';
 import type {
   DashboardTab,
   EnhancedServerData,
@@ -28,15 +29,17 @@ import { transformServerData } from '@/utils/dashboard/server-transformer';
 import { formatUptime } from '@/utils/dashboard/server-utils';
 import { useServerMetrics } from './useServerMetrics';
 
-import { useServerQuery } from '@/hooks/useServerQuery';
-
 // 🎯 기존 useServerDashboard 훅 (하위 호환성 유지 + 성능 최적화)
 export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const { onStatsUpdate } = options;
 
   // React Query로 데이터 가져오기
-  const { data: rawServers = [], isLoading, error: queryError } = useServerQuery();
-  
+  const {
+    data: rawServers = [],
+    isLoading,
+    error: queryError,
+  } = useServerQuery();
+
   const error = queryError ? queryError.message : null;
 
   // 🛡️ Race Condition 방어: 캐싱 훅 사용
@@ -60,7 +63,6 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const { metricsHistory } = useServerMetrics();
 
   // 🚀 React Query가 자동 갱신을 처리하므로 별도 useEffect 제거
-
 
   // 실제 서버 데이터 사용 (메모이제이션 + 데이터 변환)
   const actualServers = useMemo(() => {

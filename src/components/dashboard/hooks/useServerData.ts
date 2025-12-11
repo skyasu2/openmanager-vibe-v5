@@ -37,7 +37,12 @@ export interface UseServerDataReturn {
 
 export const useServerData = (): UseServerDataReturn => {
   // 🎯 React Query로 데이터 가져오기
-  const { data: servers = [], isLoading, error: queryError, refetch } = useServerQuery();
+  const {
+    data: servers = [],
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useServerQuery();
   const error = queryError ? queryError.message : null;
   const lastUpdate = new Date(); // React Query handles cache time, simplified here
 
@@ -45,11 +50,10 @@ export const useServerData = (): UseServerDataReturn => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
-      if (!isLoading) {
-          setIsInitialLoading(false);
-      }
+    if (!isLoading) {
+      setIsInitialLoading(false);
+    }
   }, [isLoading]);
-
 
   // 서버 상태 매핑 함수
   const mapStatus = useCallback(
@@ -78,9 +82,7 @@ export const useServerData = (): UseServerDataReturn => {
     []
   );
 
-
   // React Query handles auto-refresh via refetchInterval
-
 
   // 서버 우선순위 정렬 (심각→경고→정상)
   const sortServersByPriority = useCallback(
@@ -198,7 +200,7 @@ export const useServerData = (): UseServerDataReturn => {
   const stats = calculateStats(servers);
 
   const loading = isLoading || isInitialLoading;
-  
+
   return {
     servers: sortedServers,
     stats,

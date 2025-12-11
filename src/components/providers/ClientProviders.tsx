@@ -31,11 +31,11 @@ interface ClientProvidersProps {
  */
 export function ClientProviders({ children }: ClientProvidersProps) {
   return (
-      <AccessibilityProvider>
-        <SupabaseAuthProvider>
-          <QueryProvider>{children}</QueryProvider>
-        </SupabaseAuthProvider>
-      </AccessibilityProvider>
+    <AccessibilityProvider>
+      <SupabaseAuthProvider>
+        <QueryProvider>{children}</QueryProvider>
+      </SupabaseAuthProvider>
+    </AccessibilityProvider>
   );
 }
 

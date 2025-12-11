@@ -19,7 +19,7 @@ export const useUIStore = create<UIState>((set) => ({
   setSettingsPanelOpen: (isOpen) => set({ isSettingsPanelOpen: isOpen }),
   toggleSettingsPanel: () =>
     set((state) => ({ isSettingsPanelOpen: !state.isSettingsPanelOpen })),
-  
+
   setSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
   toggleSidebar: () =>
     set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
