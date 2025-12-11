@@ -61,6 +61,63 @@ When invoked:
 - 코드 변경 후 품질 검증
 - 아키텍처 변경, 새 API 엔드포인트
 - "최근 코드 리뷰 분석해줘" 요청 시
+- "코드 리뷰 확인/점검" 요청 시 (Review Confirmation Workflow)
+
+## Review Confirmation Workflow
+
+자동 생성된 코드 리뷰(`logs/code-reviews/review-*.md`) 확인 및 관리:
+
+### Process
+1. **리뷰 파일 확인**: `logs/code-reviews/` 내 미확인 리뷰 파일 검사
+2. **점수 분석**: 7점 이상 양호, 4-6점 주의, 3점 이하 긴급 확인
+3. **이슈 파악**: 각 리뷰의 주요 이슈 및 권장사항 확인
+4. **태그 추가**: 확인 완료 시 제목에 `✅ [REVIEWED]` 태그 추가
+5. **아카이브 이동**: 확인 완료된 파일 `archived/` 폴더로 이동
+6. **커밋 추적**: `.reviewed-commits` 파일에 커밋 해시 기록
+
+### File Structure
+```
+logs/code-reviews/
+├── review-{engine}-{timestamp}.md    # 미확인 리뷰
+├── .reviewed-commits                  # 확인된 커밋 해시 목록
+└── archived/                          # 확인 완료된 리뷰 보관
+    └── review-{engine}-{timestamp}.md  # ✅ [REVIEWED] 태그 포함
+```
+
+### Title Format
+```markdown
+# Before (미확인)
+# 🚀 AI 자동 코드 리뷰 리포트 (Engine: CODEX)
+
+# After (확인 완료)
+# ✅ [REVIEWED] 🚀 AI 자동 코드 리뷰 리포트 (Engine: CODEX)
+```
+
+### Commands
+```bash
+# 미확인 리뷰 목록
+ls logs/code-reviews/review-*.md 2>/dev/null | head -20
+
+# REVIEWED 태그 추가 (Python 권장 - bash ! 이스케이프 문제 회피)
+python3 -c "
+import glob
+for f in glob.glob('logs/code-reviews/review-*.md'):
+    with open(f, 'r') as file: content = file.read()
+    if content.startswith('# 🚀') and '[REVIEWED]' not in content[:100]:
+        content = content.replace('# 🚀', '# ✅ [REVIEWED] 🚀', 1)
+        with open(f, 'w') as file: file.write(content)
+"
+
+# 아카이브 이동
+mv logs/code-reviews/review-*.md logs/code-reviews/archived/
+```
+
+### Priority Score Guidelines
+| Score | Status | Action |
+|-------|--------|--------|
+| 8-10 | 양호 | 바로 아카이브 |
+| 5-7 | 주의 | 이슈 확인 후 아카이브 |
+| 1-4 | 긴급 | 이슈 해결 후 아카이브 |
 
 ## Output Format
 

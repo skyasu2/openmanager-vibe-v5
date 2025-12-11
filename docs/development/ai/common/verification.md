@@ -10,7 +10,7 @@ load_priority: "critical"
 token_estimate: 650
 read_time: "3분"
 related_weight: 0.95
-dependencies: ["workflow.md", "verification-history.md"]
+dependencies: ["workflow.md"]
 cache_ttl: 300
 preload: true
 ---

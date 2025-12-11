@@ -352,18 +352,16 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         importance: 'high',
         description:
           'Claude Code의 기능을 확장하는 Model Context Protocol 서버들 (11개)',
-        implementation: `핵심 서버들로 개발 효율성 극대화:
+        implementation: `핵심 9개 서버로 개발 효율성 극대화:
 • vercel: Vercel 플랫폼 배포 및 관리
-• serena: 고급 코드 분석 및 리팩토링
 • supabase: PostgreSQL 데이터베이스 직접 작업
+• serena: 고급 코드 분석 및 리팩토링
 • context7: 라이브러리 문서 실시간 검색
 • playwright: 브라우저 자동화 및 E2E 테스트
-• shadcn-ui: UI 컴포넌트 개발 지원
-• memory: 지식 그래프 관리 및 컨텍스트 유지
-• time: 시간대 변환 및 시간 계산
-• sequential-thinking: 복잡한 문제 단계별 해결
-• filesystem: 파일 시스템 작업 전문
-• github: 저장소 관리 및 자동화`,
+• figma: Design-to-Code (6회/월)
+• github: 저장소 관리 및 자동화
+• tavily: 웹 검색 - 심층 리서치
+• brave-search: 웹 검색 - 팩트체크`,
         status: 'active',
         icon: '🔌',
         tags: ['MCP서버', '자동화도구', '확장기능'],

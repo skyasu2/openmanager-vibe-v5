@@ -115,7 +115,7 @@ export function normalizeTechName(tech: string): string {
     'vibe coding': 'vibe-coding-results',
     'vibe-coding': 'vibe-coding-results',
     'coding results': 'vibe-coding-results',
-    sequential: 'mcp-sequential-thinking',
+    sequential: 'mcp-tools', // legacy: sequential-thinking은 제거됨 (2025-12-11)
     hybrid: 'vibe-coding-results',
     vibe: 'vibe-coding-results',
     coding: 'vibe-coding-results',

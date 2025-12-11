@@ -4,7 +4,7 @@ title: "테스트 자동화 시스템 아키텍처"
 keywords: ["test", "automation", "playwright", "vercel", "e2e", "smart-diagnosis"]
 priority: high
 ai_optimized: true
-related_docs: ["system-architecture-overview.md", "system-architecture-deployment.md"]
+related_docs: ["system-architecture-deployment.md", "../design/system.md"]
 updated: "2025-09-29"
 ---
 
@@ -602,7 +602,7 @@ class ProductionMonitoringIntegration {
 
 ## 📚 **관련 문서**
 
-- **[시스템 아키텍처 개요](system-architecture-overview.md)** - 전체 시스템 구조
+- **[시스템 아키텍처 개요](../design/system.md)** - 전체 시스템 구조
 - **[AI 시스템 아키텍처](system-architecture-ai.md)** - AI 교차검증 시스템
 - **[배포 및 운영 아키텍처](system-architecture-deployment.md)** - Vercel 배포 최적화
 - **[테스트 실행 가이드](../environment/guides/testing-guide.md)** - 실무 테스트 실행 방법

@@ -55,7 +55,16 @@ const callUnifiedProcessor = tool({
   }) => {
     try {
       const gcpEndpoint =
-        process.env.NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT || '';
+        process.env.NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT;
+
+      // GCP 엔드포인트 미설정 시 graceful fallback
+      if (!gcpEndpoint) {
+        return {
+          success: false,
+          error: 'GCP Unified Processor 엔드포인트가 설정되지 않았습니다.',
+          _fallback_needed: true,
+        };
+      }
 
       // 컨텍스트 데이터 로드 (서버 ID 등)
       const allServers = await loadHourlyScenarioData();

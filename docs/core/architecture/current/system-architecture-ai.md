@@ -4,7 +4,7 @@ title: "AI 시스템 및 성능 아키텍처"
 keywords: ["ai", "performance", "security", "testing", "architecture"]
 priority: critical
 ai_optimized: true
-related_docs: ["system-architecture-overview.md", "system-architecture-deployment.md", "ai/workflow.md"]
+related_docs: ["system-architecture-deployment.md", "ai/workflow.md", "../design/system.md"]
 updated: "2025-09-16"
 ---
 
@@ -579,7 +579,7 @@ interface ResponsePostProcessor {
 
 ## 📚 **관련 문서**
 
-- **[시스템 아키텍처 개요](system-architecture-overview.md)** - API 구조 및 데이터 아키텍처
+- **[시스템 아키텍처 개요](../design/system.md)** - API 구조 및 데이터 아키텍처
 - **[배포 및 운영 아키텍처](system-architecture-deployment.md)** - Vercel 배포 최적화
 - **[AI 워크플로우 가이드](../ai/workflow.md)** - 4-AI 교차검증 실무 가이드
 - **[성능 최적화 가이드](../performance/README.md)** - StaticDataLoader 성능 분석
@@ -587,5 +587,5 @@ interface ResponsePostProcessor {
 ---
 
 **마지막 업데이트**: 2025-09-29  
-**이전 문서**: [시스템 아키텍처 개요](system-architecture-overview.md)  
+**이전 문서**: [시스템 아키텍처 개요](../design/system.md)  
 **다음 문서**: [배포 및 운영 아키텍처](system-architecture-deployment.md)

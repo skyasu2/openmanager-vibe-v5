@@ -342,9 +342,7 @@ export async function POST(request: NextRequest) {
 
 ## 참고 문서
 
-- [Vercel 프로덕션 테스트 분석 보고서](../archive/testing/vercel-production-test-analysis.md)
-- [실제 코드 기반 테스트 시나리오](./vercel-production-test-scenarios.md)
-- [고도화 필요도 분석](./vercel-production-enhancement-analysis.md)
+- [E2E 테스트 가이드](./e2e-testing-guide.md)
 - [통합 테스트 스크립트](../../tests/e2e/vercel-guest-admin-full-check.spec.ts)
 
 ---

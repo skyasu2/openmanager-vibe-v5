@@ -4,7 +4,7 @@ title: "배포 및 운영 아키텍처"
 keywords: ["deployment", "vercel", "operations", "monitoring", "performance"]
 priority: critical
 ai_optimized: true
-related_docs: ["system-architecture-overview.md", "system-architecture-ai.md", "../../core/platforms/deploy/vercel.md"]
+related_docs: ["system-architecture-ai.md", "../design/system.md"]
 updated: "2025-12-01"
 ---
 
@@ -324,7 +324,7 @@ async function checkPerformance() {
 
 ## 📚 **관련 문서**
 
-- **[시스템 아키텍처 개요](system-architecture-overview.md)** - API 구조 및 데이터 아키텍처
+- **[시스템 아키텍처 개요](../design/system.md)** - API 구조 및 데이터 아키텍처
 - **[AI 시스템 아키텍처](system-architecture-ai.md)** - 4-AI 교차검증 시스템
 - **[Vercel 배포 가이드](../../core/platforms/deploy/README.md)** - 배포 설정 및 최적화
 - **[성능 최적화 가이드](../../performance/README.md)** - 성능 튜닝 및 모니터링
@@ -333,4 +333,4 @@ async function checkPerformance() {
 
 **마지막 업데이트**: 2025-12-01  
 **이전 문서**: [AI 시스템 아키텍처](system-architecture-ai.md)  
-**전체 시리즈**: [시스템 아키텍처 개요](system-architecture-overview.md)
+**전체 시리즈**: [시스템 아키텍처 개요](../design/system.md)

@@ -102,7 +102,7 @@ export class MLProvider implements IContextProvider {
   readonly type = 'ml' as const;
 
   private readonly gcpEndpoint =
-    process.env.NEXT_PUBLIC_GCP_ML_ANALYTICS_ENDPOINT || '';
+    process.env.NEXT_PUBLIC_GCP_ML_ANALYTICS_ENDPOINT ?? null;
 
   private cache = new Map<string, CacheEntry>();
   private readonly cacheTTL = 5 * 60 * 1000; // 5분 (무료 티어 최적화)
@@ -147,6 +147,11 @@ export class MLProvider implements IContextProvider {
         threshold: options?.threshold || 0.8,
       },
     };
+
+    // GCP 엔드포인트 미설정 시 graceful fallback
+    if (!this.gcpEndpoint) {
+      return this.getEmptyContext('gcp_endpoint_not_configured');
+    }
 
     try {
       const response = await fetch(this.gcpEndpoint, {
@@ -352,18 +357,25 @@ export class MLProvider implements IContextProvider {
    * 빈 컨텍스트 반환 (에러 또는 데이터 부족 시)
    */
   private getEmptyContext(
-    reason: 'insufficient_data' | 'api_error'
+    reason: 'insufficient_data' | 'api_error' | 'gcp_endpoint_not_configured'
   ): ProviderContext {
+    const recommendationMap: Record<typeof reason, string[]> = {
+      insufficient_data: [
+        '분석을 위한 충분한 메트릭 데이터가 없습니다. (최소 10개 필요)',
+      ],
+      api_error: ['ML 분석 서비스가 일시적으로 사용 불가능합니다.'],
+      gcp_endpoint_not_configured: [
+        'GCP ML Analytics 엔드포인트가 설정되지 않았습니다.',
+      ],
+    };
+
     return {
       type: 'ml',
       data: {
         anomalies: [],
         trends: [],
         patterns: [],
-        recommendations:
-          reason === 'insufficient_data'
-            ? ['분석을 위한 충분한 메트릭 데이터가 없습니다. (최소 10개 필요)']
-            : ['ML 분석 서비스가 일시적으로 사용 불가능합니다.'],
+        recommendations: recommendationMap[reason],
       },
       metadata: {
         source: 'gcp-ml-analytics',

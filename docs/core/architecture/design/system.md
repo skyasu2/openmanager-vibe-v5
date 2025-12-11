@@ -4,7 +4,7 @@ title: "OpenManager VIBE System Architecture"
 keywords: ["system", "architecture", "design", "overview", "structure"]
 priority: critical
 ai_optimized: true
-related_docs: ["api.md", "database.md", "security.md", "current/system-architecture-overview.md"]
+related_docs: ["api.md", "database.md", "security.md", "../current/system-architecture-ai.md"]
 updated: "2025-12-11"
 version: "v5.80.0"
 cache_hint: "frequently_accessed"

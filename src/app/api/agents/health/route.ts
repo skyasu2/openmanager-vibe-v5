@@ -37,18 +37,19 @@ export function GET() {
     };
 
     // MCP 서버 기본 상태 (실제 검증은 별도 수행)
+    // registry-core.yaml 기준 9/9 서버 (2025-12-11 정리 완료)
     const mcpStatus = {
       valid: true,
       servers: [
-        'filesystem',
-        'github',
-        'memory',
+        'vercel',
         'supabase',
-        'context7',
-        'tavily-mcp',
-        'sequential-thinking',
-        'playwright',
         'serena',
+        'context7',
+        'playwright',
+        'figma',
+        'github',
+        'tavily',
+        'brave-search',
       ],
       missing: [],
       warnings: ['실제 MCP 상태는 별도 API로 확인 필요'],
