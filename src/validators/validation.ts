@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import * as z from 'zod';
 import type { ApiError } from '@/types/common-replacements';
 import {
   validateQueryParams,
@@ -205,10 +205,20 @@ export function composeMiddleware(
 /**
  * 페이지네이션 쿼리 스키마
  * Zod v4 coerce API 사용 - 문자열을 자동으로 숫자로 변환
+ * 🔧 Zod v4 ESM 호환: .int() 대신 .refine(Number.isInteger) 사용
  */
 export const paginationQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(20),
+  page: z.coerce
+    .number()
+    .refine(Number.isInteger, { message: 'Must be an integer' })
+    .refine((n) => n > 0, { message: 'Must be positive' })
+    .default(1),
+  limit: z.coerce
+    .number()
+    .refine(Number.isInteger, { message: 'Must be an integer' })
+    .refine((n) => n > 0, { message: 'Must be positive' })
+    .refine((n) => n <= 100, { message: 'Must be at most 100' })
+    .default(20),
   sort: z.string().optional(),
   order: z.enum(['asc', 'desc']).default('desc'),
 });

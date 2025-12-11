@@ -1,10 +1,16 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * 🌐 공통 Zod 스키마 정의
  *
  * 프로젝트 전체에서 재사용되는 기본 스키마들
  */
+
+// 🔧 Zod v4 ESM 호환 정수 검증 헬퍼 (공통)
+// Zod v4의 .int() 메서드는 webpack 번들링 시 'int is not defined' 오류 발생
+// .refine(Number.isInteger) 패턴으로 대체하여 런타임 안정성 확보
+export const safeInt = () =>
+  z.number().refine(Number.isInteger, { message: 'Must be an integer' });
 
 // ===== 기본 타입 스키마 =====
 
@@ -22,7 +28,8 @@ export const TimeSchema = z.string().time();
 export const PercentageSchema = z.number().min(0).max(100);
 export const PositiveNumberSchema = z.number().positive();
 export const NonNegativeNumberSchema = z.number().nonnegative();
-export const PortSchema = z.number().int().min(1).max(65535);
+// 🔧 Zod v4 ESM 호환: .int() 대신 safeInt() 사용
+export const PortSchema = safeInt().min(1).max(65535);
 
 // 문자열 패턴
 export const EmailSchema = z.string().email();
@@ -44,9 +51,10 @@ export const JsonSchema = z.string().transform((str, ctx) => {
 // ===== 공통 구조 스키마 =====
 
 // 페이지네이션
+// 🔧 Zod v4 ESM 호환: .int() 대신 safeInt() 사용
 export const PaginationRequestSchema = z.object({
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(20),
+  page: safeInt().min(1).default(1),
+  limit: safeInt().min(1).max(100).default(20),
   sort: z.string().optional(),
   order: z.enum(['asc', 'desc']).default('desc'),
 });
@@ -89,7 +97,10 @@ export const MetadataSchema = z.object({
   updatedAt: TimestampSchema,
   createdBy: z.string().optional(),
   updatedBy: z.string().optional(),
-  version: z.number().int().positive().default(1),
+  // 🔧 Zod v4 ESM 호환: .int() 대신 safeInt() 사용
+  version: safeInt()
+    .refine((n) => n > 0, { message: 'Must be positive' })
+    .default(1),
   tags: z.array(z.string()).default([]),
 });
 

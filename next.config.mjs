@@ -19,6 +19,11 @@ const nextConfig = {
   output: undefined, // Vercel 자동 감지 사용
   trailingSlash: false,
 
+  // 🔧 Zod v4 ESM 모듈 번들링 문제 해결
+  // Zod v4의 schemas.js에서 inst.int = (params) => inst.check(int(params)) 패턴이
+  // webpack 번들링 시 함수 참조 순서 문제로 'int is not defined' 오류 발생
+  transpilePackages: ['zod'],
+
   // 실험적 기능 (Next.js 16 호환)
   experimental: {
     optimizePackageImports: [
@@ -349,56 +354,9 @@ const nextConfig = {
       // 기존 alias 유지
     };
 
-    // 🔧 강화된 devtools 완전 비활성화 (segment-explorer 버그 해결)
-    if (
-      process.env.__NEXT_TEST_MODE === 'true' ||
-      process.env.NEXT_DISABLE_DEVTOOLS === '1'
-    ) {
-      // next-devtools 관련 모든 모듈 완전 차단
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        // Core devtools 모듈들
-        'next/dist/compiled/next-devtools': false,
-        'next/dist/next-devtools': false,
-        '@next/devtools': false,
-        'next/dist/compiled/next-devtools/index.js': false,
-
-        // 🎯 segment-explorer 버그 해결 - 핵심 모듈 차단
-        'next/dist/next-devtools/userspace/app/segment-explorer-node.js': false,
-        'next/dist/next-devtools/userspace/app/segment-explorer': false,
-        'next/dist/next-devtools/userspace/app': false,
-        'next/dist/next-devtools/userspace': false,
-
-        // HMR 클라이언트 관련 (타임아웃 에러 해결)
-        'next/dist/client/dev/hot-reloader/app/use-websocket.js': false,
-        'next/dist/client/dev/hot-reloader/app/hot-reloader-app.js': false,
-        '@vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts': false,
-
-        // React Server Components bundler 관련
-        'next/dist/server/dev/hot-reloader-webpack-plugin': false,
-        'next/dist/server/dev/on-demand-entry-handler': false,
-
-        // 개발 환경 모니터링 모듈들
-        'next/dist/client/dev/dev-build-watcher': false,
-        'next/dist/client/dev/error-overlay': false,
-        'next/dist/client/dev/fouc': false,
-        'next/dist/client/dev': false,
-
-        // 🚨 renderAppDevOverlay 에러 해결 - 핵심 차단
-        'next/dist/client/dev/error-overlay/app/app-dev-overlay': false,
-        'next/dist/client/dev/error-overlay/app': false,
-        'next/dist/client/dev/app-dev-error-overlay': false,
-        'next/dist/client/components/react-dev-overlay': false,
-
-        // 🚨 onUnhandledError 에러 해결 - HotReload 모듈 차단
-        'next/dist/client/dev/hot-reloader': false,
-        'next/dist/client/dev/app-hot-reloader': false,
-
-        // layout-router 안전 교체
-        'next/dist/client/components/layout-router':
-          'next/dist/client/components/layout-router.js',
-      };
-    }
+    // 🔧 Next.js 16 DevTools 설정 (v5.80.0 - 간소화)
+    // Note: 이전 버전의 공격적인 module aliasing은 클라이언트 하이드레이션을 깨뜨림
+    // DevTools 관련 이슈는 NEXT_DISABLE_DEVTOOLS=1 환경변수로만 제어
 
     // 클라이언트 사이드 최적화
     if (!isServer) {

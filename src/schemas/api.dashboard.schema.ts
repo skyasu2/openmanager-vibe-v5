@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 import { AlertSchema } from './api.alert.schema';
 import { ServerStatusSchema } from './api.server.schema';
 import { TimestampSchema } from './common.schema';

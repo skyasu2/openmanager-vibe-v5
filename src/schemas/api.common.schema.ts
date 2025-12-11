@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 import { BaseResponseSchema, ErrorResponseSchema } from './common.schema';
 
 /**

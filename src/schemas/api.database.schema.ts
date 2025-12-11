@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * 🗄️ 데이터베이스 연결풀 관리 스키마

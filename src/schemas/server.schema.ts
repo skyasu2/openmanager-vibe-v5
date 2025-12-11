@@ -1,9 +1,10 @@
-import { z } from 'zod';
+import * as z from 'zod';
 import {
   HealthStatusSchema,
   IdSchema,
   MetadataSchema,
   PercentageSchema,
+  safeInt,
   TimestampSchema,
 } from './common.schema';
 
@@ -105,9 +106,10 @@ export const ServerConfigSchema = z.object({
   domain: z.string().optional(),
   // Zod v4 마이그레이션: z.string().ip() 제거 - 다양한 IP 형식(IPv4/IPv6/CIDR) 유연성 확보
   ip: z.string(),
-  port: z.number().int().min(1).max(65535).optional(),
+  // 🔧 Zod v4 ESM 호환: .int() 대신 safeInt() 사용
+  port: safeInt().min(1).max(65535).optional(),
   ssl: z.boolean().default(false),
-  sslPort: z.number().int().min(1).max(65535).optional(),
+  sslPort: safeInt().min(1).max(65535).optional(),
   maxConnections: z.number().positive().optional(),
   timeout: z.number().positive().optional(), // seconds
   keepAlive: z.boolean().default(true),
