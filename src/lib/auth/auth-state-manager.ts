@@ -281,7 +281,12 @@ export class AuthStateManager {
         error: userError,
       } = await getClient().auth.getUser();
       if (userError) {
-        console.warn('⚠️ JWT 검증 실패:', userError.message);
+        // 'Auth session missing!'은 게스트 모드에서 예상된 동작 (경고 레벨 낮춤)
+        if (userError.message === 'Auth session missing!') {
+          console.debug('🔐 Supabase 세션 없음 - 게스트 모드 확인 중...');
+        } else {
+          console.warn('⚠️ JWT 검증 실패:', userError.message);
+        }
         return null;
       }
       if (!validatedUser) {

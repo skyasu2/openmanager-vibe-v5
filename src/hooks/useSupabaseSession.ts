@@ -43,7 +43,10 @@ export function useSession(): UseSessionReturn {
           error,
         } = await getSupabase().auth.getUser();
         if (error) {
-          console.warn('⚠️ JWT 검증 실패:', error.message);
+          // 'Auth session missing!'은 게스트 모드에서 예상된 동작 (경고 레벨 낮춤)
+          if (error.message !== 'Auth session missing!') {
+            console.warn('⚠️ JWT 검증 실패:', error.message);
+          }
         }
         if (validatedUser) {
           setUser(validatedUser);
@@ -154,7 +157,7 @@ export function useSession(): UseSessionReturn {
       data: { user: validatedUser },
       error,
     } = await getSupabase().auth.getUser();
-    if (error) {
+    if (error && error.message !== 'Auth session missing!') {
       console.warn('⚠️ 세션 업데이트 JWT 검증 실패:', error.message);
     }
     if (validatedUser) {
