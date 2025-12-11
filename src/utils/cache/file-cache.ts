@@ -26,27 +26,27 @@ const isServer = typeof window === 'undefined';
 const PRODUCTION_URL = 'https://openmanager-vibe-v5.vercel.app';
 
 /**
- * 서버 베이스 URL 구성 (Vercel 환경 지원)
+ * 서버 베이스 URL 구성 (정적 파일 접근용)
  *
  * @description
- * Vercel 서버리스 함수에서 환경 변수 접근 순서:
- * 1. VERCEL_URL (Vercel 자동 설정)
+ * ⚠️ 중요: Vercel 프리뷰 URL은 인증이 필요하므로 정적 파일 접근 불가!
+ * 정적 파일(public/)은 항상 프로덕션 URL에서만 인증 없이 접근 가능.
+ *
+ * 우선순위:
+ * 1. Vercel 환경: 항상 프로덕션 URL 사용 (프리뷰 URL 인증 문제 회피)
  * 2. NEXT_PUBLIC_APP_URL (사용자 정의)
- * 3. PRODUCTION_URL (하드코딩 폴백)
- * 4. localhost (로컬 개발)
+ * 3. localhost (로컬 개발)
  */
 function getServerBaseUrl(): string {
-  // Vercel 배포 환경 (빌드 타임 + 런타임)
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+  // 🔴 Vercel 환경: 항상 프로덕션 URL 사용
+  // - VERCEL_URL은 프리뷰 URL을 반환할 수 있음 (인증 필요)
+  // - 정적 파일은 프로덕션 도메인에서만 인증 없이 접근 가능
+  if (process.env.VERCEL === '1' || process.env.VERCEL_URL) {
+    return PRODUCTION_URL;
   }
-  // 사용자 정의 앱 URL
+  // 사용자 정의 앱 URL (로컬/커스텀 환경)
   if (process.env.NEXT_PUBLIC_APP_URL) {
     return process.env.NEXT_PUBLIC_APP_URL;
-  }
-  // Vercel 프로덕션 환경 감지 (VERCEL_URL 없이 VERCEL=1인 경우)
-  if (process.env.VERCEL === '1') {
-    return PRODUCTION_URL;
   }
   // 로컬 개발 환경
   return 'http://localhost:3000';
