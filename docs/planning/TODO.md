@@ -28,6 +28,32 @@
 
 ---
 
+## 🔴 CRITICAL - 프로덕션 배포 전 필수 작업
+
+### 게스트 모드 보안 복원 (개발 완료 시)
+
+> ⚠️ **중요**: 아래 작업은 개발 완료 후 프로덕션 배포 전에 반드시 수행해야 합니다.
+
+| 파일 | 변경 내용 | 설명 |
+|------|----------|------|
+| `src/middleware.ts` | `isDevBypassEnabled()` 기본값 → `false` | 환경변수 없으면 보안 활성화 |
+| `src/config/guestMode.ts` | `getGuestMode()` 기본값 → `RESTRICTED` | 게스트 접근 제한 복원 |
+| `src/hooks/useAuth.ts` | `hasPermission()` 권한 체크 복원 | 게스트 기본 권한만 허용 |
+| `src/utils/supabase/middleware.ts` | `updateSession` 반환값 개선 | 실제 세션 검증 결과 반환 |
+
+**체크리스트**:
+- [ ] `NEXT_PUBLIC_DEV_BYPASS_AUTH=false` 환경변수 설정
+- [ ] `NEXT_PUBLIC_GUEST_FULL_ACCESS=false` 환경변수 설정
+- [ ] 미들웨어 보호 경로 테스트 (`/dashboard/*`, `/system-boot/*`)
+- [ ] 게스트 권한 제한 테스트 (view_dashboard, view_servers, view_metrics, basic_actions만 허용)
+- [ ] E2E 인증 테스트 추가
+
+**관련 커밋**:
+- `753b39eb` - feat: Add route protection middleware with dev bypass
+- `eb854079` - feat(auth): enable full guest permissions during development
+
+---
+
 ## 🟢 LOW - 장기 계획 (선택적)
 
 | 기능 | 설명 | 난이도 | 진행 여부 |
