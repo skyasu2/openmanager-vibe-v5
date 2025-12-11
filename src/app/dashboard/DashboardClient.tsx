@@ -129,7 +129,7 @@ const AnimatedServerModal = dynamic(
   },
   {
     loading: () => (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
       </div>
     ),

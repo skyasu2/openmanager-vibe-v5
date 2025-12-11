@@ -16,7 +16,7 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     <Fragment>
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm"
           role="presentation"
         >
           <button

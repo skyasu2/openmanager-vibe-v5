@@ -72,7 +72,7 @@ export function ServerDashboardTabs({
             className={`flex items-center space-x-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 ${
               isActive
                 ? `bg-white ${tab.color} border shadow-xs ${tab.borderColor}`
-                : 'text-gray-600 hover:bg-white hover:bg-opacity-50 hover:text-gray-900'
+                : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
             }`}
           >
             <Icon size={16} />

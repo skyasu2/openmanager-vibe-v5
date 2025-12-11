@@ -65,9 +65,9 @@ const SplashScreen = () => (
       <div className="relative mb-8">
         <div className="absolute inset-0 animate-pulse rounded-full bg-blue-500/20 blur-xl"></div>
         <div
-          className={`relative flex h-20 w-20 animate-bounce items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-2xl shadow-blue-500/30`}
+          className={`relative flex h-16 w-16 animate-bounce items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-2xl shadow-blue-500/30`}
         >
-          <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm"></div>
+          <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm"></div>
         </div>
       </div>
       {/* 텍스트 애니메이션 */}
@@ -372,14 +372,14 @@ export default function LoginClient() {
           <div className="relative mb-10 flex flex-col items-center text-center">
             {/* ✨ 로고: 그라데이션 스퀘어 - 중앙 정렬 강화 */}
             <div
-              className={`mb-6 flex h-20 w-20 animate-gradient-x items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-purple-500/30 sm:h-24 sm:w-24`}
+              className={`mb-6 flex h-16 w-16 animate-gradient-x items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-purple-500/30 sm:h-20 sm:w-20`}
               style={{ backgroundSize: '200% 200%' }}
             />
-            {/* 🎨 [2] 로고와 타이틀 간격 확대 - 라이트 텍스트 */}
-            <h1 className="mb-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            {/* 🎨 [2] 로고와 타이틀 간격 확대 - 라이트 텍스트 (PC 최적화) */}
+            <h1 className="mb-3 text-3xl font-bold tracking-tight text-white sm:text-[2.5rem]">
               OpenManager
             </h1>
-            <p className="text-base font-medium text-gray-400">
+            <p className="text-[17px] font-medium text-gray-300">
               AI 서버 모니터링 시스템
             </p>
           </div>
@@ -387,8 +387,8 @@ export default function LoginClient() {
           {/* 구분선 */}
           {/* <div className="mb-8 border-t border-gray-700/50" /> */}
 
-          {/* 로그인 섹션 */}
-          <h2 className="mb-8 text-center text-lg font-medium text-gray-300">
+          {/* 로그인 섹션 - PC 최적화 */}
+          <h2 className="mb-8 text-center text-[18px] font-medium text-gray-300">
             로그인 방식을 선택하세요
           </h2>
 
@@ -475,7 +475,7 @@ export default function LoginClient() {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="relative z-10 font-semibold tracking-wide text-gray-900">
+              <span className="relative z-10 font-semibold tracking-wide">
                 {loadingType === 'github'
                   ? loadingMessage
                   : 'GitHub로 계속하기'}
@@ -517,7 +517,7 @@ export default function LoginClient() {
                 <div className="animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/10" />
               )}
 
-              <User className="h-5 w-5 text-gray-400 group-hover:text-white transition-colors" />
+              <User className="h-5 w-5 transition-colors" />
               <span className="relative z-10">
                 {loadingType === 'guest' ? loadingMessage : '게스트로 체험하기'}
               </span>

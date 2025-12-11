@@ -322,7 +322,7 @@ const PerformanceMonitor: FC<PerformanceMonitorProps> = ({
                       </div>
                       <button
                         onClick={() => resolveAlert(alert.id)}
-                        className="rounded-md bg-white bg-opacity-50 px-3 py-1 text-xs transition-all hover:bg-opacity-75"
+                        className="rounded-md bg-white/50 px-3 py-1 text-xs transition-all hover:bg-white/75"
                       >
                         Resolve
                       </button>

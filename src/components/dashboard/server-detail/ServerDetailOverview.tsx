@@ -150,12 +150,12 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="rounded-lg bg-white bg-opacity-20 p-3">
+            <div className="rounded-lg bg-white/20 p-3">
               <StatusIcon className="h-8 w-8 text-white" />
             </div>
             <div>
               <h3 className="text-2xl font-bold">{statusInfo.text}</h3>
-              <p className="text-white text-opacity-90">
+              <p className="text-white/90">
                 마지막 업데이트:{' '}
                 {server.lastSeen
                   ? new Date(server.lastSeen).toLocaleString('ko-KR')
@@ -164,7 +164,7 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm text-white text-opacity-90">업타임</div>
+            <div className="text-sm text-white/90">업타임</div>
             <div className="text-2xl font-bold">{server.uptime || '0h 0m'}</div>
           </div>
         </div>

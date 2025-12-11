@@ -149,9 +149,9 @@ export const LAYOUT = {
 
 // 🎨 AI 관련 디자인 상수
 export const AI_GRADIENT_CLASSES =
-  'bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400';
+  'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500';
 export const AI_GRADIENT_STYLE =
-  'linear-gradient(to right, #c084fc, #f472b6, #22d3ee)';
+  'linear-gradient(to right, #a855f7, #ec4899, #3b82f6)';
 
 export const getServerStatusTheme = (status: ServerStatus) => {
   return SERVER_STATUS_COLORS[status] || SERVER_STATUS_COLORS.unknown; // 🔧 수정: 기본값 'healthy' → 'unknown'
@@ -172,15 +172,15 @@ export const PAGE_BACKGROUNDS = {
 
 // ===== 버튼 스타일 시스템 =====
 export const BUTTON_STYLES = {
-  // GitHub 버튼 - 밝은 화이트 배경 (반전: 다크 카드에서 눈에 띄게)
+  // GitHub 버튼 - 녹색 배경 (#2DD36F)
   github:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-white px-5 py-4 text-[15px] font-semibold text-gray-900 shadow-lg transition-all duration-200 hover:bg-gray-100 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
-  // 게스트/일반 버튼 - 다크 배경 대응 (밝은 테두리/텍스트)
+    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-[#2DD36F] px-5 py-4 text-[17px] font-semibold text-white shadow-lg transition-all duration-200 hover:bg-[#28C765] active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+  // 게스트/일반 버튼 - 흰색 배경 + 테두리
   secondary:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-gray-600 bg-transparent px-5 py-4 text-[15px] font-medium text-gray-300 transition-all duration-200 hover:bg-white/10 hover:border-gray-500 hover:text-white active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-gray-300 bg-white px-5 py-4 text-[17px] font-medium text-[#0F1115] transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
   // 레거시 호환 (deprecated)
   primary:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-white px-5 py-4 text-[15px] font-semibold text-gray-900 shadow-lg transition-all duration-200 hover:bg-gray-100 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-[#2DD36F] px-5 py-4 text-[17px] font-semibold text-white shadow-lg transition-all duration-200 hover:bg-[#28C765] active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
   accent:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-gray-600 bg-transparent px-5 py-4 text-[15px] font-medium text-gray-300 transition-all duration-200 hover:bg-white/5 hover:border-gray-500 hover:text-white active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-gray-300 bg-white px-5 py-4 text-[17px] font-medium text-[#0F1115] transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
 } as const;

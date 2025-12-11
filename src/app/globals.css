@@ -65,9 +65,11 @@
   --backdrop-blur-xs: 2px;
 
   /* 폰트: Inter(영문) + Noto Sans KR(한글) - layout.tsx에서 로드 */
-  --font-sans: var(--font-inter), var(--font-noto-sans-kr), ui-sans-serif,
-    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  /* Tailwind v4: --font-family-sans가 font-sans 유틸리티와 연결됨 */
+  /* 주의: @theme 블록은 컴파일 타임 - var(--font-inter) 사용 불가, 직접 폰트명 지정 */
+  --font-family-sans: 'Inter', 'Noto Sans KR', ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, 'Noto Sans', sans-serif;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -618,7 +620,12 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  /* font-family는 layout.tsx의 font-sans 클래스로 적용됨 */
+  /* Inter(영문) + Noto Sans KR(한글) 폰트 스택 */
+  /* next/font가 body에 --font-inter, --font-noto-sans-kr CSS 변수를 주입함 */
+  /* Tailwind v4의 font-sans 클래스가 작동하지 않아 직접 font-family 지정 */
+  font-family: var(--font-inter), var(--font-noto-sans-kr), 'Inter', 'Noto Sans KR',
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   line-height: 1.6;
   color: hsl(var(--foreground));
   background: hsl(var(--background));
