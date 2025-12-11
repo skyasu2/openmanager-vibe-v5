@@ -142,19 +142,22 @@ export function useAuth(): UseAuthResult {
   }, []);
 
   // 권한 확인 함수
-  const hasPermission = (permission: string): boolean => {
-    // 게스트 모드에서는 기본 권한만 허용
+  const hasPermission = (_permission: string): boolean => {
+    // 🎯 개발 중: 게스트에게 모든 권한 부여 (개발 완료 후 제한 복원 예정)
+    // TODO: 개발 완료 시 아래 주석 해제하고 return true 제거
     if (!user) return false;
 
-    // 기본 권한 목록 (게스트 모드 기본 권한)
-    const guestPermissions = [
-      'view_dashboard',
-      'view_servers',
-      'view_metrics',
-      'basic_actions',
-    ];
+    // 개발 모드: 모든 권한 허용
+    return true;
 
-    return guestPermissions.includes(permission);
+    // 기본 권한 목록 (게스트 모드 기본 권한) - 개발 완료 후 복원
+    // const guestPermissions = [
+    //   'view_dashboard',
+    //   'view_servers',
+    //   'view_metrics',
+    //   'basic_actions',
+    // ];
+    // return guestPermissions.includes(permission);
   };
 
   // 컴포넌트 마운트 시 인증 상태 확인

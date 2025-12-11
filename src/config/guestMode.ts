@@ -75,7 +75,8 @@ export function normalizeGuestModeValue(
  * 현재 게스트 모드 설정을 반환합니다.
  *
  * @returns 'full_access' | 'restricted'
- * @default 'restricted' (환경 변수 미설정 시)
+ * @default 'full_access' (개발 중 - 환경 변수 미설정 시)
+ * @todo 개발 완료 후 기본값을 GUEST_MODE.RESTRICTED로 변경
  */
 export function getGuestMode(): GuestModeType {
   const booleanOverride = parseGuestBooleanFlag(
@@ -85,9 +86,10 @@ export function getGuestMode(): GuestModeType {
     return booleanOverride ? GUEST_MODE.FULL_ACCESS : GUEST_MODE.RESTRICTED;
   }
 
+  // 🎯 개발 중: 기본값을 full_access로 변경 (개발 완료 후 RESTRICTED로 복원)
   const mode =
     normalizeGuestModeValue(process.env.NEXT_PUBLIC_GUEST_MODE) ||
-    GUEST_MODE.RESTRICTED;
+    GUEST_MODE.FULL_ACCESS;
 
   // 디버그: 환경 변수 값 확인 (클라이언트, 한 번만)
   if (typeof window !== 'undefined' && !hasLoggedOnce) {
