@@ -4,7 +4,6 @@
  */
 
 import { Bot, Database, Sparkles, Zap } from 'lucide-react';
-import { MCP_SERVERS } from '@/config/constants';
 import type { FeatureCard } from '@/types/feature-card.types';
 
 export const FEATURE_CARDS_DATA: FeatureCard[] = [
@@ -121,25 +120,24 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
-      overview: `Claude Code 중심의 개발 워크플로우! 메인 코딩은 Claude Code가 담당하고, 커밋 시점에 Codex/Gemini/Qwen이 자동으로 실행되어 코드를 교차 검증하고 보완합니다.`,
+      overview: `Vibe Coding의 4단계 진화. [1단계] GPT 수동 코딩/Netlify 목업 → [2단계] Cursor 자동 개발 → [3단계] 분기점: Windsurf/VSCode는 스크린샷 분석 등 보조로 물러나고, WSL + Claude Code가 메인이 됨 → [4단계] 현재: WSL 환경에서 Claude Code(Main), Codex, Gemini, Qwen, Kiro-CLI가 협업하며, Antigravity가 함께하는 Agentic Era.`,
       features: [
-        '🤖 Claude Code (Main Coder): 전체 아키텍처 설계 및 핵심 로직 구현 주도',
-        '🛡️ Automated Review Pipeline: Git Commit 시점에 AI 리뷰어 자동 트리거',
-        '🔄 Complementary Validation: 메인 코더가 놓칠 수 있는 엣지 케이스를 보완',
-        '⚡ Pre-commit Hook: 로컬 단계에서 즉시 피드백을 제공하여 빠른 수정 유도',
-        '🔍 Multi-Perspective: Codex(구현 검증), Gemini(구조 분석), Qwen(최적화 제안)',
-        '📊 Quality Gate: 3단계 검증을 통과해야 배포 가능한 엄격한 품질 관리',
-        '💰 Cost Efficiency: 단순 검증은 경량 모델, 심층 분석은 고성능 모델 사용',
-        `🔧 ${MCP_SERVERS.TOTAL_ACTIVE}개 MCP 서버: IDE와 긴밀하게 통합된 도구 체인 활용`,
-        '🎯 Human-AI Synergy: 개발자는 결정에 집중하고 검증은 AI가 전담',
+        '1️⃣ Stage 1 (Manual): GPT/Gemini 창에서 수동 코딩 → Netlify 목업',
+        '2️⃣ Stage 2 (Auto): Cursor의 등장, "IDE 자동 개발"의 시작',
+        '3️⃣ Stage 3 (Pivot): IDE는 보조(시각 분석)로, 메인은 WSL + Claude Code로 이동',
+        '4️⃣ Stage 4 (Current): WSL 위의 Multi-CLI (Codex/Gemini/Qwen/Kiro) + Antigravity',
+        '📺 IDE Role Shift: 개발의 주체에서 "터미널 뷰어" 및 "스크린샷 분석도구"로 축소',
+        '🐧 WSL Main Base: 모든 지능형 에이전트들이 활동하는 실제 본부',
+        '🤖 Agentic Ecosystem: Claude Code(Main)을 중심으로 복수 에이전트 협업',
+        '🚀 Antigravity Era: 이 모든 진화를 거쳐 도달한 현재의 완성형',
       ],
       technologies: [
-        'Claude Code (Main Tool)',
-        'Git Pre-commit Hook',
-        'Automated Reviewer',
-        'OpenAI Codex',
-        'Google Gemini',
-        'Qwen (Alibaba)',
+        'Antigravity (Era)',
+        'WSL Terminal (Main)',
+        'Claude Code (Core)',
+        'Multi-CLI Agents',
+        'VSCode (Visual Aux)',
+        'Cursor/Windsurf (Legacy)',
       ],
     },
     requiresAI: false,

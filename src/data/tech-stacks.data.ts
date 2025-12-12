@@ -10,9 +10,9 @@ import type { TechItem } from '../types/feature-card.types';
 export interface VibeCodeData {
   current: TechItem[];
   history: {
-    stage1: TechItem[]; // 초기: ChatGPT → 개별 페이지 → Netlify
-    stage2: TechItem[]; // 중기: Cursor → Vercel → Supabase
-    stage3: TechItem[]; // 후기: Claude Code → WSL → 멀티 AI CLI (2025.07~2025.10)
+    stage1: TechItem[]; // 1단계: 수동 개발 (ChatGPT/Gemini -> Copy/Paste -> Netlify)
+    stage2: TechItem[]; // 2단계: 자동 개발 (Cursor IDE Vibe)
+    stage3: TechItem[]; // 3단계: 분기점 (Windsurf/VSCode=보조, WSL/Claude=메인)
   };
 }
 
@@ -142,16 +142,16 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       type: 'commercial',
     },
     {
-      name: 'GCP Functions (Python 3.11)',
+      name: 'GCP Cloud Run (Python 3.11)',
       category: 'deployment',
       importance: 'high',
-      description: '3개의 Python 서버리스 함수 배포 완료',
+      description: '3개의 Python 마이크로서비스 컨테이너 배포',
       implementation:
-        'enhanced-korean-nlp (한국어 처리), ml-analytics-engine (ML 분석), unified-ai-processor (AI 통합)',
+        'Cloud Functions에서 Cloud Run으로 마이그레이션 완료. Docker 기반의 표준화된 런타임으로 Cold Start 최소화 및 확장성 확보',
       version: 'Python 3.11',
       status: 'active',
       icon: '☁️',
-      tags: ['클라우드', 'Python3.11', '배포완료'],
+      tags: ['CloudRun', 'Container', 'Python3.11'],
       type: 'commercial',
     },
     {
@@ -334,18 +334,17 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
   'cursor-ai': {
     current: [
       {
-        name: 'Claude Code',
+        name: 'Antigravity (Gemini)',
         category: 'ai',
         importance: 'critical',
-        description:
-          '현재 메인 개발 도구 - Anthropic의 공식 CLI 기반 AI 코딩 어시스턴트',
+        description: '4단계 완성형 - Antigravity와 Multi-CLI 에이전트 시대',
         implementation:
-          'claude.ai/code로 제공되는 강력한 AI 개발 도구. Extended Thinking (Tab 키 또는 ultrathink로 심층 분석), @-mention 서버 필터링 (10-18% 토큰 절약), Prompt Caching 자동 활성화. Sonnet 4.5 모델 기반으로 복잡한 코딩 작업 자동화',
-        version: 'v2.0.60',
+          'WSL 환경의 Claude Code를 메인으로, Codex, Gemini, Qwen, Kiro-CLI 등 다양한 에이전트가 공존. 여기에 Antigravity가 더해져 진정한 "Agentic AI" 시대를 염',
+        version: 'v1.0.0',
         status: 'active',
-        icon: '🤖',
-        tags: ['메인도구', 'AI개발', '자연어코딩', 'CLI'],
-        type: 'commercial',
+        icon: '🌌',
+        tags: ['Antigravity', 'Multi-CLI', 'Agentic-Era', 'WSL-Native'],
+        type: 'custom',
       },
       {
         name: 'MCP 서버',
@@ -449,6 +448,19 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         tags: ['Git자동화', 'CI/CD', 'GitHub통합'],
         type: 'custom',
       },
+      {
+        name: 'Docker (Cloud Run Dev)',
+        category: 'deployment',
+        importance: 'high',
+        description: '로컬에서 클라우드/AI 환경 완벽 에뮬레이션',
+        implementation:
+          'WSL 위에서 Docker를 실행하여 GCP Cloud Run 환경과 동일한 컨테이너 개발 환경 구축. "내 컴퓨터에서는 되는데" 문제 원천 차단',
+        version: '24.0.x',
+        status: 'active',
+        icon: '🐋',
+        tags: ['Docker', 'WSL', 'Local-Dev'],
+        type: 'commercial',
+      },
     ],
     history: {
       // 1단계: 초기 (2025.05~06) - ChatGPT 기반 개별 페이지 생성
@@ -499,162 +511,89 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
             'AI 통합 없는 기본 텍스트 에디터로 ChatGPT 생성 코드 수정. VSCode 없이 메모장 수준 편집',
           status: 'history',
           icon: '📝',
-          tags: ['기본편집', 'AI없음', '단순수정'],
-          type: 'opensource',
+          tags: ['1단계', '수동개발', 'Copy&Paste', 'Netlify'],
+          type: 'commercial',
+        },
+        {
+          name: 'Netlify (Mockup)',
+          category: 'deployment',
+          importance: 'medium',
+          description: '초기 배포처 - 정적 페이지 호스팅',
+          implementation:
+            '복잡한 서버 로직 없이 HTML/JS 수준의 목업을 빠르게 띄우던 용도',
+          status: 'history',
+          icon: '🌐',
+          tags: ['Mockup', '단순호스팅', '정적웹'],
+          type: 'commercial',
         },
       ],
-      // 2단계: 중기 (2025.06~07) - Cursor + Vercel + Supabase 통합
+
+      // 2단계: 중기 (2025.06~07) - Cursor 자동 개발 시대
       stage2: [
         {
-          name: 'Cursor AI',
+          name: 'Cursor AI (Auto Dev)',
           category: 'ai',
           importance: 'critical',
-          description: '2단계 메인 개발 도구 - 프로덕션급 웹앱 구축',
+          description: '2단계 - "자동 개발"의 시작',
           implementation:
-            'GPT-4와 Claude 3.7 지원, 자동 오류 감지/수정, 백그라운드 에이전트, Composer로 멀티파일 동시 생성. 정적 목업에서 동적 웹 애플리케이션으로 발전시킨 핵심 도구',
+            'IDE 안에서 AI가 파일을 수정해주는 "Vibe Coding"의 탄생. 수동 복붙에서 벗어나 생산성이 비약적으로 향상된 시기',
           version: '0.42+',
           status: 'history',
           icon: '🚀',
-          tags: ['2단계메인', 'AI개발', 'Composer', '프로덕션'],
+          tags: ['2단계', '자동개발', 'Cursor', 'IDE중심'],
           type: 'commercial',
         },
         {
-          name: 'Git CLI',
-          category: 'custom',
-          importance: 'high',
-          description: '체계적인 버전 관리 시스템 도입',
-          implementation:
-            '웹 인터페이스에서 Git CLI로 전환. 브랜치 기반 개발, 커밋 히스토리 관리, Pull Request 도입으로 개발 프로세스 체계화',
-          status: 'history',
-          icon: '📋',
-          tags: ['버전관리', 'CLI도입', '체계화'],
-          type: 'opensource',
-        },
-        {
-          name: 'Vercel Platform',
+          name: 'Vercel + Supabase',
           category: 'deployment',
-          importance: 'critical',
-          description: 'Netlify에서 Vercel로 배포 플랫폼 전환',
-          implementation:
-            'Next.js SSR/SSG 지원, 자동 배포 파이프라인 구축, 프리뷰 환경 제공. 정적 사이트에서 동적 웹 애플리케이션 배포로 발전',
-          status: 'history',
-          icon: '▲',
-          tags: ['배포전환', 'Next.js', '자동배포'],
-          type: 'commercial',
-        },
-        {
-          name: 'Supabase PostgreSQL',
-          category: 'database',
-          importance: 'critical',
-          description: '데이터베이스 도입으로 CRUD 웹앱 완성',
-          implementation:
-            'PostgreSQL 데이터베이스 연동, 실시간 데이터 서빙, 사용자 인증 시스템, RESTful API 설계. 하드코딩 목업에서 데이터베이스 기반 동적 앱으로 전환',
-          status: 'history',
-          icon: '🐘',
-          tags: ['DB도입', 'CRUD', '실시간데이터'],
-          type: 'commercial',
-        },
-        {
-          name: 'Next.js + TypeScript',
-          category: 'framework',
           importance: 'high',
-          description: '프로덕션급 개발 스택 구축',
+          description: '현재까지 이어지는 인프라 표준 정립',
           implementation:
-            'Next.js 13+ App Router, TypeScript strict mode 도입. 개별 HTML 페이지에서 체계적인 컴포넌트 기반 아키텍처로 발전',
+            'Cursor 시기에 도입된 이 조합(Next.js+Vercel+Supabase)은 현재 4단계 Agentic Era까지 변함없이 우리 서비스의 단단한 뼈대가 되어주고 있음',
           status: 'history',
-          icon: '⚛️',
-          tags: ['프레임워크', 'TypeScript', '아키텍처'],
-          type: 'opensource',
+          icon: '⚡',
+          tags: ['FullStack', '핵심기반', '현재도사용중'],
+          type: 'commercial',
         },
       ],
-      // 3단계: 후기 (2025.07~현재) - Claude Code + WSL + 멀티 AI CLI
+
+      // 3단계: 후기 (2025.07~10) - 분기점 (Pivot Point)
       stage3: [
         {
-          name: 'Claude Code (Cursor 대체)',
+          name: 'WSL + Claude Code (Main)',
           category: 'ai',
           importance: 'critical',
-          description:
-            'Cursor의 토큰/비용 문제 해결 - 기능은 우수하지만 경제성으로 전환',
+          description: '3단계 핵심 - 메인 개발 환경의 이동 (IDE → WSL)',
           implementation:
-            'Cursor 자체는 훌륭했으나 토큰 사용량과 비용 부담으로 Claude Code 전환. MCP 9개 서버 통합으로 82% 토큰 절약 + @-mention 필터링으로 추가 10-18% 절약 달성. 서브에이전트 12개로 전문화, Opus 4.1 모델로 복잡한 작업 자동화하면서도 비용 효율적인 개발 환경 구축',
-          version: 'v1.0.95+',
-          status: 'history',
-          icon: '🤖',
-          tags: ['토큰절약', '비용효율', 'MCP통합', 'Cursor대체'],
-          type: 'commercial',
-        },
-        {
-          name: 'WSL 2 Ubuntu',
-          category: 'custom',
-          importance: 'high',
-          description: 'Linux 네이티브 개발 환경으로 성능 대폭 향상',
-          implementation:
-            '16GB 메모리 할당, I/O 54배 향상, sudo 비밀번호 없이 사용, bash 별칭 최적화. Windows 대비 개발 효율성 극대화',
-          version: 'Ubuntu 24.04',
+            '이 시점부터 WSL 터미널이 메인 개발 스테이지가 됨. Claude Code가 등장하여 실질적인 개발을 주도하기 시작함',
           status: 'history',
           icon: '🐧',
-          tags: ['WSL최적화', 'Linux성능', '개발환경'],
-          type: 'opensource',
-        },
-        {
-          name: 'Windsurf (실험)',
-          category: 'ai',
-          importance: 'medium',
-          description: '3단계에서 테스트한 Codeium 기반 AI IDE',
-          implementation:
-            'Flow 모드로 자연스러운 개발 경험, WSL 환경에서 실험적으로 테스트. Claude Code의 우수성 확인 후 전환',
-          status: 'history',
-          icon: '🌊',
-          tags: ['3단계실험', 'Flow모드', 'Codeium'],
-          type: 'commercial',
-        },
-        {
-          name: 'AWS Kiro (베타 테스트)',
-          category: 'ai',
-          importance: 'medium',
-          description: '3단계에서 테스트한 AWS 베타 AI IDE',
-          implementation:
-            'AWS에서 일정기간 베타로 제공한 Claude Sonnet 모델 기반 AI 개발 환경. WSL에서 테스트 후 Claude Code로 통합',
-          status: 'history',
-          icon: '☁️',
-          tags: ['3단계베타', 'Sonnet모델', 'AWS제공'],
-          type: 'commercial',
-        },
-        {
-          name: '멀티 AI CLI 통합',
-          category: 'ai',
-          importance: 'high',
-          description: '4-AI 교차 검증 시스템으로 개발 품질 극대화',
-          implementation:
-            'Claude Code(메인) + Codex CLI(ChatGPT) + Gemini CLI + Qwen CLI로 교차 검증. 단일 AI 한계 극복, 95%+ 문제 발견율 달성',
-          status: 'history',
-          icon: '🔄',
-          tags: ['4AI교차검증', '멀티CLI', '품질극대화'],
+          tags: ['3단계', 'WSL-Main', 'Claude-Code', '분기점'],
           type: 'custom',
         },
         {
-          name: 'GCP Functions 추가',
-          category: 'deployment',
-          importance: 'high',
-          description: '3단계에서 서버리스 AI 백엔드 도구 추가',
+          name: 'Visual Aux (Windsurf/VSCode)',
+          category: 'ai',
+          importance: 'medium',
+          description: 'IDE의 역할 축소 - 보조 및 시각적 분석',
           implementation:
-            '기존 Vercel + Supabase 환경에 서버리스 AI 백엔드 추가. 한국어 자연어 처리와 머신러닝 분석을 위한 서버리스 Functions 도입',
+            'Windsurf와 VSCode를 사용하지만, 역할은 "보조"로 축소됨. 주로 프론트엔드 스크린샷 분석이나 단순 뷰어 역할을 담당',
           status: 'history',
-          icon: '☁️',
-          tags: ['서버리스추가', 'AI백엔드', '3단계신규'],
+          icon: '👁️',
+          tags: ['IDE-Secondary', '시각분석', '보조역할'],
           type: 'commercial',
         },
         {
-          name: 'VSCode + WSL 호스팅',
-          category: 'custom',
+          name: 'GCP Cloud Functions (Legacy)',
+          category: 'deployment',
           importance: 'medium',
-          description: '현재 Claude Code 호스팅 환경',
+          description: '3단계 배포 - 서버리스 함수의 도입',
           implementation:
-            'VSCode를 WSL 터미널 호스팅 환경으로 활용, Claude Code가 WSL 내부에서 실행되며 모든 AI CLI 도구들과 완벽 통합',
+            '초기에는 Docker 없이 가볍게 배포 가능한 Cloud Functions를 사용함. 하지만 로컬 개발 환경과의 불일치로 인해 이후 Cloud Run으로 전환하게 됨',
           status: 'history',
-          icon: '💻',
-          tags: ['VSCode호스팅', 'WSL통합', '터미널환경'],
-          type: 'opensource',
+          icon: '⚡',
+          tags: ['GCP', 'Functions', 'Serverless'],
+          type: 'commercial',
         },
       ],
     },
