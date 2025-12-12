@@ -53,15 +53,14 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
 
   return (
     <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {/* 1. Total Servers (Large) */}
-      <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-xs md:col-span-2 lg:col-span-1">
-        {/* 배경 아이콘 완전 제거 - SVG stroke 아티팩트 발생으로 hidden 처리 */}
-        {/* <div className="absolute right-0 top-0 p-4 opacity-[0.03] transition-opacity group-hover:opacity-[0.06]">
-          <ServerIcon size={120} strokeWidth={1} />
-        </div> */}
+      {/* 1. Total Servers (Large) - Bento Hero Card */}
+      <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-gradient-to-br from-slate-50 to-blue-50 p-6 shadow-xs transition-all duration-300 hover:shadow-md hover:border-blue-200 md:col-span-2 lg:col-span-1">
+        <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-blue-500/5 transition-transform duration-500 group-hover:scale-150" />
         <div className="relative z-10">
           <div className="mb-2 flex items-center gap-2 text-gray-500">
-            <ServerIcon size={18} />
+            <div className="rounded-lg bg-blue-100 p-1.5 text-blue-600">
+              <ServerIcon size={16} />
+            </div>
             <span className="text-sm font-medium">Total Servers</span>
           </div>
           <div className="mb-1 text-4xl font-bold text-gray-900">
@@ -74,42 +73,42 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
         </div>
       </div>
 
-      {/* 2. Status Cards (Grid inside Grid) */}
-      <div className="grid grid-rows-3 gap-4 lg:col-span-1">
-        <div className="flex items-center justify-between rounded-xl border border-green-100 bg-green-50 p-4">
+      {/* 2. Status Cards (Grid inside Grid) - Bento Mini Cards */}
+      <div className="grid grid-rows-3 gap-3 lg:col-span-1">
+        <div className="flex items-center justify-between rounded-xl border border-green-100 bg-gradient-to-r from-green-50 to-emerald-50 p-4 transition-all duration-200 hover:border-green-200 hover:shadow-sm">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-green-100 p-2 text-green-600">
               <CheckCircle2 size={18} />
             </div>
             <div>
               <div className="text-xs font-medium text-green-700">Online</div>
-              <div className="text-lg font-bold text-green-800">
+              <div className="text-xl font-bold text-green-800">
                 {stats.online}
               </div>
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between rounded-xl border border-yellow-100 bg-yellow-50 p-4">
+        <div className="flex items-center justify-between rounded-xl border border-yellow-100 bg-gradient-to-r from-yellow-50 to-amber-50 p-4 transition-all duration-200 hover:border-yellow-200 hover:shadow-sm">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-yellow-100 p-2 text-yellow-600">
               <AlertTriangle size={18} />
             </div>
             <div>
               <div className="text-xs font-medium text-yellow-700">Warning</div>
-              <div className="text-lg font-bold text-yellow-800">
+              <div className="text-xl font-bold text-yellow-800">
                 {stats.warning}
               </div>
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between rounded-xl border border-red-100 bg-red-50 p-4">
+        <div className="flex items-center justify-between rounded-xl border border-red-100 bg-gradient-to-r from-red-50 to-rose-50 p-4 transition-all duration-200 hover:border-red-200 hover:shadow-sm">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-red-100 p-2 text-red-600">
               <XCircle size={18} />
             </div>
             <div>
               <div className="text-xs font-medium text-red-700">Offline</div>
-              <div className="text-lg font-bold text-red-800">
+              <div className="text-xl font-bold text-red-800">
                 {stats.offline}
               </div>
             </div>
@@ -117,10 +116,12 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
         </div>
       </div>
 
-      {/* 3. Resource Usage (Medium) */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-xs md:col-span-2 lg:col-span-2">
+      {/* 3. Resource Usage (Medium) - Bento Wide Card */}
+      <div className="group rounded-2xl border border-gray-100 bg-gradient-to-br from-white to-gray-50 p-6 shadow-xs transition-all duration-300 hover:shadow-md hover:border-gray-200 md:col-span-2 lg:col-span-2">
         <h3 className="mb-6 flex items-center gap-2 font-semibold text-gray-900">
-          <Activity size={18} className="text-blue-500" />
+          <div className="rounded-lg bg-blue-100 p-1.5 text-blue-600">
+            <Activity size={16} />
+          </div>
           Resource Overview
         </h3>
         <div className="grid grid-cols-2 gap-6">
