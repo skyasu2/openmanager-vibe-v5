@@ -56,6 +56,24 @@ git diff | gemini 변경사항 리뷰
 - 일일 한도: 1,000 RPD
 - 분당 한도: 60 RPM
 
+
+---
+
+## 💻 개발 환경 및 서버 실행 규칙
+
+### WSL (Windows Subsystem for Linux) 필수 사용
+
+- **실행 환경**: 프로젝트의 모든 스크립트(.sh)와 Node.js 바이너리는 **Linux 환경(WSL)**에 최적화되어 있습니다.
+- **Windows PowerShell 사용 금지**: 호환성 문제(바이너리 아키텍처, 쉘 스크립트 문법) 방지를 위해 PowerShell에서 직접 `npm run dev` 실행을 지양합니다.
+
+### 개발 서버 실행 (Windows 브라우저 접속)
+
+- **명령어**: `npm run dev:network` (WSL 터미널에서 실행)
+  - 이 명령어는 `0.0.0.0`으로 호스트를 바인딩하여 Windows 브라우저에서 접근 가능하게 합니다.
+- **접속 주소**:
+  - `http://localhost:3000` (WSL 포트 포워딩)
+  - `http://[WSL-IP]:3000` (직접 접속)
+
 ---
 
 ## 🚀 사용 방법
