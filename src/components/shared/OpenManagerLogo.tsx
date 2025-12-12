@@ -55,13 +55,11 @@ export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
         <h1 className={`text-xl font-bold ${titleColor}`}>OpenManager</h1>
         {showSubtitle && (
           <p className={`text-xs ${subtitleColor}`}>
-            {aiAgent.isEnabled && !isSystemStarted
-              ? 'AI 독립 모드'
-              : aiAgent.isEnabled && isSystemStarted
-                ? 'AI + 시스템 통합 모드'
-                : isSystemStarted
-                  ? '기본 모니터링'
-                  : '시스템 정지'}
+            {aiAgent.isEnabled && isSystemStarted
+              ? 'AI + 시스템 통합 모드'
+              : isSystemStarted
+                ? '기본 모니터링'
+                : '시스템 정지'}
           </p>
         )}
       </div>
