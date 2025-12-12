@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
-import { getSafeServicesLength } from '@/lib/utils/vercel-safe-utils';
+
 import { LogsTab } from './EnhancedServerModal.LogsTab';
 import { MetricsTab } from './EnhancedServerModal.MetricsTab';
 import { NetworkTab } from './EnhancedServerModal.NetworkTab';
@@ -87,19 +87,38 @@ export default function EnhancedServerModal({
             environment: server.environment || 'unknown',
             location: server.location || 'Unknown Location',
             provider: server.provider || 'Unknown Provider',
-            status: server.status || 'unknown', // 🔧 수정: 'offline' → 'unknown' (기본값 변경)
+            status: server.status || 'unknown',
             cpu: typeof server.cpu === 'number' ? server.cpu : 0,
             memory: typeof server.memory === 'number' ? server.memory : 0,
             disk: typeof server.disk === 'number' ? server.disk : 0,
             network: typeof server.network === 'number' ? server.network : 0,
-            uptime: server.uptime || '0h 0m',
+            uptime:
+              typeof server.uptime === 'number'
+                ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
+                : server.uptime || '0h 0m',
             lastUpdate: server.lastUpdate || new Date(),
-            alerts: typeof server.alerts === 'number' ? server.alerts : 0,
-            services: Array.isArray(server.services) ? server.services : [],
+            alerts:
+              typeof server.alerts === 'number'
+                ? server.alerts
+                : Array.isArray(server.alerts)
+                  ? server.alerts.length
+                  : 0,
+            services: Array.isArray(server.services)
+              ? server.services.map((s) => ({
+                  name: s.name,
+                  status: s.status,
+                  port: s.port || 80,
+                }))
+              : [],
             specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
             os: server.os || 'Unknown OS',
             ip: server.ip || '0.0.0.0',
-            networkStatus: server.networkStatus || 'offline',
+            networkStatus:
+              server.status === 'online'
+                ? 'excellent'
+                : server.status === 'warning'
+                  ? 'good'
+                  : 'offline', // Simple mapping
             health: server.health || { score: 0, trend: [] },
             alertsSummary: server.alertsSummary || {
               total: 0,
@@ -118,20 +137,19 @@ export default function EnhancedServerModal({
     const generateRealtimeData = () => {
       try {
         const now = new Date();
+        const serviceCount = safeServer.services?.length || 0;
+
         setRealtimeData((prev) => ({
           cpu: [
             ...prev.cpu.slice(-29),
-            // 🎯 메트릭 변화량 안정화: 기존 ±10 → ±3
             safeServer.cpu + (Math.random() - 0.5) * 3,
           ].slice(-30),
           memory: [
             ...prev.memory.slice(-29),
-            // 🎯 메트릭 변화량 안정화: 기존 ±8 → ±2
             safeServer.memory + (Math.random() - 0.5) * 2,
           ].slice(-30),
           disk: [
             ...prev.disk.slice(-29),
-            // 🎯 메트릭 변화량 안정화: 기존 ±3 → ±1
             safeServer.disk + (Math.random() - 0.5) * 1,
           ].slice(-30),
           network: [
@@ -163,21 +181,16 @@ export default function EnhancedServerModal({
                   `${safeServer.name} - HTTP request processed successfully`,
                   `${safeServer.name} - Memory usage above threshold`,
                   `${safeServer.name} - Database connection established`,
-                  `${safeServer.name} - Cache invalidated`,
-                  `${safeServer.name} - Backup completed`,
-                  `${safeServer.name} - SSL certificate renewed`,
-                ][Math.floor(Math.random() * 6)] ??
+                ][Math.floor(Math.random() * 3)] ??
                 `${safeServer.name} - System status normal`,
               source:
-                (safeServer?.services &&
-                Array.isArray(safeServer.services) &&
-                getSafeServicesLength(safeServer) > 0
+                serviceCount > 0
                   ? safeServer.services[
-                      Math.floor(
-                        Math.random() * getSafeServicesLength(safeServer)
-                      )
-                    ]?.name
-                  : safeServer?.name) || safeServer?.name,
+                      Math.floor(Math.random() * serviceCount)
+                    ]?.name ||
+                    safeServer.name ||
+                    'unknown'
+                  : safeServer.name || 'unknown',
             },
           ].slice(-20),
         }));
@@ -203,9 +216,6 @@ export default function EnhancedServerModal({
     };
 
     generateRealtimeData();
-    // 🎯 데이터 수집 간격과 완전 동기화
-    // 서버 카드, 실시간 훅과 모두 동기화하여 일관된 업데이트 제공
-    // 🚨 무료 티어 절약: 실시간 데이터 생성 간격 5-10분
     const interval = setInterval(
       generateRealtimeData,
       calculateOptimalCollectionInterval()
@@ -383,7 +393,7 @@ export default function EnhancedServerModal({
                   case 'metrics': {
                     // 🎯 성능 상태 + 프로세스 수 통합
                     const avgCpu = (safeServer.cpu + safeServer.memory) / 2;
-                    const processCount = getSafeServicesLength(safeServer);
+                    const processCount = safeServer.services?.length || 0;
                     return (
                       <div className="flex items-center gap-1">
                         <div
@@ -531,7 +541,7 @@ export default function EnhancedServerModal({
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">
-                        {getSafeServicesLength(safeServer)}
+                        {safeServer.services?.length || 0}
                       </div>
                       <div className="text-sm text-gray-500">서비스</div>
                     </div>

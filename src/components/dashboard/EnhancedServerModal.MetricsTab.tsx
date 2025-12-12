@@ -11,7 +11,7 @@
  */
 import { Pause, Play } from 'lucide-react';
 import type { FC } from 'react';
-import { getSafeLastArrayItem } from '@/lib/utils/vercel-safe-utils';
+
 import { RealtimeChart } from './EnhancedServerModal.components';
 import type {
   ChartData,
@@ -154,7 +154,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
                   <div
                     className={`bg-gradient-to-r text-2xl font-bold ${chart.gradient} bg-clip-text text-transparent`}
                   >
-                    {getSafeLastArrayItem(chart.data, 0).toFixed(1) || '0'}%
+                    {chart.data[chart.data.length - 1]?.toFixed(1) || '0'}%
                   </div>
                 </div>
 
@@ -182,7 +182,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
           style={{ animationDelay: '0.6s' }}
         >
           {chartConfigs.map((chart, idx) => {
-            const currentValue = getSafeLastArrayItem(chart.data, 0) || 0;
+            const currentValue = chart.data[chart.data.length - 1] ?? 0;
             const avgValue =
               chart.data.length > 0
                 ? chart.data.reduce((sum, val) => sum + val, 0) /

@@ -86,7 +86,7 @@ export interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
-  source: string;
+  source?: string;
 }
 
 export interface NetworkData {
@@ -104,8 +104,10 @@ export interface RealtimeData {
   logs: LogEntry[];
 }
 
+import type { Server } from '@/types/server';
+
 export interface EnhancedServerModalProps {
-  server: ServerData | null;
+  server: Server | null;
   onClose: () => void;
 }
 

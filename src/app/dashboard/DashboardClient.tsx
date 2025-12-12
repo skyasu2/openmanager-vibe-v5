@@ -24,7 +24,7 @@ import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { cn } from '@/lib/utils';
-import { convertServerToModalData } from '@/lib/utils/vercel-safety-utils';
+
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 // Admin mode removed - Phase 2: Admin removal complete
 import { useAISidebarStore } from '@/stores/useAISidebarStore'; // AI 사이드바 상태
@@ -105,16 +105,11 @@ const AnimatedServerModal = dynamic(
       server: Server | null;
       onClose: () => void;
     }) {
-      // 🎯 서버 데이터 변환 헬퍼 함수 사용
-      const serverData = server ? convertServerToModalData(server) : null;
-
+      // 🎯 직접 전달 (EnhancedServerModal 내부에서 안전하게 변환됨)
       return (
         <>
-          {isOpen && serverData && (
-            <EnhancedServerModal.default
-              server={serverData}
-              onClose={onClose}
-            />
+          {isOpen && server && (
+            <EnhancedServerModal.default server={server} onClose={onClose} />
           )}
         </>
       );
@@ -375,16 +370,6 @@ function DashboardPageContent() {
   // 🔧 useSystemStatus 반환값 미사용 - 향후 시스템 상태 표시용으로 보존
   useSystemStatus();
 
-  // 🛡️ 성능 가드 - 임시 비활성화 (TypeError 문제 해결 중)
-  // const { warningCount, generateReport } = usePerformanceGuard({
-  //   minTimerInterval: 5000, // 5초 최소값
-  //   memoryWarningThreshold: 100, // 100MB 경고 임계값
-  //   localStorageAccessLimit: 60, // 분당 60회 제한
-  //   devOnly: true // 개발 환경에서만 활성화 (프로덕션 안전)
-  // });
-  const warningCount = 0;
-  const generateReport = () => ({ warningCount: 0, isEdgeRuntime: false });
-
   // 🛑 시스템 제어 함수들
   const { isSystemStarted, startSystem, stopSystem } = useUnifiedAdminStore();
 
@@ -483,20 +468,6 @@ function DashboardPageContent() {
     }
   }, [isSystemStarted, startSystem]);
 
-  // 🛡️ 성능 가드 경고 모니터링 (개발 환경에서만)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && warningCount > 0) {
-      console.group('🚨 Performance Guard Warnings');
-      console.warn(
-        `성능 경고 ${warningCount}개 발견! 베르셀 Edge Runtime 문제 예방을 위해 확인하세요.`
-      );
-      console.log('성능 리포트 확인:', generateReport());
-      console.log(
-        '해결 방법: docs/development/performance-development-checklist.md 참고'
-      );
-      console.groupEnd();
-    }
-  }, []); // ✅ generateReport 함수 의존성 제거하여 순환 의존성 해결
 
   // 🕐 시간 포맷팅
   const remainingTimeFormatted = formatTime
