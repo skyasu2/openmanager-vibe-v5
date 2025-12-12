@@ -155,6 +155,17 @@ export const AI_GRADIENT_CLASSES =
 export const AI_GRADIENT_STYLE =
   'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)';
 
+// 🎨 AI 아이콘 그라데이션 상수 (2025 업데이트: 파란색 계열 강화)
+// 아이콘에 적용할 그라데이션 - 더 선명한 파란색 시작
+export const AI_ICON_GRADIENT_CLASSES =
+  'bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 animate-gradient-diagonal';
+export const AI_ICON_GRADIENT_ID = 'ai-icon-gradient';
+export const AI_ICON_GRADIENT_COLORS = {
+  start: '#60a5fa', // blue-400
+  mid: '#6366f1', // indigo-500
+  end: '#9333ea', // purple-600
+} as const;
+
 export const getServerStatusTheme = (status: ServerStatus) => {
   return SERVER_STATUS_COLORS[status] || SERVER_STATUS_COLORS.unknown; // 🔧 수정: 기본값 'healthy' → 'unknown'
 };

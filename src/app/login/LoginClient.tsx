@@ -7,7 +7,7 @@
 
 'use client';
 
-import { User } from 'lucide-react';
+import { Sparkles, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 // 게스트 로그인 관련 임포트 (lib/auth-state-manager로 통합)
@@ -17,10 +17,15 @@ import { authStateManager } from '@/lib/auth/auth-state-manager';
 import { signInWithGitHub } from '@/lib/auth/supabase-auth';
 import {
   AI_GRADIENT_CLASSES,
+  AI_ICON_GRADIENT_ID,
   BUTTON_STYLES,
   PAGE_BACKGROUNDS,
 } from '@/styles/design-constants';
 import debug from '@/utils/debug';
+import {
+  AIIconGradientDefs,
+  renderTextWithAIGradient,
+} from '@/utils/text-rendering';
 
 interface GuestSessionData {
   sessionId: string;
@@ -371,18 +376,29 @@ export default function LoginClient() {
 
           {/* 헤더 (Card 내부) */}
           <div className="relative mb-10 flex flex-col items-center text-center">
-            {/* ✨ 로고: 그라데이션 스퀘어 - 중앙 정렬 강화 */}
-            {/* 그라데이션이 파란색 시작으로 변경되어 쉐도우도 파란색으로 매칭 */}
+            {/* ✨ 로고: AI 아이콘 + 그라데이션 (파란색 계열 강화) */}
+            {/* SVG 그라데이션 정의 */}
+            <AIIconGradientDefs />
             <div
               className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-blue-500/40 sm:h-20 sm:w-20`}
-            />
+            >
+              {/* Sparkles 아이콘에 SVG 그라데이션 적용 (stroke + fill) */}
+              <Sparkles
+                className="h-8 w-8 sm:h-10 sm:w-10"
+                style={{
+                  stroke: `url(#${AI_ICON_GRADIENT_ID})`,
+                  fill: `url(#${AI_ICON_GRADIENT_ID})`,
+                  strokeWidth: 1.5,
+                }}
+              />
+            </div>
             {/* 🎨 [2] 로고와 타이틀 간격 확대 - 라이트 텍스트 (PC 최적화) */}
             {/* 업계 표준: GitHub 600, Google 500 → 균형잡힌 600 적용 */}
             <h1 className="mb-3 text-[28px] font-semibold tracking-tight text-white sm:text-[32px]">
               OpenManager
             </h1>
             <p className="text-[15px] font-medium tracking-wide text-gray-300">
-              AI 서버 모니터링 시스템
+              {renderTextWithAIGradient('AI 서버 모니터링 시스템')}
             </p>
           </div>
 
