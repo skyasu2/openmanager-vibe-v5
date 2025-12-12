@@ -18,6 +18,11 @@ export interface GitHubLoginButtonProps {
   buttonText?: string;
   showUserInfo?: boolean;
   callbackUrl?: string;
+  // Controlled mode props
+  onClick?: () => void | Promise<void>;
+  isLoading?: boolean;
+  loadingMessage?: string;
+  pulse?: boolean;
 }
 
 export default function GitHubLoginButton({
@@ -25,25 +30,40 @@ export default function GitHubLoginButton({
   className = '',
   buttonText = 'GitHub으로 로그인',
   showUserInfo = true,
-  callbackUrl = '/main', // 기본값을 /main으로 변경
+  callbackUrl = '/main',
+  // Controlled mode
+  onClick,
+  isLoading: externalLoading,
+  loadingMessage,
+  pulse = false,
 }: GitHubLoginButtonProps) {
   const { data: session, status } = useSession();
-  const [isLoading, setIsLoading] = useState(false);
+  const [internalLoading, setInternalLoading] = useState(false);
+
+  // Controlled mode: 외부 로딩 상태 우선, 없으면 내부 상태 사용
+  const isLoading = externalLoading ?? internalLoading;
+  const setIsLoading = setInternalLoading;
 
   /**
    * 🔐 GitHub OAuth 로그인 처리
+   * Controlled mode: onClick이 제공되면 외부 핸들러 호출
    */
   const handleGitHubLogin = async () => {
+    // Controlled mode: 외부 onClick 핸들러 사용
+    if (onClick) {
+      await onClick();
+      return;
+    }
+
+    // Standalone mode: 내부 로직 사용
     try {
       setIsLoading(true);
-
       console.log('🔐 Supabase Auth GitHub 로그인 시작...');
 
       await signIn('github', {
         callbackUrl,
       });
 
-      // 로그인이 성공하면 자동으로 리다이렉트됨
       console.log('✅ GitHub 로그인 시작, OAuth 페이지로 이동...');
     } catch (error) {
       const errorMessage = 'GitHub 로그인 중 오류가 발생했습니다.';
@@ -169,7 +189,7 @@ export default function GitHubLoginButton({
         isLoading
           ? 'cursor-not-allowed bg-gray-600'
           : 'bg-gray-800 hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2'
-      } transition-all duration-200 ${className} `}
+      } ${pulse ? 'animate-pulse' : ''} transition-all duration-200 ${className} `}
     >
       {isLoading ? (
         <>
@@ -193,7 +213,7 @@ export default function GitHubLoginButton({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          GitHub 로그인 중...
+          {loadingMessage || 'GitHub 로그인 중...'}
         </>
       ) : (
         <>
