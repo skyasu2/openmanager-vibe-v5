@@ -11,7 +11,7 @@ related_docs:
   - 'docs/testing/testing-philosophy-detailed.md'
   - 'docs/testing/vitest-playwright-config-guide.md'
   - 'docs/testing/test-strategy-guide.md'
-last_updated: '2025-11-27'
+last_updated: '2025-12-12'
 ---
 
 # 🧪 OpenManager VIBE 테스트 시스템 가이드
@@ -34,17 +34,16 @@ last_updated: '2025-11-27'
 - **E2E Tests**: ✅ 100% 통과 (30개, Feature Cards 20개 포함)
 - **전체 평균**: ✅ 88.9% (목표 달성)
 
-## 📚 문서 인덱스 (36개 파일)
+## 📚 문서 인덱스 (28개 파일)
 
 ### 🎯 핵심 문서 (즉시 읽기)
 
-1. ⭐ **vercel-production-test-report.md** - Mock vs 실제 환경 차이점 검증
-2. ⭐ **e2e-testing-guide.md** - E2E 종합 가이드
-3. **testing-strategy-minimal.md** - Vercel-First 최소 전략
-4. **test-infrastructure-enhancement-report.md** - 테스트 인프라 강화 리포트 ([요약본](./test-infrastructure-summary.md))
-5. **universal-vitals-setup-guide.md** - Web Vitals 모니터링 ([요약본](./universal-vitals-summary.md))
+1. ⭐ **e2e-testing-guide.md** - E2E 종합 가이드
+2. ⭐ **vercel-first-strategy.md** - Vercel-First 전략
+3. **test-infrastructure-summary.md** - 테스트 인프라 요약
+4. **universal-vitals-setup-guide.md** - Web Vitals 모니터링 ([요약본](./universal-vitals-summary.md))
 
-### 카테고리별 문서 (36개)
+### 카테고리별 문서 (28개)
 
 - **Vercel 프로덕션**: 8개 (실제 환경 테스트)
 - **E2E 테스트**: 5개 (Playwright 가이드)
@@ -134,5 +133,5 @@ src/__tests__/          # 단위 테스트
 
 ---
 
-**Last Updated**: 2025-11-27 by Claude Code
+**Last Updated**: 2025-12-12 by Claude Code
 **핵심 철학**: "테스트는 도구일 뿐, 목적은 안정적인 프로덕션 서비스"
