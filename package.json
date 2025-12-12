@@ -10,6 +10,7 @@
     "claude:sanitize": "node scripts/diagnostics/claude-json-sanitize.js --write",
     "mcp:status": "claude mcp list",
     "dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096' next dev -p 3000",
+    "dev:network": "cross-env NODE_OPTIONS='--max-old-space-size=4096' next dev -p 3000 --hostname 0.0.0.0",
     "dev:stable": "cross-env NEXT_DISABLE_DEVTOOLS=1 NODE_OPTIONS='--max-old-space-size=4096' next dev",
     "dev:docker:ai": "bash scripts/dev/run-docker-functions.sh",
     "dev:index:background": "ts-node scripts/indexing/background-indexing.ts",

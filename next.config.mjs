@@ -28,6 +28,14 @@ const nextConfig = {
   output: undefined, // Vercel 자동 감지 사용
   trailingSlash: false,
 
+  // 🔧 Windows IDE에서 WSL 개발 서버 접속 허용 (Cross-Origin)
+  allowedDevOrigins: [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://192.168.0.68:3000', // WSL IP (동적 변경 가능)
+    'http://host.docker.internal:3000',
+  ],
+
   // 🔧 Zod v4 ESM 모듈 번들링 문제 해결
   // Zod v4의 schemas.js에서 inst.int = (params) => inst.check(int(params)) 패턴이
   // webpack 번들링 시 함수 참조 순서 문제로 'int is not defined' 오류 발생
