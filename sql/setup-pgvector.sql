@@ -2,7 +2,8 @@
 -- 🗄️ Supabase pgvector 설정 스크립트
 -- =========================================
 
--- 1. pgvector 확장 활성화
+-- Verified 2025-12-12
+-- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- 2. 벡터 문서 테이블 생성

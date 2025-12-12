@@ -1,5 +1,6 @@
 #!/bin/bash
 # Git pre-commit hook for secret scanning
+# Verified: 2025-12-12
 # 설치: cp .githooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 
 echo "🔍 Pre-commit: 시크릿 검사 중..."

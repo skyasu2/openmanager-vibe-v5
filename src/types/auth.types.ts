@@ -2,6 +2,8 @@
  * 🔐 Authentication & User Types
  *
  * Supabase Auth와 게스트 로그인을 위한 통합 타입 정의
+ *
+ * // Verified: 2025-12-12
  */
 
 import type { User as SupabaseUser } from '@supabase/supabase-js';

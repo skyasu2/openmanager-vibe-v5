@@ -8,6 +8,8 @@
  * - 월간 활성 사용자: 50,000명
  * - API 요청: 무제한 (하지만 연결 제한 있음)
  * - pgvector: 지원 ✅
+ *
+ * // Reviewed: 2025-12-12
  */
 
 export const SUPABASE_FREE_TIER_CONFIG = {

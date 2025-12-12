@@ -14,6 +14,10 @@ export interface AIAnalysisResponse {
     query?: string;
     metrics_count?: number;
     timestamp?: string;
+    /**
+     * 🧠 AI Analysis Types
+     * // Verified: 2025-12-12
+     */
     analysis_type?: string;
     severity?: 'low' | 'medium' | 'high' | 'critical';
     metrics_analyzed?: {

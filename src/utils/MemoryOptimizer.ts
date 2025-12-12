@@ -3,6 +3,8 @@
  *
  * 서버리스 환경에서는 Vercel이 자동으로 메모리 관리를 수행하므로
  * 수동 메모리 최적화가 불필요하고 오히려 성능을 저하시킬 수 있음
+ *
+ * // Verified: 2025-12-12 (Serverless Compatible)
  */
 
 interface MemoryStats {

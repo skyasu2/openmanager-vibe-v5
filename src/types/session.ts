@@ -1,4 +1,5 @@
 // Session 관련 타입 정의
+// Verified: 2025-12-12
 export interface SessionData {
   userId: string;
   email: string;

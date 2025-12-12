@@ -1,4 +1,5 @@
 // 랜딩 페이지 컴포넌트 타입 정의
+// Verified: 2025-12-12
 
 export interface FeatureItem {
   icon: string;

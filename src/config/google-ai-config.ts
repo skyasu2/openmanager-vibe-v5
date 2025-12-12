@@ -8,6 +8,8 @@
  *
  * 암호화 날짜: 2025-01-30 (한국시간)
  * 유효기간: 2025년 말까지
+ *
+ * // Verified: 2025-12-12
  */
 
 export interface EncryptedGoogleAIConfig {

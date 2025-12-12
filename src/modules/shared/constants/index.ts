@@ -2,6 +2,8 @@
  * Shared Constants
  *
  * 🔧 모든 모듈에서 공통으로 사용하는 상수들
+ *
+ * // Reviewed: 2025-12-12
  */
 
 export const MODULE_VERSIONS = {

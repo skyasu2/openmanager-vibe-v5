@@ -6,6 +6,8 @@
  * - 일일 명령어: 10,000개
  * - 월간 대역폭: 200MB
  * - 연결 수: 20개 동시
+ *
+ * // Verified: 2025-12-12
  */
 
 export const FREE_TIER_CACHE_CONFIG = {

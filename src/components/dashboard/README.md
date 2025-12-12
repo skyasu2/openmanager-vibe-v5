@@ -190,4 +190,4 @@ const { executeServerAction } = useServerActions();
 **수정 전 반드시 사용처와 의존성을 확인하고 신중히 판단해주세요.**
 
 **작성일**: 2025년 6월 14일  
-**최종 업데이트**: 2025년 6월 14일
+**최종 업데이트**: 2025년 12월 12일 (Legacy Status Verified)

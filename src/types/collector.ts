@@ -1,4 +1,5 @@
 // 데이터 수집기 인터페이스 정의
+// Status: Active (Config/Test Dependence) - Reviewed 2025-12-12
 export interface MetricCollector {
   collectMetrics(serverId: string): Promise<ServerMetrics>;
   getServerList(): Promise<string[]>;

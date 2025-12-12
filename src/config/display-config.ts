@@ -19,6 +19,10 @@ export type ServerDisplayMode =
 
 /**
  * 🎯 서버 표시 설정 인터페이스
+ *
+ * * 디스플레이 설정 (초기값)
+ *
+ * // Verified: 2025-12-12
  */
 export interface ServerDisplayConfig {
   // 📊 데이터 생성 관련

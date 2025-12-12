@@ -1,5 +1,7 @@
 name: 'OpenManager V5 CodeQL Configuration'
 
+
+# Verified 2025-12-12
 # CodeQL 보안 분석 설정
 paths-ignore:
   - '**/*.test.js'

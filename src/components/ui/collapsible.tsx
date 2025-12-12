@@ -1,4 +1,5 @@
 'use client';
+// Verified: 2025-12-12 (shadcn-ui)
 
 import * as CollapsiblePrimitive from '@radix-ui/react-collapsible';
 

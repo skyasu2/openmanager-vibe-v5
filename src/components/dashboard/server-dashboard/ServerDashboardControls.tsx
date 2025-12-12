@@ -2,7 +2,7 @@
 
 // React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 import { LayoutGrid, List, Search } from 'lucide-react';
-import type { ViewMode } from '@/types/dashboard';
+import type { ViewMode } from '../types/dashboard.types';
 
 interface ServerDashboardControlsProps {
   viewMode: ViewMode;
