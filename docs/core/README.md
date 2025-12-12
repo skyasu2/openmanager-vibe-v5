@@ -115,9 +115,11 @@ core/
 
 ### GCP (platforms/gcp/)
 - **gcp-deployment-guide.md** - GCP 배포 가이드
-- **GCP_FUNCTIONS_INTEGRATION.md** - Cloud Functions 통합
 - **GCP-FUNCTIONS-SUMMARY.md** - 요약
 - **GCP-FUNCTIONS-OPTIMIZATION.md** - 최적화
+- **GCP-FUNCTIONS-CLEANUP-GUIDE.md** - 정리 가이드
+- **GCP-INTEGRATION-METHOD.md** - 통합 방법 (HTTP vs SDK)
+- **firewall-setup.md** - 방화벽 설정
 
 ### Supabase (platforms/supabase/)
 - **schema.md** - 데이터베이스 스키마
