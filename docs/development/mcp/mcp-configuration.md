@@ -28,25 +28,24 @@
 
 ## 🔧 MCP 설정 파일
 
-**전역 설정**: `~/.claude.json`
+**프로젝트 설정**: `.mcp.json`
 
 ```json
 {
   "mcpServers": {
     "vercel": {
-      "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@open-mcp/vercel"],
-      "env": { "API_KEY": "your_vercel_token" }
+      "args": ["-y", "@open-mcp/vercel@latest"],
+      "env": { "API_KEY": "${VERCEL_TOKEN:-}" }
     },
     "supabase": {
       "command": "npx",
-      "args": ["-y", "@supabase/mcp-server-supabase", "--project-ref", "your_project_id"],
+      "args": ["-y", "@supabase/mcp-server-supabase"],
       "env": { "SUPABASE_ACCESS_TOKEN": "your_token" }
     },
     "serena": {
-      "command": "/home/$USER/.local/bin/serena-mcp-server",
-      "args": []
+      "command": "/home/$USER/.local/bin/uvx",
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena-mcp-server"]
     },
     "context7": {
       "command": "npx",
@@ -54,25 +53,26 @@
     },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@executeautomation/playwright-mcp-server"]
+      "args": ["-y", "@playwright/mcp@latest"],
+      "env": { "PLAYWRIGHT_BROWSERS_PATH": "0" }
     },
     "figma": {
-      "transport": "http",
-      "url": "https://mcp.figma.com"
+      "type": "http",
+      "url": "https://mcp.figma.com/mcp"
     },
     "github": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": { "GITHUB_TOKEN": "your_github_token" }
+      "args": ["-y", "@modelcontextprotocol/server-github@latest"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" }
     },
     "tavily": {
       "command": "npx",
-      "args": ["-y", "tavily-mcp"],
+      "args": ["-y", "tavily-mcp@latest"],
       "env": { "TAVILY_API_KEY": "your_api_key" }
     },
     "brave-search": {
       "command": "npx",
-      "args": ["-y", "@anthropic-ai/brave-search-mcp"],
+      "args": ["-y", "@brave/brave-search-mcp-server"],
       "env": { "BRAVE_API_KEY": "your_api_key" }
     }
   }

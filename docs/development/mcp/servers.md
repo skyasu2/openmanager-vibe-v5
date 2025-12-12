@@ -46,18 +46,19 @@ updated: '2025-12-12'
 
 ## 🔧 서버별 설정
 
-### Vercel MCP (HTTP)
+### Vercel MCP (NPM)
 
 ```json
 {
   "vercel": {
-    "transport": "http",
-    "url": "https://mcp.vercel.com"
+    "command": "npx",
+    "args": ["-y", "@open-mcp/vercel@latest"],
+    "env": { "API_KEY": "${VERCEL_TOKEN:-}" }
   }
 }
 ```
 
-**특징**: HTTP 기반, OAuth 인증, 배포/로그/사용량 모니터링
+**특징**: NPM 패키지, API 키 인증, 배포/로그/사용량 모니터링
 
 ### Supabase MCP
 
@@ -73,18 +74,18 @@ updated: '2025-12-12'
 
 **필수 환경변수**: `SUPABASE_PROJECT_ID`, `SUPABASE_ACCESS_TOKEN`
 
-### Serena MCP (Local)
+### Serena MCP (uvx)
 
 ```json
 {
   "serena": {
-    "command": "/home/$USER/.local/bin/serena-mcp-server",
-    "args": []
+    "command": "/home/$USER/.local/bin/uvx",
+    "args": ["--from", "git+https://github.com/oraios/serena", "serena-mcp-server"]
   }
 }
 ```
 
-**특징**: 25개 코드 분석 도구, `activate_project` 먼저 호출 필요
+**특징**: uvx 패키지 매니저 사용, 25개 코드 분석 도구, `activate_project` 먼저 호출 필요
 
 ### Context7 MCP
 
@@ -105,20 +106,21 @@ updated: '2025-12-12'
 {
   "playwright": {
     "command": "npx",
-    "args": ["-y", "@executeautomation/playwright-mcp-server"]
+    "args": ["-y", "@playwright/mcp@latest"],
+    "env": { "PLAYWRIGHT_BROWSERS_PATH": "0" }
   }
 }
 ```
 
-**의존성**: `npx playwright install chromium` 필요
+**특징**: 공식 Playwright MCP, 자동 브라우저 관리
 
 ### Figma MCP (HTTP)
 
 ```json
 {
   "figma": {
-    "transport": "http",
-    "url": "https://mcp.figma.com"
+    "type": "http",
+    "url": "https://mcp.figma.com/mcp"
   }
 }
 ```
@@ -131,13 +133,13 @@ updated: '2025-12-12'
 {
   "github": {
     "command": "npx",
-    "args": ["-y", "@modelcontextprotocol/server-github"],
-    "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }
+    "args": ["-y", "@modelcontextprotocol/server-github@latest"],
+    "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" }
   }
 }
 ```
 
-**필수 환경변수**: `GITHUB_TOKEN`
+**필수 환경변수**: `GITHUB_PERSONAL_ACCESS_TOKEN`
 
 ### Tavily MCP
 
@@ -145,7 +147,7 @@ updated: '2025-12-12'
 {
   "tavily": {
     "command": "npx",
-    "args": ["-y", "tavily-mcp"],
+    "args": ["-y", "tavily-mcp@latest"],
     "env": { "TAVILY_API_KEY": "${TAVILY_API_KEY}" }
   }
 }
@@ -159,7 +161,7 @@ updated: '2025-12-12'
 {
   "brave-search": {
     "command": "npx",
-    "args": ["-y", "@anthropic-ai/brave-search-mcp"],
+    "args": ["-y", "@brave/brave-search-mcp-server"],
     "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" }
   }
 }
