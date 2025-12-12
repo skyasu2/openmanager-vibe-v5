@@ -242,7 +242,7 @@ export class IntelligentMonitoringService {
    * Correlate anomalies with system logs to find potential root causes.
    */
   private correlateLogsWithAnomalies(
-    anomalies: Record<string, AnomalyDetectionResult>,
+    _anomalies: Record<string, AnomalyDetectionResult>,
     logs: Array<{
       id: string;
       timestamp: string;

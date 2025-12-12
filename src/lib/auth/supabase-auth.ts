@@ -461,7 +461,7 @@ export function isGuestUser(): boolean {
       if (authType === 'guest' && sessionId) {
         console.log('🔄 isGuestUser 간단 확인:', {
           isGuest: true,
-          sessionId: sessionId.substring(0, 8) + '...',
+          sessionId: `${sessionId.substring(0, 8)}...`,
         });
         return true;
       }
