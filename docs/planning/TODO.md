@@ -18,6 +18,8 @@
 
 | 작업 | 완료일 | 문서 |
 |------|--------|------|
+| UI/UX Short-term Wins | 2025-12-13 | Sparklines + Bento Grid + AI Insight Badge |
+| Dashboard/Modal 리팩토링 | 2025-12-13 | usePerformanceGuard 제거, 타입 안전성 개선 |
 | 캐싱 전략 개선 | 2025-12-10 | SWR 전략 + TTL 계층화 |
 | AI Health Check 최적화 | 2025-12-10 | [링크](../archive/completed/2025-12-ai-health-check-optimization-completed.md) |
 | Quick Wins | 2025-12-10 | resize debounce + Dead Code 정리 |
@@ -32,4 +34,4 @@
 
 ---
 
-**최종 업데이트**: 2025-12-12
+**최종 업데이트**: 2025-12-13
