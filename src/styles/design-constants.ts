@@ -147,11 +147,13 @@ export const LAYOUT = {
 // ===== 유틸리티 함수 =====
 // 🔧 수정: ServerStatus 타입은 server-enums에서 import (타입 통합)
 
-// 🎨 AI 관련 디자인 상수
+// 🎨 AI 관련 디자인 상수 (2025 업데이트: 파란색 강화)
+// 이전: purple-500 → pink-500 → blue-500 (파란색 약함)
+// 개선: blue-500 → purple-500 → pink-500 (파란색 시작으로 강조)
 export const AI_GRADIENT_CLASSES =
-  'bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 animate-gradient-diagonal';
+  'bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 animate-gradient-diagonal';
 export const AI_GRADIENT_STYLE =
-  'linear-gradient(to right, #a855f7, #ec4899, #3b82f6)';
+  'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)';
 
 export const getServerStatusTheme = (status: ServerStatus) => {
   return SERVER_STATUS_COLORS[status] || SERVER_STATUS_COLORS.unknown; // 🔧 수정: 기본값 'healthy' → 'unknown'
@@ -170,17 +172,18 @@ export const PAGE_BACKGROUNDS = {
   DARK_PAGE_BG: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900',
 } as const;
 
-// ===== 버튼 스타일 시스템 =====
+// ===== 버튼 스타일 시스템 (2025 업데이트) =====
+// 업계 표준 참고: GitHub 16px/600, Google 14px/500 → 균형잡힌 16px/600 적용
 export const BUTTON_STYLES = {
-  // GitHub 버튼 - 녹색 배경 (#2DD36F)
+  // GitHub 버튼 - 녹색 배경 (업계 표준: 16px, font-weight 600, gap-2.5)
   github:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-[#16a34a] px-5 py-4 text-[17px] font-semibold text-white shadow-[0_4px_14px_0_rgba(22,163,74,0.39)] transition-all duration-300 hover:bg-[#15803d] hover:shadow-[0_6px_20px_rgba(22,163,74,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
-  // 게스트/일반 버튼 - 흰색 배경 + 테두리
+    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[#16a34a] px-5 py-4 text-[16px] font-semibold tracking-wide text-white shadow-[0_4px_14px_0_rgba(22,163,74,0.39)] transition-all duration-300 hover:bg-[#15803d] hover:shadow-[0_6px_20px_rgba(22,163,74,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+  // 게스트/일반 버튼 - 다크 배경 + 테두리 (16px, 500)
   secondary:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-gray-600/50 bg-[#0F1115] px-5 py-4 text-[17px] font-medium text-gray-200 transition-all duration-300 hover:bg-gray-800/50 hover:border-gray-500 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-gray-600/50 bg-[#0F1115] px-5 py-4 text-[16px] font-medium tracking-wide text-gray-200 transition-all duration-300 hover:bg-gray-800/50 hover:border-gray-500 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
   // 레거시 호환 (deprecated)
   primary:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-[#2DD36F] px-5 py-4 text-[17px] font-semibold text-white shadow-lg transition-all duration-200 hover:bg-[#28C765] active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[#2DD36F] px-5 py-4 text-[16px] font-semibold tracking-wide text-white shadow-lg transition-all duration-200 hover:bg-[#28C765] active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
   accent:
-    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-gray-300 bg-white px-5 py-4 text-[17px] font-medium text-[#0F1115] transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-gray-300 bg-white px-5 py-4 text-[16px] font-medium tracking-wide text-[#0F1115] transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
 } as const;

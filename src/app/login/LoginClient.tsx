@@ -58,21 +58,22 @@ const LoadingOverlay = ({ type }: { type: 'github' | 'guest' }) => {
 };
 
 // ✨ 스플래시 스크린 컴포넌트 (초기 로딩용)
+// 2025 업데이트: 폰트 크기/굵기 조정 (28px, semibold)
 const SplashScreen = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-[#0f172a] z-50">
     <div className="relative flex flex-col items-center">
-      {/* 로고 애니메이션 */}
+      {/* 로고 애니메이션 - 파란색 강조 */}
       <div className="relative mb-8">
-        <div className="absolute inset-0 animate-pulse rounded-full bg-blue-500/20 blur-xl"></div>
+        <div className="absolute inset-0 animate-pulse rounded-full bg-blue-500/30 blur-xl"></div>
         <div
-          className={`relative flex h-16 w-16 animate-bounce items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-2xl shadow-blue-500/30`}
+          className={`relative flex h-16 w-16 animate-bounce items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-2xl shadow-blue-500/40`}
         >
           <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm"></div>
         </div>
       </div>
-      {/* 텍스트 애니메이션 */}
+      {/* 텍스트 애니메이션 - 업계 표준 적용 */}
       <div className="flex flex-col items-center gap-2">
-        <h1 className="animate-fade-in text-2xl font-bold tracking-tight text-white/90">
+        <h1 className="animate-fade-in text-[28px] font-semibold tracking-tight text-white/90">
           OpenManager
         </h1>
         <div className="flex items-center gap-1">
@@ -371,14 +372,16 @@ export default function LoginClient() {
           {/* 헤더 (Card 내부) */}
           <div className="relative mb-10 flex flex-col items-center text-center">
             {/* ✨ 로고: 그라데이션 스퀘어 - 중앙 정렬 강화 */}
+            {/* 그라데이션이 파란색 시작으로 변경되어 쉐도우도 파란색으로 매칭 */}
             <div
-              className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-purple-500/30 sm:h-20 sm:w-20`}
+              className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-blue-500/40 sm:h-20 sm:w-20`}
             />
             {/* 🎨 [2] 로고와 타이틀 간격 확대 - 라이트 텍스트 (PC 최적화) */}
-            <h1 className="mb-3 text-3xl font-bold tracking-tight text-white sm:text-[2.5rem]">
+            {/* 업계 표준: GitHub 600, Google 500 → 균형잡힌 600 적용 */}
+            <h1 className="mb-3 text-[28px] font-semibold tracking-tight text-white sm:text-[32px]">
               OpenManager
             </h1>
-            <p className="text-[17px] font-medium text-gray-300">
+            <p className="text-[15px] font-medium tracking-wide text-gray-300">
               AI 서버 모니터링 시스템
             </p>
           </div>
@@ -387,7 +390,8 @@ export default function LoginClient() {
           {/* <div className="mb-8 border-t border-gray-700/50" /> */}
 
           {/* 로그인 섹션 - PC 최적화 */}
-          <h2 className="mb-8 text-center text-[18px] font-medium text-gray-300">
+          {/* 업계 표준: 14-16px, 가독성 높은 레터스페이싱 */}
+          <h2 className="mb-8 text-center text-[16px] font-medium tracking-wide text-gray-400">
             로그인 방식을 선택하세요
           </h2>
 
