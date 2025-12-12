@@ -1,6 +1,6 @@
 ---
 name: security-audit-check
-version: v1.0.0
+version: v1.1.0
 description: Automated security audit workflow for pre-deployment verification. Triggers when user requests security checks, vulnerability scanning, or pre-deployment audits. Use for identifying OWASP Top 10 vulnerabilities, RLS policy gaps, and exposed secrets.
 ---
 
@@ -28,7 +28,7 @@ Automated security scanning and vulnerability detection before deployment withou
 ## Context
 
 - **Project**: OpenManager VIBE v5.80.0
-- **Stack**: Next.js 15 + Supabase PostgreSQL + Vercel
+- **Stack**: Next.js 16 + Supabase PostgreSQL + Vercel
 - **Security Framework**: OWASP Top 10 compliance
 - **Critical Assets**: API keys, JWT secrets, RLS policies
 - **Compliance Level**: 99.9% SLA requirement
@@ -337,6 +337,8 @@ if (!API_KEY) {
 
 ## Changelog
 
+- 2025-12-12: v1.1.0 - Tech stack upgrade alignment
+  - Next.js 15 → 16 framework version update
 - 2025-11-24: v1.0.0 - Initial implementation (Phase 2)
   - OWASP Top 10 automated scanning
   - RLS policy verification

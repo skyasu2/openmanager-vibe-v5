@@ -30,35 +30,36 @@ Automated lint + test workflow for quick code quality verification without manua
 ## Context
 
 - **Project**: OpenManager VIBE v5.80.0
-- **Test Framework**: Vitest v3.2.4
-- **Linter**: ESLint + TypeScript strict mode
-- **Current Pass Rate**: 88.9% (639/719 tests)
-- **Fast Test Target**: < 25초
+- **Test Framework**: Vitest v4.0.15
+- **Linter**: Biome v2.3.8 (lint + format)
+- **Current Pass Rate**: 98.2% (134/134 tests)
+- **Fast Test Target**: < 25초 (current: ~21초)
 
 ## Workflow
 
-### 0. Pre-Check: ESLint Configuration
+### 0. Pre-Check: Biome Configuration
 
-**Verify strict mode settings**:
+**Verify Biome settings**:
 
 ```bash
-# Check for TypeScript strict rules
-grep -E "(no-explicit-any|strict)" .eslintrc.json
+# Check Biome configuration
+cat biome.json | head -30
 ```
 
-**Expected Rules**:
+**Expected Configuration**:
 
-- ✅ `@typescript-eslint/no-explicit-any`: `"error"` (any 타입 금지)
-- ✅ `@typescript-eslint/strict-boolean-expressions`: enabled
-- ✅ `@typescript-eslint/no-unsafe-assignment`: enabled
+- ✅ `linter.enabled`: true
+- ✅ `formatter.enabled`: true
+- ✅ TypeScript strict mode: enforced via tsconfig.json
+- ✅ `noExplicitAny`: via TypeScript compiler
 
 **If Missing**:
 
 ```
-⚠️ Warning: TypeScript strict 규칙 누락 감지
-권장: .eslintrc.json에 다음 규칙 추가 필요
-  - @typescript-eslint/no-explicit-any: "error"
-  - @typescript-eslint/strict-boolean-expressions: "error"
+⚠️ Warning: Biome 설정 누락 감지
+권장: biome.json 확인 필요
+  - linter.enabled: true
+  - formatter.enabled: true
 ```
 
 ### 1. Run Lint Check
@@ -69,7 +70,7 @@ npm run lint
 
 **Expected Output**:
 
-- ✅ No ESLint errors
+- ✅ No Biome errors
 - ⚠️ Warnings acceptable if < 5개
 - ❌ Errors require immediate fix
 
@@ -79,7 +80,7 @@ If errors are detected, check for auto-fixable issues:
 
 ```bash
 # Attempt auto-fix for common issues
-npm run lint:fix
+npx biome check --write .
 
 # Re-verify after auto-fix
 npm run lint
@@ -87,16 +88,16 @@ npm run lint
 
 **Common Auto-Fixable Issues**:
 
-- Missing semicolons
-- Trailing whitespace
+- Formatting inconsistencies
 - Import order violations
-- Spacing inconsistencies
+- Trailing whitespace
+- Unused imports
 
 **Manual Fix Required**:
 
-- TypeScript type errors
-- Unused variables (`any` type violations)
+- TypeScript type errors (via `npm run type-check`)
 - Logic errors in code flow
+- Complex refactoring needs
 
 ### 2. Run Fast Tests
 
@@ -106,9 +107,9 @@ npm run test:quick
 
 **Expected Metrics**:
 
-- Duration: < 25초 (target: 21초)
-- Pass Rate: ≥ 88.9% (639/719)
-- Failed Tests: < 80개
+- Duration: < 25초 (current: ~21초)
+- Pass Rate: ≥ 98% (134/134)
+- Failed Tests: < 5개
 
 ### 3. Analyze Results
 
@@ -120,8 +121,8 @@ npm run test:quick
 
 **If Lint Fails**:
 
-- ❌ Fix ESLint errors first
-- Run: `npm run lint:fix` (if auto-fixable)
+- ❌ Fix Biome errors first
+- Run: `npx biome check --write .` (if auto-fixable)
 - Re-run lint check
 
 **If Tests Fail**:
@@ -137,7 +138,7 @@ npm run test:quick
 ```
 🧪 Smoke Check Results
 ├─ Lint: ✅ Pass / ❌ Fail (N errors)
-├─ Tests: ✅ 639/719 (88.9%) / ⚠️ X/719 (Y%)
+├─ Tests: ✅ 134/134 (98.2%) / ⚠️ X/134 (Y%)
 ├─ Duration: Xs (target: <25s)
 └─ Status: ✅ Ready / ⚠️ Review / ❌ Fix Required
 ```
@@ -178,7 +179,7 @@ Tokens: ~114 (62% reduction)
 **Case 2: Zero Tests Run**
 
 - Possible config issue
-- Check: `config/testing/vitest.config.main.ts`
+- Check: `vitest.config.ts`
 - Verify: `setupFiles` path correct
 
 **Case 3: All Tests Fail**
@@ -189,8 +190,8 @@ Tokens: ~114 (62% reduction)
 
 ## Success Criteria
 
-- Lint: 0 errors
-- Tests: Pass rate ≥ 88.9%
+- Lint: 0 errors (Biome)
+- Tests: Pass rate ≥ 98%
 - Duration: < 25초
 - No manual intervention required
 
@@ -201,6 +202,11 @@ Tokens: ~114 (62% reduction)
 
 ## Changelog
 
+- 2025-12-12: v1.2.0 - Tech stack upgrade alignment
+  - Vitest 3.2.4 → 4.0.15
+  - ESLint → Biome v2.3.8 migration
+  - Updated test metrics (98.2% pass rate)
+  - Updated auto-fix commands for Biome
 - 2025-11-24: v1.1.0 - Enhanced trigger coverage (Phase 1.1 Optimization)
   - Added 2 new trigger keywords: "quality check", "lint check" (10 → 12 total)
   - Improved Skill discoverability and auto-activation

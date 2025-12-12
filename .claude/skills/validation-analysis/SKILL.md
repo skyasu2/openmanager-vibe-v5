@@ -1,7 +1,7 @@
 ---
 name: validation-analysis
-version: v1.0.0
-description: Automated validation results analysis for post-commit workflow. Triggers when user requests validation analysis, code review summary, or checking background validation results. Analyzes ESLint, TypeScript, and AI review reports.
+version: v1.1.0
+description: Automated validation results analysis for post-commit workflow. Triggers when user requests validation analysis, code review summary, or checking background validation results. Analyzes Biome, TypeScript, and AI review reports.
 ---
 
 # Post-Commit Validation Analysis
@@ -10,7 +10,7 @@ description: Automated validation results analysis for post-commit workflow. Tri
 
 ## Purpose
 
-Automated analysis of background validation results (ESLint + TypeScript + AI Review) generated after commit.
+Automated analysis of background validation results (Biome + TypeScript + AI Review) generated after commit.
 
 ## Trigger Keywords
 
@@ -31,9 +31,9 @@ Automated analysis of background validation results (ESLint + TypeScript + AI Re
 - **Validation Workflow**: post-commit hook (background, 5min timeout)
 - **Output Location**: `/tmp/validation-complete-latest.md`
 - **Components**:
-  - ESLint: Full codebase check → `logs/lint-reports/`
+  - Biome: Full codebase lint + format check → `logs/lint-reports/`
   - TypeScript: Type check → `logs/typecheck-reports/`
-  - AI Review: Codex → Gemini fallback → `logs/code-reviews/`
+  - AI Review: Codex → Gemini → Qwen rotation → `logs/code-reviews/`
 
 ## Workflow
 
@@ -58,7 +58,7 @@ Read `/tmp/validation-complete-latest.md` and extract:
 
 ### 3. Analyze Each Component
 
-#### A. ESLint Results
+#### A. Biome Results
 
 **Check for**:
 - ✅ Pass: No errors
@@ -66,9 +66,9 @@ Read `/tmp/validation-complete-latest.md` and extract:
 - ❌ Errors: Immediate action required
 
 **Common Issues**:
-- Type errors (`@typescript-eslint/no-explicit-any`)
+- Type errors (strict mode violations)
 - Unused variables
-- Import order violations
+- Import organization issues
 
 #### B. TypeScript Results
 
@@ -115,7 +115,7 @@ Date: [timestamp]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔍 ESLint: [✅ Pass / ⚠️ Warnings / ❌ Errors]
+🔍 Biome: [✅ Pass / ⚠️ Warnings / ❌ Errors]
 📝 TypeScript: [✅ Pass / ❌ Fail]
 🤖 AI Review: [Score]/10
 
@@ -129,7 +129,7 @@ Date: [timestamp]
 2. [HIGH] Address AI review security concerns
    → See: logs/code-reviews/review-AI-YYYYMMDD-HHMMSS.md
 
-3. [MEDIUM] Resolve ESLint warnings
+3. [MEDIUM] Resolve Biome warnings
    → Run: npm run lint:fix
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -268,6 +268,9 @@ This Skill analyzes and reports
 
 ## Changelog
 
+- 2025-12-12: v1.1.0 - Tech stack upgrade alignment
+  - ESLint → Biome migration (v2.3.8)
+  - AI Review rotation: Codex → Gemini → Qwen
 - 2025-11-27: v1.0.0 - Initial implementation
   - Automated validation results parsing
   - Priority action list generation

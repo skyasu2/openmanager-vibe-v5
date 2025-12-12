@@ -1,6 +1,6 @@
 ---
 name: diagnosing-nextjs-performance
-version: v1.0.0
+version: v1.1.0
 description: Next.js Router performance analysis and bottleneck identification workflow. Triggers when user reports performance issues, slow routing, or requests Next.js optimization analysis. Use for identifying FCP/LCP/CLS bottlenecks and Server Actions blocking.
 ---
 
@@ -30,7 +30,7 @@ Automated Next.js routing performance analysis and bottleneck identification wit
 
 ## Context
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Target FCP**: < 1.8s (Google 권장)
 - **Current FCP**: 608ms (우수)
 - **Target Response**: < 1s
@@ -365,4 +365,6 @@ export default React.memo(Dashboard);
 
 ## Changelog
 
-- 2025-11-04: Initial implementation (Phase 1)
+- 2025-12-12: v1.1.0 - Tech stack upgrade alignment
+  - Next.js 15 → 16 framework version update
+- 2025-11-04: v1.0.0 - Initial implementation (Phase 1)

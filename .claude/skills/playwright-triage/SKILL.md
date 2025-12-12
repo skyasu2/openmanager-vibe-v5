@@ -1,6 +1,6 @@
 ---
 name: triaging-playwright-failures
-version: v1.1.0
+version: v1.2.0
 description: Automated E2E test failure classification and diagnosis workflow for Playwright tests. Triggers when user reports Playwright failures, E2E test errors, or requests test triage. Use for timeout, selector, network, assertion, or page crash analysis.
 ---
 
@@ -23,8 +23,8 @@ Automated E2E test failure classification and diagnosis without manual log readi
 ## Context
 
 - **Project**: OpenManager VIBE v5.80.0
-- **E2E Framework**: Playwright
-- **Test Suite**: 29 E2E tests, 99% pass rate
+- **E2E Framework**: Playwright v1.57.0
+- **Test Suite**: 30 E2E tests, 100% pass rate
 - **Common Failures**: Timeout, selector not found, network issues
 - **Config**: tests/e2e/playwright.config.ts
 
@@ -790,6 +790,9 @@ analyze_failure_patterns 30
 
 ## Changelog
 
+- 2025-12-12: v1.2.0 - Tech stack upgrade alignment
+  - Playwright version update (v1.57.0)
+  - Test suite status update (30 tests, 100% pass rate)
 - 2025-11-04: Initial implementation (Phase 1)
 - 2025-11-08: Enhanced to v1.1.0 with bash automation (Phase 1 Week 1 Day 6-7)
   - Added Enhancement 1: Automated Playwright log parsing
