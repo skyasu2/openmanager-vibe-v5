@@ -119,7 +119,7 @@ Git 커밋 시 자동으로 코드 리뷰가 실행됩니다.
 ## 📚 추가 자료
 
 - **서브에이전트 상세 가이드**: docs/development/ai/claude-code/subagents-complete-guide.md
-- **MCP 우선순위 가이드**: docs/environment/tools/mcp/mcp-priority-guide.md
+- **MCP 우선순위 가이드**: docs/development/mcp/mcp-priority-guide.md
 - **통합 워크플로우**: docs/claude/1_workflows.md
 
 ---

@@ -553,5 +553,5 @@ Extended Thinking 활성화 후, 프롬프트에 다음 키워드를 포함하�
 **Related Docs**:
 
 - config/ai/registry-core.yaml
-- docs/environment/tools/mcp/mcp-priority-guide.md
+- docs/development/mcp/mcp-priority-guide.md
 - CLAUDE.md
