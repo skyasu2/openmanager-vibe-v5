@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type React from 'react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { AI_GRADIENT_STYLE } from '@/styles/design-constants';
@@ -15,6 +16,8 @@ interface OpenManagerLogoProps {
   showSubtitle?: boolean;
   /** 추가 클래스 */
   className?: string;
+  /** 클릭 시 이동할 경로 (기본: /) */
+  href?: string;
 }
 
 /**
@@ -28,6 +31,7 @@ export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
   variant = 'dark',
   showSubtitle = true,
   className = '',
+  href,
 }) => {
   const { aiAgent, isSystemStarted } = useUnifiedAdminStore();
 
@@ -42,7 +46,7 @@ export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
   const titleColor = variant === 'dark' ? 'text-white' : 'text-gray-900';
   const subtitleColor = variant === 'dark' ? 'text-white/90' : 'text-gray-500';
 
-  return (
+  const content = (
     <div className={`flex items-center gap-3 ${className}`}>
       {/* 아이콘 영역 (아이콘 제거됨 - 그라데이션 스퀘어 컨셉) */}
       <div
@@ -65,4 +69,15 @@ export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
       </div>
     </div>
   );
+
+  // href가 제공되면 Link로 래핑, 아니면 그대로 반환
+  if (href) {
+    return (
+      <Link href={href} className="transition-opacity hover:opacity-80">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 };

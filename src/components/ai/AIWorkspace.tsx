@@ -29,6 +29,7 @@ import { AIFunctionPages } from '../../domains/ai-sidebar/components/AIFunctionP
 import { EnhancedAIChat } from '../../domains/ai-sidebar/components/EnhancedAIChat';
 import type { AIThinkingStep } from '../../domains/ai-sidebar/types/ai-sidebar-types';
 import type { EnhancedChatMessage } from '../../stores/useAISidebarStore';
+import { OpenManagerLogo } from '../shared/OpenManagerLogo';
 import AIAssistantIconPanel, {
   type AIAssistantFunction,
 } from './AIAssistantIconPanel';
@@ -308,9 +309,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
       <div className="flex w-[260px] flex-col border-r border-gray-200 bg-gray-50">
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            AI Assistant
-          </span>
+          <OpenManagerLogo variant="light" showSubtitle={false} href="/" />
           <button
             onClick={() => router.back()}
             className="rounded p-1 text-gray-500 hover:bg-gray-200 hover:text-gray-900 transition-colors"

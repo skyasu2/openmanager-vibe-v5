@@ -232,13 +232,7 @@ function Home() {
 
       {/* 헤더 */}
       <header className="relative z-50 flex items-center justify-between p-4 sm:p-6">
-        <button
-          className="flex cursor-pointer items-center space-x-3 transition-opacity hover:opacity-80"
-          onClick={() => router.push('/')}
-          aria-label="홈으로 이동"
-        >
-          <OpenManagerLogo variant="dark" />
-        </button>
+        <OpenManagerLogo variant="dark" href="/" />
         <div className="flex items-center gap-3">
           <UnifiedProfileHeader />
         </div>

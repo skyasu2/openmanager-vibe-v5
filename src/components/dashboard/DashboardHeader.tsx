@@ -114,13 +114,7 @@ const DashboardHeader = memo(function DashboardHeader({
       <div className="flex items-center justify-between px-6 py-4">
         {/* 왼쪽: 브랜드 로고 */}
         <div className="flex items-center gap-4">
-          <button
-            onClick={onNavigateHome}
-            className="flex cursor-pointer items-center gap-3 transition-opacity hover:opacity-80"
-            aria-label="홈으로 이동"
-          >
-            <OpenManagerLogo variant="light" />
-          </button>
+          <OpenManagerLogo variant="light" href="/" />
         </div>
 
         {/* 중앙: 실시간 정보 & 시스템 상태 */}
