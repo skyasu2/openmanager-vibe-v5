@@ -1,8 +1,8 @@
 /**
- * 🔐 Next.js Middleware - 라우트 보호
+ * 🔐 Next.js Proxy - 라우트 보호 (Next.js 16+)
  *
  * 페이지별 접근 권한을 제어합니다.
- * Vercel Edge Runtime 호환.
+ * Next.js 16에서 middleware → proxy로 명칭 변경됨.
  *
  * 📌 접근 권한 정책:
  * - 공개 페이지: `/`, `/main`, `/login`, `/auth/*`, `/api/*`
@@ -12,6 +12,7 @@
  * - 모든 페이지 접근 허용 (게스트/비로그인 포함)
  *
  * @see src/utils/supabase/middleware.ts - Supabase 세션 헬퍼
+ * @see https://nextjs.org/docs/messages/middleware-to-proxy
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
@@ -102,10 +103,10 @@ function isGuestAuth(request: NextRequest): boolean {
 }
 
 // ============================================================================
-// 미들웨어 메인 함수
+// Proxy 메인 함수 (Next.js 16+)
 // ============================================================================
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. 개발 모드 바이패스 - 모든 접근 허용
@@ -132,7 +133,7 @@ export async function middleware(request: NextRequest) {
     // GitHub 로그인 사용자만 허용 (게스트는 제외)
     if (!hasSession || isGuest) {
       console.log(
-        `🚫 [Middleware] 보호 경로 접근 거부: ${pathname}`,
+        `🚫 [Proxy] 보호 경로 접근 거부: ${pathname}`,
         `hasSession: ${hasSession}`,
         `isGuest: ${isGuest}`
       );
@@ -151,7 +152,7 @@ export async function middleware(request: NextRequest) {
 }
 
 // ============================================================================
-// 미들웨어 설정
+// Proxy 설정
 // ============================================================================
 
 export const config = {
