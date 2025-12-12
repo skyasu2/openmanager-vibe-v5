@@ -253,4 +253,4 @@ GCP 호출:
 **관련 문서**:
 
 - [상세 최적화 가이드](./GCP-FUNCTIONS-OPTIMIZATION.md)
-- [전체 아키텍처 검토](./SYSTEM-ARCHITECTURE-REVIEW.md)
+- [전체 아키텍처 검토](../../../planning/analysis/system-architecture-review-2025-11.md)

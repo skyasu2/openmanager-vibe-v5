@@ -182,7 +182,7 @@ useEffect(() => {
 
 1. `mock-system.md` (5분) - 기본 개념
 2. `simulation.md` (15분) - 실제 설정
-3. `docs/core/architecture/simulation-setup.md` (20분) - 아키텍처
+3. `docs/planning/analysis/system-architecture-review-2025-11.md` (20분) - 아키텍처
 
 ---
 
@@ -209,7 +209,7 @@ useEffect(() => {
 
 - **docs/core/architecture/** - 시스템 아키텍처 및 표준
   - `type-system-consistency.md` - 타입 일관성
-  - `simulation-setup.md` - 시뮬레이션 아키텍처
+  - `system-architecture-review-2025-11.md` - 시스템 아키텍처 검토
   - `typescript-any-removal-project-report.md` - any 제거
 
 ### 실제 구현
@@ -243,7 +243,7 @@ useEffect(() => {
 
 **시뮬레이션**:
 
-- guides/mock-system.md (개요) → guides/simulation.md (설정) → docs/core/architecture/simulation-setup.md (아키텍처)
+- guides/mock-system.md (개요) → guides/simulation.md (설정) → docs/planning/analysis/system-architecture-review-2025-11.md (아키텍처)
 - 3단계 문서 일관성 유지
 
 **최적화**:
