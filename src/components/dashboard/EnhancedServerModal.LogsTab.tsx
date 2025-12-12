@@ -140,7 +140,7 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
                           {formatTimestamp(log.timestamp)}
                         </span>
                         <span className="text-xs font-semibold text-blue-400">
-                          [{log.source}]
+                          [{log.source || 'system'}]
                         </span>
                       </div>
 

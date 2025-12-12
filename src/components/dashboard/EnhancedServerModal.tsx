@@ -105,9 +105,9 @@ export default function EnhancedServerModal({
                   : 0,
             services: Array.isArray(server.services)
               ? server.services.map((s) => ({
-                  name: s.name,
-                  status: s.status,
-                  port: s.port || 80,
+                  name: s?.name || 'unknown',
+                  status: s?.status || 'unknown',
+                  port: s?.port || 80,
                 }))
               : [],
             specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
