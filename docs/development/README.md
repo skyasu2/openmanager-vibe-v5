@@ -358,16 +358,16 @@ const formatted2 = formatDate(data2.timestamp);
 
 | 도구 | 버전 | 요금제 | 역할 |
 |------|------|--------|------|
-| **Claude Code** | v2.0.37 | Max ($200/월) | 메인 개발 환경 |
-| **OpenAI CLI (Codex)** | v0.58.0 | Plus ($20/월) | 직접 CLI 실행 |
-| **Google Gemini CLI** | v0.15.4 | 무료 (60 RPM) | 직접 CLI 실행 |
-| **Qwen Code** | v0.2.1 | 무료 (60 RPM) | 설정 최적화 |
+| **Claude Code** | v2.0.62 | Max ($200/월) | 메인 개발 환경 |
+| **OpenAI CLI (Codex)** | v0.69.0 | Plus ($20/월) | 코드 리뷰 (3-AI 순환) |
+| **Google Gemini CLI** | v0.20.0 | 무료 (60 RPM) | 코드 리뷰 (3-AI 순환) |
+| **Qwen Code** | v0.4.0 | 무료 (60 RPM) | 코드 리뷰 (3-AI 순환) |
 | **Kiro CLI** | v1.20.0 | Beta (AWS) | 멀티 에이전트 터미널 |
 
 ### Claude Code 신규 기능
 ```bash
 # 버전 확인
-claude --version  # v2.0.37
+claude --version  # v2.0.62
 
 # MCP 서버 관리
 claude mcp list

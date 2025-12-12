@@ -12,7 +12,7 @@ related_docs:
   - 'docs/core/architecture/'
   - 'docs/claude/architecture/'
   - 'src/'
-last_updated: '2025-12-01'
+last_updated: '2025-12-12'
 ---
 
 # 📐 설계 문서 (Design Documents)
@@ -162,14 +162,14 @@ src/          (실제 코드)
 
 ---
 
-**Last Updated**: 2025-10-16 by Claude Code
+**Last Updated**: 2025-12-12 by Claude Code
 ## 🔄 기술 스택 상세
 
 ### Frontend 핵심 프레임워크
 ```
-Next.js 15.4.5 (App Router)
-React 18.3
-TypeScript 5.7.2 (strict mode)
+Next.js 16.0.7 (App Router)
+React 19.2.1 (RSC, Actions)
+TypeScript 5.9.3 (strict mode)
 ```
 
 ### 상태 관리
@@ -182,7 +182,7 @@ TypeScript 5.7.2 (strict mode)
 ### 핵심 스택
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| **Framework** | Next.js 15 | App Router, Server Actions, Edge Runtime |
+| **Framework** | Next.js 16 | App Router, Server Actions, Edge Runtime |
 | **Language** | TypeScript | Strict type safety, Zero `any` policy |
 | **Styling** | Tailwind CSS | Utility-first styling, Dark mode support |
 | **UI Library** | Shadcn/UI | Accessible, reusable components (Radix UI based) |

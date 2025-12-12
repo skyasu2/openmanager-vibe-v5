@@ -19,8 +19,8 @@ updated: '2025-12-02'
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                Frontend (Next.js 15.5.5)                     │
-│  - React 18 + TypeScript 5.7.2 (strict)                     │
+│                Frontend (Next.js 16.0.7)                     │
+│  - React 19 + TypeScript 5.9.3 (strict)                     │
 │  - 실시간 대시보드 (StaticDataLoader)                        │
 │  - Zustand 상태 관리                                         │
 └─────────────────────────────────────────────────────────────┘
@@ -273,14 +273,14 @@ Chart.js / Recharts 렌더링
 
 ```json
 {
-  "next": "^15.4.5",
-  "react": "^18.3.1",
-  "typescript": "^5.7.2",
-  "zustand": "^5.0.2",
-  "@tanstack/react-query": "^5.62.11",
+  "next": "^16.0.7",
+  "react": "^19.2.1",
+  "typescript": "^5.9.3",
+  "zustand": "^5.0.9",
+  "@tanstack/react-query": "^5.90.11",
   "chart.js": "^4.4.7",
   "recharts": "^2.15.0",
-  "lucide-react": "^0.468.0"
+  "lucide-react": "^0.556.0"
 }
 ```
 
@@ -289,9 +289,9 @@ Chart.js / Recharts 렌더링
 ```json
 {
   "@google/generative-ai": "^0.21.0",
-  "@supabase/supabase-js": "^2.47.10",
+  "@supabase/supabase-js": "^2.86.0",
   "zod": "^3.24.1",
-  "ai": "^4.0.38"
+  "ai": "^5.0.102"
 }
 ```
 
@@ -299,8 +299,8 @@ Chart.js / Recharts 렌더링
 
 ```json
 {
-  "vitest": "^2.1.8",
-  "@playwright/test": "^1.49.1",
+  "vitest": "^4.0.15",
+  "@playwright/test": "^1.57.0",
   "@testing-library/react": "^16.1.0"
 }
 ```
@@ -423,6 +423,6 @@ logger.info('API 요청', {
 
 ---
 
-**마지막 업데이트**: 2025-12-02
+**마지막 업데이트**: 2025-12-12
 **버전**: v5.80.0
 **상태**: ✅ 프로덕션 운영 중
