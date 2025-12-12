@@ -235,15 +235,16 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   // --- Render Logic ---
 
   // 📱 SIDEBAR LAYOUT (Mobile/Compact) - Only used if this component is used in sidebar mode (though AISidebarV4 is preferred)
+  // 🎨 화이트 모드 전환 (2025-12 업데이트)
   if (mode === 'sidebar') {
     return (
-      <div className="flex h-full flex-col bg-[#1e1e1e]">
-        <div className="flex items-center justify-between p-4 border-b border-gray-800">
-          <span className="font-semibold text-gray-200">AI Assistant</span>
+      <div className="flex h-full flex-col bg-white">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <span className="font-semibold text-gray-900">AI Assistant</span>
           {onClose && (
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white"
+              className="text-gray-500 hover:text-gray-900 transition-colors"
             >
               <ArrowLeftFromLine className="h-5 w-5" />
             </button>
@@ -287,7 +288,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           )}
         </div>
         {selectedFunction === 'chat' && (
-          <div className="shrink-0 border-t border-gray-800 bg-[#252526] p-2">
+          <div className="shrink-0 border-t border-gray-200 bg-gray-50 p-2">
             <AIAssistantIconPanel
               selectedFunction={selectedFunction}
               onFunctionChange={setSelectedFunction}
@@ -300,10 +301,11 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   }
 
   // 🖥️ FULLSCREEN LAYOUT (Unified)
+  // 🎨 화이트 모드 전환 (2025-12 업데이트)
   return (
-    <div className="flex h-full w-full overflow-hidden bg-[#1e1e1e] text-gray-200">
+    <div className="flex h-full w-full overflow-hidden bg-white text-gray-900">
       {/* LEFT SIDEBAR (Navigation) */}
-      <div className="flex w-[260px] flex-col border-r border-gray-800 bg-[#18181b]">
+      <div className="flex w-[260px] flex-col border-r border-gray-200 bg-gray-50">
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -311,7 +313,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           </span>
           <button
             onClick={() => router.back()}
-            className="rounded p-1 text-gray-400 hover:bg-gray-800 hover:text-white"
+            className="rounded p-1 text-gray-500 hover:bg-gray-200 hover:text-gray-900 transition-colors"
             title="뒤로 가기"
           >
             <ArrowLeftFromLine className="h-4 w-4" />
@@ -320,7 +322,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         <div className="px-4 pb-4">
           <button
             onClick={() => setMessages([])}
-            className="flex w-full items-center gap-2 rounded-lg border border-gray-700 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-colors shadow-sm"
           >
             <Plus className="h-4 w-4" />
             <span>New Chat</span>
@@ -346,20 +348,22 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         {/* CENTER CONTENT */}
         <div className="flex flex-1 flex-col relative min-w-0">
           {/* Context Header */}
-          <div className="flex h-14 items-center justify-between border-b border-gray-800 bg-[#1e1e1e] px-4">
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <span className="font-medium text-gray-200">
+          <div className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4">
+            <div className="flex items-center gap-2 text-gray-500 text-sm">
+              <span className="font-medium text-gray-900">
                 OpenManager Vibe
               </span>
               <span>/</span>
               <span>AI Workspace</span>
               <span>/</span>
-              <span className="text-white capitalize">{selectedFunction}</span>
+              <span className="text-blue-600 capitalize font-medium">
+                {selectedFunction}
+              </span>
             </div>
             {selectedFunction === 'chat' && (
               <button
                 onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
-                className="rounded p-1 text-gray-400 hover:bg-gray-800 hover:text-white"
+                className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
                 title="Toggle Context Panel"
               >
                 {isRightPanelOpen ? (
@@ -410,11 +414,12 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         </div>
 
         {/* RIGHT SIDEBAR (System Context) - Hardcoded for demo/MVP similar to legacy, but clean */}
+        {/* 🎨 화이트 모드 전환 (2025-12 업데이트) */}
         {selectedFunction === 'chat' && isRightPanelOpen && (
-          <div className="w-[320px] border-l border-gray-800 bg-[#18181b] flex flex-col">
-            <div className="flex h-14 items-center border-b border-gray-800 px-4">
-              <h3 className="font-semibold text-sm text-gray-200 flex items-center gap-2">
-                <Activity className="h-4 w-4 text-blue-400" />
+          <div className="w-[320px] border-l border-gray-200 bg-gray-50 flex flex-col">
+            <div className="flex h-14 items-center border-b border-gray-200 px-4">
+              <h3 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                <Activity className="h-4 w-4 text-blue-500" />
                 System Context
               </h3>
             </div>
@@ -424,22 +429,22 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                 <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Live Status Summary
                 </h4>
-                <div className="rounded-lg border border-gray-800 bg-[#252526] p-3 space-y-2">
+                <div className="rounded-lg border border-gray-200 bg-white p-3 space-y-2 shadow-sm">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-300 flex items-center gap-2">
-                      <Server className="h-3.5 w-3.5 text-blue-400" />
+                    <span className="text-sm text-gray-600 flex items-center gap-2">
+                      <Server className="h-3.5 w-3.5 text-blue-500" />
                       Servers Online
                     </span>
-                    <span className="text-sm font-bold text-green-400">
+                    <span className="text-sm font-bold text-green-600">
                       12 / 12
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-300 flex items-center gap-2">
-                      <Layout className="h-3.5 w-3.5 text-purple-400" />
+                    <span className="text-sm text-gray-600 flex items-center gap-2">
+                      <Layout className="h-3.5 w-3.5 text-purple-500" />
                       Environments
                     </span>
-                    <span className="text-sm font-bold text-gray-200">
+                    <span className="text-sm font-bold text-gray-900">
                       Production
                     </span>
                   </div>

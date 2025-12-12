@@ -30,6 +30,7 @@ interface AIAssistantIcon {
 }
 
 // 🎯 간소화된 AI 기능 메뉴 - AI 사고 제거, 순서 조정
+// 🎨 화이트 모드 전환 (2025-12 업데이트)
 const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
   // === 핵심 기능 (상단) ===
   {
@@ -37,8 +38,8 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     icon: MessageSquare,
     label: '자연어 질의',
     description: '자연어로 시스템 질의 및 대화',
-    color: 'text-blue-400',
-    bgColor: 'bg-blue-900/30 hover:bg-blue-800/40',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50 hover:bg-blue-100',
     gradient: 'from-blue-500 to-cyan-500',
   },
   {
@@ -46,8 +47,8 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     icon: FileText,
     label: '자동장애 보고서',
     description: 'AI 기반 시스템 장애 분석 보고서 생성',
-    color: 'text-pink-400',
-    bgColor: 'bg-pink-900/30 hover:bg-pink-800/40',
+    color: 'text-pink-600',
+    bgColor: 'bg-pink-50 hover:bg-pink-100',
     gradient: 'from-pink-500 to-rose-500',
   },
   {
@@ -56,8 +57,8 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     label: '이상감지/예측',
     description:
       '🧠 통합 AI 분석: 이상탐지→근본원인→예측모니터링→패턴학습→예측분석',
-    color: 'text-emerald-400',
-    bgColor: 'bg-emerald-900/30 hover:bg-emerald-800/40',
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-50 hover:bg-emerald-100',
     gradient: 'from-emerald-500 to-teal-500',
   },
 ];
@@ -110,11 +111,11 @@ export default function AIAssistantIconPanel({
             >
               <Icon className="mx-auto h-5 w-5" />
 
-              {/* 모바일 툴팁 (상단 표시) */}
-              <div className="pointer-events-none absolute bottom-full left-1/2 z-[60] mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+              {/* 모바일 툴팁 (상단 표시) - 화이트 모드 */}
+              <div className="pointer-events-none absolute bottom-full left-1/2 z-[60] mb-2 -translate-x-1/2 transform whitespace-nowrap rounded-lg bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
                 {item.label}
                 <div className="absolute left-1/2 top-full -translate-x-1/2 transform">
-                  <div className="border-2 border-transparent border-t-gray-900"></div>
+                  <div className="border-2 border-transparent border-t-gray-800"></div>
                 </div>
               </div>
             </button>
@@ -124,16 +125,17 @@ export default function AIAssistantIconPanel({
     );
   }
 
+  // 🎨 화이트 모드 전환 (2025-12 업데이트)
   return (
     <div
-      className={`flex flex-col space-y-2 border-l border-gray-700 bg-[#1e1e1e] p-3 ${className}`}
+      className={`flex flex-col space-y-2 border-l border-gray-200 bg-white p-3 ${className}`}
     >
       {/* 헤더 */}
       <div className="mb-2 text-center">
-        <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-500">
+        <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 shadow-sm">
           <Brain className="h-4 w-4 text-white" />
         </div>
-        <p className="text-xs font-medium text-gray-400">AI 기능</p>
+        <p className="text-xs font-medium text-gray-600">AI 기능</p>
       </div>
 
       {/* 아이콘 버튼들 */}
@@ -157,14 +159,14 @@ export default function AIAssistantIconPanel({
             >
               <Icon className="mx-auto h-5 w-5" />
 
-              {/* 선택 표시 */}
+              {/* 선택 표시 (화이트 모드 - 파란색 인디케이터) */}
               {isSelected && (
-                <div className="animate-fade-in absolute -left-1 top-1/2 h-6 w-1 -translate-y-1/2 transform rounded-r-full bg-white" />
+                <div className="animate-fade-in absolute -left-1 top-1/2 h-6 w-1 -translate-y-1/2 transform rounded-r-full bg-blue-500" />
               )}
 
-              {/* 호버 툴팁 - 왼쪽으로 위치 변경 */}
+              {/* 호버 툴팁 - 왼쪽으로 위치 변경 (화이트 모드) */}
               <div
-                className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-[60] min-w-max max-w-[200px] whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
+                className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-[60] min-w-max max-w-[200px] whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
               >
                 <div className="font-medium">{item.label}</div>
                 <div className="mt-1 text-xs text-gray-300">
@@ -173,7 +175,7 @@ export default function AIAssistantIconPanel({
 
                 {/* 툴팁 화살표 - 왼쪽 표시용으로 변경 */}
                 <div className="absolute left-full top-1/2 -translate-y-1/2 transform">
-                  <div className="border-4 border-transparent border-l-gray-900"></div>
+                  <div className="border-4 border-transparent border-l-gray-800"></div>
                 </div>
               </div>
             </button>
@@ -181,10 +183,10 @@ export default function AIAssistantIconPanel({
         })}
       </div>
 
-      {/* 하단 상태 표시 */}
-      <div className="mt-4 border-t border-gray-700 pt-2">
+      {/* 하단 상태 표시 (화이트 모드) */}
+      <div className="mt-4 border-t border-gray-200 pt-2">
         <div className="text-center">
-          <div className="animate-pulse mx-auto mb-1 h-2 w-2 rounded-full bg-green-400"></div>
+          <div className="animate-pulse mx-auto mb-1 h-2 w-2 rounded-full bg-green-500"></div>
           <p className="text-xs text-gray-500">AI 활성</p>
         </div>
       </div>

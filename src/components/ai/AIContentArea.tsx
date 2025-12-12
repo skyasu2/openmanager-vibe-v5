@@ -18,12 +18,12 @@ const IntelligentMonitoringPage = lazy(
   () => import('@/components/ai/pages/IntelligentMonitoringPage')
 );
 
-// 🔄 Loading Spinner
+// 🔄 Loading Spinner (화이트 모드)
 const LoadingSpinner = () => (
-  <div className="flex h-full items-center justify-center">
+  <div className="flex h-full items-center justify-center bg-white">
     <div className="flex flex-col items-center space-y-4">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
-      <span className="text-sm text-white/70">로딩 중...</span>
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+      <span className="text-sm text-gray-600">로딩 중...</span>
     </div>
   </div>
 );
@@ -36,16 +36,19 @@ export default function AIContentArea({
   selectedFunction,
 }: AIContentAreaProps) {
   switch (selectedFunction) {
+    // 🎨 화이트 모드 전환 (2025-12 업데이트)
     case 'chat':
       return (
         <div
-          className="p-4 text-center text-white/70 flex h-full items-center justify-center"
+          className="flex h-full items-center justify-center bg-white p-4 text-center text-gray-600"
           data-testid="chat-placeholder"
         >
           <div>
             <div className="mb-2 text-2xl">💬</div>
-            <p>채팅 인터페이스가 여기에 표시됩니다.</p>
-            <span className="text-sm text-white/50">
+            <p className="text-gray-700">
+              채팅 인터페이스가 여기에 표시됩니다.
+            </p>
+            <span className="text-sm text-gray-500">
               (AIWorkspace 또는 Sidebar에서 ChatInterface를 렌더링해야 함)
             </span>
           </div>
@@ -73,7 +76,7 @@ export default function AIContentArea({
     default:
       return (
         <div
-          className="flex h-full items-center justify-center text-white/70"
+          className="flex h-full items-center justify-center bg-white text-gray-600"
           data-testid="default-page"
         >
           🤖 기능을 선택해주세요.
