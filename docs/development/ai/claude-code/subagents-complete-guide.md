@@ -167,7 +167,7 @@ bash scripts/ai-subagents/qwen-wrapper.sh "리뷰 요청"
 
 - **[CLAUDE.md](../../CLAUDE.md)** - 메인 프로젝트 가이드
 - **[registry-core.yaml](../../config/ai/registry-core.yaml)** - AI Registry SSOT
-- **[MCP 가이드](../claude/environment/mcp/mcp-priority-guide.md)** - MCP 서버 활용
+- **[MCP 가이드](../../mcp/mcp-priority-guide.md)** - MCP 서버 활용
 
 ---
 

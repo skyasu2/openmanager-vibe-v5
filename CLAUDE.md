@@ -119,7 +119,7 @@ Tab 키 토글 | Token Budget: think(4K) < think hard(10K) < ultrathink(32K)
 | tavily | 심층 리서치 | 1,000/월 |
 | brave-search | 팩트체크 | 2,000/월 |
 
-**상세**: @config/ai/registry-core.yaml, @docs/environment/tools/mcp/mcp-priority-guide.md
+**상세**: @config/ai/registry-core.yaml, @docs/development/mcp/mcp-priority-guide.md
 
 ---
 
@@ -159,7 +159,7 @@ claude mcp list             # MCP 상태
 |------|------|
 | config/ai/registry-core.yaml | AI 설정 SSOT |
 | docs/status.md | 기술 스택/상태 |
-| docs/environment/tools/mcp/mcp-priority-guide.md | MCP 활용 가이드 |
+| docs/development/mcp/mcp-priority-guide.md | MCP 활용 가이드 |
 
 ---
 
