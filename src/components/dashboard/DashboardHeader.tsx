@@ -19,8 +19,8 @@ import { SystemStatusBadge } from './SystemStatusBadge';
  * 대시보드 헤더 컴포넌트 Props
  */
 interface DashboardHeaderProps {
-  /** 홈으로 이동 핸들러 */
-  onNavigateHome: () => void;
+  /** @deprecated 홈으로 이동 핸들러 - OpenManagerLogo의 href prop으로 대체됨 */
+  onNavigateHome?: () => void;
   /** AI 에이전트 토글 핸들러 - 기존 호환성을 위해 유지 */
   onToggleAgent?: () => void;
   /** AI 에이전트 열림 상태 - 기존 호환성을 위해 유지 */
@@ -54,7 +54,7 @@ interface DashboardHeaderProps {
  * ```
  */
 const DashboardHeader = memo(function DashboardHeader({
-  onNavigateHome,
+  onNavigateHome: _onNavigateHome, // deprecated - OpenManagerLogo href로 대체
   onToggleAgent, // 기존 호환성을 위해 유지
   isAgentOpen: _isAgentOpen = false, // 기존 호환성을 위해 유지
   onMenuClick: _onMenuClick,

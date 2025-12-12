@@ -12,7 +12,6 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import AuthLoadingUI from '@/components/shared/AuthLoadingUI';
@@ -56,8 +55,6 @@ const FeatureCardsGrid = dynamic(
 );
 
 function Home() {
-  const router = useRouter();
-
   // 인증 상태
   const {
     isLoading: authLoading,
