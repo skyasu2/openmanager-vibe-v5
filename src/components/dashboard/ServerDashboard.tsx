@@ -23,11 +23,9 @@ import {
 } from '@/components/ui/select';
 import type { DashboardTab } from '@/hooks/useServerDashboard';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
-import type { Server, ServerStatus } from '@/types/server';
+import type { Server } from '@/types/server';
 // react-window Grid는 사용하지 않음 (VirtualizedServerList에서 List 사용)
 import { usePerformanceTracking } from '@/utils/performance';
-import { serverTypeGuards } from '@/utils/serverUtils';
-import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
 
 // 🚀 성능 최적화: statusPriority를 컴포넌트 외부로 이동 (매번 새로 생성 방지)
 const STATUS_PRIORITY = {

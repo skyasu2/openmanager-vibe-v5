@@ -10,9 +10,7 @@ import debounce from 'lodash-es/debounce';
 import { useEffect, useState } from 'react';
 import ImprovedServerCard from '@/components/dashboard/ImprovedServerCard';
 import { ServerCardErrorBoundary } from '@/components/development/ComponentErrorBoundary';
-import type { Server, ServerStatus } from '@/types/server';
-import { serverTypeGuards } from '@/utils/serverUtils';
-import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
+import type { Server } from '@/types/server';
 
 interface VirtualizedServerListProps {
   servers: Server[];
@@ -54,7 +52,6 @@ export default function VirtualizedServerList({
 
   const renderServer = (server: Server, index: number) => {
     const serverId = server.id || `server-${index}`;
-    const serverName = server.name || `서버-${index + 1}`; // This line is kept as per instruction, though not used in the new logic.
 
     return (
       <ServerCardErrorBoundary key={`boundary-${serverId}`} serverId={serverId}>
