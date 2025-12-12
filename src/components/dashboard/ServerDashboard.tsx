@@ -3,7 +3,7 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
-import SafeServerCard from '@/components/dashboard/SafeServerCard';
+import ImprovedServerCard from '@/components/dashboard/ImprovedServerCard';
 import VirtualizedServerList from '@/components/dashboard/VirtualizedServerList';
 import { ServerCardErrorBoundary } from '@/components/development/ComponentErrorBoundary';
 import {
@@ -309,150 +309,20 @@ export default function ServerDashboard({
               >
                 {sortedServers.length > 0 ? (
                   sortedServers.map((server, index) => {
-                    // 🛡️ AI 교차검증: 개별 서버 안전성 재검증 (Codex 실무 권장)
-                    if (!server) {
-                      console.error(
-                        `⚠️ ServerDashboard: 서버[${index}]가 null 또는 undefined입니다.`
-                      );
-                      return null;
-                    }
-
                     const serverId = server.id || `server-${index}`;
-                    const serverName = server.name || `서버-${index + 1}`;
-
-                    // 🛡️ Gemini 권장: 안전한 서버 데이터 매핑 (과도한 방어 → 최적화된 방어)
-                    let safeServerData: Server;
-                    try {
-                      // 🎯 Codex 권장: 안전한 상태 타입 캐스팅
-                      const safeStatus: ServerStatus = (() => {
-                        const status = server.status;
-                        if (
-                          status === 'online' ||
-                          status === 'offline' ||
-                          status === 'warning' ||
-                          status === 'critical' ||
-                          status === 'maintenance' ||
-                          status === 'unknown'
-                        ) {
-                          // 🔧 수정: 'healthy' → 제거, maintenance/unknown 추가
-                          return status;
-                        }
-                        return 'offline';
-                      })();
-
-                      safeServerData = {
-                        id: serverId,
-                        name: serverName,
-                        status: safeStatus,
-                        // 🎯 Qwen 권장: 안전한 메트릭 데이터 변환
-                        cpu: (() => {
-                          const cpuData = serverTypeGuards.getCpu(server);
-                          if (typeof cpuData === 'number') return cpuData;
-                          if (
-                            cpuData &&
-                            typeof cpuData === 'object' &&
-                            'usage' in cpuData
-                          )
-                            return (cpuData as { usage: number }).usage;
-                          return 0; // 🔧 데이터 없음 (랜덤 값 제거)
-                        })(),
-                        memory: (() => {
-                          const memData = serverTypeGuards.getMemory(server);
-                          if (typeof memData === 'number') return memData;
-                          if (
-                            memData &&
-                            typeof memData === 'object' &&
-                            'used' in memData
-                          )
-                            return (memData as { used: number }).used;
-                          return 0; // 🔧 데이터 없음 (랜덤 값 제거)
-                        })(),
-                        disk: (() => {
-                          const diskData = serverTypeGuards.getDisk(server);
-                          if (typeof diskData === 'number') return diskData;
-                          if (
-                            diskData &&
-                            typeof diskData === 'object' &&
-                            'used' in diskData
-                          )
-                            return (diskData as { used: number }).used;
-                          return 0; // 🔧 데이터 없음 (랜덤 값 제거)
-                        })(),
-                        network: (() => {
-                          const netData = serverTypeGuards.getNetwork(server);
-                          if (typeof netData === 'number') return netData;
-                          if (
-                            netData &&
-                            typeof netData === 'object' &&
-                            'in' in netData
-                          )
-                            return (netData as { in: number }).in;
-                          return 0; // 🔧 데이터 없음 (랜덤 값 제거)
-                        })(),
-                        location: server.location || 'unknown',
-                        uptime: formatUptime(server.uptime) || '0일',
-                        ip: server.ip || '192.168.1.100',
-                        os: server.os || 'Ubuntu 22.04',
-                        alerts: getAlertsCount(server.alerts) || 0,
-                        lastUpdate: new Date(),
-                        services: Array.isArray(server.services)
-                          ? server.services
-                          : [],
-                      };
-                    } catch (error) {
-                      console.error(
-                        `⚠️ ServerDashboard: 서버[${index}] 데이터 매핑 오류:`,
-                        error
-                      );
-                      // 🚀 FIX: null 반환 대신 완전한 기본 서버 객체 반환 (서버 카드 렌더링 오류 해결)
-                      safeServerData = {
-                        id: serverId,
-                        name: serverName,
-                        status: 'offline' as const,
-                        cpu: 0, // 🔧 데이터 없음 (랜덤 값 제거)
-                        memory: 0, // 🔧 데이터 없음 (랜덤 값 제거)
-                        disk: 0, // 🔧 데이터 없음 (랜덤 값 제거)
-                        network: 0, // 🔧 데이터 없음 (랜덤 값 제거)
-                        location: server?.location || 'unknown',
-                        uptime: '0일',
-                        ip: server?.ip || '192.168.1.100',
-                        os: server?.os || 'Ubuntu 22.04',
-                        alerts: 0,
-                        lastUpdate: new Date(),
-                        // 🎯 핵심: services 속성 누락 방지 (ImprovedServerCard 오류 해결)
-                        services: Array.isArray(server?.services)
-                          ? server.services
-                          : [],
-                      };
-                    }
-
-                    // 🛡️ Qwen 권장: 안전한 클릭 핸들러
-                    const safeHandleClick = () => {
-                      try {
-                        if (typeof handleServerSelect === 'function') {
-                          handleServerSelect(server);
-                        } else {
-                          console.warn(
-                            '⚠️ handleServerSelect가 함수가 아닙니다.'
-                          );
-                        }
-                      } catch (error) {
-                        console.error('⚠️ 서버 선택 중 오류 발생:', error);
-                      }
-                    };
 
                     return (
                       <ServerCardErrorBoundary
                         key={`boundary-${serverId}`}
                         serverId={serverId}
                       >
-                        <SafeServerCard
+                        <ImprovedServerCard
                           key={serverId}
-                          server={safeServerData}
+                          server={server}
                           variant="compact"
                           showRealTimeUpdates={true}
                           index={index}
-                          onClick={safeHandleClick}
+                          onClick={handleServerSelect}
                         />
                       </ServerCardErrorBoundary>
                     );
@@ -660,53 +530,7 @@ export default function ServerDashboard({
       {/* 🎯 통합된 모달 - EnhancedServerModal 사용 */}
       {selectedServer && (
         <EnhancedServerModal
-          server={{
-            id: selectedServer.id,
-            hostname: selectedServer.hostname || selectedServer.name,
-            name: selectedServer.name,
-            type: selectedServer.type || 'api',
-            environment: selectedServer.environment || 'prod',
-            location: selectedServer.location || 'unknown',
-            provider: selectedServer.provider || 'Unknown',
-            status: serverTypeGuards.getStatus(selectedServer.status),
-            cpu: serverTypeGuards.getCpu(selectedServer),
-            memory: serverTypeGuards.getMemory(selectedServer),
-            disk: serverTypeGuards.getDisk(selectedServer),
-            network: serverTypeGuards.getNetwork(selectedServer),
-            uptime: formatUptime(selectedServer.uptime),
-            lastUpdate: selectedServer.lastUpdate || new Date(),
-            alerts: getAlertsCount(selectedServer.alerts),
-            services: (selectedServer.services || []).map((service) => ({
-              name: service.name,
-              status:
-                service.status === 'warning'
-                  ? 'stopped'
-                  : (service.status as 'running' | 'stopped'),
-              port: service.port || 80,
-            })),
-            specs: serverTypeGuards.getSpecs(selectedServer),
-            os: selectedServer.os || 'Ubuntu 22.04',
-            ip: selectedServer.ip || '192.168.1.100',
-            networkStatus: (() => {
-              // Server 타입의 networkStatus를 ServerDashboardData 타입으로 매핑
-              const status = selectedServer.networkStatus;
-              if (status === 'online') return 'excellent'; // 🔧 수정: 'healthy' → 'online'
-              if (status === 'warning') return 'good';
-              if (status === 'critical' || status === 'maintenance')
-                return 'poor';
-              if (status === 'offline') return 'offline';
-              return 'good'; // 기본값
-            })(),
-            health: selectedServer.health || {
-              score: 85,
-              trend: [80, 82, 85, 87, 85],
-            },
-            alertsSummary: selectedServer.alertsSummary || {
-              total: getAlertsCount(selectedServer.alerts),
-              critical: 0,
-              warning: getAlertsCount(selectedServer.alerts),
-            },
-          }}
+          server={selectedServer}
           onClose={handleModalClose}
         />
       )}

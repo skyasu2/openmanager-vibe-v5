@@ -16,7 +16,7 @@ import ServerCardErrorBoundary from '@/components/error/ServerCardErrorBoundary'
 import type { ServerDisplayMode } from '@/config/display-config';
 import type { ViewMode } from '@/hooks/useServerDashboard';
 import type { Server } from '@/types/server';
-import SafeServerCard from '../SafeServerCard';
+import ImprovedServerCard from '../ImprovedServerCard';
 
 interface ServerDashboardServersProps {
   servers: Server[];
@@ -333,7 +333,7 @@ export function ServerDashboardServers({
                 <ServerCardErrorBoundary
                   key={`boundary-dashboard-${server.id}`}
                 >
-                  <SafeServerCard
+                  <ImprovedServerCard
                     server={server}
                     onClick={() => onServerSelect(server)}
                     variant="compact"

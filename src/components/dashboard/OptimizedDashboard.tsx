@@ -245,8 +245,8 @@ export default function OptimizedDashboard({
               'Unknown Server',
             hostname:
               selectedServer.hostname || selectedServer.name || 'Unknown',
-            type: selectedServer.type || 'unknown',
-            environment: selectedServer.environment || 'unknown',
+            type: selectedServer.type || 'web',
+            environment: selectedServer.environment || 'production',
             location: selectedServer.location || 'unknown',
             provider: selectedServer.provider || 'unknown',
             status: selectedServer.status, // 🔧 수정: 직접 사용 (타입 통합 완료)

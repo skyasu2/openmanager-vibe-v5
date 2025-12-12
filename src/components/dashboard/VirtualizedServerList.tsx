@@ -6,9 +6,9 @@
  * 브라우저 크기에 맞게 자동 배치, 첫 줄만 표시하고 나머지는 펼치기
  */
 
-import { debounce } from 'lodash-es';
+import debounce from 'lodash-es/debounce';
 import { useEffect, useState } from 'react';
-import SafeServerCard from '@/components/dashboard/SafeServerCard';
+import ImprovedServerCard from '@/components/dashboard/ImprovedServerCard';
 import { ServerCardErrorBoundary } from '@/components/development/ComponentErrorBoundary';
 import type { Server, ServerStatus } from '@/types/server';
 import { serverTypeGuards } from '@/utils/serverUtils';
@@ -54,109 +54,17 @@ export default function VirtualizedServerList({
 
   const renderServer = (server: Server, index: number) => {
     const serverId = server.id || `server-${index}`;
-    const serverName = server.name || `서버-${index + 1}`;
-
-    let safeServerData: Server;
-    try {
-      const safeStatus: ServerStatus = (() => {
-        const status = server.status;
-        if (
-          status === 'online' ||
-          status === 'offline' ||
-          status === 'warning' ||
-          status === 'critical' ||
-          status === 'maintenance' ||
-          status === 'unknown'
-        ) {
-          return status;
-        }
-        return 'offline';
-      })();
-
-      safeServerData = {
-        id: serverId,
-        name: serverName,
-        status: safeStatus,
-        cpu: (() => {
-          const cpuData = serverTypeGuards.getCpu(server);
-          if (typeof cpuData === 'number') return cpuData;
-          if (cpuData && typeof cpuData === 'object' && 'usage' in cpuData)
-            return (cpuData as { usage: number }).usage;
-          return Math.random() * 80 + 10;
-        })(),
-        memory: (() => {
-          const memData = serverTypeGuards.getMemory(server);
-          if (typeof memData === 'number') return memData;
-          if (memData && typeof memData === 'object' && 'used' in memData)
-            return (memData as { used: number }).used;
-          return Math.random() * 70 + 15;
-        })(),
-        disk: (() => {
-          const diskData = serverTypeGuards.getDisk(server);
-          if (typeof diskData === 'number') return diskData;
-          if (diskData && typeof diskData === 'object' && 'used' in diskData)
-            return (diskData as { used: number }).used;
-          return Math.random() * 60 + 20;
-        })(),
-        network: (() => {
-          const netData = serverTypeGuards.getNetwork(server);
-          if (typeof netData === 'number') return netData;
-          if (netData && typeof netData === 'object' && 'in' in netData)
-            return (netData as { in: number }).in;
-          return Math.random() * 100 + 50;
-        })(),
-        location: server.location || 'unknown',
-        uptime: formatUptime(server.uptime) || '0일',
-        ip: server.ip || '192.168.1.100',
-        os: server.os || 'Ubuntu 22.04',
-        alerts: getAlertsCount(server.alerts) || 0,
-        lastUpdate: new Date(),
-        services: Array.isArray(server.services) ? server.services : [],
-      };
-    } catch (error) {
-      console.error(
-        `⚠️ VirtualizedServerList: 서버[${index}] 데이터 매핑 오류:`,
-        error
-      );
-      safeServerData = {
-        id: serverId,
-        name: serverName,
-        status: 'offline' as const,
-        cpu: Math.random() * 80 + 10,
-        memory: Math.random() * 70 + 15,
-        disk: Math.random() * 60 + 20,
-        network: Math.random() * 100 + 50,
-        location: server?.location || 'unknown',
-        uptime: '0일',
-        ip: server?.ip || '192.168.1.100',
-        os: server?.os || 'Ubuntu 22.04',
-        alerts: 0,
-        lastUpdate: new Date(),
-        services: Array.isArray(server?.services) ? server.services : [],
-      };
-    }
-
-    const safeHandleClick = () => {
-      try {
-        if (typeof handleServerSelect === 'function') {
-          handleServerSelect(server);
-        } else {
-          console.warn('⚠️ handleServerSelect가 함수가 아닙니다.');
-        }
-      } catch (error) {
-        console.error('⚠️ 서버 선택 중 오류 발생:', error);
-      }
-    };
+    const serverName = server.name || `서버-${index + 1}`; // This line is kept as per instruction, though not used in the new logic.
 
     return (
       <ServerCardErrorBoundary key={`boundary-${serverId}`} serverId={serverId}>
-        <SafeServerCard
+        <ImprovedServerCard
           key={serverId}
-          server={safeServerData}
+          server={server}
           variant="compact"
           showRealTimeUpdates={true}
           index={index}
-          onClick={safeHandleClick}
+          onClick={handleServerSelect}
         />
       </ServerCardErrorBoundary>
     );

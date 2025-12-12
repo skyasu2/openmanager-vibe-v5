@@ -84,7 +84,7 @@ export default function EnhancedServerModal({
             hostname: server.hostname || 'unknown.local',
             name: server.name || 'Unknown Server',
             type: server.type || 'unknown',
-            environment: server.environment || 'unknown',
+            environment: server.environment || 'production',
             location: server.location || 'Unknown Location',
             provider: server.provider || 'Unknown Provider',
             status: server.status || 'unknown',

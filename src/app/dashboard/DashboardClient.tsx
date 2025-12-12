@@ -468,7 +468,6 @@ function DashboardPageContent() {
     }
   }, [isSystemStarted, startSystem]);
 
-
   // 🕐 시간 포맷팅
   const remainingTimeFormatted = formatTime
     ? formatTime(systemRemainingTime)
