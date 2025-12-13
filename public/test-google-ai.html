@@ -141,10 +141,8 @@
                 return;
             }
 
-            await sendRequest('/api/ai/query', {
-                query: prompt,
-                includeThinking: true,
-                context: 'general'
+            await sendRequest('/api/ai/unified-stream', {
+                messages: [{ role: 'user', content: prompt }]
             }, 'Unified AI');
         }
 
@@ -206,16 +204,14 @@
 
                 try {
                     const startTime = Date.now();
-                    const response = await fetch(API_BASE + '/api/ai/query', {
+                    const response = await fetch(API_BASE + '/api/ai/unified-stream', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-AI-Assistant': 'true'
                         },
                         body: JSON.stringify({
-                            query: scenario.query,
-                            includeThinking: true,
-                            category: scenario.category
+                            messages: [{ role: 'user', content: scenario.query }]
                         })
                     });
 
