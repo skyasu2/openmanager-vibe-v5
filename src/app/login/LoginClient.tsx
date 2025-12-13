@@ -7,9 +7,9 @@
 
 'use client';
 
-import { Sparkles, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useState } from 'react';
 // 게스트 로그인 관련 임포트 (lib/auth-state-manager로 통합)
 import type { AuthUser } from '@/lib/auth/auth-state-manager';
 import { authStateManager } from '@/lib/auth/auth-state-manager';
@@ -17,10 +17,7 @@ import { authStateManager } from '@/lib/auth/auth-state-manager';
 import { signInWithGitHub } from '@/lib/auth/supabase-auth';
 import { AI_GRADIENT_CLASSES, BUTTON_STYLES } from '@/styles/design-constants';
 import debug from '@/utils/debug';
-import {
-  AIIconGradientDefs,
-  renderTextWithAIGradient,
-} from '@/utils/text-rendering';
+import { renderTextWithAIGradient } from '@/utils/text-rendering';
 
 interface GuestSessionData {
   sessionId: string;
@@ -88,7 +85,6 @@ const SplashScreen = () => (
 
 export default function LoginClient() {
   const _router = useRouter();
-  const gradientId = useId(); // Scoped ID for SVG gradient (중복 마운트 시 충돌 방지)
   const [isLoading, setIsLoading] = useState(false);
   const [loadingType, setLoadingType] = useState<'github' | 'guest' | null>(
     null
@@ -374,22 +370,11 @@ export default function LoginClient() {
 
           {/* 헤더 (Card 내부) */}
           <div className="relative mb-10 flex flex-col items-center text-center">
-            {/* ✨ 로고: AI 아이콘 + 그라데이션 (파란색 계열 강화) */}
-            {/* SVG 그라데이션 정의 (useId로 scoped ID 사용 - 중복 마운트 안전) */}
-            <AIIconGradientDefs id={gradientId} />
+            {/* ✨ 로고: 그라데이션 스퀘어 - 애니메이션 효과 */}
             <div
-              className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 shadow-lg shadow-blue-500/20 sm:h-20 sm:w-20`}
-            >
-              {/* Sparkles 아이콘에 SVG 그라데이션 적용 (stroke + fill) */}
-              <Sparkles
-                className="h-8 w-8 sm:h-10 sm:w-10"
-                style={{
-                  stroke: `url(#${gradientId})`,
-                  fill: `url(#${gradientId})`,
-                  strokeWidth: 1.5,
-                }}
-              />
-            </div>
+              className={`mb-6 flex h-16 w-16 animate-gradient-x items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-purple-500/30 sm:h-20 sm:w-20`}
+              style={{ backgroundSize: '200% 200%' }}
+            />
             {/* 🎨 [2] 로고와 타이틀 간격 확대 - 라이트 텍스트 (PC 최적화) */}
             {/* 업계 표준: GitHub 600, Google 500 → 균형잡힌 600 적용 */}
             <h1 className="mb-3 text-[28px] font-semibold tracking-tight text-white sm:text-[32px]">
