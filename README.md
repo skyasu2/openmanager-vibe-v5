@@ -1,5 +1,8 @@
 # OpenManager VIBE v5
 
+[![Run in Smithery](https://smithery.ai/badge/skills/skyasu2)](https://smithery.ai/skills?ns=skyasu2&utm_source=github&utm_medium=badge)
+
+
 > **AI-Native 서버 모니터링 PoC**
 > **Vibe Coding**을 통해 DevOps의 미래인 **AX (AI Experience)**를 탐구합니다.
 
