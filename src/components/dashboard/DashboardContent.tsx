@@ -158,7 +158,7 @@ export default function DashboardContent({
   // 🚀 에러 상태 추가
   const [renderError, setRenderError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
-  const [_currentTime, setCurrentTime] = useState(new Date());
+  // 🚨 _currentTime 제거됨: 사용하지 않으면서 1초마다 리렌더링 유발 (서버 카드 그래프 깜빡임 원인)
   const [_screenSize, setScreenSize] = useState<string>('알 수 없음');
 
   // 🛡️ 클라이언트 사이드 확인 및 실시간 업데이트
@@ -191,10 +191,8 @@ export default function DashboardContent({
     // 초기 화면 크기 설정
     updateScreenSize();
 
-    // 실시간 시간 업데이트 (1초마다)
-    const timeInterval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+    // 🚨 1초 interval 제거됨 - 사용하지 않는 상태 업데이트로 인한 불필요한 리렌더링 방지
+    // 실시간 시계는 RealTimeDisplay 컴포넌트에서 독립적으로 관리됨
 
     // 화면 크기 변경 감지
     const resizeHandler = () => {
@@ -207,7 +205,6 @@ export default function DashboardContent({
     }
 
     return () => {
-      clearInterval(timeInterval);
       if (window?.removeEventListener) {
         window.removeEventListener('resize', resizeHandler);
       }

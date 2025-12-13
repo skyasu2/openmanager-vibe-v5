@@ -99,6 +99,96 @@ export const SERVER_STATUS_COLORS = {
   },
 } as const;
 
+// ===== 서버 상태별 색상 시스템 (다크 모드 - Glassmorphism) =====
+export const SERVER_STATUS_DARK_COLORS = {
+  online: {
+    // 정상 상태 - 에메랄드 네온 글로우
+    background:
+      'bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]',
+    cardBg: 'bg-emerald-500/5',
+    border: 'border-emerald-500/20 hover:border-emerald-500/40',
+    text: 'text-emerald-400',
+    badge: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+    icon: 'text-emerald-400',
+    glow: 'shadow-[0_0_10px_rgba(16,185,129,0.3)]',
+    graphColor: '#34d399', // emerald-400
+    accentColor: 'rgb(52, 211, 153)',
+  },
+  warning: {
+    // 경고 상태 - 앰버 네온 글로우
+    background:
+      'bg-amber-500/10 backdrop-blur-md border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]',
+    cardBg: 'bg-amber-500/5',
+    border: 'border-amber-500/20 hover:border-amber-500/40',
+    text: 'text-amber-400',
+    badge: 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
+    icon: 'text-amber-400',
+    glow: 'shadow-[0_0_10px_rgba(245,158,11,0.3)]',
+    graphColor: '#fbbf24', // amber-400
+    accentColor: 'rgb(251, 191, 36)',
+  },
+  critical: {
+    // 위험 상태 - 레드 네온 글로우
+    background:
+      'bg-red-500/10 backdrop-blur-md border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]',
+    cardBg: 'bg-red-500/5',
+    border: 'border-red-500/20 hover:border-red-500/40',
+    text: 'text-red-400',
+    badge: 'bg-red-500/20 text-red-300 border border-red-500/30',
+    icon: 'text-red-400',
+    glow: 'shadow-[0_0_10px_rgba(239,68,68,0.3)]',
+    graphColor: '#f87171', // red-400
+    accentColor: 'rgb(248, 113, 113)',
+  },
+  offline: {
+    // 오프라인 - 그레이/슬레이트
+    background: 'bg-slate-500/10 backdrop-blur-md border border-slate-500/20',
+    cardBg: 'bg-slate-500/5',
+    border: 'border-slate-500/20 hover:border-slate-500/40',
+    text: 'text-slate-400',
+    badge: 'bg-slate-500/20 text-slate-300 border border-slate-500/30',
+    icon: 'text-slate-400',
+    glow: 'shadow-[0_0_5px_rgba(148,163,184,0.1)]',
+    graphColor: '#94a3b8', // slate-400
+    accentColor: 'rgb(148, 163, 184)',
+  },
+  maintenance: {
+    // 점검중 - 블루 네온
+    background:
+      'bg-blue-500/10 backdrop-blur-md border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]',
+    cardBg: 'bg-blue-500/5',
+    border: 'border-blue-500/20 hover:border-blue-500/40',
+    text: 'text-blue-400',
+    badge: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
+    icon: 'text-blue-400',
+    glow: 'shadow-[0_0_10px_rgba(59,130,246,0.3)]',
+    graphColor: '#60a5fa', // blue-400
+    accentColor: 'rgb(96, 165, 250)',
+  },
+  unknown: {
+    // 알수없음
+    background: 'bg-gray-500/10 backdrop-blur-md border border-gray-500/20',
+    cardBg: 'bg-gray-500/5',
+    border: 'border-gray-500/20 hover:border-gray-500/40',
+    text: 'text-gray-400',
+    badge: 'bg-gray-500/20 text-gray-300 border border-gray-500/30',
+    icon: 'text-gray-400',
+    glow: 'shadow-none',
+    graphColor: '#9ca3af', // gray-400
+    accentColor: 'rgb(156, 163, 175)',
+  },
+} as const;
+
+// ===== 다크 모드 카드 스타일 (공통) =====
+export const DARK_CARD_STYLES = {
+  glass: 'bg-white/5 backdrop-blur-md border border-white/10 shadow-lg',
+  glassHover: 'hover:bg-white/10 transition-all duration-300',
+  textPrimary: 'text-white/95',
+  textSecondary: 'text-white/70',
+  textTertiary: 'text-white/40',
+  divider: 'border-white/10',
+} as const;
+
 // ===== 공통 애니메이션 =====
 export const COMMON_ANIMATIONS = {
   cardHover:
@@ -167,7 +257,11 @@ export const AI_ICON_GRADIENT_COLORS = {
 } as const;
 
 export const getServerStatusTheme = (status: ServerStatus) => {
-  return SERVER_STATUS_COLORS[status] || SERVER_STATUS_COLORS.unknown; // 🔧 수정: 기본값 'healthy' → 'unknown'
+  return SERVER_STATUS_COLORS[status] || SERVER_STATUS_COLORS.unknown;
+};
+
+export const getDarkServerStatusTheme = (status: ServerStatus) => {
+  return SERVER_STATUS_DARK_COLORS[status] || SERVER_STATUS_DARK_COLORS.unknown;
 };
 
 export const getTypographyClass = (
