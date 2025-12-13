@@ -138,13 +138,15 @@ export default function LoginClient() {
   // ESC 키로 로딩 취소
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isLoading) {
-        debug.log('🛑 로딩 취소됨');
-        setIsLoading(false);
-        setLoadingType(null);
-        setLoadingMessage('');
-        setSuccessMessage('로그인이 취소되었습니다.');
-        setTimeout(() => setSuccessMessage(null), SUCCESS_MESSAGE_TIMEOUT_MS);
+      if (e.key === 'Escape') {
+        if (isLoading) {
+          debug.log('🛑 로딩 취소됨');
+          setIsLoading(false);
+          setLoadingType(null);
+          setLoadingMessage('');
+          setSuccessMessage('로그인이 취소되었습니다.');
+          setTimeout(() => setSuccessMessage(null), SUCCESS_MESSAGE_TIMEOUT_MS);
+        }
       }
     };
 
@@ -398,11 +400,7 @@ export default function LoginClient() {
             </p>
           </div>
 
-          {/* 구분선 */}
-          {/* <div className="mb-8 border-t border-gray-700/50" /> */}
-
           {/* 로그인 섹션 - PC 최적화 */}
-          {/* 업계 표준: 14-16px, 가독성 높은 레터스페이싱 */}
           <h2 className="mb-8 text-center text-[16px] font-medium tracking-wide text-white/40">
             로그인 방식을 선택하세요
           </h2>
@@ -454,8 +452,7 @@ export default function LoginClient() {
           )}
 
           <div className="space-y-6">
-            {/* GitHub OAuth 로그인 - 업계 표준 스타일 */}
-            {/* 🎨 [3] 메인 버튼 시각적 위계 강화 */}
+            {/* GitHub OAuth 로그인 - 업계 표준 스타일, Subtext 통합 */}
             <button
               onClick={() => {
                 void handleGitHubLogin();
@@ -463,7 +460,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="GitHub 계정으로 로그인"
               aria-busy={loadingType === 'github'}
-              className={`${BUTTON_STYLES.github} focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none`}
+              className={`${BUTTON_STYLES.github} flex-col items-center gap-1.5 py-4 cursor-pointer`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && <LoadingOverlay type="github" />}
@@ -473,29 +470,39 @@ export default function LoginClient() {
                 <div className="animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/20" />
               )}
 
-              <svg
-                className="relative z-10 h-5 w-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="relative z-10 font-semibold tracking-wide">
-                {loadingType === 'github'
-                  ? loadingMessage
-                  : 'GitHub로 계속하기'}
-              </span>
-              {loadingType === 'github' && (
-                <div className="relative z-10 h-4 w-4 animate-spin rounded-full border-2 border-gray-900 border-t-transparent" />
+              {loadingType === 'github' ? (
+                <>
+                  <div className="relative z-10 h-5 w-5 animate-spin rounded-full border-2 border-gray-900 border-t-transparent" />
+                  <span className="relative z-10 text-sm font-medium">
+                    {loadingMessage}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="relative z-10 flex items-center gap-2">
+                    <svg
+                      className="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="font-bold text-[17px] tracking-tight">
+                      GitHub로 시작하기
+                    </span>
+                  </div>
+                  <span className="relative z-10 text-[13px] font-medium text-white/80">
+                    AI 어시스턴트를 직접 체험해보세요
+                  </span>
+                </>
               )}
             </button>
 
             {/* 구분선 */}
-            {/* 🎨 [4] 구분선 스타일 개선 */}
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/10" />
@@ -508,7 +515,7 @@ export default function LoginClient() {
             </div>
 
             {/* 게스트 로그인 - 개선된 스타일 (Secondary) */}
-            {/* 🎨 [3] 서브 버튼 스타일 변경 (Outline 스타일) */}
+            {/* 🎨 [3] 가시성 개선: border-white/20, text-white/90 */}
             <button
               onClick={() => {
                 void handleGuestLogin();
@@ -516,7 +523,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="게스트 모드로 체험하기"
               aria-busy={loadingType === 'guest'}
-              className={`${BUTTON_STYLES.secondary} bg-white/5 border border-white/10 text-white hover:bg-white/10 focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-[#0F1115] focus:outline-none`}
+              className={`${BUTTON_STYLES.secondary} flex-col items-center gap-1.5 py-4 cursor-pointer bg-white/5 border border-white/20 hover:bg-white/10`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && <LoadingOverlay type="guest" />}
@@ -526,12 +533,25 @@ export default function LoginClient() {
                 <div className="animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/10" />
               )}
 
-              <User className="h-5 w-5 text-white/60 transition-colors group-hover:text-white" />
-              <span className="relative z-10 tracking-wide">
-                {loadingType === 'guest' ? loadingMessage : '게스트로 체험하기'}
-              </span>
-              {loadingType === 'guest' && (
-                <div className="relative z-10 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-transparent" />
+              {loadingType === 'guest' ? (
+                <>
+                  <div className="relative z-10 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-transparent" />
+                  <span className="relative z-10 text-sm">
+                    {loadingMessage}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="relative z-10 flex items-center gap-2">
+                    <User className="h-5 w-5 text-white/90" />
+                    <span className="font-bold text-[17px] tracking-tight text-white/90">
+                      게스트로 둘러보기
+                    </span>
+                  </div>
+                  <span className="relative z-10 text-[13px] font-medium text-white/50 group-hover:text-white/70 transition-colors">
+                    로그인 없이 프로젝트 소개만 확인하기
+                  </span>
+                </>
               )}
             </button>
           </div>
@@ -547,33 +567,6 @@ export default function LoginClient() {
               </p>
             </div>
           )}
-
-          {/* 안내 텍스트 */}
-          {/* 🎨 [5] 텍스트 가독성 개선 */}
-          <div className="mt-10 grid grid-cols-2 gap-4 text-center text-xs">
-            <div className="group rounded-xl bg-white/5 border border-white/5 p-3 transition-all duration-300 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:-translate-y-1">
-              <p className="mb-2 text-xl transition-transform group-hover:scale-110">
-                🔐
-              </p>
-              <strong className="block mb-1 text-white/90 font-semibold tracking-tight">
-                GitHub 로그인
-              </strong>
-              <span className="text-white/40 font-medium group-hover:text-white/60 transition-colors">
-                AI 어시스턴트 직접 체험
-              </span>
-            </div>
-            <div className="group rounded-xl bg-white/5 border border-white/5 p-3 transition-all duration-300 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:-translate-y-1">
-              <p className="mb-2 text-xl transition-transform group-hover:scale-110">
-                👤
-              </p>
-              <strong className="block mb-1 text-white/90 font-semibold tracking-tight">
-                게스트 모드
-              </strong>
-              <span className="text-white/40 font-medium group-hover:text-white/60 transition-colors">
-                프로젝트 소개 확인
-              </span>
-            </div>
-          </div>
 
           {/* 푸터 (Card 내부) */}
           <div className="mt-8 border-t border-white/10 pt-6 text-center">

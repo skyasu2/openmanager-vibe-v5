@@ -282,13 +282,13 @@ export const PAGE_BACKGROUNDS = {
 export const BUTTON_STYLES = {
   // GitHub 버튼 - 녹색 배경 (업계 표준: 16px, font-weight 600, gap-2.5)
   github:
-    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[#16a34a] px-5 py-4 text-[16px] font-semibold tracking-wide text-white shadow-[0_4px_14px_0_rgba(22,163,74,0.39)] transition-all duration-300 hover:bg-[#15803d] hover:shadow-[0_6px_20px_rgba(22,163,74,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[#16a34a] px-5 py-4 text-[16px] font-semibold tracking-wide text-white shadow-[0_4px_14px_0_rgba(22,163,74,0.39)] transition-all duration-300 hover:bg-[#15803d] hover:shadow-[0_6px_20px_rgba(22,163,74,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70 cursor-pointer',
   // 게스트/일반 버튼 - 다크 배경 + 테두리 (16px, 500)
   secondary:
-    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-gray-600/50 bg-[#0F1115] px-5 py-4 text-[16px] font-medium tracking-wide text-gray-200 transition-all duration-300 hover:bg-gray-800/50 hover:border-gray-500 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-gray-600/50 bg-[#0F1115] px-5 py-4 text-[16px] font-medium tracking-wide text-gray-200 transition-all duration-300 hover:bg-gray-800/50 hover:border-gray-500 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70 cursor-pointer',
   // 레거시 호환 (deprecated)
   primary:
-    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[#2DD36F] px-5 py-4 text-[16px] font-semibold tracking-wide text-white shadow-lg transition-all duration-200 hover:bg-[#28C765] active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[#2DD36F] px-5 py-4 text-[16px] font-semibold tracking-wide text-white shadow-lg transition-all duration-200 hover:bg-[#28C765] active:scale-[0.98] disabled:cursor-progress disabled:opacity-70 cursor-pointer',
   accent:
-    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-gray-300 bg-white px-5 py-4 text-[16px] font-medium tracking-wide text-[#0F1115] transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70',
+    'group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-gray-300 bg-white px-5 py-4 text-[16px] font-medium tracking-wide text-[#0F1115] transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70 cursor-pointer',
 } as const;
