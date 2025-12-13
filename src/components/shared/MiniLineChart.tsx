@@ -13,7 +13,7 @@
 
 import type React from 'react';
 import { useMemo } from 'react';
-import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Area, AreaChart, Tooltip } from 'recharts';
 
 interface MiniLineChartProps {
   /** 데이터 배열 (숫자 또는 {time, value} 객체) */
@@ -126,38 +126,38 @@ export const MiniLineChart: React.FC<MiniLineChartProps> = ({
     );
   }
 
+  // ResponsiveContainer 제거 - flex 컨테이너 내 크기 계산 이슈 해결
+  // 고정 크기 AreaChart 직접 사용으로 -1 width/height 경고 해결
   return (
-    <div style={{ width, height }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
-          data={chartData}
-          margin={{ top: 2, right: 2, bottom: 2, left: 2 }}
-        >
-          {showTooltip && (
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ stroke: color, strokeWidth: 1, strokeOpacity: 0.3 }}
-            />
-          )}
-          <Area
-            type="monotone"
-            dataKey="value"
-            stroke={color}
-            strokeWidth={strokeWidth}
-            fill={fill ? color : 'transparent'}
-            fillOpacity={fill ? 0.15 : 0}
-            isAnimationActive={!disableAnimation}
-            animationDuration={300}
-            dot={false}
-            activeDot={
-              showTooltip
-                ? { r: 3, fill: color, stroke: '#fff', strokeWidth: 1 }
-                : false
-            }
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
+    <AreaChart
+      width={width}
+      height={height}
+      data={chartData}
+      margin={{ top: 2, right: 2, bottom: 2, left: 2 }}
+    >
+      {showTooltip && (
+        <Tooltip
+          content={<CustomTooltip />}
+          cursor={{ stroke: color, strokeWidth: 1, strokeOpacity: 0.3 }}
+        />
+      )}
+      <Area
+        type="monotone"
+        dataKey="value"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        fill={fill ? color : 'transparent'}
+        fillOpacity={fill ? 0.15 : 0}
+        isAnimationActive={!disableAnimation}
+        animationDuration={300}
+        dot={false}
+        activeDot={
+          showTooltip
+            ? { r: 3, fill: color, stroke: '#fff', strokeWidth: 1 }
+            : false
+        }
+      />
+    </AreaChart>
   );
 };
 
