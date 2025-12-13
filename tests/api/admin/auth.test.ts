@@ -3,22 +3,23 @@
  * 🔐 Admin API 인증 테스트
  *
  * withAdminAuth 미들웨어로 보호된 API 엔드포인트 테스트
+ *
+ * ⚠️ SKIPPED: Admin API routes (/api/admin/thresholds) 가 제거됨
+ * 이 테스트는 레거시 코드로, 향후 admin API 재구현 시 참고용으로 보존
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// authManager를 먼저 모킹
-vi.mock('@/lib/auth');
+// Mock route handlers (실제 route 파일이 존재하지 않으므로 mock 사용)
+const getThresholds = vi.fn(async () =>
+  NextResponse.json({ success: true, data: {} })
+);
+const updateThresholds = vi.fn(async () =>
+  NextResponse.json({ success: true, data: {} })
+);
 
-import { authManager } from '@/lib/auth/auth';
-import { GET as getBackupStatus } from '../../../src/app/api/admin/backup-status/route';
-import {
-  GET as getThresholds,
-  POST as updateThresholds,
-} from '../../../src/app/api/admin/thresholds/route';
-
-// Mock 타입 정의
+// Mock authManager
 const mockAuthManager = {
   validateBrowserToken: vi.fn(),
   hasPermission: vi.fn(),
@@ -30,13 +31,8 @@ const mockAuthManager = {
   clearExpiredSessions: vi.fn(),
 };
 
-// authManager를 mockAuthManager로 대체
-Object.assign(authManager, mockAuthManager);
-
-// TODO: Fix path alias (@/) resolution in node environment
-// Tracked in improvement plan Task 1.3
-// Path alias works in jsdom but fails in node environment
-// Future: Convert to E2E test or install vite-tsconfig-paths plugin
+// TODO: Admin API routes 재구현 시 이 테스트 활성화
+// 현재 상태: /api/admin/thresholds route가 존재하지 않음
 describe.skip('🔐 Admin API 인증 테스트', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -73,17 +69,7 @@ describe.skip('🔐 Admin API 인증 테스트', () => {
     });
 
     // 삭제: GET /api/admin/dashboard-config는 현재 인증이 불필요하므로 테스트 제거
-
-    it('GET /api/admin/backup-status - 인증 헤더 없이 접근 시 401', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/admin/backup-status'
-      );
-      const response = await getBackupStatus(request);
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data.error).toBe('Authorization header missing or invalid');
-    });
+    // 삭제: GET /api/admin/backup-status - route가 존재하지 않음
   });
 
   describe('잘못된 형식의 인증 헤더로 접근 시 401 반환', () => {
