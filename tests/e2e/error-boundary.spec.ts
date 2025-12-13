@@ -107,11 +107,11 @@ test.describe('에러 바운더리 테스트', () => {
     });
 
     test('잘못된 요청에 400 또는 에러 응답', async ({ page }) => {
-      const response = await page.request.post('/api/ai/query', {
+      const response = await page.request.post('/api/ai/unified-stream', {
         headers: {
           'Content-Type': 'application/json',
         },
-        data: JSON.stringify({}), // 빈 요청
+        data: JSON.stringify({}), // 빈 요청 (messages 배열 누락)
       });
 
       if (skipIfSecurityBlocked(response.status())) return;

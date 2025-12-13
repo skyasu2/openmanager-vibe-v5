@@ -142,8 +142,8 @@ test.describe('AI 사이드바 네트워크 오류 복구 (하루 2-3회 수동 
   });
 
   test('4. API 엔드포인트 실패 시 에러 핸들링', async ({ page }) => {
-    // /api/ai/query 엔드포인트를 500 에러로 응답하도록 설정
-    await page.route('**/api/ai/query', (route) => {
+    // /api/ai/unified-stream 엔드포인트를 500 에러로 응답하도록 설정
+    await page.route('**/api/ai/unified-stream', (route) => {
       route.fulfill({
         status: 500,
         contentType: 'application/json',
@@ -177,8 +177,8 @@ test.describe('AI 사이드바 네트워크 오류 복구 (하루 2-3회 수동 
   test('5. 재시도 메커니즘 확인 (선택적)', async ({ page }) => {
     let requestCount = 0;
 
-    // /api/ai/query 엔드포인트 요청 수 추적
-    await page.route('**/api/ai/query', (route) => {
+    // /api/ai/unified-stream 엔드포인트 요청 수 추적
+    await page.route('**/api/ai/unified-stream', (route) => {
       requestCount++;
 
       if (requestCount === 1) {
