@@ -20,7 +20,6 @@ export function SystemBootstrap(): React.ReactNode {
   const [bootstrapStatus, setBootstrapStatus] = useState({
     mcp: 'pending' as 'pending' | 'success' | 'failed',
     googleAI: 'pending' as 'pending' | 'success' | 'failed',
-    redis: 'pending' as 'pending' | 'success' | 'failed',
     supabase: 'pending' as 'pending' | 'success' | 'failed',
     completed: false,
   });
@@ -66,10 +65,10 @@ export function SystemBootstrap(): React.ReactNode {
         }
       }
 
-      // 1. AI 백엔드 서버 상태 확인
+      // 1. 시스템 상태 확인
       try {
-        console.log('🔄 AI 백엔드 서버 상태 확인...');
-        const mcpResponse = await fetch('/api/ai/status', {
+        console.log('🔄 시스템 상태 확인...');
+        const systemResponse = await fetch('/api/system/status', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -77,23 +76,17 @@ export function SystemBootstrap(): React.ReactNode {
         });
 
         if (isMounted) {
-          if (mcpResponse.ok) {
-            const mcpData = await mcpResponse.json();
-            console.log(
-              '✅ AI 백엔드 서버 상태:',
-              mcpData.mcp?.enabled ? '활성화' : '비활성화'
-            );
+          if (systemResponse.ok) {
+            const systemData = await systemResponse.json();
+            console.log('✅ 시스템 상태:', systemData.status || '정상');
             setBootstrapStatus((prev) => ({ ...prev, mcp: 'success' }));
           } else {
-            console.warn(
-              '⚠️ AI 백엔드 서버 상태 확인 실패:',
-              mcpResponse.status
-            );
+            console.warn('⚠️ 시스템 상태 확인 실패:', systemResponse.status);
             setBootstrapStatus((prev) => ({ ...prev, mcp: 'failed' }));
           }
         }
       } catch (error) {
-        console.error('❌ AI 백엔드 서버 상태 확인 오류:', error);
+        console.error('❌ 시스템 상태 확인 오류:', error);
         if (isMounted) {
           setBootstrapStatus((prev) => ({ ...prev, mcp: 'failed' }));
         }
@@ -129,37 +122,7 @@ export function SystemBootstrap(): React.ReactNode {
         }
       }
 
-      // 3. Redis 상태 확인 (한 번만)
-      try {
-        console.log('🔴 Redis 상태 확인...');
-        const redisResponse = await fetch('/api/redis/stats', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (isMounted) {
-          if (redisResponse.ok) {
-            const redisData = await redisResponse.json();
-            console.log(
-              '✅ Redis 상태 확인 완료:',
-              redisData._systemHealth || '연결됨'
-            );
-            setBootstrapStatus((prev) => ({ ...prev, redis: 'success' }));
-          } else {
-            console.warn('⚠️ Redis 상태 확인 실패:', redisResponse.status);
-            setBootstrapStatus((prev) => ({ ...prev, redis: 'failed' }));
-          }
-        }
-      } catch (error) {
-        console.error('❌ Redis 상태 확인 오류:', error);
-        if (isMounted) {
-          setBootstrapStatus((prev) => ({ ...prev, redis: 'failed' }));
-        }
-      }
-
-      // 4. Supabase 상태 확인 (한 번만)
+      // 3. Supabase 상태 확인 (한 번만)
       try {
         console.log('🟢 Supabase 상태 확인...');
         const supabaseResponse = await fetch('/api/database/status', {
@@ -189,12 +152,11 @@ export function SystemBootstrap(): React.ReactNode {
         }
       }
 
-      // 5. 부트스트랩 완료 및 캐시 저장
+      // 4. 부트스트랩 완료 및 캐시 저장
       if (isMounted) {
         const finalStatus = {
           mcp: bootstrapStatus.mcp,
           googleAI: bootstrapStatus.googleAI,
-          redis: bootstrapStatus.redis,
           supabase: bootstrapStatus.supabase,
           completed: true,
         };

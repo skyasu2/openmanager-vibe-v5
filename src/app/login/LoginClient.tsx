@@ -15,11 +15,7 @@ import type { AuthUser } from '@/lib/auth/auth-state-manager';
 import { authStateManager } from '@/lib/auth/auth-state-manager';
 // Supabase Auth 관련 임포트
 import { signInWithGitHub } from '@/lib/auth/supabase-auth';
-import {
-  AI_GRADIENT_CLASSES,
-  BUTTON_STYLES,
-  PAGE_BACKGROUNDS,
-} from '@/styles/design-constants';
+import { AI_GRADIENT_CLASSES, BUTTON_STYLES } from '@/styles/design-constants';
 import debug from '@/utils/debug';
 import {
   AIIconGradientDefs,
@@ -364,12 +360,12 @@ export default function LoginClient() {
   return (
     // 🎨 [1] 폰트 강제 적용 (font-sans)
     <div
-      className={`flex min-h-screen items-center justify-center font-sans ${PAGE_BACKGROUNDS.DARK_PAGE_BG} p-3 sm:p-4`}
+      className={`flex min-h-screen items-center justify-center font-sans bg-[#0F1115] p-3 sm:p-4`}
     >
       <div className="w-full max-w-md">
         {/* 로그인 Card (로고, 타이틀, 폼 통합) */}
-        {/* 🎨 [2] 다크 카드 배경 + 반전된 버튼 색상 */}
-        <div className="relative overflow-hidden rounded-3xl border border-gray-700/50 bg-[#0f172a]/80 p-10 shadow-2xl backdrop-blur-xl sm:p-12">
+        {/* 🎨 [2] 다크 Glass 카드 배경 + 반전된 버튼 색상 */}
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-10 shadow-2xl backdrop-blur-md sm:p-12">
           {/* 웨이브 배경 효과 (카드 내부) - 다크 톤 */}
           <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-blue-600/20 blur-[60px]" />
           <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-purple-600/20 blur-[60px]" />
@@ -380,7 +376,7 @@ export default function LoginClient() {
             {/* SVG 그라데이션 정의 (useId로 scoped ID 사용 - 중복 마운트 안전) */}
             <AIIconGradientDefs id={gradientId} />
             <div
-              className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-blue-500/40 sm:h-20 sm:w-20`}
+              className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 shadow-lg shadow-blue-500/20 sm:h-20 sm:w-20`}
             >
               {/* Sparkles 아이콘에 SVG 그라데이션 적용 (stroke + fill) */}
               <Sparkles
@@ -397,7 +393,7 @@ export default function LoginClient() {
             <h1 className="mb-3 text-[28px] font-semibold tracking-tight text-white sm:text-[32px]">
               OpenManager
             </h1>
-            <p className="text-[15px] font-medium tracking-wide text-gray-300">
+            <p className="text-[15px] font-medium tracking-wide text-white/60">
               {renderTextWithAIGradient('AI 서버 모니터링 시스템')}
             </p>
           </div>
@@ -407,7 +403,7 @@ export default function LoginClient() {
 
           {/* 로그인 섹션 - PC 최적화 */}
           {/* 업계 표준: 14-16px, 가독성 높은 레터스페이싱 */}
-          <h2 className="mb-8 text-center text-[16px] font-medium tracking-wide text-gray-400">
+          <h2 className="mb-8 text-center text-[16px] font-medium tracking-wide text-white/40">
             로그인 방식을 선택하세요
           </h2>
 
@@ -421,14 +417,14 @@ export default function LoginClient() {
             <div
               role="alert"
               aria-live="assertive"
-              className="mb-6 rounded-lg border border-red-600/30 bg-red-900/20 p-4"
+              className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 p-4"
             >
               <p className="flex items-center gap-2 text-sm font-medium text-red-300">
                 <span>❌</span>
                 {errorMessage}
               </p>
               {errorMessage.includes('OAuth') && (
-                <div className="mt-2 text-xs text-red-300">
+                <div className="mt-2 text-xs text-red-300/80">
                   <p>
                     GitHub OAuth 앱의 콜백 URL이 현재 도메인과 일치하는지
                     확인하세요.
@@ -448,9 +444,9 @@ export default function LoginClient() {
           {successMessage && (
             <output
               aria-live="polite"
-              className="mb-6 rounded-lg border border-green-600/30 bg-green-900/20 p-4"
+              className="mb-6 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4"
             >
-              <p className="flex items-center gap-2 text-sm font-medium text-green-300">
+              <p className="flex items-center gap-2 text-sm font-medium text-emerald-300">
                 <span>✅</span>
                 {successMessage}
               </p>
@@ -502,10 +498,10 @@ export default function LoginClient() {
             {/* 🎨 [4] 구분선 스타일 개선 */}
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-600" />
+                <div className="w-full border-t border-white/10" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-[#0f172a] px-4 text-gray-400 font-medium">
+                <span className="bg-[#0F1115] px-4 text-white/40 font-medium">
                   또는
                 </span>
               </div>
@@ -520,7 +516,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="게스트 모드로 체험하기"
               aria-busy={loadingType === 'guest'}
-              className={`${BUTTON_STYLES.secondary} focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:outline-none`}
+              className={`${BUTTON_STYLES.secondary} bg-white/5 border border-white/10 text-white hover:bg-white/10 focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-[#0F1115] focus:outline-none`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && <LoadingOverlay type="guest" />}
@@ -530,12 +526,12 @@ export default function LoginClient() {
                 <div className="animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/10" />
               )}
 
-              <User className="h-5 w-5 text-gray-400 transition-colors group-hover:text-gray-200" />
+              <User className="h-5 w-5 text-white/60 transition-colors group-hover:text-white" />
               <span className="relative z-10 tracking-wide">
                 {loadingType === 'guest' ? loadingMessage : '게스트로 체험하기'}
               </span>
               {loadingType === 'guest' && (
-                <div className="relative z-10 h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent" />
+                <div className="relative z-10 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-transparent" />
               )}
             </button>
           </div>
@@ -546,7 +542,7 @@ export default function LoginClient() {
               <p className="text-xs text-blue-400 font-medium">
                 예상 소요 시간: 3-5초
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-white/40">
                 ESC 키를 눌러 취소할 수 있습니다
               </p>
             </div>
@@ -555,33 +551,33 @@ export default function LoginClient() {
           {/* 안내 텍스트 */}
           {/* 🎨 [5] 텍스트 가독성 개선 */}
           <div className="mt-10 grid grid-cols-2 gap-4 text-center text-xs">
-            <div className="group rounded-xl bg-gray-800/50 p-3 transition-all duration-300 hover:bg-gray-800 hover:shadow-lg hover:-translate-y-1">
+            <div className="group rounded-xl bg-white/5 border border-white/5 p-3 transition-all duration-300 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:-translate-y-1">
               <p className="mb-2 text-xl transition-transform group-hover:scale-110">
                 🔐
               </p>
-              <strong className="block mb-1 text-gray-100 font-semibold tracking-tight">
+              <strong className="block mb-1 text-white/90 font-semibold tracking-tight">
                 GitHub 로그인
               </strong>
-              <span className="text-gray-400 font-medium group-hover:text-gray-300 transition-colors">
+              <span className="text-white/40 font-medium group-hover:text-white/60 transition-colors">
                 AI 어시스턴트 직접 체험
               </span>
             </div>
-            <div className="group rounded-xl bg-gray-800/50 p-3 transition-all duration-300 hover:bg-gray-800 hover:shadow-lg hover:-translate-y-1">
+            <div className="group rounded-xl bg-white/5 border border-white/5 p-3 transition-all duration-300 hover:bg-white/10 hover:border-white/10 hover:shadow-lg hover:-translate-y-1">
               <p className="mb-2 text-xl transition-transform group-hover:scale-110">
                 👤
               </p>
-              <strong className="block mb-1 text-gray-100 font-semibold tracking-tight">
+              <strong className="block mb-1 text-white/90 font-semibold tracking-tight">
                 게스트 모드
               </strong>
-              <span className="text-gray-400 font-medium group-hover:text-gray-300 transition-colors">
+              <span className="text-white/40 font-medium group-hover:text-white/60 transition-colors">
                 프로젝트 소개 확인
               </span>
             </div>
           </div>
 
           {/* 푸터 (Card 내부) */}
-          <div className="mt-8 border-t border-gray-700/50 pt-6 text-center">
-            <p className="flex items-center justify-center gap-2 text-xs font-medium text-gray-400">
+          <div className="mt-8 border-t border-white/10 pt-6 text-center">
+            <p className="flex items-center justify-center gap-2 text-xs font-medium text-white/30">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
               OpenManager Vibe v5.80.0
             </p>
@@ -589,7 +585,7 @@ export default function LoginClient() {
         </div>
 
         {/* 하단 저작권 표시 (카드 외부) */}
-        <p className="mt-8 text-center text-xs text-gray-600">
+        <p className="mt-8 text-center text-xs text-white/20">
           © 2024 OpenManager. All rights reserved.
         </p>
       </div>

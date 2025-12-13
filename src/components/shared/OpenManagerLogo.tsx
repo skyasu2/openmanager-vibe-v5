@@ -57,15 +57,18 @@ export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
       {/* 텍스트 영역 */}
       <div className="text-left">
         <h1 className={`text-xl font-bold ${titleColor}`}>OpenManager</h1>
-        {showSubtitle && (
-          <p className={`text-xs ${subtitleColor}`}>
-            {aiAgent.isEnabled && isSystemStarted
-              ? 'AI + 시스템 통합 모드'
+        {(() => {
+          const subtitleText =
+            aiAgent.isEnabled && isSystemStarted
+              ? null // AI 모드 텍스트 제거 요청 반영 (2025-12-13)
               : isSystemStarted
                 ? '기본 모니터링'
-                : '시스템 정지'}
-          </p>
-        )}
+                : '시스템 정지';
+
+          if (!showSubtitle || !subtitleText) return null;
+
+          return <p className={`text-xs ${subtitleColor}`}>{subtitleText}</p>;
+        })()}
       </div>
     </div>
   );

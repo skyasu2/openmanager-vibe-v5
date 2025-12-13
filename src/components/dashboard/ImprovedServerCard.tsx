@@ -31,7 +31,7 @@ import type {
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { AIInsightBadge } from '../shared/AIInsightBadge';
 import { MiniLineChart } from '../shared/MiniLineChart';
-import { ServerMetricsChart } from '../shared/ServerMetricsChart';
+// ServerMetricsChart 제거 - 라인 차트로 통합 (2025-12-13)
 
 export interface ImprovedServerCardProps {
   server: ServerType;
@@ -240,26 +240,20 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               </span>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex justify-center bg-white/5 rounded-xl p-2 border border-white/5">
-                <ServerMetricsChart
-                  type="disk"
-                  value={realtimeMetrics.disk}
-                  status={safeServer.status}
-                  size="md"
-                  showLabel
-                  dark
-                />
-              </div>
-              <div className="flex justify-center bg-white/5 rounded-xl p-2 border border-white/5">
-                <ServerMetricsChart
-                  type="network"
-                  value={realtimeMetrics.network}
-                  status={safeServer.status}
-                  size="md"
-                  showLabel
-                  dark
-                />
-              </div>
+              <MetricItem
+                type="disk"
+                value={realtimeMetrics.disk}
+                status={safeServer.status}
+                history={historyData?.map((h) => h.disk)}
+                color={statusTheme.graphColor}
+              />
+              <MetricItem
+                type="network"
+                value={realtimeMetrics.network}
+                status={safeServer.status}
+                history={historyData?.map((h) => h.network)}
+                color={statusTheme.graphColor}
+              />
             </div>
           </div>
 
@@ -322,31 +316,42 @@ interface MetricItemProps {
 const MetricItem = ({
   type,
   value,
-  status,
+  status: _status, // 향후 상태별 스타일링용 예약
   history,
   color,
-}: MetricItemProps) => (
-  <div className="flex flex-col items-center bg-white/5 rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-colors">
-    <ServerMetricsChart
-      type={type}
-      value={value}
-      status={status}
-      size="md"
-      showLabel
-      dark
-    />
-    <div className="mt-2 h-8 w-full flex justify-center opacity-70">
-      <MiniLineChart
-        data={history || []}
-        width={80}
-        height={24}
-        color={color}
-        fill
-        strokeWidth={1.5}
-      />
+}: MetricItemProps) => {
+  const labels = {
+    cpu: 'CPU',
+    memory: 'MEM',
+    disk: 'DISK',
+    network: 'NET',
+  };
+
+  return (
+    <div className="flex flex-col bg-white/5 rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-colors">
+      {/* Header: Label + Value */}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] uppercase text-white/50 font-semibold tracking-wider">
+          {labels[type]}
+        </span>
+        <span className="text-lg font-bold" style={{ color }}>
+          {Math.round(value)}%
+        </span>
+      </div>
+      {/* Primary: Line Chart */}
+      <div className="w-full h-12 flex items-center justify-center">
+        <MiniLineChart
+          data={history && history.length > 0 ? history : [value, value]}
+          width={120}
+          height={40}
+          color={color}
+          fill
+          strokeWidth={2}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 interface DetailRowProps {
   icon: React.ReactNode;
