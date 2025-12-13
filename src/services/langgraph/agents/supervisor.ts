@@ -48,11 +48,12 @@ AGENTS:
 1. 'nlq': **Natural Language Query Agent**. Use for current status, metrics lookup, simple server queries. (Uses Tools: getServerMetrics)
 2. 'analyst': **Deep Analysis Agent**. Use for pattern analysis, anomaly detection, trend prediction, complex reasoning. (Uses: analyzePattern)
 3. 'reporter': **Incident Reporter Agent**. Use for Root Cause Analysis, incident reports, solution lookup from knowledge base. (Uses: searchKnowledgeBase, RAG)
-4. 'reply': ONLY for simple greetings (e.g., "hi", "hello", "안녕") or very short confirmations.
+4. 'parallel': **Parallel Analysis**. Use when BOTH metrics data AND pattern analysis are needed together for comprehensive reports.
+5. 'reply': ONLY for simple greetings (e.g., "hi", "hello", "안녕") or very short confirmations.
 
 OUTPUT FORMAT (JSON ONLY):
 {
-  "target": "nlq" | "analyst" | "reporter" | "reply",
+  "target": "nlq" | "analyst" | "reporter" | "parallel" | "reply",
   "reasoning": "Brief reason in Korean",
   "reply": "Text content" (Only if target is 'reply'),
   "suggested_model": "gemini-2.5-flash" | "gemini-2.5-pro" | "llama-3.3-70b-versatile"
@@ -62,6 +63,7 @@ EXAMPLES:
 "서버 5번 왜 죽었어?" -> {"target": "reporter", "reasoning": "장애 원인 심층 분석 및 RAG 검색 필요", "suggested_model": "llama-3.3-70b-versatile"}
 "지금 CPU 점유율 보여줘" -> {"target": "nlq", "reasoning": "단순 메트릭 조회", "suggested_model": "gemini-2.5-flash"}
 "메모리 사용량 패턴 분석해줘" -> {"target": "analyst", "reasoning": "트렌드 분석 필요", "suggested_model": "gemini-2.5-pro"}
+"전체 서버 상태와 트렌드 분석해줘" -> {"target": "parallel", "reasoning": "메트릭 조회와 분석이 동시에 필요", "suggested_model": "gemini-2.5-pro"}
 "안녕" -> {"target": "reply", "reasoning": "인사", "reply": "안녕하세요! 서버 관리를 도와드리겠습니다.", "suggested_model": null}
 
 IMPORTANT: Output JSON only, no markdown code blocks.`;
@@ -134,6 +136,20 @@ export async function supervisorNode(
       };
     }
 
+    // 병렬 분석 라우팅 (parallel 타입 → parallel_analysis taskType 설정)
+    if (decision.target === 'parallel') {
+      console.log(`🔀 [Supervisor] Routing to parallel analysis`);
+      return {
+        targetAgent: null, // parallel은 특정 agent가 아닌 병렬 실행
+        routerDecision: {
+          ...routerDecision,
+          targetAgent: null,
+        },
+        taskType: 'parallel_analysis',
+        iteration: state.iteration + 1,
+      };
+    }
+
     // Worker Agent로 라우팅
     return {
       targetAgent: routerDecision.targetAgent,
@@ -167,10 +183,20 @@ export async function supervisorNode(
  */
 export function routeFromSupervisor(
   state: AgentStateType
-): 'nlq_agent' | 'analyst_agent' | 'reporter_agent' | '__end__' {
+):
+  | 'nlq_agent'
+  | 'analyst_agent'
+  | 'reporter_agent'
+  | 'parallel_analysis'
+  | '__end__' {
   // 최종 응답이 있으면 종료
   if (state.finalResponse) {
     return '__end__';
+  }
+
+  // 병렬 분석이 필요한 경우 (taskType으로 판단)
+  if (state.taskType === 'parallel_analysis') {
+    return 'parallel_analysis';
   }
 
   // targetAgent에 따라 라우팅

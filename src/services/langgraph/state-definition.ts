@@ -11,7 +11,26 @@ import { Annotation, messagesStateReducer } from '@langchain/langgraph';
 // ============================================================================
 
 export type AgentType = 'nlq' | 'analyst' | 'reporter' | 'reply' | null;
-export type TaskType = 'monitoring' | 'incident_ops' | 'analysis' | 'general';
+export type TaskType =
+  | 'monitoring'
+  | 'incident_ops'
+  | 'analysis'
+  | 'general'
+  | 'parallel_analysis'; // 병렬 분석 (analyst + nlq 동시 실행)
+
+// ============================================================================
+// 1.5. Human-in-the-Loop Types
+// ============================================================================
+
+export type ApprovalStatus = 'none' | 'pending' | 'approved' | 'rejected';
+
+export interface PendingAction {
+  actionType: 'incident_report' | 'system_command' | 'critical_alert';
+  description: string;
+  payload: Record<string, unknown>;
+  requestedAt: string;
+  requestedBy: AgentType;
+}
 
 // ============================================================================
 // 2. Circuit Breaker State (Model Health Tracking)
@@ -127,6 +146,22 @@ export const AgentState = Annotation.Root({
 
   // 최종 응답 (END 조건)
   finalResponse: Annotation<string | null>({
+    reducer: (_, next) => next,
+    default: () => null,
+  }),
+
+  // Human-in-the-Loop 승인 절차
+  requiresApproval: Annotation<boolean>({
+    reducer: (_, next) => next,
+    default: () => false,
+  }),
+
+  approvalStatus: Annotation<ApprovalStatus>({
+    reducer: (_, next) => next,
+    default: () => 'none',
+  }),
+
+  pendingAction: Annotation<PendingAction | null>({
     reducer: (_, next) => next,
     default: () => null,
   }),

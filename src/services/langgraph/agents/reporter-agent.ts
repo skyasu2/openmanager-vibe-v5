@@ -15,7 +15,11 @@ import { ChatGroq } from '@langchain/groq';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
-import type { AgentStateType, ToolResult } from '../state-definition';
+import type {
+  AgentStateType,
+  PendingAction,
+  ToolResult,
+} from '../state-definition';
 
 // ============================================================================
 // 1. Model Configuration
@@ -222,10 +226,35 @@ ${JSON.stringify(commandResult, null, 2)}
       `📝 [Reporter Agent] Generated report with ${toolResults.length} tool results`
     );
 
+    // Human-in-the-Loop: 인시던트 리포트 및 명령어 추천은 승인 필요
+    const hasCommandRecommendations =
+      commandResult.recommendations && commandResult.recommendations.length > 0;
+    const isIncidentReport =
+      userQuery.includes('장애') || userQuery.includes('인시던트');
+
+    const pendingAction: PendingAction | null =
+      hasCommandRecommendations || isIncidentReport
+        ? {
+            actionType: isIncidentReport ? 'incident_report' : 'system_command',
+            description: isIncidentReport
+              ? '인시던트 리포트가 생성되었습니다. 검토 후 승인해주세요.'
+              : '시스템 명령어가 추천되었습니다. 실행 전 검토해주세요.',
+            payload: {
+              report: finalContent,
+              commands: commandResult.recommendations,
+            },
+            requestedAt: new Date().toISOString(),
+            requestedBy: 'reporter',
+          }
+        : null;
+
     return {
       messages: [new AIMessage(finalContent)],
       toolResults,
-      finalResponse: finalContent,
+      finalResponse: pendingAction ? null : finalContent, // 승인 대기 시 finalResponse 미설정
+      requiresApproval: !!pendingAction,
+      approvalStatus: pendingAction ? 'pending' : 'none',
+      pendingAction,
     };
   } catch (error) {
     console.error('❌ Reporter Agent Error:', error);
