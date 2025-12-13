@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment jsdom
+ */
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
@@ -65,18 +69,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
           } as Response);
         }
 
-        if (url.includes('/api/ai/query')) {
-          // Parse request body to get the engine
-          let requestEngine = 'GOOGLE_AI';
-          if (options?.body) {
-            try {
-              const bodyData = JSON.parse(options.body as string);
-              requestEngine = bodyData.engine || 'GOOGLE_AI';
-            } catch (_e) {
-              // If parsing fails, use default
-            }
-          }
-
+        if (url.includes('/api/ai/unified-stream')) {
           return Promise.resolve({
             ok: true,
             status: 200,
@@ -85,10 +78,8 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
                 success: true,
                 response:
                   '현재 서버 상태: 2대 중 1대 온라인, 1대 경고 상태입니다.',
-                metadata: {
-                  engine: requestEngine,
-                  processingTime: 234,
-                },
+                targetAgent: 'nlq-agent',
+                sessionId: 'mock-session',
               }),
           } as Response);
         }
@@ -179,40 +170,37 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
       const aiSidebar = document.querySelector('[data-testid="ai-sidebar"]');
       expect(aiSidebar).toBeTruthy();
 
-      // Simulate AI query
-      const aiResponse = await fetch('/api/ai/query', {
+      // Simulate AI query (unified-stream API)
+      const aiResponse = await fetch('/api/ai/unified-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: '현재 서버 상태는 어떤가요?',
-          engine: 'GOOGLE_AI',
+          messages: [{ role: 'user', content: '현재 서버 상태는 어떤가요?' }],
         }),
       });
 
       const aiData = await aiResponse.json();
       expect(aiData.success).toBe(true);
       expect(aiData.response).toContain('서버 상태');
-      expect(aiData.metadata.engine).toBe('GOOGLE_AI');
     });
 
-    it('should handle AI engine selection', async () => {
-      // Test different AI engines
-      const engines = ['GOOGLE_AI', 'LOCAL', 'GOOGLE_AI'];
+    it('should handle multi-turn conversation', async () => {
+      // Test multi-turn conversation with unified-stream API
+      const response = await fetch('/api/ai/unified-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            { role: 'user', content: '안녕하세요' },
+            { role: 'assistant', content: '안녕하세요! 무엇을 도와드릴까요?' },
+            { role: 'user', content: '서버 상태 알려줘' },
+          ],
+        }),
+      });
 
-      for (const engine of engines) {
-        const response = await fetch('/api/ai/query', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query: '안녕하세요',
-            engine,
-          }),
-        });
-
-        const data = await response.json();
-        expect(data.success).toBe(true);
-        expect(data.metadata.engine).toBe(engine);
-      }
+      const data = await response.json();
+      expect(data.success).toBe(true);
+      expect(data.response).toBeTruthy();
     });
   });
 
@@ -267,17 +255,16 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
     });
 
     it('should validate input data', async () => {
-      // Test empty query
-      const response = await fetch('/api/ai/query', {
+      // Test empty messages with unified-stream API
+      const response = await fetch('/api/ai/unified-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: '',
-          engine: 'GOOGLE_AI',
+          messages: [],
         }),
       });
 
-      // Should still work with our mock (in real app, this might be validated)
+      // Should still work with our mock (in real app, Zod validation returns 400)
       expect(response.ok).toBe(true);
     });
   });
@@ -300,9 +287,12 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
       const promises = [
         fetch('/api/servers'),
         fetch('/api/servers'),
-        fetch('/api/ai/query', {
+        fetch('/api/ai/unified-stream', {
           method: 'POST',
-          body: JSON.stringify({ query: 'test', engine: 'GOOGLE_AI' }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: 'test' }],
+          }),
         }),
       ];
 

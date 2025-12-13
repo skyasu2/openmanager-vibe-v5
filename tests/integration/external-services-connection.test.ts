@@ -392,9 +392,8 @@ describe('🔗 실제 외부 서비스 연결 테스트', () => {
     it('목업 시스템이 실제 서비스와 동일한 인터페이스 제공', async () => {
       console.log('\n🎭 목업 시스템 검증...');
 
-      // 목업 시스템 테스트
-      const { setupTestEnvironment } = await import('@/test/env.config');
-      setupTestEnvironment();
+      // 목업 시스템 테스트 - mock 응답 형식 검증
+      // Note: @/test/env.config 제거됨 - 실제 사용되지 않는 import
 
       // 실제 목업 함수들이 올바른 응답 형식을 반환하는지 확인
       const mockRedisResponse = {
