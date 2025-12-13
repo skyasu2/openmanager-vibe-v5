@@ -54,7 +54,7 @@ export default function VirtualizedServerList({
     const serverId = server.id || `server-${index}`;
 
     return (
-      <ServerCardErrorBoundary key={`boundary-${serverId}`}>
+      <ServerCardErrorBoundary key={`boundary-${serverId}`} serverId={serverId}>
         <ImprovedServerCard
           key={serverId}
           server={server}

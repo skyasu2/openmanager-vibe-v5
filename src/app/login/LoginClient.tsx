@@ -460,7 +460,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="GitHub 계정으로 로그인"
               aria-busy={loadingType === 'github'}
-              className={`${BUTTON_STYLES.github} flex-col items-center gap-1.5 py-4 cursor-pointer`}
+              className={`${BUTTON_STYLES.github} flex-col items-center gap-1.5 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && <LoadingOverlay type="github" />}
@@ -523,7 +523,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="게스트 모드로 체험하기"
               aria-busy={loadingType === 'guest'}
-              className={`${BUTTON_STYLES.secondary} flex-col items-center gap-1.5 py-4 cursor-pointer bg-white/5 border border-white/20 hover:bg-white/10`}
+              className={`${BUTTON_STYLES.secondary} flex-col items-center gap-1.5 py-4 bg-white/5 border border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && <LoadingOverlay type="guest" />}

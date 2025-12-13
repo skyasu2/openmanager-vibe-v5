@@ -13,6 +13,7 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  serverId?: string; // 디버깅 컨텍스트용 (Gemini 리뷰 반영)
 }
 
 interface State {
@@ -40,6 +41,7 @@ class ServerCardErrorBoundary extends Component<Props, State> {
 
     if (isTypeError) {
       console.error('🚨 ServerCard Race Condition TypeError 캐치됨:', {
+        serverId: this.props.serverId || 'Unknown', // Gemini 리뷰 반영: 디버깅 컨텍스트 추가
         message: error.message,
         stack: error.stack?.split('\n').slice(0, 3).join('\n'),
         componentStack:
@@ -82,6 +84,7 @@ class ServerCardErrorBoundary extends Component<Props, State> {
                 서버 카드 오류
               </h3>
               <p className="text-sm text-gray-600 max-w-xs">
+                {this.props.serverId ? `서버 (${this.props.serverId}) ` : ''}
                 실시간 데이터 업데이트 중 문제가 발생했습니다.
               </p>
               {process.env.NODE_ENV === 'development' && this.state.error && (
