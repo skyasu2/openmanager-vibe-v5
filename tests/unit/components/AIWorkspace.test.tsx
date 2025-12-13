@@ -1,6 +1,25 @@
+/**
+ * @vitest-environment jsdom
+ */
+
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AIWorkspace from '@/components/ai/AIWorkspace';
+
+// Mock next/navigation
+const mockBack = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: mockBack,
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+    refresh: vi.fn(),
+  })),
+  usePathname: vi.fn(() => '/'),
+  useSearchParams: vi.fn(() => new URLSearchParams()),
+}));
 
 // Mock the AI SDK
 vi.mock('@ai-sdk/react', () => ({
@@ -9,19 +28,51 @@ vi.mock('@ai-sdk/react', () => ({
     input: '',
     handleInputChange: vi.fn(),
     handleSubmit: vi.fn(),
-    isLoading: false,
-    error: null,
+    sendMessage: vi.fn(),
+    status: 'idle',
     setMessages: vi.fn(),
   })),
 }));
 
-// Mock Zustand store
+// Mock Zustand store with selector support
 vi.mock('@/stores/useAISidebarStore', () => ({
-  useAISidebarStore: vi.fn(() => ({
-    isOpen: true,
-    toggleSidebar: vi.fn(),
-    setIsOpen: vi.fn(),
-  })),
+  useAISidebarStore: vi.fn((selector) => {
+    const state = {
+      isOpen: true,
+      toggleSidebar: vi.fn(),
+      setIsOpen: vi.fn(),
+      messages: [],
+      addMessage: vi.fn(),
+    };
+    return selector ? selector(state) : state;
+  }),
+}));
+
+// Mock child components to simplify testing
+vi.mock('@/components/shared/OpenManagerLogo', () => ({
+  OpenManagerLogo: () => <div data-testid="logo">Logo</div>,
+}));
+
+vi.mock('../../domains/ai-sidebar/components/EnhancedAIChat', () => ({
+  EnhancedAIChat: () => <div data-testid="enhanced-ai-chat">AI Chat</div>,
+}));
+
+vi.mock('../../domains/ai-sidebar/components/AIFunctionPages', () => ({
+  AIFunctionPages: () => (
+    <div data-testid="ai-function-pages">Function Pages</div>
+  ),
+}));
+
+vi.mock('@/components/ai/AIAssistantIconPanel', () => ({
+  default: () => <div data-testid="ai-icon-panel">Icon Panel</div>,
+}));
+
+vi.mock('@/components/ai/AIContentArea', () => ({
+  default: () => <div data-testid="ai-content-area">Content Area</div>,
+}));
+
+vi.mock('@/components/ai/ThinkingProcessVisualizer', () => ({
+  default: () => <div data-testid="thinking-visualizer">Thinking</div>,
 }));
 
 describe('AIWorkspace', () => {
@@ -32,26 +83,20 @@ describe('AIWorkspace', () => {
   it('renders AI workspace interface', () => {
     render(<AIWorkspace />);
 
-    expect(screen.getByRole('main')).toBeInTheDocument();
+    // Check for key UI elements
+    expect(screen.getByTestId('logo')).toBeInTheDocument();
+    expect(screen.getByText('New Chat')).toBeInTheDocument();
+    expect(screen.getByText('Features')).toBeInTheDocument();
   });
 
-  it('handles workspace toggle', async () => {
-    const mockToggle = vi.fn();
-    const { useAISidebarStore } = await import('@/stores/useAISidebarStore');
-
-    vi.mocked(useAISidebarStore).mockReturnValue({
-      isOpen: true,
-      toggleSidebar: mockToggle,
-      setIsOpen: vi.fn(),
-    });
-
+  it('handles back navigation', () => {
     render(<AIWorkspace />);
 
-    const toggleButton = screen.getByRole('button', { name: /toggle/i });
-    if (toggleButton) {
-      fireEvent.click(toggleButton);
-      expect(mockToggle).toHaveBeenCalled();
-    }
+    // Find the back button by its title
+    const backButton = screen.getByTitle('뒤로 가기');
+    fireEvent.click(backButton);
+
+    expect(mockBack).toHaveBeenCalled();
   });
 
   it('displays loading state correctly', async () => {
@@ -62,15 +107,14 @@ describe('AIWorkspace', () => {
       input: '',
       handleInputChange: vi.fn(),
       handleSubmit: vi.fn(),
-      isLoading: true,
-      error: null,
+      sendMessage: vi.fn(),
+      status: 'streaming',
       setMessages: vi.fn(),
-    } as ReturnType<typeof useChat>);
+    } as unknown as ReturnType<typeof useChat>);
 
     render(<AIWorkspace />);
 
-    // Check for loading indicators
-    const loadingElements = screen.queryAllByText(/loading|thinking/i);
-    expect(loadingElements.length).toBeGreaterThanOrEqual(0);
+    // Component should render without errors during streaming state
+    expect(screen.getByTestId('logo')).toBeInTheDocument();
   });
 });

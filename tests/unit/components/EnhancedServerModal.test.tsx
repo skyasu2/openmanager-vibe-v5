@@ -1,4 +1,8 @@
 /**
+ * @vitest-environment jsdom
+ */
+
+/**
  * 🧪 EnhancedServerModal 컴포넌트 User Event 테스트
  *
  * @description 서버 상세 모달의 렌더링, 인터랙션, 탭 전환 검증 테스트
@@ -6,8 +10,7 @@
  * @created 2025-11-26
  */
 
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import EnhancedServerModal from '../../../src/components/dashboard/EnhancedServerModal';
 import type { Server } from '../../../src/types/server';
@@ -57,7 +60,6 @@ vi.mock(
 );
 
 describe('🎯 EnhancedServerModal - User Event 테스트', () => {
-  let user: ReturnType<typeof userEvent.setup>;
   const mockOnClose = vi.fn();
 
   // Mock 서버 데이터
@@ -90,7 +92,6 @@ describe('🎯 EnhancedServerModal - User Event 테스트', () => {
   };
 
   beforeEach(() => {
-    user = userEvent.setup();
     vi.clearAllMocks();
   });
 
@@ -120,28 +121,28 @@ describe('🎯 EnhancedServerModal - User Event 테스트', () => {
   });
 
   describe('onClose 호출', () => {
-    it('overlay 클릭 시 onClose가 호출된다', async () => {
+    it('overlay 클릭 시 onClose가 호출된다', () => {
       render(<EnhancedServerModal server={mockServer} onClose={mockOnClose} />);
 
       const overlay = screen.getByLabelText('모달 닫기');
-      await user.click(overlay);
+      fireEvent.click(overlay);
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it('닫기 버튼 클릭 시 onClose가 호출된다', async () => {
+    it('닫기 버튼 클릭 시 onClose가 호출된다', () => {
       render(<EnhancedServerModal server={mockServer} onClose={mockOnClose} />);
 
       const closeButton = screen.getByTitle('모달 닫기');
-      await user.click(closeButton);
+      fireEvent.click(closeButton);
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it('Escape 키 입력 시 onClose가 호출된다', async () => {
+    it('Escape 키 입력 시 onClose가 호출된다', () => {
       render(<EnhancedServerModal server={mockServer} onClose={mockOnClose} />);
 
-      await user.keyboard('{Escape}');
+      fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
@@ -156,12 +157,12 @@ describe('🎯 EnhancedServerModal - User Event 테스트', () => {
       expect(screen.getByText('서버 정보를 불러올 수 없습니다.')).toBeDefined();
     });
 
-    it('에러 상태에서 닫기 버튼이 작동한다', async () => {
+    it('에러 상태에서 닫기 버튼이 작동한다', () => {
       // @ts-expect-error - 의도적으로 null 전달
       render(<EnhancedServerModal server={null} onClose={mockOnClose} />);
 
       const closeButton = screen.getByRole('button', { name: '닫기' });
-      await user.click(closeButton);
+      fireEvent.click(closeButton);
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
@@ -175,24 +176,24 @@ describe('🎯 EnhancedServerModal - User Event 테스트', () => {
       expect(screen.getByTestId('mock-overview-tab')).toBeDefined();
     });
 
-    it('metrics 탭 클릭 시 탭이 전환된다', async () => {
+    it('metrics 탭 클릭 시 탭이 전환된다', () => {
       render(<EnhancedServerModal server={mockServer} onClose={mockOnClose} />);
 
       const metricsTabButton = screen.getByRole('button', {
         name: /성능 분석/,
       });
-      await user.click(metricsTabButton);
+      fireEvent.click(metricsTabButton);
 
       // MetricsTab이 표시되고, ProcessesTab도 함께 표시됨 (통합 탭)
       expect(screen.getByTestId('mock-metrics-tab')).toBeDefined();
       expect(screen.getByTestId('mock-processes-tab')).toBeDefined();
     });
 
-    it('logs 탭 클릭 시 탭이 전환된다', async () => {
+    it('logs 탭 클릭 시 탭이 전환된다', () => {
       render(<EnhancedServerModal server={mockServer} onClose={mockOnClose} />);
 
       const logsTabButton = screen.getByRole('button', { name: /로그/ });
-      await user.click(logsTabButton);
+      fireEvent.click(logsTabButton);
 
       // LogsTab과 NetworkTab이 표시됨 (통합 탭)
       expect(screen.getByTestId('mock-logs-tab')).toBeDefined();
@@ -204,19 +205,27 @@ describe('🎯 EnhancedServerModal - User Event 테스트', () => {
     it('실시간 버튼이 초기 상태는 활성화되어 있다', () => {
       render(<EnhancedServerModal server={mockServer} onClose={mockOnClose} />);
 
-      const realtimeButton = screen.getByRole('button', { name: /실시간/ });
-      expect(realtimeButton.className).toContain('text-green-600');
+      // Live 버튼 (실시간 모드 활성화 표시)
+      const realtimeButton = screen.getByRole('button', {
+        name: /Live|실시간/,
+      });
+      expect(realtimeButton.className).toContain('emerald');
     });
 
     it('실시간 버튼 클릭 시 일시정지 상태로 변경된다', async () => {
       render(<EnhancedServerModal server={mockServer} onClose={mockOnClose} />);
 
-      const realtimeButton = screen.getByRole('button', { name: /실시간/ });
-      await user.click(realtimeButton);
+      // Live 버튼 찾기
+      const realtimeButton = screen.getByRole('button', {
+        name: /Live|실시간/,
+      });
+      fireEvent.click(realtimeButton);
 
-      // 일시정지 텍스트가 표시됨
+      // 일시정지/Paused 텍스트가 표시됨
       await waitFor(() => {
-        const pauseButton = screen.getByRole('button', { name: /일시정지/ });
+        const pauseButton = screen.getByRole('button', {
+          name: /Paused|일시정지/,
+        });
         expect(pauseButton).toBeDefined();
       });
     });

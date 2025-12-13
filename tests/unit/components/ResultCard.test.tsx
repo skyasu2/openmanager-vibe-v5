@@ -1,4 +1,8 @@
 /**
+ * @vitest-environment jsdom
+ */
+
+/**
  * 🧪 ResultCard 컴포넌트 User Event 테스트
  *
  * @description AI 결과 카드의 렌더링, 인터랙션, 스타일링 검증 테스트
@@ -6,16 +10,13 @@
  * @created 2025-11-26
  */
 
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ResultCard, {
   type ResultCardData,
 } from '../../../src/components/ai/ResultCard';
 
 describe('🎯 ResultCard - User Event 테스트', () => {
-  let user: ReturnType<typeof userEvent.setup>;
-
   // Mock 데이터
   const mockData: ResultCardData = {
     id: 'test-card-1',
@@ -43,7 +44,6 @@ describe('🎯 ResultCard - User Event 테스트', () => {
   };
 
   beforeEach(() => {
-    user = userEvent.setup();
     vi.clearAllMocks();
   });
 
@@ -173,7 +173,7 @@ describe('🎯 ResultCard - User Event 테스트', () => {
       render(<ResultCard data={mockData} />);
 
       const expandButton = screen.getByTitle('펼치기');
-      await user.click(expandButton);
+      fireEvent.click(expandButton);
 
       // 확장 후 "분석 정보" 섹션이 표시됨
       expect(screen.getByText('분석 정보')).toBeDefined();
@@ -183,7 +183,7 @@ describe('🎯 ResultCard - User Event 테스트', () => {
       render(<ResultCard data={mockData} />);
 
       const expandButton = screen.getByTitle('펼치기');
-      await user.click(expandButton);
+      fireEvent.click(expandButton);
 
       const collapseButton = screen.getByTitle('접기');
       expect(collapseButton).toBeDefined();
@@ -193,12 +193,12 @@ describe('🎯 ResultCard - User Event 테스트', () => {
       render(<ResultCard data={mockData} />);
 
       const expandButton = screen.getByTitle('펼치기');
-      await user.click(expandButton);
+      fireEvent.click(expandButton);
 
       expect(screen.getByText('분석 정보')).toBeDefined();
 
       const collapseButton = screen.getByTitle('접기');
-      await user.click(collapseButton);
+      fireEvent.click(collapseButton);
 
       expect(screen.queryByText('분석 정보')).toBeNull();
     });
@@ -225,7 +225,7 @@ describe('🎯 ResultCard - User Event 테스트', () => {
       render(<ResultCard data={mockData} onRemove={mockOnRemove} />);
 
       const removeButton = screen.getByTitle('카드 제거');
-      await user.click(removeButton);
+      fireEvent.click(removeButton);
 
       expect(mockOnRemove).toHaveBeenCalledTimes(1);
       expect(mockOnRemove).toHaveBeenCalledWith('test-card-1');
@@ -284,7 +284,7 @@ describe('🎯 ResultCard - User Event 테스트', () => {
       render(<ResultCard data={dataWithMockAction} />);
 
       const actionButton = screen.getByText('테스트');
-      await user.click(actionButton);
+      fireEvent.click(actionButton);
 
       expect(mockAction).toHaveBeenCalledTimes(1);
     });
@@ -298,59 +298,59 @@ describe('🎯 ResultCard - User Event 테스트', () => {
   });
 
   describe('Metadata 표시', () => {
-    it('확장 시 API 정보가 표시된다', async () => {
+    it('확장 시 API 정보가 표시된다', () => {
       render(<ResultCard data={mockData} />);
 
       const expandButton = screen.getByTitle('펼치기');
-      await user.click(expandButton);
+      fireEvent.click(expandButton);
 
       expect(screen.getByText('API:')).toBeDefined();
       expect(screen.getByText('optimized')).toBeDefined();
     });
 
-    it('확장 시 신뢰도 정보가 표시된다', async () => {
+    it('확장 시 신뢰도 정보가 표시된다', () => {
       render(<ResultCard data={mockData} />);
 
       const expandButton = screen.getByTitle('펼치기');
-      await user.click(expandButton);
+      fireEvent.click(expandButton);
 
       expect(screen.getByText('신뢰도:')).toBeDefined();
       expect(screen.getByText('85%')).toBeDefined();
     });
 
-    it('확장 시 방법 정보가 표시된다', async () => {
+    it('확장 시 방법 정보가 표시된다', () => {
       render(<ResultCard data={mockData} />);
 
       const expandButton = screen.getByTitle('펼치기');
-      await user.click(expandButton);
+      fireEvent.click(expandButton);
 
       expect(screen.getByText('방법:')).toBeDefined();
       expect(screen.getByText('ML-based')).toBeDefined();
     });
 
-    it('확장 시 패턴 정보가 표시된다', async () => {
+    it('확장 시 패턴 정보가 표시된다', () => {
       render(<ResultCard data={mockData} />);
 
       const expandButton = screen.getByTitle('펼치기');
-      await user.click(expandButton);
+      fireEvent.click(expandButton);
 
       expect(screen.getByText('매칭 패턴:')).toBeDefined();
       expect(screen.getByText('pattern1')).toBeDefined();
       expect(screen.getByText('pattern2')).toBeDefined();
     });
 
-    it('신뢰도가 80% 이상일 때 녹색으로 표시된다', async () => {
+    it('신뢰도가 80% 이상일 때 녹색으로 표시된다', () => {
       render(<ResultCard data={mockData} />);
 
       const expandButton = screen.getByTitle('펼치기');
-      await user.click(expandButton);
+      fireEvent.click(expandButton);
 
       const confidenceElement = screen.getByText('85%');
       expect(confidenceElement.className).toContain('bg-green-100');
       expect(confidenceElement.className).toContain('text-green-700');
     });
 
-    it('신뢰도가 50-80%일 때 노란색으로 표시된다', async () => {
+    it('신뢰도가 50-80%일 때 노란색으로 표시된다', () => {
       const dataWithMediumConfidence = {
         ...mockData,
         metadata: { ...mockData.metadata, confidence: 0.65 },
@@ -358,14 +358,14 @@ describe('🎯 ResultCard - User Event 테스트', () => {
       render(<ResultCard data={dataWithMediumConfidence} />);
 
       const expandButton = screen.getByTitle('펼치기');
-      await user.click(expandButton);
+      fireEvent.click(expandButton);
 
       const confidenceElement = screen.getByText('65%');
       expect(confidenceElement.className).toContain('bg-yellow-100');
       expect(confidenceElement.className).toContain('text-yellow-700');
     });
 
-    it('신뢰도가 50% 미만일 때 빨간색으로 표시된다', async () => {
+    it('신뢰도가 50% 미만일 때 빨간색으로 표시된다', () => {
       const dataWithLowConfidence = {
         ...mockData,
         metadata: { ...mockData.metadata, confidence: 0.35 },
@@ -373,7 +373,7 @@ describe('🎯 ResultCard - User Event 테스트', () => {
       render(<ResultCard data={dataWithLowConfidence} />);
 
       const expandButton = screen.getByTitle('펼치기');
-      await user.click(expandButton);
+      fireEvent.click(expandButton);
 
       const confidenceElement = screen.getByText('35%');
       expect(confidenceElement.className).toContain('bg-red-100');

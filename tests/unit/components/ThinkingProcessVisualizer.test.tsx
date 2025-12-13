@@ -1,4 +1,8 @@
 /**
+ * @vitest-environment jsdom
+ */
+
+/**
  * 🧪 ThinkingProcessVisualizer 컴포넌트 테스트
  *
  * @description AI 사고 과정 시각화, 단계별 상태 및 라우팅 정보 표시 검증

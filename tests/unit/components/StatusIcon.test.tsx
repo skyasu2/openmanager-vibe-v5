@@ -1,4 +1,8 @@
 /**
+ * @vitest-environment jsdom
+ */
+
+/**
  * 🧪 StatusIcon 컴포넌트 테스트
  *
  * @description React Testing Library를 사용한 StatusIcon 컴포넌트 UI 테스트

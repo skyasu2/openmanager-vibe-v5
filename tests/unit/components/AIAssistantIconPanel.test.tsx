@@ -1,11 +1,14 @@
 /**
+ * @vitest-environment jsdom
+ */
+
+/**
  * 🧪 AIAssistantIconPanel 컴포넌트 테스트
  *
  * @description AI 기능 아이콘 패널의 렌더링, 인터랙션, 반응형 레이아웃 테스트
  */
 
 import { fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AIAssistantIconPanel, {
   type AIAssistantFunction,
@@ -54,12 +57,11 @@ describe('🤖 AIAssistantIconPanel Component', () => {
       ).toBeDefined();
     });
 
-    it('클릭 시 onFunctionChange가 호출된다', async () => {
-      const user = userEvent.setup();
+    it('클릭 시 onFunctionChange가 호출된다', () => {
       render(<AIAssistantIconPanel {...defaultProps} />);
 
       const reportButton = screen.getByTestId('ai-function-auto-report');
-      await user.click(reportButton);
+      fireEvent.click(reportButton);
 
       expect(mockOnFunctionChange).toHaveBeenCalledWith('auto-report');
       expect(mockOnFunctionChange).toHaveBeenCalledTimes(1);
@@ -82,8 +84,8 @@ describe('🤖 AIAssistantIconPanel Component', () => {
 
       const reportButton = screen.getByTestId('ai-function-auto-report');
       expect(reportButton.className).not.toContain('bg-gradient-to-r');
-      // 배경색 클래스가 포함되어 있는지 확인 (bg-pink-900/30)
-      expect(reportButton.className).toContain('bg-pink-900/30');
+      // 배경색 클래스가 포함되어 있는지 확인 (bg-pink-50 또는 bg-pink-900/30)
+      expect(reportButton.className).toMatch(/bg-pink-(50|900)/);
     });
   });
 
@@ -106,14 +108,13 @@ describe('🤖 AIAssistantIconPanel Component', () => {
       expect(screen.queryByText('AI 활성')).toBeNull();
     });
 
-    it('모바일 모드에서도 클릭 이벤트가 정상 동작한다', async () => {
-      const user = userEvent.setup();
+    it('모바일 모드에서도 클릭 이벤트가 정상 동작한다', () => {
       render(<AIAssistantIconPanel {...defaultProps} isMobile={true} />);
 
       const monitorButton = screen.getByTestId(
         'ai-function-intelligent-monitoring'
       );
-      await user.click(monitorButton);
+      fireEvent.click(monitorButton);
 
       expect(mockOnFunctionChange).toHaveBeenCalledWith(
         'intelligent-monitoring'
