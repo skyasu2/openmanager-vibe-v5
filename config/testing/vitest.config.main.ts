@@ -118,6 +118,8 @@ export default defineConfig({
   esbuild: {
     target: 'node14',
     jsxInject: `import React from 'react'`, // Auto-import React for JSX
-    jsx: 'automatic', // Use automatic JSX runtime (Next.js 15 style)
+    jsx: 'transform', // Transform JSX to React.createElement calls
+    jsxFactory: 'React.createElement',
+    jsxFragment: 'React.Fragment',
   },
 });

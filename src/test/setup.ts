@@ -3,8 +3,13 @@
  * DOM testing 환경 설정
  */
 
+import React from 'react';
 import { expect, vi } from 'vitest';
 import '@testing-library/jest-dom';
+
+// React를 global에 추가 (jsdom 환경에서 JSX 지원)
+globalThis.React = React;
+
 import { toHaveNoViolations } from 'jest-axe';
 import {
   createSupabaseMock,
@@ -144,20 +149,38 @@ Object.defineProperty(globalThis, 'matchMedia', {
   })),
 });
 
+// IntersectionObserver Mock - 클래스 기반 (Next.js use-intersection.js 호환)
+class IntersectionObserverMock implements IntersectionObserver {
+  readonly root: Element | Document | null = null;
+  readonly rootMargin: string = '';
+  readonly thresholds: ReadonlyArray<number> = [];
+
+  constructor(
+    _callback: IntersectionObserverCallback,
+    _options?: IntersectionObserverInit
+  ) {}
+
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+  takeRecords = vi.fn().mockReturnValue([]);
+}
+
 Object.defineProperty(globalThis, 'IntersectionObserver', {
-  value: vi.fn().mockImplementation(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  })),
+  value: IntersectionObserverMock,
   writable: true,
 });
 
+// ResizeObserver Mock - 클래스 기반
+class ResizeObserverMock implements ResizeObserver {
+  constructor(_callback: ResizeObserverCallback) {}
+
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+
 Object.defineProperty(globalThis, 'ResizeObserver', {
-  value: vi.fn().mockImplementation(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  })),
+  value: ResizeObserverMock,
   writable: true,
 });

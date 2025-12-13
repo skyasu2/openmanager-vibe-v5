@@ -107,19 +107,17 @@ async function runEnterpriseTests() {
   // 7. 시뮬레이터 실행 (POST)
   results.push(await testEndpoint('/api/simulate', 'POST'));
 
-  // 8. 자연어 쿼리 시스템 (POST) - MCP API 대신 AI API 사용
+  // 8. 자연어 쿼리 시스템 (POST) - LangGraph unified-stream API
   results.push(
-    await testEndpoint('/api/ai/query', 'POST', {
-      query: '전체 인프라 상태 어때?',
-      mode: 'LOCAL',
+    await testEndpoint('/api/ai/unified-stream', 'POST', {
+      messages: [{ role: 'user', content: '전체 인프라 상태 어때?' }],
     })
   );
 
   // 9. 특정 서버 상태 쿼리
   results.push(
-    await testEndpoint('/api/ai/query', 'POST', {
-      query: '데이터베이스 서버 문제 있어?',
-      mode: 'LOCAL',
+    await testEndpoint('/api/ai/unified-stream', 'POST', {
+      messages: [{ role: 'user', content: '데이터베이스 서버 문제 있어?' }],
     })
   );
 
