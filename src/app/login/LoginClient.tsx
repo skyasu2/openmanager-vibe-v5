@@ -7,7 +7,7 @@
 
 'use client';
 
-import { Sparkles, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useState } from 'react';
 // 게스트 로그인 관련 임포트 (lib/auth-state-manager로 통합)
@@ -378,17 +378,9 @@ export default function LoginClient() {
             {/* SVG 그라데이션 정의 (useId로 scoped ID 사용 - 중복 마운트 안전) */}
             <AIIconGradientDefs id={gradientId} />
             <div
-              className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 shadow-lg shadow-blue-500/20 sm:h-20 sm:w-20`}
+              className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-2xl shadow-blue-500/40 sm:h-20 sm:w-20`}
             >
-              {/* Sparkles 아이콘에 SVG 그라데이션 적용 (stroke + fill) */}
-              <Sparkles
-                className="h-8 w-8 sm:h-10 sm:w-10"
-                style={{
-                  stroke: `url(#${gradientId})`,
-                  fill: `url(#${gradientId})`,
-                  strokeWidth: 1.5,
-                }}
-              />
+              <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm" />
             </div>
             {/* 🎨 [2] 로고와 타이틀 간격 확대 - 라이트 텍스트 (PC 최적화) */}
             {/* 업계 표준: GitHub 600, Google 500 → 균형잡힌 600 적용 */}
@@ -452,7 +444,7 @@ export default function LoginClient() {
           )}
 
           <div className="space-y-6">
-            {/* GitHub OAuth 로그인 - 업계 표준 스타일, Subtext 통합 */}
+            {/* GitHub OAuth 로그인 - Reverted to Simple Button */}
             <button
               onClick={() => {
                 void handleGitHubLogin();
@@ -460,7 +452,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="GitHub 계정으로 로그인"
               aria-busy={loadingType === 'github'}
-              className={`${BUTTON_STYLES.github} flex-col items-center gap-1.5 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70`}
+              className={`${BUTTON_STYLES.github} py-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && <LoadingOverlay type="github" />}
@@ -478,27 +470,22 @@ export default function LoginClient() {
                   </span>
                 </>
               ) : (
-                <>
-                  <div className="relative z-10 flex items-center gap-2">
-                    <svg
-                      className="h-5 w-5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="font-bold text-[17px] tracking-tight">
-                      GitHub로 시작하기
-                    </span>
-                  </div>
-                  <span className="relative z-10 text-[13px] font-medium text-white/80">
-                    AI 어시스턴트를 직접 체험해보세요
+                <div className="relative z-10 flex items-center gap-2.5">
+                  <svg
+                    className="h-5 w-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="font-bold text-[17px] tracking-tight">
+                    GitHub로 계속하기
                   </span>
-                </>
+                </div>
               )}
             </button>
 
@@ -514,7 +501,7 @@ export default function LoginClient() {
               </div>
             </div>
 
-            {/* 게스트 로그인 - 개선된 스타일 (Secondary) */}
+            {/* 게스트 로그인 - Reverted to Simple Button */}
             {/* 🎨 [3] 가시성 개선: border-white/20, text-white/90 */}
             <button
               onClick={() => {
@@ -523,7 +510,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="게스트 모드로 체험하기"
               aria-busy={loadingType === 'guest'}
-              className={`${BUTTON_STYLES.secondary} flex-col items-center gap-1.5 py-4 bg-white/5 border border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70`}
+              className={`${BUTTON_STYLES.secondary} py-4 cursor-pointer bg-white/5 border border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && <LoadingOverlay type="guest" />}
@@ -541,19 +528,36 @@ export default function LoginClient() {
                   </span>
                 </>
               ) : (
-                <>
-                  <div className="relative z-10 flex items-center gap-2">
-                    <User className="h-5 w-5 text-white/90" />
-                    <span className="font-bold text-[17px] tracking-tight text-white/90">
-                      게스트로 둘러보기
-                    </span>
-                  </div>
-                  <span className="relative z-10 text-[13px] font-medium text-white/50 group-hover:text-white/70 transition-colors">
-                    로그인 없이 프로젝트 소개만 확인하기
+                <div className="relative z-10 flex items-center gap-2.5">
+                  <User className="h-5 w-5 text-white/90" />
+                  <span className="font-bold text-[17px] tracking-tight text-white/90">
+                    게스트로 체험하기
                   </span>
-                </>
+                </div>
               )}
             </button>
+          </div>
+
+          {/* Simple Bottom Description with Icons */}
+          <div className="mt-8 flex flex-col items-center gap-2 text-xs text-white/40 font-medium tracking-wide">
+            <div className="flex items-center gap-2">
+              <svg
+                className="h-3.5 w-3.5 opacity-60"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>GitHub 로그인: AI 어시스턴트 직접 체험</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <User className="h-3.5 w-3.5 opacity-60" />
+              <span>게스트 모드: 프로젝트 소개 확인</span>
+            </div>
           </div>
 
           {/* 로딩 중 추가 안내 */}
