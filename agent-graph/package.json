@@ -1,0 +1,25 @@
+{
+  "name": "openmanager-agent-graph",
+  "version": "1.0.0",
+  "description": "LangGraph.js Agent Service for OpenManager VIBE",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node-dev src/server.ts",
+    "deploy": "./deploy-agent.sh"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "dotenv": "^16.4.5",
+    "@langchain/langgraph": "^0.2.23",
+    "@langchain/core": "^0.3.19",
+    "@langchain/google-genai": "^0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.24",
+    "@types/express": "^4.17.21",
+    "ts-node-dev": "^2.0.0"
+  }
+}
