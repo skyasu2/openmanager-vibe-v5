@@ -1,8 +1,3 @@
-/**
- * 🔍 디버깅용 에러 바운더리 - 15개 TypeError 원인 추적
- * 각 서버 카드 컴포넌트를 개별 래핑하여 정확한 에러 발생 지점 식별
- */
-import type React from 'react';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {
@@ -176,65 +171,3 @@ export class ComponentErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-
-/**
- * 🎯 서버 카드 전용 에러 바운더리 (AI 교차검증 UX 개선)
- */
-export const ServerCardErrorBoundary: React.FC<{
-  children: ReactNode;
-  serverId: string;
-}> = ({ children, serverId }) => (
-  <ComponentErrorBoundary
-    componentName="ServerCard"
-    serverId={serverId}
-    fallback={
-      // 🎨 Gemini 권장: 서버 카드와 일관된 디자인 시스템
-      <div className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 p-6 rounded-xl shadow-xs hover:shadow-md transition-shadow duration-200 min-h-[240px] flex flex-col justify-center items-center">
-        {/* 🎯 Codex 권장: 직관적인 아이콘과 상태 표시 */}
-        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mb-4">
-          <svg
-            className="w-8 h-8 text-slate-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
-
-        {/* 🛡️ 사용자 친화적 메시지 */}
-        <div className="text-center">
-          <h3 className="text-slate-700 font-medium text-lg mb-2">
-            서버 정보 로드 오류
-          </h3>
-          <p className="text-slate-500 text-sm mb-1">서버 #{serverId}</p>
-          <p className="text-slate-400 text-xs">
-            잠시 후 자동으로 다시 시도됩니다
-          </p>
-        </div>
-
-        {/* 🚀 Qwen 권장: 최소한의 상태 표시 */}
-        <div className="mt-4 flex justify-center">
-          <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div>
-            <div
-              className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"
-              style={{ animationDelay: '0.2s' }}
-            ></div>
-            <div
-              className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"
-              style={{ animationDelay: '0.4s' }}
-            ></div>
-          </div>
-        </div>
-      </div>
-    }
-  >
-    {children}
-  </ComponentErrorBoundary>
-);

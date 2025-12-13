@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
 import ImprovedServerCard from '@/components/dashboard/ImprovedServerCard';
 import VirtualizedServerList from '@/components/dashboard/VirtualizedServerList';
-import { ServerCardErrorBoundary } from '@/components/development/ComponentErrorBoundary';
+import ServerCardErrorBoundary from '@/components/error/ServerCardErrorBoundary';
 import {
   Pagination,
   PaginationContent,
@@ -310,10 +310,7 @@ export default function ServerDashboard({
                     const serverId = server.id || `server-${index}`;
 
                     return (
-                      <ServerCardErrorBoundary
-                        key={`boundary-${serverId}`}
-                        serverId={serverId}
-                      >
+                      <ServerCardErrorBoundary key={`boundary-${serverId}`}>
                         <ImprovedServerCard
                           key={serverId}
                           server={server}

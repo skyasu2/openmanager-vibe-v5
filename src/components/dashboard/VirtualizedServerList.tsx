@@ -9,7 +9,7 @@
 import debounce from 'lodash-es/debounce';
 import { useEffect, useState } from 'react';
 import ImprovedServerCard from '@/components/dashboard/ImprovedServerCard';
-import { ServerCardErrorBoundary } from '@/components/development/ComponentErrorBoundary';
+import ServerCardErrorBoundary from '@/components/error/ServerCardErrorBoundary';
 import type { Server } from '@/types/server';
 
 interface VirtualizedServerListProps {
@@ -54,7 +54,7 @@ export default function VirtualizedServerList({
     const serverId = server.id || `server-${index}`;
 
     return (
-      <ServerCardErrorBoundary key={`boundary-${serverId}`} serverId={serverId}>
+      <ServerCardErrorBoundary key={`boundary-${serverId}`}>
         <ImprovedServerCard
           key={serverId}
           server={server}
