@@ -486,7 +486,9 @@ export type LoadBalanceStrategy =
   | 'round-robin'
   | 'least-loaded'
   | 'weighted-random'
-  | 'adaptive';
+  | 'adaptive'
+  | 'agentic-router'
+  | 'agentic-direct-reply';
 
 /**
  * 모델 로드 상태

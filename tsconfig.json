@@ -69,6 +69,7 @@
     "src/utils/createTimeoutSignal.ts",
     "src/domains/ai-sidebar/stores/useAISidebarStore.ts",
     "src/services/ai-agent/**",
+    "src/archive/**",
     "src/services/ai/orchestrator/adapters/RAGAdapter.ts",
     "src/services/websocket/WebSocketManager.ts",
     "commit/**/*",

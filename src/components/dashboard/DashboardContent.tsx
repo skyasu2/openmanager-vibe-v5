@@ -84,7 +84,7 @@ export default function DashboardContent({
   // 🎯 서버 데이터에서 직접 통계 계산 (중복 API 호출 제거)
   const [statsLoading, _setStatsLoading] = useState(false);
 
-  // 폴백 통계 계산 (개선된 로직: 가용성과 성능 상태 분리)
+  // 폴백 통계 계산 (v5.81.0: 상호 배타적 카운팅으로 수정)
   const calculateFallbackStats = useCallback((): DashboardStats => {
     if (!servers || servers.length === 0) {
       return { total: 0, online: 0, offline: 0, warning: 0, unknown: 0 };
@@ -95,49 +95,49 @@ export default function DashboardContent({
         acc.total += 1;
         const normalizedStatus = server.status?.toLowerCase() || 'unknown';
 
-        // 가용성 상태 (물리적 연결)
-        if (
-          normalizedStatus === 'offline' ||
-          normalizedStatus === 'down' ||
-          normalizedStatus === 'disconnected'
-        ) {
-          acc.offline += 1;
-        } else {
-          acc.online += 1;
+        // 🎯 상호 배타적 카운팅: 각 서버는 정확히 하나의 상태에만 속함
+        // total = online + warning + offline + unknown
+        switch (normalizedStatus) {
+          // 오프라인/비가용
+          case 'offline':
+          case 'down':
+          case 'disconnected':
+            acc.offline += 1;
+            break;
+
+          // 경고 상태 (warning + critical 통합)
+          case 'warning':
+          case 'degraded':
+          case 'unstable':
+          case 'critical':
+          case 'error':
+          case 'failed':
+            acc.warning += 1;
+            break;
+
+          // Unknown/Maintenance
+          case 'unknown':
+          case 'maintenance':
+            acc.unknown += 1;
+            break;
+
+          // 정상 온라인
+          case 'online':
+          case 'healthy':
+          case 'running':
+          case 'active':
+            acc.online += 1;
+            break;
+
+          // 정의되지 않은 상태
+          default:
+            acc.unknown += 1;
+            break;
         }
 
-        // 성능 상태 (서비스 품질) - 온라인인 서버만 해당
-        if (acc.online > 0) {
-          switch (normalizedStatus) {
-            case 'critical':
-            case 'error':
-            case 'failed':
-              // critical을 warning으로 매핑 (공용 DashboardStats 호환)
-              acc.warning += 1;
-              break;
-            case 'warning':
-            case 'degraded':
-            case 'unstable':
-              acc.warning += 1;
-              break;
-            case 'unknown':
-            case 'maintenance': // 🔧 수정: unknown 상태 카운트
-              acc.unknown += 1;
-              break;
-            case 'healthy':
-            case 'running':
-            case 'active':
-            case 'online':
-              // 정상 상태, 카운트 없음
-              break;
-            default:
-              // 알 수 없는 상태는 unknown으로 분류 (타입 통합)
-              acc.unknown += 1; // 🔧 수정: warning → unknown
-          }
-        }
         return acc;
       },
-      { total: 0, online: 0, offline: 0, warning: 0, unknown: 0 } // 🔧 수정: unknown 추가
+      { total: 0, online: 0, offline: 0, warning: 0, unknown: 0 }
     );
 
     return stats;

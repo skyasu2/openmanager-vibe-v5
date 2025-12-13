@@ -118,13 +118,19 @@ describe('useAIEngine (v4.0 - UNIFIED 전용)', () => {
     expect(description).toContain('자동 라우팅');
   });
 
-  it('항상 /api/ai/query 엔드포인트를 반환한다', () => {
+  it('항상 /api/ai/unified-stream 엔드포인트를 반환한다', () => {
     const { result } = renderHook(() => useAIEngine());
 
-    expect(result.current.getEngineEndpoint()).toBe('/api/ai/query');
-    expect(result.current.getEngineEndpoint('UNIFIED')).toBe('/api/ai/query');
-    expect(result.current.getEngineEndpoint('GOOGLE_AI')).toBe('/api/ai/query');
-    expect(result.current.getEngineEndpoint('LOCAL')).toBe('/api/ai/query');
+    expect(result.current.getEngineEndpoint()).toBe('/api/ai/unified-stream');
+    expect(result.current.getEngineEndpoint('UNIFIED')).toBe(
+      '/api/ai/unified-stream'
+    );
+    expect(result.current.getEngineEndpoint('GOOGLE_AI')).toBe(
+      '/api/ai/unified-stream'
+    );
+    expect(result.current.getEngineEndpoint('LOCAL')).toBe(
+      '/api/ai/unified-stream'
+    );
   });
 
   it('엔진 정보 표시는 항상 false다', () => {

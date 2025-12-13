@@ -27,10 +27,12 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
     it('응답 시간이 10초 이내여야 함', async () => {
       const start = Date.now();
 
-      const response = await fetch(`${API_BASE}/api/ai/query`, {
+      const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: '서버 상태 확인' }),
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: '서버 상태 확인' }],
+        }),
       });
 
       const elapsed = Date.now() - start;
@@ -41,12 +43,11 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
     }, 15000);
 
     it('타임아웃 설정이 적절해야 함', async () => {
-      const response = await fetch(`${API_BASE}/api/ai/query`, {
+      const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: '복잡한 분석 요청',
-          timeoutMs: 8000,
+          messages: [{ role: 'user', content: '복잡한 분석 요청' }],
         }),
       });
 
@@ -56,10 +57,12 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
 
   describe('2. Supabase 무료 티어 제한', () => {
     it('DB 연결이 정상 동작해야 함', async () => {
-      const response = await fetch(`${API_BASE}/api/ai/query`, {
+      const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: '시스템 상태' }),
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: '시스템 상태' }],
+        }),
       });
 
       const data = await response.json();
@@ -143,20 +146,24 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
       const query = '동일한 쿼리 테스트';
 
       // 첫 번째 요청
-      const response1 = await fetch(`${API_BASE}/api/ai/query`, {
+      const response1 = await fetch(`${API_BASE}/api/ai/unified-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: query }],
+        }),
       });
       const _time1 = Date.now();
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // 두 번째 요청 (캐시 히트 예상)
-      const response2 = await fetch(`${API_BASE}/api/ai/query`, {
+      const response2 = await fetch(`${API_BASE}/api/ai/unified-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: query }],
+        }),
       });
       const _time2 = Date.now();
 
@@ -169,23 +176,27 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
     });
 
     it('폴백 시스템이 동작해야 함', async () => {
-      const response = await fetch(`${API_BASE}/api/ai/query`, {
+      const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Force-Fallback': 'true', // 폴백 강제
         },
-        body: JSON.stringify({ query: '서버 상태' }),
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: '서버 상태' }],
+        }),
       });
 
       expect(response.ok).toBe(true);
     });
 
     it('에러 처리가 적절해야 함', async () => {
-      const response = await fetch(`${API_BASE}/api/ai/query`, {
+      const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: '' }), // 빈 쿼리
+        body: JSON.stringify({
+          messages: [], // 빈 메시지 배열
+        }),
       });
 
       expect(response.status).toBe(400);
@@ -200,10 +211,12 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
       for (let i = 0; i < iterations; i++) {
         const start = Date.now();
 
-        const response = await fetch(`${API_BASE}/api/ai/query`, {
+        const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: `테스트 ${i}` }),
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: `테스트 ${i}` }],
+          }),
         });
 
         times.push(Date.now() - start);

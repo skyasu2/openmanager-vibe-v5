@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   calculateTwoRowsLayout,
@@ -112,15 +112,15 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     return undefined;
   }, [stats, onStatsUpdate, actualServers]);
 
-  // 서버 선택 핸들러
-  const handleServerSelect = (server: Server) => {
+  // 서버 선택 핸들러 (useCallback으로 참조 안정화 → memo된 자식 리렌더링 방지)
+  const handleServerSelect = useCallback((server: Server) => {
     setSelectedServer(server);
-  };
+  }, []);
 
-  // 모달 닫기 핸들러
-  const handleModalClose = () => {
+  // 모달 닫기 핸들러 (useCallback으로 참조 안정화)
+  const handleModalClose = useCallback(() => {
     setSelectedServer(null);
-  };
+  }, []);
 
   // 선택된 서버의 메트릭 계산 (메모이제이션)
   const selectedServerMetrics = useMemo(() => {

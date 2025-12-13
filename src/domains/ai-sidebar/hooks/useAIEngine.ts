@@ -2,7 +2,7 @@
  * AI 엔진 관리 Custom Hook (v4.0 - UNIFIED 전용)
  *
  * @since v4.0 - AI 모드 선택 UI 제거, UNIFIED 모드로 통합
- * @deprecated 이 Hook은 하위 호환성을 위해 유지됨. 직접 '/api/ai/query' 사용 권장
+ * @deprecated 이 Hook은 하위 호환성을 위해 유지됨. 직접 '/api/ai/unified-stream' 사용 권장
  * @author Claude Code
  * @created 2025-11-26
  */
@@ -113,7 +113,7 @@ export function useAIEngine(): UseAIEngineReturn {
 
   // getEngineEndpoint
   const getEngineEndpoint = useCallback((_engine?: string): string => {
-    return '/api/ai/query';
+    return '/api/ai/unified-stream';
   }, []);
 
   return {

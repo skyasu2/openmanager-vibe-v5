@@ -323,8 +323,8 @@ describe('🚀 OpenManager VIBE v5 - 핵심 API 엔드포인트 테스트', () =
           } as Response);
         }
 
-        // AI query endpoint
-        if (url.includes('/api/ai/query') && method === 'POST') {
+        // AI unified-stream endpoint (LangGraph Multi-Agent)
+        if (url.includes('/api/ai/unified-stream') && method === 'POST') {
           return Promise.resolve({
             ok: false,
             status: 401,
@@ -475,28 +475,28 @@ describe('🚀 OpenManager VIBE v5 - 핵심 API 엔드포인트 테스트', () =
       );
     });
 
-    it('POST /api/ai/query - 인증 필요 API (미인증 상태)', async () => {
+    it('POST /api/ai/unified-stream - 인증 필요 API (미인증 상태)', async () => {
       const result = await testApiEndpoint(
-        '/api/ai/query',
+        '/api/ai/unified-stream',
         401,
         undefined,
         'POST',
         {
-          query: '시스템 상태는 어떤가요?',
+          messages: [{ role: 'user', content: '시스템 상태는 어떤가요?' }],
         }
       );
 
       expect(result.data.error).toContain('Unauthorized');
     });
 
-    it('POST /api/ai/query - 잘못된 요청 형식', async () => {
+    it('POST /api/ai/unified-stream - 잘못된 요청 형식', async () => {
       const result = await testApiEndpoint(
-        '/api/ai/query',
+        '/api/ai/unified-stream',
         401,
         undefined,
         'POST',
         {
-          // query 필드 누락
+          // messages 필드 누락
           invalidField: 'test',
         }
       );

@@ -29,10 +29,12 @@ The central nervous system of the AI, orchestrating all analysis and response ge
 
 ## API Architecture
 
-> [!WARNING]
-> **Architecture Note**: There are currently two parallel API implementations.
-> 1.  **`/api/ai/unified-stream` (Recommended)**: Utilizes Vercel AI SDK for **streaming responses**, tool calling, and "Thinking Process" visualization. Used by the **AI Sidebar**.
-> 2.  **`/api/ai/query` (Legacy)**: Standard request/response endpoint. Used by the **Fullscreen AI Workspace**. *Planned for deprecation/refactoring.*
+> [!NOTE]
+> **v5.80.0 Update**: API 통합 완료. LangGraph StateGraph 기반 Multi-Agent 아키텍처로 전환.
+> - **`/api/ai/unified-stream`**: 유일한 AI API 엔드포인트. Streaming + JSON 응답 모두 지원.
+> - **요청 형식**: `{ messages: [{ role: 'user', content: '...' }], sessionId?: string }`
+> - **응답 형식**: `{ success, response, toolResults, targetAgent, sessionId }`
+> - ~~`/api/ai/query` (Legacy)~~: **삭제됨** - `src/archive/legacy-ai-routing/`으로 아카이브
 
 ## Architecture Diagram
 

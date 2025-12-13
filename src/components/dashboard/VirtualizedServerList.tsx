@@ -7,7 +7,7 @@
  */
 
 import debounce from 'lodash-es/debounce';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import EnhancedServerCard from '@/components/dashboard/EnhancedServerCard';
 import ServerCardErrorBoundary from '@/components/error/ServerCardErrorBoundary';
 import type { Server } from '@/types/server';
@@ -50,22 +50,29 @@ export default function VirtualizedServerList({
   const visibleCount = expanded ? servers.length : cardsPerRow;
   const remainingCount = servers.length - cardsPerRow;
 
-  const renderServer = (server: Server, index: number) => {
-    const serverId = server.id || `server-${index}`;
+  // 🚀 useCallback으로 참조 안정화 → memo된 EnhancedServerCard 리렌더링 방지
+  const renderServer = useCallback(
+    (server: Server, index: number) => {
+      const serverId = server.id || `server-${index}`;
 
-    return (
-      <ServerCardErrorBoundary key={`boundary-${serverId}`} serverId={serverId}>
-        <EnhancedServerCard
-          key={serverId}
-          server={server}
-          variant="compact"
-          showMiniCharts={true}
-          index={index}
-          onClick={handleServerSelect}
-        />
-      </ServerCardErrorBoundary>
-    );
-  };
+      return (
+        <ServerCardErrorBoundary
+          key={`boundary-${serverId}`}
+          serverId={serverId}
+        >
+          <EnhancedServerCard
+            key={serverId}
+            server={server}
+            variant="compact"
+            showMiniCharts={true}
+            index={index}
+            onClick={handleServerSelect}
+          />
+        </ServerCardErrorBoundary>
+      );
+    },
+    [handleServerSelect]
+  );
 
   return (
     <div className="w-full">

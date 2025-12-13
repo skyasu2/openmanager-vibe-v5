@@ -296,9 +296,10 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             cardHeight: 'min-h-[200px]',
             titleSize: 'text-sm',
             subtitleSize: 'text-xs',
-            chartContainer: 'grid-cols-2 gap-3',
-            chartSize: 'w-18 h-10',
+            chartContainer: 'grid-cols-4 gap-2',
+            chartSize: 'w-full h-8',
             showFullDetails: false,
+            useCompactLabels: true,
           };
         case 'detailed':
           return {
@@ -309,6 +310,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             chartContainer: 'grid-cols-2 gap-4',
             chartSize: 'w-28 h-20',
             showFullDetails: true,
+            useCompactLabels: false,
           };
         default:
           return {
@@ -319,6 +321,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             chartContainer: 'grid-cols-2 gap-3',
             chartSize: 'w-22 h-16',
             showFullDetails: false,
+            useCompactLabels: false,
           };
       }
     };
@@ -358,6 +361,42 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       };
 
       const valueColor = getValueColor(currentValue);
+      const isCompact = variantStyles.useCompactLabels;
+
+      // Compact 모드: 가로 배치, 아이콘+수치만
+      if (isCompact) {
+        return (
+          <motion.div
+            className="flex items-center justify-between bg-white/90 rounded-lg px-2 py-1.5 group hover:bg-white/95 transition-all duration-200 shadow-sm border border-white/20"
+            whileHover={{ scale: 1.02 }}
+          >
+            <div className="flex items-center gap-1.5">
+              <div className="text-gray-600 p-0.5">{icon}</div>
+              <span className="text-[10px] font-medium text-gray-600 whitespace-nowrap">
+                {label}
+              </span>
+            </div>
+            <motion.span
+              className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+                currentValue > 80
+                  ? 'bg-red-100/80 text-red-700'
+                  : currentValue > 70
+                    ? 'bg-yellow-100/80 text-yellow-700'
+                    : 'bg-gray-100/80 text-gray-700'
+              }`}
+              animate={{
+                scale: currentValue > 80 ? [1, 1.05, 1] : 1,
+              }}
+              transition={{
+                duration: 2,
+                repeat: currentValue > 80 ? Infinity : 0,
+              }}
+            >
+              {currentValue.toFixed(0)}%
+            </motion.span>
+          </motion.div>
+        );
+      }
 
       return (
         <motion.div
@@ -374,7 +413,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               >
                 {icon}
               </motion.div>
-              <span className="text-xs font-semibold text-gray-700 tracking-wide">
+              <span className="text-xs font-semibold text-gray-700 tracking-wide whitespace-nowrap">
                 {label}
               </span>
             </div>
@@ -693,19 +732,19 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               <MiniChart
                 data={realtimeData.memory}
                 color="#3b82f6"
-                label="메모리"
+                label="MEM"
                 icon={<Activity className="w-3 h-3" />}
               />
               <MiniChart
                 data={realtimeData.disk}
                 color="#8b5cf6"
-                label="디스크"
+                label="DISK"
                 icon={<HardDrive className="w-3 h-3" />}
               />
               <MiniChart
                 data={realtimeData.network}
                 color="#10b981"
-                label="네트워크"
+                label="NET"
                 icon={<Network className="w-3 h-3" />}
               />
             </div>

@@ -15,11 +15,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
  */
 export const nextJsApiHandlers = [
   /**
-   * AI Query API - 통합 AI 쿼리
+   * AI Unified Stream API - 통합 AI 쿼리 (LangGraph)
    *
-   * @example POST /api/ai/query
+   * @example POST /api/ai/unified-stream
    */
-  http.post(`${BASE_URL}/api/ai/query`, async ({ request }) => {
+  http.post(`${BASE_URL}/api/ai/unified-stream`, async ({ request }) => {
     let body: {
       query: string;
       engine: string;
