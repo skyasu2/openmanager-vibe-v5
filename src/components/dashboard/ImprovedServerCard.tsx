@@ -19,6 +19,10 @@ import React, {
 } from 'react';
 import { useFixed24hMetrics } from '../../hooks/useFixed24hMetrics';
 import { useSafeServer } from '../../hooks/useSafeServer';
+import {
+  DARK_CARD_STYLES,
+  getDarkServerStatusTheme,
+} from '../../styles/design-constants';
 import type {
   ServerStatus,
   Server as ServerType,
@@ -28,7 +32,6 @@ import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { AIInsightBadge } from '../shared/AIInsightBadge';
 import { MiniLineChart } from '../shared/MiniLineChart';
 import { ServerMetricsChart } from '../shared/ServerMetricsChart';
-import { ServerStatusIndicator } from '../shared/ServerStatusIndicator';
 
 export interface ImprovedServerCardProps {
   server: ServerType;
@@ -47,9 +50,10 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     showRealTimeUpdates = true,
     enableProgressiveDisclosure = true,
   }) => {
-    // Basic data preparation using standard hooks
-    const { safeServer, statusTheme, serverIcon, osIcon } =
-      useSafeServer(server);
+    // Basic data preparation
+    const { safeServer, serverIcon, osIcon } = useSafeServer(server);
+    // Use Dark Theme
+    const statusTheme = getDarkServerStatusTheme(safeServer.status);
 
     const [_isHovered, setIsHovered] = useState(false);
     const [showSecondaryInfo, setShowSecondaryInfo] = useState(false);
@@ -64,7 +68,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       };
     }, []);
 
-    // Metric data - 기본값 5분 사용 (데이터 갱신 주기와 일치)
+    // Metric data
     const { currentMetrics, historyData } = useFixed24hMetrics(safeServer.id);
 
     const realtimeMetrics = useMemo(
@@ -129,38 +133,48 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         onKeyDown={(e) =>
           (e.key === 'Enter' || e.key === ' ') && onClick(safeServer)
         }
-        className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${statusTheme.cardBg} ${statusTheme.cardBorder} ${variantStyles.container}`}
+        className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg backdrop-blur-md ${statusTheme.background} ${statusTheme.border} ${variantStyles.container}`}
       >
+        {/* Glow Effect */}
+        <div
+          className={`absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 ${statusTheme.glow}`}
+        />
+
         {/* Live Indicator */}
         {showRealTimeUpdates && (
-          <div
-            className="absolute right-3 top-3 z-10 h-2 w-2 animate-pulse rounded-full"
-            style={statusTheme.pulse}
-          />
+          <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5">
+            <span
+              className={`h-2 w-2 rounded-full animate-pulse ${statusTheme.text.replace('text-', 'bg-')}`}
+            />
+            <span className={`text-xs font-medium ${statusTheme.text}`}>
+              Live
+            </span>
+          </div>
         )}
 
         {/* Header */}
-        <header className="mb-4 flex items-start justify-between">
+        <header className="mb-4 flex items-start justify-between relative z-10">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div
-              className="rounded-lg p-2.5 shadow-sm"
-              style={statusTheme.statusColor}
+              className={`rounded-xl p-2.5 shadow-lg backdrop-blur-sm transition-colors duration-300 bg-white/5 group-hover:bg-white/10 ${statusTheme.text}`}
             >
               {serverIcon}
             </div>
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2">
                 <h3
-                  className="truncate text-lg font-semibold"
-                  style={{ color: statusTheme.cardStyle.color }}
+                  className={`truncate text-lg font-semibold ${DARK_CARD_STYLES.textPrimary}`}
                 >
                   {safeServer.name}
                 </h3>
-                {osIcon && <span className="text-base">{osIcon}</span>}
+                {osIcon && (
+                  <span className={`${DARK_CARD_STYLES.textTertiary}`}>
+                    {osIcon}
+                  </span>
+                )}
               </div>
               <div
-                className="flex items-center gap-2 text-sm font-medium"
-                style={statusTheme.accent}
+                className={`flex items-center gap-2 text-sm font-medium ${DARK_CARD_STYLES.textSecondary}`}
               >
                 <MapPin className="h-3 w-3" />
                 <span>{safeServer.location}</span>
@@ -168,16 +182,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <ServerStatusIndicator
-              status={safeServer.status}
-              size="md"
-              showText
-            />
+          <div className="flex items-center gap-2 pt-8">
             {enableProgressiveDisclosure && (
               <button
                 onClick={toggleExpansion}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 hover:bg-white/30"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
               >
                 {showTertiaryInfo ? (
                   <ChevronUp className="h-4 w-4" />
@@ -190,32 +199,32 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         </header>
 
         {/* Metrics */}
-        <section className="space-y-3">
+        <section className="space-y-4 relative z-10">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Activity className="h-3 w-3 text-red-500" />
-                <span className="text-xs font-semibold uppercase text-gray-700">
+                <Activity className="h-3 w-3 text-white/40" />
+                <span className="text-xs font-semibold uppercase text-white/40 tracking-wider">
                   Core Metrics
                 </span>
               </div>
               <AIInsightBadge {...realtimeMetrics} historyData={historyData} />
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-4">
               <MetricItem
                 type="cpu"
                 value={realtimeMetrics.cpu}
                 status={safeServer.status}
                 history={historyData?.map((h) => h.cpu)}
-                color={statusTheme.accent.color}
+                color={statusTheme.graphColor}
               />
               <MetricItem
                 type="memory"
                 value={realtimeMetrics.memory}
                 status={safeServer.status}
                 history={historyData?.map((h) => h.memory)}
-                color={statusTheme.accent.color}
+                color={statusTheme.graphColor}
               />
             </div>
           </div>
@@ -224,29 +233,31 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           <div
             className={`space-y-3 overflow-hidden transition-all duration-300 ${showSecondaryInfo ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
           >
-            <div className="flex items-center gap-2">
-              <HardDrive className="h-3 w-3 text-blue-400" />
-              <span className="text-xs font-medium uppercase text-gray-600">
+            <div className="flex items-center gap-2 pt-2">
+              <HardDrive className="h-3 w-3 text-white/40" />
+              <span className="text-xs font-medium uppercase text-white/40 tracking-wider">
                 Secondary
               </span>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex justify-center">
+              <div className="flex justify-center bg-white/5 rounded-xl p-2 border border-white/5">
                 <ServerMetricsChart
                   type="disk"
                   value={realtimeMetrics.disk}
                   status={safeServer.status}
                   size="md"
                   showLabel
+                  dark
                 />
               </div>
-              <div className="flex justify-center">
+              <div className="flex justify-center bg-white/5 rounded-xl p-2 border border-white/5">
                 <ServerMetricsChart
                   type="network"
                   value={realtimeMetrics.network}
                   status={safeServer.status}
                   size="md"
                   showLabel
+                  dark
                 />
               </div>
             </div>
@@ -255,19 +266,19 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           <div
             className={`space-y-4 overflow-hidden transition-all duration-500 ${showTertiaryInfo ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
           >
-            <div className="grid grid-cols-2 gap-4 text-sm pt-4 border-t border-gray-200/50">
+            <div className="grid grid-cols-2 gap-3 text-sm pt-4 border-t border-white/10">
               <DetailRow
-                icon={<Globe className="h-4 w-4" />}
+                icon={<Globe className="h-3.5 w-3.5" />}
                 label="OS"
                 value={safeServer.os}
               />
               <DetailRow
-                icon={<Clock className="h-4 w-4" />}
+                icon={<Clock className="h-3.5 w-3.5" />}
                 label="Uptime"
                 value={safeServer.uptime}
               />
               <DetailRow
-                icon={<Zap className="h-4 w-4" />}
+                icon={<Zap className="h-3.5 w-3.5" />}
                 label="IP"
                 value={safeServer.ip}
               />
@@ -280,7 +291,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           safeServer.services?.length > 0 &&
           (showSecondaryInfo || !enableProgressiveDisclosure) && (
             <div
-              className={`mt-4 flex flex-wrap gap-2 transition-all duration-300 ${showSecondaryInfo || !enableProgressiveDisclosure ? 'opacity-100' : 'opacity-0'}`}
+              className={`mt-4 flex flex-wrap gap-2 transition-all duration-300 relative z-10 ${showSecondaryInfo || !enableProgressiveDisclosure ? 'opacity-100' : 'opacity-0'}`}
             >
               {safeServer.services
                 .slice(0, variantStyles.maxServices)
@@ -288,7 +299,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   <ServiceChip key={i} service={s} />
                 ))}
               {safeServer.services.length > variantStyles.maxServices && (
-                <span className="px-2 py-1 text-xs text-gray-500">
+                <span className="px-2 py-1 text-xs text-white/40">
                   +{safeServer.services.length - variantStyles.maxServices}
                 </span>
               )}
@@ -315,15 +326,16 @@ const MetricItem = ({
   history,
   color,
 }: MetricItemProps) => (
-  <div className="flex flex-col items-center">
+  <div className="flex flex-col items-center bg-white/5 rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-colors">
     <ServerMetricsChart
       type={type}
       value={value}
       status={status}
       size="md"
       showLabel
+      dark
     />
-    <div className="mt-2 h-8 w-full flex justify-center">
+    <div className="mt-2 h-8 w-full flex justify-center opacity-70">
       <MiniLineChart
         data={history || []}
         width={80}
@@ -343,31 +355,41 @@ interface DetailRowProps {
 }
 
 const DetailRow = ({ icon, label, value }: DetailRowProps) => (
-  <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
-    <div className="text-gray-500">{icon}</div>
-    <div>
-      <div className="text-xs uppercase text-gray-500">{label}</div>
-      <div className="font-medium text-gray-700">{value}</div>
+  <div className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2 border border-white/5">
+    <div className="text-white/40">{icon}</div>
+    <div className="min-w-0">
+      <div className="text-[10px] uppercase text-white/40 font-semibold tracking-wider">
+        {label}
+      </div>
+      <div className="font-medium text-white/80 truncate text-xs">{value}</div>
     </div>
   </div>
 );
 
-const ServiceChip = ({ service }: { service: Service }) => (
-  <div
-    className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium ${
-      service.status === 'running'
-        ? 'border-green-300 bg-green-50 text-green-700'
-        : service.status === 'stopped'
-          ? 'border-red-300 bg-red-50 text-red-700'
-          : 'border-yellow-300 bg-yellow-50 text-yellow-700'
-    }`}
-  >
-    <span
-      className={`h-2 w-2 rounded-full ${service.status === 'running' ? 'bg-green-500' : service.status === 'stopped' ? 'bg-gray-400' : 'bg-yellow-500'}`}
-    />
-    <span>{service.name}</span>
-  </div>
-);
+const ServiceChip = ({ service }: { service: Service }) => {
+  const statusColors =
+    service.status === 'running'
+      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+      : service.status === 'stopped'
+        ? 'border-red-500/30 bg-red-500/10 text-red-400'
+        : 'border-amber-500/30 bg-amber-500/10 text-amber-400';
+
+  const dotColor =
+    service.status === 'running'
+      ? 'bg-emerald-400'
+      : service.status === 'stopped'
+        ? 'bg-red-400'
+        : 'bg-amber-400';
+
+  return (
+    <div
+      className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium backdrop-blur-sm ${statusColors}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${dotColor} shadow-sm`} />
+      <span>{service.name}</span>
+    </div>
+  );
+};
 
 ImprovedServerCardInner.displayName = 'ImprovedServerCardInner';
 

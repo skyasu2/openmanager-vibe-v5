@@ -22,6 +22,7 @@ interface ServerMetricsChartProps {
   showLabel?: boolean;
   className?: string;
   animationDuration?: number; // 애니메이션 지속 시간 (ms)
+  dark?: boolean;
 }
 
 // 색상 테마 정의
@@ -29,32 +30,51 @@ const colorThemes = {
   critical: {
     primary: '#EF4444', // red-500
     background: 'rgba(239, 68, 68, 0.1)', // red-500/10
+    darkBackground: 'rgba(239, 68, 68, 0.2)',
   },
   warning: {
     primary: '#F59E0B', // amber-500
     background: 'rgba(245, 158, 11, 0.1)', // amber-500/10
+    darkBackground: 'rgba(245, 158, 11, 0.2)',
   },
   online: {
     primary: '#10B981', // emerald-500
     background: 'rgba(16, 185, 129, 0.1)', // emerald-500/10
+    darkBackground: 'rgba(16, 185, 129, 0.2)',
   },
   default: {
     primary: '#6B7280', // gray-500
     background: 'rgba(107, 114, 128, 0.1)', // gray-500/10
+    darkBackground: 'rgba(255, 255, 255, 0.1)',
+  },
+  dark: {
+    primary: '#ffffff',
+    background: 'rgba(255, 255, 255, 0.1)',
   },
 } as const;
 
 // 상태와 값에 따라 색상 결정
-const getStatusColor = (status: ServerStatus, value: number): string => {
+const getStatusColor = (
+  status: ServerStatus,
+  value: number,
+  isDark = false
+): string => {
   // 상태와 값에 따라 색상 결정
   if (status === 'critical' || value > 85) return colorThemes.critical.primary;
   if (status === 'warning' || value > 70) return colorThemes.warning.primary;
   if (status === 'online' || value <= 70) return colorThemes.online.primary;
 
-  return colorThemes.default.primary;
+  return isDark ? '#9ca3af' : colorThemes.default.primary;
 };
 
-const getBackgroundColor = (status: ServerStatus): string => {
+const getBackgroundColor = (status: ServerStatus, isDark = false): string => {
+  if (isDark) {
+    if (status === 'critical') return colorThemes.critical.darkBackground;
+    if (status === 'warning') return colorThemes.warning.darkBackground;
+    if (status === 'online') return colorThemes.online.darkBackground;
+    return colorThemes.default.darkBackground;
+  }
+
   if (status === 'critical') return colorThemes.critical.background;
   if (status === 'warning') return colorThemes.warning.background;
   if (status === 'online') return colorThemes.online.background;
@@ -72,6 +92,7 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
     showLabel = true,
     className = '',
     animationDuration = 300,
+    dark = false,
   }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [animationValue, setAnimationValue] = useState(0);
@@ -137,8 +158,8 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
       ctx.clearRect(0, 0, width, height);
 
       // 색상 설정
-      const fillColor = getStatusColor(status, animationValue);
-      const bgColor = getBackgroundColor(status);
+      const fillColor = getStatusColor(status, animationValue, dark);
+      const bgColor = getBackgroundColor(status, dark);
 
       // 차트 중심
       const centerX = width / 2;
@@ -170,7 +191,7 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
         ctx.textBaseline = 'middle';
         ctx.fillText(`${Math.round(animationValue)}%`, centerX, centerY);
       }
-    }, [animationValue, max, status, size, showLabel, width, height]);
+    }, [animationValue, max, status, size, showLabel, width, height, dark]);
 
     useEffect(() => {
       drawChart();
@@ -201,13 +222,15 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
         {showLabel && (
           <span
             className={`mt-1 text-xs font-medium ${
-              status === 'critical'
-                ? 'text-red-600'
-                : status === 'warning'
-                  ? 'text-amber-600'
-                  : status === 'online'
-                    ? 'text-emerald-600'
-                    : 'text-gray-600'
+              dark
+                ? 'text-white/60'
+                : status === 'critical'
+                  ? 'text-red-600'
+                  : status === 'warning'
+                    ? 'text-amber-600'
+                    : status === 'online'
+                      ? 'text-emerald-600'
+                      : 'text-gray-600'
             } `}
             aria-hidden="true"
           >

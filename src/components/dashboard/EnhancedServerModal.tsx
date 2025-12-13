@@ -1,21 +1,16 @@
 'use client';
 
 /**
- * 🚀 Enhanced Server Detail Modal v5.0 - Modular Architecture
+ * 🚀 Enhanced Server Detail Modal v5.1 - Dark Glass UI
  *
- * 완전히 모듈화된 현대적 서버 상세 모달:
- * - 모듈화된 아키텍처로 유지보수성 향상
- * - 8개 전문 모듈로 분리 (types, utils, components, 5개 탭)
- * - 직관적인 탭 네비게이션
- * - 상태별 색상 시스템
- * - 부드러운 애니메이션
- * - 반응형 레이아웃
- * - 실시간 데이터 시각화
+ * 완전히 모듈화된 현대적 서버 상세 모달 (Dark Theme 적용):
+ * - Glassmorphism UI (투명 유리 효과)
+ * - Neon Glow Effects (네온 글로우)
+ * - Deep Dark Background (몰입감 향상)
  */
 
 import {
   Activity,
-  AlertTriangle,
   BarChart3,
   Cpu,
   FileText,
@@ -27,6 +22,10 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
+import {
+  DARK_CARD_STYLES,
+  getDarkServerStatusTheme,
+} from '@/styles/design-constants';
 
 import { LogsTab } from './EnhancedServerModal.LogsTab';
 import { MetricsTab } from './EnhancedServerModal.MetricsTab';
@@ -42,10 +41,6 @@ import type {
   TabInfo,
 } from './EnhancedServerModal.types';
 import { getStatusTheme } from './EnhancedServerModal.utils';
-
-// framer-motion을 동적 import로 처리
-// framer-motion 제거됨
-// framer-motion 제거됨
 
 export default function EnhancedServerModal({
   server,
@@ -118,7 +113,7 @@ export default function EnhancedServerModal({
                 ? 'excellent'
                 : server.status === 'warning'
                   ? 'good'
-                  : 'offline', // Simple mapping
+                  : 'offline',
             health: server.health || { score: 0, trend: [] },
             alertsSummary: server.alertsSummary || {
               total: 0,
@@ -224,16 +219,15 @@ export default function EnhancedServerModal({
     return () => clearInterval(interval);
   }, [isRealtime, safeServer]);
 
-  // 📊 탭 구성 최적화 (5개→3개로 통합, Progressive Disclosure)
+  // 📊 탭 구성 최적화
   const tabs: TabInfo[] = [
-    { id: 'overview', label: '종합 상황', icon: Activity }, // 개요 + 핵심 메트릭 통합
-    { id: 'metrics', label: '성능 분석', icon: BarChart3 }, // 메트릭 + 프로세스 통합
-    { id: 'logs', label: '로그 & 네트워크', icon: FileText }, // 로그 + 네트워크 통합
+    { id: 'overview', label: '종합 상황', icon: Activity },
+    { id: 'metrics', label: '성능 분석', icon: BarChart3 },
+    { id: 'logs', label: '로그 & 네트워크', icon: FileText },
   ];
 
   if (!safeServer) {
     console.warn('⚠️ [EnhancedServerModal] 서버 데이터가 없습니다.');
-    // 모달을 닫지 않고 오류 상태를 표시
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <button
@@ -243,18 +237,18 @@ export default function EnhancedServerModal({
           aria-label="Close modal"
         />
         <div
-          className="relative w-full max-w-md rounded-xl bg-white p-6 text-center"
+          className="relative w-full max-w-md rounded-xl bg-[#0F1115] p-6 text-center border border-white/10"
           role="alertdialog"
           aria-modal="true"
         >
           <div className="mb-4 text-4xl text-red-500">⚠️</div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-900">
+          <h3 className="mb-2 text-lg font-semibold text-white">
             서버 데이터 오류
           </h3>
-          <p className="mb-4 text-gray-600">서버 정보를 불러올 수 없습니다.</p>
+          <p className="mb-4 text-white/70">서버 정보를 불러올 수 없습니다.</p>
           <button
             onClick={onClose}
-            className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
+            className="rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-2 hover:bg-blue-500/30 transition-colors"
           >
             닫기
           </button>
@@ -263,12 +257,13 @@ export default function EnhancedServerModal({
     );
   }
 
-  // 상태별 색상 테마 가져오기
-  const statusTheme = getStatusTheme(safeServer?.status);
+  // 상태별 색상 테마 가져오기 (Dark Mode)
+  // const statusTheme = getStatusTheme(safeServer?.status); // Legacy
+  const darkStatusTheme = getDarkServerStatusTheme(safeServer?.status);
 
   return (
     <div
-      className="gpu-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+      className="gpu-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
       role="presentation"
     >
       <button
@@ -279,86 +274,74 @@ export default function EnhancedServerModal({
       />
       <dialog
         open
-        className="gpu-modal-content relative flex h-[95vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 sm:h-[90vh] sm:rounded-3xl"
+        className="gpu-modal-content relative flex h-[95vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-[#0F1115] shadow-2xl ring-1 ring-white/10 sm:h-[90vh] sm:rounded-3xl"
         aria-modal="true"
       >
-        {/* 헤더 - Miller's Rule 적용 (8개→5개 요소 축소) */}
+        {/* 헤더 - Dark Glass Style */}
         <div
-          className={`bg-gradient-to-r ${statusTheme.gradient} p-4 text-white sm:p-6`}
+          className={`bg-gradient-to-r ${darkStatusTheme.background.replace('backdrop-blur-md', '')} border-b border-white/5 p-4 text-white sm:p-6`}
         >
           <div className="flex items-center justify-between">
-            {/* 💡 핵심 정보 통합 (3개 요소) */}
+            {/* 💡 핵심 정보 통합 */}
             <div className="flex items-center gap-2 sm:gap-4">
-              <div className="rounded-xl bg-white/25 p-2 shadow-lg backdrop-blur-sm sm:p-3">
-                <ServerIcon className="h-5 w-5 text-white sm:h-7 sm:w-7" />
+              <div
+                className={`rounded-xl p-2 shadow-lg backdrop-blur-sm sm:p-3 bg-white/5 ${darkStatusTheme.text}`}
+              >
+                <ServerIcon className="h-5 w-5 sm:h-7 sm:w-7" />
               </div>
               <div className="min-w-0 flex-1">
-                {/* 1️⃣ 서버명 + 상태 + 헬스점수 통합 (모바일 최적화) */}
-                <h2 className="flex items-center gap-2 text-lg font-bold sm:gap-3 sm:text-2xl">
-                  <span className="truncate drop-shadow-xs">
+                {/* 1️⃣ 서버명 + 상태 + 헬스점수 통합 */}
+                <h2 className="flex items-center gap-2 text-lg font-bold sm:gap-3 sm:text-2xl text-white">
+                  <span className="truncate drop-shadow-md">
                     {safeServer.name}
                   </span>
-                  <span className="shrink-0 text-xl sm:text-2xl">
-                    {statusTheme.icon}
-                  </span>
-                  {safeServer.health?.score !== undefined && (
-                    <div className="shrink-0 rounded-lg bg-white/30 px-1.5 py-1 text-xs font-bold backdrop-blur-sm sm:px-2 sm:text-sm">
-                      {Math.round(safeServer.health.score)}%
-                    </div>
-                  )}
+                  <div
+                    className={`shrink-0 rounded-lg bg-white/10 px-1.5 py-1 text-xs font-bold backdrop-blur-sm sm:px-2 sm:text-sm border border-white/10 ${darkStatusTheme.text}`}
+                  >
+                    {Math.round(safeServer.health?.score || 0)}%
+                  </div>
                 </h2>
 
-                {/* 2️⃣ 서버 정보 + 중요 알림만 표시 (모바일 간소화) */}
-                <div className="mt-1 flex items-center gap-2 text-sm text-white/90 sm:gap-3 sm:text-base">
+                {/* 2️⃣ 서버 정보 */}
+                <div className="mt-1 flex items-center gap-2 text-sm text-white/60 sm:gap-3 sm:text-base">
                   <span className="font-medium">{safeServer.type}</span>
-                  <span className="hidden sm:inline">•</span>
+                  <span className="hidden sm:inline text-white/20">•</span>
                   <span className="hidden sm:inline">
                     {safeServer.location}
                   </span>
-
-                  {/* 🚨 중요 알림만 표시 (Critical/Warning만) */}
-                  {safeServer.alertsSummary?.critical &&
-                    safeServer.alertsSummary.critical > 0 && (
-                      <div className="ml-1 inline-flex animate-pulse items-center gap-1 rounded-full bg-red-500/40 px-1.5 py-0.5 text-xs font-bold backdrop-blur-sm sm:ml-2 sm:px-2 sm:py-1">
-                        <AlertTriangle className="h-3 w-3" />
-                        <span className="hidden sm:inline">
-                          {safeServer.alertsSummary.critical}
-                        </span>
-                      </div>
-                    )}
                 </div>
               </div>
             </div>
 
-            {/* 💡 핵심 액션만 (2개 요소) */}
+            {/* 💡 핵심 액션 */}
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-              {/* 3️⃣ 실시간 모니터링 토글 (모바일 최적화) */}
+              {/* 3️⃣ 실시간 모니터링 토글 */}
               <button
                 onClick={() => setIsRealtime(!isRealtime)}
                 className={`flex items-center gap-1 rounded-xl px-2 py-2 text-sm font-medium transition-all duration-300 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-base ${
                   isRealtime
-                    ? 'scale-105 bg-white text-green-600 shadow-xl'
-                    : 'bg-white/20 text-white backdrop-blur-sm hover:bg-white/30'
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-lg shadow-emerald-500/10'
+                    : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'
                 }`}
               >
                 {isRealtime ? (
                   <>
                     <Play className="h-4 w-4" />
-                    <span className="hidden sm:inline">실시간</span>
-                    <span className="animate-pulse">●</span>
+                    <span className="hidden sm:inline">Live</span>
+                    <span className="animate-pulse text-emerald-400">●</span>
                   </>
                 ) : (
                   <>
                     <Pause className="h-4 w-4" />
-                    <span className="hidden sm:inline">일시정지</span>
+                    <span className="hidden sm:inline">Paused</span>
                   </>
                 )}
               </button>
 
-              {/* 4️⃣ 모달 닫기 (모바일 최적화) */}
+              {/* 4️⃣ 모달 닫기 */}
               <button
                 onClick={onClose}
-                className="rounded-xl bg-white/20 p-2 backdrop-blur-sm transition-all duration-300 hover:rotate-90 hover:scale-110 hover:bg-white/30 sm:p-2.5"
+                className="rounded-xl bg-white/5 p-2 backdrop-blur-sm transition-all duration-300 hover:rotate-90 hover:scale-110 hover:bg-white/10 border border-white/10 sm:p-2.5 text-white/70 hover:text-white"
                 title="모달 닫기"
               >
                 <X className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -366,89 +349,11 @@ export default function EnhancedServerModal({
             </div>
           </div>
 
-          {/* 탭 네비게이션 - 모바일 최적화 */}
-          <div className="mt-4 flex gap-1 overflow-x-auto pb-1 sm:mt-6 sm:gap-2">
+          {/* 탭 네비게이션 */}
+          <div className="mt-4 flex gap-1 overflow-x-auto pb-1 sm:mt-6 sm:gap-2 no-scrollbar">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = selectedTab === tab.id;
-
-              // 📊 통합 탭 인디케이터 (3개 탭 전용)
-              const getTabIndicator = (tabId: TabId) => {
-                switch (tabId) {
-                  case 'overview': {
-                    // 🎯 전체 헬스 점수 표시
-                    const healthScore = safeServer.health?.score || 0;
-                    return (
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          healthScore > 80
-                            ? 'bg-green-400'
-                            : healthScore > 60
-                              ? 'bg-amber-400'
-                              : 'bg-red-400'
-                        } ${isActive ? 'opacity-100' : 'opacity-70'}`}
-                      />
-                    );
-                  }
-                  case 'metrics': {
-                    // 🎯 성능 상태 + 프로세스 수 통합
-                    const avgCpu = (safeServer.cpu + safeServer.memory) / 2;
-                    const processCount = safeServer.services?.length || 0;
-                    return (
-                      <div className="flex items-center gap-1">
-                        <div
-                          className={`h-2 w-2 rounded-full ${
-                            avgCpu > 80
-                              ? 'bg-red-400'
-                              : avgCpu > 60
-                                ? 'bg-amber-400'
-                                : 'bg-green-400'
-                          } ${isActive ? 'opacity-100' : 'opacity-70'}`}
-                        />
-                        <span
-                          className={`text-xs font-bold ${
-                            isActive ? 'text-gray-600' : 'text-white/70'
-                          }`}
-                        >
-                          {processCount}
-                        </span>
-                      </div>
-                    );
-                  }
-                  case 'logs': {
-                    // 🎯 로그 상태 + 네트워크 상태 통합
-                    const hasError = realtimeData.logs.some(
-                      (log) => log.level === 'error'
-                    );
-                    const hasWarn = realtimeData.logs.some(
-                      (log) => log.level === 'warn'
-                    );
-                    const isNetworkOnline = safeServer.status === 'online';
-                    return (
-                      <div className="flex items-center gap-1">
-                        <div
-                          className={`h-2 w-2 rounded-full ${
-                            hasError
-                              ? 'bg-red-400'
-                              : hasWarn
-                                ? 'bg-amber-400'
-                                : 'bg-blue-400'
-                          } ${isActive ? 'opacity-100' : 'opacity-70'}`}
-                        />
-                        <div
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            isNetworkOnline
-                              ? 'animate-pulse bg-green-400'
-                              : 'bg-gray-400'
-                          } ${isActive ? 'opacity-100' : 'opacity-70'}`}
-                        />
-                      </div>
-                    );
-                  }
-                  default:
-                    return null;
-                }
-              };
 
               return (
                 <button
@@ -456,24 +361,18 @@ export default function EnhancedServerModal({
                   onClick={() => setSelectedTab(tab.id)}
                   className={`relative flex items-center gap-1 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-base ${
                     isActive
-                      ? 'scale-105 bg-white text-gray-800 shadow-xl'
-                      : 'hover:scale-102 bg-white/10 text-white/90 backdrop-blur-sm hover:bg-white/20'
+                      ? 'bg-white/10 text-white shadow-lg border border-white/20'
+                      : 'text-white/40 hover:bg-white/5 hover:text-white/70'
                   }`}
                 >
                   <Icon
-                    className={`h-4 w-4 shrink-0 ${isActive ? 'text-gray-700' : 'text-white/90'}`}
+                    className={`h-4 w-4 shrink-0 ${isActive ? 'text-blue-400' : 'text-white/40'}`}
                   />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                  <span>{tab.label}</span>
 
-                  {/* 탭별 상태 인디케이터 */}
-                  <div className="flex shrink-0 items-center gap-1">
-                    {getTabIndicator(tab.id)}
-                  </div>
-
-                  {/* 활성 탭 하이라이트 */}
+                  {/* 활성 탭 하이라이트 (Bottom Bar) */}
                   {isActive && (
-                    <div className="absolute bottom-0 left-1/2 h-1 w-6 -translate-x-1/2 rounded-t-full bg-blue-500 sm:w-8" />
+                    <div className="absolute bottom-0 left-1/2 h-0.5 w-1/2 -translate-x-1/2 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
                   )}
                 </button>
               );
@@ -481,69 +380,84 @@ export default function EnhancedServerModal({
           </div>
         </div>
 
-        {/* 콘텐츠 영역 - 모듈화된 탭 컴포넌트 시스템 */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100">
-          <div key={selectedTab} className="p-4 sm:p-6">
-            {/* 📊 통합 탭 시스템 (5개→3개로 통합) */}
+        {/* 콘텐츠 영역 */}
+        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-[#0F1115] to-[#1a1c20]">
+          <div
+            key={selectedTab}
+            className="p-4 sm:p-6 opacity-0 animate-in fade-in duration-300 slide-in-from-bottom-2 fill-mode-forwards"
+          >
+            {/* 📊 통합 탭 시스템 */}
             {selectedTab === 'overview' && (
               <div className="space-y-6">
-                {/* 🎯 기존 개요 + 핵심 메트릭 통합 */}
-                <OverviewTab server={safeServer} statusTheme={statusTheme} />
+                <OverviewTab
+                  server={safeServer}
+                  statusTheme={getStatusTheme(safeServer.status)}
+                />
 
-                {/* 📈 핵심 메트릭 요약 */}
-                <div className="rounded-xl bg-white p-4 shadow-xs">
-                  <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
-                    <BarChart3 className="h-5 w-5 text-blue-600" />
+                {/* 📈 핵심 메트릭 요약 - Dark Glass Card */}
+                <div className={`rounded-xl p-5 ${DARK_CARD_STYLES.glass}`}>
+                  <h3
+                    className={`mb-4 flex items-center gap-2 text-lg font-semibold ${DARK_CARD_STYLES.textPrimary}`}
+                  >
+                    <BarChart3 className="h-5 w-5 text-blue-400" />
                     핵심 성능 지표
                   </h3>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-                    <div className="text-center">
+                    <div className="text-center p-3 rounded-lg bg-white/5 border border-white/5">
                       <div
                         className={`text-2xl font-bold ${
                           safeServer.cpu > 80
-                            ? 'text-red-600'
+                            ? 'text-red-400 shadow-red-500/20 drop-shadow-sm'
                             : safeServer.cpu > 60
-                              ? 'text-amber-600'
-                              : 'text-green-600'
+                              ? 'text-amber-400'
+                              : 'text-emerald-400'
                         }`}
                       >
                         {Math.round(safeServer.cpu)}%
                       </div>
-                      <div className="text-sm text-gray-500">CPU</div>
+                      <div className="text-xs text-white/40 uppercase mt-1 tracking-wider">
+                        CPU
+                      </div>
                     </div>
-                    <div className="text-center">
+                    <div className="text-center p-3 rounded-lg bg-white/5 border border-white/5">
                       <div
                         className={`text-2xl font-bold ${
                           safeServer.memory > 80
-                            ? 'text-red-600'
+                            ? 'text-red-400'
                             : safeServer.memory > 60
-                              ? 'text-amber-600'
-                              : 'text-green-600'
+                              ? 'text-amber-400'
+                              : 'text-emerald-400'
                         }`}
                       >
                         {Math.round(safeServer.memory)}%
                       </div>
-                      <div className="text-sm text-gray-500">메모리</div>
+                      <div className="text-xs text-white/40 uppercase mt-1 tracking-wider">
+                        Memory
+                      </div>
                     </div>
-                    <div className="text-center">
+                    <div className="text-center p-3 rounded-lg bg-white/5 border border-white/5">
                       <div
                         className={`text-2xl font-bold ${
                           safeServer.disk > 80
-                            ? 'text-red-600'
+                            ? 'text-red-400'
                             : safeServer.disk > 60
-                              ? 'text-amber-600'
-                              : 'text-green-600'
+                              ? 'text-amber-400'
+                              : 'text-emerald-400'
                         }`}
                       >
                         {Math.round(safeServer.disk)}%
                       </div>
-                      <div className="text-sm text-gray-500">디스크</div>
+                      <div className="text-xs text-white/40 uppercase mt-1 tracking-wider">
+                        Disk
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">
+                    <div className="text-center p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-2xl font-bold text-blue-400">
                         {safeServer.services?.length || 0}
                       </div>
-                      <div className="text-sm text-gray-500">서비스</div>
+                      <div className="text-xs text-white/40 uppercase mt-1 tracking-wider">
+                        Services
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -552,7 +466,6 @@ export default function EnhancedServerModal({
 
             {selectedTab === 'metrics' && (
               <div className="space-y-6">
-                {/* 🎯 기존 메트릭 탭 */}
                 <MetricsTab
                   server={safeServer}
                   realtimeData={realtimeData}
@@ -560,10 +473,11 @@ export default function EnhancedServerModal({
                   onToggleRealtime={() => setIsRealtime((prev) => !prev)}
                 />
 
-                {/* 📊 프로세스 정보 통합 */}
-                <div className="rounded-xl bg-white p-4 shadow-xs">
-                  <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
-                    <Cpu className="h-5 w-5 text-green-600" />
+                <div className={`rounded-xl p-5 ${DARK_CARD_STYLES.glass}`}>
+                  <h3
+                    className={`mb-4 flex items-center gap-2 text-lg font-semibold ${DARK_CARD_STYLES.textPrimary}`}
+                  >
+                    <Cpu className="h-5 w-5 text-emerald-400" />
                     실행 중인 프로세스
                   </h3>
                   <ProcessesTab realtimeData={realtimeData} />
@@ -573,19 +487,21 @@ export default function EnhancedServerModal({
 
             {selectedTab === 'logs' && (
               <div className="space-y-6">
-                {/* 🎯 기존 로그 탭 */}
-                <div className="rounded-xl bg-white p-4 shadow-xs">
-                  <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
-                    <FileText className="h-5 w-5 text-blue-600" />
+                <div className={`rounded-xl p-5 ${DARK_CARD_STYLES.glass}`}>
+                  <h3
+                    className={`mb-4 flex items-center gap-2 text-lg font-semibold ${DARK_CARD_STYLES.textPrimary}`}
+                  >
+                    <FileText className="h-5 w-5 text-blue-400" />
                     시스템 로그
                   </h3>
                   <LogsTab realtimeData={realtimeData} />
                 </div>
 
-                {/* 🌐 네트워크 정보 통합 */}
-                <div className="rounded-xl bg-white p-4 shadow-xs">
-                  <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
-                    <Network className="h-5 w-5 text-purple-600" />
+                <div className={`rounded-xl p-5 ${DARK_CARD_STYLES.glass}`}>
+                  <h3
+                    className={`mb-4 flex items-center gap-2 text-lg font-semibold ${DARK_CARD_STYLES.textPrimary}`}
+                  >
+                    <Network className="h-5 w-5 text-purple-400" />
                     네트워크 상태
                   </h3>
                   <NetworkTab server={safeServer} realtimeData={realtimeData} />
@@ -595,64 +511,40 @@ export default function EnhancedServerModal({
           </div>
         </div>
 
-        {/* 하단 상태 요약 - 모바일 최적화 */}
-        <div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-2 sm:px-6 sm:py-3">
+        {/* 하단 상태 요약 */}
+        <div className="border-t border-white/10 bg-[#0F1115]/50 backdrop-blur-xl px-4 py-3 sm:px-6">
           <div className="flex items-center justify-between">
-            {/* 핵심 상태 정보만 표시 (모바일 최적화) */}
             <div className="flex items-center gap-2 text-xs sm:gap-4 sm:text-sm">
-              <div className="flex items-center gap-1 sm:gap-2">
+              <div className="flex items-center gap-2">
                 <div
-                  className={`h-2 w-2 rounded-full sm:h-3 sm:w-3 ${
+                  className={`h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5 ${
                     safeServer.status === 'online'
-                      ? 'bg-green-500'
+                      ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
                       : safeServer.status === 'warning'
-                        ? 'bg-amber-500'
-                        : 'bg-red-500'
+                        ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
+                        : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
                   }`}
                 />
-                <span className="font-medium capitalize text-gray-700">
+                <span className="font-medium capitalize text-white/70">
                   {safeServer.status}
                 </span>
               </div>
-              <div className="text-gray-600">
+              <div className="text-white/40 hidden sm:block">|</div>
+              <div className="text-white/60">
                 <span className="hidden sm:inline">
-                  CPU: {Math.round(safeServer.cpu)}% | 메모리:{' '}
+                  CPU: {Math.round(safeServer.cpu)}% · Mem:{' '}
                   {Math.round(safeServer.memory)}%
                 </span>
                 <span className="sm:hidden">
-                  {Math.round(safeServer.cpu)}%/
+                  {Math.round(safeServer.cpu)}% /{' '}
                   {Math.round(safeServer.memory)}%
                 </span>
               </div>
-
-              {/* 중요 알림만 표시 (모바일 간소화) */}
-              {safeServer.alertsSummary?.critical &&
-                safeServer.alertsSummary.critical > 0 && (
-                  <div className="flex items-center gap-1 text-red-600">
-                    <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="font-medium">
-                      <span className="hidden sm:inline">
-                        {safeServer.alertsSummary.critical}개 긴급
-                      </span>
-                      <span className="sm:hidden">
-                        {safeServer.alertsSummary.critical}
-                      </span>
-                    </span>
-                  </div>
-                )}
             </div>
 
-            {/* 마지막 업데이트 시간 (모바일 간소화) */}
-            <div className="text-xs text-gray-500">
-              <span className="hidden sm:inline">
-                최종 업데이트: {new Date().toLocaleTimeString('ko-KR')}
-              </span>
-              <span className="sm:hidden">
-                {new Date().toLocaleTimeString('ko-KR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
+            <div className="text-xs text-white/30 font-mono">
+              LAST UPDATE:{' '}
+              {new Date().toLocaleTimeString('en-US', { hour12: false })}
             </div>
           </div>
         </div>
