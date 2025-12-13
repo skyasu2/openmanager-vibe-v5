@@ -293,37 +293,37 @@ export default function DashboardContent({
         <div className="mx-auto h-full max-w-none space-y-6 overflow-y-auto px-4 sm:px-6 lg:px-8 2xl:max-w-[1800px]">
           {/* 🎯 목업 데이터 모드 표시 */}
           {servers && servers.length > 0 && (
-            <div className="mb-4 overflow-hidden rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
+            <div className="mb-4 overflow-hidden rounded-lg border border-purple-500/20 bg-purple-500/10 backdrop-blur-md p-4 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <div className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-purple-500"></div>
-                  <span className="font-medium text-purple-800">
+                  <div className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-purple-400"></div>
+                  <span className="font-medium text-purple-300">
                     🎭 DEMO MODE - 온프레미스 서버 시뮬레이션
                   </span>
-                  <span className="shrink-0 rounded-full bg-purple-100 px-2 py-1 text-xs text-purple-600">
+                  <span className="shrink-0 rounded-full bg-purple-500/20 px-2 py-1 text-xs text-purple-300 border border-purple-500/30">
                     목업 데이터
                   </span>
-                  <span className="shrink-0 rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-600">
+                  <span className="shrink-0 rounded-full bg-blue-500/20 px-2 py-1 text-xs text-blue-300 border border-blue-500/30">
                     24시간 시나리오
                   </span>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-2 text-sm sm:gap-4">
                   <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 shrink-0 rounded-full bg-gray-400"></div>
-                    <span className="whitespace-nowrap text-gray-700">
+                    <div className="h-2 w-2 shrink-0 rounded-full bg-slate-400"></div>
+                    <span className="whitespace-nowrap text-slate-300">
                       총 {serverStats.total}대
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="h-2 w-2 shrink-0 rounded-full bg-green-500"></div>
-                    <span className="whitespace-nowrap text-green-600">
+                    <div className="h-2 w-2 shrink-0 rounded-full bg-emerald-400"></div>
+                    <span className="whitespace-nowrap text-emerald-400">
                       정상 {serverStats.online}대
                     </span>
                   </div>
                   {serverStats.warning > 0 && (
                     <div className="flex items-center gap-1">
-                      <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-yellow-500"></div>
-                      <span className="whitespace-nowrap text-yellow-600">
+                      <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-amber-400"></div>
+                      <span className="whitespace-nowrap text-amber-400">
                         경고 {serverStats.warning}대
                       </span>
                     </div>
@@ -331,8 +331,8 @@ export default function DashboardContent({
                   {/* critical 상태는 warning으로 통합됨 - 별도 표시 제거 */}
                   {serverStats.offline > 0 && (
                     <div className="flex items-center gap-1">
-                      <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-red-500"></div>
-                      <span className="whitespace-nowrap text-red-600">
+                      <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-red-400"></div>
+                      <span className="whitespace-nowrap text-red-400">
                         오프라인 {serverStats.offline}대
                       </span>
                     </div>
@@ -341,8 +341,8 @@ export default function DashboardContent({
               </div>
 
               {/* 📊 상세 통계 정보 */}
-              <div className="mt-2 border-t border-purple-200/50 pt-2">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-purple-700">
+              <div className="mt-2 border-t border-purple-500/20 pt-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-purple-400">
                   <span className="whitespace-nowrap">
                     마지막 업데이트: {new Date().toLocaleTimeString('ko-KR')}
                   </span>
@@ -369,11 +369,11 @@ export default function DashboardContent({
               {/* 서버 카드 목록 */}
               <Suspense
                 fallback={
-                  <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+                  <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-lg">
                     <div className="animate-pulse">
-                      <div className="mb-4 h-4 rounded bg-gray-200"></div>
-                      <div className="mb-4 h-4 rounded bg-gray-200"></div>
-                      <div className="h-4 w-5/6 rounded bg-gray-200"></div>
+                      <div className="mb-4 h-4 rounded bg-white/10"></div>
+                      <div className="mb-4 h-4 rounded bg-white/10"></div>
+                      <div className="h-4 w-5/6 rounded bg-white/10"></div>
                     </div>
                   </div>
                 }

@@ -593,7 +593,7 @@ function DashboardPageContent() {
       data-hydration-complete={isMounted.toString()}
       data-check-test-mode-result={checkTestMode().toString()}
       className={cn(
-        'flex h-screen bg-gray-100 dark:bg-gray-900',
+        'flex h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900',
         isResizing && 'cursor-col-resize'
       )}
     >
