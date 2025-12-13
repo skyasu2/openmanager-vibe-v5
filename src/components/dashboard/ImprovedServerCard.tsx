@@ -26,9 +26,9 @@ import type {
 } from '../../types/server';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { AIInsightBadge } from '../shared/AIInsightBadge';
+import { MiniLineChart } from '../shared/MiniLineChart';
 import { ServerMetricsChart } from '../shared/ServerMetricsChart';
 import { ServerStatusIndicator } from '../shared/ServerStatusIndicator';
-import { Sparkline } from '../shared/Sparkline';
 
 export interface ImprovedServerCardProps {
   server: ServerType;
@@ -64,11 +64,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       };
     }, []);
 
-    // Metric data
-    const { currentMetrics, historyData } = useFixed24hMetrics(
-      safeServer.id,
-      60000
-    );
+    // Metric data - 기본값 5분 사용 (데이터 갱신 주기와 일치)
+    const { currentMetrics, historyData } = useFixed24hMetrics(safeServer.id);
 
     const realtimeMetrics = useMemo(
       () => ({
@@ -326,13 +323,14 @@ const MetricItem = ({
       size="md"
       showLabel
     />
-    <div className="mt-2 h-8 w-full opacity-70">
-      <Sparkline
+    <div className="mt-2 h-8 w-full flex justify-center">
+      <MiniLineChart
         data={history || []}
         width={80}
-        height={20}
+        height={24}
         color={color}
         fill
+        strokeWidth={1.5}
       />
     </div>
   </div>

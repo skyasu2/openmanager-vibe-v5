@@ -1,13 +1,21 @@
 /**
- * 🎯 24시간 고정 데이터 훅 (v3.0 - UnifiedServerDataSource)
+ * 🎯 24시간 고정 데이터 훅 (v3.2 - Vercel 최적화)
  *
  * ✅ Single Source of Truth: scenario-loader 기반 통합 데이터
- * ✅ 5분 간격 고정 데이터 (선형 보간 제거)
+ * ✅ 5분 간격 데이터 갱신 (시뮬레이션 데이터 주기와 일치)
  * ✅ 한국 시간(KST) 동기화
- * ✅ UnifiedServerDataSource 캐시 활용
+ * ✅ UnifiedServerDataSource 5분 TTL 캐시 활용
+ * ✅ 히스토리 데이터 누적 (최대 60개 포인트 = 5시간 분량)
+ * ✅ Vercel 사용량 최적화 (불필요한 API 호출 방지)
  *
- * @see src/services/data/UnifiedServerDataSource.ts - 통합 데이터 소스
+ * 📊 데이터 구조:
+ *   - 24개 JSON 파일 (hour-00 ~ hour-23)
+ *   - 각 파일당 12개 dataPoints (5분 간격)
+ *   - 총 288개 데이터 포인트 / 24시간
+ *
+ * @see src/services/data/UnifiedServerDataSource.ts - 통합 데이터 소스 (5분 TTL)
  * @see src/services/scenario/scenario-loader.ts - 시나리오 기반 데이터
+ * @see public/hourly-data/hour-XX.json - 시간별 JSON 데이터
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -24,6 +32,9 @@ export interface HistoryDataPoint {
   disk: number;
   network: number;
 }
+
+// 히스토리 데이터 최대 포인트 수 (60분 = 60개 포인트)
+const MAX_HISTORY_POINTS = 60;
 
 /**
  * 24시간 JSON 데이터 + 1분 선형 보간 훅
@@ -50,13 +61,15 @@ export interface HistoryDataPoint {
  */
 export function useFixed24hMetrics(
   serverId: string,
-  updateInterval: number = 60000
+  updateInterval: number = 300000 // 5분 (데이터 갱신 주기와 일치)
 ) {
   const [currentMetrics, setCurrentMetrics] = useState<Server | null>(null);
   const [historyData, setHistoryData] = useState<HistoryDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
+  // 마지막 업데이트 시간 추적 (중복 데이터 방지)
+  const lastUpdateTimeRef = useRef<string>('');
 
   // 메트릭 업데이트 함수
   const updateMetrics = useCallback(async () => {
@@ -74,23 +87,37 @@ export function useFixed24hMetrics(
         setCurrentMetrics(server);
         setError(null);
 
-        // 히스토리 데이터는 현재 시점의 스냅샷만 제공
-        // (5분 간격 데이터이므로 실시간 변화 추적)
-        const history: HistoryDataPoint[] = [
-          {
-            time: new Date().toLocaleTimeString('ko-KR', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false,
-            }),
+        // 현재 시간 포맷
+        const currentTime = new Date().toLocaleTimeString('ko-KR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        });
+
+        // 중복 데이터 방지: 같은 시간(분)에 이미 데이터가 있으면 스킵
+        if (currentTime !== lastUpdateTimeRef.current) {
+          lastUpdateTimeRef.current = currentTime;
+
+          // 새 데이터 포인트 생성
+          const newDataPoint: HistoryDataPoint = {
+            time: currentTime,
             cpu: Math.round(server.cpu * 10) / 10,
             memory: Math.round(server.memory * 10) / 10,
             disk: Math.round(server.disk * 10) / 10,
             network: Math.round((server.network ?? 0) * 10) / 10,
-          },
-        ];
+          };
 
-        setHistoryData(history);
+          // 히스토리 데이터 누적 (최대 MAX_HISTORY_POINTS 유지)
+          setHistoryData((prev) => {
+            const updated = [...prev, newDataPoint];
+            // 최대 포인트 수 초과 시 오래된 데이터 제거
+            if (updated.length > MAX_HISTORY_POINTS) {
+              return updated.slice(-MAX_HISTORY_POINTS);
+            }
+            return updated;
+          });
+        }
+
         setIsLoading(false);
       } else {
         setError(`서버 "${serverId}" 데이터를 찾을 수 없습니다.`);
@@ -150,7 +177,7 @@ export function useFixed24hMetrics(
  */
 export function useMultipleFixed24hMetrics(
   serverIds: string[],
-  updateInterval: number = 60000
+  updateInterval: number = 300000 // 5분 (데이터 갱신 주기와 일치)
 ) {
   const [metricsMap, setMetricsMap] = useState<Map<string, Server>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
@@ -230,7 +257,7 @@ export function useMultipleFixed24hMetrics(
 export function useSingleMetric(
   serverId: string,
   metricType: 'cpu' | 'memory' | 'disk' | 'network',
-  updateInterval: number = 60000
+  updateInterval: number = 300000 // 5분 (데이터 갱신 주기와 일치)
 ) {
   const [value, setValue] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
