@@ -7,7 +7,7 @@
 
 'use client';
 
-import { User } from 'lucide-react';
+import { Sparkles, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useState } from 'react';
 // 게스트 로그인 관련 임포트 (lib/auth-state-manager로 통합)
@@ -378,9 +378,17 @@ export default function LoginClient() {
             {/* SVG 그라데이션 정의 (useId로 scoped ID 사용 - 중복 마운트 안전) */}
             <AIIconGradientDefs id={gradientId} />
             <div
-              className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-2xl shadow-blue-500/40 sm:h-20 sm:w-20`}
+              className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 shadow-lg shadow-blue-500/20 sm:h-20 sm:w-20`}
             >
-              <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm" />
+              {/* Sparkles 아이콘에 SVG 그라데이션 적용 (stroke + fill) */}
+              <Sparkles
+                className="h-8 w-8 sm:h-10 sm:w-10"
+                style={{
+                  stroke: `url(#${gradientId})`,
+                  fill: `url(#${gradientId})`,
+                  strokeWidth: 1.5,
+                }}
+              />
             </div>
             {/* 🎨 [2] 로고와 타이틀 간격 확대 - 라이트 텍스트 (PC 최적화) */}
             {/* 업계 표준: GitHub 600, Google 500 → 균형잡힌 600 적용 */}
