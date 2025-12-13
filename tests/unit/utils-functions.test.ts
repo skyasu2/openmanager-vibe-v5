@@ -483,7 +483,9 @@ describe('Utils Functions', () => {
     });
 
     it('truncate는 문자열을 자른다', () => {
-      expect(truncate('Hello World', 5)).toBe('Hello...');
+      // truncate는 suffix('...')를 포함한 최종 길이가 length 이하가 되도록 자름
+      // length=8이면 8-3=5글자 + '...' = 'Hello...'
+      expect(truncate('Hello World', 8)).toBe('Hello...');
       expect(truncate('Hi', 10)).toBe('Hi');
     });
   });

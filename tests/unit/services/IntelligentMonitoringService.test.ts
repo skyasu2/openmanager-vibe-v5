@@ -1,4 +1,8 @@
 /**
+ * @vitest-environment jsdom
+ */
+
+/**
  * 🧠 Intelligent Monitoring Service - Unit Tests
  *
  * @description

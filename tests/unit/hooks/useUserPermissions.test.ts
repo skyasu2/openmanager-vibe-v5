@@ -1,4 +1,8 @@
 /**
+ * @vitest-environment jsdom
+ */
+
+/**
  * 🧪 useUserPermissions Hook 테스트
  *
  * @description 사용자 권한 및 인증 상태에 따른 Hook 동작 검증

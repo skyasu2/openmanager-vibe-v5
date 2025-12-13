@@ -77,8 +77,9 @@ describe('Fallback Data Configuration', () => {
       STATIC_ERROR_SERVERS.forEach((server) => {
         expect(server.status).toBe('offline');
         expect(server.alerts).toBe(999);
-        expect(server.environment).toBe('ERROR');
-        expect(server.type).toBe('ERROR');
+        // environment와 role은 실제 fallback-data에서 undefined로 설정됨
+        expect(server.environment).toBeUndefined();
+        expect(server.role).toBeUndefined();
       });
     });
   });

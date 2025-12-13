@@ -1,4 +1,8 @@
 /**
+ * @vitest-environment jsdom
+ */
+
+/**
  * 🧪 serverConfig.ts 단위 테스트
  *
  * AI 교차검증 권장사항 구현:
