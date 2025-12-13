@@ -9,7 +9,7 @@
 
 import { Sparkles, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 // 게스트 로그인 관련 임포트 (lib/auth-state-manager로 통합)
 import type { AuthUser } from '@/lib/auth/auth-state-manager';
 import { authStateManager } from '@/lib/auth/auth-state-manager';
@@ -17,7 +17,6 @@ import { authStateManager } from '@/lib/auth/auth-state-manager';
 import { signInWithGitHub } from '@/lib/auth/supabase-auth';
 import {
   AI_GRADIENT_CLASSES,
-  AI_ICON_GRADIENT_ID,
   BUTTON_STYLES,
   PAGE_BACKGROUNDS,
 } from '@/styles/design-constants';
@@ -93,6 +92,7 @@ const SplashScreen = () => (
 
 export default function LoginClient() {
   const _router = useRouter();
+  const gradientId = useId(); // Scoped ID for SVG gradient (중복 마운트 시 충돌 방지)
   const [isLoading, setIsLoading] = useState(false);
   const [loadingType, setLoadingType] = useState<'github' | 'guest' | null>(
     null
@@ -377,8 +377,8 @@ export default function LoginClient() {
           {/* 헤더 (Card 내부) */}
           <div className="relative mb-10 flex flex-col items-center text-center">
             {/* ✨ 로고: AI 아이콘 + 그라데이션 (파란색 계열 강화) */}
-            {/* SVG 그라데이션 정의 */}
-            <AIIconGradientDefs />
+            {/* SVG 그라데이션 정의 (useId로 scoped ID 사용 - 중복 마운트 안전) */}
+            <AIIconGradientDefs id={gradientId} />
             <div
               className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-lg shadow-blue-500/40 sm:h-20 sm:w-20`}
             >
@@ -386,8 +386,8 @@ export default function LoginClient() {
               <Sparkles
                 className="h-8 w-8 sm:h-10 sm:w-10"
                 style={{
-                  stroke: `url(#${AI_ICON_GRADIENT_ID})`,
-                  fill: `url(#${AI_ICON_GRADIENT_ID})`,
+                  stroke: `url(#${gradientId})`,
+                  fill: `url(#${gradientId})`,
                   strokeWidth: 1.5,
                 }}
               />

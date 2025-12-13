@@ -80,23 +80,24 @@ export function renderAIGradientWithAnimation(text: string): React.ReactNode {
  * SVG 그라데이션 정의 컴포넌트
  *
  * SVG 아이콘에 그라데이션을 적용하기 위한 defs 요소
- * 페이지에 한 번만 렌더링하면 됨
+ * 중복 마운트 시 ID 충돌 방지를 위해 scoped ID 사용 권장
+ *
+ * @param id - 그라데이션 ID (useId()로 생성 권장, 미지정시 기본값 사용)
  *
  * @example
- * <AIIconGradientDefs />
- * <Icon className="[&>*]:fill-[url(#ai-icon-gradient)]" />
+ * const gradientId = useId();
+ * <AIIconGradientDefs id={gradientId} />
+ * <Icon style={{ stroke: `url(#${gradientId})` }} />
  */
-export function AIIconGradientDefs(): React.ReactElement {
+export function AIIconGradientDefs({
+  id = AI_ICON_GRADIENT_ID,
+}: {
+  id?: string;
+} = {}): React.ReactElement {
   return (
     <svg width="0" height="0" className="absolute" aria-hidden="true">
       <defs>
-        <linearGradient
-          id={AI_ICON_GRADIENT_ID}
-          x1="0%"
-          y1="0%"
-          x2="100%"
-          y2="100%"
-        >
+        <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor={AI_ICON_GRADIENT_COLORS.start} />
           <stop offset="50%" stopColor={AI_ICON_GRADIENT_COLORS.mid} />
           <stop offset="100%" stopColor={AI_ICON_GRADIENT_COLORS.end} />
@@ -110,7 +111,7 @@ export function AIIconGradientDefs(): React.ReactElement {
  * 아이콘에 그라데이션 적용을 위한 래퍼 컴포넌트
  *
  * Lucide React 아이콘 등에 AI 그라데이션 효과 적용
- * CSS mask-image 기법 사용 (크로스 브라우저 호환)
+ * CSS mask-image 기법 사용 (크로스 브라우저 호환 - CSS.supports 체크)
  *
  * @param children - 아이콘 컴포넌트
  * @param className - 추가 클래스
@@ -130,6 +131,10 @@ export function GradientIconWrapper({
   className?: string;
   animate?: boolean;
 }): React.ReactElement {
+  // 크로스브라우저 호환성: mask-composite 지원 여부 체크
+  const supportsMaskComposite =
+    typeof CSS !== 'undefined' && CSS.supports?.('mask-composite', 'intersect');
+
   return (
     <div
       className={`inline-flex items-center justify-center ${
@@ -138,10 +143,13 @@ export function GradientIconWrapper({
           : 'bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600'
       } ${className}`}
       style={{
-        WebkitMaskImage: 'linear-gradient(white, white)',
-        maskImage: 'linear-gradient(white, white)',
-        WebkitMaskComposite: 'destination-in',
-        maskComposite: 'intersect',
+        // mask 속성은 지원되는 브라우저에서만 적용
+        ...(supportsMaskComposite && {
+          WebkitMaskImage: 'linear-gradient(white, white)',
+          maskImage: 'linear-gradient(white, white)',
+          WebkitMaskComposite: 'destination-in',
+          maskComposite: 'intersect',
+        }),
         backgroundSize: animate ? '200% 200%' : undefined,
       }}
     >
