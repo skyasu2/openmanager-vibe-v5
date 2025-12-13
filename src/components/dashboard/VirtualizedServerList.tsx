@@ -27,8 +27,8 @@ export default function VirtualizedServerList({
   useEffect(() => {
     const calculateCardsPerRow = () => {
       const containerWidth = window.innerWidth - 64; // 좌우 패딩 제외
-      const cardWidth = 380; // 카드 최소 너비
-      const gap = 16; // 카드 간격
+      const cardWidth = 200; // 카드 최소 너비 (50% 축소)
+      const gap = 12; // 카드 간격
       const cards = Math.floor((containerWidth + gap) / (cardWidth + gap));
       setCardsPerRow(Math.max(1, cards)); // 최소 1개
     };
@@ -69,12 +69,12 @@ export default function VirtualizedServerList({
 
   return (
     <div className="w-full">
-      {/* 정보 배너 */}
-      <div className="mb-4 rounded-lg border border-purple-200 bg-purple-50 p-3">
+      {/* 정보 배너 - 화이트 모드 */}
+      <div className="mb-3 rounded-lg border border-gray-200 bg-white/80 backdrop-blur-sm p-2.5 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="text-purple-600">
+          <div className="text-gray-600">
             <svg
-              className="h-5 w-5"
+              className="h-4 w-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -88,21 +88,21 @@ export default function VirtualizedServerList({
             </svg>
           </div>
           <div>
-            <p className="text-sm font-medium text-purple-900">
-              📊 반응형 그리드 ({servers.length}개 서버)
+            <p className="text-xs font-medium text-gray-900">
+              반응형 그리드 ({servers.length}개 서버)
             </p>
-            <p className="text-xs text-purple-700">
-              브라우저 크기에 맞게 자동 배치 • 현재 {cardsPerRow}개/줄
+            <p className="text-[10px] text-gray-600">
+              현재 {cardsPerRow}개/줄 배치
             </p>
           </div>
         </div>
       </div>
 
-      {/* 반응형 그리드 */}
+      {/* 반응형 그리드 - 카드 50% 축소에 맞춤 */}
       <div
-        className="grid gap-4"
+        className="grid gap-3"
         style={{
-          gridTemplateColumns: `repeat(auto-fit, minmax(380px, 1fr))`,
+          gridTemplateColumns: `repeat(auto-fit, minmax(200px, 1fr))`,
         }}
       >
         {servers

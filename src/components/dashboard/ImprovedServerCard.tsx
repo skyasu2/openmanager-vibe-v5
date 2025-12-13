@@ -19,10 +19,7 @@ import React, {
 } from 'react';
 import { useFixed24hMetrics } from '../../hooks/useFixed24hMetrics';
 import { useSafeServer } from '../../hooks/useSafeServer';
-import {
-  DARK_CARD_STYLES,
-  getDarkServerStatusTheme,
-} from '../../styles/design-constants';
+import { getServerStatusTheme } from '../../styles/design-constants';
 import type {
   ServerStatus,
   Server as ServerType,
@@ -31,7 +28,13 @@ import type {
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { AIInsightBadge } from '../shared/AIInsightBadge';
 import { MiniLineChart } from '../shared/MiniLineChart';
-// ServerMetricsChart 제거 - 라인 차트로 통합 (2025-12-13)
+
+/**
+ * 🎨 White Mode Glassmorphism Server Card
+ * - 반투명 유리 효과 (backdrop-blur)
+ * - 상태별 색상: Critical(빨강), Warning(주황), Healthy(녹색)
+ * - 카드 크기 50% 축소 (2025-12-13)
+ */
 
 export interface ImprovedServerCardProps {
   server: ServerType;
@@ -52,8 +55,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
   }) => {
     // Basic data preparation
     const { safeServer, serverIcon, osIcon } = useSafeServer(server);
-    // Use Dark Theme
-    const statusTheme = getDarkServerStatusTheme(safeServer.status);
+    // 🎨 White Mode with Glassmorphism + Status Colors
+    const statusTheme = getServerStatusTheme(safeServer.status);
 
     const [_isHovered, setIsHovered] = useState(false);
     const [showSecondaryInfo, setShowSecondaryInfo] = useState(false);
@@ -81,23 +84,23 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       [currentMetrics, safeServer]
     );
 
-    // UI Variants
+    // UI Variants - 50% 축소된 크기
     const variantStyles = useMemo(() => {
       const styles = {
         compact: {
-          container: 'min-h-[300px] p-4',
+          container: 'min-h-[150px] p-2',
           maxServices: 2,
           showDetails: false,
           showServices: false,
         },
         detailed: {
-          container: 'min-h-[380px] p-6',
+          container: 'min-h-[190px] p-3',
           maxServices: 4,
           showDetails: true,
           showServices: true,
         },
         standard: {
-          container: 'min-h-[340px] p-5',
+          container: 'min-h-[170px] p-2.5',
           maxServices: 3,
           showDetails: true,
           showServices: true,
@@ -133,85 +136,80 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         onKeyDown={(e) =>
           (e.key === 'Enter' || e.key === ' ') && onClick(safeServer)
         }
-        className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg backdrop-blur-md ${statusTheme.background} ${statusTheme.border} ${variantStyles.container}`}
+        className={`group relative w-full cursor-pointer overflow-hidden rounded-xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg backdrop-blur-md ${statusTheme.background} ${statusTheme.border} ${variantStyles.container}`}
       >
-        {/* Glow Effect */}
+        {/* Subtle Hover Glow Effect (Light Mode) */}
         <div
-          className={`absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 ${statusTheme.glow}`}
+          className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-30 pointer-events-none rounded-xl"
+          style={{ backgroundColor: statusTheme.graphColor }}
         />
 
         {/* Live Indicator */}
         {showRealTimeUpdates && (
-          <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5">
+          <div className="absolute right-2 top-2 z-10 flex items-center gap-1">
             <span
-              className={`h-2 w-2 rounded-full animate-pulse ${statusTheme.text.replace('text-', 'bg-')}`}
+              className={`h-1.5 w-1.5 rounded-full animate-pulse ${statusTheme.text.replace('text-', 'bg-')}`}
             />
-            <span className={`text-xs font-medium ${statusTheme.text}`}>
+            <span className={`text-[10px] font-medium ${statusTheme.text}`}>
               Live
             </span>
           </div>
         )}
 
-        {/* Header */}
-        <header className="mb-4 flex items-start justify-between relative z-10">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
+        {/* Header - 축소된 크기 */}
+        <header className="mb-2 flex items-start justify-between relative z-10">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <div
-              className={`rounded-xl p-2.5 shadow-lg backdrop-blur-sm transition-colors duration-300 bg-white/5 group-hover:bg-white/10 ${statusTheme.text}`}
+              className={`rounded-lg p-1.5 shadow-md backdrop-blur-sm transition-colors duration-300 bg-black/5 group-hover:bg-black/10 ${statusTheme.text}`}
             >
               {serverIcon}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="mb-1 flex items-center gap-2">
-                <h3
-                  className={`truncate text-lg font-semibold ${DARK_CARD_STYLES.textPrimary}`}
-                >
+              <div className="mb-0.5 flex items-center gap-1">
+                <h3 className="truncate text-sm font-semibold text-gray-900">
                   {safeServer.name}
                 </h3>
                 {osIcon && (
-                  <span className={`${DARK_CARD_STYLES.textTertiary}`}>
-                    {osIcon}
-                  </span>
+                  <span className="text-gray-400 text-xs">{osIcon}</span>
                 )}
               </div>
-              <div
-                className={`flex items-center gap-2 text-sm font-medium ${DARK_CARD_STYLES.textSecondary}`}
-              >
-                <MapPin className="h-3 w-3" />
+              <div className="flex items-center gap-1 text-xs font-medium text-gray-600">
+                <MapPin className="h-2.5 w-2.5" />
                 <span>{safeServer.location}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-8">
+          <div className="flex items-center gap-1 pt-4">
             {enableProgressiveDisclosure && (
               <button
                 onClick={toggleExpansion}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-black/5 hover:bg-black/10 text-gray-500 hover:text-gray-700 transition-colors"
               >
                 {showTertiaryInfo ? (
-                  <ChevronUp className="h-4 w-4" />
+                  <ChevronUp className="h-3 w-3" />
                 ) : (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-3 w-3" />
                 )}
               </button>
             )}
           </div>
         </header>
 
-        {/* Metrics */}
-        <section className="space-y-4 relative z-10">
-          <div className="space-y-3">
+        {/* Metrics - 축소된 크기 */}
+        <section className="space-y-2 relative z-10">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Activity className="h-3 w-3 text-white/40" />
-                <span className="text-xs font-semibold uppercase text-white/40 tracking-wider">
+              <div className="flex items-center gap-1">
+                <Activity className="h-2.5 w-2.5 text-gray-500" />
+                <span className="text-[9px] font-semibold uppercase text-gray-500 tracking-wider">
                   Core Metrics
                 </span>
               </div>
               <AIInsightBadge {...realtimeMetrics} historyData={historyData} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2">
               <MetricItem
                 type="cpu"
                 value={realtimeMetrics.cpu}
@@ -229,17 +227,17 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             </div>
           </div>
 
-          {/* Secondary & Details (conditionally rendered via CSS height transition) */}
+          {/* Secondary & Details */}
           <div
-            className={`space-y-3 overflow-hidden transition-all duration-300 ${showSecondaryInfo ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
+            className={`space-y-1.5 overflow-hidden transition-all duration-300 ${showSecondaryInfo ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
           >
-            <div className="flex items-center gap-2 pt-2">
-              <HardDrive className="h-3 w-3 text-white/40" />
-              <span className="text-xs font-medium uppercase text-white/40 tracking-wider">
+            <div className="flex items-center gap-1 pt-1">
+              <HardDrive className="h-2.5 w-2.5 text-gray-500" />
+              <span className="text-[9px] font-medium uppercase text-gray-500 tracking-wider">
                 Secondary
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2">
               <MetricItem
                 type="disk"
                 value={realtimeMetrics.disk}
@@ -258,21 +256,21 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           </div>
 
           <div
-            className={`space-y-4 overflow-hidden transition-all duration-500 ${showTertiaryInfo ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
+            className={`space-y-2 overflow-hidden transition-all duration-500 ${showTertiaryInfo ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
           >
-            <div className="grid grid-cols-2 gap-3 text-sm pt-4 border-t border-white/10">
+            <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-gray-200">
               <DetailRow
-                icon={<Globe className="h-3.5 w-3.5" />}
+                icon={<Globe className="h-3 w-3" />}
                 label="OS"
                 value={safeServer.os}
               />
               <DetailRow
-                icon={<Clock className="h-3.5 w-3.5" />}
+                icon={<Clock className="h-3 w-3" />}
                 label="Uptime"
                 value={safeServer.uptime}
               />
               <DetailRow
-                icon={<Zap className="h-3.5 w-3.5" />}
+                icon={<Zap className="h-3 w-3" />}
                 label="IP"
                 value={safeServer.ip}
               />
@@ -285,7 +283,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           safeServer.services?.length > 0 &&
           (showSecondaryInfo || !enableProgressiveDisclosure) && (
             <div
-              className={`mt-4 flex flex-wrap gap-2 transition-all duration-300 relative z-10 ${showSecondaryInfo || !enableProgressiveDisclosure ? 'opacity-100' : 'opacity-0'}`}
+              className={`mt-2 flex flex-wrap gap-1 transition-all duration-300 relative z-10 ${showSecondaryInfo || !enableProgressiveDisclosure ? 'opacity-100' : 'opacity-0'}`}
             >
               {safeServer.services
                 .slice(0, variantStyles.maxServices)
@@ -293,7 +291,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   <ServiceChip key={i} service={s} />
                 ))}
               {safeServer.services.length > variantStyles.maxServices && (
-                <span className="px-2 py-1 text-xs text-white/40">
+                <span className="px-1.5 py-0.5 text-[10px] text-gray-500">
                   +{safeServer.services.length - variantStyles.maxServices}
                 </span>
               )}
@@ -304,7 +302,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
   }
 );
 
-// Helper Components for cleanliness
+// Helper Components - 축소된 스타일
 interface MetricItemProps {
   type: 'cpu' | 'memory' | 'disk' | 'network';
   value: number;
@@ -316,7 +314,7 @@ interface MetricItemProps {
 const MetricItem = ({
   type,
   value,
-  status: _status, // 향후 상태별 스타일링용 예약
+  status: _status,
   history,
   color,
 }: MetricItemProps) => {
@@ -328,25 +326,25 @@ const MetricItem = ({
   };
 
   return (
-    <div className="flex flex-col bg-white/5 rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-colors">
+    <div className="flex flex-col bg-black/5 rounded-lg p-2 border border-gray-200/50 hover:bg-black/10 transition-colors">
       {/* Header: Label + Value */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] uppercase text-white/50 font-semibold tracking-wider">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[9px] uppercase text-gray-500 font-semibold tracking-wider">
           {labels[type]}
         </span>
-        <span className="text-lg font-bold" style={{ color }}>
+        <span className="text-sm font-bold" style={{ color }}>
           {Math.round(value)}%
         </span>
       </div>
       {/* Primary: Line Chart */}
-      <div className="w-full h-12 flex items-center justify-center">
+      <div className="w-full h-8 flex items-center justify-center">
         <MiniLineChart
           data={history && history.length > 0 ? history : [value, value]}
-          width={120}
-          height={40}
+          width={80}
+          height={28}
           color={color}
           fill
-          strokeWidth={2}
+          strokeWidth={1.5}
         />
       </div>
     </div>
@@ -360,13 +358,15 @@ interface DetailRowProps {
 }
 
 const DetailRow = ({ icon, label, value }: DetailRowProps) => (
-  <div className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2 border border-white/5">
-    <div className="text-white/40">{icon}</div>
+  <div className="flex items-center gap-1.5 rounded-md bg-black/5 px-2 py-1 border border-gray-200/50">
+    <div className="text-gray-500">{icon}</div>
     <div className="min-w-0">
-      <div className="text-[10px] uppercase text-white/40 font-semibold tracking-wider">
+      <div className="text-[8px] uppercase text-gray-500 font-semibold tracking-wider">
         {label}
       </div>
-      <div className="font-medium text-white/80 truncate text-xs">{value}</div>
+      <div className="font-medium text-gray-700 truncate text-[10px]">
+        {value}
+      </div>
     </div>
   </div>
 );
@@ -374,23 +374,23 @@ const DetailRow = ({ icon, label, value }: DetailRowProps) => (
 const ServiceChip = ({ service }: { service: Service }) => {
   const statusColors =
     service.status === 'running'
-      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+      ? 'border-emerald-400/50 bg-emerald-100/80 text-emerald-700'
       : service.status === 'stopped'
-        ? 'border-red-500/30 bg-red-500/10 text-red-400'
-        : 'border-amber-500/30 bg-amber-500/10 text-amber-400';
+        ? 'border-red-400/50 bg-red-100/80 text-red-700'
+        : 'border-amber-400/50 bg-amber-100/80 text-amber-700';
 
   const dotColor =
     service.status === 'running'
-      ? 'bg-emerald-400'
+      ? 'bg-emerald-500'
       : service.status === 'stopped'
-        ? 'bg-red-400'
-        : 'bg-amber-400';
+        ? 'bg-red-500'
+        : 'bg-amber-500';
 
   return (
     <div
-      className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium backdrop-blur-sm ${statusColors}`}
+      className={`flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-medium backdrop-blur-sm ${statusColors}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${dotColor} shadow-sm`} />
+      <span className={`h-1 w-1 rounded-full ${dotColor}`} />
       <span>{service.name}</span>
     </div>
   );
