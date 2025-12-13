@@ -97,7 +97,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       trend: 'stable',
     });
 
-    // 실시간 데이터 업데이트 - 성능 최적화
+    // 실시간 데이터 업데이트 - 5분 간격 (성능 최적화)
     useEffect(() => {
       const interval = setInterval(
         () => {
@@ -149,7 +149,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 : 'stable',
           }));
         },
-        20000 + index * 200
+        300000 + index * 1000 // 5분 간격 (카드별 1초 오프셋)
       );
 
       return () => clearInterval(interval);
