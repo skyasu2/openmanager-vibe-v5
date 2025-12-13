@@ -19,7 +19,7 @@ import type { AgentStateType, ToolResult } from '../state-definition';
 // 1. Model Configuration
 // ============================================================================
 
-const ANALYST_MODEL = 'gemini-2.5-pro';
+import { AI_MODELS } from '@/config/ai-engine';
 
 function getAnalystModel(): ChatGoogleGenerativeAI {
   const apiKey = process.env.GOOGLE_API_KEY;
@@ -29,7 +29,7 @@ function getAnalystModel(): ChatGoogleGenerativeAI {
 
   return new ChatGoogleGenerativeAI({
     apiKey,
-    model: ANALYST_MODEL,
+    model: AI_MODELS.PRO,
     temperature: 0.2, // 분석은 정확성 우선
     maxOutputTokens: 2048,
   });

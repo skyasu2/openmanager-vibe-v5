@@ -10,14 +10,30 @@
  */
 
 import type { NextRequest } from 'next/server';
+import { z } from 'zod';
 import { withAuth } from '@/lib/auth/api-auth';
 import {
   createStreamingResponse,
   executeGraph,
 } from '@/services/langgraph/graph-builder';
+import { quickFilter, quickSanitize } from './security';
 
 // Allow streaming responses up to 60 seconds
 export const maxDuration = 60;
+
+// ============================================================================
+// 📋 Request Schema (Zod Validation)
+// ============================================================================
+
+const messageSchema = z.object({
+  role: z.enum(['user', 'assistant', 'system']),
+  content: z.string().min(1).max(10000),
+});
+
+const requestSchema = z.object({
+  messages: z.array(messageSchema).min(1).max(50),
+  sessionId: z.string().optional(),
+});
 
 // ============================================================================
 // 🧠 Main Handler - LangGraph Multi-Agent System
@@ -25,15 +41,38 @@ export const maxDuration = 60;
 
 export const POST = withAuth(async (req: NextRequest) => {
   try {
-    const { messages, sessionId: clientSessionId } = await req.json();
+    // 1. Zod 스키마 검증
+    const body = await req.json();
+    const parseResult = requestSchema.safeParse(body);
 
-    // 1. 마지막 메시지에서 사용자 쿼리 추출
+    if (!parseResult.success) {
+      console.warn(
+        '⚠️ [Unified-Stream] Invalid payload:',
+        parseResult.error.issues
+      );
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Invalid request payload',
+          details: parseResult.error.issues.map((i) => i.message).join(', '),
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const { messages, sessionId: clientSessionId } = parseResult.data;
+
+    // 2. 마지막 메시지에서 사용자 쿼리 추출 + 입력 정제
     const lastMessage =
       messages.length > 0 ? messages[messages.length - 1] : null;
-    const userQuery =
+    const rawQuery =
       lastMessage && typeof lastMessage.content === 'string'
         ? lastMessage.content
         : 'System status check';
+    const userQuery = quickSanitize(rawQuery);
 
     // 2. 세션 ID 생성/사용
     const sessionId = clientSessionId || `session_${Date.now()}`;
@@ -79,7 +118,7 @@ export const POST = withAuth(async (req: NextRequest) => {
 
       return Response.json({
         success: true,
-        response: result.response,
+        response: quickFilter(result.response),
         toolResults: result.toolResults,
         targetAgent: result.targetAgent,
         sessionId: result.sessionId,

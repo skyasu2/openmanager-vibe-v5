@@ -19,7 +19,7 @@ import type { AgentStateType, ToolResult } from '../state-definition';
 // 1. Model Configuration
 // ============================================================================
 
-const NLQ_MODEL = 'gemini-2.5-flash';
+import { AI_MODELS } from '@/config/ai-engine';
 
 function getNLQModel(): ChatGoogleGenerativeAI {
   const apiKey = process.env.GOOGLE_API_KEY;
@@ -29,7 +29,7 @@ function getNLQModel(): ChatGoogleGenerativeAI {
 
   return new ChatGoogleGenerativeAI({
     apiKey,
-    model: NLQ_MODEL,
+    model: AI_MODELS.FLASH,
     temperature: 0.3,
     maxOutputTokens: 1024,
   });

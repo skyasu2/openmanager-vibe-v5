@@ -2,9 +2,27 @@
 # 핵심 정보만 포함, 상세 내역은 별도 문서 참조
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
-version: "2.5.0"  # registry-core 버전 (v2.5.0: MCP 정리 - memory/time/shadcn-ui/sequential-thinking 제거, figma 추가)
-last_updated: "2025-12-11"
+version: "2.6.0"  # registry-core 버전 (v2.6.0: LangGraph 마이그레이션, ML 제거, MCP 환경 구분)
+last_updated: "2025-12-14"
 project: "OpenManager VIBE v5.80.0"
+
+# ============================================================================
+# 0. AI Architecture Overview (v5.0 - LangGraph Multi-Agent)
+# ============================================================================
+ai-architecture:
+  current: "LangGraph Multi-Agent"
+  api_endpoint: "/api/ai/unified-stream"
+  agents:
+    supervisor: "Groq Llama-8b (Fast intent classification)"
+    nlq-agent: "Gemini Flash (Server metrics query)"
+    analyst-agent: "Gemini Pro (Pattern analysis, anomaly detection)"
+    reporter-agent: "Llama 70b (Incident reports, RAG)"
+
+  deprecated:
+    - unified-ai-processor    # Python/Cloud Run - LangGraph로 대체됨
+    - ml-analytics-engine     # Python ML - 완전 제거됨 (2025-12-14)
+
+  production_mcp: "supabase"   # Cloud Run에서 사용하는 유일한 MCP
 
 # ============================================================================
 # 1. Current Active AI Tools (현재 활성화된 AI 도구만)
@@ -71,10 +89,11 @@ subagents:
 #   - Legacy 3-AI verification system is deprecated (see archive/deprecated/3-ai-system/)
 
 # ============================================================================
-# 3. Active MCP Servers (활성화된 MCP 서버만)
+# 3. MCP Servers (개발 vs 프로덕션 구분)
 # ============================================================================
 mcp-servers:
-  active:  # 9/9 연결 (2025-12-11, MCP 정리 완료)
+  # 개발 환경 (Claude Code에서 사용) - 9/9 연결
+  development:
     - vercel          # @open-mcp/vercel, 배포 관리 (무제한)
     - supabase        # @supabase/mcp-server-supabase, DB 관리 (무제한)
     - serena          # 코드 검색/메모리 (심볼, 구조 분석) (무제한)
@@ -85,6 +104,10 @@ mcp-servers:
     - tavily          # 웹 검색 - 심층 리서치 (1,000/월)
     - brave-search    # 웹 검색 - 팩트체크/버전확인 (2,000/월)
 
+  # 프로덕션 환경 (Cloud Run AI 엔진에서 사용)
+  production:
+    - supabase        # LangGraph 에이전트가 DB 조회에 사용 (유일한 프로덕션 MCP)
+
   removed:  # 2025-12-11 정리
     - filesystem      # Claude Code 내장 도구와 100% 중복
     - memory          # Serena write_memory/read_memory로 대체
@@ -92,9 +115,9 @@ mcp-servers:
     - shadcn-ui       # Context7로 문서 조회 가능
     - sequential-thinking  # Claude 자체 추론 + TodoWrite로 대체
 
-# 역할 구분:
-#   - serena: 코드 검색 (심볼, 구조 분석)
-#   - github: 저장소 관리 (PR, Issues)
+# 환경 구분:
+#   - Development: Claude Code 작업 시 9개 MCP 모두 사용
+#   - Production: Cloud Run AI 엔진에서 Supabase MCP만 사용
 # 상세 정보: .mcp.json 참조
 
 # ============================================================================
