@@ -398,6 +398,11 @@ export async function createStreamingResponse(
             const dataStreamText = `0:${JSON.stringify(chunk.content)}\n`;
             controller.enqueue(encoder.encode(dataStreamText));
           } else if (chunk.type === 'final') {
+            // AI SDK v5 Data Stream Protocol: output the final response content
+            if (chunk.content) {
+              const dataStreamText = `0:${JSON.stringify(chunk.content)}\n`;
+              controller.enqueue(encoder.encode(dataStreamText));
+            }
             // AI SDK v5 Data Stream Protocol: finish message
             const finishMessage = `d:${JSON.stringify({ finishReason: 'stop' })}\n`;
             controller.enqueue(encoder.encode(finishMessage));
