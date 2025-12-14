@@ -5,9 +5,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { isVercel } from '@/env';
 import {
   type AuthUser,
-  getCurrentUser,
+  getAuthState,
   isGitHubAuthenticated,
-} from '@/lib/auth/supabase-auth';
+} from '@/lib/auth/auth-state-manager';
 
 // This logic is now inlined from the old vercel-env.ts
 const _authRetryDelay = isVercel ? 5000 : 3000;
@@ -95,10 +95,11 @@ export function useInitialAuth() {
       updateState({ currentStep: 'auth-check', isLoading: true });
       console.log(debugWithEnv('🔄 인증 상태 확인 중...'));
 
-      const [user, isGitHub] = await Promise.all([
-        getCurrentUser(),
+      const [authState, isGitHub] = await Promise.all([
+        getAuthState(),
         isGitHubAuthenticated(),
       ]);
+      const user = authState.user;
 
       console.log(debugWithEnv('📊 인증 결과'), {
         hasUser: !!user,

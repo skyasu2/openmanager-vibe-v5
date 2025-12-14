@@ -82,7 +82,7 @@ export class AuthStateManager {
           document.cookie = `auth_session_id=${sessionId}; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
           document.cookie = `guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict`;
           console.log(
-            '🔄 쿠키 마이그레이션: guest_session_id → auth_session_id'
+            '🔐 쿠키 마이그레이션: guest_session_id → auth_session_id'
           );
         }
       }
@@ -116,10 +116,7 @@ export class AuthStateManager {
         };
 
         this.setCachedState(state);
-        console.log('✅ GitHub 세션 확인 (우선순위):', {
-          userId: githubUser.id,
-          name: githubUser.name,
-        });
+        console.log('🔐 GitHub 세션 확인', { userId: githubUser.id });
         return state;
       }
 
@@ -127,9 +124,7 @@ export class AuthStateManager {
       const guestState = await this.getGuestState();
       if (guestState.isAuthenticated) {
         this.setCachedState(guestState);
-        console.log('✅ 게스트 세션 확인 (GitHub 세션 없음):', {
-          userId: guestState.user?.id,
-        });
+        console.log('🔐 게스트 세션 확인', { userId: guestState.user?.id });
         return guestState;
       }
 
@@ -172,25 +167,18 @@ export class AuthStateManager {
    * 원자적 로그아웃 처리 (모든 인증 데이터 정리)
    */
   async clearAllAuthData(authType?: 'github' | 'guest'): Promise<void> {
-    console.log(
-      '🚪 AuthStateManager.clearAllAuthData 시작:',
-      authType || 'all'
-    );
+    console.log('🔐 clearAllAuthData 시작', { authType: authType || 'all' });
 
     try {
       // 1. React 상태 캐시 즉시 무효화
-      console.log('🔄 캐시 무효화 중...');
       this.invalidateCache();
 
       // 2. Supabase 세션 정리 (GitHub OAuth)
       if (!authType || authType === 'github') {
-        console.log('🔄 Supabase 세션 정리 중...');
         try {
           const { error } = await getClient().auth.signOut();
           if (error) {
             console.warn('⚠️ Supabase 로그아웃 실패:', error.message);
-          } else {
-            console.log('✅ Supabase 세션 정리 완료');
           }
         } catch (error) {
           console.warn('⚠️ Supabase 로그아웃 예외:', error);
@@ -200,7 +188,7 @@ export class AuthStateManager {
       // 3. 통합 저장소 정리 (localStorage + sessionStorage + 쿠키)
       this.clearStorage(authType);
 
-      console.log('✅ 인증 데이터 정리 완료');
+      console.log('🔐 인증 데이터 정리 완료');
     } catch (error) {
       console.error('❌ 인증 데이터 정리 실패:', error);
       throw error;
@@ -219,22 +207,20 @@ export class AuthStateManager {
    * 게스트 로그인 설정 (기존 GitHub 세션 자동 정리)
    */
   async setGuestAuth(guestUser: AuthUser): Promise<void> {
-    console.log('🔄 게스트 로그인 설정 시작 - 기존 세션 정리 중...');
+    console.log('🔐 게스트 로그인 설정 시작');
 
     // 1. 기존 GitHub 세션이 있으면 먼저 정리
     try {
       const existingSession = await this.getSupabaseSession();
       if (existingSession?.user) {
-        console.log('🔄 기존 GitHub 세션 발견 - 정리 중...');
         await getClient().auth.signOut();
-        console.log('✅ 기존 GitHub 세션 정리 완료');
+        console.log('🔐 기존 GitHub 세션 정리 완료');
       }
     } catch (error) {
       console.warn('⚠️ 기존 세션 정리 실패 (계속 진행):', error);
     }
 
     // 1.5. 🛡️ localStorage 완전 정리 (admin_mode 등 관리자 데이터 포함)
-    console.log('🧹 게스트 모드 전환을 위한 localStorage 완전 정리 중...');
     this.clearStorage(); // 모든 인증 관련 데이터 정리
 
     // 2. 게스트 세션 설정
@@ -254,11 +240,7 @@ export class AuthStateManager {
       document.cookie = `auth_session_id=${sessionId}; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
       document.cookie = `auth_type=guest; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
 
-      console.log('✅ 게스트 로그인 설정 완료:', {
-        sessionId,
-        userId: guestUser.id,
-        expiresAt: expires.toISOString(),
-      });
+      console.log('🔐 게스트 로그인 설정 완료', { userId: guestUser.id });
     }
 
     // 캐시 무효화하여 다음 호출에서 새 상태 반영
@@ -344,7 +326,7 @@ export class AuthStateManager {
           const age = now - createdAt;
 
           if (age > SESSION_MAX_AGE_MS) {
-            console.log('⏰ 세션 만료됨 (7일 초과) - 자동 로그아웃');
+            console.log('🔐 세션 만료됨 (7일 초과) - 자동 로그아웃');
             // 만료된 세션 정리
             this.clearStorage('guest');
             return {
@@ -353,12 +335,6 @@ export class AuthStateManager {
               isAuthenticated: false,
             };
           }
-
-          // 남은 시간 로깅 (디버그용)
-          const remainingDays = Math.ceil(
-            (SESSION_MAX_AGE_MS - age) / (24 * 60 * 60 * 1000)
-          );
-          console.log(`🔐 세션 유효: ${remainingDays}일 남음`);
         }
 
         try {
@@ -529,4 +505,4 @@ export const clearAuthData = (authType?: 'github' | 'guest') =>
   authStateManager.clearAllAuthData(authType);
 export const invalidateAuthCache = () => authStateManager.invalidateCache();
 
-console.log('🔐 AuthStateManager 초기화 완료');
+// AuthStateManager 싱글톤 초기화 완료

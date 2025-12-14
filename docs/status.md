@@ -1,13 +1,13 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-12
+**마지막 업데이트**: 2025-12-14
 
 ---
 
-## 🏗️ Technical Stack (v5.80.0)
+## 🏗️ Technical Stack (v5.81.0)
 
 **Core Frameworks** (2025 Standard)
-- **Next.js**: `v16.0.7` (App Router, Server Components)
+- **Next.js**: `v16.0.10` (App Router, Server Components, Security Patch)
 - **React**: `v19.2.1` (RSC, Actions, useOptimistic)
 - **TypeScript**: `v5.9.3` (Strict Mode)
 - **Node.js**: `v22.21.1` (LTS Fixed)
@@ -38,7 +38,8 @@
 - 구조 정리: design→architecture, specs→planning
 - **State Mgmt**: Zustand `v5.0.9`
 - **Data Fetching**: TanStack Query `v5.90.11`
-- **Backend/DB**: Supabase JS `v2.86.0` (SSR `v0.8.0`)
+- **Backend/DB**: Supabase JS `v2.87.1` (SSR `v0.8.0`)
+- **Utility**: tailwind-merge `v3.4.0`
 
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
@@ -51,25 +52,29 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 12-11)
+## 🔧 최근 유지보수 (2025-12-09 ~ 12-14)
+
+**기술 부채 검토 완료 (v5.81.0)**
+- **Next.js 보안 패치**: 16.0.7 → 16.0.10 (CVE 대응)
+- **핵심 로직 테스트**: AuthStateManager, LangGraph Supervisor 테스트 추가
+- **패키지 최적화**: react-markdown 제거 (미사용, 78개 의존성 정리)
+- **메이저 업그레이드**: tailwind-merge v3, @faker-js/faker v10
 
 **패키지 전체 업그레이드 완료 (v5.80.0)**
 - Next.js 15 → 16, React 18 → 19, TS 5.7 → 5.9 마이그레이션 완료.
-- **Critical Fix**: Node.js `global` 객체 이슈 (`global` -> `globalThis`) 해결로 브라우저 500 에러 수정.
-- **Docker 인프라 최적화**: `ml-analytics-engine` 레거시 컨테이너 완전 제거, `unified-ai-processor` 통합.
+- **Critical Fix**: Node.js `global` 객체 이슈 (`global` -> `globalThis`) 해결.
 
 **코드 리뷰 시스템 (v6.9.0)**
 - **구조**: 3-AI 순환 (Codex → Gemini → Qwen) + 상호 폴백 시스템.
-- **상태**: Claude CLI 제거 (자체 호출 충돌 방지), 백그라운드 자동 실행 정상 작동.
 
 ---
 
-## 📊 품질 지표 (2025-12-11 기준)
+## 📊 품질 지표 (2025-12-14 기준)
 
 | Metric | Status | Detail |
 |:---:|:---:|---|
-| **Build** | ✅ Passing | `npm run build` (Next.js 16) 성공 |
-| **Test** | ✅ 98.2% | 134/134 Tests Passing (Super-fast mode) |
+| **Build** | ✅ Passing | `npm run build` (Next.js 16.0.10) 성공 |
+| **Test** | ✅ 100% | 92/92 Tests Passing (Super-fast mode) |
 | **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
 | **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
 | **MCP** | ✅ 9/9 | 모든 MCP 서버 정상 연결 (Figma 포함) |

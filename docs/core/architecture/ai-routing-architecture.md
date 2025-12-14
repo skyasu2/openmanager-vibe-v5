@@ -1,131 +1,146 @@
-# Dynamic AI Model Routing Architecture
+# AI Routing Architecture (LangGraph Multi-Agent)
+
+> **버전**: v2.0 (2025-12-14)
+> **환경**: LangGraph StateGraph, Supervisor-Worker Pattern
 
 ## Overview
-OpenManager Vibe v5 uses **SmartRoutingEngine** - a multi-dimensional AI routing engine that optimizes for quality, cost, latency, and availability. The system implements industry best practices including RouteLLM-style scoring, Circuit Breaker pattern, and adaptive load balancing.
+
+OpenManager Vibe v5.80.0은 **LangGraph Supervisor Agent**를 사용하여 AI 라우팅을 수행합니다. 이전의 SmartRoutingEngine은 deprecated되었으며, 모든 라우팅 로직은 LangGraph 그래프 내에서 처리됩니다.
 
 ## Architecture Diagram
 
 ```mermaid
 graph TD
-    User[User Query] --> Engine[SmartRoutingEngine]
+    User[User Query] --> API[/api/ai/unified-stream]
 
-    subgraph "Multi-Dimensional Scoring"
-        Engine --> Score[RouteLLM-style Scoring]
-        Score --> Q[Quality Score]
-        Score --> C[Cost Score]
-        Score --> L[Latency Score]
-        Score --> A[Availability Score]
-        Score --> Cap[Capability Score]
+    subgraph "Next.js Proxy"
+        API --> Router{Cloud Run Enabled?}
+        Router -- Yes --> Proxy[Cloud Run Proxy]
+        Router -- No --> LocalGraph[Local LangGraph]
     end
 
-    subgraph "Health Management"
-        Engine --> CB[Circuit Breaker]
-        CB -->|Closed| Healthy[Model Available]
-        CB -->|Open| Blocked[Model Blocked]
-        CB -->|Half-Open| Test[Testing Recovery]
+    subgraph "LangGraph (Supervisor Routing)"
+        Proxy --> Supervisor[Supervisor Agent]
+
+        Supervisor -->|Simple Query| NLQ[NLQ Agent]
+        Supervisor -->|Pattern Analysis| Analyst[Analyst Agent]
+        Supervisor -->|Incident/RAG| Reporter[Reporter Agent]
+        Supervisor -->|Comprehensive| Parallel[Parallel Node]
+        Supervisor -->|Greeting| Direct[Direct Reply]
+
+        Parallel --> NLQ
+        Parallel --> Analyst
     end
 
-    subgraph "Load Balancing"
-        Engine --> LB{Load Balancer}
-        LB -->|Round Robin| RR[Sequential Selection]
-        LB -->|Least Loaded| LL[Lowest Active Requests]
-        LB -->|Weighted Random| WR[Score-based Random]
-        LB -->|Adaptive| AD[Dynamic Best Selection]
-    end
-
-    Healthy --> Response[AI Response]
-    Test --> Response
+    NLQ --> Response[Response]
+    Analyst --> Response
+    Reporter --> Response
+    Direct --> Response
+    Response --> User
 ```
 
-## Key Features (v5.80.0)
+## Agent-Based Routing
 
-### 1. RouteLLM-style Multi-Dimensional Scoring
+### Supervisor Agent (Router)
 
-Each model is scored across 5 dimensions with configurable weights:
+| 항목 | 값 |
+|------|-----|
+| **모델** | Groq `llama-3.1-8b-instant` |
+| **역할** | Intent classification & routing |
+| **출력** | `targetAgent`: nlq \| analyst \| reporter \| parallel \| reply |
 
-| Dimension | Weight | Description |
-|-----------|--------|-------------|
-| Quality | 0.25 | Model capability and output quality |
-| Cost | 0.20 | Token cost efficiency |
-| Latency | 0.20 | Response speed |
-| Capability | 0.20 | Feature support (tools, vision, reasoning) |
-| Availability | 0.15 | Rate limit and health status |
+**라우팅 로직**:
 
-### 2. Task-Based Model Specialization
+```typescript
+// Supervisor 출력 예시
+{
+  "targetAgent": "nlq",
+  "reasoning": "사용자가 서버 메트릭 조회를 요청함",
+  "confidence": 0.95
+}
+```
 
-| Task Type | Specialized Models | Use Case |
-|-----------|-------------------|----------|
-| `fast-response` | llama-3.1-8b-instant | Simple queries, greetings |
-| `reasoning` | qwen-qwq-32b, gemini-2.5-pro | Complex analysis |
-| `code-generation` | llama-3.3-70b-versatile | Code tasks |
-| `vision` | gemini-2.5-flash, gemini-2.5-pro | Image analysis |
-| `general` | All models | Default routing |
+### Routing Rules
 
-### 3. Circuit Breaker Pattern
+| Intent | Target Agent | 예시 쿼리 | 응답 시간 |
+|--------|--------------|-----------|-----------|
+| **greeting** | reply (direct) | "안녕", "도와줘" | < 300ms |
+| **metrics_query** | nlq | "서버 5번 CPU 사용량" | < 800ms |
+| **pattern_analysis** | analyst | "이상 패턴 분석해줘" | < 1.5s |
+| **incident_report** | reporter | "장애 보고서 작성" | < 3s |
+| **comprehensive** | parallel | "종합 분석해줘" | < 2s |
 
-Protects against cascading failures:
+## Agent Specifications
+
+| Agent | Model | Latency Target | Tools |
+|-------|-------|----------------|-------|
+| **Supervisor** | Groq Llama-8b | < 200ms | - |
+| **NLQ Agent** | Gemini 2.5 Flash | < 500ms | `getServerMetrics` |
+| **Analyst Agent** | Gemini 2.5 Pro | < 1s | `analyzePattern`, `detectAnomalies` |
+| **Reporter Agent** | Llama 3.3-70b | < 2s | `searchKnowledgeBase` (RAG) |
+
+## Fallback & Resilience
+
+### Circuit Breaker Pattern
 
 | State | Behavior | Transition |
 |-------|----------|------------|
-| **Closed** | Normal operation | → Open (3 consecutive failures) |
-| **Open** | Block requests | → Half-Open (after 30s cooldown) |
-| **Half-Open** | Test with single request | → Closed (success) or Open (failure) |
+| **Closed** | Normal operation | 3 failures → Open |
+| **Open** | Block requests, use fallback | 30s cooldown → Half-Open |
+| **Half-Open** | Test single request | Success → Closed |
 
-### 4. Load Balancing Strategies
+### Model Fallback Chain
 
-| Strategy | Algorithm | Best For |
-|----------|-----------|----------|
-| `round-robin` | Sequential rotation | Even distribution |
-| `least-loaded` | Minimum active requests | High throughput |
-| `weighted-random` | Score-weighted random | Quality optimization |
-| `adaptive` | Score × Success Rate | Production (default) |
+```
+Primary Model 실패 시:
+  Groq Llama-8b → Gemini Flash → Gemini Pro
+  Gemini Pro → Gemini Flash → Llama-70b
+```
 
-## Routing Logic (v5.80.0)
+## Data Flow
 
-| Complexity | Intent Examples | Primary Model | Fallback Chain | Latency Target |
-|------------|-----------------|---------------|----------------|----------------|
-| **Level 1** | Greetings, FAQ | llama-3.1-8b-instant | gemini-2.5-flash | < 300ms |
-| **Level 2** | Server Status | gemini-2.5-flash | llama-3.1-8b | < 800ms |
-| **Level 3** | Simple Metrics | gemini-2.5-flash | llama-3.3-70b | < 1.5s |
-| **Level 4** | Pattern Analysis | llama-3.3-70b-versatile | gemini-2.5-flash | < 3s |
-| **Level 5** | Complex Reasoning | gemini-2.5-pro | qwen-qwq-32b | Variable |
+```
+1. User Query
+       ↓
+2. /api/ai/unified-stream (POST)
+       ↓
+3. Cloud Run Check
+       ├─ Enabled → Proxy to Cloud Run
+       └─ Disabled → Local LangGraph
+       ↓
+4. Supervisor Agent (Intent Classification)
+       ↓
+5. Target Agent Execution
+       ├─ NLQ: getServerMetrics()
+       ├─ Analyst: analyzePattern()
+       └─ Reporter: searchKnowledgeBase()
+       ↓
+6. Response Aggregation
+       ↓
+7. Streaming Response to Client
+```
 
-> **Note**: Model selection is now dynamic based on real-time health, load, and availability.
+## Environment Configuration
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CLOUD_RUN_ENABLED` | No | Enable Cloud Run backend |
+| `CLOUD_RUN_AI_URL` | If enabled | Cloud Run service URL |
+| `GOOGLE_AI_API_KEY` | Yes | Gemini API key |
+| `GROQ_API_KEY` | Yes | Groq (Llama) API key |
+
+## Deprecated Components
+
+| Component | Status | Replacement |
+|-----------|--------|-------------|
+| `SmartRoutingEngine` | ❌ Removed | LangGraph Supervisor Agent |
+| Python Unified Processor | ❌ Removed | TypeScript LangGraph Agents |
+| `/api/ai/query` (sync) | ❌ Removed | `/api/ai/unified-stream` |
+| GCP Cloud Functions | ❌ Removed | Cloud Run (containerized) |
+| RouteLLM-style Scoring | ❌ Removed | Supervisor Agent 분류 |
 
 ---
 
-## 2. Integration with Unified AI Processor
-
-For high-complexity tasks (typically Level 4+ or specific analytic intents), the Router delegates execution to the **Unified AI Processor** (Python/GCP).
-
--   **Endpoint**: `/api/ai/unified-stream` (Streaming) or `/api/ai/query` (Legacy/Sync)
--   **Role**: The Next.js API acts as a gateway. It calls the local `UnifiedAIProcessor` class (or external GCP Function if configured) to perform heavy lifting like:
-    -   Korean NLP processing (KoNLPy)
-    -   ML-based Anomaly Detection (Scikit-learn)
-    -   RAG (Supabase pgvector)
-
-### Architecture Flow
-
-```mermaid
-graph TD
-    User[User Query] --> Router[Next.js API Route /api/ai/unified-stream]
-    Router --> Classifier{Query Classifier}
-    
-    Classifier -- Simple (L1-3) --> Direct[Direct Response / Tool Call]
-    Classifier -- Complex (L4-5) --> Unified[Unified Processor (Python)]
-    
-    Direct --> Gemini[Gemini 2.5 Flash]
-    Unified --> GeminiPro[Gemini 2.5 Pro (Reasoning)]
-    
-    Unified --> NLP[NLP Engine]
-    Unified --> ML[ML Analytics]
-    Unified --> RAG[Knowledge Base]
-```
-
-## 3. Environment Configuration
-
-Ensure the following environment variables are set in `.env.local`:
-
--   `GOOGLE_AI_API_KEY`: API Key for Gemini 2.5
--   `GROQ_API_KEY`: API Key for Groq (Llama models)
--   `NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT`: (Optional) URL for external GCP Cloud Function deployment
+> **참고 문서**:
+> - `AI_ENGINE_ARCHITECTURE.md`: 전체 엔진 아키텍처
+> - `ai-assistant-sidebar-architecture.md`: 프론트엔드 통합

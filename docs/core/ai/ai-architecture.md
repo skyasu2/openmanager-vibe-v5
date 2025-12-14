@@ -1,12 +1,26 @@
 # AI Assistant Architecture
 
+> **버전**: v2.0 (2025-12-14)
+> **환경**: Next.js 16, React 19, LangGraph StateGraph
+
 ## Overview
 
 The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrates specialized agents for server monitoring tasks. It features a hybrid deployment model with Cloud Run as the primary backend and local execution as fallback.
 
 ## Core Components
 
-### 1. Frontend: AI Sidebar (`AISidebarV4`)
+### 1. Frontend: Dual-Mode Architecture
+
+#### Mode Comparison
+
+| 항목 | 사이드바 모드 | 풀페이지 모드 |
+|:-----|:-------------|:-------------|
+| **진입점** | `AISidebarV4.tsx` | `AIWorkspace.tsx` |
+| **레이아웃** | 우측 패널 (~400px) | 3-column 전체 화면 |
+| **라우트** | 대시보드 내 컴포넌트 | `/dashboard/ai-assistant` |
+| **사용 시나리오** | 빠른 질의 | 심층 분석, 보고서 |
+
+#### Sidebar Mode (`AISidebarV4`)
 
 - **Location**: `src/domains/ai-sidebar/components/AISidebarV4.tsx`
 - **Framework**: React + Vercel AI SDK (`useChat` hook)
@@ -16,6 +30,15 @@ The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrate
   - Agent routing visualization
   - Tool invocation display
   - Session persistence
+
+#### Fullpage Mode (`AIWorkspace`)
+
+- **Location**: `src/components/ai/AIWorkspace.tsx`
+- **Layout**: 3-column (Left Nav / Center Content / Right Context)
+- **Features**:
+  - 좌측: 기능 선택 네비게이션
+  - 중앙: EnhancedAIChat 또는 기능별 페이지
+  - 우측: 시스템 컨텍스트 패널
 
 ### 2. Backend: LangGraph Multi-Agent System
 
@@ -53,6 +76,32 @@ START
                        ▼
                       END
 ```
+
+## 3 AI Features
+
+### 1. Natural Language Query (Chat)
+
+| 항목 | 값 |
+|------|-----|
+| **컴포넌트** | `EnhancedAIChat.tsx` |
+| **API** | `/api/ai/unified-stream` |
+| **에이전트** | Supervisor → NLQ/Analyst/Reporter |
+
+### 2. Auto Incident Report
+
+| 항목 | 값 |
+|------|-----|
+| **컴포넌트** | `AutoReportPage.tsx` |
+| **API** | `/api/ai/incident-report` |
+| **에이전트** | Reporter Agent (Llama 70b) |
+
+### 3. Intelligent Monitoring
+
+| 항목 | 값 |
+|------|-----|
+| **컴포넌트** | `IntelligentMonitoringPage.tsx` |
+| **API** | `/api/ai/intelligent-monitoring` |
+| **에이전트** | Analyst Agent (Gemini Pro) |
 
 ## Tool System
 
