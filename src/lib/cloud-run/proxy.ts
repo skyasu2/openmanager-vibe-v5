@@ -9,6 +9,7 @@
 
 const CLOUD_RUN_URL = process.env.CLOUD_RUN_AI_URL || '';
 const CLOUD_RUN_ENABLED = process.env.CLOUD_RUN_ENABLED === 'true';
+const CLOUD_RUN_API_SECRET = process.env.CLOUD_RUN_API_SECRET || '';
 
 // ============================================================================
 // Types
@@ -37,7 +38,7 @@ export interface ProxyResult {
  * Cloud Run이 활성화되어 있는지 확인
  */
 export function isCloudRunEnabled(): boolean {
-  return CLOUD_RUN_ENABLED && !!CLOUD_RUN_URL;
+  return CLOUD_RUN_ENABLED && !!CLOUD_RUN_URL && !!CLOUD_RUN_API_SECRET;
 }
 
 /**
@@ -71,6 +72,7 @@ export async function proxyToCloudRun(
       method: options.method || 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-Key': CLOUD_RUN_API_SECRET,
         ...options.headers,
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
@@ -131,6 +133,7 @@ export async function proxyStreamToCloudRun(
       headers: {
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
+        'X-API-Key': CLOUD_RUN_API_SECRET,
         ...options.headers,
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
@@ -172,7 +175,10 @@ export async function checkCloudRunHealth(): Promise<{
   try {
     const response = await fetch(`${CLOUD_RUN_URL}/health`, {
       method: 'GET',
-      headers: { Accept: 'application/json' },
+      headers: {
+        Accept: 'application/json',
+        'X-API-Key': CLOUD_RUN_API_SECRET,
+      },
     });
 
     const latency = Date.now() - startTime;

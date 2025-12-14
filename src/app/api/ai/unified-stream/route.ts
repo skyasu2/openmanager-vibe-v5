@@ -102,7 +102,7 @@ export const POST = withAuth(async (req: NextRequest) => {
       if (wantsStream) {
         // Cloud Run 스트리밍 프록시
         const cloudStream = await proxyStreamToCloudRun({
-          path: '/api/unified-stream',
+          path: '/api/ai/unified-stream',
           body: { messages, sessionId },
         });
 
@@ -122,7 +122,7 @@ export const POST = withAuth(async (req: NextRequest) => {
       } else {
         // Cloud Run 단일 응답 프록시
         const proxyResult = await proxyToCloudRun({
-          path: '/api/unified-stream',
+          path: '/api/ai/unified-stream',
           body: { messages, sessionId },
         });
 
