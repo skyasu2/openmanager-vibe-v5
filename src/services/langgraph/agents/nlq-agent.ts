@@ -10,41 +10,18 @@
 
 import { AIMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { z } from 'zod';
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
+import { AgentExecutionError, getErrorMessage } from '../errors';
+import { getNLQModel } from '../model-config';
 import type { AgentStateType, ToolResult } from '../state-definition';
-
-// ============================================================================
-// 1. Model Configuration
-// ============================================================================
-
-import { AI_MODELS } from '@/config/ai-engine';
-
-function getNLQModel(): ChatGoogleGenerativeAI {
-  // Vercel uses GEMINI_API_KEY_PRIMARY, local may use GOOGLE_API_KEY
-  const apiKey =
-    process.env.GEMINI_API_KEY_PRIMARY || process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      'GEMINI_API_KEY_PRIMARY or GOOGLE_API_KEY is not configured'
-    );
-  }
-
-  return new ChatGoogleGenerativeAI({
-    apiKey,
-    model: AI_MODELS.FLASH,
-    temperature: 0.3,
-    maxOutputTokens: 1024,
-  });
-}
 
 // ============================================================================
 // 2. Tools Definition
 // ============================================================================
 
 const getServerMetricsTool = tool(
-  async ({ serverId, metric }) => {
+  async ({ serverId, metric: _metric }) => {
     const allServers = await loadHourlyScenarioData();
     const target = serverId
       ? allServers.find((s) => s.id === serverId)
@@ -199,7 +176,14 @@ export async function nlqAgentNode(
       finalResponse: finalContent,
     };
   } catch (error) {
-    console.error('❌ NLQ Agent Error:', error);
+    const agentError =
+      error instanceof AgentExecutionError
+        ? error
+        : new AgentExecutionError(
+            'nlq',
+            error instanceof Error ? error : undefined
+          );
+    console.error('❌ NLQ Agent Error:', agentError.toJSON());
     return {
       finalResponse: '서버 상태 조회 중 오류가 발생했습니다.',
       toolResults: [
@@ -207,7 +191,7 @@ export async function nlqAgentNode(
           toolName: 'nlq_error',
           success: false,
           data: null,
-          error: String(error),
+          error: getErrorMessage(error),
           executedAt: new Date().toISOString(),
         },
       ],

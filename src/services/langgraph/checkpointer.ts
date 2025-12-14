@@ -4,6 +4,7 @@
  */
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { Pool } from 'pg';
+import { DatabaseConfigError, getErrorMessage } from './errors';
 
 // ============================================================================
 // 1. Database Connection
@@ -20,7 +21,7 @@ function createPool(): Pool {
   const connectionString = process.env.SUPABASE_DIRECT_URL;
 
   if (!connectionString) {
-    throw new Error('SUPABASE_DIRECT_URL is not configured');
+    throw new DatabaseConfigError('SUPABASE_DIRECT_URL');
   }
 
   return new Pool({
@@ -59,7 +60,10 @@ export async function getCheckpointer(): Promise<PostgresSaver> {
     console.log('✅ LangGraph Checkpointer initialized with Supabase');
     return checkpointer;
   } catch (error) {
-    console.error('❌ Failed to initialize Checkpointer:', error);
+    console.error(
+      '❌ Failed to initialize Checkpointer:',
+      getErrorMessage(error)
+    );
     throw error;
   }
 }

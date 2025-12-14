@@ -11,35 +11,16 @@
 
 import { AIMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
-import { ChatGroq } from '@langchain/groq';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
+import { AgentExecutionError, getErrorMessage } from '../errors';
+import { getReporterModel } from '../model-config';
 import type {
   AgentStateType,
   PendingAction,
   ToolResult,
 } from '../state-definition';
-
-// ============================================================================
-// 1. Model Configuration
-// ============================================================================
-
-const REPORTER_MODEL = 'llama-3.3-70b-versatile';
-
-function getReporterModel(): ChatGroq {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    throw new Error('GROQ_API_KEY is not configured');
-  }
-
-  return new ChatGroq({
-    apiKey,
-    model: REPORTER_MODEL,
-    temperature: 0.3,
-    maxTokens: 4096, // 긴 리포트 생성 가능
-  });
-}
 
 // ============================================================================
 // 2. Tools Definition
@@ -257,7 +238,14 @@ ${JSON.stringify(commandResult, null, 2)}
       pendingAction,
     };
   } catch (error) {
-    console.error('❌ Reporter Agent Error:', error);
+    const agentError =
+      error instanceof AgentExecutionError
+        ? error
+        : new AgentExecutionError(
+            'reporter',
+            error instanceof Error ? error : undefined
+          );
+    console.error('❌ Reporter Agent Error:', agentError.toJSON());
     return {
       finalResponse: '인시던트 리포트 생성 중 오류가 발생했습니다.',
       toolResults: [
@@ -265,7 +253,7 @@ ${JSON.stringify(commandResult, null, 2)}
           toolName: 'reporter_error',
           success: false,
           data: null,
-          error: String(error),
+          error: getErrorMessage(error),
           executedAt: new Date().toISOString(),
         },
       ],

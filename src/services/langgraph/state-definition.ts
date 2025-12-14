@@ -19,6 +19,47 @@ export type TaskType =
   | 'parallel_analysis'; // 병렬 분석 (analyst + nlq 동시 실행)
 
 // ============================================================================
+// 1.2. Tool Results Interface (A2A에서 참조하므로 먼저 정의)
+// ============================================================================
+
+export interface ToolResult {
+  toolName: string;
+  success: boolean;
+  data: unknown;
+  error?: string;
+  executedAt: string;
+}
+
+// ============================================================================
+// 1.3. A2A (Agent-to-Agent) Communication Types
+// ============================================================================
+
+/**
+ * Agent 실행 결과 (Context Propagation용)
+ * 다른 에이전트가 참조할 수 있는 이전 에이전트의 출력
+ */
+export interface AgentResult {
+  agentId: AgentType;
+  response: string;
+  toolResults: ToolResult[];
+  confidence?: number;
+  executedAt: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * A2A Delegation Request
+ * Agent가 다른 Agent에게 작업을 위임하거나 Supervisor에게 재라우팅 요청
+ */
+export interface DelegationRequest {
+  fromAgent: AgentType;
+  toAgent?: AgentType; // null이면 Supervisor가 결정
+  reason: string;
+  context?: Record<string, unknown>;
+  priority?: 'low' | 'normal' | 'high';
+}
+
+// ============================================================================
 // 1.5. Human-in-the-Loop Types
 // ============================================================================
 
@@ -50,19 +91,7 @@ export interface CircuitBreakerState {
 }
 
 // ============================================================================
-// 3. Tool Results Interface
-// ============================================================================
-
-export interface ToolResult {
-  toolName: string;
-  success: boolean;
-  data: unknown;
-  error?: string;
-  executedAt: string;
-}
-
-// ============================================================================
-// 4. Router Decision Interface
+// 3. Router Decision Interface
 // ============================================================================
 
 export interface RouterDecision {
@@ -164,6 +193,46 @@ export const AgentState = Annotation.Root({
   pendingAction: Annotation<PendingAction | null>({
     reducer: (_, next) => next,
     default: () => null,
+  }),
+
+  // ============================================================================
+  // A2A (Agent-to-Agent) Communication Fields
+  // ============================================================================
+
+  /**
+   * 이전 에이전트들의 실행 결과 (누적)
+   * 다른 에이전트가 컨텍스트로 활용 가능
+   */
+  agentResults: Annotation<AgentResult[]>({
+    reducer: (current, update) => [...current, ...update],
+    default: () => [],
+  }),
+
+  /**
+   * Return-to-Supervisor 플래그
+   * 에이전트가 다른 에이전트의 도움이 필요할 때 설정
+   */
+  returnToSupervisor: Annotation<boolean>({
+    reducer: (_, next) => next,
+    default: () => false,
+  }),
+
+  /**
+   * Delegation Request
+   * 에이전트 간 작업 위임 요청
+   */
+  delegationRequest: Annotation<DelegationRequest | null>({
+    reducer: (_, next) => next,
+    default: () => null,
+  }),
+
+  /**
+   * Dynamic Parallel Execution
+   * Supervisor가 지정한 병렬 실행 대상 에이전트 목록
+   */
+  parallelAgents: Annotation<AgentType[]>({
+    reducer: (_, next) => next,
+    default: () => [],
   }),
 });
 

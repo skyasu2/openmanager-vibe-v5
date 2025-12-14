@@ -9,33 +9,14 @@
  */
 
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { ChatGroq } from '@langchain/groq';
+import { AgentExecutionError, getErrorMessage } from '../errors';
+import { getSupervisorModel } from '../model-config';
 import {
   type AgentStateType,
   type AgentType,
   MAX_ITERATIONS,
   type RouterDecision,
 } from '../state-definition';
-
-// ============================================================================
-// 1. Model Configuration
-// ============================================================================
-
-const SUPERVISOR_MODEL = 'llama-3.1-8b-instant';
-
-function getSupervisorModel(): ChatGroq {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    throw new Error('GROQ_API_KEY is not configured');
-  }
-
-  return new ChatGroq({
-    apiKey,
-    model: SUPERVISOR_MODEL,
-    temperature: 0.1, // 결정론적 라우팅
-    maxTokens: 512,
-  });
-}
 
 // ============================================================================
 // 2. System Prompt
@@ -86,6 +67,36 @@ export async function supervisorNode(
       finalResponse: '처리 시간이 초과되었습니다. 다시 시도해주세요.',
       iteration: state.iteration + 1,
     };
+  }
+
+  // ============================================================================
+  // A2A Delegation Request 처리 (Return-to-Supervisor 패턴)
+  // ============================================================================
+  if (state.delegationRequest && state.returnToSupervisor) {
+    const delegation = state.delegationRequest;
+    console.log(`🔄 [A2A] Handling delegation from ${delegation.fromAgent}`);
+    console.log(`   Reason: ${delegation.reason}`);
+
+    // 직접 지정된 타겟 에이전트가 있으면 해당 에이전트로 라우팅
+    if (delegation.toAgent && delegation.toAgent !== delegation.fromAgent) {
+      console.log(`   → Routing to specified agent: ${delegation.toAgent}`);
+      return {
+        targetAgent: delegation.toAgent,
+        routerDecision: {
+          targetAgent: delegation.toAgent,
+          confidence: 0.85,
+          reasoning: `A2A Delegation: ${delegation.reason}`,
+        },
+        taskType: mapAgentToTaskType(delegation.toAgent),
+        iteration: state.iteration + 1,
+        // 플래그 초기화
+        returnToSupervisor: false,
+        delegationRequest: null,
+      };
+    }
+
+    // 타겟 에이전트가 없으면 컨텍스트 기반으로 판단 (아래 일반 라우팅 로직 사용)
+    console.log(`   → No specific target, using AI routing`);
   }
 
   // 마지막 메시지에서 사용자 쿼리 추출
@@ -158,7 +169,14 @@ export async function supervisorNode(
       iteration: state.iteration + 1,
     };
   } catch (error) {
-    console.error('❌ Supervisor Error:', error);
+    const agentError =
+      error instanceof AgentExecutionError
+        ? error
+        : new AgentExecutionError(
+            'supervisor',
+            error instanceof Error ? error : undefined
+          );
+    console.error('❌ Supervisor Error:', agentError.toJSON());
 
     // Fallback: NLQ Agent로 라우팅
     return {
@@ -166,7 +184,7 @@ export async function supervisorNode(
       routerDecision: {
         targetAgent: 'nlq',
         confidence: 0.5,
-        reasoning: 'Supervisor Error - Fallback to NLQ',
+        reasoning: `Supervisor Error - Fallback to NLQ: ${getErrorMessage(error)}`,
       },
       taskType: 'monitoring',
       iteration: state.iteration + 1,

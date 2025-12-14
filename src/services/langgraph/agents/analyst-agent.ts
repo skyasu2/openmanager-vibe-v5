@@ -11,7 +11,6 @@
 
 import { AIMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { z } from 'zod';
 import {
   getAnomalyDetector,
@@ -22,31 +21,9 @@ import {
   type TrendDataPoint,
 } from '@/lib/ai/monitoring/TrendPredictor';
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
+import { AgentExecutionError, getErrorMessage } from '../errors';
+import { getAnalystModel } from '../model-config';
 import type { AgentStateType, ToolResult } from '../state-definition';
-
-// ============================================================================
-// 1. Model Configuration
-// ============================================================================
-
-import { AI_MODELS } from '@/config/ai-engine';
-
-function getAnalystModel(): ChatGoogleGenerativeAI {
-  // Vercel uses GEMINI_API_KEY_PRIMARY, local may use GOOGLE_API_KEY
-  const apiKey =
-    process.env.GEMINI_API_KEY_PRIMARY || process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      'GEMINI_API_KEY_PRIMARY or GOOGLE_API_KEY is not configured'
-    );
-  }
-
-  return new ChatGoogleGenerativeAI({
-    apiKey,
-    model: AI_MODELS.PRO,
-    temperature: 0.2, // 분석은 정확성 우선
-    maxOutputTokens: 2048,
-  });
-}
 
 // ============================================================================
 // 2. Utility Functions
@@ -475,7 +452,14 @@ export async function analystAgentNode(
       finalResponse: finalContent,
     };
   } catch (error) {
-    console.error('❌ Analyst Agent Error:', error);
+    const agentError =
+      error instanceof AgentExecutionError
+        ? error
+        : new AgentExecutionError(
+            'analyst',
+            error instanceof Error ? error : undefined
+          );
+    console.error('❌ Analyst Agent Error:', agentError.toJSON());
     return {
       finalResponse: '패턴 분석 중 오류가 발생했습니다.',
       toolResults: [
@@ -483,7 +467,7 @@ export async function analystAgentNode(
           toolName: 'analyst_error',
           success: false,
           data: null,
-          error: String(error),
+          error: getErrorMessage(error),
           executedAt: new Date().toISOString(),
         },
       ],
