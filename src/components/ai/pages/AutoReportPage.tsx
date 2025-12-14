@@ -1,29 +1,22 @@
 /**
- * 📄 자동 장애 보고서 페이지 컴포넌트 (통합)
+ * 📄 자동 장애 보고서 페이지 컴포넌트
  *
  * 기능:
  * - 실시간 장애 리포트 생성 및 관리
- * - 장애 케이스 학습 (MLLearningCenter 통합)
  * - /api/ai/incident-report API 연동
- * - /api/ai/ml/train API 연동
  */
 
 'use client';
 
 import {
-  AlertCircle,
   AlertTriangle,
-  Brain,
   CheckCircle,
   CheckSquare,
   Clock,
   Download,
   Eye,
   FileText,
-  Loader2,
-  Play,
   RefreshCw,
-  RotateCcw,
   Server,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -32,7 +25,7 @@ import { useCallback, useEffect, useState } from 'react';
 // Types
 // ============================================================================
 
-type TabType = 'reports' | 'learning';
+type TabType = 'reports';
 
 interface IncidentReport {
   id: string;
@@ -69,30 +62,12 @@ interface APIIncidentReport {
   created_at: string;
 }
 
-interface LearningProgress {
-  status: 'idle' | 'running' | 'completed' | 'error';
-  progress: number;
-  currentStep: string;
-  timeElapsed: number;
-  estimatedTimeRemaining?: number;
-}
-
-interface LearningResult {
-  patternsLearned?: number;
-  accuracyImprovement?: number;
-  confidence?: number;
-  insights?: string[];
-  nextRecommendation?: string;
-  timestamp: Date;
-}
-
 // ============================================================================
 // Constants
 // ============================================================================
 
 const TABS = [
   { id: 'reports' as TabType, label: '보고서 목록', icon: FileText },
-  { id: 'learning' as TabType, label: '장애 케이스 학습', icon: Brain },
 ];
 
 // ============================================================================
@@ -133,22 +108,10 @@ export default function AutoReportPage() {
   // Reports state
   const [reports, setReports] = useState<IncidentReport[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // 자동 로드 제거로 초기값 false
   const [_error, setError] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
-
-  // Learning state (장애 케이스 학습)
-  const [learningProgress, setLearningProgress] = useState<LearningProgress>({
-    status: 'idle',
-    progress: 0,
-    currentStep: '',
-    timeElapsed: 0,
-  });
-  const [learningResults, setLearningResults] = useState<LearningResult[]>([]);
-  const [selectedResult, setSelectedResult] = useState<LearningResult | null>(
-    null
-  );
 
   // Severity mapping
   const mapSeverity = useCallback(
@@ -204,10 +167,9 @@ export default function AutoReportPage() {
     }
   }, [mapSeverity]);
 
-  // Initial load
-  useEffect(() => {
-    void fetchReports();
-  }, [fetchReports]);
+  // 자동 로드 제거 (2025-12-14)
+  // 사용자가 "새 보고서" 버튼 또는 "새로고침" 버튼을 클릭해야 데이터가 로드됨
+  // 이전: useEffect(() => { void fetchReports(); }, [fetchReports]);
 
   // Generate new report
   const handleGenerateReport = async () => {
@@ -265,110 +227,6 @@ export default function AutoReportPage() {
       setIsGenerating(false);
     }
   };
-
-  // Learning step description
-  const getStepDescription = useCallback((progress: number): string => {
-    if (progress < 20) return '과거 장애 데이터 수집 중...';
-    if (progress < 40) return '장애 이력 패턴 분석 중...';
-    if (progress < 60) return '예방 모델 훈련 중...';
-    if (progress < 80) return '예측 정확도 검증 중...';
-    if (progress < 100) return '학습 결과 생성 중...';
-    return '학습 완료!';
-  }, []);
-
-  // Start incident learning
-  const startIncidentLearning = useCallback(async () => {
-    if (learningProgress.status === 'running') return;
-
-    setLearningProgress({
-      status: 'running',
-      progress: 0,
-      currentStep: getStepDescription(0),
-      timeElapsed: 0,
-    });
-
-    const startTime = Date.now();
-
-    const progressTimer = setInterval(() => {
-      setLearningProgress((prev) => {
-        const newProgress = Math.min(prev.progress + 10, 90);
-        const elapsed = Date.now() - startTime;
-
-        return {
-          ...prev,
-          progress: newProgress,
-          currentStep: getStepDescription(newProgress),
-          timeElapsed: elapsed,
-          estimatedTimeRemaining:
-            elapsed > 0
-              ? (100 - newProgress) * (elapsed / newProgress)
-              : undefined,
-        };
-      });
-    }, 500);
-
-    try {
-      const response = await fetch('/api/ai/ml/train', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'incident',
-          timeRange: '24h',
-          config: { sensitivity: 'medium' },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API 오류: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.success || !data.result) {
-        throw new Error(data.error || '학습 결과가 없습니다.');
-      }
-
-      const result: LearningResult = {
-        patternsLearned: data.result.patternsLearned,
-        accuracyImprovement: data.result.accuracyImprovement,
-        confidence: data.result.confidence,
-        insights: data.result.insights,
-        nextRecommendation: data.result.nextRecommendation,
-        timestamp: new Date(data.result.timestamp),
-      };
-
-      clearInterval(progressTimer);
-      setLearningProgress({
-        status: 'completed',
-        progress: 100,
-        currentStep: '학습 완료!',
-        timeElapsed: Date.now() - startTime,
-      });
-
-      setLearningResults((prev) => [result, ...prev]);
-      setSelectedResult(result);
-    } catch (err) {
-      clearInterval(progressTimer);
-      console.error('장애 케이스 학습 실패:', err);
-      setLearningProgress({
-        status: 'error',
-        progress: 0,
-        currentStep: '학습 실패',
-        timeElapsed: 0,
-      });
-    }
-  }, [learningProgress.status, getStepDescription]);
-
-  // Reset learning
-  const resetLearning = useCallback(() => {
-    setLearningProgress({
-      status: 'idle',
-      progress: 0,
-      currentStep: '',
-      timeElapsed: 0,
-    });
-    setSelectedResult(null);
-  }, []);
 
   // Helper functions for UI
   const getSeverityIcon = (severity: string) => {
@@ -642,190 +500,6 @@ export default function AutoReportPage() {
   );
 
   // ============================================================================
-  // Render: Learning Tab
-  // ============================================================================
-
-  const renderLearningTab = () => (
-    <div className="flex-1 overflow-y-auto p-4">
-      {/* Learning Card */}
-      <div className="mb-4 rounded-xl border border-red-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center space-x-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-red-500 to-pink-500">
-            <AlertCircle className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h3 className="font-bold text-gray-800">장애 케이스 학습</h3>
-            <p className="text-sm text-gray-600">
-              과거 장애 사례를 분석하여 예방책을 학습합니다
-            </p>
-          </div>
-        </div>
-
-        {/* Progress Display */}
-        {learningProgress.status === 'running' && (
-          <div className="mb-4">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm text-gray-600">
-                {learningProgress.currentStep}
-              </span>
-              <span className="text-sm font-medium text-red-600">
-                {learningProgress.progress}%
-              </span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-red-500 to-pink-500 transition-all duration-300"
-                style={{ width: `${learningProgress.progress}%` }}
-              />
-            </div>
-            {learningProgress.estimatedTimeRemaining && (
-              <p className="mt-2 text-xs text-gray-500">
-                예상 남은 시간:{' '}
-                {Math.ceil(learningProgress.estimatedTimeRemaining / 1000)}초
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex space-x-2">
-          <button
-            onClick={startIncidentLearning}
-            disabled={learningProgress.status === 'running'}
-            className="flex flex-1 items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-red-500 to-pink-500 py-3 text-white transition-all duration-200 hover:scale-[1.02] hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {learningProgress.status === 'running' ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>학습 중...</span>
-              </>
-            ) : (
-              <>
-                <Play className="h-5 w-5" />
-                <span>학습 시작</span>
-              </>
-            )}
-          </button>
-
-          {learningProgress.status !== 'idle' && (
-            <button
-              onClick={resetLearning}
-              className="rounded-lg border border-gray-300 px-4 py-3 text-gray-600 transition-all hover:bg-gray-100"
-            >
-              <RotateCcw className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Selected Result Detail */}
-      {selectedResult && (
-        <div className="mb-4 rounded-xl border border-green-200 bg-green-50 p-4">
-          <div className="mb-3 flex items-center space-x-2">
-            <CheckCircle className="h-5 w-5 text-green-500" />
-            <h4 className="font-bold text-green-800">최근 학습 결과</h4>
-          </div>
-
-          <div className="mb-3 grid grid-cols-3 gap-3">
-            <div className="rounded-lg bg-white p-3 text-center">
-              <div className="text-2xl font-bold text-gray-800">
-                {selectedResult.patternsLearned ?? 0}
-              </div>
-              <div className="text-xs text-gray-500">학습된 패턴</div>
-            </div>
-            <div className="rounded-lg bg-white p-3 text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                +{selectedResult.accuracyImprovement ?? 0}%
-              </div>
-              <div className="text-xs text-gray-500">정확도 향상</div>
-            </div>
-            <div className="rounded-lg bg-white p-3 text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {selectedResult.confidence ?? 0}%
-              </div>
-              <div className="text-xs text-gray-500">신뢰도</div>
-            </div>
-          </div>
-
-          {selectedResult.insights && selectedResult.insights.length > 0 && (
-            <div className="mb-3">
-              <h5 className="mb-2 text-sm font-semibold text-gray-700">
-                주요 인사이트
-              </h5>
-              <ul className="space-y-1">
-                {selectedResult.insights.map((insight, i) => (
-                  <li key={i} className="text-sm text-gray-600">
-                    • {insight}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {selectedResult.nextRecommendation && (
-            <div className="rounded-lg bg-blue-50 p-3">
-              <p className="text-sm text-blue-800">
-                💡 {selectedResult.nextRecommendation}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Learning History */}
-      {learningResults.length > 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <h4 className="mb-3 font-bold text-gray-800">학습 히스토리</h4>
-          <div className="space-y-2">
-            {learningResults.map((result, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedResult(result)}
-                className={`w-full rounded-lg p-3 text-left transition-colors ${
-                  selectedResult === result
-                    ? 'bg-red-100 border border-red-300'
-                    : 'bg-gray-50 hover:bg-gray-100'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <AlertCircle className="h-4 w-4 text-red-500" />
-                    <span className="text-sm font-medium text-gray-700">
-                      장애 케이스 학습
-                    </span>
-                  </div>
-                  <span className="text-xs text-gray-500">
-                    {result.timestamp.toLocaleString()}
-                  </span>
-                </div>
-                <div className="mt-1 flex items-center space-x-4 text-xs text-gray-500">
-                  <span>패턴: {result.patternsLearned ?? 0}개</span>
-                  <span>정확도: +{result.accuracyImprovement ?? 0}%</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {learningProgress.status === 'idle' && learningResults.length === 0 && (
-        <div className="py-12 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-            <Brain className="h-8 w-8 text-red-400" />
-          </div>
-          <h3 className="mb-2 text-lg font-medium text-gray-700">
-            장애 케이스 학습을 시작하세요
-          </h3>
-          <p className="text-sm text-gray-500">
-            과거 장애 이력을 분석하여 예방책을 학습합니다
-          </p>
-        </div>
-      )}
-    </div>
-  );
-
-  // ============================================================================
   // Main Render
   // ============================================================================
 
@@ -843,7 +517,7 @@ export default function AutoReportPage() {
                 자동 장애보고서
               </h2>
               <p className="text-sm text-gray-600">
-                실시간 장애 리포트 + 케이스 학습
+                실시간 장애 리포트 생성 및 관리
               </p>
             </div>
           </div>
@@ -886,7 +560,6 @@ export default function AutoReportPage() {
 
       {/* Tab Content */}
       {activeTab === 'reports' && renderReportsTab()}
-      {activeTab === 'learning' && renderLearningTab()}
     </div>
   );
 }

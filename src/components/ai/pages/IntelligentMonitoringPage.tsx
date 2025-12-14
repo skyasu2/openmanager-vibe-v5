@@ -1,24 +1,24 @@
 /**
- * 🧠 이상감지/예측 통합 페이지 v2.0
+ * 🧠 이상감지/예측 통합 페이지 v3.0
  *
  * 통합 기능:
- * 1. AI 분석: 4단계 이상탐지→근본원인→예측모니터링→AI인사이트
+ * 1. AI 분석: LangGraph Analyst Agent를 통한 이상탐지 및 근본원인 분석
  * 2. 장애 예측: 위험도별 장애 예측 분석 (PredictionPage 통합)
- * 3. 패턴 학습: ML 패턴 학습 기능 (MLLearningCenter 통합)
+ *
+ * v3.0 변경사항 (2025-12-14):
+ * - 패턴 학습 탭 제거 (ML API 폐지)
+ * - Analyst Agent로 기능 통합 예정
  */
 
 'use client';
 
 import {
   AlertTriangle,
-  BarChart3,
   Bell,
-  Brain,
   CheckCircle,
   Clock,
   Cpu,
   HardDrive,
-  Loader2,
   Monitor,
   Pause,
   Play,
@@ -29,10 +29,8 @@ import {
   Target,
   TrendingUp,
   Wifi,
-  Zap,
 } from 'lucide-react';
-import { createElement, useCallback, useEffect, useState } from 'react';
-import MonitoringInsights from '@/components/ai/MonitoringInsights';
+import { createElement, useEffect, useState } from 'react';
 import MonitoringResults from '@/components/ai/MonitoringResults';
 import MonitoringWorkflow, {
   defaultWorkflowSteps,
@@ -45,7 +43,7 @@ import type {
 // ============================================================================
 // 타입 정의
 // ============================================================================
-type TabType = 'analysis' | 'prediction' | 'patterns';
+type TabType = 'analysis' | 'prediction';
 
 interface PredictionData {
   serverId: string;
@@ -58,30 +56,12 @@ interface PredictionData {
   factors: string[];
 }
 
-interface LearningProgress {
-  status: 'idle' | 'running' | 'completed' | 'error';
-  progress: number;
-  currentStep: string;
-  timeElapsed: number;
-  estimatedTimeRemaining?: number;
-}
-
-interface LearningResult {
-  patternsLearned?: number;
-  accuracyImprovement?: number;
-  confidence?: number;
-  insights?: string[];
-  nextRecommendation?: string;
-  timestamp: Date;
-}
-
 // ============================================================================
 // 상수 정의
 // ============================================================================
 const TABS = [
   { id: 'analysis' as TabType, label: 'AI 분석', icon: Monitor },
   { id: 'prediction' as TabType, label: '장애 예측', icon: TrendingUp },
-  { id: 'patterns' as TabType, label: '패턴 학습', icon: Brain },
 ];
 
 const MOCK_PREDICTIONS: PredictionData[] = [
@@ -144,11 +124,6 @@ export default function IntelligentMonitoringPage() {
   const [result, setResult] =
     useState<ExtendedIntelligentAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showMLInsights, setShowMLInsights] = useState(true);
-  const [mlCacheStats, setMlCacheStats] = useState<{
-    hitRate: number;
-    memorySize: number;
-  }>({ hitRate: 0, memorySize: 0 });
   const [analysisConfig, setAnalysisConfig] =
     useState<IntelligentAnalysisRequest>({
       serverId: '',
@@ -168,22 +143,6 @@ export default function IntelligentMonitoringPage() {
   const [acknowledgedIds, setAcknowledgedIds] = useState<Set<string>>(
     new Set()
   );
-
-  // 패턴 학습 상태 (MLLearningCenter 통합)
-  const [learningProgress, setLearningProgress] = useState<LearningProgress>({
-    status: 'idle',
-    progress: 0,
-    currentStep: '',
-    timeElapsed: 0,
-  });
-  const [learningResult, setLearningResult] = useState<LearningResult | null>(
-    null
-  );
-
-  // ML 캐시 통계 로드
-  useEffect(() => {
-    setMlCacheStats({ hitRate: 0.85, memorySize: 256 });
-  }, []);
 
   // ============================================================================
   // AI 분석 핸들러 (기존)
@@ -319,92 +278,6 @@ export default function IntelligentMonitoringPage() {
       : predictions.filter((p) => p.riskLevel === selectedRisk);
 
   // ============================================================================
-  // 패턴 학습 핸들러 (MLLearningCenter 통합)
-  // ============================================================================
-  const getStepDescription = useCallback((progress: number): string => {
-    if (progress < 20) return '데이터 수집 중...';
-    if (progress < 40) return '패턴 분석 중...';
-    if (progress < 60) return '모델 훈련 중...';
-    if (progress < 80) return '검증 중...';
-    if (progress < 100) return '결과 생성 중...';
-    return '학습 완료!';
-  }, []);
-
-  const startPatternLearning = useCallback(async () => {
-    if (learningProgress.status === 'running') return;
-
-    setLearningProgress({
-      status: 'running',
-      progress: 0,
-      currentStep: getStepDescription(0),
-      timeElapsed: 0,
-    });
-
-    const startTime = Date.now();
-    const progressTimer = setInterval(() => {
-      setLearningProgress((prev) => {
-        const newProgress = Math.min(prev.progress + 10, 90);
-        return {
-          ...prev,
-          progress: newProgress,
-          currentStep: getStepDescription(newProgress),
-          timeElapsed: Date.now() - startTime,
-          estimatedTimeRemaining:
-            newProgress > 0
-              ? (100 - newProgress) * ((Date.now() - startTime) / newProgress)
-              : undefined,
-        };
-      });
-    }, 500);
-
-    try {
-      const response = await fetch('/api/ai/ml/train', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'patterns',
-          timeRange: '24h',
-          config: { sensitivity: 'medium' },
-        }),
-      });
-
-      if (!response.ok) throw new Error(`API 오류: ${response.status}`);
-      const data = await response.json();
-      if (!data.success || !data.result)
-        throw new Error(data.error || '학습 결과가 없습니다.');
-
-      clearInterval(progressTimer);
-      setLearningProgress({
-        status: 'completed',
-        progress: 100,
-        currentStep: '학습 완료!',
-        timeElapsed: Date.now() - startTime,
-      });
-      setLearningResult({
-        patternsLearned: data.result.patternsLearned,
-        accuracyImprovement: data.result.accuracyImprovement,
-        confidence: data.result.confidence,
-        insights: data.result.insights,
-        nextRecommendation: data.result.nextRecommendation,
-        timestamp: new Date(data.result.timestamp),
-      });
-    } catch (error) {
-      clearInterval(progressTimer);
-      setLearningProgress((prev) => ({
-        ...prev,
-        status: 'error',
-        currentStep: error instanceof Error ? error.message : '학습 실패',
-      }));
-    }
-  }, [learningProgress.status, getStepDescription]);
-
-  const formatTime = (ms: number): string => {
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    return minutes > 0 ? `${minutes}분 ${seconds % 60}초` : `${seconds}초`;
-  };
-
-  // ============================================================================
   // 렌더링
   // ============================================================================
   return (
@@ -471,13 +344,6 @@ export default function IntelligentMonitoringPage() {
                 )}
               </button>
             </div>
-
-            <MonitoringInsights
-              showMLInsights={showMLInsights}
-              mlCacheStats={mlCacheStats}
-              onCloseMLInsights={() => setShowMLInsights(false)}
-              onOpenMLInsights={() => setShowMLInsights(true)}
-            />
 
             <div className="rounded-xl border border-gray-200 bg-white p-6">
               <div className="mb-4 flex items-center justify-between">
@@ -767,187 +633,6 @@ export default function IntelligentMonitoringPage() {
                 <div className="text-xs text-gray-500">낮음</div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* 패턴 학습 탭 */}
-        {activeTab === 'patterns' && (
-          <div className="space-y-4">
-            <div className="rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 p-4">
-              <div className="mb-2 flex items-center space-x-2">
-                <div className="h-2 w-2 rounded-full bg-indigo-500"></div>
-                <span className="text-sm font-medium text-indigo-800">
-                  ML 패턴 학습 시스템
-                </span>
-              </div>
-              <p className="text-xs text-indigo-700">
-                실제 Supabase 데이터를 기반으로 패턴 분석을 학습합니다. GCP
-                Cloud Functions와 연동되어 고급 ML 처리를 수행합니다.
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-gray-200 bg-white p-6">
-              <div className="mb-4 flex items-start justify-between">
-                <div className="rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 p-3">
-                  <Brain className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex items-center gap-2">
-                  {learningProgress.status === 'running' && (
-                    <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                  )}
-                  {learningProgress.status === 'completed' && (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  )}
-                  {learningProgress.status === 'error' && (
-                    <AlertTriangle className="h-5 w-5 text-red-500" />
-                  )}
-                </div>
-              </div>
-              <h3 className="mb-1 font-semibold text-gray-800">
-                패턴 학습 시작
-              </h3>
-              <p className="mb-4 text-sm text-gray-600">
-                서버 메트릭 패턴을 분석하고 학습합니다
-              </p>
-
-              {(learningProgress.status === 'running' ||
-                learningProgress.status === 'completed' ||
-                learningProgress.status === 'error') && (
-                <div className="mb-4 space-y-2">
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>{learningProgress.currentStep}</span>
-                    <span>{learningProgress.progress}%</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${learningProgress.status === 'error' ? 'bg-red-500' : learningProgress.status === 'completed' ? 'bg-green-500' : 'bg-gradient-to-r from-blue-500 to-cyan-500'}`}
-                      style={{ width: `${learningProgress.progress}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>
-                      <Clock className="mr-1 inline h-3 w-3" />
-                      {formatTime(learningProgress.timeElapsed)}
-                    </span>
-                    {learningProgress.estimatedTimeRemaining &&
-                      learningProgress.status === 'running' && (
-                        <span>
-                          남은 시간: ~
-                          {formatTime(learningProgress.estimatedTimeRemaining)}
-                        </span>
-                      )}
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={() => void startPatternLearning()}
-                disabled={learningProgress.status === 'running'}
-                className={`w-full rounded-lg px-4 py-2 text-sm font-medium transition-all ${learningProgress.status === 'running' ? 'cursor-not-allowed bg-gray-100 text-gray-400' : learningProgress.status === 'completed' ? 'bg-green-100 text-green-700 hover:bg-green-200' : learningProgress.status === 'error' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600'}`}
-              >
-                {learningProgress.status === 'running' ? (
-                  '학습 중...'
-                ) : learningProgress.status === 'completed' ? (
-                  <>
-                    <Play className="mr-1 inline h-4 w-4" />
-                    재학습
-                  </>
-                ) : learningProgress.status === 'error' ? (
-                  <>
-                    <RotateCcw className="mr-1 inline h-4 w-4" />
-                    다시 시도
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-1 inline h-4 w-4" />
-                    학습 시작
-                  </>
-                )}
-              </button>
-            </div>
-
-            {learningResult && (
-              <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
-                    <BarChart3 className="h-5 w-5 text-blue-600" />
-                    학습 결과
-                  </h3>
-                  <button
-                    onClick={() => setLearningResult(null)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <div className="rounded-lg bg-white p-4">
-                    <div className="mb-1 text-sm text-gray-600">
-                      발견한 패턴
-                    </div>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {learningResult.patternsLearned}개
-                    </div>
-                  </div>
-                  <div className="rounded-lg bg-white p-4">
-                    <div className="mb-1 text-sm text-gray-600">
-                      정확도 향상
-                    </div>
-                    <div className="text-2xl font-bold text-green-600">
-                      +{learningResult.accuracyImprovement}%
-                    </div>
-                  </div>
-                  <div className="rounded-lg bg-white p-4">
-                    <div className="mb-1 text-sm text-gray-600">신뢰도</div>
-                    <div className="text-2xl font-bold text-purple-600">
-                      {((learningResult.confidence || 0) * 100).toFixed(0)}%
-                    </div>
-                  </div>
-                </div>
-                {learningResult.insights && (
-                  <div className="mb-4">
-                    <h4 className="mb-2 font-medium text-gray-700">
-                      주요 인사이트
-                    </h4>
-                    <ul className="space-y-1">
-                      {learningResult.insights.map((insight, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-start gap-2 text-sm text-gray-600"
-                        >
-                          <Zap className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                          {insight}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {learningResult.nextRecommendation && (
-                  <div className="rounded-lg bg-blue-100 p-3">
-                    <p className="text-sm text-blue-800">
-                      <strong>다음 권장사항:</strong>{' '}
-                      {learningResult.nextRecommendation}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {!learningResult && learningProgress.status === 'idle' && (
-              <div className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-purple-100">
-                  <Brain className="h-8 w-8 text-indigo-600" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold text-gray-800">
-                  ML 학습 준비 완료
-                </h3>
-                <p className="mx-auto mb-4 max-w-md text-sm text-gray-600">
-                  위의 학습 버튼을 클릭하여 서버 모니터링 데이터 패턴을
-                  학습하세요. 학습된 패턴은 이상 감지 및 예측의 정확도를
-                  향상시킵니다.
-                </p>
-              </div>
-            )}
           </div>
         )}
       </div>

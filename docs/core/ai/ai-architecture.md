@@ -1,10 +1,10 @@
 # AI Assistant Architecture
 
-## 🏗️ Overview
+## Overview
 
-The AI Assistant is built on a **Hybrid Engine Architecture** that intelligently switches between **Offline Capabilities** (Speed Layer) and **Google Gemini 1.5 Flash** (Intelligence Layer). This approach minimizes latency and cost while maximizing reasoning capabilities. It features a unique "Thinking Process" visualization that exposes the AI's internal reasoning and tool usage to the user.
+The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrates specialized agents for server monitoring tasks. It features a hybrid deployment model with Cloud Run as the primary backend and local execution as fallback.
 
-## 🧩 Core Components
+## Core Components
 
 ### 1. Frontend: AI Sidebar (`AISidebarV4`)
 
@@ -13,60 +13,166 @@ The AI Assistant is built on a **Hybrid Engine Architecture** that intelligently
 - **Endpoint**: `/api/ai/unified-stream`
 - **Features**:
   - Real-time streaming response
-  - **Thinking Process Visualization**: Renders `toolInvocations` as step-by-step thinking blocks.
-  - **Enhanced UX**: Gradient bubbles, auto-resizing input, mobile responsive.
+  - Agent routing visualization
+  - Tool invocation display
+  - Session persistence
 
-### 2. Backend: Unified Stream API (Hybrid Engine)
+### 2. Backend: LangGraph Multi-Agent System
 
-- **Location**: `src/app/api/ai/unified-stream/route.ts`
-- **Framework**: Next.js App Router + Vercel AI SDK (`streamText`)
-- **Model**: `google('gemini-1.5-flash')`
-- **Architecture**:
-  - **Offline Layer (Speed)**: Handles simple queries (patterns, commands) locally using `analyzePattern` and `recommendCommands`.
-  - **Online Layer (Intelligence)**: Uses Gemini 1.5 Flash for complex reasoning, RAG (`searchKnowledgeBase`), and ML predictions (`predictIncident`).
-- **System Prompt**: Enforces a structured thinking process and prioritizes offline tools for simple tasks.
+- **Cloud Run**: `cloud-run/ai-backend/src/` (Hono/TypeScript)
+- **Local Fallback**: `src/services/langgraph/` (Next.js)
+- **Framework**: LangGraph StateGraph
 
-## 🛠️ Tool System
+#### Agent Architecture
 
-The AI uses a multi-layer tool system to simulate human-like reasoning and optimize performance.
+```
+START
+  │
+  ▼
+┌─────────────────────────────────────────────────┐
+│              SUPERVISOR                          │
+│   Model: Groq llama-3.1-8b-instant              │
+│   Role: Intent classification & routing          │
+└─────────────────────────────────────────────────┘
+  │
+  ├──▶ "nlq"      ──▶ NLQ Agent (Gemini 2.5 Flash)
+  │                    └─ getServerMetrics
+  │
+  ├──▶ "analyst"  ──▶ Analyst Agent (Gemini 2.5 Pro)
+  │                    └─ analyzePattern
+  │
+  ├──▶ "reporter" ──▶ Reporter Agent (Llama 3.3-70b)
+  │                    └─ searchKnowledgeBase (RAG)
+  │                    └─ [Approval Check] ──▶ Human Interrupt
+  │
+  ├──▶ "parallel" ──▶ Parallel Analysis Node
+  │                    └─ NLQ + Analyst (concurrent)
+  │
+  └──▶ "reply"    ──▶ Direct Response (greetings)
+                       │
+                       ▼
+                      END
+```
 
-### A. Offline Tools (Speed Layer)
+## Tool System
 
-Used for instant responses without incurring LLM costs. These tools run locally on the server.
+The AI uses specialized tools within each agent for domain-specific operations.
 
-1.  **`analyzePattern`**: Detects intent using regex patterns (e.g., "CPU status", "Memory usage") -> Returns instant analysis.
-2.  **`recommendCommands`**: Suggests CLI commands based on keywords -> Returns command list.
+### NLQ Agent Tools
 
-### B. Thinking Tools (Cognitive Layer)
+| Tool | Description |
+|------|-------------|
+| `getServerMetrics` | Retrieves CPU/Memory/Disk metrics from scenario data |
 
-Used to plan and analyze _before_ taking action. These are internal reasoning steps.
+### Analyst Agent Tools
 
-1.  **`analyzeRequest`**: Consolidates intent classification and complexity analysis into a single step to optimize token usage.
+| Tool | Description |
+|------|-------------|
+| `analyzePattern` | Detects trends, anomalies, and patterns in metrics |
 
-### C. Action Tools (Execution Layer)
+### Reporter Agent Tools
 
-Used to fetch data or perform operations.
+| Tool | Description |
+|------|-------------|
+| `searchKnowledgeBase` | RAG search using Supabase pgvector (384 dimensions) |
 
-1.  **`callUnifiedProcessor`**: **[Real GCP]** Calls the unified Google Cloud Function for complex analysis (NLP + ML + Server Analysis).
-2.  **`getServerMetrics`**: Retrieves server stats (CPU, Memory, Disk) using `scenario-loader` (Simulation).
-3.  **`searchKnowledgeBase`**: **[Real RAG]** Uses `SupabaseRAGEngine` (pgvector) to search the actual knowledge base.
+## Data Flow
 
-## 🔄 Data Flow
+1. **User Query**: User types a message in `AISidebarV4`
+2. **API Request**: `useChat` sends POST to `/api/ai/unified-stream`
+3. **Backend Selection**:
+   - If `CLOUD_RUN_ENABLED=true`: Proxy to Cloud Run
+   - Otherwise: Execute local LangGraph
+4. **Supervisor Routing**: Groq Llama classifies intent and routes to appropriate agent
+5. **Agent Execution**: Selected agent processes query with tools
+6. **Approval Check** (Reporter only): Critical actions require human approval
+7. **Response**: Streaming or JSON response returned to client
 
-1.  **User Query**: User types a message in `AISidebarV4`.
-2.  **API Request**: `useChat` sends POST request to `/api/ai/unified-stream`.
-3.  **AI Processing (Hybrid Routing)**:
-    - **Phase 1 (Thinking)**: Calls `analyzeRequest`.
-    - **Phase 2 (Routing)**:
-      - If **Simple**: Calls `analyzePattern` or `recommendCommands` (Offline).
-      - If **Complex**: Calls `searchKnowledgeBase` (RAG) or `callUnifiedProcessor` (GCP).
-4.  **Streaming Response**:
-    - Tool calls are streamed as `toolInvocations` (rendered as UI steps).
-    - Final text response is streamed as markdown.
-5.  **Visualization**: User sees the "Thinking..." block expand with steps, followed by the final answer.
+## Human-in-the-Loop Workflow
 
-## 🔌 Integration Points
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant S as Supervisor
+    participant R as Reporter Agent
+    participant A as Approval Node
+    participant Admin as Administrator
 
-- **GCP Integration**: `callUnifiedProcessor` tool connects to external GCP Cloud Functions.
-- **Supabase Integration**: `searchKnowledgeBase` connects to Supabase `pgvector` for RAG.
-- **Scenario Loader**: `getServerMetrics` uses `src/services/scenario/scenario-loader.ts` for consistent demo data.
+    U->>S: "서버 5번 장애 분석해줘"
+    S->>R: Route to Reporter (incident_ops)
+    R->>R: Generate incident report
+    R->>A: requiresApproval = true
+    A->>U: "관리자 승인이 필요합니다"
+
+    Note over A,Admin: Interrupt - Graph paused
+
+    Admin->>A: Approve/Reject
+    A->>U: Final response (approved) or rejection message
+```
+
+### Approval Types
+
+| Action Type | Trigger | Requires Approval |
+|-------------|---------|-------------------|
+| `incident_report` | Root cause analysis completed | Yes |
+| `system_command` | Risky operations | Yes |
+| `critical_alert` | High-severity alerts | Yes |
+
+## Parallel Analysis
+
+When comprehensive analysis is needed (both metrics and patterns), the Supervisor routes to the `parallel_analysis` node:
+
+```typescript
+// Promise.all for concurrent execution
+const [analystResult, nlqResult] = await Promise.all([
+  analystAgentNode(state),
+  nlqAgentNode(state),
+]);
+
+// Results merged into combined response
+```
+
+Benefits:
+- 2x faster than sequential execution
+- Unified response combining metrics + insights
+- Automatic result aggregation
+
+## Session Persistence
+
+Sessions are persisted using Supabase PostgresCheckpointer:
+
+```typescript
+const checkpointer = PostgresSaver.fromConnString(
+  process.env.SUPABASE_DATABASE_URL
+);
+
+// Graph compiled with checkpointer
+const graph = workflow.compile({
+  checkpointer,
+  interruptBefore: ['approval_check'],
+});
+```
+
+Features:
+- Conversation history preserved across requests
+- Resume from interrupt points (Human-in-the-Loop)
+- Thread-based isolation per session
+
+## Circuit Breaker
+
+Model health is monitored with Circuit Breaker pattern:
+
+| State | Behavior | Transition |
+|-------|----------|------------|
+| **Closed** | Normal operation | 3 failures → Open |
+| **Open** | Block requests, use fallback | 60s cooldown → Half-Open |
+| **Half-Open** | Test single request | Success → Closed, Failure → Open |
+
+## Integration Points
+
+| Integration | Technology | Purpose |
+|-------------|------------|---------|
+| **Supabase** | pgvector | RAG knowledge base |
+| **Supabase** | PostgresCheckpointer | Session persistence |
+| **Supabase** | Realtime | Live updates |
+| **Scenario Loader** | `src/services/scenario/` | Demo metrics data |

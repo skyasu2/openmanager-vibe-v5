@@ -1,88 +1,167 @@
-# 🧠 AI Engine Architecture
+# AI Engine Architecture
 
 ## Overview
 
-The AI Engine for OpenManager Vibe is a **Hybrid Intelligence System** that combines fast local processing with powerful cloud-based reasoning. It leverages **Google's Gemini 2.5** models for state-of-the-art performance and **Groq** for high-speed routing.
+The AI Engine for OpenManager Vibe is a **Hybrid Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, featuring **Cloud Run** as the primary backend with local fallback.
 
-## Core Components
+## Architecture (v5.80.0)
 
-### 1. LangGraph Multi-Agent System (v5.80.0)
-The central nervous system of the AI, orchestrating all analysis and response generation.
+### Deployment Modes
 
--   **Location**: `cloud-run/ai-backend/` (TypeScript/Hono)
--   **Orchestrator**: LangGraph StateGraph
--   **Agents**:
-    -   **Supervisor**: Groq Llama-8b for intent classification.
-    -   **NLQ Agent**: Gemini Flash for server metrics queries.
-    -   **Analyst Agent**: Gemini Pro for pattern analysis and anomaly detection.
-    -   **Reporter Agent**: Llama 70b for incident reports with RAG.
+| Mode | Backend | When Used |
+|------|---------|-----------|
+| **Cloud Run** (Primary) | `cloud-run/ai-backend/` (Hono/TypeScript) | `CLOUD_RUN_ENABLED=true` |
+| **Local** (Fallback) | `src/services/langgraph/` (Next.js) | Cloud Run unavailable or disabled |
 
-### 2. Model Stack
--   **Primary (Reasoning)**: **Gemini 2.5 Pro** - Detailed analysis, complex troubleshooting ("Thinking Mode").
--   **Primary (Speed)**: **Gemini 2.5 Flash** - Quick responses, UI interactions, routine checks.
--   **Fallback**: **Groq (Llama 3.1/3.3)** - High-speed redundancy if Google AI is unavailable.
+### Agent Stack
 
-### 3. Data & Memory
--   **Vector Store**: Supabase (pgvector) for RAG (Retrieval Augmented Generation).
--   **Realtime**: Supabase Realtime for live dashboard updates.
--   **State Management**: `zustand` stores for client-side chat history and "Thinking Steps" visualization.
+| Agent | Model | Role | Tools |
+|-------|-------|------|-------|
+| **Supervisor** | Groq `llama-3.1-8b-instant` | Intent classification & routing | - |
+| **NLQ Agent** | Gemini 2.5 Flash | Server metrics queries | `getServerMetrics` |
+| **Analyst Agent** | Gemini 2.5 Pro | Pattern analysis, anomaly detection | `analyzePattern` |
+| **Reporter Agent** | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG) |
 
-## API Architecture
+### Key Features
 
-> [!NOTE]
-> **v5.80.0 Update**: API 통합 완료. LangGraph StateGraph 기반 Multi-Agent 아키텍처로 전환.
-> - **`/api/ai/unified-stream`**: 유일한 AI API 엔드포인트. Streaming + JSON 응답 모두 지원.
-> - **요청 형식**: `{ messages: [{ role: 'user', content: '...' }], sessionId?: string }`
-> - **응답 형식**: `{ success, response, toolResults, targetAgent, sessionId }`
-> - ~~`/api/ai/query` (Legacy)~~: **삭제됨** - `src/archive/legacy-ai-routing/`으로 아카이브
+- **Parallel Analysis**: Analyst + NLQ agents run concurrently for comprehensive reports
+- **Human-in-the-Loop**: Critical actions (incident reports) require approval via `interruptBefore`
+- **Circuit Breaker**: Model health monitoring with automatic failover
+- **Session Persistence**: Supabase PostgresCheckpointer for conversation continuity
 
 ## Architecture Diagram
 
 ```mermaid
 graph TD
-    Client[Client UI] -->|Stream Request| API[Next.js API (/api/ai/unified-stream)]
-    
-    subgraph "Next.js Server (Edge/Node)"
-        API --> Router{Dynamic Router}
-        Router -- "Simple/Visual" --> GeminiFlash[Gemini 2.5 Flash]
-        Router -- "Complex/Thinking" --> GeminiPro[Gemini 2.5 Pro]
-        
-        GeminiFlash -- Tool Call --> UnifiedProc[Unified AI Processor]
-        GeminiPro -- Tool Call --> UnifiedProc
+    Client[Client UI] -->|POST /api/ai/unified-stream| API[Next.js API Route]
+
+    subgraph "Vercel (Next.js)"
+        API --> Router{Cloud Run Enabled?}
+        Router -- Yes --> Proxy[Cloud Run Proxy]
+        Router -- No --> LocalGraph[Local LangGraph]
     end
-    
-    subgraph "Unified AI Processor (Python)"
-        UnifiedProc --> NLP[NLP Engine]
-        UnifiedProc --> ML[ML Analytic Engine]
-        UnifiedProc --> Rules[Rule Engine]
+
+    subgraph "Cloud Run (Hono Server)"
+        Proxy -->|X-API-Key Auth| Supervisor[Supervisor Agent]
+
+        Supervisor -->|Simple Query| NLQ[NLQ Agent]
+        Supervisor -->|Pattern Analysis| Analyst[Analyst Agent]
+        Supervisor -->|Incident/RAG| Reporter[Reporter Agent]
+        Supervisor -->|Comprehensive| Parallel[Parallel Node]
+        Supervisor -->|Greeting| Direct[Direct Reply]
+
+        Parallel --> NLQ
+        Parallel --> Analyst
+
+        Reporter -->|Critical Action| Approval{Approval Check}
+        Approval -->|Approved| Response[Response]
+        Approval -->|Pending| Interrupt[Human Interrupt]
     end
-    
+
     subgraph "Data Layer"
-        UnifiedProc --> DB[(Supabase PG)]
-        UnifiedProc --> RAG[(Vector Store)]
+        NLQ --> Metrics[(Scenario Data)]
+        Analyst --> Metrics
+        Reporter --> RAG[(Supabase pgvector)]
+        Supervisor --> Checkpoint[(PostgresCheckpointer)]
     end
-    
-    UnifiedProc -->|Analysis Result| GeminiPro
-    GeminiPro -->|Streaming Response| Client
+
+    Response --> Client
+    LocalGraph --> Client
 ```
 
-## 🧩 Key Components
+## API Specification
 
-### 1. Unified Processor
-- **Single Entry Point**: All AI interactions go through a central processor.
-- **Context Awareness**: Automatically injects relevant system metrics and logs.
-- **Prompt Engineering**: Dynamic prompt construction based on task type.
+### Endpoint
 
-### 2. Supabase Realtime Adapter
-- **Streaming Thinking Process**: Instead of waiting for the full response, the AI streams its "thinking steps" (e.g., "Analyzing logs...", "Checking metrics...") to the client via Supabase Realtime.
-- **Persistence**: Thinking steps are stored in PostgreSQL for audit and debugging.
+**`POST /api/ai/unified-stream`** - Unified AI endpoint (streaming + JSON)
 
-### 3. Multi-Model Fallback
-- **High Availability**: If the primary model (Gemini) fails or is rate-limited, the system automatically retries with secondary models (Claude, GPT).
-- **Cross-Validation**: Critical decisions can be cross-validated by multiple models (optional configuration).
+### Request Format
 
-## 📊 RAG (Retrieval-Augmented Generation)
+```json
+{
+  "messages": [
+    { "role": "user", "content": "서버 5번 CPU 상태 알려줘" }
+  ],
+  "sessionId": "optional-session-id"
+}
+```
 
-- **Vector Store**: Uses `pgvector` in Supabase.
-- **Embeddings**: Generates embeddings for documentation and past incident reports.
-- **Retrieval**: Semantically searches for similar past issues to provide context-aware solutions.
+### Response Format (JSON)
+
+```json
+{
+  "success": true,
+  "response": "서버 5번의 CPU 사용률은 현재 45%입니다...",
+  "toolResults": [...],
+  "targetAgent": "nlq",
+  "sessionId": "session_1234567890",
+  "_backend": "cloud-run"
+}
+```
+
+### Response Format (Streaming)
+
+```
+Headers:
+- Content-Type: text/plain; charset=utf-8
+- X-Session-Id: session_1234567890
+- X-Backend: cloud-run | local
+```
+
+## Data & Memory
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Vector Store** | Supabase (pgvector) | RAG knowledge base |
+| **Checkpointer** | PostgresCheckpointer | Session state persistence |
+| **Realtime** | Supabase Realtime | Live dashboard updates |
+| **Client State** | Zustand | Chat history, UI state |
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CLOUD_RUN_ENABLED` | No | Enable Cloud Run backend (`true`/`false`) |
+| `CLOUD_RUN_AI_URL` | If enabled | Cloud Run service URL |
+| `CLOUD_RUN_API_SECRET` | If enabled | API key for authentication |
+| `GOOGLE_AI_API_KEY` | Yes | Gemini 2.5 API key |
+| `GROQ_API_KEY` | Yes | Groq (Llama) API key |
+
+## File Structure
+
+```
+# Cloud Run Backend
+cloud-run/ai-backend/
+├── src/
+│   ├── index.ts                    # Hono server entry
+│   ├── routes/
+│   │   ├── health.ts               # Health check endpoints
+│   │   └── unified-stream.ts       # AI route handler
+│   └── services/langgraph/
+│       ├── graph-builder.ts        # StateGraph assembly
+│       ├── state-definition.ts     # AgentState annotation
+│       ├── checkpointer.ts         # Supabase persistence
+│       └── agents/
+│           ├── supervisor.ts       # Routing agent
+│           ├── nlq-agent.ts        # Metrics queries
+│           ├── analyst-agent.ts    # Pattern analysis
+│           └── reporter-agent.ts   # Incident reports
+
+# Vercel Proxy
+src/lib/cloud-run/
+└── proxy.ts                        # Cloud Run proxy utilities
+
+# Local Fallback
+src/services/langgraph/
+└── (mirrors cloud-run structure)
+```
+
+## Deprecated Components
+
+| Component | Status | Replacement |
+|-----------|--------|-------------|
+| `/api/ai/query` | Removed | `/api/ai/unified-stream` |
+| Python Unified Processor | Removed | TypeScript LangGraph agents |
+| GCP Cloud Functions | Removed | Cloud Run (containerized) |
+| `ml-analytics-engine` | Removed | Analyst Agent (Gemini 2.5 Pro) |
+| `SmartRoutingEngine` | Removed | LangGraph Supervisor Agent |

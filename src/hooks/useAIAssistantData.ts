@@ -98,7 +98,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
   const [suggestions, setSuggestions] = useState<SuggestionData[]>([]);
   const [documents, setDocuments] = useState<ContextDocument[]>([]);
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // 자동 로드 제거로 초기값 false
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
@@ -351,10 +351,9 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
     [updateSuggestionStatus]
   );
 
-  // 초기 데이터 로드
-  useEffect(() => {
-    void refreshData();
-  }, [refreshData]); // refreshData 함수 의존성 추가
+  // 자동 데이터 로드 제거 (2025-12-14)
+  // 사용자가 명시적으로 refreshData()를 호출해야 데이터가 로드됨
+  // 이전: useEffect(() => { void refreshData(); }, [refreshData]);
 
   // 로그 필터링 (메모이제이션)
   const filteredLogs = useMemo(() => {
