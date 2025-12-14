@@ -19,7 +19,7 @@ import {
   RefreshCw,
   Server,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 // ============================================================================
 // Types
@@ -130,7 +130,7 @@ export default function AutoReportPage() {
   );
 
   // Fetch reports from API
-  const fetchReports = useCallback(async () => {
+  const _fetchReports = useCallback(async () => {
     try {
       setError(null);
       const response = await fetch('/api/ai/incident-report');

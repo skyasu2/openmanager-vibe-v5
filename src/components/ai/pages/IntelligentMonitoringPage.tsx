@@ -30,7 +30,7 @@ import {
   TrendingUp,
   Wifi,
 } from 'lucide-react';
-import { createElement, useEffect, useState } from 'react';
+import { createElement, useState } from 'react';
 import MonitoringResults from '@/components/ai/MonitoringResults';
 import MonitoringWorkflow, {
   defaultWorkflowSteps,

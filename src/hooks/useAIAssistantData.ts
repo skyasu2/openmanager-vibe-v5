@@ -6,7 +6,6 @@ import {
   type Dispatch,
   type SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
