@@ -6,11 +6,11 @@ query_triggers:
   - '개발 환경 설정'
   - 'WSL 설정'
   - 'AI 도구 설정'
-  - 'Docker 설정'
+  - 'Cloud Run 설정'
 related_docs:
   - 'docs/development/README.md'
   - 'docs/environment/wsl/wsl-optimization.md'
-last_updated: '2025-12-12'
+last_updated: '2025-12-14'
 ---
 
 # 💻 Environment 문서 (개발 환경)
@@ -21,59 +21,56 @@ last_updated: '2025-12-12'
 
 이 디렉터리는 **개발자가 로컬에서 개발하기 위한 모든 설정**에 관한 문서를 포함합니다.
 
-## 🐳 Docker Ecosystem
+## 🏗️ 현재 아키텍처 (v5.80.0)
 
-로컬 환경은 **AI Services** (Custom)와 **Supabase Services** (Managed) 두 그룹으로 구성됩니다.
+| 서비스 | 배포 환경 / 호스팅 | 역할 설명 |
+|--------|-------------------|-----------|
+| **Next.js App** | Vercel (Serverless) | 프론트엔드 + API Routes 제공 |
+| **AI Backend** | Google Cloud Run (Container / Serverless) | LangGraph 기반 멀티 에이전트 백엔드 |
+| **Supabase DB** | Supabase Cloud (Managed PostgreSQL + Auth) | PostgreSQL 데이터베이스 + 인증(Auth) 제공 |
 
-### AI Services (Custom Managed)
+### AI Services (Cloud Run)
 
-| 서비스명 | 컨테이너 이름 | 포트 | 역할 |
-|---------|--------------|------|------|
-| **unified-ai-processor** | `unified-ai-processor` | `8082` | AI 오케스트레이터 (메인) |
-| **mock-ai** | `mock-ai` | `8083` | 가짜 AI (테스트용) |
-
-```bash
-# AI 서비스 실행
-npm run dev:docker:ai
+```
+cloud-run/ai-backend/
+├── LangGraph Multi-Agent System
+│   ├── Supervisor (Groq Llama-8b)
+│   ├── NLQ Agent (Gemini Flash)
+│   ├── Analyst Agent (Gemini Pro)
+│   └── Reporter Agent (Llama 70b)
+└── Hono Server (Port 8080)
 ```
 
-### Supabase Services (Supabase CLI Managed)
+### Database (Cloud Supabase)
 
-| 서비스명 | 외부 포트 | 역할 |
-|---------|----------|------|
-| **supabase-db** | `54322` | PostgreSQL 데이터베이스 |
-| **supabase-rest** | `54321` | PostgREST API |
-| **supabase-studio** | `54323` | 관리 대시보드 |
+- **Dashboard**: https://supabase.com/dashboard/project/vnswjnltnhpsueosfhmw
+- **API URL**: https://vnswjnltnhpsueosfhmw.supabase.co
+
+## 🛠️ 로컬 개발 설정
+
+### 1. 환경 변수 설정
 
 ```bash
-# Supabase 실행
-npx supabase start
+cp .env.local.template .env.local
+# Cloud Supabase 키 설정
 ```
 
-## 🏗️ Local Full Stack Setup
+### 2. 개발 서버 실행
 
-### 1. Database Setup
 ```bash
-npx supabase start -y
+npm run dev:stable
 ```
-- **Dashboard**: `http://localhost:54323`
-- **API URL**: `http://localhost:54321`
 
-### 2. AI Services Setup
+### 3. Supabase 마이그레이션 (선택)
+
 ```bash
-cd gcp-functions
-docker-compose -f docker-compose.dev.yml up mock-ai
-```
-
-### 3. Environment Configuration
-```env
-# .env.local
-NEXT_PUBLIC_GCP_UNIFIED_PROCESSOR_ENDPOINT="http://localhost:8083/process"
+# Cloud Supabase에 마이그레이션 적용
+npx supabase db push
 ```
 
 ## 💻 WSL 사용자 주의사항
 
-1. **Docker Desktop 설정**: WSL Integration 활성화 필수
+1. **Node.js**: v22.21.1 (nvm 사용 권장)
 2. **파일 권한**: WSL 리눅스 파일 시스템 사용 권장
 3. **Localhost 접근**: WSL2에서 `localhost` 공유됨
 
@@ -99,13 +96,3 @@ environment/
 ### 문제 해결 (troubleshooting/)
 - **[Common Issues](./troubleshooting/common.md)**: 일반적인 문제들
 - **[Build Issues](./troubleshooting/build.md)**: 빌드 관련 문제
-
-## 🧹 정리
-
-```bash
-# AI 서비스 중지
-cd gcp-functions && docker-compose -f docker-compose.dev.yml down
-
-# Supabase 중지
-npx supabase stop
-```

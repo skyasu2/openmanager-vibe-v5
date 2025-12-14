@@ -120,22 +120,18 @@ graph TD
 - **현대적 툴체인**: Biome(린트/포맷), Vitest(단위 테스트), Playwright(E2E).
 - **CI/CD 파이프라인**: Vercel을 통한 자동화된 검증 및 배포.
 
-## 🛠️ 기술 스택
+## 🛠️ 서비스 배포 및 역할 (Service Deployment & Roles)
 
-| 카테고리 | 기술 | 선정 이유 |
-|----------|------|-----------|
-| **Frontend** | Next.js 16 (App Router) | 서버 컴포넌트, 스트리밍, 엣지 런타임 |
-| **State** | Zustand + React Query | 서버 상태 동기화, 낙관적 업데이트 |
-| **Database** | Supabase (PostgreSQL) | 실시간 구독, 벡터 검색 (pgvector) |
-| **AI Engine** | Google Gemini 2.5 Flash | 긴 컨텍스트 윈도우, 빠른 응답 속도 |
-| **Testing** | Vitest + Playwright | 빠른 단위 테스트, 신뢰성 높은 E2E |
-| **Code Quality** | Biome + TypeScript Strict | 압도적인 린팅 속도, 타입 안정성 |
-| **Styling** | Tailwind CSS + Shadcn/UI | 유틸리티 퍼스트 CSS, 접근성 높은 컴포넌트 |
+| 서비스 | 배포 환경 / 호스팅 | 역할 설명 |
+|--------|-------------------|-----------|
+| **Next.js App** | Vercel (Serverless) | 프론트엔드 + API Routes 제공 |
+| **AI Backend** | Google Cloud Run (Container / Serverless) | LangGraph 기반 멀티 에이전트 백엔드 |
+| **Supabase DB** | Supabase Cloud (Managed PostgreSQL + Auth) | PostgreSQL 데이터베이스 + 인증(Auth) 제공 |
 
 ## 📚 문서 (Documentation)
 
-- [**Docker Ecosystem**](docs/environment/DOCKER_ECOSYSTEM.md): 로컬 Docker 컨테이너(App + Supabase + Mock AI) 전체 목록 및 역할
-- [**Deployment Guide**](gcp-functions/deployment/deploy-instructions.md): Cloud Run 배포 가이드
+- [**Environment Setup**](docs/environment/README.md): 개발 환경 설정 및 아키텍처 가이드
+- [**AI Engine Architecture**](docs/core/architecture/AI_ENGINE_ARCHITECTURE.md): LangGraph Multi-Agent AI 엔진 설계
 
 ## 🚀 시작하기
 

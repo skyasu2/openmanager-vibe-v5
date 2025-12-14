@@ -6,16 +6,16 @@ The AI Engine for OpenManager Vibe is a **Hybrid Intelligence System** that comb
 
 ## Core Components
 
-### 1. Unified Intelligence Processor (v3.1.0)
+### 1. LangGraph Multi-Agent System (v5.80.0)
 The central nervous system of the AI, orchestrating all analysis and response generation.
 
--   **Location**: `gcp-functions/unified-ai-processor/main.py` (Python)
--   **Orchestrator**: `UnifiedAIProcessor` class.
--   **Sub-Engines**:
-    -   **Gateway Router**: Routes requests to specific sub-engines.
-    -   **Korean NLP Engine**: Specialized Korean language processing using `KoNLPy`.
-    -   **ML Analytics Engine**: Scikit-learn based anomaly detection and trend analysis.
-    -   **Rule Engine**: Deterministic rules for known operational scenarios.
+-   **Location**: `cloud-run/ai-backend/` (TypeScript/Hono)
+-   **Orchestrator**: LangGraph StateGraph
+-   **Agents**:
+    -   **Supervisor**: Groq Llama-8b for intent classification.
+    -   **NLQ Agent**: Gemini Flash for server metrics queries.
+    -   **Analyst Agent**: Gemini Pro for pattern analysis and anomaly detection.
+    -   **Reporter Agent**: Llama 70b for incident reports with RAG.
 
 ### 2. Model Stack
 -   **Primary (Reasoning)**: **Gemini 2.5 Pro** - Detailed analysis, complex troubleshooting ("Thinking Mode").

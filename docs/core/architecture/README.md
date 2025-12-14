@@ -188,8 +188,10 @@ TypeScript 5.9.3 (strict mode)
 | **UI Library** | Shadcn/UI | Accessible, reusable components (Radix UI based) |
 | **State** | Zustand | Global client state (Sidebar, UI preferences) |
 
-### Backend Architecture
-- **Database**: Supabase (PostgreSQL + Realtime)
-- **Authentication**: Supabase Auth (GoTrue)
-- **API**: Next.js Route Handlers + Server Actions
-- **AI Processing**: Unified AI Processor (Google Cloud Run)
+### Backend & Deployment Architecture
+
+| 서비스 | 배포 환경 / 호스팅 | 역할 설명 |
+|--------|-------------------|-----------|
+| **Next.js App** | Vercel (Serverless) | 프론트엔드 + API Routes 제공 |
+| **AI Backend** | Google Cloud Run (Container / Serverless) | LangGraph 기반 멀티 에이전트 백엔드 |
+| **Supabase DB** | Supabase Cloud (Managed PostgreSQL + Auth) | PostgreSQL 데이터베이스 + 인증(Auth) 제공 |

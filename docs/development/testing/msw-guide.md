@@ -38,7 +38,6 @@ src/mocks/
     ├── ai/cohere.ts                # Cohere API handlers
     ├── vercel/vercel-api.ts        # Vercel Platform API handlers
     ├── supabase/supabase-api.ts    # Supabase PostgreSQL API handlers
-    ├── gcp/gcp-vm.ts               # GCP VM Express Server handlers
     └── nextjs/api-routes.ts        # Next.js API Routes handlers (for tests)
 
 config/testing/
@@ -85,7 +84,6 @@ import { openAIHandlers } from './ai/openai';
 import { cohereHandlers } from './ai/cohere';
 import { vercelHandlers } from './vercel/vercel-api';
 import { supabaseHandlers } from './supabase/supabase-api';
-import { gcpVMHandlers } from './gcp/gcp-vm';
 import { nextJsApiHandlers } from './nextjs/api-routes';
 
 export const handlers: RequestHandler[] = [
@@ -95,7 +93,6 @@ export const handlers: RequestHandler[] = [
   ...cohereHandlers,
   ...vercelHandlers,
   ...supabaseHandlers,
-  ...gcpVMHandlers,
 ];
 
 export const getHandlersByEnvironment = (env: 'test' | 'development') => {
