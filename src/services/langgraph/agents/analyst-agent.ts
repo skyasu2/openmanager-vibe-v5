@@ -31,9 +31,13 @@ import type { AgentStateType, ToolResult } from '../state-definition';
 import { AI_MODELS } from '@/config/ai-engine';
 
 function getAnalystModel(): ChatGoogleGenerativeAI {
-  const apiKey = process.env.GOOGLE_API_KEY;
+  // Vercel uses GEMINI_API_KEY_PRIMARY, local may use GOOGLE_API_KEY
+  const apiKey =
+    process.env.GEMINI_API_KEY_PRIMARY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    throw new Error('GOOGLE_API_KEY is not configured');
+    throw new Error(
+      'GEMINI_API_KEY_PRIMARY or GOOGLE_API_KEY is not configured'
+    );
   }
 
   return new ChatGoogleGenerativeAI({

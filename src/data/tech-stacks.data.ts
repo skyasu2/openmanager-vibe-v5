@@ -74,15 +74,14 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'Official PostgreSQL MCP',
       category: 'ai',
       importance: 'high',
-      description:
-        'Claude Code 개발 환경에서 사용하는 공식 PostgreSQL MCP 서버',
+      description: 'Cloud Run에 배포된 Supabase MCP REST API 서비스',
       implementation:
-        '@modelcontextprotocol/server-postgres로 개발 중 DB 직접 조회/수정 지원',
-      version: '1.0.x',
+        'Hono + Streamable HTTP로 DB CRUD 도구 제공 (IAM 인증, HTTP/2)',
+      version: '1.0.0',
       status: 'active',
       icon: '🔌',
-      tags: ['MCP', 'DevTool', 'Database'],
-      type: 'opensource',
+      tags: ['MCP', 'Cloud Run', 'Supabase'],
+      type: 'custom',
     },
     {
       name: 'Vercel AI SDK',
