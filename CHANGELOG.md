@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.82.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.81.0...v5.82.0) (2025-12-14)
+
+
+### 🚀 Features
+
+* **code-review:** add semantic version recommendation to AI review reports ([dcede29](https://github.com/skyasu2/openmanager-vibe-v5/commit/dcede290d5b7286892d8ae07b05e832d376e9b94))
+
+
+### 📚 Documentation
+
+* complete script consolidation Phase 3-4 (72% reduction) ([93cf1c0](https://github.com/skyasu2/openmanager-vibe-v5/commit/93cf1c0be52c3dd113b0e5b6b041a9507aab2449))
+
+
+### 🐛 Bug Fixes
+
+* **code-review:** add word boundary and colon to BREAKING pattern (v6.9.3) ([c66fc15](https://github.com/skyasu2/openmanager-vibe-v5/commit/c66fc154a32c81da1e1057a7b6ede1f7fbb7f11c))
+* **code-review:** correct BREAKING change detection pattern (v6.9.2) ([84d2cf2](https://github.com/skyasu2/openmanager-vibe-v5/commit/84d2cf26d0d4a231658586426ca611221ae24428))
+
+
+### ♻️ Refactoring
+
+* **code-review:** remove version recommendation, add to CLAUDE.md (v7.2.0) ([1dad3ee](https://github.com/skyasu2/openmanager-vibe-v5/commit/1dad3eea53412f537265476f7dbe4838d3d29454))
+* **code-review:** simplify version recommendation to one-line (v7.1.0) ([d2b9f80](https://github.com/skyasu2/openmanager-vibe-v5/commit/d2b9f80901822941ad5fddadee5ac9b152bc512e))
+
 ## [5.81.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.80.0...v5.81.0) (2025-12-14)
 
 
