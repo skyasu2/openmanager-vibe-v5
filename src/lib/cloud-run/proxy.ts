@@ -13,9 +13,9 @@
 
 function getConfig() {
   return {
-    url: process.env.CLOUD_RUN_AI_URL || '',
-    enabled: process.env.CLOUD_RUN_ENABLED === 'true',
-    apiSecret: process.env.CLOUD_RUN_API_SECRET || '',
+    url: process.env.CLOUD_RUN_AI_URL?.trim() || '',
+    enabled: process.env.CLOUD_RUN_ENABLED?.trim() === 'true',
+    apiSecret: process.env.CLOUD_RUN_API_SECRET?.trim() || '',
   };
 }
 

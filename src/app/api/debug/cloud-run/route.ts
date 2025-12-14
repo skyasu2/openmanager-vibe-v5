@@ -6,20 +6,23 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+  // Trim environment variables to handle whitespace/newlines
+  const enabledRaw = process.env.CLOUD_RUN_ENABLED;
+  const enabledTrimmed = enabledRaw?.trim();
+  const urlTrimmed = process.env.CLOUD_RUN_AI_URL?.trim();
+  const secretTrimmed = process.env.CLOUD_RUN_API_SECRET?.trim();
+
   const config = {
-    CLOUD_RUN_ENABLED: process.env.CLOUD_RUN_ENABLED,
-    CLOUD_RUN_AI_URL: process.env.CLOUD_RUN_AI_URL ? '✅ SET' : '❌ NOT SET',
-    CLOUD_RUN_API_SECRET: process.env.CLOUD_RUN_API_SECRET
-      ? '✅ SET'
-      : '❌ NOT SET',
-    // 조건 체크
-    isEnabled: process.env.CLOUD_RUN_ENABLED === 'true',
-    hasUrl: !!process.env.CLOUD_RUN_AI_URL,
-    hasSecret: !!process.env.CLOUD_RUN_API_SECRET,
+    CLOUD_RUN_ENABLED_RAW: JSON.stringify(enabledRaw), // Shows exact value with escapes
+    CLOUD_RUN_ENABLED_TRIMMED: enabledTrimmed,
+    CLOUD_RUN_AI_URL: urlTrimmed ? '✅ SET' : '❌ NOT SET',
+    CLOUD_RUN_API_SECRET: secretTrimmed ? '✅ SET' : '❌ NOT SET',
+    // 조건 체크 (with trim)
+    isEnabled: enabledTrimmed === 'true',
+    hasUrl: !!urlTrimmed,
+    hasSecret: !!secretTrimmed,
     allConditionsMet:
-      process.env.CLOUD_RUN_ENABLED === 'true' &&
-      !!process.env.CLOUD_RUN_AI_URL &&
-      !!process.env.CLOUD_RUN_API_SECRET,
+      enabledTrimmed === 'true' && !!urlTrimmed && !!secretTrimmed,
   };
 
   return NextResponse.json({
