@@ -1,5 +1,23 @@
 #!/usr/bin/env bash
 
+# ============================================================================
+# Release Check (optional - interactive prompt)
+# ============================================================================
+if [ "${SKIP_RELEASE_CHECK:-false}" != "true" ] && [ "${QUICK_PUSH:-false}" != "true" ]; then
+  # Check if there are unreleased changes (commits since last tag)
+  LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+  if [ -n "$LAST_TAG" ]; then
+    COMMITS_SINCE_TAG=$(git rev-list "$LAST_TAG"..HEAD --count 2>/dev/null || echo "0")
+    if [ "$COMMITS_SINCE_TAG" -gt 5 ]; then
+      echo ""
+      echo "📦 Release Check: $COMMITS_SINCE_TAG commits since $LAST_TAG"
+      echo "   Consider running: npm run release:patch (or :minor)"
+      echo "   Skip this check: SKIP_RELEASE_CHECK=true git push"
+      echo ""
+    fi
+  fi
+fi
+
 echo "🔍 Pre-push: Type-safe + Build validation (~90초 예상)..."
 START_TIME=$(date +%s)
 
