@@ -99,14 +99,14 @@ export const aiEngineConfig = {
         'trend-analysis',
         'pattern-recognition',
       ] as const,
-      endpoint: env.GCP_FUNCTIONS_URL,
+      endpoint: env.CLOUD_RUN_AI_URL || env.GCP_FUNCTIONS_URL,
       timeout: 5000, // 5 seconds
     },
 
     // Korean NLP Provider (LangGraph Cloud Run)
     nlp: {
       enabled: true,
-      endpoint: env.GCP_FUNCTIONS_URL,
+      endpoint: env.CLOUD_RUN_AI_URL || env.GCP_FUNCTIONS_URL,
       corsEnabled: false, // Direct server-to-server
       timeout: 5000, // 5 seconds
     },

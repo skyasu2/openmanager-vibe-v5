@@ -91,9 +91,9 @@ export const FREE_TIER_CONFIG = {
     cloudVersionManager: true, // Vercel 자체 버전 관리 사용
     cloudLogSaver: true, // 로컬 로그만 사용
     cloudLoggingService: true, // Vercel 로그 사용
-    gcpCloudFunctions: true, // ❌ GCP Cloud Functions 제거됨 (LangGraph로 대체)
+    gcpCloudFunctions: false, // ❌ 제거됨 - Cloud Run LangGraph로 대체
     realTimeMonitoring: true, // 실시간 모니터링 제거
-    aiAnalytics: false, // ✅ AI 분석 활성화 (로컬 LangGraph)
+    aiAnalytics: false, // ✅ AI 분석 활성화 (Cloud Run LangGraph)
     performanceTracking: true, // 성능 추적 제거
   },
 

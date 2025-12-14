@@ -40,11 +40,16 @@ const envSchema = z.object({
     .transform((val) => parseInt(val, 10) || 900)
     .optional(),
 
-  // GCP
+  // GCP & Cloud Run
   GCP_PROJECT_ID: z.string().min(1).optional(),
   GCP_MCP_SERVER_URL: z.string().url().optional(),
-  GCP_FUNCTIONS_URL: z.string().url().optional(),
+  GCP_FUNCTIONS_URL: z.string().url().optional(), // Legacy - use CLOUD_RUN_AI_URL
   ENABLE_GCP_MCP_INTEGRATION: z.string().optional(),
+  CLOUD_RUN_AI_URL: z.string().url().optional(),
+  CLOUD_RUN_ENABLED: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
 
   // GitHub
   GITHUB_CLIENT_ID: z.string().min(1).optional(),
