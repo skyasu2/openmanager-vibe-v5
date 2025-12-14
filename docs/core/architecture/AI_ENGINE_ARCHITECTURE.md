@@ -21,8 +21,8 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 |-------|-------|------|-------|
 | **Supervisor** | Groq `llama-3.1-8b-instant` | Intent classification & routing | - |
 | **NLQ Agent** | Gemini 2.5 Flash | Server metrics queries | `getServerMetrics` |
-| **Analyst Agent** | Gemini 2.5 Pro | Pattern analysis, anomaly detection | `analyzePattern` |
-| **Reporter Agent** | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG) |
+| **Analyst Agent** | Gemini 2.5 Pro | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
+| **Reporter Agent** | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG), `recommendCommands` |
 
 ### Key Features
 

@@ -119,13 +119,22 @@ The AI uses specialized tools within each agent for domain-specific operations.
 
 | Tool | Description |
 |------|-------------|
-| `analyzePattern` | Detects trends, anomalies, and patterns in metrics |
+| `detectAnomalies` | 26-hour moving average + 2σ deviation anomaly detection |
+| `predictTrends` | Linear Regression based trend prediction |
+| `analyzePattern` | Comprehensive pattern analysis (combines above tools) |
+
+**Intent Detection**: The Analyst Agent auto-detects query intent:
+- `anomaly` → Executes `detectAnomalies`
+- `trend` → Executes `predictTrends`
+- `pattern` → Executes `analyzePattern`
+- `comprehensive` → Executes all tools
 
 ### Reporter Agent Tools
 
 | Tool | Description |
 |------|-------------|
 | `searchKnowledgeBase` | RAG search using Supabase pgvector (384 dimensions) |
+| `recommendCommands` | Suggests runbook commands for incident resolution |
 
 ## Data Flow
 
@@ -166,6 +175,50 @@ sequenceDiagram
 | `incident_report` | Root cause analysis completed | Yes |
 | `system_command` | Risky operations | Yes |
 | `critical_alert` | High-severity alerts | Yes |
+
+## A2A (Agent-to-Agent) Communication
+
+LangGraph supports agent-to-agent communication via the **Return-to-Supervisor** pattern:
+
+```mermaid
+sequenceDiagram
+    participant S as Supervisor
+    participant A as Analyst Agent
+    participant R as Reporter Agent
+
+    S->>A: Route (pattern_analysis)
+    A->>A: Analyze patterns
+    Note over A: Needs deeper incident analysis
+    A->>S: DelegationRequest (toAgent: reporter)
+    S->>R: Re-route to Reporter
+    R->>R: Generate incident report
+    R-->>S: Final response
+```
+
+### DelegationRequest Interface
+
+```typescript
+interface DelegationRequest {
+  fromAgent: AgentType;     // Origin agent
+  toAgent: AgentType;       // Target agent (optional)
+  reason: string;           // Why delegation is needed
+  context?: unknown;        // Additional context
+}
+```
+
+### State Fields for A2A
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `returnToSupervisor` | boolean | Signals delegation request |
+| `delegationRequest` | DelegationRequest \| null | Delegation details |
+| `agentResults` | AgentResult[] | Context propagation between agents |
+
+### When A2A is Triggered
+
+- Analyst detects critical anomaly → Delegates to Reporter for incident report
+- NLQ finds multiple alerts → Delegates to Analyst for pattern analysis
+- Reporter needs fresh metrics → Delegates to NLQ for data retrieval
 
 ## Parallel Analysis
 

@@ -72,8 +72,8 @@ graph TD
 |-------|-------|----------------|-------|
 | **Supervisor** | Groq Llama-8b | < 200ms | - |
 | **NLQ Agent** | Gemini 2.5 Flash | < 500ms | `getServerMetrics` |
-| **Analyst Agent** | Gemini 2.5 Pro | < 1s | `analyzePattern`, `detectAnomalies` |
-| **Reporter Agent** | Llama 3.3-70b | < 2s | `searchKnowledgeBase` (RAG) |
+| **Analyst Agent** | Gemini 2.5 Pro | < 1s | `detectAnomalies`, `predictTrends`, `analyzePattern` |
+| **Reporter Agent** | Llama 3.3-70b | < 2s | `searchKnowledgeBase`, `recommendCommands` |
 
 ## Fallback & Resilience
 
@@ -82,16 +82,29 @@ graph TD
 | State | Behavior | Transition |
 |-------|----------|------------|
 | **Closed** | Normal operation | 3 failures → Open |
-| **Open** | Block requests, use fallback | 30s cooldown → Half-Open |
-| **Half-Open** | Test single request | Success → Closed |
+| **Open** | Block requests, use fallback | 60s cooldown → Half-Open |
+| **Half-Open** | Test single request | Success → Closed, Failure → Open |
 
 ### Model Fallback Chain
 
 ```
 Primary Model 실패 시:
-  Groq Llama-8b → Gemini Flash → Gemini Pro
+  Groq Llama-8b → Llama-70b → Gemini Flash
+  Gemini Flash → Gemini Pro → Llama-70b
   Gemini Pro → Gemini Flash → Llama-70b
+  Llama-70b → Gemini Pro → Gemini Flash
 ```
+
+### A2A (Agent-to-Agent) Communication
+
+에이전트 간 협업이 필요한 경우, **Return-to-Supervisor** 패턴을 사용합니다:
+
+1. 에이전트가 다른 에이전트의 도움이 필요하다고 판단
+2. `returnToSupervisor = true` + `delegationRequest` 설정
+3. Supervisor가 요청을 받고 지정된 에이전트로 재라우팅
+4. 최종 응답 반환
+
+> **상세 내용**: `ai-architecture.md` 참조
 
 ## Data Flow
 
