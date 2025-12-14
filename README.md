@@ -80,25 +80,31 @@ graph TD
 
 ### 3. 🧠 AI 엔진 아키텍처 (Intelligence)
 
-**Unified Processor** 아키텍처를 통해 모든 AI 요청을 중앙에서 처리하며, 상황에 따라 Gemini(Primary), Claude, GPT(Fallback) 모델을 유연하게 전환하여 가용성을 보장합니다.
+**Hybrid Multi-Agent AI Engine (LangGraph)**을 도입하여 단순한 응답을 넘어선 복합적인 추론과 작업을 수행합니다. **Cloud Run**을 주 백엔드로 사용하며(Supervisor-Worker 패턴), 로컬 환경에서도 동일한 로직이 실행되는 하이브리드 구조를 갖추고 있습니다.
 
 ```mermaid
 graph TD
-    Request[사용자 요청] --> Unified[Unified Processor]
-    
-    subgraph "AI 오케스트레이션"
-        Unified --> Router[모델 라우터]
-        Router -->|Primary| Gemini[Google Gemini 2.5]
-        Router -->|Fallback| Claude[Claude 3.5 Sonnet]
+    Client[사용자/클라이언트] --> API[Next.js API Route]
+
+    subgraph "Hybrid Engine Router"
+        API --> Check{Cloud Run 활성?}
+        Check -- Yes --> Cloud[Cloud Run (LangGraph Server)]
+        Check -- No --> Local[Local LangGraph (Fallback)]
     end
-    
-    subgraph "컨텍스트 & 메모리"
-        Unified -->|RAG| VectorDB[(Supabase Vector)]
+
+    subgraph "AI Agents (Supervisor-Worker)"
+        Cloud --> Supervisor[🦸 Supervisor Agent (Routing)]
+        Local --> Supervisor
+        
+        Supervisor --> NLQ[🔍 NLQ Agent (Metrics)]
+        Supervisor --> Analyst[📊 Analyst Agent (Patterns)]
+        Supervisor --> Reporter[📝 Reporter Agent (RAG/Report)]
     end
-    
-    subgraph "실시간 피드백"
-        Unified -->|Stream| Adapter[Supabase Realtime Adapter]
-        Adapter -->|WebSocket| Client[클라이언트 UI]
+
+    subgraph "Data & Context"
+        NLQ --> Metrics[(Live Metrics)]
+        Reporter --> VectorDB[(Knowledge Base)]
+        Supervisor --> DB[(Session State)]
     end
 ```
 
@@ -148,6 +154,16 @@ cp .env.example .env.local
 # SUPABASE_URL, SUPABASE_ANON_KEY, GOOGLE_AI_KEY 설정
 
 # 3. 개발 서버 실행
+## ⚠️ WSL 사용자 필독 (Recommended)
+WSL2 환경에서는 Windows 브라우저 접속을 위해 다음 명령어를 사용하세요:
+```bash
+npm run dev:network
+# 내부적으로 0.0.0.0 바인딩을 수행합니다.
+# 자세한 가이드: docs/development/wsl-setup-guide.md
+```
+
+## 일반 실행 (Mac/Linux)
+```bash
 npm run dev:stable
 ```
 

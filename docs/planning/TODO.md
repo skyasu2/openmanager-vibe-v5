@@ -18,6 +18,7 @@
 
 | 작업 | 완료일 | 문서 |
 |------|--------|------|
+| 스크립트 통합 최적화 (Phase 1-4) | 2025-12-14 | [링크](../archive/completed/2025-12-script-consolidation-completed.md) - 72% 감소 |
 | LangGraph A2A 패턴 구현 | 2025-12-14 | Return-to-Supervisor + Command Pattern + HITL |
 | React 19/Next.js 16 업그레이드 | 2025-12-10 | [아카이브](archive/react-nextjs-upgrade-analysis-2025-12-completed.md) |
 | UI/UX Short-term Wins | 2025-12-13 | Sparklines + Bento Grid + AI Insight Badge |
