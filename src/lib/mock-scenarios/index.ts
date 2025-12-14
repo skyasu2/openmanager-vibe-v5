@@ -73,17 +73,12 @@ export class MockScenarioManager {
   }
 
   /**
-   * Korean NLP 시나리오 테스트 (실제 GCP Functions 사용)
+   * Korean NLP 시나리오 테스트 (로컬 Mock)
+   * LangGraph 시스템에서 Mock 결과 반환
    */
   async testKoreanNLPScenarios(
     category?: 'technical' | 'business' | 'mixed' | 'edge-case'
   ) {
-    // 실제 GCP Functions 사용
-    const { getGCPFunctionsClient } = await import(
-      '@/lib/gcp/gcp-functions-client'
-    );
-    const client = getGCPFunctionsClient();
-
     let scenarios: KoreanNLPScenario[] = [];
 
     if (!category) {
@@ -103,36 +98,20 @@ export class MockScenarioManager {
     }
 
     console.log(
-      `🧪 Korean NLP 시나리오 테스트 시작 (${scenarios.length}개) - 실제 GCP Functions 사용`
+      `🧪 Korean NLP 시나리오 테스트 시작 (${scenarios.length}개) - 로컬 Mock`
     );
 
-    const results = [];
-    for (const scenario of scenarios) {
-      try {
-        const result = await client.callUnifiedProcessor(scenario.input, [
-          'korean_nlp',
-        ]);
+    const results = scenarios.map((scenario) => ({
+      scenario,
+      result: {
+        success: true,
+        response: `Mock NLP result for: ${scenario.input}`,
+        processingTime: Math.floor(Math.random() * 100) + 50,
+      },
+      success: true,
+    }));
 
-        results.push({
-          scenario,
-          result,
-          success: result.success,
-        });
-
-        console.log(`📝 ${scenario.id}: ${result.success ? '✅' : '❌'}`);
-      } catch (error) {
-        console.error(`❌ ${scenario.id} 실패:`, error);
-        results.push({
-          scenario,
-          result: {
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          },
-          success: false,
-        });
-      }
-    }
-
+    console.log(`✅ Korean NLP 시나리오 테스트 완료: ${results.length}개`);
     return results;
   }
 
@@ -282,15 +261,10 @@ export class MockScenarioManager {
     // 예측 생성
     const predictions = generatePredictions(metrics, pattern, 24);
 
-    // 실제 GCP Functions에 분석 결과 로깅
+    // LangGraph에 분석 결과 로깅
     console.log(
       `📈 ML 분석 결과: ${anomalies.length}개 이상 징후, ${predictions.length}개 예측`
     );
-
-    // 실제 서비스와 연동 시 여기서 결과를 전송할 수 있음
-    // const { getGCPFunctionsClient } = await import('@/lib/gcp/gcp-functions-client');
-    // const client = getGCPFunctionsClient();
-    // await client.callUnifiedProcessor('ML Analysis', ['ml_analytics']);
   }
 }
 

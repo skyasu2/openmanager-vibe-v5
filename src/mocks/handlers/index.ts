@@ -8,7 +8,6 @@
  * - handlers/ai/       - Google AI, OpenAI, Cohere API 핸들러
  * - handlers/vercel/   - Vercel Platform API 핸들러
  * - handlers/supabase/ - Supabase PostgreSQL API 핸들러
- * - handlers/gcp/      - GCP VM Express Server API 핸들러
  */
 
 import type { RequestHandler } from 'msw';
@@ -16,8 +15,6 @@ import { cohereHandlers } from './ai/cohere';
 // AI 서비스 핸들러 (Google AI, OpenAI, Cohere)
 import { googleAIHandlers } from './ai/google-ai';
 import { openAIHandlers } from './ai/openai';
-// GCP VM 핸들러
-import { gcpVMHandlers } from './gcp/gcp-vm';
 // Next.js API Routes 핸들러
 import { nextJsApiHandlers } from './nextjs/api-routes';
 // Supabase 핸들러
@@ -43,7 +40,6 @@ export const handlers: RequestHandler[] = [
   // 인프라 핸들러
   ...vercelHandlers,
   ...supabaseHandlers,
-  ...gcpVMHandlers,
 ];
 
 /**

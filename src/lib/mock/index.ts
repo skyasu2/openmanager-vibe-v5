@@ -2,16 +2,15 @@
  * 🎭 Mock 시스템 통합 Export
  *
  * Claude Code 최적화 Mock 시스템의 중앙 진입점
+ * GCP Functions Mock 제거됨 (2025-12-14) - LangGraph로 대체
  */
 
-import { GCPMock } from './providers/GCPMock';
 import { GoogleAIMock } from './providers/GoogleAIMock';
 import { SupabaseMock } from './providers/SupabaseMock';
 
 // Mock 인스턴스 캐시
 let googleAIMock: GoogleAIMock | null = null;
 let supabaseMock: SupabaseMock | null = null;
-let gcpMock: GCPMock | null = null;
 
 /**
  * Mock 모드 확인
@@ -69,16 +68,6 @@ export function getSupabaseMock(): SupabaseMock {
 }
 
 /**
- * GCP Functions Mock 가져오기
- */
-export function getGCPMock(): GCPMock {
-  if (!gcpMock) {
-    gcpMock = new GCPMock();
-  }
-  return gcpMock;
-}
-
-/**
  * 모든 Mock 통계 조회
  */
 export function getAllMockStats(): Record<string, unknown> {
@@ -86,7 +75,6 @@ export function getAllMockStats(): Record<string, unknown> {
     mode: getMockMode(),
     googleAI: googleAIMock?.getStats() || null,
     supabase: supabaseMock?.getStats() || null,
-    gcp: gcpMock?.getStats() || null,
   };
 }
 
@@ -96,7 +84,6 @@ export function getAllMockStats(): Record<string, unknown> {
 export function resetAllMocks(): void {
   googleAIMock?.reset();
   supabaseMock?.reset();
-  gcpMock?.reset();
 
   console.log('🎭 모든 Mock이 리셋되었습니다');
 }
@@ -114,10 +101,10 @@ export function getMockSystemInfo(): {
   const active = shouldUseMock();
 
   return {
-    version: '2.0.0',
+    version: '2.1.0', // GCP Mock 제거됨
     mode,
     active,
-    services: active ? ['googleAI', 'supabase', 'gcp'] : [],
+    services: active ? ['googleAI', 'supabase'] : [],
   };
 }
 
@@ -128,7 +115,6 @@ if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
   ).__MOCK_SYSTEM__ = {
     getGoogleAIMock,
     getSupabaseMock,
-    getGCPMock,
     getAllMockStats,
     resetAllMocks,
     getMockSystemInfo,
