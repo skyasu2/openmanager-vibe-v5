@@ -280,100 +280,35 @@ detect_qwen_rate_limit() {
 }
 
 # ============================================================================
-# 버전 추천 분석 함수 (v7.0.0)
-# Conventional Commits를 분석하여 semver 버전 추천
+# 버전 추천 간단 메모 (v7.1.0 - 간소화)
+# Claude Code 리뷰 시 확인용 - standard-version 사용 여부만 표시
 # ============================================================================
 
 analyze_version_recommendation() {
     local project_root="${PROJECT_ROOT:-.}"
-
-    # 마지막 태그 가져오기
     local last_tag=$(git -C "$project_root" describe --tags --abbrev=0 2>/dev/null || echo "")
 
     if [ -z "$last_tag" ]; then
-        echo "📦 **버전 추천**: 첫 릴리스 → \`npm run release:first\`"
+        echo "📦 릴리스 필요 시: \`npm run release:first\`"
         return
     fi
 
-    # 마지막 태그 이후 커밋 수 및 메시지 분석
-    local commits_since_tag=$(git -C "$project_root" rev-list "$last_tag"..HEAD --count 2>/dev/null || echo "0")
+    local commits=$(git -C "$project_root" rev-list "$last_tag"..HEAD --count 2>/dev/null || echo "0")
 
-    if [ "$commits_since_tag" -eq 0 ]; then
-        echo "📦 **버전 추천**: 변경사항 없음 (현재 $last_tag)"
+    if [ "$commits" -eq 0 ]; then
+        echo "📦 현재 버전: $last_tag (변경 없음)"
         return
     fi
 
-    # 커밋 메시지 분석
-    local commit_messages=$(git -C "$project_root" log "$last_tag"..HEAD --pretty=format:"%s" 2>/dev/null)
+    # 간단 체크: feat 있으면 minor, 아니면 patch
+    local has_feat=$(git -C "$project_root" log "$last_tag"..HEAD --pretty=format:"%s" | grep -ciE "^feat" || echo "0")
+    local has_breaking=$(git -C "$project_root" log "$last_tag"..HEAD --pretty=format:"%s" | grep -ciE "BREAKING|!" || echo "0")
 
-    # 카운트 초기화
-    local breaking_count=0
-    local feat_count=0
-    local fix_count=0
-    local refactor_count=0
-    local perf_count=0
-    local docs_count=0
-    local chore_count=0
-    local other_count=0
+    local cmd="patch"
+    [ "$has_feat" -gt 0 ] && cmd="minor"
+    [ "$has_breaking" -gt 0 ] && cmd="major"
 
-    # 커밋 메시지 분석
-    while IFS= read -r msg; do
-        if echo "$msg" | grep -qiE "^(feat|fix|refactor|perf|docs|chore|build|ci|style|test)(\(.+\))?!:"; then
-            breaking_count=$((breaking_count + 1))
-        elif echo "$msg" | grep -qiE "BREAKING CHANGE"; then
-            breaking_count=$((breaking_count + 1))
-        elif echo "$msg" | grep -qiE "^feat(\(.+\))?:"; then
-            feat_count=$((feat_count + 1))
-        elif echo "$msg" | grep -qiE "^fix(\(.+\))?:"; then
-            fix_count=$((fix_count + 1))
-        elif echo "$msg" | grep -qiE "^refactor(\(.+\))?:"; then
-            refactor_count=$((refactor_count + 1))
-        elif echo "$msg" | grep -qiE "^perf(\(.+\))?:"; then
-            perf_count=$((perf_count + 1))
-        elif echo "$msg" | grep -qiE "^docs(\(.+\))?:"; then
-            docs_count=$((docs_count + 1))
-        elif echo "$msg" | grep -qiE "^(chore|build|ci|style|test)(\(.+\))?:"; then
-            chore_count=$((chore_count + 1))
-        else
-            other_count=$((other_count + 1))
-        fi
-    done <<< "$commit_messages"
-
-    # 버전 추천 결정
-    local recommendation=""
-    local reason=""
-
-    if [ "$breaking_count" -gt 0 ]; then
-        recommendation="major"
-        reason="BREAKING CHANGE ${breaking_count}건"
-    elif [ "$feat_count" -gt 0 ]; then
-        recommendation="minor"
-        reason="feat ${feat_count}건"
-    elif [ "$fix_count" -gt 0 ] || [ "$perf_count" -gt 0 ] || [ "$refactor_count" -gt 0 ]; then
-        recommendation="patch"
-        reason="fix ${fix_count}건, perf ${perf_count}건, refactor ${refactor_count}건"
-    else
-        recommendation="patch"
-        reason="docs/chore 위주 변경"
-    fi
-
-    # 결과 문자열 생성
-    local result="📦 **버전 추천**: \`${recommendation}\` → \`npm run release:${recommendation}\`
-
-| 분류 | 개수 | 의미 |
-|------|------|------|
-| Breaking | ${breaking_count} | Major 버전 필요 |
-| feat | ${feat_count} | Minor 버전 필요 |
-| fix | ${fix_count} | Patch 버전 필요 |
-| refactor | ${refactor_count} | Patch (코드 개선) |
-| perf | ${perf_count} | Patch (성능 개선) |
-| docs | ${docs_count} | 선택적 |
-| chore/기타 | $((chore_count + other_count)) | 선택적 |
-
-**현재 버전**: \`${last_tag}\` → **권장**: \`${recommendation}\` 릴리스 (${reason})
-**총 ${commits_since_tag}개 커밋** 분석 완료"
-
-    echo "$result"
+    echo "📦 **$last_tag** 이후 **${commits}개 커밋** → \`npm run release:${cmd}\` 권장"
 }
 
 # 검증 실행 함수는 별도 스크립트로 분리되었으므로 여기서는 제외
