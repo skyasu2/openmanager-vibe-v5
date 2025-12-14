@@ -8,6 +8,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
+import { approvalRoute } from './routes/approval.js';
 import { healthRoute } from './routes/health.js';
 import { unifiedStreamRoute } from './routes/unified-stream.js';
 
@@ -74,6 +75,9 @@ app.route('/health', healthRoute);
 
 // AI 라우트 (LangGraph Multi-Agent)
 app.route('/api/ai/unified-stream', unifiedStreamRoute);
+
+// Human-in-the-Loop 승인 라우트
+app.route('/api/ai/approval', approvalRoute);
 
 // 기본 라우트
 app.get('/', (c) => {

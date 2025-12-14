@@ -1,21 +1,16 @@
 'use client';
 
-import { Bot, Brain, FileText, Send } from 'lucide-react';
+import { Bot, FileText, Send } from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 import { AIEngineIndicator } from './AIEngineIndicator';
+import type { ApprovalRequest } from './InlineAgentStatus';
 
 /**
  * Enhanced AI Chat Props
  */
 interface EnhancedAIChatProps {
-  /** Real-time thinking 활성화 여부 */
-  enableRealTimeThinking: boolean;
-  /** Thinking 모드 토글 상태 */
-  thinkingEnabled?: boolean;
-  /** Thinking 모드 토글 핸들러 */
-  onThinkingToggle?: (enabled: boolean) => void;
   /** 자동 장애 보고서 트리거 상태 */
   autoReportTrigger: {
     shouldGenerate: boolean;
@@ -32,7 +27,10 @@ interface EnhancedAIChatProps {
   MessageComponent: React.ComponentType<{
     message: EnhancedChatMessage;
     onRegenerateResponse?: (messageId: string) => void;
+    approvalRequest?: ApprovalRequest;
   }>;
+  /** Human-in-the-Loop 승인 요청 (자연어 응답 대기 표시용) */
+  pendingApproval?: ApprovalRequest | null;
   /** 입력 값 */
   inputValue: string;
   /** 입력 값 변경 핸들러 */
@@ -55,20 +53,17 @@ interface EnhancedAIChatProps {
  * @description
  * - AI 채팅 UI (헤더 + 메시지 영역 + 입력 영역)
  * - 자동 장애 보고서 알림 표시
- * - Real-time thinking 지원 표시
  * - 메시지 렌더링 및 스크롤 관리
  * - 키보드 단축키 (Ctrl+Enter)
  * - AI 엔진 상태 표시 (AIEngineIndicator)
  */
 export const EnhancedAIChat = memo(function EnhancedAIChat({
-  enableRealTimeThinking,
-  thinkingEnabled = false,
-  onThinkingToggle,
   autoReportTrigger,
   allMessages,
   limitedMessages,
   messagesEndRef,
   MessageComponent,
+  pendingApproval,
   inputValue,
   setInputValue,
   handleSendInput,
@@ -88,11 +83,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             </div>
             <div>
               <h3 className="text-sm font-bold text-gray-800">자연어 질의</h3>
-              <p className="text-xs text-gray-600">
-                {enableRealTimeThinking
-                  ? '실시간 thinking 지원'
-                  : 'AI 기반 대화형 인터페이스'}
-              </p>
+              <p className="text-xs text-gray-600">AI 기반 대화형 인터페이스</p>
             </div>
           </div>
 
@@ -136,21 +127,32 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               안녕하세요! AI 어시스턴트입니다 👋
             </h3>
             <p className="mx-auto max-w-[280px] text-sm text-gray-500">
-              {enableRealTimeThinking
-                ? '실시간 thinking process를 지원하는 AI 사이드바입니다.'
-                : '질문을 입력하시면 AI가 도움을 드리겠습니다.'}
+              질문을 입력하시면 AI가 도움을 드리겠습니다.
             </p>
           </div>
         )}
 
         {/* 채팅 메시지들 렌더링 (메모리 효율성 최적화) */}
-        {limitedMessages.map((message) => (
-          <MessageComponent
-            key={message.id}
-            message={message}
-            onRegenerateResponse={regenerateResponse}
-          />
-        ))}
+        {limitedMessages.map((message, index) => {
+          // 마지막 스트리밍 중인 assistant 메시지에만 승인 요청 표시
+          const isLastStreamingAssistant =
+            message.role === 'assistant' &&
+            message.isStreaming &&
+            index === limitedMessages.length - 1;
+
+          return (
+            <MessageComponent
+              key={message.id}
+              message={message}
+              onRegenerateResponse={regenerateResponse}
+              approvalRequest={
+                isLastStreamingAssistant
+                  ? (pendingApproval ?? undefined)
+                  : undefined
+              }
+            />
+          );
+        })}
 
         <div ref={messagesEndRef} />
       </div>
@@ -189,41 +191,10 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         </div>
 
         {/* 하단 컨트롤 영역 */}
-        <div className="mt-2 flex items-center justify-between">
-          {/* 왼쪽: Thinking 토글 버튼 */}
-          {enableRealTimeThinking && onThinkingToggle && (
-            <button
-              onClick={() => onThinkingToggle(!thinkingEnabled)}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                thinkingEnabled
-                  ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-              }`}
-              title={
-                thinkingEnabled ? 'Thinking 모드 끄기' : 'Thinking 모드 켜기'
-              }
-              aria-pressed={thinkingEnabled}
-            >
-              <Brain
-                className={`h-3.5 w-3.5 ${thinkingEnabled ? 'text-purple-600' : 'text-gray-400'}`}
-              />
-              <span>Thinking</span>
-              <span
-                className={`ml-0.5 h-2 w-2 rounded-full transition-colors ${
-                  thinkingEnabled ? 'bg-purple-500' : 'bg-gray-300'
-                }`}
-              />
-            </button>
-          )}
-          {/* 왼쪽 빈 공간 (Thinking 비활성화 시) */}
-          {(!enableRealTimeThinking || !onThinkingToggle) && <div />}
-
-          {/* 오른쪽: 키보드 단축키 힌트 */}
+        <div className="mt-2 flex items-center justify-end">
+          {/* 키보드 단축키 힌트 */}
           <div className="text-xs text-gray-500">
             <span>Ctrl+Enter로 전송</span>
-            {thinkingEnabled && (
-              <span className="ml-2 text-purple-600">• Thinking 활성</span>
-            )}
           </div>
         </div>
       </div>

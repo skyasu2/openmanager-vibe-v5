@@ -4,10 +4,17 @@ import { type UIMessage, useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 // Icons
 import { Bot, User } from 'lucide-react';
-import { type FC, memo, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type FC,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '../../../components/ai/AIAssistantIconPanel';
-import ThinkingProcessVisualizer from '../../../components/ai/ThinkingProcessVisualizer';
 import { isGuestFullAccessEnabled } from '../../../config/guestMode';
 import { useUserPermissions } from '../../../hooks/useUserPermissions';
 import type { EnhancedChatMessage } from '../../../stores/useAISidebarStore';
@@ -20,6 +27,11 @@ import type {
 import { AIFunctionPages } from './AIFunctionPages';
 import { AISidebarHeader } from './AISidebarHeader';
 import { EnhancedAIChat } from './EnhancedAIChat';
+import {
+  type AgentStep,
+  type ApprovalRequest,
+  InlineAgentStatus,
+} from './InlineAgentStatus';
 
 // v2.x UIMessage에서 텍스트 콘텐츠 추출 헬퍼
 function extractTextFromMessage(message: UIMessage): string {
@@ -34,24 +46,93 @@ function extractTextFromMessage(message: UIMessage): string {
     .join('');
 }
 
-// 🎯 ThinkingProcessVisualizer 성능 최적화
-const MemoizedThinkingProcessVisualizer = memo(ThinkingProcessVisualizer);
+/**
+ * ThinkingSteps를 AgentStep 형식으로 변환
+ */
+function convertToAgentSteps(thinkingSteps?: AIThinkingStep[]): AgentStep[] {
+  if (!thinkingSteps || thinkingSteps.length === 0) return [];
 
-// 🎯 메시지 컴포넌트 성능 최적화
+  // Tool 이름을 Agent 타입으로 매핑
+  const toolToAgent: Record<string, AgentStep['agent']> = {
+    getServerMetrics: 'nlq',
+    analyzePatterns: 'analyst',
+    generateReport: 'reporter',
+    classifyIntent: 'supervisor',
+    // 기본값은 nlq
+  };
+
+  return thinkingSteps.map((step) => ({
+    id: step.id,
+    agent: toolToAgent[step.step || ''] || 'nlq',
+    status:
+      step.status === 'completed'
+        ? 'completed'
+        : step.status === 'failed'
+          ? 'error'
+          : step.status === 'processing'
+            ? 'processing'
+            : 'pending',
+    message: step.description,
+    startedAt: step.timestamp ? new Date(step.timestamp) : undefined,
+  }));
+}
+
+// 🔍 자연어 승인 응답 감지 헬퍼
+function detectApprovalIntent(input: string): 'approve' | 'reject' | null {
+  const trimmed = input.trim().toLowerCase();
+
+  // 승인 패턴 (우선순위 높음)
+  const approvalPatterns = [
+    '네',
+    '예',
+    'yes',
+    '확인',
+    '진행',
+    '승인',
+    'ok',
+    '좋아',
+    '그래',
+    '맞아',
+  ];
+  // 거부 패턴
+  const rejectPatterns = [
+    '아니',
+    '아니오',
+    'no',
+    '취소',
+    '거부',
+    '중지',
+    'cancel',
+    '그만',
+    '안해',
+    '싫어',
+  ];
+
+  const isApproval = approvalPatterns.some((p) => trimmed.includes(p));
+  const isRejection = rejectPatterns.some((p) => trimmed.includes(p));
+
+  // 둘 다 있으면 더 강한 신호 우선 (거부가 더 명시적이면 거부)
+  if (isApproval && !isRejection) return 'approve';
+  if (isRejection) return 'reject';
+
+  return null;
+}
+
+// 🎯 메시지 컴포넌트 성능 최적화 (Cursor/Copilot 스타일)
 const MessageComponent = memo<{
   message: EnhancedChatMessage;
   onRegenerateResponse?: (messageId: string) => void;
-}>(({ message }) => {
-  // thinking 메시지일 경우 ThinkingProcessVisualizer 사용
+  approvalRequest?: ApprovalRequest;
+}>(({ message, approvalRequest }) => {
+  // thinking 메시지일 경우 간소화된 인라인 상태 표시
   if (message.role === 'thinking' && message.thinkingSteps) {
+    const agentSteps = convertToAgentSteps(message.thinkingSteps);
     return (
-      <div className="my-4">
-        <MemoizedThinkingProcessVisualizer
-          steps={message.thinkingSteps as AIThinkingStep[]}
-          isActive={message.isStreaming || false}
-          className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4"
-        />
-      </div>
+      <InlineAgentStatus
+        steps={agentSteps}
+        isComplete={!message.isStreaming}
+        approvalRequest={approvalRequest}
+      />
     );
   }
 
@@ -82,17 +163,32 @@ const MessageComponent = memo<{
 
         {/* 메시지 콘텐츠 */}
         <div className="flex-1">
-          <div
-            className={`rounded-2xl p-4 shadow-xs ${
-              message.role === 'user'
-                ? 'rounded-tr-sm bg-gradient-to-br from-blue-500 to-blue-600 text-white'
-                : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
-            }`}
-          >
-            <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
-              {message.content}
+          {/* 스트리밍 중 인라인 Agent 상태 표시 (자연어 승인 대기 표시) */}
+          {message.role === 'assistant' &&
+            message.isStreaming &&
+            message.thinkingSteps &&
+            message.thinkingSteps.length > 0 && (
+              <InlineAgentStatus
+                steps={convertToAgentSteps(message.thinkingSteps)}
+                isComplete={false}
+                approvalRequest={approvalRequest}
+              />
+            )}
+
+          {/* 메시지 내용 (콘텐츠가 있을 때만 표시) */}
+          {message.content && (
+            <div
+              className={`rounded-2xl p-4 shadow-xs ${
+                message.role === 'user'
+                  ? 'rounded-tr-sm bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                  : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
+              }`}
+            >
+              <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
+                {message.content}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 타임스탬프 & 메타데이터 */}
           <div
@@ -111,19 +207,6 @@ const MessageComponent = memo<{
                 </p>
               )}
           </div>
-
-          {/* EnhancedChatMessage의 thinking steps 표시 (assistant 메시지에서) */}
-          {message.role === 'assistant' &&
-            message.thinkingSteps &&
-            message.thinkingSteps.length > 0 && (
-              <div className="mt-3 border-t border-gray-100 pt-3">
-                <MemoizedThinkingProcessVisualizer
-                  steps={message.thinkingSteps}
-                  isActive={message.isStreaming || false}
-                  className="rounded border border-gray-200 bg-gray-50"
-                />
-              </div>
-            )}
         </div>
       </div>
     </div>
@@ -139,7 +222,6 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   className = '',
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   sessionId: _sessionId,
-  enableRealTimeThinking = true,
   onMessageSend,
 }) => {
   // 🔐 권한 확인
@@ -152,8 +234,72 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   // 🔧 수동 입력 상태 관리 (@ai-sdk/react v2.x 마이그레이션)
   const [input, setInput] = useState('');
 
-  // 🧠 Thinking 모드 상태 관리
-  const [thinkingEnabled, setThinkingEnabled] = useState(false);
+  // 🔔 Human-in-the-Loop 승인 상태
+  const [pendingApproval, setPendingApproval] =
+    useState<ApprovalRequest | null>(null);
+  const [isProcessingApproval, setIsProcessingApproval] = useState(false);
+
+  // 🔔 승인/거부 핸들러
+  const handleApprove = useCallback(
+    async (requestId: string) => {
+      if (isProcessingApproval) return;
+      setIsProcessingApproval(true);
+
+      try {
+        const response = await fetch('/api/ai/approval', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: requestId,
+            approved: true,
+          }),
+        });
+
+        if (response.ok) {
+          console.log('✅ [HITL] Approval accepted');
+          setPendingApproval(null);
+        } else {
+          console.error('❌ [HITL] Approval failed:', await response.text());
+        }
+      } catch (error) {
+        console.error('❌ [HITL] Approval error:', error);
+      } finally {
+        setIsProcessingApproval(false);
+      }
+    },
+    [isProcessingApproval]
+  );
+
+  const handleReject = useCallback(
+    async (requestId: string) => {
+      if (isProcessingApproval) return;
+      setIsProcessingApproval(true);
+
+      try {
+        const response = await fetch('/api/ai/approval', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: requestId,
+            approved: false,
+            reason: 'User rejected the action',
+          }),
+        });
+
+        if (response.ok) {
+          console.log('🚫 [HITL] Action rejected');
+          setPendingApproval(null);
+        } else {
+          console.error('❌ [HITL] Rejection failed:', await response.text());
+        }
+      } catch (error) {
+        console.error('❌ [HITL] Rejection error:', error);
+      } finally {
+        setIsProcessingApproval(false);
+      }
+    },
+    [isProcessingApproval]
+  );
 
   // Vercel AI SDK useChat Hook (@ai-sdk/react v2.x)
   const { messages, sendMessage, status, setMessages } = useChat({
@@ -189,6 +335,51 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
 
   // isLoading 호환성 유지 (v2.x status values: 'ready' | 'submitted' | 'streaming' | 'error')
   const isLoading = status === 'streaming' || status === 'submitted';
+
+  // 🔔 승인 상태 폴링 (스트리밍 중일 때만)
+  useEffect(() => {
+    if (!isLoading) {
+      setPendingApproval(null);
+      return;
+    }
+
+    // 마지막 메시지의 ID를 세션 ID로 사용
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) return;
+
+    const sessionId = lastMessage.id;
+    let isCancelled = false;
+
+    const checkApprovalStatus = async () => {
+      try {
+        const response = await fetch(
+          `/api/ai/approval?sessionId=${encodeURIComponent(sessionId)}`
+        );
+        if (!response.ok || isCancelled) return;
+
+        const data = await response.json();
+        if (data.hasPending && data.action && !isCancelled) {
+          setPendingApproval({
+            id: sessionId,
+            type: data.action.type || 'tool_execution',
+            description: data.action.description || '이 작업을 실행할까요?',
+            details: data.action.details,
+          });
+        }
+      } catch (error) {
+        console.error('❌ [HITL] Approval status check failed:', error);
+      }
+    };
+
+    // 초기 체크 후 2초 간격으로 폴링
+    void checkApprovalStatus();
+    const intervalId = setInterval(checkApprovalStatus, 2000);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(intervalId);
+    };
+  }, [isLoading, messages]);
 
   // Map Vercel v2.x UIMessage to EnhancedChatMessage
   const enhancedMessages = useMemo(() => {
@@ -276,31 +467,40 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     if (selectedFunction === 'chat') {
       return (
         <EnhancedAIChat
-          enableRealTimeThinking={enableRealTimeThinking}
-          thinkingEnabled={thinkingEnabled}
-          onThinkingToggle={setThinkingEnabled}
           autoReportTrigger={{ shouldGenerate: false }}
           allMessages={enhancedMessages}
           limitedMessages={enhancedMessages}
           messagesEndRef={messagesEndRef}
           MessageComponent={MessageComponent}
+          pendingApproval={pendingApproval}
           inputValue={input}
           setInputValue={setInput}
           handleSendInput={() => {
-            if (input.trim()) {
-              // @ai-sdk/react v2.x: sendMessage API with thinking in metadata
-              void sendMessage({
-                text: input,
-                metadata: { thinking: thinkingEnabled },
-              });
+            if (!input.trim()) return;
+
+            // 🔔 승인 대기 중이면 자연어 의도 감지
+            if (pendingApproval) {
+              const intent = detectApprovalIntent(input);
+              if (intent === 'approve') {
+                void handleApprove(pendingApproval.id);
+                setInput('');
+                return;
+              } else if (intent === 'reject') {
+                void handleReject(pendingApproval.id);
+                setInput('');
+                return;
+              }
+              // 의도가 불분명하면 일반 메시지로 처리
             }
+
+            // @ai-sdk/react v2.x: sendMessage API
+            void sendMessage({ text: input });
           }}
           isGenerating={isLoading}
           regenerateResponse={() => {
             regenerateLastResponse();
           }}
-          currentEngine={thinkingEnabled ? 'Thinking Mode' : 'Vercel AI SDK'}
-          routingReason={thinkingEnabled ? '심층 추론 활성화' : undefined}
+          currentEngine="Vercel AI SDK"
         />
       );
     }

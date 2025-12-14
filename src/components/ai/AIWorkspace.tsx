@@ -152,7 +152,6 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
 
   // --- Vercel AI SDK Integration (Mirrored from AISidebarV4) ---
   const [input, setInput] = useState('');
-  const [thinkingEnabled, setThinkingEnabled] = useState(false);
 
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
@@ -254,9 +253,6 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         <div className="flex-1 overflow-hidden">
           {selectedFunction === 'chat' ? (
             <EnhancedAIChat
-              enableRealTimeThinking={true}
-              thinkingEnabled={thinkingEnabled}
-              onThinkingToggle={setThinkingEnabled}
               autoReportTrigger={{ shouldGenerate: false }}
               allMessages={enhancedMessages}
               limitedMessages={enhancedMessages}
@@ -266,20 +262,14 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               setInputValue={setInput}
               handleSendInput={() => {
                 if (input.trim()) {
-                  void sendMessage({
-                    text: input,
-                    metadata: { thinking: thinkingEnabled },
-                  });
+                  void sendMessage({ text: input });
                 }
               }}
               isGenerating={isLoading}
               regenerateResponse={() => {
                 regenerateLastResponse();
               }}
-              currentEngine={
-                thinkingEnabled ? 'Thinking Mode' : 'Vercel AI SDK'
-              }
-              routingReason={thinkingEnabled ? '심층 추론 활성화' : undefined}
+              currentEngine="Vercel AI SDK"
             />
           ) : (
             <AIFunctionPages
@@ -377,9 +367,6 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           <div className="flex-1 overflow-hidden relative">
             {selectedFunction === 'chat' ? (
               <EnhancedAIChat
-                enableRealTimeThinking={true}
-                thinkingEnabled={thinkingEnabled}
-                onThinkingToggle={setThinkingEnabled}
                 autoReportTrigger={{ shouldGenerate: false }}
                 allMessages={enhancedMessages}
                 limitedMessages={enhancedMessages}
@@ -389,20 +376,14 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                 setInputValue={setInput}
                 handleSendInput={() => {
                   if (input.trim()) {
-                    void sendMessage({
-                      text: input,
-                      metadata: { thinking: thinkingEnabled },
-                    });
+                    void sendMessage({ text: input });
                   }
                 }}
                 isGenerating={isLoading}
                 regenerateResponse={() => {
                   regenerateLastResponse();
                 }}
-                currentEngine={
-                  thinkingEnabled ? 'Thinking Mode' : 'Vercel AI SDK'
-                }
-                routingReason={thinkingEnabled ? '심층 추론 활성화' : undefined}
+                currentEngine="Vercel AI SDK"
               />
             ) : (
               <div className="h-full p-0">

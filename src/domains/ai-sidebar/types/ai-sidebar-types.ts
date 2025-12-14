@@ -202,7 +202,6 @@ export interface AISidebarV2Props {
 export interface AISidebarV3Props extends AISidebarV2Props {
   defaultEngine?: AIMode;
   sessionId?: string;
-  enableRealTimeThinking?: boolean;
   onEngineChange?: (engine: AIMode) => void;
   onMessageSend?: (message: string) => void;
 }
