@@ -4,12 +4,20 @@
  */
 
 // ============================================================================
-// Configuration
+// Configuration (Read dynamically for Vercel serverless)
 // ============================================================================
 
-const CLOUD_RUN_URL = process.env.CLOUD_RUN_AI_URL || '';
-const CLOUD_RUN_ENABLED = process.env.CLOUD_RUN_ENABLED === 'true';
-const CLOUD_RUN_API_SECRET = process.env.CLOUD_RUN_API_SECRET || '';
+// Note: Environment variables must be read at function invocation time
+// in serverless environments, NOT at module load time as constants.
+// This ensures fresh values on each request.
+
+function getConfig() {
+  return {
+    url: process.env.CLOUD_RUN_AI_URL || '',
+    enabled: process.env.CLOUD_RUN_ENABLED === 'true',
+    apiSecret: process.env.CLOUD_RUN_API_SECRET || '',
+  };
+}
 
 // ============================================================================
 // Types
@@ -38,14 +46,15 @@ export interface ProxyResult {
  * Cloud Run이 활성화되어 있는지 확인
  */
 export function isCloudRunEnabled(): boolean {
-  return CLOUD_RUN_ENABLED && !!CLOUD_RUN_URL && !!CLOUD_RUN_API_SECRET;
+  const config = getConfig();
+  return config.enabled && !!config.url && !!config.apiSecret;
 }
 
 /**
  * Cloud Run URL 반환
  */
 export function getCloudRunUrl(): string {
-  return CLOUD_RUN_URL;
+  return getConfig().url;
 }
 
 /**
@@ -54,6 +63,8 @@ export function getCloudRunUrl(): string {
 export async function proxyToCloudRun(
   options: ProxyOptions
 ): Promise<ProxyResult> {
+  const config = getConfig();
+
   if (!isCloudRunEnabled()) {
     return {
       success: false,
@@ -61,7 +72,7 @@ export async function proxyToCloudRun(
     };
   }
 
-  const url = `${CLOUD_RUN_URL}${options.path}`;
+  const url = `${config.url}${options.path}`;
   const timeout = options.timeout || 30000;
 
   try {
@@ -72,7 +83,7 @@ export async function proxyToCloudRun(
       method: options.method || 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': CLOUD_RUN_API_SECRET,
+        'X-API-Key': config.apiSecret,
         ...options.headers,
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
@@ -120,12 +131,14 @@ export async function proxyToCloudRun(
 export async function proxyStreamToCloudRun(
   options: ProxyOptions
 ): Promise<ReadableStream<Uint8Array> | null> {
+  const config = getConfig();
+
   if (!isCloudRunEnabled()) {
     console.warn('⚠️ Cloud Run is not enabled, falling back to local');
     return null;
   }
 
-  const url = `${CLOUD_RUN_URL}${options.path}`;
+  const url = `${config.url}${options.path}`;
 
   try {
     const response = await fetch(url, {
@@ -133,7 +146,7 @@ export async function proxyStreamToCloudRun(
       headers: {
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
-        'X-API-Key': CLOUD_RUN_API_SECRET,
+        'X-API-Key': config.apiSecret,
         ...options.headers,
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
@@ -163,6 +176,8 @@ export async function checkCloudRunHealth(): Promise<{
   latency?: number;
   error?: string;
 }> {
+  const config = getConfig();
+
   if (!isCloudRunEnabled()) {
     return {
       healthy: false,
@@ -173,11 +188,11 @@ export async function checkCloudRunHealth(): Promise<{
   const startTime = Date.now();
 
   try {
-    const response = await fetch(`${CLOUD_RUN_URL}/health`, {
+    const response = await fetch(`${config.url}/health`, {
       method: 'GET',
       headers: {
         Accept: 'application/json',
-        'X-API-Key': CLOUD_RUN_API_SECRET,
+        'X-API-Key': config.apiSecret,
       },
     });
 
