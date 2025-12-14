@@ -20,6 +20,13 @@ export interface FeatureCard {
     features: string[];
     technologies: string[];
   };
+  subSections?: {
+    title: string;
+    description: string;
+    icon: LucideIcon;
+    features: string[];
+    gradient: string;
+  }[];
   requiresAI: boolean;
   isAICard?: boolean;
   isSpecial?: boolean;

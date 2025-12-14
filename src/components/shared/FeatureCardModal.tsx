@@ -94,6 +94,7 @@ export default function FeatureCardModal({
       },
       id: selectedCard.id,
       requiresAI: selectedCard.requiresAI || false,
+      subSections: selectedCard.subSections,
     };
   }, [selectedCard]); // selectedCard 전체 객체 의존성
 
@@ -334,6 +335,48 @@ export default function FeatureCardModal({
             : sanitizeText(detailedContent.overview)}
         </p>
       </div>
+
+      {/* AI Sub-Sections (Grid Layout) */}
+      {cardData.subSections && (
+        <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-3">
+          {cardData.subSections.map((section) => (
+            <div
+              key={section.title}
+              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:shadow-xl"
+            >
+              {/* Gradient Border/Glow effect on hover */}
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${section.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
+              />
+
+              <div className="relative z-10">
+                <div
+                  className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br ${section.gradient}`}
+                >
+                  <section.icon className="h-5 w-5 text-white" />
+                </div>
+                <h4 className="mb-2 text-base font-bold text-white">
+                  {section.title}
+                </h4>
+                <p className="mb-4 text-xs leading-relaxed text-gray-300">
+                  {section.description}
+                </p>
+                <ul className="space-y-1.5">
+                  {section.features.map((feature, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2 text-xs text-gray-400"
+                    >
+                      <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-white/40" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* AI 제한 경고 배너 */}
       {requiresAI && !aiAgentEnabled && (

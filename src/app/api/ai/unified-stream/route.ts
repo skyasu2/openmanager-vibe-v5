@@ -159,10 +159,12 @@ export const POST = withAuth(async (req: NextRequest) => {
     console.log(`📡 [Unified-Stream] Session: ${sessionId}`);
 
     // 3. 스트리밍 요청 여부 확인
+    // AI SDK v5 DefaultChatTransport는 */* 또는 다양한 Accept 헤더를 보냄
+    // unified-stream 엔드포인트는 기본적으로 스트리밍 활성화
+    // 명시적으로 application/json만 요청하는 경우에만 JSON 응답
     const acceptHeader = req.headers.get('accept') || '';
-    const wantsStream =
-      acceptHeader.includes('text/event-stream') ||
-      acceptHeader.includes('text/plain');
+    const wantsJsonOnly = acceptHeader === 'application/json';
+    const wantsStream = !wantsJsonOnly;
 
     // 4. Cloud Run 프록시 모드 (CLOUD_RUN_ENABLED=true)
     if (isCloudRunEnabled()) {

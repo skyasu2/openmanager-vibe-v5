@@ -4,7 +4,7 @@ import { Bot, FileText, Send } from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
-import { AIEngineIndicator } from './AIEngineIndicator';
+// import { AIEngineIndicator } from './AIEngineIndicator';
 import type { ApprovalRequest } from './InlineAgentStatus';
 
 /**
@@ -88,10 +88,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
           </div>
 
           {/* AI 엔진 표시기 */}
-          <AIEngineIndicator
-            currentEngine={currentEngine}
-            routingReason={routingReason}
-          />
+          {/* AI 엔진 표시기 (Removed) */}
         </div>
       </div>
 

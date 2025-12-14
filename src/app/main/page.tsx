@@ -248,7 +248,8 @@ function Home() {
           </h1>
           <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">
             <span className="text-sm text-white/75">
-              완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장
+              LangGraph 기반 A2A 엔진 (Gemini + Groq) | 멀티 에이전트 협업을
+              통한 지능형 분석
             </span>
           </p>
         </div>
