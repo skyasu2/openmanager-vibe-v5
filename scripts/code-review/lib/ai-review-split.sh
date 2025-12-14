@@ -69,6 +69,12 @@ $ai_review
 
 ---
 
+## 📦 버전 추천 (Semantic Versioning)
+
+$(analyze_version_recommendation)
+
+---
+
 **생성 시간**: $(date '+%Y-%m-%d %H:%M:%S')
 **리뷰 파일**: \`$REVIEW_FILE\`
 **AI 엔진**: ${AI_ENGINE^^}
