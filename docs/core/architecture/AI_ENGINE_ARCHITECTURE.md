@@ -74,6 +74,81 @@ graph TD
     Response --> Client
 ```
 
+### Interactive Diagrams (FigJam)
+
+| Diagram | Description | Link |
+|---------|-------------|------|
+| **System Architecture** | Full AI engine overview | [View](https://www.figma.com/online-whiteboard/create-diagram/9a4b29bd-0376-4e0a-8e22-3b9bd008854a) |
+| **Agent Routing Flow** | Supervisor → Agent routing | [View](https://www.figma.com/online-whiteboard/create-diagram/22dbc5b3-44c1-44e7-9eee-1fa0cf8e402a) |
+| **A2A Communication** | Inter-agent delegation | [View](https://www.figma.com/online-whiteboard/create-diagram/a32f26ab-5d3c-40f6-a8ed-4eb5ec0ed843) |
+| **HITL Workflow** | Human-in-the-Loop approval | [View](https://www.figma.com/online-whiteboard/create-diagram/da114603-ca00-4416-9e1a-9bb422826093) |
+
+## State Interfaces
+
+### AgentState (16 Fields)
+
+The core state interface for LangGraph orchestration:
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `messages` | BaseMessage[] | Conversation history |
+| `sessionId` | string | Session identifier |
+| `iteration` | number | Current iteration count |
+| `routerDecision` | RouterDecision | Supervisor routing decision |
+| `targetAgent` | AgentType | Selected agent for execution |
+| `taskType` | TaskType | Classified task type |
+| `delegationRequest` | DelegationRequest \| null | A2A delegation info |
+| `returnToSupervisor` | boolean | Flag for re-routing |
+| `agentResults` | AgentResult[] | Results from executed agents |
+| `requiresApproval` | boolean | HITL flag |
+| `approvalStatus` | 'pending' \| 'approved' \| 'rejected' | Approval state |
+| `pendingAction` | PendingAction \| null | Action awaiting approval |
+| `modelHealth` | CircuitBreakerState | Model health tracking |
+| `parallelAgents` | AgentType[] | Agents for parallel execution |
+| `toolResults` | ToolResult[] | Tool invocation results |
+| `finalResponse` | string | Final response to user |
+
+### DelegationRequest
+
+```typescript
+interface DelegationRequest {
+  fromAgent: AgentType;     // Origin agent
+  toAgent?: AgentType;      // Target agent (optional)
+  reason: string;           // Delegation reason
+  context?: unknown;        // Additional context
+  priority?: 'low' | 'normal' | 'high';
+}
+```
+
+### PendingAction (HITL)
+
+```typescript
+interface PendingAction {
+  actionType: string;       // e.g., 'incident_report'
+  description: string;      // Human-readable description
+  payload: unknown;         // Action data
+  requestedAt: string;      // ISO timestamp
+  requestedBy: AgentType;   // Requesting agent
+}
+```
+
+### CircuitBreakerState
+
+```typescript
+interface CircuitBreakerState {
+  models: Record<string, ModelHealthState>;
+  threshold: number;        // Failure threshold (default: 3)
+  resetTimeMs: number;      // Reset cooldown (default: 60000)
+}
+
+interface ModelHealthState {
+  failures: number;
+  isOpen: boolean;          // Circuit open = blocked
+  lastFailure?: string;
+  halfOpenAttempts: number;
+}
+```
+
 ## API Specification
 
 ### Endpoint
