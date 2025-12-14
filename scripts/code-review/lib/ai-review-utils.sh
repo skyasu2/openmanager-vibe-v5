@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# AI Review Utilities - v6.9.1
+# AI Review Utilities - v6.9.2
 # 유틸리티 함수 모음 (로그, 카운터, 변경사항 수집 등)
+# v6.9.2 (2025-12-14): BREAKING 감지 패턴 수정 (Codex 리뷰 반영)
 # v6.9.1 (2025-12-08): Claude 제거 완료, 3-AI 전용 (codex/gemini/qwen)
 
 # 색상 정의
@@ -302,7 +303,11 @@ analyze_version_recommendation() {
 
     # 간단 체크: feat 있으면 minor, 아니면 patch
     local has_feat=$(git -C "$project_root" log "$last_tag"..HEAD --pretty=format:"%s" | grep -ciE "^feat" || echo "0")
-    local has_breaking=$(git -C "$project_root" log "$last_tag"..HEAD --pretty=format:"%s" | grep -ciE "BREAKING|!" || echo "0")
+    # v6.9.2: Conventional Commits 정확한 패턴으로 수정 (Codex 리뷰 반영)
+    # - "BREAKING CHANGE:" 명시적 키워드
+    # - "type!:" 또는 "type(scope)!:" 형식 (Conventional Commits 표준)
+    # - 기존 "!" 만 매칭하면 "docs: update!" 같은 커밋도 major로 잘못 판정됨
+    local has_breaking=$(git -C "$project_root" log "$last_tag"..HEAD --pretty=format:"%s" | grep -ciE "BREAKING CHANGE|^[a-z]+(\([^)]+\))?!:" || echo "0")
 
     local cmd="patch"
     [ "$has_feat" -gt 0 ] && cmd="minor"
