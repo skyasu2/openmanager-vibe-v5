@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# AI Review Utilities - v6.9.3
+# AI Review Utilities - v7.2.0
 # 유틸리티 함수 모음 (로그, 카운터, 변경사항 수집 등)
+# v7.2.0 (2025-12-14): 버전 추천 기능 제거 (standard-version 사용 권장)
 # v6.9.3 (2025-12-14): BREAKING 패턴 단어경계+콜론 필수 (Codex 2차 리뷰)
 # v6.9.2 (2025-12-14): BREAKING 감지 패턴 수정 (Codex 리뷰 반영)
 # v6.9.1 (2025-12-08): Claude 제거 완료, 3-AI 전용 (codex/gemini/qwen)
@@ -281,40 +282,5 @@ detect_qwen_rate_limit() {
     return 1  # False: 정상
 }
 
-# ============================================================================
-# 버전 추천 간단 메모 (v7.1.0 - 간소화)
-# Claude Code 리뷰 시 확인용 - standard-version 사용 여부만 표시
-# ============================================================================
-
-analyze_version_recommendation() {
-    local project_root="${PROJECT_ROOT:-.}"
-    local last_tag=$(git -C "$project_root" describe --tags --abbrev=0 2>/dev/null || echo "")
-
-    if [ -z "$last_tag" ]; then
-        echo "📦 릴리스 필요 시: \`npm run release:first\`"
-        return
-    fi
-
-    local commits=$(git -C "$project_root" rev-list "$last_tag"..HEAD --count 2>/dev/null || echo "0")
-
-    if [ "$commits" -eq 0 ]; then
-        echo "📦 현재 버전: $last_tag (변경 없음)"
-        return
-    fi
-
-    # 간단 체크: feat 있으면 minor, 아니면 patch
-    local has_feat=$(git -C "$project_root" log "$last_tag"..HEAD --pretty=format:"%s" | grep -ciE "^feat" || echo "0")
-    # v6.9.3: Conventional Commits 정확한 패턴 (Codex 2차 리뷰 반영)
-    # - "\bBREAKING CHANGES?:" - 단어 경계 + 콜론 필수 (BREAKING CHANGE: 또는 BREAKING CHANGES:)
-    # - "^type!:" 또는 "^type(scope)!:" 형식 (Conventional Commits 표준)
-    # - v6.9.2 문제: "no breaking change" 같은 문장도 매칭됨 (콜론 누락)
-    local has_breaking=$(git -C "$project_root" log "$last_tag"..HEAD --pretty=format:"%s" | grep -ciE "\bBREAKING CHANGES?:|^[a-z]+(\([^)]+\))?!:" || echo "0")
-
-    local cmd="patch"
-    [ "$has_feat" -gt 0 ] && cmd="minor"
-    [ "$has_breaking" -gt 0 ] && cmd="major"
-
-    echo "📦 **$last_tag** 이후 **${commits}개 커밋** → \`npm run release:${cmd}\` 권장"
-}
-
 # 검증 실행 함수는 별도 스크립트로 분리되었으므로 여기서는 제외
+# 버전 추천 기능은 standard-version 사용으로 대체됨 (v7.2.0)

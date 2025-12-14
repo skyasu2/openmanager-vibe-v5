@@ -6,7 +6,7 @@
 
 ## 📦 핵심 정보
 
-**프로젝트**: OpenManager VIBE v5.80.0 - AI 기반 실시간 서버 모니터링 플랫폼
+**프로젝트**: OpenManager VIBE v5.81.0 - AI 기반 실시간 서버 모니터링 플랫폼
 **환경**: WSL + Claude Code v2.0.62 + Codex v0.69.0 리뷰
 **스택**: Next.js 16, React 19, TypeScript 5.9 strict, Vercel + Supabase
 
@@ -39,6 +39,26 @@ Tab 키 토글 | Token Budget: think(4K) < think hard(10K) < ultrathink(32K)
 @context7 "Next.js 16 문서"    # Context7만 활성화
 @vercel "배포 상태 확인"       # Vercel만 활성화
 @figma "디자인 코드 생성"      # Figma만 활성화 (6회/월 한도 주의!)
+
+# 버전 관리 (standard-version)
+npm run release:patch         # 버그 수정 (fix:)
+npm run release:minor         # 새 기능 (feat:)
+npm run release:major         # 호환성 파괴 (BREAKING CHANGE:)
+npm run release:first         # 첫 릴리스 (0.0.0 → 1.0.0)
+```
+
+### 📦 버전 관리 가이드
+
+**standard-version 자동 버전 결정** (Conventional Commits 기반):
+- `fix:` → patch (예: 5.81.0 → 5.81.1)
+- `feat:` → minor (예: 5.81.0 → 5.82.0)
+- `BREAKING CHANGE:` 또는 `feat!:` → major (예: 5.81.0 → 6.0.0)
+
+```bash
+# 일반적인 릴리스 워크플로우
+git add . && git commit -m "feat: 새로운 기능"
+npm run release:minor         # CHANGELOG 생성 + 태그 + 커밋
+git push --follow-tags        # 태그와 함께 푸시
 ```
 
 ---
