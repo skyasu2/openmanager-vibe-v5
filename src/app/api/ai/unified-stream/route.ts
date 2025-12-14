@@ -34,15 +34,69 @@ export const maxDuration = 60;
 // 📋 Request Schema (Zod Validation)
 // ============================================================================
 
+// AI SDK v5 UIMessage 'parts' 포맷
+const textPartSchema = z.object({
+  type: z.literal('text'),
+  text: z.string(),
+});
+
+const partSchema = z.discriminatedUnion('type', [
+  textPartSchema,
+  // 다른 part 타입들 (tool-invocation, tool-result 등)은 무시
+  z
+    .object({ type: z.literal('tool-invocation') })
+    .passthrough(),
+  z.object({ type: z.literal('tool-result') }).passthrough(),
+  z.object({ type: z.literal('file') }).passthrough(),
+  z.object({ type: z.literal('reasoning') }).passthrough(),
+]);
+
+// 하이브리드 메시지 스키마: AI SDK v5 (parts) + 레거시 (content) 모두 지원
 const messageSchema = z.object({
+  id: z.string().optional(),
   role: z.enum(['user', 'assistant', 'system']),
-  content: z.string().min(1).max(10000),
+  // AI SDK v5: parts 배열 (UIMessage 포맷)
+  parts: z.array(partSchema).optional(),
+  // 레거시: content 문자열
+  content: z.string().optional(),
+  // 추가 메타데이터 허용
+  createdAt: z.union([z.string(), z.date()]).optional(),
 });
 
 const requestSchema = z.object({
   messages: z.array(messageSchema).min(1).max(50),
   sessionId: z.string().optional(),
 });
+
+// ============================================================================
+// 🔧 Utility: UIMessage에서 텍스트 추출
+// ============================================================================
+
+/**
+ * AI SDK v5 UIMessage 또는 레거시 메시지에서 텍스트 콘텐츠 추출
+ */
+function extractTextFromMessage(
+  message: z.infer<typeof messageSchema>
+): string {
+  // 1. AI SDK v5 parts 배열에서 텍스트 추출
+  if (message.parts && Array.isArray(message.parts)) {
+    const textParts = message.parts
+      .filter(
+        (part): part is z.infer<typeof textPartSchema> => part.type === 'text'
+      )
+      .map((part) => part.text);
+    if (textParts.length > 0) {
+      return textParts.join('\n');
+    }
+  }
+
+  // 2. 레거시 content 필드 사용
+  if (typeof message.content === 'string') {
+    return message.content;
+  }
+
+  return '';
+}
 
 // ============================================================================
 // 🧠 Main Handler - LangGraph Multi-Agent System
@@ -77,10 +131,25 @@ export const POST = withAuth(async (req: NextRequest) => {
     // 2. 마지막 메시지에서 사용자 쿼리 추출 + 입력 정제
     const lastMessage =
       messages.length > 0 ? messages[messages.length - 1] : null;
-    const rawQuery =
-      lastMessage && typeof lastMessage.content === 'string'
-        ? lastMessage.content
-        : 'System status check';
+    const rawQuery = lastMessage
+      ? extractTextFromMessage(lastMessage)
+      : 'System status check';
+
+    // 빈 쿼리 방어
+    if (!rawQuery || rawQuery.trim() === '') {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Empty query',
+          message: '쿼리를 입력해주세요.',
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     const userQuery = quickSanitize(rawQuery);
 
     // 2. 세션 ID 생성/사용

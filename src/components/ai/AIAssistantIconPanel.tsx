@@ -9,10 +9,16 @@
 
 'use client';
 
+import {
+  Brain,
+  FileText,
+  Maximize,
+  MessageSquare,
+  Monitor,
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { Brain, FileText, MessageSquare, Monitor } from 'lucide-react';
 import type { ComponentType } from 'react';
-// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 export type AIAssistantFunction =
   | 'chat'
@@ -88,6 +94,8 @@ export default function AIAssistantIconPanel({
   className = '',
   isMobile = false,
 }: AIAssistantIconPanelProps) {
+  const router = useRouter();
+
   if (isMobile) {
     return (
       <div
@@ -121,6 +129,14 @@ export default function AIAssistantIconPanel({
             </button>
           );
         })}
+
+        {/* 전체 화면 이동 버튼 (Mobile) */}
+        <button
+          onClick={() => router.push('/ai')}
+          className="group relative h-12 w-12 shrink-0 rounded-xl bg-gray-50 text-gray-600 transition-all duration-200 active:scale-95 hover:bg-gray-100"
+        >
+          <Maximize className="mx-auto h-5 w-5" />
+        </button>
       </div>
     );
   }
@@ -189,6 +205,25 @@ export default function AIAssistantIconPanel({
           <div className="animate-pulse mx-auto mb-1 h-2 w-2 rounded-full bg-green-500"></div>
           <p className="text-xs text-gray-500">AI 활성</p>
         </div>
+      </div>
+
+      {/* 전체 화면 이동 버튼 (Desktop - 하단 분리) */}
+      <div className="mt-2 border-t border-gray-200 pt-2">
+        <button
+          onClick={() => router.push('/ai')}
+          className="group relative h-12 w-12 rounded-xl bg-gray-50 text-gray-500 transition-all duration-200 hover:scale-105 hover:bg-gray-100 hover:text-gray-900 active:scale-95"
+          title="전체 화면으로 열기"
+        >
+          <Maximize className="mx-auto h-5 w-5" />
+
+          {/* 툴팁 */}
+          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 pointer-events-none z-[60] min-w-max whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+            전체 화면으로 보기
+            <div className="absolute left-full top-1/2 -translate-y-1/2 transform">
+              <div className="border-4 border-transparent border-l-gray-800"></div>
+            </div>
+          </div>
+        </button>
       </div>
     </div>
   );
