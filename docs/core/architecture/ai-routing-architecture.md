@@ -13,14 +13,8 @@ OpenManager Vibe v5.80.0은 **LangGraph Supervisor Agent**를 사용하여 AI �
 graph TD
     User[User Query] --> API[/api/ai/unified-stream]
 
-    subgraph "Next.js Proxy"
-        API --> Router{Cloud Run Enabled?}
-        Router -- Yes --> Proxy[Cloud Run Proxy]
-        Router -- No --> LocalGraph[Local LangGraph]
-    end
-
-    subgraph "LangGraph (Supervisor Routing)"
-        Proxy --> Supervisor[Supervisor Agent]
+    subgraph "Vercel (Next.js)"
+        API --> Supervisor[Supervisor Agent]
 
         Supervisor -->|Simple Query| NLQ[NLQ Agent]
         Supervisor -->|Pattern Analysis| Analyst[Analyst Agent]
@@ -38,6 +32,8 @@ graph TD
     Direct --> Response
     Response --> User
 ```
+
+> **Note**: Cloud Run ai-backend was removed (2025-12-14). LangGraph runs directly on Vercel.
 
 ## Agent-Based Routing
 
@@ -104,9 +100,7 @@ Primary Model 실패 시:
        ↓
 2. /api/ai/unified-stream (POST)
        ↓
-3. Cloud Run Check
-       ├─ Enabled → Proxy to Cloud Run
-       └─ Disabled → Local LangGraph
+3. LangGraph StateGraph (Vercel)
        ↓
 4. Supervisor Agent (Intent Classification)
        ↓
@@ -117,26 +111,27 @@ Primary Model 실패 시:
        ↓
 6. Response Aggregation
        ↓
-7. Streaming Response to Client
+7. Streaming Response to Client (AI SDK v5 Protocol)
 ```
 
 ## Environment Configuration
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CLOUD_RUN_ENABLED` | No | Enable Cloud Run backend |
-| `CLOUD_RUN_AI_URL` | If enabled | Cloud Run service URL |
 | `GOOGLE_AI_API_KEY` | Yes | Gemini API key |
 | `GROQ_API_KEY` | Yes | Groq (Llama) API key |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
 
 ## Deprecated Components
 
 | Component | Status | Replacement |
 |-----------|--------|-------------|
+| `cloud-run/ai-backend/` | ❌ Removed (2025-12-14) | `src/services/langgraph/` |
 | `SmartRoutingEngine` | ❌ Removed | LangGraph Supervisor Agent |
 | Python Unified Processor | ❌ Removed | TypeScript LangGraph Agents |
 | `/api/ai/query` (sync) | ❌ Removed | `/api/ai/unified-stream` |
-| GCP Cloud Functions | ❌ Removed | Cloud Run (containerized) |
+| GCP Cloud Functions | ❌ Removed | Vercel Edge |
 | RouteLLM-style Scoring | ❌ Removed | Supervisor Agent 분류 |
 
 ---

@@ -5,7 +5,9 @@
 
 ## Overview
 
-The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrates specialized agents for server monitoring tasks. It features a hybrid deployment model with Cloud Run as the primary backend and local execution as fallback.
+The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrates specialized agents for server monitoring tasks. It runs directly on **Vercel Edge** using Next.js API routes.
+
+> **Note**: Cloud Run ai-backend was removed (2025-12-14). LangGraph now runs exclusively on Vercel.
 
 ## Core Components
 
@@ -42,9 +44,9 @@ The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrate
 
 ### 2. Backend: LangGraph Multi-Agent System
 
-- **Cloud Run**: `cloud-run/ai-backend/src/` (Hono/TypeScript)
-- **Local Fallback**: `src/services/langgraph/` (Next.js)
+- **Location**: `src/services/langgraph/` (Next.js API Routes)
 - **Framework**: LangGraph StateGraph
+- **Deployment**: Vercel Edge (no external backend required)
 
 #### Agent Architecture
 
@@ -129,13 +131,11 @@ The AI uses specialized tools within each agent for domain-specific operations.
 
 1. **User Query**: User types a message in `AISidebarV4`
 2. **API Request**: `useChat` sends POST to `/api/ai/unified-stream`
-3. **Backend Selection**:
-   - If `CLOUD_RUN_ENABLED=true`: Proxy to Cloud Run
-   - Otherwise: Execute local LangGraph
+3. **LangGraph Execution**: StateGraph processes request on Vercel
 4. **Supervisor Routing**: Groq Llama classifies intent and routes to appropriate agent
 5. **Agent Execution**: Selected agent processes query with tools
 6. **Approval Check** (Reporter only): Critical actions require human approval
-7. **Response**: Streaming or JSON response returned to client
+7. **Response**: AI SDK v5 Data Stream Protocol (`0:"text"\n`, `d:{...}\n`)
 
 ## Human-in-the-Loop Workflow
 

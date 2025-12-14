@@ -2,16 +2,18 @@
 
 ## Overview
 
-The AI Engine for OpenManager Vibe is a **Hybrid Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, featuring **Cloud Run** as the primary backend with local fallback.
+The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running directly on **Vercel Edge**.
 
-## Architecture (v5.80.0)
+## Architecture (v5.82.0)
 
-### Deployment Modes
+### Deployment Mode
 
-| Mode | Backend | When Used |
-|------|---------|-----------|
-| **Cloud Run** (Primary) | `cloud-run/ai-backend/` (Hono/TypeScript) | `CLOUD_RUN_ENABLED=true` |
-| **Local** (Fallback) | `src/services/langgraph/` (Next.js) | Cloud Run unavailable or disabled |
+| Mode | Backend | Status |
+|------|---------|--------|
+| **Vercel** | `src/services/langgraph/` (Next.js) | ✅ Active (Primary) |
+| ~~Cloud Run~~ | ~~`cloud-run/ai-backend/`~~ | ❌ Removed (2025-12-14) |
+
+> **Note**: Cloud Run ai-backend was removed as redundant. LangGraph runs directly on Vercel with full functionality. Cloud Run is reserved for Supabase MCP Bridge (`cloud-run/supabase-mcp/`).
 
 ### Agent Stack
 
@@ -46,13 +48,7 @@ graph TD
     Client[Client UI] -->|POST /api/ai/unified-stream| API[Next.js API Route]
 
     subgraph "Vercel (Next.js)"
-        API --> Router{Cloud Run Enabled?}
-        Router -- Yes --> Proxy[Cloud Run Proxy]
-        Router -- No --> LocalGraph[Local LangGraph]
-    end
-
-    subgraph "Cloud Run (Hono Server)"
-        Proxy -->|X-API-Key Auth| Supervisor[Supervisor Agent]
+        API --> Supervisor[Supervisor Agent]
 
         Supervisor -->|Simple Query| NLQ[NLQ Agent]
         Supervisor -->|Pattern Analysis| Analyst[Analyst Agent]
@@ -76,7 +72,6 @@ graph TD
     end
 
     Response --> Client
-    LocalGraph --> Client
 ```
 
 ## API Specification
@@ -105,17 +100,21 @@ graph TD
   "toolResults": [...],
   "targetAgent": "nlq",
   "sessionId": "session_1234567890",
-  "_backend": "cloud-run"
+  "_backend": "vercel"
 }
 ```
 
-### Response Format (Streaming)
+### Response Format (Streaming - AI SDK v5 Protocol)
 
 ```
 Headers:
 - Content-Type: text/plain; charset=utf-8
 - X-Session-Id: session_1234567890
-- X-Backend: cloud-run | local
+
+Body:
+0:"안녕하세요! "
+0:"서버 상태를 확인해드릴게요.\n"
+d:{"finishReason":"stop"}
 ```
 
 ## Data & Memory
@@ -131,53 +130,42 @@ Headers:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CLOUD_RUN_ENABLED` | No | Enable Cloud Run backend (`true`/`false`) |
-| `CLOUD_RUN_AI_URL` | If enabled | Cloud Run service URL |
-| `CLOUD_RUN_API_SECRET` | If enabled | API key for authentication |
 | `GOOGLE_AI_API_KEY` | Yes | Gemini 2.5 API key |
 | `GROQ_API_KEY` | Yes | Groq (Llama) API key |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
 
 ## File Structure
 
 ```
-# Cloud Run Backend
-cloud-run/ai-backend/
-├── src/
-│   ├── index.ts                    # Hono server entry
-│   ├── routes/
-│   │   ├── health.ts               # Health check endpoints
-│   │   ├── unified-stream.ts       # AI route handler
-│   │   └── approval.ts             # HITL approval endpoints
-│   └── services/langgraph/
-│       ├── graph-builder.ts        # StateGraph assembly + HITL
-│       ├── state-definition.ts     # AgentState + DelegationRequest
-│       ├── checkpointer.ts         # Supabase PostgresSaver
-│       └── agents/
-│           ├── supervisor.ts       # Routing + delegation handling
-│           ├── nlq-agent.ts        # Metrics queries
-│           ├── analyst-agent.ts    # Pattern analysis + anomaly
-│           └── reporter-agent.ts   # Incident reports + HITL trigger
-
-# Next.js API Proxy
-src/app/api/ai/
-├── unified-stream/route.ts         # Main AI proxy
-└── approval/route.ts               # HITL approval proxy
-
-# Vercel Proxy Utilities
-src/lib/cloud-run/
-└── proxy.ts                        # Cloud Run proxy utilities
-
-# Local Fallback
+# LangGraph Multi-Agent (Vercel)
 src/services/langgraph/
-└── (mirrors cloud-run structure)
+├── graph-builder.ts        # StateGraph assembly + HITL
+├── state-definition.ts     # AgentState + DelegationRequest
+├── checkpointer.ts         # Supabase PostgresSaver
+└── agents/
+    ├── supervisor.ts       # Routing + delegation handling
+    ├── nlq-agent.ts        # Metrics queries
+    ├── analyst-agent.ts    # Pattern analysis + anomaly
+    └── reporter-agent.ts   # Incident reports + HITL trigger
+
+# Next.js API Routes
+src/app/api/ai/
+├── unified-stream/route.ts # Main AI endpoint
+└── approval/route.ts       # HITL approval endpoint
+
+# Cloud Run (Supabase MCP Only)
+cloud-run/supabase-mcp/     # Database MCP Bridge
+└── src/index.ts            # Hono server for Supabase tools
 ```
 
 ## Deprecated Components
 
 | Component | Status | Replacement |
 |-----------|--------|-------------|
+| `cloud-run/ai-backend/` | Removed (2025-12-14) | `src/services/langgraph/` |
 | `/api/ai/query` | Removed | `/api/ai/unified-stream` |
 | Python Unified Processor | Removed | TypeScript LangGraph agents |
-| GCP Cloud Functions | Removed | Cloud Run (containerized) |
+| GCP Cloud Functions | Removed | Vercel Edge |
 | `ml-analytics-engine` | Removed | Analyst Agent (Gemini 2.5 Pro) |
 | `SmartRoutingEngine` | Removed | LangGraph Supervisor Agent |

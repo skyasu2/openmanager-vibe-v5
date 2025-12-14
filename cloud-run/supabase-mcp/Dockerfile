@@ -1,6 +1,6 @@
 # ============================================================================
-# OpenManager VIBE - Cloud Run AI Backend
-# LangGraph Multi-Agent System with Hono
+# Supabase MCP Bridge - Cloud Run Service
+# Streamable HTTP Transport with HTTP/2 Support
 # ============================================================================
 
 # Stage 1: Build
@@ -8,7 +8,7 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies first (cache layer)
+# Install dependencies (cache layer)
 COPY package.json package-lock.json* ./
 RUN npm ci --ignore-scripts
 
@@ -23,26 +23,25 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-# Set production environment
+# Production environment
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Create non-root user for security
+# Security: non-root user
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 hono
-USER hono
+    adduser --system --uid 1001 mcp
+USER mcp
 
-# Copy built files and production dependencies
-COPY --from=builder --chown=hono:nodejs /app/dist ./dist
-COPY --from=builder --chown=hono:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=hono:nodejs /app/package.json ./
+# Copy built files
+COPY --from=builder --chown=mcp:nodejs /app/dist ./dist
+COPY --from=builder --chown=mcp:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=mcp:nodejs /app/package.json ./
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
-# Expose port
+# HTTP/2 h2c mode supported
 EXPOSE 8080
 
-# Start server
 CMD ["node", "dist/index.js"]

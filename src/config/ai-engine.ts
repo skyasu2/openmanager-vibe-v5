@@ -91,7 +91,7 @@ export const aiEngineConfig = {
       endpoint: env.NEXT_PUBLIC_SUPABASE_URL,
     },
 
-    // ML Analytics Provider (LangGraph Cloud Run)
+    // ML Analytics Provider (Now handled by local LangGraph)
     ml: {
       enabled: true,
       models: [
@@ -99,14 +99,18 @@ export const aiEngineConfig = {
         'trend-analysis',
         'pattern-recognition',
       ] as const,
-      endpoint: env.CLOUD_RUN_AI_URL || env.GCP_FUNCTIONS_URL,
+      // NOTE: Cloud Run ai-backend removed (2025-12-14)
+      // ML analytics now run locally via src/services/langgraph/
+      endpoint: undefined,
       timeout: 5000, // 5 seconds
     },
 
-    // Korean NLP Provider (LangGraph Cloud Run)
+    // Korean NLP Provider (Now handled by local LangGraph)
     nlp: {
       enabled: true,
-      endpoint: env.CLOUD_RUN_AI_URL || env.GCP_FUNCTIONS_URL,
+      // NOTE: Cloud Run ai-backend removed (2025-12-14)
+      // NLP now run locally via src/services/langgraph/
+      endpoint: undefined,
       corsEnabled: false, // Direct server-to-server
       timeout: 5000, // 5 seconds
     },

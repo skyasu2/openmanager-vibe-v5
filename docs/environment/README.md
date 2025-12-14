@@ -21,25 +21,30 @@ last_updated: '2025-12-14'
 
 이 디렉터리는 **개발자가 로컬에서 개발하기 위한 모든 설정**에 관한 문서를 포함합니다.
 
-## 🏗️ 현재 아키텍처 (v5.80.0)
+## 🏗️ 현재 아키텍처 (v5.82.0)
 
 | 서비스 | 배포 환경 / 호스팅 | 역할 설명 |
 |--------|-------------------|-----------|
-| **Next.js App** | Vercel (Serverless) | 프론트엔드 + API Routes 제공 |
-| **AI Backend** | Google Cloud Run (Container / Serverless) | LangGraph 기반 멀티 에이전트 백엔드 |
+| **Next.js App** | Vercel (Serverless) | 프론트엔드 + API Routes + LangGraph AI |
+| **Supabase MCP** | Google Cloud Run (예정) | Supabase MCP Bridge 서비스 |
 | **Supabase DB** | Supabase Cloud (Managed PostgreSQL + Auth) | PostgreSQL 데이터베이스 + 인증(Auth) 제공 |
 
-### AI Services (Cloud Run)
+### AI Services (Vercel)
 
 ```
-cloud-run/ai-backend/
-├── LangGraph Multi-Agent System
-│   ├── Supervisor (Groq Llama-8b)
-│   ├── NLQ Agent (Gemini Flash)
-│   ├── Analyst Agent (Gemini Pro)
-│   └── Reporter Agent (Llama 70b)
-└── Hono Server (Port 8080)
+src/services/langgraph/
+├── graph-builder.ts        # StateGraph assembly + HITL
+├── state-definition.ts     # AgentState + DelegationRequest
+├── checkpointer.ts         # Supabase PostgresSaver
+└── agents/
+    ├── supervisor.ts       # Groq Llama-8b (Routing)
+    ├── nlq-agent.ts        # Gemini Flash (Metrics)
+    ├── analyst-agent.ts    # Gemini Pro (Analysis)
+    └── reporter-agent.ts   # Llama 70b (Reports + RAG)
 ```
+
+> **Note**: `cloud-run/ai-backend/` was removed (2025-12-14). LangGraph runs on Vercel.
+> Cloud Run is reserved for `cloud-run/supabase-mcp/` (Supabase MCP Bridge).
 
 ### Database (Cloud Supabase)
 
