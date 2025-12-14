@@ -257,7 +257,7 @@ async function createStreamingResponse(
 
         for await (const chunk of generator) {
           if (chunk.type === 'token') {
-            controller.enqueue(encoder.encode(chunk.content));
+            controller.enqueue(encoder.encode(quickFilter(chunk.content)));
           } else if (chunk.type === 'final') {
             console.log('📤 Stream completed');
           }

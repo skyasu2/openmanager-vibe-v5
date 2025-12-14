@@ -24,7 +24,7 @@ function createPool(): Pool {
 
   return new Pool({
     connectionString,
-    max: 10,
+    max: 2, // Cloud Run 서버리스 환경 최적화 (max-instances 3 × 2 = 6 connections)
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
   });

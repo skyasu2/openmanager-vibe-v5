@@ -39,6 +39,32 @@ app.use('*', secureHeaders());
 // 로깅
 app.use('*', logger());
 
+// API Key 인증 (헬스체크 제외)
+app.use('*', async (c, next) => {
+  const path = c.req.path;
+
+  // 헬스체크 경로는 인증 제외 (Cloud Run/K8s probe용)
+  if (path === '/' || path === '/health' || path.startsWith('/health/')) {
+    return next();
+  }
+
+  // X-API-Key 헤더 검증
+  const apiKey = c.req.header('X-API-Key');
+  const expectedKey = process.env.CLOUD_RUN_API_SECRET;
+
+  if (!expectedKey) {
+    console.error('❌ CLOUD_RUN_API_SECRET not configured');
+    return c.json({ error: 'Server misconfiguration' }, 500);
+  }
+
+  if (!apiKey || apiKey !== expectedKey) {
+    console.warn(`⚠️ Unauthorized API access attempt: ${path}`);
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  return next();
+});
+
 // ============================================================================
 // Routes
 // ============================================================================
