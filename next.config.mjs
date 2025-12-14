@@ -24,8 +24,10 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 🚀 Next.js 16 기본 설정 - Vercel 호환
-  output: undefined, // Vercel 자동 감지 사용
+  // 🚀 Next.js 16 기본 설정 - Vercel/Docker 호환
+  // NEXT_OUTPUT_MODE=standalone 환경변수로 Docker 빌드 시 standalone 출력 활성화
+  output:
+    process.env.NEXT_OUTPUT_MODE === 'standalone' ? 'standalone' : undefined,
   trailingSlash: false,
 
   // 🔧 Windows IDE에서 WSL 개발 서버 접속 허용 (Cross-Origin)

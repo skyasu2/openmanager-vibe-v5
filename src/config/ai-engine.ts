@@ -68,11 +68,11 @@ export const aiEngineConfig = {
       rag: {
         ttl: 180000, // 3 minutes
       },
-      // L2: ML Analytics (GCP Functions)
+      // L2: ML Analytics (LangGraph)
       ml: {
         ttl: 600000, // 10 minutes
       },
-      // L2: Korean NLP (GCP Functions)
+      // L2: Korean NLP (LangGraph)
       nlp: {
         ttl: 600000, // 10 minutes
       },
@@ -91,7 +91,7 @@ export const aiEngineConfig = {
       endpoint: env.NEXT_PUBLIC_SUPABASE_URL,
     },
 
-    // ML Analytics Provider (GCP Functions)
+    // ML Analytics Provider (LangGraph Cloud Run)
     ml: {
       enabled: true,
       models: [
@@ -103,7 +103,7 @@ export const aiEngineConfig = {
       timeout: 5000, // 5 seconds
     },
 
-    // Korean NLP Provider (GCP Functions)
+    // Korean NLP Provider (LangGraph Cloud Run)
     nlp: {
       enabled: true,
       endpoint: env.GCP_FUNCTIONS_URL,

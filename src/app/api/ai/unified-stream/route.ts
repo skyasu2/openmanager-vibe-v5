@@ -2,7 +2,11 @@
  * Unified AI Stream API Route
  * LangGraph Multi-Agent System을 사용한 스트리밍 응답
  *
- * Architecture:
+ * Architecture (Hybrid Mode):
+ * - Cloud Run AI Backend (CLOUD_RUN_ENABLED=true): 외부 Cloud Run으로 프록시
+ * - Local Mode (default): Next.js 내장 LangGraph 사용
+ *
+ * Agents:
  * - Supervisor (Groq Llama-8b): 빠른 인텐트 분류 및 라우팅
  * - NLQ Agent (Gemini Flash): 서버 메트릭 조회
  * - Analyst Agent (Gemini Pro): 패턴 분석 및 이상 탐지
@@ -12,6 +16,11 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { withAuth } from '@/lib/auth/api-auth';
+import {
+  isCloudRunEnabled,
+  proxyStreamToCloudRun,
+  proxyToCloudRun,
+} from '@/lib/cloud-run/proxy';
 import {
   createStreamingResponse,
   executeGraph,
@@ -86,6 +95,49 @@ export const POST = withAuth(async (req: NextRequest) => {
       acceptHeader.includes('text/event-stream') ||
       acceptHeader.includes('text/plain');
 
+    // 4. Cloud Run 프록시 모드 (CLOUD_RUN_ENABLED=true)
+    if (isCloudRunEnabled()) {
+      console.log('☁️ [Unified-Stream] Using Cloud Run backend');
+
+      if (wantsStream) {
+        // Cloud Run 스트리밍 프록시
+        const cloudStream = await proxyStreamToCloudRun({
+          path: '/api/unified-stream',
+          body: { messages, sessionId },
+        });
+
+        if (cloudStream) {
+          return new Response(cloudStream, {
+            headers: {
+              'Content-Type': 'text/plain; charset=utf-8',
+              'Cache-Control': 'no-cache',
+              Connection: 'keep-alive',
+              'X-Session-Id': sessionId,
+              'X-Backend': 'cloud-run',
+            },
+          });
+        }
+        // Cloud Run 실패 시 로컬로 폴백
+        console.warn('⚠️ Cloud Run stream failed, falling back to local');
+      } else {
+        // Cloud Run 단일 응답 프록시
+        const proxyResult = await proxyToCloudRun({
+          path: '/api/unified-stream',
+          body: { messages, sessionId },
+        });
+
+        if (proxyResult.success && proxyResult.data) {
+          return Response.json({
+            ...proxyResult.data,
+            _backend: 'cloud-run',
+          });
+        }
+        // Cloud Run 실패 시 로컬로 폴백
+        console.warn('⚠️ Cloud Run request failed, falling back to local');
+      }
+    }
+
+    // 5. 로컬 모드 (Next.js 내장 LangGraph)
     if (wantsStream) {
       // 스트리밍 응답 (LangGraph streamEvents 사용)
       try {
@@ -97,6 +149,7 @@ export const POST = withAuth(async (req: NextRequest) => {
             'Cache-Control': 'no-cache',
             Connection: 'keep-alive',
             'X-Session-Id': sessionId,
+            'X-Backend': 'local',
           },
         });
       } catch (streamError) {
@@ -109,6 +162,7 @@ export const POST = withAuth(async (req: NextRequest) => {
             'Content-Type': 'text/plain; charset=utf-8',
             'X-Session-Id': sessionId,
             'X-Target-Agent': result.targetAgent || 'unknown',
+            'X-Backend': 'local',
           },
         });
       }
@@ -122,6 +176,7 @@ export const POST = withAuth(async (req: NextRequest) => {
         toolResults: result.toolResults,
         targetAgent: result.targetAgent,
         sessionId: result.sessionId,
+        _backend: 'local',
       });
     }
   } catch (error) {

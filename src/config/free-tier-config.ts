@@ -91,47 +91,17 @@ export const FREE_TIER_CONFIG = {
     cloudVersionManager: true, // Vercel 자체 버전 관리 사용
     cloudLogSaver: true, // 로컬 로그만 사용
     cloudLoggingService: true, // Vercel 로그 사용
-    gcpCloudFunctions: false, // ✅ GCP Cloud Functions 활성화 (무료 티어 200만 호출/월)
+    gcpCloudFunctions: true, // ❌ GCP Cloud Functions 제거됨 (LangGraph로 대체)
     realTimeMonitoring: true, // 실시간 모니터링 제거
-    aiAnalytics: false, // ✅ AI 분석 활성화 (GCP 연동)
+    aiAnalytics: false, // ✅ AI 분석 활성화 (로컬 LangGraph)
     performanceTracking: true, // 성능 추적 제거
   },
 
-  // 🆕 GCP Cloud Functions 설정 (무료 티어 최적화)
-  gcpCloudFunctions: {
-    enabled: true,
-    plan: 'free',
-    limits: {
-      invocationsPerMonth: 2000000, // 200만 호출/월
-      gbSecondsPerMonth: 400000, // 40만 GB-초/월
-      targetUsage: 0.5, // 50% 이내 사용 목표 (안전 마진)
-    },
-    optimizations: {
-      complexityThreshold: 3, // 복잡도 3 이상 GCP 호출 (기존 4에서 하향)
-      enableMLTraining: true, // ML 학습 GCP 연동
-      enableBatchProcessing: true, // 배치 처리 활성화
-      maxDailyInvocations: 32000, // 일일 최대 호출 (안전 한도)
-    },
-    endpoints: {
-      unifiedProcessor: 'unified-ai-processor',
-      mlTrainer: 'ml-trainer',
-      patternAnalyzer: 'pattern-analyzer',
-    },
-  },
-
-  // 🔄 MCP 서버 대안
+  // 🔄 MCP 서버 설정 (Development Only)
   mcpServer: {
-    provider: 'gcp-vm', // GCP VM 사용 (Render에서 이전)
-    plan: 'always-free',
-    limits: {
-      hoursPerMonth: 720, // E2 micro VM 무료
-      memory: '1GB',
-      storage: '30GB',
-    },
-    fallback: {
-      provider: 'railway', // Railway $5 크레딧
-      enabled: true,
-    },
+    provider: 'local', // Claude Code 로컬 MCP (개발환경)
+    productionMcp: 'supabase', // Cloud Run에서 Supabase MCP만 사용
+    status: 'development-only',
   },
 
   // 📊 모니터링 설정
@@ -173,8 +143,8 @@ export function validateFreeTierUsage() {
     },
     mcp: {
       status: 'active',
-      usage: 'GCP VM Always Free Tier',
-      recommendation: 'GCP VM으로 이전 완료 (Render 대체)',
+      usage: 'Development Only (Local)',
+      recommendation: 'Claude Code 로컬 MCP + Cloud Run Supabase MCP',
     },
   };
 }

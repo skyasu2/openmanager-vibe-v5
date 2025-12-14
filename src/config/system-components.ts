@@ -325,45 +325,4 @@ export const systemComponents: SystemComponent[] = [
     },
   },
 
-  // 🔍 GCP Functions (서버리스)
-  {
-    id: 'gcp-functions',
-    name: 'GCP Functions',
-    description: 'Python 서버리스 AI 처리',
-    category: 'external',
-    icon: '🔍',
-    priority: 'low',
-    estimatedTime: 1500,
-    dependencies: ['api-server'],
-    checkFunction: async () => {
-      try {
-        const { response, networkInfo } = await fetchWithTracking(
-          '/api/gcp/health',
-          {
-            method: 'GET',
-            headers: {
-              'X-Skip-Validation': 'true', // 선택적 체크
-            },
-          }
-        );
-
-        recordNetworkRequest(networkInfo, response.ok, 'gcp-functions');
-
-        // GCP Functions는 선택적 서비스이므로 실패해도 전체 시스템에 영향 없음
-        if (!response.ok) {
-          console.warn('⚠️ GCP Functions 일시적 비활성화, 로컬 AI로 폴백');
-          return true; // Graceful degradation
-        }
-
-        return true;
-      } catch (error: unknown) {
-        if (isNetworkError(error)) {
-          recordNetworkRequest(error.networkInfo, false, 'gcp-functions');
-        }
-
-        console.warn('⚠️ GCP Functions 연결 실패, 로컬 처리 모드:', error);
-        return true; // 외부 서비스 실패 시에도 시스템은 동작
-      }
-    },
-  },
 ];

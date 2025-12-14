@@ -20,7 +20,6 @@
       "!**/package-lock.json",
       "!**/yarn.lock",
       "!**/pnpm-lock.yaml",
-      "!**/gcp-functions",
       "!**/google-cloud-sdk",
       "!**/scripts",
       "!**/config",

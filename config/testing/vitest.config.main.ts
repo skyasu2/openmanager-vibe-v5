@@ -30,7 +30,6 @@ export default defineConfig({
       'dist/**',
       '.next/**',
       'out/**',
-      'gcp-functions/**',
       'tests/archive/**', // ✅ 아카이브된 테스트 제외 (jsdom 한계로 개선 불가능)
       'tests/e2e/**/*.spec.ts', // ✅ E2E 테스트 제외 (Playwright 전용, Vitest에서 실행 금지) - 패턴 명확화
       '**/e2e/**', // ✅ 추가 안전장치: 어떤 경로의 e2e 디렉토리도 제외

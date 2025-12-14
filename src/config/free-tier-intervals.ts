@@ -64,9 +64,9 @@ export const FREE_TIER_LIMITS = {
   UPSTASH_COMMANDS_PER_MONTH: 500000, // 50만 명령/월
   UPSTASH_STORAGE_MB: 256, // 256MB
 
-  // GCP Functions
-  GCP_INVOCATIONS_PER_MONTH: 2000000, // 200만 호출/월
-  GCP_GB_SECONDS: 400000, // 400,000 GB-초
+  // Cloud Run (LangGraph AI)
+  CLOUD_RUN_INVOCATIONS_PER_MONTH: 2000000, // 200만 호출/월
+  CLOUD_RUN_GB_SECONDS: 400000, // 400,000 GB-초
 } as const;
 
 /**
@@ -93,8 +93,8 @@ export function calculateExpectedUsage() {
     redisCommandsPerMonth: Math.round(redisCommandsPerMonth),
 
     // 사용률 계산
-    gcpUsagePercent:
-      (actualApiCallsPerMonth / FREE_TIER_LIMITS.GCP_INVOCATIONS_PER_MONTH) *
+    cloudRunUsagePercent:
+      (actualApiCallsPerMonth / FREE_TIER_LIMITS.CLOUD_RUN_INVOCATIONS_PER_MONTH) *
       100,
     redisUsagePercent:
       (redisCommandsPerMonth / FREE_TIER_LIMITS.UPSTASH_COMMANDS_PER_MONTH) *
@@ -176,9 +176,9 @@ export function validateIntervals(): {
 
   // 예상 사용량 검증
   const usage = calculateExpectedUsage();
-  if (usage.gcpUsagePercent > 80) {
+  if (usage.cloudRunUsagePercent > 80) {
     warnings.push(
-      `GCP Functions 사용률이 ${Math.round(usage.gcpUsagePercent)}%로 높습니다`
+      `Cloud Run 사용률이 ${Math.round(usage.cloudRunUsagePercent)}%로 높습니다`
     );
   }
 
@@ -208,7 +208,7 @@ if (typeof window === 'undefined') {
   console.log(
     `  예상 월간 API 호출: ${usage.actualApiCallsPerMonth.toLocaleString()}회`
   );
-  console.log(`  GCP 사용률: ${usage.gcpUsagePercent.toFixed(1)}%`);
+  console.log(`  Cloud Run 사용률: ${usage.cloudRunUsagePercent.toFixed(1)}%`);
   console.log(`  Redis 사용률: ${usage.redisUsagePercent.toFixed(1)}%`);
   console.log('\n💰 절감 효과:');
   console.log(`  API 호출 감소: ${savings.apiCallSavingsPercent}%`);

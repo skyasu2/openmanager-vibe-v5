@@ -315,7 +315,7 @@ export interface RAGDocument {
 }
 
 /**
- * ML Provider 데이터 (GCP ML Analytics Engine)
+ * ML Provider 데이터 (LangGraph ML Analytics)
  */
 export interface MLData {
   /** 이상 탐지 결과 */
@@ -347,7 +347,7 @@ export interface MLData {
 }
 
 /**
- * Rule Provider 데이터 (GCP Enhanced Korean NLP)
+ * Rule Provider 데이터 (LangGraph Korean NLP)
  */
 export interface RuleData {
   /** 추출된 키워드 (명사, 동사, 형용사) */

@@ -10,10 +10,8 @@
 
 import crypto from 'node:crypto';
 import { type NextRequest, NextResponse } from 'next/server';
-import { FREE_TIER_CONFIG } from '@/config/free-tier-config';
 import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
-import { getGCPFunctionsClient } from '@/lib/gcp/gcp-functions-client';
 import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
@@ -617,62 +615,14 @@ export const POST = withAuth(async (request: NextRequest) => {
     // 📊 이전 학습 결과 조회 (정확도 개선 계산용)
     const previousStats = await getPreviousTrainingStats(supabase, type, 5);
 
-    // 🆕 GCP Cloud Functions 우선 시도 (무료 티어 200만 호출/월 활용)
-    let trainingResult: Partial<TrainingResult>;
-    let usedGCP = false;
+    // 로컬 ML 학습 실행
+    const trainingResult = performMLTraining(type, metrics);
 
-    if (FREE_TIER_CONFIG.gcpCloudFunctions.optimizations.enableMLTraining) {
-      try {
-        console.log(`🌐 GCP ML Trainer 호출 시도: type=${type}`);
-        const gcpClient = getGCPFunctionsClient();
-        const gcpResult = await gcpClient.callMLTrainer({
-          type,
-          metrics: metrics.map((m) => ({
-            cpu_usage: m.cpu_usage,
-            memory_usage: m.memory_usage,
-            disk_usage: m.disk_usage,
-            network_usage: m.network_usage,
-            timestamp: m.timestamp,
-            server_id: m.server_id,
-          })),
-          serverId,
-          timeRange,
-          config,
-        });
-
-        if (gcpResult.success) {
-          console.log('✅ GCP ML Trainer 성공');
-          trainingResult = {
-            patternsLearned: gcpResult.data.patternsLearned,
-            accuracyImprovement: gcpResult.data.accuracyImprovement,
-            confidence: gcpResult.data.confidence,
-            insights: gcpResult.data.insights,
-            nextRecommendation: gcpResult.data.nextRecommendation,
-            metadata: gcpResult.data.metadata,
-          };
-          usedGCP = true;
-        } else {
-          // success: false 인 경우에만 error 속성 존재
-          console.warn('⚠️ GCP ML Trainer 실패, 로컬 폴백:', gcpResult.error);
-          trainingResult = performMLTraining(type, metrics);
-        }
-      } catch (gcpError) {
-        console.error('❌ GCP ML Trainer 오류, 로컬 폴백:', gcpError);
-        trainingResult = performMLTraining(type, metrics);
-      }
-    } else {
-      // GCP 비활성화 시 로컬 학습
-      trainingResult = performMLTraining(type, metrics);
-    }
-
-    // 📈 실제 정확도 개선 계산 (GCP 결과가 있으면 사용, 없으면 로컬 계산)
-    const accuracyImprovement =
-      usedGCP && trainingResult.accuracyImprovement !== undefined
-        ? trainingResult.accuracyImprovement
-        : calculateAccuracyImprovement(
-            trainingResult.patternsLearned || 0,
-            previousStats
-          );
+    // 📈 실제 정확도 개선 계산
+    const accuracyImprovement = calculateAccuracyImprovement(
+      trainingResult.patternsLearned || 0,
+      previousStats
+    );
 
     // 결과 생성
     const normalizedMetadata: TrainingResult['metadata'] = {
@@ -724,7 +674,7 @@ export const POST = withAuth(async (request: NextRequest) => {
       success: true,
       result,
       cached: false,
-      source: usedGCP ? 'gcp-cloud-functions' : 'local',
+      source: 'local',
     });
   } catch (error) {
     console.error('ML 학습 실패:', error);
