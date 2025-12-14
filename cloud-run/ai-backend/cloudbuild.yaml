@@ -62,10 +62,6 @@ options:
   logging: CLOUD_LOGGING_ONLY
   machineType: 'E2_HIGHCPU_8'
 
-# Substitutions (can be overridden)
-substitutions:
-  _REGION: 'asia-northeast3'
-
 # Images to be stored
 images:
   - 'asia-northeast3-docker.pkg.dev/${PROJECT_ID}/openmanager/ai-backend:${SHORT_SHA}'

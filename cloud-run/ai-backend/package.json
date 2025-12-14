@@ -17,7 +17,7 @@
     "@langchain/google-genai": "^0.2.0",
     "@langchain/groq": "^0.2.0",
     "@langchain/langgraph": "^0.3.0",
-    "@langchain/langgraph-checkpoint-postgres": "^0.0.10",
+    "@langchain/langgraph-checkpoint-postgres": "^0.0.5",
     "@supabase/supabase-js": "^2.86.0",
     "hono": "^4.6.0",
     "pg": "^8.13.0",
