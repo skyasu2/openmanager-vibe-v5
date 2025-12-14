@@ -5,8 +5,24 @@
 
 **Universal AI Developer Partner (범용 AI 개발 파트너)**
 
-**프로젝트**: OpenManager VIBE v5.80.0
+**프로젝트**: OpenManager VIBE v5.82.0
 **스택**: Next.js 16, React 19, TypeScript 5.9 strict, Node.js 22.21.1
+
+---
+
+## 📦 버전 관리 (standard-version)
+
+```bash
+npm run release:patch         # 버그 수정 (fix:)
+npm run release:minor         # 새 기능 (feat:)
+npm run release:major         # 호환성 파괴 (BREAKING CHANGE:)
+git push --follow-tags        # 태그와 함께 푸시
+```
+
+**Conventional Commits 규칙**:
+- `fix:` → patch (5.82.0 → 5.82.1)
+- `feat:` → minor (5.82.0 → 5.83.0)
+- `BREAKING CHANGE:` 또는 `feat!:` → major (5.82.0 → 6.0.0)
 
 ---
 
