@@ -372,6 +372,14 @@ export async function* streamGraph(
 
 /**
  * Next.js API Route용 스트리밍 응답 생성
+ * AI SDK v5 Data Stream Protocol 형식 사용
+ *
+ * @see https://sdk.vercel.ai/docs/ai-sdk-ui/stream-protocol
+ * Protocol Format:
+ * - Text: `0:${JSON.stringify(text)}\n`
+ * - Data: `2:${JSON.stringify(data)}\n`
+ * - Error: `3:${JSON.stringify(error)}\n`
+ * - Finish: `d:{"finishReason":"stop"}\n`
  */
 export async function createStreamingResponse(
   query: string,
@@ -386,17 +394,26 @@ export async function createStreamingResponse(
 
         for await (const chunk of generator) {
           if (chunk.type === 'token') {
-            controller.enqueue(encoder.encode(chunk.content));
+            // AI SDK v5 Data Stream Protocol: text part
+            const dataStreamText = `0:${JSON.stringify(chunk.content)}\n`;
+            controller.enqueue(encoder.encode(dataStreamText));
           } else if (chunk.type === 'final') {
-            // 최종 응답은 이미 토큰으로 전송됨
-            console.log('📤 Stream completed');
+            // AI SDK v5 Data Stream Protocol: finish message
+            const finishMessage = `d:${JSON.stringify({ finishReason: 'stop' })}\n`;
+            controller.enqueue(encoder.encode(finishMessage));
+            console.log('📤 Stream completed (AI SDK v5 Data Stream Protocol)');
           }
         }
 
         controller.close();
       } catch (error) {
         console.error('❌ Streaming error:', error);
-        controller.error(error);
+        // AI SDK v5 Data Stream Protocol: error part
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        const errorStream = `3:${JSON.stringify(errorMessage)}\n`;
+        controller.enqueue(encoder.encode(errorStream));
+        controller.close();
       }
     },
   });
