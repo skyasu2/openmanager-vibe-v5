@@ -55,7 +55,7 @@ steps:
       - '--set-env-vars'
       - 'NODE_ENV=production'
       - '--set-secrets'
-      - 'GROQ_API_KEY=groq-api-key:latest,GOOGLE_AI_API_KEY=google-ai-api-key:latest,SUPABASE_URL=supabase-url:latest,SUPABASE_DIRECT_URL=supabase-direct-url:latest,SUPABASE_SERVICE_ROLE_KEY=supabase-service-role-key:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest'
+      - 'GROQ_API_KEY=groq-api-key:latest,GOOGLE_AI_API_KEY=google-ai-api-key:latest,GOOGLE_AI_API_KEY_2=google-ai-api-key-2:latest,SUPABASE_URL=supabase-url:latest,SUPABASE_DIRECT_URL=supabase-direct-url:latest,SUPABASE_SERVICE_ROLE_KEY=supabase-service-role-key:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest'
 
 # Build configuration
 options:

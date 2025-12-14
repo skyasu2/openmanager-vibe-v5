@@ -11,25 +11,19 @@
 
 import { AIMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import type { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { z } from 'zod';
 import type { AgentStateType, ToolResult } from '../state-definition.js';
+import { createRotatingGoogleModel } from '../utils/google-api-rotator.js';
 
 // ============================================================================
-// 1. Model Configuration
+// 1. Model Configuration (with API Key Rotation)
 // ============================================================================
 
 const ANALYST_MODEL = 'gemini-2.5-pro-preview-06-05';
 
 function getAnalystModel(): ChatGoogleGenerativeAI {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) {
-    throw new Error('GOOGLE_AI_API_KEY is not configured');
-  }
-
-  return new ChatGoogleGenerativeAI({
-    apiKey,
-    model: ANALYST_MODEL,
+  return createRotatingGoogleModel(ANALYST_MODEL, {
     temperature: 0.2, // 분석은 정확성 우선
     maxOutputTokens: 2048,
   });

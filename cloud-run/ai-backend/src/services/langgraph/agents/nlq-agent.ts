@@ -10,26 +10,20 @@
 
 import { AIMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import type { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { z } from 'zod';
 import { getSupabaseClient } from '../../supabase/client.js';
 import type { AgentStateType, ToolResult } from '../state-definition.js';
+import { createRotatingGoogleModel } from '../utils/google-api-rotator.js';
 
 // ============================================================================
-// 1. Model Configuration
+// 1. Model Configuration (with API Key Rotation)
 // ============================================================================
 
 const NLQ_MODEL = 'gemini-2.5-flash-preview-05-20';
 
 function getNLQModel(): ChatGoogleGenerativeAI {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) {
-    throw new Error('GOOGLE_AI_API_KEY is not configured');
-  }
-
-  return new ChatGoogleGenerativeAI({
-    apiKey,
-    model: NLQ_MODEL,
+  return createRotatingGoogleModel(NLQ_MODEL, {
     temperature: 0.3,
     maxOutputTokens: 1024,
   });
