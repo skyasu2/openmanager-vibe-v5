@@ -18,6 +18,8 @@
 
 | 작업 | 완료일 | 문서 |
 |------|--------|------|
+| LangGraph A2A 패턴 구현 | 2025-12-14 | Return-to-Supervisor + Command Pattern + HITL |
+| React 19/Next.js 16 업그레이드 | 2025-12-10 | [아카이브](archive/react-nextjs-upgrade-analysis-2025-12-completed.md) |
 | UI/UX Short-term Wins | 2025-12-13 | Sparklines + Bento Grid + AI Insight Badge |
 | Dashboard/Modal 리팩토링 | 2025-12-13 | usePerformanceGuard 제거, 타입 안전성 개선 |
 | 캐싱 전략 개선 | 2025-12-10 | SWR 전략 + TTL 계층화 |
@@ -34,4 +36,4 @@
 
 ---
 
-**최종 업데이트**: 2025-12-13
+**최종 업데이트**: 2025-12-14
