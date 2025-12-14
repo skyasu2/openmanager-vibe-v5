@@ -75,6 +75,11 @@ IMPORTANT: Output JSON only, no markdown code blocks.`;
 /**
  * Supervisor 노드 함수
  * StateGraph의 노드로 사용됨
+ *
+ * Supports:
+ * - Initial routing: 사용자 쿼리 기반 Agent 선택
+ * - Return-to-Supervisor: Agent가 다른 Agent로 위임 요청 시 재라우팅
+ * - Command Pattern: 특정 Agent로 직접 라우팅 (delegationRequest.toAgent)
  */
 export async function supervisorNode(
   state: AgentStateType
@@ -85,8 +90,56 @@ export async function supervisorNode(
     return {
       finalResponse: '처리 시간이 초과되었습니다. 다시 시도해주세요.',
       iteration: state.iteration + 1,
+      returnToSupervisor: false,
+      delegationRequest: null,
     };
   }
+
+  // =========================================================================
+  // Return-to-Supervisor 처리 (Agent 위임 요청)
+  // =========================================================================
+  if (state.returnToSupervisor && state.delegationRequest) {
+    const { fromAgent, toAgent, reason, context } = state.delegationRequest;
+
+    console.log(`🔄 [Supervisor] Delegation received from ${fromAgent}`);
+    console.log(`   Reason: ${reason}`);
+    console.log(`   Target: ${toAgent || 'auto-decide'}`);
+
+    // Command Pattern: 명시적 대상 Agent가 지정된 경우
+    if (toAgent) {
+      console.log(`📌 [Supervisor] Command Pattern → ${toAgent}`);
+      return {
+        targetAgent: toAgent,
+        taskType: mapAgentToTaskType(toAgent),
+        currentAgent: toAgent,
+        iteration: state.iteration + 1,
+        returnToSupervisor: false,
+        delegationRequest: null, // 처리 완료
+      };
+    }
+
+    // Auto-delegation: Supervisor가 적절한 Agent 결정
+    // context에서 힌트를 얻어 라우팅
+    const contextHint = context?.suggestedAgent as AgentType | undefined;
+    if (contextHint) {
+      console.log(`💡 [Supervisor] Context-based routing → ${contextHint}`);
+      return {
+        targetAgent: contextHint,
+        taskType: mapAgentToTaskType(contextHint),
+        currentAgent: contextHint,
+        iteration: state.iteration + 1,
+        returnToSupervisor: false,
+        delegationRequest: null,
+      };
+    }
+
+    // 기본: reason 기반으로 재분석 (아래 일반 라우팅 로직 사용)
+    console.log(`🔍 [Supervisor] Re-routing based on delegation reason...`);
+  }
+
+  // =========================================================================
+  // 일반 라우팅 (Initial or Re-routing)
+  // =========================================================================
 
   // 마지막 메시지에서 사용자 쿼리 추출
   const lastMessage = state.messages[state.messages.length - 1];
@@ -133,6 +186,8 @@ export async function supervisorNode(
         routerDecision,
         finalResponse: routerDecision.directReply,
         iteration: state.iteration + 1,
+        returnToSupervisor: false,
+        delegationRequest: null,
       };
     }
 
@@ -147,6 +202,8 @@ export async function supervisorNode(
         },
         taskType: 'parallel_analysis',
         iteration: state.iteration + 1,
+        returnToSupervisor: false,
+        delegationRequest: null,
       };
     }
 
@@ -155,7 +212,10 @@ export async function supervisorNode(
       targetAgent: routerDecision.targetAgent,
       routerDecision,
       taskType: mapAgentToTaskType(routerDecision.targetAgent),
+      currentAgent: routerDecision.targetAgent,
       iteration: state.iteration + 1,
+      returnToSupervisor: false,
+      delegationRequest: null,
     };
   } catch (error) {
     console.error('❌ Supervisor Error:', error);
@@ -169,7 +229,10 @@ export async function supervisorNode(
         reasoning: 'Supervisor Error - Fallback to NLQ',
       },
       taskType: 'monitoring',
+      currentAgent: 'nlq',
       iteration: state.iteration + 1,
+      returnToSupervisor: false,
+      delegationRequest: null,
     };
   }
 }

@@ -4,9 +4,14 @@
  *
  * 역할:
  * - 장애 원인 분석 (RCA)
- * - 지식베이스(RAG) 검색 via Supabase pgvector
+ * - 지식베이스(RAG) 검색 via Supabase pgvector (코사인 유사도)
  * - 인시던트 리포트 생성
  * - 복구 방안 제안
+ *
+ * RAG 구현 (v2.0):
+ * - Gemini text-embedding-004 모델로 쿼리 임베딩 생성
+ * - Supabase pgvector의 코사인 유사도 검색 (search_similar_vectors RPC)
+ * - Relevance Grading: 유사도 0.5 미만 결과 필터링
  */
 
 import { AIMessage } from '@langchain/core/messages';
@@ -19,6 +24,82 @@ import type {
   PendingAction,
   ToolResult,
 } from '../state-definition.js';
+
+// ============================================================================
+// 0. Embedding Configuration (Gemini text-embedding-004)
+// ============================================================================
+
+const EMBEDDING_MODEL = 'text-embedding-004';
+const EMBEDDING_DIMENSION = 768; // text-embedding-004 output dimension
+
+interface EmbeddingResponse {
+  embedding: { values: number[] };
+}
+
+/**
+ * Gemini Embedding API를 사용하여 텍스트 임베딩 생성
+ * @param text 임베딩할 텍스트
+ * @returns 768차원 임베딩 벡터
+ */
+async function generateQueryEmbedding(text: string): Promise<number[]> {
+  const apiKeys = getGoogleApiKeys();
+  if (apiKeys.length === 0) {
+    console.warn('⚠️ No Google API keys available for embedding');
+    return [];
+  }
+
+  // Round-robin API key selection
+  const keyIndex = Math.floor(Math.random() * apiKeys.length);
+  const apiKey = apiKeys[keyIndex];
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${EMBEDDING_MODEL}:embedContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: `models/${EMBEDDING_MODEL}`,
+          content: { parts: [{ text }] },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Embedding API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = (await response.json()) as EmbeddingResponse;
+    const embedding = data.embedding?.values;
+
+    if (!embedding || embedding.length !== EMBEDDING_DIMENSION) {
+      throw new Error(`Invalid embedding dimension: ${embedding?.length}`);
+    }
+
+    return embedding;
+  } catch (error) {
+    console.error('❌ Embedding generation failed:', error);
+    return [];
+  }
+}
+
+/**
+ * 환경변수에서 Google API 키 배열 가져오기
+ */
+function getGoogleApiKeys(): string[] {
+  const keys: string[] = [];
+  const primaryKey = process.env.GOOGLE_AI_API_KEY?.trim();
+  if (primaryKey) keys.push(primaryKey);
+
+  // 추가 키 (GOOGLE_AI_API_KEY_2, _3, etc.)
+  for (let i = 2; i <= 5; i++) {
+    const key = process.env[`GOOGLE_AI_API_KEY_${i}`]?.trim();
+    if (key) keys.push(key);
+  }
+
+  return keys;
+}
 
 // ============================================================================
 // 1. Model Configuration
@@ -44,39 +125,85 @@ function getReporterModel(): ChatGroq {
 // 2. Tools Definition
 // ============================================================================
 
+// RAG 검색 결과 인터페이스
+interface RAGSearchResult {
+  id: string;
+  content: string;
+  metadata: Record<string, unknown> | null;
+  similarity: number;
+}
+
+// Relevance Grading 설정
+const RELEVANCE_THRESHOLD = 0.5; // 유사도 0.5 미만은 관련 없음으로 판단
+const MAX_RESULTS = 5;
+
 const searchKnowledgeBaseTool = tool(
   async ({ query }) => {
+    const startTime = Date.now();
+
     try {
       const supabase = getSupabaseClient();
 
-      // Supabase pgvector를 통한 semantic search 시도
-      // 먼저 간단한 텍스트 검색으로 폴백
-      const { data: results, error } = await supabase
-        .from('knowledge_base')
-        .select('*')
-        .textSearch('content', query, {
-          type: 'websearch',
-          config: 'korean',
-        })
-        .limit(5);
+      // 1. 쿼리 임베딩 생성 (Gemini text-embedding-004)
+      const queryEmbedding = await generateQueryEmbedding(query);
+
+      if (queryEmbedding.length === 0) {
+        console.warn('⚠️ Failed to generate embedding, using fallback');
+        return getMockKnowledgeBase(query);
+      }
+
+      // 2. Supabase pgvector 코사인 유사도 검색 (RPC 호출)
+      const { data: results, error } = await supabase.rpc(
+        'search_similar_vectors',
+        {
+          query_embedding: queryEmbedding,
+          similarity_threshold: RELEVANCE_THRESHOLD,
+          max_results: MAX_RESULTS,
+        }
+      );
 
       if (error) {
-        console.warn('⚠️ Knowledge base search failed:', error);
+        console.warn('⚠️ pgvector search failed:', error.message);
         return getMockKnowledgeBase(query);
       }
 
-      if (!results || results.length === 0) {
+      const typedResults = results as RAGSearchResult[] | null;
+
+      if (!typedResults || typedResults.length === 0) {
+        console.log('📭 No similar vectors found, using fallback');
         return getMockKnowledgeBase(query);
       }
+
+      // 3. Relevance Grading - 유사도 기반 필터링 및 정렬
+      const gradedResults = typedResults
+        .filter((r) => r.similarity >= RELEVANCE_THRESHOLD)
+        .sort((a, b) => b.similarity - a.similarity)
+        .map((r) => ({
+          content: r.content,
+          similarity: Math.round(r.similarity * 100) / 100, // 소수점 2자리
+          metadata: r.metadata,
+          relevanceGrade:
+            r.similarity >= 0.8
+              ? 'high'
+              : r.similarity >= 0.6
+                ? 'medium'
+                : 'low',
+        }));
+
+      const processingTime = Date.now() - startTime;
+
+      console.log(
+        `🔍 [RAG] Found ${gradedResults.length} relevant results (${processingTime}ms)`
+      );
 
       return {
         success: true,
-        results: results.map((r) => ({
-          content: r.content,
-          similarity: 0.85,
-        })),
-        totalFound: results.length,
-        _source: 'Supabase pgvector',
+        results: gradedResults,
+        totalFound: gradedResults.length,
+        processingTime: `${processingTime}ms`,
+        _source: 'Supabase pgvector (cosine similarity)',
+        _model: EMBEDDING_MODEL,
+        _threshold: RELEVANCE_THRESHOLD,
       };
     } catch (error) {
       console.warn('⚠️ RAG search failed, using mock data:', error);
@@ -85,7 +212,8 @@ const searchKnowledgeBaseTool = tool(
   },
   {
     name: 'searchKnowledgeBase',
-    description: '과거 장애 이력 및 해결 방법을 검색합니다 (RAG)',
+    description:
+      '과거 장애 이력 및 해결 방법을 검색합니다 (RAG - 코사인 유사도)',
     schema: z.object({
       query: z.string().describe('검색 쿼리'),
     }),

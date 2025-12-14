@@ -25,9 +25,19 @@ The AI Engine for OpenManager Vibe is a **Hybrid Multi-Agent System** built on *
 ### Key Features
 
 - **Parallel Analysis**: Analyst + NLQ agents run concurrently for comprehensive reports
-- **Human-in-the-Loop**: Critical actions (incident reports) require approval via `interruptBefore`
+- **Human-in-the-Loop (HITL)**: Critical actions require approval via LangGraph `interruptBefore`
+- **Return-to-Supervisor**: Agents can route back to supervisor for re-evaluation
+- **A2A Delegation**: Inter-agent task delegation via Command pattern
 - **Circuit Breaker**: Model health monitoring with automatic failover
 - **Session Persistence**: Supabase PostgresCheckpointer for conversation continuity
+
+### Agent Communication Patterns
+
+| Pattern | Description | Use Case |
+|---------|-------------|----------|
+| **Return-to-Supervisor** | Agent sets `returnToSupervisor=true` | Need different agent's expertise |
+| **Command Pattern** | Explicit `toAgent` in DelegationRequest | Direct delegation to specific agent |
+| **HITL Interrupt** | `requiresApproval=true` triggers interrupt | Critical incident reports |
 
 ## Architecture Diagram
 
@@ -136,18 +146,24 @@ cloud-run/ai-backend/
 │   ├── index.ts                    # Hono server entry
 │   ├── routes/
 │   │   ├── health.ts               # Health check endpoints
-│   │   └── unified-stream.ts       # AI route handler
+│   │   ├── unified-stream.ts       # AI route handler
+│   │   └── approval.ts             # HITL approval endpoints
 │   └── services/langgraph/
-│       ├── graph-builder.ts        # StateGraph assembly
-│       ├── state-definition.ts     # AgentState annotation
-│       ├── checkpointer.ts         # Supabase persistence
+│       ├── graph-builder.ts        # StateGraph assembly + HITL
+│       ├── state-definition.ts     # AgentState + DelegationRequest
+│       ├── checkpointer.ts         # Supabase PostgresSaver
 │       └── agents/
-│           ├── supervisor.ts       # Routing agent
+│           ├── supervisor.ts       # Routing + delegation handling
 │           ├── nlq-agent.ts        # Metrics queries
-│           ├── analyst-agent.ts    # Pattern analysis
-│           └── reporter-agent.ts   # Incident reports
+│           ├── analyst-agent.ts    # Pattern analysis + anomaly
+│           └── reporter-agent.ts   # Incident reports + HITL trigger
 
-# Vercel Proxy
+# Next.js API Proxy
+src/app/api/ai/
+├── unified-stream/route.ts         # Main AI proxy
+└── approval/route.ts               # HITL approval proxy
+
+# Vercel Proxy Utilities
 src/lib/cloud-run/
 └── proxy.ts                        # Cloud Run proxy utilities
 

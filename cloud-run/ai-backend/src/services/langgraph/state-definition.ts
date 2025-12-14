@@ -33,6 +33,27 @@ export interface PendingAction {
 }
 
 // ============================================================================
+// 2.5. Agent-to-Agent (A2A) Delegation Types
+// ============================================================================
+
+/**
+ * Return-to-Supervisor & Command Pattern 지원
+ * Agent가 Supervisor에게 다른 Agent로 위임을 요청할 수 있음
+ */
+export interface DelegationRequest {
+  /** 위임을 요청한 Agent */
+  fromAgent: AgentType;
+  /** 위임 대상 Agent (null이면 Supervisor가 결정) */
+  toAgent: AgentType | null;
+  /** 위임 사유 */
+  reason: string;
+  /** 추가 컨텍스트 (이전 분석 결과 등) */
+  context: Record<string, unknown>;
+  /** 요청 시간 */
+  requestedAt: string;
+}
+
+// ============================================================================
 // 3. Circuit Breaker State
 // ============================================================================
 
@@ -142,6 +163,24 @@ export const AgentState = Annotation.Root({
   }),
 
   pendingAction: Annotation<PendingAction | null>({
+    reducer: (_, next) => next,
+    default: () => null,
+  }),
+
+  // A2A Delegation (Return-to-Supervisor & Command Pattern)
+  delegationRequest: Annotation<DelegationRequest | null>({
+    reducer: (_, next) => next,
+    default: () => null,
+  }),
+
+  /** Supervisor 복귀 요청 플래그 */
+  returnToSupervisor: Annotation<boolean>({
+    reducer: (_, next) => next,
+    default: () => false,
+  }),
+
+  /** 현재 처리 중인 Agent (Supervisor 판단용) */
+  currentAgent: Annotation<AgentType>({
     reducer: (_, next) => next,
     default: () => null,
   }),

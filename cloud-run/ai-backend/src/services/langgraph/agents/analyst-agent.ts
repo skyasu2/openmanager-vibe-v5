@@ -13,7 +13,11 @@ import { AIMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
 import type { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { z } from 'zod';
-import type { AgentStateType, ToolResult } from '../state-definition.js';
+import type {
+  AgentStateType,
+  DelegationRequest,
+  ToolResult,
+} from '../state-definition.js';
 import { createRotatingGoogleModel } from '../utils/google-api-rotator.js';
 
 // ============================================================================
@@ -598,7 +602,54 @@ export async function analystAgentNode(
       executedAt: new Date().toISOString(),
     });
 
-    // 3. 분석 프롬프트 구성
+    // 3. Critical Anomaly Detection → Delegate to Reporter
+    const hasCriticalAnomaly = checkForCriticalAnomaly(anomalyResult);
+
+    if (hasCriticalAnomaly) {
+      console.log(
+        `🚨 [Analyst Agent] Critical anomaly detected! Delegating to Reporter...`
+      );
+
+      // 임시 분석 결과 생성 (Reporter에게 전달할 컨텍스트)
+      const preliminaryAnalysis = `## ⚠️ Critical Anomaly Detected
+
+### 이상 탐지 결과
+${JSON.stringify(anomalyResult, null, 2)}
+
+### 트렌드 예측 (참고)
+${trendResult ? JSON.stringify(trendResult, null, 2) : '분석 안 함'}
+
+### 패턴 분석
+${JSON.stringify(patternResult, null, 2)}
+
+---
+**권장 조치**: 인시던트 리포트 생성 및 RAG 기반 솔루션 검색 필요`;
+
+      // Command Pattern: Reporter로 명시적 위임
+      const delegation: DelegationRequest = {
+        fromAgent: 'analyst',
+        toAgent: 'reporter', // Command Pattern: 명시적 대상 지정
+        reason:
+          'Critical anomaly detected - needs incident report and RAG-based solution',
+        context: {
+          anomalyResult,
+          trendResult,
+          patternResult,
+          preliminaryAnalysis,
+          suggestedAction: 'incident_report',
+        },
+        requestedAt: new Date().toISOString(),
+      };
+
+      return {
+        messages: [new AIMessage(preliminaryAnalysis)],
+        toolResults,
+        returnToSupervisor: true,
+        delegationRequest: delegation,
+      };
+    }
+
+    // 4. 분석 프롬프트 구성 (일반 케이스)
     const analysisPrompt = buildAnalysisPrompt(
       userQuery,
       intent,
@@ -607,7 +658,7 @@ export async function analystAgentNode(
       trendResult
     );
 
-    // 4. AI 모델로 최종 분석
+    // 5. AI 모델로 최종 분석
     const response = await model.invoke([
       { role: 'user', content: analysisPrompt },
     ]);
@@ -625,6 +676,8 @@ export async function analystAgentNode(
       messages: [new AIMessage(finalContent)],
       toolResults,
       finalResponse: finalContent,
+      returnToSupervisor: false,
+      delegationRequest: null,
     };
   } catch (error) {
     console.error('❌ Analyst Agent Error:', error);
@@ -639,8 +692,60 @@ export async function analystAgentNode(
           executedAt: new Date().toISOString(),
         },
       ],
+      returnToSupervisor: false,
+      delegationRequest: null,
     };
   }
+}
+
+// 이상 탐지 결과 타입 정의
+interface AnomalyToolResult {
+  success: boolean;
+  error?: string;
+  serverId?: string;
+  serverName?: string;
+  anomalyCount?: number;
+  hasAnomalies?: boolean;
+  results?: Record<
+    string,
+    {
+      isAnomaly: boolean;
+      severity: string;
+      confidence: number;
+      currentValue: number;
+      threshold: { upper: number; lower: number };
+    }
+  >;
+  timestamp?: string;
+  _algorithm?: string;
+}
+
+/**
+ * Critical Anomaly 여부 확인
+ * severity가 'critical' 또는 'high'이면서 confidence가 높은 경우 true
+ */
+function checkForCriticalAnomaly(
+  anomalyResult: AnomalyToolResult | null
+): boolean {
+  if (!anomalyResult || !anomalyResult.success) {
+    return false;
+  }
+
+  const results = anomalyResult.results;
+  if (!results) return false;
+
+  for (const [, metricResult] of Object.entries(results)) {
+    if (
+      metricResult.isAnomaly &&
+      (metricResult.severity === 'critical' ||
+        metricResult.severity === 'high') &&
+      metricResult.confidence >= 0.7
+    ) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**

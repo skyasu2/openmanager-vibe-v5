@@ -70,9 +70,37 @@ async function approvalNode(
  */
 function routeFromReporter(
   state: AgentStateType
-): typeof APPROVAL_NODE | typeof END {
+): typeof APPROVAL_NODE | typeof SUPERVISOR_NODE | typeof END {
+  // Return-to-Supervisor 요청 처리
+  if (state.returnToSupervisor && state.delegationRequest) {
+    console.log(
+      `🔄 [Router] Reporter returning to Supervisor: ${state.delegationRequest.reason}`
+    );
+    return SUPERVISOR_NODE;
+  }
   if (state.requiresApproval) {
     return APPROVAL_NODE;
+  }
+  return END;
+}
+
+// ============================================================================
+// Return-to-Supervisor Routing (A2A Pattern)
+// ============================================================================
+
+/**
+ * Worker Agent 공통 라우팅 함수 (Return-to-Supervisor 지원)
+ * - returnToSupervisor = true → SUPERVISOR_NODE로 복귀
+ * - 그 외 → END
+ */
+function routeFromWorker(
+  state: AgentStateType
+): typeof SUPERVISOR_NODE | typeof END {
+  if (state.returnToSupervisor && state.delegationRequest) {
+    const fromAgent = state.delegationRequest.fromAgent || 'unknown';
+    const reason = state.delegationRequest.reason || 'delegation requested';
+    console.log(`🔄 [A2A] ${fromAgent} → Supervisor: ${reason}`);
+    return SUPERVISOR_NODE;
   }
   return END;
 }
@@ -171,13 +199,20 @@ export async function createMultiAgentGraph() {
       __end__: END,
     })
 
-    // Worker → END (NLQ, Analyst, Parallel Analysis는 직접 종료)
-    .addEdge(NLQ_NODE, END)
-    .addEdge(ANALYST_NODE, END)
-    .addEdge(PARALLEL_ANALYSIS_NODE, END)
+    // Worker → Supervisor 또는 END (Return-to-Supervisor 패턴)
+    .addConditionalEdges(NLQ_NODE, routeFromWorker, {
+      [SUPERVISOR_NODE]: SUPERVISOR_NODE,
+      __end__: END,
+    })
+    .addConditionalEdges(ANALYST_NODE, routeFromWorker, {
+      [SUPERVISOR_NODE]: SUPERVISOR_NODE,
+      __end__: END,
+    })
+    .addEdge(PARALLEL_ANALYSIS_NODE, END) // 병렬 분석은 직접 종료
 
-    // Reporter → Approval 조건부 분기 (Human-in-the-Loop)
+    // Reporter → Supervisor, Approval, 또는 END (A2A + HITL)
     .addConditionalEdges(REPORTER_NODE, routeFromReporter, {
+      [SUPERVISOR_NODE]: SUPERVISOR_NODE,
       [APPROVAL_NODE]: APPROVAL_NODE,
       __end__: END,
     })

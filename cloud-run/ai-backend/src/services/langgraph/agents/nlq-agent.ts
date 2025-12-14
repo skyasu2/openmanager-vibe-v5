@@ -281,6 +281,8 @@ export async function nlqAgentNode(
       messages: [new AIMessage(finalContent)],
       toolResults,
       finalResponse: finalContent,
+      returnToSupervisor: false,
+      delegationRequest: null,
     };
   } catch (error) {
     console.error('❌ NLQ Agent Error:', error);
@@ -295,6 +297,8 @@ export async function nlqAgentNode(
           executedAt: new Date().toISOString(),
         },
       ],
+      returnToSupervisor: false,
+      delegationRequest: null,
     };
   }
 }
