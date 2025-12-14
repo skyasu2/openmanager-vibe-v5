@@ -50,7 +50,7 @@ steps:
       - '--max-instances=2'
       - '--timeout=60s'
       - '--set-secrets=SUPABASE_URL=supabase-url:latest'
-      - '--set-secrets=SUPABASE_SERVICE_ROLE_KEY=supabase-service-key:latest'
+      - '--set-secrets=SUPABASE_SERVICE_ROLE_KEY=supabase-service-role-key:latest'
     waitFor: ['push-image']
 
 # Build timeout
@@ -61,6 +61,4 @@ images:
   - 'gcr.io/$PROJECT_ID/supabase-mcp:$SHORT_SHA'
   - 'gcr.io/$PROJECT_ID/supabase-mcp:latest'
 
-# Substitutions (can be overridden)
-substitutions:
-  _REGION: 'asia-northeast3'
+# Note: Region is hardcoded to asia-northeast3 in deploy step
