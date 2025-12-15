@@ -536,6 +536,9 @@ export async function createStreamingResponse(
           error instanceof Error ? error.message : 'Unknown error';
         const errorStream = `3:${JSON.stringify(errorMessage)}\n`;
         controller.enqueue(encoder.encode(errorStream));
+        // AI SDK v5 Data Stream Protocol: finish message (error case)
+        const finishMessage = `d:${JSON.stringify({ finishReason: 'error' })}\n`;
+        controller.enqueue(encoder.encode(finishMessage));
         controller.close();
       }
     },
