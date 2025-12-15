@@ -220,9 +220,10 @@ export const POST = withAuth(async (req: NextRequest) => {
 
         return new Response(stream, {
           headers: {
-            'Content-Type': 'text/plain; charset=utf-8',
-            'Cache-Control': 'no-cache',
+            'Content-Type': 'text/event-stream; charset=utf-8',
+            'Cache-Control': 'no-cache, no-transform',
             Connection: 'keep-alive',
+            'X-Vercel-AI-Data-Stream': 'v1',
             'X-Session-Id': sessionId,
             'X-Backend': 'vercel-supervisor',
           },
