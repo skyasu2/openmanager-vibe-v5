@@ -14,14 +14,26 @@ let pool: Pool | null = null;
 let checkpointer: PostgresSaver | null = null;
 
 /**
- * Supabase PostgreSQL 연결 풀 생성
+ * 직접 연결 URL 조회
+ * 우선순위: SUPABASE_DIRECT_URL > POSTGRES_URL_NON_POOLING
+ */
+function getDirectConnectionUrl(): string | undefined {
+  return (
+    process.env.SUPABASE_DIRECT_URL || process.env.POSTGRES_URL_NON_POOLING
+  );
+}
+
+/**
+ * Supabase/Vercel PostgreSQL 연결 풀 생성
  * Direct connection (not pooler) for LangGraph compatibility
  */
 function createPool(): Pool {
-  const connectionString = process.env.SUPABASE_DIRECT_URL;
+  const connectionString = getDirectConnectionUrl();
 
   if (!connectionString) {
-    throw new DatabaseConfigError('SUPABASE_DIRECT_URL');
+    throw new DatabaseConfigError(
+      'SUPABASE_DIRECT_URL or POSTGRES_URL_NON_POOLING'
+    );
   }
 
   return new Pool({
@@ -46,18 +58,23 @@ export async function getCheckpointer(): Promise<PostgresSaver> {
     return checkpointer;
   }
 
+  const connectionString = getDirectConnectionUrl();
+  if (!connectionString) {
+    throw new DatabaseConfigError(
+      'SUPABASE_DIRECT_URL or POSTGRES_URL_NON_POOLING'
+    );
+  }
+
   try {
     pool = createPool();
 
     // PostgresSaver 생성
-    checkpointer = PostgresSaver.fromConnString(
-      process.env.SUPABASE_DIRECT_URL!
-    );
+    checkpointer = PostgresSaver.fromConnString(connectionString);
 
     // 테이블 자동 생성 (이미 있으면 무시)
     await checkpointer.setup();
 
-    console.log('✅ LangGraph Checkpointer initialized with Supabase');
+    console.log('✅ LangGraph Checkpointer initialized with PostgreSQL');
     return checkpointer;
   } catch (error) {
     console.error(
@@ -144,20 +161,28 @@ export function getMemoryCheckpointer(): MemorySaver {
 
 /**
  * 환경에 따른 체크포인터 자동 선택
+ * 우선순위: PostgresSaver (Production with DB URL) > MemorySaver (Fallback)
  */
 export async function getAutoCheckpointer(): Promise<
   PostgresSaver | MemorySaver
 > {
-  // Production: PostgresSaver with Supabase
-  if (
-    process.env.NODE_ENV === 'production' &&
-    process.env.SUPABASE_DIRECT_URL
-  ) {
-    return getCheckpointer();
+  const directUrl = getDirectConnectionUrl();
+
+  // Production: PostgresSaver with PostgreSQL (Supabase/Vercel)
+  if (process.env.NODE_ENV === 'production' && directUrl) {
+    try {
+      return await getCheckpointer();
+    } catch (error) {
+      console.warn(
+        '⚠️ PostgresSaver failed in production, falling back to MemorySaver:',
+        error
+      );
+      return getMemoryCheckpointer();
+    }
   }
 
-  // Development with Supabase configured
-  if (process.env.SUPABASE_DIRECT_URL) {
+  // Development with PostgreSQL configured
+  if (directUrl) {
     try {
       return await getCheckpointer();
     } catch (error) {
