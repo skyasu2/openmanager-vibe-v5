@@ -169,3 +169,7 @@ pm2.config.js
 # 🔧 WSL 포트 관리 유틸리티 (Node.js 전용)
 utils/dynamic-port.ts
 utils/dynamic-port.js
+
+# WSL Virtual Environments
+.venv-wsl/
+.venv/

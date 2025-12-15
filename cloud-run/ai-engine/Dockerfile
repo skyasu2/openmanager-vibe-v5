@@ -3,11 +3,11 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-
-# Install dependencies
+# Install dependencies (include devDependencies for tsx)
 COPY package*.json ./
 RUN npm install
+
+ENV NODE_ENV=production
 
 # Copy source files
 COPY . .
