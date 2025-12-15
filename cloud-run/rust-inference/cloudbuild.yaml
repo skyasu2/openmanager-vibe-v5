@@ -42,7 +42,7 @@ steps:
       - '--image=gcr.io/$PROJECT_ID/rust-inference:$SHORT_SHA'
       - '--region=asia-northeast3'
       - '--platform=managed'
-      - '--no-allow-unauthenticated'     # 🔒 IAM 인증 필수
+      - '--allow-unauthenticated'         # 🌐 Public (내부 ML 전용, 민감 데이터 없음)
       - '--memory=256Mi'                 # Rust는 메모리 적게 사용
       - '--cpu=1'
       - '--min-instances=0'              # 💰 Scale to Zero

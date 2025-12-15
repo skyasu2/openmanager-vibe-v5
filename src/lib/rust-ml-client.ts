@@ -91,40 +91,7 @@ const CIRCUIT_BREAKER_THRESHOLD = 3;
 const CIRCUIT_BREAKER_RESET_MS = 30000; // 30초
 
 // ============================================================================
-// 3. GCP Identity Token (Cloud Run IAM)
-// ============================================================================
-
-/**
- * GCP Identity Token 획득
- * Vercel Edge에서는 서비스 계정 인증 사용
- */
-async function getGCPIdentityToken(): Promise<string | null> {
-  // 환경변수로 토큰 제공 (Vercel에서 설정)
-  if (process.env.RUST_ML_AUTH_TOKEN) {
-    return process.env.RUST_ML_AUTH_TOKEN;
-  }
-
-  // GCP Metadata 서버에서 토큰 획득 (Cloud Run 내부에서만 작동)
-  try {
-    const metadataUrl = `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${RUST_ML_CONFIG.baseUrl}`;
-    const response = await fetch(metadataUrl, {
-      headers: { 'Metadata-Flavor': 'Google' },
-    });
-
-    if (response.ok) {
-      return await response.text();
-    }
-  } catch {
-    // Metadata server not available (not running on GCP)
-  }
-
-  // 로컬 개발환경에서는 gcloud CLI 토큰 사용
-  // Vercel 배포에서는 RUST_ML_AUTH_TOKEN 환경변수 필요
-  return null;
-}
-
-// ============================================================================
-// 4. Circuit Breaker Logic
+// 3. Circuit Breaker Logic
 // ============================================================================
 
 function checkCircuitBreaker(): boolean {
@@ -169,7 +136,7 @@ function recordSuccess(): void {
 }
 
 // ============================================================================
-// 5. HTTP Client with Retry
+// 4. HTTP Client with Retry
 // ============================================================================
 
 async function fetchWithRetry<T>(
@@ -182,14 +149,9 @@ async function fetchWithRetry<T>(
     return null;
   }
 
-  const token = await getGCPIdentityToken();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
 
   for (let attempt = 0; attempt <= RUST_ML_CONFIG.retries; attempt++) {
     try {
@@ -238,7 +200,7 @@ async function fetchWithRetry<T>(
 }
 
 // ============================================================================
-// 6. Public API
+// 5. Public API
 // ============================================================================
 
 /**
@@ -273,18 +235,10 @@ export async function predictTrendRust(
  */
 export async function checkRustMLHealth(): Promise<boolean> {
   try {
-    const token = await getGCPIdentityToken();
-    const headers: HeadersInit = {};
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000);
 
     const response = await fetch(`${RUST_ML_CONFIG.baseUrl}/health`, {
-      headers,
       signal: controller.signal,
     });
 
