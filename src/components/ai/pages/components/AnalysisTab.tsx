@@ -48,14 +48,14 @@ export default function AnalysisTab({
       <div className="mb-6">
         <button
           onClick={() =>
-            onStartAnalysis({ 
+            onStartAnalysis({
               serverId: 'default',
               analysisDepth: 'standard',
               includeSteps: {
                 anomalyDetection: true,
                 rootCauseAnalysis: true,
-                predictiveMonitoring: true
-              }
+                predictiveMonitoring: true,
+              },
             })
           }
           disabled={isAnalyzing}
