@@ -1,10 +1,11 @@
 /**
  * LangGraph Checkpointer with Supabase PostgreSQL
  */
+
+import { MemorySaver } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { Pool } from 'pg';
 import { DatabaseConfigError, getErrorMessage } from './errors';
-import { MemorySaver } from '@langchain/langgraph';
 
 // ============================================================================
 // 1. Database Connection

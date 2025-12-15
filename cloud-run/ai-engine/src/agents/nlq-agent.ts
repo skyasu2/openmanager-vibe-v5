@@ -6,10 +6,10 @@
 import { AIMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
-import { loadHourlyScenarioData } from '../services/scenario/scenario-loader';
 import { AgentExecutionError, getErrorMessage } from '../lib/errors';
 import { getNLQModel } from '../lib/model-config';
 import type { AgentStateType, ToolResult } from '../lib/state-definition';
+import { loadHourlyScenarioData } from '../services/scenario/scenario-loader';
 import {
   EnhancedServerMetrics,
   getServerMetrics,

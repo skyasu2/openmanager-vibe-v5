@@ -14,11 +14,14 @@ import {
   getTrendPredictor,
   type TrendDataPoint,
 } from '../lib/ai/monitoring/TrendPredictor';
-import { detectAnomaliesRust, predictTrendRust } from '../lib/rust-ml-client';
-import { loadHourlyScenarioData, loadHistoricalContext } from '../services/scenario/scenario-loader';
 import { AgentExecutionError, getErrorMessage } from '../lib/errors';
 import { getAnalystModel } from '../lib/model-config';
+import { detectAnomaliesRust, predictTrendRust } from '../lib/rust-ml-client';
 import type { AgentStateType, ToolResult } from '../lib/state-definition';
+import {
+  loadHistoricalContext,
+  loadHourlyScenarioData,
+} from '../services/scenario/scenario-loader';
 
 // ============================================================================
 // 2. Utility Functions
@@ -85,7 +88,7 @@ export const detectAnomaliesTool = tool(
       }
     > = {};
 
-    let usedEngine: 'rust' | 'typescript' = 'typescript';
+    const usedEngine: 'rust' | 'typescript' = 'typescript';
 
     // Load actual scenario history for consistency
     // We load past 24 hours (24 points at 1h interval for broad trend, or simpler 24 points?)
@@ -95,30 +98,30 @@ export const detectAnomaliesTool = tool(
     // If we want 24 points at 5 min intervals, we need finer/more frequent sampling or just load 2 hours and extract.
     // The implementation of loadHistoricalContext calculates "Now - i hours" which gives 1 point per hour.
     // To match "5 min interval" history, we need a loop of minutes?
-    // Let's stick to "24 Hours History" (1 point per hour) for robust daily trend? 
+    // Let's stick to "24 Hours History" (1 point per hour) for robust daily trend?
     // Or did the user want visual consistency?
     // Dashboard usually shows "Last Hour" or "Last 24 Hours".
     // Let's settle on: AI analyzes "Last 24 Hours" using 1-hour interval points.
-    
+
     // Use static import
     const historyPoints = await loadHistoricalContext(server.id || '', 24);
-    
+
     for (const metric of targetMetrics) {
       const currentValue = server[metric as keyof typeof server] as number;
-      
+
       // Map history to MetricDataPoint
-      const history: MetricDataPoint[] = historyPoints.map(h => ({
+      const history: MetricDataPoint[] = historyPoints.map((h) => ({
         timestamp: h.timestamp,
-        value: h[metric] || 0
+        value: h[metric] || 0,
       }));
 
       // Fallback if history load failed
       if (history.length < 5) {
-          // generate fallback
-          const now = Date.now();
-          for(let i=0; i<24; i++) {
-              history.push({ timestamp: now - i*3600000, value: currentValue });
-          }
+        // generate fallback
+        const now = Date.now();
+        for (let i = 0; i < 24; i++) {
+          history.push({ timestamp: now - i * 3600000, value: currentValue });
+        }
       }
 
       // TypeScript implementation primarily for migration stability
@@ -200,24 +203,24 @@ export const predictTrendsTool = tool(
       }
     > = {};
 
-    let usedEngine: 'rust' | 'typescript' = 'typescript';
+    const usedEngine: 'rust' | 'typescript' = 'typescript';
 
     // Use static import
     const historyPoints = await loadHistoricalContext(server.id || '', 24);
 
     for (const metric of targetMetrics) {
       const currentValue = server[metric as keyof typeof server] as number;
-      
-      const history: MetricDataPoint[] = historyPoints.map(h => ({
+
+      const history: MetricDataPoint[] = historyPoints.map((h) => ({
         timestamp: h.timestamp,
-        value: h[metric] || 0
+        value: h[metric] || 0,
       }));
 
-       // Fallback if history load failed
-       if (history.length < 5) {
+      // Fallback if history load failed
+      if (history.length < 5) {
         const now = Date.now();
-        for(let i=0; i<24; i++) {
-            history.push({ timestamp: now - i*3600000, value: currentValue });
+        for (let i = 0; i < 24; i++) {
+          history.push({ timestamp: now - i * 3600000, value: currentValue });
         }
       }
 
@@ -393,7 +396,7 @@ export async function analystAgentNode(
 
     // Direct invocation logic for tools if needed, or use bindTools in a real agent node
     // Since this is just a function node, we CAN invoke tools directly.
-    
+
     if (intent === 'anomaly' || intent === 'comprehensive') {
       anomalyResult = await detectAnomaliesTool.invoke({
         serverId,

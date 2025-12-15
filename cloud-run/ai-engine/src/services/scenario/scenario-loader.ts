@@ -1,11 +1,15 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { RealisticVariationGenerator } from '../../lib/metrics/variation-generator';
 import {
   safeServerEnvironment,
   safeServerRole,
 } from '../../lib/utils/type-converters';
-import { RealisticVariationGenerator } from '../../lib/metrics/variation-generator';
-import type { EnhancedServerMetrics, HourlyServerData, RawServerData } from '../../types/server-metrics';
+import type {
+  EnhancedServerMetrics,
+  HourlyServerData,
+  RawServerData,
+} from '../../types/server-metrics';
 
 /**
  * Load Hourly Scenario Data directly from JSON files
@@ -29,16 +33,21 @@ export async function loadHourlyScenarioData(): Promise<
     const hourStr = currentHour.toString().padStart(2, '0');
     // In Cloud Run, the working directory is /app
     // We copied data/hourly-data to ./data/hourly-data in the new service root
-    const filePath = path.join(process.cwd(), 'data', 'hourly-data', `hour-${hourStr}.json`);
-    
+    const filePath = path.join(
+      process.cwd(),
+      'data',
+      'hourly-data',
+      `hour-${hourStr}.json`
+    );
+
     let hourlyData: HourlyServerData;
     try {
-        const fileContent = await fs.readFile(filePath, 'utf-8');
-        hourlyData = JSON.parse(fileContent);
+      const fileContent = await fs.readFile(filePath, 'utf-8');
+      hourlyData = JSON.parse(fileContent);
     } catch (e) {
-        console.error(`Failed to read scenario file: ${filePath}`, e);
-        // Fallback to empty
-        hourlyData = { servers: {} };
+      console.error(`Failed to read scenario file: ${filePath}`, e);
+      // Fallback to empty
+      hourlyData = { servers: {} };
     }
 
     return convertFixedRotationData(
@@ -66,20 +75,25 @@ function convertFixedRotationData(
   if (Object.keys(servers).length < 15) {
     const missingCount = 15 - Object.keys(servers).length;
     for (let i = 0; i < missingCount; i++) {
-        const serverIndex = Object.keys(servers).length + i + 1;
-        const serverTypes = ['security', 'backup', 'proxy', 'gateway'];
-        const serverType = serverTypes[i % serverTypes.length] ?? 'gateway';
-        const serverId = `${serverType}-server-${serverIndex}`;
+      const serverIndex = Object.keys(servers).length + i + 1;
+      const serverTypes = ['security', 'backup', 'proxy', 'gateway'];
+      const serverType = serverTypes[i % serverTypes.length] ?? 'gateway';
+      const serverId = `${serverType}-server-${serverIndex}`;
 
-        servers[serverId] = {
-            id: serverId,
-            name: `${serverType.charAt(0).toUpperCase() + serverType.slice(1)} Server #${serverIndex}`,
-            hostname: `${serverType}-${serverIndex.toString().padStart(2, '0')}.prod.example.com`,
-            status: 'online' as const,
-            type: serverType,
-            cpu: 20, memory: 30, disk: 40, network: 10, uptime: 10000,
-            role: serverType, environment: 'production'
-        };
+      servers[serverId] = {
+        id: serverId,
+        name: `${serverType.charAt(0).toUpperCase() + serverType.slice(1)} Server #${serverIndex}`,
+        hostname: `${serverType}-${serverIndex.toString().padStart(2, '0')}.prod.example.com`,
+        status: 'online' as const,
+        type: serverType,
+        cpu: 20,
+        memory: 30,
+        disk: 40,
+        network: 10,
+        uptime: 10000,
+        role: serverType,
+        environment: 'production',
+      };
     }
   }
 
@@ -87,13 +101,13 @@ function convertFixedRotationData(
     const minuteFactor = rotationMinute / 55;
     const fixedOffset = Math.sin(minuteFactor * 2 * Math.PI) * 2;
     const serverOffset = (index * 3.7) % 10;
-    
+
     const deterministicNoise =
       RealisticVariationGenerator.generateNaturalVariance(
         0,
         `server-${index}-noise`
       ) * 0.05;
-      
+
     const fixedVariation =
       1 + (fixedOffset + serverOffset + deterministicNoise) / 100;
 
@@ -186,52 +200,61 @@ function convertFixedRotationData(
 export async function loadHistoricalContext(
   serverId: string,
   hours: number = 24
-): Promise<Array<{ timestamp: number; cpu: number; memory: number; disk: number }>> {
+): Promise<
+  Array<{ timestamp: number; cpu: number; memory: number; disk: number }>
+> {
   try {
     const koreaTime = new Date().toLocaleString('en-US', {
       timeZone: 'Asia/Seoul',
     });
     const now = new Date(koreaTime);
-    const history: Array<{ timestamp: number; cpu: number; memory: number; disk: number }> = [];
+    const history: Array<{
+      timestamp: number;
+      cpu: number;
+      memory: number;
+      disk: number;
+    }> = [];
 
     // Load past N hours
     for (let i = 0; i < hours; i++) {
-        // Calculate target time (Now - i hours)
-        const targetTime = new Date(now.getTime() - i * 60 * 60 * 1000);
-        const targetHour = targetTime.getHours();
-        const targetMinute = targetTime.getMinutes();
-        const segmentInHour = Math.floor(targetMinute / 5);
-        const rotationMinute = segmentInHour * 5;
+      // Calculate target time (Now - i hours)
+      const targetTime = new Date(now.getTime() - i * 60 * 60 * 1000);
+      const targetHour = targetTime.getHours();
+      const targetMinute = targetTime.getMinutes();
+      const segmentInHour = Math.floor(targetMinute / 5);
+      const rotationMinute = segmentInHour * 5;
 
-        // Determine file path
-        const hourStr = targetHour.toString().padStart(2, '0');
-        const filePath = path.join(process.cwd(), 'data', 'hourly-data', `hour-${hourStr}.json`);
+      // Determine file path
+      const hourStr = targetHour.toString().padStart(2, '0');
+      const filePath = path.join(
+        process.cwd(),
+        'data',
+        'hourly-data',
+        `hour-${hourStr}.json`
+      );
 
-        try {
-            const fileContent = await fs.readFile(filePath, 'utf-8');
-            const hourlyData: HourlyServerData = JSON.parse(fileContent);
-            
-            // Convert to enhanced metrics using that hour's specific rotation logic
-            const servers = convertFixedRotationData(
-                hourlyData, 
-                targetHour, 
-                rotationMinute, 
-                segmentInHour
-            );
+      try {
+        const fileContent = await fs.readFile(filePath, 'utf-8');
+        const hourlyData: HourlyServerData = JSON.parse(fileContent);
 
-            const server = servers.find(s => s.id === serverId);
-            if (server) {
-                history.push({
-                    timestamp: targetTime.getTime(),
-                    cpu: server.cpu,
-                    memory: server.memory,
-                    disk: server.disk
-                });
-            }
-        } catch {
-            // If file missing or error, skip this point
-            continue;
+        // Convert to enhanced metrics using that hour's specific rotation logic
+        const servers = convertFixedRotationData(
+          hourlyData,
+          targetHour,
+          rotationMinute,
+          segmentInHour
+        );
+
+        const server = servers.find((s) => s.id === serverId);
+        if (server) {
+          history.push({
+            timestamp: targetTime.getTime(),
+            cpu: server.cpu,
+            memory: server.memory,
+            disk: server.disk,
+          });
         }
+      } catch {}
     }
 
     return history.sort((a, b) => a.timestamp - b.timestamp);

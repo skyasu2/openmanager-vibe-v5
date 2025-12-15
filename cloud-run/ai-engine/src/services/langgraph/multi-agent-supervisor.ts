@@ -6,25 +6,27 @@
 import { HumanMessage } from '@langchain/core/messages';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { createSupervisor } from '@langchain/langgraph-supervisor';
-import { getAutoCheckpointer, createSessionConfig } from '../../lib/checkpointer';
+import {
+  analyzePatternTool,
+  detectAnomaliesTool,
+  predictTrendsTool,
+} from '../../agents/analyst-agent';
+// Import tools from Agents
+import { getServerMetricsTool } from '../../agents/nlq-agent';
+import {
+  recommendCommandsTool,
+  searchKnowledgeBaseTool,
+} from '../../agents/reporter-agent';
+import {
+  createSessionConfig,
+  getAutoCheckpointer,
+} from '../../lib/checkpointer';
 import {
   getAnalystModel,
   getNLQModel,
   getReporterModel,
   getSupervisorModel,
 } from '../../lib/model-config';
-
-// Import tools from Agents
-import { getServerMetricsTool } from '../../agents/nlq-agent';
-import {
-  detectAnomaliesTool,
-  predictTrendsTool,
-  analyzePatternTool,
-} from '../../agents/analyst-agent';
-import {
-  searchKnowledgeBaseTool,
-  recommendCommandsTool,
-} from '../../agents/reporter-agent';
 
 // ============================================================================
 // 1. Worker Agent Creation
@@ -225,9 +227,9 @@ export async function* streamSupervisor(
         ...config,
       }
     );
-  
+
     let finalContent = '';
-  
+
     for await (const event of stream) {
       // LLM token streaming
       if (event.event === 'on_chat_model_stream') {
@@ -241,7 +243,7 @@ export async function* streamSupervisor(
           };
         }
       }
-  
+
       // Agent start
       if (event.event === 'on_chain_start' && event.tags?.includes('agent')) {
         yield {
@@ -250,7 +252,7 @@ export async function* streamSupervisor(
           metadata: { tags: event.tags },
         };
       }
-  
+
       // Agent end
       if (event.event === 'on_chain_end' && event.tags?.includes('agent')) {
         yield {
@@ -260,7 +262,7 @@ export async function* streamSupervisor(
         };
       }
     }
-  
+
     // Final response
     yield {
       type: 'final',
@@ -271,8 +273,8 @@ export async function* streamSupervisor(
     yield {
       type: 'error',
       content: error instanceof Error ? error.message : String(error),
-      metadata: { sessionId }
-    }
+      metadata: { sessionId },
+    };
   }
 }
 
@@ -304,10 +306,10 @@ export async function createSupervisorStreamResponse(
             controller.enqueue(encoder.encode(finishMessage));
             console.log('📤 Supervisor stream completed (AI SDK v5 Protocol)');
           } else if (chunk.type === 'error') {
-             // AI SDK v5 Data Stream Protocol: error
-             // Format: '3:"error message"\n'
-             const errorMessage = `3:${JSON.stringify(chunk.content)}\n`;
-             controller.enqueue(encoder.encode(errorMessage));
+            // AI SDK v5 Data Stream Protocol: error
+            // Format: '3:"error message"\n'
+            const errorMessage = `3:${JSON.stringify(chunk.content)}\n`;
+            controller.enqueue(encoder.encode(errorMessage));
           }
         }
 

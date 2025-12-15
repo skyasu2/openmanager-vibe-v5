@@ -8,8 +8,8 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { Readable } from 'stream';
+import { logAPIKeyStatus, validateAPIKeys } from './lib/model-config';
 import { createSupervisorStreamResponse } from './services/langgraph/multi-agent-supervisor';
-import { validateAPIKeys, logAPIKeyStatus } from './lib/model-config';
 import { loadHourlyScenarioData } from './services/scenario/scenario-loader';
 
 // Initialize App
@@ -40,9 +40,9 @@ app.get('/warmup', async (c) => {
   await loadHourlyScenarioData();
   // Validate keys
   const status = validateAPIKeys();
-  return c.json({ 
-    status: 'warmed_up', 
-    keys: status 
+  return c.json({
+    status: 'warmed_up',
+    keys: status,
   });
 });
 
@@ -50,7 +50,7 @@ app.get('/warmup', async (c) => {
 app.post('/api/ai/supervisor', async (c) => {
   try {
     const { messages, sessionId } = await c.req.json();
-    
+
     // Extract last user message
     const lastMessage = messages[messages.length - 1];
     const query = lastMessage?.content;
@@ -63,8 +63,8 @@ app.post('/api/ai/supervisor', async (c) => {
     const { all } = validateAPIKeys();
     if (!all) {
       // return c.json({ error: 'Missing API Keys' }, 500);
-      // Ensure we don't block if one is missing but others might work? 
-      // validateAPIKeys returns 'all' if BOTH are present. 
+      // Ensure we don't block if one is missing but others might work?
+      // validateAPIKeys returns 'all' if BOTH are present.
       // Supervisor uses Groq, NLQ uses Gemini. We need at least one.
       // But let's log and proceed, models usually throw specifically.
       logAPIKeyStatus();
@@ -73,10 +73,10 @@ app.post('/api/ai/supervisor', async (c) => {
     // Get ReadableStream (Web Standard) from Supervisor
     const stream = await createSupervisorStreamResponse(query, sessionId);
 
-    // Convert Web ReadableStream to Node Readable for Hono (if needed) 
+    // Convert Web ReadableStream to Node Readable for Hono (if needed)
     // Hono running on Node might handle Web Streams, but let's be safe.
     // Actually @hono/node-server supports returning a standard Response object with a Stream.
-    
+
     // Set headers for AI SDK Data Stream Protocol
     c.header('Content-Type', 'text/event-stream; charset=utf-8');
     c.header('Cache-Control', 'no-cache');
@@ -84,7 +84,6 @@ app.post('/api/ai/supervisor', async (c) => {
     c.header('X-Vercel-AI-Data-Stream', 'v1');
 
     return c.body(stream);
-
   } catch (error) {
     console.error('API Error:', error);
     return c.json({ error: String(error) }, 500);
@@ -98,5 +97,5 @@ logAPIKeyStatus();
 
 serve({
   fetch: app.fetch,
-  port
+  port,
 });

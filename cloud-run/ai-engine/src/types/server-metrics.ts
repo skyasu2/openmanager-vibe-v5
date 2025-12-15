@@ -196,7 +196,13 @@ export interface EnhancedServerMetrics {
   id: string;
   name: string;
   hostname: string;
-  status: 'online' | 'offline' | 'warning' | 'critical' | 'maintenance' | 'unknown';
+  status:
+    | 'online'
+    | 'offline'
+    | 'warning'
+    | 'critical'
+    | 'maintenance'
+    | 'unknown';
   cpu: number;
   cpu_usage: number;
   memory: number;

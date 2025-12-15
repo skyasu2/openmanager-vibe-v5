@@ -4,7 +4,7 @@ export const runtime = 'edge';
 
 export async function POST() {
   const CLOUD_RUN_URL = process.env.CLOUD_RUN_AI_URL;
-  
+
   if (!CLOUD_RUN_URL) {
     return NextResponse.json(
       { status: 'skipped', message: 'Cloud Run URL not configured' },
@@ -16,7 +16,7 @@ export async function POST() {
     // Fire and forget - don't wait for full response, just trigger cold start
     // Use a short timeout to avoid blocking Vercel function
     console.log(`🚀 Sending wake-up signal to ${CLOUD_RUN_URL}/warmup`);
-    
+
     fetch(`${CLOUD_RUN_URL}/warmup`, {
       method: 'GET',
       headers: {
@@ -28,7 +28,10 @@ export async function POST() {
       console.log('Wake-up signal sent (params ignored):', err.message);
     });
 
-    return NextResponse.json({ status: 'sent', message: 'Wake-up signal initiated' });
+    return NextResponse.json({
+      status: 'sent',
+      message: 'Wake-up signal initiated',
+    });
   } catch (error) {
     console.error('Wake-up failed:', error);
     return NextResponse.json(

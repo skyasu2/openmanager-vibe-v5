@@ -22,18 +22,20 @@ export const searchKnowledgeBaseTool = tool(
   async ({ query }) => {
     // Stub implementation for Cloud Run migration
     console.log(`🔍 [Reporter Agent] Stubbed RAG search for: ${query}`);
-    
+
     return {
       success: true,
       results: [
         {
-          content: '클라우드 마이그레이션 중에는 지식 베이스 검색 기능이 제한됩니다. 시스템 상태를 확인하고 로그를 분석하는 것을 권장합니다.',
+          content:
+            '클라우드 마이그레이션 중에는 지식 베이스 검색 기능이 제한됩니다. 시스템 상태를 확인하고 로그를 분석하는 것을 권장합니다.',
           similarity: 1.0,
         },
         {
-          content: '일반적인 문제 해결 절차: 1. 로그 확인 2. 리소스 사용량 체크 3. 서비스 재시작',
+          content:
+            '일반적인 문제 해결 절차: 1. 로그 확인 2. 리소스 사용량 체크 3. 서비스 재시작',
           similarity: 0.9,
-        }
+        },
       ],
       totalFound: 2,
       _source: 'Migration Stub',

@@ -8,15 +8,15 @@ const RUST_SERVICE_URL =
   'https://rust-inference-490817238363.asia-northeast3.run.app';
 
 export interface RustAnomalyResult {
-    is_anomaly: boolean;
-    score: number;
-    severity: 'low' | 'medium' | 'high';
+  is_anomaly: boolean;
+  score: number;
+  severity: 'low' | 'medium' | 'high';
 }
 
 export interface RustTrendResult {
-    trend: 'increasing' | 'decreasing' | 'stable';
-    confidence: number;
-    prediction?: number;
+  trend: 'increasing' | 'decreasing' | 'stable';
+  confidence: number;
+  prediction?: number;
 }
 
 export const detectAnomaliesRust = async (
@@ -28,9 +28,9 @@ export const detectAnomaliesRust = async (
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ metrics }),
     });
-    
+
     if (!response.ok) return null;
-    return await response.json() as RustAnomalyResult;
+    return (await response.json()) as RustAnomalyResult;
   } catch (e) {
     console.error('Rust ML Service Error:', e);
     return null;
@@ -48,7 +48,7 @@ export const predictTrendRust = async (
     });
 
     if (!response.ok) return null;
-    return await response.json() as RustTrendResult;
+    return (await response.json()) as RustTrendResult;
   } catch (e) {
     console.error('Rust ML Service Error:', e);
     return null;
