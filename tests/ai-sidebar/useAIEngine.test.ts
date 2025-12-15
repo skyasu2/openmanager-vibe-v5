@@ -118,18 +118,18 @@ describe('useAIEngine (v4.0 - UNIFIED 전용)', () => {
     expect(description).toContain('자동 라우팅');
   });
 
-  it('항상 /api/ai/unified-stream 엔드포인트를 반환한다', () => {
+  it('항상 /api/ai/supervisor 엔드포인트를 반환한다', () => {
     const { result } = renderHook(() => useAIEngine());
 
-    expect(result.current.getEngineEndpoint()).toBe('/api/ai/unified-stream');
+    expect(result.current.getEngineEndpoint()).toBe('/api/ai/supervisor');
     expect(result.current.getEngineEndpoint('UNIFIED')).toBe(
-      '/api/ai/unified-stream'
+      '/api/ai/supervisor'
     );
     expect(result.current.getEngineEndpoint('GOOGLE_AI')).toBe(
-      '/api/ai/unified-stream'
+      '/api/ai/supervisor'
     );
     expect(result.current.getEngineEndpoint('LOCAL')).toBe(
-      '/api/ai/unified-stream'
+      '/api/ai/supervisor'
     );
   });
 

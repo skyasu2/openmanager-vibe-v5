@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  * AI Unified Stream API Integration Tests
  *
  * v5.0: LangGraph Multi-Agent System으로 마이그레이션
- * - 기존 /api/ai/query → /api/ai/unified-stream
+ * - 기존 /api/ai/query → /api/ai/supervisor
  * - Request: { messages: [...], sessionId?: string }
  * - Response: { success, response, toolResults, targetAgent, sessionId }
  *
@@ -50,7 +50,7 @@ describe('AI Unified Stream API Integration Tests', () => {
               : '';
 
         // Only handle POST requests to unified-stream
-        if (url.includes('/api/ai/unified-stream') && method === 'POST') {
+        if (url.includes('/api/ai/supervisor') && method === 'POST') {
           // Parse body to check for validation
           let body: { messages?: Array<{ role: string; content: string }> } =
             {};
@@ -143,9 +143,9 @@ describe('AI Unified Stream API Integration Tests', () => {
       });
   });
 
-  describe('/api/ai/unified-stream - LangGraph Multi-Agent', () => {
+  describe('/api/ai/supervisor - LangGraph Multi-Agent', () => {
     it('should handle basic query successfully', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/unified-stream`, {
+      const response = await fetch(`${baseUrl}/api/ai/supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,7 +165,7 @@ describe('AI Unified Stream API Integration Tests', () => {
     });
 
     it('should handle Korean queries correctly', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/unified-stream`, {
+      const response = await fetch(`${baseUrl}/api/ai/supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,7 +183,7 @@ describe('AI Unified Stream API Integration Tests', () => {
     });
 
     it('should handle multi-turn conversation correctly', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/unified-stream`, {
+      const response = await fetch(`${baseUrl}/api/ai/supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -208,7 +208,7 @@ describe('AI Unified Stream API Integration Tests', () => {
     it('should respect response time limits', async () => {
       const start = Date.now();
 
-      const response = await fetch(`${baseUrl}/api/ai/unified-stream`, {
+      const response = await fetch(`${baseUrl}/api/ai/supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -225,7 +225,7 @@ describe('AI Unified Stream API Integration Tests', () => {
     });
 
     it('should return targetAgent in response', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/unified-stream`, {
+      const response = await fetch(`${baseUrl}/api/ai/supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -248,7 +248,7 @@ describe('AI Unified Stream API Integration Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle malformed JSON', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/unified-stream`, {
+      const response = await fetch(`${baseUrl}/api/ai/supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +261,7 @@ describe('AI Unified Stream API Integration Tests', () => {
     });
 
     it('should handle empty messages array gracefully', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/unified-stream`, {
+      const response = await fetch(`${baseUrl}/api/ai/supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -276,7 +276,7 @@ describe('AI Unified Stream API Integration Tests', () => {
     });
 
     it('should handle missing messages field', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/unified-stream`, {
+      const response = await fetch(`${baseUrl}/api/ai/supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -294,7 +294,7 @@ describe('AI Unified Stream API Integration Tests', () => {
 
   describe('Streaming Response', () => {
     it('should support streaming with text/event-stream accept header', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/unified-stream`, {
+      const response = await fetch(`${baseUrl}/api/ai/supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

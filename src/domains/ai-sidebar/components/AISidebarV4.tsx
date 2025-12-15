@@ -305,7 +305,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   const { messages, sendMessage, status, setMessages } = useChat({
     // v2.x: transport 옵션으로 API 엔드포인트 설정
     transport: new DefaultChatTransport({
-      api: '/api/ai/unified-stream', // ✨ 포트폴리오용 Tools 포함
+      api: '/api/ai/supervisor', // LangGraph Multi-Agent Supervisor
     }),
     onFinish: () => {
       // Optional: Sync to global store if needed

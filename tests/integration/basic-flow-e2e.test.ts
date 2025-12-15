@@ -69,7 +69,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
           } as Response);
         }
 
-        if (url.includes('/api/ai/unified-stream')) {
+        if (url.includes('/api/ai/supervisor')) {
           return Promise.resolve({
             ok: true,
             status: 200,
@@ -171,7 +171,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
       expect(aiSidebar).toBeTruthy();
 
       // Simulate AI query (unified-stream API)
-      const aiResponse = await fetch('/api/ai/unified-stream', {
+      const aiResponse = await fetch('/api/ai/supervisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -186,7 +186,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
 
     it('should handle multi-turn conversation', async () => {
       // Test multi-turn conversation with unified-stream API
-      const response = await fetch('/api/ai/unified-stream', {
+      const response = await fetch('/api/ai/supervisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -256,7 +256,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
 
     it('should validate input data', async () => {
       // Test empty messages with unified-stream API
-      const response = await fetch('/api/ai/unified-stream', {
+      const response = await fetch('/api/ai/supervisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -287,7 +287,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
       const promises = [
         fetch('/api/servers'),
         fetch('/api/servers'),
-        fetch('/api/ai/unified-stream', {
+        fetch('/api/ai/supervisor', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

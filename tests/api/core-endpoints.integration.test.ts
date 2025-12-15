@@ -324,7 +324,7 @@ describe('🚀 OpenManager VIBE v5 - 핵심 API 엔드포인트 테스트', () =
         }
 
         // AI unified-stream endpoint (LangGraph Multi-Agent)
-        if (url.includes('/api/ai/unified-stream') && method === 'POST') {
+        if (url.includes('/api/ai/supervisor') && method === 'POST') {
           return Promise.resolve({
             ok: false,
             status: 401,
@@ -475,9 +475,9 @@ describe('🚀 OpenManager VIBE v5 - 핵심 API 엔드포인트 테스트', () =
       );
     });
 
-    it('POST /api/ai/unified-stream - 인증 필요 API (미인증 상태)', async () => {
+    it('POST /api/ai/supervisor - 인증 필요 API (미인증 상태)', async () => {
       const result = await testApiEndpoint(
-        '/api/ai/unified-stream',
+        '/api/ai/supervisor',
         401,
         undefined,
         'POST',
@@ -489,9 +489,9 @@ describe('🚀 OpenManager VIBE v5 - 핵심 API 엔드포인트 테스트', () =
       expect(result.data.error).toContain('Unauthorized');
     });
 
-    it('POST /api/ai/unified-stream - 잘못된 요청 형식', async () => {
+    it('POST /api/ai/supervisor - 잘못된 요청 형식', async () => {
       const result = await testApiEndpoint(
-        '/api/ai/unified-stream',
+        '/api/ai/supervisor',
         401,
         undefined,
         'POST',

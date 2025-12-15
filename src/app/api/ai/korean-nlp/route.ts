@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 export async function POST(_req: Request) {
   return NextResponse.json(
     {
-      error: 'This endpoint is deprecated. Use /api/ai/unified-stream instead.',
+      error: 'This endpoint is deprecated. Use /api/ai/supervisor instead.',
     },
     { status: 410 }
   );

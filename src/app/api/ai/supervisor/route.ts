@@ -1,16 +1,17 @@
 /**
- * Unified AI Stream API Route
- * LangGraph Multi-Agent System을 사용한 스트리밍 응답
+ * LangGraph Multi-Agent Supervisor API
  *
- * Architecture (Hybrid Mode):
- * - Cloud Run AI Backend (CLOUD_RUN_ENABLED=true): 외부 Cloud Run으로 프록시
- * - Local Mode (default): Next.js 내장 LangGraph 사용
+ * @endpoint POST /api/ai/supervisor
+ *
+ * Architecture:
+ * - createSupervisor (@langchain/langgraph-supervisor): Automatic agent routing
+ * - createReactAgent (@langchain/langgraph/prebuilt): Tool-equipped workers
  *
  * Agents:
- * - Supervisor (Groq Llama-8b): 빠른 인텐트 분류 및 라우팅
- * - NLQ Agent (Gemini Flash): 서버 메트릭 조회
- * - Analyst Agent (Gemini Pro): 패턴 분석 및 이상 탐지
- * - Reporter Agent (Llama 70b): 인시던트 리포트 및 RAG
+ * - Supervisor (Groq Llama-8b): Intent classification & routing
+ * - NLQ Agent (Gemini Flash): Server metrics queries
+ * - Analyst Agent (Gemini Pro): Pattern analysis & anomaly detection
+ * - Reporter Agent (Llama 70b): Incident reports & RAG
  */
 
 import type { NextRequest } from 'next/server';
@@ -22,9 +23,9 @@ import {
   proxyToCloudRun,
 } from '@/lib/cloud-run/proxy';
 import {
-  createStreamingResponse,
-  executeGraph,
-} from '@/services/langgraph/graph-builder';
+  createSupervisorStreamResponse,
+  executeSupervisor,
+} from '@/services/langgraph/multi-agent-supervisor';
 import { quickFilter, quickSanitize } from './security';
 
 // Allow streaming responses up to 60 seconds
@@ -155,12 +156,12 @@ export const POST = withAuth(async (req: NextRequest) => {
     // 2. 세션 ID 생성/사용
     const sessionId = clientSessionId || `session_${Date.now()}`;
 
-    console.log(`🚀 [Unified-Stream] Query: "${userQuery.slice(0, 50)}..."`);
-    console.log(`📡 [Unified-Stream] Session: ${sessionId}`);
+    console.log(`🚀 [Supervisor] Query: "${userQuery.slice(0, 50)}..."`);
+    console.log(`📡 [Supervisor] Session: ${sessionId}`);
 
     // 3. 스트리밍 요청 여부 확인
     // AI SDK v5 DefaultChatTransport는 */* 또는 다양한 Accept 헤더를 보냄
-    // unified-stream 엔드포인트는 기본적으로 스트리밍 활성화
+    // supervisor 엔드포인트는 기본적으로 스트리밍 활성화
     // 명시적으로 application/json만 요청하는 경우에만 JSON 응답
     const acceptHeader = req.headers.get('accept') || '';
     const wantsJsonOnly = acceptHeader === 'application/json';
@@ -168,12 +169,12 @@ export const POST = withAuth(async (req: NextRequest) => {
 
     // 4. Cloud Run 프록시 모드 (CLOUD_RUN_ENABLED=true)
     if (isCloudRunEnabled()) {
-      console.log('☁️ [Unified-Stream] Using Cloud Run backend');
+      console.log('☁️ [Supervisor] Using Cloud Run backend');
 
       if (wantsStream) {
         // Cloud Run 스트리밍 프록시
         const cloudStream = await proxyStreamToCloudRun({
-          path: '/api/ai/unified-stream',
+          path: '/api/ai/supervisor',
           body: { messages, sessionId },
         });
 
@@ -193,7 +194,7 @@ export const POST = withAuth(async (req: NextRequest) => {
       } else {
         // Cloud Run 단일 응답 프록시
         const proxyResult = await proxyToCloudRun({
-          path: '/api/ai/unified-stream',
+          path: '/api/ai/supervisor',
           body: { messages, sessionId },
         });
 
@@ -208,11 +209,14 @@ export const POST = withAuth(async (req: NextRequest) => {
       }
     }
 
-    // 5. 로컬 모드 (Next.js 내장 LangGraph)
+    // 5. 로컬 모드 (Next.js 내장 LangGraph Multi-Agent Supervisor)
     if (wantsStream) {
-      // 스트리밍 응답 (LangGraph streamEvents 사용)
+      // 스트리밍 응답 (LangGraph createSupervisor + streamEvents 사용)
       try {
-        const stream = await createStreamingResponse(userQuery, sessionId);
+        const stream = await createSupervisorStreamResponse(
+          userQuery,
+          sessionId
+        );
 
         return new Response(stream, {
           headers: {
@@ -220,34 +224,31 @@ export const POST = withAuth(async (req: NextRequest) => {
             'Cache-Control': 'no-cache',
             Connection: 'keep-alive',
             'X-Session-Id': sessionId,
-            'X-Backend': 'local',
+            'X-Backend': 'vercel-supervisor',
           },
         });
       } catch (streamError) {
         console.error('❌ Streaming Error:', streamError);
         // 스트리밍 실패 시 단일 응답으로 폴백
-        const result = await executeGraph(userQuery, { sessionId });
+        const result = await executeSupervisor(userQuery, { sessionId });
         return new Response(result.response, {
           status: 200,
           headers: {
             'Content-Type': 'text/plain; charset=utf-8',
             'X-Session-Id': sessionId,
-            'X-Target-Agent': result.targetAgent || 'unknown',
-            'X-Backend': 'local',
+            'X-Backend': 'vercel-supervisor',
           },
         });
       }
     } else {
       // 단일 응답 (invoke 사용)
-      const result = await executeGraph(userQuery, { sessionId });
+      const result = await executeSupervisor(userQuery, { sessionId });
 
       return Response.json({
         success: true,
         response: quickFilter(result.response),
-        toolResults: result.toolResults,
-        targetAgent: result.targetAgent,
         sessionId: result.sessionId,
-        _backend: 'local',
+        _backend: 'vercel-supervisor',
       });
     }
   } catch (error) {

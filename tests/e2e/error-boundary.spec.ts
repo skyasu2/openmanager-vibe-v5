@@ -107,7 +107,7 @@ test.describe('에러 바운더리 테스트', () => {
     });
 
     test('잘못된 요청에 400 또는 에러 응답', async ({ page }) => {
-      const response = await page.request.post('/api/ai/unified-stream', {
+      const response = await page.request.post('/api/ai/supervisor', {
         headers: {
           'Content-Type': 'application/json',
         },

@@ -11,7 +11,7 @@ project: "OpenManager VIBE v5.80.0"
 # ============================================================================
 ai-architecture:
   current: "LangGraph Multi-Agent"
-  api_endpoint: "/api/ai/unified-stream"
+  api_endpoint: "/api/ai/supervisor"
   agents:
     supervisor: "Groq Llama-8b (Fast intent classification)"
     nlq-agent: "Gemini Flash (Server metrics query)"

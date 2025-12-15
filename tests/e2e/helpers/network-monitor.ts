@@ -9,7 +9,7 @@
  * import { monitorSSEStream, captureNetworkRequests, compareSnapshots } from './helpers/network-monitor';
  *
  * // SSE 스트리밍 모니터링
- * const sseEvents = await monitorSSEStream(page, '/api/ai/unified-stream');
+ * const sseEvents = await monitorSSEStream(page, '/api/ai/supervisor');
  *
  * // 네트워크 요청 캡처
  * const requests = await captureNetworkRequests(page, async () => {
@@ -124,13 +124,13 @@ export interface SnapshotComparison {
  * SSE 스트리밍을 모니터링하고 이벤트를 수집합니다.
  *
  * @param page - Playwright Page 객체
- * @param endpoint - SSE 엔드포인트 URL (예: '/api/ai/unified-stream')
+ * @param endpoint - SSE 엔드포인트 URL (예: '/api/ai/supervisor')
  * @param options - 모니터링 옵션
  * @returns SSE 이벤트 배열
  *
  * @example
  * ```typescript
- * const events = await monitorSSEStream(page, '/api/ai/unified-stream', {
+ * const events = await monitorSSEStream(page, '/api/ai/supervisor', {
  *   timeout: 60000,
  *   doneMarker: '[DONE]'
  * });

@@ -27,7 +27,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
     it('응답 시간이 10초 이내여야 함', async () => {
       const start = Date.now();
 
-      const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
+      const response = await fetch(`${API_BASE}/api/ai/supervisor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -43,7 +43,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
     }, 15000);
 
     it('타임아웃 설정이 적절해야 함', async () => {
-      const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
+      const response = await fetch(`${API_BASE}/api/ai/supervisor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -57,7 +57,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
 
   describe('2. Supabase 무료 티어 제한', () => {
     it('DB 연결이 정상 동작해야 함', async () => {
-      const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
+      const response = await fetch(`${API_BASE}/api/ai/supervisor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -146,7 +146,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
       const query = '동일한 쿼리 테스트';
 
       // 첫 번째 요청
-      const response1 = await fetch(`${API_BASE}/api/ai/unified-stream`, {
+      const response1 = await fetch(`${API_BASE}/api/ai/supervisor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -158,7 +158,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // 두 번째 요청 (캐시 히트 예상)
-      const response2 = await fetch(`${API_BASE}/api/ai/unified-stream`, {
+      const response2 = await fetch(`${API_BASE}/api/ai/supervisor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -176,7 +176,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
     });
 
     it('폴백 시스템이 동작해야 함', async () => {
-      const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
+      const response = await fetch(`${API_BASE}/api/ai/supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,7 +191,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
     });
 
     it('에러 처리가 적절해야 함', async () => {
-      const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
+      const response = await fetch(`${API_BASE}/api/ai/supervisor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -211,7 +211,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
       for (let i = 0; i < iterations; i++) {
         const start = Date.now();
 
-        const response = await fetch(`${API_BASE}/api/ai/unified-stream`, {
+        const response = await fetch(`${API_BASE}/api/ai/supervisor`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

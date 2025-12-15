@@ -180,7 +180,7 @@ test.describe('AI 사이드바 실시간 검증 (Vercel)', () => {
 
     // Network 탭 모니터링 시작
     const streamingResponse = page.waitForResponse(
-      (response) => response.url().includes('/api/ai/unified-stream'),
+      (response) => response.url().includes('/api/ai/supervisor'),
       { timeout: TIMEOUTS.AI_RESPONSE }
     );
 

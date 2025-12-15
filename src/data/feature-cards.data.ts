@@ -88,7 +88,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '🔄 Scale to Zero: 사용량 없을 시 인스턴스 0개로 축소하여 비용 절감 (Cold Start 최적화)',
         '🔗 HTTP REST API: 표준화된 프로토콜로 프론트엔드와 AI 마이크로서비스 간 통신',
         '💰 무료 티어 최적화: Vercel/Supabase/Cloud Run/Groq 무료 사용량 100% 활용',
-        '📡 통합 AI 엔드포인트: /api/ai/unified-stream (Next.js Edge Proxy)',
+        '📡 LangGraph Supervisor: /api/ai/supervisor (Multi-Agent Orchestration)',
         '🔐 통합 보안: Vercel 환경변수 + Supabase RLS + GCP IAM 통합 인증',
       ],
       technologies: [
