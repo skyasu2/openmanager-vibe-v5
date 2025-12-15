@@ -16,7 +16,7 @@ import {
 } from '../lib/ai/monitoring/TrendPredictor';
 import { AgentExecutionError, getErrorMessage } from '../lib/errors';
 import { getAnalystModel } from '../lib/model-config';
-import { detectAnomaliesRust, predictTrendRust } from '../lib/rust-ml-client';
+
 import type { AgentStateType, ToolResult } from '../lib/state-definition';
 import {
   loadHistoricalContext,
@@ -390,9 +390,9 @@ export async function analystAgentNode(
       `📊 [Analyst Agent] Intent: ${intent}, ServerId: ${serverId || 'auto'}`
     );
 
-    let anomalyResult: any = null;
-    let trendResult: any = null;
-    let patternResult: any = null;
+    let anomalyResult: AnomalyResult | null = null;
+    let trendResult: TrendResult | null = null;
+    let patternResult: PatternResult | null = null;
 
     // Direct invocation logic for tools if needed, or use bindTools in a real agent node
     // Since this is just a function node, we CAN invoke tools directly.

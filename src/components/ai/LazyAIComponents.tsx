@@ -24,7 +24,7 @@ const AILoadingFallback = () => (
 // Wrapped components with Suspense
 export const LazyAIWorkspace = (props: Record<string, unknown>) => (
   <Suspense fallback={<AILoadingFallback />}>
-    <AIWorkspace {...props} />
+    <AIWorkspace mode="sidebar" {...props} />
   </Suspense>
 );
 
@@ -46,6 +46,6 @@ export const LazyThinkingProcessVisualizer = (
   props: Record<string, unknown>
 ) => (
   <Suspense fallback={<AILoadingFallback />}>
-    <ThinkingProcessVisualizer {...props} />
+    <ThinkingProcessVisualizer steps={[]} {...props} />
   </Suspense>
 );

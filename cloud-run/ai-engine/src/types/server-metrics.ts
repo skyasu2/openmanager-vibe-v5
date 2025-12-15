@@ -229,10 +229,10 @@ export interface EnhancedServerMetrics {
     network_speed?: string; // Added optional
   };
   lastUpdate?: string; // Added optional
-  systemInfo?: any; // Added optional
-  networkInfo?: any; // Added optional
+  systemInfo?: Record<string, unknown>; // Added optional
+  networkInfo?: Record<string, unknown>; // Added optional
   services?: Service[];
-  alerts: any[];
+  alerts: unknown[];
 }
 
 /**

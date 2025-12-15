@@ -4,7 +4,7 @@
 
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { ChatGroq } from '@langchain/groq';
-import { AI_MODELS } from '../../config/models';
+import { AI_MODELS } from '../config/models';
 import { requireAPIKey } from './errors';
 import {
   type CircuitBreakerState,

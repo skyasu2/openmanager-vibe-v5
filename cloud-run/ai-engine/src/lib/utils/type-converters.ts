@@ -30,7 +30,7 @@ const stringifyForLog = (value: unknown): string => {
  * 🛡️ 안전한 ServerStatus 변환
  */
 export function safeServerStatus(value: unknown): ServerStatus {
-  const valueString = stringifyForLog(value);
+  const _valueString = stringifyForLog(value);
   if (typeof value === 'string' && isValidServerStatus(value)) {
     return value;
   }
@@ -69,7 +69,7 @@ export function safeServerStatus(value: unknown): ServerStatus {
  * 🛡️ 안전한 ServerEnvironment 변환
  */
 export function safeServerEnvironment(value: unknown): ServerEnvironment {
-  const valueString = stringifyForLog(value);
+  const _valueString = stringifyForLog(value);
   if (typeof value === 'string' && isValidServerEnvironment(value)) {
     return value;
   }
@@ -101,7 +101,7 @@ export function safeServerEnvironment(value: unknown): ServerEnvironment {
  * 🛡️ 안전한 ServerRole 변환
  */
 export function safeServerRole(value: unknown): ServerRole {
-  const valueString = stringifyForLog(value);
+  const _valueString = stringifyForLog(value);
   if (typeof value === 'string' && isValidServerRole(value)) {
     return value;
   }

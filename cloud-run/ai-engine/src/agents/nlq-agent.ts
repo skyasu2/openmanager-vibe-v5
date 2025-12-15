@@ -10,10 +10,7 @@ import { AgentExecutionError, getErrorMessage } from '../lib/errors';
 import { getNLQModel } from '../lib/model-config';
 import type { AgentStateType, ToolResult } from '../lib/state-definition';
 import { loadHourlyScenarioData } from '../services/scenario/scenario-loader';
-import {
-  EnhancedServerMetrics,
-  getServerMetrics,
-} from '../types/server-metrics';
+
 // ============================================================================
 // 2. Tools Definition
 // ============================================================================

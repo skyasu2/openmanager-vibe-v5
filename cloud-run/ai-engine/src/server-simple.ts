@@ -20,7 +20,7 @@ app.get('/health', (c) =>
 app.get('/', (c) => c.json({ message: 'AI Engine is running!' }));
 
 // Start Server
-const port = parseInt(process.env.PORT || '8080');
+const port = parseInt(process.env.PORT || '8080', 10);
 console.log(`🚀 Simple AI Engine Server starting on port ${port}...`);
 
 serve({

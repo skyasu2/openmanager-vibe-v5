@@ -7,7 +7,7 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { Readable } from 'stream';
+
 import { logAPIKeyStatus, validateAPIKeys } from './lib/model-config';
 import { createSupervisorStreamResponse } from './services/langgraph/multi-agent-supervisor';
 import { loadHourlyScenarioData } from './services/scenario/scenario-loader';
@@ -91,7 +91,7 @@ app.post('/api/ai/supervisor', async (c) => {
 });
 
 // Start Server
-const port = parseInt(process.env.PORT || '8080');
+const port = parseInt(process.env.PORT || '8080', 10);
 console.log(`🚀 AI Engine Server starting on port ${port}...`);
 logAPIKeyStatus();
 
