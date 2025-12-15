@@ -20,6 +20,7 @@ import {
   getTrendPredictor,
   type TrendDataPoint,
 } from '@/lib/ai/monitoring/TrendPredictor';
+import { detectAnomaliesRust, predictTrendRust } from '@/lib/rust-ml-client';
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
 import { AgentExecutionError, getErrorMessage } from '../errors';
 import { getAnalystModel } from '../model-config';
@@ -84,7 +85,6 @@ const detectAnomaliesTool = tool(
       };
     }
 
-    const detector = getAnomalyDetector();
     const metrics = ['cpu', 'memory', 'disk'] as const;
     const targetMetrics =
       metricType === 'all' ? metrics : [metricType as (typeof metrics)[number]];
@@ -100,21 +100,63 @@ const detectAnomaliesTool = tool(
       }
     > = {};
 
+    let usedEngine: 'rust' | 'typescript' = 'typescript';
+
     for (const metric of targetMetrics) {
       const currentValue = server[metric];
       const history = generateSimulatedHistory(currentValue, 24);
-      const detection = detector.detectAnomaly(currentValue, history);
 
-      results[metric] = {
-        isAnomaly: detection.isAnomaly,
-        severity: detection.severity,
-        confidence: Math.round(detection.confidence * 100) / 100,
-        currentValue,
-        threshold: {
-          upper: Math.round(detection.details.upperThreshold * 100) / 100,
-          lower: Math.round(detection.details.lowerThreshold * 100) / 100,
-        },
-      };
+      // Rust ML 서비스 우선 시도
+      const rustResult = await detectAnomaliesRust({
+        values: history.map((h) => h.value),
+        window_size: 26,
+        sigma: 2.0,
+      });
+
+      if (rustResult?.success && rustResult.anomalies.length > 0) {
+        // Rust 결과 사용
+        usedEngine = 'rust';
+        const lastAnomalyCheck = rustResult.anomalies.find(
+          (a) => a.index === history.length - 1
+        );
+
+        results[metric] = {
+          isAnomaly: lastAnomalyCheck?.is_anomaly ?? false,
+          severity: lastAnomalyCheck?.is_anomaly
+            ? rustResult.statistics.anomaly_count > 3
+              ? 'critical'
+              : 'warning'
+            : 'normal',
+          confidence:
+            Math.round(
+              (1 -
+                Math.abs(currentValue - rustResult.statistics.mean) /
+                  rustResult.statistics.std_dev /
+                  3) *
+                100
+            ) / 100,
+          currentValue,
+          threshold: {
+            upper: Math.round(rustResult.statistics.upper_bound * 100) / 100,
+            lower: Math.round(rustResult.statistics.lower_bound * 100) / 100,
+          },
+        };
+      } else {
+        // TypeScript 폴백
+        const detector = getAnomalyDetector();
+        const detection = detector.detectAnomaly(currentValue, history);
+
+        results[metric] = {
+          isAnomaly: detection.isAnomaly,
+          severity: detection.severity,
+          confidence: Math.round(detection.confidence * 100) / 100,
+          currentValue,
+          threshold: {
+            upper: Math.round(detection.details.upperThreshold * 100) / 100,
+            lower: Math.round(detection.details.lowerThreshold * 100) / 100,
+          },
+        };
+      }
     }
 
     const anomalyCount = Object.values(results).filter(
@@ -130,6 +172,7 @@ const detectAnomaliesTool = tool(
       results,
       timestamp: new Date().toISOString(),
       _algorithm: '26-hour moving average + 2σ threshold',
+      _engine: usedEngine,
     };
   },
   {
@@ -166,11 +209,11 @@ const predictTrendsTool = tool(
       };
     }
 
-    const predictor = getTrendPredictor();
     const metrics = ['cpu', 'memory', 'disk'] as const;
     const targetMetrics =
       metricType === 'all' ? metrics : [metricType as (typeof metrics)[number]];
     const horizon = (predictionHours ?? 1) * 3600 * 1000; // ms로 변환
+    const forecastSteps = Math.max(1, Math.ceil((predictionHours ?? 1) * 12)); // 5분 간격 예측
 
     const results: Record<
       string,
@@ -183,21 +226,56 @@ const predictTrendsTool = tool(
       }
     > = {};
 
+    let usedEngine: 'rust' | 'typescript' = 'typescript';
+
     for (const metric of targetMetrics) {
       const currentValue = server[metric];
-      const history = toTrendDataPoints(
-        generateSimulatedHistory(currentValue, 12)
-      );
-      const prediction = predictor.predictTrend(history, horizon);
+      const history = generateSimulatedHistory(currentValue, 12);
 
-      results[metric] = {
-        trend: prediction.trend,
-        currentValue,
-        predictedValue: Math.round(prediction.prediction * 100) / 100,
-        changePercent:
-          Math.round(prediction.details.predictedChangePercent * 100) / 100,
-        confidence: Math.round(prediction.confidence * 100) / 100,
-      };
+      // Rust ML 서비스 우선 시도
+      const rustResult = await predictTrendRust({
+        values: history.map((h) => h.value),
+        forecast_steps: forecastSteps,
+      });
+
+      if (rustResult?.success && rustResult.predictions.length > 0) {
+        // Rust 결과 사용
+        usedEngine = 'rust';
+        const predictedValue =
+          rustResult.predictions[rustResult.predictions.length - 1] ??
+          currentValue;
+        const changePercent =
+          ((predictedValue - currentValue) / currentValue) * 100;
+
+        // Rust direction ('up'|'down'|'stable') → TypeScript ('increasing'|'decreasing'|'stable')
+        const trendMap: Record<string, string> = {
+          up: 'increasing',
+          down: 'decreasing',
+          stable: 'stable',
+        };
+
+        results[metric] = {
+          trend: trendMap[rustResult.trend.direction] || 'stable',
+          currentValue,
+          predictedValue: Math.round(predictedValue * 100) / 100,
+          changePercent: Math.round(changePercent * 100) / 100,
+          confidence: Math.round(rustResult.trend.confidence * 100) / 100,
+        };
+      } else {
+        // TypeScript 폴백
+        const predictor = getTrendPredictor();
+        const trendHistory = toTrendDataPoints(history);
+        const prediction = predictor.predictTrend(trendHistory, horizon);
+
+        results[metric] = {
+          trend: prediction.trend,
+          currentValue,
+          predictedValue: Math.round(prediction.prediction * 100) / 100,
+          changePercent:
+            Math.round(prediction.details.predictedChangePercent * 100) / 100,
+          confidence: Math.round(prediction.confidence * 100) / 100,
+        };
+      }
     }
 
     const increasingMetrics = Object.entries(results)
@@ -216,6 +294,7 @@ const predictTrendsTool = tool(
       },
       timestamp: new Date().toISOString(),
       _algorithm: 'Linear Regression with R² confidence',
+      _engine: usedEngine,
     };
   },
   {
