@@ -28,7 +28,9 @@ export const LazyAIWorkspace = (props: Record<string, unknown>) => (
   </Suspense>
 );
 
-export const LazyIntelligentMonitoringPage = (props: Record<string, unknown>) => (
+export const LazyIntelligentMonitoringPage = (
+  props: Record<string, unknown>
+) => (
   <Suspense fallback={<AILoadingFallback />}>
     <IntelligentMonitoringPage {...props} />
   </Suspense>
@@ -40,7 +42,9 @@ export const LazyAutoReportPage = (props: Record<string, unknown>) => (
   </Suspense>
 );
 
-export const LazyThinkingProcessVisualizer = (props: Record<string, unknown>) => (
+export const LazyThinkingProcessVisualizer = (
+  props: Record<string, unknown>
+) => (
   <Suspense fallback={<AILoadingFallback />}>
     <ThinkingProcessVisualizer {...props} />
   </Suspense>

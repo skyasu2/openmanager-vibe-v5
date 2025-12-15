@@ -1,0 +1,35 @@
+{
+  "name": "ai-engine",
+  "version": "1.0.0",
+  "description": "LangGraph Supervisor Engine for Cloud Run",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14",
+    "dotenv": "^16.4.7",
+    "@ai-sdk/google": "^2.0.43",
+    "@ai-sdk/groq": "^2.0.32",
+    "@ai-sdk/langchain": "^1.0.113",
+    "ai": "^5.0.102",
+    "@langchain/core": "^1.1.5",
+    "@langchain/google-genai": "^2.1.0",
+    "@langchain/groq": "^1.0.2",
+    "@langchain/langgraph": "^1.0.4",
+    "@langchain/langgraph-checkpoint-postgres": "^1.0.0",
+    "@langchain/langgraph-supervisor": "^1.0.0",
+    "pg": "^8.13.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
