@@ -5,19 +5,7 @@
  * "Cannot read properties of undefined (reading 'message')" 에러를 완전 근절
  */
 
-import { logError } from './logger';
-
-/**
- * 안전한 에러 객체 인터페이스
- */
-export interface SafeError {
-  message: string;
-  stack?: string;
-  code?: string;
-  name?: string;
-  details?: unknown;
-  originalError?: unknown;
-}
+import type { SafeError } from './types/error-types';
 
 /**
  * Window 타입 확장 (에러 핸들러 전용)
@@ -455,7 +443,7 @@ export async function safeApiCall<T>(
     return { success: true, data };
   } catch (error) {
     const safeError = createSafeError(error);
-    logError(`❌ ${errorContext} 실패`, error, 'api');
+    console.error(`❌ ${errorContext} 실패`, error);
 
     // 로딩 화면에서 API 에러가 발생해도 진행할 수 있도록
     if (typeof window !== 'undefined' && isLoadingRelatedError(error)) {
@@ -512,7 +500,7 @@ export async function withErrorRecovery<T>(
       lastError = createSafeError(error);
 
       if (i < maxRetries - 1 && shouldRetry(lastError)) {
-        logError(`🔄 재시도 ${i + 1}/${maxRetries}`, error, 'recovery');
+        console.error(`🔄 재시도 ${i + 1}/${maxRetries}`, error);
         onRetry?.(i + 2, lastError); // 다음 시도 번호 전달
 
         if (retryDelay > 0) {
@@ -542,7 +530,7 @@ export async function withErrorRecovery<T>(
     result.data = fallbackValue as T;
   }
 
-  logError('❌ 모든 재시도 실패', result.error, 'recovery');
+  console.error('❌ 모든 재시도 실패', result.error);
   return result;
 }
 

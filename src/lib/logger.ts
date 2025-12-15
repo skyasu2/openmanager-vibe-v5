@@ -3,8 +3,36 @@
  * 테스트용 console.log를 대체하는 구조화된 로깅
  */
 
-import type { SafeError } from './error-handler';
-import { createSafeError } from './error-handler';
+import type { SafeError } from './types/error-types';
+
+/**
+ * 안전한 에러 객체 생성
+ */
+function createSafeError(
+  error: unknown,
+  fallbackMessage = 'Unknown error'
+): SafeError {
+  if (error instanceof Error) {
+    return {
+      message: error.message || fallbackMessage,
+      stack: error.stack,
+      name: error.name,
+      originalError: error,
+    };
+  }
+
+  if (typeof error === 'string') {
+    return {
+      message: error || fallbackMessage,
+      originalError: error,
+    };
+  }
+
+  return {
+    message: fallbackMessage,
+    originalError: error,
+  };
+}
 
 export enum LogLevel {
   DEBUG = 0,
