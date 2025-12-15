@@ -1,6 +1,6 @@
 # ============================================================================
-# Cloud Build - Supabase MCP Bridge
-# Deploys to Cloud Run with IAM Authentication & HTTP/2
+# Cloud Build - Rust ML Inference Service
+# Deploys to Cloud Run with IAM Authentication
 # ============================================================================
 
 steps:
@@ -10,25 +10,25 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/supabase-mcp:$SHORT_SHA'
+      - 'gcr.io/$PROJECT_ID/rust-inference:$SHORT_SHA'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/supabase-mcp:latest'
+      - 'gcr.io/$PROJECT_ID/rust-inference:latest'
       - '.'
-    dir: 'cloud-run/supabase-mcp'
+    dir: 'cloud-run/rust-inference'
 
   # Step 2: Push to Container Registry
   - id: 'push-image'
     name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/supabase-mcp:$SHORT_SHA'
+      - 'gcr.io/$PROJECT_ID/rust-inference:$SHORT_SHA'
     waitFor: ['build-image']
 
   - id: 'push-latest'
     name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/supabase-mcp:latest'
+      - 'gcr.io/$PROJECT_ID/rust-inference:latest'
     waitFor: ['build-image']
 
   # Step 3: Deploy to Cloud Run
@@ -38,27 +38,25 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'supabase-mcp'
-      - '--image=gcr.io/$PROJECT_ID/supabase-mcp:$SHORT_SHA'
+      - 'rust-inference'
+      - '--image=gcr.io/$PROJECT_ID/rust-inference:$SHORT_SHA'
       - '--region=asia-northeast3'
       - '--platform=managed'
       - '--no-allow-unauthenticated'     # 🔒 IAM 인증 필수
-      # NOTE: --use-http2 제거됨 - @hono/node-server는 HTTP/1.1만 지원
-      - '--memory=512Mi'
+      - '--memory=256Mi'                 # Rust는 메모리 적게 사용
       - '--cpu=1'
-      - '--min-instances=0'               # 💰 Scale to Zero
-      - '--max-instances=2'
-      - '--timeout=60s'
-      - '--set-secrets=SUPABASE_URL=supabase-url:latest'
-      - '--set-secrets=SUPABASE_SERVICE_ROLE_KEY=supabase-service-role-key:latest'
+      - '--min-instances=0'              # 💰 Scale to Zero
+      - '--max-instances=3'
+      - '--timeout=30s'                  # ML 추론은 빠름
+      - '--concurrency=80'               # Rust는 높은 동시성 처리 가능
     waitFor: ['push-image']
 
-# Build timeout
-timeout: '600s'
+# Build timeout (Rust 빌드는 시간 소요)
+timeout: '900s'
 
 # Required images
 images:
-  - 'gcr.io/$PROJECT_ID/supabase-mcp:$SHORT_SHA'
-  - 'gcr.io/$PROJECT_ID/supabase-mcp:latest'
+  - 'gcr.io/$PROJECT_ID/rust-inference:$SHORT_SHA'
+  - 'gcr.io/$PROJECT_ID/rust-inference:latest'
 
 # Note: Region is hardcoded to asia-northeast3 in deploy step

@@ -1,0 +1,19 @@
+# Build artifacts
+target/
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Documentation
+*.md
+LICENSE
+
+# CI/CD
+cloudbuild.yaml
