@@ -24,7 +24,7 @@ export default function AnalysisTab({
   onStartAnalysis,
   onResetAnalysis,
 }: AnalysisTabProps) {
-  const [workflowSteps, setWorkflowSteps] = useState(defaultWorkflowSteps);
+  const [_workflowSteps, _setWorkflowSteps] = useState(defaultWorkflowSteps);
 
   return (
     <div className="space-y-6">
@@ -51,8 +51,8 @@ export default function AnalysisTab({
       />
 
       {analysisResult && (
-        <MonitoringResults 
-          result={analysisResult} 
+        <MonitoringResults
+          result={analysisResult}
           error={null}
           getSeverityColor={() => 'text-blue-600'}
         />
