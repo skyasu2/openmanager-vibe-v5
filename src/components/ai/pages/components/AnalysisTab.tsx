@@ -48,7 +48,15 @@ export default function AnalysisTab({
       <div className="mb-6">
         <button
           onClick={() =>
-            onStartAnalysis({ message: 'Start analysis', serverId: 'default' })
+            onStartAnalysis({ 
+              serverId: 'default',
+              analysisDepth: 'standard',
+              includeSteps: {
+                anomalyDetection: true,
+                rootCauseAnalysis: true,
+                predictiveMonitoring: true
+              }
+            })
           }
           disabled={isAnalyzing}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
