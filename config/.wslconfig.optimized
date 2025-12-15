@@ -1,0 +1,38 @@
+###############################################
+# OpenManager VIBE v5 WSL2 설정 (8코어 최적화) #
+###############################################
+# 경로: %USERPROFILE%\.wslconfig
+# 목적: 8코어 환경 최적화
+
+[wsl2]
+# 메모리: 20GB 유지 (개발 환경 최적화)
+memory=20GB
+
+# CPU: 8코어 최적화 (실제 코어 수에 맞춤)
+processors=8
+
+# 스왑: 4GB 유지
+swap=4GB
+swapFile=D:\\wsl-swap.vhdx
+
+# 네트워크 최적화
+localhostForwarding=true
+debugConsole=false
+
+[experimental]
+# 메모리 최적화
+autoMemoryReclaim=gradual
+sparseVhd=true
+
+# DNS 최적화
+dnsTunneling=true
+autoProxy=true
+
+###############################################
+# 8코어 최적화 포인트
+###############################################
+# - Node.js 빌드: 8개 워커 프로세스
+# - Next.js 컴파일: 병렬 처리 최적화
+# - AI 도구: 동시 실행 가능
+# - 메모리: 코어당 2.5GB 할당
+###############################################

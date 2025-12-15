@@ -28,7 +28,7 @@ import {
 } from '@/services/langgraph/multi-agent-supervisor';
 import { quickFilter, quickSanitize } from './security';
 
-// Allow streaming responses up to 60 seconds
+// Allow streaming responses up to 60 seconds (Vercel Hobby/Pro max duration)
 export const maxDuration = 60;
 
 // ============================================================================

@@ -112,6 +112,11 @@ export function getGuestMode(): GuestModeType {
  * @returns false: 게스트 접근 제한 (기본값)
  */
 export function isGuestFullAccessEnabled(): boolean {
+  // 🛠️ 테스트/진단용 강제 활성화 플래그
+  if (parseGuestBooleanFlag(process.env.NEXT_PUBLIC_FORCE_SHOW_AI)) {
+    return true;
+  }
+
   return getGuestMode() === GUEST_MODE.FULL_ACCESS;
 }
 
