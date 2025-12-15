@@ -45,10 +45,15 @@ export default function AnalysisTab({
         </div>
       </div>
 
-      <MonitoringWorkflow
-        onStartAnalysis={onStartAnalysis}
-        isAnalyzing={isAnalyzing}
-      />
+      <div className="mb-6">
+        <button
+          onClick={() => onStartAnalysis({ query: 'Start analysis', serverId: 'default' })}
+          disabled={isAnalyzing}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          {isAnalyzing ? 'Analyzing...' : 'Start Analysis'}
+        </button>
+      </div>
 
       {analysisResult && (
         <MonitoringResults
