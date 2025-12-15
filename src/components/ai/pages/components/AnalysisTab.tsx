@@ -46,14 +46,16 @@ export default function AnalysisTab({
       </div>
 
       <MonitoringWorkflow
-        steps={workflowSteps}
-        onStepsChange={setWorkflowSteps}
         onStartAnalysis={onStartAnalysis}
         isAnalyzing={isAnalyzing}
       />
 
       {analysisResult && (
-        <MonitoringResults result={analysisResult} isLoading={isAnalyzing} />
+        <MonitoringResults 
+          result={analysisResult} 
+          error={null}
+          getSeverityColor={() => 'text-blue-600'}
+        />
       )}
     </div>
   );
