@@ -3,9 +3,7 @@
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import MonitoringResults from '@/components/ai/MonitoringResults';
-import MonitoringWorkflow, {
-  defaultWorkflowSteps,
-} from '@/components/ai/MonitoringWorkflow';
+import { defaultWorkflowSteps } from '@/components/ai/MonitoringWorkflow';
 import type {
   ExtendedIntelligentAnalysisResult,
   IntelligentAnalysisRequest,
