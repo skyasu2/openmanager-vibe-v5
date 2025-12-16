@@ -6,6 +6,42 @@
 
 ## 🔄 진행 중 - 2025년 12월
 
+### 🤖 **Jules 비동기 분석 작업** (2025-12-16)
+
+| Task | 설명 | Session ID | 상태 | GitHub 링크 |
+|------|------|------------|------|-------------|
+| **AI Assistant 분석** | AI 기능 문제점/개선점 식별 | `16899376793873003929` | 🟡 Planning | [세션](https://jules.google.com/session/16899376793873003929) |
+| **Docs-Code 일치성** | 문서-코드 구성 일치 검증 | `6933166739563359596` | 🟡 Planning | [세션](https://jules.google.com/session/6933166739563359596) |
+| **테스트 커버리지** | 테스트 갭 분석 및 개선점 | `1205820339851154725` | 🟡 Planning | [세션](https://jules.google.com/session/1205820339851154725) |
+
+#### **분석 범위**
+```
+Task 1: AI Assistant 분석
+├── src/app/api/ai/ - API routes
+├── src/components/ai/ - AI 컴포넌트
+└── src/domains/ai-sidebar/ - AI 사이드바
+
+Task 2: Docs-Code 일치성
+├── docs/core/ - 아키텍처, AI, 성능, 보안
+├── docs/development/ - 개발 가이드, MCP, 테스팅
+└── CLAUDE.md, README.md - 루트 문서
+※ 제외: logs/, archive/, *-report.md
+
+Task 3: 테스트 커버리지
+├── config/testing/ - Vitest 설정
+├── tests/ - 테스트 파일 (569개)
+└── playwright.config.ts - E2E 설정
+```
+
+#### **결과 확인 명령어**
+```bash
+jules remote list --session              # 전체 상태 확인
+jules remote pull --session <ID>         # 결과 가져오기
+jules remote pull --session <ID> --apply # 패치 적용
+```
+
+---
+
 ### 🏗️ **Cloud Run 마이그레이션 후속 작업**
 
 | 작업 | 설명 | 우선순위 | 목표일 | 상태 |
