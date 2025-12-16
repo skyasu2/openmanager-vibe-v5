@@ -47,7 +47,7 @@ export const AGENT_MODEL_CONFIG = {
   },
   analyst: {
     provider: 'google' as const,
-    model: AI_MODELS.PRO as GeminiModel,
+    model: AI_MODELS.FLASH as GeminiModel, // Changed from PRO (100 RPD) to FLASH (500 RPD) for better free tier usage
     temperature: 0.2,
     maxOutputTokens: 2048,
   },

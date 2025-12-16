@@ -2,18 +2,20 @@
 
 ## Overview
 
-The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running directly on **Vercel Edge**.
+The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.82.0)
+## Architecture (v5.83.0)
 
 ### Deployment Mode
 
 | Mode | Backend | Status |
 |------|---------|--------|
-| **Vercel** | `src/services/langgraph/` (Next.js) | ✅ Active (Primary) |
-| ~~Cloud Run~~ | ~~`cloud-run/ai-backend/`~~ | ❌ Removed (2025-12-14) |
+| **Cloud Run** | `cloud-run/ai-engine/` (LangGraph) | ✅ Active (Primary) |
+| **Cloud Run** | `cloud-run/rust-inference/` (ML) | ✅ Active |
+| **Vercel** | `src/app/` (Next.js Frontend) | ✅ Active (Frontend Only) |
+| ~~Cloud Run~~ | ~~`cloud-run/supabase-mcp/`~~ | ❌ Deprecated |
 
-> **Note**: Cloud Run ai-backend was removed as redundant. LangGraph runs directly on Vercel with full functionality. Cloud Run is reserved for Supabase MCP Bridge (`cloud-run/supabase-mcp/`).
+> **Note**: LangGraph was migrated from Vercel to Cloud Run (2025-12-16) due to Edge response issues. Vercel now serves the Next.js frontend only, while Cloud Run handles all AI processing. Supabase MCP Bridge is deprecated (direct Supabase JS client used instead).
 
 ### Agent Stack
 
@@ -21,7 +23,7 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 |-------|-------|------|-------|
 | **Supervisor** | Groq `llama-3.1-8b-instant` | Intent classification & routing | - |
 | **NLQ Agent** | Gemini 2.5 Flash | Server metrics queries | `getServerMetrics` |
-| **Analyst Agent** | Gemini 2.5 Pro | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
+| **Analyst Agent** | Gemini 2.5 Flash | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
 | **Reporter Agent** | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG), `recommendCommands` |
 
 ### Key Features
@@ -47,8 +49,12 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 graph TD
     Client[Client UI] -->|POST /api/ai/unified-stream| API[Next.js API Route]
 
-    subgraph "Vercel (Next.js)"
-        API --> Supervisor[Supervisor Agent]
+    subgraph "Vercel (Frontend)"
+        API -->|Proxy| CloudRun
+    end
+
+    subgraph "Google Cloud Run"
+        CloudRun[AI Engine] --> Supervisor[Supervisor Agent]
 
         Supervisor -->|Simple Query| NLQ[NLQ Agent]
         Supervisor -->|Pattern Analysis| Analyst[Analyst Agent]
@@ -62,6 +68,10 @@ graph TD
         Reporter -->|Critical Action| Approval{Approval Check}
         Approval -->|Approved| Response[Response]
         Approval -->|Pending| Interrupt[Human Interrupt]
+
+        Analyst -->|ML Request| RustML[Rust Inference]
+        RustML -->|Anomaly Detection| Analyst
+        RustML -->|Trend Prediction| Analyst
     end
 
     subgraph "Data Layer"
@@ -205,42 +215,65 @@ d:{"finishReason":"stop"}
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GOOGLE_AI_API_KEY` | Yes | Gemini 2.5 API key |
+| `GOOGLE_AI_API_KEY` | Yes | Gemini 2.5 API key (Primary) |
+| `GOOGLE_AI_API_KEY_SECONDARY` | Yes | Gemini 2.5 API key (Round-robin) |
 | `GROQ_API_KEY` | Yes | Groq (Llama) API key |
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
+| `CLOUD_RUN_AI_ENGINE_URL` | Yes | Cloud Run AI Engine endpoint |
+| `CLOUD_RUN_SECRET` | Yes | Cloud Run service auth secret |
 
 ## File Structure
 
 ```
-# LangGraph Multi-Agent (Vercel)
-src/services/langgraph/
-├── graph-builder.ts        # StateGraph assembly + HITL
-├── state-definition.ts     # AgentState + DelegationRequest
-├── checkpointer.ts         # Supabase PostgresSaver
-└── agents/
-    ├── supervisor.ts       # Routing + delegation handling
-    ├── nlq-agent.ts        # Metrics queries
-    ├── analyst-agent.ts    # Pattern analysis + anomaly
-    └── reporter-agent.ts   # Incident reports + HITL trigger
+# Cloud Run Services (Primary Backend)
+cloud-run/
+├── ai-engine/              # LangGraph Supervisor Engine
+│   ├── src/server.ts       # Hono HTTP server
+│   ├── src/graph/          # LangGraph StateGraph
+│   │   ├── graph-builder.ts
+│   │   ├── state-definition.ts
+│   │   └── agents/
+│   └── package.json        # @langchain/langgraph, ai-sdk
+│
+└── rust-inference/         # ML Support Service (Axum)
+    ├── src/main.rs         # Anomaly detection, Trend prediction
+    └── Cargo.toml          # axum, tokio, serde
 
-# Next.js API Routes
+# Vercel Frontend
 src/app/api/ai/
-├── unified-stream/route.ts # Main AI endpoint
+├── unified-stream/route.ts # Proxy to Cloud Run AI Engine
 └── approval/route.ts       # HITL approval endpoint
 
-# Cloud Run (Supabase MCP Only)
-cloud-run/supabase-mcp/     # Database MCP Bridge
-└── src/index.ts            # Hono server for Supabase tools
+# Legacy (Deprecated - kept for reference)
+src/services/langgraph/     # Old Vercel-based LangGraph (superseded by cloud-run/ai-engine/)
+cloud-run/supabase-mcp/     # Deprecated - direct Supabase JS client used instead
 ```
 
 ## Deprecated Components
 
 | Component | Status | Replacement |
 |-----------|--------|-------------|
-| `cloud-run/ai-backend/` | Removed (2025-12-14) | `src/services/langgraph/` |
+| `src/services/langgraph/` (Vercel) | Deprecated (2025-12-16) | `cloud-run/ai-engine/` |
+| `cloud-run/supabase-mcp/` | Deprecated (2025-12-16) | Direct Supabase JS client |
+| GCP VM | Removed (2025-12-16) | Cloud Run |
 | `/api/ai/query` | Removed | `/api/ai/unified-stream` |
 | Python Unified Processor | Removed | TypeScript LangGraph agents |
-| GCP Cloud Functions | Removed | Vercel Edge |
-| `ml-analytics-engine` | Removed | Analyst Agent (Gemini 2.5 Pro) |
+| GCP Cloud Functions | Removed | Cloud Run |
+| `ml-analytics-engine` (Python) | Removed | `cloud-run/rust-inference/` |
 | `SmartRoutingEngine` | Removed | LangGraph Supervisor Agent |
+
+## Cloud Run Services
+
+### ai-engine (LangGraph)
+
+- **Runtime**: Node.js 22 + Hono
+- **Framework**: LangGraph StateGraph, Vercel AI SDK
+- **Models**: Groq Llama 8b (Supervisor), Gemini 2.5 Flash/Pro (Agents)
+- **Endpoint**: `https://ai-engine-xxxxx.run.app`
+
+### rust-inference (ML)
+
+- **Runtime**: Rust + Axum
+- **Features**: Anomaly Detection (Moving Average + 2σ), Trend Prediction (Linear Regression)
+- **Endpoint**: `https://rust-inference-xxxxx.run.app`
