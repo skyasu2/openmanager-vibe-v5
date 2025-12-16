@@ -1,0 +1,37 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Logs
+npm-debug.log
+*.log
+build_*.log
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Git
+.git
+.gitignore
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+
+# GCloud
+.gcloudignore
+cloudbuild.yaml
+
+# Documentation
+*.md
+
+# Data (will be loaded at runtime)
+data/
