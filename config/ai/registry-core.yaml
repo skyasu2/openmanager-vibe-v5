@@ -2,9 +2,9 @@
 # 핵심 정보만 포함, 상세 내역은 별도 문서 참조
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
-version: "2.6.0"  # registry-core 버전 (v2.6.0: LangGraph 마이그레이션, ML 제거, MCP 환경 구분)
-last_updated: "2025-12-14"
-project: "OpenManager VIBE v5.80.0"
+version: "2.7.0"  # registry-core 버전 (v2.7.0: Jules 비동기 코딩 에이전트 추가)
+last_updated: "2025-12-16"
+project: "OpenManager VIBE v5.82.0"
 
 # ============================================================================
 # 0. AI Architecture Overview (v5.0 - LangGraph Multi-Agent)
@@ -55,6 +55,21 @@ ai-tools:
     current_version: "v1.20.0"
     status: "✅ Active (Manual Usage)"
     role: "Terminal multi-agent orchestrator (chat/agent/doctor/settings)"
+
+  jules:
+    current_version: "latest"  # @google/jules (npm)
+    wrapper_version: "v1.0.0"
+    status: "✅ Active (Google AI Pro)"
+    role: "Async autonomous coding - 대형 작업 백그라운드 실행"
+    limits: "100 tasks/day, 15 concurrent (Pro plan)"
+    best_for:
+      - "테스트 일괄 생성"
+      - "리팩토링"
+      - "버그 수정 (복잡한 케이스)"
+      - "제한된 범위의 기능 개발"
+    not_for:
+      - "간단한 수정 (Claude Code가 더 빠름)"
+      - "실시간 피드백 필요한 작업"
 
 # 상세 정보: config/ai/changelog.yaml 참조
 
@@ -145,6 +160,9 @@ quick_commands:
   mcp_health: "./scripts/mcp/mcp-health-check.sh"
   codex_review: 'codex exec "[review request]"'
   token_usage: "npx ccusage@latest"
+  jules_new: 'jules new "task description"'  # 비동기 작업 생성
+  jules_list: "jules remote list --session"  # 활성 세션 목록
+  jules_pull: "jules remote pull --session ID --apply"  # 결과 가져오기
 
 maintenance_frequency:
   mcp_health: "주 1회 (월요일)"
