@@ -102,7 +102,8 @@ function generateLogs(
       `[INFO] Access log rotation completed`,
     ];
     // 랜덤하게 1개 선택
-    logs.push(normalLogs[Math.floor(Math.random() * normalLogs.length)]);
+    const randomLog = normalLogs[Math.floor(Math.random() * normalLogs.length)];
+    if (randomLog) logs.push(randomLog);
   }
 
   return logs;

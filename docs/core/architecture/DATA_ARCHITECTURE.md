@@ -109,7 +109,7 @@ import { getDataAtMinute } from '@/data/fixed-24h-metrics';
 ### 서버 데이터 관련 기능 추가 시
 
 - [ ] **1단계**: `fixed-24h-metrics.ts`에 로직 추가 가능한지 확인
-- [ ] **2단계**: AI가 필요한 데이터라면 `seed-logs-supabase.ts` 실행하여 DB 동기화
+- [ ] **2단계**: AI가 필요한 데이터라면 `src/scripts/seed-logs-supabase-standalone.ts` 실행하여 DB 동기화
 - [ ] **3단계**: ML이 필요한 데이터라면 `npm run generate:rust-data` 실행하여 JSON 갱신
 - [ ] **4단계**: 내부 서비스가 Vercel API를 호출하지 않는지 확인
 

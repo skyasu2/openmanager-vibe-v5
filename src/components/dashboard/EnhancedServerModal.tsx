@@ -52,7 +52,7 @@ export default function EnhancedServerModal({
   const [isRealtime, setIsRealtime] = useState(true);
 
   // 🕒 Fixed 24h Metrics Hook (Client & AI Synchronization)
-  const { currentMetrics, historyData, logs } = useFixed24hMetrics(
+  const { currentMetrics, historyData } = useFixed24hMetrics(
     server?.id || '',
     3000 // 3초 주기 업데이트
   );
@@ -177,19 +177,28 @@ export default function EnhancedServerModal({
           ),
           pid: 1000 + i,
         })) || [],
-      logs: logs.map((msg) => ({
-        timestamp: new Date().toISOString(),
-        level:
-          msg.includes('[CRITICAL]') || msg.includes('[ERROR]')
-            ? 'error'
-            : msg.includes('[WARN]')
-              ? 'warn'
-              : 'info',
-        message: msg,
-        source: 'System',
-      })),
+      logs: (() => {
+        const logMessages: string[] = [];
+        const cpu = currentMetrics?.cpu || 0;
+        const memory = currentMetrics?.memory || 0;
+        if (cpu > 80)
+          logMessages.push(`[WARN] High CPU load: ${cpu.toFixed(1)}%`);
+        if (memory > 85)
+          logMessages.push(
+            `[WARN] Available memory low: ${(100 - memory).toFixed(1)}% free`
+          );
+        if (logMessages.length === 0) {
+          logMessages.push('[INFO] System operating normally');
+        }
+        return logMessages.map((msg) => ({
+          timestamp: new Date().toISOString(),
+          level: msg.includes('[WARN]') ? ('warn' as const) : ('info' as const),
+          message: msg,
+          source: 'System',
+        }));
+      })(),
     };
-  }, [historyData, logs, safeServer, currentMetrics]);
+  }, [historyData, safeServer, currentMetrics]);
 
   // 📊 탭 구성 최적화
   const tabs: TabInfo[] = [

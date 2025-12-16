@@ -89,7 +89,8 @@ function generateLogs(serverId: string, serverType: string, cpu: number, memory:
   if (network > 80) logs.push(`[WARN] Network interface eth0 saturation: ${network.toFixed(1)}%`);
   if (logs.length === 0) {
     const normalLogs = [`[INFO] Health check passed - latency 4ms`, `[INFO] Job scheduler active, 0 pending jobs`, `[INFO] Database connection pool stable (active: 12, idle: 48)`, `[INFO] System metrics collection successful`, `[INFO] Access log rotation completed`];
-    logs.push(normalLogs[Math.floor(Math.random() * normalLogs.length)]);
+    const randomLog = normalLogs[Math.floor(Math.random() * normalLogs.length)];
+    if (randomLog) logs.push(randomLog);
   }
   return logs;
 }
