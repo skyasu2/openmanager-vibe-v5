@@ -57,19 +57,20 @@ ai-tools:
     role: "Terminal multi-agent orchestrator (chat/agent/doctor/settings)"
 
   jules:
-    current_version: "latest"  # @google/jules (npm)
-    wrapper_version: "v1.0.0"
+    current_version: "latest"  # jules.google (GitHub 통합)
     status: "✅ Active (Google AI Pro)"
-    role: "Async autonomous coding - 대형 작업 백그라운드 실행"
+    role: "Async autonomous coding agent - GitHub 연동 자율 코딩"
+    workflow: "계획(plan) → 실행 → diff 제공 → PR 생성"
     limits: "100 tasks/day, 15 concurrent (Pro plan)"
     best_for:
-      - "테스트 일괄 생성"
-      - "리팩토링"
-      - "버그 수정 (복잡한 케이스)"
-      - "제한된 범위의 기능 개발"
+      - "버그 수정 (Bug Fixing)"
+      - "테스트 생성 / 문서 보완"
+      - "기능 추가 / 리팩토링"
+      - "의존성 업데이트 / 버전 업그레이드"
     not_for:
       - "간단한 수정 (Claude Code가 더 빠름)"
       - "실시간 피드백 필요한 작업"
+    security: "Google Cloud VM 격리 실행, 코드 학습 미사용"
 
 # 상세 정보: config/ai/changelog.yaml 참조
 
@@ -160,9 +161,9 @@ quick_commands:
   mcp_health: "./scripts/mcp/mcp-health-check.sh"
   codex_review: 'codex exec "[review request]"'
   token_usage: "npx ccusage@latest"
-  jules_new: 'jules new "task description"'  # 비동기 작업 생성
-  jules_list: "jules remote list --session"  # 활성 세션 목록
-  jules_pull: "jules remote pull --session ID --apply"  # 결과 가져오기
+  jules_new: 'jules new "task description"'  # 작업 할당 → 배경 실행
+  jules_list: "jules list"                   # 활성 작업 목록
+  jules_show: "jules show <task-id>"         # 결과 확인 (plan + diff)
 
 maintenance_frequency:
   mcp_health: "주 1회 (월요일)"

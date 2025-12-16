@@ -40,10 +40,11 @@ Tab 키 토글 | Token Budget: think(4K) < think hard(10K) < ultrathink(32K)
 @vercel "배포 상태 확인"       # Vercel만 활성화
 @figma "디자인 코드 생성"      # Figma만 활성화 (6회/월 한도 주의!)
 
-# Jules (비동기 대형 작업) - Google AI Pro 포함
-jules new "테스트 일괄 생성"    # 백그라운드 실행 → PR 생성
-jules remote list --session    # 활성 세션 확인
-jules remote pull --session ID --apply  # 결과 적용
+# Jules (비동기 자율 코딩 에이전트) - GitHub 통합
+# 워크플로우: 계획(plan) → 실행 → diff 제공 → PR 생성
+jules new "버그 수정/테스트 생성"  # 작업 할당 → 배경 실행
+jules list                        # 활성 작업 목록
+jules show <task-id>              # 작업 결과 확인 (plan + diff)
 
 # 버전 관리 (standard-version)
 npm run release:patch         # 버그 수정 (fix:)
@@ -152,9 +153,9 @@ git push --follow-tags        # 태그와 함께 푸시
 |------|------|----------|------|
 | **Claude Code** | 실시간 개발 | 동기 (실시간) | 구독 |
 | **Codex/Gemini/Qwen** | 코드 리뷰 | 동기 (3-AI 순환) | 무제한 |
-| **Jules** | 대형 작업 (테스트/리팩토링) | **비동기 (백그라운드)** | 100/일 (Pro) |
+| **Jules** | 버그 수정/테스트/리팩토링/업그레이드 | **비동기 (GitHub PR)** | 100/일 (Pro) |
 
-**Jules 활용 원칙**: 대형 작업은 Jules로 백그라운드 실행 → Claude Code로 다른 작업 계속
+**Jules 특징**: GitHub 연동 자율 코딩 에이전트 (계획→실행→diff→PR), Google Cloud VM 격리 실행
 
 ---
 
