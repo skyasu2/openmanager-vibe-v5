@@ -25,9 +25,9 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { memo, useMemo, useRef, useState } from 'react';
+import { AIDebugPanel } from '../../domains/ai-sidebar/components/AIDebugPanel';
 import { AIFunctionPages } from '../../domains/ai-sidebar/components/AIFunctionPages';
 import { EnhancedAIChat } from '../../domains/ai-sidebar/components/EnhancedAIChat';
-import { AIDebugPanel } from '../../domains/ai-sidebar/components/AIDebugPanel';
 import type { AIThinkingStep } from '../../domains/ai-sidebar/types/ai-sidebar-types';
 import type { EnhancedChatMessage } from '../../stores/useAISidebarStore';
 import { OpenManagerLogo } from '../shared/OpenManagerLogo';
@@ -429,10 +429,11 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                       Production
                     </span>
                   </div>
+                </div>
               </div>
-              
+
               <div className="mt-6 border-t border-gray-200 pt-6">
-                 <AIDebugPanel />
+                <AIDebugPanel />
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Activity, Play, RefreshCw, Zap } from 'lucide-react';
+import { Activity, Play, Zap } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
@@ -19,7 +19,7 @@ export function AIDebugPanel() {
       } else {
         toast.error(`Wake-up failed: ${data.error}`);
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error('Network error sending wake-up');
     } finally {
       setLoading(false);
@@ -33,7 +33,7 @@ export function AIDebugPanel() {
       const start = Date.now();
       const res = await fetch('/api/ai/health');
       const data = await res.json();
-      
+
       if (res.ok && data.status === 'ok') {
         setStatus('ok');
         setLatency(data.latency || Date.now() - start);
@@ -42,7 +42,7 @@ export function AIDebugPanel() {
         setStatus('error');
         toast.error(`Health Check Failed: ${data.error || 'Unknown error'}`);
       }
-    } catch (err) {
+    } catch (_err) {
       setStatus('error');
       toast.error('Network error checking health');
     } finally {
@@ -57,7 +57,6 @@ export function AIDebugPanel() {
         AI Engine Controls (Debug)
       </h4>
       <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 space-y-3 shadow-sm">
-        
         {/* Controls */}
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -70,7 +69,7 @@ export function AIDebugPanel() {
             <Play className="h-3.5 w-3.5 text-green-600" />
             Start
           </button>
-          
+
           <button
             onClick={handleHealthCheck}
             disabled={loading}
@@ -87,7 +86,9 @@ export function AIDebugPanel() {
         <div className="flex items-center justify-between pt-1 border-t border-amber-100">
           <span className="text-xs text-gray-500">System Status:</span>
           <div className="flex items-center gap-2">
-            {status === 'idle' && <span className="text-xs text-gray-400">Unknown</span>}
+            {status === 'idle' && (
+              <span className="text-xs text-gray-400">Unknown</span>
+            )}
             {status === 'ok' && (
               <span className="flex items-center gap-1 text-xs font-bold text-green-600">
                 <span className="relative flex h-2 w-2">
@@ -105,7 +106,6 @@ export function AIDebugPanel() {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
