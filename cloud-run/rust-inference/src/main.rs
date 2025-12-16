@@ -37,6 +37,7 @@ async fn main() {
         // ML inference endpoints
         .route("/api/anomaly", post(handlers::inference::detect_anomaly))
         .route("/api/trend", post(handlers::inference::predict_trend))
+        .route("/api/clustering", post(handlers::clustering::handle_clustering))
         // Middleware
         .layer(TraceLayer::new_for_http())
         .layer(cors);

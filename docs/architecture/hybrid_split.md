@@ -25,6 +25,15 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
   - **Heavy Computation**: Handles long-running tasks (up to 60 mins) that would timeout on Vercel (60s limit).
   - **Streaming**: Streams tokens back to Vercel.
 
+### 3. Google Cloud Run (Rust ML Service)
+**Role**: The "Mathematician"
+- **Hosting**: Docker Container (Rust + Axum)
+- **Responsibilities**:
+  - **Statistical Analysis**: Anomaly detection (26h moving avg).
+  - **Machine Learning**: K-Means clustering for logs via `linfa`.
+  - **Trend Prediction**: Quick linear regression for metrics.
+- **Why Rust?**: Extremely low latency (<10ms) and memory footprint for heavy math operations.
+
 ---
 
 ## 🔄 Request Flow
@@ -40,6 +49,7 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
 4. **Cloud Run**:
    - Receives request.
    - `LangGraph` processes the intent.
+   - **(Optional)** Calls `Rust ML Service` for pattern analysis.
    - Streams response back to Vercel.
 5. **Vercel**:
    - Pipes the stream to the User's browser.

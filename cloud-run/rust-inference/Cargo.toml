@@ -21,6 +21,14 @@ tower-http = { version = "0.6", features = ["cors", "trace"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
+# Math & ML
+linfa = "0.7"
+linfa-clustering = "0.7"
+linfa-nn = "0.7"
+linfa-linalg = "0.1"
+ndarray = "0.15"
+ndarray-rand = "0.14"
+
 [profile.release]
 opt-level = 3
 lto = true

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  ai-engine:
+    build:
+      context: ./ai-engine
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - RUST_ML_SERVICE_URL=http://rust-inference:8080
+      - CLOUD_RUN_API_SECRET=${CLOUD_RUN_API_SECRET:-test-secret}
+      # Make sure to set these in your local environment or .env file
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
+      - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    depends_on:
+      - rust-inference
+    networks:
+      - vibe-network
+
+  rust-inference:
+    build:
+      context: ./rust-inference
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - PORT=8080
+      - RUST_LOG=info
+    networks:
+      - vibe-network
+
+networks:
+  vibe-network:
+    driver: bridge

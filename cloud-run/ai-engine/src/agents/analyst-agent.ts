@@ -14,6 +14,7 @@ import {
   getTrendPredictor,
   type TrendDataPoint,
 } from '../lib/ai/monitoring/TrendPredictor';
+import { clusterLogsRust } from '../lib/rust-ml-client';
 import { AgentExecutionError, getErrorMessage } from '../lib/errors';
 import { getAnalystModel } from '../lib/model-config';
 
@@ -86,6 +87,21 @@ type PatternResult =
       _mode: string;
     }
   | { success: false; message: string };
+
+type ClusteringResult =
+  | {
+      success: true;
+      serverId: string;
+      totalLogs: number;
+      clusterCount: number;
+      clusters: Array<{
+        id: number;
+        size: number;
+        representative: string;
+      }>;
+      _engine: string;
+    }
+  | { success: false; error: string };
 
 // ============================================================================
 // 2. Utility Functions
@@ -383,6 +399,74 @@ export const analyzePatternTool = tool(
   }
 );
 
+export const clusterLogPatternsTool = tool(
+  async ({ serverId, limit = 50 }) => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return { success: false, error: 'Supabase credentials missing' };
+    }
+
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // 1. Fetch Logs
+      let query = supabase
+        .from('server_logs')
+        .select('message') // Just messages for clustering
+        .order('timestamp', { ascending: false })
+        .limit(limit);
+
+      if (serverId) {
+        query = query.eq('server_id', serverId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        return { success: false, error: 'No logs found to analyze' };
+      }
+
+      const logMessages = data.map((d) => d.message);
+
+      // 2. Call Rust ML Service (Linfa K-Means)
+      const clusterResult = await clusterLogsRust(logMessages);
+
+      if (!clusterResult) {
+        // Fallback or simple heuristics if Rust service fails
+        return { success: false, error: 'Clustering service unavailable' };
+      }
+
+      // 3. Format Result
+      return {
+        success: true,
+        serverId: serverId || 'ALL',
+        totalLogs: logMessages.length,
+        clusterCount: clusterResult.clusters.length,
+        clusters: clusterResult.clusters.map((c) => ({
+          id: c.id,
+          size: c.size,
+          representative: c.representative_log,
+        })),
+        _engine: 'rust-linfa-kmeans',
+      };
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
+  },
+  {
+    name: 'clusterLogPatterns',
+    description:
+      '최근 서버 로그의 패턴을 ML(K-Means)로 군집화하여 주요 이슈 그룹을 식별합니다',
+    schema: z.object({
+      serverId: z.string().optional().describe('분석할 서버 ID'),
+      limit: z.number().optional().default(50).describe('분석할 로그 개수'),
+    }),
+  }
+);
+
 function getPatternInsights(pattern: string): string {
   const insights: Record<string, string> = {
     system_performance:
@@ -399,7 +483,8 @@ function getPatternInsights(pattern: string): string {
 }
 
 // ... remaining node code ...
-type AnalysisIntent = 'anomaly' | 'trend' | 'pattern' | 'comprehensive';
+// ... remaining node code ...
+type AnalysisIntent = 'anomaly' | 'trend' | 'pattern' | 'log_cluster' | 'comprehensive';
 
 function detectAnalysisIntent(query: string): AnalysisIntent {
   const q = query.toLowerCase();
@@ -407,21 +492,18 @@ function detectAnalysisIntent(query: string): AnalysisIntent {
     /이상|anomaly|비정상|alert|경고|급증|급감|스파이크|spike|문제/i;
   const trendKeywords =
     /트렌드|trend|추세|예측|predict|forecast|앞으로|미래|증가|감소/i;
+  const logKeywords = /로그|log|군집|cluser|패턴|pattern|반복/i;
   const comprehensiveKeywords = /종합|전체|모든|상세|분석해|리포트|report/i;
 
   const hasAnomaly = anomalyKeywords.test(q);
   const hasTrend = trendKeywords.test(q);
+  const hasLog = logKeywords.test(q);
   const hasComprehensive = comprehensiveKeywords.test(q);
 
-  if (hasComprehensive || (hasAnomaly && hasTrend)) {
-    return 'comprehensive';
-  }
-  if (hasAnomaly) {
-    return 'anomaly';
-  }
-  if (hasTrend) {
-    return 'trend';
-  }
+  if (hasComprehensive) return 'comprehensive';
+  if (hasLog) return 'log_cluster';
+  if (hasAnomaly) return 'anomaly';
+  if (hasTrend) return 'trend';
   return 'pattern';
 }
 
@@ -457,6 +539,7 @@ export async function analystAgentNode(
     let anomalyResult: AnomalyResult | null = null;
     let trendResult: TrendResult | null = null;
     let patternResult: PatternResult | null = null;
+    let clusterResult: ClusteringResult | null = null;
 
     // Direct invocation logic for tools if needed, or use bindTools in a real agent node
     // Since this is just a function node, we CAN invoke tools directly.
@@ -488,6 +571,21 @@ export async function analystAgentNode(
       });
     }
 
+
+
+    if (intent === 'log_cluster' || intent === 'comprehensive') {
+      clusterResult = (await clusterLogPatternsTool.invoke({
+        serverId,
+        limit: 50,
+      })) as ClusteringResult;
+      toolResults.push({
+        toolName: 'clusterLogPatterns',
+        success: clusterResult.success, // @ts-ignore
+        data: clusterResult,
+        executedAt: new Date().toISOString(),
+      });
+    }
+
     patternResult = (await analyzePatternTool.invoke({
       query: userQuery,
     })) as PatternResult;
@@ -503,7 +601,8 @@ export async function analystAgentNode(
       intent,
       patternResult,
       anomalyResult,
-      trendResult
+      trendResult,
+      clusterResult
     );
 
     const response = await model.invoke([
@@ -553,7 +652,8 @@ function buildAnalysisPrompt(
   intent: AnalysisIntent,
   patternResult: unknown,
   anomalyResult: unknown | null,
-  trendResult: unknown | null
+  trendResult: unknown | null,
+  clusterResult: unknown | null
 ): string {
   let prompt = `당신은 OpenManager VIBE의 Analyst Agent입니다.
 서버 시스템 패턴을 분석하고 인사이트를 제공합니다.
@@ -578,6 +678,13 @@ ${JSON.stringify(anomalyResult, null, 2)}
   if (trendResult) {
     prompt += `## 트렌드 예측 결과 (선형 회귀)
 ${JSON.stringify(trendResult, null, 2)}
+
+`;
+  }
+
+  if (clusterResult) {
+    prompt += `## 로그 패턴 군집화 결과 (Linfa K-Means)
+${JSON.stringify(clusterResult, null, 2)}
 
 `;
   }

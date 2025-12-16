@@ -19,11 +19,20 @@ export interface RustTrendResult {
   prediction?: number;
 }
 
+export interface RustClusterResult {
+  clusters: Array<{
+    id: number;
+    size: number;
+    representative_log: string;
+    member_indices: number[];
+  }>;
+}
+
 export const detectAnomaliesRust = async (
   metrics: Record<string, number>
 ): Promise<RustAnomalyResult | null> => {
   try {
-    const response = await fetch(`${RUST_SERVICE_URL}/detect`, {
+    const response = await fetch(`${RUST_SERVICE_URL}/api/anomaly`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ metrics }),
@@ -41,7 +50,7 @@ export const predictTrendRust = async (
   data: number[]
 ): Promise<RustTrendResult | null> => {
   try {
-    const response = await fetch(`${RUST_SERVICE_URL}/predict`, {
+    const response = await fetch(`${RUST_SERVICE_URL}/api/trend`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data }),
@@ -49,6 +58,25 @@ export const predictTrendRust = async (
 
     if (!response.ok) return null;
     return (await response.json()) as RustTrendResult;
+  } catch (e) {
+    console.error('Rust ML Service Error:', e);
+    return null;
+  }
+};
+
+export const clusterLogsRust = async (
+  logs: string[]
+): Promise<RustClusterResult | null> => {
+  try {
+    const response = await fetch(`${RUST_SERVICE_URL}/api/clustering`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ logs, num_clusters: 5 }),
+    });
+
+    if (!response.ok) return null;
+    const json = await response.json();
+    return json.result as RustClusterResult;
   } catch (e) {
     console.error('Rust ML Service Error:', e);
     return null;
