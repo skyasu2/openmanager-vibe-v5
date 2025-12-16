@@ -135,11 +135,12 @@ npm run test     # Vitest (메인 설정)
 - **제한**: 60초 타임아웃, 메모리 제한
 - **향후 계획**: **Cloud Run 안정화 후 제거 예정**
 
-#### **API 키 상태** ✅
-- **Google AI Primary**: `AIzaSyCNKnp27rXOHvYwRyfUISeK4dOzajFFuRg` (정상)
-- **Google AI Secondary**: `AIzaSyCeCEKzNotbePqvjKwFScGQtc2kMf09Kjk` (정상)
-- **Groq**: `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` (정상)
+#### **API 키 상태** ⚠️ 키 교체 필요
+- **Google AI Primary**: 환경변수 `GOOGLE_AI_API_KEY` 참조
+- **Google AI Secondary**: 환경변수 `GOOGLE_AI_API_KEY_SECONDARY` 참조
+- **Groq**: 환경변수 `GROQ_API_KEY` 참조
 - **라운드로빈**: 무료티어 한도 내 2개 Google AI 키 순환 사용
+- **⚠️ 주의**: API 키는 절대 코드/문서에 하드코딩하지 말 것!
 | Qwen CLI                   | v0.4.0    | `QWEN.md`   |
 
 ## 📜 Codex 핵심 코딩 규칙 (Codex Coding Standards)
