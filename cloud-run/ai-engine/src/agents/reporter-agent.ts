@@ -1,51 +1,105 @@
 /**
  * Reporter Agent
  * 인시던트 리포트 및 RAG 기반 솔루션 검색 에이전트
+ *
+ * 무료 티어 준수:
+ * - Gemini text-embedding-004 (무료, 1,500 RPM)
+ * - Supabase pgvector 검색 (500MB 한도 내)
+ * - On-demand only - 백그라운드 작업 금지
  */
 
 import { AIMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { AgentExecutionError, getErrorMessage } from '../lib/errors';
+import { searchWithEmbedding } from '../lib/embedding';
 import { getReporterModel } from '../lib/model-config';
 import type {
   AgentStateType,
   PendingAction,
   ToolResult,
 } from '../lib/state-definition';
+import { getServerLogsTool, getServerMetricsTool } from './nlq-agent';
 
 // ============================================================================
 // 2. Tools Definition
 // ============================================================================
 
 export const searchKnowledgeBaseTool = tool(
-  async ({ query }) => {
-    // Stub implementation for Cloud Run migration
-    console.log(`🔍 [Reporter Agent] Stubbed RAG search for: ${query}`);
+  async ({ query, category, severity }) => {
+    console.log(`🔍 [Reporter Agent] RAG search for: ${query}`);
 
-    return {
-      success: true,
-      results: [
-        {
-          content:
-            '클라우드 마이그레이션 중에는 지식 베이스 검색 기능이 제한됩니다. 시스템 상태를 확인하고 로그를 분석하는 것을 권장합니다.',
-          similarity: 1.0,
-        },
-        {
-          content:
-            '일반적인 문제 해결 절차: 1. 로그 확인 2. 리소스 사용량 체크 3. 서비스 재시작',
-          similarity: 0.9,
-        },
-      ],
-      totalFound: 2,
-      _source: 'Migration Stub',
-    };
+    // Supabase 클라이언트 생성 (On-demand)
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.warn('⚠️ [Reporter Agent] Supabase credentials missing, using fallback');
+      return {
+        success: true,
+        results: [
+          {
+            id: 'fallback-1',
+            title: '기본 문제 해결 가이드',
+            content: '일반적인 문제 해결 절차: 1. 로그 확인 2. 리소스 사용량 체크 3. 서비스 재시작',
+            category: 'troubleshooting',
+            similarity: 0.8,
+          },
+        ],
+        totalFound: 1,
+        _source: 'Fallback (No Supabase)',
+      };
+    }
+
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // Gemini Embedding + Supabase pgvector 검색
+      const result = await searchWithEmbedding(supabase, query, {
+        similarityThreshold: 0.3,
+        maxResults: 5,
+        category: category || undefined,
+        severity: severity || undefined,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'RAG search failed');
+      }
+
+      return {
+        success: true,
+        results: result.results,
+        totalFound: result.results.length,
+        _source: 'Supabase pgvector + Gemini Embedding',
+      };
+    } catch (error) {
+      console.error('❌ [Reporter Agent] RAG search error:', error);
+
+      // 에러 시 기본 응답 반환 (서비스 중단 방지)
+      return {
+        success: true,
+        results: [
+          {
+            id: 'error-fallback',
+            title: '검색 오류 발생',
+            content: `검색 중 오류가 발생했습니다. 로그 및 메트릭 기반 분석을 진행합니다. 오류: ${String(error)}`,
+            category: 'error',
+            similarity: 0,
+          },
+        ],
+        totalFound: 1,
+        _source: 'Error Fallback',
+      };
+    }
   },
   {
     name: 'searchKnowledgeBase',
-    description: '과거 장애 이력 및 해결 방법을 검색합니다 (RAG)',
+    description: '과거 장애 이력 및 해결 방법을 검색합니다 (RAG with pgvector)',
     schema: z.object({
       query: z.string().describe('검색 쿼리'),
+      category: z.string().optional().describe('카테고리 필터 (incident, troubleshooting, best_practice, command, architecture)'),
+      severity: z.string().optional().describe('심각도 필터 (info, warning, critical)'),
     }),
   }
 );
@@ -130,7 +184,47 @@ export async function reporterAgentNode(
       executedAt: new Date().toISOString(),
     });
 
-    // 2. 키워드 추출 및 명령어 추천
+    // 2. 현재 상태 파악 (로그 및 메트릭) - 키워드에 따라 자동 수행
+    let logsResult = null;
+    let metricsResult = null;
+    
+    // "왜" 또는 "원인", "에러", "장애" 관련 질문이면 로그/메트릭 조회 시도
+    if (/왜|원인|cause|reason|에러|error|장애|failed|down/i.test(userQuery)) {
+      try {
+        // 서버 ID 추출 시도 (nlq-agent 로직과 유사하거나 간단한 정규식)
+        const serverMatch = userQuery.match(/server[-_\s]?(\d+)|서버\s*(\d+)/i);
+        const serverId = serverMatch ? (serverMatch[1] || serverMatch[2]) : undefined;
+        const normalizedServerId = serverId ? `server-${serverId}` : undefined;
+
+        // 로그 조회
+        logsResult = await getServerLogsTool.invoke({ 
+          serverId: normalizedServerId, 
+          limit: 5 
+        });
+        toolResults.push({
+          toolName: 'getServerLogs',
+          success: logsResult.success, // @ts-ignore
+          data: logsResult,
+          executedAt: new Date().toISOString(),
+        });
+
+        // 메트릭 조회 (상태 확인용)
+        metricsResult = await getServerMetricsTool.invoke({ 
+          serverId: normalizedServerId, 
+          metric: 'all' 
+        });
+        toolResults.push({
+          toolName: 'getServerMetrics', // @ts-ignore
+          success: metricsResult.success,  // @ts-ignore
+          data: metricsResult,
+          executedAt: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.warn('Diagnostics failed in Reporter:', e);
+      }
+    }
+
+    // 3. 키워드 추출 및 명령어 추천
     const keywords = extractKeywords(userQuery);
     const commandResult = await recommendCommandsTool.invoke({ keywords });
     toolResults.push({
@@ -149,6 +243,10 @@ ${userQuery}
 
 ## 지식베이스 검색 결과
 ${JSON.stringify(ragResult, null, 2)}
+
+## 현재 시스템 진단 결과 (Real-time Config)
+- 로그 분석: ${logsResult ? JSON.stringify(logsResult, null, 2) : '수행되지 않음 (필요 시 자동 수행됨)'}
+- 메트릭 상태: ${metricsResult ? JSON.stringify(metricsResult, null, 2) : '수행되지 않음'}
 
 ## 추천 명령어
 ${JSON.stringify(commandResult, null, 2)}

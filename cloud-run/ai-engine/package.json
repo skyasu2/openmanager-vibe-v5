@@ -20,6 +20,7 @@
     "@langchain/langgraph": "^1.0.4",
     "@langchain/langgraph-checkpoint-postgres": "^1.0.0",
     "@langchain/langgraph-supervisor": "^1.0.0",
+    "@supabase/supabase-js": "^2.47.7",
     "ai": "^5.0.102",
     "dotenv": "^16.4.7",
     "hono": "^4.11.1",
