@@ -27,17 +27,19 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Security: non-root user
+# Copy package files and install dependencies (as root for permissions)
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts
+
+# Copy built files
+COPY --from=builder /app/dist ./dist
+
+# Security: non-root user (switch after npm install)
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 appuser
+    adduser --system --uid 1001 appuser && \
+    chown -R appuser:nodejs /app
 USER appuser
-
-# Copy built files only
-COPY --from=builder --chown=appuser:nodejs /app/dist ./dist
-COPY --from=builder --chown=appuser:nodejs /app/package.json ./
-
-# Install production dependencies only
-RUN npm ci --only=production --ignore-scripts
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

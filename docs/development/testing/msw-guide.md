@@ -407,7 +407,7 @@ it('should handle rate limit errors', async () => {
 
 ```typescript
 const response = await fetch(
-  `${GOOGLE_AI_BASE_URL}/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+  `${GOOGLE_AI_BASE_URL}/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
   {
     method: 'POST',
     body: JSON.stringify({ contents: [...] }),

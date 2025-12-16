@@ -26,7 +26,7 @@ const getDefaultGoogleAIStatus = (): GoogleAIStatus => ({
   },
   lastHealthCheck: new Date().toISOString(),
   healthCheckStatus: 'unhealthy',
-  model: process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash',
+  model: process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash',
   features: { chat: false, embedding: false, vision: false },
   performance: { averageResponseTime: 0, successRate: 0, errorRate: 100 },
   activeKeySource: 'none',
@@ -66,7 +66,7 @@ export async function GET() {
       try {
         const startTime = Date.now();
         const model = getGoogleAIModel(
-          process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash'
+          process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash'
         );
         const result = await model.generateContent('test');
         if (result.response.text()) {
@@ -99,7 +99,7 @@ export async function GET() {
         try {
           const startTime = Date.now();
           const model = getGoogleAIModel(
-            process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash'
+            process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash'
           ); // This model factory includes fallback
           const result = await model.generateContent('test'); // It will try primary, then secondary
           if (result.response.text()) {

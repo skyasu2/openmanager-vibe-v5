@@ -18,7 +18,7 @@ export const googleAIHandlers = [
   /**
    * generateContent - 텍스트 생성 API
    *
-   * @example POST /v1beta/models/gemini-2.0-flash:generateContent?key=API_KEY
+   * @example POST /v1beta/models/gemini-2.5-flash:generateContent?key=API_KEY
    */
   http.post(
     `${GOOGLE_AI_BASE_URL}/v1beta/models/:model\\:generateContent`,

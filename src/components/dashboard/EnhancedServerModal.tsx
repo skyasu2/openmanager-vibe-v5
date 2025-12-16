@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
+import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import {
   DARK_CARD_STYLES,
   getDarkServerStatusTheme,
@@ -49,15 +50,12 @@ export default function EnhancedServerModal({
   // 🎯 React Hooks는 항상 최상단에서 호출
   const [selectedTab, setSelectedTab] = useState<TabId>('overview');
   const [isRealtime, setIsRealtime] = useState(true);
-  const [realtimeData, setRealtimeData] = useState<RealtimeData>({
-    cpu: [],
-    memory: [],
-    disk: [],
-    network: [],
-    latency: [],
-    processes: [],
-    logs: [],
-  });
+
+  // 🕒 Fixed 24h Metrics Hook (Client & AI Synchronization)
+  const { currentMetrics, historyData, logs } = useFixed24hMetrics(
+    server?.id || '',
+    3000 // 3초 주기 업데이트
+  );
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -82,11 +80,27 @@ export default function EnhancedServerModal({
             environment: server.environment || 'production',
             location: server.location || 'Unknown Location',
             provider: server.provider || 'Unknown Provider',
-            status: server.status || 'unknown',
-            cpu: typeof server.cpu === 'number' ? server.cpu : 0,
-            memory: typeof server.memory === 'number' ? server.memory : 0,
-            disk: typeof server.disk === 'number' ? server.disk : 0,
-            network: typeof server.network === 'number' ? server.network : 0,
+            // Status는 Fixed Metrics에 따라 실시간 업데이트
+            status: currentMetrics
+              ? currentMetrics.cpu > 80
+                ? 'critical'
+                : currentMetrics.cpu > 60
+                  ? 'warning'
+                  : 'online'
+              : server.status || 'unknown',
+            // 현재 메트릭 우선 사용, 없으면 초기값
+            cpu:
+              currentMetrics?.cpu ??
+              (typeof server.cpu === 'number' ? server.cpu : 0),
+            memory:
+              currentMetrics?.memory ??
+              (typeof server.memory === 'number' ? server.memory : 0),
+            disk:
+              currentMetrics?.disk ??
+              (typeof server.disk === 'number' ? server.disk : 0),
+            network:
+              currentMetrics?.network ??
+              (typeof server.network === 'number' ? server.network : 0),
             uptime:
               typeof server.uptime === 'number'
                 ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
@@ -122,102 +136,60 @@ export default function EnhancedServerModal({
             },
           }
         : null,
-    [server]
+    [server, currentMetrics]
   );
 
-  // 실시간 데이터 생성
-  useEffect(() => {
-    if (!safeServer || !isRealtime) return;
+  // RealtimeData 변환 (Hook 데이터 -> UI 포맷)
+  const realtimeData: RealtimeData = useMemo(() => {
+    if (!safeServer)
+      return {
+        cpu: [],
+        memory: [],
+        disk: [],
+        network: [],
+        latency: [],
+        processes: [],
+        logs: [],
+      };
 
-    const generateRealtimeData = () => {
-      try {
-        const now = new Date();
-        const serviceCount = safeServer.services?.length || 0;
-
-        setRealtimeData((prev) => ({
-          cpu: [
-            ...prev.cpu.slice(-29),
-            safeServer.cpu + (Math.random() - 0.5) * 3,
-          ].slice(-30),
-          memory: [
-            ...prev.memory.slice(-29),
-            safeServer.memory + (Math.random() - 0.5) * 2,
-          ].slice(-30),
-          disk: [
-            ...prev.disk.slice(-29),
-            safeServer.disk + (Math.random() - 0.5) * 1,
-          ].slice(-30),
-          network: [
-            ...prev.network.slice(-29),
-            {
-              in: Math.random() * 200 + 400,
-              out: Math.random() * 150 + 250,
-            },
-          ].slice(-30),
-          latency: [...prev.latency.slice(-29), Math.random() * 20 + 45].slice(
-            -30
+    return {
+      cpu: historyData.map((h) => h.cpu),
+      memory: historyData.map((h) => h.memory),
+      disk: historyData.map((h) => h.disk),
+      network: historyData.map((h) => ({
+        in: h.network * 0.6,
+        out: h.network * 0.4,
+      })),
+      latency: historyData.map(() => Math.random() * 10 + 20),
+      processes:
+        safeServer?.services?.map((service, i) => ({
+          name: service.name || `service-${i}`,
+          cpu: parseFloat(
+            (
+              (currentMetrics?.cpu || 10) / (safeServer.services?.length || 1)
+            ).toFixed(2)
           ),
-          processes:
-            safeServer.services?.map((service, i) => ({
-              name: service.name || `service-${i}`,
-              cpu: parseFloat((Math.random() * 8).toFixed(2)),
-              memory: parseFloat((Math.random() * 6).toFixed(2)),
-              pid: 1000 + i,
-            })) || [],
-          logs: [
-            ...prev.logs.slice(-19),
-            {
-              timestamp: now.toISOString(),
-              level: (['info', 'warn', 'error'][
-                Math.floor(Math.random() * 3)
-              ] ?? 'info') as 'info' | 'warn' | 'error',
-              message:
-                [
-                  `${safeServer.name} - HTTP request processed successfully`,
-                  `${safeServer.name} - Memory usage above threshold`,
-                  `${safeServer.name} - Database connection established`,
-                ][Math.floor(Math.random() * 3)] ??
-                `${safeServer.name} - System status normal`,
-              source:
-                serviceCount > 0
-                  ? safeServer.services[
-                      Math.floor(Math.random() * serviceCount)
-                    ]?.name ||
-                    safeServer.name ||
-                    'unknown'
-                  : safeServer.name || 'unknown',
-            },
-          ].slice(-20),
-        }));
-      } catch (error) {
-        console.error(
-          '⚠️ [EnhancedServerModal] 실시간 데이터 생성 오류:',
-          error
-        );
-        // 오류 발생 시 기본 데이터로 설정
-        setRealtimeData((prev) => ({
-          ...prev,
-          logs: [
-            ...prev.logs.slice(-19),
-            {
-              timestamp: new Date().toISOString(),
-              level: 'warn' as 'info' | 'warn' | 'error',
-              message: `${safeServer.name} - 데이터 생성 오류 발생`,
-              source: safeServer.name,
-            },
-          ].slice(-20),
-        }));
-      }
+          memory: parseFloat(
+            (
+              (currentMetrics?.memory || 20) /
+              (safeServer.services?.length || 1)
+            ).toFixed(2)
+          ),
+          pid: 1000 + i,
+        })) || [],
+      logs: logs.map((msg) => ({
+        timestamp: new Date().toISOString(),
+        level:
+          msg.includes('[CRITICAL]') || msg.includes('[ERROR]')
+            ? 'error'
+            : msg.includes('[WARN]')
+              ? 'warn'
+              : 'info',
+        message: msg,
+        source: 'System',
+      })),
     };
-
-    generateRealtimeData();
-    const interval = setInterval(
-      generateRealtimeData,
-      calculateOptimalCollectionInterval()
-    );
-
-    return () => clearInterval(interval);
-  }, [isRealtime, safeServer]);
+  }, [historyData, logs, safeServer, currentMetrics]);
 
   // 📊 탭 구성 최적화
   const tabs: TabInfo[] = [

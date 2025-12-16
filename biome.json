@@ -27,7 +27,8 @@
       "!**/archive",
       "!**/*.min.js",
       "!**/*.d.ts",
-      "!**/*.css"
+      "!**/*.css",
+      "!**/cloud-run"
     ]
   },
   "formatter": {

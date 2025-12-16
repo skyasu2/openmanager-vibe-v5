@@ -34,4 +34,6 @@ declare module 'lodash' {
   export default _;
 }
 
+declare module 'whatwg-fetch';
+
 export {};

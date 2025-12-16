@@ -99,6 +99,33 @@ export class ModelTimeoutError extends AIModelError {
   }
 }
 
+export class RateLimitError extends AIModelError {
+  readonly retryAfterMs?: number;
+
+  constructor(model: string, retryAfterMs?: number, cause?: Error) {
+    super(`Rate limit exceeded for model: ${model}`, model, {
+      cause,
+      details: { retryAfterMs },
+    });
+    this.name = 'RateLimitError';
+    this.retryAfterMs = retryAfterMs;
+  }
+
+  static isRateLimitError(error: unknown): boolean {
+    if (error instanceof RateLimitError) return true;
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase();
+      return (
+        message.includes('429') ||
+        message.includes('rate limit') ||
+        message.includes('quota exceeded') ||
+        message.includes('resource exhausted')
+      );
+    }
+    return false;
+  }
+}
+
 export class AgentError extends AIError {
   readonly agent: string;
 

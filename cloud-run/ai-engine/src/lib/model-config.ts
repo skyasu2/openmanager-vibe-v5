@@ -5,13 +5,131 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { ChatGroq } from '@langchain/groq';
 import { AI_MODELS } from '../config/models';
-import { requireAPIKey } from './errors';
+import { RateLimitError, requireAPIKey } from './errors';
 import {
   type CircuitBreakerState,
   isModelHealthy,
   recordFailure,
   recordSuccess,
 } from './state-definition';
+
+// ============================================================================
+// 0. Gemini API Key Failover Manager
+// ============================================================================
+
+interface GeminiKeyState {
+  primaryExhausted: boolean;
+  primaryExhaustedAt?: number;
+  recoveryTimeMs: number; // Time to wait before retrying primary key
+}
+
+const geminiKeyState: GeminiKeyState = {
+  primaryExhausted: false,
+  recoveryTimeMs: 60_000, // 1 minute default recovery time
+};
+
+/**
+ * Get all available Gemini API keys in failover order
+ */
+function getGeminiAPIKeys(): string[] {
+  const keys: string[] = [];
+
+  // Primary keys
+  const primary =
+    process.env.GEMINI_API_KEY_PRIMARY || process.env.GOOGLE_API_KEY;
+  if (primary) keys.push(primary);
+
+  // Secondary key (failover)
+  const secondary = process.env.GEMINI_API_KEY_SECONDARY;
+  if (secondary) keys.push(secondary);
+
+  return keys;
+}
+
+/**
+ * Get the current active Gemini API key with failover logic
+ */
+export function getActiveGeminiKey(): string {
+  const keys = getGeminiAPIKeys();
+
+  if (keys.length === 0) {
+    throw new Error(
+      'No Gemini API keys configured. Set GEMINI_API_KEY_PRIMARY or GOOGLE_API_KEY'
+    );
+  }
+
+  // Check if primary key has recovered
+  if (geminiKeyState.primaryExhausted && geminiKeyState.primaryExhaustedAt) {
+    const elapsed = Date.now() - geminiKeyState.primaryExhaustedAt;
+    if (elapsed > geminiKeyState.recoveryTimeMs) {
+      console.log(
+        '🔄 [Gemini Key] Primary key recovery period elapsed, retrying primary'
+      );
+      geminiKeyState.primaryExhausted = false;
+      geminiKeyState.primaryExhaustedAt = undefined;
+    }
+  }
+
+  // Use secondary if primary is exhausted and secondary exists
+  if (geminiKeyState.primaryExhausted && keys.length > 1) {
+    console.log('🔄 [Gemini Key] Using secondary key (primary exhausted)');
+    return keys[1];
+  }
+
+  return keys[0];
+}
+
+/**
+ * Mark primary key as exhausted (rate limited)
+ */
+export function markGeminiKeyExhausted(): void {
+  const keys = getGeminiAPIKeys();
+  if (keys.length > 1) {
+    console.log(
+      '⚠️ [Gemini Key] Primary key exhausted, failing over to secondary'
+    );
+    geminiKeyState.primaryExhausted = true;
+    geminiKeyState.primaryExhaustedAt = Date.now();
+  } else {
+    console.warn(
+      '⚠️ [Gemini Key] Primary key exhausted but no secondary key available'
+    );
+  }
+}
+
+/**
+ * Reset Gemini key state (for testing or manual recovery)
+ */
+export function resetGeminiKeyState(): void {
+  geminiKeyState.primaryExhausted = false;
+  geminiKeyState.primaryExhaustedAt = undefined;
+}
+
+/**
+ * Get current Gemini key status
+ */
+export function getGeminiKeyStatus(): {
+  totalKeys: number;
+  primaryExhausted: boolean;
+  usingSecondary: boolean;
+  recoveryInMs?: number;
+} {
+  const keys = getGeminiAPIKeys();
+  const usingSecondary = geminiKeyState.primaryExhausted && keys.length > 1;
+
+  let recoveryInMs: number | undefined;
+  if (geminiKeyState.primaryExhausted && geminiKeyState.primaryExhaustedAt) {
+    const elapsed = Date.now() - geminiKeyState.primaryExhaustedAt;
+    recoveryInMs = Math.max(0, geminiKeyState.recoveryTimeMs - elapsed);
+  }
+
+  return {
+    totalKeys: keys.length,
+    primaryExhausted: geminiKeyState.primaryExhausted,
+    usingSecondary,
+    recoveryInMs,
+  };
+}
 
 // ============================================================================
 // 1. Model Types
@@ -35,7 +153,7 @@ export interface ModelOptions {
 export const AGENT_MODEL_CONFIG = {
   supervisor: {
     provider: 'groq' as const,
-    model: 'llama-3.1-8b-instant' as GroqModel,
+    model: 'llama-3.3-70b-versatile' as GroqModel,
     temperature: 0.2,
     maxOutputTokens: 512,
   },
@@ -69,11 +187,8 @@ export function createGeminiModel(
   model: GeminiModel = AI_MODELS.FLASH,
   options?: ModelOptions
 ): ChatGoogleGenerativeAI {
-  const apiKey = requireAPIKey(
-    'Google AI',
-    'GEMINI_API_KEY_PRIMARY',
-    'GOOGLE_API_KEY'
-  );
+  // Use failover-aware key selection
+  const apiKey = getActiveGeminiKey();
 
   return new ChatGoogleGenerativeAI({
     apiKey,
@@ -81,6 +196,39 @@ export function createGeminiModel(
     temperature: options?.temperature ?? 0.3,
     maxOutputTokens: options?.maxOutputTokens ?? 1024,
   });
+}
+
+/**
+ * Invoke Gemini model with automatic failover on rate limit
+ * Catches 429 errors and retries with secondary key if available
+ */
+export async function invokeGeminiWithFailover<T>(
+  model: GeminiModel,
+  invoker: (geminiModel: ChatGoogleGenerativeAI) => Promise<T>,
+  options?: ModelOptions
+): Promise<T> {
+  const keys = getGeminiAPIKeys();
+
+  for (let attempt = 0; attempt < keys.length; attempt++) {
+    try {
+      const geminiModel = createGeminiModel(model, options);
+      return await invoker(geminiModel);
+    } catch (error) {
+      if (RateLimitError.isRateLimitError(error)) {
+        console.error(`❌ [Gemini] Rate limit hit on attempt ${attempt + 1}`);
+        markGeminiKeyExhausted();
+
+        // If we have more keys, continue to next attempt
+        if (attempt < keys.length - 1) {
+          console.log(`🔄 [Gemini] Retrying with next key...`);
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+
+  throw new Error('All Gemini API keys exhausted');
 }
 
 export function createGroqModel(
@@ -121,7 +269,7 @@ export function getModelForAgent(
 
 export function getSupervisorModel(): ChatGroq {
   const config = AGENT_MODEL_CONFIG.supervisor;
-  return createGroqModel(config.model, {
+  return createGroqModel(config.model as GroqModel, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });
@@ -157,15 +305,18 @@ export function getReporterModel(): ChatGroq {
 
 export function validateAPIKeys(): {
   google: boolean;
+  googleSecondary: boolean;
   groq: boolean;
   all: boolean;
 } {
   const googleKey =
     process.env.GEMINI_API_KEY_PRIMARY || process.env.GOOGLE_API_KEY;
+  const googleSecondaryKey = process.env.GEMINI_API_KEY_SECONDARY;
   const groqKey = process.env.GROQ_API_KEY;
 
   return {
     google: !!googleKey,
+    googleSecondary: !!googleSecondaryKey,
     groq: !!groqKey,
     all: !!googleKey && !!groqKey,
   };
@@ -173,10 +324,19 @@ export function validateAPIKeys(): {
 
 export function logAPIKeyStatus(): void {
   const status = validateAPIKeys();
+  const keyStatus = getGeminiKeyStatus();
   console.log('🔑 API Key Status:', {
-    'Google AI': status.google ? '✅' : '❌',
+    'Google AI (Primary)': status.google ? '✅' : '❌',
+    'Google AI (Secondary)': status.googleSecondary
+      ? '✅ (Failover Ready)'
+      : '⚠️ (No Failover)',
     Groq: status.groq ? '✅' : '❌',
   });
+  if (keyStatus.usingSecondary) {
+    console.log(
+      '⚠️ [Gemini Key] Currently using secondary key due to primary rate limit'
+    );
+  }
 }
 
 // ============================================================================

@@ -24,6 +24,70 @@ import {
 } from '../services/scenario/scenario-loader';
 
 // ============================================================================
+// 1. Tool Result Types
+// ============================================================================
+
+type AnomalyResult =
+  | {
+      success: true;
+      serverId: string;
+      serverName: string;
+      anomalyCount: number;
+      hasAnomalies: boolean;
+      results: Record<
+        string,
+        {
+          isAnomaly: boolean;
+          severity: string;
+          confidence: number;
+          currentValue: number;
+          threshold: { upper: number; lower: number };
+        }
+      >;
+      timestamp: string;
+      _algorithm: string;
+      _engine: 'rust' | 'typescript';
+    }
+  | { success: false; error: string };
+
+type TrendResult =
+  | {
+      success: true;
+      serverId: string;
+      serverName: string;
+      predictionHorizon: string;
+      results: Record<
+        string,
+        {
+          trend: string;
+          currentValue: number;
+          predictedValue: number;
+          changePercent: number;
+          confidence: number;
+        }
+      >;
+      summary: { increasingMetrics: string[]; hasRisingTrends: boolean };
+      timestamp: string;
+      _algorithm: string;
+      _engine: 'rust' | 'typescript';
+    }
+  | { success: false; error: string };
+
+type PatternResult =
+  | {
+      success: true;
+      patterns: string[];
+      detectedIntent: string;
+      analysisResults: {
+        pattern: string;
+        confidence: number;
+        insights: string;
+      }[];
+      _mode: string;
+    }
+  | { success: false; message: string };
+
+// ============================================================================
 // 2. Utility Functions
 // ============================================================================
 
@@ -398,10 +462,10 @@ export async function analystAgentNode(
     // Since this is just a function node, we CAN invoke tools directly.
 
     if (intent === 'anomaly' || intent === 'comprehensive') {
-      anomalyResult = await detectAnomaliesTool.invoke({
+      anomalyResult = (await detectAnomaliesTool.invoke({
         serverId,
         metricType: 'all',
-      });
+      })) as AnomalyResult;
       toolResults.push({
         toolName: 'detectAnomalies',
         success: anomalyResult.success,
@@ -411,11 +475,11 @@ export async function analystAgentNode(
     }
 
     if (intent === 'trend' || intent === 'comprehensive') {
-      trendResult = await predictTrendsTool.invoke({
+      trendResult = (await predictTrendsTool.invoke({
         serverId,
         metricType: 'all',
         predictionHours: 1,
-      });
+      })) as TrendResult;
       toolResults.push({
         toolName: 'predictTrends',
         success: trendResult.success,
@@ -424,7 +488,9 @@ export async function analystAgentNode(
       });
     }
 
-    patternResult = await analyzePatternTool.invoke({ query: userQuery });
+    patternResult = (await analyzePatternTool.invoke({
+      query: userQuery,
+    })) as PatternResult;
     toolResults.push({
       toolName: 'analyzePattern',
       success: patternResult.success,

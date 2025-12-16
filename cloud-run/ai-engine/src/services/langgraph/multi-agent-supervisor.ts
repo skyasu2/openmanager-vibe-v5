@@ -21,11 +21,14 @@ import {
   createSessionConfig,
   getAutoCheckpointer,
 } from '../../lib/checkpointer';
+import { RateLimitError } from '../../lib/errors';
 import {
   getAnalystModel,
+  getGeminiKeyStatus,
   getNLQModel,
   getReporterModel,
   getSupervisorModel,
+  markGeminiKeyExhausted,
 } from '../../lib/model-config';
 
 // ============================================================================
@@ -170,6 +173,7 @@ export interface SupervisorExecutionOptions {
 
 /**
  * Execute supervisor workflow (single response)
+ * Includes automatic Gemini API key failover on rate limit
  */
 export async function executeSupervisor(
   query: string,
@@ -178,32 +182,61 @@ export async function executeSupervisor(
   response: string;
   sessionId: string;
 }> {
-  const app = await createMultiAgentSupervisor();
   const sessionId = options.sessionId || `session_${Date.now()}`;
   const config = createSessionConfig(sessionId);
+  const MAX_RETRIES = 2; // Primary key + secondary key
 
-  const result = await app.invoke(
-    {
-      messages: [new HumanMessage(query)],
-    },
-    config
-  );
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      // Create fresh supervisor (uses current active Gemini key)
+      const app = await createMultiAgentSupervisor();
 
-  // Extract final response from messages
-  const messages = result.messages || [];
-  const lastMessage = messages[messages.length - 1];
-  const response =
-    typeof lastMessage?.content === 'string'
-      ? lastMessage.content
-      : '응답을 생성할 수 없습니다.';
+      const result = await app.invoke(
+        {
+          messages: [new HumanMessage(query)],
+        },
+        config
+      );
 
-  console.log(`✅ [Supervisor] Completed. Session: ${sessionId}`);
+      // Extract final response from messages
+      const messages = result.messages || [];
+      const lastMessage = messages[messages.length - 1];
+      const response =
+        typeof lastMessage?.content === 'string'
+          ? lastMessage.content
+          : '응답을 생성할 수 없습니다.';
 
-  return { response, sessionId };
+      console.log(`✅ [Supervisor] Completed. Session: ${sessionId}`);
+      return { response, sessionId };
+    } catch (error) {
+      // Check if this is a rate limit error
+      if (RateLimitError.isRateLimitError(error)) {
+        const keyStatus = getGeminiKeyStatus();
+        console.error(
+          `⚠️ [Supervisor] Rate limit hit on attempt ${attempt + 1}/${MAX_RETRIES}`,
+          { keyStatus }
+        );
+
+        // If we have more keys to try, mark current key as exhausted and retry
+        if (attempt < MAX_RETRIES - 1 && keyStatus.totalKeys > 1) {
+          markGeminiKeyExhausted();
+          console.log('🔄 [Supervisor] Switching to secondary Gemini key...');
+          continue; // Retry with secondary key
+        }
+      }
+
+      // Re-throw if not a rate limit error or no more retries
+      throw error;
+    }
+  }
+
+  // Should not reach here, but TypeScript requires it
+  throw new Error('All Gemini API keys exhausted');
 }
 
 /**
  * Stream supervisor workflow
+ * Uses app.stream() for Groq compatibility (streamEvents doesn't emit text tokens for Groq)
  */
 export async function* streamSupervisor(
   query: string,
@@ -218,49 +251,74 @@ export async function* streamSupervisor(
   const config = createSessionConfig(sessionId);
 
   try {
-    const stream = await app.streamEvents(
-      {
-        messages: [new HumanMessage(query)],
-      },
-      {
-        version: 'v2',
-        ...config,
-      }
+    // Use default stream() instead of streamEvents for Groq compatibility
+    const stream = await app.stream(
+      { messages: [new HumanMessage(query)] },
+      config
     );
 
     let finalContent = '';
+    let lastAgentName = '';
 
-    for await (const event of stream) {
-      // LLM token streaming
-      if (event.event === 'on_chat_model_stream') {
-        const chunk = event.data?.chunk;
-        if (chunk?.content && typeof chunk.content === 'string') {
-          finalContent += chunk.content;
+    for await (const chunk of stream) {
+      // Chunk has agent name as key: { supervisor: {...}, test_agent: {...} }
+      for (const [agentName, agentOutput] of Object.entries(chunk)) {
+        // Emit agent start
+        if (agentName !== lastAgentName) {
+          if (lastAgentName) {
+            yield {
+              type: 'agent_end',
+              content: lastAgentName,
+              metadata: {},
+            };
+          }
           yield {
-            type: 'token',
-            content: chunk.content,
-            metadata: { node: event.name },
+            type: 'agent_start',
+            content: agentName,
+            metadata: {},
           };
+          lastAgentName = agentName;
+        }
+
+        // Extract AI message content from agent output
+        const output = agentOutput as {
+          messages?: Array<{ content?: string; _getType?: () => string }>;
+        };
+        if (output?.messages) {
+          for (const msg of output.messages) {
+            // Check if it's an AI message with content
+            const msgType = msg._getType?.();
+            if (
+              msgType === 'ai' &&
+              msg.content &&
+              typeof msg.content === 'string' &&
+              msg.content.length > 0
+            ) {
+              // Skip system messages like "Successfully transferred..."
+              if (
+                !msg.content.includes('Successfully transferred') &&
+                !msg.content.includes('Transferring back to')
+              ) {
+                finalContent = msg.content; // Keep the last meaningful AI response
+                yield {
+                  type: 'token',
+                  content: msg.content,
+                  metadata: { agent: agentName },
+                };
+              }
+            }
+          }
         }
       }
+    }
 
-      // Agent start
-      if (event.event === 'on_chain_start' && event.tags?.includes('agent')) {
-        yield {
-          type: 'agent_start',
-          content: event.name || 'unknown_agent',
-          metadata: { tags: event.tags },
-        };
-      }
-
-      // Agent end
-      if (event.event === 'on_chain_end' && event.tags?.includes('agent')) {
-        yield {
-          type: 'agent_end',
-          content: event.name || 'unknown_agent',
-          metadata: { output: event.data?.output },
-        };
-      }
+    // Emit final agent end
+    if (lastAgentName) {
+      yield {
+        type: 'agent_end',
+        content: lastAgentName,
+        metadata: {},
+      };
     }
 
     // Final response
@@ -279,8 +337,8 @@ export async function* streamSupervisor(
 }
 
 /**
- * Create AI SDK compatible streaming response using toUIMessageStream
- * This integrates LangGraph with Vercel AI SDK v5
+ * Create AI SDK compatible streaming response
+ * Uses invoke() for reliability with Groq, then simulates streaming
  */
 export async function createSupervisorStreamResponse(
   query: string,
@@ -290,37 +348,45 @@ export async function createSupervisorStreamResponse(
 
   return new ReadableStream({
     async start(controller) {
-      try {
-        const generator = streamSupervisor(query, { sessionId });
+      let isClosed = false;
 
-        for await (const chunk of generator) {
-          if (chunk.type === 'token') {
-            // AI SDK v5 Data Stream Protocol: text part
-            // Format: '0:"text"\n'
-            const dataStreamText = `0:${JSON.stringify(chunk.content)}\n`;
-            controller.enqueue(encoder.encode(dataStreamText));
-          } else if (chunk.type === 'final') {
-            // AI SDK v5 Data Stream Protocol: finish message
-            // Format: 'd:{"finishReason":"stop"}\n'
-            const finishMessage = `d:${JSON.stringify({ finishReason: 'stop' })}\n`;
-            controller.enqueue(encoder.encode(finishMessage));
-            console.log('📤 Supervisor stream completed (AI SDK v5 Protocol)');
-          } else if (chunk.type === 'error') {
-            // AI SDK v5 Data Stream Protocol: error
-            // Format: '3:"error message"\n'
-            const errorMessage = `3:${JSON.stringify(chunk.content)}\n`;
-            controller.enqueue(encoder.encode(errorMessage));
-          }
+      const safeEnqueue = (data: Uint8Array) => {
+        if (!isClosed) {
+          controller.enqueue(data);
+        }
+      };
+
+      const safeClose = () => {
+        if (!isClosed) {
+          isClosed = true;
+          controller.close();
+        }
+      };
+
+      try {
+        // Use invoke() for more reliable Groq integration
+        const { response } = await executeSupervisor(query, { sessionId });
+
+        if (response) {
+          // AI SDK v5 Data Stream Protocol: text part
+          // Format: '0:"text"\n'
+          const dataStreamText = `0:${JSON.stringify(response)}\n`;
+          safeEnqueue(encoder.encode(dataStreamText));
         }
 
-        controller.close();
+        // AI SDK v5 Data Stream Protocol: finish message
+        const finishMessage = `d:${JSON.stringify({ finishReason: 'stop' })}\n`;
+        safeEnqueue(encoder.encode(finishMessage));
+        console.log('📤 Supervisor completed (AI SDK v5 Protocol)');
+
+        safeClose();
       } catch (error) {
-        console.error('❌ Supervisor streaming error:', error);
+        console.error('❌ Supervisor error:', error);
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
         const errorStream = `3:${JSON.stringify(errorMessage)}\n`;
-        controller.enqueue(encoder.encode(errorStream));
-        controller.close();
+        safeEnqueue(encoder.encode(errorStream));
+        safeClose();
       }
     },
   });

@@ -105,7 +105,7 @@ type AIMode = 'LOCAL' | 'GOOGLE_AI';
 
 ### Google AI (Gemini 2.0 Flash) 상세 정보
 
-**현재 사용 모델**: `gemini-2.0-flash-exp`
+**현재 사용 모델**: `gemini-2.5-flash-exp`
 
 **최신 업데이트 (2025년 2월)**:
 

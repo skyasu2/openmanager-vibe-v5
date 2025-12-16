@@ -1,18 +1,11 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { RealisticVariationGenerator } from '../../lib/metrics/variation-generator';
 import {
-  safeServerEnvironment,
-  safeServerRole,
-} from '../../lib/utils/type-converters';
-import type {
-  EnhancedServerMetrics,
-  HourlyServerData,
-  RawServerData,
-} from '../../types/server-metrics';
+  FIXED_24H_DATASETS,
+  getDataAtMinute,
+} from '../../data/fixed-24h-metrics';
+import type { EnhancedServerMetrics } from '../../types/server-metrics';
 
 /**
- * Load Hourly Scenario Data directly from JSON files
+ * Load Server Data directly from Fixed 24h Dataset (SSOT)
  */
 export async function loadHourlyScenarioData(): Promise<
   EnhancedServerMetrics[]
@@ -25,172 +18,74 @@ export async function loadHourlyScenarioData(): Promise<
     const koreaDate = new Date(koreaTime);
     const currentHour = koreaDate.getHours(); // 0-23
     const currentMinute = koreaDate.getMinutes(); // 0-59
+    const minuteOfDay = currentHour * 60 + currentMinute;
 
-    const segmentInHour = Math.floor(currentMinute / 5);
-    const rotationMinute = segmentInHour * 5;
+    return FIXED_24H_DATASETS.map((dataset) => {
+      const metric = getDataAtMinute(dataset, minuteOfDay);
 
-    // Read JSON file
-    const hourStr = currentHour.toString().padStart(2, '0');
-    // In Cloud Run, the working directory is /app
-    // We copied data/hourly-data to ./data/hourly-data in the new service root
-    const filePath = path.join(
-      process.cwd(),
-      'data',
-      'hourly-data',
-      `hour-${hourStr}.json`
-    );
+      // Default to 0 if not found
+      const cpu = metric?.cpu ?? 0;
+      const memory = metric?.memory ?? 0;
+      const disk = metric?.disk ?? 0;
+      const network = metric?.network ?? 0;
+      const logs = metric?.logs ?? [];
 
-    let hourlyData: HourlyServerData;
-    try {
-      const fileContent = await fs.readFile(filePath, 'utf-8');
-      hourlyData = JSON.parse(fileContent);
-    } catch (e) {
-      console.error(`Failed to read scenario file: ${filePath}`, e);
-      // Fallback to empty
-      hourlyData = { servers: {} };
-    }
+      // Determine Status
+      let status: 'online' | 'warning' | 'critical' = 'online';
+      if (cpu >= 80) status = 'critical';
+      else if (cpu >= 60) status = 'warning';
 
-    return convertFixedRotationData(
-      hourlyData,
-      currentHour,
-      rotationMinute,
-      segmentInHour
-    );
+      return {
+        id: dataset.serverId,
+        name: dataset.serverId,
+        hostname: `${dataset.serverId.toLowerCase()}.internal`,
+        status,
+        cpu,
+        cpu_usage: cpu,
+        memory,
+        memory_usage: memory,
+        disk,
+        disk_usage: disk,
+        network,
+        network_in: network * 0.6,
+        network_out: network * 0.4,
+        uptime: 86400 * 30, // 30 days fixed
+        responseTime: 50 + cpu * 2,
+        last_updated: new Date().toISOString(),
+        location: dataset.location,
+        alerts: [],
+        ip: `10.0.1.${Math.floor(Math.random() * 255)}`,
+        os: 'Ubuntu 22.04 LTS',
+        type: dataset.serverType,
+        role: dataset.serverType,
+        environment: 'production',
+        provider: 'On-Premise',
+        specs: {
+          cpu_cores: 8,
+          memory_gb: 32,
+          disk_gb: 512,
+          network_speed: '1Gbps',
+        },
+        services: [],
+        systemInfo: {
+          os: 'Ubuntu 22.04 LTS',
+          uptime: '720h',
+          processes: 120 + Math.floor(cpu),
+          loadAverage: `${(cpu / 20).toFixed(2)}`,
+          lastUpdate: new Date().toISOString(),
+        },
+        networkInfo: {
+          interface: 'eth0',
+          receivedBytes: `${(network * 0.6).toFixed(1)} MB`,
+          sentBytes: `${(network * 0.4).toFixed(1)} MB`,
+          status: 'online',
+        },
+      } as EnhancedServerMetrics;
+    });
   } catch (error) {
     console.error('Scenario loader error:', error);
     return [];
   }
-}
-
-function convertFixedRotationData(
-  hourlyData: HourlyServerData,
-  currentHour: number,
-  rotationMinute: number,
-  _segmentInHour: number
-): EnhancedServerMetrics[] {
-  const servers = hourlyData.servers || {};
-  const _scenario = hourlyData.scenario || `${currentHour}시 고정 패턴`;
-
-  // Auto-fill to 15 servers logic
-  if (Object.keys(servers).length < 15) {
-    const missingCount = 15 - Object.keys(servers).length;
-    for (let i = 0; i < missingCount; i++) {
-      const serverIndex = Object.keys(servers).length + i + 1;
-      const serverTypes = ['security', 'backup', 'proxy', 'gateway'];
-      const serverType = serverTypes[i % serverTypes.length] ?? 'gateway';
-      const serverId = `${serverType}-server-${serverIndex}`;
-
-      servers[serverId] = {
-        id: serverId,
-        name: `${serverType.charAt(0).toUpperCase() + serverType.slice(1)} Server #${serverIndex}`,
-        hostname: `${serverType}-${serverIndex.toString().padStart(2, '0')}.prod.example.com`,
-        status: 'online' as const,
-        type: serverType,
-        cpu: 20,
-        memory: 30,
-        disk: 40,
-        network: 10,
-        uptime: 10000,
-        role: serverType,
-        environment: 'production',
-      };
-    }
-  }
-
-  return Object.values(servers).map((serverData: RawServerData, index) => {
-    const minuteFactor = rotationMinute / 55;
-    const fixedOffset = Math.sin(minuteFactor * 2 * Math.PI) * 2;
-    const serverOffset = (index * 3.7) % 10;
-
-    const deterministicNoise =
-      RealisticVariationGenerator.generateNaturalVariance(
-        0,
-        `server-${index}-noise`
-      ) * 0.05;
-
-    const fixedVariation =
-      1 + (fixedOffset + serverOffset + deterministicNoise) / 100;
-
-    const enhanced: EnhancedServerMetrics = {
-      id: serverData.id || `server-${index}`,
-      name: serverData.name || `Unknown Server ${index + 1}`,
-      hostname: serverData.hostname || serverData.name || `server-${index}`,
-      status: serverData.status as
-        | 'online'
-        | 'warning'
-        | 'critical'
-        | 'maintenance'
-        | 'offline'
-        | 'unknown',
-      cpu: Math.round((serverData.cpu || 0) * fixedVariation),
-      cpu_usage: Math.round((serverData.cpu || 0) * fixedVariation),
-      memory: Math.round((serverData.memory || 0) * fixedVariation),
-      memory_usage: Math.round((serverData.memory || 0) * fixedVariation),
-      disk: Math.round((serverData.disk || 0) * fixedVariation),
-      disk_usage: Math.round((serverData.disk || 0) * fixedVariation),
-      network: Math.round((serverData.network || 20) * fixedVariation),
-      network_in: Math.round((serverData.network || 20) * 0.6 * fixedVariation),
-      network_out: Math.round(
-        (serverData.network || 20) * 0.4 * fixedVariation
-      ),
-      uptime: serverData.uptime || 86400,
-      responseTime: Math.round(
-        (serverData.responseTime || 200) * fixedVariation
-      ),
-      last_updated: new Date().toISOString(),
-      location: serverData.location || '서울',
-      alerts: [],
-      ip: serverData.ip || `192.168.1.${100 + index}`,
-      os: serverData.os || 'Ubuntu 22.04 LTS',
-      type: serverData.type || 'web',
-      role: safeServerRole(serverData.role || serverData.type),
-      environment: safeServerEnvironment(serverData.environment),
-      provider: `DataCenter-${currentHour.toString().padStart(2, '0')}${rotationMinute.toString().padStart(2, '0')}`,
-      specs: {
-        cpu_cores: serverData.specs?.cpu_cores || 4,
-        memory_gb: serverData.specs?.memory_gb || 8,
-        disk_gb: serverData.specs?.disk_gb || 200,
-        network_speed: '1Gbps',
-      },
-      lastUpdate: new Date().toISOString(),
-      services: serverData.services || [],
-      systemInfo: {
-        os: serverData.os || 'Ubuntu 22.04 LTS',
-        uptime: `${Math.floor((serverData.uptime || 86400) / 3600)}h`,
-        processes: (serverData.processes || 120) + Math.floor(serverOffset),
-        zombieProcesses:
-          serverData.status === 'critical'
-            ? 3
-            : serverData.status === 'warning'
-              ? 1
-              : 0,
-        loadAverage: `${(((serverData.cpu || 0) * fixedVariation) / 20).toFixed(2)}, ${(((serverData.cpu || 0) * fixedVariation - 5) / 20).toFixed(2)}, ${(((serverData.cpu || 0) * fixedVariation - 10) / 20).toFixed(2)}`,
-        lastUpdate: new Date().toISOString(),
-      },
-      networkInfo: {
-        interface: 'eth0',
-        receivedBytes: `${((serverData.network || 20) * 0.6 * fixedVariation).toFixed(1)} MB`,
-        sentBytes: `${((serverData.network || 20) * 0.4 * fixedVariation).toFixed(1)} MB`,
-        receivedErrors:
-          serverData.status === 'critical'
-            ? Math.floor(serverOffset % 5) + 1
-            : 0,
-        sentErrors:
-          serverData.status === 'critical'
-            ? Math.floor(serverOffset % 3) + 1
-            : 0,
-        status: serverData.status as
-          | 'online'
-          | 'warning'
-          | 'critical'
-          | 'maintenance'
-          | 'offline'
-          | 'unknown',
-      },
-    };
-
-    return enhanced;
-  });
 }
 
 /**
@@ -204,10 +99,9 @@ export async function loadHistoricalContext(
   Array<{ timestamp: number; cpu: number; memory: number; disk: number }>
 > {
   try {
-    const koreaTime = new Date().toLocaleString('en-US', {
-      timeZone: 'Asia/Seoul',
-    });
-    const now = new Date(koreaTime);
+    const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === serverId);
+    if (!dataset) return [];
+
     const history: Array<{
       timestamp: number;
       cpu: number;
@@ -215,46 +109,35 @@ export async function loadHistoricalContext(
       disk: number;
     }> = [];
 
-    // Load past N hours
+    // KST (Asia/Seoul)
+    const koreaTime = new Date().toLocaleString('en-US', {
+      timeZone: 'Asia/Seoul',
+    });
+    const now = new Date(koreaTime);
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentMinuteOfDay = currentHour * 60 + currentMinute;
+
+    // Retrieve data for past hours
     for (let i = 0; i < hours; i++) {
-      // Calculate target time (Now - i hours)
-      const targetTime = new Date(now.getTime() - i * 60 * 60 * 1000);
-      const targetHour = targetTime.getHours();
-      const targetMinute = targetTime.getMinutes();
-      const segmentInHour = Math.floor(targetMinute / 5);
-      const rotationMinute = segmentInHour * 5;
+      const targetTime = new Date(now.getTime() - i * 60 * 60 * 1000); // i hours ago
+      // Adjust minutes to look up in the fixed dataset ring buffer
+      let targetMinuteOfDay = currentMinuteOfDay - i * 60;
 
-      // Determine file path
-      const hourStr = targetHour.toString().padStart(2, '0');
-      const filePath = path.join(
-        process.cwd(),
-        'data',
-        'hourly-data',
-        `hour-${hourStr}.json`
-      );
+      // Handle wrapping (yesterday)
+      while (targetMinuteOfDay < 0) {
+        targetMinuteOfDay += 1440;
+      }
 
-      try {
-        const fileContent = await fs.readFile(filePath, 'utf-8');
-        const hourlyData: HourlyServerData = JSON.parse(fileContent);
-
-        // Convert to enhanced metrics using that hour's specific rotation logic
-        const servers = convertFixedRotationData(
-          hourlyData,
-          targetHour,
-          rotationMinute,
-          segmentInHour
-        );
-
-        const server = servers.find((s) => s.id === serverId);
-        if (server) {
-          history.push({
-            timestamp: targetTime.getTime(),
-            cpu: server.cpu,
-            memory: server.memory,
-            disk: server.disk,
-          });
-        }
-      } catch {}
+      const metric = getDataAtMinute(dataset, targetMinuteOfDay);
+      if (metric) {
+        history.push({
+          timestamp: targetTime.getTime(),
+          cpu: metric.cpu,
+          memory: metric.memory,
+          disk: metric.disk,
+        });
+      }
     }
 
     return history.sort((a, b) => a.timestamp - b.timestamp);

@@ -42,8 +42,8 @@ export interface ModelOptions {
  */
 export const AGENT_MODEL_CONFIG = {
   supervisor: {
-    provider: 'google' as const,
-    model: AI_MODELS.FLASH as GeminiModel,
+    provider: 'groq' as const,
+    model: 'llama-3.3-70b-versatile' as GroqModel,
     temperature: 0.2,
     maxOutputTokens: 512,
   },
@@ -140,11 +140,11 @@ export function getModelForAgent(
 
 /**
  * Supervisor Agent용 모델
- * Note: Groq Llama는 tool calling 형식을 지원하지 않아 Gemini로 변경
+ * llama-3.3-70b-versatile: OpenAI-compatible tool calling 지원 확인됨 (2025-12-17)
  */
-export function getSupervisorModel(): ChatGoogleGenerativeAI {
+export function getSupervisorModel(): ChatGroq {
   const config = AGENT_MODEL_CONFIG.supervisor;
-  return createGeminiModel(config.model as GeminiModel, {
+  return createGroqModel(config.model as GroqModel, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });

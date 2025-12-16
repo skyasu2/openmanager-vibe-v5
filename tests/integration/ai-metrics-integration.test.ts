@@ -124,7 +124,7 @@ describe.skip('AI Metrics Integration Tests', () => {
         cacheHit: false,
         timestamp: Date.now(),
         metadata: {
-          model: 'gemini-2.0-flash-lite',
+          model: 'gemini-2.5-flash-lite',
           tokensUsed: 50,
           koreanNLPUsed: false,
         },
@@ -150,7 +150,7 @@ describe.skip('AI Metrics Integration Tests', () => {
         cacheHit: false,
         timestamp: Date.now(),
         metadata: {
-          model: 'gemini-2.0-flash',
+          model: 'gemini-2.5-flash',
           tokensUsed: 150,
           koreanNLPUsed: true,
         },
@@ -200,7 +200,7 @@ describe.skip('AI Metrics Integration Tests', () => {
         cacheHit: false,
         timestamp: Date.now(),
         metadata: {
-          model: 'gemini-2.0-flash',
+          model: 'gemini-2.5-flash',
           tokensUsed: 100,
           koreanNLPUsed: false,
         },
@@ -366,7 +366,7 @@ describe.skip('AI Metrics Integration Tests', () => {
         cacheHit: false,
         timestamp: Date.now(),
         metadata: {
-          model: 'gemini-2.0-flash',
+          model: 'gemini-2.5-flash',
           tokensUsed: 100,
         },
       };

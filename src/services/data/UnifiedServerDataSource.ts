@@ -213,56 +213,107 @@ export class UnifiedServerDataSource {
   }
 
   /**
-   * 🔄 서버 데이터 로드 (scenario-loader 사용)
+   * 🔄 서버 데이터 로드 (scenario-loader 사용 -> fixed-24h-metrics로 변경)
    */
   private async loadServersFromSource(): Promise<Server[]> {
-    // 🎯 Single Source of Truth: scenario-loader만 사용
-    return this.loadFromCustomSource();
+    // 🎯 Single Source of Truth: fixed-24h-metrics 사용
+    return this.loadFromFixedSource();
   }
 
   /**
-   * 🎛️ 데이터 소스 로드 (Scenario-based failure data)
-   * 🎯 Single Source of Truth: scenario-loader를 사용하여 UI/ML Provider 데이터 통합
+   * 🎛️ 데이터 소스 로드 (Fixed 24h Metrics)
+   * 🎯 Single Source of Truth: scenario-loader를 대체하여 `src/data/fixed-24h-metrics.ts` 사용
    */
-  private async loadFromCustomSource(): Promise<Server[]> {
-    console.log('🔄 Loading from scenario-based data (scenario-loader)...');
-
-    // scenario-loader에서 장애 시나리오 데이터 로드
-    const scenarioMetrics = await loadHourlyScenarioData();
-
-    // EnhancedServerMetrics[] → Server[] 변환
-    const servers: Server[] = scenarioMetrics.map(
-      (metric: EnhancedServerMetrics) => ({
-        id: metric.id,
-        name: metric.name,
-        hostname: metric.hostname,
-        status: metric.status as 'online' | 'warning' | 'critical',
-        cpu: metric.cpu,
-        memory: metric.memory,
-        disk: metric.disk,
-        network: metric.network,
-        uptime: metric.uptime / 1000 / 60 / 60 / 24, // ms → days (uptime은 일수)
-        responseTime: metric.responseTime,
-        lastUpdate: new Date(metric.last_updated),
-        ip: metric.ip,
-        os: metric.os,
-        type: metric.type as ServerRole, // type을 ServerRole로 변환
-        role: metric.role as ServerRole,
-        environment: metric.environment as ServerEnvironment,
-        location: metric.location,
-        alerts: metric.alerts as never[],
-        provider: metric.provider,
-        specs: {
-          cpu_cores: metric.specs.cpu_cores,
-          memory_gb: metric.specs.memory_gb,
-          disk_gb: metric.specs.disk_gb,
-          network_speed: metric.specs.network_speed,
-        },
-      })
+  private async loadFromFixedSource(): Promise<Server[]> {
+    const { getDataAtMinute, FIXED_24H_DATASETS } = await import(
+      '@/data/fixed-24h-metrics'
     );
 
-    console.log(`✅ Loaded ${servers.length} servers from scenario-loader`);
+    // 현재 시간 계산 (KST 기준 분)
+    const now = new Date();
+    // KST 시간 보정 (UTC+9)
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const kstGap = 9 * 60 * 60 * 1000;
+    const kstDate = new Date(utc + kstGap);
+
+    const currentHour = kstDate.getHours();
+    const currentMinute = kstDate.getMinutes();
+    const minuteOfDay = currentHour * 60 + currentMinute; // 0 ~ 1439
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(
+        `🔄 Loading fixed metrics for minute: ${minuteOfDay} (${currentHour}:${currentMinute})`
+      );
+    }
+
+    // 고정 데이터셋을 Server 타입으로 변환
+    const servers: Server[] = FIXED_24H_DATASETS.map((dataset) => {
+      // 해당 분(minute)의 데이터 가져오기
+      const dataPoint = getDataAtMinute(dataset, minuteOfDay);
+
+      // 데이터가 없으면 기본값 (0)
+      const cpu = dataPoint?.cpu ?? 0;
+      const memory = dataPoint?.memory ?? 0;
+      const disk = dataPoint?.disk ?? 0;
+      const network = dataPoint?.network ?? 0;
+      const logs = dataPoint?.logs ?? [];
+
+      // Status 결정 (CPU 기준 단순화)
+      let status: 'online' | 'warning' | 'critical' = 'online';
+      if (cpu >= 80) status = 'critical';
+      else if (cpu >= 60) status = 'warning';
+
+      return {
+        id: dataset.serverId,
+        name: dataset.serverId, // 이름이 없으면 ID 사용
+        hostname: `${dataset.serverId.toLowerCase()}.internal`,
+        type: dataset.serverType,
+        status,
+        cpu,
+        memory,
+        disk,
+        network,
+        uptime: 86400 * 30, // 30일 가동 중으로 고정
+        responseTime: 50 + cpu * 2, // CPU 부하에 비례한 응답 시간 시뮬레이션
+        lastUpdate: new Date(),
+        location: dataset.location,
+        provider: 'On-Premise', // 고정값
+        environment: 'production', // 고정값
+        // logs 필드 매핑
+        logs: logs.map((msg) => ({
+          timestamp: new Date().toISOString(),
+          level:
+            msg.includes('[CRITICAL]') || msg.includes('[ERROR]')
+              ? 'ERROR'
+              : msg.includes('[WARN]')
+                ? 'WARN'
+                : 'INFO',
+          message: msg,
+        })),
+        services: [],
+        alerts: [],
+        specs: {
+          cpu_cores: 8,
+          memory_gb: 32,
+          disk_gb: 512,
+          network_speed: '1Gbps',
+        },
+        // 호환성을 위한 추가 필드 (server.ts와 일치)
+        role: dataset.serverType,
+        ip: `10.0.1.${Math.floor(Math.random() * 255)}`,
+        os: 'Ubuntu 22.04 LTS',
+      } as unknown as Server;
+    });
+
     return servers;
+  }
+
+  /**
+   * 🗑️ (Deprecated) 데이터 소스 로드 (Scenario-based failure data)
+   * 더 이상 사용하지 않음
+   */
+  private async loadFromCustomSource(): Promise<Server[]> {
+    return this.loadFromFixedSource();
   }
 
   /**

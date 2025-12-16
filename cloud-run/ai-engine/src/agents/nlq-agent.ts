@@ -61,6 +61,54 @@ export const getServerMetricsTool = tool(
   }
 );
 
+export const getServerLogsTool = tool(
+  async ({ serverId, limit = 5 }) => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return { success: false, error: 'Supabase credentials missing' };
+    }
+
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      let query = supabase
+        .from('server_logs')
+        .select('timestamp, level, message, source')
+        .order('timestamp', { ascending: false })
+        .limit(limit);
+
+      if (serverId) {
+        query = query.eq('server_id', serverId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        serverId: serverId || 'ALL',
+        logs: data,
+        count: data?.length || 0,
+        _dataSource: 'supabase-db',
+      };
+    } catch (e) {
+      return { success: false, error: String(e) };
+    }
+  },
+  {
+    name: 'getServerLogs',
+    description: '서버의 최근 로그 및 장애 이력을 DB에서 조회합니다 (RAG)',
+    schema: z.object({
+      serverId: z.string().optional().describe('조회할 서버 ID (선택)'),
+      limit: z.number().optional().default(5).describe('조회할 로그 개수'),
+    }),
+  }
+);
+
 // ============================================================================
 // 3. NLQ Agent Node Function
 // ============================================================================
@@ -77,22 +125,24 @@ export async function nlqAgentNode(
   try {
     const model = getNLQModel();
 
-    // 도구 바인딩
-    const modelWithTools = model.bindTools([getServerMetricsTool]);
+    // 도구 바인딩 (메트릭 + 로그 RAG)
+    const modelWithTools = model.bindTools([getServerMetricsTool, getServerLogsTool]);
 
     // 시스템 프롬프트와 함께 호출
     const response = await modelWithTools.invoke([
       {
         role: 'system',
         content: `당신은 OpenManager VIBE의 NLQ Agent입니다.
-사용자의 자연어 질문을 서버 메트릭 조회로 변환합니다.
+사용자의 자연어 질문을 서버 메트릭 조회 또는 로그 분석으로 변환합니다.
 
 가능한 작업:
 - 서버 상태 조회 (CPU, Memory, Disk)
-- 특정 서버 메트릭 조회
+- 서버 로그 및 에러 이력 조회 (DB 검색)
 - 전체 서버 요약
 
-도구를 사용해서 데이터를 조회한 후, 결과를 한국어로 친절하게 설명해주세요.`,
+질문이 "로그 보여줘" 또는 "에러 확인해줘"와 관련되면 'getServerLogs' 도구를 사용하세요.
+상태나 메트릭 관련이면 'getServerMetrics' 도구를 사용하세요.
+조회 결과를 한국어로 친절하게 설명해주세요.`,
       },
       { role: 'user', content: userQuery },
     ]);
@@ -115,6 +165,19 @@ export async function nlqAgentNode(
           data: result,
           executedAt: new Date().toISOString(),
         });
+      } else if (toolCall.name === 'getServerLogs') {
+        const result = await getServerLogsTool.invoke(
+          toolCall.args as {
+            serverId?: string;
+            limit?: number;
+          }
+        );
+        toolResults.push({
+          toolName: 'getServerLogs',
+          success: true,
+          data: result,
+          executedAt: new Date().toISOString(),
+        });
       }
     }
 
@@ -122,40 +185,27 @@ export async function nlqAgentNode(
     let finalContent = '';
     const firstToolResult = toolResults[0];
     if (toolResults.length > 0 && firstToolResult) {
-      const metricsResult = firstToolResult.data as {
-        servers: Array<{
-          id: string;
-          name: string;
-          status: string;
-          cpu: number;
-          memory: number;
-          disk: number;
-        }>;
-        summary: { total: number; alertCount: number };
-      };
-
-      // 간단한 요약 생성
       const summaryResponse = await model.invoke([
         {
           role: 'system',
           content:
-            '서버 메트릭 데이터를 받아서 사용자에게 친절하게 한국어로 요약해주세요. 중요한 정보만 간결하게 전달하세요.',
+            '서버 데이터(메트릭 또는 로그)를 받아서 사용자에게 친절하게 한국어로 요약해주세요. 중요한 정보만 간결하게 전달하세요.',
         },
         {
           role: 'user',
-          content: `다음 서버 데이터를 요약해주세요: ${JSON.stringify(metricsResult)}`,
+          content: `다음 데이터를 요약해주세요: ${JSON.stringify(toolResults.map(t => t.data))}`,
         },
       ]);
 
       finalContent =
         typeof summaryResponse.content === 'string'
           ? summaryResponse.content
-          : JSON.stringify(metricsResult);
+          : JSON.stringify(toolResults);
     } else {
       finalContent =
         typeof response.content === 'string'
           ? response.content
-          : '서버 상태를 조회할 수 없습니다.';
+          : '요청하신 정보를 조회할 수 없습니다.';
     }
 
     console.log(
