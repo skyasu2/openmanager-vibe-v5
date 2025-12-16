@@ -114,10 +114,32 @@ npm run test     # Vitest (메인 설정)
 
 ### 다른 AI 도구 (별도 문서)
 
-| 도구                       | 현재 버전 | 참고 문서   |
-| -------------------------- | --------- | ----------- |
-| Claude Code / Multi-AI MCP | v2.0.62   | `CLAUDE.md` |
-| Gemini CLI                 | v0.20.0   | `GEMINI.md` |
+| 도구                       | 현재 버전 | 참고 문서   | 상태 |
+| -------------------------- | --------- | ----------- | ---- |
+| **Google Cloud Run AI**   | **v1.0**  | **현재 문서** | **✅ Primary** |
+| Claude Code / Multi-AI MCP | v2.0.62   | `CLAUDE.md` | ✅ Active |
+| Gemini CLI                 | v0.20.0   | `GEMINI.md` | ✅ Active |
+| Qwen CLI                   | v0.4.0    | `QWEN.md`   | ✅ Active |
+| Jules CLI                  | v0.1.41   | `scripts/ai-subagents/jules-wrapper.sh` | ✅ Active |
+
+### 🏗️ **LangGraph 아키텍처 현황 (2025-12-16)**
+
+#### **Primary: Google Cloud Run** ✅
+- **URL**: `https://ai-engine-490817238363.asia-northeast3.run.app`
+- **역할**: LangGraph Multi-Agent Supervisor (Groq + Gemini)
+- **상태**: 정상 동작, API 키 인증 완료
+- **성능**: 무제한 실행 시간, 고성능 처리
+
+#### **Fallback: Vercel Local LangGraph** ⚠️ 
+- **역할**: Cloud Run 실패 시 로컬 LangGraph 실행
+- **제한**: 60초 타임아웃, 메모리 제한
+- **향후 계획**: **Cloud Run 안정화 후 제거 예정**
+
+#### **API 키 상태** ✅
+- **Google AI Primary**: `AIzaSyCNKnp27rXOHvYwRyfUISeK4dOzajFFuRg` (정상)
+- **Google AI Secondary**: `AIzaSyCeCEKzNotbePqvjKwFScGQtc2kMf09Kjk` (정상)
+- **Groq**: `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` (정상)
+- **라운드로빈**: 무료티어 한도 내 2개 Google AI 키 순환 사용
 | Qwen CLI                   | v0.4.0    | `QWEN.md`   |
 
 ## 📜 Codex 핵심 코딩 규칙 (Codex Coding Standards)
@@ -219,6 +241,7 @@ Codex CLI는 다음 규칙을 준수하여 코드를 생성해야 합니다.
 
 ## 업데이트 로그
 
+- **2025-12-16**: Cloud Run 연결 완료. Google AI 키 2개 라운드로빈 + Groq 폴백 정상 동작. Vercel 로컬 LangGraph 제거 계획 수립.
 - **2025-12-11**: Codex CLI v0.69.0 버전 갱신 반영.
 - **2025-11-27**: Codex wrapper v3.0.0 및 자동 코드 리뷰 스크립트 v4.3.0(4:1 비율, lint/typecheck, Claude 폴백) 반영. Gemini/Qwen 래퍼 안내를 전용 문서 참조로 단순화.
 - **2025-11-20**: Codex CLI v0.58.0, Wrapper v2.5.0(600초) 및 자동 코드 리뷰 파이프라인 정보 반영. Node 22.21.1/Next ^15.5.5 테이블 갱신.

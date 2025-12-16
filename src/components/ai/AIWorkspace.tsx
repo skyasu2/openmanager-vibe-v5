@@ -27,6 +27,7 @@ import { useRouter } from 'next/navigation';
 import { memo, useMemo, useRef, useState } from 'react';
 import { AIFunctionPages } from '../../domains/ai-sidebar/components/AIFunctionPages';
 import { EnhancedAIChat } from '../../domains/ai-sidebar/components/EnhancedAIChat';
+import { AIDebugPanel } from '../../domains/ai-sidebar/components/AIDebugPanel';
 import type { AIThinkingStep } from '../../domains/ai-sidebar/types/ai-sidebar-types';
 import type { EnhancedChatMessage } from '../../stores/useAISidebarStore';
 import { OpenManagerLogo } from '../shared/OpenManagerLogo';
@@ -62,7 +63,7 @@ const MessageComponent = memo<{
         <MemoizedThinkingProcessVisualizer
           steps={message.thinkingSteps as AIThinkingStep[]}
           isActive={message.isStreaming || false}
-          className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4"
+          className="rounded-lg border border-purple-200 bg-linear-to-r from-purple-50 to-blue-50 p-4"
         />
       </div>
     );
@@ -81,7 +82,7 @@ const MessageComponent = memo<{
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-xs ${
             message.role === 'user'
               ? 'bg-blue-100 text-blue-600'
-              : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+              : 'bg-linear-to-br from-purple-500 to-pink-500 text-white'
           }`}
         >
           {message.role === 'user' ? (
@@ -95,7 +96,7 @@ const MessageComponent = memo<{
           <div
             className={`rounded-2xl p-4 shadow-xs ${
               message.role === 'user'
-                ? 'rounded-tr-sm bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                ? 'rounded-tr-sm bg-linear-to-br from-blue-500 to-blue-600 text-white'
                 : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
             }`}
           >
@@ -326,7 +327,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             <AIAssistantIconPanel
               selectedFunction={selectedFunction}
               onFunctionChange={setSelectedFunction}
-              className="w-full !bg-transparent !border-none !p-0 items-start"
+              className="w-full bg-transparent! border-none! p-0! items-start"
             />
           </div>
         </div>
@@ -428,7 +429,10 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                       Production
                     </span>
                   </div>
-                </div>
+              </div>
+              
+              <div className="mt-6 border-t border-gray-200 pt-6">
+                 <AIDebugPanel />
               </div>
             </div>
           </div>

@@ -80,7 +80,7 @@ graph TD
 
 ### 3. 🧠 AI 엔진 아키텍처 (Intelligence)
 
-**Hybrid Multi-Agent AI Engine (LangGraph)**을 도입하여 단순한 응답을 넘어선 복합적인 추론과 작업을 수행합니다. **Cloud Run**을 주 백엔드로 사용하며(Supervisor-Worker 패턴), 로컬 환경에서도 동일한 로직이 실행되는 하이브리드 구조를 갖추고 있습니다.
+**Hybrid Multi-Agent AI Engine (LangGraph)**을 도입하여 단순한 응답을 넘어선 복합적인 추론과 작업을 수행합니다. **Google Cloud Run**을 주 백엔드로 사용하며(Supervisor-Worker 패턴), Vercel 로컬 환경은 폴백으로만 동작합니다.
 
 ```mermaid
 graph TD
@@ -88,17 +88,17 @@ graph TD
 
     subgraph "Hybrid Engine Router"
         API --> Check{Cloud Run 활성?}
-        Check -- Yes --> Cloud[Cloud Run (LangGraph Server)]
-        Check -- No --> Local[Local LangGraph (Fallback)]
+        Check -- Yes --> Cloud[Google Cloud Run ✅ Primary]
+        Check -- No --> Local[Vercel Local ⚠️ Fallback Only]
     end
 
     subgraph "AI Agents (Supervisor-Worker)"
-        Cloud --> Supervisor[🦸 Supervisor Agent (Routing)]
+        Cloud --> Supervisor[🦸 Supervisor Agent (Groq Llama)]
         Local --> Supervisor
         
-        Supervisor --> NLQ[🔍 NLQ Agent (Metrics)]
-        Supervisor --> Analyst[📊 Analyst Agent (Patterns)]
-        Supervisor --> Reporter[📝 Reporter Agent (RAG/Report)]
+        Supervisor --> NLQ[🔍 NLQ Agent (Gemini Flash)]
+        Supervisor --> Analyst[📊 Analyst Agent (Gemini Pro)]
+        Supervisor --> Reporter[📝 Reporter Agent (Groq Llama)]
     end
 
     subgraph "Data & Context"
@@ -107,6 +107,8 @@ graph TD
         Supervisor --> DB[(Session State)]
     end
 ```
+
+**Migration Plan**: Cloud Run 안정화 후 Vercel 로컬 LangGraph 제거 예정
 
 ## ✨ 핵심 기능
 
