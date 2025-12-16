@@ -146,6 +146,10 @@ local-dev/
 .kiro/
 .cursor/
 
+# 🐳 Cloud Run 서비스 (별도 배포, Vercel 제외)
+cloud-run/
+gcp-functions/
+
 # 개발 도구 문서
 CLAUDE.md
 GEMINI.md
