@@ -7,7 +7,7 @@
 ## 📦 핵심 정보
 
 **프로젝트**: OpenManager VIBE v5.82.0 - AI 기반 실시간 서버 모니터링 플랫폼
-**환경**: WSL + Claude Code v2.0.62 + Codex/Gemini/Qwen 리뷰 + Jules 비동기
+**환경**: WSL + Claude Code v2.0.62 + Codex/Gemini/Qwen 리뷰
 **스택**: Next.js 16, React 19, TypeScript 5.9 strict, Vercel + Supabase
 
 ---
@@ -39,12 +39,6 @@ Tab 키 토글 | Token Budget: think(4K) < think hard(10K) < ultrathink(32K)
 @context7 "Next.js 16 문서"    # Context7만 활성화
 @vercel "배포 상태 확인"       # Vercel만 활성화
 @figma "디자인 코드 생성"      # Figma만 활성화 (6회/월 한도 주의!)
-
-# Jules (비동기 자율 코딩 에이전트) - GitHub 통합
-# 워크플로우: 계획(plan) → 실행 → diff 제공 → PR 생성
-jules new "버그 수정/테스트 생성"  # 작업 할당 → 배경 실행
-jules list                        # 활성 작업 목록
-jules show <task-id>              # 작업 결과 확인 (plan + diff)
 
 # 버전 관리 (standard-version)
 npm run release:patch         # 버그 수정 (fix:)
@@ -153,9 +147,6 @@ git push --follow-tags        # 태그와 함께 푸시
 |------|------|----------|------|
 | **Claude Code** | 실시간 개발 | 동기 (실시간) | 구독 |
 | **Codex/Gemini/Qwen** | 코드 리뷰 | 동기 (3-AI 순환) | 무제한 |
-| **Jules** | 버그 수정/테스트/리팩토링/업그레이드 | **비동기 (GitHub PR)** | 100/일 (Pro) |
-
-**Jules 특징**: GitHub 연동 자율 코딩 에이전트 (계획→실행→diff→PR), Google Cloud VM 격리 실행
 
 ---
 

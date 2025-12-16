@@ -120,7 +120,6 @@ npm run test     # Vitest (메인 설정)
 | Claude Code / Multi-AI MCP | v2.0.62   | `CLAUDE.md` | ✅ Active |
 | Gemini CLI                 | v0.20.0   | `GEMINI.md` | ✅ Active |
 | Qwen CLI                   | v0.4.0    | `QWEN.md`   | ✅ Active |
-| Jules CLI                  | v0.1.41   | `scripts/ai-subagents/jules-wrapper.sh` | ✅ Active |
 
 ### 🏗️ **LangGraph 아키텍처 현황 (2025-12-16)**
 
