@@ -112,4 +112,97 @@ export const nextJsApiHandlers = [
       { status: 503 }
     );
   }),
+
+  /**
+   * Health Check API
+   * @example GET /api/health
+   */
+  http.get(`${BASE_URL}/api/health`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        status: 'healthy',
+        services: {
+          database: { status: 'connected', latency: 10 },
+          cache: { status: 'connected', latency: 5 },
+          ai: { status: 'connected', latency: 15 },
+        },
+        uptime: 86400,
+        version: '1.0.0',
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }),
+
+  /**
+   * Metrics API
+   * @example GET /api/metrics
+   */
+  http.get(`${BASE_URL}/api/metrics`, () => {
+    return HttpResponse.json({
+      totalServers: 10,
+      onlineServers: 8,
+      warningServers: 1,
+      offlineServers: 1,
+      averageCpu: 45.5,
+      averageMemory: 67.3,
+      averageDisk: 23.1,
+      totalAlerts: 3,
+      timestamp: new Date().toISOString(),
+    });
+  }),
+
+  /**
+   * System Status API
+   * @example GET /api/system/status
+   */
+  http.get(`${BASE_URL}/api/system/status`, () => {
+    return HttpResponse.json({
+      success: true,
+      timestamp: Date.now(),
+      source: 'mock',
+      state: {
+        isRunning: true,
+        activeUsers: 5,
+        version: '1.0.0',
+        environment: 'development',
+      },
+    });
+  }),
+
+  /**
+   * Servers List API
+   * @example GET /api/servers/all
+   */
+  http.get(`${BASE_URL}/api/servers/all`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: Array.from({ length: 10 }, (_, i) => ({
+        id: `server-${i + 1}`,
+        name: `Test Server ${i + 1}`,
+        hostname: `test-${i + 1}.local`,
+        status: i < 8 ? 'online' : i === 8 ? 'warning' : 'offline',
+        cpu: 45,
+        memory: 67,
+        disk: 23,
+      })),
+    });
+  }),
+
+  /**
+   * Dashboard API
+   * @example GET /api/dashboard
+   */
+  http.get(`${BASE_URL}/api/dashboard`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        servers: {},
+        stats: {
+          totalServers: 10,
+          onlineServers: 8,
+        },
+      },
+    });
+  }),
 ];

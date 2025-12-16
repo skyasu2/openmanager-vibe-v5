@@ -217,7 +217,8 @@
     "tailwindcss": "^4.1.17",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.15"
+    "vitest": "^4.0.15",
+    "whatwg-fetch": "^3.6.20"
   },
   "engines": {
     "node": ">=22.0.0 <23.0.0",

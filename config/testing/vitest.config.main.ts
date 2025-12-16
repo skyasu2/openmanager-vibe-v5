@@ -46,6 +46,7 @@ export default defineConfig({
         'src/services/**/*.{ts,tsx}',
         'src/domains/**/*.{ts,tsx}',
         'src/stores/**/*.{ts,tsx}',
+        'src/app/api/**/*.{ts,tsx}',
       ],
       exclude: [
         // 빌드 & 배포 아티팩트
@@ -94,6 +95,11 @@ export default defineConfig({
         minThreads: 2,
         maxThreads: 4,
         useAtomics: true,
+      },
+    },
+    server: {
+      deps: {
+        inline: ['whatwg-fetch'],
       },
     },
   },
