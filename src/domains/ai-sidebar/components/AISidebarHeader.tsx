@@ -12,6 +12,7 @@
 import { Brain, X } from 'lucide-react';
 import type { FC } from 'react';
 import BasicTyping from '@/components/ui/BasicTyping';
+import { CloudRunStatusIndicator } from './CloudRunStatusIndicator';
 
 interface AISidebarHeaderProps {
   onClose: () => void;
@@ -40,6 +41,11 @@ export const AISidebarHeader: FC<AISidebarHeaderProps> = ({
             AI와 자연어로 시스템 질의
           </p>
         </div>
+      </div>
+
+      {/* Cloud Run 상태 인디케이터 - 웜업 버튼 포함 */}
+      <div className="mx-2 shrink-0">
+        <CloudRunStatusIndicator compact autoCheckInterval={30000} />
       </div>
 
       {/* 닫기 버튼 - 접근성 강화 */}
