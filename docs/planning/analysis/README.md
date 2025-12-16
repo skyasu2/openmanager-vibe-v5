@@ -8,7 +8,7 @@ query_triggers:
   - '아키텍처 검토'
 related_docs:
   - 'docs/archive/README.md'
-last_updated: '2025-12-01'
+last_updated: '2025-12-16'
 ---
 
 # 📊 분석 및 보고서 (Analysis)
@@ -20,10 +20,11 @@ last_updated: '2025-12-01'
 ## 📚 주요 문서
 
 - **[ai-architecture-report.md](./ai-architecture-report.md)**: AI 아키텍처 보고서 (Quad Engine)
-- **[ai-review-performance-report.md](./ai-review-performance-report.md)**: AI 리뷰 성능 분석
 - **[ai-tool-comparison.md](./ai-tool-comparison.md)**: AI 도구 비교 (Claude/Codex/Gemini/Qwen)
 - **[component-interaction.md](./component-interaction.md)**: 컴포넌트 상호작용 분석
 - **[ui-ux-analysis.md](./ui-ux-analysis.md)**: UI/UX 분석 보고서
+
+> **Note**: AI 리뷰 성능 분석은 `logs/code-reviews/reports/`로 이동됨
 
 ## 🔍 분석 카테고리
 

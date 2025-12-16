@@ -14,10 +14,11 @@
 - CHANGELOG.md       # 최신 변경사항 (현재 버전)
 - CHANGELOG-LEGACY.md # 레거시 변경사항 아카이브
 
-### AI Assistant Guides  
+### AI Assistant Guides
 - CLAUDE.md          # Claude Code 설정 및 사용법
-- GEMINI.md          # Gemini 통합 및 워크플로우
+- GEMINI.md          # Gemini CLI 통합 및 워크플로우
 - QWEN.md            # Qwen CLI 협업 패턴
+- KIRO.md            # Kiro CLI 멀티에이전트 오케스트레이터
 - AGENTS.md          # Codex CLI 설정 파일 (항상 루트에 유지)
 
 ### Dotfiles & Config (패턴)

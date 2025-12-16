@@ -95,10 +95,13 @@ const port = parseInt(process.env.PORT || '8080', 10);
 console.log(`🚀 AI Engine Server starting on port ${port}...`);
 logAPIKeyStatus();
 
-serve({
-  fetch: app.fetch,
-  port,
-  hostname: '0.0.0.0', // Required for Cloud Run
-}, (info) => {
-  console.log(`✅ Server listening on http://${info.address}:${info.port}`);
-});
+serve(
+  {
+    fetch: app.fetch,
+    port,
+    hostname: '0.0.0.0', // Required for Cloud Run
+  },
+  (info) => {
+    console.log(`✅ Server listening on http://${info.address}:${info.port}`);
+  }
+);

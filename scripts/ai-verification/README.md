@@ -30,7 +30,7 @@
    - verification-index.json이 생성된 적 없음
 
 3. ❌ **보존 디렉토리 불일치**
-   - 스크립트: `reports/quality/ai-verifications/` 저장
+   - 스크립트: `reports/quality/ai-verifications/` 저장 (→ archive/legacy-reports/로 이동됨)
    - 실제: `docs/claude/history/ai-verifications/` 사용 중
 
 ---
@@ -93,7 +93,7 @@
 ### 2. 구조적 문제
 
 **저장 경로 혼란**:
-- 스크립트: `reports/quality/ai-verifications/`
+- 스크립트: `reports/quality/ai-verifications/` (→ archive/legacy-reports/로 이동됨)
 - 실제 사용: `docs/claude/history/ai-verifications/`
 - 프로젝트 정책: reports/ 디렉토리 지양 (CLAUDE.md)
 
@@ -202,7 +202,7 @@
 
 - [ ] **Storage Strategy**: 어디에 저장할 것인가?
   - docs/claude/history/ai-verifications/ (현재 위치)
-  - reports/quality/ai-verifications/ (스크립트 기본값)
+  - ~~reports/quality/ai-verifications/~~ (archive/legacy-reports/로 이동됨)
   - 통일된 디렉토리 구조 필요
 
 - [ ] **Maintenance Plan**: 누가 유지보수하나?

@@ -35,6 +35,13 @@ tests/e2e/visual-regression.spec.ts-snapshots/
 *.log
 test-*.txt
 .temp-*
+# Root-level build/deploy/test logs (moved to logs/)
+build_*.txt
+deploy_*.txt
+install_*.txt
+install_*.log
+*_log.txt
+*_debug.txt
 verification.log
 setup.log
 build-before.log
