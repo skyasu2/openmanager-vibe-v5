@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { checkCloudRunHealth } from '@/lib/cloud-run/proxy';
+import { checkCloudRunHealth } from '@/lib/ai-proxy/proxy';
 
 export const runtime = 'edge';
 

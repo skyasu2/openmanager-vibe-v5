@@ -16,12 +16,12 @@
 
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { withAuth } from '@/lib/auth/api-auth';
 import {
   isCloudRunEnabled,
   proxyStreamToCloudRun,
   proxyToCloudRun,
-} from '@/lib/cloud-run/proxy';
+} from '@/lib/ai-proxy/proxy';
+import { withAuth } from '@/lib/auth/api-auth';
 import {
   createSupervisorStreamResponse,
   executeSupervisor,

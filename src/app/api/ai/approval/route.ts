@@ -5,8 +5,8 @@
 
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
-import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/cloud-run/proxy';
 
 // ============================================================================
 // Request Schemas
