@@ -1,0 +1,125 @@
+/**
+ * AI Status API Endpoint
+ * Circuit Breaker 상태, 이벤트 히스토리, 통계 조회
+ *
+ * v2.0.0 (2025-12-17): 초기 구현
+ * - GET: AI 서비스 상태 조회
+ * - POST: Circuit Breaker 수동 리셋 (관리자 전용)
+ */
+
+import { type NextRequest, NextResponse } from 'next/server';
+import {
+  aiCircuitBreaker,
+  circuitBreakerEvents,
+  getAIStatusSummary,
+} from '@/lib/ai/circuit-breaker';
+
+// Node.js 런타임 사용 (인메모리 상태 유지)
+export const runtime = 'nodejs';
+
+/**
+ * GET /api/ai/status
+ * AI 서비스 상태 조회
+ */
+export async function GET(request: NextRequest) {
+  try {
+    // 쿼리 파라미터
+    const { searchParams } = new URL(request.url);
+    const service = searchParams.get('service');
+    const eventLimit = parseInt(searchParams.get('eventLimit') ?? '20', 10);
+
+    // 특정 서비스 상태만 조회
+    if (service) {
+      const breaker = aiCircuitBreaker.getBreaker(service);
+      const status = breaker.getStatus();
+      const events = circuitBreakerEvents.getHistory({
+        service,
+        limit: eventLimit,
+      });
+
+      return NextResponse.json({
+        service,
+        status,
+        events,
+        timestamp: Date.now(),
+      });
+    }
+
+    // 전체 상태 조회
+    const summary = getAIStatusSummary();
+
+    return NextResponse.json({
+      ...summary,
+      timestamp: Date.now(),
+    });
+  } catch (error) {
+    console.error('[AI Status API] Error:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to get AI status',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/ai/status
+ * Circuit Breaker 수동 리셋 (관리자 전용)
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { action, service } = body as { action: string; service?: string };
+
+    switch (action) {
+      case 'reset': {
+        if (service) {
+          // 특정 서비스 리셋
+          const success = aiCircuitBreaker.resetBreaker(service);
+          if (!success) {
+            return NextResponse.json(
+              { error: `Service '${service}' not found` },
+              { status: 404 }
+            );
+          }
+          return NextResponse.json({
+            message: `Circuit breaker for '${service}' has been reset`,
+            timestamp: Date.now(),
+          });
+        } else {
+          // 전체 리셋
+          aiCircuitBreaker.resetAll();
+          return NextResponse.json({
+            message: 'All circuit breakers have been reset',
+            timestamp: Date.now(),
+          });
+        }
+      }
+
+      case 'clearHistory': {
+        circuitBreakerEvents.clearHistory();
+        return NextResponse.json({
+          message: 'Event history has been cleared',
+          timestamp: Date.now(),
+        });
+      }
+
+      default:
+        return NextResponse.json(
+          { error: `Unknown action: ${action}` },
+          { status: 400 }
+        );
+    }
+  } catch (error) {
+    console.error('[AI Status API] Error:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to process request',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
+  }
+}

@@ -5,11 +5,13 @@
  * - AI 채팅: 자연어로 시스템 질의 및 대화
  * - 자동 장애 보고서: AI 기반 장애 분석 + 장애 케이스 학습
  * - 이상감지/예측: 통합 AI 분석 + 패턴 학습 + 예측 분석
+ * - AI 상태관리: Circuit Breaker, Failover, Rate Limit 모니터링 (v2.0.0)
  */
 
 'use client';
 
 import {
+  Activity,
   Brain,
   FileText,
   Maximize,
@@ -23,7 +25,8 @@ import type { ComponentType } from 'react';
 export type AIAssistantFunction =
   | 'chat'
   | 'auto-report'
-  | 'intelligent-monitoring';
+  | 'intelligent-monitoring'
+  | 'ai-management';
 
 interface AIAssistantIcon {
   id: AIAssistantFunction;
@@ -66,6 +69,16 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-50 hover:bg-emerald-100',
     gradient: 'from-emerald-500 to-teal-500',
+  },
+  // === AI 관리 기능 (v2.0.0) ===
+  {
+    id: 'ai-management',
+    icon: Activity,
+    label: 'AI 상태관리',
+    description: '⚙️ Circuit Breaker 상태, Failover 이벤트, Rate Limit 모니터링',
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-50 hover:bg-amber-100',
+    gradient: 'from-amber-500 to-orange-500',
   },
 ];
 

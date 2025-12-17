@@ -2,7 +2,136 @@
  * AI 서비스 Circuit Breaker 패턴 구현
  * Gemini AI 교차 검증 제안 기반
  * Vercel 프로덕션 환경 안정성 향상
+ *
+ * v2.0.0 (2025-12-17): 이벤트 훅 시스템 추가
+ * - 상태 변경 이벤트 발행 (circuit_open, circuit_close, circuit_half_open)
+ * - Failover/Rate Limit 이벤트 지원
+ * - 관리자 대시보드 연동 가능
  */
+
+// ============================================================================
+// Circuit Breaker 이벤트 시스템
+// ============================================================================
+
+export type CircuitBreakerEventType =
+  | 'circuit_open'
+  | 'circuit_close'
+  | 'circuit_half_open'
+  | 'failover'
+  | 'rate_limit'
+  | 'failure'
+  | 'success';
+
+export interface CircuitBreakerEvent {
+  type: CircuitBreakerEventType;
+  service: string;
+  timestamp: number;
+  details: {
+    previousState?: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+    newState?: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+    failures?: number;
+    threshold?: number;
+    resetTimeMs?: number;
+    error?: string;
+    failoverFrom?: string;
+    failoverTo?: string;
+  };
+}
+
+type CircuitBreakerEventListener = (event: CircuitBreakerEvent) => void;
+
+/**
+ * 전역 Circuit Breaker 이벤트 이미터
+ * 싱글톤 패턴으로 모든 Circuit Breaker 인스턴스의 이벤트를 중앙 관리
+ */
+class CircuitBreakerEventEmitter {
+  private listeners: CircuitBreakerEventListener[] = [];
+  private eventHistory: CircuitBreakerEvent[] = [];
+  private readonly maxHistorySize = 100;
+
+  /**
+   * 이벤트 리스너 등록
+   */
+  subscribe(listener: CircuitBreakerEventListener): () => void {
+    this.listeners.push(listener);
+    // 구독 해제 함수 반환
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
+  }
+
+  /**
+   * 이벤트 발행
+   */
+  emit(event: CircuitBreakerEvent): void {
+    // 히스토리에 저장
+    this.eventHistory.push(event);
+    if (this.eventHistory.length > this.maxHistorySize) {
+      this.eventHistory.shift();
+    }
+
+    // 모든 리스너에게 전달
+    for (const listener of this.listeners) {
+      try {
+        listener(event);
+      } catch (error) {
+        console.error('[CircuitBreaker] Event listener error:', error);
+      }
+    }
+
+    // 콘솔 로깅 (개발 환경)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        `[CircuitBreaker] ${event.type} - ${event.service}:`,
+        event.details
+      );
+    }
+  }
+
+  /**
+   * 이벤트 히스토리 조회
+   */
+  getHistory(options?: {
+    service?: string;
+    type?: CircuitBreakerEventType;
+    limit?: number;
+  }): CircuitBreakerEvent[] {
+    let filtered = [...this.eventHistory];
+
+    if (options?.service) {
+      filtered = filtered.filter((e) => e.service === options.service);
+    }
+    if (options?.type) {
+      filtered = filtered.filter((e) => e.type === options.type);
+    }
+    if (options?.limit) {
+      filtered = filtered.slice(-options.limit);
+    }
+
+    return filtered;
+  }
+
+  /**
+   * 최근 이벤트 조회
+   */
+  getRecentEvents(count = 10): CircuitBreakerEvent[] {
+    return this.eventHistory.slice(-count);
+  }
+
+  /**
+   * 히스토리 초기화
+   */
+  clearHistory(): void {
+    this.eventHistory = [];
+  }
+}
+
+// 싱글톤 이벤트 이미터
+export const circuitBreakerEvents = new CircuitBreakerEventEmitter();
+
+// ============================================================================
+// Circuit Breaker 구현
+// ============================================================================
 
 export class AIServiceCircuitBreaker {
   private failures = 0;
@@ -10,6 +139,7 @@ export class AIServiceCircuitBreaker {
   private lastFailTime = 0;
   private readonly resetTimeout: number;
   private readonly serviceName: string;
+  private currentState: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
 
   constructor(
     serviceName: string,
@@ -19,6 +149,36 @@ export class AIServiceCircuitBreaker {
     this.serviceName = serviceName;
     this.threshold = threshold;
     this.resetTimeout = resetTimeoutMs;
+  }
+
+  /**
+   * 상태 전이 및 이벤트 발행
+   */
+  private transitionTo(newState: 'CLOSED' | 'OPEN' | 'HALF_OPEN'): void {
+    if (this.currentState === newState) return;
+
+    const previousState = this.currentState;
+    this.currentState = newState;
+
+    // 상태별 이벤트 타입 매핑
+    const eventTypeMap = {
+      CLOSED: 'circuit_close',
+      OPEN: 'circuit_open',
+      HALF_OPEN: 'circuit_half_open',
+    } as const;
+
+    circuitBreakerEvents.emit({
+      type: eventTypeMap[newState],
+      service: this.serviceName,
+      timestamp: Date.now(),
+      details: {
+        previousState,
+        newState,
+        failures: this.failures,
+        threshold: this.threshold,
+        resetTimeMs: this.resetTimeout,
+      },
+    });
   }
 
   /**
@@ -39,18 +199,15 @@ export class AIServiceCircuitBreaker {
       this.onSuccess();
       return result;
     } catch (error) {
-      this.onFailure();
+      const errorInstance =
+        error instanceof Error ? error : new Error(String(error));
+      this.onFailure(errorInstance);
 
       // 원본 에러에 Circuit Breaker 정보 추가
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
       const enhancedError = new Error(
-        `${this.serviceName} 실행 실패 (${this.failures}/${this.threshold} 실패): ${errorMessage}`
+        `${this.serviceName} 실행 실패 (${this.failures}/${this.threshold} 실패): ${errorInstance.message}`
       );
-
-      if (error instanceof Error) {
-        enhancedError.stack = error.stack;
-      }
+      enhancedError.stack = errorInstance.stack;
 
       throw enhancedError;
     }
@@ -67,6 +224,7 @@ export class AIServiceCircuitBreaker {
     // 리셋 타임아웃이 지났으면 반개방 상태로 전환
     if (isFailureThresholdExceeded && !isWithinResetTimeout) {
       this.failures = this.threshold - 1; // 반개방 상태
+      this.transitionTo('HALF_OPEN');
     }
 
     return isFailureThresholdExceeded && isWithinResetTimeout;
@@ -76,16 +234,50 @@ export class AIServiceCircuitBreaker {
    * 성공 시 처리
    */
   private onSuccess(): void {
+    const wasOpen = this.currentState === 'HALF_OPEN';
     this.failures = 0;
     this.lastFailTime = 0;
+
+    // 반개방 상태에서 성공 시 닫힘으로 전이
+    if (wasOpen) {
+      this.transitionTo('CLOSED');
+    }
+
+    // 성공 이벤트 발행
+    circuitBreakerEvents.emit({
+      type: 'success',
+      service: this.serviceName,
+      timestamp: Date.now(),
+      details: {
+        newState: 'CLOSED',
+        failures: 0,
+      },
+    });
   }
 
   /**
    * 실패 시 처리
    */
-  private onFailure(): void {
+  private onFailure(error?: Error): void {
     this.failures += 1;
     this.lastFailTime = Date.now();
+
+    // 실패 이벤트 발행
+    circuitBreakerEvents.emit({
+      type: 'failure',
+      service: this.serviceName,
+      timestamp: Date.now(),
+      details: {
+        failures: this.failures,
+        threshold: this.threshold,
+        error: error?.message,
+      },
+    });
+
+    // 임계값 초과 시 열림 상태로 전이
+    if (this.failures >= this.threshold) {
+      this.transitionTo('OPEN');
+    }
   }
 
   /**
@@ -208,4 +400,112 @@ export async function executeWithCircuitBreaker<T>(
 ): Promise<T> {
   const breaker = aiCircuitBreaker.getBreaker(serviceName);
   return breaker.execute(fn);
+}
+
+// ============================================================================
+// Failover & Rate Limit 이벤트 유틸리티
+// ============================================================================
+
+/**
+ * Key Failover 이벤트 발행
+ * API 키 전환 시 호출
+ */
+export function emitKeyFailoverEvent(
+  service: string,
+  fromKey: string,
+  toKey: string,
+  reason?: string
+): void {
+  circuitBreakerEvents.emit({
+    type: 'failover',
+    service,
+    timestamp: Date.now(),
+    details: {
+      failoverFrom: `key:${fromKey}`,
+      failoverTo: `key:${toKey}`,
+      error: reason,
+    },
+  });
+}
+
+/**
+ * Model Failover 이벤트 발행
+ * AI 모델 전환 시 호출
+ */
+export function emitModelFailoverEvent(
+  service: string,
+  fromModel: string,
+  toModel: string,
+  reason?: string
+): void {
+  circuitBreakerEvents.emit({
+    type: 'failover',
+    service,
+    timestamp: Date.now(),
+    details: {
+      failoverFrom: `model:${fromModel}`,
+      failoverTo: `model:${toModel}`,
+      error: reason,
+    },
+  });
+}
+
+/**
+ * Rate Limit 이벤트 발행
+ * API 호출 제한 발생 시 호출
+ */
+export function emitRateLimitEvent(
+  service: string,
+  retryAfterMs?: number
+): void {
+  circuitBreakerEvents.emit({
+    type: 'rate_limit',
+    service,
+    timestamp: Date.now(),
+    details: {
+      resetTimeMs: retryAfterMs,
+      error: `Rate limit exceeded${retryAfterMs ? `, retry after ${retryAfterMs}ms` : ''}`,
+    },
+  });
+}
+
+/**
+ * AI 상태 요약 조회 (대시보드용)
+ */
+export function getAIStatusSummary(): {
+  circuitBreakers: Record<
+    string,
+    ReturnType<AIServiceCircuitBreaker['getStatus']>
+  >;
+  recentEvents: CircuitBreakerEvent[];
+  stats: {
+    totalBreakers: number;
+    openBreakers: number;
+    totalFailures: number;
+    recentFailovers: number;
+    recentRateLimits: number;
+  };
+} {
+  const circuitBreakers = aiCircuitBreaker.getAllStatus();
+  const recentEvents = circuitBreakerEvents.getRecentEvents(20);
+
+  // 통계 계산
+  const breakerValues = Object.values(circuitBreakers);
+  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+
+  return {
+    circuitBreakers,
+    recentEvents,
+    stats: {
+      totalBreakers: breakerValues.length,
+      openBreakers: breakerValues.filter((b) => b.state === 'OPEN').length,
+      totalFailures: breakerValues.reduce((sum, b) => sum + b.failures, 0),
+      recentFailovers: recentEvents.filter(
+        (e) => e.type === 'failover' && e.timestamp > oneHourAgo
+      ).length,
+      recentRateLimits: recentEvents.filter(
+        (e) => e.type === 'rate_limit' && e.timestamp > oneHourAgo
+      ).length,
+    },
+  };
 }

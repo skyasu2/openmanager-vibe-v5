@@ -4,10 +4,15 @@ import {
   persist,
   subscribeWithSelector,
 } from 'zustand/middleware';
+import type { CircuitBreakerEvent } from '@/lib/ai/circuit-breaker';
 
 /**
  * 🤖 AI Assistant Store Module
  * AI 어시스턴트 상태 관리 전용 스토어
+ *
+ * v2.0.0 (2025-12-17): Circuit Breaker 상태 관리 추가
+ * - Circuit Breaker 이벤트 실시간 추적
+ * - AI 서비스 상태 대시보드용 데이터 제공
  */
 
 export type AIAssistantState =
@@ -16,6 +21,35 @@ export type AIAssistantState =
   | 'processing'
   | 'idle'
   | 'learning';
+
+// Circuit Breaker 상태 타입
+export interface CircuitBreakerStatus {
+  serviceName: string;
+  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  failures: number;
+  threshold: number;
+  lastFailTime: number;
+  resetTimeRemaining?: number;
+}
+
+// AI 관리 대시보드 상태
+export interface AIManagementState {
+  // Circuit Breaker 상태
+  circuitBreakers: Record<string, CircuitBreakerStatus>;
+  recentEvents: CircuitBreakerEvent[];
+
+  // 통계
+  stats: {
+    totalBreakers: number;
+    openBreakers: number;
+    totalFailures: number;
+    recentFailovers: number;
+    recentRateLimits: number;
+  };
+
+  // 마지막 업데이트
+  lastUpdated: number | null;
+}
 
 export interface AIState {
   // 상태
@@ -46,6 +80,9 @@ export interface AIState {
     errorLog: string[];
   };
 
+  // AI 관리 상태 (v2.0.0)
+  management: AIManagementState;
+
   // 액션
   enable: () => void;
   disable: () => void;
@@ -60,6 +97,14 @@ export interface AIState {
   addImprovement: (improvement: string) => void;
   logError: (error: string) => void;
   updateConfig: (config: Partial<AIState['config']>) => void;
+
+  // AI 관리 액션 (v2.0.0)
+  updateCircuitBreakerStatus: (
+    status: Record<string, CircuitBreakerStatus>
+  ) => void;
+  addCircuitBreakerEvent: (event: CircuitBreakerEvent) => void;
+  updateManagementStats: (stats: AIManagementState['stats']) => void;
+  refreshManagementData: () => Promise<void>;
 }
 
 export const useAIStore = create<AIState>()(
@@ -89,6 +134,20 @@ export const useAIStore = create<AIState>()(
           patterns: [],
           improvements: [],
           errorLog: [],
+        },
+
+        // AI 관리 상태 초기화 (v2.0.0)
+        management: {
+          circuitBreakers: {},
+          recentEvents: [],
+          stats: {
+            totalBreakers: 0,
+            openBreakers: 0,
+            totalFailures: 0,
+            recentFailovers: 0,
+            recentRateLimits: 0,
+          },
+          lastUpdated: null,
         },
 
         // AI 활성화
@@ -272,6 +331,128 @@ export const useAIStore = create<AIState>()(
             console.log('⚙️ [AI] 설정 업데이트:', newConfig);
           } catch (error) {
             console.error('❌ [AI] 설정 업데이트 실패:', error);
+          }
+        },
+
+        // ===== AI 관리 액션 (v2.0.0) =====
+
+        // Circuit Breaker 상태 업데이트
+        updateCircuitBreakerStatus: (
+          status: Record<string, CircuitBreakerStatus>
+        ) => {
+          try {
+            const { management } = get();
+            const breakerValues = Object.values(status);
+
+            set({
+              management: {
+                ...management,
+                circuitBreakers: status,
+                stats: {
+                  ...management.stats,
+                  totalBreakers: breakerValues.length,
+                  openBreakers: breakerValues.filter((b) => b.state === 'OPEN')
+                    .length,
+                  totalFailures: breakerValues.reduce(
+                    (sum, b) => sum + b.failures,
+                    0
+                  ),
+                },
+                lastUpdated: Date.now(),
+              },
+            });
+          } catch (error) {
+            console.error('❌ [AI] Circuit Breaker 상태 업데이트 실패:', error);
+          }
+        },
+
+        // Circuit Breaker 이벤트 추가
+        addCircuitBreakerEvent: (event: CircuitBreakerEvent) => {
+          try {
+            const { management } = get();
+            const oneHourAgo = Date.now() - 60 * 60 * 1000;
+
+            // 최근 이벤트 추가 (최대 50개 유지)
+            const newEvents = [...management.recentEvents, event].slice(-50);
+
+            // 통계 업데이트
+            const recentFailovers = newEvents.filter(
+              (e) => e.type === 'failover' && e.timestamp > oneHourAgo
+            ).length;
+            const recentRateLimits = newEvents.filter(
+              (e) => e.type === 'rate_limit' && e.timestamp > oneHourAgo
+            ).length;
+
+            set({
+              management: {
+                ...management,
+                recentEvents: newEvents,
+                stats: {
+                  ...management.stats,
+                  recentFailovers,
+                  recentRateLimits,
+                },
+                lastUpdated: Date.now(),
+              },
+            });
+
+            // 중요 이벤트 로깅
+            if (
+              event.type === 'circuit_open' ||
+              event.type === 'failover' ||
+              event.type === 'rate_limit'
+            ) {
+              console.warn(
+                `⚠️ [AI] ${event.type} - ${event.service}:`,
+                event.details
+              );
+            }
+          } catch (error) {
+            console.error('❌ [AI] Circuit Breaker 이벤트 추가 실패:', error);
+          }
+        },
+
+        // 관리 통계 업데이트
+        updateManagementStats: (stats: AIManagementState['stats']) => {
+          try {
+            const { management } = get();
+
+            set({
+              management: {
+                ...management,
+                stats,
+                lastUpdated: Date.now(),
+              },
+            });
+          } catch (error) {
+            console.error('❌ [AI] 관리 통계 업데이트 실패:', error);
+          }
+        },
+
+        // 관리 데이터 새로고침 (API 호출)
+        refreshManagementData: async () => {
+          try {
+            const response = await fetch('/api/ai/status');
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const { management } = get();
+
+            set({
+              management: {
+                ...management,
+                circuitBreakers: data.circuitBreakers ?? {},
+                recentEvents: data.recentEvents ?? [],
+                stats: data.stats ?? management.stats,
+                lastUpdated: Date.now(),
+              },
+            });
+
+            console.log('🔄 [AI] 관리 데이터 새로고침 완료');
+          } catch (error) {
+            console.error('❌ [AI] 관리 데이터 새로고침 실패:', error);
           }
         },
       }),
