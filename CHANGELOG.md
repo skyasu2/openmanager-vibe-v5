@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.0...v5.83.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* apply AI code review improvements ([e76e7f5](https://github.com/skyasu2/openmanager-vibe-v5/commit/e76e7f577338b7523bad1125a3da30ae19bf281e))
+* remove duplicate .versionrc causing config conflict ([3432de2](https://github.com/skyasu2/openmanager-vibe-v5/commit/3432de254adf97289c14b61f6470e094f481d5bf))
+
 ## [5.83.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.82.0...v5.83.0) (2025-12-17)
 
 
