@@ -1,7 +1,7 @@
 # WSL 재설치 시 개발 환경 복원 가이드
 
-**작성일**: 2025-11-28
-**버전**: 1.0.0
+**작성일**: 2025-12-17
+**버전**: 1.1.0
 **대상**: OpenManager VIBE v5.80.0 개발 환경
 
 ---
@@ -184,11 +184,11 @@ npm config set prefix ~/.npm-global
 echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
 
-# 글로벌 패키지 복원 (핵심 8개)
-npm install -g @anthropic-ai/claude-code@2.0.53
-npm install -g @google/gemini-cli@0.18.4
-npm install -g @openai/codex@0.63.0
-npm install -g @qwen-code/qwen-code@0.2.3
+# 글로벌 패키지 복원 (핵심 8개) - 2025.12.17 기준 최신화
+npm install -g @anthropic-ai/claude-code@2.0.71
+npm install -g @google/gemini-cli@0.25.0
+npm install -g @openai/codex@0.73.0
+npm install -g @qwen-code/qwen-code@0.5.1
 npm install -g n@10.2.0
 npm install -g pm2@6.0.14
 npm install -g vercel@48.9.0
@@ -196,6 +196,14 @@ npm install -g vercel@48.9.0
 # 설치 확인
 npm list -g --depth=0
 ```
+
+### 2-1. Docker Desktop 재연결 (중요)
+WSL을 재설치하면 Docker Desktop과의 연결이 끊어집니다.
+1.  **Windows**에서 Docker Desktop 실행
+2.  Settings (톱니바퀴) > **Resources** > **WSL Integration**
+3.  `Ubuntu-24.04` (또는 새로 설치한 배포판) 체크박스 **ON**
+4.  Apply & Restart
+5.  WSL 터미널에서 `docker ps` 잘 되는지 확인
 
 ### 3. Rust/Cargo 설치
 
@@ -481,7 +489,7 @@ chmod +x scripts/environment/create-wsl-snapshot.sh
 
 ---
 
-**마지막 업데이트**: 2025-11-28
+**마지막 업데이트**: 2025-12-17
 **작성자**: Claude Code
 **버전**: 1.0.0
 
