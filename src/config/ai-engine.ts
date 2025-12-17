@@ -68,11 +68,11 @@ export const aiEngineConfig = {
       rag: {
         ttl: 180000, // 3 minutes
       },
-      // L2: ML Analytics (LangGraph)
+      // L2: ML Analytics (Cloud Run LangGraph)
       ml: {
         ttl: 600000, // 10 minutes
       },
-      // L2: Korean NLP (LangGraph)
+      // L2: Korean NLP (Cloud Run LangGraph)
       nlp: {
         ttl: 600000, // 10 minutes
       },
@@ -91,7 +91,7 @@ export const aiEngineConfig = {
       endpoint: env.NEXT_PUBLIC_SUPABASE_URL,
     },
 
-    // ML Analytics Provider (Now handled by local LangGraph)
+    // ML Analytics Provider (Cloud Run LangGraph Analyst Agent)
     ml: {
       enabled: true,
       models: [
@@ -99,18 +99,18 @@ export const aiEngineConfig = {
         'trend-analysis',
         'pattern-recognition',
       ] as const,
-      // NOTE: Cloud Run ai-backend removed (2025-12-14)
-      // ML analytics now run locally via src/services/langgraph/
-      endpoint: undefined,
+      // NOTE: All ML processing via Cloud Run ai-engine (2025-12-17)
+      // Vercel LangGraph removed - Cloud Run handles all AI workloads
+      endpoint: undefined, // Handled by /api/ai/supervisor proxy
       timeout: 5000, // 5 seconds
     },
 
-    // Korean NLP Provider (Now handled by local LangGraph)
+    // Korean NLP Provider (Cloud Run LangGraph NLQ Agent)
     nlp: {
       enabled: true,
-      // NOTE: Cloud Run ai-backend removed (2025-12-14)
-      // NLP now run locally via src/services/langgraph/
-      endpoint: undefined,
+      // NOTE: All NLP processing via Cloud Run ai-engine (2025-12-17)
+      // Vercel LangGraph removed - Cloud Run handles all AI workloads
+      endpoint: undefined, // Handled by /api/ai/supervisor proxy
       corsEnabled: false, // Direct server-to-server
       timeout: 5000, // 5 seconds
     },
