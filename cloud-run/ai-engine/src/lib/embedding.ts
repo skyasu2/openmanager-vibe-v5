@@ -12,7 +12,11 @@
 
 import { google } from '@ai-sdk/google';
 import { embed, embedMany } from 'ai';
-import type { SupabaseClient } from '@supabase/supabase-js';
+
+// Supabase 클라이언트 인터페이스 (동적 import 호환)
+interface SupabaseClientLike {
+  rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+}
 
 /**
  * 텍스트를 384차원 벡터로 임베딩
@@ -97,7 +101,7 @@ export interface RAGSearchResult {
  * @param options - 검색 옵션 (threshold, limit, filters)
  */
 export async function searchWithEmbedding(
-  supabaseClient: SupabaseClient,
+  supabaseClient: SupabaseClientLike,
   query: string,
   options: {
     similarityThreshold?: number;

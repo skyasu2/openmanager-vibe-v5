@@ -24,10 +24,15 @@ import { getServerLogsTool, getServerMetricsTool } from './nlq-agent';
 // ============================================================================
 // 1. Supabase Client Singleton (성능 최적화)
 // ============================================================================
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let supabaseInstance: any = null;
 
-async function getSupabaseClient() {
+// Supabase 클라이언트 인터페이스 (동적 import 호환, 최소 타입 정의)
+interface SupabaseClientLike {
+  rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+}
+
+let supabaseInstance: SupabaseClientLike | null = null;
+
+async function getSupabaseClient(): Promise<SupabaseClientLike | null> {
   if (supabaseInstance) {
     return supabaseInstance;
   }
@@ -39,9 +44,14 @@ async function getSupabaseClient() {
     return null;
   }
 
-  const { createClient } = await import('@supabase/supabase-js');
-  supabaseInstance = createClient(supabaseUrl, supabaseKey);
-  return supabaseInstance;
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    supabaseInstance = createClient(supabaseUrl, supabaseKey) as unknown as SupabaseClientLike;
+    return supabaseInstance;
+  } catch (err) {
+    console.error('⚠️ [Reporter Agent] Supabase client init failed:', err);
+    return null;
+  }
 }
 
 // ============================================================================
