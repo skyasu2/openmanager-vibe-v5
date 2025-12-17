@@ -68,6 +68,7 @@ WHERE search_vector IS NULL;
 
 -- 6. Create hybrid search function with text search support
 -- Combines: Vector similarity + BM25 text search + Graph traversal
+-- NOTE: metadata column removed (not in knowledge_base schema)
 CREATE OR REPLACE FUNCTION hybrid_search_with_text(
     p_query_embedding vector(384),
     p_query_text TEXT DEFAULT NULL,
@@ -91,8 +92,7 @@ RETURNS TABLE (
     text_score FLOAT,
     graph_score FLOAT,
     source_type TEXT,
-    hop_distance INT,
-    metadata JSONB
+    hop_distance INT
 ) AS $$
 DECLARE
     query_tsquery tsquery;
@@ -113,8 +113,7 @@ BEGIN
             kb.content,
             kb.title,
             kb.category,
-            kb.metadata,
-            1 - (kb.embedding <=> p_query_embedding) as v_score,
+            (1 - (kb.embedding <=> p_query_embedding))::FLOAT as v_score,
             0::FLOAT as t_score
         FROM knowledge_base kb
         WHERE kb.embedding IS NOT NULL
@@ -131,9 +130,8 @@ BEGIN
             kb.content,
             kb.title,
             kb.category,
-            kb.metadata,
-            COALESCE(1 - (kb.embedding <=> p_query_embedding), 0) as v_score,
-            ts_rank_cd(kb.search_vector, query_tsquery, 32) as t_score
+            COALESCE(1 - (kb.embedding <=> p_query_embedding), 0)::FLOAT as v_score,
+            ts_rank_cd(kb.search_vector, query_tsquery, 32)::FLOAT as t_score
         FROM knowledge_base kb
         WHERE query_tsquery IS NOT NULL
           AND kb.search_vector @@ query_tsquery
@@ -175,14 +173,13 @@ BEGIN
             kb.content,
             kb.title,
             kb.category,
-            kb.metadata,
-            COALESCE(1 - (kb.embedding <=> p_query_embedding), 0) as v_score,
+            COALESCE(1 - (kb.embedding <=> p_query_embedding), 0)::FLOAT as v_score,
             CASE WHEN query_tsquery IS NOT NULL AND kb.search_vector IS NOT NULL
-                 THEN ts_rank_cd(kb.search_vector, query_tsquery, 32)
-                 ELSE 0
+                 THEN ts_rank_cd(kb.search_vector, query_tsquery, 32)::FLOAT
+                 ELSE 0::FLOAT
             END as t_score,
             gr.hop_distance,
-            gr.path_weight
+            gr.path_weight::FLOAT
         FROM graph_results gr
         JOIN knowledge_base kb ON kb.id = gr.node_id AND gr.node_table = 'knowledge_base'
     )
@@ -198,8 +195,7 @@ BEGIN
         r.t_score::FLOAT as text_score,
         0::FLOAT as graph_score,
         'hybrid'::TEXT as source_type,
-        0 as hop_distance,
-        r.metadata
+        0 as hop_distance
     FROM initial_results r
 
     UNION ALL
@@ -214,8 +210,7 @@ BEGIN
         gd.t_score::FLOAT as text_score,
         gd.path_weight::FLOAT as graph_score,
         'graph'::TEXT as source_type,
-        gd.hop_distance,
-        gd.metadata
+        gd.hop_distance
     FROM graph_details gd
 
     ORDER BY score DESC, hop_distance ASC
@@ -249,7 +244,7 @@ BEGIN
         kb.content,
         kb.category,
         kb.tags,
-        ts_rank_cd(kb.search_vector, query_tsquery, 32) as text_rank
+        ts_rank_cd(kb.search_vector, query_tsquery, 32)::FLOAT as text_rank
     FROM knowledge_base kb
     WHERE kb.search_vector @@ query_tsquery
       AND (p_filter_category IS NULL OR kb.category = p_filter_category)
