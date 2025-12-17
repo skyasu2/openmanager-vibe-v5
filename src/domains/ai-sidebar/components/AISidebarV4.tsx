@@ -220,8 +220,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   isOpen,
   onClose,
   className = '',
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  sessionId: _sessionId,
+  sessionId: propSessionId,
   onMessageSend,
 }) => {
   // 🔐 권한 확인
@@ -233,6 +232,12 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
 
   // 🔧 수동 입력 상태 관리 (@ai-sdk/react v2.x 마이그레이션)
   const [input, setInput] = useState('');
+
+  // 🔔 HITL Session ID 관리 - Cloud Run과 동일한 ID 사용
+  // prop으로 전달받거나, 없으면 컴포넌트 마운트 시 생성
+  const chatSessionIdRef = useRef<string>(
+    propSessionId || `session_${Date.now()}`
+  );
 
   // 🔔 Human-in-the-Loop 승인 상태
   const [pendingApproval, setPendingApproval] =
@@ -306,17 +311,18 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     // v2.x: transport 옵션으로 API 엔드포인트 설정
     transport: new DefaultChatTransport({
       api: '/api/ai/supervisor', // LangGraph Multi-Agent Supervisor
+      // 🔔 HITL: Cloud Run과 동일한 sessionId 전달
+      body: { sessionId: chatSessionIdRef.current },
     }),
-    onFinish: async ({ message }) => {
+    onFinish: async () => {
       // Optional: Sync to global store if needed
       onMessageSend?.(input);
       setInput(''); // 입력 초기화
 
       // 🔔 SSE 기반 HITL: 스트리밍 완료 후 1회 approval 상태 확인
-      // 폴링 제거 - 스트리밍 완료 시점에만 체크 (효율성 80% 향상)
+      // chatSessionIdRef.current 사용 - Cloud Run과 동일한 ID로 조회
       try {
-        const sessionId = message?.id;
-        if (!sessionId) return; // 메시지 ID 없으면 스킵
+        const sessionId = chatSessionIdRef.current;
 
         const response = await fetch(
           `/api/ai/approval?sessionId=${encodeURIComponent(sessionId)}`
