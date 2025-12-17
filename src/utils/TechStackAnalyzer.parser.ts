@@ -75,9 +75,11 @@ export function normalizeTechName(tech: string): string {
     faker: '@faker-js/faker',
     playwright: '@playwright/test',
     // Vibe Coding mappings (Updated - 현재 사용 도구)
-    cursor: 'cursor-ai',
-    'cursor ai': 'cursor-ai',
-    'cursor ai editor': 'cursor-ai',
+    cursor: 'vibe-coding',
+    'cursor ai': 'vibe-coding',
+    'cursor ai editor': 'vibe-coding',
+    'vibe coding': 'vibe-coding',
+    'vibe-coding': 'vibe-coding',
     claude: 'claude-code',
     'claude code': 'claude-code',
     'claude opus': 'claude-code',
@@ -112,8 +114,6 @@ export function normalizeTechName(tech: string): string {
     search: 'mcp-tools',
     'sequential-thinking': 'mcp-tools',
     thinking: 'mcp-tools',
-    'vibe coding': 'vibe-coding-results',
-    'vibe-coding': 'vibe-coding-results',
     'coding results': 'vibe-coding-results',
     sequential: 'mcp-tools', // legacy: sequential-thinking은 제거됨 (2025-12-11)
     hybrid: 'vibe-coding-results',

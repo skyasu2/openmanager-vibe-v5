@@ -450,14 +450,14 @@ export const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
   },
 
   // AI Development Tools - Vibe Coding Tech Stack (현재 사용 중)
-  'cursor-ai': {
-    name: 'Cursor AI',
-    version: 'latest',
-    role: '이전 메인 AI IDE (현재 미사용)',
+  'vibe-coding': {
+    name: 'Vibe Coding',
+    version: 'v4.0 (Agentic Era)',
+    role: 'AI 개발 워크플로우',
     category: 'ai-development',
-    importance: 'medium',
-    description: '이전에 사용했던 AI IDE, 현재는 Claude Code로 전환',
-    isCore: false,
+    importance: 'critical',
+    description: 'Claude Code 주도, Multi-CLI 협업 개발 방식',
+    isCore: true,
   },
   'claude-code': {
     name: 'Claude Code',

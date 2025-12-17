@@ -234,7 +234,7 @@ export default function FeatureCardModal({
     }
 
     // 바이브 코딩 카드 처리
-    if (selectedCardId === 'cursor-ai' && 'current' in data) {
+    if (selectedCardId === 'vibe-coding' && 'current' in data) {
       const vibeData = data as VibeCodeData;
       result.isVibeCard = true;
       result.historyStages = vibeData.history || null;
@@ -323,14 +323,14 @@ export default function FeatureCardModal({
         <h3 className="mb-3 text-2xl font-bold">
           {renderTextWithAIGradient(title)}
           {/* 바이브 코딩 카드 전용 뷰 표시 */}
-          {cardData.id === 'cursor-ai' && (
+          {cardData.id === 'vibe-coding' && (
             <span className="ml-2 text-lg font-medium text-amber-400">
               {isHistoryView ? '• 발전 히스토리' : '• 현재 도구'}
             </span>
           )}
         </h3>
         <p className="mx-auto max-w-2xl text-sm text-gray-300">
-          {cardData.id === 'cursor-ai' && isHistoryView
+          {cardData.id === 'vibe-coding' && isHistoryView
             ? '바이브 코딩의 4단계 발전 과정을 시간 순서대로 보여줍니다. 초기(ChatGPT 개별 페이지) → 중기(Cursor + Vercel + Supabase) → 후기(Claude Code + WSL + 멀티 AI CLI) → 현재(Claude Code v2.0+ + MCP 완전 통합)로 진화한 개발 도구들의 역사를 확인할 수 있습니다.'
             : sanitizeText(detailedContent.overview)}
         </p>
@@ -405,7 +405,7 @@ export default function FeatureCardModal({
       )}
 
       {/* 바이브 코딩 히스토리 섹션 또는 중요도별 기술 스택 섹션 */}
-      {cardData.id === 'cursor-ai' && isHistoryView && vibeHistoryStages ? (
+      {cardData.id === 'vibe-coding' && isHistoryView && vibeHistoryStages ? (
         <div className="space-y-10">
           {/* 1단계: 초기 */}
           <div className="space-y-4">
@@ -621,7 +621,7 @@ export default function FeatureCardModal({
 
             <div className="flex items-center gap-2">
               {/* 바이브 코딩 카드 전용 히스토리 전환 버튼 */}
-              {cardData.id === 'cursor-ai' && (
+              {cardData.id === 'vibe-coding' && (
                 <button
                   onClick={() => setIsHistoryView(!isHistoryView)}
                   className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:from-amber-500 hover:to-orange-500 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50"
