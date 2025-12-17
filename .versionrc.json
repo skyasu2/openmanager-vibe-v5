@@ -19,6 +19,14 @@
     {
       "filename": "src/app/api/version/route.ts",
       "updater": "scripts/dev/api-version-updater.js"
+    },
+    {
+      "filename": "public/manifest.json",
+      "updater": "scripts/dev/manifest-version-updater.js"
+    },
+    {
+      "filename": "src/config/versions.ts",
+      "updater": "scripts/dev/versions-ts-updater.js"
     }
   ],
   "commitUrlFormat": "https://github.com/skyasu2/openmanager-vibe-v5/commit/{{hash}}",
