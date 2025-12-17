@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Auto AI Code Review Script (1:1:1:1 비율) with Smart Verification
+# Auto AI Code Review Script (3-AI 순환) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 6.5.0
-# 날짜: 2025-12-07
-# 전략: 1:1:1:1 균등 분배 + 중복 방지 + 1회 재시도 + 지연 보상
+# 버전: 6.9.1
+# 날짜: 2025-12-17
+# 전략: 3-AI 순환 (Codex → Gemini → Qwen) 1:1:1 비율 + 중복 방지 + 1회 재시도
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다

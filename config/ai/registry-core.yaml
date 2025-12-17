@@ -35,19 +35,19 @@ ai-tools:
 
   codex:
     current_version: "v0.73.0"
-    wrapper_version: "v3.2.0"
+    wrapper_version: "v3.3.0"
     status: "✅ Active"
     role: "Code review - 3-AI rotation (codex→gemini→qwen)"
 
   gemini-cli:
     current_version: "v0.21.0"
-    wrapper_version: "v3.2.0"
+    wrapper_version: "v3.3.0"
     status: "✅ Active"
     role: "Code review - 3-AI rotation (codex→gemini→qwen)"
 
   qwen-cli:
     current_version: "v0.5.0"
-    wrapper_version: "v3.2.0"
+    wrapper_version: "v3.3.0"
     status: "✅ Active"
     role: "Code review - 3-AI rotation (codex→gemini→qwen)"
 
