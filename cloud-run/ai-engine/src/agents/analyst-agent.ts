@@ -104,7 +104,41 @@ type ClusteringResult =
   | { success: false; error: string };
 
 // ============================================================================
-// 2. Utility Functions
+// 2. Pattern Constants (v6.10.1: Type-Safe Pattern Insights)
+// ============================================================================
+
+/** 지원되는 패턴 타입 */
+const PATTERN_TYPES = {
+  SYSTEM_PERFORMANCE: 'system_performance',
+  MEMORY_STATUS: 'memory_status',
+  STORAGE_INFO: 'storage_info',
+  SERVER_STATUS: 'server_status',
+  TREND_ANALYSIS: 'trend_analysis',
+  ANOMALY_DETECTION: 'anomaly_detection',
+} as const;
+
+type PatternType = (typeof PATTERN_TYPES)[keyof typeof PATTERN_TYPES];
+
+/** 패턴별 분석 인사이트 (상수화로 매 호출 시 객체 재생성 방지) */
+const PATTERN_INSIGHTS: Record<PatternType, string> = {
+  [PATTERN_TYPES.SYSTEM_PERFORMANCE]:
+    '시스템 성능 분석: CPU 사용률, 프로세스 수, 로드 평균 확인 필요',
+  [PATTERN_TYPES.MEMORY_STATUS]:
+    '메모리 상태 분석: 사용량, 캐시, 스왑 사용률 확인 필요',
+  [PATTERN_TYPES.STORAGE_INFO]:
+    '스토리지 분석: 디스크 사용량, I/O 대기, 파티션 상태 확인 필요',
+  [PATTERN_TYPES.SERVER_STATUS]:
+    '서버 상태 분석: 가동 시간, 서비스 상태, 네트워크 연결 확인',
+  [PATTERN_TYPES.TREND_ANALYSIS]:
+    '트렌드 분석: 시계열 데이터 기반 패턴 인식 및 예측 모델 적용',
+  [PATTERN_TYPES.ANOMALY_DETECTION]:
+    '이상 탐지: 통계적 이상치 감지, 임계값 기반 알림 확인',
+} as const;
+
+const DEFAULT_INSIGHT = '일반 분석 수행';
+
+// ============================================================================
+// 3. Utility Functions
 // ============================================================================
 
 // function generateSimulatedHistory(
@@ -360,17 +394,9 @@ export const predictTrendsTool = tool(
   }
 );
 
-// Helper: 패턴별 인사이트 반환
+// Helper: 패턴별 인사이트 반환 (v6.10.1: 상수 참조로 최적화)
 function getPatternInsights(pattern: string): string {
-  const insights: Record<string, string> = {
-    system_performance: '시스템 성능 분석: CPU 사용률, 프로세스 수, 로드 평균 확인 필요',
-    memory_status: '메모리 상태 분석: 사용량, 캐시, 스왑 사용률 확인 필요',
-    storage_info: '스토리지 분석: 디스크 사용량, I/O 대기, 파티션 상태 확인 필요',
-    server_status: '서버 상태 분석: 가동 시간, 서비스 상태, 네트워크 연결 확인',
-    trend_analysis: '트렌드 분석: 시계열 데이터 기반 패턴 인식 및 예측 모델 적용',
-    anomaly_detection: '이상 탐지: 통계적 이상치 감지, 임계값 기반 알림 확인',
-  };
-  return insights[pattern] || '일반 분석 수행';
+  return PATTERN_INSIGHTS[pattern as PatternType] ?? DEFAULT_INSIGHT;
 }
 
 export const analyzePatternTool = tool(

@@ -2,12 +2,16 @@
 
 # Auto AI Code Review Script (3-AI 순환) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 6.10.0
-# 날짜: 2025-12-17
+# 버전: 6.10.1
+# 날짜: 2025-12-18
 # 전략: 3-AI 순환 (Codex → Gemini → Qwen) 1:1:1 비율 + 중복 방지 + 소규모 변경 필터
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
+#
+# Changelog v6.10.1 (2025-12-18): 🐛 라인 카운팅 버그 수정
+# - 🐛 수정: grep -cE '^[+-]' → git diff-tree --numstat (+++/--- 헤더 제외)
+# - 🎯 효과: 정확한 변경 라인 수 계산으로 소규모 변경 필터 정확도 향상
 #
 # Changelog v6.10.0 (2025-12-17): 📄 소규모 변경 필터 추가
 # - ✨ 신규: 문서만 변경(.md/.txt) 시 AI 리뷰 스킵 (SKIP_DOCS_ONLY)
@@ -317,7 +321,8 @@ main() {
     fi
 
     # 필터 2: 변경량이 너무 작은 경우 스킵
-    local total_lines=$(git -C "$PROJECT_ROOT" diff-tree -p "$last_commit" | grep -cE '^[+-]' || echo "0")
+    # v6.10.1: git diff-tree --numstat 사용으로 정확한 라인 카운팅 (+++/--- 헤더 제외)
+    local total_lines=$(git -C "$PROJECT_ROOT" diff-tree --numstat -r "$last_commit" 2>/dev/null | awk '{sum += ($1 + $2)} END {print sum+0}')
     if [ "$total_lines" -lt "$SKIP_MIN_LINES" ]; then
         log_info "📝 변경량 ${total_lines}줄 < ${SKIP_MIN_LINES}줄 - AI 리뷰 스킵"
         mark_commit_reviewed "$last_commit"
