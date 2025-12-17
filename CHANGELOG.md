@@ -2,6 +2,56 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.83.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.82.0...v5.83.0) (2025-12-17)
+
+
+### Features
+
+* Add Jules CLI wrapper and Cloud Run AI engine deployment ([01fce0b](https://github.com/skyasu2/openmanager-vibe-v5/commit/01fce0b4f621fa296eab0314f43ecb2a280ff4f6))
+* **ai:** add Cloud Run status indicator with warmup support ([57829ec](https://github.com/skyasu2/openmanager-vibe-v5/commit/57829ec6c1bcb55c5c350030f53fd5b48c464ec5))
+* **ai:** Migrate AI engine to Google Cloud Run and update related docs ([b44f7f2](https://github.com/skyasu2/openmanager-vibe-v5/commit/b44f7f23be21d46718e4ff005d1df87dc5418401))
+* **cloud-run:** add Rust ML inference service for LangGraph support ([6d3605d](https://github.com/skyasu2/openmanager-vibe-v5/commit/6d3605da9e39b3f950b0813e840fb085fdce1107))
+* **hitl:** add shared types and approval-store tests ([ba95d33](https://github.com/skyasu2/openmanager-vibe-v5/commit/ba95d3357a6929af2f5894d365ff2192324ad078))
+* **hitl:** implement SSE-based Human-in-the-Loop approval system ([194702a](https://github.com/skyasu2/openmanager-vibe-v5/commit/194702a1adf4c28dc9cd4434f066c28214ca816b))
+* implement zero-internal-traffic architecture with supabase rag ([c46c091](https://github.com/skyasu2/openmanager-vibe-v5/commit/c46c0918b5ae76d4077e98b64e651f40abb22440))
+* **infra:** migrate AI Engine to Cloud Run & integrate with Vercel ([0b23e9f](https://github.com/skyasu2/openmanager-vibe-v5/commit/0b23e9f9c3f5a0ccffe91a87c27ab703ef340c1d))
+* **langgraph:** implement A2A communication patterns for multi-agent system ([cfe8df9](https://github.com/skyasu2/openmanager-vibe-v5/commit/cfe8df9f804fff7f3a0ef411fd1729a9ac3caf85))
+* **langgraph:** integrate Rust ML service with TypeScript fallback ([584d9bd](https://github.com/skyasu2/openmanager-vibe-v5/commit/584d9bd68bfea4fa84f6c279d44298aaba4b69e2))
+* optimize AI supervisor route and guest mode config ([3502bc3](https://github.com/skyasu2/openmanager-vibe-v5/commit/3502bc39210138ef8001b0c563b76a1041dbccde))
+* **rag:** implement P1 knowledge base RAG for reporter agent ([0365bba](https://github.com/skyasu2/openmanager-vibe-v5/commit/0365bba6eea81cf887aab66538a7fa300f1ac872))
+* **rust-ml:** add clustering endpoint and docker-compose setup ([8971708](https://github.com/skyasu2/openmanager-vibe-v5/commit/8971708367fd5e3b1694678b138ddbcb2432d5e1))
+* **rust-ml:** deploy clustering endpoint to Cloud Run ([55e5011](https://github.com/skyasu2/openmanager-vibe-v5/commit/55e501124daab4d63e9d933784e059e86101f135))
+* **session:** add session message limit (20) for free tier protection ([91743cc](https://github.com/skyasu2/openmanager-vibe-v5/commit/91743cc693335c0ef512b5a102e5a2e904e102c3))
+
+
+### Bug Fixes
+
+* **ai:** change streaming Content-Type to text/event-stream for AI SDK compatibility ([c1f4353](https://github.com/skyasu2/openmanager-vibe-v5/commit/c1f4353000b554f4b1e6e7f6a13ed109feefa819))
+* **ai:** fix Accept header check for AI SDK v5 DefaultChatTransport ([be1a72d](https://github.com/skyasu2/openmanager-vibe-v5/commit/be1a72d5f3b4ff7b04de6301d0f998835e96c9f8))
+* **ai:** implement AI SDK v5 Data Stream Protocol for streaming responses ([4cfe126](https://github.com/skyasu2/openmanager-vibe-v5/commit/4cfe1267da7042d77cde653b95c3b074818812c8))
+* **ai:** implement AI SDK v5 Data Stream Protocol for streaming responses ([d68fa1c](https://github.com/skyasu2/openmanager-vibe-v5/commit/d68fa1cc703d611dafbb87a467cb74098ed14387))
+* **ai:** Resolve remaining issues from AI engine migration ([3802f0d](https://github.com/skyasu2/openmanager-vibe-v5/commit/3802f0d513d2019519e507001dcc0980f4c7b182))
+* **ai:** support AI SDK v5 UIMessage format in unified-stream API ([d18023c](https://github.com/skyasu2/openmanager-vibe-v5/commit/d18023cfb859c93fcb7c324b819f09c7763f9a29))
+* **ai:** use GEMINI_API_KEY_PRIMARY for Vercel production compatibility ([dcc7546](https://github.com/skyasu2/openmanager-vibe-v5/commit/dcc75464440c644a2298d81fb23d5ac77343166c))
+* Apply Biome lint fixes and line ending normalization ([4d11f56](https://github.com/skyasu2/openmanager-vibe-v5/commit/4d11f56ff3471b3dce6889aa6419171cc9a559d6))
+* Clean up unused imports ([c4549c5](https://github.com/skyasu2/openmanager-vibe-v5/commit/c4549c58d99372f16e805edd210c8f717b6e1e48))
+* Correct component props for MonitoringWorkflow and MonitoringResults ([fce6a72](https://github.com/skyasu2/openmanager-vibe-v5/commit/fce6a7215af24ee0d27dc8453309159eabf2574f))
+* Correct IntelligentAnalysisRequest property name ([2472aa2](https://github.com/skyasu2/openmanager-vibe-v5/commit/2472aa251deeede2dde5d433e717bf816b73a838))
+* **hitl:** resolve session ID mismatch between Frontend and Cloud Run ([cea5e01](https://github.com/skyasu2/openmanager-vibe-v5/commit/cea5e01d8e37138867a0647888a89d269cac8307))
+* **langgraph:** add finish message on streaming error for AI SDK v5 protocol compliance ([4f159d4](https://github.com/skyasu2/openmanager-vibe-v5/commit/4f159d4a15c7aa191ec27fb1d0940e4e013da16d))
+* **langgraph:** change supervisor model from Groq to Gemini ([2997cf3](https://github.com/skyasu2/openmanager-vibe-v5/commit/2997cf3853177040ffdbe20a7d417f7ef20f24ff))
+* **langgraph:** support POSTGRES_URL_NON_POOLING for Vercel PostgreSQL ([a126390](https://github.com/skyasu2/openmanager-vibe-v5/commit/a126390116d9123360f84982210c838a64459c7d))
+* **rag:** add error handling for Supabase client init (Codex review) ([405daac](https://github.com/skyasu2/openmanager-vibe-v5/commit/405daacfcc8d089176995bf79fb5e8ce9a0c8e78))
+* Remove unused imports in AnalysisTab ([05752b6](https://github.com/skyasu2/openmanager-vibe-v5/commit/05752b63951d28640657d72613874a1f1ad9919e))
+* Remove unused variables in AnalysisTab ([9ddb2aa](https://github.com/skyasu2/openmanager-vibe-v5/commit/9ddb2aabf6e71050c247736bf00659a58dbafbd0))
+* Replace MonitoringWorkflow with simple button ([6accc48](https://github.com/skyasu2/openmanager-vibe-v5/commit/6accc4894cab8cd38acd3bb867c31cea343adfc9))
+* Resolve TypeScript and lint warnings ([732d058](https://github.com/skyasu2/openmanager-vibe-v5/commit/732d0580a00a5a3c176e237a6b4d05b1218e23c4))
+* resolve TypeScript build errors for Gemini 2.5 migration ([3ec952e](https://github.com/skyasu2/openmanager-vibe-v5/commit/3ec952e86f2fa651f87e1167daf1988c163b56f2))
+* **rust-ml:** use get_mut for safe array access (Qwen review) ([33f86a8](https://github.com/skyasu2/openmanager-vibe-v5/commit/33f86a81f937772b84a82be7ab048afd2167cb22))
+* Use correct IntelligentAnalysisRequest interface ([986a01e](https://github.com/skyasu2/openmanager-vibe-v5/commit/986a01e6a8b1bc135157b98fc6d68475acff449a))
+* **vercel:** use absolute path for cloud-run ignore ([b5ceabc](https://github.com/skyasu2/openmanager-vibe-v5/commit/b5ceabc13a248661d4928b7f6b1eeda26ffa5831))
+* **version:** sync API version to 5.82.0 and Next.js 16.0.10 ([7b72a9f](https://github.com/skyasu2/openmanager-vibe-v5/commit/7b72a9ff218c3ba31ce53af9519f89df1d137611))
+
 ## [5.82.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.81.0...v5.82.0) (2025-12-14)
 
 
