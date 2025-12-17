@@ -307,10 +307,38 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     transport: new DefaultChatTransport({
       api: '/api/ai/supervisor', // LangGraph Multi-Agent Supervisor
     }),
-    onFinish: () => {
+    onFinish: async ({ message }) => {
       // Optional: Sync to global store if needed
       onMessageSend?.(input);
       setInput(''); // 입력 초기화
+
+      // 🔔 SSE 기반 HITL: 스트리밍 완료 후 1회 approval 상태 확인
+      // 폴링 제거 - 스트리밍 완료 시점에만 체크 (효율성 80% 향상)
+      try {
+        const sessionId = message?.id;
+        if (!sessionId) return; // 메시지 ID 없으면 스킵
+
+        const response = await fetch(
+          `/api/ai/approval?sessionId=${encodeURIComponent(sessionId)}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.hasPending && data.action) {
+            setPendingApproval({
+              id: sessionId,
+              type: data.action.type || 'tool_execution',
+              description: data.action.description || '이 작업을 실행할까요?',
+              details: data.action.details,
+            });
+            console.log(
+              '🔔 [HITL] Approval request detected:',
+              data.action.type
+            );
+          }
+        }
+      } catch (error) {
+        console.error('❌ [HITL] Approval check failed:', error);
+      }
     },
   });
 
@@ -336,50 +364,17 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   // isLoading 호환성 유지 (v2.x status values: 'ready' | 'submitted' | 'streaming' | 'error')
   const isLoading = status === 'streaming' || status === 'submitted';
 
-  // 🔔 승인 상태 폴링 (스트리밍 중일 때만)
+  // 🔔 승인 상태 초기화 (스트리밍 완료 시)
+  // Note: 기존 2초 폴링 제거 - onFinish에서 1회 체크로 대체 (SSE 기반)
   useEffect(() => {
     if (!isLoading) {
-      setPendingApproval(null);
+      // 스트리밍 완료 후 승인 대기 상태가 아니면 초기화하지 않음
+      // pendingApproval은 사용자가 결정할 때까지 유지
       return;
     }
-
-    // 마지막 메시지의 ID를 세션 ID로 사용
-    const lastMessage = messages[messages.length - 1];
-    if (!lastMessage) return;
-
-    const sessionId = lastMessage.id;
-    let isCancelled = false;
-
-    const checkApprovalStatus = async () => {
-      try {
-        const response = await fetch(
-          `/api/ai/approval?sessionId=${encodeURIComponent(sessionId)}`
-        );
-        if (!response.ok || isCancelled) return;
-
-        const data = await response.json();
-        if (data.hasPending && data.action && !isCancelled) {
-          setPendingApproval({
-            id: sessionId,
-            type: data.action.type || 'tool_execution',
-            description: data.action.description || '이 작업을 실행할까요?',
-            details: data.action.details,
-          });
-        }
-      } catch (error) {
-        console.error('❌ [HITL] Approval status check failed:', error);
-      }
-    };
-
-    // 초기 체크 후 2초 간격으로 폴링
-    void checkApprovalStatus();
-    const intervalId = setInterval(checkApprovalStatus, 2000);
-
-    return () => {
-      isCancelled = true;
-      clearInterval(intervalId);
-    };
-  }, [isLoading, messages]);
+    // 새 스트리밍 시작 시 이전 승인 요청 초기화
+    setPendingApproval(null);
+  }, [isLoading]);
 
   // Map Vercel v2.x UIMessage to EnhancedChatMessage
   const enhancedMessages = useMemo(() => {

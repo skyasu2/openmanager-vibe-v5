@@ -22,6 +22,7 @@ import {
   getAutoCheckpointer,
 } from '../../lib/checkpointer';
 import { RateLimitError } from '../../lib/errors';
+import { approvalStore } from '../approval/approval-store';
 import {
   getAnalystModel,
   getGeminiKeyStatus,
@@ -337,14 +338,60 @@ export async function* streamSupervisor(
 }
 
 /**
+ * Detect if response requires human approval
+ * Returns approval metadata if needed
+ */
+function detectApprovalRequired(
+  response: string,
+  query: string
+): {
+  required: boolean;
+  actionType?: 'incident_report' | 'system_command';
+  description?: string;
+} {
+  // Check for command recommendations in response
+  const hasCommands =
+    response.includes('⌨️') ||
+    response.includes('추천 명령어') ||
+    response.includes('command') ||
+    /`[a-z]+\s+[a-z]+`/i.test(response);
+
+  // Check for incident report
+  const isIncident =
+    query.includes('장애') ||
+    query.includes('인시던트') ||
+    response.includes('📋 인시던트');
+
+  if (isIncident) {
+    return {
+      required: true,
+      actionType: 'incident_report',
+      description: '인시던트 리포트가 생성되었습니다. 검토 후 승인해주세요.',
+    };
+  }
+
+  if (hasCommands) {
+    return {
+      required: true,
+      actionType: 'system_command',
+      description: '시스템 명령어가 추천되었습니다. 실행 전 검토해주세요.',
+    };
+  }
+
+  return { required: false };
+}
+
+/**
  * Create AI SDK compatible streaming response
  * Uses invoke() for reliability with Groq, then simulates streaming
+ * Includes SSE approval events for Human-in-the-Loop
  */
 export async function createSupervisorStreamResponse(
   query: string,
   sessionId?: string
 ): Promise<ReadableStream<Uint8Array>> {
   const encoder = new TextEncoder();
+  const effectiveSessionId = sessionId || `session_${Date.now()}`;
 
   return new ReadableStream({
     async start(controller) {
@@ -365,17 +412,54 @@ export async function createSupervisorStreamResponse(
 
       try {
         // Use invoke() for more reliable Groq integration
-        const { response } = await executeSupervisor(query, { sessionId });
+        const { response } = await executeSupervisor(query, {
+          sessionId: effectiveSessionId,
+        });
 
         if (response) {
           // AI SDK v5 Data Stream Protocol: text part
           // Format: '0:"text"\n'
           const dataStreamText = `0:${JSON.stringify(response)}\n`;
           safeEnqueue(encoder.encode(dataStreamText));
+
+          // Check if response requires human approval
+          const approval = detectApprovalRequired(response, query);
+
+          if (approval.required && approval.actionType) {
+            // Register in approval store
+            approvalStore.registerPending({
+              sessionId: effectiveSessionId,
+              actionType: approval.actionType,
+              description: approval.description || '',
+              payload: { response, query },
+              requestedAt: new Date(),
+              requestedBy: 'reporter_agent',
+            });
+
+            // AI SDK v5 Data Stream Protocol: custom data event
+            // Format: '2:[{...}]\n' for data array, or use 'data-*' pattern
+            // Using '8:' prefix for custom annotation/metadata
+            const approvalEvent = `8:${JSON.stringify([
+              {
+                type: 'approval_request',
+                id: effectiveSessionId,
+                actionType: approval.actionType,
+                description: approval.description,
+              },
+            ])}\n`;
+            safeEnqueue(encoder.encode(approvalEvent));
+
+            console.log(
+              `🔔 [Supervisor] Approval required: ${approval.actionType}`
+            );
+          }
         }
 
         // AI SDK v5 Data Stream Protocol: finish message
-        const finishMessage = `d:${JSON.stringify({ finishReason: 'stop' })}\n`;
+        const finishMessage = `d:${JSON.stringify({
+          finishReason: 'stop',
+          sessionId: effectiveSessionId,
+        })}\n`;
         safeEnqueue(encoder.encode(finishMessage));
         console.log('📤 Supervisor completed (AI SDK v5 Protocol)');
 

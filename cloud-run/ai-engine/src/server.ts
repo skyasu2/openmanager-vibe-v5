@@ -9,6 +9,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 
 import { logAPIKeyStatus, validateAPIKeys } from './lib/model-config';
+import { approvalStore } from './services/approval/approval-store';
 import { createSupervisorStreamResponse } from './services/langgraph/multi-agent-supervisor';
 import { loadHourlyScenarioData } from './services/scenario/scenario-loader';
 
@@ -88,6 +89,93 @@ app.post('/api/ai/supervisor', async (c) => {
     console.error('API Error:', error);
     return c.json({ error: String(error) }, 500);
   }
+});
+
+// ============================================================================
+// Human-in-the-Loop Approval Endpoints
+// ============================================================================
+
+// GET /api/ai/approval/status - Check pending approval status
+app.get('/api/ai/approval/status', (c) => {
+  const sessionId = c.req.query('sessionId');
+
+  if (!sessionId) {
+    return c.json({ success: false, error: 'sessionId is required' }, 400);
+  }
+
+  const pending = approvalStore.getPending(sessionId);
+
+  if (!pending) {
+    return c.json({
+      success: true,
+      hasPending: false,
+      action: null,
+      sessionId,
+    });
+  }
+
+  return c.json({
+    success: true,
+    hasPending: true,
+    action: {
+      type: pending.actionType,
+      description: pending.description,
+      details: pending.payload,
+      requestedAt: pending.requestedAt.toISOString(),
+      requestedBy: pending.requestedBy,
+      expiresAt: pending.expiresAt.toISOString(),
+    },
+    sessionId,
+  });
+});
+
+// POST /api/ai/approval/decide - Submit approval decision
+app.post('/api/ai/approval/decide', async (c) => {
+  try {
+    const { sessionId, approved, reason, approvedBy } = await c.req.json();
+
+    if (!sessionId || typeof approved !== 'boolean') {
+      return c.json(
+        { success: false, error: 'sessionId and approved are required' },
+        400
+      );
+    }
+
+    const success = approvalStore.submitDecision(sessionId, approved, {
+      reason,
+      decidedBy: approvedBy,
+    });
+
+    if (!success) {
+      return c.json(
+        {
+          success: false,
+          error: 'No pending approval found for this session',
+        },
+        404
+      );
+    }
+
+    return c.json({
+      success: true,
+      sessionId,
+      decision: approved ? 'approved' : 'rejected',
+      decidedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('❌ [Approval] Decision error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+// GET /api/ai/approval/stats - Monitor approval store status
+app.get('/api/ai/approval/stats', (c) => {
+  const stats = approvalStore.getStats();
+  return c.json({
+    success: true,
+    ...stats,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Start Server
