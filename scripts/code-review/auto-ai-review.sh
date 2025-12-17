@@ -2,12 +2,17 @@
 
 # Auto AI Code Review Script (3-AI 순환) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 6.9.1
+# 버전: 6.10.0
 # 날짜: 2025-12-17
-# 전략: 3-AI 순환 (Codex → Gemini → Qwen) 1:1:1 비율 + 중복 방지 + 1회 재시도
+# 전략: 3-AI 순환 (Codex → Gemini → Qwen) 1:1:1 비율 + 중복 방지 + 소규모 변경 필터
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
+#
+# Changelog v6.10.0 (2025-12-17): 📄 소규모 변경 필터 추가
+# - ✨ 신규: 문서만 변경(.md/.txt) 시 AI 리뷰 스킵 (SKIP_DOCS_ONLY)
+# - ✨ 신규: 최소 변경 라인 기준 미달 시 스킵 (SKIP_MIN_LINES=3)
+# - 🎯 효과: 불필요한 AI 리뷰 호출 감소, 리소스 절약
 #
 # Changelog v6.5.0 (2025-12-07): 🔒 중복 리뷰 방지 기능 추가
 # - ✨ 신규: 커밋 해시 기반 중복 리뷰 방지 (.reviewed-commits)
@@ -161,6 +166,10 @@ STATE_FILE="$PROJECT_ROOT/logs/code-reviews/.ai-usage-state"
 # ===== 분할 리뷰 설정 (v5.0.0) =====
 MAX_FILES_PER_REVIEW=10  # 한 번에 리뷰할 최대 파일 수 (초과 시 자동 분할)
 
+# ===== 소규모 변경 필터 설정 (v6.10.0) =====
+SKIP_DOCS_ONLY=${SKIP_DOCS_ONLY:-true}   # .md/.txt만 변경 시 리뷰 스킵
+SKIP_MIN_LINES=${SKIP_MIN_LINES:-3}       # 최소 변경 라인 수 (미달 시 스킵)
+
 # 오늘 날짜
 TODAY=$(date +%Y-%m-%d)
 TIMESTAMP=$(date +%H-%M-%S)
@@ -293,6 +302,25 @@ main() {
 
     if [ -z "$changed_files" ]; then
         log_warning "변경된 파일이 없습니다"
+        exit 0
+    fi
+
+    # 2-2단계: 소규모 변경 필터 (v6.10.0)
+    # 필터 1: 문서만 변경된 경우 스킵
+    if [ "$SKIP_DOCS_ONLY" = "true" ]; then
+        local non_doc_files=$(echo "$changed_files" | grep -vE '\.(md|txt|MD|TXT)$')
+        if [ -z "$non_doc_files" ]; then
+            log_info "📄 문서만 변경됨 (.md/.txt) - AI 리뷰 스킵"
+            mark_commit_reviewed "$last_commit"  # 스킵해도 마킹하여 재실행 방지
+            exit 0
+        fi
+    fi
+
+    # 필터 2: 변경량이 너무 작은 경우 스킵
+    local total_lines=$(git -C "$PROJECT_ROOT" diff-tree -p "$last_commit" | grep -cE '^[+-]' || echo "0")
+    if [ "$total_lines" -lt "$SKIP_MIN_LINES" ]; then
+        log_info "📝 변경량 ${total_lines}줄 < ${SKIP_MIN_LINES}줄 - AI 리뷰 스킵"
+        mark_commit_reviewed "$last_commit"
         exit 0
     fi
 
