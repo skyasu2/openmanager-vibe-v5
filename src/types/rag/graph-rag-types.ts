@@ -79,9 +79,19 @@ export interface HybridGraphResult {
   content: string;
   title?: string;
   score: number;
-  sourceType: 'vector' | 'graph';
+  sourceType: 'vector' | 'graph' | 'hybrid';
   hopDistance: number;
   metadata?: Record<string, unknown>;
+}
+
+/**
+ * Extended result with text search scores
+ */
+export interface HybridTextGraphResult extends HybridGraphResult {
+  category?: string;
+  vectorScore: number;
+  textScore: number;
+  graphScore: number;
 }
 
 /**
@@ -103,6 +113,24 @@ export interface HybridGraphSearchOptions {
   maxGraphHops?: number;
   maxTotalResults?: number;
   relationshipTypes?: KnowledgeRelationshipType[];
+}
+
+/**
+ * Options for hybrid search with text (Vector + BM25 + Graph)
+ */
+export interface HybridTextSearchOptions extends HybridGraphSearchOptions {
+  /** Query text for BM25 keyword search */
+  queryText?: string;
+  /** Weight for text search score (0-1, default: 0.3) */
+  textWeight?: number;
+  /** Weight for vector similarity score (0-1, default: 0.5) */
+  vectorWeight?: number;
+  /** Weight for graph traversal score (0-1, default: 0.2) */
+  graphWeight?: number;
+  /** Maximum text search results (default: 5) */
+  maxTextResults?: number;
+  /** Filter by category */
+  filterCategory?: string;
 }
 
 /**
@@ -130,6 +158,25 @@ export interface GraphRAGSearchResult {
   graphResultCount: number;
   processingTime: number;
   context?: string;
+}
+
+/**
+ * Extended search result with text search metrics
+ */
+export interface HybridTextSearchResult {
+  success: boolean;
+  results: HybridTextGraphResult[];
+  vectorResultCount: number;
+  textResultCount: number;
+  graphResultCount: number;
+  processingTime: number;
+  context?: string;
+  /** Breakdown of score contribution from each source */
+  scoreBreakdown?: {
+    avgVectorScore: number;
+    avgTextScore: number;
+    avgGraphScore: number;
+  };
 }
 
 /**

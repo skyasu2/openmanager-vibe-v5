@@ -18,6 +18,9 @@ import type {
   GraphTraversalOptions,
   HybridGraphResult,
   HybridGraphSearchOptions,
+  HybridTextGraphResult,
+  HybridTextSearchOptions,
+  HybridTextSearchResult,
   KnowledgeNeighbor,
   KnowledgeRelationship,
   KnowledgeRelationshipType,
@@ -266,6 +269,165 @@ class GraphRAGService {
   }
 
   /**
+   * Hybrid search with text: Vector + BM25 Text + Graph
+   * This is the recommended method for 2025 RAG best practices.
+   */
+  async hybridTextSearch(
+    queryEmbedding: number[],
+    options: HybridTextSearchOptions = {}
+  ): Promise<HybridTextSearchResult> {
+    const startTime = Date.now();
+
+    if (!this.supabase) {
+      return {
+        success: false,
+        results: [],
+        vectorResultCount: 0,
+        textResultCount: 0,
+        graphResultCount: 0,
+        processingTime: Date.now() - startTime,
+      };
+    }
+
+    const {
+      queryText,
+      similarityThreshold = 0.5,
+      textWeight = 0.3,
+      vectorWeight = 0.5,
+      graphWeight = 0.2,
+      maxVectorResults = 5,
+      maxTextResults = 5,
+      maxGraphHops = 2,
+      maxTotalResults = 15,
+      filterCategory,
+    } = options;
+
+    // Convert embedding array to string format for pgvector
+    const embeddingStr = `[${queryEmbedding.join(',')}]`;
+
+    const { data, error } = await this.supabase.rpc('hybrid_search_with_text', {
+      p_query_embedding: embeddingStr,
+      p_query_text: queryText || null,
+      p_similarity_threshold: similarityThreshold,
+      p_text_weight: textWeight,
+      p_vector_weight: vectorWeight,
+      p_graph_weight: graphWeight,
+      p_max_vector_results: maxVectorResults,
+      p_max_text_results: maxTextResults,
+      p_max_graph_hops: maxGraphHops,
+      p_max_total_results: maxTotalResults,
+      p_filter_category: filterCategory || null,
+    });
+
+    if (error) {
+      console.error('🕸️ [GraphRAG] Hybrid text search failed:', error);
+      return {
+        success: false,
+        results: [],
+        vectorResultCount: 0,
+        textResultCount: 0,
+        graphResultCount: 0,
+        processingTime: Date.now() - startTime,
+      };
+    }
+
+    const results: HybridTextGraphResult[] = (data || []).map(
+      this.mapToHybridTextResult
+    );
+
+    // Calculate counts by source type and scores
+    const hybridResults = results.filter((r) => r.sourceType === 'hybrid');
+    const graphResults = results.filter((r) => r.sourceType === 'graph');
+
+    // Count based on dominant score
+    let vectorDominant = 0;
+    let textDominant = 0;
+
+    for (const r of hybridResults) {
+      if (r.vectorScore > r.textScore) {
+        vectorDominant++;
+      } else if (r.textScore > 0) {
+        textDominant++;
+      } else {
+        vectorDominant++;
+      }
+    }
+
+    // Calculate average scores
+    const avgVectorScore =
+      results.length > 0
+        ? results.reduce((sum, r) => sum + r.vectorScore, 0) / results.length
+        : 0;
+    const avgTextScore =
+      results.length > 0
+        ? results.reduce((sum, r) => sum + r.textScore, 0) / results.length
+        : 0;
+    const avgGraphScore =
+      graphResults.length > 0
+        ? graphResults.reduce((sum, r) => sum + r.graphScore, 0) /
+          graphResults.length
+        : 0;
+
+    // Build context string
+    const context = results
+      .map((r, i) => {
+        const sourceLabel =
+          r.sourceType === 'graph'
+            ? `그래프(${r.hopDistance}홉)`
+            : `하이브리드(V:${r.vectorScore.toFixed(2)}, T:${r.textScore.toFixed(2)})`;
+        return `[${i + 1}] (${sourceLabel}, 점수: ${r.score.toFixed(2)}) ${r.content}`;
+      })
+      .join('\n\n');
+
+    return {
+      success: true,
+      results,
+      vectorResultCount: vectorDominant,
+      textResultCount: textDominant,
+      graphResultCount: graphResults.length,
+      processingTime: Date.now() - startTime,
+      context,
+      scoreBreakdown: {
+        avgVectorScore,
+        avgTextScore,
+        avgGraphScore,
+      },
+    };
+  }
+
+  /**
+   * Text-only search (for testing/fallback)
+   */
+  async textSearch(
+    queryText: string,
+    options: { maxResults?: number; filterCategory?: string } = {}
+  ): Promise<
+    { id: string; title: string; content: string; textRank: number }[]
+  > {
+    if (!this.supabase || !queryText) return [];
+
+    const { maxResults = 10, filterCategory } = options;
+
+    const { data, error } = await this.supabase.rpc('search_knowledge_text', {
+      p_query_text: queryText,
+      p_max_results: maxResults,
+      p_filter_category: filterCategory || null,
+    });
+
+    if (error) {
+      console.error('🕸️ [GraphRAG] Text search failed:', error);
+      return [];
+    }
+
+    return (data || []).map((row: Record<string, unknown>) => ({
+      id: row.id as string,
+      title: row.title as string,
+      content: row.content as string,
+      textRank: row.text_rank as number,
+    }));
+  }
+
+  /**
    * Get related concepts for a topic (simplified graph search)
    */
   async getRelatedConcepts(
@@ -502,6 +664,27 @@ class GraphRAGService {
       title: row.title as string | undefined,
       score: row.score as number,
       sourceType: row.source_type as 'vector' | 'graph',
+      hopDistance: row.hop_distance as number,
+      metadata: row.metadata as Record<string, unknown> | undefined,
+    };
+  }
+
+  /**
+   * Map database row to HybridTextGraphResult
+   */
+  private mapToHybridTextResult(
+    row: Record<string, unknown>
+  ): HybridTextGraphResult {
+    return {
+      id: row.id as string,
+      content: row.content as string,
+      title: row.title as string | undefined,
+      category: row.category as string | undefined,
+      score: row.score as number,
+      vectorScore: row.vector_score as number,
+      textScore: row.text_score as number,
+      graphScore: row.graph_score as number,
+      sourceType: row.source_type as 'vector' | 'graph' | 'hybrid',
       hopDistance: row.hop_distance as number,
       metadata: row.metadata as Record<string, unknown> | undefined,
     };
