@@ -31,7 +31,7 @@ updated: '2025-09-16'
 
 2. 로컬 .claude 설정/히스토리 정리
    - npm run claude:sanitize
-   - .claude/.claude.json, .claude/settings.local.json 내의 비정상 유니코드를 정규화합니다.
+   - .claude/.claude.json 내의 비정상 유니코드를 정규화합니다.
 
 3. 레포 내 텍스트 파일 점검(선택)
    - `grep -rP '[\x00-\x08\x0B\x0C\x0E-\x1F]' src/` 로 제어문자 검색

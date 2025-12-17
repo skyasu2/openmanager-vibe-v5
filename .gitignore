@@ -216,7 +216,6 @@ next-env.d.ts
 
 # MCP 개발용 설정 파일들 (GitHub 허용, Vercel 배포 제외)
 # cursor.mcp.json
-# .claude/settings.local.json
 # MCP-QUICK-FIX.md
 
 # MCP 레거시 설정 파일들 (GitHub 차단)
@@ -295,7 +294,6 @@ commit/
 .claude/user-preferences.json
 .claude/.claude.json
 .claude/.credentials.json
-.claude/settings.local.json
 .claude/context.env
 .claude/consolidation-*.log
 .claude/hooks.log
