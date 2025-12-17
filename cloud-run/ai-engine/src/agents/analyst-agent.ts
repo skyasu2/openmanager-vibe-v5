@@ -360,6 +360,19 @@ export const predictTrendsTool = tool(
   }
 );
 
+// Helper: 패턴별 인사이트 반환
+function getPatternInsights(pattern: string): string {
+  const insights: Record<string, string> = {
+    system_performance: '시스템 성능 분석: CPU 사용률, 프로세스 수, 로드 평균 확인 필요',
+    memory_status: '메모리 상태 분석: 사용량, 캐시, 스왑 사용률 확인 필요',
+    storage_info: '스토리지 분석: 디스크 사용량, I/O 대기, 파티션 상태 확인 필요',
+    server_status: '서버 상태 분석: 가동 시간, 서비스 상태, 네트워크 연결 확인',
+    trend_analysis: '트렌드 분석: 시계열 데이터 기반 패턴 인식 및 예측 모델 적용',
+    anomaly_detection: '이상 탐지: 통계적 이상치 감지, 임계값 기반 알림 확인',
+  };
+  return insights[pattern] || '일반 분석 수행';
+}
+
 export const analyzePatternTool = tool(
   async ({ query }) => {
     const patterns: string[] = [];
