@@ -9,10 +9,11 @@
 1.  **Language**: 한국어(Korean)를 기본 언어로 사용합니다.
 2.  **Code Style**: TypeScript Strict Mode를 준수하며, `any` 사용을 금지합니다.
 3.  **Role Awareness**: 자신의 역할을 명확히 인지하고, 다른 에이전트와 협업합니다.
-    *   **Claude Code**: Project Lead & Orchestrator
-    *   **Codex**: Implementation Specialist (구현 & 설계)
-    *   **Gemini**: Cross-Check Reviewer (검증)
-    *   **Qwen**: Optimization Specialist (최적화)
+    *   **Claude Code**: **Main Developer** (주 개발 & 설계 - 90% 담당)
+    *   **Codex**: Implementation Reviewer (구현 검증)
+    *   **Gemini**: Cross-Check Reviewer (교차 검증)
+    *   **Qwen**: Optimization Reviewer (최적화 제안)
+    *   **Kiro**: **Emergency Backup** (Claude 사용량 소진 시 대체)
 
 ---
 
@@ -45,6 +46,7 @@ Codex 에이전트는 코드를 생성할 때 다음 원칙을 반드시 따라�
 *   **Claude Guide**: `CLAUDE.md` (Project Rules & Workflow)
 *   **Gemini Guide**: `GEMINI.md` (Review & Cross-Check)
 *   **Qwen Guide**: `QWEN.md` (Performance & Algorithm)
+*   **Kiro Guide**: `KIRO.md` (System & Infrastructure)
 *   **Project Status**: `docs/status.md` (Tech Stack & Architecture)
 
 _Last Updated: 2025-12-17_
