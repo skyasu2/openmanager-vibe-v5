@@ -9,10 +9,15 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { graphRAGService } from '../../services/rag/graph-rag-service';
 import { extractKeywords } from '../../services/rag/keyword-extractor';
 // Extracted Services
 import { MemoryRAGCache } from '../../services/rag/memory-rag-cache';
 import type { AIMetadata } from '../../types/ai-service-types';
+import type {
+  GraphRAGSearchResult,
+  HybridGraphSearchOptions,
+} from '../../types/rag/graph-rag-types';
 
 // Extracted Types
 import type {
@@ -280,6 +285,86 @@ export class SupabaseRAGEngine {
     if (complexity <= 2) return 2;
     if (complexity <= 4) return 4;
     return 5;
+  }
+
+  /**
+   * 🕸️ GraphRAG 하이브리드 검색 (Vector + Graph Expansion)
+   *
+   * 벡터 유사도 검색 결과를 시작점으로 지식 그래프를 탐색하여
+   * 관련된 개념과 인과관계까지 포함한 확장된 결과를 반환합니다.
+   *
+   * @param query - 검색 쿼리
+   * @param options - GraphRAG 검색 옵션
+   * @returns GraphRAG 검색 결과 (벡터 + 그래프 결과 통합)
+   */
+  async searchWithGraph(
+    query: string,
+    options: HybridGraphSearchOptions = {}
+  ): Promise<GraphRAGSearchResult> {
+    const startTime = Date.now();
+
+    try {
+      // GraphRAG 서비스 가용성 확인
+      if (!graphRAGService.isAvailable()) {
+        console.warn(
+          '🕸️ GraphRAG service not available, falling back to vector search'
+        );
+        // 벡터 검색만으로 폴백
+        const vectorResult = await this.searchSimilar(query, {
+          maxResults: options.maxTotalResults || 10,
+          threshold: options.similarityThreshold || 0.7,
+        });
+
+        return {
+          success: vectorResult.success,
+          results: vectorResult.results.map((r) => ({
+            id: r.id,
+            content: r.content,
+            title: r.metadata?.source,
+            score: r.similarity,
+            sourceType: 'vector' as const,
+            hopDistance: 0,
+            metadata: r.metadata as Record<string, unknown> | undefined,
+          })),
+          vectorResultCount: vectorResult.results.length,
+          graphResultCount: 0,
+          processingTime: Date.now() - startTime,
+        };
+      }
+
+      // 쿼리 임베딩 생성
+      const queryEmbedding = await this.generateEmbedding(query);
+      if (!queryEmbedding) {
+        return {
+          success: false,
+          results: [],
+          vectorResultCount: 0,
+          graphResultCount: 0,
+          processingTime: Date.now() - startTime,
+        };
+      }
+
+      // GraphRAG 하이브리드 검색 수행
+      const graphResult = await graphRAGService.hybridSearch(
+        queryEmbedding,
+        options
+      );
+
+      console.log(
+        `🕸️ GraphRAG 검색 완료: 벡터 ${graphResult.vectorResultCount}개, 그래프 ${graphResult.graphResultCount}개 (${graphResult.processingTime}ms)`
+      );
+
+      return graphResult;
+    } catch (error) {
+      console.error('❌ GraphRAG 검색 실패:', error);
+      return {
+        success: false,
+        results: [],
+        vectorResultCount: 0,
+        graphResultCount: 0,
+        processingTime: Date.now() - startTime,
+      };
+    }
   }
 
   /**

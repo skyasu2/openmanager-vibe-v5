@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-17
+**마지막 업데이트**: 2025-12-18
 
 ---
 
@@ -21,6 +21,7 @@
 - **Zustand**: Global client state
 - **React Query**: Server state synchronization
 - **Supabase**: PostgreSQL + Realtime + Auth
+- **GraphRAG**: Knowledge Graph + Vector Search Hybrid (pgvector 기반)
 
 ## 📚 Documentation Status
 

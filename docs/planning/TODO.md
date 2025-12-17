@@ -122,6 +122,7 @@ Phase 2 (2025-12-17 완료): 제거 실행
 
 | 작업 | 완료일 | 문서 |
 |------|--------|------|
+| **GraphRAG 하이브리드 검색** | **2025-12-18** | **Vector Search + Knowledge Graph 통합, Supabase 마이그레이션 완료** |
 | **Cloud Run 하이브리드 아키텍처 구현** | **2025-12-16** | **Google AI 라운드로빈 + LangGraph Multi-Agent 이전 완료** |
 | 스크립트 통합 최적화 (Phase 1-4) | 2025-12-14 | [링크](../archive/completed/2025-12-script-consolidation-completed.md) - 72% 감소 |
 | LangGraph A2A 패턴 구현 | 2025-12-14 | Return-to-Supervisor + Command Pattern + HITL |
@@ -142,4 +143,4 @@ Phase 2 (2025-12-17 완료): 제거 실행
 
 ---
 
-**최종 업데이트**: 2025-12-17
+**최종 업데이트**: 2025-12-18
