@@ -1,8 +1,8 @@
-# 🤖 AI Wrappers 통합 가이드 v3.0.0
+# 🤖 AI Wrappers 통합 가이드 v3.2.0
 
-**OpenManager VIBE 프로젝트 전용** | 최종 업데이트: 2025-11-21
+**OpenManager VIBE 프로젝트 전용** | 최종 업데이트: 2025-12-17
 
-> 3개 AI Wrapper (Codex, Gemini, Qwen)의 사용법과 v3.0.0 통합 개선사항
+> 3개 AI Wrapper (Codex, Gemini, Qwen)의 사용법과 v3.2.0 통합 개선사항
 
 ---
 
@@ -23,7 +23,7 @@
 ```bash
 # Git 커밋 시 자동 실행
 git commit -m "feat: 새 기능"
-# → Codex (2회) / Gemini (1회) 2:1 비율 자동 선택
+# → 3-AI 순환 (Codex → Gemini → Qwen) 1:1:1 비율
 # → logs/code-reviews/review-{AI}-{DATE}.md 생성
 ```
 
@@ -46,27 +46,27 @@ scripts/ai-subagents/qwen-wrapper.sh "성능 최적화 방안을 제시해주세
 
 | 특징 | Codex | Gemini | Qwen |
 |------|-------|--------|------|
-| **버전** | v3.0.0 | v3.0.0 | v3.0.0 |
-| **주 용도** | 코드 리뷰 (1차) | 코드 리뷰 (폴백) | 일반 분석 |
+| **버전** | v3.2.0 | v3.2.0 | v3.2.0 |
+| **주 용도** | 코드 리뷰 (1순위) | 코드 리뷰 (2순위) | 코드 리뷰 (3순위) |
 | **모델** | GPT-5 기반 | Gemini 2.5 Pro | Qwen 2.5 |
 | **응답 속도** | ~20초 | ~10초 | ~5-15초 |
-| **선택 비율** | 66% (2/3) | 33% (1/3) | 수동 전용 |
+| **선택 비율** | 33% (1/3) | 33% (1/3) | 33% (1/3) |
 | **토큰 추적** | ✅ 있음 | ❌ 없음 | ❌ 없음 |
 | **고유 기능** | 토큰 로깅 | ImportProcessor 필터 | YOLO Mode |
 | **타임아웃** | 600초 | 600초 | 600초 |
-| **안전장치** | ✅ v3.0.0 | ✅ v3.0.0 | ✅ v3.0.0 |
+| **안전장치** | ✅ v3.2.0 | ✅ v3.2.0 | ✅ v3.2.0 |
 
 ### 언제 어떤 Wrapper를 사용하나요?
 
-- **Codex**: 코드 리뷰 (자동 선택됨, 2/3 확률)
-- **Gemini**: 코드 리뷰 (자동 선택됨, 1/3 확률) + Rate limit 폴백
-- **Qwen**: 일반 분석 (수동 호출, 코드 리뷰 외)
+- **Codex**: 코드 리뷰 (3-AI 순환, 1순위)
+- **Gemini**: 코드 리뷰 (3-AI 순환, 2순위) + Rate limit 폴백
+- **Qwen**: 코드 리뷰 (3-AI 순환, 3순위) + Rate limit 폴백
 
 ---
 
-## ✨ v3.0.0 개선사항
+## ✨ v3.2.0 개선사항
 
-### 2025-11-21 통합 업그레이드
+### 2025-12-17 통합 업그레이드
 
 모든 3개 Wrapper에 동일한 안전장치 적용:
 
@@ -183,10 +183,9 @@ cat logs/code-reviews/review-*.md | tail -100
 **워크플로우**:
 1. Git 커밋 → .husky/post-commit 트리거
 2. auto-ai-review.sh 실행
-3. Codex (2회) / Gemini (1회) 2:1 비율 선택
-4. Rate limit 발생 시 자동 폴백
-5. 최종 폴백: Claude Code 자동 리뷰
-6. 결과: `logs/code-reviews/review-{AI}-{DATE}.md`
+3. 3-AI 순환 (Codex → Gemini → Qwen) 1:1:1 비율
+4. Rate limit 발생 시 다음 AI로 폴백
+5. 결과: `logs/code-reviews/review-{AI}-{DATE}.md`
 
 ### 2. 직접 호출 (테스트/디버깅)
 
@@ -359,7 +358,7 @@ bc8160a3 - feat(ai): Gemini Wrapper v3.0.0 (범용 독립 스크립트) (2025-11
 
 ---
 
-**버전**: v3.0.0 (Codex & Gemini & Qwen)
-**상태**: 프로덕션 준비 완료 ✅
-**다음**: 1-2주 모니터링 → 평가
+**버전**: v3.2.0 (Codex & Gemini & Qwen)
+**상태**: 프로덕션 운영 중 ✅
+**순환**: 3-AI 1:1:1 순환 (Codex → Gemini → Qwen)
 

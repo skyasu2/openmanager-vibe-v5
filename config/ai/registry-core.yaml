@@ -3,7 +3,7 @@
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
 version: "2.8.0"  # registry-core 버전 (v2.8.0: Jules 제거 - 웹 인터페이스 전용으로 변경)
-last_updated: "2025-12-16"
+last_updated: "2025-12-17"
 project: "OpenManager VIBE v5.83.0"
 
 # ============================================================================
@@ -29,30 +29,30 @@ ai-architecture:
 # ============================================================================
 ai-tools:
   claude-code:
-    current_version: "v2.0.62"
+    current_version: "v2.0.71"
     status: "✅ Active"
     role: "Interactive development (NOT for auto code review)"
 
   codex:
-    current_version: "v0.69.0"
+    current_version: "v0.73.0"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
     role: "Code review - 3-AI rotation (codex→gemini→qwen)"
 
   gemini-cli:
-    current_version: "v0.20.0"
+    current_version: "v0.21.0"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
     role: "Code review - 3-AI rotation (codex→gemini→qwen)"
 
   qwen-cli:
-    current_version: "v0.4.0"
+    current_version: "v0.5.0"
     wrapper_version: "v3.2.0"
     status: "✅ Active"
     role: "Code review - 3-AI rotation (codex→gemini→qwen)"
 
   kiro-cli:
-    current_version: "v1.20.0"
+    current_version: "v1.22.0"
     status: "✅ Active (Manual Usage)"
     role: "Terminal multi-agent orchestrator (chat/agent/doctor/settings)"
 

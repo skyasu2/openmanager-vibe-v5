@@ -1,10 +1,10 @@
 ---
 id: cli-strategy
 title: "AI CLI Collaboration Strategy"
-keywords: ["cli", "collaboration", "gemini", "codex", "qwen"]
+keywords: ["cli", "collaboration", "gemini", "codex", "qwen", "kiro"]
 priority: medium
 ai_optimized: true
-updated: "2025-09-09"
+updated: "2025-12-17"
 ---
 
 # 🤝 AI CLI Collaboration Strategy
@@ -38,10 +38,11 @@ Task gemini-wrapper "전체 코드베이스 중복 제거 방안 제시"
 
 | CLI | 버전 | 요금제 | WSL 실행 | 전문 분야 |
 |-----|------|--------|----------|----------|
-| **Claude Code** | v1.0.108 | Max ($200) | ✅ WSL 직접 | 메인 개발 |
-| **Codex CLI** | v0.29.0 | Plus ($20) | ✅ codex exec | 호환성 전문 |
-| **Gemini CLI** | v0.3.4 | 무료 (1K/day) | ✅ gemini | 시스템 분석 |
-| **Qwen CLI** | v0.0.10 | OAuth (2K/day) | ✅ qwen | 알고리즘 |
+| **Claude Code** | v2.0.71 | Max ($200) | ✅ WSL 직접 | 메인 개발 |
+| **Codex CLI** | v0.73.0 | Plus ($20) | ✅ codex exec | 코드 리뷰 |
+| **Gemini CLI** | v0.21.0 | 무료 (1K/day) | ✅ gemini | 코드 리뷰 |
+| **Qwen CLI** | v0.5.0 | OAuth (2K/day) | ✅ qwen | 코드 리뷰 |
+| **Kiro CLI** | v1.22.0 | 무료 | ✅ kiro-cli | 멀티에이전트 |
 
 ## 🔄 협업 워크플로우
 

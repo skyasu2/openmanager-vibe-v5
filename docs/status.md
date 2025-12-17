@@ -47,6 +47,13 @@
 - **Models**: Google Gemini 2.5 Flash (Primary), Claude 3.5 Sonnet (Fallback)
 - **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
 
+**AI CLI Tools** (2025-12-17 기준)
+- **Claude Code**: `v2.0.71` (Interactive Development)
+- **Codex CLI**: `v0.73.0` (Code Review - 3-AI Rotation)
+- **Gemini CLI**: `v0.21.0` (Code Review - 3-AI Rotation)
+- **Qwen CLI**: `v0.5.0` (Code Review - 3-AI Rotation)
+- **Kiro CLI**: `v1.22.0` (Terminal Multi-Agent Orchestrator)
+
 **Quality Control**
 - **Test**: Vitest `v4.0.15`, Playwright `v1.57.0`
 - **Lint/Format**: Biome `v2.3.8`
@@ -70,7 +77,7 @@
 
 ---
 
-## 📊 품질 지표 (2025-12-14 기준)
+## 📊 품질 지표 (2025-12-17 기준)
 
 | Metric | Status | Detail |
 |:---:|:---:|---|

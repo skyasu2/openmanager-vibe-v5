@@ -7,7 +7,7 @@
 ## 📦 핵심 정보
 
 **프로젝트**: OpenManager VIBE v5.83.0 - AI 기반 실시간 서버 모니터링 플랫폼
-**환경**: WSL + Claude Code v2.0.62 + Codex/Gemini/Qwen 리뷰
+**환경**: WSL + Claude Code v2.0.71 + Codex/Gemini/Qwen 리뷰
 **스택**: Next.js 16, React 19, TypeScript 5.9 strict, Vercel + Supabase
 
 ---
