@@ -134,8 +134,9 @@ export async function proxyStreamToCloudRun(
   const config = getConfig();
 
   if (!isCloudRunEnabled()) {
-    console.warn('⚠️ Cloud Run is not enabled, falling back to local');
-    return null;
+    const errorMsg = 'Cloud Run configuration is missing or disabled.';
+    console.error(`❌ [Proxy] ${errorMsg}`);
+    throw new Error(errorMsg); // Fail Loudly
   }
 
   const url = `${config.url}${options.path}`;
@@ -160,7 +161,7 @@ export async function proxyStreamToCloudRun(
     return response.body;
   } catch (error) {
     console.error('❌ Cloud Run stream proxy failed:', error);
-    return null;
+    throw error; // Fail Loudly
   }
 }
 

@@ -1,6 +1,41 @@
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
+dist/
+out/
+build/
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git
 .git/
-.env*
-build_fail.log
-build_log.txt
-Dockerfile.dockerignore
+.gitignore
+
+# Env
+.env
+.env.*
+
+# Docker
+docker-compose.yml
+.dockerignore
+
+# Config
+cloudbuild.yaml
+deploy.sh
+
+# Logs
+*.log
+
