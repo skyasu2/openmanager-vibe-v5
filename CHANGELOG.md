@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.3](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.2...v5.83.3) (2025-12-17)
+
+
+### Features
+
+* **code-interpreter:** add browser-based Python execution ([24ce68c](https://github.com/skyasu2/openmanager-vibe-v5/commit/24ce68c34508fe9ccf653876d3a4cf98506f74f1))
+* **rag:** implement GraphRAG hybrid search with knowledge graph ([c96e4dd](https://github.com/skyasu2/openmanager-vibe-v5/commit/c96e4dd785b80d439016c34698ddd511a10a819f))
+
 ### [5.83.2](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.1...v5.83.2) (2025-12-17)
 
 
