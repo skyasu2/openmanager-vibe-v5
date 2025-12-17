@@ -77,6 +77,12 @@ function convertToAgentSteps(thinkingSteps?: AIThinkingStep[]): AgentStep[] {
   }));
 }
 
+// ============================================================================
+// 🔒 세션 제한 상수 (무료 티어 보호)
+// ============================================================================
+const SESSION_MESSAGE_LIMIT = 20; // 세션당 최대 메시지 수
+const SESSION_WARNING_THRESHOLD = 15; // 경고 시작 메시지 수
+
 // 🔍 자연어 승인 응답 감지 헬퍼
 function detectApprovalIntent(input: string): 'approve' | 'reject' | null {
   const trimmed = input.trim().toLowerCase();
@@ -348,6 +354,29 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     },
   });
 
+  // ============================================================================
+  // 🔒 세션 제한 관리
+  // ============================================================================
+
+  // 📊 세션 상태 계산
+  const sessionState = useMemo(() => {
+    const count = messages.length;
+    const remaining = SESSION_MESSAGE_LIMIT - count;
+    const isWarning = count >= SESSION_WARNING_THRESHOLD;
+    const isLimitReached = count >= SESSION_MESSAGE_LIMIT;
+
+    return { count, remaining, isWarning, isLimitReached };
+  }, [messages.length]);
+
+  // 🔄 세션 리셋 함수 (새 대화 시작)
+  const handleNewSession = useCallback(() => {
+    setMessages([]);
+    chatSessionIdRef.current = `session_${Date.now()}`;
+    setPendingApproval(null);
+    setInput('');
+    console.log('🔄 [Session] New session started:', chatSessionIdRef.current);
+  }, [setMessages]);
+
   // v2.x: 재생성 함수 (마지막 assistant 메시지 제거 후 재전송)
   const regenerateLastResponse = () => {
     if (messages.length < 2) return;
@@ -479,6 +508,14 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           handleSendInput={() => {
             if (!input.trim()) return;
 
+            // 🔒 세션 제한 체크 (무료 티어 보호)
+            if (sessionState.isLimitReached) {
+              console.warn(
+                `⚠️ [Session] Limit reached (${SESSION_MESSAGE_LIMIT} messages)`
+              );
+              return; // 입력 차단 - UI에서 경고 표시됨
+            }
+
             // 🔔 승인 대기 중이면 자연어 의도 감지
             if (pendingApproval) {
               const intent = detectApprovalIntent(input);
@@ -497,6 +534,9 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
             // @ai-sdk/react v2.x: sendMessage API
             void sendMessage({ text: input });
           }}
+          // 🔒 세션 상태 전달
+          sessionState={sessionState}
+          onNewSession={handleNewSession}
           isGenerating={isLoading}
           regenerateResponse={() => {
             regenerateLastResponse();

@@ -1,11 +1,21 @@
 'use client';
 
-import { Bot, FileText, Send } from 'lucide-react';
+import { AlertTriangle, Bot, FileText, RefreshCw, Send } from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 // import { AIEngineIndicator } from './AIEngineIndicator';
 import type { ApprovalRequest } from './InlineAgentStatus';
+
+/**
+ * 세션 상태 타입
+ */
+interface SessionState {
+  count: number;
+  remaining: number;
+  isWarning: boolean;
+  isLimitReached: boolean;
+}
 
 /**
  * Enhanced AI Chat Props
@@ -45,6 +55,10 @@ interface EnhancedAIChatProps {
   currentEngine?: string;
   /** 라우팅 사유 */
   routingReason?: string;
+  /** 🔒 세션 상태 (무료 티어 보호) */
+  sessionState?: SessionState;
+  /** 🔄 새 세션 시작 핸들러 */
+  onNewSession?: () => void;
 }
 
 /**
@@ -71,6 +85,8 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   regenerateResponse,
   currentEngine,
   routingReason,
+  sessionState,
+  onNewSession,
 }: EnhancedAIChatProps) {
   return (
     <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-blue-50">
@@ -154,6 +170,58 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         <div ref={messagesEndRef} />
       </div>
 
+      {/* 🔒 세션 제한 경고 (무료 티어 보호) */}
+      {sessionState?.isLimitReached && (
+        <div className="border-t border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div>
+                <p className="text-sm font-medium text-red-800">
+                  대화 한도에 도달했습니다
+                </p>
+                <p className="text-xs text-red-600">
+                  무료 티어 보호를 위해 새 대화를 시작해주세요
+                </p>
+              </div>
+            </div>
+            {onNewSession && (
+              <button
+                onClick={onNewSession}
+                className="flex items-center space-x-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>새 대화</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 🔔 세션 경고 (곧 한도 도달) */}
+      {sessionState?.isWarning && !sessionState.isLimitReached && (
+        <div className="border-t border-yellow-200 bg-gradient-to-r from-yellow-50 to-amber-50 px-4 py-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <p className="text-xs text-yellow-700">
+                대화 {sessionState.count}개 / 20개 (
+                <span className="font-medium">{sessionState.remaining}개</span>{' '}
+                남음)
+              </p>
+            </div>
+            {onNewSession && (
+              <button
+                onClick={onNewSession}
+                className="text-xs text-yellow-700 underline hover:text-yellow-800"
+              >
+                새 대화 시작
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 입력 영역 */}
       <div className="border-t border-gray-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="flex items-end space-x-2">
@@ -163,13 +231,17 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               value={inputValue}
               onValueChange={setInputValue}
               onKeyboardShortcut={() => handleSendInput()}
-              placeholder="시스템에 대해 질문해보세요..."
+              placeholder={
+                sessionState?.isLimitReached
+                  ? '새 대화를 시작해주세요'
+                  : '시스템에 대해 질문해보세요...'
+              }
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] shadow-xs transition-all focus:border-blue-500 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10"
               minHeight={56}
               maxHeight={300}
               maxHeightVh={40}
               aria-label="AI 질문 입력"
-              disabled={isGenerating}
+              disabled={isGenerating || sessionState?.isLimitReached}
             />
           </div>
 
@@ -178,7 +250,9 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             onClick={() => {
               void handleSendInput();
             }}
-            disabled={!inputValue.trim() || isGenerating}
+            disabled={
+              !inputValue.trim() || isGenerating || sessionState?.isLimitReached
+            }
             className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             title="메시지 전송"
             aria-label="메시지 전송"
@@ -188,7 +262,15 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         </div>
 
         {/* 하단 컨트롤 영역 */}
-        <div className="mt-2 flex items-center justify-end">
+        <div className="mt-2 flex items-center justify-between">
+          {/* 세션 정보 */}
+          {sessionState && !sessionState.isWarning && (
+            <div className="text-xs text-gray-400">
+              대화 {sessionState.count}/20
+            </div>
+          )}
+          {!sessionState && <div />}
+
           {/* 키보드 단축키 힌트 */}
           <div className="text-xs text-gray-500">
             <span>Ctrl+Enter로 전송</span>
