@@ -12,11 +12,12 @@ import {
   predictTrendsTool,
 } from '../../agents/analyst-agent';
 // Import tools from Agents
-import { getServerMetricsTool } from '../../agents/nlq-agent';
+import { getServerMetricsTool, getServerLogsTool } from '../../agents/nlq-agent';
 import {
   recommendCommandsTool,
   searchKnowledgeBaseTool,
 } from '../../agents/reporter-agent';
+
 import {
   createSessionConfig,
   getAutoCheckpointer,
@@ -42,17 +43,19 @@ import {
 function createNLQAgent() {
   return createReactAgent({
     llm: getNLQModel(),
-    tools: [getServerMetricsTool],
+    tools: [getServerMetricsTool, getServerLogsTool],
     name: 'nlq_agent',
     stateModifier: `당신은 OpenManager VIBE의 NLQ Agent입니다.
-사용자의 자연어 질문을 서버 메트릭 조회로 변환합니다.
+사용자의 자연어 질문을 서버 메트릭 조회 또는 로그 분석으로 변환합니다.
 
 가능한 작업:
 - 서버 상태 조회 (CPU, Memory, Disk)
-- 특정 서버 메트릭 조회
+- 서버 로그 및 에러 이력 조회 (DB 검색)
 - 전체 서버 요약
 
-도구를 사용해서 데이터를 조회한 후, 결과를 한국어로 친절하게 설명해주세요.`,
+질문이 "로그 보여줘" 또는 "에러 확인해줘"와 관련되면 'getServerLogs' 도구를 사용하세요.
+상태나 메트릭 관련이면 'getServerMetrics' 도구를 사용하세요.
+조회 결과를 한국어로 친절하게 설명해주세요.`,
   });
 }
 
