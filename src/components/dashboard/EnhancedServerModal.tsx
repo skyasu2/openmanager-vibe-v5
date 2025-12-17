@@ -271,16 +271,11 @@ export default function EnhancedServerModal({
                 <ServerIcon className="h-5 w-5 sm:h-7 sm:w-7" />
               </div>
               <div className="min-w-0 flex-1">
-                {/* 1️⃣ 서버명 + 상태 + 헬스점수 통합 */}
-                <h2 className="flex items-center gap-2 text-lg font-bold sm:gap-3 sm:text-2xl text-white">
+                {/* 1️⃣ 서버명 (헬스점수 배지 제거 - FIX-002) */}
+                <h2 className="text-lg font-bold sm:text-2xl text-white">
                   <span className="truncate drop-shadow-md">
                     {safeServer.name}
                   </span>
-                  <div
-                    className={`shrink-0 rounded-lg bg-white/10 px-1.5 py-1 text-xs font-bold backdrop-blur-sm sm:px-2 sm:text-sm border border-white/10 ${darkStatusTheme.text}`}
-                  >
-                    {Math.round(safeServer.health?.score || 0)}%
-                  </div>
                 </h2>
 
                 {/* 2️⃣ 서버 정보 */}
