@@ -22,6 +22,7 @@
 - **React Query**: Server state synchronization
 - **Supabase**: PostgreSQL + Realtime + Auth
 - **GraphRAG**: Knowledge Graph + Vector Search Hybrid (pgvector 기반)
+- **Code Interpreter**: Browser-based Python (Pyodide WebAssembly)
 
 ## 📚 Documentation Status
 
