@@ -196,6 +196,16 @@ class ApprovalStore {
 
     return { pending, total: this.store.size };
   }
+
+  /**
+   * Reset store (for testing purposes only)
+   * @internal
+   */
+  _resetForTesting(): void {
+    if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+      this.store.clear();
+    }
+  }
 }
 
 // Singleton export

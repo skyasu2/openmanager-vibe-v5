@@ -6,10 +6,9 @@ import { approvalStore } from './approval-store';
 
 describe('ApprovalStore', () => {
   beforeEach(() => {
-    // Reset store between tests by clearing via internal access
     vi.useFakeTimers();
-    // @ts-expect-error - accessing private for testing
-    approvalStore.store.clear();
+    // Use public reset method for testing
+    approvalStore._resetForTesting();
   });
 
   afterEach(() => {
