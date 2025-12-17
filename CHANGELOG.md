@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.2](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.1...v5.83.2) (2025-12-17)
+
+
+### Features
+
+* **ai:** add Circuit Breaker event system and AI management UI ([252b9c7](https://github.com/skyasu2/openmanager-vibe-v5/commit/252b9c7e435ad0864aa0d0de189d2663f2f3c757))
+* improve metrics hook UX and add log analysis to NLQ agent ([e2ddebf](https://github.com/skyasu2/openmanager-vibe-v5/commit/e2ddebfd5a90bc23b54706631fa9ad3fdf0346cc))
+* **review:** add small change filter to AI code review ([5005e8b](https://github.com/skyasu2/openmanager-vibe-v5/commit/5005e8b4b97378669268663a21d0b1c309648c09))
+
+
+### Bug Fixes
+
+* **cloud-run:** restore getPatternInsights helper function ([fcbd39c](https://github.com/skyasu2/openmanager-vibe-v5/commit/fcbd39c0c68fe94b486aaa558315dbfcf7ffa23e))
+* **inspection:** resolve all issues from 2025-12-18 inspection ([bc04204](https://github.com/skyasu2/openmanager-vibe-v5/commit/bc04204f59631003465fba76bd0dfe20caad891d))
+
 ### [5.83.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.0...v5.83.1) (2025-12-17)
 
 
