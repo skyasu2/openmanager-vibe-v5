@@ -230,6 +230,9 @@ corrected-cursor-mcp.json
 .claude/*.token
 .claude/*-secure.md
 
+# Claude Code 로컬 설정 (사용자별 개인 설정)
+.claude/settings.local.json
+
 # AI Engine Context and Logs (not development artifacts)
 logs/ai-context/
 logs/ai-analysis/
@@ -348,6 +351,7 @@ scripts/fix-case-declarations.cjs
 !GEMINI.md
 !QWEN.md
 !AGENTS.md
+!KIRO.md
 
 # Scripts moved to /scripts/
 enhanced-vm-control.ps1
