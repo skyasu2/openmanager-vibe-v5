@@ -66,14 +66,15 @@ pub fn cluster_logs(logs: &[String], params: ClusteringParams) -> Result<Cluster
         .collect();
 
     // Iterate over targets (cluster assignments)
+    // Use get_mut for defensive bounds checking to prevent potential panics
     for (row_idx, &cluster_id) in targets.iter().enumerate() {
-        if cluster_id < k {
-            clusters_map[cluster_id].size += 1;
-            clusters_map[cluster_id].member_indices.push(row_idx);
+        if let Some(cluster) = clusters_map.get_mut(cluster_id) {
+            cluster.size += 1;
+            cluster.member_indices.push(row_idx);
 
             // Simple heuristic: First member becomes representative
-            if clusters_map[cluster_id].representative_log.is_empty() {
-                clusters_map[cluster_id].representative_log = logs[row_idx].clone();
+            if cluster.representative_log.is_empty() {
+                cluster.representative_log = logs[row_idx].clone();
             }
         }
     }
