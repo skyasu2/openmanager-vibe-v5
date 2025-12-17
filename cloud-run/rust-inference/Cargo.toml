@@ -28,6 +28,7 @@ linfa-nn = "0.7"
 linfa-linalg = "0.1"
 ndarray = "0.15"
 ndarray-rand = "0.14"
+rand = "0.8"
 
 [profile.release]
 opt-level = 3

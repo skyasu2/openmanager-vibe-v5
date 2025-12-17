@@ -1,8 +1,9 @@
+use linfa::dataset::AsTargets;
 use linfa::traits::{Fit, Predict};
 use linfa::Dataset;
 use linfa_clustering::KMeans;
-use linfa_nn::distance::L2Dist;
-use ndarray::{Array, Array2, ArrayBase, Axis, OwnedRepr};
+use ndarray::Array2;
+use rand::thread_rng;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
@@ -44,7 +45,7 @@ pub fn cluster_logs(logs: &[String], params: ClusteringParams) -> Result<Cluster
     // We try to find `num_clusters`. If logs < num_clusters, adjust.
     let k = params.num_clusters.min(logs.len());
     
-    let model = KMeans::params_with_rng(k, rand::thread_rng())
+    let model = KMeans::params_with_rng(k, thread_rng())
         .max_n_iterations(200)
         .tolerance(1e-5)
         .fit(&dataset)
@@ -52,7 +53,8 @@ pub fn cluster_logs(logs: &[String], params: ClusteringParams) -> Result<Cluster
 
     // 4. Predict (Assign clusters)
     let predictions = model.predict(&dataset);
-    
+    let targets = predictions.as_targets();
+
     // 5. Organize results
     let mut clusters_map: Vec<ClusterInfo> = (0..k)
         .map(|id| ClusterInfo {
@@ -63,17 +65,15 @@ pub fn cluster_logs(logs: &[String], params: ClusteringParams) -> Result<Cluster
         })
         .collect();
 
-    // Iterate over targets (predictions are cluster IDs)
-    for (row_idx, &cluster_id) in predictions.iter().enumerate() {
+    // Iterate over targets (cluster assignments)
+    for (row_idx, &cluster_id) in targets.iter().enumerate() {
         if cluster_id < k {
-            let cluster = &mut clusters_map[cluster_id];
-            cluster.size += 1;
-            cluster.member_indices.push(row_idx);
-            
+            clusters_map[cluster_id].size += 1;
+            clusters_map[cluster_id].member_indices.push(row_idx);
+
             // Simple heuristic: First member becomes representative
-            // Ideally we find the one closest to centroid, but we don't need to be perfect here.
-            if cluster.representative_log.is_empty() {
-                cluster.representative_log = logs[row_idx].clone();
+            if clusters_map[cluster_id].representative_log.is_empty() {
+                clusters_map[cluster_id].representative_log = logs[row_idx].clone();
             }
         }
     }
