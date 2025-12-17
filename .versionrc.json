@@ -9,6 +9,10 @@
       "type": "json"
     },
     {
+      "filename": "cloud-run/ai-engine/package.json",
+      "type": "json"
+    },
+    {
       "filename": "docs/README.md",
       "updater": "scripts/dev/docs-version-updater.js"
     },
@@ -17,6 +21,6 @@
       "updater": "scripts/dev/api-version-updater.js"
     }
   ],
-  "commitUrlFormat": "https://github.com/my-org/my-project/commit/{{hash}}",
-  "compareUrlFormat": "https://github.com/my-org/my-project/compare/{{previousTag}}...{{currentTag}}"
+  "commitUrlFormat": "https://github.com/skyasu2/openmanager-vibe-v5/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/skyasu2/openmanager-vibe-v5/compare/{{previousTag}}...{{currentTag}}"
 }

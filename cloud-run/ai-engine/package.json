@@ -1,6 +1,6 @@
 {
   "name": "ai-engine",
-  "version": "1.0.0",
+  "version": "5.82.0",
   "description": "LangGraph Supervisor Engine for Cloud Run",
   "main": "dist/server.js",
   "scripts": {
