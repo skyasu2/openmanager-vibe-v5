@@ -1,17 +1,14 @@
 /**
- * LangGraph Multi-Agent Supervisor API
+ * Cloud Run AI Supervisor Proxy
  *
  * @endpoint POST /api/ai/supervisor
  *
- * Architecture:
- * - createSupervisor (@langchain/langgraph-supervisor): Automatic agent routing
- * - createReactAgent (@langchain/langgraph/prebuilt): Tool-equipped workers
+ * Architecture (2025-12-17):
+ * - Primary: Cloud Run ai-engine (LangGraph Multi-Agent)
+ * - Fallback: Simple error response (no local LangGraph)
  *
- * Agents:
- * - Supervisor (Groq Llama-8b): Intent classification & routing
- * - NLQ Agent (Gemini Flash): Server metrics queries
- * - Analyst Agent (Gemini Pro): Pattern analysis & anomaly detection
- * - Reporter Agent (Llama 70b): Incident reports & RAG
+ * Note: Vercel LangGraph removed to reduce bundle size (~2MB)
+ * and simplify architecture. All AI processing handled by Cloud Run.
  */
 
 import type { NextRequest } from 'next/server';
@@ -22,11 +19,7 @@ import {
   proxyToCloudRun,
 } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
-import {
-  createSupervisorStreamResponse,
-  executeSupervisor,
-} from '@/services/langgraph/multi-agent-supervisor';
-import { quickFilter, quickSanitize } from './security';
+import { quickSanitize } from './security';
 
 // Allow streaming responses up to 60 seconds (Vercel Hobby/Pro max duration)
 export const maxDuration = 60;
@@ -167,7 +160,7 @@ export const POST = withAuth(async (req: NextRequest) => {
     const wantsJsonOnly = acceptHeader === 'application/json';
     const wantsStream = !wantsJsonOnly;
 
-    // 4. Cloud Run 프록시 모드 (CLOUD_RUN_ENABLED=true)
+    // 4. Cloud Run 프록시 모드 (Primary - CLOUD_RUN_ENABLED=true)
     if (isCloudRunEnabled()) {
       console.log('☁️ [Supervisor] Using Cloud Run backend');
 
@@ -189,8 +182,8 @@ export const POST = withAuth(async (req: NextRequest) => {
             },
           });
         }
-        // Cloud Run 실패 시 로컬로 폴백
-        console.warn('⚠️ Cloud Run stream failed, falling back to local');
+        // Cloud Run 실패 시 에러 응답
+        console.error('❌ Cloud Run stream failed');
       } else {
         // Cloud Run 단일 응답 프록시
         const proxyResult = await proxyToCloudRun({
@@ -204,54 +197,33 @@ export const POST = withAuth(async (req: NextRequest) => {
             _backend: 'cloud-run',
           });
         }
-        // Cloud Run 실패 시 로컬로 폴백
-        console.warn('⚠️ Cloud Run request failed, falling back to local');
+        // Cloud Run 실패 시 에러 응답
+        console.error('❌ Cloud Run request failed:', proxyResult.error);
       }
     }
 
-    // 5. 로컬 모드 (Next.js 내장 LangGraph Multi-Agent Supervisor)
-    if (wantsStream) {
-      // 스트리밍 응답 (LangGraph createSupervisor + streamEvents 사용)
-      try {
-        const stream = await createSupervisorStreamResponse(
-          userQuery,
-          sessionId
-        );
+    // 5. Fallback: Cloud Run 비활성화 또는 실패 시 에러 응답
+    // Note: Vercel LangGraph 제거됨 (2025-12-17) - 번들 최적화
+    console.warn('⚠️ [Supervisor] Cloud Run unavailable, returning error');
 
-        return new Response(stream, {
-          headers: {
-            'Content-Type': 'text/event-stream; charset=utf-8',
-            'Cache-Control': 'no-cache, no-transform',
-            Connection: 'keep-alive',
-            'X-Vercel-AI-Data-Stream': 'v1',
-            'X-Session-Id': sessionId,
-            'X-Backend': 'vercel-supervisor',
-          },
-        });
-      } catch (streamError) {
-        console.error('❌ Streaming Error:', streamError);
-        // 스트리밍 실패 시 단일 응답으로 폴백
-        const result = await executeSupervisor(userQuery, { sessionId });
-        return new Response(result.response, {
-          status: 200,
-          headers: {
-            'Content-Type': 'text/plain; charset=utf-8',
-            'X-Session-Id': sessionId,
-            'X-Backend': 'vercel-supervisor',
-          },
-        });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'AI service temporarily unavailable',
+        message:
+          'AI 서비스가 일시적으로 불안정합니다. 잠시 후 다시 시도해주세요.',
+        sessionId,
+        _backend: 'fallback-error',
+      }),
+      {
+        status: 503,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Session-Id': sessionId,
+          'Retry-After': '30',
+        },
       }
-    } else {
-      // 단일 응답 (invoke 사용)
-      const result = await executeSupervisor(userQuery, { sessionId });
-
-      return Response.json({
-        success: true,
-        response: quickFilter(result.response),
-        sessionId: result.sessionId,
-        _backend: 'vercel-supervisor',
-      });
-    }
+    );
   } catch (error) {
     console.error('❌ AI 스트리밍 처리 실패:', error);
 
@@ -280,21 +252,16 @@ export const POST = withAuth(async (req: NextRequest) => {
 });
 
 // ============================================================================
-// 📊 Legacy Tools Reference (Now integrated in LangGraph Agents)
+// 📊 Architecture Note (2025-12-17)
 // ============================================================================
 //
-// The following tools have been migrated to LangGraph agents:
+// All LangGraph agents now run exclusively on Cloud Run ai-engine:
+// - Supervisor (Groq Llama-8b): Intent classification & routing
+// - NLQ Agent (Gemini Flash): Server metrics queries
+// - Analyst Agent (Gemini Pro): Pattern analysis & anomaly detection
+// - Reporter Agent (Llama 70b): Incident reports & RAG
 //
-// 1. getServerMetrics -> NLQ Agent (nlq-agent.ts)
-//    - Queries server CPU/memory/disk status from scenario data
-//
-// 2. searchKnowledgeBase -> Reporter Agent (reporter-agent.ts)
-//    - RAG search using Supabase pgvector (384 dimensions)
-//
-// 3. analyzePattern -> Analyst Agent (analyst-agent.ts)
-//    - Pattern matching for system performance queries
-//
-// 4. recommendCommands -> Reporter Agent (reporter-agent.ts)
-//    - CLI command recommendations based on keywords
+// Vercel LangGraph code removed to reduce bundle size (~2MB) and
+// simplify architecture. This proxy forwards all requests to Cloud Run.
 //
 // ============================================================================
