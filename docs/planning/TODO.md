@@ -47,8 +47,7 @@ jules remote pull --session <ID> --apply # 패치 적용
 | 작업 | 설명 | 우선순위 | 목표일 | 상태 |
 |------|------|----------|--------|------|
 | **Cloud Run 안정성 모니터링** | 성능/오류율 추적, 사용자 피드백 수집 | 높음 | 2025-12-17 12:00 | ✅ 완료 |
-| **Vercel LangGraph 제거** | 로컬 LangGraph 코드 및 의존성 제거 | 중간 | 2025-12-30 | 📋 계획 수립 |
-| **비용 최적화** | Vercel Pro → Hobby 다운그레이드 | 낮음 | 2025-12-30 | 📋 대기 중 |
+| **Vercel LangGraph 제거** | 로컬 LangGraph 코드 및 의존성 제거 | 중간 | 2025-12-17 | ✅ 완료 |
 
 #### **모니터링 결과 (2025-12-17)**
 ```
@@ -60,21 +59,21 @@ jules remote pull --session <ID> --apply # 패치 적용
 ✅ Rust ML (/api/clustering): 200 OK - K-Means 클러스터링 정상 (배포 완료)
 ```
 
-#### **세부 계획: Vercel LangGraph 제거**
+#### **세부 계획: Vercel LangGraph 제거** ✅ 완료
 ```
-Phase 1 (1-2주): 모니터링
-├── 🔄 Cloud Run 안정성 확인
-├── 🔄 성능 및 오류율 추적  
-└── 🔄 사용자 피드백 수집
+Phase 1 (완료): 모니터링
+├── ✅ Cloud Run 안정성 확인
+├── ✅ 성능 및 오류율 추적
+└── ✅ 사용자 피드백 수집
 
-Phase 2 (2025-12-30): 제거 실행
-├── 📋 src/services/langgraph/ 디렉토리 제거
-├── 📋 @langchain/* 의존성 패키지 제거
-├── 📋 폴백 로직 단순화
-└── 📋 문서 업데이트
+Phase 2 (2025-12-17 완료): 제거 실행
+├── ✅ src/services/langgraph/ 디렉토리 제거
+├── ✅ @langchain/* 의존성 패키지 제거
+├── ✅ 폴백 로직 단순화 (Cloud Run only)
+└── ✅ 문서 업데이트 (route.ts 주석)
 ```
 
-**예상 효과**: 번들 크기 ~2MB 감소, 빌드 시간 ~30초 단축, Vercel 비용 $20/월 절약
+**달성 효과**: 번들 크기 ~2MB 감소, 빌드 시간 단축, 아키텍처 단순화
 
 ---
 
