@@ -220,7 +220,22 @@ export class AuthStateManager {
       console.warn('⚠️ 기존 세션 정리 실패 (계속 진행):', error);
     }
 
-    // 1.5. 🛡️ localStorage 완전 정리 (admin_mode 등 관리자 데이터 포함)
+    // 1.5. 🛡️ PKCE 관련 데이터 명시적 정리 (fetch 에러 방지)
+    if (typeof window !== 'undefined') {
+      // Supabase PKCE code-verifier 패턴: sb-{projectId}-auth-token-code-verifier
+      const pkceKeys = Object.keys(localStorage).filter(
+        (key) =>
+          key.includes('code-verifier') ||
+          key.includes('code_verifier') ||
+          (key.startsWith('sb-') && key.includes('auth-token'))
+      );
+      pkceKeys.forEach((key) => {
+        localStorage.removeItem(key);
+        console.log(`🧹 PKCE 키 정리: ${key}`);
+      });
+    }
+
+    // 1.6. 🛡️ localStorage 완전 정리 (admin_mode 등 관리자 데이터 포함)
     this.clearStorage(); // 모든 인증 관련 데이터 정리
 
     // 2. 게스트 세션 설정
@@ -236,9 +251,12 @@ export class AuthStateManager {
       localStorage.setItem('auth_created_at', createdAt.toString()); // 7일 만료용
 
       // 쿠키에 세션 ID 저장 (7일 만료)
+      // 🔧 localhost(HTTP)에서도 쿠키가 설정되도록 Secure 플래그 조건부 적용
       const expires = new Date(Date.now() + SESSION_MAX_AGE_MS);
-      document.cookie = `auth_session_id=${sessionId}; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
-      document.cookie = `auth_type=guest; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
+      const isProduction = window.location.protocol === 'https:';
+      const secureFlag = isProduction ? '; Secure' : '';
+      document.cookie = `auth_session_id=${sessionId}; path=/; expires=${expires.toUTCString()}${secureFlag}; SameSite=Lax`;
+      document.cookie = `auth_type=guest; path=/; expires=${expires.toUTCString()}${secureFlag}; SameSite=Lax`;
 
       console.log('🔐 게스트 로그인 설정 완료', { userId: guestUser.id });
     }
@@ -486,8 +504,12 @@ export class AuthStateManager {
         console.log('🧪 테스트 모드 감지 - 테스트 쿠키 보존');
       }
 
+      // 🔧 localhost(HTTP)에서도 쿠키가 정리되도록 Secure 플래그 조건부 적용
+      const isProduction = window.location.protocol === 'https:';
+      const secureFlag = isProduction ? '; Secure' : '';
+
       cookiesToClear.forEach((cookie) => {
-        document.cookie = `${cookie}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict`;
+        document.cookie = `${cookie}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT${secureFlag}; SameSite=Lax`;
         console.log(`🧹 쿠키 정리: ${cookie}`);
       });
     }

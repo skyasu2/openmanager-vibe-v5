@@ -11,6 +11,55 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 // Global declaration for singleton
 declare global {
   var __supabaseInstance: SupabaseClient | undefined;
+  var __supabasePkceValidated: boolean | undefined;
+}
+
+/**
+ * 🛡️ PKCE code_verifier 검증 및 손상된 데이터 정리
+ * OAuth 콜백 시 "Invalid value" fetch 에러 방지
+ */
+function validateAndCleanPkceData(): void {
+  if (typeof window === 'undefined' || globalThis.__supabasePkceValidated) {
+    return;
+  }
+
+  try {
+    const pkceKeys = Object.keys(localStorage).filter(
+      (key) =>
+        key.includes('code-verifier') ||
+        key.includes('code_verifier') ||
+        (key.startsWith('sb-') && key.includes('auth-token'))
+    );
+
+    for (const key of pkceKeys) {
+      const value = localStorage.getItem(key);
+      if (!value) continue;
+
+      // code_verifier는 Base64 URL-safe 문자만 포함해야 함
+      // 유효한 문자: A-Z, a-z, 0-9, -, _, .
+      if (key.includes('verifier')) {
+        const isValidCodeVerifier = /^[A-Za-z0-9\-_.]+$/.test(value);
+        if (!isValidCodeVerifier) {
+          console.warn(`🧹 손상된 PKCE code_verifier 정리: ${key}`);
+          localStorage.removeItem(key);
+        }
+      }
+
+      // auth-token JSON 검증
+      if (key.includes('auth-token') && !key.includes('verifier')) {
+        try {
+          JSON.parse(value);
+        } catch {
+          console.warn(`🧹 손상된 auth-token 정리: ${key}`);
+          localStorage.removeItem(key);
+        }
+      }
+    }
+
+    globalThis.__supabasePkceValidated = true;
+  } catch (error) {
+    console.error('❌ PKCE 데이터 검증 실패:', error);
+  }
 }
 
 export function getSupabaseClient(): SupabaseClient {
@@ -26,6 +75,9 @@ export function getSupabaseClient(): SupabaseClient {
   }
 
   if (!globalThis.__supabaseInstance) {
+    // 🛡️ Supabase 클라이언트 생성 전에 PKCE 데이터 검증
+    validateAndCleanPkceData();
+
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
