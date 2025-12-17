@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, Bot, FileText, RefreshCw, Send } from 'lucide-react';
+import { Bot, FileText, RefreshCw, Send } from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
@@ -170,25 +170,25 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 🔒 세션 제한 경고 (무료 티어 보호) */}
+      {/* 🔒 세션 제한 안내 */}
       {sessionState?.isLimitReached && (
-        <div className="border-t border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-3">
+        <div className="border-t border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <RefreshCw className="h-5 w-5 text-blue-600" />
               <div>
-                <p className="text-sm font-medium text-red-800">
-                  대화 한도에 도달했습니다
+                <p className="text-sm font-medium text-blue-800">
+                  대화가 길어졌습니다
                 </p>
-                <p className="text-xs text-red-600">
-                  무료 티어 보호를 위해 새 대화를 시작해주세요
+                <p className="text-xs text-blue-600">
+                  더 정확한 AI 응답을 위해 새 대화를 시작해주세요
                 </p>
               </div>
             </div>
             {onNewSession && (
               <button
                 onClick={onNewSession}
-                className="flex items-center space-x-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                className="flex items-center space-x-1 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
               >
                 <RefreshCw className="h-4 w-4" />
                 <span>새 대화</span>
@@ -198,24 +198,25 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         </div>
       )}
 
-      {/* 🔔 세션 경고 (곧 한도 도달) */}
+      {/* 🔔 세션 경고 (곧 새 대화 권장) */}
       {sessionState?.isWarning && !sessionState.isLimitReached && (
-        <div className="border-t border-yellow-200 bg-gradient-to-r from-yellow-50 to-amber-50 px-4 py-2">
+        <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-gray-50 px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <p className="text-xs text-yellow-700">
-                대화 {sessionState.count}개 / 20개 (
-                <span className="font-medium">{sessionState.remaining}개</span>{' '}
-                남음)
-              </p>
+              <span className="text-xs text-slate-500">
+                💬 대화 {sessionState.count}/20
+              </span>
+              <span className="text-xs text-slate-400">·</span>
+              <span className="text-xs text-slate-500">
+                새 주제는 새 대화에서 더 정확해요
+              </span>
             </div>
             {onNewSession && (
               <button
                 onClick={onNewSession}
-                className="text-xs text-yellow-700 underline hover:text-yellow-800"
+                className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
               >
-                새 대화 시작
+                새 대화
               </button>
             )}
           </div>
