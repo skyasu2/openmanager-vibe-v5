@@ -14,6 +14,7 @@ import {
   useState,
 } from 'react';
 import { SESSION_LIMITS } from '@/types/hitl';
+import { RenderMarkdownContent } from '@/utils/markdown-parser';
 import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '../../../components/ai/AIAssistantIconPanel';
 import { isGuestFullAccessEnabled } from '../../../config/guestMode';
@@ -189,9 +190,16 @@ const MessageComponent = memo<{
                   : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
               }`}
             >
-              <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
-                {message.content}
-              </div>
+              {message.role === 'assistant' ? (
+                <RenderMarkdownContent
+                  content={message.content}
+                  className="text-[15px] leading-relaxed"
+                />
+              ) : (
+                <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
+                  {message.content}
+                </div>
+              )}
             </div>
           )}
 
