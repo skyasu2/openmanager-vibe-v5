@@ -12,6 +12,7 @@
 
 import { google } from '@ai-sdk/google';
 import { embed, embedMany } from 'ai';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * 텍스트를 384차원 벡터로 임베딩
@@ -91,13 +92,12 @@ export interface RAGSearchResult {
  * 쿼리 임베딩 + Supabase 검색을 한 번에 수행
  * Reporter Agent에서 직접 사용
  *
- * @param supabaseClient - Supabase 클라이언트 (any 타입으로 유연하게 처리)
- * @param query - 검색할 쿼리 문자열
+ * @param supabaseClient - Supabase 클라이언트
+ * @param query - 검색할 쿼리 문자열 (최대 500자)
  * @param options - 검색 옵션 (threshold, limit, filters)
  */
 export async function searchWithEmbedding(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabaseClient: any,
+  supabaseClient: SupabaseClient,
   query: string,
   options: {
     similarityThreshold?: number;
@@ -107,6 +107,14 @@ export async function searchWithEmbedding(
   } = {}
 ): Promise<RAGSearchResult> {
   try {
+    // 입력 검증: 쿼리 길이 제한 (500자)
+    if (!query || query.length === 0) {
+      return { success: false, results: [], error: 'Query is empty' };
+    }
+    if (query.length > 500) {
+      return { success: false, results: [], error: 'Query too long (max 500 chars)' };
+    }
+
     // 1. 쿼리 임베딩 생성 (Gemini text-embedding-004)
     const queryEmbedding = await embedText(query);
     const vectorString = toVectorString(queryEmbedding);

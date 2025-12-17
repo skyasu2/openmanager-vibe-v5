@@ -22,6 +22,29 @@ import type {
 import { getServerLogsTool, getServerMetricsTool } from './nlq-agent';
 
 // ============================================================================
+// 1. Supabase Client Singleton (성능 최적화)
+// ============================================================================
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let supabaseInstance: any = null;
+
+async function getSupabaseClient() {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return null;
+  }
+
+  const { createClient } = await import('@supabase/supabase-js');
+  supabaseInstance = createClient(supabaseUrl, supabaseKey);
+  return supabaseInstance;
+}
+
+// ============================================================================
 // 2. Tools Definition
 // ============================================================================
 
@@ -29,11 +52,10 @@ export const searchKnowledgeBaseTool = tool(
   async ({ query, category, severity }) => {
     console.log(`🔍 [Reporter Agent] RAG search for: ${query}`);
 
-    // Supabase 클라이언트 생성 (On-demand)
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Supabase 클라이언트 가져오기 (Singleton)
+    const supabase = await getSupabaseClient();
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabase) {
       console.warn('⚠️ [Reporter Agent] Supabase credentials missing, using fallback');
       return {
         success: true,
@@ -52,8 +74,6 @@ export const searchKnowledgeBaseTool = tool(
     }
 
     try {
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(supabaseUrl, supabaseKey);
 
       // Gemini Embedding + Supabase pgvector 검색
       const result = await searchWithEmbedding(supabase, query, {
@@ -185,9 +205,9 @@ export async function reporterAgentNode(
     });
 
     // 2. 현재 상태 파악 (로그 및 메트릭) - 키워드에 따라 자동 수행
-    let logsResult = null;
-    let metricsResult = null;
-    
+    let logsResult: { success: boolean; [key: string]: unknown } | null = null;
+    let metricsResult: { success: boolean; [key: string]: unknown } | null = null;
+
     // "왜" 또는 "원인", "에러", "장애" 관련 질문이면 로그/메트릭 조회 시도
     if (/왜|원인|cause|reason|에러|error|장애|failed|down/i.test(userQuery)) {
       try {
@@ -197,25 +217,27 @@ export async function reporterAgentNode(
         const normalizedServerId = serverId ? `server-${serverId}` : undefined;
 
         // 로그 조회
-        logsResult = await getServerLogsTool.invoke({ 
-          serverId: normalizedServerId, 
-          limit: 5 
+        const logsInvokeResult = await getServerLogsTool.invoke({
+          serverId: normalizedServerId,
+          limit: 5
         });
+        logsResult = logsInvokeResult as { success: boolean; [key: string]: unknown };
         toolResults.push({
           toolName: 'getServerLogs',
-          success: logsResult.success, // @ts-ignore
+          success: logsResult.success ?? true,
           data: logsResult,
           executedAt: new Date().toISOString(),
         });
 
         // 메트릭 조회 (상태 확인용)
-        metricsResult = await getServerMetricsTool.invoke({ 
-          serverId: normalizedServerId, 
-          metric: 'all' 
+        const metricsInvokeResult = await getServerMetricsTool.invoke({
+          serverId: normalizedServerId,
+          metric: 'all'
         });
+        metricsResult = metricsInvokeResult as { success: boolean; [key: string]: unknown };
         toolResults.push({
-          toolName: 'getServerMetrics', // @ts-ignore
-          success: metricsResult.success,  // @ts-ignore
+          toolName: 'getServerMetrics',
+          success: metricsResult.success ?? true,
           data: metricsResult,
           executedAt: new Date().toISOString(),
         });
