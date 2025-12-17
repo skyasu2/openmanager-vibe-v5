@@ -6,7 +6,7 @@
 
 ## 📦 핵심 정보
 
-**프로젝트**: OpenManager VIBE v5.82.0 - AI 기반 실시간 서버 모니터링 플랫폼
+**프로젝트**: OpenManager VIBE v5.83.0 - AI 기반 실시간 서버 모니터링 플랫폼
 **환경**: WSL + Claude Code v2.0.62 + Codex/Gemini/Qwen 리뷰
 **스택**: Next.js 16, React 19, TypeScript 5.9 strict, Vercel + Supabase
 
@@ -49,17 +49,31 @@ npm run release:first         # 첫 릴리스 (0.0.0 → 1.0.0)
 
 ### 📦 버전 관리 가이드
 
+**Lock-Step Versioning**: 7개 파일이 자동 동기화됩니다.
+
+| 파일 | 용도 | Updater |
+|------|------|---------|
+| `package.json` | 메인 패키지 | 내장 |
+| `package-lock.json` | 의존성 락 | 내장 |
+| `cloud-run/ai-engine/package.json` | Cloud Run 서비스 | 내장 |
+| `docs/README.md` | 문서 헤더 | `docs-version-updater.js` |
+| `src/app/api/version/route.ts` | API 엔드포인트 (Edge) | `api-version-updater.js` |
+| `public/manifest.json` | PWA 매니페스트 | `manifest-version-updater.js` |
+| `src/config/versions.ts` | 내부 시스템 버전 | `versions-ts-updater.js` |
+
 **standard-version 자동 버전 결정** (Conventional Commits 기반):
-- `fix:` → patch (예: 5.81.0 → 5.81.1)
-- `feat:` → minor (예: 5.81.0 → 5.82.0)
-- `BREAKING CHANGE:` 또는 `feat!:` → major (예: 5.81.0 → 6.0.0)
+- `fix:` → patch (예: 5.83.0 → 5.83.1)
+- `feat:` → minor (예: 5.83.0 → 5.84.0)
+- `BREAKING CHANGE:` 또는 `feat!:` → major (예: 5.83.0 → 6.0.0)
 
 ```bash
 # 일반적인 릴리스 워크플로우
 git add . && git commit -m "feat: 새로운 기능"
-npm run release:minor         # CHANGELOG 생성 + 태그 + 커밋
+npm run release:minor         # CHANGELOG 생성 + 태그 + 커밋 (7개 파일 자동 동기화)
 git push --follow-tags        # 태그와 함께 푸시
 ```
+
+> ⚠️ **주의**: `src/app/api/version/route.ts`는 Edge Runtime으로 `fs` 접근 불가하여 버전을 하드코딩합니다. standard-version이 자동으로 업데이트합니다.
 
 ---
 

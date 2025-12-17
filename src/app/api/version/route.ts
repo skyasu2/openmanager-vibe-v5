@@ -3,8 +3,18 @@ import { NextResponse } from 'next/server';
 // ⚡ Edge Runtime으로 전환 - 60% 응답시간 개선 예상
 export const runtime = 'edge';
 
-// 📦 정적 버전 정보 - 파일 시스템 의존성 제거
-// ⚠️ 릴리스 시 수동 업데이트 필요 (Edge Runtime은 fs 접근 불가)
+/**
+ * 📦 정적 버전 정보 - Lock-Step Versioning
+ *
+ * Edge Runtime 제약사항:
+ * - fs 모듈 접근 불가 → package.json 동적 로드 불가
+ * - 버전을 하드코딩해야 함
+ *
+ * 자동 동기화:
+ * - standard-version이 릴리스 시 자동 업데이트
+ * - 설정: .versionrc.json → api-version-updater.js
+ * - 명령어: npm run release:minor (7개 파일 동시 업데이트)
+ */
 const VERSION_INFO = {
   version: '5.83.0',
   name: 'openmanager-vibe-v5',

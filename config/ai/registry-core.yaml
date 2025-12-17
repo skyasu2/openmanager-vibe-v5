@@ -4,7 +4,7 @@
 
 version: "2.8.0"  # registry-core 버전 (v2.8.0: Jules 제거 - 웹 인터페이스 전용으로 변경)
 last_updated: "2025-12-16"
-project: "OpenManager VIBE v5.82.0"
+project: "OpenManager VIBE v5.83.0"
 
 # ============================================================================
 # 0. AI Architecture Overview (v5.0 - LangGraph Multi-Agent)
