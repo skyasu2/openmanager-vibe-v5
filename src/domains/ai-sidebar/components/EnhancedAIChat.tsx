@@ -4,18 +4,7 @@ import { Bot, FileText, RefreshCw, Send } from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
-// import { AIEngineIndicator } from './AIEngineIndicator';
-import type { ApprovalRequest } from './InlineAgentStatus';
-
-/**
- * 세션 상태 타입
- */
-interface SessionState {
-  count: number;
-  remaining: number;
-  isWarning: boolean;
-  isLimitReached: boolean;
-}
+import type { ApprovalRequest, SessionState } from '@/types/hitl';
 
 /**
  * Enhanced AI Chat Props

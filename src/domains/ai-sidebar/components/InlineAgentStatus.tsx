@@ -2,6 +2,10 @@
 
 import { CheckCircle, Clock, Loader2, XCircle } from 'lucide-react';
 import { type FC, memo } from 'react';
+import type { ApprovalRequest } from '@/types/hitl';
+
+// Re-export for backward compatibility
+export type { ApprovalRequest } from '@/types/hitl';
 
 /**
  * Agent 처리 단계 정의
@@ -13,16 +17,6 @@ export interface AgentStep {
   message?: string;
   startedAt?: Date;
   completedAt?: Date;
-}
-
-/**
- * Human-in-the-Loop 승인 요청 정보
- */
-export interface ApprovalRequest {
-  id: string;
-  type: 'tool_execution' | 'data_access' | 'report_generation';
-  description: string;
-  details?: string;
 }
 
 interface InlineAgentStatusProps {

@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { SESSION_LIMITS } from '@/types/hitl';
 import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '../../../components/ai/AIAssistantIconPanel';
 import { isGuestFullAccessEnabled } from '../../../config/guestMode';
@@ -77,11 +78,9 @@ function convertToAgentSteps(thinkingSteps?: AIThinkingStep[]): AgentStep[] {
   }));
 }
 
-// ============================================================================
-// 🔒 세션 제한 상수 (무료 티어 보호)
-// ============================================================================
-const SESSION_MESSAGE_LIMIT = 20; // 세션당 최대 메시지 수
-const SESSION_WARNING_THRESHOLD = 15; // 경고 시작 메시지 수
+// 🔒 세션 제한 상수
+const SESSION_MESSAGE_LIMIT = SESSION_LIMITS.MESSAGE_LIMIT;
+const SESSION_WARNING_THRESHOLD = SESSION_LIMITS.WARNING_THRESHOLD;
 
 // 🔍 자연어 승인 응답 감지 헬퍼
 function detectApprovalIntent(input: string): 'approve' | 'reject' | null {
