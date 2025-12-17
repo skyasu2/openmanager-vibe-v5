@@ -11,6 +11,10 @@
     {
       "filename": "docs/README.md",
       "updater": "scripts/dev/docs-version-updater.js"
+    },
+    {
+      "filename": "src/app/api/version/route.ts",
+      "updater": "scripts/dev/api-version-updater.js"
     }
   ],
   "commitUrlFormat": "https://github.com/my-org/my-project/commit/{{hash}}",
