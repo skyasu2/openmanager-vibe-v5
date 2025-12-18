@@ -7,7 +7,7 @@
 
 'use client';
 
-import { User } from 'lucide-react';
+import { AlertCircle, RefreshCw, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 // 게스트 로그인 관련 임포트 (lib/auth-state-manager로 통합)
@@ -55,15 +55,15 @@ const LoadingOverlay = ({ type }: { type: 'github' | 'guest' }) => {
 };
 
 // ✨ 스플래시 스크린 컴포넌트 (초기 로딩용)
-// 2025 업데이트: 폰트 크기/굵기 조정 (28px, semibold)
+// 2025 업데이트: 폰트 크기/굵기 조정 (28px, semibold), 애니메이션 부드럽게 (bounce → pulse)
 const SplashScreen = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-[#0f172a] z-50">
     <div className="relative flex flex-col items-center">
-      {/* 로고 애니메이션 - 파란색 강조 */}
+      {/* 로고 애니메이션 - 부드러운 pulse 효과 */}
       <div className="relative mb-8">
         <div className="absolute inset-0 animate-pulse rounded-full bg-blue-500/30 blur-xl"></div>
         <div
-          className={`relative flex h-16 w-16 animate-bounce items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-2xl shadow-blue-500/40`}
+          className={`relative flex h-16 w-16 animate-pulse items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} shadow-2xl shadow-blue-500/40`}
         >
           <div className="h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm"></div>
         </div>
@@ -73,10 +73,11 @@ const SplashScreen = () => (
         <h1 className="animate-fade-in text-[28px] font-semibold tracking-tight text-white/90">
           OpenManager
         </h1>
-        <div className="flex items-center gap-1">
-          <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-500 [animation-delay:-0.3s]"></div>
-          <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-500 [animation-delay:-0.15s]"></div>
-          <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-500"></div>
+        {/* 로딩 인디케이터 - 부드러운 페이드 효과 */}
+        <div className="flex items-center gap-1.5">
+          <div className="h-2 w-2 animate-pulse rounded-full bg-blue-400 [animation-delay:0s]"></div>
+          <div className="h-2 w-2 animate-pulse rounded-full bg-blue-400 [animation-delay:0.2s]"></div>
+          <div className="h-2 w-2 animate-pulse rounded-full bg-blue-400 [animation-delay:0.4s]"></div>
         </div>
       </div>
     </div>
@@ -399,8 +400,8 @@ export default function LoginClient() {
             </p>
           </div>
 
-          {/* 로그인 섹션 - PC 최적화 */}
-          <h2 className="mb-8 text-center text-[16px] font-medium tracking-wide text-white/40">
+          {/* 로그인 섹션 - PC 최적화 + WCAG 색상 대비 개선 */}
+          <h2 className="mb-8 text-center text-[16px] font-medium tracking-wide text-white/60">
             로그인 방식을 선택하세요
           </h2>
 
@@ -409,31 +410,43 @@ export default function LoginClient() {
             {isLoading && loadingMessage}
           </output>
 
-          {/* 🚨 에러 메시지 표시 */}
+          {/* 🚨 에러 메시지 표시 - UX 개선 */}
           {errorMessage && (
             <div
               role="alert"
               aria-live="assertive"
-              className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 p-4"
+              className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 backdrop-blur-sm"
             >
-              <p className="flex items-center gap-2 text-sm font-medium text-red-300">
-                <span>❌</span>
-                {errorMessage}
-              </p>
-              {errorMessage.includes('OAuth') && (
-                <div className="mt-2 text-xs text-red-300/80">
-                  <p>
-                    GitHub OAuth 앱의 콜백 URL이 현재 도메인과 일치하는지
-                    확인하세요.
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 shrink-0 text-red-400 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-300">
+                    {errorMessage}
                   </p>
-                  <p className="mt-1 text-yellow-300">
-                    현재 도메인:{' '}
-                    {typeof window !== 'undefined'
-                      ? window.location.origin
-                      : '확인 중...'}
-                  </p>
+                  {errorMessage.includes('OAuth') && (
+                    <div className="mt-2 text-xs text-red-300/80">
+                      <p>
+                        GitHub OAuth 앱의 콜백 URL이 현재 도메인과 일치하는지
+                        확인하세요.
+                      </p>
+                      <p className="mt-1 text-amber-400">
+                        현재 도메인:{' '}
+                        {typeof window !== 'undefined'
+                          ? window.location.origin
+                          : '확인 중...'}
+                      </p>
+                    </div>
+                  )}
+                  {/* 재시도 버튼 */}
+                  <button
+                    onClick={() => setErrorMessage(null)}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/30"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                    닫기
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -451,7 +464,7 @@ export default function LoginClient() {
           )}
 
           <div className="space-y-6">
-            {/* GitHub OAuth 로그인 - Reverted to Simple Button */}
+            {/* GitHub OAuth 로그인 - 모바일 터치 영역 개선 (min-h-[52px]) */}
             <button
               onClick={() => {
                 void handleGitHubLogin();
@@ -459,7 +472,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="GitHub 계정으로 로그인"
               aria-busy={loadingType === 'github'}
-              className={`${BUTTON_STYLES.github} py-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70`}
+              className={`${BUTTON_STYLES.github} min-h-[52px] py-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && <LoadingOverlay type="github" />}
@@ -508,8 +521,8 @@ export default function LoginClient() {
               </div>
             </div>
 
-            {/* 게스트 로그인 - Reverted to Simple Button */}
-            {/* 🎨 [3] 가시성 개선: border-white/20, text-white/90 */}
+            {/* 게스트 로그인 - 가시성 강화 + 모바일 터치 영역 */}
+            {/* 🎨 개선: 그라데이션 배경 추가로 시각적 계층 구분 */}
             <button
               onClick={() => {
                 void handleGuestLogin();
@@ -517,7 +530,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="게스트 모드로 체험하기"
               aria-busy={loadingType === 'guest'}
-              className={`${BUTTON_STYLES.secondary} py-4 cursor-pointer bg-white/5 border border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70`}
+              className={`${BUTTON_STYLES.secondary} min-h-[52px] py-4 cursor-pointer bg-gradient-to-r from-white/5 to-white/10 border border-white/25 hover:from-white/10 hover:to-white/15 hover:border-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70 transition-all duration-300`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && <LoadingOverlay type="guest" />}
@@ -545,11 +558,11 @@ export default function LoginClient() {
             </button>
           </div>
 
-          {/* Simple Bottom Description with Icons */}
-          <div className="mt-8 flex flex-col items-center gap-2 text-xs text-white/40 font-medium tracking-wide">
+          {/* Simple Bottom Description with Icons - WCAG 색상 대비 개선 */}
+          <div className="mt-8 flex flex-col items-center gap-2.5 text-xs text-white/60 font-medium tracking-wide">
             <div className="flex items-center gap-2">
               <svg
-                className="h-3.5 w-3.5 opacity-60"
+                className="h-3.5 w-3.5 text-emerald-400/80"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -562,7 +575,7 @@ export default function LoginClient() {
               <span>GitHub 로그인: AI 어시스턴트 직접 체험</span>
             </div>
             <div className="flex items-center gap-2">
-              <User className="h-3.5 w-3.5 opacity-60" />
+              <User className="h-3.5 w-3.5 text-blue-400/80" />
               <span>게스트 모드: 프로젝트 소개 확인</span>
             </div>
           </div>
@@ -579,18 +592,19 @@ export default function LoginClient() {
             </div>
           )}
 
-          {/* 푸터 (Card 내부) */}
-          <div className="mt-8 border-t border-white/10 pt-6 text-center">
-            <p className="flex items-center justify-center gap-2 text-xs font-medium text-white/30">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-              OpenManager Vibe v5.80.0
+          {/* 푸터 (Card 내부) - 버전 동적 로드 + 가시성 개선 */}
+          <div className="mt-8 border-t border-white/15 pt-6 text-center">
+            <p className="flex items-center justify-center gap-2 text-xs font-medium text-white/50">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse" />
+              OpenManager Vibe v
+              {process.env.NEXT_PUBLIC_APP_VERSION || '5.83.3'}
             </p>
           </div>
         </div>
 
-        {/* 하단 저작권 표시 (카드 외부) */}
-        <p className="mt-8 text-center text-xs text-white/20">
-          © 2024 OpenManager. All rights reserved.
+        {/* 하단 저작권 표시 (카드 외부) - 가시성 개선 */}
+        <p className="mt-8 text-center text-xs text-white/40">
+          © 2024-2025 OpenManager. All rights reserved.
         </p>
       </div>
     </div>
