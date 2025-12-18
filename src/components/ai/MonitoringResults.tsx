@@ -67,7 +67,7 @@ export default function MonitoringResults({
     return (
       <div className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-8">
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-teal-100">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-emerald-100 to-teal-100">
             <Search className="h-8 w-8 text-emerald-600" />
           </div>
           <h3 className="mb-2 text-lg font-semibold text-gray-800">
@@ -92,7 +92,7 @@ export default function MonitoringResults({
           {onStartAnalysis && (
             <button
               onClick={onStartAnalysis}
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-lg"
+              className="inline-flex items-center gap-2 rounded-lg bg-linear-to-r from-emerald-500 to-teal-500 px-6 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-lg"
             >
               <TrendingUp className="h-4 w-4" />
               분석 시작하기

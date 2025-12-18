@@ -140,7 +140,7 @@ export function GradientIconWrapper({
       className={`inline-flex items-center justify-center ${
         animate
           ? AI_ICON_GRADIENT_CLASSES
-          : 'bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600'
+          : 'bg-linear-to-br from-blue-400 via-indigo-500 to-purple-600'
       } ${className}`}
       style={{
         // mask 속성은 지원되는 브라우저에서만 적용

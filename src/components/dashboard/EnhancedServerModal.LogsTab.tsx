@@ -85,7 +85,7 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
       <div className="animate-fade-in">
         {/* 헤더 섹션 */}
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
+          <h3 className="bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
             실시간 로그 스트림
           </h3>
 
@@ -109,7 +109,7 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
         {/* 로그 콘솔 영역 */}
         <div className="relative overflow-hidden rounded-2xl shadow-2xl">
           {/* 터미널 스타일 배경 */}
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black" />
+          <div className="absolute inset-0 bg-linear-to-br from-gray-900 via-gray-800 to-black" />
 
           {/* 로그 스트림 컨테이너 */}
           <div className="relative h-[500px] overflow-y-auto p-6 font-mono text-sm">
@@ -168,7 +168,7 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
           </div>
 
           {/* 스크롤 인디케이터 (하단 그라데이션) */}
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-gray-900 to-transparent" />
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 bg-linear-to-t from-gray-900 to-transparent" />
         </div>
 
         {/* 로그 통계 요약 */}

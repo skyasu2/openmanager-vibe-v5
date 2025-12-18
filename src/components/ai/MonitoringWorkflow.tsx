@@ -131,7 +131,7 @@ export default function MonitoringWorkflow({
       {/* 진행률 바 */}
       <div className="mb-4 h-2 w-full rounded-full bg-gray-200">
         <div
-          className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+          className="h-2 rounded-full bg-linear-to-r from-emerald-500 to-teal-500 transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>

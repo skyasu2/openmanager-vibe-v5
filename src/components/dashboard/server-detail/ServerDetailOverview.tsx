@@ -146,7 +146,7 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
     <div className="space-y-6">
       {/* 🎯 서버 상태 요약 카드 */}
       <div
-        className={`bg-gradient-to-r ${statusInfo.gradient} rounded-xl p-6 text-white shadow-lg`}
+        className={`bg-linear-to-r ${statusInfo.gradient} rounded-xl p-6 text-white shadow-lg`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">

@@ -247,7 +247,7 @@ export function useSystemStart(options: UseSystemStartOptions) {
         text: `시작 취소 (${systemStartCountdown}초)`,
         icon: getIcon(X, 'h-5 w-5'),
         className:
-          'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 relative overflow-hidden',
+          'bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 relative overflow-hidden',
         disabled: false,
       };
     }
@@ -257,7 +257,7 @@ export function useSystemStart(options: UseSystemStartOptions) {
         text: '시스템 시작 중...',
         icon: getIcon(Loader2, 'h-5 w-5 animate-spin'),
         className:
-          'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
+          'bg-linear-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
         disabled: true,
       };
     }
@@ -281,7 +281,7 @@ export function useSystemStart(options: UseSystemStartOptions) {
         text: `📊 대시보드 이동 (사용자: ${multiUserStatus?.userCount || 0}명)`,
         icon: getIcon(BarChart3, 'h-5 w-5'),
         className:
-          'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
+          'bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
         disabled: false,
       };
     }
@@ -290,7 +290,7 @@ export function useSystemStart(options: UseSystemStartOptions) {
       text: '🚀 시스템 시작',
       icon: getIcon(Play, 'h-5 w-5'),
       className:
-        'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
+        'bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
       disabled: false,
     };
   }, [

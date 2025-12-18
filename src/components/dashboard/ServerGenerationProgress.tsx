@@ -194,7 +194,7 @@ const ServerGenerationProgress: FC<ServerGenerationProgressProps> = ({
         <div className="h-3 w-full overflow-hidden rounded-full bg-gray-700">
           <div
             style={{ width: `${progress}%` }}
-            className="relative h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-1000 ease-out"
+            className="relative h-full rounded-full bg-linear-to-r from-blue-500 to-green-500 transition-all duration-1000 ease-out"
           >
             <div
               className={`absolute inset-0 rounded-full bg-white/20 ${isGenerating ? 'animate-pulse' : ''}`}

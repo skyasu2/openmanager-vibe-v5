@@ -71,7 +71,7 @@ function AuthErrorContent() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-red-50 via-white to-orange-50 p-4">
       <div className="w-full max-w-md">
         {/* 에러 아이콘 */}
         <div className="mb-8 text-center">
@@ -189,7 +189,7 @@ function AuthErrorContent() {
 // 로딩 컴포넌트
 function LoadingFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-red-50 via-white to-orange-50 p-4">
       <div className="w-full max-w-md text-center">
         <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-red-200 border-t-red-600"></div>
         <p className="text-gray-600">로딩 중...</p>

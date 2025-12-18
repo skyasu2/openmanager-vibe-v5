@@ -262,7 +262,7 @@ export default function DashboardContent({
     if (showSequentialGeneration) {
       debug.log('🔄 시퀀셜 생성 모드 렌더링');
       return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
+        <div className="min-h-screen bg-linear-to-br from-purple-50 to-blue-50 p-6">
           <div className="mx-auto max-w-7xl">
             <div className="rounded-lg bg-white p-6 shadow-lg">
               <h2 className="mb-4 text-2xl font-bold text-gray-900">

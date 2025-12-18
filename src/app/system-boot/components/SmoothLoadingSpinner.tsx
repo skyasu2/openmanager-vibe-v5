@@ -15,7 +15,7 @@ export const SmoothLoadingSpinner = () => {
       />
       {/* 중앙 아이콘 - 부드러운 펄스 */}
       <div
-        className="animate-pulse absolute inset-6 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600"
+        className="animate-pulse absolute inset-6 flex items-center justify-center rounded-full bg-linear-to-r from-blue-500 to-purple-600"
         style={{ animationDuration: '2s' }}
       >
         <Monitor className="h-4 w-4 text-white" />

@@ -73,7 +73,7 @@ class ServerCardErrorBoundary extends Component<Props, State> {
 
       // 기본 에러 UI - 서버 카드와 동일한 크기와 스타일
       return (
-        <div className="relative cursor-pointer rounded-2xl border-2 w-full overflow-hidden text-left group p-5 min-h-[340px] bg-gradient-to-br from-red-50/80 via-white/90 to-red-50/60 backdrop-blur-sm border-red-200/60">
+        <div className="relative cursor-pointer rounded-2xl border-2 w-full overflow-hidden text-left group p-5 min-h-[340px] bg-linear-to-br from-red-50/80 via-white/90 to-red-50/60 backdrop-blur-sm border-red-200/60">
           <div className="flex flex-col items-center justify-center h-full space-y-4">
             <div className="rounded-lg p-3 bg-red-100/80 backdrop-blur-sm">
               <AlertTriangle className="h-8 w-8 text-red-600" />

@@ -71,7 +71,7 @@ export class ComponentErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         this.props.fallback || (
-          <div className="border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-xl shadow-xs">
+          <div className="border border-amber-200 bg-linear-to-br from-amber-50 to-orange-50 p-6 rounded-xl shadow-xs">
             {/* 🎨 Gemini 권장: 사용자 친화적 아이콘과 메시지 */}
             <div className="flex items-start gap-4">
               <div className="shrink-0">

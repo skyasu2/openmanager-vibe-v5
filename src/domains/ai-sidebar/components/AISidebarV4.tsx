@@ -157,7 +157,7 @@ const MessageComponent = memo<{
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-xs ${
             message.role === 'user'
               ? 'bg-blue-100 text-blue-600'
-              : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+              : 'bg-linear-to-br from-purple-500 to-pink-500 text-white'
           }`}
         >
           {message.role === 'user' ? (
@@ -186,7 +186,7 @@ const MessageComponent = memo<{
             <div
               className={`rounded-2xl p-4 shadow-xs ${
                 message.role === 'user'
-                  ? 'rounded-tr-sm bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                  ? 'rounded-tr-sm bg-linear-to-br from-blue-500 to-blue-600 text-white'
                   : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
               }`}
             >

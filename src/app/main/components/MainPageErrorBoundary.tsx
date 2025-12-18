@@ -44,7 +44,7 @@ export class MainPageErrorBoundary extends Component<Props, State> {
       const { fallbackTitle, fallbackMessage } = this.props;
 
       return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+        <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
           <div className="max-w-md rounded-xl border border-red-500/30 bg-red-500/10 p-8 text-center">
             <AlertTriangle className="mx-auto mb-4 h-16 w-16 text-red-400" />
             <h2 className="mb-2 text-xl font-bold text-white">

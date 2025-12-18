@@ -492,7 +492,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
           {/* 차트 */}
           <div
-            className={`${variantStyles.chartSize} relative bg-gradient-to-br from-white/60 to-gray-50/40 rounded-xl p-3 shadow-inner border border-gray-100/50`}
+            className={`${variantStyles.chartSize} relative bg-linear-to-br from-white/60 to-gray-50/40 rounded-xl p-3 shadow-inner border border-gray-100/50`}
           >
             <svg
               className="w-full h-full"
@@ -675,7 +675,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         }}
         className={`
         relative ${variantStyles.padding} ${variantStyles.cardHeight} rounded-2xl cursor-pointer
-        bg-gradient-to-br ${theme.gradient}
+        bg-linear-to-br ${theme.gradient}
         border-2 ${theme.border} ${theme.hoverBorder}
         shadow-lg ${theme.glow} hover:shadow-2xl
         transition-all duration-300 ease-out
@@ -689,7 +689,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         onMouseUp={() => setIsPressed(false)}
       >
         {/* 배경 오버레이 효과 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/5 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-br from-white/10 via-transparent to-black/5 pointer-events-none" />
 
         {/* 실시간 활동 인디케이터 - 개선된 디자인 */}
         <div className="absolute top-4 right-4 flex items-center gap-2 z-10">

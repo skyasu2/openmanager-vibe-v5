@@ -78,12 +78,12 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   onNewSession,
 }: EnhancedAIChatProps) {
   return (
-    <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
       {/* 헤더 - 모델 선택 */}
       <div className="border-b border-gray-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-blue-600">
               <Bot className="h-4 w-4 text-white" />
             </div>
             <div>
@@ -101,7 +101,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
       <div className="flex-1 space-y-3 overflow-y-auto scroll-smooth p-3 will-change-scroll sm:space-y-4 sm:p-4">
         {/* 자동장애보고서 알림 */}
         {autoReportTrigger.shouldGenerate && (
-          <div className="rounded-lg border border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-3">
+          <div className="rounded-lg border border-red-200 bg-linear-to-r from-red-50 to-orange-50 p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <FileText className="h-4 w-4 text-red-600" />
@@ -122,7 +122,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         {/* 빈 메시지 상태 */}
         {allMessages.length === 0 && (
           <div className="py-8 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-blue-600">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-r from-purple-500 to-blue-600">
               <Bot className="h-6 w-6 text-white" />
             </div>
             <h3 className="mb-2 text-lg font-medium text-gray-900">
@@ -161,7 +161,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
 
       {/* 🔒 세션 제한 안내 */}
       {sessionState?.isLimitReached && (
-        <div className="border-t border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-3">
+        <div className="border-t border-blue-200 bg-linear-to-r from-blue-50 to-indigo-50 p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <RefreshCw className="h-5 w-5 text-blue-600" />
@@ -189,7 +189,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
 
       {/* 🔔 세션 경고 (곧 새 대화 권장) */}
       {sessionState?.isWarning && !sessionState.isLimitReached && (
-        <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-gray-50 px-4 py-2">
+        <div className="border-t border-slate-200 bg-linear-to-r from-slate-50 to-gray-50 px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="text-xs text-slate-500">
@@ -243,7 +243,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             disabled={
               !inputValue.trim() || isGenerating || sessionState?.isLimitReached
             }
-            className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             title="메시지 전송"
             aria-label="메시지 전송"
           >

@@ -84,19 +84,19 @@ const FeatureCardItem = memo(
         <div
           className={`relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300 ease-out hover:bg-white/20 ${
             card.isSpecial
-              ? 'border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10'
+              ? 'border-amber-500/30 bg-linear-to-br from-amber-500/10 to-orange-500/10'
               : ''
           } group-hover:scale-[1.02] group-hover:transform group-hover:shadow-2xl`}
         >
           {/* 그라데이션 배경 */}
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${card.gradient} rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
+            className={`absolute inset-0 bg-linear-to-br ${card.gradient} rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
           />
 
           {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
           {card.isAICard && (
             <div
-              className="animate-gradient-shift absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 opacity-90"
+              className="animate-gradient-shift absolute inset-0 rounded-2xl bg-linear-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 opacity-90"
               style={{ backgroundSize: '200% 200%' }}
             />
           )}
@@ -111,7 +111,7 @@ const FeatureCardItem = memo(
               {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
                 <div
-                  className="animate-gradient-shift absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 opacity-90"
+                  className="animate-gradient-shift absolute inset-0 bg-linear-to-br from-amber-500 via-orange-600 to-red-700 opacity-90"
                   style={{ backgroundSize: '200% 200%' }}
                 />
               </div>
@@ -125,8 +125,8 @@ const FeatureCardItem = memo(
           <div
             className={`h-12 w-12 ${
               card.isVibeCard
-                ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
-                : `bg-gradient-to-br ${card.gradient}`
+                ? 'bg-linear-to-br from-yellow-400 to-amber-500'
+                : `bg-linear-to-br ${card.gradient}`
             } relative z-10 mb-3 flex items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${
               card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
             }`}

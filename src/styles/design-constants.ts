@@ -14,7 +14,7 @@ export const SERVER_STATUS_COLORS = {
     // 🔧 수정: 'healthy' → 'online' (타입 통합)
     // 정상 상태 - 녹색 계열 (Premium: 더 깊이감 있는 그라데이션)
     background:
-      'bg-gradient-to-br from-white/90 via-emerald-50/50 to-emerald-100/50 backdrop-blur-md',
+      'bg-linear-to-br from-white/90 via-emerald-50/50 to-emerald-100/50 backdrop-blur-md',
     border: 'border-emerald-200/50 hover:border-emerald-400/80',
     text: 'text-emerald-800',
     badge: 'bg-emerald-100 text-emerald-800',
@@ -28,7 +28,7 @@ export const SERVER_STATUS_COLORS = {
   warning: {
     // 경고 상태 - 노랑/주황 계열 (Premium)
     background:
-      'bg-gradient-to-br from-white/90 via-amber-50/50 to-amber-100/50 backdrop-blur-md',
+      'bg-linear-to-br from-white/90 via-amber-50/50 to-amber-100/50 backdrop-blur-md',
     border: 'border-amber-200/50 hover:border-amber-400/80',
     text: 'text-amber-800',
     badge: 'bg-amber-100 text-amber-800',
@@ -42,7 +42,7 @@ export const SERVER_STATUS_COLORS = {
   critical: {
     // 심각 상태 - 빨간색 계열 (Premium)
     background:
-      'bg-gradient-to-br from-white/90 via-red-50/50 to-red-100/50 backdrop-blur-md',
+      'bg-linear-to-br from-white/90 via-red-50/50 to-red-100/50 backdrop-blur-md',
     border: 'border-red-200/50 hover:border-red-400/80',
     text: 'text-red-800',
     badge: 'bg-red-100 text-red-800',
@@ -57,7 +57,7 @@ export const SERVER_STATUS_COLORS = {
     // 🔧 추가: offline 상태 (타입 통합)
     // 오프라인 상태 - 회색 계열 (Premium)
     background:
-      'bg-gradient-to-br from-white/90 via-gray-100/50 to-gray-200/50 backdrop-blur-md',
+      'bg-linear-to-br from-white/90 via-gray-100/50 to-gray-200/50 backdrop-blur-md',
     border: 'border-gray-200/50 hover:border-gray-400/80',
     text: 'text-gray-900',
     badge: 'bg-gray-200 text-gray-900',
@@ -72,7 +72,7 @@ export const SERVER_STATUS_COLORS = {
     // 🔧 추가: maintenance 상태 (타입 통합)
     // 점검 상태 - 파란색 계열 (Premium)
     background:
-      'bg-gradient-to-br from-white/90 via-blue-50/50 to-blue-100/50 backdrop-blur-md',
+      'bg-linear-to-br from-white/90 via-blue-50/50 to-blue-100/50 backdrop-blur-md',
     border: 'border-blue-200/50 hover:border-blue-400/80',
     text: 'text-blue-800',
     badge: 'bg-blue-100 text-blue-800',
@@ -86,7 +86,7 @@ export const SERVER_STATUS_COLORS = {
   unknown: {
     // 알 수 없는 상태 - 회색 계열 (Premium)
     background:
-      'bg-gradient-to-br from-white/90 via-gray-50/50 to-gray-100/50 backdrop-blur-md',
+      'bg-linear-to-br from-white/90 via-gray-50/50 to-gray-100/50 backdrop-blur-md',
     border: 'border-gray-200/50 hover:border-gray-400/80',
     text: 'text-gray-800',
     badge: 'bg-gray-100 text-gray-800',
@@ -241,14 +241,14 @@ export const LAYOUT = {
 // 이전: purple-500 → pink-500 → blue-500 (파란색 약함)
 // 개선: blue-500 → purple-500 → pink-500 (파란색 시작으로 강조)
 export const AI_GRADIENT_CLASSES =
-  'bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 animate-gradient-diagonal';
+  'bg-linear-to-br from-blue-500 via-purple-500 to-pink-500 animate-gradient-diagonal';
 export const AI_GRADIENT_STYLE =
   'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)';
 
 // 🎨 AI 아이콘 그라데이션 상수 (2025 업데이트: 핑크 → 보라 → 밝은 청색)
 // 아이콘에 적용할 그라데이션 - 핑크에서 시작, 보라 중간, 밝은 청색 끝
 export const AI_ICON_GRADIENT_CLASSES =
-  'bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-400 animate-gradient-diagonal';
+  'bg-linear-to-br from-pink-500 via-purple-500 to-cyan-400 animate-gradient-diagonal';
 export const AI_ICON_GRADIENT_ID = 'ai-icon-gradient';
 export const AI_ICON_GRADIENT_COLORS = {
   start: '#ec4899', // pink-500
@@ -274,7 +274,7 @@ export const getTypographyClass = (
 // ===== 페이지 배경 시스템 =====
 export const PAGE_BACKGROUNDS = {
   // 표준 다크 페이지 배경 (Slate-900 기반)
-  DARK_PAGE_BG: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900',
+  DARK_PAGE_BG: 'bg-linear-to-br from-slate-900 via-slate-800 to-slate-900',
 } as const;
 
 // ===== 버튼 스타일 시스템 (2025 업데이트) =====

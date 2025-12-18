@@ -126,7 +126,7 @@ export default function AIAssistantIconPanel({
               onClick={() => onFunctionChange(item.id)}
               className={`group relative h-12 w-12 shrink-0 rounded-xl transition-all duration-200 active:scale-95 ${
                 isSelected
-                  ? `bg-gradient-to-r ${item.gradient} scale-105 text-white shadow-lg`
+                  ? `bg-linear-to-r ${item.gradient} scale-105 text-white shadow-lg`
                   : `${item.bgColor} ${item.color}`
               } `}
             >
@@ -161,7 +161,7 @@ export default function AIAssistantIconPanel({
     >
       {/* 헤더 */}
       <div className="mb-2 text-center">
-        <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 shadow-sm">
+        <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-blue-500 shadow-sm">
           <Brain className="h-4 w-4 text-white" />
         </div>
         <p className="text-xs font-medium text-gray-600">AI 기능</p>
@@ -180,7 +180,7 @@ export default function AIAssistantIconPanel({
               onClick={() => onFunctionChange(item.id)}
               className={`animate-fade-in group relative h-12 w-12 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
                 isSelected
-                  ? `bg-gradient-to-r ${item.gradient} scale-105 text-white shadow-lg`
+                  ? `bg-linear-to-r ${item.gradient} scale-105 text-white shadow-lg`
                   : `${item.bgColor} ${item.color}`
               } `}
               title={`${item.label}\n${item.description}`}

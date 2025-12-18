@@ -44,11 +44,11 @@ const LoadingOverlay = ({ type }: { type: 'github' | 'guest' }) => {
   return (
     <>
       {/* Shimmer 효과 */}
-      <div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="animate-shimmer absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent" />
 
       {/* 프로그레스 바 */}
       <div
-        className={`animate-progress absolute bottom-0 left-0 h-1 bg-gradient-to-r ${progressGradient}`}
+        className={`animate-progress absolute bottom-0 left-0 h-1 bg-linear-to-r ${progressGradient}`}
       />
     </>
   );
@@ -530,7 +530,7 @@ export default function LoginClient() {
               disabled={isLoading}
               aria-label="게스트 모드로 체험하기"
               aria-busy={loadingType === 'guest'}
-              className={`${BUTTON_STYLES.secondary} min-h-[52px] py-4 cursor-pointer bg-gradient-to-r from-white/5 to-white/10 border border-white/25 hover:from-white/10 hover:to-white/15 hover:border-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70 transition-all duration-300`}
+              className={`${BUTTON_STYLES.secondary} min-h-[52px] py-4 cursor-pointer bg-linear-to-r from-white/5 to-white/10 border border-white/25 hover:from-white/10 hover:to-white/15 hover:border-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f172a] focus-visible:ring-white/70 transition-all duration-300`}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && <LoadingOverlay type="guest" />}

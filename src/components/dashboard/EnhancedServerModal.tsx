@@ -260,7 +260,7 @@ export default function EnhancedServerModal({
       >
         {/* 헤더 - Dark Glass Style */}
         <div
-          className={`bg-gradient-to-r ${darkStatusTheme.background.replace('backdrop-blur-md', '')} border-b border-white/5 p-4 text-white sm:p-6`}
+          className={`bg-linear-to-r ${darkStatusTheme.background.replace('backdrop-blur-md', '')} border-b border-white/5 p-4 text-white sm:p-6`}
         >
           <div className="flex items-center justify-between">
             {/* 💡 핵심 정보 통합 */}
@@ -357,7 +357,7 @@ export default function EnhancedServerModal({
         </div>
 
         {/* 콘텐츠 영역 */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-[#0F1115] to-[#1a1c20]">
+        <div className="flex-1 overflow-y-auto bg-linear-to-br from-[#0F1115] to-[#1a1c20]">
           <div
             key={selectedTab}
             className="p-4 sm:p-6 opacity-0 animate-in fade-in duration-300 slide-in-from-bottom-2 fill-mode-forwards"

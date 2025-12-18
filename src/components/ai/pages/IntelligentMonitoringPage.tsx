@@ -281,12 +281,12 @@ export default function IntelligentMonitoringPage() {
   // 렌더링
   // ============================================================================
   return (
-    <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
       {/* 헤더 */}
       <div className="border-b border-gray-200 bg-white p-4">
         <div className="mb-3 flex items-center justify-between">
           <h1 className="flex items-center gap-3 text-xl font-bold text-gray-800">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r from-emerald-500 to-teal-500">
               <Monitor className="h-5 w-5 text-white" />
             </div>
             이상감지/예측
@@ -329,7 +329,7 @@ export default function IntelligentMonitoringPage() {
               <button
                 onClick={() => void runIntelligentAnalysis()}
                 disabled={isAnalyzing}
-                className="rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-medium text-white hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50"
+                className="rounded-lg bg-linear-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-medium text-white hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50"
               >
                 {isAnalyzing ? (
                   <>
