@@ -17,18 +17,18 @@ export interface AiToggleOptions {
 }
 
 const DEFAULT_AI_BUTTON_SELECTORS = [
+  'button:has-text("AI 어시스턴트 열기")',
+  'button:has-text("AI 어시스턴트")',
   '[data-testid="ai-assistant"]',
   '[data-testid="ai-sidebar-trigger"]',
-  'button:has-text("AI")',
-  'button:has-text("AI 어시스턴트")',
   'button[aria-label*="AI"]',
   'button[title*="AI"]',
 ];
 
 const DEFAULT_AI_SIDEBAR_SELECTORS = [
+  'dialog:has-text("AI 어시스턴트")',
+  '[role="dialog"]:has-text("AI")',
   '[data-testid="ai-sidebar"]',
-  '[role="complementary"]',
-  'aside:has-text("AI")',
   '.ai-sidebar',
   '.ai-panel',
 ];
@@ -125,13 +125,15 @@ export async function openAiSidebar(
   for (const selector of buttonSelectors) {
     attemptedButtonSelectors.push(selector);
     const candidate = page.locator(selector).first();
-    const isVisible = await candidate
-      .isVisible({ timeout: TIMEOUTS.MODAL_DISPLAY })
-      .catch(() => false);
-    if (isVisible) {
+    try {
+      // waitFor를 사용하여 실제로 버튼이 나타날 때까지 기다림
+      await candidate.waitFor({
+        state: 'visible',
+        timeout: TIMEOUTS.DOM_UPDATE,
+      });
       trigger = candidate;
       break;
-    }
+    } catch {}
   }
 
   if (!trigger) {
@@ -153,11 +155,11 @@ export async function openAiSidebar(
   for (const selector of sidebarSelectors) {
     attemptedSidebarSelectors.push(selector);
     const sidebar = page.locator(selector).first();
-    const isVisible = await sidebar
-      .isVisible({ timeout: waitTimeout })
-      .catch(() => false);
-    if (isVisible) {
+    try {
+      await sidebar.waitFor({ state: 'visible', timeout: waitTimeout });
       return sidebar;
+    } catch {
+      // 다음 셀렉터 시도
     }
   }
 

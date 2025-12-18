@@ -22,11 +22,13 @@ test.describe('기본 스모크 테스트', () => {
 
     // 기본 UI 요소들 확인
     await expect(page.locator('h1')).toBeVisible();
+    // Note: getByRole uses accessible name, but button text content differs
+    // Button accessible name: "GitHub 계정으로 로그인", text content: "GitHub로 계속하기"
     await expect(
-      page.getByRole('button', { name: /GitHub로 계속하기/i })
+      page.locator('button:has-text("GitHub로 계속하기")')
     ).toBeVisible();
     await expect(
-      page.getByRole('button', { name: /게스트로 체험하기/i })
+      page.locator('button:has-text("게스트로 체험하기")')
     ).toBeVisible();
   });
 

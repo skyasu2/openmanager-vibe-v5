@@ -1,8 +1,4 @@
-import * as path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
-import * as dotenv from 'dotenv';
-
-dotenv.config({ path: path.resolve(__dirname, '.env.e2e') });
 
 /**
  * Playwright E2E 테스트 설정 (Vercel Production 전용)
@@ -28,8 +24,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* 병렬 테스트 worker 수 - CI에서도 병렬 실행 활성화 */
+  workers: process.env.CI ? 4 : 6,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */

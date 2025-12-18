@@ -54,20 +54,22 @@ test.describe('🧭 게스트 대시보드 핵심 플로우', () => {
       }
     } else {
       console.log('ℹ️ 환경 설정에 따라 시스템 시작 단계는 건너뜁니다.');
+      // 시스템이 이미 실행 중인 환경(프로덕션)에서는 직접 대시보드로 이동
+      await page.goto('/dashboard');
     }
 
     await page.waitForURL(/\/(dashboard|main)/, {
       timeout: 45000, // 30초 → 45초 증가
     });
+    // Dashboard container: look for dashboard-specific content (Resource Overview heading or DEMO MODE text)
     await expect(
-      page.locator(
-        '[data-testid="dashboard-container"], main:has-text("Dashboard")'
-      )
+      page.locator('h3:has-text("Resource Overview")').first()
     ).toBeVisible({
       timeout: TIMEOUTS.DASHBOARD_LOAD,
     });
 
-    const cardCount = await page.locator('[data-testid="server-card"]').count();
+    // Server cards don't have data-testid; use h3 headings with server names (APP-xx pattern)
+    const cardCount = await page.locator('h3:has-text("APP-")').count();
     console.log(`📊 대시보드 카드 수: ${cardCount}`);
     expect(cardCount).toBeGreaterThan(0);
   });

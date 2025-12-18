@@ -1,11 +1,9 @@
-import * as path from 'node:path';
 import type { Page } from '@playwright/test';
 import { test } from '@playwright/test';
-import * as dotenv from 'dotenv';
 import { getTestBaseUrl, isVercelProduction } from './config';
 import { TIMEOUTS } from './timeouts';
 
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+// Note: Environment variables loaded via globalSetup
 
 const SECURITY_CHECKPOINT_TITLE = 'Vercel Security Checkpoint';
 
@@ -71,31 +69,20 @@ export async function ensureVercelBypassCookie(page: Page): Promise<void> {
 
   const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
   if (!bypassSecret) {
-    console.warn(
-      '⚠️ [Security Helper] VERCEL_AUTOMATION_BYPASS_SECRET 미설정 - bypass 생략'
-    );
-    return;
+    return; // Skip silently - header-based bypass is primary method
   }
 
   const bypassUrl = new URL(baseUrl);
   bypassUrl.searchParams.set('vercel_bypass', bypassSecret);
 
   try {
-    console.log(
-      '🔑 [Security Helper] Vercel 보호 우회 쿠키 요청:',
-      bypassUrl.origin
-    );
     await page.goto(bypassUrl.toString(), {
       waitUntil: 'networkidle',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
-    await page.waitForTimeout(500);
-    console.log('✅ [Security Helper] Vercel bypass 쿠키 설정 완료');
-  } catch (error) {
-    console.warn(
-      '⚠️ [Security Helper] Vercel bypass 쿠키 설정 실패 (계속 진행):',
-      error
-    );
+    await page.waitForTimeout(300); // Reduced wait time
+  } catch {
+    // Silently continue - header-based bypass in config is the fallback
   }
 }
 
