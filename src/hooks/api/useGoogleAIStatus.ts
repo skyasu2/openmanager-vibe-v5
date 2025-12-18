@@ -101,7 +101,7 @@ const getDefaultGoogleAIStatus = (): GoogleAIStatus => ({
   },
   lastHealthCheck: new Date().toISOString(),
   healthCheckStatus: 'unhealthy',
-  model: 'gemini-1.5-flash',
+  model: 'gemini-2.5-flash',
   features: {
     chat: false,
     embedding: false,

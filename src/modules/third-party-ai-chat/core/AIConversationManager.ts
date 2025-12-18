@@ -67,7 +67,7 @@ export class AIConversationManager {
           }
         })(),
       baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       enabled: true,
     });
 

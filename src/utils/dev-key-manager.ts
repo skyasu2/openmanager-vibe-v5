@@ -237,7 +237,7 @@ SKIP_ENV_VALIDATION=true
 
     // 추가 설정들
     content += `# 🧠 AI 엔진 설정
-GOOGLE_AI_MODEL=gemini-1.5-flash
+GOOGLE_AI_MODEL=gemini-2.5-flash
 GOOGLE_AI_BETA_MODE=true
 GOOGLE_AI_ENABLED=true
 GOOGLE_AI_DAILY_LIMIT=10000

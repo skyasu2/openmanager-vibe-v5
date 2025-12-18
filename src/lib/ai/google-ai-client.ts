@@ -28,10 +28,10 @@ export function getGoogleAIClient(apiKey: string): GoogleGenerativeAI {
 /**
  * 모델 가져오기 헬퍼 (주/보조 키 폴백 로직 포함)
  *
- * @param modelName 모델 이름 (기본값: gemini-1.5-flash)
+ * @param modelName 모델 이름 (기본값: gemini-2.5-flash)
  * @returns 생성 모델 인스턴스
  */
-export function getGoogleAIModel(modelName: string = 'gemini-1.5-flash') {
+export function getGoogleAIModel(modelName: string = 'gemini-2.5-flash') {
   const primaryKey = getGoogleAIKey();
   const secondaryKey = getGoogleAISecondaryKey();
 

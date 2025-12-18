@@ -24,8 +24,8 @@ export const AIEngineTypeSchema = z.enum([
 ]);
 
 export const AIModelSchema = z.enum([
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
+  'gemini-2.5-flash',
+  'gemini-2.5-pro',
   'gemini-pro', // 레거시 호환성을 위해 유지
   'gemini-pro-vision',
   'gpt-4',

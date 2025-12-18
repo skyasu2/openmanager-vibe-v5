@@ -235,7 +235,7 @@ export const GoogleAIGenerateRequestSchema = z.object({
   prompt: z.string().min(1).max(10000),
   temperature: z.number().min(0).max(2).default(0.7),
   maxTokens: z.number().positive().max(10000).default(1000),
-  model: z.string().default('gemini-1.5-flash'),
+  model: z.string().default('gemini-2.5-flash'),
 });
 
 export const GoogleAIUsageMetadataSchema = z.object({

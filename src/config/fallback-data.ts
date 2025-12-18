@@ -110,7 +110,7 @@ export const INFRASTRUCTURE_CONFIG = {
   api: {
     googleAI: {
       key: process.env.GOOGLE_AI_API_KEY || '',
-      model: process.env.GOOGLE_AI_MODEL || 'gemini-1.5-flash',
+      model: process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash',
     },
     // slack 설정 제거됨
   },
@@ -127,7 +127,7 @@ export const INFRASTRUCTURE_CONFIG = {
   },
   google: {
     apiKey: process.env.GOOGLE_AI_API_KEY || '',
-    model: process.env.GOOGLE_AI_MODEL || 'gemini-1.5-flash',
+    model: process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash',
     betaMode: process.env.GOOGLE_AI_BETA_MODE === 'true',
   },
   app: {
@@ -272,7 +272,7 @@ export function isTestMode(): boolean {
  */
 export const DEVELOPMENT_FALLBACKS = {
   // 개발환경에서만 사용되는 안전한 기본값들
-  GOOGLE_AI_MODEL: 'gemini-1.5-flash',
+  GOOGLE_AI_MODEL: 'gemini-2.5-flash',
   GOOGLE_AI_BETA_MODE: 'true',
   NEXTAUTH_URL: 'http://localhost:3000',
   NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
