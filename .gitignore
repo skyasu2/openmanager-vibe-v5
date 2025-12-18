@@ -505,3 +505,8 @@ vitest_*.log
 /scripts/find-oldest-files.js
 /scripts/maintenance/cleanup-manager.js
 install_log.txt
+
+# Cloud Run data (use Supabase instead)
+cloud-run/*/data/
+cloud-run/*/build*.log
+cloud-run/*/*.log
