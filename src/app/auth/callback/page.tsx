@@ -107,9 +107,23 @@ export default function AuthCallbackPage() {
 
         debug.log('🔑 Supabase 자동 PKCE 처리 대기 중...');
 
+        // 🚀 세션 스토리지에서 최종 리다이렉트 목적지 읽기
+        // (useSupabaseSession.signIn()에서 저장한 값)
+        let finalRedirectTo = '/main'; // 기본값
+        try {
+          const storedRedirect = sessionStorage.getItem('auth_redirect_to');
+          if (storedRedirect) {
+            finalRedirectTo = storedRedirect;
+            sessionStorage.removeItem('auth_redirect_to'); // 사용 후 정리
+            debug.log('📍 저장된 리다이렉트 목적지:', finalRedirectTo);
+          }
+        } catch (err) {
+          debug.warn('sessionStorage 접근 오류 (무시됨):', err);
+        }
+
         // 쿠키 설정 (리다이렉트 준비)
         document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
-        document.cookie = `auth_redirect_to=/main; path=/; max-age=60; SameSite=Lax`;
+        document.cookie = `auth_redirect_to=${encodeURIComponent(finalRedirectTo)}; path=/; max-age=60; SameSite=Lax`;
 
         // Supabase가 URL에서 코드를 감지하고 처리할 시간 최적화 (사용자 경험 개선)
         const isVercel = window.location.origin.includes('vercel.app');
@@ -216,8 +230,8 @@ export default function AuthCallbackPage() {
           // auth_verified 쿠키 설정 (Vercel HTTPS 환경 대응)
           document.cookie = `auth_verified=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax${secureFlag}`;
 
-          // 바로 메인으로 이동
-          debug.log('🚀 메인 페이지로 이동!');
+          // 최종 목적지로 이동
+          debug.log('🚀 최종 목적지로 이동:', finalRedirectTo);
 
           // 세션 완전 설정 대기 최적화 (빠른 응답성)
           const sessionWait = isVercel ? 800 : 500; // 대기시간 60% 단축
@@ -242,11 +256,11 @@ export default function AuthCallbackPage() {
 
           // 검증 통과 후 리다이렉트
           if (hasAuthToken && sessionValid) {
-            window.location.href = '/main';
+            window.location.href = finalRedirectTo;
           } else {
             debug.log('⚠️ 세션 검증 실패 - 추가 대기 후 리다이렉트');
             await new Promise((resolve) => setTimeout(resolve, 1000));
-            window.location.href = '/main'; // 실패해도 진행 (클라이언트에서 재처리)
+            window.location.href = finalRedirectTo; // 실패해도 진행 (클라이언트에서 재처리)
           }
         } else {
           // 세션이 없는 경우
@@ -291,7 +305,7 @@ export default function AuthCallbackPage() {
 
               // 세션 유효성 재확인 후 리다이렉트
               await new Promise((resolve) => setTimeout(resolve, 500));
-              window.location.href = '/main';
+              window.location.href = finalRedirectTo;
             } else {
               debug.log('❌ 최종 세션 생성 실패 - 로그인 페이지로 이동');
 
@@ -307,7 +321,32 @@ export default function AuthCallbackPage() {
         }
       } catch (error) {
         debug.error('❌ OAuth 콜백 처리 오류:', error);
-        router.push('/login?error=callback_failed');
+        
+        // 에러 타입별 사용자 친화적 메시지 생성
+        let errorMessage = '인증 처리 중 예상치 못한 오류가 발생했습니다.';
+        let errorCode = 'callback_failed';
+        
+        if (error instanceof TypeError) {
+          if (String(error).includes('fetch')) {
+            errorMessage = '네트워크 요청 중 오류가 발생했습니다. 다시 시도해주세요.';
+            errorCode = 'network_error';
+          } else if (String(error).includes('null') || String(error).includes('undefined')) {
+            errorMessage = '세션 데이터 처리 중 오류가 발생했습니다.';
+            errorCode = 'data_error';
+          }
+        } else if (error instanceof Error) {
+          if (error.message.includes('invalid_grant')) {
+            errorMessage = '인증 코드가 만료되었습니다. 다시 로그인해주세요.';
+            errorCode = 'invalid_grant';
+          } else if (error.message.includes('network')) {
+            errorMessage = '네트워크 오류가 발생했습니다. 연결을 확인해주세요.';
+            errorCode = 'network_error';
+          }
+        }
+        
+        router.push(
+          `/login?error=${errorCode}&message=${encodeURIComponent(errorMessage)}`
+        );
       }
     };
 
