@@ -125,7 +125,24 @@ cat logs/gemini-model-test-results.json
 
 ---
 
-> **Note**: 이 정보는 Google의 정책 변경에 따라 예고 없이 변동될 수 있습니다.
+## ⚡ Groq Cloud (Llama 3) 모델 현황
+
+Groq LPU 기반의 초고속 추론 엔진으로, AI Engine의 **Supervisor(관리자)** 및 **Reporter** 역할을 담당합니다.
+
+| 모델 | 용도 | 상태 | Free Tier 한도 (Est.) |
+|---|---|---|---|
+| **`llama-3.3-70b-versatile`** | Reporter (RAG/심층분석) | ✅ **Active** | ~6,000 TPM / 30 RPM |
+| **`llama-3.1-8b-instant`** | Supervisor (라우팅) | ✅ **Active** | ~30,000 TPM / 30 RPM |
+| `mixtral-8x7b-32768` | Legacy | ⚠️ **Backup** | - |
+
+### ⚠️ Groq 주의사항
+1. **Tier 제한**: Free Tier는 분당 토큰(TPM) 제한이 타이트하므로, 긴 컨텍스트(RAG) 사용 시 주의가 필요합니다.
+2. **Rate Limit**: `429 Too Many Requests` 발생 시 지수 백오프(Exponential Backoff)로 재시도합니다.
+3. **Supervisor 역할**: `8b-instant` 모델은 매우 빠르므로, 사용자 의도 파악 및 에이전트 라우팅에 최적화되어 있습니다.
+
+---
+
+> **Note**: 이 정보는 Google/Groq의 정책 변경에 따라 예고 없이 변동될 수 있습니다.
 > Free Tier 정책은 매우 유동적이므로 주기적인 확인이 필요합니다.
 
 _Last Updated: 2025-12-18_
