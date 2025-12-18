@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.4](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.3...v5.83.4) (2025-12-18)
+
+
+### Features
+
+* **rag:** add BM25 text search for hybrid Vector + Text + Graph RAG ([7f44d34](https://github.com/skyasu2/openmanager-vibe-v5/commit/7f44d34bc88048a5a54d4442f1d70179d0e1cf92))
+
+
+### Bug Fixes
+
+* **auth:** consume sessionStorage redirect target in OAuth callback ([67a7681](https://github.com/skyasu2/openmanager-vibe-v5/commit/67a7681c245e833f2dd26d982bb142e3d599347b))
+* **auth:** enhance PKCE error handling and add RAG table compatibility ([b93482f](https://github.com/skyasu2/openmanager-vibe-v5/commit/b93482f18235686fe30b7f4d9ac94205c38a16ff))
+* **auth:** resolve OAuth fetch error and guest login cookie issues ([b4e1286](https://github.com/skyasu2/openmanager-vibe-v5/commit/b4e1286da8d6b1c9c3af48f7c13b9d11814a5a01))
+* **dashboard:** add SVG mini charts to compact mode server cards ([29281ab](https://github.com/skyasu2/openmanager-vibe-v5/commit/29281ab74bf7229684409a9c64dc838572276d25))
+* **migration:** sync BM25 text search with deployed DB fixes ([a9e19d1](https://github.com/skyasu2/openmanager-vibe-v5/commit/a9e19d1b31ac3795ca70c8a8d8dabb94e8541085))
+* **migration:** sync BM25 text search with deployed DB fixes ([d2c5888](https://github.com/skyasu2/openmanager-vibe-v5/commit/d2c5888648be4830c90d8f1f82a297bd8e66b90b))
+* resolve code review issues from AI review ([6f917d5](https://github.com/skyasu2/openmanager-vibe-v5/commit/6f917d5c561ff216f0a57439261cef58a25ff4a0))
+
 ### [5.83.3](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.2...v5.83.3) (2025-12-17)
 
 
