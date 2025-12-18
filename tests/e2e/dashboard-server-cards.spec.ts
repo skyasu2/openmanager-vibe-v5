@@ -13,8 +13,7 @@ import { guestLogin } from './helpers/guest';
 import { TIMEOUTS } from './helpers/timeouts';
 
 // Server cards don't have data-testid; they are clickable cards with server name headings (APP-01, etc.)
-const SERVER_CARD_SELECTOR =
-  '[class*="cursor-pointer"]:has(h3), .group:has(h3[class*="font"]), article:has(h3)';
+// Selector reference: '[class*="cursor-pointer"]:has(h3), .group:has(h3[class*="font"]), article:has(h3)'
 
 test.describe('대시보드 서버 카드 테스트', () => {
   test.beforeEach(async ({ page }) => {
@@ -55,8 +54,7 @@ test.describe('대시보드 서버 카드 테스트', () => {
 
   test('서버 카드 메트릭 표시 확인', async ({ page }) => {
     // 첫 번째 서버 카드의 부모 컨테이너에서 메트릭 확인
-    const firstCardHeading = page.locator('h3:has-text("APP-")').first();
-    const firstCard = firstCardHeading.locator('..').locator('..');
+    await expect(page.locator('h3:has-text("APP-")').first()).toBeVisible();
 
     // CPU, Memory, Disk 메트릭이 페이지 어딘가에 표시되는지 확인
     await expect(page.getByText(/CPU|cpu/i).first()).toBeVisible();
