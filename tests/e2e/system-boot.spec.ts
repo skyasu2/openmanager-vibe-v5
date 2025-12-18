@@ -39,7 +39,9 @@ test.describe('시스템 부트 테스트', () => {
 
       // 부팅 완료 대기 (최대 30초)
       const redirected = await page
-        .waitForURL(/\/(main|login|dashboard)/, { timeout: TIMEOUTS.NETWORK_REQUEST })
+        .waitForURL(/\/(main|login|dashboard)/, {
+          timeout: TIMEOUTS.NETWORK_REQUEST,
+        })
         .then(() => true)
         .catch(() => false);
 

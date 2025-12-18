@@ -28,11 +28,16 @@ test.describe('대시보드 서버 카드 테스트', () => {
         'button:has-text("🚀 시스템 시작"), button:has-text("시스템 시작")'
       )
       .first();
-    await startButton.waitFor({ state: 'visible', timeout: TIMEOUTS.MODAL_DISPLAY });
+    await startButton.waitFor({
+      state: 'visible',
+      timeout: TIMEOUTS.MODAL_DISPLAY,
+    });
     await startButton.click();
 
     // 대시보드로 이동 대기 (시스템 부트 포함)
-    await page.waitForURL('**/dashboard', { timeout: TIMEOUTS.NETWORK_REQUEST });
+    await page.waitForURL('**/dashboard', {
+      timeout: TIMEOUTS.NETWORK_REQUEST,
+    });
     await page.waitForLoadState('networkidle');
 
     // Fix: UI 안정화 대기 - 서버 카드(h3 heading 포함하는 클릭 가능 요소)가 로드될 때까지 명시적 대기

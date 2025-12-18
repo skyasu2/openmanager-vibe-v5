@@ -61,8 +61,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const getBackgroundClass = () => {
     if (userType === 'github')
       return 'bg-linear-to-r from-purple-500 to-pink-500';
-    if (userType === 'guest')
-      return 'bg-linear-to-r from-blue-500 to-cyan-500';
+    if (userType === 'guest') return 'bg-linear-to-r from-blue-500 to-cyan-500';
     return 'bg-gray-500';
   };
 

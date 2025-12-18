@@ -124,7 +124,7 @@ describe.skip('AI Metrics Integration Tests', () => {
         cacheHit: false,
         timestamp: Date.now(),
         metadata: {
-          model: 'gemini-2.5-flash-lite',
+          model: 'gemini-2.5-flash',
           tokensUsed: 50,
           koreanNLPUsed: false,
         },
@@ -175,7 +175,7 @@ describe.skip('AI Metrics Integration Tests', () => {
         cacheHit: false,
         timestamp: Date.now(),
         metadata: {
-          model: 'gemini-1.5-pro',
+          model: 'gemini-2.5-pro',
           tokensUsed: 500,
           koreanNLPUsed: true,
         },

@@ -32,22 +32,25 @@ export const GOOGLE_AI_MODEL_LIMITS = {
 } as const;
 
 export const GOOGLE_AI_FREE_TIER_LIMITS = {
-  // 🚨 현재 기본 모델 (gemini-2.5-flash) 기준 - 2025-12 테스트 반영
-  DAILY_REQUESTS: 20, // 🚨 대폭 축소됨 (이전 1500 → 20)
+  // 🚨 [App vs CLI]
+  // 이 설정은 'AI Assistant 웹 애플리케이션'을 위한 것입니다.
+  // WSL Gemini CLI(Free Tier)는 20회/일 제한이 있지만,
+  // 앱은 별도의 API 키(유료/Enterprise/Beta 등)를 사용하므로 넉넉한 한도를 적용합니다.
+  DAILY_REQUESTS: 1500, // 앱 기준 넉넉한 한도 유지
 
   // ⚡ 분당 요청 한도
-  REQUESTS_PER_MINUTE: 5, // 축소됨 (이전 15 → 5)
+  REQUESTS_PER_MINUTE: 60, // 앱 기준 상향 조정
 
   // 🕐 리셋 시간 (태평양 표준시 자정)
   RESET_TIMEZONE: 'America/Los_Angeles',
   RESET_HOUR: 0,
 
-  // ⚠️ 경고 임계값 (20회 기준)
-  WARNING_THRESHOLD: 15, // 75% 사용 시점
-  CRITICAL_THRESHOLD: 18, // 90% 사용 시점
+  // ⚠️ 경고 임계값 (1500회 기준)
+  WARNING_THRESHOLD: 1200, // 80%
+  CRITICAL_THRESHOLD: 1400, // 93%
 
   // 📊 토큰 한도
-  CONTEXT_TOKENS: 250_000, // 축소됨 (이전 1M → 250K)
+  CONTEXT_TOKENS: 1_000_000,
 
   // 🔄 HTTP 429 에러 처리
   RATE_LIMIT_RETRY_DELAY: 60_000, // 1분
@@ -88,6 +91,8 @@ export interface GoogleAIUsageTracker {
 
 /**
  * 🚨 사용량 상태 체크 함수
+ * 
+ * 개발 환경(Free Tier)과 배포 환경(Paid/Enterprise)의 로직을 분리하여 처리합니다.
  */
 export function checkUsageStatus(tracker: GoogleAIUsageTracker): {
   canMakeRequest: boolean;
@@ -95,6 +100,21 @@ export function checkUsageStatus(tracker: GoogleAIUsageTracker): {
   remainingRequests: number;
   warningMessage?: string;
 } {
+  // 🚀 [Production 환경]
+  // 배포 환경에서는 별도의 API 키(유료/Enterprise)를 사용하므로 
+  // 개발용 Free Tier 제한(20회/일)을 적용하지 않습니다.
+  // 단, GOOGLE_AI_FORCE_FREE_LIMITS=true 설정 시 강제로 제한을 적용할 수 있습니다.
+  if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_AI_FORCE_FREE_LIMITS !== 'true') {
+    return {
+      canMakeRequest: true,
+      status: 'ok',
+      remainingRequests: 999999, // 사실상 무제한 (Quota는 Google Cloud Console에서 관리)
+    };
+  }
+
+  // 🧪 [Development/Test 환경]
+  // Free Tier (Gemini 2.5 Flash, 20회/일) 제한을 엄격하게 적용하여 
+  // 개발 중 Quota 초과로 인한 차단을 방지합니다.
   const { dailyCount, isDisabled } = tracker;
   const { DAILY_REQUESTS, WARNING_THRESHOLD, CRITICAL_THRESHOLD } =
     GOOGLE_AI_FREE_TIER_LIMITS;
@@ -115,7 +135,7 @@ export function checkUsageStatus(tracker: GoogleAIUsageTracker): {
       canMakeRequest: false,
       status: 'limit_exceeded',
       remainingRequests: 0,
-      warningMessage: `일일 한도 ${DAILY_REQUESTS}회 초과`,
+      warningMessage: `[DEV] 일일 무료 한도 ${DAILY_REQUESTS}회 초과`,
     };
   }
 
@@ -124,7 +144,7 @@ export function checkUsageStatus(tracker: GoogleAIUsageTracker): {
       canMakeRequest: true,
       status: 'critical',
       remainingRequests: remaining,
-      warningMessage: `일일 한도 거의 도달 (${dailyCount}/${DAILY_REQUESTS}회 사용)`,
+      warningMessage: `[DEV] 일일 한도 임박 (${dailyCount}/${DAILY_REQUESTS}회)`,
     };
   }
 
@@ -133,7 +153,7 @@ export function checkUsageStatus(tracker: GoogleAIUsageTracker): {
       canMakeRequest: true,
       status: 'warning',
       remainingRequests: remaining,
-      warningMessage: `사용량 주의 (${dailyCount}/${DAILY_REQUESTS}회 사용)`,
+      warningMessage: `[DEV] 사용량 주의 (${dailyCount}/${DAILY_REQUESTS}회)`,
     };
   }
 

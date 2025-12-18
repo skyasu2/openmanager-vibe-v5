@@ -137,7 +137,7 @@ export function getGeminiKeyStatus(): {
 
 export type GeminiModel =
   | 'gemini-2.5-flash'
-  | 'gemini-2.5-flash-lite'
+  // Note: gemini-2.5-flash-lite doesn't exist (2025-12)
   | 'gemini-2.5-pro';
 export type GroqModel = 'llama-3.1-8b-instant' | 'llama-3.3-70b-versatile';
 
@@ -345,7 +345,7 @@ export function logAPIKeyStatus(): void {
 
 export const MODEL_FALLBACK_CHAIN: Record<string, string[]> = {
   'gemini-2.5-flash': ['gemini-2.5-pro', 'llama-3.3-70b-versatile'],
-  'gemini-2.5-flash-lite': ['gemini-2.5-flash', 'llama-3.3-70b-versatile'],
+  // 'gemini-2.5-flash-lite': removed (doesn't exist 2025-12)
   'gemini-2.5-pro': ['gemini-2.5-flash', 'llama-3.3-70b-versatile'],
   'llama-3.1-8b-instant': ['llama-3.3-70b-versatile', 'gemini-2.5-flash'],
   'llama-3.3-70b-versatile': ['gemini-2.5-pro', 'gemini-2.5-flash'],

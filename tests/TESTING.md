@@ -44,7 +44,7 @@ npm run validate:all
 
 - **단일 통합 파이프라인**: Supabase RAG + Google Cloud Functions + Google AI SDK
 - **Cloud Functions 우선**: Korean NLP, ML Analytics, Unified Processor를 기본 단계로 실행
-- **직접 Google AI 호출**: Prompt SDK를 통한 저지연 응답, 모델은 `gemini-2.5-flash-lite` 고정
+- **직접 Google AI 호출**: Prompt SDK를 통한 저지연 응답, 모델은 `gemini-2.5-flash` 고정
 - **MCP는 선택적 컨텍스트**: 필요 시 개발자가 명시적으로 켜는 보조 옵션
 - **캐싱 + 폴백 최소화**: 500ms 이내 응답 목표, 타임아웃 시 사용자 안내 반환
 
