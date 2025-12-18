@@ -237,8 +237,9 @@ export async function signIn(
       }
 
       // Supabase OAuth는 자체 콜백 URL을 사용
-      // redirectTo는 인증 성공 후 리다이렉트될 애플리케이션 URL
-      const redirectTo = `${baseUrl}/auth/success`;
+      // redirectTo는 PKCE 코드 교환 후 리다이렉트될 애플리케이션 URL
+      // /auth/callback이 PKCE 처리를 담당하므로 이 경로로 통일
+      const redirectTo = `${baseUrl}/auth/callback`;
 
       console.log('🔐 GitHub OAuth 시작:', {
         baseUrl,
@@ -253,11 +254,8 @@ export async function signIn(
         provider: 'github',
         options: {
           redirectTo,
-          // PKCE 플로우 사용 (보안 강화)
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
+          scopes: 'read:user user:email',
+          // skipBrowserRedirect: false (기본값) - 브라우저 자동 리다이렉트
         },
       });
 

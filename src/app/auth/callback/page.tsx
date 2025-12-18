@@ -58,6 +58,13 @@ export default function AuthCallbackPage() {
         const state = urlParams.get('state');
         const error_param = urlParams.get('error');
 
+        // 🚨 OAuth 코드 없이 콜백 페이지에 접근한 경우 - 로그인 페이지로 리다이렉트
+        if (!authCode && !error_param) {
+          debug.log('⚠️ OAuth 코드 없음 - 로그인 페이지로 이동');
+          router.push('/login');
+          return;
+        }
+
         // ✅ 보안 개선: 민감정보 로깅 제거, 필요한 상태만 기록
         debug.log('🔍 OAuth 콜백 처리 시작:', {
           hasAuthCode: !!authCode,
@@ -114,11 +121,32 @@ export default function AuthCallbackPage() {
         let sessionError = null;
         let attempts = 0;
         const maxAttempts = isVercel ? 10 : 8; // 재시도 횟수 증가 (6→10, 4→8)
+        let fetchError = false; // fetch 에러 발생 여부 추적
 
         do {
-          const result = await getSupabase().auth.getSession();
-          session = result.data.session;
-          sessionError = result.error;
+          try {
+            const result = await getSupabase().auth.getSession();
+            session = result.data.session;
+            sessionError = result.error;
+          } catch (err) {
+            // 🚨 fetch 에러 처리 (PKCE 코드 교환 실패)
+            // "TypeError: Failed to execute 'fetch' on 'Window': Invalid value"
+            if (err instanceof TypeError && String(err).includes('fetch')) {
+              debug.error('❌ PKCE 코드 교환 실패 (fetch 에러):', err);
+              fetchError = true;
+
+              // OAuth 관련 localStorage 정리
+              const keysToRemove = Object.keys(localStorage).filter(
+                (key) => key.startsWith('sb-') || key.includes('supabase')
+              );
+              for (const key of keysToRemove) {
+                localStorage.removeItem(key);
+              }
+
+              break; // 루프 종료
+            }
+            throw err; // 다른 에러는 상위로 전파
+          }
 
           if (!session && attempts < maxAttempts - 1) {
             // 지수 백오프 알고리즘 최적화 (200ms → 360ms → 648ms → 1166ms → 2000ms)
@@ -136,7 +164,24 @@ export default function AuthCallbackPage() {
             await new Promise((resolve) => setTimeout(resolve, retryDelay));
           }
           attempts++;
-        } while (!session && !sessionError && attempts < maxAttempts);
+        } while (
+          !session &&
+          !sessionError &&
+          !fetchError &&
+          attempts < maxAttempts
+        );
+
+        // 🚨 fetch 에러 발생 시 사용자 친화적인 안내
+        if (fetchError) {
+          debug.log('⚠️ OAuth 인증 코드 처리 실패 - 게스트 로그인 안내');
+          router.push(
+            '/login?error=pkce_failed&message=' +
+              encodeURIComponent(
+                '인증 코드 처리에 실패했습니다. GitHub 로그인을 다시 시도하거나 게스트 모드를 이용해주세요.'
+              )
+          );
+          return;
+        }
 
         debug.log('📊 세션 상태:', {
           hasSession: !!session,

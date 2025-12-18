@@ -188,6 +188,20 @@ export default function LoginClient() {
       );
     } else if (error === 'auth_callback_failed') {
       setErrorMessage('인증 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } else if (error === 'pkce_failed') {
+      // 🚨 PKCE 코드 교환 실패 - 게스트 로그인 권장
+      setErrorMessage(
+        '인증 코드 처리에 실패했습니다. GitHub 로그인을 다시 시도하거나 게스트 모드를 이용해주세요.'
+      );
+      // OAuth 상태 정리
+      const keysToRemove = Object.keys(localStorage).filter(
+        (key) => key.startsWith('sb-') || key.includes('supabase')
+      );
+      for (const key of keysToRemove) {
+        localStorage.removeItem(key);
+      }
+    } else if (error === 'session_timeout') {
+      setErrorMessage('세션 생성에 실패했습니다. 다시 로그인해주세요.');
     } else if (warning === 'no_session') {
       setSuccessMessage(
         '인증이 완료되었지만 세션이 생성되지 않았습니다. 게스트 모드를 이용해주세요.'

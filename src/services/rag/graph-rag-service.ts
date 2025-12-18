@@ -480,9 +480,15 @@ class GraphRAGService {
     if (!this.supabase) return [];
 
     // Get the source node's embedding
+    // NOTE: knowledge_base has 'category' column, command_vectors has 'metadata' column
+    const selectFields =
+      nodeTable === 'knowledge_base'
+        ? 'embedding, content, category'
+        : 'embedding, content, metadata';
+
     const { data: sourceNode } = await this.supabase
       .from(nodeTable)
-      .select('embedding, content, metadata')
+      .select(selectFields)
       .eq('id', nodeId)
       .single();
 
@@ -507,11 +513,17 @@ class GraphRAGService {
       if (similar.id === nodeId) continue;
 
       // Infer relationship type from metadata/content
+      // knowledge_base uses 'category' column, command_vectors uses 'metadata' object
+      const sourceMetadata =
+        nodeTable === 'knowledge_base'
+          ? { category: (sourceNode as { category?: string }).category }
+          : (sourceNode as { metadata?: Record<string, unknown> }).metadata;
+
       const relationshipType = this.inferRelationshipType(
         sourceNode.content,
         similar.content,
-        sourceNode.metadata,
-        similar.metadata
+        sourceMetadata,
+        similar.metadata // search_similar_vectors returns from command_vectors with metadata
       );
 
       suggestions.push({

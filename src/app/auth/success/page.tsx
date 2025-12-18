@@ -79,12 +79,45 @@ export default function AuthSuccessPage() {
         });
 
         // 즉시 세션 확인과 이벤트 기반 감지를 병렬로
-        const [immediateSession, eventSession] = await Promise.all([
-          getSupabase()
-            .auth.getSession()
-            .then(({ data }) => !!data.session?.user),
-          sessionPromise,
-        ]);
+        let immediateSession = false;
+        let eventSession = false;
+
+        try {
+          [immediateSession, eventSession] = await Promise.all([
+            getSupabase()
+              .auth.getSession()
+              .then(({ data }) => !!data.session?.user)
+              .catch((err) => {
+                // fetch 에러 처리 (PKCE 코드 교환 실패)
+                if (err instanceof TypeError && String(err).includes('fetch')) {
+                  debug.error('❌ PKCE 코드 교환 실패 (fetch 에러):', err);
+                  return false;
+                }
+                throw err;
+              }),
+            sessionPromise,
+          ]);
+        } catch (err) {
+          debug.error('❌ 세션 확인 중 에러:', err);
+          // 에러 발생 시 로그인 페이지로 리다이렉트
+          if (err instanceof TypeError && String(err).includes('fetch')) {
+            // OAuth 상태 정리
+            const keysToRemove = Object.keys(localStorage).filter(
+              (key) => key.startsWith('sb-') || key.includes('supabase')
+            );
+            for (const key of keysToRemove) {
+              localStorage.removeItem(key);
+            }
+
+            router.push(
+              '/login?error=pkce_failed&message=' +
+                encodeURIComponent(
+                  '인증 코드 처리에 실패했습니다. GitHub 로그인을 다시 시도해주세요.'
+                )
+            );
+            return;
+          }
+        }
 
         measureTime('초기 세션 확인', sessionCheckStart);
 
