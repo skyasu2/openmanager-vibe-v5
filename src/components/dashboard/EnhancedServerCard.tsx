@@ -363,21 +363,73 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       const valueColor = getValueColor(currentValue);
       const isCompact = variantStyles.useCompactLabels;
 
-      // Compact 모드: 가로 배치, 아이콘+수치만
+      // Compact 모드: 가로 배치 + 미니 차트
       if (isCompact) {
         return (
           <motion.div
-            className="flex items-center justify-between bg-white/90 rounded-lg px-2 py-1.5 group hover:bg-white/95 transition-all duration-200 shadow-sm border border-white/20"
+            className="flex items-center gap-2 bg-white/90 rounded-lg px-2 py-1.5 group hover:bg-white/95 transition-all duration-200 shadow-sm border border-white/20"
             whileHover={{ scale: 1.02 }}
           >
-            <div className="flex items-center gap-1.5">
+            {/* 아이콘 + 라벨 */}
+            <div className="flex items-center gap-1 shrink-0">
               <div className="text-gray-600 p-0.5">{icon}</div>
               <span className="text-[10px] font-medium text-gray-600 whitespace-nowrap">
                 {label}
               </span>
             </div>
+
+            {/* 미니 인라인 차트 */}
+            <div className="flex-1 h-6 min-w-[50px] max-w-[80px]">
+              <svg
+                className="w-full h-full"
+                viewBox="0 0 80 24"
+                preserveAspectRatio="none"
+              >
+                <defs>
+                  <linearGradient
+                    id={`compact-${gradientId}`}
+                    x1="0%"
+                    y1="0%"
+                    x2="0%"
+                    y2="100%"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor={valueColor}
+                      stopOpacity="0.6"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={valueColor}
+                      stopOpacity="0.1"
+                    />
+                  </linearGradient>
+                </defs>
+                {/* 영역 채우기 */}
+                <polygon
+                  fill={`url(#compact-${gradientId})`}
+                  points={`0,24 ${data.map((v, i) => `${(i / (data.length - 1)) * 80},${24 - (v / 100) * 24}`).join(' ')} 80,24`}
+                />
+                {/* 라인 */}
+                <polyline
+                  fill="none"
+                  stroke={valueColor}
+                  strokeWidth="1.5"
+                  points={data
+                    .map(
+                      (v, i) =>
+                        `${(i / (data.length - 1)) * 80},${24 - (v / 100) * 24}`
+                    )
+                    .join(' ')}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+
+            {/* 수치 */}
             <motion.span
-              className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+              className={`text-xs font-bold px-1.5 py-0.5 rounded shrink-0 ${
                 currentValue > 80
                   ? 'bg-red-100/80 text-red-700'
                   : currentValue > 70
