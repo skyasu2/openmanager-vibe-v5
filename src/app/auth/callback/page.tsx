@@ -321,16 +321,20 @@ export default function AuthCallbackPage() {
         }
       } catch (error) {
         debug.error('❌ OAuth 콜백 처리 오류:', error);
-        
+
         // 에러 타입별 사용자 친화적 메시지 생성
         let errorMessage = '인증 처리 중 예상치 못한 오류가 발생했습니다.';
         let errorCode = 'callback_failed';
-        
+
         if (error instanceof TypeError) {
           if (String(error).includes('fetch')) {
-            errorMessage = '네트워크 요청 중 오류가 발생했습니다. 다시 시도해주세요.';
+            errorMessage =
+              '네트워크 요청 중 오류가 발생했습니다. 다시 시도해주세요.';
             errorCode = 'network_error';
-          } else if (String(error).includes('null') || String(error).includes('undefined')) {
+          } else if (
+            String(error).includes('null') ||
+            String(error).includes('undefined')
+          ) {
             errorMessage = '세션 데이터 처리 중 오류가 발생했습니다.';
             errorCode = 'data_error';
           }
@@ -343,7 +347,7 @@ export default function AuthCallbackPage() {
             errorCode = 'network_error';
           }
         }
-        
+
         router.push(
           `/login?error=${errorCode}&message=${encodeURIComponent(errorMessage)}`
         );
