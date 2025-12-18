@@ -119,9 +119,9 @@ export async function enableVercelTestMode(
 
     if (!response.ok()) {
       const errorText = await response.text();
-      let errorMessage;
+      let errorMessage: string;
       try {
-        const errorJson = JSON.parse(errorText);
+        const errorJson = JSON.parse(errorText) as { message?: string };
         errorMessage = errorJson.message || response.statusText();
       } catch {
         errorMessage = errorText || response.statusText();

@@ -23,11 +23,16 @@ test.describe('대시보드 AI 사이드바 테스트', () => {
         'button:has-text("🚀 시스템 시작"), button:has-text("시스템 시작")'
       )
       .first();
-    await startButton.waitFor({ state: 'visible', timeout: 10000 });
+    await startButton.waitFor({
+      state: 'visible',
+      timeout: TIMEOUTS.MODAL_DISPLAY,
+    });
     await startButton.click();
 
-    // 대시보드로 이동 대기 (시스템 부트 포함 최대 30초)
-    await page.waitForURL('**/dashboard', { timeout: 30000 });
+    // 대시보드로 이동 대기 (시스템 부트 포함)
+    await page.waitForURL('**/dashboard', {
+      timeout: TIMEOUTS.NETWORK_REQUEST,
+    });
     await page.waitForLoadState('networkidle');
 
     // AI 버튼이 렌더링될 때까지 명시적으로 기다림

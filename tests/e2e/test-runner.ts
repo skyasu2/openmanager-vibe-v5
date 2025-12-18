@@ -20,7 +20,7 @@ export interface TestConfig {
   workers: number;
   timeout: number;
   retries: number;
-  reportFormat: 'html' | 'json' | 'junit' | 'github';
+  reportFormat: 'html' | 'json' | 'junit' | 'github' | 'all';
   outputDir: string;
 }
 
@@ -32,6 +32,44 @@ export interface TestResult {
   duration: number;
   errors: string[];
   warnings: string[];
+}
+
+/** 테스트 카테고리 정의 */
+export interface TestCategory {
+  name: string;
+  file: string;
+  priority: number;
+  estimatedTime: number;
+}
+
+/** Playwright JSON 리포터 Spec 구조 */
+interface PlaywrightSpec {
+  ok: boolean;
+  title?: string;
+}
+
+/** Playwright JSON 리포터 Suite 구조 */
+interface PlaywrightSuite {
+  specs?: PlaywrightSpec[];
+  title?: string;
+}
+
+/** Playwright 테스트 실행 결과 */
+interface PlaywrightTestResult {
+  passed: number;
+  failed: number;
+  skipped: number;
+  errors: string[];
+  warnings: string[];
+}
+
+/** 리포트 데이터 구조 */
+interface ReportData {
+  timestamp: string;
+  config: TestConfig;
+  summary: ReturnType<E2ETestRunner['generateSummary']>;
+  results: TestResult[];
+  recommendations: string[];
 }
 
 export class E2ETestRunner {
@@ -136,7 +174,7 @@ export class E2ETestRunner {
   /**
    * 🧪 개별 테스트 카테고리 실행
    */
-  private async runTestCategory(category: any): Promise<TestResult> {
+  private async runTestCategory(category: TestCategory): Promise<TestResult> {
     const startTime = Date.now();
     const testFile = path.join('./tests/e2e', category.file);
 
@@ -181,7 +219,9 @@ export class E2ETestRunner {
   /**
    * 🎭 Playwright 테스트 실행
    */
-  private async executePlaywrightTest(testFile: string): Promise<any> {
+  private async executePlaywrightTest(
+    testFile: string
+  ): Promise<PlaywrightTestResult> {
     return new Promise((resolve, reject) => {
       const args = [
         'test',
@@ -243,14 +283,14 @@ export class E2ETestRunner {
       setTimeout(() => {
         playwrightProcess.kill();
         reject(new Error('테스트 실행 타임아웃'));
-      }, category.estimatedTime * 2); // 예상 시간의 2배
+      }, this.config.timeout * 2); // 설정된 타임아웃의 2배
     });
   }
 
   /**
    * 📊 Playwright 출력 파싱
    */
-  private parsePlaywrightOutput(output: string): any {
+  private parsePlaywrightOutput(output: string): PlaywrightTestResult {
     try {
       // JSON 리포터 출력에서 결과 추출
       const lines = output.split('\n');
@@ -259,19 +299,22 @@ export class E2ETestRunner {
       );
 
       if (jsonLine) {
-        const result = JSON.parse(jsonLine);
+        const result = JSON.parse(jsonLine) as { suites?: PlaywrightSuite[] };
         return {
           passed:
             result.suites?.reduce(
-              (sum: number, suite: any) =>
-                sum + (suite.specs?.filter((spec: any) => spec.ok).length || 0),
+              (sum: number, suite: PlaywrightSuite) =>
+                sum +
+                (suite.specs?.filter((spec: PlaywrightSpec) => spec.ok)
+                  .length || 0),
               0
             ) || 0,
           failed:
             result.suites?.reduce(
-              (sum: number, suite: any) =>
+              (sum: number, suite: PlaywrightSuite) =>
                 sum +
-                (suite.specs?.filter((spec: any) => !spec.ok).length || 0),
+                (suite.specs?.filter((spec: PlaywrightSpec) => !spec.ok)
+                  .length || 0),
               0
             ) || 0,
           skipped: 0,
@@ -398,7 +441,7 @@ export class E2ETestRunner {
   /**
    * 🌐 HTML 리포트 생성
    */
-  private async generateHTMLReport(data: any): Promise<void> {
+  private async generateHTMLReport(data: ReportData): Promise<void> {
     const htmlContent = `
 <!DOCTYPE html>
 <html lang="ko">
@@ -498,7 +541,7 @@ export class E2ETestRunner {
   /**
    * 📋 JSON 리포트 생성
    */
-  private async generateJSONReport(data: any): Promise<void> {
+  private async generateJSONReport(data: ReportData): Promise<void> {
     const reportPath = path.join(this.config.outputDir, 'test-report.json');
     fs.writeFileSync(reportPath, JSON.stringify(data, null, 2));
     console.log(`📄 JSON 리포트: ${reportPath}`);
@@ -507,7 +550,7 @@ export class E2ETestRunner {
   /**
    * 🐙 GitHub Actions 형식 리포트
    */
-  private async generateGitHubReport(data: any): Promise<void> {
+  private async generateGitHubReport(data: ReportData): Promise<void> {
     const summary = data.summary;
     const emoji = summary.failed > 0 ? '❌' : '✅';
 

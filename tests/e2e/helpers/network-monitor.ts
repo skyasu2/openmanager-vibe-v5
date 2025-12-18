@@ -159,7 +159,6 @@ export async function monitorSSEStream(
 
       // EventSource 모니터링 (브라우저 API)
       const originalEventSource = window.EventSource;
-      // @ts-expect-error
       window.EventSource = class extends originalEventSource {
         constructor(url: string, config?: EventSourceInit) {
           super(url, config);
@@ -463,7 +462,7 @@ export async function compareSnapshots(
 
     // pixelmatch를 사용한 픽셀 비교
     const { default: pixelmatch } = await import('pixelmatch');
-    const { default: pngjs } = await import('pngjs');
+    const pngjs = await import('pngjs');
 
     const PNG = pngjs.PNG;
 

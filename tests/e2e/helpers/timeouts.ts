@@ -37,6 +37,9 @@ export const TIMEOUTS = {
   INPUT_FOCUS: 1000,
 
   // 🏃 Standard Timeouts (10-30초)
+  /** 일반 페이지 로딩 (20초) */
+  PAGE_LOAD: 20000,
+
   /** 대시보드 페이지 로딩 (40초) - Vercel Cold Start 대응 */
   DASHBOARD_LOAD: 40000,
 

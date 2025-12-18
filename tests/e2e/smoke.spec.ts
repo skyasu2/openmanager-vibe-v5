@@ -9,6 +9,7 @@ import {
   skipIfSecurityBlocked,
   skipIfSecurityCheckpoint,
 } from './helpers/security';
+import { TIMEOUTS } from './helpers/timeouts';
 
 test.describe('기본 스모크 테스트', () => {
   test('로그인 페이지가 올바르게 로드된다', async ({ page }) => {
@@ -18,7 +19,7 @@ test.describe('기본 스모크 테스트', () => {
     await skipIfSecurityCheckpoint(page);
 
     // 제목 로딩 대기 (Dev 서버에서 hydration 완료 필요)
-    await expect(page).toHaveTitle(/OpenManager/, { timeout: 30000 });
+    await expect(page).toHaveTitle(/OpenManager/, { timeout: TIMEOUTS.NETWORK_REQUEST });
 
     // 기본 UI 요소들 확인
     await expect(page.locator('h1')).toBeVisible();
