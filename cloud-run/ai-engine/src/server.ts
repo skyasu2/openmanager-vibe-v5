@@ -10,6 +10,8 @@ import { logger } from 'hono/logger';
 
 import { logAPIKeyStatus, validateAPIKeys } from './lib/model-config';
 import { approvalStore } from './services/approval/approval-store';
+import { embeddingService } from './services/embedding/embedding-service';
+import { generateService } from './services/generate/generate-service';
 import { createSupervisorStreamResponse } from './services/langgraph/multi-agent-supervisor';
 import { loadHourlyScenarioData } from './services/scenario/scenario-loader';
 
@@ -89,6 +91,110 @@ app.post('/api/ai/supervisor', async (c) => {
     console.error('API Error:', error);
     return c.json({ error: String(error) }, 500);
   }
+});
+
+// ============================================================================
+// Embedding Endpoints (Hybrid Architecture - API Key on Cloud Run only)
+// ============================================================================
+
+// POST /api/ai/embedding - Single text embedding
+app.post('/api/ai/embedding', async (c) => {
+  try {
+    const { text, options } = await c.req.json();
+
+    if (!text) {
+      return c.json({ success: false, error: 'text is required' }, 400);
+    }
+
+    const result = await embeddingService.createEmbedding(text, options || {});
+    return c.json(result);
+  } catch (error) {
+    console.error('❌ [Embedding] Error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+// POST /api/ai/embedding/batch - Batch text embeddings
+app.post('/api/ai/embedding/batch', async (c) => {
+  try {
+    const { texts, options } = await c.req.json();
+
+    if (!texts || !Array.isArray(texts)) {
+      return c.json(
+        { success: false, error: 'texts array is required' },
+        400
+      );
+    }
+
+    const result = await embeddingService.createBatchEmbeddings(
+      texts,
+      options || {}
+    );
+    return c.json(result);
+  } catch (error) {
+    console.error('❌ [Embedding Batch] Error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+// GET /api/ai/embedding/stats - Embedding service statistics
+app.get('/api/ai/embedding/stats', (c) => {
+  const stats = embeddingService.getStats();
+  return c.json({ success: true, ...stats });
+});
+
+// ============================================================================
+// Generate Endpoints (Hybrid Architecture - API Key on Cloud Run only)
+// ============================================================================
+
+// POST /api/ai/generate - Text generation (non-streaming)
+app.post('/api/ai/generate', async (c) => {
+  try {
+    const { prompt, options } = await c.req.json();
+
+    if (!prompt) {
+      return c.json({ success: false, error: 'prompt is required' }, 400);
+    }
+
+    const result = await generateService.generate(prompt, options || {});
+    return c.json(result);
+  } catch (error) {
+    console.error('❌ [Generate] Error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+// POST /api/ai/generate/stream - Text generation (streaming SSE)
+app.post('/api/ai/generate/stream', async (c) => {
+  try {
+    const { prompt, options } = await c.req.json();
+
+    if (!prompt) {
+      return c.json({ success: false, error: 'prompt is required' }, 400);
+    }
+
+    const stream = await generateService.generateStream(prompt, options || {});
+
+    if (!stream) {
+      return c.json({ success: false, error: 'Failed to create stream' }, 500);
+    }
+
+    // Set headers for SSE streaming
+    c.header('Content-Type', 'text/event-stream; charset=utf-8');
+    c.header('Cache-Control', 'no-cache');
+    c.header('Connection', 'keep-alive');
+
+    return c.body(stream);
+  } catch (error) {
+    console.error('❌ [Generate Stream] Error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+// GET /api/ai/generate/stats - Generate service statistics
+app.get('/api/ai/generate/stats', (c) => {
+  const stats = generateService.getStats();
+  return c.json({ success: true, ...stats });
 });
 
 // ============================================================================

@@ -84,6 +84,19 @@ export function decrypt(encryptedText: string): string {
 }
 
 /**
+ * @deprecated v5.84.0 - Hybrid Architecture 전환
+ *
+ * ⚠️ DEPRECATED: API 키 관리는 Cloud Run으로 이관되었습니다.
+ *
+ * 대체 방법:
+ * - 프록시: src/lib/ai-proxy/proxy.ts (proxyToCloudRun 함수)
+ * - Cloud Run에서 GEMINI_API_KEY_PRIMARY/SECONDARY 환경변수 사용
+ *
+ * 이 함수는 하위 호환성을 위해 유지됩니다.
+ * Cloud Run 미활성화 시 폴백으로만 사용됩니다.
+ *
+ * ---
+ *
  * 🔑 Google AI API 키 안전하게 가져오기
  *
  * 우선순위:
@@ -147,6 +160,10 @@ export function getSecureGoogleAIKey(): string | null {
 }
 
 /**
+ * @deprecated v5.84.0 - Hybrid Architecture 전환
+ *
+ * ⚠️ DEPRECATED: API 키 관리는 Cloud Run으로 이관되었습니다.
+ *
  * 🔐 Google AI API 키 암호화
  */
 export function encryptGoogleAIKey(apiKey: string): string {

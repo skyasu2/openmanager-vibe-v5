@@ -1,7 +1,19 @@
 /**
- * Google AI 클라이언트 - 실제 Google AI API 사용
+ * @deprecated v5.84.0 - Hybrid Architecture 전환
  *
- * 실제 Google AI API를 직접 사용하여 일관된 응답 품질 보장
+ * ⚠️ DEPRECATED: 이 모듈은 Cloud Run으로 이관되었습니다.
+ *
+ * Hybrid Architecture 설계:
+ * - Vercel = Frontend/Proxy Only (API 키 없음)
+ * - Cloud Run = ALL AI processing (API 키 관리)
+ *
+ * 대체 방법:
+ * - 임베딩: src/services/ai/embedding-service.ts (Cloud Run 프록시 사용)
+ * - 생성: src/app/api/ai/google-ai/generate/route.ts (Cloud Run 프록시 사용)
+ * - 프록시: src/lib/ai-proxy/proxy.ts (proxyToCloudRun 함수)
+ *
+ * 이 파일은 하위 호환성을 위해 유지되지만, 신규 코드에서는 사용하지 마세요.
+ * Cloud Run 미활성화 시 폴백으로만 사용됩니다.
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';

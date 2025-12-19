@@ -1,8 +1,13 @@
 /**
  * 🤖 제3자 AI 대화 관리자
  * 다양한 AI 서비스와 직접 대화할 수 있는 통합 모듈
+ *
+ * v5.84.0: Hybrid Architecture 준수
+ * - Google AI 호출: Cloud Run 프록시 사용 (/api/ai/generate)
+ * - OpenAI/Cohere: 직접 호출 유지 (환경변수에 API 키 필요)
  */
 
+import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { KST } from '@/lib/utils/time';
 
 export interface AIProvider {
@@ -47,28 +52,17 @@ export class AIConversationManager {
 
   /**
    * AI 제공자 초기화
+   * v5.84.0: Google AI는 Cloud Run 프록시 사용 (API 키 불필요)
    */
   private _initializeProviders() {
-    // Google AI (Gemini)
+    // Google AI (Gemini) - Cloud Run 프록시 사용
+    // API 키는 Cloud Run에서 관리, Vercel에서는 프록시만 수행
     this.providers.set('google', {
       name: 'Google AI (Gemini)',
-      apiKey:
-        process.env.GOOGLE_AI_API_KEY ||
-        (() => {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn(
-              '⚠️ GOOGLE_AI_API_KEY 환경변수가 설정되지 않았습니다. .env.local 파일을 확인하세요.'
-            );
-            return '';
-          } else {
-            throw new Error(
-              'GOOGLE_AI_API_KEY environment variable is required in production'
-            );
-          }
-        })(),
-      baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
+      apiKey: 'CLOUD_RUN_PROXY', // Cloud Run에서 처리
+      baseUrl: 'CLOUD_RUN_PROXY', // Cloud Run에서 처리
       model: 'gemini-2.5-flash',
-      enabled: true,
+      enabled: isCloudRunEnabled(), // Cloud Run 활성화 여부에 따라 결정
     });
 
     // OpenAI (GPT)
@@ -232,7 +226,8 @@ export class AIConversationManager {
   }
 
   /**
-   * Google AI 호출
+   * Google AI 호출 (Cloud Run 프록시 사용)
+   * v5.84.0: Hybrid Architecture - Vercel은 프록시만, Cloud Run이 AI 처리
    */
   private async callGoogleAI(
     provider: AIProvider,
@@ -246,48 +241,40 @@ export class AIConversationManager {
     if (!lastMessage) {
       throw new Error('메시지가 없습니다.');
     }
-    const url = `${provider.baseUrl}/models/${provider.model}:generateContent?key=${provider.apiKey}`;
 
-    const response = await fetch(url, {
+    // Cloud Run 프록시를 통해 AI 생성 요청
+    const result = await proxyToCloudRun({
+      path: '/api/ai/generate',
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: lastMessage.content,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
+      body: {
+        prompt: lastMessage.content,
+        options: {
+          model: provider.model || 'gemini-2.5-flash',
           temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1024,
+          maxTokens: 1024,
         },
-      }),
+      },
+      timeout: 30000,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        `Google AI API 오류: ${errorData.error?.message || response.statusText}`
-      );
+    if (!result.success) {
+      throw new Error(`Google AI API 오류 (Cloud Run): ${result.error}`);
     }
 
-    const data = await response.json();
-    const content =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      '응답을 받을 수 없습니다.';
-    const tokensUsed = data.usageMetadata?.totalTokenCount || 0;
+    const data = result.data as {
+      success: boolean;
+      content?: string;
+      tokensUsed?: number;
+      error?: string;
+    };
+
+    if (!data.success) {
+      throw new Error(`Google AI 생성 실패: ${data.error || 'Unknown error'}`);
+    }
 
     return {
-      content,
-      tokensUsed,
+      content: data.content || '응답을 받을 수 없습니다.',
+      tokensUsed: data.tokensUsed || 0,
       confidence: 0.9,
     };
   }

@@ -1,13 +1,16 @@
 /**
- * 🌐 Google AI (Gemini) 생성 API
+ * 🌐 Google AI (Gemini) 생성 API - Cloud Run 프록시 버전
  *
- * Gemini Pro 모델을 사용한 텍스트 생성
+ * Hybrid Architecture:
+ * - Vercel = Query Analysis, Prompt Building, Proxy (직접 API 호출 금지)
+ * - Cloud Run = AI Processing (Google AI API 호출)
+ *
  * POST /api/ai/google-ai/generate
  */
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getGoogleAIModel } from '@/lib/ai/google-ai-client';
+import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import { withAuth } from '@/lib/auth/api-auth';
 import {
@@ -23,6 +26,20 @@ import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
+
+// Cloud Run 응답 타입
+interface CloudRunGenerateResult {
+  success: boolean;
+  text?: string;
+  error?: string;
+  model?: string;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  processingTime?: number;
+}
 
 // 지능적 컨텍스트 결정을 위한 질의 분석 시스템
 interface QueryAnalysis {
@@ -144,11 +161,6 @@ function analyzeQuery(query: string): QueryAnalysis {
 
   // 기본값: 일반적인 질문
   return { needsServerData: false, category: 'general', confidence: 0.6 };
-}
-
-// 레거시 함수 유지 (하위 호환성)
-function _isServerStatusQuery(query: string): boolean {
-  return analyzeQuery(query).needsServerData;
 }
 
 // 지능적 컨텍스트를 포함한 프롬프트 생성
@@ -307,42 +319,53 @@ const postHandler = createApiRoute()
       `🎯 질의 분석 완료 - 카테고리: ${analysis.category}, 서버 데이터 필요: ${analysis.needsServerData}, 신뢰도: ${analysis.confidence}`
     );
 
-    // Google AI 모델 가져오기
-    const generativeModel = getGoogleAIModel(model || 'gemini-2.5-flash');
+    // 🔄 Cloud Run 프록시를 통해 AI 생성 (Hybrid Architecture)
+    if (!isCloudRunEnabled()) {
+      throw new Error(
+        'Cloud Run이 비활성화되어 있습니다. 환경변수를 확인하세요.'
+      );
+    }
 
-    // 생성 설정
-    const generationConfig = {
-      temperature,
-      maxOutputTokens: maxTokens,
-      topK: 40,
-      topP: 0.95,
-    };
-
-    // 텍스트 생성 (향상된 프롬프트 사용)
-    const result = await generativeModel.generateContent({
-      contents: [{ role: 'user', parts: [{ text: enhancedPrompt }] }],
-      generationConfig,
+    const proxyResult = await proxyToCloudRun({
+      path: '/api/ai/generate',
+      method: 'POST',
+      body: {
+        prompt: enhancedPrompt,
+        options: {
+          model: model || 'gemini-2.5-flash',
+          temperature: temperature || 0.7,
+          maxTokens: maxTokens || 1000,
+        },
+      },
+      timeout: 30000,
     });
 
-    const response = result.response;
-    const text = response.text();
+    if (!proxyResult.success) {
+      throw new Error(proxyResult.error || 'Cloud Run 프록시 오류');
+    }
+
+    const cloudRunResult = proxyResult.data as CloudRunGenerateResult;
+
+    if (!cloudRunResult.success) {
+      throw new Error(cloudRunResult.error || 'Cloud Run AI 생성 실패');
+    }
 
     const processingTime = Date.now() - startTime;
 
-    debug.log(`✅ Google AI 생성 완료: ${processingTime}ms`);
+    debug.log(`✅ Cloud Run AI 생성 완료: ${processingTime}ms`);
 
     return {
       success: true,
-      response: text,
-      text, // 호환성을 위해 둘 다 제공
-      model: model || 'gemini-2.5-flash',
+      response: cloudRunResult.text || '',
+      text: cloudRunResult.text || '', // 호환성을 위해 둘 다 제공
+      model: cloudRunResult.model || model || 'gemini-2.5-flash',
       confidence: 0.9, // Google AI는 일반적으로 높은 신뢰도
       metadata: {
         temperature: temperature || 0.7,
         maxTokens: maxTokens || 1000,
-        actualTokens: response.usageMetadata?.totalTokenCount || 0,
-        promptTokens: response.usageMetadata?.promptTokenCount || 0,
-        completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
+        actualTokens: cloudRunResult.usage?.totalTokens || 0,
+        promptTokens: cloudRunResult.usage?.promptTokens || 0,
+        completionTokens: cloudRunResult.usage?.completionTokens || 0,
         processingTime,
       },
       timestamp: new Date().toISOString(),
@@ -391,14 +414,14 @@ export const POST = withAuth(async (request: NextRequest) => {
       }
     }
 
-    // API 키 관련 에러 처리
-    if (errorMessage.includes('API 키가 설정되지 않았습니다')) {
+    // Cloud Run 비활성화 에러 처리
+    if (errorMessage.includes('Cloud Run이 비활성화')) {
       return NextResponse.json(
         {
           success: false,
-          error: 'API key not configured',
+          error: 'Cloud Run not configured',
           message:
-            'Google AI API 키가 설정되지 않았습니다. 환경변수를 확인하세요.',
+            'Cloud Run AI 엔진이 비활성화되어 있습니다. 환경변수를 확인하세요.',
           timestamp: new Date().toISOString(),
         } satisfies GoogleAIErrorResponse,
         { status: 503 }
@@ -444,16 +467,14 @@ const getHandler = createApiRoute()
     enableLogging: true,
   })
   .build((): GoogleAIStatusResponse => {
-    const apiKey =
-      process.env.GOOGLE_AI_API_KEY ||
-      process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
-    const isConfigured = !!apiKey;
+    // Cloud Run 프록시 상태 확인 (Hybrid Architecture)
+    const cloudRunEnabled = isCloudRunEnabled();
 
     return {
       success: true,
       service: 'google-ai-generate',
-      status: isConfigured ? 'active' : 'not_configured',
-      configured: isConfigured,
+      status: cloudRunEnabled ? 'active' : 'not_configured',
+      configured: cloudRunEnabled,
       models: ['gemini-2.5-flash', 'gemini-2.5-pro'],
       capabilities: {
         textGeneration: true,

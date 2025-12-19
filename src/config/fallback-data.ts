@@ -108,6 +108,11 @@ export const INFRASTRUCTURE_CONFIG = {
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   },
   api: {
+    /**
+     * @deprecated v5.84.0 - Hybrid Architecture 전환
+     * API 키는 Cloud Run에서 관리됩니다.
+     * 이 설정은 Cloud Run 미활성화 시 폴백으로만 사용됩니다.
+     */
     googleAI: {
       key: process.env.GOOGLE_AI_API_KEY || '',
       model: process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash',
@@ -125,6 +130,11 @@ export const INFRASTRUCTURE_CONFIG = {
       .split(',')
       .filter(Boolean),
   },
+  /**
+   * @deprecated v5.84.0 - Hybrid Architecture 전환
+   * API 키는 Cloud Run에서 관리됩니다.
+   * 이 설정은 Cloud Run 미활성화 시 폴백으로만 사용됩니다.
+   */
   google: {
     apiKey: process.env.GOOGLE_AI_API_KEY || '',
     model: process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash',

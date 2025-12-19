@@ -1,4 +1,22 @@
 /**
+ * @deprecated v5.84.0 - Hybrid Architecture 전환
+ *
+ * ⚠️ DEPRECATED: Google AI API 키 관리는 Cloud Run으로 이관되었습니다.
+ *
+ * Hybrid Architecture 설계:
+ * - Vercel = Frontend/Proxy Only (API 키 없음)
+ * - Cloud Run = ALL AI processing (API 키 관리)
+ *
+ * Cloud Run 환경변수:
+ * - GEMINI_API_KEY_PRIMARY: 주 API 키
+ * - GEMINI_API_KEY_SECONDARY: 보조 API 키 (폴백)
+ *
+ * 이 파일은 하위 호환성을 위해 유지됩니다:
+ * - Cloud Run 미활성화 시 폴백으로 사용
+ * - 로컬 개발 환경에서 직접 테스트용
+ *
+ * ---
+ *
  * 🛠️ DevKeyManager - 개발용 통합 키 관리자
  *
  * 기능:

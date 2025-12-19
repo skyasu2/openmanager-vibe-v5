@@ -1,17 +1,21 @@
 /**
- * 임베딩 서비스 - 하이브리드 임베딩 생성
+ * 임베딩 서비스 - Cloud Run 프록시 기반 (Hybrid Architecture)
+ *
+ * 설계 원칙:
+ * - Vercel = Proxy Only (직접 API 호출 금지)
+ * - Cloud Run = AI Processing (Google AI API 호출)
  *
  * 지원 모드:
- * - Google AI API 모드 (google-ai 모드용)
- * - 로컬 임베딩 모드 (local-ai 모드용)
+ * - Cloud Run 프록시 모드 (기본값)
+ * - 로컬 임베딩 모드 (Cloud Run 불가 시 fallback)
  *
  * 무료 티어 최적화:
  * - 384차원 벡터 사용 (메모리 절약)
  * - LRU 캐싱으로 중복 요청 방지
- * - 배치 처리 지원
  */
 
 import crypto from 'crypto';
+import { isCloudRunEnabled, proxyToCloudRun } from '../../lib/ai-proxy/proxy';
 import { aiLogger } from '../../lib/logger';
 
 interface EmbeddingCache {
@@ -25,13 +29,19 @@ interface EmbeddingOptions {
   useLocal?: boolean; // 로컬 임베딩 강제 사용
 }
 
+interface CloudRunEmbeddingResult {
+  success: boolean;
+  embedding?: number[];
+  error?: string;
+  source?: string;
+  processingTime?: number;
+}
+
 class EmbeddingService {
   private cache = new Map<string, EmbeddingCache>();
   private readonly CACHE_TTL = 10800000; // 3시간 (성능 최적화)
   private readonly MAX_CACHE_SIZE = 1000;
   private readonly DEFAULT_DIMENSION = 384; // 무료 티어 최적화
-  private readonly API_ENDPOINT =
-    'https://generativelanguage.googleapis.com/v1beta/models';
 
   // 캐시 히트율 추적을 위한 카운터
   private cacheHits = 0;
@@ -54,12 +64,12 @@ class EmbeddingService {
       return true;
     }
 
-    // 3. Google AI API 키가 없으면 로컬 사용
-    if (!process.env.GOOGLE_AI_API_KEY) {
+    // 3. Cloud Run이 비활성화되면 로컬 사용
+    if (!isCloudRunEnabled()) {
       return true;
     }
 
-    // 4. 기본값: Google AI 사용
+    // 4. 기본값: Cloud Run 프록시 사용
     return false;
   }
 
@@ -74,7 +84,7 @@ class EmbeddingService {
     // 텍스트 정규화 및 토큰화
     const normalizedText = text.toLowerCase().trim();
 
-    // 한국어 형태소 분석 시뮬레이션 (실제로는 GCP Korean NLP 활용)
+    // 한국어 형태소 분석 시뮬레이션
     const tokens = this.tokenizeKoreanText(normalizedText);
 
     // TF-IDF 계산을 위한 용어 빈도
@@ -309,6 +319,7 @@ class EmbeddingService {
 
   /**
    * 텍스트의 임베딩 벡터 생성
+   * Hybrid Architecture: Cloud Run 프록시 또는 로컬 fallback
    */
   async createEmbedding(
     text: string,
@@ -327,11 +338,11 @@ class EmbeddingService {
     const truncatedText = text.substring(0, 2000);
 
     // 캐시 확인 (로컬/클라우드 구분)
-    const cacheKey = `${useLocal ? 'local' : model}_${dimension}_${truncatedText}`;
+    const cacheKey = `${useLocal ? 'local' : 'cloudrun'}_${dimension}_${truncatedText}`;
     const cached = this.getFromCache(cacheKey);
     if (cached) {
       this.cacheHits++;
-      aiLogger.debug(`캐시에서 ${useLocal ? '로컬' : 'Google AI'} 임베딩 반환`);
+      aiLogger.debug(`캐시에서 ${useLocal ? '로컬' : 'Cloud Run'} 임베딩 반환`);
       return cached;
     }
 
@@ -350,48 +361,43 @@ class EmbeddingService {
 
       return embedding;
     } else {
-      // Google AI API 호출
+      // Cloud Run 프록시를 통해 임베딩 생성
       try {
-        if (!process.env.GOOGLE_AI_API_KEY) {
-          aiLogger.warn('Google AI API 키가 없어 로컬 임베딩으로 fallback');
-          embedding = this.generateLocalEmbedding(truncatedText, dimension);
-          this.saveToCache(cacheKey, embedding);
-          return embedding;
-        }
+        aiLogger.debug('Cloud Run 프록시로 임베딩 요청...');
 
-        const response = await fetch(
-          `${this.API_ENDPOINT}/${model}:embedContent`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Goog-Api-Key': process.env.GOOGLE_AI_API_KEY,
-            },
-            body: JSON.stringify({
-              model: `models/${model}`,
-              content: {
-                parts: [{ text: truncatedText }],
-              },
-              outputDimensionality: dimension,
-            }),
+        const result = await proxyToCloudRun({
+          path: '/api/ai/embedding',
+          method: 'POST',
+          body: {
+            text: truncatedText,
+            options: { dimension, model },
+          },
+          timeout: 10000,
+        });
+
+        if (result.success && result.data) {
+          const cloudRunResult = result.data as CloudRunEmbeddingResult;
+
+          if (cloudRunResult.success && cloudRunResult.embedding) {
+            embedding = cloudRunResult.embedding;
+
+            // 캐시에 저장
+            this.saveToCache(cacheKey, embedding);
+
+            aiLogger.debug(
+              `Cloud Run 임베딩 완료 (source: ${cloudRunResult.source}, ${cloudRunResult.processingTime}ms)`
+            );
+
+            return embedding;
+          } else {
+            throw new Error(cloudRunResult.error || 'Cloud Run 임베딩 실패');
           }
-        );
-
-        if (!response.ok) {
-          const error = await response.text();
-          throw new Error(`임베딩 API 오류: ${response.status} - ${error}`);
+        } else {
+          throw new Error(result.error || 'Cloud Run 프록시 오류');
         }
-
-        const data = await response.json();
-        embedding = data.embedding.values;
-
-        // 캐시에 저장
-        this.saveToCache(cacheKey, embedding);
-
-        return embedding;
       } catch (error) {
         aiLogger.error(
-          'Google AI 임베딩 생성 실패, 로컬 임베딩으로 fallback:',
+          'Cloud Run 임베딩 생성 실패, 로컬 임베딩으로 fallback:',
           error
         );
 
@@ -409,6 +415,7 @@ class EmbeddingService {
 
   /**
    * 배치 임베딩 생성 (효율적인 대량 처리)
+   * Hybrid Architecture: Cloud Run 프록시 또는 로컬 fallback
    */
   async createBatchEmbeddings(
     texts: string[],
@@ -436,7 +443,7 @@ class EmbeddingService {
       }
 
       const truncatedText = text.substring(0, 2000);
-      const cacheKey = `${useLocal ? 'local' : model}_${dimension}_${truncatedText}`;
+      const cacheKey = `${useLocal ? 'local' : 'cloudrun'}_${dimension}_${truncatedText}`;
       const cached = this.getFromCache(cacheKey);
 
       if (cached) {
@@ -461,66 +468,50 @@ class EmbeddingService {
           results[item.index] = embedding;
         });
       } else {
-        // Google AI API 배치 호출
+        // Cloud Run 프록시 배치 호출
         try {
-          if (!process.env.GOOGLE_AI_API_KEY) {
-            aiLogger.warn(
-              'Google AI API 키가 없어 로컬 임베딩 배치로 fallback'
-            );
+          aiLogger.debug(
+            `Cloud Run 배치 임베딩 요청... (${toProcess.length}개)`
+          );
 
-            toProcess.forEach((item) => {
-              const embedding = this.generateLocalEmbedding(
-                item.text,
-                dimension
-              );
-              const cacheKey = `local_${dimension}_${item.text}`;
-              this.saveToCache(cacheKey, embedding);
-              results[item.index] = embedding;
-            });
-          } else {
-            const response = await fetch(
-              `${this.API_ENDPOINT}/${model}:batchEmbedContents`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-Goog-Api-Key': process.env.GOOGLE_AI_API_KEY,
-                },
-                body: JSON.stringify({
-                  requests: toProcess.map((item) => ({
-                    model: `models/${model}`,
-                    content: {
-                      parts: [{ text: item.text }],
-                    },
-                    outputDimensionality: dimension,
-                  })),
-                }),
-              }
-            );
+          const result = await proxyToCloudRun({
+            path: '/api/ai/embedding/batch',
+            method: 'POST',
+            body: {
+              texts: toProcess.map((item) => item.text),
+              options: { dimension, model },
+            },
+            timeout: 30000, // 배치 처리를 위한 긴 타임아웃
+          });
 
-            if (!response.ok) {
-              throw new Error(`배치 임베딩 API 오류: ${response.status}`);
-            }
+          if (result.success && result.data) {
+            const cloudRunResult = result.data as {
+              success: boolean;
+              embeddings?: number[][];
+              error?: string;
+            };
 
-            const data = await response.json();
-
-            // 결과를 캐시에 저장하고 results 배열에 할당
-            data.embeddings.forEach(
-              (embedding: { values: number[] }, i: number) => {
+            if (cloudRunResult.success && cloudRunResult.embeddings) {
+              // 결과를 캐시에 저장하고 results 배열에 할당
+              cloudRunResult.embeddings.forEach((embedding, i) => {
                 const item = toProcess[i];
                 if (!item) return;
 
-                const values = embedding.values;
-                const cacheKey = `${model}_${dimension}_${item.text}`;
-                this.saveToCache(cacheKey, values);
-
-                results[item.index] = values;
-              }
-            );
+                const cacheKey = `cloudrun_${dimension}_${item.text}`;
+                this.saveToCache(cacheKey, embedding);
+                results[item.index] = embedding;
+              });
+            } else {
+              throw new Error(
+                cloudRunResult.error || 'Cloud Run 배치 임베딩 실패'
+              );
+            }
+          } else {
+            throw new Error(result.error || 'Cloud Run 프록시 오류');
           }
         } catch (error) {
           aiLogger.error(
-            'Google AI 배치 임베딩 생성 실패, 로컬 임베딩으로 fallback:',
+            'Cloud Run 배치 임베딩 생성 실패, 로컬 임베딩으로 fallback:',
             error
           );
 

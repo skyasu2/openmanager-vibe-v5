@@ -12,8 +12,10 @@ services:
       - PORT=8080
       - RUST_ML_SERVICE_URL=http://rust-inference:8080
       - CLOUD_RUN_API_SECRET=${CLOUD_RUN_API_SECRET:-test-secret}
-      # Make sure to set these in your local environment or .env file
-      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
+      # Gemini API Keys (Primary & Secondary for Failover)
+      - GEMINI_API_KEY_PRIMARY=${GEMINI_API_KEY_PRIMARY}
+      - GEMINI_API_KEY_SECONDARY=${GEMINI_API_KEY_SECONDARY}
+      # Supabase Configuration
       - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     depends_on:

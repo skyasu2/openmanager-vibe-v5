@@ -510,3 +510,7 @@ install_log.txt
 cloud-run/*/data/
 cloud-run/*/build*.log
 cloud-run/*/*.log
+
+# 🔐 Local Docker secrets (development only)
+cloud-run/.env
+cloud-run/docker-compose.override.yml
