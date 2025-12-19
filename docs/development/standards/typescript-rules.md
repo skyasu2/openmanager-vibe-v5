@@ -1,3 +1,16 @@
+---
+id: typescript-rules
+title: TypeScript 코딩 표준
+keywords: [typescript, strict, coding-standards, type-safety]
+priority: critical
+ai_optimized: true
+related_docs:
+  - '../../core/architecture/module-structure.md'
+  - '../ai/common/ai-coding-standards.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # TypeScript 코딩 표준
 
 ## 🎯 핵심 규칙

@@ -1,6 +1,19 @@
+---
+id: health-check-policy
+title: 헬스체크 정책
+keywords: [health-check, api, monitoring, policy, vercel]
+priority: medium
+ai_optimized: true
+related_docs:
+  - '../../core/architecture/module-structure.md'
+  - '../pm2-workflow-guide.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # 🏥 헬스체크 정책
 
-> **작성**: 2025-11-21 08:07 KST  
+> **작성**: 2025-11-21 08:07 KST
 > **원칙**: 모든 헬스체크는 수동 테스트 전용, 자동 호출 금지
 
 ---

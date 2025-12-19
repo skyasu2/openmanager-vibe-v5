@@ -1,3 +1,16 @@
+---
+id: documentation-standard
+title: 문서화 표준
+keywords: [documentation, standards, versioning, markdown, guidelines]
+priority: medium
+ai_optimized: true
+related_docs:
+  - 'commit-conventions.md'
+  - 'typescript-rules.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # Documentation Standards
 
 <!-- Version: 1.0.0 | Author: Antigravity -->
