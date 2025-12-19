@@ -6,7 +6,7 @@ priority: high
 ai_optimized: true
 related_docs: ["ai-system.md", "sub-agents.md", "../../mcp/advanced.md"]
 updated: "2025-12-11"
-version: "v5.80.0"
+version: "v5.83.1"
 ---
 
 # MCP 서버 설계

@@ -14,7 +14,7 @@ related_docs:
   - 'docs/deploy/env-setup.md'
   - 'docs/deploy/free-tier.md'
   - 'docs/core/architecture/system/system-architecture-current.md'
-last_updated: '2025-12-01'
+last_updated: '2025-12-19'
 ---
 
 # Deployment Guide
@@ -187,12 +187,11 @@ npm run cache:clear
 
 ### Internal Resources
 
-- [System Architecture](../architecture/actual-system-architecture-v5.77.md)
-- [API Documentation](../api/README.md)
-- [Troubleshooting Guide](../technical/TROUBLESHOOTING.md)
+- [System Architecture](../../architecture/system/system-architecture-current.md)
+- [Architecture Overview](../../architecture/README.md)
 
 ---
 
-**Last Updated**: 2025-10-16 by Claude Code
-**Deployment Version**: v5.80.0
+**Last Updated**: 2025-12-19 by Claude Code
+**Deployment Version**: v5.83.1
 **Status**: ✅ Production Ready

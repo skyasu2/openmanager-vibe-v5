@@ -11,7 +11,7 @@ query_triggers:
 related_docs:
   - 'docs/core/architecture/README.md'
   - 'docs/core/security/README.md'
-last_updated: '2025-12-12'
+last_updated: '2025-12-19'
 ---
 
 # 📦 Core 문서 (메인 프로젝트)
@@ -38,7 +38,7 @@ core/
 
 ### 아키텍처 (architecture/)
 - **[README.md](./architecture/README.md)**: 통합 아키텍처 가이드 (기술 스택, 웹/백엔드 구조)
-- **[system-architecture-current.md](./architecture/system-architecture-current.md)**: 현재 시스템 구조
+- **[system-architecture-current.md](./architecture/system/system-architecture-current.md)**: 현재 시스템 구조
 - **[folder-structure.md](./architecture/folder-structure.md)**: 폴더 구조 가이드
 
 ### AI 시스템 (ai/)
@@ -73,61 +73,18 @@ core/
 
 ---
 
-## 📂 디렉터리 구조
-
-```
-core/
-├── platforms/              # 배포 플랫폼
-│   ├── vercel/            # Vercel 배포 (3개 파일)
-│   ├── gcp/               # GCP Cloud Functions (4개 파일)
-│   ├── supabase/          # Supabase DB (3개 파일)
-│   └── deploy/            # 통합 배포 (4개 파일)
-│
-├── architecture/          # 시스템 아키텍처
-├── security/              # 보안 정책
-├── performance/           # 성능 최적화
-└── monitoring/            # 모니터링
-```
-
----
-
-## 📚 주요 문서
-
-### Architecture
-- **[Web Architecture](./architecture/WEB_ARCHITECTURE.md)**: 프론트엔드 구조
-- **[Backend Architecture](./architecture/BACKEND_ARCHITECTURE.md)**: 백엔드 및 서비스 레이어
-- **[AI Engine Architecture](./architecture/ai-engine-architecture.md)**: AI 엔진 구조
-
-### Security
-- **[Security Guidelines](./security/README.md)**: 보안 가이드라인 (RLS, Auth)
-
-### Performance
-- **[Performance Standards](./performance/README.md)**: 성능 목표 및 측정 표준
-
----
-
 ## 🚀 배포 플랫폼 (platforms/)
 
 ### Vercel (platforms/vercel/)
-- **vercel.md** - Vercel 배포 가이드
-- **vercel-optimization.md** - 최적화 전략
-- **vercel-specialist-guide.md** - 전문가 가이드
+- **[vercel.md](./platforms/vercel/vercel.md)** - Vercel 배포 가이드
+- **[vercel-optimization.md](./platforms/vercel/vercel-optimization.md)** - 최적화 전략
+- **[vercel-specialist-guide.md](./platforms/vercel/vercel-specialist-guide.md)** - 전문가 가이드
 
 ### GCP (platforms/gcp/)
-- **gcp-deployment-guide.md** - GCP 배포 가이드
-- **GCP-FUNCTIONS-SUMMARY.md** - 요약
-- **GCP-FUNCTIONS-OPTIMIZATION.md** - 최적화
-- **GCP-FUNCTIONS-CLEANUP-GUIDE.md** - 정리 가이드
-- **GCP-INTEGRATION-METHOD.md** - 통합 방법 (HTTP vs SDK)
-- **firewall-setup.md** - 방화벽 설정
+- **[firewall-setup.md](./platforms/gcp/firewall-setup.md)** - 방화벽 설정
 
 ### Supabase (platforms/supabase/)
-- **schema.md** - 데이터베이스 스키마
-- **queries.md** - 쿼리 최적화
-- **optimization.md** - DB 성능 최적화
+- 참조: [architecture/db/](./architecture/db/) - DB 스키마, 쿼리, 최적화
 
 ### 통합 배포 (platforms/deploy/)
-- **README.md** - 배포 가이드 인덱스
-- **free-tier.md** - 무료 티어 관리
-- **zero-cost-operations.md** - 제로 비용 운영
-- **warnings.md** - 배포 주의사항
+- **[README.md](./platforms/deploy/README.md)** - 배포 가이드 인덱스

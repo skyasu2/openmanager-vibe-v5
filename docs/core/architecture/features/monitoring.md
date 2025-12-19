@@ -6,7 +6,7 @@ priority: high
 ai_optimized: true
 related_docs: ["fnv-hash.md", "../core/data-flow.md", "../infrastructure/api.md"]
 updated: "2025-12-11"
-version: "v5.80.0"
+version: "v5.83.1"
 ---
 
 # 모니터링 아키텍처

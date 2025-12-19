@@ -5,7 +5,7 @@
 
 ## Overview
 
-OpenManager VIBE v5.80.0의 AI 어시스턴트는 **사이드바 모드**와 **풀페이지 모드**를 지원하는 통합 아키텍처입니다. LangGraph 기반 Multi-Agent 시스템으로 4개 에이전트(Supervisor, NLQ, Analyst, Reporter)를 활용합니다.
+OpenManager VIBE v5.83.1의 AI 어시스턴트는 **사이드바 모드**와 **풀페이지 모드**를 지원하는 통합 아키텍처입니다. LangGraph 기반 Multi-Agent 시스템으로 4개 에이전트(Supervisor, NLQ, Analyst, Reporter)를 활용합니다.
 
 ## System Architecture
 

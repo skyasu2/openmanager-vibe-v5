@@ -5,7 +5,7 @@
 
 ## Overview
 
-OpenManager Vibe v5.80.0은 **LangGraph Supervisor Agent**를 사용하여 AI 라우팅을 수행합니다. 이전의 SmartRoutingEngine은 deprecated되었으며, 모든 라우팅 로직은 LangGraph 그래프 내에서 처리됩니다.
+OpenManager Vibe v5.83.1은 **LangGraph Supervisor Agent**를 사용하여 AI 라우팅을 수행합니다. 이전의 SmartRoutingEngine은 deprecated되었으며, 모든 라우팅 로직은 LangGraph 그래프 내에서 처리됩니다.
 
 ## Architecture Diagram
 

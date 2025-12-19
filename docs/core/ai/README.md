@@ -13,10 +13,9 @@ OpenManager VIBE 앱에 탑재된 AI 기능 문서
 | 문서 | 설명 |
 |------|------|
 | [ai-architecture.md](./ai-architecture.md) | AI 시스템 아키텍처, Unified Processor |
-| [ANALYSIS_CURRENT_STRUCTURE.md](./ANALYSIS_CURRENT_STRUCTURE.md) | 현재 앱 AI 구조 분석 |
-| [MODE-SELECTION-REMOVAL.md](./MODE-SELECTION-REMOVAL.md) | v4.0 모드 선택 UI 제거 |
-| [GCP-FUNCTIONS-SUMMARY.md](../platforms/gcp/GCP-FUNCTIONS-SUMMARY.md) | GCP Functions 백엔드 요약 |
-| [FREE-TIER-MONITOR-GUIDE.md](./FREE-TIER-MONITOR-GUIDE.md) | 무료 티어 사용량 모니터링 |
+| [ai-engine-architecture.md](../architecture/ai/ai-engine-architecture.md) | Cloud Run LangGraph 엔진 아키텍처 |
+| [ai-routing-architecture.md](../architecture/ai/ai-routing-architecture.md) | AI 라우팅 아키텍처 |
+| [ai-assistant-sidebar-architecture.md](../architecture/ai/ai-assistant-sidebar-architecture.md) | AI 사이드바 아키텍처 |
 
 ---
 

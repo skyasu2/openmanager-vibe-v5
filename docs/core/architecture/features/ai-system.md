@@ -6,7 +6,7 @@ priority: critical
 ai_optimized: true
 related_docs: ["sub-agents.md", "mcp.md", "../../ai/workflow.md", "../../ai/verification.md"]
 updated: "2025-12-11"
-version: "v5.80.0"
+version: "v5.83.1"
 ---
 
 # AI 시스템 설계

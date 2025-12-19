@@ -1,13 +1,16 @@
 # AI Assistant Architecture
 
-> **버전**: v2.0 (2025-12-14)
-> **환경**: Next.js 16, React 19, LangGraph StateGraph
+> **버전**: v3.0 (2025-12-19)
+> **환경**: Next.js 16, React 19, LangGraph StateGraph (Cloud Run)
 
 ## Overview
 
-The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrates specialized agents for server monitoring tasks. It runs directly on **Vercel Edge** using Next.js API routes.
+The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrates specialized agents for server monitoring tasks. It uses a **Hybrid Architecture**:
 
-> **Note**: Cloud Run ai-backend was removed (2025-12-14). LangGraph now runs exclusively on Vercel.
+- **Frontend (Vercel)**: Next.js UI, API proxy routes
+- **AI Engine (Cloud Run)**: LangGraph StateGraph, all AI processing
+
+> **Note**: LangGraph was migrated from Vercel to Cloud Run (2025-12-16) due to Edge response issues. See [ai-engine-architecture.md](../architecture/ai/ai-engine-architecture.md) for detailed backend architecture.
 
 ## Core Components
 
@@ -44,9 +47,10 @@ The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrate
 
 ### 2. Backend: LangGraph Multi-Agent System
 
-- **Location**: `src/services/langgraph/` (Next.js API Routes)
+- **Location**: `cloud-run-ai-engine/src/` (Python FastAPI)
 - **Framework**: LangGraph StateGraph
-- **Deployment**: Vercel Edge (no external backend required)
+- **Deployment**: Google Cloud Run (migrated 2025-12-16)
+- **Proxy**: `/api/ai/*` routes on Vercel forward to Cloud Run
 
 #### Agent Architecture
 
@@ -140,11 +144,12 @@ The AI uses specialized tools within each agent for domain-specific operations.
 
 1. **User Query**: User types a message in `AISidebarV4`
 2. **API Request**: `useChat` sends POST to `/api/ai/unified-stream`
-3. **LangGraph Execution**: StateGraph processes request on Vercel
-4. **Supervisor Routing**: Groq Llama classifies intent and routes to appropriate agent
-5. **Agent Execution**: Selected agent processes query with tools
-6. **Approval Check** (Reporter only): Critical actions require human approval
-7. **Response**: AI SDK v5 Data Stream Protocol (`0:"text"\n`, `d:{...}\n`)
+3. **Proxy to Cloud Run**: Vercel API route forwards request to Cloud Run
+4. **LangGraph Execution**: StateGraph processes request on Cloud Run
+5. **Supervisor Routing**: Groq Llama classifies intent and routes to appropriate agent
+6. **Agent Execution**: Selected agent processes query with tools
+7. **Approval Check** (Reporter only): Critical actions require human approval
+8. **Response**: AI SDK v5 Data Stream Protocol (`0:"text"\n`, `d:{...}\n`)
 
 ## Human-in-the-Loop Workflow
 

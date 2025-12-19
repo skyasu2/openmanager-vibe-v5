@@ -14,7 +14,7 @@ related_docs:
   - 'docs/performance/charts.md'
   - 'docs/development/testing/README.md'
   - 'docs/environment/wsl/README.md'
-last_updated: '2025-12-01'
+last_updated: '2025-12-19'
 ---
 
 # 🚀 Performance Optimization
@@ -144,10 +144,9 @@ const metrics = {
 
 - **[Bundle Optimization](bundle.md)**: Detailed bundle analysis
 - **[Charts Performance](charts.md)**: Real-time charts comparison
-- **[Memory Guide](../archive/performance/memory-optimization-guide.md)**: Memory management
-- **[Cache Strategy](../archive/performance/cache-migration-guide.md)**: Caching implementation
+- **[Memory Requirements](../architecture/system/memory-requirements.md)**: 시스템 메모리 요구사항
 
 ---
 
-**Last Updated**: 2025-10-16 by Claude Code
+**Last Updated**: 2025-12-19 by Claude Code
 **Performance Score**: 8.2/10 | **Next Target**: Bundle <250KB

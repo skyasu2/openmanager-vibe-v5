@@ -6,7 +6,7 @@ priority: medium
 ai_optimized: true
 related_docs: ["../features/monitoring.md", "../../core/platforms/deploy/README.md"]
 updated: "2025-12-01"
-version: "v5.80"
+version: "v5.83.1"
 ---
 
 # 배포 아키텍처
