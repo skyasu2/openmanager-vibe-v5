@@ -177,7 +177,7 @@ useEffect(() => {
 
 1. `mock-system.md` (5분) - 기본 개념
 2. `simulation.md` (15분) - 실제 설정
-3. `docs/planning/analysis/system-architecture-review-2025-11.md` (20분) - 아키텍처
+3. `reports/planning/analysis/system-architecture-review-2025-11.md` (20분) - 아키텍처
 
 ---
 
@@ -238,7 +238,7 @@ useEffect(() => {
 
 **시뮬레이션**:
 
-- guides/mock-system.md (개요) → guides/simulation.md (설정) → docs/planning/analysis/system-architecture-review-2025-11.md (아키텍처)
+- guides/mock-system.md (개요) → guides/simulation.md (설정) → reports/planning/analysis/system-architecture-review-2025-11.md (아키텍처)
 - 3단계 문서 일관성 유지
 
 **최적화**:

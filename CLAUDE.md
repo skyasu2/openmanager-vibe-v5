@@ -66,6 +66,6 @@ git push --follow-tags      # 태그 푸시 -> 배포 파이프라인 트리거
 ## 📂 주요 참조 (References)
 - **프로젝트 상태**: `@docs/status.md`
 - **AI 레지스트리**: `@config/ai/registry-core.yaml`
-- **투두 리스트**: `@docs/planning/TODO.md`
+- **투두 리스트**: `@reports/planning/TODO.md`
 
 _Last Updated: 2025-12-17_
