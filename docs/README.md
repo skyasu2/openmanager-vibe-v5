@@ -1,6 +1,6 @@
 # Documentation Reference (문서 관리 인덱스)
 > **최종 갱신**: 2025-12-19
-> **버전**: v5.83.5
+> **버전**: v5.83.1
 
 ## Directory Structure (디렉토리 구조)
 
@@ -25,10 +25,9 @@ docs/                    # 순수 문서 (가이드, 레퍼런스)
 │   ├── wsl/            # WSL 최적화 가이드
 │   └── troubleshooting/# 문제 해결 가이드
 │
-├── ops/                # 운영 가이드
-│   └── testing/        # 테스트 전략 및 가이드
+├── api/                # API 문서
 │
-└── api/                # API 문서
+└── archive/            # 완료된 문서 아카이브
 
 reports/                 # 분석 리포트 및 기록 (시점별 스냅샷)
 ├── planning/           # 계획 및 분석
