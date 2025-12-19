@@ -60,36 +60,27 @@ if command -v python3 &> /dev/null; then
     echo "   ✅ Python $(cat "$OUTPUT_DIR/python-version.txt")"
 fi
 
-# 6. PM2 프로세스 목록
-echo "6️⃣ PM2 프로세스 목록 저장..."
-if command -v pm2 &> /dev/null; then
-    pm2 list > "$OUTPUT_DIR/pm2-processes.txt" 2>/dev/null
-    pm2 save --force 2>/dev/null
-    cp ~/.pm2/dump.pm2 "$OUTPUT_DIR/pm2-dump.pm2" 2>/dev/null
-    echo "   ✅ PM2 dump.pm2"
-fi
-
-# 7. 환경 변수 (.bashrc, .zshrc 백업)
-echo "7️⃣ 환경 변수 및 설정 파일 백업..."
+# 6. 환경 변수 (.bashrc, .zshrc 백업)
+echo "6️⃣ 환경 변수 및 설정 파일 백업..."
 cp ~/.bashrc "$OUTPUT_DIR/bashrc.backup" 2>/dev/null
 cp ~/.zshrc "$OUTPUT_DIR/zshrc.backup" 2>/dev/null
 cp ~/.profile "$OUTPUT_DIR/profile.backup" 2>/dev/null
 echo "   ✅ Shell 설정 파일 백업"
 
-# 8. Git 설정
-echo "8️⃣ Git 설정 백업..."
+# 7. Git 설정
+echo "7️⃣ Git 설정 백업..."
 git config --global --list > "$OUTPUT_DIR/git-config.txt" 2>/dev/null
 echo "   ✅ git-config.txt"
 
-# 9. SSH 키 (경로만 기록, 실제 키는 안전한 곳에 별도 보관)
-echo "9️⃣ SSH 키 경로 기록..."
+# 8. SSH 키 (경로만 기록, 실제 키는 안전한 곳에 별도 보관)
+echo "8️⃣ SSH 키 경로 기록..."
 if [ -d ~/.ssh ]; then
     ls -la ~/.ssh > "$OUTPUT_DIR/ssh-keys-list.txt"
     echo "   ⚠️  실제 SSH 키는 안전한 곳에 별도 백업하세요!"
 fi
 
-# 10. .wslconfig 파일 (Windows 측)
-echo "🔟 .wslconfig 파일 복사..."
+# 9. .wslconfig 파일 (Windows 측)
+echo "9️⃣ .wslconfig 파일 복사..."
 if [ -f /mnt/c/Users/$(whoami)/.wslconfig ]; then
     cp /mnt/c/Users/$(whoami)/.wslconfig "$OUTPUT_DIR/wslconfig.backup"
     echo "   ✅ .wslconfig 백업"
