@@ -69,6 +69,13 @@ test.describe('🧭 게스트 대시보드 핵심 플로우', () => {
     });
 
     // Server cards don't have data-testid; use h3 headings with server names (APP-xx pattern)
+    // 서버 카드는 비동기로 로드되므로 최소 1개가 나타날 때까지 대기
+    const serverCardLocator = page.locator('h3:has-text("APP-")').first();
+    await serverCardLocator.waitFor({
+      state: 'visible',
+      timeout: TIMEOUTS.NETWORK_REQUEST, // 30초 - API 응답 대기
+    });
+
     const cardCount = await page.locator('h3:has-text("APP-")').count();
     console.log(`📊 대시보드 카드 수: ${cardCount}`);
     expect(cardCount).toBeGreaterThan(0);
