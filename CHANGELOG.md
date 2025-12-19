@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.5](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.4...v5.83.5) (2025-12-19)
+
+
+### Features
+
+* **auth:** add auth strategy utility for environment-based auth method ([51b41d4](https://github.com/skyasu2/openmanager-vibe-v5/commit/51b41d4a0e17057c45eb8a19f51a6e10544183bd))
+* **claude-code:** add /review command and update skills ([ad41eef](https://github.com/skyasu2/openmanager-vibe-v5/commit/ad41eef17a9dbd7d2256fdd9efac24f6561de72d))
+* **review:** add doc/test validation to AI review pipeline ([caaa2ab](https://github.com/skyasu2/openmanager-vibe-v5/commit/caaa2ab101d81bbbced0b6b9087f13604476bcf8)), closes [#5](https://github.com/skyasu2/openmanager-vibe-v5/issues/5)
+
+
+### Bug Fixes
+
+* **ai:** update Gemini models to 2.5 series for 2025 free tier ([72205ba](https://github.com/skyasu2/openmanager-vibe-v5/commit/72205ba6fd35ac2a6a221bb516f14856a8ba2393))
+* **lint:** remove unused variables in dashboard-server-cards.spec.ts ([8c77dd3](https://github.com/skyasu2/openmanager-vibe-v5/commit/8c77dd382fab5537d7ccc6c9910d2c96f50fd090))
+* **scripts:** update path reference to reports/planning ([d3c24eb](https://github.com/skyasu2/openmanager-vibe-v5/commit/d3c24eb91a0ce5df73a090ddf4c601bbcecc7a64))
+* **skill:** improve playwright-triage script robustness ([b2257bc](https://github.com/skyasu2/openmanager-vibe-v5/commit/b2257bc6bf5978a51469e36266a593d818a73962))
+
 ### [5.83.4](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.3...v5.83.4) (2025-12-18)
 
 
