@@ -1,3 +1,16 @@
+---
+id: claude-code-best-practices
+title: Claude Code v2.0.31+ Best Practices
+keywords: [claude-code, extended-thinking, mention, prompt-caching, best-practices]
+priority: medium
+ai_optimized: true
+related_docs:
+  - 'ai/claude-code/subagents-complete-guide.md'
+  - 'claude-workflow-guide.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # Claude Code v2.0.31+ Best Practices
 
 **신규 기능 활용 가이드** - Extended Thinking, @-mention, Prompt Caching

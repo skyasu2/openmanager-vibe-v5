@@ -1,20 +1,15 @@
 ---
-category: guides
-purpose: development_utilities_and_best_practices
+id: development-guides
+title: 개발 가이드
+keywords: [development, guides, utilities, mock, simulation, typescript, optimization]
+priority: high
 ai_optimized: true
-query_triggers:
-  - 'Side Effects 최적화'
-  - 'useEffect 최적화'
-  - '타입 시스템'
-  - '유틸리티 함수'
-  - 'Mock 시스템'
-  - '시뮬레이션 환경'
 related_docs:
-  - 'docs/core/architecture/type-system-consistency.md'
-  - 'docs/development/performance-optimization-guide.md'
-  - 'src/lib/utils/'
-  - 'src/lib/mock/'
-last_updated: '2025-12-01'
+  - '../core/architecture/type-system-consistency.md'
+  - 'side-effects-optimization-guide.md'
+  - 'standards/typescript-rules.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
 ---
 
 # 📖 개발 가이드 (Development Guides)

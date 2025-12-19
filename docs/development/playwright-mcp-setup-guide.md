@@ -1,3 +1,16 @@
+---
+id: playwright-mcp-setup
+title: Playwright MCP 설정 가이드
+keywords: [playwright, mcp, e2e, testing, wsl, chrome]
+priority: medium
+ai_optimized: true
+related_docs:
+  - 'mcp/README.md'
+  - '../core/testing/e2e-guide.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # 🎭 Playwright MCP 설정 가이드
 
 **WSL 환경에서 윈도우 크롬 브라우저 연동을 통한 완전한 E2E 테스트 환경 구축**

@@ -1,3 +1,16 @@
+---
+id: claude-workflow-guide
+title: Claude Code 병행 사용 워크플로우 가이드
+keywords: [claude-code, wsl, workflow, next.js, development]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'ai/common/workflow.md'
+  - 'ai/common/ai-collaboration-architecture.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # Claude Code 병행 사용 워크플로우 가이드
 
 **WSL + Claude Code 환경에서 Next.js 개발 시 실무 베스트 프랙티스**

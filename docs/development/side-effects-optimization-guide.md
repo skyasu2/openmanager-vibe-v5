@@ -1,3 +1,16 @@
+---
+id: side-effects-optimization
+title: 사이드 이펙트 최적화 실행 가이드
+keywords: [side-effects, mcp, timeout, optimization, circuit-breaker]
+priority: medium
+ai_optimized: true
+related_docs:
+  - 'mcp/mcp-configuration.md'
+  - '../core/architecture/module-structure.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # 🚀 사이드 이펙트 최적화 실행 가이드
 
 **날짜**: 2025-09-23

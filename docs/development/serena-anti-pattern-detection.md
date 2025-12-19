@@ -1,3 +1,16 @@
+---
+id: serena-anti-pattern
+title: Serena 안티패턴 자동 탐지 시스템
+keywords: [serena, mcp, anti-pattern, context, optimization]
+priority: medium
+ai_optimized: true
+related_docs:
+  - 'mcp/advanced.md'
+  - 'standards/git-hooks-best-practices.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # Serena 안티패턴 자동 탐지 시스템
 
 **목적**: 컨텍스트 압축 방지 (5-20% 발생률 → 0% 목표)  
