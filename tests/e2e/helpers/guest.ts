@@ -58,7 +58,7 @@ export async function resetGuestState(page: Page): Promise<void> {
 }
 
 /**
- * 게스트 로그인 버튼을 클릭해 /main으로 이동합니다.
+ * 게스트 로그인 버튼을 클릭해 메인 페이지(/)로 이동합니다.
  */
 export async function guestLogin(
   page: Page,
@@ -67,7 +67,7 @@ export async function guestLogin(
   const {
     landingPath = '/',
     guestButtonSelector = 'button:has-text("게스트로 체험하기")',
-    waitForPath = '/main',
+    waitForPath = '/',
     skipLandingNavigation = false,
   } = options;
 

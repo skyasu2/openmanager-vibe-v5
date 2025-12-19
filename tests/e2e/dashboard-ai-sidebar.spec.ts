@@ -15,7 +15,7 @@ test.describe('대시보드 AI 사이드바 테스트', () => {
   test.beforeEach(async ({ page }) => {
     await guestLogin(page);
 
-    // Fix: /main에서 "🚀 시스템 시작" 버튼 클릭하여 /dashboard로 이동
+    // 메인 페이지(/)에서 "🚀 시스템 시작" 버튼 클릭하여 /dashboard로 이동
     await page.waitForLoadState('networkidle');
 
     const startButton = page

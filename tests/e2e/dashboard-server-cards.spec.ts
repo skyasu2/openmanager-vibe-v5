@@ -17,10 +17,10 @@ import { TIMEOUTS } from './helpers/timeouts';
 
 test.describe('대시보드 서버 카드 테스트', () => {
   test.beforeEach(async ({ page }) => {
-    // 게스트 로그인 → /main
+    // 게스트 로그인 → / (메인 페이지)
     await guestLogin(page);
 
-    // /main에서 "🚀 시스템 시작" 버튼 클릭하여 /dashboard로 이동
+    // 메인 페이지에서 "🚀 시스템 시작" 버튼 클릭하여 /dashboard로 이동
     await page.waitForLoadState('networkidle');
 
     const startButton = page
