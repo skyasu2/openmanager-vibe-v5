@@ -8,9 +8,9 @@ query_triggers:
   - 'Playwright E2E'
   - 'Vitest 설정'
 related_docs:
-  - 'docs/ops/testing/testing-philosophy-detailed.md'
-  - 'docs/ops/testing/vitest-playwright-config-guide.md'
-  - 'docs/ops/testing/co-location-guide.md'
+  - 'docs/development/testing/testing-philosophy-detailed.md'
+  - 'docs/development/testing/vitest-playwright-config-guide.md'
+  - 'docs/development/testing/co-location-guide.md'
 last_updated: '2025-12-19'
 ---
 
@@ -61,7 +61,7 @@ last_updated: '2025-12-19'
 - **설정 가이드**: vitest-playwright-config-guide, msw-guide, test-templates
 - **철학/전략**: testing-philosophy-detailed, test-strategy-guide, local-test-limitations
 
-**전체 목록**: `ls docs/ops/testing/` 명령어로 확인
+**전체 목록**: `ls docs/development/testing/` 명령어로 확인
 
 ## 🎯 빠른 실행 명령어
 

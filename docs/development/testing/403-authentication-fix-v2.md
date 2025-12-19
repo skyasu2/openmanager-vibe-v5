@@ -381,7 +381,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 - [Playwright Global Setup Documentation](https://playwright.dev/docs/test-global-setup-teardown)
 - [Vercel Protection Bypass for Automation](https://vercel.com/docs/security/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation)
 - [Node.js Worker Threads](https://nodejs.org/api/worker_threads.html)
-- Previous fix attempt: `docs/testing/403-authentication-fix.md`
+- Previous fix attempt: `docs/development/testing/403-authentication-fix.md`
 
 ---
 

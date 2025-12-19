@@ -267,12 +267,12 @@ ls -la "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
 **개발 환경**:
 
 - **docs/development/** - 환경 설정 가이드
-- **docs/claude/environment/** - Claude Code 환경
+- **docs/development/ai/claude-code/** - Claude Code 환경
 
 **테스트**:
 
-- **docs/testing/** - 테스트 전략
-- **docs/claude/testing/** - E2E 테스트
+- **docs/development/testing/** - 테스트 전략
+- **docs/development/testing/e2e/** - E2E 테스트
 
 **스크립트**:
 

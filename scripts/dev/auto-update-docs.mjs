@@ -71,7 +71,7 @@ class DocumentationAutoUpdater {
       'docs/redis-swr-optimization-guide.md',
       'docs/server-management-guide.md',
       'docs/system-architecture.md',
-      'docs/testing-guide.md',
+      'docs/development/testing/README.md',
     ];
 
     let updatedCount = 0;
@@ -251,7 +251,7 @@ class DocumentationAutoUpdater {
       'docs/redis-swr-optimization-guide.md',
       'docs/server-management-guide.md',
       'docs/system-architecture.md',
-      'docs/testing-guide.md',
+      'docs/development/testing/README.md',
     ];
 
     let totalIssues = 0;
