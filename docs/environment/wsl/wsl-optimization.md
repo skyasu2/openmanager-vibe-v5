@@ -121,6 +121,6 @@ claude --version  # v2.0.8 확인
 
 ## 🔗 관련 문서
 
-- [메모리 요구사항](../../core/architecture/memory-requirements.md)
-- [WSL 모니터링 가이드](../../../../docs/troubleshooting/wsl-monitoring-guide.md)
-- [WSL 최적화 분석 리포트](../../../../docs/development/wsl-optimization-analysis-report.md)
+- [메모리 요구사항](../../core/architecture/system/memory-requirements.md)
+- [WSL 모니터링 가이드](./wsl-monitoring-guide.md)
+- [WSL 설정 가이드](./wsl-setup-guide.md)

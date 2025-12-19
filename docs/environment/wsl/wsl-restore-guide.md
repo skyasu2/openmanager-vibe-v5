@@ -1,8 +1,8 @@
 # WSL 재설치 시 개발 환경 복원 가이드
 
-**작성일**: 2025-12-17
-**버전**: 1.1.0
-**대상**: OpenManager VIBE v5.80.0 개발 환경
+**작성일**: 2025-12-19
+**버전**: 1.2.0
+**대상**: OpenManager VIBE v5.83.1 개발 환경
 
 ---
 
@@ -442,7 +442,7 @@ chmod +x scripts/environment/create-wsl-snapshot.sh
 
 - [WSL 최적화 가이드](./wsl-optimization.md)
 - [MCP 설정 가이드](../../development/mcp/setup-guide.md)
-- [프로젝트 환경 설정](../../CLAUDE.md)
+- [프로젝트 환경 설정](../../../CLAUDE.md)
 
 ---
 

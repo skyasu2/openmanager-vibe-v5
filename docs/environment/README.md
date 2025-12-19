@@ -21,18 +21,18 @@ last_updated: '2025-12-14'
 
 이 디렉터리는 **개발자가 로컬에서 개발하기 위한 모든 설정**에 관한 문서를 포함합니다.
 
-## 🏗️ 현재 아키텍처 (v5.82.0)
+## 🏗️ 현재 아키텍처 (v5.83.1)
 
 | 서비스 | 배포 환경 / 호스팅 | 역할 설명 |
 |--------|-------------------|-----------|
-| **Next.js App** | Vercel (Serverless) | 프론트엔드 + API Routes + LangGraph AI |
-| **Supabase MCP** | Google Cloud Run (예정) | Supabase MCP Bridge 서비스 |
+| **Next.js App** | Vercel (Serverless) | 프론트엔드 + BFF API Routes |
+| **AI Engine** | Google Cloud Run | LangGraph Multi-Agent 시스템 |
 | **Supabase DB** | Supabase Cloud (Managed PostgreSQL + Auth) | PostgreSQL 데이터베이스 + 인증(Auth) 제공 |
 
-### AI Services (Vercel)
+### AI Services (Cloud Run)
 
 ```
-src/services/langgraph/
+cloud-run/ai-engine/
 ├── graph-builder.ts        # StateGraph assembly + HITL
 ├── state-definition.ts     # AgentState + DelegationRequest
 ├── checkpointer.ts         # Supabase PostgresSaver
@@ -43,8 +43,8 @@ src/services/langgraph/
     └── reporter-agent.ts   # Llama 70b (Reports + RAG)
 ```
 
-> **Note**: `cloud-run/ai-backend/` was removed (2025-12-14). LangGraph runs on Vercel.
-> Cloud Run is reserved for `cloud-run/supabase-mcp/` (Supabase MCP Bridge).
+> **Note**: AI Engine은 Cloud Run에서 실행됩니다.
+> Vercel API Routes는 Cloud Run으로 프록시하는 BFF 역할을 합니다.
 
 ### Database (Cloud Supabase)
 
@@ -84,7 +84,6 @@ npx supabase db push
 ```
 environment/
 ├── wsl/                   # WSL 설정
-├── tools/                 # 개발 도구 (Claude Code)
 ├── troubleshooting/       # 문제 해결
 └── README.md              # 이 파일
 ```
@@ -94,10 +93,14 @@ environment/
 ### WSL 환경 (wsl/)
 - **[WSL Optimization](./wsl/wsl-optimization.md)**: WSL 최적화 가이드
 - **[WSL Monitoring](./wsl/wsl-monitoring-guide.md)**: WSL 모니터링
-
-### 개발 도구 (tools/)
-- **[Claude Code](./tools/claude-code/claude-code-hooks-guide.md)**: Claude Code 가이드
+- **[WSL Setup](./wsl/wsl-setup-guide.md)**: WSL 설정 가이드
+- **[WSL Restore](./wsl/wsl-restore-guide.md)**: WSL 복구 가이드
 
 ### 문제 해결 (troubleshooting/)
 - **[Common Issues](./troubleshooting/common.md)**: 일반적인 문제들
 - **[Build Issues](./troubleshooting/build.md)**: 빌드 관련 문제
+- **[System Recovery](./troubleshooting/system-recovery-guide-2025.md)**: 시스템 복구
+
+### 개발 도구 (외부 링크)
+- **[Claude Code 가이드](../development/ai/claude-code/README.md)**: Claude Code 사용법
+- **[MCP 설정](../development/mcp/setup-guide.md)**: MCP 서버 설정

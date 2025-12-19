@@ -12,10 +12,10 @@ query_triggers:
   - '일반적인 문제'
 related_docs:
   - 'docs/development/'
-  - 'docs/claude/environment/'
-  - 'docs/testing/'
+  - 'docs/development/ai/claude-code/'
+  - 'docs/development/testing/'
   - 'scripts/'
-last_updated: '2025-12-01'
+last_updated: '2025-12-19'
 ---
 
 # 🔧 트러블슈팅 가이드 (Troubleshooting)
@@ -24,18 +24,18 @@ last_updated: '2025-12-01'
 
 ---
 
-## 📂 문서 목록 (8개)
+## 📂 문서 목록 (7개)
 
 ### 🚨 긴급 복구 (2개)
 
 **AI Query**: "시스템 복구", "긴급 상황"
 
-1. **system-recovery-guide-2025.md** ⚠️ **최우선** - 2025 시스템 복구 가이드
+1. **[system-recovery-guide-2025.md](./system-recovery-guide-2025.md)** ⚠️ **최우선** - 2025 시스템 복구 가이드
    - 긴급 상황 대응 절차
    - 시스템 전체 복구 방법
    - 백업 및 롤백 전략
 
-2. **playwright-mcp-recovery-guide.md** - Playwright MCP 복구 가이드
+2. **[playwright-mcp-recovery-guide.md](./playwright-mcp-recovery-guide.md)** - Playwright MCP 복구 가이드
    - Playwright MCP 서버 복구
    - 브라우저 설정 복구
    - E2E 테스트 환경 재구축
@@ -46,30 +46,25 @@ last_updated: '2025-12-01'
 
 **AI Query**: "일반적인 문제", "빌드 에러"
 
-3. **common.md** ⭐ - 일반적인 문제 해결
+3. **[common.md](./common.md)** ⭐ - 일반적인 문제 해결
    - 자주 발생하는 문제 및 해결법
    - 빠른 참조 가이드
 
-4. **build.md** - 빌드 문제 해결
+4. **[build.md](./build.md)** - 빌드 문제 해결
    - TypeScript 컴파일 에러
    - 의존성 문제
    - 환경변수 설정 오류
 
 ---
 
-### 🤖 AI 도구 문제 (2개)
+### 🤖 AI 도구 문제 (1개)
 
-**AI Query**: "Claude 400 에러", "Google AI 문제"
+**AI Query**: "Claude 400 에러"
 
-5. **claude-400-invalid-json.md** - Claude 400 에러 해결
+5. **[claude-400-invalid-json.md](./claude-400-invalid-json.md)** - Claude 400 에러 해결
    - Invalid JSON 오류 분석
    - API 요청 형식 수정
    - 재시도 로직 구현
-
-6. **google-ai-side-effects-analysis.md** - Google AI Side Effects 분석
-   - Gemini CLI 문제 분석
-   - Side Effects 영향 평가
-   - 해결 방안
 
 ---
 
@@ -77,23 +72,12 @@ last_updated: '2025-12-01'
 
 **AI Query**: "Playwright MCP 문제", "E2E 테스트 오류"
 
-7. **playwright-mcp-recovery-guide.md** (위 #2 참조)
+6. **[playwright-mcp-recovery-guide.md](./playwright-mcp-recovery-guide.md)** (위 #2 참조)
 
-8. **playwright-mcp-side-effects-analysis.md** - Playwright MCP Side Effects 분석
+7. **[playwright-mcp-side-effects-analysis.md](./playwright-mcp-side-effects-analysis.md)** - Playwright MCP Side Effects 분석
    - MCP 서버 Side Effects
    - 브라우저 연동 문제
    - 성능 영향 분석
-
----
-
-### 💻 시스템 모니터링 (1개)
-
-**AI Query**: "WSL 모니터링", "시스템 상태 확인"
-
-9. **wsl-monitoring-guide.md** - WSL 모니터링 가이드
-   - WSL 메모리 모니터링
-   - 성능 지표 추적
-   - 자동 모니터링 설정
 
 ---
 
@@ -171,17 +155,11 @@ last_updated: '2025-12-01'
 **복구 확인**:
 
 ```bash
-# 시스템 상태 확인
-./scripts/check-environment.sh
-
 # MCP 서버 확인
-./scripts/mcp-health-check.sh
-
-# AI 도구 확인 (필요 시)
-./scripts/ai-tools-health-check.sh
+./scripts/mcp/mcp-health-check.sh
 
 # 테스트 실행
-npm run test:fast
+npm run validate:all
 ```
 
 ---
@@ -191,9 +169,6 @@ npm run test:fast
 ### 시스템 복구
 
 ```bash
-# 전체 환경 확인
-./scripts/check-environment.sh
-
 # MCP 서버 재시작
 claude mcp restart
 
@@ -211,26 +186,11 @@ wsl
 rm -rf node_modules package-lock.json
 npm install
 
-# TypeScript 캐시 클리어
-npm run type-check -- --force
+# 전체 검증
+npm run validate:all
 
 # 전체 빌드 테스트
 npm run build
-```
-
----
-
-### AI 도구 문제
-
-```bash
-# AI 도구 헬스 체크
-./scripts/ai-tools-health-check.sh
-
-# Gemini OAuth 재인증
-gemini auth login
-
-# Codex 인증 확인
-codex auth status
 ```
 
 ---
@@ -266,19 +226,17 @@ ls -la "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
 
 **개발 환경**:
 
-- **docs/development/** - 환경 설정 가이드
-- **docs/development/ai/claude-code/** - Claude Code 환경
+- **[개발 환경 가이드](../../development/README.md)** - 환경 설정 가이드
+- **[Claude Code 가이드](../../development/ai/claude-code/README.md)** - Claude Code 환경
 
 **테스트**:
 
-- **docs/development/testing/** - 테스트 전략
-- **docs/development/testing/e2e/** - E2E 테스트
+- **[테스트 전략](../../development/testing/README.md)** - 테스트 전략
+- **[E2E 테스트](../../development/testing/e2e-testing-guide.md)** - E2E 테스트 가이드
 
 **스크립트**:
 
-- **scripts/check-environment.sh** - 환경 검증
-- **scripts/mcp-health-check.sh** - MCP 서버 체크
-- **scripts/ai-tools-health-check.sh** - AI 도구 체크
+- **scripts/mcp/mcp-health-check.sh** - MCP 서버 체크
 
 ---
 
@@ -324,5 +282,5 @@ ls -la "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
 
 ---
 
-**Last Updated**: 2025-10-17 by Claude Code
+**Last Updated**: 2025-12-19 by Claude Code
 **핵심 철학**: "Prevent First, Recover Fast"
