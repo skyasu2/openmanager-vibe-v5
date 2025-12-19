@@ -30,9 +30,9 @@ Orchestrate external AI tools (Codex, Gemini, Claude) for code review with autom
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.80.0
+- **Project**: OpenManager VIBE v5.83.1
 - **Script Version**: auto-ai-review.sh v6.7.0
-- **Primary AI Rotation**: Codex → Gemini → Claude (3-AI 1:1:1 순환)
+- **Primary AI Rotation**: Codex → Gemini → Qwen (3-AI 1:1:1 순환)
 - **Fallback Chain**: Primary → Qwen → Claude
 - **Average Response**: ~10초
 - **Availability**: 99.99%
@@ -221,7 +221,7 @@ rm -f logs/code-reviews/.review-lock
 
 - 2025-12-07: v1.1.0 - Claude CLI 수정 및 3-AI 순환 복원
   - auto-ai-review.sh v6.7.0 연동
-  - 3-AI 1:1:1 rotation (Codex → Gemini → Claude)
+  - 3-AI 1:1:1 rotation (Codex → Gemini → Qwen)
   - 폴백 체인: Primary → Qwen → Claude (복원)
   - Claude CLI 수정: `claude -p "$query"` (올바른 사용법)
   - 13 trigger keywords (Korean/English) + "claude review" 추가

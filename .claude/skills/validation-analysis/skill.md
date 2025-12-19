@@ -27,7 +27,7 @@ Automated analysis of background validation results (Biome + TypeScript + AI Rev
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.80.0
+- **Project**: OpenManager VIBE v5.83.1
 - **Validation Workflow**: post-commit hook (background, 5min timeout)
 - **Output Location**: `/tmp/validation-complete-latest.md`
 - **Components**:
