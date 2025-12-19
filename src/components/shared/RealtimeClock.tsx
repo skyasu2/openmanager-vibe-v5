@@ -23,9 +23,13 @@ export const RealtimeClock = memo(function RealtimeClock({
   className = '',
   locale = 'ko-KR',
 }: RealtimeClockProps) {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  // 🔒 Hydration 불일치 방지: 초기값 null, 마운트 후 시간 설정
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    // 초기 시간 설정
+    setCurrentTime(new Date());
+
     // 다음 초가 시작될 때까지의 시간 계산 (정확한 초 단위 업데이트)
     const now = new Date();
     const msUntilNextSecond = 1000 - now.getMilliseconds();
@@ -50,6 +54,8 @@ export const RealtimeClock = memo(function RealtimeClock({
   }, []); // 빈 의존성 배열 - 컴포넌트 마운트 시 한 번만 실행
 
   const formatTime = () => {
+    if (!currentTime) return '--:--:--';
+
     const options: Intl.DateTimeFormatOptions = {
       hour: '2-digit',
       minute: '2-digit',
@@ -81,9 +87,12 @@ export const DateTimeClock = memo(function DateTimeClock({
   dateFormat = 'short',
   ...clockProps
 }: DateTimeClockProps) {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  // 🔒 Hydration 불일치 방지: 초기값 null, 마운트 후 시간 설정
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    setCurrentTime(new Date());
+
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -92,6 +101,8 @@ export const DateTimeClock = memo(function DateTimeClock({
   }, []);
 
   const formatDate = () => {
+    if (!currentTime) return '--';
+
     const options: Intl.DateTimeFormatOptions =
       dateFormat === 'short'
         ? { month: 'short', day: 'numeric' }

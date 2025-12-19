@@ -17,16 +17,20 @@ import {
  * AI 단어에 그라데이션 애니메이션 적용
  *
  * @param text - 변환할 텍스트 (AI 포함)
- * @param isMounted - SSR 안전성을 위한 클라이언트 마운트 여부 (선택)
+ * @param isMounted - SSR 안전성을 위한 클라이언트 마운트 여부 (기본값: false)
+ *                    Hydration 불일치 방지를 위해 기본값이 false로 설정됨
+ *                    클라이언트 마운트 후 true로 전달하면 애니메이션 스타일 활성화
  * @returns React 엘리먼트 배열
  *
  * @example
- * renderTextWithAIGradient('AI 기반 모니터링')
- * // → 'AI'만 그라데이션, 나머지는 일반 텍스트
+ * // 컴포넌트 내에서 사용
+ * const [isMounted, setIsMounted] = useState(false);
+ * useEffect(() => setIsMounted(true), []);
+ * renderTextWithAIGradient('AI 기반 모니터링', isMounted)
  */
 export function renderTextWithAIGradient(
   text: string,
-  isMounted: boolean = true
+  isMounted: boolean = false
 ): React.ReactNode {
   if (!text.includes('AI')) return text;
 

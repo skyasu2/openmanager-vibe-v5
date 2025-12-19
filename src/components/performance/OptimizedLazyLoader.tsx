@@ -77,13 +77,17 @@ export const LazyLightChart = lazy(() =>
       <div className="h-64 w-full rounded-lg bg-linear-to-br from-blue-50 to-indigo-50 p-4">
         <div className="mb-2 text-sm text-gray-600">성능 차트 (경량 버전)</div>
         <div className="flex h-48 items-end justify-around rounded bg-white/50 p-2">
-          {data.slice(0, 10).map((_, i) => (
-            <div
-              key={i}
-              className="w-4 rounded-t bg-blue-500"
-              style={{ height: `${Math.random() * 80 + 20}%` }}
-            />
-          ))}
+          {data.slice(0, 10).map((_, i) => {
+            // Hydration 안전: 인덱스 기반 결정적 패턴 (Math.random 대신)
+            const heights = [65, 45, 80, 55, 70, 40, 85, 50, 75, 60];
+            return (
+              <div
+                key={i}
+                className="w-4 rounded-t bg-blue-500"
+                style={{ height: `${heights[i % heights.length]}%` }}
+              />
+            );
+          })}
         </div>
       </div>
     ),
