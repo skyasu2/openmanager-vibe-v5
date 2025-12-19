@@ -91,11 +91,11 @@ npm run test:coverage
 - **Playwright**: E2E 테스트
 - **MSW**: API 모킹
 
-### 주요 테스트 유틸리티
+### 주요 테스트 대상
 
-- **UnifiedAIEngineRouter**: 통합 AI 엔진 라우터 테스트
-- **SupabaseRAGEngine**: RAG 엔진 테스트
-- **KoreanNLPEngine**: 한국어 처리 테스트
+- **API Routes**: `/api/ai/*` 엔드포인트 통합 테스트
+- **Cloud Run Integration**: AI 엔진 연동 테스트
+- **Supabase RAG**: pgvector 기반 RAG 테스트
 
 ## 🔧 최신화된 설정 파일
 

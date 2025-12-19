@@ -20,7 +20,6 @@ Claude Code CLI의 고유 기능 (서브에이전트 등)
 | 문서 | 설명 |
 |------|------|
 | [subagents-complete-guide.md](./subagents-complete-guide.md) | 9개 서브에이전트 완전 가이드 |
-| [weekly-subagent-reminder.md](./weekly-subagent-reminder.md) | 주간 서브에이전트 리마인더 |
 
 ## 빠른 참조
 

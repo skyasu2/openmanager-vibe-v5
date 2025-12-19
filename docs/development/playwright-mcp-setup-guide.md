@@ -430,17 +430,13 @@ wsl --shutdown
 
 ## 🔗 관련 문서
 
-### 📖 플레이라이트 테스트 가이드
-
-- **[E2E 테스트 가이드](../environment/testing/e2e.md)** - 기본 E2E 테스트 실행 방법
-- **[종합 E2E 테스트 가이드](../environment/testing/e2e-testing-guide.md)** - 베르셀 환경 테스트 전략 포함
-- **[PIN 인증 테스트 시나리오](../environment/testing/pin-authentication-ai-assistant-test-scenario.md)** - 실제 베르셀 테스트 사례
+### 📖 테스트 가이드
+- **[E2E 테스트 가이드](testing/e2e-testing-guide.md)** - E2E 테스트 전략
+- **[Vitest & Playwright 설정](testing/vitest-playwright-config-guide.md)** - 테스트 환경 설정
 
 ### 🛠️ 환경 설정 문서
-
-- **[WSL 안전 가이드](./wsl-safety-guide.md)** - WSL 설정 변경 시 주의사항
-- **[현재 환경 가이드](./current-environment-guide.md)** - 실제 운영 환경 상태
-- **[MCP 서버 설정](../mcp/setup-guide.md)** - 9개 MCP 서버 완전 가이드
+- **[MCP 서버 설정](mcp/setup-guide.md)** - MCP 서버 완전 가이드
+- **[WSL 가이드](ai/claude-code/wsl-guide.md)** - WSL 환경 설정
 
 ## 📝 결론
 

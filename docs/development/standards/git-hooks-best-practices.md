@@ -318,8 +318,8 @@ echo "💡 Full validation (type-check + build + lint) will run in Vercel CI/CD"
 
 ## 📚 관련 문서
 
-- [Claude Code Hooks 가이드](../environment/claude-code-hooks-guide.md)
-- [개인 워크플로우](../environment/workflows.md)
+- [Claude Code Hooks 가이드](../ai/claude-code/hooks-guide.md)
+- [AI Workflow](../ai/common/workflow.md)
 - [커밋 컨벤션](commit-conventions.md)
 - [TypeScript 규칙](typescript-rules.md)
 

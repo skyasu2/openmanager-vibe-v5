@@ -242,25 +242,20 @@ Task external-ai-orchestrator "인증 시스템 전체 검토"
 
 ---
 
-## 🔗 다음 추천 참조 문서
+## 🔗 관련 문서
 
-### 🚀 워크플로우 시작 체인
-1. **[🔧 MCP Advanced](../mcp/advanced.md)** - 12개 MCP 서버 완전 설치 가이드
-2. **[🐧 WSL Guide](../environment/guides/wsl.md)** - AI CLI 통합 환경 최적화
-3. **[📊 Testing](../environment/testing/README.md)** - 98.2% 커버리지 달성법
+### AI 시스템
+- **[AI Verification](verification.md)** - 검증 시스템
+- **[CLI Strategy](cli-strategy.md)** - 멀티 AI 효율성 전략
+- **[AI Coding Standards](ai-coding-standards.md)** - 코딩 표준
 
-### 🤖 AI 시스템 심화 학습
-1. **[✅ AI Verification](verification.md)** - 3단계 레벨 기반 검증 시스템  
-2. **[🤖 Agents-MCP](agents-mcp.md)** - 서브에이전트 ↔ MCP 도구 매핑
-3. **[🚀 CLI Strategy](cli-strategy.md)** - 멀티 AI 효율성 전략
+### MCP & 도구
+- **[MCP Advanced](../../mcp/advanced.md)** - MCP 서버 가이드
+- **[MCP Tools](../../mcp/tools.md)** - 도구 레퍼런스
 
-### ⚡ 성능 최적화 체인  
-1. **[⚡ Performance](../performance/README.md)** - 152ms 응답시간 달성
-2. **[🎲 Simulation](../simulation/README.md)** - Mock 시스템 완전 이해
-3. **[🛠️ Troubleshoot](../environment/troubleshooting/common.md)** - 일반적인 문제 해결
+### 테스트
+- **[Testing Guide](../../testing/README.md)** - 테스트 전략
+- **[E2E Testing](../../testing/e2e-testing-guide.md)** - E2E 테스트 가이드
 
-### 📚 메인 허브
-- **[📋 문서 인덱스](../README.md)** - 전체 56개 문서 네비게이션
-- **[📁 프로젝트 가이드](../../CLAUDE.md)** - OpenManager VIBE 완전 가이드
-
-💡 **팁**: 각 문서의 `related_docs` 필드를 통해 자동 연관 문서 탐색 가능
+### 프로젝트
+- **[프로젝트 가이드](../../../../CLAUDE.md)** - OpenManager VIBE 가이드

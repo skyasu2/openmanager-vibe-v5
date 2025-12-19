@@ -5,7 +5,6 @@ keywords: [claude-code, subagents, task, specialist, ai]
 priority: high
 ai_optimized: true
 related_docs:
-  - 'weekly-subagent-reminder.md'
   - '../common/ai-collaboration-architecture.md'
 updated: '2025-12-19'
 version: 'v5.83.1'
@@ -178,8 +177,8 @@ bash scripts/ai-subagents/qwen-wrapper.sh "리뷰 요청"
 
 ## 📚 관련 문서
 
-- **[CLAUDE.md](../../CLAUDE.md)** - 메인 프로젝트 가이드
-- **[registry-core.yaml](../../config/ai/registry-core.yaml)** - AI Registry SSOT
+- **[CLAUDE.md](../../../../CLAUDE.md)** - 메인 프로젝트 가이드
+- **[registry-core.yaml](../../../../config/ai/registry-core.yaml)** - AI Registry SSOT
 - **[MCP 가이드](../../mcp/mcp-priority-guide.md)** - MCP 서버 활용
 
 ---

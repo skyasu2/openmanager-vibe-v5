@@ -391,7 +391,7 @@ async function initializeMCPServers() {
 ## 📞 지원 및 문의
 
 **🤖 AI 어시스턴트**: Claude Code + Sequential Thinking
-**📚 문서**: [사이드 이펙트 분석 보고서](./google-ai-side-effects-analysis.md)
+**📚 문서**: [AI Coding Standards](ai/common/ai-coding-standards.md)
 **🔧 설정**: `config/` 폴더의 모든 최적화 파일들
 **📅 업데이트**: 지속적 모니터링을 통한 실시간 개선
 

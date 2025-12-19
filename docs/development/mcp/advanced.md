@@ -240,30 +240,18 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY)"
 
 ---
 
-## 🔗 다음 추천 참조 문서
+## 🔗 관련 문서
 
-### 🚀 MCP 활용 워크플로우 시작
-1. **[🤖 AI Workflow](../ai/workflow.md)** - 4-AI 교차검증과 MCP 도구 연동
-2. **[🐧 WSL Guide](../environment/guides/wsl.md)** - WSL 환경 최적화 (MCP 안정성 필수)
-3. **[🛠️ Troubleshoot](../environment/troubleshooting/common.md)** - MCP 서버 문제 해결 가이드
+### MCP 시스템
+- **[MCP Setup](setup.md)** - 환경별 초기 설치 가이드
+- **[MCP Tools](tools.md)** - 도구 완전 레퍼런스
+- **[MCP Integration](integration.md)** - 서브에이전트와 MCP 연동
+- **[MCP Priority Guide](mcp-priority-guide.md)** - MCP 우선순위 가이드
 
-### 🔧 MCP 시스템 심화 학습
-1. **[📋 MCP Setup](setup.md)** - 환경별 초기 설치 가이드
-2. **[🔍 MCP Tools](tools.md)** - 110개 도구 완전 레퍼런스
-3. **[🤖 MCP Integration](integration.md)** - 서브에이전트와 MCP 연동
+### AI 워크플로우
+- **[AI Workflow](../ai/common/workflow.md)** - AI 교차검증 워크플로우
+- **[AI Coding Standards](../ai/common/ai-coding-standards.md)** - 코딩 표준
+- **[Claude Code Guide](../ai/claude-code/README.md)** - Claude Code 사용 가이드
 
-### ⚡ 성능 및 최적화 체인
-1. **[⚡ Performance](../performance/README.md)** - MCP 서버 성능 최적화
-2. **[📊 Testing](../environment/testing/README.md)** - MCP 도구 테스트 가이드  
-3. **[🎨 UI Components](../ui/components.md)** - shadcn-ui MCP 46개 컴포넌트
-
-### 🏗️ 설계 및 아키텍처
-1. **[🏛️ Design MCP](../design/mcp.md)** - MCP 아키텍처 설계도
-2. **[🤖 Design Sub-Agents](../design/sub-agents.md)** - 12개 서브에이전트 ↔ MCP 매핑  
-3. **[🗄️ Database](../db/schema.md)** - Supabase MCP 연동
-
-### 📚 메인 허브
-- **[📋 문서 인덱스](../README.md)** - 전체 56개 문서 네비게이션
-- **[📁 프로젝트 가이드](../../CLAUDE.md)** - OpenManager VIBE 완전 가이드
-
-💡 **핵심**: **AI 교차검증 + 12개 MCP 서버**로 **27% 토큰 절약** 달성
+### 프로젝트
+- **[프로젝트 가이드](../../../CLAUDE.md)** - OpenManager VIBE 완전 가이드

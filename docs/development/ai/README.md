@@ -21,8 +21,7 @@ version: 'v5.83.1'
 ```
 docs/development/ai/
 ├── claude-code/           # Claude Code 전용 기능
-│   ├── subagents-complete-guide.md
-│   └── weekly-subagent-reminder.md
+│   └── subagents-complete-guide.md
 │
 ├── codex/                 # OpenAI Codex CLI
 │   └── README.md

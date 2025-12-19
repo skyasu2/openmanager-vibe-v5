@@ -30,7 +30,7 @@ CLAUDE.md에 명시된 대로:
 
 ## 🔍 로컬 Vitest 한계 사례 (2025-10-19)
 
-### 사례 1: AIEngineSelector 컴포넌트
+### 사례 1: AI 관련 컴포넌트 (Historical)
 
 **증상**:
 

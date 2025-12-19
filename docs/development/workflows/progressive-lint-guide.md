@@ -201,9 +201,9 @@ npm run lint:strict && npm run type-check
 
 ## 📚 관련 문서
 
-- [Git Hooks Best Practices](../claude/standards/git-hooks-best-practices.md)
-- [TypeScript Rules](../claude/standards/typescript-rules.md)
-- [CI/CD Workflows](../claude/environment/workflows.md)
+- [Git Hooks Best Practices](../standards/git-hooks-best-practices.md)
+- [TypeScript Rules](../standards/typescript-rules.md)
+- [Commit Conventions](../standards/commit-conventions.md)
 
 ---
 

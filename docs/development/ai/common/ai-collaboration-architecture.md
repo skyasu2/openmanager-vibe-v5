@@ -270,10 +270,10 @@ codex config check
 
 ## 📚 관련 문서
 
-- **[auto-ai-review.sh](../../scripts/code-review/auto-ai-review.sh)** - 현재 Dispatcher 구현
-- **[GEMINI.md](../../GEMINI.md)** - Gemini 시스템 프롬프트
-- **[CLAUDE.md](../../CLAUDE.md)** - 프로젝트 메인 가이드
-- **[subagents-complete-guide.md](./subagents-complete-guide.md)** - 서브에이전트 활용
+- **[auto-ai-review.sh](../../../../scripts/code-review/auto-ai-review.sh)** - 현재 Dispatcher 구현
+- **[GEMINI.md](../../../../GEMINI.md)** - Gemini 시스템 프롬프트
+- **[CLAUDE.md](../../../../CLAUDE.md)** - 프로젝트 메인 가이드
+- **[subagents-complete-guide.md](../claude-code/subagents-complete-guide.md)** - 서브에이전트 활용
 
 ---
 

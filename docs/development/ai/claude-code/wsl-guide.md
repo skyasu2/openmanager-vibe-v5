@@ -13,7 +13,7 @@ This guide outlines the optimal setup and best practices for using **Claude Code
 > [!TIP]
 > **2. Resource Allocation**
 > Ensure `.wslconfig` provides enough memory (16GB+) for Claude Code's extensive context processing.
-> *   See [WSL Optimization Guide](./wsl-optimization.md) for configuration details.
+> *   See [WSL Best Practices](../../best-practices/wsl-vibe-coding-best-practices.md) for configuration details.
 
 ---
 
@@ -72,5 +72,5 @@ claude login
 | **Browser Not Opening** | `wslview` missing | Install `wslu`: `sudo apt install wslu`. |
 
 ## 📚 Related Documentation
-*   [WSL Optimization Guide](./wsl-optimization.md): System-level tuning.
+*   [WSL Best Practices](../../best-practices/wsl-vibe-coding-best-practices.md): System-level tuning.
 *   [Official Claude Code Docs](https://docs.anthropic.com/en/docs/claude-code)

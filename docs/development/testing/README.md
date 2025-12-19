@@ -130,18 +130,18 @@ tests/                  # 통합/E2E/API Tests (30개)
 - **Playwright**: E2E 테스트
 - **MSW**: API 모킹
 
-### 주요 테스트 유틸리티
+### 주요 테스트 대상
 
-- **UnifiedAIEngineRouter**: 통합 AI 엔진 라우터 테스트
-- **SupabaseRAGEngine**: RAG 엔진 테스트
-- **KoreanNLPEngine**: 한국어 처리 테스트
+- **API Routes**: `/api/ai/*` 엔드포인트 통합 테스트
+- **Cloud Run Integration**: AI 엔진 연동 테스트
+- **Supabase RAG**: pgvector 기반 RAG 테스트
 
 ## 🔗 관련 도구 & 문서
 
 **서브에이전트**: `Task test-automation-specialist "E2E 테스트 최적화"`
 **MCP 통합**: playwright, memory
 **설정 가이드**: [Vitest & Playwright 설정](./vitest-playwright-config-guide.md)
-**인프라 분석**: [TEST_INFRASTRUCTURE_ANALYSIS.md](../../reports/TEST_INFRASTRUCTURE_ANALYSIS.md)
+**테스트 전략**: [Test Strategy Guide](./test-strategy-guide.md)
 
 ## 📦 아카이브 (Legacy)
 

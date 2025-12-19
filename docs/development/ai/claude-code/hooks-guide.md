@@ -293,9 +293,9 @@ time npm run format:check  # ~3초
 
 ## 🔗 관련 문서
 
-- [Claude Code 공식 Hooks 문서](https://docs.claude.com/en/docs/claude-code/hooks)
-- [Git Hooks Best Practices](../standards/git-hooks-best-practices.md)
-- [개인 워크플로우](workflows.md)
+- [Claude Code 공식 Hooks 문서](https://docs.anthropic.com/en/docs/claude-code/hooks)
+- [Git Hooks Best Practices](../../standards/git-hooks-best-practices.md)
+- [AI Workflow](../common/workflow.md)
 
 ---
 

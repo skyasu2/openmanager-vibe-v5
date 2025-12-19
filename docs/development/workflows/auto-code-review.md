@@ -254,9 +254,9 @@ cat logs/code-reviews/review-2025-11-19-*.md
 
 ## 🔗 관련 문서
 
-- **[CLAUDE.md](../../CLAUDE.md)** - 메인 프로젝트 가이드
-- **[워크플로우 통합](../claude/1_workflows.md)** - 일일 개발 루틴
-- **[서브에이전트 가이드](../ai/subagents-complete-guide.md)** - codex-specialist
+- **[CLAUDE.md](../../../CLAUDE.md)** - 메인 프로젝트 가이드
+- **[서브에이전트 가이드](../ai/claude-code/subagents-complete-guide.md)** - codex-specialist
+- **[AI 코딩 표준](../ai/common/ai-coding-standards.md)** - 코드 리뷰 기준
 
 ---
 
