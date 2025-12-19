@@ -19,9 +19,9 @@
 
 ### 설정별 용도
 
-- **메인**: `vitest.config.ts` (일반 테스트)
-- **최소**: `vitest.config.minimal.ts` (22ms 초고속)
-- **DOM**: `vitest.config.dom.ts` (React 컴포넌트)
+- **메인**: `vitest.config.main.ts` (일반 테스트, jsdom 환경)
+- **최소**: `vitest.config.minimal.ts` (22ms 초고속, node 환경)
+- **간단**: `vitest.config.simple.ts` (커버리지 측정용)
 
 ## ⚡ E2E 테스트 (Playwright)
 
@@ -40,9 +40,9 @@ npx playwright test --headed # 브라우저 보이게
 ### Playwright 설정
 
 - **URL**: http://localhost:3000
-- **브라우저**: Chromium, Firefox, WebKit
-- **타임아웃**: 테스트 60초, 서버 시작 3분
-- **리포터**: HTML, JSON, JUnit
+- **브라우저**: Chromium only (성능 최적화)
+- **타임아웃**: 테스트 120초, 서버 시작 3분
+- **리포터**: HTML, JSON
 
 ### 현재 구현된 테스트
 

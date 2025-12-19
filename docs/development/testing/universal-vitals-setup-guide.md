@@ -1,7 +1,5 @@
 # 🎯 Universal Vitals 통합 테스트 가이드
 
-> **📝 빠른 참조**: 핵심 요약은 [@universal-vitals-summary.md](./universal-vitals-summary.md) 참조
-
 **메인 테스트는 Vitals 기반으로 여러 테스트 도구 활용** - 모든 테스트 도구를 하나의 성능 메트릭 시스템으로 통합
 
 ## 🌟 개요
