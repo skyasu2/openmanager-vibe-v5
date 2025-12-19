@@ -18,18 +18,17 @@ export interface StatusColorConfig {
   gradient?: string;
 }
 
-export interface MetricThreshold {
-  warning: number;
-  critical: number;
-}
+// 🎯 임계값은 외부화된 규칙 시스템 사용
+// @see src/config/rules/system-rules.json (Single Source of Truth)
+import { getAllThresholds, type MetricThreshold } from '@/config/rules';
 
-// 메트릭별 임계값 정의
-export const METRIC_THRESHOLDS: Record<string, MetricThreshold> = {
-  cpu: { warning: 70, critical: 85 },
-  memory: { warning: 80, critical: 90 },
-  disk: { warning: 80, critical: 95 },
-  network: { warning: 70, critical: 85 }, // 🔧 수정: 60→70, 80→85 (다른 메트릭과 일관성)
-};
+export type { MetricThreshold };
+
+/**
+ * 메트릭별 임계값 (외부 설정에서 로드)
+ * @deprecated 직접 사용 대신 `import { getThreshold } from '@/config/rules'` 권장
+ */
+export const METRIC_THRESHOLDS: Record<string, MetricThreshold> = getAllThresholds();
 
 // 서버 상태별 색상 테마
 export const SERVER_STATUS_COLORS = {

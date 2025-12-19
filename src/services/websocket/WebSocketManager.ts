@@ -277,10 +277,13 @@ export class WebSocketManager {
           };
         });
 
-        // 임계값 초과 시 알림 발생
+        // 임계값 초과 시 알림 발생 (@see src/config/rules/system-rules.json)
+        const { isCritical } = await import('@/config/rules');
         if (
           serverMetrics.some(
-            (server) => server.metrics.cpu > 85 || server.metrics.memory > 90
+            (server) =>
+              isCritical('cpu', server.metrics.cpu) ||
+              isCritical('memory', server.metrics.memory)
           )
         ) {
           this.alertSubject.next({
@@ -530,15 +533,26 @@ export class WebSocketManager {
   }
 
   /**
-   * 🎯 우선순위 계산
+   * 🎯 우선순위 계산 (@see src/config/rules/system-rules.json)
    */
   private calculatePriority(
     cpu: number,
     memory: number
   ): 'low' | 'medium' | 'high' | 'critical' {
-    if (cpu > 95 || memory > 95) return 'critical';
-    if (cpu > 85 || memory > 85) return 'high';
-    if (cpu > 70 || memory > 70) return 'medium';
+    // 외부화된 임계값 사용
+    const { getThreshold } = require('@/config/rules');
+    const cpuThreshold = getThreshold('cpu');
+    const memoryThreshold = getThreshold('memory');
+
+    // critical 초과 (임계값 + 10%)
+    if (cpu > cpuThreshold.critical + 10 || memory > memoryThreshold.critical + 5)
+      return 'critical';
+    // critical 수준
+    if (cpu > cpuThreshold.critical || memory > memoryThreshold.critical)
+      return 'high';
+    // warning 수준
+    if (cpu > cpuThreshold.warning || memory > memoryThreshold.warning)
+      return 'medium';
     return 'low';
   }
 

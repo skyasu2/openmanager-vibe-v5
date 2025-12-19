@@ -12,6 +12,8 @@
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';
 // 🎯 Scenario-based failure data (Single Source of Truth)
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
+// 🎯 외부화된 규칙 시스템 (Single Source of Truth for thresholds)
+import { getServerStatus } from '@/config/rules';
 import type { Server } from '@/types/server';
 
 export interface ServerDataSourceConfig {
@@ -255,10 +257,9 @@ export class UnifiedServerDataSource {
       const network = dataPoint?.network ?? 0;
       const logs = dataPoint?.logs ?? [];
 
-      // Status 결정 (CPU 기준 단순화)
-      let status: 'online' | 'warning' | 'critical' = 'online';
-      if (cpu >= 80) status = 'critical';
-      else if (cpu >= 60) status = 'warning';
+      // Status 결정 (외부화된 규칙 사용)
+      // @see src/config/rules/system-rules.json
+      const status = getServerStatus({ cpu, memory, disk, network });
 
       return {
         id: dataset.serverId,

@@ -6,6 +6,7 @@
  */
 
 import { getCachedData, setCachedData } from '../../lib/cache/cache-helper';
+import { isCritical, isWarning, getThreshold } from '@/config/rules';
 
 export interface IncidentReport {
   id: string;
@@ -64,7 +65,7 @@ export class IncidentReportService {
     // CPU 과부하
     {
       type: 'cpu_overload',
-      pattern: (m) => m.cpu > 90,
+      pattern: (m) => isCritical('cpu', m.cpu),
       severity: 'critical',
       title: 'CPU 과부하 감지',
       recommendations: [
@@ -78,7 +79,7 @@ export class IncidentReportService {
     // 메모리 부족
     {
       type: 'memory_shortage',
-      pattern: (m) => m.memory > 85,
+      pattern: (m) => isCritical('memory', m.memory),
       severity: 'high',
       title: '메모리 부족 경고',
       recommendations: [
@@ -92,7 +93,7 @@ export class IncidentReportService {
     // 디스크 공간 부족
     {
       type: 'disk_full',
-      pattern: (m) => m.disk > 90,
+      pattern: (m) => isCritical('disk', m.disk),
       severity: 'high',
       title: '디스크 공간 부족',
       recommendations: [
@@ -106,7 +107,7 @@ export class IncidentReportService {
     // 네트워크 포화
     {
       type: 'network_saturation',
-      pattern: (m) => (m.network || 0) > 150,
+      pattern: (m) => isCritical('network', m.network || 0),
       severity: 'medium',
       title: '네트워크 트래픽 포화',
       recommendations: [
@@ -134,7 +135,7 @@ export class IncidentReportService {
     // 응답 시간 지연
     {
       type: 'slow_response',
-      pattern: (m) => (m.responseTime || 0) > 3000,
+      pattern: (m) => isWarning('responseTime', m.responseTime || 0),
       severity: 'medium',
       title: '응답 시간 지연',
       recommendations: [
@@ -148,7 +149,7 @@ export class IncidentReportService {
     // 복합 장애 (여러 지표 동시 이상)
     {
       type: 'multiple_issues',
-      pattern: (m) => m.cpu > 80 && m.memory > 80,
+      pattern: (m) => isWarning('cpu', m.cpu) && isWarning('memory', m.memory),
       severity: 'critical',
       title: '복합 시스템 장애',
       recommendations: [
@@ -532,16 +533,35 @@ export class IncidentReportService {
       normal: [],
     };
 
+    // 임계값 조회 (system-rules.json 기반)
+    const cpuThreshold = getThreshold('cpu');
+    const memThreshold = getThreshold('memory');
+
     for (const metric of metrics) {
-      if (metric.cpu > 90 || metric.memory > 90) {
+      // Critical: 둘 다 critical 수준 이상
+      if (isCritical('cpu', metric.cpu) || isCritical('memory', metric.memory)) {
         groups.critical?.push(metric);
-      } else if (metric.cpu > 80 || metric.memory > 80) {
+      }
+      // High: Warning 이상 (하나라도)
+      else if (isWarning('cpu', metric.cpu) || isWarning('memory', metric.memory)) {
         groups.high?.push(metric);
-      } else if (metric.cpu > 70 || metric.memory > 70) {
+      }
+      // Medium: Warning 직전 (warning의 80% 이상)
+      else if (
+        metric.cpu > cpuThreshold.warning * 0.8 ||
+        metric.memory > memThreshold.warning * 0.8
+      ) {
         groups.medium?.push(metric);
-      } else if (metric.cpu > 60 || metric.memory > 60) {
+      }
+      // Low: 관심 수준 (warning의 60% 이상)
+      else if (
+        metric.cpu > cpuThreshold.warning * 0.6 ||
+        metric.memory > memThreshold.warning * 0.6
+      ) {
         groups.low?.push(metric);
-      } else {
+      }
+      // Normal: 정상
+      else {
         groups.normal?.push(metric);
       }
     }
