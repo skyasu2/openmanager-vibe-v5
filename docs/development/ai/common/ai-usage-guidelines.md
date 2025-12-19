@@ -1,8 +1,21 @@
+---
+id: ai-usage-guidelines
+title: AI 도구 사용 가이드라인
+keywords: [ai, usage, guidelines, do, dont]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'ai-coding-standards.md'
+  - 'ai-benchmarks.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # AI 도구 사용 가이드라인
 
 **DO/DON'T 통합 가이드** - Codex, Gemini, Qwen, Claude Code
 
-최종 업데이트: 2025-11-27
+최종 업데이트: 2025-12-19
 
 ---
 

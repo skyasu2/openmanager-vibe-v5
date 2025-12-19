@@ -1,7 +1,15 @@
 ---
-category: common-ai
-purpose: multi_ai_shared_documentation
-last_updated: '2025-12-08'
+id: common-ai-docs
+title: 공통 AI 문서
+keywords: [ai, multi-ai, claude, gemini, codex, qwen, workflow]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'ai-coding-standards.md'
+  - 'workflow.md'
+  - '../claude-code/README.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
 ---
 
 # 공통 AI 문서

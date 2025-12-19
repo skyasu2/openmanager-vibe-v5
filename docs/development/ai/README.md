@@ -1,7 +1,15 @@
 ---
-category: development-ai
-purpose: development_ai_tools_hub
-last_updated: '2025-12-08'
+id: ai-tools-hub
+title: 개발용 AI 도구
+keywords: [ai, claude-code, codex, gemini, qwen, development]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'claude-code/README.md'
+  - 'common/README.md'
+  - '../mcp/README.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
 ---
 
 # 개발용 AI 도구

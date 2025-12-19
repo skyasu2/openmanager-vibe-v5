@@ -1,7 +1,14 @@
 ---
-category: claude-code
-purpose: claude_code_specific_features
-last_updated: '2025-12-08'
+id: claude-code-features
+title: Claude Code 전용 기능
+keywords: [claude-code, subagent, task, cli, automation]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'subagents-complete-guide.md'
+  - '../common/workflow.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
 ---
 
 # Claude Code 전용 기능

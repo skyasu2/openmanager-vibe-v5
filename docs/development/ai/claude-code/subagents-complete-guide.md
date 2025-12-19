@@ -1,6 +1,19 @@
+---
+id: subagents-complete-guide
+title: Claude Code 서브에이전트 완전 가이드
+keywords: [claude-code, subagents, task, specialist, ai]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'weekly-subagent-reminder.md'
+  - '../common/ai-collaboration-architecture.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # 🤖 Claude Code 서브에이전트 완전 가이드
 
-**OpenManager VIBE 프로젝트 전용** | 최종 업데이트: 2025-12-10
+**OpenManager VIBE 프로젝트 전용** | 최종 업데이트: 2025-12-19
 
 > 이 문서는 Claude Code에서 사용하는 8개 전문 서브에이전트의 활용법을 다룹니다.
 

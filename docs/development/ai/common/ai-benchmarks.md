@@ -1,8 +1,21 @@
+---
+id: ai-benchmarks
+title: AI 도구 벤치마크 비교
+keywords: [ai, benchmarks, codex, gemini, qwen, claude]
+priority: medium
+ai_optimized: true
+related_docs:
+  - 'ai-coding-standards.md'
+  - 'ai-usage-guidelines.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # AI 도구 벤치마크 비교
 
 **2025년 성능 지표** - Codex, Gemini, Qwen 벤치마크
 
-최종 업데이트: 2025-11-27
+최종 업데이트: 2025-12-19
 
 ---
 

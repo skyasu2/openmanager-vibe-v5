@@ -1,3 +1,16 @@
+---
+id: weekly-subagent-reminder
+title: 사용 가능한 도구 가이드
+keywords: [subagent, tools, skills, mcp, claude-code]
+priority: medium
+ai_optimized: true
+related_docs:
+  - 'subagents-complete-guide.md'
+  - '../common/workflow.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # 🛠️ 사용 가능한 도구 가이드
 
 **목적**: 필요할 때 찾아 쓸 수 있는 도구 카탈로그

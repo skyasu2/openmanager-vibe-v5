@@ -4,7 +4,11 @@ title: "AI CLI Collaboration Strategy"
 keywords: ["cli", "collaboration", "gemini", "codex", "qwen", "kiro"]
 priority: medium
 ai_optimized: true
-updated: "2025-12-17"
+related_docs:
+  - 'ai-wrappers-guide.md'
+  - 'workflow.md'
+updated: "2025-12-19"
+version: "v5.83.1"
 ---
 
 # 🤝 AI CLI Collaboration Strategy

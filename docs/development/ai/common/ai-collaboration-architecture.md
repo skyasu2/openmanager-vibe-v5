@@ -1,7 +1,20 @@
+---
+id: ai-collaboration-architecture
+title: AI 협업 아키텍처 설계
+keywords: [ai, collaboration, architecture, codex, gemini, claude]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'ai-usage-guidelines.md'
+  - 'workflow.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # 🤖 AI 협업 아키텍처 설계
 
-**프로젝트**: OpenManager VIBE v5.80.0  
-**최종 수정**: 2025-11-21  
+**프로젝트**: OpenManager VIBE v5.83.1
+**최종 수정**: 2025-12-19
 **상태**: Phase 1 완료 ✅
 
 ---
