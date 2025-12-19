@@ -6,7 +6,6 @@ priority: medium
 ai_optimized: true
 related_docs:
   - '../../core/architecture/module-structure.md'
-  - '../pm2-workflow-guide.md'
 updated: '2025-12-19'
 version: 'v5.83.1'
 ---

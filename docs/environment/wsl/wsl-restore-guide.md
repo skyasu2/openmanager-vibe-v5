@@ -36,9 +36,8 @@ cd "$(git rev-parse --show-toplevel)" && \
 **참고**: 백업 디렉토리는 `wsl-restore-backup-YYYYMMDD_HHMMSS` 형식으로 타임스탬프 기반 생성됩니다. 실제 경로는 스크립트 실행 시 출력되는 메시지를 확인하세요.
 
 - `apt-packages.txt` - apt 패키지 목록 (1076개)
-- `npm-global-packages.json` - npm 글로벌 패키지 (8개)
+- `npm-global-packages.json` - npm 글로벌 패키지
 - `cargo-packages.txt` - Rust/Cargo 패키지
-- `pm2-dump.pm2` - PM2 프로세스 목록
 - `git-config.txt` - Git 설정
 - `bashrc.backup` - Shell 설정
 - `wslconfig.backup` - WSL 최적화 설정
@@ -184,13 +183,12 @@ npm config set prefix ~/.npm-global
 echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
 
-# 글로벌 패키지 복원 (핵심 8개) - 2025.12.17 기준 최신화
+# 글로벌 패키지 복원 (핵심 6개) - 2025.12.19 기준 최신화
 npm install -g @anthropic-ai/claude-code@2.0.71
 npm install -g @google/gemini-cli@0.25.0
 npm install -g @openai/codex@0.73.0
 npm install -g @qwen-code/qwen-code@0.5.1
 npm install -g n@10.2.0
-npm install -g pm2@6.0.14
 npm install -g vercel@48.9.0
 
 # 설치 확인
@@ -268,22 +266,6 @@ cp .env.example .env.local
 npm run env:check
 ```
 
-### 4. PM2 프로세스 복원
-
-```bash
-# PM2 dump 파일 복원 (선택사항)
-cp /mnt/c/wsl-backup/wsl-restore-backup/pm2-dump.pm2 ~/.pm2/dump.pm2
-
-# PM2 프로세스 복원
-pm2 resurrect
-
-# 또는 수동 시작
-pm2 start ecosystem.config.js
-
-# 상태 확인
-pm2 status
-```
-
 ---
 
 ## ✅ 검증 및 테스트
@@ -320,25 +302,21 @@ uv --version       # uv 0.9.7
 
 # Git
 git --version
-
-# PM2
-pm2 --version
 ```
 
 ### 3. 글로벌 패키지 확인
 
 ```bash
-# npm 글로벌 패키지 (8개)
+# npm 글로벌 패키지 (6개)
 npm list -g --depth=0
 
 # 예상 출력:
-# ├── @anthropic-ai/claude-code@2.0.53
-# ├── @google/gemini-cli@0.18.4
-# ├── @openai/codex@0.63.0
-# ├── @qwen-code/qwen-code@0.2.3
-# ├── n@10.2.0
-# ├── pm2@6.0.14
-# └── vercel@48.9.0
+# ├── @anthropic-ai/claude-code@latest
+# ├── @google/gemini-cli@latest
+# ├── @openai/codex@latest
+# ├── @qwen-code/qwen-code@latest
+# ├── n@latest
+# └── vercel@latest
 ```
 
 ### 4. 프로젝트 빌드 테스트
@@ -354,8 +332,7 @@ npm run test:super-fast
 npm run build
 
 # 개발 서버 시작
-pm2 start ecosystem.config.js
-pm2 status
+npm run dev
 ```
 
 ### 5. MCP 서버 연결 확인
@@ -390,22 +367,7 @@ sudo chown -R $(whoami) ~/.npm-global
 npm install
 ```
 
-### 문제 2: PM2가 시작되지 않음
-
-**증상**: `pm2 list` 시 `PM2 daemon not running`
-
-**해결책**:
-
-```bash
-# PM2 재시작
-pm2 resurrect
-
-# 또는 수동 시작
-pm2 start ecosystem.config.js
-pm2 save
-```
-
-### 문제 3: WSL 네트워크 문제
+### 문제 2: WSL 네트워크 문제
 
 **증상**: `npm install` 또는 `git clone` 시 연결 오류
 
@@ -422,7 +384,7 @@ pm2 save
 # (PowerShell에서) wsl
 ```
 
-### 문제 4: Node.js 버전 불일치
+### 문제 3: Node.js 버전 불일치
 
 **증상**: `node --version`이 다른 버전 표시
 
@@ -474,24 +436,19 @@ chmod +x scripts/environment/create-wsl-snapshot.sh
    - `.env.local`은 Git 제외 (비밀 값)
    - 별도 안전한 곳에 백업
 
-4. **PM2 자동 시작**
-   - `pm2 save`로 현재 상태 저장
-   - `pm2 startup`으로 자동 시작 설정
-
 ---
 
 ## 📖 관련 문서
 
 - [WSL 최적화 가이드](./wsl-optimization.md)
-- [PM2 워크플로우 가이드](../development/pm2-workflow-guide.md)
-- [MCP 설정 가이드](../development/mcp/setup-guide.md)
+- [MCP 설정 가이드](../../development/mcp/setup-guide.md)
 - [프로젝트 환경 설정](../../CLAUDE.md)
 
 ---
 
-**마지막 업데이트**: 2025-12-17
+**마지막 업데이트**: 2025-12-19
 **작성자**: Claude Code
-**버전**: 1.0.0
+**버전**: 1.1.1
 
 ---
 
