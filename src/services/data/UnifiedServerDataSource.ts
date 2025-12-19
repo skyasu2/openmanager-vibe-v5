@@ -11,11 +11,8 @@
 
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';
 // 🎯 Scenario-based failure data (Single Source of Truth)
-import {
-  type EnhancedServerMetrics,
-  loadHourlyScenarioData,
-} from '@/services/scenario/scenario-loader';
-import type { Server, ServerEnvironment, ServerRole } from '@/types/server';
+import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
+import type { Server } from '@/types/server';
 
 export interface ServerDataSourceConfig {
   totalServers: number;
@@ -306,14 +303,6 @@ export class UnifiedServerDataSource {
     });
 
     return servers;
-  }
-
-  /**
-   * 🗑️ (Deprecated) 데이터 소스 로드 (Scenario-based failure data)
-   * 더 이상 사용하지 않음
-   */
-  private async loadFromCustomSource(): Promise<Server[]> {
-    return this.loadFromFixedSource();
   }
 
   /**
