@@ -9,18 +9,10 @@
  * @route POST /api/rules (Admin only) - Update rules
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { type NextRequest, NextResponse } from 'next/server';
 import systemRulesJson from '@/config/rules/system-rules.json';
-import type { SystemRules, MetricThreshold } from '@/config/rules/types';
-
-interface RulesApiResponse {
-  success: boolean;
-  data?: SystemRules | MetricThreshold;
-  source: 'supabase' | 'json';
-  message?: string;
-  error?: string;
-}
+import type { MetricThreshold, SystemRules } from '@/config/rules/types';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
  * GET /api/rules

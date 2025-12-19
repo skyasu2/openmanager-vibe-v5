@@ -291,13 +291,40 @@ export function getAnalystModel(): ChatGoogleGenerativeAI {
   });
 }
 
-export function getReporterModel(): ChatGroq {
+export function getReporterModel(): ChatGroq | ChatGoogleGenerativeAI {
   const config = AGENT_MODEL_CONFIG.reporter;
+  const isDev = process.env.NODE_ENV === 'development';
+
+  // Production: Use Gemini for Reporter to leverage Google Search Grounding
+  if (!isDev) {
+    // Override to use Gemini in production for Search Grounding
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (new ChatGoogleGenerativeAI({
+      apiKey: getActiveGeminiKey(),
+      model: 'gemini-2.5-flash', // Use Flash for efficiency/free tier
+      temperature: 0.3,
+      maxOutputTokens: 2048,
+    }) as any).bind({
+      tools: [
+        {
+          googleSearchRetrieval: {
+            dynamicRetrievalConfig: {
+              mode: 'MODE_DYNAMIC',
+              dynamicThreshold: 0.3,
+            },
+          },
+        },
+      ],
+    });
+  }
+
+  // Development: Use Groq for faster iteration
   return createGroqModel(config.model, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });
 }
+
 
 // ============================================================================
 // 5. API Key Validation
