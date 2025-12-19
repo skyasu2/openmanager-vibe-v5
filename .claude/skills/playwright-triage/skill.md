@@ -65,8 +65,8 @@ parse_playwright_logs() {
   echo "🔍 Parsing Playwright Logs from $results_dir"
   echo ""
 
-  # Find all test result JSON files
-  find "$results_dir" -name "*.json" -type f | while read -r json_file; do
+  # Find all test result JSON files (safe for paths with spaces/special chars)
+  find "$results_dir" -name "*.json" -type f -print0 | while IFS= read -r -d '' json_file; do
     # Extract test name (using double-escaped patterns for replace_regex tool)
     test_name=$(grep -oP '"title":\s*"\K[^"]+' "$json_file" | head -1)
 
@@ -716,8 +716,8 @@ track_failure_pattern() {
     echo "Date,TestName,FailureType,Count" > "$tracking_db"
   fi
 
-  # Check if entry exists for today
-  if grep -q "^${timestamp},${test_name},${failure_type}," "$tracking_db"; then
+  # Check if entry exists for today (use -F for literal matching, safe for special chars)
+  if grep -Fq "${timestamp},${test_name},${failure_type}," "$tracking_db"; then
     # Increment count
     awk -F',' -v date="$timestamp" -v test="$test_name" -v type="$failure_type" \
       'BEGIN{OFS=","} $1==date && $2==test && $3==type {$4=$4+1} {print}' \
@@ -760,10 +760,18 @@ analyze_failure_patterns() {
     sort
   echo ""
 
-  # Recent trend (last 7 days)
+  # Recent trend (last 7 days) - macOS/Linux compatible
   echo "📈 Recent Trend (Last 7 days):"
+  local cutoff
+  if command -v gdate >/dev/null 2>&1; then
+    cutoff=$(gdate -d '7 days ago' +%Y-%m-%d)
+  elif date -d '7 days ago' +%Y-%m-%d >/dev/null 2>&1; then
+    cutoff=$(date -d '7 days ago' +%Y-%m-%d)
+  else
+    cutoff=$(date -v-7d +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)
+  fi
   tail -n +2 "$tracking_db" | \
-    awk -F',' -v cutoff="$(date -d '7 days ago' +%Y-%m-%d)" '$1 >= cutoff {sum+=$4} END {print "  Total failures:", sum}'
+    awk -F',' -v cutoff="$cutoff" '$1 >= cutoff {sum+=$4} END {print "  Total failures:", sum}'
   echo ""
 }
 
