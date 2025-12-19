@@ -149,7 +149,7 @@ src/          (실제 코드)
 
 ### 새 기능 설계 시
 
-- `docs/core/architecture/system-architecture-current.md` → 전체 구조 확인
+- `docs/core/architecture/system/system-architecture-current.md` → 전체 구조 확인
 - `specs/work-plan-template.md` → 템플릿
 - `features/[topic].md` → 일반 설계
 - `current/[feature]-v5.XX.md` → 구체적 구현

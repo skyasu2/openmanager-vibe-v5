@@ -105,7 +105,7 @@ useEffect(() => {
 
 **중요도**: 🔴 **HIGH** - 타입 안전성 기준
 
-**관련**: docs/core/architecture/type-system-consistency.md (더 상세)
+**관련**: docs/core/architecture/system/type-system-consistency.md (더 상세)
 
 ---
 
@@ -186,7 +186,7 @@ useEffect(() => {
 **참고 순서**:
 
 1. `types.md` (15분) - 기본 타입 가이드
-2. `docs/core/architecture/type-system-consistency.md` (15분) - 일관성 원칙
+2. `docs/core/architecture/system/type-system-consistency.md` (15분) - 일관성 원칙
 3. `docs/core/architecture/typescript-any-removal-project-report.md` (20분) - any 제거 전략
 
 ---
@@ -233,7 +233,7 @@ useEffect(() => {
 
 **타입 시스템**:
 
-- guides/types.md (기본) → docs/core/architecture/type-system-consistency.md (상세)
+- guides/types.md (기본) → docs/core/architecture/system/type-system-consistency.md (상세)
 - 변경 시 두 문서 동기화 필요
 
 **시뮬레이션**:

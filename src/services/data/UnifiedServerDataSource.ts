@@ -100,7 +100,7 @@ export class UnifiedServerDataSource {
    * const servers = await getServersFromUnifiedSource();
    *
    * @see {@link loadHourlyScenarioData} 실제 데이터 소스
-   * @see {@link docs/core/architecture/data-architecture.md} 아키텍처 가이드
+   * @see {@link docs/core/architecture/data/data-architecture.md} 아키텍처 가이드
    */
   public async getServers(): Promise<Server[]> {
     // 캐시 확인

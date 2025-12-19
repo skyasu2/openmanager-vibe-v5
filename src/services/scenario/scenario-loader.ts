@@ -111,7 +111,7 @@ export interface EnhancedServerMetrics {
  *
  * @throws {Error} JSON 파일 로드 실패 시 (폴백 없음, 명시적 실패)
  *
- * @see {@link docs/core/architecture/data-architecture.md} 데이터 아키텍처 가이드
+ * @see {@link docs/core/architecture/data/data-architecture.md} 데이터 아키텍처 가이드
  * @see {@link UnifiedServerDataSource} 통합 데이터 접근 계층
  */
 export async function loadHourlyScenarioData(): Promise<
