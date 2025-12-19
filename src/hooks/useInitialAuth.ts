@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isVercel } from '@/env';
 import {
@@ -46,45 +46,14 @@ const initialState: InitialAuthState = {
  */
 export function useInitialAuth() {
   const [state, setState] = useState<InitialAuthState>(initialState);
-  const router = useRouter();
   const pathname = usePathname();
   const initRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const redirectRef = useRef(false);
 
   // 상태 업데이트 헬퍼
   const updateState = useCallback((updates: Partial<InitialAuthState>) => {
     setState((prev) => ({ ...prev, ...updates }));
   }, []);
-
-  // 안전한 리다이렉트 헬퍼 (안정된 환경 감지)
-  const safeRedirect = useCallback(
-    (targetPath: string) => {
-      if (redirectRef.current || pathname === targetPath) {
-        console.log(
-          debugWithEnv(
-            `🚫 리다이렉트 스킵: 현재 경로(${pathname}) === 타겟(${targetPath}) 또는 이미 리다이렉트됨`
-          )
-        );
-        return;
-      }
-
-      redirectRef.current = true;
-      console.log(
-        debugWithEnv(`🔄 안전한 리다이렉트: ${pathname} → ${targetPath}`)
-      );
-
-      setTimeout(() => {
-        try {
-          router.replace(targetPath);
-        } catch (error) {
-          console.error(debugWithEnv('❌ 리다이렉트 실패'), error);
-          redirectRef.current = false;
-        }
-      }, initDelay);
-    },
-    [pathname, router]
-  );
 
   // 통합 초기화 프로세스
   const initializeAuth = useCallback(async () => {
@@ -128,9 +97,11 @@ export function useInitialAuth() {
         finalGitHubStatus: isActuallyGitHubUser,
       });
 
+      // 비로그인 상태에서도 메인 페이지 표시 (로그인 버튼으로 유도)
       if (!user) {
-        console.log(debugWithEnv('🚫 인증되지 않음 - 로그인 페이지로 이동'));
-        safeRedirect('/login');
+        console.log(
+          debugWithEnv('ℹ️ 비로그인 상태 - 메인 페이지에서 로그인 버튼 표시')
+        );
       } else {
         console.log(
           debugWithEnv('✅ 인증 성공'),
@@ -148,9 +119,12 @@ export function useInitialAuth() {
         isGitHubConnected: false,
         error: error instanceof Error ? error.message : 'Authentication failed',
       });
-      safeRedirect('/login');
+      // 에러 발생 시에도 메인 페이지에서 로그인 버튼 표시 (리다이렉트 제거)
+      console.log(
+        debugWithEnv('⚠️ 인증 에러 - 메인 페이지에서 로그인 버튼 표시')
+      );
     }
-  }, [pathname, safeRedirect, updateState]);
+  }, [pathname, updateState]);
 
   useEffect(() => {
     console.log(debugWithEnv('🔄 useInitialAuth 초기화 시작'));
@@ -179,7 +153,6 @@ export function useInitialAuth() {
   useEffect(() => {
     return () => {
       initRef.current = false;
-      redirectRef.current = false;
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
@@ -188,7 +161,6 @@ export function useInitialAuth() {
 
   const retry = useCallback(() => {
     initRef.current = false;
-    redirectRef.current = false;
     setState(initialState);
     void initializeAuth();
   }, [initializeAuth]);
@@ -211,7 +183,7 @@ export function useInitialAuth() {
     retry,
     getLoadingMessage,
     isReady: state.currentStep === 'complete' && !state.isLoading,
-    shouldRedirect: !state.isLoading && !state.isAuthenticated,
+    shouldRedirect: false, // 비로그인 상태에서도 메인 페이지 표시 (리다이렉트 비활성화)
   };
 }
 

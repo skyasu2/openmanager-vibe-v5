@@ -4,7 +4,7 @@ title: 'GitHub OAuth & Guest Authentication'
 keywords: ['github', 'oauth', 'supabase', 'authentication', 'guest', 'jwt']
 ai_optimized: true
 priority: high
-updated: '2025-12-03'
+updated: '2025-12-20'
 related: ['auth-supabase', 'auth-session', 'troubleshoot-auth']
 code_snippets: true
 ---
@@ -15,10 +15,24 @@ code_snippets: true
 
 ## Architecture Overview
 
+> **v5.83+ Flow Update**: 미인증 사용자도 `/main` 페이지에 접근 가능.
+> 로그인 버튼을 통해 `/login`으로 이동 후 인증 진행.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Login Page (/login)                      │
+│                   Main Page (/main)                         │
+│           [비로그인 시 로그인 버튼 표시]                       │
 ├─────────────────────────────────────────────────────────────┤
+│                         │                                   │
+│              (로그인 버튼 클릭)                               │
+│                         ▼                                   │
+│              ┌─────────────────┐                           │
+│              │  Login Page     │                           │
+│              │  (/login)       │                           │
+│              └────────┬────────┘                           │
+│                       │                                     │
+│       ┌───────────────┴───────────────┐                    │
+│       ▼                               ▼                    │
 │  ┌─────────────────┐          ┌─────────────────┐          │
 │  │  GitHub OAuth   │          │   Guest Login   │          │
 │  │  (Supabase)     │          │  (localStorage) │          │
@@ -38,7 +52,8 @@ code_snippets: true
 │              └────────┬────────┘                           │
 │                       ▼                                     │
 │              ┌─────────────────┐                           │
-│              │   /main 페이지   │                           │
+│              │   /main 복귀    │                           │
+│              │ (시스템 시작 가능)│                           │
 │              └─────────────────┘                           │
 └─────────────────────────────────────────────────────────────┘
 ```

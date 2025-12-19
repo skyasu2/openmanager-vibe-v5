@@ -192,6 +192,22 @@ export default function UnifiedProfileHeader({
     );
   }
 
+  // 비로그인 상태: 로그인 버튼만 표시
+  if (userType === 'unknown' && status !== 'loading') {
+    return (
+      <div ref={dropdownRef} className={`relative z-50 ${className}`}>
+        <button
+          onClick={navigateToLogin}
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          data-testid="login-button"
+        >
+          <Shield className="h-4 w-4" />
+          로그인
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div ref={dropdownRef} className={`relative z-50 ${className}`}>
       {/* 프로필 버튼 */}

@@ -204,21 +204,8 @@ function Home() {
     );
   }
 
-  // 게스트 시스템 시작이 비활성화된 경우에만 리다이렉트
-  if (
-    !isAuthenticated &&
-    !guestSystemStartEnabled &&
-    !isGuestFullAccessEnabled()
-  ) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="text-center text-white">
-          <div className="mx-auto mb-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-          <div className="text-sm">리다이렉션 중... ({envLabel})</div>
-        </div>
-      </div>
-    );
-  }
+  // 비로그인 상태에서도 메인 페이지 표시 (LoginPrompt로 로그인 유도)
+  // 게스트/GitHub 로그인 후 시스템 시작 가능
 
   return (
     <div
