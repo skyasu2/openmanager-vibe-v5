@@ -294,19 +294,23 @@ export function getAnalystModel(): ChatGoogleGenerativeAI {
 export function getReporterModel(): ChatGroq | ChatGoogleGenerativeAI {
   const config = AGENT_MODEL_CONFIG.reporter;
   const isDev = process.env.NODE_ENV === 'development';
+  const useGeminiSearch = process.env.REPORTER_USE_GEMINI_SEARCH === 'true';
 
-  // Production: Use Gemini for Reporter to leverage Google Search Grounding
-  if (!isDev) {
-    // Override to use Gemini in production for Search Grounding
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (new ChatGoogleGenerativeAI({
-      apiKey: getActiveGeminiKey(),
-      model: 'gemini-2.5-flash', // Use Flash for efficiency/free tier
-      temperature: 0.3,
-      maxOutputTokens: 2048,
-    }) as any).bind({
-      tools: [
+  // Feature flag: Only use Gemini Search Grounding when explicitly enabled in production
+  if (!isDev && useGeminiSearch) {
+    try {
+      const gemini = new ChatGoogleGenerativeAI({
+        apiKey: getActiveGeminiKey(),
+        model: 'gemini-2.5-flash',
+        temperature: config.temperature,
+        maxOutputTokens: config.maxOutputTokens,
+      });
+
+      // Note: bindTools with googleSearchRetrieval returns a RunnableBinding
+      // but the multi-agent supervisor handles this correctly
+      return gemini.bindTools([
         {
+          // @ts-expect-error - Google Search Grounding tool type not in @langchain/google-genai
           googleSearchRetrieval: {
             dynamicRetrievalConfig: {
               mode: 'MODE_DYNAMIC',
@@ -314,11 +318,17 @@ export function getReporterModel(): ChatGroq | ChatGoogleGenerativeAI {
             },
           },
         },
-      ],
-    });
+      ]) as unknown as ChatGoogleGenerativeAI;
+    } catch (error) {
+      console.warn(
+        '⚠️ [getReporterModel] Gemini Search Grounding failed, falling back to Groq:',
+        error
+      );
+      // Fallback to Groq if Gemini fails
+    }
   }
 
-  // Development: Use Groq for faster iteration
+  // Default: Use Groq (development or fallback)
   return createGroqModel(config.model, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,

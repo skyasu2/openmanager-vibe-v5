@@ -1,5 +1,6 @@
 // Using mock system for real-time data
 
+import { getThreshold } from '@/config/rules';
 import { IncidentReportService } from '@/services/ai/IncidentReportService';
 import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 /**
@@ -539,8 +540,7 @@ export class WebSocketManager {
     cpu: number,
     memory: number
   ): 'low' | 'medium' | 'high' | 'critical' {
-    // 외부화된 임계값 사용
-    const { getThreshold } = require('@/config/rules');
+    // 외부화된 임계값 사용 (top-level import)
     const cpuThreshold = getThreshold('cpu');
     const memoryThreshold = getThreshold('memory');
 
