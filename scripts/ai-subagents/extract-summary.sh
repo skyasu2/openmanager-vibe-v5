@@ -10,7 +10,7 @@ set -euo pipefail
 # 사용법
 if [ $# -eq 0 ]; then
     echo "Usage: $0 <file1.md> [file2.md] [file3.md] ..."
-    echo "Example: $0 docs/planning/analysis/ai-architecture-report.md"
+    echo "Example: $0 reports/planning/analysis/ai-architecture-report.md"
     exit 1
 fi
 
