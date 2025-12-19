@@ -9,7 +9,7 @@ import {
   safeNumber,
   safePercentage,
   safePropertyAccess,
-} from '../../src/utils/safeFormat';
+} from './utils/safeFormat';
 
 describe('safeFormat', () => {
   describe('safeFormatUptime', () => {

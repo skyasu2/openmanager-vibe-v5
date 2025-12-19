@@ -13,7 +13,7 @@ import {
   getVersionDate,
   isValidProjectDate,
   ProjectMeta,
-} from '../../src/lib/project-meta';
+} from './project-meta';
 
 describe('ProjectMeta Utilities', () => {
   beforeEach(() => {

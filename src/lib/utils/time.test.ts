@@ -4,7 +4,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { KoreanTimeUtil, KST } from '../../src/lib/utils/time';
+import { KoreanTimeUtil, KST } from './time';
 
 describe('KoreanTimeUtil', () => {
   beforeEach(() => {

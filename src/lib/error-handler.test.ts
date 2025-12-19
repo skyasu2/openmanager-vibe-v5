@@ -10,7 +10,7 @@ import {
   safeErrorLog,
   safeErrorMessage,
   withErrorRecovery,
-} from '../../src/lib/error-handler';
+} from './error-handler';
 
 // Mock logger to prevent "No logError export" error
 vi.mock('@/lib/logger', () => ({
