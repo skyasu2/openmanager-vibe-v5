@@ -1,3 +1,17 @@
+---
+id: component-interaction
+title: Component Interaction Analysis
+keywords: [components, architecture, data-flow, zustand, nextjs, services]
+priority: medium
+ai_optimized: true
+related_docs:
+  - '../../core/architecture/module-structure.md'
+  - '../../core/architecture/domain-driven-design.md'
+  - 'ui-ux-analysis.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # Component Interaction Analysis
 
 ## Overview

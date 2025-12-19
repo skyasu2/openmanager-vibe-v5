@@ -1,3 +1,16 @@
+---
+id: todo-list
+title: TODO - OpenManager VIBE v5
+keywords: [todo, tasks, roadmap, issues, tracking]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'analysis/inspection-report-2025-12-18.md'
+  - 'improvement-workplan-2025-12-18.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # TODO - OpenManager VIBE v5
 
 <!-- Version: 5.83.1 | Author: Antigravity -->

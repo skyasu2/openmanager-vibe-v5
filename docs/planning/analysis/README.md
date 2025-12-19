@@ -1,14 +1,16 @@
 ---
-category: analysis
-purpose: technical_analysis_and_reports
+id: analysis-readme
+title: 분석 및 보고서
+keywords: [analysis, reports, architecture, optimization, technical-review]
+priority: medium
 ai_optimized: true
-query_triggers:
-  - '기술 분석'
-  - '최적화 보고서'
-  - '아키텍처 검토'
 related_docs:
-  - 'docs/archive/README.md'
-last_updated: '2025-12-16'
+  - 'ai-architecture-report.md'
+  - 'ai-tool-comparison.md'
+  - 'component-interaction.md'
+  - 'ui-ux-analysis.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
 ---
 
 # 📊 분석 및 보고서 (Analysis)

@@ -1,3 +1,17 @@
+---
+id: ai-tool-comparison
+title: AI 도구별 코드 리뷰 성능 비교 분석
+keywords: [ai, comparison, claude, codex, gemini, qwen, code-review]
+priority: medium
+ai_optimized: true
+related_docs:
+  - '../../development/ai/common/ai-benchmarks.md'
+  - 'ai-architecture-report.md'
+  - '../../development/workflows/auto-code-review.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # 🤖 AI 도구별 코드 리뷰 성능 비교 분석
 
 **작성일**: 2025-12-01

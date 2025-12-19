@@ -1,3 +1,17 @@
+---
+id: planning-readme
+title: Planning & Roadmap
+keywords: [planning, roadmap, tasks, analysis, templates]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'TODO.md'
+  - 'analysis/README.md'
+  - 'templates/work-plan-template.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # 📅 Planning & Roadmap
 
 <!-- Version: 2.0.0 | Updated: 2025-12-12 -->

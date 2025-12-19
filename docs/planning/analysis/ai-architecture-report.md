@@ -1,3 +1,17 @@
+---
+id: ai-architecture-report
+title: AI Architecture & Performance Analysis Report
+keywords: [ai, architecture, rust, ml, cloud-run, performance, quad-engine]
+priority: high
+ai_optimized: true
+related_docs:
+  - '../../core/ai/ai-architecture.md'
+  - 'ai-tool-comparison.md'
+  - '../../core/platforms/cloud-run/deployment.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # AI Architecture & Performance Analysis Report
 
 > **Last Updated**: 2025-12-18 (v5.83.2)
