@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.6](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.5...v5.83.6) (2025-12-19)
+
+
+### Features
+
+* **docs:** generate Mermaid diagrams with mmdc CLI ([fedf33b](https://github.com/skyasu2/openmanager-vibe-v5/commit/fedf33bf8d43e81214c1b279d56ade83db28fe3f))
+* implement Knowledge Externalization (Phase 1) ([638332c](https://github.com/skyasu2/openmanager-vibe-v5/commit/638332cb28981fa515de4564c05d271eacb68133))
+* **rules:** implement Supabase integration (Phase 2) ([5faecd4](https://github.com/skyasu2/openmanager-vibe-v5/commit/5faecd4bb03978984f6e0963979694cc345ede6b))
+* **skills:** add mermaid-diagram skill for architecture visualization ([142e263](https://github.com/skyasu2/openmanager-vibe-v5/commit/142e2634da729e0b4ee5d78dc3c0f2c48506924c))
+
+
+### Bug Fixes
+
+* **ai:** improve Reporter model type safety and add fallback ([e627c22](https://github.com/skyasu2/openmanager-vibe-v5/commit/e627c224c8296359eced78e5a00a9764ecdfc351))
+* **docs:** correct broken documentation links ([e63e141](https://github.com/skyasu2/openmanager-vibe-v5/commit/e63e141bff2e77c9dd8fce77f39f1b2a8b4bd9e2))
+* **e2e:** add waitFor to server card loading in guest test ([0ccaddc](https://github.com/skyasu2/openmanager-vibe-v5/commit/0ccaddc898460a443f3f4623a4fcc7b5f5ce1b95))
+* **paths:** update remaining path references from docs reorganization ([69c0bb6](https://github.com/skyasu2/openmanager-vibe-v5/commit/69c0bb63bfaae8d3964351964c4325a18c83a355))
+* remove unused imports and deprecated method ([1d1e7f6](https://github.com/skyasu2/openmanager-vibe-v5/commit/1d1e7f6d93e69a6a297a212a529dddf58eddc218))
+
 ### [5.83.5](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.4...v5.83.5) (2025-12-19)
 
 

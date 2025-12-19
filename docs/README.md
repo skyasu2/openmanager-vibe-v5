@@ -1,6 +1,6 @@
 # Documentation Reference (문서 관리 인덱스)
 > **최종 갱신**: 2025-12-19
-> **버전**: v5.83.1
+> **버전**: v5.83.6
 
 ## Directory Structure (디렉토리 구조)
 
