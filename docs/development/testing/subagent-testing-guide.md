@@ -428,9 +428,9 @@ npm run validate:all
 
 ### 🔗 **관련 문서**
 
-- [AI 워크플로우 테스트 가이드](./ai-workflow-testing-guide.md)
+- [AI 테스트 가이드](./vercel-ai-testing-guide.md)
 - [Universal Vitals 설정 가이드](./universal-vitals-setup-guide.md)
-- [기존 테스트 시스템 가이드](../README.md)
+- [기존 테스트 시스템 가이드](./README.md)
 
 ### 🎯 **핵심 파일**
 

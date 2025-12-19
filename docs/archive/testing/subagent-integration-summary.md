@@ -271,8 +271,8 @@ npm run subagent:plan
 
 ### 📚 **참고 자료**
 
-- **상세 가이드**: [docs/testing/subagent-testing-guide.md](./subagent-testing-guide.md)
-- **AI 워크플로우**: [docs/testing/ai-workflow-testing-guide.md](./ai-workflow-testing-guide.md)
+- **상세 가이드**: [docs/testing/subagent-testing-guide.md](../../development/testing/subagent-testing-guide.md)
+- **AI 테스트 가이드**: [docs/testing/vercel-ai-testing-guide.md](../../development/testing/vercel-ai-testing-guide.md)
 - **기존 테스트**: [tests/TESTING.md](../../development/testing/README.md)
 
 ---
