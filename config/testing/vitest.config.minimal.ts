@@ -10,32 +10,20 @@ export default defineConfig({
     globals: true,
     environment: 'node', // DOM 불필요 - 순수 함수만
     include: [
-      // 순수 함수 테스트만 포함
-      'src/utils/**/*.{test,spec}.{js,ts}',
-      'tests/unit/type-guards.test.ts',
-      'tests/unit/time.test.ts',
-      'tests/unit/project-meta.test.ts',
-      'tests/unit/safe-format.test.ts',
-      'tests/unit/safe-format.test.ts',
-      'tests/unit/lib/errorHandler.test.ts',
+      // Co-located 순수 함수 테스트만 포함 (jsdom 불필요)
+      'src/utils/type-guards.test.ts',
+      'src/utils/metricValidation.test.ts',
+      'src/utils/utils-functions.test.ts',
+      'src/lib/project-meta.test.ts',
+      'src/lib/utils/time.test.ts',
+      'src/safe-format.test.ts',
+      // 참고: integration 테스트는 jsdom 필요하므로 vitest.config.ts 사용
     ],
     exclude: [
       'node_modules/**',
       'dist/**',
       '.next/**',
       'out/**',
-      // 복잡한 Mock 테스트 제외 (CI에서 실행하지 않음)
-      'src/services/ai/**',
-      'src/app/api/**/__tests__/**',
-      'tests/integration/**',
-      'tests/e2e/**',
-      // Mock 관련 테스트 제외
-      '**/*.mock.test.ts',
-      '**/mock/**',
-      // 복잡한 서비스 테스트 제외
-      'tests/unit/services/**',
-      'tests/unit/hooks/**',
-      'tests/unit/lib/**',
     ],
     testTimeout: 5000, // 타임아웃 증가
     hookTimeout: 5000,

@@ -205,4 +205,103 @@ export const nextJsApiHandlers = [
       },
     });
   }),
+
+  /**
+   * Servers Unified API (통합 서버 관리 API)
+   * @example GET /api/servers-unified?action=list&limit=10
+   */
+  http.get(`${BASE_URL}/api/servers-unified`, ({ request }) => {
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action') || 'list';
+    const limit = parseInt(url.searchParams.get('limit') || '10', 10);
+
+    // action별 응답 분기
+    if (action === 'detail') {
+      const serverId = url.searchParams.get('serverId');
+      if (!serverId) {
+        return HttpResponse.json(
+          { success: false, error: 'serverId is required for detail action' },
+          { status: 400 }
+        );
+      }
+      return HttpResponse.json({
+        success: true,
+        data: {
+          id: serverId,
+          name: `Server ${serverId}`,
+          hostname: `${serverId}.local`,
+          status: 'online',
+          cpu: 45.2,
+          memory: 67.8,
+          disk: 23.5,
+          network: 12.3,
+          uptime: 86400,
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // list, cached, realtime 등 목록 응답
+    return HttpResponse.json({
+      success: true,
+      data: Array.from({ length: Math.min(limit, 10) }, (_, i) => ({
+        id: `server-${i + 1}`,
+        name: `Test Server ${i + 1}`,
+        hostname: `test-${i + 1}.local`,
+        status: i < 8 ? 'online' : i === 8 ? 'warning' : 'offline',
+        cpu: 20 + Math.random() * 60,
+        memory: 30 + Math.random() * 50,
+        disk: 40 + Math.random() * 40,
+        network: 5 + Math.random() * 20,
+      })),
+      pagination: {
+        page: 1,
+        limit,
+        total: 10,
+        totalPages: Math.ceil(10 / limit),
+      },
+      timestamp: new Date().toISOString(),
+    });
+  }),
+
+  /**
+   * AI Status API (Circuit Breaker 상태)
+   * @example GET /api/ai/status
+   */
+  http.get(`${BASE_URL}/api/ai/status`, ({ request }) => {
+    const url = new URL(request.url);
+    const service = url.searchParams.get('service');
+
+    if (service) {
+      // 특정 서비스 상태
+      return HttpResponse.json({
+        service,
+        status: {
+          state: 'CLOSED',
+          failures: 0,
+          lastFailure: null,
+          isOpen: false,
+        },
+        events: [],
+        timestamp: Date.now(),
+      });
+    }
+
+    // 전체 상태 요약
+    return HttpResponse.json({
+      summary: {
+        totalServices: 3,
+        healthyServices: 3,
+        degradedServices: 0,
+        unhealthyServices: 0,
+      },
+      services: {
+        google: { state: 'CLOSED', failures: 0, isOpen: false },
+        openai: { state: 'CLOSED', failures: 0, isOpen: false },
+        cohere: { state: 'CLOSED', failures: 0, isOpen: false },
+      },
+      recentEvents: [],
+      timestamp: Date.now(),
+    });
+  }),
 ];
