@@ -4,6 +4,11 @@ title: Database Schema
 keywords: [supabase, postgresql, schema, rls]
 priority: high
 ai_optimized: true
+related_docs:
+  - 'db/queries.md'
+  - 'db/optimization.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
 ---
 
 # Database Schema

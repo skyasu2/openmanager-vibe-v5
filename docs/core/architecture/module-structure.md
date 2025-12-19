@@ -7,7 +7,8 @@ ai_optimized: true
 related_docs:
   - 'architecture/SYSTEM-ARCHITECTURE-CURRENT.md'
   - 'architecture/domain-driven-design.md'
-updated: '2025-11-24'
+updated: '2025-12-19'
+version: 'v5.83.1'
 ---
 
 # 🧩 Module Structure
@@ -18,14 +19,16 @@ The `src/modules` directory is used for feature-specific logic, shared utilities
 
 Modules are functional units that provide specific capabilities to the application. They are often more focused on technical or specific functional features compared to the broader business domains.
 
-### Current Modules
+### Current Modules (v5.83.1)
 
-- **`advanced-features`**: Contains advanced or experimental features that can be toggled or selectively enabled.
-- **`ai-agent`**: Logic related to autonomous AI agents or background tasks.
-- **`data-generation`**: Tools and logic for generating mock data or simulation scenarios.
-- **`performance-monitor`**: Components and logic for tracking and displaying system performance metrics.
-- **`shared`**: Shared utilities and components used across multiple modules or domains.
-- **`third-party-ai-chat`**: Integration logic for external AI chat providers.
+| Module | Files | Description |
+|--------|-------|-------------|
+| `advanced-features` | 2 | 고급/실험적 기능 (baseline optimizer, demo scenarios) |
+| `ai-agent` | 1 | AI 에이전트 프로세서 (IntentClassifier) |
+| `data-generation` | 1 | Mock 데이터 생성 (RealisticPatternEngine) |
+| `performance-monitor` | 5 | 성능 모니터링 (컴포넌트, hooks, services, types) |
+| `shared` | 3 | 공유 유틸리티 (constants, types, utils) |
+| `third-party-ai-chat` | 1 | 외부 AI 채팅 통합 (AIConversationManager) |
 
 ### Module vs. Domain
 
@@ -43,9 +46,27 @@ A typical module might contain:
 ```
 src/modules/[module-name]/
 ├── components/   # Module-specific UI
-├── lib/          # Core logic and helper functions
-├── store/        # State management (if needed)
+├── hooks/        # Custom hooks
+├── services/     # Business logic
+├── types/        # TypeScript types
+├── lib/          # Core logic and helper functions (optional)
+├── store/        # State management (optional)
 └── index.ts      # Public API
+```
+
+### Example: Performance Monitor Module
+
+```
+src/modules/performance-monitor/
+├── components/
+│   └── PerformanceMonitor.tsx    # UI 컴포넌트
+├── hooks/
+│   └── usePerformanceMetrics.ts  # 메트릭 hook
+├── services/
+│   └── PerformanceService.ts     # 비즈니스 로직
+├── types/
+│   └── performance.ts            # 타입 정의
+└── index.ts                      # Public API
 ```
 
 ## 🚀 Best Practices

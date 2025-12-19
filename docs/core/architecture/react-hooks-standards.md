@@ -1,3 +1,16 @@
+---
+id: react-hooks-standards
+title: React Hooks 아키텍처 표준
+keywords: [react, hooks, architecture, standards]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'architecture/SYSTEM-ARCHITECTURE-CURRENT.md'
+  - 'architecture/domain-driven-design.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # React Hooks 아키텍처 표준
 
 ## 🎯 목표: Hook 관련 프로젝트 중단 방지
@@ -130,36 +143,33 @@ export default function AdminClient() {
 
 ## 🔧 **자동 검증 도구**
 
-### **ESLint 규칙 설정**
+> **Note**: 이 프로젝트는 ESLint 대신 **Biome**을 사용합니다.
+
+### **Biome 린트 설정**
 
 ```json
-// .eslintrc.json
+// biome.json (관련 설정)
 {
-  "rules": {
-    "react-hooks/exhaustive-deps": "error",
-    "react-hooks/rules-of-hooks": "error",
-    "@typescript-eslint/no-misused-promises": "error"
+  "linter": {
+    "rules": {
+      "correctness": {
+        "useExhaustiveDependencies": "error",
+        "useHookAtTopLevel": "error"
+      }
+    }
   }
 }
 ```
 
-### **Hook 의존성 검사 스크립트**
+### **Hook 의존성 검사**
 
-```javascript
-// scripts/dev/check-hook-deps.mjs
-import { execSync } from 'child_process';
+```bash
+# Biome을 사용한 React Hooks 검사
+npm run lint        # 전체 린트 검사
+npx biome lint src  # 직접 실행
 
-try {
-  // Hook 의존성 검사
-  execSync('npx eslint --rule "react-hooks/exhaustive-deps: error" src/', {
-    stdio: 'inherit',
-  });
-
-  console.log('✅ Hook 의존성 검사 통과');
-} catch (error) {
-  console.error('❌ Hook 의존성 문제 발견');
-  process.exit(1);
-}
+# TypeScript 타입 검사 (Hook 관련 에러 포함)
+npm run type-check
 ```
 
 ---
@@ -172,8 +182,8 @@ try {
 # 대형 컴포넌트 찾기 (500줄 이상)
 find src/components -name "*.tsx" -exec wc -l {} + | awk '$1 > 500'
 
-# Hook 관련 문제 찾기
-npm run lint:hooks
+# Hook 관련 문제 찾기 (Biome 린트)
+npm run lint
 ```
 
 ### **2단계: 우선순위 기반 리팩토링**
@@ -194,24 +204,25 @@ npm run lint:hooks
 
 ### **개발 시 실시간 검증**
 
-```json
-// package.json
-{
-  "scripts": {
-    "dev:safe": "npm run lint:hooks && npm run dev",
-    "commit:hook-check": "npm run lint:hooks"
-  }
-}
+```bash
+# 전체 린트 검사 (Hook 의존성 포함)
+npm run lint
+
+# 타입 검사 (Hook 관련 타입 에러 포함)
+npm run type-check
+
+# 자동 수정
+npm run lint:fix
 ```
 
-### **Pre-commit Hook**
+### **Pre-commit Hook (권장)**
 
 ```bash
-# .husky/pre-commit
+# .husky/pre-commit (설정 시)
 #!/usr/bin/env sh
-npm run lint:hooks || {
-  echo "❌ Hook 의존성 문제로 커밋 차단"
-  echo "💡 'npm run lint:hooks'로 문제 확인 후 수정하세요"
+npm run lint || {
+  echo "❌ 린트 문제로 커밋 차단"
+  echo "💡 'npm run lint:fix'로 자동 수정하세요"
   exit 1
 }
 ```
