@@ -21,12 +21,17 @@ const LOCAL_DOCKER_CONFIG = {
   apiSecret: 'test-secret',
 };
 
-function getConfig() {
+// 설정 캐시 (서버 시작 시 한 번만 결정)
+let cachedConfig: ReturnType<typeof resolveConfig> | null = null;
+
+function resolveConfig() {
   const isDev = process.env.NODE_ENV === 'development';
   const isVercel = !!process.env.VERCEL;
+  const aiEngineMode = process.env.AI_ENGINE_MODE?.trim() || 'AUTO';
+  const useLocalDocker = process.env.USE_LOCAL_DOCKER === 'true';
 
-  // Production (Vercel 또는 명시적 Cloud Run 설정)
-  if (isVercel || process.env.CLOUD_RUN_AI_URL) {
+  // 1. Production (Vercel) → 항상 Cloud Run
+  if (isVercel) {
     return {
       url: process.env.CLOUD_RUN_AI_URL?.trim() || '',
       enabled: process.env.CLOUD_RUN_ENABLED?.trim() === 'true',
@@ -35,12 +40,13 @@ function getConfig() {
     };
   }
 
-  // Development (로컬 Docker)
+  // 2. Development에서 로컬 Docker 우선 사용
   if (isDev) {
-    // 로컬 Docker 자동 사용 (CLOUD_RUN_AI_URL이 없으면)
-    const useLocalDocker = process.env.USE_LOCAL_DOCKER !== 'false';
-    if (useLocalDocker) {
-      console.log('🐳 [Proxy] Using local Docker backend (localhost:8080)');
+    // USE_LOCAL_DOCKER=true 또는 AI_ENGINE_MODE=AUTO (기본값)
+    if (useLocalDocker || aiEngineMode === 'AUTO') {
+      console.log(
+        '🐳 [Proxy] Development mode - Using local Docker (localhost:8080)'
+      );
       return {
         url: LOCAL_DOCKER_CONFIG.url,
         enabled: true,
@@ -48,15 +54,40 @@ function getConfig() {
         backend: 'local-docker' as const,
       };
     }
+
+    // AI_ENGINE_MODE=CLOUD → Cloud Run 강제 사용
+    if (aiEngineMode === 'CLOUD') {
+      console.log('☁️ [Proxy] Development mode - Forced Cloud Run');
+      return {
+        url: process.env.CLOUD_RUN_AI_URL?.trim() || '',
+        enabled: process.env.CLOUD_RUN_ENABLED?.trim() === 'true',
+        apiSecret: process.env.CLOUD_RUN_API_SECRET?.trim() || '',
+        backend: 'cloud-run' as const,
+      };
+    }
   }
 
-  // Fallback: 환경변수 기반
+  // 3. Fallback: 환경변수 기반
   return {
     url: process.env.CLOUD_RUN_AI_URL?.trim() || '',
     enabled: process.env.CLOUD_RUN_ENABLED?.trim() === 'true',
     apiSecret: process.env.CLOUD_RUN_API_SECRET?.trim() || '',
     backend: 'env' as const,
   };
+}
+
+function getConfig() {
+  if (!cachedConfig) {
+    cachedConfig = resolveConfig();
+  }
+  return cachedConfig;
+}
+
+/**
+ * 설정 캐시 초기화 (테스트용)
+ */
+export function resetConfigCache() {
+  cachedConfig = null;
 }
 
 // ============================================================================

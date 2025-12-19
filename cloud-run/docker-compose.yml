@@ -15,6 +15,11 @@ services:
       # Gemini API Keys (Primary & Secondary for Failover)
       - GEMINI_API_KEY_PRIMARY=${GEMINI_API_KEY_PRIMARY}
       - GEMINI_API_KEY_SECONDARY=${GEMINI_API_KEY_SECONDARY}
+      # Google AI Keys (Alternative naming)
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+      - GOOGLE_AI_API_KEY_SECONDARY=${GOOGLE_AI_API_KEY_SECONDARY}
+      # Groq API Key (for LangGraph Supervisor)
+      - GROQ_API_KEY=${GROQ_API_KEY}
       # Supabase Configuration
       - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
