@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 /**
@@ -17,7 +17,10 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 export function SystemBootstrap(): React.ReactNode {
   const { isSystemStarted } = useUnifiedAdminStore();
 
-  const [bootstrapStatus, setBootstrapStatus] = useState({
+  // 🔒 부트스트랩 중복 실행 방지 (세션 당 1회만 실행)
+  const hasBootstrappedRef = useRef(false);
+
+  const [_bootstrapStatus, setBootstrapStatus] = useState({
     mcp: 'pending' as 'pending' | 'success' | 'failed',
     googleAI: 'pending' as 'pending' | 'success' | 'failed',
     supabase: 'pending' as 'pending' | 'success' | 'failed',
@@ -31,10 +34,26 @@ export function SystemBootstrap(): React.ReactNode {
       return;
     }
 
+    // 🔒 이미 부트스트랩이 실행됐으면 재실행 방지
+    if (hasBootstrappedRef.current) {
+      return;
+    }
+
     let isMounted = true;
 
     const bootstrap = async () => {
-      console.log('🚀 시스템 부트스트랩 시작... (시스템 활성화 상태)');
+      // 🔒 부트스트랩 시작 시 즉시 플래그 설정 (중복 실행 방지)
+      hasBootstrappedRef.current = true;
+      console.log(
+        '🚀 시스템 부트스트랩 시작... (시스템 활성화 상태, 1회만 실행)'
+      );
+
+      // 🎯 로컬 상태 추적 (async 업데이트 문제 해결)
+      const localStatus = {
+        mcp: 'pending' as 'pending' | 'success' | 'failed',
+        googleAI: 'pending' as 'pending' | 'success' | 'failed',
+        supabase: 'pending' as 'pending' | 'success' | 'failed',
+      };
 
       // 🎯 세션 캐시 확인 (브라우저 세션 동안 한 번만 체크)
       const sessionKey = 'system-bootstrap-cache';
@@ -79,15 +98,18 @@ export function SystemBootstrap(): React.ReactNode {
           if (systemResponse.ok) {
             const systemData = await systemResponse.json();
             console.log('✅ 시스템 상태:', systemData.status || '정상');
+            localStatus.mcp = 'success';
             setBootstrapStatus((prev) => ({ ...prev, mcp: 'success' }));
           } else {
             console.warn('⚠️ 시스템 상태 확인 실패:', systemResponse.status);
+            localStatus.mcp = 'failed';
             setBootstrapStatus((prev) => ({ ...prev, mcp: 'failed' }));
           }
         }
       } catch (error) {
         console.error('❌ 시스템 상태 확인 오류:', error);
         if (isMounted) {
+          localStatus.mcp = 'failed';
           setBootstrapStatus((prev) => ({ ...prev, mcp: 'failed' }));
         }
       }
@@ -109,15 +131,18 @@ export function SystemBootstrap(): React.ReactNode {
               '✅ Google AI 상태 확인 완료:',
               googleData.enabled ? '활성화' : '비활성화'
             );
+            localStatus.googleAI = 'success';
             setBootstrapStatus((prev) => ({ ...prev, googleAI: 'success' }));
           } else {
             console.warn('⚠️ Google AI 상태 확인 실패:', googleResponse.status);
+            localStatus.googleAI = 'failed';
             setBootstrapStatus((prev) => ({ ...prev, googleAI: 'failed' }));
           }
         }
       } catch (error) {
         console.error('❌ Google AI 상태 확인 오류:', error);
         if (isMounted) {
+          localStatus.googleAI = 'failed';
           setBootstrapStatus((prev) => ({ ...prev, googleAI: 'failed' }));
         }
       }
@@ -139,15 +164,18 @@ export function SystemBootstrap(): React.ReactNode {
               '✅ Supabase 상태 확인 완료:',
               supabaseData.primary?.status || '연결됨'
             );
+            localStatus.supabase = 'success';
             setBootstrapStatus((prev) => ({ ...prev, supabase: 'success' }));
           } else {
             console.warn('⚠️ Supabase 상태 확인 실패:', supabaseResponse.status);
+            localStatus.supabase = 'failed';
             setBootstrapStatus((prev) => ({ ...prev, supabase: 'failed' }));
           }
         }
       } catch (error) {
         console.error('❌ Supabase 상태 확인 오류:', error);
         if (isMounted) {
+          localStatus.supabase = 'failed';
           setBootstrapStatus((prev) => ({ ...prev, supabase: 'failed' }));
         }
       }
@@ -155,9 +183,9 @@ export function SystemBootstrap(): React.ReactNode {
       // 4. 부트스트랩 완료 및 캐시 저장
       if (isMounted) {
         const finalStatus = {
-          mcp: bootstrapStatus.mcp,
-          googleAI: bootstrapStatus.googleAI,
-          supabase: bootstrapStatus.supabase,
+          mcp: localStatus.mcp,
+          googleAI: localStatus.googleAI,
+          supabase: localStatus.supabase,
           completed: true,
         };
 
@@ -190,7 +218,9 @@ export function SystemBootstrap(): React.ReactNode {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [isSystemStarted, bootstrapStatus]);
+    // 🔒 의존성 배열에서 bootstrapStatus 제거 - 상태 변경 시 재실행 방지
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSystemStarted]);
 
   // 시스템 초기화 상태 표시 제거됨 (웹 알람 삭제에 따라)
   return null;
