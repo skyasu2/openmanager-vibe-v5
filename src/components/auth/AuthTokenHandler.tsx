@@ -35,7 +35,7 @@ export function AuthTokenHandler() {
             );
 
             // 메인 페이지로 리다이렉트
-            router.push('/main');
+            router.push('/');
           } else if (error) {
             console.error('❌ 세션 처리 실패:', error);
             router.push('/login?error=session_failed');

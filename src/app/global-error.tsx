@@ -121,7 +121,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               다시 시도
             </button>
             <Link
-              href="/main"
+              href="/"
               className="inline-block rounded-lg bg-gray-600 px-6 py-3 text-center font-medium text-white transition-colors hover:bg-gray-700"
             >
               홈으로 돌아가기
@@ -129,7 +129,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           </div>
 
           <Link
-            href="/main"
+            href="/"
             className="text-sm text-blue-400 transition-colors hover:text-blue-300"
           >
             메인으로 이동 →

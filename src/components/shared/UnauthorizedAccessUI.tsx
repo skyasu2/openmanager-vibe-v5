@@ -29,7 +29,7 @@ interface UnauthorizedAccessUIProps {
 
   /**
    * 메인 페이지로 돌아가기 클릭 핸들러
-   * 기본값: () => router.push('/main')
+   * 기본값: () => router.push('/')
    */
   onBackClick?: () => void;
 }
@@ -53,7 +53,7 @@ export default function UnauthorizedAccessUI({
     if (onBackClick) {
       onBackClick();
     } else {
-      router.push('/main');
+      router.push('/');
     }
   };
 

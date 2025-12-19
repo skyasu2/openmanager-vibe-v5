@@ -345,7 +345,7 @@ function DashboardPageContent() {
           description:
             '대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.',
         });
-        router.push('/main');
+        router.push('/');
         return; // cleanup 불필요
       }
 
