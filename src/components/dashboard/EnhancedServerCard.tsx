@@ -319,7 +319,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             titleSize: 'text-lg',
             subtitleSize: 'text-sm',
             chartContainer: 'grid-cols-2 gap-3',
-            chartSize: 'w-22 h-16',
+            chartSize: 'w-20 h-16',
             showFullDetails: false,
             useCompactLabels: false,
           };
