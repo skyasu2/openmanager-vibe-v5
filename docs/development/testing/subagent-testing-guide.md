@@ -430,7 +430,7 @@ npm run validate:all
 
 - [AI 워크플로우 테스트 가이드](./ai-workflow-testing-guide.md)
 - [Universal Vitals 설정 가이드](./universal-vitals-setup-guide.md)
-- [기존 테스트 시스템 가이드](../TESTING.md)
+- [기존 테스트 시스템 가이드](../README.md)
 
 ### 🎯 **핵심 파일**
 

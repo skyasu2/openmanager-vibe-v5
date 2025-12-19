@@ -44,7 +44,7 @@ last_updated: '2025-12-19'
 | Minimal 테스트 | < 100ms | ✅ 22ms |
 | E2E Critical | < 2분 | ✅ ~1분 |
 
-## 📚 문서 인덱스 (19개 파일)
+## 📚 문서 인덱스 (16개 파일)
 
 ### 🎯 핵심 문서 (즉시 읽기)
 
@@ -114,24 +114,27 @@ tests/                  # 통합/E2E/API Tests (30개)
 └── api/               # API Contract
 ```
 
-## 💡 베스트 프랙티스
+## ⚡ **AI 엔진 아키텍처 v4.0 테스트 철학**
 
-**핵심 원칙**: "실제 Vercel 환경 테스트가 Mock보다 더 유효하다"
+- **단일 통합 파이프라인**: Supabase RAG + Google Cloud Functions + Google AI SDK
+- **Cloud Functions 우선**: Korean NLP, ML Analytics, Unified Processor를 기본 단계로 실행
+- **직접 Google AI 호출**: Prompt SDK를 통한 저지연 응답, 모델은 `gemini-2.5-flash` 고정
+- **캐싱 + 폴백 최소화**: 500ms 이내 응답 목표, 타임아웃 시 사용자 안내 반환
 
-### 일상 워크플로우
+## 🛠️ 테스트 도구 스택
 
-1. **작업 중**: 관련 테스트 파일만 실행
-2. **커밋 전**: `npm run test:quick` (22ms 초고속)
-3. **PR 생성 전**: `npm run test:coverage` (커버리지 확인)
+### 테스트 프레임워크
 
-### 테스트 작성 가이드
+- **Vitest**: 메인 테스트 프레임워크 (Jest 대체)
+- **Testing Library**: React 컴포넌트 테스트
+- **Playwright**: E2E 테스트
+- **MSW**: API 모킹
 
-- ✅ **순수 함수**: Unit Test 작성 (Co-located)
-- ✅ **유틸리티**: Unit Test 작성 (Co-located)
-- ⚠️ **UI 컴포넌트**: 간단한 테스트만
-- ❌ **복잡한 AI/DB**: Skip 처리, 실제 환경 테스트
+### 주요 테스트 유틸리티
 
-**상세**: [테스트 철학 가이드](./testing-philosophy-detailed.md)
+- **UnifiedAIEngineRouter**: 통합 AI 엔진 라우터 테스트
+- **SupabaseRAGEngine**: RAG 엔진 테스트
+- **KoreanNLPEngine**: 한국어 처리 테스트
 
 ## 🔗 관련 도구 & 문서
 
@@ -139,6 +142,11 @@ tests/                  # 통합/E2E/API Tests (30개)
 **MCP 통합**: playwright, memory
 **설정 가이드**: [Vitest & Playwright 설정](./vitest-playwright-config-guide.md)
 **인프라 분석**: [TEST_INFRASTRUCTURE_ANALYSIS.md](../../reports/TEST_INFRASTRUCTURE_ANALYSIS.md)
+
+## 📦 아카이브 (Legacy)
+
+- [403 Authentication Fix v2](../../archive/testing/403-authentication-fix-v2.md) - 인증 문제 해결 기록
+- [Subagent Integration Summary](../../archive/testing/subagent-integration-summary.md) - 서브에이전트 통합 기록
 
 ---
 
