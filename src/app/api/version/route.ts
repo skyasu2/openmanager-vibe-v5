@@ -16,7 +16,7 @@ export const runtime = 'edge';
  * - 명령어: npm run release:minor (7개 파일 동시 업데이트)
  */
 const VERSION_INFO = {
-  version: '5.83.6',
+  version: '5.83.7',
   name: 'openmanager-vibe-v5',
   description: 'AI 기반 실시간 서버 모니터링 플랫폼',
   nextjs_version: '16.0.10',

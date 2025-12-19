@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.7](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.6...v5.83.7) (2025-12-19)
+
+
+### Features
+
+* **auth:** allow unauthenticated access to main page with login button ([fe72adc](https://github.com/skyasu2/openmanager-vibe-v5/commit/fe72adc5de130250156c183040795a8cb3360b00))
+* **cloud-run:** add embedding and generate services to AI Engine ([21f37d1](https://github.com/skyasu2/openmanager-vibe-v5/commit/21f37d1ffdc9b4cef3a203f8a53a6414cd675f21))
+* **proxy:** add automatic local Docker detection for development ([1fff5f8](https://github.com/skyasu2/openmanager-vibe-v5/commit/1fff5f8f799f2befac4af39a165f2bf23a53f0f1))
+* **proxy:** improve local Docker priority in development mode ([819201e](https://github.com/skyasu2/openmanager-vibe-v5/commit/819201e4182cf103633347c91bfb2c72b1b21434))
+
+
+### Bug Fixes
+
+* **bootstrap:** prevent infinite polling loop in SystemBootstrap ([d427469](https://github.com/skyasu2/openmanager-vibe-v5/commit/d42746979481eebac1783f11d84b69bee2f32cd2))
+* **dashboard:** correct invalid Tailwind CSS class w-22 to w-20 ([aa37bf5](https://github.com/skyasu2/openmanager-vibe-v5/commit/aa37bf583ea731896ccbc7cf1f3837c5afff11f7))
+* **e2e:** update routing paths from /main to / in tests ([0adb64e](https://github.com/skyasu2/openmanager-vibe-v5/commit/0adb64e9b4ace26c0d3e422c7364fc5bae3f0815))
+* **hydration:** resolve SSR/client HTML mismatch issues ([a6d5a61](https://github.com/skyasu2/openmanager-vibe-v5/commit/a6d5a61168b313fb98d6af19d0bab1f4fc54cc18))
+* **routing:** update remaining /main references to / across codebase ([98eaa70](https://github.com/skyasu2/openmanager-vibe-v5/commit/98eaa707b4f0f6cb8c3000576b0291cdfe931f11))
+
 ### [5.83.6](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.5...v5.83.6) (2025-12-19)
 
 
