@@ -13,7 +13,7 @@ PURPLE='\033[0;35m'
 NC='\033[0m'
 
 # 설정
-REPORTS_DIR="docs/reports/test-results"
+REPORTS_DIR="reports/test-results"
 DATE=$(date +%Y-%m-%d)
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 TEST_MODE=${1:-"all"}  # all, unit, integration, e2e
