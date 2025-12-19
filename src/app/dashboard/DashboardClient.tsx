@@ -599,7 +599,7 @@ function DashboardPageContent() {
     >
       <div className="flex min-h-0 flex-1 flex-col">
         <DashboardHeader
-          onNavigateHome={() => (window.location.href = '/main')}
+          onNavigateHome={() => (window.location.href = '/')}
           onToggleAgent={toggleAgent}
           isAgentOpen={isAgentOpen}
           systemRemainingTime={systemRemainingTime}

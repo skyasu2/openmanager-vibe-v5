@@ -176,7 +176,7 @@ export default function LoginClient() {
     }
 
     // redirectTo 파라미터가 있으면 세션 스토리지에 저장
-    if (redirectTo && redirectTo !== '/main') {
+    if (redirectTo && redirectTo !== '/') {
       sessionStorage.setItem('auth_redirect_to', redirectTo);
       debug.log('🔗 로그인 후 리다이렉트 URL 저장:', redirectTo);
     }
@@ -232,7 +232,7 @@ export default function LoginClient() {
 
       // 강제 페이지 새로고침과 함께 이동 (쿠키가 확실히 적용되도록)
       const redirectTimer = setTimeout(() => {
-        window.location.href = '/main';
+        window.location.href = '/';
       }, PAGE_REDIRECT_DELAY_MS);
 
       // 🧹 Cleanup: 컴포넌트 언마운트 시 타이머 정리 (메모리 누수 방지)

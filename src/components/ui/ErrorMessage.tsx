@@ -130,7 +130,7 @@ export const ErrorMessage: FC<ErrorMessageProps> = ({
     },
     {
       label: '홈으로',
-      onClick: () => (window.location.href = '/main'),
+      onClick: () => (window.location.href = '/'),
       variant: 'secondary' as const,
       icon: <Home className="h-4 w-4" />,
     },

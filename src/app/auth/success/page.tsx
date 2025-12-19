@@ -218,8 +218,7 @@ export default function AuthSuccessPage() {
         }
 
         // 세션 저장 목적지 확인
-        const redirectTo =
-          sessionStorage.getItem('auth_redirect_to') || '/main';
+        const redirectTo = sessionStorage.getItem('auth_redirect_to') || '/';
         sessionStorage.removeItem('auth_redirect_to');
 
         debug.log('🚀 리다이렉트:', redirectTo);
