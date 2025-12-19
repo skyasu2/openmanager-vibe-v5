@@ -239,8 +239,20 @@ export async function executeSupervisor(
 }
 
 /**
- * Stream supervisor workflow
- * Uses app.stream() for Groq compatibility (streamEvents doesn't emit text tokens for Groq)
+ * Stream supervisor workflow (Alternative Implementation)
+ * Uses app.stream() for native LangGraph streaming
+ *
+ * @note CURRENTLY UNUSED - Kept for future reference/optimization
+ *
+ * This function was replaced by `createSupervisorStreamResponse` which uses
+ * `executeSupervisor()` + simulated SSE streaming for better Groq compatibility.
+ * Native LangGraph streaming (streamEvents) doesn't emit text tokens properly for Groq models.
+ *
+ * Consider reactivating if:
+ * 1. Switching to a model with native streaming support (e.g., Gemini, OpenAI)
+ * 2. LangGraph improves Groq streaming support
+ *
+ * @see createSupervisorStreamResponse - Currently active implementation
  */
 export async function* streamSupervisor(
   query: string,

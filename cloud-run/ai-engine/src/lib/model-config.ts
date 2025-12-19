@@ -310,7 +310,6 @@ export function getReporterModel(): ChatGroq | ChatGoogleGenerativeAI {
       // but the multi-agent supervisor handles this correctly
       return gemini.bindTools([
         {
-          // @ts-expect-error - Google Search Grounding tool type not in @langchain/google-genai
           googleSearchRetrieval: {
             dynamicRetrievalConfig: {
               mode: 'MODE_DYNAMIC',
