@@ -17,7 +17,7 @@ openmanager-vibe-v5/
 ├── 📄 README.md                    # 프로젝트 메인 문서
 ├── 📄 CLAUDE.md                    # Claude Code 프로젝트 가이드 ⭐
 ├── 📄 CHANGELOG.md                 # 변경 기록
-├── 📄 FOLDER-STRUCTURE.md          # 전체 폴더 구조 가이드 ⭐
+├── 📄 folder-structure.md          # 전체 폴더 구조 가이드 ⭐
 ├── 📄 package.json                 # 프로젝트 설정
 ├── 📄 next.config.mjs              # Next.js 설정
 ├── 📄 tsconfig.json                # TypeScript 설정

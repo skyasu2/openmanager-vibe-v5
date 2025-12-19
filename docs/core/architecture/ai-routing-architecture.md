@@ -150,5 +150,5 @@ Primary Model 실패 시:
 ---
 
 > **참고 문서**:
-> - `AI_ENGINE_ARCHITECTURE.md`: 전체 엔진 아키텍처
+> - `ai-engine-architecture.md`: 전체 엔진 아키텍처
 > - `ai-assistant-sidebar-architecture.md`: 프론트엔드 통합

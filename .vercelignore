@@ -99,7 +99,7 @@ config/env-backup*
 docs/
 scripts/
 .github/
-FOLDER-STRUCTURE.md
+# folder-structure.md moved to docs/core/architecture/
 
 # MCP 설정 스크립트만 예외 처리
 !scripts/conditional-mcp-setup.mjs

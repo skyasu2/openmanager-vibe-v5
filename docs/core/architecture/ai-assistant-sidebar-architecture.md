@@ -285,5 +285,5 @@ const AI_FUNCTIONS = [
 ---
 
 > **참고 문서**:
-> - `AI_ENGINE_ARCHITECTURE.md`: LangGraph 백엔드 상세
+> - `ai-engine-architecture.md`: LangGraph 백엔드 상세
 > - `ai-architecture.md`: AI 전체 아키텍처

@@ -5,7 +5,7 @@ keywords: [react, hooks, architecture, standards]
 priority: high
 ai_optimized: true
 related_docs:
-  - 'architecture/SYSTEM-ARCHITECTURE-CURRENT.md'
+  - 'architecture/system-architecture-current.md'
   - 'architecture/domain-driven-design.md'
 updated: '2025-12-19'
 version: 'v5.83.1'

@@ -139,7 +139,7 @@ graph TD
 ## 📚 문서 (Documentation)
 
 - [**Environment Setup**](docs/environment/README.md): 개발 환경 설정 및 아키텍처 가이드
-- [**AI Engine Architecture**](docs/core/architecture/AI_ENGINE_ARCHITECTURE.md): LangGraph Multi-Agent AI 엔진 설계
+- [**AI Engine Architecture**](docs/core/architecture/ai-engine-architecture.md): LangGraph Multi-Agent AI 엔진 설계
 
 ## 🚀 시작하기
 

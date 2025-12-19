@@ -5,7 +5,7 @@ keywords: [architecture, ddd, domains, structure]
 priority: high
 ai_optimized: true
 related_docs:
-  - 'architecture/SYSTEM-ARCHITECTURE-CURRENT.md'
+  - 'architecture/system-architecture-current.md'
   - 'architecture/module-structure.md'
 updated: '2025-12-19'
 version: 'v5.83.1'

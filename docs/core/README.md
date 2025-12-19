@@ -38,8 +38,8 @@ core/
 
 ### 아키텍처 (architecture/)
 - **[README.md](./architecture/README.md)**: 통합 아키텍처 가이드 (기술 스택, 웹/백엔드 구조)
-- **[SYSTEM-ARCHITECTURE-CURRENT.md](./architecture/SYSTEM-ARCHITECTURE-CURRENT.md)**: 현재 시스템 구조
-- **[FOLDER-STRUCTURE.md](./architecture/FOLDER-STRUCTURE.md)**: 폴더 구조 가이드
+- **[system-architecture-current.md](./architecture/system-architecture-current.md)**: 현재 시스템 구조
+- **[folder-structure.md](./architecture/folder-structure.md)**: 폴더 구조 가이드
 
 ### AI 시스템 (ai/)
 - **[ai-architecture.md](./ai/ai-architecture.md)**: AI 시스템 아키텍처
@@ -96,7 +96,7 @@ core/
 ### Architecture
 - **[Web Architecture](./architecture/WEB_ARCHITECTURE.md)**: 프론트엔드 구조
 - **[Backend Architecture](./architecture/BACKEND_ARCHITECTURE.md)**: 백엔드 및 서비스 레이어
-- **[AI Engine Architecture](./architecture/AI_ENGINE_ARCHITECTURE.md)**: AI 엔진 구조
+- **[AI Engine Architecture](./architecture/ai-engine-architecture.md)**: AI 엔진 구조
 
 ### Security
 - **[Security Guidelines](./security/README.md)**: 보안 가이드라인 (RLS, Auth)
