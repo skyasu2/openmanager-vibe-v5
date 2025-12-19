@@ -1,3 +1,17 @@
+---
+id: mcp-priority-guide
+title: MCP 우선순위 가이드
+keywords: [mcp, priority, token-saving, figma, serena, context7]
+priority: high
+ai_optimized: true
+related_docs:
+  - 'mcp-configuration.md'
+  - 'servers.md'
+  - '../ai/common/workflow.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
+---
+
 # MCP 우선순위 가이드
 
 **MCP 최대 활용을 위한 실전 의사결정 가이드**

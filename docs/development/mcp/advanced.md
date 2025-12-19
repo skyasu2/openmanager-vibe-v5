@@ -1,12 +1,14 @@
 ---
 id: mcp-advanced
 title: MCP 실전 가이드
-description: 12개 MCP 서버 완전 설치와 Serena AI 교차검증 해결
-keywords: [MCP, 서버, 설치, Serena, AI검증, 복구스크립트]
-ai_optimized: true
+keywords: [mcp, server, installation, serena, ai-verification]
 priority: critical
-related_docs: ["../ai/workflow.md", "../environment/guides/wsl.md", "../environment/troubleshooting/common.md", "setup.md", "../README.md"]
-updated: "2025-09-09"
+ai_optimized: true
+related_docs:
+  - 'README.md'
+  - '../ai/common/workflow.md'
+updated: '2025-12-19'
+version: 'v5.83.1'
 ---
 
 # 🔧 MCP 실전 가이드
