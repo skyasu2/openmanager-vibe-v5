@@ -1,8 +1,12 @@
 /**
- * 🎯 RulesLoader - 시스템 규칙 로더
+ * 🎯 RulesLoader - 시스템 규칙 로더 (Phase 2: Supabase 연동)
  *
- * 외부화된 규칙(system-rules.json)을 로드하고 접근하는 서비스.
+ * 외부화된 규칙을 로드하고 접근하는 서비스.
  * Singleton 패턴으로 구현하여 앱 전체에서 동일한 규칙 참조.
+ *
+ * **Data Source Priority:**
+ * 1. Supabase `system_rules` 테이블 (동적 설정)
+ * 2. JSON 파일 (system-rules.json) - Supabase 실패 시 폴백
  *
  * @example
  * ```typescript
@@ -16,6 +20,9 @@
  * if (isCritical('cpu', 90)) {
  *   console.log('CPU 심각 상태!');
  * }
+ *
+ * // Supabase에서 최신 규칙 로드 (비동기)
+ * await rulesLoader.refresh();
  * ```
  */
 
@@ -27,15 +34,27 @@ import type {
 } from './types';
 import systemRulesJson from './system-rules.json';
 
+/** Supabase system_rules 테이블 레코드 타입 */
+interface SystemRuleRecord {
+  category: string;
+  key: string;
+  value: MetricThreshold | AlertRule | string;
+  description?: string;
+  enabled?: boolean;
+}
+
 /**
  * 시스템 규칙 로더 클래스
  */
 class RulesLoader implements IRulesLoader {
   private rules: SystemRules;
   private static instance: RulesLoader;
+  private lastRefreshTime: number = 0;
+  private refreshTtlMs: number = 5 * 60 * 1000; // 5분 캐시 TTL
+  private dataSource: 'json' | 'supabase' = 'json';
 
   private constructor() {
-    this.rules = this.loadRules();
+    this.rules = this.loadFromJson();
   }
 
   /**
@@ -49,11 +68,96 @@ class RulesLoader implements IRulesLoader {
   }
 
   /**
-   * 규칙 파일 로드
+   * JSON 파일에서 규칙 로드 (폴백)
    */
-  private loadRules(): SystemRules {
-    // JSON import는 이미 타입이 맞지 않으므로 캐스팅
+  private loadFromJson(): SystemRules {
+    this.dataSource = 'json';
     return systemRulesJson as unknown as SystemRules;
+  }
+
+  /**
+   * Supabase에서 규칙 로드 (서버 사이드 전용)
+   */
+  private async loadFromSupabase(): Promise<SystemRules | null> {
+    // 클라이언트 사이드에서는 API 사용
+    if (typeof window !== 'undefined') {
+      return this.loadFromAPI();
+    }
+
+    try {
+      // 동적 import로 서버 전용 모듈 로드
+      const { supabaseAdmin } = await import('@/lib/supabase/admin');
+
+      const { data, error } = await supabaseAdmin
+        .from('system_rules')
+        .select('category, key, value, description, enabled')
+        .eq('enabled', true);
+
+      if (error) {
+        console.warn('⚠️ Supabase 규칙 로드 실패:', error.message);
+        return null;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('⚠️ Supabase에 규칙 데이터 없음');
+        return null;
+      }
+
+      // Supabase 데이터를 SystemRules 형식으로 변환
+      const rules = this.transformSupabaseData(data as SystemRuleRecord[]);
+      this.dataSource = 'supabase';
+      console.log(`✅ Supabase에서 ${data.length}개 규칙 로드됨`);
+      return rules;
+    } catch (err) {
+      console.warn('⚠️ Supabase 연결 실패, JSON 폴백 사용:', err);
+      return null;
+    }
+  }
+
+  /**
+   * 클라이언트 사이드: API를 통해 규칙 로드
+   */
+  private async loadFromAPI(): Promise<SystemRules | null> {
+    try {
+      const response = await fetch('/api/rules');
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (!result.success || !result.data) {
+        return null;
+      }
+
+      this.dataSource = 'supabase';
+      return result.data as SystemRules;
+    } catch (err) {
+      console.warn('⚠️ Rules API 호출 실패:', err);
+      return null;
+    }
+  }
+
+  /**
+   * Supabase 데이터를 SystemRules 형식으로 변환
+   */
+  private transformSupabaseData(records: SystemRuleRecord[]): SystemRules {
+    // 기본값으로 시작 (JSON 폴백 데이터)
+    const rules = this.loadFromJson();
+
+    for (const record of records) {
+      if (record.category === 'thresholds') {
+        const key = record.key as keyof SystemRules['thresholds'];
+        if (key in rules.thresholds) {
+          rules.thresholds[key] = record.value as MetricThreshold;
+        }
+      } else if (record.category === 'alerts' && record.enabled !== false) {
+        // Alert rules - 향후 구현
+      } else if (record.category === 'ai_instructions') {
+        rules.metadata.aiInstructions = record.value as string;
+      }
+    }
+
+    return rules;
   }
 
   /**
@@ -169,12 +273,54 @@ class RulesLoader implements IRulesLoader {
   }
 
   /**
-   * 규칙 새로고침 (향후 DB 연동 시 사용)
+   * 규칙 새로고침 (Supabase 연동)
+   *
+   * Supabase에서 최신 규칙을 로드하고, 실패 시 JSON 폴백 사용.
+   * 캐시 TTL (5분) 내에는 새로고침하지 않음.
+   *
+   * @param force - true면 캐시 TTL 무시하고 강제 새로고침
    */
-  async refresh(): Promise<void> {
-    // Phase 2: Supabase 연동 시 구현
-    // const rules = await supabase.from('system_config').select('*');
-    this.rules = this.loadRules();
+  async refresh(force: boolean = false): Promise<void> {
+    const now = Date.now();
+    const cacheAge = now - this.lastRefreshTime;
+
+    // 캐시가 유효하면 스킵 (강제 새로고침 아닌 경우)
+    if (!force && cacheAge < this.refreshTtlMs) {
+      return;
+    }
+
+    // Supabase에서 로드 시도
+    const supabaseRules = await this.loadFromSupabase();
+
+    if (supabaseRules) {
+      this.rules = supabaseRules;
+      this.lastRefreshTime = now;
+      console.log('✅ 규칙 새로고침 완료 (Supabase)');
+    } else {
+      // Supabase 실패 시 JSON 폴백
+      this.rules = this.loadFromJson();
+      this.lastRefreshTime = now;
+      console.log('⚠️ 규칙 새로고침 완료 (JSON 폴백)');
+    }
+  }
+
+  /**
+   * 현재 데이터 소스 확인
+   */
+  getDataSource(): 'json' | 'supabase' {
+    return this.dataSource;
+  }
+
+  /**
+   * 캐시 상태 확인
+   */
+  getCacheStatus(): { age: number; isValid: boolean; source: string } {
+    const age = Date.now() - this.lastRefreshTime;
+    return {
+      age,
+      isValid: age < this.refreshTtlMs,
+      source: this.dataSource,
+    };
   }
 
   /**

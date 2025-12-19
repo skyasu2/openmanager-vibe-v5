@@ -28,7 +28,8 @@ export type { MetricThreshold };
  * 메트릭별 임계값 (외부 설정에서 로드)
  * @deprecated 직접 사용 대신 `import { getThreshold } from '@/config/rules'` 권장
  */
-export const METRIC_THRESHOLDS: Record<string, MetricThreshold> = getAllThresholds();
+export const METRIC_THRESHOLDS: Record<string, MetricThreshold> =
+  getAllThresholds();
 
 // 서버 상태별 색상 테마
 export const SERVER_STATUS_COLORS = {

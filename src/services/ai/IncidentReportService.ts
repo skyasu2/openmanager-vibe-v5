@@ -5,8 +5,8 @@
  * 영향 범위를 파악하여 자동으로 보고서 생성
  */
 
+import { getThreshold, isCritical, isWarning } from '@/config/rules';
 import { getCachedData, setCachedData } from '../../lib/cache/cache-helper';
-import { isCritical, isWarning, getThreshold } from '@/config/rules';
 
 export interface IncidentReport {
   id: string;
@@ -539,11 +539,17 @@ export class IncidentReportService {
 
     for (const metric of metrics) {
       // Critical: 둘 다 critical 수준 이상
-      if (isCritical('cpu', metric.cpu) || isCritical('memory', metric.memory)) {
+      if (
+        isCritical('cpu', metric.cpu) ||
+        isCritical('memory', metric.memory)
+      ) {
         groups.critical?.push(metric);
       }
       // High: Warning 이상 (하나라도)
-      else if (isWarning('cpu', metric.cpu) || isWarning('memory', metric.memory)) {
+      else if (
+        isWarning('cpu', metric.cpu) ||
+        isWarning('memory', metric.memory)
+      ) {
         groups.high?.push(metric);
       }
       // Medium: Warning 직전 (warning의 80% 이상)

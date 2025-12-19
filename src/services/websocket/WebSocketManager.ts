@@ -545,7 +545,10 @@ export class WebSocketManager {
     const memoryThreshold = getThreshold('memory');
 
     // critical 초과 (임계값 + 10%)
-    if (cpu > cpuThreshold.critical + 10 || memory > memoryThreshold.critical + 5)
+    if (
+      cpu > cpuThreshold.critical + 10 ||
+      memory > memoryThreshold.critical + 5
+    )
       return 'critical';
     // critical 수준
     if (cpu > cpuThreshold.critical || memory > memoryThreshold.critical)

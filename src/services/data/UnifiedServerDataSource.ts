@@ -9,11 +9,11 @@
  * @version 2.0.0 (SSOT Architecture Implemented)
  */
 
+// 🎯 외부화된 규칙 시스템 (Single Source of Truth for thresholds)
+import { getServerStatus } from '@/config/rules';
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';
 // 🎯 Scenario-based failure data (Single Source of Truth)
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
-// 🎯 외부화된 규칙 시스템 (Single Source of Truth for thresholds)
-import { getServerStatus } from '@/config/rules';
 import type { Server } from '@/types/server';
 
 export interface ServerDataSourceConfig {
