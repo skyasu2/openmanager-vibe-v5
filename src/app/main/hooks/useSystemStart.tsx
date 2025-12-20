@@ -65,6 +65,19 @@ export function useSystemStart(options: UseSystemStartOptions) {
   );
   const [isSystemStarting, setIsSystemStarting] = useState(false);
 
+  // 네비게이션 펜딩 상태 (렌더링 중 router.push 방지)
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(
+    null
+  );
+
+  // 펜딩 네비게이션 처리 (렌더링 외부에서 실행)
+  useEffect(() => {
+    if (pendingNavigation) {
+      router.push(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  }, [pendingNavigation, router]);
+
   // 게스트 제한 모달 상태 (alert 대체)
   const [showGuestRestriction, setShowGuestRestriction] = useState(false);
 
@@ -210,7 +223,8 @@ export function useSystemStart(options: UseSystemStartOptions) {
                 setIsSystemStarting(false);
               }
             })();
-            router.push('/system-boot');
+            // 렌더링 외부에서 네비게이션 실행 (React 규칙 준수)
+            setPendingNavigation('/system-boot');
             return 0;
           }
           return prev - 1;
