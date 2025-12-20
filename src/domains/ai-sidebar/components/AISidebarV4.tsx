@@ -4,6 +4,7 @@ import { type UIMessage, useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 // Icons
 import { Bot, User } from 'lucide-react';
+import { MessageActions } from '../../../components/ai/MessageActions';
 import {
   type FC,
   memo,
@@ -128,8 +129,10 @@ function detectApprovalIntent(input: string): 'approve' | 'reject' | null {
 const MessageComponent = memo<{
   message: EnhancedChatMessage;
   onRegenerateResponse?: (messageId: string) => void;
+  onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
+  isLastMessage?: boolean;
   approvalRequest?: ApprovalRequest;
-}>(({ message, approvalRequest }) => {
+}>(({ message, onRegenerateResponse, onFeedback, isLastMessage, approvalRequest }) => {
   // thinking 메시지일 경우 간소화된 인라인 상태 표시
   if (message.role === 'thinking' && message.thinkingSteps) {
     const agentSteps = convertToAgentSteps(message.thinkingSteps);
@@ -220,6 +223,19 @@ const MessageComponent = memo<{
                 </p>
               )}
           </div>
+
+          {/* 메시지 액션 (복사, 피드백, 재생성) */}
+          {message.content && (
+            <MessageActions
+              messageId={message.id}
+              content={message.content}
+              role={message.role}
+              onRegenerate={onRegenerateResponse}
+              onFeedback={onFeedback}
+              showRegenerate={isLastMessage && message.role === 'assistant'}
+              className="mt-2"
+            />
+          )}
         </div>
       </div>
     </div>
@@ -320,7 +336,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   );
 
   // Vercel AI SDK useChat Hook (@ai-sdk/react v2.x)
-  const { messages, sendMessage, status, setMessages } = useChat({
+  const { messages, sendMessage, status, setMessages, stop } = useChat({
     // v2.x: transport 옵션으로 API 엔드포인트 설정
     transport: new DefaultChatTransport({
       api: '/api/ai/supervisor', // LangGraph Multi-Agent Supervisor
@@ -383,6 +399,30 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     setInput('');
     console.log('🔄 [Session] New session started:', chatSessionIdRef.current);
   }, [setMessages]);
+
+  // 👍👎 피드백 핸들러 (백엔드 API 연동)
+  const handleFeedback = useCallback(
+    async (messageId: string, type: 'positive' | 'negative') => {
+      try {
+        const response = await fetch('/api/ai/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messageId,
+            type,
+            sessionId: chatSessionIdRef.current,
+            timestamp: new Date().toISOString(),
+          }),
+        });
+        if (!response.ok) {
+          console.error('[AISidebarV4] Feedback API error:', response.status);
+        }
+      } catch (error) {
+        console.error('[AISidebarV4] Feedback error:', error);
+      }
+    },
+    []
+  );
 
   // v2.x: 재생성 함수 (마지막 assistant 메시지 제거 후 재전송)
   const regenerateLastResponse = () => {
@@ -549,6 +589,10 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
             regenerateLastResponse();
           }}
           currentEngine="Vercel AI SDK"
+          // 👍👎 피드백 핸들러
+          onFeedback={handleFeedback}
+          // ⏹️ 생성 중단 핸들러
+          onStopGeneration={stop}
         />
       );
     }

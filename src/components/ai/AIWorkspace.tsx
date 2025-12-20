@@ -35,6 +35,8 @@ import AIAssistantIconPanel, {
   type AIAssistantFunction,
 } from './AIAssistantIconPanel';
 import AIContentArea from './AIContentArea';
+import { MarkdownRenderer } from './MarkdownRenderer';
+import { MessageActions } from './MessageActions';
 import ThinkingProcessVisualizer from './ThinkingProcessVisualizer';
 
 // --- Shared Helpers (Mirrored from AISidebarV4) ---
@@ -56,7 +58,9 @@ const MemoizedThinkingProcessVisualizer = memo(ThinkingProcessVisualizer);
 const MessageComponent = memo<{
   message: EnhancedChatMessage;
   onRegenerateResponse?: (messageId: string) => void;
-}>(({ message }) => {
+  onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
+  isLastMessage?: boolean;
+}>(({ message, onRegenerateResponse, onFeedback, isLastMessage = false }) => {
   if (message.role === 'thinking' && message.thinkingSteps) {
     return (
       <div className="my-4">
@@ -100,25 +104,46 @@ const MessageComponent = memo<{
                 : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
             }`}
           >
-            <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
-              {message.content}
-            </div>
+            {/* 마크다운 렌더링 (AI 응답) 또는 일반 텍스트 (사용자) */}
+            {message.role === 'assistant' ? (
+              <MarkdownRenderer
+                content={message.content}
+                className="text-[15px] leading-relaxed"
+              />
+            ) : (
+              <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
+                {message.content}
+              </div>
+            )}
           </div>
 
+          {/* 메시지 메타 정보 및 액션 버튼 */}
           <div
             className={`mt-1 flex items-center justify-between ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
           >
-            <p className="text-xs text-gray-500">
-              {typeof message.timestamp === 'string'
-                ? new Date(message.timestamp).toLocaleTimeString()
-                : message.timestamp.toLocaleTimeString()}
-            </p>
-            {message.role === 'assistant' &&
-              message.metadata?.processingTime && (
-                <p className="text-xs text-gray-400">
-                  {message.metadata.processingTime}ms
-                </p>
-              )}
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-gray-500">
+                {typeof message.timestamp === 'string'
+                  ? new Date(message.timestamp).toLocaleTimeString()
+                  : message.timestamp.toLocaleTimeString()}
+              </p>
+              {message.role === 'assistant' &&
+                message.metadata?.processingTime && (
+                  <p className="text-xs text-gray-400">
+                    · {message.metadata.processingTime}ms
+                  </p>
+                )}
+            </div>
+
+            {/* 메시지 액션 버튼 (복사, 피드백, 재생성) */}
+            <MessageActions
+              messageId={message.id}
+              content={message.content}
+              role={message.role}
+              onRegenerate={onRegenerateResponse}
+              onFeedback={onFeedback}
+              showRegenerate={isLastMessage && message.role === 'assistant'}
+            />
           </div>
 
           {message.role === 'assistant' &&
@@ -154,7 +179,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   // --- Vercel AI SDK Integration (Mirrored from AISidebarV4) ---
   const [input, setInput] = useState('');
 
-  const { messages, sendMessage, status, setMessages } = useChat({
+  const { messages, sendMessage, status, setMessages, stop } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/ai/supervisor', // LangGraph Multi-Agent Supervisor
     }),
@@ -162,6 +187,26 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
       setInput('');
     },
   });
+
+  // 피드백 핸들러 (백엔드 API 연동)
+  const handleFeedback = async (messageId: string, type: 'positive' | 'negative') => {
+    try {
+      const response = await fetch('/api/ai/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          messageId, 
+          type, 
+          timestamp: new Date().toISOString() 
+        }),
+      });
+      if (!response.ok) {
+        console.error('[AIWorkspace] Feedback API error:', response.status);
+      }
+    } catch (error) {
+      console.error('[AIWorkspace] Feedback error:', error);
+    }
+  };
 
   const regenerateLastResponse = () => {
     if (messages.length < 2) return;
@@ -271,6 +316,8 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                 regenerateLastResponse();
               }}
               currentEngine="Vercel AI SDK"
+              onStopGeneration={stop}
+              onFeedback={handleFeedback}
             />
           ) : (
             <AIFunctionPages
@@ -385,6 +432,8 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                   regenerateLastResponse();
                 }}
                 currentEngine="Vercel AI SDK"
+                onStopGeneration={stop}
+                onFeedback={handleFeedback}
               />
             ) : (
               <div className="h-full p-0">

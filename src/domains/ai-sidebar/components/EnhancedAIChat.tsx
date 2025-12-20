@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, FileText, RefreshCw, Send } from 'lucide-react';
+import { Bot, FileText, RefreshCw, Send, Square } from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
@@ -26,8 +26,12 @@ interface EnhancedAIChatProps {
   MessageComponent: React.ComponentType<{
     message: EnhancedChatMessage;
     onRegenerateResponse?: (messageId: string) => void;
+    onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
+    isLastMessage?: boolean;
     approvalRequest?: ApprovalRequest;
   }>;
+  /** 피드백 핸들러 */
+  onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
   /** Human-in-the-Loop 승인 요청 (자연어 응답 대기 표시용) */
   pendingApproval?: ApprovalRequest | null;
   /** 입력 값 */
@@ -48,6 +52,8 @@ interface EnhancedAIChatProps {
   sessionState?: SessionState;
   /** 🔄 새 세션 시작 핸들러 */
   onNewSession?: () => void;
+  /** ⏹️ 생성 중단 핸들러 */
+  onStopGeneration?: () => void;
 }
 
 /**
@@ -76,6 +82,8 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   routingReason,
   sessionState,
   onNewSession,
+  onStopGeneration,
+  onFeedback,
 }: EnhancedAIChatProps) {
   return (
     <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
@@ -142,11 +150,15 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             message.isStreaming &&
             index === limitedMessages.length - 1;
 
+          const isLastMessage = index === limitedMessages.length - 1;
+
           return (
             <MessageComponent
               key={message.id}
               message={message}
               onRegenerateResponse={regenerateResponse}
+              onFeedback={onFeedback}
+              isLastMessage={isLastMessage}
               approvalRequest={
                 isLastStreamingAssistant
                   ? (pendingApproval ?? undefined)
@@ -235,20 +247,33 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             />
           </div>
 
-          {/* 전송 버튼 */}
-          <button
-            onClick={() => {
-              void handleSendInput();
-            }}
-            disabled={
-              !inputValue.trim() || isGenerating || sessionState?.isLimitReached
-            }
-            className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-            title="메시지 전송"
-            aria-label="메시지 전송"
-          >
-            <Send className="h-5 w-5" />
-          </button>
+          {/* 전송/중단 버튼 */}
+          {isGenerating && onStopGeneration ? (
+            <button
+              onClick={onStopGeneration}
+              className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-red-500 text-white shadow-md transition-all hover:scale-105 hover:bg-red-600 hover:shadow-lg"
+              title="생성 중단"
+              aria-label="생성 중단"
+            >
+              <Square className="h-5 w-5 fill-current" />
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                void handleSendInput();
+              }}
+              disabled={
+                !inputValue.trim() ||
+                isGenerating ||
+                sessionState?.isLimitReached
+              }
+              className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+              title="메시지 전송"
+              aria-label="메시지 전송"
+            >
+              <Send className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
         {/* 하단 컨트롤 영역 */}
