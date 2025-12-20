@@ -58,16 +58,20 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
         <div>
           <div className="flex items-center gap-1.5 text-gray-500 mb-1">
             <ServerIcon size={14} className="text-blue-600" />
-            <span className="text-xs font-medium uppercase tracking-wider">Total</span>
+            <span className="text-xs font-medium uppercase tracking-wider">
+              Total
+            </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-gray-900 leading-none">{stats.total}</span>
+            <span className="text-2xl font-bold text-gray-900 leading-none">
+              {stats.total}
+            </span>
             <span className="text-xs text-gray-400">servers</span>
           </div>
         </div>
         {/* Decorative Circle */}
         <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-           <Activity size={16} />
+          <Activity size={16} />
         </div>
       </div>
 
@@ -78,16 +82,20 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
             <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700">
               <CheckCircle2 size={12} /> Online
             </span>
-            <span className="mt-1 text-xl font-bold text-green-800 tracking-tight">{stats.online}</span>
+            <span className="mt-1 text-xl font-bold text-green-800 tracking-tight">
+              {stats.online}
+            </span>
           </div>
         </div>
-        
+
         <div className="relative overflow-hidden rounded-xl border border-yellow-100 bg-yellow-50/50 p-3 transition-all hover:bg-yellow-50">
           <div className="flex flex-col">
             <span className="flex items-center gap-1.5 text-xs font-semibold text-yellow-700">
               <AlertTriangle size={12} /> Warning
             </span>
-            <span className="mt-1 text-xl font-bold text-yellow-800 tracking-tight">{stats.warning}</span>
+            <span className="mt-1 text-xl font-bold text-yellow-800 tracking-tight">
+              {stats.warning}
+            </span>
           </div>
         </div>
 
@@ -96,7 +104,9 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
             <span className="flex items-center gap-1.5 text-xs font-semibold text-red-700">
               <XCircle size={12} /> Offline
             </span>
-            <span className="mt-1 text-xl font-bold text-red-800 tracking-tight">{stats.offline}</span>
+            <span className="mt-1 text-xl font-bold text-red-800 tracking-tight">
+              {stats.offline}
+            </span>
           </div>
         </div>
       </div>
@@ -106,46 +116,66 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
         <div className="grid grid-cols-4 gap-4 divide-x divide-gray-100">
           {/* CPU */}
           <div className="px-2 text-center first:pl-0">
-             <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1.5">
-               <Cpu size={12} /> CPU
-             </div>
-             <div className="relative h-1.5 w-full rounded-full bg-gray-100 mb-1">
-               <div className={`absolute top-0 left-0 h-full rounded-full ${resourceStats.cpu > 80 ? 'bg-red-500' : 'bg-blue-500'}`} style={{ width: `${resourceStats.cpu}%` }} />
-             </div>
-             <span className="text-xs font-bold text-gray-900">{resourceStats.cpu}%</span>
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1.5">
+              <Cpu size={12} /> CPU
+            </div>
+            <div className="relative h-1.5 w-full rounded-full bg-gray-100 mb-1">
+              <div
+                className={`absolute top-0 left-0 h-full rounded-full ${resourceStats.cpu > 80 ? 'bg-red-500' : 'bg-blue-500'}`}
+                style={{ width: `${resourceStats.cpu}%` }}
+              />
+            </div>
+            <span className="text-xs font-bold text-gray-900">
+              {resourceStats.cpu}%
+            </span>
           </div>
 
           {/* Memory */}
           <div className="px-2 text-center">
-             <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1.5">
-               <Database size={12} /> MEM
-             </div>
-             <div className="relative h-1.5 w-full rounded-full bg-gray-100 mb-1">
-               <div className={`absolute top-0 left-0 h-full rounded-full ${resourceStats.memory > 80 ? 'bg-red-500' : 'bg-purple-500'}`} style={{ width: `${resourceStats.memory}%` }} />
-             </div>
-             <span className="text-xs font-bold text-gray-900">{resourceStats.memory}%</span>
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1.5">
+              <Database size={12} /> MEM
+            </div>
+            <div className="relative h-1.5 w-full rounded-full bg-gray-100 mb-1">
+              <div
+                className={`absolute top-0 left-0 h-full rounded-full ${resourceStats.memory > 80 ? 'bg-red-500' : 'bg-purple-500'}`}
+                style={{ width: `${resourceStats.memory}%` }}
+              />
+            </div>
+            <span className="text-xs font-bold text-gray-900">
+              {resourceStats.memory}%
+            </span>
           </div>
 
           {/* Disk */}
           <div className="px-2 text-center">
-             <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1.5">
-               <HardDrive size={12} /> DISK
-             </div>
-             <div className="relative h-1.5 w-full rounded-full bg-gray-100 mb-1">
-               <div className={`absolute top-0 left-0 h-full rounded-full ${resourceStats.disk > 80 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${resourceStats.disk}%` }} />
-             </div>
-             <span className="text-xs font-bold text-gray-900">{resourceStats.disk}%</span>
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1.5">
+              <HardDrive size={12} /> DISK
+            </div>
+            <div className="relative h-1.5 w-full rounded-full bg-gray-100 mb-1">
+              <div
+                className={`absolute top-0 left-0 h-full rounded-full ${resourceStats.disk > 80 ? 'bg-red-500' : 'bg-emerald-500'}`}
+                style={{ width: `${resourceStats.disk}%` }}
+              />
+            </div>
+            <span className="text-xs font-bold text-gray-900">
+              {resourceStats.disk}%
+            </span>
           </div>
-          
-           {/* Network */}
+
+          {/* Network */}
           <div className="px-2 text-center">
-             <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1.5">
-               <Network size={12} /> NET
-             </div>
-             <div className="relative h-1.5 w-full rounded-full bg-gray-100 mb-1">
-               <div className="absolute top-0 left-0 h-full rounded-full bg-orange-500" style={{ width: `${Math.min(resourceStats.network, 100)}%` }} />
-             </div>
-             <span className="text-xs font-bold text-gray-900">{resourceStats.network}%</span>
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1.5">
+              <Network size={12} /> NET
+            </div>
+            <div className="relative h-1.5 w-full rounded-full bg-gray-100 mb-1">
+              <div
+                className="absolute top-0 left-0 h-full rounded-full bg-orange-500"
+                style={{ width: `${Math.min(resourceStats.network, 100)}%` }}
+              />
+            </div>
+            <span className="text-xs font-bold text-gray-900">
+              {resourceStats.network}%
+            </span>
           </div>
         </div>
       </div>

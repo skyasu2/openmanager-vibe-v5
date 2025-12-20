@@ -307,12 +307,12 @@ export default function DashboardContent({
                     24시간 시나리오
                   </span>
                 </div>
-                
+
                 {/* 우측 통계 요약 (간소화) */}
                 <div className="flex shrink-0 flex-wrap items-center gap-2 text-[10px] sm:gap-3">
-                   <span className="text-purple-300/80">
-                     업데이트: {new Date().toLocaleTimeString('ko-KR')}
-                   </span>
+                  <span className="text-purple-300/80">
+                    업데이트: {new Date().toLocaleTimeString('ko-KR')}
+                  </span>
                 </div>
               </div>
             </div>
