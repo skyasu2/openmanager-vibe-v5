@@ -371,7 +371,13 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             whileHover={{ scale: 1.02 }}
           >
             {/* 아이콘 + 라벨 */}
-            <div className="flex items-center gap-1 shrink-0">
+            {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: role과 aria-label이 조건부로 함께 적용됨 */}
+            <div
+              className="flex items-center gap-1 shrink-0"
+              role={isCompact ? 'group' : undefined}
+              aria-label={isCompact ? label : undefined}
+              title={isCompact ? label : undefined}
+            >
               <div className="text-gray-600 p-0.5">{icon}</div>
               {!isCompact && (
                 <span className="text-[10px] font-medium text-gray-600 whitespace-nowrap">

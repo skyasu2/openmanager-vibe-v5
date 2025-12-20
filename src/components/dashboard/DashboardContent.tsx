@@ -84,6 +84,16 @@ export default function DashboardContent({
   // 🎯 서버 데이터에서 직접 통계 계산 (중복 API 호출 제거)
   const [statsLoading, _setStatsLoading] = useState(false);
 
+  // 🛡️ Hydration-safe 시간 표시 (SSR/CSR 불일치 방지)
+  const [currentTime, setCurrentTime] = useState<string | null>(null);
+  useEffect(() => {
+    setCurrentTime(new Date().toLocaleTimeString('ko-KR'));
+    const interval = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString('ko-KR'));
+    }, 60000); // 1분마다 갱신
+    return () => clearInterval(interval);
+  }, []);
+
   // 폴백 통계 계산 (v5.81.0: 상호 배타적 카운팅으로 수정)
   const calculateFallbackStats = useCallback((): DashboardStats => {
     if (!servers || servers.length === 0) {
@@ -311,7 +321,7 @@ export default function DashboardContent({
                 {/* 우측 통계 요약 (간소화) */}
                 <div className="flex shrink-0 flex-wrap items-center gap-2 text-[10px] sm:gap-3">
                   <span className="text-purple-300/80">
-                    업데이트: {new Date().toLocaleTimeString('ko-KR')}
+                    업데이트: {currentTime ?? '--:--:--'}
                   </span>
                 </div>
               </div>
