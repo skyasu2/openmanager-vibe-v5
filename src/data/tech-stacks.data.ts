@@ -500,12 +500,12 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
           name: 'Netlify',
           category: 'deployment',
           importance: 'high',
-          description: '최초 배포 플랫폼 - GitHub 연동 정적 사이트',
+          description: '최초 배포 플랫폼 - 정적 사이트 & 목업 호스팅',
           implementation:
-            'GitHub 저장소와 연동하여 정적 사이트 자동 배포. 수동 빌드 과정 없이 기본적인 호스팅 서비스 활용',
+            'GitHub 저장소와 연동하여 정적 사이트 자동 배포. 복잡한 서버 로직 없이 HTML/JS 수준의 목업을 빠르게 띄우던 용도',
           status: 'history',
           icon: '🌍',
-          tags: ['정적배포', '첫배포', '자동화없음'],
+          tags: ['정적배포', '첫배포', 'Mockup', '단순호스팅'],
           type: 'commercial',
         },
         {
@@ -518,18 +518,6 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
           status: 'history',
           icon: '📝',
           tags: ['1단계', '수동개발', 'Copy&Paste', 'Netlify'],
-          type: 'commercial',
-        },
-        {
-          name: 'Netlify (Mockup)',
-          category: 'deployment',
-          importance: 'medium',
-          description: '초기 배포처 - 정적 페이지 호스팅',
-          implementation:
-            '복잡한 서버 로직 없이 HTML/JS 수준의 목업을 빠르게 띄우던 용도',
-          status: 'history',
-          icon: '🌐',
-          tags: ['Mockup', '단순호스팅', '정적웹'],
           type: 'commercial',
         },
       ],
@@ -590,7 +578,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
           type: 'commercial',
         },
         {
-          name: 'GCP Cloud Functions (Legacy)',
+          name: 'GCP Cloud Functions',
           category: 'deployment',
           importance: 'medium',
           description: '3단계 배포 - 서버리스 함수의 도입',
