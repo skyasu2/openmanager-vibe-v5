@@ -27,7 +27,7 @@ export default function VirtualizedServerList({
   useEffect(() => {
     const calculateCardsPerRow = () => {
       const containerWidth = window.innerWidth - 64; // 좌우 패딩 제외
-      const cardWidth = 200; // 카드 최소 너비 (50% 축소)
+      const cardWidth = 280; // 카드 최소 너비 증가 (200px -> 280px)
       const gap = 12; // 카드 간격
       const cards = Math.floor((containerWidth + gap) / (cardWidth + gap));
       setCardsPerRow(Math.max(1, cards)); // 최소 1개
@@ -109,7 +109,7 @@ export default function VirtualizedServerList({
       <div
         className="grid gap-3"
         style={{
-          gridTemplateColumns: `repeat(auto-fit, minmax(200px, 1fr))`,
+          gridTemplateColumns: `repeat(auto-fit, minmax(280px, 1fr))`,
         }}
       >
         {servers
