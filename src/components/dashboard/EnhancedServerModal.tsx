@@ -360,7 +360,7 @@ export default function EnhancedServerModal({
         <div className="flex-1 overflow-y-auto bg-linear-to-br from-[#0F1115] to-[#1a1c20]">
           <div
             key={selectedTab}
-            className="p-4 sm:p-6 opacity-0 animate-in fade-in duration-300 slide-in-from-bottom-2 fill-mode-forwards"
+            className="p-4 sm:p-6 animate-fade-in-up"
           >
             {/* 📊 통합 탭 시스템 */}
             {selectedTab === 'overview' && (
