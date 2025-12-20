@@ -1,81 +1,77 @@
 import { chromium } from 'playwright';
 
 (async () => {
-  // Test with Chrome
-  console.log('=== Testing with Chrome ===');
-  const browserChrome = await chromium.launch({
-    channel: 'chrome',
-    headless: false
-  });
+  // Config
+  const BASE_URL = process.env.BASE_URL || 'https://openmanager-vibe-v5-l2fooslro-skyasus-projects.vercel.app';
+  const HEADLESS = process.env.HEADLESS !== 'false';
+  const TIMEOUT = 5000;
 
-  const contextChrome = await browserChrome.newContext();
-  const pageChrome = await contextChrome.newPage();
+  console.log('=== Test Configuration ===');
+  console.log(`URL: ${BASE_URL}`);
+  console.log(`Headless: ${HEADLESS}`);
+  console.log('==========================\n');
 
-  // Collect console logs
-  const logsChrome = [];
-  pageChrome.on('console', msg => {
-    const type = msg.type();
-    const text = msg.text();
-    logsChrome.push({ type, text });
-  });
+  async function runTest(browserName, options) {
+    console.log(`=== Testing with ${browserName} ===`);
+    let browser;
+    try {
+      browser = await chromium.launch(options);
+      const context = await browser.newContext();
+      const page = await context.newPage();
 
-  await pageChrome.goto('https://openmanager-vibe-v5-l2fooslro-skyasus-projects.vercel.app');
-  await pageChrome.waitForTimeout(5000);
+      // Collect logs
+      const logs = [];
+      page.on('console', msg => {
+        logs.push({ type: msg.type(), text: msg.text() });
+      });
 
-  // Count FedCM warnings
-  const fedcmWarningsChrome = logsChrome.filter(log =>
-    log.text.includes('FedCM') || log.text.includes('GSI_LOGGER')
-  );
+      try {
+        await page.goto(BASE_URL);
+        await page.waitForTimeout(TIMEOUT);
+      } catch (e) {
+        console.error(`❌ Navigation failed: ${e.message}`);
+        return { error: e.message, logs: [], count: 0 };
+      }
 
-  console.log(`Chrome - Total logs: ${logsChrome.length}`);
-  console.log(`Chrome - FedCM warnings: ${fedcmWarningsChrome.length}`);
-  fedcmWarningsChrome.forEach(log => {
-    console.log(`  [${log.type}] ${log.text.substring(0, 100)}...`);
-  });
+      // Filter logs
+      const warnings = logs.filter(log =>
+        log.text.includes('FedCM') || log.text.includes('GSI_LOGGER')
+      );
 
-  await browserChrome.close();
+      console.log(`${browserName} - Total logs: ${logs.length}`);
+      console.log(`${browserName} - FedCM warnings: ${warnings.length}`);
+      
+      warnings.forEach(log => {
+        console.log(`  [${log.type}] ${log.text.substring(0, 100)}...`);
+      });
 
-  // Test with Chromium
-  console.log('\n=== Testing with Chromium ===');
-  const browserChromium = await chromium.launch({
-    headless: false
-  });
+      return { logs, warnings, count: warnings.length };
+    } catch (e) {
+      console.error(`❌ Browser launch failed: ${e.message}`);
+      return { error: e.message, logs: [], count: 0 };
+    } finally {
+      if (browser) await browser.close();
+    }
+  }
 
-  const contextChromium = await browserChromium.newContext();
-  const pageChromium = await contextChromium.newPage();
-
-  // Collect console logs
-  const logsChromium = [];
-  pageChromium.on('console', msg => {
-    const type = msg.type();
-    const text = msg.text();
-    logsChromium.push({ type, text });
-  });
-
-  await pageChromium.goto('https://openmanager-vibe-v5-l2fooslro-skyasus-projects.vercel.app');
-  await pageChromium.waitForTimeout(5000);
-
-  // Count FedCM warnings
-  const fedcmWarningsChromium = logsChromium.filter(log =>
-    log.text.includes('FedCM') || log.text.includes('GSI_LOGGER')
-  );
-
-  console.log(`Chromium - Total logs: ${logsChromium.length}`);
-  console.log(`Chromium - FedCM warnings: ${fedcmWarningsChromium.length}`);
-  fedcmWarningsChromium.forEach(log => {
-    console.log(`  [${log.type}] ${log.text.substring(0, 100)}...`);
-  });
-
-  await browserChromium.close();
+  // Run Tests
+  const chromeResult = await runTest('Chrome', { channel: 'chrome', headless: HEADLESS });
+  console.log('');
+  const chromiumResult = await runTest('Chromium', { headless: HEADLESS });
 
   // Compare
   console.log('\n=== Comparison ===');
-  console.log(`FedCM warnings - Chrome: ${fedcmWarningsChrome.length}, Chromium: ${fedcmWarningsChromium.length}`);
-
-  if (fedcmWarningsChrome.length === fedcmWarningsChromium.length) {
-    console.log('✅ No difference between Chrome and Chromium');
+  if (chromeResult.error || chromiumResult.error) {
+    console.log('⚠️ Some tests failed to run properly.');
   } else {
-    console.log('⚠️ Difference detected!');
-    console.log(`Improvement: ${fedcmWarningsChromium.length - fedcmWarningsChrome.length} warnings`);
+    console.log(`FedCM warnings - Chrome: ${chromeResult.count}, Chromium: ${chromiumResult.count}`);
+    if (chromeResult.count === chromiumResult.count) {
+      console.log('✅ No difference between Chrome and Chromium');
+    } else {
+      console.log('⚠️ Difference detected!');
+      const diff = Math.abs(chromiumResult.count - chromeResult.count);
+      console.log(`Difference: ${diff} warnings`);
+    }
   }
+
 })();

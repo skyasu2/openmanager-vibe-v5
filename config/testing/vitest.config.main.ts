@@ -30,9 +30,12 @@ export default defineConfig({
       'dist/**',
       '.next/**',
       'out/**',
+      'cloud-run/**', // ✅ Cloud Run AI 엔진 (별도 테스트 스위트)
       'tests/archive/**', // ✅ 아카이브된 테스트 제외 (jsdom 한계로 개선 불가능)
-      'tests/e2e/**/*.spec.ts', // ✅ E2E 테스트 제외 (Playwright 전용, Vitest에서 실행 금지) - 패턴 명확화
+      'tests/e2e/**', // ✅ E2E 테스트 제외 (Playwright 전용)
+      'tests/manual/**', // ✅ 수동 검증 테스트 제외
       '**/e2e/**', // ✅ 추가 안전장치: 어떤 경로의 e2e 디렉토리도 제외
+      '**/*.integration.test.{ts,tsx,js,jsx}', // ✅ 통합 테스트 제외 (서버 필요)
     ],
     coverage: {
       provider: 'v8',

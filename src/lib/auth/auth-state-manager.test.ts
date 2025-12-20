@@ -109,7 +109,7 @@ describe('AuthStateManager', () => {
 
   describe('Singleton Pattern', () => {
     it('getInstance()가 항상 동일한 인스턴스를 반환해야 함', async () => {
-      const { AuthStateManager } = await import('../auth-state-manager');
+      const { AuthStateManager } = await import('./auth-state-manager');
 
       const instance1 = AuthStateManager.getInstance();
       const instance2 = AuthStateManager.getInstance();
@@ -120,7 +120,7 @@ describe('AuthStateManager', () => {
 
   describe('Cache Management', () => {
     it('invalidateCache()가 캐시를 무효화해야 함', async () => {
-      const { AuthStateManager } = await import('../auth-state-manager');
+      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
 
       // 첫 번째 호출로 캐시 설정
@@ -138,7 +138,7 @@ describe('AuthStateManager', () => {
 
   describe('getAuthState()', () => {
     it('세션이 없을 때 unknown 상태를 반환해야 함', async () => {
-      const { AuthStateManager } = await import('../auth-state-manager');
+      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
 
       const state = await manager.getAuthState();
@@ -162,7 +162,7 @@ describe('AuthStateManager', () => {
       localStorageMock.setItem('auth_user', JSON.stringify(guestUser));
       localStorageMock.setItem('auth_created_at', Date.now().toString());
 
-      const { AuthStateManager } = await import('../auth-state-manager');
+      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
       manager.invalidateCache(); // 이전 테스트의 캐시 무효화
 
@@ -201,7 +201,7 @@ describe('AuthStateManager', () => {
         error: null,
       });
 
-      const { AuthStateManager } = await import('../auth-state-manager');
+      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
       manager.invalidateCache();
 
@@ -242,7 +242,7 @@ describe('AuthStateManager', () => {
         error: null,
       });
 
-      const { AuthStateManager } = await import('../auth-state-manager');
+      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
       manager.invalidateCache();
 
@@ -260,7 +260,7 @@ describe('AuthStateManager', () => {
       localStorageMock.setItem('auth_type', 'guest');
       localStorageMock.setItem('auth_session_id', 'session-123');
 
-      const { AuthStateManager } = await import('../auth-state-manager');
+      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
 
       await manager.clearAllAuthData();
@@ -270,7 +270,7 @@ describe('AuthStateManager', () => {
     });
 
     it('특정 타입만 정리할 수 있어야 함', async () => {
-      const { AuthStateManager } = await import('../auth-state-manager');
+      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
 
       await manager.clearAllAuthData('guest');
@@ -286,7 +286,7 @@ describe('AuthStateManager', () => {
         new Error('Network error')
       );
 
-      const { AuthStateManager } = await import('../auth-state-manager');
+      const { AuthStateManager } = await import('./auth-state-manager');
       const manager = AuthStateManager.getInstance();
       manager.invalidateCache();
 
