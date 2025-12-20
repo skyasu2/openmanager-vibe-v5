@@ -57,7 +57,7 @@ describe('EnvironmentSecurityScanner', () => {
 
     it('Google AI API 키 패턴을 감지해야 함', () => {
       // 테스트용 fake 키 (실제 키 아님)
-      const googleKey = 'AIzaSyFAKE_TEST_KEY_NOT_REAL_12345678';
+      const googleKey = 'AIzaSyFAKE_TEST_KEY_NOT_REAL_1234567890';
       const isValid = scanner.validateSensitiveValue(googleKey);
 
       expect(isValid).toBe(false);
