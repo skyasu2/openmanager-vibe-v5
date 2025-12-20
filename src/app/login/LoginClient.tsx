@@ -15,7 +15,7 @@ import type { AuthUser } from '@/lib/auth/auth-state-manager';
 import { authStateManager } from '@/lib/auth/auth-state-manager';
 // Supabase Auth 관련 임포트
 import { signInWithGitHub, signInWithGoogle } from '@/lib/auth/supabase-auth';
-import { AI_GRADIENT_CLASSES, BUTTON_STYLES } from '@/styles/design-constants';
+import { AI_GRADIENT_CLASSES } from '@/styles/design-constants';
 import debug from '@/utils/debug';
 import { renderTextWithAIGradient } from '@/utils/text-rendering';
 

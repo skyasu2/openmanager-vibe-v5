@@ -94,7 +94,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
         remarkPlugins={[remarkGfm]}
         components={{
           // 코드 블록
-          code: ({ className, children, node, ...props }) => {
+          code: ({ className, children, node }) => {
             // node?.position 없으면 인라인으로 판단 (react-markdown v9+)
             const isInline =
               !node?.position ||

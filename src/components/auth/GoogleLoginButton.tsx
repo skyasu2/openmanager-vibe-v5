@@ -18,7 +18,6 @@ export interface GoogleLoginButtonProps {
   className?: string;
   buttonText?: string;
   showUserInfo?: boolean;
-  callbackUrl?: string;
   // Controlled mode props
   onClick?: () => void | Promise<void>;
   isLoading?: boolean;
@@ -31,7 +30,6 @@ export default function GoogleLoginButton({
   className = '',
   buttonText = 'Google로 로그인',
   showUserInfo = true,
-  callbackUrl = '/main',
   // Controlled mode
   onClick,
   isLoading: externalLoading,
