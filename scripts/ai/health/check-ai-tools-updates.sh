@@ -4,6 +4,12 @@
 
 set -euo pipefail
 
+# nvm과 충돌하는 npm_config_prefix 제거
+if [[ -n "${npm_config_prefix:-}" ]]; then
+    echo "⚠️  npm_config_prefix(${npm_config_prefix}) 감지 → unset 처리"
+    unset npm_config_prefix
+fi
+
 # NVM 환경 로드
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"

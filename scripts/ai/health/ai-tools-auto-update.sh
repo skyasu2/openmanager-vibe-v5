@@ -10,6 +10,12 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# nvm과 충돌하는 npm_config_prefix 제거
+if [[ -n "${npm_config_prefix:-}" ]]; then
+    echo -e "${YELLOW}⚠️  npm_config_prefix(${npm_config_prefix}) 감지 → unset 처리${NC}"
+    unset npm_config_prefix
+fi
+
 # NVM 환경 로드
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
