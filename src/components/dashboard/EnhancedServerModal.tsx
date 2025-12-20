@@ -21,7 +21,6 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import {
   DARK_CARD_STYLES,
@@ -358,10 +357,7 @@ export default function EnhancedServerModal({
 
         {/* 콘텐츠 영역 */}
         <div className="flex-1 overflow-y-auto bg-linear-to-br from-[#0F1115] to-[#1a1c20]">
-          <div
-            key={selectedTab}
-            className="p-4 sm:p-6 animate-fade-in-up"
-          >
+          <div key={selectedTab} className="p-4 sm:p-6 animate-fade-in-up">
             {/* 📊 통합 탭 시스템 */}
             {selectedTab === 'overview' && (
               <div className="space-y-6">
