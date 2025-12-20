@@ -64,7 +64,7 @@ if (require.main === module) {
   if (apiKey) {
     console.log('✅ Tavily API 키 로드 성공');
     console.log(`키 길이: ${apiKey.length}자`);
-    console.log(`키 시작: ${apiKey.substring(0, 4)}...`);
+    console.log(`키 시작: ${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}`);
   } else {
     console.log('❌ Tavily API 키 로드 실패');
     process.exit(1);

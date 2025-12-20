@@ -75,7 +75,7 @@ async function main() {
   console.log('🔍 Gemini API 모델 유효성 테스트');
   console.log('=' .repeat(60));
   console.log(`📅 테스트 시간: ${new Date().toISOString()}`);
-  console.log(`🔑 API Key: ${apiKey.substring(0, 8)}...`);
+  console.log(`🔑 API Key: ${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`);
   console.log('=' .repeat(60));
 
   const results = { valid: [], invalid: [] };
