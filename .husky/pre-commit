@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 
 # Pre-commit Hook: Code Quality Check
-# 목적: ESLint/Prettier 자동 수정 (staged files만)
+# 목적: Biome 자동 수정 (staged files만)
+# Note: 문서/테스트 검증은 post-commit AI 리뷰로 대체됨
 
 set -e
-
-# 문서/테스트 검증 (Soft Warning)
-# 소스 변경 시 문서/테스트 업데이트 여부 확인
-./.husky/pre-commit-doc-validation || true
 
 # Biome: Check & Format (fast, staged files only)
 echo "🔍 Running Biome (Check & Format)..."
