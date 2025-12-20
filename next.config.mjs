@@ -166,12 +166,11 @@ const nextConfig = {
   // 🔄 리다이렉트 설정 (BF-Cache 최적화)
   async redirects() {
     return [
-      // 루트 경로를 login으로 리다이렉트 (BF-Cache 친화적)
-      {
-        source: '/',
-        destination: '/login',
-        permanent: false, // 302 리다이렉트로 BF-Cache 호환성 향상
-      },
+      // ✅ Pattern C (App-First): "/" 에서 바로 메인 앱 표시
+      // - 비로그인 사용자도 메인 페이지 접근 가능
+      // - 로그인이 필요한 기능은 LoginPrompt로 유도
+      // - src/app/page.tsx의 랜딩 페이지 렌더링
+
       // www -> non-www 리다이렉트 (SEO 최적화)
       {
         source: '/www/:path*',
