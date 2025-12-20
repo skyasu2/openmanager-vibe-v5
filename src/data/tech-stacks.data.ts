@@ -357,7 +357,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         description:
           'Agent-first AI-powered IDE - AI 에이전트가 계획, 실행, 검증까지 자율 수행 (Google)',
         implementation:
-          '2025.11 Gemini 3와 함께 출시. VS Code 포크 기반으로 개발자는 아키텍트로, AI 에이전트가 실제 구현을 담당하는 새로운 패러다임. Multi-Agent 협업 지원',
+          'Gemini 3와 함께 출시. VS Code 포크 기반으로 개발자는 아키텍트로, AI 에이전트가 실제 구현을 담당하는 새로운 패러다임. Multi-Agent 협업 지원',
         version: 'v1.0.0 (Gemini 3 Pro)',
         status: 'active',
         icon: '🌌',
@@ -469,7 +469,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       },
     ],
     history: {
-      // 1단계: 초기 (2025.05~06) - ChatGPT 기반 개별 페이지 생성
+      // 1단계: 초기 - ChatGPT 기반 개별 페이지 생성
       stage1: [
         {
           name: 'ChatGPT',
@@ -522,7 +522,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         },
       ],
 
-      // 2단계: 중기 (2025.06~07) - Cursor 자동 개발 시대
+      // 2단계: 중기 - Cursor 자동 개발 시대
       stage2: [
         {
           name: 'Cursor AI (Auto Dev)',
@@ -551,7 +551,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         },
       ],
 
-      // 3단계: 후기 (2025.07~10) - 분기점 (Pivot Point)
+      // 3단계: 후기 - 분기점 (Pivot Point)
       stage3: [
         {
           name: 'WSL + Claude Code (Main)',
