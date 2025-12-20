@@ -564,7 +564,7 @@ export default function LoginClient() {
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && <LoadingOverlay type="github" />}
-              
+
               {/* 클릭 펄스 애니메이션 */}
               {showPulse === 'github' && (
                 <div className="animate-pulse-click pointer-events-none absolute inset-0 rounded-xl bg-gray-900/10" />
@@ -580,7 +580,11 @@ export default function LoginClient() {
               ) : (
                 <div className="relative z-10 flex items-center justify-center gap-3 w-full px-4">
                   {/* GitHub Logo (Black) */}
-                  <svg className="h-5 w-5 shrink-0 text-gray-900" viewBox="0 0 24 24" fill="currentColor">
+                  <svg
+                    className="h-5 w-5 shrink-0 text-gray-900"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
                     <path
                       fillRule="evenodd"
                       clipRule="evenodd"
