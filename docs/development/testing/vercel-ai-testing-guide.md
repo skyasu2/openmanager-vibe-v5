@@ -105,7 +105,7 @@ test('내 테스트', async ({ page }) => {
 
   // ✅ 이제 모든 페이지 자유롭게 접근
   await page.goto('/dashboard');
-  await page.goto('/admin');
+  await page.goto('/mcp-chat');
   await page.goto('/anywhere');
 });
 ```
@@ -118,7 +118,7 @@ import { aiNavigate } from './helpers/vercel-test-auth';
 test('더 간단한 테스트', async ({ page }) => {
   // 🤖 자동으로 테스트 모드 설정 + 페이지 이동
   await aiNavigate(page, '/dashboard');
-  await aiNavigate(page, '/admin');
+  await aiNavigate(page, '/mcp-chat');
 });
 ```
 
@@ -165,7 +165,7 @@ test('완전 접근 모드 (권장)', async ({ page }) => {
 test('전체 페이지 탐색', async ({ page }) => {
   await enableVercelTestMode(page);
 
-  const pages = ['/dashboard', '/admin', '/settings', '/profile'];
+  const pages = ['/dashboard', '/mcp-chat', '/dashboard/ai-assistant'];
 
   for (const pagePath of pages) {
     await page.goto(pagePath);
@@ -314,7 +314,7 @@ interface Options {
 
 ```typescript
 await aiNavigate(page, '/dashboard'); // 자동 테스트 모드 설정
-await aiNavigate(page, '/admin', false); // 수동 모드 (이미 설정됨)
+await aiNavigate(page, '/mcp-chat', false); // 수동 모드 (이미 설정됨)
 ```
 
 ### `getVercelTestStatus(page)`
@@ -424,7 +424,7 @@ vercel env ls
 
 ### 문제 2: "프로덕션 환경에서는 사용할 수 없습니다"
 
-**원인**: 기존 `/api/test/admin-auth`는 프로덕션 차단
+**원인**: 이전 버전 API 엔드포인트는 프로덕션 차단
 
 **해결**: 새로운 `/api/test/vercel-test-auth` 사용
 

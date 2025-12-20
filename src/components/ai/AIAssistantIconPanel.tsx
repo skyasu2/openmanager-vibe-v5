@@ -145,7 +145,8 @@ export default function AIAssistantIconPanel({
 
         {/* 전체 화면 이동 버튼 (Mobile) */}
         <button
-          onClick={() => router.push('/ai')}
+          onClick={() => router.push('/dashboard/ai-assistant')}
+          data-testid="ai-fullscreen-button"
           className="group relative h-12 w-12 shrink-0 rounded-xl bg-gray-50 text-gray-600 transition-all duration-200 active:scale-95 hover:bg-gray-100"
         >
           <Maximize className="mx-auto h-5 w-5" />
@@ -223,7 +224,8 @@ export default function AIAssistantIconPanel({
       {/* 전체 화면 이동 버튼 (Desktop - 하단 분리) */}
       <div className="mt-2 border-t border-gray-200 pt-2">
         <button
-          onClick={() => router.push('/ai')}
+          onClick={() => router.push('/dashboard/ai-assistant')}
+          data-testid="ai-fullscreen-button"
           className="group relative h-12 w-12 rounded-xl bg-gray-50 text-gray-500 transition-all duration-200 hover:scale-105 hover:bg-gray-100 hover:text-gray-900 active:scale-95"
           title="전체 화면으로 열기"
         >

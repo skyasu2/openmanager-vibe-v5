@@ -1,20 +1,27 @@
 # AI Routing Architecture (LangGraph Multi-Agent)
 
-> **버전**: v2.0 (2025-12-14)
-> **환경**: LangGraph StateGraph, Supervisor-Worker Pattern
+> **버전**: v3.0 (2025-12-20)
+> **환경**: LangGraph StateGraph on Cloud Run, Supervisor-Worker Pattern
 
 ## Overview
 
-OpenManager Vibe v5.83.1은 **LangGraph Supervisor Agent**를 사용하여 AI 라우팅을 수행합니다. 이전의 SmartRoutingEngine은 deprecated되었으며, 모든 라우팅 로직은 LangGraph 그래프 내에서 처리됩니다.
+OpenManager Vibe v5.83.7은 **Cloud Run에서 실행되는 LangGraph Supervisor Agent**를 사용하여 AI 라우팅을 수행합니다. Vercel은 프론트엔드와 API 프록시 역할만 담당하며, 모든 AI 처리는 Cloud Run에서 이루어집니다.
+
+> **Migration History**: LangGraph는 2025-12-16에 Vercel Edge Runtime 제약으로 인해 Cloud Run으로 마이그레이션되었습니다.
 
 ## Architecture Diagram
 
 ```mermaid
 graph TD
-    User[User Query] --> API[/api/ai/unified-stream]
+    User[User Query] --> Vercel[Vercel Next.js]
 
-    subgraph "Vercel (Next.js)"
-        API --> Supervisor[Supervisor Agent]
+    subgraph "Vercel (Frontend + Proxy)"
+        Vercel --> ProxyRoute[/api/ai/supervisor]
+        ProxyRoute -->|X-API-Key Auth| CloudRun
+    end
+
+    subgraph "Google Cloud Run (AI Engine)"
+        CloudRun[Hono Server :8080] --> Supervisor[Supervisor Agent]
 
         Supervisor -->|Simple Query| NLQ[NLQ Agent]
         Supervisor -->|Pattern Analysis| Analyst[Analyst Agent]
@@ -24,16 +31,56 @@ graph TD
 
         Parallel --> NLQ
         Parallel --> Analyst
+
+        Reporter -->|Critical Action| Approval{Approval Check}
+        Approval -->|Approved| Response[Response]
+        Approval -->|Pending| Interrupt[Human Interrupt]
     end
 
-    NLQ --> Response[Response]
-    Analyst --> Response
-    Reporter --> Response
-    Direct --> Response
     Response --> User
 ```
 
-> **Note**: Cloud Run ai-backend was removed (2025-12-14). LangGraph runs directly on Vercel.
+## Hybrid Architecture
+
+| Layer | Platform | Role |
+|-------|----------|------|
+| **Frontend** | Vercel | Next.js UI, `useChat` hook |
+| **API Proxy** | Vercel | `/api/ai/*` routes → Cloud Run |
+| **AI Engine** | Cloud Run | LangGraph StateGraph, All AI processing |
+| **Data** | Supabase | pgvector RAG, PostgresCheckpointer |
+
+## Proxy Layer (`src/lib/ai-proxy/proxy.ts`)
+
+### Environment Detection
+
+| Environment | Backend | URL |
+|-------------|---------|-----|
+| **Development** | Local Docker | `http://localhost:8080` |
+| **Production (Vercel)** | Cloud Run | `CLOUD_RUN_AI_URL` |
+
+### Configuration Priority
+
+```typescript
+// 1. Vercel Production → Cloud Run
+if (isVercel) return { backend: 'cloud-run' };
+
+// 2. Development + USE_LOCAL_DOCKER=true → Local Docker
+if (isDev && useLocalDocker) return { backend: 'local-docker' };
+
+// 3. Development + AI_ENGINE_MODE=CLOUD → Cloud Run
+if (isDev && aiEngineMode === 'CLOUD') return { backend: 'cloud-run' };
+
+// 4. Default (Development) → Local Docker
+return { backend: 'local-docker' };
+```
+
+### Authentication
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `X-API-Key` | `CLOUD_RUN_API_SECRET` | Cloud Run 인증 |
+| `Content-Type` | `application/json` | Request body |
+| `Accept` | `text/event-stream` | Streaming response |
 
 ## Agent-Based Routing
 
@@ -41,20 +88,9 @@ graph TD
 
 | 항목 | 값 |
 |------|-----|
-| **모델** | Groq `llama-3.1-8b-instant` |
+| **모델** | Groq `llama-3.3-70b-versatile` |
 | **역할** | Intent classification & routing |
 | **출력** | `targetAgent`: nlq \| analyst \| reporter \| parallel \| reply |
-
-**라우팅 로직**:
-
-```typescript
-// Supervisor 출력 예시
-{
-  "targetAgent": "nlq",
-  "reasoning": "사용자가 서버 메트릭 조회를 요청함",
-  "confidence": 0.95
-}
-```
 
 ### Routing Rules
 
@@ -70,10 +106,50 @@ graph TD
 
 | Agent | Model | Latency Target | Tools |
 |-------|-------|----------------|-------|
-| **Supervisor** | Groq Llama-8b | < 200ms | - |
+| **Supervisor** | Groq Llama 70b | < 200ms | - |
 | **NLQ Agent** | Gemini 2.5 Flash | < 500ms | `getServerMetrics` |
-| **Analyst Agent** | Gemini 2.5 Pro | < 1s | `detectAnomalies`, `predictTrends`, `analyzePattern` |
-| **Reporter Agent** | Llama 3.3-70b | < 2s | `searchKnowledgeBase`, `recommendCommands` |
+| **Analyst Agent** | Gemini 2.5 Flash | < 1s | `detectAnomalies`, `predictTrends`, `analyzePattern` |
+| **Reporter Agent** | Llama 3.3-70b | < 2s | `searchKnowledgeBase` (RAG), `recommendCommands` |
+
+## Cloud Run Endpoints
+
+### Main AI Endpoint
+
+**`POST /api/ai/supervisor`** - Multi-Agent AI Processing
+
+```json
+// Request
+{
+  "messages": [{ "role": "user", "content": "서버 5번 CPU 상태" }],
+  "sessionId": "optional-session-id"
+}
+
+// Response (AI SDK v5 Data Stream)
+Headers:
+  Content-Type: text/event-stream; charset=utf-8
+  X-Vercel-AI-Data-Stream: v1
+
+Body:
+0:"서버 5번의 CPU 사용률은 "
+0:"현재 45%입니다.\n"
+d:{"finishReason":"stop"}
+```
+
+### Additional Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/ai/embedding` | POST | Single text embedding |
+| `/api/ai/embedding/batch` | POST | Batch text embeddings |
+| `/api/ai/embedding/stats` | GET | Embedding service stats |
+| `/api/ai/generate` | POST | Text generation |
+| `/api/ai/generate/stream` | POST | Streaming text generation |
+| `/api/ai/generate/stats` | GET | Generate service stats |
+| `/api/ai/approval/status` | GET | Check pending approval |
+| `/api/ai/approval/decide` | POST | Submit approval decision |
+| `/api/ai/approval/stats` | GET | Approval store stats |
+| `/health` | GET | Health check |
+| `/warmup` | GET | Cold start warmup |
 
 ## Fallback & Resilience
 
@@ -89,13 +165,20 @@ graph TD
 
 ```
 Primary Model 실패 시:
-  Groq Llama-8b → Llama-70b → Gemini Flash
+  Groq Llama-70b → Gemini Flash → Gemini Pro
   Gemini Flash → Gemini Pro → Llama-70b
   Gemini Pro → Gemini Flash → Llama-70b
-  Llama-70b → Gemini Pro → Gemini Flash
 ```
 
-### A2A (Agent-to-Agent) Communication
+### API Key Failover (Gemini)
+
+```
+GOOGLE_AI_API_KEY (Primary)
+    ↓ Rate Limit (429)
+GOOGLE_AI_API_KEY_SECONDARY (Round-robin)
+```
+
+## A2A (Agent-to-Agent) Communication
 
 에이전트 간 협업이 필요한 경우, **Return-to-Supervisor** 패턴을 사용합니다:
 
@@ -104,51 +187,50 @@ Primary Model 실패 시:
 3. Supervisor가 요청을 받고 지정된 에이전트로 재라우팅
 4. 최종 응답 반환
 
-> **상세 내용**: `ai-architecture.md` 참조
-
-## Data Flow
-
-```
-1. User Query
-       ↓
-2. /api/ai/unified-stream (POST)
-       ↓
-3. LangGraph StateGraph (Vercel)
-       ↓
-4. Supervisor Agent (Intent Classification)
-       ↓
-5. Target Agent Execution
-       ├─ NLQ: getServerMetrics()
-       ├─ Analyst: analyzePattern()
-       └─ Reporter: searchKnowledgeBase()
-       ↓
-6. Response Aggregation
-       ↓
-7. Streaming Response to Client (AI SDK v5 Protocol)
-```
-
-## Environment Configuration
+## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GOOGLE_AI_API_KEY` | Yes | Gemini API key |
+| `CLOUD_RUN_AI_URL` | Yes | Cloud Run AI Engine URL |
+| `CLOUD_RUN_API_SECRET` | Yes | Cloud Run authentication secret |
+| `CLOUD_RUN_ENABLED` | Yes | Enable Cloud Run backend (`true`) |
+| `GOOGLE_AI_API_KEY` | Yes | Gemini API key (Primary) |
+| `GOOGLE_AI_API_KEY_SECONDARY` | Yes | Gemini API key (Secondary) |
 | `GROQ_API_KEY` | Yes | Groq (Llama) API key |
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
+| `USE_LOCAL_DOCKER` | Dev | Force local Docker in development |
+| `AI_ENGINE_MODE` | Dev | `AUTO` (local) or `CLOUD` (Cloud Run) |
 
-## Deprecated Components
+## File Structure
 
-| Component | Status | Replacement |
-|-----------|--------|-------------|
-| `cloud-run/ai-backend/` | ❌ Removed (2025-12-14) | `src/services/langgraph/` |
-| `SmartRoutingEngine` | ❌ Removed | LangGraph Supervisor Agent |
-| Python Unified Processor | ❌ Removed | TypeScript LangGraph Agents |
-| `/api/ai/query` (sync) | ❌ Removed | `/api/ai/unified-stream` |
-| GCP Cloud Functions | ❌ Removed | Vercel Edge |
-| RouteLLM-style Scoring | ❌ Removed | Supervisor Agent 분류 |
+```
+# Cloud Run AI Engine (Primary Backend)
+cloud-run/ai-engine/
+├── src/
+│   ├── server.ts              # Hono HTTP server
+│   ├── lib/model-config.ts    # API key validation
+│   └── services/
+│       ├── langgraph/         # LangGraph StateGraph
+│       │   └── multi-agent-supervisor.ts
+│       ├── embedding/         # Embedding service
+│       ├── generate/          # Generate service
+│       ├── approval/          # HITL approval store
+│       └── scenario/          # Demo data loader
+└── package.json               # @langchain/langgraph, hono, ai
+
+# Vercel Proxy Layer
+src/lib/ai-proxy/
+└── proxy.ts                   # Cloud Run proxy with env detection
+
+# Vercel API Routes (Proxy to Cloud Run)
+src/app/api/ai/
+├── supervisor/route.ts        # Main AI endpoint
+├── embedding/route.ts         # Embedding proxy
+├── generate/route.ts          # Generate proxy
+└── approval/route.ts          # Approval proxy
+```
 
 ---
 
 > **참고 문서**:
-> - `ai-engine-architecture.md`: 전체 엔진 아키텍처
-> - `ai-assistant-sidebar-architecture.md`: 프론트엔드 통합
+> - `ai-engine-architecture.md`: 전체 엔진 아키텍처 및 상태 인터페이스
+> - `ai-architecture.md`: 프론트엔드 통합 및 UI 컴포넌트

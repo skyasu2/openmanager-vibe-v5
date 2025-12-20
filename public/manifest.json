@@ -71,13 +71,13 @@
       ]
     },
     {
-      "name": "Admin Panel",
-      "short_name": "Admin",
-      "description": "System administration",
-      "url": "/admin",
+      "name": "Server Monitor",
+      "short_name": "Servers",
+      "description": "Server monitoring dashboard",
+      "url": "/dashboard",
       "icons": [
         {
-          "src": "/admin-icon.png",
+          "src": "/dashboard-icon.png",
           "sizes": "96x96"
         }
       ]

@@ -132,6 +132,80 @@ export async function signInWithGitHub() {
 }
 
 /**
+ * Google OAuth 로그인
+ */
+export async function signInWithGoogle() {
+  try {
+    // 동적으로 리다이렉트 URL 설정 (로컬/베르셀 자동 감지)
+    const origin = window.location.origin;
+
+    // Authorization Code Flow를 위해 콜백 라우트로 리다이렉트
+    const redirectUrl = `${origin}/auth/callback`;
+
+    // 🔒 OAuth 리다이렉트 URL 보안 검증
+    if (!validateRedirectUrl(redirectUrl)) {
+      throw new Error(
+        `보안상 허용되지 않은 리다이렉트 URL입니다: ${redirectUrl}`
+      );
+    }
+
+    console.log('🔗 OAuth 리다이렉트 URL:', redirectUrl);
+    console.log('🌍 현재 환경:', {
+      origin,
+      isVercel: origin.includes('vercel.app'),
+      isLocal: origin.includes('localhost'),
+      redirectUrl,
+      supabaseConfigured: !!process.env.NEXT_PUBLIC_SUPABASE_URL, // 민감정보 마스킹
+    });
+
+    // 환경변수 검증
+    if (
+      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('test')
+    ) {
+      throw new Error('Supabase URL이 올바르게 설정되지 않았습니다.');
+    }
+
+    if (
+      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('test')
+    ) {
+      throw new Error('Supabase Anon Key가 올바르게 설정되지 않았습니다.');
+    }
+
+    const { data, error } = await getClient().auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+        scopes: 'email profile openid',
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+        skipBrowserRedirect: false,
+      },
+    });
+
+    if (error) {
+      console.error('❌ Google OAuth 로그인 실패:', error);
+      console.error('🔧 디버깅 정보:', {
+        errorCode: error.code,
+        errorMessage: error.message,
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        redirectUrl,
+      });
+      throw error;
+    }
+
+    console.log('✅ Google OAuth 로그인 요청 성공');
+    return { data, error: null };
+  } catch (error) {
+    console.error('❌ Google OAuth 로그인 에러:', error);
+    return { data: null, error };
+  }
+}
+
+/**
  * 로그아웃 (AuthStateManager 사용)
  * @deprecated - 새로운 코드에서는 authStateManager.clearAllAuthData() 사용 권장
  */

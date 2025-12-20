@@ -6,7 +6,7 @@
 
 'use client';
 
-import { LogIn } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface LoginPromptProps {
@@ -20,9 +20,7 @@ export function LoginPrompt({ isMounted, guestModeMessage }: LoginPromptProps) {
   return (
     <div className="text-center">
       <div className="mb-4 rounded-xl border border-blue-400/30 bg-blue-500/10 p-4 sm:p-6">
-        {isMounted && (
-          <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />
-        )}
+        {isMounted && <User className="mx-auto mb-3 h-12 w-12 text-blue-400" />}
         <h3 className="mb-2 text-lg font-semibold text-white">
           GitHub 로그인이 필요합니다
         </h3>

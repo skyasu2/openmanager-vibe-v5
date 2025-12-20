@@ -1,8 +1,13 @@
 /**
  * UI 플로우 헬퍼 함수
  *
- * @description 관리자 모드 활성화 등 UI 클릭 기반 테스트 플로우를 위한 헬퍼 함수 모음
+ * @description UI 클릭 기반 테스트 플로우를 위한 헬퍼 함수 모음
  * @file tests/e2e/helpers/ui-flow.ts
+ *
+ * @note v5.80.0 업데이트: 관리자 모드 및 `/admin` 페이지가 완전히 제거됨
+ *       - clickAdminModeMenuItem: 폐기됨
+ *       - enterPinAndSubmit: 폐기됨
+ *       - completeAdminModeActivationViaUI: 폐기됨 (no-op)
  */
 
 import { expect, type Page } from '@playwright/test';
@@ -59,11 +64,13 @@ export async function openProfileDropdown(page: Page): Promise<void> {
 /**
  * 관리자 모드 메뉴 아이템 클릭
  *
+ * @deprecated v5.80.0에서 관리자 모드가 제거됨. 이 함수는 더 이상 사용되지 않음.
  * @description 프로필 드롭다운에서 "관리자 모드" 메뉴 아이템 클릭
  * @param page Playwright Page 객체
  * @throws 관리자 모드 메뉴를 찾을 수 없거나 클릭할 수 없는 경우
  *
  * @example
+ * // 더 이상 사용하지 마세요
  * await clickAdminModeMenuItem(page);
  */
 export async function clickAdminModeMenuItem(page: Page): Promise<void> {
@@ -83,14 +90,15 @@ export async function clickAdminModeMenuItem(page: Page): Promise<void> {
 /**
  * PIN 입력 및 제출
  *
+ * @deprecated v5.80.0에서 관리자 모드가 제거됨. 이 함수는 더 이상 사용되지 않음.
  * @description 관리자 인증 모달에서 PIN 입력 후 확인 버튼 클릭
  * @param page Playwright Page 객체
  * @param pin 관리자 PIN 번호 (기본값: '4231')
  * @throws PIN 입력 필드 또는 확인 버튼을 찾을 수 없는 경우
  *
  * @example
- * await enterPinAndSubmit(page); // 기본 PIN 4231 사용
- * await enterPinAndSubmit(page, '1234'); // 커스텀 PIN 사용
+ * // 더 이상 사용하지 마세요
+ * await enterPinAndSubmit(page);
  */
 export async function enterPinAndSubmit(
   page: Page,
@@ -135,26 +143,16 @@ export async function enterPinAndSubmit(
 /**
  * 전체 관리자 모드 활성화 플로우 (UI 클릭 방식)
  *
- * @description 프로필 드롭다운 → 관리자 모드 → PIN 입력 → 제출 전체 플로우 실행
+ * @deprecated v5.80.0에서 관리자 모드가 제거됨. 이 함수는 no-op으로만 동작함.
+ * @description 프로필 드롭다운 → 관리자 모드 → PIN 입력 → 제출 전체 플로우 실행 (현재 비활성화됨)
  * @param page Playwright Page 객체
- * @param pin 관리자 PIN 번호 (기본값: '4231')
+ * @param pin 관리자 PIN 번호 (기본값: '4231') - 더 이상 사용되지 않음
  * @throws 플로우 중 어느 단계에서든 오류 발생 시
  *
  * @example
- * // 기본 사용
- * await completeAdminModeActivationViaUI(page);
- *
- * // 커스텀 PIN 사용
- * await completeAdminModeActivationViaUI(page, '1234');
- *
- * // 테스트 내 사용 예시
- * test('관리자 페이지 접근', async ({ page }) => {
- *   await page.goto('/dashboard');
- *   await completeAdminModeActivationViaUI(page);
- *
- *   // 관리자 모드 확인
- *   await expect(page.locator('[data-admin="true"]')).toBeVisible();
- * });
+ * // 더 이상 사용하지 마세요 - 게스트 로그인 사용 권장
+ * // import { loginAsGuest } from './guest';
+ * // await loginAsGuest(page);
  */
 export async function completeAdminModeActivationViaUI(
   page: Page,

@@ -11,7 +11,7 @@ import { getTestBaseUrl } from './config';
  * ```typescript
  * await enableVercelTestMode(page);  // 한 번만!
  * await page.goto('/dashboard');     // 인증 없이 접근
- * await page.goto('/admin');         // 모든 페이지 자유롭게
+ * await page.goto('/mcp-chat');       // 모든 페이지 자유롭게
  * ```
  */
 
@@ -225,7 +225,7 @@ export async function enableVercelTestMode(
  * ```typescript
  * // 🤖 AI가 사용하는 가장 간단한 방법
  * await aiNavigate(page, '/dashboard');
- * await aiNavigate(page, '/admin');
+ * await aiNavigate(page, '/mcp-chat');
  * await aiNavigate(page, '/ai-assistant');
  * ```
  */

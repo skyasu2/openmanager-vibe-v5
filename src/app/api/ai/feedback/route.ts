@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 
 /**
  * AI 피드백 API 엔드포인트
- * 
+ *
  * POST /api/ai/feedback
- * 
+ *
  * 사용자 피드백 (👍/👎)을 수집하여 AI 품질 개선에 활용
  */
 

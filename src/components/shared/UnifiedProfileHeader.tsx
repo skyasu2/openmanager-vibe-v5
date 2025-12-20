@@ -1,7 +1,14 @@
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import { BarChart3, ChevronDown, LogOut, Power, Shield } from 'lucide-react';
+import {
+  BarChart3,
+  ChevronDown,
+  LogOut,
+  Power,
+  Shield,
+  User,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 // 프로필 컴포넌트 임포트
 import {
@@ -201,7 +208,7 @@ export default function UnifiedProfileHeader({
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           data-testid="login-button"
         >
-          <Shield className="h-4 w-4" />
+          <User className="h-4 w-4" />
           로그인
         </button>
       </div>

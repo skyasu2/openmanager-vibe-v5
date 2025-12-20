@@ -4,7 +4,7 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.83.0)
+## Architecture (v5.83.7)
 
 ### Deployment Mode
 
@@ -161,9 +161,9 @@ interface ModelHealthState {
 
 ## API Specification
 
-### Endpoint
+### Main Endpoint
 
-**`POST /api/ai/unified-stream`** - Unified AI endpoint (streaming + JSON)
+**`POST /api/ai/supervisor`** - Multi-Agent AI Processing (Cloud Run)
 
 ### Request Format
 
@@ -176,31 +176,36 @@ interface ModelHealthState {
 }
 ```
 
-### Response Format (JSON)
-
-```json
-{
-  "success": true,
-  "response": "서버 5번의 CPU 사용률은 현재 45%입니다...",
-  "toolResults": [...],
-  "targetAgent": "nlq",
-  "sessionId": "session_1234567890",
-  "_backend": "vercel"
-}
-```
-
 ### Response Format (Streaming - AI SDK v5 Protocol)
 
 ```
 Headers:
-- Content-Type: text/plain; charset=utf-8
-- X-Session-Id: session_1234567890
+- Content-Type: text/event-stream; charset=utf-8
+- X-Vercel-AI-Data-Stream: v1
+- Cache-Control: no-cache
+- Connection: keep-alive
 
 Body:
 0:"안녕하세요! "
 0:"서버 상태를 확인해드릴게요.\n"
 d:{"finishReason":"stop"}
 ```
+
+### Additional Cloud Run Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/ai/embedding` | POST | Single text embedding |
+| `/api/ai/embedding/batch` | POST | Batch text embeddings |
+| `/api/ai/embedding/stats` | GET | Embedding service statistics |
+| `/api/ai/generate` | POST | Text generation (non-streaming) |
+| `/api/ai/generate/stream` | POST | Text generation (streaming SSE) |
+| `/api/ai/generate/stats` | GET | Generate service statistics |
+| `/api/ai/approval/status` | GET | Check pending HITL approval |
+| `/api/ai/approval/decide` | POST | Submit approval decision |
+| `/api/ai/approval/stats` | GET | Approval store statistics |
+| `/health` | GET | Health check |
+| `/warmup` | GET | Cold start warmup |
 
 ## Data & Memory
 
@@ -213,41 +218,70 @@ d:{"finishReason":"stop"}
 
 ## Environment Variables
 
+### Vercel (Frontend + Proxy)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CLOUD_RUN_AI_URL` | Yes | Cloud Run AI Engine endpoint |
+| `CLOUD_RUN_API_SECRET` | Yes | Cloud Run authentication secret |
+| `CLOUD_RUN_ENABLED` | Yes | Enable Cloud Run backend (`true`) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
+| `USE_LOCAL_DOCKER` | Dev | Force local Docker in development |
+| `AI_ENGINE_MODE` | Dev | `AUTO` (local) or `CLOUD` (Cloud Run) |
+
+### Cloud Run (AI Engine)
+
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `GOOGLE_AI_API_KEY` | Yes | Gemini 2.5 API key (Primary) |
-| `GOOGLE_AI_API_KEY_SECONDARY` | Yes | Gemini 2.5 API key (Round-robin) |
+| `GOOGLE_AI_API_KEY_SECONDARY` | Yes | Gemini 2.5 API key (Secondary/Failover) |
 | `GROQ_API_KEY` | Yes | Groq (Llama) API key |
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
-| `CLOUD_RUN_AI_ENGINE_URL` | Yes | Cloud Run AI Engine endpoint |
-| `CLOUD_RUN_SECRET` | Yes | Cloud Run service auth secret |
+| `CLOUD_RUN_API_SECRET` | Yes | API authentication secret |
+| `PORT` | No | Server port (default: 8080) |
 
 ## File Structure
 
 ```
-# Cloud Run Services (Primary Backend)
-cloud-run/
-├── ai-engine/              # LangGraph Supervisor Engine
-│   ├── src/server.ts       # Hono HTTP server
-│   ├── src/graph/          # LangGraph StateGraph
-│   │   ├── graph-builder.ts
-│   │   ├── state-definition.ts
-│   │   └── agents/
-│   └── package.json        # @langchain/langgraph, ai-sdk
-│
-└── rust-inference/         # ML Support Service (Axum)
-    ├── src/main.rs         # Anomaly detection, Trend prediction
-    └── Cargo.toml          # axum, tokio, serde
+# Cloud Run AI Engine (Primary Backend)
+cloud-run/ai-engine/
+├── src/
+│   ├── server.ts               # Hono HTTP server (main entry)
+│   ├── lib/
+│   │   └── model-config.ts     # API key validation & logging
+│   └── services/
+│       ├── langgraph/          # LangGraph StateGraph
+│       │   └── multi-agent-supervisor.ts
+│       ├── embedding/          # Embedding service
+│       │   └── embedding-service.ts
+│       ├── generate/           # Generate service
+│       │   └── generate-service.ts
+│       ├── approval/           # HITL approval store
+│       │   └── approval-store.ts
+│       └── scenario/           # Demo data loader
+│           └── scenario-loader.ts
+├── package.json                # @langchain/langgraph, hono, ai
+└── Dockerfile
 
-# Vercel Frontend
+# Cloud Run Rust Inference (ML Support)
+cloud-run/rust-inference/
+├── src/main.rs                 # Anomaly detection, Trend prediction
+└── Cargo.toml                  # axum, tokio, serde
+
+# Vercel Proxy Layer
+src/lib/ai-proxy/
+└── proxy.ts                    # Cloud Run proxy with env detection
+
+# Vercel API Routes (Proxy to Cloud Run)
 src/app/api/ai/
-├── unified-stream/route.ts # Proxy to Cloud Run AI Engine
-└── approval/route.ts       # HITL approval endpoint
+├── supervisor/route.ts         # Main AI endpoint proxy
+├── embedding/route.ts          # Embedding proxy
+├── generate/route.ts           # Generate proxy
+└── approval/route.ts           # HITL approval proxy
 
-# Legacy (Deprecated - kept for reference)
-src/services/langgraph/     # Old Vercel-based LangGraph (superseded by cloud-run/ai-engine/)
-cloud-run/supabase-mcp/     # Deprecated - direct Supabase JS client used instead
+# Legacy (Deprecated)
+src/services/langgraph/         # Superseded by cloud-run/ai-engine/
+cloud-run/supabase-mcp/         # Deprecated - direct Supabase JS client
 ```
 
 ## Deprecated Components

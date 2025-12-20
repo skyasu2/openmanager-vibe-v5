@@ -1,6 +1,6 @@
 # AI Assistant Architecture
 
-> **버전**: v3.0 (2025-12-19)
+> **버전**: v3.1 (2025-12-20)
 > **환경**: Next.js 16, React 19, LangGraph StateGraph (Cloud Run)
 
 ## Overview
@@ -29,7 +29,7 @@ The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrate
 
 - **Location**: `src/domains/ai-sidebar/components/AISidebarV4.tsx`
 - **Framework**: React + Vercel AI SDK (`useChat` hook)
-- **Endpoint**: `/api/ai/unified-stream`
+- **Endpoint**: `/api/ai/supervisor`
 - **Features**:
   - Real-time streaming response
   - Agent routing visualization
@@ -47,7 +47,7 @@ The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrate
 
 ### 2. Backend: LangGraph Multi-Agent System
 
-- **Location**: `cloud-run-ai-engine/src/` (Python FastAPI)
+- **Location**: `cloud-run/ai-engine/src/` (TypeScript Hono)
 - **Framework**: LangGraph StateGraph
 - **Deployment**: Google Cloud Run (migrated 2025-12-16)
 - **Proxy**: `/api/ai/*` routes on Vercel forward to Cloud Run
@@ -60,7 +60,7 @@ START
   ▼
 ┌─────────────────────────────────────────────────┐
 │              SUPERVISOR                          │
-│   Model: Groq llama-3.1-8b-instant              │
+│   Model: Groq llama-3.3-70b-versatile           │
 │   Role: Intent classification & routing          │
 └─────────────────────────────────────────────────┘
   │
@@ -90,7 +90,7 @@ START
 | 항목 | 값 |
 |------|-----|
 | **컴포넌트** | `EnhancedAIChat.tsx` |
-| **API** | `/api/ai/unified-stream` |
+| **API** | `/api/ai/supervisor` |
 | **에이전트** | Supervisor → NLQ/Analyst/Reporter |
 
 ### 2. Auto Incident Report
@@ -143,7 +143,7 @@ The AI uses specialized tools within each agent for domain-specific operations.
 ## Data Flow
 
 1. **User Query**: User types a message in `AISidebarV4`
-2. **API Request**: `useChat` sends POST to `/api/ai/unified-stream`
+2. **API Request**: `useChat` sends POST to `/api/ai/supervisor`
 3. **Proxy to Cloud Run**: Vercel API route forwards request to Cloud Run
 4. **LangGraph Execution**: StateGraph processes request on Cloud Run
 5. **Supervisor Routing**: Groq Llama classifies intent and routes to appropriate agent

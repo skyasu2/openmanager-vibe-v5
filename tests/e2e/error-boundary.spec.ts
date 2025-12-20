@@ -52,8 +52,8 @@ test.describe('에러 바운더리 테스트', () => {
       expect(notFoundResponse.status()).toBe(404);
     }
 
-    // 인증되지 않은 요청 401/403
-    const authResponse = await page.request.get('/api/admin/auth');
+    // 인증되지 않은 요청 (존재하지 않는 보호된 경로)
+    const authResponse = await page.request.get('/api/protected/resource');
     expect([401, 403, 404]).toContain(authResponse.status());
   });
 

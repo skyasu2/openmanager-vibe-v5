@@ -96,8 +96,9 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
           // 코드 블록
           code: ({ className, children, node, ...props }) => {
             // node?.position 없으면 인라인으로 판단 (react-markdown v9+)
-            const isInline = !node?.position || 
-              (node.position.start.line === node.position.end.line);
+            const isInline =
+              !node?.position ||
+              node.position.start.line === node.position.end.line;
             return (
               <CodeBlock inline={isInline} className={className}>
                 {children}

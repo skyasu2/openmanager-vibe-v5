@@ -189,15 +189,18 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   });
 
   // 피드백 핸들러 (백엔드 API 연동)
-  const handleFeedback = async (messageId: string, type: 'positive' | 'negative') => {
+  const handleFeedback = async (
+    messageId: string,
+    type: 'positive' | 'negative'
+  ) => {
     try {
       const response = await fetch('/api/ai/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          messageId, 
-          type, 
-          timestamp: new Date().toISOString() 
+        body: JSON.stringify({
+          messageId,
+          type,
+          timestamp: new Date().toISOString(),
         }),
       });
       if (!response.ok) {

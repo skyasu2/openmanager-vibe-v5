@@ -4,6 +4,10 @@
 
 E2E 테스트를 위한 헬퍼 파일들의 목적과 사용법을 안내합니다.
 
+> ⚠️ **v5.80.0 업데이트 안내**: 관리자 모드 및 `/admin` 페이지가 완전히 제거되었습니다.
+> `admin.ts` 헬퍼 파일은 폐기되었으며, 관리자 관련 테스트 함수들은 더 이상 사용되지 않습니다.
+> 현재 사용 가능한 인증 방식: **게스트 로그인** (`guest.ts`) 또는 **GitHub OAuth**
+
 ---
 
 ## 🗂️ 헬퍼 파일 목록
@@ -52,63 +56,70 @@ await expect(button).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
 
 ---
 
-### 3. **admin.ts** - 보안 중심 수동 테스트 헬퍼
+### 3. **guest.ts** - 게스트 인증 헬퍼 (권장)
 
-**목적**: 세밀한 제어가 필요한 수동 E2E 테스트
+**목적**: 게스트 로그인 및 기본 테스트 플로우 지원
 
 **핵심 특징**:
 
-- ✅ **프로덕션 인식**: Vercel에서는 password 강제, 로컬에서만 bypass 허용
-- ✅ **단계별 제어**: 6개 독립 함수로 세밀한 제어 가능
-- ✅ **보안 토큰**: 동적 보안 토큰 생성
-- ✅ **상태 검증**: localStorage + Zustand 이중 확인
-- ✅ **디버깅 친화적**: 요청 인터셉션, 상세 로깅
+- ✅ **게스트 로그인**: 세션 기반 게스트 인증
+- ✅ **AI 사이드바 열기**: `openAiSidebar()` 함수
+- ✅ **시스템 시작**: 데모 데이터 로딩 플로우
 
 **주요 함수**:
 
 ```typescript
-// 1. 게스트 로그인
-await ensureGuestLogin(page);
+import { guestLogin, openAiSidebar } from './helpers/guest';
 
-// 2. 관리자 모드 활성화 (환경별 자동 감지)
-await activateAdminMode(page, {
-  method: 'password', // 또는 'bypass'
-  password: '4231',
-});
+// 게스트 로그인
+await guestLogin(page, { landingPath: '/' });
 
-// 3. 대시보드 이동
-await navigateToAdminDashboard(page);
+// 대시보드 대기
+await page.waitForURL('**/dashboard', { timeout: 40000 });
 
-// 4. 상태 검증
-const isAdmin = await verifyAdminState(page);
-
-// 5. 정리
-await resetAdminState(page);
+// AI 사이드바 열기
+await openAiSidebar(page);
 ```
-
-**사용 대상**:
-
-- 수동 E2E 테스트 작성자
-- 단계별 제어가 필요한 테스트
-- 프로덕션 보안을 고려한 테스트
 
 **예시 테스트**:
 
 ```typescript
-import { activateAdminMode, verifyAdminState } from './helpers/admin';
+import { guestLogin, openAiSidebar } from './helpers/guest';
 
-test('관리자 모드 인증 테스트', async ({ page }) => {
-  // 수동으로 각 단계 제어
-  await activateAdminMode(page, { method: 'password' });
+test('게스트 로그인 후 AI 사이드바 사용', async ({ page }) => {
+  await guestLogin(page, { landingPath: '/' });
+  await page.waitForURL('**/dashboard');
 
-  const isAdmin = await verifyAdminState(page);
-  expect(isAdmin).toBe(true);
+  await openAiSidebar(page);
+  expect(page.locator('[data-testid="ai-sidebar"]')).toBeVisible();
 });
 ```
 
 ---
 
-### 4. **vercel-test-auth.ts** - AI 자동화 편의성 극대화
+### 4. ~~**admin.ts**~~ - ❌ 폐기됨 (v5.80.0)
+
+> ⚠️ **폐기됨**: 관리자 모드가 v5.80.0에서 완전히 제거되어 이 헬퍼 파일은 삭제되었습니다.
+> 게스트 로그인은 `guest.ts` 헬퍼를 사용하세요.
+
+**대체 방법**:
+
+```typescript
+// ❌ 기존 (폐기됨)
+// import { activateAdminMode } from './helpers/admin';
+
+// ✅ 현재
+import { guestLogin } from './helpers/guest';
+
+test('기본 테스트', async ({ page }) => {
+  await guestLogin(page, { landingPath: '/' });
+  await page.waitForURL('**/dashboard');
+});
+```
+
+---
+
+### 5. **vercel-test-auth.ts** - AI 자동화 편의성 극대화
 
 **목적**: AI 에이전트가 원-콜로 테스트 모드 활성화
 
@@ -129,7 +140,7 @@ await enableVercelTestMode(page);
 
 // 2. 자동 네비게이션 (테스트 모드 자동 체크)
 await aiNavigate(page, '/dashboard');
-await aiNavigate(page, '/admin');
+await aiNavigate(page, '/mcp-chat');
 
 // 3. 상태 확인
 const status = await getVercelTestStatus(page);
@@ -155,7 +166,7 @@ test('AI 친화적 대시보드 접근', async ({ page }) => {
 
   // 자동 네비게이션
   await aiNavigate(page, '/dashboard');
-  await aiNavigate(page, '/admin');
+  await aiNavigate(page, '/mcp-chat');
 });
 ```
 
@@ -163,19 +174,17 @@ test('AI 친화적 대시보드 접근', async ({ page }) => {
 
 ## 🎯 **선택 가이드**
 
-### **언제 `admin.ts`를 사용하나요?**
+### **언제 `guest.ts`를 사용하나요?**
 
-- ✅ 수동 E2E 테스트 작성
-- ✅ 단계별 제어가 필요한 경우
-- ✅ 프로덕션 보안을 고려한 테스트
-- ✅ 상태 검증이 중요한 테스트
-- ✅ 디버깅 로그가 필요한 경우
+- ✅ 게스트 로그인 테스트
+- ✅ 대시보드 접근 테스트
+- ✅ 기본 E2E 테스트 (권장)
 
 **예시 시나리오**:
 
-- 관리자 인증 흐름 테스트
-- 프로덕션 환경에서 password 모드 검증
-- 단계별 상태 확인이 필요한 복잡한 테스트
+- 게스트 모드 로그인 플로우 검증
+- 대시보드 UI 컴포넌트 테스트
+- AI 사이드바 기본 동작 테스트
 
 ---
 
@@ -190,89 +199,80 @@ test('AI 친화적 대시보드 접근', async ({ page }) => {
 
 - AI가 자동으로 생성하는 테스트
 - 빠른 스모크 테스트
-- 프로덕션 접근 권한이 필요한 E2E 테스트
+- 프로덕션 접근이 필요한 E2E 테스트
 
 ---
 
 ## 📊 **비교표**
 
-| 항목                | admin.ts            | vercel-test-auth.ts |
+| 항목                | guest.ts            | vercel-test-auth.ts |
 | ------------------- | ------------------- | ------------------- |
-| **철학**            | 보안 중심 수동 제어 | AI 편의성 극대화    |
-| **함수 수**         | 6개 (세밀한 제어)   | 4개 (간편 API)      |
-| **호출 횟수**       | 3-5회 (단계별)      | 1-2회 (원-콜)       |
-| **프로덕션 보안**   | ✅ 환경별 강제      | ⚠️ bypass 허용      |
+| **철학**            | 게스트 인증 표준화  | AI 편의성 극대화    |
+| **주요 함수**       | `guestLogin()`      | `aiNavigate()`      |
+| **호출 횟수**       | 1회                 | 1-2회 (원-콜)       |
 | **자동 네비게이션** | ❌ 수동             | ✅ `aiNavigate()`   |
-| **헤더 자동 주입**  | ❌ 수동             | ✅ 자동             |
-| **사용 난이도**     | 중급                | 초급                |
+| **헤더 자동 주입**  | ❌ 없음             | ✅ 자동             |
+| **사용 난이도**     | 초급                | 초급                |
 | **AI 친화적**       | 보통                | ✅ 최적화됨         |
 
 ---
 
 ## 🔄 **마이그레이션 가이드**
 
-### `admin.ts` → `vercel-test-auth.ts`
+### 레거시 `admin.ts` → 현재 `guest.ts`
 
-**기존 코드**:
+> ⚠️ v5.80.0에서 관리자 모드가 완전히 제거되었습니다.
+
+**기존 코드** (❌ 더 이상 작동 안함):
 
 ```typescript
+// ❌ 폐기된 코드
 await ensureGuestLogin(page);
 await activateAdminMode(page, { method: 'bypass' });
 await navigateToAdminDashboard(page, false);
 ```
 
-**새 코드** (AI 친화적):
+**새 코드** (✅ 현재 권장):
 
 ```typescript
-await enableVercelTestMode(page);
-await aiNavigate(page, '/dashboard');
-```
+import { guestLogin, openAiSidebar } from './helpers/guest';
 
----
-
-### `vercel-test-auth.ts` → `admin.ts`
-
-**기존 코드**:
-
-```typescript
-await enableVercelTestMode(page);
-await aiNavigate(page, '/dashboard');
-```
-
-**새 코드** (보안 강화):
-
-```typescript
-await activateAdminMode(page, {
-  method: 'password', // 프로덕션에서 강제
-  password: '4231',
-});
-await navigateToAdminDashboard(page);
+await guestLogin(page, { landingPath: '/' });
+await page.waitForURL('**/dashboard');
+await openAiSidebar(page); // AI 기능 접근
 ```
 
 ---
 
 ## 🚀 **Best Practices**
 
-1. **환경별 전략**:
-   - **로컬**: `admin.ts` bypass 또는 `vercel-test-auth.ts`
-   - **Vercel**: `admin.ts` password (보안 강화)
-
-2. **테스트 시작 패턴**:
+1. **테스트 시작 패턴**:
 
    ```typescript
-   // 빠른 시작 (AI)
-   await enableVercelTestMode(page);
+   // 게스트 로그인 (권장)
+   import { guestLogin } from './helpers/guest';
+   await guestLogin(page, { landingPath: '/' });
 
-   // 보안 중심 (수동)
-   await activateAdminMode(page, { method: 'password' });
+   // AI 자동화
+   import { enableVercelTestMode, aiNavigate } from './helpers/vercel-test-auth';
+   await enableVercelTestMode(page);
+   await aiNavigate(page, '/dashboard');
+   ```
+
+2. **AI 사이드바 테스트**:
+
+   ```typescript
+   import { openAiSidebar } from './helpers/guest';
+   import { submitAiMessage } from './helpers/ai-interaction';
+
+   await openAiSidebar(page);
+   const response = await submitAiMessage(page, '서버 상태를 알려줘');
+   expect(response.responseText).toBeTruthy();
    ```
 
 3. **정리 패턴**:
    ```typescript
-   // 테스트 종료 시 항상 정리
    test.afterEach(async ({ page }) => {
-     await resetAdminState(page);
-     // 또는
      await cleanupVercelTestMode(page);
    });
    ```
@@ -287,7 +287,7 @@ await navigateToAdminDashboard(page);
 
 ---
 
-## 5. **ai-interaction.ts** - AI 사이드바 인터랙션 헬퍼
+## 6. **ai-interaction.ts** - AI 사이드바 인터랙션 헬퍼
 
 **목적**: AI 사이드바 테스트의 공통 동작을 재사용 가능한 함수로 추상화
 
@@ -359,7 +359,7 @@ test('AI 사이드바 기본 플로우', async ({ page }) => {
 
 ---
 
-## 6. **network-monitor.ts** - 네트워크 모니터링 & SSE 헬퍼
+## 7. **network-monitor.ts** - 네트워크 모니터링 & SSE 헬퍼
 
 **목적**: Playwright MCP 통합을 통한 네트워크 활동 모니터링
 
@@ -530,5 +530,5 @@ npx playwright test tests/e2e/ai-sidebar-vercel-validation.spec.ts --project=chr
 
 ---
 
-**마지막 업데이트**: 2025-11-28
+**마지막 업데이트**: 2025-12-20 (v5.83.7 - 관리자 모드 폐기 반영)
 **작성자**: OpenManager VIBE Team
