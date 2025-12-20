@@ -293,7 +293,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         case 'compact':
           return {
             padding: 'p-4',
-            cardHeight: 'min-h-[220px]',
+            cardHeight: 'min-h-[160px]',
             titleSize: 'text-sm',
             subtitleSize: 'text-xs',
             chartContainer: 'grid-cols-2 gap-2',
@@ -373,9 +373,11 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             {/* 아이콘 + 라벨 */}
             <div className="flex items-center gap-1 shrink-0">
               <div className="text-gray-600 p-0.5">{icon}</div>
-              <span className="text-[10px] font-medium text-gray-600 whitespace-nowrap">
-                {label}
-              </span>
+              {!isCompact && (
+                <span className="text-[10px] font-medium text-gray-600 whitespace-nowrap">
+                  {label}
+                </span>
+              )}
             </div>
 
             {/* 미니 인라인 차트 - 2열 레이아웃으로 공간 확보 */}

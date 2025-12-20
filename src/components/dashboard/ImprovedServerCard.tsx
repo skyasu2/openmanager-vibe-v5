@@ -340,7 +340,7 @@ const MetricItem = ({
       <div className="w-full h-8 flex items-center justify-center">
         <MiniLineChart
           data={history && history.length > 1 ? history : [value, value]}
-          width={80}
+          width={120}
           height={28}
           color={color}
           fill
