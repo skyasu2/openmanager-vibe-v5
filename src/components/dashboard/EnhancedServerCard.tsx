@@ -293,11 +293,11 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         case 'compact':
           return {
             padding: 'p-4',
-            cardHeight: 'min-h-[200px]',
+            cardHeight: 'min-h-[220px]',
             titleSize: 'text-sm',
             subtitleSize: 'text-xs',
-            chartContainer: 'grid-cols-4 gap-2',
-            chartSize: 'w-full h-8',
+            chartContainer: 'grid-cols-2 gap-2',
+            chartSize: 'w-full h-10',
             showFullDetails: false,
             useCompactLabels: true,
           };
@@ -378,11 +378,11 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               </span>
             </div>
 
-            {/* 미니 인라인 차트 */}
-            <div className="flex-1 h-6 min-w-[50px] max-w-[80px]">
+            {/* 미니 인라인 차트 - 2열 레이아웃으로 공간 확보 */}
+            <div className="flex-1 h-8 min-w-[60px]">
               <svg
                 className="w-full h-full"
-                viewBox="0 0 80 24"
+                viewBox="0 0 100 32"
                 preserveAspectRatio="none"
               >
                 <defs>
@@ -408,17 +408,17 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 {/* 영역 채우기 */}
                 <polygon
                   fill={`url(#compact-${gradientId})`}
-                  points={`0,24 ${data.map((v, i) => `${(i / (data.length - 1)) * 80},${24 - (v / 100) * 24}`).join(' ')} 80,24`}
+                  points={`0,32 ${data.map((v, i) => `${(i / (data.length - 1)) * 100},${32 - (v / 100) * 32}`).join(' ')} 100,32`}
                 />
                 {/* 라인 */}
                 <polyline
                   fill="none"
                   stroke={valueColor}
-                  strokeWidth="1.5"
+                  strokeWidth="2"
                   points={data
                     .map(
                       (v, i) =>
-                        `${(i / (data.length - 1)) * 80},${24 - (v / 100) * 24}`
+                        `${(i / (data.length - 1)) * 100},${32 - (v / 100) * 32}`
                     )
                     .join(' ')}
                   strokeLinecap="round"
