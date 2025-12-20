@@ -38,6 +38,10 @@ async fn main() {
         .route("/api/anomaly", post(handlers::inference::detect_anomaly))
         .route("/api/trend", post(handlers::inference::predict_trend))
         .route("/api/clustering", post(handlers::clustering::handle_clustering))
+        // Feedback analysis endpoints
+        .route("/api/feedback/analyze", post(handlers::feedback::analyze_single_feedback))
+        .route("/api/feedback/analyze-batch", post(handlers::feedback::analyze_batch_feedback))
+        .route("/api/feedback/health", get(handlers::feedback::feedback_health))
         // Middleware
         .layer(TraceLayer::new_for_http())
         .layer(cors);
@@ -51,7 +55,8 @@ async fn main() {
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
     tracing::info!("🚀 Rust ML Service starting on {}", addr);
-    tracing::info!("📊 Endpoints: /health, /info, /api/anomaly, /api/trend");
+    tracing::info!("📊 Endpoints: /health, /info, /api/anomaly, /api/trend, /api/clustering");
+    tracing::info!("📝 Feedback: /api/feedback/analyze, /api/feedback/analyze-batch, /api/feedback/health");
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
