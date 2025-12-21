@@ -2,24 +2,29 @@
  * 🔍 Simple Anomaly Detector
  *
  * @description
- * Statistical anomaly detection using Adaptive Algorithm (26-hour moving average + 2σ).
+ * Statistical anomaly detection using Adaptive Algorithm (moving average + 2σ).
  * Inspired by Grafana's anomaly detection approach.
  *
  * @algorithm
- * 1. Calculate 26-hour moving average (26hr = 1 day + 2hr buffer for daily patterns)
+ * 1. Calculate moving average from historical data (default: 6-hour window)
  * 2. Calculate standard deviation (σ)
  * 3. Threshold = mean + (2 × σ) for upper bound
  * 4. Threshold = mean - (2 × σ) for lower bound
  * 5. Anomaly if value outside threshold
  *
+ * @note
+ * - Data source: FIXED_24H_DATASETS (SSOT - Dashboard와 동일)
+ * - Actual usage: 36 data points (6시간 × 10분 간격)
+ * - Algorithm adapts to available data (minimum 12 points required)
+ *
  * @features
  * - Client-side calculation (no API calls)
- * - Learns daily and weekly patterns
+ * - Learns 6-hour patterns from same data shown in Dashboard
  * - Adaptive to system changes
  * - Low false positive rate (~5%)
  *
- * @version 1.0.0
- * @date 2025-11-21
+ * @version 1.2.0
+ * @date 2025-12-21
  */
 
 export interface MetricDataPoint {
@@ -67,9 +72,9 @@ export class SimpleAnomalyDetector {
 
   constructor(config?: Partial<AnomalyDetectionConfig>) {
     this.config = {
-      movingAverageWindow: config?.movingAverageWindow ?? 312, // 26 hours
+      movingAverageWindow: config?.movingAverageWindow ?? 36, // 6시간 × 6포인트/시간 (10분 간격)
       stdDevMultiplier: config?.stdDevMultiplier ?? 2,
-      minDataPoints: config?.minDataPoints ?? 24, // 2 hours minimum
+      minDataPoints: config?.minDataPoints ?? 12, // 2시간 minimum (12 points)
     };
   }
 

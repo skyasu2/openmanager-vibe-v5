@@ -204,21 +204,10 @@ export const detectAnomaliesTool = tool(
 
     const usedEngine: 'rust' | 'typescript' = 'typescript';
 
-    // Load actual scenario history for consistency
-    // We load past 24 hours (24 points at 1h interval for broad trend, or simpler 24 points?)
-    // The previous simulation was 24 points at 5min interval = 2 hours.
-    // Let's load past 2 hours data -> 24 points (5 min interval)
-    // Actually loadHistoricalContext as implemented loads "past N hours" using hour files.
-    // If we want 24 points at 5 min intervals, we need finer/more frequent sampling or just load 2 hours and extract.
-    // The implementation of loadHistoricalContext calculates "Now - i hours" which gives 1 point per hour.
-    // To match "5 min interval" history, we need a loop of minutes?
-    // Let's stick to "24 Hours History" (1 point per hour) for robust daily trend?
-    // Or did the user want visual consistency?
-    // Dashboard usually shows "Last Hour" or "Last 24 Hours".
-    // Let's settle on: AI analyzes "Last 24 Hours" using 1-hour interval points.
-
-    // Use static import
-    const historyPoints = await loadHistoricalContext(server.id || '', 24);
+    // Load 6-hour history at 10-minute intervals (36 data points)
+    // - 6시간 × 6포인트/시간 = 36 포인트
+    // - 10분 간격으로 세밀한 트렌드 분석 가능
+    const historyPoints = await loadHistoricalContext(server.id || '', 6);
 
     for (const metric of targetMetrics) {
       const currentValue = server[metric as keyof typeof server] as number;
@@ -229,12 +218,11 @@ export const detectAnomaliesTool = tool(
         value: h[metric] || 0,
       }));
 
-      // Fallback if history load failed
+      // Fallback if history load failed (36 points at 10-min intervals)
       if (history.length < 5) {
-        // generate fallback
         const now = Date.now();
-        for (let i = 0; i < 24; i++) {
-          history.push({ timestamp: now - i * 3600000, value: currentValue });
+        for (let i = 0; i < 36; i++) {
+          history.push({ timestamp: now - i * 600000, value: currentValue }); // 10분 = 600000ms
         }
       }
 
@@ -266,14 +254,14 @@ export const detectAnomaliesTool = tool(
       hasAnomalies: anomalyCount > 0,
       results,
       timestamp: new Date().toISOString(),
-      _algorithm: '26-hour moving average + 2σ threshold',
+      _algorithm: '6-hour moving average + 2σ threshold (10-min intervals)',
       _engine: usedEngine,
     };
   },
   {
     name: 'detectAnomalies',
     description:
-      '서버 메트릭의 이상치를 탐지합니다 (통계적 이상감지: 26시간 이동평균 + 2σ)',
+      '서버 메트릭의 이상치를 탐지합니다 (통계적 이상감지: 6시간 이동평균 + 2σ, 10분 간격)',
     schema: z.object({
       serverId: z
         .string()
@@ -319,8 +307,8 @@ export const predictTrendsTool = tool(
 
     const usedEngine: 'rust' | 'typescript' = 'typescript';
 
-    // Use static import
-    const historyPoints = await loadHistoricalContext(server.id || '', 24);
+    // Load 6-hour history at 10-minute intervals (36 data points)
+    const historyPoints = await loadHistoricalContext(server.id || '', 6);
 
     for (const metric of targetMetrics) {
       const currentValue = server[metric as keyof typeof server] as number;
@@ -330,11 +318,11 @@ export const predictTrendsTool = tool(
         value: h[metric] || 0,
       }));
 
-      // Fallback if history load failed
+      // Fallback if history load failed (36 points at 10-min intervals)
       if (history.length < 5) {
         const now = Date.now();
-        for (let i = 0; i < 24; i++) {
-          history.push({ timestamp: now - i * 3600000, value: currentValue });
+        for (let i = 0; i < 36; i++) {
+          history.push({ timestamp: now - i * 600000, value: currentValue }); // 10분 = 600000ms
         }
       }
 

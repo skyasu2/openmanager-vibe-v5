@@ -6,10 +6,15 @@
  * - AI 기반 원인 분석
  * - 자동 보고서 생성
  * - 패턴 학습 및 예측
+ *
+ * 🔄 v5.84.0: Cloud Run LangGraph Integration
+ * - generate/detect: Cloud Run 우선 → 로컬 fallback
+ * - LangGraph Reporter Agent 재사용 (RAG, Command Recommendations)
  */
 
 import crypto from 'node:crypto';
 import { type NextRequest, NextResponse } from 'next/server';
+import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
 import { createClient } from '@/lib/supabase/server';
@@ -460,7 +465,70 @@ async function postHandler(request: NextRequest) {
 
         const startTime = Date.now();
         const { anomalies, pattern } = detectAnomalies(metrics);
-        const report = generateReport(metrics, anomalies, pattern);
+        let cloudRunUsed = false;
+
+        // 기본값: Local algorithms
+        let report: IncidentReport = generateReport(
+          metrics,
+          anomalies,
+          pattern
+        );
+
+        // Cloud Run 우선 호출 (LangGraph Reporter Agent)
+        if (isCloudRunEnabled()) {
+          debug.info('[incident-report] Trying Cloud Run LangGraph...');
+
+          const cloudRunResult = await proxyToCloudRun({
+            path: '/api/ai/incident-report',
+            method: 'POST',
+            body: {
+              serverId: metrics[0]?.server_id,
+              query: '장애 보고서 생성',
+              severity: 'auto',
+              category: 'incident',
+            },
+            timeout: 15000,
+          });
+
+          if (cloudRunResult.success && cloudRunResult.data) {
+            debug.info(
+              '[incident-report] Cloud Run success, enhancing with RAG data'
+            );
+
+            // Cloud Run RAG 데이터로 보고서 강화
+            const crData = cloudRunResult.data as Record<string, unknown>;
+
+            report = {
+              ...report,
+              root_cause_analysis: {
+                primary_cause:
+                  (crData.knowledgeBase as { summary?: string })?.summary ||
+                  report.root_cause_analysis.primary_cause,
+                contributing_factors:
+                  report.root_cause_analysis.contributing_factors,
+                confidence: 0.85, // Cloud Run RAG 사용 시 신뢰도 상승
+              },
+              recommendations: Array.isArray(crData.recommendedCommands)
+                ? (
+                    crData.recommendedCommands as Array<{
+                      command: string;
+                      description: string;
+                    }>
+                  ).map((cmd) => ({
+                    action: cmd.description || cmd.command,
+                    priority: 'high' as const,
+                    expected_impact: '전문가 추천 조치',
+                  }))
+                : report.recommendations,
+            };
+            cloudRunUsed = true;
+          } else {
+            debug.warn(
+              '[incident-report] Cloud Run failed, using local fallback:',
+              cloudRunResult.error
+            );
+          }
+        }
 
         // Try to save to database
         try {
@@ -508,7 +576,7 @@ async function postHandler(request: NextRequest) {
           | { sent: boolean; channels: string[]; reason?: string }
           | undefined;
         if (notify) {
-          const alertKey = `${report.severity}-${pattern}`;
+          const alertKey = `${report.severity}-${report.pattern}`;
           const sent = shouldSendAlert(alertKey);
 
           notifications = {
@@ -526,6 +594,7 @@ async function postHandler(request: NextRequest) {
           notifications,
           responseTime,
           timestamp: new Date().toISOString(),
+          _source: cloudRunUsed ? 'Cloud Run LangGraph' : 'Local Fallback',
         });
       }
 

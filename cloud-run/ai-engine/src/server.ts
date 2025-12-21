@@ -15,6 +15,17 @@ import { generateService } from './services/generate/generate-service';
 import { createSupervisorStreamResponse } from './services/langgraph/multi-agent-supervisor';
 import { loadHourlyScenarioData } from './services/scenario/scenario-loader';
 
+// Direct Agent Tool Imports (for dedicated endpoints)
+import {
+  detectAnomaliesTool,
+  predictTrendsTool,
+  analyzePatternTool,
+} from './agents/analyst-agent';
+import {
+  searchKnowledgeBaseTool,
+  recommendCommandsTool,
+} from './agents/reporter-agent';
+
 // Initialize App
 const app = new Hono();
 
@@ -283,6 +294,187 @@ app.get('/api/ai/approval/stats', (c) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// ============================================================================
+// Direct Agent Tool Endpoints (v5.84.0 - LangGraph Reuse for Function Pages)
+// ============================================================================
+
+/**
+ * POST /api/ai/analyze-server - Server Analysis Endpoint
+ *
+ * 직접 Analyst Agent 도구 호출 (Supervisor 경유 없이)
+ * - detectAnomaliesTool: 이상 탐지 (6-hour moving average + 2σ, 10분 간격)
+ * - predictTrendsTool: 트렌드 예측 (Linear regression)
+ * - analyzePatternTool: 패턴 분석
+ *
+ * Use Case: /api/ai/intelligent-monitoring (Vercel) → Cloud Run 프록시
+ */
+app.post('/api/ai/analyze-server', async (c) => {
+  try {
+    const { serverId, analysisType = 'full', options = {} } = await c.req.json();
+
+    console.log(`🔬 [Analyze Server] serverId=${serverId}, type=${analysisType}`);
+
+    const results: Record<string, unknown> = {
+      success: true,
+      serverId,
+      analysisType,
+      timestamp: new Date().toISOString(),
+    };
+
+    // 분석 타입에 따라 도구 호출
+    if (analysisType === 'anomaly' || analysisType === 'full') {
+      const anomalyResult = await detectAnomaliesTool.invoke({
+        serverId: serverId || undefined,
+        metricType: options.metricType || 'all',
+      });
+      results.anomalyDetection = anomalyResult;
+    }
+
+    if (analysisType === 'trend' || analysisType === 'full') {
+      const trendResult = await predictTrendsTool.invoke({
+        serverId: serverId || undefined,
+        metricType: options.metricType || 'all',
+        predictionHours: options.predictionHours || 1,
+      });
+      results.trendPrediction = trendResult;
+    }
+
+    if (analysisType === 'pattern' || analysisType === 'full') {
+      const patternResult = await analyzePatternTool.invoke({
+        query: options.query || '서버 상태 전체 분석',
+      });
+      results.patternAnalysis = patternResult;
+    }
+
+    console.log(`✅ [Analyze Server] Completed for ${serverId || 'all servers'}`);
+    return c.json(results);
+  } catch (error) {
+    console.error('❌ [Analyze Server] Error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+/**
+ * POST /api/ai/incident-report - Incident Report Generation Endpoint
+ *
+ * 직접 Reporter Agent 도구 호출 (Supervisor 경유 없이)
+ * - searchKnowledgeBaseTool: RAG with pgvector
+ * - recommendCommandsTool: CLI 명령어 추천
+ *
+ * Use Case: /api/ai/incident-report (Vercel) → Cloud Run 프록시
+ */
+app.post('/api/ai/incident-report', async (c) => {
+  try {
+    const { serverId, query, severity, category } = await c.req.json();
+
+    console.log(`📋 [Incident Report] serverId=${serverId}, query=${query}`);
+
+    // 1. RAG 검색
+    const ragResult = await searchKnowledgeBaseTool.invoke({
+      query: query || '서버 장애 분석',
+      category: category || undefined,
+      severity: severity || undefined,
+    });
+
+    // 2. 키워드 추출 및 명령어 추천
+    const keywords = extractKeywordsFromQuery(query || '');
+    const commandResult = await recommendCommandsTool.invoke({ keywords });
+
+    // 3. 이상 탐지 (컨텍스트용)
+    const anomalyResult = await detectAnomaliesTool.invoke({
+      serverId: serverId || undefined,
+      metricType: 'all',
+    });
+
+    const result = {
+      success: true,
+      serverId,
+      timestamp: new Date().toISOString(),
+      knowledgeBase: ragResult,
+      recommendedCommands: commandResult,
+      currentStatus: anomalyResult,
+      _source: 'Cloud Run LangGraph Direct',
+    };
+
+    console.log(`✅ [Incident Report] Generated for ${serverId || 'general'}`);
+    return c.json(result);
+  } catch (error) {
+    console.error('❌ [Incident Report] Error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+/**
+ * POST /api/ai/analyze-batch - Batch Server Analysis
+ *
+ * 여러 서버 동시 분석 (대시보드 전체 새로고침 시)
+ */
+app.post('/api/ai/analyze-batch', async (c) => {
+  try {
+    const { serverIds = [], analysisType = 'anomaly' } = await c.req.json();
+
+    console.log(`🔬 [Batch Analysis] servers=${serverIds.length}, type=${analysisType}`);
+
+    // 모든 서버 데이터 로드
+    const allServers = await loadHourlyScenarioData();
+    const targetServers = serverIds.length > 0
+      ? allServers.filter((s) => serverIds.includes(s.id))
+      : allServers;
+
+    const results = await Promise.all(
+      targetServers.map(async (server) => {
+        const anomalyResult = await detectAnomaliesTool.invoke({
+          serverId: server.id,
+          metricType: 'all',
+        });
+
+        return {
+          serverId: server.id,
+          serverName: server.name,
+          ...anomalyResult,
+        };
+      })
+    );
+
+    return c.json({
+      success: true,
+      totalServers: results.length,
+      analysisType,
+      results,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('❌ [Batch Analysis] Error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+// Helper: 질문에서 키워드 추출
+function extractKeywordsFromQuery(query: string): string[] {
+  const keywords: string[] = [];
+  const q = query.toLowerCase();
+
+  const patterns = [
+    { regex: /서버|server/gi, keyword: '서버' },
+    { regex: /상태|status/gi, keyword: '상태' },
+    { regex: /에러|error|오류/gi, keyword: '에러' },
+    { regex: /로그|log/gi, keyword: '로그' },
+    { regex: /메모리|memory/gi, keyword: '메모리' },
+    { regex: /cpu|프로세서/gi, keyword: 'cpu' },
+    { regex: /디스크|disk/gi, keyword: '디스크' },
+    { regex: /재시작|restart/gi, keyword: '재시작' },
+    { regex: /장애|failure|incident/gi, keyword: '장애' },
+  ];
+
+  for (const pattern of patterns) {
+    if (pattern.regex.test(q)) {
+      keywords.push(pattern.keyword);
+    }
+  }
+
+  return keywords.length > 0 ? keywords : ['일반', '조회'];
+}
 
 // Start Server
 const port = parseInt(process.env.PORT || '8080', 10);

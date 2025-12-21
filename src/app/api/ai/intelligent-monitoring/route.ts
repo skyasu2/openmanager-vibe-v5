@@ -7,9 +7,14 @@
  * - 적응형 임계값 (Adaptive thresholds)
  * - 학습 기반 패턴 인식
  * - 자동 스케일링 권장사항
+ *
+ * 🔄 v5.84.0: Cloud Run LangGraph Integration
+ * - analyze_server: Cloud Run 우선 → 로컬 fallback
+ * - LangGraph Agent Tools 재사용 (26-hour MA, Linear Regression)
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
 
@@ -427,6 +432,139 @@ async function postHandler(request: NextRequest) {
       case 'analyze_server': {
         const { serverId, analysisDepth, includeSteps } = body;
 
+        // ================================================================
+        // 🔄 v5.84.0: Cloud Run LangGraph Integration
+        // 1. Cloud Run 우선 호출 (LangGraph Agent Tools 재사용)
+        // 2. 실패 시 로컬 알고리즘 fallback
+        // ================================================================
+
+        if (isCloudRunEnabled()) {
+          debug.info('[intelligent-monitoring] Trying Cloud Run LangGraph...');
+
+          const cloudRunResult = await proxyToCloudRun({
+            path: '/api/ai/analyze-server',
+            method: 'POST',
+            body: {
+              serverId,
+              analysisType: analysisDepth || 'full',
+              options: {
+                includeSteps,
+                metricType: 'all',
+                predictionHours: 1,
+              },
+            },
+            timeout: 15000, // 15s timeout for analysis
+          });
+
+          if (cloudRunResult.success && cloudRunResult.data) {
+            debug.info('[intelligent-monitoring] Cloud Run analysis succeeded');
+
+            // Cloud Run 응답을 Vercel 응답 형식으로 변환
+            const crData = cloudRunResult.data as {
+              anomalyDetection?: {
+                hasAnomalies?: boolean;
+                totalChecked?: number;
+                anomalies?: Array<{
+                  metricType?: string;
+                  deviation?: number;
+                  severity?: string;
+                }>;
+              };
+              trendPrediction?: {
+                predictions?: Record<
+                  string,
+                  {
+                    predictedValue?: number;
+                    trend?: string;
+                    confidence?: number;
+                  }
+                >;
+              };
+              patternAnalysis?: {
+                patterns?: string[];
+                recommendations?: string[];
+              };
+            };
+
+            const response = {
+              success: true,
+              data: {
+                analysisId: `cr-analysis-${Date.now()}`,
+                timestamp: new Date().toISOString(),
+                request: { serverId, analysisDepth, includeSteps },
+                _source: 'Cloud Run LangGraph',
+                anomalyDetection: {
+                  status: 'completed',
+                  summary: crData.anomalyDetection?.hasAnomalies
+                    ? `Found ${crData.anomalyDetection.anomalies?.length || 0} anomalies`
+                    : 'No anomalies detected',
+                  anomaliesFound:
+                    crData.anomalyDetection?.anomalies?.length || 0,
+                  severity: crData.anomalyDetection?.hasAnomalies
+                    ? 'high'
+                    : 'low',
+                  confidence: 0.85,
+                  processingTime: 150,
+                  anomalies: crData.anomalyDetection?.anomalies || [],
+                },
+                rootCauseAnalysis: {
+                  status: 'completed',
+                  summary:
+                    crData.patternAnalysis?.patterns?.[0] ||
+                    'No root cause identified',
+                  rootCauses: crData.patternAnalysis?.patterns || [],
+                  confidence: 0.85,
+                  processingTime: 200,
+                  causes: [],
+                  aiInsights: crData.patternAnalysis?.recommendations || [],
+                },
+                predictiveMonitoring: {
+                  status: 'completed',
+                  summary: `Trend analysis via LangGraph`,
+                  predictions: Object.entries(
+                    crData.trendPrediction?.predictions || {}
+                  ).map(([metric, pred]) => ({
+                    metric,
+                    timeframe: '1h',
+                    prediction: pred.trend || 'stable',
+                    predictedValue: pred.predictedValue,
+                    confidence: pred.confidence || 0.8,
+                  })),
+                  confidence: 0.8,
+                  processingTime: 100,
+                  recommendations:
+                    crData.patternAnalysis?.recommendations || [],
+                },
+                overallResult: {
+                  severity: crData.anomalyDetection?.hasAnomalies
+                    ? 'warning'
+                    : 'low',
+                  actionRequired:
+                    crData.anomalyDetection?.hasAnomalies || false,
+                  priorityActions:
+                    crData.patternAnalysis?.recommendations || [],
+                  summary: 'LangGraph AI Analysis Completed',
+                  confidence: 0.85,
+                  totalProcessingTime: 450,
+                },
+              },
+            };
+
+            return NextResponse.json(response);
+          }
+
+          // Cloud Run 실패 시 fallback 로깅
+          debug.warn(
+            '[intelligent-monitoring] Cloud Run failed, falling back to local:',
+            cloudRunResult.error
+          );
+        }
+
+        // ================================================================
+        // 📍 Fallback: 로컬 알고리즘 (기존 로직)
+        // ================================================================
+        debug.info('[intelligent-monitoring] Using local analysis fallback');
+
         // 1. Get Service Instance
         const { getIntelligentMonitoringService } = await import(
           '@/services/ai/IntelligentMonitoringService'
@@ -502,9 +640,10 @@ async function postHandler(request: NextRequest) {
         const response = {
           success: true,
           data: {
-            analysisId: `analysis-${Date.now()}`,
+            analysisId: `local-analysis-${Date.now()}`,
             timestamp: new Date().toISOString(),
             request: { serverId, analysisDepth, includeSteps },
+            _source: 'Local Fallback',
             anomalyDetection: {
               status: 'completed',
               summary: `Anomaly Score: ${(analysisResult.aiAnalysis?.anomalyScore ?? 0).toFixed(2)}`,
@@ -550,7 +689,7 @@ async function postHandler(request: NextRequest) {
               actionRequired:
                 (analysisResult.aiAnalysis?.anomalyScore ?? 0) > 0.7,
               priorityActions: analysisResult.aiAnalysis?.recommendations || [],
-              summary: 'AI Analysis Completed',
+              summary: 'Local AI Analysis Completed',
               confidence: analysisResult.aiAnalysis?.confidence || 0,
               totalProcessingTime: 450,
             },

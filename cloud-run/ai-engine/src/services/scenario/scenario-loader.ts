@@ -91,10 +91,19 @@ export async function loadHourlyScenarioData(): Promise<
 /**
  * Load Historical Context for a Server (Past N hours)
  * Used by Analyst Agent for consistent trend analysis
+ *
+ * @param serverId - Server ID to load history for
+ * @param hours - Number of hours to load (default: 6 hours)
+ * @returns Array of data points at 10-minute intervals
+ *
+ * @example
+ * - 6 hours = 36 data points (6 × 6 points/hour)
+ * - 12 hours = 72 data points
+ * - 24 hours = 144 data points
  */
 export async function loadHistoricalContext(
   serverId: string,
-  hours: number = 24
+  hours: number = 6
 ): Promise<
   Array<{ timestamp: number; cpu: number; memory: number; disk: number }>
 > {
@@ -118,11 +127,11 @@ export async function loadHistoricalContext(
     const currentMinute = now.getMinutes();
     const currentMinuteOfDay = currentHour * 60 + currentMinute;
 
-    // Retrieve data for past hours
-    for (let i = 0; i < hours; i++) {
-      const targetTime = new Date(now.getTime() - i * 60 * 60 * 1000); // i hours ago
-      // Adjust minutes to look up in the fixed dataset ring buffer
-      let targetMinuteOfDay = currentMinuteOfDay - i * 60;
+    // 10분 간격으로 데이터 수집 (hours × 6 포인트)
+    const totalPoints = hours * 6;
+    for (let i = 0; i < totalPoints; i++) {
+      const targetTime = new Date(now.getTime() - i * 10 * 60 * 1000); // i × 10분 전
+      let targetMinuteOfDay = currentMinuteOfDay - i * 10;
 
       // Handle wrapping (yesterday)
       while (targetMinuteOfDay < 0) {
