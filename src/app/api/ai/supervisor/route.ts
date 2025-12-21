@@ -107,7 +107,7 @@ export const POST = withRateLimit(
 
       if (!parseResult.success) {
         console.warn(
-          '⚠️ [Unified-Stream] Invalid payload:',
+          '⚠️ [Supervisor] Invalid payload:',
           parseResult.error.issues
         );
         return new Response(

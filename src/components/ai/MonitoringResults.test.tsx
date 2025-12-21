@@ -17,8 +17,9 @@ const getSeverityColor = (severity: string): string => {
     case 'medium':
       return 'border-yellow-500 bg-yellow-50 text-yellow-800';
     case 'low':
-    default:
       return 'border-green-500 bg-green-50 text-green-800';
+    default:
+      return 'border-gray-500 bg-gray-50 text-gray-800';
   }
 };
 

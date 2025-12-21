@@ -14,10 +14,9 @@ import type { QueryEvent } from '@/lib/ai/metrics/AIMetricsCollector';
 import { AIMetricsCollector } from '@/lib/ai/metrics/AIMetricsCollector';
 import { ComplexityLevel } from '@/lib/ai/utils/QueryComplexityAnalyzer';
 
-// TODO: Fix path alias (@/) resolution in test environment
-// Tracked in improvement plan Task 1.3
-// Path alias works in some tests but fails here with "Cannot find package '@/lib/ai/metrics/AIMetricsCollector'"
-// Future: Install vite-tsconfig-paths plugin or use relative imports
+// TODO: Path alias (@/) resolution requires vite-tsconfig-paths plugin
+// The AIMetricsCollector itself uses @/ imports which cascade the issue
+// Solution: Install vite-tsconfig-paths or convert entire AI module to relative imports
 describe.skip('AI Metrics Integration Tests', () => {
   let collector: AIMetricsCollector;
 
