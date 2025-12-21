@@ -48,7 +48,12 @@ const excludeValues = [
   'placeholder',
   'dummy-key',
   'test-key',
-  '***'
+  '***',
+  // 가짜 테스트 키 패턴
+  'FAKE',
+  'MOCK',
+  'TEST_KEY',
+  'NOT_REAL'
 ];
 
 // 제외할 디렉토리
@@ -108,9 +113,12 @@ function scanDirectory(dir, maxDepth = 1) {
       if (stat.isDirectory()) {
         findings.push(...scanDirectory(fullPath, maxDepth - 1));
       } else if (stat.isFile() && (item.endsWith('.ts') || item.endsWith('.js') || item.endsWith('.json'))) {
+        // 테스트 파일 제외
+        if (item.includes('.test.') || item.includes('.spec.')) continue;
+
         // config, auth, secret 관련 파일만
-        if (item.toLowerCase().includes('config') || 
-            item.toLowerCase().includes('auth') || 
+        if (item.toLowerCase().includes('config') ||
+            item.toLowerCase().includes('auth') ||
             item.toLowerCase().includes('secret') ||
             item.toLowerCase().includes('env')) {
           const content = fs.readFileSync(fullPath, 'utf8');
