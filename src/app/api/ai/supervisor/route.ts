@@ -19,6 +19,7 @@ import {
   proxyToCloudRun,
 } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
+import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { quickSanitize } from './security';
 
 // Allow streaming responses up to 60 seconds (Vercel Hobby/Pro max duration)
@@ -96,160 +97,163 @@ function extractTextFromMessage(
 // 🧠 Main Handler - LangGraph Multi-Agent System
 // ============================================================================
 
-export const POST = withAuth(async (req: NextRequest) => {
-  try {
-    // 1. Zod 스키마 검증
-    const body = await req.json();
-    const parseResult = requestSchema.safeParse(body);
+export const POST = withRateLimit(
+  rateLimiters.aiAnalysis,
+  withAuth(async (req: NextRequest) => {
+    try {
+      // 1. Zod 스키마 검증
+      const body = await req.json();
+      const parseResult = requestSchema.safeParse(body);
 
-    if (!parseResult.success) {
-      console.warn(
-        '⚠️ [Unified-Stream] Invalid payload:',
-        parseResult.error.issues
-      );
+      if (!parseResult.success) {
+        console.warn(
+          '⚠️ [Unified-Stream] Invalid payload:',
+          parseResult.error.issues
+        );
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Invalid request payload',
+            details: parseResult.error.issues.map((i) => i.message).join(', '),
+          }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      const { messages, sessionId: clientSessionId } = parseResult.data;
+
+      // 2. 마지막 메시지에서 사용자 쿼리 추출 + 입력 정제
+      const lastMessage =
+        messages.length > 0 ? messages[messages.length - 1] : null;
+      const rawQuery = lastMessage
+        ? extractTextFromMessage(lastMessage)
+        : 'System status check';
+
+      // 빈 쿼리 방어
+      if (!rawQuery || rawQuery.trim() === '') {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Empty query',
+            message: '쿼리를 입력해주세요.',
+          }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      const userQuery = quickSanitize(rawQuery);
+
+      // 2. 세션 ID 생성/사용
+      const sessionId = clientSessionId || `session_${Date.now()}`;
+
+      console.log(`🚀 [Supervisor] Query: "${userQuery.slice(0, 50)}..."`);
+      console.log(`📡 [Supervisor] Session: ${sessionId}`);
+
+      // 3. 스트리밍 요청 여부 확인
+      // AI SDK v5 DefaultChatTransport는 */* 또는 다양한 Accept 헤더를 보냄
+      // supervisor 엔드포인트는 기본적으로 스트리밍 활성화
+      // 명시적으로 application/json만 요청하는 경우에만 JSON 응답
+      const acceptHeader = req.headers.get('accept') || '';
+      const wantsJsonOnly = acceptHeader === 'application/json';
+      const wantsStream = !wantsJsonOnly;
+
+      // 4. Cloud Run 프록시 모드 (Primary - CLOUD_RUN_ENABLED=true)
+      if (isCloudRunEnabled()) {
+        console.log('☁️ [Supervisor] Using Cloud Run backend');
+
+        if (wantsStream) {
+          // Cloud Run 스트리밍 프록시
+          const cloudStream = await proxyStreamToCloudRun({
+            path: '/api/ai/supervisor',
+            body: { messages, sessionId },
+          });
+
+          if (cloudStream) {
+            return new Response(cloudStream, {
+              headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Cache-Control': 'no-cache',
+                Connection: 'keep-alive',
+                'X-Session-Id': sessionId,
+                'X-Backend': 'cloud-run',
+              },
+            });
+          }
+          // Cloud Run 실패 시 에러 응답
+          console.error('❌ Cloud Run stream failed');
+        } else {
+          // Cloud Run 단일 응답 프록시
+          const proxyResult = await proxyToCloudRun({
+            path: '/api/ai/supervisor',
+            body: { messages, sessionId },
+          });
+
+          if (proxyResult.success && proxyResult.data) {
+            return Response.json({
+              ...proxyResult.data,
+              _backend: 'cloud-run',
+            });
+          }
+          // Cloud Run 실패 시 에러 응답
+          console.error('❌ Cloud Run request failed:', proxyResult.error);
+        }
+      }
+
+      // 5. Fallback: Cloud Run 비활성화 또는 실패 시 에러 응답
+      // Note: Vercel LangGraph 제거됨 (2025-12-17) - 번들 최적화
+      console.warn('⚠️ [Supervisor] Cloud Run unavailable, returning error');
+
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Invalid request payload',
-          details: parseResult.error.issues.map((i) => i.message).join(', '),
+          error: 'AI service temporarily unavailable',
+          message:
+            'AI 서비스가 일시적으로 불안정합니다. 잠시 후 다시 시도해주세요.',
+          sessionId,
+          _backend: 'fallback-error',
         }),
         {
-          status: 400,
+          status: 503,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Session-Id': sessionId,
+            'Retry-After': '30',
+          },
+        }
+      );
+    } catch (error) {
+      console.error('❌ AI 스트리밍 처리 실패:', error);
+
+      // 에러 상세 정보 로깅
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack?.slice(0, 500),
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'AI processing failed',
+          message:
+            error instanceof Error ? error.message : 'Unknown error occurred',
+        }),
+        {
+          status: 500,
           headers: { 'Content-Type': 'application/json' },
         }
       );
     }
-
-    const { messages, sessionId: clientSessionId } = parseResult.data;
-
-    // 2. 마지막 메시지에서 사용자 쿼리 추출 + 입력 정제
-    const lastMessage =
-      messages.length > 0 ? messages[messages.length - 1] : null;
-    const rawQuery = lastMessage
-      ? extractTextFromMessage(lastMessage)
-      : 'System status check';
-
-    // 빈 쿼리 방어
-    if (!rawQuery || rawQuery.trim() === '') {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Empty query',
-          message: '쿼리를 입력해주세요.',
-        }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    const userQuery = quickSanitize(rawQuery);
-
-    // 2. 세션 ID 생성/사용
-    const sessionId = clientSessionId || `session_${Date.now()}`;
-
-    console.log(`🚀 [Supervisor] Query: "${userQuery.slice(0, 50)}..."`);
-    console.log(`📡 [Supervisor] Session: ${sessionId}`);
-
-    // 3. 스트리밍 요청 여부 확인
-    // AI SDK v5 DefaultChatTransport는 */* 또는 다양한 Accept 헤더를 보냄
-    // supervisor 엔드포인트는 기본적으로 스트리밍 활성화
-    // 명시적으로 application/json만 요청하는 경우에만 JSON 응답
-    const acceptHeader = req.headers.get('accept') || '';
-    const wantsJsonOnly = acceptHeader === 'application/json';
-    const wantsStream = !wantsJsonOnly;
-
-    // 4. Cloud Run 프록시 모드 (Primary - CLOUD_RUN_ENABLED=true)
-    if (isCloudRunEnabled()) {
-      console.log('☁️ [Supervisor] Using Cloud Run backend');
-
-      if (wantsStream) {
-        // Cloud Run 스트리밍 프록시
-        const cloudStream = await proxyStreamToCloudRun({
-          path: '/api/ai/supervisor',
-          body: { messages, sessionId },
-        });
-
-        if (cloudStream) {
-          return new Response(cloudStream, {
-            headers: {
-              'Content-Type': 'text/plain; charset=utf-8',
-              'Cache-Control': 'no-cache',
-              Connection: 'keep-alive',
-              'X-Session-Id': sessionId,
-              'X-Backend': 'cloud-run',
-            },
-          });
-        }
-        // Cloud Run 실패 시 에러 응답
-        console.error('❌ Cloud Run stream failed');
-      } else {
-        // Cloud Run 단일 응답 프록시
-        const proxyResult = await proxyToCloudRun({
-          path: '/api/ai/supervisor',
-          body: { messages, sessionId },
-        });
-
-        if (proxyResult.success && proxyResult.data) {
-          return Response.json({
-            ...proxyResult.data,
-            _backend: 'cloud-run',
-          });
-        }
-        // Cloud Run 실패 시 에러 응답
-        console.error('❌ Cloud Run request failed:', proxyResult.error);
-      }
-    }
-
-    // 5. Fallback: Cloud Run 비활성화 또는 실패 시 에러 응답
-    // Note: Vercel LangGraph 제거됨 (2025-12-17) - 번들 최적화
-    console.warn('⚠️ [Supervisor] Cloud Run unavailable, returning error');
-
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: 'AI service temporarily unavailable',
-        message:
-          'AI 서비스가 일시적으로 불안정합니다. 잠시 후 다시 시도해주세요.',
-        sessionId,
-        _backend: 'fallback-error',
-      }),
-      {
-        status: 503,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Session-Id': sessionId,
-          'Retry-After': '30',
-        },
-      }
-    );
-  } catch (error) {
-    console.error('❌ AI 스트리밍 처리 실패:', error);
-
-    // 에러 상세 정보 로깅
-    if (error instanceof Error) {
-      console.error('Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack?.slice(0, 500),
-      });
-    }
-
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: 'AI processing failed',
-        message:
-          error instanceof Error ? error.message : 'Unknown error occurred',
-      }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-  }
-});
+  })
+);
 
 // ============================================================================
 // 📊 Architecture Note (2025-12-17)

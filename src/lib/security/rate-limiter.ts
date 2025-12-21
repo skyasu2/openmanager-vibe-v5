@@ -1,5 +1,5 @@
 /**
- * 🛡️ Serverless-Compatible Rate Limiter v2.1
+ * 🛡️ Serverless-Compatible Rate Limiter v2.2
  *
  * ✅ Supabase 기반 분산 rate limiting (Vercel serverless 호환)
  * ✅ Edge Runtime 지원 (setInterval 제거, on-demand cleanup)
@@ -7,6 +7,7 @@
  * ✅ 자동 만료 레코드 정리
  * ✅ Atomic operation via RPC (Race condition 완전 해결)
  * ✅ Row Level Security (보안 강화)
+ * ✅ 일일 제한 기능 (Cloud Run 무료 티어 최적화)
  *
  * 🔧 Architecture:
  * - Supabase 테이블: rate_limits (ip, path, count, reset_time, expires_at)
@@ -18,7 +19,13 @@
  * - Row-level locking (FOR UPDATE) prevents race conditions
  * - Service role only access (prevents anon key abuse)
  *
+ * 💰 Cloud Run 무료 티어 최적화:
+ * - 월 180,000 vCPU-seconds (일 ~6,000초)
+ * - LangGraph 평균 실행: 3-5초 (콜드스타트 10초)
+ * - 일일 최대 1,500회 용량 → 100회/일 제한으로 안전 마진 확보
+ *
  * Changelog:
+ * - v2.2 (2025-12-21): Added daily limit for Cloud Run optimization
  * - v2.1 (2025-11-24): Added RPC functions, RLS policies, atomic operations
  * - v2.0 (2025-11-24): Initial Supabase-based implementation
  */
@@ -37,6 +44,8 @@ interface RateLimitConfig {
   windowMs: number;
   skipSuccessfulRequests?: boolean;
   skipFailedRequests?: boolean;
+  /** 일일 최대 요청 수 (Cloud Run 무료 티어 최적화) */
+  dailyLimit?: number;
 }
 
 interface _RateLimitRecord {
@@ -51,6 +60,11 @@ interface RateLimitResult {
   allowed: boolean;
   remaining: number;
   resetTime: number;
+  /** 일일 제한 정보 (설정된 경우) */
+  daily?: {
+    remaining: number;
+    resetTime: number;
+  };
 }
 
 // ==============================================
@@ -94,6 +108,10 @@ class RateLimiter {
    * - Supabase RPC 함수 check_rate_limit() 호출
    * - DB-level row locking (FOR UPDATE) 사용
    * - Atomic increment (SELECT + UPDATE in single transaction)
+   *
+   * 💰 일일 제한 (Cloud Run 무료 티어):
+   * - dailyLimit 설정 시 24시간 윈도우로 추가 체크
+   * - 분당 + 일일 제한 모두 통과해야 요청 허용
    */
   async checkLimit(request: NextRequest): Promise<RateLimitResult> {
     const ip = this.getClientIP(request);
@@ -116,7 +134,7 @@ class RateLimiter {
     }
 
     try {
-      // ⚡ Atomic RPC 함수 호출 (Race Condition 방지)
+      // ⚡ 분당 제한 체크 (Atomic RPC 함수)
       const { data, error } = await this.supabase.rpc('check_rate_limit', {
         p_ip: ip,
         p_path: path,
@@ -129,7 +147,6 @@ class RateLimiter {
         return this.fallbackAllow(now);
       }
 
-      // RPC 함수가 배열로 반환하므로 첫 번째 row 사용
       const result = Array.isArray(data) ? data[0] : data;
 
       if (!result) {
@@ -137,6 +154,47 @@ class RateLimiter {
         return this.fallbackAllow(now);
       }
 
+      // 분당 제한 초과 시 즉시 거부
+      if (!result.allowed) {
+        return {
+          allowed: false,
+          remaining: result.remaining,
+          resetTime: Number(result.reset_time),
+        };
+      }
+
+      // 💰 일일 제한 체크 (설정된 경우만)
+      if (this.config.dailyLimit) {
+        const dailyResult = await this.checkDailyLimit(ip, path);
+
+        if (!dailyResult.allowed) {
+          this.logger.warn(
+            `[Rate Limit] 일일 제한 초과 (IP: ${ip}, Path: ${path})`
+          );
+          return {
+            allowed: false,
+            remaining: 0,
+            resetTime: dailyResult.resetTime,
+            daily: {
+              remaining: dailyResult.remaining,
+              resetTime: dailyResult.resetTime,
+            },
+          };
+        }
+
+        // 분당 + 일일 모두 통과
+        return {
+          allowed: true,
+          remaining: result.remaining,
+          resetTime: Number(result.reset_time),
+          daily: {
+            remaining: dailyResult.remaining,
+            resetTime: dailyResult.resetTime,
+          },
+        };
+      }
+
+      // 일일 제한 미설정 시 분당 결과만 반환
       return {
         allowed: result.allowed,
         remaining: result.remaining,
@@ -145,6 +203,74 @@ class RateLimiter {
     } catch (error) {
       this.logger.error('[Rate Limit] 예상치 못한 오류', error);
       return this.fallbackAllow(now);
+    }
+  }
+
+  /**
+   * 📅 일일 제한 체크 (24시간 윈도우)
+   *
+   * 💰 Cloud Run 무료 티어 최적화:
+   * - 월 180,000 vCPU-seconds ÷ 30일 = 일 6,000초
+   * - LangGraph 평균 4초 × 100회 = 일 400초 사용
+   * - 안전 마진 93% 확보
+   */
+  private async checkDailyLimit(
+    ip: string,
+    path: string
+  ): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
+    const now = Date.now();
+    const dailyWindowMs = 24 * 60 * 60 * 1000; // 24시간
+
+    if (!this.supabase || !this.config.dailyLimit) {
+      return {
+        allowed: true,
+        remaining: this.config.dailyLimit ?? 100,
+        resetTime: now + dailyWindowMs,
+      };
+    }
+
+    try {
+      // 일일 제한용 path suffix 추가 (분당과 구분)
+      const dailyPath = `${path}:daily`;
+
+      const { data, error } = await this.supabase.rpc('check_rate_limit', {
+        p_ip: ip,
+        p_path: dailyPath,
+        p_max_requests: this.config.dailyLimit,
+        p_window_ms: dailyWindowMs,
+      });
+
+      if (error) {
+        this.logger.error('[Rate Limit] 일일 제한 RPC 실패', error);
+        return {
+          allowed: true,
+          remaining: this.config.dailyLimit,
+          resetTime: now + dailyWindowMs,
+        };
+      }
+
+      const result = Array.isArray(data) ? data[0] : data;
+
+      if (!result) {
+        return {
+          allowed: true,
+          remaining: this.config.dailyLimit,
+          resetTime: now + dailyWindowMs,
+        };
+      }
+
+      return {
+        allowed: result.allowed,
+        remaining: result.remaining,
+        resetTime: Number(result.reset_time),
+      };
+    } catch (error) {
+      this.logger.error('[Rate Limit] 일일 제한 체크 오류', error);
+      return {
+        allowed: true,
+        remaining: this.config.dailyLimit,
+        resetTime: now + dailyWindowMs,
+      };
     }
   }
 
@@ -219,7 +345,22 @@ export const rateLimiters = {
   dataGenerator: new RateLimiter({ maxRequests: 10, windowMs: 60 * 1000 }), // 1분에 10회
   serversNext: new RateLimiter({ maxRequests: 20, windowMs: 60 * 1000 }), // 1분에 20회
   monitoring: new RateLimiter({ maxRequests: 30, windowMs: 60 * 1000 }), // 1분에 30회
-  aiAnalysis: new RateLimiter({ maxRequests: 5, windowMs: 60 * 1000 }), // 1분에 5회
+  /**
+   * 💰 AI Analysis Rate Limiter (Cloud Run 무료 티어 최적화)
+   *
+   * 분당: 10회 (버스트 방지)
+   * 일일: 100회 (Cloud Run 무료 티어 보호)
+   *
+   * 계산 근거:
+   * - Cloud Run 무료: 월 180,000 vCPU-seconds
+   * - 일일 용량: 6,000초 / LangGraph 4초 = 1,500회
+   * - 안전 마진: 100회/일 × 4초 = 400초/일 (용량의 6.7%)
+   */
+  aiAnalysis: new RateLimiter({
+    maxRequests: 10,
+    windowMs: 60 * 1000,
+    dailyLimit: 100,
+  }),
 };
 
 // ⚠️ setInterval 제거 (Edge Runtime 비호환)
@@ -237,23 +378,39 @@ export function withRateLimit(
     const result = await rateLimiter.checkLimit(request);
 
     if (!result.allowed) {
+      // 일일 제한 초과 여부에 따라 메시지 분기
+      const isDailyLimitExceeded = result.daily && result.daily.remaining <= 0;
+      const message = isDailyLimitExceeded
+        ? '일일 요청 제한(100회)을 초과했습니다. 내일 다시 시도해주세요.'
+        : '요청 제한을 초과했습니다. 잠시 후 다시 시도해주세요.';
+
+      const headers: Record<string, string> = {
+        'X-RateLimit-Limit': rateLimiter.config.maxRequests.toString(),
+        'X-RateLimit-Remaining': result.remaining.toString(),
+        'X-RateLimit-Reset': result.resetTime.toString(),
+        'Retry-After': Math.ceil(
+          (result.resetTime - Date.now()) / 1000
+        ).toString(),
+      };
+
+      // 일일 제한 헤더 추가
+      if (result.daily) {
+        headers['X-RateLimit-Daily-Limit'] = (
+          rateLimiter.config.dailyLimit ?? 100
+        ).toString();
+        headers['X-RateLimit-Daily-Remaining'] =
+          result.daily.remaining.toString();
+        headers['X-RateLimit-Daily-Reset'] = result.daily.resetTime.toString();
+      }
+
       return NextResponse.json(
         {
           error: 'Too Many Requests',
-          message: '요청 제한을 초과했습니다. 잠시 후 다시 시도해주세요.',
+          message,
           retryAfter: Math.ceil((result.resetTime - Date.now()) / 1000),
+          dailyLimitExceeded: isDailyLimitExceeded,
         },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': rateLimiter.config.maxRequests.toString(),
-            'X-RateLimit-Remaining': result.remaining.toString(),
-            'X-RateLimit-Reset': result.resetTime.toString(),
-            'Retry-After': Math.ceil(
-              (result.resetTime - Date.now()) / 1000
-            ).toString(),
-          },
-        }
+        { status: 429, headers }
       );
     }
 
@@ -266,6 +423,22 @@ export function withRateLimit(
     );
     response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
     response.headers.set('X-RateLimit-Reset', result.resetTime.toString());
+
+    // 일일 제한 헤더 추가 (설정된 경우)
+    if (result.daily) {
+      response.headers.set(
+        'X-RateLimit-Daily-Limit',
+        (rateLimiter.config.dailyLimit ?? 100).toString()
+      );
+      response.headers.set(
+        'X-RateLimit-Daily-Remaining',
+        result.daily.remaining.toString()
+      );
+      response.headers.set(
+        'X-RateLimit-Daily-Reset',
+        result.daily.resetTime.toString()
+      );
+    }
 
     return response;
   };
