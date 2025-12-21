@@ -11,17 +11,20 @@
  * @date 2025-12-22
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   getKSTMinuteOfDay,
   getKSTTimestamp,
   MetricsProvider,
   metricsProvider,
-  type ServerMetrics,
-  type SystemSummary,
 } from './MetricsProvider';
 
 describe('MetricsProvider', () => {
+  // Codex Review: afterEach로 fake timer 복구 보장
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe('getKSTMinuteOfDay', () => {
     it('should return a multiple of 10 (10-minute slots)', () => {
       const minuteOfDay = getKSTMinuteOfDay();
@@ -43,8 +46,7 @@ describe('MetricsProvider', () => {
       const minuteOfDay = getKSTMinuteOfDay();
       // 09:00 KST = 540 minutes, rounded to 10-min = 540
       expect(minuteOfDay).toBe(540);
-
-      vi.useRealTimers();
+      // afterEach에서 vi.useRealTimers() 자동 호출
     });
 
     it('should handle day boundary correctly', () => {
@@ -56,8 +58,7 @@ describe('MetricsProvider', () => {
       const minuteOfDay = getKSTMinuteOfDay();
       // 23:55 KST = 1435 minutes, rounded down to 1430
       expect(minuteOfDay).toBe(1430);
-
-      vi.useRealTimers();
+      // afterEach에서 vi.useRealTimers() 자동 호출
     });
   });
 
@@ -240,20 +241,36 @@ describe('MetricsProvider', () => {
       expect(metrics).toBeNull();
     });
 
-    it('should return metrics for valid server and time', () => {
+    it('should return metrics for valid server and time slot', () => {
       const serverList = metricsProvider.getServerList();
       const firstServerId = serverList[0].serverId;
 
-      // Test with a valid 10-minute slot (e.g., 09:00 = 540)
-      const metrics = metricsProvider.getMetricsAtTime(firstServerId, 540);
+      // 현재 시간대의 슬롯으로 테스트 (데이터 존재 보장)
+      const currentMinuteOfDay = getKSTMinuteOfDay();
+      const metrics = metricsProvider.getMetricsAtTime(
+        firstServerId,
+        currentMinuteOfDay
+      );
 
-      // May return null if no data at that time slot
+      // Codex Review: 정상 경로 검증 강화
+      expect(metrics).not.toBeNull();
       if (metrics) {
         expect(typeof metrics.cpu).toBe('number');
         expect(typeof metrics.memory).toBe('number');
         expect(typeof metrics.disk).toBe('number');
         expect(typeof metrics.network).toBe('number');
+        expect(metrics.cpu).toBeGreaterThanOrEqual(0);
+        expect(metrics.cpu).toBeLessThanOrEqual(100);
       }
+    });
+
+    it('should return null for invalid time slot', () => {
+      const serverList = metricsProvider.getServerList();
+      const firstServerId = serverList[0].serverId;
+
+      // 유효하지 않은 시간대 (1440 이상)
+      const metrics = metricsProvider.getMetricsAtTime(firstServerId, 9999);
+      expect(metrics).toBeNull();
     });
   });
 
@@ -288,9 +305,23 @@ describe('MetricsProvider', () => {
   });
 
   describe('Status Determination', () => {
-    it('should mark as critical when any metric >= 90%', () => {
-      // This test verifies the determineStatus logic indirectly
+    // Codex Review: 상태 판정 로직을 실제 데이터와 무관하게 검증
+
+    it('should have valid status for all servers', () => {
       const allMetrics = metricsProvider.getAllServerMetrics();
+      const validStatuses = ['online', 'warning', 'critical', 'offline'];
+
+      // 최소 1개 이상의 서버 메트릭 존재 확인
+      expect(allMetrics.length).toBeGreaterThan(0);
+
+      allMetrics.forEach((metric) => {
+        expect(validStatuses).toContain(metric.status);
+      });
+    });
+
+    it('should mark as critical when any metric >= 90%', () => {
+      const allMetrics = metricsProvider.getAllServerMetrics();
+      let criticalFound = false;
 
       allMetrics.forEach((metric) => {
         if (
@@ -300,8 +331,25 @@ describe('MetricsProvider', () => {
           metric.network >= 90
         ) {
           expect(metric.status).toBe('critical');
+          criticalFound = true;
         }
       });
+
+      // 크리티컬 상태가 없어도 테스트는 통과 (데이터 의존성 제거)
+      // 대신 로직 자체의 정합성을 검증
+      if (!criticalFound) {
+        // 모든 메트릭이 임계값 미만일 때 critical 상태가 없어야 함
+        allMetrics.forEach((metric) => {
+          if (metric.status === 'critical') {
+            expect(
+              metric.cpu >= 90 ||
+                metric.memory >= 90 ||
+                metric.disk >= 95 ||
+                metric.network >= 90
+            ).toBe(true);
+          }
+        });
+      }
     });
 
     it('should mark as warning when any metric >= 80% (but not critical)', () => {
@@ -321,6 +369,26 @@ describe('MetricsProvider', () => {
 
         if (isWarning && !isCritical) {
           expect(metric.status).toBe('warning');
+        }
+
+        // 역검증: warning 상태라면 반드시 warning 조건을 만족해야 함
+        if (metric.status === 'warning') {
+          expect(isWarning).toBe(true);
+          expect(isCritical).toBe(false);
+        }
+      });
+    });
+
+    it('should mark as online when all metrics are normal', () => {
+      const allMetrics = metricsProvider.getAllServerMetrics();
+
+      allMetrics.forEach((metric) => {
+        if (metric.status === 'online') {
+          // online 상태는 모든 메트릭이 정상 범위
+          expect(metric.cpu).toBeLessThan(80);
+          expect(metric.memory).toBeLessThan(80);
+          expect(metric.disk).toBeLessThan(85);
+          expect(metric.network).toBeLessThan(80);
         }
       });
     });
