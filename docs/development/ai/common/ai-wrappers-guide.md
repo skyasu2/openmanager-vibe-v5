@@ -44,13 +44,13 @@ git commit -m "feat: 새 기능"
 
 ```bash
 # Codex
-scripts/ai-subagents/codex-wrapper.sh "이 코드를 분석해주세요"
+scripts/ai-wrappers/codex-wrapper.sh "이 코드를 분석해주세요"
 
 # Gemini
-scripts/ai-subagents/gemini-wrapper.sh "SOLID 원칙을 검토해주세요"
+scripts/ai-wrappers/gemini-wrapper.sh "SOLID 원칙을 검토해주세요"
 
 # Qwen (일반 목적)
-scripts/ai-subagents/qwen-wrapper.sh "성능 최적화 방안을 제시해주세요"
+scripts/ai-wrappers/qwen-wrapper.sh "성능 최적화 방안을 제시해주세요"
 ```
 
 ---
@@ -206,30 +206,30 @@ cat logs/code-reviews/review-*.md | tail -100
 
 ```bash
 # 간단한 질문
-scripts/ai-subagents/codex-wrapper.sh "2+2는?"
+scripts/ai-wrappers/codex-wrapper.sh "2+2는?"
 
 # 복잡한 코드 분석
-scripts/ai-subagents/codex-wrapper.sh "이 TypeScript 타입 시스템을 분석하고 개선점 3가지를 제시해주세요."
+scripts/ai-wrappers/codex-wrapper.sh "이 TypeScript 타입 시스템을 분석하고 개선점 3가지를 제시해주세요."
 ```
 
 #### Gemini
 
 ```bash
 # 구조 검토
-scripts/ai-subagents/gemini-wrapper.sh "SOLID 원칙 관점에서 이 코드를 검토해주세요"
+scripts/ai-wrappers/gemini-wrapper.sh "SOLID 원칙 관점에서 이 코드를 검토해주세요"
 
 # 성능 분석
-scripts/ai-subagents/gemini-wrapper.sh "이 알고리즘의 시간 복잡도를 분석해주세요"
+scripts/ai-wrappers/gemini-wrapper.sh "이 알고리즘의 시간 복잡도를 분석해주세요"
 ```
 
 #### Qwen
 
 ```bash
 # 일반 분석
-scripts/ai-subagents/qwen-wrapper.sh "성능 최적화 방안을 제시해주세요"
+scripts/ai-wrappers/qwen-wrapper.sh "성능 최적화 방안을 제시해주세요"
 
 # 복잡한 리팩토링 계획
-scripts/ai-subagents/qwen-wrapper.sh "이 모듈을 마이크로서비스로 분할하는 계획을 세워주세요"
+scripts/ai-wrappers/qwen-wrapper.sh "이 모듈을 마이크로서비스로 분할하는 계획을 세워주세요"
 ```
 
 ### 3. 로그 확인
@@ -295,7 +295,7 @@ scripts/ai-tools-health-check.sh
 tail -100 logs/ai-perf/{AI}-perf-$(date +%F).log
 
 # 2. 다른 Wrapper 시도
-scripts/ai-subagents/gemini-wrapper.sh "동일한 질문"
+scripts/ai-wrappers/gemini-wrapper.sh "동일한 질문"
 
 # 3. 질문 재구성
 # - 더 구체적으로

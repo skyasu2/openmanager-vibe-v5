@@ -1,9 +1,13 @@
 # 🛠️ Claude Code 시스템 복구 완전 가이드 (2025)
 
+> ⚠️ **주의**: 이 문서는 2025년 초 아키텍처 기준입니다.
+> 현재 Claude Code는 **5개 기본 서브에이전트**(Explore, Plan, general-purpose, claude-code-guide, statusline-setup)만 제공합니다.
+> "12개/18개 서브에이전트" 참조는 과거 커스텀 에이전트 아키텍처 기준입니다.
+
 ## 🎯 개요
 
-**목적**: Claude Code 시스템 문제 진단 및 완전 복구  
-**대상**: Config Mismatch, MCP 서버 실패, 서브에이전트 문제  
+**목적**: Claude Code 시스템 문제 진단 및 완전 복구
+**대상**: Config Mismatch, MCP 서버 실패, Subagent 문제
 **목표 시간**: 2-3시간 내 완전 복구
 
 ## ⚠️ 주요 증상 및 진단

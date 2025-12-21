@@ -11,7 +11,7 @@
 **목적**: AI 교차검증 결과를 자동으로 저장하고 검색하는 시스템
 - **verification-recorder.sh**: 검증 결과를 JSON으로 저장
 - **search-history.sh**: 히스토리 검색 및 통계 생성
-- **verification-recorder 서브에이전트**: Claude Code Task 통합 (계획됨)
+- **verification-recorder 자동화**: Claude Code Task 통합 (계획됨, 미구현)
 
 **기대 효과**:
 - 모든 검증 결과 자동 아카이빙
@@ -21,9 +21,9 @@
 ### 현재 상태 (2025-10-16)
 
 **미구현 이유**:
-1. ❌ **verification-recorder 서브에이전트 미구현**
-   - `.claude/agents/` 디렉토리에 존재하지 않음
-   - 18개 공식 서브에이전트 목록에 없음
+1. ❌ **verification-recorder 자동화 미구현**
+   - Claude Code Task 통합 미완료
+   - 별도 자동화 스크립트 미작성
 
 2. ❌ **수동 검증만 진행**
    - docs/claude/history/ai-verifications/에 18개 수동 작성 문서
@@ -83,7 +83,7 @@
 ### 1. 실용성 부족
 
 **문제**:
-- 서브에이전트 통합 없이는 수동 실행 필요
+- 자동화 통합 없이는 수동 실행 필요
 - 수동 실행이라면 문서 직접 작성이 더 간단
 
 **현실**:
@@ -132,8 +132,8 @@
 ### 옵션 B: 활성화 (보류)
 
 **필요 조건**:
-1. verification-recorder 서브에이전트 구현
-2. Claude Code Task 통합
+1. verification-recorder 자동화 스크립트 구현
+2. Claude Code Task/Skill 통합
 3. 저장 경로 통일 (docs/claude/history/ai-verifications/)
 4. 실제 사용 사례 검증
 
@@ -159,7 +159,7 @@
 ### 현재 워크플로우
 
 - [Multi-AI 전략](../../docs/claude/environment/multi-ai-strategy.md) - Bash Wrapper 방식
-- [서브에이전트 가이드](../../docs/ai/subagents-complete-guide.md) - 18개 에이전트 (verification-recorder 없음)
+- [AI 교차검증 시스템](../../docs/development/ai/claude-code/README.md) - AI 리뷰 워크플로우
 
 ### 실제 검증 문서
 
@@ -177,11 +177,11 @@
 
 **성공적인 자동화 요건**:
 - ✅ 명확한 필요성 (반복 작업, 오류 방지)
-- ✅ 통합 지점 (서브에이전트, Git hooks 등)
+- ✅ 통합 지점 (Skill, Task, Git hooks 등)
 - ✅ 유지보수 비용 < 이익
 
 **실패한 이유 분석**:
-- ❌ 서브에이전트 통합 누락
+- ❌ 자동화 통합 누락
 - ❌ 수동 실행의 번거로움
 - ❌ 실제 사용 사례 검증 부족
 
@@ -196,7 +196,7 @@
   - 패턴 분석이 정말 유용한가?
 
 - [ ] **Integration Point**: 어떻게 통합할 것인가?
-  - verification-recorder 서브에이전트 구현
+  - verification-recorder Skill/자동화 스크립트 구현
   - Git post-commit hook
   - CI/CD 파이프라인
 

@@ -37,7 +37,7 @@
 # - 🐛 수정: AI 엔진 표기 버그 (모든 AI가 "Fallback"으로 표기되던 문제)
 # - 🎯 효과: 유지보수성 향상, 디버깅 용이
 #
-# Changelog v5.0.0 (2025-11-27): 🚀 MAJOR UPDATE - 1:1:1:1 비율 + 분할 리뷰 + 서브에이전트
+# Changelog v5.0.0 (2025-11-27): 🚀 MAJOR UPDATE - 1:1:1:1 비율 + 분할 리뷰 + AI 교차검증
 # - ✨ 신규: 1:1:1:1 균등 분배 (Codex, Gemini, Claude, Qwen 각 25%)
 # - ✨ 신규: Qwen 통합 (qwen-wrapper.sh v3.0.0)
 # - ✨ 신규: Claude Code 스킬 통합 (ai-code-review)

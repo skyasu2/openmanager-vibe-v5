@@ -28,7 +28,7 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 YEAR_MONTH=$(date +%Y-%m)
 MONTHLY_REPORT_DIR="${PROJECT_ROOT}/logs/monthly-verification"
 MONTHLY_REPORT_FILE="${MONTHLY_REPORT_DIR}/${YEAR_MONTH}-wrapper-verification.md"
-VERIFICATION_SCRIPT="${PROJECT_ROOT}/scripts/ai-subagents/wrapper-verification-suite.sh"
+VERIFICATION_SCRIPT="${PROJECT_ROOT}/scripts/ai-wrappers/wrapper-verification-suite.sh"
 
 # 재시도 설정
 MAX_RETRIES=3

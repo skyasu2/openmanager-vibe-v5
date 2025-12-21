@@ -69,7 +69,7 @@ version: 'v5.83.1'
 - CLI 기반 코드 리뷰 & 검증 활용
 - 자동 리뷰 시스템 1차 엔진으로 사용
 - 함수 단위 버그 수정에 우선 활용
-- Wrapper 스크립트 사용 (`scripts/ai-subagents/codex-wrapper.sh`)
+- Wrapper 스크립트 사용 (`scripts/ai-wrappers/codex-wrapper.sh`)
 
 #### DON'T ❌
 

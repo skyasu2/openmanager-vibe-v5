@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * 🚀 스마트 커밋 시스템 v2.0 (서브에이전트 통합)
- * 
+ * 🚀 스마트 커밋 시스템 v2.0 (AI 교차검증 통합)
+ *
  * 특징:
- * - 서브에이전트 기반 자동 코드 리뷰
+ * - AI 교차검증 기반 자동 코드 리뷰
  * - 자동 문제 수정 
  * - 지능적인 커밋 메시지 생성
  * - 자동 푸시 옵션
@@ -324,7 +324,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>`;
 
 // 메인 실행 함수
 async function main() {
-  console.log('🚀 스마트 커밋 시스템 v2.0 (서브에이전트 통합)\n');
+  console.log('🚀 스마트 커밋 시스템 v2.0 (AI 교차검증 통합)\n');
   
   // Git 상태 확인
   const gitStatus = utils.getGitStatus();
@@ -362,7 +362,7 @@ async function main() {
       process.exit(0);
     }
 
-    // 2단계: 자동 코드 리뷰 (서브에이전트 활용)
+    // 2단계: 자동 코드 리뷰 (AI 교차검증 활용)
     const reviewSuccess = await utils.runAutoReview(updatedGitStatus.stagedFiles);
     
     if (!reviewSuccess) {
@@ -391,7 +391,7 @@ async function main() {
     console.log('🎉 스마트 커밋 완료!');
     console.log(`📝 커밋 메시지: "${commitMessage}"`);
     console.log(`📁 처리된 파일: ${updatedGitStatus.stagedFiles.length}개`);
-    console.log(`🤖 서브에이전트 리뷰: ${options.skipReview ? '스킵됨' : '완료'}`);
+    console.log(`🤖 AI 교차검증 리뷰: ${options.skipReview ? '스킵됨' : '완료'}`);
     console.log(`📤 자동 푸시: ${options.push ? '완료' : '스킵됨'}`);
     console.log('='.repeat(50));
 

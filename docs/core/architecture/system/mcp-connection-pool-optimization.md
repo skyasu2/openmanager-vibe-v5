@@ -1,5 +1,9 @@
 # MCP 서버 연결 풀 최적화 설계
 
+> ⚠️ **주의**: 이 문서는 2025년 초 아키텍처 기준입니다.
+> 현재 Claude Code는 5개 기본 Subagent + 9개 MCP 서버 구조입니다.
+> "12개 서브에이전트" 참조는 과거 커스텀 에이전트 아키텍처 기준입니다.
+
 ## 🎯 최적화 목표
 
 **Qwen 성능 분석 결과**: 89% 오버헤드 제거, 시간복잡도 O(n×m) → O(max(n,m)) 개선
@@ -26,7 +30,7 @@ interface MCPConnectionPool {
 
 const connectionPool: MCPConnectionPool = {
   connections: new Map(),
-  maxConnections: 15, // 12개 서브에이전트 + 여유분
+  maxConnections: 15, // MCP 서버 + Subagent + 여유분
   keepAliveTimeout: 300000, // 5분
   healthCheckInterval: 60000  // 1분
 };
@@ -87,7 +91,7 @@ const memoryUsage = {
 
 ### Phase 2: 병렬 처리 (단기)
 
-1. **동시 요청 처리**: 12개 서브에이전트 병렬 실행
+1. **동시 요청 처리**: Task/MCP 병렬 실행
 2. **로드 밸런싱**: 서버 부하에 따른 요청 분산
 3. **Failover**: 서버 장애 시 자동 대체
 
@@ -165,7 +169,7 @@ echo 'export MCP_MEMORY_POOL=shared' >> ~/.bashrc
 - **개발 생산성**: 4배 증가
 - **시스템 안정성**: 99.9% 가동률
 - **비용 효율성**: 월 $1,450 절약
-- **확장성**: 무제한 서브에이전트 추가 가능
+- **확장성**: MCP 서버/Task 유연한 확장 가능
 
 ---
 

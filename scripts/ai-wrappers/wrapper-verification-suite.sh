@@ -136,7 +136,7 @@ run_wrapper_test() {
     local tier=$2
     local query=$3
     local expected_time=$4
-    local wrapper_script="${PROJECT_ROOT}/scripts/ai-subagents/${wrapper}-wrapper.sh"
+    local wrapper_script="${PROJECT_ROOT}/scripts/ai-wrappers/${wrapper}-wrapper.sh"
     local output_file="${OUTPUT_DIR}/${wrapper}-${tier}.txt"
     local metrics_file="${OUTPUT_DIR}/${wrapper}-${tier}-metrics.txt"
     

@@ -245,7 +245,7 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY)"
 ### MCP 시스템
 - **[MCP Setup](setup.md)** - 환경별 초기 설치 가이드
 - **[MCP Tools](tools.md)** - 도구 완전 레퍼런스
-- **[MCP Integration](integration.md)** - 서브에이전트와 MCP 연동
+- **[Claude Code Guide](../ai/claude-code/README.md)** - Subagent와 MCP 연동
 
 ### AI 워크플로우
 - **[AI Workflow](../ai/common/workflow.md)** - AI 교차검증 워크플로우

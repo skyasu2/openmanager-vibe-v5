@@ -167,7 +167,7 @@ const validators = {
       return { success: true, skipped: true };
     }
 
-    console.log(`🚀 서브에이전트 기반 자동 리뷰 시작 (${files.length}개 파일)`);
+    console.log(`🚀 AI 교차검증 기반 자동 리뷰 시작 (${files.length}개 파일)`);
     
     return utils.timeCommand(
       '자동 코드 리뷰 및 수정',

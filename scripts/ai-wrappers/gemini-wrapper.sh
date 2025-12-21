@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Codex CLI Wrapper - 600초 타임아웃 + stderr 필터링
+# Gemini CLI Wrapper - 600초 타임아웃 + stderr 필터링
 # 버전: 3.3.0
 # 날짜: 2025-12-08 (Comprehensive Reviewer Context 적용)
 
@@ -12,6 +12,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # npm global bin 경로 추가 (WSL에서 codex/gemini 찾기 위함)
 export PATH="$PATH:$(npm prefix -g)/bin"
 
+
 # 색상 정의
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -20,12 +21,13 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+# 로그 디렉터리
 # 로그 디렉터리 (프로젝트 루트 기준)
 LOG_DIR="${PROJECT_ROOT}/logs/ai-perf"
-LOG_FILE="$LOG_DIR/codex-perf-$(date +%F).log"
+LOG_FILE="$LOG_DIR/gemini-perf-$(date +%F).log"
 mkdir -p "$LOG_DIR"
 
-# 로그 함수 (모두 stderr로 출력 - stdout은 AI 응답 전용)
+# 로그 함수
 log_info() {
     echo -e "${BLUE}ℹ️  $1${NC}" >&2
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] INFO: $1" >> "$LOG_FILE"
@@ -47,24 +49,13 @@ log_error() {
 }
 
 
-# 고정 타임아웃 (10분) - 복잡한 코드 분석 대응
+# 고정 타임아웃 (10분) - Codex/Qwen과 동일하게 통일
 TIMEOUT_SECONDS=600
 
-# 전역 임시 파일 변수 (EXIT trap에서 접근 필요)
-CODEX_TEMP_STDOUT=""
-CODEX_TEMP_STDERR=""
-
-# 임시 파일 정리 함수 (trap에서 호출)
-cleanup_temp_files() {
-    rm -f "${CODEX_TEMP_STDOUT:-}" "${CODEX_TEMP_STDERR:-}" 2>/dev/null || true
-}
-
-# EXIT trap 설정 (스크립트 종료 시 임시 파일 정리)
-trap cleanup_temp_files EXIT
-
-# Codex 실행 함수
-execute_codex() {
+# Gemini 실행 함수
+execute_gemini() {
     local query="$1"
+    local model="${2:-gemini-3-pro-preview}"
 
     # Comprehensive Reviewer Context (v3.3.0)
     # v3.3.0: 1인 개발자 제약 제거 -> 포괄적 리뷰어 관점 적용
@@ -75,19 +66,29 @@ execute_codex() {
 
 $query"
 
-    log_info "🤖 Codex 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 10분)..."
+    log_info "🟢 Gemini 실행 중 (모델: $model, 타임아웃 ${TIMEOUT_SECONDS}초 = 10분)..."
 
     local start_time=$(date +%s)
+    local temp_stdout temp_stderr temp_query
     local exit_code=0
 
-    # v3.2.0: 전역 변수 사용으로 EXIT trap에서 접근 가능
-    if ! CODEX_TEMP_STDOUT=$(mktemp) || ! CODEX_TEMP_STDERR=$(mktemp); then
+    # v3.2.0: mktemp 에러 처리 강화 (Qwen 리뷰 제안 반영)
+    if ! temp_stdout=$(mktemp) || ! temp_stderr=$(mktemp) || ! temp_query=$(mktemp); then
         log_error "임시 파일 생성 실패 (디스크 공간 또는 권한 문제)"
         return 1
     fi
 
-    # Codex 실행 (stderr 분리)
-    if timeout "${TIMEOUT_SECONDS}s" codex exec "$query" > "$CODEX_TEMP_STDOUT" 2> "$CODEX_TEMP_STDERR"; then
+    # 함수 종료 시 임시 파일 자동 정리 (인터럽트 포함)
+    trap 'rm -f "$temp_stdout" "$temp_stderr" "$temp_query"' RETURN
+
+    # 쿼리를 임시 파일에 저장 (백틱/$()/특수문자 안전하게 처리)
+    if ! printf '%s' "$query" > "$temp_query"; then
+        log_error "쿼리 파일 저장 실패"
+        return 1
+    fi
+
+    # Gemini 실행 (stderr 분리) - 임시파일 방식으로 쿼리 전달 (v3.3.0)
+    if timeout "${TIMEOUT_SECONDS}s" cat "$temp_query" | gemini --model "$model" > "$temp_stdout" 2> "$temp_stderr"; then
         exit_code=0
     else
         exit_code=$?
@@ -96,41 +97,32 @@ $query"
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
 
-    # stderr 필터링 (Codex는 현재 무해한 에러 없음, 향후 대비)
-    local filtered_errors=$(cat "$CODEX_TEMP_STDERR" 2>/dev/null || true)
+    # stderr 필터링: 무해한 에러 메시지 제거
+    local filtered_errors=$(grep -vE "\[ImportProcessor\]|Loaded cached credentials|Got it|Attempt .* failed:" "$temp_stderr" 2>/dev/null || true)
 
-    # 결과 분석
     if [ $exit_code -eq 0 ]; then
-        local codex_output=$(cat "$CODEX_TEMP_STDOUT")
+        local gemini_output=$(cat "$temp_stdout")
 
         # 실제 출력이 있는지 확인 (공백 제거 후)
-        if [ -n "$(echo "$codex_output" | tr -d '[:space:]')" ]; then
-            log_success "Codex 실행 성공 (${duration}초)"
+        if [ -n "$(echo "$gemini_output" | tr -d '[:space:]')" ]; then
+            log_success "Gemini 실행 성공 (${duration}초)"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] DURATION: ${duration}s" >> "$LOG_FILE"
 
-            # 토큰 사용량 추출
-            local tokens_used=$(echo "$codex_output" | grep "tokens used:" | tail -1 | sed 's/.*tokens used: //' | tr -d ',')
-            if [ -n "$tokens_used" ]; then
-                log_info "📊 토큰 사용: $tokens_used"
-                echo "[$(date '+%Y-%m-%d %H:%M:%S')] TOKENS: $tokens_used, DURATION: ${duration}s" >> "$LOG_FILE"
-            fi
-
-            # stderr에 실제 에러가 있으면 경고
+            # stderr에 실제 에러가 있으면 경고 (무해한 메시지 제외)
             if [ -n "$filtered_errors" ]; then
                 log_warning "stderr 경고 메시지 발견"
                 echo "[$(date '+%Y-%m-%d %H:%M:%S')] STDERR: $filtered_errors" >> "$LOG_FILE"
             fi
 
-            # Auto-logging to Decision Log (Phase 1)
-
             # 결과 출력
-            echo "$codex_output"
+            echo "$gemini_output"
             return 0
         else
-            log_error "Codex가 빈 응답을 반환했습니다"
+            log_error "Gemini가 빈 응답을 반환했습니다"
             return 1
         fi
     elif [ $exit_code -eq 124 ]; then
-        log_error "Codex 타임아웃 (${TIMEOUT_SECONDS}초 = 10분 초과)"
+        log_error "Gemini 타임아웃 (${TIMEOUT_SECONDS}초 = 10분 초과)"
         echo "" >&2
         echo -e "${YELLOW}💡 타임아웃 해결 방법:${NC}" >&2
         echo "  1️⃣  질문을 더 작은 단위로 분할하세요" >&2
@@ -139,12 +131,12 @@ $query"
         echo "" >&2
         return 124
     else
-        log_error "Codex 실행 오류 (종료 코드: $exit_code)"
+        log_error "Gemini 실행 오류 (종료 코드: $exit_code)"
 
         # stderr가 있으면 출력
-        if [ -s "$CODEX_TEMP_STDERR" ]; then
+        if [ -s "$temp_stderr" ]; then
             echo -e "${RED}stderr 내용:${NC}" >&2
-            cat "$CODEX_TEMP_STDERR" >&2
+            cat "$temp_stderr" >&2
         fi
 
         return $exit_code
@@ -154,30 +146,31 @@ $query"
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🤖 Codex CLI Wrapper v3.3.0 - Claude Code 내부 도구${NC}
+${CYAN}🟢 Gemini CLI Wrapper v3.3.0 - Claude Code 내부 도구${NC}
 
-${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
-${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
+${YELLOW}⚠️  이 스크립트는 AI 교차검증 시스템의 내부 도구입니다${NC}
+${YELLOW}   직접 실행보다 auto-ai-review.sh 또는 Skill ai-code-review 사용을 권장합니다${NC}
 
 사용 방법:
-  ${GREEN}사용자${NC}: "useState를 AI 교차검증해줘"
-  ${GREEN}Claude${NC}: Task multi-ai-verification-specialist 호출
-  ${GREEN}서브에이전트${NC}: 이 wrapper를 자동 실행
+  ${GREEN}사용자${NC}: "코드 리뷰해줘" 또는 "Skill ai-code-review"
+  ${GREEN}auto-ai-review.sh${NC}: 이 wrapper를 자동 실행 (3-AI 순환)
 
 직접 실행 (디버깅/테스트 전용):
-  $0 "쿼리 내용"
+  $0 "쿼리 내용" [모델]
 
 예시 (디버깅):
   $0 "간단한 질문: 2+2는?"
   $0 "이 TypeScript 코드를 분석하고 개선점 3가지를 제시해주세요."
+  $0 "아키텍처 검토" gemini-2.5-flash
 
 특징:
-  ✅ 고정 타임아웃: 600초 (10분) - Gemini와 동일
-  ✅ stderr 분리 + 필터링 (향후 대비)
+  ✅ 고정 타임아웃: 600초 (10분) - Codex와 동일
+  ✅ stderr 분리 + 필터링 (ImportProcessor 에러 무시)
   ✅ 공백 응답 자동 감지
   ✅ mktemp + trap (안전한 임시 파일 관리)
   ✅ Senior Full-Stack Developer 컨텍스트 자동 추가
   ✅ 재시도 없음 (자원 낭비 방지)
+  ✅ 기본 모델: gemini-3-pro-preview
   ✅ 성능 로깅 ($LOG_FILE)
 
 타임아웃 발생 시:
@@ -193,32 +186,31 @@ EOF
 
 # 메인 실행
 main() {
-    # 인자 확인
     if [ $# -eq 0 ]; then
         usage
     fi
 
-    local query="$*"
+    local query="$1"
+    local model="${2:-gemini-3-pro-preview}"
 
-    # Codex 설치 확인
-    if ! command -v codex >/dev/null 2>&1; then
-        log_error "Codex CLI가 설치되지 않았습니다"
-        log_info "설치: npm install -g openai-cli"
+    if ! command -v gemini >/dev/null 2>&1; then
+        log_error "Gemini CLI가 설치되지 않았습니다"
+        log_info "설치: npm install -g @google-ai/gemini-cli"
         exit 1
     fi
 
+    # 환경변수 확인 (선택적)
     # 환경변수 확인 (선택적, 프로젝트 루트 기준)
     if [ -f "${PROJECT_ROOT}/.env.local" ]; then
         # shellcheck disable=SC1091
         source "${PROJECT_ROOT}/.env.local" 2>/dev/null || true
     fi
 
-    # 실행
     echo "" >&2
-    log_info "🚀 Codex Wrapper v3.3.0 시작"
+    log_info "🚀 Gemini Wrapper v3.3.0 시작"
     echo "" >&2
 
-    if execute_codex "$query"; then
+    if execute_gemini "$query" "$model"; then
         echo "" >&2
         log_success "✅ 완료"
         exit 0
@@ -229,5 +221,4 @@ main() {
     fi
 }
 
-# 실행
 main "$@"

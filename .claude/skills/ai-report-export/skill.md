@@ -225,9 +225,9 @@ MISSING=""
 if [ -n "$MISSING" ]; then
   echo "⚠️  WARNING: Missing AI outputs: $MISSING"
   echo "   Report will be incomplete. Run wrapper scripts first:"
-  echo "   ./scripts/ai-subagents/codex-wrapper.sh \"[query]\""
-  echo "   ./scripts/ai-subagents/gemini-wrapper.sh \"[query]\""
-  echo "   ./scripts/ai-subagents/qwen-wrapper.sh \"[query]\""
+  echo "   ./scripts/ai-wrappers/codex-wrapper.sh \"[query]\""
+  echo "   ./scripts/ai-wrappers/gemini-wrapper.sh \"[query]\""
+  echo "   ./scripts/ai-wrappers/qwen-wrapper.sh \"[query]\""
   exit 1
 fi
 

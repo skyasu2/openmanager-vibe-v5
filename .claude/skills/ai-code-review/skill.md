@@ -96,17 +96,17 @@ fi
 
 **Codex Direct**:
 ```bash
-bash scripts/ai-subagents/codex-wrapper.sh "리뷰 요청: [내용]"
+bash scripts/ai-wrappers/codex-wrapper.sh "리뷰 요청: [내용]"
 ```
 
 **Gemini Direct**:
 ```bash
-bash scripts/ai-subagents/gemini-wrapper.sh "리뷰 요청: [내용]"
+bash scripts/ai-wrappers/gemini-wrapper.sh "리뷰 요청: [내용]"
 ```
 
 **Qwen Direct**:
 ```bash
-bash scripts/ai-subagents/qwen-wrapper.sh "리뷰 요청: [내용]"
+bash scripts/ai-wrappers/qwen-wrapper.sh "리뷰 요청: [내용]"
 ```
 
 ## Report Summary Format
@@ -192,9 +192,9 @@ which codex gemini qwen claude
 **Wrapper/CLI Errors**:
 ```bash
 # Test each wrapper
-bash scripts/ai-subagents/codex-wrapper.sh "test"
-bash scripts/ai-subagents/gemini-wrapper.sh "test"
-bash scripts/ai-subagents/qwen-wrapper.sh "test"
+bash scripts/ai-wrappers/codex-wrapper.sh "test"
+bash scripts/ai-wrappers/gemini-wrapper.sh "test"
+bash scripts/ai-wrappers/qwen-wrapper.sh "test"
 # Test Claude CLI directly (no wrapper needed)
 claude -p "Say hello"
 ```

@@ -49,7 +49,7 @@ logs/ai-decisions/
 ### 1단계: 3-AI 교차검증 실행
 
 ```bash
-./scripts/ai-subagents/quick-cross-verify.sh "useState vs useReducer 선택 기준"
+./scripts/ai-wrappers/quick-cross-verify.sh "useState vs useReducer 선택 기준"
 ```
 
 **결과**: 터미널에 3-AI 출력이 표시됨 (저장 안 됨)
@@ -143,7 +143,7 @@ cat logs/ai-cross-verification/2025-10-10/110759-useState-vs-useReducer--/summar
 ### 1. 아키텍처 결정
 
 ```bash
-./scripts/ai-subagents/quick-cross-verify.sh "인증 시스템 리팩토링 방향"
+./scripts/ai-wrappers/quick-cross-verify.sh "인증 시스템 리팩토링 방향"
 # → Claude가 Decision Log 작성
 # → logs/ai-decisions/2025-10-10-auth-refactor.md
 ```
@@ -151,7 +151,7 @@ cat logs/ai-cross-verification/2025-10-10/110759-useState-vs-useReducer--/summar
 ### 2. 성능 최적화
 
 ```bash
-./scripts/ai-subagents/quick-cross-verify.sh "대시보드 렌더링 최적화 전략"
+./scripts/ai-wrappers/quick-cross-verify.sh "대시보드 렌더링 최적화 전략"
 # → Claude가 Decision Log 작성
 # → logs/ai-decisions/2025-10-10-dashboard-perf.md
 ```
@@ -159,7 +159,7 @@ cat logs/ai-cross-verification/2025-10-10/110759-useState-vs-useReducer--/summar
 ### 3. 보안 리뷰
 
 ```bash
-./scripts/ai-subagents/quick-cross-verify.sh "로그인 보안 취약점 분석"
+./scripts/ai-wrappers/quick-cross-verify.sh "로그인 보안 취약점 분석"
 # → Claude가 Decision Log 작성
 # → logs/ai-decisions/2025-10-10-login-security.md
 ```
@@ -168,7 +168,7 @@ cat logs/ai-cross-verification/2025-10-10/110759-useState-vs-useReducer--/summar
 
 ## 🔗 관련 문서
 
-- **실행 스크립트**: `scripts/ai-subagents/quick-cross-verify.sh`
+- **실행 스크립트**: `scripts/ai-wrappers/quick-cross-verify.sh`
 - **템플릿**: `logs/ai-decisions/TEMPLATE.md`
 - **Multi-AI 전략**: `docs/claude/environment/multi-ai-strategy.md`
 - **AI 교차검증 시스템**: `docs/claude/architecture/ai-cross-verification.md`

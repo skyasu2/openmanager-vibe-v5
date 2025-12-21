@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 서브에이전트 활용 통계
+# AI 교차검증 활용 통계
 # 버전: 1.0.0
 # 날짜: 2025-10-15
 
@@ -12,7 +12,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-echo -e "${CYAN}📊 서브에이전트 활용 통계 (최근 30일)${NC}"
+echo -e "${CYAN}📊 AI 교차검증 활용 통계 (최근 30일)${NC}"
 echo ""
 
 # Decision Logs 분석
@@ -23,8 +23,8 @@ if [ ! -d "$DECISION_LOGS_DIR" ]; then
     exit 1
 fi
 
-# 서브에이전트 활용 빈도
-echo -e "${GREEN}=== 서브에이전트 활용 빈도 (Decision Logs 기준) ===${NC}"
+# AI 교차검증 활용 빈도
+echo -e "${GREEN}=== AI 교차검증 활용 빈도 (Decision Logs 기준) ===${NC}"
 echo ""
 
 for agent_file in /mnt/d/cursor/openmanager-vibe-v5/.claude/agents/*.md; do

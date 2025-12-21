@@ -66,7 +66,7 @@ $changes
     local codex_output
     local codex_exit_code=0
 
-    if codex_output=$(bash "$PROJECT_ROOT/scripts/ai-subagents/codex-wrapper.sh" "$query"); then
+    if codex_output=$(bash "$PROJECT_ROOT/scripts/ai-wrappers/codex-wrapper.sh" "$query"); then
         # Rate limit 체크
         if detect_codex_rate_limit "$codex_output"; then
             log_warning "Codex 사용량 제한 감지 (Rate limit or quota exceeded)"
@@ -139,7 +139,7 @@ $changes
     local gemini_output
     local gemini_exit_code=0
 
-    if gemini_output=$(bash "$PROJECT_ROOT/scripts/ai-subagents/gemini-wrapper.sh" "$query"); then
+    if gemini_output=$(bash "$PROJECT_ROOT/scripts/ai-wrappers/gemini-wrapper.sh" "$query"); then
         # Rate limit 체크 (v6.4.0)
         if detect_gemini_rate_limit "$gemini_output"; then
             log_warning "Gemini 사용량 제한 감지 (Rate limit or quota exceeded)"
@@ -212,7 +212,7 @@ $changes
     local qwen_output
     local qwen_exit_code=0
 
-    if qwen_output=$(bash "$PROJECT_ROOT/scripts/ai-subagents/qwen-wrapper.sh" "$query"); then
+    if qwen_output=$(bash "$PROJECT_ROOT/scripts/ai-wrappers/qwen-wrapper.sh" "$query"); then
         # Rate limit 체크 (v6.4.0)
         if detect_qwen_rate_limit "$qwen_output"; then
             log_warning "Qwen 사용량 제한 감지 (Rate limit or throttled)"
