@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google AI API 테스트 - OpenManager VIBE</title>
+    <title>AI Supervisor API 테스트 - OpenManager VIBE</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -107,7 +107,7 @@
                 <button onclick="setPreset('일반 질문')">일반 질문</button>
             </div>
 
-            <button onclick="testUnifiedAI()" id="testBtn">🚀 통합 AI 테스트</button>
+            <button onclick="testSupervisorAI()" id="testBtn">🚀 AI Supervisor 테스트</button>
             <button onclick="clearResult()">🗑️ 결과 지우기</button>
 
             <div id="result" class="result" style="display: none;"></div>
@@ -134,7 +134,7 @@
             document.getElementById('promptInput').value = presets[type];
         }
 
-        async function testUnifiedAI() {
+        async function testSupervisorAI() {
             const prompt = document.getElementById('promptInput').value.trim();
             if (!prompt) {
                 alert('질의를 입력해주세요.');
