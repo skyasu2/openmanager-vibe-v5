@@ -1,16 +1,17 @@
 /**
- * 🏗️ Infrastructure Layer - 서버 데이터 생성기 (완전 독립)
+ * 🏗️ Infrastructure Layer - 서버 메트릭 API
  *
  * 역할: 실제 서버 인프라 대체
- * - 30대 가상 서버 = 실제 프로덕션 환경
+ * - 15대 가상 서버 = 실제 프로덕션 환경
  * - 표준 Prometheus 메트릭 형식 100% 준수
- * - 다른 시스템과 완전 독립적 동작
- * - 24/7 지속적 메트릭 생성
+ * - 한국 시간(KST) 기준 고정 데이터 제공
+ * - Single Source of Truth: MetricsProvider
  */
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getMockSystem } from '@/mock';
+import { metricsProvider } from '@/services/metrics/MetricsProvider';
 import debug from '@/utils/debug';
 
 // 🔒 타입 안전성을 위한 인터페이스 정의
@@ -46,17 +47,18 @@ interface PrometheusMetricResult {
  */
 export function GET() {
   try {
-    // 목업 메트릭 데이터
+    // 🎯 MetricsProvider를 통한 고정 데이터 (KST 시간 기준)
+    const summary = metricsProvider.getSystemSummary();
     const metrics = {
-      totalServers: 20,
-      onlineServers: 15,
-      warningServers: 3,
-      offlineServers: 2,
-      averageCpu: Math.floor(Math.random() * 60) + 20, // 20-80%
-      averageMemory: Math.floor(Math.random() * 50) + 30, // 30-80%
-      averageDisk: Math.floor(Math.random() * 40) + 15, // 15-55%
-      totalAlerts: Math.floor(Math.random() * 10) + 2, // 2-12
-      timestamp: new Date().toISOString(),
+      totalServers: summary.totalServers,
+      onlineServers: summary.onlineServers,
+      warningServers: summary.warningServers,
+      offlineServers: summary.criticalServers, // critical을 offline으로 매핑
+      averageCpu: Math.round(summary.averageCpu),
+      averageMemory: Math.round(summary.averageMemory),
+      averageDisk: Math.round(summary.averageDisk),
+      totalAlerts: summary.warningServers + summary.criticalServers,
+      timestamp: summary.timestamp,
     };
 
     // 📊 DASHBOARD: 5분 TTL, SWR 비활성화 (목업 메트릭 최적화)

@@ -87,23 +87,23 @@ INSERT INTO hourly_server_states (
 ) VALUES 
 
 -- 시간 0: 백업 중 디스크 포화 (1개 심각, 2개 경고)
-('db-main-01', 'DB Main 01', 'DB-MAIN-01', 'database', 0, 'critical', 95, 88, 92, 150, 'Seoul-DC-01', 'production', 86400, '백업 중 디스크 포화로 인한 성능 저하', 'critical', ARRAY['storage-nas-01', 'db-repl-01']),
-('storage-nas-01', 'Storage NAS 01', 'STORAGE-NAS-01', 'storage', 0, 'warning', 45, 78, 65, 85, 'Seoul-DC-01', 'production', 172800, '디스크 I/O 대기시간 증가', 'medium', ARRAY['db-main-01']),
-('db-repl-01', 'DB Replica 01', 'DB-REPL-01', 'database', 0, 'warning', 68, 82, 45, 92, 'Seoul-DC-02', 'production', 259200, '복제 지연 발생', 'medium', ARRAY['db-main-01']),
+('db-main-01', 'DB Main 01', 'DB-MAIN-01', 'database', 0, 'critical', 95, 88, 92, 150, 'Seoul-DC-01', 'production', 86400, '백업 중 디스크 포화로 인한 성능 저하', 'critical', '["storage-nas-01", "db-repl-01"]'),
+('storage-nas-01', 'Storage NAS 01', 'STORAGE-NAS-01', 'storage', 0, 'warning', 45, 78, 65, 85, 'Seoul-DC-01', 'production', 172800, '디스크 I/O 대기시간 증가', 'medium', '["db-main-01"]'),
+('db-repl-01', 'DB Replica 01', 'DB-REPL-01', 'database', 0, 'warning', 68, 82, 45, 92, 'Seoul-DC-02', 'production', 259200, '복제 지연 발생', 'medium', '["db-main-01"]'),
 ('lb-main-01', 'Load Balancer 01', 'LB-MAIN-01', 'load-balancer', 0, 'online', 25, 42, 35, 45, 'Seoul-DC-01', 'production', 345600, NULL, 'low', NULL),
 ('web-prd-01', 'Web Server 01', 'WEB-PRD-01', 'web', 0, 'online', 18, 38, 28, 35, 'Seoul-DC-01', 'production', 432000, NULL, 'low', NULL),
 
 -- 시간 1: API 게이트웨이 오버로드 (1개 심각, 3개 경고)
-('api-gw-01', 'API Gateway 01', 'API-GW-01', 'api', 1, 'critical', 92, 85, 45, 180, 'Seoul-DC-01', 'production', 518400, 'API 게이트웨이 커넥션 풀 고갈', 'critical', ARRAY['web-prd-01', 'app-svc-01', 'cache-redis-01']),
-('web-prd-01', 'Web Server 01', 'WEB-PRD-01', 'web', 1, 'warning', 75, 68, 38, 92, 'Seoul-DC-01', 'production', 432000, '응답 시간 지연', 'medium', ARRAY['api-gw-01']),
-('app-svc-01', 'App Service 01', 'APP-SVC-01', 'app', 1, 'warning', 82, 78, 42, 88, 'Seoul-DC-01', 'production', 604800, '서비스 응답 지연', 'medium', ARRAY['api-gw-01']),
-('cache-redis-01', 'Redis Cache 01', 'CACHE-REDIS-01', 'cache', 1, 'warning', 48, 85, 35, 75, 'Seoul-DC-01', 'production', 691200, '캐시 미스율 증가', 'medium', ARRAY['api-gw-01']),
+('api-gw-01', 'API Gateway 01', 'API-GW-01', 'api', 1, 'critical', 92, 85, 45, 180, 'Seoul-DC-01', 'production', 518400, 'API 게이트웨이 커넥션 풀 고갈', 'critical', '["web-prd-01", "app-svc-01", "cache-redis-01"]'),
+('web-prd-01', 'Web Server 01', 'WEB-PRD-01', 'web', 1, 'warning', 75, 68, 38, 92, 'Seoul-DC-01', 'production', 432000, '응답 시간 지연', 'medium', '["api-gw-01"]'),
+('app-svc-01', 'App Service 01', 'APP-SVC-01', 'app', 1, 'warning', 82, 78, 42, 88, 'Seoul-DC-01', 'production', 604800, '서비스 응답 지연', 'medium', '["api-gw-01"]'),
+('cache-redis-01', 'Redis Cache 01', 'CACHE-REDIS-01', 'cache', 1, 'warning', 48, 85, 35, 75, 'Seoul-DC-01', 'production', 691200, '캐시 미스율 증가', 'medium', '["api-gw-01"]'),
 ('lb-main-01', 'Load Balancer 01', 'LB-MAIN-01', 'load-balancer', 1, 'online', 35, 45, 32, 58, 'Seoul-DC-01', 'production', 345600, NULL, 'low', NULL),
 
--- 시간 2: 모니터링 시스템 장애 (1개 심각, 2개 경고)
-('mon-prom-01', 'Prometheus Monitor', 'MON-PROM-01', 'monitoring', 2, 'critical', 88, 92, 68, 120, 'Seoul-DC-02', 'production', 777600, '모니터링 데이터 수집 중단', 'critical', ARRAY['web-prd-02', 'backup-srv-01']),
-('web-prd-02', 'Web Server 02', 'WEB-PRD-02', 'web', 2, 'warning', 65, 72, 45, 85, 'Seoul-DC-02', 'production', 864000, '헬스체크 실패', 'medium', ARRAY['mon-prom-01']),
-('backup-srv-01', 'Backup Server 01', 'BACKUP-SRV-01', 'backup', 2, 'warning', 52, 68, 88, 45, 'Seoul-DC-02', 'production', 950400, '백업 스케줄 지연', 'medium', ARRAY['mon-prom-01']),
+-- 시간 2: 모니터링 시스템 장애 (1개 심각, 2개 경고)  
+('mon-prom-01', 'Prometheus Monitor', 'MON-PROM-01', 'monitoring', 2, 'critical', 88, 92, 68, 120, 'Seoul-DC-02', 'production', 777600, '모니터링 데이터 수집 중단', 'critical', '["web-prd-02", "backup-srv-01"]'),
+('web-prd-02', 'Web Server 02', 'WEB-PRD-02', 'web', 2, 'warning', 65, 72, 45, 85, 'Seoul-DC-02', 'production', 864000, '헬스체크 실패', 'medium', '["mon-prom-01"]'),
+('backup-srv-01', 'Backup Server 01', 'BACKUP-SRV-01', 'backup', 2, 'warning', 52, 68, 88, 45, 'Seoul-DC-02', 'production', 950400, '백업 스케줄 지연', 'medium', '["mon-prom-01"]'),
 ('db-main-01', 'DB Main 01', 'DB-MAIN-01', 'database', 2, 'online', 38, 48, 42, 65, 'Seoul-DC-01', 'production', 86400, NULL, 'low', NULL),
 ('api-gw-01', 'API Gateway 01', 'API-GW-01', 'api', 2, 'online', 28, 42, 35, 48, 'Seoul-DC-01', 'production', 518400, NULL, 'low', NULL);
 

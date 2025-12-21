@@ -16,8 +16,8 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import * as z from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { createClient } from '@/lib/supabase/server';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
+import { metricsProvider } from '@/services/metrics/MetricsProvider';
 import type {
   EnhancedServerMetrics,
   ServerEnvironment,
@@ -56,85 +56,92 @@ const serversUnifiedRequestSchema = z.object({
 type ServersUnifiedRequest = z.infer<typeof serversUnifiedRequestSchema>;
 
 /**
- * 🎯 실시간 서버 데이터 (servers 테이블 + Mock 메트릭)
- * 아키텍처: 메타데이터는 Supabase, 실시간 메트릭은 Vercel JSON
+ * 🎯 실시간 서버 데이터 (MetricsProvider 기반 고정 데이터)
+ * 아키텍처: KST 시간 기준 fixed-24h-metrics 데이터 활용
  */
 async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
   try {
-    const supabase = await createClient();
-    const { data: servers, error } = await supabase
-      .from('servers')
-      .select('*')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(10);
+    // 🎯 MetricsProvider를 통한 고정 데이터 (KST 시간 기준)
+    const allMetrics = metricsProvider.getAllServerMetrics();
 
-    if (error) throw error;
+    return allMetrics.map((metric): EnhancedServerMetrics => {
+      // 업타임 계산 (고정값 기반)
+      const uptimeSeconds = 86400 + metric.minuteOfDay * 60; // 1일 + 현재 시간
 
-    // servers 테이블 스키마에 맞춘 매핑 + mock 메트릭 생성
-    return (
-      servers?.map((server): EnhancedServerMetrics => {
-        // Mock 메트릭 생성 (포트폴리오용 시뮬레이션)
-        const mockCpu = 20 + Math.random() * 60;
-        const mockMemory = 30 + Math.random() * 50;
-        const mockDisk = 40 + Math.random() * 40;
-        const mockNetwork = 10 + Math.random() * 90;
-        const mockUptime = 86400 + Math.random() * 604800; // 1-7일
-
-        return {
-          id: server.id ?? '',
-          name: server.name || server.hostname || 'Unknown',
-          hostname: server.hostname ?? '',
-          status: server.status === 'active' ? 'online' : 'offline',
-          cpu: mockCpu,
-          cpu_usage: mockCpu,
-          memory: mockMemory,
-          memory_usage: mockMemory,
-          disk: mockDisk,
-          disk_usage: mockDisk,
-          network: mockNetwork,
-          network_in: mockNetwork * 0.6,
-          network_out: mockNetwork * 0.4,
-          uptime: mockUptime,
-          responseTime: 50 + Math.random() * 150,
-          last_updated: server.updated_at ?? new Date().toISOString(),
-          location: server.location ?? '서울',
-          alerts: [],
-          ip: `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+      return {
+        id: metric.serverId,
+        name: metric.serverId,
+        hostname: `${metric.serverId.toLowerCase()}.openmanager.local`,
+        status: metric.status,
+        cpu: metric.cpu,
+        cpu_usage: metric.cpu,
+        memory: metric.memory,
+        memory_usage: metric.memory,
+        disk: metric.disk,
+        disk_usage: metric.disk,
+        network: metric.network,
+        network_in: metric.network * 0.6,
+        network_out: metric.network * 0.4,
+        uptime: uptimeSeconds,
+        responseTime: 50 + metric.cpu * 2, // CPU 기반 응답시간 추정
+        last_updated: metric.timestamp,
+        location: metric.location,
+        alerts: metric.logs
+          .filter((log) => log.includes('[WARN]') || log.includes('[CRITICAL]'))
+          .map((log, idx) => ({
+            id: `${metric.serverId}-${metric.minuteOfDay}-${idx}`,
+            server_id: metric.serverId,
+            type: log.includes('CPU')
+              ? ('cpu' as const)
+              : log.includes('memory') || log.includes('MEM')
+                ? ('memory' as const)
+                : log.includes('Disk') || log.includes('disk')
+                  ? ('disk' as const)
+                  : log.includes('Network') || log.includes('NET')
+                    ? ('network' as const)
+                    : ('custom' as const),
+            message: log,
+            severity: log.includes('[CRITICAL]')
+              ? ('critical' as const)
+              : ('warning' as const),
+            timestamp: metric.timestamp,
+            resolved: false,
+          })),
+        ip: `10.0.${metric.serverId.charCodeAt(0) % 256}.${metric.serverId.charCodeAt(4) % 256 || 1}`,
+        os: 'Ubuntu 22.04 LTS',
+        role: metric.serverType as ServerRole,
+        environment: metric.location.includes('Seoul')
+          ? 'production'
+          : ('staging' as ServerEnvironment),
+        provider: 'openmanager',
+        specs: {
+          cpu_cores: metric.serverType === 'database' ? 8 : 4,
+          memory_gb: metric.serverType === 'database' ? 32 : 16,
+          disk_gb: metric.serverType === 'storage' ? 1000 : 200,
+          network_speed: '1Gbps',
+        },
+        lastUpdate: metric.timestamp,
+        services: [],
+        systemInfo: {
           os: 'Ubuntu 22.04 LTS',
-          role: (server.type as ServerRole) ?? 'web',
-          environment:
-            (server.environment as ServerEnvironment) ?? 'production',
-          provider: server.provider,
-          specs: {
-            cpu_cores: server.cpu_cores ?? 4,
-            memory_gb: server.memory_gb ?? 8,
-            disk_gb: server.disk_gb ?? 200,
-            network_speed: '1Gbps',
-          },
-          lastUpdate: server.updated_at,
-          services: [],
-          systemInfo: {
-            os: 'Ubuntu 22.04 LTS',
-            uptime: `${Math.floor(mockUptime / 3600)}h`,
-            processes: 100 + Math.floor(Math.random() * 50),
-            zombieProcesses: 0,
-            loadAverage: (mockCpu / 20).toFixed(2),
-            lastUpdate: server.updated_at ?? new Date().toISOString(),
-          },
-          networkInfo: {
-            interface: 'eth0',
-            receivedBytes: `${(mockNetwork * 0.6).toFixed(1)} MB`,
-            sentBytes: `${(mockNetwork * 0.4).toFixed(1)} MB`,
-            receivedErrors: 0,
-            sentErrors: 0,
-            status: 'online',
-          },
-        };
-      }) || []
-    );
+          uptime: `${Math.floor(uptimeSeconds / 3600)}h`,
+          processes: 100 + Math.floor(metric.cpu),
+          zombieProcesses: 0,
+          loadAverage: (metric.cpu / 25).toFixed(2),
+          lastUpdate: metric.timestamp,
+        },
+        networkInfo: {
+          interface: 'eth0',
+          receivedBytes: `${(metric.network * 0.6).toFixed(1)} MB`,
+          sentBytes: `${(metric.network * 0.4).toFixed(1)} MB`,
+          receivedErrors: 0,
+          sentErrors: 0,
+          status: metric.status === 'offline' ? 'offline' : 'online',
+        },
+      };
+    });
   } catch (error) {
-    console.error('❌ Supabase 서버 데이터 오류:', error);
+    console.error('❌ MetricsProvider 오류, Fallback 사용:', error);
     // Fallback to UnifiedServerDataSource
     const dataSource = getUnifiedServerDataSource();
     const rawServers = await dataSource.getServers();
