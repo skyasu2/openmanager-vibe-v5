@@ -56,8 +56,10 @@ const envSchema = z.object({
   GITHUB_CLIENT_SECRET: z.string().min(1).optional(),
   GITHUB_TOKEN: z.string().startsWith('ghp_').optional(),
 
-  // AI Services
-  GOOGLE_AI_API_KEY: z.string().optional(),
+  // AI Services - Gemini API Keys (Primary/Secondary failover)
+  GEMINI_API_KEY_PRIMARY: z.string().optional(),
+  GEMINI_API_KEY_SECONDARY: z.string().optional(),
+  GOOGLE_AI_API_KEY: z.string().optional(), // Legacy fallback
   TAVILY_API_KEY: z.string().startsWith('tvly-').optional(),
   GOOGLE_AI_ENABLED: z.string().optional(),
   GOOGLE_AI_QUOTA_PROTECTION: z.string().optional(),
@@ -156,7 +158,7 @@ export const features = {
     !!env.NEXT_PUBLIC_SUPABASE_URL && !!env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   github: !!env.GITHUB_CLIENT_ID && !!env.GITHUB_CLIENT_SECRET,
   gcp: !!env.GCP_PROJECT_ID,
-  ai: !!env.GOOGLE_AI_API_KEY,
+  ai: !!env.GEMINI_API_KEY_PRIMARY || !!env.GOOGLE_AI_API_KEY, // Primary key or legacy fallback
   search: !!env.TAVILY_API_KEY,
   cache: env.MEMORY_CACHE_ENABLED ?? true,
 } as const;

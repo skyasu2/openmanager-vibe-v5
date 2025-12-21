@@ -1,5 +1,8 @@
 /**
  * LangGraph Checkpointer with Supabase PostgreSQL
+ *
+ * v2.1: Added retry logic with exponential backoff
+ * v2.0: Environment-based pool configuration
  */
 
 import { MemorySaver } from '@langchain/langgraph';
@@ -8,7 +11,19 @@ import { Pool } from 'pg';
 import { DatabaseConfigError, getErrorMessage } from './errors';
 
 // ============================================================================
-// 1. Database Connection
+// 1. Configuration (Environment-based)
+// ============================================================================
+
+const DB_CONFIG = {
+  maxConnections: parseInt(process.env.DB_POOL_MAX || '10', 10),
+  idleTimeoutMs: parseInt(process.env.DB_IDLE_TIMEOUT_MS || '30000', 10),
+  connectionTimeoutMs: parseInt(process.env.DB_CONNECTION_TIMEOUT_MS || '10000', 10),
+  retryAttempts: parseInt(process.env.DB_RETRY_ATTEMPTS || '3', 10),
+  retryDelayMs: parseInt(process.env.DB_RETRY_DELAY_MS || '1000', 10),
+} as const;
+
+// ============================================================================
+// 2. Database Connection with Retry
 // ============================================================================
 
 let pool: Pool | null = null;
@@ -18,6 +33,36 @@ function getDirectConnectionUrl(): string | undefined {
   return (
     process.env.SUPABASE_DIRECT_URL || process.env.POSTGRES_URL_NON_POOLING
   );
+}
+
+/**
+ * Retry wrapper with exponential backoff
+ */
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  operationName: string
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= DB_CONFIG.retryAttempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      const delay = DB_CONFIG.retryDelayMs * Math.pow(2, attempt - 1); // Exponential backoff
+
+      console.warn(
+        `⚠️ [${operationName}] Attempt ${attempt}/${DB_CONFIG.retryAttempts} failed: ${lastError.message}`
+      );
+
+      if (attempt < DB_CONFIG.retryAttempts) {
+        console.log(`   Retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw lastError || new Error(`${operationName} failed after ${DB_CONFIG.retryAttempts} attempts`);
 }
 
 function createPool(): Pool {
@@ -31,14 +76,14 @@ function createPool(): Pool {
 
   return new Pool({
     connectionString,
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
+    max: DB_CONFIG.maxConnections,
+    idleTimeoutMillis: DB_CONFIG.idleTimeoutMs,
+    connectionTimeoutMillis: DB_CONFIG.connectionTimeoutMs,
   });
 }
 
 // ============================================================================
-// 2. Checkpointer Factory
+// 3. Checkpointer Factory with Retry
 // ============================================================================
 
 export async function getCheckpointer(): Promise<PostgresSaver> {
@@ -53,20 +98,14 @@ export async function getCheckpointer(): Promise<PostgresSaver> {
     );
   }
 
-  try {
+  return withRetry(async () => {
     pool = createPool();
     checkpointer = PostgresSaver.fromConnString(connectionString);
     await checkpointer.setup();
 
     console.log('✅ LangGraph Checkpointer initialized with PostgreSQL');
     return checkpointer;
-  } catch (error) {
-    console.error(
-      '❌ Failed to initialize Checkpointer:',
-      getErrorMessage(error)
-    );
-    throw error;
-  }
+  }, 'PostgresSaver.setup');
 }
 
 // ============================================================================

@@ -42,6 +42,12 @@ import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
  * - RPD 할당량은 매일 자정(Pacific Time)에 초기화
  * - Groq 폴백: 30 RPM, 14,400 RPD (llama-3.1-8b-instant)
  */
+// Rate limit configuration from environment (with Free Tier defaults)
+const RATE_LIMIT_CONFIG = {
+  rpm: parseInt(process.env.GOOGLE_AI_RPM_LIMIT || '10', 10), // Gemini 2.5 Flash Free: 10 RPM
+  rpd: parseInt(process.env.GOOGLE_AI_RPD_LIMIT || '250', 10), // Gemini 2.5 Flash Free: 250 RPD
+} as const;
+
 class GoogleAIManager {
   private static instance: GoogleAIManager;
   private primaryKey: string | null = null;
@@ -241,19 +247,19 @@ class GoogleAIManager {
     );
     const requestsPerMinute = this.requestLog.length;
 
-    // RPM 한도 체크 (10 RPM - Gemini 2.5 Flash Free Tier)
-    if (requestsPerMinute >= 10) {
+    // RPM 한도 체크 (configurable via GOOGLE_AI_RPM_LIMIT)
+    if (requestsPerMinute >= RATE_LIMIT_CONFIG.rpm) {
       return {
         allowed: false,
-        reason: `Rate limit exceeded: ${requestsPerMinute} requests in the last minute (max 10 RPM)`,
+        reason: `Rate limit exceeded: ${requestsPerMinute} requests in the last minute (max ${RATE_LIMIT_CONFIG.rpm} RPM)`,
       };
     }
 
-    // RPD 한도 체크 (250 RPD - Gemini 2.5 Flash Free Tier)
-    if (this.dailyRequestCount >= 250) {
+    // RPD 한도 체크 (configurable via GOOGLE_AI_RPD_LIMIT)
+    if (this.dailyRequestCount >= RATE_LIMIT_CONFIG.rpd) {
       return {
         allowed: false,
-        reason: `Daily quota exceeded: ${this.dailyRequestCount} requests today (max 250 RPD)`,
+        reason: `Daily quota exceeded: ${this.dailyRequestCount} requests today (max ${RATE_LIMIT_CONFIG.rpd} RPD)`,
       };
     }
 
@@ -287,8 +293,8 @@ class GoogleAIManager {
     return {
       requestsLastMinute,
       requestsToday: this.dailyRequestCount,
-      remainingRPM: Math.max(0, 10 - requestsLastMinute), // Gemini 2.5 Flash: 10 RPM
-      remainingRPD: Math.max(0, 250 - this.dailyRequestCount), // Gemini 2.5 Flash: 250 RPD
+      remainingRPM: Math.max(0, RATE_LIMIT_CONFIG.rpm - requestsLastMinute),
+      remainingRPD: Math.max(0, RATE_LIMIT_CONFIG.rpd - this.dailyRequestCount),
     };
   }
 
