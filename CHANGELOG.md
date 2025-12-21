@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.8](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.7...v5.83.8) (2025-12-21)
+
+
+### Features
+
+* **ai-ui:** add ChatGPT-style UX features to AI chat ([8fa0731](https://github.com/skyasu2/openmanager-vibe-v5/commit/8fa073190f0c3134b85422db91d57c936db397fa))
+* **auth:** add Google OAuth login support ([b724c8b](https://github.com/skyasu2/openmanager-vibe-v5/commit/b724c8b7fbc8aa06ddeb0fbe403af6e7513f8fbb))
+* **dashboard:** UI/UX 대대적 최적화 - 공간 효율성 향상 ([0bc85fe](https://github.com/skyasu2/openmanager-vibe-v5/commit/0bc85fee56ddba9e870c669a44793fd4f4b0ae28))
+* **login:** 로그인 페이지 다크 슬레이트 디자인 적용 ([0488c82](https://github.com/skyasu2/openmanager-vibe-v5/commit/0488c82e6350e88f47d9d045ec103ee8e409c395))
+* **rate-limit:** Cloud Run 무료 티어 최적화를 위한 일일 제한 추가 ([863cf20](https://github.com/skyasu2/openmanager-vibe-v5/commit/863cf201fe353cb27acb91ff536a84dcb9502a87))
+* **rust-inference:** add feedback analysis API endpoints ([7ca161c](https://github.com/skyasu2/openmanager-vibe-v5/commit/7ca161c0438c5e781927d7147629c5c61311e37b))
+
+
+### Bug Fixes
+
+* **ai-tools:** nvm prefix 충돌 해소 로직 추가 ([2f9fca9](https://github.com/skyasu2/openmanager-vibe-v5/commit/2f9fca97671dd9fbe9f32bb691e723bab7d52e07))
+* **dashboard:** Hydration 불일치 및 접근성 이슈 수정 ([1ac78ba](https://github.com/skyasu2/openmanager-vibe-v5/commit/1ac78baa818b351baf0e5735f6a7409365214c0b))
+* **deps:** Biome Linux 전용 패키지를 devDependencies에서 제거 ([078923e](https://github.com/skyasu2/openmanager-vibe-v5/commit/078923ebcf47f92710b4b8ef627826ed7f4b6a5b))
+* **EnhancedServerCard:** compact 모드 차트 레이아웃 개선 (4열→2열) ([f196c54](https://github.com/skyasu2/openmanager-vibe-v5/commit/f196c5406953573d9fd12f990d83ccef29ffbf7e))
+* **modal:** 서버 상세 모달 콘텐츠 렌더링 버그 수정 ([8d7925f](https://github.com/skyasu2/openmanager-vibe-v5/commit/8d7925f0427e1248e59f6bd5575ed60778b3327f))
+* **scripts:** 삭제된 subagent 스크립트 참조 제거 ([e076b16](https://github.com/skyasu2/openmanager-vibe-v5/commit/e076b16842f074ced36cbc1283c88f916c0e7ff0))
+* **security:** improve API key masking in test scripts ([ac75cd6](https://github.com/skyasu2/openmanager-vibe-v5/commit/ac75cd6a50ebf9b81ca474d4a1f3841dde41bb3f))
+* **security:** 테스트 파일 및 가짜 키 패턴 제외 ([578bae0](https://github.com/skyasu2/openmanager-vibe-v5/commit/578bae0ab5c4422f75daa9f2135ab6387bf39fde))
+* **tests:** clean up failing tests and reorganize scripts ([156a9ce](https://github.com/skyasu2/openmanager-vibe-v5/commit/156a9ce2c23506252c736c0aea76f99d6a4c21bd))
+* **test:** 테스트 키 길이 수정 및 스냅샷 업데이트 ([d3e10cc](https://github.com/skyasu2/openmanager-vibe-v5/commit/d3e10ccc6213f4d82d327ed41d14dffdc79c7ed5))
+* **useSystemStart:** React 렌더링 규칙 준수하여 router.push 분리 ([77e98a1](https://github.com/skyasu2/openmanager-vibe-v5/commit/77e98a14fcea850bac74fa669f4eff3cab4d6f7b))
+
 ### [5.83.7](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.6...v5.83.7) (2025-12-19)
 
 
