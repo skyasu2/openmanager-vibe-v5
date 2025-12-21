@@ -95,19 +95,19 @@ EOF
     echo "$filename"
 }
 
-# 서브에이전트 호출 권장
-suggest_subagent() {
-    local agent="$1"
+# 스킬 호출 권장
+suggest_skill() {
+    local skill="$1"
     local reason="$2"
-    echo -e "${YELLOW}💡 권장: $agent${NC} - $reason"
+    echo -e "${YELLOW}💡 권장 스킬: $skill${NC} - $reason"
 }
 
-# 서브에이전트로 위임 (Exit code 2)
-delegate_to_subagent() {
-    local agent="$1"
+# 스킬로 위임 (Exit code 2)
+delegate_to_skill() {
+    local skill="$1"
     local task="$2"
-    echo -e "${BLUE}🤖 자동 위임: $agent${NC}"
-    log_info "서브에이전트 $agent 로 작업 위임: $task"
+    echo -e "${BLUE}🤖 자동 위임: $skill 스킬${NC}"
+    log_info "스킬 $skill 로 작업 위임: $task"
     exit 2
 }
 
@@ -137,14 +137,14 @@ is_schema_file() {
     [[ "$file_path" =~ (schema|migration|\.sql$) ]]
 }
 
-# 에이전트 우선순위 가져오기
-get_agent_priority() {
-    local agent_name="$1"
-    case "$agent_name" in
-        "code-review-specialist"|"database-administrator"|"central-supervisor"|"security-auditor")
+# 스킬 우선순위 가져오기
+get_skill_priority() {
+    local skill_name="$1"
+    case "$skill_name" in
+        "ai-code-review"|"security-audit-workflow")
             echo "high"
             ;;
-        "test-automation-specialist"|"ux-performance-optimizer"|"ai-systems-engineer"|"debugger-specialist")
+        "lint-smoke"|"validation-analysis"|"playwright-triage")
             echo "medium"
             ;;
         *)
@@ -194,17 +194,17 @@ check_free_tier_usage() {
     return 0
 }
 
-# 서브에이전트 작업 프롬프트 생성
-create_subagent_prompt() {
-    local agent_type="$1"
+# 스킬 작업 프롬프트 생성
+create_skill_prompt() {
+    local skill_name="$1"
     local task_description="$2"
     local file_path="${3:-}"
     local additional_context="${4:-}"
-    
-    cat << EOF
-🤖 서브에이전트 작업 요청
 
-**에이전트**: $agent_type
+    cat << EOF
+🤖 스킬 작업 요청
+
+**스킬**: $skill_name
 **작업**: $task_description
 **시간**: $(get_timestamp)
 
@@ -216,13 +216,13 @@ EOF
         echo "⚠️ **중요**: 기존 파일을 수정하는 경우 반드시 Read 도구로 파일을 먼저 읽어주세요!"
         echo ""
     fi
-    
+
     if [ -n "$additional_context" ]; then
         echo "**추가 컨텍스트**:"
         echo "$additional_context"
         echo ""
     fi
-    
+
     echo "다음 작업을 수행해주세요:"
 }
 

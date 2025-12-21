@@ -231,8 +231,8 @@ EOF
 ### 테스트 생성 필요 ($MISSING_TESTS개 파일)
 
 \`\`\`bash
-# test-automation-specialist 서브에이전트 사용:
-Task test-automation-specialist "변경된 파일의 누락된 테스트를 생성해주세요"
+# Claude Code에서 테스트 생성:
+claude "변경된 파일의 누락된 테스트를 생성해주세요"
 \`\`\`
 
 EOF

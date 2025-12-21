@@ -40,7 +40,7 @@
 # Changelog v5.0.0 (2025-11-27): 🚀 MAJOR UPDATE - 1:1:1:1 비율 + 분할 리뷰 + 서브에이전트
 # - ✨ 신규: 1:1:1:1 균등 분배 (Codex, Gemini, Claude, Qwen 각 25%)
 # - ✨ 신규: Qwen 통합 (qwen-wrapper.sh v3.0.0)
-# - ✨ 신규: Claude Code 서브에이전트 통합 (code-review-specialist)
+# - ✨ 신규: Claude Code 스킬 통합 (ai-code-review)
 # - ✨ 신규: 대량 파일 분할 리뷰 (10개 파일 초과 시 자동 분할)
 # - 📦 개선: 모듈화 구조 (lib/ 디렉토리로 분리)
 #

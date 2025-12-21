@@ -303,7 +303,6 @@ chmod +x scripts/serena-pattern-validator.sh
 ## 📚 참조 문서
 
 - **[Serena 도구 종합 가이드](mcp/serena-tools-comprehensive-guide.md)** - 올바른 사용법
-- **[MCP 우선순위 가이드](mcp/mcp-priority-guide.md)** - Before/After 예시
 
 ---
 

@@ -93,11 +93,16 @@ const FeatureCardItem = memo(
             className={`absolute inset-0 bg-linear-to-br ${card.gradient} rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
           />
 
-          {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
+          {/* AI 카드 특별 이색 그라데이션 애니메이션 - 인라인 style로 동작 보장 */}
           {card.isAICard && (
             <div
-              className="animate-gradient-shift absolute inset-0 rounded-2xl bg-linear-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 opacity-90"
-              style={{ backgroundSize: '200% 200%' }}
+              className="absolute inset-0 rounded-2xl opacity-90"
+              style={{
+                background:
+                  'linear-gradient(135deg, rgba(59,130,246,0.3), rgba(236,72,153,0.3), rgba(34,211,238,0.3), rgba(59,130,246,0.3))',
+                backgroundSize: '200% 200%',
+                animation: 'gradient-shift 4s ease-in-out infinite',
+              }}
             />
           )}
 
@@ -108,11 +113,16 @@ const FeatureCardItem = memo(
               <div className="animate-pulse absolute right-2 top-2 h-6 w-6 rounded-full bg-yellow-400/30"></div>
               <div className="animate-pulse absolute bottom-2 left-2 h-4 w-4 rounded-full bg-yellow-400/20"></div>
 
-              {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
+              {/* 개선된 배경 그라데이션 - 인라인 style로 동작 보장 */}
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
                 <div
-                  className="animate-gradient-shift absolute inset-0 bg-linear-to-br from-amber-500 via-orange-600 to-red-700 opacity-90"
-                  style={{ backgroundSize: '200% 200%' }}
+                  className="absolute inset-0 opacity-90"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, #f59e0b, #ea580c, #b91c1c, #f59e0b)',
+                    backgroundSize: '200% 200%',
+                    animation: 'gradient-shift 4s ease-in-out infinite',
+                  }}
                 />
               </div>
 

@@ -81,5 +81,5 @@ sudo apt-get install -y libnspr4 libnss3 libasound2t64
 
 **상세 도구 참고**:
 
-- **서브에이전트**: `Task test-automation-specialist "E2E 테스트 최적화"`
-- **MCP 통합**: playwright (브라우저 자동화), memory (테스트 히스토리)
+- **스킬**: `Skill lint-smoke` (테스트 + 린트 검증)
+- **MCP 통합**: playwright (브라우저 자동화), serena (코드 분석)

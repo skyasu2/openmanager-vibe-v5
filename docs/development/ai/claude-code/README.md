@@ -1,35 +1,48 @@
 ---
 id: claude-code-features
-title: Claude Code 전용 기능
-keywords: [claude-code, subagent, task, cli, automation]
+title: Claude Code 기능 가이드
+keywords: [claude-code, task, cli, skills, mcp]
 priority: high
 ai_optimized: true
 related_docs:
-  - 'subagents-complete-guide.md'
   - '../common/workflow.md'
-updated: '2025-12-19'
+updated: '2025-12-21'
 version: 'v5.83.1'
 ---
 
-# Claude Code 전용 기능
+# Claude Code 기능 가이드
 
-Claude Code CLI의 고유 기능 (서브에이전트 등)
+Claude Code CLI의 주요 기능과 활용법
 
-## 문서 목록
+## 핵심 기능
 
-| 문서 | 설명 |
-|------|------|
-| [subagents-complete-guide.md](./subagents-complete-guide.md) | 9개 서브에이전트 완전 가이드 |
+### 1. 기본 서브에이전트 (5개)
 
-## 빠른 참조
+| 서브에이전트 | 용도 |
+|-------------|------|
+| `general-purpose` | 범용 리서치, 코드 검색 |
+| `Explore` | 코드베이스 탐색 |
+| `Plan` | 구현 계획 설계 |
+| `claude-code-guide` | Claude Code 문서 안내 |
+| `statusline-setup` | 상태라인 설정 |
+
+### 2. 커스텀 스킬 (8개)
 
 ```bash
-# 서브에이전트 호출
-Task code-review-specialist "변경사항 리뷰"
-Task debugger-specialist "버그 근본 원인 분석"
-Task security-specialist "보안 감사"
-Task test-automation-specialist "테스트 실행"
+# 스킬 목록 확인
+ls .claude/skills/
 ```
+
+주요 스킬: `ai-code-review`, `lint-smoke`, `security-audit-workflow`, `validation-analysis`
+
+### 3. MCP 서버 (9개)
+
+```bash
+# MCP 상태 확인
+claude mcp list
+```
+
+주요 서버: serena, context7, vercel, supabase, playwright, figma, github, tavily, brave-search
 
 ---
 

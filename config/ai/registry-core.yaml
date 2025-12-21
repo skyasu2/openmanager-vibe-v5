@@ -61,34 +61,28 @@ ai-tools:
 # 상세 정보: config/ai/changelog.yaml 참조
 
 # ============================================================================
-# 2. Active Subagents (활성화된 서브에이전트만)
+# 2. Claude Code Built-in Subagents (기본 서브에이전트)
 # ============================================================================
 subagents:
-  active:
-    - code-review-specialist            # HIGH - 직접 코드 리뷰 + 리뷰 결과 분석
-    - architecture-specialist           # HIGH - 아키텍처 설계, 모듈화, 구조 리팩토링
-    - debugger-specialist               # HIGH - 버그 분석
-    - security-specialist               # CRITICAL - 보안 감사
-    - test-automation-specialist        # HIGH - Vitest + Playwright
-    - performance-specialist            # HIGH - Core Web Vitals, 번들 최적화
-    - ui-ux-specialist                  # HIGH - UI 컴포넌트, UX 엔지니어링 (React 19 대응)
-    - documentation-manager             # MEDIUM - 문서 관리
+  # Claude Code 기본 제공 (5개)
+  builtin:
+    - general-purpose       # 범용 리서치, 코드 검색
+    - Explore               # 코드베이스 탐색
+    - Plan                  # 구현 계획 설계
+    - claude-code-guide     # Claude Code 문서 안내
+    - statusline-setup      # 상태라인 설정
 
-  # archived 섹션 삭제됨 (2025-12-10)
-  # 삭제된 서브에이전트: dev-environment-manager, structure-refactor-specialist,
-  # gcp-cloud-functions-specialist, vercel-platform-specialist, database-administrator
+  # 커스텀 서브에이전트: 모두 삭제됨 (2025-12-21)
+  # 사유: 사용 빈도 0%, 스킬로 대체 가능, 유지보수 부담
+  # 삭제됨: code-review-specialist, architecture-specialist, debugger-specialist,
+  #         security-specialist, test-automation-specialist, performance-specialist,
+  #         ui-ux-specialist, documentation-manager
 
-# 상세 정보: .claude/agents/*.md 참조
-# Workflow Integration (v6.9.1):
-#   - post-commit hook triggers auto-ai-review.sh
-#   - Primary rotation: codex → gemini → qwen (3-AI 1:1:1 순환)
-#   - Fallback chain: 각 AI가 다른 두 AI로 순차 폴백
-#     - codex 실패 → gemini → qwen
-#     - gemini 실패 → qwen → codex
-#     - qwen 실패 → codex → gemini
-#   - v6.9.1 (2025-12-08): set_last_ai 버그 수정 - 성공한 AI만 저장
-#   - v6.9.0 (2025-12-08): Claude 제거 - Claude Code 세션 내 자기 호출 불가
-#   - Legacy 3-AI verification system is deprecated (see archive/deprecated/3-ai-system/)
+# 대체 방안:
+#   - 코드 리뷰: ai-code-review 스킬 + 외부 CLI (codex, gemini, qwen)
+#   - 보안 감사: security-audit-workflow 스킬
+#   - 테스트: lint-smoke 스킬 + playwright MCP
+#   - 문서화: Claude Code 직접 수행
 
 # ============================================================================
 # 3. MCP Servers (개발 vs 프로덕션 구분)
@@ -158,8 +152,8 @@ maintenance_frequency:
 # ============================================================================
 docs:
   main: "CLAUDE.md"
-  subagents: "docs/development/ai/claude-code/subagents-complete-guide.md"
-  mcp_guide: "docs/development/mcp/mcp-priority-guide.md"
+  claude_code: "docs/development/ai/claude-code/README.md"
+  mcp_guide: "docs/development/mcp/advanced.md"
   changelog: "config/ai/changelog.yaml"
 
 # End of AI Registry Core

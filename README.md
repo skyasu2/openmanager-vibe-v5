@@ -141,33 +141,11 @@ graph TD
 - [**Environment Setup**](docs/environment/README.md): 개발 환경 설정 및 아키텍처 가이드
 - [**AI Engine Architecture**](docs/core/architecture/ai/ai-engine-architecture.md): LangGraph Multi-Agent AI 엔진 설계
 
-## 🚀 시작하기
+## 🧪 Project Status
 
-**필수 요구사항**: Node.js v22+, npm v10+
-
-```bash
-# 1. 클론 및 설치
-git clone https://github.com/your-username/openmanager-vibe-v5.git
-cd openmanager-vibe-v5
-npm install
-
-# 2. 환경 설정
-cp .env.example .env.local
-# SUPABASE_URL, SUPABASE_ANON_KEY, GOOGLE_AI_KEY 설정
-
-# 3. 개발 서버 실행
-## ⚠️ WSL 사용자 필독 (Recommended)
-WSL2 환경에서는 Windows 브라우저 접속을 위해 다음 명령어를 사용하세요:
-```bash
-npm run dev:network
-# 내부적으로 0.0.0.0 바인딩을 수행합니다.
-# 자세한 가이드: docs/development/wsl-setup-guide.md
-```
-
-## 일반 실행 (Mac/Linux)
-```bash
-npm run dev:stable
-```
+이 프로젝트는 **개인 연구용 토이 프로젝트(PoC)**입니다.
+AI-Native DevOps와 차세대 웹 기술(Next.js 16, LangGraph, Rust)의 가능성을 탐구하기 위한 기술 시연용으로 제작되었습니다.
+(Not intended for production use)
 
 ---
 

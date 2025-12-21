@@ -306,36 +306,36 @@ mcp__serena__execute_shell_command({
 **사용 시점**: 작업 완료했다고 생각할 때 반드시 호출
 **최적 활용**: 놓친 부분이 없는지 최종 검증
 
-## 🎯 서브에이전트 연계 활용법
+## 🎯 스킬 연계 활용법
 
-### code-review-specialist + Serena
+### ai-code-review 스킬 + Serena
 
 ```bash
 # 1단계: Serena로 심볼 분석
 find_symbol + find_referencing_symbols
 
-# 2단계: code-review-specialist 서브에이전트로 품질 검토
-"code-review-specialist 서브에이전트를 사용하여 Serena 분석 결과 기반으로 코드 품질을 검토해주세요"
+# 2단계: ai-code-review 스킬로 품질 검토
+Skill ai-code-review
 ```
 
-### structure-refactor-specialist + Serena
+### security-audit-workflow 스킬 + Serena
 
 ```bash
-# 1단계: Serena로 프로젝트 구조 파악
-list_dir + get_symbols_overview
+# 1단계: Serena로 보안 관련 패턴 검색
+search_for_pattern "auth|password|token|secret"
 
-# 2단계: structure-refactor-specialist로 아키텍처 개선
-"structure-refactor-specialist 서브에이전트를 사용하여 Serena가 분석한 구조를 기반으로 아키텍처를 개선해주세요"
+# 2단계: security-audit-workflow 스킬로 보안 감사
+Skill security-audit-workflow
 ```
 
-### debugger-specialist + Serena
+### 디버깅 + Serena
 
 ```bash
 # 1단계: Serena로 버그 관련 심볼들 추적
 search_for_pattern + find_referencing_symbols
 
-# 2단계: debugger-specialist로 근본 원인 분석
-"debugger-specialist 서브에이전트를 사용하여 Serena가 찾은 패턴을 기반으로 버그 원인을 분석해주세요"
+# 2단계: Claude Code로 직접 근본 원인 분석
+claude "Serena가 찾은 패턴을 기반으로 버그 원인을 분석해줘"
 ```
 
 ## ⚡ 성능 최적화 팁

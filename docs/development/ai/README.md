@@ -20,8 +20,8 @@ version: 'v5.83.1'
 
 ```
 docs/development/ai/
-├── claude-code/           # Claude Code 전용 기능
-│   └── subagents-complete-guide.md
+├── claude-code/           # Claude Code 기능 가이드
+│   └── README.md          # 기본 서브에이전트 + 스킬 + MCP
 │
 ├── codex/                 # OpenAI Codex CLI
 │   └── README.md
@@ -50,7 +50,7 @@ docs/development/ai/
 
 | 도구 | 버전 | 역할 | 가이드 |
 |------|------|------|--------|
-| Claude Code | v2.0.60 | Lead + 서브에이전트 | [claude-code/](./claude-code/) |
+| Claude Code | v2.0.71 | Lead + MCP + 스킬 | [claude-code/](./claude-code/) |
 | Codex | v0.63.0 | Primary 3-AI 순환 | [codex/](./codex/) |
 | Gemini | v0.19.1 | Primary 3-AI 순환 | [gemini/](./gemini/) |
 | Qwen | v0.4.0 | Fallback 리뷰 | [qwen/](./qwen/) |
@@ -58,9 +58,9 @@ docs/development/ai/
 ## 빠른 참조
 
 ```bash
-# Claude Code 서브에이전트
-Task code-review-specialist "변경사항 리뷰"
-Task debugger-specialist "버그 분석"
+# Claude Code 스킬
+/review                   # AI 코드 리뷰 결과 확인
+Skill ai-code-review      # Multi-AI 리뷰 실행
 
 # CLI 도구
 codex exec "코드 리뷰"

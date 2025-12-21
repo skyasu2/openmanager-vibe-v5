@@ -7,7 +7,9 @@
 import type React from 'react';
 
 import {
+  AI_GRADIENT_ANIMATED_STYLE,
   AI_GRADIENT_CLASSES,
+  AI_ICON_GRADIENT_ANIMATED_STYLE,
   AI_ICON_GRADIENT_CLASSES,
   AI_ICON_GRADIENT_COLORS,
   AI_ICON_GRADIENT_ID,
@@ -61,6 +63,9 @@ export function renderTextWithAIGradient(
  *
  * @param text - 변환할 텍스트
  * @returns React 엘리먼트 배열
+ *
+ * ⚠️ Tailwind v4 호환: 인라인 스타일로 gradient + animation 적용
+ * Tailwind gradient 클래스와 background-position 애니메이션이 충돌하므로 인라인 스타일 사용
  */
 export function renderAIGradientWithAnimation(text: string): React.ReactNode {
   if (!text.includes('AI')) return text;
@@ -70,7 +75,11 @@ export function renderAIGradientWithAnimation(text: string): React.ReactNode {
       return (
         <span
           key={index}
-          className={`${AI_GRADIENT_CLASSES} animate-gradient-x bg-size-[200%_200%] bg-clip-text font-bold text-transparent`}
+          className="bg-clip-text font-bold text-transparent"
+          style={{
+            ...AI_GRADIENT_ANIMATED_STYLE,
+            WebkitBackgroundClip: 'text',
+          }}
         >
           {part}
         </span>
@@ -117,6 +126,8 @@ export function AIIconGradientDefs({
  * Lucide React 아이콘 등에 AI 그라데이션 효과 적용
  * CSS mask-image 기법 사용 (크로스 브라우저 호환 - CSS.supports 체크)
  *
+ * ⚠️ Tailwind v4 호환: 인라인 스타일로 gradient + animation 적용
+ *
  * @param children - 아이콘 컴포넌트
  * @param className - 추가 클래스
  * @param animate - 애니메이션 적용 여부 (기본: true)
@@ -141,12 +152,14 @@ export function GradientIconWrapper({
 
   return (
     <div
-      className={`inline-flex items-center justify-center ${
-        animate
-          ? AI_ICON_GRADIENT_CLASSES
-          : 'bg-linear-to-br from-blue-400 via-indigo-500 to-purple-600'
-      } ${className}`}
+      className={`inline-flex items-center justify-center ${className}`}
       style={{
+        // ⚠️ Tailwind v4 호환: 인라인 스타일로 gradient + animation 적용
+        ...(animate
+          ? AI_ICON_GRADIENT_ANIMATED_STYLE
+          : {
+              background: 'linear-gradient(135deg, #60a5fa, #6366f1, #9333ea)',
+            }),
         // mask 속성은 지원되는 브라우저에서만 적용
         ...(supportsMaskComposite && {
           WebkitMaskImage: 'linear-gradient(white, white)',
@@ -154,7 +167,6 @@ export function GradientIconWrapper({
           WebkitMaskComposite: 'destination-in',
           maskComposite: 'intersect',
         }),
-        backgroundSize: animate ? '200% 200%' : undefined,
       }}
     >
       <div

@@ -161,66 +161,34 @@ source ./scripts/setup-mcp-env.sh
 | **serena**              | ✅   | 코드 분석            | -           |
 | **playwright**          | ✅   | E2E 테스트           | -           |
 
-## 🎯 서브에이전트 시스템
+## 🎯 Claude Code 도구
 
-### 12개 전문 서브에이전트 구성
+### 기본 서브에이전트 (5개)
 
-#### 🎯 핵심 에이전트 (1개)
+| 서브에이전트 | 용도 |
+|-------------|------|
+| `general-purpose` | 범용 리서치, 코드 검색, 멀티스텝 작업 |
+| `Explore` | 코드베이스 빠른 탐색 |
+| `Plan` | 구현 계획 설계 |
+| `claude-code-guide` | Claude Code 문서 안내 |
+| `statusline-setup` | 상태라인 설정 |
 
-- **central-supervisor**: 복잡한 작업 분해 및 서브에이전트 오케스트레이션
+### 커스텀 스킬 (8개)
 
-#### 🛠️ 개발 환경 & 구조 (2개)
+```bash
+# 스킬 목록 확인
+ls .claude/skills/
 
-- **dev-environment-manager**: WSL 최적화, Node.js 버전 관리
-- **structure-refactor-specialist**: 프로젝트 구조 정리, 폴더 최적화
-
-#### 🌐 백엔드 & 인프라 (5개)
-
-- **database-administrator**: Supabase PostgreSQL 전문 관리
-- **ai-systems-specialist**: AI 어시스턴트 기능 개발
-- **vercel-platform-specialist**: Vercel 플랫폼 + MCP 연동
-- **mcp-server-administrator**: 9개 MCP 서버 관리
-
-#### 🔍 코드 품질 & 테스트 (5개)
-
-- **code-review-specialist**: 코드 리뷰, SOLID 원칙 검증
-- **debugger-specialist**: 버그 해결, 스택 트레이스 분석
-- **security-auditor**: 포트폴리오용 기본 보안
-- **quality-control-specialist**: CLAUDE.md 규칙 준수 검토
-- **test-automation-specialist**: Vitest/Playwright 테스트
-
-#### 📚 문서화 & Git (2개)
-
-- **documentation-manager**: docs 폴더 + 루트 문서 관리
-- **git-cicd-specialist**: 커밋/푸시/PR 전문
-
-#### 🤖 AI 협업 (3개)
-
-- **codex-agent**: ChatGPT Plus AI 개발 CLI
-- **gemini-agent**: Google Gemini 병렬 개발
-- **qwen-agent**: Qwen Code 병렬 개발
-
-### 서브에이전트 사용법
-
-```typescript
-// 복잡한 풀스택 기능 구현
-Task({
-  subagent_type: 'central-supervisor',
-  prompt: '사용자 대시보드에 실시간 알림 기능 추가',
-});
-
-// 성능 최적화
-Task({
-  subagent_type: 'ai-systems-specialist',
-  prompt: 'AI 응답 시간 2초 미만 달성을 위한 최적화',
-});
-
-// 보안 감사
-Task({
-  subagent_type: 'security-auditor',
-  prompt: '새로운 API 엔드포인트 보안 검토',
-});
+# 주요 스킬 사용
+/review              # 코드 리뷰 결과 확인
 ```
+
+| 스킬 | 용도 |
+|------|------|
+| `ai-code-review` | Multi-AI 코드 리뷰 |
+| `lint-smoke` | Lint + 테스트 스모크 체크 |
+| `security-audit-workflow` | 보안 감사 |
+| `validation-analysis` | 검증 결과 분석 |
 
 ## 🧪 테스트 실행
 
@@ -355,9 +323,9 @@ git push origin main
 
 1. **메인 개발**: Claude Code로 핵심 기능 구현
 2. **병렬 검증**: Codex/Gemini/Qwen으로 교차 검증
-3. **코드 리뷰**: code-review-specialist 서브에이전트
-4. **테스트**: test-automation-specialist 서브에이전트
-5. **문서화**: documentation-manager 서브에이전트
+3. **코드 리뷰**: `ai-code-review` 스킬 활용
+4. **테스트**: `lint-smoke` 스킬 + Playwright MCP
+5. **문서화**: Claude Code 직접 수행
 
 ### 5. 커밋 및 푸시
 

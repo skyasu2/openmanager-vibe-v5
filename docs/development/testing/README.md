@@ -57,7 +57,7 @@ last_updated: '2025-12-19'
 
 - **Vercel 프로덕션**: vercel-first-strategy, vercel-ai-testing-guide, vercel-manual-test-guide
 - **E2E 테스트**: e2e-testing-guide, 403-authentication-fix-v2
-- **AI/서브에이전트**: subagent-testing-guide, subagent-integration-summary
+- **AI 검증**: testing-philosophy-detailed, local-test-limitations
 - **설정 가이드**: vitest-playwright-config-guide, msw-guide, test-templates
 - **철학/전략**: testing-philosophy-detailed, test-strategy-guide, local-test-limitations
 
@@ -81,12 +81,12 @@ npm run test:vercel:e2e         # Vercel E2E (권장)
 npm run test:e2e:critical       # Critical E2E만 (~1분)
 ```
 
-### 서브에이전트 테스트
+### AI 스킬 테스트
 
 ```bash
-npm run subagent:test           # 빠른 테스트 (추천)
-npm run subagent:test:thorough  # 철저한 검증
-npm run subagent:history        # 테스트 히스토리
+npm run test:ai                 # AI 개발 테스트
+npm run test:vercel:e2e         # Vercel E2E (권장)
+npm run test:super-fast         # 빠른 테스트 (11초)
 ```
 
 ## 📊 테스트 구성
@@ -138,15 +138,14 @@ tests/                  # 통합/E2E/API Tests (30개)
 
 ## 🔗 관련 도구 & 문서
 
-**서브에이전트**: `Task test-automation-specialist "E2E 테스트 최적화"`
-**MCP 통합**: playwright, memory
+**스킬**: `lint-smoke`, `validation-analysis`
+**MCP 통합**: playwright, serena
 **설정 가이드**: [Vitest & Playwright 설정](./vitest-playwright-config-guide.md)
 **테스트 전략**: [Test Strategy Guide](./test-strategy-guide.md)
 
 ## 📦 아카이브 (Legacy)
 
 - [403 Authentication Fix v2](../../archive/testing/403-authentication-fix-v2.md) - 인증 문제 해결 기록
-- [Subagent Integration Summary](../../archive/testing/subagent-integration-summary.md) - 서브에이전트 통합 기록
 
 ---
 

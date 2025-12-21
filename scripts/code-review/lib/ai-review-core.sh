@@ -315,7 +315,7 @@ $changes
 _archived_claude_code_review_with_subagent() {
     local changes="$1"
 
-    log_ai_engine "🤖 Claude Code 서브에이전트 리뷰 시작 (code-review-specialist)..."
+    log_ai_engine "🤖 Claude Code 스킬 기반 리뷰 시작 (ai-code-review)..."
 
     # claude 명령어가 있는지 확인
     if command -v claude >/dev/null 2>&1; then
@@ -356,12 +356,12 @@ $changes
     # 변경사항을 임시 파일에 저장하여 Claude Code가 자동으로 감지하도록 함
     local temp_review_request="/tmp/claude_code_review_request_$$.md"
     cat > "$temp_review_request" << 'REQUEST_EOF'
-# 🤖 Claude Code: code-review-specialist 서브에이전트 호출
+# 🤖 Claude Code: ai-code-review 스킬 활용
 
-⚠️ **중요**: 다음 명령어로 서브에이전트를 호출하세요:
+⚠️ **중요**: 다음 명령어로 스킬을 호출하세요:
 
 ```
-Task code-review-specialist "다음 변경사항을 실무 관점에서 리뷰하세요"
+Skill ai-code-review
 ```
 
 ---

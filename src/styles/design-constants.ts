@@ -240,15 +240,33 @@ export const LAYOUT = {
 // 🎨 AI 관련 디자인 상수 (2025 업데이트: 파란색 강화)
 // 이전: purple-500 → pink-500 → blue-500 (파란색 약함)
 // 개선: blue-500 → purple-500 → pink-500 (파란색 시작으로 강조)
+// ⚠️ Tailwind v4 호환: gradient 클래스와 animation 분리 필요
 export const AI_GRADIENT_CLASSES =
-  'bg-linear-to-br from-blue-500 via-purple-500 to-pink-500 animate-gradient-diagonal';
+  'bg-linear-to-br from-blue-500 via-purple-500 to-pink-500';
 export const AI_GRADIENT_STYLE =
   'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)';
 
+// 🎨 AI 그라데이션 인라인 스타일 (애니메이션 동작 보장)
+// Tailwind v4에서 gradient 클래스와 background-position 애니메이션이 충돌하므로 인라인 스타일 사용
+export const AI_GRADIENT_ANIMATED_STYLE = {
+  background: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6)',
+  backgroundSize: '200% 200%',
+  animation: 'gradient-diagonal 3s ease infinite',
+} as const;
+
 // 🎨 AI 아이콘 그라데이션 상수 (2025 업데이트: 핑크 → 보라 → 밝은 청색)
 // 아이콘에 적용할 그라데이션 - 핑크에서 시작, 보라 중간, 밝은 청색 끝
+// ⚠️ Tailwind v4 호환: gradient 클래스와 animation 분리
 export const AI_ICON_GRADIENT_CLASSES =
-  'bg-linear-to-br from-pink-500 via-purple-500 to-cyan-400 animate-gradient-diagonal';
+  'bg-linear-to-br from-pink-500 via-purple-500 to-cyan-400';
+
+// 🎨 AI 아이콘 그라데이션 인라인 스타일 (애니메이션 동작 보장)
+export const AI_ICON_GRADIENT_ANIMATED_STYLE = {
+  background: 'linear-gradient(135deg, #ec4899, #a855f7, #22d3ee, #ec4899)',
+  backgroundSize: '200% 200%',
+  animation: 'gradient-diagonal 3s ease infinite',
+} as const;
+
 export const AI_ICON_GRADIENT_ID = 'ai-icon-gradient';
 export const AI_ICON_GRADIENT_COLORS = {
   start: '#ec4899', // pink-500

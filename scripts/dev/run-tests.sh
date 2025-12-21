@@ -274,7 +274,7 @@ generate_final_report() {
 3. 테스트 성능 최적화
 
 ---
-*test-automation-specialist 에이전트에 의해 생성됨*
+*테스트 자동화 스크립트*
 EOF
     
     echo -e "${GREEN}✅ 리포트 생성 완료: $report_file${NC}"

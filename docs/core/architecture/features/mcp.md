@@ -133,10 +133,8 @@ GITHUB_TOKEN="ghp_xxx"
 }
 ```
 
-### 서브에이전트 매핑
-- **central-supervisor**: memory, sequential-thinking, serena
-- **verification-specialist**: serena (26개 도구), memory, sequential-thinking
-- **database-administrator**: supabase (모든 도구)
-- **test-automation-specialist**: playwright (모든 도구)
-- **vercel-platform-specialist**: vercel (플랫폼 최적화)
-- **debugger-specialist**: serena (코드 분석), memory
+### 스킬별 MCP 활용
+- **ai-code-review**: serena (코드 분석), github
+- **lint-smoke**: serena, playwright
+- **security-audit-workflow**: serena (보안 패턴 검색)
+- **validation-analysis**: serena, supabase
