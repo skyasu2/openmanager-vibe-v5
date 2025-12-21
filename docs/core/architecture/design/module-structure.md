@@ -7,8 +7,8 @@ ai_optimized: true
 related_docs:
   - 'architecture/system-architecture-current.md'
   - 'architecture/domain-driven-design.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
+updated: '2025-12-21'
+version: 'v5.83.7'
 ---
 
 # 🧩 Module Structure
@@ -19,12 +19,11 @@ The `src/modules` directory is used for feature-specific logic, shared utilities
 
 Modules are functional units that provide specific capabilities to the application. They are often more focused on technical or specific functional features compared to the broader business domains.
 
-### Current Modules (v5.83.1)
+### Current Modules (v5.83.7)
 
 | Module | Files | Description |
 |--------|-------|-------------|
 | `advanced-features` | 2 | 고급/실험적 기능 (baseline optimizer, demo scenarios) |
-| `ai-agent` | 1 | AI 에이전트 프로세서 (IntentClassifier) |
 | `data-generation` | 1 | Mock 데이터 생성 (RealisticPatternEngine) |
 | `performance-monitor` | 5 | 성능 모니터링 (컴포넌트, hooks, services, types) |
 | `shared` | 3 | 공유 유틸리티 (constants, types, utils) |
