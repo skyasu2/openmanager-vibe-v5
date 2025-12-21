@@ -374,7 +374,7 @@ test('AI 사이드바 기본 플로우', async ({ page }) => {
 
 ```typescript
 // SSE 스트리밍 모니터링
-const events = await monitorSSEStream(page, '/api/ai/unified-stream', {
+const events = await monitorSSEStream(page, '/api/ai/supervisor', {
   timeout: 60000, // 모니터링 최대 시간 (기본값: 120초)
   doneMarker: '[DONE]', // 스트리밍 완료 감지 문자열 (기본값: '[DONE]')
   eventFilter: (event) => event.type === 'data', // 이벤트 필터 (optional)
@@ -427,7 +427,7 @@ import {
 
 test('SSE 스트리밍 및 네트워크 모니터링', async ({ page }) => {
   // SSE 모니터링
-  const events = await monitorSSEStream(page, '/api/ai/unified-stream', {
+  const events = await monitorSSEStream(page, '/api/ai/supervisor', {
     timeout: 30000,
     doneMarker: '[DONE]',
   });

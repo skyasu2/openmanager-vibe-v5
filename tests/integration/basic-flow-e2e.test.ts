@@ -170,7 +170,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
       const aiSidebar = document.querySelector('[data-testid="ai-sidebar"]');
       expect(aiSidebar).toBeTruthy();
 
-      // Simulate AI query (unified-stream API)
+      // Simulate AI query (Supervisor API)
       const aiResponse = await fetch('/api/ai/supervisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -185,7 +185,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
     });
 
     it('should handle multi-turn conversation', async () => {
-      // Test multi-turn conversation with unified-stream API
+      // Test multi-turn conversation with Supervisor API
       const response = await fetch('/api/ai/supervisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -255,7 +255,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
     });
 
     it('should validate input data', async () => {
-      // Test empty messages with unified-stream API
+      // Test empty messages with Supervisor API
       const response = await fetch('/api/ai/supervisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

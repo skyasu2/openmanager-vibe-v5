@@ -55,7 +55,7 @@ version: 'v5.83.1'
 - **테스트 커버리지**: 98.2% (54/55 통과) - 프로젝트 실적
 - **문제 발견율**: 95%+
 - **다목적 활용**: 아키텍처, 구현, 디버깅, 리뷰 전반
-- **Internal Engine**: 실제 서비스(`unified-stream`)는 **Gemini 1.5 Flash**를 사용하여 비용/속도 최적화
+- **Internal Engine**: 실제 서비스(`/api/ai/supervisor`)는 **Gemini 2.5 Flash**를 사용하여 비용/속도 최적화
 
 ### 특징
 

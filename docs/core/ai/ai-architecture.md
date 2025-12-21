@@ -1,7 +1,7 @@
 # AI Assistant Architecture
 
-> **버전**: v3.1 (2025-12-20)
-> **환경**: Next.js 16, React 19, LangGraph StateGraph (Cloud Run)
+> **버전**: v3.2 (2025-12-22)
+> **환경**: Next.js 16, React 19, TypeScript 5.9 strict, LangGraph StateGraph (Cloud Run)
 
 ## Overview
 

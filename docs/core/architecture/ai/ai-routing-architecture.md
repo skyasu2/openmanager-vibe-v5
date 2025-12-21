@@ -1,6 +1,6 @@
 # AI Routing Architecture (LangGraph Multi-Agent)
 
-> **버전**: v3.0 (2025-12-20)
+> **버전**: v3.1 (2025-12-22)
 > **환경**: LangGraph StateGraph on Cloud Run, Supervisor-Worker Pattern
 
 ## Overview

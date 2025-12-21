@@ -4,7 +4,7 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.83.7)
+## Architecture (v5.83.7, Updated 2025-12-22)
 
 ### Deployment Mode
 
@@ -47,7 +47,7 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 
 ```mermaid
 graph TD
-    Client[Client UI] -->|POST /api/ai/unified-stream| API[Next.js API Route]
+    Client[Client UI] -->|POST /api/ai/supervisor| API[Next.js API Route]
 
     subgraph "Vercel (Frontend)"
         API -->|Proxy| CloudRun
@@ -291,7 +291,7 @@ cloud-run/supabase-mcp/         # Deprecated - direct Supabase JS client
 | `src/services/langgraph/` (Vercel) | Deprecated (2025-12-16) | `cloud-run/ai-engine/` |
 | `cloud-run/supabase-mcp/` | Deprecated (2025-12-16) | Direct Supabase JS client |
 | GCP VM | Removed (2025-12-16) | Cloud Run |
-| `/api/ai/query` | Removed | `/api/ai/unified-stream` |
+| `/api/ai/query` | Removed | `/api/ai/supervisor` |
 | Python Unified Processor | Removed | TypeScript LangGraph agents |
 | GCP Cloud Functions | Removed | Cloud Run |
 | `ml-analytics-engine` (Python) | Removed | `cloud-run/rust-inference/` |

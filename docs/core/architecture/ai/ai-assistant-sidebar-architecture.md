@@ -1,6 +1,6 @@
 # AI Assistant Architecture (Sidebar & Fullpage)
 
-> **버전**: v3.0 (2025-12-14)
+> **버전**: v4.0 (2025-12-22)
 > **환경**: Next.js 16, TypeScript 5.9, React 19, Vercel AI SDK 5.x
 
 ## Overview
@@ -11,7 +11,7 @@ OpenManager VIBE v5.83.1의 AI 어시스턴트는 **사이드바 모드**와 **�
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        FRONTEND                                  │
+│                        FRONTEND (Vercel)                         │
 ├──────────────────────┬──────────────────────────────────────────┤
 │     사이드바 모드     │           풀페이지 모드                   │
 │   (AISidebarV4)      │        (AIWorkspace)                     │
@@ -22,8 +22,14 @@ OpenManager VIBE v5.83.1의 AI 어시스턴트는 **사이드바 모드**와 **�
 │                    State (Zustand)                               │
 │         useAISidebarStore, useAIThinking                        │
 ├─────────────────────────────────────────────────────────────────┤
-│                        BACKEND                                   │
-│              /api/ai/unified-stream (LangGraph)                 │
+│                  Vercel AI SDK (useChat)                         │
+│                 api: '/api/ai/supervisor'                        │
+├─────────────────────────────────────────────────────────────────┤
+│                      VERCEL API LAYER                            │
+│              /api/ai/supervisor (Cloud Run Proxy)                │
+├─────────────────────────────────────────────────────────────────┤
+│                   CLOUD RUN (AI Engine)                          │
+│              LangGraph Multi-Agent System                        │
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐               │
 │  │Supervisor│→│NLQ Agent│→│Analyst  │→│Reporter │               │
 │  │Llama-8b │ │Gemini   │ │Gemini   │ │Llama-70b│               │
@@ -81,15 +87,31 @@ OpenManager VIBE v5.83.1의 AI 어시스턴트는 **사이드바 모드**와 **�
 | 항목 | 값 |
 |------|-----|
 | **컴포넌트** | `EnhancedAIChat.tsx` |
-| **API** | `/api/ai/unified-stream` |
+| **API** | `/api/ai/supervisor` |
 | **에이전트** | Supervisor → NLQ/Analyst/Reporter |
 | **기능** | 서버 상태 질의, 메트릭 분석, 일반 대화 |
 
 **흐름**:
 ```
-사용자 입력 → useChat → POST /api/ai/unified-stream
+사용자 입력 → Vercel AI SDK useChat()
+    → POST /api/ai/supervisor (Vercel)
+    → proxyStreamToCloudRun() (Cloud Run Proxy)
     → LangGraph (Supervisor 라우팅) → 에이전트 실행
-    → 스트리밍 응답 → UI 업데이트
+    → 스트리밍 응답 → ReadableStream → UI 업데이트
+```
+
+**프록시 메커니즘** (`src/lib/ai-proxy/proxy.ts`):
+```typescript
+// Cloud Run 활성화 확인
+if (isCloudRunEnabled()) {
+  // 스트리밍 프록시
+  return proxyStreamToCloudRun({
+    path: '/api/ai/supervisor',
+    body: { messages },
+    headers: { 'X-API-Key': CLOUD_RUN_API_SECRET }
+  });
+}
+// Fallback: 에러 응답 (로컬 알고리즘 없음)
 ```
 
 ### 2. Auto Incident Report
@@ -170,7 +192,7 @@ src/
 │   └── useAISidebarStore.ts           # 글로벌 AI 상태 (Zustand)
 │
 └── app/api/ai/                         # API 라우트
-    ├── unified-stream/route.ts         # LangGraph 멀티-에이전트
+    ├── supervisor/route.ts              # LangGraph 멀티-에이전트 Supervisor
     ├── incident-report/route.ts        # 자동 보고서
     └── intelligent-monitoring/route.ts # 이상감지/예측
 ```
@@ -225,16 +247,31 @@ interface EnhancedChatMessage {
 
 | 기능 | 엔드포인트 | 메서드 | 설명 |
 |------|-----------|--------|------|
-| **자연어 질의** | `/api/ai/unified-stream` | POST | LangGraph 스트리밍 |
+| **자연어 질의** | `/api/ai/supervisor` | POST | LangGraph Cloud Run 프록시 (스트리밍) |
 | **자동 보고서** | `/api/ai/incident-report` | POST | 장애 리포트 생성 |
 | **이상감지** | `/api/ai/intelligent-monitoring` | POST | 예측 분석 |
+| **피드백** | `/api/ai/feedback` | POST | 사용자 피드백 수집 |
+| **헬스체크** | `/api/ai/health` | GET | Cloud Run 백엔드 상태 확인 |
 
 ### Request/Response Format
 
-**Request** (unified-stream):
-```json
+**Request** (supervisor - Vercel AI SDK v5 호환):
+```typescript
+// UIMessage 포맷 (AI SDK v5)
+interface UIMessage {
+  id?: string;
+  role: 'user' | 'assistant' | 'system';
+  parts?: Array<
+    | { type: 'text'; text: string }
+    | { type: 'tool-invocation'; toolCallId: string; toolName: string; args: object }
+    | { type: 'tool-result'; toolCallId: string; result: object }
+  >;
+  content?: string; // 레거시 호환
+}
+
+// 요청 본문
 {
-  "messages": [{ "role": "user", "content": "서버 상태 확인" }],
+  "messages": UIMessage[],
   "sessionId": "optional-session-id"
 }
 ```
@@ -243,7 +280,7 @@ interface EnhancedChatMessage {
 ```
 Content-Type: text/plain; charset=utf-8
 X-Session-Id: session_xxx
-X-Backend: cloud-run | local
+X-Backend: cloud-run | fallback-error
 ```
 
 ## Key Shared Components
@@ -273,17 +310,74 @@ const AI_FUNCTIONS = [
 
 ### Security
 - **Input Validation**: Zod 스키마 검증
-- **Rate Limiting**: maxDuration 30초
-- **Quick Filter/Sanitize**: 입력 정제
+- **Rate Limiting**: withRateLimit 미들웨어
+- **Authentication**: withAuth 미들웨어
+- **Quick Filter/Sanitize**: 입력 정제 (quickSanitize)
+- **API Key**: Cloud Run 요청 시 X-API-Key 헤더
 
 ### Performance
-- **스트리밍**: 실시간 토큰 전송
+- **스트리밍**: 실시간 토큰 전송 (ReadableStream)
 - **메시지 제한**: 100개 (메모리 관리)
 - **SSR 안전**: `skipHydration: true`
 - **동적 import**: 기능 페이지 lazy loading
+- **타임아웃**: 30-60초 (Cloud Run 설정 가능)
+
+## Cloud Run Integration
+
+### 프록시 계층 (`src/lib/ai-proxy/proxy.ts`)
+
+```typescript
+// 주요 함수
+export function isCloudRunEnabled(): boolean
+export async function proxyToCloudRun(options): Promise<ProxyResult>
+export async function proxyStreamToCloudRun(options): Promise<ReadableStream | null>
+export async function checkCloudRunHealth(): Promise<HealthResult>
+```
+
+### 환경 자동 감지
+
+| 환경 | 조건 | 동작 |
+|------|------|------|
+| **Production** | Vercel + CLOUD_RUN_ENABLED=true | Cloud Run 프록시 |
+| **Development** | Docker 로컬 + USE_LOCAL_DOCKER=true | localhost:8080 |
+| **Fallback** | 환경변수 기반 | 동적 결정 |
+
+### Fallback 메커니즘
+
+| 기능 | Cloud Run 불가 시 동작 |
+|------|------------------------|
+| **Chat** | 503 에러 응답 (LangGraph 필수) |
+| **Incident Report** | 로컬 `IncidentReportService` 사용 |
+| **Intelligent Monitoring** | 로컬 알고리즘 (선형회귀, 표준편차) |
+
+```typescript
+// Fallback 예시 (intelligent-monitoring)
+if (!isCloudRunEnabled()) {
+  const localService = new IntelligentMonitoringService();
+  return localService.analyzeServerMetrics(currentMetrics, history);
+}
+```
+
+## Data Flow Diagram
+
+```
+사용자 질의 흐름:
+┌──────────┐    ┌──────────────┐    ┌─────────────────┐    ┌───────────────┐
+│ 사용자    │───▶│ AIWorkspace  │───▶│ useChat (SDK)   │───▶│ /api/ai/      │
+│ 입력      │    │ 컴포넌트      │    │ DefaultTransport │   │ supervisor    │
+└──────────┘    └──────────────┘    └─────────────────┘    └───────┬───────┘
+                                                                    │
+                                                                    ▼
+┌──────────┐    ┌──────────────┐    ┌─────────────────┐    ┌───────────────┐
+│ UI 렌더링 │◀───│ ReadableStream│◀───│ proxyStream     │◀───│ Cloud Run     │
+│ 완료      │    │ 파싱          │    │ ToCloudRun      │    │ LangGraph     │
+└──────────┘    └──────────────┘    └─────────────────┘    └───────────────┘
+```
 
 ---
 
 > **참고 문서**:
 > - `ai-engine-architecture.md`: LangGraph 백엔드 상세
 > - `ai-architecture.md`: AI 전체 아키텍처
+> - `hybrid_split.md`: Vercel/Cloud Run 하이브리드 구조
+> - `config/ai/registry-core.yaml`: AI 설정 SSOT

@@ -323,7 +323,7 @@ describe('🚀 OpenManager VIBE v5 - 핵심 API 엔드포인트 테스트', () =
           } as Response);
         }
 
-        // AI unified-stream endpoint (LangGraph Multi-Agent)
+        // AI Supervisor endpoint (LangGraph Multi-Agent)
         if (url.includes('/api/ai/supervisor') && method === 'POST') {
           return Promise.resolve({
             ok: false,

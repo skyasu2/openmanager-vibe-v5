@@ -141,9 +141,9 @@
                 return;
             }
 
-            await sendRequest('/api/ai/unified-stream', {
+            await sendRequest('/api/ai/supervisor', {
                 messages: [{ role: 'user', content: prompt }]
-            }, 'Unified AI');
+            }, 'AI Supervisor');
         }
 
         async function sendRequest(endpoint, payload, mode) {
@@ -204,7 +204,7 @@
 
                 try {
                     const startTime = Date.now();
-                    const response = await fetch(API_BASE + '/api/ai/unified-stream', {
+                    const response = await fetch(API_BASE + '/api/ai/supervisor', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

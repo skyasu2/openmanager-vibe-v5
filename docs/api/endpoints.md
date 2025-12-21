@@ -1,6 +1,6 @@
 # API Endpoints Documentation
 
-**Last Updated**: 2025-11-29
+**Last Updated**: 2025-12-22
 
 ## Overview
 
@@ -24,7 +24,7 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 
 | Endpoint                         | Method    | Description                      | Auth | Status     |
 | -------------------------------- | --------- | -------------------------------- | ---- | ---------- |
-| `/api/ai/unified-stream`         | POST      | AI 통합 스트리밍 (Vercel AI SDK) | ✅   | **Active** |
+| `/api/ai/supervisor`             | POST      | AI Multi-Agent Supervisor (LangGraph) | ✅   | **Active** |
 | `/api/ai/google-ai/generate`     | POST, GET | Google Gemini API 직접 호출      | ✅   | **Active** |
 | `/api/ai/incident-report`        | POST, GET | 자동 장애 보고서 생성            | ✅   | **Active** |
 | `/api/ai/intelligent-monitoring` | POST      | 지능형 모니터링 분석             | ✅   | **Active** |
@@ -37,8 +37,8 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 
 | Endpoint                     | Method    | Description               | Status         | Replacement      |
 | ---------------------------- | --------- | ------------------------- | -------------- | ---------------- |
-| `/api/ai/korean-nlp`         | POST      | 한국어 NLP (GCP)          | **410 Gone**   | `unified-stream` |
-| `/api/ai/thinking/stream-v2` | POST      | 레거시 Thinking Stream    | **Deprecated** | `unified-stream` |
+| `/api/ai/korean-nlp`         | POST      | 한국어 NLP (GCP)          | **410 Gone**   | `supervisor` |
+| `/api/ai/thinking/stream-v2` | POST      | 레거시 Thinking Stream    | **Deprecated** | `supervisor` |
 | `/api/ai/logging/stream`     | GET, POST | AI 로그 스트리밍 (Memory) | **Legacy**     | -                |
 
 ### Development/Testing 🧪
@@ -176,7 +176,7 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 
 ## 🔄 Unified AI APIs (4개)
 
-> **Note**: Legacy Unified AI 시스템 (Deprecated, `unified-stream`으로 통합됨)
+> **Note**: Legacy Unified AI 시스템 (Deprecated, `/api/ai/supervisor`로 통합됨)
 
 | Endpoint                     | Method | Description  | Status         |
 | ---------------------------- | ------ | ------------ | -------------- |

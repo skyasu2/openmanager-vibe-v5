@@ -107,7 +107,7 @@ async function runEnterpriseTests() {
   // 7. 시뮬레이터 실행 (POST)
   results.push(await testEndpoint('/api/simulate', 'POST'));
 
-  // 8. 자연어 쿼리 시스템 (POST) - LangGraph unified-stream API
+  // 8. 자연어 쿼리 시스템 (POST) - LangGraph Supervisor API
   results.push(
     await testEndpoint('/api/ai/supervisor', 'POST', {
       messages: [{ role: 'user', content: '전체 인프라 상태 어때?' }],
