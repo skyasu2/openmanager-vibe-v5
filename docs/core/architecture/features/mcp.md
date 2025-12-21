@@ -4,7 +4,7 @@ title: "Model Context Protocol Integration"
 keywords: ["mcp", "protocol", "servers", "integration", "ai", "16gb", "wsl", "optimization"]
 priority: high
 ai_optimized: true
-related_docs: ["ai-system.md", "sub-agents.md", "../../mcp/advanced.md"]
+related_docs: ["ai-system.md", "../../mcp/advanced.md"]
 updated: "2025-12-11"
 version: "v5.83.1"
 ---

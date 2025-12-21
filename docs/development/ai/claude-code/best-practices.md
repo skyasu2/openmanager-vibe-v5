@@ -5,7 +5,6 @@ keywords: [claude-code, extended-thinking, mention, prompt-caching, best-practic
 priority: medium
 ai_optimized: true
 related_docs:
-  - 'ai/claude-code/subagents-complete-guide.md'
   - 'claude-workflow-guide.md'
 updated: '2025-12-19'
 version: 'v5.83.1'

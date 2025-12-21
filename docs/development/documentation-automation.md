@@ -41,7 +41,6 @@ version: 'v5.83.1'
 | 컴포넌트                         | 역할                          | 실행 시점      |
 | -------------------------------- | ----------------------------- | -------------- |
 | `update-changelog.sh`            | CHANGELOG 자동 생성           | 수동 실행      |
-| `.husky/pre-commit-doc-validation` | 문서/테스트 검증 Hook         | 커밋 전 자동   |
 | `README.md`                      | 프로젝트 메인 문서            | 수동 유지보수  |
 
 ---
@@ -173,23 +172,6 @@ fi
   - 문서/테스트는 별도 PR로 추가 가능
   - 개발 생산성 저해 방지
 
-### 수동 활성화 (옵션)
-
-Hard Blocking 모드 (커밋 차단):
-
-```bash
-# .husky/pre-commit-doc-validation 수정
-# Soft Warning → Hard Blocking
-
-# 변경 전:
-exit 0  # ✅ 항상 성공
-
-# 변경 후:
-if [[ ${#WARNINGS[@]} -gt 0 ]]; then
-  exit 1  # ❌ 경고 발생 시 커밋 차단
-fi
-```
-
 ---
 
 ## 📚 README 유지보수 전략
@@ -272,22 +254,7 @@ echo "## [Unreleased] - $(date +%Y-%m-%d)" >> CHANGELOG.md
 ./scripts/docs/update-changelog.sh
 ```
 
-### 문제 2: Pre-commit Hook 실행 안 됨
-
-**증상**: 커밋 시 문서 검증 메시지가 표시되지 않음
-
-**원인**: Hook이 실행 가능하지 않음
-
-**해결**:
-```bash
-# 실행 권한 부여
-chmod +x .husky/pre-commit-doc-validation
-
-# Husky 재설치
-npm run prepare
-```
-
-### 문제 3: 커밋 메시지 형식 불일치
+### 문제 2: 커밋 메시지 형식 불일치
 
 **증상**: CHANGELOG에 커밋이 누락됨
 

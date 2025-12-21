@@ -4,7 +4,7 @@ title: "4-AI Cross Verification System"
 keywords: ["ai", "cross-verification", "claude", "gemini", "codex", "qwen"]
 priority: critical
 ai_optimized: true
-related_docs: ["sub-agents.md", "mcp.md", "../../ai/workflow.md", "../../ai/verification.md"]
+related_docs: ["mcp.md", "../../ai/workflow.md", "../../ai/verification.md"]
 updated: "2025-12-11"
 version: "v5.83.1"
 ---

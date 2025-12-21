@@ -353,7 +353,6 @@ grep "ImportProcessor" logs/ai-perf/gemini-perf-*.log
 - **코드 리뷰 시스템**: `scripts/code-review/auto-ai-review.sh` (v3.3.0)
 - **프로젝트 상태**: `docs/status.md`
 - **메인 가이드**: `CLAUDE.md`
-- **서브에이전트**: `docs/development/ai/claude-code/subagents-complete-guide.md`
 - **변경 이력**:
   - `/tmp/all-ai-wrappers-v3-summary.md` (v3.0.0 통합 요약)
   - `/tmp/gemini-wrapper-upgrade-summary.md` (Gemini v3.0.0)
