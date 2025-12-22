@@ -22,7 +22,7 @@ Automated E2E test failure classification and diagnosis without manual log readi
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.83.1
+- **Project**: OpenManager VIBE v5.83.9
 - **E2E Framework**: Playwright v1.57.0
 - **Test Suite**: 30 E2E tests, 100% pass rate
 - **Common Failures**: Timeout, selector not found, network issues

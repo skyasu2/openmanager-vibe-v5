@@ -27,7 +27,7 @@ Automated security scanning and vulnerability detection before deployment withou
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.83.1
+- **Project**: OpenManager VIBE v5.83.9
 - **Stack**: Next.js 16 + Supabase PostgreSQL + Vercel
 - **Security Framework**: OWASP Top 10 compliance
 - **Critical Assets**: API keys, JWT secrets, RLS policies

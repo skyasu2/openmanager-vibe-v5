@@ -1,6 +1,6 @@
 ---
 name: validation-analysis
-version: v1.1.0
+version: v1.2.0
 description: Automated validation results analysis for post-commit workflow. Triggers when user requests validation analysis, code review summary, or checking background validation results. Analyzes Biome, TypeScript, and AI review reports.
 ---
 
@@ -27,7 +27,7 @@ Automated analysis of background validation results (Biome + TypeScript + AI Rev
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.83.1
+- **Project**: OpenManager VIBE v5.83.9
 - **Validation Workflow**: post-commit hook (background, 5min timeout)
 - **Output Location**: `/tmp/validation-complete-latest.md`
 - **Components**:
@@ -253,9 +253,11 @@ Tokens: ~100 (75% reduction)
 ```
 git commit
   ↓
-.husky/post-commit (background)
+.husky/post-commit → npm run hook:post-commit
   ↓
-ESLint + TypeScript + AI Review (parallel, 5min timeout)
+scripts/hooks/post-commit.js (cross-platform Node.js)
+  ↓
+Biome + TypeScript + AI Review (parallel, 5min timeout)
   ↓
 create-summary.sh (aggregates results)
   ↓
@@ -266,8 +268,14 @@ create-summary.sh (aggregates results)
 This Skill analyzes and reports
 ```
 
+**Note**: Windows에서는 background AI review가 스킵됩니다 (WSL/Linux only).
+
 ## Changelog
 
+- 2025-12-22: v1.2.0 - Cross-platform hooks support
+  - Husky hooks → Node.js scripts 위임 (Windows 호환)
+  - Workflow 다이어그램 업데이트
+  - Windows background task 제한 사항 문서화
 - 2025-12-12: v1.1.0 - Tech stack upgrade alignment
   - ESLint → Biome migration (v2.3.8)
   - AI Review rotation: Codex → Gemini → Qwen
