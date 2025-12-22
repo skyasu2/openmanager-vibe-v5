@@ -9,11 +9,11 @@
 - **AbortController**: HTTP 요청 즉시 취소 (fetch abort)
 - **완전한 cleanup**: interval, timeout, event listener 모두 정리
 
-### 2. ⚡ 성능 최적화
-- **글로벌 캐시**: 여러 컴포넌트 간 데이터 공유 (30초 TTL)
+### 2. ⚡ 성능 최적화 (포트폴리오 무료 티어 최적화)
+- **글로벌 캐시**: 여러 컴포넌트 간 데이터 공유 (3분 TTL)
 - **Request Deduplication**: 동일한 serverId 중복 요청 방지
 - **적응형 Polling**: 서버 상태에 따른 동적 interval 조절
-  - Critical: 0.5초, Warning: 2초, Normal: 5초
+  - Critical: 30초, Warning: 45초, Normal: 3분 (무료 티어 최적화)
 
 ### 3. 🎨 사용자 경험 개선
 - **탭 가시성 감지**: 비활성 탭에서 polling 중단
@@ -32,9 +32,9 @@ const { data, loading, error, connectionStatus, refetch } = useServerData('serve
 ```typescript
 const serverData = useServerData('server-1', {
   enabled: true,           // 활성화 여부
-  pollingInterval: 3000,   // 기본 polling 간격 (ms)
+  pollingInterval: 60000,  // 기본 polling 간격 (60초) - 무료 티어 최적화
   retryCount: 3,          // 재시도 횟수
-  cacheTime: 30000,       // 캐시 유효 시간 (ms)
+  cacheTime: 180000,      // 캐시 유효 시간 (3분)
 });
 ```
 
@@ -105,17 +105,17 @@ const fetchData = async () => {
 
 ### 캐시 전략
 - **공유 캐시**: 동일한 serverId를 사용하는 모든 컴포넌트가 캐시 공유
-- **TTL 기반**: 30초 후 자동 만료
+- **TTL 기반**: 3분 후 자동 만료 (무료 티어 최적화)
 - **구독 시스템**: 캐시 업데이트 시 모든 구독자에게 자동 알림
 
-### 적응형 Polling
+### 적응형 Polling (포트폴리오 무료 티어 최적화)
 ```typescript
 const getAdaptiveInterval = (data) => {
   switch (data?.status) {
-    case 'critical': return 500;    // 매우 빠름
-    case 'warning': return 2000;    // 빠름
-    case 'normal': return 5000;     // 보통
-    default: return 3000;           // 기본값
+    case 'critical': return 30000;   // 30초 (중요 상태)
+    case 'warning': return 45000;    // 45초 (경고 상태)
+    case 'normal': return 180000;    // 3분 (정상 상태)
+    default: return 60000;           // 기본값 (60초)
   }
 };
 ```
@@ -178,17 +178,17 @@ expect(apiCallCount).toBe(uniqueServerIds.length);
 const { data, loading } = useServerData(serverId);
 
 // After (개선된 버전)
-const { 
-  data, 
-  loading, 
-  error, 
-  connectionStatus, 
-  refetch, 
-  invalidateCache 
+const {
+  data,
+  loading,
+  error,
+  connectionStatus,
+  refetch,
+  invalidateCache
 } = useServerData(serverId, {
-  pollingInterval: 3000,
+  pollingInterval: 60000,  // 60초 - 무료 티어 최적화
   retryCount: 3,
-  cacheTime: 30000
+  cacheTime: 180000        // 3분 - 캐시 유효 시간
 });
 ```
 

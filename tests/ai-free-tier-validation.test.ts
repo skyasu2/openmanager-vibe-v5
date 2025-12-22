@@ -7,18 +7,22 @@
  * 3. Google Cloud Functions 무료 티어 (200만 호출/월)
  * 4. Google AI API 무료 티어 (1500 요청/일, 15 RPM)
  *
- * ⚠️ 이 테스트는 실제 서버 연결이 필요합니다:
- * - Vercel 배포 환경: NEXT_PUBLIC_VERCEL_URL 설정 시 실행
- * - 로컬 환경: 실행하지 않음 (개발 서버 필요)
- * - 목적: 로컬 CI에서 불필요한 실패 방지
+ * ⚠️ 이 테스트는 실제 API 호출을 수행합니다:
+ * - 포트폴리오 무료 티어 보호를 위해 기본적으로 SKIP됨
+ * - 명시적으로 실행하려면: RUN_FREE_TIER_TESTS=true npm run test
+ * - Vercel 배포 환경에서만 실행 가능 (NEXT_PUBLIC_VERCEL_URL 필요)
+ *
+ * @cost 실행 시 ~5 API 호출 발생 (Gemini API 1,500 RPD 제한 주의)
  */
 
 import { describe, expect, it } from 'vitest';
 
-// Vercel 배포 환경에서만 실행 (로컬 환경에서는 스킵)
-const isVercelDeployment = !!process.env.NEXT_PUBLIC_VERCEL_URL;
+// 무료 티어 보호: 명시적으로 활성화해야만 실행
+const shouldRunTests =
+  process.env.RUN_FREE_TIER_TESTS === 'true' &&
+  !!process.env.NEXT_PUBLIC_VERCEL_URL;
 
-describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', () => {
+describe.skipIf(!shouldRunTests)('AI 어시스턴트 무료 티어 검증', () => {
   const API_BASE = process.env.NEXT_PUBLIC_VERCEL_URL
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
     : 'http://localhost:3000';
@@ -88,7 +92,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
   describe('3. Google AI API 무료 티어 제한', () => {
     it('RPM 제한을 준수해야 함 (15 RPM)', async () => {
       const requests = [];
-      const maxRequests = 10; // 15 RPM 이하로 테스트
+      const maxRequests = 3; // 무료 티어 보호: 최소 검증만 수행
 
       for (let i = 0; i < maxRequests; i++) {
         requests.push(
@@ -205,7 +209,7 @@ describe.skipIf(!isVercelDeployment)('AI 어시스턴트 무료 티어 검증', 
 
   describe('5. 성능 벤치마크', () => {
     it('평균 응답 시간이 목표치 이내여야 함', async () => {
-      const iterations = 5;
+      const iterations = 2; // 무료 티어 보호: 최소 검증만 수행
       const times: number[] = [];
 
       for (let i = 0; i < iterations; i++) {

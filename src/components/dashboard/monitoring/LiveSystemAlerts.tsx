@@ -175,10 +175,10 @@ export default function LiveSystemAlerts() {
     // 초기 로드
     void pollAlerts();
 
-    // 15초마다 폴링
+    // 60초마다 폴링 (포트폴리오 무료 티어 최적화)
     const pollInterval = setInterval(() => {
       void pollAlerts();
-    }, 15000);
+    }, 60000);
 
     return () => {
       clearInterval(pollInterval);

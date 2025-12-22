@@ -196,9 +196,9 @@ export function PerformanceMonitor() {
     return () => clearTimeout(timer);
   }, [collectMetrics]);
 
-  // 주기적 업데이트
+  // 주기적 업데이트 (5분 간격 - 포트폴리오 무료 티어 최적화)
   useEffect(() => {
-    const interval = setInterval(collectMetrics, 5000);
+    const interval = setInterval(collectMetrics, 300000); // 5분
     return () => clearInterval(interval);
   }, [collectMetrics]);
 

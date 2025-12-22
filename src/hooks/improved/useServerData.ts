@@ -38,9 +38,9 @@ const ongoingRequests = new Map<string, Promise<ServerData>>();
 
 const DEFAULT_OPTIONS: Required<UseServerDataOptions> = {
   enabled: true,
-  pollingInterval: 3000,
+  pollingInterval: 60000, // 60초 - 포트폴리오 무료 티어 최적화
   retryCount: 3,
-  cacheTime: 30000, // 30초
+  cacheTime: 180000, // 3분 - 캐시 시간 증가 (API 호출 최소화)
 };
 
 /**
@@ -113,18 +113,20 @@ export const useServerData = (
     });
   }, []);
 
-  // 적응형 polling 간격 계산
+  // 적응형 polling 간격 계산 (포트폴리오 무료 티어 최적화)
   const getAdaptiveInterval = useCallback(
     (data: ServerData | null): number => {
       if (!data) return opts.pollingInterval;
 
+      // 상태에 따라 간격 조정 (최소 30초, 최대 180초)
+      // 포트폴리오 프로젝트: 비용 절감 우선
       switch (data.status) {
         case 'critical':
-          return Math.min(opts.pollingInterval * 0.3, 500);
+          return Math.max(opts.pollingInterval * 0.5, 30000); // 최소 30초
         case 'warning':
-          return Math.min(opts.pollingInterval * 0.7, 2000);
+          return Math.max(opts.pollingInterval * 0.8, 45000); // 최소 45초
         case 'normal':
-          return Math.max(opts.pollingInterval * 1.5, 5000);
+          return Math.min(opts.pollingInterval * 2, 180000); // 최대 3분
         default:
           return opts.pollingInterval;
       }

@@ -26,7 +26,7 @@ interface CloudRunStatusIndicatorProps {
 
 export function CloudRunStatusIndicator({
   compact = false,
-  autoCheckInterval = 30000,
+  autoCheckInterval = 300000, // 5분 - 포트폴리오 무료 티어 최적화
   onStatusChange,
 }: CloudRunStatusIndicatorProps) {
   const [status, setStatus] = useState<CloudRunStatus>('unknown');
