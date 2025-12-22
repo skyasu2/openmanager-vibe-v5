@@ -27,7 +27,7 @@ export default function IntelligentMonitoringModal({
             <div>
               <h2 className="text-xl font-bold text-gray-900">이상감지/예측</h2>
               <p className="text-sm text-gray-600">
-                통합 AI 분석: 이상탐지 → 근본원인 → 예측모니터링
+                AI Supervisor: 이상탐지 → 근본원인 → 예측모니터링
               </p>
             </div>
           </div>

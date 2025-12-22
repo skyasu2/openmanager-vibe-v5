@@ -107,10 +107,10 @@ export const systemComponents: SystemComponent[] = [
     },
   },
 
-  // 🤖 Unified AI 엔진 (Graceful Degradation)
+  // 🤖 AI Supervisor (Graceful Degradation)
   {
-    id: 'unified-ai-engine',
-    name: 'Unified AI 엔진',
+    id: 'ai-supervisor',
+    name: 'AI Supervisor',
     description: 'AI 분석 및 예측 서비스 (폴백 지원)',
     category: 'ai',
     icon: '🤖',
@@ -119,7 +119,7 @@ export const systemComponents: SystemComponent[] = [
     dependencies: ['api-server'],
     checkFunction: async () => {
       try {
-        // 🚀 Unified AI 엔진 상태 체크
+        // 🚀 AI Supervisor 상태 체크
         const { response, networkInfo } = await fetchWithTracking(
           '/api/ai/unified?action=health',
           {
@@ -127,15 +127,15 @@ export const systemComponents: SystemComponent[] = [
           }
         );
 
-        recordNetworkRequest(networkInfo, response.ok, 'unified-ai-engine');
+        recordNetworkRequest(networkInfo, response.ok, 'ai-supervisor');
 
         if (!response.ok) {
-          console.warn('⚠️ Unified AI 엔진 직접 체크 실패, 폴백 모드로 전환');
+          console.warn('⚠️ AI Supervisor 직접 체크 실패, 폴백 모드로 전환');
           return true; // Graceful degradation - 폴백 모드로 동작
         }
 
         const data = await response.json();
-        console.log('✅ Unified AI 엔진 체크 성공:', {
+        console.log('✅ AI Supervisor 체크 성공:', {
           engines: data.engines || 'unknown',
           tier: data.tier || 'fallback',
           responseTime: getResponseTime(networkInfo),
@@ -144,7 +144,7 @@ export const systemComponents: SystemComponent[] = [
         return true;
       } catch (error: unknown) {
         if (isNetworkError(error)) {
-          recordNetworkRequest(error.networkInfo, false, 'unified-ai-engine');
+          recordNetworkRequest(error.networkInfo, false, 'ai-supervisor');
         }
 
         const errorMessage =
@@ -163,7 +163,7 @@ export const systemComponents: SystemComponent[] = [
             : 'unknown';
 
         console.warn(
-          '⚠️ Unified AI 엔진 체크 실패, Graceful Degradation 모드:',
+          '⚠️ AI Supervisor 체크 실패, Graceful Degradation 모드:',
           {
             error: errorMessage,
             networkInfo: responseTime,

@@ -1,3 +1,6 @@
+/**
+ * @vitest-environment jsdom
+ */
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAIEngine } from '../../src/domains/ai-sidebar/hooks/useAIEngine';
@@ -101,10 +104,12 @@ describe('useAIEngine (v4.0 - UNIFIED 전용)', () => {
   it('UNIFIED 엔진의 표시 이름을 반환한다', () => {
     const { result } = renderHook(() => useAIEngine());
 
-    expect(result.current.getEngineDisplayName()).toBe('통합 AI 엔진');
-    expect(result.current.getEngineDisplayName('UNIFIED')).toBe('통합 AI 엔진');
+    expect(result.current.getEngineDisplayName()).toBe('AI Supervisor');
+    expect(result.current.getEngineDisplayName('UNIFIED')).toBe(
+      'AI Supervisor'
+    );
     expect(result.current.getEngineDisplayName('GOOGLE_AI')).toBe(
-      '통합 AI 엔진'
+      'AI Supervisor'
     );
   });
 

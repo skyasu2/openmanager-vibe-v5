@@ -103,7 +103,7 @@ export function useAIEngine(): UseAIEngineReturn {
 
   // getEngineDisplayName
   const getEngineDisplayName = useCallback((_engine?: string): string => {
-    return '통합 AI 엔진';
+    return 'AI Supervisor';
   }, []);
 
   // getEngineDescription

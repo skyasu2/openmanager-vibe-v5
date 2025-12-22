@@ -4,7 +4,7 @@
  * 사이드바 오른쪽에 세로로 배치되는 AI 기능 아이콘들
  * - AI 채팅: 자연어로 시스템 질의 및 대화
  * - 자동 장애 보고서: AI 기반 장애 분석 + 장애 케이스 학습
- * - 이상감지/예측: 통합 AI 분석 + 패턴 학습 + 예측 분석
+ * - 이상감지/예측: AI Supervisor 분석 + 패턴 학습 + 예측 분석
  * - AI 상태관리: Circuit Breaker, Failover, Rate Limit 모니터링 (v2.0.0)
  */
 
@@ -65,7 +65,7 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     icon: Monitor,
     label: '이상감지/예측',
     description:
-      '🧠 통합 AI 분석: 이상탐지→근본원인→예측모니터링→패턴학습→예측분석',
+      '🧠 AI Supervisor: 이상탐지→근본원인→예측모니터링→패턴학습→예측분석',
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-50 hover:bg-emerald-100',
     gradient: 'from-emerald-500 to-teal-500',
