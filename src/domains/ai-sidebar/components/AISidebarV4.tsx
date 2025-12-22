@@ -1,6 +1,7 @@
 'use client';
 
 import { type UIMessage, useChat } from '@ai-sdk/react';
+import { TextStreamChatTransport } from 'ai';
 
 // Icons
 import { Bot, User } from 'lucide-react';
@@ -347,27 +348,23 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   // Vercel AI SDK useChat Hook (@ai-sdk/react v2.x)
   // ============================================================================
   //
-  // Transport 선택 (2025-12-22 v5.83.9 수정):
-  // - TextStreamChatTransport 사용 (DefaultChatTransport에서 변경)
+  // Transport 설정 (2025-12-22 최종 수정):
+  // - TextStreamChatTransport 사용
+  // - 서버(supervisor/route.ts)에서 Data Stream Protocol을 파싱하여 순수 텍스트 반환
+  // - 클라이언트는 plain text 스트림을 TextStreamChatTransport로 처리
   //
-  // 이유:
-  // - Cloud Run ai-engine은 plain text 스트림 (Content-Type: text/plain) 반환
-  // - DefaultChatTransport는 SSE JSON 형식 (data: {"type":"text",...}) 기대
-  // - 형식 불일치로 UI에 응답이 렌더링되지 않는 문제 발생
-  // - TextStreamChatTransport는 plain text 스트림을 올바르게 처리
+  // 아키텍처:
+  // Cloud Run (0:"text") → Vercel Route (파싱) → Plain Text → Client (TextStreamChatTransport)
   //
   // sessionId 전달:
-  // - TextStreamChatTransport는 body 전송 미지원
   // - Query parameter로 sessionId 전달 (?sessionId=xxx)
   // - supervisor/route.ts에서 query param으로 수신
   //
   // ============================================================================
-  // Transport 복구 (2025-12-22 19:30 Fix):
-  // - TextStreamChatTransport 제거: Backend가 Vercel Data Stream Protocol(`0:"..."`)을 반환하므로,
-  //   이를 Plain Text로 취급하면 프로토콜 자체가 화면에 출력되는 문제 발생.
-  // - 기본 Transport 사용 시 프로토콜이 정상 파싱됨.
   const { messages, sendMessage, status, setMessages, stop } = useChat({
-    api: `/api/ai/supervisor?sessionId=${encodeURIComponent(chatSessionIdRef.current)}`,
+    transport: new TextStreamChatTransport({
+      api: `/api/ai/supervisor?sessionId=${encodeURIComponent(chatSessionIdRef.current)}`,
+    }),
     onFinish: async () => {
       // Optional: Sync to global store if needed
       onMessageSend?.(input);
