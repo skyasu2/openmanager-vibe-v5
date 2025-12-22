@@ -40,7 +40,9 @@ function getGeminiAPIKeys(): string[] {
   if (primary) keys.push(primary);
 
   // Secondary key (failover)
-  const secondary = process.env.GEMINI_API_KEY_SECONDARY;
+  const secondary =
+    process.env.GEMINI_API_KEY_SECONDARY ||
+    process.env.GOOGLE_AI_API_KEY_SECONDARY;
   if (secondary) keys.push(secondary);
 
   return keys;
@@ -137,7 +139,8 @@ export function getGeminiKeyStatus(): {
 
 export type GeminiModel =
   | 'gemini-2.5-flash'
-  // Note: gemini-2.5-flash-lite doesn't exist (2025-12)
+  | 'gemini-2.5-flash-lite'
+  | 'gemini-3.0-flash-preview'
   | 'gemini-2.5-pro';
 export type GroqModel = 'llama-3.1-8b-instant' | 'llama-3.3-70b-versatile';
 
@@ -153,7 +156,7 @@ export interface ModelOptions {
 export const AGENT_MODEL_CONFIG = {
   supervisor: {
     provider: 'google' as const, // Gemini for tool calling support
-    model: AI_MODELS.FLASH as GeminiModel,
+    model: AI_MODELS.FLASH_LITE as GeminiModel, // High Quota (1500 RPD) for Routing
     temperature: 0.1, // Lower for more deterministic routing
     maxOutputTokens: 512,
   },
@@ -184,7 +187,7 @@ export type AgentType = keyof typeof AGENT_MODEL_CONFIG;
 // ============================================================================
 
 export function createGeminiModel(
-  model: GeminiModel = AI_MODELS.FLASH,
+  model: GeminiModel = AI_MODELS.FLASH_LITE, // Default to Flash Lite (1,500 RPD) for high availability
   options?: ModelOptions
 ): ChatGoogleGenerativeAI {
   // Use failover-aware key selection
@@ -380,11 +383,12 @@ export function logAPIKeyStatus(): void {
 // ============================================================================
 
 export const MODEL_FALLBACK_CHAIN: Record<string, string[]> = {
-  'gemini-2.5-flash': ['gemini-2.5-pro', 'llama-3.3-70b-versatile'],
-  // 'gemini-2.5-flash-lite': removed (doesn't exist 2025-12)
-  'gemini-2.5-pro': ['gemini-2.5-flash', 'llama-3.3-70b-versatile'],
-  'llama-3.1-8b-instant': ['llama-3.3-70b-versatile', 'gemini-2.5-flash'],
-  'llama-3.3-70b-versatile': ['gemini-2.5-pro', 'gemini-2.5-flash'],
+  'gemini-2.5-flash-lite': ['gemini-3.0-flash-preview', 'gemini-2.5-flash', 'llama-3.3-70b-versatile'],
+  'gemini-2.5-flash': ['gemini-2.5-flash-lite', 'gemini-3.0-flash-preview'],
+  'gemini-3.0-flash-preview': ['gemini-2.5-flash-lite', 'llama-3.3-70b-versatile'],
+  'gemini-2.5-pro': ['gemini-2.5-flash-lite', 'gemini-2.5-flash'],
+  'llama-3.1-8b-instant': ['llama-3.3-70b-versatile', 'gemini-2.5-flash-lite'],
+  'llama-3.3-70b-versatile': ['gemini-2.5-flash-lite', 'gemini-3.0-flash-preview'],
 };
 
 export function selectHealthyModel(

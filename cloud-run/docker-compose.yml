@@ -20,12 +20,15 @@ services:
       # Gemini API Keys (Primary uses GOOGLE_API_KEY for Cloud Run compatibility)
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - GEMINI_API_KEY_SECONDARY=${GEMINI_API_KEY_SECONDARY}
+      - GOOGLE_AI_API_KEY_SECONDARY=${GOOGLE_AI_API_KEY_SECONDARY}
       # Groq API Key (for LangGraph Supervisor)
       - GROQ_API_KEY=${GROQ_API_KEY}
       # Supabase Configuration
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - SUPABASE_DIRECT_URL=${SUPABASE_DIRECT_URL}
+      # For local dev: disable SSL verification (Docker can't verify Supabase certs)
+      # Production Cloud Run handles this differently via GCP networking
+      # - SUPABASE_DIRECT_URL=${SUPABASE_DIRECT_URL}
     depends_on:
       - rust-inference
     networks:

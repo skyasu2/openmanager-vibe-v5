@@ -31,7 +31,8 @@ interface GenerateResult {
 }
 
 class CloudRunGenerateService {
-  private readonly DEFAULT_MODEL = 'gemini-2.5-flash';
+  // Use Flash Lite (1,500 RPD) instead of Flash (20 RPD) for high availability
+  private readonly DEFAULT_MODEL = 'gemini-2.5-flash-lite';
   private currentKeyIndex = 0; // For key rotation on error
 
   // 통계

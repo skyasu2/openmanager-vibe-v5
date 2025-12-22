@@ -8,7 +8,9 @@ set -e # Exit on error
 
 # Configuration
 SERVICE_NAME="ai-engine"
-REGION="asia-northeast3"
+# IMPORTANT: asia-northeast1 is the production region (used by Vercel)
+# Do NOT change to asia-northeast3 (old region, deprecated)
+REGION="asia-northeast1"
 PROJECT_ID=$(gcloud config get-value project)
 
 if [ -z "$PROJECT_ID" ]; then

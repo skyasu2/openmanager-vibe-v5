@@ -21,9 +21,9 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 
 | Agent | Model | Role | Tools |
 |-------|-------|------|-------|
-| **Supervisor** | Groq `llama-3.1-8b-instant` | Intent classification & routing | - |
-| **NLQ Agent** | Gemini 2.5 Flash | Server metrics queries | `getServerMetrics` |
-| **Analyst Agent** | Gemini 2.5 Flash | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
+| **Supervisor** | Gemini 2.5 Flash-Lite | Intent classification & routing (1500 RPD) | - |
+| **NLQ Agent** | Llama 3.3-70b | Server metrics queries (Groq Inference) | `getServerMetrics` |
+| **Analyst Agent** | Llama 3.3-70b | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
 | **Reporter Agent** | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG), `recommendCommands` |
 
 ### Key Features
@@ -303,7 +303,7 @@ cloud-run/supabase-mcp/         # Deprecated - direct Supabase JS client
 
 - **Runtime**: Node.js 22 + Hono
 - **Framework**: LangGraph StateGraph, Vercel AI SDK
-- **Models**: Groq Llama 8b (Supervisor), Gemini 2.5 Flash/Pro (Agents)
+- **Models**: Gemini 2.5 Flash-Lite (Supervisor), Groq Llama 3.3 70b (Agents)
 - **Endpoint**: `https://ai-engine-xxxxx.run.app`
 
 ### rust-inference (ML)

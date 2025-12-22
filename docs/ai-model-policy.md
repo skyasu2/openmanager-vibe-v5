@@ -8,14 +8,12 @@
 
 ## 📊 모델별 접근성 요약
 
-| 모델 | 상태 | RPM | RPD | TPM | 비고 |
-|---|---|---|---|---|---|
-| `gemini-1.5-flash` | ❌ **NOT_FOUND** | - | - | - | 2025년 이후 사용 불가 |
-| `gemini-1.5-pro` | ❌ **NOT_FOUND** | - | - | - | 2025년 이후 사용 불가 |
-| `gemini-2.0-flash` | ⚠️ **QUOTA** | - | - | - | 존재하지만 할당량 초과 |
-| `gemini-2.0-flash-exp` | ⚠️ **QUOTA** | - | - | - | 존재하지만 할당량 초과 |
-| **`gemini-2.5-flash`** | ✅ **유효** | 5 | 20 | 250K | **유일한 Free Tier 모델** |
-| `gemini-2.5-pro` | ⚠️ **QUOTA** | 2 | 5 | 32K | 유료 플랜 권장 |
+| 모델 | 상태 | RPM | RPD | 비고 |
+|---|---|---|---|---|
+| `gemini-2.5-pro` | ❌ **LIMIT** | 0 | 0 | **Free Tier 제거됨** (유료 전용) |
+| `gemini-2.5-flash` | ⚠️ **LOW** | 2 | 20 | **일일 20회 제한** (사용 주의) |
+| **`gemini-2.5-flash-lite`** | ✅ **OPTIMAL** | 30 | 1,500 | **Supervisor 주력 모델** (넉넉함) |
+| **`gemini-3.0-flash-preview`** | ✨ **NEW** | - | - | **무료 (Free)**, 대기열 있음 (Fallback용) |
 
 - **RPM**: Requests Per Minute (분당 요청 수)
 - **RPD**: Requests Per Day (일일 요청 수)
@@ -132,7 +130,7 @@ Groq LPU 기반의 초고속 추론 엔진으로, AI Engine의 **Supervisor(관�
 | 모델 | 용도 | 상태 | Free Tier 한도 (Est.) |
 |---|---|---|---|
 | **`llama-3.3-70b-versatile`** | Reporter (RAG/심층분석) | ✅ **Active** | ~6,000 TPM / 30 RPM |
-| **`llama-3.1-8b-instant`** | Supervisor (라우팅) | ✅ **Active** | ~30,000 TPM / 30 RPM |
+| **`llama-3.1-8b-instant`** | Backup Supervisor | ⚠️ **Backup** | ~30,000 TPM / 30 RPM |
 | `mixtral-8x7b-32768` | Legacy | ⚠️ **Backup** | - |
 
 ### ⚠️ Groq 주의사항
