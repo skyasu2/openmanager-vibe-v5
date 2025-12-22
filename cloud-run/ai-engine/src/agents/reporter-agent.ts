@@ -8,7 +8,7 @@
  * - On-demand only - 백그라운드 작업 금지
  */
 
-import { AIMessage } from '@langchain/core/messages';
+import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { AgentExecutionError, getErrorMessage } from '../lib/errors';
@@ -300,7 +300,7 @@ ${JSON.stringify(commandResult, null, 2)}
 한국어로 작성하고, 전문적이면서도 이해하기 쉽게 설명해주세요.`;
 
     const response = await model.invoke([
-      { role: 'user', content: reportPrompt },
+      new HumanMessage(reportPrompt),
     ]);
 
     const finalContent =
