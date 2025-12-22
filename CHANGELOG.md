@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.9](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.8...v5.83.9) (2025-12-22)
+
+
+### Features
+
+* **api:** unified-stream 호환 프록시 및 마이그레이션 가이드 추가 ([0fb5346](https://github.com/skyasu2/openmanager-vibe-v5/commit/0fb5346bfc62e6364ec07af933acf5c2f0123d35))
+
+
+### Bug Fixes
+
+* **api:** Codex 리뷰 반영 - maxDuration 재수출 및 H1 일관성 수정 ([b63c392](https://github.com/skyasu2/openmanager-vibe-v5/commit/b63c3924ec593b7caaae775c9ec719daa6cef777))
+* **cloud-run:** 환경변수 일관성 개선 및 시크릿 마운트 수정 ([88d3ad2](https://github.com/skyasu2/openmanager-vibe-v5/commit/88d3ad2c55732256e827926ee96b86d07b521cb0))
+* **test:** MetricsProvider 테스트 개선 (Codex 리뷰 반영) ([c244487](https://github.com/skyasu2/openmanager-vibe-v5/commit/c24448758d3a45fc726892686964542fa7656612))
+
 ### [5.83.8](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.7...v5.83.8) (2025-12-21)
 
 
