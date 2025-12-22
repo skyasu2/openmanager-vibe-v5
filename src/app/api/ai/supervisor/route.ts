@@ -70,8 +70,9 @@ function createDataStreamParserTransform(): TransformStream<
         const trimmed = line.trim();
         if (!trimmed) continue;
 
-        // Data Stream Protocol 파싱: N:"content" 또는 N:content
-        const match = trimmed.match(/^(\d+):(.*)$/);
+        // Data Stream Protocol 파싱: N:"content", d:{...} 등
+        // 숫자 접두사 (0, 2, 3, 8) 또는 문자 접두사 (d, e) 매칭
+        const match = trimmed.match(/^(\d+|[a-z]):(.*)$/);
         if (match && match[1] && match[2] !== undefined) {
           const prefix = match[1];
           const content = match[2];
@@ -126,6 +127,16 @@ function createDataStreamParserTransform(): TransformStream<
               // 메시지 어노테이션 (무시)
               break;
             }
+            case 'd': {
+              // Finish 메시지 (무시 - finishReason, usage 등 메타데이터)
+              console.log('[StreamParser] Finish:', content.slice(0, 50));
+              break;
+            }
+            case 'e': {
+              // Error 메시지 (d와 유사한 형식)
+              console.log('[StreamParser] Stream error:', content.slice(0, 100));
+              break;
+            }
             default:
               // 알 수 없는 프리픽스 - 원본 그대로 전달
               controller.enqueue(encoder.encode(trimmed));
@@ -139,8 +150,9 @@ function createDataStreamParserTransform(): TransformStream<
     flush(controller) {
       // 남은 버퍼 처리
       if (buffer.trim()) {
-        const match = buffer.trim().match(/^(\d+):(.*)$/);
+        const match = buffer.trim().match(/^(\d+|[a-z]):(.*)$/);
         if (match && match[1] === '0' && match[2] !== undefined) {
+          // 텍스트 콘텐츠만 출력
           try {
             const text = JSON.parse(match[2]);
             if (typeof text === 'string') {
@@ -149,6 +161,8 @@ function createDataStreamParserTransform(): TransformStream<
           } catch {
             controller.enqueue(encoder.encode(buffer));
           }
+        } else if (match && match[1] && ['d', 'e', '2', '8'].includes(match[1])) {
+          // 메타데이터 접두사 무시
         } else {
           controller.enqueue(encoder.encode(buffer));
         }
