@@ -3,6 +3,7 @@ import {
   getDataAtMinute,
 } from '../../data/fixed-24h-metrics';
 import type { EnhancedServerMetrics } from '../../types/server-metrics';
+import { determineServerStatus } from '../../config/status-thresholds';
 
 /**
  * Load Server Data directly from Fixed 24h Dataset (SSOT)
@@ -30,10 +31,8 @@ export async function loadHourlyScenarioData(): Promise<
       const network = metric?.network ?? 0;
       const logs = metric?.logs ?? [];
 
-      // Determine Status
-      let status: 'online' | 'warning' | 'critical' = 'online';
-      if (cpu >= 80) status = 'critical';
-      else if (cpu >= 60) status = 'warning';
+      // Determine Status (multi-metric, synced with Dashboard)
+      const status = determineServerStatus({ cpu, memory, disk, network });
 
       return {
         id: dataset.serverId,

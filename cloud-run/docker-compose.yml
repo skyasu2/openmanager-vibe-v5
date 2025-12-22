@@ -11,18 +11,21 @@ services:
       - NODE_ENV=development
       - PORT=8080
       - RUST_ML_SERVICE_URL=http://rust-inference:8080
+      # ============================================
+      # Cloud Run Synced Environment Variables
+      # Matches GCP Secret Manager mapping exactly
+      # ============================================
+      # API Authentication
       - CLOUD_RUN_API_SECRET=${CLOUD_RUN_API_SECRET:-test-secret}
-      # Gemini API Keys (Primary & Secondary for Failover)
-      - GEMINI_API_KEY_PRIMARY=${GEMINI_API_KEY_PRIMARY}
+      # Gemini API Keys (Primary uses GOOGLE_API_KEY for Cloud Run compatibility)
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - GEMINI_API_KEY_SECONDARY=${GEMINI_API_KEY_SECONDARY}
-      # Google AI Keys (Alternative naming)
-      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
-      - GOOGLE_AI_API_KEY_SECONDARY=${GOOGLE_AI_API_KEY_SECONDARY}
       # Groq API Key (for LangGraph Supervisor)
       - GROQ_API_KEY=${GROQ_API_KEY}
       # Supabase Configuration
-      - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_DIRECT_URL=${SUPABASE_DIRECT_URL}
     depends_on:
       - rust-inference
     networks:

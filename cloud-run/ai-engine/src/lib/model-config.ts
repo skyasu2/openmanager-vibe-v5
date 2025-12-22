@@ -152,20 +152,20 @@ export interface ModelOptions {
 
 export const AGENT_MODEL_CONFIG = {
   supervisor: {
-    provider: 'groq' as const,
-    model: 'llama-3.3-70b-versatile' as GroqModel,
-    temperature: 0.2,
+    provider: 'google' as const, // Gemini for tool calling support
+    model: AI_MODELS.FLASH as GeminiModel,
+    temperature: 0.1, // Lower for more deterministic routing
     maxOutputTokens: 512,
   },
   nlq: {
-    provider: 'google' as const,
-    model: AI_MODELS.FLASH as GeminiModel,
+    provider: 'groq' as const,
+    model: 'llama-3.3-70b-versatile' as GroqModel,
     temperature: 0.3,
     maxOutputTokens: 1024,
   },
   analyst: {
-    provider: 'google' as const,
-    model: AI_MODELS.FLASH as GeminiModel, // Changed from PRO (100 RPD) to FLASH (500 RPD) for better free tier usage
+    provider: 'groq' as const,
+    model: 'llama-3.3-70b-versatile' as GroqModel,
     temperature: 0.2,
     maxOutputTokens: 2048,
   },
@@ -267,25 +267,25 @@ export function getModelForAgent(
   });
 }
 
-export function getSupervisorModel(): ChatGroq {
+export function getSupervisorModel(): ChatGoogleGenerativeAI {
   const config = AGENT_MODEL_CONFIG.supervisor;
+  return createGeminiModel(config.model as GeminiModel, {
+    temperature: config.temperature,
+    maxOutputTokens: config.maxOutputTokens,
+  });
+}
+
+export function getNLQModel(): ChatGroq {
+  const config = AGENT_MODEL_CONFIG.nlq;
   return createGroqModel(config.model as GroqModel, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });
 }
 
-export function getNLQModel(): ChatGoogleGenerativeAI {
-  const config = AGENT_MODEL_CONFIG.nlq;
-  return createGeminiModel(config.model as GeminiModel, {
-    temperature: config.temperature,
-    maxOutputTokens: config.maxOutputTokens,
-  });
-}
-
-export function getAnalystModel(): ChatGoogleGenerativeAI {
+export function getAnalystModel(): ChatGroq {
   const config = AGENT_MODEL_CONFIG.analyst;
-  return createGeminiModel(config.model as GeminiModel, {
+  return createGroqModel(config.model as GroqModel, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });

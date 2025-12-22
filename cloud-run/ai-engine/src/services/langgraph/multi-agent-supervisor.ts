@@ -3,7 +3,7 @@
  * Cloud Run Standalone Implementation
  */
 
-import { HumanMessage } from '@langchain/core/messages';
+import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { createSupervisor } from '@langchain/langgraph-supervisor';
 import {
@@ -34,6 +34,65 @@ import {
 } from '../../lib/model-config';
 
 // ============================================================================
+// 0. Groq Message Compatibility Helper
+// ============================================================================
+
+/**
+ * Creates a stateModifier function that:
+ * 1. Adds a system prompt
+ * 2. Filters out tool-call messages that Groq cannot process
+ * 3. Ensures all message content is string-based
+ *
+ * This is necessary because Gemini (Supervisor) generates tool-call messages
+ * with array-based content that Groq's API rejects.
+ */
+function createGroqCompatibleStateModifier(systemPrompt: string) {
+  return (state: { messages: BaseMessage[] }): BaseMessage[] => {
+    const filteredMessages: BaseMessage[] = [];
+
+    // Add system prompt first
+    filteredMessages.push(new SystemMessage(systemPrompt));
+
+    // Filter and transform messages for Groq compatibility
+    for (const msg of state.messages) {
+      // Skip tool-call messages (they have complex content structures)
+      // Also skip internal handoff messages from supervisor
+      const content = msg.content;
+
+      // Check if content is a string (Groq-compatible)
+      if (typeof content === 'string') {
+        // Skip internal supervisor handoff messages
+        if (content.includes('Successfully transferred') ||
+            content.includes('Transferring back to')) {
+          continue;
+        }
+        filteredMessages.push(msg);
+      }
+      // If content is an array, try to extract text parts only
+      else if (Array.isArray(content)) {
+        const textParts = content
+          .filter((part): part is { type: 'text'; text: string } =>
+            typeof part === 'object' && part !== null && part.type === 'text'
+          )
+          .map(part => part.text)
+          .join('\n');
+
+        if (textParts.length > 0) {
+          // Create a new message with string content
+          if (msg._getType() === 'human') {
+            filteredMessages.push(new HumanMessage(textParts));
+          } else if (msg._getType() === 'ai') {
+            filteredMessages.push(new AIMessage(textParts));
+          }
+        }
+      }
+    }
+
+    return filteredMessages;
+  };
+}
+
+// ============================================================================
 // 1. Worker Agent Creation
 // ============================================================================
 
@@ -41,22 +100,35 @@ import {
  * Create NLQ Agent - Server metrics queries
  */
 function createNLQAgent() {
-  return createReactAgent({
-    llm: getNLQModel(),
-    tools: [getServerMetricsTool, getServerLogsTool],
-    name: 'nlq_agent',
-    stateModifier: `NLQ Agent - 서버 메트릭/로그 조회 전문
+  const systemPrompt = `NLQ Agent - 서버 메트릭/로그 조회 전문
 
-## 도구 선택
-- 로그/에러 → getServerLogs
-- 상태/메트릭 → getServerMetrics
+## 도구 사용 규칙
+1. **전체 서버 조회**: "서버 상태", "전체 현황" 등 → serverId 생략 (필수!)
+2. **특정 서버 조회**: "WEB-01 상태" 등 → serverId 지정
+3. 로그/에러 조회 → getServerLogs
+4. 상태/메트릭 조회 → getServerMetrics
 
-## 응답 형식 (필수)
+## 전체 서버 응답 형식 (serverId 없이 조회 시)
+📊 **전체 서버 현황** (총 N대)
+- ✅ 정상: N대
+- ⚠️ 주의: N대 (서버명 나열)
+- 🔴 위험: N대 (서버명 나열)
+
+**주요 이상 서버:**
+• [서버명] CPU X% / Memory X% / Disk X% - 상태
+
+## 특정 서버 응답 형식
 • [서버명] CPU: X% | Memory: X% | Disk: X%
 • 상태: 정상/주의/위험
 • 특이사항: (있으면 1줄)
 
-⚠️ 숫자 나열 금지. 3줄 이내 요약만.`,
+⚠️ 중요: 특정 서버를 명시하지 않으면 반드시 serverId를 생략하여 전체 조회!`;
+
+  return createReactAgent({
+    llm: getNLQModel(),
+    tools: [getServerMetricsTool, getServerLogsTool],
+    name: 'nlq_agent',
+    stateModifier: createGroqCompatibleStateModifier(systemPrompt),
   });
 }
 
@@ -64,11 +136,7 @@ function createNLQAgent() {
  * Create Analyst Agent - Pattern analysis & anomaly detection
  */
 function createAnalystAgent() {
-  return createReactAgent({
-    llm: getAnalystModel(),
-    tools: [detectAnomaliesTool, predictTrendsTool, analyzePatternTool],
-    name: 'analyst_agent',
-    stateModifier: `Analyst Agent - 패턴 분석/이상 탐지 전문
+  const systemPrompt = `Analyst Agent - 패턴 분석/이상 탐지 전문
 
 ## 도구
 - detectAnomalies: 이상치 감지
@@ -80,7 +148,13 @@ function createAnalystAgent() {
 **패턴**: (발견된 패턴 해석)
 **조치**: (필요시 권장사항)
 
-⚠️ 통계 수치만 나열 금지. 의미 해석 중심으로 3섹션 이내.`,
+⚠️ 통계 수치만 나열 금지. 의미 해석 중심으로 3섹션 이내.`;
+
+  return createReactAgent({
+    llm: getAnalystModel(),
+    tools: [detectAnomaliesTool, predictTrendsTool, analyzePatternTool],
+    name: 'analyst_agent',
+    stateModifier: createGroqCompatibleStateModifier(systemPrompt),
   });
 }
 
@@ -88,11 +162,7 @@ function createAnalystAgent() {
  * Create Reporter Agent - Incident reports & RAG
  */
 function createReporterAgent() {
-  return createReactAgent({
-    llm: getReporterModel(),
-    tools: [searchKnowledgeBaseTool, recommendCommandsTool],
-    name: 'reporter_agent',
-    stateModifier: `Reporter Agent - 인시던트 리포트 전문
+  const systemPrompt = `Reporter Agent - 인시던트 리포트 전문
 
 ## 도구
 - searchKnowledgeBase: RAG 검색
@@ -111,7 +181,13 @@ function createReporterAgent() {
 ### ⌨️ 명령어
 \`command\` - 설명
 
-⚠️ 서론/인사말 금지. 템플릿 형식만 출력.`,
+⚠️ 서론/인사말 금지. 템플릿 형식만 출력.`;
+
+  return createReactAgent({
+    llm: getReporterModel(),
+    tools: [searchKnowledgeBaseTool, recommendCommandsTool],
+    name: 'reporter_agent',
+    stateModifier: createGroqCompatibleStateModifier(systemPrompt),
   });
 }
 
@@ -127,9 +203,10 @@ const SUPERVISOR_PROMPT = `당신은 OpenManager VIBE의 Multi-Agent Supervisor�
 - **reporter_agent**: 인시던트 리포트, 장애 분석, RAG 검색
 
 ## 라우팅 규칙
-- 단순 조회 → nlq_agent
-- 분석/예측 → analyst_agent
-- 장애/리포트 → reporter_agent
+- "서버 상태", "전체 현황", "서버 확인" → nlq_agent (전체 서버 조회 필요)
+- "WEB-01 상태" 등 특정 서버 언급 → nlq_agent (해당 서버만 조회)
+- 분석/예측/트렌드 → analyst_agent
+- 장애/리포트/원인 → reporter_agent
 - 인사말 → 직접 응답 (1문장)
 
 ## 응답 지침
@@ -395,6 +472,8 @@ function detectApprovalRequired(
  * Create AI SDK compatible streaming response
  * Uses invoke() for reliability with Groq, then simulates streaming
  * Includes SSE approval events for Human-in-the-Loop
+ *
+ * v5.84.0: Added keep-alive pings to prevent Vercel/Cloud Run timeout
  */
 export async function createSupervisorStreamResponse(
   query: string,
@@ -406,35 +485,114 @@ export async function createSupervisorStreamResponse(
   return new ReadableStream({
     async start(controller) {
       let isClosed = false;
+      let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 
-      const safeEnqueue = (data: Uint8Array) => {
-        if (!isClosed) {
+      const safeEnqueue = (data: Uint8Array): boolean => {
+        // Check both our flag AND controller's internal state
+        if (isClosed) return false;
+
+        try {
+          // Double-check controller state before enqueue
+          if (controller.desiredSize === null) {
+            isClosed = true;
+            return false;
+          }
           controller.enqueue(data);
+          return true;
+        } catch {
+          // Controller may have been closed externally (client disconnect)
+          isClosed = true;
+          return false;
         }
       };
 
       const safeClose = () => {
+        // Clear keep-alive interval first
+        if (keepAliveInterval) {
+          clearInterval(keepAliveInterval);
+          keepAliveInterval = null;
+        }
+
         if (!isClosed) {
           isClosed = true;
-          controller.close();
+          try {
+            controller.close();
+          } catch {
+            // Controller may have been closed externally
+          }
         }
+      };
+
+      // Start keep-alive ping (every 10 seconds)
+      // Uses AI SDK annotation format '8:' for progress updates
+      const startKeepAlive = () => {
+        let pingCount = 0;
+        keepAliveInterval = setInterval(() => {
+          pingCount++;
+          if (isClosed) {
+            if (keepAliveInterval) clearInterval(keepAliveInterval);
+            return;
+          }
+
+          // Send progress annotation (AI SDK v5 format)
+          const progressMessages = [
+            '🔄 AI 에이전트가 분석 중입니다...',
+            '📊 서버 데이터를 처리하고 있습니다...',
+            '🧠 패턴을 분석하고 있습니다...',
+            '⏳ 잠시만 기다려주세요...',
+          ];
+          const message = progressMessages[pingCount % progressMessages.length];
+
+          // Use annotation format for keep-alive (doesn't affect main response)
+          const keepAliveMessage = `8:${JSON.stringify([
+            { type: 'progress', message, timestamp: Date.now() },
+          ])}\n`;
+
+          if (!safeEnqueue(encoder.encode(keepAliveMessage))) {
+            // Stream was closed, stop keep-alive
+            if (keepAliveInterval) clearInterval(keepAliveInterval);
+          }
+        }, 10000); // 10 second interval
       };
 
       try {
         // 🚀 Anti-Timeout: Immediate First Byte (Vercel 504 방지)
         const thinkingMessage = `0:${JSON.stringify('🔍 분석을 시작합니다...\n\n')}\n`;
-        safeEnqueue(encoder.encode(thinkingMessage));
+        if (!safeEnqueue(encoder.encode(thinkingMessage))) {
+          console.log('⚠️ Stream closed before processing started');
+          return;
+        }
+
+        // Start keep-alive pings
+        startKeepAlive();
 
         // Use invoke() for more reliable Groq integration
         const { response } = await executeSupervisor(query, {
           sessionId: effectiveSessionId,
         });
 
+        // Stop keep-alive before sending response
+        if (keepAliveInterval) {
+          clearInterval(keepAliveInterval);
+          keepAliveInterval = null;
+        }
+
+        // Check if stream was closed during supervisor execution
+        if (isClosed) {
+          console.log(
+            '⚠️ Stream closed during supervisor execution, skipping response'
+          );
+          return;
+        }
+
         if (response) {
           // AI SDK v5 Data Stream Protocol: text part
           // Format: '0:"text"\n'
           const dataStreamText = `0:${JSON.stringify(response)}\n`;
-          safeEnqueue(encoder.encode(dataStreamText));
+          if (!safeEnqueue(encoder.encode(dataStreamText))) {
+            console.log('⚠️ Stream closed, could not send response');
+            return;
+          }
 
           // Check if response requires human approval
           const approval = detectApprovalRequired(response, query);
@@ -479,11 +637,25 @@ export async function createSupervisorStreamResponse(
 
         safeClose();
       } catch (error) {
-        console.error('❌ Supervisor error:', error);
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
-        const errorStream = `3:${JSON.stringify(errorMessage)}\n`;
-        safeEnqueue(encoder.encode(errorStream));
+        // Stop keep-alive on error
+        if (keepAliveInterval) {
+          clearInterval(keepAliveInterval);
+          keepAliveInterval = null;
+        }
+
+        // Only log if stream is still open (avoid noise from closed streams)
+        if (!isClosed) {
+          console.error('❌ Supervisor error:', error);
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
+          const errorStream = `3:${JSON.stringify(errorMessage)}\n`;
+          safeEnqueue(encoder.encode(errorStream));
+        } else {
+          console.log(
+            '⚠️ Supervisor error occurred after stream closed:',
+            error instanceof Error ? error.message : 'Unknown'
+          );
+        }
         safeClose();
       }
     },
