@@ -1,10 +1,10 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-18
+**마지막 업데이트**: 2025-12-22
 
 ---
 
-## 🏗️ Technical Stack (v5.83.1)
+## 🏗️ Technical Stack (v5.83.9)
 
 **Core Frameworks** (2025 Standard)
 - **Next.js**: `v16.0.10` (App Router, Server Components, Security Patch)
@@ -62,7 +62,17 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 12-14)
+## 🔧 최근 유지보수 (2025-12-09 ~ 12-22)
+
+**AI 어시스턴트 스트리밍 수정 (v5.83.9, 2025-12-22)**
+- **문제 1**: AI SDK v5가 `parts` 배열 형식으로 메시지 전송 → Cloud Run 503 에러
+  - 해결: `normalizeMessagesForCloudRun()` 함수 추가 (parts → content 변환)
+- **문제 2**: `DefaultChatTransport`가 SSE JSON 기대 → Cloud Run plain text 스트림과 불일치
+  - 해결: `TextStreamChatTransport`로 변경 (plain text 스트림 처리)
+- **변경 파일**:
+  - `src/domains/ai-sidebar/components/AISidebarV4.tsx`
+  - `src/app/api/ai/supervisor/route.ts`
+- **검증**: Vercel 프로덕션에서 브라우저 테스트 통과
 
 **기술 부채 검토 완료 (v5.81.0)**
 - **Next.js 보안 패치**: 16.0.7 → 16.0.10 (CVE 대응)

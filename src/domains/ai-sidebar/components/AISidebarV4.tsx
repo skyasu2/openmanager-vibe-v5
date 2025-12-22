@@ -343,8 +343,25 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     [isProcessingApproval]
   );
 
+  // ============================================================================
   // Vercel AI SDK useChat Hook (@ai-sdk/react v2.x)
-  // TextStreamChatTransport: Cloud Run의 plain text 스트림과 호환
+  // ============================================================================
+  //
+  // Transport 선택 (2025-12-22 v5.83.9 수정):
+  // - TextStreamChatTransport 사용 (DefaultChatTransport에서 변경)
+  //
+  // 이유:
+  // - Cloud Run ai-engine은 plain text 스트림 (Content-Type: text/plain) 반환
+  // - DefaultChatTransport는 SSE JSON 형식 (data: {"type":"text",...}) 기대
+  // - 형식 불일치로 UI에 응답이 렌더링되지 않는 문제 발생
+  // - TextStreamChatTransport는 plain text 스트림을 올바르게 처리
+  //
+  // sessionId 전달:
+  // - TextStreamChatTransport는 body 전송 미지원
+  // - Query parameter로 sessionId 전달 (?sessionId=xxx)
+  // - supervisor/route.ts에서 query param으로 수신
+  //
+  // ============================================================================
   const { messages, sendMessage, status, setMessages, stop } = useChat({
     transport: new TextStreamChatTransport({
       api: `/api/ai/supervisor?sessionId=${encodeURIComponent(chatSessionIdRef.current)}`,

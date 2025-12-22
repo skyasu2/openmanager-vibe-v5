@@ -9,6 +9,12 @@
  *
  * Note: Vercel LangGraph removed to reduce bundle size (~2MB)
  * and simplify architecture. All AI processing handled by Cloud Run.
+ *
+ * Changes (2025-12-22 v5.83.9):
+ * - Added normalizeMessagesForCloudRun(): AI SDK v5 parts[] → Cloud Run content 변환
+ * - Added sessionId query parameter 지원 (TextStreamChatTransport 호환)
+ * - 문제: AI SDK v5는 parts 배열 형식, Cloud Run은 content 문자열 기대
+ * - 해결: 메시지 정규화 + transport 호환성 개선
  */
 
 import type { NextRequest } from 'next/server';
@@ -96,6 +102,15 @@ function extractTextFromMessage(
 /**
  * AI SDK v5 메시지를 Cloud Run 호환 형식으로 정규화
  * parts 배열 → content 문자열로 변환
+ *
+ * @description (2025-12-22 v5.83.9 추가)
+ * AI SDK v5 UIMessage 형식:
+ *   { role: 'user', parts: [{ type: 'text', text: '...' }] }
+ *
+ * Cloud Run 기대 형식:
+ *   { role: 'user', content: '...' }
+ *
+ * 이 함수가 없으면 Cloud Run이 빈 메시지로 처리하여 503 에러 발생
  */
 function normalizeMessagesForCloudRun(
   messages: z.infer<typeof messageSchema>[]
@@ -140,7 +155,13 @@ export const POST = withRateLimit(
 
       const { messages, sessionId: bodySessionId } = parseResult.data;
 
-      // Query parameter에서도 sessionId 확인 (TextStreamChatTransport 호환)
+      // ====================================================================
+      // sessionId 추출 (2025-12-22 v5.83.9 수정)
+      // ====================================================================
+      // TextStreamChatTransport는 body 전송을 지원하지 않아 query param 사용
+      // - 클라이언트: /api/ai/supervisor?sessionId=xxx
+      // - body.sessionId는 레거시 호환성을 위해 유지
+      // ====================================================================
       const url = new URL(req.url);
       const querySessionId = url.searchParams.get('sessionId');
       const clientSessionId = querySessionId || bodySessionId;
