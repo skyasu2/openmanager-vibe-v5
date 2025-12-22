@@ -93,6 +93,21 @@ function extractTextFromMessage(
   return '';
 }
 
+/**
+ * AI SDK v5 메시지를 Cloud Run 호환 형식으로 정규화
+ * parts 배열 → content 문자열로 변환
+ */
+function normalizeMessagesForCloudRun(
+  messages: z.infer<typeof messageSchema>[]
+): { role: string; content: string }[] {
+  return messages
+    .map((msg) => ({
+      role: msg.role,
+      content: extractTextFromMessage(msg),
+    }))
+    .filter((msg) => msg.content.length > 0);
+}
+
 // ============================================================================
 // 🧠 Main Handler - LangGraph Multi-Agent System
 // ============================================================================
@@ -167,11 +182,17 @@ export const POST = withRateLimit(
       if (isCloudRunEnabled()) {
         console.log('☁️ [Supervisor] Using Cloud Run backend');
 
+        // AI SDK v5 parts 형식 → Cloud Run content 형식으로 정규화
+        const normalizedMessages = normalizeMessagesForCloudRun(messages);
+        console.log(
+          `📝 [Supervisor] Normalized ${messages.length} messages → ${normalizedMessages.length} for Cloud Run`
+        );
+
         if (wantsStream) {
           // Cloud Run 스트리밍 프록시
           const cloudStream = await proxyStreamToCloudRun({
             path: '/api/ai/supervisor',
-            body: { messages, sessionId },
+            body: { messages: normalizedMessages, sessionId },
           });
 
           if (cloudStream) {
@@ -191,7 +212,7 @@ export const POST = withRateLimit(
           // Cloud Run 단일 응답 프록시
           const proxyResult = await proxyToCloudRun({
             path: '/api/ai/supervisor',
-            body: { messages, sessionId },
+            body: { messages: normalizedMessages, sessionId },
           });
 
           if (proxyResult.success && proxyResult.data) {
