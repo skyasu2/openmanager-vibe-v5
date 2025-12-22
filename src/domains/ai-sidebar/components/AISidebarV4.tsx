@@ -1,7 +1,7 @@
 'use client';
 
 import { type UIMessage, useChat } from '@ai-sdk/react';
-import { TextStreamChatTransport } from 'ai';
+
 // Icons
 import { Bot, User } from 'lucide-react';
 import {
@@ -362,10 +362,12 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   // - supervisor/route.ts에서 query param으로 수신
   //
   // ============================================================================
+  // Transport 복구 (2025-12-22 19:30 Fix):
+  // - TextStreamChatTransport 제거: Backend가 Vercel Data Stream Protocol(`0:"..."`)을 반환하므로,
+  //   이를 Plain Text로 취급하면 프로토콜 자체가 화면에 출력되는 문제 발생.
+  // - 기본 Transport 사용 시 프로토콜이 정상 파싱됨.
   const { messages, sendMessage, status, setMessages, stop } = useChat({
-    transport: new TextStreamChatTransport({
-      api: `/api/ai/supervisor?sessionId=${encodeURIComponent(chatSessionIdRef.current)}`,
-    }),
+    api: `/api/ai/supervisor?sessionId=${encodeURIComponent(chatSessionIdRef.current)}`,
     onFinish: async () => {
       // Optional: Sync to global store if needed
       onMessageSend?.(input);
