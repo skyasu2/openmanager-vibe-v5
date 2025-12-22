@@ -138,7 +138,12 @@ export const POST = withRateLimit(
         );
       }
 
-      const { messages, sessionId: clientSessionId } = parseResult.data;
+      const { messages, sessionId: bodySessionId } = parseResult.data;
+
+      // Query parameter에서도 sessionId 확인 (TextStreamChatTransport 호환)
+      const url = new URL(req.url);
+      const querySessionId = url.searchParams.get('sessionId');
+      const clientSessionId = querySessionId || bodySessionId;
 
       // 2. 마지막 메시지에서 사용자 쿼리 추출 + 입력 정제
       const lastMessage =

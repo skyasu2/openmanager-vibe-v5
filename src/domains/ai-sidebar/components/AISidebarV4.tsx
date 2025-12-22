@@ -1,7 +1,7 @@
 'use client';
 
 import { type UIMessage, useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
+import { TextStreamChatTransport } from 'ai';
 // Icons
 import { Bot, User } from 'lucide-react';
 import {
@@ -344,12 +344,10 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   );
 
   // Vercel AI SDK useChat Hook (@ai-sdk/react v2.x)
+  // TextStreamChatTransport: Cloud Run의 plain text 스트림과 호환
   const { messages, sendMessage, status, setMessages, stop } = useChat({
-    // v2.x: transport 옵션으로 API 엔드포인트 설정
-    transport: new DefaultChatTransport({
-      api: '/api/ai/supervisor', // LangGraph Multi-Agent Supervisor
-      // 🔔 HITL: Cloud Run과 동일한 sessionId 전달
-      body: { sessionId: chatSessionIdRef.current },
+    transport: new TextStreamChatTransport({
+      api: `/api/ai/supervisor?sessionId=${encodeURIComponent(chatSessionIdRef.current)}`,
     }),
     onFinish: async () => {
       // Optional: Sync to global store if needed
