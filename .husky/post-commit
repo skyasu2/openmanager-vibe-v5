@@ -1,21 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-# Post-commit Hook: Background AI Code Review
-# 목적: 커밋 완료 후 백그라운드에서 자동 AI 코드 리뷰 실행
-# 변경 이력:
-#   - 2025-11-26: pre-commit에서 post-commit으로 이동 (커밋 블로킹 방지)
+# Post-commit Hook: Background AI Review (Cross-platform)
+# Windows/macOS/Linux compatible
+# Uses Node.js for cross-platform background process handling
 
-set -e
-
-echo "🚀 Post-commit validation started (background)..."
-
-# Run the orchestrator in the background, detached
-# nohup allows it to keep running even if the terminal closes (though in husky context it might be different, & is usually enough)
-(
-  nohup bash scripts/git/post-commit-background.sh > logs/post-commit.log 2>&1 &
-) &
-
-echo "✅ Background tasks launched."
-echo "💡 Logs: logs/post-commit.log"
-
-exit 0
+npm run hook:post-commit

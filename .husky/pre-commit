@@ -1,14 +1,10 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-# Pre-commit Hook: Code Quality Check
-# 목적: Biome 자동 수정 (staged files만)
-# Note: 문서/테스트 검증은 post-commit AI 리뷰로 대체됨
+# Pre-commit Hook: Code Quality Check (Cross-platform)
+# Windows/macOS/Linux compatible via Git Bash
 
-set -e
-
-# Biome: Check & Format (fast, staged files only)
 echo "🔍 Running Biome (Check & Format)..."
-npx @biomejs/biome check --write --staged --no-errors-on-unmatched || {
+npm run hook:pre-commit || {
   echo "❌ Biome check failed"
   exit 1
 }
