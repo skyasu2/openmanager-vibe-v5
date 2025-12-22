@@ -13,4 +13,4 @@
  * @see /api/ai/supervisor
  */
 
-export { POST } from '../supervisor/route';
+export { maxDuration, POST } from '../supervisor/route';
