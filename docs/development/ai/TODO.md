@@ -25,10 +25,16 @@
 
 ## Backlog
 
-### Context Compression System
-- [ ] `context-compression-design.md` 구현 (Phase 1: 토큰 카운터 + Trigger)
-- [ ] 하이브리드 버퍼 매니저 (Phase 2)
-- [ ] LLM 기반 Summarizer (Phase 3)
+### Context Compression System ⏳ (구현 계획 완료)
+**분석 결과**: 100% 오픈소스 (FREE) 구현 가능
+- `js-tiktoken` (MIT) + 기존 LangGraph 활용
+
+**구현 단계**:
+- [ ] Phase 1: Token Counter + Trigger (`js-tiktoken` 설치)
+- [ ] Phase 2: Hybrid Buffer Manager (기존 state-definition.ts 확장)
+- [ ] Phase 3: LLM Summarizer (기존 Gemini 활용)
+
+📄 상세: `context-compression-implementation-plan.md`
 
 ### Monitoring & Observability ✅ (이미 구현됨)
 - [x] Agent 실행 시간 로깅 (`token-usage-tracker.ts` - durationMs 필드)
@@ -49,9 +55,12 @@
 | Architecture Improvements | 2025-12-23 | 4 Tasks 완료 (Verifier/Cache/State/Context) |
 | Testing & Monitoring | 2025-12-23 | Unit/Integration Tests + Cache Monitor 추가 |
 
+| Context Compression 분석 | 2025-12-23 | 오픈소스 분석 완료, 구현 계획 수립 |
+
 ---
 
 _Related Docs:_
 - `architecture-improvements-plan.md` - 아키텍처 개선 상세
 - `async-job-architecture.md` - 비동기 작업 설계
 - `job-queue-implementation-plan.md` - Job Queue 구현
+- `context-compression-implementation-plan.md` - 컨텍스트 압축 구현 계획 ⭐ NEW
