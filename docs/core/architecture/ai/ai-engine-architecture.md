@@ -4,7 +4,7 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.83.7, Updated 2025-12-22)
+## Architecture (v5.83.9, Updated 2025-12-23)
 
 ### Deployment Mode
 
@@ -25,6 +25,7 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 | **NLQ Agent** | Llama 3.3-70b | Server metrics queries (Groq Inference) | `getServerMetrics` |
 | **Analyst Agent** | Llama 3.3-70b | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
 | **Reporter Agent** | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG), `recommendCommands` |
+| **Verifier Agent** | Gemini 2.5 Flash | Post-processing validation & safety check | `comprehensiveVerify` |
 
 ### Key Features
 
@@ -35,6 +36,10 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 - **Circuit Breaker**: Model health monitoring with automatic failover
 - **Session Persistence**: Supabase PostgresCheckpointer for conversation continuity
 
+- **Verifier Integration**: Dedicated agent for post-processing validation and safety checks (v5.85.0)
+- **Groq Compatibility**: Custom state modifier to adapt Gemini tool calls for Groq Llama models
+- **Protocol Adaptation**: Simulated SSE with Keep-Alive to prevent timeouts on Vercel/Cloud Run
+
 ### Agent Communication Patterns
 
 | Pattern | Description | Use Case |
@@ -42,6 +47,7 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 | **Return-to-Supervisor** | Agent sets `returnToSupervisor=true` | Need different agent's expertise |
 | **Command Pattern** | Explicit `toAgent` in DelegationRequest | Direct delegation to specific agent |
 | **HITL Interrupt** | `requiresApproval=true` triggers interrupt | Critical incident reports |
+| **Verification Loop** | Verifier checks output before response | Quality assurance & hallucination check |
 
 ## Architecture Diagram
 
@@ -66,9 +72,15 @@ graph TD
         Parallel --> Analyst
 
         Reporter -->|Critical Action| Approval{Approval Check}
-        Approval -->|Approved| Response[Response]
+        Approval -->|Approved| Verifier[Verifier Agent]
         Approval -->|Pending| Interrupt[Human Interrupt]
 
+        NLQ --> Verifier
+        Analyst --> Verifier
+        Direct --> Verifier
+
+        Verifier -->|Validated| Response[Response]
+        
         Analyst -->|ML Request| RustML[Rust Inference]
         RustML -->|Anomaly Detection| Analyst
         RustML -->|Trend Prediction| Analyst
@@ -177,19 +189,22 @@ interface ModelHealthState {
 ```
 
 ### Response Format (Streaming - AI SDK v5 Protocol)
+The Cloud Run engine uses a simulated streaming protocol compatible with Vercel AI SDK v5, enhanced with custom events.
 
 ```
 Headers:
 - Content-Type: text/event-stream; charset=utf-8
 - X-Vercel-AI-Data-Stream: v1
-- Cache-Control: no-cache
-- Connection: keep-alive
+- X-Backend: cloud-run
 
-Body:
-0:"안녕하세요! "
-0:"서버 상태를 확인해드릴게요.\n"
-d:{"finishReason":"stop"}
+Body Parts:
+0:"Hello! I'm checking the server status..."  // Text content
+8:[{"type":"progress","message":"Analyzing metrics..."}] // Custom annotation (Keep-alive)
+8:[{"type":"verification","isValid":true,"confidence":0.98}] // Verification result
+d:{"finishReason":"stop","verified":true}     // Finish signal
 ```
+
+> **Note**: The frontend proxy (`src/app/api/ai/supervisor/route.ts`) parses this stream and converts `0:` parts to plain text for the client, while handling `8:` parts for UI updates (progress, verification status).
 
 ### Additional Cloud Run Endpoints
 

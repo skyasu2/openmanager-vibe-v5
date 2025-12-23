@@ -9,9 +9,10 @@
 - [x] Caching Layer 추가 (TTL: 1분/5분/10분)
 - [x] AgentState 확장 (SharedContext)
 - [x] PostgreSQL Context Table (세션 컨텍스트 저장)
-- [ ] Unit Tests 추가 (verifier, cache-layer)
-- [ ] Integration Tests (Supervisor → Verifier 흐름)
-- [ ] Cache 히트율 모니터링 대시보드
+- [x] Unit Tests 추가 (verifier-agent.test.ts, cache-layer.test.ts)
+- [x] Integration Tests (supervisor-verifier.integration.test.ts)
+- [x] Cache 히트율 모니터링 유틸리티 (cache-monitor.ts)
+- [x] Token 사용량 추적 유틸리티 (token-usage-tracker.ts)
 
 ### Prompt Optimization
 - [x] Supervisor: 간결한 라우팅 규칙
@@ -19,8 +20,8 @@
 - [x] Analyst Agent: 3섹션 의미 해석
 - [x] Reporter Agent: 마크다운 템플릿
 - [x] Anti-Timeout: 즉시 첫 바이트 전송
-- [ ] Vercel timeout 테스트 (장시간 분석)
-- [ ] Token 사용량 검증 (Groq/Gemini 대시보드)
+- [x] Vercel timeout 테스트 (장시간 분석)
+- [x] Token 사용량 검증 (Groq/Gemini 대시보드)
 
 ## Backlog
 
@@ -38,10 +39,13 @@
 
 | Task | Date | Notes |
 |------|------|-------|
+| Token Usage Tracker | 2025-12-23 | Groq/Gemini 토큰 추적 + Quota 알림 |
+| Prompt Optimization Complete | 2025-12-23 | Vercel timeout E2E 테스트 포함 |
 | Cloud Run AI Engine 배포 | 2025-12-16 | LangGraph Multi-Agent |
 | Vercel LangGraph 제거 | 2025-12-17 | 번들 2MB 감소 |
 | GraphRAG 하이브리드 검색 | 2025-12-18 | Vector + Text + Graph |
 | Architecture Improvements | 2025-12-23 | 4 Tasks 완료 (Verifier/Cache/State/Context) |
+| Testing & Monitoring | 2025-12-23 | Unit/Integration Tests + Cache Monitor 추가 |
 
 ---
 

@@ -96,9 +96,10 @@ GOOGLE_AI_QUOTA_PROTECTION=true
 
 ### 폴백 구성
 ```
-1순위: gemini-2.5-flash (Free Tier)
-2순위: Local AI / 캐시
-3순위: 에러 응답 (Graceful Degradation)
+1순위: gemini-2.5-flash-lite (Free Tier 1,500 RPD)
+2순위: gemini-3.0-flash-preview (Failover)
+3순위: Local AI / 캐시
+4순위: 에러 응답 (Graceful Degradation)
 ```
 
 ---
