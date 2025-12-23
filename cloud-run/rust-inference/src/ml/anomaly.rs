@@ -1,7 +1,10 @@
 //! Anomaly Detection Algorithm
 //!
-//! Implements 26-hour moving average + 2σ threshold detection
-//! Ported from: src/lib/ai/monitoring/SimpleAnomalyDetector.ts
+//! Implements configurable moving average + 2σ threshold detection
+//! Default: 6-hour window (36 points at 10-min intervals)
+//!
+//! Ported from: src/lib/ai/monitoring/SimpleAnomalyDetector.ts (v1.2.0)
+//! Data source: FIXED_24H_DATASETS (SSOT - matches Dashboard)
 
 use crate::handlers::inference::{AnomalyPoint, AnomalyResponse, Statistics};
 

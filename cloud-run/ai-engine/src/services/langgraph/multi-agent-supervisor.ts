@@ -25,6 +25,13 @@ import {
   createSessionConfig,
   getAutoCheckpointer,
 } from '../../lib/checkpointer';
+// Context Compression Integration (Phase 3)
+import {
+  needsCompression,
+  getCompressionStats,
+  getSummarizer,
+  isCompressionDisabled,
+} from '../../lib/context-compression';
 import { RateLimitError } from '../../lib/errors';
 import { approvalStore } from '../approval/approval-store';
 import {
@@ -305,19 +312,86 @@ async function verifyAgentResponse(
 }
 
 // ============================================================================
-// 4. Execution Functions
+// 4. Context Compression Helper
+// ============================================================================
+
+/**
+ * Compress conversation history if needed
+ * Pre-processing step before supervisor invocation
+ *
+ * @param messages - Current conversation messages
+ * @returns Compressed messages or original if compression not needed
+ */
+async function compressIfNeeded(
+  messages: BaseMessage[]
+): Promise<{ messages: BaseMessage[]; wasCompressed: boolean; compressionInfo?: { originalCount: number; newCount: number; ratio: number } }> {
+  // Check if compression is globally disabled via environment variable
+  if (isCompressionDisabled()) {
+    return { messages, wasCompressed: false };
+  }
+
+  // Check if compression is needed (threshold: 85% context usage, configurable via COMPRESSION_THRESHOLD)
+  if (!needsCompression(messages)) {
+    return { messages, wasCompressed: false };
+  }
+
+  console.log('[Compression] Context compression triggered', {
+    messageCount: messages.length,
+  });
+
+  try {
+    const summarizer = getSummarizer();
+    const result = await summarizer.summarize(messages);
+
+    if (!result.wasCompressed) {
+      return { messages, wasCompressed: false };
+    }
+
+    // Build new message array: [summary, ...recentMessages]
+    const compressedMessages: BaseMessage[] = [
+      result.summaryMessage,
+      ...result.compressedBuffer.recentMessages,
+    ];
+
+    console.log('[Compression] Completed', {
+      originalCount: messages.length,
+      newCount: compressedMessages.length,
+      compressionRatio: result.compressedBuffer.metadata.compressionRatio,
+      processingTimeMs: result.processingTimeMs,
+    });
+
+    return {
+      messages: compressedMessages,
+      wasCompressed: true,
+      compressionInfo: {
+        originalCount: messages.length,
+        newCount: compressedMessages.length,
+        ratio: result.compressedBuffer.metadata.compressionRatio,
+      },
+    };
+  } catch (error) {
+    console.warn('[Compression] Failed, using original messages:', error);
+    return { messages, wasCompressed: false };
+  }
+}
+
+// ============================================================================
+// 5. Execution Functions
 // ============================================================================
 
 export interface SupervisorExecutionOptions {
   sessionId?: string;
   enableVerification?: boolean;
   verificationContext?: string;
+  /** Enable context compression for long conversations (default: true) */
+  enableCompression?: boolean;
 }
 
 /**
  * Execute supervisor workflow (single response)
  * Includes automatic Gemini API key failover on rate limit
  * v5.85.0: Added Verifier Agent post-processing for quality assurance
+ * v5.86.0: Added Context Compression for long conversations
  */
 export async function executeSupervisor(
   query: string,
@@ -326,11 +400,13 @@ export async function executeSupervisor(
   response: string;
   sessionId: string;
   verification?: VerificationResult | null;
+  compressionApplied?: boolean;
 }> {
   const sessionId = options.sessionId || `session_${Date.now()}`;
-  const { enableVerification = true, verificationContext } = options;
+  const { enableVerification = true, verificationContext, enableCompression = true } = options;
   const config = createSessionConfig(sessionId);
   const MAX_RETRIES = 2; // Primary key + secondary key
+  let compressionApplied = false;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
@@ -346,6 +422,17 @@ export async function executeSupervisor(
 
       // Extract final response from messages
       const messages = result.messages || [];
+
+      // === Context Compression (v5.86.0) ===
+      // Check if compression is needed after accumulating messages
+      if (enableCompression && messages.length > 0) {
+        const compressionResult = await compressIfNeeded(messages);
+        if (compressionResult.wasCompressed) {
+          compressionApplied = true;
+          console.log(`🗜️ [Supervisor] Context compressed: ${compressionResult.compressionInfo?.originalCount} → ${compressionResult.compressionInfo?.newCount} messages`);
+        }
+      }
+
       const lastMessage = messages[messages.length - 1];
       let response =
         typeof lastMessage?.content === 'string'
@@ -363,8 +450,8 @@ export async function executeSupervisor(
         verification = verifyResult.verification;
       }
 
-      console.log(`✅ [Supervisor] Completed. Session: ${sessionId}`);
-      return { response, sessionId, verification };
+      console.log(`✅ [Supervisor] Completed. Session: ${sessionId}, Compressed: ${compressionApplied}`);
+      return { response, sessionId, verification, compressionApplied };
     } catch (error) {
       // Check if this is a rate limit error
       if (RateLimitError.isRateLimitError(error)) {
@@ -649,10 +736,12 @@ export async function createSupervisorStreamResponse(
 
         // Use invoke() for more reliable Groq integration
         // v5.85.0: Verification enabled by default
-        const { response, verification } = await executeSupervisor(query, {
+        // v5.86.0: Context Compression enabled by default
+        const { response, verification, compressionApplied } = await executeSupervisor(query, {
           sessionId: effectiveSessionId,
           enableVerification: true,
           verificationContext: query,
+          enableCompression: true,
         });
 
         // Stop keep-alive before sending response
@@ -728,6 +817,19 @@ export async function createSupervisorStreamResponse(
                 `🔍 [Verifier] Detected ${verification.issues.length} issue(s), confidence: ${(verification.confidence * 100).toFixed(1)}%`
               );
             }
+          }
+
+          // v5.86.0: Emit compression result as annotation
+          if (compressionApplied) {
+            const compressionEvent = `8:${JSON.stringify([
+              {
+                type: 'compression',
+                applied: true,
+                timestamp: Date.now(),
+              },
+            ])}\n`;
+            safeEnqueue(encoder.encode(compressionEvent));
+            console.log('🗜️ [Compression] Context was compressed for this session');
           }
         }
 

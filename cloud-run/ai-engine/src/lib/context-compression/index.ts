@@ -39,6 +39,7 @@ export {
   shouldCompressMessages,
   needsCompression,
   getCompressionLevel,
+  isCompressionDisabled,
   DEFAULT_COMPRESSION_CONFIG,
   type CompressionLevel,
   type CompressionConfig,

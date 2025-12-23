@@ -37,23 +37,23 @@ describe('IntelligentMonitoringService', () => {
         timestamp: new Date().toISOString(),
       };
 
-      // Arrange: Create historical data (26 hours of data)
+      // Arrange: Create historical data (6 hours of data, 36 points at 10-min intervals)
       const now = Date.now();
       const historicalData: MetricHistory = {
-        cpu: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000, // 5-minute intervals
+        cpu: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000, // 10-minute intervals
           value: 70 + Math.random() * 10, // 70-80% baseline
         })),
-        memory: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        memory: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 75 + Math.random() * 10, // 75-85% baseline
         })),
-        disk: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        disk: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 60 + Math.random() * 10, // 60-70% baseline
         })),
-        network: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        network: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 45 + Math.random() * 10, // 45-55% baseline
         })),
       };
@@ -98,23 +98,23 @@ describe('IntelligentMonitoringService', () => {
         timestamp: new Date().toISOString(),
       };
 
-      // Arrange: Historical data with normal CPU
+      // Arrange: Historical data with normal CPU (6 hours, 36 points at 10-min intervals)
       const now = Date.now();
       const historicalData: MetricHistory = {
-        cpu: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        cpu: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 50 + Math.random() * 10, // Normal: 50-60%
         })),
-        memory: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        memory: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 70 + Math.random() * 10,
         })),
-        disk: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        disk: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 55 + Math.random() * 10,
         })),
-        network: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        network: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 45 + Math.random() * 10,
         })),
       };
@@ -145,25 +145,25 @@ describe('IntelligentMonitoringService', () => {
         timestamp: new Date().toISOString(),
       };
 
-      // Arrange: Historical data with INCREASING TREND
+      // Arrange: Historical data with INCREASING TREND (6 hours, 36 points at 10-min intervals)
       const now = Date.now();
       const historicalData: MetricHistory = {
         // CPU: Strong increasing trend in last 12 points (50% → 65%, 30% increase)
         // TrendPredictor uses last 12 points with slopeThreshold = 0.1 (10%)
-        cpu: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
-          value: i < 300 ? 50 : 50 + ((i - 300) / 12) * 15, // Last 12 points: 50% → 65%
+        cpu: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
+          value: i < 24 ? 50 : 50 + ((i - 24) / 12) * 15, // Last 12 points: 50% → 65%
         })),
-        memory: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        memory: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 70 + Math.random() * 10,
         })),
-        disk: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        disk: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 60 + Math.random() * 10,
         })),
-        network: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        network: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 45 + Math.random() * 10,
         })),
       };
@@ -190,20 +190,20 @@ describe('IntelligentMonitoringService', () => {
 
       const now = Date.now();
       const historicalData: MetricHistory = {
-        cpu: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        cpu: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 70 + Math.random() * 10,
         })),
-        memory: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        memory: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 75 + Math.random() * 10,
         })),
-        disk: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        disk: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 60 + Math.random() * 10,
         })),
-        network: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        network: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 45 + Math.random() * 10,
         })),
       };
@@ -234,20 +234,20 @@ describe('IntelligentMonitoringService', () => {
 
       const now = Date.now();
       const historicalData: MetricHistory = {
-        cpu: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        cpu: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 70 + Math.random() * 10,
         })),
-        memory: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        memory: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 75 + Math.random() * 10,
         })),
-        disk: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        disk: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 60 + Math.random() * 10,
         })),
-        network: Array.from({ length: 312 }, (_, i) => ({
-          timestamp: now - (311 - i) * 5 * 60 * 1000,
+        network: Array.from({ length: 36 }, (_, i) => ({
+          timestamp: now - (35 - i) * 10 * 60 * 1000,
           value: 45 + Math.random() * 10,
         })),
       };

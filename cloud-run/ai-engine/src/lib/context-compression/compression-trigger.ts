@@ -37,17 +37,52 @@ export interface CompressionDecision {
 }
 
 // ============================================================================
-// 2. Default Configuration
+// 2. Environment Variable Support (v5.86.0)
 // ============================================================================
 
+/**
+ * Parse environment variable with fallback
+ */
+function getEnvNumber(key: string, defaultValue: number): number {
+  const value = process.env[key];
+  if (value === undefined) return defaultValue;
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? defaultValue : parsed;
+}
+
+function getEnvBoolean(key: string, defaultValue: boolean): boolean {
+  const value = process.env[key];
+  if (value === undefined) return defaultValue;
+  return value.toLowerCase() === 'true' || value === '1';
+}
+
+/**
+ * Check if compression is disabled via environment variable
+ * Set DISABLE_COMPRESSION=true to disable compression (rollback option)
+ */
+export function isCompressionDisabled(): boolean {
+  return getEnvBoolean('DISABLE_COMPRESSION', false);
+}
+
+// ============================================================================
+// 3. Default Configuration (with ENV override)
+// ============================================================================
+
+/**
+ * Default compression configuration
+ * Can be overridden via environment variables:
+ * - COMPRESSION_THRESHOLD: Default 0.85 (85%)
+ * - EMERGENCY_COMPRESSION_THRESHOLD: Default 0.95 (95%)
+ * - DISABLE_COMPRESSION: Set to 'true' to disable compression
+ */
 export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
-  usageThreshold: 0.85,
-  emergencyThreshold: 0.95,
+  usageThreshold: getEnvNumber('COMPRESSION_THRESHOLD', 0.85),
+  emergencyThreshold: getEnvNumber('EMERGENCY_COMPRESSION_THRESHOLD', 0.95),
   minMessagesBeforeCompression: 6, // At least 3 exchanges (user + assistant)
 };
 
 // ============================================================================
-// 3. CompressionTrigger Class
+// 4. CompressionTrigger Class
 // ============================================================================
 
 export class CompressionTrigger {
