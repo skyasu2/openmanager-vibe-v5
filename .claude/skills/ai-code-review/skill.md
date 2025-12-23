@@ -31,7 +31,7 @@ Orchestrate external AI tools (Codex, Gemini, Claude) for code review with autom
 ## Context
 
 - **Project**: OpenManager VIBE v5.83.9
-- **Script Version**: auto-ai-review.sh v6.7.0
+- **Script Version**: auto-ai-review.sh v6.13.0
 - **Primary AI Rotation**: Codex → Gemini → Qwen (3-AI 1:1:1 순환)
 - **Fallback Chain**: Primary → Qwen → Claude
 - **Average Response**: ~10초

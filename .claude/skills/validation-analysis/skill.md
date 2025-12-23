@@ -29,7 +29,7 @@ Automated analysis of background validation results (Biome + TypeScript + AI Rev
 
 - **Project**: OpenManager VIBE v5.83.9
 - **Validation Workflow**: post-commit hook (background, 5min timeout)
-- **Output Location**: `/tmp/validation-complete-latest.md`
+- **Output Location**: `logs/validation/validation-complete-latest.md`
 - **Components**:
   - Biome: Full codebase lint + format check → `logs/lint-reports/`
   - TypeScript: Type check → `logs/typecheck-reports/`
@@ -40,7 +40,7 @@ Automated analysis of background validation results (Biome + TypeScript + AI Rev
 ### 1. Check Summary File Existence
 
 ```bash
-if [ -f "/tmp/validation-complete-latest.md" ]; then
+if [ -f "logs/validation/validation-complete-latest.md" ]; then
   echo "✅ Validation summary found"
 else
   echo "⚠️ No validation summary yet. Run 'git commit' first."
@@ -50,7 +50,7 @@ fi
 
 ### 2. Read and Parse Summary
 
-Read `/tmp/validation-complete-latest.md` and extract:
+Read `logs/validation/validation-complete-latest.md` and extract:
 - Commit hash
 - Timestamp
 - Report file paths
@@ -261,7 +261,7 @@ Biome + TypeScript + AI Review (parallel, 5min timeout)
   ↓
 create-summary.sh (aggregates results)
   ↓
-/tmp/validation-complete-latest.md
+logs/validation/validation-complete-latest.md
   ↓
 [User requests] "검증 결과"
   ↓
