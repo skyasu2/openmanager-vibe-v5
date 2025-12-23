@@ -26,6 +26,10 @@ const SKIP_TESTS = process.env.SKIP_TESTS === 'true';
 const SKIP_BUILD = process.env.SKIP_BUILD === 'true';
 const SKIP_NODE_CHECK = process.env.SKIP_NODE_CHECK === 'true';
 
+// WSL + Windows filesystem = limited validation mode
+// Native modules (rollup, lightningcss) won't work
+const isLimitedMode = isWSL && isWindowsFS;
+
 let testStatus = 'pending';
 
 function runNpm(args) {
@@ -99,6 +103,11 @@ function checkNodeModules() {
       const hasLinux = rollupContents.some(f => f.includes('linux'));
 
       if (hasWin32 && !hasLinux) {
+        // In limited mode, this is expected - just note it and continue
+        if (isLimitedMode) {
+          console.log('ℹ️  node_modules: Windows binaries detected (expected in Limited Mode)');
+          return true;
+        }
         console.log('');
         console.log('⚠️  node_modules was installed on Windows, not compatible with WSL');
         console.log('');
@@ -150,6 +159,15 @@ function checkWSLPerformance() {
 function runTests() {
   console.log('🧪 Running quick tests...');
 
+  // WSL + Windows filesystem: vitest uses rollup which requires native modules
+  if (isLimitedMode) {
+    testStatus = 'skipped';
+    console.log('⚪ Tests skipped (WSL + Windows filesystem mode)');
+    console.log('   → vitest requires native modules not available in this environment');
+    console.log('   → Run tests from Windows: npm run test:super-fast');
+    return;
+  }
+
   if (SKIP_TESTS) {
     testStatus = 'skipped';
     console.log('⚪ Tests skipped (SKIP_TESTS=true)');
@@ -179,6 +197,42 @@ function runBuildValidation() {
 
   if (SKIP_BUILD) {
     console.log('⚪ Build validation skipped (SKIP_BUILD=true)');
+    return;
+  }
+
+  // WSL + Windows filesystem: force limited validation (no full build)
+  // lightningcss and other native modules won't work
+  if (isLimitedMode) {
+    console.log('🔧 WSL Limited Mode: Running TypeScript + Lint only...');
+    console.log('   → Full build requires native modules not available in this environment');
+    console.log('   → Run full build from Windows: npm run build');
+    console.log('');
+
+    // Run TypeScript check
+    console.log('📝 TypeScript checking...');
+    const tsSuccess = runNpm(['run', 'type-check']);
+    if (!tsSuccess) {
+      console.log('❌ TypeScript check failed - push blocked');
+      console.log('');
+      console.log('💡 Fix: npm run type-check');
+      console.log('');
+      console.log('⚠️  Bypass: HUSKY=0 git push');
+      process.exit(1);
+    }
+
+    // Run Lint
+    console.log('🔍 Lint checking...');
+    const lintSuccess = runNpm(['run', 'lint']);
+    if (!lintSuccess) {
+      console.log('❌ Lint check failed - push blocked');
+      console.log('');
+      console.log('💡 Fix: npm run lint');
+      console.log('');
+      console.log('⚠️  Bypass: HUSKY=0 git push');
+      process.exit(1);
+    }
+
+    console.log('✅ WSL Limited Mode validation passed');
     return;
   }
 
@@ -255,8 +309,17 @@ function printSummary(duration) {
   console.log('🚀 Ready to push!');
   console.log('');
   console.log('📊 Summary:');
+  if (isLimitedMode) {
+    console.log('  🔧 Mode: WSL Limited (TypeScript + Lint only)');
+  }
   console.log(`  ${testStatus === 'passed' ? '✅' : '⚪'} Tests ${testStatus}`);
-  console.log('  ✅ Build/validation succeeded');
+  if (isLimitedMode) {
+    console.log('  ✅ TypeScript check passed');
+    console.log('  ✅ Lint check passed');
+    console.log('  ⚪ Full build skipped (run from Windows)');
+  } else {
+    console.log('  ✅ Build/validation succeeded');
+  }
   console.log('  ✅ Environment validated');
   console.log('');
 }
@@ -267,9 +330,20 @@ function main() {
 
   console.log('🔍 Pre-push validation starting...');
 
+  // Show mode at the start
+  if (isLimitedMode) {
+    console.log('');
+    console.log('🔧 WSL Limited Mode detected (/mnt/... filesystem)');
+    console.log('   Running: TypeScript + Lint only');
+    console.log('   Skipped: Tests, Full build (native modules required)');
+    console.log('');
+  }
+
   // Early checks
   checkRelease();
-  checkWSLPerformance();
+  if (!isLimitedMode) {
+    checkWSLPerformance();
+  }
 
   // node_modules health check (fail early if corrupted)
   if (!checkNodeModules()) {
