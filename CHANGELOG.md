@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.10](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.9...v5.83.10) (2025-12-23)
+
+
+### Features
+
+* **ai-engine:** implement 4 architecture improvements ([f82c1f9](https://github.com/skyasu2/openmanager-vibe-v5/commit/f82c1f911ad42ceae0de06d03d8b6ba146a64558))
+* **ai-engine:** implement context compression system (Phase 1-3) ([6be161e](https://github.com/skyasu2/openmanager-vibe-v5/commit/6be161e9954ab0e3e19480f624476ce94cfb56de))
+* **ai:** integrate context compression and sync anomaly detection ([9efb620](https://github.com/skyasu2/openmanager-vibe-v5/commit/9efb6202d6cba6fa107e486d2f844bca41d7cfd9))
+* **ai:** optimize engine with Gemini 2.5 Flash-Lite, quotas, and architecture docs ([363e210](https://github.com/skyasu2/openmanager-vibe-v5/commit/363e2109f61f656ad58accfe9cfaf31f471523f7))
+* **db:** add ai_jobs table migration for async job queue ([38b3496](https://github.com/skyasu2/openmanager-vibe-v5/commit/38b34968a1c75af21dd61cfaab3885f1bb571544))
+* **hooks:** add WSL Limited Mode for pre-push validation ([ef085e2](https://github.com/skyasu2/openmanager-vibe-v5/commit/ef085e242a1ac0b7dc43d8e953f2899e0cf2bce0))
+* **scripts:** add cumulative review for unreviewed commits (v6.12.0) ([bc1fdf4](https://github.com/skyasu2/openmanager-vibe-v5/commit/bc1fdf4281d10c8ae736138ed9c11331b86118d6))
+* **scripts:** add human review tracker and change validation storage ([4813150](https://github.com/skyasu2/openmanager-vibe-v5/commit/481315048c46d22e8051dcb7a0d3e4d26bfc3b54))
+
+
+### Bug Fixes
+
+* **ai-engine:** address Codex review issues in context compression ([5af96d2](https://github.com/skyasu2/openmanager-vibe-v5/commit/5af96d2ca2d4305742c6b992617e4e2aaa42f484))
+* **ai-engine:** use HumanMessage for Groq API compatibility ([5764c06](https://github.com/skyasu2/openmanager-vibe-v5/commit/5764c06a1501c333258db3d84005806aef2606be))
+* **ai:** revert to DefaultChatTransport to fix protocol parsing ([e3ab409](https://github.com/skyasu2/openmanager-vibe-v5/commit/e3ab40967dd76684b7d509178650e5375f14c5d0))
+* **ai:** TypeScript errors in stream parser and transport import ([8292442](https://github.com/skyasu2/openmanager-vibe-v5/commit/82924425063d015bfa1eff292c20cc652d403e84))
+* **hooks:** swap WSL/Windows limited mode logic ([e842656](https://github.com/skyasu2/openmanager-vibe-v5/commit/e842656dfcdac4f365080652ef030f2efdf65f62))
+* **scripts:** improve unreviewed commit detection in auto-ai-review (v6.13.0) ([b771a09](https://github.com/skyasu2/openmanager-vibe-v5/commit/b771a0993a2bc81c5da2a02ce14e0f5efee792d6))
+* **skills:** update validation paths and script versions ([8a69c4e](https://github.com/skyasu2/openmanager-vibe-v5/commit/8a69c4e146baf64309b374a3cde4bd2909aec099))
+* **stream:** add 'd:' and 'e:' prefix handling to Data Stream parser ([0358600](https://github.com/skyasu2/openmanager-vibe-v5/commit/0358600a437f4bd5f5c1c5b1bb0d8260bcf23242))
+* **tooling:** add cross-platform Biome wrapper for WSL/Windows ([3ee4d59](https://github.com/skyasu2/openmanager-vibe-v5/commit/3ee4d59c4221bd8c21e25a58ea03fefc3e1d24f8))
+* **ui:** revert ai transport to default ([e187efe](https://github.com/skyasu2/openmanager-vibe-v5/commit/e187efe82c13e2012b2d6010eff325c91b186c12))
+
 ### [5.83.9](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.8...v5.83.9) (2025-12-22)
 
 
