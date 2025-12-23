@@ -3,7 +3,6 @@
  * 패턴 분석 및 이상 탐지 전문 에이전트
  */
 
-import { AIMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import {
@@ -15,10 +14,7 @@ import {
   type TrendDataPoint,
 } from '../lib/ai/monitoring/TrendPredictor';
 import { clusterLogsRust } from '../lib/rust-ml-client';
-import { AgentExecutionError, getErrorMessage } from '../lib/errors';
-import { getAnalystModel } from '../lib/model-config';
-
-import type { AgentStateType, ToolResult } from '../lib/state-definition';
+import { getDataCache } from '../lib/cache-layer';
 import {
   loadHistoricalContext,
   loadHourlyScenarioData,
@@ -175,88 +171,103 @@ function toTrendDataPoints(metricPoints: MetricDataPoint[]): TrendDataPoint[] {
 
 export const detectAnomaliesTool = tool(
   async ({ serverId, metricType }) => {
-    const allServers = await loadHourlyScenarioData();
-    const server = serverId
-      ? allServers.find((s) => s.id === serverId)
-      : allServers[0];
+    const cache = getDataCache();
 
-    if (!server) {
-      return {
-        success: false,
-        error: '서버를 찾을 수 없습니다.',
-      };
-    }
+    // Cache analysis results with 10-minute TTL
+    return cache.getAnalysis(
+      'anomaly',
+      { serverId: serverId || 'first', metricType },
+      async () => {
+        // Cache metrics with 1-minute TTL
+        const allServers = await cache.getMetrics(
+          undefined,
+          () => loadHourlyScenarioData()
+        );
+        const server = serverId
+          ? allServers.find((s) => s.id === serverId)
+          : allServers[0];
 
-    const metrics = ['cpu', 'memory', 'disk'] as const;
-    const targetMetrics =
-      metricType === 'all' ? metrics : [metricType as (typeof metrics)[number]];
-
-    const results: Record<
-      string,
-      {
-        isAnomaly: boolean;
-        severity: string;
-        confidence: number;
-        currentValue: number;
-        threshold: { upper: number; lower: number };
-      }
-    > = {};
-
-    const usedEngine: 'rust' | 'typescript' = 'typescript';
-
-    // Load 6-hour history at 10-minute intervals (36 data points)
-    // - 6시간 × 6포인트/시간 = 36 포인트
-    // - 10분 간격으로 세밀한 트렌드 분석 가능
-    const historyPoints = await loadHistoricalContext(server.id || '', 6);
-
-    for (const metric of targetMetrics) {
-      const currentValue = server[metric as keyof typeof server] as number;
-
-      // Map history to MetricDataPoint
-      const history: MetricDataPoint[] = historyPoints.map((h) => ({
-        timestamp: h.timestamp,
-        value: h[metric] || 0,
-      }));
-
-      // Fallback if history load failed (36 points at 10-min intervals)
-      if (history.length < 5) {
-        const now = Date.now();
-        for (let i = 0; i < 36; i++) {
-          history.push({ timestamp: now - i * 600000, value: currentValue }); // 10분 = 600000ms
+        if (!server) {
+          return {
+            success: false as const,
+            error: '서버를 찾을 수 없습니다.',
+          };
         }
+
+        const metrics = ['cpu', 'memory', 'disk'] as const;
+        const targetMetrics =
+          metricType === 'all' ? metrics : [metricType as (typeof metrics)[number]];
+
+        const results: Record<
+          string,
+          {
+            isAnomaly: boolean;
+            severity: string;
+            confidence: number;
+            currentValue: number;
+            threshold: { upper: number; lower: number };
+          }
+        > = {};
+
+        const usedEngine: 'rust' | 'typescript' = 'typescript';
+
+        // Cache historical context with 5-minute TTL
+        const historyPoints = await cache.getHistoricalContext(
+          `history:${server.id || ''}:6h`,
+          () => loadHistoricalContext(server.id || '', 6)
+        );
+
+        for (const metric of targetMetrics) {
+          const currentValue = server[metric as keyof typeof server] as number;
+
+          // Map history to MetricDataPoint
+          const history: MetricDataPoint[] = historyPoints.map((h) => ({
+            timestamp: h.timestamp,
+            value: h[metric] || 0,
+          }));
+
+          // Fallback if history load failed (36 points at 10-min intervals)
+          if (history.length < 5) {
+            const now = Date.now();
+            for (let i = 0; i < 36; i++) {
+              history.push({ timestamp: now - i * 600000, value: currentValue }); // 10분 = 600000ms
+            }
+          }
+
+          // TypeScript implementation primarily for migration stability
+          const detector = getAnomalyDetector();
+          const detection = detector.detectAnomaly(currentValue, history);
+
+          results[metric] = {
+            isAnomaly: detection.isAnomaly,
+            severity: detection.severity,
+            confidence: Math.round(detection.confidence * 100) / 100,
+            currentValue,
+            threshold: {
+              upper: Math.round(detection.details.upperThreshold * 100) / 100,
+              lower: Math.round(detection.details.lowerThreshold * 100) / 100,
+            },
+          };
+        }
+
+        const anomalyCount = Object.values(results).filter(
+          (r) => r.isAnomaly
+        ).length;
+
+        return {
+          success: true as const,
+          serverId: server.id,
+          serverName: server.name,
+          anomalyCount,
+          hasAnomalies: anomalyCount > 0,
+          results,
+          timestamp: new Date().toISOString(),
+          _algorithm: '6-hour moving average + 2σ threshold (10-min intervals)',
+          _engine: usedEngine,
+          _cached: true,
+        };
       }
-
-      // TypeScript implementation primarily for migration stability
-      const detector = getAnomalyDetector();
-      const detection = detector.detectAnomaly(currentValue, history);
-
-      results[metric] = {
-        isAnomaly: detection.isAnomaly,
-        severity: detection.severity,
-        confidence: Math.round(detection.confidence * 100) / 100,
-        currentValue,
-        threshold: {
-          upper: Math.round(detection.details.upperThreshold * 100) / 100,
-          lower: Math.round(detection.details.lowerThreshold * 100) / 100,
-        },
-      };
-    }
-
-    const anomalyCount = Object.values(results).filter(
-      (r) => r.isAnomaly
-    ).length;
-
-    return {
-      success: true,
-      serverId: server.id,
-      serverName: server.name,
-      anomalyCount,
-      hasAnomalies: anomalyCount > 0,
-      results,
-      timestamp: new Date().toISOString(),
-      _algorithm: '6-hour moving average + 2σ threshold (10-min intervals)',
-      _engine: usedEngine,
-    };
+    );
   },
   {
     name: 'detectAnomalies',
@@ -277,88 +288,106 @@ export const detectAnomaliesTool = tool(
 
 export const predictTrendsTool = tool(
   async ({ serverId, metricType, predictionHours }) => {
-    const allServers = await loadHourlyScenarioData();
-    const server = serverId
-      ? allServers.find((s) => s.id === serverId)
-      : allServers[0];
+    const cache = getDataCache();
+    const hours = predictionHours ?? 1;
 
-    if (!server) {
-      return {
-        success: false,
-        error: '서버를 찾을 수 없습니다.',
-      };
-    }
+    // Cache analysis results with 10-minute TTL
+    return cache.getAnalysis(
+      'trend',
+      { serverId: serverId || 'first', metricType, hours },
+      async () => {
+        // Cache metrics with 1-minute TTL
+        const allServers = await cache.getMetrics(
+          undefined,
+          () => loadHourlyScenarioData()
+        );
+        const server = serverId
+          ? allServers.find((s) => s.id === serverId)
+          : allServers[0];
 
-    const metrics = ['cpu', 'memory', 'disk'] as const;
-    const targetMetrics =
-      metricType === 'all' ? metrics : [metricType as (typeof metrics)[number]];
-    const horizon = (predictionHours ?? 1) * 3600 * 1000;
-
-    const results: Record<
-      string,
-      {
-        trend: string;
-        currentValue: number;
-        predictedValue: number;
-        changePercent: number;
-        confidence: number;
-      }
-    > = {};
-
-    const usedEngine: 'rust' | 'typescript' = 'typescript';
-
-    // Load 6-hour history at 10-minute intervals (36 data points)
-    const historyPoints = await loadHistoricalContext(server.id || '', 6);
-
-    for (const metric of targetMetrics) {
-      const currentValue = server[metric as keyof typeof server] as number;
-
-      const history: MetricDataPoint[] = historyPoints.map((h) => ({
-        timestamp: h.timestamp,
-        value: h[metric] || 0,
-      }));
-
-      // Fallback if history load failed (36 points at 10-min intervals)
-      if (history.length < 5) {
-        const now = Date.now();
-        for (let i = 0; i < 36; i++) {
-          history.push({ timestamp: now - i * 600000, value: currentValue }); // 10분 = 600000ms
+        if (!server) {
+          return {
+            success: false as const,
+            error: '서버를 찾을 수 없습니다.',
+          };
         }
+
+        const metrics = ['cpu', 'memory', 'disk'] as const;
+        const targetMetrics =
+          metricType === 'all' ? metrics : [metricType as (typeof metrics)[number]];
+        const horizon = hours * 3600 * 1000;
+
+        const results: Record<
+          string,
+          {
+            trend: string;
+            currentValue: number;
+            predictedValue: number;
+            changePercent: number;
+            confidence: number;
+          }
+        > = {};
+
+        const usedEngine: 'rust' | 'typescript' = 'typescript';
+
+        // Cache historical context with 5-minute TTL
+        const historyPoints = await cache.getHistoricalContext(
+          `history:${server.id || ''}:6h`,
+          () => loadHistoricalContext(server.id || '', 6)
+        );
+
+        for (const metric of targetMetrics) {
+          const currentValue = server[metric as keyof typeof server] as number;
+
+          const history: MetricDataPoint[] = historyPoints.map((h) => ({
+            timestamp: h.timestamp,
+            value: h[metric] || 0,
+          }));
+
+          // Fallback if history load failed (36 points at 10-min intervals)
+          if (history.length < 5) {
+            const now = Date.now();
+            for (let i = 0; i < 36; i++) {
+              history.push({ timestamp: now - i * 600000, value: currentValue }); // 10분 = 600000ms
+            }
+          }
+
+          // TypeScript implementation
+          const predictor = getTrendPredictor();
+          const trendHistory = toTrendDataPoints(history);
+          const prediction = predictor.predictTrend(trendHistory, horizon);
+
+          results[metric] = {
+            trend: prediction.trend,
+            currentValue,
+            predictedValue: Math.round(prediction.prediction * 100) / 100,
+            changePercent:
+              Math.round(prediction.details.predictedChangePercent * 100) / 100,
+            confidence: Math.round(prediction.confidence * 100) / 100,
+          };
+        }
+
+        const increasingMetrics = Object.entries(results)
+          .filter(([, r]) => r.trend === 'increasing')
+          .map(([m]) => m);
+
+        return {
+          success: true as const,
+          serverId: server.id,
+          serverName: server.name,
+          predictionHorizon: `${hours}시간`,
+          results,
+          summary: {
+            increasingMetrics,
+            hasRisingTrends: increasingMetrics.length > 0,
+          },
+          timestamp: new Date().toISOString(),
+          _algorithm: 'Linear Regression with R² confidence',
+          _engine: usedEngine,
+          _cached: true,
+        };
       }
-
-      // TypeScript implementation
-      const predictor = getTrendPredictor();
-      const trendHistory = toTrendDataPoints(history);
-      const prediction = predictor.predictTrend(trendHistory, horizon);
-
-      results[metric] = {
-        trend: prediction.trend,
-        currentValue,
-        predictedValue: Math.round(prediction.prediction * 100) / 100,
-        changePercent:
-          Math.round(prediction.details.predictedChangePercent * 100) / 100,
-        confidence: Math.round(prediction.confidence * 100) / 100,
-      };
-    }
-
-    const increasingMetrics = Object.entries(results)
-      .filter(([, r]) => r.trend === 'increasing')
-      .map(([m]) => m);
-
-    return {
-      success: true,
-      serverId: server.id,
-      serverName: server.name,
-      predictionHorizon: `${predictionHours ?? 1}시간`,
-      results,
-      summary: {
-        increasingMetrics,
-        hasRisingTrends: increasingMetrics.length > 0,
-      },
-      timestamp: new Date().toISOString(),
-      _algorithm: 'Linear Regression with R² confidence',
-      _engine: usedEngine,
-    };
+    );
   },
   {
     name: 'predictTrends',

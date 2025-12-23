@@ -17,6 +17,9 @@ import {
   recommendCommandsTool,
   searchKnowledgeBaseTool,
 } from '../../agents/reporter-agent';
+// Verifier Agent for post-processing validation
+import { comprehensiveVerifyTool } from '../../agents/verifier-agent';
+import type { VerificationResult } from '../../lib/state-definition';
 
 import {
   createSessionConfig,
@@ -240,16 +243,81 @@ export async function createMultiAgentSupervisor() {
 }
 
 // ============================================================================
-// 3. Execution Functions
+// 3. Verifier Integration (Post-Processing)
+// ============================================================================
+
+interface VerificationOptions {
+  enableVerification?: boolean;
+  context?: string;
+}
+
+/**
+ * Verify agent response using Verifier Agent
+ * Post-processing validation for quality assurance
+ */
+async function verifyAgentResponse(
+  response: string,
+  options: VerificationOptions = {}
+): Promise<{
+  response: string;
+  verification: VerificationResult | null;
+}> {
+  const { enableVerification = true, context } = options;
+
+  if (!enableVerification) {
+    return { response, verification: null };
+  }
+
+  try {
+    const startTime = Date.now();
+    const result = await comprehensiveVerifyTool.invoke({
+      response,
+      context,
+    });
+
+    const verification: VerificationResult = {
+      isValid: result.isValid,
+      confidence: result.confidence,
+      originalResponse: result.originalResponse,
+      validatedResponse: result.validatedResponse,
+      issues: result.issues || [],
+      metadata: {
+        verifiedAt: new Date().toISOString(),
+        rulesApplied: result.metadata?.rulesApplied || [],
+        corrections: result.metadata?.corrections || [],
+        processingTimeMs: Date.now() - startTime,
+      },
+    };
+
+    console.log(
+      `✅ [Verifier] Response verified. Confidence: ${(verification.confidence * 100).toFixed(1)}%, Issues: ${verification.issues.length}`
+    );
+
+    // Return validated response if corrections were made
+    return {
+      response: verification.validatedResponse || response,
+      verification,
+    };
+  } catch (error) {
+    console.warn('⚠️ [Verifier] Verification failed, using original response:', error);
+    return { response, verification: null };
+  }
+}
+
+// ============================================================================
+// 4. Execution Functions
 // ============================================================================
 
 export interface SupervisorExecutionOptions {
   sessionId?: string;
+  enableVerification?: boolean;
+  verificationContext?: string;
 }
 
 /**
  * Execute supervisor workflow (single response)
  * Includes automatic Gemini API key failover on rate limit
+ * v5.85.0: Added Verifier Agent post-processing for quality assurance
  */
 export async function executeSupervisor(
   query: string,
@@ -257,8 +325,10 @@ export async function executeSupervisor(
 ): Promise<{
   response: string;
   sessionId: string;
+  verification?: VerificationResult | null;
 }> {
   const sessionId = options.sessionId || `session_${Date.now()}`;
+  const { enableVerification = true, verificationContext } = options;
   const config = createSessionConfig(sessionId);
   const MAX_RETRIES = 2; // Primary key + secondary key
 
@@ -277,13 +347,24 @@ export async function executeSupervisor(
       // Extract final response from messages
       const messages = result.messages || [];
       const lastMessage = messages[messages.length - 1];
-      const response =
+      let response =
         typeof lastMessage?.content === 'string'
           ? lastMessage.content
           : '응답을 생성할 수 없습니다.';
 
+      // === Verifier Agent Post-Processing ===
+      let verification: VerificationResult | null = null;
+      if (enableVerification && response && response !== '응답을 생성할 수 없습니다.') {
+        const verifyResult = await verifyAgentResponse(response, {
+          enableVerification: true,
+          context: verificationContext || query,
+        });
+        response = verifyResult.response;
+        verification = verifyResult.verification;
+      }
+
       console.log(`✅ [Supervisor] Completed. Session: ${sessionId}`);
-      return { response, sessionId };
+      return { response, sessionId, verification };
     } catch (error) {
       // Check if this is a rate limit error
       if (RateLimitError.isRateLimitError(error)) {
@@ -567,8 +648,11 @@ export async function createSupervisorStreamResponse(
         startKeepAlive();
 
         // Use invoke() for more reliable Groq integration
-        const { response } = await executeSupervisor(query, {
+        // v5.85.0: Verification enabled by default
+        const { response, verification } = await executeSupervisor(query, {
           sessionId: effectiveSessionId,
+          enableVerification: true,
+          verificationContext: query,
         });
 
         // Stop keep-alive before sending response
@@ -625,15 +709,39 @@ export async function createSupervisorStreamResponse(
               `🔔 [Supervisor] Approval required: ${approval.actionType}`
             );
           }
+
+          // v5.85.0: Emit verification result as annotation
+          if (verification) {
+            const verificationEvent = `8:${JSON.stringify([
+              {
+                type: 'verification',
+                isValid: verification.isValid,
+                confidence: verification.confidence,
+                issueCount: verification.issues.length,
+                processingTimeMs: verification.metadata.processingTimeMs,
+              },
+            ])}\n`;
+            safeEnqueue(encoder.encode(verificationEvent));
+
+            if (verification.issues.length > 0) {
+              console.log(
+                `🔍 [Verifier] Detected ${verification.issues.length} issue(s), confidence: ${(verification.confidence * 100).toFixed(1)}%`
+              );
+            }
+          }
         }
 
         // AI SDK v5 Data Stream Protocol: finish message
         const finishMessage = `d:${JSON.stringify({
           finishReason: 'stop',
           sessionId: effectiveSessionId,
+          verified: verification?.isValid ?? true,
+          confidence: verification?.confidence ?? 1.0,
         })}\n`;
         safeEnqueue(encoder.encode(finishMessage));
-        console.log('📤 Supervisor completed (AI SDK v5 Protocol)');
+        console.log(
+          `📤 Supervisor completed (AI SDK v5 Protocol, Verified: ${verification?.isValid ?? 'N/A'})`
+        );
 
         safeClose();
       } catch (error) {

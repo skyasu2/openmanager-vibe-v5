@@ -178,6 +178,13 @@ export const AGENT_MODEL_CONFIG = {
     temperature: 0.3,
     maxOutputTokens: 4096,
   },
+  // Task 1: Verifier Agent (Groq 기반 출력 검증)
+  verifier: {
+    provider: 'groq' as const,
+    model: 'llama-3.1-8b-instant' as GroqModel, // 빠른 검증을 위해 8B 모델 사용
+    temperature: 0.1, // 결정적 검증을 위해 낮은 온도
+    maxOutputTokens: 1024,
+  },
 } as const;
 
 export type AgentType = keyof typeof AGENT_MODEL_CONFIG;
@@ -332,6 +339,15 @@ export function getReporterModel(): ChatGroq | ChatGoogleGenerativeAI {
 
   // Default: Use Groq (development or fallback)
   return createGroqModel(config.model, {
+    temperature: config.temperature,
+    maxOutputTokens: config.maxOutputTokens,
+  });
+}
+
+// Task 1: Verifier Agent Model (Groq llama-3.1-8b-instant for fast verification)
+export function getVerifierModel(): ChatGroq {
+  const config = AGENT_MODEL_CONFIG.verifier;
+  return createGroqModel(config.model as GroqModel, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });

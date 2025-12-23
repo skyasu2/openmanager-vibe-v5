@@ -10,7 +10,7 @@ import { Annotation, messagesStateReducer } from '@langchain/langgraph';
 // 1. Agent Types
 // ============================================================================
 
-export type AgentType = 'nlq' | 'analyst' | 'reporter' | 'reply' | null;
+export type AgentType = 'nlq' | 'analyst' | 'reporter' | 'verifier' | 'reply' | null;
 export type TaskType =
   | 'monitoring'
   | 'incident_ops'
@@ -41,6 +41,103 @@ export interface DelegationRequest {
   reason: string;
   context?: Record<string, unknown>;
   priority?: 'low' | 'normal' | 'high';
+}
+
+// ============================================================================
+// 1.1 Agent Result Types (Task 3: SharedContext)
+// ============================================================================
+
+export interface NLQResult {
+  query: string;
+  intent: 'metrics' | 'logs' | 'status' | 'unknown';
+  servers: Array<{
+    id: string;
+    name: string;
+    status: string;
+    cpu?: number;
+    memory?: number;
+    disk?: number;
+  }>;
+  summary?: {
+    total: number;
+    alertCount: number;
+  };
+  timestamp: string;
+}
+
+export interface AnalystResult {
+  analysisType: 'anomaly' | 'trend' | 'prediction';
+  serverId?: string;
+  metricType?: string;
+  findings: Array<{
+    type: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    description: string;
+    value?: number;
+    threshold?: number;
+  }>;
+  predictions?: Array<{
+    metric: string;
+    trend: 'increasing' | 'decreasing' | 'stable';
+    confidence: number;
+    forecastValues?: number[];
+  }>;
+  timestamp: string;
+}
+
+export interface ReporterResult {
+  reportType: 'summary' | 'detailed' | 'incident';
+  title: string;
+  content: string;
+  sections?: Array<{
+    heading: string;
+    body: string;
+  }>;
+  recommendations?: string[];
+  timestamp: string;
+}
+
+export interface SharedContext {
+  nlqResults: NLQResult | null;
+  analystResults: AnalystResult | null;
+  reporterResults: ReporterResult | null;
+  verifierResults: VerificationResult | null;
+  lastUpdatedBy: AgentType;
+  lastUpdatedAt: string;
+}
+
+// ============================================================================
+// 2. Verifier Agent Types (Task 1: Verifier Agent 구현)
+// ============================================================================
+
+export interface VerificationIssue {
+  type: 'metric_range' | 'missing_field' | 'format_error' | 'hallucination';
+  severity: 'low' | 'medium' | 'high';
+  field?: string;
+  originalValue?: unknown;
+  correctedValue?: unknown;
+  message: string;
+}
+
+export interface VerificationCorrection {
+  field: string;
+  original: unknown;
+  corrected: unknown;
+  reason: string;
+}
+
+export interface VerificationResult {
+  isValid: boolean;
+  confidence: number;
+  originalResponse: string;
+  validatedResponse: string;
+  issues: VerificationIssue[];
+  metadata: {
+    verifiedAt: string;
+    rulesApplied: string[];
+    corrections: VerificationCorrection[];
+    processingTimeMs: number;
+  };
 }
 
 export type ApprovalStatus = 'none' | 'pending' | 'approved' | 'rejected';
@@ -162,6 +259,29 @@ export const AgentState = Annotation.Root({
     reducer: (_, next) => next,
     default: () => [],
   }),
+
+  // Task 1: Verifier Agent 검증 결과
+  verificationResult: Annotation<VerificationResult | null>({
+    reducer: (_, next) => next,
+    default: () => null,
+  }),
+
+  // Task 3: Agent 간 결과 공유 (SharedContext)
+  sharedContext: Annotation<SharedContext>({
+    reducer: (current, update) => ({
+      ...current,
+      ...update,
+      lastUpdatedAt: new Date().toISOString(),
+    }),
+    default: () => ({
+      nlqResults: null,
+      analystResults: null,
+      reporterResults: null,
+      verifierResults: null,
+      lastUpdatedBy: null,
+      lastUpdatedAt: new Date().toISOString(),
+    }),
+  }),
 });
 
 export type AgentStateType = typeof AgentState.State;
@@ -171,6 +291,7 @@ export const SUPERVISOR_NODE = 'supervisor';
 export const NLQ_NODE = 'nlq_agent';
 export const ANALYST_NODE = 'analyst_agent';
 export const REPORTER_NODE = 'reporter_agent';
+export const VERIFIER_NODE = 'verifier_agent';
 export const END_NODE = '__end__';
 
 export function isModelHealthy(
@@ -236,5 +357,115 @@ export function recordSuccess(
         halfOpenAttempts: 0,
       },
     },
+  };
+}
+
+// ============================================================================
+// 4. SharedContext Helper Functions (Task 3)
+// ============================================================================
+
+/**
+ * Update NLQ results in shared context
+ */
+export function updateNLQContext(
+  context: SharedContext,
+  result: NLQResult
+): SharedContext {
+  return {
+    ...context,
+    nlqResults: result,
+    lastUpdatedBy: 'nlq',
+    lastUpdatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Update Analyst results in shared context
+ */
+export function updateAnalystContext(
+  context: SharedContext,
+  result: AnalystResult
+): SharedContext {
+  return {
+    ...context,
+    analystResults: result,
+    lastUpdatedBy: 'analyst',
+    lastUpdatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Update Reporter results in shared context
+ */
+export function updateReporterContext(
+  context: SharedContext,
+  result: ReporterResult
+): SharedContext {
+  return {
+    ...context,
+    reporterResults: result,
+    lastUpdatedBy: 'reporter',
+    lastUpdatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Update Verifier results in shared context
+ */
+export function updateVerifierContext(
+  context: SharedContext,
+  result: VerificationResult
+): SharedContext {
+  return {
+    ...context,
+    verifierResults: result,
+    lastUpdatedBy: 'verifier',
+    lastUpdatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Create initial shared context
+ */
+export function createInitialSharedContext(): SharedContext {
+  return {
+    nlqResults: null,
+    analystResults: null,
+    reporterResults: null,
+    verifierResults: null,
+    lastUpdatedBy: null,
+    lastUpdatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Get available context from previous agents
+ */
+export function getAvailableContext(context: SharedContext): {
+  hasNLQ: boolean;
+  hasAnalyst: boolean;
+  hasReporter: boolean;
+  hasVerifier: boolean;
+  summary: string;
+} {
+  const hasNLQ = context.nlqResults !== null;
+  const hasAnalyst = context.analystResults !== null;
+  const hasReporter = context.reporterResults !== null;
+  const hasVerifier = context.verifierResults !== null;
+
+  const available: string[] = [];
+  if (hasNLQ) available.push('NLQ');
+  if (hasAnalyst) available.push('Analyst');
+  if (hasReporter) available.push('Reporter');
+  if (hasVerifier) available.push('Verifier');
+
+  return {
+    hasNLQ,
+    hasAnalyst,
+    hasReporter,
+    hasVerifier,
+    summary: available.length > 0
+      ? `Available context: ${available.join(', ')}`
+      : 'No prior context available',
   };
 }

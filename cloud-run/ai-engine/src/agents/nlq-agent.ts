@@ -3,12 +3,9 @@
  * 자연어 쿼리를 서버 메트릭 조회로 변환
  */
 
-import { AIMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
-import { AgentExecutionError, getErrorMessage } from '../lib/errors';
-import { getNLQModel } from '../lib/model-config';
-import type { AgentStateType, ToolResult } from '../lib/state-definition';
+import { getDataCache } from '../lib/cache-layer';
 import { loadHourlyScenarioData } from '../services/scenario/scenario-loader';
 
 // ============================================================================
@@ -17,7 +14,14 @@ import { loadHourlyScenarioData } from '../services/scenario/scenario-loader';
 
 export const getServerMetricsTool = tool(
   async ({ serverId, metric: _metric }) => {
-    const allServers = await loadHourlyScenarioData();
+    const cache = getDataCache();
+
+    // Cache metrics with 1-minute TTL
+    const allServers = await cache.getMetrics(
+      serverId,
+      () => loadHourlyScenarioData()
+    );
+
     const target = serverId
       ? allServers.find((s) => s.id === serverId)
       : allServers;
@@ -46,6 +50,7 @@ export const getServerMetricsTool = tool(
       },
       timestamp: new Date().toISOString(),
       _dataSource: 'scenario-loader',
+      _cached: true,
     };
   },
   {
@@ -63,41 +68,48 @@ export const getServerMetricsTool = tool(
 
 export const getServerLogsTool = tool(
   async ({ serverId, limit = 5 }) => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const cache = getDataCache();
+    const cacheKey = `logs:${serverId || 'all'}:${limit}`;
 
-    if (!supabaseUrl || !supabaseKey) {
-      return { success: false, error: 'Supabase credentials missing' };
-    }
+    // Cache logs with 5-minute TTL (RAG)
+    return cache.getHistoricalContext(cacheKey, async () => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    try {
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      let query = supabase
-        .from('server_logs')
-        .select('timestamp, level, message, source')
-        .order('timestamp', { ascending: false })
-        .limit(limit);
-
-      if (serverId) {
-        query = query.eq('server_id', serverId);
+      if (!supabaseUrl || !supabaseKey) {
+        return { success: false, error: 'Supabase credentials missing' };
       }
 
-      const { data, error } = await query;
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
-      if (error) throw error;
+        let query = supabase
+          .from('server_logs')
+          .select('timestamp, level, message, source')
+          .order('timestamp', { ascending: false })
+          .limit(limit);
 
-      return {
-        success: true,
-        serverId: serverId || 'ALL',
-        logs: data,
-        count: data?.length || 0,
-        _dataSource: 'supabase-db',
-      };
-    } catch (e) {
-      return { success: false, error: String(e) };
-    }
+        if (serverId) {
+          query = query.eq('server_id', serverId);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        return {
+          success: true,
+          serverId: serverId || 'ALL',
+          logs: data,
+          count: data?.length || 0,
+          _dataSource: 'supabase-db',
+          _cached: true,
+        };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    });
   },
   {
     name: 'getServerLogs',
