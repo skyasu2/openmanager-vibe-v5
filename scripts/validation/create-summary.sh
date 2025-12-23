@@ -14,7 +14,12 @@ cd "$PROJECT_ROOT"
 
 # 타임스탬프 생성
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
-SUMMARY_FILE="/tmp/validation-complete-${TIMESTAMP}.md"
+
+# 저장 디렉토리 (프로젝트 내부로 변경)
+VALIDATION_DIR="$PROJECT_ROOT/logs/validation"
+mkdir -p "$VALIDATION_DIR"
+
+SUMMARY_FILE="$VALIDATION_DIR/validation-complete-${TIMESTAMP}.md"
 
 echo "📊 Creating validation summary..."
 
@@ -142,8 +147,8 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "📊 생성된 리포트:"
 echo ""
-echo "  1️⃣  통합 요약: /tmp/validation-complete-latest.md"
-echo "  2️⃣  리뷰 요청: /tmp/claude_code_review_request_latest.md"
+echo "  1️⃣  통합 요약: logs/validation/validation-complete-latest.md"
+echo "  2️⃣  리뷰 요청: logs/validation/claude_code_review_request_latest.md"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
@@ -151,7 +156,7 @@ echo "💡 Claude Code에게 다음과 같이 요청하세요:"
 echo ""
 echo '  📝 간단: "검증 결과 분석해줘"'
 echo ""
-echo '  📖 상세: "cat /tmp/claude_code_review_request_latest.md"'
+echo '  📖 상세: "cat logs/validation/claude_code_review_request_latest.md"'
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
@@ -163,13 +168,13 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # 심볼릭 링크 생성 (최신 요약)
-ln -sf "$SUMMARY_FILE" "/tmp/validation-complete-latest.md"
+ln -sf "$SUMMARY_FILE" "$VALIDATION_DIR/validation-complete-latest.md"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 🤖 Claude Code 자동 리뷰 요청 파일 생성
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-REVIEW_REQUEST_FILE="/tmp/claude_code_review_request_${TIMESTAMP}.md"
+REVIEW_REQUEST_FILE="$VALIDATION_DIR/claude_code_review_request_${TIMESTAMP}.md"
 
 echo "🤖 Creating Claude Code review request..."
 
@@ -247,7 +252,7 @@ echo "🤖 Creating Claude Code review request..."
   echo '"검증 결과 분석해줘"'
   echo ""
   echo "# 또는 직접 읽기"
-  echo "cat /tmp/validation-complete-latest.md"
+  echo "cat logs/validation/validation-complete-latest.md"
   echo '```'
   echo ""
   echo "---"
@@ -259,6 +264,6 @@ echo "🤖 Creating Claude Code review request..."
 } > "$REVIEW_REQUEST_FILE"
 
 # 심볼릭 링크 생성 (최신 리뷰 요청)
-ln -sf "$REVIEW_REQUEST_FILE" "/tmp/claude_code_review_request_latest.md"
+ln -sf "$REVIEW_REQUEST_FILE" "$VALIDATION_DIR/claude_code_review_request_latest.md"
 
 exit 0
