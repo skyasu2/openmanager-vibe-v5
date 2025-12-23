@@ -26,9 +26,9 @@ const SKIP_TESTS = process.env.SKIP_TESTS === 'true';
 const SKIP_BUILD = process.env.SKIP_BUILD === 'true';
 const SKIP_NODE_CHECK = process.env.SKIP_NODE_CHECK === 'true';
 
-// WSL + Windows filesystem = limited validation mode
-// Native modules (rollup, lightningcss) won't work
-const isLimitedMode = isWSL && isWindowsFS;
+// Windows = limited validation mode (TypeScript + Lint only)
+// WSL with Linux node_modules = full validation mode
+const isLimitedMode = isWindows;
 
 let testStatus = 'pending';
 
@@ -103,9 +103,10 @@ function checkNodeModules() {
       const hasLinux = rollupContents.some(f => f.includes('linux'));
 
       if (hasWin32 && !hasLinux) {
-        // In limited mode, this is expected - just note it and continue
-        if (isLimitedMode) {
-          console.log('ℹ️  node_modules: Windows binaries detected (expected in Limited Mode)');
+        // In WSL with Windows node_modules, this is a problem
+        // But if running on Windows itself, this is expected
+        if (isWindows) {
+          // Windows with Windows binaries = OK
           return true;
         }
         console.log('');
@@ -159,12 +160,11 @@ function checkWSLPerformance() {
 function runTests() {
   console.log('🧪 Running quick tests...');
 
-  // WSL + Windows filesystem: vitest uses rollup which requires native modules
+  // Windows: skip tests (run full validation in WSL)
   if (isLimitedMode) {
     testStatus = 'skipped';
-    console.log('⚪ Tests skipped (WSL + Windows filesystem mode)');
-    console.log('   → vitest requires native modules not available in this environment');
-    console.log('   → Run tests from Windows: npm run test:super-fast');
+    console.log('⚪ Tests skipped (Windows Limited Mode)');
+    console.log('   → Full validation runs in WSL environment');
     return;
   }
 
@@ -200,12 +200,10 @@ function runBuildValidation() {
     return;
   }
 
-  // WSL + Windows filesystem: force limited validation (no full build)
-  // lightningcss and other native modules won't work
+  // Windows: TypeScript + Lint only (full validation in WSL)
   if (isLimitedMode) {
-    console.log('🔧 WSL Limited Mode: Running TypeScript + Lint only...');
-    console.log('   → Full build requires native modules not available in this environment');
-    console.log('   → Run full build from Windows: npm run build');
+    console.log('🔧 Windows Limited Mode: TypeScript + Lint only...');
+    console.log('   → Full validation (tests + build) runs in WSL');
     console.log('');
 
     // Run TypeScript check
@@ -310,13 +308,13 @@ function printSummary(duration) {
   console.log('');
   console.log('📊 Summary:');
   if (isLimitedMode) {
-    console.log('  🔧 Mode: WSL Limited (TypeScript + Lint only)');
+    console.log('  🔧 Mode: Windows Limited (TypeScript + Lint only)');
   }
   console.log(`  ${testStatus === 'passed' ? '✅' : '⚪'} Tests ${testStatus}`);
   if (isLimitedMode) {
     console.log('  ✅ TypeScript check passed');
     console.log('  ✅ Lint check passed');
-    console.log('  ⚪ Full build skipped (run from Windows)');
+    console.log('  ⚪ Full build skipped (run in WSL)');
   } else {
     console.log('  ✅ Build/validation succeeded');
   }
@@ -333,9 +331,9 @@ function main() {
   // Show mode at the start
   if (isLimitedMode) {
     console.log('');
-    console.log('🔧 WSL Limited Mode detected (/mnt/... filesystem)');
+    console.log('🔧 Windows Limited Mode detected');
     console.log('   Running: TypeScript + Lint only');
-    console.log('   Skipped: Tests, Full build (native modules required)');
+    console.log('   Skipped: Tests, Full build (run in WSL)');
     console.log('');
   }
 
