@@ -157,6 +157,18 @@ export interface ModelHealthState {
   halfOpenAttempts: number;
 }
 
+// ============================================================================
+// 2.1 Context Compression Types (Phase 2)
+// ============================================================================
+
+export interface CompressionMetadata {
+  lastCompressedAt: string | null;
+  totalCompressedMessages: number;
+  compressionRatio: number;
+  summaryTokenCount: number;
+  originalTokenCount: number;
+}
+
 export interface CircuitBreakerState {
   models: Record<string, ModelHealthState>;
   threshold: number;
@@ -280,6 +292,24 @@ export const AgentState = Annotation.Root({
       verifierResults: null,
       lastUpdatedBy: null,
       lastUpdatedAt: new Date().toISOString(),
+    }),
+  }),
+
+  // Phase 2: Context Compression - 대화 요약
+  conversationSummary: Annotation<string>({
+    reducer: (_, next) => next,
+    default: () => '',
+  }),
+
+  // Phase 2: Context Compression - 압축 메타데이터
+  compressionMetadata: Annotation<CompressionMetadata>({
+    reducer: (_, next) => next,
+    default: () => ({
+      lastCompressedAt: null,
+      totalCompressedMessages: 0,
+      compressionRatio: 0,
+      summaryTokenCount: 0,
+      originalTokenCount: 0,
     }),
   }),
 });
