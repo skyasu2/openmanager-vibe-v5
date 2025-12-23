@@ -2,12 +2,18 @@
 
 # Auto AI Code Review Script (3-AI 순환) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 6.12.0
+# 버전: 6.13.0
 # 날짜: 2025-12-23
 # 전략: 3-AI 순환 (Codex → Gemini → Qwen) 1:1:1 비율 + 중복 방지 + 소규모 변경 필터 + 누적 리뷰
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
+#
+# Changelog v6.13.0 (2025-12-23): 🔧 미검토 커밋 누락 방지 개선
+# - 🐛 수정: get_unreviewed_commits()가 .reviewed-commits 기반으로 변경
+# - 🐛 수정: 중간 스킵된 커밋이 영구 누락되던 문제 해결
+# - ✨ 신규: 3시간 초과 미검토 커밋은 자동 마킹하여 제외 (max_age_hours=3)
+# - 🎯 효과: 정확한 미검토 커밋 탐지 + 오래된 커밋 불필요한 리뷰 방지
 #
 # Changelog v6.12.0 (2025-12-23): 🔄 누적 리뷰 기능 추가 (Windows 스킵 대응)
 # - ✨ 신규: 미검토 커밋 누적 리뷰 기능 (CUMULATIVE_REVIEW)
@@ -310,17 +316,50 @@ save_last_reviewed_commit() {
     echo "$commit_hash" > "$LAST_REVIEWED_COMMIT_FILE"
 }
 
-# 미검토 커밋 목록 가져오기 (마지막 리뷰 이후 ~ HEAD)
+# 미검토 커밋 목록 가져오기 (v6.13.0: .reviewed-commits 기반 + 시간 필터)
+# 기존: last_reviewed..HEAD 범위만 확인 → 중간 스킵된 커밋 누락 문제
+# 변경: 최근 N개 커밋 중 .reviewed-commits에 없고 3시간 이내인 것만 찾기
 get_unreviewed_commits() {
-    local last_reviewed=$(get_last_reviewed_commit)
+    local max_lookback=${1:-30}  # 최대 조회 범위 (기본 30개)
+    local max_age_hours=${2:-3}  # 최대 커밋 나이 (기본 3시간)
+    local unreviewed_commits=""
+    local now_epoch=$(date +%s)
+    local max_age_seconds=$((max_age_hours * 3600))
 
-    if [ -z "$last_reviewed" ]; then
-        # 첫 실행: 최근 커밋 1개만 반환
+    # 최근 N개 커밋 순회
+    for commit in $(git -C "$PROJECT_ROOT" log -${max_lookback} --format=%H 2>/dev/null); do
+        local short_hash="${commit:0:7}"
+
+        # 1. .reviewed-commits 파일에 있으면 스킵
+        if grep -q "^$short_hash$" "$REVIEWED_COMMITS_FILE" 2>/dev/null; then
+            continue
+        fi
+
+        # 2. 커밋 시간 확인 (3시간 초과하면 스킵)
+        local commit_epoch=$(git -C "$PROJECT_ROOT" log -1 --format=%ct "$commit" 2>/dev/null)
+        if [ -n "$commit_epoch" ]; then
+            local age_seconds=$((now_epoch - commit_epoch))
+            if [ "$age_seconds" -gt "$max_age_seconds" ]; then
+                # 3시간 초과: 스킵하고 리뷰됨으로 마킹 (향후 무시)
+                echo "$short_hash" >> "$REVIEWED_COMMITS_FILE"
+                continue
+            fi
+        fi
+
+        # 미검토 + 3시간 이내 커밋 추가
+        if [ -z "$unreviewed_commits" ]; then
+            unreviewed_commits="$commit"
+        else
+            unreviewed_commits="$unreviewed_commits $commit"
+        fi
+    done
+
+    if [ -z "$unreviewed_commits" ]; then
+        # 모두 리뷰됨: HEAD 반환 (fallback)
         git -C "$PROJECT_ROOT" log -1 --format=%H
     else
-        # 마지막 리뷰 이후 모든 커밋 (오래된 순)
-        git -C "$PROJECT_ROOT" rev-list --reverse "$last_reviewed..HEAD" 2>/dev/null || \
-            git -C "$PROJECT_ROOT" log -1 --format=%H  # fallback
+        # 오래된 순으로 정렬하여 반환
+        echo "$unreviewed_commits" | tr ' ' '\n' | tac | tr '\n' ' ' | xargs
     fi
 }
 
@@ -339,15 +378,10 @@ get_cumulative_changed_files() {
     fi
 }
 
-# 미검토 커밋 수 가져오기
+# 미검토 커밋 수 가져오기 (v6.13.0: get_unreviewed_commits와 동기화)
 get_unreviewed_commit_count() {
-    local last_reviewed=$(get_last_reviewed_commit)
-
-    if [ -z "$last_reviewed" ]; then
-        echo "1"
-    else
-        git -C "$PROJECT_ROOT" rev-list --count "$last_reviewed..HEAD" 2>/dev/null || echo "1"
-    fi
+    local commits=$(get_unreviewed_commits 30 3)
+    echo "$commits" | wc -w | tr -d ' '
 }
 
 # ============================================================================
@@ -355,7 +389,7 @@ get_unreviewed_commit_count() {
 # ============================================================================
 
 main() {
-    log_info "🚀 Auto AI Review 시작 (v6.12.0 - 누적 리뷰 + 중복 방지)"
+    log_info "🚀 Auto AI Review 시작 (v6.13.0 - 미검토 커밋 정확 탐지)"
     echo ""
 
     # 0단계: 락 획득 (동시 실행 방지)
