@@ -4,7 +4,7 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.83.9, Updated 2025-12-23)
+## Architecture (v5.83.10, Updated 2025-12-24)
 
 ### Deployment Mode
 
@@ -35,6 +35,7 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 - **A2A Delegation**: Inter-agent task delegation via Command pattern
 - **Circuit Breaker**: Model health monitoring with automatic failover
 - **Session Persistence**: Supabase PostgresCheckpointer for conversation continuity
+- **Context Compression**: Token-based conversation compression for long sessions (85%+ threshold)
 
 - **Verifier Integration**: Dedicated agent for post-processing validation and safety checks (v5.85.0)
 - **Groq Compatibility**: Custom state modifier to adapt Gemini tool calls for Groq Llama models
@@ -228,6 +229,8 @@ d:{"finishReason":"stop","verified":true}     // Finish signal
 |-----------|------------|---------|
 | **Vector Store** | Supabase (pgvector) | RAG knowledge base |
 | **Checkpointer** | PostgresCheckpointer | Session state persistence |
+| **Metrics History** | Supabase `server_metrics_history` | Server metrics for anomaly detection (6hr window) |
+| **Conversation History** | Supabase `conversation_history` | Compressed conversation storage |
 | **Realtime** | Supabase Realtime | Live dashboard updates |
 | **Client State** | Zustand | Chat history, UI state |
 
@@ -263,7 +266,11 @@ cloud-run/ai-engine/
 ├── src/
 │   ├── server.ts               # Hono HTTP server (main entry)
 │   ├── lib/
-│   │   └── model-config.ts     # API key validation & logging
+│   │   ├── model-config.ts     # API key validation & logging
+│   │   └── context-compression/ # Context compression for long conversations
+│   │       ├── compression-trigger.ts    # Token threshold detection
+│   │       ├── summary-generator.ts      # Conversation summarization
+│   │       └── context-compressor.ts     # Compression orchestration
 │   └── services/
 │       ├── langgraph/          # LangGraph StateGraph
 │       │   └── multi-agent-supervisor.ts

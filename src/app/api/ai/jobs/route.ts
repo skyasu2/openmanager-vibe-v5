@@ -115,8 +115,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
     const status = searchParams.get('status');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50);
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10', 10), 50);
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
 
     const supabase = getSupabaseClient();
 

@@ -45,25 +45,6 @@ interface IncidentReport {
   }>;
 }
 
-interface APIIncidentReport {
-  id: string;
-  title: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  affected_servers: string[];
-  pattern?: string;
-  recommendations?: Array<{
-    action: string;
-    priority: string;
-    expected_impact: string;
-  }>;
-  root_cause_analysis?: {
-    primary_cause: string;
-    contributing_factors: string[];
-    confidence: number;
-  };
-  created_at: string;
-}
-
 // ============================================================================
 // Helpers
 // ============================================================================
@@ -99,7 +80,7 @@ export default function AutoReportPage() {
   // Reports state
   const [reports, setReports] = useState<IncidentReport[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // 자동 로드 제거로 초기값 false
+  const [isLoading, _setIsLoading] = useState(false); // 자동 로드 제거로 초기값 false
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
 

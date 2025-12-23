@@ -73,7 +73,7 @@ function createDataStreamParserTransform(): TransformStream<
         // Data Stream Protocol 파싱: N:"content", d:{...} 등
         // 숫자 접두사 (0, 2, 3, 8) 또는 문자 접두사 (d, e) 매칭
         const match = trimmed.match(/^(\d+|[a-z]):(.*)$/);
-        if (match && match[1] && match[2] !== undefined) {
+        if (match?.[1] && match[2] !== undefined) {
           const prefix = match[1];
           const content = match[2];
 
@@ -163,11 +163,7 @@ function createDataStreamParserTransform(): TransformStream<
           } catch {
             controller.enqueue(encoder.encode(buffer));
           }
-        } else if (
-          match &&
-          match[1] &&
-          ['d', 'e', '2', '8'].includes(match[1])
-        ) {
+        } else if (match?.[1] && ['d', 'e', '2', '8'].includes(match[1])) {
           // 메타데이터 접두사 무시
         } else {
           controller.enqueue(encoder.encode(buffer));

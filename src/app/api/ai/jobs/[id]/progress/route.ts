@@ -8,11 +8,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
-import type {
-  JobCompletionUpdate,
-  JobProgressUpdate,
-  JobStatus,
-} from '@/types/ai-jobs';
+import type { JobCompletionUpdate, JobProgressUpdate } from '@/types/ai-jobs';
 
 // Worker 인증 토큰 (환경 변수에서)
 const WORKER_SECRET = process.env.AI_WORKER_SECRET;
