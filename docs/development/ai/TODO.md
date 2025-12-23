@@ -25,10 +25,10 @@
 
 ## Backlog
 
-### Async Job System
-- [ ] `context-compression-design.md` 구현
-- [ ] `job-queue-implementation-plan.md` 구현
-- [ ] Redis 또는 Supabase Queue 선택
+### Context Compression System
+- [ ] `context-compression-design.md` 구현 (Phase 1: 토큰 카운터 + Trigger)
+- [ ] 하이브리드 버퍼 매니저 (Phase 2)
+- [ ] LLM 기반 Summarizer (Phase 3)
 
 ### Monitoring & Observability
 - [ ] Agent 실행 시간 로깅
@@ -39,6 +39,7 @@
 
 | Task | Date | Notes |
 |------|------|-------|
+| Async Job Queue System | 2025-12-23 | Supabase 기반 Job Queue + API 구현 완료 |
 | Token Usage Tracker | 2025-12-23 | Groq/Gemini 토큰 추적 + Quota 알림 |
 | Prompt Optimization Complete | 2025-12-23 | Vercel timeout E2E 테스트 포함 |
 | Cloud Run AI Engine 배포 | 2025-12-16 | LangGraph Multi-Agent |
