@@ -2,12 +2,18 @@
 
 # Auto AI Code Review Script (3-AI 순환) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 6.11.0
-# 날짜: 2025-12-18
-# 전략: 3-AI 순환 (Codex → Gemini → Qwen) 1:1:1 비율 + 중복 방지 + 소규모 변경 필터
+# 버전: 6.12.0
+# 날짜: 2025-12-23
+# 전략: 3-AI 순환 (Codex → Gemini → Qwen) 1:1:1 비율 + 중복 방지 + 소규모 변경 필터 + 누적 리뷰
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
+#
+# Changelog v6.12.0 (2025-12-23): 🔄 누적 리뷰 기능 추가 (Windows 스킵 대응)
+# - ✨ 신규: 미검토 커밋 누적 리뷰 기능 (CUMULATIVE_REVIEW)
+# - ✨ 신규: .last-reviewed-commit 파일로 마지막 성공 리뷰 커밋 추적
+# - ✨ 신규: Windows에서 hook이 스킵되어도 다음 WSL 실행 시 누적 리뷰
+# - 🎯 효과: 리뷰 누락 방지, 환경 불일치 대응
 #
 # Changelog v6.11.0 (2025-12-19): 📋 문서/테스트 검증 경고 자동 생성
 # - ✨ 신규: doc-test-validator.sh 통합 (새 함수/클래스 추가 시 테스트 필요 여부 감지)
@@ -220,6 +226,10 @@ source "$LIB_DIR/doc-test-validator.sh"
 # 락 파일 경로
 LOCK_FILE="$PROJECT_ROOT/logs/code-reviews/.review-lock"
 REVIEWED_COMMITS_FILE="$PROJECT_ROOT/logs/code-reviews/.reviewed-commits"
+LAST_REVIEWED_COMMIT_FILE="$PROJECT_ROOT/logs/code-reviews/.last-reviewed-commit"
+
+# 누적 리뷰 설정 (v6.12.0)
+CUMULATIVE_REVIEW=${CUMULATIVE_REVIEW:-true}  # 미검토 커밋 누적 리뷰 활성화
 
 # 커밋이 이미 리뷰되었는지 확인
 is_commit_reviewed() {
@@ -282,11 +292,70 @@ release_lock() {
 }
 
 # ============================================================================
+# 누적 리뷰 함수 (v6.12.0)
+# ============================================================================
+
+# 마지막 성공 리뷰 커밋 가져오기
+get_last_reviewed_commit() {
+    if [ -f "$LAST_REVIEWED_COMMIT_FILE" ]; then
+        cat "$LAST_REVIEWED_COMMIT_FILE" 2>/dev/null | head -1
+    else
+        echo ""
+    fi
+}
+
+# 마지막 성공 리뷰 커밋 저장
+save_last_reviewed_commit() {
+    local commit_hash="$1"
+    echo "$commit_hash" > "$LAST_REVIEWED_COMMIT_FILE"
+}
+
+# 미검토 커밋 목록 가져오기 (마지막 리뷰 이후 ~ HEAD)
+get_unreviewed_commits() {
+    local last_reviewed=$(get_last_reviewed_commit)
+
+    if [ -z "$last_reviewed" ]; then
+        # 첫 실행: 최근 커밋 1개만 반환
+        git -C "$PROJECT_ROOT" log -1 --format=%H
+    else
+        # 마지막 리뷰 이후 모든 커밋 (오래된 순)
+        git -C "$PROJECT_ROOT" rev-list --reverse "$last_reviewed..HEAD" 2>/dev/null || \
+            git -C "$PROJECT_ROOT" log -1 --format=%H  # fallback
+    fi
+}
+
+# 미검토 커밋들의 누적 변경 파일 목록 가져오기
+get_cumulative_changed_files() {
+    local last_reviewed=$(get_last_reviewed_commit)
+    local head_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%H)
+
+    if [ -z "$last_reviewed" ] || [ "$last_reviewed" = "$head_commit" ]; then
+        # 첫 실행 또는 이미 최신: 마지막 커밋만
+        git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit"
+    else
+        # 누적 diff: last_reviewed..HEAD
+        git -C "$PROJECT_ROOT" diff --name-only "$last_reviewed" HEAD 2>/dev/null || \
+            git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit"
+    fi
+}
+
+# 미검토 커밋 수 가져오기
+get_unreviewed_commit_count() {
+    local last_reviewed=$(get_last_reviewed_commit)
+
+    if [ -z "$last_reviewed" ]; then
+        echo "1"
+    else
+        git -C "$PROJECT_ROOT" rev-list --count "$last_reviewed..HEAD" 2>/dev/null || echo "1"
+    fi
+}
+
+# ============================================================================
 # 메인 함수
 # ============================================================================
 
 main() {
-    log_info "🚀 Auto AI Review 시작 (v6.5.0 - 중복 방지 + 1회 재시도)"
+    log_info "🚀 Auto AI Review 시작 (v6.12.0 - 누적 리뷰 + 중복 방지)"
     echo ""
 
     # 0단계: 락 획득 (동시 실행 방지)
@@ -302,44 +371,73 @@ main() {
     # run_verification  # Disabled: 별도 스크립트로 실행 (post-commit)
 
     # 2단계: 변경된 파일 목록 가져오기
-    local last_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%H)
+    local head_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%H)
 
-    # 2-1단계: 중복 리뷰 체크 (v6.5.0)
-    if is_commit_reviewed "$last_commit"; then
-        log_warning "⏭️  이미 리뷰된 커밋입니다: ${last_commit:0:7}"
-        exit 0
+    # 2-0단계: 누적 리뷰 체크 (v6.12.0)
+    local unreviewed_count=1
+    local changed_files=""
+    local review_range_desc=""
+
+    if [ "$CUMULATIVE_REVIEW" = "true" ]; then
+        unreviewed_count=$(get_unreviewed_commit_count)
+        local last_reviewed=$(get_last_reviewed_commit)
+
+        if [ "$unreviewed_count" -gt 1 ]; then
+            log_info "📚 미검토 커밋 ${unreviewed_count}개 발견 (누적 리뷰 모드)"
+            log_info "   마지막 리뷰: ${last_reviewed:0:7} → HEAD: ${head_commit:0:7}"
+            changed_files=$(get_cumulative_changed_files)
+            review_range_desc="누적 ${unreviewed_count}개 커밋"
+        else
+            changed_files=$(git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit")
+            review_range_desc="단일 커밋 ${head_commit:0:7}"
+        fi
+    else
+        changed_files=$(git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit")
+        review_range_desc="단일 커밋 ${head_commit:0:7}"
     fi
 
-    local changed_files=$(git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$last_commit")
+    # 2-1단계: 중복 리뷰 체크 (v6.5.0) - 단일 커밋 모드에서만
+    if [ "$unreviewed_count" -eq 1 ] && is_commit_reviewed "$head_commit"; then
+        log_warning "⏭️  이미 리뷰된 커밋입니다: ${head_commit:0:7}"
+        # 누적 추적 파일도 업데이트 (sync)
+        save_last_reviewed_commit "$head_commit"
+        exit 0
+    fi
 
     if [ -z "$changed_files" ]; then
         log_warning "변경된 파일이 없습니다"
+        save_last_reviewed_commit "$head_commit"  # 마킹해서 다음에 스킵
         exit 0
     fi
+
+    log_info "📁 리뷰 대상: $review_range_desc (파일 $(echo "$changed_files" | wc -l | tr -d ' ')개)"
 
     # 2-2단계: 소규모 변경 필터 (v6.10.0)
     # 필터 1: 문서만 변경된 경우 스킵
     if [ "$SKIP_DOCS_ONLY" = "true" ]; then
-        local non_doc_files=$(echo "$changed_files" | grep -vE '\.(md|txt|MD|TXT)$')
+        local non_doc_files=$(echo "$changed_files" | grep -vE '\.(md|txt|MD|TXT)$' || true)
         if [ -z "$non_doc_files" ]; then
             log_info "📄 문서만 변경됨 (.md/.txt) - AI 리뷰 스킵"
-            mark_commit_reviewed "$last_commit"  # 스킵해도 마킹하여 재실행 방지
+            mark_commit_reviewed "$head_commit"
+            save_last_reviewed_commit "$head_commit"
             exit 0
         fi
     fi
 
-    # 필터 2: 변경량이 너무 작은 경우 스킵
-    # v6.10.1: git diff-tree --numstat 사용으로 정확한 라인 카운팅 (+++/--- 헤더 제외)
-    local total_lines=$(git -C "$PROJECT_ROOT" diff-tree --numstat -r "$last_commit" 2>/dev/null | awk '{sum += ($1 + $2)} END {print sum+0}')
-    if [ "$total_lines" -lt "$SKIP_MIN_LINES" ]; then
-        log_info "📝 변경량 ${total_lines}줄 < ${SKIP_MIN_LINES}줄 - AI 리뷰 스킵"
-        mark_commit_reviewed "$last_commit"
-        exit 0
+    # 필터 2: 변경량이 너무 작은 경우 스킵 (단일 커밋 모드에서만)
+    if [ "$unreviewed_count" -eq 1 ]; then
+        local total_lines=$(git -C "$PROJECT_ROOT" diff-tree --numstat -r "$head_commit" 2>/dev/null | awk '{sum += ($1 + $2)} END {print sum+0}')
+        if [ "$total_lines" -lt "$SKIP_MIN_LINES" ]; then
+            log_info "📝 변경량 ${total_lines}줄 < ${SKIP_MIN_LINES}줄 - AI 리뷰 스킵"
+            mark_commit_reviewed "$head_commit"
+            save_last_reviewed_commit "$head_commit"
+            exit 0
+        fi
     fi
 
     # 2-3단계: 문서/테스트 검증 경고 생성 (v6.11.0)
     log_info "📋 문서/테스트 업데이트 필요성 분석 중..."
-    analyze_changes "$last_commit" 2>/dev/null || true
+    analyze_changes "$head_commit" 2>/dev/null || true
 
     # 3단계: 분할 리뷰 실행 (v5.0.0: 자동 분할 또는 일반 리뷰)
     if ! split_and_review "$changed_files"; then
@@ -347,10 +445,15 @@ main() {
         exit 1
     fi
 
-    # 4단계: 리뷰 완료 마킹 (v6.5.0: 중복 방지)
-    mark_commit_reviewed "$last_commit"
+    # 4단계: 리뷰 완료 마킹 (v6.5.0: 중복 방지 + v6.12.0: 누적 추적)
+    mark_commit_reviewed "$head_commit"
+    save_last_reviewed_commit "$head_commit"
 
-    log_success "✅ Auto AI Review 완료"
+    if [ "$unreviewed_count" -gt 1 ]; then
+        log_success "✅ 누적 리뷰 완료 (${unreviewed_count}개 커밋)"
+    else
+        log_success "✅ Auto AI Review 완료"
+    fi
 }
 
 # ============================================================================
