@@ -102,7 +102,8 @@ function createDataStreamParserTransform(): TransformStream<
                 ) {
                   const innerError = JSON.parse(errorData);
                   const errorMsg =
-                    innerError?.error?.message || '알 수 없는 오류가 발생했습니다.';
+                    innerError?.error?.message ||
+                    '알 수 없는 오류가 발생했습니다.';
                   controller.enqueue(
                     encoder.encode(`\n\n⚠️ AI 처리 중 오류: ${errorMsg}`)
                   );
@@ -112,9 +113,7 @@ function createDataStreamParserTransform(): TransformStream<
                   );
                 }
               } catch {
-                controller.enqueue(
-                  encoder.encode(`\n\n⚠️ 오류: ${content}`)
-                );
+                controller.enqueue(encoder.encode(`\n\n⚠️ 오류: ${content}`));
               }
               break;
             }
@@ -134,7 +133,10 @@ function createDataStreamParserTransform(): TransformStream<
             }
             case 'e': {
               // Error 메시지 (d와 유사한 형식)
-              console.log('[StreamParser] Stream error:', content.slice(0, 100));
+              console.log(
+                '[StreamParser] Stream error:',
+                content.slice(0, 100)
+              );
               break;
             }
             default:
@@ -161,7 +163,11 @@ function createDataStreamParserTransform(): TransformStream<
           } catch {
             controller.enqueue(encoder.encode(buffer));
           }
-        } else if (match && match[1] && ['d', 'e', '2', '8'].includes(match[1])) {
+        } else if (
+          match &&
+          match[1] &&
+          ['d', 'e', '2', '8'].includes(match[1])
+        ) {
           // 메타데이터 접두사 무시
         } else {
           controller.enqueue(encoder.encode(buffer));

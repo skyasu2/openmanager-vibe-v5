@@ -7,19 +7,19 @@
  * @version 1.0.0
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import type {
-  CreateJobRequest,
-  CreateJobResponse,
-  JobListResponse,
-  JobStatusResponse,
-  AIJob,
-} from '@/types/ai-jobs';
+import { type NextRequest, NextResponse } from 'next/server';
 import {
   analyzeQueryComplexity,
   inferJobType,
 } from '@/lib/ai/job-queue/complexity-analyzer';
+import type {
+  AIJob,
+  CreateJobRequest,
+  CreateJobResponse,
+  JobListResponse,
+  JobStatusResponse,
+} from '@/types/ai-jobs';
 
 // Supabase 클라이언트 생성
 function getSupabaseClient() {
@@ -44,10 +44,7 @@ export async function POST(request: NextRequest) {
 
     // 입력 검증
     if (!query || query.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Query is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
     // 복잡도 분석
@@ -196,7 +193,9 @@ async function triggerWorker(
   const cloudRunUrl = process.env.CLOUD_RUN_AI_URL;
 
   if (!cloudRunUrl) {
-    console.warn('[AI Jobs] CLOUD_RUN_AI_URL not configured, skipping worker trigger');
+    console.warn(
+      '[AI Jobs] CLOUD_RUN_AI_URL not configured, skipping worker trigger'
+    );
     return;
   }
 

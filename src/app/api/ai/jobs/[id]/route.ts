@@ -7,12 +7,9 @@
  * @version 1.0.0
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import type {
-  JobStatusResponse,
-  AIJob,
-} from '@/types/ai-jobs';
+import { type NextRequest, NextResponse } from 'next/server';
+import type { AIJob, JobStatusResponse } from '@/types/ai-jobs';
 
 // Supabase 클라이언트 생성
 function getSupabaseClient() {
@@ -54,10 +51,7 @@ export async function GET(
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return NextResponse.json(
-          { error: 'Job not found' },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: 'Job not found' }, { status: 404 });
       }
       console.error('[AI Jobs] Failed to get job:', error);
       return NextResponse.json(
@@ -113,10 +107,7 @@ export async function DELETE(
 
     if (fetchError) {
       if (fetchError.code === 'PGRST116') {
-        return NextResponse.json(
-          { error: 'Job not found' },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: 'Job not found' }, { status: 404 });
       }
       throw fetchError;
     }

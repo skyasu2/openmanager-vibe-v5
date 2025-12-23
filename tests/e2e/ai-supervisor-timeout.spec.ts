@@ -21,8 +21,10 @@ const FIRST_BYTE_TIMEOUT = 5_000;
 // 테스트용 쿼리들
 const TEST_QUERIES = {
   simple: '서버 상태를 알려줘',
-  detailed: '전체 서버의 CPU, 메모리, 디스크 사용량을 상세히 분석하고 권장 사항을 알려줘',
-  complex: '지난 1시간 동안의 서버 성능 트렌드를 분석하고, 이상 징후가 있는지 확인한 후, 상세한 리포트를 작성해줘',
+  detailed:
+    '전체 서버의 CPU, 메모리, 디스크 사용량을 상세히 분석하고 권장 사항을 알려줘',
+  complex:
+    '지난 1시간 동안의 서버 성능 트렌드를 분석하고, 이상 징후가 있는지 확인한 후, 상세한 리포트를 작성해줘',
 };
 
 test.describe('AI Supervisor Timeout Tests', () => {
@@ -177,16 +179,19 @@ test.describe('AI Supervisor Timeout Tests', () => {
     test('sessionId가 응답 헤더에 포함된다', async ({ request }) => {
       const sessionId = `test_session_${Date.now()}`;
 
-      const response = await request.post(`/api/ai/supervisor?sessionId=${sessionId}`, {
-        data: {
-          messages: [{ role: 'user', content: TEST_QUERIES.simple }],
-        },
-        headers: {
-          Accept: 'text/event-stream',
-          'Content-Type': 'application/json',
-        },
-        timeout: VERCEL_TIMEOUT,
-      });
+      const response = await request.post(
+        `/api/ai/supervisor?sessionId=${sessionId}`,
+        {
+          data: {
+            messages: [{ role: 'user', content: TEST_QUERIES.simple }],
+          },
+          headers: {
+            Accept: 'text/event-stream',
+            'Content-Type': 'application/json',
+          },
+          timeout: VERCEL_TIMEOUT,
+        }
+      );
 
       if (skipIfSecurityBlocked(response.status())) return;
 

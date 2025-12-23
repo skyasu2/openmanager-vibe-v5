@@ -119,7 +119,9 @@ describe('extractTextFromMessage', () => {
         ],
       };
 
-      expect(extractTextFromMessage(message)).toBe('첫 번째 문장\n두 번째 문장');
+      expect(extractTextFromMessage(message)).toBe(
+        '첫 번째 문장\n두 번째 문장'
+      );
     });
 
     it('혼합 parts에서 text만 추출 (image 무시)', () => {
@@ -325,14 +327,17 @@ describe('normalizeMessagesForCloudRun', () => {
       const messages: Message[] = [
         { role: 'user', parts: [{ type: 'text', text: '이 이미지 분석해줘' }] },
         { role: 'user', parts: [{ type: 'image', image: 'base64...' }] },
-        { role: 'assistant', parts: [{ type: 'text', text: '이미지 분석 결과입니다' }] },
+        {
+          role: 'assistant',
+          parts: [{ type: 'text', text: '이미지 분석 결과입니다' }],
+        },
       ];
 
       const result = normalizeMessagesForCloudRun(messages);
 
       expect(result).toHaveLength(3);
       expect(result[0].content).toBe('이 이미지 분석해줘');
-      expect(result[1].content).toBe('[Non-text content]');  // 기존: 필터링됨
+      expect(result[1].content).toBe('[Non-text content]'); // 기존: 필터링됨
       expect(result[2].content).toBe('이미지 분석 결과입니다');
     });
   });
@@ -347,7 +352,11 @@ describe('normalizeMessagesForCloudRun', () => {
 
       const result = normalizeMessagesForCloudRun(messages);
 
-      expect(result.map((m) => m.role)).toEqual(['system', 'user', 'assistant']);
+      expect(result.map((m) => m.role)).toEqual([
+        'system',
+        'user',
+        'assistant',
+      ]);
     });
 
     it('연속된 비텍스트 메시지도 모두 보존', () => {
@@ -356,7 +365,10 @@ describe('normalizeMessagesForCloudRun', () => {
         { role: 'user', parts: [{ type: 'image', image: 'img1' }] },
         { role: 'user', parts: [{ type: 'image', image: 'img2' }] },
         { role: 'user', parts: [{ type: 'image', image: 'img3' }] },
-        { role: 'assistant', parts: [{ type: 'text', text: '3개 이미지 확인' }] },
+        {
+          role: 'assistant',
+          parts: [{ type: 'text', text: '3개 이미지 확인' }],
+        },
       ];
 
       const result = normalizeMessagesForCloudRun(messages);
@@ -371,9 +383,7 @@ describe('normalizeMessagesForCloudRun', () => {
 
   describe('레거시 호환성', () => {
     it('content 문자열 메시지 처리', () => {
-      const messages: Message[] = [
-        { role: 'user', content: '레거시 메시지' },
-      ];
+      const messages: Message[] = [{ role: 'user', content: '레거시 메시지' }];
 
       const result = normalizeMessagesForCloudRun(messages);
 

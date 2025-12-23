@@ -5,10 +5,7 @@
  * @version 1.0.0
  */
 
-import type {
-  ComplexityAnalysis,
-  QueryComplexity,
-} from '@/types/ai-jobs';
+import type { ComplexityAnalysis, QueryComplexity } from '@/types/ai-jobs';
 
 // ============================================
 // 키워드 정의

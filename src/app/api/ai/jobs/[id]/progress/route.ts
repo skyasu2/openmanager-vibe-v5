@@ -6,11 +6,11 @@
  * @version 1.0.0
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { type NextRequest, NextResponse } from 'next/server';
 import type {
-  JobProgressUpdate,
   JobCompletionUpdate,
+  JobProgressUpdate,
   JobStatus,
 } from '@/types/ai-jobs';
 
@@ -58,10 +58,7 @@ export async function PATCH(
   try {
     // Worker 인증 확인
     if (!verifyWorkerAuth(request)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id: jobId } = await params;
@@ -77,7 +74,8 @@ export async function PATCH(
     const supabase = getSupabaseClient();
 
     // 업데이트 유형 판별
-    const isCompletion = body.status === 'completed' || body.status === 'failed';
+    const isCompletion =
+      body.status === 'completed' || body.status === 'failed';
 
     if (isCompletion) {
       // 완료/실패 업데이트

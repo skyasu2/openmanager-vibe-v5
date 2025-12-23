@@ -5,8 +5,8 @@
  * @version 1.0.0
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { JobStatusResponse, JobStatus } from '@/types/ai-jobs';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { JobStatus, JobStatusResponse } from '@/types/ai-jobs';
 
 // ============================================
 // 타입 정의
@@ -92,23 +92,25 @@ export function useJobPolling(
   /**
    * Job 상태 조회
    */
-  const fetchJobStatus = useCallback(async (): Promise<JobStatusResponse | null> => {
-    if (!jobId) return null;
+  const fetchJobStatus =
+    useCallback(async (): Promise<JobStatusResponse | null> => {
+      if (!jobId) return null;
 
-    try {
-      const response = await fetch(`/api/ai/jobs/${jobId}`);
+      try {
+        const response = await fetch(`/api/ai/jobs/${jobId}`);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
+
+        return await response.json();
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to fetch job status';
+        throw new Error(message);
       }
-
-      return await response.json();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch job status';
-      throw new Error(message);
-    }
-  }, [jobId]);
+    }, [jobId]);
 
   /**
    * 단일 폴링 실행
