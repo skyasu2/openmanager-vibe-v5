@@ -154,7 +154,7 @@ export async function executeSupervisor(query: string, options) {
 
 ### Phase 1: Token Counter + Trigger (1-2일)
 
-**파일**: `cloud-run/ai-engine/src/lib/context-compression/token-counter.ts`
+**파일**: `cloud-run/ai-engine/src/lib/context-compression/encoding-counter.ts`
 
 ```typescript
 // 핵심 인터페이스
@@ -326,7 +326,7 @@ export const COMPRESSION_CONFIG = {
 
 | Phase | 작업 | 상태 | 구현 파일 |
 |-------|------|------|----------|
-| 1 | Token Counter + Trigger | ✅ 완료 | `token-counter.ts`, `compression-trigger.ts` |
+| 1 | Token Counter + Trigger | ✅ 완료 | `encoding-counter.ts`, `compression-trigger.ts` |
 | 2 | Buffer Manager | ✅ 완료 | `buffer-manager.ts`, `state-definition.ts` 확장 |
 | 3 | Summarizer + LangGraph 통합 | ✅ 완료 | `summarizer.ts`, `compression-node.ts` |
 | - | 모듈 Export | ✅ 완료 | `index.ts` |
@@ -336,7 +336,7 @@ export const COMPRESSION_CONFIG = {
 ```
 cloud-run/ai-engine/src/lib/context-compression/
 ├── index.ts                 # 모듈 진입점 (모든 exports)
-├── token-counter.ts         # js-tiktoken 기반 토큰 카운팅
+├── encoding-counter.ts      # js-tiktoken 기반 토큰 카운팅
 ├── compression-trigger.ts   # 85%/95% 임계값 압축 트리거
 ├── buffer-manager.ts        # Hybrid Buffer (최근 N개 + 요약)
 ├── summarizer.ts            # Gemini 기반 LLM 요약

@@ -6,7 +6,7 @@
  *
  * Phase 1 of Context Compression System Implementation
  *
- * @module context-compression/token-counter
+ * @module context-compression/encoding-counter
  */
 
 import type { BaseMessage } from '@langchain/core/messages';
