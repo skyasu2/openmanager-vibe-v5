@@ -37,22 +37,49 @@ export interface UsageRatioResult {
 
 /**
  * Context window limits for supported models
- * Note: Using conservative limits (leaving room for output)
+ * Note: Using conservative limits (80% of actual to leave room for output)
  */
-export const MODEL_CONTEXT_LIMITS: Record<string, number> = {
-  // Google Gemini
-  'gemini-2.5-flash-lite': 1_000_000, // 1M tokens
-  'gemini-2.0-flash': 1_000_000,
-  'gemini-1.5-flash': 1_000_000,
+const DEFAULT_MODEL_LIMITS: Record<string, number> = {
+  // Google Gemini (80% of actual limits)
+  'gemini-2.5-flash-lite': 800_000, // Actual: 1M
+  'gemini-2.0-flash': 800_000,
+  'gemini-1.5-flash': 800_000,
 
-  // Groq (Llama models)
-  'llama-3.3-70b-versatile': 128_000,
-  'llama-3.1-8b-instant': 128_000,
-  'llama-3.1-70b-versatile': 128_000,
+  // Groq (Llama models) - 80% of actual
+  'llama-3.3-70b-versatile': 100_000, // Actual: 128K
+  'llama-3.1-8b-instant': 100_000,
+  'llama-3.1-70b-versatile': 100_000,
 
-  // Default fallback
-  default: 128_000,
-} as const;
+  // Default fallback (conservative)
+  default: 100_000,
+};
+
+// Mutable model limits (can be updated at runtime)
+const modelContextLimits: Record<string, number> = { ...DEFAULT_MODEL_LIMITS };
+
+/**
+ * Get model context limits (read-only view)
+ */
+export const MODEL_CONTEXT_LIMITS: Readonly<Record<string, number>> = modelContextLimits;
+
+/**
+ * Register or update a model's context limit
+ * Use this to add new models or adjust limits at runtime
+ */
+export function setModelContextLimit(modelId: string, limit: number): void {
+  if (limit <= 0) {
+    console.warn(`[TokenCounter] Invalid limit ${limit} for ${modelId}, ignoring`);
+    return;
+  }
+  modelContextLimits[modelId] = limit;
+}
+
+/**
+ * Get context limit for a model (with fallback)
+ */
+export function getModelContextLimit(modelId: string): number {
+  return modelContextLimits[modelId] ?? modelContextLimits.default;
+}
 
 // ============================================================================
 // 3. TokenCounter Class
@@ -144,25 +171,43 @@ export class TokenCounter {
   }
 
   /**
-   * Extract text content from a message
+   * Extract ALL content from a message (text + tool calls + additional_kwargs)
+   * Fix: Previously only counted text parts, missing tool/function payloads
    */
   private extractMessageContent(message: BaseMessage): string {
+    const parts: string[] = [];
     const content = message.content;
 
+    // 1. Extract text content
     if (typeof content === 'string') {
-      return content;
+      parts.push(content);
+    } else if (Array.isArray(content)) {
+      for (const part of content) {
+        if (typeof part === 'object' && part !== null) {
+          if (part.type === 'text' && 'text' in part) {
+            parts.push(part.text as string);
+          } else if (part.type === 'tool_use' || part.type === 'tool_result') {
+            // Tool use/result payloads
+            parts.push(JSON.stringify(part));
+          }
+        }
+      }
     }
 
-    if (Array.isArray(content)) {
-      return content
-        .filter((part): part is { type: 'text'; text: string } =>
-          typeof part === 'object' && part !== null && part.type === 'text'
-        )
-        .map((part) => part.text)
-        .join('\n');
+    // 2. Extract tool_calls from additional_kwargs (OpenAI format)
+    const kwargs = message.additional_kwargs;
+    if (kwargs?.tool_calls && Array.isArray(kwargs.tool_calls)) {
+      for (const toolCall of kwargs.tool_calls) {
+        parts.push(JSON.stringify(toolCall));
+      }
     }
 
-    return '';
+    // 3. Extract function_call (legacy format)
+    if (kwargs?.function_call) {
+      parts.push(JSON.stringify(kwargs.function_call));
+    }
+
+    return parts.join('\n');
   }
 
   /**

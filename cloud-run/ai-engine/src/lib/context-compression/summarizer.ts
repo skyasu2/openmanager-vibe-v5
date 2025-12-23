@@ -142,17 +142,27 @@ export class Summarizer {
   }
 
   /**
+   * Maximum input tokens for summarization request
+   * Gemini Flash Lite has 1M context, but we limit input to avoid timeouts
+   */
+  private static readonly MAX_INPUT_TOKENS = 50_000;
+
+  /**
    * Generate summary using Gemini model
+   * Fix: Added input length control to prevent context overflow
    */
   private async generateSummary(formattedMessages: string): Promise<string> {
     try {
+      // Truncate input if too long (Fix for Issue #2)
+      const truncatedInput = this.truncateInput(formattedMessages);
+
       const summary = await invokeGeminiWithFailover(
         this.config.model,
         async (model) => {
           const response = await model.invoke([
             new SystemMessage({ content: SUMMARIZATION_SYSTEM_PROMPT }),
             new HumanMessage({
-              content: `다음 대화를 요약해주세요:\n\n${formattedMessages}`,
+              content: `다음 대화를 요약해주세요:\n\n${truncatedInput}`,
             }),
           ]);
 
@@ -172,6 +182,36 @@ export class Summarizer {
       // Fallback: Return a basic extractive summary
       return this.createFallbackSummary(formattedMessages);
     }
+  }
+
+  /**
+   * Truncate input to prevent context overflow
+   */
+  private truncateInput(input: string): string {
+    const tokenCounter = getTokenCounter();
+    const inputTokens = tokenCounter.countTokens(input);
+
+    if (inputTokens <= Summarizer.MAX_INPUT_TOKENS) {
+      return input;
+    }
+
+    // Truncate: keep first 20% and last 60% (prioritize recent context)
+    const lines = input.split('\n');
+    const totalLines = lines.length;
+    const firstPart = Math.floor(totalLines * 0.2);
+    const lastPart = Math.floor(totalLines * 0.6);
+
+    const truncated = [
+      ...lines.slice(0, firstPart),
+      '\n... (중간 대화 일부 생략 - 토큰 제한) ...\n',
+      ...lines.slice(-lastPart),
+    ].join('\n');
+
+    console.warn(
+      `[Summarizer] Input truncated: ${inputTokens} → ~${tokenCounter.countTokens(truncated)} tokens`
+    );
+
+    return truncated;
   }
 
   /**

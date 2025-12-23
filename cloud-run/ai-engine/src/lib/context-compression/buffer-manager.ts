@@ -133,9 +133,15 @@ export class BufferManager {
     const recentMessages = messages.slice(splitIndex);
 
     // Create RemoveMessage entries for LangGraph
-    const messagesToRemove = messagesToSummarize
-      .filter((msg) => msg.id !== undefined)
-      .map((msg) => new RemoveMessage({ id: msg.id as string }));
+    // Fix Issue #4: Handle messages without ID by generating deterministic IDs
+    const messagesToRemove = messagesToSummarize.map((msg, index) => {
+      const msgId = msg.id ?? `compress-msg-${index}-${Date.now()}`;
+      // Assign ID to message if missing (for future reference)
+      if (!msg.id) {
+        (msg as BaseMessage & { id: string }).id = msgId;
+      }
+      return new RemoveMessage({ id: msgId });
+    });
 
     return {
       messagesToSummarize,
@@ -146,6 +152,7 @@ export class BufferManager {
 
   /**
    * Finalize compression with provided summary
+   * Fix Issue #3: compressionRatio now includes recent messages tokens
    */
   finalize(
     originalMessages: BaseMessage[],
@@ -165,10 +172,18 @@ export class BufferManager {
     // Calculate summary token count
     const summaryTokenCount = tokenCounter.countTokens(summary);
 
-    // Calculate compression ratio
+    // Calculate recent messages token count (Fix Issue #3)
+    let recentMessagesTokenCount = 0;
+    for (const msg of recentMessages) {
+      const content = this.extractContent(msg);
+      recentMessagesTokenCount += tokenCounter.countTokens(content);
+    }
+
+    // Calculate compression ratio (summary + recent vs original)
     const compressedCount = originalMessages.length - recentMessages.length;
+    const compressedTotalTokens = summaryTokenCount + recentMessagesTokenCount;
     const compressionRatio =
-      originalTokenCount > 0 ? 1 - summaryTokenCount / originalTokenCount : 0;
+      originalTokenCount > 0 ? 1 - compressedTotalTokens / originalTokenCount : 0;
 
     const metadata: CompressionMetadata = {
       lastCompressedAt: new Date().toISOString(),
