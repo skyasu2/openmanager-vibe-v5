@@ -74,7 +74,7 @@ CREATE OR REPLACE FUNCTION get_metrics_window(
     p_interval_minutes INTEGER DEFAULT 10
 )
 RETURNS TABLE (
-    timestamp TIMESTAMPTZ,
+    recorded_at TIMESTAMPTZ,
     cpu FLOAT,
     memory FLOAT,
     disk FLOAT,
@@ -86,7 +86,7 @@ AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        m.timestamp,
+        m.timestamp AS recorded_at,
         m.cpu,
         m.memory,
         m.disk,
