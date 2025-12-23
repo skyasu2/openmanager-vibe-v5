@@ -30,15 +30,16 @@
 - [ ] 하이브리드 버퍼 매니저 (Phase 2)
 - [ ] LLM 기반 Summarizer (Phase 3)
 
-### Monitoring & Observability
-- [ ] Agent 실행 시간 로깅
-- [ ] 실패율 추적 (Circuit Breaker 통계)
-- [ ] Cost 추적 (월별 토큰 사용량)
+### Monitoring & Observability ✅ (이미 구현됨)
+- [x] Agent 실행 시간 로깅 (`token-usage-tracker.ts` - durationMs 필드)
+- [x] 실패율 추적 (`circuit-breaker.ts` - getStats(), getAIStatusSummary())
+- [x] Cost 추적 (`token-usage-tracker.ts` - estimatedCostUSD)
 
 ## Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| Monitoring & Observability | 2025-12-23 | 실행시간/실패율/비용 추적 이미 구현 확인 |
 | Async Job Queue System | 2025-12-23 | Supabase 기반 Job Queue + API 구현 완료 |
 | Token Usage Tracker | 2025-12-23 | Groq/Gemini 토큰 추적 + Quota 알림 |
 | Prompt Optimization Complete | 2025-12-23 | Vercel timeout E2E 테스트 포함 |
