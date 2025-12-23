@@ -1,16 +1,3 @@
----
-id: database-queries
-title: Optimized Queries
-keywords: [sql, performance, optimization, supabase]
-priority: high
-ai_optimized: true
-related_docs:
-  - 'db/schema.md'
-  - 'db/optimization.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # Optimized Database Queries
 
 ## 📊 Server Metrics Queries

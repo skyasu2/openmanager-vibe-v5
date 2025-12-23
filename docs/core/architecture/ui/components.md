@@ -1,11 +1,3 @@
----
-id: ui-components
-title: UI Components Guide
-keywords: [components, shadcn, react, tailwind]
-priority: high
-ai_optimized: true
----
-
 # UI Components Guide
 
 ## 🎨 Component System

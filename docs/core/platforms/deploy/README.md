@@ -1,22 +1,3 @@
----
-category: deployment
-purpose: production_deployment_and_optimization
-ai_optimized: true
-query_triggers:
-  - 'Vercel 배포'
-  - '프로덕션 환경'
-  - '무료 티어 최적화'
-  - '배포 워크플로우'
-  - '환경변수 설정'
-  - '배포 오류 해결'
-related_docs:
-  - 'docs/deploy/vercel.md'
-  - 'docs/deploy/env-setup.md'
-  - 'docs/deploy/free-tier.md'
-  - 'docs/core/architecture/system/system-architecture-current.md'
-last_updated: '2025-12-19'
----
-
 # Deployment Guide
 
 Complete deployment documentation for OpenManager VIBE v5 production environment.

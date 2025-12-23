@@ -1,15 +1,3 @@
----
-id: claude-code-features
-title: Claude Code 기능 가이드
-keywords: [claude-code, task, cli, skills, mcp]
-priority: high
-ai_optimized: true
-related_docs:
-  - '../common/workflow.md'
-updated: '2025-12-21'
-version: 'v5.83.1'
----
-
 # Claude Code 기능 가이드
 
 Claude Code CLI의 주요 기능과 활용법

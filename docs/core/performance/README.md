@@ -1,22 +1,3 @@
----
-category: performance
-purpose: performance_optimization_and_monitoring
-ai_optimized: true
-query_triggers:
-  - '성능 최적화'
-  - '번들 크기 감소'
-  - 'Core Web Vitals'
-  - 'API 응답 속도'
-  - '캐시 전략'
-  - '메모리 최적화'
-related_docs:
-  - 'docs/performance/bundle.md'
-  - 'docs/performance/charts.md'
-  - 'docs/development/testing/README.md'
-  - 'docs/environment/wsl/README.md'
-last_updated: '2025-12-19'
----
-
 # 🚀 Performance Optimization
 
 **Current Status**: 152ms avg response, 60% bundle reduction, 85% cache hit rate

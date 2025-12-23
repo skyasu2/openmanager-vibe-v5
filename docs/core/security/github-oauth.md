@@ -1,14 +1,3 @@
----
-id: auth-github-oauth
-title: 'GitHub OAuth & Guest Authentication'
-keywords: ['github', 'oauth', 'supabase', 'authentication', 'guest', 'jwt']
-ai_optimized: true
-priority: high
-updated: '2025-12-20'
-related: ['auth-supabase', 'auth-session', 'troubleshoot-auth']
-code_snippets: true
----
-
 # GitHub OAuth & Guest Authentication
 
 **AI Context**: Dual authentication system (GitHub OAuth + Guest) with JWT validation security.

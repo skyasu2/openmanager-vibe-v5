@@ -1,12 +1,3 @@
----
-id: mcp-servers
-title: 'MCP 서버 관리 가이드'
-keywords: ['mcp', 'servers', 'management', 'configuration']
-priority: high
-ai_optimized: true
-updated: '2025-12-12'
----
-
 # 🔧 MCP 서버 관리 가이드
 
 **9개 서버 완전 관리**: 설정, 최적화, 문제 해결

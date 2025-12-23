@@ -1,11 +1,3 @@
----
-id: common-issues
-title: Common Issues & Solutions
-keywords: [troubleshooting, errors, debugging, fixes]
-priority: high
-ai_optimized: true
----
-
 # Common Issues & Solutions
 
 ## 🚨 TypeScript Errors

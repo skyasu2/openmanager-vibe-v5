@@ -1,16 +1,3 @@
----
-category: security
-purpose: security_policies_and_guidelines
-ai_optimized: true
-query_triggers:
-  - '보안 정책'
-  - '인증 시스템'
-  - 'OAuth 설정'
-related_docs:
-  - 'docs/core/security/'
-last_updated: '2025-12-12'
----
-
 # 🔒 보안 정책 및 가이드
 
 OpenManager VIBE v5의 보안 정책과 구현 가이드입니다.

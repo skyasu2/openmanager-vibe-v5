@@ -1,16 +1,3 @@
----
-id: api-design
-title: "API Architecture Design"
-keywords: ["api", "architecture", "endpoints", "design", "restful"]
-priority: critical
-ai_optimized: true
-related_docs: ["security.md", "database.md", "system.md", "../api/routes.md"]
-updated: "2025-12-11"
-version: "v5.83.1"
-cache_hint: "frequently_accessed"
-token_estimate: 690
----
-
 # 🔌 API 설계
 
 ## 🔌 API 구조 (76개 엔드포인트)

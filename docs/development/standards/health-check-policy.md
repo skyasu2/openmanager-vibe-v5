@@ -1,15 +1,3 @@
----
-id: health-check-policy
-title: 헬스체크 정책
-keywords: [health-check, api, monitoring, policy, vercel]
-priority: medium
-ai_optimized: true
-related_docs:
-  - '../../core/architecture/module-structure.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # 🏥 헬스체크 정책
 
 > **작성**: 2025-11-21 08:07 KST

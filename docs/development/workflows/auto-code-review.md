@@ -1,17 +1,3 @@
----
-id: auto-code-review
-title: 자동 코드 리뷰 워크플로우
-keywords: [code-review, automation, codex, gemini, git-hooks, ci]
-priority: high
-ai_optimized: true
-related_docs:
-  - '../standards/git-hooks-best-practices.md'
-  - '../standards/commit-conventions.md'
-  - 'progressive-lint-guide.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # 🤖 자동 코드 리뷰 워크플로우
 
 **Codex → Gemini 폴백 자동 리뷰 + Claude Code 개선 시스템** (v2.0.0)

@@ -1,14 +1,3 @@
----
-id: database-design
-title: "Supabase Database Design"
-keywords: ["database", "supabase", "postgresql", "schema", "rls"]
-priority: high
-ai_optimized: true
-related_docs: ["api.md", "security.md", "../db/schema.md", "../db/optimization.md"]
-updated: "2025-09-16"
-version: "v5.77"
----
-
 # 🐘 데이터베이스 설계
 
 ## 🐘 Supabase PostgreSQL 스키마

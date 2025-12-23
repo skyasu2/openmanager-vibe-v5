@@ -1,9 +1,3 @@
----
-category: core-ai
-purpose: deployed_ai_features
-last_updated: '2025-12-22'
----
-
 # 배포용 AI (앱 내 AI 기능)
 
 OpenManager VIBE 앱에 탑재된 AI 기능 문서

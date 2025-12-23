@@ -1,23 +1,3 @@
----
-category: troubleshooting
-purpose: problem_solving_and_recovery_guides
-ai_optimized: true
-query_triggers:
-  - '빌드 에러'
-  - 'Claude 400 에러'
-  - 'Playwright MCP 문제'
-  - 'WSL 모니터링'
-  - '시스템 복구'
-  - 'Side Effects 분석'
-  - '일반적인 문제'
-related_docs:
-  - 'docs/development/'
-  - 'docs/development/ai/claude-code/'
-  - 'docs/development/testing/'
-  - 'scripts/'
-last_updated: '2025-12-19'
----
-
 # 🔧 트러블슈팅 가이드 (Troubleshooting)
 
 **문제 해결 및 복구 가이드** - 실전 트러블슈팅 및 시스템 복구

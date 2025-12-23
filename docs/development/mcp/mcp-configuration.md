@@ -1,17 +1,3 @@
----
-id: mcp-configuration
-title: MCP 서버 설정
-keywords: [mcp, configuration, servers, setup, vercel, supabase, serena]
-priority: high
-ai_optimized: true
-related_docs:
-  - 'mcp-priority-guide.md'
-  - 'servers.md'
-  - 'tools.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # MCP 서버 설정
 
 **현재 MCP 환경**: 9개 서버 완벽 연결 (100% 가동률)

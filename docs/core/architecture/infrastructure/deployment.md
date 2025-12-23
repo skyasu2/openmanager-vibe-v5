@@ -1,14 +1,3 @@
----
-id: deployment-architecture
-title: "Vercel Deployment Architecture"
-keywords: ["vercel", "deployment", "edge", "cdn", "infrastructure"]
-priority: medium
-ai_optimized: true
-related_docs: ["../features/monitoring.md", "../../core/platforms/deploy/README.md"]
-updated: "2025-12-01"
-version: "v5.83.1"
----
-
 # 배포 아키텍처
 
 ## 🚀 Vercel 배포 시스템

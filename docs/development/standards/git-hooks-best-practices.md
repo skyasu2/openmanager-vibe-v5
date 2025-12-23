@@ -1,16 +1,3 @@
----
-id: git-hooks-best-practices
-title: Git Hooks Best Practices
-keywords: [git, hooks, husky, pre-commit, pre-push, automation]
-priority: high
-ai_optimized: true
-related_docs:
-  - 'commit-conventions.md'
-  - '../serena-anti-pattern-detection.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # Git Hooks Best Practices - 적용 완료 보고서
 
 **날짜**: 2025-10-02

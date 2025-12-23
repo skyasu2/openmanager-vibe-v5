@@ -1,13 +1,3 @@
----
-id: system-architecture-deployment
-title: "배포 및 운영 아키텍처"
-keywords: ["deployment", "vercel", "operations", "monitoring", "performance"]
-priority: critical
-ai_optimized: true
-related_docs: ["system-architecture-ai.md", "../design/system.md"]
-updated: "2025-12-01"
----
-
 # 🚀 OpenManager VIBE v5.71.0 배포 및 운영 아키텍처
 
 **작성일**: 2025-12-01

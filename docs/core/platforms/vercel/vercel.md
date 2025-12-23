@@ -1,11 +1,3 @@
----
-id: vercel-deployment
-title: Vercel Deployment Guide
-keywords: [vercel, deployment, nextjs, free-tier]
-priority: high
-ai_optimized: true
----
-
 # Vercel Deployment Guide
 
 ## 🚀 Quick Deploy

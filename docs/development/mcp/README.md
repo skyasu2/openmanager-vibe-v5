@@ -1,16 +1,3 @@
----
-id: mcp-system-guide
-title: MCP 시스템 가이드
-keywords: [mcp, model-context-protocol, claude-code, integration, server]
-priority: high
-ai_optimized: true
-related_docs:
-  - 'advanced.md'
-  - '../ai/common/workflow.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # 🔌 MCP 시스템 가이드
 
 **OpenManager VIBE v5.83.1** - 9개 MCP 서버 통합 개발 환경

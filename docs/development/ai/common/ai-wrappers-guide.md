@@ -1,16 +1,3 @@
----
-id: ai-wrappers-guide
-title: AI Wrappers 통합 가이드
-keywords: [ai, wrappers, codex, gemini, qwen, code-review]
-priority: high
-ai_optimized: true
-related_docs:
-  - 'ai-usage-guidelines.md'
-  - 'cli-strategy.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # 🤖 AI Wrappers 통합 가이드 v3.3.0
 
 **OpenManager VIBE 프로젝트 전용** | 최종 업데이트: 2025-12-19

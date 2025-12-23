@@ -1,15 +1,3 @@
----
-id: ai-workflow
-title: AI 교차검증 워크플로우
-description: 4-AI 협업 실무 가이드와 성공 사례
-keywords: [AI교차검증, 워크플로우, Claude, Codex, Gemini, Qwen, 협업]
-ai_optimized: true
-priority: critical
-related_docs: ["../mcp/advanced.md", "../environment/guides/wsl.md", "../environment/testing/README.md", "verification.md", "../README.md"]
-updated: "2025-12-19"
-version: "v5.83.1"
----
-
 # 🤖 AI 교차검증 워크플로우
 
 **4-AI 협업 실무 가이드 및 성공 사례**

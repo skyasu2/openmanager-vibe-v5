@@ -1,16 +1,3 @@
----
-id: react-hooks-standards
-title: React Hooks 아키텍처 표준
-keywords: [react, hooks, architecture, standards]
-priority: high
-ai_optimized: true
-related_docs:
-  - 'architecture/system-architecture-current.md'
-  - 'architecture/domain-driven-design.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # React Hooks 아키텍처 표준
 
 ## 🎯 목표: Hook 관련 프로젝트 중단 방지

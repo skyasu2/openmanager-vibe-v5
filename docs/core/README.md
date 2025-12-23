@@ -1,19 +1,3 @@
----
-id: core-documentation
-title: "Core 문서 (메인 프로젝트)"
-category: core
-purpose: core_system_documentation
-ai_optimized: true
-query_triggers:
-  - '핵심 아키텍처'
-  - '시스템 구조'
-  - '보안 정책'
-related_docs:
-  - 'docs/core/architecture/README.md'
-  - 'docs/core/security/README.md'
-last_updated: '2025-12-19'
----
-
 # 📦 Core 문서 (메인 프로젝트)
 
 **배포되고 실제로 동작하는 시스템 관련 문서**

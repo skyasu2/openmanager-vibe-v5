@@ -1,16 +1,3 @@
----
-id: documentation-automation
-title: 문서 자동화 시스템 가이드
-keywords: [documentation, automation, changelog, pre-commit, husky]
-priority: medium
-ai_optimized: true
-related_docs:
-  - 'claude-workflow-guide.md'
-  - '../planning/TODO.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # 문서 자동화 시스템 가이드
 
 **버전**: v5.83.1

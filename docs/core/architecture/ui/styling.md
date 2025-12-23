@@ -1,11 +1,3 @@
----
-id: ui-styling
-title: Styling System
-keywords: [tailwind, css, design-tokens, theming]
-priority: medium
-ai_optimized: true
----
-
 # Styling System
 
 ## 🎨 Design System

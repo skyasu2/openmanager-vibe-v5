@@ -1,16 +1,3 @@
----
-id: mcp-advanced
-title: MCP 실전 가이드
-keywords: [mcp, server, installation, serena, ai-verification]
-priority: critical
-ai_optimized: true
-related_docs:
-  - 'README.md'
-  - '../ai/common/workflow.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # 🔧 MCP 실전 가이드
 
 **12개 MCP 서버 완전 설치 및 운영 가이드**

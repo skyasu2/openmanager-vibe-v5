@@ -1,9 +1,13 @@
 /**
- * 📄 자동 장애 보고서 페이지 컴포넌트
+ * 📄 자동 장애 보고서 페이지 v2.0
  *
  * 기능:
  * - 실시간 장애 리포트 생성 및 관리
  * - /api/ai/incident-report API 연동
+ *
+ * v2.0 변경사항 (2025-12-23):
+ * - 단일 탭으로 UI 단순화 (탭 시스템 제거)
+ * - 미사용 변수 정리
  */
 
 'use client';
@@ -24,8 +28,6 @@ import { useCallback, useState } from 'react';
 // ============================================================================
 // Types
 // ============================================================================
-
-type TabType = 'reports';
 
 interface IncidentReport {
   id: string;
@@ -63,14 +65,6 @@ interface APIIncidentReport {
 }
 
 // ============================================================================
-// Constants
-// ============================================================================
-
-const TABS = [
-  { id: 'reports' as TabType, label: '보고서 목록', icon: FileText },
-];
-
-// ============================================================================
 // Helpers
 // ============================================================================
 
@@ -102,14 +96,10 @@ export default function AutoReportPage() {
   // Server data (React Query)
   const { data: servers = [] } = useServerQuery();
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<TabType>('reports');
-
   // Reports state
   const [reports, setReports] = useState<IncidentReport[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // 자동 로드 제거로 초기값 false
-  const [_error, setError] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
 
@@ -129,52 +119,9 @@ export default function AutoReportPage() {
     []
   );
 
-  // Fetch reports from API
-  const _fetchReports = useCallback(async () => {
-    try {
-      setError(null);
-      const response = await fetch('/api/ai/incident-report');
-
-      if (!response.ok) {
-        throw new Error(`API 오류: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success && data.reports) {
-        const mappedReports: IncidentReport[] = data.reports.map(
-          (report: APIIncidentReport) => ({
-            id: report.id,
-            title: report.title,
-            severity: mapSeverity(report.severity),
-            timestamp: new Date(report.created_at),
-            affectedServers: report.affected_servers || [],
-            description:
-              report.root_cause_analysis?.primary_cause ||
-              '상세 분석을 확인하세요.',
-            status: 'active' as const,
-            pattern: report.pattern,
-            recommendations: report.recommendations,
-          })
-        );
-        setReports(mappedReports);
-      }
-    } catch (err) {
-      console.error('보고서 조회 실패:', err);
-      setError('보고서를 불러오는데 실패했습니다.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [mapSeverity]);
-
-  // 자동 로드 제거 (2025-12-14)
-  // 사용자가 "새 보고서" 버튼 또는 "새로고침" 버튼을 클릭해야 데이터가 로드됨
-  // 이전: useEffect(() => { void fetchReports(); }, [fetchReports]);
-
   // Generate new report
   const handleGenerateReport = async () => {
     setIsGenerating(true);
-    setError(null);
 
     try {
       const metrics = servers.map((server) => ({
@@ -222,7 +169,6 @@ export default function AutoReportPage() {
       }
     } catch (err) {
       console.error('보고서 생성 실패:', err);
-      setError('보고서 생성에 실패했습니다.');
     } finally {
       setIsGenerating(false);
     }
@@ -522,44 +468,21 @@ export default function AutoReportPage() {
             </div>
           </div>
 
-          {activeTab === 'reports' && (
-            <button
-              onClick={handleGenerateReport}
-              disabled={isGenerating}
-              className="flex items-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-all duration-200 hover:scale-105 hover:bg-red-600 active:scale-95 disabled:opacity-50"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`}
-              />
-              <span>{isGenerating ? '생성 중...' : '새 보고서'}</span>
-            </button>
-          )}
-        </div>
-
-        {/* Tabs */}
-        <div className="mt-4 flex space-x-2">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                  activeTab === tab.id
-                    ? 'bg-red-500 text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-red-100'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+          <button
+            onClick={handleGenerateReport}
+            disabled={isGenerating}
+            className="flex items-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-all duration-200 hover:scale-105 hover:bg-red-600 active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`}
+            />
+            <span>{isGenerating ? '생성 중...' : '새 보고서'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'reports' && renderReportsTab()}
+      {/* Content */}
+      {renderReportsTab()}
     </div>
   );
 }

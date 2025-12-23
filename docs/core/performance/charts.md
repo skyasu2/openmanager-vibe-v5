@@ -1,12 +1,3 @@
----
-id: performance-charts
-title: "Charts Performance"
-keywords: ["charts", "d3", "chartjs", "react-vis", "real-time", "performance"]
-priority: medium
-ai_optimized: true
-updated: "2025-09-09"
----
-
 # 📊 Charts Performance Analysis
 
 **Winner**: Chart.js (8.7/10) | **Current**: 60fps stable | **Memory**: 45.2MB optimized

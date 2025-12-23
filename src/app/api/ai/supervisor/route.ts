@@ -254,16 +254,32 @@ function extractTextFromMessage(
  *   { role: 'user', content: '...' }
  *
  * 이 함수가 없으면 Cloud Run이 빈 메시지로 처리하여 503 에러 발생
+ *
+ * @note (2025-12-23 개선)
+ * - 빈 content 필터링 제거 → 대화 맥락 보존
+ * - 이미지/Tool Call 메시지도 플레이스홀더로 보존
+ * - Cloud Run은 빈 문자열도 처리 가능
  */
 function normalizeMessagesForCloudRun(
   messages: z.infer<typeof messageSchema>[]
 ): { role: string; content: string }[] {
-  return messages
-    .map((msg) => ({
+  return messages.map((msg) => {
+    const content = extractTextFromMessage(msg);
+
+    // 빈 content인 경우 플레이스홀더 사용 (맥락 보존)
+    // 이미지, Tool Call 등 비텍스트 메시지의 위치를 유지
+    if (!content || content.length === 0) {
+      return {
+        role: msg.role,
+        content: '[Non-text content]',
+      };
+    }
+
+    return {
       role: msg.role,
-      content: extractTextFromMessage(msg),
-    }))
-    .filter((msg) => msg.content.length > 0);
+      content,
+    };
+  });
 }
 
 // ============================================================================

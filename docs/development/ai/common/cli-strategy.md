@@ -1,16 +1,3 @@
----
-id: cli-strategy
-title: "AI CLI Collaboration Strategy"
-keywords: ["cli", "collaboration", "gemini", "codex", "qwen", "kiro"]
-priority: medium
-ai_optimized: true
-related_docs:
-  - 'ai-wrappers-guide.md'
-  - 'workflow.md'
-updated: "2025-12-19"
-version: "v5.83.1"
----
-
 # 🤝 AI CLI Collaboration Strategy
 
 **멀티 AI CLI 전략적 협업** - WSL 환경 최적화

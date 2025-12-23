@@ -1,17 +1,3 @@
----
-id: wsl-vibe-coding-best-practices
-title: WSL Vibe Coding Best Practices
-keywords: [wsl, development-environment, best-practices, performance, ai-workflow]
-priority: high
-ai_optimized: true
-related_docs:
-  - '../../core/platforms/wsl/wsl-vibe-session-guide.md'
-  - '../mcp/mcp-configuration.md'
-  - '../ai/common/ai-coding-standards.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # WSL Vibe Coding Best Practices 비교 분석 리포트
 
 > **분석일**: 2025-12-19

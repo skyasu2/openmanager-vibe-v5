@@ -1,12 +1,3 @@
----
-id: design-consistency
-title: "Data Consistency Strategy"
-keywords: ["consistency", "monitoring", "ai", "timestamp"]
-priority: medium
-ai_optimized: true
-updated: "2025-09-09"
----
-
 # Data Consistency Strategy
 
 **문제**: 모니터링과 AI가 서로 다른 메트릭을 표시하는 일관성 문제 해결

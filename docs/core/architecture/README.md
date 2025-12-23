@@ -1,20 +1,3 @@
----
-category: design
-purpose: system_architecture_and_design
-ai_optimized: true
-query_triggers:
-  - '시스템 설계'
-  - '아키텍처 구조'
-  - 'MCP 설계'
-  - 'AI 시스템 설계'
-  - '모니터링 아키텍처'
-related_docs:
-  - 'docs/core/architecture/'
-  - 'docs/claude/architecture/'
-  - 'src/'
-last_updated: '2025-12-12'
----
-
 # 📐 설계 문서 (Design Documents)
 
 **목적**: OpenManager VIBE 시스템 설계 및 아키텍처 문서

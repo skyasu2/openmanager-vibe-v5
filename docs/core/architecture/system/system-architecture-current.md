@@ -1,18 +1,3 @@
----
-id: system-architecture-current
-title: Current System Architecture
-keywords: [architecture, system, structure, components]
-priority: critical
-ai_optimized: true
-related_docs:
-  - 'architecture/api/endpoints.md'
-  - 'architecture/decisions/adr-001-unified-ai-engine-cache-and-providers.md'
-  - 'ai/README.md'
-  - 'architecture/domain-driven-design.md'
-  - 'architecture/module-structure.md'
-updated: '2025-12-21'
----
-
 # 🏗️ 현재 시스템 아키텍처 (v5.83.7)
 
 ## 📊 시스템 개요

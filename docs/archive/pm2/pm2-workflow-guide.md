@@ -1,16 +1,3 @@
----
-id: pm2-workflow
-title: PM2 프로세스 관리 워크플로우 가이드
-keywords: [pm2, process, workflow, wsl, development]
-priority: medium
-ai_optimized: true
-related_docs:
-  - 'ai/claude-code/README.md'
-  - 'standards/health-check-policy.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # PM2 프로세스 관리 워크플로우 가이드
 
 **작성일**: 2025-11-28

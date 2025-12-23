@@ -1,17 +1,3 @@
----
-id: progressive-lint-guide
-title: Progressive Lint 전략 가이드
-keywords: [lint, eslint, progressive, strict-mode, code-quality]
-priority: medium
-ai_optimized: true
-related_docs:
-  - '../standards/typescript-rules.md'
-  - '../standards/git-hooks-best-practices.md'
-  - 'auto-code-review.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # Progressive Lint Strategy Guide
 
 **목적**: 대규모 코드베이스 변경 시 점진적 품질 개선 전략

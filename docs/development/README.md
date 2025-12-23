@@ -1,17 +1,3 @@
----
-id: development-guides
-title: 개발 가이드
-keywords: [development, guides, utilities, mock, simulation, typescript, optimization]
-priority: high
-ai_optimized: true
-related_docs:
-  - '../core/architecture/type-system-consistency.md'
-  - 'side-effects-optimization-guide.md'
-  - 'standards/typescript-rules.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # 📖 개발 가이드 (Development Guides)
 
 **목적**: 실용적 개발 가이드, 유틸리티, Mock 시스템

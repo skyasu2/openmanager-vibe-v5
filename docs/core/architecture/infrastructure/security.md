@@ -1,14 +1,3 @@
----
-id: security-design
-title: "Security Architecture Design"
-keywords: ["security", "authentication", "authorization", "zero-trust", "oauth"]
-priority: high
-ai_optimized: true
-related_docs: ["database.md", "api.md", "../auth/github-oauth.md", "system.md"]
-updated: "2025-09-16"
-version: "v5.77"
----
-
 # 🛡️ 보안 아키텍처
 
 ## 🛡️ Zero Trust + Defense in Depth

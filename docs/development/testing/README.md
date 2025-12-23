@@ -1,19 +1,3 @@
----
-category: testing
-purpose: cloud_native_testing_strategy_and_implementation
-ai_optimized: true
-query_triggers:
-  - '테스트 전략'
-  - 'Vercel 프로덕션 테스트'
-  - 'Playwright E2E'
-  - 'Vitest 설정'
-related_docs:
-  - 'docs/development/testing/testing-philosophy-detailed.md'
-  - 'docs/development/testing/vitest-playwright-config-guide.md'
-  - 'docs/development/testing/co-location-guide.md'
-last_updated: '2025-12-19'
----
-
 # 🧪 OpenManager VIBE 테스트 시스템 가이드
 
 > **📝 상세 가이드**:

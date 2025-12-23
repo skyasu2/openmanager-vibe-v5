@@ -1,12 +1,3 @@
----
-id: performance-bundle
-title: "Bundle Optimization"
-keywords: ["bundle", "webpack", "next.js", "code-splitting", "tree-shaking"]
-priority: medium
-ai_optimized: true
-updated: "2025-09-09"
----
-
 # 📦 Bundle Optimization
 
 **Achievement**: 1.1MB → 539KB (60% reduction) | **Target**: 250KB (-289KB more)

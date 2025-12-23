@@ -1,17 +1,18 @@
 /**
- * 🤖 AI 어시스턴트 기능 아이콘 패널
+ * 🤖 AI 어시스턴트 기능 아이콘 패널 v3.0
  *
  * 사이드바 오른쪽에 세로로 배치되는 AI 기능 아이콘들
  * - AI 채팅: 자연어로 시스템 질의 및 대화
- * - 자동 장애 보고서: AI 기반 장애 분석 + 장애 케이스 학습
- * - 이상감지/예측: AI Supervisor 분석 + 패턴 학습 + 예측 분석
- * - AI 상태관리: Circuit Breaker, Failover, Rate Limit 모니터링 (v2.0.0)
+ * - 자동 장애 보고서: AI 기반 장애 분석 보고서 생성
+ * - 이상감지/예측: AI Supervisor 분석 + 예측 분석
+ *
+ * v3.0 변경사항 (2025-12-23):
+ * - AI 상태관리 탭 제거 (Coming Soon 상태로 미구현)
  */
 
 'use client';
 
 import {
-  Activity,
   Brain,
   FileText,
   Maximize,
@@ -25,8 +26,7 @@ import type { ComponentType } from 'react';
 export type AIAssistantFunction =
   | 'chat'
   | 'auto-report'
-  | 'intelligent-monitoring'
-  | 'ai-management';
+  | 'intelligent-monitoring';
 
 interface AIAssistantIcon {
   id: AIAssistantFunction;
@@ -46,7 +46,7 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     id: 'chat',
     icon: MessageSquare,
     label: '자연어 질의',
-    description: '자연어로 시스템 질의 및 대화',
+    description: '💬 NLQ Agent: 자연어로 시스템 질의',
     color: 'text-blue-600',
     bgColor: 'bg-blue-50 hover:bg-blue-100',
     gradient: 'from-blue-500 to-cyan-500',
@@ -55,7 +55,7 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     id: 'auto-report',
     icon: FileText,
     label: '자동장애 보고서',
-    description: 'AI 기반 시스템 장애 분석 보고서 생성',
+    description: '📄 Reporter Agent: 장애 분석 보고서 생성',
     color: 'text-pink-600',
     bgColor: 'bg-pink-50 hover:bg-pink-100',
     gradient: 'from-pink-500 to-rose-500',
@@ -64,21 +64,10 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     id: 'intelligent-monitoring',
     icon: Monitor,
     label: '이상감지/예측',
-    description:
-      '🧠 AI Supervisor: 이상탐지→근본원인→예측모니터링→패턴학습→예측분석',
+    description: '🔍 Analyst Agent: 이상탐지→근본원인→예측분석',
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-50 hover:bg-emerald-100',
     gradient: 'from-emerald-500 to-teal-500',
-  },
-  // === AI 관리 기능 (v2.0.0) ===
-  {
-    id: 'ai-management',
-    icon: Activity,
-    label: 'AI 상태관리',
-    description: '⚙️ Circuit Breaker 상태, Failover 이벤트, Rate Limit 모니터링',
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50 hover:bg-amber-100',
-    gradient: 'from-amber-500 to-orange-500',
   },
 ];
 

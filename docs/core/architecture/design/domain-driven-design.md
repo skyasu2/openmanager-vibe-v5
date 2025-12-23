@@ -1,16 +1,3 @@
----
-id: domain-driven-design
-title: Domain-Driven Design (DDD) Structure
-keywords: [architecture, ddd, domains, structure]
-priority: high
-ai_optimized: true
-related_docs:
-  - 'architecture/system-architecture-current.md'
-  - 'architecture/module-structure.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # 🏛️ Domain-Driven Design (DDD) Structure
 
 OpenManager VIBE v5 adopts a pragmatic Domain-Driven Design (DDD) approach to organize complex business logic and UI components. This structure helps in maintaining separation of concerns and scalability.

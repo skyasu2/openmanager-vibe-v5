@@ -1,16 +1,3 @@
----
-id: ai-coding-standards
-title: AI 코딩 규칙 통합 가이드
-keywords: [ai, coding, standards, typescript, best-practices]
-priority: high
-ai_optimized: true
-related_docs:
-  - 'ai-benchmarks.md'
-  - 'ai-usage-guidelines.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # AI 코딩 규칙 통합 가이드
 
 **공통 코딩 표준** - Codex, Gemini, Qwen, Claude Code 모두 준수

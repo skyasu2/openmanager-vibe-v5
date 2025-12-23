@@ -1,13 +1,3 @@
----
-id: design-fnv-hash
-title: "FNV-1a Hash Algorithm"
-keywords: ["fnv1a", "hash", "simulation", "performance", "adr"]
-priority: medium
-ai_optimized: true
-related_docs: ["monitoring.md", "../core/data-flow.md", "../../simulation/setup.md"]
-updated: "2025-09-16"
----
-
 # FNV-1a Hash Algorithm
 
 **결정**: Box-Muller Transform 대신 FNV-1a 해시를 Mock 시뮬레이션에 채택

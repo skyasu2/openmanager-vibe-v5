@@ -1,11 +1,3 @@
----
-id: build-issues
-title: Build & Deployment Issues
-keywords: [build, deployment, vercel, errors]
-priority: high
-ai_optimized: true
----
-
 # Build & Deployment Issues
 
 ## 🚨 TypeScript Build Errors

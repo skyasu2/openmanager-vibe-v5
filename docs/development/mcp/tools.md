@@ -1,12 +1,3 @@
----
-id: mcp-tools
-title: 'MCP 도구 레퍼런스'
-keywords: ['mcp', 'tools', 'functions', 'api', 'reference']
-priority: high
-ai_optimized: true
-updated: '2025-12-12'
----
-
 # 🛠️ MCP 도구 레퍼런스
 
 **200+ 도구**: 9개 서버별 완전 레퍼런스 (2025-12-11 정리 후)

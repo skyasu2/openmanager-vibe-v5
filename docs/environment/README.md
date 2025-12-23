@@ -1,18 +1,3 @@
----
-category: environment
-purpose: local_development_environment_setup
-ai_optimized: true
-query_triggers:
-  - '개발 환경 설정'
-  - 'WSL 설정'
-  - 'AI 도구 설정'
-  - 'Cloud Run 설정'
-related_docs:
-  - 'docs/development/README.md'
-  - 'docs/environment/wsl/wsl-optimization.md'
-last_updated: '2025-12-14'
----
-
 # 💻 Environment 문서 (개발 환경)
 
 **로컬에서 개발하기 위한 환경 설정 및 도구 문서**

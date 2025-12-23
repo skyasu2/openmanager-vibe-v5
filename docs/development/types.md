@@ -1,11 +1,3 @@
----
-id: typescript-types
-title: TypeScript Types Collection
-keywords: [types, interfaces, typescript, definitions]
-priority: high
-ai_optimized: true
----
-
 # TypeScript Types Collection
 
 ## 🏗️ Core Domain Types

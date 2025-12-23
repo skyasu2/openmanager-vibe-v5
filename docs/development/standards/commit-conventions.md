@@ -1,16 +1,3 @@
----
-id: commit-conventions
-title: 커밋 컨벤션
-keywords: [git, commit, convention, emoji, message]
-priority: high
-ai_optimized: true
-related_docs:
-  - 'git-hooks-best-practices.md'
-  - '../../ai/common/workflow.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # 커밋 컨벤션
 
 ## 🎯 기본 원칙

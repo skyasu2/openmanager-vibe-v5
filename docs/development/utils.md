@@ -1,11 +1,3 @@
----
-id: utility-functions
-title: Utility Functions
-keywords: [utils, helpers, typescript, functions]
-priority: high
-ai_optimized: true
----
-
 # Utility Functions
 
 ## 📊 Data Processing

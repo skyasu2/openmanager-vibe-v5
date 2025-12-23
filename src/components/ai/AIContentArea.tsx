@@ -7,7 +7,6 @@
 
 'use client';
 
-import { Activity } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 
@@ -71,24 +70,6 @@ export default function AIContentArea({
           <Suspense fallback={<LoadingSpinner />}>
             <IntelligentMonitoringPage />
           </Suspense>
-        </div>
-      );
-
-    case 'ai-management':
-      // FIX-003: Coming Soon placeholder (MVP 범위 외)
-      return (
-        <div
-          className="flex h-full items-center justify-center bg-white"
-          data-testid="ai-management-page"
-        >
-          <div className="text-center">
-            <Activity className="mx-auto mb-4 h-12 w-12 text-amber-500" />
-            <p className="text-lg font-medium text-gray-700">AI 상태관리</p>
-            <p className="mt-2 text-sm text-gray-500">Coming Soon</p>
-            <p className="mt-1 text-xs text-gray-400">
-              Circuit Breaker, Failover, Rate Limit 모니터링
-            </p>
-          </div>
         </div>
       );
 

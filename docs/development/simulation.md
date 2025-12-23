@@ -1,12 +1,3 @@
----
-id: mock-simulation
-title: 'Mock Simulation System'
-keywords: ['fnv1a', 'hash', 'simulation', 'mock', 'servers']
-priority: high
-ai_optimized: true
-updated: '2025-09-09'
----
-
 # Mock Simulation System
 
 **FNV-1a Hash 기반 현실적 서버 메트릭 생성** - $57/월 → $0 무료 운영

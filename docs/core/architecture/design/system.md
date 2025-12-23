@@ -1,16 +1,3 @@
----
-id: system-architecture
-title: "OpenManager VIBE System Architecture"
-keywords: ["system", "architecture", "design", "overview", "structure"]
-priority: critical
-ai_optimized: true
-related_docs: ["api.md", "database.md", "security.md", "../current/system-architecture-ai.md"]
-updated: "2025-12-11"
-version: "v5.83.1"
-cache_hint: "frequently_accessed"
-token_estimate: 850
----
-
 # 🏗️ 시스템 아키텍처
 
 ## 🏗️ 현재 운영 아키텍처

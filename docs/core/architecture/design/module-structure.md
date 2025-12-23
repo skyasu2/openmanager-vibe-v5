@@ -1,16 +1,3 @@
----
-id: module-structure
-title: Module Structure
-keywords: [architecture, modules, structure, features]
-priority: high
-ai_optimized: true
-related_docs:
-  - 'architecture/system-architecture-current.md'
-  - 'architecture/domain-driven-design.md'
-updated: '2025-12-21'
-version: 'v5.83.7'
----
-
 # 🧩 Module Structure
 
 The `src/modules` directory is used for feature-specific logic, shared utilities, and pluggable components that do not necessarily constitute a full "domain" or are cross-cutting concerns packaged as modules.

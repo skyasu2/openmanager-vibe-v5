@@ -1,12 +1,3 @@
----
-id: free-tier-optimize
-title: 'Free Tier Optimization'
-keywords: ['vercel', 'supabase', 'free-tier', 'optimization']
-priority: high
-ai_optimized: true
-updated: '2025-09-09'
----
-
 # Free Tier Optimization
 
 ## 📊 Current Usage Status (2025-09-09)

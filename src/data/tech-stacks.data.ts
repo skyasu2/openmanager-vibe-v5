@@ -577,18 +577,6 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
           tags: ['IDE-Secondary', '시각분석', '보조역할'],
           type: 'commercial',
         },
-        {
-          name: 'GCP Cloud Functions',
-          category: 'deployment',
-          importance: 'medium',
-          description: '3단계 배포 - 서버리스 함수의 도입',
-          implementation:
-            '초기에는 Docker 없이 가볍게 배포 가능한 Cloud Functions를 사용함. 하지만 로컬 개발 환경과의 불일치로 인해 이후 Cloud Run으로 전환하게 됨',
-          status: 'history',
-          icon: '⚡',
-          tags: ['GCP', 'Functions', 'Serverless'],
-          type: 'commercial',
-        },
       ],
     },
   },

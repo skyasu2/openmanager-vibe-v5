@@ -1,11 +1,3 @@
----
-id: mock-simulation
-title: Mock Simulation System
-keywords: [mock, fnv-1a, metrics, simulation]
-priority: high
-ai_optimized: true
----
-
 # Mock Simulation System
 
 ## 🎲 FNV-1a Hash Engine

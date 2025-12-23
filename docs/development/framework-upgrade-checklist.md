@@ -1,16 +1,3 @@
----
-id: framework-upgrade-checklist
-title: Framework Upgrade Checklist - 2025 Stack
-keywords: [framework, upgrade, next.js, react, typescript, checklist]
-priority: high
-ai_optimized: true
-related_docs:
-  - '../core/architecture/module-structure.md'
-  - 'ai/common/workflow.md'
-updated: '2025-12-19'
-version: 'v5.83.1'
----
-
 # Framework Upgrade Checklist - 2025 Stack
 
 **검토 일자**: 2025-12-19
