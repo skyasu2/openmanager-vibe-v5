@@ -2,12 +2,54 @@ import type { Locator, Page } from '@playwright/test';
 import { ensureVercelBypassCookie } from './security';
 import { TIMEOUTS } from './timeouts';
 
+export type LoginProvider = 'guest' | 'github' | 'google';
+
+export interface LoginButtonSelectors {
+  guest: string[];
+  github: string[];
+  google: string[];
+  loginButton: string[];
+}
+
 export interface GuestLoginOptions {
   landingPath?: string;
   guestButtonSelector?: string;
   waitForPath?: string;
   skipLandingNavigation?: boolean;
+  /** 로그인 페이지로 직접 이동할지 여부 (기본값: false - 메인에서 로그인 버튼 클릭) */
+  navigateToLoginPage?: boolean;
 }
+
+/**
+ * 로그인 버튼 셀렉터 (우선순위 순서)
+ * 2024-12: Google 로그인 추가, 버튼명 변경 반영
+ */
+export const LOGIN_BUTTON_SELECTORS: LoginButtonSelectors = {
+  guest: [
+    'button:has-text("게스트 모드")',
+    'button:has-text("게스트로 체험하기")', // 레거시 지원
+    '[data-testid="guest-login"]',
+    'button[aria-label*="게스트"]',
+  ],
+  github: [
+    'button:has-text("GitHub로 로그인")',
+    'button:has-text("GitHub")',
+    '[data-testid="github-login"]',
+    'button[aria-label*="GitHub"]',
+  ],
+  google: [
+    'button:has-text("Google로 로그인")',
+    'button:has-text("Google")',
+    '[data-testid="google-login"]',
+    'button[aria-label*="Google"]',
+  ],
+  loginButton: [
+    'button:has-text("로그인")',
+    '[data-testid="login-button"]',
+    'button[aria-label*="로그인"]',
+    'a:has-text("로그인")',
+  ],
+};
 
 export interface AiToggleOptions {
   buttonSelectors?: string[];
@@ -58,30 +100,107 @@ export async function resetGuestState(page: Page): Promise<void> {
 }
 
 /**
+ * 로그인 페이지로 이동합니다.
+ * 메인 페이지에서 로그인 버튼을 클릭하거나 직접 /login으로 이동합니다.
+ */
+export async function navigateToLoginPage(
+  page: Page,
+  options: { direct?: boolean } = {}
+): Promise<void> {
+  const { direct = false } = options;
+
+  await ensureVercelBypassCookie(page);
+
+  if (direct) {
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  } else {
+    // 메인 페이지에서 로그인 버튼 클릭
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+    // 로그인 버튼 찾기
+    let loginButton: Locator | null = null;
+    for (const selector of LOGIN_BUTTON_SELECTORS.loginButton) {
+      const candidate = page.locator(selector).first();
+      const isVisible = await candidate
+        .isVisible({ timeout: 2000 })
+        .catch(() => false);
+      if (isVisible) {
+        loginButton = candidate;
+        break;
+      }
+    }
+
+    if (!loginButton) {
+      // 로그인 버튼이 없으면 이미 로그인 페이지이거나 직접 이동
+      await page.goto('/login', { waitUntil: 'domcontentloaded' });
+      return;
+    }
+
+    await loginButton.click();
+    await page.waitForURL('**/login**', { timeout: TIMEOUTS.NETWORK_REQUEST });
+  }
+
+  await page.waitForLoadState('domcontentloaded');
+}
+
+/**
+ * 특정 로그인 버튼을 찾아서 클릭합니다.
+ */
+async function clickLoginButton(
+  page: Page,
+  provider: LoginProvider
+): Promise<void> {
+  const selectors = LOGIN_BUTTON_SELECTORS[provider];
+
+  for (const selector of selectors) {
+    const button = page.locator(selector).first();
+    try {
+      await button.waitFor({
+        state: 'visible',
+        timeout: TIMEOUTS.MODAL_DISPLAY,
+      });
+      await button.click();
+      return;
+    } catch {
+      // 다음 셀렉터 시도
+    }
+  }
+
+  throw new Error(
+    `${provider} 로그인 버튼을 찾을 수 없습니다.\n` +
+      `페이지: ${page.url()}\n` +
+      `시도한 셀렉터: ${selectors.join(', ')}`
+  );
+}
+
+/**
  * 게스트 로그인 버튼을 클릭해 메인 페이지(/)로 이동합니다.
+ * 2024-12: 새로운 로그인 흐름 지원 (메인 → 로그인 페이지 → 게스트 모드)
  */
 export async function guestLogin(
   page: Page,
   options: GuestLoginOptions = {}
 ): Promise<void> {
   const {
-    landingPath = '/',
-    guestButtonSelector = 'button:has-text("게스트로 체험하기")',
     waitForPath = '/',
     skipLandingNavigation = false,
+    navigateToLoginPage: goToLoginPage = true,
   } = options;
 
   await ensureVercelBypassCookie(page);
+
   if (!skipLandingNavigation) {
-    await page.goto(landingPath, { waitUntil: 'domcontentloaded' });
+    if (goToLoginPage) {
+      // 새로운 흐름: 로그인 페이지로 이동 후 게스트 버튼 클릭
+      await navigateToLoginPage(page, { direct: true });
+    } else {
+      // 레거시 흐름: 메인 페이지에서 직접 게스트 버튼 찾기
+      await page.goto('/', { waitUntil: 'domcontentloaded' });
+    }
   }
 
-  const guestButton = page.locator(guestButtonSelector).first();
-  await guestButton.waitFor({
-    state: 'visible',
-    timeout: TIMEOUTS.MODAL_DISPLAY,
-  });
-  await guestButton.click();
+  // 게스트 로그인 버튼 클릭
+  await clickLoginButton(page, 'guest');
 
   await page.waitForURL(`**${waitForPath}**`, {
     timeout: TIMEOUTS.NETWORK_REQUEST,
@@ -89,6 +208,48 @@ export async function guestLogin(
   await page.waitForLoadState('networkidle', {
     timeout: TIMEOUTS.NETWORK_REQUEST,
   });
+}
+
+/**
+ * OAuth 로그인 테스트용 - 로그인 버튼 클릭까지만 수행
+ * 실제 OAuth 인증은 외부 서비스이므로 버튼 클릭 여부만 확인
+ */
+export async function clickOAuthLoginButton(
+  page: Page,
+  provider: 'github' | 'google'
+): Promise<void> {
+  await ensureVercelBypassCookie(page);
+  await navigateToLoginPage(page, { direct: true });
+  await clickLoginButton(page, provider);
+}
+
+/**
+ * 로그인 페이지에서 모든 로그인 옵션이 표시되는지 확인
+ */
+export async function verifyLoginOptions(page: Page): Promise<{
+  guest: boolean;
+  github: boolean;
+  google: boolean;
+}> {
+  await ensureVercelBypassCookie(page);
+  await navigateToLoginPage(page, { direct: true });
+
+  const result = { guest: false, github: false, google: false };
+
+  for (const provider of ['guest', 'github', 'google'] as const) {
+    for (const selector of LOGIN_BUTTON_SELECTORS[provider]) {
+      const button = page.locator(selector).first();
+      const isVisible = await button
+        .isVisible({ timeout: 2000 })
+        .catch(() => false);
+      if (isVisible) {
+        result[provider] = true;
+        break;
+      }
+    }
+  }
+
+  return result;
 }
 
 /**
