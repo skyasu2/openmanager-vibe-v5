@@ -3,7 +3,7 @@
 ## 🐘 Supabase PostgreSQL 스키마
 
 ### 플랫폼 구성
-- **PostgreSQL**: 15 (최신)
+- **PostgreSQL**: 17 (최신)
 - **무료 티어**: 500MB (현재 3% 사용)
 - **RLS**: Row Level Security 완전 적용
 - **실시간**: WebSocket 기반 동기화

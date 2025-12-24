@@ -24,7 +24,7 @@ services/
 
 // Data Layer
 - Mock Simulation (FNV-1a Hash)
-- Supabase PostgreSQL 15
+- Supabase PostgreSQL 17
 - In-Memory Cache (LRU)
 ```
 
