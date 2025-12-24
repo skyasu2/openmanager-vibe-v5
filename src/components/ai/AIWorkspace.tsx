@@ -11,7 +11,7 @@
  */
 
 import { type UIMessage, useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
+import { TextStreamChatTransport } from 'ai';
 import {
   Activity,
   ArrowLeftFromLine,
@@ -180,7 +180,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   const [input, setInput] = useState('');
 
   const { messages, sendMessage, status, setMessages, stop } = useChat({
-    transport: new DefaultChatTransport({
+    transport: new TextStreamChatTransport({
       api: '/api/ai/supervisor', // LangGraph Multi-Agent Supervisor
     }),
     onFinish: () => {

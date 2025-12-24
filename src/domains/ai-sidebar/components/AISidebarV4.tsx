@@ -1,7 +1,7 @@
 'use client';
 
 import { type UIMessage, useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
+import { TextStreamChatTransport } from 'ai';
 
 // Icons
 import { Bot, User } from 'lucide-react';
@@ -348,11 +348,11 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   // Vercel AI SDK useChat Hook (@ai-sdk/react v2.x)
   // ============================================================================
   //
-  // Transport 설정 (2025-12-22 Standard Optimization):
-  // - DefaultChatTransport 사용: Vercel AI SDK 표준 프로토콜(Data Stream) 파싱 지원
-  // - TextStreamChatTransport 제거: Raw Protocol 노출 문제 해결
+  // Transport 설정 (2025-12-24 수정):
+  // - TextStreamChatTransport 사용: Plain Text 스트림을 파싱
+  // - 서버에서 Data Stream Protocol → Plain Text로 변환 후 전송
   const { messages, sendMessage, status, setMessages, stop } = useChat({
-    transport: new DefaultChatTransport({
+    transport: new TextStreamChatTransport({
       api: `/api/ai/supervisor?sessionId=${encodeURIComponent(chatSessionIdRef.current)}`,
     }),
     onFinish: async () => {

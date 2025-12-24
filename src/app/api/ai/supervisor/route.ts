@@ -32,7 +32,7 @@ import { quickSanitize } from './security';
 // 🔧 Stream Transformer: Vercel Data Stream Protocol → Plain Text
 // ============================================================================
 // Cloud Run이 반환하는 Data Stream Protocol (0:"text", 3:"error") 을
-// AI SDK useChat이 이해할 수 있는 형식으로 변환
+// TextStreamChatTransport가 이해할 수 있는 Plain Text로 변환
 //
 // Protocol Prefixes:
 // - 0: text content
@@ -40,6 +40,98 @@ import { quickSanitize } from './security';
 // - 2: data (JSON)
 // - 8: message annotation
 // ============================================================================
+
+/**
+ * Data Stream Protocol을 Plain Text로 변환하는 TransformStream
+ *
+ * @description
+ * Cloud Run이 반환하는 `0:"텍스트"` 형식을 파싱하여 순수 텍스트만 추출합니다.
+ * TextStreamChatTransport와 함께 사용됩니다.
+ */
+function createDataStreamParserTransform(): TransformStream<
+  Uint8Array,
+  Uint8Array
+> {
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  let buffer = '';
+
+  return new TransformStream({
+    transform(chunk, controller) {
+      buffer += decoder.decode(chunk, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        // Data Stream Protocol: N:"content" 또는 N:{json}
+        const match = trimmed.match(/^(\d+|[a-z]):(.*)$/);
+        if (match?.[1] && match[2] !== undefined) {
+          const prefix = match[1];
+          const content = match[2];
+
+          switch (prefix) {
+            case '0': {
+              // 텍스트 콘텐츠 - JSON 문자열 파싱
+              try {
+                const text = JSON.parse(content);
+                if (typeof text === 'string') {
+                  controller.enqueue(encoder.encode(text));
+                }
+              } catch {
+                controller.enqueue(encoder.encode(content));
+              }
+              break;
+            }
+            case '3': {
+              // 에러 메시지
+              try {
+                const errorData = JSON.parse(content);
+                if (
+                  typeof errorData === 'string' &&
+                  errorData.includes('"error"')
+                ) {
+                  const innerError = JSON.parse(errorData);
+                  const errorMsg =
+                    innerError?.error?.message || '알 수 없는 오류';
+                  controller.enqueue(
+                    encoder.encode(`\n\n⚠️ AI 오류: ${errorMsg}`)
+                  );
+                } else {
+                  controller.enqueue(
+                    encoder.encode(`\n\n⚠️ 오류: ${errorData}`)
+                  );
+                }
+              } catch {
+                controller.enqueue(encoder.encode(`\n\n⚠️ 오류: ${content}`));
+              }
+              break;
+            }
+            // case '2', '8', 'd', 'e': 메타데이터 무시
+          }
+        }
+      }
+    },
+    flush(controller) {
+      if (buffer.trim()) {
+        const match = buffer.trim().match(/^0:(.*)$/);
+        if (match?.[1]) {
+          try {
+            const text = JSON.parse(match[1]);
+            if (typeof text === 'string') {
+              controller.enqueue(encoder.encode(text));
+            }
+          } catch {
+            // 무시
+          }
+        }
+      }
+    },
+  });
+}
 
 // Allow streaming responses up to 60 seconds (Vercel Hobby/Pro max duration)
 export const maxDuration = 60;
@@ -252,20 +344,22 @@ export const POST = withRateLimit(
 
           if (cloudStream) {
             // ================================================================
-            // 🔧 Data Stream Protocol 직접 전달 (2025-12-24 수정)
+            // 🔧 Data Stream Protocol → Plain Text 변환 (2025-12-24 수정)
             // ================================================================
             // Cloud Run이 반환하는 Data Stream Protocol (`0:"text"` 형식)을
-            // 그대로 클라이언트에 전달합니다.
-            // DefaultChatTransport가 이 프로토콜을 파싱하여 UI에 렌더링합니다.
+            // Plain Text로 변환하여 TextStreamChatTransport가 파싱할 수 있게 합니다.
             // ================================================================
-            return new Response(cloudStream, {
+            const plainTextStream = cloudStream.pipeThrough(
+              createDataStreamParserTransform()
+            );
+            return new Response(plainTextStream, {
               headers: {
                 'Content-Type': 'text/plain; charset=utf-8',
                 'Cache-Control': 'no-cache',
                 Connection: 'keep-alive',
                 'X-Session-Id': sessionId,
                 'X-Backend': 'cloud-run',
-                'X-Stream-Protocol': 'data-stream',
+                'X-Stream-Protocol': 'plain-text',
               },
             });
           }
