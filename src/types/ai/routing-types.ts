@@ -2,14 +2,21 @@
  * 다차원 AI 라우팅 타입 정의
  *
  * 복잡도, 토큰 가용성, 기능 요구사항 등 다양한 조건을 고려한 스마트 라우팅
+ *
+ * v5.84.0: GroqModel 타입 inline 이동 (groq-ai-manager.ts 의존성 제거)
  */
 
-import type { GroqModel } from '../../lib/ai/groq-ai-manager';
 import type { QueryIntent } from '../rag/rag-types';
 
 // ============================================================================
 // 1. AI 모델 타입
 // ============================================================================
+
+/** Groq 모델 타입 (Cloud Run에서 사용) */
+export type GroqModel =
+  | 'llama-3.1-8b-instant'
+  | 'llama-3.3-70b-versatile'
+  | 'qwen-qwq-32b';
 
 export type GoogleModel = 'gemini-2.5-flash' | 'gemini-2.5-pro';
 

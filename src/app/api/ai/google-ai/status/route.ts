@@ -1,17 +1,22 @@
 /**
- * 📊 Google AI 서비스 상태 API
+ * 📊 Google AI 서비스 상태 API (Cloud Run Proxy)
  *
  * GET /api/ai/google-ai/status
+ *
+ * v5.84.0: Cloud Run 프록시 전환 (Vercel Diet)
+ * - 직접 Google AI API 호출 제거
+ * - Cloud Run /health 엔드포인트 프록시
+ * - 서버 측 5분 캐시 적용 (과도한 호출 방지)
  */
 
 import { NextResponse } from 'next/server';
 import type { GoogleAIStatus } from '@/hooks/api/useGoogleAIStatus';
-import { getGoogleAIModel } from '@/lib/ai/google-ai-client'; // getGoogleAIModel now includes fallback logic
-import googleAIManager, {
-  getGoogleAIKey,
-  getGoogleAISecondaryKey,
-} from '@/lib/ai/google-ai-manager';
-import debug from '@/utils/debug';
+import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
+
+// 서버 측 캐시 (5분 TTL)
+let cachedStatus: GoogleAIStatus | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5분
 
 // 🛡️ 기본 Google AI 상태 (fallback)
 const getDefaultGoogleAIStatus = (): GoogleAIStatus => ({
@@ -33,143 +38,92 @@ const getDefaultGoogleAIStatus = (): GoogleAIStatus => ({
 });
 
 export async function GET() {
-  const status: GoogleAIStatus = getDefaultGoogleAIStatus();
-  status.lastHealthCheck = new Date().toISOString(); // Always update last check time
+  const now = Date.now();
 
+  // 1. 캐시 확인 (5분 이내면 캐시 반환)
+  if (cachedStatus && now - cacheTimestamp < CACHE_TTL_MS) {
+    return NextResponse.json({
+      ...cachedStatus,
+      _cached: true,
+      _cacheAge: Math.round((now - cacheTimestamp) / 1000),
+    });
+  }
+
+  // 2. Cloud Run 비활성화 시 기본값 반환
+  if (!isCloudRunEnabled()) {
+    const defaultStatus = getDefaultGoogleAIStatus();
+    return NextResponse.json({
+      ...defaultStatus,
+      _source: 'default (Cloud Run disabled)',
+    });
+  }
+
+  // 3. Cloud Run /health 엔드포인트 프록시
   try {
-    const keyStatusInfo = googleAIManager.getKeyStatus();
-    const primaryKey = getGoogleAIKey();
-    const secondaryKey = getGoogleAISecondaryKey();
+    const startTime = Date.now();
 
-    status.isEnabled =
-      keyStatusInfo.isPrimaryAvailable || keyStatusInfo.isSecondaryAvailable;
-    status.apiKeyStatus.primary = primaryKey ? 'valid' : 'missing';
-    status.apiKeyStatus.secondary = secondaryKey ? 'valid' : 'missing';
-    status.primaryKeyId = primaryKey
-      ? primaryKey.substring(0, 7) +
-        '...' +
-        primaryKey.substring(primaryKey.length - 3)
-      : undefined;
-    status.secondaryKeyId = secondaryKey
-      ? secondaryKey.substring(0, 7) +
-        '...' +
-        secondaryKey.substring(secondaryKey.length - 3)
-      : undefined;
-    status.activeKeySource = 'none';
+    const healthResult = await proxyToCloudRun({
+      path: '/health',
+      method: 'GET',
+      timeout: 5000, // 5초 타임아웃
+    });
 
-    let successCount = 0;
-    let errorCount = 0;
-    let totalResponseTime = 0;
+    const responseTime = Date.now() - startTime;
+    const healthData = healthResult.data as { status?: string } | undefined;
+    const isHealthy = healthResult.success && healthData?.status === 'ok';
 
-    // Health check for primary key
-    if (primaryKey) {
-      try {
-        const startTime = Date.now();
-        const model = getGoogleAIModel(
-          process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash'
-        );
-        const result = await model.generateContent('test');
-        if (result.response.text()) {
-          status.primaryKeyConnected = true;
-          successCount++;
-          totalResponseTime += Date.now() - startTime;
-        } else {
-          status.primaryKeyConnected = false;
-          errorCount++;
-        }
-      } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
-        debug.warn('Google AI primary key health check failed:', errorMessage);
-        status.primaryKeyConnected = false;
-        status.apiKeyStatus.primary = errorMessage.includes('invalid API key')
-          ? 'invalid'
-          : errorMessage.includes('quota')
-            ? 'expired'
-            : 'missing';
-        errorCount++;
-      }
-    }
-
-    // Health check for secondary key
-    if (secondaryKey) {
-      // Only run secondary health check if primary failed or we're checking both
-      if (!status.primaryKeyConnected) {
-        // If primary wasn't connected, try secondary
-        try {
-          const startTime = Date.now();
-          const model = getGoogleAIModel(
-            process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash'
-          ); // This model factory includes fallback
-          const result = await model.generateContent('test'); // It will try primary, then secondary
-          if (result.response.text()) {
-            status.secondaryKeyConnected = true;
-            successCount++;
-            totalResponseTime += Date.now() - startTime;
-          } else {
-            status.secondaryKeyConnected = false;
-            errorCount++;
-          }
-        } catch (error: unknown) {
-          const errorMessage =
-            error instanceof Error ? error.message : 'Unknown error';
-          debug.warn(
-            'Google AI secondary key health check failed:',
-            errorMessage
-          );
-          status.secondaryKeyConnected = false;
-          status.apiKeyStatus.secondary = errorMessage.includes(
-            'invalid API key'
-          )
-            ? 'invalid'
-            : errorMessage.includes('quota')
-              ? 'expired'
-              : 'missing';
-          errorCount++;
-        }
-      }
-    }
-
-    // Determine overall status
-    status.isConnected =
-      status.primaryKeyConnected || status.secondaryKeyConnected;
-    status.healthCheckStatus = status.isConnected ? 'healthy' : 'unhealthy';
-    if (status.isConnected) {
-      // Set active key source if not already set (e.g., if primary connected)
-      status.activeKeySource = status.primaryKeyConnected
-        ? 'primary'
-        : 'secondary';
-    } else {
-      status.activeKeySource = 'none';
-    }
-
-    // Performance metrics calculation
-    const totalChecks = successCount + errorCount;
-    status.performance.averageResponseTime =
-      successCount > 0 ? totalResponseTime / successCount : 0; // Only average successful response times
-    status.performance.successRate =
-      totalChecks > 0 ? (successCount / totalChecks) * 100 : 0;
-    status.performance.errorRate =
-      totalChecks > 0 ? (errorCount / totalChecks) * 100 : 0;
-
-    // Mocked quota status (can be refined to reflect activeKeySource)
-    // For now, if at least one key is connected, use generic valid quota. Otherwise, use 0.
-    if (status.isConnected) {
-      status.quotaStatus = {
-        daily: { used: 100, limit: 1000, remaining: 900 },
-        perMinute: { used: 10, limit: 60, remaining: 50 },
-      };
-    } else {
-      status.quotaStatus = {
-        daily: { used: 0, limit: 1000, remaining: 1000 },
+    // 4. 상태 구성
+    const status: GoogleAIStatus = {
+      isEnabled: true,
+      isConnected: isHealthy,
+      apiKeyStatus: {
+        primary: isHealthy ? 'valid' : 'missing',
+        secondary: 'missing', // Cloud Run이 관리하므로 개별 키 상태 불명
+      },
+      primaryKeyConnected: isHealthy,
+      secondaryKeyConnected: false,
+      quotaStatus: {
+        daily: { used: 0, limit: 1500, remaining: 1500 }, // Cloud Run 관리
         perMinute: { used: 0, limit: 60, remaining: 60 },
-      };
-    }
+      },
+      lastHealthCheck: new Date().toISOString(),
+      healthCheckStatus: isHealthy ? 'healthy' : 'unhealthy',
+      model: 'gemini-2.5-flash-lite', // Supervisor model
+      features: {
+        chat: isHealthy,
+        embedding: isHealthy,
+        vision: false,
+      },
+      performance: {
+        averageResponseTime: responseTime,
+        successRate: isHealthy ? 100 : 0,
+        errorRate: isHealthy ? 0 : 100,
+      },
+      activeKeySource: isHealthy ? 'primary' : 'none',
+    };
 
-    return NextResponse.json(status);
+    // 5. 캐시 저장
+    cachedStatus = status;
+    cacheTimestamp = now;
+
+    return NextResponse.json({
+      ...status,
+      _source: 'Cloud Run /health',
+      _responseTime: responseTime,
+    });
   } catch (error) {
-    debug.error('Failed to get Google AI status (catch block):', error);
+    console.error('[google-ai-status] Cloud Run health check failed:', error);
+
     const fallbackStatus = getDefaultGoogleAIStatus();
-    return NextResponse.json(fallbackStatus, { status: 500 });
+    fallbackStatus.healthCheckStatus = 'unhealthy';
+
+    return NextResponse.json(
+      {
+        ...fallbackStatus,
+        _source: 'fallback (Cloud Run error)',
+        _error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 503 }
+    );
   }
 }

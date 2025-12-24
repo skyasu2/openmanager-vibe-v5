@@ -1,6 +1,20 @@
 /**
- * Groq AI Manager v2.0 - Vercel AI SDK 통합
+ * @deprecated v5.84.0 - Hybrid Architecture 전환
  *
+ * ⚠️ DEPRECATED: 이 모듈은 Cloud Run으로 이관되었습니다.
+ *
+ * Hybrid Architecture 설계:
+ * - Vercel = Frontend/Proxy Only (API 키 없음, 직접 AI 호출 금지)
+ * - Cloud Run = ALL AI processing (Groq API 호출 포함)
+ *
+ * 대체 방법:
+ * - AI 요청: /api/ai/supervisor → Cloud Run 프록시
+ * - 타입 정의: src/types/ai/routing-types.ts (GroqModel 타입)
+ *
+ * 이 파일은 하위 호환성을 위해 유지되지만, 신규 코드에서는 사용하지 마세요.
+ *
+ * ---
+ * (Legacy) Groq AI Manager v2.0 - Vercel AI SDK 통합
  * @ai-sdk/groq를 사용한 현대적인 Groq 통합
  * 무료 티어: 14,400 RPD, 30 RPM (llama-3.1-8b-instant)
  *
