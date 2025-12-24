@@ -4,18 +4,18 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.83.10, Updated 2025-12-24)
+## Architecture (v5.86.0, Updated 2025-12-24)
 
 ### Deployment Mode
 
 | Mode | Backend | Status |
 |------|---------|--------|
 | **Cloud Run** | `cloud-run/ai-engine/` (LangGraph) | ✅ Active (Primary) |
-| **Cloud Run** | `cloud-run/rust-inference/` (ML) | ✅ Active |
 | **Vercel** | `src/app/` (Next.js Frontend) | ✅ Active (Frontend Only) |
+| ~~Cloud Run~~ | ~~`cloud-run/rust-inference/`~~ | ❌ Removed |
 | ~~Cloud Run~~ | ~~`cloud-run/supabase-mcp/`~~ | ❌ Deprecated |
 
-> **Note**: LangGraph was migrated from Vercel to Cloud Run (2025-12-16) due to Edge response issues. Vercel now serves the Next.js frontend only, while Cloud Run handles all AI processing. Supabase MCP Bridge is deprecated (direct Supabase JS client used instead).
+> **Note**: LangGraph was migrated from Vercel to Cloud Run (2025-12-16) due to Edge response issues. Vercel now serves the Next.js frontend only, functioning as a strict proxy for AI requests. Rust ML service has been removed in favor of LLM-based analysis.
 
 ### Agent Stack
 
@@ -81,10 +81,6 @@ graph TD
         Direct --> Verifier
 
         Verifier -->|Validated| Response[Response]
-        
-        Analyst -->|ML Request| RustML[Rust Inference]
-        RustML -->|Anomaly Detection| Analyst
-        RustML -->|Trend Prediction| Analyst
     end
 
     subgraph "Data Layer"
@@ -285,11 +281,6 @@ cloud-run/ai-engine/
 ├── package.json                # @langchain/langgraph, hono, ai
 └── Dockerfile
 
-# Cloud Run Rust Inference (ML Support)
-cloud-run/rust-inference/
-├── src/main.rs                 # Anomaly detection, Trend prediction
-└── Cargo.toml                  # axum, tokio, serde
-
 # Vercel Proxy Layer
 src/lib/ai-proxy/
 └── proxy.ts                    # Cloud Run proxy with env detection
@@ -316,7 +307,8 @@ cloud-run/supabase-mcp/         # Deprecated - direct Supabase JS client
 | `/api/ai/query` | Removed | `/api/ai/supervisor` |
 | Python Unified Processor | Removed | TypeScript LangGraph agents |
 | GCP Cloud Functions | Removed | Cloud Run |
-| `ml-analytics-engine` (Python) | Removed | `cloud-run/rust-inference/` |
+| `ml-analytics-engine` (Python) | Removed | LangGraph Agents |
+| `cloud-run/rust-inference/` (Rust) | Removed (2025-12-24) | LangGraph Agents |
 | `SmartRoutingEngine` | Removed | LangGraph Supervisor Agent |
 
 ## Cloud Run Services
@@ -327,9 +319,3 @@ cloud-run/supabase-mcp/         # Deprecated - direct Supabase JS client
 - **Framework**: LangGraph StateGraph, Vercel AI SDK
 - **Models**: Gemini 2.5 Flash-Lite (Supervisor), Groq Llama 3.3 70b (Agents)
 - **Endpoint**: `https://ai-engine-xxxxx.run.app`
-
-### rust-inference (ML)
-
-- **Runtime**: Rust + Axum
-- **Features**: Anomaly Detection (Moving Average + 2σ), Trend Prediction (Linear Regression)
-- **Endpoint**: `https://rust-inference-xxxxx.run.app`

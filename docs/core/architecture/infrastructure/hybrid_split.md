@@ -25,14 +25,13 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
   - **Heavy Computation**: Handles long-running tasks (up to 60 mins) that would timeout on Vercel (60s limit).
   - **Streaming**: Streams tokens back to Vercel.
 
-### 3. Google Cloud Run (Rust ML Service)
+### 3. TypeScript ML (Built into AI Engine)
 **Role**: The "Mathematician"
-- **Hosting**: Docker Container (Rust + Axum)
+- **Hosting**: Same as AI Engine (Node.js)
 - **Responsibilities**:
-  - **Statistical Analysis**: Anomaly detection (26h moving avg).
-  - **Machine Learning**: K-Means clustering for logs via `linfa`.
-  - **Trend Prediction**: Quick linear regression for metrics.
-- **Why Rust?**: Extremely low latency (<10ms) and memory footprint for heavy math operations.
+  - **Anomaly Detection**: 6-hour moving avg + 2σ (`SimpleAnomalyDetector.ts`)
+  - **Trend Prediction**: Linear regression (`TrendPredictor.ts`)
+- **Note**: Rust ML service was removed in v5.84.0 (dead code elimination).
 
 ---
 

@@ -123,7 +123,7 @@ The AI uses specialized tools within each agent for domain-specific operations.
 
 | Tool | Description |
 |------|-------------|
-| `detectAnomalies` | 26-hour moving average + 2σ deviation anomaly detection |
+| `detectAnomalies` | 6-hour moving average + 2σ deviation anomaly detection |
 | `predictTrends` | Linear Regression based trend prediction |
 | `analyzePattern` | Comprehensive pattern analysis (combines above tools) |
 

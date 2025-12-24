@@ -68,16 +68,15 @@ GITHUB_CLIENT_SECRET=your_github_oauth_secret
 
 ### Docker 기반 로컬 AI 개발 (New ⭐)
 
-`ai-engine`과 `rust-inference`를 로컬에서 통합 실행하여 테스트할 수 있습니다.
+`ai-engine`을 로컬에서 실행하여 테스트할 수 있습니다.
 
 ```bash
-# AI 서비스 로컬 실행 (AI Engine + Rust ML)
+# AI 서비스 로컬 실행 (AI Engine)
 cd cloud-run
 docker-compose up --build
 
 # 접속 주소
 # AI Engine: http://localhost:8080
-# Rust ML: http://localhost:8081
 ```
 
 > **참고**: `.env` 파일에 필요한 API 키가 설정되어 있어야 합니다. `docker-compose.yml`을 참조하세요.

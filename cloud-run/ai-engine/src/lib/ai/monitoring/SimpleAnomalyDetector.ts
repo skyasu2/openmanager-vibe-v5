@@ -35,7 +35,7 @@ export interface MetricDataPoint {
 export interface AnomalyDetectionConfig {
   /**
    * Number of data points to use for moving average.
-   * Default: 312 (26 hours × 12 points/hour at 5-minute intervals)
+   * Default: 36 (6 hours × 6 points/hour at 10-minute intervals)
    */
   movingAverageWindow: number;
 

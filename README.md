@@ -80,7 +80,7 @@ graph TD
 
 ### 3. 🧠 AI 엔진 아키텍처 (Intelligence)
 
-**Hybrid Multi-Agent AI Engine (LangGraph)**을 도입하여 단순한 응답을 넘어선 복합적인 추론과 작업을 수행합니다. **Google Cloud Run**을 주 백엔드로 사용하며(Supervisor-Worker 패턴), Vercel 로컬 환경은 폴백으로만 동작합니다.
+**Hybrid Multi-Agent AI Engine (LangGraph)**을 도입하여 단순한 응답을 넘어선 복합적인 추론과 작업을 수행합니다. **Google Cloud Run**을 유일한 AI 백엔드로 사용하며(Supervisor-Worker 패턴), Vercel은 순수한 프록시 역할만 수행합니다.
 
 ```mermaid
 graph TD
@@ -89,12 +89,11 @@ graph TD
     subgraph "Hybrid Engine Router"
         API --> Check{Cloud Run 활성?}
         Check -- Yes --> Cloud[Google Cloud Run ✅ Primary]
-        Check -- No --> Local[Vercel Local ⚠️ Fallback Only]
+        Check -- No --> Error[503 Service Unavailable]
     end
 
     subgraph "AI Agents (Supervisor-Worker)"
         Cloud --> Supervisor[🦸 Supervisor Agent (Gemini 2.5 Flash Lite)]
-        Local --> Supervisor
 
         Supervisor --> NLQ[🔍 NLQ Agent (Groq Llama 3.3 70b)]
         Supervisor --> Analyst[📊 Analyst Agent (Groq Llama 3.3 70b)]
@@ -104,11 +103,11 @@ graph TD
     subgraph "Data & Context"
         NLQ --> Metrics[(Live Metrics)]
         Reporter --> VectorDB[(Knowledge Base)]
-        Supervisor --> DB[(Session State)]
+        Supervisor --> Checkpoint[(Session State)]
     end
 ```
 
-**Migration Plan**: Cloud Run 안정화 후 Vercel 로컬 LangGraph 제거 예정
+**Migration Plan**: Completed - Vercel 로컬 LangGraph 및 ML 코드 완전 제거, Cloud Run 전용 아키텍처 구축
 
 ## ✨ 핵심 기능
 
@@ -132,7 +131,7 @@ graph TD
 
 | 서비스 | 배포 환경 / 호스팅 | 역할 설명 |
 |--------|-------------------|-----------|
-| **Next.js App** | Vercel (Serverless) | 프론트엔드 + API Routes 제공 |
+| **Next.js App** | Vercel (Serverless) | 프론트엔드 + API Routes 제공 (AI Proxy) |
 | **AI Backend** | Google Cloud Run (Container / Serverless) | LangGraph 기반 멀티 에이전트 백엔드 |
 | **Supabase DB** | Supabase Cloud (Managed PostgreSQL + Auth) | PostgreSQL 데이터베이스 + 인증(Auth) 제공 |
 
@@ -144,7 +143,7 @@ graph TD
 ## 🧪 Project Status
 
 이 프로젝트는 **개인 연구용 토이 프로젝트(PoC)**입니다.
-AI-Native DevOps와 차세대 웹 기술(Next.js 16, LangGraph, Rust)의 가능성을 탐구하기 위한 기술 시연용으로 제작되었습니다.
+AI-Native DevOps와 차세대 웹 기술(Next.js 16, LangGraph)의 가능성을 탐구하기 위한 기술 시연용으로 제작되었습니다.
 (Not intended for production use)
 
 ---

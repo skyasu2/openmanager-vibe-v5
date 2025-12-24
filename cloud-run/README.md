@@ -1,11 +1,12 @@
 # Cloud Run Deployment Guide
 
-This directory contains the microservices for the OpenManager VIBE AI Engine.
+This directory contains the AI Engine microservice for OpenManager VIBE.
 
 ## Services
 
-1.  **`rust-inference`**: Rust-based ML service for heavy computation (Linfa Clustering, Anomaly Detection).
-2.  **`ai-engine`**: Node.js LangGraph Supervisor for agent orchestration.
+- **`ai-engine`**: Node.js LangGraph Supervisor for multi-agent orchestration (Gemini + Groq)
+
+> **Note**: Rust ML service was removed in v5.84.0. All ML features (anomaly detection, trend prediction) are now handled by TypeScript within the AI Engine.
 
 ## 🚀 Deployment Instructions
 
@@ -13,50 +14,40 @@ This directory contains the microservices for the OpenManager VIBE AI Engine.
 - Google Cloud CLI (`gcloud`) installed and authenticated.
 - Project ID set: `gcloud config set project [YOUR_PROJECT_ID]`
 
-### Step 1: Deploy Rust ML Service
-This service must be deployed first to obtain its URL.
+### Deploy AI Engine
 
 ```bash
-cd rust-inference
-gcloud run deploy rust-inference \
-  --source . \
-  --platform managed \
-  --region asia-northeast3 \
-  --allow-unauthenticated \
-  --memory 512Mi \
-  --cpu 1
-```
-
-**Note the URL** from the output (e.g., `https://rust-inference-xyz.run.app`).
-
-### Step 2: Deploy AI Engine
-Update the `RUST_ML_SERVICE_URL` with the URL from Step 1.
-
-```bash
-cd ../ai-engine
+cd ai-engine
 gcloud run deploy ai-engine \
   --source . \
   --platform managed \
-  --region asia-northeast3 \
+  --region asia-northeast1 \
   --allow-unauthenticated \
   --memory 2Gi \
   --cpu 2 \
-  --set-env-vars="RUST_ML_SERVICE_URL=[URL_FROM_STEP_1]" \
-  --set-env-vars="GOOGLE_GENERATIVE_AI_API_KEY=[YOUR_KEY]" \
-  --set-env-vars="SUPABASE_URL=[YOUR_SB_URL]" \
-  --set-env-vars="SUPABASE_SERVICE_ROLE_KEY=[YOUR_SB_KEY]"
+  --set-secrets="GOOGLE_API_KEY=GOOGLE_API_KEY:latest" \
+  --set-secrets="GROQ_API_KEY=GROQ_API_KEY:latest" \
+  --set-secrets="SUPABASE_URL=SUPABASE_URL:latest" \
+  --set-secrets="SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest" \
+  --set-secrets="CLOUD_RUN_API_SECRET=CLOUD_RUN_API_SECRET:latest"
 ```
 
-### Step 3: Verify
-Check the health endpoints:
-- Rust: `[RUST_URL]/health` -> `ok`
-- AI Engine: `[AI_URL]/health` -> `ok`
+### Verify
+Check the health endpoint:
+- AI Engine: `[AI_URL]/health` -> `{"status":"ok"}`
 
 ## 🛠️ Local Development (Docker Compose)
-You can run both services locally without deploying.
+
+Run locally without deploying:
 
 ```bash
 docker-compose up --build
 ```
 - AI Engine: http://localhost:8080
-- Rust ML: http://localhost:8081
+
+## ML Features (TypeScript)
+
+| Feature | Implementation | Location |
+|---------|---------------|----------|
+| Anomaly Detection | 6-hour moving average + 2σ | `src/lib/ai/monitoring/SimpleAnomalyDetector.ts` |
+| Trend Prediction | Linear Regression | `src/lib/ai/monitoring/TrendPredictor.ts` |
