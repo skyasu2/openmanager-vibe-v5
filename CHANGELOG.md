@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.11](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.10...v5.83.11) (2025-12-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ai:** Rust ML service removed entirely
+
+## Removed
+- `cloud-run/rust-inference/` - Entire Rust ML service (dead code)
+- `src/lib/rust-ml-client.ts` - Vercel-side Rust client
+- `cloud-run/ai-engine/src/lib/rust-ml-client.ts` - AI Engine client
+- `src/lib/ai/monitoring/` - Duplicate TypeScript ML on Vercel
+- `src/scripts/generate-rust-data.ts` - Data generation script
+- `clusterLogPatternsTool` from analyst-agent.ts (unused tool)
+
+## Updated
+- `cloud-run/docker-compose.yml` - Removed rust-inference service
+- Documentation updated to reflect TypeScript-only ML stack
+- Fixed time window comments: 26h → 6h (actual implementation)
+
+## ML Stack (TypeScript only)
+- Location: `cloud-run/ai-engine/src/lib/ai/monitoring/`
+- SimpleAnomalyDetector: 6-hour moving average + 2σ
+- TrendPredictor: Linear regression
+
+Total: -2,870 lines of dead code removed
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Features
+
+* **ai:** add Promptfoo QA testing and LangFuse observability ([c3acb13](https://github.com/skyasu2/openmanager-vibe-v5/commit/c3acb135db7d5cc651f37279dea59e374fe2780c))
+
+
+### Bug Fixes
+
+* **ai:** integrate LangFuse callbacks with LangGraph supervisor ([7ce8fe9](https://github.com/skyasu2/openmanager-vibe-v5/commit/7ce8fe9ac59282e5a445e854bef1c44d422e8f4d))
+* **ai:** restore analyst-agent tools after accidental truncation ([d13bbae](https://github.com/skyasu2/openmanager-vibe-v5/commit/d13bbaeca721eaad335cf7d4600820d0c7158d1c))
+* **ai:** restore Data Stream Protocol for AI chat responses ([d1400f3](https://github.com/skyasu2/openmanager-vibe-v5/commit/d1400f3c250e1877e5c6981449f93ed0bfb35be8))
+* **ai:** use TextStreamChatTransport for plain text streaming ([afaea36](https://github.com/skyasu2/openmanager-vibe-v5/commit/afaea36381c496d563a2c3292e4c66f59ac90d56))
+* **lint:** resolve 9 lint issues in AI assistant code ([8746849](https://github.com/skyasu2/openmanager-vibe-v5/commit/874684932e5ea8ad75082e325fd5df996cea2da8))
+* **supabase:** rename timestamp to recorded_at in get_metrics_window function ([c348f1b](https://github.com/skyasu2/openmanager-vibe-v5/commit/c348f1bbe05dd5a6bf8388e016a4ab0afba0e0e5))
+
+
+* **ai:** remove Rust ML service and consolidate TypeScript ML ([d151dc8](https://github.com/skyasu2/openmanager-vibe-v5/commit/d151dc8fb37b85e5e3a71246c6b9fb18ff2509f7))
+
 ### [5.83.10](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.9...v5.83.10) (2025-12-23)
 
 
