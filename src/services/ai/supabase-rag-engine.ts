@@ -411,11 +411,8 @@ export class SupabaseRAGEngine {
         }
       }
 
-      // 1. 쿼리 임베딩 생성 (로컬 임베딩 옵션 전달)
-      const queryEmbedding = await this.generateEmbedding(
-        query,
-        options.useLocalEmbeddings
-      );
+      // 1. 쿼리 임베딩 생성 (Cloud Run Only)
+      const queryEmbedding = await this.generateEmbedding(query);
       if (!queryEmbedding) {
         throw new Error('임베딩 생성 실패');
       }
@@ -505,24 +502,20 @@ export class SupabaseRAGEngine {
   }
 
   /**
-   * 🧠 임베딩 생성 (로컬/클라우드 모드 지원)
+   * 🧠 임베딩 생성 (Cloud Run Only - v5.84.0)
    */
-  async generateEmbedding(
-    text: string,
-    useLocalEmbeddings?: boolean
-  ): Promise<number[] | null> {
-    // 메모리 캐시 확인 (로컬/클라우드 구분)
-    const cacheKey = `embed:${useLocalEmbeddings ? 'local:' : 'cloud:'}${text}`;
+  async generateEmbedding(text: string): Promise<number[] | null> {
+    // 메모리 캐시 확인
+    const cacheKey = `embed:cloud:${text}`;
     const cached = this.memoryCache.getEmbedding(cacheKey);
     if (cached) {
       return cached;
     }
 
     try {
-      // 실제 임베딩 서비스 사용 (로컬 옵션 전달)
+      // 실제 임베딩 서비스 사용 (Cloud Run Only - v5.84.0)
       const embedding = await embeddingService.createEmbedding(text, {
         dimension: this.EMBEDDING_DIMENSION,
-        useLocal: useLocalEmbeddings,
       });
 
       // 메모리 캐시 저장

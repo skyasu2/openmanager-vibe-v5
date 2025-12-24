@@ -41,138 +41,6 @@ import { quickSanitize } from './security';
 // - 8: message annotation
 // ============================================================================
 
-/**
- * Vercel Data Stream Protocol을 파싱하여 순수 텍스트로 변환하는 TransformStream
- *
- * @description
- * Cloud Run AI Engine이 `0:"텍스트"` 형식으로 반환하면,
- * 이를 파싱하여 "텍스트"만 추출합니다.
- *
- * 에러 (3:) 발생 시에도 JSON 내부의 메시지를 추출하여 사용자 친화적으로 표시
- */
-function createDataStreamParserTransform(): TransformStream<
-  Uint8Array,
-  Uint8Array
-> {
-  const decoder = new TextDecoder();
-  const encoder = new TextEncoder();
-  let buffer = '';
-
-  return new TransformStream({
-    transform(chunk, controller) {
-      buffer += decoder.decode(chunk, { stream: true });
-
-      // 줄 단위로 처리
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // 마지막 불완전한 줄은 버퍼에 유지
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-
-        // Data Stream Protocol 파싱: N:"content", d:{...} 등
-        // 숫자 접두사 (0, 2, 3, 8) 또는 문자 접두사 (d, e) 매칭
-        const match = trimmed.match(/^(\d+|[a-z]):(.*)$/);
-        if (match?.[1] && match[2] !== undefined) {
-          const prefix = match[1];
-          const content = match[2];
-
-          switch (prefix) {
-            case '0': {
-              // 텍스트 콘텐츠 - JSON 문자열 파싱
-              try {
-                const text = JSON.parse(content);
-                if (typeof text === 'string') {
-                  controller.enqueue(encoder.encode(text));
-                }
-              } catch {
-                // JSON 파싱 실패 시 원본 사용
-                controller.enqueue(encoder.encode(content));
-              }
-              break;
-            }
-            case '3': {
-              // 에러 - 사용자 친화적 메시지 추출
-              try {
-                const errorData = JSON.parse(content);
-                // Groq API 에러 형식 처리
-                if (
-                  typeof errorData === 'string' &&
-                  errorData.includes('"error"')
-                ) {
-                  const innerError = JSON.parse(errorData);
-                  const errorMsg =
-                    innerError?.error?.message ||
-                    '알 수 없는 오류가 발생했습니다.';
-                  controller.enqueue(
-                    encoder.encode(`\n\n⚠️ AI 처리 중 오류: ${errorMsg}`)
-                  );
-                } else {
-                  controller.enqueue(
-                    encoder.encode(`\n\n⚠️ 오류: ${errorData}`)
-                  );
-                }
-              } catch {
-                controller.enqueue(encoder.encode(`\n\n⚠️ 오류: ${content}`));
-              }
-              break;
-            }
-            case '2': {
-              // 데이터 - JSON 메타데이터 (무시 또는 로깅)
-              console.log('[StreamParser] Data:', content.slice(0, 100));
-              break;
-            }
-            case '8': {
-              // 메시지 어노테이션 (무시)
-              break;
-            }
-            case 'd': {
-              // Finish 메시지 (무시 - finishReason, usage 등 메타데이터)
-              console.log('[StreamParser] Finish:', content.slice(0, 50));
-              break;
-            }
-            case 'e': {
-              // Error 메시지 (d와 유사한 형식)
-              console.log(
-                '[StreamParser] Stream error:',
-                content.slice(0, 100)
-              );
-              break;
-            }
-            default:
-              // 알 수 없는 프리픽스 - 원본 그대로 전달
-              controller.enqueue(encoder.encode(trimmed));
-          }
-        } else {
-          // 프로토콜 형식이 아닌 경우 원본 그대로 전달
-          controller.enqueue(encoder.encode(trimmed));
-        }
-      }
-    },
-    flush(controller) {
-      // 남은 버퍼 처리
-      if (buffer.trim()) {
-        const match = buffer.trim().match(/^(\d+|[a-z]):(.*)$/);
-        if (match && match[1] === '0' && match[2] !== undefined) {
-          // 텍스트 콘텐츠만 출력
-          try {
-            const text = JSON.parse(match[2]);
-            if (typeof text === 'string') {
-              controller.enqueue(encoder.encode(text));
-            }
-          } catch {
-            controller.enqueue(encoder.encode(buffer));
-          }
-        } else if (match?.[1] && ['d', 'e', '2', '8'].includes(match[1])) {
-          // 메타데이터 접두사 무시
-        } else {
-          controller.enqueue(encoder.encode(buffer));
-        }
-      }
-    },
-  });
-}
-
 // Allow streaming responses up to 60 seconds (Vercel Hobby/Pro max duration)
 export const maxDuration = 60;
 
@@ -384,23 +252,20 @@ export const POST = withRateLimit(
 
           if (cloudStream) {
             // ================================================================
-            // 🔧 Data Stream Protocol 파싱 (2025-12-22 추가)
+            // 🔧 Data Stream Protocol 직접 전달 (2025-12-24 수정)
             // ================================================================
-            // Cloud Run이 반환하는 `0:"text"` 형식을 순수 텍스트로 변환
-            // AI SDK useChat이 plain text를 올바르게 렌더링하도록 처리
+            // Cloud Run이 반환하는 Data Stream Protocol (`0:"text"` 형식)을
+            // 그대로 클라이언트에 전달합니다.
+            // DefaultChatTransport가 이 프로토콜을 파싱하여 UI에 렌더링합니다.
             // ================================================================
-            const parsedStream = cloudStream.pipeThrough(
-              createDataStreamParserTransform()
-            );
-
-            return new Response(parsedStream, {
+            return new Response(cloudStream, {
               headers: {
                 'Content-Type': 'text/plain; charset=utf-8',
                 'Cache-Control': 'no-cache',
                 Connection: 'keep-alive',
                 'X-Session-Id': sessionId,
                 'X-Backend': 'cloud-run',
-                'X-Stream-Parser': 'data-stream-protocol',
+                'X-Stream-Protocol': 'data-stream',
               },
             });
           }
