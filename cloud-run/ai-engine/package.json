@@ -37,7 +37,7 @@
     "langfuse-langchain": "^3.35.0"
   },
   "devDependencies": {
-    "promptfoo": "^0.105.4",
+    "promptfoo": "^0.120.8",
     "@types/node": "^22.10.2",
     "@types/pg": "^8.11.10",
     "tsx": "^4.19.2",
