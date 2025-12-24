@@ -67,7 +67,10 @@ gcloud run deploy "$SERVICE_NAME" \
   --set-secrets "SUPABASE_URL=supabase-url:latest" \
   --set-secrets "SUPABASE_SERVICE_ROLE_KEY=supabase-service-role-key:latest" \
   --set-secrets "SUPABASE_DIRECT_URL=supabase-direct-url:latest" \
-  --set-secrets "CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest"
+  --set-secrets "CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest" \
+  --set-secrets "LANGFUSE_PUBLIC_KEY=LANGFUSE_PUBLIC_KEY:latest" \
+  --set-secrets "LANGFUSE_SECRET_KEY=LANGFUSE_SECRET_KEY:latest" \
+  --set-secrets "LANGFUSE_BASE_URL=LANGFUSE_BASE_URL:latest"
 
 if [ $? -eq 0 ]; then
     SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)')

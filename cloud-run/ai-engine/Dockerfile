@@ -9,8 +9,9 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Install dependencies (cache layer)
+# Note: --legacy-peer-deps is required for langfuse-langchain compatibility
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts --legacy-peer-deps
 
 # Copy source and build
 COPY tsconfig.json ./
@@ -30,7 +31,7 @@ ENV PORT=8080
 # Copy package files and install dependencies (as root for permissions)
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm ci --omit=dev --ignore-scripts --legacy-peer-deps
 
 # Copy built files
 COPY --from=builder /app/dist ./dist
