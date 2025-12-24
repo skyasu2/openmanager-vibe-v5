@@ -22,10 +22,12 @@ interface SessionHandlerOptions {
   metadata?: Record<string, unknown>;
 }
 
-// LangFuse Callback Handler interface (compatible with LangChain)
-interface LangFuseCallbackHandler {
+// LangFuse Callback Handler type (compatible with LangChain callbacks)
+// Uses a flexible interface to work with any @langchain/core version
+export interface LangFuseCallbackHandler {
   flushAsync?: () => Promise<void>;
   shutdownAsync?: () => Promise<void>;
+  [key: string]: unknown;
 }
 
 // =============================================================================
@@ -115,68 +117,41 @@ export async function getLangfuseHandler(): Promise<LangFuseCallbackHandler | nu
  * Each conversation/session gets its own handler for proper trace grouping
  *
  * @param options - Session configuration
- * @returns CallbackHandler instance or null if not configured
+ * @returns Promise of CallbackHandler instance or null if not configured
  */
-export function createSessionHandler(
+export async function createSessionHandler(
   options: SessionHandlerOptions
-): LangFuseCallbackHandler | null {
+): Promise<LangFuseCallbackHandler | null> {
   if (!isLangFuseEnabled()) {
     return null;
   }
 
-  // Synchronous version - we'll initialize lazily in the handler
   const config = getConfig();
   const { sessionId, userId, metadata } = options;
 
-  // Return a proxy handler that initializes on first use
-  let actualHandler: LangFuseCallbackHandler | null = null;
-  let initPromise: Promise<LangFuseCallbackHandler | null> | null = null;
+  try {
+    const HandlerClass = await getCallbackHandlerClass();
+    if (!HandlerClass) return null;
 
-  const initHandler = async () => {
-    if (actualHandler) return actualHandler;
-    if (initPromise) return initPromise;
+    const handler = new HandlerClass({
+      publicKey: config.publicKey!,
+      secretKey: config.secretKey!,
+      baseUrl: config.baseUrl,
+      sessionId,
+      userId: userId || 'anonymous',
+      metadata: {
+        ...metadata,
+        service: 'openmanager-ai-engine',
+        version: process.env.npm_package_version || '5.83.10',
+      },
+    });
 
-    initPromise = (async () => {
-      const HandlerClass = await getCallbackHandlerClass();
-      if (!HandlerClass) return null;
-
-      actualHandler = new HandlerClass({
-        publicKey: config.publicKey!,
-        secretKey: config.secretKey!,
-        baseUrl: config.baseUrl,
-        sessionId,
-        userId: userId || 'anonymous',
-        metadata: {
-          ...metadata,
-          service: 'openmanager-ai-engine',
-          version: process.env.npm_package_version || '5.83.10',
-        },
-      });
-
-      console.log(`✅ [LangFuse] Session handler created: ${sessionId}`);
-      return actualHandler;
-    })();
-
-    return initPromise;
-  };
-
-  // Return wrapper object that acts as callback handler
-  // LangChain callbacks are duck-typed, so we can return a compatible object
-  const wrapper: LangFuseCallbackHandler = {
-    async flushAsync() {
-      const handler = await initHandler();
-      await handler?.flushAsync?.();
-    },
-    async shutdownAsync() {
-      const handler = await initHandler();
-      await handler?.shutdownAsync?.();
-    },
-  };
-
-  // Trigger initialization immediately
-  initHandler().catch(err => console.warn('⚠️ [LangFuse] Init failed:', err));
-
-  return wrapper;
+    console.log(`✅ [LangFuse] Session handler created: ${sessionId}`);
+    return handler as LangFuseCallbackHandler;
+  } catch (err) {
+    console.warn('⚠️ [LangFuse] Init failed:', err);
+    return null;
+  }
 }
 
 // =============================================================================

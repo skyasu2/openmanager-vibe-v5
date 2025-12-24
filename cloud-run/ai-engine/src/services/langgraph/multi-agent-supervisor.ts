@@ -43,7 +43,7 @@ import {
   markGeminiKeyExhausted,
 } from '../../lib/model-config';
 // LangFuse Integration (Phase 2)
-import { createSessionHandler, flushLangfuse } from '../../lib/langfuse-handler';
+import { createSessionHandler } from '../../lib/langfuse-handler';
 
 // ============================================================================
 // 0. Groq Message Compatibility Helper
@@ -417,15 +417,14 @@ export async function executeSupervisor(
     enableTracing = true,
     userId,
   } = options;
-  const config = createSessionConfig(sessionId);
   const MAX_RETRIES = 2; // Primary key + secondary key
   let compressionApplied = false;
 
   // === LangFuse Tracing (v5.87.0) ===
   // Note: LangFuse integration is initialized for session-level observability
-  // The handler is created for manual flush/shutdown operations
+  // The handler is passed to LangGraph config for automatic tracing
   const langfuseHandler = enableTracing
-    ? createSessionHandler({
+    ? await createSessionHandler({
         sessionId,
         userId,
         metadata: {
@@ -436,6 +435,13 @@ export async function executeSupervisor(
       })
     : null;
 
+  // Create config with optional LangFuse callbacks
+  const config = createSessionConfig(
+    sessionId,
+    undefined,
+    langfuseHandler ? [langfuseHandler] : undefined
+  );
+
   if (langfuseHandler) {
     console.log(`📊 [LangFuse] Tracing initialized for session: ${sessionId}`);
   }
@@ -445,11 +451,12 @@ export async function executeSupervisor(
       // Create fresh supervisor (uses current active Gemini key)
       const app = await createMultiAgentSupervisor();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await app.invoke(
         {
           messages: [new HumanMessage(query)],
         },
-        config
+        config as any // Type assertion for LangGraph config with LangFuse callbacks
       );
 
       // Extract final response from messages
@@ -485,8 +492,8 @@ export async function executeSupervisor(
       console.log(`✅ [Supervisor] Completed. Session: ${sessionId}, Compressed: ${compressionApplied}, Traced: ${!!langfuseHandler}`);
 
       // Flush LangFuse traces asynchronously (non-blocking)
-      if (langfuseHandler) {
-        flushLangfuse().catch(err => console.warn('⚠️ [LangFuse] Flush failed:', err));
+      if (langfuseHandler?.flushAsync) {
+        langfuseHandler.flushAsync().catch(err => console.warn('⚠️ [LangFuse] Flush failed:', err));
       }
 
       return { response, sessionId, verification, compressionApplied };
@@ -546,9 +553,10 @@ export async function* streamSupervisor(
 
   try {
     // Use default stream() instead of streamEvents for Groq compatibility
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const stream = await app.stream(
       { messages: [new HumanMessage(query)] },
-      config
+      config as any // Type assertion for LangGraph config
     );
 
     let finalContent = '';

@@ -112,15 +112,23 @@ export async function getCheckpointer(): Promise<PostgresSaver> {
 // 3. Session Management
 // ============================================================================
 
+// LangGraph config type with optional callbacks
+export interface SessionConfig {
+  configurable: { thread_id: string; checkpoint_ns?: string };
+  callbacks?: unknown[];
+}
+
 export function createSessionConfig(
   sessionId: string,
-  checkpoint_ns?: string
-): { configurable: { thread_id: string; checkpoint_ns?: string } } {
+  checkpoint_ns?: string,
+  callbacks?: unknown[]
+): SessionConfig {
   return {
     configurable: {
       thread_id: sessionId,
       ...(checkpoint_ns && { checkpoint_ns }),
     },
+    ...(callbacks && callbacks.length > 0 && { callbacks }),
   };
 }
 
