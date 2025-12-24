@@ -11,46 +11,46 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'ai-assistant-pro',
     title: '🧠 AI Assistant',
     description:
-      'Groq Llama 3.3(Supervisor) + Google Gemini 2.5(Worker) + RAG(Memory)가 결합된 LangGraph A2A(Agent-to-Agent) 시스템입니다.',
+      'Google Gemini 2.5 Flash Lite(Supervisor) + Groq Llama 3.3(Worker) + RAG(Memory)가 결합된 LangGraph A2A(Agent-to-Agent) 시스템입니다.',
     icon: Bot,
     gradient: 'from-indigo-500 via-purple-500 to-pink-500',
     detailedContent: {
-      overview: `단일 모델의 한계를 넘어선 Hybrid Multi-Agent 시스템! Groq의 압도적 속도로 지휘하고, Google Gemini의 정밀한 분석력과 RAG의 전문 지식이 LangGraph 위에서 유기적으로 협업합니다.`,
+      overview: `단일 모델의 한계를 넘어선 Hybrid Multi-Agent 시스템! Gemini의 빠른 의도 분류로 지휘하고, Groq의 압도적 처리 속도와 RAG의 전문 지식이 LangGraph 위에서 유기적으로 협업합니다.`,
       features: [
-        '🤝 A2A Collaboration: Supervisor(Groq)가 하위 전문가 에이전트(Gemini 등)를 적재적소에 배치',
-        '⚡ Zero-Latency: LPU 기반 Supervisor로 체감 지연 시간 최소화',
+        '🤝 A2A Collaboration: Supervisor(Gemini)가 하위 전문가 에이전트(Groq 등)를 적재적소에 배치',
+        '⚡ Zero-Latency: Gemini Flash Lite 기반 Supervisor로 빠른 의도 분류',
         '🛡️ Failover System: 메인 에이전트 응답 불가 시 백업 에이전트가 즉시 투입되는 무중단 구조',
       ],
       technologies: [
         'LangGraph (Multi-Agent)',
-        'Groq Llama 3.3 (Supervisor)',
-        'Google Gemini 2.5 (Worker)',
+        'Google Gemini 2.5 Flash Lite (Supervisor)',
+        'Groq Llama 3.3 70b (Worker)',
         'Supabase pgVector',
         'Official PostgreSQL MCP',
       ],
     },
     subSections: [
       {
-        title: 'Groq Llama 3.3 Supervisor',
+        title: 'Gemini 2.5 Flash Lite Supervisor',
         description:
-          '시스템의 "지휘관" 역할. 초고속 추론으로 에이전트 간 작업을 조율하는 오케스트레이션 엔진입니다.',
+          '시스템의 "지휘관" 역할. 빠른 의도 분류로 에이전트 간 작업을 조율하는 오케스트레이션 엔진입니다.',
         icon: Zap,
-        gradient: 'from-orange-500 to-red-500',
+        gradient: 'from-blue-500 to-indigo-600',
         features: [
           'Supervisor Agent: 하위 에이전트 지휘 및 의사결정',
-          'Hyper-Speed: 500 Tokens/s 속도로 지연 없는 조율',
+          'Fast Intent: Gemini Flash Lite로 빠른 의도 분류 및 라우팅',
           'Routing: 사용자 의도를 파악하여 적절한 전문가에게 위임',
         ],
       },
       {
-        title: 'Gemini 2.5 Worker',
+        title: 'Groq Llama 3.3 70b Worker',
         description:
-          '시스템의 "분석가" 역할. 대량의 데이터를 정밀하게 분석하고 패턴을 찾아냅니다.',
+          '시스템의 "분석가" 역할. 초고속 LPU로 대량의 데이터를 정밀하게 분석합니다.',
         icon: Bot,
-        gradient: 'from-blue-500 to-indigo-600',
+        gradient: 'from-orange-500 to-red-500',
         features: [
           'Analyst Agent: 로그/메트릭 심층 분석',
-          'Context Awareness: 긴 문맥 처리에 강한 Gemini 2.5 활용',
+          'Hyper-Speed: 500 Tokens/s 속도로 빠른 처리',
           'Specialist: NLQ 및 이상 탐지 전문 수행',
         ],
       },

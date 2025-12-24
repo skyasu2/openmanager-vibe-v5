@@ -88,7 +88,7 @@ return { backend: 'local-docker' };
 
 | 항목 | 값 |
 |------|-----|
-| **모델** | Groq `llama-3.3-70b-versatile` |
+| **모델** | Google `gemini-2.5-flash-lite` |
 | **역할** | Intent classification & routing |
 | **출력** | `targetAgent`: nlq \| analyst \| reporter \| parallel \| reply |
 
@@ -106,10 +106,10 @@ return { backend: 'local-docker' };
 
 | Agent | Model | Latency Target | Tools |
 |-------|-------|----------------|-------|
-| **Supervisor** | Groq Llama 70b | < 200ms | - |
-| **NLQ Agent** | Gemini 2.5 Flash | < 500ms | `getServerMetrics` |
-| **Analyst Agent** | Gemini 2.5 Flash | < 1s | `detectAnomalies`, `predictTrends`, `analyzePattern` |
-| **Reporter Agent** | Llama 3.3-70b | < 2s | `searchKnowledgeBase` (RAG), `recommendCommands` |
+| **Supervisor** | Gemini 2.5 Flash Lite | < 200ms | - |
+| **NLQ Agent** | Groq Llama 3.3 70b | < 500ms | `getServerMetrics` |
+| **Analyst Agent** | Groq Llama 3.3 70b | < 1s | `detectAnomalies`, `predictTrends`, `analyzePattern` |
+| **Reporter Agent** | Groq Llama 3.3 70b | < 2s | `searchKnowledgeBase` (RAG), `recommendCommands` |
 
 ## Cloud Run Endpoints
 

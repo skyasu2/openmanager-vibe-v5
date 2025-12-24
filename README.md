@@ -93,12 +93,12 @@ graph TD
     end
 
     subgraph "AI Agents (Supervisor-Worker)"
-        Cloud --> Supervisor[🦸 Supervisor Agent (Groq Llama)]
+        Cloud --> Supervisor[🦸 Supervisor Agent (Gemini 2.5 Flash Lite)]
         Local --> Supervisor
-        
-        Supervisor --> NLQ[🔍 NLQ Agent (Gemini Flash)]
-        Supervisor --> Analyst[📊 Analyst Agent (Gemini Pro)]
-        Supervisor --> Reporter[📝 Reporter Agent (Groq Llama)]
+
+        Supervisor --> NLQ[🔍 NLQ Agent (Groq Llama 3.3 70b)]
+        Supervisor --> Analyst[📊 Analyst Agent (Groq Llama 3.3 70b)]
+        Supervisor --> Reporter[📝 Reporter Agent (Groq Llama 3.3 70b)]
     end
 
     subgraph "Data & Context"

@@ -13,10 +13,11 @@ ai-architecture:
   current: "LangGraph Multi-Agent"
   api_endpoint: "/api/ai/supervisor"
   agents:
-    supervisor: "Groq Llama-8b (Fast intent classification)"
-    nlq-agent: "Gemini Flash (Server metrics query)"
-    analyst-agent: "Gemini Pro (Pattern analysis, anomaly detection)"
-    reporter-agent: "Llama 70b (Incident reports, RAG)"
+    supervisor: "Gemini 2.5 Flash Lite (Intent classification, routing)"
+    nlq-agent: "Groq Llama 3.3 70b (Server metrics query)"
+    analyst-agent: "Groq Llama 3.3 70b (Pattern analysis, anomaly detection)"
+    reporter-agent: "Groq Llama 3.3 70b (Incident reports, RAG)"
+    verifier-agent: "Groq Llama 3.1 8b (Output validation)"
 
   deprecated:
     - unified-ai-processor    # Python/Cloud Run - LangGraph로 대체됨
