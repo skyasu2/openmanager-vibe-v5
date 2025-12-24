@@ -42,6 +42,8 @@ import {
   getSupervisorModel,
   markGeminiKeyExhausted,
 } from '../../lib/model-config';
+// LangFuse Integration (Phase 2)
+import { createSessionHandler, flushLangfuse } from '../../lib/langfuse-handler';
 
 // ============================================================================
 // 0. Groq Message Compatibility Helper
@@ -385,6 +387,10 @@ export interface SupervisorExecutionOptions {
   verificationContext?: string;
   /** Enable context compression for long conversations (default: true) */
   enableCompression?: boolean;
+  /** Enable LangFuse tracing for observability (default: true) */
+  enableTracing?: boolean;
+  /** User ID for LangFuse tracing */
+  userId?: string;
 }
 
 /**
@@ -392,6 +398,7 @@ export interface SupervisorExecutionOptions {
  * Includes automatic Gemini API key failover on rate limit
  * v5.85.0: Added Verifier Agent post-processing for quality assurance
  * v5.86.0: Added Context Compression for long conversations
+ * v5.87.0: Added LangFuse tracing for observability
  */
 export async function executeSupervisor(
   query: string,
@@ -403,10 +410,35 @@ export async function executeSupervisor(
   compressionApplied?: boolean;
 }> {
   const sessionId = options.sessionId || `session_${Date.now()}`;
-  const { enableVerification = true, verificationContext, enableCompression = true } = options;
+  const {
+    enableVerification = true,
+    verificationContext,
+    enableCompression = true,
+    enableTracing = true,
+    userId,
+  } = options;
   const config = createSessionConfig(sessionId);
   const MAX_RETRIES = 2; // Primary key + secondary key
   let compressionApplied = false;
+
+  // === LangFuse Tracing (v5.87.0) ===
+  // Note: LangFuse integration is initialized for session-level observability
+  // The handler is created for manual flush/shutdown operations
+  const langfuseHandler = enableTracing
+    ? createSessionHandler({
+        sessionId,
+        userId,
+        metadata: {
+          query: query.slice(0, 100), // Truncate for metadata
+          enableVerification,
+          enableCompression,
+        },
+      })
+    : null;
+
+  if (langfuseHandler) {
+    console.log(`📊 [LangFuse] Tracing initialized for session: ${sessionId}`);
+  }
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
@@ -450,7 +482,13 @@ export async function executeSupervisor(
         verification = verifyResult.verification;
       }
 
-      console.log(`✅ [Supervisor] Completed. Session: ${sessionId}, Compressed: ${compressionApplied}`);
+      console.log(`✅ [Supervisor] Completed. Session: ${sessionId}, Compressed: ${compressionApplied}, Traced: ${!!langfuseHandler}`);
+
+      // Flush LangFuse traces asynchronously (non-blocking)
+      if (langfuseHandler) {
+        flushLangfuse().catch(err => console.warn('⚠️ [LangFuse] Flush failed:', err));
+      }
+
       return { response, sessionId, verification, compressionApplied };
     } catch (error) {
       // Check if this is a rate limit error
