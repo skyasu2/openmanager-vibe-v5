@@ -1,7 +1,6 @@
 // Using mock system for real-time data
 
-import { getThreshold } from '@/config/rules';
-import { IncidentReportService } from '@/services/ai/IncidentReportService';
+import { getThreshold, isCritical, isWarning } from '@/config/rules';
 import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 /**
  * 🚀 WebSocket Manager v2.0
@@ -11,7 +10,7 @@ import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter
  * - 클라이언트별 구독 관리
  * - 자동 재연결 및 상태 모니터링
  * - 압축 기반 효율적 전송
- * - IncidentReportService 통합 장애 감지
+ * - 임계값 기반 간단한 알림 (Cloud Run AI 분석은 별도 요청)
  */
 
 import { BehaviorSubject, interval, Subject } from 'rxjs';
@@ -117,7 +116,6 @@ export class WebSocketManager {
   private connectionCount$ = new BehaviorSubject<number>(0);
   private isActive = false;
   private dataGenerator: DataGenerator; // Mock data generator
-  private incidentReportService: IncidentReportService; // 장애 감지 서비스
 
   // 스트림 데이터 소스
   private dataSubject = new Subject<MetricStream>();
@@ -126,7 +124,6 @@ export class WebSocketManager {
   constructor() {
     // Using mock data generator
     this.dataGenerator = { getRealServerMetrics: async () => ({ data: [] }) };
-    this.incidentReportService = new IncidentReportService();
     this._initializeStreams();
     this.startDataGeneration();
   }
@@ -314,7 +311,7 @@ export class WebSocketManager {
       })();
     });
 
-    // 30초마다 장애 감지 및 보고서 생성
+    // 30초마다 임계값 기반 경고 확인 (AI 분석은 Cloud Run에서 처리)
     interval(30000).subscribe(() => {
       void (async () => {
         if (!this.isActive || this.clients.size === 0) return;
@@ -325,96 +322,128 @@ export class WebSocketManager {
             .then((response: DataGeneratorResponse) => response.data);
           const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
 
-          // IncidentReportService를 사용한 장애 분석
-          const serverMetrics = allServers.slice(0, 15).map((server) => ({
-            serverId: server.id,
-            serverName: server.name,
-            cpu: server.cpu,
-            memory: server.memory,
-            disk: server.disk,
-            network: server.network || 0,
-            status: server.status,
-            errorRate: Math.random() * 10, // Mock error rate
-            responseTime: 500 + Math.random() * 2500, // Mock response time
-          }));
+          // 임계값 기반 알림 (간단한 threshold check)
+          const criticalServers: Array<{
+            id: string;
+            name: string;
+            metric: string;
+            value: number;
+          }> = [];
+          const warningServers: Array<{
+            id: string;
+            name: string;
+            metric: string;
+            value: number;
+          }> = [];
 
-          // 장애 분석 실행
-          const incidentReport =
-            await this.incidentReportService.analyzeIncident(serverMetrics);
+          for (const server of allServers) {
+            if (isCritical('cpu', server.cpu)) {
+              criticalServers.push({
+                id: server.id,
+                name: server.name,
+                metric: 'cpu',
+                value: server.cpu,
+              });
+            } else if (isWarning('cpu', server.cpu)) {
+              warningServers.push({
+                id: server.id,
+                name: server.name,
+                metric: 'cpu',
+                value: server.cpu,
+              });
+            }
 
-          // 장애가 감지된 경우 알림 브로드캐스트
-          if (
-            incidentReport.severity !== 'low' &&
-            incidentReport.affected.length > 0
-          ) {
-            const incidentAlert: MetricStream = {
-              serverId: 'incident-detector',
+            if (isCritical('memory', server.memory)) {
+              criticalServers.push({
+                id: server.id,
+                name: server.name,
+                metric: 'memory',
+                value: server.memory,
+              });
+            } else if (isWarning('memory', server.memory)) {
+              warningServers.push({
+                id: server.id,
+                name: server.name,
+                metric: 'memory',
+                value: server.memory,
+              });
+            }
+
+            if (isCritical('disk', server.disk)) {
+              criticalServers.push({
+                id: server.id,
+                name: server.name,
+                metric: 'disk',
+                value: server.disk,
+              });
+            } else if (isWarning('disk', server.disk)) {
+              warningServers.push({
+                id: server.id,
+                name: server.name,
+                metric: 'disk',
+                value: server.disk,
+              });
+            }
+          }
+
+          // Critical 알림 발송
+          if (criticalServers.length > 0) {
+            const criticalAlert: MetricStream = {
+              serverId: 'threshold-detector',
               data: {
-                serverId: incidentReport.id,
-                serverName: '장애 감지 시스템',
-                type: 'incident',
-                message: incidentReport.description,
-                priority: incidentReport.severity,
-                timestamp: incidentReport.timestamp,
-                anomalies: incidentReport.affected,
-                overallScore:
-                  incidentReport.severity === 'critical'
-                    ? 0.95
-                    : incidentReport.severity === 'high'
-                      ? 0.8
-                      : 0.6,
-                confidence: 0.9,
-                recommendations: incidentReport.recommendations,
+                serverId: 'threshold-alert',
+                serverName: '임계값 모니터링',
+                type: 'threshold_exceeded',
+                message: `${criticalServers.length}개 항목이 임계치를 초과했습니다`,
+                priority: 'critical',
+                timestamp: new Date().toISOString(),
+                anomalies: criticalServers.map((s) => ({
+                  serverId: s.id,
+                  serverName: s.name,
+                  metric_type: s.metric,
+                  value: s.value,
+                  severity: 'critical',
+                })),
               },
-              timestamp: incidentReport.timestamp,
+              timestamp: new Date().toISOString(),
               type: 'alert',
-              priority: incidentReport.severity as
-                | 'low'
-                | 'medium'
-                | 'high'
-                | 'critical',
+              priority: 'critical',
             };
 
-            this.broadcastToSubscribers('alerts', incidentAlert);
-
-            // 중요 장애는 추가 로깅
-            if (
-              incidentReport.severity === 'critical' ||
-              incidentReport.severity === 'high'
-            ) {
-              console.log(
-                `🚨 ${incidentReport.severity.toUpperCase()} 장애 감지:`,
-                {
-                  id: incidentReport.id,
-                  title: incidentReport.title,
-                  affected: incidentReport.affected,
-                  impact: incidentReport.impact,
-                }
-              );
-            }
+            this.broadcastToSubscribers('alerts', criticalAlert);
+            console.log(
+              `🚨 CRITICAL 임계값 초과: ${criticalServers.length}개 항목`
+            );
           }
 
-          // 배치 분석 (여러 그룹의 서버 동시 분석)
-          const batchReports =
-            await this.incidentReportService.analyzeBatch(serverMetrics);
+          // Warning 알림 발송 (critical보다 낮은 우선순위)
+          if (warningServers.length > 0 && criticalServers.length === 0) {
+            const warningAlert: MetricStream = {
+              serverId: 'threshold-detector',
+              data: {
+                serverId: 'threshold-alert',
+                serverName: '임계값 모니터링',
+                type: 'threshold_warning',
+                message: `${warningServers.length}개 항목이 경고 수준입니다`,
+                priority: 'high',
+                timestamp: new Date().toISOString(),
+                anomalies: warningServers.map((s) => ({
+                  serverId: s.id,
+                  serverName: s.name,
+                  metric_type: s.metric,
+                  value: s.value,
+                  severity: 'warning',
+                })),
+              },
+              timestamp: new Date().toISOString(),
+              type: 'alert',
+              priority: 'high',
+            };
 
-          // 배치 분석 결과 중 중요 장애만 추가 브로드캐스트
-          for (const report of batchReports) {
-            if (report.severity === 'critical' || report.severity === 'high') {
-              const batchAlert: AlertData = {
-                serverId: report.id,
-                serverName: `배치 분석: ${report.affected.join(', ')}`,
-                type: 'batch_incident',
-                message: report.title || '배치 장애 감지',
-                priority: report.severity,
-                timestamp: report.timestamp,
-              };
-
-              this.alertSubject.next(batchAlert);
-            }
+            this.broadcastToSubscribers('alerts', warningAlert);
           }
         } catch (error) {
-          console.error('❌ 장애 감지 중 오류:', error);
+          console.error('❌ 임계값 확인 중 오류:', error);
         }
       })();
     });
@@ -594,7 +623,7 @@ export class WebSocketManager {
   }
 
   /**
-   * 🚨 수동 장애 분석 실행
+   * 🚨 수동 임계값 확인 실행 (AI 분석은 Cloud Run API 사용 권장)
    */
   async analyzeIncident(serverId?: string): Promise<void> {
     try {
@@ -603,61 +632,115 @@ export class WebSocketManager {
         .then((response: DataGeneratorResponse) => response.data);
       const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
 
-      // 특정 서버 또는 전체 서버 메트릭 준비
+      // 특정 서버 또는 전체 서버 필터링
       let targetServers = allServers;
       if (serverId) {
         targetServers = allServers.filter((s) => s.id === serverId);
       }
 
-      const serverMetrics = targetServers.map((server) => ({
-        serverId: server.id,
-        serverName: server.name,
-        cpu: server.cpu,
-        memory: server.memory,
-        disk: server.disk,
-        network: server.network || 0,
-        status: server.status,
-        errorRate: Math.random() * 10,
-        responseTime: 500 + Math.random() * 2500,
-      }));
+      // 임계값 기반 분석 (AI 분석 없이 단순 threshold check)
+      const issues: Array<{
+        id: string;
+        name: string;
+        metric: string;
+        value: number;
+        severity: 'critical' | 'warning';
+      }> = [];
 
-      // 장애 분석 실행
-      const incidentReport =
-        await this.incidentReportService.analyzeIncident(serverMetrics);
+      for (const server of targetServers) {
+        if (isCritical('cpu', server.cpu)) {
+          issues.push({
+            id: server.id,
+            name: server.name,
+            metric: 'cpu',
+            value: server.cpu,
+            severity: 'critical',
+          });
+        } else if (isWarning('cpu', server.cpu)) {
+          issues.push({
+            id: server.id,
+            name: server.name,
+            metric: 'cpu',
+            value: server.cpu,
+            severity: 'warning',
+          });
+        }
+        if (isCritical('memory', server.memory)) {
+          issues.push({
+            id: server.id,
+            name: server.name,
+            metric: 'memory',
+            value: server.memory,
+            severity: 'critical',
+          });
+        } else if (isWarning('memory', server.memory)) {
+          issues.push({
+            id: server.id,
+            name: server.name,
+            metric: 'memory',
+            value: server.memory,
+            severity: 'warning',
+          });
+        }
+        if (isCritical('disk', server.disk)) {
+          issues.push({
+            id: server.id,
+            name: server.name,
+            metric: 'disk',
+            value: server.disk,
+            severity: 'critical',
+          });
+        } else if (isWarning('disk', server.disk)) {
+          issues.push({
+            id: server.id,
+            name: server.name,
+            metric: 'disk',
+            value: server.disk,
+            severity: 'warning',
+          });
+        }
+      }
 
-      // 결과를 즉시 브로드캐스트
-      if (incidentReport.affected.length > 0) {
+      if (issues.length > 0) {
+        const hasCritical = issues.some((i) => i.severity === 'critical');
+        const timestamp = new Date().toISOString();
+
         const manualAlert: MetricStream = {
           serverId: 'manual-analysis',
           data: {
-            serverId: incidentReport.id,
-            serverName: '수동 분석',
-            type: 'manual_incident',
-            message: incidentReport.description,
-            priority: incidentReport.severity,
-            timestamp: incidentReport.timestamp,
-            anomalies: incidentReport.affected,
-            recommendations: incidentReport.recommendations,
+            serverId: 'manual-threshold-check',
+            serverName: '수동 임계값 확인',
+            type: 'manual_threshold_check',
+            message: `${issues.length}개 임계값 이슈 발견 (${hasCritical ? 'Critical' : 'Warning'})`,
+            priority: hasCritical ? 'critical' : 'high',
+            timestamp,
+            anomalies: issues.map((i) => ({
+              serverId: i.id,
+              serverName: i.name,
+              metric_type: i.metric,
+              value: i.value,
+              severity: i.severity,
+            })),
+            recommendations: [
+              'AI 분석은 /api/ai/supervisor 또는 /api/ai/intelligent-monitoring 호출 권장',
+            ],
           },
-          timestamp: incidentReport.timestamp,
+          timestamp,
           type: 'alert',
-          priority: incidentReport.severity as
-            | 'low'
-            | 'medium'
-            | 'high'
-            | 'critical',
+          priority: hasCritical ? 'critical' : 'high',
         };
 
         this.broadcastToSubscribers('alerts', manualAlert);
 
-        console.log(`📋 수동 장애 분석 완료:`, {
-          id: incidentReport.id,
-          severity: incidentReport.severity,
-          affected: incidentReport.affected.length,
+        console.log(`📋 수동 임계값 확인 완료:`, {
+          issues: issues.length,
+          severity: hasCritical ? 'critical' : 'warning',
         });
+      } else {
+        console.log(`✅ 수동 확인 완료: 임계값 이슈 없음`);
       }
     } catch (error) {
-      console.error('❌ 수동 장애 분석 실패:', error);
+      console.error('❌ 수동 임계값 확인 실패:', error);
     }
   }
 

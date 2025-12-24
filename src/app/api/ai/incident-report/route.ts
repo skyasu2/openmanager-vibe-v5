@@ -1,683 +1,124 @@
 /**
  * 🚨 자동 장애 보고서 API
  *
- * Phase 2: Auto Incident Report Backend
- * - 이상 징후 자동 감지
- * - AI 기반 원인 분석
- * - 자동 보고서 생성
- * - 패턴 학습 및 예측
+ * Phase 2: Auto Incident Report Backend (Cloud Run Proxy)
+ * - Vercel: Thin Proxy Layer
+ * - Cloud Run: AI Analysis & Report Generation (LangGraph)
  *
- * 🔄 v5.84.0: Cloud Run LangGraph Integration
- * - generate/detect: Cloud Run 우선 → 로컬 fallback
- * - LangGraph Reporter Agent 재사용 (RAG, Command Recommendations)
+ * 🔄 v5.84.0: Local Fallback Removed (Cloud Run dependency enforced)
  */
 
-import crypto from 'node:crypto';
 import { type NextRequest, NextResponse } from 'next/server';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
-import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
 import { createClient } from '@/lib/supabase/server';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
-// Types
-interface ServerMetric {
-  server_id: string;
-  server_name: string;
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: number;
-  timestamp: string;
-}
-
-interface Anomaly {
-  server_id: string;
-  server_name: string;
-  metric_type: 'cpu' | 'memory' | 'disk' | 'network';
-  value: number;
-  severity: 'critical' | 'warning' | 'info';
-  threshold: number;
-  timestamp: string;
-}
-
+// Types (Minimal for response typing)
 interface IncidentReport {
   id: string;
   title: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  affected_servers: string[];
-  anomalies: Anomaly[];
-  root_cause_analysis: {
-    primary_cause: string;
-    contributing_factors: string[];
-    confidence: number;
-  };
-  recommendations: Array<{
-    action: string;
-    priority: 'immediate' | 'high' | 'medium' | 'low';
-    expected_impact: string;
-  }>;
-  timeline: Array<{
-    timestamp: string;
-    event: string;
-    severity: string;
-  }>;
-  pattern?: string;
-  created_at: string;
-}
-
-// Root cause analysis 타입 정의 - any 타입 제거
-interface RootCauseAnalysis {
-  primary_cause: string;
-  contributing_factors: string[];
-  confidence: number;
-}
-
-// Recommendation 타입 정의 - any 타입 제거
-interface Recommendation {
-  action: string;
-  priority: 'immediate' | 'high' | 'medium' | 'low';
-  expected_impact: string;
-}
-
-// Timeline event 타입 정의 - any 타입 제거
-interface TimelineEvent {
-  timestamp: string;
-  event: string;
   severity: string;
-}
-
-// Thresholds
-const THRESHOLDS = {
-  critical: 90,
-  warning: 80,
-  info: 70,
-};
-
-// Alert cooldown tracking (in-memory for simplicity)
-const alertCooldowns = new Map<string, number>();
-const COOLDOWN_PERIOD = 5 * 60 * 1000; // 5 minutes
-
-// Export for testing purposes
-export const _testHelpers = {
-  clearAlertCooldowns: () => alertCooldowns.clear(),
-};
-
-/**
- * Validate server metrics
- */
-function validateMetrics(metrics: unknown[]): metrics is ServerMetric[] {
-  if (!Array.isArray(metrics) || metrics.length === 0) {
-    return false;
-  }
-
-  return metrics.every((metric) => {
-    // Check if metric is an object
-    if (typeof metric !== 'object' || metric === null) return false;
-
-    const m = metric as Record<string, unknown>; // Type assertion for property access
-
-    // Required string fields
-    if (!m.server_id || typeof m.server_id !== 'string') return false;
-    if (!m.server_name || typeof m.server_name !== 'string') return false;
-    if (!m.timestamp || typeof m.timestamp !== 'string') return false;
-
-    // Required numeric fields (must be numbers, not strings or null)
-    const numericFields = ['cpu', 'memory', 'disk', 'network'];
-    return numericFields.every((field) => {
-      const value = m[field];
-      return (
-        typeof value === 'number' &&
-        !Number.isNaN(value) &&
-        value >= 0 &&
-        value <= 100
-      );
-    });
-  });
+  created_at: string;
+  affected_servers?: unknown[];
+  anomalies?: unknown[];
+  root_cause_analysis?: unknown;
+  recommendations?: unknown[];
+  timeline?: unknown[];
+  pattern?: string;
+  [key: string]: unknown;
 }
 
 /**
- * Detect anomalies in server metrics
- */
-function detectAnomalies(metrics: ServerMetric[]): {
-  anomalies: Anomaly[];
-  pattern: string;
-} {
-  const anomalies: Anomaly[] = [];
-
-  for (const metric of metrics) {
-    // Check each metric type
-    const metricTypes: Array<
-      keyof Pick<ServerMetric, 'cpu' | 'memory' | 'disk' | 'network'>
-    > = ['cpu', 'memory', 'disk', 'network'];
-
-    for (const type of metricTypes) {
-      const value = metric[type];
-
-      if (value >= THRESHOLDS.critical) {
-        anomalies.push({
-          server_id: metric.server_id,
-          server_name: metric.server_name,
-          metric_type: type,
-          value,
-          severity: 'critical',
-          threshold: THRESHOLDS.critical,
-          timestamp: metric.timestamp,
-        });
-      } else if (value >= THRESHOLDS.warning) {
-        anomalies.push({
-          server_id: metric.server_id,
-          server_name: metric.server_name,
-          metric_type: type,
-          value,
-          severity: 'warning',
-          threshold: THRESHOLDS.warning,
-          timestamp: metric.timestamp,
-        });
-      }
-    }
-  }
-
-  // Analyze pattern
-  const pattern = analyzePattern(anomalies);
-
-  return { anomalies, pattern };
-}
-
-/**
- * Analyze anomaly patterns
- */
-function analyzePattern(anomalies: Anomaly[]): string {
-  const criticalCount = anomalies.filter(
-    (a) => a.severity === 'critical'
-  ).length;
-  const affectedServers = new Set(anomalies.map((a) => a.server_id)).size;
-  const metricTypes = new Set(anomalies.map((a) => a.metric_type));
-
-  if (criticalCount >= 3 && affectedServers >= 2) {
-    return 'cascade_failure';
-  }
-  if (
-    metricTypes.has('network') &&
-    anomalies.some(
-      (a) => a.metric_type === 'network' && a.severity === 'critical'
-    )
-  ) {
-    return 'network_saturation';
-  }
-  if (metricTypes.has('cpu') && metricTypes.has('memory')) {
-    return 'resource_exhaustion';
-  }
-
-  return 'isolated_spike';
-}
-
-/**
- * Generate incident report
- */
-function generateReport(
-  _metrics: ServerMetric[],
-  anomalies: Anomaly[],
-  pattern: string
-): IncidentReport {
-  const severity = determineSeverity(anomalies);
-  const affectedServers = [...new Set(anomalies.map((a) => a.server_id))];
-
-  // AI-powered root cause analysis (simplified)
-  const rootCause = analyzeRootCause(anomalies, pattern);
-
-  // Generate recommendations
-  const recommendations = generateRecommendations(
-    anomalies,
-    pattern,
-    rootCause
-  );
-
-  // Build timeline
-  const timeline = buildTimeline(anomalies);
-
-  return {
-    id: crypto.randomUUID(),
-    title: generateTitle(severity, pattern),
-    severity,
-    affected_servers: affectedServers,
-    anomalies,
-    root_cause_analysis: rootCause,
-    recommendations,
-    timeline,
-    pattern,
-    created_at: new Date().toISOString(),
-  };
-}
-
-/**
- * Determine overall severity
- */
-function determineSeverity(
-  anomalies: Anomaly[]
-): 'critical' | 'high' | 'medium' | 'low' {
-  const criticalCount = anomalies.filter(
-    (a) => a.severity === 'critical'
-  ).length;
-  const warningCount = anomalies.filter((a) => a.severity === 'warning').length;
-
-  if (criticalCount >= 2) return 'critical';
-  if (criticalCount >= 1) return 'high';
-  if (warningCount >= 2) return 'medium';
-  return 'low';
-}
-
-/**
- * Analyze root cause
- */
-function analyzeRootCause(
-  anomalies: Anomaly[],
-  pattern: string
-): RootCauseAnalysis {
-  // Simplified AI analysis (in production, would use actual AI)
-  const criticalAnomalies = anomalies.filter((a) => a.severity === 'critical');
-  const metricCounts: Record<string, number> = {};
-
-  anomalies.forEach((a) => {
-    metricCounts[a.metric_type] = (metricCounts[a.metric_type] || 0) + 1;
-  });
-
-  const primaryMetric =
-    Object.entries(metricCounts).sort(([, a], [, b]) => b - a)[0]?.[0] ||
-    'unknown';
-
-  const causeMap: Record<string, string> = {
-    cascade_failure: '연쇄 장애: 하나의 서버 장애가 다른 서버로 전파',
-    network_saturation: '네트워크 포화: 과도한 트래픽으로 인한 네트워크 병목',
-    resource_exhaustion: '리소스 고갈: CPU/메모리 자원 부족',
-    isolated_spike: '개별 스파이크: 특정 서버의 일시적 부하 증가',
-  };
-
-  return {
-    primary_cause: causeMap[pattern] || '알 수 없는 원인',
-    contributing_factors: [
-      criticalAnomalies.length > 0
-        ? `${criticalAnomalies.length}개 서버에서 심각한 문제 발견`
-        : '',
-      primaryMetric !== 'unknown' ? `${primaryMetric} 메트릭이 주요 문제` : '',
-    ].filter(Boolean),
-    confidence: 0.75 + (pattern !== 'isolated_spike' ? 0.15 : 0),
-  };
-}
-
-/**
- * Generate recommendations
- */
-function generateRecommendations(
-  anomalies: Anomaly[],
-  pattern: string,
-  _rootCause: RootCauseAnalysis
-): Recommendation[] {
-  const recommendations = [];
-
-  // Pattern-specific recommendations
-  switch (pattern) {
-    case 'cascade_failure':
-      recommendations.push({
-        action: '영향받은 서버 간 의존성 확인 및 격리',
-        priority: 'immediate' as const,
-        expected_impact: '연쇄 장애 확산 방지',
-      });
-      break;
-    case 'network_saturation':
-      recommendations.push({
-        action: '네트워크 트래픽 제한 및 로드 밸런싱 조정',
-        priority: 'immediate' as const,
-        expected_impact: '네트워크 병목 해소',
-      });
-      break;
-    case 'resource_exhaustion':
-      recommendations.push({
-        action: '자원 사용량이 높은 프로세스 확인 및 최적화',
-        priority: 'high' as const,
-        expected_impact: '시스템 안정성 회복',
-      });
-      break;
-  }
-
-  // Metric-specific recommendations
-  const criticalAnomalies = anomalies.filter((a) => a.severity === 'critical');
-  if (criticalAnomalies.some((a) => a.metric_type === 'cpu')) {
-    recommendations.push({
-      action: 'CPU 사용률 높은 프로세스 종료 또는 스케일링',
-      priority: 'high' as const,
-      expected_impact: 'CPU 부하 감소',
-    });
-  }
-
-  if (criticalAnomalies.some((a) => a.metric_type === 'memory')) {
-    recommendations.push({
-      action: '메모리 누수 확인 및 가비지 컬렉션 실행',
-      priority: 'high' as const,
-      expected_impact: '메모리 사용량 정상화',
-    });
-  }
-
-  // General recommendation
-  recommendations.push({
-    action: '모니터링 임계값 조정 및 알림 규칙 업데이트',
-    priority: 'medium' as const,
-    expected_impact: '향후 조기 감지 개선',
-  });
-
-  return recommendations;
-}
-
-/**
- * Build incident timeline
- */
-function buildTimeline(anomalies: Anomaly[]): TimelineEvent[] {
-  return anomalies
-    .sort(
-      (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    )
-    .map((anomaly) => ({
-      timestamp: anomaly.timestamp,
-      event: `${anomaly.server_name}: ${anomaly.metric_type} ${anomaly.value}% (${anomaly.severity})`,
-      severity: anomaly.severity,
-    }));
-}
-
-/**
- * Generate report title
- */
-function generateTitle(severity: string, pattern: string): string {
-  const severityMap: Record<string, string> = {
-    critical: '🔴 심각',
-    high: '🟠 높음',
-    medium: '🟡 중간',
-    low: '🟢 낮음',
-  };
-
-  const patternMap: Record<string, string> = {
-    cascade_failure: '연쇄 장애 발생',
-    network_saturation: '네트워크 포화 감지',
-    resource_exhaustion: '리소스 고갈 경고',
-    isolated_spike: '개별 서버 이상',
-  };
-
-  return `${severityMap[severity]} - ${patternMap[pattern] || '시스템 이상 감지'}`;
-}
-
-/**
- * Check if alert should be sent (cooldown logic)
- */
-function shouldSendAlert(reportId: string): boolean {
-  const now = Date.now();
-  const lastAlert = alertCooldowns.get(reportId);
-
-  if (!lastAlert || now - lastAlert > COOLDOWN_PERIOD) {
-    alertCooldowns.set(reportId, now);
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * POST handler
+ * POST handler - Proxy to Cloud Run
  */
 async function postHandler(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, metrics, notify = false, timeRange } = body;
+    const { action } = body;
 
-    switch (action) {
-      case 'detect': {
-        if (!metrics || !validateMetrics(metrics)) {
-          return NextResponse.json(
-            { success: false, error: 'Invalid metrics data' },
-            { status: 400 }
-          );
-        }
+    // 1. Cloud Run 활성화 확인
+    if (!isCloudRunEnabled()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Cloud Run AI Engine is not enabled',
+          message: 'AI 서비스가 활성화되지 않았습니다. 관리자에게 문의하세요.',
+        },
+        { status: 503 }
+      );
+    }
 
-        const startTime = Date.now();
-        const { anomalies, pattern } = detectAnomalies(metrics);
-        const responseTime = Date.now() - startTime;
+    // 2. Cloud Run 프록시 호출 (LangGraph Reporter Agent)
+    debug.info(`[incident-report] Proxying action '${action}' to Cloud Run...`);
 
-        return NextResponse.json({
-          success: true,
-          anomalies,
-          pattern,
-          responseTime,
-          timestamp: new Date().toISOString(),
-        });
-      }
+    const cloudRunResult = await proxyToCloudRun({
+      path: '/api/ai/incident-report',
+      method: 'POST',
+      body, // Pass original body
+      timeout: 30000, // 30s timeout for AI analysis
+    });
 
-      case 'generate': {
-        // Create server-side Supabase client for API route
-        const supabase = await createClient();
+    if (cloudRunResult.success && cloudRunResult.data) {
+      debug.info('[incident-report] Cloud Run success');
 
-        if (!metrics || !validateMetrics(metrics)) {
-          return NextResponse.json(
-            { success: false, error: 'Invalid metrics data' },
-            { status: 400 }
-          );
-        }
+      // DB 저장 등 추가 작업이 필요한 경우 여기서 처리 (Optionally)
+      // 현재는 Cloud Run이 분석 결과만 반환하고 저장은 각자 알아서 하는 구조라면 유지
+      // 만약 Cloud Run이 저장까지 안 한다면 Vercel에서 저장해야 할 수도 있음.
+      // 기존 로직: Vercel에서 DB 저장했음.
+      // 유지보수성을 위해 DB 저장은 유지하되, 분석 데이터는 Cloud Run에서 가져옴.
 
-        const startTime = Date.now();
-        const { anomalies, pattern } = detectAnomalies(metrics);
-        let cloudRunUsed = false;
+      const reportData = cloudRunResult.data as IncidentReport;
 
-        // 기본값: Local algorithms
-        let report: IncidentReport = generateReport(
-          metrics,
-          anomalies,
-          pattern
-        );
-
-        // Cloud Run 우선 호출 (LangGraph Reporter Agent)
-        if (isCloudRunEnabled()) {
-          debug.info('[incident-report] Trying Cloud Run LangGraph...');
-
-          const cloudRunResult = await proxyToCloudRun({
-            path: '/api/ai/incident-report',
-            method: 'POST',
-            body: {
-              serverId: metrics[0]?.server_id,
-              query: '장애 보고서 생성',
-              severity: 'auto',
-              category: 'incident',
-            },
-            timeout: 15000,
-          });
-
-          if (cloudRunResult.success && cloudRunResult.data) {
-            debug.info(
-              '[incident-report] Cloud Run success, enhancing with RAG data'
-            );
-
-            // Cloud Run RAG 데이터로 보고서 강화
-            const crData = cloudRunResult.data as Record<string, unknown>;
-
-            report = {
-              ...report,
-              root_cause_analysis: {
-                primary_cause:
-                  (crData.knowledgeBase as { summary?: string })?.summary ||
-                  report.root_cause_analysis.primary_cause,
-                contributing_factors:
-                  report.root_cause_analysis.contributing_factors,
-                confidence: 0.85, // Cloud Run RAG 사용 시 신뢰도 상승
-              },
-              recommendations: Array.isArray(crData.recommendedCommands)
-                ? (
-                    crData.recommendedCommands as Array<{
-                      command: string;
-                      description: string;
-                    }>
-                  ).map((cmd) => ({
-                    action: cmd.description || cmd.command,
-                    priority: 'high' as const,
-                    expected_impact: '전문가 추천 조치',
-                  }))
-                : report.recommendations,
-            };
-            cloudRunUsed = true;
-          } else {
-            debug.warn(
-              '[incident-report] Cloud Run failed, using local fallback:',
-              cloudRunResult.error
-            );
-          }
-        }
-
-        // Try to save to database
+      // generate 액션인 경우 DB 저장 시도
+      if (action === 'generate' && reportData.id) {
         try {
+          const supabase = await createClient();
           const { error } = await supabase.from('incident_reports').insert({
-            id: report.id,
-            title: report.title,
-            severity: report.severity,
-            affected_servers: report.affected_servers,
-            anomalies: report.anomalies,
-            root_cause_analysis: report.root_cause_analysis,
-            recommendations: report.recommendations,
-            timeline: report.timeline,
-            pattern: report.pattern,
-            created_at: report.created_at,
+            id: reportData.id,
+            title: reportData.title,
+            severity: reportData.severity,
+            affected_servers: reportData.affected_servers || [],
+            anomalies: reportData.anomalies || [],
+            root_cause_analysis: reportData.root_cause_analysis || {},
+            recommendations: reportData.recommendations || [],
+            timeline: reportData.timeline || [],
+            pattern: reportData.pattern || 'unknown',
+            created_at: reportData.created_at || new Date().toISOString(),
           });
 
           if (error) {
-            debug.error('DB save error:', error);
-            return NextResponse.json(
-              {
-                success: false,
-                error: 'Database connection failed',
-                message: error.message || 'Failed to save incident report',
-              },
-              { status: 500 }
-            );
+            debug.error('DB save error (Cloud Run data):', error);
+            // 에러가 나도 분석 결과는 반환
           }
-        } catch (error) {
-          debug.error('DB save error:', error);
-          return NextResponse.json(
-            {
-              success: false,
-              error: 'Database connection failed',
-              message:
-                error instanceof Error
-                  ? error.message
-                  : 'Unknown database error',
-            },
-            { status: 500 }
-          );
+        } catch (dbError) {
+          debug.error('DB connection error:', dbError);
         }
-
-        // Handle notifications
-        let notifications:
-          | { sent: boolean; channels: string[]; reason?: string }
-          | undefined;
-        if (notify) {
-          const alertKey = `${report.severity}-${report.pattern}`;
-          const sent = shouldSendAlert(alertKey);
-
-          notifications = {
-            sent,
-            channels: sent ? ['webhook'] : [],
-            reason: sent ? undefined : 'cooldown_period',
-          };
-        }
-
-        const responseTime = Date.now() - startTime;
-
-        return NextResponse.json({
-          success: true,
-          report,
-          notifications,
-          responseTime,
-          timestamp: new Date().toISOString(),
-          _source: cloudRunUsed ? 'Cloud Run LangGraph' : 'Local Fallback',
-        });
       }
 
-      case 'analyze': {
-        // Pattern analysis for time range
-        const patterns = [
-          {
-            type: 'recurring_spike',
-            frequency: 3,
-            servers_affected: ['server-01', 'server-02'],
-            prediction: 'Likely to occur again in 2-3 hours',
-          },
-          {
-            type: 'memory_leak',
-            frequency: 1,
-            servers_affected: ['db-server-01'],
-            prediction: 'Memory exhaustion expected in 4-6 hours',
-          },
-        ];
-
-        return NextResponse.json({
-          success: true,
-          analysis: {
-            patterns,
-            timeRange: timeRange || '7d',
-            total_incidents: patterns.length,
-            critical_patterns: patterns.filter((p) => p.type === 'memory_leak')
-              .length,
-          },
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      case 'analyze_patterns': {
-        // Pattern analysis (simplified)
-        const patterns = [
-          {
-            type: 'recurring_spike',
-            frequency: 3,
-            servers_affected: ['server-01', 'server-02'],
-            prediction: 'Likely to occur again in 2-3 hours',
-          },
-        ];
-
-        return NextResponse.json({
-          success: true,
-          patterns,
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      case 'predict': {
-        // Prediction (simplified)
-        const prediction = {
-          type: 'resource_exhaustion',
-          probability: 0.72,
-          estimated_time: '2-4 hours',
-          preventive_actions: [
-            'Increase memory allocation',
-            'Enable auto-scaling',
-            'Clear cache',
-          ],
-        };
-
-        return NextResponse.json({
-          success: true,
-          predictions: {
-            next_likely_incident: prediction,
-            probability: prediction.probability,
-            estimated_time: prediction.estimated_time,
-          },
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      default:
-        return NextResponse.json(
-          { success: false, error: 'Invalid action' },
-          { status: 400 }
-        );
+      return NextResponse.json({
+        success: true,
+        ...cloudRunResult.data,
+        _source: 'Cloud Run LangGraph',
+      });
     }
+
+    // 3. Cloud Run 실패 시 에러 반환 (No Local Fallback)
+    debug.error('[incident-report] Cloud Run failed:', cloudRunResult.error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'AI Analysis Failed',
+        message: 'AI 엔진 응답에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        details: cloudRunResult.error,
+      },
+      { status: 503 }
+    );
   } catch (error) {
-    debug.error('Incident report error:', error);
+    debug.error('Incident report proxy error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -690,7 +131,7 @@ async function postHandler(request: NextRequest) {
 }
 
 /**
- * GET handler
+ * GET handler - Read Only (DB or Proxy)
  */
 async function getHandler(request: NextRequest) {
   try {
@@ -699,41 +140,29 @@ async function getHandler(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (id) {
-      // Get specific report
-      const cacheKey = `incident:${id}`;
-      let report = getCachedData(cacheKey);
+      // 특정 보고서 조회
+      const { data, error } = await supabase
+        .from('incident_reports')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-      if (!report) {
-        const { data, error } = await supabase
-          .from('incident_reports')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (error) throw error;
-        report = data;
-
-        if (report) {
-          setCachedData(cacheKey, report, 300);
-        }
-      }
+      if (error) throw error;
 
       return NextResponse.json({
         success: true,
-        report,
+        report: data,
         timestamp: new Date().toISOString(),
       });
     } else {
-      // Get recent reports
+      // 최근 보고서 목록
       const { data: reports, error } = await supabase
         .from('incident_reports')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       return NextResponse.json({
         success: true,

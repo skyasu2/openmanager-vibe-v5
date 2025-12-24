@@ -340,7 +340,7 @@ export interface EnhancedServerMetrics {
     uptime?: number;
   };
 
-  // 🔧 AI 분석 및 트렌드 속성 (IntelligentMonitoringService 통합)
+  // 🔧 AI 분석 및 트렌드 속성 (Cloud Run AI Engine 연동)
   aiAnalysis?: {
     anomalyScore: number;
     predictedIssues: string[];
