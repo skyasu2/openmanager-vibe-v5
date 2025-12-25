@@ -301,33 +301,6 @@ export default function DashboardContent({
     return (
       <div className="animate-fade-in h-full w-full">
         <div className="mx-auto h-full max-w-none space-y-6 overflow-y-auto px-4 sm:px-6 lg:px-8 2xl:max-w-[1800px]">
-          {/* 🎯 목업 데이터 모드 표시 */}
-          {servers && servers.length > 0 && (
-            <div className="mb-2 overflow-hidden rounded-lg border border-purple-500/20 bg-purple-500/10 backdrop-blur-md p-2 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <div className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-purple-400"></div>
-                  <span className="font-medium text-xs sm:text-sm text-purple-300">
-                    🎭 DEMO MODE
-                  </span>
-                  <span className="hidden sm:inline-block shrink-0 rounded-full bg-purple-500/20 px-2 py-0.5 text-[10px] text-purple-300 border border-purple-500/30">
-                    목업 데이터
-                  </span>
-                  <span className="hidden sm:inline-block shrink-0 rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] text-blue-300 border border-blue-500/30">
-                    24시간 시나리오
-                  </span>
-                </div>
-
-                {/* 우측 통계 요약 (간소화) */}
-                <div className="flex shrink-0 flex-wrap items-center gap-2 text-[10px] sm:gap-3">
-                  <span className="text-purple-300/80">
-                    업데이트: {currentTime ?? '--:--:--'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* 🎯 메인 컨텐츠 영역 */}
           {servers && servers.length > 0 ? (
             <>

@@ -144,15 +144,12 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           style={{ backgroundColor: statusTheme.graphColor }}
         />
 
-        {/* Live Indicator */}
+        {/* Live Indicator - Minimal Pulse Only */}
         {showRealTimeUpdates && (
-          <div className="absolute right-2 top-2 z-10 flex items-center gap-1">
+          <div className="absolute right-3 top-3 z-10">
             <span
-              className={`h-1.5 w-1.5 rounded-full animate-pulse ${statusTheme.text.replace('text-', 'bg-')}`}
+              className={`block h-2 w-2 rounded-full animate-pulse ring-2 ring-white ${statusTheme.text.replace('text-', 'bg-')}`}
             />
-            <span className={`text-[10px] font-medium ${statusTheme.text}`}>
-              Live
-            </span>
           </div>
         )}
 
@@ -316,7 +313,7 @@ const MetricItem = ({
   value,
   status: _status,
   history,
-  color,
+  color: _themeColor,
 }: MetricItemProps) => {
   const labels = {
     cpu: 'CPU',
@@ -325,6 +322,16 @@ const MetricItem = ({
     network: 'NET',
   };
 
+  // 🎨 Per-Metric Severity Coloring (User Request)
+  // Red (>90), Orange (>80), Green (else)
+  const getSeverityColor = (val: number) => {
+    if (val >= 90) return '#ef4444'; // Red-500
+    if (val >= 80) return '#f97316'; // Orange-500
+    return '#10b981'; // Emerald-500
+  };
+
+  const metricColor = getSeverityColor(value);
+
   return (
     <div className="flex flex-col bg-black/5 rounded-lg p-2 border border-gray-200/50 hover:bg-black/10 transition-colors">
       {/* Header: Label + Value */}
@@ -332,7 +339,7 @@ const MetricItem = ({
         <span className="text-[9px] uppercase text-gray-500 font-semibold tracking-wider">
           {labels[type]}
         </span>
-        <span className="text-sm font-bold" style={{ color }}>
+        <span className="text-sm font-bold" style={{ color: metricColor }}>
           {Math.round(value)}%
         </span>
       </div>
@@ -342,7 +349,7 @@ const MetricItem = ({
           data={history && history.length > 1 ? history : [value, value]}
           width={120}
           height={28}
-          color={color}
+          color={metricColor} // Apply severity color to graph
           fill
           strokeWidth={1.5}
         />

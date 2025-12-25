@@ -11,7 +11,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import debug from '@/utils/debug';
 import { AIAssistantButton } from './AIAssistantButton';
 import { RealTimeDisplay } from './RealTimeDisplay';
-import { SystemStatusBadge } from './SystemStatusBadge';
+// import { SystemStatusBadge } from './SystemStatusBadge'; // 🚫 Demo Mode Badge Removed
 
 // framer-motion 제거 - CSS 애니메이션 사용
 
@@ -120,11 +120,12 @@ const DashboardHeader = memo(function DashboardHeader({
         {/* 중앙: 실시간 정보 & 시스템 상태 */}
         <div className="hidden items-center gap-6 md:flex">
           <RealTimeDisplay />
+          {/* 🚫 Demo Mode Badge Removed
           <SystemStatusBadge
             isActive={isSystemActive}
             remainingTimeFormatted={remainingTimeFormatted}
             remainingTime={systemRemainingTime}
-          />
+          /> */}
         </div>
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
@@ -149,11 +150,11 @@ const DashboardHeader = memo(function DashboardHeader({
           <RealTimeDisplay />
         </div>
         <div className="flex items-center justify-center">
-          <SystemStatusBadge
+          {/* <SystemStatusBadge
             isActive={isSystemActive}
             remainingTimeFormatted={remainingTimeFormatted}
             remainingTime={systemRemainingTime}
-          />
+          /> */}
         </div>
       </div>
     </header>
