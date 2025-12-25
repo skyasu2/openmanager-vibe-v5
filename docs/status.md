@@ -21,6 +21,7 @@
 - **Zustand**: Global client state
 - **React Query**: Server state synchronization
 - **Supabase**: PostgreSQL + Realtime + Auth
+- **Upstash**: Serverless Redis (Caching & Rate Limiting)
 - **GraphRAG**: Knowledge Graph + Vector Search Hybrid (pgvector 기반)
 - **Code Interpreter**: Browser-based Python (Pyodide WebAssembly)
 
@@ -46,7 +47,7 @@
 
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
-- **Models**: Google Gemini 2.5 Flash (Primary), Claude 3.5 Sonnet (Fallback)
+- **Models**: Google Gemini 2.5 Flash Lite (Supervisor), Groq Llama 3.3 70b (Workers), Gemini 2.5 Flash (Verifier)
 - **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
 
 **AI CLI Tools** (2025-12-17 기준)
