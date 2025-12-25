@@ -6,7 +6,7 @@ import {
   ShieldAlert,
   XCircle,
 } from 'lucide-react';
-import React from 'react';
+import type React from 'react';
 import type { Server } from '@/types/server';
 
 interface DashboardSummaryProps {

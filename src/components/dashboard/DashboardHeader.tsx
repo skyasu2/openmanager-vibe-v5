@@ -11,6 +11,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import debug from '@/utils/debug';
 import { AIAssistantButton } from './AIAssistantButton';
 import { RealTimeDisplay } from './RealTimeDisplay';
+
 // import { SystemStatusBadge } from './SystemStatusBadge'; // 🚫 Demo Mode Badge Removed
 
 // framer-motion 제거 - CSS 애니메이션 사용
