@@ -100,8 +100,10 @@ async function postHandler(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        ...cloudRunResult.data,
-        _source: 'Cloud Run LangGraph',
+        report: {
+          ...cloudRunResult.data,
+          _source: 'Cloud Run LangGraph',
+        },
       });
     }
 

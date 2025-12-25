@@ -83,6 +83,7 @@ export default function AutoReportPage() {
   const [isLoading, _setIsLoading] = useState(false); // 자동 로드 제거로 초기값 false
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
+  const [downloadMenuId, setDownloadMenuId] = useState<string | null>(null);
 
   // Severity mapping
   const mapSeverity = useCallback(
@@ -210,6 +211,79 @@ export default function AutoReportPage() {
 
   const toggleDetail = (reportId: string) => {
     setSelectedReport((prev) => (prev === reportId ? null : reportId));
+  };
+
+  // Download report as markdown file
+  const handleDownload = (report: IncidentReport, format: 'md' | 'txt') => {
+    const timestamp = report.timestamp.toLocaleString('ko-KR');
+    const extension = format;
+    const mimeType = format === 'md' ? 'text/markdown' : 'text/plain';
+
+    let content = '';
+
+    if (format === 'md') {
+      content = `# ${report.title}
+
+## 기본 정보
+- **보고서 ID**: ${report.id}
+- **심각도**: ${report.severity}
+- **상태**: ${report.status}
+- **생성 시간**: ${timestamp}
+
+## 설명
+${report.description}
+
+## 영향받는 서버
+${report.affectedServers.length > 0 ? report.affectedServers.map((s) => `- ${s}`).join('\n') : '- 없음'}
+
+${report.pattern ? `## 감지된 패턴\n${report.pattern}\n` : ''}
+${
+  report.recommendations && report.recommendations.length > 0
+    ? `## 권장 조치\n${report.recommendations.map((r, i) => `${i + 1}. **${r.action}**\n   - 우선순위: ${r.priority}\n   - 예상 효과: ${r.expected_impact}`).join('\n\n')}\n`
+    : ''
+}
+---
+*자동 생성된 장애 보고서 - OpenManager VIBE*
+`;
+    } else {
+      content = `${report.title}
+${'='.repeat(report.title.length)}
+
+기본 정보
+---------
+보고서 ID: ${report.id}
+심각도: ${report.severity}
+상태: ${report.status}
+생성 시간: ${timestamp}
+
+설명
+----
+${report.description}
+
+영향받는 서버
+------------
+${report.affectedServers.length > 0 ? report.affectedServers.join(', ') : '없음'}
+
+${report.pattern ? `감지된 패턴\n-----------\n${report.pattern}\n` : ''}
+${
+  report.recommendations && report.recommendations.length > 0
+    ? `권장 조치\n---------\n${report.recommendations.map((r, i) => `${i + 1}. ${r.action} (우선순위: ${r.priority})`).join('\n')}\n`
+    : ''
+}
+---
+자동 생성된 장애 보고서 - OpenManager VIBE
+`;
+    }
+
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `incident-report-${report.id.slice(0, 8)}.${extension}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // ============================================================================
@@ -364,12 +438,41 @@ export default function AutoReportPage() {
                     </button>
                   )}
 
-                  <button
-                    className="rounded p-1.5 text-gray-400 transition-all duration-200 hover:scale-110 hover:bg-gray-100 hover:text-gray-600 active:scale-90"
-                    title="보고서 다운로드"
-                  >
-                    <Download className="h-4 w-4" />
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() =>
+                        setDownloadMenuId((prev) =>
+                          prev === report.id ? null : report.id
+                        )
+                      }
+                      className="rounded p-1.5 text-gray-400 transition-all duration-200 hover:scale-110 hover:bg-gray-100 hover:text-gray-600 active:scale-90"
+                      title="보고서 다운로드"
+                    >
+                      <Download className="h-4 w-4" />
+                    </button>
+                    {downloadMenuId === report.id && (
+                      <div className="absolute bottom-full right-0 z-10 mb-1 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
+                        <button
+                          onClick={() => {
+                            handleDownload(report, 'md');
+                            setDownloadMenuId(null);
+                          }}
+                          className="flex w-full items-center space-x-2 rounded px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <span>Markdown (.md)</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleDownload(report, 'txt');
+                            setDownloadMenuId(null);
+                          }}
+                          className="flex w-full items-center space-x-2 rounded px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <span>Text (.txt)</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
