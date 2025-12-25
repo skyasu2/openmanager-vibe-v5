@@ -287,6 +287,122 @@ const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
     severity: 'info',
     related_server_types: ['cache', 'application'],
   },
+  // ============================================================================
+  // 5. 모던 인프라 & 컨테이너 (New)
+  // ============================================================================
+  {
+    title: 'Docker 컨테이너 트러블슈팅',
+    content: `컨테이너 상태 이상 시 점검 가이드:
+1. CrashLoopBackOff: 애플리케이션 시작 실패. docker logs로 에러 확인
+2. OOMKilled: 메모리 제한 초과. 리소스 제한 상향 또는 메모리 누수 점검
+3. ImagePullBackOff: 이미지 경로/인증 확인. docker pull 수동 테스트
+4. 네트워크 연결 불가: 포트 바인딩(-p) 확인, 도커 네트워크 inspect
+5. 좀비 프로세스: dumb-init 사용 또는 부모 프로세스 확인`,
+    category: 'troubleshooting',
+    tags: ['docker', 'container', 'kubernetes', 'debug'],
+    severity: 'warning',
+    related_server_types: ['application', 'web'],
+  },
+  {
+    title: 'Kubernetes 파드 상태 진단',
+    content: `Kubernetes 파드 비정상 상태 진단:
+1. Pending: 노드 리소스 부족 또는 스케줄링 제약(Taint/Affinity)
+2. Evicted: 노드 압박(Disk/Memory)으로 인한 축출
+3. CrashLoopBackOff: kubectl logs --previous로 이전 로그 확인
+4. NotReady: Liveness/Readiness Probe 실패 확인 (kubectl describe pod)
+5. ImagePullBackOff: 시크릿(ImagePullSecrets) 확인`,
+    category: 'troubleshooting',
+    tags: ['kubernetes', 'k8s', 'pod', 'debug'],
+    severity: 'warning',
+    related_server_types: ['application'],
+  },
+  // ============================================================================
+  // 6. 데이터베이스 심화 (New)
+  // ============================================================================
+  {
+    title: 'PostgreSQL 교착 상태(Deadlock) 해결',
+    content: `DB 락 경합 및 데드락 발생 시:
+1. pg_stat_activity로 장기 실행 쿼리 및 락 대기 확인
+2. 락 점유 프로세스 확인: SELECT pg_blocking_pids(pid)
+3. 데드락 유발 쿼리 튜닝 (트랜잭션 순서 통일)
+4. 응급 조치: pg_terminate_backend(pid)로 세션 강제 종료
+5. 인덱스 누락으로 인한 테이블 락 방지`,
+    category: 'troubleshooting',
+    tags: ['postgresql', 'database', 'deadlock', 'performance'],
+    severity: 'critical',
+    related_server_types: ['database'],
+  },
+  {
+    title: 'PostgreSQL 성능 최적화 가이드',
+    content: `쿼리 성능 저하 시 최적화 포인트:
+1. EXPLAIN ANALYZE로 실행 계획 확인 (Seq Scan 여부)
+2. 인덱스 튜닝 (복합 인덱스, 부분 인덱스 활용)
+3. 정기적인 VACUUM ANALYZE 실행 (통계 정보 갱신)
+4. work_mem, shared_buffers 등 메모리 파라미터 튜닝
+5. 커넥션 풀링(PgBouncer) 도입 검토`,
+    category: 'best_practice',
+    tags: ['postgresql', 'optimization', 'tuning', 'sql'],
+    severity: 'info',
+    related_server_types: ['database'],
+  },
+  // ============================================================================
+  // 7. 클라우드 플랫폼 가이드 (New)
+  // ============================================================================
+  {
+    title: 'Google Cloud Run 운영 가이드',
+    content: `Cloud Run 무서버 환경 운영 팁:
+1. Cold Start 대응: min-instances 설정 또는 CPU always allocated
+2. 메모리 OOM: 서비스 탭에서 메모리 한도 상향 (최대 32GB)
+3. 동시성(Concurrency) 설정: 요청 처리량에 맞춰 조정 (기본 80)
+4. 배포 실패 시: 로컬 Docker run으로 에러 재현, 포트(8080) 확인
+5. 비용 최적화: 유휴 상태 CPU 할당 해제 옵션 활용`,
+    category: 'best_practice',
+    tags: ['gcp', 'cloud-run', 'serverless', 'operations'],
+    severity: 'info',
+    related_server_types: ['application', 'web'],
+  },
+  {
+    title: 'Supabase 스토리지 및 보안 관리',
+    content: `Supabase 프로젝트 관리 가이드:
+1. Disk IOPS 경고: Compute Add-on 업그레이드 또는 쿼리 최적화
+2. RLS(Row Level Security) 정책 필수 적용 (service_role 제외)
+3. API Gateway 차단: Kong 로그 확인
+4. 백업 복구: Point-in-Time Recovery(PITR) 활성화 검토
+5. 커넥션 풀러(Supavisor) 사용 (포트 6543/5432 구분)`,
+    category: 'best_practice',
+    tags: ['supabase', 'security', 'database', 'cloud'],
+    severity: 'info',
+    related_server_types: ['database'],
+  },
+  // ============================================================================
+  // 8. 메트릭 해석 가이드 (New)
+  // ============================================================================
+  {
+    title: 'Load Average 해석 가이드',
+    content: `Load Average 수치의 의미:
+1. 정의: 실행 중이거나 대기 중인 프로세스의 평균 개수
+2. 기준: CPU 코어 수보다 높으면 과부하 의심 (1.0 = 1코어 100%)
+3. Load > 코어 수: CPU 대기 발생 중
+4. 높은 Load, 낮은 CPU 사용률: 디스크 I/O 병목 가능성 높음
+5. 확인: uptime, top, vmstat`,
+    category: 'best_practice',
+    tags: ['metric', 'cpu', 'load-average', 'monitoring'],
+    severity: 'info',
+    related_server_types: ['all'],
+  },
+  {
+    title: 'I/O Wait (wa) 메트릭 분석',
+    content: `CPU wa(Wait I/O)가 높을 때의 의미:
+1. 현상: CPU가 디스크 입출력 완료를 기다리는 시간
+2. 원인: 느린 디스크, 과도한 로깅, 스왑(Swap) 사용, DB 풀 스캔
+3. 진단: iotop으로 디스크 사용토 높은 프로세스 식별
+4. 해결: 쿼리 튜닝, 로깅 레벨 조정, 디스크 증설(IOPS)
+5. 오해: CPU 부하가 아님, I/O 시스템의 병목임`,
+    category: 'best_practice',
+    tags: ['metric', 'io', 'disk', 'performance'],
+    severity: 'info',
+    related_server_types: ['database', 'storage'],
+  }
 ];
 
 // ============================================================================

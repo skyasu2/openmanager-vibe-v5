@@ -215,17 +215,21 @@ export default function AutoReportPage() {
 
   // Download report as markdown file
   const handleDownload = (report: IncidentReport, format: 'md' | 'txt') => {
-    const timestamp = report.timestamp.toLocaleString('ko-KR');
+    const timestamp =
+      report.timestamp instanceof Date
+        ? report.timestamp.toLocaleString('ko-KR')
+        : new Date().toLocaleString('ko-KR');
     const extension = format;
     const mimeType = format === 'md' ? 'text/markdown' : 'text/plain';
+    const reportId = report.id || `report-${Date.now()}`;
 
     let content = '';
 
     if (format === 'md') {
-      content = `# ${report.title}
+      content = `# ${report.title || '장애 보고서'}
 
 ## 기본 정보
-- **보고서 ID**: ${report.id}
+- **보고서 ID**: ${reportId}
 - **심각도**: ${report.severity}
 - **상태**: ${report.status}
 - **생성 시간**: ${timestamp}
@@ -246,12 +250,13 @@ ${
 *자동 생성된 장애 보고서 - OpenManager VIBE*
 `;
     } else {
-      content = `${report.title}
-${'='.repeat(report.title.length)}
+      const titleText = report.title || '장애 보고서';
+      content = `${titleText}
+${'='.repeat(titleText.length)}
 
 기본 정보
 ---------
-보고서 ID: ${report.id}
+보고서 ID: ${reportId}
 심각도: ${report.severity}
 상태: ${report.status}
 생성 시간: ${timestamp}
@@ -279,7 +284,7 @@ ${
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `incident-report-${report.id.slice(0, 8)}.${extension}`;
+    link.download = `incident-report-${reportId.slice(0, 8)}.${extension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
