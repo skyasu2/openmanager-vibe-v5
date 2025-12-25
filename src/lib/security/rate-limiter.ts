@@ -1,15 +1,18 @@
 /**
- * 🛡️ Serverless-Compatible Rate Limiter v2.2
+ * 🛡️ Serverless-Compatible Rate Limiter v3.0
  *
- * ✅ Supabase 기반 분산 rate limiting (Vercel serverless 호환)
+ * ✅ **Upstash Redis 우선** (고성능, <1ms 응답)
+ * ✅ Supabase 폴백 (Redis 장애 시)
  * ✅ Edge Runtime 지원 (setInterval 제거, on-demand cleanup)
- * ✅ Graceful fallback (Supabase 실패 시 경고 로깅)
+ * ✅ Graceful fallback (모든 서비스 장애 시에도 허용)
  * ✅ 자동 만료 레코드 정리
  * ✅ Atomic operation via RPC (Race condition 완전 해결)
  * ✅ Row Level Security (보안 강화)
  * ✅ 일일 제한 기능 (Cloud Run 무료 티어 최적화)
  *
  * 🔧 Architecture:
+ * - **Primary**: Upstash Redis (@upstash/ratelimit)
+ * - **Fallback**: Supabase RPC
  * - Supabase 테이블: rate_limits (ip, path, count, reset_time, expires_at)
  * - RPC 함수: check_rate_limit() - Atomic increment with row lock
  * - RPC 함수: cleanup_rate_limits() - Returns actual delete count
@@ -25,6 +28,7 @@
  * - 일일 최대 1,500회 용량 → 100회/일 제한으로 안전 마진 확보
  *
  * Changelog:
+ * - v3.0 (2025-12-25): **Upstash Redis 통합** (Redis 우선, Supabase 폴백)
  * - v2.2 (2025-12-21): Added daily limit for Cloud Run optimization
  * - v2.1 (2025-11-24): Added RPC functions, RLS policies, atomic operations
  * - v2.0 (2025-11-24): Initial Supabase-based implementation
@@ -33,6 +37,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import {
+  checkRedisRateLimit,
+  type RateLimitConfig as RedisRateLimitConfig,
+} from '../redis/rate-limiter';
 import { EdgeLogger } from '../runtime/edge-runtime-utils';
 
 // ==============================================
@@ -102,12 +110,12 @@ class RateLimiter {
   }
 
   /**
-   * 🔍 IP 기반 레이트 리미팅 (Atomic RPC 함수 사용)
+   * 🔍 IP 기반 레이트 리미팅 (Redis 우선, Supabase 폴백)
    *
-   * ⚡ Race Condition 완전 해결:
-   * - Supabase RPC 함수 check_rate_limit() 호출
-   * - DB-level row locking (FOR UPDATE) 사용
-   * - Atomic increment (SELECT + UPDATE in single transaction)
+   * ⚡ 성능 최적화:
+   * - 1차: Upstash Redis (<1ms 응답)
+   * - 2차: Supabase RPC (Redis 장애 시)
+   * - 3차: Graceful fallback (모든 서비스 장애 시)
    *
    * 💰 일일 제한 (Cloud Run 무료 티어):
    * - dailyLimit 설정 시 24시간 윈도우로 추가 체크
@@ -118,13 +126,41 @@ class RateLimiter {
     const path = request.nextUrl.pathname;
     const now = Date.now();
 
+    // 🚀 1차: Redis Rate Limit 시도 (고성능)
+    try {
+      const redisConfig: RedisRateLimitConfig = {
+        maxRequests: this.config.maxRequests,
+        windowMs: this.config.windowMs,
+        dailyLimit: this.config.dailyLimit,
+        prefix: path.replace(/\//g, ':'),
+      };
+
+      const redisResult = await checkRedisRateLimit(request, redisConfig);
+
+      if (redisResult) {
+        // Redis 성공
+        this.logger.info(
+          `[Rate Limit] Redis 사용 (latency: ${redisResult.latencyMs}ms, IP: ${ip})`
+        );
+        return {
+          allowed: redisResult.allowed,
+          remaining: redisResult.remaining,
+          resetTime: redisResult.resetTime,
+          daily: redisResult.daily,
+        };
+      }
+    } catch (error) {
+      this.logger.warn('[Rate Limit] Redis 실패, Supabase 폴백 시도', error);
+    }
+
+    // 🔄 2차: Supabase 폴백
     // Lazy initialization (SSR-compatible)
     await this.initializeSupabase();
 
     // Supabase 비활성화 시 graceful fallback (요청 허용하되 경고)
     if (!this.supabase) {
       this.logger.warn(
-        `[Rate Limit] Supabase 비활성화 - 요청 허용 (IP: ${ip}, Path: ${path})`
+        `[Rate Limit] Redis + Supabase 모두 비활성화 - 요청 허용 (IP: ${ip}, Path: ${path})`
       );
       return {
         allowed: true,
@@ -143,14 +179,14 @@ class RateLimiter {
       });
 
       if (error) {
-        this.logger.error('[Rate Limit] RPC 실행 실패', error);
+        this.logger.error('[Rate Limit] Supabase RPC 실행 실패', error);
         return this.fallbackAllow(now);
       }
 
       const result = Array.isArray(data) ? data[0] : data;
 
       if (!result) {
-        this.logger.error('[Rate Limit] RPC 결과 없음');
+        this.logger.error('[Rate Limit] Supabase RPC 결과 없음');
         return this.fallbackAllow(now);
       }
 
