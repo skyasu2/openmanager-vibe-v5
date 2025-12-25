@@ -60,10 +60,10 @@ const DashboardHeader = memo(function DashboardHeader({
   isAgentOpen: _isAgentOpen = false, // 기존 호환성을 위해 유지
   onMenuClick: _onMenuClick,
   title: _title = 'OpenManager Dashboard',
-  systemRemainingTime,
-  isSystemActive = true,
+  systemRemainingTime: _systemRemainingTime,
+  isSystemActive: _isSystemActive = true,
   onSystemStop: _onSystemStop, // deprecated - useSystemStatusStore로 대체됨
-  remainingTimeFormatted,
+  remainingTimeFormatted: _remainingTimeFormatted,
 }: DashboardHeaderProps) {
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = React.useState(false);
