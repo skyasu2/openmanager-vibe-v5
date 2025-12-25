@@ -108,6 +108,16 @@ export default function MonitoringResults({
     return null;
   }
 
+  // Safe access to overallResult (Cloud Run may return different structure)
+  const overallResult = result.overallResult ?? {
+    severity: 'low' as const,
+    confidence: 0,
+    totalProcessingTime: 0,
+    summary: '분석 결과를 처리 중입니다.',
+    actionRequired: false,
+    priorityActions: [],
+  };
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6">
       <h3 className="mb-4 text-lg font-semibold text-gray-900">
@@ -116,29 +126,27 @@ export default function MonitoringResults({
 
       {/* 전체 요약 */}
       <div
-        className={`mb-6 rounded-lg border-2 p-4 ${getSeverityColor(result.overallResult.severity)}`}
+        className={`mb-6 rounded-lg border-2 p-4 ${getSeverityColor(overallResult.severity)}`}
       >
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Shield className="h-5 w-5" />
             <span className="font-medium">
-              심각도: {result.overallResult.severity.toUpperCase()}
+              심각도: {overallResult.severity.toUpperCase()}
             </span>
           </div>
           <div className="flex items-center space-x-4 text-sm">
-            <span>
-              신뢰도: {Math.round(result.overallResult.confidence * 100)}%
-            </span>
-            <span>처리 시간: {result.overallResult.totalProcessingTime}ms</span>
+            <span>신뢰도: {Math.round(overallResult.confidence * 100)}%</span>
+            <span>처리 시간: {overallResult.totalProcessingTime}ms</span>
           </div>
         </div>
-        <p className="mb-3 text-sm">{result.overallResult.summary}</p>
+        <p className="mb-3 text-sm">{overallResult.summary}</p>
 
-        {result.overallResult.actionRequired && (
+        {overallResult.actionRequired && (
           <div className="space-y-2">
             <h4 className="text-sm font-medium">🚨 우선순위 조치사항:</h4>
             <ul className="space-y-1">
-              {result.overallResult.priorityActions.map((action, index) => (
+              {overallResult.priorityActions.map((action, index) => (
                 <li key={index} className="flex items-center space-x-2 text-sm">
                   <Target className="h-3 w-3" />
                   <span>{action}</span>
