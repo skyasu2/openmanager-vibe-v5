@@ -15,6 +15,7 @@ import {
   comprehensiveVerifyTool,
   DEFAULT_VERIFIER_CONFIG,
 } from './verifier-agent';
+import type { VerificationIssue } from '../lib/state-definition';
 
 // Mock model config
 vi.mock('../lib/model-config', () => ({
@@ -57,7 +58,7 @@ describe('VerifierAgent', () => {
 
       // Check that values are corrected
       const cpuIssue = result.issues.find(
-        (i) => i.field === 'cpu' || i.field === 'percentage'
+        (i: VerificationIssue) => i.field === 'cpu' || i.field === 'percentage'
       );
       expect(cpuIssue).toBeDefined();
     });
@@ -69,7 +70,7 @@ describe('VerifierAgent', () => {
 
       expect(result.isValid).toBe(false);
       const highSeverityIssues = result.issues.filter(
-        (i) => i.severity === 'high'
+        (i: VerificationIssue) => i.severity === 'high'
       );
       expect(highSeverityIssues.length).toBeGreaterThan(0);
     });
@@ -185,7 +186,7 @@ describe('VerifierAgent', () => {
       const result = await detectHallucinationTool.invoke({ response });
 
       expect(result.isValid).toBe(false);
-      expect(result.issues.some((i) => i.type === 'hallucination')).toBe(true);
+      expect(result.issues.some((i: VerificationIssue) => i.type === 'hallucination')).toBe(true);
     });
 
     it('should detect contradictions', async () => {
@@ -195,7 +196,7 @@ describe('VerifierAgent', () => {
       const result = await detectHallucinationTool.invoke({ response });
 
       expect(result.issueCount).toBeGreaterThan(0);
-      expect(result.issues.some((i) => i.message.includes('모순'))).toBe(true);
+      expect(result.issues.some((i: VerificationIssue) => i.message.includes('모순'))).toBe(true);
     });
 
     it('should detect server ID not in context', async () => {
@@ -204,7 +205,7 @@ describe('VerifierAgent', () => {
 
       const result = await detectHallucinationTool.invoke({ response, context });
 
-      expect(result.issues.some((i) => i.message.includes('server_99'))).toBe(
+      expect(result.issues.some((i: VerificationIssue) => i.message.includes('server_99'))).toBe(
         true
       );
     });
@@ -216,7 +217,7 @@ describe('VerifierAgent', () => {
       const result = await detectHallucinationTool.invoke({ response, context });
 
       expect(
-        result.issues.filter((i) => i.field === 'server_id')
+        result.issues.filter((i: VerificationIssue) => i.field === 'server_id')
       ).toHaveLength(0);
     });
 
@@ -229,7 +230,7 @@ describe('VerifierAgent', () => {
       const result = await detectHallucinationTool.invoke({ response });
 
       // Repetition detection triggers
-      expect(result.issues.some((i) => i.message.includes('반복률'))).toBe(
+      expect(result.issues.some((i: VerificationIssue) => i.message.includes('반복률'))).toBe(
         true
       );
     });
@@ -344,7 +345,7 @@ describe('VerifierAgent', () => {
       const result = await comprehensiveVerifyTool.invoke({ response, context });
 
       expect(
-        result.issues.some((i) => i.message.includes('server_unknown'))
+        result.issues.some((i: VerificationIssue) => i.message.includes('server_unknown'))
       ).toBe(true);
     });
   });

@@ -83,6 +83,22 @@ type PatternResult =
     }
   | { success: false; message: string };
 
+// Tool Input Types (for TypeScript strict mode)
+interface DetectAnomaliesInput {
+  serverId?: string;
+  metricType: 'cpu' | 'memory' | 'disk' | 'all';
+}
+
+interface PredictTrendsInput {
+  serverId?: string;
+  metricType: 'cpu' | 'memory' | 'disk' | 'all';
+  predictionHours?: number;
+}
+
+interface AnalyzePatternInput {
+  query: string;
+}
+
 // ============================================================================
 // 2. Pattern Constants (v6.10.1: Type-Safe Pattern Insights)
 // ============================================================================
@@ -130,7 +146,7 @@ function toTrendDataPoints(metricPoints: MetricDataPoint[]): TrendDataPoint[] {
 // ============================================================================
 
 export const detectAnomaliesTool = tool(
-  async ({ serverId, metricType }) => {
+  async ({ serverId, metricType }: DetectAnomaliesInput) => {
     const cache = getDataCache();
 
     // Cache analysis results with 10-minute TTL
@@ -251,7 +267,7 @@ export const detectAnomaliesTool = tool(
 );
 
 export const predictTrendsTool = tool(
-  async ({ serverId, metricType, predictionHours }) => {
+  async ({ serverId, metricType, predictionHours }: PredictTrendsInput) => {
     const cache = getDataCache();
     const hours = predictionHours ?? 1;
 
@@ -385,7 +401,7 @@ function getPatternInsights(pattern: string): string {
 }
 
 export const analyzePatternTool = tool(
-  async ({ query }) => {
+  async ({ query }: AnalyzePatternInput) => {
     const patterns: string[] = [];
     const q = query.toLowerCase();
 

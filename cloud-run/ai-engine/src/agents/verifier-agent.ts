@@ -21,6 +21,27 @@ import type {
 } from '../lib/state-definition';
 import { getVerifierModel } from '../lib/model-config';
 
+// Tool Input Types (for TypeScript strict mode)
+interface ValidateMetricRangesInput {
+  response: string;
+}
+
+interface CheckRequiredFieldsInput {
+  response: string;
+  requiredFields?: string[];
+}
+
+interface DetectHallucinationInput {
+  response: string;
+  context?: string;
+}
+
+interface ComprehensiveVerifyInput {
+  response: string;
+  context?: string;
+  config?: VerifierConfig;
+}
+
 // ============================================================================
 // 1. Verification Rules Configuration
 // ============================================================================
@@ -81,7 +102,7 @@ const REQUIRED_RESPONSE_FIELDS = [
  * 0-100% 범위를 벗어나는 비정상적인 수치 탐지
  */
 export const validateMetricRangesTool = tool(
-  async ({ response }) => {
+  async ({ response }: ValidateMetricRangesInput) => {
     const startTime = Date.now();
     const issues: VerificationIssue[] = [];
     const corrections: VerificationCorrection[] = [];
@@ -153,7 +174,7 @@ export const validateMetricRangesTool = tool(
  * 응답에 필수 정보가 포함되어 있는지 확인
  */
 export const checkRequiredFieldsTool = tool(
-  async ({ response, requiredFields }) => {
+  async ({ response, requiredFields }: CheckRequiredFieldsInput) => {
     const startTime = Date.now();
     const issues: VerificationIssue[] = [];
     const fieldsToCheck = requiredFields || REQUIRED_RESPONSE_FIELDS;
@@ -214,7 +235,7 @@ export const checkRequiredFieldsTool = tool(
  * 비정상적인 패턴이나 일관성 없는 정보 탐지
  */
 export const detectHallucinationTool = tool(
-  async ({ response, context }) => {
+  async ({ response, context }: DetectHallucinationInput) => {
     const startTime = Date.now();
     const issues: VerificationIssue[] = [];
 
@@ -290,7 +311,7 @@ export const detectHallucinationTool = tool(
  * 모든 검증 규칙을 순차적으로 적용하고 최종 신뢰도 점수 산출
  */
 export const comprehensiveVerifyTool = tool(
-  async ({ response, context, config }) => {
+  async ({ response, context, config }: ComprehensiveVerifyInput) => {
     const startTime = Date.now();
     const verifierConfig = config
       ? { ...DEFAULT_VERIFIER_CONFIG, ...config }

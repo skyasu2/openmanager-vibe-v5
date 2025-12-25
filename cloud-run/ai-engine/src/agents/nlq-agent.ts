@@ -8,12 +8,23 @@ import { z } from 'zod';
 import { getDataCache } from '../lib/cache-layer';
 import { loadHourlyScenarioData } from '../services/scenario/scenario-loader';
 
+// Tool Input Types (for TypeScript strict mode)
+interface GetServerMetricsInput {
+  serverId?: string;
+  metric: 'cpu' | 'memory' | 'disk' | 'all';
+}
+
+interface GetServerLogsInput {
+  serverId?: string;
+  limit?: number;
+}
+
 // ============================================================================
 // 2. Tools Definition
 // ============================================================================
 
 export const getServerMetricsTool = tool(
-  async ({ serverId, metric: _metric }) => {
+  async ({ serverId, metric: _metric }: GetServerMetricsInput) => {
     const cache = getDataCache();
 
     // Cache metrics with 1-minute TTL
@@ -67,7 +78,7 @@ export const getServerMetricsTool = tool(
 );
 
 export const getServerLogsTool = tool(
-  async ({ serverId, limit = 5 }) => {
+  async ({ serverId, limit = 5 }: GetServerLogsInput) => {
     const cache = getDataCache();
     const cacheKey = `logs:${serverId || 'all'}:${limit}`;
 

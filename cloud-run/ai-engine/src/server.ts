@@ -5,6 +5,7 @@
 
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
+import type { Context, Next } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 
@@ -34,10 +35,10 @@ app.use('*', logger());
 app.use('*', cors());
 
 // Health Check
-app.get('/health', (c) => c.json({ status: 'ok', service: 'ai-engine-v5' }));
+app.get('/health', (c: Context) => c.json({ status: 'ok', service: 'ai-engine-v5' }));
 
 // Security Middleware (Skip for health/warmup)
-app.use('/api/*', async (c, next) => {
+app.use('/api/*', async (c: Context, next: Next) => {
   const apiKey = c.req.header('X-API-Key');
   const validKey = process.env.CLOUD_RUN_API_SECRET;
 
@@ -49,7 +50,7 @@ app.use('/api/*', async (c, next) => {
 });
 
 // Warm-up Endpoint (Lightweight)
-app.get('/warmup', async (c) => {
+app.get('/warmup', async (c: Context) => {
   // Trigger data loading to warm up cache
   await loadHourlyScenarioData();
   // Validate keys
@@ -61,7 +62,7 @@ app.get('/warmup', async (c) => {
 });
 
 // Main AI Supervisor Endpoint
-app.post('/api/ai/supervisor', async (c) => {
+app.post('/api/ai/supervisor', async (c: Context) => {
   try {
     const { messages, sessionId } = await c.req.json();
 
@@ -109,7 +110,7 @@ app.post('/api/ai/supervisor', async (c) => {
 // ============================================================================
 
 // POST /api/ai/embedding - Single text embedding
-app.post('/api/ai/embedding', async (c) => {
+app.post('/api/ai/embedding', async (c: Context) => {
   try {
     const { text, options } = await c.req.json();
 
@@ -126,7 +127,7 @@ app.post('/api/ai/embedding', async (c) => {
 });
 
 // POST /api/ai/embedding/batch - Batch text embeddings
-app.post('/api/ai/embedding/batch', async (c) => {
+app.post('/api/ai/embedding/batch', async (c: Context) => {
   try {
     const { texts, options } = await c.req.json();
 
@@ -149,7 +150,7 @@ app.post('/api/ai/embedding/batch', async (c) => {
 });
 
 // GET /api/ai/embedding/stats - Embedding service statistics
-app.get('/api/ai/embedding/stats', (c) => {
+app.get('/api/ai/embedding/stats', (c: Context) => {
   const stats = embeddingService.getStats();
   return c.json({ success: true, ...stats });
 });
@@ -159,7 +160,7 @@ app.get('/api/ai/embedding/stats', (c) => {
 // ============================================================================
 
 // POST /api/ai/generate - Text generation (non-streaming)
-app.post('/api/ai/generate', async (c) => {
+app.post('/api/ai/generate', async (c: Context) => {
   try {
     const { prompt, options } = await c.req.json();
 
@@ -176,7 +177,7 @@ app.post('/api/ai/generate', async (c) => {
 });
 
 // POST /api/ai/generate/stream - Text generation (streaming SSE)
-app.post('/api/ai/generate/stream', async (c) => {
+app.post('/api/ai/generate/stream', async (c: Context) => {
   try {
     const { prompt, options } = await c.req.json();
 
@@ -203,7 +204,7 @@ app.post('/api/ai/generate/stream', async (c) => {
 });
 
 // GET /api/ai/generate/stats - Generate service statistics
-app.get('/api/ai/generate/stats', (c) => {
+app.get('/api/ai/generate/stats', (c: Context) => {
   const stats = generateService.getStats();
   return c.json({ success: true, ...stats });
 });
@@ -213,7 +214,7 @@ app.get('/api/ai/generate/stats', (c) => {
 // ============================================================================
 
 // GET /api/ai/approval/status - Check pending approval status
-app.get('/api/ai/approval/status', (c) => {
+app.get('/api/ai/approval/status', (c: Context) => {
   const sessionId = c.req.query('sessionId');
 
   if (!sessionId) {
@@ -247,7 +248,7 @@ app.get('/api/ai/approval/status', (c) => {
 });
 
 // POST /api/ai/approval/decide - Submit approval decision
-app.post('/api/ai/approval/decide', async (c) => {
+app.post('/api/ai/approval/decide', async (c: Context) => {
   try {
     const { sessionId, approved, reason, approvedBy } = await c.req.json();
 
@@ -286,7 +287,7 @@ app.post('/api/ai/approval/decide', async (c) => {
 });
 
 // GET /api/ai/approval/stats - Monitor approval store status
-app.get('/api/ai/approval/stats', (c) => {
+app.get('/api/ai/approval/stats', (c: Context) => {
   const stats = approvalStore.getStats();
   return c.json({
     success: true,
@@ -309,7 +310,7 @@ app.get('/api/ai/approval/stats', (c) => {
  *
  * Use Case: /api/ai/intelligent-monitoring (Vercel) → Cloud Run 프록시
  */
-app.post('/api/ai/analyze-server', async (c) => {
+app.post('/api/ai/analyze-server', async (c: Context) => {
   try {
     const { serverId, analysisType = 'full', options = {} } = await c.req.json();
 
@@ -364,7 +365,7 @@ app.post('/api/ai/analyze-server', async (c) => {
  *
  * Use Case: /api/ai/incident-report (Vercel) → Cloud Run 프록시
  */
-app.post('/api/ai/incident-report', async (c) => {
+app.post('/api/ai/incident-report', async (c: Context) => {
   try {
     const { serverId, query, severity, category } = await c.req.json();
 
@@ -410,7 +411,7 @@ app.post('/api/ai/incident-report', async (c) => {
  *
  * 여러 서버 동시 분석 (대시보드 전체 새로고침 시)
  */
-app.post('/api/ai/analyze-batch', async (c) => {
+app.post('/api/ai/analyze-batch', async (c: Context) => {
   try {
     const { serverIds = [], analysisType = 'anomaly' } = await c.req.json();
 
@@ -487,7 +488,7 @@ serve(
     port,
     hostname: '0.0.0.0', // Required for Cloud Run
   },
-  (info) => {
+  (info: { address: string; port: number }) => {
     console.log(`✅ Server listening on http://${info.address}:${info.port}`);
   }
 );

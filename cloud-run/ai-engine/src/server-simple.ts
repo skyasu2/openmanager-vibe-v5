@@ -4,11 +4,12 @@
 
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
+import type { Context } from 'hono';
 
 const app = new Hono();
 
 // Health Check
-app.get('/health', (c) =>
+app.get('/health', (c: Context) =>
   c.json({
     status: 'ok',
     service: 'ai-engine-v5',
@@ -17,7 +18,7 @@ app.get('/health', (c) =>
 );
 
 // Test endpoint
-app.get('/', (c) => c.json({ message: 'AI Engine is running!' }));
+app.get('/', (c: Context) => c.json({ message: 'AI Engine is running!' }));
 
 // Start Server
 const port = parseInt(process.env.PORT || '8080', 10);

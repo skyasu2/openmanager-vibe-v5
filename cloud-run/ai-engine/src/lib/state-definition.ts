@@ -190,27 +190,27 @@ export const AgentState = Annotation.Root({
   }),
 
   targetAgent: Annotation<AgentType>({
-    reducer: (_, next) => next,
+    reducer: (_: AgentType, next: AgentType) => next,
     default: () => null,
   }),
 
   taskType: Annotation<TaskType>({
-    reducer: (_, next) => next,
+    reducer: (_: TaskType, next: TaskType) => next,
     default: () => 'general',
   }),
 
   routerDecision: Annotation<RouterDecision | null>({
-    reducer: (_, next) => next,
+    reducer: (_: RouterDecision | null, next: RouterDecision | null) => next,
     default: () => null,
   }),
 
   toolResults: Annotation<ToolResult[]>({
-    reducer: (current, update) => [...current, ...update],
+    reducer: (current: ToolResult[], update: ToolResult[]) => [...current, ...update],
     default: () => [],
   }),
 
   modelHealth: Annotation<CircuitBreakerState>({
-    reducer: (current, update) => ({
+    reducer: (current: CircuitBreakerState, update: CircuitBreakerState) => ({
       ...current,
       ...update,
       models: { ...current.models, ...update.models },
@@ -223,64 +223,64 @@ export const AgentState = Annotation.Root({
   }),
 
   sessionId: Annotation<string>({
-    reducer: (_, next) => next,
+    reducer: (_: string, next: string) => next,
     default: () => '',
   }),
 
   iteration: Annotation<number>({
-    reducer: (_, next) => next,
+    reducer: (_: number, next: number) => next,
     default: () => 0,
   }),
 
   finalResponse: Annotation<string | null>({
-    reducer: (_, next) => next,
+    reducer: (_: string | null, next: string | null) => next,
     default: () => null,
   }),
 
   requiresApproval: Annotation<boolean>({
-    reducer: (_, next) => next,
+    reducer: (_: boolean, next: boolean) => next,
     default: () => false,
   }),
 
   approvalStatus: Annotation<ApprovalStatus>({
-    reducer: (_, next) => next,
+    reducer: (_: ApprovalStatus, next: ApprovalStatus) => next,
     default: () => 'none',
   }),
 
   pendingAction: Annotation<PendingAction | null>({
-    reducer: (_, next) => next,
+    reducer: (_: PendingAction | null, next: PendingAction | null) => next,
     default: () => null,
   }),
 
   agentResults: Annotation<AgentResult[]>({
-    reducer: (current, update) => [...current, ...update],
+    reducer: (current: AgentResult[], update: AgentResult[]) => [...current, ...update],
     default: () => [],
   }),
 
   returnToSupervisor: Annotation<boolean>({
-    reducer: (_, next) => next,
+    reducer: (_: boolean, next: boolean) => next,
     default: () => false,
   }),
 
   delegationRequest: Annotation<DelegationRequest | null>({
-    reducer: (_, next) => next,
+    reducer: (_: DelegationRequest | null, next: DelegationRequest | null) => next,
     default: () => null,
   }),
 
   parallelAgents: Annotation<AgentType[]>({
-    reducer: (_, next) => next,
+    reducer: (_: AgentType[], next: AgentType[]) => next,
     default: () => [],
   }),
 
   // Task 1: Verifier Agent 검증 결과
   verificationResult: Annotation<VerificationResult | null>({
-    reducer: (_, next) => next,
+    reducer: (_: VerificationResult | null, next: VerificationResult | null) => next,
     default: () => null,
   }),
 
   // Task 3: Agent 간 결과 공유 (SharedContext)
   sharedContext: Annotation<SharedContext>({
-    reducer: (current, update) => ({
+    reducer: (current: SharedContext, update: SharedContext) => ({
       ...current,
       ...update,
       lastUpdatedAt: new Date().toISOString(),
@@ -297,13 +297,13 @@ export const AgentState = Annotation.Root({
 
   // Phase 2: Context Compression - 대화 요약
   conversationSummary: Annotation<string>({
-    reducer: (_, next) => next,
+    reducer: (_: string, next: string) => next,
     default: () => '',
   }),
 
   // Phase 2: Context Compression - 압축 메타데이터
   compressionMetadata: Annotation<CompressionMetadata>({
-    reducer: (_, next) => next,
+    reducer: (_: CompressionMetadata, next: CompressionMetadata) => next,
     default: () => ({
       lastCompressedAt: null,
       totalCompressedMessages: 0,

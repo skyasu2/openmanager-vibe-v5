@@ -51,7 +51,7 @@ export interface Server24hDataset {
  */
 function generateLogs(
   serverId: string,
-  serverType: string,
+  _serverType: string,
   cpu: number,
   memory: number,
   disk: number,
@@ -59,7 +59,6 @@ function generateLogs(
   activeScenario?: ScenarioDefinition
 ): string[] {
   const logs: string[] = [];
-  const timestamp = new Date().toISOString(); // Note: This will be adjusted in UI
 
   // 1. 시나리오 기반 로그 (가장 우선순위 높음)
   if (activeScenario) {

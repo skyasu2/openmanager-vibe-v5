@@ -21,6 +21,17 @@ import type {
 } from '../lib/state-definition';
 import { getServerLogsTool, getServerMetricsTool } from './nlq-agent';
 
+// Tool Input Types (for TypeScript strict mode)
+interface SearchKnowledgeBaseInput {
+  query: string;
+  category?: 'troubleshooting' | 'security' | 'performance';
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+}
+
+interface RecommendCommandsInput {
+  keywords: string[];
+}
+
 // ============================================================================
 // 1. Supabase Client Singleton (성능 최적화)
 // ============================================================================
@@ -59,7 +70,7 @@ async function getSupabaseClient(): Promise<SupabaseClientLike | null> {
 // ============================================================================
 
 export const searchKnowledgeBaseTool = tool(
-  async ({ query, category, severity }) => {
+  async ({ query, category, severity }: SearchKnowledgeBaseInput) => {
     console.log(`🔍 [Reporter Agent] RAG search for: ${query}`);
 
     // Supabase 클라이언트 가져오기 (Singleton)
@@ -135,7 +146,7 @@ export const searchKnowledgeBaseTool = tool(
 );
 
 export const recommendCommandsTool = tool(
-  async ({ keywords }) => {
+  async ({ keywords }: RecommendCommandsInput) => {
     const recommendations = [
       {
         keywords: ['서버', '목록', '조회'],
