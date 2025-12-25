@@ -1,11 +1,15 @@
 /**
  * LangGraph Model Configuration
+ *
+ * ## Secret Consolidation (2025-12-25)
+ * Updated to use consolidated JSON secrets with fallback to legacy env vars
  */
 
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { ChatGroq } from '@langchain/groq';
 import { AI_MODELS } from '../config/models';
-import { RateLimitError, requireAPIKey } from './errors';
+import { RateLimitError } from './errors';
+import { getGoogleAIConfig, getGroqApiKey } from './config-parser';
 import {
   type CircuitBreakerState,
   isModelHealthy,
@@ -30,16 +34,26 @@ const geminiKeyState: GeminiKeyState = {
 
 /**
  * Get all available Gemini API keys in failover order
+ * Uses consolidated JSON secret with fallback to legacy env vars
  */
 function getGeminiAPIKeys(): string[] {
   const keys: string[] = [];
 
-  // Primary keys
+  // Try consolidated JSON secret first
+  const config = getGoogleAIConfig();
+  if (config) {
+    if (config.primaryKey) keys.push(config.primaryKey);
+    if (config.secondaryKey && config.secondaryKey !== config.primaryKey) {
+      keys.push(config.secondaryKey);
+    }
+    return keys;
+  }
+
+  // Fallback to legacy env vars
   const primary =
     process.env.GEMINI_API_KEY_PRIMARY || process.env.GOOGLE_API_KEY;
   if (primary) keys.push(primary);
 
-  // Secondary key (failover)
   const secondary =
     process.env.GEMINI_API_KEY_SECONDARY ||
     process.env.GOOGLE_AI_API_KEY_SECONDARY;
@@ -245,7 +259,10 @@ export function createGroqModel(
   model: GroqModel = 'llama-3.1-8b-instant',
   options?: ModelOptions
 ): ChatGroq {
-  const apiKey = requireAPIKey('Groq', 'GROQ_API_KEY');
+  const apiKey = getGroqApiKey();
+  if (!apiKey) {
+    throw new Error('Groq API key not configured. Set GROQ_API_KEY environment variable.');
+  }
 
   return new ChatGroq({
     apiKey,

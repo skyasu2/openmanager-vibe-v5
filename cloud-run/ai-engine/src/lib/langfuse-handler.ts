@@ -3,30 +3,24 @@
  * Provides tracing and observability for LangGraph Multi-Agent Supervisor
  *
  * @module langfuse-handler
- * @version 2.0.0
+ * @version 2.1.0
  *
  * ## v4 Migration (2025-12-25)
  * Migrated from deprecated `langfuse-langchain` (v3.x) to scoped packages:
  * - `@langfuse/core@^4.5.1`
  * - `@langfuse/langchain@^4.5.1`
  *
- * ### Breaking Changes
- * - Import path changed: `langfuse-langchain` → `@langfuse/langchain`
- * - Native support for `@langchain/core >=0.3.0` (no --legacy-peer-deps needed)
- * - Requires `@opentelemetry/api@^1.9.0` peer dependency
+ * ## Secret Consolidation (2025-12-25)
+ * Now uses consolidated JSON secret (langfuse-config) with fallback to legacy env vars
  *
  * @see https://langfuse.com/docs/observability/sdk/typescript/upgrade-path
  */
 
+import { getLangFuseConfig, type LangFuseConfig } from './config-parser';
+
 // =============================================================================
 // Types
 // =============================================================================
-
-interface LangFuseConfig {
-  publicKey?: string;
-  secretKey?: string;
-  baseUrl?: string;
-}
 
 interface SessionHandlerOptions {
   sessionId: string;
@@ -48,17 +42,13 @@ export interface LangFuseCallbackHandler {
 
 const DEFAULT_BASE_URL = 'https://cloud.langfuse.com';
 
-function getConfig(): LangFuseConfig {
-  return {
-    publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-    secretKey: process.env.LANGFUSE_SECRET_KEY,
-    baseUrl: process.env.LANGFUSE_BASE_URL || DEFAULT_BASE_URL,
-  };
+function getConfig(): LangFuseConfig | null {
+  return getLangFuseConfig();
 }
 
 function isLangFuseEnabled(): boolean {
   const config = getConfig();
-  return !!(config.publicKey && config.secretKey);
+  return !!(config?.publicKey && config?.secretKey);
 }
 
 // =============================================================================
@@ -110,10 +100,12 @@ export async function getLangfuseHandler(): Promise<LangFuseCallbackHandler | nu
     if (!HandlerClass) return null;
 
     const config = getConfig();
+    if (!config) return null;
+
     globalHandler = new HandlerClass({
-      publicKey: config.publicKey!,
-      secretKey: config.secretKey!,
-      baseUrl: config.baseUrl,
+      publicKey: config.publicKey,
+      secretKey: config.secretKey,
+      baseUrl: config.baseUrl || DEFAULT_BASE_URL,
     });
     console.log('✅ [LangFuse] Global handler initialized');
   }
@@ -140,6 +132,8 @@ export async function createSessionHandler(
   }
 
   const config = getConfig();
+  if (!config) return null;
+
   const { sessionId, userId, metadata } = options;
 
   try {
@@ -147,9 +141,9 @@ export async function createSessionHandler(
     if (!HandlerClass) return null;
 
     const handler = new HandlerClass({
-      publicKey: config.publicKey!,
-      secretKey: config.secretKey!,
-      baseUrl: config.baseUrl,
+      publicKey: config.publicKey,
+      secretKey: config.secretKey,
+      baseUrl: config.baseUrl || DEFAULT_BASE_URL,
       sessionId,
       userId: userId || 'anonymous',
       metadata: {
@@ -193,7 +187,7 @@ export function getLangfuseStatus(): {
   const config = getConfig();
   return {
     enabled: isLangFuseEnabled(),
-    baseUrl: config.baseUrl || DEFAULT_BASE_URL,
+    baseUrl: config?.baseUrl || DEFAULT_BASE_URL,
     hasGlobalHandler: globalHandler !== null,
   };
 }
