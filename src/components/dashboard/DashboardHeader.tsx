@@ -12,8 +12,6 @@ import debug from '@/utils/debug';
 import { AIAssistantButton } from './AIAssistantButton';
 import { RealTimeDisplay } from './RealTimeDisplay';
 
-// import { SystemStatusBadge } from './SystemStatusBadge'; // 🚫 Demo Mode Badge Removed
-
 // framer-motion 제거 - CSS 애니메이션 사용
 
 /**
@@ -28,14 +26,6 @@ interface DashboardHeaderProps {
   isAgentOpen?: boolean;
   onMenuClick?: () => void;
   title?: string;
-  /** 시스템 남은 시간 (밀리초) - SystemStatusBadge에서 사용 */
-  systemRemainingTime?: number;
-  /** 시스템 활성 상태 - SystemStatusBadge에서 사용 */
-  isSystemActive?: boolean;
-  /** 포맷된 남은 시간 문자열 - SystemStatusBadge에서 사용 */
-  remainingTimeFormatted?: string;
-  /** @deprecated 시스템 중지 핸들러 - useSystemStatusStore로 대체됨 */
-  onSystemStop?: () => void;
 }
 
 /**
@@ -60,10 +50,6 @@ const DashboardHeader = memo(function DashboardHeader({
   isAgentOpen: _isAgentOpen = false, // 기존 호환성을 위해 유지
   onMenuClick: _onMenuClick,
   title: _title = 'OpenManager Dashboard',
-  systemRemainingTime: _systemRemainingTime,
-  isSystemActive: _isSystemActive = true,
-  onSystemStop: _onSystemStop, // deprecated - useSystemStatusStore로 대체됨
-  remainingTimeFormatted: _remainingTimeFormatted,
 }: DashboardHeaderProps) {
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = React.useState(false);
@@ -118,15 +104,9 @@ const DashboardHeader = memo(function DashboardHeader({
           <OpenManagerLogo variant="light" href="/" />
         </div>
 
-        {/* 중앙: 실시간 정보 & 시스템 상태 */}
+        {/* 중앙: 실시간 정보 */}
         <div className="hidden items-center gap-6 md:flex">
           <RealTimeDisplay />
-          {/* 🚫 Demo Mode Badge Removed
-          <SystemStatusBadge
-            isActive={isSystemActive}
-            remainingTimeFormatted={remainingTimeFormatted}
-            remainingTime={systemRemainingTime}
-          /> */}
         </div>
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
@@ -146,16 +126,9 @@ const DashboardHeader = memo(function DashboardHeader({
       </div>
 
       {/* 모바일용 실시간 정보 */}
-      <div className="space-y-2 border-t border-gray-200 bg-gray-50 px-6 py-2 md:hidden">
+      <div className="border-t border-gray-200 bg-gray-50 px-6 py-2 md:hidden">
         <div className="flex items-center justify-center">
           <RealTimeDisplay />
-        </div>
-        <div className="flex items-center justify-center">
-          {/* <SystemStatusBadge
-            isActive={isSystemActive}
-            remainingTimeFormatted={remainingTimeFormatted}
-            remainingTime={systemRemainingTime}
-          /> */}
         </div>
       </div>
     </header>

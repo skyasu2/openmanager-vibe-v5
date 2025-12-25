@@ -305,7 +305,7 @@ export default function DashboardContent({
           {servers && servers.length > 0 ? (
             <>
               {/* 인프라 전체 현황 (Simple Grid) */}
-              <DashboardSummary servers={servers} stats={serverStats} />
+              <DashboardSummary stats={serverStats} />
 
               {/* 서버 카드 목록 */}
               <Suspense

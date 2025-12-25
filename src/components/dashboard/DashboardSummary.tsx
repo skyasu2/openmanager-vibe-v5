@@ -7,23 +7,30 @@ import {
   XCircle,
 } from 'lucide-react';
 import type React from 'react';
-import type { Server } from '@/types/server';
+
+interface DashboardStats {
+  total: number;
+  online: number;
+  offline: number;
+  warning: number;
+  unknown: number;
+}
 
 interface DashboardSummaryProps {
-  servers: Server[];
-  stats: {
-    total: number;
-    online: number;
-    offline: number;
-    warning: number;
-    unknown: number;
-  };
+  stats: DashboardStats;
 }
 
 export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
-  servers: _servers,
   stats,
 }) => {
+  // Null-safe 처리
+  const safeStats = {
+    total: stats?.total ?? 0,
+    online: stats?.online ?? 0,
+    offline: stats?.offline ?? 0,
+    warning: stats?.warning ?? 0,
+    unknown: stats?.unknown ?? 0,
+  };
   return (
     <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-12">
       {/* 1. Total Servers - Compact Left */}
@@ -37,7 +44,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold text-gray-900 leading-none">
-              {stats.total}
+              {safeStats.total}
             </span>
             <span className="text-xs text-gray-400">servers</span>
           </div>
@@ -56,7 +63,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
               <CheckCircle2 size={12} /> Online
             </span>
             <span className="mt-1 text-xl font-bold text-green-800 tracking-tight">
-              {stats.online}
+              {safeStats.online}
             </span>
           </div>
         </div>
@@ -67,7 +74,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
               <AlertTriangle size={12} /> Warning
             </span>
             <span className="mt-1 text-xl font-bold text-yellow-800 tracking-tight">
-              {stats.warning}
+              {safeStats.warning}
             </span>
           </div>
         </div>
@@ -78,7 +85,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
               <XCircle size={12} /> Offline
             </span>
             <span className="mt-1 text-xl font-bold text-red-800 tracking-tight">
-              {stats.offline}
+              {safeStats.offline}
             </span>
           </div>
         </div>
@@ -90,7 +97,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           <div className="flex items-center gap-3">
             <div
               className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                stats.offline > 0 || stats.warning > 0
+                safeStats.offline > 0 || safeStats.warning > 0
                   ? 'bg-red-100 text-red-600'
                   : 'bg-emerald-100 text-emerald-600'
               }`}
@@ -102,9 +109,9 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
                 System Health
               </div>
               <div className="font-bold text-gray-900">
-                {stats.offline > 0
+                {safeStats.offline > 0
                   ? 'Critical Issues Detected'
-                  : stats.warning > 0
+                  : safeStats.warning > 0
                     ? 'Performance Warnings'
                     : 'All Systems Normal'}
               </div>
@@ -114,7 +121,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           <div className="flex gap-4 text-center">
             <div>
               <div className="text-xl font-bold text-red-600">
-                {stats.offline}
+                {safeStats.offline}
               </div>
               <div className="text-[10px] font-medium text-gray-400 uppercase">
                 Critical
@@ -122,7 +129,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
             </div>
             <div>
               <div className="text-xl font-bold text-amber-500">
-                {stats.warning}
+                {safeStats.warning}
               </div>
               <div className="text-[10px] font-medium text-gray-400 uppercase">
                 Warning
