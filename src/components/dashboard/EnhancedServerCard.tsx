@@ -785,19 +785,19 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             >
               <MiniChart
                 data={realtimeData.cpu}
-                color="#ef4444"
+                color="#10b981"
                 label="CPU"
                 icon={<Cpu className="w-3 h-3" />}
               />
               <MiniChart
                 data={realtimeData.memory}
-                color="#3b82f6"
+                color="#10b981"
                 label="MEM"
                 icon={<Activity className="w-3 h-3" />}
               />
               <MiniChart
                 data={realtimeData.disk}
-                color="#8b5cf6"
+                color="#10b981"
                 label="DISK"
                 icon={<HardDrive className="w-3 h-3" />}
               />
