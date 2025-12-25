@@ -3,7 +3,19 @@
  * Provides tracing and observability for LangGraph Multi-Agent Supervisor
  *
  * @module langfuse-handler
- * @version 1.0.0
+ * @version 2.0.0
+ *
+ * ## v4 Migration (2025-12-25)
+ * Migrated from deprecated `langfuse-langchain` (v3.x) to scoped packages:
+ * - `@langfuse/core@^4.5.1`
+ * - `@langfuse/langchain@^4.5.1`
+ *
+ * ### Breaking Changes
+ * - Import path changed: `langfuse-langchain` → `@langfuse/langchain`
+ * - Native support for `@langchain/core >=0.3.0` (no --legacy-peer-deps needed)
+ * - Requires `@opentelemetry/api@^1.9.0` peer dependency
+ *
+ * @see https://langfuse.com/docs/observability/sdk/typescript/upgrade-path
  */
 
 // =============================================================================

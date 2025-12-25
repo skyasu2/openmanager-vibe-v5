@@ -1,8 +1,17 @@
 # Promptfoo + LangFuse 도입 작업 계획서
 
 **작성일**: 2025-12-24
-**버전**: 1.0
-**상태**: 계획 수립
+**버전**: 2.0
+**상태**: ✅ 구현 완료 (2025-12-25)
+
+---
+
+## 📢 업데이트 이력
+
+| 날짜 | 버전 | 변경 내용 |
+|------|------|----------|
+| 2025-12-24 | 1.0 | 초기 계획 수립 |
+| 2025-12-25 | 2.0 | LangFuse v4 마이그레이션, SDK 패키지명 변경 (`@langfuse/langchain`) |
 
 ---
 
@@ -176,11 +185,19 @@ jobs:
 2. 프로젝트 생성: `openmanager-vibe-v5`
 3. API 키 발급 (Public Key, Secret Key)
 
-#### 3.2.2 SDK 설치
+#### 3.2.2 SDK 설치 (v4 - 2025-12-25 업데이트)
 ```bash
 cd cloud-run/ai-engine
-npm install langfuse langfuse-langchain
+
+# ✅ v4 scoped packages (권장)
+npm install @langfuse/core @langfuse/langchain @opentelemetry/api
+
+# ❌ DEPRECATED - 아래 패키지는 사용하지 않음
+# npm install langfuse langfuse-langchain
 ```
+
+> **⚠️ 주의**: `langfuse-langchain` (v3.x)는 deprecated되었습니다.
+> `@langfuse/langchain` (v4.x)는 `@langchain/core >=0.3.0`을 네이티브 지원합니다.
 
 #### 3.2.3 환경 변수 추가
 ```bash
@@ -194,35 +211,46 @@ gcloud secrets create LANGFUSE_PUBLIC_KEY --data-file=-
 gcloud secrets create LANGFUSE_SECRET_KEY --data-file=-
 ```
 
-#### 3.2.4 콜백 핸들러 생성
+#### 3.2.4 콜백 핸들러 생성 (v4 - 구현 완료)
 **파일**: `cloud-run/ai-engine/src/lib/langfuse-handler.ts`
 
 ```typescript
-import { CallbackHandler } from "langfuse-langchain";
+// ✅ v4: scoped package 사용
+// import { CallbackHandler } from "langfuse-langchain";  // ❌ deprecated
+import { CallbackHandler } from "@langfuse/langchain";    // ✅ v4
 
-let langfuseHandler: CallbackHandler | null = null;
-
-export function getLangfuseHandler(): CallbackHandler {
-  if (!langfuseHandler) {
-    langfuseHandler = new CallbackHandler({
-      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-      secretKey: process.env.LANGFUSE_SECRET_KEY,
-      baseUrl: process.env.LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
-    });
+// Dynamic import로 optional dependency 처리
+async function getCallbackHandlerClass() {
+  try {
+    const module = await import('@langfuse/langchain');
+    return module.CallbackHandler;
+  } catch {
+    console.warn('⚠️ [LangFuse] @langfuse/langchain not installed');
+    return null;
   }
-  return langfuseHandler;
 }
 
-export function createSessionHandler(sessionId: string, userId?: string) {
-  return new CallbackHandler({
-    publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-    secretKey: process.env.LANGFUSE_SECRET_KEY,
+export async function createSessionHandler(options: {
+  sessionId: string;
+  userId?: string;
+  metadata?: Record<string, unknown>;
+}): Promise<LangFuseCallbackHandler | null> {
+  const HandlerClass = await getCallbackHandlerClass();
+  if (!HandlerClass) return null;
+
+  return new HandlerClass({
+    publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
+    secretKey: process.env.LANGFUSE_SECRET_KEY!,
     baseUrl: process.env.LANGFUSE_BASE_URL,
-    sessionId,
-    userId,
+    sessionId: options.sessionId,
+    userId: options.userId || 'anonymous',
+    metadata: options.metadata,
   });
 }
 ```
+
+> **구현 상태**: ✅ 완료 (2025-12-25)
+> 전체 코드는 `cloud-run/ai-engine/src/lib/langfuse-handler.ts` 참조
 
 #### 3.2.5 Supervisor 통합
 **파일**: `cloud-run/ai-engine/src/services/langgraph/multi-agent-supervisor.ts`
@@ -330,13 +358,14 @@ rm -rf cloud-run/ai-engine/promptfoo/
 
 ### 6.2 LangFuse 롤백
 ```bash
-# 의존성 제거
-npm uninstall langfuse langfuse-langchain
+# v4 의존성 제거
+npm uninstall @langfuse/core @langfuse/langchain @opentelemetry/api
 
 # 콜백 코드 제거 (multi-agent-supervisor.ts)
-# callbacks: [getLangfuseHandler()] 라인 삭제
+# callbacks: [langfuseHandler] 라인 삭제
 
-# 환경 변수 제거
+# 환경 변수 제거 (Cloud Run)
+gcloud run services update ai-engine --remove-env-vars LANGFUSE_PUBLIC_KEY,LANGFUSE_SECRET_KEY,LANGFUSE_BASE_URL
 ```
 
 ---
