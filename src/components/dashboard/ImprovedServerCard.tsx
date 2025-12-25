@@ -121,9 +121,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     );
 
     return (
-      <div
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
         onClick={() => onClick(safeServer)}
         onMouseEnter={() => {
           setIsHovered(true);
@@ -134,10 +133,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           if (enableProgressiveDisclosure && !showTertiaryInfo)
             setShowSecondaryInfo(false);
         }}
-        onKeyDown={(e) =>
-          (e.key === 'Enter' || e.key === ' ') && onClick(safeServer)
-        }
-        className={`group relative w-full cursor-pointer overflow-hidden rounded-xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg backdrop-blur-md ${statusTheme.background} ${statusTheme.border} ${variantStyles.container}`}
+        className={`group relative w-full cursor-pointer overflow-hidden rounded-xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg backdrop-blur-md text-left ${statusTheme.background} ${statusTheme.border} ${variantStyles.container}`}
       >
         {/* Subtle Hover Glow Effect (Light Mode) */}
         <div
@@ -309,7 +305,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               )}
             </div>
           )}
-      </div>
+      </button>
     );
   }
 );

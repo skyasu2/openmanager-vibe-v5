@@ -398,7 +398,7 @@ const NORMAL_LOG_TEMPLATES: Record<string, string[]> = {
  * 시나리오 이름이나 원인을 직접 노출하지 않습니다.
  */
 function generateLogs(
-  serverId: string,
+  _serverId: string,
   serverType: string,
   cpu: number,
   memory: number,

@@ -17,15 +17,6 @@ let lastHealthCheck = 0;
 const HEALTH_CHECK_INTERVAL = 60_000; // 1분
 
 /**
- * Redis 클라이언트 설정 옵션
- */
-interface RedisConfig {
-  url?: string;
-  token?: string;
-  enableAutoPipelining?: boolean;
-}
-
-/**
  * Redis 연결 상태
  */
 interface RedisStatus {

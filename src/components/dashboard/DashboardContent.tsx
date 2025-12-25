@@ -84,15 +84,7 @@ export default function DashboardContent({
   // 🎯 서버 데이터에서 직접 통계 계산 (중복 API 호출 제거)
   const [statsLoading, _setStatsLoading] = useState(false);
 
-  // 🛡️ Hydration-safe 시간 표시 (SSR/CSR 불일치 방지)
-  const [currentTime, setCurrentTime] = useState<string | null>(null);
-  useEffect(() => {
-    setCurrentTime(new Date().toLocaleTimeString('ko-KR'));
-    const interval = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString('ko-KR'));
-    }, 60000); // 1분마다 갱신
-    return () => clearInterval(interval);
-  }, []);
+  // 🛡️ currentTime 제거: 미사용 상태에서 불필요한 interval 실행 (v5.83.13)
 
   // 폴백 통계 계산 (v5.81.0: 상호 배타적 카운팅으로 수정)
   const calculateFallbackStats = useCallback((): DashboardStats => {

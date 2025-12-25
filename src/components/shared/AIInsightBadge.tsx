@@ -158,15 +158,14 @@ export const AIInsightBadge: React.FC<AIInsightBadgeProps> = ({
   );
 
   return (
-    <div
+    <output
       className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-all duration-200 hover:scale-105 ${insight.colors.bg} ${insight.colors.text} ${insight.colors.border} ${className}`}
       title={insight.description}
-      role="status"
       aria-label={`AI 분석: ${insight.label} - ${insight.description}`}
     >
       {insight.icon}
       <span>{insight.label}</span>
-    </div>
+    </output>
   );
 };
 
