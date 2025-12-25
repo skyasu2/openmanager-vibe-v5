@@ -1,10 +1,14 @@
 /**
- * 이상감지/예측 분석 결과 카드 v1.0
+ * 이상감지/예측 분석 결과 카드 v2.0
  *
  * Cloud Run /api/ai/analyze-server 응답을 시각화
  * - 현재 상태 (이상 탐지): CPU/Memory/Disk 메트릭별 상태
  * - 예측 (트렌드): 1시간 후 예측값과 변화율
  * - AI 인사이트: 패턴 분석 권장사항
+ *
+ * v2.0 변경사항 (2025-12-26):
+ * - 다중 서버 분석 결과 표시 지원
+ * - 전체 시스템 종합 요약 섹션 추가
  */
 
 'use client';
@@ -15,25 +19,34 @@ import {
   ArrowRight,
   ArrowUp,
   CheckCircle,
+  ChevronDown,
+  ChevronRight,
   Cpu,
   HardDrive,
   Lightbulb,
   MemoryStick,
   RefreshCw,
+  Server,
   TrendingUp,
   XCircle,
 } from 'lucide-react';
+import { useState } from 'react';
 import type {
+  AnalysisResponse,
   CloudRunAnalysisResponse,
   CloudRunAnomalyDetection,
   CloudRunPatternAnalysis,
   CloudRunTrendPrediction,
   MetricAnomalyResult,
   MetricTrendResult,
+  MultiServerAnalysisResponse,
+  ServerAnalysisResult,
+  SystemAnalysisSummary,
 } from '@/types/intelligent-monitoring.types';
+import { isMultiServerResponse } from '@/types/intelligent-monitoring.types';
 
 interface AnalysisResultsCardProps {
-  result: CloudRunAnalysisResponse | null;
+  result: AnalysisResponse | null;
   isLoading: boolean;
   error: string | null;
   onRetry?: () => void;
@@ -58,6 +71,13 @@ const severityColors: Record<string, string> = {
   low: 'text-green-600 bg-green-50 border-green-200',
   medium: 'text-yellow-600 bg-yellow-50 border-yellow-200',
   high: 'text-red-600 bg-red-50 border-red-200',
+};
+
+// 상태별 색상
+const statusColors: Record<string, string> = {
+  healthy: 'text-green-600 bg-green-50 border-green-200',
+  warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+  critical: 'text-red-600 bg-red-50 border-red-200',
 };
 
 // 트렌드 아이콘
@@ -247,7 +267,215 @@ function InsightSection({ data }: { data: CloudRunPatternAnalysis }) {
   );
 }
 
+// ============================================================================
+// 다중 서버 결과 컴포넌트
+// ============================================================================
+
+// 종합 요약 섹션
+function SystemSummarySection({ summary }: { summary: SystemAnalysisSummary }) {
+  const statusLabel = {
+    healthy: '정상',
+    warning: '주의',
+    critical: '위험',
+  };
+
+  return (
+    <div
+      className={`rounded-xl border p-4 ${statusColors[summary.overallStatus]}`}
+    >
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Server className="h-5 w-5" />
+          <h3 className="font-semibold">전체 시스템 상태</h3>
+        </div>
+        <span className="rounded-full px-3 py-1 text-sm font-bold">
+          {statusLabel[summary.overallStatus]}
+        </span>
+      </div>
+
+      {/* 서버 상태 요약 */}
+      <div className="mb-4 grid grid-cols-3 gap-3">
+        <div className="rounded-lg bg-white/60 p-2 text-center">
+          <div className="text-xl font-bold text-green-600">
+            {summary.healthyServers}
+          </div>
+          <div className="text-xs text-gray-600">정상</div>
+        </div>
+        <div className="rounded-lg bg-white/60 p-2 text-center">
+          <div className="text-xl font-bold text-yellow-600">
+            {summary.warningServers}
+          </div>
+          <div className="text-xs text-gray-600">주의</div>
+        </div>
+        <div className="rounded-lg bg-white/60 p-2 text-center">
+          <div className="text-xl font-bold text-red-600">
+            {summary.criticalServers}
+          </div>
+          <div className="text-xs text-gray-600">위험</div>
+        </div>
+      </div>
+
+      {/* Top Issues */}
+      {summary.topIssues.length > 0 && (
+        <div className="mb-3">
+          <h4 className="mb-2 text-sm font-medium">주요 이슈</h4>
+          <div className="space-y-1">
+            {summary.topIssues.map((issue, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between rounded bg-white/60 px-2 py-1 text-xs"
+              >
+                <span>
+                  {issue.serverName} -{' '}
+                  {metricLabels[issue.metric] || issue.metric}
+                </span>
+                <span
+                  className={`font-medium ${issue.severity === 'high' ? 'text-red-600' : 'text-yellow-600'}`}
+                >
+                  {Math.round(issue.currentValue)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Rising Trends */}
+      {summary.predictions.length > 0 && (
+        <div>
+          <h4 className="mb-2 text-sm font-medium">상승 추세 경고</h4>
+          <div className="space-y-1">
+            {summary.predictions.map((pred, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between rounded bg-white/60 px-2 py-1 text-xs"
+              >
+                <span>
+                  {pred.serverName} - {metricLabels[pred.metric] || pred.metric}
+                </span>
+                <span className="font-medium text-orange-600">
+                  +{pred.changePercent.toFixed(1)}% →{' '}
+                  {Math.round(pred.predictedValue)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 개별 서버 결과 카드 (접기 가능)
+function ServerResultCard({ server }: { server: ServerAnalysisResult }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const statusLabel = {
+    healthy: '정상',
+    warning: '주의',
+    critical: '위험',
+  };
+
+  return (
+    <div className={`rounded-xl border ${statusColors[server.overallStatus]}`}>
+      {/* 헤더 (클릭하여 접기/펴기) */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center justify-between p-3 text-left"
+      >
+        <div className="flex items-center gap-2">
+          <Server className="h-4 w-4" />
+          <span className="font-medium">{server.serverName}</span>
+          <span
+            className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+              server.overallStatus === 'healthy'
+                ? 'bg-green-200 text-green-700'
+                : server.overallStatus === 'warning'
+                  ? 'bg-yellow-200 text-yellow-700'
+                  : 'bg-red-200 text-red-700'
+            }`}
+          >
+            {statusLabel[server.overallStatus]}
+          </span>
+        </div>
+        {isExpanded ? (
+          <ChevronDown className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
+      </button>
+
+      {/* 상세 내용 */}
+      {isExpanded && (
+        <div className="space-y-3 border-t border-current/10 p-3">
+          {server.anomalyDetection && (
+            <AnomalySection data={server.anomalyDetection} />
+          )}
+          {server.trendPrediction && (
+            <TrendSection data={server.trendPrediction} />
+          )}
+          {server.patternAnalysis && (
+            <InsightSection data={server.patternAnalysis} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 다중 서버 결과 표시
+function MultiServerResults({ data }: { data: MultiServerAnalysisResponse }) {
+  return (
+    <div className="space-y-4">
+      {/* 종합 요약 */}
+      <SystemSummarySection summary={data.summary} />
+
+      {/* 개별 서버 결과 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <h3 className="mb-3 flex items-center gap-2 font-semibold text-gray-800">
+          <Server className="h-5 w-5 text-blue-500" />
+          서버별 상세 분석 ({data.servers.length}개)
+        </h3>
+        <div className="space-y-2">
+          {data.servers.map((server) => (
+            <ServerResultCard key={server.serverId} server={server} />
+          ))}
+        </div>
+      </div>
+
+      {/* 메타 정보 */}
+      <div className="text-center text-xs text-gray-400">
+        분석 시간: {new Date(data.timestamp).toLocaleString('ko-KR')}
+      </div>
+    </div>
+  );
+}
+
+// 단일 서버 결과 표시
+function SingleServerResults({ data }: { data: CloudRunAnalysisResponse }) {
+  return (
+    <div className="space-y-4">
+      {/* 이상 탐지 */}
+      {data.anomalyDetection && <AnomalySection data={data.anomalyDetection} />}
+
+      {/* 트렌드 예측 */}
+      {data.trendPrediction && <TrendSection data={data.trendPrediction} />}
+
+      {/* AI 인사이트 */}
+      {data.patternAnalysis && <InsightSection data={data.patternAnalysis} />}
+
+      {/* 메타 정보 */}
+      <div className="text-center text-xs text-gray-400">
+        분석 시간: {new Date(data.timestamp).toLocaleString('ko-KR')}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // 메인 컴포넌트
+// ============================================================================
+
 export default function AnalysisResultsCard({
   result,
   isLoading,
@@ -299,26 +527,10 @@ export default function AnalysisResultsCard({
     );
   }
 
-  // 결과 표시
-  return (
-    <div className="space-y-4">
-      {/* 이상 탐지 */}
-      {result.anomalyDetection && (
-        <AnomalySection data={result.anomalyDetection} />
-      )}
+  // 다중 서버 결과 vs 단일 서버 결과
+  if (isMultiServerResponse(result)) {
+    return <MultiServerResults data={result} />;
+  }
 
-      {/* 트렌드 예측 */}
-      {result.trendPrediction && <TrendSection data={result.trendPrediction} />}
-
-      {/* AI 인사이트 */}
-      {result.patternAnalysis && (
-        <InsightSection data={result.patternAnalysis} />
-      )}
-
-      {/* 메타 정보 */}
-      <div className="text-center text-xs text-gray-400">
-        분석 시간: {new Date(result.timestamp).toLocaleString('ko-KR')}
-      </div>
-    </div>
-  );
+  return <SingleServerResults data={result} />;
 }

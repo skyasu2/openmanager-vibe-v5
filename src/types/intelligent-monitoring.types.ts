@@ -180,3 +180,59 @@ export interface SimpleAnalysisRequest {
   serverId?: string;
   analysisType?: 'full' | 'anomaly' | 'trend' | 'pattern';
 }
+
+// ============================================================================
+// Multi-Server Analysis Types (v5.85+)
+// 전체 서버 개별 분석 + 종합 요약 지원
+// ============================================================================
+
+/** 개별 서버 분석 결과 */
+export interface ServerAnalysisResult extends CloudRunAnalysisResponse {
+  serverName: string;
+  overallStatus: 'healthy' | 'warning' | 'critical';
+}
+
+/** 전체 서버 종합 요약 */
+export interface SystemAnalysisSummary {
+  totalServers: number;
+  healthyServers: number;
+  warningServers: number;
+  criticalServers: number;
+  overallStatus: 'healthy' | 'warning' | 'critical';
+  topIssues: Array<{
+    serverId: string;
+    serverName: string;
+    metric: string;
+    severity: 'low' | 'medium' | 'high';
+    currentValue: number;
+  }>;
+  predictions: Array<{
+    serverId: string;
+    serverName: string;
+    metric: string;
+    trend: 'increasing' | 'decreasing' | 'stable';
+    predictedValue: number;
+    changePercent: number;
+  }>;
+}
+
+/** 다중 서버 분석 응답 (전체 시스템 분석 시) */
+export interface MultiServerAnalysisResponse {
+  success: boolean;
+  isMultiServer: true;
+  timestamp: string;
+  servers: ServerAnalysisResult[];
+  summary: SystemAnalysisSummary;
+}
+
+/** 단일/다중 서버 분석 응답 유니온 타입 */
+export type AnalysisResponse =
+  | CloudRunAnalysisResponse
+  | MultiServerAnalysisResponse;
+
+/** 다중 서버 응답인지 확인하는 타입 가드 */
+export function isMultiServerResponse(
+  response: AnalysisResponse
+): response is MultiServerAnalysisResponse {
+  return 'isMultiServer' in response && response.isMultiServer === true;
+}

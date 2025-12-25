@@ -1,62 +1,240 @@
 /**
- * 이상감지/예측 페이지 v5.0
+ * 이상감지/예측 페이지 v5.1
  *
  * 버튼 클릭으로 서버 상태 분석 및 예측
  * - Cloud Run /api/ai/analyze-server 호출
  * - 이상 탐지 + 트렌드 예측 + AI 인사이트 표시
  *
- * v5.0 변경사항 (2025-12-26):
- * - 복잡한 설정 UI 제거
- * - 서버 선택 + 분석 시작 버튼 간소화
- * - Cloud Run 응답 타입에 맞춘 결과 표시
+ * v5.1 변경사항 (2025-12-26):
+ * - 전체 시스템 분석: 각 서버별 개별 분석 + 종합 요약
+ * - 다중 서버 결과 표시 지원
  */
 
 'use client';
 
-import { Monitor, Play, RefreshCw } from 'lucide-react';
+import { Monitor, Play, RefreshCw, Server } from 'lucide-react';
 import { useState } from 'react';
 import AnalysisResultsCard from '@/components/ai/AnalysisResultsCard';
-import type { CloudRunAnalysisResponse } from '@/types/intelligent-monitoring.types';
+import { useServerQuery } from '@/hooks/useServerQuery';
+import type {
+  AnalysisResponse,
+  CloudRunAnalysisResponse,
+  MultiServerAnalysisResponse,
+  ServerAnalysisResult,
+  SystemAnalysisSummary,
+} from '@/types/intelligent-monitoring.types';
 
 export default function IntelligentMonitoringPage() {
+  // 서버 데이터 (React Query)
+  const { data: servers = [] } = useServerQuery();
+
   // 상태
   const [selectedServer, setSelectedServer] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [result, setResult] = useState<CloudRunAnalysisResponse | null>(null);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [result, setResult] = useState<AnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // 분석 실행
-  const runAnalysis = async () => {
-    setIsAnalyzing(true);
-    setResult(null);
-    setError(null);
-
+  // 단일 서버 분석 함수
+  const analyzeSingleServer = async (
+    serverId: string,
+    serverName: string
+  ): Promise<ServerAnalysisResult | null> => {
     try {
       const response = await fetch('/api/ai/intelligent-monitoring', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'analyze_server',
-          serverId: selectedServer || undefined,
+          serverId,
           analysisType: 'full',
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`API 요청 실패: ${response.status}`);
+        console.error(`[${serverName}] API 요청 실패: ${response.status}`);
+        return null;
       }
 
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.error || data.message || '분석 실패');
+        console.error(`[${serverName}] 분석 실패:`, data.error);
+        return null;
       }
 
-      setResult(data.data as CloudRunAnalysisResponse);
+      const analysisData = data.data as CloudRunAnalysisResponse;
+
+      // 전체 상태 판단
+      let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
+      if (analysisData.anomalyDetection?.hasAnomalies) {
+        const anomalyResults = analysisData.anomalyDetection.results;
+        const severities = Object.values(anomalyResults).map((r) => r.severity);
+        if (severities.includes('high')) {
+          overallStatus = 'critical';
+        } else if (severities.includes('medium')) {
+          overallStatus = 'warning';
+        }
+      }
+
+      return {
+        ...analysisData,
+        serverName,
+        overallStatus,
+      };
+    } catch (err) {
+      console.error(`[${serverName}] 분석 오류:`, err);
+      return null;
+    }
+  };
+
+  // 종합 요약 생성 함수
+  const createSummary = (
+    serverResults: ServerAnalysisResult[]
+  ): SystemAnalysisSummary => {
+    const healthyServers = serverResults.filter(
+      (s) => s.overallStatus === 'healthy'
+    ).length;
+    const warningServers = serverResults.filter(
+      (s) => s.overallStatus === 'warning'
+    ).length;
+    const criticalServers = serverResults.filter(
+      (s) => s.overallStatus === 'critical'
+    ).length;
+
+    // 전체 상태 판단
+    let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
+    if (criticalServers > 0) {
+      overallStatus = 'critical';
+    } else if (warningServers > 0) {
+      overallStatus = 'warning';
+    }
+
+    // Top Issues 추출 (이상 감지된 것들)
+    const topIssues: SystemAnalysisSummary['topIssues'] = [];
+    for (const server of serverResults) {
+      if (server.anomalyDetection?.hasAnomalies) {
+        for (const [metric, result] of Object.entries(
+          server.anomalyDetection.results
+        )) {
+          if (result.isAnomaly) {
+            topIssues.push({
+              serverId: server.serverId,
+              serverName: server.serverName,
+              metric,
+              severity: result.severity,
+              currentValue: result.currentValue,
+            });
+          }
+        }
+      }
+    }
+
+    // 상승 추세 예측 추출
+    const predictions: SystemAnalysisSummary['predictions'] = [];
+    for (const server of serverResults) {
+      if (server.trendPrediction?.summary.hasRisingTrends) {
+        for (const [metric, result] of Object.entries(
+          server.trendPrediction.results
+        )) {
+          if (result.trend === 'increasing' && result.changePercent > 5) {
+            predictions.push({
+              serverId: server.serverId,
+              serverName: server.serverName,
+              metric,
+              trend: result.trend,
+              predictedValue: result.predictedValue,
+              changePercent: result.changePercent,
+            });
+          }
+        }
+      }
+    }
+
+    return {
+      totalServers: serverResults.length,
+      healthyServers,
+      warningServers,
+      criticalServers,
+      overallStatus,
+      topIssues: topIssues.slice(0, 5), // 상위 5개
+      predictions: predictions.slice(0, 5), // 상위 5개
+    };
+  };
+
+  // 분석 실행
+  const runAnalysis = async () => {
+    setIsAnalyzing(true);
+    setResult(null);
+    setError(null);
+    setProgress({ current: 0, total: 0 });
+
+    try {
+      if (selectedServer) {
+        // 단일 서버 분석
+        const serverInfo = servers.find((s) => s.id === selectedServer);
+        const serverResult = await analyzeSingleServer(
+          selectedServer,
+          serverInfo?.name || selectedServer
+        );
+
+        if (!serverResult) {
+          throw new Error('서버 분석에 실패했습니다.');
+        }
+
+        // 단일 서버도 CloudRunAnalysisResponse로 반환
+        setResult(serverResult);
+      } else {
+        // 전체 시스템 분석 (각 서버 순차 분석)
+        const targetServers =
+          servers.length > 0
+            ? servers
+            : [
+                { id: 'web-server-01', name: '웹 서버 01' },
+                { id: 'web-server-02', name: '웹 서버 02' },
+                { id: 'db-server-01', name: 'DB 서버 01' },
+                { id: 'api-server-01', name: 'API 서버 01' },
+              ];
+
+        setProgress({ current: 0, total: targetServers.length });
+
+        const serverResults: ServerAnalysisResult[] = [];
+
+        for (let i = 0; i < targetServers.length; i++) {
+          const server = targetServers[i];
+          if (!server) continue;
+
+          setProgress({ current: i + 1, total: targetServers.length });
+
+          const serverResult = await analyzeSingleServer(
+            server.id,
+            server.name
+          );
+          if (serverResult) {
+            serverResults.push(serverResult);
+          }
+        }
+
+        if (serverResults.length === 0) {
+          throw new Error('모든 서버 분석에 실패했습니다.');
+        }
+
+        // 다중 서버 응답 생성
+        const multiServerResult: MultiServerAnalysisResponse = {
+          success: true,
+          isMultiServer: true,
+          timestamp: new Date().toISOString(),
+          servers: serverResults,
+          summary: createSummary(serverResults),
+        };
+
+        setResult(multiServerResult);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
     } finally {
       setIsAnalyzing(false);
+      setProgress({ current: 0, total: 0 });
     }
   };
 
@@ -98,11 +276,25 @@ export default function IntelligentMonitoringPage() {
               disabled={isAnalyzing}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
             >
-              <option value="">전체 시스템</option>
-              <option value="web-server-01">웹 서버 01</option>
-              <option value="web-server-02">웹 서버 02</option>
-              <option value="db-server-01">DB 서버 01</option>
-              <option value="api-server-01">API 서버 01</option>
+              <option value="">
+                전체 시스템 ({servers.length || 4}개 서버)
+              </option>
+              {servers.length > 0
+                ? servers.map((server) => (
+                    <option key={server.id} value={server.id}>
+                      {server.name}
+                    </option>
+                  ))
+                : [
+                    { id: 'web-server-01', name: '웹 서버 01' },
+                    { id: 'web-server-02', name: '웹 서버 02' },
+                    { id: 'db-server-01', name: 'DB 서버 01' },
+                    { id: 'api-server-01', name: 'API 서버 01' },
+                  ].map((server) => (
+                    <option key={server.id} value={server.id}>
+                      {server.name}
+                    </option>
+                  ))}
             </select>
           </div>
 
@@ -124,17 +316,42 @@ export default function IntelligentMonitoringPage() {
               {isAnalyzing ? (
                 <>
                   <RefreshCw className="mr-1.5 inline h-4 w-4 animate-spin" />
-                  분석 중...
+                  {progress.total > 0
+                    ? `분석 중 (${progress.current}/${progress.total})`
+                    : '분석 중...'}
                 </>
               ) : (
                 <>
                   <Play className="mr-1.5 inline h-4 w-4" />
-                  분석 시작
+                  {selectedServer ? '분석 시작' : '전체 분석'}
                 </>
               )}
             </button>
           </div>
         </div>
+
+        {/* 진행률 표시 */}
+        {isAnalyzing && progress.total > 0 && (
+          <div className="mt-3">
+            <div className="mb-1 flex items-center justify-between text-xs text-gray-600">
+              <span className="flex items-center gap-1">
+                <Server className="h-3 w-3" />
+                서버 분석 진행 중...
+              </span>
+              <span>
+                {progress.current}/{progress.total}
+              </span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300"
+                style={{
+                  width: `${(progress.current / progress.total) * 100}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 결과 영역 */}

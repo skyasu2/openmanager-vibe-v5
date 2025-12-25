@@ -1,18 +1,21 @@
 /**
- * 📄 자동 장애 보고서 페이지 v2.0
+ * 📄 자동 장애 보고서 페이지 v2.1
  *
  * 기능:
  * - 실시간 장애 리포트 생성 및 관리
  * - /api/ai/incident-report API 연동
+ * - 전체 서버 종합 분석 표시
  *
- * v2.0 변경사항 (2025-12-23):
- * - 단일 탭으로 UI 단순화 (탭 시스템 제거)
- * - 미사용 변수 정리
+ * v2.1 변경사항 (2025-12-26):
+ * - 전체 서버 상태 요약 표시 강화
+ * - 종합 분석 결과 시각화 개선
+ * - 영향받는 서버 상세 표시
  */
 
 'use client';
 
 import {
+  Activity,
   AlertTriangle,
   CheckCircle,
   CheckSquare,
@@ -22,6 +25,7 @@ import {
   FileText,
   RefreshCw,
   Server,
+  TrendingUp,
 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
@@ -42,6 +46,25 @@ interface IncidentReport {
     action: string;
     priority: string;
     expected_impact: string;
+  }>;
+  // 전체 시스템 분석 데이터
+  systemSummary?: {
+    totalServers: number;
+    healthyServers: number;
+    warningServers: number;
+    criticalServers: number;
+  };
+  anomalies?: Array<{
+    server_id: string;
+    server_name: string;
+    metric: string;
+    value: number;
+    severity: string;
+  }>;
+  timeline?: Array<{
+    timestamp: string;
+    event: string;
+    severity: string;
   }>;
 }
 
@@ -133,6 +156,55 @@ export default function AutoReportPage() {
       const data = await response.json();
 
       if (data.success && data.report) {
+        // 시스템 요약 생성 (전체 서버 메트릭 기반)
+        const systemSummary = {
+          totalServers: metrics.length,
+          healthyServers: metrics.filter(
+            (m) => m.cpu < 70 && m.memory < 70 && m.disk < 80
+          ).length,
+          warningServers: metrics.filter(
+            (m) =>
+              (m.cpu >= 70 && m.cpu < 85) ||
+              (m.memory >= 70 && m.memory < 85) ||
+              (m.disk >= 80 && m.disk < 90)
+          ).length,
+          criticalServers: metrics.filter(
+            (m) => m.cpu >= 85 || m.memory >= 85 || m.disk >= 90
+          ).length,
+        };
+
+        // 이상 항목 추출
+        const anomalies = metrics
+          .filter((m) => m.cpu >= 70 || m.memory >= 70 || m.disk >= 80)
+          .flatMap((m) => {
+            const items = [];
+            if (m.cpu >= 70)
+              items.push({
+                server_id: m.server_id,
+                server_name: m.server_name,
+                metric: 'CPU',
+                value: m.cpu,
+                severity: m.cpu >= 85 ? 'critical' : 'warning',
+              });
+            if (m.memory >= 70)
+              items.push({
+                server_id: m.server_id,
+                server_name: m.server_name,
+                metric: 'Memory',
+                value: m.memory,
+                severity: m.memory >= 85 ? 'critical' : 'warning',
+              });
+            if (m.disk >= 80)
+              items.push({
+                server_id: m.server_id,
+                server_name: m.server_name,
+                metric: 'Disk',
+                value: m.disk,
+                severity: m.disk >= 90 ? 'critical' : 'warning',
+              });
+            return items;
+          });
+
         const newReport: IncidentReport = {
           id: data.report.id,
           title: data.report.title,
@@ -145,6 +217,9 @@ export default function AutoReportPage() {
           status: 'active',
           pattern: data.report.pattern,
           recommendations: data.report.recommendations,
+          systemSummary,
+          anomalies,
+          timeline: data.report.timeline,
         };
 
         setReports((prev) => [newReport, ...prev]);
@@ -378,21 +453,101 @@ ${
 
               <p className="mb-3 text-sm text-gray-600">{report.description}</p>
 
-              {selectedReport === report.id && report.recommendations && (
-                <div className="mb-3 rounded-lg bg-white/60 p-3">
-                  <h4 className="mb-2 text-xs font-semibold text-gray-700">
-                    권장 조치
-                  </h4>
-                  <ul className="space-y-1">
-                    {report.recommendations.map((rec, i) => (
-                      <li key={i} className="text-xs text-gray-600">
-                        • {rec.action}{' '}
-                        <span className="text-gray-400">
-                          (우선순위: {rec.priority})
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+              {/* 시스템 요약 (항상 표시) */}
+              {report.systemSummary && (
+                <div className="mb-3 grid grid-cols-4 gap-2 rounded-lg bg-white/60 p-3">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-gray-700">
+                      {report.systemSummary.totalServers}
+                    </div>
+                    <div className="text-xs text-gray-500">전체</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-600">
+                      {report.systemSummary.healthyServers}
+                    </div>
+                    <div className="text-xs text-gray-500">정상</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-yellow-600">
+                      {report.systemSummary.warningServers}
+                    </div>
+                    <div className="text-xs text-gray-500">주의</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-red-600">
+                      {report.systemSummary.criticalServers}
+                    </div>
+                    <div className="text-xs text-gray-500">위험</div>
+                  </div>
+                </div>
+              )}
+
+              {selectedReport === report.id && (
+                <div className="space-y-3">
+                  {/* 이상 항목 */}
+                  {report.anomalies && report.anomalies.length > 0 && (
+                    <div className="rounded-lg bg-white/60 p-3">
+                      <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-gray-700">
+                        <Activity className="h-3 w-3" />
+                        감지된 이상 항목
+                      </h4>
+                      <div className="space-y-1">
+                        {report.anomalies.slice(0, 5).map((anomaly, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between text-xs"
+                          >
+                            <span className="text-gray-600">
+                              {anomaly.server_name} - {anomaly.metric}
+                            </span>
+                            <span
+                              className={`font-medium ${
+                                anomaly.severity === 'critical'
+                                  ? 'text-red-600'
+                                  : 'text-yellow-600'
+                              }`}
+                            >
+                              {Math.round(anomaly.value)}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 권장 조치 */}
+                  {report.recommendations &&
+                    report.recommendations.length > 0 && (
+                      <div className="rounded-lg bg-white/60 p-3">
+                        <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold text-gray-700">
+                          <TrendingUp className="h-3 w-3" />
+                          권장 조치
+                        </h4>
+                        <ul className="space-y-1">
+                          {report.recommendations.map((rec, i) => (
+                            <li key={i} className="text-xs text-gray-600">
+                              • {rec.action}{' '}
+                              <span className="text-gray-400">
+                                (우선순위: {rec.priority})
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                  {/* 패턴 */}
+                  {report.pattern && (
+                    <div className="rounded-lg bg-purple-50 p-3">
+                      <h4 className="mb-1 text-xs font-semibold text-purple-700">
+                        감지된 패턴
+                      </h4>
+                      <p className="text-xs text-purple-600">
+                        {report.pattern}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
