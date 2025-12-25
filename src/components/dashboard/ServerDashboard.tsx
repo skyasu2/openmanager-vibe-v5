@@ -227,61 +227,22 @@ export default function ServerDashboard({
       <div className="mt-6">
         {activeTab === 'servers' && (
           <div className="space-y-4">
-            {/* 📊 페이지네이션 정보 헤더 */}
+            {/* 📊 페이지네이션 정보 헤더 (간소화 - 선택기는 하단에만) */}
             {totalPages > 1 && (
-              <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="text-blue-600">
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium text-blue-900">
-                        전체 {paginationInfo.totalServers}개 서버 중{' '}
-                        {paginationInfo.startIndex}-{paginationInfo.endIndex}
-                        번째 표시
-                      </p>
-                      <p className="text-sm text-blue-700">
-                        {paginationInfo.pageSize}개씩 페이지네이션 •{' '}
-                        {currentPage}/{totalPages} 페이지
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {/* 페이지 크기 선택 */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-blue-700">표시 개수:</span>
-                      <select
-                        value={paginationInfo.pageSize}
-                        onChange={(e) => changePageSize(Number(e.target.value))}
-                        className="rounded border border-blue-300 bg-blue-100 px-2 py-1 text-sm text-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                        aria-label="페이지당 표시할 서버 개수 선택"
-                      >
-                        <option value={4}>4개씩</option>
-                        <option value={6}>6개씩</option>
-                        <option value={8}>8개씩</option>
-                        <option value={12}>12개씩</option>
-                        <option value={15}>모두 보기</option>
-                      </select>
-                    </div>
-                    <div className="rounded-full bg-blue-100 px-3 py-1 font-mono text-sm text-blue-600">
-                      {paginationInfo.startIndex}-{paginationInfo.endIndex} /{' '}
-                      {paginationInfo.totalServers}
-                    </div>
-                  </div>
-                </div>
+              <div className="mb-4 flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50/50 px-4 py-2">
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">
+                    {paginationInfo.totalServers}개
+                  </span>{' '}
+                  서버 중{' '}
+                  <span className="font-mono">
+                    {paginationInfo.startIndex}-{paginationInfo.endIndex}
+                  </span>
+                  번째 표시
+                </p>
+                <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                  {currentPage}/{totalPages} 페이지
+                </span>
               </div>
             )}
 
@@ -375,15 +336,14 @@ export default function ServerDashboard({
                   setCurrentPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
                 }}
               >
-                <SelectTrigger className="w-[100px]">
+                <SelectTrigger className="w-[90px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="6">6개 (모바일)</SelectItem>
-                  <SelectItem value="9">9개 (태블릿)</SelectItem>
+                  <SelectItem value="6">6개</SelectItem>
+                  <SelectItem value="9">9개</SelectItem>
                   <SelectItem value="12">12개</SelectItem>
-                  <SelectItem value="15">15개 (전체 - 권장)</SelectItem>
-                  <SelectItem value="20">20개 (확장)</SelectItem>
+                  <SelectItem value="15">15개</SelectItem>
                 </SelectContent>
               </Select>
             </div>

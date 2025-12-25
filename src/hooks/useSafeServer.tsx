@@ -89,31 +89,68 @@ export const useSafeServer = (server: ServerType | undefined | null) => {
     }
   }, [safeServer.type]);
 
+  // 서버 타입 라벨 (한글)
+  const serverTypeLabel = useMemo(() => {
+    const typeLabels: Record<string, string> = {
+      web: '웹서버',
+      app: 'API/WAS',
+      database: '데이터베이스',
+      cache: '캐시',
+      storage: '스토리지',
+      loadbalancer: '로드밸런서',
+      backup: '백업',
+      monitoring: '모니터링',
+      security: '보안',
+      queue: '큐',
+      log: '로그',
+      api: 'API',
+    };
+    const serverType = safeServer.type || 'worker';
+    return typeLabels[serverType] || '서버';
+  }, [safeServer.type]);
+
   // OS 아이콘
   const osIcon = useMemo(() => {
     const os = (safeServer.os || '').toLowerCase();
-    if (
-      os.includes('ubuntu') ||
-      os.includes('debian') ||
-      os.includes('linux')
-    ) {
+    if (os.includes('ubuntu') || os.includes('debian')) {
       return '🐧';
     } else if (
+      os.includes('rocky') ||
       os.includes('centos') ||
       os.includes('red hat') ||
       os.includes('rhel')
     ) {
       return '🎩';
+    } else if (os.includes('oracle')) {
+      return '🔶';
     } else if (os.includes('windows')) {
       return '🪟';
+    } else if (os.includes('linux')) {
+      return '🐧';
     }
-    return null;
+    return '💻';
+  }, [safeServer.os]);
+
+  // OS 짧은 이름 (UI 표시용)
+  const osShortName = useMemo(() => {
+    const os = safeServer.os || '';
+    // 버전 번호 제거하고 핵심 이름만 추출
+    if (os.toLowerCase().includes('ubuntu')) return 'Ubuntu';
+    if (os.toLowerCase().includes('rocky')) return 'Rocky';
+    if (os.toLowerCase().includes('oracle')) return 'Oracle';
+    if (os.toLowerCase().includes('debian')) return 'Debian';
+    if (os.toLowerCase().includes('centos')) return 'CentOS';
+    if (os.toLowerCase().includes('red hat')) return 'RHEL';
+    if (os.toLowerCase().includes('windows')) return 'Windows';
+    return os.split(' ')[0] || 'Linux';
   }, [safeServer.os]);
 
   return {
     safeServer,
     statusTheme,
     serverIcon,
+    serverTypeLabel,
     osIcon,
+    osShortName,
   };
 };

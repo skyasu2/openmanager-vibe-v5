@@ -54,7 +54,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     enableProgressiveDisclosure = true,
   }) => {
     // Basic data preparation
-    const { safeServer, serverIcon, osIcon } = useSafeServer(server);
+    const { safeServer, serverIcon, serverTypeLabel, osIcon, osShortName } =
+      useSafeServer(server);
     // 🎨 White Mode with Glassmorphism + Status Colors
     const statusTheme = getServerStatusTheme(safeServer.status);
 
@@ -153,7 +154,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           </div>
         )}
 
-        {/* Header - 축소된 크기 */}
+        {/* Header - OS/타입 정보 추가 */}
         <header className="mb-2 flex items-start justify-between relative z-10">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <div
@@ -162,16 +163,24 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               {serverIcon}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="mb-0.5 flex items-center gap-1">
+              <div className="mb-0.5 flex items-center gap-1.5">
                 <h3 className="truncate text-sm font-semibold text-gray-900">
                   {safeServer.name}
                 </h3>
-                {osIcon && (
-                  <span className="text-gray-400 text-xs">{osIcon}</span>
-                )}
               </div>
-              <div className="flex items-center gap-1 text-xs font-medium text-gray-600">
-                <MapPin className="h-2.5 w-2.5" />
+              {/* 서버 타입 + OS 정보 표시 */}
+              <div className="flex items-center gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 rounded bg-blue-100 px-1.5 py-0.5 text-[11px] font-medium text-blue-700">
+                  {serverTypeLabel}
+                </span>
+                <span className="inline-flex items-center gap-1 text-gray-500">
+                  {osIcon}
+                  <span className="text-[11px]">{osShortName}</span>
+                </span>
+              </div>
+              {/* 위치 정보 */}
+              <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+                <MapPin className="h-3 w-3" />
                 <span>{safeServer.location}</span>
               </div>
             </div>
@@ -193,13 +202,13 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           </div>
         </header>
 
-        {/* Metrics - 축소된 크기 */}
+        {/* Metrics - 가독성 개선 */}
         <section className="space-y-2 relative z-10">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
-                <Activity className="h-2.5 w-2.5 text-gray-500" />
-                <span className="text-[9px] font-semibold uppercase text-gray-500 tracking-wider">
+                <Activity className="h-3 w-3 text-gray-500" />
+                <span className="text-[11px] font-semibold uppercase text-gray-500 tracking-wide">
                   Core Metrics
                 </span>
               </div>
@@ -229,9 +238,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             className={`space-y-1.5 overflow-hidden transition-all duration-300 ${showSecondaryInfo ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
           >
             <div className="flex items-center gap-1 pt-1">
-              <HardDrive className="h-2.5 w-2.5 text-gray-500" />
-              <span className="text-[9px] font-medium uppercase text-gray-500 tracking-wider">
-                Secondary
+              <HardDrive className="h-3 w-3 text-gray-500" />
+              <span className="text-[11px] font-medium uppercase text-gray-500 tracking-wide">
+                Storage & Network
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -315,11 +324,12 @@ const MetricItem = ({
   history,
   color: _themeColor,
 }: MetricItemProps) => {
+  // 가독성 향상: 축약어 → 전체 이름
   const labels = {
     cpu: 'CPU',
-    memory: 'MEM',
-    disk: 'DISK',
-    network: 'NET',
+    memory: 'Memory',
+    disk: 'Disk',
+    network: 'Network',
   };
 
   // 🎨 Per-Metric Severity Coloring (User Request)
@@ -336,7 +346,7 @@ const MetricItem = ({
     <div className="flex flex-col bg-black/5 rounded-lg p-2 border border-gray-200/50 hover:bg-black/10 transition-colors">
       {/* Header: Label + Value */}
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[9px] uppercase text-gray-500 font-semibold tracking-wider">
+        <span className="text-[11px] uppercase text-gray-500 font-semibold tracking-wide">
           {labels[type]}
         </span>
         <span className="text-sm font-bold" style={{ color: metricColor }}>
@@ -365,15 +375,13 @@ interface DetailRowProps {
 }
 
 const DetailRow = ({ icon, label, value }: DetailRowProps) => (
-  <div className="flex items-center gap-1.5 rounded-md bg-black/5 px-2 py-1 border border-gray-200/50">
+  <div className="flex items-center gap-1.5 rounded-md bg-black/5 px-2 py-1.5 border border-gray-200/50">
     <div className="text-gray-500">{icon}</div>
     <div className="min-w-0">
-      <div className="text-[8px] uppercase text-gray-500 font-semibold tracking-wider">
+      <div className="text-[10px] uppercase text-gray-500 font-semibold tracking-wide">
         {label}
       </div>
-      <div className="font-medium text-gray-700 truncate text-[10px]">
-        {value}
-      </div>
+      <div className="font-medium text-gray-700 truncate text-xs">{value}</div>
     </div>
   </div>
 );
@@ -395,9 +403,9 @@ const ServiceChip = ({ service }: { service: Service }) => {
 
   return (
     <div
-      className={`flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-medium backdrop-blur-sm ${statusColors}`}
+      className={`flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium backdrop-blur-sm ${statusColors}`}
     >
-      <span className={`h-1 w-1 rounded-full ${dotColor}`} />
+      <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />
       <span>{service.name}</span>
     </div>
   );
