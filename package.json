@@ -192,7 +192,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/supertest": "^6.0.3",
     "@vitest/coverage-v8": "^4.0.15",
-    "@vitest/ui": "^4.0.15",
+    "@vitest/ui": "^4.0.16",
     "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
     "husky": "^9.1.7",
