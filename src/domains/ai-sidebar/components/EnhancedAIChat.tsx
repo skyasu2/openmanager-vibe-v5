@@ -288,7 +288,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
 
           {/* 키보드 단축키 힌트 */}
           <div className="text-xs text-gray-500">
-            <span>Ctrl+Enter로 전송</span>
+            <span>Enter로 전송, Shift+Enter로 줄바꿈</span>
           </div>
         </div>
       </div>

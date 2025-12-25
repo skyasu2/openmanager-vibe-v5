@@ -96,16 +96,17 @@ export const AutoResizeTextarea = memo(
       // 키보드 이벤트 핸들러
       const handleKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-          // Ctrl+Enter 단축키 지원
-          if (event.ctrlKey && event.key === 'Enter') {
+          // Enter: 전송 (onKeyboardShortcut 호출)
+          // Shift+Enter: 줄바꿈 (기본 동작)
+          // 조합키(한글 등) 입력 중에는 이벤트 무시 (isComposing)
+          if (
+            event.key === 'Enter' &&
+            !event.shiftKey &&
+            !event.nativeEvent.isComposing
+          ) {
             event.preventDefault();
             onKeyboardShortcut?.(event.nativeEvent);
             return;
-          }
-
-          // Enter 키 처리 (줄바꿈 허용)
-          if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey) {
-            // 기본 동작 유지 (줄바꿈)
           }
 
           onKeyDown?.(event);
