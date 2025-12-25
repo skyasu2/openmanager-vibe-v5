@@ -1,24 +1,27 @@
 /**
- * Type declarations for langfuse-langchain
- * This module provides LangChain callback handler for LangFuse tracing
+ * Type declarations for @langfuse/langchain (v4+)
+ * Migrated from deprecated langfuse-langchain package
  *
- * Note: We use a flexible type to avoid version conflicts between
- * langfuse-langchain and @langchain/core versions
+ * @see https://langfuse.com/docs/observability/sdk/typescript/upgrade-path
  */
 
-declare module 'langfuse-langchain' {
+declare module '@langfuse/langchain' {
   export interface CallbackHandlerConfig {
-    publicKey: string;
-    secretKey: string;
+    publicKey?: string;
+    secretKey?: string;
     baseUrl?: string;
     sessionId?: string;
     userId?: string;
     metadata?: Record<string, unknown>;
+    tags?: string[];
   }
 
-  // Use flexible type to work with any @langchain/core version
+  /**
+   * LangChain CallbackHandler for LangFuse tracing
+   * Compatible with @langchain/core >=0.3.0
+   */
   export class CallbackHandler {
-    constructor(config: CallbackHandlerConfig);
+    constructor(config?: CallbackHandlerConfig);
     flushAsync(): Promise<void>;
     shutdownAsync(): Promise<void>;
     // Allow as LangChain callback handler

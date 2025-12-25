@@ -66,11 +66,12 @@ async function getCallbackHandlerClass() {
   if (CallbackHandlerClass) return CallbackHandlerClass;
 
   try {
-    const module = await import('langfuse-langchain');
+    // v4: Use scoped package @langfuse/langchain (supports @langchain/core >=0.3.0)
+    const module = await import('@langfuse/langchain');
     CallbackHandlerClass = module.CallbackHandler;
     return CallbackHandlerClass;
   } catch {
-    console.warn('⚠️ [LangFuse] langfuse-langchain not installed. Run: npm install langfuse-langchain');
+    console.warn('⚠️ [LangFuse] @langfuse/langchain not installed. Run: npm install @langfuse/langchain');
     return null;
   }
 }
