@@ -49,7 +49,7 @@ export const scenario4: ScenarioTimeline = {
       durationHours: 2,
       serverMetrics: [
         {
-          serverId: 'api-1',
+          serverId: 'api-was-icn-01',
           metrics: {
             cpu: [40, 70],
             memory: [53, 75],
@@ -60,7 +60,7 @@ export const scenario4: ScenarioTimeline = {
           curveType: 'exponential',
         },
         {
-          serverId: 'api-2',
+          serverId: 'api-was-icn-02',
           metrics: {
             cpu: [40, 68],
             memory: [53, 73],
@@ -71,7 +71,7 @@ export const scenario4: ScenarioTimeline = {
           curveType: 'exponential',
         },
         {
-          serverId: 'web-1',
+          serverId: 'web-nginx-icn-01',
           metrics: {
             cpu: [35, 60],
             memory: [48, 68],
@@ -82,7 +82,7 @@ export const scenario4: ScenarioTimeline = {
           curveType: 'exponential',
         },
         {
-          serverId: 'web-2',
+          serverId: 'web-nginx-icn-02',
           metrics: {
             cpu: [35, 58],
             memory: [48, 66],
@@ -93,7 +93,7 @@ export const scenario4: ScenarioTimeline = {
           curveType: 'exponential',
         },
         {
-          serverId: 'db-primary',
+          serverId: 'db-mysql-icn-primary',
           metrics: {
             cpu: [40, 65],
             memory: [60, 75],
@@ -104,7 +104,13 @@ export const scenario4: ScenarioTimeline = {
         },
         ...SERVERS.filter(
           (s) =>
-            !['api-1', 'api-2', 'web-1', 'web-2', 'db-primary'].includes(s.id)
+            ![
+              'api-was-icn-01',
+              'api-was-icn-02',
+              'web-nginx-icn-01',
+              'web-nginx-icn-02',
+              'db-mysql-icn-primary',
+            ].includes(s.id)
         ).map((s) => ({
           serverId: s.id,
           metrics: {
@@ -131,7 +137,7 @@ export const scenario4: ScenarioTimeline = {
       durationHours: 1,
       serverMetrics: [
         {
-          serverId: 'api-1',
+          serverId: 'api-was-icn-01',
           metrics: {
             cpu: [70, 85],
             memory: [75, 88],
@@ -143,7 +149,7 @@ export const scenario4: ScenarioTimeline = {
           curveType: 'spike',
         },
         {
-          serverId: 'api-2',
+          serverId: 'api-was-icn-02',
           metrics: {
             cpu: [68, 82],
             memory: [73, 86],
@@ -155,7 +161,7 @@ export const scenario4: ScenarioTimeline = {
           curveType: 'spike',
         },
         {
-          serverId: 'web-1',
+          serverId: 'web-nginx-icn-01',
           metrics: {
             cpu: [60, 75],
             memory: [68, 80],
@@ -167,7 +173,7 @@ export const scenario4: ScenarioTimeline = {
           curveType: 'spike',
         },
         {
-          serverId: 'web-2',
+          serverId: 'web-nginx-icn-02',
           metrics: {
             cpu: [58, 72],
             memory: [66, 78],
@@ -179,7 +185,7 @@ export const scenario4: ScenarioTimeline = {
           curveType: 'spike',
         },
         {
-          serverId: 'db-primary',
+          serverId: 'db-mysql-icn-primary',
           metrics: {
             cpu: [65, 78],
             memory: [75, 85],
@@ -190,7 +196,13 @@ export const scenario4: ScenarioTimeline = {
         },
         ...SERVERS.filter(
           (s) =>
-            !['api-1', 'api-2', 'web-1', 'web-2', 'db-primary'].includes(s.id)
+            ![
+              'api-was-icn-01',
+              'api-was-icn-02',
+              'web-nginx-icn-01',
+              'web-nginx-icn-02',
+              'db-mysql-icn-primary',
+            ].includes(s.id)
         ).map((s) => ({
           serverId: s.id,
           metrics: {

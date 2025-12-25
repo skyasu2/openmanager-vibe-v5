@@ -223,7 +223,12 @@ export type ServerEnvironment =
   | 'aws'
   | 'gcp'
   | 'azure';
-export type ServerRole = EnumServerRole | 'app' | 'fallback';
+export type ServerRole =
+  | EnumServerRole
+  | 'app'
+  | 'fallback'
+  | 'loadbalancer'
+  | 'application';
 
 export interface EnhancedServerMetrics {
   // 🔧 기본 ServerMetrics 속성들 (완전 포함)
@@ -605,6 +610,34 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
       failureProne: ['disk_full', 'log_rotation_failure', 'parsing_errors'],
       dependencies: ['storage'],
     },
+    loadbalancer: {
+      type: 'load-balancer',
+      tags: ['nginx', 'haproxy', 'traefik', 'ingress'],
+      characteristics: {
+        cpuWeight: 0.6,
+        memoryWeight: 0.4,
+        diskWeight: 0.2,
+        networkWeight: 1.3,
+        responseTimeBase: 80,
+        stabilityFactor: 0.8,
+      },
+      failureProne: ['backend_unavailable', 'ssl_certificate_expired'],
+      dependencies: ['web', 'api'],
+    },
+    application: {
+      type: 'app',
+      tags: ['application', 'service', 'microservice', 'was', 'jvm'],
+      characteristics: {
+        cpuWeight: 0.7,
+        memoryWeight: 0.8,
+        diskWeight: 0.5,
+        networkWeight: 0.9,
+        responseTimeBase: 180,
+        stabilityFactor: 0.7,
+      },
+      failureProne: ['memory_leak', 'thread_pool_exhausted', 'heap_overflow'],
+      dependencies: ['database', 'cache'],
+    },
   };
 
 export interface RealisticFailureScenario {
@@ -645,6 +678,8 @@ export const FAILURE_IMPACT_GRAPH: Record<ServerRole, ServerRole[]> = {
   app: ['api', 'database', 'queue'],
   fallback: ['api', 'database'],
   log: ['storage', 'monitoring'],
+  loadbalancer: ['web', 'api'],
+  application: ['database', 'cache', 'api'],
 };
 
 export interface SystemOverview {

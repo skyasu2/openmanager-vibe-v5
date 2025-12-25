@@ -7,12 +7,19 @@ export interface ScenarioPoint {
   errorRate?: number; // percentage
 }
 
+/**
+ * 🎯 서버 타입 정의 (SSOT와 일치)
+ * @see src/mock/mockServerConfig.ts
+ */
 export type ServerType =
   | 'web'
-  | 'api'
+  | 'app'
   | 'database'
   | 'cache'
   | 'storage'
+  | 'loadbalancer'
+  // Legacy 호환성
+  | 'api'
   | 'log'
   | 'monitoring';
 

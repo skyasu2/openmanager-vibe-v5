@@ -2,11 +2,28 @@
  * 🗄️ Supabase Mock Provider
  *
  * Supabase의 간소화된 Mock 구현
+ * ⚠️ Legacy: 실제 사용되지 않음 - UnifiedServerDataSource 사용 권장
  */
 
+import { mockServers } from '@/mock/mockServerConfig';
 import { MockBase } from '../core/MockBase';
-import mockData from '../data/servers.json';
 import userData from '../data/users.json';
+
+// SSOT 데이터를 Supabase Mock 형식으로 변환
+const mockData = {
+  servers: mockServers.map((server) => ({
+    id: server.id,
+    name: server.hostname,
+    type: server.type,
+    status: server.status === 'online' ? 'healthy' : server.status,
+    cpu: server.cpu.cores * 10, // 예상 CPU 사용률
+    memory: server.memory.total,
+    disk: server.disk.total,
+    network: 100, // 기본값
+    region: server.location,
+    tags: [server.type, server.location.includes('ICN') ? 'production' : 'dr'],
+  })),
+};
 
 interface QueryBuilder {
   table: string;

@@ -29,7 +29,7 @@ export const scenario2: ScenarioTimeline = {
       durationHours: 2,
       serverMetrics: [
         {
-          serverId: 'storage-1',
+          serverId: 'storage-nfs-icn-01',
           metrics: {
             cpu: [20, 35],
             memory: [40, 55],
@@ -39,7 +39,7 @@ export const scenario2: ScenarioTimeline = {
           curveType: 'linear',
         },
         {
-          serverId: 'log-server',
+          serverId: 'lb-haproxy-icn-01',
           metrics: {
             cpu: [30, 45],
             memory: [50, 65],
@@ -49,7 +49,7 @@ export const scenario2: ScenarioTimeline = {
           curveType: 'linear',
         },
         ...SERVERS.filter(
-          (s) => !['storage-1', 'log-server'].includes(s.id)
+          (s) => !['storage-nfs-icn-01', 'lb-haproxy-icn-01'].includes(s.id)
         ).map((s) => ({
           serverId: s.id,
           metrics: {
@@ -73,7 +73,7 @@ export const scenario2: ScenarioTimeline = {
       durationHours: 2,
       serverMetrics: [
         {
-          serverId: 'storage-1',
+          serverId: 'storage-nfs-icn-01',
           metrics: {
             cpu: [35, 50],
             memory: [55, 75],
@@ -83,7 +83,7 @@ export const scenario2: ScenarioTimeline = {
           curveType: 'spike',
         },
         {
-          serverId: 'log-server',
+          serverId: 'lb-haproxy-icn-01',
           metrics: {
             cpu: [45, 70],
             memory: [65, 85],
@@ -93,7 +93,7 @@ export const scenario2: ScenarioTimeline = {
           curveType: 'spike',
         },
         {
-          serverId: 'storage-2',
+          serverId: 'storage-s3gw-pus-01',
           metrics: {
             cpu: [20, 55],
             memory: [40, 70],
@@ -103,7 +103,12 @@ export const scenario2: ScenarioTimeline = {
           curveType: 'exponential',
         },
         ...SERVERS.filter(
-          (s) => !['storage-1', 'log-server', 'storage-2'].includes(s.id)
+          (s) =>
+            ![
+              'storage-nfs-icn-01',
+              'lb-haproxy-icn-01',
+              'storage-s3gw-pus-01',
+            ].includes(s.id)
         ).map((s) => ({
           serverId: s.id,
           metrics: {
@@ -130,7 +135,7 @@ export const scenario2: ScenarioTimeline = {
       durationHours: 1,
       serverMetrics: [
         {
-          serverId: 'storage-1',
+          serverId: 'storage-nfs-icn-01',
           metrics: {
             cpu: [50, 48],
             memory: [75, 73],
@@ -140,7 +145,7 @@ export const scenario2: ScenarioTimeline = {
           curveType: 'linear',
         },
         {
-          serverId: 'log-server',
+          serverId: 'lb-haproxy-icn-01',
           metrics: {
             cpu: [70, 68],
             memory: [85, 82],
@@ -150,7 +155,7 @@ export const scenario2: ScenarioTimeline = {
           curveType: 'linear',
         },
         {
-          serverId: 'storage-2',
+          serverId: 'storage-s3gw-pus-01',
           metrics: {
             cpu: [55, 52],
             memory: [70, 68],
@@ -160,7 +165,12 @@ export const scenario2: ScenarioTimeline = {
           curveType: 'linear',
         },
         ...SERVERS.filter(
-          (s) => !['storage-1', 'log-server', 'storage-2'].includes(s.id)
+          (s) =>
+            ![
+              'storage-nfs-icn-01',
+              'lb-haproxy-icn-01',
+              'storage-s3gw-pus-01',
+            ].includes(s.id)
         ).map((s) => ({
           serverId: s.id,
           metrics: {

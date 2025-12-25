@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-22
+**마지막 업데이트**: 2025-12-25
 
 ---
 
@@ -62,7 +62,18 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 12-22)
+## 🔧 최근 유지보수 (2025-12-09 ~ 12-25)
+
+**Mock System SSOT 통합 및 로그 시스템 개선 (v5.83.12, 2025-12-25)**
+- **SSOT 통합**: 모든 Mock 데이터 소스를 한국 데이터센터 기반 15개 서버로 통일
+  - 서버 ID 표준화: `web-nginx-icn-01`, `db-mysql-icn-primary` 등
+  - 시나리오 파일 업데이트: `dbOverload.ts`, `cacheFailure.ts`, `networkBottleneck.ts`, `storageFull.ts`
+- **AI Agent 로그 시스템 개선**: 시나리오 이름 노출 제거 (스포일러 방지)
+  - 변경 전: `[CRITICAL] 심야 DB 디스크 풀 detected` (정답 직접 노출)
+  - 변경 후: `[ERROR] mysqld: Disk full (errcode: 28)` (증상만 표시)
+  - AI가 로그 패턴을 분석하여 원인을 추론해야 함
+- **서버 타입별 실제 로그 템플릿 구현**: MySQL, Redis, Nginx, HAProxy, NFS 등
+- **변경 파일**: 16개 파일 (1,699 추가 / 1,300 삭제)
 
 **AI 어시스턴트 스트리밍 수정 (v5.83.9, 2025-12-22)**
 - **문제 1**: AI SDK v5가 `parts` 배열 형식으로 메시지 전송 → Cloud Run 503 에러

@@ -1,6 +1,13 @@
+/**
+ * 🗄️ Cached Servers API
+ *
+ * ⚠️ DEPRECATED: /api/servers-unified 사용 권장
+ * 이 엔드포인트는 호환성을 위해 유지되며, 내부적으로 SSOT 데이터를 사용합니다.
+ */
 import { NextResponse } from 'next/server';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
-import type { EnhancedServerMetrics, Server } from '@/types/server';
+import { mockServers } from '@/mock/mockServerConfig';
+import type { EnhancedServerMetrics } from '@/types/server';
 import debug from '@/utils/debug';
 
 export function GET() {
@@ -19,109 +26,46 @@ export function GET() {
       });
     }
 
-    // 캐시 미스 시 Mock 데이터 생성
+    // 캐시 미스 시 SSOT Mock 데이터 변환
     const now = new Date().toISOString();
 
-    const mockServers: Server[] = [
-      {
-        id: 'srv-001',
-        name: 'Web Server 01',
-        status: 'online',
-        cpu: 45,
-        memory: 60,
-        disk: 75,
-        uptime: '7d 12h',
-        location: 'US East',
-        metrics: {
-          cpu: { usage: 45, cores: 4, temperature: 55 },
-          memory: { used: 9.6, total: 16, usage: 60 },
-          disk: { used: 75, total: 100, usage: 75 },
-          network: {
-            bytesIn: 1024000,
-            bytesOut: 2048000,
-            packetsIn: 1500,
-            packetsOut: 1200,
-          },
-          timestamp: now,
-          uptime: 7.5 * 24 * 3600, // 7.5일을 초 단위로
-        },
-        lastSeen: now,
-      },
-      {
-        id: 'srv-002',
-        name: 'API Server 01',
-        status: 'warning',
-        cpu: 80,
-        memory: 85,
-        disk: 45,
-        uptime: '3d 8h',
-        location: 'EU West',
-        metrics: {
-          cpu: { usage: 80, cores: 8, temperature: 70 },
-          memory: { used: 27.2, total: 32, usage: 85 },
-          disk: { used: 45, total: 100, usage: 45 },
-          network: {
-            bytesIn: 2048000,
-            bytesOut: 4096000,
-            packetsIn: 3000,
-            packetsOut: 2500,
-          },
-          timestamp: now,
-          uptime: 3.33 * 24 * 3600, // 3.33일을 초 단위로
-        },
-        lastSeen: now,
-      },
-    ];
-
-    // Mock 서버를 EnhancedServerMetrics로 변환
+    // SSOT mockServers를 EnhancedServerMetrics로 변환
     const enhancedServers: EnhancedServerMetrics[] = mockServers.map(
       (server): EnhancedServerMetrics => ({
         id: server.id,
-        hostname: server.name,
-        environment: server.location?.includes('US')
+        hostname: server.hostname,
+        name: server.hostname,
+        environment: server.location.includes('Seoul')
           ? ('production' as const)
-          : server.location?.includes('EU')
-            ? ('staging' as const)
-            : ('development' as const),
-        role: server.name?.toLowerCase().includes('web')
-          ? ('web' as const)
-          : server.name?.toLowerCase().includes('api')
-            ? ('api' as const)
-            : ('app' as const),
+          : ('staging' as const),
+        role: server.type as EnhancedServerMetrics['role'],
         status:
           server.status === 'online'
             ? ('online' as const)
             : server.status === 'warning'
               ? ('warning' as const)
-              : server.status === 'offline'
-                ? ('offline' as const)
-                : ('maintenance' as const),
-        cpu_usage: server.metrics?.cpu?.usage || 0,
-        memory_usage: server.metrics?.memory?.usage || 0,
-        disk_usage: server.metrics?.disk?.usage || 0,
-        network_in: server.metrics?.network?.bytesIn || 0,
-        network_out: server.metrics?.network?.bytesOut || 0,
-        responseTime: 100, // 기본값 100ms - 실제 구현 시 측정 필요
-        uptime: 99.9, // 기본값 99.9% - 실제 구현 시 계산 필요
-        last_updated: server.lastSeen || now,
-        alerts: Array.isArray(server.alerts)
-          ? server.alerts.map((alert) => ({
-              id:
-                typeof alert === 'object' && alert?.id
-                  ? alert.id
-                  : `alert-${Date.now()}`,
-              server_id: server.id,
-              type: 'custom' as const,
-              message:
-                typeof alert === 'object' && alert?.message
-                  ? alert.message
-                  : 'Unknown alert',
-              severity: 'warning' as const,
-              timestamp: now,
-              resolved: false,
-            }))
-          : [],
-        name: server.name,
+              : server.status === 'critical'
+                ? ('critical' as const)
+                : ('offline' as const),
+        cpu_usage: server.cpu.cores * 5, // 예상 사용률
+        memory_usage: (server.memory.total / 128) * 100, // 예상 사용률
+        disk_usage: (server.disk.total / 10000) * 100, // 예상 사용률
+        network_in: 1024000,
+        network_out: 2048000,
+        responseTime: 50,
+        uptime: 99.9,
+        last_updated: now,
+        alerts: [],
+        location: server.location,
+        ip: server.ip,
+        os: server.os,
+        provider: 'openmanager',
+        specs: {
+          cpu_cores: server.cpu.cores,
+          memory_gb: server.memory.total,
+          disk_gb: server.disk.total,
+          network_speed: '1Gbps',
+        },
       })
     );
 
@@ -133,6 +77,7 @@ export function GET() {
       data: enhancedServers,
       cached: false,
       timestamp: Date.now(),
+      _deprecated: 'Use /api/servers-unified instead',
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
