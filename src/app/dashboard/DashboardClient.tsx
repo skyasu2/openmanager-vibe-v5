@@ -468,8 +468,8 @@ function DashboardPageContent() {
     }
   }, [isSystemStarted, startSystem]);
 
-  // 🕐 시간 포맷팅
-  const remainingTimeFormatted = formatTime
+  // 🕐 시간 포맷팅 (향후 사용을 위해 유지)
+  const _remainingTimeFormatted = formatTime
     ? formatTime(systemRemainingTime)
     : '00:00';
 
@@ -602,10 +602,6 @@ function DashboardPageContent() {
           onNavigateHome={() => (window.location.href = '/')}
           onToggleAgent={toggleAgent}
           isAgentOpen={isAgentOpen}
-          systemRemainingTime={systemRemainingTime}
-          isSystemActive={isSystemActive}
-          onSystemStop={stopSystem}
-          remainingTimeFormatted={remainingTimeFormatted}
         />
 
         <div className="flex-1 overflow-hidden">
