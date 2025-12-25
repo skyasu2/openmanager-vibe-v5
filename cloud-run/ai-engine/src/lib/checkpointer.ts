@@ -172,10 +172,33 @@ export function getMemoryCheckpointer(): MemorySaver {
   return memoryCheckpointer;
 }
 
+/**
+ * Validate if URL is a proper PostgreSQL connection string
+ */
+function isValidPostgresUrl(url: string): boolean {
+  return url.startsWith('postgresql://') || url.startsWith('postgres://');
+}
+
 export async function getAutoCheckpointer(): Promise<
   PostgresSaver | MemorySaver
 > {
   const directUrl = getDirectConnectionUrl();
+
+  // Cloud Run specific: Use MemorySaver to avoid PostgreSQL connection issues
+  // The SUPABASE_DIRECT_URL might be misconfigured or network-blocked
+  if (process.env.K_SERVICE) {
+    console.log('☁️ Cloud Run detected - using MemorySaver for reliability');
+    return getMemoryCheckpointer();
+  }
+
+  // Validate URL format before attempting PostgreSQL connection
+  if (directUrl && !isValidPostgresUrl(directUrl)) {
+    console.warn(
+      `⚠️ Invalid PostgreSQL URL format: ${directUrl.substring(0, 30)}...`
+    );
+    console.log('📝 Using MemorySaver instead');
+    return getMemoryCheckpointer();
+  }
 
   if (process.env.NODE_ENV === 'production' && directUrl) {
     try {
@@ -183,7 +206,7 @@ export async function getAutoCheckpointer(): Promise<
     } catch (error) {
       console.warn(
         '⚠️ PostgresSaver failed in production, falling back to MemorySaver:',
-        error
+        getErrorMessage(error)
       );
       return getMemoryCheckpointer();
     }
@@ -195,7 +218,7 @@ export async function getAutoCheckpointer(): Promise<
     } catch (error) {
       console.warn(
         '⚠️ PostgresSaver failed, falling back to MemorySaver:',
-        error
+        getErrorMessage(error)
       );
       return getMemoryCheckpointer();
     }
