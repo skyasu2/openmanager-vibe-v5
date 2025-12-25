@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.83.12](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.11...v5.83.12) (2025-12-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ai:** Replace deprecated packages with scoped v4 packages
+
+- langfuse → @langfuse/core@4.5.1
+- langfuse-langchain → @langfuse/langchain@4.5.1
+- Add @opentelemetry/api@1.9.0 peer dependency
+
+Benefits:
+- Native @langchain/core >=0.3.0 support (no more peer conflicts)
+- Remove --legacy-peer-deps workaround from Dockerfile
+- Proper TypeScript type support
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Bug Fixes
+
+* **ai:** add --legacy-peer-deps and LangFuse secrets to Cloud Run deployment ([ccd6552](https://github.com/skyasu2/openmanager-vibe-v5/commit/ccd6552ae5d6b14ddf9208829a0875d3ffcce377))
+* **typescript:** resolve implicit any types and Biome warnings ([8acc37a](https://github.com/skyasu2/openmanager-vibe-v5/commit/8acc37a64ff44cb1e718da35bba359351485e1fe))
+
+
+* **ai:** migrate to @langfuse/langchain v4 (best practice) ([0b5f93a](https://github.com/skyasu2/openmanager-vibe-v5/commit/0b5f93a18f0c490af9181002615934ead2185e5e))
+
 ### [5.83.11](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.10...v5.83.11) (2025-12-24)
 
 
