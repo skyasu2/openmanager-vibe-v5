@@ -168,14 +168,20 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   {safeServer.name}
                 </h3>
               </div>
-              {/* 서버 타입 + OS 정보 표시 */}
+              {/* 서버 타입 + OS 정보 표시 (WCAG AA Color Contrast) */}
               <div className="flex items-center gap-2 text-xs">
-                <span className="inline-flex items-center gap-1 rounded bg-blue-100 px-1.5 py-0.5 text-[11px] font-medium text-blue-700">
+                <span
+                  className="inline-flex items-center gap-1 rounded bg-blue-600 px-1.5 py-0.5 text-[11px] font-medium text-white"
+                  title={`서버 타입: ${serverTypeLabel}`}
+                >
                   {serverTypeLabel}
                 </span>
-                <span className="inline-flex items-center gap-1 text-gray-500">
-                  {osIcon}
-                  <span className="text-[11px]">{osShortName}</span>
+                <span
+                  className="inline-flex items-center gap-1 rounded bg-gray-100 px-1.5 py-0.5 text-gray-700"
+                  title={`운영체제: ${osShortName}`}
+                >
+                  <span aria-hidden="true">{osIcon}</span>
+                  <span className="text-[11px] font-medium">{osShortName}</span>
                 </span>
               </div>
               {/* 위치 정보 */}
