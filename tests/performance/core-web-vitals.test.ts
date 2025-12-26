@@ -8,6 +8,24 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Performance Entry Types
+interface LayoutShiftEntry {
+  name: string;
+  entryType: string;
+  startTime: number;
+  duration: number;
+  value: number;
+  hadRecentInput: boolean;
+  lastInputTime: number;
+  sources: unknown[];
+}
+
+interface PerformanceMetric {
+  name: string;
+  value: number;
+  timestamp: number;
+}
+
 // Mock Performance API
 const mockPerformance = {
   mark: vi.fn(),
@@ -27,7 +45,7 @@ const mockPerformanceObserver = vi.fn().mockImplementation((_callback) => ({
 // Global Performance API 모킹
 global.Performance = vi.fn().mockImplementation(() => mockPerformance);
 global.PerformanceObserver = mockPerformanceObserver;
-global.performance = mockPerformance as any;
+global.performance = mockPerformance as unknown as Performance;
 
 describe('Core Web Vitals 성능 테스트', () => {
   beforeEach(() => {
@@ -196,8 +214,8 @@ describe('Core Web Vitals 성능 테스트', () => {
 
       const clsEntries = global.performance.getEntriesByType('layout-shift');
       const cls = clsEntries
-        .filter((entry: any) => !entry.hadRecentInput)
-        .reduce((sum: number, entry: any) => sum + entry.value, 0);
+        .filter((entry: LayoutShiftEntry) => !entry.hadRecentInput)
+        .reduce((sum: number, entry: LayoutShiftEntry) => sum + entry.value, 0);
 
       expect(cls).toBeGreaterThan(0.1); // 실패 케이스
     });
@@ -221,8 +239,8 @@ describe('Core Web Vitals 성능 테스트', () => {
 
       const clsEntries = global.performance.getEntriesByType('layout-shift');
       const cls = clsEntries
-        .filter((entry: any) => !entry.hadRecentInput)
-        .reduce((sum: number, entry: any) => sum + entry.value, 0);
+        .filter((entry: LayoutShiftEntry) => !entry.hadRecentInput)
+        .reduce((sum: number, entry: LayoutShiftEntry) => sum + entry.value, 0);
 
       expect(cls).toBeLessThan(0.1);
       expect(cls).toBeGreaterThanOrEqual(0);
@@ -317,7 +335,7 @@ describe('Core Web Vitals 성능 테스트', () => {
     it('성능 메트릭 수집기 테스트', () => {
       // 성능 데이터 수집 유틸리티
       const createPerformanceCollector = () => {
-        const metrics: any[] = [];
+        const metrics: PerformanceMetric[] = [];
 
         return {
           collect: (metricName: string, value: number) => {

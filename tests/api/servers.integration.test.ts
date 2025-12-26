@@ -104,7 +104,7 @@ describe('Servers API Integration Tests', () => {
     global.fetch = vi
       .fn()
       .mockImplementation((url: string, options?: RequestInit) => {
-        let responseData: any = mockServerData;
+        let responseData: Record<string, unknown> = mockServerData;
 
         // Check if this is a POST request to /api/servers (should return 405)
         if (

@@ -68,7 +68,9 @@ let forceExitTimer: NodeJS.Timeout | null = null;
 beforeAll(async () => {
   // React act 환경 설정
   if (typeof globalThis !== 'undefined') {
-    (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+    (
+      globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
   }
 
   // 콘솔 경고 억제 (테스트 환경)
@@ -138,7 +140,9 @@ afterEach(async () => {
 afterAll(async () => {
   // React act 환경 정리
   if (typeof globalThis !== 'undefined') {
-    (globalThis as any).IS_REACT_ACT_ENVIRONMENT = false;
+    (
+      globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = false;
   }
 
   // 🚨 강제 종료 타이머 정리

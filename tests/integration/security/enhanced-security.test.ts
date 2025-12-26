@@ -66,7 +66,7 @@ interface DataAccessPattern {
 }
 
 describe('🔐 강화된 보안 시스템 통합 테스트', () => {
-  let _supabase: any;
+  let _supabase: ReturnType<typeof createClient>;
   let securityService: SecurityService;
   let testUser: MockUser;
   let adminUser: MockUser;

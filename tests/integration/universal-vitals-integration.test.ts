@@ -7,8 +7,20 @@
  */
 
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { universalVitals } from '@/lib/testing/universal-vitals';
+import {
+  type UniversalVital,
+  universalVitals,
+  type VitalCategory,
+} from '@/lib/testing/universal-vitals';
 import { VitestVitals } from '@/lib/testing/vitest-vitals-plugin';
+
+// Types for helper functions
+interface VitalsSummary {
+  total: number;
+  good: number;
+  needsImprovement: number;
+  poor: number;
+}
 
 // 🎯 통합 테스트 시나리오: 다중 테스트 도구 Vitals 수집
 describe('🌐 Universal Vitals 통합 테스트', () => {
@@ -440,7 +452,9 @@ async function generateIntegratedReport() {
 }
 
 function analyzeCategory(category: string) {
-  const metrics = universalVitals.getMetricsByCategory(category as any);
+  const metrics = universalVitals.getMetricsByCategory(
+    category as VitalCategory
+  );
   if (metrics.length === 0) return null;
 
   const good = metrics.filter((m) => m.rating === 'good').length;
@@ -461,7 +475,7 @@ function analyzeCategory(category: string) {
   };
 }
 
-function calculateOverallScore(summary: any) {
+function calculateOverallScore(summary: VitalsSummary) {
   const total = summary.total;
   if (total === 0) return 100;
 
@@ -478,7 +492,7 @@ function calculateOverallScore(summary: any) {
   return Math.round(weightedScore);
 }
 
-function generateRecommendations(metrics: any[]) {
+function generateRecommendations(metrics: UniversalVital[]) {
   const recommendations: string[] = [];
 
   const poorMetrics = metrics.filter((m) => m.rating === 'poor');

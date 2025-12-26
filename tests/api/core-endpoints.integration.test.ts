@@ -116,7 +116,7 @@ async function testApiEndpoint(
   expectedStatus: number = 200,
   schema?: z.ZodSchema,
   method: string = 'GET',
-  body?: any
+  body?: Record<string, unknown>
 ) {
   const url = `${BASE_URL}${endpoint}`;
   const options: RequestInit = {

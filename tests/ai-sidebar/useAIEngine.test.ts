@@ -3,7 +3,10 @@
  */
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useAIEngine } from '../../src/domains/ai-sidebar/hooks/useAIEngine';
+import {
+  type ChatMessage,
+  useAIEngine,
+} from '../../src/domains/ai-sidebar/hooks/useAIEngine';
 
 /**
  * useAIEngine Hook 테스트 (v4.0)
@@ -166,7 +169,7 @@ describe('useAIEngine (v4.0 - UNIFIED 전용)', () => {
       .mockImplementation(() => {});
     const { result } = renderHook(() => useAIEngine());
 
-    let message;
+    let message: ChatMessage | null = null;
     await act(async () => {
       message = await result.current.handleModeChange('GOOGLE_AI');
     });

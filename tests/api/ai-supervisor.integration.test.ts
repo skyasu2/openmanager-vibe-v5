@@ -46,7 +46,7 @@ describe('AI Unified Stream API Integration Tests', () => {
           options?.headers instanceof Headers
             ? options.headers.get('accept')
             : typeof options?.headers === 'object'
-              ? (options.headers as Record<string, string>)['Accept']
+              ? (options.headers as Record<string, string>).Accept
               : '';
 
         // Only handle POST requests to unified-stream
@@ -106,7 +106,7 @@ describe('AI Unified Stream API Integration Tests', () => {
           }
 
           // Streaming request (Accept: text/event-stream)
-          if (acceptHeader && acceptHeader.includes('text/event-stream')) {
+          if (acceptHeader?.includes('text/event-stream')) {
             return Promise.resolve({
               ok: true,
               status: 200,

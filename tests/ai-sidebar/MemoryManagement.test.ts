@@ -21,7 +21,7 @@ describe('Memory Management (MAX_MESSAGES)', () => {
       mockMessages = [];
     });
 
-    (useAISidebarStore as any).mockReturnValue({
+    vi.mocked(useAISidebarStore).mockReturnValue({
       messages: mockMessages,
       addMessage: mockAddMessage,
       clearMessages: mockClearMessages,

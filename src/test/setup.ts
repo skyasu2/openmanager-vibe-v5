@@ -155,11 +155,6 @@ class IntersectionObserverMock implements IntersectionObserver {
   readonly rootMargin: string = '';
   readonly thresholds: ReadonlyArray<number> = [];
 
-  constructor(
-    _callback: IntersectionObserverCallback,
-    _options?: IntersectionObserverInit
-  ) {}
-
   observe = vi.fn();
   unobserve = vi.fn();
   disconnect = vi.fn();
@@ -173,8 +168,6 @@ Object.defineProperty(globalThis, 'IntersectionObserver', {
 
 // ResizeObserver Mock - 클래스 기반
 class ResizeObserverMock implements ResizeObserver {
-  constructor(_callback: ResizeObserverCallback) {}
-
   observe = vi.fn();
   unobserve = vi.fn();
   disconnect = vi.fn();

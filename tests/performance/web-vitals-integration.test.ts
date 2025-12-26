@@ -15,11 +15,20 @@ interface Metric {
   rating: 'good' | 'needs-improvement' | 'poor';
   delta: number;
   id: string;
-  entries?: any[];
+  entries?: PerformanceEntry[];
+}
+
+// Web Vitals module type
+interface WebVitalsModule {
+  onCLS: (callback: (metric: Metric) => void) => void;
+  onINP: (callback: (metric: Metric) => void) => void;
+  onFCP: (callback: (metric: Metric) => void) => void;
+  onLCP: (callback: (metric: Metric) => void) => void;
+  onTTFB: (callback: (metric: Metric) => void) => void;
 }
 
 // Web Vitals 함수들을 동적으로 import (Node.js 환경에서 안전)
-let webVitalsModule: any = null;
+let webVitalsModule: WebVitalsModule | null = null;
 
 async function loadWebVitals() {
   if (webVitalsModule) return webVitalsModule;
@@ -222,7 +231,7 @@ describe('🌐 Web Vitals 통합 테스트', () => {
         measure: () => {},
         getEntriesByType: () => [],
         getEntriesByName: () => [],
-      } as any;
+      } as unknown as Performance;
     }
 
     if (typeof global.PerformanceObserver === 'undefined') {
@@ -232,7 +241,7 @@ describe('🌐 Web Vitals 통합 테스트', () => {
         takeRecords() {
           return [];
         }
-      } as any;
+      } as unknown as typeof PerformanceObserver;
     }
   });
 
@@ -309,7 +318,7 @@ describe('🌐 Web Vitals 통합 테스트', () => {
     });
 
     it('API가 잘못된 데이터에 대해 적절히 오류 처리함', async () => {
-      const invalidMetrics = [] as any;
+      const invalidMetrics: Metric[] = [];
 
       const response = await sendToWebVitalsAPI(invalidMetrics);
 

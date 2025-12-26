@@ -54,7 +54,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
     // Mock global fetch for API calls
     global.fetch = vi
       .fn()
-      .mockImplementation(async (url: string, options?: RequestInit) => {
+      .mockImplementation(async (url: string, _options?: RequestInit) => {
         if (url.includes('/api/servers')) {
           return Promise.resolve({
             ok: true,
