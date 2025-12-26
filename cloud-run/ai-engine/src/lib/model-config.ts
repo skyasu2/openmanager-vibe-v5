@@ -99,8 +99,8 @@ export const AGENT_MODEL_CONFIG = {
     maxOutputTokens: 4096,
   },
   verifier: {
-    provider: 'groq' as const,
-    model: 'llama-3.1-8b-instant' as GroqModel,
+    provider: 'mistral' as const, // Mistral 24B for better verification quality
+    model: MISTRAL_MODELS.SMALL,
     temperature: 0.1,
     maxOutputTokens: 1024,
   },
@@ -203,9 +203,9 @@ export function getReporterModel(): ChatGroq {
   });
 }
 
-export function getVerifierModel(): ChatGroq {
+export function getVerifierModel(): ChatMistralAI {
   const config = AGENT_MODEL_CONFIG.verifier;
-  return createGroqModel(config.model as GroqModel, {
+  return createMistralModel(config.model as MistralModel, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });
