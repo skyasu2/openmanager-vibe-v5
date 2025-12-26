@@ -11,19 +11,19 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'ai-assistant-pro',
     title: '🧠 AI Assistant',
     description:
-      'Google Gemini 2.5 Flash Lite(Supervisor) + Groq Llama 3.3(Worker) + RAG(Memory)가 결합된 LangGraph A2A(Agent-to-Agent) 시스템입니다.',
+      'Mistral Small(Supervisor) + Groq Llama 3.3(Worker) + RAG(Memory)가 결합된 LangGraph 멀티 에이전트 시스템입니다.',
     icon: Bot,
     gradient: 'from-indigo-500 via-purple-500 to-pink-500',
     detailedContent: {
-      overview: `단일 모델의 한계를 넘어선 Hybrid Multi-Agent 시스템! Gemini의 빠른 의도 분류로 지휘하고, Groq의 압도적 처리 속도와 RAG의 전문 지식이 LangGraph 위에서 유기적으로 협업합니다.`,
+      overview: `단일 모델의 한계를 넘어선 Hybrid Multi-Agent 시스템! Mistral의 효율적인 의도 분류로 지휘하고, Groq의 압도적 처리 속도와 RAG의 전문 지식이 LangGraph 위에서 유기적으로 협업합니다.`,
       features: [
-        '🤝 A2A Collaboration: Supervisor(Gemini)가 하위 전문가 에이전트(Groq 등)를 적재적소에 배치',
-        '⚡ Zero-Latency: Gemini Flash Lite 기반 Supervisor로 빠른 의도 분류',
+        '🤝 Multi-Agent Collaboration: Supervisor(Mistral)가 하위 전문가 에이전트(Groq 등)를 적재적소에 배치',
+        '⚡ Zero-Latency: Mistral Small 기반 Supervisor로 빠른 의도 분류',
         '🛡️ Failover System: 메인 에이전트 응답 불가 시 백업 에이전트가 즉시 투입되는 무중단 구조',
       ],
       technologies: [
         'LangGraph (Multi-Agent)',
-        'Google Gemini 2.5 Flash Lite (Supervisor)',
+        'Mistral Small 3.2 (Supervisor)',
         'Groq Llama 3.3 70b (Worker)',
         'Supabase pgVector',
         'Official PostgreSQL MCP',
@@ -31,15 +31,15 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     },
     subSections: [
       {
-        title: 'Gemini 2.5 Flash Lite Supervisor',
+        title: 'Mistral Small 3.2 Supervisor',
         description:
-          '시스템의 "지휘관" 역할. 빠른 의도 분류로 에이전트 간 작업을 조율하는 오케스트레이션 엔진입니다.',
+          '시스템의 "지휘관" 역할. 개선된 함수 호출로 에이전트 간 작업을 조율하는 오케스트레이션 엔진입니다.',
         icon: Zap,
         gradient: 'from-blue-500 to-indigo-600',
         features: [
           'Supervisor Agent: 하위 에이전트 지휘 및 의사결정',
-          'Fast Intent: Gemini Flash Lite로 빠른 의도 분류 및 라우팅',
-          'Routing: 사용자 의도를 파악하여 적절한 전문가에게 위임',
+          'Fast Intent: Small 3.2 (24B/128K)로 빠른 의도 분류 및 라우팅',
+          'Tool Calling: 개선된 함수 호출 템플릿으로 안정적 라우팅',
         ],
       },
       {

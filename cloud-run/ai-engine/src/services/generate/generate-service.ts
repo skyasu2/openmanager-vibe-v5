@@ -1,19 +1,20 @@
 /**
  * Cloud Run Generate Service
- * Google AI (Gemini) 텍스트 생성 담당
+ * Mistral AI 텍스트 생성 담당
  *
  * Hybrid Architecture:
  * - Vercel에서 프록시를 통해 이 서비스 호출
  * - API 키는 Cloud Run에서만 관리
+ *
+ * Updated: 2025-12-26 - Migrated from Gemini to Mistral AI
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Mistral } from '@mistralai/mistralai';
 
 interface GenerateOptions {
   model?: string;
   temperature?: number;
   maxTokens?: number;
-  topK?: number;
   topP?: number;
 }
 
@@ -31,18 +32,33 @@ interface GenerateResult {
 }
 
 class CloudRunGenerateService {
-  // Use Flash Lite (1,500 RPD) instead of Flash (20 RPD) for high availability
-  private readonly DEFAULT_MODEL = 'gemini-2.5-flash-lite';
-  private currentKeyIndex = 0; // For key rotation on error
+  // Use Mistral Small for high availability and fast responses
+  private readonly DEFAULT_MODEL = 'mistral-small-latest';
+  private client: Mistral | null = null;
 
   // 통계
   private stats = {
     requests: 0,
     successes: 0,
     errors: 0,
-    keyFailovers: 0,
     totalTokens: 0,
   };
+
+  /**
+   * Get Mistral client (lazy initialization)
+   */
+  private getClient(): Mistral | null {
+    if (this.client) return this.client;
+
+    const apiKey = process.env.MISTRAL_API_KEY;
+    if (!apiKey) {
+      console.error('❌ [Generate] MISTRAL_API_KEY not configured');
+      return null;
+    }
+
+    this.client = new Mistral({ apiKey });
+    return this.client;
+  }
 
   /**
    * 텍스트 생성
@@ -61,38 +77,28 @@ class CloudRunGenerateService {
       return { success: false, error: 'Empty prompt provided' };
     }
 
-    // API 키 가져오기
-    const apiKey = this.getApiKey();
-    if (!apiKey) {
-      console.error('❌ [Generate] No API key available');
+    const client = this.getClient();
+    if (!client) {
       return { success: false, error: 'No API key configured' };
     }
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const generativeModel = genAI.getGenerativeModel({ model });
-
-      const generationConfig = {
+      const response = await client.chat.complete({
+        model,
+        messages: [{ role: 'user', content: prompt }],
         temperature: options.temperature ?? 0.7,
-        maxOutputTokens: options.maxTokens ?? 2048,
-        topK: options.topK ?? 40,
+        maxTokens: options.maxTokens ?? 2048,
         topP: options.topP ?? 0.95,
-      };
-
-      const result = await generativeModel.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig,
       });
 
-      const response = result.response;
-      const text = response.text();
       const processingTime = Date.now() - startTime;
+      const text = response.choices?.[0]?.message?.content || '';
 
       // 사용량 추적
       const usage = {
-        promptTokens: response.usageMetadata?.promptTokenCount || 0,
-        completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
-        totalTokens: response.usageMetadata?.totalTokenCount || 0,
+        promptTokens: response.usage?.promptTokens || 0,
+        completionTokens: response.usage?.completionTokens || 0,
+        totalTokens: response.usage?.totalTokens || 0,
       };
 
       this.stats.successes++;
@@ -104,7 +110,7 @@ class CloudRunGenerateService {
 
       return {
         success: true,
-        text,
+        text: typeof text === 'string' ? text : JSON.stringify(text),
         model,
         usage,
         processingTime,
@@ -112,16 +118,6 @@ class CloudRunGenerateService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('❌ [Generate] Error:', errorMessage);
-
-      // Rate limit 에러 시 키 교체 시도
-      if (errorMessage.includes('429') || errorMessage.includes('quota')) {
-        const altKey = this.getAlternativeKey();
-        if (altKey && altKey !== apiKey) {
-          console.log('🔄 [Generate] Trying alternative key...');
-          this.stats.keyFailovers++;
-          return this.generateWithKey(prompt, options, altKey, startTime, model);
-        }
-      }
 
       this.stats.errors++;
       return {
@@ -133,67 +129,7 @@ class CloudRunGenerateService {
   }
 
   /**
-   * 특정 키로 생성 시도 (failover용)
-   */
-  private async generateWithKey(
-    prompt: string,
-    options: GenerateOptions,
-    apiKey: string,
-    startTime: number,
-    model: string
-  ): Promise<GenerateResult> {
-    try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const generativeModel = genAI.getGenerativeModel({ model });
-
-      const generationConfig = {
-        temperature: options.temperature ?? 0.7,
-        maxOutputTokens: options.maxTokens ?? 2048,
-        topK: options.topK ?? 40,
-        topP: options.topP ?? 0.95,
-      };
-
-      const result = await generativeModel.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig,
-      });
-
-      const response = result.response;
-      const text = response.text();
-      const processingTime = Date.now() - startTime;
-
-      const usage = {
-        promptTokens: response.usageMetadata?.promptTokenCount || 0,
-        completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
-        totalTokens: response.usageMetadata?.totalTokenCount || 0,
-      };
-
-      this.stats.successes++;
-      this.stats.totalTokens += usage.totalTokens;
-
-      console.log(
-        `✅ [Generate] Success (failover): ${model}, ${usage.totalTokens} tokens`
-      );
-
-      return {
-        success: true,
-        text,
-        model,
-        usage,
-        processingTime,
-      };
-    } catch (error) {
-      this.stats.errors++;
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-        processingTime: Date.now() - startTime,
-      };
-    }
-  }
-
-  /**
-   * 스트리밍 생성 (선택적)
+   * 스트리밍 생성
    */
   async generateStream(
     prompt: string,
@@ -201,37 +137,29 @@ class CloudRunGenerateService {
   ): Promise<ReadableStream<Uint8Array> | null> {
     const model = options.model || this.DEFAULT_MODEL;
 
-    const apiKey = this.getApiKey();
-    if (!apiKey) {
+    const client = this.getClient();
+    if (!client) {
       console.error('❌ [Generate Stream] No API key available');
       return null;
     }
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const generativeModel = genAI.getGenerativeModel({ model });
-
-      const generationConfig = {
+      const stream = await client.chat.stream({
+        model,
+        messages: [{ role: 'user', content: prompt }],
         temperature: options.temperature ?? 0.7,
-        maxOutputTokens: options.maxTokens ?? 2048,
-        topK: options.topK ?? 40,
+        maxTokens: options.maxTokens ?? 2048,
         topP: options.topP ?? 0.95,
-      };
-
-      const result = await generativeModel.generateContentStream({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig,
       });
 
-      // Convert to ReadableStream
       const encoder = new TextEncoder();
       return new ReadableStream({
         async start(controller) {
           try {
-            for await (const chunk of result.stream) {
-              const text = chunk.text();
-              if (text) {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
+            for await (const event of stream) {
+              const content = event.data.choices?.[0]?.delta?.content;
+              if (content) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
               }
             }
             controller.enqueue(encoder.encode('data: [DONE]\n\n'));
@@ -248,52 +176,6 @@ class CloudRunGenerateService {
   }
 
   /**
-   * API 키 가져오기
-   */
-  private getApiKey(): string | null {
-    const keys = this.getAvailableKeys();
-    if (keys.length === 0) return null;
-
-    // Round-robin 방식으로 키 선택
-    const key = keys[this.currentKeyIndex % keys.length];
-    return key ?? null;
-  }
-
-  /**
-   * 대체 키 가져오기
-   */
-  private getAlternativeKey(): string | null {
-    const keys = this.getAvailableKeys();
-    if (keys.length <= 1) return null;
-
-    this.currentKeyIndex = (this.currentKeyIndex + 1) % keys.length;
-    return keys[this.currentKeyIndex] ?? null;
-  }
-
-  /**
-   * 사용 가능한 모든 키 가져오기
-   */
-  private getAvailableKeys(): string[] {
-    const keys: string[] = [];
-
-    if (process.env.GEMINI_API_KEY_PRIMARY) {
-      keys.push(process.env.GEMINI_API_KEY_PRIMARY);
-    }
-    if (process.env.GOOGLE_AI_API_KEY) {
-      keys.push(process.env.GOOGLE_AI_API_KEY);
-    }
-    if (process.env.GEMINI_API_KEY_SECONDARY) {
-      keys.push(process.env.GEMINI_API_KEY_SECONDARY);
-    }
-    if (process.env.GOOGLE_AI_API_KEY_SECONDARY) {
-      keys.push(process.env.GOOGLE_AI_API_KEY_SECONDARY);
-    }
-
-    // 중복 제거
-    return [...new Set(keys)];
-  }
-
-  /**
    * 서비스 통계
    */
   getStats() {
@@ -303,7 +185,8 @@ class CloudRunGenerateService {
         this.stats.requests > 0
           ? Math.round((this.stats.successes / this.stats.requests) * 100)
           : 0,
-      availableKeys: this.getAvailableKeys().length,
+      provider: 'mistral',
+      model: this.DEFAULT_MODEL,
     };
   }
 }

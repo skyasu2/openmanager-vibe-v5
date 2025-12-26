@@ -27,10 +27,10 @@ export const AIEngineIndicator: React.FC<AIEngineIndicatorProps> = ({
   const getEngineDisplay = () => {
     if (isGoogle || isUnified) {
       return {
-        label: 'Google AI',
+        label: 'Cloud AI',
         icon: Cloud,
         color: 'bg-blue-100 text-blue-700 border-blue-200',
-        description: 'Google Gemini Pro 모델 사용 중',
+        description: 'Mistral + Groq 멀티 에이전트 사용 중',
       };
     }
     return {

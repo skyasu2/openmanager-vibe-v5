@@ -85,7 +85,7 @@ app.post('/api/ai/supervisor', async (c: Context) => {
       // return c.json({ error: 'Missing API Keys' }, 500);
       // Ensure we don't block if one is missing but others might work?
       // validateAPIKeys returns 'all' if BOTH are present.
-      // Supervisor uses Groq, NLQ uses Gemini. We need at least one.
+      // Supervisor uses Mistral, Worker Agents (NLQ/Analyst/Reporter) use Groq.
       // But let's log and proceed, models usually throw specifically.
       logAPIKeyStatus();
     }

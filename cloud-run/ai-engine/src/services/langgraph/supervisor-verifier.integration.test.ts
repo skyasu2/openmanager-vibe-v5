@@ -16,8 +16,6 @@ vi.mock('../../lib/model-config', () => ({
   getAnalystModel: vi.fn(),
   getReporterModel: vi.fn(),
   getSupervisorModel: vi.fn(),
-  getGeminiKeyStatus: vi.fn().mockReturnValue({ totalKeys: 1, activeKeyIndex: 0 }),
-  markGeminiKeyExhausted: vi.fn(),
 }));
 
 vi.mock('../../lib/checkpointer', () => ({

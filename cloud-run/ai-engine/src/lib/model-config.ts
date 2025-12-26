@@ -1,15 +1,21 @@
 /**
  * LangGraph Model Configuration
  *
- * ## Secret Consolidation (2025-12-25)
- * Updated to use consolidated JSON secrets with fallback to legacy env vars
+ * ## Mistral AI Migration (2025-12-26)
+ * Replaced Gemini with Mistral AI due to Google API quota exhaustion (20 RPD limit)
+ * Mistral provides generous free tier with tool calling support (~500K TPM)
+ *
+ * ## Model Upgrade (2025-12-26)
+ * Supervisor: mistral-small-latest → mistral-small-2506 (Small 3.2)
+ * - 24B parameters, 128K context window
+ * - Improved tool calling & structured output (vs 3.1)
+ * - Reduced repetition errors, better instruction following
+ * - Apache 2.0 license (free & open)
  */
 
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { ChatMistralAI } from '@langchain/mistralai';
 import { ChatGroq } from '@langchain/groq';
-import { AI_MODELS } from '../config/models';
-import { RateLimitError } from './errors';
-import { getGoogleAIConfig, getGroqApiKey } from './config-parser';
+import { getGroqApiKey } from './config-parser';
 import {
   type CircuitBreakerState,
   isModelHealthy,
@@ -18,144 +24,36 @@ import {
 } from './state-definition';
 
 // ============================================================================
-// 0. Gemini API Key Failover Manager
+// 0. Mistral API Key Manager
 // ============================================================================
 
-interface GeminiKeyState {
-  primaryExhausted: boolean;
-  primaryExhaustedAt?: number;
-  recoveryTimeMs: number; // Time to wait before retrying primary key
-}
-
-const geminiKeyState: GeminiKeyState = {
-  primaryExhausted: false,
-  recoveryTimeMs: 60_000, // 1 minute default recovery time
-};
-
 /**
- * Get all available Gemini API keys in failover order
- * Uses consolidated JSON secret with fallback to legacy env vars
+ * Get Mistral API key from environment
  */
-function getGeminiAPIKeys(): string[] {
-  const keys: string[] = [];
-
-  // Try consolidated JSON secret first
-  const config = getGoogleAIConfig();
-  if (config) {
-    if (config.primaryKey) keys.push(config.primaryKey);
-    if (config.secondaryKey && config.secondaryKey !== config.primaryKey) {
-      keys.push(config.secondaryKey);
-    }
-    return keys;
-  }
-
-  // Fallback to legacy env vars
-  const primary =
-    process.env.GEMINI_API_KEY_PRIMARY || process.env.GOOGLE_API_KEY;
-  if (primary) keys.push(primary);
-
-  const secondary =
-    process.env.GEMINI_API_KEY_SECONDARY ||
-    process.env.GOOGLE_AI_API_KEY_SECONDARY;
-  if (secondary) keys.push(secondary);
-
-  return keys;
-}
-
-/**
- * Get the current active Gemini API key with failover logic
- */
-export function getActiveGeminiKey(): string {
-  const keys = getGeminiAPIKeys();
-
-  if (keys.length === 0) {
+export function getMistralApiKey(): string {
+  const apiKey = process.env.MISTRAL_API_KEY;
+  if (!apiKey) {
     throw new Error(
-      'No Gemini API keys configured. Set GEMINI_API_KEY_PRIMARY or GOOGLE_API_KEY'
+      'Mistral API key not configured. Set MISTRAL_API_KEY environment variable.'
     );
   }
-
-  // Check if primary key has recovered
-  if (geminiKeyState.primaryExhausted && geminiKeyState.primaryExhaustedAt) {
-    const elapsed = Date.now() - geminiKeyState.primaryExhaustedAt;
-    if (elapsed > geminiKeyState.recoveryTimeMs) {
-      console.log(
-        '🔄 [Gemini Key] Primary key recovery period elapsed, retrying primary'
-      );
-      geminiKeyState.primaryExhausted = false;
-      geminiKeyState.primaryExhaustedAt = undefined;
-    }
-  }
-
-  // Use secondary if primary is exhausted and secondary exists
-  if (geminiKeyState.primaryExhausted && keys.length > 1) {
-    console.log('🔄 [Gemini Key] Using secondary key (primary exhausted)');
-    return keys[1];
-  }
-
-  return keys[0];
-}
-
-/**
- * Mark primary key as exhausted (rate limited)
- */
-export function markGeminiKeyExhausted(): void {
-  const keys = getGeminiAPIKeys();
-  if (keys.length > 1) {
-    console.log(
-      '⚠️ [Gemini Key] Primary key exhausted, failing over to secondary'
-    );
-    geminiKeyState.primaryExhausted = true;
-    geminiKeyState.primaryExhaustedAt = Date.now();
-  } else {
-    console.warn(
-      '⚠️ [Gemini Key] Primary key exhausted but no secondary key available'
-    );
-  }
-}
-
-/**
- * Reset Gemini key state (for testing or manual recovery)
- */
-export function resetGeminiKeyState(): void {
-  geminiKeyState.primaryExhausted = false;
-  geminiKeyState.primaryExhaustedAt = undefined;
-}
-
-/**
- * Get current Gemini key status
- */
-export function getGeminiKeyStatus(): {
-  totalKeys: number;
-  primaryExhausted: boolean;
-  usingSecondary: boolean;
-  recoveryInMs?: number;
-} {
-  const keys = getGeminiAPIKeys();
-  const usingSecondary = geminiKeyState.primaryExhausted && keys.length > 1;
-
-  let recoveryInMs: number | undefined;
-  if (geminiKeyState.primaryExhausted && geminiKeyState.primaryExhaustedAt) {
-    const elapsed = Date.now() - geminiKeyState.primaryExhaustedAt;
-    recoveryInMs = Math.max(0, geminiKeyState.recoveryTimeMs - elapsed);
-  }
-
-  return {
-    totalKeys: keys.length,
-    primaryExhausted: geminiKeyState.primaryExhausted,
-    usingSecondary,
-    recoveryInMs,
-  };
+  return apiKey;
 }
 
 // ============================================================================
 // 1. Model Types
 // ============================================================================
 
-export type GeminiModel =
-  | 'gemini-2.5-flash'
-  | 'gemini-2.5-flash-lite'
-  | 'gemini-3.0-flash-preview'
-  | 'gemini-2.5-pro';
+export type MistralModel =
+  | 'mistral-small-latest'      // Alias for latest small model
+  | 'mistral-small-2506'        // Small 3.2 (24B, 128K context, improved tool calling)
+  | 'mistral-small-2503'        // Small 3.1 (24B, 128K context, multimodal)
+  | 'mistral-medium-latest'     // Balanced
+  | 'mistral-large-latest'      // Most capable
+  | 'open-mistral-7b'           // Open source
+  | 'open-mixtral-8x7b'         // Open source MoE
+  | 'open-mixtral-8x22b';       // Open source large MoE
+
 export type GroqModel = 'llama-3.1-8b-instant' | 'llama-3.3-70b-versatile';
 
 export interface ModelOptions {
@@ -167,10 +65,18 @@ export interface ModelOptions {
 // 2. Model Registry
 // ============================================================================
 
+export const MISTRAL_MODELS = {
+  SMALL: 'mistral-small-2506' as MistralModel,  // Small 3.2 (24B, 128K, improved tool calling)
+  SMALL_31: 'mistral-small-2503' as MistralModel,  // Small 3.1 (fallback)
+  SMALL_LATEST: 'mistral-small-latest' as MistralModel,  // Alias (fallback)
+  MEDIUM: 'mistral-medium-latest' as MistralModel,
+  LARGE: 'mistral-large-latest' as MistralModel,
+} as const;
+
 export const AGENT_MODEL_CONFIG = {
   supervisor: {
-    provider: 'google' as const, // Gemini for tool calling support
-    model: AI_MODELS.FLASH_LITE as GeminiModel, // Fast/cheap for routing (shares 500 RPD pool)
+    provider: 'mistral' as const,
+    model: MISTRAL_MODELS.SMALL, // Fast/cheap for routing with tool calling
     temperature: 0.1, // Lower for more deterministic routing
     maxOutputTokens: 512,
   },
@@ -192,11 +98,10 @@ export const AGENT_MODEL_CONFIG = {
     temperature: 0.3,
     maxOutputTokens: 4096,
   },
-  // Task 1: Verifier Agent (Groq 기반 출력 검증)
   verifier: {
     provider: 'groq' as const,
-    model: 'llama-3.1-8b-instant' as GroqModel, // 빠른 검증을 위해 8B 모델 사용
-    temperature: 0.1, // 결정적 검증을 위해 낮은 온도
+    model: 'llama-3.1-8b-instant' as GroqModel,
+    temperature: 0.1,
     maxOutputTokens: 1024,
   },
 } as const;
@@ -207,55 +112,18 @@ export type AgentType = keyof typeof AGENT_MODEL_CONFIG;
 // 3. Model Factory Functions
 // ============================================================================
 
-export function createGeminiModel(
-  model: GeminiModel = AI_MODELS.FLASH_LITE, // Fast/cheap default (shares 500 RPD pool)
+export function createMistralModel(
+  model: MistralModel = MISTRAL_MODELS.SMALL,
   options?: ModelOptions
-): ChatGoogleGenerativeAI {
-  // Use failover-aware key selection
-  const apiKey = getActiveGeminiKey();
+): ChatMistralAI {
+  const apiKey = getMistralApiKey();
 
-  return new ChatGoogleGenerativeAI({
+  return new ChatMistralAI({
     apiKey,
     model,
     temperature: options?.temperature ?? 0.3,
-    maxOutputTokens: options?.maxOutputTokens ?? 1024,
-    // CRITICAL: Disable LangChain's internal retry to enable our own failover logic
-    // Without this, 429 errors cause ~40s waits per retry attempt (2 retries = 120s+ delay)
-    maxRetries: 0,
+    maxTokens: options?.maxOutputTokens ?? 1024,
   });
-}
-
-/**
- * Invoke Gemini model with automatic failover on rate limit
- * Catches 429 errors and retries with secondary key if available
- */
-export async function invokeGeminiWithFailover<T>(
-  model: GeminiModel,
-  invoker: (geminiModel: ChatGoogleGenerativeAI) => Promise<T>,
-  options?: ModelOptions
-): Promise<T> {
-  const keys = getGeminiAPIKeys();
-
-  for (let attempt = 0; attempt < keys.length; attempt++) {
-    try {
-      const geminiModel = createGeminiModel(model, options);
-      return await invoker(geminiModel);
-    } catch (error) {
-      if (RateLimitError.isRateLimitError(error)) {
-        console.error(`❌ [Gemini] Rate limit hit on attempt ${attempt + 1}`);
-        markGeminiKeyExhausted();
-
-        // If we have more keys, continue to next attempt
-        if (attempt < keys.length - 1) {
-          console.log(`🔄 [Gemini] Retrying with next key...`);
-          continue;
-        }
-      }
-      throw error;
-    }
-  }
-
-  throw new Error('All Gemini API keys exhausted');
 }
 
 export function createGroqModel(
@@ -264,7 +132,9 @@ export function createGroqModel(
 ): ChatGroq {
   const apiKey = getGroqApiKey();
   if (!apiKey) {
-    throw new Error('Groq API key not configured. Set GROQ_API_KEY environment variable.');
+    throw new Error(
+      'Groq API key not configured. Set GROQ_API_KEY environment variable.'
+    );
   }
 
   return new ChatGroq({
@@ -281,11 +151,11 @@ export function createGroqModel(
 
 export function getModelForAgent(
   agentType: AgentType
-): ChatGoogleGenerativeAI | ChatGroq {
+): ChatMistralAI | ChatGroq {
   const config = AGENT_MODEL_CONFIG[agentType];
 
-  if (config.provider === 'google') {
-    return createGeminiModel(config.model as GeminiModel, {
+  if (config.provider === 'mistral') {
+    return createMistralModel(config.model as MistralModel, {
       temperature: config.temperature,
       maxOutputTokens: config.maxOutputTokens,
     });
@@ -298,12 +168,11 @@ export function getModelForAgent(
 }
 
 /**
- * Get Supervisor model with fail-fast behavior
- * Rate limit errors trigger key rotation via getActiveGeminiKey()
+ * Get Supervisor model (Mistral Small 3.2 - 24B params, 128K context, improved tool calling)
  */
-export function getSupervisorModel(): ChatGoogleGenerativeAI {
+export function getSupervisorModel(): ChatMistralAI {
   const config = AGENT_MODEL_CONFIG.supervisor;
-  return createGeminiModel(config.model as GeminiModel, {
+  return createMistralModel(config.model as MistralModel, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });
@@ -325,50 +194,14 @@ export function getAnalystModel(): ChatGroq {
   });
 }
 
-export function getReporterModel(): ChatGroq | ChatGoogleGenerativeAI {
+export function getReporterModel(): ChatGroq {
   const config = AGENT_MODEL_CONFIG.reporter;
-  const isDev = process.env.NODE_ENV === 'development';
-  const useGeminiSearch = process.env.REPORTER_USE_GEMINI_SEARCH === 'true';
-
-  // Feature flag: Only use Gemini Search Grounding when explicitly enabled in production
-  if (!isDev && useGeminiSearch) {
-    try {
-      const gemini = new ChatGoogleGenerativeAI({
-        apiKey: getActiveGeminiKey(),
-        model: 'gemini-2.5-flash',
-        temperature: config.temperature,
-        maxOutputTokens: config.maxOutputTokens,
-      });
-
-      // Note: bindTools with googleSearchRetrieval returns a RunnableBinding
-      // but the multi-agent supervisor handles this correctly
-      return gemini.bindTools([
-        {
-          googleSearchRetrieval: {
-            dynamicRetrievalConfig: {
-              mode: 'MODE_DYNAMIC',
-              dynamicThreshold: 0.3,
-            },
-          },
-        },
-      ]) as unknown as ChatGoogleGenerativeAI;
-    } catch (error) {
-      console.warn(
-        '⚠️ [getReporterModel] Gemini Search Grounding failed, falling back to Groq:',
-        error
-      );
-      // Fallback to Groq if Gemini fails
-    }
-  }
-
-  // Default: Use Groq (development or fallback)
-  return createGroqModel(config.model, {
+  return createGroqModel(config.model as GroqModel, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });
 }
 
-// Task 1: Verifier Agent Model (Groq llama-3.1-8b-instant for fast verification)
 export function getVerifierModel(): ChatGroq {
   const config = AGENT_MODEL_CONFIG.verifier;
   return createGroqModel(config.model as GroqModel, {
@@ -377,44 +210,31 @@ export function getVerifierModel(): ChatGroq {
   });
 }
 
-
 // ============================================================================
 // 5. API Key Validation
 // ============================================================================
 
 export function validateAPIKeys(): {
-  google: boolean;
-  googleSecondary: boolean;
+  mistral: boolean;
   groq: boolean;
   all: boolean;
 } {
-  // Use config-parser which supports both JSON secrets and legacy env vars
-  const googleConfig = getGoogleAIConfig();
+  const mistralKey = process.env.MISTRAL_API_KEY;
   const groqKey = getGroqApiKey();
 
   return {
-    google: !!googleConfig?.primaryKey,
-    googleSecondary: !!googleConfig?.secondaryKey,
+    mistral: !!mistralKey,
     groq: !!groqKey,
-    all: !!googleConfig?.primaryKey && !!groqKey,
+    all: !!mistralKey && !!groqKey,
   };
 }
 
 export function logAPIKeyStatus(): void {
   const status = validateAPIKeys();
-  const keyStatus = getGeminiKeyStatus();
   console.log('🔑 API Key Status:', {
-    'Google AI (Primary)': status.google ? '✅' : '❌',
-    'Google AI (Secondary)': status.googleSecondary
-      ? '✅ (Failover Ready)'
-      : '⚠️ (No Failover)',
+    'Mistral AI': status.mistral ? '✅' : '❌',
     Groq: status.groq ? '✅' : '❌',
   });
-  if (keyStatus.usingSecondary) {
-    console.log(
-      '⚠️ [Gemini Key] Currently using secondary key due to primary rate limit'
-    );
-  }
 }
 
 // ============================================================================
@@ -422,12 +242,13 @@ export function logAPIKeyStatus(): void {
 // ============================================================================
 
 export const MODEL_FALLBACK_CHAIN: Record<string, string[]> = {
-  'gemini-2.5-flash-lite': ['gemini-3.0-flash-preview', 'gemini-2.5-flash', 'llama-3.3-70b-versatile'],
-  'gemini-2.5-flash': ['gemini-2.5-flash-lite', 'gemini-3.0-flash-preview'],
-  'gemini-3.0-flash-preview': ['gemini-2.5-flash-lite', 'llama-3.3-70b-versatile'],
-  'gemini-2.5-pro': ['gemini-2.5-flash-lite', 'gemini-2.5-flash'],
-  'llama-3.1-8b-instant': ['llama-3.3-70b-versatile', 'gemini-2.5-flash-lite'],
-  'llama-3.3-70b-versatile': ['gemini-2.5-flash-lite', 'gemini-3.0-flash-preview'],
+  'mistral-small-2506': ['mistral-small-2503', 'mistral-small-latest', 'llama-3.3-70b-versatile'],
+  'mistral-small-2503': ['mistral-small-2506', 'mistral-small-latest', 'llama-3.3-70b-versatile'],
+  'mistral-small-latest': ['mistral-small-2506', 'mistral-small-2503', 'llama-3.3-70b-versatile'],
+  'mistral-medium-latest': ['mistral-small-2506', 'mistral-small-latest', 'llama-3.3-70b-versatile'],
+  'mistral-large-latest': ['mistral-medium-latest', 'mistral-small-2506'],
+  'llama-3.1-8b-instant': ['llama-3.3-70b-versatile', 'mistral-small-2506'],
+  'llama-3.3-70b-versatile': ['mistral-small-2506', 'llama-3.1-8b-instant'],
 };
 
 export function selectHealthyModel(
@@ -459,7 +280,7 @@ export function selectHealthyModel(
 export async function invokeWithCircuitBreaker<T>(
   modelId: string,
   circuitState: CircuitBreakerState,
-  invoker: (model: ChatGoogleGenerativeAI | ChatGroq) => Promise<T>
+  invoker: (model: ChatMistralAI | ChatGroq) => Promise<T>
 ): Promise<{
   result: T;
   usedModel: string;
@@ -497,21 +318,15 @@ export async function invokeWithCircuitBreaker<T>(
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       currentCircuitState = recordFailure(currentCircuitState, tryModel);
-      // console.error(
-      //   `❌ [Circuit Breaker] ${tryModel} failed:`,
-      //   lastError.message
-      // );
     }
   }
 
   throw lastError || new Error('All models in fallback chain failed');
 }
 
-function createModelByName(
-  modelName: string
-): ChatGoogleGenerativeAI | ChatGroq {
-  if (modelName.startsWith('gemini')) {
-    return createGeminiModel(modelName as GeminiModel);
+function createModelByName(modelName: string): ChatMistralAI | ChatGroq {
+  if (modelName.startsWith('mistral') || modelName.startsWith('open-mistral') || modelName.startsWith('open-mixtral')) {
+    return createMistralModel(modelName as MistralModel);
   }
   if (modelName.startsWith('llama')) {
     return createGroqModel(modelName as GroqModel);

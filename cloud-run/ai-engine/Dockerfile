@@ -10,8 +10,9 @@ WORKDIR /app
 
 # Install dependencies (cache layer)
 # v4: @langfuse/langchain natively supports @langchain/core >=0.3.0
+# Note: Using npm install instead of npm ci for better cross-version compatibility
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN npm install --legacy-peer-deps --ignore-scripts
 
 # Copy source and build
 COPY tsconfig.json ./
@@ -31,7 +32,7 @@ ENV PORT=8080
 # Copy package files and install dependencies (as root for permissions)
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm install --omit=dev --legacy-peer-deps --ignore-scripts
 
 # Copy built files
 COPY --from=builder /app/dist ./dist

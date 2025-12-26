@@ -1,17 +1,18 @@
 /**
  * LLM Summarizer for Context Compression
  *
- * Uses Gemini Flash Lite (high quota) to generate conversation summaries.
+ * Uses Mistral Small (fast, tool-calling capable) to generate conversation summaries.
  * Integrates with BufferManager for hybrid buffer strategy.
  *
  * Phase 3 of Context Compression System Implementation
+ * Updated: 2025-12-26 - Migrated from Gemini to Mistral AI
  *
  * @module context-compression/summarizer
  */
 
 import type { BaseMessage } from '@langchain/core/messages';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { createGeminiModel, invokeGeminiWithFailover } from '../model-config';
+import { createMistralModel, type MistralModel } from '../model-config';
 import type { CompressionMetadata } from '../state-definition';
 import {
   BufferManager,
@@ -29,8 +30,8 @@ export interface SummarizerConfig {
   maxSummaryTokens: number;
   /** Temperature for LLM (lower = more deterministic) */
   temperature: number;
-  /** Model to use for summarization */
-  model: 'gemini-2.5-flash-lite' | 'gemini-2.5-flash';
+  /** Model to use for summarization (Mistral) */
+  model: MistralModel;
 }
 
 export interface SummarizationResult {
@@ -53,7 +54,7 @@ export interface SummarizationResult {
 export const DEFAULT_SUMMARIZER_CONFIG: SummarizerConfig = {
   maxSummaryTokens: 500,
   temperature: 0.2,
-  model: 'gemini-2.5-flash-lite', // High quota (1500 RPD)
+  model: 'mistral-small-latest', // Fast, cost-effective
 };
 
 // ============================================================================
@@ -143,40 +144,34 @@ export class Summarizer {
 
   /**
    * Maximum input tokens for summarization request
-   * Gemini Flash Lite has 1M context, but we limit input to avoid timeouts
+   * Mistral Small has 32K context, but we limit input to avoid timeouts
    */
-  private static readonly MAX_INPUT_TOKENS = 50_000;
+  private static readonly MAX_INPUT_TOKENS = 30_000;
 
   /**
-   * Generate summary using Gemini model
-   * Fix: Added input length control to prevent context overflow
+   * Generate summary using Mistral model
+   * Updated: 2025-12-26 - Migrated from Gemini to Mistral AI
    */
   private async generateSummary(formattedMessages: string): Promise<string> {
     try {
-      // Truncate input if too long (Fix for Issue #2)
+      // Truncate input if too long
       const truncatedInput = this.truncateInput(formattedMessages);
 
-      const summary = await invokeGeminiWithFailover(
-        this.config.model,
-        async (model) => {
-          const response = await model.invoke([
-            new SystemMessage({ content: SUMMARIZATION_SYSTEM_PROMPT }),
-            new HumanMessage({
-              content: `다음 대화를 요약해주세요:\n\n${truncatedInput}`,
-            }),
-          ]);
+      const model = createMistralModel(this.config.model, {
+        temperature: this.config.temperature,
+        maxOutputTokens: this.config.maxSummaryTokens,
+      });
 
-          return typeof response.content === 'string'
-            ? response.content
-            : JSON.stringify(response.content);
-        },
-        {
-          temperature: this.config.temperature,
-          maxOutputTokens: this.config.maxSummaryTokens,
-        }
-      );
+      const response = await model.invoke([
+        new SystemMessage({ content: SUMMARIZATION_SYSTEM_PROMPT }),
+        new HumanMessage({
+          content: `다음 대화를 요약해주세요:\n\n${truncatedInput}`,
+        }),
+      ]);
 
-      return summary;
+      return typeof response.content === 'string'
+        ? response.content
+        : JSON.stringify(response.content);
     } catch (error) {
       console.error('[Summarizer] Failed to generate summary:', error);
       // Fallback: Return a basic extractive summary

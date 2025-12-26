@@ -32,31 +32,31 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       type: 'opensource',
     },
     {
-      name: 'Google Gemini 2.5',
+      name: 'Mistral AI (Supervisor)',
       category: 'ai',
       importance: 'critical',
-      description: 'Google의 최신 LLM - NLQ 및 Analyst Worker 에이전트로 사용',
+      description:
+        'Mistral Small - Supervisor 에이전트로 의도 분류 및 라우팅 담당',
       implementation:
-        'Gemini 2.5 Flash(빠른 응답) 모델을 사용하여 로그 분석 및 데이터 조회 수행',
-      version: '2.5 Flash',
+        'Mistral Small 모델을 사용하여 사용자 의도를 파악하고 적절한 Worker 에이전트에게 작업 위임. 무료 티어 제공 (~500K TPM)',
+      version: 'mistral-small-latest',
       status: 'active',
       icon: '🧠',
-      tags: ['LLM', 'Google AI', 'Worker', 'Analysis'],
+      tags: ['LLM', 'Mistral AI', 'Supervisor', 'Orchestration'],
       type: 'commercial',
-      aiType: 'google-api',
     },
     {
       name: 'Groq Cloud + Llama 3',
       category: 'ai',
       importance: 'critical',
       description:
-        'Groq LPU 기반 초고속 추론 API - Supervisor 및 Reporter로 사용',
+        'Groq LPU 기반 초고속 추론 API - NLQ/Analyst/Reporter Worker 에이전트',
       implementation:
-        'Llama 3.3 70B 모델을 Groq LPU로 실행하여 에이전트 오케스트레이션 및 리포트 작성',
+        'Llama 3.3 70B 모델을 Groq LPU로 실행하여 로그 분석, 데이터 조회, 리포트 작성 수행. 무료 티어 제공',
       version: 'Llama 3.3 70B',
       status: 'active',
       icon: '⚡',
-      tags: ['LLM', 'Groq LPU', 'Supervisor', 'Reporter'],
+      tags: ['LLM', 'Groq LPU', 'Worker', 'Analysis'],
       type: 'commercial',
     },
     {
@@ -85,16 +85,16 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       type: 'opensource',
     },
     {
-      name: 'A2A Pattern (Return-to-Supervisor)',
+      name: 'Multi-Agent Pattern (Return-to-Supervisor)',
       category: 'ai',
       importance: 'critical',
-      description: 'Agent-to-Agent 오케스트레이션 패턴 구현',
+      description: '멀티 에이전트 오케스트레이션 패턴 구현',
       implementation:
         'LangGraph StateGraph 기반 Return-to-Supervisor + Command Pattern 조합. Supervisor가 작업 분배, Worker가 도구 실행 후 결과를 Supervisor에게 반환하는 구조',
       version: 'Custom',
       status: 'active',
       icon: '🔄',
-      tags: ['A2A', 'Multi-Agent', 'Orchestration'],
+      tags: ['Multi-Agent', 'Orchestration', 'LangGraph'],
       type: 'custom',
     },
     {

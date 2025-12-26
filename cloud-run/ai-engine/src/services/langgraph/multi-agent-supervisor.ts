@@ -12,7 +12,13 @@ import {
   predictTrendsTool,
 } from '../../agents/analyst-agent';
 // Import tools from Agents
-import { getServerMetricsTool, getServerLogsTool } from '../../agents/nlq-agent';
+import {
+  getServerMetricsTool,
+  getServerLogsTool,
+  getServerMetricsAdvancedTool,
+} from '../../agents/nlq-agent';
+// NLQ SubGraph for complex queries (Phase 2)
+import { executeNlqSubGraph } from './nlq-subgraph';
 import {
   recommendCommandsTool,
   searchKnowledgeBaseTool,
@@ -36,11 +42,9 @@ import { RateLimitError } from '../../lib/errors';
 import { approvalStore } from '../approval/approval-store';
 import {
   getAnalystModel,
-  getGeminiKeyStatus,
   getNLQModel,
   getReporterModel,
   getSupervisorModel,
-  markGeminiKeyExhausted,
 } from '../../lib/model-config';
 // LangFuse Integration (Phase 2)
 import { createSessionHandler } from '../../lib/langfuse-handler';
@@ -55,7 +59,7 @@ import { createSessionHandler } from '../../lib/langfuse-handler';
  * 2. Filters out tool-call messages that Groq cannot process
  * 3. Ensures all message content is string-based
  *
- * This is necessary because Gemini (Supervisor) generates tool-call messages
+ * This is necessary because the Supervisor generates tool-call messages
  * with array-based content that Groq's API rejects.
  */
 function createGroqCompatibleStateModifier(systemPrompt: string) {
@@ -110,6 +114,7 @@ function createGroqCompatibleStateModifier(systemPrompt: string) {
 
 /**
  * Create NLQ Agent - Server metrics queries
+ * Phase 2 Enhancement: Added getServerMetricsAdvancedTool for complex queries
  */
 function createNLQAgent() {
   const systemPrompt = `NLQ Agent - 서버 메트릭/로그 조회 전문
@@ -119,7 +124,11 @@ function createNLQAgent() {
 2. **특정 서버 조회**: "WEB-01 상태" 등 → serverId 지정
 3. 로그/에러 조회 → getServerLogs
 4. 상태/메트릭 조회 → getServerMetrics
-5. 시스템 용어/개념 확인 → searchKnowledgeBase (RAG)
+5. **고급 쿼리** (시간 범위/필터/집계) → getServerMetricsAdvanced
+   - "지난 6시간 CPU 평균" → timeRange="last6h", aggregation="avg"
+   - "CPU 80% 이상 서버들" → filters=[{field:"cpu", operator:">", value:80}]
+   - "메모리 TOP 5" → sortBy="memory", limit=5
+6. 시스템 용어/개념 확인 → searchKnowledgeBase (RAG)
 
 ## 전체 서버 응답 형식 (serverId 없이 조회 시)
 📊 **전체 서버 현황** (총 N대)
@@ -130,6 +139,12 @@ function createNLQAgent() {
 **주요 이상 서버:**
 • [서버명] CPU X% / Memory X% / Disk X% - 상태
 
+## 고급 쿼리 응답 형식
+📈 **[쿼리 설명]** (시간 범위/조건)
+- 서버1: 메트릭값
+- 서버2: 메트릭값
+[요약: N대 중 N대 매칭]
+
 ## 특정 서버 응답 형식
 • [서버명] CPU: X% | Memory: X% | Disk: X%
 • 상태: 정상/주의/위험
@@ -139,10 +154,44 @@ function createNLQAgent() {
 
   return createReactAgent({
     llm: getNLQModel(),
-    tools: [getServerMetricsTool, getServerLogsTool, searchKnowledgeBaseTool],
+    tools: [
+      getServerMetricsTool,
+      getServerLogsTool,
+      getServerMetricsAdvancedTool, // Phase 2: 고급 쿼리 도구
+      searchKnowledgeBaseTool,
+    ],
     name: 'nlq_agent',
     stateModifier: createGroqCompatibleStateModifier(systemPrompt),
   });
+}
+
+/**
+ * Execute NLQ SubGraph directly for complex queries
+ * Alternative execution path when Supervisor detects complex NLQ query
+ * @param query - Natural language query
+ * @returns Formatted response from NLQ SubGraph
+ */
+export async function executeComplexNlqQuery(query: string): Promise<{
+  success: boolean;
+  response: string;
+  metadata: {
+    intent: string;
+    timeRange?: string;
+    aggregation?: string;
+    filterCount: number;
+  };
+}> {
+  const result = await executeNlqSubGraph(query);
+  return {
+    success: result.success,
+    response: result.response,
+    metadata: {
+      intent: result.intent,
+      timeRange: result.params?.timeRange,
+      aggregation: result.params?.aggregation,
+      filterCount: result.params?.filters?.length || 0,
+    },
+  };
 }
 
 /**
@@ -397,10 +446,11 @@ export interface SupervisorExecutionOptions {
 
 /**
  * Execute supervisor workflow (single response)
- * Includes automatic Gemini API key failover on rate limit
+ * Uses Mistral AI for Supervisor with automatic rate limit handling
  * v5.85.0: Added Verifier Agent post-processing for quality assurance
  * v5.86.0: Added Context Compression for long conversations
  * v5.87.0: Added LangFuse tracing for observability
+ * v5.88.0: Migrated from Gemini to Mistral AI
  */
 export async function executeSupervisor(
   query: string,
@@ -419,7 +469,7 @@ export async function executeSupervisor(
     enableTracing = true,
     userId,
   } = options;
-  const MAX_RETRIES = 2; // Primary key + secondary key
+  const MAX_RETRIES = 3; // Retry on transient errors
   let compressionApplied = false;
 
   // === LangFuse Tracing (v5.87.0) ===
@@ -450,7 +500,7 @@ export async function executeSupervisor(
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      // Create fresh supervisor (uses current active Gemini key)
+      // Create fresh supervisor (uses Mistral for supervisor, Groq for workers)
       const app = await createMultiAgentSupervisor();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -511,19 +561,14 @@ export async function executeSupervisor(
       const isRateLimit = RateLimitError.isRateLimitError(error);
       console.log(`🔍 [Supervisor] isRateLimitError check: ${isRateLimit}`);
 
-      if (isRateLimit) {
-        const keyStatus = getGeminiKeyStatus();
-        console.error(
-          `⚠️ [Supervisor] Rate limit hit on attempt ${attempt + 1}/${MAX_RETRIES}`,
-          { keyStatus }
+      if (isRateLimit && attempt < MAX_RETRIES - 1) {
+        // Retry with exponential backoff for rate limits
+        const backoffMs = Math.pow(2, attempt) * 1000;
+        console.warn(
+          `⚠️ [Supervisor] Rate limit hit on attempt ${attempt + 1}/${MAX_RETRIES}, retrying in ${backoffMs}ms...`
         );
-
-        // If we have more keys to try, mark current key as exhausted and retry
-        if (attempt < MAX_RETRIES - 1 && keyStatus.totalKeys > 1) {
-          markGeminiKeyExhausted();
-          console.log('🔄 [Supervisor] Switching to secondary Gemini key...');
-          continue; // Retry with secondary key
-        }
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+        continue;
       }
 
       // Re-throw if not a rate limit error or no more retries
@@ -532,7 +577,7 @@ export async function executeSupervisor(
   }
 
   // Should not reach here, but TypeScript requires it
-  throw new Error('All Gemini API keys exhausted');
+  throw new Error('Supervisor execution failed after max retries');
 }
 
 /**
@@ -546,7 +591,7 @@ export async function executeSupervisor(
  * Native LangGraph streaming (streamEvents) doesn't emit text tokens properly for Groq models.
  *
  * Consider reactivating if:
- * 1. Switching to a model with native streaming support (e.g., Gemini, OpenAI)
+ * 1. Switching to a model with native streaming support (e.g., Mistral, OpenAI)
  * 2. LangGraph improves Groq streaming support
  *
  * @see createSupervisorStreamResponse - Currently active implementation

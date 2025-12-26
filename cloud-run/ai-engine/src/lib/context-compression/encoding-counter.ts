@@ -2,9 +2,10 @@
  * Token Counter for Context Compression
  *
  * Uses js-tiktoken for accurate token counting compatible with
- * OpenAI/Gemini/Groq models.
+ * OpenAI/Mistral/Groq models.
  *
  * Phase 1 of Context Compression System Implementation
+ * Updated: 2025-12-26 - Migrated from Gemini to Mistral AI
  *
  * @module context-compression/encoding-counter
  */
@@ -38,12 +39,16 @@ export interface UsageRatioResult {
 /**
  * Context window limits for supported models
  * Note: Using conservative limits (80% of actual to leave room for output)
+ * Updated: 2025-12-26 - Added Mistral models, removed Gemini
  */
 const DEFAULT_MODEL_LIMITS: Record<string, number> = {
-  // Google Gemini (80% of actual limits)
-  'gemini-2.5-flash-lite': 800_000, // Actual: 1M
-  'gemini-2.0-flash': 800_000,
-  'gemini-1.5-flash': 800_000,
+  // Mistral AI models (80% of actual limits)
+  'mistral-small-latest': 25_600, // Actual: 32K
+  'mistral-medium-latest': 25_600, // Actual: 32K
+  'mistral-large-latest': 25_600, // Actual: 32K
+  'open-mistral-7b': 25_600, // Actual: 32K
+  'open-mixtral-8x7b': 25_600, // Actual: 32K
+  'open-mixtral-8x22b': 52_000, // Actual: 65K
 
   // Groq (Llama models) - 80% of actual
   'llama-3.3-70b-versatile': 100_000, // Actual: 128K
@@ -51,7 +56,7 @@ const DEFAULT_MODEL_LIMITS: Record<string, number> = {
   'llama-3.1-70b-versatile': 100_000,
 
   // Default fallback (conservative)
-  default: 100_000,
+  default: 25_000,
 };
 
 // Mutable model limits (can be updated at runtime)
@@ -91,7 +96,7 @@ export class TokenCounter {
 
   constructor(encodingName: TiktokenEncoding = 'cl100k_base') {
     this.encodingName = encodingName;
-    // cl100k_base is compatible with GPT-4/Claude/Gemini token approximation
+    // cl100k_base is compatible with GPT-4/Claude/Mistral token approximation
     this.encoding = getEncoding(encodingName);
   }
 

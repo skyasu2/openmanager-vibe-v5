@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-25
+**마지막 업데이트**: 2025-12-26
 
 ---
 
@@ -47,8 +47,9 @@
 
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
-- **Models**: Google Gemini 2.5 Flash Lite (Supervisor), Groq Llama 3.3 70b (Workers), Gemini 2.5 Flash (Verifier)
+- **Models**: Mistral Small 3.2 (Supervisor, 24B/128K), Groq Llama 3.3 70b (Workers/Verifier)
 - **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
+- **Note**: 2025-12-26 Gemini → Mistral 마이그레이션 완료 (Free Tier: ~500K TPM)
 
 **AI CLI Tools** (2025-12-17 기준)
 - **Claude Code**: `v2.0.71` (Interactive Development)
@@ -63,7 +64,18 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 12-25)
+## 🔧 최근 유지보수 (2025-12-09 ~ 12-26)
+
+**AI Engine Gemini → Mistral 마이그레이션 (2025-12-26)**
+- **이유**: Google Gemini 무료 티어 제한 → Mistral 무료 티어 (~500K TPM, 1B tokens/month)로 변경
+- **변경 사항**:
+  - Supervisor Agent: Gemini 2.5 Flash Lite → Mistral Small (`mistral-small-latest`)
+  - Worker Agents: Groq Llama 3.3 70b 유지 (변경 없음)
+  - Verifier Agent: Gemini 2.5 Flash → Groq Llama 유지
+  - Embedding: Google text-embedding-004 유지 (1,500 RPM 무료)
+- **Cloud Run**: `MISTRAL_API_KEY` Secret 추가, deploy.sh 업데이트
+- **Frontend**: Landing page, Feature cards 설명 업데이트
+- **검증**: Cloud Run 배포 완료, Health Check + Supervisor 응답 정상
 
 **Mock System SSOT 통합 및 로그 시스템 개선 (v5.83.12, 2025-12-25)**
 - **SSOT 통합**: 모든 Mock 데이터 소스를 한국 데이터센터 기반 15개 서버로 통일
