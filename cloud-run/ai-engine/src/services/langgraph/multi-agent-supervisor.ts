@@ -281,13 +281,11 @@ const SUPERVISOR_PROMPT = `당신은 OpenManager VIBE의 Multi-Agent Supervisor�
 
 /**
  * Create Multi-Agent Supervisor Workflow
+ *
+ * Note: Groq rate limit fallback is handled by executeLastKeeperMode(),
+ * not by switching the supervisor model (workers also use Groq).
  */
-interface SupervisorOptions {
-  useFallbackModel?: boolean;
-}
-
-export async function createMultiAgentSupervisor(options: SupervisorOptions = {}) {
-  const { useFallbackModel = false } = options;
+export async function createMultiAgentSupervisor() {
   const checkpointer = await getAutoCheckpointer();
 
   // Create worker agents
@@ -295,14 +293,8 @@ export async function createMultiAgentSupervisor(options: SupervisorOptions = {}
   const analystAgent = createAnalystAgent();
   const reporterAgent = createReporterAgent();
 
-  // Select model: Groq (primary) or Mistral (fallback)
-  const supervisorModel = useFallbackModel
-    ? createMistralModel(MISTRAL_MODELS.SMALL, { temperature: 0.1, maxOutputTokens: 512 })
-    : getSupervisorModel();
-
-  if (useFallbackModel) {
-    console.log('🔄 [Supervisor] Using Mistral fallback model due to Groq rate limit');
-  }
+  // Supervisor uses Groq for LangGraph handoff compatibility
+  const supervisorModel = getSupervisorModel();
 
   // Create supervisor with automatic handoffs
   const workflow = createSupervisor({
