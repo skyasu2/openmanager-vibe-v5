@@ -1,16 +1,23 @@
 /**
  * LangGraph Model Configuration
  *
- * ## Mistral AI Migration (2025-12-26)
- * Replaced Gemini with Mistral AI due to Google API quota exhaustion (20 RPD limit)
- * Mistral provides generous free tier with tool calling support (~500K TPM)
+ * ## Architecture (2025-12-26)
+ * Dual-provider strategy for rate limit distribution and reliability:
  *
- * ## Model Upgrade (2025-12-26)
- * Supervisor: mistral-small-latest → mistral-small-2506 (Small 3.2)
- * - 24B parameters, 128K context window
- * - Improved tool calling & structured output (vs 3.1)
- * - Reduced repetition errors, better instruction following
- * - Apache 2.0 license (free & open)
+ * ### Groq (Primary - llama-3.3-70b-versatile)
+ * - Supervisor: LangGraph handoff requires Groq (Mistral incompatible)
+ * - NLQ Agent: Server metrics queries
+ * - Analyst Agent: Pattern analysis, anomaly detection
+ * - Reporter Agent: Incident reports, RAG search
+ *
+ * ### Mistral (Secondary - mistral-small-2506)
+ * - Verifier Agent: Response quality verification (24B params)
+ * - Rate limit: ~500K TPM (separate from Groq quota)
+ *
+ * ## Migration History
+ * - Gemini → Mistral (Google API quota exhaustion)
+ * - Supervisor: Mistral → Groq (LangGraph handoff compatibility)
+ * - Verifier: Groq 8B → Mistral 24B (quality upgrade)
  */
 
 import { ChatMistralAI } from '@langchain/mistralai';

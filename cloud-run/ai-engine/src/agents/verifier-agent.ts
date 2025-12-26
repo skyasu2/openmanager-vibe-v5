@@ -2,7 +2,12 @@
  * Verifier Agent
  * AI 응답 검증 및 품질 보증 전문 에이전트
  *
- * 기능:
+ * ## Model
+ * - Provider: Mistral
+ * - Model: mistral-small-2506 (Small 3.2, 24B params)
+ * - Purpose: Higher-quality verification than Groq 8B
+ *
+ * ## 기능
  * 1. 수치 범위 검증 (0-100% 메트릭)
  * 2. 필수 정보 완전성 확인
  * 3. 응답 포맷 정규화
@@ -10,6 +15,7 @@
  * 5. 신뢰도 점수 부여
  *
  * @since 2025-12-23
+ * @updated 2025-12-26 - Migrated to Mistral 24B (from Groq 8B)
  */
 
 import { tool } from '@langchain/core/tools';

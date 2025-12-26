@@ -47,9 +47,11 @@
 
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
-- **Models**: Mistral Small 3.2 (Supervisor, 24B/128K), Groq Llama 3.3 70b (Workers/Verifier)
+- **Models**: Dual-provider 전략 (Rate limit 분산)
+  - Groq llama-3.3-70b: Supervisor, NLQ, Analyst, Reporter
+  - Mistral Small 3.2 (24B): Verifier Agent
 - **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
-- **Note**: 2025-12-26 Gemini → Mistral 마이그레이션 완료 (Free Tier: ~500K TPM)
+- **Note**: LangGraph handoff 호환성으로 Supervisor는 Groq 사용 필수
 
 **AI CLI Tools** (2025-12-17 기준)
 - **Claude Code**: `v2.0.71` (Interactive Development)
@@ -66,16 +68,16 @@
 
 ## 🔧 최근 유지보수 (2025-12-09 ~ 12-26)
 
-**AI Engine Gemini → Mistral 마이그레이션 (2025-12-26)**
-- **이유**: Google Gemini 무료 티어 제한 → Mistral 무료 티어 (~500K TPM, 1B tokens/month)로 변경
-- **변경 사항**:
-  - Supervisor Agent: Gemini 2.5 Flash Lite → Mistral Small (`mistral-small-latest`)
-  - Worker Agents: Groq Llama 3.3 70b 유지 (변경 없음)
-  - Verifier Agent: Gemini 2.5 Flash → Groq Llama 유지
-  - Embedding: Google text-embedding-004 유지 (1,500 RPM 무료)
-- **Cloud Run**: `MISTRAL_API_KEY` Secret 추가, deploy.sh 업데이트
-- **Frontend**: Landing page, Feature cards 설명 업데이트
-- **검증**: Cloud Run 배포 완료, Health Check + Supervisor 응답 정상
+**NLQ Agent SubGraph 아키텍처 + 모델 분배 최적화 (2025-12-26)**
+- **NLQ SubGraph 구현**: 5노드 워크플로우 (parse→extract→validate→execute→format)
+  - `getServerMetricsAdvancedTool`: 시간 범위/필터/집계 지원
+  - 한국어 자연어 파싱 헬퍼 함수 (시간, 메트릭, 필터)
+  - 21개 단위 테스트 추가
+- **Dual-provider 전략**: Rate limit 분산 (~1M TPM 무료)
+  - Groq: Supervisor, NLQ, Analyst, Reporter (LangGraph handoff 필수)
+  - Mistral: Verifier (24B 품질 검증)
+- **신규 파일**: `nlq-state.ts`, `nlq-subgraph.ts`, `nlq-state.test.ts`
+- **검증**: Cloud Run ai-engine-00036 배포, Health Check 정상
 
 **Mock System SSOT 통합 및 로그 시스템 개선 (v5.83.12, 2025-12-25)**
 - **SSOT 통합**: 모든 Mock 데이터 소스를 한국 데이터센터 기반 15개 서버로 통일

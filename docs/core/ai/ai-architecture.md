@@ -1,6 +1,6 @@
 # AI Assistant Architecture
 
-> **버전**: v3.3 (2025-12-26)
+> **버전**: v3.4 (2025-12-26)
 > **환경**: Next.js 16, React 19, TypeScript 5.9 strict, LangGraph StateGraph (Cloud Run)
 
 ## Overview
@@ -60,17 +60,18 @@ START
   ▼
 ┌─────────────────────────────────────────────────┐
 │              SUPERVISOR                          │
-│   Model: Gemini 2.5 Flash-Lite (1500 RPD)       │
-│   Role: Intent classification & routing          │
+│   Provider: Groq (Llama 3.3-70b)                │
+│   Role: Intent classification & LangGraph handoff│
 └─────────────────────────────────────────────────┘
   │
-  ├──▶ "nlq"      ──▶ NLQ Agent (Llama 3.3-70b)
-  │                    └─ getServerMetrics
+  ├──▶ "nlq"      ──▶ NLQ SubGraph (Groq 70b)
+  │                    └─ 5-node workflow
+  │                    └─ getServerMetricsAdvanced
   │
-  ├──▶ "analyst"  ──▶ Analyst Agent (Llama 3.3-70b)
+  ├──▶ "analyst"  ──▶ Analyst Agent (Groq 70b)
   │                    └─ analyzePattern, detectAnomalies, predictTrends
   │
-  ├──▶ "reporter" ──▶ Reporter Agent (Llama 3.3-70b)
+  ├──▶ "reporter" ──▶ Reporter Agent (Groq 70b)
   │                    └─ searchKnowledgeBase (GraphRAG)
   │                    └─ recommendCommands
   │                    └─ [Approval Check] ──▶ Human Interrupt
@@ -83,13 +84,17 @@ START
                        ▼
              ┌─────────────────────────────┐
              │     VERIFIER AGENT          │
-             │  Model: Gemini 2.5 Flash    │
-             │  Role: Output validation     │
+             │  Provider: Mistral (24B)    │
+             │  Role: Quality validation    │
              └─────────────────────────────┘
                        │
                        ▼
                       END
 ```
+
+> **Dual-Provider Strategy (v5.89.0)**:
+> - **Groq**: Supervisor, NLQ, Analyst, Reporter (LangGraph handoff 호환 필수)
+> - **Mistral**: Verifier (24B 파라미터로 품질 검증 향상)
 
 ## 3 AI Features
 
@@ -121,11 +126,18 @@ START
 
 The AI uses specialized tools within each agent for domain-specific operations.
 
-### NLQ Agent Tools
+### NLQ Agent Tools (SubGraph v5.89.0)
 
 | Tool | Description |
 |------|-------------|
-| `getServerMetrics` | Retrieves CPU/Memory/Disk metrics from scenario data |
+| `getServerMetricsAdvanced` | Advanced metrics with time range, filters, aggregation support |
+
+**NLQ SubGraph 5-Node Workflow**:
+1. **parse_intent**: Intent classification (metrics, logs, status, comparison)
+2. **extract_params**: Korean NLP parsing (time expressions, filters)
+3. **validate**: Rule-based parameter validation
+4. **execute_query**: Tool invocation with extracted parameters
+5. **format_response**: User-friendly response formatting
 
 ### Analyst Agent Tools
 
@@ -317,9 +329,9 @@ Response caching layer for performance optimization:
 | Session Cache | 24h | Conversation state |
 | Embedding Cache | 7d | Embedding reuse |
 
-### Verifier Agent
+### Verifier Agent (Mistral 24B, v5.89.0)
 
-Post-processing validation agent added in v5.85.0:
+Post-processing validation agent upgraded to Mistral Small 3.2 (24B parameters):
 
 ```
 [Agent Output] → [Verifier Agent] → [Final Response]
@@ -328,6 +340,8 @@ Post-processing validation agent added in v5.85.0:
                      ├─ Safety validation
                      └─ Confidence scoring
 ```
+
+> **Provider Change (v5.89.0)**: Groq Llama 8B → Mistral Small 24B for improved verification quality
 
 ### Approval History Persistence
 

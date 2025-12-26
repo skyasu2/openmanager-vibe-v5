@@ -2,11 +2,19 @@
  * NLQ (Natural Language Query) Agent
  * 자연어 쿼리를 서버 메트릭 조회로 변환
  *
- * ## Phase 1 Enhancement (2025-12-26)
+ * ## Model
+ * - Provider: Groq
+ * - Model: llama-3.3-70b-versatile
+ * - SubGraph: 5-node workflow (parse→extract→validate→execute→format)
+ *
+ * ## Features (Phase 1-2, 2025-12-26)
  * - 시간 범위 쿼리 지원 (last1h, last6h, last24h, custom)
  * - 필터링 지원 (cpu > 80, memory < 50 등)
  * - 집계 함수 지원 (avg, max, min, count)
  * - 정렬/제한 지원
+ * - 한국어 자연어 파싱 (시간 표현, 메트릭, 필터)
+ *
+ * @updated 2025-12-26 - SubGraph 아키텍처 적용, 고급 도구 추가
  */
 
 import { tool } from '@langchain/core/tools';

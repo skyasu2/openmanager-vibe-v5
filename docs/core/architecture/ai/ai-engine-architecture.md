@@ -4,7 +4,7 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.88.0, Updated 2025-12-26)
+## Architecture (v5.89.0, Updated 2025-12-26)
 
 ### Deployment Mode
 
@@ -19,13 +19,15 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 
 ### Agent Stack
 
-| Agent | Model | Role | Tools |
-|-------|-------|------|-------|
-| **Supervisor** | Gemini 2.5 Flash-Lite | Intent classification & routing (1500 RPD) | - |
-| **NLQ Agent** | Llama 3.3-70b | Server metrics queries (Groq Inference) | `getServerMetrics` |
-| **Analyst Agent** | Llama 3.3-70b | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
-| **Reporter Agent** | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG), `recommendCommands` |
-| **Verifier Agent** | Llama 3.1-8b | Post-processing validation & safety check (Groq Inference) | `comprehensiveVerify`, `validateMetricRanges`, `detectHallucination` |
+| Agent | Provider | Model | Role | Tools |
+|-------|----------|-------|------|-------|
+| **Supervisor** | Groq | Llama 3.3-70b | Intent classification & LangGraph handoff | - |
+| **NLQ Agent** | Groq | Llama 3.3-70b | Server metrics queries (SubGraph) | `getServerMetricsAdvanced` |
+| **Analyst Agent** | Groq | Llama 3.3-70b | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
+| **Reporter Agent** | Groq | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG), `recommendCommands` |
+| **Verifier Agent** | Mistral | Small 3.2 (24B) | Post-processing validation & safety check | `comprehensiveVerify`, `validateMetricRanges`, `detectHallucination` |
+
+> **Dual-Provider Strategy**: Groq (Primary) handles LangGraph handoff-compatible agents, Mistral (Secondary) provides higher-quality verification with 24B parameters. Combined rate limit: ~1M TPM free tier.
 
 ### Key Features
 
@@ -42,6 +44,14 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 - **Protocol Adaptation**: Simulated SSE with Keep-Alive to prevent timeouts on Vercel/Cloud Run
 - **Gemini API Key Failover**: Primary → Secondary key rotation on rate limit exhaustion (v5.88.0)
 - **maxRetries: 0 Fix**: Disabled LangChain SDK internal retries to prevent timeout cascades (v5.88.0)
+
+#### New in v5.89.0 (2025-12-26)
+
+- **Dual-Provider Architecture**: Groq (Primary) + Mistral (Secondary) for rate limit distribution
+- **Supervisor Migration**: Gemini → Groq Llama 3.3-70b for LangGraph handoff compatibility
+- **Verifier Upgrade**: Groq 8B → Mistral Small 3.2 (24B) for improved verification quality
+- **NLQ SubGraph**: 5-node workflow (parse→extract→validate→execute→format) with advanced tool support
+- **Korean NLP Helpers**: Time/metric/filter expression parsing for natural language queries
 
 #### New in v5.88.0
 
@@ -298,9 +308,10 @@ GraphRAG combines:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GOOGLE_AI_API_KEY` | Yes | Gemini 2.5 API key (Primary) |
-| `GOOGLE_AI_API_KEY_SECONDARY` | Yes | Gemini 2.5 API key (Secondary/Failover) |
-| `GROQ_API_KEY` | Yes | Groq (Llama) API key |
+| `GROQ_API_KEY` | Yes | Groq (Llama 3.3-70b) API key - Primary |
+| `MISTRAL_API_KEY` | Yes | Mistral (Small 3.2 24B) API key - Verifier |
+| `GOOGLE_AI_API_KEY` | No | Gemini API key (Legacy, optional) |
+| `GOOGLE_AI_API_KEY_SECONDARY` | No | Gemini API key (Legacy, optional) |
 | `CLOUD_RUN_API_SECRET` | Yes | API authentication secret |
 | `UPSTASH_REDIS_URL` | Yes | Upstash Redis REST URL |
 | `UPSTASH_REDIS_TOKEN` | Yes | Upstash Redis REST token |
@@ -316,7 +327,9 @@ cloud-run/ai-engine/
 ├── src/
 │   ├── server.ts               # Hono HTTP server (main entry)
 │   ├── lib/
-│   │   ├── model-config.ts     # API key validation & logging
+│   │   ├── model-config.ts     # Dual-provider model configuration (Groq + Mistral)
+│   │   ├── nlq-state.ts        # NLQ SubGraph state definition & Korean NLP helpers
+│   │   ├── nlq-subgraph.ts     # NLQ 5-node SubGraph workflow
 │   │   ├── redis-client.ts     # Upstash Redis client (L2 cache)
 │   │   ├── hybrid-cache.ts     # Multi-tier caching orchestration
 │   │   ├── graph-rag-service.ts # GraphRAG hybrid search service
@@ -379,5 +392,7 @@ cloud-run/supabase-mcp/         # Deprecated - direct Supabase JS client
 
 - **Runtime**: Node.js 22 + Hono
 - **Framework**: LangGraph StateGraph, Vercel AI SDK
-- **Models**: Gemini 2.5 Flash-Lite (Supervisor), Groq Llama 3.3 70b (Agents)
+- **Models**:
+  - Groq Llama 3.3-70b (Supervisor, NLQ, Analyst, Reporter)
+  - Mistral Small 3.2 24B (Verifier)
 - **Endpoint**: `https://ai-engine-xxxxx.run.app`
