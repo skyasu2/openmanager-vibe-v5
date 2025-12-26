@@ -237,7 +237,7 @@ jobsRouter.get('/:id/progress', async (c: Context) => {
   }
 
   // Otherwise return in-progress status
-  const { getJobProgress } = await import('../lib/job-notifier');
+  const { getJobProgress } = await import('../lib/job-notifier.js');
   const progress = await getJobProgress(jobId);
 
   if (!progress && !result) {
