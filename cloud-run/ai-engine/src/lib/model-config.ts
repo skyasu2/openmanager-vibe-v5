@@ -298,53 +298,15 @@ export function getModelForAgent(
 }
 
 /**
- * Create Gemini model with a specific API key (for fallback chains)
- */
-function createGeminiModelWithKey(
-  apiKey: string,
-  model: GeminiModel,
-  options?: ModelOptions
-): ChatGoogleGenerativeAI {
-  return new ChatGoogleGenerativeAI({
-    apiKey,
-    model,
-    temperature: options?.temperature ?? 0.3,
-    maxOutputTokens: options?.maxOutputTokens ?? 1024,
-    maxRetries: 0, // Fail fast for fallback to work
-  });
-}
-
-/**
- * Get Supervisor model with automatic fallback on rate limit
- * Uses LangChain's .withFallbacks() pattern for instant key rotation
+ * Get Supervisor model with fail-fast behavior
+ * Rate limit errors trigger key rotation via getActiveGeminiKey()
  */
 export function getSupervisorModel(): ChatGoogleGenerativeAI {
   const config = AGENT_MODEL_CONFIG.supervisor;
-  const keys = getGeminiAPIKeys();
-
-  // Create primary model
-  const primaryModel = createGeminiModelWithKey(
-    keys[0],
-    config.model as GeminiModel,
-    { temperature: config.temperature, maxOutputTokens: config.maxOutputTokens }
-  );
-
-  // If secondary key exists, create fallback chain
-  if (keys.length > 1) {
-    const fallbackModel = createGeminiModelWithKey(
-      keys[1],
-      config.model as GeminiModel,
-      { temperature: config.temperature, maxOutputTokens: config.maxOutputTokens }
-    );
-
-    console.log('🔗 [Supervisor] Using primary + fallback Gemini key chain');
-    return primaryModel.withFallbacks({
-      fallbacks: [fallbackModel],
-    }) as unknown as ChatGoogleGenerativeAI;
-  }
-
-  console.log('⚠️ [Supervisor] Single Gemini key - no fallback available');
-  return primaryModel;
+  return createGeminiModel(config.model as GeminiModel, {
+    temperature: config.temperature,
+    maxOutputTokens: config.maxOutputTokens,
+  });
 }
 
 export function getNLQModel(): ChatGroq {
