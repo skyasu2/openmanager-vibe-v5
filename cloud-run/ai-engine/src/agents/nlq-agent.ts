@@ -6,6 +6,7 @@
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { getDataCache } from '../lib/cache-layer';
+import { getSupabaseConfig } from '../lib/config-parser';
 import { loadHourlyScenarioData } from '../services/scenario/scenario-loader';
 
 // Tool Input Types (for TypeScript strict mode)
@@ -84,16 +85,16 @@ export const getServerLogsTool = tool(
 
     // Cache logs with 5-minute TTL (RAG)
     return cache.getHistoricalContext(cacheKey, async () => {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      // Use config-parser for unified JSON secret support
+      const config = getSupabaseConfig();
 
-      if (!supabaseUrl || !supabaseKey) {
-        return { success: false, error: 'Supabase credentials missing' };
+      if (!config) {
+        return { success: false, error: 'Supabase config missing' };
       }
 
       try {
         const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        const supabase = createClient(config.url, config.serviceRoleKey);
 
         let query = supabase
           .from('server_logs')

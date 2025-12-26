@@ -233,8 +233,8 @@ function Home() {
           </h1>
           <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">
             <span className="text-sm text-white/75">
-              LangGraph 기반 A2A 엔진 (Gemini + Groq) | 멀티 에이전트 협업을
-              통한 지능형 분석
+              LangGraph 기반 멀티 에이전트 엔진 (Gemini + Groq) | 멀티 에이전트
+              협업을 통한 지능형 분석
             </span>
           </p>
         </div>

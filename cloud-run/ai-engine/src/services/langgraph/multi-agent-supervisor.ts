@@ -119,6 +119,7 @@ function createNLQAgent() {
 2. **특정 서버 조회**: "WEB-01 상태" 등 → serverId 지정
 3. 로그/에러 조회 → getServerLogs
 4. 상태/메트릭 조회 → getServerMetrics
+5. 시스템 용어/개념 확인 → searchKnowledgeBase (RAG)
 
 ## 전체 서버 응답 형식 (serverId 없이 조회 시)
 📊 **전체 서버 현황** (총 N대)
@@ -138,7 +139,7 @@ function createNLQAgent() {
 
   return createReactAgent({
     llm: getNLQModel(),
-    tools: [getServerMetricsTool, getServerLogsTool],
+    tools: [getServerMetricsTool, getServerLogsTool, searchKnowledgeBaseTool],
     name: 'nlq_agent',
     stateModifier: createGroqCompatibleStateModifier(systemPrompt),
   });
@@ -154,6 +155,7 @@ function createAnalystAgent() {
 - detectAnomalies: 이상치 감지
 - predictTrends: 트렌드 예측
 - analyzePattern: 패턴 분석
+- searchKnowledgeBase: 과거 사례 및 해결 가이드 검색 (RAG)
 
 ## 응답 형식 (필수)
 **현황**: (1줄 요약)
@@ -164,7 +166,7 @@ function createAnalystAgent() {
 
   return createReactAgent({
     llm: getAnalystModel(),
-    tools: [detectAnomaliesTool, predictTrendsTool, analyzePatternTool],
+    tools: [detectAnomaliesTool, predictTrendsTool, analyzePatternTool, searchKnowledgeBaseTool],
     name: 'analyst_agent',
     stateModifier: createGroqCompatibleStateModifier(systemPrompt),
   });
@@ -817,8 +819,8 @@ export async function createSupervisorStreamResponse(
           const approval = detectApprovalRequired(response, query);
 
           if (approval.required && approval.actionType) {
-            // Register in approval store
-            approvalStore.registerPending({
+            // Register in approval store (async but fire-and-forget is acceptable here)
+            await approvalStore.registerPending({
               sessionId: effectiveSessionId,
               actionType: approval.actionType,
               description: approval.description || '',
