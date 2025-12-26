@@ -45,6 +45,8 @@ import {
   getNLQModel,
   getReporterModel,
   getSupervisorModel,
+  createMistralModel,
+  MISTRAL_MODELS,
 } from '../../lib/model-config';
 // LangFuse Integration (Phase 2)
 import { createSessionHandler } from '../../lib/langfuse-handler';
@@ -280,7 +282,12 @@ const SUPERVISOR_PROMPT = `당신은 OpenManager VIBE의 Multi-Agent Supervisor�
 /**
  * Create Multi-Agent Supervisor Workflow
  */
-export async function createMultiAgentSupervisor() {
+interface SupervisorOptions {
+  useFallbackModel?: boolean;
+}
+
+export async function createMultiAgentSupervisor(options: SupervisorOptions = {}) {
+  const { useFallbackModel = false } = options;
   const checkpointer = await getAutoCheckpointer();
 
   // Create worker agents
@@ -288,10 +295,19 @@ export async function createMultiAgentSupervisor() {
   const analystAgent = createAnalystAgent();
   const reporterAgent = createReporterAgent();
 
+  // Select model: Groq (primary) or Mistral (fallback)
+  const supervisorModel = useFallbackModel
+    ? createMistralModel(MISTRAL_MODELS.SMALL, { temperature: 0.1, maxOutputTokens: 512 })
+    : getSupervisorModel();
+
+  if (useFallbackModel) {
+    console.log('🔄 [Supervisor] Using Mistral fallback model due to Groq rate limit');
+  }
+
   // Create supervisor with automatic handoffs
   const workflow = createSupervisor({
     agents: [nlqAgent, analystAgent, reporterAgent],
-    llm: getSupervisorModel(),
+    llm: supervisorModel,
     prompt: SUPERVISOR_PROMPT,
     outputMode: 'full_history',
   });
@@ -498,10 +514,12 @@ export async function executeSupervisor(
     console.log(`📊 [LangFuse] Tracing initialized for session: ${sessionId}`);
   }
 
+  let useFallbackModel = false;
+
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      // Create fresh supervisor (uses Mistral for supervisor, Groq for workers)
-      const app = await createMultiAgentSupervisor();
+      // Create fresh supervisor (Groq primary, Mistral fallback on rate limit)
+      const app = await createMultiAgentSupervisor({ useFallbackModel });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await app.invoke(
@@ -562,10 +580,21 @@ export async function executeSupervisor(
       console.log(`🔍 [Supervisor] isRateLimitError check: ${isRateLimit}`);
 
       if (isRateLimit && attempt < MAX_RETRIES - 1) {
-        // Retry with exponential backoff for rate limits
+        // Switch to Mistral fallback model on rate limit
+        if (!useFallbackModel) {
+          console.warn(
+            `⚠️ [Supervisor] Groq rate limit hit on attempt ${attempt + 1}/${MAX_RETRIES}, switching to Mistral fallback...`
+          );
+          useFallbackModel = true;
+          // Minimal backoff before retry with fallback model
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+
+        // If already using fallback and still hitting limits, apply backoff
         const backoffMs = Math.pow(2, attempt) * 1000;
         console.warn(
-          `⚠️ [Supervisor] Rate limit hit on attempt ${attempt + 1}/${MAX_RETRIES}, retrying in ${backoffMs}ms...`
+          `⚠️ [Supervisor] Rate limit hit on fallback model, attempt ${attempt + 1}/${MAX_RETRIES}, retrying in ${backoffMs}ms...`
         );
         await new Promise(resolve => setTimeout(resolve, backoffMs));
         continue;
