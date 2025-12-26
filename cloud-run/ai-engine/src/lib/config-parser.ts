@@ -192,7 +192,7 @@ export function getGroqApiKey(): string | null {
 }
 
 /**
- * Get Cerebras API Key (PoC - rate limit distribution)
+ * Get Cerebras API Key (NLQ Agent - fast inference)
  * @see https://cloud.cerebras.ai/
  */
 export function getCerebrasApiKey(): string | null {

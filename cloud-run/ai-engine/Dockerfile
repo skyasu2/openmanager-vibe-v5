@@ -1,18 +1,26 @@
 # ============================================================================
 # AI Engine - Cloud Run Service (Multi-stage Build)
-# Optimized for Cloud Run cold start
+# Optimized for Cloud Run cold start & minimal image size
 # ============================================================================
 
-# Stage 1: Build
+# Stage 1: Dependencies (cached layer)
+FROM node:22-alpine AS deps
+
+WORKDIR /app
+
+# Install dependencies only (maximize cache hit)
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps --ignore-scripts && \
+    npm cache clean --force
+
+# Stage 2: Build
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies (cache layer)
-# v4: @langfuse/langchain natively supports @langchain/core >=0.3.0
-# Note: Using npm install instead of npm ci for better cross-version compatibility
-COPY package.json package-lock.json ./
-RUN npm install --legacy-peer-deps --ignore-scripts
+# Copy deps from previous stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json ./
 
 # Copy source and build
 COPY tsconfig.json ./
@@ -20,7 +28,7 @@ COPY src/ ./src/
 
 RUN npm run build
 
-# Stage 2: Production
+# Stage 3: Production (minimal)
 FROM node:22-alpine AS runner
 
 WORKDIR /app
@@ -29,25 +37,31 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Copy package files and install dependencies (as root for permissions)
+# Security: non-root user first
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 appuser
+
+# Copy package files
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/package-lock.json ./
-RUN npm install --omit=dev --legacy-peer-deps --ignore-scripts
+
+# Install production dependencies only
+RUN npm ci --omit=dev --legacy-peer-deps --ignore-scripts && \
+    npm cache clean --force && \
+    rm -rf /tmp/* /var/cache/apk/*
 
 # Copy built files
 COPY --from=builder /app/dist ./dist
 
-# Security: non-root user (switch after npm install)
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 appuser && \
-    chown -R appuser:nodejs /app
+# Set ownership and switch to non-root
+RUN chown -R appuser:nodejs /app
 USER appuser
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+# Health check (lightweight)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=2 \
+    CMD wget -q --spider http://localhost:8080/health || exit 1
 
 EXPOSE 8080
 
-# Direct node execution (faster than npx tsx)
+# Direct node execution (fastest startup)
 CMD ["node", "dist/server.js"]

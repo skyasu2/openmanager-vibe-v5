@@ -9,8 +9,8 @@
  * - Analyst Agent: Pattern analysis, anomaly detection
  * - Reporter Agent: Incident reports, RAG search
  *
- * ### Cerebras (Secondary - llama-3.3-70b) [PoC]
- * - NLQ Agent: Server metrics queries (fast inference)
+ * ### Cerebras (Secondary - llama-3.3-70b)
+ * - NLQ Agent: Server metrics queries (fast inference, 2100 tok/s)
  * - Rate limit: Separate from Groq quota
  *
  * ### Mistral (Tertiary - mistral-small-2506)
@@ -21,7 +21,7 @@
  * - Gemini → Mistral (Google API quota exhaustion)
  * - Supervisor: Mistral → Groq (LangGraph handoff compatibility)
  * - Verifier: Groq 8B → Mistral 24B (quality upgrade)
- * - NLQ: Groq → Cerebras (rate limit distribution PoC)
+ * - NLQ: Groq → Cerebras (rate limit distribution)
  */
 
 import { ChatMistralAI } from '@langchain/mistralai';
@@ -100,7 +100,7 @@ export const AGENT_MODEL_CONFIG = {
     maxOutputTokens: 512,
   },
   nlq: {
-    provider: 'cerebras' as const, // PoC: Cerebras for rate limit distribution
+    provider: 'cerebras' as const, // Cerebras for fast inference & rate limit distribution
     model: CEREBRAS_MODELS.LLAMA_70B,
     temperature: 0.3,
     maxOutputTokens: 1024,
@@ -293,7 +293,7 @@ export function validateAPIKeys(): {
     mistral: !!mistralKey,
     groq: !!groqKey,
     cerebras: !!cerebrasKey,
-    all: !!mistralKey && !!groqKey, // Cerebras is optional (PoC)
+    all: !!mistralKey && !!groqKey && !!cerebrasKey,
   };
 }
 
@@ -302,7 +302,7 @@ export function logAPIKeyStatus(): void {
   console.log('🔑 API Key Status:', {
     'Mistral AI': status.mistral ? '✅' : '❌',
     Groq: status.groq ? '✅' : '❌',
-    Cerebras: status.cerebras ? '✅ (PoC)' : '⚪ (optional)',
+    Cerebras: status.cerebras ? '✅' : '❌',
   });
 }
 
