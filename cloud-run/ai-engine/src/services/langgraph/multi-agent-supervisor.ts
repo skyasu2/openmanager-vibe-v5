@@ -785,9 +785,13 @@ export async function createSupervisorStreamResponse(
         // Use invoke() for more reliable Groq integration
         // v5.85.0: Verification enabled by default
         // v5.86.0: Context Compression enabled by default
+        // v5.87.1: Smart verification - skip for simple queries to reduce latency
+        const isSimpleQuery = query.length < 30 ||
+          /^(안녕|반가워|고마워|도움|뭐해|테스트)/i.test(query);
+
         const { response, verification, compressionApplied } = await executeSupervisor(query, {
           sessionId: effectiveSessionId,
-          enableVerification: true,
+          enableVerification: !isSimpleQuery, // Skip verifier for simple queries (~10-20s savings)
           verificationContext: query,
           enableCompression: true,
         });
