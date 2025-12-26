@@ -41,9 +41,9 @@ ENV PORT=8080
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 appuser
 
-# Copy package files
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/package-lock.json ./
+# Copy package files (from deps stage for lock file)
+COPY --from=deps /app/package.json ./
+COPY --from=deps /app/package-lock.json ./
 
 # Install production dependencies only
 RUN npm ci --omit=dev --legacy-peer-deps --ignore-scripts && \

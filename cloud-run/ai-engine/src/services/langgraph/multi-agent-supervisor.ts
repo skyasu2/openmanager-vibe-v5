@@ -46,7 +46,9 @@ import {
   getReporterModel,
   getSupervisorModel,
   createMistralModel,
+  createCerebrasModel,
   MISTRAL_MODELS,
+  CEREBRAS_MODELS,
 } from '../../lib/model-config';
 // LangFuse Integration (Phase 2)
 import { createSessionHandler } from '../../lib/langfuse-handler';
@@ -305,6 +307,39 @@ export async function createMultiAgentSupervisor() {
   });
 
   // Compile with checkpointer for session persistence
+  return workflow.compile({
+    checkpointer,
+  });
+}
+
+/**
+ * Create Supervisor with Cerebras model (Groq rate limit fallback)
+ * Uses llama-3.3-70b on Cerebras - same base model as Groq
+ */
+export async function createMultiAgentSupervisorWithCerebras() {
+  const checkpointer = await getAutoCheckpointer();
+
+  // Create worker agents (NLQ already uses Cerebras)
+  const nlqAgent = createNLQAgent();
+  const analystAgent = createAnalystAgent();
+  const reporterAgent = createReporterAgent();
+
+  // Supervisor uses Cerebras as Groq fallback
+  const supervisorModel = createCerebrasModel(CEREBRAS_MODELS.LLAMA_70B, {
+    temperature: 0.1,
+    maxOutputTokens: 512,
+  });
+
+  console.log('🔄 [Supervisor] Using Cerebras fallback (llama-3.3-70b)');
+
+  // Create supervisor with automatic handoffs
+  const workflow = createSupervisor({
+    agents: [nlqAgent, analystAgent, reporterAgent],
+    llm: supervisorModel,
+    prompt: SUPERVISOR_PROMPT,
+    outputMode: 'full_history',
+  });
+
   return workflow.compile({
     checkpointer,
   });
@@ -651,12 +686,36 @@ export async function executeSupervisor(
       console.log(`🔍 [Supervisor] isRateLimitError check: ${isRateLimit}`);
 
       if (isRateLimit) {
-        // 🛡️ Last Keeper Mode: Groq rate limit 즉시 Mistral 직접 응답
-        // Worker 에이전트들도 Groq 사용하므로, 바로 Last Keeper로 전환해서 빠르게 응답
+        // 🔄 Try Cerebras fallback first before Last Keeper
         console.warn(
-          `⚠️ [Supervisor] Groq rate limit detected, activating Last Keeper mode immediately...`
+          `⚠️ [Supervisor] Groq rate limit detected, trying Cerebras fallback...`
         );
-        return await executeLastKeeperMode(query, sessionId);
+
+        try {
+          const cerebrasApp = await createMultiAgentSupervisorWithCerebras();
+          const cerebrasResult = await cerebrasApp.invoke(
+            { messages: [new HumanMessage(query)] },
+            config as any
+          );
+
+          const cerebrasMessages = cerebrasResult.messages || [];
+          const lastMsg = cerebrasMessages[cerebrasMessages.length - 1];
+          const cerebrasResponse =
+            typeof lastMsg?.content === 'string'
+              ? lastMsg.content
+              : '응답을 생성할 수 없습니다.';
+
+          console.log('✅ [Supervisor] Cerebras fallback succeeded');
+          return {
+            response: cerebrasResponse,
+            sessionId,
+            verification: null,
+            compressionApplied: false,
+          };
+        } catch (cerebrasError) {
+          console.warn('⚠️ [Supervisor] Cerebras fallback failed, activating Last Keeper...');
+          return await executeLastKeeperMode(query, sessionId);
+        }
       }
 
       // Re-throw if not a rate limit error or no more retries

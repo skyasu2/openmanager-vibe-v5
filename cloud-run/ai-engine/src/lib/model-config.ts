@@ -224,14 +224,31 @@ export function getModelForAgent(
 }
 
 /**
- * Get Supervisor model (Groq llama-3.3-70b for reliable LangGraph handoff support)
+ * Get Supervisor model with Cerebras fallback
+ * Primary: Groq llama-3.3-70b-versatile (LangGraph handoff tested)
+ * Fallback: Cerebras llama-3.3-70b (same base model, rate limit distribution)
  */
-export function getSupervisorModel(): ChatGroq {
+export function getSupervisorModel(): ChatGroq | ChatCerebras {
   const config = AGENT_MODEL_CONFIG.supervisor;
-  return createGroqModel(config.model as GroqModel, {
-    temperature: config.temperature,
-    maxOutputTokens: config.maxOutputTokens,
-  });
+
+  try {
+    return createGroqModel(config.model as GroqModel, {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  } catch {
+    // Fallback to Cerebras if Groq unavailable
+    console.warn('⚠️ [Supervisor] Groq unavailable, trying Cerebras fallback');
+    try {
+      return createCerebrasModel(CEREBRAS_MODELS.LLAMA_70B, {
+        temperature: config.temperature,
+        maxOutputTokens: config.maxOutputTokens,
+      });
+    } catch {
+      // Last resort: throw to trigger Last Keeper
+      throw new Error('Both Groq and Cerebras unavailable for Supervisor');
+    }
+  }
 }
 
 export function getNLQModel(): ChatCerebras | ChatGroq {
