@@ -319,7 +319,87 @@ export async function createMultiAgentSupervisor(options: SupervisorOptions = {}
 }
 
 // ============================================================================
-// 3. Verifier Integration (Post-Processing)
+// 3. Last Keeper Mode (Mistral Direct Response)
+// ============================================================================
+
+/**
+ * Last Keeper Mode - Mistral 직접 응답
+ * Groq rate limit으로 모든 에이전트가 막힐 때 최후의 보루로 동작
+ *
+ * - Worker 에이전트 스킵
+ * - Mistral이 직접 간단한 응답 생성
+ * - 기본적인 AI 대화 유지
+ */
+async function executeLastKeeperMode(
+  query: string,
+  sessionId: string
+): Promise<{
+  response: string;
+  sessionId: string;
+  verification: VerificationResult | null;
+  compressionApplied: boolean;
+  lastKeeperMode: boolean;
+}> {
+  console.log('🛡️ [Last Keeper] Activating Mistral direct response mode');
+
+  const mistralModel = createMistralModel(MISTRAL_MODELS.SMALL, {
+    temperature: 0.3,
+    maxOutputTokens: 2048,
+  });
+
+  const systemPrompt = `당신은 OpenManager VIBE의 AI 어시스턴트입니다.
+현재 시스템 부하로 인해 간소화 모드로 동작 중입니다.
+
+역할:
+- 서버 모니터링 관련 일반적인 질문에 답변
+- 기술적 조언 제공
+- 친절하고 도움이 되는 응답
+
+제한사항 (솔직히 안내):
+- 실시간 서버 데이터 조회 불가 (시스템 복구 중)
+- 구체적인 메트릭 수치 제공 불가
+
+응답 형식:
+- 간결하고 명확하게
+- 한국어로 응답
+- 시스템 상태 안내 포함`;
+
+  try {
+    const response = await mistralModel.invoke([
+      new SystemMessage(systemPrompt),
+      new HumanMessage(query),
+    ]);
+
+    const content = typeof response.content === 'string'
+      ? response.content
+      : '죄송합니다. 현재 시스템이 복구 중입니다. 잠시 후 다시 시도해주세요.';
+
+    // 시스템 상태 안내 추가
+    const finalResponse = `${content}\n\n---\n⚠️ *현재 간소화 모드로 동작 중입니다. 실시간 데이터 조회는 잠시 후 다시 시도해주세요.*`;
+
+    console.log('✅ [Last Keeper] Response generated successfully');
+
+    return {
+      response: finalResponse,
+      sessionId,
+      verification: null,
+      compressionApplied: false,
+      lastKeeperMode: true,
+    };
+  } catch (error) {
+    console.error('🔴 [Last Keeper] Mistral also failed:', error);
+    return {
+      response: '⚠️ 현재 모든 AI 서비스가 일시적으로 제한되어 있습니다. 잠시 후 다시 시도해주세요.\n\n(Groq 일일 할당량 초과 - UTC 00:00에 리셋됩니다)',
+      sessionId,
+      verification: null,
+      compressionApplied: false,
+      lastKeeperMode: true,
+    };
+  }
+}
+
+// ============================================================================
+// 4. Verifier Integration (Post-Processing)
 // ============================================================================
 
 interface VerificationOptions {
@@ -476,6 +556,7 @@ export async function executeSupervisor(
   sessionId: string;
   verification?: VerificationResult | null;
   compressionApplied?: boolean;
+  lastKeeperMode?: boolean;
 }> {
   const sessionId = options.sessionId || `session_${Date.now()}`;
   const {
@@ -591,13 +672,12 @@ export async function executeSupervisor(
           continue;
         }
 
-        // If already using fallback and still hitting limits, apply backoff
-        const backoffMs = Math.pow(2, attempt) * 1000;
+        // 🛡️ Last Keeper Mode: Worker 에이전트도 Groq rate limit에 걸린 경우
+        // 복잡한 멀티 에이전트 워크플로우 스킵하고 Mistral 직접 응답
         console.warn(
-          `⚠️ [Supervisor] Rate limit hit on fallback model, attempt ${attempt + 1}/${MAX_RETRIES}, retrying in ${backoffMs}ms...`
+          `⚠️ [Supervisor] Workers also hit rate limit, activating Last Keeper mode...`
         );
-        await new Promise(resolve => setTimeout(resolve, backoffMs));
-        continue;
+        return await executeLastKeeperMode(query, sessionId);
       }
 
       // Re-throw if not a rate limit error or no more retries
