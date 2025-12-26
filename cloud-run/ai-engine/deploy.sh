@@ -69,6 +69,47 @@ if [ $? -eq 0 ]; then
     echo "✅ Deployment Successful!"
     echo "🌍 Service URL: $SERVICE_URL"
     echo "=============================================================================="
+
+    # 3. Cleanup old images and sources (keep latest 3)
+    echo ""
+    echo "🧹 Cleaning up old images and sources..."
+
+    # Cleanup old container images (keep latest 3)
+    KEEP_IMAGES=3
+    OLD_DIGESTS=$(gcloud container images list-tags "gcr.io/${PROJECT_ID}/${SERVICE_NAME}" \
+      --format="value(digest)" --sort-by=~timestamp 2>/dev/null | tail -n +$((KEEP_IMAGES + 1)))
+
+    if [ -n "$OLD_DIGESTS" ]; then
+      echo "   Deleting old container images..."
+      for digest in $OLD_DIGESTS; do
+        gcloud container images delete "gcr.io/${PROJECT_ID}/${SERVICE_NAME}@${digest}" \
+          --quiet --force-delete-tags 2>/dev/null &
+      done
+      wait
+      echo "   ✅ Old images deleted"
+    else
+      echo "   ✅ No old images to delete"
+    fi
+
+    # Cleanup old Cloud Build sources (keep latest 10)
+    KEEP_SOURCES=10
+    OLD_SOURCES=$(gsutil ls -l "gs://${PROJECT_ID}_cloudbuild/source/" 2>/dev/null | \
+      grep -v "TOTAL:" | sort -k2 -r | tail -n +$((KEEP_SOURCES + 1)) | awk '{print $3}')
+
+    SOURCE_COUNT=$(echo "$OLD_SOURCES" | grep -c "gs://" 2>/dev/null || echo 0)
+    if [ "$SOURCE_COUNT" -gt 0 ]; then
+      echo "   Deleting $SOURCE_COUNT old build sources..."
+      echo "$OLD_SOURCES" | xargs -P 10 gsutil rm 2>/dev/null
+      echo "   ✅ Old build sources deleted"
+    else
+      echo "   ✅ No old build sources to delete"
+    fi
+
+    echo "=============================================================================="
+    echo "📊 Storage Cleanup Summary:"
+    echo "   - Container images: kept latest $KEEP_IMAGES"
+    echo "   - Build sources: kept latest $KEEP_SOURCES"
+    echo "=============================================================================="
 else
     echo ""
     echo "❌ Deployment Failed."
