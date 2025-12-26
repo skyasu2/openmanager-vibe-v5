@@ -26,6 +26,11 @@ import {
   searchKnowledgeBaseTool,
   recommendCommandsTool,
 } from './agents/reporter-agent';
+import {
+  extractRelationships,
+  getGraphRAGStats,
+  getRelatedKnowledge,
+} from './lib/graph-rag-service';
 
 // Initialize App
 const app = new Hono();
@@ -214,14 +219,14 @@ app.get('/api/ai/generate/stats', (c: Context) => {
 // ============================================================================
 
 // GET /api/ai/approval/status - Check pending approval status
-app.get('/api/ai/approval/status', (c: Context) => {
+app.get('/api/ai/approval/status', async (c: Context) => {
   const sessionId = c.req.query('sessionId');
 
   if (!sessionId) {
     return c.json({ success: false, error: 'sessionId is required' }, 400);
   }
 
-  const pending = approvalStore.getPending(sessionId);
+  const pending = await approvalStore.getPending(sessionId);
 
   if (!pending) {
     return c.json({
@@ -259,7 +264,7 @@ app.post('/api/ai/approval/decide', async (c: Context) => {
       );
     }
 
-    const success = approvalStore.submitDecision(sessionId, approved, {
+    const success = await approvalStore.submitDecision(sessionId, approved, {
       reason,
       decidedBy: approvedBy,
     });
@@ -294,6 +299,66 @@ app.get('/api/ai/approval/stats', (c: Context) => {
     ...stats,
     timestamp: new Date().toISOString(),
   });
+});
+
+// GET /api/ai/approval/history - Get approval history from PostgreSQL
+app.get('/api/ai/approval/history', async (c: Context) => {
+  try {
+    const status = c.req.query('status') as 'pending' | 'approved' | 'rejected' | 'expired' | undefined;
+    const actionType = c.req.query('actionType') as 'incident_report' | 'system_command' | 'critical_alert' | undefined;
+    const limit = parseInt(c.req.query('limit') || '50', 10);
+    const offset = parseInt(c.req.query('offset') || '0', 10);
+
+    const history = await approvalStore.getHistory({
+      status,
+      actionType,
+      limit,
+      offset,
+    });
+
+    if (history === null) {
+      return c.json({
+        success: false,
+        error: 'PostgreSQL not available for history query',
+      }, 503);
+    }
+
+    return c.json({
+      success: true,
+      count: history.length,
+      history,
+      pagination: { limit, offset },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('❌ [Approval] History endpoint error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+// GET /api/ai/approval/history/stats - Get approval statistics
+app.get('/api/ai/approval/history/stats', async (c: Context) => {
+  try {
+    const days = parseInt(c.req.query('days') || '7', 10);
+    const stats = await approvalStore.getHistoryStats(days);
+
+    if (stats === null) {
+      return c.json({
+        success: false,
+        error: 'PostgreSQL not available for stats query',
+      }, 503);
+    }
+
+    return c.json({
+      success: true,
+      days,
+      ...stats,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('❌ [Approval] History stats endpoint error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
 });
 
 // ============================================================================
@@ -476,6 +541,110 @@ function extractKeywordsFromQuery(query: string): string[] {
 
   return keywords.length > 0 ? keywords : ['일반', '조회'];
 }
+
+// ============================================================================
+// GraphRAG Endpoints (Knowledge Graph Relationship Automation)
+// ============================================================================
+
+/**
+ * POST /api/ai/graphrag/extract - Extract relationships from knowledge base
+ *
+ * Automatically identifies and stores relationships between knowledge entries.
+ * Uses heuristics first, optionally LLM for uncertain cases.
+ *
+ * @param useLLM - Use LLM for advanced relationship detection (default: false)
+ * @param batchSize - Number of entries to process (default: 50)
+ */
+app.post('/api/ai/graphrag/extract', async (c: Context) => {
+  try {
+    const { useLLM = false, batchSize = 50 } = await c.req.json();
+
+    console.log(`🔗 [GraphRAG] Starting extraction (LLM: ${useLLM}, batch: ${batchSize})`);
+
+    const results = await extractRelationships({
+      useLLM,
+      batchSize,
+      onlyUnprocessed: true,
+    });
+
+    const totalRelationships = results.reduce((sum, r) => sum + r.relationships.length, 0);
+
+    console.log(`✅ [GraphRAG] Extracted ${totalRelationships} relationships from ${results.length} entries`);
+
+    return c.json({
+      success: true,
+      entriesProcessed: results.length,
+      relationshipsCreated: totalRelationships,
+      timestamp: new Date().toISOString(),
+      details: results.slice(0, 10), // Return first 10 for brevity
+    });
+  } catch (error) {
+    console.error('❌ [GraphRAG] Extraction error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+/**
+ * GET /api/ai/graphrag/stats - Get GraphRAG statistics
+ */
+app.get('/api/ai/graphrag/stats', async (c: Context) => {
+  try {
+    const stats = await getGraphRAGStats();
+
+    if (!stats) {
+      return c.json({
+        success: false,
+        error: 'Could not retrieve GraphRAG stats',
+      }, 500);
+    }
+
+    return c.json({
+      success: true,
+      ...stats,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('❌ [GraphRAG] Stats error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+/**
+ * GET /api/ai/graphrag/related/:nodeId - Get related knowledge via graph traversal
+ *
+ * @param nodeId - UUID of the source knowledge entry
+ * @param maxHops - Maximum graph traversal depth (default: 2)
+ * @param maxResults - Maximum results to return (default: 10)
+ */
+app.get('/api/ai/graphrag/related/:nodeId', async (c: Context) => {
+  try {
+    const nodeId = c.req.param('nodeId');
+    const maxHops = parseInt(c.req.query('maxHops') || '2', 10);
+    const maxResults = parseInt(c.req.query('maxResults') || '10', 10);
+
+    if (!nodeId) {
+      return c.json({ success: false, error: 'nodeId is required' }, 400);
+    }
+
+    console.log(`🔗 [GraphRAG] Finding related for ${nodeId} (hops: ${maxHops})`);
+
+    const related = await getRelatedKnowledge(nodeId, {
+      maxHops,
+      maxResults,
+    });
+
+    return c.json({
+      success: true,
+      nodeId,
+      relatedCount: related.length,
+      related,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('❌ [GraphRAG] Related search error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
 
 // Start Server
 const port = parseInt(process.env.PORT || '8080', 10);

@@ -1,5 +1,6 @@
 /**
  * approval-store.ts Unit Tests
+ * Updated for async methods (Redis integration)
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { approvalStore } from './approval-store';
@@ -16,9 +17,9 @@ describe('ApprovalStore', () => {
   });
 
   describe('registerPending', () => {
-    it('should register a pending approval', () => {
+    it('should register a pending approval', async () => {
       const sessionId = 'test-session-1';
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId,
         actionType: 'incident_report',
         description: 'Test approval',
@@ -27,15 +28,15 @@ describe('ApprovalStore', () => {
         requestedBy: 'test-agent',
       });
 
-      expect(approvalStore.hasPending(sessionId)).toBe(true);
+      expect(await approvalStore.hasPending(sessionId)).toBe(true);
     });
 
-    it('should set correct expiry time', () => {
+    it('should set correct expiry time', async () => {
       const sessionId = 'test-session-2';
       const now = new Date('2025-01-01T00:00:00Z');
       vi.setSystemTime(now);
 
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId,
         actionType: 'system_command',
         description: 'Test',
@@ -44,23 +45,23 @@ describe('ApprovalStore', () => {
         requestedBy: 'agent',
       });
 
-      const pending = approvalStore.getPending(sessionId);
+      const pending = await approvalStore.getPending(sessionId);
       expect(pending).not.toBeNull();
       expect(pending!.expiresAt.getTime()).toBe(now.getTime() + 5 * 60 * 1000);
     });
   });
 
   describe('getPending', () => {
-    it('should return null for non-existent session', () => {
-      expect(approvalStore.getPending('non-existent')).toBeNull();
+    it('should return null for non-existent session', async () => {
+      expect(await approvalStore.getPending('non-existent')).toBeNull();
     });
 
-    it('should return null for expired approval', () => {
+    it('should return null for expired approval', async () => {
       const sessionId = 'test-session-expired';
       const now = new Date('2025-01-01T00:00:00Z');
       vi.setSystemTime(now);
 
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId,
         actionType: 'incident_report',
         description: 'Test',
@@ -72,13 +73,13 @@ describe('ApprovalStore', () => {
       // Advance time past expiry
       vi.advanceTimersByTime(6 * 60 * 1000);
 
-      expect(approvalStore.getPending(sessionId)).toBeNull();
+      expect(await approvalStore.getPending(sessionId)).toBeNull();
     });
 
-    it('should return null for already decided approval', () => {
+    it('should return null for already decided approval', async () => {
       const sessionId = 'test-session-decided';
 
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId,
         actionType: 'critical_alert',
         description: 'Test',
@@ -87,17 +88,17 @@ describe('ApprovalStore', () => {
         requestedBy: 'agent',
       });
 
-      approvalStore.submitDecision(sessionId, true);
+      await approvalStore.submitDecision(sessionId, true);
 
-      expect(approvalStore.getPending(sessionId)).toBeNull();
+      expect(await approvalStore.getPending(sessionId)).toBeNull();
     });
   });
 
   describe('submitDecision', () => {
-    it('should submit approval decision', () => {
+    it('should submit approval decision', async () => {
       const sessionId = 'test-session-approve';
 
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId,
         actionType: 'incident_report',
         description: 'Test',
@@ -106,22 +107,22 @@ describe('ApprovalStore', () => {
         requestedBy: 'agent',
       });
 
-      const result = approvalStore.submitDecision(sessionId, true, {
+      const result = await approvalStore.submitDecision(sessionId, true, {
         reason: 'Approved by user',
         decidedBy: 'user-1',
       });
 
       expect(result).toBe(true);
-      const decision = approvalStore.getDecision(sessionId);
+      const decision = await approvalStore.getDecision(sessionId);
       expect(decision).not.toBeNull();
       expect(decision!.approved).toBe(true);
       expect(decision!.reason).toBe('Approved by user');
     });
 
-    it('should submit rejection decision', () => {
+    it('should submit rejection decision', async () => {
       const sessionId = 'test-session-reject';
 
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId,
         actionType: 'system_command',
         description: 'Test',
@@ -130,24 +131,24 @@ describe('ApprovalStore', () => {
         requestedBy: 'agent',
       });
 
-      const result = approvalStore.submitDecision(sessionId, false, {
+      const result = await approvalStore.submitDecision(sessionId, false, {
         reason: 'Rejected by user',
       });
 
       expect(result).toBe(true);
-      const decision = approvalStore.getDecision(sessionId);
+      const decision = await approvalStore.getDecision(sessionId);
       expect(decision!.approved).toBe(false);
     });
 
-    it('should return false for non-existent session', () => {
-      const result = approvalStore.submitDecision('non-existent', true);
+    it('should return false for non-existent session', async () => {
+      const result = await approvalStore.submitDecision('non-existent', true);
       expect(result).toBe(false);
     });
 
-    it('should return false for already decided session', () => {
+    it('should return false for already decided session', async () => {
       const sessionId = 'test-session-double';
 
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId,
         actionType: 'incident_report',
         description: 'Test',
@@ -156,8 +157,8 @@ describe('ApprovalStore', () => {
         requestedBy: 'agent',
       });
 
-      approvalStore.submitDecision(sessionId, true);
-      const secondResult = approvalStore.submitDecision(sessionId, false);
+      await approvalStore.submitDecision(sessionId, true);
+      const secondResult = await approvalStore.submitDecision(sessionId, false);
 
       expect(secondResult).toBe(false);
     });
@@ -167,7 +168,7 @@ describe('ApprovalStore', () => {
     it('should resolve immediately if already decided', async () => {
       const sessionId = 'test-session-immediate';
 
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId,
         actionType: 'incident_report',
         description: 'Test',
@@ -176,7 +177,7 @@ describe('ApprovalStore', () => {
         requestedBy: 'agent',
       });
 
-      approvalStore.submitDecision(sessionId, true);
+      await approvalStore.submitDecision(sessionId, true);
 
       const decision = await approvalStore.waitForDecision(sessionId);
       expect(decision.approved).toBe(true);
@@ -191,7 +192,7 @@ describe('ApprovalStore', () => {
     it('should resolve when decision is submitted', async () => {
       const sessionId = 'test-session-async';
 
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId,
         actionType: 'incident_report',
         description: 'Test',
@@ -203,8 +204,8 @@ describe('ApprovalStore', () => {
       const waitPromise = approvalStore.waitForDecision(sessionId);
 
       // Simulate user decision after short delay
-      setTimeout(() => {
-        approvalStore.submitDecision(sessionId, true);
+      setTimeout(async () => {
+        await approvalStore.submitDecision(sessionId, true);
       }, 100);
 
       vi.advanceTimersByTime(100);
@@ -215,8 +216,8 @@ describe('ApprovalStore', () => {
   });
 
   describe('getStats', () => {
-    it('should return correct stats', () => {
-      approvalStore.registerPending({
+    it('should return correct stats', async () => {
+      await approvalStore.registerPending({
         sessionId: 'stats-1',
         actionType: 'incident_report',
         description: 'Test 1',
@@ -225,7 +226,7 @@ describe('ApprovalStore', () => {
         requestedBy: 'agent',
       });
 
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId: 'stats-2',
         actionType: 'system_command',
         description: 'Test 2',
@@ -234,19 +235,21 @@ describe('ApprovalStore', () => {
         requestedBy: 'agent',
       });
 
-      approvalStore.submitDecision('stats-1', true);
+      await approvalStore.submitDecision('stats-1', true);
 
       const stats = approvalStore.getStats();
       expect(stats.pending).toBe(1);
       expect(stats.total).toBe(2);
+      // New: check redisEnabled flag
+      expect(typeof stats.redisEnabled).toBe('boolean');
     });
   });
 
   describe('auto-cleanup', () => {
-    it('should auto-cleanup after TTL', () => {
+    it('should auto-cleanup after TTL', async () => {
       const sessionId = 'test-auto-cleanup';
 
-      approvalStore.registerPending({
+      await approvalStore.registerPending({
         sessionId,
         actionType: 'incident_report',
         description: 'Test',
@@ -255,12 +258,12 @@ describe('ApprovalStore', () => {
         requestedBy: 'agent',
       });
 
-      expect(approvalStore.hasPending(sessionId)).toBe(true);
+      expect(await approvalStore.hasPending(sessionId)).toBe(true);
 
       // Advance past TTL
       vi.advanceTimersByTime(5 * 60 * 1000 + 1);
 
-      expect(approvalStore.hasPending(sessionId)).toBe(false);
+      expect(await approvalStore.hasPending(sessionId)).toBe(false);
     });
   });
 });

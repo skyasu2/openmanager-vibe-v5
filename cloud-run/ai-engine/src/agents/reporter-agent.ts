@@ -1,10 +1,15 @@
 /**
  * Reporter Agent
- * 인시던트 리포트 및 RAG 기반 솔루션 검색 에이전트
+ * 인시던트 리포트 및 GraphRAG 기반 솔루션 검색 에이전트
  *
- * 무료 티어 준수:
+ * ## GraphRAG Enhancement (2025-12-26)
+ * - Vector similarity + Graph traversal hybrid search
+ * - Entity relationship awareness
+ * - Multi-hop reasoning support
+ *
+ * ## 무료 티어 준수:
  * - Gemini text-embedding-004 (무료, 1,500 RPM)
- * - Supabase pgvector 검색 (500MB 한도 내)
+ * - Supabase pgvector + GraphRAG (500MB 한도 내)
  * - On-demand only - 백그라운드 작업 금지
  */
 
@@ -12,7 +17,8 @@ import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { AgentExecutionError, getErrorMessage } from '../lib/errors';
-import { searchWithEmbedding } from '../lib/embedding';
+import { searchWithEmbedding, embedText } from '../lib/embedding';
+import { hybridGraphSearch, getRelatedKnowledge } from '../lib/graph-rag-service';
 import { getReporterModel } from '../lib/model-config';
 import type {
   AgentStateType,
@@ -36,6 +42,8 @@ interface RecommendCommandsInput {
 // 1. Supabase Client Singleton (성능 최적화)
 // ============================================================================
 
+import { getSupabaseConfig } from '../lib/config-parser';
+
 // Supabase 클라이언트 인터페이스 (동적 import 호환, 최소 타입 정의)
 interface SupabaseClientLike {
   rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
@@ -48,16 +56,17 @@ async function getSupabaseClient(): Promise<SupabaseClientLike | null> {
     return supabaseInstance;
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Use config-parser for unified JSON secret support
+  const config = getSupabaseConfig();
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!config) {
+    console.warn('⚠️ [Reporter Agent] Supabase config missing');
     return null;
   }
 
   try {
     const { createClient } = await import('@supabase/supabase-js');
-    supabaseInstance = createClient(supabaseUrl, supabaseKey) as unknown as SupabaseClientLike;
+    supabaseInstance = createClient(config.url, config.serviceRoleKey) as unknown as SupabaseClientLike;
     return supabaseInstance;
   } catch (err) {
     console.error('⚠️ [Reporter Agent] Supabase client init failed:', err);
@@ -70,8 +79,8 @@ async function getSupabaseClient(): Promise<SupabaseClientLike | null> {
 // ============================================================================
 
 export const searchKnowledgeBaseTool = tool(
-  async ({ query, category, severity }: SearchKnowledgeBaseInput) => {
-    console.log(`🔍 [Reporter Agent] RAG search for: ${query}`);
+  async ({ query, category, severity, useGraphRAG = true }: SearchKnowledgeBaseInput & { useGraphRAG?: boolean }) => {
+    console.log(`🔍 [Reporter Agent] GraphRAG search for: ${query} (graph: ${useGraphRAG})`);
 
     // Supabase 클라이언트 가져오기 (Singleton)
     const supabase = await getSupabaseClient();
@@ -87,6 +96,8 @@ export const searchKnowledgeBaseTool = tool(
             content: '일반적인 문제 해결 절차: 1. 로그 확인 2. 리소스 사용량 체크 3. 서비스 재시작',
             category: 'troubleshooting',
             similarity: 0.8,
+            sourceType: 'fallback',
+            hopDistance: 0,
           },
         ],
         totalFound: 1,
@@ -95,8 +106,48 @@ export const searchKnowledgeBaseTool = tool(
     }
 
     try {
+      // 1. Generate query embedding
+      const queryEmbedding = await embedText(query);
 
-      // Gemini Embedding + Supabase pgvector 검색
+      // 2. Use hybrid GraphRAG search if enabled
+      if (useGraphRAG) {
+        const hybridResults = await hybridGraphSearch(queryEmbedding, {
+          similarityThreshold: 0.3,
+          maxVectorResults: 5,
+          maxGraphHops: 2,
+          maxTotalResults: 10,
+        });
+
+        if (hybridResults.length > 0) {
+          // Get graph-connected results
+          const graphEnhanced = hybridResults.map((r) => ({
+            id: r.id,
+            title: r.title,
+            content: r.content.substring(0, 500),
+            category: 'auto', // Would need join to get actual category
+            similarity: r.score,
+            sourceType: r.sourceType,
+            hopDistance: r.hopDistance,
+          }));
+
+          console.log(
+            `📊 [Reporter Agent] GraphRAG found: ${hybridResults.filter((r) => r.sourceType === 'vector').length} vector, ${hybridResults.filter((r) => r.sourceType === 'graph').length} graph`
+          );
+
+          return {
+            success: true,
+            results: graphEnhanced,
+            totalFound: graphEnhanced.length,
+            _source: 'GraphRAG Hybrid (Vector + Graph)',
+            graphStats: {
+              vectorResults: hybridResults.filter((r) => r.sourceType === 'vector').length,
+              graphResults: hybridResults.filter((r) => r.sourceType === 'graph').length,
+            },
+          };
+        }
+      }
+
+      // 3. Fallback to traditional vector search
       const result = await searchWithEmbedding(supabase, query, {
         similarityThreshold: 0.3,
         maxResults: 5,
@@ -110,9 +161,13 @@ export const searchKnowledgeBaseTool = tool(
 
       return {
         success: true,
-        results: result.results,
+        results: result.results.map((r) => ({
+          ...r,
+          sourceType: 'vector' as const,
+          hopDistance: 0,
+        })),
         totalFound: result.results.length,
-        _source: 'Supabase pgvector + Gemini Embedding',
+        _source: 'Supabase pgvector (Vector Only)',
       };
     } catch (error) {
       console.error('❌ [Reporter Agent] RAG search error:', error);
@@ -127,6 +182,8 @@ export const searchKnowledgeBaseTool = tool(
             content: `검색 중 오류가 발생했습니다. 로그 및 메트릭 기반 분석을 진행합니다. 오류: ${String(error)}`,
             category: 'error',
             similarity: 0,
+            sourceType: 'fallback',
+            hopDistance: 0,
           },
         ],
         totalFound: 1,
@@ -136,11 +193,12 @@ export const searchKnowledgeBaseTool = tool(
   },
   {
     name: 'searchKnowledgeBase',
-    description: '과거 장애 이력 및 해결 방법을 검색합니다 (RAG with pgvector)',
+    description: '과거 장애 이력 및 해결 방법을 검색합니다 (GraphRAG: Vector + Graph)',
     schema: z.object({
       query: z.string().describe('검색 쿼리'),
       category: z.string().optional().describe('카테고리 필터 (incident, troubleshooting, best_practice, command, architecture)'),
       severity: z.string().optional().describe('심각도 필터 (info, warning, critical)'),
+      useGraphRAG: z.boolean().optional().describe('GraphRAG 하이브리드 검색 사용 여부 (기본: true)'),
     }),
   }
 );

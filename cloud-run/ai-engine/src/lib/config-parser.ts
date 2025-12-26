@@ -28,10 +28,16 @@ export interface GoogleAIConfig {
   secondaryKey: string;
 }
 
+export interface UpstashConfig {
+  url: string;
+  token: string;
+}
+
 export interface SupabaseConfig {
   url: string;
   directUrl: string;
   serviceRoleKey: string;
+  upstash?: UpstashConfig; // Redis cache (optional)
 }
 
 // =============================================================================
@@ -185,6 +191,28 @@ export function getGroqApiKey(): string | null {
   return process.env.GROQ_API_KEY || null;
 }
 
+/**
+ * Get Upstash Redis configuration
+ * Embedded in SUPABASE_CONFIG.upstash or fallback to legacy env vars
+ */
+export function getUpstashConfig(): UpstashConfig | null {
+  // Try from SUPABASE_CONFIG.upstash first
+  const supabaseConfig = getSupabaseConfig();
+  if (supabaseConfig?.upstash) {
+    return supabaseConfig.upstash;
+  }
+
+  // Fallback to legacy env vars
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (url && token) {
+    return { url, token };
+  }
+
+  return null;
+}
+
 // =============================================================================
 // Status & Debugging
 // =============================================================================
@@ -193,6 +221,7 @@ export function getConfigStatus(): {
   langfuse: boolean;
   googleAI: boolean;
   supabase: boolean;
+  upstash: boolean;
   groq: boolean;
   cloudRunApi: boolean;
 } {
@@ -200,6 +229,7 @@ export function getConfigStatus(): {
     langfuse: getLangFuseConfig() !== null,
     googleAI: getGoogleAIConfig() !== null,
     supabase: getSupabaseConfig() !== null,
+    upstash: getUpstashConfig() !== null,
     groq: getGroqApiKey() !== null,
     cloudRunApi: getCloudRunApiSecret() !== null,
   };

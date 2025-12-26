@@ -381,16 +381,15 @@ export function validateAPIKeys(): {
   groq: boolean;
   all: boolean;
 } {
-  const googleKey =
-    process.env.GEMINI_API_KEY_PRIMARY || process.env.GOOGLE_API_KEY;
-  const googleSecondaryKey = process.env.GEMINI_API_KEY_SECONDARY;
-  const groqKey = process.env.GROQ_API_KEY;
+  // Use config-parser which supports both JSON secrets and legacy env vars
+  const googleConfig = getGoogleAIConfig();
+  const groqKey = getGroqApiKey();
 
   return {
-    google: !!googleKey,
-    googleSecondary: !!googleSecondaryKey,
+    google: !!googleConfig?.primaryKey,
+    googleSecondary: !!googleConfig?.secondaryKey,
     groq: !!groqKey,
-    all: !!googleKey && !!groqKey,
+    all: !!googleConfig?.primaryKey && !!groqKey,
   };
 }
 

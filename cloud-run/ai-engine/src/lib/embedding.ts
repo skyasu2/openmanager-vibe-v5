@@ -8,10 +8,34 @@
  * - 일일 한도: 충분함 (5명 × 1시간 = ~150 쿼리/일)
  *
  * 주의: On-demand only - 백그라운드 작업 금지
+ *
+ * ## Secret Configuration (2025-12-26)
+ * Uses config-parser for unified JSON secret support (GOOGLE_AI_CONFIG)
  */
 
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { embed, embedMany } from 'ai';
+import { getGoogleAIConfig } from './config-parser';
+
+// Lazy-initialized Google provider with API key from config
+let googleProvider: ReturnType<typeof createGoogleGenerativeAI> | null = null;
+
+function getGoogleProvider() {
+  if (googleProvider) {
+    return googleProvider;
+  }
+
+  const config = getGoogleAIConfig();
+  if (!config?.primaryKey) {
+    throw new Error('Google AI API key not configured. Check GOOGLE_AI_CONFIG secret.');
+  }
+
+  googleProvider = createGoogleGenerativeAI({
+    apiKey: config.primaryKey,
+  });
+
+  return googleProvider;
+}
 
 // Supabase 클라이언트 인터페이스 (동적 import 호환)
 interface SupabaseClientLike {
@@ -27,6 +51,7 @@ interface SupabaseClientLike {
  * @returns 384차원 float 배열
  */
 export async function embedText(text: string): Promise<number[]> {
+  const google = getGoogleProvider();
   const model = google.textEmbedding('text-embedding-004');
 
   const { embedding } = await embed({
@@ -52,6 +77,7 @@ export async function embedText(text: string): Promise<number[]> {
  * @returns 384차원 벡터 배열
  */
 export async function embedTexts(texts: string[]): Promise<number[][]> {
+  const google = getGoogleProvider();
   const model = google.textEmbedding('text-embedding-004');
 
   const { embeddings } = await embedMany({

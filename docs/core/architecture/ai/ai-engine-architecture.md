@@ -32,7 +32,7 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 - **Parallel Analysis**: Analyst + NLQ agents run concurrently for comprehensive reports
 - **Human-in-the-Loop (HITL)**: Critical actions require approval via LangGraph `interruptBefore`
 - **Return-to-Supervisor**: Agents can route back to supervisor for re-evaluation
-- **A2A Delegation**: Inter-agent task delegation via Command pattern
+- **Multi-Agent Delegation**: Inter-agent task delegation via Command pattern
 - **Circuit Breaker**: Model health monitoring with automatic failover
 - **Session Persistence**: Supabase PostgresCheckpointer for conversation continuity
 - **Context Compression**: Token-based conversation compression for long sessions (85%+ threshold)
@@ -99,7 +99,7 @@ graph TD
 |---------|-------------|------|
 | **System Architecture** | Full AI engine overview | [View](https://www.figma.com/online-whiteboard/create-diagram/9a4b29bd-0376-4e0a-8e22-3b9bd008854a) |
 | **Agent Routing Flow** | Supervisor → Agent routing | [View](https://www.figma.com/online-whiteboard/create-diagram/22dbc5b3-44c1-44e7-9eee-1fa0cf8e402a) |
-| **A2A Communication** | Inter-agent delegation | [View](https://www.figma.com/online-whiteboard/create-diagram/a32f26ab-5d3c-40f6-a8ed-4eb5ec0ed843) |
+| **Multi-Agent Communication** | Inter-agent delegation | [View](https://www.figma.com/online-whiteboard/create-diagram/a32f26ab-5d3c-40f6-a8ed-4eb5ec0ed843) |
 | **HITL Workflow** | Human-in-the-Loop approval | [View](https://www.figma.com/online-whiteboard/create-diagram/da114603-ca00-4416-9e1a-9bb422826093) |
 
 ## State Interfaces
