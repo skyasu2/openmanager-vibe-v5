@@ -31,15 +31,39 @@ import { quickSanitize } from './security';
 // ============================================================================
 // 🔧 Stream Transformer: Vercel Data Stream Protocol → Plain Text
 // ============================================================================
-// Cloud Run이 반환하는 Data Stream Protocol (0:"text", 3:"error") 을
-// TextStreamChatTransport가 이해할 수 있는 Plain Text로 변환
+// Cloud Run이 반환하는 Data Stream Protocol을 파싱하여 순수 텍스트로 변환
 //
-// Protocol Prefixes:
-// - 0: text content
-// - 3: error
-// - 2: data (JSON)
-// - 8: message annotation
+// @see https://sdk.vercel.ai/docs/ai-sdk-ui/stream-protocol
 // ============================================================================
+
+/**
+ * Vercel AI SDK Data Stream Protocol 상수
+ *
+ * @warning 이 프로토콜은 Vercel AI SDK 버전에 의존합니다.
+ *          SDK 업그레이드 시 호환성 확인 필요
+ *
+ * @see https://sdk.vercel.ai/docs/ai-sdk-ui/stream-protocol
+ */
+const DATA_STREAM_PREFIXES = {
+  TEXT: '0', // 텍스트 콘텐츠 (주요)
+  DATA: '2', // JSON 데이터 배열
+  ERROR: '3', // 에러 메시지
+  ANNOTATION: '8', // 메시지 주석
+  FINISH: 'd', // 완료 신호
+  START: 'e', // 시작 신호
+} as const;
+
+/**
+ * Data Stream Protocol 라인 파싱 정규식
+ *
+ * @pattern ^(prefix):(content)$
+ * - prefix: 숫자 또는 알파벳 한 글자
+ * - content: JSON 문자열 또는 객체
+ *
+ * @fragility 이 정규식은 SDK 프로토콜 변경에 취약합니다.
+ *            SDK 버전 업그레이드 시 반드시 테스트 필요
+ */
+const DATA_STREAM_LINE_REGEX = /^([0-9a-z]):(.*)$/;
 
 /**
  * Data Stream Protocol을 Plain Text로 변환하는 TransformStream
@@ -47,6 +71,15 @@ import { quickSanitize } from './security';
  * @description
  * Cloud Run이 반환하는 `0:"텍스트"` 형식을 파싱하여 순수 텍스트만 추출합니다.
  * TextStreamChatTransport와 함께 사용됩니다.
+ *
+ * @example
+ * Input:  0:"Hello "\n0:"World"\nd:{"finishReason":"stop"}
+ * Output: Hello World
+ *
+ * @warning
+ * - Vercel AI SDK v5 Data Stream Protocol에 의존
+ * - Cloud Run 응답 형식 변경 시 파싱 실패 가능
+ * - 장기적으로 SDK의 공식 파서 사용 권장
  */
 function createDataStreamParserTransform(): TransformStream<
   Uint8Array,
@@ -56,76 +89,105 @@ function createDataStreamParserTransform(): TransformStream<
   const encoder = new TextEncoder();
   let buffer = '';
 
+  /**
+   * JSON 문자열 안전하게 파싱
+   */
+  const safeJsonParse = (str: string): unknown => {
+    try {
+      return JSON.parse(str);
+    } catch {
+      return null;
+    }
+  };
+
+  /**
+   * 텍스트 콘텐츠 추출 (prefix: 0)
+   */
+  const extractTextContent = (content: string): string | null => {
+    const parsed = safeJsonParse(content);
+    if (typeof parsed === 'string') {
+      return parsed;
+    }
+    // JSON 파싱 실패 시 raw content 반환 (fallback)
+    if (content.startsWith('"') && content.endsWith('"')) {
+      return content.slice(1, -1);
+    }
+    return null;
+  };
+
+  /**
+   * 에러 메시지 추출 (prefix: 3)
+   */
+  const extractErrorMessage = (content: string): string => {
+    const parsed = safeJsonParse(content);
+
+    if (typeof parsed === 'string') {
+      // 중첩된 JSON 에러 처리
+      const innerParsed = safeJsonParse(parsed);
+      if (
+        innerParsed &&
+        typeof innerParsed === 'object' &&
+        'error' in innerParsed
+      ) {
+        const errorObj = innerParsed as { error?: { message?: string } };
+        return errorObj.error?.message || parsed;
+      }
+      return parsed;
+    }
+
+    if (parsed && typeof parsed === 'object' && 'message' in parsed) {
+      return (parsed as { message: string }).message;
+    }
+
+    return content;
+  };
+
   return new TransformStream({
     transform(chunk, controller) {
       buffer += decoder.decode(chunk, { stream: true });
 
       const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+      buffer = lines.pop() || ''; // 마지막 불완전한 라인은 버퍼에 유지
 
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
 
-        // Data Stream Protocol: N:"content" 또는 N:{json}
-        const match = trimmed.match(/^(\d+|[a-z]):(.*)$/);
-        if (match?.[1] && match[2] !== undefined) {
-          const prefix = match[1];
-          const content = match[2];
+        const match = trimmed.match(DATA_STREAM_LINE_REGEX);
+        if (!match?.[1] || match[2] === undefined) continue;
 
-          switch (prefix) {
-            case '0': {
-              // 텍스트 콘텐츠 - JSON 문자열 파싱
-              try {
-                const text = JSON.parse(content);
-                if (typeof text === 'string') {
-                  controller.enqueue(encoder.encode(text));
-                }
-              } catch {
-                controller.enqueue(encoder.encode(content));
-              }
-              break;
+        const prefix = match[1];
+        const content = match[2];
+
+        switch (prefix) {
+          case DATA_STREAM_PREFIXES.TEXT: {
+            const text = extractTextContent(content);
+            if (text) {
+              controller.enqueue(encoder.encode(text));
             }
-            case '3': {
-              // 에러 메시지
-              try {
-                const errorData = JSON.parse(content);
-                if (
-                  typeof errorData === 'string' &&
-                  errorData.includes('"error"')
-                ) {
-                  const innerError = JSON.parse(errorData);
-                  const errorMsg =
-                    innerError?.error?.message || '알 수 없는 오류';
-                  controller.enqueue(
-                    encoder.encode(`\n\n⚠️ AI 오류: ${errorMsg}`)
-                  );
-                } else {
-                  controller.enqueue(
-                    encoder.encode(`\n\n⚠️ 오류: ${errorData}`)
-                  );
-                }
-              } catch {
-                controller.enqueue(encoder.encode(`\n\n⚠️ 오류: ${content}`));
-              }
-              break;
-            }
-            // case '2', '8', 'd', 'e': 메타데이터 무시
+            break;
           }
+
+          case DATA_STREAM_PREFIXES.ERROR: {
+            const errorMsg = extractErrorMessage(content);
+            controller.enqueue(encoder.encode(`\n\n⚠️ AI 오류: ${errorMsg}`));
+            break;
+          }
+
+          // DATA, ANNOTATION, FINISH, START: 메타데이터는 무시
+          // 필요 시 여기에 추가 처리 로직 구현 가능
         }
       }
     },
+
     flush(controller) {
+      // 버퍼에 남은 불완전한 라인 처리
       if (buffer.trim()) {
-        const match = buffer.trim().match(/^0:(.*)$/);
-        if (match?.[1]) {
-          try {
-            const text = JSON.parse(match[1]);
-            if (typeof text === 'string') {
-              controller.enqueue(encoder.encode(text));
-            }
-          } catch {
-            // 무시
+        const match = buffer.trim().match(DATA_STREAM_LINE_REGEX);
+        if (match?.[1] === DATA_STREAM_PREFIXES.TEXT && match[2]) {
+          const text = extractTextContent(match[2]);
+          if (text) {
+            controller.enqueue(encoder.encode(text));
           }
         }
       }

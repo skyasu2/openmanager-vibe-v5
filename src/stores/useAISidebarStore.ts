@@ -165,52 +165,29 @@ export const useAIThinking = () => {
   };
 };
 
+/**
+ * @deprecated v4.0부터 사용되지 않음
+ *
+ * 실제 AI 통신은 AISidebarV4.tsx의 Vercel AI SDK useChat 훅이 담당합니다.
+ * 이 훅은 메시지 상태 읽기와 초기화만 제공하며, sendMessage는 구현되지 않았습니다.
+ *
+ * @see src/domains/ai-sidebar/components/AISidebarV4.tsx - 실제 AI 통신 로직
+ * @see src/domains/ai-sidebar/hooks/useAIChatSync.ts - 상태 동기화
+ */
 export const useAIChat = () => {
   const messages = useAISidebarStore((state) => state.messages);
   const addMessage = useAISidebarStore((state) => state.addMessage);
   const clearMessages = useAISidebarStore((state) => state.clearMessages);
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  const sendMessage = useCallback(
-    async (content: string) => {
-      const userMessage: EnhancedChatMessage = {
-        id: crypto.randomUUID(),
-        content,
-        role: 'user',
-        timestamp: new Date(),
-      };
-
-      addMessage(userMessage);
-      setIsLoading(true);
-
-      try {
-        // API 호출 로직 여기에 추가 예정
-        // 현재는 더미 응답
-        const assistantMessage: EnhancedChatMessage = {
-          id: crypto.randomUUID(),
-          content: '응답을 처리 중입니다...',
-          role: 'assistant',
-          timestamp: new Date(),
-          isStreaming: true,
-          isCompleted: false,
-        };
-
-        addMessage(assistantMessage);
-      } catch (error) {
-        console.error('Send message error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [addMessage]
-  ); // addMessage 함수 의존성 복구
+  // ⚠️ sendMessage는 의도적으로 제거됨
+  // 실제 메시지 전송은 AISidebarV4.tsx의 useChat 훅 사용
 
   return {
     messages,
-    sendMessage,
+    addMessage,
     clearMessages,
-    isLoading,
+    /** @deprecated useChat from AISidebarV4.tsx instead */
+    isLoading: false,
   };
 };
 
