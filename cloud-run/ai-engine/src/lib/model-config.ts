@@ -170,7 +170,7 @@ export interface ModelOptions {
 export const AGENT_MODEL_CONFIG = {
   supervisor: {
     provider: 'google' as const, // Gemini for tool calling support
-    model: AI_MODELS.FLASH_LITE as GeminiModel, // High Quota (1500 RPD) for Routing
+    model: AI_MODELS.FLASH_LITE as GeminiModel, // Fast/cheap for routing (shares 500 RPD pool)
     temperature: 0.1, // Lower for more deterministic routing
     maxOutputTokens: 512,
   },
@@ -208,7 +208,7 @@ export type AgentType = keyof typeof AGENT_MODEL_CONFIG;
 // ============================================================================
 
 export function createGeminiModel(
-  model: GeminiModel = AI_MODELS.FLASH_LITE, // Default to Flash Lite (1,500 RPD) for high availability
+  model: GeminiModel = AI_MODELS.FLASH_LITE, // Fast/cheap default (shares 500 RPD pool)
   options?: ModelOptions
 ): ChatGoogleGenerativeAI {
   // Use failover-aware key selection

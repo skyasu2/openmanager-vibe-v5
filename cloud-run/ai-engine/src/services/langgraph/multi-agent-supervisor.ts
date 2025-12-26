@@ -500,8 +500,18 @@ export async function executeSupervisor(
 
       return { response, sessionId, verification, compressionApplied };
     } catch (error) {
+      // Debug: Log caught error details
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`🔴 [Supervisor] Caught error on attempt ${attempt + 1}:`, {
+        errorType: error?.constructor?.name,
+        messagePreview: errorMessage.slice(0, 200),
+      });
+
       // Check if this is a rate limit error
-      if (RateLimitError.isRateLimitError(error)) {
+      const isRateLimit = RateLimitError.isRateLimitError(error);
+      console.log(`🔍 [Supervisor] isRateLimitError check: ${isRateLimit}`);
+
+      if (isRateLimit) {
         const keyStatus = getGeminiKeyStatus();
         console.error(
           `⚠️ [Supervisor] Rate limit hit on attempt ${attempt + 1}/${MAX_RETRIES}`,

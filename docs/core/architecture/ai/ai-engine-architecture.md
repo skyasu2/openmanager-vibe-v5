@@ -4,7 +4,7 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.87.0, Updated 2025-12-26)
+## Architecture (v5.88.0, Updated 2025-12-26)
 
 ### Deployment Mode
 
@@ -25,7 +25,7 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 | **NLQ Agent** | Llama 3.3-70b | Server metrics queries (Groq Inference) | `getServerMetrics` |
 | **Analyst Agent** | Llama 3.3-70b | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
 | **Reporter Agent** | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG), `recommendCommands` |
-| **Verifier Agent** | Gemini 2.5 Flash | Post-processing validation & safety check | `comprehensiveVerify` |
+| **Verifier Agent** | Llama 3.1-8b | Post-processing validation & safety check (Groq Inference) | `comprehensiveVerify`, `validateMetricRanges`, `detectHallucination` |
 
 ### Key Features
 
@@ -40,6 +40,15 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 - **Verifier Integration**: Dedicated agent for post-processing validation and safety checks (v5.85.0)
 - **Groq Compatibility**: Custom state modifier to adapt Gemini tool calls for Groq Llama models
 - **Protocol Adaptation**: Simulated SSE with Keep-Alive to prevent timeouts on Vercel/Cloud Run
+- **Gemini API Key Failover**: Primary → Secondary key rotation on rate limit exhaustion (v5.88.0)
+- **maxRetries: 0 Fix**: Disabled LangChain SDK internal retries to prevent timeout cascades (v5.88.0)
+
+#### New in v5.88.0
+
+- **Gemini API Key Failover**: Automatic primary → secondary key rotation when rate limit exhausted
+- **LangChain maxRetries Fix**: Set `maxRetries: 0` to prevent SDK internal retry timeout cascades
+- **Verifier Agent Migration**: Moved from Gemini 2.5 Flash to Groq Llama 3.1-8b for cost optimization
+- **Enhanced Hallucination Detection**: Improved metric range validation and factual consistency checks
 
 #### New in v5.87.0
 
@@ -107,6 +116,7 @@ graph TD
 | **Agent Routing Flow** | Supervisor → Agent routing | [View](https://www.figma.com/online-whiteboard/create-diagram/22dbc5b3-44c1-44e7-9eee-1fa0cf8e402a) |
 | **Multi-Agent Communication** | Inter-agent delegation | [View](https://www.figma.com/online-whiteboard/create-diagram/a32f26ab-5d3c-40f6-a8ed-4eb5ec0ed843) |
 | **HITL Workflow** | Human-in-the-Loop approval | [View](https://www.figma.com/online-whiteboard/create-diagram/da114603-ca00-4416-9e1a-9bb422826093) |
+| **Supervisor Execution Flow** | Query → Supervisor → Agents → Verifier flow | [View](https://www.figma.com/online-whiteboard/create-diagram/eb37f54b-2795-4320-bd2e-c41854a7ec52) |
 
 ## State Interfaces
 
