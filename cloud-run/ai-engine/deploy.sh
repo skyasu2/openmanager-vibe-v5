@@ -71,6 +71,7 @@ if [ $? -eq 0 ]; then
     echo "=============================================================================="
 
     # 3. Cleanup old images and sources (keep latest 3)
+    # Note: Cleanup failures are non-critical and won't affect deployment success
     echo ""
     echo "🧹 Cleaning up old images and sources..."
 
@@ -81,28 +82,36 @@ if [ $? -eq 0 ]; then
 
     if [ -n "$OLD_DIGESTS" ]; then
       echo "   Deleting old container images..."
+      DELETE_COUNT=0
       for digest in $OLD_DIGESTS; do
         gcloud container images delete "gcr.io/${PROJECT_ID}/${SERVICE_NAME}@${digest}" \
-          --quiet --force-delete-tags 2>/dev/null &
+          --quiet --force-delete-tags 2>/dev/null && ((DELETE_COUNT++)) &
       done
       wait
-      echo "   ✅ Old images deleted"
+      echo "   ✅ Old images deleted ($DELETE_COUNT processed)"
     else
       echo "   ✅ No old images to delete"
     fi
 
     # Cleanup old Cloud Build sources (keep latest 10)
     KEEP_SOURCES=10
-    OLD_SOURCES=$(gsutil ls -l "gs://${PROJECT_ID}_cloudbuild/source/" 2>/dev/null | \
-      grep -v "TOTAL:" | sort -k2 -r | tail -n +$((KEEP_SOURCES + 1)) | awk '{print $3}')
+    BUCKET_NAME="${PROJECT_ID}_cloudbuild"
 
-    SOURCE_COUNT=$(echo "$OLD_SOURCES" | grep -c "gs://" 2>/dev/null || echo 0)
-    if [ "$SOURCE_COUNT" -gt 0 ]; then
-      echo "   Deleting $SOURCE_COUNT old build sources..."
-      echo "$OLD_SOURCES" | xargs -P 10 gsutil rm 2>/dev/null
-      echo "   ✅ Old build sources deleted"
+    # Check if bucket exists before attempting cleanup
+    if gsutil ls "gs://${BUCKET_NAME}/" >/dev/null 2>&1; then
+      OLD_SOURCES=$(gsutil ls -l "gs://${BUCKET_NAME}/source/" 2>/dev/null | \
+        grep -v "TOTAL:" | sort -k2 -r | tail -n +$((KEEP_SOURCES + 1)) | awk '{print $3}')
+
+      SOURCE_COUNT=$(echo "$OLD_SOURCES" | grep -c "gs://" 2>/dev/null || echo 0)
+      if [ "$SOURCE_COUNT" -gt 0 ]; then
+        echo "   Deleting $SOURCE_COUNT old build sources..."
+        echo "$OLD_SOURCES" | xargs -P 10 gsutil rm 2>/dev/null || echo "   ⚠️  Some sources could not be deleted"
+        echo "   ✅ Old build sources cleanup completed"
+      else
+        echo "   ✅ No old build sources to delete"
+      fi
     else
-      echo "   ✅ No old build sources to delete"
+      echo "   ⚠️  Cloud Build bucket not found, skipping source cleanup"
     fi
 
     echo "=============================================================================="
