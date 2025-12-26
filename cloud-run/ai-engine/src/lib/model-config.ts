@@ -2,27 +2,32 @@
  * LangGraph Model Configuration
  *
  * ## Architecture (2025-12-26)
- * Dual-provider strategy for rate limit distribution and reliability:
+ * Triple-provider strategy for rate limit distribution and reliability:
  *
  * ### Groq (Primary - llama-3.3-70b-versatile)
  * - Supervisor: LangGraph handoff requires Groq (Mistral incompatible)
- * - NLQ Agent: Server metrics queries
  * - Analyst Agent: Pattern analysis, anomaly detection
  * - Reporter Agent: Incident reports, RAG search
  *
- * ### Mistral (Secondary - mistral-small-2506)
+ * ### Cerebras (Secondary - llama-3.3-70b) [PoC]
+ * - NLQ Agent: Server metrics queries (fast inference)
+ * - Rate limit: Separate from Groq quota
+ *
+ * ### Mistral (Tertiary - mistral-small-2506)
  * - Verifier Agent: Response quality verification (24B params)
- * - Rate limit: ~500K TPM (separate from Groq quota)
+ * - Last Keeper: Fallback when other providers fail
  *
  * ## Migration History
  * - Gemini → Mistral (Google API quota exhaustion)
  * - Supervisor: Mistral → Groq (LangGraph handoff compatibility)
  * - Verifier: Groq 8B → Mistral 24B (quality upgrade)
+ * - NLQ: Groq → Cerebras (rate limit distribution PoC)
  */
 
 import { ChatMistralAI } from '@langchain/mistralai';
 import { ChatGroq } from '@langchain/groq';
-import { getGroqApiKey } from './config-parser';
+import { ChatCerebras } from '@langchain/cerebras';
+import { getGroqApiKey, getCerebrasApiKey } from './config-parser';
 import {
   type CircuitBreakerState,
   isModelHealthy,
@@ -63,6 +68,8 @@ export type MistralModel =
 
 export type GroqModel = 'llama-3.1-8b-instant' | 'llama-3.3-70b-versatile';
 
+export type CerebrasModel = 'llama-3.3-70b' | 'llama-3.1-8b';
+
 export interface ModelOptions {
   temperature?: number;
   maxOutputTokens?: number;
@@ -80,6 +87,11 @@ export const MISTRAL_MODELS = {
   LARGE: 'mistral-large-latest' as MistralModel,
 } as const;
 
+export const CEREBRAS_MODELS = {
+  LLAMA_70B: 'llama-3.3-70b' as CerebrasModel,  // Fast inference, same as Groq
+  LLAMA_8B: 'llama-3.1-8b' as CerebrasModel,    // Faster, smaller
+} as const;
+
 export const AGENT_MODEL_CONFIG = {
   supervisor: {
     provider: 'groq' as const, // Groq for reliable LangGraph handoff support
@@ -88,8 +100,8 @@ export const AGENT_MODEL_CONFIG = {
     maxOutputTokens: 512,
   },
   nlq: {
-    provider: 'groq' as const,
-    model: 'llama-3.3-70b-versatile' as GroqModel,
+    provider: 'cerebras' as const, // PoC: Cerebras for rate limit distribution
+    model: CEREBRAS_MODELS.LLAMA_70B,
     temperature: 0.3,
     maxOutputTokens: 1024,
   },
@@ -152,13 +164,33 @@ export function createGroqModel(
   });
 }
 
+export function createCerebrasModel(
+  model: CerebrasModel = CEREBRAS_MODELS.LLAMA_70B,
+  options?: ModelOptions
+): ChatCerebras {
+  const apiKey = getCerebrasApiKey();
+  if (!apiKey) {
+    console.warn('⚠️ [Cerebras] API key not configured, falling back to Groq');
+    throw new Error(
+      'Cerebras API key not configured. Set CEREBRAS_API_KEY environment variable.'
+    );
+  }
+
+  return new ChatCerebras({
+    apiKey,
+    model,
+    temperature: options?.temperature ?? 0.2,
+    maxTokens: options?.maxOutputTokens ?? 1024,
+  });
+}
+
 // ============================================================================
 // 4. Agent-Specific Model Getters
 // ============================================================================
 
 export function getModelForAgent(
   agentType: AgentType
-): ChatMistralAI | ChatGroq {
+): ChatMistralAI | ChatGroq | ChatCerebras {
   const config = AGENT_MODEL_CONFIG[agentType];
   const provider = config.provider as string;
 
@@ -167,6 +199,22 @@ export function getModelForAgent(
       temperature: config.temperature,
       maxOutputTokens: config.maxOutputTokens,
     });
+  }
+
+  if (provider === 'cerebras') {
+    try {
+      return createCerebrasModel(config.model as CerebrasModel, {
+        temperature: config.temperature,
+        maxOutputTokens: config.maxOutputTokens,
+      });
+    } catch {
+      // Fallback to Groq if Cerebras not configured
+      console.warn(`⚠️ [${agentType}] Cerebras unavailable, falling back to Groq`);
+      return createGroqModel('llama-3.3-70b-versatile', {
+        temperature: config.temperature,
+        maxOutputTokens: config.maxOutputTokens,
+      });
+    }
   }
 
   return createGroqModel(config.model as GroqModel, {
@@ -186,12 +234,21 @@ export function getSupervisorModel(): ChatGroq {
   });
 }
 
-export function getNLQModel(): ChatGroq {
+export function getNLQModel(): ChatCerebras | ChatGroq {
   const config = AGENT_MODEL_CONFIG.nlq;
-  return createGroqModel(config.model as GroqModel, {
-    temperature: config.temperature,
-    maxOutputTokens: config.maxOutputTokens,
-  });
+  try {
+    return createCerebrasModel(config.model as CerebrasModel, {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  } catch {
+    // Fallback to Groq if Cerebras not configured
+    console.warn('⚠️ [NLQ] Cerebras unavailable, falling back to Groq');
+    return createGroqModel('llama-3.3-70b-versatile', {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  }
 }
 
 export function getAnalystModel(): ChatGroq {
@@ -225,15 +282,18 @@ export function getVerifierModel(): ChatMistralAI {
 export function validateAPIKeys(): {
   mistral: boolean;
   groq: boolean;
+  cerebras: boolean;
   all: boolean;
 } {
   const mistralKey = process.env.MISTRAL_API_KEY;
   const groqKey = getGroqApiKey();
+  const cerebrasKey = getCerebrasApiKey();
 
   return {
     mistral: !!mistralKey,
     groq: !!groqKey,
-    all: !!mistralKey && !!groqKey,
+    cerebras: !!cerebrasKey,
+    all: !!mistralKey && !!groqKey, // Cerebras is optional (PoC)
   };
 }
 
@@ -242,6 +302,7 @@ export function logAPIKeyStatus(): void {
   console.log('🔑 API Key Status:', {
     'Mistral AI': status.mistral ? '✅' : '❌',
     Groq: status.groq ? '✅' : '❌',
+    Cerebras: status.cerebras ? '✅ (PoC)' : '⚪ (optional)',
   });
 }
 
@@ -250,13 +311,18 @@ export function logAPIKeyStatus(): void {
 // ============================================================================
 
 export const MODEL_FALLBACK_CHAIN: Record<string, string[]> = {
+  // Mistral models
   'mistral-small-2506': ['mistral-small-2503', 'mistral-small-latest', 'llama-3.3-70b-versatile'],
   'mistral-small-2503': ['mistral-small-2506', 'mistral-small-latest', 'llama-3.3-70b-versatile'],
   'mistral-small-latest': ['mistral-small-2506', 'mistral-small-2503', 'llama-3.3-70b-versatile'],
   'mistral-medium-latest': ['mistral-small-2506', 'mistral-small-latest', 'llama-3.3-70b-versatile'],
   'mistral-large-latest': ['mistral-medium-latest', 'mistral-small-2506'],
-  'llama-3.1-8b-instant': ['llama-3.3-70b-versatile', 'mistral-small-2506'],
-  'llama-3.3-70b-versatile': ['mistral-small-2506', 'llama-3.1-8b-instant'],
+  // Groq models
+  'llama-3.1-8b-instant': ['llama-3.3-70b-versatile', 'llama-3.3-70b', 'mistral-small-2506'],
+  'llama-3.3-70b-versatile': ['llama-3.3-70b', 'mistral-small-2506', 'llama-3.1-8b-instant'],
+  // Cerebras models (fallback to Groq equivalents)
+  'llama-3.3-70b': ['llama-3.3-70b-versatile', 'mistral-small-2506'],
+  'llama-3.1-8b': ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile'],
 };
 
 export function selectHealthyModel(
@@ -288,7 +354,7 @@ export function selectHealthyModel(
 export async function invokeWithCircuitBreaker<T>(
   modelId: string,
   circuitState: CircuitBreakerState,
-  invoker: (model: ChatMistralAI | ChatGroq) => Promise<T>
+  invoker: (model: ChatMistralAI | ChatGroq | ChatCerebras) => Promise<T>
 ): Promise<{
   result: T;
   usedModel: string;
@@ -332,10 +398,23 @@ export async function invokeWithCircuitBreaker<T>(
   throw lastError || new Error('All models in fallback chain failed');
 }
 
-function createModelByName(modelName: string): ChatMistralAI | ChatGroq {
+function createModelByName(modelName: string): ChatMistralAI | ChatGroq | ChatCerebras {
   if (modelName.startsWith('mistral') || modelName.startsWith('open-mistral') || modelName.startsWith('open-mixtral')) {
     return createMistralModel(modelName as MistralModel);
   }
+  // Cerebras uses 'llama-X.X-XXb' format (without -versatile or -instant suffix)
+  if (modelName === 'llama-3.3-70b' || modelName === 'llama-3.1-8b') {
+    try {
+      return createCerebrasModel(modelName as CerebrasModel);
+    } catch {
+      // Fallback to Groq equivalent
+      const groqEquivalent = modelName === 'llama-3.3-70b'
+        ? 'llama-3.3-70b-versatile'
+        : 'llama-3.1-8b-instant';
+      return createGroqModel(groqEquivalent as GroqModel);
+    }
+  }
+  // Groq uses 'llama-X.X-XXb-versatile' or 'llama-X.X-XXb-instant' format
   if (modelName.startsWith('llama')) {
     return createGroqModel(modelName as GroqModel);
   }

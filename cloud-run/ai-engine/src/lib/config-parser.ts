@@ -192,6 +192,14 @@ export function getGroqApiKey(): string | null {
 }
 
 /**
+ * Get Cerebras API Key (PoC - rate limit distribution)
+ * @see https://cloud.cerebras.ai/
+ */
+export function getCerebrasApiKey(): string | null {
+  return process.env.CEREBRAS_API_KEY || null;
+}
+
+/**
  * Get Upstash Redis configuration
  * Embedded in SUPABASE_CONFIG.upstash or fallback to legacy env vars
  */
@@ -223,6 +231,7 @@ export function getConfigStatus(): {
   supabase: boolean;
   upstash: boolean;
   groq: boolean;
+  cerebras: boolean;
   cloudRunApi: boolean;
 } {
   return {
@@ -231,6 +240,7 @@ export function getConfigStatus(): {
     supabase: getSupabaseConfig() !== null,
     upstash: getUpstashConfig() !== null,
     groq: getGroqApiKey() !== null,
+    cerebras: getCerebrasApiKey() !== null,
     cloudRunApi: getCloudRunApiSecret() !== null,
   };
 }
