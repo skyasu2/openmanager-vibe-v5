@@ -595,12 +595,10 @@ export async function executeSupervisor(
     console.log(`📊 [LangFuse] Tracing initialized for session: ${sessionId}`);
   }
 
-  let useFallbackModel = false;
-
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      // Create fresh supervisor (Groq primary, Mistral fallback on rate limit)
-      const app = await createMultiAgentSupervisor({ useFallbackModel });
+      // Create fresh supervisor (Groq primary, Last Keeper on rate limit)
+      const app = await createMultiAgentSupervisor();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await app.invoke(
@@ -660,22 +658,11 @@ export async function executeSupervisor(
       const isRateLimit = RateLimitError.isRateLimitError(error);
       console.log(`🔍 [Supervisor] isRateLimitError check: ${isRateLimit}`);
 
-      if (isRateLimit && attempt < MAX_RETRIES - 1) {
-        // Switch to Mistral fallback model on rate limit
-        if (!useFallbackModel) {
-          console.warn(
-            `⚠️ [Supervisor] Groq rate limit hit on attempt ${attempt + 1}/${MAX_RETRIES}, switching to Mistral fallback...`
-          );
-          useFallbackModel = true;
-          // Minimal backoff before retry with fallback model
-          await new Promise(resolve => setTimeout(resolve, 500));
-          continue;
-        }
-
-        // 🛡️ Last Keeper Mode: Worker 에이전트도 Groq rate limit에 걸린 경우
-        // 복잡한 멀티 에이전트 워크플로우 스킵하고 Mistral 직접 응답
+      if (isRateLimit) {
+        // 🛡️ Last Keeper Mode: Groq rate limit 즉시 Mistral 직접 응답
+        // Worker 에이전트들도 Groq 사용하므로, 바로 Last Keeper로 전환해서 빠르게 응답
         console.warn(
-          `⚠️ [Supervisor] Workers also hit rate limit, activating Last Keeper mode...`
+          `⚠️ [Supervisor] Groq rate limit detected, activating Last Keeper mode immediately...`
         );
         return await executeLastKeeperMode(query, sessionId);
       }
