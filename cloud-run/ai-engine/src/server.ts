@@ -32,6 +32,9 @@ import {
   getRelatedKnowledge,
 } from './lib/graph-rag-service';
 
+// Jobs Router (Async Job Processing)
+import { jobsRouter } from './routes/jobs';
+
 // Initialize App
 const app = new Hono();
 
@@ -53,6 +56,9 @@ app.use('/api/*', async (c: Context, next: Next) => {
   }
   await next();
 });
+
+// Jobs Router (Async Job Processing - bypasses timeout issues)
+app.route('/api/jobs', jobsRouter);
 
 // Warm-up Endpoint (Lightweight)
 app.get('/warmup', async (c: Context) => {

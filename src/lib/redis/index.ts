@@ -39,6 +39,9 @@ export {
   isRedisDisabled,
   isRedisEnabled,
   reconnectRedis,
+  redisDel,
+  redisGet,
+  redisSet,
   safeRedisOp,
 } from './client';
 // Rate Limiter

@@ -1,0 +1,298 @@
+/**
+ * Jobs Route Handler
+ *
+ * Handles async job processing for AI queries.
+ * This route is called by Vercel API to offload long-running AI tasks.
+ *
+ * Flow:
+ * 1. Vercel creates job in Supabase, returns jobId immediately
+ * 2. Vercel calls this endpoint (fire-and-forget or webhook style)
+ * 3. This route processes the query via LangGraph Supervisor
+ * 4. Result is stored in Redis for SSE retrieval
+ */
+
+import type { Context } from 'hono';
+import { Hono } from 'hono';
+
+import { logAPIKeyStatus, validateAPIKeys } from '../lib/model-config';
+import {
+  markJobProcessing,
+  storeJobResult,
+  storeJobError,
+  getJobResult,
+  updateJobProgress,
+  isJobNotifierAvailable,
+} from '../lib/job-notifier';
+import { createSupervisorStreamResponse } from '../services/langgraph/multi-agent-supervisor';
+
+// ============================================================================
+// Jobs Router
+// ============================================================================
+
+export const jobsRouter = new Hono();
+
+/**
+ * POST /api/jobs/process
+ *
+ * Process an AI job asynchronously.
+ * Called by Vercel after creating a job record.
+ *
+ * Request:
+ * {
+ *   jobId: string,        // UUID from Supabase ai_jobs table
+ *   messages: Message[],  // Chat messages
+ *   sessionId?: string    // Optional session for conversation context
+ * }
+ *
+ * Response (immediate):
+ * { success: true, jobId, status: 'processing' }
+ *
+ * The actual result is stored in Redis for SSE retrieval.
+ */
+jobsRouter.post('/process', async (c: Context) => {
+  const startTime = Date.now();
+
+  try {
+    const { jobId, messages, sessionId } = await c.req.json();
+
+    // Validate request
+    if (!jobId) {
+      return c.json({ success: false, error: 'jobId is required' }, 400);
+    }
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return c.json(
+        { success: false, error: 'messages array is required' },
+        400
+      );
+    }
+
+    // Check Redis availability
+    if (!isJobNotifierAvailable()) {
+      console.warn('⚠️ [Jobs] Redis not available, falling back to sync mode');
+      // In sync mode, we still process but can't store result
+      // This is a degraded mode, client should use direct API
+      return c.json(
+        {
+          success: false,
+          error: 'Redis not available for async job processing',
+          fallback: 'Use /api/ai/supervisor directly',
+        },
+        503
+      );
+    }
+
+    // Check API Keys
+    const { all } = validateAPIKeys();
+    if (!all) {
+      logAPIKeyStatus();
+    }
+
+    // Mark job as processing
+    await markJobProcessing(jobId);
+    await updateJobProgress(jobId, 'initializing', 10, 'AI 에이전트 초기화 중...');
+
+    console.log(`🚀 [Jobs] Processing job ${jobId}`);
+
+    // Extract query from last user message
+    const lastMessage = messages[messages.length - 1];
+    const query = lastMessage?.content;
+
+    if (!query) {
+      await storeJobError(jobId, 'No query content in messages');
+      return c.json({ success: false, error: 'No query in messages' }, 400);
+    }
+
+    // Start async processing (don't await completion for immediate response)
+    // Use setImmediate to ensure response is sent before processing starts
+    setImmediate(async () => {
+      const startedAt = new Date().toISOString();
+
+      try {
+        await updateJobProgress(jobId, 'routing', 20, 'Supervisor가 적절한 에이전트 선택 중...');
+
+        // Get stream from Supervisor
+        const stream = await createSupervisorStreamResponse(query, sessionId);
+
+        await updateJobProgress(jobId, 'processing', 50, 'AI 에이전트가 응답 생성 중...');
+
+        // Collect stream response
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+        let targetAgent: string | undefined;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          fullResponse += chunk;
+
+          // Try to extract target agent from stream metadata
+          // AI SDK Data Stream Protocol: "d:..." contains data
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('8:')) {
+              // Finish step metadata
+              try {
+                const meta = JSON.parse(line.slice(2));
+                if (meta.finishReason) {
+                  await updateJobProgress(jobId, 'finalizing', 90, '응답 완료 처리 중...');
+                }
+              } catch {
+                // Ignore parse errors
+              }
+            }
+          }
+        }
+
+        // Extract clean text from stream
+        const cleanResponse = extractTextFromStream(fullResponse);
+
+        await updateJobProgress(jobId, 'completed', 100, '완료');
+
+        // Store result in Redis
+        await storeJobResult(jobId, cleanResponse, {
+          targetAgent,
+          startedAt,
+        });
+
+        const processingTime = Date.now() - startTime;
+        console.log(`✅ [Jobs] Job ${jobId} completed in ${processingTime}ms`);
+      } catch (error) {
+        console.error(`❌ [Jobs] Job ${jobId} failed:`, error);
+        await storeJobError(jobId, String(error), startedAt);
+      }
+    });
+
+    // Return immediately (job is processing in background)
+    return c.json({
+      success: true,
+      jobId,
+      status: 'processing',
+      message: 'Job started, poll /api/jobs/:id for result',
+    });
+  } catch (error) {
+    console.error('❌ [Jobs] Process error:', error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+/**
+ * GET /api/jobs/:id
+ *
+ * Get job result from Redis.
+ * Used by Vercel SSE endpoint to poll for completion.
+ */
+jobsRouter.get('/:id', async (c: Context) => {
+  const jobId = c.req.param('id');
+
+  if (!jobId) {
+    return c.json({ success: false, error: 'jobId is required' }, 400);
+  }
+
+  const result = await getJobResult(jobId);
+
+  if (!result) {
+    return c.json({
+      success: false,
+      error: 'Job not found or expired',
+      jobId,
+    }, 404);
+  }
+
+  return c.json({
+    success: true,
+    jobId,
+    ...result,
+  });
+});
+
+/**
+ * GET /api/jobs/:id/progress
+ *
+ * Get job progress for UI feedback.
+ */
+jobsRouter.get('/:id/progress', async (c: Context) => {
+  const jobId = c.req.param('id');
+
+  if (!jobId) {
+    return c.json({ success: false, error: 'jobId is required' }, 400);
+  }
+
+  const result = await getJobResult(jobId);
+
+  // If job is completed or failed, return that status
+  if (result && (result.status === 'completed' || result.status === 'failed')) {
+    return c.json({
+      success: true,
+      jobId,
+      status: result.status,
+      progress: 100,
+      stage: result.status,
+      completedAt: result.completedAt,
+      processingTimeMs: result.processingTimeMs,
+    });
+  }
+
+  // Otherwise return in-progress status
+  const { getJobProgress } = await import('../lib/job-notifier');
+  const progress = await getJobProgress(jobId);
+
+  if (!progress && !result) {
+    return c.json({
+      success: false,
+      error: 'Job not found',
+      jobId,
+    }, 404);
+  }
+
+  return c.json({
+    success: true,
+    jobId,
+    status: result?.status || 'processing',
+    progress: progress?.progress || 0,
+    stage: progress?.stage || 'unknown',
+    message: progress?.message,
+    updatedAt: progress?.updatedAt,
+  });
+});
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Extract clean text from AI SDK Data Stream Protocol
+ *
+ * Stream format:
+ * 0:"text chunk"    - Text delta
+ * 8:{...}           - Finish step metadata
+ * d:{...}           - Data message
+ * e:{...}           - Error message
+ */
+function extractTextFromStream(streamContent: string): string {
+  const lines = streamContent.split('\n');
+  const textParts: string[] = [];
+
+  for (const line of lines) {
+    // Text delta: 0:"..."
+    if (line.startsWith('0:')) {
+      try {
+        const text = JSON.parse(line.slice(2));
+        if (typeof text === 'string') {
+          textParts.push(text);
+        }
+      } catch {
+        // If not valid JSON, try direct extraction
+        const match = line.match(/^0:"(.*)"/);
+        if (match) {
+          textParts.push(match[1]);
+        }
+      }
+    }
+  }
+
+  return textParts.join('');
+}

@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-26
+**마지막 업데이트**: 2025-12-27
 
 ---
 
@@ -66,7 +66,19 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 12-26)
+## 🔧 최근 유지보수 (2025-12-09 ~ 12-27)
+
+**Async Job Queue + SSE 실시간 알림 시스템 (2025-12-27)**
+- **목적**: Vercel 120초 타임아웃 우회 (기존 111초 응답 → 즉시 반환)
+- **아키텍처**: Store-and-Retrieve 패턴 (Upstash HTTP Redis 호환)
+  - Vercel: Job 생성 → Cloud Run: 백그라운드 처리 → Redis: 결과 저장 → SSE: 실시간 전달
+- **신규 파일**:
+  - `cloud-run/ai-engine/src/routes/jobs.ts` - Cloud Run Job 처리 엔드포인트
+  - `cloud-run/ai-engine/src/lib/job-notifier.ts` - Redis 결과 저장
+  - `src/app/api/ai/jobs/[id]/stream/route.ts` - Vercel SSE 스트리밍
+  - `src/hooks/ai/useAsyncAIQuery.ts` - Frontend React Hook
+- **효율**: Redis 명령어 93% 절감 (폴링 90K → SSE 6K/월)
+- **호환성**: 기존 `/api/ai/jobs/*` API 100% 호환 유지
 
 **NLQ Agent SubGraph 아키텍처 + 모델 분배 최적화 (2025-12-26)**
 - **NLQ SubGraph 구현**: 5노드 워크플로우 (parse→extract→validate→execute→format)

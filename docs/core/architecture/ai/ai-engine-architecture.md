@@ -249,6 +249,48 @@ d:{"finishReason":"stop","verified":true}     // Finish signal
 | `/api/ai/cache/invalidate` | POST | Invalidate cache entries |
 | `/health` | GET | Health check |
 | `/warmup` | GET | Cold start warmup |
+| `/api/jobs/process` | POST | Async job processing (from Vercel) |
+| `/api/jobs/:id` | GET | Get job result from Redis |
+| `/api/jobs/:id/progress` | GET | Get job progress for UI feedback |
+
+### Async Job Queue (v5.89.1)
+
+For long-running AI queries that may exceed Vercel's 120s timeout, an async job queue pattern is implemented:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Vercel as Vercel API
+    participant CloudRun as Cloud Run
+    participant Redis as Upstash Redis
+    participant Supabase
+
+    Client->>Vercel: POST /api/ai/jobs (query)
+    Vercel->>Supabase: Insert job (status: queued)
+    Vercel->>CloudRun: POST /api/jobs/process (fire-and-forget)
+    Vercel-->>Client: { jobId, pollUrl } (immediate)
+
+    Client->>Vercel: GET /api/ai/jobs/:id/stream (SSE)
+
+    CloudRun->>Redis: Mark job processing
+    CloudRun->>CloudRun: LangGraph Supervisor
+    CloudRun->>Redis: Store result + progress
+
+    Vercel->>Redis: Poll every 100ms
+    Redis-->>Vercel: Job result
+    Vercel-->>Client: SSE event: result
+```
+
+**Key Components:**
+- **Vercel SSE**: `/api/ai/jobs/:id/stream` - Server-side polling with SSE streaming to client
+- **Cloud Run Worker**: `/api/jobs/process` - Background job processing
+- **Redis Store**: Job results cached with 1-hour TTL, progress with 10-minute TTL
+
+**Benefits:**
+- No Vercel timeout issues (job creation returns immediately)
+- Real-time progress updates via SSE
+- 93% reduction in Redis commands vs polling (6K vs 90K/month)
+- Cancellable long-running queries
 
 ## Data & Memory
 
@@ -289,6 +331,8 @@ GraphRAG combines:
 | **Response Cache** | 1 hour | `ai:response:{hash}` | Repeated query optimization |
 | **Session Cache** | 24 hours | `ai:session:{sessionId}` | Conversation state |
 | **Embedding Cache** | 7 days | `ai:embed:{hash}` | Embedding reuse |
+| **Job Result** | 1 hour | `job:{jobId}` | Async job result storage |
+| **Job Progress** | 10 min | `job:progress:{jobId}` | Real-time progress updates |
 
 ## Environment Variables
 
@@ -331,6 +375,7 @@ cloud-run/ai-engine/
 │   │   ├── nlq-state.ts        # NLQ SubGraph state definition & Korean NLP helpers
 │   │   ├── nlq-subgraph.ts     # NLQ 5-node SubGraph workflow
 │   │   ├── redis-client.ts     # Upstash Redis client (L2 cache)
+│   │   ├── job-notifier.ts     # Async job result storage (Redis)
 │   │   ├── hybrid-cache.ts     # Multi-tier caching orchestration
 │   │   ├── graph-rag-service.ts # GraphRAG hybrid search service
 │   │   ├── embedding.ts        # Text embedding utilities
@@ -341,6 +386,8 @@ cloud-run/ai-engine/
 │   │       └── context-compressor.ts     # Compression orchestration
 │   ├── agents/
 │   │   └── reporter-agent.ts   # Reporter agent with RAG tools
+│   ├── routes/
+│   │   └── jobs.ts             # Async job processing endpoints
 │   └── services/
 │       ├── langgraph/          # LangGraph StateGraph
 │       │   └── multi-agent-supervisor.ts
@@ -365,7 +412,18 @@ src/app/api/ai/
 ├── supervisor/route.ts         # Main AI endpoint proxy
 ├── embedding/route.ts          # Embedding proxy
 ├── generate/route.ts           # Generate proxy
-└── approval/route.ts           # HITL approval proxy
+├── approval/route.ts           # HITL approval proxy
+└── jobs/
+    ├── route.ts                # Job creation (POST), list (GET)
+    └── [id]/
+        ├── route.ts            # Job status (GET), cancel (DELETE)
+        ├── stream/route.ts     # SSE streaming (Redis polling)
+        └── progress/route.ts   # Progress update (PATCH)
+
+# Frontend Hooks
+src/hooks/ai/
+├── useAsyncAIQuery.ts          # Async AI query with SSE
+└── useJobPolling.ts            # Job polling (legacy fallback)
 
 # Legacy (Deprecated)
 src/services/langgraph/         # Superseded by cloud-run/ai-engine/

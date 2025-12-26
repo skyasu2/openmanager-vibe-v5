@@ -184,3 +184,60 @@ export async function reconnectRedis(): Promise<boolean> {
 export function isRedisDisabled(): boolean {
   return process.env.REDIS_ENABLED === 'false';
 }
+
+// ============================================================================
+// Convenience Methods (for Job Queue compatibility)
+// ============================================================================
+
+/**
+ * Safe Redis GET with automatic JSON parsing
+ */
+export async function redisGet<T>(key: string): Promise<T | null> {
+  const client = getRedisClient();
+  if (!client || !isRedisAvailable) return null;
+
+  try {
+    const value = await client.get<T>(key);
+    return value;
+  } catch (e) {
+    console.warn(`[Redis] GET failed for ${key}:`, e);
+    return null;
+  }
+}
+
+/**
+ * Safe Redis SET with automatic JSON serialization
+ * @param ttlSeconds - TTL in seconds
+ */
+export async function redisSet<T>(
+  key: string,
+  value: T,
+  ttlSeconds: number
+): Promise<boolean> {
+  const client = getRedisClient();
+  if (!client || !isRedisAvailable) return false;
+
+  try {
+    await client.set(key, value, { ex: ttlSeconds });
+    return true;
+  } catch (e) {
+    console.warn(`[Redis] SET failed for ${key}:`, e);
+    return false;
+  }
+}
+
+/**
+ * Safe Redis DELETE
+ */
+export async function redisDel(key: string): Promise<boolean> {
+  const client = getRedisClient();
+  if (!client || !isRedisAvailable) return false;
+
+  try {
+    await client.del(key);
+    return true;
+  } catch (e) {
+    console.warn(`[Redis] DEL failed for ${key}:`, e);
+    return false;
+  }
+}

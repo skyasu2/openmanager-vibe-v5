@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Cloud Run Worker에 Job 처리 요청
-    await triggerWorker(job.id, query, jobType);
+    await triggerWorker(job.id, query, jobType, options?.sessionId);
 
     const response: CreateJobResponse = {
       jobId: job.id,
@@ -184,13 +184,18 @@ function mapJobToResponse(job: AIJob): JobStatusResponse {
 
 /**
  * Cloud Run Worker에 Job 처리 요청
+ *
+ * 비동기 Job 처리를 위해 Cloud Run에 메시지를 전송합니다.
+ * Cloud Run은 결과를 Redis에 저장하고, Vercel SSE가 이를 클라이언트에 전달합니다.
  */
 async function triggerWorker(
   jobId: string,
   query: string,
-  type: string
+  type: string,
+  sessionId?: string
 ): Promise<void> {
   const cloudRunUrl = process.env.CLOUD_RUN_AI_URL;
+  const apiSecret = process.env.CLOUD_RUN_API_SECRET;
 
   if (!cloudRunUrl) {
     console.warn(
@@ -205,8 +210,14 @@ async function triggerWorker(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(apiSecret && { 'X-API-Key': apiSecret }),
       },
-      body: JSON.stringify({ jobId, query, type }),
+      body: JSON.stringify({
+        jobId,
+        messages: [{ role: 'user', content: query }],
+        sessionId,
+        type,
+      }),
     }).catch((err) => {
       console.error('[AI Jobs] Failed to trigger worker:', err);
     });
