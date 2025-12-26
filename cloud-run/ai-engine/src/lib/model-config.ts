@@ -75,8 +75,8 @@ export const MISTRAL_MODELS = {
 
 export const AGENT_MODEL_CONFIG = {
   supervisor: {
-    provider: 'mistral' as const,
-    model: MISTRAL_MODELS.SMALL, // Fast/cheap for routing with tool calling
+    provider: 'groq' as const, // Groq for reliable LangGraph handoff support
+    model: 'llama-3.3-70b-versatile' as GroqModel,
     temperature: 0.1, // Lower for more deterministic routing
     maxOutputTokens: 512,
   },
@@ -153,8 +153,9 @@ export function getModelForAgent(
   agentType: AgentType
 ): ChatMistralAI | ChatGroq {
   const config = AGENT_MODEL_CONFIG[agentType];
+  const provider = config.provider as string;
 
-  if (config.provider === 'mistral') {
+  if (provider === 'mistral') {
     return createMistralModel(config.model as MistralModel, {
       temperature: config.temperature,
       maxOutputTokens: config.maxOutputTokens,
@@ -168,11 +169,11 @@ export function getModelForAgent(
 }
 
 /**
- * Get Supervisor model (Mistral Small 3.2 - 24B params, 128K context, improved tool calling)
+ * Get Supervisor model (Groq llama-3.3-70b for reliable LangGraph handoff support)
  */
-export function getSupervisorModel(): ChatMistralAI {
+export function getSupervisorModel(): ChatGroq {
   const config = AGENT_MODEL_CONFIG.supervisor;
-  return createMistralModel(config.model as MistralModel, {
+  return createGroqModel(config.model as GroqModel, {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });
