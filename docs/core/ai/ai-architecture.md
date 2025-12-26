@@ -1,6 +1,6 @@
 # AI Assistant Architecture
 
-> **버전**: v3.2 (2025-12-22)
+> **버전**: v3.3 (2025-12-26)
 > **환경**: Next.js 16, React 19, TypeScript 5.9 strict, LangGraph StateGraph (Cloud Run)
 
 ## Overview
@@ -60,24 +60,32 @@ START
   ▼
 ┌─────────────────────────────────────────────────┐
 │              SUPERVISOR                          │
-│   Model: Groq llama-3.3-70b-versatile           │
+│   Model: Gemini 2.5 Flash-Lite (1500 RPD)       │
 │   Role: Intent classification & routing          │
 └─────────────────────────────────────────────────┘
   │
-  ├──▶ "nlq"      ──▶ NLQ Agent (Gemini 2.5 Flash)
+  ├──▶ "nlq"      ──▶ NLQ Agent (Llama 3.3-70b)
   │                    └─ getServerMetrics
   │
-  ├──▶ "analyst"  ──▶ Analyst Agent (Gemini 2.5 Pro)
-  │                    └─ analyzePattern
+  ├──▶ "analyst"  ──▶ Analyst Agent (Llama 3.3-70b)
+  │                    └─ analyzePattern, detectAnomalies, predictTrends
   │
   ├──▶ "reporter" ──▶ Reporter Agent (Llama 3.3-70b)
-  │                    └─ searchKnowledgeBase (RAG)
+  │                    └─ searchKnowledgeBase (GraphRAG)
+  │                    └─ recommendCommands
   │                    └─ [Approval Check] ──▶ Human Interrupt
   │
   ├──▶ "parallel" ──▶ Parallel Analysis Node
   │                    └─ NLQ + Analyst (concurrent)
   │
   └──▶ "reply"    ──▶ Direct Response (greetings)
+                       │
+                       ▼
+             ┌─────────────────────────────┐
+             │     VERIFIER AGENT          │
+             │  Model: Gemini 2.5 Flash    │
+             │  Role: Output validation     │
+             └─────────────────────────────┘
                        │
                        ▼
                       END
@@ -282,4 +290,57 @@ Model health is monitored with Circuit Breaker pattern:
 | **Supabase** | pgvector | RAG knowledge base |
 | **Supabase** | PostgresCheckpointer | Session persistence |
 | **Supabase** | Realtime | Live updates |
+| **Supabase** | `approval_history` | HITL approval audit trail |
+| **GraphRAG** | pgvector + graph | Hybrid vector + graph search |
+| **Upstash Redis** | REST API | L2 response caching |
 | **Scenario Loader** | `src/services/scenario/` | Demo metrics data |
+
+## Recent Updates (v3.3)
+
+### GraphRAG Hybrid Search
+
+The Reporter Agent now uses GraphRAG for enhanced knowledge retrieval:
+
+| Feature | Description |
+|---------|-------------|
+| **Vector Search** | Semantic similarity via pgvector (cosine distance) |
+| **Graph Traversal** | Entity-relationship exploration |
+| **Hybrid Scoring** | Weighted combination for better relevance |
+
+### Redis L2 Caching
+
+Response caching layer for performance optimization:
+
+| Cache Type | TTL | Purpose |
+|------------|-----|---------|
+| Response Cache | 1h | Repeated query optimization |
+| Session Cache | 24h | Conversation state |
+| Embedding Cache | 7d | Embedding reuse |
+
+### Verifier Agent
+
+Post-processing validation agent added in v5.85.0:
+
+```
+[Agent Output] → [Verifier Agent] → [Final Response]
+                     │
+                     ├─ Hallucination check
+                     ├─ Safety validation
+                     └─ Confidence scoring
+```
+
+### Approval History Persistence
+
+HITL approval records are now persisted to PostgreSQL for audit:
+
+```typescript
+interface ApprovalRecord {
+  id: string;
+  sessionId: string;
+  actionType: string;
+  status: 'pending' | 'approved' | 'rejected';
+  requestedAt: string;
+  decidedAt?: string;
+  decidedBy?: string;
+}
+```

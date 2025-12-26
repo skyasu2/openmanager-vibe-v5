@@ -4,7 +4,7 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.86.0, Updated 2025-12-24)
+## Architecture (v5.87.0, Updated 2025-12-26)
 
 ### Deployment Mode
 
@@ -40,6 +40,12 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 - **Verifier Integration**: Dedicated agent for post-processing validation and safety checks (v5.85.0)
 - **Groq Compatibility**: Custom state modifier to adapt Gemini tool calls for Groq Llama models
 - **Protocol Adaptation**: Simulated SSE with Keep-Alive to prevent timeouts on Vercel/Cloud Run
+
+#### New in v5.87.0
+
+- **GraphRAG Hybrid Search**: Vector + graph-based knowledge retrieval for enhanced RAG accuracy
+- **Redis L2 Caching**: Upstash Redis integration for response caching and session optimization
+- **Approval History Persistence**: PostgreSQL storage for HITL approval records with audit trail
 
 ### Agent Communication Patterns
 
@@ -215,7 +221,12 @@ d:{"finishReason":"stop","verified":true}     // Finish signal
 | `/api/ai/generate/stats` | GET | Generate service statistics |
 | `/api/ai/approval/status` | GET | Check pending HITL approval |
 | `/api/ai/approval/decide` | POST | Submit approval decision |
+| `/api/ai/approval/history` | GET | Get approval history (PostgreSQL) |
 | `/api/ai/approval/stats` | GET | Approval store statistics |
+| `/api/ai/graphrag/search` | POST | GraphRAG hybrid search |
+| `/api/ai/graphrag/stats` | GET | GraphRAG statistics |
+| `/api/ai/cache/stats` | GET | Redis cache statistics |
+| `/api/ai/cache/invalidate` | POST | Invalidate cache entries |
 | `/health` | GET | Health check |
 | `/warmup` | GET | Cold start warmup |
 
@@ -224,11 +235,40 @@ d:{"finishReason":"stop","verified":true}     // Finish signal
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | **Vector Store** | Supabase (pgvector) | RAG knowledge base |
+| **GraphRAG** | Supabase + pgvector | Hybrid vector + graph knowledge retrieval |
 | **Checkpointer** | PostgresCheckpointer | Session state persistence |
+| **Redis L2 Cache** | Upstash Redis | Response caching, session optimization (TTL: 1hr) |
 | **Metrics History** | Supabase `server_metrics_history` | Server metrics for anomaly detection (6hr window) |
 | **Conversation History** | Supabase `conversation_history` | Compressed conversation storage |
+| **Approval History** | Supabase `approval_history` | HITL approval records with audit trail |
 | **Realtime** | Supabase Realtime | Live dashboard updates |
 | **Client State** | Zustand | Chat history, UI state |
+
+### GraphRAG Architecture
+
+```mermaid
+graph LR
+    Query[User Query] --> Embedding[Text Embedding]
+    Embedding --> Vector[Vector Search]
+    Embedding --> Graph[Graph Traversal]
+    Vector --> Merge[Result Merger]
+    Graph --> Merge
+    Merge --> Rerank[Re-ranking]
+    Rerank --> Response[Enhanced Response]
+```
+
+GraphRAG combines:
+- **Vector Search**: Semantic similarity via pgvector (cosine distance)
+- **Graph Traversal**: Entity-relationship exploration for context
+- **Hybrid Scoring**: Weighted combination of vector + graph relevance
+
+### Redis Caching Strategy
+
+| Cache Type | TTL | Key Pattern | Purpose |
+|------------|-----|-------------|---------|
+| **Response Cache** | 1 hour | `ai:response:{hash}` | Repeated query optimization |
+| **Session Cache** | 24 hours | `ai:session:{sessionId}` | Conversation state |
+| **Embedding Cache** | 7 days | `ai:embed:{hash}` | Embedding reuse |
 
 ## Environment Variables
 
@@ -252,6 +292,10 @@ d:{"finishReason":"stop","verified":true}     // Finish signal
 | `GOOGLE_AI_API_KEY_SECONDARY` | Yes | Gemini 2.5 API key (Secondary/Failover) |
 | `GROQ_API_KEY` | Yes | Groq (Llama) API key |
 | `CLOUD_RUN_API_SECRET` | Yes | API authentication secret |
+| `UPSTASH_REDIS_URL` | Yes | Upstash Redis REST URL |
+| `UPSTASH_REDIS_TOKEN` | Yes | Upstash Redis REST token |
+| `SUPABASE_URL` | Yes | Supabase project URL (for GraphRAG) |
+| `SUPABASE_SERVICE_KEY` | Yes | Supabase service role key |
 | `PORT` | No | Server port (default: 8080) |
 
 ## File Structure
@@ -263,10 +307,17 @@ cloud-run/ai-engine/
 │   ├── server.ts               # Hono HTTP server (main entry)
 │   ├── lib/
 │   │   ├── model-config.ts     # API key validation & logging
+│   │   ├── redis-client.ts     # Upstash Redis client (L2 cache)
+│   │   ├── hybrid-cache.ts     # Multi-tier caching orchestration
+│   │   ├── graph-rag-service.ts # GraphRAG hybrid search service
+│   │   ├── embedding.ts        # Text embedding utilities
+│   │   ├── config-parser.ts    # YAML config parsing
 │   │   └── context-compression/ # Context compression for long conversations
 │   │       ├── compression-trigger.ts    # Token threshold detection
 │   │       ├── summary-generator.ts      # Conversation summarization
 │   │       └── context-compressor.ts     # Compression orchestration
+│   ├── agents/
+│   │   └── reporter-agent.ts   # Reporter agent with RAG tools
 │   └── services/
 │       ├── langgraph/          # LangGraph StateGraph
 │       │   └── multi-agent-supervisor.ts
@@ -275,10 +326,11 @@ cloud-run/ai-engine/
 │       ├── generate/           # Generate service
 │       │   └── generate-service.ts
 │       ├── approval/           # HITL approval store
-│       │   └── approval-store.ts
+│       │   └── approval-store.ts        # In-memory + PostgreSQL persistence
+│       │   └── approval-store.test.ts   # Unit tests
 │       └── scenario/           # Demo data loader
 │           └── scenario-loader.ts
-├── package.json                # @langchain/langgraph, hono, ai
+├── package.json                # @langchain/langgraph, hono, ai, @upstash/redis
 └── Dockerfile
 
 # Vercel Proxy Layer
