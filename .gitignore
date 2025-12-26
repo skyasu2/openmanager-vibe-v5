@@ -117,6 +117,9 @@ test-*-lite.js
 
 # CSRF 토큰 API는 예외 (보안 로직이므로 git에 포함)
 !src/app/api/csrf-token/
+
+# Token usage tracker는 예외 (실제 토큰이 아닌 사용량 추적 코드)
+!cloud-run/ai-engine/src/lib/token-usage-tracker.ts
 !src/app/api/csrf-token/**
 
 # 이슈 파일에서 실제 키가 노출된 경우 (패턴 기반)
