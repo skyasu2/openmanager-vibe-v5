@@ -3,14 +3,16 @@
  * Parses JSON-based consolidated secrets from environment variables
  *
  * @module secret-config
- * @version 1.0.0
+ * @version 2.0.0
  *
- * ## Secret Consolidation (2025-12-25)
- * Consolidated 10 individual secrets into 4 grouped secrets for cost optimization:
- * - langfuse-config: LangFuse observability settings
- * - google-ai-config: Gemini API keys (primary + secondary failover)
- * - supabase-config: Supabase connection settings
- * - cloud-run-api-secret: API authentication (unchanged)
+ * ## Secret Consolidation (2025-12-28)
+ * Consolidated into 6 grouped secrets for Cloud Run cost optimization:
+ * 1. GOOGLE_AI_CONFIG: Gemini API keys
+ * 2. LANGFUSE_CONFIG: LangFuse observability
+ * 3. SUPABASE_CONFIG: Database connection
+ * 4. AI_PROVIDERS_CONFIG: Groq, Mistral, Cerebras, Tavily (NEW)
+ * 5. KV_CONFIG: Upstash Redis (NEW)
+ * 6. CLOUD_RUN_API_SECRET: API authentication
  */
 
 // =============================================================================
@@ -38,6 +40,25 @@ export interface SupabaseConfig {
   directUrl: string;
   serviceRoleKey: string;
   upstash?: UpstashConfig; // Redis cache (optional)
+}
+
+/**
+ * AI Providers Configuration (Grouped)
+ * Contains API keys for multiple AI providers
+ */
+export interface AIProvidersConfig {
+  groq: string;
+  mistral: string;
+  cerebras: string;
+  tavily: string;
+}
+
+/**
+ * KV (Upstash Redis) Configuration (Grouped)
+ */
+export interface KVConfig {
+  url: string;
+  token: string;
 }
 
 // =============================================================================
@@ -113,6 +134,8 @@ function getSupabaseConfigLegacy(): SupabaseConfig | null {
 let cachedLangFuseConfig: LangFuseConfig | null = null;
 let cachedGoogleAIConfig: GoogleAIConfig | null = null;
 let cachedSupabaseConfig: SupabaseConfig | null = null;
+let cachedAIProvidersConfig: AIProvidersConfig | null = null;
+let cachedKVConfig: KVConfig | null = null;
 
 /**
  * Get LangFuse configuration
@@ -185,18 +208,99 @@ export function getCloudRunApiSecret(): string | null {
 }
 
 /**
- * Get Groq API Key (kept as individual secret for now)
+ * Get AI Providers configuration (grouped)
+ * Contains Groq, Mistral, Cerebras, Tavily API keys
+ */
+export function getAIProvidersConfig(): AIProvidersConfig | null {
+  if (cachedAIProvidersConfig) return cachedAIProvidersConfig;
+
+  // Try JSON secret first
+  cachedAIProvidersConfig = parseJsonSecret<AIProvidersConfig>(
+    'AI_PROVIDERS_CONFIG',
+    'ai-providers-config'
+  );
+
+  // Fallback to individual env vars
+  if (!cachedAIProvidersConfig) {
+    const groq = process.env.GROQ_API_KEY;
+    const mistral = process.env.MISTRAL_API_KEY;
+    const cerebras = process.env.CEREBRAS_API_KEY;
+    const tavily = process.env.TAVILY_API_KEY;
+
+    if (groq || mistral || cerebras || tavily) {
+      cachedAIProvidersConfig = {
+        groq: groq || '',
+        mistral: mistral || '',
+        cerebras: cerebras || '',
+        tavily: tavily || '',
+      };
+    }
+  }
+
+  return cachedAIProvidersConfig;
+}
+
+/**
+ * Get KV (Upstash Redis) configuration (grouped)
+ */
+export function getKVConfig(): KVConfig | null {
+  if (cachedKVConfig) return cachedKVConfig;
+
+  // Try JSON secret first
+  cachedKVConfig = parseJsonSecret<KVConfig>('KV_CONFIG', 'kv-config');
+
+  // Fallback to individual env vars
+  if (!cachedKVConfig) {
+    const url = process.env.KV_REST_API_URL;
+    const token = process.env.KV_REST_API_TOKEN;
+
+    if (url && token) {
+      cachedKVConfig = { url, token };
+    }
+  }
+
+  return cachedKVConfig;
+}
+
+/**
+ * Get Groq API Key
+ * Uses AI_PROVIDERS_CONFIG or falls back to individual env var
  */
 export function getGroqApiKey(): string | null {
+  const providersConfig = getAIProvidersConfig();
+  if (providersConfig?.groq) return providersConfig.groq;
   return process.env.GROQ_API_KEY || null;
 }
 
 /**
+ * Get Mistral API Key
+ * Uses AI_PROVIDERS_CONFIG or falls back to individual env var
+ */
+export function getMistralApiKey(): string | null {
+  const providersConfig = getAIProvidersConfig();
+  if (providersConfig?.mistral) return providersConfig.mistral;
+  return process.env.MISTRAL_API_KEY || null;
+}
+
+/**
  * Get Cerebras API Key (NLQ Agent - fast inference)
+ * Uses AI_PROVIDERS_CONFIG or falls back to individual env var
  * @see https://cloud.cerebras.ai/
  */
 export function getCerebrasApiKey(): string | null {
+  const providersConfig = getAIProvidersConfig();
+  if (providersConfig?.cerebras) return providersConfig.cerebras;
   return process.env.CEREBRAS_API_KEY || null;
+}
+
+/**
+ * Get Tavily API Key (Web Search)
+ * Uses AI_PROVIDERS_CONFIG or falls back to individual env var
+ */
+export function getTavilyApiKey(): string | null {
+  const providersConfig = getAIProvidersConfig();
+  if (providersConfig?.tavily) return providersConfig.tavily;
+  return process.env.TAVILY_API_KEY || null;
 }
 
 /**
@@ -237,7 +341,9 @@ export function getConfigStatus(): {
   supabase: boolean;
   upstash: boolean;
   groq: boolean;
+  mistral: boolean;
   cerebras: boolean;
+  tavily: boolean;
   cloudRunApi: boolean;
 } {
   return {
@@ -246,7 +352,9 @@ export function getConfigStatus(): {
     supabase: getSupabaseConfig() !== null,
     upstash: getUpstashConfig() !== null,
     groq: getGroqApiKey() !== null,
+    mistral: getMistralApiKey() !== null,
     cerebras: getCerebrasApiKey() !== null,
+    tavily: getTavilyApiKey() !== null,
     cloudRunApi: getCloudRunApiSecret() !== null,
   };
 }
@@ -258,4 +366,6 @@ export function clearConfigCache(): void {
   cachedLangFuseConfig = null;
   cachedGoogleAIConfig = null;
   cachedSupabaseConfig = null;
+  cachedAIProvidersConfig = null;
+  cachedKVConfig = null;
 }
