@@ -1,8 +1,8 @@
 # Multi-Agent System 재설계 계획서
 
 **작성일**: 2025-12-27
-**버전**: 1.1.0
-**상태**: Phase 1 완료
+**버전**: 1.2.0
+**상태**: Phase 2 완료
 
 ---
 
@@ -383,7 +383,41 @@ grep "tokenUsage" logs/ai-engine.log
    - `AnomalySummary[]`, `TrendSummary[]` 인터페이스 정의
    - 최대 5개 이상, 3개 트렌드로 제한
 
+### Phase 2: 역할 분리 ✅ (2025-12-27)
+
+#### 변경 파일
+| 파일 | 변경 내용 |
+|------|----------|
+| `shared-context.ts` | 신규 - Redis 기반 에이전트 결과 공유 저장소 |
+| `reporter-agent.ts` | NLQ Tools 제거, Shared Context 참조로 전환 |
+| `multi-agent-supervisor.ts` | `saveAgentResultsFromHistory()` 추가 |
+
+#### 구현 상세
+1. **Shared Context Store** (`shared-context.ts`)
+   - `saveAgentResult()`: 에이전트 결과 Redis 저장 (TTL 10분)
+   - `getAgentResult()`: 에이전트 결과 조회
+   - `buildReporterContext()`: Reporter용 컨텍스트 빌드
+   - `formatContextForPrompt()`: 프롬프트 문자열 변환
+
+2. **Reporter Agent 역할 분리**
+   - ❌ 제거: `getServerLogsTool`, `getServerMetricsTool` 직접 호출
+   - ✅ 추가: Shared Context에서 NLQ/Analyst 결과 참조
+   - 미사용 코드 정리: `compressLogResult()`, `compressMetricsResult()` 등
+
+3. **Supervisor Context 저장**
+   - 에이전트 실행 후 결과 자동 저장 (패턴 매칭 기반)
+   - NLQ/Analyst/Reporter 결과 분류 및 저장
+
+#### 효과
+- ✅ SRP (단일 책임 원칙) 준수
+- ✅ 에이전트 간 중복 분석 방지
+- ✅ Reporter 토큰 효율성 유지 (Phase 1 88% 절감 유지)
+
+#### 배포 정보
+- Cloud Run Revision: `ai-engine-00053-4jg`
+- 배포 시각: 2025-12-27 20:51 KST
+
 ---
 
 _Last Updated: 2025-12-27_
-_Document Version: 1.1.0_
+_Document Version: 1.2.0_
