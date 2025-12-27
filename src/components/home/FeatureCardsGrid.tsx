@@ -154,7 +154,7 @@ const FeatureCardItem = memo(
               {renderAIGradientWithAnimation(card.title)}
             </h3>
             <p
-              className={`text-xs leading-relaxed transition-colors ${cardStyles.description}`}
+              className={`text-sm leading-relaxed transition-colors ${cardStyles.description}`}
             >
               {renderAIGradientWithAnimation(card.description)}
             </p>

@@ -231,10 +231,22 @@ function Home() {
             <span className="font-semibold text-white">기반</span>{' '}
             <span className="text-white">서버 모니터링</span>
           </h1>
-          <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">
-            <span className="text-sm text-white/75">
-              LangGraph 기반 멀티 에이전트 엔진 (Groq + Cerebras + Mistral) |
-              멀티 에이전트 협업을 통한 지능형 분석
+          <p className="mx-auto max-w-3xl text-base leading-relaxed text-white/85 md:text-lg">
+            <span className="block text-white/60">
+              LangGraph 기반 멀티 에이전트 엔진
+            </span>
+            <span className="mt-1 inline-flex flex-wrap items-center justify-center gap-2 text-sm md:text-base">
+              <span className="rounded-full bg-blue-500/20 px-3 py-1 text-blue-300">
+                Groq
+              </span>
+              <span className="text-white/40">+</span>
+              <span className="rounded-full bg-purple-500/20 px-3 py-1 text-purple-300">
+                Cerebras
+              </span>
+              <span className="text-white/40">+</span>
+              <span className="rounded-full bg-pink-500/20 px-3 py-1 text-pink-300">
+                Mistral
+              </span>
             </span>
           </p>
         </div>
@@ -275,11 +287,21 @@ function Home() {
         </div>
 
         {/* 푸터 */}
-        <div className="mt-8 border-t border-white/20 pt-6 text-center">
-          <p className="text-white/90">
-            Copyright(c) OpenManager. All rights reserved.
-          </p>
-        </div>
+        <footer className="mt-8 border-t border-white/20 pt-6">
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+            <p className="text-sm text-white/60">
+              Copyright(c) OpenManager. All rights reserved.
+            </p>
+            <div className="flex items-center gap-4 text-xs text-white/40">
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>v5.83.12</span>
+              </span>
+              <span>Next.js 16 + React 19</span>
+              <span className="hidden sm:inline">Triple-Provider AI</span>
+            </div>
+          </div>
+        </footer>
       </div>
 
       {/* 게스트 제한 모달 */}
