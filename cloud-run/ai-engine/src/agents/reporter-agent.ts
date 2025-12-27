@@ -296,17 +296,22 @@ export async function reporterAgentNode(
 
     try {
       sharedContext = await buildReporterContext(sessionId);
-      if (sharedContext.nlqResult || sharedContext.analystResult) {
+      const hasAnyContext = sharedContext.nlqResult || sharedContext.analystResult ||
+        sharedContext.rcaResult || sharedContext.capacityResult;
+
+      if (hasAnyContext) {
         toolResults.push({
           toolName: 'sharedContextLookup',
           success: true,
           data: {
             hasNlqResult: !!sharedContext.nlqResult,
             hasAnalystResult: !!sharedContext.analystResult,
+            hasRcaResult: !!sharedContext.rcaResult,         // NEW: RCA Agent
+            hasCapacityResult: !!sharedContext.capacityResult, // NEW: Capacity Agent
           },
           executedAt: new Date().toISOString(),
         });
-        console.log(`📋 [Reporter] Using shared context from session: ${sessionId.slice(0, 8)}...`);
+        console.log(`📋 [Reporter] Using shared context from session: ${sessionId.slice(0, 8)}... (NLQ: ${!!sharedContext.nlqResult}, Analyst: ${!!sharedContext.analystResult}, RCA: ${!!sharedContext.rcaResult}, Capacity: ${!!sharedContext.capacityResult})`);
       }
     } catch (e) {
       console.warn('⚠️ [Reporter] Shared context lookup failed:', e);
@@ -346,7 +351,10 @@ ${compressCommandResult(commandResult as CommandResult)}
 [2-3문장 요약]
 
 ### 🔍 원인 분석
-[가능한 원인 1-3개]
+[가능한 원인 1-3개, RCA 결과가 있으면 근본 원인 포함]
+
+### 📊 용량 예측
+[Capacity 결과가 있으면 리소스 소진 예측 및 스케일링 권장]
 
 ### 💡 권장 조치
 [단계별 해결 방안]
@@ -354,7 +362,8 @@ ${compressCommandResult(commandResult as CommandResult)}
 ### ⌨️ 추천 명령어
 [실행 가능한 명령어들]
 
-한국어로 간결하게 작성하세요.`;
+한국어로 간결하게 작성하세요.
+RCA/Capacity 분석 결과가 없으면 해당 섹션은 생략하세요.`;
 
     const response = await model.invoke([
       new HumanMessage(reportPrompt),

@@ -115,6 +115,18 @@ export const AGENT_MODEL_CONFIG = {
     temperature: 0.2,
     maxOutputTokens: 2048,
   },
+  rca: {
+    provider: 'cerebras' as const, // 🆕 RCA Agent - Root Cause Analysis
+    model: CEREBRAS_MODELS.LLAMA_70B,
+    temperature: 0.2, // Lower for deterministic causal inference
+    maxOutputTokens: 2048,
+  },
+  capacity: {
+    provider: 'cerebras' as const, // 🆕 Capacity Agent - Resource Planning
+    model: CEREBRAS_MODELS.LLAMA_70B,
+    temperature: 0.2, // Lower for consistent predictions
+    maxOutputTokens: 1024,
+  },
   reporter: {
     provider: 'cerebras' as const, // 🔄 Groq → Cerebras (rate limit optimization)
     model: CEREBRAS_MODELS.LLAMA_70B,
@@ -312,6 +324,50 @@ export function getVerifierModel(): ChatMistralAI {
     temperature: config.temperature,
     maxOutputTokens: config.maxOutputTokens,
   });
+}
+
+/**
+ * Get RCA Agent model with Groq fallback
+ * Primary: Cerebras llama-3.3-70b (root cause analysis requires 70B reasoning)
+ * Fallback: Groq llama-3.3-70b-versatile
+ */
+export function getRCAModel(): ChatCerebras | ChatGroq {
+  const config = AGENT_MODEL_CONFIG.rca;
+  try {
+    return createCerebrasModel(config.model as CerebrasModel, {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  } catch {
+    // Fallback to Groq if Cerebras not configured
+    console.warn('⚠️ [RCA] Cerebras unavailable, falling back to Groq');
+    return createGroqModel('llama-3.3-70b-versatile', {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  }
+}
+
+/**
+ * Get Capacity Agent model with Groq fallback
+ * Primary: Cerebras llama-3.3-70b (capacity planning predictions)
+ * Fallback: Groq llama-3.3-70b-versatile
+ */
+export function getCapacityModel(): ChatCerebras | ChatGroq {
+  const config = AGENT_MODEL_CONFIG.capacity;
+  try {
+    return createCerebrasModel(config.model as CerebrasModel, {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  } catch {
+    // Fallback to Groq if Cerebras not configured
+    console.warn('⚠️ [Capacity] Cerebras unavailable, falling back to Groq');
+    return createGroqModel('llama-3.3-70b-versatile', {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  }
 }
 
 // ============================================================================

@@ -14,7 +14,7 @@ import { getRedisClient } from './redis-client';
 // 1. Types
 // ============================================================================
 
-export type AgentName = 'nlq' | 'analyst' | 'reporter' | 'supervisor';
+export type AgentName = 'nlq' | 'analyst' | 'rca' | 'capacity' | 'reporter' | 'supervisor';
 
 export interface AgentResult {
   agentName: AgentName;
@@ -139,7 +139,7 @@ export async function clearSessionContext(sessionId: string): Promise<void> {
     return;
   }
 
-  const agents: AgentName[] = ['nlq', 'analyst', 'reporter', 'supervisor'];
+  const agents: AgentName[] = ['nlq', 'analyst', 'rca', 'capacity', 'reporter', 'supervisor'];
 
   for (const agent of agents) {
     const key = `${RESULT_PREFIX}:${sessionId}:${agent}`;
@@ -165,11 +165,32 @@ export interface ReporterContext {
     confidence: number;
     summary: string;
   };
+  // NEW: RCA Agent 결과
+  rcaResult?: {
+    rootCause: string;
+    confidence: number;
+    evidence: string[];
+    timelineSummary?: string;
+    correlationSummary?: string;
+    suggestedFix?: string;
+  };
+  // NEW: Capacity Agent 결과
+  capacityResult?: {
+    predictionSummary: string;
+    urgentMetrics: string[];
+    recommendations: Array<{
+      type: string;
+      resource: string;
+      priority: string;
+      summary: string;
+    }>;
+    growthTrends?: Record<string, unknown>;
+  };
 }
 
 /**
  * Reporter Agent용 컨텍스트 빌드
- * NLQ와 Analyst 결과를 압축된 형태로 반환
+ * NLQ, Analyst, RCA, Capacity 결과를 압축된 형태로 반환
  */
 export async function buildReporterContext(
   sessionId: string
@@ -205,6 +226,41 @@ export async function buildReporterContext(
     };
   }
 
+  // RCA 결과 조회 (NEW)
+  const rcaResult = await getAgentResult(sessionId, 'rca');
+  if (rcaResult?.compressed) {
+    context.rcaResult = rcaResult.compressed as ReporterContext['rcaResult'];
+  } else if (rcaResult?.data) {
+    const data = rcaResult.data as Record<string, unknown>;
+    context.rcaResult = {
+      rootCause: String(data.rootCause || ''),
+      confidence: (data.confidence || 0) as number,
+      evidence: (data.evidence || []) as string[],
+      timelineSummary: String(data.timelineSummary || ''),
+      correlationSummary: String(data.correlationSummary || ''),
+      suggestedFix: String(data.suggestedFix || ''),
+    };
+  }
+
+  // Capacity 결과 조회 (NEW)
+  const capacityResult = await getAgentResult(sessionId, 'capacity');
+  if (capacityResult?.compressed) {
+    context.capacityResult = capacityResult.compressed as ReporterContext['capacityResult'];
+  } else if (capacityResult?.data) {
+    const data = capacityResult.data as Record<string, unknown>;
+    context.capacityResult = {
+      predictionSummary: String(data.predictionSummary || ''),
+      urgentMetrics: (data.urgentMetrics || []) as string[],
+      recommendations: (data.recommendations || []) as Array<{
+        type: string;
+        resource: string;
+        priority: string;
+        summary: string;
+      }>,
+      growthTrends: data.growthTrends as Record<string, unknown>,
+    };
+  }
+
   return context;
 }
 
@@ -228,6 +284,27 @@ export function formatContextForPrompt(context: ReporterContext): string {
 - 트렌드: ${trendCount}건
 - 신뢰도: ${(confidence * 100).toFixed(1)}%
 - 요약: ${summary || '분석 결과 없음'}`);
+  }
+
+  // RCA 분석 결과 (NEW)
+  if (context.rcaResult) {
+    const { rootCause, confidence, evidence, timelineSummary, suggestedFix } = context.rcaResult;
+    parts.push(`## RCA 분석 결과
+- **근본 원인**: ${rootCause || '알 수 없음'}
+- **신뢰도**: ${(confidence * 100).toFixed(1)}%
+- **증거**: ${evidence?.join(', ') || '없음'}
+- **타임라인**: ${timelineSummary || '없음'}
+- **권장 조치**: ${suggestedFix || '없음'}`);
+  }
+
+  // Capacity 분석 결과 (NEW)
+  if (context.capacityResult) {
+    const { predictionSummary, urgentMetrics, recommendations } = context.capacityResult;
+    const recSummary = recommendations?.map(r => `${r.resource}: ${r.summary}`).join(', ') || '없음';
+    parts.push(`## Capacity 분석 결과
+- **예측 요약**: ${predictionSummary || '없음'}
+- **긴급 메트릭**: ${urgentMetrics?.join(', ') || '없음'}
+- **권장사항**: ${recSummary}`);
   }
 
   return parts.length > 0

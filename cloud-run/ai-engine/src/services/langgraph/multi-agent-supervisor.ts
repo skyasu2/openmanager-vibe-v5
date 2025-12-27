@@ -11,6 +11,9 @@ import {
   detectAnomaliesTool,
   predictTrendsTool,
 } from '../../agents/analyst-agent';
+// NEW: RCA and Capacity Agent imports
+import { rcaTools } from '../../agents/rca-agent';
+import { capacityTools } from '../../agents/capacity-agent';
 // Import tools from Agents
 import {
   getServerMetricsTool,
@@ -50,6 +53,8 @@ import {
   getAnalystModel,
   getNLQModel,
   getReporterModel,
+  getRCAModel,       // NEW
+  getCapacityModel,  // NEW
   getSupervisorModel,
   createMistralModel,
   createCerebrasModel,
@@ -134,6 +139,8 @@ async function saveAgentResultsFromHistory(
   const agentPatterns: Record<AgentName, RegExp[]> = {
     nlq: [/전체 서버 현황|서버 상태|메트릭|CPU|메모리|디스크/i],
     analyst: [/이상 감지|트렌드|패턴 분석|anomaly|trend/i],
+    rca: [/근본 원인|타임라인|상관관계|root cause|correlation/i],
+    capacity: [/용량 예측|소진 예측|스케일링|리소스 예측|exhaustion/i],
     reporter: [/인시던트|리포트|장애 보고서/i],
     supervisor: [],
   };
@@ -322,6 +329,92 @@ function createReporterAgent() {
   });
 }
 
+/**
+ * Create RCA Agent - Root Cause Analysis (NEW)
+ * Analyzes incident timelines, correlates events, and finds root causes
+ */
+function createRCAAgent() {
+  const systemPrompt = `RCA Agent - 근본 원인 분석 전문
+
+## 역할
+- 장애 타임라인 구축 (buildIncidentTimeline)
+- 메트릭 상관관계 분석 (correlateEvents)
+- 근본 원인 추론 (findRootCause)
+- 유사 과거 장애 검색 (searchSimilarIncidents)
+- 에러 로그 패턴 수집 (fetchLogPattern)
+- 배포 이력 조회 (fetchDeploymentHistory)
+
+## 도구 사용 순서 (권장)
+1. buildIncidentTimeline → 장애 시간대 이벤트 수집
+2. fetchLogPattern → 에러 로그 패턴 확인
+3. fetchDeploymentHistory → 최근 배포 변경 확인
+4. correlateEvents → 메트릭 간 상관관계 분석
+5. findRootCause → 근본 원인 추론
+
+## 응답 형식
+### 🔍 타임라인
+- [시간] 이벤트 (심각도)
+
+### 🔗 상관관계
+- 메트릭1 ↔ 메트릭2: 상관계수 (관계 유형)
+
+### 💡 근본 원인
+- **원인**: (가장 가능성 높은 원인)
+- **신뢰도**: X%
+- **근거**: (증거 나열)
+- **조치**: (권장 해결책)
+
+⚠️ 중요: NLQ/Analyst 결과가 필요합니다. Shared Context에서 참조하세요.`;
+
+  return createReactAgent({
+    llm: getRCAModel(),
+    tools: rcaTools,
+    name: 'rca_agent',
+    stateModifier: createGroqCompatibleStateModifier(systemPrompt),
+  });
+}
+
+/**
+ * Create Capacity Agent - Resource Planning (NEW)
+ * Predicts resource exhaustion and provides scaling recommendations
+ */
+function createCapacityAgent() {
+  const systemPrompt = `Capacity Agent - 용량 계획 전문
+
+## 역할
+- 리소스 소진 시점 예측 (predictResourceExhaustion)
+- 스케일링 권장사항 생성 (getScalingRecommendation)
+- 성장 트렌드 분석 (analyzeGrowthTrend)
+- 베이스라인 비교 (compareBaseline)
+
+## 도구 사용 순서 (권장)
+1. analyzeGrowthTrend → 성장률 확인
+2. predictResourceExhaustion → 소진 시점 예측
+3. compareBaseline → 베이스라인 대비 분석
+4. getScalingRecommendation → 스케일링 권장
+
+## 응답 형식
+### 📈 성장 트렌드
+- [메트릭]: 일간 X%, 주간 Y% 증가
+
+### ⏰ 소진 예측
+- **[메트릭]**: N일 후 임계값 도달 (신뢰도 X%)
+
+### 💡 권장사항
+| 우선순위 | 리소스 | 조치 | 이유 |
+|---------|--------|------|------|
+| 높음    | 디스크 | 스케일업 | X일 후 풀 |
+
+⚠️ 중요: NLQ/Analyst 결과가 필요합니다. Shared Context에서 참조하세요.`;
+
+  return createReactAgent({
+    llm: getCapacityModel(),
+    tools: capacityTools,
+    name: 'capacity_agent',
+    stateModifier: createGroqCompatibleStateModifier(systemPrompt),
+  });
+}
+
 // ============================================================================
 // 2. Supervisor Creation
 // ============================================================================
@@ -331,15 +424,29 @@ const SUPERVISOR_PROMPT = `당신은 OpenManager VIBE의 Multi-Agent Supervisor�
 ## 에이전트 라우팅
 - **nlq_agent**: 서버 상태/메트릭 조회 (CPU, Memory, Disk)
 - **analyst_agent**: 패턴 분석, 이상 탐지, 트렌드 예측
+- **rca_agent**: 근본 원인 분석, 장애 타임라인, 인과관계 추론 (NEW)
+- **capacity_agent**: 용량 예측, 리소스 소진 예측, 스케일링 권장 (NEW)
 - **reporter_agent**: 인시던트 리포트, 장애 분석, RAG 검색, **웹 검색(DuckDuckGo)**
 
 ## 라우팅 규칙
 - "서버 상태", "전체 현황", "서버 확인" → nlq_agent (전체 서버 조회 필요)
 - "WEB-01 상태" 등 특정 서버 언급 → nlq_agent (해당 서버만 조회)
 - 분석/예측/트렌드 → analyst_agent
-- 장애/리포트/원인 → reporter_agent
+- **"왜 다운됐어?", "원인이 뭐야?", "장애 원인"** → rca_agent (근본원인 분석)
+- **"언제 가득 차?", "스케일업 필요?", "용량 계획"** → capacity_agent (용량 예측)
+- 장애/리포트 → reporter_agent
 - **"검색해줘", "구글링", "최신 정보"** → reporter_agent (웹 검색)
 - 인사말 → 직접 응답 (1문장)
+
+## ⚠️ 실행 순서 규칙 (Strict Order)
+- **rca_agent**는 반드시 **nlq_agent** → **analyst_agent** 실행 후 호출
+- **capacity_agent**는 반드시 **nlq_agent** → **analyst_agent** 실행 후 호출
+- **reporter_agent**는 분석 에이전트 실행 완료 후 마지막에 호출
+
+## 복합 쿼리 처리 예시
+1. "WEB-01 왜 다운됐어?" → nlq_agent → analyst_agent → rca_agent
+2. "디스크 언제 가득 차?" → nlq_agent → analyst_agent → capacity_agent
+3. "서버 상태 알려줘" → nlq_agent (단독 실행)
 
 ## 응답 지침
 - 에이전트 결과를 그대로 전달 (재가공 금지)
@@ -351,6 +458,8 @@ const SUPERVISOR_PROMPT = `당신은 OpenManager VIBE의 Multi-Agent Supervisor�
  *
  * Note: Groq rate limit fallback is handled by executeLastKeeperMode(),
  * not by switching the supervisor model (workers also use Groq).
+ *
+ * v5.90.0: Added RCA and Capacity agents for root cause analysis and capacity planning
  */
 export async function createMultiAgentSupervisor() {
   const checkpointer = await getAutoCheckpointer();
@@ -358,14 +467,17 @@ export async function createMultiAgentSupervisor() {
   // Create worker agents
   const nlqAgent = createNLQAgent();
   const analystAgent = createAnalystAgent();
+  const rcaAgent = createRCAAgent();         // NEW: Root Cause Analysis
+  const capacityAgent = createCapacityAgent(); // NEW: Capacity Planning
   const reporterAgent = createReporterAgent();
 
   // Supervisor uses Groq for LangGraph handoff compatibility
   const supervisorModel = getSupervisorModel();
 
   // Create supervisor with automatic handoffs
+  // Agent order matters: NLQ/Analyst first, then RCA/Capacity, finally Reporter
   const workflow = createSupervisor({
-    agents: [nlqAgent, analystAgent, reporterAgent],
+    agents: [nlqAgent, analystAgent, rcaAgent, capacityAgent, reporterAgent],
     llm: supervisorModel,
     prompt: SUPERVISOR_PROMPT,
     outputMode: 'full_history',
@@ -380,6 +492,8 @@ export async function createMultiAgentSupervisor() {
 /**
  * Create Supervisor with Groq model (Cerebras rate limit fallback)
  * Uses llama-3.3-70b-versatile on Groq as fallback
+ *
+ * v5.90.0: Added RCA and Capacity agents
  */
 export async function createMultiAgentSupervisorWithGroq() {
   const checkpointer = await getAutoCheckpointer();
@@ -387,6 +501,8 @@ export async function createMultiAgentSupervisorWithGroq() {
   // Create worker agents
   const nlqAgent = createNLQAgent();
   const analystAgent = createAnalystAgent();
+  const rcaAgent = createRCAAgent();         // NEW: Root Cause Analysis
+  const capacityAgent = createCapacityAgent(); // NEW: Capacity Planning
   const reporterAgent = createReporterAgent();
 
   // Supervisor uses Groq as Cerebras fallback
@@ -399,7 +515,7 @@ export async function createMultiAgentSupervisorWithGroq() {
 
   // Create supervisor with automatic handoffs
   const workflow = createSupervisor({
-    agents: [nlqAgent, analystAgent, reporterAgent],
+    agents: [nlqAgent, analystAgent, rcaAgent, capacityAgent, reporterAgent],
     llm: supervisorModel,
     prompt: SUPERVISOR_PROMPT,
     outputMode: 'full_history',

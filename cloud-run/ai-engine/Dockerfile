@@ -1,35 +1,63 @@
 # ============================================================================
 # AI Engine - Cloud Run Service (Multi-stage Build)
 # Optimized for Cloud Run cold start & minimal image size
+#
+# v2.0 - 2025-12-27 (RCA + Capacity Agents)
+# - Added dumb-init for proper signal handling
+# - Optimized Node.js memory settings for Cloud Run
+# - Security hardening with non-root user
 # ============================================================================
 
+# Build arguments
+ARG NODE_VERSION=22
+
+# ============================================================================
 # Stage 1: Dependencies (cached layer)
-FROM node:22-alpine AS deps
+# ============================================================================
+FROM node:${NODE_VERSION}-alpine AS deps
 
 WORKDIR /app
 
-# Install dependencies only (maximize cache hit)
+# Install dumb-init for proper signal handling (PID 1 problem)
+RUN apk add --no-cache dumb-init
+
+# Copy package files first (maximize cache hit)
 COPY package.json package-lock.json ./
+
+# Install all dependencies (dev + prod) for build
 RUN npm ci --legacy-peer-deps --ignore-scripts && \
     npm cache clean --force
 
+# ============================================================================
 # Stage 2: Build
-FROM node:22-alpine AS builder
+# ============================================================================
+FROM node:${NODE_VERSION}-alpine AS builder
 
 WORKDIR /app
 
 # Copy deps from previous stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY package.json ./
+COPY package.json tsconfig.json ./
 
-# Copy source and build
-COPY tsconfig.json ./
+# Copy entire source directory
 COPY src/ ./src/
 
+# Build TypeScript
 RUN npm run build
 
+# Prune dev dependencies after build
+RUN npm prune --production --legacy-peer-deps
+
+# ============================================================================
 # Stage 3: Production (minimal)
-FROM node:22-alpine AS runner
+# ============================================================================
+FROM node:${NODE_VERSION}-alpine AS runner
+
+# Get version from package.json at build time
+ARG APP_VERSION=unknown
+LABEL org.opencontainers.image.title="AI Engine"
+LABEL org.opencontainers.image.version="${APP_VERSION}"
+LABEL org.opencontainers.image.description="LangGraph Multi-Agent Supervisor for OpenManager VIBE"
 
 WORKDIR /app
 
@@ -37,18 +65,21 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Security: non-root user first
+# Cloud Run optimized Node.js settings
+# - max-old-space-size: Limit memory to avoid OOM in 512MB container
+# - enable-source-maps: Better error traces in production
+ENV NODE_OPTIONS="--max-old-space-size=450 --enable-source-maps"
+
+# Copy dumb-init from deps stage
+COPY --from=deps /usr/bin/dumb-init /usr/bin/dumb-init
+
+# Security: non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 appuser
 
-# Copy package files (from deps stage for lock file)
-COPY --from=deps /app/package.json ./
-COPY --from=deps /app/package-lock.json ./
-
-# Install production dependencies only
-RUN npm ci --omit=dev --legacy-peer-deps --ignore-scripts && \
-    npm cache clean --force && \
-    rm -rf /tmp/* /var/cache/apk/*
+# Copy only production dependencies from builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
 
 # Copy built files
 COPY --from=builder /app/dist ./dist
@@ -57,11 +88,14 @@ COPY --from=builder /app/dist ./dist
 RUN chown -R appuser:nodejs /app
 USER appuser
 
-# Health check (lightweight)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=2 \
+# Health check (lightweight, using wget instead of curl for smaller image)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=2 \
     CMD wget -q --spider http://localhost:8080/health || exit 1
 
 EXPOSE 8080
+
+# Use dumb-init as entrypoint for proper signal handling
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Direct node execution (fastest startup)
 CMD ["node", "dist/server.js"]

@@ -10,7 +10,7 @@ import { Annotation, messagesStateReducer } from '@langchain/langgraph';
 // 1. Agent Types
 // ============================================================================
 
-export type AgentType = 'nlq' | 'analyst' | 'reporter' | 'verifier' | 'reply' | null;
+export type AgentType = 'nlq' | 'analyst' | 'rca' | 'capacity' | 'reporter' | 'verifier' | 'reply' | null;
 export type TaskType =
   | 'monitoring'
   | 'incident_ops'
@@ -85,6 +85,34 @@ export interface AnalystResult {
   timestamp: string;
 }
 
+// ============================================================================
+// 1.2 RCA Agent Result Types (NEW - RCA/Capacity Agents)
+// ============================================================================
+
+export interface RCAResult {
+  timelineSummary: string;
+  timelineDataRef?: string; // Redis reference for full timeline
+  rootCause: string;
+  confidence: number;
+  evidence: string[];
+  suggestedFix?: string;
+  correlationSummary?: string;
+  timestamp: string;
+}
+
+export interface CapacityResult {
+  predictionSummary: string;
+  urgentMetrics: string[];
+  recommendations: Array<{
+    type: 'scale_up' | 'scale_out' | 'optimize' | 'none';
+    resource: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    summary: string;
+  }>;
+  detailsRef?: string; // Redis reference for full predictions
+  timestamp: string;
+}
+
 export interface ReporterResult {
   reportType: 'summary' | 'detailed' | 'incident';
   title: string;
@@ -100,6 +128,8 @@ export interface ReporterResult {
 export interface SharedContext {
   nlqResults: NLQResult | null;
   analystResults: AnalystResult | null;
+  rcaResults: RCAResult | null;          // NEW: RCA Agent results
+  capacityResults: CapacityResult | null; // NEW: Capacity Agent results
   reporterResults: ReporterResult | null;
   verifierResults: VerificationResult | null;
   lastUpdatedBy: AgentType;
@@ -288,6 +318,8 @@ export const AgentState = Annotation.Root({
     default: () => ({
       nlqResults: null,
       analystResults: null,
+      rcaResults: null,        // NEW
+      capacityResults: null,   // NEW
       reporterResults: null,
       verifierResults: null,
       lastUpdatedBy: null,
@@ -320,6 +352,8 @@ export const MAX_ITERATIONS = 5;
 export const SUPERVISOR_NODE = 'supervisor';
 export const NLQ_NODE = 'nlq_agent';
 export const ANALYST_NODE = 'analyst_agent';
+export const RCA_NODE = 'rca_agent';           // NEW: RCA Agent
+export const CAPACITY_NODE = 'capacity_agent'; // NEW: Capacity Agent
 export const REPORTER_NODE = 'reporter_agent';
 export const VERIFIER_NODE = 'verifier_agent';
 export const END_NODE = '__end__';
@@ -455,12 +489,44 @@ export function updateVerifierContext(
 }
 
 /**
+ * Update RCA results in shared context (NEW)
+ */
+export function updateRCAContext(
+  context: SharedContext,
+  result: RCAResult
+): SharedContext {
+  return {
+    ...context,
+    rcaResults: result,
+    lastUpdatedBy: 'rca',
+    lastUpdatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Update Capacity results in shared context (NEW)
+ */
+export function updateCapacityContext(
+  context: SharedContext,
+  result: CapacityResult
+): SharedContext {
+  return {
+    ...context,
+    capacityResults: result,
+    lastUpdatedBy: 'capacity',
+    lastUpdatedAt: new Date().toISOString(),
+  };
+}
+
+/**
  * Create initial shared context
  */
 export function createInitialSharedContext(): SharedContext {
   return {
     nlqResults: null,
     analystResults: null,
+    rcaResults: null,        // NEW
+    capacityResults: null,   // NEW
     reporterResults: null,
     verifierResults: null,
     lastUpdatedBy: null,
@@ -474,28 +540,71 @@ export function createInitialSharedContext(): SharedContext {
 export function getAvailableContext(context: SharedContext): {
   hasNLQ: boolean;
   hasAnalyst: boolean;
+  hasRCA: boolean;      // NEW
+  hasCapacity: boolean; // NEW
   hasReporter: boolean;
   hasVerifier: boolean;
   summary: string;
 } {
   const hasNLQ = context.nlqResults !== null;
   const hasAnalyst = context.analystResults !== null;
+  const hasRCA = context.rcaResults !== null;         // NEW
+  const hasCapacity = context.capacityResults !== null; // NEW
   const hasReporter = context.reporterResults !== null;
   const hasVerifier = context.verifierResults !== null;
 
   const available: string[] = [];
   if (hasNLQ) available.push('NLQ');
   if (hasAnalyst) available.push('Analyst');
+  if (hasRCA) available.push('RCA');           // NEW
+  if (hasCapacity) available.push('Capacity'); // NEW
   if (hasReporter) available.push('Reporter');
   if (hasVerifier) available.push('Verifier');
 
   return {
     hasNLQ,
     hasAnalyst,
+    hasRCA,      // NEW
+    hasCapacity, // NEW
     hasReporter,
     hasVerifier,
     summary: available.length > 0
       ? `Available context: ${available.join(', ')}`
       : 'No prior context available',
   };
+}
+
+// ============================================================================
+// 5. Agent Dependency Validation (NEW - Critical Improvement #3)
+// ============================================================================
+
+/**
+ * Validate agent dependencies before execution
+ * RCA/Capacity require NLQ + Analyst results
+ */
+export function validateAgentDependencies(
+  targetAgent: AgentType,
+  context: SharedContext
+): { valid: boolean; missing: AgentType[] } {
+  const dependencies: Record<NonNullable<AgentType>, AgentType[]> = {
+    nlq: [],
+    analyst: ['nlq'],
+    rca: ['nlq', 'analyst'],
+    capacity: ['nlq', 'analyst'],
+    reporter: [], // Optional dependencies
+    verifier: [],
+    reply: [],
+  };
+
+  if (!targetAgent) return { valid: true, missing: [] };
+
+  const required = dependencies[targetAgent] || [];
+  const missing: AgentType[] = [];
+
+  for (const dep of required) {
+    if (dep === 'nlq' && !context.nlqResults) missing.push('nlq');
+    if (dep === 'analyst' && !context.analystResults) missing.push('analyst');
+  }
+
+  return { valid: missing.length === 0, missing };
 }

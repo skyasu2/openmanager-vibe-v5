@@ -1,23 +1,32 @@
-# Dependencies
-node_modules
+# ============================================================================
+# Docker Ignore - AI Engine
+# Optimized for minimal build context
+# ============================================================================
 
-# Build output
+# Dependencies (reinstalled in Docker)
+node_modules
+.npm
+
+# Build output (rebuilt in Docker)
 dist
 
 # Logs
 npm-debug.log
 *.log
 build_*.log
+logs/
 
-# Docker
+# Docker files (not needed in context)
 Dockerfile
 .dockerignore
+docker-compose*.yml
 
 # Git
 .git
 .gitignore
+.gitattributes
 
-# Environment
+# Environment (secrets via Cloud Run)
 .env
 .env.*
 !.env.example
@@ -25,6 +34,9 @@ Dockerfile
 # IDE
 .vscode
 .idea
+*.swp
+*.swo
+*~
 
 # GCloud
 .gcloudignore
@@ -32,6 +44,33 @@ cloudbuild.yaml
 
 # Documentation
 *.md
+docs/
+README*
+CHANGELOG*
+LICENSE*
 
-# Data (will be loaded at runtime)
-data/
+# Tests (not needed in production)
+*.test.ts
+*.spec.ts
+__tests__/
+coverage/
+.nyc_output/
+vitest.config.*
+
+# Promptfoo (dev tool)
+promptfoo/
+promptfooconfig.yaml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# TypeScript config (only tsconfig.json needed)
+tsconfig.*.json
+!tsconfig.json
