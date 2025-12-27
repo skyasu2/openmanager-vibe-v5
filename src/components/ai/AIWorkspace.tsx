@@ -462,10 +462,11 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                 {selectedFunction}
               </span>
             </div>
+            {/* 🔧 lg 미만에서는 우측 패널이 숨겨지므로 토글 버튼도 숨김 (Tablet UX Fix) */}
             {selectedFunction === 'chat' && (
               <button
                 onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
-                className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                className="hidden lg:block rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
                 title="Toggle Context Panel"
               >
                 {isRightPanelOpen ? (
