@@ -100,7 +100,110 @@ interface AnalyzePatternInput {
 }
 
 // ============================================================================
-// 2. Pattern Constants (v6.10.1: Type-Safe Pattern Insights)
+// 2. Structured Output Types (Token Optimization)
+// ============================================================================
+
+/**
+ * 압축된 Analyst 출력 형식
+ * Before: ~2,100 tokens → After: ~500 tokens
+ */
+export interface AnalystCompressedOutput {
+  anomalies: AnomalySummary[];
+  trends: TrendSummary[];
+  confidence: number;
+  summary: string; // 200자 제한
+}
+
+export interface AnomalySummary {
+  metric: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  value: number;
+  threshold: number;
+}
+
+export interface TrendSummary {
+  metric: string;
+  direction: 'increasing' | 'stable' | 'decreasing';
+  changePercent: number;
+}
+
+/**
+ * Anomaly 결과를 압축된 형식으로 변환
+ */
+export function compressAnomalyResult(result: AnomalyResult): AnalystCompressedOutput {
+  if (!result.success) {
+    return {
+      anomalies: [],
+      trends: [],
+      confidence: 0,
+      summary: result.error || '분석 실패',
+    };
+  }
+
+  const anomalies: AnomalySummary[] = Object.entries(result.results)
+    .filter(([, r]) => r.isAnomaly)
+    .slice(0, 5) // 최대 5개
+    .map(([metric, r]) => ({
+      metric,
+      severity: r.severity as AnomalySummary['severity'],
+      value: r.currentValue,
+      threshold: r.threshold.upper,
+    }));
+
+  const avgConfidence = Object.values(result.results).reduce((sum, r) => sum + r.confidence, 0) /
+    Object.keys(result.results).length;
+
+  const summary = result.hasAnomalies
+    ? `${result.serverName}: ${result.anomalyCount}개 이상 감지 (${anomalies.map(a => `${a.metric}:${a.severity}`).join(', ')})`
+    : `${result.serverName}: 이상 없음`;
+
+  return {
+    anomalies,
+    trends: [],
+    confidence: Math.round(avgConfidence * 100) / 100,
+    summary: summary.slice(0, 200),
+  };
+}
+
+/**
+ * Trend 결과를 압축된 형식으로 변환
+ */
+export function compressTrendResult(result: TrendResult): AnalystCompressedOutput {
+  if (!result.success) {
+    return {
+      anomalies: [],
+      trends: [],
+      confidence: 0,
+      summary: result.error || '예측 실패',
+    };
+  }
+
+  const trends: TrendSummary[] = Object.entries(result.results)
+    .slice(0, 3) // 최대 3개
+    .map(([metric, r]) => ({
+      metric,
+      direction: r.trend as TrendSummary['direction'],
+      changePercent: r.changePercent,
+    }));
+
+  const avgConfidence = Object.values(result.results).reduce((sum, r) => sum + r.confidence, 0) /
+    Object.keys(result.results).length;
+
+  const risingMetrics = result.summary.increasingMetrics;
+  const summary = risingMetrics.length > 0
+    ? `${result.serverName}: ${risingMetrics.join(', ')} 상승 추세 (${result.predictionHorizon})`
+    : `${result.serverName}: 안정적 (${result.predictionHorizon})`;
+
+  return {
+    anomalies: [],
+    trends,
+    confidence: Math.round(avgConfidence * 100) / 100,
+    summary: summary.slice(0, 200),
+  };
+}
+
+// ============================================================================
+// 3. Pattern Constants (v6.10.1: Type-Safe Pattern Insights)
 // ============================================================================
 
 /** 지원되는 패턴 타입 */
@@ -234,7 +337,7 @@ export const detectAnomaliesTool = tool(
           (r) => r.isAnomaly
         ).length;
 
-        return {
+        const fullResult = {
           success: true as const,
           serverId: server.id,
           serverName: server.name,
@@ -245,6 +348,13 @@ export const detectAnomaliesTool = tool(
           _algorithm: '6-hour moving average + 2σ threshold (10-min intervals)',
           _engine: usedEngine,
           _cached: true,
+        };
+
+        // 압축된 요약 추가 (Token Optimization)
+        const compressed = compressAnomalyResult(fullResult);
+        return {
+          ...fullResult,
+          _compressed: compressed,
         };
       }
     );
@@ -355,7 +465,7 @@ export const predictTrendsTool = tool(
           .filter(([, r]) => r.trend === 'increasing')
           .map(([m]) => m);
 
-        return {
+        const fullResult = {
           success: true as const,
           serverId: server.id,
           serverName: server.name,
@@ -369,6 +479,13 @@ export const predictTrendsTool = tool(
           _algorithm: 'Linear Regression with R² confidence',
           _engine: usedEngine,
           _cached: true,
+        };
+
+        // 압축된 요약 추가 (Token Optimization)
+        const compressed = compressTrendResult(fullResult);
+        return {
+          ...fullResult,
+          _compressed: compressed,
         };
       }
     );

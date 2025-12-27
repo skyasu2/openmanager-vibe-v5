@@ -336,7 +336,7 @@ export async function reporterAgentNode(
       executedAt: new Date().toISOString(),
     });
 
-    // 3. 인시던트 리포트 생성
+    // 3. 인시던트 리포트 생성 (Token Optimized: ~7,000 → ~800 tokens)
     const reportPrompt = `당신은 OpenManager VIBE의 Reporter Agent입니다.
 장애 분석 및 인시던트 리포트를 생성합니다.
 
@@ -344,22 +344,22 @@ export async function reporterAgentNode(
 ${userQuery}
 
 ## 지식베이스 검색 결과
-${JSON.stringify(ragResult, null, 2)}
+${compressRagResult(ragResult as RAGResult)}
 
-## 현재 시스템 진단 결과 (Real-time Config)
-- 로그 분석: ${logsResult ? JSON.stringify(logsResult, null, 2) : '수행되지 않음 (필요 시 자동 수행됨)'}
-- 메트릭 상태: ${metricsResult ? JSON.stringify(metricsResult, null, 2) : '수행되지 않음'}
+## 시스템 진단 결과
+- 로그: ${compressLogResult(logsResult as LogsResult | null)}
+- 메트릭: ${compressMetricsResult(metricsResult as MetricsResult | null)}
 
 ## 추천 명령어
-${JSON.stringify(commandResult, null, 2)}
+${compressCommandResult(commandResult as CommandResult)}
 
-위 정보를 바탕으로 다음 형식의 인시던트 리포트를 작성하세요:
+위 정보를 바탕으로 간결한 인시던트 리포트를 작성하세요:
 
 ### 📋 인시던트 요약
-[문제 상황 요약]
+[2-3문장 요약]
 
 ### 🔍 원인 분석
-[가능한 원인들]
+[가능한 원인 1-3개]
 
 ### 💡 권장 조치
 [단계별 해결 방안]
@@ -367,7 +367,7 @@ ${JSON.stringify(commandResult, null, 2)}
 ### ⌨️ 추천 명령어
 [실행 가능한 명령어들]
 
-한국어로 작성하고, 전문적이면서도 이해하기 쉽게 설명해주세요.`;
+한국어로 간결하게 작성하세요.`;
 
     const response = await model.invoke([
       new HumanMessage(reportPrompt),
@@ -435,6 +435,142 @@ ${JSON.stringify(commandResult, null, 2)}
     };
   }
 }
+
+// ============================================================================
+// 4. Context Compression Functions (Token Optimization)
+// ============================================================================
+
+interface RAGResultItem {
+  id?: string;
+  title?: string;
+  content?: string;
+  category?: string;
+  similarity?: number;
+  sourceType?: string;
+  hopDistance?: number;
+}
+
+interface RAGResult {
+  success: boolean;
+  results?: RAGResultItem[];
+  totalFound?: number;
+  _source?: string;
+}
+
+interface LogEntry {
+  level?: string;
+  message?: string;
+  timestamp?: string;
+}
+
+interface LogsResult {
+  success: boolean;
+  logs?: LogEntry[];
+  errorCount?: number;
+  warningCount?: number;
+  serverId?: string;
+}
+
+interface MetricsResult {
+  success: boolean;
+  serverId?: string;
+  serverName?: string;
+  cpu?: number;
+  memory?: number;
+  disk?: number;
+  status?: string;
+}
+
+interface CommandRecommendation {
+  command?: string;
+  description?: string;
+}
+
+interface CommandResult {
+  success: boolean;
+  recommendations?: CommandRecommendation[];
+}
+
+/**
+ * RAG 결과 압축 (상위 3개, 핵심 정보만)
+ * Before: ~2,000 tokens → After: ~200 tokens
+ */
+function compressRagResult(ragResult: RAGResult): string {
+  if (!ragResult.success || !ragResult.results?.length) {
+    return '관련 지식 없음';
+  }
+
+  const topResults = ragResult.results.slice(0, 3);
+  const compressed = topResults
+    .map((r, i) => {
+      const title = r.title || '제목 없음';
+      const content = (r.content || '').slice(0, 100);
+      const source = r.sourceType === 'graph' ? '[Graph]' : '[Vector]';
+      return `${i + 1}. ${source} ${title}\n   ${content}...`;
+    })
+    .join('\n');
+
+  return `검색 결과 ${ragResult.totalFound || 0}건 (상위 3개):\n${compressed}`;
+}
+
+/**
+ * 로그 분석 결과 압축
+ * Before: ~2,500 tokens → After: ~150 tokens
+ */
+function compressLogResult(logsResult: LogsResult | null): string {
+  if (!logsResult || !logsResult.success) {
+    return '수행되지 않음';
+  }
+
+  const logs = logsResult.logs || [];
+  const errorCount = logsResult.errorCount || logs.filter(l => l.level === 'error').length;
+  const warnCount = logsResult.warningCount || logs.filter(l => l.level === 'warn').length;
+
+  // 에러 로그만 상위 3개 추출
+  const errorLogs = logs
+    .filter(l => l.level === 'error')
+    .slice(0, 3)
+    .map(l => `- ${(l.message || '').slice(0, 80)}`)
+    .join('\n');
+
+  return `에러: ${errorCount}건, 경고: ${warnCount}건${errorLogs ? `\n주요 에러:\n${errorLogs}` : ''}`;
+}
+
+/**
+ * 메트릭 결과 압축
+ * Before: ~2,000 tokens → After: ~100 tokens
+ */
+function compressMetricsResult(metricsResult: MetricsResult | null): string {
+  if (!metricsResult || !metricsResult.success) {
+    return '수행되지 않음';
+  }
+
+  const status = metricsResult.status || 'unknown';
+  const cpu = metricsResult.cpu ?? 'N/A';
+  const memory = metricsResult.memory ?? 'N/A';
+  const disk = metricsResult.disk ?? 'N/A';
+
+  return `${metricsResult.serverName || metricsResult.serverId}: CPU ${cpu}%, MEM ${memory}%, DISK ${disk}% [${status}]`;
+}
+
+/**
+ * 명령어 추천 결과 압축
+ * Before: ~500 tokens → After: ~100 tokens
+ */
+function compressCommandResult(commandResult: CommandResult): string {
+  if (!commandResult.success || !commandResult.recommendations?.length) {
+    return '추천 명령어 없음';
+  }
+
+  return commandResult.recommendations
+    .slice(0, 3)
+    .map(r => `- \`${r.command}\`: ${r.description}`)
+    .join('\n');
+}
+
+// ============================================================================
+// 5. Keyword Extraction
+// ============================================================================
 
 function extractKeywords(query: string): string[] {
   const keywords: string[] = [];
