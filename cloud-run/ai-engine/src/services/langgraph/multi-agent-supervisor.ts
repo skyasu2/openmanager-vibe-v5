@@ -421,37 +421,55 @@ function createCapacityAgent() {
 
 const SUPERVISOR_PROMPT = `당신은 OpenManager VIBE의 Multi-Agent Supervisor입니다.
 
-## 에이전트 라우팅
-- **nlq_agent**: 서버 상태/메트릭 조회 (CPU, Memory, Disk)
-- **analyst_agent**: 패턴 분석, 이상 탐지, 트렌드 예측
-- **rca_agent**: 근본 원인 분석, 장애 타임라인, 인과관계 추론 (NEW)
-- **capacity_agent**: 용량 예측, 리소스 소진 예측, 스케일링 권장 (NEW)
-- **reporter_agent**: 인시던트 리포트, 장애 분석, RAG 검색, **웹 검색(DuckDuckGo)**
+## 사용 가능한 에이전트
+1. **nlq_agent**: 서버 메트릭 조회 (CPU, Memory, Disk, 로그)
+2. **analyst_agent**: 패턴 분석, 이상 탐지, 트렌드 예측
+3. **rca_agent**: 근본 원인 분석 (장애 타임라인, 인과관계)
+4. **capacity_agent**: 용량 예측 (리소스 소진 예측, 스케일링 권장)
+5. **reporter_agent**: 리포트 생성, RAG 검색, 웹 검색
 
-## 라우팅 규칙
-- "서버 상태", "전체 현황", "서버 확인" → nlq_agent (전체 서버 조회 필요)
-- "WEB-01 상태" 등 특정 서버 언급 → nlq_agent (해당 서버만 조회)
-- 분석/예측/트렌드 → analyst_agent
-- **"왜 다운됐어?", "원인이 뭐야?", "장애 원인"** → rca_agent (근본원인 분석)
-- **"언제 가득 차?", "스케일업 필요?", "용량 계획"** → capacity_agent (용량 예측)
-- 장애/리포트 → reporter_agent
-- **"검색해줘", "구글링", "최신 정보"** → reporter_agent (웹 검색)
-- 인사말 → 직접 응답 (1문장)
+## 라우팅 규칙 (키워드 기반)
 
-## ⚠️ 실행 순서 규칙 (Strict Order)
-- **rca_agent**는 반드시 **nlq_agent** → **analyst_agent** 실행 후 호출
-- **capacity_agent**는 반드시 **nlq_agent** → **analyst_agent** 실행 후 호출
-- **reporter_agent**는 분석 에이전트 실행 완료 후 마지막에 호출
+### nlq_agent로 라우팅
+- "서버 상태", "전체 현황", "메트릭", "CPU", "메모리", "디스크"
+- 특정 서버명 언급 (예: "WEB-01 상태")
 
-## 복합 쿼리 처리 예시
-1. "WEB-01 왜 다운됐어?" → nlq_agent → analyst_agent → rca_agent
-2. "디스크 언제 가득 차?" → nlq_agent → analyst_agent → capacity_agent
-3. "서버 상태 알려줘" → nlq_agent (단독 실행)
+### analyst_agent로 라우팅
+- "분석", "패턴", "트렌드", "이상 탐지", "예측"
+
+### rca_agent로 라우팅 (근본 원인 분석)
+- "왜", "원인", "장애 원인", "근본 원인", "다운된 이유"
+- ⚠️ 반드시 nlq_agent → analyst_agent 완료 후 호출
+
+### capacity_agent로 라우팅 (용량 계획)
+- "언제 가득", "용량", "스케일업", "스케일아웃", "리소스 예측"
+- ⚠️ 반드시 nlq_agent → analyst_agent 완료 후 호출
+
+### reporter_agent로 라우팅
+- "리포트", "보고서", "요약", "검색", "구글링"
+
+### 직접 응답 (에이전트 호출 없음)
+- 인사말: "안녕하세요! 무엇을 도와드릴까요?"
+
+## 복합 쿼리 실행 순서
+
+**장애 원인 분석** ("왜 다운됐어?"):
+Step 1: nlq_agent (서버 메트릭 수집)
+Step 2: analyst_agent (이상 탐지)
+Step 3: rca_agent (근본 원인 추론)
+
+**용량 예측** ("디스크 언제 가득 차?"):
+Step 1: nlq_agent (현재 사용량 조회)
+Step 2: analyst_agent (트렌드 분석)
+Step 3: capacity_agent (소진 시점 예측)
+
+**단순 조회** ("서버 상태"):
+Step 1: nlq_agent (직접 응답)
 
 ## 응답 지침
-- 에이전트 결과를 그대로 전달 (재가공 금지)
-- 불필요한 인사말/서론 금지
-- 핵심만 간결하게`;
+- 에이전트 결과를 그대로 전달
+- 서론/인사말 생략
+- 핵심 정보만 출력`;
 
 /**
  * Create Multi-Agent Supervisor Workflow
@@ -868,12 +886,19 @@ export async function executeSupervisor(
 
       // Check if this is a rate limit error
       const isRateLimit = RateLimitError.isRateLimitError(error);
-      console.log(`🔍 [Supervisor] isRateLimitError check: ${isRateLimit}`);
 
-      if (isRateLimit) {
+      // Check if this is a tool calling error (Cerebras/Groq tool_calls format issue)
+      const isToolCallingError = errorMessage.includes('Failed to generate tool_calls') ||
+        errorMessage.includes('failed_generation') ||
+        errorMessage.includes('tool_calls');
+
+      console.log(`🔍 [Supervisor] Error check: isRateLimit=${isRateLimit}, isToolCallingError=${isToolCallingError}`);
+
+      if (isRateLimit || isToolCallingError) {
         // 🔄 Try Groq fallback first before Last Keeper
+        const errorReason = isToolCallingError ? 'tool_calls generation error' : 'rate limit';
         console.warn(
-          `⚠️ [Supervisor] Cerebras rate limit detected, trying Groq fallback...`
+          `⚠️ [Supervisor] Cerebras ${errorReason} detected, trying Groq fallback...`
         );
 
         try {
