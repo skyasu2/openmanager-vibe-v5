@@ -305,20 +305,29 @@ export function getTavilyApiKey(): string | null {
 
 /**
  * Get Upstash Redis configuration
- * Embedded in SUPABASE_CONFIG.upstash or fallback to legacy env vars
+ * Priority order:
+ * 1. KV_CONFIG (grouped secret - preferred)
+ * 2. SUPABASE_CONFIG.upstash (embedded)
+ * 3. Legacy env vars
  *
  * Supported env var names:
  * - UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN (standard)
  * - KV_REST_API_URL / KV_REST_API_TOKEN (Vercel KV naming)
  */
 export function getUpstashConfig(): UpstashConfig | null {
-  // Try from SUPABASE_CONFIG.upstash first
+  // 1. Try from KV_CONFIG (grouped secret) first
+  const kvConfig = getKVConfig();
+  if (kvConfig) {
+    return kvConfig;
+  }
+
+  // 2. Try from SUPABASE_CONFIG.upstash (embedded)
   const supabaseConfig = getSupabaseConfig();
   if (supabaseConfig?.upstash) {
     return supabaseConfig.upstash;
   }
 
-  // Fallback to legacy env vars (try multiple naming conventions)
+  // 3. Fallback to legacy env vars (try multiple naming conventions)
   const url =
     process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token =
