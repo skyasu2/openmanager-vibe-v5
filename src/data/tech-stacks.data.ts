@@ -32,44 +32,44 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       type: 'opensource',
     },
     {
-      name: 'Groq Llama 3.3 70b (Supervisor)',
+      name: 'Groq Cloud',
       category: 'ai',
       importance: 'critical',
       description:
-        'LangGraph handoff 기반 Supervisor 에이전트 - 의도 분류 및 라우팅 담당',
+        'LPU(Language Processing Unit) 기반 초고속 추론 인프라. 500 Tokens/s로 업계 최고 속도',
       implementation:
-        'Groq LPU(500 Tokens/s)로 빠른 의도 분류 후 적절한 Worker 에이전트에게 작업 위임. Rate Limit 시 자동 Cerebras 폴백',
-      version: 'llama-3.3-70b-versatile',
-      status: 'active',
-      icon: '🧠',
-      tags: ['LLM', 'Groq', 'Supervisor', 'LangGraph'],
-      type: 'commercial',
-    },
-    {
-      name: 'Cerebras Llama 3.3 70b (Worker)',
-      category: 'ai',
-      importance: 'critical',
-      description:
-        'NLQ/Analyst/Reporter Worker 에이전트 - 24M 토큰/일 넉넉한 한도',
-      implementation:
-        'Cerebras의 넉넉한 무료 티어(24M 토큰/일, Groq 240배)로 자연어 쿼리, 로그 분석, 리포트 작성 수행',
-      version: 'llama-3.3-70b',
+        '→ Supervisor 에이전트로 사용 중 (의도 분류 및 Worker 라우팅)',
+      version: 'Llama 3.3 70B',
       status: 'active',
       icon: '⚡',
-      tags: ['LLM', 'Cerebras', 'Worker', 'High-Throughput'],
+      tags: ['LPU', '500T/s', 'Supervisor'],
       type: 'commercial',
     },
     {
-      name: 'Mistral Small 3.2 (Verifier)',
+      name: 'Cerebras Inference',
+      category: 'ai',
+      importance: 'critical',
+      description:
+        '세계 최대 AI 칩(WSE-3) 기반 추론 서비스. 24M 토큰/일 무료 (Groq 240배)',
+      implementation:
+        '→ NLQ/Analyst/Reporter 에이전트로 사용 중 (분석 및 리포트 생성)',
+      version: 'Llama 3.3 70B',
+      status: 'active',
+      icon: '🧠',
+      tags: ['WSE-3', '24M/day', 'Worker'],
+      type: 'commercial',
+    },
+    {
+      name: 'Mistral AI',
       category: 'ai',
       importance: 'high',
-      description: 'AI 응답 품질 검증 에이전트 - 24B 파라미터로 빠른 검증',
-      implementation:
-        'Worker 에이전트 출력을 검토하여 품질, 정확성, 일관성 검증. 무료 티어로 비용 효율적 운영',
-      version: 'mistral-small-2506',
+      description:
+        '프랑스 AI 스타트업의 효율적인 오픈웨이트 LLM. 24B 파라미터로 빠른 응답',
+      implementation: '→ Verifier 에이전트로 사용 중 (AI 응답 품질 검증)',
+      version: 'Small 3.2 (24B)',
       status: 'active',
       icon: '🛡️',
-      tags: ['LLM', 'Mistral', 'Verifier', 'Quality'],
+      tags: ['OpenWeight', '24B', 'Verifier'],
       type: 'commercial',
     },
     {
