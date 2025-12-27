@@ -25,7 +25,12 @@ import type {
   PendingAction,
   ToolResult,
 } from '../lib/state-definition';
-import { getServerLogsTool, getServerMetricsTool } from './nlq-agent';
+// Phase 2: NLQ Tools 제거 - Shared Context 사용
+import {
+  buildReporterContext,
+  formatContextForPrompt,
+  type ReporterContext,
+} from '../lib/shared-context';
 
 // Tool Input Types (for TypeScript strict mode)
 interface SearchKnowledgeBaseInput {
@@ -284,46 +289,27 @@ export async function reporterAgentNode(
       executedAt: new Date().toISOString(),
     });
 
-    // 2. 현재 상태 파악 (로그 및 메트릭) - 키워드에 따라 자동 수행
-    let logsResult: { success: boolean; [key: string]: unknown } | null = null;
-    let metricsResult: { success: boolean; [key: string]: unknown } | null = null;
+    // 2. Phase 2: Shared Context에서 NLQ/Analyst 결과 조회
+    // (더 이상 직접 NLQ Tools를 호출하지 않음 - SRP 준수)
+    const sessionId = state.sessionId || 'default';
+    let sharedContext: ReporterContext = {};
 
-    // "왜" 또는 "원인", "에러", "장애" 관련 질문이면 로그/메트릭 조회 시도
-    if (/왜|원인|cause|reason|에러|error|장애|failed|down/i.test(userQuery)) {
-      try {
-        // 서버 ID 추출 시도 (nlq-agent 로직과 유사하거나 간단한 정규식)
-        const serverMatch = userQuery.match(/server[-_\s]?(\d+)|서버\s*(\d+)/i);
-        const serverId = serverMatch ? (serverMatch[1] || serverMatch[2]) : undefined;
-        const normalizedServerId = serverId ? `server-${serverId}` : undefined;
-
-        // 로그 조회
-        const logsInvokeResult = await getServerLogsTool.invoke({
-          serverId: normalizedServerId,
-          limit: 5
-        });
-        logsResult = logsInvokeResult as { success: boolean; [key: string]: unknown };
+    try {
+      sharedContext = await buildReporterContext(sessionId);
+      if (sharedContext.nlqResult || sharedContext.analystResult) {
         toolResults.push({
-          toolName: 'getServerLogs',
-          success: logsResult.success ?? true,
-          data: logsResult,
+          toolName: 'sharedContextLookup',
+          success: true,
+          data: {
+            hasNlqResult: !!sharedContext.nlqResult,
+            hasAnalystResult: !!sharedContext.analystResult,
+          },
           executedAt: new Date().toISOString(),
         });
-
-        // 메트릭 조회 (상태 확인용)
-        const metricsInvokeResult = await getServerMetricsTool.invoke({
-          serverId: normalizedServerId,
-          metric: 'all'
-        });
-        metricsResult = metricsInvokeResult as { success: boolean; [key: string]: unknown };
-        toolResults.push({
-          toolName: 'getServerMetrics',
-          success: metricsResult.success ?? true,
-          data: metricsResult,
-          executedAt: new Date().toISOString(),
-        });
-      } catch (e) {
-        console.warn('Diagnostics failed in Reporter:', e);
+        console.log(`📋 [Reporter] Using shared context from session: ${sessionId.slice(0, 8)}...`);
       }
+    } catch (e) {
+      console.warn('⚠️ [Reporter] Shared context lookup failed:', e);
     }
 
     // 3. 키워드 추출 및 명령어 추천
@@ -336,7 +322,9 @@ export async function reporterAgentNode(
       executedAt: new Date().toISOString(),
     });
 
-    // 3. 인시던트 리포트 생성 (Token Optimized: ~7,000 → ~800 tokens)
+    // 3. 인시던트 리포트 생성 (Phase 2: Shared Context 기반)
+    const contextPrompt = formatContextForPrompt(sharedContext);
+
     const reportPrompt = `당신은 OpenManager VIBE의 Reporter Agent입니다.
 장애 분석 및 인시던트 리포트를 생성합니다.
 
@@ -346,9 +334,8 @@ ${userQuery}
 ## 지식베이스 검색 결과
 ${compressRagResult(ragResult as RAGResult)}
 
-## 시스템 진단 결과
-- 로그: ${compressLogResult(logsResult as LogsResult | null)}
-- 메트릭: ${compressMetricsResult(metricsResult as MetricsResult | null)}
+## 이전 에이전트 분석 결과
+${contextPrompt}
 
 ## 추천 명령어
 ${compressCommandResult(commandResult as CommandResult)}
@@ -457,29 +444,8 @@ interface RAGResult {
   _source?: string;
 }
 
-interface LogEntry {
-  level?: string;
-  message?: string;
-  timestamp?: string;
-}
-
-interface LogsResult {
-  success: boolean;
-  logs?: LogEntry[];
-  errorCount?: number;
-  warningCount?: number;
-  serverId?: string;
-}
-
-interface MetricsResult {
-  success: boolean;
-  serverId?: string;
-  serverName?: string;
-  cpu?: number;
-  memory?: number;
-  disk?: number;
-  status?: string;
-}
+// Note: LogsResult, MetricsResult interfaces removed in Phase 2
+// Reporter now uses Shared Context instead of direct NLQ tool calls
 
 interface CommandRecommendation {
   command?: string;
@@ -513,45 +479,8 @@ function compressRagResult(ragResult: RAGResult): string {
   return `검색 결과 ${ragResult.totalFound || 0}건 (상위 3개):\n${compressed}`;
 }
 
-/**
- * 로그 분석 결과 압축
- * Before: ~2,500 tokens → After: ~150 tokens
- */
-function compressLogResult(logsResult: LogsResult | null): string {
-  if (!logsResult || !logsResult.success) {
-    return '수행되지 않음';
-  }
-
-  const logs = logsResult.logs || [];
-  const errorCount = logsResult.errorCount || logs.filter(l => l.level === 'error').length;
-  const warnCount = logsResult.warningCount || logs.filter(l => l.level === 'warn').length;
-
-  // 에러 로그만 상위 3개 추출
-  const errorLogs = logs
-    .filter(l => l.level === 'error')
-    .slice(0, 3)
-    .map(l => `- ${(l.message || '').slice(0, 80)}`)
-    .join('\n');
-
-  return `에러: ${errorCount}건, 경고: ${warnCount}건${errorLogs ? `\n주요 에러:\n${errorLogs}` : ''}`;
-}
-
-/**
- * 메트릭 결과 압축
- * Before: ~2,000 tokens → After: ~100 tokens
- */
-function compressMetricsResult(metricsResult: MetricsResult | null): string {
-  if (!metricsResult || !metricsResult.success) {
-    return '수행되지 않음';
-  }
-
-  const status = metricsResult.status || 'unknown';
-  const cpu = metricsResult.cpu ?? 'N/A';
-  const memory = metricsResult.memory ?? 'N/A';
-  const disk = metricsResult.disk ?? 'N/A';
-
-  return `${metricsResult.serverName || metricsResult.serverId}: CPU ${cpu}%, MEM ${memory}%, DISK ${disk}% [${status}]`;
-}
+// Note: compressLogResult, compressMetricsResult removed in Phase 2
+// Reporter now uses formatContextForPrompt() from shared-context.ts
 
 /**
  * 명령어 추천 결과 압축

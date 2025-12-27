@@ -39,6 +39,11 @@ import {
   getSummarizer,
   isCompressionDisabled,
 } from '../../lib/context-compression';
+// Phase 2: Shared Context Store
+import {
+  saveAgentResult,
+  type AgentName,
+} from '../../lib/shared-context';
 import { RateLimitError } from '../../lib/errors';
 import { approvalStore } from '../approval/approval-store';
 import {
@@ -111,6 +116,51 @@ function createGroqCompatibleStateModifier(systemPrompt: string) {
 
     return filteredMessages;
   };
+}
+
+// ============================================================================
+// 0.1 Phase 2: Agent Result Extraction & Context Saving
+// ============================================================================
+
+/**
+ * Extract and save agent results from message history to Shared Context
+ * This enables Reporter to access NLQ/Analyst results without direct tool calls
+ */
+async function saveAgentResultsFromHistory(
+  messages: BaseMessage[],
+  sessionId: string
+): Promise<void> {
+  const agentPatterns: Record<AgentName, RegExp[]> = {
+    nlq: [/전체 서버 현황|서버 상태|메트릭|CPU|메모리|디스크/i],
+    analyst: [/이상 감지|트렌드|패턴 분석|anomaly|trend/i],
+    reporter: [/인시던트|리포트|장애 보고서/i],
+    supervisor: [],
+  };
+
+  for (const msg of messages) {
+    if (msg._getType() !== 'ai') continue;
+
+    const content = typeof msg.content === 'string' ? msg.content : '';
+    if (!content) continue;
+
+    // Identify which agent produced this message
+    for (const [agentName, patterns] of Object.entries(agentPatterns)) {
+      if (agentName === 'supervisor') continue; // Skip supervisor
+      if (patterns.length === 0) continue;
+
+      const isMatch = patterns.some(p => p.test(content));
+      if (isMatch) {
+        await saveAgentResult(
+          sessionId,
+          agentName as AgentName,
+          { response: content.slice(0, 500) }, // Limit to 500 chars
+          { summary: content.slice(0, 200) } // Compressed summary
+        );
+        console.log(`💾 [SharedContext] Saved ${agentName} result to session ${sessionId.slice(0, 8)}...`);
+        break; // Only match first agent
+      }
+    }
+  }
 }
 
 // ============================================================================
@@ -651,6 +701,10 @@ export async function executeSupervisor(
 
       // Extract final response from messages
       const messages = result.messages || [];
+
+      // === Phase 2: Save Agent Results to Shared Context ===
+      // This enables Reporter to access NLQ/Analyst results
+      await saveAgentResultsFromHistory(messages, sessionId);
 
       // === Context Compression (v5.86.0) ===
       // Check if compression is needed after accumulating messages
