@@ -347,8 +347,8 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   // 🎨 화이트 모드 전환 (2025-12 업데이트)
   return (
     <div className="flex h-full w-full overflow-hidden bg-white text-gray-900">
-      {/* LEFT SIDEBAR (Navigation) */}
-      <div className="flex w-[260px] flex-col border-r border-gray-200 bg-gray-50">
+      {/* LEFT SIDEBAR (Navigation) - Hidden on mobile */}
+      <div className="hidden md:flex w-[260px] flex-col border-r border-gray-200 bg-gray-50">
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <OpenManagerLogo variant="light" showSubtitle={false} href="/" />
@@ -423,7 +423,30 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
       </div>
 
       {/* CENTER & RIGHT (Main Content) */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 flex-col md:flex-row overflow-hidden">
+        {/* MOBILE HEADER - Only visible on small screens */}
+        <div className="flex md:hidden h-14 items-center justify-between border-b border-gray-200 bg-gray-50 px-4 shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="rounded p-1.5 text-gray-500 hover:bg-gray-200 hover:text-gray-900 transition-colors"
+              title="뒤로 가기"
+            >
+              <ArrowLeftFromLine className="h-5 w-5" />
+            </button>
+            <OpenManagerLogo variant="light" showSubtitle={false} href="/" />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMessages([])}
+              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          </div>
+        </div>
+
         {/* CENTER CONTENT */}
         <div className="flex flex-1 flex-col relative min-w-0">
           {/* Context Header */}
@@ -488,7 +511,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         {/* RIGHT SIDEBAR (System Context) - Hardcoded for demo/MVP similar to legacy, but clean */}
         {/* 🎨 화이트 모드 전환 (2025-12 업데이트) */}
         {selectedFunction === 'chat' && isRightPanelOpen && (
-          <div className="w-[320px] border-l border-gray-200 bg-gray-50 flex flex-col">
+          <div className="hidden lg:flex w-[320px] border-l border-gray-200 bg-gray-50 flex-col">
             <div className="flex h-14 items-center border-b border-gray-200 px-4">
               <h3 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
                 <Activity className="h-4 w-4 text-blue-500" />

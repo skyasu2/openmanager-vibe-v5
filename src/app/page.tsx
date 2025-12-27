@@ -292,7 +292,7 @@ function Home() {
             <p className="text-sm text-white/60">
               Copyright(c) OpenManager. All rights reserved.
             </p>
-            <div className="flex items-center gap-4 text-xs text-white/40">
+            <div className="flex items-center gap-4 text-xs text-white/70">
               <span className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>v5.83.12</span>
