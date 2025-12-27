@@ -11,47 +11,49 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'ai-assistant-pro',
     title: '🧠 AI Assistant',
     description:
-      'Mistral Small(Supervisor) + Groq Llama 3.3(Worker) + RAG(Memory)가 결합된 LangGraph 멀티 에이전트 시스템입니다.',
+      'Groq(Supervisor) + Cerebras(Worker) + Mistral(Verifier) + RAG가 결합된 LangGraph 멀티 에이전트 시스템입니다.',
     icon: Bot,
     gradient: 'from-indigo-500 via-purple-500 to-pink-500',
     detailedContent: {
-      overview: `단일 모델의 한계를 넘어선 Hybrid Multi-Agent 시스템! Mistral의 효율적인 의도 분류로 지휘하고, Groq의 압도적 처리 속도와 RAG의 전문 지식이 LangGraph 위에서 유기적으로 협업합니다.`,
+      overview: `단일 모델의 한계를 넘어선 Triple-Provider 전략! Groq가 LangGraph handoff로 지휘하고, Cerebras(24M 토큰/일)가 고속 분석을, Mistral이 품질 검증을 담당합니다. RAG와 웹 검색으로 지식을 확장합니다.`,
       features: [
-        '🤝 Multi-Agent Collaboration: Supervisor(Mistral)가 하위 전문가 에이전트(Groq 등)를 적재적소에 배치',
-        '⚡ Zero-Latency: Mistral Small 기반 Supervisor로 빠른 의도 분류',
-        '🛡️ Failover System: 메인 에이전트 응답 불가 시 백업 에이전트가 즉시 투입되는 무중단 구조',
+        '🤝 Triple-Provider: Groq(Supervisor) → Cerebras(Worker) → Mistral(Verifier) 협업',
+        '⚡ Rate Limit 분산: Cerebras 24M 토큰/일 활용 (Groq 100K의 240배)',
+        '🛡️ Auto Failover: Groq 한도 시 자동 Cerebras 폴백, 무중단 운영',
+        '🌐 Web Search: DuckDuckGo 검색으로 최신 기술 정보 탐색',
       ],
       technologies: [
         'LangGraph (Multi-Agent)',
-        'Mistral Small 3.2 (Supervisor)',
-        'Groq Llama 3.3 70b (Worker)',
-        'Supabase pgVector',
-        'Official PostgreSQL MCP',
+        'Groq Llama 3.3 70b (Supervisor)',
+        'Cerebras Llama 3.3 70b (NLQ/Analyst/Reporter)',
+        'Mistral Small 3.2 24B (Verifier)',
+        'DuckDuckGo (Web Search)',
+        'Supabase pgVector (RAG)',
       ],
     },
     subSections: [
       {
-        title: 'Mistral Small 3.2 Supervisor',
+        title: 'Groq Llama 3.3 70b Supervisor',
         description:
-          '시스템의 "지휘관" 역할. 개선된 함수 호출로 에이전트 간 작업을 조율하는 오케스트레이션 엔진입니다.',
+          '시스템의 "지휘관" 역할. LangGraph handoff로 에이전트 간 작업을 조율하는 오케스트레이션 엔진입니다.',
         icon: Zap,
         gradient: 'from-blue-500 to-indigo-600',
         features: [
-          'Supervisor Agent: 하위 에이전트 지휘 및 의사결정',
-          'Fast Intent: Small 3.2 (24B/128K)로 빠른 의도 분류 및 라우팅',
-          'Tool Calling: 개선된 함수 호출 템플릿으로 안정적 라우팅',
+          'Supervisor Agent: LangGraph handoff로 하위 에이전트 지휘',
+          'Fast Routing: 500 Tokens/s LPU로 빠른 의도 분류 및 라우팅',
+          'Failover: Rate Limit 시 자동 Cerebras 폴백',
         ],
       },
       {
-        title: 'Groq Llama 3.3 70b Worker',
+        title: 'Cerebras Llama 3.3 70b Worker',
         description:
-          '시스템의 "분석가" 역할. 초고속 LPU로 대량의 데이터를 정밀하게 분석합니다.',
+          '시스템의 "분석가" 역할. 24M 토큰/일의 넉넉한 한도로 대량의 데이터를 정밀하게 분석합니다.',
         icon: Bot,
         gradient: 'from-orange-500 to-red-500',
         features: [
-          'Analyst Agent: 로그/메트릭 심층 분석',
-          'Hyper-Speed: 500 Tokens/s 속도로 빠른 처리',
-          'Specialist: NLQ 및 이상 탐지 전문 수행',
+          'NLQ/Analyst/Reporter: 자연어 쿼리 및 심층 분석',
+          'Rate Limit 분산: Groq 100K 대비 240배 여유 한도',
+          'High Throughput: 대량 토큰 처리에 최적화',
         ],
       },
       {

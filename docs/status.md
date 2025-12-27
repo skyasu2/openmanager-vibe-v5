@@ -47,11 +47,13 @@
 
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
-- **Models**: Dual-provider 전략 (Rate limit 분산)
-  - Groq llama-3.3-70b: Supervisor, NLQ, Analyst, Reporter
+- **Models**: Triple-provider 전략 (Rate limit 최적화, 2025-12-27)
+  - Groq llama-3.3-70b: Supervisor (LangGraph handoff 필수)
+  - Cerebras llama-3.3-70b: NLQ, Analyst, Reporter (24M 토큰/일)
   - Mistral Small 3.2 (24B): Verifier Agent
 - **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
-- **Note**: LangGraph handoff 호환성으로 Supervisor는 Groq 사용 필수
+- **Web Search**: DuckDuckGo (Reporter Agent, duck-duck-scrape)
+- **Note**: Groq 한도 시 자동 Cerebras 폴백
 
 **AI CLI Tools** (2025-12-17 기준)
 - **Claude Code**: `v2.0.71` (Interactive Development)
