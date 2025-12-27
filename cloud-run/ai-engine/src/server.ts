@@ -43,7 +43,17 @@ app.use('*', logger());
 app.use('*', cors());
 
 // Health Check
-app.get('/health', (c: Context) => c.json({ status: 'ok', service: 'ai-engine-v5' }));
+import { getConfigStatus } from './lib/config-parser';
+import { isRedisAvailable } from './lib/redis-client';
+
+app.get('/health', (c: Context) =>
+  c.json({
+    status: 'ok',
+    service: 'ai-engine-v5',
+    config: getConfigStatus(),
+    redis: isRedisAvailable(),
+  })
+);
 
 // Security Middleware (Skip for health/warmup)
 app.use('/api/*', async (c: Context, next: Next) => {

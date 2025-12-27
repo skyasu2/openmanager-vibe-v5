@@ -202,6 +202,10 @@ export function getCerebrasApiKey(): string | null {
 /**
  * Get Upstash Redis configuration
  * Embedded in SUPABASE_CONFIG.upstash or fallback to legacy env vars
+ *
+ * Supported env var names:
+ * - UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN (standard)
+ * - KV_REST_API_URL / KV_REST_API_TOKEN (Vercel KV naming)
  */
 export function getUpstashConfig(): UpstashConfig | null {
   // Try from SUPABASE_CONFIG.upstash first
@@ -210,9 +214,11 @@ export function getUpstashConfig(): UpstashConfig | null {
     return supabaseConfig.upstash;
   }
 
-  // Fallback to legacy env vars
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Fallback to legacy env vars (try multiple naming conventions)
+  const url =
+    process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token =
+    process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
   if (url && token) {
     return { url, token };
