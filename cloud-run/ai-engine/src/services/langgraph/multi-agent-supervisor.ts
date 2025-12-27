@@ -23,6 +23,7 @@ import {
   recommendCommandsTool,
   searchKnowledgeBaseTool,
 } from '../../agents/reporter-agent';
+import { searchWebTool } from '../../tools/web-search';
 // Verifier Agent for post-processing validation
 import { comprehensiveVerifyTool } from '../../agents/verifier-agent';
 import type { VerificationResult } from '../../lib/state-definition';
@@ -228,12 +229,21 @@ function createAnalystAgent() {
 /**
  * Create Reporter Agent - Incident reports & RAG
  */
+
+/**
+ * Create Reporter Agent - Incident reports & RAG & Web Search
+ */
 function createReporterAgent() {
-  const systemPrompt = `Reporter Agent - 인시던트 리포트 전문
+  const systemPrompt = `Reporter Agent - 인시던트 리포트 및 웹 검색 전문
 
 ## 도구
-- searchKnowledgeBase: RAG 검색
-- recommendCommands: CLI 명령어
+- searchKnowledgeBase: 내부 RAG 검색 (과거 장애 이력)
+- searchWeb: 웹 검색 (DuckDuckGo) - 최신 기술 문서, 외부 솔루션 검색
+- recommendCommands: CLI 명령어 추천
+
+## 웹 검색 사용 가이드
+- 내부 RAG에 정보가 부족하거나, 최신 오픈소스/기술 이슈인 경우 "searchWeb" 사용
+- "구글링해줘", "웹에서 찾아줘" 등의 요청 시 사용
 
 ## 응답 형식 (엄격 준수)
 ### 📋 요약
@@ -248,11 +258,14 @@ function createReporterAgent() {
 ### ⌨️ 명령어
 \`command\` - 설명
 
+### 🌐 참고 자료 (웹 검색 시)
+- [제목](URL) - 설명
+
 ⚠️ 서론/인사말 금지. 템플릿 형식만 출력.`;
 
   return createReactAgent({
     llm: getReporterModel(),
-    tools: [searchKnowledgeBaseTool, recommendCommandsTool],
+    tools: [searchKnowledgeBaseTool, recommendCommandsTool, searchWebTool],
     name: 'reporter_agent',
     stateModifier: createGroqCompatibleStateModifier(systemPrompt),
   });
@@ -267,13 +280,14 @@ const SUPERVISOR_PROMPT = `당신은 OpenManager VIBE의 Multi-Agent Supervisor�
 ## 에이전트 라우팅
 - **nlq_agent**: 서버 상태/메트릭 조회 (CPU, Memory, Disk)
 - **analyst_agent**: 패턴 분석, 이상 탐지, 트렌드 예측
-- **reporter_agent**: 인시던트 리포트, 장애 분석, RAG 검색
+- **reporter_agent**: 인시던트 리포트, 장애 분석, RAG 검색, **웹 검색(DuckDuckGo)**
 
 ## 라우팅 규칙
 - "서버 상태", "전체 현황", "서버 확인" → nlq_agent (전체 서버 조회 필요)
 - "WEB-01 상태" 등 특정 서버 언급 → nlq_agent (해당 서버만 조회)
 - 분석/예측/트렌드 → analyst_agent
 - 장애/리포트/원인 → reporter_agent
+- **"검색해줘", "구글링", "최신 정보"** → reporter_agent (웹 검색)
 - 인사말 → 직접 응답 (1문장)
 
 ## 응답 지침

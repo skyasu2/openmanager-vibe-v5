@@ -1,17 +1,19 @@
 /**
  * LangGraph Model Configuration
  *
- * ## Architecture (2025-12-26)
+ * ## Architecture (2025-12-27)
  * Triple-provider strategy for rate limit distribution and reliability:
  *
- * ### Groq (Primary - llama-3.3-70b-versatile)
+ * ### Groq (Supervisor Only - llama-3.3-70b-versatile)
  * - Supervisor: LangGraph handoff requires Groq (Mistral incompatible)
+ * - Daily Limit: 100K tokens, 1,000 requests
+ * - Reserved for routing decisions only
+ *
+ * ### Cerebras (Primary Workers - llama-3.3-70b)
+ * - NLQ Agent: Server metrics queries (fast inference, 2100 tok/s)
  * - Analyst Agent: Pattern analysis, anomaly detection
  * - Reporter Agent: Incident reports, RAG search
- *
- * ### Cerebras (Secondary - llama-3.3-70b)
- * - NLQ Agent: Server metrics queries (fast inference, 2100 tok/s)
- * - Rate limit: Separate from Groq quota
+ * - Daily Limit: 24M tokens (240x more than Groq!)
  *
  * ### Mistral (Tertiary - mistral-small-2506)
  * - Verifier Agent: Response quality verification (24B params)
@@ -22,6 +24,7 @@
  * - Supervisor: Mistral → Groq (LangGraph handoff compatibility)
  * - Verifier: Groq 8B → Mistral 24B (quality upgrade)
  * - NLQ: Groq → Cerebras (rate limit distribution)
+ * - Analyst/Reporter: Groq → Cerebras (rate limit optimization, 2025-12-27)
  */
 
 import { ChatMistralAI } from '@langchain/mistralai';
@@ -106,14 +109,14 @@ export const AGENT_MODEL_CONFIG = {
     maxOutputTokens: 1024,
   },
   analyst: {
-    provider: 'groq' as const,
-    model: 'llama-3.3-70b-versatile' as GroqModel,
+    provider: 'cerebras' as const, // 🔄 Groq → Cerebras (rate limit optimization)
+    model: CEREBRAS_MODELS.LLAMA_70B,
     temperature: 0.2,
     maxOutputTokens: 2048,
   },
   reporter: {
-    provider: 'groq' as const,
-    model: 'llama-3.3-70b-versatile' as GroqModel,
+    provider: 'cerebras' as const, // 🔄 Groq → Cerebras (rate limit optimization)
+    model: CEREBRAS_MODELS.LLAMA_70B,
     temperature: 0.3,
     maxOutputTokens: 4096,
   },
@@ -268,20 +271,38 @@ export function getNLQModel(): ChatCerebras | ChatGroq {
   }
 }
 
-export function getAnalystModel(): ChatGroq {
+export function getAnalystModel(): ChatCerebras | ChatGroq {
   const config = AGENT_MODEL_CONFIG.analyst;
-  return createGroqModel(config.model as GroqModel, {
-    temperature: config.temperature,
-    maxOutputTokens: config.maxOutputTokens,
-  });
+  try {
+    return createCerebrasModel(config.model as CerebrasModel, {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  } catch {
+    // Fallback to Groq if Cerebras not configured
+    console.warn('⚠️ [Analyst] Cerebras unavailable, falling back to Groq');
+    return createGroqModel('llama-3.3-70b-versatile', {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  }
 }
 
-export function getReporterModel(): ChatGroq {
+export function getReporterModel(): ChatCerebras | ChatGroq {
   const config = AGENT_MODEL_CONFIG.reporter;
-  return createGroqModel(config.model as GroqModel, {
-    temperature: config.temperature,
-    maxOutputTokens: config.maxOutputTokens,
-  });
+  try {
+    return createCerebrasModel(config.model as CerebrasModel, {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  } catch {
+    // Fallback to Groq if Cerebras not configured
+    console.warn('⚠️ [Reporter] Cerebras unavailable, falling back to Groq');
+    return createGroqModel('llama-3.3-70b-versatile', {
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+  }
 }
 
 export function getVerifierModel(): ChatMistralAI {

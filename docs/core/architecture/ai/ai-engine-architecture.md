@@ -4,7 +4,7 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.89.0, Updated 2025-12-26)
+## Architecture (v5.90.0, Updated 2025-12-27)
 
 ### Deployment Mode
 
@@ -22,12 +22,12 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 | Agent | Provider | Model | Role | Tools |
 |-------|----------|-------|------|-------|
 | **Supervisor** | Groq | Llama 3.3-70b | Intent classification & LangGraph handoff | - |
-| **NLQ Agent** | Groq | Llama 3.3-70b | Server metrics queries (SubGraph) | `getServerMetricsAdvanced` |
-| **Analyst Agent** | Groq | Llama 3.3-70b | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
-| **Reporter Agent** | Groq | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG), `recommendCommands` |
+| **NLQ Agent** | Cerebras | Llama 3.3-70b | Server metrics queries (SubGraph) | `getServerMetricsAdvanced` |
+| **Analyst Agent** | Cerebras | Llama 3.3-70b | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
+| **Reporter Agent** | Cerebras | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG), `recommendCommands`, `searchWeb` |
 | **Verifier Agent** | Mistral | Small 3.2 (24B) | Post-processing validation & safety check | `comprehensiveVerify`, `validateMetricRanges`, `detectHallucination` |
 
-> **Dual-Provider Strategy**: Groq (Primary) handles LangGraph handoff-compatible agents, Mistral (Secondary) provides higher-quality verification with 24B parameters. Combined rate limit: ~1M TPM free tier.
+> **Triple-Provider Strategy**: Groq (Supervisor only, 100K/day) → Cerebras (Workers, 24M/day) → Mistral (Verifier). Rate limit optimized with automatic Groq→Cerebras fallback.
 
 ### Key Features
 
@@ -44,6 +44,14 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 - **Protocol Adaptation**: Simulated SSE with Keep-Alive to prevent timeouts on Vercel/Cloud Run
 - **Gemini API Key Failover**: Primary → Secondary key rotation on rate limit exhaustion (v5.88.0)
 - **maxRetries: 0 Fix**: Disabled LangChain SDK internal retries to prevent timeout cascades (v5.88.0)
+
+#### New in v5.90.0 (2025-12-27)
+
+- **Triple-Provider Strategy**: Groq (Supervisor) → Cerebras (Workers) → Mistral (Verifier)
+- **Analyst/Reporter Cerebras Migration**: Groq → Cerebras primary (rate limit optimization)
+- **Rate Limit Distribution**: Groq 100K/day → Cerebras 24M/day (240x capacity increase)
+- **Automatic Fallback**: Groq rate limit triggers automatic Cerebras fallback
+- **Web Search Tool**: Reporter Agent gains DuckDuckGo web search capability (`searchWeb`)
 
 #### New in v5.89.0 (2025-12-26)
 
@@ -352,7 +360,8 @@ GraphRAG combines:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GROQ_API_KEY` | Yes | Groq (Llama 3.3-70b) API key - Primary |
+| `GROQ_API_KEY` | Yes | Groq (Llama 3.3-70b) API key - Supervisor |
+| `CEREBRAS_API_KEY` | Yes | Cerebras (Llama 3.3-70b) API key - NLQ/Analyst/Reporter |
 | `MISTRAL_API_KEY` | Yes | Mistral (Small 3.2 24B) API key - Verifier |
 | `GOOGLE_AI_API_KEY` | No | Gemini API key (Legacy, optional) |
 | `GOOGLE_AI_API_KEY_SECONDARY` | No | Gemini API key (Legacy, optional) |

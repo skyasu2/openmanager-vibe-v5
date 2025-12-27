@@ -36,6 +36,7 @@
     "@upstash/redis": "^1.36.0",
     "ai": "^5.0.102",
     "dotenv": "^16.4.7",
+    "duck-duck-scrape": "^2.2.7",
     "hono": "^4.11.1",
     "js-tiktoken": "^1.0.21",
     "pg": "^8.13.1",
