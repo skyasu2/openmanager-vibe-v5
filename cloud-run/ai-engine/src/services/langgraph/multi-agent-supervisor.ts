@@ -53,6 +53,7 @@ import {
   getSupervisorModel,
   createMistralModel,
   createCerebrasModel,
+  createGroqModel,
   MISTRAL_MODELS,
   CEREBRAS_MODELS,
 } from '../../lib/model-config';
@@ -377,24 +378,24 @@ export async function createMultiAgentSupervisor() {
 }
 
 /**
- * Create Supervisor with Cerebras model (Groq rate limit fallback)
- * Uses llama-3.3-70b on Cerebras - same base model as Groq
+ * Create Supervisor with Groq model (Cerebras rate limit fallback)
+ * Uses llama-3.3-70b-versatile on Groq as fallback
  */
-export async function createMultiAgentSupervisorWithCerebras() {
+export async function createMultiAgentSupervisorWithGroq() {
   const checkpointer = await getAutoCheckpointer();
 
-  // Create worker agents (NLQ already uses Cerebras)
+  // Create worker agents
   const nlqAgent = createNLQAgent();
   const analystAgent = createAnalystAgent();
   const reporterAgent = createReporterAgent();
 
-  // Supervisor uses Cerebras as Groq fallback
-  const supervisorModel = createCerebrasModel(CEREBRAS_MODELS.LLAMA_70B, {
+  // Supervisor uses Groq as Cerebras fallback
+  const supervisorModel = createGroqModel('llama-3.3-70b-versatile', {
     temperature: 0.1,
     maxOutputTokens: 512,
   });
 
-  console.log('🔄 [Supervisor] Using Cerebras fallback (llama-3.3-70b)');
+  console.log('🔄 [Supervisor] Using Groq fallback (llama-3.3-70b-versatile)');
 
   // Create supervisor with automatic handoffs
   const workflow = createSupervisor({
@@ -754,34 +755,34 @@ export async function executeSupervisor(
       console.log(`🔍 [Supervisor] isRateLimitError check: ${isRateLimit}`);
 
       if (isRateLimit) {
-        // 🔄 Try Cerebras fallback first before Last Keeper
+        // 🔄 Try Groq fallback first before Last Keeper
         console.warn(
-          `⚠️ [Supervisor] Groq rate limit detected, trying Cerebras fallback...`
+          `⚠️ [Supervisor] Cerebras rate limit detected, trying Groq fallback...`
         );
 
         try {
-          const cerebrasApp = await createMultiAgentSupervisorWithCerebras();
-          const cerebrasResult = await cerebrasApp.invoke(
+          const groqApp = await createMultiAgentSupervisorWithGroq();
+          const groqResult = await groqApp.invoke(
             { messages: [new HumanMessage(query)] },
             config as any
           );
 
-          const cerebrasMessages = cerebrasResult.messages || [];
-          const lastMsg = cerebrasMessages[cerebrasMessages.length - 1];
-          const cerebrasResponse =
+          const groqMessages = groqResult.messages || [];
+          const lastMsg = groqMessages[groqMessages.length - 1];
+          const groqResponse =
             typeof lastMsg?.content === 'string'
               ? lastMsg.content
               : '응답을 생성할 수 없습니다.';
 
-          console.log('✅ [Supervisor] Cerebras fallback succeeded');
+          console.log('✅ [Supervisor] Groq fallback succeeded');
           return {
-            response: cerebrasResponse,
+            response: groqResponse,
             sessionId,
             verification: null,
             compressionApplied: false,
           };
-        } catch (cerebrasError) {
-          console.warn('⚠️ [Supervisor] Cerebras fallback failed, activating Last Keeper...');
+        } catch (groqError) {
+          console.warn('⚠️ [Supervisor] Groq fallback failed, activating Last Keeper...');
           return await executeLastKeeperMode(query, sessionId);
         }
       }

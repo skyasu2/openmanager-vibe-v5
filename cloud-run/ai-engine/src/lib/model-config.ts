@@ -1,19 +1,19 @@
 /**
  * LangGraph Model Configuration
  *
- * ## Architecture (2025-12-27)
+ * ## Architecture (2025-12-27 v2)
  * Triple-provider strategy for rate limit distribution and reliability:
  *
- * ### Groq (Supervisor Only - llama-3.3-70b-versatile)
- * - Supervisor: LangGraph handoff requires Groq (Mistral incompatible)
- * - Daily Limit: 100K tokens, 1,000 requests
- * - Reserved for routing decisions only
- *
- * ### Cerebras (Primary Workers - llama-3.3-70b)
- * - NLQ Agent: Server metrics queries (fast inference, 2100 tok/s)
+ * ### Cerebras (Primary - llama-3.3-70b)
+ * - Supervisor: Primary for routing (2100 tok/s fast inference)
+ * - NLQ Agent: Server metrics queries
  * - Analyst Agent: Pattern analysis, anomaly detection
  * - Reporter Agent: Incident reports, RAG search
  * - Daily Limit: 24M tokens (240x more than Groq!)
+ *
+ * ### Groq (Fallback - llama-3.3-70b-versatile)
+ * - Fallback for all Cerebras agents when unavailable
+ * - Daily Limit: 100K tokens, 1,000 requests
  *
  * ### Mistral (Tertiary - mistral-small-2506)
  * - Verifier Agent: Response quality verification (24B params)
@@ -25,6 +25,7 @@
  * - Verifier: Groq 8B → Mistral 24B (quality upgrade)
  * - NLQ: Groq → Cerebras (rate limit distribution)
  * - Analyst/Reporter: Groq → Cerebras (rate limit optimization, 2025-12-27)
+ * - Supervisor: Groq → Cerebras (rate limit optimization, 2025-12-27 v2)
  */
 
 import { ChatMistralAI } from '@langchain/mistralai';
@@ -97,8 +98,8 @@ export const CEREBRAS_MODELS = {
 
 export const AGENT_MODEL_CONFIG = {
   supervisor: {
-    provider: 'groq' as const, // Groq for reliable LangGraph handoff support
-    model: 'llama-3.3-70b-versatile' as GroqModel,
+    provider: 'cerebras' as const, // 🔄 Groq → Cerebras (24M tokens/day vs 100K)
+    model: CEREBRAS_MODELS.LLAMA_70B,
     temperature: 0.1, // Lower for more deterministic routing
     maxOutputTokens: 512,
   },
@@ -227,29 +228,29 @@ export function getModelForAgent(
 }
 
 /**
- * Get Supervisor model with Cerebras fallback
- * Primary: Groq llama-3.3-70b-versatile (LangGraph handoff tested)
- * Fallback: Cerebras llama-3.3-70b (same base model, rate limit distribution)
+ * Get Supervisor model with Groq fallback
+ * Primary: Cerebras llama-3.3-70b (24M tokens/day, fast inference)
+ * Fallback: Groq llama-3.3-70b-versatile (100K tokens/day)
  */
-export function getSupervisorModel(): ChatGroq | ChatCerebras {
+export function getSupervisorModel(): ChatCerebras | ChatGroq {
   const config = AGENT_MODEL_CONFIG.supervisor;
 
   try {
-    return createGroqModel(config.model as GroqModel, {
+    return createCerebrasModel(config.model as CerebrasModel, {
       temperature: config.temperature,
       maxOutputTokens: config.maxOutputTokens,
     });
   } catch {
-    // Fallback to Cerebras if Groq unavailable
-    console.warn('⚠️ [Supervisor] Groq unavailable, trying Cerebras fallback');
+    // Fallback to Groq if Cerebras unavailable
+    console.warn('⚠️ [Supervisor] Cerebras unavailable, trying Groq fallback');
     try {
-      return createCerebrasModel(CEREBRAS_MODELS.LLAMA_70B, {
+      return createGroqModel('llama-3.3-70b-versatile', {
         temperature: config.temperature,
         maxOutputTokens: config.maxOutputTokens,
       });
     } catch {
       // Last resort: throw to trigger Last Keeper
-      throw new Error('Both Groq and Cerebras unavailable for Supervisor');
+      throw new Error('Both Cerebras and Groq unavailable for Supervisor');
     }
   }
 }
