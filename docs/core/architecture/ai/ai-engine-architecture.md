@@ -4,7 +4,7 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.90.0, Updated 2025-12-27)
+## Architecture (v5.91.0, Updated 2025-12-28)
 
 ### Deployment Mode
 
@@ -21,13 +21,15 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 
 | Agent | Provider | Model | Role | Tools |
 |-------|----------|-------|------|-------|
-| **Supervisor** | Groq | Llama 3.3-70b | Intent classification & LangGraph handoff | - |
-| **NLQ Agent** | Cerebras | Llama 3.3-70b | Server metrics queries (SubGraph) | `getServerMetricsAdvanced` |
-| **Analyst Agent** | Cerebras | Llama 3.3-70b | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
-| **Reporter Agent** | Cerebras | Llama 3.3-70b | Incident reports, Root Cause Analysis | `searchKnowledgeBase` (RAG), `recommendCommands`, `searchWeb` |
+| **Supervisor** | Cerebras | Llama 3.3-70b | Intent classification & LangGraph handoff | - |
+| **NLQ Agent** | Groq | Llama 3.3-70b | Server metrics queries | `getServerMetrics`, `getServerLogs`, `getServerMetricsAdvanced` |
+| **Analyst Agent** | Groq | Llama 3.3-70b | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
+| **RCA Agent** | Groq | Llama 3.3-70b | Root Cause Analysis (requires NLQ+Analyst) | `buildIncidentTimeline`, `correlateEvents`, `findRootCause` |
+| **Capacity Agent** | Groq | Llama 3.3-70b | Capacity planning (requires NLQ+Analyst) | `predictResourceExhaustion`, `getScalingRecommendation` |
+| **Reporter Agent** | Groq | Llama 3.3-70b | Incident reports, web search | `searchKnowledgeBase` (RAG), `recommendCommands`, `searchWeb` (Tavily) |
 | **Verifier Agent** | Mistral | Small 3.2 (24B) | Post-processing validation & safety check | `comprehensiveVerify`, `validateMetricRanges`, `detectHallucination` |
 
-> **Triple-Provider Strategy**: Groq (Supervisor only, 100K/day) → Cerebras (Workers, 24M/day) → Mistral (Verifier). Rate limit optimized with automatic Groq→Cerebras fallback.
+> **Triple-Provider Strategy**: Cerebras (Supervisor, 24M/day) → Groq (Workers, 100K/day fallback) → Mistral (Verifier). Rate limit optimized with automatic Cerebras→Groq fallback.
 
 ### Key Features
 
@@ -45,20 +47,29 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGr
 - **Gemini API Key Failover**: Primary → Secondary key rotation on rate limit exhaustion (v5.88.0)
 - **maxRetries: 0 Fix**: Disabled LangChain SDK internal retries to prevent timeout cascades (v5.88.0)
 
+#### New in v5.91.0 (2025-12-28)
+
+- **RCA Agent**: Root Cause Analysis agent for incident timeline and correlation analysis
+- **Capacity Agent**: Capacity planning agent for resource exhaustion prediction
+- **Agent Dependencies**: RCA/Capacity require NLQ+Analyst results (enforced via SharedContext)
+- **Workflow Caching**: 5-minute TTL cache for compiled LangGraph workflows
+- **Dead Code Removal**: NLQ SubGraph removed (~1,000 lines) - complex queries handled by `getServerMetricsAdvanced`
+- **Recursion Limit**: Increased from 8 to 10 for retry buffer in 4-agent chains
+- **Web Search Migration**: DuckDuckGo → Tavily API for improved reliability
+
 #### New in v5.90.0 (2025-12-27)
 
-- **Triple-Provider Strategy**: Groq (Supervisor) → Cerebras (Workers) → Mistral (Verifier)
+- **Triple-Provider Strategy**: Cerebras (Supervisor) → Groq (Workers) → Mistral (Verifier)
 - **Analyst/Reporter Cerebras Migration**: Groq → Cerebras primary (rate limit optimization)
 - **Rate Limit Distribution**: Groq 100K/day → Cerebras 24M/day (240x capacity increase)
-- **Automatic Fallback**: Groq rate limit triggers automatic Cerebras fallback
-- **Web Search Tool**: Reporter Agent gains DuckDuckGo web search capability (`searchWeb`)
+- **Automatic Fallback**: Cerebras rate limit triggers automatic Groq fallback
 
 #### New in v5.89.0 (2025-12-26)
 
 - **Dual-Provider Architecture**: Groq (Primary) + Mistral (Secondary) for rate limit distribution
 - **Supervisor Migration**: Gemini → Groq Llama 3.3-70b for LangGraph handoff compatibility
 - **Verifier Upgrade**: Groq 8B → Mistral Small 3.2 (24B) for improved verification quality
-- **NLQ SubGraph**: 5-node workflow (parse→extract→validate→execute→format) with advanced tool support
+- **Advanced NLQ Tool**: `getServerMetricsAdvanced` with time range, filters, and aggregation support
 - **Korean NLP Helpers**: Time/metric/filter expression parsing for natural language queries
 
 #### New in v5.88.0
@@ -98,12 +109,16 @@ graph TD
 
         Supervisor -->|Simple Query| NLQ[NLQ Agent]
         Supervisor -->|Pattern Analysis| Analyst[Analyst Agent]
+        Supervisor -->|Root Cause| RCA[RCA Agent]
+        Supervisor -->|Capacity Plan| Capacity[Capacity Agent]
         Supervisor -->|Incident/RAG| Reporter[Reporter Agent]
-        Supervisor -->|Comprehensive| Parallel[Parallel Node]
         Supervisor -->|Greeting| Direct[Direct Reply]
 
-        Parallel --> NLQ
-        Parallel --> Analyst
+        NLQ -->|SharedContext| Analyst
+        Analyst -->|SharedContext| RCA
+        Analyst -->|SharedContext| Capacity
+        RCA --> Reporter
+        Capacity --> Reporter
 
         Reporter -->|Critical Action| Approval{Approval Check}
         Approval -->|Approved| Verifier[Verifier Agent]
@@ -120,7 +135,7 @@ graph TD
         NLQ --> Metrics[(Scenario Data)]
         Analyst --> Metrics
         Reporter --> RAG[(Supabase pgvector)]
-        Supervisor --> Checkpoint[(PostgresCheckpointer)]
+        Supervisor --> Checkpoint[(MemorySaver/Redis)]
     end
 
     Response --> Client
@@ -380,9 +395,9 @@ cloud-run/ai-engine/
 ├── src/
 │   ├── server.ts               # Hono HTTP server (main entry)
 │   ├── lib/
-│   │   ├── model-config.ts     # Dual-provider model configuration (Groq + Mistral)
-│   │   ├── nlq-state.ts        # NLQ SubGraph state definition & Korean NLP helpers
-│   │   ├── nlq-subgraph.ts     # NLQ 5-node SubGraph workflow
+│   │   ├── model-config.ts     # Triple-provider model configuration (Cerebras + Groq + Mistral)
+│   │   ├── shared-context.ts   # Agent result sharing & dependency validation
+│   │   ├── checkpointer.ts     # LangGraph session management & recursion limit
 │   │   ├── redis-client.ts     # Upstash Redis client (L2 cache)
 │   │   ├── job-notifier.ts     # Async job result storage (Redis)
 │   │   ├── hybrid-cache.ts     # Multi-tier caching orchestration
@@ -394,7 +409,12 @@ cloud-run/ai-engine/
 │   │       ├── summary-generator.ts      # Conversation summarization
 │   │       └── context-compressor.ts     # Compression orchestration
 │   ├── agents/
-│   │   └── reporter-agent.ts   # Reporter agent with RAG tools
+│   │   ├── nlq-agent.ts        # NLQ agent - server metrics queries
+│   │   ├── analyst-agent.ts    # Analyst agent - pattern analysis
+│   │   ├── rca-agent.ts        # RCA agent - root cause analysis
+│   │   ├── capacity-agent.ts   # Capacity agent - resource prediction
+│   │   ├── reporter-agent.ts   # Reporter agent with RAG & web search
+│   │   └── verifier-agent.ts   # Verifier agent - response validation
 │   ├── routes/
 │   │   └── jobs.ts             # Async job processing endpoints
 │   └── services/

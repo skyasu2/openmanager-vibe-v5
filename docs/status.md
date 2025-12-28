@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-27
+**마지막 업데이트**: 2025-12-28
 
 ---
 
@@ -47,13 +47,14 @@
 
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
-- **Models**: Triple-provider 전략 (Rate limit 최적화, 2025-12-27)
-  - Groq llama-3.3-70b: Supervisor (LangGraph handoff 필수)
-  - Cerebras llama-3.3-70b: NLQ, Analyst, Reporter (24M 토큰/일)
+- **Models**: Triple-provider 전략 (Rate limit 최적화, 2025-12-28)
+  - Cerebras llama-3.3-70b: Supervisor (24M 토큰/일)
+  - Groq llama-3.3-70b: NLQ, Analyst, RCA, Capacity, Reporter
   - Mistral Small 3.2 (24B): Verifier Agent
+- **Agents**: 6개 (NLQ → Analyst → RCA/Capacity → Reporter → Verifier)
 - **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
-- **Web Search**: DuckDuckGo (Reporter Agent, duck-duck-scrape)
-- **Note**: Groq 한도 시 자동 Cerebras 폴백
+- **Web Search**: Tavily API (Reporter Agent)
+- **Note**: Cerebras 한도 시 자동 Groq 폴백, Workflow 캐싱 (5분 TTL)
 
 **AI CLI Tools** (2025-12-17 기준)
 - **Claude Code**: `v2.0.71` (Interactive Development)
@@ -68,7 +69,17 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 12-27)
+## 🔧 최근 유지보수 (2025-12-09 ~ 12-28)
+
+**LangGraph 최적화 + RCA/Capacity Agent (2025-12-28)**
+- **RCA Agent 추가**: 장애 타임라인 구축, 메트릭 상관관계 분석, 근본 원인 추론
+- **Capacity Agent 추가**: 리소스 소진 예측, 스케일링 권장사항 생성
+- **Agent Dependency System**: RCA/Capacity는 NLQ+Analyst 결과 필수 (SharedContext 기반)
+- **Workflow 캐싱**: 5분 TTL로 초기화 오버헤드 감소
+- **Dead Code 제거**: NLQ SubGraph 삭제 (~1,000 lines) - `getServerMetricsAdvanced`로 대체
+- **Recursion Limit**: 8 → 10 (4-agent 체인 + retry 버퍼)
+- **Web Search 교체**: DuckDuckGo → Tavily API
+- **검증**: Cloud Run ai-engine-00064 배포 완료, Health Check 정상
 
 **Async Job Queue + SSE 실시간 알림 시스템 (2025-12-27)**
 - **목적**: Vercel 120초 타임아웃 우회 (기존 111초 응답 → 즉시 반환)
