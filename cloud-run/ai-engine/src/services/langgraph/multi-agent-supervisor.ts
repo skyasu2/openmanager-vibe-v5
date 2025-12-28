@@ -261,18 +261,14 @@ function createAnalystAgent() {
 }
 
 /**
- * Create Reporter Agent - Incident reports & RAG
- */
-
-/**
- * Create Reporter Agent - Incident reports & RAG & Web Search
+ * Create Reporter Agent - Incident reports, RAG & Web Search
  */
 function createReporterAgent() {
   const systemPrompt = `Reporter Agent - 인시던트 리포트 및 웹 검색 전문
 
 ## 도구
 - searchKnowledgeBase: 내부 RAG 검색 (과거 장애 이력)
-- searchWeb: 웹 검색 (DuckDuckGo) - 최신 기술 문서, 외부 솔루션 검색
+- searchWeb: 웹 검색 (Tavily) - 최신 기술 문서, 외부 솔루션 검색
 - recommendCommands: CLI 명령어 추천
 
 ## 웹 검색 사용 가이드
