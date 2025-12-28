@@ -545,7 +545,94 @@ function calculateConfidence(issues: VerificationIssue[]): number {
 }
 
 // ============================================================================
-// 5. Exports
+// 5. Retry Prompt Builder (Phase 5.7: Hybrid Verification)
+// ============================================================================
+
+/**
+ * 검증 실패 시 재시도 프롬프트 생성
+ * severity: high 이슈가 발견된 경우 원래 Agent에게 피드백과 함께 재요청
+ */
+export function buildRetryPrompt(
+  originalResponse: string,
+  issues: VerificationIssue[],
+  originalQuery?: string
+): string {
+  const highSeverityIssues = issues.filter((i) => i.severity === 'high');
+  const mediumSeverityIssues = issues.filter((i) => i.severity === 'medium');
+
+  const issueDescriptions = [
+    ...highSeverityIssues.map((i) => `❌ [심각] ${i.message}`),
+    ...mediumSeverityIssues.map((i) => `⚠️ [주의] ${i.message}`),
+  ].join('\n');
+
+  return `## 응답 재생성 요청
+
+이전 응답에서 다음과 같은 문제가 발견되었습니다:
+
+${issueDescriptions}
+
+### 이전 응답 (문제 있음):
+${originalResponse.substring(0, 500)}${originalResponse.length > 500 ? '...' : ''}
+
+### 요청 사항:
+1. 위에서 지적된 문제들을 수정하여 새로운 응답을 생성해주세요.
+2. 메트릭 수치는 반드시 0-100% 범위 내로 유지해주세요.
+3. 자기 모순적인 표현(예: "정상" + "위험" 동시 언급)을 피해주세요.
+4. 실제 데이터에 기반한 정확한 정보만 포함해주세요.
+
+${originalQuery ? `### 원본 질문:\n${originalQuery}` : ''}
+
+수정된 응답을 생성해주세요.`;
+}
+
+/**
+ * 검증 결과에 따른 처리 전략 결정
+ */
+export type VerificationStrategy = 'pass' | 'direct_fix' | 'retry' | 'last_keeper';
+
+export function determineVerificationStrategy(
+  issues: VerificationIssue[],
+  retryCount: number,
+  maxRetries: number = 1
+): VerificationStrategy {
+  if (issues.length === 0) {
+    return 'pass';
+  }
+
+  const highSeverityCount = issues.filter((i) => i.severity === 'high').length;
+  const mediumSeverityCount = issues.filter((i) => i.severity === 'medium').length;
+
+  // 재시도 횟수 초과 시 Last Keeper 모드
+  if (retryCount >= maxRetries) {
+    console.log(`⚠️ [Verifier] Max retries (${maxRetries}) reached, using Last Keeper`);
+    return 'last_keeper';
+  }
+
+  // 심각한 문제 (환각, 자기 모순) → 재시도 요청
+  if (highSeverityCount > 0) {
+    return 'retry';
+  }
+
+  // 중간 심각도 → 직접 수정
+  if (mediumSeverityCount > 0) {
+    return 'direct_fix';
+  }
+
+  // 경미한 문제만 → 직접 수정
+  return 'direct_fix';
+}
+
+/**
+ * 고심각도 이슈 추출
+ */
+export function extractHighSeverityIssues(
+  issues: VerificationIssue[]
+): VerificationIssue[] {
+  return issues.filter((i) => i.severity === 'high');
+}
+
+// ============================================================================
+// 6. Exports
 // ============================================================================
 
 export const verifierTools = [

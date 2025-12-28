@@ -28,7 +28,12 @@ import {
 } from '../../agents/reporter-agent';
 import { searchWebTool } from '../../tools/web-search';
 // Verifier Agent for post-processing validation
-import { comprehensiveVerifyTool } from '../../agents/verifier-agent';
+import {
+  comprehensiveVerifyTool,
+  buildRetryPrompt,
+  determineVerificationStrategy,
+  type VerificationStrategy,
+} from '../../agents/verifier-agent';
 import type { VerificationResult } from '../../lib/state-definition';
 
 import {
@@ -712,29 +717,55 @@ async function executeLastKeeperMode(
 }
 
 // ============================================================================
-// 4. Verifier Integration (Post-Processing)
+// 4. Verifier Integration (Post-Processing) - Phase 5.7: Hybrid Verification
 // ============================================================================
 
 interface VerificationOptions {
   enableVerification?: boolean;
   context?: string;
+  retryCount?: number;
+  originalQuery?: string;
+}
+
+interface HybridVerificationResult {
+  response: string;
+  verification: VerificationResult | null;
+  strategy: VerificationStrategy;
+  retryNeeded: boolean;
+  retryPrompt?: string;
 }
 
 /**
- * Verify agent response using Verifier Agent
- * Post-processing validation for quality assurance
+ * Verify agent response using Verifier Agent (Hybrid Strategy)
+ *
+ * ## Phase 5.7: Hybrid Verification Strategy
+ * - severity: low/medium → 직접 수정 (Mistral)
+ * - severity: high (환각, 자기 모순) → 재생성 요청 (Retry to Original Agent)
+ * - 재시도 후에도 실패 → Last Keeper Mode (Mistral 직접 응답)
+ *
+ * @param response - Agent의 원본 응답
+ * @param options - 검증 옵션
+ * @returns 검증 결과 및 처리 전략
  */
 async function verifyAgentResponse(
   response: string,
   options: VerificationOptions = {}
-): Promise<{
-  response: string;
-  verification: VerificationResult | null;
-}> {
-  const { enableVerification = true, context } = options;
+): Promise<HybridVerificationResult> {
+  const {
+    enableVerification = true,
+    context,
+    retryCount = 0,
+    originalQuery,
+  } = options;
 
+  // 검증 비활성화 시 패스
   if (!enableVerification) {
-    return { response, verification: null };
+    return {
+      response,
+      verification: null,
+      strategy: 'pass',
+      retryNeeded: false,
+    };
   }
 
   try {
@@ -758,18 +789,81 @@ async function verifyAgentResponse(
       },
     };
 
-    console.log(
-      `✅ [Verifier] Response verified. Confidence: ${(verification.confidence * 100).toFixed(1)}%, Issues: ${verification.issues.length}`
+    // 전략 결정 (severity 기반)
+    const strategy = determineVerificationStrategy(
+      verification.issues,
+      retryCount,
+      1 // maxRetries = 1
     );
 
-    // Return validated response if corrections were made
-    return {
-      response: verification.validatedResponse || response,
-      verification,
-    };
+    console.log(
+      `🔍 [Verifier] Confidence: ${(verification.confidence * 100).toFixed(1)}%, ` +
+      `Issues: ${verification.issues.length}, Strategy: ${strategy}`
+    );
+
+    // 전략별 처리
+    switch (strategy) {
+      case 'pass':
+        // 문제 없음 - 원본 반환
+        return {
+          response,
+          verification,
+          strategy,
+          retryNeeded: false,
+        };
+
+      case 'direct_fix':
+        // 직접 수정 - validatedResponse 반환
+        console.log('✏️ [Verifier] Applying direct fixes...');
+        return {
+          response: verification.validatedResponse || response,
+          verification,
+          strategy,
+          retryNeeded: false,
+        };
+
+      case 'retry':
+        // 재생성 요청 필요 - 재시도 프롬프트 생성
+        console.log('🔄 [Verifier] High severity issues detected, requesting retry...');
+        const retryPrompt = buildRetryPrompt(
+          response,
+          verification.issues,
+          originalQuery
+        );
+        return {
+          response, // 원본 유지 (호출자가 재시도 처리)
+          verification,
+          strategy,
+          retryNeeded: true,
+          retryPrompt,
+        };
+
+      case 'last_keeper':
+        // Last Keeper 모드 - 검증된 응답 또는 원본 반환
+        console.log('🛡️ [Verifier] Max retries reached, using best available response');
+        return {
+          response: verification.validatedResponse || response,
+          verification,
+          strategy,
+          retryNeeded: false,
+        };
+
+      default:
+        return {
+          response,
+          verification,
+          strategy: 'pass',
+          retryNeeded: false,
+        };
+    }
   } catch (error) {
     console.warn('⚠️ [Verifier] Verification failed, using original response:', error);
-    return { response, verification: null };
+    return {
+      response,
+      verification: null,
+      strategy: 'pass',
+      retryNeeded: false,
+    };
   }
 }
 
@@ -944,15 +1038,59 @@ export async function executeSupervisor(
           ? lastMessage.content
           : '응답을 생성할 수 없습니다.';
 
-      // === Verifier Agent Post-Processing ===
+      // === Verifier Agent Post-Processing (Phase 5.7: Hybrid Strategy) ===
       let verification: VerificationResult | null = null;
       if (enableVerification && response && response !== '응답을 생성할 수 없습니다.') {
         const verifyResult = await verifyAgentResponse(response, {
           enableVerification: true,
           context: verificationContext || query,
+          retryCount: 0,
+          originalQuery: query,
         });
-        response = verifyResult.response;
-        verification = verifyResult.verification;
+
+        // 재시도 필요 시 한 번 더 시도
+        if (verifyResult.retryNeeded && verifyResult.retryPrompt) {
+          console.log('🔄 [Verifier] Retry requested, attempting re-generation...');
+          try {
+            // 재시도: 원래 Agent에게 피드백과 함께 재요청
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const retryResult = await app.invoke(
+              {
+                messages: [
+                  new HumanMessage(query),
+                  new HumanMessage(verifyResult.retryPrompt),
+                ],
+              },
+              config as any // Same type assertion as original invoke
+            );
+
+            const retryMessages = retryResult?.messages || [];
+            const retryLastMsg = retryMessages[retryMessages.length - 1];
+            const retryResponse =
+              typeof retryLastMsg?.content === 'string'
+                ? retryLastMsg.content
+                : response; // 실패 시 원본 유지
+
+            // 재시도 응답 재검증 (retryCount = 1)
+            const secondVerify = await verifyAgentResponse(retryResponse, {
+              enableVerification: true,
+              context: verificationContext || query,
+              retryCount: 1,
+              originalQuery: query,
+            });
+
+            response = secondVerify.response;
+            verification = secondVerify.verification;
+            console.log(`✅ [Verifier] Retry completed. Strategy: ${secondVerify.strategy}`);
+          } catch (retryError) {
+            console.warn('⚠️ [Verifier] Retry failed, using validated original:', retryError);
+            response = verifyResult.response;
+            verification = verifyResult.verification;
+          }
+        } else {
+          response = verifyResult.response;
+          verification = verifyResult.verification;
+        }
       }
 
       console.log(`✅ [Supervisor] Completed. Session: ${sessionId}, Compressed: ${compressionApplied}, Traced: ${!!langfuseHandler}`);

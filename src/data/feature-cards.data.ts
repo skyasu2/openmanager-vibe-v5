@@ -11,7 +11,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'ai-assistant-pro',
     title: '🧠 AI Assistant',
     description:
-      'Groq(Supervisor) + Cerebras(Worker) + Mistral(Verifier) + RAG가 결합된 LangGraph 멀티 에이전트 시스템입니다.',
+      'Cerebras(7 Agents) + Groq(Fallback) + Mistral(Verifier & Last Keeper) 3단계 폴백을 갖춘 LangGraph 시스템입니다.',
     icon: Bot,
     gradient: 'from-indigo-500 via-purple-500 to-pink-500',
     detailedContent: {
@@ -19,14 +19,14 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
       features: [
         '🚀 Wafer-Scale Inference: GPU 클러스터의 통신 병목을 제거한 Cerebras WSE 활용',
         '⚡ LPU Architecture: 폰 노이만 구조를 탈피한 Groq의 결정론적(Deterministic) 추론',
-        '� SLM Efficiency: 거대 모델 대신 Mistral 24B(SLM)를 활용한 실용적 검증',
+        '🧠 SLM Efficiency: 거대 모델 대신 Mistral 24B(SLM)를 활용한 실용적 검증',
         '🔄 Agentic Workflow: 단방향 Chain을 넘어선 LangGraph의 순환형(Cyclic) 추론',
       ],
       technologies: [
+        'Cerebras (Primary - 7 Agents)',
+        'Groq (Fallback Provider)',
+        'Mistral (Verifier & Last Keeper)',
         'LangGraph (Agentic Framework)',
-        'Cerebras (Wafer-Scale Engine)',
-        'Groq (LPU Inference)',
-        'Mistral (Efficient SLM)',
         'Google AI (Vector Embedding)',
         'Supabase (Vector Store)',
       ],
@@ -47,25 +47,25 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
       {
         title: 'Groq (LPU Architecture)',
         description:
-          '복잡한 스케줄링이 필요한 GPU와 달리, 데이터 흐름을 컴파일러단에서 제어하는 LPU(Language Processing Unit)로 결정론적 초저지연을 구현했습니다.',
+          'Cerebras 장애 시 자동 전환되는 Fallback Provider. LPU(Language Processing Unit)로 결정론적 초저지연을 구현하여 안정적인 백업을 제공합니다.',
         icon: Zap,
         gradient: 'from-blue-500 to-indigo-600',
         features: [
           'Trend: Specialized AI Hardware',
           'Tech: Deterministic Latency',
-          'Value: 실시간 인터랙션 보장',
+          'Value: Fallback Provider (100K/Day)',
         ],
       },
       {
         title: 'Mistral (Efficient SLM)',
         description:
-          '무조건 큰 모델이 답은 아닙니다. 24B 파라미터의 Small Language Model로도 불필요한 연산 비용 없이 논리적 검증이 가능함을 증명합니다.',
+          'Verifier Agent로 응답 품질을 검증하고, 모든 Provider 실패 시 Last Keeper로 최후 방어선 역할을 수행합니다.',
         icon: Sparkles,
         gradient: 'from-purple-500 to-pink-600',
         features: [
           'Trend: SLM (소형 언어 모델)',
-          'Tech: Parameter Efficiency',
-          'Value: 비용/성능 최적화',
+          'Tech: Verifier + Last Keeper',
+          'Value: 품질 검증 & 최후 방어',
         ],
       },
       {

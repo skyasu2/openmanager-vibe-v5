@@ -344,6 +344,18 @@ export const AgentState = Annotation.Root({
       originalTokenCount: 0,
     }),
   }),
+
+  // Phase 5.7: Verifier Retry - 검증 실패 시 재시도 횟수 추적
+  verifierRetryCount: Annotation<number>({
+    reducer: (_: number, next: number) => next,
+    default: () => 0,
+  }),
+
+  // Phase 5.7: Verifier Retry - 마지막으로 검증 실패한 Agent
+  lastVerificationFailedAgent: Annotation<AgentType>({
+    reducer: (_: AgentType, next: AgentType) => next,
+    default: () => null,
+  }),
 });
 
 export type AgentStateType = typeof AgentState.State;
