@@ -20,8 +20,8 @@ import {
   getServerLogsTool,
   getServerMetricsAdvancedTool,
 } from '../../agents/nlq-agent';
-// NLQ SubGraph for complex queries (Phase 2)
-import { executeNlqSubGraph } from './nlq-subgraph';
+// NLQ SubGraph removed (v5.91.0) - was unused dead code (500+ lines)
+// Complex NLQ queries are handled by NLQ Agent's getServerMetricsAdvancedTool
 import {
   recommendCommandsTool,
   searchKnowledgeBaseTool,
@@ -230,34 +230,8 @@ function createNLQAgent() {
   });
 }
 
-/**
- * Execute NLQ SubGraph directly for complex queries
- * Alternative execution path when Supervisor detects complex NLQ query
- * @param query - Natural language query
- * @returns Formatted response from NLQ SubGraph
- */
-export async function executeComplexNlqQuery(query: string): Promise<{
-  success: boolean;
-  response: string;
-  metadata: {
-    intent: string;
-    timeRange?: string;
-    aggregation?: string;
-    filterCount: number;
-  };
-}> {
-  const result = await executeNlqSubGraph(query);
-  return {
-    success: result.success,
-    response: result.response,
-    metadata: {
-      intent: result.intent,
-      timeRange: result.params?.timeRange,
-      aggregation: result.params?.aggregation,
-      filterCount: result.params?.filters?.length || 0,
-    },
-  };
-}
+// executeComplexNlqQuery removed (v5.91.0) - SubGraph was unused
+// NLQ Agent now handles complex queries via getServerMetricsAdvancedTool
 
 /**
  * Create Analyst Agent - Pattern analysis & anomaly detection
@@ -538,25 +512,61 @@ nlq_agent (독립) → analyst_agent → rca_agent / capacity_agent → reporter
 - 서론/인사말 생략
 - 핵심 정보만 출력`;
 
+// ============================================================================
+// Workflow Cache (v5.91.0) - Reduces initialization overhead
+// ============================================================================
+
+type CompiledWorkflow = Awaited<ReturnType<typeof createSupervisor>>['compile'] extends
+  (config: infer C) => infer R ? Awaited<R> : never;
+
+let cachedSupervisor: CompiledWorkflow | null = null;
+let cachedGroqSupervisor: CompiledWorkflow | null = null;
+let cacheInitTime: number = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes - refresh periodically for model health
+
 /**
- * Create Multi-Agent Supervisor Workflow
+ * Check if cache is still valid
+ */
+function isCacheValid(): boolean {
+  return cacheInitTime > 0 && (Date.now() - cacheInitTime) < CACHE_TTL_MS;
+}
+
+/**
+ * Invalidate workflow cache (call on rate limit or model failure)
+ */
+export function invalidateWorkflowCache(): void {
+  cachedSupervisor = null;
+  cachedGroqSupervisor = null;
+  cacheInitTime = 0;
+  console.log('🔄 [Workflow Cache] Invalidated');
+}
+
+/**
+ * Create Multi-Agent Supervisor Workflow (with caching)
  *
  * Note: Groq rate limit fallback is handled by executeLastKeeperMode(),
  * not by switching the supervisor model (workers also use Groq).
  *
  * v5.90.0: Added RCA and Capacity agents for root cause analysis and capacity planning
+ * v5.91.0: Added workflow caching to reduce initialization overhead
  */
 export async function createMultiAgentSupervisor() {
+  // Return cached workflow if valid
+  if (cachedSupervisor && isCacheValid()) {
+    console.log('⚡ [Supervisor] Using cached workflow');
+    return cachedSupervisor;
+  }
+
   const checkpointer = await getAutoCheckpointer();
 
   // Create worker agents
   const nlqAgent = createNLQAgent();
   const analystAgent = createAnalystAgent();
-  const rcaAgent = createRCAAgent();         // NEW: Root Cause Analysis
-  const capacityAgent = createCapacityAgent(); // NEW: Capacity Planning
+  const rcaAgent = createRCAAgent();         // Root Cause Analysis
+  const capacityAgent = createCapacityAgent(); // Capacity Planning
   const reporterAgent = createReporterAgent();
 
-  // Supervisor uses Groq for LangGraph handoff compatibility
+  // Supervisor uses Cerebras (primary) for fast inference
   const supervisorModel = getSupervisorModel();
 
   // Create supervisor with automatic handoffs
@@ -569,10 +579,13 @@ export async function createMultiAgentSupervisor() {
   });
 
   // Compile with checkpointer for session persistence
-  // Note: recursionLimit is set at invoke time (default: 25)
-  return workflow.compile({
+  cachedSupervisor = workflow.compile({
     checkpointer,
   });
+  cacheInitTime = Date.now();
+
+  console.log('✅ [Supervisor] Workflow compiled and cached');
+  return cachedSupervisor;
 }
 
 /**
@@ -580,15 +593,22 @@ export async function createMultiAgentSupervisor() {
  * Uses llama-3.3-70b-versatile on Groq as fallback
  *
  * v5.90.0: Added RCA and Capacity agents
+ * v5.91.0: Added workflow caching
  */
 export async function createMultiAgentSupervisorWithGroq() {
+  // Return cached Groq workflow if valid
+  if (cachedGroqSupervisor && isCacheValid()) {
+    console.log('⚡ [Supervisor] Using cached Groq fallback workflow');
+    return cachedGroqSupervisor;
+  }
+
   const checkpointer = await getAutoCheckpointer();
 
   // Create worker agents
   const nlqAgent = createNLQAgent();
   const analystAgent = createAnalystAgent();
-  const rcaAgent = createRCAAgent();         // NEW: Root Cause Analysis
-  const capacityAgent = createCapacityAgent(); // NEW: Capacity Planning
+  const rcaAgent = createRCAAgent();         // Root Cause Analysis
+  const capacityAgent = createCapacityAgent(); // Capacity Planning
   const reporterAgent = createReporterAgent();
 
   // Supervisor uses Groq as Cerebras fallback
@@ -607,9 +627,12 @@ export async function createMultiAgentSupervisorWithGroq() {
     outputMode: 'full_history',
   });
 
-  return workflow.compile({
+  cachedGroqSupervisor = workflow.compile({
     checkpointer,
   });
+
+  console.log('✅ [Supervisor] Groq workflow compiled and cached');
+  return cachedGroqSupervisor;
 }
 
 // ============================================================================

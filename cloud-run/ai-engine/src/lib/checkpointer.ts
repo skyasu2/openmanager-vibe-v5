@@ -125,12 +125,16 @@ export interface SessionConfig {
 }
 
 /**
- * Default recursion limit for agent handoffs
- * - Normal flow: 4-6 steps (NLQ → Analyst → RCA/Capacity → Reporter)
- * - Retry buffer: +2 steps
+ * Default recursion limit for agent handoffs (v5.91.0: 8 → 10)
+ * - Normal flow: 8 steps (NLQ → Analyst → RCA/Capacity → Reporter)
+ * - Retry buffer: +2 steps for error recovery
  * - Prevents runaway loops and token explosion
+ *
+ * Calculation:
+ * - 4-agent chain = 8 recursions (Supervisor ↔ Agent × 4)
+ * - +2 buffer for retry scenarios
  */
-export const DEFAULT_RECURSION_LIMIT = 8;
+export const DEFAULT_RECURSION_LIMIT = 10;
 
 export function createSessionConfig(
   sessionId: string,
