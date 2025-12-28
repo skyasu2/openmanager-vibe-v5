@@ -14,10 +14,16 @@ import {
   type TrendDataPoint,
 } from '../lib/ai/monitoring/TrendPredictor';
 import { getDataCache } from '../lib/cache-layer';
+// 🎯 Precomputed State (O(1) 조회)
 import {
-  loadHistoricalContext,
-  loadHourlyScenarioData,
-} from '../services/scenario/scenario-loader';
+  getCurrentState,
+  type ServerSnapshot,
+} from '../data/precomputed-state';
+// Historical 데이터 (이상탐지/트렌드 분석용 6시간 이동평균)
+import {
+  FIXED_24H_DATASETS,
+  getRecentData,
+} from '../data/fixed-24h-metrics';
 
 // ============================================================================
 // 1. Tool Result Types
@@ -257,13 +263,11 @@ export const detectAnomaliesTool = tool(
       'anomaly',
       { serverId: serverId || 'first', metricType },
       async () => {
-        // Cache metrics with 1-minute TTL
-        const allServers = await cache.getMetrics(undefined, () =>
-          loadHourlyScenarioData()
-        );
-        const server = serverId
-          ? allServers.find((s) => s.id === serverId)
-          : allServers[0];
+        // 🎯 Precomputed State에서 현재 서버 상태 조회 (O(1))
+        const state = getCurrentState();
+        const server: ServerSnapshot | undefined = serverId
+          ? state.servers.find((s) => s.id === serverId)
+          : state.servers[0];
 
         if (!server) {
           return {
@@ -291,20 +295,25 @@ export const detectAnomaliesTool = tool(
 
         const usedEngine: 'typescript' = 'typescript';
 
-        // Cache historical context with 5-minute TTL
-        const historyPoints = await cache.getHistoricalContext(
-          `history:${server.id || ''}:6h`,
-          () => loadHistoricalContext(server.id || '', 6)
-        );
+        // 🎯 FIXED_24H_DATASETS에서 6시간 히스토리 조회
+        const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === server.id);
+        const currentMinute = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
+          .split(',')[1]?.trim().split(':').reduce((acc, t, i) => acc + (i === 0 ? parseInt(t) * 60 : parseInt(t)), 0) || 0;
 
         for (const metric of targetMetrics) {
           const currentValue = server[metric as keyof typeof server] as number;
 
-          // Map history to MetricDataPoint
-          const history: MetricDataPoint[] = historyPoints.map((h) => ({
-            timestamp: h.timestamp,
-            value: h[metric] || 0,
-          }));
+          // Map history to MetricDataPoint (36 points = 6시간)
+          let history: MetricDataPoint[] = [];
+          if (dataset) {
+            const recentData = getRecentData(dataset, currentMinute, 36);
+            const now = Date.now();
+            const baseTime = now - now % (10 * 60 * 1000); // 10분 단위 기준
+            history = recentData.map((d, i) => ({
+              timestamp: baseTime - (recentData.length - 1 - i) * 600000,
+              value: d[metric] || 0,
+            }));
+          }
 
           // Fallback if history load failed (36 points at 10-min intervals)
           if (history.length < 5) {
@@ -347,7 +356,7 @@ export const detectAnomaliesTool = tool(
           timestamp: new Date().toISOString(),
           _algorithm: '6-hour moving average + 2σ threshold (10-min intervals)',
           _engine: usedEngine,
-          _cached: true,
+          _dataSource: 'precomputed-state',
         };
 
         // 압축된 요약 추가 (Token Optimization)
@@ -386,13 +395,11 @@ export const predictTrendsTool = tool(
       'trend',
       { serverId: serverId || 'first', metricType, hours },
       async () => {
-        // Cache metrics with 1-minute TTL
-        const allServers = await cache.getMetrics(undefined, () =>
-          loadHourlyScenarioData()
-        );
-        const server = serverId
-          ? allServers.find((s) => s.id === serverId)
-          : allServers[0];
+        // 🎯 Precomputed State에서 현재 서버 상태 조회 (O(1))
+        const state = getCurrentState();
+        const server: ServerSnapshot | undefined = serverId
+          ? state.servers.find((s) => s.id === serverId)
+          : state.servers[0];
 
         if (!server) {
           return {
@@ -421,19 +428,25 @@ export const predictTrendsTool = tool(
 
         const usedEngine: 'typescript' = 'typescript';
 
-        // Cache historical context with 5-minute TTL
-        const historyPoints = await cache.getHistoricalContext(
-          `history:${server.id || ''}:6h`,
-          () => loadHistoricalContext(server.id || '', 6)
-        );
+        // 🎯 FIXED_24H_DATASETS에서 6시간 히스토리 조회
+        const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === server.id);
+        const currentMinute = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
+          .split(',')[1]?.trim().split(':').reduce((acc, t, i) => acc + (i === 0 ? parseInt(t) * 60 : parseInt(t)), 0) || 0;
 
         for (const metric of targetMetrics) {
           const currentValue = server[metric as keyof typeof server] as number;
 
-          const history: MetricDataPoint[] = historyPoints.map((h) => ({
-            timestamp: h.timestamp,
-            value: h[metric] || 0,
-          }));
+          // Map history to MetricDataPoint (36 points = 6시간)
+          let history: MetricDataPoint[] = [];
+          if (dataset) {
+            const recentData = getRecentData(dataset, currentMinute, 36);
+            const now = Date.now();
+            const baseTime = now - now % (10 * 60 * 1000); // 10분 단위 기준
+            history = recentData.map((d, i) => ({
+              timestamp: baseTime - (recentData.length - 1 - i) * 600000,
+              value: d[metric] || 0,
+            }));
+          }
 
           // Fallback if history load failed (36 points at 10-min intervals)
           if (history.length < 5) {
@@ -478,7 +491,7 @@ export const predictTrendsTool = tool(
           timestamp: new Date().toISOString(),
           _algorithm: 'Linear Regression with R² confidence',
           _engine: usedEngine,
-          _cached: true,
+          _dataSource: 'precomputed-state',
         };
 
         // 압축된 요약 추가 (Token Optimization)

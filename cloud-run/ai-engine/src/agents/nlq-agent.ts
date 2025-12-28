@@ -21,10 +21,13 @@ import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { getDataCache } from '../lib/cache-layer';
 import { getSupabaseConfig } from '../lib/config-parser';
+// 🎯 Precomputed State (최적화됨 - O(1) 조회)
 import {
-  loadHourlyScenarioData,
-  loadHistoricalContext,
-} from '../services/scenario/scenario-loader';
+  getCurrentState,
+  getServerState,
+  type ServerSnapshot,
+} from '../data/precomputed-state';
+// Historical 데이터용 (시간 범위 쿼리에만 사용)
 import {
   FIXED_24H_DATASETS,
   getDataAtMinute,
@@ -199,23 +202,13 @@ function getTimeRangeData(
 
 export const getServerMetricsTool = tool(
   async ({ serverId, metric: _metric }: GetServerMetricsInput) => {
-    const cache = getDataCache();
+    // 🎯 Precomputed State 사용 (O(1) 조회, 캐시 불필요)
+    const state = getCurrentState();
 
-    // Cache metrics with 1-minute TTL
-    const allServers = await cache.getMetrics(
-      serverId,
-      () => loadHourlyScenarioData()
-    );
-
-    const target = serverId
-      ? allServers.find((s) => s.id === serverId)
-      : allServers;
-
-    const servers = Array.isArray(target)
-      ? target
-      : target
-        ? [target]
-        : allServers;
+    // 특정 서버 또는 전체
+    const servers: ServerSnapshot[] = serverId
+      ? state.servers.filter((s) => s.id === serverId)
+      : state.servers;
 
     return {
       success: true,
@@ -234,8 +227,8 @@ export const getServerMetricsTool = tool(
         ).length,
       },
       timestamp: new Date().toISOString(),
-      _dataSource: 'scenario-loader',
-      _cached: true,
+      _dataSource: 'precomputed-state',
+      _optimized: true,
     };
   },
   {

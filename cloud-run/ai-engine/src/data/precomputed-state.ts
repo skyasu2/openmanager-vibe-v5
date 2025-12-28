@@ -1,0 +1,585 @@
+/**
+ * 🎯 Pre-computed Server State Service
+ *
+ * 24시간 사이클 데이터를 144개 슬롯(10분 간격)으로 미리 계산
+ * - 런타임 계산 = 0 (O(1) 조회)
+ * - LLM 토큰 최소화 (수천 → ~100 토큰)
+ * - 어제 = 오늘 = 내일 (동일 패턴 반복)
+ *
+ * @updated 2025-12-28 - 최적화 구현
+ */
+
+import { readFileSync, existsSync, writeFileSync } from 'fs';
+import { join } from 'path';
+
+// ============================================================================
+// Types
+// ============================================================================
+
+/** 서버 상태 */
+export type ServerStatus = 'healthy' | 'warning' | 'critical';
+
+/** 트렌드 방향 */
+export type TrendDirection = 'up' | 'down' | 'stable';
+
+/** 개별 서버 알림 */
+export interface ServerAlert {
+  serverId: string;
+  serverName: string;
+  serverType: string;
+  metric: 'cpu' | 'memory' | 'disk' | 'network';
+  value: number;
+  threshold: number;
+  trend: TrendDirection;
+  severity: 'warning' | 'critical';
+}
+
+/** 서버 스냅샷 (LLM용 최소 정보) */
+export interface ServerSnapshot {
+  id: string;
+  name: string;
+  type: string;
+  status: ServerStatus;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+}
+
+/** 활성 패턴 (시나리오명 숨김) */
+export interface ActivePattern {
+  metric: 'cpu' | 'memory' | 'disk' | 'network';
+  pattern: 'spike' | 'gradual' | 'oscillate' | 'sustained' | 'normal';
+  severity: 'info' | 'warning' | 'critical';
+}
+
+/** Pre-computed 슬롯 (10분 단위) */
+export interface PrecomputedSlot {
+  slotIndex: number;           // 0-143
+  timeLabel: string;           // "14:30"
+  minuteOfDay: number;         // 0-1430
+
+  // 요약 통계
+  summary: {
+    total: number;
+    healthy: number;
+    warning: number;
+    critical: number;
+  };
+
+  // 알림 목록 (warning/critical만)
+  alerts: ServerAlert[];
+
+  // 활성 패턴 (시나리오명 없이)
+  activePatterns: ActivePattern[];
+
+  // 전체 서버 스냅샷 (상세 조회용)
+  servers: ServerSnapshot[];
+}
+
+/** LLM용 압축 컨텍스트 */
+export interface CompactContext {
+  time: string;
+  summary: string;
+  critical: Array<{ server: string; issue: string }>;
+  warning: Array<{ server: string; issue: string }>;
+  patterns: string[];
+}
+
+// ============================================================================
+// Thresholds
+// ============================================================================
+
+const THRESHOLDS = {
+  cpu: { warning: 70, critical: 85 },
+  memory: { warning: 75, critical: 90 },
+  disk: { warning: 80, critical: 90 },
+  network: { warning: 80, critical: 95 },
+} as const;
+
+// ============================================================================
+// State Builder
+// ============================================================================
+
+/** JSON 파일 경로 후보 */
+function getJsonPaths(hour: number): string[] {
+  const paddedHour = hour.toString().padStart(2, '0');
+  return [
+    join(__dirname, '../../../data/hourly-data', `hour-${paddedHour}.json`),
+    join(process.cwd(), 'data/hourly-data', `hour-${paddedHour}.json`),
+    join(process.cwd(), 'cloud-run/ai-engine/data/hourly-data', `hour-${paddedHour}.json`),
+  ];
+}
+
+/** JSON 파일 로드 */
+function loadHourlyJson(hour: number): HourlyJsonData | null {
+  for (const filePath of getJsonPaths(hour)) {
+    if (existsSync(filePath)) {
+      try {
+        const content = readFileSync(filePath, 'utf-8');
+        return JSON.parse(content);
+      } catch {
+        // 다음 경로 시도
+      }
+    }
+  }
+  return null;
+}
+
+interface HourlyJsonData {
+  hour: number;
+  scenario: string;
+  dataPoints: Array<{
+    timestamp: string;
+    servers: Record<string, RawServerData>;
+  }>;
+}
+
+interface RawServerData {
+  id: string;
+  name: string;
+  type: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+  status?: string;
+}
+
+/** 서버 상태 결정 */
+function determineStatus(server: RawServerData): ServerStatus {
+  const { cpu, memory, disk, network } = server;
+
+  // Critical 체크
+  if (
+    cpu >= THRESHOLDS.cpu.critical ||
+    memory >= THRESHOLDS.memory.critical ||
+    disk >= THRESHOLDS.disk.critical ||
+    network >= THRESHOLDS.network.critical
+  ) {
+    return 'critical';
+  }
+
+  // Warning 체크
+  if (
+    cpu >= THRESHOLDS.cpu.warning ||
+    memory >= THRESHOLDS.memory.warning ||
+    disk >= THRESHOLDS.disk.warning ||
+    network >= THRESHOLDS.network.warning
+  ) {
+    return 'warning';
+  }
+
+  return 'healthy';
+}
+
+/** 트렌드 계산 (이전 슬롯과 비교) */
+function calculateTrend(current: number, previous: number | undefined): TrendDirection {
+  if (previous === undefined) return 'stable';
+  const diff = current - previous;
+  if (diff > 5) return 'up';
+  if (diff < -5) return 'down';
+  return 'stable';
+}
+
+/** 알림 생성 */
+function generateAlerts(
+  server: RawServerData,
+  previousServer: RawServerData | undefined
+): ServerAlert[] {
+  const alerts: ServerAlert[] = [];
+  const metrics = ['cpu', 'memory', 'disk', 'network'] as const;
+
+  for (const metric of metrics) {
+    const value = server[metric];
+    const threshold = THRESHOLDS[metric];
+    const prevValue = previousServer?.[metric];
+
+    if (value >= threshold.critical) {
+      alerts.push({
+        serverId: server.id,
+        serverName: server.name,
+        serverType: server.type,
+        metric,
+        value,
+        threshold: threshold.critical,
+        trend: calculateTrend(value, prevValue),
+        severity: 'critical',
+      });
+    } else if (value >= threshold.warning) {
+      alerts.push({
+        serverId: server.id,
+        serverName: server.name,
+        serverType: server.type,
+        metric,
+        value,
+        threshold: threshold.warning,
+        trend: calculateTrend(value, prevValue),
+        severity: 'warning',
+      });
+    }
+  }
+
+  return alerts;
+}
+
+/** 패턴 감지 (시나리오명 없이) */
+function detectPatterns(servers: ServerSnapshot[]): ActivePattern[] {
+  const patterns: ActivePattern[] = [];
+  const metrics = ['cpu', 'memory', 'disk', 'network'] as const;
+
+  for (const metric of metrics) {
+    const values = servers.map((s) => s[metric]);
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const max = Math.max(...values);
+
+    if (max >= THRESHOLDS[metric].critical) {
+      patterns.push({
+        metric,
+        pattern: max - avg > 30 ? 'spike' : 'sustained',
+        severity: 'critical',
+      });
+    } else if (max >= THRESHOLDS[metric].warning) {
+      patterns.push({
+        metric,
+        pattern: 'gradual',
+        severity: 'warning',
+      });
+    }
+  }
+
+  return patterns;
+}
+
+/** 144개 슬롯 빌드 */
+export function buildPrecomputedStates(): PrecomputedSlot[] {
+  const slots: PrecomputedSlot[] = [];
+  let previousServers: Record<string, RawServerData> = {};
+
+  // 24시간 순회 (0-23)
+  for (let hour = 0; hour < 24; hour++) {
+    const hourlyData = loadHourlyJson(hour);
+    if (!hourlyData) {
+      console.warn(`[PrecomputedState] hour-${hour} 데이터 없음, 스킵`);
+      continue;
+    }
+
+    // 각 시간당 6개 슬롯 (10분 간격, dataPoints는 5분 간격이므로 2개씩)
+    for (let slotInHour = 0; slotInHour < 6; slotInHour++) {
+      const slotIndex = hour * 6 + slotInHour;
+      const minuteOfDay = slotIndex * 10;
+      const timeLabel = `${hour.toString().padStart(2, '0')}:${(slotInHour * 10).toString().padStart(2, '0')}`;
+
+      // 5분 간격 dataPoint에서 해당 슬롯 데이터 가져오기
+      const dataPointIndex = slotInHour * 2; // 0, 2, 4, 6, 8, 10
+      const dataPoint = hourlyData.dataPoints[Math.min(dataPointIndex, hourlyData.dataPoints.length - 1)];
+
+      if (!dataPoint?.servers) {
+        console.warn(`[PrecomputedState] slot ${slotIndex} 데이터 없음`);
+        continue;
+      }
+
+      // 서버 스냅샷 생성
+      const servers: ServerSnapshot[] = Object.values(dataPoint.servers).map((s) => ({
+        id: s.id,
+        name: s.name,
+        type: s.type,
+        status: determineStatus(s),
+        cpu: s.cpu,
+        memory: s.memory,
+        disk: s.disk,
+        network: s.network,
+      }));
+
+      // 요약 통계
+      const summary = {
+        total: servers.length,
+        healthy: servers.filter((s) => s.status === 'healthy').length,
+        warning: servers.filter((s) => s.status === 'warning').length,
+        critical: servers.filter((s) => s.status === 'critical').length,
+      };
+
+      // 알림 생성
+      const alerts: ServerAlert[] = [];
+      for (const rawServer of Object.values(dataPoint.servers)) {
+        const prevServer = previousServers[rawServer.id];
+        alerts.push(...generateAlerts(rawServer, prevServer));
+      }
+
+      // 패턴 감지
+      const activePatterns = detectPatterns(servers);
+
+      slots.push({
+        slotIndex,
+        timeLabel,
+        minuteOfDay,
+        summary,
+        alerts,
+        activePatterns,
+        servers,
+      });
+
+      // 다음 슬롯을 위해 현재 서버 저장
+      previousServers = dataPoint.servers;
+    }
+  }
+
+  console.log(`[PrecomputedState] ${slots.length}개 슬롯 빌드 완료`);
+  return slots;
+}
+
+// ============================================================================
+// Runtime Cache & Lookup
+// ============================================================================
+
+let _cachedSlots: PrecomputedSlot[] | null = null;
+
+/** Pre-built JSON 경로 후보 */
+function getPrebuiltJsonPaths(): string[] {
+  return [
+    join(__dirname, '../../data/precomputed-states.json'),
+    join(process.cwd(), 'data/precomputed-states.json'),
+    join(process.cwd(), 'cloud-run/ai-engine/data/precomputed-states.json'),
+  ];
+}
+
+/** Pre-built JSON 로드 시도 */
+function loadPrebuiltStates(): PrecomputedSlot[] | null {
+  for (const filePath of getPrebuiltJsonPaths()) {
+    if (existsSync(filePath)) {
+      try {
+        const content = readFileSync(filePath, 'utf-8');
+        const slots = JSON.parse(content) as PrecomputedSlot[];
+        console.log(`[PrecomputedState] Pre-built JSON 로드: ${filePath} (${slots.length}개 슬롯)`);
+        return slots;
+      } catch (e) {
+        console.warn(`[PrecomputedState] JSON 파싱 실패: ${filePath}`, e);
+      }
+    }
+  }
+  return null;
+}
+
+/** 슬롯 캐시 로드 (Lazy) - Pre-built 우선, 없으면 빌드 */
+function getSlots(): PrecomputedSlot[] {
+  if (!_cachedSlots) {
+    // 1. Pre-built JSON 시도 (빠른 cold start)
+    _cachedSlots = loadPrebuiltStates();
+
+    // 2. 없으면 런타임 빌드 (fallback)
+    if (!_cachedSlots) {
+      console.log('[PrecomputedState] Pre-built 없음, 런타임 빌드 시작...');
+      _cachedSlots = buildPrecomputedStates();
+    }
+  }
+  return _cachedSlots;
+}
+
+/** 현재 시각의 슬롯 인덱스 계산 */
+function getCurrentSlotIndex(): number {
+  const now = new Date();
+  // KST 기준
+  const kstNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+  const minuteOfDay = kstNow.getHours() * 60 + kstNow.getMinutes();
+  return Math.floor(minuteOfDay / 10);
+}
+
+// ============================================================================
+// Public API
+// ============================================================================
+
+/**
+ * 현재 시각의 Pre-computed 상태 조회 (O(1))
+ */
+export function getCurrentState(): PrecomputedSlot {
+  const slots = getSlots();
+  const index = getCurrentSlotIndex();
+  return slots[index] || slots[0];
+}
+
+/**
+ * 특정 슬롯 조회
+ */
+export function getStateBySlot(slotIndex: number): PrecomputedSlot | undefined {
+  const slots = getSlots();
+  return slots[slotIndex];
+}
+
+/**
+ * 특정 시각의 상태 조회
+ */
+export function getStateByTime(hour: number, minute: number): PrecomputedSlot | undefined {
+  const minuteOfDay = hour * 60 + minute;
+  const slotIndex = Math.floor(minuteOfDay / 10);
+  return getStateBySlot(slotIndex);
+}
+
+/**
+ * LLM용 압축 컨텍스트 생성 (~100 토큰)
+ */
+export function getCompactContext(): CompactContext {
+  const state = getCurrentState();
+
+  const critical = state.alerts
+    .filter((a) => a.severity === 'critical')
+    .slice(0, 3)
+    .map((a) => ({
+      server: a.serverId,
+      issue: `${a.metric.toUpperCase()} ${a.value}%${a.trend === 'up' ? '↑' : a.trend === 'down' ? '↓' : ''}`,
+    }));
+
+  const warning = state.alerts
+    .filter((a) => a.severity === 'warning')
+    .slice(0, 3)
+    .map((a) => ({
+      server: a.serverId,
+      issue: `${a.metric.toUpperCase()} ${a.value}%`,
+    }));
+
+  const patterns = state.activePatterns.map(
+    (p) => `${p.metric.toUpperCase()} ${p.pattern} (${p.severity})`
+  );
+
+  return {
+    time: state.timeLabel,
+    summary: `${state.summary.total}서버: ${state.summary.healthy} healthy, ${state.summary.warning} warning, ${state.summary.critical} critical`,
+    critical,
+    warning,
+    patterns,
+  };
+}
+
+/**
+ * LLM용 텍스트 요약 (최소 토큰)
+ */
+export function getTextSummary(): string {
+  const ctx = getCompactContext();
+  let text = `[${ctx.time}] ${ctx.summary}`;
+
+  if (ctx.critical.length > 0) {
+    text += `\nCritical: ${ctx.critical.map((c) => `${c.server}(${c.issue})`).join(', ')}`;
+  }
+  if (ctx.warning.length > 0) {
+    text += `\nWarning: ${ctx.warning.map((w) => `${w.server}(${w.issue})`).join(', ')}`;
+  }
+
+  return text;
+}
+
+/**
+ * 특정 서버의 현재 상태 조회
+ */
+export function getServerState(serverId: string): ServerSnapshot | undefined {
+  const state = getCurrentState();
+  return state.servers.find((s) => s.id === serverId);
+}
+
+/**
+ * 현재 활성 알림 목록
+ */
+export function getActiveAlerts(): ServerAlert[] {
+  return getCurrentState().alerts;
+}
+
+/**
+ * 캐시 초기화 (테스트용)
+ */
+export function clearStateCache(): void {
+  _cachedSlots = null;
+  console.log('[PrecomputedState] 캐시 초기화됨');
+}
+
+/**
+ * JSON 파일로 내보내기 (빌드 타임용)
+ */
+export function exportToJson(outputPath: string): void {
+  const slots = buildPrecomputedStates();
+  writeFileSync(outputPath, JSON.stringify(slots, null, 2), 'utf-8');
+  console.log(`[PrecomputedState] ${outputPath}에 내보내기 완료`);
+}
+
+// ============================================================================
+// LLM Context Helpers (토큰 최적화)
+// ============================================================================
+
+/**
+ * 🎯 LLM 시스템 프롬프트용 서버 상태 컨텍스트
+ * 기존 loadHourlyScenarioData() 대신 사용 권장
+ *
+ * @returns 최소 토큰으로 압축된 현재 상태
+ */
+export function getLLMContext(): string {
+  const state = getCurrentState();
+  const { summary, alerts, timeLabel } = state;
+
+  // 헤더
+  let context = `## 현재 서버 상태 [${timeLabel} KST]\n`;
+  context += `총 ${summary.total}대: ✓${summary.healthy} ⚠${summary.warning} ✗${summary.critical}\n\n`;
+
+  // Critical 알림
+  const criticalAlerts = alerts.filter((a) => a.severity === 'critical');
+  if (criticalAlerts.length > 0) {
+    context += `### Critical 알림\n`;
+    for (const alert of criticalAlerts.slice(0, 5)) {
+      const trend = alert.trend === 'up' ? '↑' : alert.trend === 'down' ? '↓' : '';
+      context += `- ${alert.serverId}: ${alert.metric.toUpperCase()} ${alert.value}%${trend}\n`;
+    }
+    context += '\n';
+  }
+
+  // Warning 알림 (상위 5개만)
+  const warningAlerts = alerts.filter((a) => a.severity === 'warning');
+  if (warningAlerts.length > 0) {
+    context += `### Warning 알림\n`;
+    for (const alert of warningAlerts.slice(0, 5)) {
+      context += `- ${alert.serverId}: ${alert.metric.toUpperCase()} ${alert.value}%\n`;
+    }
+  }
+
+  return context;
+}
+
+/**
+ * 🎯 특정 서버의 LLM 컨텍스트
+ */
+export function getServerLLMContext(serverId: string): string {
+  const state = getCurrentState();
+  const server = state.servers.find((s) => s.id === serverId);
+  const alerts = state.alerts.filter((a) => a.serverId === serverId);
+
+  if (!server) {
+    return `서버 ${serverId}를 찾을 수 없습니다.`;
+  }
+
+  let context = `## ${server.name} (${server.id})\n`;
+  context += `상태: ${server.status.toUpperCase()}\n`;
+  context += `메트릭: CPU ${server.cpu}% | Memory ${server.memory}% | Disk ${server.disk}% | Network ${server.network}%\n`;
+
+  if (alerts.length > 0) {
+    context += `\n알림:\n`;
+    for (const alert of alerts) {
+      const trend = alert.trend === 'up' ? '↑' : alert.trend === 'down' ? '↓' : '';
+      context += `- ${alert.metric.toUpperCase()} ${alert.value}%${trend} (임계: ${alert.threshold}%)\n`;
+    }
+  }
+
+  return context;
+}
+
+/**
+ * 🎯 JSON 형식 컨텍스트 (API 응답용)
+ */
+export function getJSONContext(): {
+  time: string;
+  summary: PrecomputedSlot['summary'];
+  critical: ServerAlert[];
+  warning: ServerAlert[];
+} {
+  const state = getCurrentState();
+  return {
+    time: state.timeLabel,
+    summary: state.summary,
+    critical: state.alerts.filter((a) => a.severity === 'critical'),
+    warning: state.alerts.filter((a) => a.severity === 'warning').slice(0, 10),
+  };
+}

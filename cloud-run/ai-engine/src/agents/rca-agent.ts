@@ -297,7 +297,8 @@ export const buildIncidentTimelineTool = tool(
           eventType: 'scenario_start',
           metric: scenario.affectedMetric,
           severity: scenario.severity === 'critical' ? 'critical' : 'warning',
-          description: `${scenario.name}: ${scenario.description}`,
+          // AI가 메트릭과 패턴에서 추론하도록 시나리오명 숨김
+          description: `${scenario.affectedMetric.toUpperCase()} ${scenario.pattern} pattern detected`,
         });
       }
 
@@ -343,7 +344,8 @@ export const buildIncidentTimelineTool = tool(
             timestamp: logTime.toISOString(),
             eventType: 'log_error',
             severity: 'critical',
-            description: `Error logs detected: ${scenario.name} related errors`,
+            // 시나리오명 대신 메트릭 기반 설명
+            description: `Error logs detected: ${scenario.affectedMetric.toUpperCase()} related errors`,
           });
         }
       }
@@ -509,7 +511,7 @@ export const findRootCauseTool = tool(
 
       for (const scenario of activeScenarios) {
         const symptomLower = symptom.toLowerCase();
-        const scenarioLower = `${scenario.name} ${scenario.description}`.toLowerCase();
+        // 시나리오명/설명은 매칭에 사용하지 않음 (메트릭 기반 매칭만 사용)
 
         // Check if symptom matches scenario
         const metricMatch = symptomLower.includes(scenario.affectedMetric);
@@ -534,16 +536,23 @@ export const findRootCauseTool = tool(
               break;
           }
 
+          // 시나리오명 숨기고 관측 가능한 특성만 노출
+          const patternDescriptions: Record<string, string> = {
+            spike: '급격한 부하 증가',
+            gradual: '점진적 리소스 누적',
+            oscillate: '불안정한 부하 변동',
+            sustained: '지속적 고부하 상태',
+          };
           hypotheses.push({
-            cause: scenario.name,
+            cause: `${scenario.affectedMetric.toUpperCase()} ${patternDescriptions[scenario.pattern] || scenario.pattern}`,
             confidence: metricMatch && severityMatch ? 0.9 : 0.7,
             evidence: [
-              `Active scenario: ${scenario.id}`,
-              `Pattern: ${scenario.pattern}`,
-              `Severity: ${scenario.severity}`,
+              `Pattern type: ${scenario.pattern}`,
+              `Severity level: ${scenario.severity}`,
               `Affected metric: ${scenario.affectedMetric}`,
             ],
             suggestedFix,
+            // 내부 참조용 ID는 유지하되 AI에게 직접 노출하지 않음
             relatedScenario: scenario.id,
           });
         }
@@ -568,12 +577,13 @@ export const findRootCauseTool = tool(
 
           for (const scenario of categoryScenarios) {
             if (!hypotheses.find((h) => h.relatedScenario === scenario.id)) {
+              // 시나리오명 숨기고 패턴 기반 설명만 노출
               hypotheses.push({
-                cause: `${category.toUpperCase()} 관련 문제: ${scenario.name}`,
+                cause: `${category.toUpperCase()} 관련 문제 (${scenario.pattern} 패턴)`,
                 confidence: 0.5,
                 evidence: [
                   `Keyword match: ${category}`,
-                  `Related scenario pattern: ${scenario.pattern}`,
+                  `Pattern type: ${scenario.pattern}`,
                 ],
                 suggestedFix: `${category} 리소스 점검 및 최적화 필요`,
                 relatedScenario: scenario.id,
@@ -656,10 +666,10 @@ export const searchSimilarIncidentsTool = tool(
     try {
       const incidents: SimilarIncident[] = [];
 
-      // Map symptom to scenario patterns
+      // Map symptom to scenario patterns (메트릭 기반 매칭만 사용)
       const symptomLower = symptom.toLowerCase();
       const relevantScenarios = FAILURE_SCENARIOS.filter((scenario) => {
-        const scenarioText = `${scenario.name} ${scenario.description}`.toLowerCase();
+        // 시나리오명/설명은 사용하지 않음 - 메트릭 키워드로만 매칭
 
         // Match by metric keyword
         const metricMatches =
@@ -688,12 +698,19 @@ export const searchSimilarIncidentsTool = tool(
           'evening-cache-memory-critical': 'Redis maxmemory-policy 설정 및 TTL 최적화',
         };
 
+        // 시나리오명/설명 숨기고 메트릭+패턴 기반 설명만 노출
+        const patternDescKo: Record<string, string> = {
+          spike: '급격한 부하 증가',
+          gradual: '점진적 리소스 누적',
+          oscillate: '불안정한 부하 변동',
+          sustained: '지속적 고부하 상태',
+        };
         incidents.push({
           id: `incident-${scenario.id}`,
-          title: `과거 사례: ${scenario.name}`,
+          title: `과거 사례: ${scenario.affectedMetric.toUpperCase()} ${patternDescKo[scenario.pattern] || scenario.pattern}`,
           similarity: scenario.severity === 'critical' ? 0.85 : 0.7,
           resolution: resolutions[scenario.id] || `${scenario.affectedMetric} 리소스 최적화`,
-          rootCause: scenario.description,
+          rootCause: `${scenario.affectedMetric.toUpperCase()} ${scenario.pattern} 패턴으로 인한 ${scenario.severity} 이슈`,
         });
       }
 

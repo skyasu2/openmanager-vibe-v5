@@ -19,11 +19,16 @@ import {
   type TrendDataPoint,
 } from '../lib/ai/monitoring/TrendPredictor';
 import { getDataCache } from '../lib/cache-layer';
+// 🎯 Precomputed State (O(1) 조회)
 import {
-  loadHistoricalContext,
-  loadHourlyScenarioData,
-} from '../services/scenario/scenario-loader';
-import type { RawServerData } from '../types/server-metrics';
+  getCurrentState,
+  type ServerSnapshot,
+} from '../data/precomputed-state';
+// Historical 데이터 (용량 예측용)
+import {
+  FIXED_24H_DATASETS,
+  getRecentData,
+} from '../data/fixed-24h-metrics';
 
 // ============================================================================
 // 1. Tool Result Types
@@ -290,12 +295,11 @@ export const predictResourceExhaustionTool = tool(
       'capacity-exhaustion',
       { serverId: serverId || 'first', metric, threshold: targetThreshold },
       async () => {
-        const allServers = await cache.getMetrics(undefined, () =>
-          loadHourlyScenarioData()
-        );
-        const server = serverId
-          ? allServers.find((s) => s.id === serverId)
-          : allServers[0];
+        // 🎯 Precomputed State에서 현재 서버 상태 조회 (O(1))
+        const state = getCurrentState();
+        const server: ServerSnapshot | undefined = serverId
+          ? state.servers.find((s) => s.id === serverId)
+          : state.servers[0];
 
         if (!server) {
           return {
@@ -308,11 +312,10 @@ export const predictResourceExhaustionTool = tool(
         const targetMetrics =
           metric === 'all' ? metrics : [metric as (typeof metrics)[number]];
 
-        // 6시간 히스토리 로드
-        const historyPoints = await cache.getHistoricalContext(
-          `history:${server.id || ''}:6h`,
-          () => loadHistoricalContext(server.id || '', 6)
-        );
+        // 🎯 FIXED_24H_DATASETS에서 6시간 히스토리 조회
+        const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === server.id);
+        const currentMinute = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
+          .split(',')[1]?.trim().split(':').reduce((acc, t, i) => acc + (i === 0 ? parseInt(t) * 60 : parseInt(t)), 0) || 0;
 
         const predictor = getTrendPredictor();
         const predictions: ExhaustionPrediction[] = [];
@@ -321,11 +324,17 @@ export const predictResourceExhaustionTool = tool(
         for (const metricName of targetMetrics) {
           const currentValue = server[metricName as keyof typeof server] as number;
 
-          // 히스토리 데이터 변환
-          const history: TrendDataPoint[] = historyPoints.map((h) => ({
-            timestamp: h.timestamp,
-            value: h[metricName] || currentValue,
-          }));
+          // 히스토리 데이터 변환 (36 points = 6시간)
+          let history: TrendDataPoint[] = [];
+          if (dataset) {
+            const recentData = getRecentData(dataset, currentMinute, 36);
+            const now = Date.now();
+            const baseTime = now - now % (10 * 60 * 1000); // 10분 단위 기준
+            history = recentData.map((d, i) => ({
+              timestamp: baseTime - (recentData.length - 1 - i) * 600000,
+              value: d[metricName] || currentValue,
+            }));
+          }
 
           // Fallback
           if (history.length < 5) {
@@ -391,6 +400,7 @@ export const predictResourceExhaustionTool = tool(
           urgentMetrics,
           summary: summaryParts.join(', '),
           timestamp: new Date().toISOString(),
+          _dataSource: 'precomputed-state',
         };
       }
     );
@@ -426,10 +436,9 @@ export const getScalingRecommendationTool = tool(
       'capacity-scaling',
       { serverId, headroom },
       async () => {
-        const allServers = await cache.getMetrics(undefined, () =>
-          loadHourlyScenarioData()
-        );
-        const server = allServers.find((s) => s.id === serverId);
+        // 🎯 Precomputed State에서 현재 서버 상태 조회 (O(1))
+        const state = getCurrentState();
+        const server = state.servers.find((s) => s.id === serverId);
 
         if (!server) {
           return {
@@ -439,7 +448,12 @@ export const getScalingRecommendationTool = tool(
         }
 
         const serverType = getServerType(server);
-        const specs = server.specs || { cpu_cores: 4, memory_gb: 16, disk_gb: 100 };
+        // 🎯 서버 타입별 기본 스펙 사용 (ServerSnapshot에는 specs 없음)
+        const specs = {
+          cpu_cores: serverType === 'database' ? 8 : 4,
+          memory_gb: serverType === 'database' ? 32 : 16,
+          disk_gb: serverType === 'storage' ? 500 : 100,
+        };
         const specOptions = SERVER_SPEC_RECOMMENDATIONS[serverType] || SERVER_SPEC_RECOMMENDATIONS.application;
 
         const recommendations: ScalingRecommendation[] = [];
@@ -574,12 +588,11 @@ export const analyzeGrowthTrendTool = tool(
       'capacity-growth',
       { serverId: serverId || 'all', metric, days },
       async () => {
-        const allServers = await cache.getMetrics(undefined, () =>
-          loadHourlyScenarioData()
-        );
-        const server = serverId
-          ? allServers.find((s) => s.id === serverId)
-          : allServers[0];
+        // 🎯 Precomputed State에서 현재 서버 상태 조회 (O(1))
+        const state = getCurrentState();
+        const server: ServerSnapshot | undefined = serverId
+          ? state.servers.find((s) => s.id === serverId)
+          : state.servers[0];
 
         if (!server) {
           return {
@@ -592,10 +605,10 @@ export const analyzeGrowthTrendTool = tool(
         const targetMetrics =
           metric === 'all' ? metrics : [metric as (typeof metrics)[number]];
 
-        const historyPoints = await cache.getHistoricalContext(
-          `history:${server.id || ''}:6h`,
-          () => loadHistoricalContext(server.id || '', 6)
-        );
+        // 🎯 FIXED_24H_DATASETS에서 6시간 히스토리 조회
+        const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === server.id);
+        const currentMinute = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
+          .split(',')[1]?.trim().split(':').reduce((acc, t, i) => acc + (i === 0 ? parseInt(t) * 60 : parseInt(t)), 0) || 0;
 
         const predictor = getTrendPredictor();
         const trends: GrowthTrend[] = [];
@@ -604,10 +617,17 @@ export const analyzeGrowthTrendTool = tool(
         for (const metricName of targetMetrics) {
           const currentValue = server[metricName as keyof typeof server] as number;
 
-          const history: TrendDataPoint[] = historyPoints.map((h) => ({
-            timestamp: h.timestamp,
-            value: h[metricName] || currentValue,
-          }));
+          // 히스토리 데이터 변환 (36 points = 6시간)
+          let history: TrendDataPoint[] = [];
+          if (dataset) {
+            const recentData = getRecentData(dataset, currentMinute, 36);
+            const now = Date.now();
+            const baseTime = now - now % (10 * 60 * 1000); // 10분 단위 기준
+            history = recentData.map((d, i) => ({
+              timestamp: baseTime - (recentData.length - 1 - i) * 600000,
+              value: d[metricName] || currentValue,
+            }));
+          }
 
           if (history.length < 5) {
             const now = Date.now();
@@ -699,13 +719,12 @@ export const compareBaselineTool = tool(
       'capacity-baseline',
       { serverId: serverId || 'all' },
       async () => {
-        const allServers = await cache.getMetrics(undefined, () =>
-          loadHourlyScenarioData()
-        );
+        // 🎯 Precomputed State에서 현재 서버 상태 조회 (O(1))
+        const state = getCurrentState();
 
         const targetServers = serverId
-          ? allServers.filter((s) => s.id === serverId)
-          : allServers;
+          ? state.servers.filter((s) => s.id === serverId)
+          : state.servers;
 
         if (targetServers.length === 0) {
           return {

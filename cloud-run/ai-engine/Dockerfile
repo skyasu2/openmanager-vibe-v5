@@ -2,6 +2,11 @@
 # AI Engine - Cloud Run Service (Multi-stage Build)
 # Optimized for Cloud Run cold start & minimal image size
 #
+# v2.2 - 2025-12-28 (Precomputed State)
+# - Pre-built JSON for O(1) server state lookup
+# - 69.8% token reduction (3076 → 930 chars)
+# - Fast cold start with precomputed-states.json
+#
 # v2.1 - 2025-12-28 (LangGraph Optimization)
 # - NLQ SubGraph dead code removed (-1000 lines)
 # - Workflow caching (5min TTL)
@@ -88,6 +93,9 @@ COPY --from=builder /app/package.json ./
 
 # Copy built files
 COPY --from=builder /app/dist ./dist
+
+# Copy pre-computed state JSON (O(1) lookup, fast cold start)
+COPY data/precomputed-states.json ./data/
 
 # Set ownership and switch to non-root
 RUN chown -R appuser:nodejs /app

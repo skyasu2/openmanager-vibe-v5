@@ -14,7 +14,8 @@ import { approvalStore } from './services/approval/approval-store';
 import { embeddingService } from './services/embedding/embedding-service';
 import { generateService } from './services/generate/generate-service';
 import { createSupervisorStreamResponse } from './services/langgraph/multi-agent-supervisor';
-import { loadHourlyScenarioData } from './services/scenario/scenario-loader';
+// 🎯 Precomputed State (O(1) 조회, 토큰 최적화)
+import { getCurrentState } from './data/precomputed-state';
 
 // Direct Agent Tool Imports (for dedicated endpoints)
 import {
@@ -72,13 +73,20 @@ app.route('/api/jobs', jobsRouter);
 
 // Warm-up Endpoint (Lightweight)
 app.get('/warmup', async (c: Context) => {
-  // Trigger data loading to warm up cache
-  await loadHourlyScenarioData();
+  // 🎯 Precomputed State 로드 (O(1) - 이미 빌드됨)
+  const state = getCurrentState();
   // Validate keys
   const status = validateAPIKeys();
   return c.json({
     status: 'warmed_up',
     keys: status,
+    precomputed: {
+      totalSlots: 144, // 24h * 6 (10-min intervals)
+      currentSlot: state.slotIndex,
+      currentTime: state.timeLabel,
+      serverCount: state.servers.length,
+      summary: state.summary,
+    },
   });
 });
 
@@ -490,6 +498,7 @@ app.post('/api/ai/incident-report', async (c: Context) => {
 /**
  * POST /api/ai/analyze-batch - Batch Server Analysis
  *
+ * 🎯 Precomputed State 사용 - O(1) 조회
  * 여러 서버 동시 분석 (대시보드 전체 새로고침 시)
  */
 app.post('/api/ai/analyze-batch', async (c: Context) => {
@@ -498,11 +507,11 @@ app.post('/api/ai/analyze-batch', async (c: Context) => {
 
     console.log(`🔬 [Batch Analysis] servers=${serverIds.length}, type=${analysisType}`);
 
-    // 모든 서버 데이터 로드
-    const allServers = await loadHourlyScenarioData();
+    // 🎯 Precomputed State에서 현재 서버 상태 조회 (O(1))
+    const state = getCurrentState();
     const targetServers = serverIds.length > 0
-      ? allServers.filter((s) => serverIds.includes(s.id))
-      : allServers;
+      ? state.servers.filter((s) => serverIds.includes(s.id))
+      : state.servers;
 
     const results = await Promise.all(
       targetServers.map(async (server) => {
@@ -525,6 +534,7 @@ app.post('/api/ai/analyze-batch', async (c: Context) => {
       analysisType,
       results,
       timestamp: new Date().toISOString(),
+      _dataSource: 'precomputed-state',
     });
   } catch (error) {
     console.error('❌ [Batch Analysis] Error:', error);
