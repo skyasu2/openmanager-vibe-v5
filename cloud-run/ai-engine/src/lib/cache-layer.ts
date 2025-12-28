@@ -155,8 +155,6 @@ export class DataCacheLayer {
    * Set item in cache
    */
   set<T>(type: CacheType, identifier: string, data: T): void {
-    this.cleanup(); // Cleanup before adding
-
     const key = this.generateKey(type, identifier);
     this.cache.set(key, {
       data,
@@ -164,6 +162,8 @@ export class DataCacheLayer {
       ttl: this.getTTL(type),
       hits: 0,
     });
+
+    this.cleanup(); // Cleanup after adding to enforce maxSize
   }
 
   /**

@@ -158,8 +158,8 @@ export function checkProviderStatus(): ProviderStatus {
 }
 
 /**
- * Get primary model for Supervisor
- * Fallback chain: Cerebras → Groq → Mistral
+ * Get primary model for Supervisor (Single-Agent Mode)
+ * Fallback chain: Cerebras → Mistral (Groq reserved for NLQ Agent)
  */
 export function getSupervisorModel(): {
   model: LanguageModel;
@@ -168,7 +168,7 @@ export function getSupervisorModel(): {
 } {
   const status = checkProviderStatus();
 
-  // Try Cerebras first (24M tokens/day)
+  // Try Cerebras first (24M tokens/day, fastest)
   if (status.cerebras) {
     try {
       return {
@@ -181,20 +181,7 @@ export function getSupervisorModel(): {
     }
   }
 
-  // Fallback to Groq (100K tokens/day)
-  if (status.groq) {
-    try {
-      return {
-        model: getGroqModel('llama-3.3-70b-versatile'),
-        provider: 'groq',
-        modelId: 'llama-3.3-70b-versatile',
-      };
-    } catch (error) {
-      console.warn('⚠️ [Supervisor] Groq initialization failed:', error);
-    }
-  }
-
-  // Last resort: Mistral
+  // Fallback: Mistral (Groq is reserved for NLQ Agent tool calling)
   if (status.mistral) {
     return {
       model: getMistralModel('mistral-small-2506'),
@@ -203,7 +190,7 @@ export function getSupervisorModel(): {
     };
   }
 
-  throw new Error('No LLM provider configured. Set CEREBRAS_API_KEY, GROQ_API_KEY, or MISTRAL_API_KEY.');
+  throw new Error('No LLM provider configured. Set CEREBRAS_API_KEY or MISTRAL_API_KEY.');
 }
 
 /**

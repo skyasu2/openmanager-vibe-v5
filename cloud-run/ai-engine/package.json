@@ -16,6 +16,7 @@
     "prompt:cache:clear": "promptfoo cache clear"
   },
   "dependencies": {
+    "@ai-sdk-tools/agents": "^1.2.0",
     "@ai-sdk/cerebras": "^2.0.2",
     "@ai-sdk/google": "^2.0.43",
     "@ai-sdk/groq": "^2.0.33",
