@@ -363,8 +363,8 @@ GraphRAG combines:
 | `GROQ_API_KEY` | Yes | Groq (Llama 3.3-70b) API key - Supervisor |
 | `CEREBRAS_API_KEY` | Yes | Cerebras (Llama 3.3-70b) API key - NLQ/Analyst/Reporter |
 | `MISTRAL_API_KEY` | Yes | Mistral (Small 3.2 24B) API key - Verifier |
-| `GOOGLE_AI_API_KEY` | No | Gemini API key (Legacy, optional) |
-| `GOOGLE_AI_API_KEY_SECONDARY` | No | Gemini API key (Legacy, optional) |
+| `GOOGLE_AI_API_KEY` | Yes | Google AI API key (Embedding Only - text-embedding-004) |
+| `GOOGLE_AI_API_KEY_SECONDARY` | No | Secondary Key (Failover) |
 | `CLOUD_RUN_API_SECRET` | Yes | API authentication secret |
 | `UPSTASH_REDIS_URL` | Yes | Upstash Redis REST URL |
 | `UPSTASH_REDIS_TOKEN` | Yes | Upstash Redis REST token |

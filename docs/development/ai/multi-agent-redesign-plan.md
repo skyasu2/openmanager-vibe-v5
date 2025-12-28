@@ -1,8 +1,8 @@
 # Multi-Agent System 재설계 계획서
 
 **작성일**: 2025-12-27
-**버전**: 1.2.0
-**상태**: Phase 2 완료
+**버전**: 1.3.0
+**상태**: Phase 5 진행 중 (코드 구현 완료, 라우팅 통합 필요)
 
 ---
 
@@ -417,7 +417,80 @@ grep "tokenUsage" logs/ai-engine.log
 - Cloud Run Revision: `ai-engine-00053-4jg`
 - 배포 시각: 2025-12-27 20:51 KST
 
+### Phase 5: Agent Dependency System 🔄 (2025-12-28 진행 중)
+
+#### 5.1 목표
+RCA/Capacity Agent가 NLQ/Analyst 결과 없이 실행되는 것을 방지하고,
+의존성 기반 라우팅으로 분석 품질을 보장합니다.
+
+#### 5.2 구현 완료 (코드 작성됨, 미커밋)
+
+| 파일 | 변경 내용 | 상태 |
+|------|----------|------|
+| `shared-context.ts` | `AGENT_DEPENDENCIES` 맵, `buildAgentContext()`, `hasRequiredDependencies()` | ✅ 구현 |
+| `checkpointer.ts` | `DEFAULT_RECURSION_LIMIT=8`, Cloud Run 로깅 개선 | ✅ 구현 |
+| `multi-agent-supervisor.ts` | `validateAgentDependencies()`, `shouldUseAdvancedAgent()` | ✅ 구현 |
+| `feature-cards.data.ts` | AI 카드 기술 트렌드 반영 (Wafer-Scale, LPU, SLM, Agentic) | ✅ 구현 |
+| `ai-model-policy.md` | Google AI → Embedding Only 전환 문서화 | ✅ 문서 |
+
+#### 5.3 Agent 의존성 맵
+```typescript
+const AGENT_DEPENDENCIES: Record<AgentName, AgentName[]> = {
+  nlq: [],                      // 독립 실행
+  analyst: ['nlq'],             // NLQ 결과 필요
+  rca: ['nlq', 'analyst'],      // NLQ + Analyst 필요
+  capacity: ['nlq', 'analyst'], // NLQ + Analyst 필요
+  reporter: [],                 // buildReporterContext() 사용
+  supervisor: [],
+};
+```
+
+#### 5.4 Recursion Limit
+- `DEFAULT_RECURSION_LIMIT = 8`
+- 정상 흐름: 4-6 steps (NLQ → Analyst → RCA/Capacity → Reporter)
+- 재시도 버퍼: +2 steps
+- 무한 루프 및 토큰 폭발 방지
+
+#### 5.5 미완료 작업 (후속 필요) ⚠️
+
+| 작업 | 설명 | 우선순위 |
+|------|------|----------|
+| **Supervisor 라우팅 통합** | `shouldUseAdvancedAgent()` 실제 호출 로직 추가 | 🔴 높음 |
+| **의존성 미충족 시 재라우팅** | RCA/Capacity 요청 시 NLQ/Analyst 먼저 실행 | 🔴 높음 |
+| **단위 테스트 추가** | `hasRequiredDependencies()` 테스트 | 🟡 중간 |
+| **통합 테스트** | 복합 쿼리 시나리오 검증 | 🟡 중간 |
+| **Cloud Run 배포** | Phase 5.2 코드 반영 | 🟡 중간 |
+
+#### 5.6 Supervisor 라우팅 통합 계획
+
+```typescript
+// 현재: 의존성 검사 없이 바로 에이전트 호출
+// 개선: RCA/Capacity 호출 전 의존성 확인
+
+// multi-agent-supervisor.ts 수정 필요
+async function routeWithDependencyCheck(
+  sessionId: string,
+  targetAgent: AgentName,
+  query: string
+): Promise<AgentName> {
+  // RCA/Capacity는 의존성 확인 필요
+  if (targetAgent === 'rca' || targetAgent === 'capacity') {
+    const canUse = await shouldUseAdvancedAgent(sessionId, targetAgent);
+    if (!canUse) {
+      // 의존성 미충족 → NLQ 먼저 실행
+      return 'nlq';
+    }
+  }
+  return targetAgent;
+}
+```
+
+#### 5.7 예상 효과
+- ✅ RCA/Capacity 분석 정확도 향상 (선행 데이터 보장)
+- ✅ 순환 루프 방지 (recursionLimit)
+- ✅ 디버깅 용이성 (의존성 로깅)
+
 ---
 
-_Last Updated: 2025-12-27_
-_Document Version: 1.2.0_
+_Last Updated: 2025-12-28_
+_Document Version: 1.3.0_

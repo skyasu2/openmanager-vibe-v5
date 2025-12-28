@@ -311,3 +311,114 @@ export function formatContextForPrompt(context: ReporterContext): string {
     ? parts.join('\n\n')
     : '이전 분석 결과 없음 (독립 실행 모드)';
 }
+
+// ============================================================================
+// 5. Generic Agent Context Builder (Phase 5.2)
+// ============================================================================
+
+/**
+ * Agent 의존성 맵
+ * RCA, Capacity는 NLQ + Analyst 결과 필요
+ */
+const AGENT_DEPENDENCIES: Record<AgentName, AgentName[]> = {
+  nlq: [],
+  analyst: ['nlq'],
+  rca: ['nlq', 'analyst'],
+  capacity: ['nlq', 'analyst'],
+  reporter: [], // Reporter uses buildReporterContext() instead
+  supervisor: [],
+};
+
+/**
+ * RCA/Capacity Agent용 의존성 컨텍스트
+ */
+export interface AdvancedAgentContext {
+  nlqResult?: {
+    summary: string;
+    servers?: unknown[];
+    metrics?: unknown;
+  };
+  analystResult?: {
+    anomalies: unknown[];
+    trends: unknown[];
+    confidence: number;
+    summary: string;
+  };
+}
+
+/**
+ * 범용 에이전트 컨텍스트 빌더
+ * 의존성 기반으로 필요한 결과만 조회
+ *
+ * @param sessionId 세션 ID
+ * @param agentName 컨텍스트를 요청하는 에이전트
+ * @returns 의존성 에이전트 결과 맵
+ */
+export async function buildAgentContext(
+  sessionId: string,
+  agentName: AgentName
+): Promise<AdvancedAgentContext> {
+  const dependencies = AGENT_DEPENDENCIES[agentName] || [];
+  const context: AdvancedAgentContext = {};
+
+  if (dependencies.length === 0) {
+    return context; // 의존성 없음
+  }
+
+  // NLQ 결과 조회
+  if (dependencies.includes('nlq')) {
+    const nlqResult = await getAgentResult(sessionId, 'nlq');
+    if (nlqResult?.compressed) {
+      context.nlqResult = nlqResult.compressed as AdvancedAgentContext['nlqResult'];
+    } else if (nlqResult?.data) {
+      const data = nlqResult.data as Record<string, unknown>;
+      context.nlqResult = {
+        summary: String(data.response || data.summary || ''),
+        servers: data.servers as unknown[],
+        metrics: data.metrics,
+      };
+    }
+  }
+
+  // Analyst 결과 조회
+  if (dependencies.includes('analyst')) {
+    const analystResult = await getAgentResult(sessionId, 'analyst');
+    if (analystResult?.compressed) {
+      context.analystResult = analystResult.compressed as AdvancedAgentContext['analystResult'];
+    } else if (analystResult?.data) {
+      const data = analystResult.data as Record<string, unknown>;
+      context.analystResult = {
+        anomalies: (data.anomalies || []) as unknown[],
+        trends: (data.trends || []) as unknown[],
+        confidence: (data.confidence || 0) as number,
+        summary: String(data.summary || ''),
+      };
+    }
+  }
+
+  return context;
+}
+
+/**
+ * 컨텍스트 유효성 검사
+ * RCA/Capacity 실행 전 의존성 충족 확인
+ */
+export async function hasRequiredDependencies(
+  sessionId: string,
+  agentName: AgentName
+): Promise<{ valid: boolean; missing: AgentName[] }> {
+  const dependencies = AGENT_DEPENDENCIES[agentName] || [];
+  const missing: AgentName[] = [];
+
+  for (const dep of dependencies) {
+    const result = await getAgentResult(sessionId, dep);
+    if (!result) {
+      missing.push(dep);
+    }
+  }
+
+  return {
+    valid: missing.length === 0,
+    missing,
+  };
+}

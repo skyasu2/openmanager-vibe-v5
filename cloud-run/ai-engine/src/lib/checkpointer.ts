@@ -1,14 +1,19 @@
 /**
  * LangGraph Checkpointer with Supabase PostgreSQL
  *
+ * v2.2: Improved Cloud Run detection and logging
  * v2.1: Added retry logic with exponential backoff
  * v2.0: Environment-based pool configuration
+ *
+ * Note: SharedContext (shared-context.ts) handles agent state via Redis.
+ * Checkpointer manages LangGraph internal state only.
  */
 
 import { MemorySaver } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { Pool } from 'pg';
 import { DatabaseConfigError, getErrorMessage } from './errors';
+import { getUpstashConfig } from './config-parser';
 
 // ============================================================================
 // 1. Configuration (Environment-based)
@@ -112,16 +117,26 @@ export async function getCheckpointer(): Promise<PostgresSaver> {
 // 3. Session Management
 // ============================================================================
 
-// LangGraph config type with optional callbacks
+// LangGraph config type with optional callbacks and recursion limit
 export interface SessionConfig {
   configurable: { thread_id: string; checkpoint_ns?: string };
   callbacks?: unknown[];
+  recursionLimit?: number;
 }
+
+/**
+ * Default recursion limit for agent handoffs
+ * - Normal flow: 4-6 steps (NLQ → Analyst → RCA/Capacity → Reporter)
+ * - Retry buffer: +2 steps
+ * - Prevents runaway loops and token explosion
+ */
+export const DEFAULT_RECURSION_LIMIT = 8;
 
 export function createSessionConfig(
   sessionId: string,
   checkpoint_ns?: string,
-  callbacks?: unknown[]
+  callbacks?: unknown[],
+  recursionLimit: number = DEFAULT_RECURSION_LIMIT
 ): SessionConfig {
   return {
     configurable: {
@@ -129,6 +144,7 @@ export function createSessionConfig(
       ...(checkpoint_ns && { checkpoint_ns }),
     },
     ...(callbacks && callbacks.length > 0 && { callbacks }),
+    recursionLimit,
   };
 }
 
@@ -160,8 +176,14 @@ if (typeof process !== 'undefined') {
 }
 
 // ============================================================================
-// 5. Memory Checkpointer (Development Fallback)
+// 5. Memory Checkpointer (Cloud Run & Development)
 // ============================================================================
+
+/**
+ * Note: For Cloud Run, MemorySaver is used for LangGraph internal state.
+ * Agent results are persisted via SharedContext (Redis-based).
+ * See: src/lib/shared-context.ts
+ */
 
 let memoryCheckpointer: MemorySaver | null = null;
 
@@ -183,11 +205,15 @@ export async function getAutoCheckpointer(): Promise<
   PostgresSaver | MemorySaver
 > {
   const directUrl = getDirectConnectionUrl();
+  const hasRedis = getUpstashConfig() !== null;
 
-  // Cloud Run specific: Use MemorySaver to avoid PostgreSQL connection issues
-  // The SUPABASE_DIRECT_URL might be misconfigured or network-blocked
+  // Cloud Run specific: Use MemorySaver for LangGraph state
+  // Agent results are persisted via SharedContext (Redis)
   if (process.env.K_SERVICE) {
-    console.log('☁️ Cloud Run detected - using MemorySaver for reliability');
+    console.log('☁️ Cloud Run detected - using MemorySaver for LangGraph');
+    if (hasRedis) {
+      console.log('   ✅ Agent state persisted via SharedContext (Redis)');
+    }
     return getMemoryCheckpointer();
   }
 

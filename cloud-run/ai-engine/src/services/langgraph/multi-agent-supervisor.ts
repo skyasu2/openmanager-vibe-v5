@@ -45,6 +45,8 @@ import {
 // Phase 2: Shared Context Store
 import {
   saveAgentResult,
+  getAgentResult,
+  hasRequiredDependencies,
   type AgentName,
 } from '../../lib/shared-context';
 import { RateLimitError } from '../../lib/errors';
@@ -418,6 +420,54 @@ function createCapacityAgent() {
 // ============================================================================
 // 2. Supervisor Creation
 // ============================================================================
+// Agent Dependency Validation (Phase 5.1)
+// ============================================================================
+
+/**
+ * Agent Dependency Validation (Phase 5.2)
+ * Uses shared-context.ts for centralized dependency checking
+ *
+ * @see ../../lib/shared-context.ts - hasRequiredDependencies()
+ */
+export async function validateAgentDependencies(
+  sessionId: string,
+  targetAgent: AgentName
+): Promise<{ valid: boolean; missing: AgentName[] }> {
+  const result = await hasRequiredDependencies(sessionId, targetAgent);
+
+  if (!result.valid) {
+    console.warn(
+      `⚠️ [Dependency] ${targetAgent} missing deps: [${result.missing.join(', ')}]`
+    );
+  }
+
+  return result;
+}
+
+/**
+ * Check if RCA or Capacity agent should be used
+ * Returns false if dependencies are not met (will route to NLQ/Analyst first)
+ */
+export async function shouldUseAdvancedAgent(
+  sessionId: string,
+  agentName: 'rca' | 'capacity'
+): Promise<boolean> {
+  const { valid, missing } = await validateAgentDependencies(sessionId, agentName);
+
+  if (!valid) {
+    console.log(
+      `📋 [Routing] ${agentName} deferred - waiting for: [${missing.join(', ')}]`
+    );
+    return false;
+  }
+
+  console.log(`✅ [Routing] ${agentName} dependencies satisfied`);
+  return true;
+}
+
+// ============================================================================
+// 5. Supervisor Prompt & Workflow
+// ============================================================================
 
 const SUPERVISOR_PROMPT = `당신은 OpenManager VIBE의 Multi-Agent Supervisor입니다.
 
@@ -502,6 +552,7 @@ export async function createMultiAgentSupervisor() {
   });
 
   // Compile with checkpointer for session persistence
+  // Note: recursionLimit is set at invoke time (default: 25)
   return workflow.compile({
     checkpointer,
   });
