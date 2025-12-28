@@ -25,8 +25,9 @@ import {
 
 /**
  * Get NLQ model with fallback chain: Groq → Cerebras
+ * Returns null if no model available (graceful degradation)
  */
-function getNlqModel() {
+function getNlqModel(): { model: ReturnType<typeof getGroqModel>; provider: string; modelId: string } | null {
   const status = checkProviderStatus();
 
   // Primary: Groq (best tool calling stability)
@@ -51,7 +52,9 @@ function getNlqModel() {
     };
   }
 
-  throw new Error('No NLQ model available (need GROQ_API_KEY or CEREBRAS_API_KEY)');
+  // Return null instead of throwing (graceful degradation)
+  console.warn('⚠️ [NLQ Agent] No model available (need GROQ_API_KEY or CEREBRAS_API_KEY)');
+  return null;
 }
 
 // ============================================================================
@@ -92,47 +95,53 @@ A: filterServers(field: "cpu", operator: ">", value: 80) 호출 후
 `;
 
 // ============================================================================
-// Agent Instance
+// Agent Instance (Lazy Initialization)
 // ============================================================================
 
-// Get model with fallback
-const { model: nlqModel, provider: nlqProvider, modelId: nlqModelId } = getNlqModel();
-console.log(`🔧 [NLQ Agent] Using ${nlqProvider}/${nlqModelId}`);
+// Lazy model initialization - only created when nlqAgent is accessed
+const modelConfig = getNlqModel();
 
-export const nlqAgent = new Agent({
-  name: 'NLQ Agent',
-  model: nlqModel,
-  instructions: NLQ_INSTRUCTIONS,
-  tools: {
-    getServerMetrics,
-    getServerMetricsAdvanced,
-    filterServers,
-  },
-  // Pattern matching for auto-routing
-  matchOn: [
-    // Korean keywords
-    '서버',
-    '상태',
-    '목록',
-    '조회',
-    '알려',
-    '보여',
-    // Metric types
-    'cpu',
-    'CPU',
-    '메모리',
-    'memory',
-    '디스크',
-    'disk',
-    '네트워크',
-    'network',
-    // Query patterns
-    /\d+%/i, // Percentage patterns
-    /이상|이하|초과|미만/i, // Comparison
-    /몇\s*개|몇\s*대/i, // Count questions
-    /평균|합계|최대|최소/i, // Aggregation
-    /높은|낮은|많은|적은/i, // Comparison adjectives
-  ],
-});
+// Export nlqAgent only if model is available
+// Otherwise export null - callers must check for availability
+export const nlqAgent = modelConfig
+  ? (() => {
+      console.log(`🔧 [NLQ Agent] Using ${modelConfig.provider}/${modelConfig.modelId}`);
+      return new Agent({
+        name: 'NLQ Agent',
+        model: modelConfig.model,
+        instructions: NLQ_INSTRUCTIONS,
+        tools: {
+          getServerMetrics,
+          getServerMetricsAdvanced,
+          filterServers,
+        },
+        // Pattern matching for auto-routing
+        matchOn: [
+          // Korean keywords
+          '서버',
+          '상태',
+          '목록',
+          '조회',
+          '알려',
+          '보여',
+          // Metric types
+          'cpu',
+          'CPU',
+          '메모리',
+          'memory',
+          '디스크',
+          'disk',
+          '네트워크',
+          'network',
+          // Query patterns
+          /\d+%/i, // Percentage patterns
+          /이상|이하|초과|미만/i, // Comparison
+          /몇\s*개|몇\s*대/i, // Count questions
+          /평균|합계|최대|최소/i, // Aggregation
+          /높은|낮은|많은|적은/i, // Comparison adjectives
+        ],
+      });
+    })()
+  : null;
 
 export default nlqAgent;

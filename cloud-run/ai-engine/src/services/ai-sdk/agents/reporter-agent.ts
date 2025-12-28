@@ -81,40 +81,51 @@ const REPORTER_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 보고
 `;
 
 // ============================================================================
-// Agent Instance
+// Agent Instance (Graceful Degradation)
 // ============================================================================
 
-export const reporterAgent = new Agent({
-  name: 'Reporter Agent',
-  model: getMistralModel('mistral-small-2506'),
-  instructions: REPORTER_INSTRUCTIONS,
-  tools: {
-    buildIncidentTimeline,
-    findRootCause,
-    correlateMetrics,
-  },
-  matchOn: [
-    // Report keywords
-    '보고서',
-    '리포트',
-    'report',
-    // Incident keywords
-    '장애',
-    '인시던트',
-    'incident',
-    '사고',
-    // Timeline keywords
-    '타임라인',
-    'timeline',
-    '시간순',
-    // Summary keywords
-    '요약',
-    '정리',
-    'summary',
-    // Patterns
-    /보고서.*만들|생성/i,
-    /장애.*정리|요약/i,
-  ],
-});
+function createReporterAgent() {
+  try {
+    const model = getMistralModel('mistral-small-2506');
+    console.log('📋 [Reporter Agent] Initialized with mistral-small-2506');
+    return new Agent({
+      name: 'Reporter Agent',
+      model,
+      instructions: REPORTER_INSTRUCTIONS,
+      tools: {
+        buildIncidentTimeline,
+        findRootCause,
+        correlateMetrics,
+      },
+      matchOn: [
+        // Report keywords
+        '보고서',
+        '리포트',
+        'report',
+        // Incident keywords
+        '장애',
+        '인시던트',
+        'incident',
+        '사고',
+        // Timeline keywords
+        '타임라인',
+        'timeline',
+        '시간순',
+        // Summary keywords
+        '요약',
+        '정리',
+        'summary',
+        // Patterns
+        /보고서.*만들|생성/i,
+        /장애.*정리|요약/i,
+      ],
+    });
+  } catch (error) {
+    console.warn('⚠️ [Reporter Agent] Not available (MISTRAL_API_KEY not configured)');
+    return null;
+  }
+}
+
+export const reporterAgent = createReporterAgent();
 
 export default reporterAgent;

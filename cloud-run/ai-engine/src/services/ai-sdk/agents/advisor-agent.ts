@@ -83,43 +83,54 @@ const ADVISOR_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 문제 
 `;
 
 // ============================================================================
-// Agent Instance
+// Agent Instance (Graceful Degradation)
 // ============================================================================
 
-export const advisorAgent = new Agent({
-  name: 'Advisor Agent',
-  model: getMistralModel('mistral-small-2506'),
-  instructions: ADVISOR_INSTRUCTIONS,
-  tools: {
-    searchKnowledgeBase,
-    recommendCommands,
-  },
-  matchOn: [
-    // Solution keywords
-    '해결',
-    '방법',
-    '어떻게',
-    '조치',
-    // Command keywords
-    '명령어',
-    'command',
-    '실행',
-    'cli',
-    // Guide keywords
-    '가이드',
-    '도움',
-    '추천',
-    '안내',
-    // History keywords
-    '과거',
-    '사례',
-    '이력',
-    '비슷한',
-    // Patterns
-    /어떻게.*해결|해결.*방법/i,
-    /명령어.*알려|추천.*명령/i,
-    /\?$/, // Questions often need advice
-  ],
-});
+function createAdvisorAgent() {
+  try {
+    const model = getMistralModel('mistral-small-2506');
+    console.log('💡 [Advisor Agent] Initialized with mistral-small-2506');
+    return new Agent({
+      name: 'Advisor Agent',
+      model,
+      instructions: ADVISOR_INSTRUCTIONS,
+      tools: {
+        searchKnowledgeBase,
+        recommendCommands,
+      },
+      matchOn: [
+        // Solution keywords
+        '해결',
+        '방법',
+        '어떻게',
+        '조치',
+        // Command keywords
+        '명령어',
+        'command',
+        '실행',
+        'cli',
+        // Guide keywords
+        '가이드',
+        '도움',
+        '추천',
+        '안내',
+        // History keywords
+        '과거',
+        '사례',
+        '이력',
+        '비슷한',
+        // Patterns
+        /어떻게.*해결|해결.*방법/i,
+        /명령어.*알려|추천.*명령/i,
+        /\?$/, // Questions often need advice
+      ],
+    });
+  } catch (error) {
+    console.warn('⚠️ [Advisor Agent] Not available (MISTRAL_API_KEY not configured)');
+    return null;
+  }
+}
+
+export const advisorAgent = createAdvisorAgent();
 
 export default advisorAgent;

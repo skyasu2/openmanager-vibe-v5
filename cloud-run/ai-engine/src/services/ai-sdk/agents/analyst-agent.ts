@@ -67,42 +67,53 @@ A: detectAnomalies(metricType: "memory") 호출 후
 `;
 
 // ============================================================================
-// Agent Instance
+// Agent Instance (Graceful Degradation)
 // ============================================================================
 
-export const analystAgent = new Agent({
-  name: 'Analyst Agent',
-  model: getMistralModel('mistral-small-2506'),
-  instructions: ANALYST_INSTRUCTIONS,
-  tools: {
-    detectAnomalies,
-    predictTrends,
-    analyzePattern,
-    correlateMetrics,
-    findRootCause,
-  },
-  matchOn: [
-    // Anomaly keywords
-    '이상',
-    '비정상',
-    'anomaly',
-    '스파이크',
-    'spike',
-    // Prediction keywords
-    '예측',
-    '트렌드',
-    '추세',
-    '향후',
-    'predict',
-    // Analysis keywords
-    '분석',
-    '패턴',
-    '원인',
-    '왜',
-    // Patterns
-    /이상\s*(있|징후|탐지)/i,
-    /언제.*될|고갈/i, // Resource exhaustion
-  ],
-});
+function createAnalystAgent() {
+  try {
+    const model = getMistralModel('mistral-small-2506');
+    console.log('🔬 [Analyst Agent] Initialized with mistral-small-2506');
+    return new Agent({
+      name: 'Analyst Agent',
+      model,
+      instructions: ANALYST_INSTRUCTIONS,
+      tools: {
+        detectAnomalies,
+        predictTrends,
+        analyzePattern,
+        correlateMetrics,
+        findRootCause,
+      },
+      matchOn: [
+        // Anomaly keywords
+        '이상',
+        '비정상',
+        'anomaly',
+        '스파이크',
+        'spike',
+        // Prediction keywords
+        '예측',
+        '트렌드',
+        '추세',
+        '향후',
+        'predict',
+        // Analysis keywords
+        '분석',
+        '패턴',
+        '원인',
+        '왜',
+        // Patterns
+        /이상\s*(있|징후|탐지)/i,
+        /언제.*될|고갈/i, // Resource exhaustion
+      ],
+    });
+  } catch (error) {
+    console.warn('⚠️ [Analyst Agent] Not available (MISTRAL_API_KEY not configured)');
+    return null;
+  }
+}
+
+export const analystAgent = createAnalystAgent();
 
 export default analystAgent;

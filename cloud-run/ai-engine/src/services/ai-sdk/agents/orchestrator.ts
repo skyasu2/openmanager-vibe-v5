@@ -107,8 +107,9 @@ const ORCHESTRATOR_INSTRUCTIONS = `당신은 서버 모니터링 AI 시스템의
  * Get orchestrator model with fallback
  * Primary: Cerebras (fastest)
  * Fallback: Groq (stable)
+ * Returns null if no model available (graceful degradation)
  */
-function getOrchestratorModel() {
+function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasModel>; provider: string; modelId: string } | null {
   const status = checkProviderStatus();
 
   if (status.cerebras) {
@@ -131,19 +132,34 @@ function getOrchestratorModel() {
     };
   }
 
-  throw new Error('No orchestrator model available');
+  console.warn('⚠️ [Orchestrator] No model available (need CEREBRAS_API_KEY or GROQ_API_KEY)');
+  return null;
 }
 
+// Get model config at startup
+const orchestratorModelConfig = getOrchestratorModel();
+
+// Filter out null agents for handoffs
+const availableAgents = [nlqAgent, analystAgent, reporterAgent, advisorAgent].filter(
+  (agent): agent is NonNullable<typeof agent> => agent !== null
+);
+
 /**
- * Main Orchestrator Agent
+ * Main Orchestrator Agent (null if no model available)
  */
-export const orchestrator = new Agent({
-  name: 'OpenManager Orchestrator',
-  model: getOrchestratorModel().model,
-  instructions: ORCHESTRATOR_INSTRUCTIONS,
-  handoffs: [nlqAgent, analystAgent, reporterAgent, advisorAgent],
-  maxTurns: 10,
-});
+export const orchestrator = orchestratorModelConfig
+  ? (() => {
+      console.log(`🎯 [Orchestrator] Initialized with ${orchestratorModelConfig.provider}/${orchestratorModelConfig.modelId}`);
+      console.log(`📋 [Orchestrator] Available agents: ${availableAgents.length}`);
+      return new Agent({
+        name: 'OpenManager Orchestrator',
+        model: orchestratorModelConfig.model,
+        instructions: ORCHESTRATOR_INSTRUCTIONS,
+        handoffs: availableAgents,
+        maxTurns: 10,
+      });
+    })()
+  : null;
 
 // ============================================================================
 // Execution Function
@@ -157,8 +173,17 @@ export async function executeMultiAgent(
 ): Promise<MultiAgentResponse | MultiAgentError> {
   const startTime = Date.now();
 
+  // Check if orchestrator is available
+  if (!orchestrator || !orchestratorModelConfig) {
+    return {
+      success: false,
+      error: 'Orchestrator not available (no AI provider configured)',
+      code: 'MODEL_UNAVAILABLE',
+    };
+  }
+
   try {
-    const { provider, modelId } = getOrchestratorModel();
+    const { provider, modelId } = orchestratorModelConfig;
 
     console.log(`🎯 [Orchestrator] Starting with ${provider}/${modelId}`);
 
