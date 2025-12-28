@@ -69,8 +69,7 @@ import {
   MISTRAL_MODELS,
   CEREBRAS_MODELS,
 } from '../../lib/model-config';
-// LangFuse Integration (Phase 2)
-import { createSessionHandler } from '../../lib/langfuse-handler';
+// LangFuse removed (v5.83.12) - createReactAgent doesn't propagate callbacks
 
 // ============================================================================
 // 0. Groq Message Compatibility Helper
@@ -941,10 +940,6 @@ export interface SupervisorExecutionOptions {
   verificationContext?: string;
   /** Enable context compression for long conversations (default: true) */
   enableCompression?: boolean;
-  /** Enable LangFuse tracing for observability (default: true) */
-  enableTracing?: boolean;
-  /** User ID for LangFuse tracing */
-  userId?: string;
 }
 
 /**
@@ -952,8 +947,8 @@ export interface SupervisorExecutionOptions {
  * Uses Mistral AI for Supervisor with automatic rate limit handling
  * v5.85.0: Added Verifier Agent post-processing for quality assurance
  * v5.86.0: Added Context Compression for long conversations
- * v5.87.0: Added LangFuse tracing for observability
  * v5.88.0: Migrated from Gemini to Mistral AI
+ * v5.83.12: Removed LangFuse (createReactAgent doesn't propagate callbacks)
  */
 export async function executeSupervisor(
   query: string,
@@ -970,37 +965,12 @@ export async function executeSupervisor(
     enableVerification = true,
     verificationContext,
     enableCompression = true,
-    enableTracing = true,
-    userId,
   } = options;
   const MAX_RETRIES = 3; // Retry on transient errors
   let compressionApplied = false;
 
-  // === LangFuse Tracing (v5.87.0) ===
-  // Note: LangFuse integration is initialized for session-level observability
-  // The handler is passed to LangGraph config for automatic tracing
-  const langfuseHandler = enableTracing
-    ? await createSessionHandler({
-        sessionId,
-        userId,
-        metadata: {
-          query: query.slice(0, 100), // Truncate for metadata
-          enableVerification,
-          enableCompression,
-        },
-      })
-    : null;
-
-  // Create config with optional LangFuse callbacks
-  const config = createSessionConfig(
-    sessionId,
-    undefined,
-    langfuseHandler ? [langfuseHandler] : undefined
-  );
-
-  if (langfuseHandler) {
-    console.log(`📊 [LangFuse] Tracing initialized for session: ${sessionId}`);
-  }
+  // Create session config for checkpointing
+  const config = createSessionConfig(sessionId);
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
@@ -1012,7 +982,7 @@ export async function executeSupervisor(
         {
           messages: [new HumanMessage(query)],
         },
-        config as any // Type assertion for LangGraph config with LangFuse callbacks
+        config as any // Type assertion for LangGraph config
       );
 
       // Extract final response from messages
@@ -1093,12 +1063,7 @@ export async function executeSupervisor(
         }
       }
 
-      console.log(`✅ [Supervisor] Completed. Session: ${sessionId}, Compressed: ${compressionApplied}, Traced: ${!!langfuseHandler}`);
-
-      // Flush LangFuse traces asynchronously (non-blocking)
-      if (langfuseHandler?.flushAsync) {
-        langfuseHandler.flushAsync().catch(err => console.warn('⚠️ [LangFuse] Flush failed:', err));
-      }
+      console.log(`✅ [Supervisor] Completed. Session: ${sessionId}, Compressed: ${compressionApplied}`);
 
       return { response, sessionId, verification, compressionApplied };
     } catch (error) {

@@ -34,73 +34,29 @@ src/
 └── lib/
     ├── model-config.ts            # LLM Configuration
     ├── checkpointer.ts            # Supabase Persistence
-    ├── context-compression.ts     # Token Optimization
-    └── langfuse-handler.ts        # Observability
+    └── context-compression.ts     # Token Optimization
 ```
 
 ## LLM Providers
 
 | Provider | Model | Usage |
 |----------|-------|-------|
-| Google | gemini-2.0-flash-exp | Primary (Supervisor) |
-| Groq | llama-3.3-70b-versatile | Fallback (Agents) |
+| Cerebras | llama-3.3-70b | Primary (7 Agents) |
+| Groq | llama-3.3-70b-versatile | Fallback Provider |
+| Mistral | mistral-small-latest | Verifier & Last Keeper |
 
 ## Environment Variables
 
 ```bash
 # Required
-GOOGLE_API_KEY=xxx              # Gemini API
-GROQ_API_KEY=xxx                # Groq API
+GOOGLE_API_KEY=xxx              # Gemini API (Embedding)
+CEREBRAS_API_KEY=xxx            # Cerebras API (Primary)
+GROQ_API_KEY=xxx                # Groq API (Fallback)
+MISTRAL_API_KEY=xxx             # Mistral API (Verifier)
 
 # Optional: Supabase (for checkpointing)
 SUPABASE_URL=xxx
 SUPABASE_SERVICE_ROLE_KEY=xxx
-
-# Optional: LangFuse Observability (v4)
-LANGFUSE_PUBLIC_KEY=pk-lf-xxx
-LANGFUSE_SECRET_KEY=sk-lf-xxx
-LANGFUSE_BASE_URL=https://us.cloud.langfuse.com
-```
-
-## LangFuse Integration (v4)
-
-### Package Dependencies
-
-```json
-{
-  "@langfuse/core": "^4.5.1",
-  "@langfuse/langchain": "^4.5.1",
-  "@opentelemetry/api": "^1.9.0"
-}
-```
-
-> **Note**: v4 packages natively support `@langchain/core >=0.3.0`.
-> No `--legacy-peer-deps` required.
-
-### Usage
-
-LangFuse tracing is automatically enabled when environment variables are set.
-See `src/lib/langfuse-handler.ts` for implementation details.
-
-### Migration from v3
-
-If migrating from `langfuse-langchain` (v3.x):
-
-```bash
-# Remove deprecated packages
-npm uninstall langfuse langfuse-langchain
-
-# Install v4 scoped packages
-npm install @langfuse/core @langfuse/langchain @opentelemetry/api
-```
-
-Update imports:
-```typescript
-// Before (v3)
-import { CallbackHandler } from 'langfuse-langchain';
-
-// After (v4)
-import { CallbackHandler } from '@langfuse/langchain';
 ```
 
 ## Promptfoo Testing
@@ -136,6 +92,6 @@ https://ai-engine-490817238363.asia-northeast1.run.app
 
 ## Version
 
-Current: `5.83.11`
+Current: `5.83.12`
 
 See [CHANGELOG.md](../../CHANGELOG.md) for release history.

@@ -3,27 +3,23 @@
  * Parses JSON-based consolidated secrets from environment variables
  *
  * @module secret-config
- * @version 2.0.0
+ * @version 2.1.0
  *
  * ## Secret Consolidation (2025-12-28)
- * Consolidated into 6 grouped secrets for Cloud Run cost optimization:
+ * Consolidated into 5 grouped secrets for Cloud Run cost optimization:
  * 1. GOOGLE_AI_CONFIG: Gemini API keys
- * 2. LANGFUSE_CONFIG: LangFuse observability
- * 3. SUPABASE_CONFIG: Database connection
- * 4. AI_PROVIDERS_CONFIG: Groq, Mistral, Cerebras, Tavily (NEW)
- * 5. KV_CONFIG: Upstash Redis (NEW)
- * 6. CLOUD_RUN_API_SECRET: API authentication
+ * 2. SUPABASE_CONFIG: Database connection
+ * 3. AI_PROVIDERS_CONFIG: Groq, Mistral, Cerebras, Tavily
+ * 4. KV_CONFIG: Upstash Redis
+ * 5. CLOUD_RUN_API_SECRET: API authentication
+ *
+ * ## v2.1.0 (2025-12-28)
+ * - Removed Langfuse (unused due to createReactAgent callback limitation)
  */
 
 // =============================================================================
 // Types
 // =============================================================================
-
-export interface LangFuseConfig {
-  baseUrl: string;
-  publicKey: string;
-  secretKey: string;
-}
 
 export interface GoogleAIConfig {
   primaryKey: string;
@@ -84,21 +80,6 @@ function parseJsonSecret<T>(envVar: string, secretName: string): T | null {
 // Legacy Environment Variable Support
 // =============================================================================
 
-function getLangFuseConfigLegacy(): LangFuseConfig | null {
-  const publicKey = process.env.LANGFUSE_PUBLIC_KEY;
-  const secretKey = process.env.LANGFUSE_SECRET_KEY;
-  const baseUrl = process.env.LANGFUSE_BASE_URL;
-
-  if (publicKey && secretKey) {
-    return {
-      baseUrl: baseUrl || 'https://cloud.langfuse.com',
-      publicKey,
-      secretKey,
-    };
-  }
-  return null;
-}
-
 function getGoogleAIConfigLegacy(): GoogleAIConfig | null {
   const primaryKey = process.env.GEMINI_API_KEY_PRIMARY;
   const secondaryKey = process.env.GEMINI_API_KEY_SECONDARY;
@@ -131,32 +112,10 @@ function getSupabaseConfigLegacy(): SupabaseConfig | null {
 // Public API - Config Getters with Fallback
 // =============================================================================
 
-let cachedLangFuseConfig: LangFuseConfig | null = null;
 let cachedGoogleAIConfig: GoogleAIConfig | null = null;
 let cachedSupabaseConfig: SupabaseConfig | null = null;
 let cachedAIProvidersConfig: AIProvidersConfig | null = null;
 let cachedKVConfig: KVConfig | null = null;
-
-/**
- * Get LangFuse configuration
- * Tries JSON secret first, falls back to legacy env vars
- */
-export function getLangFuseConfig(): LangFuseConfig | null {
-  if (cachedLangFuseConfig) return cachedLangFuseConfig;
-
-  // Try JSON secret first
-  cachedLangFuseConfig = parseJsonSecret<LangFuseConfig>(
-    'LANGFUSE_CONFIG',
-    'langfuse-config'
-  );
-
-  // Fallback to legacy env vars
-  if (!cachedLangFuseConfig) {
-    cachedLangFuseConfig = getLangFuseConfigLegacy();
-  }
-
-  return cachedLangFuseConfig;
-}
 
 /**
  * Get Google AI (Gemini) configuration
@@ -345,7 +304,6 @@ export function getUpstashConfig(): UpstashConfig | null {
 // =============================================================================
 
 export function getConfigStatus(): {
-  langfuse: boolean;
   googleAI: boolean;
   supabase: boolean;
   upstash: boolean;
@@ -356,7 +314,6 @@ export function getConfigStatus(): {
   cloudRunApi: boolean;
 } {
   return {
-    langfuse: getLangFuseConfig() !== null,
     googleAI: getGoogleAIConfig() !== null,
     supabase: getSupabaseConfig() !== null,
     upstash: getUpstashConfig() !== null,
@@ -372,7 +329,6 @@ export function getConfigStatus(): {
  * Clear cached configs (for testing)
  */
 export function clearConfigCache(): void {
-  cachedLangFuseConfig = null;
   cachedGoogleAIConfig = null;
   cachedSupabaseConfig = null;
   cachedAIProvidersConfig = null;
