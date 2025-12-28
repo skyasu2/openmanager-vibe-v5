@@ -11,7 +11,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
-import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
@@ -75,19 +75,20 @@ async function postHandler(request: NextRequest) {
       // generate 액션인 경우 DB 저장 시도
       if (action === 'generate' && reportData.id) {
         try {
-          const supabase = await createClient();
-          const { error } = await supabase.from('incident_reports').insert({
-            id: reportData.id,
-            title: reportData.title,
-            severity: reportData.severity,
-            affected_servers: reportData.affected_servers || [],
-            anomalies: reportData.anomalies || [],
-            root_cause_analysis: reportData.root_cause_analysis || {},
-            recommendations: reportData.recommendations || [],
-            timeline: reportData.timeline || [],
-            pattern: reportData.pattern || 'unknown',
-            created_at: reportData.created_at || new Date().toISOString(),
-          });
+          const { error } = await supabaseAdmin
+            .from('incident_reports')
+            .insert({
+              id: reportData.id,
+              title: reportData.title,
+              severity: reportData.severity,
+              affected_servers: reportData.affected_servers || [],
+              anomalies: reportData.anomalies || [],
+              root_cause_analysis: reportData.root_cause_analysis || {},
+              recommendations: reportData.recommendations || [],
+              timeline: reportData.timeline || [],
+              pattern: reportData.pattern || 'unknown',
+              created_at: reportData.created_at || new Date().toISOString(),
+            });
 
           if (error) {
             debug.error('DB save error (Cloud Run data):', error);
@@ -137,13 +138,12 @@ async function postHandler(request: NextRequest) {
  */
 async function getHandler(request: NextRequest) {
   try {
-    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (id) {
       // 특정 보고서 조회
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('incident_reports')
         .select('*')
         .eq('id', id)
@@ -158,7 +158,7 @@ async function getHandler(request: NextRequest) {
       });
     } else {
       // 최근 보고서 목록
-      const { data: reports, error } = await supabase
+      const { data: reports, error } = await supabaseAdmin
         .from('incident_reports')
         .select('*')
         .order('created_at', { ascending: false })
