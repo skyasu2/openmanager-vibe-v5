@@ -15,6 +15,13 @@ import { createMistral } from '@ai-sdk/mistral';
 import { createGroq } from '@ai-sdk/groq';
 import type { LanguageModel } from 'ai';
 
+// Use centralized config getters (supports AI_PROVIDERS_CONFIG JSON format)
+import {
+  getCerebrasApiKey,
+  getMistralApiKey,
+  getGroqApiKey,
+} from '../../lib/config-parser';
+
 // ============================================================================
 // 1. Types
 // ============================================================================
@@ -29,22 +36,6 @@ export interface ProviderConfig {
 export interface ModelConfig {
   temperature?: number;
   maxTokens?: number;
-}
-
-// ============================================================================
-// 2. Environment Helpers
-// ============================================================================
-
-function getCerebrasApiKey(): string | undefined {
-  return process.env.CEREBRAS_API_KEY;
-}
-
-function getGroqApiKey(): string | undefined {
-  return process.env.GROQ_API_KEY;
-}
-
-function getMistralApiKey(): string | undefined {
-  return process.env.MISTRAL_API_KEY;
 }
 
 // ============================================================================
