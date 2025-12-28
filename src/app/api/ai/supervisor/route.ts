@@ -400,35 +400,49 @@ export const POST = withRateLimit(
         );
 
         if (wantsStream) {
-          // Cloud Run 스트리밍 프록시
-          const cloudStream = await proxyStreamToCloudRun({
+          // ================================================================
+          // 🔧 Cloud Run JSON 응답 처리 (2025-12-29 수정)
+          // ================================================================
+          // Cloud Run은 현재 JSON 응답을 반환함 (스트리밍 미구현)
+          // JSON 응답에서 텍스트를 추출하여 plain text로 반환
+          // ================================================================
+          const proxyResult = await proxyToCloudRun({
             path: '/api/ai/supervisor',
             body: { messages: normalizedMessages, sessionId },
+            timeout: 90000, // 90초 타임아웃 (복잡한 쿼리 대응)
           });
 
-          if (cloudStream) {
-            // ================================================================
-            // 🔧 Data Stream Protocol → Plain Text 변환 (2025-12-24 수정)
-            // ================================================================
-            // Cloud Run이 반환하는 Data Stream Protocol (`0:"text"` 형식)을
-            // Plain Text로 변환하여 TextStreamChatTransport가 파싱할 수 있게 합니다.
-            // ================================================================
-            const plainTextStream = cloudStream.pipeThrough(
-              createDataStreamParserTransform()
-            );
-            return new Response(plainTextStream, {
-              headers: {
-                'Content-Type': 'text/plain; charset=utf-8',
-                'Cache-Control': 'no-cache',
-                Connection: 'keep-alive',
-                'X-Session-Id': sessionId,
-                'X-Backend': 'cloud-run',
-                'X-Stream-Protocol': 'plain-text',
-              },
-            });
+          if (proxyResult.success && proxyResult.data) {
+            const data = proxyResult.data as {
+              success?: boolean;
+              response?: string;
+              error?: string;
+            };
+
+            if (data.success && data.response) {
+              // 성공: response 텍스트를 plain text로 반환
+              return new Response(data.response, {
+                headers: {
+                  'Content-Type': 'text/plain; charset=utf-8',
+                  'Cache-Control': 'no-cache',
+                  'X-Session-Id': sessionId,
+                  'X-Backend': 'cloud-run',
+                  'X-Stream-Protocol': 'plain-text',
+                },
+              });
+            } else if (data.error) {
+              // 에러: 에러 메시지 반환
+              return new Response(`⚠️ AI 오류: ${data.error}`, {
+                headers: {
+                  'Content-Type': 'text/plain; charset=utf-8',
+                  'X-Session-Id': sessionId,
+                  'X-Backend': 'cloud-run',
+                },
+              });
+            }
           }
           // Cloud Run 실패 시 에러 응답
-          console.error('❌ Cloud Run stream failed');
+          console.error('❌ Cloud Run request failed:', proxyResult.error);
         } else {
           // Cloud Run 단일 응답 프록시
           const proxyResult = await proxyToCloudRun({
