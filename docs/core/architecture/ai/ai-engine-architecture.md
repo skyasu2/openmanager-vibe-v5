@@ -2,88 +2,78 @@
 
 ## Overview
 
-The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **LangGraph StateGraph**. It uses a Supervisor-Worker pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
+The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel AI SDK** with `@ai-sdk-tools/agents`. It uses a dual-mode Supervisor pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.91.0, Updated 2025-12-28)
+## Architecture (v5.92.0, Updated 2025-12-28)
 
 ### Deployment Mode
 
 | Mode | Backend | Status |
 |------|---------|--------|
-| **Cloud Run** | `cloud-run/ai-engine/` (LangGraph) | ✅ Active (Primary) |
+| **Cloud Run** | `cloud-run/ai-engine/` (Vercel AI SDK) | ✅ Active (Primary) |
 | **Vercel** | `src/app/` (Next.js Frontend) | ✅ Active (Frontend Only) |
 | ~~Cloud Run~~ | ~~`cloud-run/rust-inference/`~~ | ❌ Removed |
-| ~~Cloud Run~~ | ~~`cloud-run/supabase-mcp/`~~ | ❌ Deprecated |
+| ~~Cloud Run~~ | ~~LangGraph/LangChain~~ | ❌ Removed (v5.92.0) |
 
-> **Note**: LangGraph was migrated from Vercel to Cloud Run (2025-12-16) due to Edge response issues. Vercel now serves the Next.js frontend only, functioning as a strict proxy for AI requests. Rust ML service has been removed in favor of LLM-based analysis.
+> **Note**: LangGraph/LangChain migrated to Vercel AI SDK (2025-12-28) due to Cerebras multi-turn tool calling limitations. New architecture uses `@ai-sdk-tools/agents` for multi-agent orchestration.
 
 ### Agent Stack
 
-| Agent | Provider | Model | Role | Tools |
-|-------|----------|-------|------|-------|
-| **Supervisor** | Cerebras | Llama 3.3-70b | Intent classification & LangGraph handoff | - |
-| **NLQ Agent** | Groq | Llama 3.3-70b | Server metrics queries | `getServerMetrics`, `getServerLogs`, `getServerMetricsAdvanced` |
-| **Analyst Agent** | Groq | Llama 3.3-70b | Pattern analysis, anomaly detection | `detectAnomalies`, `predictTrends`, `analyzePattern` |
-| **RCA Agent** | Groq | Llama 3.3-70b | Root Cause Analysis (requires NLQ+Analyst) | `buildIncidentTimeline`, `correlateEvents`, `findRootCause` |
-| **Capacity Agent** | Groq | Llama 3.3-70b | Capacity planning (requires NLQ+Analyst) | `predictResourceExhaustion`, `getScalingRecommendation` |
-| **Reporter Agent** | Groq | Llama 3.3-70b | Incident reports, web search | `searchKnowledgeBase` (RAG), `recommendCommands`, `searchWeb` (Tavily) |
-| **Verifier Agent** | Mistral | Small 3.2 (24B) | Post-processing validation & safety check | `comprehensiveVerify`, `validateMetricRanges`, `detectHallucination` |
+| Agent | Provider | Model | Fallback | Role | Tools |
+|-------|----------|-------|----------|------|-------|
+| **Orchestrator** | Cerebras | Llama 3.3-70b | Groq | Fast intent routing (~200ms) | Agent handoffs |
+| **NLQ Agent** | Groq | Llama 3.3-70b-versatile | Cerebras | Server metrics queries (simple + complex) | `getServerMetrics`, `getServerMetricsAdvanced`, `filterServers` |
+| **Analyst Agent** | Mistral | mistral-small-2506 | - | Anomaly detection, trend prediction | `detectAnomalies`, `predictTrends`, `analyzePattern`, `correlateMetrics`, `findRootCause` |
+| **Reporter Agent** | Mistral | mistral-small-2506 | - | Incident reports, timeline | `buildIncidentTimeline`, `findRootCause`, `correlateMetrics` |
+| **Advisor Agent** | Mistral | mistral-small-2506 | - | Troubleshooting, knowledge search | `searchKnowledgeBase` (GraphRAG), `recommendCommands` |
 
-> **Triple-Provider Strategy**: Cerebras (Supervisor, 24M/day) → Groq (Workers, 100K/day fallback) → Mistral (Verifier). Rate limit optimized with automatic Cerebras→Groq fallback.
+> **Dual-Mode Strategy**: Single-agent mode for simple queries (low latency), Multi-agent mode for complex queries (specialized handling). Groq reserved for NLQ Agent tool calling stability.
 
 ### Key Features
 
-- **Parallel Analysis**: Analyst + NLQ agents run concurrently for comprehensive reports
-- **Human-in-the-Loop (HITL)**: Critical actions require approval via LangGraph `interruptBefore`
-- **Return-to-Supervisor**: Agents can route back to supervisor for re-evaluation
-- **Multi-Agent Delegation**: Inter-agent task delegation via Command pattern
+- **Dual-Mode Supervisor**: Single-agent (simple) vs Multi-agent (complex) mode auto-selection
+- **Agent Handoffs**: Pattern-based routing with `matchOn` keywords and regex
+- **Multi-Step Tool Calling**: Vercel AI SDK `maxSteps` for reliable tool execution
+- **Fallback Chains**: Per-agent provider fallbacks (Groq → Cerebras, Cerebras → Mistral)
+- **Human-in-the-Loop (HITL)**: Critical actions require approval
 - **Circuit Breaker**: Model health monitoring with automatic failover
-- **Session Persistence**: Supabase PostgresCheckpointer for conversation continuity
-- **Context Compression**: Token-based conversation compression for long sessions (85%+ threshold)
+- **GraphRAG Integration**: Advisor agent uses hybrid vector + graph search
+- **Protocol Adaptation**: SSE with Keep-Alive to prevent timeouts
 
-- **Verifier Integration**: Dedicated agent for post-processing validation and safety checks (v5.85.0)
-- **Groq Compatibility**: Custom state modifier to adapt Gemini tool calls for Groq Llama models
-- **Protocol Adaptation**: Simulated SSE with Keep-Alive to prevent timeouts on Vercel/Cloud Run
-- **Gemini API Key Failover**: Primary → Secondary key rotation on rate limit exhaustion (v5.88.0)
-- **maxRetries: 0 Fix**: Disabled LangChain SDK internal retries to prevent timeout cascades (v5.88.0)
+#### New in v5.92.0 (2025-12-28)
 
-#### New in v5.91.0 (2025-12-28)
+- **LangGraph → Vercel AI SDK Migration**: Complete rewrite using `@ai-sdk-tools/agents`
+- **Dual-Mode Supervisor**: Auto-selects single vs multi-agent based on query complexity
+- **Agent Specialization**:
+  - NLQ Agent (Groq): Simple + complex server queries
+  - Analyst Agent (Mistral): Anomaly detection, trend prediction
+  - Reporter Agent (Mistral): Incident reports, timeline
+  - Advisor Agent (Mistral): Troubleshooting with GraphRAG
+- **Fallback Optimization**: NLQ uses Groq→Cerebras, Single-mode uses Cerebras→Mistral (Groq reserved)
+- **Test Coverage**: 65 unit tests including multi-agent orchestrator tests
 
-- **RCA Agent**: Root Cause Analysis agent for incident timeline and correlation analysis
-- **Capacity Agent**: Capacity planning agent for resource exhaustion prediction
-- **Agent Dependencies**: RCA/Capacity require NLQ+Analyst results (enforced via SharedContext)
-- **Workflow Caching**: 5-minute TTL cache for compiled LangGraph workflows
-- **Dead Code Removal**: NLQ SubGraph removed (~1,000 lines) - complex queries handled by `getServerMetricsAdvanced`
-- **Recursion Limit**: Increased from 8 to 10 for retry buffer in 4-agent chains
-- **Web Search Migration**: DuckDuckGo → Tavily API for improved reliability
+#### Previous Versions
 
-#### New in v5.90.0 (2025-12-27)
+<details>
+<summary>v5.91.0 and earlier (LangGraph era)</summary>
 
-- **Triple-Provider Strategy**: Cerebras (Supervisor) → Groq (Workers) → Mistral (Verifier)
-- **Analyst/Reporter Cerebras Migration**: Groq → Cerebras primary (rate limit optimization)
-- **Rate Limit Distribution**: Groq 100K/day → Cerebras 24M/day (240x capacity increase)
-- **Automatic Fallback**: Cerebras rate limit triggers automatic Groq fallback
+**v5.91.0** (LangGraph)
+- RCA Agent, Capacity Agent, Agent Dependencies
+- Workflow Caching, Web Search Migration to Tavily
 
-#### New in v5.89.0 (2025-12-26)
+**v5.90.0**
+- Triple-Provider Strategy, Rate Limit Distribution
 
-- **Dual-Provider Architecture**: Groq (Primary) + Mistral (Secondary) for rate limit distribution
-- **Supervisor Migration**: Gemini → Groq Llama 3.3-70b for LangGraph handoff compatibility
-- **Verifier Upgrade**: Groq 8B → Mistral Small 3.2 (24B) for improved verification quality
-- **Advanced NLQ Tool**: `getServerMetricsAdvanced` with time range, filters, and aggregation support
-- **Korean NLP Helpers**: Time/metric/filter expression parsing for natural language queries
+**v5.89.0**
+- Dual-Provider Architecture, Advanced NLQ Tool
 
-#### New in v5.88.0
+**v5.88.0**
+- Gemini API Key Failover, LangChain maxRetries Fix
 
-- **Gemini API Key Failover**: Automatic primary → secondary key rotation when rate limit exhausted
-- **LangChain maxRetries Fix**: Set `maxRetries: 0` to prevent SDK internal retry timeout cascades
-- **Verifier Agent Migration**: Moved from Gemini 2.5 Flash to Groq Llama 3.1-8b for cost optimization
-- **Enhanced Hallucination Detection**: Improved metric range validation and factual consistency checks
+**v5.87.0**
+- GraphRAG Hybrid Search, Redis L2 Caching
 
-#### New in v5.87.0
-
-- **GraphRAG Hybrid Search**: Vector + graph-based knowledge retrieval for enhanced RAG accuracy
-- **Redis L2 Caching**: Upstash Redis integration for response caching and session optimization
-- **Approval History Persistence**: PostgreSQL storage for HITL approval records with audit trail
+</details>
 
 ### Agent Communication Patterns
 
@@ -105,40 +95,42 @@ graph TD
     end
 
     subgraph "Google Cloud Run"
-        CloudRun[AI Engine] --> Supervisor[Supervisor Agent]
+        CloudRun[AI Engine] --> ModeSelect{Mode Selection}
 
-        Supervisor -->|Simple Query| NLQ[NLQ Agent]
-        Supervisor -->|Pattern Analysis| Analyst[Analyst Agent]
-        Supervisor -->|Root Cause| RCA[RCA Agent]
-        Supervisor -->|Capacity Plan| Capacity[Capacity Agent]
-        Supervisor -->|Incident/RAG| Reporter[Reporter Agent]
-        Supervisor -->|Greeting| Direct[Direct Reply]
+        ModeSelect -->|Simple Query| SingleAgent[Single-Agent Mode]
+        ModeSelect -->|Complex Query| MultiAgent[Multi-Agent Mode]
 
-        NLQ -->|SharedContext| Analyst
-        Analyst -->|SharedContext| RCA
-        Analyst -->|SharedContext| Capacity
-        RCA --> Reporter
-        Capacity --> Reporter
+        subgraph "Single-Agent (Low Latency)"
+            SingleAgent --> Tools[Multi-Step Tool Calling]
+            Tools -->|Cerebras/Mistral| Response1[Response]
+        end
 
-        Reporter -->|Critical Action| Approval{Approval Check}
-        Approval -->|Approved| Verifier[Verifier Agent]
+        subgraph "Multi-Agent (Specialized)"
+            MultiAgent --> Orchestrator[Orchestrator Agent]
+            Orchestrator -->|matchOn Pattern| NLQ[NLQ Agent<br/>Groq/Cerebras]
+            Orchestrator -->|matchOn Pattern| Analyst[Analyst Agent<br/>Mistral]
+            Orchestrator -->|matchOn Pattern| Reporter[Reporter Agent<br/>Mistral]
+            Orchestrator -->|matchOn Pattern| Advisor[Advisor Agent<br/>Mistral]
+
+            NLQ -->|Handoff| Analyst
+            Analyst -->|Handoff| Reporter
+            Reporter -->|Critical| Approval{HITL Check}
+            Advisor -->|GraphRAG| RAG[(Knowledge Base)]
+        end
+
+        Approval -->|Approved| Response2[Response]
         Approval -->|Pending| Interrupt[Human Interrupt]
-
-        NLQ --> Verifier
-        Analyst --> Verifier
-        Direct --> Verifier
-
-        Verifier -->|Validated| Response[Response]
     end
 
     subgraph "Data Layer"
-        NLQ --> Metrics[(Scenario Data)]
+        NLQ --> Metrics[(Server Metrics)]
         Analyst --> Metrics
-        Reporter --> RAG[(Supabase pgvector)]
-        Supervisor --> Checkpoint[(MemorySaver/Redis)]
+        Reporter --> RAG
+        Orchestrator --> Cache[(Redis L2 Cache)]
     end
 
-    Response --> Client
+    Response1 --> Client
+    Response2 --> Client
 ```
 
 ### Interactive Diagrams (FigJam)
@@ -153,38 +145,63 @@ graph TD
 
 ## State Interfaces
 
-### AgentState (16 Fields)
+### Vercel AI SDK Types (v5.92.0)
 
-The core state interface for LangGraph orchestration:
+The core interfaces for AI SDK multi-agent orchestration:
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `messages` | BaseMessage[] | Conversation history |
-| `sessionId` | string | Session identifier |
-| `iteration` | number | Current iteration count |
-| `routerDecision` | RouterDecision | Supervisor routing decision |
-| `targetAgent` | AgentType | Selected agent for execution |
-| `taskType` | TaskType | Classified task type |
-| `delegationRequest` | DelegationRequest \| null | A2A delegation info |
-| `returnToSupervisor` | boolean | Flag for re-routing |
-| `agentResults` | AgentResult[] | Results from executed agents |
-| `requiresApproval` | boolean | HITL flag |
-| `approvalStatus` | 'pending' \| 'approved' \| 'rejected' | Approval state |
-| `pendingAction` | PendingAction \| null | Action awaiting approval |
-| `modelHealth` | CircuitBreakerState | Model health tracking |
-| `parallelAgents` | AgentType[] | Agents for parallel execution |
-| `toolResults` | ToolResult[] | Tool invocation results |
-| `finalResponse` | string | Final response to user |
-
-### DelegationRequest
+### SupervisorRequest
 
 ```typescript
-interface DelegationRequest {
-  fromAgent: AgentType;     // Origin agent
-  toAgent?: AgentType;      // Target agent (optional)
-  reason: string;           // Delegation reason
-  context?: unknown;        // Additional context
-  priority?: 'low' | 'normal' | 'high';
+interface SupervisorRequest {
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+  sessionId: string;
+  enableTracing?: boolean;
+  mode?: 'single' | 'multi' | 'auto';  // Execution mode
+}
+```
+
+### SupervisorResponse
+
+```typescript
+interface SupervisorResponse {
+  success: boolean;
+  response: string;
+  toolsCalled: string[];              // Names of tools invoked
+  toolResults: Record<string, unknown>[];
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  metadata: {
+    provider: string;                 // 'cerebras' | 'groq' | 'mistral'
+    modelId: string;
+    stepsExecuted: number;            // Multi-step tool calling count
+    durationMs: number;
+    mode?: 'single' | 'multi';
+    handoffs?: Array<{ from: string; to: string; reason?: string }>;
+    finalAgent?: string;              // Last agent that handled the query
+  };
+}
+```
+
+### MultiAgentRequest/Response
+
+```typescript
+interface MultiAgentRequest {
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+  sessionId: string;
+  enableTracing?: boolean;
+}
+
+interface MultiAgentResponse {
+  success: true;
+  response: string;
+  toolsCalled: string[];
+  handoffs: Array<{ from: string; to: string; reason?: string }>;
+  finalAgent: string;
+  usage: { promptTokens: number; completionTokens: number; totalTokens: number };
+  metadata: { provider: string; modelId: string; totalRounds: number; durationMs: number };
 }
 ```
 
@@ -196,26 +213,28 @@ interface PendingAction {
   description: string;      // Human-readable description
   payload: unknown;         // Action data
   requestedAt: string;      // ISO timestamp
-  requestedBy: AgentType;   // Requesting agent
+  requestedBy: string;      // Requesting agent name
 }
 ```
 
-### CircuitBreakerState
+<details>
+<summary>Legacy LangGraph Types (v5.91.0 and earlier)</summary>
 
-```typescript
-interface CircuitBreakerState {
-  models: Record<string, ModelHealthState>;
-  threshold: number;        // Failure threshold (default: 3)
-  resetTimeMs: number;      // Reset cooldown (default: 60000)
-}
+### AgentState (16 Fields)
 
-interface ModelHealthState {
-  failures: number;
-  isOpen: boolean;          // Circuit open = blocked
-  lastFailure?: string;
-  halfOpenAttempts: number;
-}
-```
+| Field | Type | Purpose |
+|-------|------|---------|
+| `messages` | BaseMessage[] | Conversation history |
+| `sessionId` | string | Session identifier |
+| `routerDecision` | RouterDecision | Supervisor routing decision |
+| `delegationRequest` | DelegationRequest | A2A delegation info |
+| `agentResults` | AgentResult[] | Results from executed agents |
+| `requiresApproval` | boolean | HITL flag |
+| `approvalStatus` | 'pending' | 'approved' | 'rejected' | Approval state |
+| `modelHealth` | CircuitBreakerState | Model health tracking |
+| `finalResponse` | string | Final response to user |
+
+</details>
 
 ## API Specification
 
@@ -394,12 +413,10 @@ GraphRAG combines:
 cloud-run/ai-engine/
 ├── src/
 │   ├── server.ts               # Hono HTTP server (main entry)
+│   ├── tools-ai-sdk.ts         # Vercel AI SDK tool definitions (11 tools)
 │   ├── lib/
-│   │   ├── model-config.ts     # Triple-provider model configuration (Cerebras + Groq + Mistral)
-│   │   ├── shared-context.ts   # Agent result sharing & dependency validation
-│   │   ├── checkpointer.ts     # LangGraph session management & recursion limit
+│   │   ├── cache-layer.ts      # Multi-tier caching (L1: Memory, L2: Redis)
 │   │   ├── redis-client.ts     # Upstash Redis client (L2 cache)
-│   │   ├── job-notifier.ts     # Async job result storage (Redis)
 │   │   ├── hybrid-cache.ts     # Multi-tier caching orchestration
 │   │   ├── graph-rag-service.ts # GraphRAG hybrid search service
 │   │   ├── embedding.ts        # Text embedding utilities
@@ -408,28 +425,33 @@ cloud-run/ai-engine/
 │   │       ├── compression-trigger.ts    # Token threshold detection
 │   │       ├── summary-generator.ts      # Conversation summarization
 │   │       └── context-compressor.ts     # Compression orchestration
-│   ├── agents/
-│   │   ├── nlq-agent.ts        # NLQ agent - server metrics queries
-│   │   ├── analyst-agent.ts    # Analyst agent - pattern analysis
-│   │   ├── rca-agent.ts        # RCA agent - root cause analysis
-│   │   ├── capacity-agent.ts   # Capacity agent - resource prediction
-│   │   ├── reporter-agent.ts   # Reporter agent with RAG & web search
-│   │   └── verifier-agent.ts   # Verifier agent - response validation
 │   ├── routes/
 │   │   └── jobs.ts             # Async job processing endpoints
 │   └── services/
-│       ├── langgraph/          # LangGraph StateGraph
+│       ├── ai-sdk/             # Vercel AI SDK (v5.92.0 - Primary)
+│       │   ├── supervisor.ts   # Dual-mode supervisor (single/multi)
+│       │   ├── supervisor.test.ts
+│       │   ├── model-provider.ts # Provider factory (Cerebras/Groq/Mistral)
+│       │   └── agents/         # @ai-sdk-tools/agents multi-agent system
+│       │       ├── index.ts    # Agent exports
+│       │       ├── orchestrator.ts      # Orchestrator with handoffs
+│       │       ├── orchestrator.test.ts # Unit tests (19 tests)
+│       │       ├── nlq-agent.ts         # NLQ (Groq → Cerebras fallback)
+│       │       ├── analyst-agent.ts     # Analyst (Mistral)
+│       │       ├── reporter-agent.ts    # Reporter (Mistral)
+│       │       └── advisor-agent.ts     # Advisor (Mistral + GraphRAG)
+│       ├── langgraph/          # LangGraph (Legacy - Deprecated)
 │       │   └── multi-agent-supervisor.ts
 │       ├── embedding/          # Embedding service
 │       │   └── embedding-service.ts
 │       ├── generate/           # Generate service
 │       │   └── generate-service.ts
 │       ├── approval/           # HITL approval store
-│       │   └── approval-store.ts        # In-memory + PostgreSQL persistence
+│       │   ├── approval-store.ts        # In-memory + PostgreSQL persistence
 │       │   └── approval-store.test.ts   # Unit tests
 │       └── scenario/           # Demo data loader
 │           └── scenario-loader.ts
-├── package.json                # @langchain/langgraph, hono, ai, @upstash/redis
+├── package.json                # ai, @ai-sdk-tools/agents, hono, @upstash/redis
 └── Dockerfile
 
 # Vercel Proxy Layer
@@ -463,23 +485,27 @@ cloud-run/supabase-mcp/         # Deprecated - direct Supabase JS client
 
 | Component | Status | Replacement |
 |-----------|--------|-------------|
+| `services/langgraph/` (Cloud Run) | Deprecated (2025-12-28) | `services/ai-sdk/` (Vercel AI SDK) |
 | `src/services/langgraph/` (Vercel) | Deprecated (2025-12-16) | `cloud-run/ai-engine/` |
 | `cloud-run/supabase-mcp/` | Deprecated (2025-12-16) | Direct Supabase JS client |
 | GCP VM | Removed (2025-12-16) | Cloud Run |
 | `/api/ai/query` | Removed | `/api/ai/supervisor` |
-| Python Unified Processor | Removed | TypeScript LangGraph agents |
+| Python Unified Processor | Removed | Vercel AI SDK agents |
 | GCP Cloud Functions | Removed | Cloud Run |
-| `ml-analytics-engine` (Python) | Removed | LangGraph Agents |
-| `cloud-run/rust-inference/` (Rust) | Removed (2025-12-24) | LangGraph Agents |
-| `SmartRoutingEngine` | Removed | LangGraph Supervisor Agent |
+| `ml-analytics-engine` (Python) | Removed | Vercel AI SDK agents |
+| `cloud-run/rust-inference/` (Rust) | Removed (2025-12-24) | Vercel AI SDK agents |
+| `SmartRoutingEngine` | Removed | AI SDK Dual-mode Supervisor |
 
 ## Cloud Run Services
 
-### ai-engine (LangGraph)
+### ai-engine (Vercel AI SDK v5.92.0)
 
 - **Runtime**: Node.js 22 + Hono
-- **Framework**: LangGraph StateGraph, Vercel AI SDK
+- **Framework**: Vercel AI SDK with `@ai-sdk-tools/agents`
+- **Architecture**: Dual-mode Supervisor (Single-Agent / Multi-Agent)
 - **Models**:
-  - Groq Llama 3.3-70b (Supervisor, NLQ, Analyst, Reporter)
-  - Mistral Small 3.2 24B (Verifier)
+  - Cerebras Llama 3.3-70b (Single-Agent primary, Orchestrator)
+  - Groq Llama 3.3-70b-versatile (NLQ Agent - tool calling)
+  - Mistral mistral-small-2506 (Analyst, Reporter, Advisor, Fallback)
 - **Endpoint**: `https://ai-engine-xxxxx.run.app`
+- **Test Coverage**: 65 unit tests (vitest)
