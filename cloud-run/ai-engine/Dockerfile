@@ -40,9 +40,7 @@ RUN apk add --no-cache dumb-init
 COPY package.json package-lock.json ./
 
 # Install all dependencies (dev + prod) for build
-# --mount=type=cache for faster npm installs
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --legacy-peer-deps --ignore-scripts
+RUN npm ci --legacy-peer-deps --ignore-scripts
 
 # ============================================================================
 # Stage 2: Build
