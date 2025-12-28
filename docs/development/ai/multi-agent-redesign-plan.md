@@ -451,39 +451,28 @@ const AGENT_DEPENDENCIES: Record<AgentName, AgentName[]> = {
 - 재시도 버퍼: +2 steps
 - 무한 루프 및 토큰 폭발 방지
 
-#### 5.5 미완료 작업 (후속 필요) ⚠️
+#### 5.5 Supervisor 프롬프트 강화 ✅ (2025-12-28)
+
+LangGraph `createSupervisor`는 내부 라우팅을 직접 제어하기 어려우므로,
+**Supervisor 프롬프트에서 의존성 규칙을 강제**하는 방식으로 구현했습니다.
+
+**추가된 프롬프트 규칙:**
+```
+🚨 에이전트 의존성 규칙 (필수 준수)
+
+의존성 체인:
+nlq_agent (독립) → analyst_agent → rca_agent / capacity_agent → reporter_agent
+
+⛔ 금지: rca_agent나 capacity_agent를 nlq_agent/analyst_agent 없이 직접 호출하면 안 됩니다!
+```
+
+#### 5.6 미완료 작업 (후속 필요)
 
 | 작업 | 설명 | 우선순위 |
 |------|------|----------|
-| **Supervisor 라우팅 통합** | `shouldUseAdvancedAgent()` 실제 호출 로직 추가 | 🔴 높음 |
-| **의존성 미충족 시 재라우팅** | RCA/Capacity 요청 시 NLQ/Analyst 먼저 실행 | 🔴 높음 |
 | **단위 테스트 추가** | `hasRequiredDependencies()` 테스트 | 🟡 중간 |
 | **통합 테스트** | 복합 쿼리 시나리오 검증 | 🟡 중간 |
-| **Cloud Run 배포** | Phase 5.2 코드 반영 | 🟡 중간 |
-
-#### 5.6 Supervisor 라우팅 통합 계획
-
-```typescript
-// 현재: 의존성 검사 없이 바로 에이전트 호출
-// 개선: RCA/Capacity 호출 전 의존성 확인
-
-// multi-agent-supervisor.ts 수정 필요
-async function routeWithDependencyCheck(
-  sessionId: string,
-  targetAgent: AgentName,
-  query: string
-): Promise<AgentName> {
-  // RCA/Capacity는 의존성 확인 필요
-  if (targetAgent === 'rca' || targetAgent === 'capacity') {
-    const canUse = await shouldUseAdvancedAgent(sessionId, targetAgent);
-    if (!canUse) {
-      // 의존성 미충족 → NLQ 먼저 실행
-      return 'nlq';
-    }
-  }
-  return targetAgent;
-}
-```
+| **Cloud Run 배포** | Phase 5 코드 반영 | 🟡 중간 |
 
 #### 5.7 예상 효과
 - ✅ RCA/Capacity 분석 정확도 향상 (선행 데이터 보장)
