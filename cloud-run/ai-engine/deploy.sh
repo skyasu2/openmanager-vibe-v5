@@ -114,10 +114,33 @@ if [ $? -eq 0 ]; then
       echo "   ⚠️  Cloud Build bucket not found, skipping source cleanup"
     fi
 
+    # Cleanup old Cloud Run revisions (keep latest 3)
+    echo ""
+    echo "🧹 Cleaning up old Cloud Run revisions..."
+    KEEP_REVISIONS=3
+    OLD_REVISIONS=$(gcloud run revisions list \
+      --service="$SERVICE_NAME" \
+      --region="$REGION" \
+      --format="value(name)" \
+      --sort-by="~metadata.creationTimestamp" 2>/dev/null | tail -n +$((KEEP_REVISIONS + 1)))
+
+    if [ -n "$OLD_REVISIONS" ]; then
+      REV_COUNT=0
+      for rev in $OLD_REVISIONS; do
+        gcloud run revisions delete "$rev" \
+          --region="$REGION" \
+          --quiet 2>/dev/null && ((REV_COUNT++)) || true
+      done
+      echo "   ✅ Old revisions deleted ($REV_COUNT processed)"
+    else
+      echo "   ✅ No old revisions to delete"
+    fi
+
     echo "=============================================================================="
-    echo "📊 Storage Cleanup Summary:"
+    echo "📊 Cleanup Summary:"
     echo "   - Container images: kept latest $KEEP_IMAGES"
     echo "   - Build sources: kept latest $KEEP_SOURCES"
+    echo "   - Cloud Run revisions: kept latest $KEEP_REVISIONS"
     echo "=============================================================================="
 else
     echo ""

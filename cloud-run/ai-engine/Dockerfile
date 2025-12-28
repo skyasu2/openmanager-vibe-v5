@@ -2,6 +2,11 @@
 # AI Engine - Cloud Run Service (Multi-stage Build)
 # Optimized for Cloud Run cold start & minimal image size
 #
+# v2.1 - 2025-12-28 (LangGraph Optimization)
+# - NLQ SubGraph dead code removed (-1000 lines)
+# - Workflow caching (5min TTL)
+# - Recursion limit 8 → 10
+#
 # v2.0 - 2025-12-27 (RCA + Capacity Agents)
 # - Added dumb-init for proper signal handling
 # - Optimized Node.js memory settings for Cloud Run
