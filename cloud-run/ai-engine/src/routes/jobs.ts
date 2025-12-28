@@ -7,8 +7,10 @@
  * Flow:
  * 1. Vercel creates job in Supabase, returns jobId immediately
  * 2. Vercel calls this endpoint (fire-and-forget or webhook style)
- * 3. This route processes the query via LangGraph Supervisor
+ * 3. This route processes the query via AI SDK Supervisor
  * 4. Result is stored in Redis for SSE retrieval
+ *
+ * @updated 2025-12-28 - Migrated from LangGraph to AI SDK
  */
 
 import type { Context } from 'hono';
@@ -23,7 +25,7 @@ import {
   updateJobProgress,
   isJobNotifierAvailable,
 } from '../lib/job-notifier';
-import { createSupervisorStreamResponse } from '../services/langgraph/multi-agent-supervisor';
+import { executeSupervisor, logProviderStatus } from '../services/ai-sdk';
 
 // ============================================================================
 // Jobs Router
@@ -111,55 +113,38 @@ jobsRouter.post('/process', async (c: Context) => {
       try {
         await updateJobProgress(jobId, 'routing', 20, 'Supervisor가 적절한 에이전트 선택 중...');
 
-        // Get stream from Supervisor
-        const stream = await createSupervisorStreamResponse(query, sessionId);
+        logProviderStatus();
 
         await updateJobProgress(jobId, 'processing', 50, 'AI 에이전트가 응답 생성 중...');
 
-        // Collect stream response
-        const reader = stream.getReader();
-        const decoder = new TextDecoder();
-        let fullResponse = '';
-        let targetAgent: string | undefined;
+        // 🆕 AI SDK Supervisor (replaces LangGraph stream)
+        const result = await executeSupervisor({
+          messages: messages.map((m: { role: string; content: string }) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          })),
+          sessionId: sessionId || 'default',
+        });
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        await updateJobProgress(jobId, 'finalizing', 90, '응답 완료 처리 중...');
 
-          const chunk = decoder.decode(value, { stream: true });
-          fullResponse += chunk;
-
-          // Try to extract target agent from stream metadata
-          // AI SDK Data Stream Protocol: "d:..." contains data
-          const lines = chunk.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('8:')) {
-              // Finish step metadata
-              try {
-                const meta = JSON.parse(line.slice(2));
-                if (meta.finishReason) {
-                  await updateJobProgress(jobId, 'finalizing', 90, '응답 완료 처리 중...');
-                }
-              } catch {
-                // Ignore parse errors
-              }
-            }
-          }
+        if (!result.success) {
+          const errorMessage = 'error' in result ? result.error : 'Unknown error';
+          throw new Error(errorMessage);
         }
-
-        // Extract clean text from stream
-        const cleanResponse = extractTextFromStream(fullResponse);
 
         await updateJobProgress(jobId, 'completed', 100, '완료');
 
         // Store result in Redis
-        await storeJobResult(jobId, cleanResponse, {
-          targetAgent,
+        await storeJobResult(jobId, result.response, {
+          toolsCalled: result.toolsCalled,
+          provider: result.metadata.provider,
+          modelId: result.metadata.modelId,
           startedAt,
         });
 
         const processingTime = Date.now() - startTime;
-        console.log(`✅ [Jobs] Job ${jobId} completed in ${processingTime}ms`);
+        console.log(`✅ [Jobs] Job ${jobId} completed in ${processingTime}ms (provider: ${result.metadata.provider})`);
       } catch (error) {
         console.error(`❌ [Jobs] Job ${jobId} failed:`, error);
         await storeJobError(jobId, String(error), startedAt);
@@ -259,40 +244,4 @@ jobsRouter.get('/:id/progress', async (c: Context) => {
   });
 });
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Extract clean text from AI SDK Data Stream Protocol
- *
- * Stream format:
- * 0:"text chunk"    - Text delta
- * 8:{...}           - Finish step metadata
- * d:{...}           - Data message
- * e:{...}           - Error message
- */
-function extractTextFromStream(streamContent: string): string {
-  const lines = streamContent.split('\n');
-  const textParts: string[] = [];
-
-  for (const line of lines) {
-    // Text delta: 0:"..."
-    if (line.startsWith('0:')) {
-      try {
-        const text = JSON.parse(line.slice(2));
-        if (typeof text === 'string') {
-          textParts.push(text);
-        }
-      } catch {
-        // If not valid JSON, try direct extraction
-        const match = line.match(/^0:"(.*)"/);
-        if (match) {
-          textParts.push(match[1]);
-        }
-      }
-    }
-  }
-
-  return textParts.join('');
-}
+// Note: extractTextFromStream removed - AI SDK returns text directly

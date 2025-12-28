@@ -13,20 +13,22 @@ import { logAPIKeyStatus, validateAPIKeys } from './lib/model-config';
 import { approvalStore } from './services/approval/approval-store';
 import { embeddingService } from './services/embedding/embedding-service';
 import { generateService } from './services/generate/generate-service';
-import { createSupervisorStreamResponse } from './services/langgraph/multi-agent-supervisor';
+
+// 🆕 AI SDK Supervisor (replaces LangGraph)
+import { executeSupervisor, checkSupervisorHealth, logProviderStatus } from './services/ai-sdk';
+
 // 🎯 Precomputed State (O(1) 조회, 토큰 최적화)
 import { getCurrentState } from './data/precomputed-state';
 
-// Direct Agent Tool Imports (for dedicated endpoints)
+// 🆕 AI SDK Tools (Direct endpoint imports - replaces LangChain agents)
 import {
-  detectAnomaliesTool,
-  predictTrendsTool,
-  analyzePatternTool,
-} from './agents/analyst-agent';
-import {
-  searchKnowledgeBaseTool,
-  recommendCommandsTool,
-} from './agents/reporter-agent';
+  detectAnomalies,
+  predictTrends,
+  analyzePattern,
+  searchKnowledgeBase,
+  recommendCommands,
+  extractKeywordsFromQuery,
+} from './tools-ai-sdk';
 import {
   extractRelationships,
   getGraphRAGStats,
@@ -90,7 +92,7 @@ app.get('/warmup', async (c: Context) => {
   });
 });
 
-// Main AI Supervisor Endpoint
+// Main AI Supervisor Endpoint (🆕 AI SDK v1.0 - LangGraph removed)
 app.post('/api/ai/supervisor', async (c: Context) => {
   try {
     const { messages, sessionId } = await c.req.json();
@@ -103,35 +105,48 @@ app.post('/api/ai/supervisor', async (c: Context) => {
       return c.json({ error: 'No query provided' }, 400);
     }
 
-    // Check API Keys provided (either in env or headers, currently relying on env)
-    const { all } = validateAPIKeys();
-    if (!all) {
-      // return c.json({ error: 'Missing API Keys' }, 500);
-      // Ensure we don't block if one is missing but others might work?
-      // validateAPIKeys returns 'all' if BOTH are present.
-      // Supervisor uses Mistral, Worker Agents (NLQ/Analyst/Reporter) use Groq.
-      // But let's log and proceed, models usually throw specifically.
-      logAPIKeyStatus();
+    console.log(`🤖 [Supervisor] Using AI SDK (session: ${sessionId})`);
+    logProviderStatus();
+
+    const result = await executeSupervisor({
+      messages: messages.map((m: { role: string; content: string }) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      })),
+      sessionId: sessionId || 'default',
+    });
+
+    if (!result.success) {
+      // Return error response (no LangGraph fallback)
+      return c.json({
+        success: false,
+        error: 'error' in result ? result.error : 'Unknown error',
+        code: 'code' in result ? result.code : 'UNKNOWN',
+      }, 500);
     }
 
-    // Get ReadableStream (Web Standard) from Supervisor
-    const stream = await createSupervisorStreamResponse(query, sessionId);
-
-    // Convert Web ReadableStream to Node Readable for Hono (if needed)
-    // Hono running on Node might handle Web Streams, but let's be safe.
-    // Actually @hono/node-server supports returning a standard Response object with a Stream.
-
-    // Set headers for AI SDK Data Stream Protocol
-    c.header('Content-Type', 'text/event-stream; charset=utf-8');
-    c.header('Cache-Control', 'no-cache');
-    c.header('Connection', 'keep-alive');
-    c.header('X-Vercel-AI-Data-Stream', 'v1');
-
-    return c.body(stream);
+    // Return JSON response (non-streaming for AI SDK)
+    return c.json({
+      success: true,
+      response: result.response,
+      toolsCalled: result.toolsCalled,
+      usage: result.usage,
+      metadata: result.metadata,
+    });
   } catch (error) {
     console.error('API Error:', error);
     return c.json({ error: String(error) }, 500);
   }
+});
+
+// Health Check for AI SDK Supervisor
+app.get('/api/ai/supervisor/health', async (c: Context) => {
+  const health = await checkSupervisorHealth();
+  return c.json({
+    success: true,
+    ...health,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // ============================================================================
@@ -392,10 +407,10 @@ app.get('/api/ai/approval/history/stats', async (c: Context) => {
 /**
  * POST /api/ai/analyze-server - Server Analysis Endpoint
  *
- * 직접 Analyst Agent 도구 호출 (Supervisor 경유 없이)
- * - detectAnomaliesTool: 이상 탐지 (6-hour moving average + 2σ, 10분 간격)
- * - predictTrendsTool: 트렌드 예측 (Linear regression)
- * - analyzePatternTool: 패턴 분석
+ * 🆕 AI SDK 직접 도구 호출 (Supervisor 경유 없이)
+ * - detectAnomalies: 이상 탐지 (6-hour moving average + 2σ, 10분 간격)
+ * - predictTrends: 트렌드 예측 (Linear regression)
+ * - analyzePattern: 패턴 분석
  *
  * Use Case: /api/ai/intelligent-monitoring (Vercel) → Cloud Run 프록시
  */
@@ -412,28 +427,28 @@ app.post('/api/ai/analyze-server', async (c: Context) => {
       timestamp: new Date().toISOString(),
     };
 
-    // 분석 타입에 따라 도구 호출
+    // 분석 타입에 따라 AI SDK 도구 호출 (execute는 2개 인자 필요)
     if (analysisType === 'anomaly' || analysisType === 'full') {
-      const anomalyResult = await detectAnomaliesTool.invoke({
+      const anomalyResult = await detectAnomalies.execute!({
         serverId: serverId || undefined,
         metricType: options.metricType || 'all',
-      });
+      }, { toolCallId: 'analyze-server-anomaly', messages: [] });
       results.anomalyDetection = anomalyResult;
     }
 
     if (analysisType === 'trend' || analysisType === 'full') {
-      const trendResult = await predictTrendsTool.invoke({
+      const trendResult = await predictTrends.execute!({
         serverId: serverId || undefined,
         metricType: options.metricType || 'all',
         predictionHours: options.predictionHours || 1,
-      });
+      }, { toolCallId: 'analyze-server-trend', messages: [] });
       results.trendPrediction = trendResult;
     }
 
     if (analysisType === 'pattern' || analysisType === 'full') {
-      const patternResult = await analyzePatternTool.invoke({
+      const patternResult = await analyzePattern.execute!({
         query: options.query || '서버 상태 전체 분석',
-      });
+      }, { toolCallId: 'analyze-server-pattern', messages: [] });
       results.patternAnalysis = patternResult;
     }
 
@@ -448,9 +463,9 @@ app.post('/api/ai/analyze-server', async (c: Context) => {
 /**
  * POST /api/ai/incident-report - Incident Report Generation Endpoint
  *
- * 직접 Reporter Agent 도구 호출 (Supervisor 경유 없이)
- * - searchKnowledgeBaseTool: RAG with pgvector
- * - recommendCommandsTool: CLI 명령어 추천
+ * 🆕 AI SDK 직접 도구 호출 (Supervisor 경유 없이)
+ * - searchKnowledgeBase: RAG with pgvector + GraphRAG
+ * - recommendCommands: CLI 명령어 추천
  *
  * Use Case: /api/ai/incident-report (Vercel) → Cloud Run 프록시
  */
@@ -460,22 +475,23 @@ app.post('/api/ai/incident-report', async (c: Context) => {
 
     console.log(`📋 [Incident Report] serverId=${serverId}, query=${query}`);
 
-    // 1. RAG 검색
-    const ragResult = await searchKnowledgeBaseTool.invoke({
+    // 1. RAG 검색 (AI SDK)
+    const ragResult = await searchKnowledgeBase.execute!({
       query: query || '서버 장애 분석',
       category: category || undefined,
       severity: severity || undefined,
-    });
+      useGraphRAG: true,
+    }, { toolCallId: 'incident-report-rag', messages: [] });
 
-    // 2. 키워드 추출 및 명령어 추천
+    // 2. 키워드 추출 및 명령어 추천 (AI SDK)
     const keywords = extractKeywordsFromQuery(query || '');
-    const commandResult = await recommendCommandsTool.invoke({ keywords });
+    const commandResult = await recommendCommands.execute!({ keywords }, { toolCallId: 'incident-report-commands', messages: [] });
 
-    // 3. 이상 탐지 (컨텍스트용)
-    const anomalyResult = await detectAnomaliesTool.invoke({
+    // 3. 이상 탐지 (컨텍스트용, AI SDK)
+    const anomalyResult = await detectAnomalies.execute!({
       serverId: serverId || undefined,
       metricType: 'all',
-    });
+    }, { toolCallId: 'incident-report-anomaly', messages: [] });
 
     const result = {
       success: true,
@@ -484,7 +500,7 @@ app.post('/api/ai/incident-report', async (c: Context) => {
       knowledgeBase: ragResult,
       recommendedCommands: commandResult,
       currentStatus: anomalyResult,
-      _source: 'Cloud Run LangGraph Direct',
+      _source: 'Cloud Run AI SDK Direct',
     };
 
     console.log(`✅ [Incident Report] Generated for ${serverId || 'general'}`);
@@ -499,6 +515,7 @@ app.post('/api/ai/incident-report', async (c: Context) => {
  * POST /api/ai/analyze-batch - Batch Server Analysis
  *
  * 🎯 Precomputed State 사용 - O(1) 조회
+ * 🆕 AI SDK 도구 사용
  * 여러 서버 동시 분석 (대시보드 전체 새로고침 시)
  */
 app.post('/api/ai/analyze-batch', async (c: Context) => {
@@ -515,10 +532,10 @@ app.post('/api/ai/analyze-batch', async (c: Context) => {
 
     const results = await Promise.all(
       targetServers.map(async (server) => {
-        const anomalyResult = await detectAnomaliesTool.invoke({
+        const anomalyResult = await detectAnomalies.execute!({
           serverId: server.id,
           metricType: 'all',
-        });
+        }, { toolCallId: `batch-${server.id}`, messages: [] });
 
         return {
           serverId: server.id,
@@ -542,31 +559,7 @@ app.post('/api/ai/analyze-batch', async (c: Context) => {
   }
 });
 
-// Helper: 질문에서 키워드 추출
-function extractKeywordsFromQuery(query: string): string[] {
-  const keywords: string[] = [];
-  const q = query.toLowerCase();
-
-  const patterns = [
-    { regex: /서버|server/gi, keyword: '서버' },
-    { regex: /상태|status/gi, keyword: '상태' },
-    { regex: /에러|error|오류/gi, keyword: '에러' },
-    { regex: /로그|log/gi, keyword: '로그' },
-    { regex: /메모리|memory/gi, keyword: '메모리' },
-    { regex: /cpu|프로세서/gi, keyword: 'cpu' },
-    { regex: /디스크|disk/gi, keyword: '디스크' },
-    { regex: /재시작|restart/gi, keyword: '재시작' },
-    { regex: /장애|failure|incident/gi, keyword: '장애' },
-  ];
-
-  for (const pattern of patterns) {
-    if (pattern.regex.test(q)) {
-      keywords.push(pattern.keyword);
-    }
-  }
-
-  return keywords.length > 0 ? keywords : ['일반', '조회'];
-}
+// Note: extractKeywordsFromQuery is now imported from './tools-ai-sdk'
 
 // ============================================================================
 // GraphRAG Endpoints (Knowledge Graph Relationship Automation)
@@ -576,19 +569,17 @@ function extractKeywordsFromQuery(query: string): string[] {
  * POST /api/ai/graphrag/extract - Extract relationships from knowledge base
  *
  * Automatically identifies and stores relationships between knowledge entries.
- * Uses heuristics first, optionally LLM for uncertain cases.
+ * Uses heuristics-only detection (LLM removed 2025-12-28).
  *
- * @param useLLM - Use LLM for advanced relationship detection (default: false)
  * @param batchSize - Number of entries to process (default: 50)
  */
 app.post('/api/ai/graphrag/extract', async (c: Context) => {
   try {
-    const { useLLM = false, batchSize = 50 } = await c.req.json();
+    const { batchSize = 50 } = await c.req.json();
 
-    console.log(`🔗 [GraphRAG] Starting extraction (LLM: ${useLLM}, batch: ${batchSize})`);
+    console.log(`🔗 [GraphRAG] Starting extraction (heuristics-only, batch: ${batchSize})`);
 
     const results = await extractRelationships({
-      useLLM,
       batchSize,
       onlyUnprocessed: true,
     });

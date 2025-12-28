@@ -1,15 +1,16 @@
 /**
  * Cloud Run Generate Service
- * Mistral AI 텍스트 생성 담당
+ * Mistral AI 텍스트 생성 담당 (AI SDK 버전)
  *
  * Hybrid Architecture:
  * - Vercel에서 프록시를 통해 이 서비스 호출
  * - API 키는 Cloud Run에서만 관리
  *
- * Updated: 2025-12-26 - Migrated from Gemini to Mistral AI
+ * Updated: 2025-12-28 - Migrated to Vercel AI SDK
  */
 
-import { Mistral } from '@mistralai/mistralai';
+import { generateText, streamText } from 'ai';
+import { createMistral } from '@ai-sdk/mistral';
 
 interface GenerateOptions {
   model?: string;
@@ -34,7 +35,7 @@ interface GenerateResult {
 class CloudRunGenerateService {
   // Use Mistral Small for high availability and fast responses
   private readonly DEFAULT_MODEL = 'mistral-small-latest';
-  private client: Mistral | null = null;
+  private mistral: ReturnType<typeof createMistral> | null = null;
 
   // 통계
   private stats = {
@@ -45,10 +46,10 @@ class CloudRunGenerateService {
   };
 
   /**
-   * Get Mistral client (lazy initialization)
+   * Get Mistral provider (lazy initialization)
    */
-  private getClient(): Mistral | null {
-    if (this.client) return this.client;
+  private getMistral(): ReturnType<typeof createMistral> | null {
+    if (this.mistral) return this.mistral;
 
     const apiKey = process.env.MISTRAL_API_KEY;
     if (!apiKey) {
@@ -56,8 +57,8 @@ class CloudRunGenerateService {
       return null;
     }
 
-    this.client = new Mistral({ apiKey });
-    return this.client;
+    this.mistral = createMistral({ apiKey });
+    return this.mistral;
   }
 
   /**
@@ -68,7 +69,7 @@ class CloudRunGenerateService {
     options: GenerateOptions = {}
   ): Promise<GenerateResult> {
     const startTime = Date.now();
-    const model = options.model || this.DEFAULT_MODEL;
+    const modelId = options.model || this.DEFAULT_MODEL;
 
     this.stats.requests++;
 
@@ -77,42 +78,41 @@ class CloudRunGenerateService {
       return { success: false, error: 'Empty prompt provided' };
     }
 
-    const client = this.getClient();
-    if (!client) {
+    const mistral = this.getMistral();
+    if (!mistral) {
       return { success: false, error: 'No API key configured' };
     }
 
     try {
-      const response = await client.chat.complete({
-        model,
-        messages: [{ role: 'user', content: prompt }],
+      const { text, usage } = await generateText({
+        model: mistral(modelId),
+        prompt,
         temperature: options.temperature ?? 0.7,
-        maxTokens: options.maxTokens ?? 2048,
+        maxOutputTokens: options.maxTokens ?? 2048,
         topP: options.topP ?? 0.95,
       });
 
       const processingTime = Date.now() - startTime;
-      const text = response.choices?.[0]?.message?.content || '';
 
       // 사용량 추적
-      const usage = {
-        promptTokens: response.usage?.promptTokens || 0,
-        completionTokens: response.usage?.completionTokens || 0,
-        totalTokens: response.usage?.totalTokens || 0,
+      const usageInfo = {
+        promptTokens: usage?.inputTokens || 0,
+        completionTokens: usage?.outputTokens || 0,
+        totalTokens: (usage?.inputTokens || 0) + (usage?.outputTokens || 0),
       };
 
       this.stats.successes++;
-      this.stats.totalTokens += usage.totalTokens;
+      this.stats.totalTokens += usageInfo.totalTokens;
 
       console.log(
-        `✅ [Generate] Success: ${model}, ${usage.totalTokens} tokens, ${processingTime}ms`
+        `✅ [Generate] Success: ${modelId}, ${usageInfo.totalTokens} tokens, ${processingTime}ms`
       );
 
       return {
         success: true,
-        text: typeof text === 'string' ? text : JSON.stringify(text),
-        model,
-        usage,
+        text,
+        model: modelId,
+        usage: usageInfo,
         processingTime,
       };
     } catch (error) {
@@ -135,31 +135,32 @@ class CloudRunGenerateService {
     prompt: string,
     options: GenerateOptions = {}
   ): Promise<ReadableStream<Uint8Array> | null> {
-    const model = options.model || this.DEFAULT_MODEL;
+    const modelId = options.model || this.DEFAULT_MODEL;
 
-    const client = this.getClient();
-    if (!client) {
+    const mistral = this.getMistral();
+    if (!mistral) {
       console.error('❌ [Generate Stream] No API key available');
       return null;
     }
 
     try {
-      const stream = await client.chat.stream({
-        model,
-        messages: [{ role: 'user', content: prompt }],
+      const result = streamText({
+        model: mistral(modelId),
+        prompt,
         temperature: options.temperature ?? 0.7,
-        maxTokens: options.maxTokens ?? 2048,
+        maxOutputTokens: options.maxTokens ?? 2048,
         topP: options.topP ?? 0.95,
       });
 
       const encoder = new TextEncoder();
+      const textStream = result.textStream;
+
       return new ReadableStream({
         async start(controller) {
           try {
-            for await (const event of stream) {
-              const content = event.data.choices?.[0]?.delta?.content;
-              if (content) {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
+            for await (const text of textStream) {
+              if (text) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
               }
             }
             controller.enqueue(encoder.encode('data: [DONE]\n\n'));
@@ -185,7 +186,7 @@ class CloudRunGenerateService {
         this.stats.requests > 0
           ? Math.round((this.stats.successes / this.stats.requests) * 100)
           : 0,
-      provider: 'mistral',
+      provider: 'mistral (ai-sdk)',
       model: this.DEFAULT_MODEL,
     };
   }

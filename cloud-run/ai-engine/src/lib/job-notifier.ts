@@ -68,6 +68,10 @@ export async function storeJobResult(
     targetAgent?: string;
     toolResults?: unknown[];
     startedAt?: string;
+    // AI SDK metadata
+    toolsCalled?: string[];
+    provider?: string;
+    modelId?: string;
   }
 ): Promise<boolean> {
   const startedAt = options?.startedAt || new Date().toISOString();

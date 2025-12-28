@@ -19,7 +19,8 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseConfig } from './config-parser';
-import { getAnalystModel } from './model-config';
+// Note: LLM-based relationship detection removed (2025-12-28)
+// Heuristic-based detection is now the only method
 
 // ============================================================================
 // Types
@@ -86,87 +87,8 @@ function getSupabaseClient(): SupabaseClient | null {
 }
 
 // ============================================================================
-// Relationship Type Detection (LLM-based)
-// ============================================================================
-
-const RELATIONSHIP_PROMPT = `You are analyzing relationships between knowledge entries in a server monitoring system.
-
-Given two knowledge entries, identify if there's a meaningful relationship and classify it.
-
-## Available Relationship Types:
-- causes: A causes B (e.g., "High CPU" causes "Memory Exhaustion")
-- solves: A is a solution for B (e.g., "Cache Cleanup" solves "Memory Leak")
-- related_to: A is generally related to B
-- prerequisite: A must happen before B
-- part_of: A is a component of B
-- similar_to: A and B describe similar concepts
-- contradicts: A and B are contradictory
-- follows: A comes after B in sequence
-- depends_on: A requires B to function
-
-## Instructions:
-1. Analyze the content of both entries
-2. Determine if there's a meaningful relationship
-3. Return JSON with relationships found
-
-## Output Format:
-{
-  "hasRelationship": boolean,
-  "type": "causes" | "solves" | "related_to" | etc.,
-  "weight": 0.0-1.0 (confidence),
-  "description": "brief explanation",
-  "bidirectional": boolean
-}
-
-If no meaningful relationship exists, return:
-{ "hasRelationship": false }`;
-
-async function detectRelationship(
-  source: KnowledgeEntry,
-  target: KnowledgeEntry
-): Promise<ExtractedRelationship | null> {
-  try {
-    const model = getAnalystModel();
-
-    const prompt = `${RELATIONSHIP_PROMPT}
-
-## Entry A (Source):
-Title: ${source.title}
-Category: ${source.category}
-Content: ${source.content.substring(0, 500)}
-
-## Entry B (Target):
-Title: ${target.title}
-Category: ${target.category}
-Content: ${target.content.substring(0, 500)}
-
-Analyze and return JSON:`;
-
-    const response = await model.invoke([{ role: 'user', content: prompt }]);
-    const content = typeof response.content === 'string' ? response.content : '';
-
-    // Parse JSON from response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
-
-    const result = JSON.parse(jsonMatch[0]);
-    if (!result.hasRelationship) return null;
-
-    return {
-      targetId: target.id,
-      type: result.type as RelationshipType,
-      weight: Math.min(1.0, Math.max(0.0, result.weight || 0.7)),
-      description: result.description || '',
-      bidirectional: result.bidirectional || false,
-    };
-  } catch (error) {
-    console.error('❌ [GraphRAG] Relationship detection failed:', error);
-    return null;
-  }
-}
-
-// ============================================================================
 // Heuristic-based Relationship Detection (Fast, No LLM)
+// Note: LLM-based detection removed (2025-12-28) - using only heuristics now
 // ============================================================================
 
 function detectRelationshipHeuristic(
@@ -276,16 +198,15 @@ function hasOverlappingTopics(a: KnowledgeEntry, b: KnowledgeEntry): boolean {
 
 /**
  * Process knowledge entries and extract relationships (batch)
- * Uses heuristics first, then LLM for uncertain cases
+ * Uses heuristics-only detection (LLM removed 2025-12-28)
  */
 export async function extractRelationships(
   options: {
-    useLLM?: boolean;
     batchSize?: number;
     onlyUnprocessed?: boolean;
   } = {}
 ): Promise<RelationshipExtractionResult[]> {
-  const { useLLM = false, batchSize = 50, onlyUnprocessed = true } = options;
+  const { batchSize = 50, onlyUnprocessed = true } = options;
 
   const supabase = getSupabaseClient();
   if (!supabase) {
@@ -293,7 +214,7 @@ export async function extractRelationships(
     return [];
   }
 
-  console.log(`🔗 [GraphRAG] Starting relationship extraction (LLM: ${useLLM})`);
+  console.log(`🔗 [GraphRAG] Starting relationship extraction (heuristics-only)`);
 
   // Fetch knowledge entries
   const { data: entries, error } = await supabase
@@ -344,13 +265,8 @@ export async function extractRelationships(
       // Skip if already exists
       if (existingSet.has(pairKey)) continue;
 
-      // Try heuristic first
-      let relationship = detectRelationshipHeuristic(source, target);
-
-      // If no heuristic match and LLM is enabled, use LLM
-      if (!relationship && useLLM) {
-        relationship = await detectRelationship(source, target);
-      }
+      // Use heuristic detection (LLM removed)
+      const relationship = detectRelationshipHeuristic(source, target);
 
       if (relationship) {
         extractedRels.push(relationship);
