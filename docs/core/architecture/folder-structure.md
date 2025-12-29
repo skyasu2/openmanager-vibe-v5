@@ -1,6 +1,6 @@
 # 📁 OpenManager VIBE v5 전체 폴더 구조
 
-**통합 아카이브/백업 분리 시스템 적용 완료** - 2025-09-10
+**문서 구조 최신화** - 2025-12-29
 
 ## 🎯 핵심 원칙
 
@@ -32,25 +32,38 @@ openmanager-vibe-v5/
 
 ## 🗂️ 메인 디렉토리 구조
 
-### 📚 **docs/** - AI 최적화 문서 (Git 추적)
+### 📚 **docs/** - 프로젝트 문서 (Git 추적)
 
 ```
 docs/
 ├── 📄 README.md                    # 문서 메인 인덱스
-├── 📄 archive-backup-separation-guide.md  # 아카이브 시스템 가이드 ⭐
-├── 📁 .ai-index/                   # AI 캐시 (11개 파일)
-├── 📁 .backup/                     # 문서 백업 (Git 제외)
-│   ├── daily/                      # 일별 백업 (7일)
-│   ├── weekly/                     # 주별 백업 (4주)
-│   └── monthly/                    # 월별 백업 (12개월)
-├── 📁 ai/                          # AI 도구 가이드 (6개)
-├── 📁 api/                         # API 문서 (3개)
-├── 📁 design/                      # 설계도 (14개) ⭐
-├── 📁 mcp/                         # MCP 서버 가이드 (6개)
-├── 📁 performance/                 # 성능 최적화 (3개)
-├── 📁 simulation/                  # Mock 시뮬레이션 (2개)
-├── 📁 testing/                     # 테스트 가이드 (2개)
-└── 📁 archive/                     # 280개 레거시 문서 (Git 추적, 참조용)
+├── 📄 QUICK-START.md               # 빠른 시작 가이드
+├── 📄 DEVELOPMENT.md               # 개발 환경 가이드
+├── 📄 status.md                    # 프로젝트 현재 상태 ⭐
+├── 📁 api/                         # API 문서
+│   ├── endpoints.md                # API 엔드포인트 목록
+│   └── README.md
+├── 📁 core/                        # 핵심 아키텍처 문서 ⭐
+│   ├── 📁 ai/                      # AI 시스템 설계
+│   ├── 📁 architecture/            # 아키텍처 문서
+│   │   ├── 📁 ai/                  # AI 아키텍처
+│   │   ├── 📁 decisions/           # ADR (Architecture Decision Records)
+│   │   ├── 📁 design/              # 설계 패턴
+│   │   ├── 📁 infrastructure/      # 인프라 설계
+│   │   └── 📁 system/              # 시스템 아키텍처
+│   ├── 📁 performance/             # 성능 최적화
+│   ├── 📁 platforms/               # 플랫폼별 설정 (Vercel, GCP)
+│   └── 📁 security/                # 보안 가이드
+├── 📁 development/                 # 개발 가이드 ⭐
+│   ├── 📁 ai/                      # AI 도구 가이드 (Claude Code 등)
+│   ├── 📁 mcp/                     # MCP 서버 가이드
+│   ├── 📁 testing/                 # 테스트 가이드
+│   ├── 📁 standards/               # 코딩 표준
+│   └── 📁 workflows/               # 개발 워크플로우
+├── 📁 environment/                 # 환경 설정
+│   ├── 📁 troubleshooting/         # 문제 해결 가이드
+│   └── 📁 wsl/                     # WSL 설정 가이드
+└── 📁 archive/                     # 아카이브 문서 (레거시 참조용)
 ```
 
 ### 💻 **src/** - 소스 코드 (Git 추적)

@@ -1,20 +1,20 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-28
+**마지막 업데이트**: 2025-12-29
 
 ---
 
-## 🏗️ Technical Stack (v5.83.9)
+## 🏗️ Technical Stack (v5.83.12)
 
 **Core Frameworks** (2025 Standard)
-- **Next.js**: `v16.0.10` (App Router, Server Components, Security Patch)
+- **Next.js**: `v16.1.1` (App Router, Server Components)
 - **React**: `v19.2.1` (RSC, Actions, useOptimistic)
 - **TypeScript**: `v5.9.3` (Strict Mode)
-- **Node.js**: `v22.21.1` (LTS Fixed)
+- **Node.js**: `v22.x` (LTS Fixed, engines: >=22.0.0 <23.0.0)
 
 **UI & Styling**
 - **Tailwind CSS**: `v4.1.17` (PostCSS optimized)
-- **Component Lib**: Radix UI (Latest), Lucide React `v0.556.0`
+- **Component Lib**: Radix UI (Latest), Lucide React `v0.562.0`
 - **Animation**: Framer Motion (via `tailwindcss-animate`)
 
 **State & Data**

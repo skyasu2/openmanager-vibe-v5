@@ -1,10 +1,10 @@
 # API Endpoints Documentation
 
-**Last Updated**: 2025-12-22
+**Last Updated**: 2025-12-29
 
 ## Overview
 
-OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
+OpenManager Vibe v5 현재 **75개의 API 엔드포인트**를 제공합니다.
 
 ### 분류
 
@@ -28,10 +28,24 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 | `/api/ai/google-ai/generate`     | POST, GET | Google Gemini API 직접 호출      | ✅   | **Active** |
 | `/api/ai/incident-report`        | POST, GET | 자동 장애 보고서 생성            | ✅   | **Active** |
 | `/api/ai/intelligent-monitoring` | POST      | 지능형 모니터링 분석             | ✅   | **Active** |
-| `/api/ai/ml/train`               | POST      | ML 모델 학습 (패턴, 이상탐지)    | ✅   | **Active** |
 | `/api/ai/rag/benchmark`          | GET       | RAG 벡터 검색 성능 벤치마크      | ✅   | **Active** |
 | `/api/ai/raw-metrics`            | GET       | AI 분석용 순수 메트릭            | ✅   | **Active** |
 | `/api/ai/insight-center`         | POST      | AI 인사이트 센터                 | ❌   | **Active** |
+| `/api/ai/health`                 | GET       | AI 시스템 헬스 체크              | ❌   | **Active** |
+| `/api/ai/status`                 | GET       | AI 상태 조회                     | ❌   | **Active** |
+| `/api/ai/wake-up`                | POST      | Cloud Run AI 엔진 웜업           | ❌   | **Active** |
+| `/api/ai/feedback`               | POST      | AI 응답 피드백 수집              | ❌   | **Active** |
+| `/api/ai/approval`               | POST      | AI 작업 승인                     | ❌   | **Active** |
+| `/api/ai/unified-stream`         | POST      | 통합 AI 스트리밍                 | ❌   | **Active** |
+
+### Async Job APIs (신규) 🆕
+
+| Endpoint                         | Method    | Description                      | Auth | Status     |
+| -------------------------------- | --------- | -------------------------------- | ---- | ---------- |
+| `/api/ai/jobs`                   | POST      | 비동기 AI Job 생성               | ❌   | **Active** |
+| `/api/ai/jobs/[id]`              | GET       | Job 상태 조회                    | ❌   | **Active** |
+| `/api/ai/jobs/[id]/progress`     | GET       | Job 진행률 조회                  | ❌   | **Active** |
+| `/api/ai/jobs/[id]/stream`       | GET       | Job 결과 SSE 스트리밍            | ❌   | **Active** |
 
 ### Deprecated (Legacy) 🗑️
 
@@ -131,7 +145,6 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 | `/api/debug/env`             | GET    | 환경 변수 디버그   | Development |
 | `/api/ab-test`               | GET    | A/B 테스트 플래그  | Development |
 | `/api/simulate/data`         | POST   | 데이터 시뮬레이션  | Development |
-| `/api/agents/health`         | GET    | 에이전트 헬스 체크 | Development |
 | `/api/ping`                  | GET    | 서버 Ping          | Monitoring  |
 | `/api/time`                  | GET    | 서버 시간          | Utility     |
 
@@ -174,16 +187,12 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 
 ---
 
-## 🔄 Unified AI APIs (4개)
+## 🔗 Realtime/Rules APIs (2개)
 
-> **Note**: Legacy Unified AI 시스템 (Deprecated, `/api/ai/supervisor`로 통합됨)
-
-| Endpoint                     | Method | Description  | Status         |
-| ---------------------------- | ------ | ------------ | -------------- |
-| `/api/ai-unified/core`       | POST   | 코어 AI 처리 | **Deprecated** |
-| `/api/ai-unified/ml`         | POST   | ML 처리      | **Deprecated** |
-| `/api/ai-unified/monitoring` | POST   | 모니터링 AI  | **Deprecated** |
-| `/api/ai-unified/streaming`  | POST   | AI 스트리밍  | **Deprecated** |
+| Endpoint                | Method | Description            | Status     |
+| ----------------------- | ------ | ---------------------- | ---------- |
+| `/api/realtime/connect` | GET    | 실시간 연결 (SSE)      | **Active** |
+| `/api/rules`            | GET    | 규칙 설정 조회         | **Active** |
 
 ---
 
@@ -226,9 +235,9 @@ OpenManager Vibe v5 현재 **78개의 API 엔드포인트**를 제공합니다.
 
 ---
 
-**Generated**: 2025-11-29  
-**Total Endpoints**: 78  
-**Framework**: Next.js 16 App Router
+**Generated**: 2025-12-29
+**Total Endpoints**: 75
+**Framework**: Next.js 16.1.1 App Router
 
 ## API 아키텍처
 

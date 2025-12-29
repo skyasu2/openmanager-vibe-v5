@@ -19,17 +19,17 @@
 - npm 10.9.2 이상
 - Docker Desktop (AI 서비스용)
 
-### 기술 스택 (v5.83.1)
+### 기술 스택 (v5.83.12)
 
 ```
-Next.js 16 (App Router)
-React 19
-TypeScript 5.9 (strict mode)
+Next.js 16.1.1 (App Router)
+React 19.2.1
+TypeScript 5.9.3 (strict mode)
 Supabase (PostgreSQL + Realtime)
-Tailwind CSS + Shadcn/UI
+Tailwind CSS 4.1.17 + Shadcn/UI
 ```
 - Git
-- **Claude Code v2.0.71** (메인 AI 개발 도구)
+- **Claude Code** (메인 AI 개발 도구)
 
 ### WSL 2 최적화 설정
 
