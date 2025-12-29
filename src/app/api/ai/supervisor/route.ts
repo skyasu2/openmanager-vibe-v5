@@ -17,6 +17,12 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { executeWithCircuitBreaker } from '@/lib/ai/circuit-breaker';
+import {
+  extractLastUserQuery,
+  extractTextFromHybridMessage,
+  type HybridMessage,
+  normalizeMessagesForCloudRun,
+} from '@/lib/ai/utils/message-normalizer';
 import { calculateDynamicTimeout } from '@/lib/ai/utils/query-complexity';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
@@ -235,74 +241,13 @@ const requestSchema = z.object({
 });
 
 // ============================================================================
-// 🔧 Utility: UIMessage에서 텍스트 추출
+// 🔧 Utility: 메시지 정규화 (중앙화됨)
 // ============================================================================
-
-/**
- * AI SDK v5 UIMessage 또는 레거시 메시지에서 텍스트 콘텐츠 추출
- */
-function extractTextFromMessage(
-  message: z.infer<typeof messageSchema>
-): string {
-  // 1. AI SDK v5 parts 배열에서 텍스트 추출
-  if (message.parts && Array.isArray(message.parts)) {
-    const textParts = message.parts
-      .filter(
-        (part): part is z.infer<typeof textPartSchema> => part.type === 'text'
-      )
-      .map((part) => part.text);
-    if (textParts.length > 0) {
-      return textParts.join('\n');
-    }
-  }
-
-  // 2. 레거시 content 필드 사용
-  if (typeof message.content === 'string') {
-    return message.content;
-  }
-
-  return '';
-}
-
-/**
- * AI SDK v5 메시지를 Cloud Run 호환 형식으로 정규화
- * parts 배열 → content 문자열로 변환
- *
- * @description (2025-12-22 v5.83.9 추가)
- * AI SDK v5 UIMessage 형식:
- *   { role: 'user', parts: [{ type: 'text', text: '...' }] }
- *
- * Cloud Run 기대 형식:
- *   { role: 'user', content: '...' }
- *
- * 이 함수가 없으면 Cloud Run이 빈 메시지로 처리하여 503 에러 발생
- *
- * @note (2025-12-23 개선)
- * - 빈 content 필터링 제거 → 대화 맥락 보존
- * - 이미지/Tool Call 메시지도 플레이스홀더로 보존
- * - Cloud Run은 빈 문자열도 처리 가능
- */
-function normalizeMessagesForCloudRun(
-  messages: z.infer<typeof messageSchema>[]
-): { role: string; content: string }[] {
-  return messages.map((msg) => {
-    const content = extractTextFromMessage(msg);
-
-    // 빈 content인 경우 플레이스홀더 사용 (맥락 보존)
-    // 이미지, Tool Call 등 비텍스트 메시지의 위치를 유지
-    if (!content || content.length === 0) {
-      return {
-        role: msg.role,
-        content: '[Non-text content]',
-      };
-    }
-
-    return {
-      role: msg.role,
-      content,
-    };
-  });
-}
+// @see /src/lib/ai/utils/message-normalizer.ts
+// - extractTextFromHybridMessage(): 텍스트 추출
+// - normalizeMessagesForCloudRun(): Cloud Run 형식 변환
+// - extractLastUserQuery(): 마지막 사용자 쿼리 추출
+// ============================================================================
 
 // ============================================================================
 // 🧠 Main Handler - Cloud Run Multi-Agent System
@@ -344,12 +289,10 @@ export const POST = withRateLimit(
       const querySessionId = url.searchParams.get('sessionId');
       const clientSessionId = querySessionId || bodySessionId;
 
-      // 2. 마지막 메시지에서 사용자 쿼리 추출 + 입력 정제
-      const lastMessage =
-        messages.length > 0 ? messages[messages.length - 1] : null;
-      const rawQuery = lastMessage
-        ? extractTextFromMessage(lastMessage)
-        : 'System status check';
+      // 2. 마지막 사용자 쿼리 추출 + 입력 정제 (중앙화된 유틸리티 사용)
+      const rawQuery =
+        extractLastUserQuery(messages as HybridMessage[]) ||
+        'System status check';
 
       // 빈 쿼리 방어
       if (!rawQuery || rawQuery.trim() === '') {

@@ -9,6 +9,8 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
+import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
@@ -32,7 +34,9 @@ interface IncidentReport {
 }
 
 /**
- * POST handler - Proxy to Cloud Run
+ * POST handler - Proxy to Cloud Run with Circuit Breaker + Fallback
+ *
+ * @updated 2025-12-30 - Circuit Breaker 및 Fallback 적용
  */
 async function postHandler(request: NextRequest) {
   try {
@@ -41,95 +45,95 @@ async function postHandler(request: NextRequest) {
 
     // 1. Cloud Run 활성화 확인
     if (!isCloudRunEnabled()) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Cloud Run AI Engine is not enabled',
-          message: 'AI 서비스가 활성화되지 않았습니다. 관리자에게 문의하세요.',
-        },
-        { status: 503 }
-      );
+      // Cloud Run 비활성화 시 폴백 응답 반환
+      const fallback = createFallbackResponse('incident-report');
+      return NextResponse.json(fallback);
     }
 
-    // 2. Cloud Run 프록시 호출 (Reporter Agent)
+    // 2. Cloud Run 프록시 호출 (Circuit Breaker + Fallback)
     debug.info(`[incident-report] Proxying action '${action}' to Cloud Run...`);
 
-    const cloudRunResult = await proxyToCloudRun({
-      path: '/api/ai/incident-report',
-      method: 'POST',
-      body, // Pass original body
-      timeout: 30000, // 30s timeout for AI analysis
-    });
+    const result = await executeWithCircuitBreakerAndFallback<
+      Record<string, unknown>
+    >(
+      'incident-report',
+      // Primary: Cloud Run 호출
+      async () => {
+        const cloudRunResult = await proxyToCloudRun({
+          path: '/api/ai/incident-report',
+          method: 'POST',
+          body,
+          timeout: 30000,
+        });
 
-    if (cloudRunResult.success && cloudRunResult.data) {
-      debug.info('[incident-report] Cloud Run success');
-
-      // DB 저장 등 추가 작업이 필요한 경우 여기서 처리 (Optionally)
-      // 현재는 Cloud Run이 분석 결과만 반환하고 저장은 각자 알아서 하는 구조라면 유지
-      // 만약 Cloud Run이 저장까지 안 한다면 Vercel에서 저장해야 할 수도 있음.
-      // 기존 로직: Vercel에서 DB 저장했음.
-      // 유지보수성을 위해 DB 저장은 유지하되, 분석 데이터는 Cloud Run에서 가져옴.
-
-      const reportData = cloudRunResult.data as IncidentReport;
-
-      // generate 액션인 경우 DB 저장 시도
-      if (action === 'generate' && reportData.id) {
-        try {
-          const { error } = await supabaseAdmin
-            .from('incident_reports')
-            .insert({
-              id: reportData.id,
-              title: reportData.title,
-              severity: reportData.severity,
-              affected_servers: reportData.affected_servers || [],
-              anomalies: reportData.anomalies || [],
-              root_cause_analysis: reportData.root_cause_analysis || {},
-              recommendations: reportData.recommendations || [],
-              timeline: reportData.timeline || [],
-              pattern: reportData.pattern || 'unknown',
-              created_at: reportData.created_at || new Date().toISOString(),
-            });
-
-          if (error) {
-            debug.error('DB save error (Cloud Run data):', error);
-            // 에러가 나도 분석 결과는 반환
-          }
-        } catch (dbError) {
-          debug.error('DB connection error:', dbError);
+        if (!cloudRunResult.success || !cloudRunResult.data) {
+          throw new Error(cloudRunResult.error ?? 'Cloud Run request failed');
         }
-      }
 
-      return NextResponse.json({
-        success: true,
-        report: {
-          ...cloudRunResult.data,
-          _source: 'Cloud Run AI Engine',
+        const reportData = cloudRunResult.data as IncidentReport;
+
+        // generate 액션인 경우 DB 저장 시도
+        if (action === 'generate' && reportData.id) {
+          try {
+            const { error } = await supabaseAdmin
+              .from('incident_reports')
+              .insert({
+                id: reportData.id,
+                title: reportData.title,
+                severity: reportData.severity,
+                affected_servers: reportData.affected_servers || [],
+                anomalies: reportData.anomalies || [],
+                root_cause_analysis: reportData.root_cause_analysis || {},
+                recommendations: reportData.recommendations || [],
+                timeline: reportData.timeline || [],
+                pattern: reportData.pattern || 'unknown',
+                created_at: reportData.created_at || new Date().toISOString(),
+              });
+
+            if (error) {
+              debug.error('DB save error (Cloud Run data):', error);
+            }
+          } catch (dbError) {
+            debug.error('DB connection error:', dbError);
+          }
+        }
+
+        return {
+          success: true,
+          report: {
+            ...cloudRunResult.data,
+            _source: 'Cloud Run AI Engine',
+          },
+        };
+      },
+      // Fallback: 로컬 폴백 응답
+      () => createFallbackResponse('incident-report') as Record<string, unknown>
+    );
+
+    // 3. 응답 반환
+    if (result.source === 'fallback') {
+      debug.info('[incident-report] Using fallback response');
+      return NextResponse.json(result.data, {
+        headers: {
+          'X-Fallback-Response': 'true',
+          'X-Retry-After': '30000',
         },
       });
     }
 
-    // 3. Cloud Run 실패 시 에러 반환 (No Local Fallback)
-    debug.error('[incident-report] Cloud Run failed:', cloudRunResult.error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'AI Analysis Failed',
-        message: 'AI 엔진 응답에 실패했습니다. 잠시 후 다시 시도해주세요.',
-        details: cloudRunResult.error,
-      },
-      { status: 503 }
-    );
+    debug.info('[incident-report] Cloud Run success');
+    return NextResponse.json(result.data);
   } catch (error) {
     debug.error('Incident report proxy error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
+
+    // 예상치 못한 에러 시에도 폴백 반환
+    const fallback = createFallbackResponse('incident-report');
+    return NextResponse.json(fallback, {
+      headers: {
+        'X-Fallback-Response': 'true',
+        'X-Error': error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
-    );
+    });
   }
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { type UIMessage, useChat } from '@ai-sdk/react';
+import { useChat } from '@ai-sdk/react';
 import { TextStreamChatTransport } from 'ai';
 
 // Icons
@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
 import { SESSION_LIMITS } from '@/types/hitl';
 import { RenderMarkdownContent } from '@/utils/markdown-parser';
 import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
@@ -37,18 +38,8 @@ import {
   InlineAgentStatus,
 } from './InlineAgentStatus';
 
-// v2.x UIMessage에서 텍스트 콘텐츠 추출 헬퍼
-function extractTextFromMessage(message: UIMessage): string {
-  if (!message.parts || message.parts.length === 0) {
-    return '';
-  }
-  return message.parts
-    .filter(
-      (part): part is { type: 'text'; text: string } => part.type === 'text'
-    )
-    .map((part) => part.text)
-    .join('');
-}
+// 🔧 Message Utility: @see /src/lib/ai/utils/message-normalizer.ts
+// extractTextFromUIMessage - 중앙화된 텍스트 추출 유틸리티 사용
 
 /**
  * ThinkingSteps를 AgentStep 형식으로 변환
@@ -448,7 +439,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     const lastUserMessage = messages[actualIndex];
     if (!lastUserMessage) return;
     // assistant 메시지들 제거하고 user 메시지 재전송
-    const textContent = extractTextFromMessage(lastUserMessage);
+    const textContent = extractTextFromUIMessage(lastUserMessage);
     if (textContent) {
       setMessages(messages.slice(0, actualIndex));
       void sendMessage({ text: textContent });
@@ -479,7 +470,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
       )
       .map((m): EnhancedChatMessage => {
         // v2.x/v5.x: parts 배열에서 텍스트 추출
-        const textContent = extractTextFromMessage(m);
+        const textContent = extractTextFromUIMessage(m);
 
         // v5.x: tool parts는 type이 'tool-${toolName}' 형태
         // state: 'input-streaming' | 'input-available' | 'output-available' | 'output-error'

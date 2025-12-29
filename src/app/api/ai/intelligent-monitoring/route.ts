@@ -9,6 +9,8 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
+import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
@@ -16,7 +18,9 @@ import debug from '@/utils/debug';
 export const runtime = 'nodejs';
 
 /**
- * POST handler - Proxy to Cloud Run
+ * POST handler - Proxy to Cloud Run with Circuit Breaker + Fallback
+ *
+ * @updated 2025-12-30 - Circuit Breaker 및 Fallback 적용
  */
 async function postHandler(request: NextRequest) {
   try {
@@ -25,21 +29,13 @@ async function postHandler(request: NextRequest) {
 
     // 1. Cloud Run 활성화 확인
     if (!isCloudRunEnabled()) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Cloud Run AI Engine is not enabled',
-          message: '지능형 모니터링 서비스가 활성화되지 않았습니다.',
-        },
-        { status: 503 }
-      );
+      // Cloud Run 비활성화 시 폴백 응답 반환
+      const fallback = createFallbackResponse('intelligent-monitoring');
+      return NextResponse.json(fallback);
     }
 
-    // 2. Cloud Run 프록시 호출
-    // analyze_server, predict, forecast 등 모든 액션을 Cloud Run으로 위임
-    let cloudRunPath = '/api/ai/analyze-server'; // 기본 엔드포인트
-
-    // 액션별 경로 매핑 (필요 시 확장)
+    // 2. Cloud Run 프록시 호출 (Circuit Breaker + Fallback)
+    let cloudRunPath = '/api/ai/analyze-server';
     if (action === 'predict') cloudRunPath = '/api/ai/analyze-server';
     if (action === 'forecast_anomalies')
       cloudRunPath = '/api/ai/analyze-server';
@@ -48,55 +44,64 @@ async function postHandler(request: NextRequest) {
       `[intelligent-monitoring] Proxying action '${action}' for ${serverId} to Cloud Run...`
     );
 
-    const cloudRunResult = await proxyToCloudRun({
-      path: cloudRunPath,
-      method: 'POST',
-      body: {
-        ...body,
-        analysisType: body.analysisDepth || 'full', // Cloud Run 포맷 호환
+    const result = await executeWithCircuitBreakerAndFallback<
+      Record<string, unknown>
+    >(
+      'intelligent-monitoring',
+      // Primary: Cloud Run 호출
+      async () => {
+        const cloudRunResult = await proxyToCloudRun({
+          path: cloudRunPath,
+          method: 'POST',
+          body: {
+            ...body,
+            analysisType: body.analysisDepth || 'full',
+          },
+          timeout: 15000,
+        });
+
+        if (!cloudRunResult.success || !cloudRunResult.data) {
+          throw new Error(cloudRunResult.error ?? 'Cloud Run request failed');
+        }
+
+        return {
+          success: true,
+          data: cloudRunResult.data,
+          _source: 'Cloud Run AI Engine',
+        };
       },
-      timeout: 15000,
-    });
+      // Fallback: 로컬 폴백 응답
+      () =>
+        createFallbackResponse('intelligent-monitoring') as Record<
+          string,
+          unknown
+        >
+    );
 
-    if (cloudRunResult.success && cloudRunResult.data) {
-      debug.info('[intelligent-monitoring] Cloud Run success');
-
-      // Cloud Run 응답 그대로 반환 (프론트엔드가 Cloud Run 응답 구조를 처리하도록 맞춰져 있어야 함)
-      // 기존 route.ts에서는 Cloud Run 응답을 Vercel 포맷으로 매핑해주었음.
-      // 호환성을 위해 최소한의 구조는 맞춰줄 수 있음.
-
-      return NextResponse.json({
-        success: true,
-        data: cloudRunResult.data, // Cloud Run raw data (or mapped if needed)
-        _source: 'Cloud Run AI Engine',
+    // 3. 응답 반환
+    if (result.source === 'fallback') {
+      debug.info('[intelligent-monitoring] Using fallback response');
+      return NextResponse.json(result.data, {
+        headers: {
+          'X-Fallback-Response': 'true',
+          'X-Retry-After': '30000',
+        },
       });
     }
 
-    // 3. Fallback 없음 -> 에러 반환
-    debug.error(
-      '[intelligent-monitoring] Cloud Run failed:',
-      cloudRunResult.error
-    );
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'AI Analysis Failed',
-        message: '분석 요청 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
-        details: cloudRunResult.error,
-      },
-      { status: 503 }
-    );
+    debug.info('[intelligent-monitoring] Cloud Run success');
+    return NextResponse.json(result.data);
   } catch (error) {
     debug.error('Intelligent monitoring proxy error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
+
+    // 예상치 못한 에러 시에도 폴백 반환
+    const fallback = createFallbackResponse('intelligent-monitoring');
+    return NextResponse.json(fallback, {
+      headers: {
+        'X-Fallback-Response': 'true',
+        'X-Error': error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
-    );
+    });
   }
 }
 

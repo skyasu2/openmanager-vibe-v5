@@ -10,7 +10,7 @@
  * - Logic mirrored from `AISidebarV4`.
  */
 
-import { type UIMessage, useChat } from '@ai-sdk/react';
+import { useChat } from '@ai-sdk/react';
 import { TextStreamChatTransport } from 'ai';
 import {
   ArrowLeftFromLine,
@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { memo, useMemo, useRef, useState } from 'react';
+import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
 import { AIFunctionPages } from '../../domains/ai-sidebar/components/AIFunctionPages';
 import { EnhancedAIChat } from '../../domains/ai-sidebar/components/EnhancedAIChat';
 import type { AIThinkingStep } from '../../domains/ai-sidebar/types/ai-sidebar-types';
@@ -40,19 +41,8 @@ import { MessageActions } from './MessageActions';
 import SystemContextPanel from './SystemContextPanel';
 import ThinkingProcessVisualizer from './ThinkingProcessVisualizer';
 
-// --- Shared Helpers (Mirrored from AISidebarV4) ---
-
-function extractTextFromMessage(message: UIMessage): string {
-  if (!message.parts || message.parts.length === 0) {
-    return '';
-  }
-  return message.parts
-    .filter(
-      (part): part is { type: 'text'; text: string } => part.type === 'text'
-    )
-    .map((part) => part.text)
-    .join('');
-}
+// 🔧 Message Utility: @see /src/lib/ai/utils/message-normalizer.ts
+// extractTextFromUIMessage - 중앙화된 텍스트 추출 유틸리티 사용
 
 const MemoizedThinkingProcessVisualizer = memo(ThinkingProcessVisualizer);
 
@@ -221,7 +211,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     const actualIndex = messages.length - 1 - lastUserMessageIndex;
     const lastUserMessage = messages[actualIndex];
     if (!lastUserMessage) return;
-    const textContent = extractTextFromMessage(lastUserMessage);
+    const textContent = extractTextFromUIMessage(lastUserMessage);
     if (textContent) {
       setMessages(messages.slice(0, actualIndex));
       void sendMessage({ text: textContent });
@@ -237,7 +227,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           m.role === 'user' || m.role === 'assistant' || m.role === 'system'
       )
       .map((m): EnhancedChatMessage => {
-        const textContent = extractTextFromMessage(m);
+        const textContent = extractTextFromUIMessage(m);
         const toolParts =
           m.parts?.filter(
             (part): part is typeof part & { toolCallId: string } =>

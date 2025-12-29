@@ -402,6 +402,109 @@ export async function executeWithCircuitBreaker<T>(
   return breaker.execute(fn);
 }
 
+/**
+ * 실행 결과 타입 (Primary 또는 Fallback 구분)
+ */
+export interface ExecutionResult<T> {
+  data: T;
+  source: 'primary' | 'fallback';
+  /** 폴백 사용 시 원본 에러 */
+  originalError?: Error;
+}
+
+/**
+ * Circuit Breaker와 Fallback을 함께 사용하는 실행 함수
+ *
+ * @description
+ * 1. Circuit Breaker가 OPEN이면 즉시 폴백 실행
+ * 2. Primary 함수 실행 시도
+ * 3. 실패 시 폴백 함수 실행
+ *
+ * @param serviceName - 서비스 이름 (Circuit Breaker 키)
+ * @param primaryFn - 주 실행 함수 (Cloud Run 호출 등)
+ * @param fallbackFn - 폴백 함수 (로컬 응답 생성 등)
+ * @returns 실행 결과 (데이터 + 소스 정보)
+ *
+ * @example
+ * const result = await executeWithCircuitBreakerAndFallback(
+ *   'ai-supervisor',
+ *   async () => await callCloudRun(payload),
+ *   () => createFallbackResponse('supervisor')
+ * );
+ *
+ * if (result.source === 'fallback') {
+ *   // 폴백 응답 처리
+ * }
+ */
+export async function executeWithCircuitBreakerAndFallback<T>(
+  serviceName: string,
+  primaryFn: () => Promise<T>,
+  fallbackFn: () => T | Promise<T>
+): Promise<ExecutionResult<T>> {
+  const breaker = aiCircuitBreaker.getBreaker(serviceName);
+  const status = breaker.getStatus();
+
+  // Circuit Breaker가 열려있으면 즉시 폴백 사용
+  if (status.state === 'OPEN') {
+    console.log(
+      `[CircuitBreaker] ${serviceName}: OPEN 상태, 폴백 사용 (${status.resetTimeRemaining}ms 후 리셋)`
+    );
+
+    circuitBreakerEvents.emit({
+      type: 'failover',
+      service: serviceName,
+      timestamp: Date.now(),
+      details: {
+        failoverFrom: 'primary',
+        failoverTo: 'fallback',
+        error: 'Circuit breaker is OPEN',
+      },
+    });
+
+    const fallbackData = await fallbackFn();
+    return {
+      data: fallbackData,
+      source: 'fallback',
+    };
+  }
+
+  // Primary 함수 실행 시도
+  try {
+    const result = await breaker.execute(primaryFn);
+    return {
+      data: result,
+      source: 'primary',
+    };
+  } catch (error) {
+    const errorInstance =
+      error instanceof Error ? error : new Error(String(error));
+
+    console.error(
+      `[CircuitBreaker] ${serviceName}: Primary 실패, 폴백 사용 - ${errorInstance.message}`
+    );
+
+    // 폴백으로 전환 이벤트 발행
+    circuitBreakerEvents.emit({
+      type: 'failover',
+      service: serviceName,
+      timestamp: Date.now(),
+      details: {
+        failoverFrom: 'primary',
+        failoverTo: 'fallback',
+        error: errorInstance.message,
+      },
+    });
+
+    // 폴백 실행
+    const fallbackData = await fallbackFn();
+    return {
+      data: fallbackData,
+      source: 'fallback',
+      originalError: errorInstance,
+    };
+  }
+}
+
 // ============================================================================
 // Failover & Rate Limit 이벤트 유틸리티
 // ============================================================================
