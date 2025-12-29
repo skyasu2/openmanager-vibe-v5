@@ -1,6 +1,6 @@
 'use client';
 
-import { RefreshCw, Send, Square } from 'lucide-react';
+import { Bot, FileText, RefreshCw, Send, Square } from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
