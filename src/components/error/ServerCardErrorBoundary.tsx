@@ -51,13 +51,8 @@ class ServerCardErrorBoundary extends Component<Props, State> {
       });
     }
 
-    // 프로덕션 환경에서는 에러 로깅 서비스로 전송
-    if (process.env.NODE_ENV === 'production') {
-      console.error('ServerCard Error:', error, errorInfo);
-      // TODO: Sentry, LogRocket 등 에러 추적 서비스 연동
-    } else {
-      console.error('ServerCard Error:', error, errorInfo);
-    }
+    // 에러 로깅 (콘솔 기반 - 외부 서비스 미연동)
+    console.error('ServerCard Error:', error, errorInfo);
   }
 
   handleRetry = () => {

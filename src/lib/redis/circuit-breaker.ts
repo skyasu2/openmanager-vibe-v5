@@ -177,9 +177,8 @@ export async function isRequestAllowed(
     return true;
   }
 
-  // HALF_OPEN: 테스트 요청 허용 (단, 하나만)
+  // HALF_OPEN: 테스트 요청 허용 (단일 인스턴스 환경)
   if (status.state === 'HALF_OPEN') {
-    // TODO: 동시 테스트 요청 제한 (분산 락)
     return true;
   }
 
