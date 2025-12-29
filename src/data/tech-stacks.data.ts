@@ -19,16 +19,16 @@ export interface VibeCodeData {
 export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
   'ai-assistant-pro': [
     {
-      name: 'LangGraph (Cloud Run)',
+      name: 'Vercel AI SDK (Cloud Run)',
       category: 'ai',
       importance: 'critical',
       description: 'Multi-Agent 오케스트레이션 프레임워크 (GCP Cloud Run 배포)',
       implementation:
-        'TypeScript 기반 StateGraph로 Supervisor-Worker 패턴 구현. Google Cloud Run에서 컨테이너로 운영, 에이전트 간 통신 및 상태 관리',
-      version: '0.2.x',
+        'Vercel AI SDK generateText + maxSteps로 Supervisor-Worker 패턴 구현. Google Cloud Run에서 컨테이너로 운영, 에이전트 간 통신 및 상태 관리',
+      version: '5.x',
       status: 'active',
       icon: '🕸️',
-      tags: ['Multi-Agent', 'StateGraph', 'TypeScript', 'CloudRun'],
+      tags: ['Multi-Agent', 'AI SDK', 'TypeScript', 'CloudRun'],
       type: 'opensource',
     },
     {
@@ -103,11 +103,11 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       importance: 'critical',
       description: '멀티 에이전트 오케스트레이션 패턴 구현',
       implementation:
-        'LangGraph StateGraph 기반 Return-to-Supervisor + Command Pattern 조합. Supervisor가 작업 분배, Worker가 도구 실행 후 결과를 Supervisor에게 반환하는 구조',
+        'Vercel AI SDK generateText + maxSteps 기반 Return-to-Supervisor 패턴. Supervisor가 작업 분배, Worker가 도구 실행 후 결과를 Supervisor에게 반환하는 구조',
       version: 'Custom',
       status: 'active',
       icon: '🔄',
-      tags: ['Multi-Agent', 'Orchestration', 'LangGraph'],
+      tags: ['Multi-Agent', 'Orchestration', 'AI SDK'],
       type: 'custom',
     },
     {
@@ -180,7 +180,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       importance: 'high',
       description: 'AI Engine + ML 추론 마이크로서비스 컨테이너 플랫폼',
       implementation:
-        'Node.js 22 기반 LangGraph AI Engine + Rust native ML Engine(anomaly/trend/cluster) 운영. Docker 컨테이너로 Cold Start 최소화 및 확장성 확보',
+        'Node.js 22 기반 AI SDK Multi-Agent Engine + Rust native ML Engine(anomaly/trend/cluster) 운영. Docker 컨테이너로 Cold Start 최소화 및 확장성 확보',
       status: 'active',
       icon: '☁️',
       tags: ['CloudRun', 'Container', 'TypeScript', 'Rust'],

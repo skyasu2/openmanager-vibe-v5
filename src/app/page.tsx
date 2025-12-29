@@ -233,7 +233,7 @@ function Home() {
           </h1>
           <p className="mx-auto max-w-3xl text-base leading-relaxed text-white/85 md:text-lg">
             <span className="block text-white/60">
-              LangGraph 기반 멀티 에이전트 엔진
+              AI SDK 기반 멀티 에이전트 엔진
             </span>
             <span className="mt-1 inline-flex flex-wrap items-center justify-center gap-2 text-sm md:text-base">
               <span className="rounded-full bg-blue-500/20 px-3 py-1 text-blue-300">

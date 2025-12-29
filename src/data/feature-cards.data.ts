@@ -11,22 +11,22 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'ai-assistant-pro',
     title: '🧠 AI Assistant',
     description:
-      'Cerebras(7 Agents) + Groq(Fallback) + Mistral(Verifier & Last Keeper) 3단계 폴백을 갖춘 LangGraph 시스템입니다.',
+      'Cerebras(7 Agents) + Groq(Fallback) + Mistral(Verifier & Last Keeper) 3단계 폴백을 갖춘 AI SDK 멀티 에이전트 시스템입니다.',
     icon: Bot,
     gradient: 'from-indigo-500 via-purple-500 to-pink-500',
     detailedContent: {
-      overview: `단순한 구현을 넘어, 최신 AI 기술 트렌드(Wafer-Scale, LPU, SLM, Agentic)에 대한 깊은 이해를 바탕으로 설계되었습니다. GPU 병목을 해결한 Cerebras, 결정론적 속도의 Groq, 효율적인 SLM Mistral, 그리고 순환형 워크플로우인 LangGraph를 유기적으로 결합하여 차세대 AI 아키텍처를 제시합니다.`,
+      overview: `단순한 구현을 넘어, 최신 AI 기술 트렌드(Wafer-Scale, LPU, SLM, Agentic)에 대한 깊은 이해를 바탕으로 설계되었습니다. GPU 병목을 해결한 Cerebras, 결정론적 속도의 Groq, 효율적인 SLM Mistral, 그리고 Vercel AI SDK의 멀티 에이전트 오케스트레이션을 유기적으로 결합하여 차세대 AI 아키텍처를 제시합니다.`,
       features: [
         '🚀 Wafer-Scale Inference: GPU 클러스터의 통신 병목을 제거한 Cerebras WSE 활용',
         '⚡ LPU Architecture: 폰 노이만 구조를 탈피한 Groq의 결정론적(Deterministic) 추론',
         '🧠 SLM Efficiency: 거대 모델 대신 Mistral 24B(SLM)를 활용한 실용적 검증',
-        '🔄 Agentic Workflow: 단방향 Chain을 넘어선 LangGraph의 순환형(Cyclic) 추론',
+        '🔄 Agentic Workflow: 단방향 Chain을 넘어선 AI SDK의 멀티스텝 도구 호출',
       ],
       technologies: [
         'Cerebras (Primary - 7 Agents)',
         'Groq (Fallback Provider)',
         'Mistral (Verifier & Last Keeper)',
-        'LangGraph (Agentic Framework)',
+        'Vercel AI SDK (Multi-Agent)',
         'Google AI (Vector Embedding)',
         'Supabase (Vector Store)',
       ],
@@ -69,14 +69,14 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         ],
       },
       {
-        title: 'LangGraph (Agentic)',
+        title: 'AI SDK (Multi-Agent)',
         description:
-          '기존의 선형적인 LLM Chain(DAG) 한계를 넘어, 인간의 사고 과정처럼 루프(Loop)와 피드백이 가능한 "순환형 에이전트"를 설계했습니다.',
+          'Vercel AI SDK의 generateText + maxSteps를 활용한 멀티스텝 도구 호출. Supervisor-Worker 패턴으로 복잡한 분석 작업을 자동 오케스트레이션합니다.',
         icon: Database,
         gradient: 'from-slate-500 to-gray-600',
         features: [
           'Trend: From Chains to Agents',
-          'Tech: Cyclic State Management',
+          'Tech: Multi-step Tool Calling',
           'Value: 복잡한 문제 해결 능력',
         ],
       },
@@ -108,7 +108,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
       features: [
         '▲ Vercel: Next.js 16 최적화 호스팅, 글로벌 CDN, Edge Runtime, 자동 스케일링',
         '🐘 Supabase: PostgreSQL 15 + pgVector(AI 벡터 검색) + RLS(행 수준 보안)',
-        '☁️ GCP Cloud Run: Node.js LangGraph AI Engine 컨테이너 배포, Scale to Zero',
+        '☁️ GCP Cloud Run: Node.js AI SDK Multi-Agent Engine 컨테이너 배포, Scale to Zero',
         '⚡ Upstash: Serverless Redis를 이용한 초고속 데이터 캐싱 및 Rate Limiting',
         '🐋 Docker: Cloud Run 로컬 개발 환경 에뮬레이션',
         '🔄 GitHub Actions: CI/CD 파이프라인, 자동 테스트 및 배포',
