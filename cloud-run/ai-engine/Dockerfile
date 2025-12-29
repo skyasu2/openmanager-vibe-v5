@@ -39,7 +39,8 @@ RUN apk add --no-cache dumb-init
 COPY package.json package-lock.json ./
 
 # Install all dependencies (dev + prod) for build
-RUN npm ci --legacy-peer-deps --ignore-scripts
+# Note: Using npm install instead of npm ci due to lockfile sync issues in Cloud Build
+RUN npm install --legacy-peer-deps --ignore-scripts
 
 # ============================================================================
 # Stage 2: Build
