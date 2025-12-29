@@ -13,10 +13,11 @@
 import type { NextRequest } from 'next/server';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 
-// SSE 연결 유지 시간 (30초)
-const SSE_TIMEOUT_MS = 30000;
-// 폴링 간격 (3초)
-const POLL_INTERVAL_MS = 3000;
+// SSE 연결 유지 시간 (60초 - 무료 티어 최적화)
+const SSE_TIMEOUT_MS = 60000;
+// 폴링 간격 (10초 - 무료 티어 최적화, 기존 3초에서 완화)
+// Cloud Run 호출 최소화: 60초 ÷ 10초 = 6회/연결
+const POLL_INTERVAL_MS = 10000;
 
 /**
  * Cloud Run에서 승인 상태 조회
