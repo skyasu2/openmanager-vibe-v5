@@ -128,8 +128,13 @@ export interface SessionState {
 
 /**
  * 세션 제한 상수
+ *
+ * @updated 2025-12-30 - 제한 완화 (20 → 100)
+ * - 기존 20개 제한은 실질적 대화 불가능
+ * - 50 대화쌍 (100 메시지)으로 확장
+ * - WARNING_THRESHOLD는 80개 (80%)에서 경고
  */
 export const SESSION_LIMITS = {
-  MESSAGE_LIMIT: 20,
-  WARNING_THRESHOLD: 15,
+  MESSAGE_LIMIT: 100,
+  WARNING_THRESHOLD: 80,
 } as const;

@@ -1,0 +1,294 @@
+/**
+ * Query Complexity Analyzer
+ *
+ * @description 사용자 쿼리의 복잡도를 분석하여 동적 타임아웃 계산
+ *
+ * @created 2025-12-30
+ */
+
+// ============================================================================
+// 타입 정의
+// ============================================================================
+
+export type QueryComplexity =
+  | 'simple'
+  | 'moderate'
+  | 'complex'
+  | 'very_complex';
+
+export interface ComplexityAnalysis {
+  level: QueryComplexity;
+  score: number; // 0-100
+  factors: string[];
+  recommendedTimeout: number; // ms
+}
+
+// ============================================================================
+// 복잡도 키워드 패턴
+// ============================================================================
+
+/**
+ * 복잡도 증가 키워드 (한국어 + 영어)
+ */
+const COMPLEXITY_KEYWORDS = {
+  // 분석 관련 (복잡도 +20)
+  analysis: [
+    '분석',
+    '패턴',
+    'analyze',
+    'analysis',
+    'pattern',
+    '추세',
+    'trend',
+    '비교',
+    'compare',
+    '상관관계',
+    'correlation',
+  ],
+  // 예측 관련 (복잡도 +25)
+  prediction: [
+    '예측',
+    'predict',
+    'forecast',
+    '전망',
+    '미래',
+    'future',
+    '예상',
+    'expect',
+  ],
+  // 집계 관련 (복잡도 +15)
+  aggregation: [
+    '전체',
+    '모든',
+    'all',
+    'every',
+    '평균',
+    'average',
+    '합계',
+    'sum',
+    'total',
+    '최대',
+    'max',
+    '최소',
+    'min',
+  ],
+  // 시간 범위 (복잡도 +10~30)
+  timeRange: [
+    '지난 주',
+    'last week',
+    '지난 달',
+    'last month',
+    '최근',
+    'recent',
+    '기간',
+    'period',
+    '24시간',
+    '7일',
+    '30일',
+    '1년',
+  ],
+  // 다중 서버 (복잡도 +15)
+  multiServer: [
+    '서버들',
+    'servers',
+    '모든 서버',
+    'all servers',
+    '클러스터',
+    'cluster',
+    '그룹',
+    'group',
+  ],
+  // 보고서 생성 (복잡도 +20)
+  report: [
+    '보고서',
+    'report',
+    '리포트',
+    '요약',
+    'summary',
+    '정리',
+    '문서',
+    'document',
+  ],
+  // 원인 분석 (복잡도 +30)
+  rootCause: [
+    '원인',
+    'cause',
+    '왜',
+    'why',
+    '이유',
+    'reason',
+    '근본',
+    'root',
+    '진단',
+    'diagnose',
+  ],
+};
+
+/**
+ * 단순 쿼리 패턴 (복잡도 감소)
+ */
+const SIMPLE_PATTERNS = [
+  /^(안녕|hello|hi|hey)/i,
+  /^(상태|status)(\s*(확인|check))?$/i,
+  /^(현재|now|current)\s*(상태|status)/i,
+  /^(도움|help|도와)/i,
+  /^(뭐|what)\s*(해|할)/i,
+];
+
+// ============================================================================
+// 복잡도 분석 함수
+// ============================================================================
+
+/**
+ * 쿼리 복잡도 분석
+ *
+ * @param query - 사용자 쿼리 텍스트
+ * @returns 복잡도 분석 결과
+ */
+export function analyzeQueryComplexity(query: string): ComplexityAnalysis {
+  const normalizedQuery = query.toLowerCase().trim();
+  let score = 0;
+  const factors: string[] = [];
+
+  // 1. 단순 패턴 체크
+  for (const pattern of SIMPLE_PATTERNS) {
+    if (pattern.test(normalizedQuery)) {
+      return {
+        level: 'simple',
+        score: 10,
+        factors: ['simple_greeting_or_status'],
+        recommendedTimeout: 15000, // 15초
+      };
+    }
+  }
+
+  // 2. 쿼리 길이 기반 점수
+  const queryLength = normalizedQuery.length;
+  if (queryLength > 200) {
+    score += 20;
+    factors.push('long_query');
+  } else if (queryLength > 100) {
+    score += 10;
+    factors.push('medium_query');
+  }
+
+  // 3. 복잡도 키워드 체크
+  for (const [category, keywords] of Object.entries(COMPLEXITY_KEYWORDS)) {
+    for (const keyword of keywords) {
+      if (normalizedQuery.includes(keyword.toLowerCase())) {
+        const categoryScores: Record<string, number> = {
+          analysis: 20,
+          prediction: 25,
+          aggregation: 15,
+          timeRange: 15,
+          multiServer: 15,
+          report: 20,
+          rootCause: 30,
+        };
+        score += categoryScores[category] || 10;
+        factors.push(`keyword_${category}`);
+        break; // 카테고리당 한 번만 카운트
+      }
+    }
+  }
+
+  // 4. 질문 복잡도 (다중 질문)
+  const questionMarks = (normalizedQuery.match(/\?/g) || []).length;
+  if (questionMarks > 1) {
+    score += questionMarks * 5;
+    factors.push(`multiple_questions_${questionMarks}`);
+  }
+
+  // 5. 숫자/날짜 범위 체크
+  const hasDateRange = /\d{4}[-/]\d{2}[-/]\d{2}/.test(normalizedQuery);
+  const hasTimeRange =
+    /\d+\s*(시간|일|주|달|년|hour|day|week|month|year)/i.test(normalizedQuery);
+  if (hasDateRange || hasTimeRange) {
+    score += 10;
+    factors.push('date_time_range');
+  }
+
+  // 6. 복잡도 레벨 결정
+  let level: QueryComplexity;
+  let recommendedTimeout: number;
+
+  if (score <= 20) {
+    level = 'simple';
+    recommendedTimeout = 15000; // 15초
+  } else if (score <= 45) {
+    level = 'moderate';
+    recommendedTimeout = 30000; // 30초
+  } else if (score <= 70) {
+    level = 'complex';
+    recommendedTimeout = 60000; // 60초
+  } else {
+    level = 'very_complex';
+    recommendedTimeout = 120000; // 120초
+  }
+
+  return {
+    level,
+    score: Math.min(score, 100),
+    factors,
+    recommendedTimeout,
+  };
+}
+
+/**
+ * 동적 타임아웃 계산
+ *
+ * @param query - 사용자 쿼리 텍스트
+ * @param options - 추가 옵션
+ * @returns 권장 타임아웃 (ms)
+ */
+export function calculateDynamicTimeout(
+  query: string,
+  options?: {
+    minTimeout?: number;
+    maxTimeout?: number;
+    messageCount?: number;
+  }
+): number {
+  const {
+    minTimeout = 10000,
+    maxTimeout = 120000,
+    messageCount = 1,
+  } = options || {};
+
+  const analysis = analyzeQueryComplexity(query);
+  let timeout = analysis.recommendedTimeout;
+
+  // 메시지 수에 따른 추가 시간 (대화 컨텍스트 처리)
+  if (messageCount > 10) {
+    timeout += 5000; // +5초
+  }
+  if (messageCount > 20) {
+    timeout += 10000; // +10초
+  }
+
+  // 최소/최대 제한 적용
+  return Math.max(minTimeout, Math.min(timeout, maxTimeout));
+}
+
+/**
+ * 타임아웃 추천 메시지 생성
+ *
+ * @param analysis - 복잡도 분석 결과
+ * @returns 사용자 안내 메시지
+ */
+export function getTimeoutGuidance(analysis: ComplexityAnalysis): string {
+  const timeoutSec = Math.round(analysis.recommendedTimeout / 1000);
+
+  switch (analysis.level) {
+    case 'simple':
+      return `빠른 응답이 예상됩니다 (~${timeoutSec}초)`;
+    case 'moderate':
+      return `분석 중입니다... (~${timeoutSec}초 소요 예상)`;
+    case 'complex':
+      return `복잡한 분석 중입니다... (~${timeoutSec}초 소요 예상)`;
+    case 'very_complex':
+      return `심층 분석 중입니다... 최대 ${timeoutSec}초 소요될 수 있습니다`;
+    default:
+      return `처리 중... (~${timeoutSec}초)`;
+  }
+}

@@ -5,6 +5,11 @@
  * @description Cloud Run Multi-Agent API의 보안 레이어
  * - 입력: 길이 제한, 민감정보 마스킹
  * - 출력: 길이 제한, 잠재적 위험 콘텐츠 필터링
+ *
+ * @updated 2025-12-30 - ReDoS 방지 및 XSS 필터 강화
+ * - 기존 정규식의 `\S+` 패턴 → 길이 제한 `[^\s]{1,100}` 으로 변경
+ * - XSS 벡터 추가: img onerror, svg onload, javascript: URL 등
+ * - HTML 특수문자 이스케이프 함수 추가
  */
 
 // ============================================================================
@@ -14,20 +19,44 @@
 const MAX_INPUT_LENGTH = 10000;
 const MAX_OUTPUT_LENGTH = 50000;
 
-/** 민감 정보 패턴 (API 키, 토큰, 비밀번호 등) */
+/**
+ * 민감 정보 패턴 (API 키, 토큰, 비밀번호 등)
+ *
+ * @security ReDoS 방지를 위해 값 부분을 `[^\s]{1,100}`으로 제한
+ * - 기존: `\S+` → 무제한 백트래킹 가능
+ * - 변경: `[^\s]{1,100}` → 최대 100자로 제한
+ */
 const SENSITIVE_PATTERNS = [
-  /(api[_-]?key|apikey)\s*[=:]\s*['"]?\S+['"]?/gi,
-  /(token|bearer)\s*[=:]\s*['"]?\S+['"]?/gi,
-  /(password|passwd|pwd)\s*[=:]\s*['"]?\S+['"]?/gi,
-  /(secret|private[_-]?key)\s*[=:]\s*['"]?\S+['"]?/gi,
-  /(access[_-]?key|secret[_-]?key)\s*[=:]\s*['"]?\S+['"]?/gi,
+  /(api[_-]?key|apikey)\s*[=:]\s*['"]?[^\s'"]{1,100}['"]?/gi,
+  /(token|bearer)\s*[=:]\s*['"]?[^\s'"]{1,100}['"]?/gi,
+  /(password|passwd|pwd)\s*[=:]\s*['"]?[^\s'"]{1,100}['"]?/gi,
+  /(secret|private[_-]?key)\s*[=:]\s*['"]?[^\s'"]{1,100}['"]?/gi,
+  /(access[_-]?key|secret[_-]?key)\s*[=:]\s*['"]?[^\s'"]{1,100}['"]?/gi,
 ];
 
-/** 위험 콘텐츠 패턴 (코드 실행, 시스템 접근 등) */
+/**
+ * 위험 콘텐츠 패턴 (코드 실행, 시스템 접근, XSS 등)
+ *
+ * @security 확장된 XSS 벡터 커버리지
+ * - script 태그
+ * - event handler 속성 (onerror, onload, onclick 등)
+ * - javascript: URL 스키마
+ * - eval/exec 호출
+ */
 const DANGEROUS_OUTPUT_PATTERNS = [
+  // Script 태그 (모든 변형)
   /<script[^>]*>[\s\S]*?<\/script>/gi,
-  /eval\s*\([^)]*\)/gi,
-  /exec\s*\([^)]*\)/gi,
+  // Event handler 속성들 (img, svg, body, iframe 등)
+  /<[^>]+\s+on\w+\s*=/gi,
+  // javascript: URL 스키마
+  /javascript\s*:/gi,
+  // data: URL (잠재적 XSS 벡터)
+  /data\s*:\s*text\/html/gi,
+  // eval/exec 호출 (길이 제한으로 ReDoS 방지)
+  /eval\s*\([^)]{0,500}\)/gi,
+  /exec\s*\([^)]{0,500}\)/gi,
+  // DOM 조작 메서드 (XSS 벡터)
+  /\.innerHTML\s*=/gi,
 ];
 
 // ============================================================================
@@ -130,4 +159,48 @@ export function quickSanitize(text: string): string {
  */
 export function quickFilter(text: string): string {
   return filterResponse(text).filtered;
+}
+
+// ============================================================================
+// HTML 이스케이프 유틸리티
+// ============================================================================
+
+/**
+ * HTML 특수문자 매핑 테이블
+ */
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#x27;',
+};
+
+/**
+ * HTML 특수문자 이스케이프
+ *
+ * @description XSS 방지를 위한 HTML 엔티티 변환
+ * @param text - 이스케이프할 문자열
+ * @returns 이스케이프된 문자열
+ *
+ * @example
+ * escapeHtml('<script>alert("xss")</script>')
+ * // Returns: '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'
+ */
+export function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (char) => HTML_ESCAPE_MAP[char] || char);
+}
+
+/**
+ * 안전한 텍스트 출력을 위한 통합 필터
+ *
+ * @description 위험 패턴 제거 + HTML 이스케이프 적용
+ * @param text - 필터링할 문자열
+ * @returns 안전하게 처리된 문자열
+ */
+export function safeOutput(text: string): string {
+  // 1. 위험 패턴 제거
+  const filtered = quickFilter(text);
+  // 2. HTML 이스케이프
+  return escapeHtml(filtered);
 }

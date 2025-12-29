@@ -16,6 +16,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { executeWithCircuitBreaker } from '@/lib/ai/circuit-breaker';
+import { calculateDynamicTimeout } from '@/lib/ai/utils/query-complexity';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
@@ -366,8 +368,16 @@ export const POST = withRateLimit(
       // 2. 세션 ID 생성/사용
       const sessionId = clientSessionId || `session_${Date.now()}`;
 
+      // 3. 동적 타임아웃 계산 (2025-12-30 추가)
+      const dynamicTimeout = calculateDynamicTimeout(userQuery, {
+        messageCount: messages.length,
+        minTimeout: 15000, // 최소 15초
+        maxTimeout: 120000, // 최대 120초
+      });
+
       console.log(`🚀 [Supervisor] Query: "${userQuery.slice(0, 50)}..."`);
       console.log(`📡 [Supervisor] Session: ${sessionId}`);
+      console.log(`⏱️ [Supervisor] Dynamic timeout: ${dynamicTimeout}ms`);
 
       // 3. 스트리밍 요청 여부 확인
       // AI SDK v5 DefaultChatTransport는 */* 또는 다양한 Accept 헤더를 보냄
@@ -393,12 +403,17 @@ export const POST = withRateLimit(
           // ================================================================
           // Cloud Run은 현재 JSON 응답을 반환함 (스트리밍 미구현)
           // JSON 응답에서 텍스트를 추출하여 plain text로 반환
+          // Circuit Breaker로 장애 격리 (2025-12-30 추가)
           // ================================================================
-          const proxyResult = await proxyToCloudRun({
-            path: '/api/ai/supervisor',
-            body: { messages: normalizedMessages, sessionId },
-            timeout: 90000, // 90초 타임아웃 (복잡한 쿼리 대응)
-          });
+          const proxyResult = await executeWithCircuitBreaker(
+            'cloud-run-supervisor',
+            () =>
+              proxyToCloudRun({
+                path: '/api/ai/supervisor',
+                body: { messages: normalizedMessages, sessionId },
+                timeout: dynamicTimeout, // 동적 타임아웃 (쿼리 복잡도 기반)
+              })
+          );
 
           if (proxyResult.success && proxyResult.data) {
             const data = proxyResult.data as {
@@ -432,11 +447,16 @@ export const POST = withRateLimit(
           // Cloud Run 실패 시 에러 응답
           console.error('❌ Cloud Run request failed:', proxyResult.error);
         } else {
-          // Cloud Run 단일 응답 프록시
-          const proxyResult = await proxyToCloudRun({
-            path: '/api/ai/supervisor',
-            body: { messages: normalizedMessages, sessionId },
-          });
+          // Cloud Run 단일 응답 프록시 (Circuit Breaker 적용)
+          const proxyResult = await executeWithCircuitBreaker(
+            'cloud-run-supervisor',
+            () =>
+              proxyToCloudRun({
+                path: '/api/ai/supervisor',
+                body: { messages: normalizedMessages, sessionId },
+                timeout: dynamicTimeout, // 동적 타임아웃
+              })
+          );
 
           if (proxyResult.success && proxyResult.data) {
             return NextResponse.json({
@@ -479,6 +499,44 @@ export const POST = withRateLimit(
           message: error.message,
           stack: error.stack?.slice(0, 500),
         });
+
+        // Circuit Breaker 에러 처리
+        if (error.message.includes('일시적으로 중단되었습니다')) {
+          // Circuit Breaker가 열린 상태 - Retry-After 헤더 추가
+          const retryMatch = error.message.match(/(\d+)초 후/);
+          const retryAfter = retryMatch?.[1] ?? '60';
+
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'AI service circuit open',
+              message: error.message,
+              retryAfter: parseInt(retryAfter, 10),
+            },
+            {
+              status: 503,
+              headers: {
+                'Retry-After': retryAfter,
+              },
+            }
+          );
+        }
+
+        // 타임아웃 에러 처리
+        if (
+          error.message.includes('timeout') ||
+          error.message.includes('TIMEOUT')
+        ) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'Request timeout',
+              message:
+                'AI 분석이 시간 내에 완료되지 않았습니다. 더 간단한 질문으로 시도해주세요.',
+            },
+            { status: 504 }
+          );
+        }
       }
 
       return NextResponse.json(
