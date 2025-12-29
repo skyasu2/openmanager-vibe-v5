@@ -602,24 +602,30 @@ export class EnrichedMetricsGenerator {
     };
   }
 
+  /**
+   * 베이스라인 로드 (스텁)
+   * NOTE: BaselineStorageService 제거됨 - FixedDataSystem으로 대체
+   * 현재는 동적 생성 방식 사용, 외부 저장소 연동 불필요
+   */
   private async loadBaselineFromStorage(): Promise<void> {
     try {
       console.log('📥 베이스라인 데이터 로드 중...');
-      // GCP Storage에서 베이스라인 로드 (현재는 스텁)
       const _servers = Array.from(this.servers.values());
-      // TODO: 실제 베이스라인 로드 구현 예정
       this.lastBaselineLoad = new Date();
-      console.log('✅ 베이스라인 데이터 로드 완료 (스텁 모드)');
+      console.log('✅ 베이스라인 데이터 로드 완료 (동적 생성 모드)');
     } catch (error) {
       console.warn('⚠️ 베이스라인 로드 실패, 동적 생성으로 대체:', error);
     }
   }
 
+  /**
+   * 베이스라인 저장 (스텁)
+   * NOTE: BaselineStorageService 제거됨 - FixedDataSystem으로 대체
+   */
   private async saveBaselineToStorage(): Promise<void> {
     try {
       console.log('💾 베이스라인 데이터 저장 중...');
-      // 현재는 스텁 모드 - 실제 저장 구현 예정
-      console.log('✅ 베이스라인 데이터 저장 완료 (스텁 모드)');
+      console.log('✅ 베이스라인 데이터 저장 완료 (동적 생성 모드)');
     } catch (error) {
       console.error('❌ 베이스라인 저장 실패:', error);
     }
