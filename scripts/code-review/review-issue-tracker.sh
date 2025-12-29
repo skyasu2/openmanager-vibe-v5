@@ -11,7 +11,8 @@
 #   report    - 이슈 요약 리포트 생성
 #   help      - 도움말
 
-set -euo pipefail
+set -uo pipefail
+# Note: -e removed to allow grep to return non-zero without exiting
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -33,40 +34,51 @@ init_tracking_file() {
     fi
 }
 
-# 크리티컬 이슈 스캔
+# 크리티컬 이슈 스캔 (AI 리뷰 섹션에서만 검색)
 scan_critical_issues() {
     echo -e "${BLUE}🔍 크리티컬 이슈 스캔 중...${NC}"
+    echo -e "${YELLOW}   (AI 리뷰 결과 섹션에서만 검색, diff 내용 제외)${NC}"
     echo ""
 
     local count=0
-    local today=$(date +%Y-%m-%d)
+    local reviewed_count=0
 
-    # 최근 7일 리뷰 파일 검색
+    # 최근 리뷰 파일 검색
     for review_file in "$REVIEWS_DIR"/review-*-2025-12-*.md; do
         [[ -f "$review_file" ]] || continue
 
-        # 크리티컬 이슈 검색
-        if grep -q "🔴\|(중요)\|Critical" "$review_file" 2>/dev/null; then
+        # 이미 검토완료된 파일 스킵
+        if grep -q "^\# ✅ \[검토완료\]" "$review_file" 2>/dev/null; then
+            ((reviewed_count++))
+            continue
+        fi
+
+        # AI 리뷰 결과 섹션 추출 후 크리티컬 이슈 검색
+        # (diff 내용에서 🔴가 있는 경우 제외)
+        local ai_section=$(sed -n '/## 🚀 AI 리뷰 결과\|## 🤖 AI 코드 리뷰/,$p' "$review_file" 2>/dev/null)
+
+        if echo "$ai_section" | grep -q "### 🔴\|^🔴 (중요)" 2>/dev/null; then
             local filename=$(basename "$review_file")
             local commit=$(grep -m1 "^\*\*커밋\*\*:" "$review_file" 2>/dev/null | sed 's/.*`\([^`]*\)`.*/\1/' || echo "N/A")
-            local date=$(echo "$filename" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}')
+            local date_str=$(echo "$filename" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}')
             local ai_engine=$(echo "$filename" | grep -oE 'codex|gemini|qwen|claude' | head -1)
 
             echo -e "${RED}🔴 Critical Issue Found${NC}"
             echo "   파일: $filename"
             echo "   커밋: $commit"
-            echo "   날짜: $date"
+            echo "   날짜: $date_str"
             echo "   AI: $ai_engine"
 
-            # 이슈 내용 추출
-            grep -A 3 "🔴\|(중요)" "$review_file" 2>/dev/null | head -4
+            # AI 리뷰 섹션에서 이슈 내용 추출
+            echo "$ai_section" | grep -A 3 "### 🔴" 2>/dev/null | head -5
             echo ""
             ((count++))
         fi
     done
 
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "총 크리티컬 이슈: ${RED}${count}개${NC}"
+    echo -e "미확인 크리티컬 이슈: ${RED}${count}개${NC}"
+    echo -e "검토 완료 리뷰: ${GREEN}${reviewed_count}개${NC}"
 }
 
 # 이슈 요약 리포트
