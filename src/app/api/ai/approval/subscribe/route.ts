@@ -7,7 +7,30 @@
  * Server-Sent Events를 통해 승인 대기 상태를 실시간으로 클라이언트에 전송
  * 기존 1회성 폴링의 레이스 컨디션 문제 해결
  *
+ * @performance 무료 티어 최적화 (2025-12-30)
+ * - 폴링 간격: 10초 (Cloud Run 호출 최소화)
+ * - 연결 유지: 60초 (연결당 최대 6회 호출)
+ * - 상태 변경 감지 지연: 최대 10초
+ *
+ * @events
+ * - `connected`: 연결 성공 및 초기 상태
+ * - `approval_pending`: 승인 대기 중인 액션 발견
+ * - `heartbeat`: 승인 대기 없음 (연결 유지 확인)
+ * - `timeout`: 연결 타임아웃 (60초 후 재연결 필요)
+ * - `error`: 오류 발생
+ *
+ * @example
+ * // 클라이언트 사용 예시
+ * const eventSource = new EventSource('/api/ai/approval/subscribe?sessionId=xxx');
+ * eventSource.onmessage = (event) => {
+ *   const data = JSON.parse(event.data);
+ *   if (data.type === 'approval_pending') {
+ *     // 승인 UI 표시
+ *   }
+ * };
+ *
  * @created 2025-12-30
+ * @updated 2025-12-30 - 무료 티어 최적화 (폴링 3초→10초, 타임아웃 30초→60초)
  */
 
 import type { NextRequest } from 'next/server';
@@ -103,7 +126,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         }
       };
 
-      // 초기 상태 전송
+      // 초기 상태 전송 (폴링 간격 정보 포함)
       try {
         const initialStatus = await getApprovalStatus(sessionId);
         sendEvent('connected', {
@@ -111,6 +134,12 @@ export async function GET(req: NextRequest): Promise<Response> {
           hasPending: initialStatus.hasPending,
           action: initialStatus.action,
           _backend: initialStatus._backend,
+          // 클라이언트 안내: 무료 티어 최적화로 인한 응답 지연 정보
+          polling: {
+            intervalMs: POLL_INTERVAL_MS,
+            timeoutMs: SSE_TIMEOUT_MS,
+            note: '상태 변경 감지까지 최대 10초 소요될 수 있습니다',
+          },
         });
       } catch (error) {
         sendEvent('error', {
@@ -152,11 +181,12 @@ export async function GET(req: NextRequest): Promise<Response> {
       // 첫 폴링은 즉시 시작하지 않고 인터벌 후 시작
       pollTimer = setTimeout(poll, POLL_INTERVAL_MS);
 
-      // 타임아웃 설정 (30초 후 연결 종료)
+      // 타임아웃 설정 (60초 후 연결 종료 - 무료 티어 최적화)
       timeoutTimer = setTimeout(() => {
         sendEvent('timeout', {
-          message: 'Connection timeout, please reconnect',
+          message: '연결 시간 초과 (60초). 자동 재연결을 권장합니다.',
           sessionId,
+          reconnectAfterMs: 1000, // 1초 후 재연결 권장
         });
         isAborted = true;
         controller.close();
