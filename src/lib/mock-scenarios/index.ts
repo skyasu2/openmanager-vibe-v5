@@ -74,7 +74,7 @@ export class MockScenarioManager {
 
   /**
    * Korean NLP 시나리오 테스트 (로컬 Mock)
-   * LangGraph 시스템에서 Mock 결과 반환
+   * AI 시스템에서 Mock 결과 반환
    */
   async testKoreanNLPScenarios(
     category?: 'technical' | 'business' | 'mixed' | 'edge-case'
@@ -261,7 +261,7 @@ export class MockScenarioManager {
     // 예측 생성
     const predictions = generatePredictions(metrics, pattern, 24);
 
-    // LangGraph에 분석 결과 로깅
+    // ML 분석 결과 로깅
     console.log(
       `📈 ML 분석 결과: ${anomalies.length}개 이상 징후, ${predictions.length}개 예측`
     );

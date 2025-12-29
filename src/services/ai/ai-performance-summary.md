@@ -1,5 +1,5 @@
 # ⚠️ [DEPRECATED] AI 엔진 성능 최적화 완료 보고서
-> **Note**: 이 문서는 Vercel Edge Runtime 기반의 최적화 내용을 담고 있으나, v5.84.0 이후 Cloud Run 기반 LangGraph 아키텍처로 이전되면서 더 이상 유효하지 않습니다. 현재 아키텍처는 `docs/core/architecture/ai/ai-engine-architecture.md`를 참고하세요.
+> **Note**: 이 문서는 Vercel Edge Runtime 기반의 최적화 내용을 담고 있으나, v5.84.0 이후 Cloud Run 기반 AI Engine 아키텍처로 이전되면서 더 이상 유효하지 않습니다. 현재 아키텍처는 `docs/core/architecture/ai/ai-engine-architecture.md`를 참고하세요.
 
 # 🚀 AI 엔진 성능 최적화 완료 보고서
 

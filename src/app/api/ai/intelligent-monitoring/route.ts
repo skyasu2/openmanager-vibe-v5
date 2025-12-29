@@ -3,7 +3,7 @@
  *
  * Phase 3: Intelligent Monitoring Backend (Cloud Run Proxy)
  * - Vercel: Thin Proxy Layer
- * - Cloud Run: Trend Prediction & Anomaly Detection (Rust/LangGraph)
+ * - Cloud Run: Trend Prediction & Anomaly Detection
  *
  * 🔄 v5.84.0: Local Fallback Removed (Pure Proxy)
  */
@@ -68,7 +68,7 @@ async function postHandler(request: NextRequest) {
       return NextResponse.json({
         success: true,
         data: cloudRunResult.data, // Cloud Run raw data (or mapped if needed)
-        _source: 'Cloud Run LangGraph',
+        _source: 'Cloud Run AI Engine',
       });
     }
 

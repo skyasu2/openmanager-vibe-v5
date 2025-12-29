@@ -126,7 +126,7 @@ export const POST = withAuth(async (req: NextRequest) => {
       );
     }
 
-    // 로컬 모드: 승인 처리 불가 (LangGraph 상태가 Cloud Run에만 있음)
+    // 로컬 모드: 승인 처리 불가 (세션 상태가 Cloud Run에만 있음)
     return NextResponse.json(
       {
         success: false,

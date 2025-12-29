@@ -20,7 +20,7 @@
  */
 const TIMEOUT_CONFIG = {
   GOOGLE_AI: 8000, // 🎯 넉넉한 타임아웃: 복잡한 쿼리 안정성 보장 (베르셀 10초 제한 고려)
-  LOCAL_AI: 3500, // Local AI 충분한 타임아웃 (Cloud Run LangGraph 응답 고려) - 환경변수와 일치
+  LOCAL_AI: 3500, // Local AI 충분한 타임아웃 (Cloud Run 응답 고려) - 환경변수와 일치
   MCP_SERVER: 5000, // MCP 서버 기본 타임아웃 (Claude Code 개발용)
 };
 

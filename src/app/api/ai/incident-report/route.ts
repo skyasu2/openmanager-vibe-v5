@@ -3,7 +3,7 @@
  *
  * Phase 2: Auto Incident Report Backend (Cloud Run Proxy)
  * - Vercel: Thin Proxy Layer
- * - Cloud Run: AI Analysis & Report Generation (LangGraph)
+ * - Cloud Run: AI Analysis & Report Generation
  *
  * 🔄 v5.84.0: Local Fallback Removed (Cloud Run dependency enforced)
  */
@@ -51,7 +51,7 @@ async function postHandler(request: NextRequest) {
       );
     }
 
-    // 2. Cloud Run 프록시 호출 (LangGraph Reporter Agent)
+    // 2. Cloud Run 프록시 호출 (Reporter Agent)
     debug.info(`[incident-report] Proxying action '${action}' to Cloud Run...`);
 
     const cloudRunResult = await proxyToCloudRun({
@@ -103,7 +103,7 @@ async function postHandler(request: NextRequest) {
         success: true,
         report: {
           ...cloudRunResult.data,
-          _source: 'Cloud Run LangGraph',
+          _source: 'Cloud Run AI Engine',
         },
       });
     }

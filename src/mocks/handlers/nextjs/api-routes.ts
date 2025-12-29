@@ -15,7 +15,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
  */
 export const nextJsApiHandlers = [
   /**
-   * AI Supervisor API - LangGraph Multi-Agent Supervisor
+   * AI Supervisor API - Cloud Run Multi-Agent Supervisor
    *
    * @example POST /api/ai/supervisor
    */

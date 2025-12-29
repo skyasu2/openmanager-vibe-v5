@@ -2,7 +2,7 @@
  * 🎭 Mock 시스템 통합 Export
  *
  * Claude Code 최적화 Mock 시스템의 중앙 진입점
- * GCP Functions Mock 제거됨 (2025-12-14) - LangGraph로 대체
+ * GCP Functions Mock 제거됨 (2025-12-14) - Cloud Run으로 대체
  */
 
 import { GoogleAIMock } from './providers/GoogleAIMock';

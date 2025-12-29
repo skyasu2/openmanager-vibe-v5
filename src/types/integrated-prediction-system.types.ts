@@ -5,7 +5,7 @@
  * - PredictiveAnalysisEngine
  * - AutoIncidentReportSystem
  * - AnomalyDetectionService
- * - MLProvider (LangGraph Cloud Run 기반)
+ * - MLProvider (Cloud Run 기반)
  */
 
 // 기존 타입들 재사용

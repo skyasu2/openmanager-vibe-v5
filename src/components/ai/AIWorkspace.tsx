@@ -182,7 +182,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
 
   const { messages, sendMessage, status, setMessages, stop } = useChat({
     transport: new TextStreamChatTransport({
-      api: '/api/ai/supervisor', // LangGraph Multi-Agent Supervisor
+      api: '/api/ai/supervisor', // Cloud Run Multi-Agent Supervisor
     }),
     onFinish: () => {
       setInput('');

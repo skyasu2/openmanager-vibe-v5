@@ -64,7 +64,7 @@ export const FREE_TIER_LIMITS = {
   UPSTASH_COMMANDS_PER_MONTH: 500000, // 50만 명령/월
   UPSTASH_STORAGE_MB: 256, // 256MB
 
-  // Cloud Run (LangGraph AI)
+  // Cloud Run (AI Engine)
   CLOUD_RUN_INVOCATIONS_PER_MONTH: 2000000, // 200만 호출/월
   CLOUD_RUN_GB_SECONDS: 400000, // 400,000 GB-초
 } as const;

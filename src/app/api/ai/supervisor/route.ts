@@ -3,18 +3,14 @@
  *
  * @endpoint POST /api/ai/supervisor
  *
- * Architecture (2025-12-17):
- * - Primary: Cloud Run ai-engine (LangGraph Multi-Agent)
- * - Fallback: Simple error response (no local LangGraph)
- *
- * Note: Vercel LangGraph removed to reduce bundle size (~2MB)
- * and simplify architecture. All AI processing handled by Cloud Run.
+ * Architecture:
+ * - Primary: Cloud Run ai-engine (Multi-Agent System)
+ * - Fallback: Simple error response
+ * - All AI processing handled by Cloud Run
  *
  * Changes (2025-12-22 v5.83.9):
  * - Added normalizeMessagesForCloudRun(): AI SDK v5 parts[] → Cloud Run content 변환
  * - Added sessionId query parameter 지원 (TextStreamChatTransport 호환)
- * - 문제: AI SDK v5는 parts 배열 형식, Cloud Run은 content 문자열 기대
- * - 해결: 메시지 정규화 + transport 호환성 개선
  */
 
 import type { NextRequest } from 'next/server';
@@ -307,7 +303,7 @@ function normalizeMessagesForCloudRun(
 }
 
 // ============================================================================
-// 🧠 Main Handler - LangGraph Multi-Agent System
+// 🧠 Main Handler - Cloud Run Multi-Agent System
 // ============================================================================
 
 export const POST = withRateLimit(
@@ -454,7 +450,6 @@ export const POST = withRateLimit(
       }
 
       // 5. Fallback: Cloud Run 비활성화 또는 실패 시 에러 응답
-      // Note: Vercel LangGraph 제거됨 (2025-12-17) - 번들 최적화
       console.warn('⚠️ [Supervisor] Cloud Run unavailable, returning error');
 
       return NextResponse.json(
@@ -500,16 +495,15 @@ export const POST = withRateLimit(
 );
 
 // ============================================================================
-// 📊 Architecture Note (2025-12-17)
+// 📊 Architecture Note
 // ============================================================================
 //
-// All LangGraph agents now run exclusively on Cloud Run ai-engine:
+// All AI agents run on Cloud Run ai-engine:
 // - Supervisor (Groq Llama-8b): Intent classification & routing
-// - NLQ Agent (Gemini Flash): Server metrics queries
-// - Analyst Agent (Gemini Pro): Pattern analysis & anomaly detection
-// - Reporter Agent (Llama 70b): Incident reports & RAG
+// - NLQ Agent (Groq Llama-70b): Server metrics queries
+// - Analyst Agent (Mistral): Pattern analysis & anomaly detection
+// - Reporter Agent (Cerebras): Incident reports & RAG
 //
-// Vercel LangGraph code removed to reduce bundle size (~2MB) and
-// simplify architecture. This proxy forwards all requests to Cloud Run.
+// This proxy forwards all requests to Cloud Run.
 //
 // ============================================================================
