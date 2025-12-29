@@ -19,7 +19,6 @@ import { z } from 'zod';
 import { executeWithCircuitBreaker } from '@/lib/ai/circuit-breaker';
 import {
   extractLastUserQuery,
-  extractTextFromHybridMessage,
   type HybridMessage,
   normalizeMessagesForCloudRun,
 } from '@/lib/ai/utils/message-normalizer';
