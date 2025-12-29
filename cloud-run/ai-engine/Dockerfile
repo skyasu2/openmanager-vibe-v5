@@ -2,24 +2,23 @@
 # AI Engine - Cloud Run Service (Multi-stage Build)
 # Optimized for Cloud Run cold start & minimal image size
 #
-# v3.0 - 2025-12-28 (AI SDK Migration Prep)
-# - Preparing for LangGraph → Vercel AI SDK migration
-# - Maintained multi-stage build optimization
-# - Added build cache hints for faster rebuilds
+# v4.0 - 2025-12-29 (Observability & Resilience)
+# - Langfuse LLM Observability (1M spans/month free)
+# - Circuit Breaker pattern for provider fault tolerance
+# - streamText real-time token streaming
+# - Graceful shutdown with trace flushing
+# - Memory optimized for observability (450 → 480MB)
+#
+# v3.0 - 2025-12-28 (AI SDK Migration)
+# - LangGraph → Vercel AI SDK v6 migration
+# - Multi-stage build optimization maintained
 #
 # v2.2 - 2025-12-28 (Precomputed State)
 # - Pre-built JSON for O(1) server state lookup
 # - 69.8% token reduction (3076 → 930 chars)
-# - Fast cold start with precomputed-states.json
-#
-# v2.1 - 2025-12-28 (LangGraph Optimization)
-# - NLQ SubGraph dead code removed (-1000 lines)
-# - Workflow caching (5min TTL)
-# - Recursion limit 8 → 10
 #
 # v2.0 - 2025-12-27 (RCA + Capacity Agents)
 # - Added dumb-init for proper signal handling
-# - Optimized Node.js memory settings for Cloud Run
 # - Security hardening with non-root user
 # ============================================================================
 
@@ -68,11 +67,14 @@ RUN npm prune --production --legacy-peer-deps
 FROM node:${NODE_VERSION}-alpine AS runner
 
 # Get version from package.json at build time
-ARG APP_VERSION=unknown
+ARG APP_VERSION=5.84.0
 LABEL org.opencontainers.image.title="AI Engine"
 LABEL org.opencontainers.image.version="${APP_VERSION}"
 LABEL org.opencontainers.image.description="Multi-Agent AI Supervisor for OpenManager VIBE"
 LABEL org.opencontainers.image.source="https://github.com/your-org/openmanager-vibe-v5"
+LABEL org.opencontainers.image.created="2025-12-29"
+LABEL ai.observability="langfuse"
+LABEL ai.resilience="circuit-breaker"
 
 WORKDIR /app
 
@@ -81,9 +83,22 @@ ENV NODE_ENV=production
 ENV PORT=8080
 
 # Cloud Run optimized Node.js settings
-# - max-old-space-size: Limit memory to avoid OOM in 512MB container
+# - max-old-space-size: Limit memory (increased to 480MB for observability)
 # - enable-source-maps: Better error traces in production
-ENV NODE_OPTIONS="--max-old-space-size=450 --enable-source-maps"
+ENV NODE_OPTIONS="--max-old-space-size=480 --enable-source-maps"
+
+# ============================================================================
+# Required Environment Variables (set via Cloud Run / Secret Manager)
+# ============================================================================
+# AI Provider Keys (at least one required):
+#   GOOGLE_GENERATIVE_AI_API_KEY, GROQ_API_KEY, CEREBRAS_API_KEY, etc.
+#
+# Observability (optional, enables Langfuse tracing):
+#   LANGFUSE_SECRET_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_BASE_URL
+#
+# Security:
+#   CLOUD_RUN_API_SECRET (required for /api/* endpoints)
+# ============================================================================
 
 # Copy dumb-init from deps stage
 COPY --from=deps /usr/bin/dumb-init /usr/bin/dumb-init
@@ -114,7 +129,10 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=2 \
 EXPOSE 8080
 
 # Use dumb-init as entrypoint for proper signal handling
+# - Forwards SIGTERM to node process
+# - Ensures Langfuse traces are flushed before exit
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Direct node execution (fastest startup)
+# Graceful shutdown: SIGTERM → flush Langfuse → exit
 CMD ["node", "dist/server.js"]

@@ -23,6 +23,10 @@ import { getCurrentState } from './data/precomputed-state';
 // Error handling
 import { handleUnauthorizedError, jsonSuccess } from './lib/error-handler';
 
+// Observability & Resilience
+import { flushLangfuse, shutdownLangfuse } from './services/observability/langfuse';
+import { getAllCircuitStats, resetAllCircuitBreakers } from './services/resilience/circuit-breaker';
+
 // Routes
 import {
   supervisorRouter,
@@ -99,6 +103,31 @@ app.get('/warmup', (c: Context) => {
   });
 });
 
+/**
+ * GET /monitoring - Circuit Breaker & Resilience Status
+ */
+app.get('/monitoring', (c: Context) => {
+  const circuitStats = getAllCircuitStats();
+
+  return c.json({
+    status: 'ok',
+    circuits: circuitStats,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * POST /monitoring/reset - Reset Circuit Breakers (Admin)
+ */
+app.post('/monitoring/reset', (c: Context) => {
+  resetAllCircuitBreakers();
+
+  return jsonSuccess(c, {
+    message: 'All circuit breakers reset',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // ============================================================================
 // Route Registration
 // ============================================================================
@@ -141,7 +170,7 @@ serve(
   (info: { address: string; port: number }) => {
     console.log(`✅ Server listening on http://${info.address}:${info.port}`);
     console.log(`📚 Routes registered:`);
-    console.log(`   - /health, /warmup`);
+    console.log(`   - /health, /warmup, /monitoring`);
     console.log(`   - /api/ai/supervisor`);
     console.log(`   - /api/ai/embedding`);
     console.log(`   - /api/ai/generate`);
@@ -151,3 +180,30 @@ serve(
     console.log(`   - /api/jobs`);
   }
 );
+
+// ============================================================================
+// Graceful Shutdown
+// ============================================================================
+
+async function gracefulShutdown(signal: string): Promise<void> {
+  console.log(`\n⏳ Received ${signal}, shutting down gracefully...`);
+
+  try {
+    // Flush Langfuse traces before shutdown
+    console.log('📊 Flushing Langfuse traces...');
+    await flushLangfuse();
+
+    // Shutdown Langfuse client
+    console.log('🔌 Shutting down Langfuse...');
+    await shutdownLangfuse();
+
+    console.log('✅ Graceful shutdown complete');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error during shutdown:', error);
+    process.exit(1);
+  }
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

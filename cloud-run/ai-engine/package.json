@@ -27,6 +27,7 @@
     "@tavily/core": "^0.6.0",
     "@upstash/redis": "^1.36.0",
     "ai": "^6.0.3",
+    "langfuse": "^3.38.6",
     "dotenv": "^16.4.7",
     "hono": "^4.11.1",
     "js-tiktoken": "^1.0.21",

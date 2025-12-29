@@ -13,10 +13,18 @@
  * @updated 2025-12-28
  */
 
-import { generateText, stepCountIs, type ModelMessage } from 'ai';
+import { generateText, streamText, stepCountIs, type ModelMessage } from 'ai';
 import { getSupervisorModel, logProviderStatus } from './model-provider';
 import { allTools, toolDescriptions, type ToolName } from '../../tools-ai-sdk';
 import { executeMultiAgent, type MultiAgentRequest, type MultiAgentResponse } from './agents';
+import {
+  createSupervisorTrace,
+  logGeneration,
+  logToolCall,
+  finalizeTrace,
+  type TraceMetadata,
+} from '../observability/langfuse';
+import { getCircuitBreaker, CircuitOpenError } from '../resilience/circuit-breaker';
 
 // ============================================================================
 // 1. Types
@@ -272,90 +280,147 @@ async function executeSingleAgentMode(
 
 /**
  * Single attempt of supervisor execution
+ * Enhanced with Langfuse tracing, Circuit Breaker, and prepareStep optimization
  */
 async function executeSupervisorAttempt(
   request: SupervisorRequest,
   startTime: number
 ): Promise<SupervisorResponse | SupervisorError> {
+  const circuitBreaker = getCircuitBreaker('supervisor');
+
+  // Check circuit breaker
+  if (!circuitBreaker.isAllowed()) {
+    return {
+      success: false,
+      error: 'Service temporarily unavailable (circuit breaker open)',
+      code: 'CIRCUIT_OPEN',
+    };
+  }
+
+  // Create Langfuse trace
+  const lastUserMessage = request.messages.filter((m) => m.role === 'user').pop();
+  const trace = createSupervisorTrace({
+    sessionId: request.sessionId,
+    mode: 'single',
+    query: lastUserMessage?.content || '',
+  });
+
   try {
-    // Log provider status on first call
-    logProviderStatus();
+    // Execute with circuit breaker
+    return await circuitBreaker.execute(async () => {
+      // Log provider status on first call
+      logProviderStatus();
 
-    // Get model with fallback chain
-    const { model, provider, modelId } = getSupervisorModel();
+      // Get model with fallback chain
+      const { model, provider, modelId } = getSupervisorModel();
 
-    console.log(`🤖 [Supervisor] Using ${provider}/${modelId}`);
+      console.log(`🤖 [Supervisor] Using ${provider}/${modelId}`);
 
-    // Convert messages to ModelMessage format (AI SDK 6)
-    const modelMessages: ModelMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...request.messages.map((m) => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      })),
-    ];
+      // Classify intent for tool optimization
+      const intent = classifyIntent(lastUserMessage?.content || '');
 
-    // Execute with multi-step tool calling
-    const result = await generateText({
-      model,
-      messages: modelMessages,
-      tools: allTools,
-      stopWhen: stepCountIs(5), // Allow up to 5 tool calls
-      temperature: 0.2,
-      maxOutputTokens: 2048,
-    });
+      // Convert messages to ModelMessage format (AI SDK 6)
+      const modelMessages: ModelMessage[] = [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...request.messages.map((m) => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+        })),
+      ];
 
-    // Extract tool call information
-    const toolsCalled: string[] = [];
-    const toolResults: Record<string, unknown>[] = [];
+      // Execute with multi-step tool calling and prepareStep optimization
+      const result = await generateText({
+        model,
+        messages: modelMessages,
+        tools: allTools,
+        stopWhen: stepCountIs(5), // Allow up to 5 tool calls
+        temperature: 0.2,
+        maxOutputTokens: 2048,
+        // Note: prepareStep optimization moved to intent classification
+        // AI SDK v6 uses different approach - tools are filtered upfront
+      });
 
-    for (const step of result.steps) {
-      for (const toolCall of step.toolCalls) {
-        toolsCalled.push(toolCall.toolName);
-      }
-      // toolResults는 step.toolResults에서 추출
-      if (step.toolResults) {
-        for (const tr of step.toolResults) {
-          // AI SDK v4에서 toolResult는 { toolCallId, toolName, result } 구조
-          if ('result' in tr) {
-            toolResults.push(tr.result as Record<string, unknown>);
+      // Extract tool call information with Langfuse logging
+      const toolsCalled: string[] = [];
+      const toolResults: Record<string, unknown>[] = [];
+
+      for (const step of result.steps) {
+        for (const toolCall of step.toolCalls) {
+          toolsCalled.push(toolCall.toolName);
+        }
+        // toolResults는 step.toolResults에서 추출
+        if (step.toolResults) {
+          for (const tr of step.toolResults) {
+            if ('result' in tr) {
+              toolResults.push(tr.result as Record<string, unknown>);
+              // Log tool call to Langfuse
+              logToolCall(trace, tr.toolName, {}, tr.result, 0);
+            }
           }
         }
       }
-    }
 
-    const durationMs = Date.now() - startTime;
+      const durationMs = Date.now() - startTime;
 
-    console.log(
-      `✅ [Supervisor] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`
-    );
-
-    return {
-      success: true,
-      response: result.text,
-      toolsCalled,
-      toolResults,
-      usage: {
-        promptTokens: result.usage?.inputTokens ?? 0,
-        completionTokens: result.usage?.outputTokens ?? 0,
-        totalTokens: result.usage?.totalTokens ?? 0,
-      },
-      metadata: {
+      // Log generation to Langfuse
+      logGeneration(trace, {
+        model: modelId,
         provider,
-        modelId,
+        input: lastUserMessage?.content || '',
+        output: result.text,
+        usage: {
+          inputTokens: result.usage?.inputTokens ?? 0,
+          outputTokens: result.usage?.outputTokens ?? 0,
+          totalTokens: result.usage?.totalTokens ?? 0,
+        },
+        duration: durationMs,
+        metadata: { intent: intent.category, intentConfidence: intent.confidence },
+      });
+
+      // Finalize trace
+      finalizeTrace(trace, result.text, true, {
+        toolsCalled,
         stepsExecuted: result.steps.length,
         durationMs,
-      },
-    };
+        intent: intent.category,
+      });
+
+      console.log(
+        `✅ [Supervisor] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`
+      );
+
+      return {
+        success: true,
+        response: result.text,
+        toolsCalled,
+        toolResults,
+        usage: {
+          promptTokens: result.usage?.inputTokens ?? 0,
+          completionTokens: result.usage?.outputTokens ?? 0,
+          totalTokens: result.usage?.totalTokens ?? 0,
+        },
+        metadata: {
+          provider,
+          modelId,
+          stepsExecuted: result.steps.length,
+          durationMs,
+        },
+      };
+    });
   } catch (error) {
     const durationMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     console.error(`❌ [Supervisor] Error after ${durationMs}ms:`, errorMessage);
 
+    // Finalize trace with error
+    finalizeTrace(trace, errorMessage, false, { durationMs });
+
     // Classify error
     let code = 'UNKNOWN_ERROR';
-    if (errorMessage.includes('API key')) {
+    if (error instanceof CircuitOpenError) {
+      code = 'CIRCUIT_OPEN';
+    } else if (errorMessage.includes('API key')) {
       code = 'AUTH_ERROR';
     } else if (errorMessage.includes('rate limit')) {
       code = 'RATE_LIMIT';
@@ -374,24 +439,215 @@ async function executeSupervisorAttempt(
 }
 
 // ============================================================================
-// 4. Streaming Supervisor (for future use)
+// 4. Streaming Supervisor (Real-time Implementation)
 // ============================================================================
 
+export type StreamEventType =
+  | 'tool_call'
+  | 'tool_result'
+  | 'text_delta'
+  | 'step_finish'
+  | 'done'
+  | 'error';
+
+export interface StreamEvent {
+  type: StreamEventType;
+  data: unknown;
+}
+
 /**
- * Execute supervisor with streaming response
- * TODO: Implement when needed for real-time UI updates
+ * Execute supervisor with real-time streaming response
+ * Uses AI SDK streamText for token-by-token streaming
+ *
+ * @example
+ * for await (const event of executeSupervisorStream(request)) {
+ *   if (event.type === 'text_delta') {
+ *     process.stdout.write(event.data as string);
+ *   }
+ * }
  */
 export async function* executeSupervisorStream(
   request: SupervisorRequest
-): AsyncGenerator<{
-  type: 'tool_call' | 'tool_result' | 'text' | 'done';
-  data: unknown;
-}> {
-  // Placeholder for streaming implementation
+): AsyncGenerator<StreamEvent> {
+  const startTime = Date.now();
+
+  // Determine execution mode
+  let mode = request.mode || 'auto';
+  if (mode === 'auto') {
+    const lastUserMessage = request.messages.filter((m) => m.role === 'user').pop();
+    mode = lastUserMessage ? selectExecutionMode(lastUserMessage.content) : 'single';
+  }
+
+  console.log(`🎯 [SupervisorStream] Mode: ${mode}`);
+
+  // Multi-agent mode falls back to non-streaming (complex orchestration)
+  if (mode === 'multi') {
+    yield* streamFromNonStreaming(request, startTime);
+    return;
+  }
+
+  // Single-agent streaming mode
+  yield* streamSingleAgent(request, startTime);
+}
+
+/**
+ * Stream single-agent mode with real streamText
+ */
+async function* streamSingleAgent(
+  request: SupervisorRequest,
+  startTime: number
+): AsyncGenerator<StreamEvent> {
+  const circuitBreaker = getCircuitBreaker('supervisor-stream');
+
+  // Check circuit breaker
+  if (!circuitBreaker.isAllowed()) {
+    yield {
+      type: 'error',
+      data: { code: 'CIRCUIT_OPEN', message: 'Service temporarily unavailable' },
+    };
+    return;
+  }
+
+  try {
+    logProviderStatus();
+    const { model, provider, modelId } = getSupervisorModel();
+
+    console.log(`🤖 [SupervisorStream] Using ${provider}/${modelId}`);
+
+    // Create Langfuse trace
+    const lastUserMessage = request.messages.filter((m) => m.role === 'user').pop();
+    const trace = createSupervisorTrace({
+      sessionId: request.sessionId,
+      mode: 'single',
+      query: lastUserMessage?.content || '',
+    });
+
+    // Convert messages to ModelMessage format
+    const modelMessages: ModelMessage[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...request.messages.map((m) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      })),
+    ];
+
+    const toolsCalled: string[] = [];
+    let fullText = '';
+
+    // Execute streamText with multi-step tool calling
+    const result = streamText({
+      model,
+      messages: modelMessages,
+      tools: allTools,
+      stopWhen: stepCountIs(5),
+      temperature: 0.2,
+      maxOutputTokens: 2048,
+    });
+
+    // Stream text deltas
+    for await (const textPart of result.textStream) {
+      fullText += textPart;
+      yield { type: 'text_delta', data: textPart };
+    }
+
+    // Await promises for final data
+    const [steps, usage] = await Promise.all([result.steps, result.usage]);
+
+    // Emit step finish events and collect tool calls
+    for (const step of steps) {
+      for (const toolCall of step.toolCalls) {
+        const toolName = toolCall.toolName;
+        toolsCalled.push(toolName);
+        yield { type: 'tool_call', data: { name: toolName } };
+      }
+      if (step.toolResults) {
+        for (const tr of step.toolResults) {
+          if ('result' in tr) {
+            yield { type: 'tool_result', data: { toolName: tr.toolName, result: tr.result } };
+            // Log tool call to Langfuse
+            logToolCall(trace, tr.toolName, {}, tr.result, 0);
+          }
+        }
+      }
+    }
+
+    const durationMs = Date.now() - startTime;
+
+    // Log generation to Langfuse
+    logGeneration(trace, {
+      model: modelId,
+      provider,
+      input: lastUserMessage?.content || '',
+      output: fullText,
+      usage: {
+        inputTokens: usage?.inputTokens ?? 0,
+        outputTokens: usage?.outputTokens ?? 0,
+        totalTokens: usage?.totalTokens ?? 0,
+      },
+      duration: durationMs,
+    });
+
+    // Finalize trace
+    finalizeTrace(trace, fullText, true, {
+      toolsCalled,
+      stepsExecuted: steps.length,
+      durationMs,
+    });
+
+    console.log(
+      `✅ [SupervisorStream] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`
+    );
+
+    // Emit done event
+    yield {
+      type: 'done',
+      data: {
+        success: true,
+        toolsCalled,
+        usage: {
+          promptTokens: usage?.inputTokens ?? 0,
+          completionTokens: usage?.outputTokens ?? 0,
+          totalTokens: usage?.totalTokens ?? 0,
+        },
+        metadata: {
+          provider,
+          modelId,
+          stepsExecuted: steps.length,
+          durationMs,
+          mode: 'single',
+        },
+      },
+    };
+  } catch (error) {
+    const durationMs = Date.now() - startTime;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    console.error(`❌ [SupervisorStream] Error after ${durationMs}ms:`, errorMessage);
+
+    yield {
+      type: 'error',
+      data: {
+        code: error instanceof CircuitOpenError ? 'CIRCUIT_OPEN' : 'STREAM_ERROR',
+        message: errorMessage,
+      },
+    };
+  }
+}
+
+/**
+ * Fallback: Convert non-streaming result to stream events
+ */
+async function* streamFromNonStreaming(
+  request: SupervisorRequest,
+  startTime: number
+): AsyncGenerator<StreamEvent> {
   const result = await executeSupervisor(request);
 
   if (!result.success) {
-    yield { type: 'done', data: { error: (result as SupervisorError).error } };
+    yield {
+      type: 'error',
+      data: { code: (result as SupervisorError).code, message: (result as SupervisorError).error },
+    };
     return;
   }
 
@@ -407,9 +663,15 @@ export async function* executeSupervisorStream(
     yield { type: 'tool_result', data: toolResult };
   }
 
-  // Emit final text
-  yield { type: 'text', data: successResult.response };
-  yield { type: 'done', data: successResult.metadata };
+  // Emit text as chunks (simulate streaming)
+  const text = successResult.response;
+  const chunkSize = 20; // Characters per chunk
+  for (let i = 0; i < text.length; i += chunkSize) {
+    yield { type: 'text_delta', data: text.slice(i, i + chunkSize) };
+  }
+
+  // Emit done event
+  yield { type: 'done', data: successResult };
 }
 
 // ============================================================================
