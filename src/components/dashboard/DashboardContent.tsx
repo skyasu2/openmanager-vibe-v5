@@ -313,7 +313,7 @@ export default function DashboardContent({
               >
                 <ServerDashboardDynamic
                   servers={servers}
-                  onServerClick={(server) => {
+                  onServerClick={(server: Server) => {
                     try {
                       debug.log('🖱️ 서버 클릭:', server);
                       // 서버 클릭 처리는 부모에서 관리됨

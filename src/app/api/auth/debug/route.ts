@@ -37,7 +37,8 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     const allCookies = cookieStore.getAll();
     const supabaseCookies = allCookies.filter(
-      (c) => c.name.includes('supabase') || c.name.includes('auth')
+      (c: { name: string; value: string }) =>
+        c.name.includes('supabase') || c.name.includes('auth')
     );
 
     // 세션 확인 (두 가지 방법)
@@ -112,11 +113,13 @@ export async function GET(request: NextRequest) {
       cookies: {
         total: allCookies.length,
         supabaseCount: supabaseCookies.length,
-        supabaseCookies: supabaseCookies.map((c) => ({
-          name: c.name,
-          valueLength: c.value.length,
-          hasValue: !!c.value,
-        })),
+        supabaseCookies: supabaseCookies.map(
+          (c: { name: string; value: string }) => ({
+            name: c.name,
+            valueLength: c.value.length,
+            hasValue: !!c.value,
+          })
+        ),
         guestSession: {
           hasGuestSessionId: !!guestSessionId,
           authType,
