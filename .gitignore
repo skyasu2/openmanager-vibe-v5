@@ -259,8 +259,9 @@ reports/gcp-quota-report-*.md
 .vscode/gcp-alerts.json
 
 # AI 검토 보고서 및 분석 리포트 (GitHub 제외)
-reports/
+reports/*
 !reports/README.md
+!reports/planning/
 
 # External MCP servers (cloned from GitHub)
 fetch-mcp/
@@ -437,6 +438,8 @@ screenshots/
 archive/
 !docs/archive/
 !docs/archive/**
+!reports/planning/archive/
+!reports/planning/archive/**
 docs/.backup/
 src/.backup/
 src/app/api/.backup/

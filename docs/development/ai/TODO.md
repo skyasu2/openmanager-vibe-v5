@@ -40,8 +40,4 @@ _(현재 진행 중인 작업 없음)_
 
 ---
 
-_Related Docs:_
-- `architecture-improvements-plan.md` - 아키텍처 개선 상세
-- `async-job-architecture.md` - 비동기 작업 설계
-- `job-queue-implementation-plan.md` - Job Queue 구현
-- `context-compression-implementation-plan.md` - 컨텍스트 압축 구현 계획 ⭐ NEW
+_Archived Plans (완료된 계획서):_ `reports/planning/archive/2025-12/completed/`
