@@ -11,7 +11,7 @@
  */
 
 import { Activity, AlertCircle, Layout, RefreshCw, Server } from 'lucide-react';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { AIDebugPanel } from '../../domains/ai-sidebar/components/AIDebugPanel';
 
 interface AIProviderStatus {
@@ -53,13 +53,32 @@ const SystemContextPanel = memo(function SystemContextPanel({
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [systemOnline, setSystemOnline] = useState(true);
 
-  // AI Engine Health Check (5초 폴링)
+  // AbortController ref for request cancellation (폴링 중복 방지)
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isRequestInFlightRef = useRef(false);
+
+  // Provider 상태 강등 (실패 시)
+  const markProvidersInactive = useCallback(() => {
+    setProviders((prev) => prev.map((p) => ({ ...p, status: 'inactive' })));
+  }, []);
+
+  // AI Engine Health Check (5초 폴링) - AbortController 적용
   const fetchHealthStatus = useCallback(async () => {
+    // 이미 요청 중이면 스킵 (중복 방지)
+    if (isRequestInFlightRef.current) return;
+    isRequestInFlightRef.current = true;
+
+    // 이전 요청 취소
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsLoading(true);
     try {
       const response = await fetch('/api/ai/health', {
         method: 'GET',
         cache: 'no-store',
+        signal: controller.signal,
       });
 
       if (response.ok) {
@@ -99,16 +118,25 @@ const SystemContextPanel = memo(function SystemContextPanel({
         setSystemOnline(data.status === 'ok' || data.status === 'healthy');
         setLastUpdated(new Date());
       } else {
-        // API 실패 시 기본 상태 유지
+        // API 실패 시 상태 강등
         setSystemOnline(false);
+        markProvidersInactive();
       }
-    } catch {
-      // 네트워크 에러 시 기본 상태 유지
-      setSystemOnline(false);
+    } catch (error) {
+      // AbortError는 정상적인 취소이므로 무시
+      if ((error as DOMException).name !== 'AbortError') {
+        setSystemOnline(false);
+        markProvidersInactive();
+      }
     } finally {
+      // 현재 controller가 여전히 활성 상태일 때만 정리
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
+      isRequestInFlightRef.current = false;
       setIsLoading(false);
     }
-  }, []);
+  }, [markProvidersInactive]);
 
   // 초기 로드 및 5초 폴링
   useEffect(() => {
@@ -118,7 +146,11 @@ const SystemContextPanel = memo(function SystemContextPanel({
       void fetchHealthStatus();
     }, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      // 언마운트 시 진행 중인 요청 취소
+      abortControllerRef.current?.abort();
+    };
   }, [fetchHealthStatus]);
 
   const getStatusBadge = (status: AIProviderStatus['status']) => {
