@@ -20,11 +20,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import {
-  isCloudRunEnabled,
-  proxyStreamToCloudRun,
-  proxyToCloudRun,
-} from '@/lib/ai-proxy/proxy';
+import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { quickSanitize } from './security';
@@ -82,7 +78,8 @@ const DATA_STREAM_LINE_REGEX = /^([0-9a-z]):(.*)$/;
  * - Cloud Run 응답 형식 변경 시 파싱 실패 가능
  * - 장기적으로 SDK의 공식 파서 사용 권장
  */
-function createDataStreamParserTransform(): TransformStream<
+// NOTE: Reserved for future streaming implementation
+function _createDataStreamParserTransform(): TransformStream<
   Uint8Array,
   Uint8Array
 > {
