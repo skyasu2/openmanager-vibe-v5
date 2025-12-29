@@ -18,6 +18,7 @@
  */
 
 import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import {
   isCloudRunEnabled,
@@ -325,16 +326,13 @@ export const POST = withRateLimit(
           '⚠️ [Supervisor] Invalid payload:',
           parseResult.error.issues
         );
-        return new Response(
-          JSON.stringify({
+        return NextResponse.json(
+          {
             success: false,
             error: 'Invalid request payload',
             details: parseResult.error.issues.map((i) => i.message).join(', '),
-          }),
-          {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          }
+          },
+          { status: 400 }
         );
       }
 
@@ -360,16 +358,13 @@ export const POST = withRateLimit(
 
       // 빈 쿼리 방어
       if (!rawQuery || rawQuery.trim() === '') {
-        return new Response(
-          JSON.stringify({
+        return NextResponse.json(
+          {
             success: false,
             error: 'Empty query',
             message: '쿼리를 입력해주세요.',
-          }),
-          {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          }
+          },
+          { status: 400 }
         );
       }
 
@@ -421,7 +416,7 @@ export const POST = withRateLimit(
 
             if (data.success && data.response) {
               // 성공: response 텍스트를 plain text로 반환
-              return new Response(data.response, {
+              return new NextResponse(data.response, {
                 headers: {
                   'Content-Type': 'text/plain; charset=utf-8',
                   'Cache-Control': 'no-cache',
@@ -432,7 +427,7 @@ export const POST = withRateLimit(
               });
             } else if (data.error) {
               // 에러: 에러 메시지 반환
-              return new Response(`⚠️ AI 오류: ${data.error}`, {
+              return new NextResponse(`⚠️ AI 오류: ${data.error}`, {
                 headers: {
                   'Content-Type': 'text/plain; charset=utf-8',
                   'X-Session-Id': sessionId,
@@ -451,8 +446,8 @@ export const POST = withRateLimit(
           });
 
           if (proxyResult.success && proxyResult.data) {
-            return Response.json({
-              ...proxyResult.data,
+            return NextResponse.json({
+              ...(proxyResult.data as object),
               _backend: 'cloud-run',
             });
           }
@@ -465,19 +460,18 @@ export const POST = withRateLimit(
       // Note: Vercel LangGraph 제거됨 (2025-12-17) - 번들 최적화
       console.warn('⚠️ [Supervisor] Cloud Run unavailable, returning error');
 
-      return new Response(
-        JSON.stringify({
+      return NextResponse.json(
+        {
           success: false,
           error: 'AI service temporarily unavailable',
           message:
             'AI 서비스가 일시적으로 불안정합니다. 잠시 후 다시 시도해주세요.',
           sessionId,
           _backend: 'fallback-error',
-        }),
+        },
         {
           status: 503,
           headers: {
-            'Content-Type': 'application/json',
             'X-Session-Id': sessionId,
             'Retry-After': '30',
           },
@@ -495,17 +489,14 @@ export const POST = withRateLimit(
         });
       }
 
-      return new Response(
-        JSON.stringify({
+      return NextResponse.json(
+        {
           success: false,
           error: 'AI processing failed',
           message:
             error instanceof Error ? error.message : 'Unknown error occurred',
-        }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' },
-        }
+        },
+        { status: 500 }
       );
     }
   })

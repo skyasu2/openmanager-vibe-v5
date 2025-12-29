@@ -31,7 +31,7 @@ function isTestMode(request: NextRequest): boolean {
   // Check for test mode cookie
   const cookies = request.cookies;
   const testModeCookie = cookies.get('test_mode');
-  if (testModeCookie === 'enabled') {
+  if (testModeCookie?.value === 'enabled') {
     console.log('🧪 [Dashboard API] Test mode detected via test_mode cookie');
     return true;
   }

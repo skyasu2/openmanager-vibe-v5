@@ -9,11 +9,13 @@ import { createServerClient } from '@supabase/ssr';
 import type { NextRequest, NextResponse } from 'next/server';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 
-// Type for response with cookies (Next.js 15 TypeScript workaround)
-interface ResponseWithCookies extends NextResponse {
+// Type for response with cookies (Next.js 16 compatible)
+interface ResponseWithCookies extends Omit<NextResponse, 'cookies'> {
   cookies: {
     set(name: string, value: string, options?: Record<string, unknown>): void;
-    get(name: string): string | undefined;
+    get(name: string): { name: string; value: string } | undefined;
+    getAll(): Array<{ name: string; value: string }>;
+    has(name: string): boolean;
     delete(name: string): void;
   };
 }

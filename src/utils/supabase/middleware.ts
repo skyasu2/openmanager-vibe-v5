@@ -4,11 +4,13 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { withDefault } from '@/types/type-utils';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 
-// 🔧 타입 정의: Next.js Response의 cookies 인터페이스
-interface ResponseWithCookies extends NextResponse {
+// 🔧 타입 정의: Next.js 16 Response의 cookies 인터페이스
+interface ResponseWithCookies extends Omit<NextResponse, 'cookies'> {
   cookies: {
     set(name: string, value: string, options?: Record<string, unknown>): void;
-    get(name: string): string | undefined;
+    get(name: string): { name: string; value: string } | undefined;
+    getAll(): Array<{ name: string; value: string }>;
+    has(name: string): boolean;
     delete(name: string): void;
   };
 }
