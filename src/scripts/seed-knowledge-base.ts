@@ -366,91 +366,235 @@ const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
     related_server_types: ['database', 'storage'],
   },
   // ============================================================================
-  // 9. OpenManager VIBE 프로젝트 특화 가이드 (New - 2025-12-29)
+  // 9. 15개 서버 특화 운영 가이드 (2025-12-29)
   // ============================================================================
+
+  // --- Web 서버 (web-prd-01, web-prd-02, web-stg-01) ---
   {
-    title: 'AI SDK 모델 폴백 처리',
-    content: `AI SDK 모델 호출 실패 시 폴백 처리:
-1. 우선순위: Groq → Cerebras → Mistral → Google AI
-2. 429 Too Many Requests: Rate Limit 도달, 다음 모델로 즉시 폴백
-3. 503 Service Unavailable: 30초 대기 후 재시도, 실패 시 폴백
-4. 모든 모델 실패 시: 캐시된 응답 반환 또는 Fallback 메시지
-5. 폴백 상태 확인: /api/ai/status 엔드포인트 조회
-6. 로그 위치: Cloud Run 콘솔 또는 /api/ai/logging/stream`,
-    category: 'troubleshooting',
-    tags: ['ai-sdk', 'fallback', 'groq', 'cerebras', 'mistral'],
-    severity: 'warning',
-    related_server_types: ['application'],
-  },
-  {
-    title: 'Vercel 빌드/배포 실패 대응',
-    content: `Vercel 배포 실패 시 점검 사항:
-1. 함수 크기 제한: Serverless 50MB, Edge 4MB 초과 확인
-2. Edge Function 타임아웃: 25초 제한 (Pro: 300초)
-3. 환경변수 누락: NEXT_PUBLIC_ 접두사 필수 (클라이언트용)
-4. 빌드 메모리: 8GB 초과 시 OOM, 코드 스플리팅 필요
-5. 롤백 방법: vercel rollback 또는 대시보드에서 이전 배포 선택
-6. 프리뷰 실패: git push 후 Vercel 대시보드에서 로그 확인`,
+    title: 'Web 서버 (web-prd-01/02, web-stg-01) 장애 대응',
+    content: `Web 서버 장애 발생 시 점검 가이드:
+1. 서버 상태: web-prd-01, web-prd-02 (Production), web-stg-01 (Staging)
+2. CPU 80%+ 급증: Nginx worker 프로세스 확인, 정적 자산 캐싱 점검
+3. 메모리 90%+: 프로세스 누수 확인, Nginx 버퍼 설정 점검 (client_body_buffer_size)
+4. 응답시간 지연: upstream 연결 확인, 프록시 타임아웃 조정
+5. 502 에러: 백엔드 API 서버(api-prd-01/02) 연결 상태 확인
+6. 스케일 아웃 기준: CPU 70% 지속 10분 이상 시 web-prd-03 추가 고려`,
     category: 'incident',
-    tags: ['vercel', 'deployment', 'edge-function', 'build'],
+    tags: ['web', 'nginx', 'web-prd-01', 'web-prd-02', 'web-stg-01'],
     severity: 'warning',
     related_server_types: ['web'],
   },
   {
-    title: 'RAG 검색 성능 저하 해결',
-    content: `pgvector RAG 검색 지연 시 점검:
-1. HNSW 인덱스 상태: SELECT * FROM pg_indexes WHERE indexname LIKE 'idx_%_hnsw'
-2. 임베딩 차원 확인: 384 dim 표준 (text-embedding-004)
-3. 유사도 임계값 조정: 0.3 → 0.4 (정밀도 우선) 또는 0.25 (재현율 우선)
-4. Graph Hop 제한: maxHops 2 → 1 (속도 우선)
-5. 벡터 수 확인: 10,000개 초과 시 파티셔닝 검토
-6. 캐시 활용: 자주 검색되는 쿼리 결과 캐싱`,
-    category: 'troubleshooting',
-    tags: ['rag', 'pgvector', 'hnsw', 'supabase', 'performance'],
+    title: 'Web 서버 성능 최적화 가이드',
+    content: `Web 서버 성능 튜닝 체크리스트:
+1. Nginx worker 설정: worker_processes auto, worker_connections 4096
+2. Gzip 압축: text/html, application/json 등 압축 활성화
+3. 정적 자산 캐싱: Cache-Control max-age 설정 (1일~1년)
+4. Keep-Alive: keepalive_timeout 65, keepalive_requests 1000
+5. 버퍼 튜닝: proxy_buffer_size 128k, proxy_buffers 4 256k
+6. 모니터링 지표: 동시 연결 수, 요청 처리율, 평균 응답시간`,
+    category: 'best_practice',
+    tags: ['web', 'nginx', 'performance', 'tuning'],
+    severity: 'info',
+    related_server_types: ['web'],
+  },
+
+  // --- API 서버 (api-prd-01, api-prd-02) ---
+  {
+    title: 'API 서버 (api-prd-01/02) 장애 대응',
+    content: `API 서버 장애 발생 시 점검 가이드:
+1. 서버 상태: api-prd-01, api-prd-02 (Active-Active 구성)
+2. CPU 급증: 무한루프 또는 N+1 쿼리 패턴 확인, DB 연결 풀 상태 점검
+3. 메모리 누수: Node.js/Python 프로세스 힙 덤프 분석
+4. 응답시간 급증: 슬로우 쿼리 확인 (db-main-01 연동), 캐시 히트율 점검
+5. 5xx 에러 급증: 애플리케이션 로그 확인, 외부 API 의존성 점검
+6. 헬스체크 실패: /health 엔드포인트 응답 확인, lb-main-01 설정 점검`,
+    category: 'incident',
+    tags: ['api', 'backend', 'api-prd-01', 'api-prd-02'],
     severity: 'warning',
+    related_server_types: ['api'],
+  },
+  {
+    title: 'API 서버 성능 최적화 가이드',
+    content: `API 서버 성능 튜닝 체크리스트:
+1. 연결 풀링: DB 커넥션 풀 크기 최적화 (동시 요청 수 기준)
+2. 캐싱 전략: cache-redis-01/02와 연동, 핫 데이터 캐싱
+3. 비동기 처리: 무거운 작업은 큐로 분리 (backup-server-01 활용)
+4. 요청 제한: Rate Limiting 적용 (분당 1000 요청 권장)
+5. 로깅 최적화: 프로덕션에서 DEBUG 레벨 비활성화
+6. 모니터링 지표: RPS, 평균 응답시간, 에러율, DB 쿼리 시간`,
+    category: 'best_practice',
+    tags: ['api', 'backend', 'performance', 'tuning'],
+    severity: 'info',
+    related_server_types: ['api'],
+  },
+
+  // --- Database 서버 (db-main-01, db-repl-01) ---
+  {
+    title: 'Database 서버 (db-main-01, db-repl-01) 장애 대응',
+    content: `Database 서버 장애 발생 시 점검 가이드:
+1. 서버 구성: db-main-01 (Primary), db-repl-01 (Replica/Read)
+2. Replication Lag: db-repl-01 지연 확인, pg_stat_replication 모니터링
+3. CPU 급증: 무거운 쿼리 확인 (pg_stat_activity), 인덱스 누락 점검
+4. 디스크 I/O 급증: VACUUM 작업 확인, 대량 INSERT/UPDATE 점검
+5. 연결 고갈: max_connections 확인, idle 연결 정리 (idle_in_transaction_session_timeout)
+6. 페일오버: db-main-01 장애 시 db-repl-01 승격 절차 확인`,
+    category: 'incident',
+    tags: ['database', 'postgresql', 'db-main-01', 'db-repl-01'],
+    severity: 'critical',
     related_server_types: ['database'],
   },
   {
-    title: 'Cloud Run Cold Start 최소화',
-    content: `AI Engine Cold Start 대응 전략:
-1. min-instances: 1 설정 (월 ~$30 추가, 상시 대기)
-2. CPU always-allocated: 유휴 시에도 CPU 할당 유지
-3. 첫 요청 타임아웃: 클라이언트에서 60초로 설정
-4. 웜업 스케줄링: Cloud Scheduler로 /health 주기적 호출
-5. 컨테이너 최적화: 이미지 크기 축소, 불필요 의존성 제거
-6. 동시성 설정: concurrency 80 (기본값) 유지 권장`,
+    title: 'Database 복제 및 백업 가이드',
+    content: `Database 복제/백업 운영 가이드:
+1. Streaming Replication: db-main-01 → db-repl-01 실시간 복제
+2. Replication 모니터링: lag_bytes < 1MB, lag_time < 5초 권장
+3. 읽기 분산: 조회 쿼리는 db-repl-01로 라우팅 (pgpool/application level)
+4. 백업 스케줄: backup-server-01에서 일일 pg_dump, 주간 베이스 백업
+5. WAL 아카이빙: 연속 백업을 위한 WAL 파일 보관 (7일)
+6. 복구 테스트: 분기별 db-repl-01에서 복구 절차 검증`,
     category: 'best_practice',
-    tags: ['cloud-run', 'cold-start', 'gcp', 'performance'],
+    tags: ['database', 'postgresql', 'backup', 'replication'],
     severity: 'info',
-    related_server_types: ['application'],
+    related_server_types: ['database'],
   },
+
+  // --- Cache 서버 (cache-redis-01, cache-redis-02) ---
   {
-    title: '이상 탐지 결과 해석 가이드',
-    content: `detectAnomalies 도구 결과 해석:
-1. severity 레벨: critical(즉시조치), warning(모니터링), info(참고)
-2. confidence > 0.8: 높은 신뢰도, 실제 이상일 가능성 높음
-3. threshold 기준: 6시간 이동평균 기준 2σ(표준편차) 초과
-4. 오탐 패턴: 정기 점검 시간대, 배포 직후 스파이크, 주말 트래픽 감소
-5. isAnomaly: true + severity: critical → 즉시 알림 발송
-6. 연속 이상: 3회 이상 연속 감지 시 인시던트 생성 권장`,
-    category: 'best_practice',
-    tags: ['anomaly-detection', 'monitoring', 'threshold', 'alert'],
-    severity: 'info',
-    related_server_types: ['all'],
-  },
-  {
-    title: 'Multi-Agent Supervisor 라우팅 실패',
-    content: `AI SDK Supervisor 라우팅 문제 해결:
-1. Intent 분류 실패: 기본 에이전트(NLQ)로 폴백
-2. Agent 응답 없음: 30초 타임아웃 후 다음 에이전트 시도
-3. 토큰 제한 초과: maxTokens 4096 확인, 긴 컨텍스트 분할
-4. 스트리밍 에러: JSON 파싱 실패 시 raw 텍스트 반환
-5. 라우팅 로그: Cloud Run 로그에서 "[Supervisor]" 키워드 검색
-6. 폴백 체인: NLQ → Analyst → Reporter (우선순위)`,
-    category: 'troubleshooting',
-    tags: ['ai-sdk', 'supervisor', 'multi-agent', 'routing'],
+    title: 'Cache 서버 (cache-redis-01/02) 장애 대응',
+    content: `Redis 캐시 서버 장애 발생 시 점검 가이드:
+1. 서버 구성: cache-redis-01 (Primary), cache-redis-02 (Replica/Failover)
+2. 메모리 부족: INFO memory로 used_memory 확인, maxmemory-policy 점검
+3. 연결 거부: maxclients 확인, CLIENT LIST로 연결 상태 점검
+4. 슬로우 쿼리: SLOWLOG GET 10으로 느린 명령 확인
+5. 복제 지연: INFO replication으로 master_link_status 확인
+6. 페일오버: cache-redis-01 장애 시 cache-redis-02 자동 승격 (Sentinel)`,
+    category: 'incident',
+    tags: ['cache', 'redis', 'cache-redis-01', 'cache-redis-02'],
     severity: 'warning',
-    related_server_types: ['application'],
+    related_server_types: ['cache'],
+  },
+  {
+    title: 'Cache 서버 최적화 및 운영 가이드',
+    content: `Redis 캐시 운영 베스트 프랙티스:
+1. 메모리 정책: maxmemory-policy allkeys-lru (용량 초과 시 LRU 제거)
+2. 키 만료: 모든 캐시 키에 TTL 설정 (세션: 30분, 데이터: 5분)
+3. 파이프라이닝: 다중 명령 시 PIPELINE 사용으로 RTT 절감
+4. 모니터링: 히트율 > 90% 유지, used_memory < 80% maxmemory
+5. 복제 설정: replica-priority로 failover 우선순위 지정
+6. 데이터 타입: 적절한 자료구조 선택 (Hash vs String, Sorted Set)`,
+    category: 'best_practice',
+    tags: ['cache', 'redis', 'optimization', 'memory'],
+    severity: 'info',
+    related_server_types: ['cache'],
+  },
+
+  // --- Storage 서버 (storage-nas-01, storage-s3-gateway) ---
+  {
+    title: 'Storage 서버 (storage-nas-01, storage-s3-gateway) 장애 대응',
+    content: `Storage 서버 장애 발생 시 점검 가이드:
+1. storage-nas-01: 로컬 파일 스토리지 (NFS 마운트)
+2. storage-s3-gateway: S3 호환 오브젝트 스토리지 게이트웨이
+3. 디스크 용량 부족: df -h로 사용량 확인, 90% 이상 시 정리 필요
+4. I/O 지연: iostat -x로 await 시간 확인 (< 20ms 권장)
+5. NFS 마운트 문제: showmount -e, mount 상태 확인
+6. S3 연결 실패: 네트워크 연결, 인증 토큰 만료 확인`,
+    category: 'incident',
+    tags: ['storage', 'nas', 's3', 'storage-nas-01', 'storage-s3-gateway'],
+    severity: 'warning',
+    related_server_types: ['storage'],
+  },
+  {
+    title: 'Storage 용량 관리 및 정리 가이드',
+    content: `Storage 용량 관리 베스트 프랙티스:
+1. 용량 알림: 70% warning, 85% critical 임계값 설정
+2. 로그 로테이션: logrotate 설정으로 오래된 로그 자동 정리
+3. 임시 파일: /tmp, 캐시 디렉토리 주기적 정리 (cron)
+4. 백업 보존: 일일 7일, 주간 4주, 월간 12개월 정책
+5. 용량 예측: 월별 증가율 추적, 3개월 후 용량 예측
+6. 아카이빙: 오래된 데이터는 storage-s3-gateway로 이동`,
+    category: 'best_practice',
+    tags: ['storage', 'disk', 'cleanup', 'archiving'],
+    severity: 'info',
+    related_server_types: ['storage'],
+  },
+
+  // --- Load Balancer (lb-main-01) ---
+  {
+    title: 'Load Balancer (lb-main-01) 장애 대응',
+    content: `Load Balancer 장애 발생 시 점검 가이드:
+1. lb-main-01: 메인 로드밸런서 (HAProxy/Nginx)
+2. 헬스체크 실패: 백엔드 서버(web-prd-01/02, api-prd-01/02) 상태 확인
+3. 연결 타임아웃: 백엔드 응답시간 점검, timeout 설정 조정
+4. 트래픽 불균형: 가중치(weight) 설정 확인, 세션 어피니티 점검
+5. SSL 인증서 만료: 인증서 유효기간 확인, 갱신 절차 진행
+6. 로그 분석: 502/503/504 에러 패턴 확인, 백엔드 원인 파악`,
+    category: 'incident',
+    tags: ['loadbalancer', 'haproxy', 'nginx', 'lb-main-01'],
+    severity: 'critical',
+    related_server_types: ['loadbalancer'],
+  },
+  {
+    title: 'Load Balancer 설정 및 최적화 가이드',
+    content: `Load Balancer 운영 베스트 프랙티스:
+1. 헬스체크: interval 5초, timeout 3초, threshold 3회 설정
+2. 알고리즘: Round Robin(기본), Least Connections(API), IP Hash(세션)
+3. 연결 제한: 동시 연결 maxconn 설정으로 과부하 방지
+4. Keep-Alive: 백엔드 연결 재사용으로 오버헤드 감소
+5. 로깅: 요청 로그 활성화, 응답시간 추적
+6. 장애 대비: 백엔드 서버 최소 2대 유지, 단일 장애점 제거`,
+    category: 'best_practice',
+    tags: ['loadbalancer', 'haproxy', 'configuration', 'optimization'],
+    severity: 'info',
+    related_server_types: ['loadbalancer'],
+  },
+
+  // --- Monitor 서버 (monitor-01) ---
+  {
+    title: 'Monitor 서버 (monitor-01) 운영 가이드',
+    content: `모니터링 서버 운영 및 장애 대응:
+1. monitor-01: Prometheus, Grafana, Alertmanager 호스팅
+2. 메트릭 수집 실패: 각 서버의 exporter 상태 확인 (node_exporter, redis_exporter)
+3. 디스크 용량: TSDB 데이터 보존 기간 조정 (기본 15일)
+4. 알림 발송 실패: Alertmanager 설정, 슬랙/이메일 연동 점검
+5. Grafana 접속 불가: 서비스 상태 확인, 포트 3000 방화벽 점검
+6. 고가용성: 필요시 monitor-02 추가 구성 고려`,
+    category: 'best_practice',
+    tags: ['monitoring', 'prometheus', 'grafana', 'monitor-01'],
+    severity: 'info',
+    related_server_types: ['monitor'],
+  },
+
+  // --- Backup 서버 (backup-server-01) ---
+  {
+    title: 'Backup 서버 (backup-server-01) 운영 가이드',
+    content: `백업 서버 운영 및 복구 가이드:
+1. backup-server-01: 일일 백업 작업 수행, 장기 보관
+2. 백업 실패 알림: 크론 작업 로그 확인, 디스크 용량 점검
+3. 백업 종류: DB(pg_dump), 파일(rsync), 설정(ansible backup)
+4. 보존 정책: 일일 7일, 주간 4주, 월간 12개월
+5. 복구 테스트: 월 1회 db-repl-01에서 복구 검증
+6. 오프사이트: 주간 백업은 storage-s3-gateway로 전송`,
+    category: 'best_practice',
+    tags: ['backup', 'recovery', 'disaster-recovery', 'backup-server-01'],
+    severity: 'info',
+    related_server_types: ['backup'],
+  },
+
+  // --- Security Gateway (security-gateway-01) ---
+  {
+    title: 'Security Gateway (security-gateway-01) 운영 가이드',
+    content: `보안 게이트웨이 운영 및 점검 가이드:
+1. security-gateway-01: WAF, IDS/IPS, VPN 엔드포인트
+2. 보안 이벤트 로그: 의심스러운 접근 패턴 모니터링
+3. 차단 규칙: 악성 IP 자동 차단, 수동 화이트리스트 관리
+4. SSL/TLS: 인증서 만료 30일 전 알림, 자동 갱신 설정
+5. VPN 연결: 클라이언트 인증서 관리, 세션 타임아웃 설정
+6. 취약점 스캔: 월 1회 내부 네트워크 스캔, 패치 적용`,
+    category: 'best_practice',
+    tags: ['security', 'waf', 'vpn', 'security-gateway-01'],
+    severity: 'info',
+    related_server_types: ['security'],
   },
 ];
 
