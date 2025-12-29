@@ -135,20 +135,7 @@ const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
     severity: 'warning',
     related_server_types: ['cache'],
   },
-  {
-    title: '로드밸런서 헬스체크 실패',
-    content: `헬스체크 실패로 인한 서버 제외 시:
-1. 헬스체크 엔드포인트 직접 테스트
-2. 타임아웃 설정 확인 (너무 짧지 않은지)
-3. 백엔드 서버 응답 시간 측정
-4. 의존 서비스 상태 확인
-5. 헬스체크 로그 분석
-6. 필요시 헬스체크 임계값 조정`,
-    category: 'troubleshooting',
-    tags: ['loadbalancer', 'healthcheck', 'availability'],
-    severity: 'warning',
-    related_server_types: ['loadbalancer', 'web'],
-  },
+  // [REMOVED] 로드밸런서 헬스체크 실패 - Vercel/Cloud Run 자동 관리
 
   // ============================================================================
   // 베스트 프랙티스
@@ -259,33 +246,20 @@ const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
     severity: 'info',
     related_server_types: ['web', 'database', 'loadbalancer'],
   },
+  // [REMOVED] 마이크로서비스 통신 패턴 - 모놀리식 Next.js 구조 사용
   {
-    title: '마이크로서비스 통신 패턴',
-    content: `마이크로서비스 간 통신 베스트 프랙티스:
-1. 동기: REST API, gRPC
-2. 비동기: 메시지 큐 (RabbitMQ, Kafka)
-3. 서비스 디스커버리 활용
-4. 서킷 브레이커 패턴 적용
-5. 재시도 정책 설정 (지수 백오프)
-6. 타임아웃 설정 필수`,
+    title: 'Vercel/Cloud Run 캐시 전략',
+    content: `프로젝트 캐시 전략 (Vercel + Cloud Run):
+1. Vercel Edge Cache: stale-while-revalidate 패턴 적용
+2. API Route 캐시: Cache-Control 헤더로 제어
+3. Cloud Run 메모리 캐시: LRU 캐시 (분석 결과 임시 저장)
+4. RAG 쿼리 캐시: 자주 검색되는 쿼리 결과 10분 TTL
+5. Supabase 커넥션 풀: Supavisor 활용 (포트 6543)
+6. 무효화: 배포 시 자동 또는 /api/cache/optimize 호출`,
     category: 'architecture',
-    tags: ['microservices', 'communication', 'patterns'],
+    tags: ['cache', 'vercel', 'cloud-run', 'performance'],
     severity: 'info',
-    related_server_types: ['application', 'web'],
-  },
-  {
-    title: '캐시 전략 설계',
-    content: `효과적인 캐시 전략:
-1. 캐시 계층: L1(로컬) → L2(분산)
-2. TTL 설정: 데이터 특성에 따라 조정
-3. 캐시 무효화: 이벤트 기반 또는 TTL
-4. 캐시 워밍: 서비스 시작 시 미리 로드
-5. 캐시 키 설계: 명확하고 예측 가능하게
-6. 캐시 미스 처리: 폭주 방지 락킹`,
-    category: 'architecture',
-    tags: ['cache', 'performance', 'patterns'],
-    severity: 'info',
-    related_server_types: ['cache', 'application'],
+    related_server_types: ['web', 'application'],
   },
   // ============================================================================
   // 5. 모던 인프라 & 컨테이너 (New)
@@ -303,19 +277,7 @@ const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
     severity: 'warning',
     related_server_types: ['application', 'web'],
   },
-  {
-    title: 'Kubernetes 파드 상태 진단',
-    content: `Kubernetes 파드 비정상 상태 진단:
-1. Pending: 노드 리소스 부족 또는 스케줄링 제약(Taint/Affinity)
-2. Evicted: 노드 압박(Disk/Memory)으로 인한 축출
-3. CrashLoopBackOff: kubectl logs --previous로 이전 로그 확인
-4. NotReady: Liveness/Readiness Probe 실패 확인 (kubectl describe pod)
-5. ImagePullBackOff: 시크릿(ImagePullSecrets) 확인`,
-    category: 'troubleshooting',
-    tags: ['kubernetes', 'k8s', 'pod', 'debug'],
-    severity: 'warning',
-    related_server_types: ['application'],
-  },
+  // [REMOVED] Kubernetes 파드 상태 진단 - Cloud Run 서버리스 사용, K8s 미사용
   // ============================================================================
   // 6. 데이터베이스 심화 (New)
   // ============================================================================
@@ -402,7 +364,94 @@ const KNOWLEDGE_ENTRIES: KnowledgeEntry[] = [
     tags: ['metric', 'io', 'disk', 'performance'],
     severity: 'info',
     related_server_types: ['database', 'storage'],
-  }
+  },
+  // ============================================================================
+  // 9. OpenManager VIBE 프로젝트 특화 가이드 (New - 2025-12-29)
+  // ============================================================================
+  {
+    title: 'AI SDK 모델 폴백 처리',
+    content: `AI SDK 모델 호출 실패 시 폴백 처리:
+1. 우선순위: Groq → Cerebras → Mistral → Google AI
+2. 429 Too Many Requests: Rate Limit 도달, 다음 모델로 즉시 폴백
+3. 503 Service Unavailable: 30초 대기 후 재시도, 실패 시 폴백
+4. 모든 모델 실패 시: 캐시된 응답 반환 또는 Fallback 메시지
+5. 폴백 상태 확인: /api/ai/status 엔드포인트 조회
+6. 로그 위치: Cloud Run 콘솔 또는 /api/ai/logging/stream`,
+    category: 'troubleshooting',
+    tags: ['ai-sdk', 'fallback', 'groq', 'cerebras', 'mistral'],
+    severity: 'warning',
+    related_server_types: ['application'],
+  },
+  {
+    title: 'Vercel 빌드/배포 실패 대응',
+    content: `Vercel 배포 실패 시 점검 사항:
+1. 함수 크기 제한: Serverless 50MB, Edge 4MB 초과 확인
+2. Edge Function 타임아웃: 25초 제한 (Pro: 300초)
+3. 환경변수 누락: NEXT_PUBLIC_ 접두사 필수 (클라이언트용)
+4. 빌드 메모리: 8GB 초과 시 OOM, 코드 스플리팅 필요
+5. 롤백 방법: vercel rollback 또는 대시보드에서 이전 배포 선택
+6. 프리뷰 실패: git push 후 Vercel 대시보드에서 로그 확인`,
+    category: 'incident',
+    tags: ['vercel', 'deployment', 'edge-function', 'build'],
+    severity: 'warning',
+    related_server_types: ['web'],
+  },
+  {
+    title: 'RAG 검색 성능 저하 해결',
+    content: `pgvector RAG 검색 지연 시 점검:
+1. HNSW 인덱스 상태: SELECT * FROM pg_indexes WHERE indexname LIKE 'idx_%_hnsw'
+2. 임베딩 차원 확인: 384 dim 표준 (text-embedding-004)
+3. 유사도 임계값 조정: 0.3 → 0.4 (정밀도 우선) 또는 0.25 (재현율 우선)
+4. Graph Hop 제한: maxHops 2 → 1 (속도 우선)
+5. 벡터 수 확인: 10,000개 초과 시 파티셔닝 검토
+6. 캐시 활용: 자주 검색되는 쿼리 결과 캐싱`,
+    category: 'troubleshooting',
+    tags: ['rag', 'pgvector', 'hnsw', 'supabase', 'performance'],
+    severity: 'warning',
+    related_server_types: ['database'],
+  },
+  {
+    title: 'Cloud Run Cold Start 최소화',
+    content: `AI Engine Cold Start 대응 전략:
+1. min-instances: 1 설정 (월 ~$30 추가, 상시 대기)
+2. CPU always-allocated: 유휴 시에도 CPU 할당 유지
+3. 첫 요청 타임아웃: 클라이언트에서 60초로 설정
+4. 웜업 스케줄링: Cloud Scheduler로 /health 주기적 호출
+5. 컨테이너 최적화: 이미지 크기 축소, 불필요 의존성 제거
+6. 동시성 설정: concurrency 80 (기본값) 유지 권장`,
+    category: 'best_practice',
+    tags: ['cloud-run', 'cold-start', 'gcp', 'performance'],
+    severity: 'info',
+    related_server_types: ['application'],
+  },
+  {
+    title: '이상 탐지 결과 해석 가이드',
+    content: `detectAnomalies 도구 결과 해석:
+1. severity 레벨: critical(즉시조치), warning(모니터링), info(참고)
+2. confidence > 0.8: 높은 신뢰도, 실제 이상일 가능성 높음
+3. threshold 기준: 6시간 이동평균 기준 2σ(표준편차) 초과
+4. 오탐 패턴: 정기 점검 시간대, 배포 직후 스파이크, 주말 트래픽 감소
+5. isAnomaly: true + severity: critical → 즉시 알림 발송
+6. 연속 이상: 3회 이상 연속 감지 시 인시던트 생성 권장`,
+    category: 'best_practice',
+    tags: ['anomaly-detection', 'monitoring', 'threshold', 'alert'],
+    severity: 'info',
+    related_server_types: ['all'],
+  },
+  {
+    title: 'Multi-Agent Supervisor 라우팅 실패',
+    content: `AI SDK Supervisor 라우팅 문제 해결:
+1. Intent 분류 실패: 기본 에이전트(NLQ)로 폴백
+2. Agent 응답 없음: 30초 타임아웃 후 다음 에이전트 시도
+3. 토큰 제한 초과: maxTokens 4096 확인, 긴 컨텍스트 분할
+4. 스트리밍 에러: JSON 파싱 실패 시 raw 텍스트 반환
+5. 라우팅 로그: Cloud Run 로그에서 "[Supervisor]" 키워드 검색
+6. 폴백 체인: NLQ → Analyst → Reporter (우선순위)`,
+    category: 'troubleshooting',
+    tags: ['ai-sdk', 'supervisor', 'multi-agent', 'routing'],
+    severity: 'warning',
+    related_server_types: ['application'],
+  },
 ];
 
 // ============================================================================
