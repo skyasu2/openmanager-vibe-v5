@@ -28,23 +28,26 @@ interface SystemContextPanelProps {
 const SystemContextPanel = memo(function SystemContextPanel({
   className = '',
 }: SystemContextPanelProps) {
+  // AI Engine 실제 구현 기준 (model-provider.ts 참조)
+  // - Cerebras: Primary (llama-3.3-70b, 24M tokens/day)
+  // - Groq: NLQ Agent 전용 (llama-3.3-70b-versatile, tool calling)
+  // - Mistral: Verifier (mistral-small-2506)
   const [providers, setProviders] = useState<AIProviderStatus[]>([
-    { name: 'Gemini', role: 'Primary', status: 'active', color: 'bg-blue-500' },
+    {
+      name: 'Cerebras',
+      role: 'Primary',
+      status: 'active',
+      color: 'bg-blue-500',
+    },
     {
       name: 'Groq',
-      role: 'Fallback 1',
+      role: 'NLQ Agent',
       status: 'active',
       color: 'bg-purple-500',
     },
     {
-      name: 'Cerebras',
-      role: 'Fallback 2',
-      status: 'active',
-      color: 'bg-pink-500',
-    },
-    {
       name: 'Mistral',
-      role: 'Fallback 3',
+      role: 'Verifier',
       status: 'active',
       color: 'bg-amber-500',
     },
