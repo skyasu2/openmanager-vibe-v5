@@ -200,10 +200,10 @@ function runBuildValidation() {
     return;
   }
 
-  // Windows: TypeScript + Lint only (full validation in WSL)
+  // Windows: TypeScript only (lint already done in pre-commit)
   if (isLimitedMode) {
-    console.log('🔧 Windows Limited Mode: TypeScript + Lint only...');
-    console.log('   → Full validation (tests + build) runs in WSL');
+    console.log('🔧 Windows Limited Mode: TypeScript only...');
+    console.log('   → Lint already done in pre-commit');
     console.log('');
 
     // Run TypeScript check
@@ -218,24 +218,15 @@ function runBuildValidation() {
       process.exit(1);
     }
 
-    // Run Lint
-    console.log('🔍 Lint checking...');
-    const lintSuccess = runNpm(['run', 'lint']);
-    if (!lintSuccess) {
-      console.log('❌ Lint check failed - push blocked');
-      console.log('');
-      console.log('💡 Fix: npm run lint');
-      console.log('');
-      console.log('⚠️  Bypass: HUSKY=0 git push');
-      process.exit(1);
-    }
+    // Lint는 pre-commit에서 이미 실행되므로 스킵
+    console.log('⚪ Lint skipped (already run in pre-commit)');
 
-    console.log('✅ WSL Limited Mode validation passed');
+    console.log('✅ Windows Limited Mode validation passed');
     return;
   }
 
   if (QUICK_PUSH) {
-    console.log('⚡ Running optimized validation (TypeScript + Lint parallel)...');
+    console.log('⚡ Running optimized validation (TypeScript only)...');
     const success = runNpm(['run', 'hook:validate']);
     if (!success) {
       console.log('❌ Validation failed - push blocked');
@@ -308,13 +299,13 @@ function printSummary(duration) {
   console.log('');
   console.log('📊 Summary:');
   if (isLimitedMode) {
-    console.log('  🔧 Mode: Windows Limited (TypeScript + Lint only)');
+    console.log('  🔧 Mode: Windows Limited (TypeScript only)');
   }
   console.log(`  ${testStatus === 'passed' ? '✅' : '⚪'} Tests ${testStatus}`);
   if (isLimitedMode) {
     console.log('  ✅ TypeScript check passed');
-    console.log('  ✅ Lint check passed');
-    console.log('  ⚪ Full build skipped (run in WSL)');
+    console.log('  ⚪ Lint skipped (pre-commit)');
+    console.log('  ⚪ Full build skipped');
   } else {
     console.log('  ✅ Build/validation succeeded');
   }
@@ -332,8 +323,8 @@ function main() {
   if (isLimitedMode) {
     console.log('');
     console.log('🔧 Windows Limited Mode detected');
-    console.log('   Running: TypeScript + Lint only');
-    console.log('   Skipped: Tests, Full build (run in WSL)');
+    console.log('   Running: TypeScript only');
+    console.log('   Skipped: Lint (pre-commit), Tests, Full build');
     console.log('');
   }
 
