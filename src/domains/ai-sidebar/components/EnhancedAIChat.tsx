@@ -1,57 +1,11 @@
 'use client';
 
-import type { LucideIcon } from 'lucide-react';
-import {
-  AlertTriangle,
-  Bot,
-  FileText,
-  RefreshCw,
-  Send,
-  Server,
-  Square,
-  TrendingUp,
-} from 'lucide-react';
+import { RefreshCw, Send, Square } from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
+import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 import type { ApprovalRequest, SessionState } from '@/types/hitl';
-
-/**
- * 🎯 제안 프롬프트 카드 (ChatGPT 스타일)
- */
-interface StarterPrompt {
-  icon: LucideIcon;
-  title: string;
-  prompt: string;
-  gradient: string;
-}
-
-const STARTER_PROMPTS: StarterPrompt[] = [
-  {
-    icon: Server,
-    title: '서버 상태 확인',
-    prompt: '현재 모든 서버의 상태를 요약해줘',
-    gradient: 'from-blue-500 to-cyan-500',
-  },
-  {
-    icon: AlertTriangle,
-    title: '장애 분석',
-    prompt: 'CPU 사용률이 높은 서버를 찾아줘',
-    gradient: 'from-amber-500 to-orange-500',
-  },
-  {
-    icon: TrendingUp,
-    title: '성능 예측',
-    prompt: '다음 24시간 트래픽 패턴을 예측해줘',
-    gradient: 'from-emerald-500 to-teal-500',
-  },
-  {
-    icon: FileText,
-    title: '보고서 생성',
-    prompt: '오늘의 시스템 요약 보고서를 만들어줘',
-    gradient: 'from-purple-500 to-pink-500',
-  },
-];
 
 /**
  * Enhanced AI Chat Props
@@ -175,48 +129,9 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             </div>
           )}
 
-          {/* 🎯 웰컴 화면 (ChatGPT 스타일) */}
+          {/* 🎯 웰컴 화면 (ChatGPT 스타일) - WelcomePromptCards 컴포넌트 사용 */}
           {allMessages.length === 0 && (
-            <div className="flex h-full flex-col items-center justify-center py-8">
-              {/* 로고 및 인사말 */}
-              <div className="mb-8 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg">
-                  <Bot className="h-8 w-8 text-white" />
-                </div>
-                <h2 className="text-2xl font-semibold text-gray-900">
-                  무엇을 도와드릴까요?
-                </h2>
-                <p className="mt-2 text-gray-500">
-                  서버 모니터링, 장애 분석, 성능 예측을 도와드립니다
-                </p>
-              </div>
-
-              {/* 제안 프롬프트 카드 2x2 그리드 */}
-              <div className="grid max-w-xl grid-cols-1 gap-3 px-4 sm:grid-cols-2">
-                {STARTER_PROMPTS.map((card) => {
-                  const Icon = card.icon;
-                  return (
-                    <button
-                      key={card.title}
-                      onClick={() => setInputValue(card.prompt)}
-                      className="group flex flex-col items-start rounded-xl border border-gray-200 bg-white p-4 text-left shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-md"
-                    >
-                      <div
-                        className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r ${card.gradient}`}
-                      >
-                        <Icon className="h-4 w-4 text-white" />
-                      </div>
-                      <h4 className="font-medium text-gray-900">
-                        {card.title}
-                      </h4>
-                      <p className="mt-1 line-clamp-2 text-sm text-gray-500">
-                        {card.prompt}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <WelcomePromptCards onPromptClick={setInputValue} />
           )}
 
           {/* 채팅 메시지들 렌더링 (메모리 효율성 최적화) */}

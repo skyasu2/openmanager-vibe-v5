@@ -4,7 +4,7 @@
  * SystemContextPanel - AI Workspace 우측 패널
  *
  * @description
- * - AI Provider 상태 실시간 표시
+ * - AI Provider 상태 실시간 표시 (config/ai-providers.ts 기반)
  * - 시스템 상태 모니터링
  * - 빠른 명령 힌트
  * - AI 디버그 패널
@@ -12,6 +12,7 @@
 
 import { Activity, AlertCircle, Layout, RefreshCw, Server } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { getDefaultProviderStatus } from '@/config/ai-providers';
 import { AIDebugPanel } from '../../domains/ai-sidebar/components/AIDebugPanel';
 
 interface AIProviderStatus {
@@ -28,30 +29,10 @@ interface SystemContextPanelProps {
 const SystemContextPanel = memo(function SystemContextPanel({
   className = '',
 }: SystemContextPanelProps) {
-  // AI Engine 실제 구현 기준 (model-provider.ts 참조)
-  // - Cerebras: Primary (llama-3.3-70b, 24M tokens/day)
-  // - Groq: NLQ Agent 전용 (llama-3.3-70b-versatile, tool calling)
-  // - Mistral: Verifier (mistral-small-2506)
-  const [providers, setProviders] = useState<AIProviderStatus[]>([
-    {
-      name: 'Cerebras',
-      role: 'Primary',
-      status: 'active',
-      color: 'bg-blue-500',
-    },
-    {
-      name: 'Groq',
-      role: 'NLQ Agent',
-      status: 'active',
-      color: 'bg-purple-500',
-    },
-    {
-      name: 'Mistral',
-      role: 'Verifier',
-      status: 'active',
-      color: 'bg-amber-500',
-    },
-  ]);
+  // AI Provider 목록: config/ai-providers.ts에서 가져옴 (Single Source of Truth)
+  const [providers, setProviders] = useState<AIProviderStatus[]>(
+    getDefaultProviderStatus
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [systemOnline, setSystemOnline] = useState(true);
