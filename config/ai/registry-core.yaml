@@ -12,12 +12,12 @@ project: "OpenManager VIBE v5.83.12"
 ai-architecture:
   current: "Vercel AI SDK Multi-Agent"
   api_endpoint: "/api/ai/supervisor"
-  agents:
-    supervisor: "Gemini 2.5 Flash Lite (Intent classification, routing)"
-    nlq-agent: "Groq Llama 3.3 70b (Server metrics query)"
-    analyst-agent: "Groq Llama 3.3 70b (Pattern analysis, anomaly detection)"
-    reporter-agent: "Mistral Large (Incident reports, GraphRAG)"
-    # verifier-agent 제거됨 (2025-12-28) - AI SDK 마이그레이션 시 통합
+  # 실제 구현 기준 (model-provider.ts 참조, 2025-12-29 최신화)
+  providers:
+    primary: "Cerebras (llama-3.3-70b, 24M tokens/day)"
+    nlq-agent: "Groq (llama-3.3-70b-versatile, tool calling)"
+    verifier: "Mistral (mistral-small-2506)"
+  # Note: Gemini는 더 이상 Primary로 사용하지 않음 (2025-12-29 확인)
 
   deprecated:
     - unified-ai-processor    # Python/Cloud Run - AI SDK로 대체됨 (2025-12-28)

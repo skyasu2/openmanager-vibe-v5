@@ -5,7 +5,7 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.0-black)](https://nextjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Realtime-teal)](https://supabase.com/)
-[![Google AI](https://img.shields.io/badge/Google_AI-Gemini_2.5-blue)](https://ai.google.dev/)
+[![AI Engine](https://img.shields.io/badge/AI_Engine-Cerebras%2FGroq%2FMistral-blue)](https://cerebras.ai/)
 [![Biome](https://img.shields.io/badge/Biome-Lint_%26_Format-orange)](https://biomejs.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict_Mode-blue)](https://www.typescriptlang.org/)
 
@@ -13,7 +13,7 @@
 
 이 프로젝트는 단순한 서버 모니터링 도구가 아닙니다. **인간과 AI의 협업(Vibe Coding)**이 만들어낼 수 있는 풀스택 개발의 가능성을 증명하는 **Proof of Concept (PoC)**입니다.
 
-기존의 "수동적 모니터링"을 넘어, **AI(Gemini)**가 워크플로우에 직접 통합되어 **"예측하고 상호작용하는 운영(Predictive & Interactive Operations)"** 경험을 제공합니다.
+기존의 "수동적 모니터링"을 넘어, **Multi-LLM AI Engine (Cerebras/Groq/Mistral)**이 워크플로우에 직접 통합되어 **"예측하고 상호작용하는 운영(Predictive & Interactive Operations)"** 경험을 제공합니다.
 
 ## 🏗️ 시스템 아키텍처
 
@@ -92,18 +92,18 @@ graph TD
         Check -- No --> Error[503 Service Unavailable]
     end
 
-    subgraph "AI Agents (Supervisor-Worker)"
-        Cloud --> Supervisor[🦸 Supervisor Agent (Gemini 2.5 Flash Lite)]
+    subgraph "AI Agents (Multi-LLM)"
+        Cloud --> Primary[🧠 Primary Agent (Cerebras Llama 3.3 70b)]
 
-        Supervisor --> NLQ[🔍 NLQ Agent (Groq Llama 3.3 70b)]
-        Supervisor --> Analyst[📊 Analyst Agent (Groq Llama 3.3 70b)]
-        Supervisor --> Reporter[📝 Reporter Agent (Groq Llama 3.3 70b)]
+        Primary --> NLQ[🔍 NLQ Agent (Groq Llama 3.3 70b)]
+        Primary --> Analyst[📊 Analyst Agent (Groq Llama 3.3 70b)]
+        Primary --> Verifier[✅ Verifier (Mistral Small)]
     end
 
     subgraph "Data & Context"
         NLQ --> Metrics[(Live Metrics)]
-        Reporter --> VectorDB[(Knowledge Base)]
-        Supervisor --> Checkpoint[(Session State)]
+        Verifier --> VectorDB[(Knowledge Base)]
+        Primary --> Checkpoint[(Session State)]
     end
 ```
 
@@ -117,7 +117,7 @@ graph TD
 - **최적화된 렌더링**: RSC와 클라이언트 하이드레이션의 조화.
 
 ### 2. 🤖 AI 기반 운영 (AI Operations)
-- **Unified AI Engine**: Google Gemini 2.5 Flash 기반의 지능형 처리.
+- **Multi-LLM AI Engine**: Cerebras (Primary), Groq (NLQ Agent), Mistral (Verifier) 기반의 지능형 처리.
 - **자동 코드 리뷰**: 여러 AI 모델이 교차 검증하는 고가용성 리뷰 시스템.
 - **문맥 인식 분석**: 현재 시스템 상태와 로그를 이해하고 상관관계를 분석.
 - **RAG 트러블슈팅**: 벡터 검색을 통해 과거 사례와 문서를 즉시 참조하여 해결책 제시.
