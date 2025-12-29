@@ -12,14 +12,19 @@
 
 import { Activity, AlertCircle, Layout, RefreshCw, Server } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { getDefaultProviderStatus } from '@/config/ai-providers';
+import {
+  type AIProviderConfig,
+  getDefaultProviderStatus,
+} from '@/config/ai-providers';
 import { AIDebugPanel } from '../../domains/ai-sidebar/components/AIDebugPanel';
 
-interface AIProviderStatus {
-  name: string;
-  role: string;
+/**
+ * AI Provider 상태 타입 - AIProviderConfig 기반 확장
+ * @see config/ai-providers.ts
+ */
+interface AIProviderStatus
+  extends Pick<AIProviderConfig, 'name' | 'role' | 'color'> {
   status: 'active' | 'inactive' | 'error';
-  color: string;
 }
 
 interface SystemContextPanelProps {
