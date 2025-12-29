@@ -1,0 +1,261 @@
+'use client';
+
+/**
+ * SystemContextPanel - AI Workspace 우측 패널
+ *
+ * @description
+ * - AI Provider 상태 실시간 표시
+ * - 시스템 상태 모니터링
+ * - 빠른 명령 힌트
+ * - AI 디버그 패널
+ */
+
+import { Activity, AlertCircle, Layout, RefreshCw, Server } from 'lucide-react';
+import { memo, useCallback, useEffect, useState } from 'react';
+import { AIDebugPanel } from '../../domains/ai-sidebar/components/AIDebugPanel';
+
+interface AIProviderStatus {
+  name: string;
+  role: string;
+  status: 'active' | 'inactive' | 'error';
+  color: string;
+}
+
+interface SystemContextPanelProps {
+  className?: string;
+}
+
+const SystemContextPanel = memo(function SystemContextPanel({
+  className = '',
+}: SystemContextPanelProps) {
+  const [providers, setProviders] = useState<AIProviderStatus[]>([
+    { name: 'Gemini', role: 'Primary', status: 'active', color: 'bg-blue-500' },
+    {
+      name: 'Groq',
+      role: 'Fallback 1',
+      status: 'active',
+      color: 'bg-purple-500',
+    },
+    {
+      name: 'Cerebras',
+      role: 'Fallback 2',
+      status: 'active',
+      color: 'bg-pink-500',
+    },
+    {
+      name: 'Mistral',
+      role: 'Fallback 3',
+      status: 'active',
+      color: 'bg-amber-500',
+    },
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [systemOnline, setSystemOnline] = useState(true);
+
+  // AI Engine Health Check (5초 폴링)
+  const fetchHealthStatus = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/ai/health', {
+        method: 'GET',
+        cache: 'no-store',
+      });
+
+      if (response.ok) {
+        const data = (await response.json()) as {
+          providers?: Array<{
+            name: string;
+            status: string;
+            role?: string;
+          }>;
+          status?: string;
+        };
+
+        // Provider 상태 업데이트
+        if (data.providers && Array.isArray(data.providers)) {
+          setProviders((prev) =>
+            prev.map((p) => {
+              const found = data.providers?.find(
+                (dp: { name: string; status: string }) =>
+                  dp.name.toLowerCase() === p.name.toLowerCase()
+              );
+              if (found) {
+                return {
+                  ...p,
+                  status:
+                    found.status === 'healthy'
+                      ? 'active'
+                      : found.status === 'error'
+                        ? 'error'
+                        : 'inactive',
+                };
+              }
+              return p;
+            })
+          );
+        }
+
+        setSystemOnline(data.status === 'ok' || data.status === 'healthy');
+        setLastUpdated(new Date());
+      } else {
+        // API 실패 시 기본 상태 유지
+        setSystemOnline(false);
+      }
+    } catch {
+      // 네트워크 에러 시 기본 상태 유지
+      setSystemOnline(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // 초기 로드 및 5초 폴링
+  useEffect(() => {
+    void fetchHealthStatus();
+
+    const interval = setInterval(() => {
+      void fetchHealthStatus();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [fetchHealthStatus]);
+
+  const getStatusBadge = (status: AIProviderStatus['status']) => {
+    switch (status) {
+      case 'active':
+        return (
+          <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
+            Active
+          </span>
+        );
+      case 'inactive':
+        return (
+          <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+            Standby
+          </span>
+        );
+      case 'error':
+        return (
+          <span className="rounded bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
+            Error
+          </span>
+        );
+    }
+  };
+
+  return (
+    <div
+      className={`flex w-[320px] flex-col border-l border-gray-200 bg-gray-50 ${className}`}
+    >
+      {/* 헤더 */}
+      <div className="flex h-14 items-center justify-between border-b border-gray-200 px-4">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+          <Activity className="h-4 w-4 text-blue-500" />
+          System Context
+        </h3>
+        <button
+          onClick={() => void fetchHealthStatus()}
+          disabled={isLoading}
+          className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 disabled:opacity-50"
+          title="새로고침"
+        >
+          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
+
+      <div className="flex-1 space-y-5 overflow-y-auto p-4">
+        {/* AI Provider Status */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-medium uppercase tracking-wider text-gray-500">
+            AI Providers
+          </h4>
+          <div className="space-y-2.5 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+            {providers.map((provider) => (
+              <div
+                key={provider.name}
+                className="flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className={`h-2 w-2 rounded-full ${provider.color}`} />
+                  {provider.name}
+                  <span className="text-xs text-gray-400">
+                    ({provider.role})
+                  </span>
+                </span>
+                {getStatusBadge(provider.status)}
+              </div>
+            ))}
+          </div>
+          <p className="text-right text-[10px] text-gray-400">
+            Updated: {lastUpdated.toLocaleTimeString()}
+          </p>
+        </div>
+
+        {/* System Status */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-medium uppercase tracking-wider text-gray-500">
+            System Status
+          </h4>
+          <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-sm text-gray-600">
+                <Server className="h-3.5 w-3.5 text-blue-500" />
+                AI Engine
+              </span>
+              {systemOnline ? (
+                <span className="text-sm font-bold text-emerald-600">
+                  Online
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-sm font-bold text-amber-600">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  Checking
+                </span>
+              )}
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-sm text-gray-600">
+                <Layout className="h-3.5 w-3.5 text-purple-500" />
+                Environment
+              </span>
+              <span className="text-sm font-medium text-gray-900">
+                Production
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Commands */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-medium uppercase tracking-wider text-gray-500">
+            Quick Commands
+          </h4>
+          <div className="space-y-1.5 rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-blue-700">
+            <p className="flex items-center gap-1.5">
+              <span className="font-medium">서버 상태 요약</span>
+              <span className="text-blue-500">- 전체 현황 파악</span>
+            </p>
+            <p className="flex items-center gap-1.5">
+              <span className="font-medium">CPU 80% 이상 서버</span>
+              <span className="text-blue-500">- 자연어 쿼리</span>
+            </p>
+            <p className="flex items-center gap-1.5">
+              <span className="font-medium">장애 보고서 생성</span>
+              <span className="text-blue-500">- 자동 리포트</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Debug Panel */}
+        <div className="border-t border-gray-200 pt-4">
+          <AIDebugPanel />
+        </div>
+      </div>
+    </div>
+  );
+});
+
+SystemContextPanel.displayName = 'SystemContextPanel';
+
+export default SystemContextPanel;

@@ -13,31 +13,31 @@
 import { type UIMessage, useChat } from '@ai-sdk/react';
 import { TextStreamChatTransport } from 'ai';
 import {
-  Activity,
   ArrowLeftFromLine,
   Bot,
-  Layout,
+  Maximize2,
   MessageSquare,
   PanelRightClose,
   PanelRightOpen,
   Plus,
-  Server,
   User,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { memo, useMemo, useRef, useState } from 'react';
-import { AIDebugPanel } from '../../domains/ai-sidebar/components/AIDebugPanel';
 import { AIFunctionPages } from '../../domains/ai-sidebar/components/AIFunctionPages';
 import { EnhancedAIChat } from '../../domains/ai-sidebar/components/EnhancedAIChat';
 import type { AIThinkingStep } from '../../domains/ai-sidebar/types/ai-sidebar-types';
 import type { EnhancedChatMessage } from '../../stores/useAISidebarStore';
+import { RealTimeDisplay } from '../dashboard/RealTimeDisplay';
 import { OpenManagerLogo } from '../shared/OpenManagerLogo';
+import UnifiedProfileHeader from '../shared/UnifiedProfileHeader';
 import AIAssistantIconPanel, {
   type AIAssistantFunction,
 } from './AIAssistantIconPanel';
 import AIContentArea from './AIContentArea';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MessageActions } from './MessageActions';
+import SystemContextPanel from './SystemContextPanel';
 import ThinkingProcessVisualizer from './ThinkingProcessVisualizer';
 
 // --- Shared Helpers (Mirrored from AISidebarV4) ---
@@ -291,14 +291,24 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
       <div className="flex h-full flex-col bg-white">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <span className="font-semibold text-gray-900">AI Assistant</span>
-          {onClose && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={onClose}
+              onClick={() => router.push('/ai')}
               className="text-gray-500 hover:text-gray-900 transition-colors"
+              title="전체 화면으로 보기"
             >
-              <ArrowLeftFromLine className="h-5 w-5" />
+              <Maximize2 className="h-5 w-5" />
             </button>
-          )}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-900 transition-colors"
+                title="닫기"
+              >
+                <ArrowLeftFromLine className="h-5 w-5" />
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex-1 overflow-hidden">
           {selectedFunction === 'chat' ? (
@@ -348,70 +358,62 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   return (
     <div className="flex h-full w-full overflow-hidden bg-white text-gray-900">
       {/* LEFT SIDEBAR (Navigation) - Hidden on mobile */}
-      <div className="hidden md:flex w-[260px] flex-col border-r border-gray-200 bg-gray-50">
-        {/* Header */}
+      <div className="hidden md:flex w-[280px] flex-col border-r border-gray-200 bg-gray-50">
+        {/* Header with Logo + New Chat */}
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <OpenManagerLogo variant="light" showSubtitle={false} href="/" />
           <button
-            onClick={() => router.back()}
-            className="rounded p-1 text-gray-500 hover:bg-gray-200 hover:text-gray-900 transition-colors"
-            title="뒤로 가기"
-          >
-            <ArrowLeftFromLine className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="px-4 pb-4">
-          <button
             onClick={() => setMessages([])}
-            className="flex w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-colors shadow-sm"
+            title="새 대화 시작"
           >
-            <Plus className="h-4 w-4" />
-            <span>New Chat</span>
+            <Plus className="h-3.5 w-3.5" />
+            <span>새 대화</span>
           </button>
         </div>
 
-        <div className="flex-1 px-2 overflow-y-auto">
-          {/* Features Section */}
+        {/* Chat History Section (상단) */}
+        <div className="flex-1 px-3 overflow-y-auto">
           <div className="mb-4">
-            <div className="mb-2 px-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-              Features
-            </div>
-            <div className="mt-2">
-              <AIAssistantIconPanel
-                selectedFunction={selectedFunction}
-                onFunctionChange={setSelectedFunction}
-                className="w-full bg-transparent! border-none! p-0! items-start"
-              />
-            </div>
-          </div>
-
-          {/* Chat History Section */}
-          <div className="mt-4 border-t border-gray-200 pt-4">
-            <div className="mb-2 px-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+            <div className="mb-2 px-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
               Recent Chats
             </div>
             {messages.length > 0 ? (
               <div className="space-y-1">
-                <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700">
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  <span className="truncate">현재 대화</span>
-                  <span className="ml-auto text-xs text-blue-500">
-                    {messages.filter((m) => m.role === 'user').length}개 질문
+                <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2.5 text-sm text-blue-700 border border-blue-100">
+                  <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate flex-1">현재 대화</span>
+                  <span className="text-xs text-blue-500 shrink-0">
+                    {messages.filter((m) => m.role === 'user').length}개
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="px-3 py-4 text-center text-xs text-gray-400">
-                <Bot className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-                <p>아직 대화가 없습니다</p>
-                <p className="mt-1">AI에게 질문해보세요!</p>
+              <div className="px-3 py-6 text-center">
+                <Bot className="mx-auto mb-2 h-10 w-10 text-gray-300" />
+                <p className="text-sm text-gray-500">아직 대화가 없습니다</p>
+                <p className="mt-1 text-xs text-gray-400">
+                  AI에게 질문해보세요!
+                </p>
               </div>
             )}
           </div>
         </div>
 
+        {/* Features Section (하단) */}
+        <div className="shrink-0 border-t border-gray-200 px-3 py-3">
+          <div className="mb-2 px-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+            Features
+          </div>
+          <AIAssistantIconPanel
+            selectedFunction={selectedFunction}
+            onFunctionChange={setSelectedFunction}
+            className="w-full bg-transparent! border-none! p-0! items-start"
+          />
+        </div>
+
         {/* Bottom Status */}
-        <div className="shrink-0 border-t border-gray-200 p-3">
+        <div className="shrink-0 border-t border-gray-200 px-3 py-2.5">
           <div className="flex items-center justify-between text-xs text-gray-500">
             <div className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -425,58 +427,73 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
       {/* CENTER & RIGHT (Main Content) */}
       <div className="flex flex-1 flex-col md:flex-row overflow-hidden">
         {/* MOBILE HEADER - Only visible on small screens */}
-        <div className="flex md:hidden h-14 items-center justify-between border-b border-gray-200 bg-gray-50 px-4 shrink-0">
+        <div className="flex md:hidden h-14 items-center justify-between border-b border-gray-200 bg-white px-4 shrink-0 shadow-xs">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="rounded p-1.5 text-gray-500 hover:bg-gray-200 hover:text-gray-900 transition-colors"
+              className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
               title="뒤로 가기"
             >
               <ArrowLeftFromLine className="h-5 w-5" />
             </button>
             <OpenManagerLogo variant="light" showSubtitle={false} href="/" />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setMessages([])}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
+              className="rounded-lg border border-gray-200 bg-white p-2 text-gray-500 hover:bg-gray-50 transition-colors shadow-sm"
+              title="새 대화"
             >
               <Plus className="h-4 w-4" />
             </button>
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            {/* 모바일 프로필 */}
+            <UnifiedProfileHeader />
           </div>
         </div>
 
         {/* CENTER CONTENT */}
         <div className="flex flex-1 flex-col relative min-w-0">
-          {/* Context Header */}
-          <div className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4">
+          {/* 🎯 통합 헤더 (대시보드와 동일한 스타일) - Desktop Only */}
+          <header className="hidden md:flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 shadow-xs">
+            {/* 좌측: 브레드크럼 */}
             <div className="flex items-center gap-2 text-gray-500 text-sm">
-              <span className="font-medium text-gray-900">
-                OpenManager Vibe
-              </span>
-              <span>/</span>
-              <span>AI Workspace</span>
+              <span className="font-medium text-gray-900">AI Workspace</span>
               <span>/</span>
               <span className="text-blue-600 capitalize font-medium">
-                {selectedFunction}
+                {selectedFunction === 'chat'
+                  ? '대화'
+                  : selectedFunction === 'auto-report'
+                    ? '보고서'
+                    : '모니터링'}
               </span>
             </div>
-            {/* 🔧 lg 미만에서는 우측 패널이 숨겨지므로 토글 버튼도 숨김 (Tablet UX Fix) */}
-            {selectedFunction === 'chat' && (
-              <button
-                onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
-                className="hidden lg:block rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-                title="Toggle Context Panel"
-              >
-                {isRightPanelOpen ? (
-                  <PanelRightClose className="h-5 w-5" />
-                ) : (
-                  <PanelRightOpen className="h-5 w-5" />
-                )}
-              </button>
-            )}
-          </div>
+
+            {/* 중앙: 실시간 정보 (숨김 on mobile) */}
+            <div className="hidden md:flex items-center">
+              <RealTimeDisplay />
+            </div>
+
+            {/* 우측: 패널 토글 + 프로필 */}
+            <div className="flex items-center gap-3">
+              {/* 패널 토글 버튼 */}
+              {selectedFunction === 'chat' && (
+                <button
+                  onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
+                  className="hidden lg:flex rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  title="시스템 컨텍스트 패널 토글"
+                >
+                  {isRightPanelOpen ? (
+                    <PanelRightClose className="h-5 w-5" />
+                  ) : (
+                    <PanelRightOpen className="h-5 w-5" />
+                  )}
+                </button>
+              )}
+
+              {/* 프로필 헤더 (대시보드와 동일) */}
+              <UnifiedProfileHeader />
+            </div>
+          </header>
 
           <div className="flex-1 overflow-hidden relative">
             {selectedFunction === 'chat' ? (
@@ -509,99 +526,9 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR (System Context) - Hardcoded for demo/MVP similar to legacy, but clean */}
-        {/* 🎨 화이트 모드 전환 (2025-12 업데이트) */}
+        {/* RIGHT SIDEBAR (System Context) - 실시간 헬스 체크 연동 */}
         {selectedFunction === 'chat' && isRightPanelOpen && (
-          <div className="hidden lg:flex w-[320px] border-l border-gray-200 bg-gray-50 flex-col">
-            <div className="flex h-14 items-center border-b border-gray-200 px-4">
-              <h3 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
-                <Activity className="h-4 w-4 text-blue-500" />
-                System Context
-              </h3>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-5">
-              {/* AI Provider Status */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  AI Providers
-                </h4>
-                <div className="rounded-lg border border-gray-200 bg-white p-3 space-y-2.5 shadow-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-blue-500" />
-                      Groq (Supervisor)
-                    </span>
-                    <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                      Active
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-purple-500" />
-                      Cerebras (Worker)
-                    </span>
-                    <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                      Active
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-pink-500" />
-                      Mistral (Verifier)
-                    </span>
-                    <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                      Active
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* System Status */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  System Status
-                </h4>
-                <div className="rounded-lg border border-gray-200 bg-white p-3 space-y-2 shadow-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 flex items-center gap-2">
-                      <Server className="h-3.5 w-3.5 text-blue-500" />
-                      Servers
-                    </span>
-                    <span className="text-sm font-bold text-emerald-600">
-                      Online
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600 flex items-center gap-2">
-                      <Layout className="h-3.5 w-3.5 text-purple-500" />
-                      Environment
-                    </span>
-                    <span className="text-sm font-medium text-gray-900">
-                      Production
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Tips */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Quick Tips
-                </h4>
-                <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-blue-700 space-y-1.5">
-                  <p>• "서버 상태 요약" - 전체 현황 파악</p>
-                  <p>• "CPU 80% 이상 서버" - 자연어 쿼리</p>
-                  <p>• "장애 보고서 생성" - 자동 리포트</p>
-                </div>
-              </div>
-
-              {/* Debug Panel */}
-              <div className="border-t border-gray-200 pt-4">
-                <AIDebugPanel />
-              </div>
-            </div>
-          </div>
+          <SystemContextPanel className="hidden lg:flex" />
         )}
       </div>
     </div>

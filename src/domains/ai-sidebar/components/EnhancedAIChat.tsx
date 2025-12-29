@@ -1,10 +1,57 @@
 'use client';
 
-import { Bot, FileText, RefreshCw, Send, Square } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import {
+  AlertTriangle,
+  Bot,
+  FileText,
+  RefreshCw,
+  Send,
+  Server,
+  Square,
+  TrendingUp,
+} from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 import type { ApprovalRequest, SessionState } from '@/types/hitl';
+
+/**
+ * 🎯 제안 프롬프트 카드 (ChatGPT 스타일)
+ */
+interface StarterPrompt {
+  icon: LucideIcon;
+  title: string;
+  prompt: string;
+  gradient: string;
+}
+
+const STARTER_PROMPTS: StarterPrompt[] = [
+  {
+    icon: Server,
+    title: '서버 상태 확인',
+    prompt: '현재 모든 서버의 상태를 요약해줘',
+    gradient: 'from-blue-500 to-cyan-500',
+  },
+  {
+    icon: AlertTriangle,
+    title: '장애 분석',
+    prompt: 'CPU 사용률이 높은 서버를 찾아줘',
+    gradient: 'from-amber-500 to-orange-500',
+  },
+  {
+    icon: TrendingUp,
+    title: '성능 예측',
+    prompt: '다음 24시간 트래픽 패턴을 예측해줘',
+    gradient: 'from-emerald-500 to-teal-500',
+  },
+  {
+    icon: FileText,
+    title: '보고서 생성',
+    prompt: '오늘의 시스템 요약 보고서를 만들어줘',
+    gradient: 'from-purple-500 to-pink-500',
+  },
+];
 
 /**
  * Enhanced AI Chat Props
@@ -105,70 +152,101 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         </div>
       </div>
 
-      {/* 메시지 영역 */}
-      <div className="flex-1 space-y-3 overflow-y-auto scroll-smooth p-3 will-change-scroll sm:space-y-4 sm:p-4">
-        {/* 자동장애보고서 알림 */}
-        {autoReportTrigger.shouldGenerate && (
-          <div className="rounded-lg border border-red-200 bg-linear-to-r from-red-50 to-orange-50 p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <FileText className="h-4 w-4 text-red-600" />
-                <div>
-                  <h4 className="text-sm font-medium text-red-800">
-                    자동장애보고서 생성 준비
-                  </h4>
-                  <p className="text-xs text-red-600">
-                    &quot;{autoReportTrigger.lastQuery}&quot;에서{' '}
-                    {autoReportTrigger.severity} 수준의 이슈가 감지되었습니다.
-                  </p>
+      {/* 메시지 영역 (중앙 정렬) */}
+      <div className="flex-1 overflow-y-auto scroll-smooth will-change-scroll">
+        <div className="mx-auto max-w-3xl space-y-3 p-3 sm:space-y-4 sm:p-4">
+          {/* 자동장애보고서 알림 */}
+          {autoReportTrigger.shouldGenerate && (
+            <div className="rounded-lg border border-red-200 bg-linear-to-r from-red-50 to-orange-50 p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <FileText className="h-4 w-4 text-red-600" />
+                  <div>
+                    <h4 className="text-sm font-medium text-red-800">
+                      자동장애보고서 생성 준비
+                    </h4>
+                    <p className="text-xs text-red-600">
+                      &quot;{autoReportTrigger.lastQuery}&quot;에서{' '}
+                      {autoReportTrigger.severity} 수준의 이슈가 감지되었습니다.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* 빈 메시지 상태 */}
-        {allMessages.length === 0 && (
-          <div className="py-8 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-r from-purple-500 to-blue-600">
-              <Bot className="h-6 w-6 text-white" />
+          {/* 🎯 웰컴 화면 (ChatGPT 스타일) */}
+          {allMessages.length === 0 && (
+            <div className="flex h-full flex-col items-center justify-center py-8">
+              {/* 로고 및 인사말 */}
+              <div className="mb-8 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg">
+                  <Bot className="h-8 w-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  무엇을 도와드릴까요?
+                </h2>
+                <p className="mt-2 text-gray-500">
+                  서버 모니터링, 장애 분석, 성능 예측을 도와드립니다
+                </p>
+              </div>
+
+              {/* 제안 프롬프트 카드 2x2 그리드 */}
+              <div className="grid max-w-xl grid-cols-1 gap-3 px-4 sm:grid-cols-2">
+                {STARTER_PROMPTS.map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <button
+                      key={card.title}
+                      onClick={() => setInputValue(card.prompt)}
+                      className="group flex flex-col items-start rounded-xl border border-gray-200 bg-white p-4 text-left shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-md"
+                    >
+                      <div
+                        className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r ${card.gradient}`}
+                      >
+                        <Icon className="h-4 w-4 text-white" />
+                      </div>
+                      <h4 className="font-medium text-gray-900">
+                        {card.title}
+                      </h4>
+                      <p className="mt-1 line-clamp-2 text-sm text-gray-500">
+                        {card.prompt}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <h3 className="mb-2 text-lg font-medium text-gray-900">
-              안녕하세요! AI 어시스턴트입니다 👋
-            </h3>
-            <p className="mx-auto max-w-[280px] text-sm text-gray-500">
-              질문을 입력하시면 AI가 도움을 드리겠습니다.
-            </p>
-          </div>
-        )}
+          )}
 
-        {/* 채팅 메시지들 렌더링 (메모리 효율성 최적화) */}
-        {limitedMessages.map((message, index) => {
-          // 마지막 스트리밍 중인 assistant 메시지에만 승인 요청 표시
-          const isLastStreamingAssistant =
-            message.role === 'assistant' &&
-            message.isStreaming &&
-            index === limitedMessages.length - 1;
+          {/* 채팅 메시지들 렌더링 (메모리 효율성 최적화) */}
+          {limitedMessages.map((message, index) => {
+            // 마지막 스트리밍 중인 assistant 메시지에만 승인 요청 표시
+            const isLastStreamingAssistant =
+              message.role === 'assistant' &&
+              message.isStreaming &&
+              index === limitedMessages.length - 1;
 
-          const isLastMessage = index === limitedMessages.length - 1;
+            const isLastMessage = index === limitedMessages.length - 1;
 
-          return (
-            <MessageComponent
-              key={message.id}
-              message={message}
-              onRegenerateResponse={regenerateResponse}
-              onFeedback={onFeedback}
-              isLastMessage={isLastMessage}
-              approvalRequest={
-                isLastStreamingAssistant
-                  ? (pendingApproval ?? undefined)
-                  : undefined
-              }
-            />
-          );
-        })}
+            return (
+              <MessageComponent
+                key={message.id}
+                message={message}
+                onRegenerateResponse={regenerateResponse}
+                onFeedback={onFeedback}
+                isLastMessage={isLastMessage}
+                approvalRequest={
+                  isLastStreamingAssistant
+                    ? (pendingApproval ?? undefined)
+                    : undefined
+                }
+              />
+            );
+          })}
 
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* 🔒 세션 제한 안내 */}
@@ -224,11 +302,11 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         </div>
       )}
 
-      {/* 입력 영역 */}
-      <div className="border-t border-gray-200 bg-white/80 p-4 backdrop-blur-sm">
-        <div className="flex items-end space-x-2">
-          {/* 텍스트 입력 */}
-          <div className="relative flex-1">
+      {/* 🎯 입력 영역 (ChatGPT 스타일 - 중앙 정렬) */}
+      <div className="shrink-0 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+        <div className="mx-auto max-w-3xl px-4 py-4">
+          {/* 메인 입력 컨테이너 */}
+          <div className="relative flex items-end rounded-2xl border border-gray-200 bg-white shadow-sm transition-all focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
             <AutoResizeTextarea
               value={inputValue}
               onValueChange={setInputValue}
@@ -236,58 +314,54 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               placeholder={
                 sessionState?.isLimitReached
                   ? '새 대화를 시작해주세요'
-                  : '시스템에 대해 질문해보세요...'
+                  : '메시지를 입력하세요...'
               }
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] shadow-xs transition-all focus:border-blue-500 focus:outline-hidden focus:ring-4 focus:ring-blue-500/10"
-              minHeight={56}
-              maxHeight={300}
-              maxHeightVh={40}
+              className="flex-1 resize-none border-none bg-transparent px-4 py-3 pr-14 text-[15px] focus:outline-hidden focus:ring-0"
+              minHeight={48}
+              maxHeight={200}
+              maxHeightVh={30}
               aria-label="AI 질문 입력"
               disabled={isGenerating || sessionState?.isLimitReached}
             />
+
+            {/* 전송/중단 버튼 (우하단 내장) */}
+            <div className="absolute bottom-2 right-2">
+              {isGenerating && onStopGeneration ? (
+                <button
+                  onClick={onStopGeneration}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500 text-white shadow-sm transition-all hover:bg-red-600"
+                  title="생성 중단"
+                  aria-label="생성 중단"
+                >
+                  <Square className="h-4 w-4 fill-current" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    void handleSendInput();
+                  }}
+                  disabled={
+                    !inputValue.trim() ||
+                    isGenerating ||
+                    sessionState?.isLimitReached
+                  }
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500 text-white shadow-sm transition-all hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+                  title="메시지 전송"
+                  aria-label="메시지 전송"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* 전송/중단 버튼 */}
-          {isGenerating && onStopGeneration ? (
-            <button
-              onClick={onStopGeneration}
-              className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-red-500 text-white shadow-md transition-all hover:scale-105 hover:bg-red-600 hover:shadow-lg"
-              title="생성 중단"
-              aria-label="생성 중단"
-            >
-              <Square className="h-5 w-5 fill-current" />
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                void handleSendInput();
-              }}
-              disabled={
-                !inputValue.trim() ||
-                isGenerating ||
-                sessionState?.isLimitReached
-              }
-              className="flex h-[50px] w-[50px] items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-md transition-all hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-              title="메시지 전송"
-              aria-label="메시지 전송"
-            >
-              <Send className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-
-        {/* 하단 컨트롤 영역 */}
-        <div className="mt-2 flex items-center justify-between">
-          {/* 세션 정보 */}
-          {sessionState && !sessionState.isWarning && (
-            <div className="text-xs text-gray-400">
-              대화 {sessionState.count}/20
+          {/* 하단 힌트 */}
+          <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
+            <div className="flex items-center gap-2">
+              {sessionState && !sessionState.isWarning && (
+                <span>대화 {sessionState.count}/20</span>
+              )}
             </div>
-          )}
-          {!sessionState && <div />}
-
-          {/* 키보드 단축키 힌트 */}
-          <div className="text-xs text-gray-500">
             <span>Enter로 전송, Shift+Enter로 줄바꿈</span>
           </div>
         </div>
