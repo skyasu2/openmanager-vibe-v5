@@ -2,7 +2,7 @@
 description: Check latest AI code review results and show summary
 ---
 
-Read `/tmp/validation-complete-latest.md` and analyze the validation results.
+Read `logs/validation/validation-complete-latest.md` and analyze the validation results.
 
 ## Analysis Steps
 
@@ -32,7 +32,21 @@ Read `/tmp/validation-complete-latest.md` and analyze the validation results.
 
 5. **If score < 7 or rejected**:
    - List critical issues
-   - Ask: "이슈 수정할까요? 또는 오탐이면 '/fp' 명령어로 기록하세요"
+   - Suggest: "bash scripts/code-review/review-issue-tracker.sh scan"
 
 6. **If all pass**:
    - Say "All validations passed. Safe to push."
+
+## Issue Tracking
+
+For detailed issue management:
+```bash
+# Scan for critical issues
+bash scripts/code-review/review-issue-tracker.sh scan
+
+# View issue summary report
+bash scripts/code-review/review-issue-tracker.sh report
+
+# Mark as human reviewed
+bash scripts/code-review/review-issue-tracker.sh human <commit_hash> "description"
+```

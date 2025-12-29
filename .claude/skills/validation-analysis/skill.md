@@ -1,6 +1,6 @@
 ---
 name: validation-analysis
-version: v1.2.0
+version: v1.3.0
 description: Automated validation results analysis for post-commit workflow. Triggers when user requests validation analysis, code review summary, or checking background validation results. Analyzes Biome, TypeScript, and AI review reports.
 ---
 
@@ -27,13 +27,14 @@ Automated analysis of background validation results (Biome + TypeScript + AI Rev
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.83.9
+- **Project**: OpenManager VIBE v5.83.12
 - **Validation Workflow**: post-commit hook (background, 5min timeout)
 - **Output Location**: `logs/validation/validation-complete-latest.md`
 - **Components**:
   - Biome: Full codebase lint + format check → `logs/lint-reports/`
   - TypeScript: Type check → `logs/typecheck-reports/`
   - AI Review: Codex → Gemini → Qwen rotation → `logs/code-reviews/`
+- **Issue Tracking**: `logs/code-reviews/.issue-tracking.json`
 
 ## Workflow
 
@@ -272,6 +273,10 @@ This Skill analyzes and reports
 
 ## Changelog
 
+- 2025-12-29: v1.3.0 - 이슈 트래킹 통합
+  - `.issue-tracking.json` 이슈 추적 JSON 연동
+  - `review-issue-tracker.sh` 스캔 도구 추가
+  - 프로젝트 버전 v5.83.12 반영
 - 2025-12-22: v1.2.0 - Cross-platform hooks support
   - Husky hooks → Node.js scripts 위임 (Windows 호환)
   - Workflow 다이어그램 업데이트

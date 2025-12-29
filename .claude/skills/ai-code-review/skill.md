@@ -1,6 +1,6 @@
 ---
 name: multi-ai-code-review
-version: v1.1.0
+version: v1.2.0
 description: Multi-AI code review orchestration using Codex, Gemini, Claude with automatic fallback. Triggers when user requests AI code review, cross-validation, or multi-AI analysis. Integrates with existing auto-ai-review.sh workflow.
 ---
 
@@ -27,18 +27,18 @@ Orchestrate external AI tools (Codex, Gemini, Claude) for code review with autom
 - "자동 코드 리뷰"
 - "리뷰 결과 분석"
 - "AI 검증"
+- "이슈 트래커"
+- "크리티컬 이슈"
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.83.9
+- **Project**: OpenManager VIBE v5.83.12
 - **Script Version**: auto-ai-review.sh v6.13.0
 - **Primary AI Rotation**: Codex → Gemini → Qwen (3-AI 1:1:1 순환)
 - **Fallback Chain**: Primary → Qwen → Claude
 - **Average Response**: ~10초
 - **Availability**: 99.99%
-- **v6.7.0 변경** (2025-12-07): Claude CLI 올바른 사용법으로 복원
-  - 이전 (잘못됨): `echo "$query" | claude -p "Code Reviewer"`
-  - 현재 (올바름): `claude -p "$query"`
+- **Issue Tracker**: `scripts/code-review/review-issue-tracker.sh`
 
 ## Workflow
 
@@ -62,11 +62,11 @@ cat logs/code-reviews/.ai-usage-state 2>/dev/null || echo "No state file"
 
 **Expected State**:
 ```
-codex_count=199
-gemini_count=108
-qwen_count=116
-claude_count=94
-last_ai=gemini
+codex_count=422
+gemini_count=334
+qwen_count=296
+claude_count=0
+last_ai=qwen
 ```
 
 ### 3. Execute Auto Review (Manual Trigger)
@@ -217,8 +217,39 @@ rm -f logs/code-reviews/.review-lock
 - `validation-analysis` - Post-commit validation
 - `ai-report-export` - Export review results
 
+## Issue Tracking
+
+### Scan Critical Issues
+
+```bash
+bash scripts/code-review/review-issue-tracker.sh scan
+```
+
+### Generate Report
+
+```bash
+bash scripts/code-review/review-issue-tracker.sh report
+```
+
+### Mark Human Reviewed
+
+```bash
+bash scripts/code-review/review-issue-tracker.sh human <commit_hash> "description"
+```
+
+### Tracking Files
+
+- `.reviewed-commits` - AI reviewed commit hashes
+- `.reviewed-by-human` - Human verified commits
+- `.issue-tracking.json` - Resolved issues JSON
+
 ## Changelog
 
+- 2025-12-29: v1.2.0 - 이슈 트래커 통합
+  - review-issue-tracker.sh 추가
+  - .issue-tracking.json 이슈 추적 JSON
+  - AI 리뷰 섹션만 스캔 (오탐 필터링)
+  - 15 trigger keywords 추가 ("이슈 트래커", "크리티컬 이슈")
 - 2025-12-07: v1.1.0 - Claude CLI 수정 및 3-AI 순환 복원
   - auto-ai-review.sh v6.7.0 연동
   - 3-AI 1:1:1 rotation (Codex → Gemini → Qwen)
