@@ -200,17 +200,18 @@ export default function EnhancedServerModal({
       cpu: historyData.map((h) => h.cpu),
       memory: historyData.map((h) => h.memory),
       disk: historyData.map((h) => h.disk),
+      // 📊 네트워크 In/Out: 실제 분리 데이터 없음 → 추정 비율 사용 (isEstimated 플래그)
       network: historyData.map((h) => ({
         in: h.network * 0.6,
         out: h.network * 0.4,
       })),
-      // latency는 network 데이터 기반으로 추정 (실제 latency 데이터 없음)
+      // ⚡ Latency: 실제 ping/RTT 없음 → 네트워크 기반 추정값
       latency: historyData.map((h) => {
-        // 네트워크 사용률이 높으면 latency 증가 추정
         const baseLatency = 20;
         const networkFactor = (h.network / 100) * 15;
         return baseLatency + networkFactor;
       }),
+      // ⚙️ 프로세스: 서비스 기반 추정 (실제 프로세스 데이터는 별도 API 필요)
       processes:
         safeServer?.services?.map((service, i) => ({
           name: service.name || `service-${i}`,
@@ -227,25 +228,91 @@ export default function EnhancedServerModal({
           ),
           pid: 1000 + i,
         })) || [],
+      // 📋 시스템 알림: 메트릭 임계값 기반 자동 생성 (실제 서버 로그 아님)
       logs: (() => {
-        const logMessages: string[] = [];
+        const alerts: Array<{
+          timestamp: string;
+          level: 'info' | 'warn' | 'error';
+          message: string;
+          source: string;
+        }> = [];
         const cpu = currentMetrics?.cpu || 0;
         const memory = currentMetrics?.memory || 0;
-        if (cpu > 80)
-          logMessages.push(`[WARN] High CPU load: ${cpu.toFixed(1)}%`);
-        if (memory > 85)
-          logMessages.push(
-            `[WARN] Available memory low: ${(100 - memory).toFixed(1)}% free`
-          );
-        if (logMessages.length === 0) {
-          logMessages.push('[INFO] System operating normally');
+        const disk = currentMetrics?.disk || 0;
+        const network = currentMetrics?.network || 0;
+
+        // CPU 경고
+        if (cpu > 90) {
+          alerts.push({
+            timestamp: new Date().toISOString(),
+            level: 'error',
+            message: `CPU 사용률 위험: ${cpu.toFixed(1)}% (임계값: 90%)`,
+            source: '시스템 모니터',
+          });
+        } else if (cpu > 80) {
+          alerts.push({
+            timestamp: new Date().toISOString(),
+            level: 'warn',
+            message: `CPU 사용률 경고: ${cpu.toFixed(1)}% (임계값: 80%)`,
+            source: '시스템 모니터',
+          });
         }
-        return logMessages.map((msg) => ({
-          timestamp: new Date().toISOString(),
-          level: msg.includes('[WARN]') ? ('warn' as const) : ('info' as const),
-          message: msg,
-          source: 'System',
-        }));
+
+        // 메모리 경고
+        if (memory > 90) {
+          alerts.push({
+            timestamp: new Date().toISOString(),
+            level: 'error',
+            message: `메모리 사용률 위험: ${memory.toFixed(1)}% (여유: ${(100 - memory).toFixed(1)}%)`,
+            source: '시스템 모니터',
+          });
+        } else if (memory > 85) {
+          alerts.push({
+            timestamp: new Date().toISOString(),
+            level: 'warn',
+            message: `메모리 사용률 경고: ${memory.toFixed(1)}%`,
+            source: '시스템 모니터',
+          });
+        }
+
+        // 디스크 경고
+        if (disk > 90) {
+          alerts.push({
+            timestamp: new Date().toISOString(),
+            level: 'error',
+            message: `디스크 사용률 위험: ${disk.toFixed(1)}%`,
+            source: '시스템 모니터',
+          });
+        } else if (disk > 80) {
+          alerts.push({
+            timestamp: new Date().toISOString(),
+            level: 'warn',
+            message: `디스크 사용률 주의: ${disk.toFixed(1)}%`,
+            source: '시스템 모니터',
+          });
+        }
+
+        // 네트워크 경고
+        if (network > 90) {
+          alerts.push({
+            timestamp: new Date().toISOString(),
+            level: 'warn',
+            message: `네트워크 사용률 높음: ${network.toFixed(1)}%`,
+            source: '시스템 모니터',
+          });
+        }
+
+        // 정상 상태
+        if (alerts.length === 0) {
+          alerts.push({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: '모든 시스템 지표가 정상 범위 내에 있습니다.',
+            source: '시스템 모니터',
+          });
+        }
+
+        return alerts;
       })(),
     };
   }, [historyData, safeServer, currentMetrics]);

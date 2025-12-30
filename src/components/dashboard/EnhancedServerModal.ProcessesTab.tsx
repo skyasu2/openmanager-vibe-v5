@@ -4,11 +4,15 @@ import type { FC } from 'react';
 /**
  * ⚙️ Enhanced Server Modal Processes Tab
  *
- * Running processes monitoring tab:
- * - Process list with CPU and memory usage
- * - Real-time process monitoring with progress bars
- * - Color-coded usage indicators
- * - Responsive table layout with smooth animations
+ * 서비스 기반 추정 프로세스 모니터링 탭:
+ * - 서버의 services 배열에서 파생된 프로세스 목록
+ * - CPU/Memory는 총 사용률을 서비스 수로 균등 분배한 추정값
+ * - 색상 기반 사용률 표시 (정상/경고/위험)
+ * - 반응형 테이블 레이아웃
+ *
+ * ⚠️ 참고: 실제 OS 프로세스가 아닌 서비스 기반 추정 데이터입니다.
+ *
+ * @refactored 2025-12-31 - 추정값 명시 추가
  */
 import type { ProcessData, RealtimeData } from './EnhancedServerModal.types';
 
@@ -58,9 +62,15 @@ export const ProcessesTab: FC<ProcessesTabProps> = ({ realtimeData }) => {
       <div>
         {/* 헤더 섹션 */}
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
-            실행 중인 프로세스
-          </h3>
+          <div className="flex items-center gap-3">
+            <h3 className="bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
+              실행 중인 프로세스
+            </h3>
+            {/* 추정값 표시 */}
+            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+              서비스 기반 추정
+            </span>
+          </div>
 
           {/* 프로세스 개수 표시 */}
           <div className="flex items-center gap-2">
@@ -147,6 +157,14 @@ export const ProcessesTab: FC<ProcessesTabProps> = ({ realtimeData }) => {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* 추정값 설명 */}
+          <div className="border-t border-gray-100 bg-gray-50 px-4 py-2">
+            <p className="text-center text-xs text-gray-500">
+              * 서비스 목록에서 파생된 프로세스입니다. CPU/Memory는 총 사용률을
+              서비스 수로 균등 분배한 추정값입니다.
+            </p>
           </div>
         </div>
 

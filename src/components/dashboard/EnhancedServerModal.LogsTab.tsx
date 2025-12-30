@@ -2,13 +2,16 @@
 
 import type { FC } from 'react';
 /**
- * 📋 Enhanced Server Modal Logs Tab
+ * 🔔 Enhanced Server Modal System Alerts Tab
  *
- * Real-time log streaming tab:
- * - Live log stream with color-coded levels (info/warn/error)
- * - Terminal-style dark theme interface
- * - Smooth animations for log entries
- * - Log level indicators and timestamp formatting
+ * 메트릭 기반 시스템 알림 탭:
+ * - CPU/Memory/Disk/Network 임계값 기반 자동 생성 알림
+ * - 실시간 시스템 상태 모니터링
+ * - 색상별 알림 레벨 구분 (info/warn/error)
+ *
+ * ⚠️ 참고: 이 탭은 실제 서버 로그가 아닌 메트릭 기반 자동 생성 알림입니다.
+ *
+ * @refactored 2025-12-31 - 로그 → 시스템 알림으로 명확화
  */
 import type {
   LogEntry,
@@ -71,13 +74,15 @@ const formatTimestamp = (timestamp: string): string => {
 };
 
 /**
- * 📋 Logs Tab Component
+ * 🔔 System Alerts Tab Component
  *
- * 서버의 실시간 로그를 터미널 스타일로 표시하는 탭
- * - 로그 레벨별 색상 구분 (INFO/WARN/ERROR)
- * - 어두운 테마의 터미널 스타일
+ * 서버의 메트릭 기반 시스템 알림을 표시하는 탭
+ * - 알림 레벨별 색상 구분 (INFO/WARN/ERROR)
+ * - 어두운 테마의 모니터링 콘솔 스타일
  * - 타임스탬프 및 소스 정보 표시
- * - 스크롤 가능한 로그 스트림
+ * - 스크롤 가능한 알림 스트림
+ *
+ * ⚠️ 이 탭은 메트릭 임계값 기반 자동 생성 알림입니다.
  */
 export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
   return (
@@ -85,11 +90,17 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
       <div className="animate-fade-in">
         {/* 헤더 섹션 */}
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
-            실시간 로그 스트림
-          </h3>
+          <div className="flex items-center gap-3">
+            <h3 className="bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
+              🔔 시스템 알림
+            </h3>
+            {/* 자동 생성 알림 표시 */}
+            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+              메트릭 기반 자동 생성
+            </span>
+          </div>
 
-          {/* 로그 레벨 범례 */}
+          {/* 알림 레벨 범례 */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -101,7 +112,7 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-red-500" />
-              <span className="text-xs text-gray-600">오류</span>
+              <span className="text-xs text-gray-600">위험</span>
             </div>
           </div>
         </div>
@@ -151,16 +162,15 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
                 );
               })
             ) : (
-              /* 로그 없음 상태 */
+              /* 알림 없음 상태 */
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
-                  <div className="mb-4 text-6xl opacity-50">📋</div>
+                  <div className="mb-4 text-6xl opacity-50">✅</div>
                   <div className="mb-2 text-lg font-medium text-gray-400">
-                    로그 데이터가 없습니다
+                    시스템 알림이 없습니다
                   </div>
                   <div className="text-sm text-gray-500">
-                    서버에서 아직 로그가 생성되지 않았거나 로그 수집이
-                    비활성화되어 있습니다
+                    모든 시스템 지표가 정상 범위 내에 있습니다
                   </div>
                 </div>
               </div>
@@ -171,30 +181,30 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
           <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 bg-linear-to-t from-gray-900 to-transparent" />
         </div>
 
-        {/* 로그 통계 요약 */}
+        {/* 알림 통계 요약 */}
         {realtimeData.logs.length > 0 && (
           <div
             className="animate-fade-in mt-6 grid grid-cols-1 gap-4 md:grid-cols-4"
             style={{ animationDelay: '0.3s' }}
           >
-            {/* 총 로그 수 */}
+            {/* 총 알림 수 */}
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-medium text-gray-600">
-                    총 로그
+                    총 알림
                   </div>
                   <div className="text-2xl font-bold text-gray-800">
                     {realtimeData.logs.length}
                   </div>
                 </div>
                 <div className="rounded-lg bg-gray-100 p-2">
-                  <span className="text-2xl">📋</span>
+                  <span className="text-2xl">🔔</span>
                 </div>
               </div>
             </div>
 
-            {/* INFO 로그 수 */}
+            {/* INFO 알림 수 */}
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
@@ -212,7 +222,7 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
               </div>
             </div>
 
-            {/* WARN 로그 수 */}
+            {/* WARN 알림 수 */}
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
@@ -230,11 +240,11 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
               </div>
             </div>
 
-            {/* ERROR 로그 수 */}
+            {/* ERROR 알림 수 */}
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-gray-600">오류</div>
+                  <div className="text-sm font-medium text-gray-600">위험</div>
                   <div className="text-2xl font-bold text-red-600">
                     {
                       realtimeData.logs.filter((log) => log.level === 'error')

@@ -1,16 +1,21 @@
 'use client';
 
 import type { FC } from 'react';
+import { useMemo } from 'react';
 import { RealtimeChart } from './EnhancedServerModal.components';
 /**
  * 🌐 Enhanced Server Modal Network Tab
  *
  * Network monitoring tab with comprehensive network analysis:
  * - Real-time network status with animated indicators
- * - Live traffic monitoring (inbound/outbound)
- * - Network latency visualization
+ * - Live traffic monitoring (inbound/outbound) - 추정값
+ * - Network latency visualization - 추정값
  * - SVG-based traffic flow charts with gradients
  * - Server connection details and specifications
+ *
+ * ⚠️ 참고: In/Out 트래픽 및 Latency는 총 네트워크 사용률 기반 추정값입니다.
+ *
+ * @refactored 2025-12-31 - 추정값 표시 및 동적 스케일링 개선
  */
 import type {
   NetworkData,
@@ -79,6 +84,8 @@ const getNetworkStatusInfo = (status?: NetworkStatus) => {
  * - 네트워크 상태, 실시간 트래픽, 지연시간 카드
  * - 트래픽 흐름 SVG 차트 (인바운드/아웃바운드)
  * - 네트워크 연결 정보 및 서버 상세 사양
+ *
+ * ⚠️ In/Out 및 Latency는 네트워크 총량 기반 추정값입니다.
  */
 export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
   const networkStatusInfo = getNetworkStatusInfo(server.networkStatus);
@@ -87,6 +94,20 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
   ] || { in: 0, out: 0 };
   const latestLatency =
     realtimeData.latency[realtimeData.latency.length - 1] || 0;
+
+  // 동적 스케일링: 최대값 기반 차트 스케일 계산
+  const chartScale = useMemo(() => {
+    const maxIn = Math.max(...realtimeData.network.map((n) => n.in), 1);
+    const maxOut = Math.max(...realtimeData.network.map((n) => n.out), 1);
+    const maxLatency = Math.max(...realtimeData.latency, 1);
+
+    // 여유 공간 20% 추가
+    return {
+      maxIn: Math.ceil(maxIn * 1.2),
+      maxOut: Math.ceil(maxOut * 1.2),
+      maxLatency: Math.ceil(maxLatency * 1.2),
+    };
+  }, [realtimeData.network, realtimeData.latency]);
 
   return (
     <div className="space-y-6">
@@ -137,7 +158,12 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
           <div className="relative z-10">
             <div className="mb-4 flex items-center justify-between">
-              <h4 className="text-lg font-bold text-white">실시간 트래픽</h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-lg font-bold text-white">실시간 트래픽</h4>
+                <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white/80">
+                  추정값
+                </span>
+              </div>
               <span className="text-2xl">📊</span>
             </div>
             <div className="space-y-4">
@@ -158,6 +184,9 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
                 </div>
               </div>
             </div>
+            <div className="mt-3 text-xs text-white/50 text-center">
+              * 총 네트워크 사용률 기반 60:40 비율 추정
+            </div>
           </div>
         </div>
 
@@ -166,7 +195,12 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
           <div className="relative z-10">
             <div className="mb-4 flex items-center justify-between">
-              <h4 className="text-lg font-bold text-white">응답 시간</h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-lg font-bold text-white">응답 시간</h4>
+                <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white/80">
+                  추정값
+                </span>
+              </div>
               <span className="text-2xl">⚡</span>
             </div>
             <div className="mb-2 text-4xl font-bold text-white">
@@ -177,6 +211,9 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
               <div className="mt-1 text-xs text-white/60">
                 최적 상태 &lt; 50ms
               </div>
+            </div>
+            <div className="mt-3 text-xs text-white/50 text-center">
+              * 네트워크 부하 기반 추정 (20ms + α)
             </div>
           </div>
         </div>
@@ -237,7 +274,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
                 />
               ))}
 
-              {/* 인바운드 영역 */}
+              {/* 인바운드 영역 - 동적 스케일링 */}
               <path
                 d={`M0,100 ${realtimeData.network
                   .map((data: NetworkData, index: number) => {
@@ -245,7 +282,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
                       (index / Math.max(realtimeData.network.length - 1, 1)) *
                       100;
                     const y =
-                      100 - Math.max(0, Math.min(100, (data.in / 600) * 100));
+                      100 - Math.max(0, Math.min(100, (data.in / chartScale.maxIn) * 100));
                     return `L${x},${y}`;
                   })
                   .join(' ')} L100,100 Z`}
@@ -263,14 +300,14 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
                       (index / Math.max(realtimeData.network.length - 1, 1)) *
                       100;
                     const y =
-                      100 - Math.max(0, Math.min(100, (data.in / 600) * 100));
+                      100 - Math.max(0, Math.min(100, (data.in / chartScale.maxIn) * 100));
                     return `${x},${y}`;
                   })
                   .join(' ')}
                 vectorEffect="non-scaling-stroke"
               />
 
-              {/* 아웃바운드 영역 */}
+              {/* 아웃바운드 영역 - 동적 스케일링 */}
               <path
                 d={`M0,100 ${realtimeData.network
                   .map((data: NetworkData, index: number) => {
@@ -278,7 +315,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
                       (index / Math.max(realtimeData.network.length - 1, 1)) *
                       100;
                     const y =
-                      100 - Math.max(0, Math.min(100, (data.out / 400) * 100));
+                      100 - Math.max(0, Math.min(100, (data.out / chartScale.maxOut) * 100));
                     return `L${x},${y}`;
                   })
                   .join(' ')} L100,100 Z`}
@@ -296,7 +333,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
                       (index / Math.max(realtimeData.network.length - 1, 1)) *
                       100;
                     const y =
-                      100 - Math.max(0, Math.min(100, (data.out / 400) * 100));
+                      100 - Math.max(0, Math.min(100, (data.out / chartScale.maxOut) * 100));
                     return `${x},${y}`;
                   })
                   .join(' ')}
