@@ -23,24 +23,31 @@ test.describe('기본 스모크 테스트', () => {
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
 
-    // 기본 UI 요소들 확인
-    await expect(page.locator('h1')).toBeVisible();
-    // Note: getByRole uses accessible name, but button text content differs
-    // Button accessible name: "GitHub 계정으로 로그인", text content: "GitHub로 계속하기"
+    // 클라이언트 렌더링 완료 대기 - 로그인 폼 요소 확인
+    // (로딩 상태에서 실제 콘텐츠로 전환될 때까지 대기)
     await expect(
-      page.locator('button:has-text("GitHub로 계속하기")')
-    ).toBeVisible();
+      page.getByRole('heading', { name: /OpenManager 로그인/ })
+    ).toBeVisible({ timeout: TIMEOUTS.NETWORK_REQUEST });
+
+    // 기본 UI 요소들 확인 (버튼 텍스트: GitHub로 로그인, 게스트 모드)
     await expect(
-      page.locator('button:has-text("게스트로 체험하기")')
+      page.locator('button:has-text("GitHub로 로그인")')
     ).toBeVisible();
+    await expect(page.locator('button:has-text("게스트 모드")')).toBeVisible();
   });
 
-  test('메인 대시보드로 리다이렉트된다', async ({ page }) => {
-    await page.goto('/');
+  test('랜딩 페이지가 올바르게 로드된다', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
     await skipIfSecurityCheckpoint(page);
 
-    // 루트 경로가 /login으로 리다이렉트되는지 확인
-    await expect(page).toHaveURL(/\/login/);
+    // 루트 경로가 랜딩 페이지를 직접 표시하는지 확인
+    // (2024-12 리팩토링: /main → / 이동, 리다이렉트 없이 랜딩 페이지 표시)
+    await expect(page).toHaveTitle(/OpenManager/);
+
+    // 랜딩 페이지 핵심 요소 확인 (메인 타이틀)
+    await expect(
+      page.getByRole('heading', { name: /AI.*서버 모니터링/ })
+    ).toBeVisible();
   });
 
   test('404 페이지가 존재하지 않는 경로에서 작동한다', async ({ page }) => {

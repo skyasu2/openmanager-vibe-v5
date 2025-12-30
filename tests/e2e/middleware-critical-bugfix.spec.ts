@@ -3,9 +3,12 @@
  *
  * 테스트 대상:
  * 1. 환경변수 검증 (크래시 방지)
- * 2. 루트 경로(/) 인증 체크
+ * 2. 루트 경로(/) 랜딩 페이지 로드
  * 3. 에러 처리 (무한 루프 방지)
  * 4. 성능 영향 측정
+ *
+ * NOTE: 2024-12 리팩토링으로 / 경로는 랜딩 페이지를 직접 표시합니다.
+ *       (이전: / → /login 리다이렉트)
  *
  * Vercel 프로덕션 환경: https://openmanager-vibe-v5.vercel.app/
  */
@@ -22,11 +25,11 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
-  test('✅ 1. 루트 경로(/) 접근 시 /login 리다이렉트', async ({ page }) => {
+  test('✅ 1. 루트 경로(/) 접근 시 랜딩 페이지 로드', async ({ page }) => {
     const startTime = Date.now();
 
     // 루트 경로 접근
-    const _response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
+    const response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
       waitUntil: 'networkidle',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
@@ -34,17 +37,20 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     const endTime = Date.now();
     const responseTime = endTime - startTime;
 
-    // 검증 1: 최종 URL이 /login인지 확인
-    expect(page.url()).toContain('/login');
+    // 검증 1: 200 OK 응답 (랜딩 페이지 직접 표시)
+    expect(response?.status()).toBe(200);
 
-    // 검증 2: 응답 시간이 합리적인지 확인 (5초 이내)
+    // 검증 2: 랜딩 페이지 타이틀 확인
+    await expect(page).toHaveTitle(/OpenManager/);
+
+    // 검증 3: 응답 시간이 합리적인지 확인 (5초 이내)
     expect(responseTime).toBeLessThan(5000);
 
-    console.log(`✅ 루트 → /login 리다이렉트 성공 (${responseTime}ms)`);
+    console.log(`✅ 루트 → 랜딩 페이지 로드 성공 (${responseTime}ms)`);
   });
 
   test('✅ 2. 미들웨어 응답 헤더 확인', async ({ page }) => {
-    // 루트 경로 접근하여 리다이렉트 응답 캡처
+    // 루트 경로 접근
     const response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
       waitUntil: 'domcontentloaded',
       timeout: TIMEOUTS.NETWORK_REQUEST,
@@ -76,13 +82,13 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
 
     // 여러 번 접근하여 안정성 확인
     for (let i = 0; i < 3; i++) {
-      const _response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
+      const response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
         waitUntil: 'domcontentloaded',
         timeout: TIMEOUTS.NETWORK_REQUEST,
       });
 
-      // 크래시 없이 정상 리다이렉트 확인
-      expect(page.url()).toContain('/login');
+      // 크래시 없이 정상 로드 확인 (200 OK)
+      expect(response?.status()).toBe(200);
     }
 
     const endTime = Date.now();
@@ -160,41 +166,44 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     ]);
 
     // 루트 경로 접근
-    const _response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
+    const response = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
       waitUntil: 'networkidle',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
 
-    // 검증: Guest 쿠키가 있으면 / (메인)으로 유지 또는 /login (쿠키 검증 실패 시)
-    // 미들웨어 로직에 따라 / 또는 /login으로 이동할 수 있음
-    const currentUrl = page.url();
-    const validRedirect =
-      currentUrl.endsWith('/') || currentUrl.includes('/login');
-    expect(validRedirect).toBe(true);
+    // 검증: 랜딩 페이지가 정상 로드됨 (Guest 쿠키 여부와 관계없이)
+    expect(response?.status()).toBe(200);
+    await expect(page).toHaveTitle(/OpenManager/);
 
+    const currentUrl = page.url();
     console.log(`✅ Guest 쿠키 폴백 동작 확인 완료 (현재 URL: ${currentUrl})`);
   });
 
   test('✅ 7. 종합 시나리오 (연속 접근)', async ({ page }) => {
     // 시나리오: 루트 → 로그인 페이지 → 다시 루트
 
-    // 1단계: 루트 접근 → /login 리다이렉트
-    await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
+    // 1단계: 루트 접근 → 랜딩 페이지 로드
+    const response1 = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
+      waitUntil: 'networkidle',
+      timeout: TIMEOUTS.NETWORK_REQUEST,
+    });
+    expect(response1?.status()).toBe(200);
+    await expect(page).toHaveTitle(/OpenManager/);
+
+    // 2단계: 로그인 페이지로 이동
+    await page.goto(`${VERCEL_PRODUCTION_URL}/login`, {
       waitUntil: 'networkidle',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
     expect(page.url()).toContain('/login');
 
-    // 2단계: 로그인 페이지 확인
-    await page.waitForTimeout(1000);
-    expect(page.url()).toContain('/login');
-
-    // 3단계: 다시 루트 접근 → /login 리다이렉트 (무한 루프 방지 확인)
-    await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
+    // 3단계: 다시 루트 접근 → 랜딩 페이지 로드
+    const response3 = await page.goto(`${VERCEL_PRODUCTION_URL}/`, {
       waitUntil: 'networkidle',
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
-    expect(page.url()).toContain('/login');
+    expect(response3?.status()).toBe(200);
+    await expect(page).toHaveTitle(/OpenManager/);
 
     console.log('✅ 종합 시나리오 테스트 성공');
   });
