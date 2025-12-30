@@ -4,11 +4,11 @@
  * POST /api/ai/jobs - 새 Job 생성
  * GET /api/ai/jobs - Job 목록 조회
  *
- * @version 1.0.0
+ * @version 1.1.0 - 타임아웃 + after() 로깅 개선
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { type NextRequest, NextResponse } from 'next/server';
+import { after, type NextRequest, NextResponse } from 'next/server';
 import {
   analyzeQueryComplexity,
   inferJobType,
@@ -20,7 +20,15 @@ import type {
   CreateJobResponse,
   JobListResponse,
   JobStatusResponse,
+  TriggerStatus,
 } from '@/types/ai-jobs';
+
+// ============================================
+// 상수 정의
+// ============================================
+
+/** Cloud Run 트리거 타임아웃 (ms) */
+const TRIGGER_TIMEOUT_MS = 5000;
 
 // Supabase 클라이언트 생성
 function getSupabaseClient() {
@@ -119,14 +127,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Cloud Run Worker에 Job 처리 요청
-    await triggerWorker(job.id, query, jobType, options?.sessionId);
+    // Cloud Run Worker에 Job 처리 요청 (타임아웃 적용)
+    const triggerResult = await triggerWorker(
+      job.id,
+      query,
+      jobType,
+      options?.sessionId
+    );
+
+    // 비동기 로깅 (응답 차단 안함)
+    after(async () => {
+      await logJobCreation(
+        job.id,
+        jobType,
+        triggerResult.status,
+        complexity.level
+      );
+    });
 
     const response: CreateJobResponse = {
       jobId: job.id,
       status: 'queued',
       pollUrl: `/api/ai/jobs/${job.id}`,
       estimatedTime: complexity.estimatedTime,
+      triggerStatus: triggerResult.status,
     };
 
     return NextResponse.json(response, { status: 201 });
@@ -215,33 +239,46 @@ function mapJobToResponse(job: AIJob): JobStatusResponse {
   };
 }
 
+// ============================================
+// Worker 트리거 관련
+// ============================================
+
+interface TriggerResult {
+  status: TriggerStatus;
+  responseTime?: number;
+  error?: string;
+}
+
 /**
- * Cloud Run Worker에 Job 처리 요청
+ * Cloud Run Worker에 Job 처리 요청 (타임아웃 적용)
  *
- * 비동기 Job 처리를 위해 Cloud Run에 메시지를 전송합니다.
- * Cloud Run은 결과를 Redis에 저장하고, Vercel SSE가 이를 클라이언트에 전달합니다.
+ * @description
+ * - AbortController로 타임아웃 관리 (기본 5초)
+ * - 응답 지연 시 클라이언트는 SSE 폴링으로 폴백
+ * - Vercel Serverless에서는 반드시 await 필요 (fire-and-forget 불가)
  */
 async function triggerWorker(
   jobId: string,
   query: string,
   type: string,
   sessionId?: string
-): Promise<void> {
+): Promise<TriggerResult> {
   const cloudRunUrl = process.env.CLOUD_RUN_AI_URL;
   const apiSecret = process.env.CLOUD_RUN_API_SECRET;
 
   if (!cloudRunUrl) {
-    console.warn(
-      '[AI Jobs] CLOUD_RUN_AI_URL not configured, skipping worker trigger'
-    );
-    return;
+    console.warn('[AI Jobs] CLOUD_RUN_AI_URL not configured');
+    return { status: 'skipped', error: 'URL not configured' };
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TRIGGER_TIMEOUT_MS);
+  const startTime = Date.now();
+
   try {
-    // 비동기로 Worker 호출 (응답을 기다리지 않음)
-    // 응답 상태는 확인하여 에러 로깅
-    fetch(`${cloudRunUrl}/api/jobs/process`, {
+    const res = await fetch(`${cloudRunUrl}/api/jobs/process`, {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         ...(apiSecret && { 'X-API-Key': apiSecret }),
@@ -252,27 +289,78 @@ async function triggerWorker(
         sessionId,
         type,
       }),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorText = await res.text().catch(() => 'Unknown error');
-          console.error(
-            `[AI Jobs] Worker returned ${res.status}: ${errorText}`
-          );
-          // 401은 API 키 문제
-          if (res.status === 401) {
-            console.error(
-              '[AI Jobs] ⚠️ CLOUD_RUN_API_SECRET may be missing or invalid in Vercel'
-            );
-          }
-        } else {
-          console.log(`[AI Jobs] Worker triggered successfully for ${jobId}`);
-        }
-      })
-      .catch((err) => {
-        console.error('[AI Jobs] Failed to trigger worker:', err);
-      });
+    });
+
+    clearTimeout(timeoutId);
+    const responseTime = Date.now() - startTime;
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => 'Unknown error');
+      console.error(`[AI Jobs] Worker ${res.status}: ${errorText}`);
+
+      if (res.status === 401) {
+        console.error('[AI Jobs] ⚠️ API key issue - check CLOUD_RUN_API_SECRET');
+      }
+
+      return { status: 'failed', responseTime, error: `HTTP ${res.status}` };
+    }
+
+    console.log(`[AI Jobs] Worker triggered: ${jobId} (${responseTime}ms)`);
+    return { status: 'sent', responseTime };
   } catch (error) {
-    console.error('[AI Jobs] Error triggering worker:', error);
+    clearTimeout(timeoutId);
+    const responseTime = Date.now() - startTime;
+
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.warn(
+        `[AI Jobs] Trigger timeout: ${jobId} (${TRIGGER_TIMEOUT_MS}ms)`
+      );
+      return { status: 'timeout', responseTime, error: 'Request timeout' };
+    }
+
+    console.error('[AI Jobs] Trigger error:', error);
+    return {
+      status: 'failed',
+      responseTime,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Job 생성 로깅 (after()에서 호출)
+ *
+ * @description 응답 후 비동기 실행 - 분석/모니터링용
+ */
+async function logJobCreation(
+  jobId: string,
+  jobType: string,
+  triggerStatus: TriggerStatus,
+  complexityLevel: string
+): Promise<void> {
+  try {
+    // 추후 분석용 로그 (Vercel Logs, Datadog 등)
+    console.log(
+      `[AI Jobs] Created: ${jobId} | type=${jobType} | trigger=${triggerStatus} | complexity=${complexityLevel}`
+    );
+
+    // 트리거 실패 시 Redis에 상태 업데이트 (SSE에서 확인 가능)
+    if (triggerStatus !== 'sent') {
+      await redisSet(
+        `job:trigger:${jobId}`,
+        {
+          status: triggerStatus,
+          timestamp: new Date().toISOString(),
+          message:
+            triggerStatus === 'timeout'
+              ? 'Worker 연결 지연 - 잠시 후 자동 처리됩니다'
+              : 'Worker 연결 실패 - 재시도 중입니다',
+        },
+        60 // 1분 TTL
+      );
+    }
+  } catch (error) {
+    // 로깅 실패는 무시 (핵심 기능 아님)
+    console.warn('[AI Jobs] Log failed:', error);
   }
 }

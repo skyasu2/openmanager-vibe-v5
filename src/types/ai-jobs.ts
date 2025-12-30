@@ -40,12 +40,17 @@ export interface CreateJobRequest {
   };
 }
 
+/** Worker 트리거 상태 */
+export type TriggerStatus = 'sent' | 'timeout' | 'failed' | 'skipped';
+
 /** Job 생성 응답 */
 export interface CreateJobResponse {
   jobId: string;
   status: JobStatus;
   pollUrl: string;
   estimatedTime: number; // seconds
+  /** Worker 트리거 결과 (sent: 전송됨, timeout: 타임아웃, failed: 실패, skipped: 건너뜀) */
+  triggerStatus?: TriggerStatus;
 }
 
 /** Job 상태 조회 응답 */
