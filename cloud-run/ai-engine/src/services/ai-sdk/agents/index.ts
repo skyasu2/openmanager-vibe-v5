@@ -3,13 +3,17 @@
  *
  * Architecture:
  * - Orchestrator (Cerebras): Fast routing
- * - NLQ Agent (Groq): Natural language queries (simple + complex)
- * - Analyst Agent (Mistral): Anomaly detection, trend prediction
- * - Reporter Agent (Mistral): Incident reports, timelines
+ * - NLQ Agent (Cerebras): Natural language query processing
+ * - Analyst Agent (Groq): Anomaly detection, trend prediction
+ * - Reporter Agent (Groq): Incident reports, timelines
  * - Advisor Agent (Mistral): Troubleshooting guides, RAG search
  *
- * @version 1.0.0
- * @updated 2025-12-28
+ * Usage:
+ * - Multi-agent mode: Orchestrator → NLQ/Analyst/Reporter/Advisor
+ * - Direct routes: /analyze-server → Analyst, /incident-report → Reporter
+ *
+ * @version 2.0.0 - Agent model optimization
+ * @updated 2025-12-30
  */
 
 export { orchestrator, executeMultiAgent } from './orchestrator';

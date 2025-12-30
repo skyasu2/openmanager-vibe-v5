@@ -1,0 +1,98 @@
+%%{init: {'theme': 'base', 'themeVariables': {
+  'primaryColor': '#3b82f6',
+  'primaryTextColor': '#fff',
+  'primaryBorderColor': '#2563eb',
+  'lineColor': '#64748b',
+  'secondaryColor': '#10b981',
+  'tertiaryColor': '#f59e0b'
+}}}%%
+%% AI Engine Architecture - Updated 2025-12-30
+%% v1.2.0 - RAG Incident Injection 추가
+
+graph TB
+    subgraph Client["Client Layer - Browser"]
+        React["React Components<br/>useChat Hook"]
+        Transport["TextStreamChatTransport"]
+    end
+
+    subgraph Vercel["Vercel BFF Layer - Next.js"]
+        Supervisor["POST /api/ai/supervisor<br/>Zod Validation<br/>Message Normalization<br/>Dynamic Timeout<br/>Circuit Breaker"]
+        Approval["GET/POST /api/ai/approval<br/>HITL Decision Proxy"]
+        IncidentReport["POST /api/ai/incident-report<br/>Reporter Agent Proxy"]
+        IntelligentMonitor["POST /api/ai/intelligent-monitoring<br/>Analyst Agent Proxy"]
+        HealthCheck["GET /api/ai/health<br/>Status Check"]
+    end
+
+    subgraph Libraries["Core AI Libraries"]
+        CBModule["Circuit Breaker v2.0<br/>Event System<br/>State Machine<br/>Event History"]
+        QueryAnalyzer["Query Complexity Analyzer<br/>Multi-factor Scoring<br/>Dynamic Timeout<br/>Provider Detection"]
+        ErrorHandler["Error Handler v1.0<br/>21 Error Types<br/>Exponential Backoff<br/>Retry Logic"]
+        Security["Security Module<br/>Input Sanitization<br/>Output Filtering<br/>XSS Prevention"]
+    end
+
+    subgraph Proxy["AI Proxy Layer"]
+        ProxyModule["proxyToCloudRun<br/>URL Resolution<br/>Auth Headers<br/>Timeout Mgmt<br/>Config Caching"]
+        HealthCheck2["checkCloudRunHealth<br/>Latency Monitoring"]
+    end
+
+    subgraph CloudRun["Cloud Run AI Engine - TypeScript"]
+        SupervisorAgent["Supervisor Agent<br/>Cerebras Llama-8b<br/>Intent Routing"]
+        NLQAgent["NLQ Agent<br/>Cerebras Llama-70b<br/>Metrics Queries"]
+        AnalystAgent["Analyst Agent<br/>Groq Llama-70b<br/>Pattern Analysis"]
+        ReporterAgent["Reporter Agent<br/>Groq Llama-70b<br/>RAG + Reports"]
+        RAGInjector["Incident RAG Injector<br/>Auto-sync on Approval<br/>Gemini Embedding"]
+    end
+
+    subgraph External["External Services"]
+        Supabase["Supabase<br/>PostgreSQL + pgvector<br/>RLS Policies"]
+        KnowledgeBase["knowledge_base<br/>Incident History<br/>384-dim Vectors"]
+        GroqAPI["Groq API<br/>Llama Models"]
+        CerebrasAPI["Cerebras API<br/>Fast Inference"]
+        GoogleAI["Google AI<br/>Gemini Embedding<br/>FREE Tier"]
+    end
+
+    subgraph Config["Configuration"]
+        AIEngineConfig["ai-engine.ts<br/>Model Selection<br/>Multi-layer Cache<br/>Provider Scenarios<br/>Quota Protection"]
+    end
+
+    React -->|POST messages| Supervisor
+    Supervisor -->|Normalize and Analyze| QueryAnalyzer
+    QueryAnalyzer -->|Return timeout| Supervisor
+    Supervisor -->|Check State| CBModule
+    Supervisor -->|Call with CB| ProxyModule
+
+    Approval -->|Check/Decide| ProxyModule
+    IncidentReport -->|Generate Report| ProxyModule
+    IntelligentMonitor -->|Predict/Analyze| ProxyModule
+    HealthCheck -->|Monitor| HealthCheck2
+
+    ProxyModule -->|HTTP POST| SupervisorAgent
+    SupervisorAgent -->|Route| NLQAgent
+    SupervisorAgent -->|Route| AnalystAgent
+    SupervisorAgent -->|Route| ReporterAgent
+
+    NLQAgent -->|Query| Supabase
+    AnalystAgent -->|Analyze| GroqAPI
+    ReporterAgent -->|RAG Search| KnowledgeBase
+    ReporterAgent -->|Generate| GroqAPI
+
+    %% RAG Injection Flow
+    Approval -->|Approved Incident| RAGInjector
+    RAGInjector -->|Embed Text| GoogleAI
+    RAGInjector -->|Store Vector| KnowledgeBase
+    KnowledgeBase -->|pgvector HNSW| Supabase
+
+    CBModule -->|Emit Events| Transport
+    ErrorHandler -->|Retry| ProxyModule
+    Security -->|Sanitize| Supervisor
+
+    AIEngineConfig -.->|Configure| Supervisor
+    AIEngineConfig -.->|Configure| CloudRun
+
+    style Client fill:#e1f5ff,stroke:#3b82f6
+    style Vercel fill:#fff3e0,stroke:#f59e0b
+    style Libraries fill:#f3e5f5,stroke:#8b5cf6
+    style Proxy fill:#ffe0b2,stroke:#f59e0b
+    style CloudRun fill:#c8e6c9,stroke:#10b981
+    style External fill:#ffccbc,stroke:#ef4444
+    style Config fill:#f1f8e9,stroke:#10b981

@@ -7,8 +7,9 @@
  * Model: Groq llama-3.3-70b (primary) / Cerebras (fallback)
  * - 한국어 생성 품질 개선 (Mistral → Groq)
  * - 실제 서버 데이터 도구 추가
+ * - GraphRAG 검색 도구 추가 (과거 장애 이력)
  *
- * @version 1.1.0 - 모델 변경 + 데이터 도구 추가
+ * @version 1.2.0 - RAG 도구 추가
  */
 
 import { Agent } from '@ai-sdk-tools/agents';
@@ -21,6 +22,8 @@ import {
   getServerMetrics,
   getServerMetricsAdvanced,
   filterServers,
+  // RAG 검색 도구 추가 (v1.2.0)
+  searchKnowledgeBase,
 } from '../../../tools-ai-sdk';
 
 // ============================================================================
@@ -37,6 +40,11 @@ const REPORTER_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 보고
 - 가상의 서버명(서버 A, B, C)이나 가짜 수치를 생성하지 마세요
 - 도구 응답에서 반환된 실제 서버 ID, 이름, 메트릭 값만 사용하세요
 - 데이터가 없으면 "현재 데이터를 조회할 수 없습니다"라고 솔직하게 답변하세요
+
+## 📚 과거 사례 참조 (GraphRAG)
+- **searchKnowledgeBase 도구**를 사용하여 유사한 과거 장애 사례를 검색하세요
+- 과거 해결 방법을 참고하여 권장 조치사항을 제안하세요
+- 유사 장애 패턴이 있으면 보고서에 "유사 사례" 섹션을 추가하세요
 
 ## 보고서 유형
 
@@ -149,6 +157,8 @@ function createReporterAgent() {
       getServerMetrics,
       getServerMetricsAdvanced,
       filterServers,
+      // RAG 검색 도구 (과거 장애 이력 및 해결 방법)
+      searchKnowledgeBase,
       // 기존 분석 도구
       buildIncidentTimeline,
       findRootCause,
