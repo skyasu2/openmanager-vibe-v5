@@ -20,7 +20,7 @@ import {
   Server as ServerIcon,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import {
   DARK_CARD_STYLES,
@@ -49,6 +49,7 @@ export default function EnhancedServerModal({
   // 🎯 React Hooks는 항상 최상단에서 호출
   const [selectedTab, setSelectedTab] = useState<TabId>('overview');
   const [isRealtime, setIsRealtime] = useState(true);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   // 🕒 Fixed 24h Metrics Hook (Client & AI Synchronization)
   const { currentMetrics, historyData } = useFixed24hMetrics(
@@ -56,16 +57,60 @@ export default function EnhancedServerModal({
     3000 // 3초 주기 업데이트
   );
 
+  // ♿ 접근성: 포커스 트랩 (모달 내부에서만 Tab 키 이동)
+  const getFocusableElements = useCallback(() => {
+    if (!dialogRef.current) return [];
+    return Array.from(
+      dialogRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null);
+  }, []);
+
   useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // ESC 키로 모달 닫기
       if (event.key === 'Escape') {
         onClose();
+        return;
+      }
+
+      // Tab 키 트랩
+      if (event.key === 'Tab') {
+        const focusableElements = getFocusableElements();
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (!firstElement || !lastElement) return;
+
+        if (event.shiftKey) {
+          // Shift+Tab: 첫 요소에서 마지막으로 이동
+          if (document.activeElement === firstElement) {
+            event.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          // Tab: 마지막 요소에서 첫 요소로 이동
+          if (document.activeElement === lastElement) {
+            event.preventDefault();
+            firstElement.focus();
+          }
+        }
       }
     };
 
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
+    // 모달 열릴 때 첫 번째 포커스 가능 요소에 포커스
+    const focusableElements = getFocusableElements();
+    const firstFocusable = focusableElements[0];
+    if (firstFocusable) {
+      firstFocusable.focus();
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, getFocusableElements]);
 
   // 🛡️ 서버 데이터 안전성 검증 및 기본값 설정
   const safeServer = useMemo(
@@ -253,9 +298,11 @@ export default function EnhancedServerModal({
         onClick={onClose}
       />
       <dialog
+        ref={dialogRef}
         open
         className="gpu-modal-content relative flex h-[95vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-[#0F1115] shadow-2xl ring-1 ring-white/10 sm:h-[90vh] sm:rounded-3xl"
         aria-modal="true"
+        aria-labelledby="modal-title"
       >
         {/* 헤더 - Dark Glass Style */}
         <div
@@ -271,7 +318,10 @@ export default function EnhancedServerModal({
               </div>
               <div className="min-w-0 flex-1">
                 {/* 1️⃣ 서버명 (헬스점수 배지 제거 - FIX-002) */}
-                <h2 className="text-lg font-bold sm:text-2xl text-white">
+                <h2
+                  id="modal-title"
+                  className="text-lg font-bold sm:text-2xl text-white"
+                >
                   <span className="truncate drop-shadow-md">
                     {safeServer.name}
                   </span>

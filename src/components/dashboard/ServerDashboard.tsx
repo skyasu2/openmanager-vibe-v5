@@ -53,8 +53,9 @@ interface ServerDashboardProps {
     total: number;
     online: number;
     warning: number;
+    critical: number; // 🚨 위험 상태 (v5.83.13 추가)
     offline: number;
-    unknown: number; // 🔧 수정: 'unknown' 상태 추가 (타입 통합)
+    unknown: number;
   }) => void;
 }
 

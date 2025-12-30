@@ -86,10 +86,17 @@ export default function DashboardContent({
 
   // 🛡️ currentTime 제거: 미사용 상태에서 불필요한 interval 실행 (v5.83.13)
 
-  // 폴백 통계 계산 (v5.81.0: 상호 배타적 카운팅으로 수정)
+  // 폴백 통계 계산 (v5.83.13: critical 상태 분리)
   const calculateFallbackStats = useCallback((): DashboardStats => {
     if (!servers || servers.length === 0) {
-      return { total: 0, online: 0, offline: 0, warning: 0, unknown: 0 };
+      return {
+        total: 0,
+        online: 0,
+        offline: 0,
+        warning: 0,
+        critical: 0,
+        unknown: 0,
+      };
     }
 
     const stats = servers.reduce(
@@ -98,7 +105,7 @@ export default function DashboardContent({
         const normalizedStatus = server.status?.toLowerCase() || 'unknown';
 
         // 🎯 상호 배타적 카운팅: 각 서버는 정확히 하나의 상태에만 속함
-        // total = online + warning + offline + unknown
+        // total = online + warning + critical + offline + unknown
         switch (normalizedStatus) {
           // 오프라인/비가용
           case 'offline':
@@ -107,13 +114,17 @@ export default function DashboardContent({
             acc.offline += 1;
             break;
 
-          // 경고 상태 (warning + critical 통합)
-          case 'warning':
-          case 'degraded':
-          case 'unstable':
+          // 🚨 위험 상태 (critical 별도 분리)
           case 'critical':
           case 'error':
           case 'failed':
+            acc.critical += 1;
+            break;
+
+          // ⚠️ 경고 상태
+          case 'warning':
+          case 'degraded':
+          case 'unstable':
             acc.warning += 1;
             break;
 
@@ -139,7 +150,7 @@ export default function DashboardContent({
 
         return acc;
       },
-      { total: 0, online: 0, offline: 0, warning: 0, unknown: 0 }
+      { total: 0, online: 0, offline: 0, warning: 0, critical: 0, unknown: 0 }
     );
 
     return stats;
@@ -148,7 +159,14 @@ export default function DashboardContent({
   // 최종 서버 통계 (서버 데이터에서 직접 계산)
   const serverStats = useMemo(() => {
     if (statsLoading) {
-      return { total: 0, online: 0, offline: 0, warning: 0, unknown: 0 }; // 🔧 수정: unknown 추가
+      return {
+        total: 0,
+        online: 0,
+        offline: 0,
+        warning: 0,
+        critical: 0,
+        unknown: 0,
+      };
     }
 
     // 서버 데이터에서 직접 통계 계산

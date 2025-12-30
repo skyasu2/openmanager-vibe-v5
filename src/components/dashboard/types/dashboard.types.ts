@@ -38,6 +38,7 @@ export interface DashboardStats {
   total: number;
   online: number;
   warning: number;
+  critical: number; // 🚨 위험 상태 (MEM/CPU 90%+ 등)
   offline: number;
   unknown: number;
 }

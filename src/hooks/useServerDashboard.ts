@@ -98,10 +98,15 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         const offlineCount = actualServers.filter(
           (s) => s.status === 'offline'
         ).length;
+        // 🚨 v5.83.13: critical 상태 별도 집계
+        const criticalCount = actualServers.filter(
+          (s) => s.status === 'critical'
+        ).length;
         onStatsUpdate({
           total: stats.total,
           online: stats.online,
           warning: stats.warning,
+          critical: criticalCount,
           offline: offlineCount,
           unknown: stats.unknown,
         });

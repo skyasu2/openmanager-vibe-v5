@@ -108,12 +108,13 @@ export interface ServerWithMetrics extends Server {
 export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
 export type ViewMode = 'grid' | 'list';
 
-// 🎯 기존 useServerDashboard 인터페이스 유지
+// 🎯 기존 useServerDashboard 인터페이스 유지 (v5.83.13: critical 추가)
 export interface UseServerDashboardOptions {
   onStatsUpdate?: (stats: {
     total: number;
     online: number;
     warning: number;
+    critical: number; // 🚨 위험 상태
     offline: number;
     unknown: number;
   }) => void;

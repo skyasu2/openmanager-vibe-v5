@@ -1,5 +1,6 @@
 import {
   Activity,
+  AlertOctagon,
   AlertTriangle,
   CheckCircle2,
   Server as ServerIcon,
@@ -13,6 +14,7 @@ interface DashboardStats {
   online: number;
   offline: number;
   warning: number;
+  critical: number; // 🚨 위험 상태
   unknown: number;
 }
 
@@ -29,6 +31,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
     online: stats?.online ?? 0,
     offline: stats?.offline ?? 0,
     warning: stats?.warning ?? 0,
+    critical: stats?.critical ?? 0,
     unknown: stats?.unknown ?? 0,
   };
   return (
@@ -55,8 +58,8 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
         </div>
       </div>
 
-      {/* 2. Status Cards - Horizontal Compact */}
-      <div className="grid grid-cols-3 gap-3 lg:col-span-5">
+      {/* 2. Status Cards - Horizontal Compact (4열: Online, Warning, Critical, Offline) */}
+      <div className="grid grid-cols-4 gap-2 lg:col-span-5">
         <div className="relative overflow-hidden rounded-xl border border-green-100 bg-green-50/50 p-3 transition-all hover:bg-green-50">
           <div className="flex flex-col">
             <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700">
@@ -68,23 +71,34 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl border border-yellow-100 bg-yellow-50/50 p-3 transition-all hover:bg-yellow-50">
+        <div className="relative overflow-hidden rounded-xl border border-amber-100 bg-amber-50/50 p-3 transition-all hover:bg-amber-50">
           <div className="flex flex-col">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-yellow-700">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-700">
               <AlertTriangle size={12} /> Warning
             </span>
-            <span className="mt-1 text-xl font-bold text-yellow-800 tracking-tight">
+            <span className="mt-1 text-xl font-bold text-amber-800 tracking-tight">
               {safeStats.warning}
             </span>
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl border border-red-100 bg-red-50/50 p-3 transition-all hover:bg-red-50">
+        <div className="relative overflow-hidden rounded-xl border border-rose-100 bg-rose-50/50 p-3 transition-all hover:bg-rose-50">
           <div className="flex flex-col">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-red-700">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-rose-700">
+              <AlertOctagon size={12} /> Critical
+            </span>
+            <span className="mt-1 text-xl font-bold text-rose-800 tracking-tight">
+              {safeStats.critical}
+            </span>
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50/50 p-3 transition-all hover:bg-slate-100">
+          <div className="flex flex-col">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
               <XCircle size={12} /> Offline
             </span>
-            <span className="mt-1 text-xl font-bold text-red-800 tracking-tight">
+            <span className="mt-1 text-xl font-bold text-slate-700 tracking-tight">
               {safeStats.offline}
             </span>
           </div>
@@ -97,9 +111,11 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           <div className="flex items-center gap-3">
             <div
               className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                safeStats.offline > 0 || safeStats.warning > 0
-                  ? 'bg-red-100 text-red-600'
-                  : 'bg-emerald-100 text-emerald-600'
+                safeStats.critical > 0 || safeStats.offline > 0
+                  ? 'bg-rose-100 text-rose-600'
+                  : safeStats.warning > 0
+                    ? 'bg-amber-100 text-amber-600'
+                    : 'bg-emerald-100 text-emerald-600'
               }`}
             >
               <ShieldAlert size={20} />
@@ -109,7 +125,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
                 System Health
               </div>
               <div className="font-bold text-gray-900">
-                {safeStats.offline > 0
+                {safeStats.critical > 0 || safeStats.offline > 0
                   ? 'Critical Issues Detected'
                   : safeStats.warning > 0
                     ? 'Performance Warnings'
@@ -120,8 +136,8 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
 
           <div className="flex gap-4 text-center">
             <div>
-              <div className="text-xl font-bold text-red-600">
-                {safeStats.offline}
+              <div className="text-xl font-bold text-rose-600">
+                {safeStats.critical}
               </div>
               <div className="text-[10px] font-medium text-gray-400 uppercase">
                 Critical

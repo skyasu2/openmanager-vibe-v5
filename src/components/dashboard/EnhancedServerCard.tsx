@@ -29,7 +29,8 @@ import {
   Wifi,
 } from 'lucide-react';
 import type React from 'react';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import type { Server as ServerType } from '@/types/server';
 import { MiniChart } from './cards/MiniChart';
 import { getServerIcon } from './utils/server-icons';
@@ -45,107 +46,57 @@ export interface EnhancedServerCardProps {
 
 const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
   ({ server, index, onClick, showMiniCharts = true, variant = 'default' }) => {
+    // 🎯 실제 24시간 메트릭 데이터 사용 (5분 간격 업데이트)
+    const { historyData, currentMetrics } = useFixed24hMetrics(
+      server.id,
+      300000 // 5분 간격 (데이터 갱신 주기와 일치)
+    );
+
+    // UI 상태
     const [isHovered, setIsHovered] = useState(false);
     const [isPressed, setIsPressed] = useState(false);
-    const [realtimeData, setRealtimeData] = useState<{
-      cpu: number[];
-      memory: number[];
-      disk: number[];
-      network: number[];
-      trend: 'up' | 'down' | 'stable';
-    }>({
-      cpu: Array.from({ length: 12 }, () =>
-        parseFloat(
-          Math.max(
-            0,
-            Math.min(100, Math.random() * 30 + server.cpu - 15)
-          ).toFixed(2)
-        )
-      ),
-      memory: Array.from({ length: 12 }, () =>
-        parseFloat(
-          Math.max(
-            0,
-            Math.min(100, Math.random() * 20 + server.memory - 10)
-          ).toFixed(2)
-        )
-      ),
-      disk: Array.from({ length: 12 }, () =>
-        parseFloat(
-          Math.max(
-            0,
-            Math.min(100, Math.random() * 10 + server.disk - 5)
-          ).toFixed(2)
-        )
-      ),
-      network: Array.from({ length: 12 }, () =>
-        parseFloat(
-          Math.max(
-            0,
-            Math.min(100, Math.random() * 40 + (server.network || 30) - 20)
-          ).toFixed(2)
-        )
-      ),
-      trend: 'stable',
-    });
 
-    // 실시간 데이터 업데이트 - 5분 간격 (성능 최적화)
-    useEffect(() => {
-      const interval = setInterval(
-        () => {
-          setRealtimeData((prev) => ({
-            cpu: [
-              ...prev.cpu.slice(1),
-              parseFloat(
-                Math.max(
-                  0,
-                  Math.min(100, server.cpu + (Math.random() - 0.5) * 20)
-                ).toFixed(2)
-              ),
-            ],
-            memory: [
-              ...prev.memory.slice(1),
-              parseFloat(
-                Math.max(
-                  0,
-                  Math.min(100, server.memory + (Math.random() - 0.5) * 15)
-                ).toFixed(2)
-              ),
-            ],
-            disk: [
-              ...prev.disk.slice(1),
-              parseFloat(
-                Math.max(
-                  0,
-                  Math.min(100, server.disk + (Math.random() - 0.5) * 5)
-                ).toFixed(2)
-              ),
-            ],
-            network: [
-              ...prev.network.slice(1),
-              parseFloat(
-                Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    (server.network || 30) + (Math.random() - 0.5) * 25
-                  )
-                ).toFixed(2)
-              ),
-            ],
-            trend:
-              Math.random() > 0.7
-                ? Math.random() > 0.5
-                  ? 'up'
-                  : 'down'
-                : 'stable',
-          }));
-        },
-        300000 + index * 1000 // 5분 간격 (카드별 1초 오프셋)
-      );
+    // 📊 히스토리 데이터를 차트용 배열로 변환 (최근 12개 = 1시간 분량)
+    const realtimeData = useMemo(() => {
+      // 히스토리 데이터가 있으면 사용, 없으면 서버 기본값 사용
+      const dataPoints = historyData.length > 0 ? historyData : [];
+      const recentData = dataPoints.slice(-12); // 최근 12개 (1시간)
 
-      return () => clearInterval(interval);
-    }, [server.cpu, server.memory, server.disk, server.network, index]);
+      // 데이터가 부족하면 현재 값으로 채움
+      const fillData = (arr: number[], currentVal: number) => {
+        if (arr.length >= 12) return arr.slice(-12);
+        const fillCount = 12 - arr.length;
+        const filler = Array(fillCount).fill(currentVal);
+        return [...filler, ...arr];
+      };
+
+      const cpuData = recentData.map((d) => d.cpu);
+      const memoryData = recentData.map((d) => d.memory);
+      const diskData = recentData.map((d) => d.disk);
+      const networkData = recentData.map((d) => d.network);
+
+      // 트렌드 계산: 최근 3개 평균 vs 이전 3개 평균
+      const calcTrend = (data: number[]): 'up' | 'down' | 'stable' => {
+        if (data.length < 6) return 'stable';
+        const recent = data.slice(-3).reduce((a, b) => a + b, 0) / 3;
+        const prev = data.slice(-6, -3).reduce((a, b) => a + b, 0) / 3;
+        const diff = recent - prev;
+        if (diff > 5) return 'up';
+        if (diff < -5) return 'down';
+        return 'stable';
+      };
+
+      return {
+        cpu: fillData(cpuData, currentMetrics?.cpu ?? server.cpu),
+        memory: fillData(memoryData, currentMetrics?.memory ?? server.memory),
+        disk: fillData(diskData, currentMetrics?.disk ?? server.disk),
+        network: fillData(
+          networkData,
+          currentMetrics?.network ?? server.network ?? 30
+        ),
+        trend: calcTrend(cpuData),
+      };
+    }, [historyData, currentMetrics, server]);
 
     // 🎨 상태별 테마 (utils/status-theme.ts에서 import)
     const theme = getStatusTheme(server.status);
@@ -240,6 +191,9 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
     return (
       <motion.div
         layout
+        role="article"
+        aria-label={`${server.name} 서버 - 상태: ${theme.label}, CPU: ${Math.round(currentMetrics?.cpu ?? server.cpu)}%, 메모리: ${Math.round(currentMetrics?.memory ?? server.memory)}%`}
+        tabIndex={0}
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -267,8 +221,15 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         transition-all duration-300 ease-out
         backdrop-blur-lg
         group overflow-hidden
+        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
       `}
         onClick={handleCardClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCardClick();
+          }
+        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onMouseDown={() => setIsPressed(true)}
@@ -491,9 +452,11 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             </motion.div>
           )}
 
-          {/* 알림 - 개선된 디자인 */}
+          {/* 알림 - 개선된 디자인 + 접근성 */}
           {alertCount > 0 && (
             <motion.div
+              role="alert"
+              aria-label={`${server.name} 서버에 ${alertCount}개의 알림이 있습니다`}
               className="flex items-center gap-3 p-3 bg-rose-50/80 text-rose-700 rounded-xl text-sm font-medium border border-rose-200/50 shadow-sm backdrop-blur-sm"
               whileHover={{ scale: 1.02, x: 2 }}
               animate={{
@@ -510,6 +473,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               <motion.div
                 animate={{ rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
+                aria-hidden="true"
               >
                 <AlertTriangle className="w-5 h-5" />
               </motion.div>
