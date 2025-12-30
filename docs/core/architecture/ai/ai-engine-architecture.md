@@ -295,7 +295,7 @@ d:{"finishReason":"stop","verified":true}     // Finish signal
 | `/api/jobs/:id` | GET | Get job result from Redis |
 | `/api/jobs/:id/progress` | GET | Get job progress for UI feedback |
 
-### Async Job Queue (v5.89.1)
+### Async Job Queue (v5.89.1, Updated 2025-12-30)
 
 For long-running AI queries that may exceed Vercel's 120s timeout, an async job queue pattern is implemented:
 
@@ -309,29 +309,48 @@ sequenceDiagram
 
     Client->>Vercel: POST /api/ai/jobs (query)
     Vercel->>Supabase: Insert job (status: queued)
+    Vercel->>Redis: Set initial status (pending, 5% progress)
     Vercel->>CloudRun: POST /api/jobs/process (fire-and-forget)
     Vercel-->>Client: { jobId, pollUrl } (immediate)
 
     Client->>Vercel: GET /api/ai/jobs/:id/stream (SSE)
+    Vercel->>Redis: Poll every 100ms
+    Redis-->>Vercel: Initial status (pending)
+    Vercel-->>Client: SSE event: progress (5%)
 
     CloudRun->>Redis: Mark job processing
-    CloudRun->>CloudRun: LangGraph Supervisor
-    CloudRun->>Redis: Store result + progress
+    CloudRun->>CloudRun: AI Supervisor (Vercel AI SDK)
+    CloudRun->>Redis: Update progress (50%)
+    Vercel->>Redis: Poll
+    Redis-->>Vercel: Progress update
+    Vercel-->>Client: SSE event: progress (50%)
 
-    Vercel->>Redis: Poll every 100ms
+    CloudRun->>Redis: Store final result
+    Vercel->>Redis: Poll
     Redis-->>Vercel: Job result
     Vercel-->>Client: SSE event: result
 ```
 
 **Key Components:**
-- **Vercel SSE**: `/api/ai/jobs/:id/stream` - Server-side polling with SSE streaming to client
+- **Job Creation**: `/api/ai/jobs` creates job in Supabase + Redis initial state
+- **Vercel SSE**: `/api/ai/jobs/:id/stream` - Server-side Redis polling with SSE streaming to client
 - **Cloud Run Worker**: `/api/jobs/process` - Background job processing
-- **Redis Store**: Job results cached with 1-hour TTL, progress with 10-minute TTL
+- **Redis Store**: Job results with 5-min TTL (job:*), progress with 5-min TTL (job:progress:*)
+
+**Job Status Flow:**
+```
+queued (Supabase) → pending (Redis) → processing (Redis) → completed/failed (Redis)
+```
+
+**Graceful Degradation:**
+- Redis 장애 시에도 Job 생성 진행 (Supabase 기반 폴백)
+- SSE 스트림은 폴링 API로 폴백 가능
 
 **Benefits:**
 - No Vercel timeout issues (job creation returns immediately)
-- Real-time progress updates via SSE
-- 93% reduction in Redis commands vs polling (6K vs 90K/month)
+- Real-time progress updates via SSE (100ms polling interval)
+- Immediate progress feedback (5% on creation, updates during processing)
+- 93% reduction in Redis commands vs client polling (6K vs 90K/month)
 - Cancellable long-running queries
 
 ## Data & Memory
@@ -373,8 +392,10 @@ GraphRAG combines:
 | **Response Cache** | 1 hour | `ai:response:{hash}` | Repeated query optimization |
 | **Session Cache** | 24 hours | `ai:session:{sessionId}` | Conversation state |
 | **Embedding Cache** | 7 days | `ai:embed:{hash}` | Embedding reuse |
-| **Job Result** | 1 hour | `job:{jobId}` | Async job result storage |
-| **Job Progress** | 10 min | `job:progress:{jobId}` | Real-time progress updates |
+| **Job Result** | 5 min | `job:{jobId}` | Async job status & result (created by Vercel on job creation) |
+| **Job Progress** | 5 min | `job:progress:{jobId}` | Real-time progress updates (SSE polling) |
+
+> **Note (2025-12-30)**: Job entries are initialized by Vercel at job creation time to enable immediate SSE progress feedback. Cloud Run updates the status as processing progresses.
 
 ## Environment Variables
 

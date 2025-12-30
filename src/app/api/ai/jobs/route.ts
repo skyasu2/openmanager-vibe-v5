@@ -88,26 +88,36 @@ export async function POST(request: NextRequest) {
     }
 
     // Redis에 초기 상태 저장 (SSE 스트림에서 폴링하기 위함)
-    await redisSet(
-      `job:${job.id}`,
-      {
-        status: 'pending',
-        startedAt: new Date().toISOString(),
-      },
-      300 // 5분 TTL
-    );
+    // Redis 장애 시에도 Job 생성은 계속 진행 (Graceful Degradation)
+    try {
+      await redisSet(
+        `job:${job.id}`,
+        {
+          status: 'pending',
+          startedAt: new Date().toISOString(),
+        },
+        300 // 5분 TTL
+      );
 
-    // 초기 진행률 저장
-    await redisSet(
-      `job:progress:${job.id}`,
-      {
-        stage: 'initializing',
-        progress: 5,
-        message: 'AI 에이전트 초기화 중...',
-        updatedAt: new Date().toISOString(),
-      },
-      300
-    );
+      // 초기 진행률 저장
+      await redisSet(
+        `job:progress:${job.id}`,
+        {
+          stage: 'initializing',
+          progress: 5,
+          message: 'AI 에이전트 초기화 중...',
+          updatedAt: new Date().toISOString(),
+        },
+        300
+      );
+    } catch (redisError) {
+      // Redis 장애 시 경고만 남기고 계속 진행
+      // SSE 스트림은 폴링 API로 폴백됨
+      console.warn(
+        '[AI Jobs] Redis initial state failed, SSE may use polling fallback:',
+        redisError
+      );
+    }
 
     // Cloud Run Worker에 Job 처리 요청
     await triggerWorker(job.id, query, jobType, options?.sessionId);
