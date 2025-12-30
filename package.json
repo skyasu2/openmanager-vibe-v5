@@ -157,7 +157,7 @@
     "pdf-parse": "^2.4.5",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-error-boundary": "^6.0.0",
+    "react-error-boundary": "^6.0.1",
     "react-hot-toast": "^2.4.1",
     "react-markdown": "^10.1.0",
     "recharts": "^3.6.0",
