@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-29
+**마지막 업데이트**: 2025-12-30
 
 ---
 
@@ -69,7 +69,28 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 12-28)
+## 🔧 최근 유지보수 (2025-12-09 ~ 12-30)
+
+**AI Engine 안정성 개선 + Job Queue 최적화 (2025-12-30)**
+- **Phase 1: Message Format 통합**
+  - `extractTextFromMessage()` 중복 제거 → `src/lib/ai/utils/message-normalizer.ts`
+  - AI SDK v5 parts[] + 레거시 content 하이브리드 지원
+- **Phase 2: Circuit Breaker + Fallback**
+  - `executeWithCircuitBreakerAndFallback()` 래퍼 추가 → `src/lib/ai/circuit-breaker.ts`
+  - `createFallbackResponse()` 폴백 핸들러 → `src/lib/ai/fallback/ai-fallback-handler.ts`
+  - 적용 API: supervisor, intelligent-monitoring, incident-report, approval
+- **Phase 3: Response Caching**
+  - `withAICache()` 캐시 래퍼 → `src/lib/ai/cache/ai-response-cache.ts`
+  - Memory → Redis 2단계 캐싱, TTL 정책 적용
+- **Job Queue SSE 진행률 개선**
+  - Redis 초기 상태 저장 (pending, 5% progress) → Job 생성 즉시 SSE 진행률 표시
+  - SSE 스트림에서 pending/null 상태 처리 개선
+  - Redis 장애 시 Graceful Degradation (Supabase 기반 폴백)
+- **신규 컴포넌트**:
+  - `src/components/error/AIErrorBoundary.tsx` - AI 에러 바운더리
+  - `src/domains/ai-sidebar/components/JobProgressIndicator.tsx` - 진행률 UI
+  - `src/hooks/ai/useHybridAIQuery.ts` - Streaming/Job Queue 하이브리드 훅
+  - `src/lib/utils/retry.ts` - Exponential Backoff Retry 유틸리티
 
 **LangGraph 최적화 + RCA/Capacity Agent (2025-12-28)**
 - **RCA Agent 추가**: 장애 타임라인 구축, 메트릭 상관관계 분석, 근본 원인 추론
