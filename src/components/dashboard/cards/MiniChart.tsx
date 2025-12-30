@@ -33,6 +33,12 @@ const getValueColor = (value: number, baseColor: string): string => {
   return baseColor; // 기본 색상
 };
 
+/**
+ * SVG ID에 사용할 수 있도록 특수문자 제거
+ */
+const sanitizeId = (str: string): string =>
+  str.replace(/[^a-zA-Z0-9-_:.]/g, '_');
+
 export const MiniChart: React.FC<MiniChartProps> = ({
   data,
   color,
@@ -43,17 +49,24 @@ export const MiniChart: React.FC<MiniChartProps> = ({
   isCompact = false,
   chartSize = 'w-20 h-16',
 }) => {
-  const points = data
+  // 데이터 길이 방어: 최소 2개의 포인트 보장
+  const normalizedData = data.length >= 2 ? data : [data[0] ?? 0, data[0] ?? 0];
+  const denom = normalizedData.length - 1;
+
+  const points = normalizedData
     .map((value, idx) => {
-      const x = (idx / (data.length - 1)) * 100;
+      const x = (idx / denom) * 100;
       const y = 100 - Math.max(0, Math.min(100, value));
       return `${x},${y}`;
     })
     .join(' ');
 
-  const currentValue = data[data.length - 1] || 0;
-  const gradientId = `gradient-${serverId}-${label}-${index}`;
-  const glowId = `glow-${serverId}-${label}-${index}`;
+  const currentValue = normalizedData[normalizedData.length - 1] || 0;
+
+  // SVG ID 안전화: 특수문자 제거
+  const safeId = sanitizeId(`${serverId}-${label}-${index}`);
+  const gradientId = `gradient-${safeId}`;
+  const glowId = `glow-${safeId}`;
 
   const valueColor = getValueColor(currentValue, color);
 
@@ -97,18 +110,15 @@ export const MiniChart: React.FC<MiniChartProps> = ({
             {/* 영역 채우기 */}
             <polygon
               fill={`url(#compact-${gradientId})`}
-              points={`0,32 ${data.map((v, i) => `${(i / (data.length - 1)) * 100},${32 - (v / 100) * 32}`).join(' ')} 100,32`}
+              points={`0,32 ${normalizedData.map((v, i) => `${(i / denom) * 100},${32 - (v / 100) * 32}`).join(' ')} 100,32`}
             />
             {/* 라인 */}
             <polyline
               fill="none"
               stroke={valueColor}
               strokeWidth="2"
-              points={data
-                .map(
-                  (v, i) =>
-                    `${(i / (data.length - 1)) * 100},${32 - (v / 100) * 32}`
-                )
+              points={normalizedData
+                .map((v, i) => `${(i / denom) * 100},${32 - (v / 100) * 32}`)
                 .join(' ')}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -207,7 +217,7 @@ export const MiniChart: React.FC<MiniChartProps> = ({
 
             {/* 미세한 격자 패턴 */}
             <pattern
-              id={`grid-${serverId}-${label}`}
+              id={`grid-${safeId}`}
               width="8"
               height="8"
               patternUnits="userSpaceOnUse"
@@ -226,7 +236,7 @@ export const MiniChart: React.FC<MiniChartProps> = ({
           <rect
             width="100"
             height="100"
-            fill={`url(#grid-${serverId}-${label})`}
+            fill={`url(#grid-${safeId})`}
             opacity="0.3"
           />
 

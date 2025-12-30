@@ -63,9 +63,11 @@ export type ServerType =
 
 /**
  * 서버 타입에 따른 아이콘 컴포넌트 반환
+ * @param serverType - 서버 타입 (ServerType 유니언 또는 기타 문자열)
+ * @param className - 아이콘 CSS 클래스
  */
 export function getServerIcon(
-  serverType: string | undefined,
+  serverType: ServerType | (string & NonNullable<unknown>) | undefined,
   className = 'w-5 h-5'
 ): React.ReactElement {
   const type = (serverType || 'default').toLowerCase();

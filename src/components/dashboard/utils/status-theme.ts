@@ -84,8 +84,7 @@ export function getStatusTheme(status: CommonServerStatus): StatusTheme {
         iconBg: 'bg-indigo-100/90',
         pulse: 'bg-indigo-400',
       };
-    default:
-      // Handles: 'offline', 'unknown', and any other status
+    case 'offline':
       return {
         gradient: 'from-slate-50/80 via-gray-50/60 to-zinc-50/40',
         border: 'border-slate-200/60',
@@ -98,6 +97,21 @@ export function getStatusTheme(status: CommonServerStatus): StatusTheme {
         accent: 'text-slate-600',
         iconBg: 'bg-slate-100/90',
         pulse: 'bg-slate-400',
+      };
+    default:
+      // Handles: 'unknown', 'offline' fallback, and any unexpected status
+      return {
+        gradient: 'from-violet-50/80 via-purple-50/60 to-fuchsia-50/40',
+        border: 'border-violet-200/60',
+        hoverBorder: 'hover:border-violet-300/80',
+        statusBg: 'bg-violet-100/80',
+        statusText: 'text-violet-700',
+        statusIcon: '❔',
+        label: '알 수 없음',
+        glow: 'shadow-violet-100/50',
+        accent: 'text-violet-600',
+        iconBg: 'bg-violet-100/90',
+        pulse: 'bg-violet-400',
       };
   }
 }
