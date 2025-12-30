@@ -1,5 +1,5 @@
 /**
- * 🌟 Enhanced Server Card v5.0 - UI/UX 개선판
+ * 🌟 Enhanced Server Card v5.1 - 리팩토링 버전
  *
  * 고도화된 서버 카드 컴포넌트:
  * - 🎨 모던한 디자인 시스템 적용
@@ -9,39 +9,31 @@
  * - 🌈 개선된 색상 팔레트 및 대비
  * - 🔥 성능 최적화된 애니메이션
  *
- * 복원일: 2025-12-13 (commit b9961bf0 기반)
+ * @refactored 2025-12-30 - 컴포넌트 분리로 992줄 → ~600줄 감소
+ * - MiniChart → cards/MiniChart.tsx
+ * - getServerIcon → utils/server-icons.tsx
+ * - getStatusTheme → utils/status-theme.ts
  */
 
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
   AlertTriangle,
-  BarChart3,
-  Box,
-  Cloud,
-  Code,
   Cpu,
-  Database,
-  FileText,
-  GitBranch,
   Globe,
   HardDrive,
-  Layers,
-  Mail,
   Minus,
   Network,
-  Search,
-  Server,
-  Settings,
-  Shield,
   TrendingDown,
   TrendingUp,
   Wifi,
-  Zap,
 } from 'lucide-react';
 import type React from 'react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import type { Server as ServerType } from '@/types/server';
+import { MiniChart } from './cards/MiniChart';
+import { getServerIcon } from './utils/server-icons';
+import { getStatusTheme } from './utils/status-theme';
 
 export interface EnhancedServerCardProps {
   server: ServerType;
@@ -155,137 +147,8 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       return () => clearInterval(interval);
     }, [server.cpu, server.memory, server.disk, server.network, index]);
 
-    // 🎯 실제 기업 환경 기반 서버 타입별 아이콘 - 개선된 버전
-    const getServerIcon = () => {
-      const type = (server.type || 'default').toLowerCase();
-
-      // 🌐 웹서버
-      if (
-        type === 'nginx' ||
-        type === 'apache' ||
-        type === 'iis' ||
-        type === 'web'
-      )
-        return <Server className="w-5 h-5" />;
-
-      // 🚀 애플리케이션 서버
-      if (type === 'nodejs' || type === 'api')
-        return <GitBranch className="w-5 h-5" />;
-      if (type === 'springboot') return <Settings className="w-5 h-5" />;
-      if (type === 'django' || type === 'php')
-        return <Code className="w-5 h-5" />;
-      if (type === 'dotnet' || type === 'app')
-        return <Box className="w-5 h-5" />;
-
-      // 🗄️ 데이터베이스
-      if (
-        type === 'mysql' ||
-        type === 'postgresql' ||
-        type === 'oracle' ||
-        type === 'mssql' ||
-        type === 'database'
-      )
-        return <Database className="w-5 h-5" />;
-      if (type === 'mongodb') return <FileText className="w-5 h-5" />;
-
-      // ⚙️ 인프라 서비스
-      if (type === 'redis' || type === 'cache')
-        return <Zap className="w-5 h-5" />;
-      if (type === 'rabbitmq' || type === 'kafka' || type === 'queue')
-        return <Network className="w-5 h-5" />;
-      if (type === 'elasticsearch') return <Search className="w-5 h-5" />;
-      if (type === 'jenkins') return <Cpu className="w-5 h-5" />;
-      if (type === 'prometheus' || type === 'monitoring')
-        return <BarChart3 className="w-5 h-5" />;
-      if (type === 'security') return <Shield className="w-5 h-5" />;
-      if (type === 'mail') return <Mail className="w-5 h-5" />;
-      if (type === 'load-balancer') return <Layers className="w-5 h-5" />;
-      if (type === 'storage' || type === 'backup')
-        return <HardDrive className="w-5 h-5" />;
-
-      return <Cloud className="w-5 h-5" />;
-    };
-
-    // 🎨 개선된 상태별 테마 - 더 세련된 색상 팔레트
-    // ServerStatus: 'online' | 'offline' | 'warning' | 'critical' | 'maintenance' | 'unknown'
-    const getStatusTheme = () => {
-      const status = server.status;
-      switch (status) {
-        case 'online':
-          return {
-            gradient: 'from-emerald-50/80 via-green-50/60 to-teal-50/40',
-            border: 'border-emerald-200/60',
-            hoverBorder: 'hover:border-emerald-300/80',
-            statusBg: 'bg-emerald-100/80',
-            statusText: 'text-emerald-800',
-            statusIcon: '✅',
-            label: '정상',
-            glow: 'shadow-emerald-100/50',
-            accent: 'text-emerald-600',
-            iconBg: 'bg-emerald-100/90',
-            pulse: 'bg-emerald-400',
-          };
-        case 'warning':
-          return {
-            gradient: 'from-amber-50/80 via-yellow-50/60 to-orange-50/40',
-            border: 'border-amber-200/60',
-            hoverBorder: 'hover:border-amber-300/80',
-            statusBg: 'bg-amber-100/80',
-            statusText: 'text-amber-800',
-            statusIcon: '⚠️',
-            label: '경고',
-            glow: 'shadow-amber-100/50',
-            accent: 'text-amber-600',
-            iconBg: 'bg-amber-100/90',
-            pulse: 'bg-amber-400',
-          };
-        case 'critical':
-          return {
-            gradient: 'from-rose-50/80 via-red-50/60 to-pink-50/40',
-            border: 'border-rose-200/60',
-            hoverBorder: 'hover:border-rose-300/80',
-            statusBg: 'bg-rose-100/80',
-            statusText: 'text-rose-800',
-            statusIcon: '🚨',
-            label: '위험',
-            glow: 'shadow-rose-100/50',
-            accent: 'text-rose-600',
-            iconBg: 'bg-rose-100/90',
-            pulse: 'bg-rose-400',
-          };
-        case 'maintenance':
-          return {
-            gradient: 'from-indigo-50/80 via-blue-50/60 to-cyan-50/40',
-            border: 'border-indigo-200/60',
-            hoverBorder: 'hover:border-indigo-300/80',
-            statusBg: 'bg-indigo-100/80',
-            statusText: 'text-indigo-800',
-            statusIcon: '🔧',
-            label: '유지보수',
-            glow: 'shadow-indigo-100/50',
-            accent: 'text-indigo-600',
-            iconBg: 'bg-indigo-100/90',
-            pulse: 'bg-indigo-400',
-          };
-        default:
-          // Handles: 'offline', 'unknown', and any other status
-          return {
-            gradient: 'from-slate-50/80 via-gray-50/60 to-zinc-50/40',
-            border: 'border-slate-200/60',
-            hoverBorder: 'hover:border-slate-300/80',
-            statusBg: 'bg-slate-100/80',
-            statusText: 'text-slate-700',
-            statusIcon: '⚪',
-            label: '오프라인',
-            glow: 'shadow-slate-100/50',
-            accent: 'text-slate-600',
-            iconBg: 'bg-slate-100/90',
-            pulse: 'bg-slate-400',
-          };
-      }
-    };
-
-    const theme = getStatusTheme();
+    // 🎨 상태별 테마 (utils/status-theme.ts에서 import)
+    const theme = getStatusTheme(server.status);
 
     // 변형별 스타일 설정 - 개선된 버전
     const getVariantStyles = () => {
@@ -327,291 +190,6 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
     };
 
     const variantStyles = getVariantStyles();
-
-    // 🎨 개선된 미니 차트 - 더 세련된 디자인
-    const MiniChart = ({
-      data,
-      color,
-      label,
-      icon,
-    }: {
-      data: number[];
-      color: string;
-      label: string;
-      icon: React.ReactNode;
-    }) => {
-      const points = data
-        .map((value, idx) => {
-          const x = (idx / (data.length - 1)) * 100;
-          const y = 100 - Math.max(0, Math.min(100, value));
-          return `${x},${y}`;
-        })
-        .join(' ');
-
-      const currentValue = data[data.length - 1] || 0;
-      const gradientId = `gradient-${server.id}-${label}-${index}`;
-      const glowId = `glow-${server.id}-${label}-${index}`;
-
-      // 상태별 색상 강도 조절
-      const getValueColor = (value: number) => {
-        if (value > 90) return '#ef4444'; // 위험 - 빨강
-        if (value > 80) return '#f59e0b'; // 경고 - 주황
-        if (value > 70) return '#eab308'; // 주의 - 노랑
-        return color; // 기본 색상
-      };
-
-      const valueColor = getValueColor(currentValue);
-      const isCompact = variantStyles.useCompactLabels;
-
-      // Compact 모드: 가로 배치 + 미니 차트
-      if (isCompact) {
-        return (
-          <motion.div
-            className="flex items-center gap-2 bg-white/90 rounded-lg px-2 py-1.5 group hover:bg-white/95 transition-all duration-200 shadow-sm border border-white/20"
-            whileHover={{ scale: 1.02 }}
-          >
-            {/* 아이콘 + 라벨 */}
-            {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: role과 aria-label이 조건부로 함께 적용됨 */}
-            <div
-              className="flex items-center gap-1 shrink-0"
-              role={isCompact ? 'group' : undefined}
-              aria-label={isCompact ? label : undefined}
-              title={isCompact ? label : undefined}
-            >
-              <div className="text-gray-600 p-0.5">{icon}</div>
-              {!isCompact && (
-                <span className="text-[10px] font-medium text-gray-600 whitespace-nowrap">
-                  {label}
-                </span>
-              )}
-            </div>
-
-            {/* 미니 인라인 차트 - 2열 레이아웃으로 공간 확보 */}
-            <div className="flex-1 h-8 min-w-[60px]">
-              <svg
-                className="w-full h-full"
-                viewBox="0 0 100 32"
-                preserveAspectRatio="none"
-              >
-                <defs>
-                  <linearGradient
-                    id={`compact-${gradientId}`}
-                    x1="0%"
-                    y1="0%"
-                    x2="0%"
-                    y2="100%"
-                  >
-                    <stop
-                      offset="0%"
-                      stopColor={valueColor}
-                      stopOpacity="0.6"
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor={valueColor}
-                      stopOpacity="0.1"
-                    />
-                  </linearGradient>
-                </defs>
-                {/* 영역 채우기 */}
-                <polygon
-                  fill={`url(#compact-${gradientId})`}
-                  points={`0,32 ${data.map((v, i) => `${(i / (data.length - 1)) * 100},${32 - (v / 100) * 32}`).join(' ')} 100,32`}
-                />
-                {/* 라인 */}
-                <polyline
-                  fill="none"
-                  stroke={valueColor}
-                  strokeWidth="2"
-                  points={data
-                    .map(
-                      (v, i) =>
-                        `${(i / (data.length - 1)) * 100},${32 - (v / 100) * 32}`
-                    )
-                    .join(' ')}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-
-            {/* 수치 */}
-            <motion.span
-              className={`text-xs font-bold px-1.5 py-0.5 rounded shrink-0 ${
-                currentValue > 80
-                  ? 'bg-red-100/80 text-red-700'
-                  : currentValue > 70
-                    ? 'bg-yellow-100/80 text-yellow-700'
-                    : 'bg-gray-100/80 text-gray-700'
-              }`}
-              animate={{
-                scale: currentValue > 80 ? [1, 1.05, 1] : 1,
-              }}
-              transition={{
-                duration: 2,
-                repeat: currentValue > 80 ? Infinity : 0,
-              }}
-            >
-              {currentValue.toFixed(0)}%
-            </motion.span>
-          </motion.div>
-        );
-      }
-
-      return (
-        <motion.div
-          className="flex flex-col bg-white/90 rounded-xl p-3 group hover:bg-white/95 transition-all duration-300 shadow-sm hover:shadow-md backdrop-blur-sm border border-white/20"
-          whileHover={{ scale: 1.02 }}
-          transition={{ duration: 0.2 }}
-        >
-          {/* 라벨과 아이콘 */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <motion.div
-                className="text-gray-600 group-hover:scale-110 transition-transform p-1 rounded-lg bg-gray-50/80"
-                whileHover={{ rotate: 5 }}
-              >
-                {icon}
-              </motion.div>
-              <span className="text-xs font-semibold text-gray-700 tracking-wide whitespace-nowrap">
-                {label}
-              </span>
-            </div>
-            {/* 수치 표시 - 개선된 디자인 */}
-            <motion.span
-              className={`text-sm font-bold px-2 py-1 rounded-lg ${
-                currentValue > 80
-                  ? 'bg-red-100/80 text-red-700'
-                  : currentValue > 70
-                    ? 'bg-yellow-100/80 text-yellow-700'
-                    : 'bg-gray-100/80 text-gray-700'
-              }`}
-              animate={{
-                scale: currentValue > 80 ? [1, 1.05, 1] : 1,
-              }}
-              transition={{
-                duration: 2,
-                repeat: currentValue > 80 ? Infinity : 0,
-              }}
-            >
-              {currentValue.toFixed(0)}%
-            </motion.span>
-          </div>
-
-          {/* 차트 */}
-          <div
-            className={`${variantStyles.chartSize} relative bg-linear-to-br from-white/60 to-gray-50/40 rounded-xl p-3 shadow-inner border border-gray-100/50`}
-          >
-            <svg
-              className="w-full h-full"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-            >
-              <defs>
-                {/* 개선된 그라데이션 */}
-                <linearGradient
-                  id={gradientId}
-                  x1="0%"
-                  y1="0%"
-                  x2="0%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor={valueColor} stopOpacity="0.9" />
-                  <stop offset="40%" stopColor={valueColor} stopOpacity="0.5" />
-                  <stop
-                    offset="100%"
-                    stopColor={valueColor}
-                    stopOpacity="0.1"
-                  />
-                </linearGradient>
-
-                {/* 개선된 글로우 효과 */}
-                <filter id={glowId}>
-                  <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
-                  <feMerge>
-                    <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-
-                {/* 미세한 격자 패턴 */}
-                <pattern
-                  id={`grid-${server.id}-${label}`}
-                  width="8"
-                  height="8"
-                  patternUnits="userSpaceOnUse"
-                >
-                  <path
-                    d="M 8 0 L 0 0 0 8"
-                    fill="none"
-                    stroke="#e2e8f0"
-                    strokeWidth="0.2"
-                    opacity="0.4"
-                  />
-                </pattern>
-              </defs>
-
-              {/* 배경 격자 */}
-              <rect
-                width="100"
-                height="100"
-                fill={`url(#grid-${server.id}-${label})`}
-                opacity="0.3"
-              />
-
-              {/* 영역 채우기 */}
-              <polygon
-                fill={`url(#${gradientId})`}
-                points={`0,100 ${points} 100,100`}
-                className="transition-all duration-500"
-              />
-
-              {/* 라인 - 더 부드러운 스타일 */}
-              <polyline
-                fill="none"
-                stroke={valueColor}
-                strokeWidth="2.5"
-                points={points}
-                vectorEffect="non-scaling-stroke"
-                filter={`url(#${glowId})`}
-                className="transition-all duration-500"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-
-              {/* 현재 값 포인트 - 개선된 디자인 */}
-              <circle
-                cx="100"
-                cy={100 - Math.max(0, Math.min(100, currentValue))}
-                r="3"
-                fill={valueColor}
-                stroke="white"
-                strokeWidth="2"
-                filter={`url(#${glowId})`}
-                className="drop-shadow-sm"
-              />
-            </svg>
-
-            {/* 위험 상태 표시 - 개선된 디자인 */}
-            {currentValue > 80 && (
-              <motion.div
-                className="absolute top-1 right-1 bg-red-500/90 text-white text-xs px-1.5 py-0.5 rounded-full shadow-lg"
-                animate={{
-                  scale: [1, 1.1, 1],
-                  opacity: [0.8, 1, 0.8],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                }}
-              >
-                ⚠️
-              </motion.div>
-            )}
-          </div>
-        </motion.div>
-      );
-    };
 
     // 네트워크 상태 아이콘 - 개선된 버전
     // ServerStatus: 'online' | 'offline' | 'warning' | 'critical' | 'maintenance' | 'unknown'
@@ -733,7 +311,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               }}
               transition={{ duration: 0.3 }}
             >
-              {getServerIcon()}
+              {getServerIcon(server.type)}
             </motion.div>
             <div className="flex-1 min-w-0">
               <h3
@@ -788,24 +366,40 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 color="#10b981"
                 label="CPU"
                 icon={<Cpu className="w-3 h-3" />}
+                serverId={server.id}
+                index={index}
+                isCompact={variantStyles.useCompactLabels}
+                chartSize={variantStyles.chartSize}
               />
               <MiniChart
                 data={realtimeData.memory}
                 color="#10b981"
                 label="MEM"
                 icon={<Activity className="w-3 h-3" />}
+                serverId={server.id}
+                index={index}
+                isCompact={variantStyles.useCompactLabels}
+                chartSize={variantStyles.chartSize}
               />
               <MiniChart
                 data={realtimeData.disk}
                 color="#10b981"
                 label="DISK"
                 icon={<HardDrive className="w-3 h-3" />}
+                serverId={server.id}
+                index={index}
+                isCompact={variantStyles.useCompactLabels}
+                chartSize={variantStyles.chartSize}
               />
               <MiniChart
                 data={realtimeData.network}
                 color="#10b981"
                 label="NET"
                 icon={<Network className="w-3 h-3" />}
+                serverId={server.id}
+                index={index}
+                isCompact={variantStyles.useCompactLabels}
+                chartSize={variantStyles.chartSize}
               />
             </div>
           )}
