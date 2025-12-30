@@ -24,7 +24,7 @@ import { getRedisClient, redisGet } from '@/lib/redis';
 // ============================================================================
 
 interface JobResult {
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'queued';
   result?: string;
   error?: string;
   targetAgent?: string;
@@ -143,7 +143,7 @@ export async function GET(
             }
 
             // 진행 중인 경우 - 주기적으로 진행 상황 전송
-            if (result.status === 'processing') {
+            if (result.status === 'processing' || result.status === 'pending') {
               const now = Date.now();
               if (now - lastProgressUpdate >= PROGRESS_INTERVAL_MS) {
                 // 진행 상황 확인
@@ -153,15 +153,29 @@ export async function GET(
 
                 sendEvent('progress', {
                   jobId,
-                  status: 'processing',
+                  status: result.status,
                   progress: progress?.progress || 0,
-                  stage: progress?.stage || 'processing',
-                  message: progress?.message || 'AI가 처리 중입니다...',
+                  stage: progress?.stage || 'initializing',
+                  message: progress?.message || 'AI 에이전트 준비 중...',
                   elapsedMs: elapsed,
                 });
 
                 lastProgressUpdate = now;
               }
+            }
+          } else {
+            // Redis에 아직 결과가 없는 경우 - 초기 대기 상태 전송
+            const now = Date.now();
+            if (now - lastProgressUpdate >= PROGRESS_INTERVAL_MS) {
+              sendEvent('progress', {
+                jobId,
+                status: 'queued',
+                progress: 0,
+                stage: 'init',
+                message: '요청 대기열에 추가됨...',
+                elapsedMs: elapsed,
+              });
+              lastProgressUpdate = now;
             }
           }
 

@@ -13,6 +13,7 @@ import {
   analyzeQueryComplexity,
   inferJobType,
 } from '@/lib/ai/job-queue/complexity-analyzer';
+import { redisSet } from '@/lib/redis';
 import type {
   AIJob,
   CreateJobRequest,
@@ -85,6 +86,28 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Redis에 초기 상태 저장 (SSE 스트림에서 폴링하기 위함)
+    await redisSet(
+      `job:${job.id}`,
+      {
+        status: 'pending',
+        startedAt: new Date().toISOString(),
+      },
+      300 // 5분 TTL
+    );
+
+    // 초기 진행률 저장
+    await redisSet(
+      `job:progress:${job.id}`,
+      {
+        stage: 'initializing',
+        progress: 5,
+        message: 'AI 에이전트 초기화 중...',
+        updatedAt: new Date().toISOString(),
+      },
+      300
+    );
 
     // Cloud Run Worker에 Job 처리 요청
     await triggerWorker(job.id, query, jobType, options?.sessionId);
