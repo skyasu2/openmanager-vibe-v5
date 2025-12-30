@@ -27,7 +27,7 @@
  */
 
 import { groq } from '@ai-sdk/groq';
-import { type ModelMessage, generateText, streamText } from 'ai';
+import { generateText, type ModelMessage, streamText } from 'ai';
 
 export type GroqModel =
   | 'llama-3.1-8b-instant'
