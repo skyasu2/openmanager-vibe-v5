@@ -9,6 +9,10 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import {
+  type CacheableAIResponse,
+  withAICache,
+} from '@/lib/ai/cache/ai-response-cache';
 import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
 import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
@@ -26,15 +30,16 @@ async function postHandler(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, serverId } = body;
+    const sessionId = body.sessionId ?? `monitoring_${serverId}`;
+    const cacheQuery = `${action}:${serverId}:${body.analysisDepth || 'full'}`;
 
     // 1. Cloud Run 활성화 확인
     if (!isCloudRunEnabled()) {
-      // Cloud Run 비활성화 시 폴백 응답 반환
       const fallback = createFallbackResponse('intelligent-monitoring');
       return NextResponse.json(fallback);
     }
 
-    // 2. Cloud Run 프록시 호출 (Circuit Breaker + Fallback)
+    // 2. 캐시를 통한 Cloud Run 프록시 호출 (Circuit Breaker + Fallback + Cache)
     let cloudRunPath = '/api/ai/analyze-server';
     if (action === 'predict') cloudRunPath = '/api/ai/analyze-server';
     if (action === 'forecast_anomalies')
@@ -44,44 +49,68 @@ async function postHandler(request: NextRequest) {
       `[intelligent-monitoring] Proxying action '${action}' for ${serverId} to Cloud Run...`
     );
 
-    const result = await executeWithCircuitBreakerAndFallback<
-      Record<string, unknown>
-    >(
-      'intelligent-monitoring',
-      // Primary: Cloud Run 호출
+    const cacheResult = await withAICache<CacheableAIResponse>(
+      sessionId,
+      cacheQuery,
+      // Fetcher: Circuit Breaker + Fallback 적용
       async () => {
-        const cloudRunResult = await proxyToCloudRun({
-          path: cloudRunPath,
-          method: 'POST',
-          body: {
-            ...body,
-            analysisType: body.analysisDepth || 'full',
-          },
-          timeout: 15000,
-        });
+        const result = await executeWithCircuitBreakerAndFallback<
+          Record<string, unknown>
+        >(
+          'intelligent-monitoring',
+          async () => {
+            const cloudRunResult = await proxyToCloudRun({
+              path: cloudRunPath,
+              method: 'POST',
+              body: {
+                ...body,
+                analysisType: body.analysisDepth || 'full',
+              },
+              timeout: 15000,
+            });
 
-        if (!cloudRunResult.success || !cloudRunResult.data) {
-          throw new Error(cloudRunResult.error ?? 'Cloud Run request failed');
-        }
+            if (!cloudRunResult.success || !cloudRunResult.data) {
+              throw new Error(
+                cloudRunResult.error ?? 'Cloud Run request failed'
+              );
+            }
+
+            return {
+              success: true,
+              data: cloudRunResult.data,
+              _source: 'Cloud Run AI Engine',
+            };
+          },
+          () =>
+            createFallbackResponse('intelligent-monitoring') as Record<
+              string,
+              unknown
+            >
+        );
 
         return {
           success: true,
-          data: cloudRunResult.data,
-          _source: 'Cloud Run AI Engine',
-        };
+          ...result.data,
+          _fallback: result.source === 'fallback',
+        } as CacheableAIResponse;
       },
-      // Fallback: 로컬 폴백 응답
-      () =>
-        createFallbackResponse('intelligent-monitoring') as Record<
-          string,
-          unknown
-        >
+      'intelligent-monitoring'
     );
 
     // 3. 응답 반환
-    if (result.source === 'fallback') {
+    const responseData = cacheResult.data;
+    const isFallback = (responseData as Record<string, unknown>)._fallback;
+
+    if (cacheResult.cached) {
+      debug.info('[intelligent-monitoring] Cache HIT');
+      return NextResponse.json(responseData, {
+        headers: { 'X-Cache': 'HIT' },
+      });
+    }
+
+    if (isFallback) {
       debug.info('[intelligent-monitoring] Using fallback response');
-      return NextResponse.json(result.data, {
+      return NextResponse.json(responseData, {
         headers: {
           'X-Fallback-Response': 'true',
           'X-Retry-After': '30000',
@@ -90,11 +119,12 @@ async function postHandler(request: NextRequest) {
     }
 
     debug.info('[intelligent-monitoring] Cloud Run success');
-    return NextResponse.json(result.data);
+    return NextResponse.json(responseData, {
+      headers: { 'X-Cache': 'MISS' },
+    });
   } catch (error) {
     debug.error('Intelligent monitoring proxy error:', error);
 
-    // 예상치 못한 에러 시에도 폴백 반환
     const fallback = createFallbackResponse('intelligent-monitoring');
     return NextResponse.json(fallback, {
       headers: {

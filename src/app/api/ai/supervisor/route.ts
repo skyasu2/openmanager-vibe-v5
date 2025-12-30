@@ -16,7 +16,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { executeWithCircuitBreaker } from '@/lib/ai/circuit-breaker';
+import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
+import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import {
   extractLastUserQuery,
   type HybridMessage,
@@ -341,90 +342,149 @@ export const POST = withRateLimit(
 
         if (wantsStream) {
           // ================================================================
-          // 🔧 Cloud Run JSON 응답 처리 (2025-12-29 수정)
+          // 🔧 Cloud Run JSON 응답 처리 (2025-12-30 Circuit Breaker + Fallback)
           // ================================================================
           // Cloud Run은 현재 JSON 응답을 반환함 (스트리밍 미구현)
           // JSON 응답에서 텍스트를 추출하여 plain text로 반환
-          // Circuit Breaker로 장애 격리 (2025-12-30 추가)
+          // Circuit Breaker + Fallback으로 장애 대응
           // ================================================================
-          const proxyResult = await executeWithCircuitBreaker(
-            'cloud-run-supervisor',
-            () =>
-              proxyToCloudRun({
+          const result = await executeWithCircuitBreakerAndFallback<
+            NextResponse<unknown>
+          >(
+            'cloud-run-supervisor-stream',
+            // Primary: Cloud Run 호출
+            async () => {
+              const proxyResult = await proxyToCloudRun({
                 path: '/api/ai/supervisor',
                 body: { messages: normalizedMessages, sessionId },
-                timeout: dynamicTimeout, // 동적 타임아웃 (쿼리 복잡도 기반)
-              })
-          );
-
-          if (proxyResult.success && proxyResult.data) {
-            const data = proxyResult.data as {
-              success?: boolean;
-              response?: string;
-              error?: string;
-            };
-
-            if (data.success && data.response) {
-              // 성공: response 텍스트를 plain text로 반환
-              return new NextResponse(data.response, {
-                headers: {
-                  'Content-Type': 'text/plain; charset=utf-8',
-                  'Cache-Control': 'no-cache',
-                  'X-Session-Id': sessionId,
-                  'X-Backend': 'cloud-run',
-                  'X-Stream-Protocol': 'plain-text',
-                },
+                timeout: dynamicTimeout,
               });
-            } else if (data.error) {
-              // 에러: 에러 메시지 반환
-              return new NextResponse(`⚠️ AI 오류: ${data.error}`, {
-                headers: {
-                  'Content-Type': 'text/plain; charset=utf-8',
-                  'X-Session-Id': sessionId,
-                  'X-Backend': 'cloud-run',
-                },
+
+              if (!proxyResult.success || !proxyResult.data) {
+                throw new Error(
+                  proxyResult.error ?? 'Cloud Run request failed'
+                );
+              }
+
+              const data = proxyResult.data as {
+                success?: boolean;
+                response?: string;
+                error?: string;
+              };
+
+              if (data.success && data.response) {
+                return new NextResponse(data.response, {
+                  headers: {
+                    'Content-Type': 'text/plain; charset=utf-8',
+                    'Cache-Control': 'no-cache',
+                    'X-Session-Id': sessionId,
+                    'X-Backend': 'cloud-run',
+                    'X-Stream-Protocol': 'plain-text',
+                  },
+                });
+              } else if (data.error) {
+                return new NextResponse(`⚠️ AI 오류: ${data.error}`, {
+                  headers: {
+                    'Content-Type': 'text/plain; charset=utf-8',
+                    'X-Session-Id': sessionId,
+                    'X-Backend': 'cloud-run',
+                  },
+                });
+              }
+
+              throw new Error('Invalid response from Cloud Run');
+            },
+            // Fallback: 로컬 폴백 응답 (plain text)
+            () => {
+              const fallback = createFallbackResponse('supervisor', {
+                query: userQuery,
               });
+              return new NextResponse(
+                fallback.data?.response ?? fallback.message,
+                {
+                  headers: {
+                    'Content-Type': 'text/plain; charset=utf-8',
+                    'X-Session-Id': sessionId,
+                    'X-Backend': 'fallback',
+                    'X-Fallback-Response': 'true',
+                    'X-Retry-After': '30000',
+                  },
+                }
+              );
             }
-          }
-          // Cloud Run 실패 시 에러 응답
-          console.error('❌ Cloud Run request failed:', proxyResult.error);
-        } else {
-          // Cloud Run 단일 응답 프록시 (Circuit Breaker 적용)
-          const proxyResult = await executeWithCircuitBreaker(
-            'cloud-run-supervisor',
-            () =>
-              proxyToCloudRun({
-                path: '/api/ai/supervisor',
-                body: { messages: normalizedMessages, sessionId },
-                timeout: dynamicTimeout, // 동적 타임아웃
-              })
           );
 
-          if (proxyResult.success && proxyResult.data) {
-            return NextResponse.json({
-              ...(proxyResult.data as object),
-              _backend: 'cloud-run',
+          // 폴백 사용 시 로깅
+          if (result.source === 'fallback') {
+            console.log('⚠️ [Supervisor] Using fallback response (stream mode)');
+          }
+
+          return result.data;
+        } else {
+          // Cloud Run 단일 응답 프록시 (Circuit Breaker + Fallback)
+          const result = await executeWithCircuitBreakerAndFallback<
+            Record<string, unknown>
+          >(
+            'cloud-run-supervisor-json',
+            // Primary: Cloud Run 호출
+            async () => {
+              const proxyResult = await proxyToCloudRun({
+                path: '/api/ai/supervisor',
+                body: { messages: normalizedMessages, sessionId },
+                timeout: dynamicTimeout,
+              });
+
+              if (!proxyResult.success || !proxyResult.data) {
+                throw new Error(
+                  proxyResult.error ?? 'Cloud Run request failed'
+                );
+              }
+
+              return {
+                ...(proxyResult.data as Record<string, unknown>),
+                _backend: 'cloud-run',
+              };
+            },
+            // Fallback: 로컬 폴백 응답
+            () =>
+              ({
+                ...createFallbackResponse('supervisor', { query: userQuery }),
+                sessionId,
+                _backend: 'fallback',
+              }) as Record<string, unknown>
+          );
+
+          // 폴백 사용 시 헤더 추가
+          if (result.source === 'fallback') {
+            console.log('⚠️ [Supervisor] Using fallback response (json mode)');
+            return NextResponse.json(result.data, {
+              headers: {
+                'X-Session-Id': sessionId,
+                'X-Fallback-Response': 'true',
+                'X-Retry-After': '30000',
+              },
             });
           }
-          // Cloud Run 실패 시 에러 응답
-          console.error('❌ Cloud Run request failed:', proxyResult.error);
+
+          return NextResponse.json(result.data, {
+            headers: { 'X-Session-Id': sessionId },
+          });
         }
       }
 
-      // 5. Fallback: Cloud Run 비활성화 또는 실패 시 에러 응답
-      console.warn('⚠️ [Supervisor] Cloud Run unavailable, returning error');
+      // 5. Fallback: Cloud Run 비활성화 시 폴백 응답
+      console.warn('⚠️ [Supervisor] Cloud Run disabled, returning fallback');
+      const fallback = createFallbackResponse('supervisor', {
+        query: userQuery,
+      });
 
       return NextResponse.json(
         {
-          success: false,
-          error: 'AI service temporarily unavailable',
-          message:
-            'AI 서비스가 일시적으로 불안정합니다. 잠시 후 다시 시도해주세요.',
+          ...fallback,
           sessionId,
-          _backend: 'fallback-error',
+          _backend: 'fallback',
         },
         {
-          status: 503,
           headers: {
             'X-Session-Id': sessionId,
             'Retry-After': '30',

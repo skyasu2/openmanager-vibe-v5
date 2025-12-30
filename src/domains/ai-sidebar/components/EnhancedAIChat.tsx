@@ -4,8 +4,10 @@ import { Bot, FileText, RefreshCw, Send, Square } from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
+import type { AsyncQueryProgress } from '@/hooks/ai/useAsyncAIQuery';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 import type { ApprovalRequest, SessionState } from '@/types/hitl';
+import { JobProgressIndicator } from './JobProgressIndicator';
 
 /**
  * Enhanced AI Chat Props
@@ -55,6 +57,14 @@ interface EnhancedAIChatProps {
   onNewSession?: () => void;
   /** ⏹️ 생성 중단 핸들러 */
   onStopGeneration?: () => void;
+  /** 📊 Job Queue 진행 상태 */
+  jobProgress?: AsyncQueryProgress | null;
+  /** Job ID */
+  jobId?: string | null;
+  /** Job 취소 핸들러 */
+  onCancelJob?: () => void;
+  /** 현재 쿼리 모드 */
+  queryMode?: 'streaming' | 'job-queue';
 }
 
 /**
@@ -85,6 +95,10 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   onNewSession,
   onStopGeneration,
   onFeedback,
+  jobProgress,
+  jobId,
+  onCancelJob,
+  queryMode,
 }: EnhancedAIChatProps) {
   return (
     <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
@@ -163,6 +177,16 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
           <div ref={messagesEndRef} />
         </div>
       </div>
+
+      {/* 📊 Job Queue 진행률 표시 */}
+      {queryMode === 'job-queue' && isGenerating && (
+        <JobProgressIndicator
+          progress={jobProgress ?? null}
+          isLoading={isGenerating}
+          jobId={jobId}
+          onCancel={onCancelJob}
+        />
+      )}
 
       {/* 🔒 세션 제한 안내 */}
       {sessionState?.isLimitReached && (

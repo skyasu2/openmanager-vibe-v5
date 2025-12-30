@@ -26,6 +26,11 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import {
+  calculateBackoff,
+  fetchWithRetry,
+  RETRY_STANDARD,
+} from '@/lib/utils/retry';
 
 // ============================================================================
 // Types
@@ -167,15 +172,141 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
           resolve(result);
         };
 
-        // Step 1: Create Job
-        fetch('/api/ai/jobs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query,
-            options: { sessionId },
-          }),
-        })
+        // SSE 재연결 로직
+        const connectSSE = (jobId: string, reconnectAttempt = 0) => {
+          const maxReconnects = 3;
+
+          const eventSource = new EventSource(`/api/ai/jobs/${jobId}/stream`);
+          eventSourceRef.current = eventSource;
+
+          // Handle connection
+          eventSource.addEventListener('connected', () => {
+            setState((prev) => ({ ...prev, isConnected: true }));
+            // 재연결 성공 시 attempt 리셋
+            if (reconnectAttempt > 0) {
+              console.log(
+                `[AsyncAI] SSE reconnected after ${reconnectAttempt} attempts`
+              );
+            }
+          });
+
+          // Handle progress updates
+          eventSource.addEventListener('progress', (event) => {
+            try {
+              const progress = JSON.parse(event.data) as AsyncQueryProgress;
+              setState((prev) => ({ ...prev, progress }));
+              onProgress?.(progress);
+            } catch (e) {
+              console.warn('[AsyncAI] Failed to parse progress:', e);
+            }
+          });
+
+          // Handle result
+          eventSource.addEventListener('result', (event) => {
+            try {
+              const resultData = JSON.parse(event.data);
+              handleResult({
+                success: true,
+                response: resultData.response,
+                targetAgent: resultData.targetAgent,
+                toolResults: resultData.toolResults,
+                processingTimeMs: resultData.processingTimeMs,
+              });
+            } catch (e) {
+              handleError(`Failed to parse result: ${e}`);
+            }
+          });
+
+          // Handle error from stream with reconnection
+          eventSource.addEventListener('error', (event) => {
+            if (eventSource.readyState === EventSource.CLOSED) {
+              return; // 정상 종료
+            }
+
+            // 에러 데이터 확인
+            const messageEvent = event as MessageEvent;
+            if (messageEvent.data) {
+              try {
+                const errorData = JSON.parse(messageEvent.data);
+                handleError(errorData.error || 'Stream error');
+                return;
+              } catch {
+                // 파싱 실패 - 연결 오류로 처리
+              }
+            }
+
+            // 연결 끊김 - 재연결 시도
+            eventSource.close();
+
+            if (reconnectAttempt < maxReconnects) {
+              const delay = calculateBackoff(
+                reconnectAttempt,
+                1000,
+                10000,
+                0.1
+              );
+              console.log(
+                `[AsyncAI] SSE disconnected, reconnecting in ${delay}ms (attempt ${reconnectAttempt + 1}/${maxReconnects})`
+              );
+
+              setState((prev) => ({
+                ...prev,
+                isConnected: false,
+                progress: {
+                  ...prev.progress,
+                  stage: 'reconnecting',
+                  message: `재연결 중... (${reconnectAttempt + 1}/${maxReconnects})`,
+                } as AsyncQueryProgress,
+              }));
+
+              setTimeout(() => {
+                connectSSE(jobId, reconnectAttempt + 1);
+              }, delay);
+            } else {
+              handleError('연결이 끊어졌습니다. 다시 시도해주세요.');
+            }
+          });
+
+          // Handle timeout from stream
+          eventSource.addEventListener('timeout', (event) => {
+            try {
+              const timeoutData = JSON.parse((event as MessageEvent).data);
+              handleError(timeoutData.message || 'Request timeout');
+            } catch {
+              handleError('Request timeout');
+            }
+          });
+        };
+
+        // Step 1: Create Job with Retry
+        fetchWithRetry(
+          '/api/ai/jobs',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query,
+              options: { sessionId },
+            }),
+          },
+          {
+            ...RETRY_STANDARD,
+            onRetry: (error, attempt, delayMs) => {
+              console.log(
+                `[AsyncAI] Job creation retry ${attempt}, waiting ${delayMs}ms`,
+                error
+              );
+              setState((prev) => ({
+                ...prev,
+                progress: {
+                  stage: 'retrying',
+                  progress: 0,
+                  message: `재시도 중... (${attempt}/3)`,
+                },
+              }));
+            },
+          }
+        )
           .then((response) => {
             if (!response.ok) {
               throw new Error(`Failed to create job: ${response.status}`);
@@ -184,75 +315,10 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
           })
           .then((data: { jobId: string; status: string }) => {
             const { jobId } = data;
-
             setState((prev) => ({ ...prev, jobId }));
 
             // Step 2: Connect to SSE Stream
-            const eventSource = new EventSource(`/api/ai/jobs/${jobId}/stream`);
-            eventSourceRef.current = eventSource;
-
-            // Handle connection
-            eventSource.addEventListener('connected', () => {
-              setState((prev) => ({ ...prev, isConnected: true }));
-            });
-
-            // Handle progress updates
-            eventSource.addEventListener('progress', (event) => {
-              try {
-                const progress = JSON.parse(event.data) as AsyncQueryProgress;
-                setState((prev) => ({ ...prev, progress }));
-                onProgress?.(progress);
-              } catch (e) {
-                console.warn('[AsyncAI] Failed to parse progress:', e);
-              }
-            });
-
-            // Handle result
-            eventSource.addEventListener('result', (event) => {
-              try {
-                const data = JSON.parse(event.data);
-                handleResult({
-                  success: true,
-                  response: data.response,
-                  targetAgent: data.targetAgent,
-                  toolResults: data.toolResults,
-                  processingTimeMs: data.processingTimeMs,
-                });
-              } catch (e) {
-                handleError(`Failed to parse result: ${e}`);
-              }
-            });
-
-            // Handle error from stream
-            eventSource.addEventListener('error', (event) => {
-              if (eventSource.readyState === EventSource.CLOSED) {
-                // Connection closed normally
-                return;
-              }
-
-              // Try to parse error data
-              const messageEvent = event as MessageEvent;
-              if (messageEvent.data) {
-                try {
-                  const data = JSON.parse(messageEvent.data);
-                  handleError(data.error || 'Stream error');
-                } catch {
-                  handleError('Connection error');
-                }
-              } else {
-                handleError('Connection lost');
-              }
-            });
-
-            // Handle timeout from stream
-            eventSource.addEventListener('timeout', (event) => {
-              try {
-                const data = JSON.parse((event as MessageEvent).data);
-                handleError(data.message || 'Request timeout');
-              } catch {
-                handleError('Request timeout');
-              }
-            });
+            connectSSE(jobId);
 
             // Set timeout
             timeoutRef.current = setTimeout(() => {

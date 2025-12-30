@@ -1,8 +1,5 @@
 'use client';
 
-import { useChat } from '@ai-sdk/react';
-import { TextStreamChatTransport } from 'ai';
-
 // Icons
 import { Bot, User } from 'lucide-react';
 import {
@@ -14,6 +11,9 @@ import {
   useRef,
   useState,
 } from 'react';
+// Components
+import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
+import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
 import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
 import { SESSION_LIMITS } from '@/types/hitl';
 import { RenderMarkdownContent } from '@/utils/markdown-parser';
@@ -28,7 +28,6 @@ import type {
   AISidebarV3Props,
   AIThinkingStep,
 } from '../types/ai-sidebar-types';
-// Components
 import { AIFunctionPages } from './AIFunctionPages';
 import { AISidebarHeader } from './AISidebarHeader';
 import { EnhancedAIChat } from './EnhancedAIChat';
@@ -336,17 +335,24 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   );
 
   // ============================================================================
-  // Vercel AI SDK useChat Hook (@ai-sdk/react v2.x)
+  // Hybrid AI Query Hook (자동 라우팅: Streaming vs Job Queue)
   // ============================================================================
   //
-  // Transport 설정 (2025-12-24 수정):
-  // - TextStreamChatTransport 사용: Plain Text 스트림을 파싱
-  // - 서버에서 Data Stream Protocol → Plain Text로 변환 후 전송
-  const { messages, sendMessage, status, setMessages, stop } = useChat({
-    transport: new TextStreamChatTransport({
-      api: `/api/ai/supervisor?sessionId=${encodeURIComponent(chatSessionIdRef.current)}`,
-    }),
-    onFinish: async () => {
+  // 복잡도 기반 자동 라우팅:
+  // - simple/moderate: useChat (빠른 스트리밍)
+  // - complex/very_complex: Job Queue (진행률 표시 + 타임아웃 회피)
+  const {
+    sendQuery,
+    messages,
+    setMessages,
+    state: hybridState,
+    isLoading: hybridIsLoading,
+    stop,
+    cancel,
+    currentMode,
+  } = useHybridAIQuery({
+    sessionId: chatSessionIdRef.current,
+    onStreamFinish: async () => {
       // Optional: Sync to global store if needed
       onMessageSend?.(input);
       setInput(''); // 입력 초기화
@@ -377,6 +383,17 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
       } catch (error) {
         console.error('❌ [HITL] Approval check failed:', error);
       }
+    },
+    onJobResult: (result) => {
+      // Job Queue 결과 처리
+      onMessageSend?.(input);
+      setInput('');
+      console.log('📦 [Job Queue] Result received:', result.success);
+    },
+    onProgress: (progress) => {
+      console.log(
+        `📊 [Job Queue] Progress: ${progress.progress}% - ${progress.stage}`
+      );
     },
   });
 
@@ -427,7 +444,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     []
   );
 
-  // v2.x: 재생성 함수 (마지막 assistant 메시지 제거 후 재전송)
+  // 재생성 함수 (마지막 assistant 메시지 제거 후 재전송)
   const regenerateLastResponse = () => {
     if (messages.length < 2) return;
     // 마지막 assistant 메시지 찾아서 제거
@@ -442,12 +459,12 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     const textContent = extractTextFromUIMessage(lastUserMessage);
     if (textContent) {
       setMessages(messages.slice(0, actualIndex));
-      void sendMessage({ text: textContent });
+      sendQuery(textContent);
     }
   };
 
-  // isLoading 호환성 유지 (v2.x status values: 'ready' | 'submitted' | 'streaming' | 'error')
-  const isLoading = status === 'streaming' || status === 'submitted';
+  // isLoading: 하이브리드 훅에서 통합 관리
+  const isLoading = hybridIsLoading;
 
   // 🔔 승인 상태 초기화 (스트리밍 완료 시)
   // Note: 기존 2초 폴링 제거 - onFinish에서 1회 체크로 대체 (SSE 기반)
@@ -581,8 +598,8 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
               // 의도가 불분명하면 일반 메시지로 처리
             }
 
-            // @ai-sdk/react v2.x: sendMessage API
-            void sendMessage({ text: input });
+            // Hybrid AI Query: 복잡도에 따라 자동 라우팅
+            sendQuery(input);
           }}
           // 🔒 세션 상태 전달
           sessionState={sessionState}
@@ -596,6 +613,11 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           onFeedback={handleFeedback}
           // ⏹️ 생성 중단 핸들러
           onStopGeneration={stop}
+          // 📊 Job Queue 진행률
+          jobProgress={hybridState.progress}
+          jobId={hybridState.jobId}
+          onCancelJob={cancel}
+          queryMode={currentMode}
         />
       );
     }
@@ -621,7 +643,15 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
       <div className="flex min-w-0 flex-1 flex-col">
         <AISidebarHeader onClose={onClose} />
         <div className="flex-1 overflow-hidden pb-20 sm:pb-0">
-          {renderFunctionPage()}
+          <AIErrorBoundary
+            componentName="AISidebar"
+            onReset={() => {
+              // 에러 발생 시 세션 리셋
+              setInput('');
+            }}
+          >
+            {renderFunctionPage()}
+          </AIErrorBoundary>
         </div>
       </div>
 

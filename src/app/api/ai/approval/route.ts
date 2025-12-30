@@ -1,11 +1,15 @@
 /**
  * Human-in-the-Loop Approval API Route
  * Cloud Run AI Backend로 승인 요청 프록시
+ *
+ * @updated 2025-12-30 - Circuit Breaker + Fallback 적용
  */
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
+import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 
@@ -35,38 +39,57 @@ export const GET = withAuth(async (req: NextRequest) => {
       );
     }
 
-    // Cloud Run이 활성화된 경우 프록시
-    if (isCloudRunEnabled()) {
-      const result = await proxyToCloudRun({
-        path: `/api/ai/approval/status?sessionId=${encodeURIComponent(sessionId)}`,
-        method: 'GET',
-      });
-
-      if (result.success) {
-        return NextResponse.json(result.data);
-      }
-
-      console.warn('⚠️ Cloud Run approval status check failed:', result.error);
+    // Cloud Run 비활성화 시 폴백 응답
+    if (!isCloudRunEnabled()) {
+      const fallback = createFallbackResponse('approval');
+      return NextResponse.json(fallback);
     }
 
-    // 로컬 모드: 승인 대기 없음 반환
-    return NextResponse.json({
-      success: true,
-      hasPending: false,
-      action: null,
-      sessionId,
-      _backend: 'local',
-    });
+    // Cloud Run 프록시 호출 (Circuit Breaker + Fallback)
+    const result = await executeWithCircuitBreakerAndFallback<
+      Record<string, unknown>
+    >(
+      'approval-status',
+      // Primary: Cloud Run 호출
+      async () => {
+        const cloudRunResult = await proxyToCloudRun({
+          path: `/api/ai/approval/status?sessionId=${encodeURIComponent(sessionId)}`,
+          method: 'GET',
+          timeout: 10000,
+        });
+
+        if (!cloudRunResult.success || !cloudRunResult.data) {
+          throw new Error(cloudRunResult.error ?? 'Cloud Run request failed');
+        }
+
+        return cloudRunResult.data as Record<string, unknown>;
+      },
+      // Fallback: 로컬 폴백 응답
+      () => createFallbackResponse('approval') as Record<string, unknown>
+    );
+
+    // 폴백 응답인 경우 헤더 추가
+    if (result.source === 'fallback') {
+      return NextResponse.json(result.data, {
+        headers: {
+          'X-Fallback-Response': 'true',
+          'X-Retry-After': '30000',
+        },
+      });
+    }
+
+    return NextResponse.json(result.data);
   } catch (error) {
     console.error('❌ [Approval] Status check failed:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to check approval status',
-        message: error instanceof Error ? error.message : 'Unknown error',
+
+    // 예상치 못한 에러 시에도 폴백 반환
+    const fallback = createFallbackResponse('approval');
+    return NextResponse.json(fallback, {
+      headers: {
+        'X-Fallback-Response': 'true',
+        'X-Error': error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
-    );
+    });
   }
 });
 
@@ -99,53 +122,73 @@ export const POST = withAuth(async (req: NextRequest) => {
     );
     console.log(`   Session: ${sessionId}`);
 
-    // Cloud Run이 활성화된 경우 프록시
-    if (isCloudRunEnabled()) {
-      const result = await proxyToCloudRun({
-        path: '/api/ai/approval/decide',
-        method: 'POST',
-        body: { sessionId, approved, reason, approvedBy },
+    // Cloud Run 비활성화 시 폴백 응답
+    if (!isCloudRunEnabled()) {
+      const fallback = createFallbackResponse('approval');
+      return NextResponse.json({
+        ...fallback,
+        processingTime: `${Date.now() - startTime}ms`,
       });
-
-      if (result.success) {
-        return NextResponse.json({
-          ...(result.data as object),
-          processingTime: `${Date.now() - startTime}ms`,
-        });
-      }
-
-      console.warn('⚠️ Cloud Run approval decision failed:', result.error);
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Cloud Run approval processing failed',
-          message: result.error,
-          processingTime: `${Date.now() - startTime}ms`,
-        },
-        { status: 502 }
-      );
     }
 
-    // 로컬 모드: 승인 처리 불가 (세션 상태가 Cloud Run에만 있음)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Approval processing requires Cloud Run backend',
-        message: 'Local mode does not support HITL approvals',
-        processingTime: `${Date.now() - startTime}ms`,
+    // Cloud Run 프록시 호출 (Circuit Breaker + Fallback)
+    const result = await executeWithCircuitBreakerAndFallback<
+      Record<string, unknown>
+    >(
+      'approval-decide',
+      // Primary: Cloud Run 호출
+      async () => {
+        const cloudRunResult = await proxyToCloudRun({
+          path: '/api/ai/approval/decide',
+          method: 'POST',
+          body: { sessionId, approved, reason, approvedBy },
+          timeout: 15000,
+        });
+
+        if (!cloudRunResult.success || !cloudRunResult.data) {
+          throw new Error(cloudRunResult.error ?? 'Cloud Run request failed');
+        }
+
+        return {
+          ...(cloudRunResult.data as Record<string, unknown>),
+          processingTime: `${Date.now() - startTime}ms`,
+        };
       },
-      { status: 501 }
+      // Fallback: 로컬 폴백 응답
+      () =>
+        ({
+          ...createFallbackResponse('approval'),
+          processingTime: `${Date.now() - startTime}ms`,
+        }) as Record<string, unknown>
     );
+
+    // 폴백 응답인 경우 헤더 추가
+    if (result.source === 'fallback') {
+      return NextResponse.json(result.data, {
+        headers: {
+          'X-Fallback-Response': 'true',
+          'X-Retry-After': '30000',
+        },
+      });
+    }
+
+    return NextResponse.json(result.data);
   } catch (error) {
     console.error('❌ [Approval] Decision processing failed:', error);
+
+    // 예상치 못한 에러 시에도 폴백 반환
+    const fallback = createFallbackResponse('approval');
     return NextResponse.json(
       {
-        success: false,
-        error: 'Failed to process approval decision',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        ...fallback,
         processingTime: `${Date.now() - startTime}ms`,
       },
-      { status: 500 }
+      {
+        headers: {
+          'X-Fallback-Response': 'true',
+          'X-Error': error instanceof Error ? error.message : 'Unknown error',
+        },
+      }
     );
   }
 });

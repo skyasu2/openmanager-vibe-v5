@@ -3,15 +3,13 @@
 /**
  * 🤖 AI Workspace Controller (Unified Streaming Architecture)
  *
- * v3.0.0 - Unified Streaming Upgrade:
+ * v3.1.0 - Hybrid Query Upgrade:
  * - Replaced legacy `AIChatInterface` with `EnhancedAIChat`.
- * - Integrated Vercel AI SDK (`useChat`) for streaming responses.
+ * - Integrated Hybrid AI Query Hook (Streaming + Job Queue).
  * - Supports "Thinking Mode" and Tool Calling in Fullscreen.
  * - Logic mirrored from `AISidebarV4`.
  */
 
-import { useChat } from '@ai-sdk/react';
-import { TextStreamChatTransport } from 'ai';
 import {
   ArrowLeftFromLine,
   Bot,
@@ -24,6 +22,8 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { memo, useMemo, useRef, useState } from 'react';
+import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
+import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
 import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
 import { AIFunctionPages } from '../../domains/ai-sidebar/components/AIFunctionPages';
 import { EnhancedAIChat } from '../../domains/ai-sidebar/components/EnhancedAIChat';
@@ -167,15 +167,27 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     useState<AIAssistantFunction>('chat');
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
-  // --- Vercel AI SDK Integration (Mirrored from AISidebarV4) ---
+  // --- Hybrid AI Query Integration (Mirrored from AISidebarV4) ---
   const [input, setInput] = useState('');
+  const sessionIdRef = useRef(`workspace_${Date.now()}`);
 
-  const { messages, sendMessage, status, setMessages, stop } = useChat({
-    transport: new TextStreamChatTransport({
-      api: '/api/ai/supervisor', // Cloud Run Multi-Agent Supervisor
-    }),
-    onFinish: () => {
+  const {
+    sendQuery,
+    messages,
+    setMessages,
+    state: hybridState,
+    isLoading: hybridIsLoading,
+    stop,
+    cancel,
+    currentMode,
+  } = useHybridAIQuery({
+    sessionId: sessionIdRef.current,
+    onStreamFinish: () => {
       setInput('');
+    },
+    onJobResult: (result) => {
+      setInput('');
+      console.log('📦 [Workspace Job Queue] Result received:', result.success);
     },
   });
 
@@ -214,11 +226,11 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     const textContent = extractTextFromUIMessage(lastUserMessage);
     if (textContent) {
       setMessages(messages.slice(0, actualIndex));
-      void sendMessage({ text: textContent });
+      sendQuery(textContent);
     }
   };
 
-  const isLoading = status === 'streaming' || status === 'submitted';
+  const isLoading = hybridIsLoading;
 
   const enhancedMessages = useMemo(() => {
     return messages
@@ -312,16 +324,21 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               setInputValue={setInput}
               handleSendInput={() => {
                 if (input.trim()) {
-                  void sendMessage({ text: input });
+                  sendQuery(input);
                 }
               }}
               isGenerating={isLoading}
               regenerateResponse={() => {
                 regenerateLastResponse();
               }}
-              currentEngine="Vercel AI SDK"
+              currentEngine="Hybrid AI Query"
               onStopGeneration={stop}
               onFeedback={handleFeedback}
+              // 📊 Job Queue 진행률
+              jobProgress={hybridState.progress}
+              jobId={hybridState.jobId}
+              onCancelJob={cancel}
+              queryMode={currentMode}
             />
           ) : (
             <AIFunctionPages
@@ -486,33 +503,46 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           </header>
 
           <div className="flex-1 overflow-hidden relative">
-            {selectedFunction === 'chat' ? (
-              <EnhancedAIChat
-                autoReportTrigger={{ shouldGenerate: false }}
-                allMessages={enhancedMessages}
-                limitedMessages={enhancedMessages}
-                messagesEndRef={messagesEndRef}
-                MessageComponent={MessageComponent}
-                inputValue={input}
-                setInputValue={setInput}
-                handleSendInput={() => {
-                  if (input.trim()) {
-                    void sendMessage({ text: input });
-                  }
-                }}
-                isGenerating={isLoading}
-                regenerateResponse={() => {
-                  regenerateLastResponse();
-                }}
-                currentEngine="Vercel AI SDK"
-                onStopGeneration={stop}
-                onFeedback={handleFeedback}
-              />
-            ) : (
-              <div className="h-full p-0">
-                <AIContentArea selectedFunction={selectedFunction} />
-              </div>
-            )}
+            <AIErrorBoundary
+              componentName="AIWorkspace"
+              onReset={() => {
+                setInput('');
+                setMessages([]);
+              }}
+            >
+              {selectedFunction === 'chat' ? (
+                <EnhancedAIChat
+                  autoReportTrigger={{ shouldGenerate: false }}
+                  allMessages={enhancedMessages}
+                  limitedMessages={enhancedMessages}
+                  messagesEndRef={messagesEndRef}
+                  MessageComponent={MessageComponent}
+                  inputValue={input}
+                  setInputValue={setInput}
+                  handleSendInput={() => {
+                    if (input.trim()) {
+                      sendQuery(input);
+                    }
+                  }}
+                  isGenerating={isLoading}
+                  regenerateResponse={() => {
+                    regenerateLastResponse();
+                  }}
+                  currentEngine="Hybrid AI Query"
+                  onStopGeneration={stop}
+                  onFeedback={handleFeedback}
+                  // 📊 Job Queue 진행률
+                  jobProgress={hybridState.progress}
+                  jobId={hybridState.jobId}
+                  onCancelJob={cancel}
+                  queryMode={currentMode}
+                />
+              ) : (
+                <div className="h-full p-0">
+                  <AIContentArea selectedFunction={selectedFunction} />
+                </div>
+              )}
+            </AIErrorBoundary>
           </div>
         </div>
 
