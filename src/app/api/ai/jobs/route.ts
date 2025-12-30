@@ -239,6 +239,7 @@ async function triggerWorker(
 
   try {
     // 비동기로 Worker 호출 (응답을 기다리지 않음)
+    // 응답 상태는 확인하여 에러 로깅
     fetch(`${cloudRunUrl}/api/jobs/process`, {
       method: 'POST',
       headers: {
@@ -251,9 +252,26 @@ async function triggerWorker(
         sessionId,
         type,
       }),
-    }).catch((err) => {
-      console.error('[AI Jobs] Failed to trigger worker:', err);
-    });
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorText = await res.text().catch(() => 'Unknown error');
+          console.error(
+            `[AI Jobs] Worker returned ${res.status}: ${errorText}`
+          );
+          // 401은 API 키 문제
+          if (res.status === 401) {
+            console.error(
+              '[AI Jobs] ⚠️ CLOUD_RUN_API_SECRET may be missing or invalid in Vercel'
+            );
+          }
+        } else {
+          console.log(`[AI Jobs] Worker triggered successfully for ${jobId}`);
+        }
+      })
+      .catch((err) => {
+        console.error('[AI Jobs] Failed to trigger worker:', err);
+      });
   } catch (error) {
     console.error('[AI Jobs] Error triggering worker:', error);
   }
