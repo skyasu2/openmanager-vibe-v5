@@ -255,7 +255,7 @@ JobProgressIndicator.displayName = 'JobProgressIndicator';
 /**
  * 단계별 상세 설명 반환
  */
-function getStageDescription(stage: string, progress: number): string {
+function getStageDescription(_stage: string, progress: number): string {
   if (progress < 20) return '에이전트 시스템 준비 중';
   if (progress < 50) return '최적의 처리 방법 결정 중';
   if (progress < 90) return 'Cloud Run AI Engine에서 처리 중';

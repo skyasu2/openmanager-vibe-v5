@@ -148,7 +148,7 @@ describe('Tech Stacks Data', () => {
     });
 
     it('각 카드는 최소 3개 이상의 TechItem을 가져야 함', () => {
-      Object.entries(TECH_STACKS_DATA).forEach(([key, data]) => {
+      Object.entries(TECH_STACKS_DATA).forEach(([_key, data]) => {
         if (isVibeCodeData(data)) {
           expect(data.current.length).toBeGreaterThanOrEqual(1);
         } else {

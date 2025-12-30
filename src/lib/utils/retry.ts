@@ -155,7 +155,6 @@ export async function withRetry<T>(
 ): Promise<T> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   let lastError: unknown;
-  let totalDelayMs = 0;
 
   for (let attempt = 0; attempt <= opts.maxRetries; attempt++) {
     try {
@@ -178,7 +177,6 @@ export async function withRetry<T>(
         opts.maxDelayMs,
         opts.jitterFactor
       );
-      totalDelayMs += delayMs;
 
       // Notify retry callback
       opts.onRetry?.(error, attempt + 1, delayMs);
