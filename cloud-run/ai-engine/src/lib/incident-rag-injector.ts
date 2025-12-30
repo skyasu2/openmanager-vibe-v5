@@ -54,6 +54,20 @@ interface SyncResult {
 }
 
 // ============================================================================
+// Constants
+// ============================================================================
+
+const SYNC_LIMITS = {
+  MIN_LIMIT: 1,
+  MAX_LIMIT: 100,
+  DEFAULT_LIMIT: 10,
+  MIN_DAYS_BACK: 1,
+  MAX_DAYS_BACK: 365,
+  DEFAULT_DAYS_BACK: 30,
+  MIN_CONTENT_LENGTH: 20,
+} as const;
+
+// ============================================================================
 // Supabase Client
 // ============================================================================
 
@@ -257,24 +271,70 @@ async function insertToKnowledgeBase(
 // ============================================================================
 
 /**
+ * Validate and sanitize sync options
+ */
+function validateSyncOptions(options: { limit?: number; daysBack?: number }): {
+  limit: number;
+  daysBack: number;
+  warnings: string[];
+} {
+  const warnings: string[] = [];
+
+  // Validate limit
+  let limit = options.limit ?? SYNC_LIMITS.DEFAULT_LIMIT;
+  if (typeof limit !== 'number' || !Number.isFinite(limit)) {
+    warnings.push(`Invalid limit type, using default: ${SYNC_LIMITS.DEFAULT_LIMIT}`);
+    limit = SYNC_LIMITS.DEFAULT_LIMIT;
+  } else if (limit < SYNC_LIMITS.MIN_LIMIT) {
+    warnings.push(`limit ${limit} below minimum, clamped to ${SYNC_LIMITS.MIN_LIMIT}`);
+    limit = SYNC_LIMITS.MIN_LIMIT;
+  } else if (limit > SYNC_LIMITS.MAX_LIMIT) {
+    warnings.push(`limit ${limit} exceeds maximum, clamped to ${SYNC_LIMITS.MAX_LIMIT}`);
+    limit = SYNC_LIMITS.MAX_LIMIT;
+  }
+
+  // Validate daysBack
+  let daysBack = options.daysBack ?? SYNC_LIMITS.DEFAULT_DAYS_BACK;
+  if (typeof daysBack !== 'number' || !Number.isFinite(daysBack)) {
+    warnings.push(`Invalid daysBack type, using default: ${SYNC_LIMITS.DEFAULT_DAYS_BACK}`);
+    daysBack = SYNC_LIMITS.DEFAULT_DAYS_BACK;
+  } else if (daysBack < SYNC_LIMITS.MIN_DAYS_BACK) {
+    warnings.push(`daysBack ${daysBack} below minimum, clamped to ${SYNC_LIMITS.MIN_DAYS_BACK}`);
+    daysBack = SYNC_LIMITS.MIN_DAYS_BACK;
+  } else if (daysBack > SYNC_LIMITS.MAX_DAYS_BACK) {
+    warnings.push(`daysBack ${daysBack} exceeds maximum, clamped to ${SYNC_LIMITS.MAX_DAYS_BACK}`);
+    daysBack = SYNC_LIMITS.MAX_DAYS_BACK;
+  }
+
+  return { limit: Math.floor(limit), daysBack: Math.floor(daysBack), warnings };
+}
+
+/**
  * Sync approved incident reports to knowledge_base for RAG
  *
  * @param options - Sync options
- * @param options.limit - Max number of incidents to sync (default: 10)
- * @param options.daysBack - How many days back to look (default: 30)
+ * @param options.limit - Max number of incidents to sync (1-100, default: 10)
+ * @param options.daysBack - How many days back to look (1-365, default: 30)
  * @returns Sync result with counts
  */
 export async function syncIncidentsToRAG(
   options: { limit?: number; daysBack?: number } = {}
 ): Promise<SyncResult> {
-  const { limit = 10, daysBack = 30 } = options;
+  // Validate and sanitize inputs
+  const validated = validateSyncOptions(options);
+  const { limit, daysBack, warnings } = validated;
   const result: SyncResult = {
     success: false,
     synced: 0,
     skipped: 0,
     failed: 0,
-    errors: [],
+    errors: [...warnings], // Include validation warnings
   };
+
+  // Log validation warnings
+  if (warnings.length > 0) {
+    console.warn(`⚠️ [IncidentRAG] Input validation warnings: ${warnings.join('; ')}`);
+  }
 
   console.log(
     `🔄 [IncidentRAG] Starting sync (limit=${limit}, daysBack=${daysBack})`
@@ -326,7 +386,7 @@ export async function syncIncidentsToRAG(
         // Extract content
         const extracted = extractIncidentContent(incident);
 
-        if (!extracted.content || extracted.content.length < 20) {
+        if (!extracted.content || extracted.content.length < SYNC_LIMITS.MIN_CONTENT_LENGTH) {
           console.warn(`⚠️ [IncidentRAG] Insufficient content for: ${incident.session_id}`);
           result.skipped++;
           continue;

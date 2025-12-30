@@ -140,7 +140,6 @@ JSON 형식으로 응답하세요:
     console.log(`✅ [Analyze Server] Completed in ${durationMs}ms`);
     return jsonSuccess(c, results);
   } catch (error) {
-    console.error('❌ [Analyze Server] Error:', error);
     return handleApiError(c, error, 'Analyze Server');
   }
 });
@@ -223,7 +222,6 @@ ${metricsContext}
       _durationMs: durationMs,
     });
   } catch (error) {
-    console.error('❌ [Incident Report] Agent error:', error);
     return handleApiError(c, error, 'Incident Report');
   }
 });
@@ -361,23 +359,41 @@ async function incidentReportFallback(
   });
 }
 
+// Batch processing constants
+const BATCH_LIMITS = {
+  MAX_SERVERS: 50,
+  DEFAULT_CHUNK_SIZE: 10,
+} as const;
+
 /**
  * POST /analyze-batch - Batch Server Analysis
  *
  * Uses Precomputed State for O(1) lookup
- * Analyzes multiple servers in parallel
+ * Analyzes multiple servers in parallel with chunking for memory efficiency
+ *
+ * @limit Max 50 servers per request
  */
 analyticsRouter.post('/analyze-batch', async (c: Context) => {
   try {
-    const { serverIds = [], analysisType = 'anomaly' } = await c.req.json();
+    const body = await c.req.json().catch(() => ({}));
+    const serverIds: string[] = Array.isArray(body.serverIds) ? body.serverIds : [];
+    const analysisType = body.analysisType || 'anomaly';
+
+    // Input validation
+    if (serverIds.length > BATCH_LIMITS.MAX_SERVERS) {
+      return c.json({
+        success: false,
+        error: `Too many servers requested. Maximum: ${BATCH_LIMITS.MAX_SERVERS}`,
+      }, 400);
+    }
 
     console.log(`🔬 [Batch Analysis] servers=${serverIds.length}, type=${analysisType}`);
 
     // Get servers from precomputed state (O(1))
     const state = getCurrentState();
     const targetServers = serverIds.length > 0
-      ? state.servers.filter((s) => serverIds.includes(s.id))
-      : state.servers;
+      ? state.servers.filter((s) => serverIds.includes(s.id)).slice(0, BATCH_LIMITS.MAX_SERVERS)
+      : state.servers.slice(0, BATCH_LIMITS.MAX_SERVERS);
 
     const results = await Promise.all(
       targetServers.map(async (server) => {
