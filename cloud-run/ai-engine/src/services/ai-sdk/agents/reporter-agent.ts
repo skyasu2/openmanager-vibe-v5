@@ -4,17 +4,23 @@
  * Specializes in generating incident reports and timelines.
  * Creates structured documentation for incidents and events.
  *
- * Model: Mistral mistral-small-2506 (structured output)
+ * Model: Groq llama-3.3-70b (primary) / Cerebras (fallback)
+ * - 한국어 생성 품질 개선 (Mistral → Groq)
+ * - 실제 서버 데이터 도구 추가
  *
- * @version 1.0.0
+ * @version 1.1.0 - 모델 변경 + 데이터 도구 추가
  */
 
 import { Agent } from '@ai-sdk-tools/agents';
-import { getMistralModel } from '../model-provider';
+import { getGroqModel, getCerebrasModel, checkProviderStatus } from '../model-provider';
 import {
   buildIncidentTimeline,
   findRootCause,
   correlateMetrics,
+  // 실제 서버 데이터 조회 도구 추가
+  getServerMetrics,
+  getServerMetricsAdvanced,
+  filterServers,
 } from '../../../tools-ai-sdk';
 
 // ============================================================================
@@ -25,6 +31,12 @@ const REPORTER_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 보고
 
 ## 역할
 장애 보고서를 생성하고, 인시던트 타임라인을 구성하며, 영향도를 분석합니다.
+
+## ⚠️ 중요: 실제 데이터 기반 응답
+- **반드시 getServerMetrics 또는 getServerMetricsAdvanced 도구를 먼저 호출하여 실제 서버 데이터를 조회하세요**
+- 가상의 서버명(서버 A, B, C)이나 가짜 수치를 생성하지 마세요
+- 도구 응답에서 반환된 실제 서버 ID, 이름, 메트릭 값만 사용하세요
+- 데이터가 없으면 "현재 데이터를 조회할 수 없습니다"라고 솔직하게 답변하세요
 
 ## 보고서 유형
 
@@ -81,49 +93,90 @@ const REPORTER_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 보고
 `;
 
 // ============================================================================
+// Model Selection with Fallback
+// ============================================================================
+
+/**
+ * Get Reporter model with fallback chain: Groq → Cerebras
+ * Returns null if no model available (graceful degradation)
+ */
+function getReporterModel(): { model: ReturnType<typeof getGroqModel>; provider: string; modelId: string } | null {
+  const status = checkProviderStatus();
+
+  // Primary: Groq (한국어 생성 품질 우수)
+  if (status.groq) {
+    try {
+      return {
+        model: getGroqModel('llama-3.3-70b-versatile'),
+        provider: 'groq',
+        modelId: 'llama-3.3-70b-versatile',
+      };
+    } catch {
+      console.warn('⚠️ [Reporter Agent] Groq unavailable, falling back to Cerebras');
+    }
+  }
+
+  // Fallback: Cerebras
+  if (status.cerebras) {
+    return {
+      model: getCerebrasModel('llama-3.3-70b'),
+      provider: 'cerebras',
+      modelId: 'llama-3.3-70b',
+    };
+  }
+
+  console.warn('⚠️ [Reporter Agent] No model available (need GROQ_API_KEY or CEREBRAS_API_KEY)');
+  return null;
+}
+
+// ============================================================================
 // Agent Instance (Graceful Degradation)
 // ============================================================================
 
 function createReporterAgent() {
-  try {
-    const model = getMistralModel('mistral-small-2506');
-    console.log('📋 [Reporter Agent] Initialized with mistral-small-2506');
-    return new Agent({
-      name: 'Reporter Agent',
-      model,
-      instructions: REPORTER_INSTRUCTIONS,
-      tools: {
-        buildIncidentTimeline,
-        findRootCause,
-        correlateMetrics,
-      },
-      matchOn: [
-        // Report keywords
-        '보고서',
-        '리포트',
-        'report',
-        // Incident keywords
-        '장애',
-        '인시던트',
-        'incident',
-        '사고',
-        // Timeline keywords
-        '타임라인',
-        'timeline',
-        '시간순',
-        // Summary keywords
-        '요약',
-        '정리',
-        'summary',
-        // Patterns
-        /보고서.*만들|생성/i,
-        /장애.*정리|요약/i,
-      ],
-    });
-  } catch (error) {
-    console.warn('⚠️ [Reporter Agent] Not available (MISTRAL_API_KEY not configured)');
+  const modelConfig = getReporterModel();
+  if (!modelConfig) {
     return null;
   }
+
+  console.log(`📋 [Reporter Agent] Using ${modelConfig.provider}/${modelConfig.modelId}`);
+  return new Agent({
+    name: 'Reporter Agent',
+    model: modelConfig.model,
+    instructions: REPORTER_INSTRUCTIONS,
+    tools: {
+      // 실제 서버 데이터 조회 도구 (가장 중요)
+      getServerMetrics,
+      getServerMetricsAdvanced,
+      filterServers,
+      // 기존 분석 도구
+      buildIncidentTimeline,
+      findRootCause,
+      correlateMetrics,
+    },
+    matchOn: [
+      // Report keywords
+      '보고서',
+      '리포트',
+      'report',
+      // Incident keywords
+      '장애',
+      '인시던트',
+      'incident',
+      '사고',
+      // Timeline keywords
+      '타임라인',
+      'timeline',
+      '시간순',
+      // Summary keywords
+      '요약',
+      '정리',
+      'summary',
+      // Patterns
+      /보고서.*만들|생성/i,
+      /장애.*정리|요약/i,
+    ],
+  });
 }
 
 export const reporterAgent = createReporterAgent();

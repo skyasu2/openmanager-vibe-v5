@@ -4,19 +4,23 @@
  * Specializes in anomaly detection, trend prediction, and pattern analysis.
  * Provides deep insights into system behavior.
  *
- * Model: Mistral mistral-small-2506 (precise analysis)
+ * Model: Groq llama-3.3-70b (primary) / Cerebras (fallback)
+ * - 한국어 생성 품질 개선 (Mistral → Groq)
  *
- * @version 1.0.0
+ * @version 1.1.0 - 모델 변경
  */
 
 import { Agent } from '@ai-sdk-tools/agents';
-import { getMistralModel } from '../model-provider';
+import { getGroqModel, getCerebrasModel, checkProviderStatus } from '../model-provider';
 import {
   detectAnomalies,
   predictTrends,
   analyzePattern,
   correlateMetrics,
   findRootCause,
+  // 실제 서버 데이터 조회 도구 추가
+  getServerMetrics,
+  getServerMetricsAdvanced,
 } from '../../../tools-ai-sdk';
 
 // ============================================================================
@@ -27,6 +31,12 @@ const ANALYST_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 분석 
 
 ## 역할
 시스템 데이터를 분석하여 이상 징후를 탐지하고, 미래 트렌드를 예측하며, 패턴을 분석합니다.
+
+## ⚠️ 중요: 실제 데이터 기반 응답
+- **반드시 도구를 호출하여 실제 서버 데이터를 기반으로 분석하세요**
+- 가상의 서버명이나 임의의 수치를 생성하지 마세요
+- 도구 응답에서 반환된 실제 값만 사용하세요
+- 분석 결과는 항상 실제 데이터에 근거해야 합니다
 
 ## 분석 유형
 
@@ -67,51 +77,91 @@ A: detectAnomalies(metricType: "memory") 호출 후
 `;
 
 // ============================================================================
+// Model Selection with Fallback
+// ============================================================================
+
+/**
+ * Get Analyst model with fallback chain: Groq → Cerebras
+ * Returns null if no model available (graceful degradation)
+ */
+function getAnalystModel(): { model: ReturnType<typeof getGroqModel>; provider: string; modelId: string } | null {
+  const status = checkProviderStatus();
+
+  // Primary: Groq (한국어 생성 품질 우수)
+  if (status.groq) {
+    try {
+      return {
+        model: getGroqModel('llama-3.3-70b-versatile'),
+        provider: 'groq',
+        modelId: 'llama-3.3-70b-versatile',
+      };
+    } catch {
+      console.warn('⚠️ [Analyst Agent] Groq unavailable, falling back to Cerebras');
+    }
+  }
+
+  // Fallback: Cerebras
+  if (status.cerebras) {
+    return {
+      model: getCerebrasModel('llama-3.3-70b'),
+      provider: 'cerebras',
+      modelId: 'llama-3.3-70b',
+    };
+  }
+
+  console.warn('⚠️ [Analyst Agent] No model available (need GROQ_API_KEY or CEREBRAS_API_KEY)');
+  return null;
+}
+
+// ============================================================================
 // Agent Instance (Graceful Degradation)
 // ============================================================================
 
 function createAnalystAgent() {
-  try {
-    const model = getMistralModel('mistral-small-2506');
-    console.log('🔬 [Analyst Agent] Initialized with mistral-small-2506');
-    return new Agent({
-      name: 'Analyst Agent',
-      model,
-      instructions: ANALYST_INSTRUCTIONS,
-      tools: {
-        detectAnomalies,
-        predictTrends,
-        analyzePattern,
-        correlateMetrics,
-        findRootCause,
-      },
-      matchOn: [
-        // Anomaly keywords
-        '이상',
-        '비정상',
-        'anomaly',
-        '스파이크',
-        'spike',
-        // Prediction keywords
-        '예측',
-        '트렌드',
-        '추세',
-        '향후',
-        'predict',
-        // Analysis keywords
-        '분석',
-        '패턴',
-        '원인',
-        '왜',
-        // Patterns
-        /이상\s*(있|징후|탐지)/i,
-        /언제.*될|고갈/i, // Resource exhaustion
-      ],
-    });
-  } catch (error) {
-    console.warn('⚠️ [Analyst Agent] Not available (MISTRAL_API_KEY not configured)');
+  const modelConfig = getAnalystModel();
+  if (!modelConfig) {
     return null;
   }
+
+  console.log(`🔬 [Analyst Agent] Using ${modelConfig.provider}/${modelConfig.modelId}`);
+  return new Agent({
+    name: 'Analyst Agent',
+    model: modelConfig.model,
+    instructions: ANALYST_INSTRUCTIONS,
+    tools: {
+      // 실제 서버 데이터 조회 도구 추가
+      getServerMetrics,
+      getServerMetricsAdvanced,
+      // 기존 분석 도구
+      detectAnomalies,
+      predictTrends,
+      analyzePattern,
+      correlateMetrics,
+      findRootCause,
+    },
+    matchOn: [
+      // Anomaly keywords
+      '이상',
+      '비정상',
+      'anomaly',
+      '스파이크',
+      'spike',
+      // Prediction keywords
+      '예측',
+      '트렌드',
+      '추세',
+      '향후',
+      'predict',
+      // Analysis keywords
+      '분석',
+      '패턴',
+      '원인',
+      '왜',
+      // Patterns
+      /이상\s*(있|징후|탐지)/i,
+      /언제.*될|고갈/i, // Resource exhaustion
+    ],
+  });
 }
 
 export const analystAgent = createAnalystAgent();
