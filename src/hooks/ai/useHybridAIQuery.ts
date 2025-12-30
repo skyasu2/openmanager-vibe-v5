@@ -216,20 +216,20 @@ export function useHybridAIQuery(
         `[HybridAI] Query complexity: ${analysis.level} (score: ${analysis.score}), Mode: ${isComplex ? 'job-queue' : 'streaming'}`
       );
 
-      // 2. 사용자 메시지 추가 (공통)
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `user-${Date.now()}`,
-          role: 'user' as const,
-          content: query,
-          parts: [{ type: 'text' as const, text: query }],
-        } as UIMessage,
-      ]);
-
-      // 3. 모드별 처리
+      // 2. 모드별 처리
       if (isComplex) {
         // Job Queue 모드: 긴 작업, 진행률 표시
+        // Job Queue에서는 sendMessage를 사용하지 않으므로 수동으로 메시지 추가
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `user-${Date.now()}`,
+            role: 'user' as const,
+            content: query,
+            parts: [{ type: 'text' as const, text: query }],
+          } as UIMessage,
+        ]);
+
         setState({
           mode: 'job-queue',
           complexity: analysis.level,
@@ -244,6 +244,7 @@ export function useHybridAIQuery(
         });
       } else {
         // Streaming 모드: 빠른 응답
+        // 주의: sendMessage()가 자동으로 사용자 메시지를 추가하므로 수동 추가 불필요
         setState({
           mode: 'streaming',
           complexity: analysis.level,
