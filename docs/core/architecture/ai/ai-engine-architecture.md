@@ -39,6 +39,7 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 - **Circuit Breaker**: Model health monitoring with automatic failover
 - **GraphRAG Integration**: Advisor agent uses hybrid vector + graph search
 - **Protocol Adaptation**: SSE with Keep-Alive to prevent timeouts
+- **RAG Incident Injection**: Auto-sync approved incidents to knowledge_base
 
 #### New in v5.92.0 (2025-12-28)
 
@@ -85,6 +86,10 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 | **Verification Loop** | Verifier checks output before response | Quality assurance & hallucination check |
 
 ## Architecture Diagram
+
+> 📊 **High-Resolution Diagram**: [AI Engine Architecture (PNG)](../../system/diagrams/ai-engine-architecture.png) | [SVG](../../system/diagrams/ai-engine-architecture.svg)
+>
+> *Source: [`ai-engine-architecture.mmd`](../../system/ai-engine-architecture.mmd) - Updated 2025-12-30*
 
 ```mermaid
 graph TD
@@ -289,6 +294,8 @@ d:{"finishReason":"stop","verified":true}     // Finish signal
 | `/api/ai/graphrag/stats` | GET | GraphRAG statistics |
 | `/api/ai/cache/stats` | GET | Redis cache statistics |
 | `/api/ai/cache/invalidate` | POST | Invalidate cache entries |
+| `/rag/sync-incidents` | POST | Manual RAG incident sync |
+| `/rag/stats` | GET | RAG injection statistics |
 | `/health` | GET | Health check |
 | `/warmup` | GET | Cold start warmup |
 | `/api/jobs/process` | POST | Async job processing (from Vercel) |
@@ -367,6 +374,39 @@ queued (Supabase) → pending (Redis) → processing (Redis) → completed/faile
 | **Realtime** | Supabase Realtime | Live dashboard updates |
 | **Client State** | Zustand | Chat history, UI state |
 
+### RAG Incident Injection (v5.83.14, 2025-12-30)
+
+Approved incident reports are automatically synced to the `knowledge_base` table for RAG search by Reporter Agent.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant HITL as HITL Approval
+    participant Injector as RAG Injector
+    participant Gemini as Gemini Embedding
+    participant KB as knowledge_base
+
+    User->>HITL: Approve Incident Report
+    HITL->>Injector: Trigger Auto-Sync
+    Injector->>Gemini: embedText(title + content)
+    Gemini-->>Injector: 384-dim Vector
+    Injector->>KB: INSERT (embedding, category='incident')
+    KB-->>Injector: Success
+    Note over KB: pgvector HNSW Index
+```
+
+**Key Features:**
+- **Auto-Sync Trigger**: Fires on incident approval in `approval-store.ts`
+- **Embedding Model**: Gemini `text-embedding-004` (384-dim, FREE tier)
+- **Dedup Logic**: Uses `session_id` in tags to prevent duplicates
+- **Content Extraction**: Title, root cause, recommendations, timeline from payload
+
+**Endpoints:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/rag/sync-incidents` | POST | Manual sync trigger (limit, daysBack params) |
+| `/rag/stats` | GET | Sync statistics (total, synced, pending) |
+
 ### GraphRAG Architecture
 
 ```mermaid
@@ -442,6 +482,7 @@ cloud-run/ai-engine/
 │   │   ├── graph-rag-service.ts # GraphRAG hybrid search service
 │   │   ├── embedding.ts        # Text embedding utilities
 │   │   ├── config-parser.ts    # YAML config parsing
+│   │   ├── incident-rag-injector.ts # RAG incident injection (v5.83.14)
 │   │   └── context-compression/ # Context compression for long conversations
 │   │       ├── compression-trigger.ts    # Token threshold detection
 │   │       ├── summary-generator.ts      # Conversation summarization

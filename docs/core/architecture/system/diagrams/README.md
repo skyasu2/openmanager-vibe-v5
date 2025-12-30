@@ -1,29 +1,42 @@
-# Dashboard Architecture Diagrams
+# Architecture Diagrams
 
-OpenManager VIBE v5.83.1 대시보드 아키텍처 다이어그램입니다.
+OpenManager VIBE v5.83.14 아키텍처 다이어그램입니다.
 
 ## 파일 목록
 
-| 파일 | 형식 | 용도 |
-|------|------|------|
-| `dashboard-architecture.svg` | SVG | 웹 문서 삽입, 확대/축소 지원 |
-| `dashboard-architecture.png` | PNG | 마크다운, README, 이미지 뷰어 |
+| 다이어그램 | SVG | PNG | 용도 |
+|-----------|-----|-----|------|
+| Dashboard | `dashboard-architecture.svg` | `dashboard-architecture.png` | 대시보드 컴포넌트 구조 |
+| AI Engine | `ai-engine-architecture.svg` | `ai-engine-architecture.png` | AI 엔진 아키텍처 (RAG 포함) |
 
 ## 다이어그램 미리보기
 
+### Dashboard Architecture
 ![Dashboard Architecture](./dashboard-architecture.png)
+
+### AI Engine Architecture
+![AI Engine Architecture](./ai-engine-architecture.png)
 
 ## 소스 파일
 
-- **Mermaid 소스**: [`../dashboard-architecture.mmd`](../dashboard-architecture.mmd)
+| 다이어그램 | Mermaid 소스 |
+|-----------|-------------|
+| Dashboard | [`../dashboard-architecture.mmd`](../dashboard-architecture.mmd) |
+| AI Engine | [`../ai-engine-architecture.mmd`](../ai-engine-architecture.mmd) |
+
 - **테마**: Dark Theme with transparent background
 
 ## 다이어그램 재생성
 
 ```bash
-# mmdc CLI 사용 (mermaid-cli)
+# mmdc CLI 사용 (mermaid-cli v11.12.0)
+# Dashboard
 mmdc -i ../dashboard-architecture.mmd -o dashboard-architecture.svg -t dark -b transparent
 mmdc -i ../dashboard-architecture.mmd -o dashboard-architecture.png -t dark -b transparent -s 2
+
+# AI Engine
+mmdc -i ../ai-engine-architecture.mmd -o ai-engine-architecture.svg -t dark -b transparent
+mmdc -i ../ai-engine-architecture.mmd -o ai-engine-architecture.png -t dark -b transparent -s 2
 ```
 
 ## 다이어그램 구성 요소
@@ -35,4 +48,4 @@ mmdc -i ../dashboard-architecture.mmd -o dashboard-architecture.png -t dark -b t
 - **API Routes**: Next.js API 엔드포인트
 - **Data Sources**: Supabase 및 Mock 데이터
 
-_Generated: 2025-12-19 with mermaid-cli v11.12.0_
+_Last Updated: 2025-12-30 with mermaid-cli v11.12.0_
