@@ -632,7 +632,7 @@ async function seedKnowledgeBase() {
 
   const texts = KNOWLEDGE_ENTRIES.map(e => `${e.title}\n\n${e.content}`);
 
-  const model = google.textEmbedding('text-embedding-004');
+  const model = google.embedding('text-embedding-004');
   const { embeddings } = await embedMany({
     model,
     values: texts,

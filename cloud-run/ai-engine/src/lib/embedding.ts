@@ -52,7 +52,7 @@ interface SupabaseClientLike {
  */
 export async function embedText(text: string): Promise<number[]> {
   const google = getGoogleProvider();
-  const model = google.textEmbedding('text-embedding-004');
+  const model = google.embedding('text-embedding-004');
 
   const { embedding } = await embed({
     model,
@@ -78,7 +78,7 @@ export async function embedText(text: string): Promise<number[]> {
  */
 export async function embedTexts(texts: string[]): Promise<number[][]> {
   const google = getGoogleProvider();
-  const model = google.textEmbedding('text-embedding-004');
+  const model = google.embedding('text-embedding-004');
 
   const { embeddings } = await embedMany({
     model,

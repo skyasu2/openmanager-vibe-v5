@@ -27,7 +27,7 @@
  */
 
 import { groq } from '@ai-sdk/groq';
-import { type CoreMessage, generateText, streamText } from 'ai';
+import { type ModelMessage, generateText, streamText } from 'ai';
 
 export type GroqModel =
   | 'llama-3.1-8b-instant'
@@ -74,7 +74,7 @@ interface GenerateResult {
 }
 
 interface StreamOptions extends GenerateOptions {
-  messages?: CoreMessage[];
+  messages?: ModelMessage[];
 }
 
 class GroqAIManager {
@@ -260,7 +260,7 @@ class GroqAIManager {
     const supportsReasoning = REASONING_MODELS.includes(model);
 
     try {
-      const messages: CoreMessage[] = [];
+      const messages: ModelMessage[] = [];
 
       if (options?.systemPrompt) {
         messages.push({ role: 'system', content: options.systemPrompt });
@@ -348,7 +348,7 @@ class GroqAIManager {
     const model = options?.model || this.defaultModel;
     const supportsReasoning = REASONING_MODELS.includes(model);
 
-    const messages: CoreMessage[] = options?.messages || [];
+    const messages: ModelMessage[] = options?.messages || [];
 
     if (messages.length === 0) {
       if (options?.systemPrompt) {
