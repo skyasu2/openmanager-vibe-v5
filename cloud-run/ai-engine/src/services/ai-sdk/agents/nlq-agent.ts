@@ -5,10 +5,10 @@
  * - Simple: "서버 상태 요약", "CPU 높은 서버"
  * - Complex: "CPU > 80% AND 메모리 > 70%", "지난 1시간 에러 TOP 5"
  *
- * Model: Groq llama-3.3-70b-versatile (primary)
- * Fallback: Cerebras llama-3.3-70b (if Groq unavailable)
+ * Model: Cerebras llama-3.3-70b (primary) - 24M tokens/day 무료
+ * Fallback: Groq llama-3.3-70b-versatile (if Cerebras unavailable)
  *
- * @version 1.1.0
+ * @version 1.2.0 - Cerebras primary로 변경 (Groq 사용량 절약)
  */
 
 import { Agent } from '@ai-sdk-tools/agents';
@@ -24,36 +24,38 @@ import {
 // ============================================================================
 
 /**
- * Get NLQ model with fallback chain: Groq → Cerebras
+ * Get NLQ model with fallback chain: Cerebras → Groq
  * Returns null if no model available (graceful degradation)
+ *
+ * Cerebras primary: 24M tokens/day 무료 티어 활용
  */
-function getNlqModel(): { model: ReturnType<typeof getGroqModel>; provider: string; modelId: string } | null {
+function getNlqModel(): { model: ReturnType<typeof getCerebrasModel>; provider: string; modelId: string } | null {
   const status = checkProviderStatus();
 
-  // Primary: Groq (best tool calling stability)
-  if (status.groq) {
+  // Primary: Cerebras (24M tokens/day 무료, 한국어 품질 우수)
+  if (status.cerebras) {
     try {
       return {
-        model: getGroqModel('llama-3.3-70b-versatile'),
-        provider: 'groq',
-        modelId: 'llama-3.3-70b-versatile',
+        model: getCerebrasModel('llama-3.3-70b'),
+        provider: 'cerebras',
+        modelId: 'llama-3.3-70b',
       };
     } catch {
-      console.warn('⚠️ [NLQ Agent] Groq unavailable, falling back to Cerebras');
+      console.warn('⚠️ [NLQ Agent] Cerebras unavailable, falling back to Groq');
     }
   }
 
-  // Fallback: Cerebras
-  if (status.cerebras) {
+  // Fallback: Groq
+  if (status.groq) {
     return {
-      model: getCerebrasModel('llama-3.3-70b'),
-      provider: 'cerebras',
-      modelId: 'llama-3.3-70b',
+      model: getGroqModel('llama-3.3-70b-versatile'),
+      provider: 'groq',
+      modelId: 'llama-3.3-70b-versatile',
     };
   }
 
   // Return null instead of throwing (graceful degradation)
-  console.warn('⚠️ [NLQ Agent] No model available (need GROQ_API_KEY or CEREBRAS_API_KEY)');
+  console.warn('⚠️ [NLQ Agent] No model available (need CEREBRAS_API_KEY or GROQ_API_KEY)');
   return null;
 }
 
