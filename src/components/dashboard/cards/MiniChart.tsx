@@ -78,14 +78,10 @@ export const MiniChart: React.FC<MiniChartProps> = ({
         whileHover={{ scale: 1.02 }}
       >
         {/* 아이콘 + 라벨 */}
-        {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: role과 aria-label이 조건부로 함께 적용됨 */}
-        <div
-          className="flex items-center gap-1 shrink-0"
-          role="group"
-          aria-label={label}
-          title={label}
-        >
-          <div className="text-gray-600 p-0.5">{icon}</div>
+        <div className="flex items-center gap-1 shrink-0" title={label}>
+          <div className="text-gray-600 p-0.5" aria-hidden="true">
+            {icon}
+          </div>
         </div>
 
         {/* 미니 인라인 차트 - 2열 레이아웃으로 공간 확보 */}
@@ -94,7 +90,10 @@ export const MiniChart: React.FC<MiniChartProps> = ({
             className="w-full h-full"
             viewBox="0 0 100 32"
             preserveAspectRatio="none"
+            role="img"
+            aria-label={`${label} 사용률 ${currentValue.toFixed(0)}% 추이 차트`}
           >
+            <title>{`${label}: ${currentValue.toFixed(0)}%`}</title>
             <defs>
               <linearGradient
                 id={`compact-${gradientId}`}
@@ -197,7 +196,10 @@ export const MiniChart: React.FC<MiniChartProps> = ({
           className="w-full h-full"
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
+          role="img"
+          aria-label={`${label} 사용률 ${currentValue.toFixed(0)}% 추이 차트`}
         >
+          <title>{`${label}: ${currentValue.toFixed(0)}%`}</title>
           <defs>
             {/* 개선된 그라데이션 */}
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">

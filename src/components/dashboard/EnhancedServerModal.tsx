@@ -204,7 +204,13 @@ export default function EnhancedServerModal({
         in: h.network * 0.6,
         out: h.network * 0.4,
       })),
-      latency: historyData.map(() => Math.random() * 10 + 20),
+      // latency는 network 데이터 기반으로 추정 (실제 latency 데이터 없음)
+      latency: historyData.map((h) => {
+        // 네트워크 사용률이 높으면 latency 증가 추정
+        const baseLatency = 20;
+        const networkFactor = (h.network / 100) * 15;
+        return baseLatency + networkFactor;
+      }),
       processes:
         safeServer?.services?.map((service, i) => ({
           name: service.name || `service-${i}`,
@@ -374,8 +380,12 @@ export default function EnhancedServerModal({
             </div>
           </div>
 
-          {/* 탭 네비게이션 */}
-          <div className="mt-4 flex gap-1 overflow-x-auto pb-1 sm:mt-6 sm:gap-2 no-scrollbar">
+          {/* 탭 네비게이션 - WAI-ARIA 탭 패턴 */}
+          <div
+            role="tablist"
+            aria-label="서버 상세 정보 탭"
+            className="mt-4 flex gap-1 overflow-x-auto pb-1 sm:mt-6 sm:gap-2 no-scrollbar"
+          >
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = selectedTab === tab.id;
@@ -383,6 +393,11 @@ export default function EnhancedServerModal({
               return (
                 <button
                   key={tab.id}
+                  role="tab"
+                  id={`tab-${tab.id}`}
+                  aria-selected={isActive}
+                  aria-controls={`panel-${tab.id}`}
+                  tabIndex={isActive ? 0 : -1}
                   onClick={() => setSelectedTab(tab.id)}
                   className={`relative flex items-center gap-1 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-base ${
                     isActive
@@ -392,12 +407,16 @@ export default function EnhancedServerModal({
                 >
                   <Icon
                     className={`h-4 w-4 shrink-0 ${isActive ? 'text-blue-400' : 'text-white/40'}`}
+                    aria-hidden="true"
                   />
                   <span>{tab.label}</span>
 
                   {/* 활성 탭 하이라이트 (Bottom Bar) */}
                   {isActive && (
-                    <div className="absolute bottom-0 left-1/2 h-0.5 w-1/2 -translate-x-1/2 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                    <div
+                      className="absolute bottom-0 left-1/2 h-0.5 w-1/2 -translate-x-1/2 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
               );
@@ -407,7 +426,13 @@ export default function EnhancedServerModal({
 
         {/* 콘텐츠 영역 */}
         <div className="flex-1 overflow-y-auto bg-linear-to-br from-[#0F1115] to-[#1a1c20]">
-          <div key={selectedTab} className="p-4 sm:p-6 animate-fade-in-up">
+          <div
+            key={selectedTab}
+            id={`panel-${selectedTab}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${selectedTab}`}
+            className="p-4 sm:p-6 animate-fade-in-up"
+          >
             {/* 📊 통합 탭 시스템 */}
             {selectedTab === 'overview' && (
               <div className="space-y-6">

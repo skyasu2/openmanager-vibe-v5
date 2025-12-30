@@ -159,7 +159,11 @@ export const MetricsTab: FC<MetricsTabProps> = ({
                 </div>
 
                 {/* 실시간 차트 */}
-                <RealtimeChart data={chart.data} color={chart.color} label="" />
+                <RealtimeChart
+                  data={chart.data}
+                  color={chart.color}
+                  label={chart.label}
+                />
               </div>
 
               {/* 상태 표시기 */}

@@ -68,6 +68,12 @@ interface RealtimeChartProps {
 }
 
 /**
+ * SVG ID에 사용할 수 있도록 특수문자/공백 제거
+ */
+const sanitizeIdForSvg = (str: string): string =>
+  str.replace(/[^a-zA-Z0-9]/g, '_');
+
+/**
  * 📊 실시간 차트 컴포넌트
  *
  * SVG 기반의 실시간 데이터 시각화 컴포넌트
@@ -100,27 +106,25 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
   // 🛡️ 베르셀 안전 마지막 값 추출
   const lastValue = getSafeLastArrayItem(data, 0);
 
-  return (
-    <div className="rounded-lg border bg-white p-4 shadow-xs">
-      {/* 차트 제목 */}
-      <h4 className="mb-2 text-sm font-medium text-gray-700">{label}</h4>
+  // 🎯 SVG ID 안전화: 한글/공백/특수문자 제거
+  const safeId = sanitizeIdForSvg(label || 'default');
+  const gradientId = `area-gradient-${safeId}`;
 
+  return (
+    <div className="rounded-lg border bg-white/5 border-white/10 p-4 shadow-xs">
       {/* 차트 영역 */}
       <div className="relative" style={{ height }}>
         <svg
           className="h-full w-full"
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
+          role="img"
+          aria-label={`${label} 차트: 현재 ${typeof lastValue === 'number' ? lastValue.toFixed(1) : 0}%`}
         >
+          <title>{`${label}: ${typeof lastValue === 'number' ? lastValue.toFixed(1) : 0}%`}</title>
           {/* 그라데이션 정의 */}
           <defs>
-            <linearGradient
-              id={`area-gradient-${label}`}
-              x1="0%"
-              y1="0%"
-              x2="0%"
-              y2="100%"
-            >
+            <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor={color} stopOpacity="0.4" />
               <stop offset="100%" stopColor={color} stopOpacity="0.1" />
             </linearGradient>
@@ -134,14 +138,14 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
               y1={y}
               x2="100"
               y2={y}
-              stroke="#f3f4f6"
+              stroke="rgba(255,255,255,0.1)"
               strokeWidth="0.5"
             />
           ))}
 
           {/* 데이터 영역 (그라데이션) */}
           <polygon
-            fill={`url(#area-gradient-${label})`}
+            fill={`url(#${gradientId})`}
             points={`0,100 ${points} 100,100`}
           />
 
@@ -170,7 +174,7 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
         </svg>
 
         {/* Y축 라벨 */}
-        <div className="absolute left-0 top-0 flex h-full flex-col justify-between pr-2 text-xs text-gray-400">
+        <div className="absolute left-0 top-0 flex h-full flex-col justify-between pr-2 text-xs text-white/40">
           <span>100</span>
           <span>50</span>
           <span>0</span>
