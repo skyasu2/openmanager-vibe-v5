@@ -8,7 +8,7 @@ related_docs:
   - 'commit-conventions.md'
   - 'typescript-rules.md'
 updated: '2025-12-19'
-version: 'v5.83.1'
+version: 'v5.83.x'
 ---
 
 # Documentation Standards

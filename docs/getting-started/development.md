@@ -19,7 +19,7 @@
 - npm 10.9.2 이상
 - Docker Desktop (AI 서비스용)
 
-### 기술 스택 (v5.83.12)
+### 기술 스택 (v5.83.x)
 
 ```
 Next.js 16.1.1 (App Router)
