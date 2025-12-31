@@ -33,8 +33,8 @@ SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# AI 기능 (선택 - Google AI API 사용 시)
-GOOGLE_AI_API_KEY=your_google_ai_api_key
+# AI 기능 (Cloud Run AI - GCP IAM 인증 사용)
+CLOUD_RUN_AI_URL=https://ai-engine-xxx.asia-northeast1.run.app
 ```
 
 ### 3. 개발 서버 실행
@@ -58,8 +58,8 @@ npm run dev
 
 ### 2. AI 어시스턴트
 
-- **Google AI API**: 실시간 서버 분석 및 자연어 질의 (API 키 필요)
-- **Mock 모드**: API 키 없을 때 자동 폴백 (무료, 시뮬레이션)
+- **Cloud Run AI**: LLM 멀티 에이전트 기반 실시간 서버 분석 및 자연어 질의
+- **Mock 모드**: Cloud Run 연결 불가 시 자동 폴백 (시뮬레이션)
 
 ### 3. 게스트 모드 접근
 
@@ -125,4 +125,4 @@ npm run validate:all
 
 🎯 **즉시 체험**: 게스트로 체험하기 버튼 클릭 → 실시간 대시보드 확인
 
-🤖 **AI 활용**: Google AI로 서버 분석 (API 키) 또는 Mock 모드로 체험 (무료)
+🤖 **AI 활용**: Cloud Run AI로 서버 분석 또는 Mock 모드로 체험

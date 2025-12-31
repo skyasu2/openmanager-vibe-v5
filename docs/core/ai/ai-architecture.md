@@ -1,16 +1,17 @@
 # AI Assistant Architecture
 
-> **버전**: v3.4 (2025-12-26)
-> **환경**: Next.js 16, React 19, TypeScript 5.9 strict, LangGraph StateGraph (Cloud Run)
+> **버전**: v4.0 (2025-12-31)
+> **환경**: Next.js 16, React 19, TypeScript 5.9 strict, Vercel AI SDK (Cloud Run)
 
 ## Overview
 
-The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrates specialized agents for server monitoring tasks. It uses a **Hybrid Architecture**:
+The AI Assistant is built on a **LLM 멀티 에이전트 시스템** using **Vercel AI SDK** with `@ai-sdk-tools/agents`. It uses a **Hybrid Architecture**:
 
 - **Frontend (Vercel)**: Next.js UI, API proxy routes
-- **AI Engine (Cloud Run)**: LangGraph StateGraph, all AI processing
+- **AI Engine (Cloud Run)**: Vercel AI SDK Multi-Agent, all AI processing
 
-> **Note**: LangGraph was migrated from Vercel to Cloud Run (2025-12-16) due to Edge response issues. See [ai-engine-architecture.md](../architecture/ai/ai-engine-architecture.md) for detailed backend architecture.
+> **📢 Architecture Update (2025-12-28)**: LangGraph migrated to **Vercel AI SDK** for better multi-agent orchestration.
+> See [ai-engine-architecture.md](../architecture/ai/ai-engine-architecture.md) for detailed backend architecture.
 
 ## Core Components
 
@@ -45,56 +46,37 @@ The AI Assistant is built on a **LangGraph Multi-Agent System** that orchestrate
   - 중앙: EnhancedAIChat 또는 기능별 페이지
   - 우측: 시스템 컨텍스트 패널
 
-### 2. Backend: LangGraph Multi-Agent System
+### 2. Backend: LLM 멀티 에이전트 시스템
 
 - **Location**: `cloud-run/ai-engine/src/` (TypeScript Hono)
-- **Framework**: LangGraph StateGraph
-- **Deployment**: Google Cloud Run (migrated 2025-12-16)
+- **Framework**: Vercel AI SDK with `@ai-sdk-tools/agents`
+- **Deployment**: Google Cloud Run
 - **Proxy**: `/api/ai/*` routes on Vercel forward to Cloud Run
 
 #### Agent Architecture
 
 ```
-START
-  │
-  ▼
-┌─────────────────────────────────────────────────┐
-│              SUPERVISOR                          │
-│   Provider: Groq (Llama 3.3-70b)                │
-│   Role: Intent classification & LangGraph handoff│
-└─────────────────────────────────────────────────┘
-  │
-  ├──▶ "nlq"      ──▶ NLQ SubGraph (Groq 70b)
-  │                    └─ 5-node workflow
-  │                    └─ getServerMetricsAdvanced
-  │
-  ├──▶ "analyst"  ──▶ Analyst Agent (Groq 70b)
-  │                    └─ analyzePattern, detectAnomalies, predictTrends
-  │
-  ├──▶ "reporter" ──▶ Reporter Agent (Groq 70b)
-  │                    └─ searchKnowledgeBase (GraphRAG)
-  │                    └─ recommendCommands
-  │                    └─ [Approval Check] ──▶ Human Interrupt
-  │
-  ├──▶ "parallel" ──▶ Parallel Analysis Node
-  │                    └─ NLQ + Analyst (concurrent)
-  │
-  └──▶ "reply"    ──▶ Direct Response (greetings)
-                       │
-                       ▼
-             ┌─────────────────────────────┐
-             │     VERIFIER AGENT          │
-             │  Provider: Mistral (24B)    │
-             │  Role: Quality validation    │
-             └─────────────────────────────┘
-                       │
-                       ▼
-                      END
+User Query → Orchestrator (Cerebras)
+                ├→ NLQ Agent (Cerebras) - 자연어 쿼리 처리
+                ├→ Analyst Agent (Groq) - 이상 탐지, 트렌드 예측
+                ├→ Reporter Agent (Groq) - 인시던트 리포트
+                └→ Advisor Agent (Mistral) - RAG 기반 트러블슈팅
 ```
 
-> **Dual-Provider Strategy (v5.89.0)**:
-> - **Groq**: Supervisor, NLQ, Analyst, Reporter (LangGraph handoff 호환 필수)
-> - **Mistral**: Verifier (24B 파라미터로 품질 검증 향상)
+#### Agent Stack
+
+| Agent | Provider | Model | Role |
+|-------|----------|-------|------|
+| **Orchestrator** | Cerebras | Llama 3.3-70b | Fast routing (~200ms) |
+| **NLQ Agent** | Cerebras | Llama 3.3-70b | Server metrics queries |
+| **Analyst Agent** | Groq | Llama 3.3-70b | Anomaly detection, trends |
+| **Reporter Agent** | Groq | Llama 3.3-70b | Incident reports |
+| **Advisor Agent** | Mistral | mistral-small | RAG + troubleshooting |
+
+> **Triple-Provider Strategy (v5.92.0)**:
+> - **Cerebras**: 빠른 라우팅 (무제한)
+> - **Groq**: 분석/리포팅 (6K req/day)
+> - **Mistral**: RAG/임베딩 (1024d)
 
 ## 3 AI Features
 
@@ -120,7 +102,7 @@ START
 |------|-----|
 | **컴포넌트** | `IntelligentMonitoringPage.tsx` |
 | **API** | `/api/ai/intelligent-monitoring` |
-| **에이전트** | Analyst Agent (Gemini Pro) |
+| **에이전트** | Analyst Agent (Groq Llama 3.3-70b) |
 
 ## Tool System
 
@@ -157,7 +139,7 @@ The AI uses specialized tools within each agent for domain-specific operations.
 
 | Tool | Description |
 |------|-------------|
-| `searchKnowledgeBase` | RAG search using Supabase pgvector (384 dimensions) |
+| `searchKnowledgeBase` | RAG search using Supabase pgvector (1024 dimensions) |
 | `recommendCommands` | Suggests runbook commands for incident resolution |
 
 ## Data Flow
@@ -165,9 +147,9 @@ The AI uses specialized tools within each agent for domain-specific operations.
 1. **User Query**: User types a message in `AISidebarV4`
 2. **API Request**: `useChat` sends POST to `/api/ai/supervisor`
 3. **Proxy to Cloud Run**: Vercel API route forwards request to Cloud Run
-4. **LangGraph Execution**: StateGraph processes request on Cloud Run
-5. **Supervisor Routing**: Groq Llama classifies intent and routes to appropriate agent
-6. **Agent Execution**: Selected agent processes query with tools
+4. **Orchestrator Routing**: Cerebras Llama classifies intent and routes to appropriate agent
+5. **Agent Execution**: Selected agent (NLQ/Analyst/Reporter/Advisor) processes query
+6. **Tool Calling**: Multi-step tool execution with Vercel AI SDK
 7. **Approval Check** (Reporter only): Critical actions require human approval
 8. **Response**: AI SDK v5 Data Stream Protocol (`0:"text"\n`, `d:{...}\n`)
 
@@ -203,7 +185,7 @@ sequenceDiagram
 
 ## A2A (Agent-to-Agent) Communication
 
-LangGraph supports agent-to-agent communication via the **Return-to-Supervisor** pattern:
+Vercel AI SDK supports agent-to-agent communication via **Agent Handoffs** pattern:
 
 ```mermaid
 sequenceDiagram

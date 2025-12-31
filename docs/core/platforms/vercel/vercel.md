@@ -98,7 +98,9 @@ vercel env add NEXT_PUBLIC_SUPABASE_URL production
 vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
 vercel env add SUPABASE_SERVICE_ROLE_KEY production
 vercel env add UPSTASH_REDIS_REST_URL production
-vercel env add GOOGLE_AI_API_KEY production
+# Cloud Run AI uses GCP IAM auth - no API key needed on Vercel
+vercel env add CLOUD_RUN_AI_URL production
+vercel env add CLOUD_RUN_API_SECRET production
 
 # Free tier optimization
 vercel env add NEXT_PUBLIC_FREE_TIER_MODE production

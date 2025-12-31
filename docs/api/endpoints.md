@@ -18,14 +18,13 @@ OpenManager Vibe v5 현재 **75개의 API 엔드포인트**를 제공합니다.
 
 ---
 
-## 🤖 AI/ML APIs (16개)
+## 🤖 AI/ML APIs (15개)
 
 ### Production (Active) ✅
 
 | Endpoint                         | Method    | Description                      | Auth | Status     |
 | -------------------------------- | --------- | -------------------------------- | ---- | ---------- |
-| `/api/ai/supervisor`             | POST      | AI Multi-Agent Supervisor (LangGraph) | ✅   | **Active** |
-| `/api/ai/google-ai/generate`     | POST, GET | Google Gemini API 직접 호출      | ✅   | **Active** |
+| `/api/ai/supervisor`             | POST      | LLM 멀티 에이전트 Supervisor (Vercel AI SDK) | ✅   | **Active** |
 | `/api/ai/incident-report`        | POST, GET | 자동 장애 보고서 생성            | ✅   | **Active** |
 | `/api/ai/intelligent-monitoring` | POST      | 지능형 모니터링 분석             | ✅   | **Active** |
 | `/api/ai/rag/benchmark`          | GET       | RAG 벡터 검색 성능 벤치마크      | ✅   | **Active** |
@@ -54,12 +53,6 @@ OpenManager Vibe v5 현재 **75개의 API 엔드포인트**를 제공합니다.
 | `/api/ai/korean-nlp`         | POST      | 한국어 NLP (GCP)          | **410 Gone**   | `supervisor` |
 | `/api/ai/thinking/stream-v2` | POST      | 레거시 Thinking Stream    | **Deprecated** | `supervisor` |
 | `/api/ai/logging/stream`     | GET, POST | AI 로그 스트리밍 (Memory) | **Legacy**     | -                |
-
-### Development/Testing 🧪
-
-| Endpoint                   | Method | Description             | Purpose    |
-| -------------------------- | ------ | ----------------------- | ---------- |
-| `/api/ai/google-ai/status` | GET    | Google AI API 상태 확인 | Monitoring |
 
 ---
 

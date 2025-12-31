@@ -383,13 +383,13 @@ sequenceDiagram
     participant User
     participant HITL as HITL Approval
     participant Injector as RAG Injector
-    participant Gemini as Gemini Embedding
+    participant Mistral as Mistral Embedding
     participant KB as knowledge_base
 
     User->>HITL: Approve Incident Report
     HITL->>Injector: Trigger Auto-Sync
-    Injector->>Gemini: embedText(title + content)
-    Gemini-->>Injector: 384-dim Vector
+    Injector->>Mistral: embedText(title + content)
+    Mistral-->>Injector: 1024-dim Vector
     Injector->>KB: INSERT (embedding, category='incident')
     KB-->>Injector: Success
     Note over KB: pgvector HNSW Index
@@ -397,7 +397,7 @@ sequenceDiagram
 
 **Key Features:**
 - **Auto-Sync Trigger**: Fires on incident approval in `approval-store.ts`
-- **Embedding Model**: Gemini `text-embedding-004` (384-dim, FREE tier)
+- **Embedding Model**: Mistral `mistral-embed` (1024-dim)
 - **Dedup Logic**: Uses `session_id` in tags to prevent duplicates
 - **Content Extraction**: Title, root cause, recommendations, timeline from payload
 
@@ -455,11 +455,9 @@ GraphRAG combines:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GROQ_API_KEY` | Yes | Groq (Llama 3.3-70b) API key - Supervisor |
-| `CEREBRAS_API_KEY` | Yes | Cerebras (Llama 3.3-70b) API key - NLQ/Analyst/Reporter |
-| `MISTRAL_API_KEY` | Yes | Mistral (Small 3.2 24B) API key - Verifier |
-| `GOOGLE_AI_API_KEY` | Yes | Google AI API key (Embedding Only - text-embedding-004) |
-| `GOOGLE_AI_API_KEY_SECONDARY` | No | Secondary Key (Failover) |
+| `CEREBRAS_API_KEY` | Yes | Cerebras (Llama 3.3-70b) API key - Orchestrator, NLQ |
+| `GROQ_API_KEY` | Yes | Groq (Llama 3.3-70b) API key - Analyst, Reporter |
+| `MISTRAL_API_KEY` | Yes | Mistral API key - Advisor, Embedding (1024-dim) |
 | `CLOUD_RUN_API_SECRET` | Yes | API authentication secret |
 | `UPSTASH_REDIS_URL` | Yes | Upstash Redis REST URL |
 | `UPSTASH_REDIS_TOKEN` | Yes | Upstash Redis REST token |

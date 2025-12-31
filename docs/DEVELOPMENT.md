@@ -61,7 +61,7 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # 선택적 환경 변수
-GOOGLE_AI_API_KEY=your_google_ai_api_key  # Google AI API 사용 시
+CLOUD_RUN_AI_URL=https://ai-engine-xxx.run.app  # Cloud Run AI 사용 시
 GITHUB_CLIENT_ID=your_github_oauth_id
 GITHUB_CLIENT_SECRET=your_github_oauth_secret
 ```
