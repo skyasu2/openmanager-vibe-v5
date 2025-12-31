@@ -23,11 +23,10 @@ declare global {
       readonly NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
       readonly SUPABASE_SERVICE_ROLE_KEY?: string;
 
-      // 🤖 AI 관련 환경변수
-      readonly GOOGLE_AI_API_KEY?: string;
-      readonly GOOGLE_AI_ENABLED?: string;
-      readonly GOOGLE_AI_QUOTA_PROTECTION?: string;
-      readonly FORCE_MOCK_GOOGLE_AI?: string;
+      // 🤖 AI 관련 환경변수 (Cloud Run AI Engine)
+      readonly CLOUD_RUN_AI_URL?: string;
+      readonly CLOUD_RUN_AI_ENABLED?: string;
+      readonly CLOUD_RUN_API_SECRET?: string;
 
       // 🔧 개발 및 테스트 환경변수
       readonly ENABLE_MOCK_DATA?: string;
@@ -71,11 +70,19 @@ export interface SupabaseEnvConfig {
   isConfigured: boolean;
 }
 
+/** @deprecated Use CloudRunAIEnvConfig instead */
 export interface GoogleAIEnvConfig {
   apiKey: string;
   enabled: boolean;
   quotaProtection: boolean;
   forceMock: boolean;
+  isConfigured: boolean;
+}
+
+export interface CloudRunAIEnvConfig {
+  enabled: boolean;
+  quotaProtection: boolean;
+  endpoint?: string;
   isConfigured: boolean;
 }
 
@@ -107,7 +114,7 @@ export interface MonitoringEnvConfig {
 // 📊 전체 환경변수 구성 타입
 export interface EnvironmentConfig {
   supabase: SupabaseEnvConfig;
-  googleAI: GoogleAIEnvConfig;
+  cloudRunAI: CloudRunAIEnvConfig;
   deployment: DeploymentEnvConfig;
   security: SecurityEnvConfig;
   monitoring: MonitoringEnvConfig;
@@ -128,8 +135,7 @@ export interface MockEnvironmentConfig {
   DISABLE_EXTERNAL_CALLS?: boolean;
   DISABLE_HEALTH_CHECK?: boolean;
   HEALTH_CHECK_CONTEXT?: boolean;
-  GOOGLE_AI_QUOTA_PROTECTION?: boolean;
-  FORCE_MOCK_GOOGLE_AI?: boolean;
+  CLOUD_RUN_AI_ENABLED?: boolean;
   MCP_SERVER_ENABLED?: boolean;
 }
 

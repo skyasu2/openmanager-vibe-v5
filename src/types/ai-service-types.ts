@@ -276,7 +276,7 @@ export type MetadataRecord = Record<
  */
 export interface QueryParams {
   query: string;
-  mode?: 'local' | 'google-ai';
+  mode?: 'local' | 'cloud-run-ai';
   context?: AIQueryContext;
   options?: AIQueryOptions;
   mcpContext?: MCPContext;

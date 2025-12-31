@@ -3,7 +3,8 @@ import * as z from 'zod';
 /**
  * 🤖 AI 서비스 관련 스키마
  *
- * AI 로그 스트리밍, 성능 모니터링, 벤치마크, Google AI API
+ * AI 로그 스트리밍, 성능 모니터링, 벤치마크, Cloud Run AI API
+ * v5.84.0: Google AI → Cloud Run AI (Mistral) 마이그레이션
  */
 
 // ===== AI 로그 스트리밍 =====
@@ -229,22 +230,23 @@ export const CacheClearResponseSchema = z.object({
   error: z.string().optional(),
 });
 
-// ===== Google AI API =====
+// ===== Cloud Run AI API =====
+// v5.84.0: Migrated from Google AI to Cloud Run (Mistral)
 
-export const GoogleAIGenerateRequestSchema = z.object({
+export const CloudRunAIGenerateRequestSchema = z.object({
   prompt: z.string().min(1).max(10000),
   temperature: z.number().min(0).max(2).default(0.7),
   maxTokens: z.number().positive().max(10000).default(1000),
-  model: z.string().default('gemini-2.5-flash'),
+  model: z.string().default('mistral-small-latest'),
 });
 
-export const GoogleAIUsageMetadataSchema = z.object({
+export const CloudRunAIUsageMetadataSchema = z.object({
   totalTokenCount: z.number().optional(),
   promptTokenCount: z.number().optional(),
-  candidatesTokenCount: z.number().optional(),
+  completionTokenCount: z.number().optional(),
 });
 
-export const GoogleAIGenerateResponseSchema = z.object({
+export const CloudRunAIGenerateResponseSchema = z.object({
   success: z.boolean(),
   response: z.string(),
   text: z.string(), // 호환성을 위해 둘 다 제공
@@ -261,14 +263,14 @@ export const GoogleAIGenerateResponseSchema = z.object({
   timestamp: z.string(),
 });
 
-export const GoogleAIErrorResponseSchema = z.object({
+export const CloudRunAIErrorResponseSchema = z.object({
   success: z.literal(false),
   error: z.string(),
   message: z.string(),
   timestamp: z.string(),
 });
 
-export const GoogleAIStatusResponseSchema = z.object({
+export const CloudRunAIStatusResponseSchema = z.object({
   success: z.boolean(),
   service: z.string(),
   status: z.enum(['active', 'not_configured']),
@@ -281,6 +283,18 @@ export const GoogleAIStatusResponseSchema = z.object({
   }),
   timestamp: z.string(),
 });
+
+// Legacy aliases for backward compatibility (deprecated)
+/** @deprecated Use CloudRunAIGenerateRequestSchema instead */
+export const GoogleAIGenerateRequestSchema = CloudRunAIGenerateRequestSchema;
+/** @deprecated Use CloudRunAIUsageMetadataSchema instead */
+export const GoogleAIUsageMetadataSchema = CloudRunAIUsageMetadataSchema;
+/** @deprecated Use CloudRunAIGenerateResponseSchema instead */
+export const GoogleAIGenerateResponseSchema = CloudRunAIGenerateResponseSchema;
+/** @deprecated Use CloudRunAIErrorResponseSchema instead */
+export const GoogleAIErrorResponseSchema = CloudRunAIErrorResponseSchema;
+/** @deprecated Use CloudRunAIStatusResponseSchema instead */
+export const GoogleAIStatusResponseSchema = CloudRunAIStatusResponseSchema;
 
 // ===== 타입 내보내기 =====
 
@@ -312,15 +326,31 @@ export type ComparisonBenchmarkResponse = z.infer<
 export type LoadBenchmarkResponse = z.infer<typeof LoadBenchmarkResponseSchema>;
 export type CacheClearResponse = z.infer<typeof CacheClearResponseSchema>;
 
-// Google AI 타입
-export type GoogleAIGenerateRequest = z.infer<
-  typeof GoogleAIGenerateRequestSchema
+// Cloud Run AI 타입
+export type CloudRunAIGenerateRequest = z.infer<
+  typeof CloudRunAIGenerateRequestSchema
 >;
-export type GoogleAIUsageMetadata = z.infer<typeof GoogleAIUsageMetadataSchema>;
-export type GoogleAIGenerateResponse = z.infer<
-  typeof GoogleAIGenerateResponseSchema
+export type CloudRunAIUsageMetadata = z.infer<
+  typeof CloudRunAIUsageMetadataSchema
 >;
-export type GoogleAIErrorResponse = z.infer<typeof GoogleAIErrorResponseSchema>;
-export type GoogleAIStatusResponse = z.infer<
-  typeof GoogleAIStatusResponseSchema
+export type CloudRunAIGenerateResponse = z.infer<
+  typeof CloudRunAIGenerateResponseSchema
 >;
+export type CloudRunAIErrorResponse = z.infer<
+  typeof CloudRunAIErrorResponseSchema
+>;
+export type CloudRunAIStatusResponse = z.infer<
+  typeof CloudRunAIStatusResponseSchema
+>;
+
+// Legacy type aliases (deprecated)
+/** @deprecated Use CloudRunAIGenerateRequest instead */
+export type GoogleAIGenerateRequest = CloudRunAIGenerateRequest;
+/** @deprecated Use CloudRunAIUsageMetadata instead */
+export type GoogleAIUsageMetadata = CloudRunAIUsageMetadata;
+/** @deprecated Use CloudRunAIGenerateResponse instead */
+export type GoogleAIGenerateResponse = CloudRunAIGenerateResponse;
+/** @deprecated Use CloudRunAIErrorResponse instead */
+export type GoogleAIErrorResponse = CloudRunAIErrorResponse;
+/** @deprecated Use CloudRunAIStatusResponse instead */
+export type GoogleAIStatusResponse = CloudRunAIStatusResponse;

@@ -13,9 +13,10 @@
 
 /**
  * AI 엔진 타입 - 통합 정의 (Single Source of Truth)
+ * v5.84.0: google-ai → cloud-run-ai로 변경
  */
 export type AIEngineType =
-  | 'google-ai'
+  | 'cloud-run-ai'
   | 'local-ai'
   | 'local-rag'
   | 'fallback'
@@ -94,7 +95,7 @@ export const TypeGuards = {
 
   isAIEngineType: (type: string): type is AIEngineType => {
     const validTypes: AIEngineType[] = [
-      'google-ai',
+      'cloud-run-ai',
       'local-ai',
       'local-rag',
       'fallback',

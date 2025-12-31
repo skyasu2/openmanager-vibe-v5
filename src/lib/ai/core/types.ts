@@ -1,10 +1,12 @@
 /**
- * 🤖 Google AI Unified Engine - 중앙 집중식 타입 시스템
+ * 🤖 AI Engine Core Types - 중앙 집중식 타입 시스템
  *
  * 목적:
  * - 모든 AI 엔진 관련 타입을 한 곳에서 관리
  * - TypeScript strict mode 100% 준수
  * - any 타입 절대 금지
+ *
+ * @since v5.84.0 - Cloud Run AI Engine (Vercel AI SDK + Cerebras/Groq/Mistral)
  */
 
 // ============================================================================
@@ -136,7 +138,7 @@ export interface UnifiedQueryResponse {
  */
 export interface ResponseMetadata {
   /** 엔진 타입 */
-  engine: 'google-ai-unified';
+  engine: 'cloud-run-ai' | 'google-ai-unified';
 
   /** 사용된 모델 */
   model: string;
@@ -397,9 +399,10 @@ export interface RuleHint {
 // ============================================================================
 
 /**
- * Google AI 프롬프트
+ * AI 프롬프트 (Cloud Run AI Engine)
+ * @since v5.84.0 - Renamed from GoogleAIPrompt
  */
-export interface GoogleAIPrompt {
+export interface AIPrompt {
   /** 시스템 instruction */
   systemInstruction: string;
 
@@ -409,6 +412,11 @@ export interface GoogleAIPrompt {
   /** 예상 토큰 수 */
   estimatedTokens: number;
 }
+
+/**
+ * @deprecated Use AIPrompt instead. Will be removed in v6.0
+ */
+export type GoogleAIPrompt = AIPrompt;
 
 /**
  * 프롬프트 템플릿
@@ -485,8 +493,15 @@ export interface EngineHealthStatus {
   /** Provider 상태 */
   providers: ProviderHealthStatus[];
 
-  /** Google AI API 상태 */
-  googleAIStatus: {
+  /** Cloud Run AI Engine 상태 */
+  cloudRunAIStatus: {
+    available: boolean;
+    latency?: number;
+    error?: string;
+  };
+
+  /** @deprecated Use cloudRunAIStatus instead */
+  googleAIStatus?: {
     available: boolean;
     latency?: number;
     error?: string;
@@ -689,18 +704,24 @@ export class ProviderError extends Error {
 }
 
 /**
- * Google AI API 에러
+ * Cloud Run AI Engine 에러
+ * @since v5.84.0 - Renamed from GoogleAIError
  */
-export class GoogleAIError extends Error {
+export class CloudRunAIError extends Error {
   constructor(
     message: string,
     public readonly statusCode?: number,
     public readonly details?: unknown
   ) {
     super(message);
-    this.name = 'GoogleAIError';
+    this.name = 'CloudRunAIError';
   }
 }
+
+/**
+ * @deprecated Use CloudRunAIError instead. Will be removed in v6.0
+ */
+export const GoogleAIError = CloudRunAIError;
 
 // ============================================================================
 // 유틸리티 타입

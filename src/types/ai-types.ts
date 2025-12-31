@@ -11,10 +11,11 @@
 // ==============================================
 
 /**
- * AI 모드 정의 v4.0 (단순화 완료)
- * - UNIFIED: 단일 통합 엔진 (Supabase RAG + Google Cloud Functions + Gemini)
+ * AI 모드 정의 v5.0 (Cloud Run Multi-Agent)
+ * - UNIFIED: 통합 AI 엔진 (Cloud Run LLM 멀티 에이전트 + Supabase RAG)
  * @since v3.2.0 - 자동 라우팅으로 단일 모드 사용
  * @since v4.0 - 타입 단순화 (LOCAL, GOOGLE_AI, AUTO 제거)
+ * @since v5.84.0 - Cloud Run AI Engine (Vercel AI SDK + Cerebras/Groq/Mistral)
  */
 export type AIMode = 'UNIFIED';
 
@@ -28,9 +29,10 @@ export type LegacyAIMode = 'LOCAL' | 'GOOGLE_AI' | 'AUTO';
 
 /**
  * AI 엔진 타입 정의
+ * v5.84.0: google-ai → cloud-run-ai로 변경
  */
 export type AIEngineType =
-  | 'google-ai'
+  | 'cloud-run-ai'
   | 'supabase-rag'
   | 'korean-ai'
   | 'mcp-client'
@@ -107,7 +109,7 @@ export interface AIResponseMetadata {
   mainEngine?: string;
   supportEngines?: string[];
   ragUsed?: boolean;
-  googleAIUsed?: boolean;
+  cloudRunAIUsed?: boolean;
   mcpContextUsed?: boolean;
   subEnginesUsed?: string[];
   cacheUsed?: boolean;

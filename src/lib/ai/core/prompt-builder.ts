@@ -1,5 +1,5 @@
 /**
- * Prompt Builder - Google AI 프롬프트 생성 엔진
+ * Prompt Builder - AI 프롬프트 생성 엔진
  *
  * 역할:
  * - 시나리오별 프롬프트 템플릿 관리
@@ -11,12 +11,14 @@
  * - 시스템 instruction과 사용자 메시지 분리
  * - 컨텍스트 우선순위 (high → medium → low)
  * - 토큰 예산 관리 (기본 2048 토큰)
+ *
+ * @since v5.84.0 - Cloud Run AI Engine (Vercel AI SDK)
  */
 
 import type {
+  AIPrompt,
   AIScenario,
   ContextPriority,
-  GoogleAIPrompt,
   MLData,
   PromptParams,
   PromptTemplate,
@@ -40,7 +42,7 @@ export class PromptBuilder {
   /**
    * 프롬프트 생성 (메인 메서드)
    */
-  build(params: PromptParams, scenario: AIScenario): GoogleAIPrompt {
+  build(params: PromptParams, scenario: AIScenario): AIPrompt {
     const template = this.templates.get(scenario);
 
     if (!template) {

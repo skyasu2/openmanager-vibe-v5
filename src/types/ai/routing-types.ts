@@ -18,15 +18,16 @@ export type GroqModel =
   | 'llama-3.3-70b-versatile'
   | 'qwen-qwq-32b';
 
-export type GoogleModel = 'gemini-2.5-flash' | 'gemini-2.5-pro';
+/** Mistral 모델 타입 (Cloud Run에서 사용) */
+export type MistralModel = 'mistral-small-latest' | 'mistral-medium-latest';
 
-export type AIModel = GroqModel | GoogleModel;
+export type AIModel = GroqModel | MistralModel;
 
 export interface ModelCapabilities {
   /** 모델 ID */
   id: AIModel;
   /** 제공자 */
-  provider: 'groq' | 'google';
+  provider: 'groq' | 'mistral';
   /** 최대 컨텍스트 토큰 */
   maxContext: number;
   /** 분당 요청 제한 */
@@ -72,9 +73,9 @@ export interface AIProviderStatus {
     '70b': RateLimitStatus;
     '32b': RateLimitStatus;
   };
-  google: {
-    flash: RateLimitStatus;
-    pro: RateLimitStatus;
+  mistral: {
+    small: RateLimitStatus;
+    medium: RateLimitStatus;
   };
 }
 
@@ -148,7 +149,7 @@ export interface RoutingDecision {
   /** 라우팅 레벨 */
   level: RoutingLevel;
   /** 제공자 */
-  provider: 'groq' | 'google';
+  provider: 'groq' | 'mistral';
 
   /** 기능 활성화 */
   features: {
@@ -202,7 +203,7 @@ export interface RoutingPreferences {
   /** 특정 모델 강제 사용 */
   forceModel?: AIModel;
   /** 특정 제공자 선호 */
-  preferredProvider?: 'groq' | 'google';
+  preferredProvider?: 'groq' | 'mistral';
 }
 
 // ============================================================================
@@ -253,34 +254,34 @@ export const MODEL_CAPABILITIES: Record<AIModel, ModelCapabilities> = {
     speedScore: 6,
     costScore: 8,
   },
-  // Google Models
-  'gemini-2.5-flash': {
-    id: 'gemini-2.5-flash',
-    provider: 'google',
-    maxContext: 1048576, // 1M tokens
+  // Mistral Models (Cloud Run)
+  'mistral-small-latest': {
+    id: 'mistral-small-latest',
+    provider: 'mistral',
+    maxContext: 32768, // 32K tokens
     rpm: 60,
-    rpd: 1500,
-    tpm: 1000000,
+    rpd: 2000,
+    tpm: 500000,
     supportsTools: true,
-    supportsVision: true,
+    supportsVision: false,
     supportsReasoning: false,
     qualityScore: 8,
     speedScore: 9,
-    costScore: 7,
+    costScore: 9,
   },
-  'gemini-2.5-pro': {
-    id: 'gemini-2.5-pro',
-    provider: 'google',
-    maxContext: 2097152, // 2M tokens
+  'mistral-medium-latest': {
+    id: 'mistral-medium-latest',
+    provider: 'mistral',
+    maxContext: 32768, // 32K tokens
     rpm: 60,
-    rpd: 1500,
-    tpm: 1000000,
+    rpd: 2000,
+    tpm: 500000,
     supportsTools: true,
-    supportsVision: true,
+    supportsVision: false,
     supportsReasoning: true,
-    qualityScore: 10,
-    speedScore: 6,
-    costScore: 4,
+    qualityScore: 9,
+    speedScore: 7,
+    costScore: 7,
   },
 };
 
@@ -409,24 +410,32 @@ export type TaskType =
  */
 export const MODEL_SPECIALIZATION: Record<TaskType, AIModel[]> = {
   // 코딩: 추론 능력 중요
-  coding: ['qwen-qwq-32b', 'gemini-2.5-pro', 'llama-3.3-70b-versatile'],
+  coding: ['qwen-qwq-32b', 'mistral-medium-latest', 'llama-3.3-70b-versatile'],
   // 추론: Reasoning 모델 우선
-  reasoning: ['gemini-2.5-pro', 'qwen-qwq-32b', 'llama-3.3-70b-versatile'],
+  reasoning: [
+    'mistral-medium-latest',
+    'qwen-qwq-32b',
+    'llama-3.3-70b-versatile',
+  ],
   // 창작: 고품질 모델
-  creative: ['gemini-2.5-pro', 'llama-3.3-70b-versatile', 'gemini-2.5-flash'],
+  creative: [
+    'mistral-medium-latest',
+    'llama-3.3-70b-versatile',
+    'mistral-small-latest',
+  ],
   // 사실 정보: 빠른 응답
   factual: [
     'llama-3.1-8b-instant',
-    'gemini-2.5-flash',
+    'mistral-small-latest',
     'llama-3.3-70b-versatile',
   ],
-  // 멀티모달: Vision 지원
-  multimodal: ['gemini-2.5-flash', 'gemini-2.5-pro'],
+  // 멀티모달: Vision 지원 (Mistral은 Vision 미지원이므로 Groq 우선)
+  multimodal: ['llama-3.3-70b-versatile', 'mistral-medium-latest'],
   // 실시간: 최저 지연
-  realtime: ['llama-3.1-8b-instant', 'gemini-2.5-flash'],
+  realtime: ['llama-3.1-8b-instant', 'mistral-small-latest'],
   // 일반: 균형
   general: [
-    'gemini-2.5-flash',
+    'mistral-small-latest',
     'llama-3.1-8b-instant',
     'llama-3.3-70b-versatile',
   ],

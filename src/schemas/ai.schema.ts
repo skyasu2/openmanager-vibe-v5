@@ -10,12 +10,14 @@ import {
  * 🤖 AI 관련 Zod 스키마
  *
  * AI 엔진 및 분석에 사용되는 스키마들
+ *
+ * ## v5.84.0: Migrated from Google AI to Cloud Run (Mistral)
  */
 
 // ===== AI 엔진 =====
 
 export const AIEngineTypeSchema = z.enum([
-  'google-ai',
+  'cloud-run-ai', // Mistral via Cloud Run (v5.84.0)
   'openai',
   'anthropic',
   'local-llm',
@@ -24,14 +26,19 @@ export const AIEngineTypeSchema = z.enum([
 ]);
 
 export const AIModelSchema = z.enum([
-  'gemini-2.5-flash',
-  'gemini-2.5-pro',
-  'gemini-pro', // 레거시 호환성을 위해 유지
-  'gemini-pro-vision',
+  // Cloud Run models (Mistral)
+  'mistral-small-latest',
+  'mistral-embed',
+  // Agent models (Cerebras/Groq)
+  'llama-3.3-70b',
+  'llama-3.3-70b-versatile',
+  // OpenAI models
   'gpt-4',
   'gpt-3.5-turbo',
+  // Anthropic models
   'claude-3-opus',
   'claude-3-sonnet',
+  // Other
   'llama-2',
   'custom',
 ]);
