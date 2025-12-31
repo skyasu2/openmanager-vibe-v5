@@ -184,7 +184,7 @@ export default function FeatureCardModal({
                   : 'border border-yellow-500/30 bg-yellow-500/20 text-yellow-300'
               }`}
             >
-              {tech.aiType === 'google-api' ? '🌐 Google AI' : '💻 로컬 AI'}
+              {tech.aiType === 'google-api' ? '🌐 Cloud AI' : '💻 로컬 AI'}
             </span>
           )}
         </div>

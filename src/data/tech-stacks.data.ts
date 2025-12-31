@@ -18,45 +18,33 @@ export interface VibeCodeData {
 
 export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
   'ai-assistant-pro': [
+    // ========== AI Providers (기술 소개) ==========
     {
-      name: 'Vercel AI SDK (Cloud Run)',
+      name: 'Cerebras Inference',
       category: 'ai',
       importance: 'critical',
-      description: 'Multi-Agent 오케스트레이션 프레임워크 (GCP Cloud Run 배포)',
+      description:
+        '세계 최대 AI 칩 Wafer-Scale Engine(WSE-3) 기반 추론 서비스. 850,000개 코어가 단일 웨이퍼에 집적되어 GPU 클러스터의 통신 병목 없이 초고속 추론 제공',
       implementation:
-        'Vercel AI SDK generateText + maxSteps로 Supervisor-Worker 패턴 구현. Google Cloud Run에서 컨테이너로 운영, 에이전트 간 통신 및 상태 관리',
-      version: '5.x',
+        '→ Orchestrator + NLQ Agent에서 사용. 24M 토큰/일 무료 티어로 서버 조회 및 의도 분류 담당',
+      version: 'Llama 3.3 70B',
       status: 'active',
-      icon: '🕸️',
-      tags: ['Multi-Agent', 'AI SDK', 'TypeScript', 'CloudRun'],
-      type: 'opensource',
+      icon: '🧠',
+      tags: ['WSE-3', '24M/day', '웨이퍼스케일'],
+      type: 'commercial',
     },
     {
       name: 'Groq Cloud',
       category: 'ai',
       importance: 'critical',
       description:
-        'LPU(Language Processing Unit) 기반 초고속 추론 인프라. 500 Tokens/s로 업계 최고 속도',
+        'LPU(Language Processing Unit) 기반 초고속 추론 인프라. 폰 노이만 병목을 해결한 결정론적(Deterministic) 아키텍처로 500 Tokens/s 속도 제공',
       implementation:
-        '→ Supervisor 에이전트로 사용 중 (의도 분류 및 Worker 라우팅)',
-      version: 'Llama 3.3 70B',
+        '→ Analyst + Reporter Agent에서 사용. 이상 탐지, 트렌드 예측, 보고서 생성 담당',
+      version: 'Llama 3.3 70B Versatile',
       status: 'active',
       icon: '⚡',
-      tags: ['LPU', '500T/s', 'Supervisor'],
-      type: 'commercial',
-    },
-    {
-      name: 'Cerebras Inference',
-      category: 'ai',
-      importance: 'critical',
-      description:
-        '세계 최대 AI 칩(WSE-3) 기반 추론 서비스. 24M 토큰/일 무료 (Groq 240배)',
-      implementation:
-        '→ NLQ/Analyst/Reporter 에이전트로 사용 중 (분석 및 리포트 생성)',
-      version: 'Llama 3.3 70B',
-      status: 'active',
-      icon: '🧠',
-      tags: ['WSE-3', '24M/day', 'Worker'],
+      tags: ['LPU', '500T/s', '결정론적'],
       type: 'commercial',
     },
     {
@@ -64,90 +52,87 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       category: 'ai',
       importance: 'high',
       description:
-        '프랑스 AI 스타트업의 효율적인 오픈웨이트 LLM. 24B 파라미터로 빠른 응답',
-      implementation: '→ Verifier 에이전트로 사용 중 (AI 응답 품질 검증)',
-      version: 'Small 3.2 (24B)',
+        '프랑스 AI 스타트업의 효율적인 오픈웨이트 LLM. 24B 파라미터의 Small Language Model로 대형 모델 대비 낮은 비용과 빠른 응답 속도 제공',
+      implementation:
+        '→ Advisor Agent에서 사용. GraphRAG 기반 해결 방법 안내 및 응답 품질 검증 담당',
+      version: 'mistral-small-2506 (24B)',
       status: 'active',
       icon: '🛡️',
-      tags: ['OpenWeight', '24B', 'Verifier'],
+      tags: ['SLM', '24B', '오픈웨이트'],
       type: 'commercial',
     },
-    {
-      name: 'Supabase PostgreSQL + pgVector',
-      category: 'database',
-      importance: 'high',
-      description: 'PostgreSQL 기반 BaaS + 벡터 검색 확장',
-      implementation: 'RAG 지식 베이스 구축, 임베딩 저장 및 유사도 검색',
-      version: 'PostgreSQL 15',
-      status: 'active',
-      icon: '🐘',
-      tags: ['Database', 'RAG', 'Vector Search'],
-      type: 'commercial',
-    },
+    // ========== Framework & SDK ==========
     {
       name: 'Vercel AI SDK',
       category: 'ai',
-      importance: 'high',
-      description: 'Vercel의 AI 스트리밍 및 도구 호출 SDK',
+      importance: 'critical',
+      description:
+        'Vercel이 개발한 AI 애플리케이션 프레임워크. streamText, generateObject 등 API로 스트리밍 응답, 도구 호출, 멀티 에이전트 오케스트레이션 지원',
       implementation:
-        'streamText, generateObject 등 API로 프론트엔드-백엔드 AI 통신',
+        '@ai-sdk-tools/agents 패키지로 5-Agent 멀티 에이전트 시스템 구축. Orchestrator-Worker Handoff 패턴 구현',
       version: '5.x',
       status: 'active',
       icon: '▲',
-      tags: ['SDK', 'Streaming', 'Vercel'],
+      tags: ['AI SDK', 'Streaming', 'Multi-Agent'],
       type: 'opensource',
     },
     {
-      name: 'Multi-Agent Pattern (Return-to-Supervisor)',
-      category: 'ai',
-      importance: 'critical',
-      description: '멀티 에이전트 오케스트레이션 패턴 구현',
-      implementation:
-        'Vercel AI SDK generateText + maxSteps 기반 Return-to-Supervisor 패턴. Supervisor가 작업 분배, Worker가 도구 실행 후 결과를 Supervisor에게 반환하는 구조',
-      version: 'Custom',
-      status: 'active',
-      icon: '🔄',
-      tags: ['Multi-Agent', 'Orchestration', 'AI SDK'],
-      type: 'custom',
-    },
-    {
-      name: 'GraphRAG (Hybrid Search)',
+      name: '@ai-sdk-tools/agents',
       category: 'ai',
       importance: 'high',
-      description: 'Vector Search + Knowledge Graph 하이브리드 검색',
+      description:
+        'Vercel AI SDK 확장 패키지. Agent 클래스로 전문 에이전트 정의, matchOn으로 패턴 매칭, handoffs로 에이전트 간 작업 위임 지원',
       implementation:
-        'pgvector 유사도 검색 + knowledge_relationships 테이블의 관계 그래프 탐색을 결합. searchWithGraph() 메서드로 컨텍스트 이해 심화',
+        'Orchestrator + NLQ + Analyst + Reporter + Advisor 5개 에이전트 정의. 질문 유형별 자동 라우팅 구현',
       version: '1.0.0',
       status: 'active',
-      icon: '🕸️',
-      tags: ['RAG', 'Knowledge Graph', 'Vector Search'],
-      type: 'custom',
-    },
-    {
-      name: 'Code Interpreter (Pyodide)',
-      category: 'ai',
-      importance: 'high',
-      description: '브라우저 기반 Python 실행 환경 ($0 비용)',
-      implementation:
-        'WebAssembly로 컴파일된 Pyodide 런타임으로 AI 응답 내 Python 코드 블록을 브라우저에서 직접 실행. 서버 비용 없이 데이터 분석 지원',
-      version: '0.26.x',
-      status: 'active',
-      icon: '🐍',
-      tags: ['Code Execution', 'WebAssembly', 'Browser'],
+      icon: '🤖',
+      tags: ['Agents', 'Handoff', 'Pattern Matching'],
       type: 'opensource',
     },
+    // ========== Database & RAG ==========
     {
-      name: 'Rust ML Engine',
+      name: 'Supabase pgVector',
+      category: 'database',
+      importance: 'high',
+      description:
+        'PostgreSQL 확장으로 벡터 유사도 검색 지원. 텍스트 임베딩을 저장하고 코사인 유사도로 관련 문서 검색 가능',
+      implementation:
+        '과거 장애 사례 및 해결 방법 저장. Advisor Agent가 searchKnowledgeBase 도구로 유사 사례 검색',
+      version: 'PostgreSQL 15 + pgVector',
+      status: 'active',
+      icon: '🐘',
+      tags: ['Vector Search', 'RAG', 'Embedding'],
+      type: 'commercial',
+    },
+    {
+      name: 'GraphRAG (LlamaIndex.TS)',
       category: 'ai',
       importance: 'high',
-      description: 'TFLite보다 우수한 Rust native ML 추론 엔진',
+      description:
+        'LlamaIndex.TS 기반 하이브리드 검색. Vector Search + Knowledge Graph Triplet Extraction으로 개념 간 관계를 탐색하여 정확한 컨텍스트 제공',
       implementation:
-        'anomaly.rs(이상탐지, 2σ 임계값), trend.rs(선형 회귀 예측), cluster.rs(K-Means) 구현. 이미지 ~30MB, Cold Start <500ms, 메모리 ~50MB',
-      version: '1.0.0',
+        'LlamaIndex.TS + Mistral AI로 Triplet 추출. Supabase pgVector와 통합된 하이브리드 검색 수행',
+      version: 'LlamaIndex.TS',
       status: 'active',
-      icon: '🦀',
-      tags: ['Rust', 'ML', 'Native Binary'],
-      type: 'custom',
+      icon: '🦙',
+      tags: ['LlamaIndex.TS', 'Hybrid Search', 'Knowledge Graph'],
+      type: 'opensource',
+    },
+    // ========== Deployment ==========
+    {
+      name: 'GCP Cloud Run',
+      category: 'deployment',
+      importance: 'high',
+      description:
+        'Google Cloud의 서버리스 컨테이너 플랫폼. 요청이 없으면 Scale to Zero로 비용 절감, 트래픽 증가 시 자동 확장',
+      implementation:
+        'Node.js 22 + Hono 웹 프레임워크로 AI 엔진 컨테이너 운영. asia-northeast1(서울) 리전 배포',
+      version: 'asia-northeast1',
+      status: 'active',
+      icon: '☁️',
+      tags: ['Serverless', 'Container', 'Auto-scale'],
+      type: 'commercial',
     },
   ],
   'cloud-platform': [

@@ -2,16 +2,17 @@
  * Knowledge Base Seed Script
  * RAG 지식베이스 초기 데이터 시딩
  *
- * 무료 티어 준수:
- * - Gemini text-embedding-004 (1,500 RPM)
+ * Mistral mistral-embed (1024 dimensions)
  * - 1회 실행용 (백그라운드 작업 아님)
- * - 예상 임베딩: ~30개 문서 × 1 API call = 30 calls
+ * - 예상 임베딩: ~38개 문서 × 1 API call = 38 calls
  *
  * 실행: npx tsx src/scripts/seed-knowledge-base.ts
+ *
+ * @version 2.0.0 - Mistral embedding migration (2025-12-31)
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { google } from '@ai-sdk/google';
+import { createMistral } from '@ai-sdk/mistral';
 import { embedMany } from 'ai';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -608,44 +609,36 @@ async function seedKnowledgeBase() {
   // 환경변수 확인
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const googleApiKey = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY_PRIMARY;
+  const mistralApiKey = process.env.MISTRAL_API_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
     console.error('❌ Missing Supabase credentials');
     process.exit(1);
   }
 
-  if (!googleApiKey) {
-    console.error('❌ Missing Google AI API key (GOOGLE_AI_API_KEY or GEMINI_API_KEY_PRIMARY)');
+  if (!mistralApiKey) {
+    console.error('❌ Missing Mistral API key (MISTRAL_API_KEY)');
     process.exit(1);
   }
-
-  // 환경변수 설정 (AI SDK가 참조)
-  process.env.GOOGLE_GENERATIVE_AI_API_KEY = googleApiKey;
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   console.log(`📦 Preparing ${KNOWLEDGE_ENTRIES.length} knowledge entries...\n`);
 
   // 1. 임베딩 생성 (배치)
-  console.log('🧠 Generating embeddings with Gemini text-embedding-004...');
+  console.log('🧠 Generating embeddings with Mistral mistral-embed (1024d)...');
 
   const texts = KNOWLEDGE_ENTRIES.map(e => `${e.title}\n\n${e.content}`);
 
-  const model = google.embedding('text-embedding-004');
+  const mistral = createMistral({ apiKey: mistralApiKey });
+  const model = mistral.embedding('mistral-embed');
   const { embeddings } = await embedMany({
     model,
     values: texts,
     experimental_telemetry: { isEnabled: false },
-    providerOptions: {
-      google: {
-        outputDimensionality: 384, // 기존 command_vectors와 호환
-        taskType: 'RETRIEVAL_DOCUMENT',
-      },
-    },
   });
 
-  console.log(`✅ Generated ${embeddings.length} embeddings\n`);
+  console.log(`✅ Generated ${embeddings.length} embeddings (1024 dimensions)\n`);
 
   // 2. Supabase에 삽입
   console.log('📝 Inserting into knowledge_base table...');

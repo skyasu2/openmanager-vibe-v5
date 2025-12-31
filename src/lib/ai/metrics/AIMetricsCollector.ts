@@ -180,7 +180,7 @@ export class AIMetricsCollector {
    */
   private initializeMetrics(): SystemMetrics {
     const engineTypes: AIEngineType[] = [
-      'google-ai',
+      'cloud-run-ai',
       'simplified',
       'performance-optimized',
     ];
@@ -197,7 +197,7 @@ export class AIMetricsCollector {
       averageResponseTime: 0,
       cacheHitRate: 0,
       quotaUsage: 0,
-      quotaLimit: aiEngineConfig.quotaProtection.dailyLimit,
+      quotaLimit: 2000, // Cloud Run daily limit (managed by ai-engine)
       engineMetrics: engineMetrics as Record<AIEngineType, EngineMetrics>,
       providerHealth: {
         rag: true,
@@ -275,7 +275,7 @@ export class AIMetricsCollector {
     // System-wide metrics
     this.metrics.totalQueries++;
     if (!success) this.metrics.totalErrors++;
-    if (aiEngineConfig.quotaProtection.enabled) {
+    if (aiEngineConfig.rateLimiting.enabled) {
       this.metrics.quotaUsage++;
     }
 

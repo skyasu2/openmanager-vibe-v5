@@ -1,5 +1,5 @@
 {
-  "googleAI": {
+  "cloudRunAI": {
     "serverStatus": {
       "keywords": ["서버", "상태", "status", "health", "정상", "확인"],
       "responses": [

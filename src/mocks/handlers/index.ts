@@ -5,15 +5,16 @@
  * 핸들러는 각 서비스별로 분리되어 있으며, 여기서 통합됩니다.
  *
  * @architecture
- * - handlers/ai/       - Google AI, OpenAI, Cohere API 핸들러
+ * - handlers/ai/       - OpenAI, Cohere API 핸들러
  * - handlers/vercel/   - Vercel Platform API 핸들러
  * - handlers/supabase/ - Supabase PostgreSQL API 핸들러
+ *
+ * ## v5.84.0: Removed Google AI handlers (migrated to Mistral)
  */
 
 import type { RequestHandler } from 'msw';
 import { cohereHandlers } from './ai/cohere';
-// AI 서비스 핸들러 (Google AI, OpenAI, Cohere)
-import { googleAIHandlers } from './ai/google-ai';
+// AI 서비스 핸들러 (OpenAI, Cohere)
 import { openAIHandlers } from './ai/openai';
 // Next.js API Routes 핸들러
 import { nextJsApiHandlers } from './nextjs/api-routes';
@@ -33,7 +34,6 @@ export const handlers: RequestHandler[] = [
   ...nextJsApiHandlers,
 
   // AI 서비스 핸들러
-  ...googleAIHandlers,
   ...openAIHandlers,
   ...cohereHandlers,
 
@@ -55,6 +55,6 @@ export const getHandlersByEnvironment = (env: 'test' | 'development') => {
 
   // 개발 환경: AI API만 모킹 (선택적)
   return process.env.MOCK_AI_APIS === 'true'
-    ? [...googleAIHandlers, ...openAIHandlers, ...cohereHandlers]
+    ? [...openAIHandlers, ...cohereHandlers]
     : [];
 };

@@ -2,8 +2,8 @@
  * 🤖 제3자 AI 대화 관리자
  * 다양한 AI 서비스와 직접 대화할 수 있는 통합 모듈
  *
- * v5.84.0: Hybrid Architecture 준수
- * - Google AI 호출: Cloud Run 프록시 사용 (/api/ai/generate)
+ * v5.84.0: Hybrid Architecture 준수 + Mistral Migration
+ * - Cloud Run AI: Mistral (mistral-small-latest) 사용
  * - OpenAI/Cohere: 직접 호출 유지 (환경변수에 API 키 필요)
  */
 
@@ -52,16 +52,16 @@ export class AIConversationManager {
 
   /**
    * AI 제공자 초기화
-   * v5.84.0: Google AI는 Cloud Run 프록시 사용 (API 키 불필요)
+   * v5.84.0: Cloud Run AI (Mistral) 사용, API 키는 Cloud Run에서 관리
    */
   private _initializeProviders() {
-    // Google AI (Gemini) - Cloud Run 프록시 사용
+    // Cloud Run AI (Mistral) - Cloud Run 프록시 사용
     // API 키는 Cloud Run에서 관리, Vercel에서는 프록시만 수행
-    this.providers.set('google', {
-      name: 'Google AI (Gemini)',
+    this.providers.set('cloudrun', {
+      name: 'Cloud Run AI (Mistral)',
       apiKey: 'CLOUD_RUN_PROXY', // Cloud Run에서 처리
       baseUrl: 'CLOUD_RUN_PROXY', // Cloud Run에서 처리
-      model: 'gemini-2.5-flash',
+      model: 'mistral-small-latest',
       enabled: isCloudRunEnabled(), // Cloud Run 활성화 여부에 따라 결정
     });
 
@@ -214,8 +214,8 @@ export class AIConversationManager {
     confidence: number;
   }> {
     switch (provider.name) {
-      case 'Google AI (Gemini)':
-        return this.callGoogleAI(provider, messages);
+      case 'Cloud Run AI (Mistral)':
+        return this.callCloudRunAI(provider, messages);
       case 'OpenAI (GPT)':
         return this.callOpenAI(provider, messages);
       case 'Cohere':
@@ -226,10 +226,10 @@ export class AIConversationManager {
   }
 
   /**
-   * Google AI 호출 (Cloud Run 프록시 사용)
+   * Cloud Run AI 호출 (Mistral via Cloud Run)
    * v5.84.0: Hybrid Architecture - Vercel은 프록시만, Cloud Run이 AI 처리
    */
-  private async callGoogleAI(
+  private async callCloudRunAI(
     provider: AIProvider,
     messages: ConversationMessage[]
   ): Promise<{
@@ -249,7 +249,7 @@ export class AIConversationManager {
       body: {
         prompt: lastMessage.content,
         options: {
-          model: provider.model || 'gemini-2.5-flash',
+          model: provider.model || 'mistral-small-latest',
           temperature: 0.7,
           maxTokens: 1024,
         },
@@ -258,7 +258,7 @@ export class AIConversationManager {
     });
 
     if (!result.success) {
-      throw new Error(`Google AI API 오류 (Cloud Run): ${result.error}`);
+      throw new Error(`Cloud Run AI API 오류: ${result.error}`);
     }
 
     const data = result.data as {
@@ -269,7 +269,9 @@ export class AIConversationManager {
     };
 
     if (!data.success) {
-      throw new Error(`Google AI 생성 실패: ${data.error || 'Unknown error'}`);
+      throw new Error(
+        `Cloud Run AI 생성 실패: ${data.error || 'Unknown error'}`
+      );
     }
 
     return {

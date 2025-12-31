@@ -357,14 +357,6 @@ export const CIRCUIT_BREAKERS = {
     failureExpirySeconds: 300,
   } satisfies CircuitBreakerConfig,
 
-  /** Google AI */
-  googleAI: {
-    service: 'google-ai',
-    failureThreshold: 5,
-    resetTimeoutSeconds: 30,
-    failureExpirySeconds: 180,
-  } satisfies CircuitBreakerConfig,
-
   /** Groq (Fallback) */
   groq: {
     service: 'groq',

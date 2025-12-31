@@ -168,7 +168,7 @@ export const ThinkingProcessVisualizer: FC<ThinkingProcessVisualizerProps> = ({
                     isLocalRouting ? 'text-green-800' : 'text-blue-800'
                   }`}
                 >
-                  {isLocalRouting ? '💾 로컬 처리' : '🤖 Google AI 처리'}
+                  {isLocalRouting ? '💾 로컬 처리' : '🤖 Cloud AI 처리'}
                 </span>
                 {isCostSaving && (
                   <span className="flex items-center space-x-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">

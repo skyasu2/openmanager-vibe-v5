@@ -55,7 +55,7 @@ export const GET = developmentOnly(function GET(request: NextRequest) {
       hasSupabaseServiceKey: !!env.SUPABASE_SERVICE_ROLE_KEY,
       hasSupabaseProjectId: !!env.SUPABASE_PROJECT_ID,
 
-      hasGoogleAiKey: !!env.GOOGLE_AI_API_KEY,
+      hasCloudRunAI: true, // Cloud Run AI는 외부 키 불필요 (GCP 인증)
       hasTavilyKey: !!env.TAVILY_API_KEY,
       hasGithubOAuth: !!env.GITHUB_CLIENT_ID && !!env.GITHUB_CLIENT_SECRET,
       hasGithubToken: !!env.GITHUB_TOKEN,
@@ -88,7 +88,7 @@ export const GET = developmentOnly(function GET(request: NextRequest) {
       missingCritical: [
         ...(!features.supabase ? ['Supabase Database Connection'] : []),
         ...(!features.ai && !features.search
-          ? ['AI Service (Google AI or Tavily)']
+          ? ['AI Service (Cloud Run AI or Tavily)']
           : []),
       ],
 

@@ -11,8 +11,12 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
  * - 시스템이 실제로 시작된 상태일 때만 실행
  * - 사용자가 "시스템 시작" 버튼을 누르기 전에는 실행 안 함
  * - AI 백엔드 서버 자동 웜업
- * - Google AI 연결 확인
+ * - Cloud Run AI 연결 확인
  * - 시스템 초기화 상태 관리
+ *
+ * ## v5.84.0: Google AI → Cloud Run Migration
+ * - Removed Google AI status check (deprecated)
+ * - Uses Cloud Run AI health endpoint (/api/ai/health)
  */
 export function SystemBootstrap(): React.ReactNode {
   const { isSystemStarted } = useUnifiedAdminStore();
@@ -22,7 +26,7 @@ export function SystemBootstrap(): React.ReactNode {
 
   const [_bootstrapStatus, setBootstrapStatus] = useState({
     mcp: 'pending' as 'pending' | 'success' | 'failed',
-    googleAI: 'pending' as 'pending' | 'success' | 'failed',
+    cloudRunAI: 'pending' as 'pending' | 'success' | 'failed',
     supabase: 'pending' as 'pending' | 'success' | 'failed',
     completed: false,
   });
@@ -51,7 +55,7 @@ export function SystemBootstrap(): React.ReactNode {
       // 🎯 로컬 상태 추적 (async 업데이트 문제 해결)
       const localStatus = {
         mcp: 'pending' as 'pending' | 'success' | 'failed',
-        googleAI: 'pending' as 'pending' | 'success' | 'failed',
+        cloudRunAI: 'pending' as 'pending' | 'success' | 'failed',
         supabase: 'pending' as 'pending' | 'success' | 'failed',
       };
 
@@ -114,10 +118,10 @@ export function SystemBootstrap(): React.ReactNode {
         }
       }
 
-      // 2. Google AI 상태 확인 (한 번만)
+      // 2. Cloud Run AI 상태 확인 (한 번만)
       try {
-        console.log('🤖 Google AI 상태 확인...');
-        const googleResponse = await fetch('/api/ai/google-ai/status', {
+        console.log('🤖 Cloud Run AI 상태 확인...');
+        const aiHealthResponse = await fetch('/api/ai/health', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -125,25 +129,28 @@ export function SystemBootstrap(): React.ReactNode {
         });
 
         if (isMounted) {
-          if (googleResponse.ok) {
-            const googleData = await googleResponse.json();
+          if (aiHealthResponse.ok) {
+            const aiData = await aiHealthResponse.json();
             console.log(
-              '✅ Google AI 상태 확인 완료:',
-              googleData.enabled ? '활성화' : '비활성화'
+              '✅ Cloud Run AI 상태 확인 완료:',
+              aiData.status === 'ok' ? '정상' : '오류'
             );
-            localStatus.googleAI = 'success';
-            setBootstrapStatus((prev) => ({ ...prev, googleAI: 'success' }));
+            localStatus.cloudRunAI = 'success';
+            setBootstrapStatus((prev) => ({ ...prev, cloudRunAI: 'success' }));
           } else {
-            console.warn('⚠️ Google AI 상태 확인 실패:', googleResponse.status);
-            localStatus.googleAI = 'failed';
-            setBootstrapStatus((prev) => ({ ...prev, googleAI: 'failed' }));
+            console.warn(
+              '⚠️ Cloud Run AI 상태 확인 실패:',
+              aiHealthResponse.status
+            );
+            localStatus.cloudRunAI = 'failed';
+            setBootstrapStatus((prev) => ({ ...prev, cloudRunAI: 'failed' }));
           }
         }
       } catch (error) {
-        console.error('❌ Google AI 상태 확인 오류:', error);
+        console.error('❌ Cloud Run AI 상태 확인 오류:', error);
         if (isMounted) {
-          localStatus.googleAI = 'failed';
-          setBootstrapStatus((prev) => ({ ...prev, googleAI: 'failed' }));
+          localStatus.cloudRunAI = 'failed';
+          setBootstrapStatus((prev) => ({ ...prev, cloudRunAI: 'failed' }));
         }
       }
 
@@ -184,7 +191,7 @@ export function SystemBootstrap(): React.ReactNode {
       if (isMounted) {
         const finalStatus = {
           mcp: localStatus.mcp,
-          googleAI: localStatus.googleAI,
+          cloudRunAI: localStatus.cloudRunAI,
           supabase: localStatus.supabase,
           completed: true,
         };

@@ -108,7 +108,7 @@ export function useAIEngine(): UseAIEngineReturn {
 
   // getEngineDescription
   const getEngineDescription = useCallback((_engine?: string): string => {
-    return 'Supabase RAG + ML + Google AI Gemini (자동 라우팅)';
+    return 'Supabase RAG + ML + Cloud Run AI (자동 라우팅)';
   }, []);
 
   // getEngineEndpoint

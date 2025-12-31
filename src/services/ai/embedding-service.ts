@@ -3,7 +3,10 @@
  *
  * 설계 원칙:
  * - Vercel = Proxy Only (직접 API 호출 금지)
- * - Cloud Run = AI Processing (Google AI API 호출)
+ * - Cloud Run = AI Processing (Mistral API 호출)
+ *
+ * ## Migration (2025-12-31)
+ * - Changed from Google AI (384d) to Mistral (1024d)
  *
  * v5.84.0: 로컬 Fallback 제거 (Cloud Run 의존성 강화)
  */
@@ -33,7 +36,7 @@ class EmbeddingService {
   private cache = new Map<string, EmbeddingCache>();
   private readonly CACHE_TTL = 10800000; // 3시간
   private readonly MAX_CACHE_SIZE = 1000;
-  private readonly DEFAULT_DIMENSION = 384;
+  private readonly DEFAULT_DIMENSION = 1024; // Mistral mistral-embed
 
   // 캐시 히트율 추적
   private cacheHits = 0;
@@ -47,7 +50,7 @@ class EmbeddingService {
     options: EmbeddingOptions = {}
   ): Promise<number[]> {
     const dimension = options.dimension || this.DEFAULT_DIMENSION;
-    const model = options.model || 'text-embedding-004';
+    const model = options.model || 'mistral-embed';
 
     // 1. 입력 검증
     if (!text || text.trim().length === 0) {
@@ -115,7 +118,7 @@ class EmbeddingService {
     options: EmbeddingOptions = {}
   ): Promise<number[][]> {
     const dimension = options.dimension || this.DEFAULT_DIMENSION;
-    const model = options.model || 'text-embedding-004';
+    const model = options.model || 'mistral-embed';
 
     if (!isCloudRunEnabled()) {
       throw new Error('Cloud Run AI 서비스가 활성화되지 않았습니다.');

@@ -51,7 +51,7 @@ interface ServicesMonitorProps {
 const getServiceIcon = (serviceName: string) => {
   if (serviceName.includes('Supabase')) return <Database className="h-5 w-5" />;
   if (serviceName.includes('Redis')) return <Zap className="h-5 w-5" />;
-  if (serviceName.includes('Google AI'))
+  if (serviceName.includes('Cloud') || serviceName.includes('AI'))
     return <Activity className="h-5 w-5" />;
   if (serviceName.includes('Render')) return <Server className="h-5 w-5" />;
   if (serviceName.includes('Vercel')) return <Globe className="h-5 w-5" />;
@@ -166,7 +166,7 @@ export function ServicesMonitor({
           </Button>
         </div>
         <CardDescription>
-          Supabase, Redis, Google AI, MCP 서버 연결 상태
+          Supabase, Redis, Cloud Run AI, MCP 서버 연결 상태
         </CardDescription>
       </CardHeader>
       <CardContent>
