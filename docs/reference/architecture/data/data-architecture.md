@@ -24,9 +24,9 @@ AI/ML 서비스가 단순히 API를 호출하는 비효율적인 구조를 탈�
 
 ### 🛠️ 핵심 이점
 
-1.  **Cost Efficiency**: 불필요한 내부 API 호출 제거로 **Vercel 비용 $0** 유지.
-2.  **Latency**: ML/AI 서비스의 데이터 접근 지연 시간이 **Network RTT(수십 ms) → Memory Access(마이크로초)**로 단축.
-3.  **Realism**: AI는 단순 텍스트 생성이 아닌, **실제 DB(Supabase)**를 조회하여 로그를 분석합니다.
+1. **Cost Efficiency**: 불필요한 내부 API 호출 제거로 **Vercel 비용 $0** 유지.
+2. **Latency**: ML/AI 서비스의 데이터 접근 지연 시간이 **Network RTT(수십 ms) → Memory Access(마이크로초)**로 단축.
+3. **Realism**: AI는 단순 텍스트 생성이 아닌, **실제 DB(Supabase)**를 조회하여 로그를 분석합니다.
 
 ### 24시간 회전 데이터 시스템 (SSOT)
 

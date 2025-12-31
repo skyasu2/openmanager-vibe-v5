@@ -106,7 +106,7 @@ interface AIQueryResponse {
 }
 ```
 
-2. **구현**
+1. **구현**
 ```typescript
 // 타입에 맞춰 구현
 async function queryAI(
@@ -121,7 +121,7 @@ async function queryAI(
 }
 ```
 
-3. **리팩토링**
+1. **리팩토링**
 ```typescript
 // 타입 기반으로 안전한 리팩토링
 function extractSources(response: AIQueryResponse): string[] {

@@ -110,7 +110,7 @@ const FREE_TIER_OPTIMIZATION = {
 ### 🤖 **AI 시스템 성과**
 - **9.0/10 교차검증**: 4-AI 합의 기반
 - **272ms AI 응답**: Google Gemini 평균
-- **85% 정확도**: 로컬 키워드 분석 
+- **85% 정확도**: 로컬 키워드 분석
 - **$20/월 Multi-AI**: Codex만 유료 (Gemini+Qwen 무료)
 - **총 $220/월**: Multi-AI + Claude Max (10배 효율)
 

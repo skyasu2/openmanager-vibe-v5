@@ -60,7 +60,7 @@ cp -r ~/.ssh /mnt/c/wsl-backup/ssh-keys-backup
 
 ## 🔄 WSL 재설치
 
-### Windows PowerShell에서 실행:
+### Windows PowerShell에서 실행
 
 ```powershell
 # 1. 현재 WSL 상태 확인
@@ -197,11 +197,11 @@ npm list -g --depth=0
 
 ### 2-1. Docker Desktop 재연결 (중요)
 WSL을 재설치하면 Docker Desktop과의 연결이 끊어집니다.
-1.  **Windows**에서 Docker Desktop 실행
-2.  Settings (톱니바퀴) > **Resources** > **WSL Integration**
-3.  `Ubuntu-24.04` (또는 새로 설치한 배포판) 체크박스 **ON**
-4.  Apply & Restart
-5.  WSL 터미널에서 `docker ps` 잘 되는지 확인
+1. **Windows**에서 Docker Desktop 실행
+2. Settings (톱니바퀴) > **Resources** > **WSL Integration**
+3. `Ubuntu-24.04` (또는 새로 설치한 배포판) 체크박스 **ON**
+4. Apply & Restart
+5. WSL 터미널에서 `docker ps` 잘 되는지 확인
 
 ### 3. Rust/Cargo 설치
 

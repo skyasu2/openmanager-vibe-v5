@@ -27,9 +27,9 @@ src/domains/[domain-name]/
 
 ### Key Principles
 
-1.  **Encapsulation**: Internal details of a domain should not leak out. Use `index.ts` to explicitly export only the components and functions that other parts of the app need to use.
-2.  **Cohesion**: All code related to a specific business capability (e.g., the AI Sidebar) stays together. This makes it easier to understand and modify features without jumping between disparate folders.
-3.  **Independence**: Domains should ideally be loosely coupled. If one domain needs to interact with another, it should do so through well-defined interfaces or shared services/state.
+1. **Encapsulation**: Internal details of a domain should not leak out. Use `index.ts` to explicitly export only the components and functions that other parts of the app need to use.
+2. **Cohesion**: All code related to a specific business capability (e.g., the AI Sidebar) stays together. This makes it easier to understand and modify features without jumping between disparate folders.
+3. **Independence**: Domains should ideally be loosely coupled. If one domain needs to interact with another, it should do so through well-defined interfaces or shared services/state.
 
 ## 🌟 Example: AI Sidebar Domain
 

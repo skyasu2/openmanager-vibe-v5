@@ -11,7 +11,7 @@ Based on the current architecture and usage patterns, **OpenManager Vibe v5** ca
 
 ## 🔧 Service Configuration
 - **Service**: `ai-engine` (LangGraph Backend)
-- **Resources**: 
+- **Resources**:
   - 1 vCPU
   - 1GB Memory
 - **Concurrency**: 80 requests per instance
@@ -37,12 +37,12 @@ Based on the current architecture and usage patterns, **OpenManager Vibe v5** ca
 ---
 
 ## 📉 Cost Optimization Strategies implemented
-1. **Cold Start Mitigation**: 
+1. **Cold Start Mitigation**:
    - We use a "Wake Up" mechanism (`/api/ai/wake-up`) from the UI instead of keeping `min-instances: 1` (which would cost ~$6/month).
    - This keeps the service at 0 instances when idle, maximizing free tier usage.
-2. **Efficient Streaming**: 
+2. **Efficient Streaming**:
    - Responses are streamed, reducing memory holding time.
-3. **Concurrency**: 
+3. **Concurrency**:
    - Setting `concurrency: 80` allows a single container to handle all 5 concurrent users easily without spinning up extra instances.
 
 ## 🚀 Scalability Forecast
@@ -56,7 +56,7 @@ Based on the current architecture and usage patterns, **OpenManager Vibe v5** ca
 
 - **Reason**: The Free Tier provides **180,000 vCPU-seconds** per month.
 - **Math**:
-  - Always On: 60s * 60m * 24h * 30d = **2,592,000 vCPU-seconds**
+  - Always On: 60s *60m* 24h * 30d = **2,592,000 vCPU-seconds**
   - **Result**: You would exceed the free tier by **14x**, costing ~$25/month.
 - **Best Practice**: Use `min-instances: 0` (Scale to Zero) and use the "Wake Up" button to mitigate cold starts only when needed.
 
@@ -75,4 +75,3 @@ Based on the current architecture and usage patterns, **OpenManager Vibe v5** ca
 - **Decoupled**: Services scale independently.
 - **Cost-Efficient**: Fits 100% inside Free Tier.
 - **Stable**: Isolated failure domains (AI crash doesn't kill ML).
-

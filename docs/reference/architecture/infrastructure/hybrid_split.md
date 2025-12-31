@@ -11,7 +11,7 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
   - **UI/UX**: Renders everything the user sees (React Components).
   - **Authentication**: Verifies user login before generating AI responses.
   - **Input Validation**: Sanitizes user queries.
-  - **Routing/Failover**: 
+  - **Routing/Failover**:
     - Checks `CLOUD_RUN_ENABLED`.
     - If **True**: Proxies the request to Cloud Run.
     - If **False** or **Failure**: Falls back to executing AI locally (Serverless).

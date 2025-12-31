@@ -96,6 +96,6 @@ A: `node_modules`가 리눅스용으로 설치된 상태에서 Windows Node.js�
 ### 권장 워크플로우
 1. **코드 작성/수정**: IDE (Windows) + WSL Terminal
 2. **로컬 테스트**: WSL Terminal (`npm run dev:network`)
-3. **커밋/푸시**: 
+3. **커밋/푸시**:
    - **WSL Git 권장**: pre-push 훅의 모든 검증(테스트, 빌드)을 통과할 수 있음
    - **Windows Git**: 바이너리 문제 시 `HUSKY=0 git push` 또는 `QUICK_PUSH=true git push` 사용 (일부 검증 스킵)
