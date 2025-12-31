@@ -36,12 +36,13 @@ export {
 } from './analyst-tools';
 
 // ============================================================================
-// Reporter Tools (RAG Search & Command Recommendations)
+// Reporter Tools (RAG Search & Command Recommendations & Web Search)
 // ============================================================================
 export {
   searchKnowledgeBase,
   recommendCommands,
   extractKeywordsFromQuery,
+  searchWeb,
 } from './reporter-tools';
 
 // ============================================================================
@@ -50,7 +51,7 @@ export {
 import { getServerMetrics, getServerMetricsAdvanced, filterServers } from './server-metrics';
 import { buildIncidentTimeline, correlateMetrics, findRootCause } from './rca-analysis';
 import { detectAnomalies, predictTrends, analyzePattern } from './analyst-tools';
-import { searchKnowledgeBase, recommendCommands } from './reporter-tools';
+import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-tools';
 
 /**
  * All available tools for the AI SDK Supervisor
@@ -74,6 +75,7 @@ export const allTools = {
   // Reporter
   searchKnowledgeBase,
   recommendCommands,
+  searchWeb,
 };
 
 /**
@@ -98,6 +100,7 @@ export const toolCategories = {
   reporter: {
     searchKnowledgeBase,
     recommendCommands,
+    searchWeb,
   },
 };
 
@@ -116,6 +119,7 @@ export const toolDescriptions = {
   analyzePattern: '패턴 분석',
   searchKnowledgeBase: '과거 장애 이력 및 해결 방법 검색 (GraphRAG)',
   recommendCommands: 'CLI 명령어 추천',
+  searchWeb: '실시간 웹 검색 (Tavily) - 최신 기술 정보, 보안 이슈',
 };
 
 export type ToolName = keyof typeof allTools;

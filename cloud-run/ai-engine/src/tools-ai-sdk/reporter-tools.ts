@@ -12,7 +12,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 
 // Data sources
-import { getSupabaseConfig } from '../lib/config-parser';
+import { getSupabaseConfig, getTavilyApiKey } from '../lib/config-parser';
 import { searchWithEmbedding, embedText } from '../lib/embedding';
 import { hybridGraphSearch } from '../lib/llamaindex-rag-service';
 
@@ -337,3 +337,108 @@ export function extractKeywordsFromQuery(query: string): string[] {
 
   return keywords.length > 0 ? keywords : ['일반', '조회'];
 }
+
+// ============================================================================
+// 5. Web Search Tool (Tavily)
+// ============================================================================
+
+interface WebSearchResult {
+  title: string;
+  url: string;
+  content: string;
+  score: number;
+}
+
+/**
+ * Web Search Tool
+ * Uses Tavily API for real-time web search
+ */
+export const searchWeb = tool({
+  description:
+    '실시간 웹 검색을 수행합니다. 최신 기술 정보, 문서, 보안 이슈 등을 검색할 때 사용합니다.',
+  inputSchema: z.object({
+    query: z.string().describe('검색 쿼리'),
+    maxResults: z
+      .number()
+      .default(5)
+      .describe('반환할 결과 수 (기본: 5)'),
+    searchDepth: z
+      .enum(['basic', 'advanced'])
+      .default('basic')
+      .describe('검색 깊이 (basic: 빠른 검색, advanced: 심층 검색)'),
+    includeDomains: z
+      .array(z.string())
+      .optional()
+      .describe('특정 도메인만 검색 (예: ["docs.aws.com"])'),
+    excludeDomains: z
+      .array(z.string())
+      .optional()
+      .describe('제외할 도메인 (예: ["reddit.com"])'),
+  }),
+  execute: async ({
+    query,
+    maxResults = 5,
+    searchDepth = 'basic',
+    includeDomains,
+    excludeDomains,
+  }: {
+    query: string;
+    maxResults?: number;
+    searchDepth?: 'basic' | 'advanced';
+    includeDomains?: string[];
+    excludeDomains?: string[];
+  }) => {
+    console.log(`🌐 [Reporter Tools] Web search: ${query}`);
+
+    const tavilyApiKey = getTavilyApiKey();
+
+    if (!tavilyApiKey) {
+      console.warn('⚠️ [Reporter Tools] Tavily API key not configured');
+      return {
+        success: false,
+        error: 'Tavily API key not configured',
+        results: [],
+        _source: 'Tavily (Unconfigured)',
+      };
+    }
+
+    try {
+      const { tavily } = await import('@tavily/core');
+      const client = tavily({ apiKey: tavilyApiKey });
+
+      const response = await client.search(query, {
+        maxResults,
+        searchDepth,
+        includeDomains: includeDomains || [],
+        excludeDomains: excludeDomains || [],
+      });
+
+      const results: WebSearchResult[] = response.results.map((r) => ({
+        title: r.title,
+        url: r.url,
+        content: r.content.substring(0, 500),
+        score: r.score,
+      }));
+
+      console.log(`📊 [Reporter Tools] Web search: ${results.length} results`);
+
+      return {
+        success: true,
+        query,
+        results,
+        totalFound: results.length,
+        _source: 'Tavily Web Search',
+        answer: response.answer || null,
+      };
+    } catch (error) {
+      console.error('❌ [Reporter Tools] Web search error:', error);
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        results: [],
+        _source: 'Tavily (Error)',
+      };
+    }
+  },
+});

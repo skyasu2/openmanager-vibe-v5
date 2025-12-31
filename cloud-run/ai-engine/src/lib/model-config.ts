@@ -23,9 +23,10 @@ export function validateAPIKeys(): {
   cerebras: boolean;
   all: boolean;
 } {
-  const mistralKey = getMistralApiKey();
-  const groqKey = getGroqApiKey();
-  const cerebrasKey = getCerebrasApiKey();
+  // Trim whitespace to prevent false positives from whitespace-only keys
+  const mistralKey = getMistralApiKey()?.trim();
+  const groqKey = getGroqApiKey()?.trim();
+  const cerebrasKey = getCerebrasApiKey()?.trim();
 
   return {
     mistral: !!mistralKey,
