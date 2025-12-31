@@ -107,12 +107,12 @@ describe('🧠 ThinkingProcessVisualizer Component', () => {
   });
 
   describe('Routing Logic Visualization', () => {
-    it('Google AI 라우팅 정보를 표시한다', async () => {
+    it('Cloud AI 라우팅 정보를 표시한다', async () => {
       const routingStep: ThinkingStep = {
         id: 'route-1',
         step: '라우팅 결정',
         status: 'completed',
-        description: '복잡도 높음 → Google AI 처리 (비용 절약)',
+        description: '복잡도 높음 → Cloud AI 처리 (비용 절약)',
       };
 
       render(<ThinkingProcessVisualizer steps={[routingStep]} />);
@@ -120,8 +120,8 @@ describe('🧠 ThinkingProcessVisualizer Component', () => {
         vi.runAllTimers();
       });
 
-      // Google AI 처리 = Cloud icon
-      expect(screen.getByText('🤖 Google AI 처리')).toBeDefined();
+      // Cloud AI 처리 = Cloud icon
+      expect(screen.getByText('🤖 Cloud AI 처리')).toBeDefined();
       expect(screen.getByTestId('icon-cloud')).toBeDefined();
     });
 

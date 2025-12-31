@@ -3,18 +3,16 @@ import path from 'node:path';
 
 /**
  * 🔧 환경변수 설정 스크립트
- * Google AI API 키를 포함한 완전한 환경변수 파일을 생성합니다.
+ * Cloud Run AI 설정을 포함한 완전한 환경변수 파일을 생성합니다.
  */
 function createEnvFile() {
   const envContent = `# OpenManager Vibe v5 - Local Environment Variables
 # 로컬 개발 및 테스트 환경용 설정
 
-# 🤖 Google AI Studio (Gemini) 설정
-GOOGLE_AI_API_KEY=your_google_ai_api_key_here
-GOOGLE_AI_ENABLED=true
-GOOGLE_AI_MODEL=gemini-2.5-flash
-GOOGLE_AI_BETA_MODE=true
-GEMINI_LEARNING_ENABLED=true
+# 🤖 Cloud Run AI 설정 (Mistral via Cloud Run)
+# Note: Cloud Run AI uses GCP IAM authentication
+CLOUD_RUN_AI_URL=https://ai-engine-xxx.asia-northeast1.run.app
+CLOUD_RUN_AI_ENABLED=true
 
 # 📢 알림 설정
 # 브라우저 알림만 사용

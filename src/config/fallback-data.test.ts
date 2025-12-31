@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  getApiKey,
+  getCloudRunConfig,
   getInfrastructureUrl,
   INFRASTRUCTURE_CONFIG,
   isDevelopmentMode,
@@ -177,20 +177,24 @@ describe('Fallback Data Configuration', () => {
     });
   });
 
-  describe('API Key Helpers', () => {
-    it('Google AI API 키를 올바르게 반환해야 함', () => {
-      vi.stubEnv('GOOGLE_AI_API_KEY', 'test-google-ai-key');
+  describe('Cloud Run Config Helpers', () => {
+    it('Cloud Run 설정을 올바르게 반환해야 함', () => {
+      vi.stubEnv('CLOUD_RUN_AI_URL', 'https://ai-engine.run.app');
+      vi.stubEnv('CLOUD_RUN_ENABLED', 'true');
 
-      const apiKey = getApiKey('google');
-      expect(apiKey).toBe('test-google-ai-key');
+      const config = getCloudRunConfig();
+      expect(config.url).toBe('https://ai-engine.run.app');
+      expect(config.enabled).toBe(true);
+      expect(config.model).toBe('mistral-small-latest');
     });
 
-    it('환경변수가 없을 때 빈 문자열을 반환해야 함', () => {
-      // GOOGLE_AI_API_KEY를 명시적으로 제거
-      vi.stubEnv('GOOGLE_AI_API_KEY', undefined);
+    it('환경변수가 없을 때 기본값을 반환해야 함', () => {
+      vi.stubEnv('CLOUD_RUN_AI_URL', undefined);
+      vi.stubEnv('CLOUD_RUN_ENABLED', undefined);
 
-      const apiKey = getApiKey('google');
-      expect(apiKey).toBe('');
+      const config = getCloudRunConfig();
+      expect(config.url).toBe('');
+      expect(config.enabled).toBe(false);
     });
   });
 

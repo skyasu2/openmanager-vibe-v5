@@ -55,10 +55,10 @@ describe('EnvironmentSecurityScanner', () => {
       expect(isValid).toBe(true); // fake 패턴이므로 검증 통과
     });
 
-    it('Google AI API 키 패턴을 감지해야 함', () => {
-      // 테스트용 fake 키 (실제 키 아님)
-      const googleKey = 'AIzaSyFAKE_TEST_KEY_NOT_REAL_1234567890';
-      const isValid = scanner.validateSensitiveValue(googleKey);
+    it('긴 API 키 패턴을 감지해야 함', () => {
+      // 테스트용 긴 키 (실제 키 아님)
+      const longApiKey = 'sk_test_12345678901234567890123456789012';
+      const isValid = scanner.validateSensitiveValue(longApiKey);
 
       expect(isValid).toBe(false);
     });
@@ -192,12 +192,12 @@ describe('EnvironmentSecurityScanner', () => {
 
     it('클라이언트 번들에 서버 변수 포함을 감지해야 함', () => {
       const clientCode = `
-        const apiKey = process.env.GOOGLE_AI_API_KEY;
+        const secret = process.env.CLOUD_RUN_API_SECRET;
         const publicUrl = process.env.NEXT_PUBLIC_APP_URL;
       `;
 
       const violations = scanner.findClientSideViolations(clientCode);
-      expect(violations).toContain('GOOGLE_AI_API_KEY');
+      expect(violations).toContain('CLOUD_RUN_API_SECRET');
       expect(violations).not.toContain('NEXT_PUBLIC_APP_URL');
     });
   });

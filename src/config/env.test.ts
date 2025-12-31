@@ -43,12 +43,12 @@ describe('🧪 테스트 환경변수 설정', () => {
   });
 
   describe('🤖 AI 서비스 Mock 설정', () => {
-    it('Google AI Mock 설정이 올바르게 정의되어야 함', () => {
-      vi.stubEnv('GOOGLE_AI_ENABLED', 'true');
-      vi.stubEnv('GOOGLE_AI_TEST_LIMIT_PER_DAY', '5');
-      
-      expect(process.env.GOOGLE_AI_ENABLED).toBe('true');
-      expect(process.env.GOOGLE_AI_TEST_LIMIT_PER_DAY).toBe('5');
+    it('Cloud Run AI Mock 설정이 올바르게 정의되어야 함', () => {
+      vi.stubEnv('CLOUD_RUN_AI_ENABLED', 'true');
+      vi.stubEnv('CLOUD_RUN_AI_URL', 'http://localhost:8080');
+
+      expect(process.env.CLOUD_RUN_AI_ENABLED).toBe('true');
+      expect(process.env.CLOUD_RUN_AI_URL).toBe('http://localhost:8080');
     });
   });
 
