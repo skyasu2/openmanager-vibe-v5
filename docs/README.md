@@ -15,32 +15,40 @@
 
 ---
 
-## Directory Structure
+## Documentation Structure
 
+```mermaid
+flowchart LR
+    subgraph docs["📁 docs/"]
+        direction TB
+        GS["🚀 getting-started/"]
+        GU["📖 guides/"]
+        RF["📚 reference/"]
+        TS["🔧 troubleshooting/"]
+        AR["📦 archive/"]
+    end
+
+    GS --> QS["quick-start.md"]
+    GS --> DV["development.md"]
+
+    GU --> AI["ai/"]
+    GU --> TEST["testing/"]
+    GU --> MCP["mcp/"]
+
+    RF --> ARCH["architecture/"]
+    RF --> API["api/"]
+    RF --> PLAT["platforms/"]
 ```
-docs/
-├── getting-started/     # 시작 가이드
-│   ├── quick-start.md   # 5분 빠른 시작
-│   └── development.md   # 개발 환경 설정
-│
-├── guides/              # How-to 가이드
-│   ├── ai/              # AI 도구 사용법
-│   ├── testing/         # 테스트 전략
-│   ├── mcp/             # MCP 서버 설정
-│   └── environment/     # 환경 설정 (WSL)
-│
-├── reference/           # 기술 레퍼런스
-│   ├── architecture/    # 아키텍처 문서
-│   ├── api/             # API 문서
-│   ├── platforms/       # 플랫폼 설정
-│   └── security/        # 보안 가이드
-│
-├── troubleshooting/     # 문제 해결
-│   ├── common-issues.md # 일반 문제
-│   └── system-recovery-guide-2025.md
-│
-└── archive/             # 보관 문서
-```
+
+### 폴더 설명
+
+| 폴더 | 설명 | 문서 수 |
+|------|------|---------|
+| `getting-started/` | 시작 가이드 | 3개 |
+| `guides/` | How-to 가이드 | ~50개 |
+| `reference/` | 기술 레퍼런스 | ~60개 |
+| `troubleshooting/` | 문제 해결 | 3개 |
+| `archive/` | 보관 문서 | ~20개 |
 
 ---
 

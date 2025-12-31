@@ -5,6 +5,34 @@
 
 ---
 
+## System Overview
+
+```mermaid
+flowchart TB
+    subgraph Frontend["Vercel (Frontend)"]
+        Next["Next.js 15<br/>React 19"]
+        UI["Dashboard UI"]
+    end
+
+    subgraph Backend["Cloud Run (AI Engine)"]
+        Hono["Hono Server"]
+        Supervisor["AI Supervisor"]
+        Agents["Multi-Agent<br/>NLQ | Analyst | Reporter | Advisor"]
+    end
+
+    subgraph Data["Supabase"]
+        PG["PostgreSQL"]
+        Vector["pgvector"]
+    end
+
+    Next --> Supervisor
+    Supervisor --> Agents
+    Agents --> PG
+    Agents --> Vector
+```
+
+---
+
 ## Quick Links
 
 | 카테고리 | 설명 | 바로가기 |
