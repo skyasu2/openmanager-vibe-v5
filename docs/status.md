@@ -56,12 +56,11 @@
 - **Web Search**: Tavily API (Reporter Agent)
 - **Note**: Cerebras 한도 시 자동 Groq 폴백, Workflow 캐싱 (5분 TTL)
 
-**AI CLI Tools** (2025-12-17 기준)
-- **Claude Code**: `v2.0.71` (Interactive Development)
-- **Codex CLI**: `v0.73.0` (Code Review - 3-AI Rotation)
-- **Gemini CLI**: `v0.21.0` (Code Review - 3-AI Rotation)
-- **Qwen CLI**: `v0.5.0` (Code Review - 3-AI Rotation)
-- **Kiro CLI**: `v1.22.0` (Terminal Multi-Agent Orchestrator)
+**AI CLI Tools** (2026-01-01 기준)
+- **Claude Code**: `v2.0.76` (Interactive Development)
+- **Codex CLI**: `v0.77.0` (Code Review - 3-AI Rotation)
+- **Gemini CLI**: `v0.22.4` (Code Review - 3-AI Rotation)
+- **Qwen CLI**: `v0.6.0` (Code Review - 3-AI Rotation)
 
 **Quality Control**
 - **Test**: Vitest `v4.0.15`, Playwright `v1.57.0`
