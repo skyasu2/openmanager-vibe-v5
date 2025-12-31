@@ -73,14 +73,11 @@ jobs:
           MEMORY_CACHE_MAX_SIZE: 1000
           MEMORY_CACHE_TTL_SECONDS: 300
 
-          # 🤖 AI 환경변수 (GitHub Secrets에서 설정 필요)
-          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY || 'placeholder-key' }}
-          GOOGLE_AI_MODEL: gemini-2.5-flash
-          GOOGLE_AI_BETA_MODE: true
-          GOOGLE_AI_ENABLED: true
+          # 🤖 AI 환경변수 (Cloud Run AI - GCP IAM 인증 사용)
+          # Note: Cloud Run AI uses GCP IAM authentication
+          CLOUD_RUN_AI_ENABLED: true
 
-          # 🧠 학습 엔진 설정
-          GEMINI_LEARNING_ENABLED: true
+          # 🧠 학습 엔진 설정 (Cloud Run AI)
           CRON_SECRET: ${{ secrets.CRON_SECRET || 'placeholder-secret' }}
 
           # 🔄 Cron 작업 설정

@@ -121,10 +121,9 @@
     "wsl:dev": "bash scripts/dev-safe.sh && npm run dev:stable"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.1",
     "@ai-sdk/groq": "^3.0.1",
+    "@ai-sdk/mistral": "^3.0.1",
     "@ai-sdk/react": "^3.0.3",
-    "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",
