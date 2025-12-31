@@ -1,89 +1,76 @@
-# 🧪 OpenManager VIBE 테스트 시스템 가이드
+# Testing Documentation
 
-> **📝 상세 가이드**:
->
-> - [테스트 철학 전체 가이드](./testing-philosophy-detailed.md) (Mock vs Reality, 복잡도 판단)
-> - [Vitest & Playwright 설정](./vitest-playwright-config-guide.md) (성능 최적화, 문제 해결)
-> - [Co-location 가이드](./co-location-guide.md) (Unit 테스트 배치 전략)
+> **최종 갱신**: 2025-12-31
+> **문서 수**: 9개 (15개에서 통합)
 
-**클라우드 네이티브 환경을 위한 실용적 테스트 전략**
+---
 
-## 📊 현재 상태 (2025-12-19)
+## Quick Start
 
-**전체 현황**: 65개 테스트 파일 | CI 최고속 2.2s (92 tests) | TypeScript 0 오류
+```bash
+npm run test              # Unit tests (Vitest)
+npm run test:e2e          # E2E tests (Playwright)
+npm run validate:all      # 전체 검증
+```
 
-### 테스트 분포
+---
 
-| 위치 | 파일 수 | 비율 |
-|------|--------|------|
-| `src/` Co-located | 35개 | 54% |
-| `tests/` 폴더 | 30개 | 46% |
-| **합계** | **65개** | 100% |
+## Current Status
 
-### 성능 지표
+**전체 현황**: 65개 테스트 파일 | CI 최고속 2.2s | TypeScript 0 오류
 
 | 지표 | 목표 | 현재 |
 |------|------|------|
-| CI 최고속 | < 5s | ✅ 2.2s |
-| Minimal 테스트 | < 100ms | ✅ 22ms |
-| E2E Critical | < 2분 | ✅ ~1분 |
+| CI 최고속 | < 5s | 2.2s |
+| Minimal 테스트 | < 100ms | 22ms |
+| E2E Critical | < 2분 | ~1분 |
 
-## 📚 문서 인덱스 (16개 파일)
+---
 
-### 🎯 핵심 문서 (즉시 읽기)
+## Document Index
 
-1. ⭐ **e2e-testing-guide.md** - E2E 종합 가이드
-2. ⭐ **vercel-first-strategy.md** - Vercel-First 전략
-3. ⭐ **co-location-guide.md** - Unit 테스트 Co-location 패턴
-4. **universal-vitals-setup-guide.md** - Web Vitals 모니터링
+### Strategy (전략)
 
-### 카테고리별 문서
+| 문서 | 설명 |
+|------|------|
+| [test-strategy.md](./test-strategy.md) | 테스트 전략 + 철학 (통합) |
 
-- **Vercel 프로덕션**: vercel-first-strategy, vercel-ai-testing-guide, vercel-manual-test-guide
-- **E2E 테스트**: e2e-testing-guide, 403-authentication-fix-v2
-- **AI 검증**: testing-philosophy-detailed, local-test-limitations
-- **설정 가이드**: vitest-playwright-config-guide, msw-guide, test-templates
-- **철학/전략**: testing-philosophy-detailed, test-strategy-guide, local-test-limitations
+### Unit Testing (단위 테스트)
 
-**전체 목록**: `ls docs/development/testing/` 명령어로 확인
+| 문서 | 설명 |
+|------|------|
+| [react-component-testing-guide.md](./react-component-testing-guide.md) | React 컴포넌트 테스트 |
+| [type-level-testing-guide.md](./type-level-testing-guide.md) | TypeScript 타입 테스트 |
 
-## 🎯 빠른 실행 명령어
+### Integration Testing (통합 테스트)
 
-### 일상 개발
+| 문서 | 설명 |
+|------|------|
+| [msw-guide.md](./msw-guide.md) | Mock Service Worker |
+| [supertest-integration-guide.md](./supertest-integration-guide.md) | Supertest API 테스트 |
 
-```bash
-# 작업 중
-npm run test:quick              # 커밋 전 초고속 (22ms)
+### E2E Testing (E2E 테스트)
 
-# 커밋 전
-npm test                        # 모든 테스트
-npm run test:coverage           # 커버리지 확인
+| 문서 | 설명 |
+|------|------|
+| [e2e-testing-guide.md](./e2e-testing-guide.md) | Playwright E2E 가이드 |
+| [universal-vitals-setup-guide.md](./universal-vitals-setup-guide.md) | Web Vitals 측정 |
 
-# E2E 테스트
-npm run test:e2e                # Playwright E2E
-npm run test:vercel:e2e         # Vercel E2E (권장)
-npm run test:e2e:critical       # Critical E2E만 (~1분)
-```
+### AI Testing (AI 테스트)
 
-### AI 스킬 테스트
+| 문서 | 설명 |
+|------|------|
+| [vercel-ai-testing-guide.md](./vercel-ai-testing-guide.md) | Vercel AI SDK 테스트 |
 
-```bash
-npm run test:ai                 # AI 개발 테스트
-npm run test:vercel:e2e         # Vercel E2E (권장)
-npm run test:super-fast         # 빠른 테스트 (11초)
-```
+### Templates
 
-## 📊 테스트 구성
+| 문서 | 설명 |
+|------|------|
+| [test-templates.md](./test-templates.md) | 테스트 템플릿 모음 |
 
-**총 65개 테스트 파일**:
+---
 
-- **Co-located** (`src/`): 35개 (components, hooks, lib, utils, services)
-- **Integration** (`tests/integration/`): 10개
-- **E2E** (`tests/e2e/`): 8개
-- **API** (`tests/api/`): 3개
-- **기타** (`tests/`): 14개
-
-**디렉터리 구조**:
+## Test Structure
 
 ```
 src/                    # Co-located Unit Tests (35개)
@@ -98,40 +85,41 @@ tests/                  # 통합/E2E/API Tests (30개)
 └── api/               # API Contract
 ```
 
-## ⚡ **AI 엔진 아키텍처 v4.0 테스트 철학**
+---
 
-- **단일 통합 파이프라인**: Supabase RAG + Google Cloud Functions + Google AI SDK
-- **Cloud Functions 우선**: Korean NLP, ML Analytics, Unified Processor를 기본 단계로 실행
-- **직접 Google AI 호출**: Prompt SDK를 통한 저지연 응답, 모델은 `gemini-2.5-flash` 고정
-- **캐싱 + 폴백 최소화**: 500ms 이내 응답 목표, 타임아웃 시 사용자 안내 반환
+## Common Commands
 
-## 🛠️ 테스트 도구 스택
+```bash
+# 일상 개발
+npm run test:quick       # 커밋 전 초고속 (22ms)
+npm test                 # 모든 테스트
+npm run test:coverage    # 커버리지 확인
 
-### 테스트 프레임워크
-
-- **Vitest**: 메인 테스트 프레임워크 (Jest 대체)
-- **Testing Library**: React 컴포넌트 테스트
-- **Playwright**: E2E 테스트
-- **MSW**: API 모킹
-
-### 주요 테스트 대상
-
-- **API Routes**: `/api/ai/*` 엔드포인트 통합 테스트
-- **Cloud Run Integration**: AI 엔진 연동 테스트
-- **Supabase RAG**: pgvector 기반 RAG 테스트
-
-## 🔗 관련 도구 & 문서
-
-**스킬**: `lint-smoke`, `validation-analysis`
-**MCP 통합**: playwright, serena
-**설정 가이드**: [Vitest & Playwright 설정](./vitest-playwright-config-guide.md)
-**테스트 전략**: [Test Strategy Guide](./test-strategy-guide.md)
-
-## 📦 아카이브 (Legacy)
-
-- [403 Authentication Fix v2](../../archive/testing/403-authentication-fix-v2.md) - 인증 문제 해결 기록
+# E2E 테스트
+npm run test:e2e         # Playwright E2E
+npm run test:vercel:e2e  # Vercel 프로덕션 E2E (권장)
+```
 
 ---
 
-**Last Updated**: 2025-12-19 by Claude Code
+## Archived Documents
+
+통합된 문서들은 `docs/archive/testing/`으로 이동:
+
+- `test-strategy-guide.md` → `test-strategy.md`로 통합
+- `testing-philosophy-detailed.md` → `test-strategy.md`로 통합
+- `vercel-first-strategy.md` → `test-strategy.md`로 통합
+- `local-test-limitations.md` → 아카이브
+- `co-location-guide.md` → 아카이브
+- `vitest-playwright-config-guide.md` → 아카이브
+
+---
+
+## Related
+
+- [DEVELOPMENT.md](../../DEVELOPMENT.md)
+- [Test Strategy](./test-strategy.md)
+
+---
+
 **핵심 철학**: "테스트는 도구일 뿐, 목적은 안정적인 프로덕션 서비스"
