@@ -1,5 +1,7 @@
 # AI Engine Architecture
 
+> **관련 문서**: [AI Engine 5W1H 분석](./ai-engine-5w1h.md) - 육하원칙 기반 아키텍처 요약
+
 ## Overview
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel AI SDK** with `@ai-sdk-tools/agents`. It uses a dual-mode Supervisor pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.

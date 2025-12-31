@@ -1,6 +1,6 @@
-# AI Assistant Architecture
+# AI Assistant Architecture (Frontend)
 
-> **버전**: v4.0 (2025-12-31)
+> **버전**: v4.1 (2025-12-31)
 > **환경**: Next.js 16, React 19, TypeScript 5.9 strict, Vercel AI SDK (Cloud Run)
 
 ## Overview
@@ -10,8 +10,9 @@ The AI Assistant is built on a **LLM 멀티 에이전트 시스템** using **Ver
 - **Frontend (Vercel)**: Next.js UI, API proxy routes
 - **AI Engine (Cloud Run)**: Vercel AI SDK Multi-Agent, all AI processing
 
-> **📢 Architecture Update (2025-12-28)**: LangGraph migrated to **Vercel AI SDK** for better multi-agent orchestration.
-> See [ai-engine-architecture.md](../architecture/ai/ai-engine-architecture.md) for detailed backend architecture.
+> **관련 문서**:
+> - [AI Engine 5W1H 분석](../architecture/ai/ai-engine-5w1h.md) - 육하원칙 기반 아키텍처 요약
+> - [AI Engine 상세 아키텍처](../architecture/ai/ai-engine-architecture.md) - 기술 상세 명세
 
 ## Core Components
 
@@ -53,30 +54,10 @@ The AI Assistant is built on a **LLM 멀티 에이전트 시스템** using **Ver
 - **Deployment**: Google Cloud Run
 - **Proxy**: `/api/ai/*` routes on Vercel forward to Cloud Run
 
-#### Agent Architecture
-
-```
-User Query → Orchestrator (Cerebras)
-                ├→ NLQ Agent (Cerebras) - 자연어 쿼리 처리
-                ├→ Analyst Agent (Groq) - 이상 탐지, 트렌드 예측
-                ├→ Reporter Agent (Groq) - 인시던트 리포트
-                └→ Advisor Agent (Mistral) - RAG 기반 트러블슈팅
-```
-
-#### Agent Stack
-
-| Agent | Provider | Model | Role |
-|-------|----------|-------|------|
-| **Orchestrator** | Cerebras | Llama 3.3-70b | Fast routing (~200ms) |
-| **NLQ Agent** | Cerebras | Llama 3.3-70b | Server metrics queries |
-| **Analyst Agent** | Groq | Llama 3.3-70b | Anomaly detection, trends |
-| **Reporter Agent** | Groq | Llama 3.3-70b | Incident reports |
-| **Advisor Agent** | Mistral | mistral-small | RAG + troubleshooting |
-
-> **Triple-Provider Strategy (v5.92.0)**:
-> - **Cerebras**: 빠른 라우팅 (무제한)
-> - **Groq**: 분석/리포팅 (6K req/day)
-> - **Mistral**: RAG/임베딩 (1024d)
+> **📖 상세 정보**: [AI Engine 5W1H 분석](../architecture/ai/ai-engine-5w1h.md) 참조
+> - 4대 에이전트 상세 (NLQ, Analyst, Reporter, Advisor)
+> - 3중 Provider 폴백 (Cerebras → Mistral → Groq)
+> - 12개 AI 도구 명세
 
 ## 3 AI Features
 
@@ -106,41 +87,18 @@ User Query → Orchestrator (Cerebras)
 
 ## Tool System
 
-The AI uses specialized tools within each agent for domain-specific operations.
+The AI uses 12 specialized tools within each agent for domain-specific operations.
 
-### NLQ Agent Tools (SubGraph v5.89.0)
+> **📖 전체 도구 목록**: [AI Engine 5W1H 분석 - WHAT](../architecture/ai/ai-engine-5w1h.md#2-무엇을-what---제공-기능) 참조
 
-| Tool | Description |
-|------|-------------|
-| `getServerMetricsAdvanced` | Advanced metrics with time range, filters, aggregation support |
+### 주요 도구 요약
 
-**NLQ SubGraph 5-Node Workflow**:
-1. **parse_intent**: Intent classification (metrics, logs, status, comparison)
-2. **extract_params**: Korean NLP parsing (time expressions, filters)
-3. **validate**: Rule-based parameter validation
-4. **execute_query**: Tool invocation with extracted parameters
-5. **format_response**: User-friendly response formatting
-
-### Analyst Agent Tools
-
-| Tool | Description |
-|------|-------------|
-| `detectAnomalies` | 6-hour moving average + 2σ deviation anomaly detection |
-| `predictTrends` | Linear Regression based trend prediction |
-| `analyzePattern` | Comprehensive pattern analysis (combines above tools) |
-
-**Intent Detection**: The Analyst Agent auto-detects query intent:
-- `anomaly` → Executes `detectAnomalies`
-- `trend` → Executes `predictTrends`
-- `pattern` → Executes `analyzePattern`
-- `comprehensive` → Executes all tools
-
-### Reporter Agent Tools
-
-| Tool | Description |
-|------|-------------|
-| `searchKnowledgeBase` | RAG search using Supabase pgvector (1024 dimensions) |
-| `recommendCommands` | Suggests runbook commands for incident resolution |
+| 카테고리 | 대표 도구 | 용도 |
+|----------|-----------|------|
+| **Metrics** | `getServerMetrics` | 서버 상태 조회 |
+| **Analyst** | `detectAnomalies`, `predictTrends` | 이상치 탐지, 예측 |
+| **Reporter** | `searchKnowledgeBase`, `searchWeb` | RAG/웹 검색 |
+| **RCA** | `findRootCause` | 근본 원인 분석 |
 
 ## Data Flow
 
@@ -289,54 +247,23 @@ Model health is monitored with Circuit Breaker pattern:
 | **Upstash Redis** | REST API | L2 response caching |
 | **Scenario Loader** | `src/services/scenario/` | Demo metrics data |
 
-## Recent Updates (v3.3)
+## Recent Updates
 
-### GraphRAG Hybrid Search
+### v4.1 (2025-12-31)
+- 문서 구조 개선: 5W1H 문서 분리 및 중복 제거
 
-The Reporter Agent now uses GraphRAG for enhanced knowledge retrieval:
+### v4.0 (2025-12-28)
+- LangGraph → Vercel AI SDK 마이그레이션
+- Dual-Mode Supervisor (Single/Multi Agent)
 
-| Feature | Description |
-|---------|-------------|
-| **Vector Search** | Semantic similarity via pgvector (cosine distance) |
-| **Graph Traversal** | Entity-relationship exploration |
-| **Hybrid Scoring** | Weighted combination for better relevance |
+> **📖 상세 변경 이력**: [AI Engine Architecture - Previous Versions](../architecture/ai/ai-engine-architecture.md#previous-versions) 참조
 
-### Redis L2 Caching
+---
 
-Response caching layer for performance optimization:
+## 관련 문서
 
-| Cache Type | TTL | Purpose |
-|------------|-----|---------|
-| Response Cache | 1h | Repeated query optimization |
-| Session Cache | 24h | Conversation state |
-| Embedding Cache | 7d | Embedding reuse |
-
-### Verifier Agent (Mistral 24B, v5.89.0)
-
-Post-processing validation agent upgraded to Mistral Small 3.2 (24B parameters):
-
-```
-[Agent Output] → [Verifier Agent] → [Final Response]
-                     │
-                     ├─ Hallucination check
-                     ├─ Safety validation
-                     └─ Confidence scoring
-```
-
-> **Provider Change (v5.89.0)**: Groq Llama 8B → Mistral Small 24B for improved verification quality
-
-### Approval History Persistence
-
-HITL approval records are now persisted to PostgreSQL for audit:
-
-```typescript
-interface ApprovalRecord {
-  id: string;
-  sessionId: string;
-  actionType: string;
-  status: 'pending' | 'approved' | 'rejected';
-  requestedAt: string;
-  decidedAt?: string;
-  decidedBy?: string;
-}
-```
+| 문서 | 설명 |
+|------|------|
+| [AI Engine 5W1H](../architecture/ai/ai-engine-5w1h.md) | 육하원칙 기반 아키텍처 요약 |
+| [AI Engine Architecture](../architecture/ai/ai-engine-architecture.md) | 기술 상세 명세 (API, 환경변수, 파일구조) |
+| [API Endpoints](../../api/endpoints.md) | REST API 명세 |
