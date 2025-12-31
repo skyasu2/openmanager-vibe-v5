@@ -8,7 +8,7 @@
  * @updated 2025-12-28
  */
 
-import { getGroqApiKey, getCerebrasApiKey } from './config-parser';
+import { getGroqApiKey, getCerebrasApiKey, getMistralApiKey } from './config-parser';
 
 // ============================================================================
 // API Key Validation
@@ -23,7 +23,7 @@ export function validateAPIKeys(): {
   cerebras: boolean;
   all: boolean;
 } {
-  const mistralKey = process.env.MISTRAL_API_KEY;
+  const mistralKey = getMistralApiKey();
   const groqKey = getGroqApiKey();
   const cerebrasKey = getCerebrasApiKey();
 
