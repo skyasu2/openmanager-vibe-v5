@@ -5,22 +5,19 @@
  *
  * AISidebarV4와 AIWorkspace에서 공유하는 핵심 로직:
  * - Hybrid AI Query (Streaming + Job Queue)
- * - HITL 승인/거부
  * - 세션 제한
  * - 피드백
  * - 메시지 변환
+ *
+ * @note HITL(Human-in-the-Loop) 제거됨 - 현재 컨셉상 모든 기능이 사용자 요청 기반
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { AIThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
 import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
 import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
-import {
-  type ApprovalRequest as HITLApprovalRequest,
-  type ApprovalRequestType as HITLApprovalRequestType,
-  SESSION_LIMITS,
-} from '@/types/hitl';
+import { SESSION_LIMITS } from '@/types/hitl';
 
 // ============================================================================
 // Types
@@ -59,13 +56,6 @@ export interface UseAIChatCoreReturn {
   };
   currentMode?: 'streaming' | 'job-queue';
 
-  // HITL 승인
-  pendingApproval: HITLApprovalRequest | null;
-  isProcessingApproval: boolean;
-  handleApprove: (requestId: string) => Promise<void>;
-  handleReject: (requestId: string) => Promise<void>;
-  detectApprovalIntent: (input: string) => 'approve' | 'reject' | null;
-
   // 세션 관리
   sessionId: string;
   sessionState: SessionState;
@@ -80,7 +70,7 @@ export interface UseAIChatCoreReturn {
   stop: () => void;
   cancel: () => void;
 
-  // 입력 처리 (승인 감지 + 세션 제한 통합)
+  // 입력 처리
   handleSendInput: () => void;
 }
 
@@ -94,48 +84,6 @@ const SESSION_WARNING_THRESHOLD = SESSION_LIMITS.WARNING_THRESHOLD;
 // ============================================================================
 // Helpers
 // ============================================================================
-
-/**
- * 자연어 승인 응답 감지
- */
-export function detectApprovalIntent(
-  input: string
-): 'approve' | 'reject' | null {
-  const trimmed = input.trim().toLowerCase();
-
-  const approvalPatterns = [
-    '네',
-    '예',
-    'yes',
-    '확인',
-    '진행',
-    '승인',
-    'ok',
-    '좋아',
-    '그래',
-    '맞아',
-  ];
-  const rejectPatterns = [
-    '아니',
-    '아니오',
-    'no',
-    '취소',
-    '거부',
-    '중지',
-    'cancel',
-    '그만',
-    '안해',
-    '싫어',
-  ];
-
-  const isApproval = approvalPatterns.some((p) => trimmed.includes(p));
-  const isRejection = rejectPatterns.some((p) => trimmed.includes(p));
-
-  if (isApproval && !isRejection) return 'approve';
-  if (isRejection) return 'reject';
-
-  return null;
-}
 
 /**
  * ThinkingSteps를 AgentStep 형식으로 변환 (외부 사용 가능)
@@ -187,76 +135,6 @@ export function useAIChatCore(
     propSessionId || `session_${Date.now()}`
   );
 
-  // HITL 승인 상태
-  const [pendingApproval, setPendingApproval] =
-    useState<HITLApprovalRequest | null>(null);
-  const [isProcessingApproval, setIsProcessingApproval] = useState(false);
-
-  // ============================================================================
-  // HITL 승인/거부 핸들러
-  // ============================================================================
-
-  const handleApprove = useCallback(
-    async (requestId: string) => {
-      if (isProcessingApproval) return;
-      setIsProcessingApproval(true);
-
-      try {
-        const response = await fetch('/api/ai/approval', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: requestId,
-            approved: true,
-          }),
-        });
-
-        if (response.ok) {
-          console.log('✅ [HITL] Approval accepted');
-          setPendingApproval(null);
-        } else {
-          console.error('❌ [HITL] Approval failed:', await response.text());
-        }
-      } catch (error) {
-        console.error('❌ [HITL] Approval error:', error);
-      } finally {
-        setIsProcessingApproval(false);
-      }
-    },
-    [isProcessingApproval]
-  );
-
-  const handleReject = useCallback(
-    async (requestId: string) => {
-      if (isProcessingApproval) return;
-      setIsProcessingApproval(true);
-
-      try {
-        const response = await fetch('/api/ai/approval', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: requestId,
-            approved: false,
-            reason: 'User rejected the action',
-          }),
-        });
-
-        if (response.ok) {
-          console.log('🚫 [HITL] Action rejected');
-          setPendingApproval(null);
-        } else {
-          console.error('❌ [HITL] Rejection failed:', await response.text());
-        }
-      } catch (error) {
-        console.error('❌ [HITL] Rejection error:', error);
-      } finally {
-        setIsProcessingApproval(false);
-      }
-    },
-    [isProcessingApproval]
-  );
-
   // ============================================================================
   // Hybrid AI Query Hook
   // ============================================================================
@@ -272,51 +150,23 @@ export function useAIChatCore(
     currentMode,
   } = useHybridAIQuery({
     sessionId: chatSessionIdRef.current,
-    onStreamFinish: async () => {
+    onStreamFinish: () => {
       onMessageSend?.(input);
       setInput('');
-
-      // HITL: 스트리밍 완료 후 승인 상태 확인
-      try {
-        const sessionId = chatSessionIdRef.current;
-        const response = await fetch(
-          `/api/ai/approval?sessionId=${encodeURIComponent(sessionId)}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          if (data.hasPending && data.action) {
-            // ApprovalRequestType으로 안전하게 변환
-            const actionType = (data.action.type ||
-              'tool_execution') as HITLApprovalRequestType;
-            const detailsString =
-              typeof data.action.details === 'string'
-                ? data.action.details
-                : data.action.details
-                  ? JSON.stringify(data.action.details)
-                  : undefined;
-
-            setPendingApproval({
-              id: sessionId,
-              type: actionType,
-              description: data.action.description || '이 작업을 실행할까요?',
-              details: detailsString,
-            });
-            console.log('🔔 [HITL] Approval request detected:', actionType);
-          }
-        }
-      } catch (error) {
-        console.error('❌ [HITL] Approval check failed:', error);
-      }
     },
     onJobResult: (result) => {
       onMessageSend?.(input);
       setInput('');
-      console.log('📦 [Job Queue] Result received:', result.success);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📦 [Job Queue] Result received:', result.success);
+      }
     },
     onProgress: (progress) => {
-      console.log(
-        `📊 [Job Queue] Progress: ${progress.progress}% - ${progress.stage}`
-      );
+      if (process.env.NODE_ENV === 'development') {
+        console.log(
+          `📊 [Job Queue] Progress: ${progress.progress}% - ${progress.stage}`
+        );
+      }
     },
   });
 
@@ -344,9 +194,7 @@ export function useAIChatCore(
   const handleNewSession = useCallback(() => {
     setMessages([]);
     chatSessionIdRef.current = `session_${Date.now()}`;
-    setPendingApproval(null);
     setInput('');
-    console.log('🔄 [Session] New session started:', chatSessionIdRef.current);
   }, [setMessages]);
 
   // ============================================================================
@@ -395,15 +243,6 @@ export function useAIChatCore(
       sendQuery(textContent);
     }
   }, [messages, setMessages, sendQuery]);
-
-  // ============================================================================
-  // 승인 상태 초기화
-  // ============================================================================
-
-  useEffect(() => {
-    if (!hybridIsLoading) return;
-    setPendingApproval(null);
-  }, [hybridIsLoading]);
 
   // ============================================================================
   // 메시지 변환 (UIMessage -> EnhancedChatMessage)
@@ -463,7 +302,7 @@ export function useAIChatCore(
   }, [messages, hybridIsLoading]);
 
   // ============================================================================
-  // 통합 입력 핸들러 (승인 감지 + 세션 제한)
+  // 입력 핸들러
   // ============================================================================
 
   const handleSendInput = useCallback(() => {
@@ -477,31 +316,9 @@ export function useAIChatCore(
       return;
     }
 
-    // 승인 대기 중이면 자연어 의도 감지
-    if (pendingApproval) {
-      const intent = detectApprovalIntent(input);
-      if (intent === 'approve') {
-        void handleApprove(pendingApproval.id);
-        setInput('');
-        return;
-      } else if (intent === 'reject') {
-        void handleReject(pendingApproval.id);
-        setInput('');
-        return;
-      }
-    }
-
-    // 일반 쿼리 전송
+    // 쿼리 전송
     sendQuery(input);
-  }, [
-    input,
-    disableSessionLimit,
-    sessionState.isLimitReached,
-    pendingApproval,
-    handleApprove,
-    handleReject,
-    sendQuery,
-  ]);
+  }, [input, disableSessionLimit, sessionState.isLimitReached, sendQuery]);
 
   // ============================================================================
   // Return
@@ -524,13 +341,6 @@ export function useAIChatCore(
     },
     currentMode: currentMode ?? undefined,
 
-    // HITL 승인
-    pendingApproval: pendingApproval as HITLApprovalRequest | null,
-    isProcessingApproval,
-    handleApprove,
-    handleReject,
-    detectApprovalIntent,
-
     // 세션 관리
     sessionId: chatSessionIdRef.current,
     sessionState,
@@ -542,7 +352,7 @@ export function useAIChatCore(
     stop,
     cancel,
 
-    // 통합 입력 핸들러
+    // 입력 핸들러
     handleSendInput,
   };
 }

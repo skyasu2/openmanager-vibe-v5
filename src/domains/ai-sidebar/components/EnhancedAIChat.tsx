@@ -6,7 +6,7 @@ import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { AsyncQueryProgress } from '@/hooks/ai/useAsyncAIQuery';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
-import type { ApprovalRequest, SessionState } from '@/types/hitl';
+import type { SessionState } from '@/types/hitl';
 import { JobProgressIndicator } from './JobProgressIndicator';
 
 /**
@@ -31,12 +31,9 @@ interface EnhancedAIChatProps {
     onRegenerateResponse?: (messageId: string) => void;
     onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
     isLastMessage?: boolean;
-    approvalRequest?: ApprovalRequest;
   }>;
   /** 피드백 핸들러 */
   onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
-  /** Human-in-the-Loop 승인 요청 (자연어 응답 대기 표시용) */
-  pendingApproval?: ApprovalRequest | null;
   /** 입력 값 */
   inputValue: string;
   /** 입력 값 변경 핸들러 */
@@ -83,7 +80,6 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   limitedMessages,
   messagesEndRef,
   MessageComponent,
-  pendingApproval,
   inputValue,
   setInputValue,
   handleSendInput,
@@ -150,12 +146,6 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
 
           {/* 채팅 메시지들 렌더링 (메모리 효율성 최적화) */}
           {limitedMessages.map((message, index) => {
-            // 마지막 스트리밍 중인 assistant 메시지에만 승인 요청 표시
-            const isLastStreamingAssistant =
-              message.role === 'assistant' &&
-              message.isStreaming &&
-              index === limitedMessages.length - 1;
-
             const isLastMessage = index === limitedMessages.length - 1;
 
             return (
@@ -165,11 +155,6 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
                 onRegenerateResponse={regenerateResponse}
                 onFeedback={onFeedback}
                 isLastMessage={isLastMessage}
-                approvalRequest={
-                  isLastStreamingAssistant
-                    ? (pendingApproval ?? undefined)
-                    : undefined
-                }
               />
             );
           })}

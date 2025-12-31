@@ -5,7 +5,6 @@
  *
  * v4.0.0 - useAIChatCore 통합:
  * - AISidebarV4와 동일한 공통 훅 사용 (useAIChatCore)
- * - HITL 승인/거부 지원
  * - 세션 제한 (전체화면에서는 비활성화)
  * - 피드백 기능 통합
  */
@@ -179,8 +178,6 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     isLoading,
     hybridState,
     currentMode,
-    // HITL 승인 (사이드바와 동일)
-    pendingApproval,
     // 세션 관리
     sessionState,
     handleNewSession,
@@ -234,11 +231,9 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               limitedMessages={enhancedMessages}
               messagesEndRef={messagesEndRef}
               MessageComponent={MessageComponent}
-              pendingApproval={pendingApproval}
               inputValue={input}
               setInputValue={setInput}
               handleSendInput={handleSendInput}
-              // 세션 상태 (전체화면에서는 제한 없음)
               sessionState={sessionState}
               onNewSession={handleNewSession}
               isGenerating={isLoading}
@@ -246,7 +241,6 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               currentEngine="Hybrid AI Query"
               onStopGeneration={stop}
               onFeedback={handleFeedback}
-              // 📊 Job Queue 진행률
               jobProgress={hybridState.progress}
               jobId={hybridState.jobId}
               onCancelJob={cancel}
@@ -429,11 +423,9 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                   limitedMessages={enhancedMessages}
                   messagesEndRef={messagesEndRef}
                   MessageComponent={MessageComponent}
-                  pendingApproval={pendingApproval}
                   inputValue={input}
                   setInputValue={setInput}
                   handleSendInput={handleSendInput}
-                  // 세션 상태 (전체화면에서는 제한 없음)
                   sessionState={sessionState}
                   onNewSession={handleNewSession}
                   isGenerating={isLoading}
@@ -441,7 +433,6 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                   currentEngine="Hybrid AI Query"
                   onStopGeneration={stop}
                   onFeedback={handleFeedback}
-                  // 📊 Job Queue 진행률
                   jobProgress={hybridState.progress}
                   jobId={hybridState.jobId}
                   onCancelJob={cancel}

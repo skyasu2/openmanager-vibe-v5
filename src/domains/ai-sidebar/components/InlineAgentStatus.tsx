@@ -2,10 +2,6 @@
 
 import { CheckCircle, Clock, Loader2, XCircle } from 'lucide-react';
 import { type FC, memo } from 'react';
-import type { ApprovalRequest } from '@/types/hitl';
-
-// Re-export for backward compatibility
-export type { ApprovalRequest } from '@/types/hitl';
 
 /**
  * Agent 처리 단계 정의
@@ -22,8 +18,6 @@ export interface AgentStep {
 interface InlineAgentStatusProps {
   /** 현재 처리 중인 Agent 단계들 */
   steps: AgentStep[];
-  /** 승인 대기 중인 요청 (자연어 응답 대기 표시용) */
-  approvalRequest?: ApprovalRequest;
   /** 전체 처리 완료 여부 */
   isComplete?: boolean;
 }
@@ -63,15 +57,14 @@ const StatusIcon: FC<{ status: AgentStep['status'] }> = ({ status }) => {
  * @description
  * - AI 처리 과정을 인라인으로 표시
  * - 각 Agent 단계별 상태 시각화
- * - Human-in-the-Loop 승인은 자연어 대화로 처리 (별도 버튼 없음)
  */
 export const InlineAgentStatus: FC<InlineAgentStatusProps> = memo(
-  ({ steps, approvalRequest, isComplete }) => {
+  ({ steps, isComplete }) => {
     const currentStep = steps.find((s) => s.status === 'processing');
     const hasError = steps.some((s) => s.status === 'error');
 
     // 완료 상태면 아무것도 표시하지 않음 (응답 내용만 보여줌)
-    if (isComplete && !approvalRequest) {
+    if (isComplete) {
       return null;
     }
 
@@ -117,19 +110,6 @@ export const InlineAgentStatus: FC<InlineAgentStatusProps> = memo(
         {hasError && (
           <div className="mt-2 text-xs text-red-600">
             처리 중 오류가 발생했습니다. 다시 시도해주세요.
-          </div>
-        )}
-
-        {/* Human-in-the-Loop 승인 요청 (자연어 대화 방식) */}
-        {approvalRequest && (
-          <div className="mt-3 rounded-md border border-amber-200 bg-amber-50/50 p-2.5">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
-              <span className="text-xs text-amber-700">
-                응답 대기 중 - 채팅으로 &quot;네&quot; 또는 &quot;아니오&quot;를
-                입력하세요
-              </span>
-            </div>
           </div>
         )}
       </div>
