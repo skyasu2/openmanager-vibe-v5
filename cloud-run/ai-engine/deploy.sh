@@ -61,7 +61,7 @@ gcloud run deploy "$SERVICE_NAME" \
   --memory 1Gi \
   --no-cpu-throttling \
   --set-env-vars "NODE_ENV=production" \
-  --set-secrets "GOOGLE_AI_CONFIG=google-ai-config:latest,SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest"
+  --set-secrets "SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest"
 
 if [ $? -eq 0 ]; then
     SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)')

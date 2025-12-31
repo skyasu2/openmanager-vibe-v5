@@ -1,40 +1,43 @@
 /**
- * Gemini Embedding Utility (FREE Tier)
- * AI SDK @ai-sdk/google 사용 (기존 의존성 활용)
+ * Mistral Embedding Utility
+ * AI SDK @ai-sdk/mistral 사용
  *
- * 무료 티어 제한:
- * - 모델: text-embedding-004 (무료)
- * - Rate Limit: 1,500 RPM (분당 요청)
- * - 일일 한도: 충분함 (5명 × 1시간 = ~150 쿼리/일)
+ * Model: mistral-embed (1024 dimensions)
+ * - Context window: 8,000 tokens
+ * - MTEB retrieval score: 55.26
+ * - Price: $0.10 / 1M tokens (affordable)
  *
- * 주의: On-demand only - 백그라운드 작업 금지
+ * ## Migration from Gemini (2025-12-31)
+ * - Changed from Google text-embedding-004 (384d) to Mistral mistral-embed (1024d)
+ * - Supabase schema updated via migration
+ * - All knowledge_base embeddings need regeneration
  *
- * ## Secret Configuration (2025-12-26)
- * Uses config-parser for unified JSON secret support (GOOGLE_AI_CONFIG)
+ * ## Secret Configuration
+ * Uses MISTRAL_API_KEY environment variable
  */
 
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createMistral } from '@ai-sdk/mistral';
 import { embed, embedMany } from 'ai';
-import { getGoogleAIConfig } from './config-parser';
+import { getMistralConfig } from './config-parser';
 
-// Lazy-initialized Google provider with API key from config
-let googleProvider: ReturnType<typeof createGoogleGenerativeAI> | null = null;
+// Lazy-initialized Mistral provider
+let mistralProvider: ReturnType<typeof createMistral> | null = null;
 
-function getGoogleProvider() {
-  if (googleProvider) {
-    return googleProvider;
+function getMistralProvider() {
+  if (mistralProvider) {
+    return mistralProvider;
   }
 
-  const config = getGoogleAIConfig();
-  if (!config?.primaryKey) {
-    throw new Error('Google AI API key not configured. Check GOOGLE_AI_CONFIG secret.');
+  const config = getMistralConfig();
+  if (!config?.apiKey) {
+    throw new Error('Mistral API key not configured. Check MISTRAL_API_KEY or AI_PROVIDERS_CONFIG secret.');
   }
 
-  googleProvider = createGoogleGenerativeAI({
-    apiKey: config.primaryKey,
+  mistralProvider = createMistral({
+    apiKey: config.apiKey,
   });
 
-  return googleProvider;
+  return mistralProvider;
 }
 
 // Supabase 클라이언트 인터페이스 (동적 import 호환)
@@ -43,27 +46,20 @@ interface SupabaseClientLike {
 }
 
 /**
- * 텍스트를 384차원 벡터로 임베딩
- * Gemini text-embedding-004 사용 (무료)
- * outputDimensionality: 384로 기존 command_vectors와 호환
+ * 텍스트를 1024차원 벡터로 임베딩
+ * Mistral mistral-embed 사용
  *
  * @param text - 임베딩할 텍스트
- * @returns 384차원 float 배열
+ * @returns 1024차원 float 배열
  */
 export async function embedText(text: string): Promise<number[]> {
-  const google = getGoogleProvider();
-  const model = google.embedding('text-embedding-004');
+  const mistral = getMistralProvider();
+  const model = mistral.embedding('mistral-embed');
 
   const { embedding } = await embed({
     model,
     value: text,
     experimental_telemetry: { isEnabled: false },
-    providerOptions: {
-      google: {
-        outputDimensionality: 384, // 기존 command_vectors와 호환
-        taskType: 'RETRIEVAL_QUERY', // RAG 검색 최적화
-      },
-    },
   });
 
   return embedding;
@@ -74,22 +70,16 @@ export async function embedText(text: string): Promise<number[]> {
  * AI SDK embedMany 사용 - 자동 배치 처리
  *
  * @param texts - 임베딩할 텍스트 배열
- * @returns 384차원 벡터 배열
+ * @returns 1024차원 벡터 배열
  */
 export async function embedTexts(texts: string[]): Promise<number[][]> {
-  const google = getGoogleProvider();
-  const model = google.embedding('text-embedding-004');
+  const mistral = getMistralProvider();
+  const model = mistral.embedding('mistral-embed');
 
   const { embeddings } = await embedMany({
     model,
     values: texts,
     experimental_telemetry: { isEnabled: false },
-    providerOptions: {
-      google: {
-        outputDimensionality: 384,
-        taskType: 'RETRIEVAL_DOCUMENT', // 문서 저장용
-      },
-    },
   });
 
   return embeddings;
@@ -145,7 +135,7 @@ export async function searchWithEmbedding(
       return { success: false, results: [], error: 'Query too long (max 500 chars)' };
     }
 
-    // 1. 쿼리 임베딩 생성 (Gemini text-embedding-004)
+    // 1. 쿼리 임베딩 생성 (Mistral mistral-embed)
     const queryEmbedding = await embedText(query);
     const vectorString = toVectorString(queryEmbedding);
 

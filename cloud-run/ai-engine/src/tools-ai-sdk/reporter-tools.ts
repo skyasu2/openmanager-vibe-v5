@@ -14,7 +14,7 @@ import { z } from 'zod';
 // Data sources
 import { getSupabaseConfig } from '../lib/config-parser';
 import { searchWithEmbedding, embedText } from '../lib/embedding';
-import { hybridGraphSearch } from '../lib/graph-rag-service';
+import { hybridGraphSearch } from '../lib/llamaindex-rag-service';
 
 // ============================================================================
 // 1. Types

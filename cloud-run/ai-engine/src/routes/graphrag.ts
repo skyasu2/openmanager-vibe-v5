@@ -13,7 +13,7 @@ import {
   extractRelationships,
   getGraphRAGStats,
   getRelatedKnowledge,
-} from '../lib/graph-rag-service';
+} from '../lib/llamaindex-rag-service';
 import { handleApiError, handleValidationError, jsonSuccess } from '../lib/error-handler';
 
 export const graphragRouter = new Hono();

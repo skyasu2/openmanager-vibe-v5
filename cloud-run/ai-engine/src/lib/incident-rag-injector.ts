@@ -7,13 +7,14 @@
  * Flow:
  * 1. Fetch approved incident_report entries from approval_history
  * 2. Skip already-synced entries (check source_ref)
- * 3. Generate embeddings using Gemini text-embedding-004
+ * 3. Generate embeddings using Mistral mistral-embed (1024d)
  * 4. Insert into knowledge_base with category='incident'
  *
  * Rate Limit: Batch of 10, called on-demand only
  *
- * @version 1.0.0
+ * @version 1.1.0 (Mistral embedding migration)
  * @created 2025-12-30
+ * @updated 2025-12-31
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';

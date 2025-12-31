@@ -1,6 +1,10 @@
 /**
  * Cloud Run Embedding Service
- * Google AI Embedding API 호출 담당
+ * Mistral AI Embedding API 호출 담당
+ *
+ * ## Migration from Google AI (2025-12-31)
+ * - Changed from Google text-embedding-004 (384d) to Mistral mistral-embed (1024d)
+ * - Uses @ai-sdk/mistral for consistent API
  *
  * Hybrid Architecture:
  * - Vercel에서 프록시를 통해 이 서비스 호출
@@ -8,10 +12,13 @@
  */
 
 import crypto from 'crypto';
+import { createMistral } from '@ai-sdk/mistral';
+import { embed, embedMany } from 'ai';
+import { getMistralApiKey } from '../../lib/config-parser';
 
 interface EmbeddingOptions {
-  dimension?: number;
-  model?: string;
+  dimension?: number; // Ignored for Mistral (fixed 1024d)
+  model?: string; // Ignored for Mistral (fixed mistral-embed)
 }
 
 interface EmbeddingResult {
@@ -19,7 +26,7 @@ interface EmbeddingResult {
   embedding?: number[];
   embeddings?: number[][];
   error?: string;
-  source?: 'google-ai' | 'local-fallback';
+  source?: 'mistral' | 'local-fallback';
   cached?: boolean;
 }
 
@@ -32,28 +39,43 @@ class CloudRunEmbeddingService {
   private cache = new Map<string, EmbeddingCache>();
   private readonly CACHE_TTL = 10800000; // 3시간
   private readonly MAX_CACHE_SIZE = 1000;
-  private readonly DEFAULT_DIMENSION = 384;
-  private readonly API_ENDPOINT =
-    'https://generativelanguage.googleapis.com/v1beta/models';
+  private readonly DEFAULT_DIMENSION = 1024; // Mistral mistral-embed dimension
+  private mistralProvider: ReturnType<typeof createMistral> | null = null;
 
   // 통계
   private stats = {
     requests: 0,
     cacheHits: 0,
-    googleAiCalls: 0,
+    mistralCalls: 0,
     localFallbacks: 0,
     errors: 0,
   };
+
+  /**
+   * Get or create Mistral provider
+   */
+  private getMistralProvider(): ReturnType<typeof createMistral> | null {
+    if (this.mistralProvider) {
+      return this.mistralProvider;
+    }
+
+    const apiKey = getMistralApiKey();
+    if (!apiKey) {
+      return null;
+    }
+
+    this.mistralProvider = createMistral({ apiKey });
+    return this.mistralProvider;
+  }
 
   /**
    * 단일 텍스트 임베딩 생성
    */
   async createEmbedding(
     text: string,
-    options: EmbeddingOptions = {}
+    _options: EmbeddingOptions = {}
   ): Promise<EmbeddingResult> {
-    const dimension = options.dimension || this.DEFAULT_DIMENSION;
-    const model = options.model || 'text-embedding-004';
+    const dimension = this.DEFAULT_DIMENSION;
 
     this.stats.requests++;
 
@@ -66,22 +88,22 @@ class CloudRunEmbeddingService {
     const truncatedText = text.substring(0, 2000);
 
     // 캐시 확인
-    const cacheKey = `${model}_${dimension}_${this.hashText(truncatedText)}`;
+    const cacheKey = `mistral_${dimension}_${this.hashText(truncatedText)}`;
     const cached = this.getFromCache(cacheKey);
     if (cached) {
       this.stats.cacheHits++;
       return {
         success: true,
         embedding: cached,
-        source: 'google-ai',
+        source: 'mistral',
         cached: true,
       };
     }
 
-    // Google AI API 호출 시도
-    const apiKey = this.getApiKey();
-    if (!apiKey) {
-      console.warn('⚠️ [Embedding] No API key, using local fallback');
+    // Mistral API 호출 시도
+    const mistral = this.getMistralProvider();
+    if (!mistral) {
+      console.warn('⚠️ [Embedding] No Mistral API key, using local fallback');
       this.stats.localFallbacks++;
       const localEmbedding = this.generateLocalEmbedding(
         truncatedText,
@@ -96,38 +118,19 @@ class CloudRunEmbeddingService {
     }
 
     try {
-      const response = await fetch(
-        `${this.API_ENDPOINT}/${model}:embedContent`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Goog-Api-Key': apiKey,
-          },
-          body: JSON.stringify({
-            model: `models/${model}`,
-            content: {
-              parts: [{ text: truncatedText }],
-            },
-            outputDimensionality: dimension,
-          }),
-        }
-      );
+      const model = mistral.embedding('mistral-embed');
+      const { embedding: resultEmbedding } = await embed({
+        model,
+        value: truncatedText,
+        experimental_telemetry: { isEnabled: false },
+      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API error: ${response.status} - ${errorText}`);
-      }
+      this.stats.mistralCalls++;
+      this.saveToCache(cacheKey, resultEmbedding);
 
-      const data = await response.json();
-      const embedding = data.embedding.values;
-
-      this.stats.googleAiCalls++;
-      this.saveToCache(cacheKey, embedding);
-
-      return { success: true, embedding, source: 'google-ai' };
+      return { success: true, embedding: resultEmbedding, source: 'mistral' };
     } catch (error) {
-      console.error('❌ [Embedding] Google AI failed, using fallback:', error);
+      console.error('❌ [Embedding] Mistral AI failed, using fallback:', error);
       this.stats.errors++;
       this.stats.localFallbacks++;
 
@@ -150,10 +153,9 @@ class CloudRunEmbeddingService {
    */
   async createBatchEmbeddings(
     texts: string[],
-    options: EmbeddingOptions = {}
+    _options: EmbeddingOptions = {}
   ): Promise<EmbeddingResult> {
-    const dimension = options.dimension || this.DEFAULT_DIMENSION;
-    const model = options.model || 'text-embedding-004';
+    const dimension = this.DEFAULT_DIMENSION;
 
     this.stats.requests++;
 
@@ -178,7 +180,7 @@ class CloudRunEmbeddingService {
     const toProcess: { index: number; text: string }[] = [];
 
     validTexts.forEach((text, index) => {
-      const cacheKey = `${model}_${dimension}_${this.hashText(text)}`;
+      const cacheKey = `mistral_${dimension}_${this.hashText(text)}`;
       const cached = this.getFromCache(cacheKey);
       if (cached) {
         this.stats.cacheHits++;
@@ -190,58 +192,40 @@ class CloudRunEmbeddingService {
 
     // 캐시되지 않은 항목 처리
     if (toProcess.length > 0) {
-      const apiKey = this.getApiKey();
+      const mistral = this.getMistralProvider();
 
-      if (!apiKey) {
+      if (!mistral) {
         // 로컬 fallback
-        console.warn('⚠️ [Embedding] No API key, batch using local fallback');
+        console.warn('⚠️ [Embedding] No Mistral API key, batch using local fallback');
         this.stats.localFallbacks++;
 
         toProcess.forEach((item) => {
           const embedding = this.generateLocalEmbedding(item.text, dimension);
-          const cacheKey = `${model}_${dimension}_${this.hashText(item.text)}`;
+          const cacheKey = `mistral_${dimension}_${this.hashText(item.text)}`;
           this.saveToCache(cacheKey, embedding);
           results[item.index] = embedding;
         });
       } else {
         try {
-          const response = await fetch(
-            `${this.API_ENDPOINT}/${model}:batchEmbedContents`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Goog-Api-Key': apiKey,
-              },
-              body: JSON.stringify({
-                requests: toProcess.map((item) => ({
-                  model: `models/${model}`,
-                  content: {
-                    parts: [{ text: item.text }],
-                  },
-                  outputDimensionality: dimension,
-                })),
-              }),
-            }
-          );
+          const model = mistral.embedding('mistral-embed');
+          const textsToEmbed = toProcess.map((item) => item.text);
 
-          if (!response.ok) {
-            throw new Error(`Batch API error: ${response.status}`);
-          }
+          const { embeddings } = await embedMany({
+            model,
+            values: textsToEmbed,
+            experimental_telemetry: { isEnabled: false },
+          });
 
-          const data = await response.json();
-          this.stats.googleAiCalls++;
+          this.stats.mistralCalls++;
 
-          data.embeddings.forEach(
-            (embedding: { values: number[] }, i: number) => {
-              const item = toProcess[i];
-              if (!item) return;
+          embeddings.forEach((embedding, i) => {
+            const item = toProcess[i];
+            if (!item) return;
 
-              const cacheKey = `${model}_${dimension}_${this.hashText(item.text)}`;
-              this.saveToCache(cacheKey, embedding.values);
-              results[item.index] = embedding.values;
-            }
-          );
+            const cacheKey = `mistral_${dimension}_${this.hashText(item.text)}`;
+            this.saveToCache(cacheKey, embedding);
+            results[item.index] = embedding;
+          });
         } catch (error) {
           console.error('❌ [Embedding] Batch API failed:', error);
           this.stats.errors++;
@@ -250,7 +234,7 @@ class CloudRunEmbeddingService {
           // 로컬 fallback
           toProcess.forEach((item) => {
             const embedding = this.generateLocalEmbedding(item.text, dimension);
-            const cacheKey = `${model}_${dimension}_${this.hashText(item.text)}`;
+            const cacheKey = `mistral_${dimension}_${this.hashText(item.text)}`;
             this.saveToCache(cacheKey, embedding);
             results[item.index] = embedding;
           });
@@ -261,30 +245,13 @@ class CloudRunEmbeddingService {
     return {
       success: true,
       embeddings: results.filter((r): r is number[] => r !== null),
-      source: this.stats.localFallbacks > 0 ? 'local-fallback' : 'google-ai',
+      source: this.stats.localFallbacks > 0 ? 'local-fallback' : 'mistral',
     };
   }
 
   /**
-   * API 키 가져오기 (failover 지원)
-   */
-  private getApiKey(): string | null {
-    // Primary key
-    const primary =
-      process.env.GEMINI_API_KEY_PRIMARY || process.env.GOOGLE_AI_API_KEY;
-    if (primary) return primary;
-
-    // Secondary key
-    const secondary =
-      process.env.GEMINI_API_KEY_SECONDARY ||
-      process.env.GOOGLE_AI_API_KEY_SECONDARY;
-    if (secondary) return secondary;
-
-    return null;
-  }
-
-  /**
    * 로컬 임베딩 생성 (fallback)
+   * Note: Updated to 1024 dimensions for Mistral compatibility
    */
   private generateLocalEmbedding(text: string, dimension: number): number[] {
     const hash = crypto.createHash('sha256').update(text).digest('hex');
@@ -355,6 +322,8 @@ class CloudRunEmbeddingService {
         this.stats.requests > 0
           ? Math.round((this.stats.cacheHits / this.stats.requests) * 100)
           : 0,
+      provider: 'mistral',
+      dimension: this.DEFAULT_DIMENSION,
     };
   }
 

@@ -3,15 +3,17 @@
  * Parses JSON-based consolidated secrets from environment variables
  *
  * @module secret-config
- * @version 2.1.0
+ * @version 2.2.0
  *
  * ## Secret Consolidation (2025-12-28)
- * Consolidated into 5 grouped secrets for Cloud Run cost optimization:
- * 1. GOOGLE_AI_CONFIG: Gemini API keys
- * 2. SUPABASE_CONFIG: Database connection
- * 3. AI_PROVIDERS_CONFIG: Groq, Mistral, Cerebras, Tavily
- * 4. KV_CONFIG: Upstash Redis
- * 5. CLOUD_RUN_API_SECRET: API authentication
+ * Consolidated into 4 grouped secrets for Cloud Run cost optimization:
+ * 1. SUPABASE_CONFIG: Database connection
+ * 2. AI_PROVIDERS_CONFIG: Groq, Mistral, Cerebras, Tavily
+ * 3. KV_CONFIG: Upstash Redis
+ * 4. CLOUD_RUN_API_SECRET: API authentication
+ *
+ * ## v2.2.0 (2025-12-31)
+ * - Removed GOOGLE_AI_CONFIG (embeddings migrated to Mistral)
  *
  * ## v2.1.0 (2025-12-28)
  * - Removed Langfuse (unused due to createReactAgent callback limitation)
@@ -20,11 +22,6 @@
 // =============================================================================
 // Types
 // =============================================================================
-
-export interface GoogleAIConfig {
-  primaryKey: string;
-  secondaryKey: string;
-}
 
 export interface UpstashConfig {
   url: string;
@@ -80,19 +77,6 @@ function parseJsonSecret<T>(envVar: string, secretName: string): T | null {
 // Legacy Environment Variable Support
 // =============================================================================
 
-function getGoogleAIConfigLegacy(): GoogleAIConfig | null {
-  const primaryKey = process.env.GEMINI_API_KEY_PRIMARY;
-  const secondaryKey = process.env.GEMINI_API_KEY_SECONDARY;
-
-  if (primaryKey) {
-    return {
-      primaryKey,
-      secondaryKey: secondaryKey || primaryKey,
-    };
-  }
-  return null;
-}
-
 function getSupabaseConfigLegacy(): SupabaseConfig | null {
   const url = process.env.SUPABASE_URL;
   const directUrl = process.env.SUPABASE_DIRECT_URL;
@@ -112,31 +96,9 @@ function getSupabaseConfigLegacy(): SupabaseConfig | null {
 // Public API - Config Getters with Fallback
 // =============================================================================
 
-let cachedGoogleAIConfig: GoogleAIConfig | null = null;
 let cachedSupabaseConfig: SupabaseConfig | null = null;
 let cachedAIProvidersConfig: AIProvidersConfig | null = null;
 let cachedKVConfig: KVConfig | null = null;
-
-/**
- * Get Google AI (Gemini) configuration
- * Tries JSON secret first, falls back to legacy env vars
- */
-export function getGoogleAIConfig(): GoogleAIConfig | null {
-  if (cachedGoogleAIConfig) return cachedGoogleAIConfig;
-
-  // Try JSON secret first
-  cachedGoogleAIConfig = parseJsonSecret<GoogleAIConfig>(
-    'GOOGLE_AI_CONFIG',
-    'google-ai-config'
-  );
-
-  // Fallback to legacy env vars
-  if (!cachedGoogleAIConfig) {
-    cachedGoogleAIConfig = getGoogleAIConfigLegacy();
-  }
-
-  return cachedGoogleAIConfig;
-}
 
 /**
  * Get Supabase configuration
@@ -242,6 +204,20 @@ export function getMistralApiKey(): string | null {
 }
 
 /**
+ * Mistral Configuration for embedding.ts
+ * Returns API key in config object format
+ */
+export interface MistralConfig {
+  apiKey: string;
+}
+
+export function getMistralConfig(): MistralConfig | null {
+  const apiKey = getMistralApiKey();
+  if (!apiKey) return null;
+  return { apiKey };
+}
+
+/**
  * Get Cerebras API Key (NLQ Agent - fast inference)
  * Uses AI_PROVIDERS_CONFIG or falls back to individual env var
  * @see https://cloud.cerebras.ai/
@@ -304,7 +280,6 @@ export function getUpstashConfig(): UpstashConfig | null {
 // =============================================================================
 
 export function getConfigStatus(): {
-  googleAI: boolean;
   supabase: boolean;
   upstash: boolean;
   groq: boolean;
@@ -314,7 +289,6 @@ export function getConfigStatus(): {
   cloudRunApi: boolean;
 } {
   return {
-    googleAI: getGoogleAIConfig() !== null,
     supabase: getSupabaseConfig() !== null,
     upstash: getUpstashConfig() !== null,
     groq: getGroqApiKey() !== null,
@@ -329,7 +303,6 @@ export function getConfigStatus(): {
  * Clear cached configs (for testing)
  */
 export function clearConfigCache(): void {
-  cachedGoogleAIConfig = null;
   cachedSupabaseConfig = null;
   cachedAIProvidersConfig = null;
   cachedKVConfig = null;
