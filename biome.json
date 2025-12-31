@@ -65,7 +65,10 @@
       "suspicious": {
         "noExplicitAny": "warn",
         "noArrayIndexKey": "off",
-        "noConsole": { "level": "off", "options": { "allow": ["log"] } },
+        "noConsole": {
+          "level": "warn",
+          "options": { "allow": ["info", "warn", "error", "debug"] }
+        },
         "noImplicitAnyLet": "warn",
         "noDocumentCookie": "off",
         "noAssignInExpressions": "off",

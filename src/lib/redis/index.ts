@@ -20,18 +20,8 @@ export {
   setAIResponseCache,
   setHealthCache,
 } from './ai-cache';
-// Circuit Breaker
-export {
-  CIRCUIT_BREAKERS,
-  type CircuitBreakerConfig,
-  type CircuitState,
-  type CircuitStatus,
-  getCircuitState,
-  isRequestAllowed,
-  recordFailure,
-  recordSuccess,
-  resetCircuit,
-} from './circuit-breaker';
+// Circuit Breaker: Moved to @/lib/ai/circuit-breaker
+// Use: import { executeWithCircuitBreaker } from '@/lib/ai/circuit-breaker'
 // Client
 export {
   checkRedisHealth,

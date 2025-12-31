@@ -15,10 +15,10 @@
 // in serverless environments, NOT at module load time as constants.
 // This ensures fresh values on each request.
 
-// 로컬 Docker 기본 설정
+// 로컬 Docker 기본 설정 (개발 환경에서만 사용)
 const LOCAL_DOCKER_CONFIG = {
-  url: 'http://localhost:8080',
-  apiSecret: 'test-secret',
+  url: process.env.LOCAL_DOCKER_URL || 'http://localhost:8080',
+  apiSecret: process.env.LOCAL_DOCKER_SECRET || 'dev-only-secret',
 };
 
 // 설정 캐시 (서버 시작 시 한 번만 결정)
@@ -44,7 +44,7 @@ function resolveConfig() {
   if (isDev) {
     // USE_LOCAL_DOCKER=true 또는 AI_ENGINE_MODE=AUTO (기본값)
     if (useLocalDocker || aiEngineMode === 'AUTO') {
-      console.log(
+      console.info(
         '🐳 [Proxy] Development mode - Using local Docker (localhost:8080)'
       );
       return {
@@ -57,7 +57,7 @@ function resolveConfig() {
 
     // AI_ENGINE_MODE=CLOUD → Cloud Run 강제 사용
     if (aiEngineMode === 'CLOUD') {
-      console.log('☁️ [Proxy] Development mode - Forced Cloud Run');
+      console.info('☁️ [Proxy] Development mode - Forced Cloud Run');
       return {
         url: process.env.CLOUD_RUN_AI_URL?.trim() || '',
         enabled: process.env.CLOUD_RUN_ENABLED?.trim() === 'true',
