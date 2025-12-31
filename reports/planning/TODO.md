@@ -21,7 +21,7 @@ _(현재 활성 작업 없음)_
 
 | Domain | Location | Description |
 |--------|----------|-------------|
-| **AI Development** | `docs/development/ai/TODO.md` | Multi-Agent, Prompt Optimization |
+| **AI Development** | `docs/guides/ai/TODO.md` | Multi-Agent, Prompt Optimization |
 | **Analysis Reports** | `reports/planning/analysis/` | 점검 리포트 |
 
 ## Low Priority (Backlog)

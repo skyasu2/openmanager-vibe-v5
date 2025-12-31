@@ -1,10 +1,10 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-12-30
+**마지막 업데이트**: 2026-01-01
 
 ---
 
-## 🏗️ Technical Stack (v5.83.12)
+## 🏗️ Technical Stack (v5.83.14)
 
 **Core Frameworks** (2025 Standard)
 - **Next.js**: `v16.1.1` (App Router, Server Components)
