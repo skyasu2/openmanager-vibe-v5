@@ -3,11 +3,11 @@
 /**
  * 🤖 AI Workspace Controller (Unified Streaming Architecture)
  *
- * v3.1.0 - Hybrid Query Upgrade:
- * - Replaced legacy `AIChatInterface` with `EnhancedAIChat`.
- * - Integrated Hybrid AI Query Hook (Streaming + Job Queue).
- * - Supports "Thinking Mode" and Tool Calling in Fullscreen.
- * - Logic mirrored from `AISidebarV4`.
+ * v4.0.0 - useAIChatCore 통합:
+ * - AISidebarV4와 동일한 공통 훅 사용 (useAIChatCore)
+ * - HITL 승인/거부 지원
+ * - 세션 제한 (전체화면에서는 비활성화)
+ * - 피드백 기능 통합
  */
 
 import {
@@ -21,10 +21,9 @@ import {
   User,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { memo, useMemo, useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
-import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
-import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
+import { useAIChatCore } from '@/hooks/ai/useAIChatCore';
 import { AIFunctionPages } from '../../domains/ai-sidebar/components/AIFunctionPages';
 import { EnhancedAIChat } from '../../domains/ai-sidebar/components/EnhancedAIChat';
 import type { AIThinkingStep } from '../../domains/ai-sidebar/types/ai-sidebar-types';
@@ -41,8 +40,7 @@ import { MessageActions } from './MessageActions';
 import SystemContextPanel from './SystemContextPanel';
 import ThinkingProcessVisualizer from './ThinkingProcessVisualizer';
 
-// 🔧 Message Utility: @see /src/lib/ai/utils/message-normalizer.ts
-// extractTextFromUIMessage - 중앙화된 텍스트 추출 유틸리티 사용
+// 🔧 공통 로직은 useAIChatCore 훅에서 관리
 
 const MemoizedThinkingProcessVisualizer = memo(ThinkingProcessVisualizer);
 
@@ -167,120 +165,36 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     useState<AIAssistantFunction>('chat');
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
-  // --- Hybrid AI Query Integration (Mirrored from AISidebarV4) ---
-  const [input, setInput] = useState('');
-  const sessionIdRef = useRef(`workspace_${Date.now()}`);
-
+  // ============================================================================
+  // 🎯 공통 AI 채팅 로직 (useAIChatCore 훅 사용)
+  // 전체화면에서는 세션 제한 비활성화 (더 큰 화면에서 더 많은 대화 가능)
+  // ============================================================================
   const {
-    sendQuery,
-    messages,
-    setMessages,
-    state: hybridState,
-    isLoading: hybridIsLoading,
+    // 입력 상태
+    input,
+    setInput,
+    // 메시지
+    messages: enhancedMessages,
+    // 로딩/진행 상태
+    isLoading,
+    hybridState,
+    currentMode,
+    // HITL 승인 (사이드바와 동일)
+    pendingApproval,
+    // 세션 관리
+    sessionState,
+    handleNewSession,
+    // 액션
+    handleFeedback,
+    regenerateLastResponse,
     stop,
     cancel,
-    currentMode,
-  } = useHybridAIQuery({
-    sessionId: sessionIdRef.current,
-    onStreamFinish: () => {
-      setInput('');
-    },
-    onJobResult: (result) => {
-      setInput('');
-      console.log('📦 [Workspace Job Queue] Result received:', result.success);
-    },
+    // 통합 입력 핸들러
+    handleSendInput,
+  } = useAIChatCore({
+    // 전체화면에서는 세션 제한 비활성화
+    disableSessionLimit: true,
   });
-
-  // 피드백 핸들러 (백엔드 API 연동)
-  const handleFeedback = async (
-    messageId: string,
-    type: 'positive' | 'negative'
-  ) => {
-    try {
-      const response = await fetch('/api/ai/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messageId,
-          type,
-          timestamp: new Date().toISOString(),
-        }),
-      });
-      if (!response.ok) {
-        console.error('[AIWorkspace] Feedback API error:', response.status);
-      }
-    } catch (error) {
-      console.error('[AIWorkspace] Feedback error:', error);
-    }
-  };
-
-  const regenerateLastResponse = () => {
-    if (messages.length < 2) return;
-    const lastUserMessageIndex = [...messages]
-      .reverse()
-      .findIndex((m) => m.role === 'user');
-    if (lastUserMessageIndex === -1) return;
-    const actualIndex = messages.length - 1 - lastUserMessageIndex;
-    const lastUserMessage = messages[actualIndex];
-    if (!lastUserMessage) return;
-    const textContent = extractTextFromUIMessage(lastUserMessage);
-    if (textContent) {
-      setMessages(messages.slice(0, actualIndex));
-      sendQuery(textContent);
-    }
-  };
-
-  const isLoading = hybridIsLoading;
-
-  const enhancedMessages = useMemo(() => {
-    return messages
-      .filter(
-        (m) =>
-          m.role === 'user' || m.role === 'assistant' || m.role === 'system'
-      )
-      .map((m): EnhancedChatMessage => {
-        const textContent = extractTextFromUIMessage(m);
-        const toolParts =
-          m.parts?.filter(
-            (part): part is typeof part & { toolCallId: string } =>
-              part.type.startsWith('tool-') && 'toolCallId' in part
-          ) ?? [];
-
-        const thinkingSteps = toolParts.map((toolPart) => {
-          const toolName = toolPart.type.slice(5);
-          const state = (toolPart as { state?: string }).state;
-          const output = (toolPart as { output?: unknown }).output;
-          const isCompleted =
-            state === 'output-available' || output !== undefined;
-          const hasError = state === 'output-error';
-
-          return {
-            id: toolPart.toolCallId,
-            step: toolName,
-            status: hasError
-              ? ('failed' as const)
-              : isCompleted
-                ? ('completed' as const)
-                : ('processing' as const),
-            description: hasError
-              ? `Error: ${(toolPart as { errorText?: string }).errorText || 'Unknown error'}`
-              : isCompleted
-                ? `Completed: ${JSON.stringify(output)}`
-                : `Executing ${toolName}...`,
-            timestamp: new Date(),
-          };
-        });
-
-        return {
-          id: m.id,
-          role: m.role as 'user' | 'assistant' | 'system' | 'thinking',
-          content: textContent,
-          timestamp: new Date(),
-          isStreaming: isLoading && m.id === messages[messages.length - 1]?.id,
-          thinkingSteps: thinkingSteps.length > 0 ? thinkingSteps : undefined,
-        };
-      });
-  }, [messages, isLoading]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -320,17 +234,15 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               limitedMessages={enhancedMessages}
               messagesEndRef={messagesEndRef}
               MessageComponent={MessageComponent}
+              pendingApproval={pendingApproval}
               inputValue={input}
               setInputValue={setInput}
-              handleSendInput={() => {
-                if (input.trim()) {
-                  sendQuery(input);
-                }
-              }}
+              handleSendInput={handleSendInput}
+              // 세션 상태 (전체화면에서는 제한 없음)
+              sessionState={sessionState}
+              onNewSession={handleNewSession}
               isGenerating={isLoading}
-              regenerateResponse={() => {
-                regenerateLastResponse();
-              }}
+              regenerateResponse={regenerateLastResponse}
               currentEngine="Hybrid AI Query"
               onStopGeneration={stop}
               onFeedback={handleFeedback}
@@ -370,7 +282,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <OpenManagerLogo variant="light" showSubtitle={false} href="/" />
           <button
-            onClick={() => setMessages([])}
+            onClick={handleNewSession}
             className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-colors shadow-sm"
             title="새 대화 시작"
           >
@@ -385,13 +297,13 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             <div className="mb-2 px-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
               Recent Chats
             </div>
-            {messages.length > 0 ? (
+            {enhancedMessages.length > 0 ? (
               <div className="space-y-1">
                 <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2.5 text-sm text-blue-700 border border-blue-100">
                   <MessageSquare className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate flex-1">현재 대화</span>
                   <span className="text-xs text-blue-500 shrink-0">
-                    {messages.filter((m) => m.role === 'user').length}개
+                    {enhancedMessages.filter((m) => m.role === 'user').length}개
                   </span>
                 </div>
               </div>
@@ -447,7 +359,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setMessages([])}
+              onClick={handleNewSession}
               className="rounded-lg border border-gray-200 bg-white p-2 text-gray-500 hover:bg-gray-50 transition-colors shadow-sm"
               title="새 대화"
             >
@@ -507,7 +419,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               componentName="AIWorkspace"
               onReset={() => {
                 setInput('');
-                setMessages([]);
+                handleNewSession();
               }}
             >
               {selectedFunction === 'chat' ? (
@@ -517,17 +429,15 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                   limitedMessages={enhancedMessages}
                   messagesEndRef={messagesEndRef}
                   MessageComponent={MessageComponent}
+                  pendingApproval={pendingApproval}
                   inputValue={input}
                   setInputValue={setInput}
-                  handleSendInput={() => {
-                    if (input.trim()) {
-                      sendQuery(input);
-                    }
-                  }}
+                  handleSendInput={handleSendInput}
+                  // 세션 상태 (전체화면에서는 제한 없음)
+                  sessionState={sessionState}
+                  onNewSession={handleNewSession}
                   isGenerating={isLoading}
-                  regenerateResponse={() => {
-                    regenerateLastResponse();
-                  }}
+                  regenerateResponse={regenerateLastResponse}
                   currentEngine="Hybrid AI Query"
                   onStopGeneration={stop}
                   onFeedback={handleFeedback}

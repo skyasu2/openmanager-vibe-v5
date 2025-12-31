@@ -2,20 +2,14 @@
 
 // Icons
 import { Bot, User } from 'lucide-react';
-import {
-  type FC,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type FC, memo, useEffect, useRef, useState } from 'react';
 // Components
 import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
-import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
-import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
-import { SESSION_LIMITS } from '@/types/hitl';
+import {
+  convertThinkingStepsToUI,
+  useAIChatCore,
+} from '@/hooks/ai/useAIChatCore';
+import type { ApprovalRequest } from '@/types/hitl';
 import { RenderMarkdownContent } from '@/utils/markdown-parser';
 import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '../../../components/ai/AIAssistantIconPanel';
@@ -31,89 +25,19 @@ import type {
 import { AIFunctionPages } from './AIFunctionPages';
 import { AISidebarHeader } from './AISidebarHeader';
 import { EnhancedAIChat } from './EnhancedAIChat';
-import {
-  type AgentStep,
-  type ApprovalRequest,
-  InlineAgentStatus,
-} from './InlineAgentStatus';
+import { type AgentStep, InlineAgentStatus } from './InlineAgentStatus';
 
-// 🔧 Message Utility: @see /src/lib/ai/utils/message-normalizer.ts
-// extractTextFromUIMessage - 중앙화된 텍스트 추출 유틸리티 사용
+// 🔧 공통 로직은 useAIChatCore 훅에서 관리
+// - HITL 승인/거부
+// - 세션 제한
+// - 피드백
+// - 메시지 변환
 
 /**
- * ThinkingSteps를 AgentStep 형식으로 변환
+ * ThinkingSteps를 AgentStep 형식으로 변환 (UI 표시용)
  */
 function convertToAgentSteps(thinkingSteps?: AIThinkingStep[]): AgentStep[] {
-  if (!thinkingSteps || thinkingSteps.length === 0) return [];
-
-  // Tool 이름을 Agent 타입으로 매핑
-  const toolToAgent: Record<string, AgentStep['agent']> = {
-    getServerMetrics: 'nlq',
-    analyzePatterns: 'analyst',
-    generateReport: 'reporter',
-    classifyIntent: 'supervisor',
-    // 기본값은 nlq
-  };
-
-  return thinkingSteps.map((step) => ({
-    id: step.id,
-    agent: toolToAgent[step.step || ''] || 'nlq',
-    status:
-      step.status === 'completed'
-        ? 'completed'
-        : step.status === 'failed'
-          ? 'error'
-          : step.status === 'processing'
-            ? 'processing'
-            : 'pending',
-    message: step.description,
-    startedAt: step.timestamp ? new Date(step.timestamp) : undefined,
-  }));
-}
-
-// 🔒 세션 제한 상수
-const SESSION_MESSAGE_LIMIT = SESSION_LIMITS.MESSAGE_LIMIT;
-const SESSION_WARNING_THRESHOLD = SESSION_LIMITS.WARNING_THRESHOLD;
-
-// 🔍 자연어 승인 응답 감지 헬퍼
-function detectApprovalIntent(input: string): 'approve' | 'reject' | null {
-  const trimmed = input.trim().toLowerCase();
-
-  // 승인 패턴 (우선순위 높음)
-  const approvalPatterns = [
-    '네',
-    '예',
-    'yes',
-    '확인',
-    '진행',
-    '승인',
-    'ok',
-    '좋아',
-    '그래',
-    '맞아',
-  ];
-  // 거부 패턴
-  const rejectPatterns = [
-    '아니',
-    '아니오',
-    'no',
-    '취소',
-    '거부',
-    '중지',
-    'cancel',
-    '그만',
-    '안해',
-    '싫어',
-  ];
-
-  const isApproval = approvalPatterns.some((p) => trimmed.includes(p));
-  const isRejection = rejectPatterns.some((p) => trimmed.includes(p));
-
-  // 둘 다 있으면 더 강한 신호 우선 (거부가 더 명시적이면 거부)
-  if (isApproval && !isRejection) return 'approve';
-  if (isRejection) return 'reject';
-
-  return null;
+  return convertThinkingStepsToUI(thinkingSteps) as AgentStep[];
 }
 
 // 🎯 메시지 컴포넌트 성능 최적화 (Cursor/Copilot 스타일)
@@ -243,7 +167,7 @@ const MessageComponent = memo<{
 
 MessageComponent.displayName = 'MessageComponent';
 
-// 🔒 완전 Client-Only AI 사이드바 컴포넌트 (V4 - Vercel AI SDK Integration)
+// 🔒 완전 Client-Only AI 사이드바 컴포넌트 (V4 - useAIChatCore 통합)
 export const AISidebarV4: FC<AISidebarV3Props> = ({
   isOpen,
   onClose,
@@ -254,287 +178,39 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   // 🔐 권한 확인
   const permissions = useUserPermissions();
 
-  // 🔧 상태 관리
+  // 🔧 UI 상태 관리 (사이드바 전용)
   const [selectedFunction, setSelectedFunction] =
     useState<AIAssistantFunction>('chat');
 
-  // 🔧 수동 입력 상태 관리 (@ai-sdk/react v2.x 마이그레이션)
-  const [input, setInput] = useState('');
-
-  // 🔔 HITL Session ID 관리 - Cloud Run과 동일한 ID 사용
-  // prop으로 전달받거나, 없으면 컴포넌트 마운트 시 생성
-  const chatSessionIdRef = useRef<string>(
-    propSessionId || `session_${Date.now()}`
-  );
-
-  // 🔔 Human-in-the-Loop 승인 상태
-  const [pendingApproval, setPendingApproval] =
-    useState<ApprovalRequest | null>(null);
-  const [isProcessingApproval, setIsProcessingApproval] = useState(false);
-
-  // 🔔 승인/거부 핸들러
-  const handleApprove = useCallback(
-    async (requestId: string) => {
-      if (isProcessingApproval) return;
-      setIsProcessingApproval(true);
-
-      try {
-        const response = await fetch('/api/ai/approval', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: requestId,
-            approved: true,
-          }),
-        });
-
-        if (response.ok) {
-          console.log('✅ [HITL] Approval accepted');
-          setPendingApproval(null);
-        } else {
-          console.error('❌ [HITL] Approval failed:', await response.text());
-        }
-      } catch (error) {
-        console.error('❌ [HITL] Approval error:', error);
-      } finally {
-        setIsProcessingApproval(false);
-      }
-    },
-    [isProcessingApproval]
-  );
-
-  const handleReject = useCallback(
-    async (requestId: string) => {
-      if (isProcessingApproval) return;
-      setIsProcessingApproval(true);
-
-      try {
-        const response = await fetch('/api/ai/approval', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: requestId,
-            approved: false,
-            reason: 'User rejected the action',
-          }),
-        });
-
-        if (response.ok) {
-          console.log('🚫 [HITL] Action rejected');
-          setPendingApproval(null);
-        } else {
-          console.error('❌ [HITL] Rejection failed:', await response.text());
-        }
-      } catch (error) {
-        console.error('❌ [HITL] Rejection error:', error);
-      } finally {
-        setIsProcessingApproval(false);
-      }
-    },
-    [isProcessingApproval]
-  );
-
   // ============================================================================
-  // Hybrid AI Query Hook (자동 라우팅: Streaming vs Job Queue)
+  // 🎯 공통 AI 채팅 로직 (useAIChatCore 훅 사용)
   // ============================================================================
-  //
-  // 복잡도 기반 자동 라우팅:
-  // - simple/moderate: useChat (빠른 스트리밍)
-  // - complex/very_complex: Job Queue (진행률 표시 + 타임아웃 회피)
   const {
-    sendQuery,
-    messages,
-    setMessages,
-    state: hybridState,
-    isLoading: hybridIsLoading,
+    // 입력 상태
+    input,
+    setInput,
+    // 메시지
+    messages: enhancedMessages,
+    // 로딩/진행 상태
+    isLoading,
+    hybridState,
+    currentMode,
+    // HITL 승인
+    pendingApproval,
+    // 세션 관리
+    sessionState,
+    handleNewSession,
+    // 액션
+    handleFeedback,
+    regenerateLastResponse,
     stop,
     cancel,
-    currentMode,
-  } = useHybridAIQuery({
-    sessionId: chatSessionIdRef.current,
-    onStreamFinish: async () => {
-      // Optional: Sync to global store if needed
-      onMessageSend?.(input);
-      setInput(''); // 입력 초기화
-
-      // 🔔 SSE 기반 HITL: 스트리밍 완료 후 1회 approval 상태 확인
-      // chatSessionIdRef.current 사용 - Cloud Run과 동일한 ID로 조회
-      try {
-        const sessionId = chatSessionIdRef.current;
-
-        const response = await fetch(
-          `/api/ai/approval?sessionId=${encodeURIComponent(sessionId)}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          if (data.hasPending && data.action) {
-            setPendingApproval({
-              id: sessionId,
-              type: data.action.type || 'tool_execution',
-              description: data.action.description || '이 작업을 실행할까요?',
-              details: data.action.details,
-            });
-            console.log(
-              '🔔 [HITL] Approval request detected:',
-              data.action.type
-            );
-          }
-        }
-      } catch (error) {
-        console.error('❌ [HITL] Approval check failed:', error);
-      }
-    },
-    onJobResult: (result) => {
-      // Job Queue 결과 처리
-      onMessageSend?.(input);
-      setInput('');
-      console.log('📦 [Job Queue] Result received:', result.success);
-    },
-    onProgress: (progress) => {
-      console.log(
-        `📊 [Job Queue] Progress: ${progress.progress}% - ${progress.stage}`
-      );
-    },
+    // 통합 입력 핸들러
+    handleSendInput,
+  } = useAIChatCore({
+    sessionId: propSessionId,
+    onMessageSend,
   });
-
-  // ============================================================================
-  // 🔒 세션 제한 관리
-  // ============================================================================
-
-  // 📊 세션 상태 계산
-  const sessionState = useMemo(() => {
-    const count = messages.length;
-    const remaining = SESSION_MESSAGE_LIMIT - count;
-    const isWarning = count >= SESSION_WARNING_THRESHOLD;
-    const isLimitReached = count >= SESSION_MESSAGE_LIMIT;
-
-    return { count, remaining, isWarning, isLimitReached };
-  }, [messages.length]);
-
-  // 🔄 세션 리셋 함수 (새 대화 시작)
-  const handleNewSession = useCallback(() => {
-    setMessages([]);
-    chatSessionIdRef.current = `session_${Date.now()}`;
-    setPendingApproval(null);
-    setInput('');
-    console.log('🔄 [Session] New session started:', chatSessionIdRef.current);
-  }, [setMessages]);
-
-  // 👍👎 피드백 핸들러 (백엔드 API 연동)
-  const handleFeedback = useCallback(
-    async (messageId: string, type: 'positive' | 'negative') => {
-      try {
-        const response = await fetch('/api/ai/feedback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messageId,
-            type,
-            sessionId: chatSessionIdRef.current,
-            timestamp: new Date().toISOString(),
-          }),
-        });
-        if (!response.ok) {
-          console.error('[AISidebarV4] Feedback API error:', response.status);
-        }
-      } catch (error) {
-        console.error('[AISidebarV4] Feedback error:', error);
-      }
-    },
-    []
-  );
-
-  // 재생성 함수 (마지막 assistant 메시지 제거 후 재전송)
-  const regenerateLastResponse = () => {
-    if (messages.length < 2) return;
-    // 마지막 assistant 메시지 찾아서 제거
-    const lastUserMessageIndex = [...messages]
-      .reverse()
-      .findIndex((m) => m.role === 'user');
-    if (lastUserMessageIndex === -1) return;
-    const actualIndex = messages.length - 1 - lastUserMessageIndex;
-    const lastUserMessage = messages[actualIndex];
-    if (!lastUserMessage) return;
-    // assistant 메시지들 제거하고 user 메시지 재전송
-    const textContent = extractTextFromUIMessage(lastUserMessage);
-    if (textContent) {
-      setMessages(messages.slice(0, actualIndex));
-      sendQuery(textContent);
-    }
-  };
-
-  // isLoading: 하이브리드 훅에서 통합 관리
-  const isLoading = hybridIsLoading;
-
-  // 🔔 승인 상태 초기화 (스트리밍 완료 시)
-  // Note: 기존 2초 폴링 제거 - onFinish에서 1회 체크로 대체 (SSE 기반)
-  useEffect(() => {
-    if (!isLoading) {
-      // 스트리밍 완료 후 승인 대기 상태가 아니면 초기화하지 않음
-      // pendingApproval은 사용자가 결정할 때까지 유지
-      return;
-    }
-    // 새 스트리밍 시작 시 이전 승인 요청 초기화
-    setPendingApproval(null);
-  }, [isLoading]);
-
-  // Map Vercel v2.x UIMessage to EnhancedChatMessage
-  const enhancedMessages = useMemo(() => {
-    return messages
-      .filter(
-        (m) =>
-          m.role === 'user' || m.role === 'assistant' || m.role === 'system'
-      )
-      .map((m): EnhancedChatMessage => {
-        // v2.x/v5.x: parts 배열에서 텍스트 추출
-        const textContent = extractTextFromUIMessage(m);
-
-        // v5.x: tool parts는 type이 'tool-${toolName}' 형태
-        // state: 'input-streaming' | 'input-available' | 'output-available' | 'output-error'
-        const toolParts =
-          m.parts?.filter(
-            (part): part is typeof part & { toolCallId: string } =>
-              part.type.startsWith('tool-') && 'toolCallId' in part
-          ) ?? [];
-
-        // tool parts를 thinking steps로 변환
-        const thinkingSteps = toolParts.map((toolPart) => {
-          // type에서 tool name 추출 (예: 'tool-getServerMetrics' -> 'getServerMetrics')
-          const toolName = toolPart.type.slice(5);
-          const state = (toolPart as { state?: string }).state;
-          const output = (toolPart as { output?: unknown }).output;
-
-          const isCompleted =
-            state === 'output-available' || output !== undefined;
-          const hasError = state === 'output-error';
-
-          return {
-            id: toolPart.toolCallId,
-            step: toolName,
-            status: hasError
-              ? ('failed' as const)
-              : isCompleted
-                ? ('completed' as const)
-                : ('processing' as const),
-            description: hasError
-              ? `Error: ${(toolPart as { errorText?: string }).errorText || 'Unknown error'}`
-              : isCompleted
-                ? `Completed: ${JSON.stringify(output)}`
-                : `Executing ${toolName}...`,
-            timestamp: new Date(),
-          };
-        });
-
-        return {
-          id: m.id,
-          role: m.role as 'user' | 'assistant' | 'system' | 'thinking',
-          content: textContent,
-          timestamp: new Date(), // v2.x: createdAt 직접 없음, 현재 시간 사용
-          isStreaming: isLoading && m.id === messages[messages.length - 1]?.id,
-          thinkingSteps: thinkingSteps.length > 0 ? thinkingSteps : undefined,
-        };
-      });
-  }, [messages, isLoading]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -572,42 +248,12 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           pendingApproval={pendingApproval}
           inputValue={input}
           setInputValue={setInput}
-          handleSendInput={() => {
-            if (!input.trim()) return;
-
-            // 🔒 세션 제한 체크 (무료 티어 보호)
-            if (sessionState.isLimitReached) {
-              console.warn(
-                `⚠️ [Session] Limit reached (${SESSION_MESSAGE_LIMIT} messages)`
-              );
-              return; // 입력 차단 - UI에서 경고 표시됨
-            }
-
-            // 🔔 승인 대기 중이면 자연어 의도 감지
-            if (pendingApproval) {
-              const intent = detectApprovalIntent(input);
-              if (intent === 'approve') {
-                void handleApprove(pendingApproval.id);
-                setInput('');
-                return;
-              } else if (intent === 'reject') {
-                void handleReject(pendingApproval.id);
-                setInput('');
-                return;
-              }
-              // 의도가 불분명하면 일반 메시지로 처리
-            }
-
-            // Hybrid AI Query: 복잡도에 따라 자동 라우팅
-            sendQuery(input);
-          }}
+          handleSendInput={handleSendInput}
           // 🔒 세션 상태 전달
           sessionState={sessionState}
           onNewSession={handleNewSession}
           isGenerating={isLoading}
-          regenerateResponse={() => {
-            regenerateLastResponse();
-          }}
+          regenerateResponse={regenerateLastResponse}
           currentEngine="Vercel AI SDK"
           // 👍👎 피드백 핸들러
           onFeedback={handleFeedback}
