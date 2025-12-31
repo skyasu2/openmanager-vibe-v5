@@ -441,7 +441,7 @@ chmod +x scripts/environment/create-wsl-snapshot.sh
 ## 📖 관련 문서
 
 - [WSL 최적화 가이드](./wsl-optimization.md)
-- [MCP 설정 가이드](../../development/mcp/setup-guide.md)
+- [MCP 설정 가이드](../../../guides/mcp/setup-guide.md)
 - [프로젝트 환경 설정](../../../CLAUDE.md)
 
 ---
