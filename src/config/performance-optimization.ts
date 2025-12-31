@@ -49,7 +49,7 @@ export const BUNDLE_OPTIMIZATION = {
     ui: ['@radix-ui', 'framer-motion', 'lucide-react'],
     charts: ['recharts', 'react-chartjs-2'],
     utils: ['date-fns', 'lodash', 'axios'],
-    ai: ['@google/generative-ai', '@supabase/supabase-js'],
+    ai: ['@ai-sdk/mistral', '@supabase/supabase-js'],
   },
 
   // 라우트별 코드 분할

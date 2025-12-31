@@ -114,7 +114,6 @@ const nextConfig = {
   // 서버 외부 패키지 설정 (번들 크기 감소)
   serverExternalPackages: [
     '@supabase/supabase-js',
-    '@google/generative-ai',
     'sharp',
     'crypto-js',
     'axios',
@@ -242,7 +241,7 @@ const nextConfig = {
           process.env.NEXT_PUBLIC_SUPABASE_URL,
           'https://vnswjnltnhpsueosfhmw.supabase.co'
         ), // Supabase
-        'https://generativelanguage.googleapis.com', // Google AI
+        // Cloud Run AI Engine은 별도 도메인 사용 (CLOUD_RUN_AI_URL)
         'https://va.vercel-scripts.com', // Vercel Analytics
         'https://vitals.vercel-insights.com', // Speed Insights
         isDev ? 'ws://localhost:3000' : '', // 개발 환경 WebSocket

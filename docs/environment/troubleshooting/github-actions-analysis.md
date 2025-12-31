@@ -28,7 +28,6 @@ npm run test:ci:fast
 env:
   NEXT_PUBLIC_SUPABASE_URL: https://test.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
-  GOOGLE_AI_API_KEY: test-google-ai-key
   NODE_ENV: test
   SKIP_ENV_VALIDATION: true
 ```
