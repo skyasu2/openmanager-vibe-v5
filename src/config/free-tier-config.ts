@@ -66,23 +66,23 @@ export const FREE_TIER_CONFIG = {
     },
   },
 
-  // ⚠️ Google AI API 제한적 사용
-  googleAI: {
+  // ⚠️ Cloud Run AI 설정 (v5.84.0: Mistral)
+  cloudRunAI: {
     enabled: true,
-    plan: 'free',
+    plan: 'cloud-run',
     limits: {
-      requestsPerMinute: 15, // 실제 사용: ~10
-      requestsPerDay: 1500, // 실제 사용: ~100
-      inputTokensPerMinute: 32000, // 실제 사용: ~1,000
-      outputTokensPerMinute: 8000, // 실제 사용: ~500
+      requestsPerMinute: 60, // Cloud Run 제한
+      requestsPerDay: 2000, // 일일 제한
+      inputTokensPerMinute: 500000, // Mistral 제한
+      outputTokensPerMinute: 100000,
     },
     optimizations: {
       enableCaching: true, // 응답 캐싱 활성화
       cacheTimeout: 3600, // 1시간 캐시
       enableRateLimit: true, // 요청 속도 제한
-      requestInterval: 5000, // 5초 간격
-      enableSampling: true, // 10% 요청만 처리
-      samplingRate: 0.1,
+      requestInterval: 1000, // 1초 간격
+      enableSampling: false, // 샘플링 비활성화
+      samplingRate: 1.0,
     },
   },
 
@@ -112,7 +112,7 @@ export const FREE_TIER_CONFIG = {
       vercel: 0.8, // 80% 사용시 알림
       supabase: 0.8,
       redis: 0.7, // 70% 사용시 알림 (더 민감)
-      googleAI: 0.6, // 60% 사용시 알림 (가장 민감)
+      cloudRunAI: 0.8, // 80% 사용시 알림 (Cloud Run 여유로움)
     },
     enableAutoOptimization: true, // 자동 최적화 활성화
   },
@@ -136,10 +136,10 @@ export function validateFreeTierUsage() {
       usage: '~30%',
       recommendation: '캐싱 및 로깅 기능 90% 축소 필요',
     },
-    googleAI: {
-      status: 'warning',
-      usage: '~40%',
-      recommendation: '요청 간격 조절 및 캐싱 강화 필요',
+    cloudRunAI: {
+      status: 'safe',
+      usage: '< 20%',
+      recommendation: 'Cloud Run 기반 Mistral AI 정상 운영',
     },
     mcp: {
       status: 'active',

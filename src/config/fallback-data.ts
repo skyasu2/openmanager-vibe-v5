@@ -109,13 +109,14 @@ export const INFRASTRUCTURE_CONFIG = {
   },
   api: {
     /**
-     * @deprecated v5.84.0 - Hybrid Architecture 전환
-     * API 키는 Cloud Run에서 관리됩니다.
-     * 이 설정은 Cloud Run 미활성화 시 폴백으로만 사용됩니다.
+     * Cloud Run AI Configuration
+     * v5.84.0: All AI processing via Cloud Run (Mistral/Cerebras/Groq)
+     * API keys are managed by Cloud Run, not Vercel
      */
-    googleAI: {
-      key: process.env.GOOGLE_AI_API_KEY || '',
-      model: process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash',
+    cloudRunAI: {
+      url: process.env.CLOUD_RUN_AI_URL || '',
+      enabled: process.env.CLOUD_RUN_ENABLED === 'true',
+      model: 'mistral-small-latest',
     },
     // slack 설정 제거됨
   },
@@ -131,14 +132,13 @@ export const INFRASTRUCTURE_CONFIG = {
       .filter(Boolean),
   },
   /**
-   * @deprecated v5.84.0 - Hybrid Architecture 전환
-   * API 키는 Cloud Run에서 관리됩니다.
-   * 이 설정은 Cloud Run 미활성화 시 폴백으로만 사용됩니다.
+   * Cloud Run AI Settings
+   * v5.84.0: Migrated from Google AI to Mistral via Cloud Run
    */
-  google: {
-    apiKey: process.env.GOOGLE_AI_API_KEY || '',
-    model: process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash',
-    betaMode: process.env.GOOGLE_AI_BETA_MODE === 'true',
+  cloudRun: {
+    url: process.env.CLOUD_RUN_AI_URL || '',
+    enabled: process.env.CLOUD_RUN_ENABLED === 'true',
+    model: 'mistral-small-latest',
   },
   app: {
     url:
@@ -191,7 +191,7 @@ export function validateEnvironmentConfig(): {
 
   // 권장 환경변수 체크
   const recommended = [
-    'GOOGLE_AI_API_KEY',
+    'CLOUD_RUN_AI_URL',
     'UPSTASH_REDIS_REST_URL',
     'GCP_MCP_SERVER_URL',
   ];
@@ -241,23 +241,19 @@ export function getInfrastructureUrl(
 }
 
 /**
- * 🔑 API 키 헬퍼 함수
+ * 🔑 Cloud Run AI 설정 헬퍼 함수
+ * v5.84.0: AI는 Cloud Run에서 처리, Vercel은 프록시만 수행
  */
-export function getApiKey(service: 'google'): string {
-  const isProduction = process.env.NODE_ENV === 'production';
-
-  switch (service) {
-    case 'google': {
-      const googleKey = process.env.GOOGLE_AI_API_KEY;
-      if (!googleKey && isProduction) {
-        console.warn('⚠️ 프로덕션에서 Google AI API 키가 설정되지 않음');
-        throw new Error('Google AI API 키가 필요합니다');
-      }
-      return googleKey || '';
-    }
-    default:
-      throw new Error('지원하지 않는 API 서비스');
-  }
+export function getCloudRunConfig(): {
+  url: string;
+  enabled: boolean;
+  model: string;
+} {
+  return {
+    url: process.env.CLOUD_RUN_AI_URL || '',
+    enabled: process.env.CLOUD_RUN_ENABLED === 'true',
+    model: 'mistral-small-latest',
+  };
 }
 
 /**
@@ -279,11 +275,11 @@ export function isTestMode(): boolean {
 /**
  * 🔧 개발환경 전용 폴백값들
  * 환경변수가 없을 때만 사용 (보안상 최소한으로 제한)
+ * v5.84.0: AI는 Cloud Run에서 처리 (Mistral/Cerebras/Groq)
  */
 export const DEVELOPMENT_FALLBACKS = {
   // 개발환경에서만 사용되는 안전한 기본값들
-  GOOGLE_AI_MODEL: 'gemini-2.5-flash',
-  GOOGLE_AI_BETA_MODE: 'true',
+  CLOUD_RUN_MODEL: 'mistral-small-latest',
   NEXTAUTH_URL: 'http://localhost:3000',
   NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
 } as const;

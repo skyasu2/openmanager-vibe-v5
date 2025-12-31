@@ -4,25 +4,31 @@
  * @description
  * All AI engine settings are centralized here for better maintainability.
  * This configuration covers:
- * - Google AI Unified Engine settings
+ * - Cloud Run AI Engine settings (Mistral/Cerebras/Groq)
  * - Streaming AI Engine settings
  * - Provider configurations (RAG, ML, Korean NLP)
  * - Cache strategies (multi-layer)
- * - Quota protection
  *
- * @version 2.0.0 - Expanded from 7 lines to 150+ lines
- * @date 2025-11-21
+ * ## v5.84.0 (2025-12-31): Migrated from Google AI to Cloud Run
+ * - Removed Gemini model references
+ * - AI processing now via Cloud Run (Mistral/Cerebras/Groq)
+ * - Vercel = Proxy only, Cloud Run = AI Processing
+ *
+ * @version 3.0.0 - Cloud Run based architecture
+ * @date 2025-12-31
  */
 
 import { env, isDevelopment, isProduction as _isProduction } from '@/env';
 
 /**
- * 🎯 AI Model Types
+ * 🎯 AI Model Types (Cloud Run)
+ * Note: Actual model selection is handled by Cloud Run ai-engine
  */
 export const AI_MODELS = {
-  FLASH_LITE: 'gemini-2.5-flash',
-  FLASH: 'gemini-2.5-flash',
-  PRO: 'gemini-2.5-pro',
+  // Cloud Run uses Mistral for text generation
+  FAST: 'mistral-small-latest',
+  STANDARD: 'mistral-small-latest',
+  EMBEDDING: 'mistral-embed',
 } as const;
 
 export type AIModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
@@ -34,7 +40,7 @@ export const aiEngineConfig = {
   /**
    * 🔧 General Settings
    */
-  defaultModel: AI_MODELS.FLASH_LITE,
+  defaultModel: AI_MODELS.FAST,
   temperature: 0.7,
   maxTokens: 2048,
   timeout: 30000, // 30 seconds (will be replaced by dynamic timeout)
@@ -48,7 +54,7 @@ export const aiEngineConfig = {
    * 💾 Cache Configuration (Multi-layer Strategy)
    */
   cache: {
-    // L1: Unified Engine Cache (Google AI Unified Engine)
+    // L1: Unified Engine Cache (Cloud Run AI Engine)
     unified: {
       enabled: true,
       ttl: 300000, // 5 minutes
@@ -138,12 +144,12 @@ export const aiEngineConfig = {
   },
 
   /**
-   * 🛡️ Quota Protection
+   * 🛡️ Rate Limiting (Cloud Run managed)
+   * Note: Actual quota management is handled by Cloud Run ai-engine
    */
-  quotaProtection: {
-    enabled: env.GOOGLE_AI_QUOTA_PROTECTION === 'true',
-    models: [AI_MODELS.FLASH_LITE, AI_MODELS.FLASH, AI_MODELS.PRO] as AIModel[],
-    dailyLimit: parseInt(env.GOOGLE_AI_DAILY_LIMIT ?? '1500', 10),
+  rateLimiting: {
+    enabled: true,
+    models: [AI_MODELS.FAST, AI_MODELS.STANDARD, AI_MODELS.EMBEDDING] as AIModel[],
     warningThreshold: 0.8, // Alert at 80% usage
   },
 
@@ -236,7 +242,7 @@ export const getCacheConfig = (layer: keyof typeof aiEngineConfig.cache) => {
 if (isDevelopment) {
   console.log('🤖 AI Engine Config Loaded:', {
     model: aiEngineConfig.defaultModel,
-    quotaProtection: aiEngineConfig.quotaProtection.enabled,
+    rateLimiting: aiEngineConfig.rateLimiting.enabled,
     streaming: aiEngineConfig.streaming.enabled,
     providers: Object.keys(aiEngineConfig.providers).filter(
       (key) =>

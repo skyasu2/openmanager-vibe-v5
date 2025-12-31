@@ -239,10 +239,10 @@ export const AI_ENGINE_REFACTORING_PLAN = {
         responsibility: 'MCP Client 관리',
       },
       {
-        name: 'GoogleAIManager 분리',
+        name: 'CloudRunAIManager 분리',
         from: 'UnifiedAIEngine',
         targetLines: 200,
-        responsibility: 'Google AI 연동',
+        responsibility: 'Cloud Run AI 연동 (Mistral)',
       },
       {
         name: 'RAGManager 분리',

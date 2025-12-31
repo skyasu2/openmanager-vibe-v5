@@ -229,10 +229,10 @@ export const FREE_TIER_MASTER_CONFIG = {
         priority: 'medium',
       },
       {
-        name: 'google-ai-quota-protection',
-        condition: 'daily_requests > 1200',
-        action: 'switch_to_local_ai',
-        priority: 'critical',
+        name: 'cloud-run-ai-quota-protection',
+        condition: 'daily_requests > 1500',
+        action: 'enable_rate_limiting',
+        priority: 'medium',
       },
     ],
   },
@@ -288,10 +288,10 @@ export function checkFreeTierStatus(): {
       supabase: { status: 'safe', usage: 0.1 },
       redis: { status: 'safe', usage: 0.05 },
       gcp: { status: 'safe', usage: 0.15 },
-      googleAI: {
+      cloudRunAI: {
         status: 'safe',
-        usage: 0.0,
-        recommendation: '무료 한도로 제한됨',
+        usage: 0.1,
+        recommendation: 'Cloud Run Mistral 정상 운영',
       },
     },
   };

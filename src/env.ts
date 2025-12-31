@@ -56,14 +56,9 @@ const envSchema = z.object({
   GITHUB_CLIENT_SECRET: z.string().min(1).optional(),
   GITHUB_TOKEN: z.string().startsWith('ghp_').optional(),
 
-  // AI Services - Gemini API Keys (Primary/Secondary failover)
-  GEMINI_API_KEY_PRIMARY: z.string().optional(),
-  GEMINI_API_KEY_SECONDARY: z.string().optional(),
-  GOOGLE_AI_API_KEY: z.string().optional(), // Legacy fallback
+  // AI Services (Cloud Run based - v5.84.0)
+  // Note: AI processing now handled by Cloud Run (Mistral/Cerebras/Groq)
   TAVILY_API_KEY: z.string().startsWith('tvly-').optional(),
-  GOOGLE_AI_ENABLED: z.string().optional(),
-  GOOGLE_AI_QUOTA_PROTECTION: z.string().optional(),
-  GOOGLE_AI_DAILY_LIMIT: z.string().optional(),
   ENABLE_MCP: z
     .string()
     .transform((val) => val === 'true')
@@ -158,7 +153,7 @@ export const features = {
     !!env.NEXT_PUBLIC_SUPABASE_URL && !!env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   github: !!env.GITHUB_CLIENT_ID && !!env.GITHUB_CLIENT_SECRET,
   gcp: !!env.GCP_PROJECT_ID,
-  ai: !!env.GEMINI_API_KEY_PRIMARY || !!env.GOOGLE_AI_API_KEY, // Primary key or legacy fallback
+  ai: !!env.CLOUD_RUN_AI_URL || env.CLOUD_RUN_ENABLED === true, // Cloud Run AI Engine
   search: !!env.TAVILY_API_KEY,
   cache: env.MEMORY_CACHE_ENABLED ?? true,
 } as const;

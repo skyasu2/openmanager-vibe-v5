@@ -75,7 +75,7 @@ echo ""
 echo "🔍 주요 환경변수 확인:"
 [ ! -z "$NODE_ENV" ] && echo "   NODE_ENV: $NODE_ENV"
 [ ! -z "$SUPABASE_URL" ] && echo "   SUPABASE_URL: ✅ 설정됨"
-[ ! -z "$GOOGLE_AI_API_KEY" ] && echo "   GOOGLE_AI_API_KEY: ✅ 설정됨"
+[ ! -z "$CLOUD_RUN_AI_URL" ] && echo "   CLOUD_RUN_AI_URL: ✅ 설정됨"
 [ ! -z "$GITHUB_PERSONAL_ACCESS_TOKEN" ] && echo "   GITHUB_PAT: ✅ 설정됨"
 [ ! -z "$TAVILY_API_KEY" ] && echo "   TAVILY_API_KEY: ✅ 설정됨"
 

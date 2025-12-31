@@ -104,47 +104,35 @@ else
 fi
 
 echo ""
-echo "4️⃣  Google AI API 무료 티어 제한 검증"
+echo "4️⃣  Cloud Run AI 설정 검증 (Mistral via Cloud Run)"
 echo "----------------------------------------"
 
-# API 키 설정 확인
-if grep -q "GOOGLE_AI_API_KEY=" .env.local 2>/dev/null; then
-    check_pass "Google AI API 키 설정됨"
+# Cloud Run AI URL 설정 확인
+if grep -q "CLOUD_RUN_AI_URL=" .env.local 2>/dev/null; then
+    check_pass "Cloud Run AI URL 설정됨"
 else
-    check_fail "Google AI API 키 미설정"
+    check_warn "Cloud Run AI URL 미설정 (선택사항)"
 fi
 
-# 무료 티어 제한 설정 확인
-if grep -q "GOOGLE_AI_DAILY_LIMIT=1200" .env.local 2>/dev/null; then
-    check_pass "일일 제한: 1200 요청 (1500 제한의 80%)"
+# Cloud Run AI 활성화 확인
+if grep -q "CLOUD_RUN_AI_ENABLED=true" .env.local 2>/dev/null; then
+    check_pass "Cloud Run AI 활성화됨"
 else
-    check_warn "일일 제한 설정 확인 필요"
+    check_warn "Cloud Run AI 활성화 설정 확인 필요"
 fi
 
-if grep -q "GOOGLE_AI_MINUTE_LIMIT=10" .env.local 2>/dev/null; then
-    check_pass "분당 제한: 10 요청 (15 RPM의 67%)"
+# AI Engine 설정 파일 확인
+if [ -f "src/config/ai-engine.ts" ]; then
+    check_pass "AI Engine 설정 파일 존재함"
 else
-    check_warn "분당 제한 설정 확인 필요"
+    check_fail "AI Engine 설정 파일 미구현"
 fi
 
-if grep -q "GOOGLE_AI_TPM_LIMIT=800000" .env.local 2>/dev/null; then
-    check_pass "토큰 제한: 800K (1M TPM의 80%)"
+# Rate Limiting 설정 확인
+if grep -q "rateLimiting" src/config/ai-engine.ts 2>/dev/null; then
+    check_pass "Rate Limiting 설정 구현됨"
 else
-    check_warn "토큰 제한 설정 확인 필요"
-fi
-
-# 쿼터 보호 기능 확인
-if grep -q "GOOGLE_AI_QUOTA_PROTECTION=true" .env.local 2>/dev/null; then
-    check_pass "쿼터 보호 기능 활성화됨"
-else
-    check_warn "쿼터 보호 기능 확인 필요"
-fi
-
-# 사용량 추적 시스템 확인
-if [ -f "src/services/ai/GoogleAIUsageTracker.ts" ]; then
-    check_pass "사용량 추적 시스템 구현됨"
-else
-    check_fail "사용량 추적 시스템 미구현"
+    check_warn "Rate Limiting 설정 확인 필요"
 fi
 
 echo ""

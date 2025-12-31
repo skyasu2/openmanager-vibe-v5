@@ -110,12 +110,12 @@ const requiredEnvVars: Record<string, EnvConfig> = {
     category: 'GitHub OAuth'
   },
 
-  // Google AI
-  'GOOGLE_AI_API_KEY': {
-    description: 'Google AI (Gemini) API 키',
-    example: 'AIzaSy...',
-    required: true,
-    category: 'Google AI'
+  // Cloud Run AI (Mistral via Cloud Run)
+  'CLOUD_RUN_AI_URL': {
+    description: 'Cloud Run AI Engine URL',
+    example: 'https://ai-engine-xxx.asia-northeast1.run.app',
+    required: false,
+    category: 'Cloud Run AI'
   },
 
   // GCP Functions
@@ -212,9 +212,9 @@ function validateEnvironmentVariable(key: string, config: EnvConfig, value?: str
     return result;
   }
 
-  if (key.includes('GOOGLE_AI_API_KEY') && !value.startsWith('AIza')) {
+  if (key.includes('CLOUD_RUN_AI_URL') && !value.includes('run.app')) {
     result.status = 'warning';
-    result.message = 'Google AI API 키 형식이 아닌 것 같습니다';
+    result.message = 'Cloud Run URL 형식이 아닌 것 같습니다';
     return result;
   }
 

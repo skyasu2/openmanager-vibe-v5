@@ -41,8 +41,6 @@ export class EnvironmentSecurityScanner {
     /^github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}$/,
     // Supabase 키 패턴
     /^eyJ[a-zA-Z0-9+/=]+\.[a-zA-Z0-9+/=]+\.[a-zA-Z0-9+/=]+$/,
-    // Google AI API 키 패턴
-    /^AIza[a-zA-Z0-9_-]{35}$/,
   ];
 
   private readonly requiredPublicVars = [
@@ -52,7 +50,7 @@ export class EnvironmentSecurityScanner {
 
   private readonly sensitiveServerVars = [
     'SUPABASE_SERVICE_ROLE_KEY',
-    'GOOGLE_AI_API_KEY',
+    'CLOUD_RUN_API_SECRET',
     'GITHUB_CLIENT_SECRET',
     'NEXTAUTH_SECRET',
     'GITHUB_TOKEN',
@@ -190,7 +188,7 @@ export class EnvironmentSecurityScanner {
     // 프로덕션에서 개발 전용 설정 확인
     if (nodeEnv === 'production') {
       const devOnlyVars = [
-        'FORCE_MOCK_GOOGLE_AI',
+        'FORCE_MOCK_AI',
         'MOCK_REDIS_ENABLED',
         'SKIP_ENV_VALIDATION',
       ];

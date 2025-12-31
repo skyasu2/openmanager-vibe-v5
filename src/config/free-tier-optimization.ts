@@ -1,7 +1,7 @@
 /**
  * 🆓 무료티어 최적화 설정
  *
- * Vercel Hobby, Supabase Free, Upstash Free, Google AI Free 한도 내에서
+ * Vercel Hobby, Supabase Free, Upstash Free, Cloud Run AI 한도 내에서
  * 안전하게 동작하도록 최적화된 설정
  */
 
@@ -40,13 +40,13 @@ export const FREE_TIER_LIMITS = {
     maxDatabases: 1,
   },
 
-  // 🔵 Google AI Free Plan
-  googleAI: {
-    maxRequests: 1_500, // per day
-    maxTokens: 1_000_000, // per day
-    maxRPM: 15, // requests per minute
-    maxTPM: 32_000, // tokens per minute
-    maxConcurrent: 2, // concurrent requests
+  // 🔵 Cloud Run AI (Mistral)
+  cloudRunAI: {
+    maxRequests: 2_000, // per day
+    maxTokens: 5_000_000, // per day (Mistral 여유)
+    maxRPM: 60, // requests per minute
+    maxTPM: 500_000, // tokens per minute
+    maxConcurrent: 5, // concurrent requests
   },
 };
 
@@ -112,11 +112,11 @@ export const FREE_TIER_OPTIMIZATION = {
     enableAutoExpiration: true,
   },
 
-  // 🤖 AI 서비스 최적화
+  // 🤖 AI 서비스 최적화 (Cloud Run Mistral)
   ai: {
-    // Google AI 할당량 보호
-    maxRequestsPerDay: 1000, // 일일 1000개 (안전 여유분 500개)
-    maxRequestsPerMinute: 10, // 분당 10개 (안전 여유분 5개)
+    // Cloud Run AI 할당량 보호
+    maxRequestsPerDay: 1500, // 일일 1500개 (안전 여유분 500개)
+    maxRequestsPerMinute: 50, // 분당 50개 (안전 여유분 10개)
 
     // 토큰 사용량 최적화
     maxTokensPerRequest: 1000, // 요청당 최대 1000토큰
@@ -259,7 +259,7 @@ export class FreeTierUsageTracker {
     vercel: { requests: 0, memory: 0, duration: 0 },
     supabase: { requests: 0, bandwidth: 0, rows: 0 },
     redis: { commands: 0, memory: 0, connections: 0 },
-    googleAI: { requests: 0, tokens: 0, concurrent: 0 },
+    cloudRunAI: { requests: 0, tokens: 0, concurrent: 0 },
   };
 
   private lastReset = Date.now();
@@ -312,12 +312,12 @@ export class FreeTierUsageTracker {
       warnings.push('Redis 명령어 수 80% 초과');
     }
 
-    // Google AI 체크
+    // Cloud Run AI 체크
     if (
-      this.usage.googleAI.requests >
-      FREE_TIER_LIMITS.googleAI.maxRequests * 0.8
+      this.usage.cloudRunAI.requests >
+      FREE_TIER_LIMITS.cloudRunAI.maxRequests * 0.8
     ) {
-      warnings.push('Google AI 요청 수 80% 초과');
+      warnings.push('Cloud Run AI 요청 수 80% 초과');
       exceeded = true;
     }
 
@@ -332,7 +332,7 @@ export class FreeTierUsageTracker {
       vercel: { requests: 0, memory: 0, duration: 0 },
       supabase: { requests: 0, bandwidth: 0, rows: 0 },
       redis: { commands: 0, memory: 0, connections: 0 },
-      googleAI: { requests: 0, tokens: 0, concurrent: 0 },
+      cloudRunAI: { requests: 0, tokens: 0, concurrent: 0 },
     };
     this.lastReset = Date.now();
   }

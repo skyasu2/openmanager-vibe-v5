@@ -14,18 +14,16 @@ grep "SUPABASE_URL" .env.local > /dev/null && echo "  ✓ URL 설정됨" || echo
 grep "SUPABASE_ANON_KEY" .env.local > /dev/null && echo "  ✓ Anon Key 설정됨" || echo "  ✗ Key 미설정"
 echo ""
 
-# 3. Google AI 제한
-echo "3. Google AI API 무료 티어 (1500/일, 15 RPM)"
-grep "GOOGLE_AI_DAILY_LIMIT" .env.local || echo "  ⚠ 일일 제한 미설정"
-grep "GOOGLE_AI_MINUTE_LIMIT" .env.local || echo "  ⚠ 분당 제한 미설정"
-grep "GOOGLE_AI_QUOTA_PROTECTION" .env.local || echo "  ⚠ 쿼터 보호 미설정"
+# 3. Cloud Run AI 설정
+echo "3. Cloud Run AI (Mistral via Cloud Run)"
+grep "CLOUD_RUN_AI_URL" .env.local || echo "  ⚠ Cloud Run AI URL 미설정"
+grep "CLOUD_RUN_AI_ENABLED" .env.local || echo "  ⚠ Cloud Run AI 활성화 미설정"
 echo ""
 
 # 4. 핵심 파일 존재 확인
 echo "4. 핵심 구현 파일"
 [ -f "src/services/ai/SimplifiedQueryEngine.ts" ] && echo "  ✓ Query Engine" || echo "  ✗ Query Engine 없음"
-[ -f "src/services/ai/GoogleAIUsageTracker.ts" ] && echo "  ✓ Usage Tracker" || echo "  ✗ Tracker 없음"
-[ -f "src/lib/google-ai-manager.ts" ] && echo "  ✓ AI Manager" || echo "  ✗ Manager 없음"
+[ -f "src/config/ai-engine.ts" ] && echo "  ✓ AI Engine Config" || echo "  ✗ Config 없음"
 echo ""
 
 # 5. API 라우트 확인

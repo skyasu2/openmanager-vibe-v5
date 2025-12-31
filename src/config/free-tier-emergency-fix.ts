@@ -203,7 +203,7 @@ export class QuotaProtector {
 
   // 서비스별 일일 한도
   private readonly DAILY_LIMITS = {
-    googleAI: 1000, // 일일 1,000개 (여유분 500개)
+    cloudRunAI: 1500, // 일일 1,500개 (여유분 500개)
     supabase: 40000, // 월 40,000개 (여유분 10,000개)
     redis: 8000, // 일일 8,000개 (여유분 2,000개)
     vercel: 80000, // 월 80,000개 (여유분 20,000개)
