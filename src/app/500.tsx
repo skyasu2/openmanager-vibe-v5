@@ -1,8 +1,16 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function Custom500() {
+  // Hydration 에러 방지: 클라이언트에서만 시간 설정
+  const [errorTime, setErrorTime] = useState<string>('');
+
+  useEffect(() => {
+    setErrorTime(new Date().toLocaleString());
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-lg">
@@ -41,7 +49,7 @@ export default function Custom500() {
 
         <div className="mt-6 text-sm text-gray-500">
           <p>OpenManager</p>
-          <p>오류 시간: {new Date().toLocaleString()}</p>
+          <p>오류 시간: {errorTime || '확인 중...'}</p>
         </div>
       </div>
     </div>

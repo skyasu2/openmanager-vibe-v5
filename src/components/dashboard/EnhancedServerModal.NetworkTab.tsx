@@ -282,7 +282,11 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
                       (index / Math.max(realtimeData.network.length - 1, 1)) *
                       100;
                     const y =
-                      100 - Math.max(0, Math.min(100, (data.in / chartScale.maxIn) * 100));
+                      100 -
+                      Math.max(
+                        0,
+                        Math.min(100, (data.in / chartScale.maxIn) * 100)
+                      );
                     return `L${x},${y}`;
                   })
                   .join(' ')} L100,100 Z`}
@@ -300,7 +304,11 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
                       (index / Math.max(realtimeData.network.length - 1, 1)) *
                       100;
                     const y =
-                      100 - Math.max(0, Math.min(100, (data.in / chartScale.maxIn) * 100));
+                      100 -
+                      Math.max(
+                        0,
+                        Math.min(100, (data.in / chartScale.maxIn) * 100)
+                      );
                     return `${x},${y}`;
                   })
                   .join(' ')}
@@ -315,7 +323,11 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
                       (index / Math.max(realtimeData.network.length - 1, 1)) *
                       100;
                     const y =
-                      100 - Math.max(0, Math.min(100, (data.out / chartScale.maxOut) * 100));
+                      100 -
+                      Math.max(
+                        0,
+                        Math.min(100, (data.out / chartScale.maxOut) * 100)
+                      );
                     return `L${x},${y}`;
                   })
                   .join(' ')} L100,100 Z`}
@@ -333,7 +345,11 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
                       (index / Math.max(realtimeData.network.length - 1, 1)) *
                       100;
                     const y =
-                      100 - Math.max(0, Math.min(100, (data.out / chartScale.maxOut) * 100));
+                      100 -
+                      Math.max(
+                        0,
+                        Math.min(100, (data.out / chartScale.maxOut) * 100)
+                      );
                     return `${x},${y}`;
                   })
                   .join(' ')}
