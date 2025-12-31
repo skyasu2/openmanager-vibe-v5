@@ -1,13 +1,21 @@
-# 🔌 MCP 시스템 가이드
+# MCP Guide
 
-**OpenManager VIBE v5.83.1** - 9개 MCP 서버 통합 개발 환경
+> **최종 갱신**: 2025-12-31
+> **문서 수**: 2개 (7개에서 통합)
 
-## 🎯 개요
+---
 
-MCP(Model Context Protocol)는 Claude Code의 기능을 확장하는 플러그인 시스템입니다.
-현재 **CLI-only 방식**으로 9개 서버가 안정적으로 운영되고 있습니다.
+## Quick Start
 
-## 📊 현재 상태 (2025-12-12)
+```bash
+claude mcp list              # 서버 상태 확인
+source .env.local            # 환경변수 로드
+./scripts/mcp-health-check.sh # 종합 헬스체크
+```
+
+---
+
+## 현재 상태 (2025-12-31)
 
 | MCP 서버            | 연결 | 기능 테스트  | 주요 기능                  | 한도           |
 | ------------------- | ---- | ------------ | -------------------------- | -------------- |
@@ -115,13 +123,31 @@ claude mcp add SERVER_NAME -s local -e VAR=value -- COMMAND
 - 파일 권한: `chmod 600 .env.local`
 - 정기적 보안 검사: `./scripts/setup-mcp-env.sh --security-check`
 
-## 📚 추가 가이드
+## Document Index
 
-- **[설정 가이드](setup-guide.md)** - CLI 설정 및 환경변수 관리
-- **[트러블슈팅](setup-guide.md#5%EF%B8%8F%E2%83%A3-mcp-%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85-%EA%B0%80%EC%9D%B4%EB%93%9C)** - 문제 해결 가이드
-- **[서버 레퍼런스](servers.md)** - 각 서버별 상세 기능
+| 문서 | 설명 |
+|------|------|
+| **[setup-guide.md](./setup-guide.md)** | CLI 설정, 환경변수, 트러블슈팅, 복구 |
 
 ---
 
-**📋 마지막 업데이트**: 2025-12-12 | **연결 성공률**: 100% (9/9)
-**상세 가이드**: [mcp-priority-guide.md](mcp-priority-guide.md)
+## Archived Documents
+
+통합된 문서들은 `docs/archive/mcp/`로 이동:
+
+- `servers.md` → README로 통합
+- `tools.md` → 아카이브 (상세 레퍼런스)
+- `mcp-configuration.md` → setup-guide로 통합
+- `advanced.md` → setup-guide로 통합
+- `serena-tools-comprehensive-guide.md` → 아카이브
+
+---
+
+## Related
+
+- [AI Tools Rules](../../../.claude/rules/ai-tools.md) - MCP 우선순위
+- [SSOT](../../../config/ai/registry-core.yaml) - MCP 설정 SSOT
+
+---
+
+**연결 성공률**: 100% (9/9)
