@@ -13,4 +13,4 @@ OpenManager VIBE 앱에 탑재된 AI 기능 문서
 
 ---
 
-**관련**: [개발용 AI](../../development/ai/) | [AI Registry](../../../config/ai/registry-core.yaml)
+**관련**: [개발용 AI](../../guides/ai/) | [AI Registry](../../../config/ai/registry-core.yaml)

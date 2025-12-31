@@ -115,9 +115,9 @@ npm run validate:all
 
 ## 📚 더 자세한 정보
 
-- **[개발 환경 상세 가이드](./getting-started/development.md)** - AI 도구, MCP 서버, WSL 설정
-- **[전체 프로젝트 문서](./README.md)** - 아키텍처, API, 설계 문서
-- **[시스템 아키텍처](./reference/architecture/system/)** - 기술 스택 및 구조
+- **[개발 환경 상세 가이드](./development.md)** - AI 도구, MCP 서버, WSL 설정
+- **[전체 프로젝트 문서](../README.md)** - 아키텍처, API, 설계 문서
+- **[시스템 아키텍처](../reference/architecture/system/)** - 기술 스택 및 구조
 
 ---
 

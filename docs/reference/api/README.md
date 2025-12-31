@@ -38,8 +38,8 @@ OpenManager VIBE v5.83.1 API 문서입니다.
 ## 🔗 관련 문서
 
 - **[CLAUDE.md](../../CLAUDE.md)** - 프로젝트 메인 가이드
-- **[시스템 아키텍처](../core/architecture/system/system-overview.md)** - 전체 시스템 구조
-- **[AI 아키텍처](../core/ai/ai-architecture-unified.md)** - AI 엔진 구조
+- **[시스템 아키텍처](../architecture/system/)** - 전체 시스템 구조
+- **[AI 아키텍처](../ai/)** - AI 엔진 구조
 
 ---
 

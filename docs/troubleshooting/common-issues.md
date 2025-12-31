@@ -339,8 +339,8 @@ vercel inspect
 ## Related Documents
 
 - [System Recovery Guide](./system-recovery-guide-2025.md) - 긴급 복구
-- [Test Strategy](../../development/testing/test-strategy.md) - 테스트 전략
-- [DEVELOPMENT.md](../../DEVELOPMENT.md) - 개발 가이드
+- [Test Strategy](../guides/testing/test-strategy.md) - 테스트 전략
+- [Development Guide](../getting-started/development.md) - 개발 가이드
 
 ---
 

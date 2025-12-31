@@ -146,9 +146,9 @@ docs/                           # 목표 구조 (2025 Best Practice)
 
 ### 관련 문서
 
-- [AI Engine 5W1H](./core/architecture/ai/ai-engine-5w1h.md)
-- [DEVELOPMENT.md](./DEVELOPMENT.md)
-- [QUICK-START.md](./QUICK-START.md)
+- [AI Engine 5W1H](./reference/architecture/ai/ai-engine-5w1h.md)
+- [Development Guide](./getting-started/development.md)
+- [Quick Start](./getting-started/quick-start.md)
 
 ---
 

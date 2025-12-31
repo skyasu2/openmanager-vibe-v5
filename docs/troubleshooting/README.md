@@ -81,8 +81,9 @@ wsl
 
 ## Related
 
-- [DEVELOPMENT.md](../../DEVELOPMENT.md)
-- [Test Strategy](../../development/testing/test-strategy.md)
+- [Getting Started](../getting-started/) - 시작 가이드
+- [Guides](../guides/) - How-to 가이드
+- [Reference](../reference/) - 기술 레퍼런스
 
 ---
 

@@ -1,125 +1,98 @@
-# OpenManager VIBE v5 Documentation
+# OpenManager VIBE Documentation
 
-> **버전**: v5.83.14 | **최종 갱신**: 2025-12-31
+> **Version**: v5.83.x | **Updated**: 2025-12-31
 
 ---
 
 ## Quick Navigation
 
-| 목적 | 문서 |
-|------|------|
-| **처음 시작** | [QUICK-START.md](./QUICK-START.md) |
-| **개발 가이드** | [DEVELOPMENT.md](./DEVELOPMENT.md) |
-| **AI 아키텍처** | [AI Engine 5W1H](./core/architecture/ai/ai-engine-5w1h.md) |
-| **변경 이력** | [CHANGELOG.md](./CHANGELOG.md) |
-| **프로젝트 상태** | [status.md](./status.md) |
+| 섹션 | 설명 | 바로가기 |
+|------|------|----------|
+| 🚀 **Getting Started** | 시작 가이드 | [→ getting-started/](./getting-started/) |
+| 📖 **Guides** | How-to 가이드 | [→ guides/](./guides/) |
+| 📚 **Reference** | 기술 레퍼런스 | [→ reference/](./reference/) |
+| 🔧 **Troubleshooting** | 문제 해결 | [→ troubleshooting/](./troubleshooting/) |
 
 ---
 
-## Documentation Structure
+## Directory Structure
 
 ```
 docs/
-├── README.md           ← 현재 문서 (진입점)
-├── QUICK-START.md      # 빠른 시작 가이드
-├── DEVELOPMENT.md      # 개발자 가이드
-├── CHANGELOG.md        # 변경 이력
-├── DOCS-BASELINE.md    # 문서 개선 계획
-├── llms.txt            # AI/LLM 최적화
+├── getting-started/     # 시작 가이드
+│   ├── quick-start.md   # 5분 빠른 시작
+│   └── development.md   # 개발 환경 설정
 │
-├── core/               # 시스템 핵심
-│   ├── architecture/   # 아키텍처 설계
-│   │   └── ai/         # AI Engine 상세
-│   ├── ai/             # AI 기능 개요
-│   ├── performance/    # 성능 최적화
-│   ├── security/       # 보안 정책
-│   └── platforms/      # 플랫폼별 설정
+├── guides/              # How-to 가이드
+│   ├── ai/              # AI 도구 사용법
+│   ├── testing/         # 테스트 전략
+│   ├── mcp/             # MCP 서버 설정
+│   └── environment/     # 환경 설정 (WSL)
 │
-├── development/        # 개발 가이드
-│   ├── testing/        # 테스트 가이드
-│   ├── standards/      # 코딩 컨벤션
-│   ├── mcp/            # MCP 서버
-│   └── ai/             # AI 도구 사용법
+├── reference/           # 기술 레퍼런스
+│   ├── architecture/    # 아키텍처 문서
+│   ├── api/             # API 문서
+│   ├── platforms/       # 플랫폼 설정
+│   └── security/        # 보안 가이드
 │
-├── environment/        # 환경 설정
-│   ├── wsl/            # WSL 가이드
-│   └── troubleshooting/# 문제 해결
+├── troubleshooting/     # 문제 해결
+│   ├── common-issues.md # 일반 문제
+│   └── system-recovery-guide-2025.md
 │
-├── api/                # API 레퍼런스
-└── archive/            # 아카이브
+└── archive/             # 보관 문서
 ```
+
+---
+
+## Essential Documents
+
+### Getting Started
+- [Quick Start](./getting-started/quick-start.md) - 5분 만에 시작
+- [Development Guide](./getting-started/development.md) - 개발 환경 설정
+
+### AI Development
+- [AI Standards](./guides/ai/common/ai-standards.md) - AI 도구 표준
+- [AI Workflow](./guides/ai/common/ai-workflow.md) - 협업 워크플로우
+- [MCP Setup](./guides/mcp/setup-guide.md) - MCP 서버 설정
+
+### Architecture
+- [AI Engine 5W1H](./reference/architecture/ai/ai-engine-5w1h.md) - 아키텍처 요약
+- [AI Engine Architecture](./reference/architecture/ai/ai-engine-architecture.md) - 상세 명세
+- [System Overview](./reference/architecture/system/) - 시스템 구조
+
+### Testing
+- [Test Strategy](./guides/testing/test-strategy.md) - 테스트 전략
+- [E2E Testing](./guides/testing/e2e-testing-guide.md) - E2E 테스트
 
 ---
 
 ## By Role
 
 ### Developer (개발자)
-1. [QUICK-START.md](./QUICK-START.md) - 환경 설정
-2. [DEVELOPMENT.md](./DEVELOPMENT.md) - 개발 워크플로우
-3. [Testing Guide](./development/testing/) - 테스트 작성법
+1. [Quick Start](./getting-started/quick-start.md) - 환경 설정
+2. [Development Guide](./getting-started/development.md) - 개발 워크플로우
+3. [Testing Guide](./guides/testing/) - 테스트 작성법
 
 ### AI/ML Engineer
-1. [AI Engine 5W1H](./core/architecture/ai/ai-engine-5w1h.md) - 아키텍처 요약
-2. [AI Engine Architecture](./core/architecture/ai/ai-engine-architecture.md) - 상세 명세
+1. [AI Engine 5W1H](./reference/architecture/ai/ai-engine-5w1h.md) - 아키텍처 요약
+2. [AI Engine Architecture](./reference/architecture/ai/ai-engine-architecture.md) - 상세 명세
 3. [AI Model Policy](./ai-model-policy.md) - 모델 정책
 
 ### DevOps
-1. [Vercel Deploy](./core/platforms/vercel/) - 프론트엔드 배포
-2. [Cloud Run](./core/platforms/gcp/) - AI Engine 배포
-3. [Environment Setup](./environment/) - 환경 설정
+1. [Vercel Deploy](./reference/platforms/vercel/) - 프론트엔드 배포
+2. [Cloud Run](./reference/platforms/gcp/) - AI Engine 배포
+3. [Troubleshooting](./troubleshooting/) - 문제 해결
 
 ---
 
-## Key Documents
-
-### Architecture (아키텍처)
-
-| 문서 | 설명 | 업데이트 |
-|------|------|----------|
-| [AI Engine 5W1H](./core/architecture/ai/ai-engine-5w1h.md) | 육하원칙 아키텍처 요약 | 2025-12-31 |
-| [AI Engine Architecture](./core/architecture/ai/ai-engine-architecture.md) | 상세 기술 명세 | 2025-12-28 |
-| [System Architecture](./core/architecture/system/system-architecture-current.md) | 전체 시스템 구조 | 2025-12 |
-
-### Guides (가이드)
+## Status
 
 | 문서 | 설명 |
 |------|------|
-| [MSW Guide](./development/testing/msw-guide.md) | Mock Service Worker |
-| [E2E Testing](./development/testing/e2e-testing-guide.md) | Playwright E2E |
-| [MCP Setup](./development/mcp/) | MCP 서버 설정 |
-
-### Troubleshooting (문제 해결)
-
-| 문서 | 설명 |
-|------|------|
-| [System Recovery](./environment/troubleshooting/system-recovery-guide-2025.md) | 시스템 복구 |
-| [WSL Guide](./environment/wsl/wsl-restore-guide.md) | WSL 문제 해결 |
-
----
-
-## Document Types
-
-| 타입 | 위치 | 특성 |
-|------|------|------|
-| **Guides** | `docs/` | 항상 최신 유지, How-to 중심 |
-| **Reference** | `docs/api/`, `docs/core/` | 정확한 명세 |
-| **Reports** | `reports/` | 시점별 스냅샷 |
-| **Logs** | `logs/` | 임시 데이터 (Git 미추적) |
-
----
-
-## Contributing to Docs
-
-### 새 문서 작성 시
-1. 적절한 폴더 선택 (위 구조 참고)
-2. 기존 템플릿 활용
-3. 상단에 버전/날짜 명시
-4. 관련 문서 링크 추가
-
-### 문서 업데이트 시
-1. 날짜 업데이트
-2. CHANGELOG.md에 기록
-3. 관련 문서 링크 확인
+| [Project Status](./status.md) | 현재 프로젝트 상태 |
+| [Changelog](./CHANGELOG.md) | 변경 이력 |
+| [AI Model Policy](./ai-model-policy.md) | AI 모델 정책 |
+| [llms.txt](./llms.txt) | AI 최적화 컨텍스트 |
 
 ---
 
@@ -127,8 +100,8 @@ docs/
 
 | 지표 | 값 |
 |------|-----|
-| 총 문서 수 | 145개 |
-| 총 라인 수 | 31,784줄 |
+| 활성 문서 수 | ~80개 |
+| 아카이브 문서 | ~45개 |
 | 마지막 업데이트 | 2025-12-31 |
 
 > 문서 개선 계획: [DOCS-BASELINE.md](./DOCS-BASELINE.md)

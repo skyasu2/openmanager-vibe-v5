@@ -56,4 +56,4 @@ qwen -p "성능 분석"
 
 ---
 
-**관련**: [배포용 AI](../../core/ai/) | [AI Registry](../../../config/ai/registry-core.yaml)
+**관련**: [배포용 AI](../../reference/ai/) | [AI Registry](../../../config/ai/registry-core.yaml)
