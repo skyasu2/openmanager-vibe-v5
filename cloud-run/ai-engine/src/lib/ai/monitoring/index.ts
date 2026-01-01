@@ -57,3 +57,14 @@ export {
   type TemporalBucket,
   type MetricHistoryPoint,
 } from './AdaptiveThreshold.js';
+
+// Unified Anomaly Engine (Production)
+export {
+  UnifiedAnomalyEngine,
+  getUnifiedAnomalyEngine,
+  resetUnifiedAnomalyEngine,
+  type UnifiedEngineConfig,
+  type ServerMetricInput,
+  type UnifiedDetectionResult,
+  type StreamingStats,
+} from './UnifiedAnomalyEngine.js';

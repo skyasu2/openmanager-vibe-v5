@@ -35,6 +35,10 @@ import {
   type ServerMetrics,
 } from '../lib/ai/monitoring/HybridAnomalyDetector';
 import { getAdaptiveThreshold } from '../lib/ai/monitoring/AdaptiveThreshold';
+import {
+  getUnifiedAnomalyEngine,
+  type ServerMetricInput,
+} from '../lib/ai/monitoring/UnifiedAnomalyEngine';
 import { getDataCache } from '../lib/cache-layer';
 
 // ============================================================================
@@ -501,6 +505,149 @@ export const detectAnomaliesAdaptive = tool({
               : `${server.name}: 정상 (${dayOfWeek}요일 ${hour}시 패턴 대비)`,
             timestamp: new Date().toISOString(),
             _algorithm: 'Adaptive Thresholds (Temporal Pattern Learning)',
+          };
+        }
+      );
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  },
+});
+
+/**
+ * Unified Anomaly Detection (Production-Grade)
+ * Combines all three approaches with streaming support
+ *
+ * @description
+ * - Statistical (30%): Fast baseline check
+ * - Isolation Forest (40%): Multivariate ML
+ * - Adaptive (30%): Temporal pattern awareness
+ * - Weighted voting for final decision
+ */
+export const detectAnomaliesUnified = tool({
+  description:
+    '통합 이상 탐지: 모든 탐지기(통계/IF/적응형)를 앙상블 투표로 결합. 프로덕션급 정확도.',
+  inputSchema: z.object({
+    serverId: z
+      .string()
+      .optional()
+      .describe('분석할 서버 ID (선택, 미입력시 첫 번째 서버)'),
+    enableStatistical: z.boolean().default(true).describe('통계 탐지기 활성화'),
+    enableIsolationForest: z.boolean().default(true).describe('IF 탐지기 활성화'),
+    enableAdaptive: z.boolean().default(true).describe('적응형 탐지기 활성화'),
+  }),
+  execute: async ({
+    serverId,
+    enableStatistical,
+    enableIsolationForest,
+    enableAdaptive,
+  }: {
+    serverId?: string;
+    enableStatistical?: boolean;
+    enableIsolationForest?: boolean;
+    enableAdaptive?: boolean;
+  }) => {
+    try {
+      const cache = getDataCache();
+
+      return await cache.getAnalysis(
+        'anomaly-unified',
+        {
+          serverId: serverId || 'first',
+          enableStatistical: enableStatistical ?? true,
+          enableIsolationForest: enableIsolationForest ?? true,
+          enableAdaptive: enableAdaptive ?? true,
+        },
+        async () => {
+          const state = getCurrentState();
+          const server: ServerSnapshot | undefined = serverId
+            ? state.servers.find((s) => s.id === serverId)
+            : state.servers[0];
+
+          if (!server) {
+            return {
+              success: false,
+              error: `서버를 찾을 수 없습니다: ${serverId || 'none'}`,
+            };
+          }
+
+          // Initialize unified engine
+          const engine = getUnifiedAnomalyEngine({
+            enableStatistical: enableStatistical ?? true,
+            enableIsolationForest: enableIsolationForest ?? true,
+            enableAdaptive: enableAdaptive ?? true,
+          });
+
+          // Initialize with historical data if not already trained
+          const stats = engine.getStats();
+          if (!stats.modelsStatus.isolationForestTrained) {
+            const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === server.id);
+            if (dataset) {
+              const now = Date.now();
+              engine.initialize({
+                multiMetric: dataset.data.map((d, i) => ({
+                  timestamp: now - (dataset.data.length - i) * 600000,
+                  cpu: d.cpu,
+                  memory: d.memory,
+                  disk: d.disk,
+                  network: d.network,
+                })),
+              });
+            }
+          }
+
+          // Prepare input
+          const metricInput: ServerMetricInput = {
+            serverId: server.id,
+            serverName: server.name,
+            cpu: server.cpu as number,
+            memory: server.memory as number,
+            disk: server.disk as number,
+            network: (server.network as number) ?? 0,
+            timestamp: Date.now(),
+          };
+
+          // Run unified detection
+          const result = engine.process(metricInput);
+
+          // Format response
+          return {
+            success: true,
+            serverId: result.serverId,
+            serverName: result.serverName,
+            isAnomaly: result.isAnomaly,
+            severity: result.severity,
+            confidence: result.confidence,
+            anomalyScore: result.anomalyScore,
+            voting: result.voting,
+            dominantMetric: result.dominantMetric,
+            detectors: {
+              statistical: {
+                enabled: result.detectors.statistical.enabled,
+                isAnomaly: result.detectors.statistical.isAnomaly,
+                severity: result.detectors.statistical.severity,
+              },
+              isolationForest: {
+                enabled: result.detectors.isolationForest.enabled,
+                isAnomaly: result.detectors.isolationForest.isAnomaly,
+                anomalyScore: result.detectors.isolationForest.anomalyScore,
+              },
+              adaptive: {
+                enabled: result.detectors.adaptive.enabled,
+                isAnomaly: result.detectors.adaptive.isAnomaly,
+                direction: result.detectors.adaptive.direction,
+              },
+            },
+            timeContext: result.timeContext,
+            latencyMs: result.latencyMs,
+            summary: result.isAnomaly
+              ? `${result.serverName}: 이상 감지 (${result.severity}, 신뢰도 ${Math.round(result.confidence * 100)}%) - ${result.voting.consensusLevel} consensus`
+              : `${result.serverName}: 정상 (score: ${result.anomalyScore})`,
+            timestamp: new Date().toISOString(),
+            _algorithm: 'Unified Engine (Statistical + IF + Adaptive Ensemble)',
           };
         }
       );
