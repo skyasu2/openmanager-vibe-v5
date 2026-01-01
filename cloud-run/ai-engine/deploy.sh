@@ -2,6 +2,12 @@
 
 # ==============================================================================
 # Cloud Run Deployment Script (AI Engine)
+#
+# v2.0 - 2026-01-01:
+#   - Added --cpu-boost for faster cold start (startup CPU boost)
+#   - Added --session-affinity for stateful connection optimization
+#
+# v1.0 - 2025-12-28: Initial version with cleanup automation
 # ==============================================================================
 
 set -e # Exit on error
@@ -60,6 +66,8 @@ gcloud run deploy "$SERVICE_NAME" \
   --cpu 1 \
   --memory 1Gi \
   --no-cpu-throttling \
+  --cpu-boost \
+  --session-affinity \
   --set-env-vars "NODE_ENV=production" \
   --set-secrets "SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest"
 
