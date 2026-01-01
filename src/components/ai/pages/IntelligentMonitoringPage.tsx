@@ -115,7 +115,7 @@ export default function IntelligentMonitoringPage() {
     for (const server of serverResults) {
       if (server.anomalyDetection?.hasAnomalies) {
         for (const [metric, result] of Object.entries(
-          server.anomalyDetection.results
+          server.anomalyDetection.results || {}
         )) {
           if (result.isAnomaly) {
             topIssues.push({
@@ -135,7 +135,7 @@ export default function IntelligentMonitoringPage() {
     for (const server of serverResults) {
       if (server.trendPrediction?.summary?.hasRisingTrends) {
         for (const [metric, result] of Object.entries(
-          server.trendPrediction.results
+          server.trendPrediction.results || {}
         )) {
           if (result.trend === 'increasing' && result.changePercent > 5) {
             predictions.push({

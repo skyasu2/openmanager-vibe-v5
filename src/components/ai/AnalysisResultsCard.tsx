@@ -300,7 +300,7 @@ function getTimePatternHint(): { label: string; color: string } {
 
 // 이상 탐지 섹션
 function AnomalySection({ data }: { data: CloudRunAnomalyDetection }) {
-  const metrics = Object.entries(data.results);
+  const metrics = Object.entries(data.results || {});
   const timeHint = getTimePatternHint();
 
   return (
@@ -334,7 +334,7 @@ function AnomalySection({ data }: { data: CloudRunAnomalyDetection }) {
 
 // 트렌드 예측 섹션
 function TrendSection({ data }: { data: CloudRunTrendPrediction }) {
-  const metrics = Object.entries(data.results);
+  const metrics = Object.entries(data.results || {});
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4">
