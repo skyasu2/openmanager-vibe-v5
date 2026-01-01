@@ -47,14 +47,15 @@
 
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
-- **Models**: Triple-provider 전략 (Rate limit 최적화, 2025-12-28)
-  - Cerebras llama-3.3-70b: Supervisor (24M 토큰/일)
-  - Groq llama-3.3-70b: NLQ, Analyst, RCA, Capacity, Reporter
-  - Mistral Small 3.2 (24B): Verifier Agent
-- **Agents**: 6개 (NLQ → Analyst → RCA/Capacity → Reporter → Verifier)
+- **Models**: Quad-provider 전략 (Rate limit 최적화, 2026-01-01)
+  - Cerebras llama-3.3-70b: Orchestrator, NLQ (24M 토큰/일)
+  - Groq llama-3.3-70b: Analyst, Reporter (100K 토큰/일)
+  - Mistral Small 2506 (24B): Advisor, Verifier
+  - OpenRouter Free: Summarizer (qwen-2.5-7b, llama-3.1-8b) ← NEW
+- **Agents**: 6개 Multi-Agent (Orchestrator → NLQ/Analyst/Reporter/Advisor/Summarizer)
 - **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
 - **Web Search**: Tavily API (Reporter Agent)
-- **Note**: Cerebras 한도 시 자동 Groq 폴백, Workflow 캐싱 (5분 TTL)
+- **Note**: Provider 장애 시 자동 폴백 (Cerebras→Groq, Mistral→OpenRouter)
 
 **AI CLI Tools** (2026-01-01 기준)
 - **Claude Code**: `v2.0.76` (Interactive Development)
