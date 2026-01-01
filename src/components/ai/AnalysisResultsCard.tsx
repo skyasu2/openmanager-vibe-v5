@@ -92,7 +92,19 @@ function TrendIcon({ trend }: { trend: string }) {
   }
 }
 
-// 이상 탐지 결과 카드
+// 임계값 대비 현재값 위치 계산
+function calculatePosition(
+  value: number,
+  lower: number,
+  upper: number
+): number {
+  const range = upper - lower;
+  if (range <= 0) return 50;
+  const position = ((value - lower) / range) * 100;
+  return Math.max(0, Math.min(100, position));
+}
+
+// 이상 탐지 결과 카드 (임계값 시각화 포함)
 function AnomalyCard({
   metric,
   data,
@@ -105,6 +117,16 @@ function AnomalyCard({
   const colorClass = data.isAnomaly
     ? severityColors[data.severity]
     : 'text-green-600 bg-green-50 border-green-200';
+
+  // 임계값 시각화를 위한 계산
+  const hasThreshold = data.threshold?.upper !== undefined;
+  const lower = data.threshold?.lower ?? 0;
+  const upper = data.threshold?.upper ?? 100;
+  const valuePosition = hasThreshold
+    ? calculatePosition(data.currentValue, 0, 100)
+    : 50;
+  const lowerPosition = hasThreshold ? calculatePosition(lower, 0, 100) : 20;
+  const upperPosition = hasThreshold ? calculatePosition(upper, 0, 100) : 80;
 
   return (
     <div className={`rounded-lg border p-3 ${colorClass}`}>
@@ -120,6 +142,34 @@ function AnomalyCard({
         )}
       </div>
       <div className="text-2xl font-bold">{Math.round(data.currentValue)}%</div>
+
+      {/* 임계값 게이지 바 */}
+      {hasThreshold && (
+        <div className="mt-2">
+          <div className="relative h-2 w-full rounded-full bg-gray-200">
+            {/* 정상 범위 (녹색 영역) */}
+            <div
+              className="absolute h-full rounded-full bg-green-300/50"
+              style={{
+                left: `${lowerPosition}%`,
+                width: `${upperPosition - lowerPosition}%`,
+              }}
+            />
+            {/* 현재값 마커 */}
+            <div
+              className={`absolute top-1/2 h-3 w-1 -translate-y-1/2 rounded-full ${
+                data.isAnomaly ? 'bg-red-600' : 'bg-green-600'
+              }`}
+              style={{ left: `${valuePosition}%` }}
+            />
+          </div>
+          <div className="mt-1 flex justify-between text-[10px] opacity-60">
+            <span>{Math.round(lower)}%</span>
+            <span>{Math.round(upper)}%</span>
+          </div>
+        </div>
+      )}
+
       <div className="mt-1 text-xs opacity-75">
         {data.isAnomaly ? `이상 감지 (${data.severity})` : '정상 범위'}
       </div>
@@ -127,7 +177,7 @@ function AnomalyCard({
   );
 }
 
-// 트렌드 예측 카드
+// 트렌드 예측 카드 (변화율 시각화 포함)
 function TrendCard({
   metric,
   data,
@@ -138,10 +188,20 @@ function TrendCard({
   const icon = metricIcons[metric] || <Cpu className="h-5 w-5" />;
   const label = metricLabels[metric] || metric.toUpperCase();
   const isRising = data.trend === 'increasing';
+  const isDecreasing = data.trend === 'decreasing';
   const bgColor = isRising
     ? 'bg-orange-50 border-orange-200'
-    : 'bg-gray-50 border-gray-200';
-  const textColor = isRising ? 'text-orange-700' : 'text-gray-700';
+    : isDecreasing
+      ? 'bg-blue-50 border-blue-200'
+      : 'bg-gray-50 border-gray-200';
+  const textColor = isRising
+    ? 'text-orange-700'
+    : isDecreasing
+      ? 'text-blue-700'
+      : 'text-gray-700';
+
+  // 변화율 바 너비 계산 (최대 ±30%를 100%로)
+  const changeBarWidth = Math.min(Math.abs(data.changePercent) / 30, 1) * 100;
 
   return (
     <div className={`rounded-lg border p-3 ${bgColor}`}>
@@ -152,31 +212,96 @@ function TrendCard({
         </div>
         <TrendIcon trend={data.trend} />
       </div>
-      <div className="flex items-baseline gap-2">
+
+      {/* 현재값 → 예측값 시각화 */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-500">
+          {Math.round(data.currentValue)}%
+        </span>
+        <ArrowRight className="h-3 w-3 text-gray-400" />
         <span className={`text-2xl font-bold ${textColor}`}>
           {Math.round(data.predictedValue)}%
         </span>
-        <span
-          className={`text-sm ${data.changePercent > 0 ? 'text-red-500' : data.changePercent < 0 ? 'text-green-500' : 'text-gray-400'}`}
-        >
-          {data.changePercent > 0 ? '+' : ''}
-          {data.changePercent.toFixed(1)}%
-        </span>
       </div>
+
+      {/* 변화율 미니 바 */}
+      <div className="mt-2">
+        <div className="flex items-center gap-2">
+          <div className="relative h-1.5 flex-1 rounded-full bg-gray-200">
+            {data.changePercent !== 0 && (
+              <div
+                className={`absolute h-full rounded-full ${
+                  data.changePercent > 0 ? 'bg-red-400' : 'bg-green-400'
+                }`}
+                style={{
+                  width: `${changeBarWidth}%`,
+                  left: data.changePercent < 0 ? 'auto' : '50%',
+                  right: data.changePercent < 0 ? '50%' : 'auto',
+                }}
+              />
+            )}
+            {/* 중앙 기준선 */}
+            <div className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-gray-400" />
+          </div>
+          <span
+            className={`min-w-[3rem] text-right text-xs font-medium ${
+              data.changePercent > 0
+                ? 'text-red-500'
+                : data.changePercent < 0
+                  ? 'text-green-500'
+                  : 'text-gray-400'
+            }`}
+          >
+            {data.changePercent > 0 ? '+' : ''}
+            {data.changePercent.toFixed(1)}%
+          </span>
+        </div>
+      </div>
+
       <div className="mt-1 text-xs opacity-75">
         {data.trend === 'increasing'
           ? '상승 추세'
           : data.trend === 'decreasing'
             ? '하락 추세'
             : '안정'}
+        {data.confidence && (
+          <span className="ml-1 opacity-60">
+            (신뢰도 {Math.round(data.confidence * 100)}%)
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
+// 시간대 패턴 힌트 생성
+function getTimePatternHint(): { label: string; color: string } {
+  const hour = new Date().getHours();
+  const dayOfWeek = new Date().getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+  if (isWeekend) {
+    return { label: '주말', color: 'bg-purple-100 text-purple-700' };
+  }
+  if (hour >= 9 && hour < 12) {
+    return { label: '오전 업무', color: 'bg-blue-100 text-blue-700' };
+  }
+  if (hour >= 12 && hour < 14) {
+    return { label: '점심시간', color: 'bg-yellow-100 text-yellow-700' };
+  }
+  if (hour >= 14 && hour < 18) {
+    return { label: '오후 피크', color: 'bg-orange-100 text-orange-700' };
+  }
+  if (hour >= 18 && hour < 22) {
+    return { label: '저녁', color: 'bg-indigo-100 text-indigo-700' };
+  }
+  return { label: '야간', color: 'bg-gray-100 text-gray-700' };
+}
+
 // 이상 탐지 섹션
 function AnomalySection({ data }: { data: CloudRunAnomalyDetection }) {
   const metrics = Object.entries(data.results);
+  const timeHint = getTimePatternHint();
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4">
@@ -188,6 +313,12 @@ function AnomalySection({ data }: { data: CloudRunAnomalyDetection }) {
             {data.anomalyCount}개 이상 감지
           </span>
         )}
+        {/* 시간대 패턴 힌트 */}
+        <span
+          className={`ml-auto rounded-full px-2 py-0.5 text-xs font-medium ${timeHint.color}`}
+        >
+          {timeHint.label}
+        </span>
       </div>
       <div className="grid grid-cols-3 gap-3">
         {metrics.map(([metric, result]) => (
