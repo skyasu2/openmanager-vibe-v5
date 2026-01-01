@@ -235,7 +235,8 @@ const healthCheckHandler = createApiRoute()
         },
       },
       uptime: process.uptime ? Math.floor(process.uptime()) : 0,
-      version: env.APP_VERSION || '5.66.32',
+      version:
+        env.APP_VERSION || process.env.NEXT_PUBLIC_APP_VERSION || '5.83.14',
       timestamp: new Date().toISOString(),
     };
 
