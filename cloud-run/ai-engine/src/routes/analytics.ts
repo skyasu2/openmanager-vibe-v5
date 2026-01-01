@@ -153,7 +153,7 @@ JSON 형식으로 응답하세요:
  * Uses Reporter Agent for natural language report generation.
  * Agent calls tools internally and synthesizes results.
  *
- * @version 2.0.0 - Reporter Agent integration
+ * @version 2.1.0 - Structured JSON output + Enhanced parsing (ITIL-aligned)
  */
 analyticsRouter.post('/incident-report', async (c: Context) => {
   try {
@@ -161,41 +161,85 @@ analyticsRouter.post('/incident-report', async (c: Context) => {
 
     console.log(`📋 [Incident Report] action=${action}, serverId=${serverId}`);
 
+    const startTime = Date.now();
+
+    // 1. Collect real-time data from tools first (parallel execution)
+    const [anomalyData, trendData, timelineData] = await Promise.all([
+      detectAnomalies.execute!(
+        { serverId: serverId || undefined, metricType: 'all' },
+        { toolCallId: 'ir-anomaly', messages: [] }
+      ),
+      predictTrends.execute!(
+        { serverId: serverId || undefined, metricType: 'all', predictionHours: 1 },
+        { toolCallId: 'ir-trend', messages: [] }
+      ),
+      serverId
+        ? (await import('../tools-ai-sdk').then((m) =>
+            m.buildIncidentTimeline.execute!(
+              { serverId, timeRangeHours: 6 },
+              { toolCallId: 'ir-timeline', messages: [] }
+            )
+          ))
+        : null,
+    ]);
+
+    // 2. Extract structured data from tool results
+    const toolBasedData = extractToolBasedData(anomalyData, trendData, timelineData, serverId);
+
     // Check if Reporter Agent is available
     if (!reporterAgent) {
-      console.warn('⚠️ [Incident Report] Reporter Agent unavailable, using fallback');
-      return await incidentReportFallback(c, { serverId, query, severity, category });
+      console.warn('⚠️ [Incident Report] Reporter Agent unavailable, using tool-based fallback');
+      return jsonSuccess(c, {
+        ...toolBasedData,
+        created_at: new Date().toISOString(),
+        _source: 'Tool-based Fallback (No Agent)',
+        _durationMs: Date.now() - startTime,
+      });
     }
 
-    // Build prompt for Reporter Agent
-    const metricsContext = metrics && metrics.length > 0
-      ? `\n\n현재 서버 메트릭:\n${metrics.map((m: { server_name: string; cpu: number; memory: number; disk: number }) =>
-          `- ${m.server_name}: CPU ${m.cpu.toFixed(1)}%, Memory ${m.memory.toFixed(1)}%, Disk ${m.disk.toFixed(1)}%`
-        ).join('\n')}`
-      : '';
+    // 3. Build prompt for Reporter Agent with JSON output request
+    const metricsContext =
+      metrics && metrics.length > 0
+        ? `\n현재 서버 메트릭:\n${metrics
+            .map(
+              (m: { server_name: string; cpu: number; memory: number; disk: number }) =>
+                `- ${m.server_name}: CPU ${m.cpu.toFixed(1)}%, Memory ${m.memory.toFixed(1)}%, Disk ${m.disk.toFixed(1)}%`
+            )
+            .join('\n')}`
+        : '';
 
-    const prompt = `서버 장애 보고서를 생성해주세요.
+    const prompt = `서버 장애 보고서를 JSON 형식으로 생성해주세요.
 
 ## 요청 정보
 - 대상 서버: ${serverId || '전체 서버'}
 - 상황: ${query || '현재 시스템 상태 분석'}
-- 심각도: ${severity || '자동 판단'}
+- 심각도 힌트: ${severity || '자동 판단'}
 - 카테고리: ${category || '일반'}
 ${metricsContext}
 
-## 요청사항
-1. 먼저 getServerMetrics 또는 filterServers 도구로 실제 서버 상태를 조회하세요
-2. 이상 징후가 있는 서버를 식별하고 근본 원인을 분석하세요
-3. 다음 형식으로 보고서를 작성하세요:
-   - 제목 (간결한 상황 요약)
-   - 심각도 (critical/high/medium/low)
-   - 영향받는 서버 목록
-   - 근본 원인 분석
-   - 권장 조치사항
-   - 타임라인 (가능한 경우)`;
+## 현재 수집된 데이터
+- 이상 감지: ${JSON.stringify(anomalyData).slice(0, 500)}
+- 트렌드: ${JSON.stringify(trendData).slice(0, 300)}
 
-    console.log(`🤖 [Incident Report] Invoking Reporter Agent...`);
-    const startTime = Date.now();
+## 중요: 반드시 아래 JSON 형식으로만 응답하세요
+
+\`\`\`json
+{
+  "title": "간결한 상황 요약 (예: 웹 서버 CPU 과부하 경고)",
+  "severity": "critical|high|medium|low 중 하나",
+  "description": "현재 상황에 대한 상세 설명 (2-3문장)",
+  "affected_servers": ["서버ID1", "서버ID2"],
+  "root_cause": "근본 원인 분석 결과",
+  "recommendations": [
+    {"action": "조치 내용", "priority": "high|medium|low", "expected_impact": "예상 효과"}
+  ],
+  "pattern": "감지된 패턴 설명"
+}
+\`\`\`
+
+위 형식의 JSON만 출력하세요. 다른 텍스트는 포함하지 마세요.`;
+
+    console.log(`🤖 [Incident Report] Invoking Reporter Agent with JSON output...`);
 
     const result = await reporterAgent.generate({
       prompt,
@@ -204,27 +248,197 @@ ${metricsContext}
     const durationMs = Date.now() - startTime;
     console.log(`✅ [Incident Report] Agent completed in ${durationMs}ms`);
 
-    // Parse agent response into structured format
-    const structuredReport = parseReporterResponse(result.text, serverId);
+    // 4. Parse JSON from agent response
+    const agentReport = parseAgentJsonResponse(result.text, toolBasedData);
 
-    return jsonSuccess(c, {
-      id: structuredReport.id,
-      title: structuredReport.title,
-      severity: structuredReport.severity,
-      affected_servers: structuredReport.affectedServers,
-      root_cause_analysis: structuredReport.rootCauseAnalysis,
-      recommendations: structuredReport.recommendations,
-      timeline: structuredReport.timeline,
-      pattern: structuredReport.pattern,
+    // 5. Merge tool-based data with agent response (agent takes precedence for text fields)
+    const finalReport = {
+      id: toolBasedData.id,
+      title: agentReport.title || toolBasedData.title,
+      severity: agentReport.severity || toolBasedData.severity,
+      description: agentReport.description || toolBasedData.description,
+      affected_servers: agentReport.affected_servers.length > 0
+        ? agentReport.affected_servers
+        : toolBasedData.affected_servers,
+      anomalies: toolBasedData.anomalies, // From tool
+      system_summary: toolBasedData.system_summary, // From tool
+      timeline: toolBasedData.timeline, // From tool
+      root_cause_analysis: {
+        primary_cause: agentReport.root_cause || '도구 분석 결과를 참조하세요',
+        contributing_factors: [],
+      },
+      recommendations: agentReport.recommendations.length > 0
+        ? agentReport.recommendations
+        : toolBasedData.recommendations,
+      pattern: agentReport.pattern || toolBasedData.pattern,
       created_at: new Date().toISOString(),
       _agentResponse: result.text,
-      _source: 'Reporter Agent (Groq)',
+      _source: 'Reporter Agent + Tool Data (Hybrid)',
       _durationMs: durationMs,
-    });
+    };
+
+    return jsonSuccess(c, finalReport);
   } catch (error) {
     return handleApiError(c, error, 'Incident Report');
   }
 });
+
+/**
+ * Extract structured data from tool results
+ */
+function extractToolBasedData(
+  anomalyData: unknown,
+  trendData: unknown,
+  timelineData: unknown,
+  serverId?: string
+): {
+  id: string;
+  title: string;
+  severity: string;
+  description: string;
+  affected_servers: string[];
+  anomalies: Array<{ server_id: string; server_name: string; metric: string; value: number; severity: string }>;
+  system_summary: { totalServers: number; healthyServers: number; warningServers: number; criticalServers: number };
+  timeline: Array<{ timestamp: string; event: string; severity: string }>;
+  recommendations: Array<{ action: string; priority: string; expected_impact: string }>;
+  pattern: string;
+} {
+  const id = randomUUID();
+
+  // Parse anomaly data
+  const anomaly = anomalyData as {
+    hasAnomalies?: boolean;
+    anomalyCount?: number;
+    results?: Array<{ serverId: string; serverName?: string; metric: string; currentValue: number; severity: string }>;
+    summary?: { totalServers?: number; healthyCount?: number; warningCount?: number; criticalCount?: number };
+  } | undefined;
+
+  const anomalies: Array<{ server_id: string; server_name: string; metric: string; value: number; severity: string }> = [];
+  if (anomaly?.results) {
+    for (const r of anomaly.results) {
+      anomalies.push({
+        server_id: r.serverId,
+        server_name: r.serverName || r.serverId,
+        metric: r.metric,
+        value: r.currentValue,
+        severity: r.severity,
+      });
+    }
+  }
+
+  // System summary from anomaly data
+  const summary = anomaly?.summary || {};
+  const systemSummary = {
+    totalServers: summary.totalServers ?? 0,
+    healthyServers: summary.healthyCount ?? 0,
+    warningServers: summary.warningCount ?? 0,
+    criticalServers: summary.criticalCount ?? 0,
+  };
+
+  // Parse timeline data
+  const tl = timelineData as { events?: Array<{ timestamp: string; description: string; severity: string }> } | null;
+  const timeline: Array<{ timestamp: string; event: string; severity: string }> = [];
+  if (tl?.events) {
+    for (const e of tl.events) {
+      timeline.push({
+        timestamp: e.timestamp,
+        event: e.description,
+        severity: e.severity,
+      });
+    }
+  }
+
+  // Determine severity from data
+  let severity = 'info';
+  if (systemSummary.criticalServers > 0 || anomalies.some((a) => a.severity === 'critical')) {
+    severity = 'critical';
+  } else if (systemSummary.warningServers > 0 || anomalies.some((a) => a.severity === 'warning' || a.severity === 'medium')) {
+    severity = 'warning';
+  }
+
+  // Parse trend data for recommendations
+  const trend = trendData as { summary?: { hasRisingTrends?: boolean; risingMetrics?: string[] } } | undefined;
+  const recommendations: Array<{ action: string; priority: string; expected_impact: string }> = [];
+  if (trend?.summary?.hasRisingTrends && trend.summary.risingMetrics) {
+    for (const metric of trend.summary.risingMetrics.slice(0, 3)) {
+      recommendations.push({
+        action: `${metric} 상승 추세 모니터링 강화`,
+        priority: 'medium',
+        expected_impact: '사전 장애 예방',
+      });
+    }
+  }
+
+  // Generate title and description
+  const title = anomaly?.hasAnomalies
+    ? `이상 감지: ${anomaly.anomalyCount}건 발견`
+    : '서버 상태 정상';
+  const description = anomaly?.hasAnomalies
+    ? `총 ${systemSummary.totalServers}대 서버 중 ${anomaly.anomalyCount}건의 이상 징후가 감지되었습니다.`
+    : `총 ${systemSummary.totalServers}대 서버가 정상 상태입니다.`;
+
+  return {
+    id,
+    title,
+    severity,
+    description,
+    affected_servers: serverId ? [serverId] : anomalies.map((a) => a.server_id),
+    anomalies,
+    system_summary: systemSummary,
+    timeline,
+    recommendations,
+    pattern: anomaly?.hasAnomalies ? '이상 패턴 감지됨' : '정상 패턴',
+  };
+}
+
+/**
+ * Parse JSON response from agent
+ */
+function parseAgentJsonResponse(
+  text: string,
+  fallback: { title: string; severity: string; affected_servers: string[]; recommendations: Array<{ action: string; priority: string; expected_impact: string }>; pattern: string }
+): {
+  title: string;
+  severity: string;
+  description: string;
+  affected_servers: string[];
+  root_cause: string;
+  recommendations: Array<{ action: string; priority: string; expected_impact: string }>;
+  pattern: string;
+} {
+  // Try to extract JSON from response
+  const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
+
+  if (jsonMatch) {
+    try {
+      const jsonStr = jsonMatch[1] || jsonMatch[0];
+      const parsed = JSON.parse(jsonStr);
+
+      return {
+        title: parsed.title || fallback.title,
+        severity: parsed.severity || fallback.severity,
+        description: parsed.description || '',
+        affected_servers: Array.isArray(parsed.affected_servers) ? parsed.affected_servers : fallback.affected_servers,
+        root_cause: parsed.root_cause || '',
+        recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations : fallback.recommendations,
+        pattern: parsed.pattern || fallback.pattern,
+      };
+    } catch (e) {
+      console.warn('⚠️ [Incident Report] JSON parse failed, using regex extraction');
+    }
+  }
+
+  // Fallback to regex extraction (legacy parser)
+  return {
+    title: fallback.title,
+    severity: fallback.severity,
+    description: '',
+    affected_servers: fallback.affected_servers,
+    root_cause: '',
+    recommendations: fallback.recommendations,
+    pattern: fallback.pattern,
+  };
+}
 
 /**
  * Parse Reporter Agent response into structured format
