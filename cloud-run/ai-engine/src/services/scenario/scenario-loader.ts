@@ -106,8 +106,8 @@ export async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]>
       return [];
     }
 
-    // 5분 간격 dataPoint 선택 (0-11 인덱스)
-    const dataPointIndex = Math.floor(currentMinute / 5);
+    // 10분 간격 dataPoint 선택 (0-5 인덱스)
+    const dataPointIndex = Math.floor(currentMinute / 10);
     const clampedIndex = Math.min(dataPointIndex, hourlyData.dataPoints.length - 1);
     const dataPoint = hourlyData.dataPoints[clampedIndex];
 
@@ -222,8 +222,8 @@ export async function loadHistoricalContext(
       const hourlyData = loadHourlyJsonFile(targetHour);
       if (!hourlyData) continue;
 
-      // 해당 분의 dataPoint 찾기
-      const dataPointIndex = Math.floor(targetMinute / 5);
+      // 해당 분의 dataPoint 찾기 (10분 간격)
+      const dataPointIndex = Math.floor(targetMinute / 10);
       const clampedIndex = Math.min(dataPointIndex, hourlyData.dataPoints.length - 1);
       const dataPoint = hourlyData.dataPoints[clampedIndex];
 

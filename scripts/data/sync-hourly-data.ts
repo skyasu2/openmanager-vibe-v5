@@ -312,6 +312,239 @@ const FAILURE_SCENARIOS: FailureScenario[] = [
 ];
 
 // ============================================================================
+// 로그 템플릿 (AI 분석용)
+// ============================================================================
+
+const LOG_TEMPLATES: Record<ServerType, Record<string, { critical: string[]; warning: string[] }>> = {
+  database: {
+    cpu: {
+      critical: [
+        '[ERROR] mysqld: CPU utilization exceeded 95% - query processing delayed',
+        '[ERROR] InnoDB: Buffer pool contention detected - high CPU wait',
+        '[WARN] Slow query: SELECT * FROM orders took 12.5s (rows_examined: 2.5M)',
+      ],
+      warning: [
+        '[WARN] mysqld: CPU spike detected during query execution',
+        '[INFO] Query optimizer: Full table scan on large_table',
+      ],
+    },
+    memory: {
+      critical: [
+        '[ERROR] mysqld: Out of memory (Needed 2048 bytes)',
+        '[ERROR] InnoDB: Cannot allocate buffer pool - insufficient memory',
+        '[WARN] Connection pool exhausted: 500/500 connections used',
+      ],
+      warning: [
+        '[WARN] InnoDB: Buffer pool usage above 85%',
+        '[INFO] mysqld: Memory pressure detected, freeing cache',
+      ],
+    },
+    disk: {
+      critical: [
+        '[ERROR] mysqld: Disk full /var/lib/mysql (errcode: 28)',
+        '[ERROR] InnoDB: Unable to write to datafile /var/lib/mysql/ibdata1',
+        '[ERROR] Binary log write failed: MYSQL_BIN_LOG::write_event() returned 1',
+      ],
+      warning: [
+        '[WARN] InnoDB: Tablespace approaching 90% capacity',
+        '[INFO] mysqld: Running disk cleanup on /var/lib/mysql',
+      ],
+    },
+    network: {
+      critical: [
+        '[ERROR] mysqld: Connection refused - max_connections reached',
+        '[ERROR] Replication lag: 3600 seconds behind master',
+      ],
+      warning: [
+        '[WARN] mysqld: Network latency spike to replica',
+        '[INFO] Connection timeout from application server',
+      ],
+    },
+  },
+  cache: {
+    cpu: {
+      critical: ['[ERROR] redis: CPU 100% - event loop blocked'],
+      warning: ['[WARN] redis: High CPU during KEYS operation'],
+    },
+    memory: {
+      critical: [
+        '[ERROR] redis: OOM command not allowed - used_memory > maxmemory',
+        '[ERROR] redis: Cannot allocate memory for SET operation',
+        '[WARN] redis: Memory fragmentation ratio: 2.5',
+      ],
+      warning: [
+        '[WARN] redis: Memory usage above 85% threshold',
+        '[INFO] redis: Evicting keys using volatile-lru policy',
+      ],
+    },
+    disk: {
+      critical: ['[ERROR] redis: RDB save failed - disk full'],
+      warning: ['[WARN] redis: AOF rewrite in progress - disk I/O high'],
+    },
+    network: {
+      critical: ['[ERROR] redis: Connection refused - max clients reached'],
+      warning: ['[WARN] redis: Latency spike detected: 250ms'],
+    },
+  },
+  application: {
+    cpu: {
+      critical: [
+        '[ERROR] JVM: GC overhead limit exceeded',
+        '[ERROR] Thread pool exhausted: 500/500 threads busy',
+        '[WARN] Request queue depth: 1000 (threshold: 100)',
+      ],
+      warning: [
+        '[WARN] JVM: Minor GC frequency increased (>10/min)',
+        '[INFO] CPU throttling detected - scaling recommended',
+      ],
+    },
+    memory: {
+      critical: [
+        '[ERROR] JVM: OutOfMemoryError - Java heap space',
+        '[ERROR] Memory leak detected in session management',
+      ],
+      warning: [
+        '[WARN] JVM: Heap usage above 85%',
+        '[INFO] GC pause time: 2.5s (threshold: 1s)',
+      ],
+    },
+    disk: {
+      critical: ['[ERROR] Log rotation failed - disk full'],
+      warning: ['[WARN] Temp directory usage above 90%'],
+    },
+    network: {
+      critical: [
+        '[ERROR] Connection pool exhausted to database',
+        '[ERROR] Circuit breaker OPEN for external-api',
+      ],
+      warning: [
+        '[WARN] HTTP 503 rate increased: 5%',
+        '[INFO] Request latency p99: 2500ms (threshold: 1000ms)',
+      ],
+    },
+  },
+  web: {
+    cpu: {
+      critical: ['[ERROR] nginx: Worker process CPU 100%'],
+      warning: ['[WARN] nginx: High request processing time'],
+    },
+    memory: {
+      critical: ['[ERROR] nginx: Cannot allocate memory for new connection'],
+      warning: ['[WARN] nginx: Shared memory zone 85% used'],
+    },
+    disk: {
+      critical: ['[ERROR] nginx: Access log write failed - disk full'],
+      warning: ['[WARN] nginx: Cache directory 90% full'],
+    },
+    network: {
+      critical: [
+        '[ERROR] nginx: upstream timed out (110: Connection timed out)',
+        '[ERROR] nginx: Too many open connections: 10000/10000',
+      ],
+      warning: [
+        '[WARN] nginx: Connection queue overflow',
+        '[INFO] nginx: Active connections: 8500 (limit: 10000)',
+      ],
+    },
+  },
+  loadbalancer: {
+    cpu: {
+      critical: ['[ERROR] haproxy: CPU usage critical - request dropping'],
+      warning: ['[WARN] haproxy: High CPU during health checks'],
+    },
+    memory: {
+      critical: ['[ERROR] haproxy: Out of memory for new session'],
+      warning: ['[WARN] haproxy: Session memory usage high'],
+    },
+    disk: {
+      critical: ['[ERROR] haproxy: Log write failed'],
+      warning: ['[WARN] haproxy: Stats file rotation needed'],
+    },
+    network: {
+      critical: [
+        '[ERROR] haproxy: Backend api-servers DOWN - all checks failed',
+        '[ERROR] haproxy: Connection limit reached: 50000/50000',
+      ],
+      warning: [
+        '[WARN] haproxy: Backend response time degraded: 2s avg',
+        '[INFO] haproxy: Health check timeout for web-01',
+      ],
+    },
+  },
+  storage: {
+    cpu: {
+      critical: ['[ERROR] nfsd: CPU bottleneck during I/O'],
+      warning: ['[WARN] nfsd: High CPU during large file transfer'],
+    },
+    memory: {
+      critical: ['[ERROR] nfsd: Cache memory exhausted'],
+      warning: ['[WARN] nfsd: Buffer cache pressure'],
+    },
+    disk: {
+      critical: [
+        '[ERROR] nfsd: Filesystem full - write operations blocked',
+        '[ERROR] nfsd: I/O error on /dev/sda1',
+      ],
+      warning: [
+        '[WARN] nfsd: Disk usage above 85%',
+        '[INFO] nfsd: RAID rebuild in progress - performance degraded',
+      ],
+    },
+    network: {
+      critical: ['[ERROR] nfsd: NFS export unavailable'],
+      warning: ['[WARN] nfsd: Network throughput degraded'],
+    },
+  },
+};
+
+/**
+ * 장애 상황에 맞는 로그 생성
+ */
+function generateLogs(
+  server: ServerConfig,
+  status: ServerStatus,
+  metrics: { cpu: number; memory: number; disk: number; network: number },
+  scenario?: FailureScenario
+): string[] {
+  const logs: string[] = [];
+  const templates = LOG_TEMPLATES[server.type];
+  if (!templates) return logs;
+
+  // 정상 상태면 빈 로그
+  if (status === 'online') {
+    return [];
+  }
+
+  // 가장 심각한 메트릭 찾기
+  const severityLevel = status === 'critical' ? 'critical' : 'warning';
+
+  // 메트릭별 심각도 확인
+  const metricSeverity: { metric: string; value: number }[] = [
+    { metric: 'cpu', value: metrics.cpu },
+    { metric: 'memory', value: metrics.memory },
+    { metric: 'disk', value: metrics.disk },
+    { metric: 'network', value: metrics.network },
+  ].sort((a, b) => b.value - a.value);
+
+  // 상위 2개 문제 메트릭에 대한 로그 추가
+  for (const { metric, value } of metricSeverity.slice(0, 2)) {
+    if (value > 70) { // 70% 이상이면 로그 생성
+      const metricTemplates = templates[metric];
+      if (metricTemplates) {
+        const templateList = metricTemplates[severityLevel] || metricTemplates.warning;
+        if (templateList.length > 0) {
+          // 결정론적 선택 (시드 기반)
+          const selectedLog = templateList[Math.floor(seededRandom() * templateList.length)];
+          logs.push(selectedLog);
+        }
+      }
+    }
+  }
+
+  return logs;
+}
+
+// ============================================================================
 // 데이터 생성 로직
 // ============================================================================
 
@@ -344,6 +577,7 @@ function generateServerMetrics(
   specs: typeof server.specs;
   services: string[];
   processes: number;
+  logs: string[]; // AI 분석용 로그
 } {
   // 결정론적 시드: hour * 10000 + serverIndex * 100 + minuteIndex
   // 같은 조합이면 항상 동일한 값 생성
@@ -380,6 +614,9 @@ function generateServerMetrics(
   const responseTimeMultiplier = status === 'critical' ? 20 : status === 'warning' ? 3 : 1;
   const responseTime = Math.round(baseResponseTime * responseTimeMultiplier * (0.8 + seededRandom() * 0.4));
 
+  // AI 분석용 로그 생성
+  const logs = generateLogs(server, status, metrics, scenario);
+
   return {
     id: server.id,
     name: server.name,
@@ -399,6 +636,7 @@ function generateServerMetrics(
     specs: server.specs,
     services: [],
     processes: 100 + Math.floor(seededRandom() * 50),
+    logs,
   };
 }
 
@@ -406,9 +644,9 @@ function generateHourlyData(hour: number) {
   const scenario = getScenarioForHour(hour);
   const dataPoints = [];
 
-  // 5분 간격 12개 데이터 포인트 (00, 05, 10, ..., 55분)
-  for (let minuteIndex = 0; minuteIndex < 12; minuteIndex++) {
-    const minute = minuteIndex * 5;
+  // 10분 간격 6개 데이터 포인트 (00, 10, 20, 30, 40, 50분)
+  for (let minuteIndex = 0; minuteIndex < 6; minuteIndex++) {
+    const minute = minuteIndex * 10;
     const timestamp = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     const servers: Record<string, ReturnType<typeof generateServerMetrics>> = {};
 
@@ -424,9 +662,9 @@ function generateHourlyData(hour: number) {
     scenario: scenario?.incident || `${hour}시 정상 운영`,
     dataPoints,
     metadata: {
-      version: '1.0.0', // SSOT 버전 (변경 시 증가)
-      totalDataPoints: 12,
-      intervalMinutes: 5,
+      version: '2.0.0', // SSOT 버전 (10분 간격으로 변경)
+      totalDataPoints: 6,
+      intervalMinutes: 10,
       serverCount: KOREAN_DC_SERVERS.length,
       affectedServers: scenario?.affectedServers.length || 0,
     },
@@ -491,7 +729,7 @@ function main() {
     console.log('\n📊 통계:');
     console.log(`   - 시간별 파일: 24개`);
     console.log(`   - 서버 수: ${KOREAN_DC_SERVERS.length}개`);
-    console.log(`   - 데이터 포인트/파일: 12개 (5분 간격)`);
+    console.log(`   - 데이터 포인트/파일: 6개 (10분 간격)`);
     console.log(`   - 장애 시나리오: ${FAILURE_SCENARIOS.length}개`);
   } catch (error) {
     console.error('❌ 동기화 실패:', error instanceof Error ? error.message : error);
