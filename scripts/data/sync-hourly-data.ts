@@ -18,6 +18,28 @@ import fs from 'fs';
 import path from 'path';
 
 // ============================================================================
+// Seeded Random (결정론적 랜덤 - 매번 동일한 결과)
+// ============================================================================
+
+/**
+ * Mulberry32 PRNG - 시드 기반 결정론적 난수 생성기
+ * 같은 시드로 실행하면 항상 동일한 난수 시퀀스 생성
+ */
+function createSeededRandom(seed: number) {
+  let state = seed;
+  return function (): number {
+    state |= 0;
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// 전역 시드 기반 랜덤 함수 (시간/서버별로 재설정)
+let seededRandom: () => number = Math.random;
+
+// ============================================================================
 // 서버 정의 (fixed-24h-metrics.ts와 동기화)
 // ============================================================================
 
@@ -299,7 +321,9 @@ function getScenarioForHour(hour: number): FailureScenario | undefined {
 
 function generateServerMetrics(
   server: ServerConfig,
+  serverIndex: number,
   hour: number,
+  minuteIndex: number,
   scenario?: FailureScenario
 ): {
   id: string;
@@ -321,12 +345,17 @@ function generateServerMetrics(
   services: string[];
   processes: number;
 } {
-  // 기본 메트릭 (baseline + 약간의 랜덤 변동)
+  // 결정론적 시드: hour * 10000 + serverIndex * 100 + minuteIndex
+  // 같은 조합이면 항상 동일한 값 생성
+  const seed = hour * 10000 + serverIndex * 100 + minuteIndex;
+  seededRandom = createSeededRandom(seed);
+
+  // 기본 메트릭 (baseline + 결정론적 랜덤 변동)
   let metrics = {
-    cpu: server.baseline.cpu + Math.floor((Math.random() - 0.5) * 10),
-    memory: server.baseline.memory + Math.floor((Math.random() - 0.5) * 8),
-    disk: server.baseline.disk + Math.floor((Math.random() - 0.5) * 5),
-    network: server.baseline.network + Math.floor((Math.random() - 0.5) * 10),
+    cpu: server.baseline.cpu + Math.floor((seededRandom() - 0.5) * 10),
+    memory: server.baseline.memory + Math.floor((seededRandom() - 0.5) * 8),
+    disk: server.baseline.disk + Math.floor((seededRandom() - 0.5) * 5),
+    network: server.baseline.network + Math.floor((seededRandom() - 0.5) * 10),
   };
 
   let status: ServerStatus = 'online';
@@ -349,7 +378,7 @@ function generateServerMetrics(
   // 응답 시간 계산
   const baseResponseTime = server.type === 'cache' ? 20 : server.type === 'database' ? 50 : 150;
   const responseTimeMultiplier = status === 'critical' ? 20 : status === 'warning' ? 3 : 1;
-  const responseTime = Math.round(baseResponseTime * responseTimeMultiplier * (0.8 + Math.random() * 0.4));
+  const responseTime = Math.round(baseResponseTime * responseTimeMultiplier * (0.8 + seededRandom() * 0.4));
 
   return {
     id: server.id,
@@ -364,12 +393,12 @@ function generateServerMetrics(
     disk: metrics.disk,
     network: metrics.network,
     responseTime,
-    uptime: 2592000 + Math.floor(Math.random() * 86400), // ~30일
+    uptime: 2592000 + Math.floor(seededRandom() * 86400), // ~30일
     ip: server.ip,
     os: 'Ubuntu 22.04 LTS',
     specs: server.specs,
     services: [],
-    processes: 100 + Math.floor(Math.random() * 50),
+    processes: 100 + Math.floor(seededRandom() * 50),
   };
 }
 
@@ -378,12 +407,13 @@ function generateHourlyData(hour: number) {
   const dataPoints = [];
 
   // 5분 간격 12개 데이터 포인트 (00, 05, 10, ..., 55분)
-  for (let minute = 0; minute < 60; minute += 5) {
+  for (let minuteIndex = 0; minuteIndex < 12; minuteIndex++) {
+    const minute = minuteIndex * 5;
     const timestamp = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     const servers: Record<string, ReturnType<typeof generateServerMetrics>> = {};
 
-    KOREAN_DC_SERVERS.forEach((server) => {
-      servers[server.id] = generateServerMetrics(server, hour, scenario);
+    KOREAN_DC_SERVERS.forEach((server, serverIndex) => {
+      servers[server.id] = generateServerMetrics(server, serverIndex, hour, minuteIndex, scenario);
     });
 
     dataPoints.push({ timestamp, servers });

@@ -13,12 +13,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 37,
-          "memory": 48,
-          "disk": 29,
-          "network": 59,
-          "responseTime": 160,
-          "uptime": 2604100,
+          "cpu": 32,
+          "memory": 47,
+          "disk": 27,
+          "network": 55,
+          "responseTime": 139,
+          "uptime": 2667193,
           "ip": "10.10.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -27,7 +27,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 147
+          "processes": 122
         },
         "web-nginx-icn-02": {
           "id": "web-nginx-icn-02",
@@ -37,12 +37,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 33,
-          "memory": 42,
-          "disk": 29,
-          "network": 53,
-          "responseTime": 149,
-          "uptime": 2649606,
+          "cpu": 36,
+          "memory": 40,
+          "disk": 28,
+          "network": 50,
+          "responseTime": 134,
+          "uptime": 2670723,
           "ip": "10.10.1.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -51,7 +51,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 124
+          "processes": 112
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -62,11 +62,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 20,
-          "memory": 36,
-          "disk": 23,
-          "network": 43,
-          "responseTime": 142,
-          "uptime": 2627597,
+          "memory": 34,
+          "disk": 22,
+          "network": 39,
+          "responseTime": 143,
+          "uptime": 2597338,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -75,7 +75,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 115
+          "processes": 106
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -85,12 +85,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 41,
-          "memory": 52,
-          "disk": 33,
+          "cpu": 49,
+          "memory": 51,
+          "disk": 34,
           "network": 49,
           "responseTime": 160,
-          "uptime": 2616733,
+          "uptime": 2609540,
           "ip": "10.10.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -99,7 +99,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 124
+          "processes": 136
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -109,12 +109,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 41,
-          "memory": 49,
-          "disk": 34,
-          "network": 48,
-          "responseTime": 158,
-          "uptime": 2647761,
+          "cpu": 40,
+          "memory": 51,
+          "disk": 32,
+          "network": 44,
+          "responseTime": 141,
+          "uptime": 2676371,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -123,7 +123,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 104
+          "processes": 131
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -133,12 +133,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 21,
-          "memory": 41,
-          "disk": 27,
-          "network": 33,
-          "responseTime": 140,
-          "uptime": 2678266,
+          "cpu": 27,
+          "memory": 42,
+          "disk": 26,
+          "network": 38,
+          "responseTime": 144,
+          "uptime": 2661550,
           "ip": "10.20.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -147,7 +147,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 112
+          "processes": 133
         },
         "db-mysql-icn-primary": {
           "id": "db-mysql-icn-primary",
@@ -157,12 +157,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 53,
-          "memory": 67,
+          "cpu": 56,
+          "memory": 71,
           "disk": 44,
-          "network": 38,
-          "responseTime": 43,
-          "uptime": 2652628,
+          "network": 40,
+          "responseTime": 40,
+          "uptime": 2619611,
           "ip": "10.10.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -171,7 +171,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 137
+          "processes": 147
         },
         "db-mysql-icn-replica": {
           "id": "db-mysql-icn-replica",
@@ -181,12 +181,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 44,
-          "memory": 61,
+          "cpu": 43,
+          "memory": 57,
           "disk": 40,
-          "network": 39,
-          "responseTime": 55,
-          "uptime": 2658996,
+          "network": 38,
+          "responseTime": 58,
+          "uptime": 2611351,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -195,7 +195,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 106
+          "processes": 136
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -205,12 +205,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 21,
-          "memory": 48,
-          "disk": 42,
+          "cpu": 18,
+          "memory": 41,
+          "disk": 40,
           "network": 21,
-          "responseTime": 44,
-          "uptime": 2638720,
+          "responseTime": 59,
+          "uptime": 2608415,
           "ip": "10.20.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -219,7 +219,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 138
+          "processes": 143
         },
         "cache-redis-icn-01": {
           "id": "cache-redis-icn-01",
@@ -232,9 +232,9 @@
           "cpu": 28,
           "memory": 76,
           "disk": 20,
-          "network": 44,
-          "responseTime": 19,
-          "uptime": 2596774,
+          "network": 49,
+          "responseTime": 17,
+          "uptime": 2628789,
           "ip": "10.10.4.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -243,7 +243,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 112
+          "processes": 110
         },
         "cache-redis-icn-02": {
           "id": "cache-redis-icn-02",
@@ -254,11 +254,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 22,
-          "memory": 72,
-          "disk": 18,
-          "network": 41,
-          "responseTime": 22,
-          "uptime": 2616551,
+          "memory": 73,
+          "disk": 19,
+          "network": 39,
+          "responseTime": 24,
+          "uptime": 2608007,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -267,7 +267,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 104
+          "processes": 119
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -277,12 +277,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 32,
-          "memory": 43,
-          "disk": 67,
+          "cpu": 31,
+          "memory": 40,
+          "disk": 66,
           "network": 48,
-          "responseTime": 167,
-          "uptime": 2657205,
+          "responseTime": 171,
+          "uptime": 2615112,
           "ip": "10.10.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -291,7 +291,7 @@
             "disk_gb": 5000
           },
           "services": [],
-          "processes": 126
+          "processes": 109
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -301,12 +301,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 18,
-          "memory": 35,
+          "cpu": 21,
+          "memory": 36,
           "disk": 52,
-          "network": 63,
-          "responseTime": 159,
-          "uptime": 2678379,
+          "network": 59,
+          "responseTime": 149,
+          "uptime": 2661683,
           "ip": "10.20.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -315,7 +315,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 135
+          "processes": 121
         },
         "lb-haproxy-icn-01": {
           "id": "lb-haproxy-icn-01",
@@ -325,12 +325,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 35,
-          "memory": 35,
-          "disk": 13,
+          "cpu": 37,
+          "memory": 34,
+          "disk": 14,
           "network": 68,
-          "responseTime": 130,
-          "uptime": 2670651,
+          "responseTime": 150,
+          "uptime": 2637692,
           "ip": "10.10.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -339,7 +339,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 123
+          "processes": 141
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -351,10 +351,10 @@
           "status": "online",
           "cpu": 39,
           "memory": 36,
-          "disk": 13,
-          "network": 70,
-          "responseTime": 132,
-          "uptime": 2666760,
+          "disk": 14,
+          "network": 71,
+          "responseTime": 149,
+          "uptime": 2629947,
           "ip": "10.20.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -363,7 +363,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 121
+          "processes": 119
         }
       }
     },
@@ -378,12 +378,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 36,
-          "memory": 48,
-          "disk": 30,
-          "network": 58,
-          "responseTime": 135,
-          "uptime": 2605416,
+          "cpu": 37,
+          "memory": 44,
+          "disk": 28,
+          "network": 60,
+          "responseTime": 171,
+          "uptime": 2604691,
           "ip": "10.10.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -403,11 +403,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 34,
-          "memory": 43,
-          "disk": 30,
-          "network": 50,
-          "responseTime": 132,
-          "uptime": 2670354,
+          "memory": 44,
+          "disk": 26,
+          "network": 53,
+          "responseTime": 167,
+          "uptime": 2636039,
           "ip": "10.10.1.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -416,7 +416,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 114
+          "processes": 115
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -426,12 +426,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 20,
-          "memory": 37,
-          "disk": 24,
-          "network": 41,
-          "responseTime": 151,
-          "uptime": 2606763,
+          "cpu": 22,
+          "memory": 31,
+          "disk": 26,
+          "network": 35,
+          "responseTime": 123,
+          "uptime": 2664058,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -440,7 +440,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 106
+          "processes": 113
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -448,2228 +448,38 @@
           "hostname": "api-was-icn-01.openmanager.kr",
           "type": "application",
           "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 44,
+          "memory": 51,
+          "disk": 34,
+          "network": 47,
+          "responseTime": 132,
+          "uptime": 2665419,
+          "ip": "10.10.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 147
+        },
+        "api-was-icn-02": {
+          "id": "api-was-icn-02",
+          "name": "WAS API Server 02",
+          "hostname": "api-was-icn-02.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
           "cpu": 45,
-          "memory": 54,
-          "disk": 35,
-          "network": 49,
-          "responseTime": 130,
-          "uptime": 2597712,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 145
-        },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 44,
-          "memory": 49,
-          "disk": 30,
-          "network": 46,
-          "responseTime": 160,
-          "uptime": 2632074,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 149
-        },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 40,
-          "disk": 29,
-          "network": 38,
-          "responseTime": 174,
-          "uptime": 2616535,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 146
-        },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 54,
-          "memory": 69,
-          "disk": 45,
-          "network": 37,
-          "responseTime": 60,
-          "uptime": 2674783,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 102
-        },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 44,
-          "memory": 59,
-          "disk": 41,
-          "network": 38,
-          "responseTime": 40,
-          "uptime": 2621931,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 144
-        },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 19,
-          "memory": 48,
-          "disk": 38,
-          "network": 23,
-          "responseTime": 56,
-          "uptime": 2614076,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 110
-        },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 25,
-          "memory": 78,
-          "disk": 19,
-          "network": 47,
-          "responseTime": 16,
-          "uptime": 2601653,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 112
-        },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 19,
-          "memory": 69,
-          "disk": 16,
-          "network": 38,
-          "responseTime": 22,
-          "uptime": 2676135,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 103
-        },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 31,
-          "memory": 39,
-          "disk": 62,
-          "network": 54,
-          "responseTime": 156,
-          "uptime": 2626073,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
-          },
-          "services": [],
-          "processes": 107
-        },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 23,
-          "memory": 33,
-          "disk": 52,
-          "network": 60,
-          "responseTime": 152,
-          "uptime": 2673799,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 136
-        },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 35,
-          "memory": 34,
-          "disk": 14,
-          "network": 74,
-          "responseTime": 122,
-          "uptime": 2597190,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 126
-        },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 42,
-          "memory": 35,
-          "disk": 13,
-          "network": 68,
-          "responseTime": 139,
-          "uptime": 2653957,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 124
-        }
-      }
-    },
-    {
-      "timestamp": "17:10",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 31,
-          "memory": 48,
-          "disk": 27,
-          "network": 58,
-          "responseTime": 156,
-          "uptime": 2610636,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 136
-        },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 38,
-          "disk": 28,
-          "network": 51,
-          "responseTime": 129,
-          "uptime": 2596341,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 137
-        },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 22,
-          "memory": 32,
-          "disk": 27,
-          "network": 42,
-          "responseTime": 126,
-          "uptime": 2654662,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 113
-        },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 49,
-          "memory": 53,
-          "disk": 34,
-          "network": 45,
-          "responseTime": 152,
-          "uptime": 2653301,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 132
-        },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 42,
-          "memory": 55,
-          "disk": 32,
-          "network": 50,
-          "responseTime": 142,
-          "uptime": 2596706,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 108
-        },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 24,
-          "memory": 42,
-          "disk": 28,
-          "network": 31,
-          "responseTime": 165,
-          "uptime": 2648592,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 138
-        },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 57,
-          "memory": 72,
-          "disk": 43,
-          "network": 39,
-          "responseTime": 52,
-          "uptime": 2659353,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 118
-        },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 38,
-          "memory": 62,
-          "disk": 42,
-          "network": 37,
-          "responseTime": 49,
-          "uptime": 2675974,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 143
-        },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 24,
-          "memory": 43,
-          "disk": 38,
-          "network": 26,
-          "responseTime": 55,
-          "uptime": 2620228,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 115
-        },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 21,
-          "memory": 73,
-          "disk": 19,
-          "network": 46,
-          "responseTime": 20,
-          "uptime": 2639326,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 132
-        },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 25,
-          "memory": 73,
-          "disk": 17,
-          "network": 42,
-          "responseTime": 24,
-          "uptime": 2651592,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 105
-        },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 30,
-          "memory": 42,
-          "disk": 67,
-          "network": 50,
-          "responseTime": 136,
-          "uptime": 2624260,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
-          },
-          "services": [],
-          "processes": 105
-        },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 19,
-          "memory": 34,
-          "disk": 53,
-          "network": 60,
-          "responseTime": 173,
-          "uptime": 2611445,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 105
-        },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 37,
-          "memory": 35,
-          "disk": 13,
-          "network": 66,
-          "responseTime": 174,
-          "uptime": 2649238,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 139
-        },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 42,
-          "memory": 30,
-          "disk": 16,
-          "network": 66,
-          "responseTime": 130,
-          "uptime": 2675228,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 124
-        }
-      }
-    },
-    {
-      "timestamp": "17:15",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 36,
-          "memory": 41,
-          "disk": 27,
-          "network": 61,
-          "responseTime": 127,
-          "uptime": 2594992,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 111
-        },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 32,
-          "memory": 41,
-          "disk": 26,
-          "network": 50,
-          "responseTime": 135,
-          "uptime": 2634274,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 100
-        },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 21,
-          "memory": 37,
-          "disk": 26,
-          "network": 41,
-          "responseTime": 161,
-          "uptime": 2657220,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 104
-        },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 46,
-          "memory": 57,
-          "disk": 35,
-          "network": 50,
-          "responseTime": 134,
-          "uptime": 2597230,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 147
-        },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 37,
-          "memory": 54,
-          "disk": 31,
-          "network": 44,
-          "responseTime": 124,
-          "uptime": 2657945,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 127
-        },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 41,
-          "disk": 27,
-          "network": 37,
-          "responseTime": 171,
-          "uptime": 2608701,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 111
-        },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 52,
-          "memory": 73,
-          "disk": 47,
-          "network": 40,
-          "responseTime": 53,
-          "uptime": 2672135,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 144
-        },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 43,
-          "memory": 62,
-          "disk": 40,
-          "network": 36,
-          "responseTime": 56,
-          "uptime": 2637711,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 140
-        },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 18,
-          "memory": 47,
-          "disk": 38,
-          "network": 23,
-          "responseTime": 41,
-          "uptime": 2658111,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 128
-        },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 24,
-          "memory": 71,
-          "disk": 17,
-          "network": 46,
-          "responseTime": 17,
-          "uptime": 2657140,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 135
-        },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 26,
-          "memory": 74,
-          "disk": 17,
-          "network": 39,
-          "responseTime": 22,
-          "uptime": 2655993,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 124
-        },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 31,
-          "memory": 38,
-          "disk": 65,
-          "network": 48,
-          "responseTime": 137,
-          "uptime": 2628942,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
-          },
-          "services": [],
-          "processes": 118
-        },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 17,
-          "memory": 32,
-          "disk": 57,
-          "network": 61,
-          "responseTime": 155,
-          "uptime": 2664572,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 128
-        },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 40,
-          "memory": 31,
-          "disk": 15,
-          "network": 72,
-          "responseTime": 143,
-          "uptime": 2602455,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 138
-        },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 35,
-          "memory": 29,
-          "disk": 16,
-          "network": 71,
-          "responseTime": 125,
-          "uptime": 2614769,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 140
-        }
-      }
-    },
-    {
-      "timestamp": "17:20",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 31,
-          "memory": 43,
-          "disk": 29,
-          "network": 56,
-          "responseTime": 165,
-          "uptime": 2648025,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 147
-        },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 28,
-          "memory": 42,
-          "disk": 28,
-          "network": 54,
-          "responseTime": 171,
-          "uptime": 2623896,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 145
-        },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 15,
-          "memory": 37,
-          "disk": 23,
-          "network": 39,
-          "responseTime": 169,
-          "uptime": 2668404,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 111
-        },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 44,
-          "memory": 56,
-          "disk": 37,
-          "network": 54,
-          "responseTime": 156,
-          "uptime": 2660926,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 117
-        },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 41,
-          "memory": 48,
-          "disk": 34,
-          "network": 50,
-          "responseTime": 163,
-          "uptime": 2627646,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 118
-        },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 26,
-          "memory": 37,
-          "disk": 27,
-          "network": 37,
-          "responseTime": 161,
-          "uptime": 2622304,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 141
-        },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 53,
-          "memory": 70,
-          "disk": 47,
-          "network": 39,
-          "responseTime": 42,
-          "uptime": 2612477,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 146
-        },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 39,
-          "memory": 59,
-          "disk": 39,
-          "network": 36,
-          "responseTime": 45,
-          "uptime": 2632047,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 104
-        },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 23,
-          "memory": 48,
-          "disk": 41,
-          "network": 21,
-          "responseTime": 41,
-          "uptime": 2627511,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 125
-        },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 24,
-          "memory": 75,
-          "disk": 17,
-          "network": 46,
-          "responseTime": 23,
-          "uptime": 2598634,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 136
-        },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 17,
-          "memory": 72,
-          "disk": 17,
-          "network": 42,
-          "responseTime": 21,
-          "uptime": 2614450,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 115
-        },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 32,
-          "memory": 36,
-          "disk": 65,
-          "network": 51,
-          "responseTime": 161,
-          "uptime": 2606437,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
-          },
-          "services": [],
-          "processes": 136
-        },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 22,
-          "memory": 35,
-          "disk": 54,
-          "network": 61,
-          "responseTime": 137,
-          "uptime": 2651024,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 140
-        },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 40,
-          "memory": 34,
-          "disk": 15,
-          "network": 66,
-          "responseTime": 126,
-          "uptime": 2607787,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 130
-        },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 37,
-          "memory": 32,
-          "disk": 13,
-          "network": 67,
-          "responseTime": 166,
-          "uptime": 2643564,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 137
-        }
-      }
-    },
-    {
-      "timestamp": "17:25",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 37,
-          "memory": 44,
-          "disk": 28,
-          "network": 58,
-          "responseTime": 136,
-          "uptime": 2658515,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 135
-        },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 32,
-          "memory": 42,
-          "disk": 28,
-          "network": 59,
-          "responseTime": 140,
-          "uptime": 2669836,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 125
-        },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 18,
-          "memory": 32,
-          "disk": 24,
-          "network": 43,
-          "responseTime": 133,
-          "uptime": 2639886,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 117
-        },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 44,
-          "memory": 55,
-          "disk": 34,
-          "network": 48,
-          "responseTime": 174,
-          "uptime": 2600171,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 117
-        },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 43,
-          "memory": 55,
-          "disk": 32,
-          "network": 44,
-          "responseTime": 159,
-          "uptime": 2655396,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 106
-        },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 25,
-          "memory": 39,
-          "disk": 26,
-          "network": 31,
-          "responseTime": 156,
-          "uptime": 2674685,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 131
-        },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 55,
-          "memory": 73,
-          "disk": 44,
-          "network": 36,
-          "responseTime": 59,
-          "uptime": 2612520,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 125
-        },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 44,
-          "memory": 56,
-          "disk": 41,
-          "network": 33,
-          "responseTime": 50,
-          "uptime": 2622602,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 139
-        },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 17,
-          "memory": 42,
-          "disk": 40,
-          "network": 26,
-          "responseTime": 48,
-          "uptime": 2656748,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 107
-        },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 28,
-          "memory": 73,
-          "disk": 19,
-          "network": 48,
-          "responseTime": 22,
-          "uptime": 2668838,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 129
-        },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 22,
-          "memory": 75,
-          "disk": 20,
-          "network": 45,
-          "responseTime": 22,
-          "uptime": 2650633,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 134
-        },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 29,
-          "memory": 39,
-          "disk": 63,
-          "network": 46,
-          "responseTime": 177,
-          "uptime": 2676018,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
-          },
-          "services": [],
-          "processes": 128
-        },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 17,
-          "memory": 33,
-          "disk": 56,
-          "network": 57,
-          "responseTime": 157,
-          "uptime": 2655667,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 111
-        },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 38,
-          "memory": 32,
-          "disk": 15,
-          "network": 65,
-          "responseTime": 151,
-          "uptime": 2607851,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 124
-        },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 41,
-          "memory": 29,
-          "disk": 14,
-          "network": 66,
-          "responseTime": 176,
-          "uptime": 2659868,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 140
-        }
-      }
-    },
-    {
-      "timestamp": "17:30",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 37,
-          "memory": 46,
-          "disk": 28,
-          "network": 58,
-          "responseTime": 168,
-          "uptime": 2625205,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 145
-        },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 35,
-          "memory": 40,
-          "disk": 28,
-          "network": 56,
-          "responseTime": 127,
-          "uptime": 2670938,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 102
-        },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 23,
-          "memory": 34,
-          "disk": 26,
-          "network": 38,
-          "responseTime": 168,
-          "uptime": 2632727,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 140
-        },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 49,
-          "memory": 51,
-          "disk": 34,
-          "network": 46,
-          "responseTime": 165,
-          "uptime": 2669885,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 126
-        },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 41,
-          "memory": 48,
-          "disk": 31,
-          "network": 51,
-          "responseTime": 171,
-          "uptime": 2603846,
-          "ip": "10.10.2.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 116
-        },
-        "api-was-pus-01": {
-          "id": "api-was-pus-01",
-          "name": "WAS API Server DR",
-          "hostname": "api-was-pus-01.openmanager.kr",
-          "type": "application",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 38,
-          "disk": 29,
-          "network": 31,
-          "responseTime": 152,
-          "uptime": 2603060,
-          "ip": "10.20.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 127
-        },
-        "db-mysql-icn-primary": {
-          "id": "db-mysql-icn-primary",
-          "name": "MySQL Primary",
-          "hostname": "db-mysql-icn-primary.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 55,
-          "memory": 73,
-          "disk": 44,
-          "network": 36,
-          "responseTime": 42,
-          "uptime": 2670818,
-          "ip": "10.10.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 131
-        },
-        "db-mysql-icn-replica": {
-          "id": "db-mysql-icn-replica",
-          "name": "MySQL Replica",
-          "hostname": "db-mysql-icn-replica.openmanager.kr",
-          "type": "database",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 41,
-          "memory": 61,
-          "disk": 43,
-          "network": 34,
-          "responseTime": 58,
-          "uptime": 2670934,
-          "ip": "10.10.3.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 113
-        },
-        "db-mysql-pus-dr": {
-          "id": "db-mysql-pus-dr",
-          "name": "MySQL DR Replica",
-          "hostname": "db-mysql-pus-dr.openmanager.kr",
-          "type": "database",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 24,
-          "memory": 46,
-          "disk": 41,
-          "network": 28,
-          "responseTime": 45,
-          "uptime": 2674588,
-          "ip": "10.20.3.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 16,
-            "memory_gb": 64,
-            "disk_gb": 1000
-          },
-          "services": [],
-          "processes": 119
-        },
-        "cache-redis-icn-01": {
-          "id": "cache-redis-icn-01",
-          "name": "Redis Cache 01",
-          "hostname": "cache-redis-icn-01.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 27,
-          "memory": 75,
-          "disk": 20,
-          "network": 42,
-          "responseTime": 23,
-          "uptime": 2629609,
-          "ip": "10.10.4.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 108
-        },
-        "cache-redis-icn-02": {
-          "id": "cache-redis-icn-02",
-          "name": "Redis Cache 02",
-          "hostname": "cache-redis-icn-02.openmanager.kr",
-          "type": "cache",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 19,
-          "memory": 69,
-          "disk": 20,
-          "network": 37,
-          "responseTime": 16,
-          "uptime": 2645654,
-          "ip": "10.10.4.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 32,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 125
-        },
-        "storage-nfs-icn-01": {
-          "id": "storage-nfs-icn-01",
-          "name": "NFS Storage 01",
-          "hostname": "storage-nfs-icn-01.openmanager.kr",
-          "type": "storage",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 30,
-          "memory": 40,
-          "disk": 63,
-          "network": 48,
-          "responseTime": 162,
-          "uptime": 2664383,
-          "ip": "10.10.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 16,
-            "disk_gb": 5000
-          },
-          "services": [],
-          "processes": 132
-        },
-        "storage-s3gw-pus-01": {
-          "id": "storage-s3gw-pus-01",
-          "name": "S3 Gateway DR",
-          "hostname": "storage-s3gw-pus-01.openmanager.kr",
-          "type": "storage",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 15,
-          "memory": 35,
-          "disk": 56,
-          "network": 57,
-          "responseTime": 137,
-          "uptime": 2618585,
-          "ip": "10.20.5.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 2,
-            "memory_gb": 8,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 145
-        },
-        "lb-haproxy-icn-01": {
-          "id": "lb-haproxy-icn-01",
-          "name": "HAProxy LB 01",
-          "hostname": "lb-haproxy-icn-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 43,
-          "memory": 34,
-          "disk": 13,
-          "network": 66,
-          "responseTime": 124,
-          "uptime": 2612924,
-          "ip": "10.10.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 123
-        },
-        "lb-haproxy-pus-01": {
-          "id": "lb-haproxy-pus-01",
-          "name": "HAProxy LB DR",
-          "hostname": "lb-haproxy-pus-01.openmanager.kr",
-          "type": "loadbalancer",
-          "location": "Busan-PUS-DR",
-          "environment": "production",
-          "status": "online",
-          "cpu": 41,
-          "memory": 31,
-          "disk": 16,
-          "network": 65,
-          "responseTime": 160,
-          "uptime": 2619250,
-          "ip": "10.20.6.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 50
-          },
-          "services": [],
-          "processes": 114
-        }
-      }
-    },
-    {
-      "timestamp": "17:35",
-      "servers": {
-        "web-nginx-icn-01": {
-          "id": "web-nginx-icn-01",
-          "name": "Nginx Web Server 01",
-          "hostname": "web-nginx-icn-01.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 30,
-          "memory": 46,
-          "disk": 30,
-          "network": 62,
-          "responseTime": 171,
-          "uptime": 2615401,
-          "ip": "10.10.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 110
-        },
-        "web-nginx-icn-02": {
-          "id": "web-nginx-icn-02",
-          "name": "Nginx Web Server 02",
-          "hostname": "web-nginx-icn-02.openmanager.kr",
-          "type": "web",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 33,
-          "memory": 45,
-          "disk": 29,
-          "network": 59,
-          "responseTime": 125,
-          "uptime": 2673245,
-          "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 105
-        },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 19,
-          "memory": 32,
-          "disk": 22,
-          "network": 40,
-          "responseTime": 153,
-          "uptime": 2641703,
-          "ip": "10.20.1.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 124
-        },
-        "api-was-icn-01": {
-          "id": "api-was-icn-01",
-          "name": "WAS API Server 01",
-          "hostname": "api-was-icn-01.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 46,
-          "memory": 57,
-          "disk": 35,
-          "network": 45,
-          "responseTime": 162,
-          "uptime": 2659078,
-          "ip": "10.10.2.11",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 8,
-            "memory_gb": 16,
-            "disk_gb": 200
-          },
-          "services": [],
-          "processes": 109
-        },
-        "api-was-icn-02": {
-          "id": "api-was-icn-02",
-          "name": "WAS API Server 02",
-          "hostname": "api-was-icn-02.openmanager.kr",
-          "type": "application",
-          "location": "Seoul-ICN-AZ2",
-          "environment": "production",
-          "status": "online",
-          "cpu": 43,
           "memory": 50,
           "disk": 33,
-          "network": 52,
-          "responseTime": 143,
-          "uptime": 2626570,
+          "network": 44,
+          "responseTime": 165,
+          "uptime": 2603554,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2678,7 +488,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 135
+          "processes": 108
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -2688,12 +498,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 21,
-          "memory": 40,
-          "disk": 28,
-          "network": 32,
-          "responseTime": 142,
-          "uptime": 2641542,
+          "cpu": 22,
+          "memory": 41,
+          "disk": 26,
+          "network": 35,
+          "responseTime": 152,
+          "uptime": 2592145,
           "ip": "10.20.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2714,10 +524,10 @@
           "status": "online",
           "cpu": 54,
           "memory": 66,
-          "disk": 43,
-          "network": 40,
-          "responseTime": 44,
-          "uptime": 2638420,
+          "disk": 44,
+          "network": 36,
+          "responseTime": 46,
+          "uptime": 2627120,
           "ip": "10.10.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2726,7 +536,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 109
+          "processes": 118
         },
         "db-mysql-icn-replica": {
           "id": "db-mysql-icn-replica",
@@ -2736,12 +546,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 42,
-          "memory": 59,
-          "disk": 41,
-          "network": 36,
-          "responseTime": 55,
-          "uptime": 2595667,
+          "cpu": 35,
+          "memory": 62,
+          "disk": 43,
+          "network": 30,
+          "responseTime": 49,
+          "uptime": 2636729,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2750,7 +560,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 147
+          "processes": 121
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -2761,11 +571,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 23,
-          "memory": 42,
+          "memory": 47,
           "disk": 39,
-          "network": 28,
-          "responseTime": 40,
-          "uptime": 2662489,
+          "network": 29,
+          "responseTime": 48,
+          "uptime": 2648664,
           "ip": "10.20.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2774,7 +584,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 105
+          "processes": 110
         },
         "cache-redis-icn-01": {
           "id": "cache-redis-icn-01",
@@ -2785,11 +595,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 23,
-          "memory": 76,
-          "disk": 18,
-          "network": 40,
-          "responseTime": 19,
-          "uptime": 2662875,
+          "memory": 77,
+          "disk": 21,
+          "network": 43,
+          "responseTime": 24,
+          "uptime": 2626825,
           "ip": "10.10.4.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2798,7 +608,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 132
+          "processes": 138
         },
         "cache-redis-icn-02": {
           "id": "cache-redis-icn-02",
@@ -2808,12 +618,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 23,
-          "memory": 71,
-          "disk": 15,
-          "network": 39,
-          "responseTime": 21,
-          "uptime": 2642888,
+          "cpu": 18,
+          "memory": 68,
+          "disk": 16,
+          "network": 37,
+          "responseTime": 17,
+          "uptime": 2631224,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2822,7 +632,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 137
+          "processes": 143
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -2832,12 +642,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 29,
-          "memory": 41,
-          "disk": 66,
+          "cpu": 32,
+          "memory": 42,
+          "disk": 64,
           "network": 45,
-          "responseTime": 152,
-          "uptime": 2662635,
+          "responseTime": 125,
+          "uptime": 2620309,
           "ip": "10.10.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2846,7 +656,7 @@
             "disk_gb": 5000
           },
           "services": [],
-          "processes": 129
+          "processes": 145
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -2856,12 +666,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 20,
-          "memory": 34,
-          "disk": 55,
-          "network": 59,
-          "responseTime": 163,
-          "uptime": 2649305,
+          "cpu": 19,
+          "memory": 38,
+          "disk": 52,
+          "network": 56,
+          "responseTime": 175,
+          "uptime": 2655784,
           "ip": "10.20.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2870,7 +680,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 118
+          "processes": 101
         },
         "lb-haproxy-icn-01": {
           "id": "lb-haproxy-icn-01",
@@ -2880,12 +690,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 41,
-          "memory": 35,
-          "disk": 13,
-          "network": 74,
-          "responseTime": 143,
-          "uptime": 2616289,
+          "cpu": 40,
+          "memory": 38,
+          "disk": 16,
+          "network": 67,
+          "responseTime": 156,
+          "uptime": 2677701,
           "ip": "10.10.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2894,7 +704,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 123
+          "processes": 125
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -2904,12 +714,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 42,
-          "memory": 30,
-          "disk": 12,
-          "network": 64,
-          "responseTime": 152,
-          "uptime": 2651716,
+          "cpu": 38,
+          "memory": 29,
+          "disk": 13,
+          "network": 65,
+          "responseTime": 129,
+          "uptime": 2604562,
           "ip": "10.20.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2918,12 +728,12 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 146
+          "processes": 147
         }
       }
     },
     {
-      "timestamp": "17:40",
+      "timestamp": "17:10",
       "servers": {
         "web-nginx-icn-01": {
           "id": "web-nginx-icn-01",
@@ -2933,12 +743,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 30,
-          "memory": 43,
-          "disk": 32,
-          "network": 55,
-          "responseTime": 164,
-          "uptime": 2639114,
+          "cpu": 32,
+          "memory": 47,
+          "disk": 31,
+          "network": 62,
+          "responseTime": 139,
+          "uptime": 2662018,
           "ip": "10.10.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2947,7 +757,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 100
+          "processes": 101
         },
         "web-nginx-icn-02": {
           "id": "web-nginx-icn-02",
@@ -2957,12 +767,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 34,
-          "memory": 42,
-          "disk": 28,
-          "network": 59,
-          "responseTime": 152,
-          "uptime": 2619653,
+          "cpu": 30,
+          "memory": 39,
+          "disk": 26,
+          "network": 50,
+          "responseTime": 148,
+          "uptime": 2597044,
           "ip": "10.10.1.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2971,7 +781,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 149
+          "processes": 117
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -2982,11 +792,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 15,
-          "memory": 33,
-          "disk": 26,
-          "network": 41,
-          "responseTime": 147,
-          "uptime": 2639435,
+          "memory": 36,
+          "disk": 24,
+          "network": 43,
+          "responseTime": 135,
+          "uptime": 2627966,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -2995,7 +805,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 130
+          "processes": 112
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -3005,12 +815,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 49,
-          "memory": 53,
-          "disk": 34,
-          "network": 45,
-          "responseTime": 155,
-          "uptime": 2642687,
+          "cpu": 40,
+          "memory": 55,
+          "disk": 32,
+          "network": 47,
+          "responseTime": 163,
+          "uptime": 2611411,
           "ip": "10.10.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3019,7 +829,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 111
+          "processes": 109
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -3029,12 +839,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 40,
-          "memory": 54,
-          "disk": 32,
-          "network": 45,
-          "responseTime": 139,
-          "uptime": 2643517,
+          "cpu": 38,
+          "memory": 50,
+          "disk": 30,
+          "network": 50,
+          "responseTime": 178,
+          "uptime": 2667193,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3043,7 +853,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 128
+          "processes": 127
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -3053,12 +863,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 26,
-          "memory": 43,
-          "disk": 25,
-          "network": 33,
-          "responseTime": 157,
-          "uptime": 2676232,
+          "cpu": 20,
+          "memory": 37,
+          "disk": 26,
+          "network": 31,
+          "responseTime": 169,
+          "uptime": 2672823,
           "ip": "10.20.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3067,7 +877,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 138
+          "processes": 148
         },
         "db-mysql-icn-primary": {
           "id": "db-mysql-icn-primary",
@@ -3077,12 +887,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 54,
-          "memory": 72,
-          "disk": 46,
-          "network": 39,
-          "responseTime": 52,
-          "uptime": 2653310,
+          "cpu": 52,
+          "memory": 70,
+          "disk": 43,
+          "network": 35,
+          "responseTime": 48,
+          "uptime": 2634738,
           "ip": "10.10.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3091,7 +901,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 130
+          "processes": 119
         },
         "db-mysql-icn-replica": {
           "id": "db-mysql-icn-replica",
@@ -3101,12 +911,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 41,
-          "memory": 62,
+          "cpu": 39,
+          "memory": 58,
           "disk": 40,
-          "network": 31,
-          "responseTime": 57,
-          "uptime": 2635700,
+          "network": 35,
+          "responseTime": 54,
+          "uptime": 2675473,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3115,7 +925,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 130
+          "processes": 104
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -3125,12 +935,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 16,
-          "memory": 41,
+          "cpu": 24,
+          "memory": 47,
           "disk": 40,
-          "network": 27,
-          "responseTime": 54,
-          "uptime": 2592117,
+          "network": 20,
+          "responseTime": 56,
+          "uptime": 2666600,
           "ip": "10.20.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3149,12 +959,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 22,
-          "memory": 74,
-          "disk": 20,
-          "network": 47,
-          "responseTime": 21,
-          "uptime": 2656260,
+          "cpu": 29,
+          "memory": 71,
+          "disk": 19,
+          "network": 45,
+          "responseTime": 20,
+          "uptime": 2603494,
           "ip": "10.10.4.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3163,7 +973,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 143
+          "processes": 132
         },
         "cache-redis-icn-02": {
           "id": "cache-redis-icn-02",
@@ -3174,11 +984,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 17,
-          "memory": 75,
+          "memory": 72,
           "disk": 17,
-          "network": 46,
-          "responseTime": 24,
-          "uptime": 2594065,
+          "network": 45,
+          "responseTime": 22,
+          "uptime": 2610847,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3187,7 +997,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 149
+          "processes": 131
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -3197,12 +1007,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 26,
-          "memory": 37,
-          "disk": 65,
-          "network": 49,
-          "responseTime": 162,
-          "uptime": 2641022,
+          "cpu": 34,
+          "memory": 39,
+          "disk": 64,
+          "network": 51,
+          "responseTime": 151,
+          "uptime": 2632075,
           "ip": "10.10.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3211,7 +1021,7 @@
             "disk_gb": 5000
           },
           "services": [],
-          "processes": 149
+          "processes": 125
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -3221,12 +1031,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 19,
-          "memory": 36,
-          "disk": 53,
-          "network": 57,
-          "responseTime": 122,
-          "uptime": 2673070,
+          "cpu": 24,
+          "memory": 38,
+          "disk": 54,
+          "network": 64,
+          "responseTime": 139,
+          "uptime": 2664615,
           "ip": "10.20.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3235,7 +1045,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 111
+          "processes": 108
         },
         "lb-haproxy-icn-01": {
           "id": "lb-haproxy-icn-01",
@@ -3246,11 +1056,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 42,
-          "memory": 32,
-          "disk": 13,
-          "network": 73,
-          "responseTime": 167,
-          "uptime": 2638220,
+          "memory": 36,
+          "disk": 15,
+          "network": 66,
+          "responseTime": 172,
+          "uptime": 2599456,
           "ip": "10.10.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3259,7 +1069,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 128
+          "processes": 146
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -3269,12 +1079,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 33,
-          "memory": 29,
-          "disk": 13,
-          "network": 65,
-          "responseTime": 172,
-          "uptime": 2610702,
+          "cpu": 38,
+          "memory": 34,
+          "disk": 15,
+          "network": 63,
+          "responseTime": 163,
+          "uptime": 2616118,
           "ip": "10.20.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3283,7 +1093,2197 @@
             "disk_gb": 50
           },
           "services": [],
+          "processes": 120
+        }
+      }
+    },
+    {
+      "timestamp": "17:15",
+      "servers": {
+        "web-nginx-icn-01": {
+          "id": "web-nginx-icn-01",
+          "name": "Nginx Web Server 01",
+          "hostname": "web-nginx-icn-01.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 31,
+          "memory": 43,
+          "disk": 30,
+          "network": 59,
+          "responseTime": 163,
+          "uptime": 2660206,
+          "ip": "10.10.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 118
+        },
+        "web-nginx-icn-02": {
+          "id": "web-nginx-icn-02",
+          "name": "Nginx Web Server 02",
+          "hostname": "web-nginx-icn-02.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 31,
+          "memory": 40,
+          "disk": 28,
+          "network": 55,
+          "responseTime": 132,
+          "uptime": 2651384,
+          "ip": "10.10.1.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
           "processes": 107
+        },
+        "web-nginx-pus-01": {
+          "id": "web-nginx-pus-01",
+          "name": "Nginx Web Server DR",
+          "hostname": "web-nginx-pus-01.openmanager.kr",
+          "type": "web",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 24,
+          "memory": 33,
+          "disk": 24,
+          "network": 44,
+          "responseTime": 150,
+          "uptime": 2593153,
+          "ip": "10.20.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 103
+        },
+        "api-was-icn-01": {
+          "id": "api-was-icn-01",
+          "name": "WAS API Server 01",
+          "hostname": "api-was-icn-01.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 42,
+          "memory": 54,
+          "disk": 35,
+          "network": 48,
+          "responseTime": 123,
+          "uptime": 2596096,
+          "ip": "10.10.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 111
+        },
+        "api-was-icn-02": {
+          "id": "api-was-icn-02",
+          "name": "WAS API Server 02",
+          "hostname": "api-was-icn-02.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 39,
+          "memory": 55,
+          "disk": 32,
+          "network": 44,
+          "responseTime": 120,
+          "uptime": 2621883,
+          "ip": "10.10.2.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 117
+        },
+        "api-was-pus-01": {
+          "id": "api-was-pus-01",
+          "name": "WAS API Server DR",
+          "hostname": "api-was-pus-01.openmanager.kr",
+          "type": "application",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 26,
+          "memory": 41,
+          "disk": 26,
+          "network": 32,
+          "responseTime": 146,
+          "uptime": 2655537,
+          "ip": "10.20.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 116
+        },
+        "db-mysql-icn-primary": {
+          "id": "db-mysql-icn-primary",
+          "name": "MySQL Primary",
+          "hostname": "db-mysql-icn-primary.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 58,
+          "memory": 68,
+          "disk": 45,
+          "network": 42,
+          "responseTime": 44,
+          "uptime": 2616440,
+          "ip": "10.10.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 100
+        },
+        "db-mysql-icn-replica": {
+          "id": "db-mysql-icn-replica",
+          "name": "MySQL Replica",
+          "hostname": "db-mysql-icn-replica.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 39,
+          "memory": 58,
+          "disk": 43,
+          "network": 37,
+          "responseTime": 42,
+          "uptime": 2647840,
+          "ip": "10.10.3.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 125
+        },
+        "db-mysql-pus-dr": {
+          "id": "db-mysql-pus-dr",
+          "name": "MySQL DR Replica",
+          "hostname": "db-mysql-pus-dr.openmanager.kr",
+          "type": "database",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 24,
+          "memory": 44,
+          "disk": 38,
+          "network": 27,
+          "responseTime": 43,
+          "uptime": 2671496,
+          "ip": "10.20.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 126
+        },
+        "cache-redis-icn-01": {
+          "id": "cache-redis-icn-01",
+          "name": "Redis Cache 01",
+          "hostname": "cache-redis-icn-01.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 24,
+          "memory": 78,
+          "disk": 18,
+          "network": 47,
+          "responseTime": 24,
+          "uptime": 2593120,
+          "ip": "10.10.4.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 142
+        },
+        "cache-redis-icn-02": {
+          "id": "cache-redis-icn-02",
+          "name": "Redis Cache 02",
+          "hostname": "cache-redis-icn-02.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 23,
+          "memory": 70,
+          "disk": 19,
+          "network": 40,
+          "responseTime": 22,
+          "uptime": 2614734,
+          "ip": "10.10.4.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 106
+        },
+        "storage-nfs-icn-01": {
+          "id": "storage-nfs-icn-01",
+          "name": "NFS Storage 01",
+          "hostname": "storage-nfs-icn-01.openmanager.kr",
+          "type": "storage",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 28,
+          "memory": 41,
+          "disk": 67,
+          "network": 52,
+          "responseTime": 128,
+          "uptime": 2656552,
+          "ip": "10.10.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 16,
+            "disk_gb": 5000
+          },
+          "services": [],
+          "processes": 107
+        },
+        "storage-s3gw-pus-01": {
+          "id": "storage-s3gw-pus-01",
+          "name": "S3 Gateway DR",
+          "hostname": "storage-s3gw-pus-01.openmanager.kr",
+          "type": "storage",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 17,
+          "memory": 34,
+          "disk": 57,
+          "network": 57,
+          "responseTime": 134,
+          "uptime": 2645809,
+          "ip": "10.20.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 2,
+            "memory_gb": 8,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 146
+        },
+        "lb-haproxy-icn-01": {
+          "id": "lb-haproxy-icn-01",
+          "name": "HAProxy LB 01",
+          "hostname": "lb-haproxy-icn-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 43,
+          "memory": 35,
+          "disk": 15,
+          "network": 71,
+          "responseTime": 130,
+          "uptime": 2592378,
+          "ip": "10.10.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 116
+        },
+        "lb-haproxy-pus-01": {
+          "id": "lb-haproxy-pus-01",
+          "name": "HAProxy LB DR",
+          "hostname": "lb-haproxy-pus-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 42,
+          "memory": 30,
+          "disk": 14,
+          "network": 64,
+          "responseTime": 166,
+          "uptime": 2609320,
+          "ip": "10.20.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 125
+        }
+      }
+    },
+    {
+      "timestamp": "17:20",
+      "servers": {
+        "web-nginx-icn-01": {
+          "id": "web-nginx-icn-01",
+          "name": "Nginx Web Server 01",
+          "hostname": "web-nginx-icn-01.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 35,
+          "memory": 42,
+          "disk": 31,
+          "network": 57,
+          "responseTime": 157,
+          "uptime": 2605136,
+          "ip": "10.10.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 148
+        },
+        "web-nginx-icn-02": {
+          "id": "web-nginx-icn-02",
+          "name": "Nginx Web Server 02",
+          "hostname": "web-nginx-icn-02.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 27,
+          "memory": 44,
+          "disk": 27,
+          "network": 53,
+          "responseTime": 122,
+          "uptime": 2639348,
+          "ip": "10.10.1.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 130
+        },
+        "web-nginx-pus-01": {
+          "id": "web-nginx-pus-01",
+          "name": "Nginx Web Server DR",
+          "hostname": "web-nginx-pus-01.openmanager.kr",
+          "type": "web",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 19,
+          "memory": 33,
+          "disk": 26,
+          "network": 37,
+          "responseTime": 151,
+          "uptime": 2606732,
+          "ip": "10.20.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 140
+        },
+        "api-was-icn-01": {
+          "id": "api-was-icn-01",
+          "name": "WAS API Server 01",
+          "hostname": "api-was-icn-01.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 44,
+          "memory": 58,
+          "disk": 34,
+          "network": 53,
+          "responseTime": 179,
+          "uptime": 2603487,
+          "ip": "10.10.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 125
+        },
+        "api-was-icn-02": {
+          "id": "api-was-icn-02",
+          "name": "WAS API Server 02",
+          "hostname": "api-was-icn-02.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 41,
+          "memory": 51,
+          "disk": 31,
+          "network": 46,
+          "responseTime": 136,
+          "uptime": 2596222,
+          "ip": "10.10.2.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 115
+        },
+        "api-was-pus-01": {
+          "id": "api-was-pus-01",
+          "name": "WAS API Server DR",
+          "hostname": "api-was-pus-01.openmanager.kr",
+          "type": "application",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 25,
+          "memory": 39,
+          "disk": 29,
+          "network": 30,
+          "responseTime": 121,
+          "uptime": 2625179,
+          "ip": "10.20.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 117
+        },
+        "db-mysql-icn-primary": {
+          "id": "db-mysql-icn-primary",
+          "name": "MySQL Primary",
+          "hostname": "db-mysql-icn-primary.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 53,
+          "memory": 66,
+          "disk": 45,
+          "network": 35,
+          "responseTime": 58,
+          "uptime": 2613527,
+          "ip": "10.10.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 126
+        },
+        "db-mysql-icn-replica": {
+          "id": "db-mysql-icn-replica",
+          "name": "MySQL Replica",
+          "hostname": "db-mysql-icn-replica.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 35,
+          "memory": 59,
+          "disk": 39,
+          "network": 38,
+          "responseTime": 57,
+          "uptime": 2601562,
+          "ip": "10.10.3.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 128
+        },
+        "db-mysql-pus-dr": {
+          "id": "db-mysql-pus-dr",
+          "name": "MySQL DR Replica",
+          "hostname": "db-mysql-pus-dr.openmanager.kr",
+          "type": "database",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 21,
+          "memory": 42,
+          "disk": 38,
+          "network": 25,
+          "responseTime": 51,
+          "uptime": 2653183,
+          "ip": "10.20.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 119
+        },
+        "cache-redis-icn-01": {
+          "id": "cache-redis-icn-01",
+          "name": "Redis Cache 01",
+          "hostname": "cache-redis-icn-01.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 20,
+          "memory": 73,
+          "disk": 21,
+          "network": 47,
+          "responseTime": 18,
+          "uptime": 2634214,
+          "ip": "10.10.4.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 146
+        },
+        "cache-redis-icn-02": {
+          "id": "cache-redis-icn-02",
+          "name": "Redis Cache 02",
+          "hostname": "cache-redis-icn-02.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 17,
+          "memory": 72,
+          "disk": 15,
+          "network": 38,
+          "responseTime": 21,
+          "uptime": 2667441,
+          "ip": "10.10.4.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 105
+        },
+        "storage-nfs-icn-01": {
+          "id": "storage-nfs-icn-01",
+          "name": "NFS Storage 01",
+          "hostname": "storage-nfs-icn-01.openmanager.kr",
+          "type": "storage",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 32,
+          "memory": 39,
+          "disk": 64,
+          "network": 53,
+          "responseTime": 179,
+          "uptime": 2655676,
+          "ip": "10.10.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 16,
+            "disk_gb": 5000
+          },
+          "services": [],
+          "processes": 147
+        },
+        "storage-s3gw-pus-01": {
+          "id": "storage-s3gw-pus-01",
+          "name": "S3 Gateway DR",
+          "hostname": "storage-s3gw-pus-01.openmanager.kr",
+          "type": "storage",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 17,
+          "memory": 35,
+          "disk": 55,
+          "network": 62,
+          "responseTime": 135,
+          "uptime": 2598006,
+          "ip": "10.20.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 2,
+            "memory_gb": 8,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 144
+        },
+        "lb-haproxy-icn-01": {
+          "id": "lb-haproxy-icn-01",
+          "name": "HAProxy LB 01",
+          "hostname": "lb-haproxy-icn-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 42,
+          "memory": 38,
+          "disk": 16,
+          "network": 66,
+          "responseTime": 142,
+          "uptime": 2677907,
+          "ip": "10.10.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 112
+        },
+        "lb-haproxy-pus-01": {
+          "id": "lb-haproxy-pus-01",
+          "name": "HAProxy LB DR",
+          "hostname": "lb-haproxy-pus-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 41,
+          "memory": 30,
+          "disk": 15,
+          "network": 72,
+          "responseTime": 129,
+          "uptime": 2674132,
+          "ip": "10.20.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 102
+        }
+      }
+    },
+    {
+      "timestamp": "17:25",
+      "servers": {
+        "web-nginx-icn-01": {
+          "id": "web-nginx-icn-01",
+          "name": "Nginx Web Server 01",
+          "hostname": "web-nginx-icn-01.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 31,
+          "memory": 41,
+          "disk": 27,
+          "network": 60,
+          "responseTime": 170,
+          "uptime": 2616572,
+          "ip": "10.10.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 141
+        },
+        "web-nginx-icn-02": {
+          "id": "web-nginx-icn-02",
+          "name": "Nginx Web Server 02",
+          "hostname": "web-nginx-icn-02.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 27,
+          "memory": 43,
+          "disk": 25,
+          "network": 53,
+          "responseTime": 130,
+          "uptime": 2628907,
+          "ip": "10.10.1.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 123
+        },
+        "web-nginx-pus-01": {
+          "id": "web-nginx-pus-01",
+          "name": "Nginx Web Server DR",
+          "hostname": "web-nginx-pus-01.openmanager.kr",
+          "type": "web",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 15,
+          "memory": 34,
+          "disk": 25,
+          "network": 43,
+          "responseTime": 167,
+          "uptime": 2624210,
+          "ip": "10.20.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 111
+        },
+        "api-was-icn-01": {
+          "id": "api-was-icn-01",
+          "name": "WAS API Server 01",
+          "hostname": "api-was-icn-01.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 47,
+          "memory": 58,
+          "disk": 34,
+          "network": 52,
+          "responseTime": 122,
+          "uptime": 2644937,
+          "ip": "10.10.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 124
+        },
+        "api-was-icn-02": {
+          "id": "api-was-icn-02",
+          "name": "WAS API Server 02",
+          "hostname": "api-was-icn-02.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 39,
+          "memory": 48,
+          "disk": 30,
+          "network": 50,
+          "responseTime": 156,
+          "uptime": 2595114,
+          "ip": "10.10.2.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 131
+        },
+        "api-was-pus-01": {
+          "id": "api-was-pus-01",
+          "name": "WAS API Server DR",
+          "hostname": "api-was-pus-01.openmanager.kr",
+          "type": "application",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 29,
+          "memory": 40,
+          "disk": 30,
+          "network": 33,
+          "responseTime": 156,
+          "uptime": 2660697,
+          "ip": "10.20.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 135
+        },
+        "db-mysql-icn-primary": {
+          "id": "db-mysql-icn-primary",
+          "name": "MySQL Primary",
+          "hostname": "db-mysql-icn-primary.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 50,
+          "memory": 73,
+          "disk": 46,
+          "network": 42,
+          "responseTime": 56,
+          "uptime": 2601656,
+          "ip": "10.10.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 149
+        },
+        "db-mysql-icn-replica": {
+          "id": "db-mysql-icn-replica",
+          "name": "MySQL Replica",
+          "hostname": "db-mysql-icn-replica.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 40,
+          "memory": 62,
+          "disk": 43,
+          "network": 30,
+          "responseTime": 58,
+          "uptime": 2632350,
+          "ip": "10.10.3.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 102
+        },
+        "db-mysql-pus-dr": {
+          "id": "db-mysql-pus-dr",
+          "name": "MySQL DR Replica",
+          "hostname": "db-mysql-pus-dr.openmanager.kr",
+          "type": "database",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 20,
+          "memory": 47,
+          "disk": 41,
+          "network": 26,
+          "responseTime": 43,
+          "uptime": 2627134,
+          "ip": "10.20.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 109
+        },
+        "cache-redis-icn-01": {
+          "id": "cache-redis-icn-01",
+          "name": "Redis Cache 01",
+          "hostname": "cache-redis-icn-01.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 22,
+          "memory": 74,
+          "disk": 20,
+          "network": 44,
+          "responseTime": 22,
+          "uptime": 2624505,
+          "ip": "10.10.4.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 105
+        },
+        "cache-redis-icn-02": {
+          "id": "cache-redis-icn-02",
+          "name": "Redis Cache 02",
+          "hostname": "cache-redis-icn-02.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 17,
+          "memory": 74,
+          "disk": 20,
+          "network": 40,
+          "responseTime": 22,
+          "uptime": 2605403,
+          "ip": "10.10.4.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 120
+        },
+        "storage-nfs-icn-01": {
+          "id": "storage-nfs-icn-01",
+          "name": "NFS Storage 01",
+          "hostname": "storage-nfs-icn-01.openmanager.kr",
+          "type": "storage",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 34,
+          "memory": 43,
+          "disk": 65,
+          "network": 53,
+          "responseTime": 144,
+          "uptime": 2606521,
+          "ip": "10.10.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 16,
+            "disk_gb": 5000
+          },
+          "services": [],
+          "processes": 147
+        },
+        "storage-s3gw-pus-01": {
+          "id": "storage-s3gw-pus-01",
+          "name": "S3 Gateway DR",
+          "hostname": "storage-s3gw-pus-01.openmanager.kr",
+          "type": "storage",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 20,
+          "memory": 38,
+          "disk": 52,
+          "network": 58,
+          "responseTime": 176,
+          "uptime": 2633979,
+          "ip": "10.20.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 2,
+            "memory_gb": 8,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 132
+        },
+        "lb-haproxy-icn-01": {
+          "id": "lb-haproxy-icn-01",
+          "name": "HAProxy LB 01",
+          "hostname": "lb-haproxy-icn-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 39,
+          "memory": 36,
+          "disk": 15,
+          "network": 68,
+          "responseTime": 172,
+          "uptime": 2605274,
+          "ip": "10.10.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 143
+        },
+        "lb-haproxy-pus-01": {
+          "id": "lb-haproxy-pus-01",
+          "name": "HAProxy LB DR",
+          "hostname": "lb-haproxy-pus-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 37,
+          "memory": 33,
+          "disk": 15,
+          "network": 64,
+          "responseTime": 123,
+          "uptime": 2628417,
+          "ip": "10.20.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 148
+        }
+      }
+    },
+    {
+      "timestamp": "17:30",
+      "servers": {
+        "web-nginx-icn-01": {
+          "id": "web-nginx-icn-01",
+          "name": "Nginx Web Server 01",
+          "hostname": "web-nginx-icn-01.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 35,
+          "memory": 41,
+          "disk": 27,
+          "network": 64,
+          "responseTime": 144,
+          "uptime": 2668238,
+          "ip": "10.10.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 125
+        },
+        "web-nginx-icn-02": {
+          "id": "web-nginx-icn-02",
+          "name": "Nginx Web Server 02",
+          "hostname": "web-nginx-icn-02.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 35,
+          "memory": 38,
+          "disk": 30,
+          "network": 54,
+          "responseTime": 136,
+          "uptime": 2660451,
+          "ip": "10.10.1.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 141
+        },
+        "web-nginx-pus-01": {
+          "id": "web-nginx-pus-01",
+          "name": "Nginx Web Server DR",
+          "hostname": "web-nginx-pus-01.openmanager.kr",
+          "type": "web",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 16,
+          "memory": 35,
+          "disk": 26,
+          "network": 44,
+          "responseTime": 124,
+          "uptime": 2593288,
+          "ip": "10.20.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 110
+        },
+        "api-was-icn-01": {
+          "id": "api-was-icn-01",
+          "name": "WAS API Server 01",
+          "hostname": "api-was-icn-01.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 41,
+          "memory": 55,
+          "disk": 37,
+          "network": 51,
+          "responseTime": 132,
+          "uptime": 2676735,
+          "ip": "10.10.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 141
+        },
+        "api-was-icn-02": {
+          "id": "api-was-icn-02",
+          "name": "WAS API Server 02",
+          "hostname": "api-was-icn-02.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 41,
+          "memory": 49,
+          "disk": 35,
+          "network": 44,
+          "responseTime": 146,
+          "uptime": 2600628,
+          "ip": "10.10.2.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 131
+        },
+        "api-was-pus-01": {
+          "id": "api-was-pus-01",
+          "name": "WAS API Server DR",
+          "hostname": "api-was-pus-01.openmanager.kr",
+          "type": "application",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 26,
+          "memory": 38,
+          "disk": 25,
+          "network": 38,
+          "responseTime": 129,
+          "uptime": 2600193,
+          "ip": "10.20.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 123
+        },
+        "db-mysql-icn-primary": {
+          "id": "db-mysql-icn-primary",
+          "name": "MySQL Primary",
+          "hostname": "db-mysql-icn-primary.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 57,
+          "memory": 66,
+          "disk": 44,
+          "network": 40,
+          "responseTime": 53,
+          "uptime": 2603947,
+          "ip": "10.10.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 107
+        },
+        "db-mysql-icn-replica": {
+          "id": "db-mysql-icn-replica",
+          "name": "MySQL Replica",
+          "hostname": "db-mysql-icn-replica.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 37,
+          "memory": 63,
+          "disk": 42,
+          "network": 36,
+          "responseTime": 45,
+          "uptime": 2603887,
+          "ip": "10.10.3.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 133
+        },
+        "db-mysql-pus-dr": {
+          "id": "db-mysql-pus-dr",
+          "name": "MySQL DR Replica",
+          "hostname": "db-mysql-pus-dr.openmanager.kr",
+          "type": "database",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 18,
+          "memory": 47,
+          "disk": 39,
+          "network": 28,
+          "responseTime": 57,
+          "uptime": 2672251,
+          "ip": "10.20.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 125
+        },
+        "cache-redis-icn-01": {
+          "id": "cache-redis-icn-01",
+          "name": "Redis Cache 01",
+          "hostname": "cache-redis-icn-01.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 29,
+          "memory": 78,
+          "disk": 22,
+          "network": 40,
+          "responseTime": 23,
+          "uptime": 2598075,
+          "ip": "10.10.4.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 147
+        },
+        "cache-redis-icn-02": {
+          "id": "cache-redis-icn-02",
+          "name": "Redis Cache 02",
+          "hostname": "cache-redis-icn-02.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 26,
+          "memory": 72,
+          "disk": 16,
+          "network": 40,
+          "responseTime": 24,
+          "uptime": 2666760,
+          "ip": "10.10.4.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 102
+        },
+        "storage-nfs-icn-01": {
+          "id": "storage-nfs-icn-01",
+          "name": "NFS Storage 01",
+          "hostname": "storage-nfs-icn-01.openmanager.kr",
+          "type": "storage",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 34,
+          "memory": 40,
+          "disk": 63,
+          "network": 46,
+          "responseTime": 169,
+          "uptime": 2621027,
+          "ip": "10.10.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 16,
+            "disk_gb": 5000
+          },
+          "services": [],
+          "processes": 119
+        },
+        "storage-s3gw-pus-01": {
+          "id": "storage-s3gw-pus-01",
+          "name": "S3 Gateway DR",
+          "hostname": "storage-s3gw-pus-01.openmanager.kr",
+          "type": "storage",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 18,
+          "memory": 37,
+          "disk": 52,
+          "network": 59,
+          "responseTime": 127,
+          "uptime": 2603691,
+          "ip": "10.20.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 2,
+            "memory_gb": 8,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 109
+        },
+        "lb-haproxy-icn-01": {
+          "id": "lb-haproxy-icn-01",
+          "name": "HAProxy LB 01",
+          "hostname": "lb-haproxy-icn-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 44,
+          "memory": 38,
+          "disk": 15,
+          "network": 73,
+          "responseTime": 154,
+          "uptime": 2676458,
+          "ip": "10.10.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 136
+        },
+        "lb-haproxy-pus-01": {
+          "id": "lb-haproxy-pus-01",
+          "name": "HAProxy LB DR",
+          "hostname": "lb-haproxy-pus-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 40,
+          "memory": 30,
+          "disk": 15,
+          "network": 65,
+          "responseTime": 158,
+          "uptime": 2621274,
+          "ip": "10.20.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 104
+        }
+      }
+    },
+    {
+      "timestamp": "17:35",
+      "servers": {
+        "web-nginx-icn-01": {
+          "id": "web-nginx-icn-01",
+          "name": "Nginx Web Server 01",
+          "hostname": "web-nginx-icn-01.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 37,
+          "memory": 44,
+          "disk": 31,
+          "network": 60,
+          "responseTime": 170,
+          "uptime": 2645389,
+          "ip": "10.10.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 144
+        },
+        "web-nginx-icn-02": {
+          "id": "web-nginx-icn-02",
+          "name": "Nginx Web Server 02",
+          "hostname": "web-nginx-icn-02.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 30,
+          "memory": 45,
+          "disk": 30,
+          "network": 51,
+          "responseTime": 125,
+          "uptime": 2618236,
+          "ip": "10.10.1.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 117
+        },
+        "web-nginx-pus-01": {
+          "id": "web-nginx-pus-01",
+          "name": "Nginx Web Server DR",
+          "hostname": "web-nginx-pus-01.openmanager.kr",
+          "type": "web",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 20,
+          "memory": 35,
+          "disk": 25,
+          "network": 43,
+          "responseTime": 140,
+          "uptime": 2594392,
+          "ip": "10.20.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 137
+        },
+        "api-was-icn-01": {
+          "id": "api-was-icn-01",
+          "name": "WAS API Server 01",
+          "hostname": "api-was-icn-01.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 41,
+          "memory": 51,
+          "disk": 33,
+          "network": 52,
+          "responseTime": 166,
+          "uptime": 2634827,
+          "ip": "10.10.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 148
+        },
+        "api-was-icn-02": {
+          "id": "api-was-icn-02",
+          "name": "WAS API Server 02",
+          "hostname": "api-was-icn-02.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 43,
+          "memory": 53,
+          "disk": 35,
+          "network": 51,
+          "responseTime": 177,
+          "uptime": 2602168,
+          "ip": "10.10.2.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 139
+        },
+        "api-was-pus-01": {
+          "id": "api-was-pus-01",
+          "name": "WAS API Server DR",
+          "hostname": "api-was-pus-01.openmanager.kr",
+          "type": "application",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 26,
+          "memory": 43,
+          "disk": 28,
+          "network": 39,
+          "responseTime": 151,
+          "uptime": 2592836,
+          "ip": "10.20.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 129
+        },
+        "db-mysql-icn-primary": {
+          "id": "db-mysql-icn-primary",
+          "name": "MySQL Primary",
+          "hostname": "db-mysql-icn-primary.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 52,
+          "memory": 71,
+          "disk": 46,
+          "network": 36,
+          "responseTime": 41,
+          "uptime": 2617513,
+          "ip": "10.10.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 109
+        },
+        "db-mysql-icn-replica": {
+          "id": "db-mysql-icn-replica",
+          "name": "MySQL Replica",
+          "hostname": "db-mysql-icn-replica.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 41,
+          "memory": 63,
+          "disk": 43,
+          "network": 37,
+          "responseTime": 46,
+          "uptime": 2600063,
+          "ip": "10.10.3.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 110
+        },
+        "db-mysql-pus-dr": {
+          "id": "db-mysql-pus-dr",
+          "name": "MySQL DR Replica",
+          "hostname": "db-mysql-pus-dr.openmanager.kr",
+          "type": "database",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 23,
+          "memory": 45,
+          "disk": 40,
+          "network": 24,
+          "responseTime": 48,
+          "uptime": 2595499,
+          "ip": "10.20.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 135
+        },
+        "cache-redis-icn-01": {
+          "id": "cache-redis-icn-01",
+          "name": "Redis Cache 01",
+          "hostname": "cache-redis-icn-01.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 26,
+          "memory": 72,
+          "disk": 17,
+          "network": 44,
+          "responseTime": 23,
+          "uptime": 2598098,
+          "ip": "10.10.4.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 148
+        },
+        "cache-redis-icn-02": {
+          "id": "cache-redis-icn-02",
+          "name": "Redis Cache 02",
+          "hostname": "cache-redis-icn-02.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 25,
+          "memory": 68,
+          "disk": 16,
+          "network": 42,
+          "responseTime": 21,
+          "uptime": 2640265,
+          "ip": "10.10.4.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 136
+        },
+        "storage-nfs-icn-01": {
+          "id": "storage-nfs-icn-01",
+          "name": "NFS Storage 01",
+          "hostname": "storage-nfs-icn-01.openmanager.kr",
+          "type": "storage",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 33,
+          "memory": 41,
+          "disk": 66,
+          "network": 49,
+          "responseTime": 135,
+          "uptime": 2605570,
+          "ip": "10.10.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 16,
+            "disk_gb": 5000
+          },
+          "services": [],
+          "processes": 136
+        },
+        "storage-s3gw-pus-01": {
+          "id": "storage-s3gw-pus-01",
+          "name": "S3 Gateway DR",
+          "hostname": "storage-s3gw-pus-01.openmanager.kr",
+          "type": "storage",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 21,
+          "memory": 35,
+          "disk": 53,
+          "network": 57,
+          "responseTime": 139,
+          "uptime": 2592665,
+          "ip": "10.20.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 2,
+            "memory_gb": 8,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 118
+        },
+        "lb-haproxy-icn-01": {
+          "id": "lb-haproxy-icn-01",
+          "name": "HAProxy LB 01",
+          "hostname": "lb-haproxy-icn-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 38,
+          "memory": 36,
+          "disk": 13,
+          "network": 68,
+          "responseTime": 172,
+          "uptime": 2673339,
+          "ip": "10.10.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 129
+        },
+        "lb-haproxy-pus-01": {
+          "id": "lb-haproxy-pus-01",
+          "name": "HAProxy LB DR",
+          "hostname": "lb-haproxy-pus-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 37,
+          "memory": 34,
+          "disk": 11,
+          "network": 67,
+          "responseTime": 165,
+          "uptime": 2652549,
+          "ip": "10.20.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 114
+        }
+      }
+    },
+    {
+      "timestamp": "17:40",
+      "servers": {
+        "web-nginx-icn-01": {
+          "id": "web-nginx-icn-01",
+          "name": "Nginx Web Server 01",
+          "hostname": "web-nginx-icn-01.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 37,
+          "memory": 42,
+          "disk": 28,
+          "network": 58,
+          "responseTime": 159,
+          "uptime": 2616344,
+          "ip": "10.10.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 138
+        },
+        "web-nginx-icn-02": {
+          "id": "web-nginx-icn-02",
+          "name": "Nginx Web Server 02",
+          "hostname": "web-nginx-icn-02.openmanager.kr",
+          "type": "web",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 28,
+          "memory": 42,
+          "disk": 27,
+          "network": 52,
+          "responseTime": 154,
+          "uptime": 2597046,
+          "ip": "10.10.1.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 105
+        },
+        "web-nginx-pus-01": {
+          "id": "web-nginx-pus-01",
+          "name": "Nginx Web Server DR",
+          "hostname": "web-nginx-pus-01.openmanager.kr",
+          "type": "web",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 21,
+          "memory": 37,
+          "disk": 26,
+          "network": 42,
+          "responseTime": 166,
+          "uptime": 2673955,
+          "ip": "10.20.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 101
+        },
+        "api-was-icn-01": {
+          "id": "api-was-icn-01",
+          "name": "WAS API Server 01",
+          "hostname": "api-was-icn-01.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 43,
+          "memory": 57,
+          "disk": 33,
+          "network": 53,
+          "responseTime": 125,
+          "uptime": 2604913,
+          "ip": "10.10.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 123
+        },
+        "api-was-icn-02": {
+          "id": "api-was-icn-02",
+          "name": "WAS API Server 02",
+          "hostname": "api-was-icn-02.openmanager.kr",
+          "type": "application",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 37,
+          "memory": 51,
+          "disk": 34,
+          "network": 43,
+          "responseTime": 139,
+          "uptime": 2659289,
+          "ip": "10.10.2.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 121
+        },
+        "api-was-pus-01": {
+          "id": "api-was-pus-01",
+          "name": "WAS API Server DR",
+          "hostname": "api-was-pus-01.openmanager.kr",
+          "type": "application",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 27,
+          "memory": 39,
+          "disk": 25,
+          "network": 35,
+          "responseTime": 129,
+          "uptime": 2629572,
+          "ip": "10.20.2.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 8,
+            "memory_gb": 16,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 105
+        },
+        "db-mysql-icn-primary": {
+          "id": "db-mysql-icn-primary",
+          "name": "MySQL Primary",
+          "hostname": "db-mysql-icn-primary.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 51,
+          "memory": 71,
+          "disk": 46,
+          "network": 37,
+          "responseTime": 44,
+          "uptime": 2657441,
+          "ip": "10.10.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 117
+        },
+        "db-mysql-icn-replica": {
+          "id": "db-mysql-icn-replica",
+          "name": "MySQL Replica",
+          "hostname": "db-mysql-icn-replica.openmanager.kr",
+          "type": "database",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 44,
+          "memory": 59,
+          "disk": 44,
+          "network": 30,
+          "responseTime": 41,
+          "uptime": 2673740,
+          "ip": "10.10.3.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 119
+        },
+        "db-mysql-pus-dr": {
+          "id": "db-mysql-pus-dr",
+          "name": "MySQL DR Replica",
+          "hostname": "db-mysql-pus-dr.openmanager.kr",
+          "type": "database",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 16,
+          "memory": 46,
+          "disk": 39,
+          "network": 23,
+          "responseTime": 42,
+          "uptime": 2634623,
+          "ip": "10.20.3.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 16,
+            "memory_gb": 64,
+            "disk_gb": 1000
+          },
+          "services": [],
+          "processes": 122
+        },
+        "cache-redis-icn-01": {
+          "id": "cache-redis-icn-01",
+          "name": "Redis Cache 01",
+          "hostname": "cache-redis-icn-01.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 20,
+          "memory": 72,
+          "disk": 22,
+          "network": 47,
+          "responseTime": 19,
+          "uptime": 2623202,
+          "ip": "10.10.4.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 136
+        },
+        "cache-redis-icn-02": {
+          "id": "cache-redis-icn-02",
+          "name": "Redis Cache 02",
+          "hostname": "cache-redis-icn-02.openmanager.kr",
+          "type": "cache",
+          "location": "Seoul-ICN-AZ2",
+          "environment": "production",
+          "status": "online",
+          "cpu": 20,
+          "memory": 69,
+          "disk": 16,
+          "network": 43,
+          "responseTime": 21,
+          "uptime": 2647496,
+          "ip": "10.10.4.12",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 32,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 113
+        },
+        "storage-nfs-icn-01": {
+          "id": "storage-nfs-icn-01",
+          "name": "NFS Storage 01",
+          "hostname": "storage-nfs-icn-01.openmanager.kr",
+          "type": "storage",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 31,
+          "memory": 39,
+          "disk": 63,
+          "network": 53,
+          "responseTime": 141,
+          "uptime": 2673757,
+          "ip": "10.10.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 16,
+            "disk_gb": 5000
+          },
+          "services": [],
+          "processes": 114
+        },
+        "storage-s3gw-pus-01": {
+          "id": "storage-s3gw-pus-01",
+          "name": "S3 Gateway DR",
+          "hostname": "storage-s3gw-pus-01.openmanager.kr",
+          "type": "storage",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 15,
+          "memory": 32,
+          "disk": 56,
+          "network": 57,
+          "responseTime": 159,
+          "uptime": 2671777,
+          "ip": "10.20.5.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 2,
+            "memory_gb": 8,
+            "disk_gb": 200
+          },
+          "services": [],
+          "processes": 127
+        },
+        "lb-haproxy-icn-01": {
+          "id": "lb-haproxy-icn-01",
+          "name": "HAProxy LB 01",
+          "hostname": "lb-haproxy-icn-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Seoul-ICN-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 36,
+          "memory": 33,
+          "disk": 15,
+          "network": 74,
+          "responseTime": 149,
+          "uptime": 2612364,
+          "ip": "10.10.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 125
+        },
+        "lb-haproxy-pus-01": {
+          "id": "lb-haproxy-pus-01",
+          "name": "HAProxy LB DR",
+          "hostname": "lb-haproxy-pus-01.openmanager.kr",
+          "type": "loadbalancer",
+          "location": "Busan-PUS-DR",
+          "environment": "production",
+          "status": "online",
+          "cpu": 37,
+          "memory": 35,
+          "disk": 13,
+          "network": 66,
+          "responseTime": 158,
+          "uptime": 2642128,
+          "ip": "10.20.6.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 50
+          },
+          "services": [],
+          "processes": 131
         }
       }
     },
@@ -3300,10 +3300,10 @@
           "status": "online",
           "cpu": 36,
           "memory": 46,
-          "disk": 28,
-          "network": 64,
-          "responseTime": 170,
-          "uptime": 2593478,
+          "disk": 30,
+          "network": 57,
+          "responseTime": 163,
+          "uptime": 2633501,
           "ip": "10.10.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3312,7 +3312,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 132
+          "processes": 105
         },
         "web-nginx-icn-02": {
           "id": "web-nginx-icn-02",
@@ -3322,12 +3322,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 28,
+          "cpu": 33,
           "memory": 38,
-          "disk": 28,
-          "network": 58,
-          "responseTime": 175,
-          "uptime": 2636076,
+          "disk": 29,
+          "network": 52,
+          "responseTime": 134,
+          "uptime": 2673354,
           "ip": "10.10.1.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3336,7 +3336,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 136
+          "processes": 105
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -3346,12 +3346,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 16,
-          "memory": 34,
-          "disk": 24,
-          "network": 37,
-          "responseTime": 122,
-          "uptime": 2651777,
+          "cpu": 22,
+          "memory": 33,
+          "disk": 25,
+          "network": 35,
+          "responseTime": 136,
+          "uptime": 2638620,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3360,7 +3360,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 131
+          "processes": 143
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -3370,12 +3370,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 49,
-          "memory": 54,
-          "disk": 34,
-          "network": 53,
-          "responseTime": 162,
-          "uptime": 2627360,
+          "cpu": 41,
+          "memory": 53,
+          "disk": 33,
+          "network": 48,
+          "responseTime": 133,
+          "uptime": 2660605,
           "ip": "10.10.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3384,7 +3384,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 107
+          "processes": 146
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -3394,12 +3394,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 38,
+          "cpu": 42,
           "memory": 48,
-          "disk": 34,
-          "network": 45,
-          "responseTime": 168,
-          "uptime": 2616370,
+          "disk": 32,
+          "network": 52,
+          "responseTime": 134,
+          "uptime": 2671875,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3408,7 +3408,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 120
+          "processes": 105
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -3418,12 +3418,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 29,
-          "memory": 41,
-          "disk": 29,
-          "network": 31,
-          "responseTime": 174,
-          "uptime": 2655841,
+          "cpu": 28,
+          "memory": 39,
+          "disk": 26,
+          "network": 37,
+          "responseTime": 148,
+          "uptime": 2649540,
           "ip": "10.20.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3432,7 +3432,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 101
+          "processes": 140
         },
         "db-mysql-icn-primary": {
           "id": "db-mysql-icn-primary",
@@ -3442,12 +3442,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 53,
-          "memory": 68,
+          "cpu": 52,
+          "memory": 72,
           "disk": 43,
-          "network": 41,
-          "responseTime": 52,
-          "uptime": 2638644,
+          "network": 42,
+          "responseTime": 60,
+          "uptime": 2634892,
           "ip": "10.10.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3456,7 +3456,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 113
+          "processes": 121
         },
         "db-mysql-icn-replica": {
           "id": "db-mysql-icn-replica",
@@ -3466,12 +3466,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 39,
-          "memory": 61,
-          "disk": 39,
-          "network": 31,
+          "cpu": 35,
+          "memory": 62,
+          "disk": 41,
+          "network": 33,
           "responseTime": 42,
-          "uptime": 2672835,
+          "uptime": 2661347,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3480,7 +3480,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 131
+          "processes": 102
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -3490,12 +3490,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 20,
-          "memory": 45,
-          "disk": 38,
-          "network": 22,
-          "responseTime": 48,
-          "uptime": 2644137,
+          "cpu": 22,
+          "memory": 42,
+          "disk": 42,
+          "network": 24,
+          "responseTime": 49,
+          "uptime": 2667071,
           "ip": "10.20.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3504,7 +3504,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 147
+          "processes": 134
         },
         "cache-redis-icn-01": {
           "id": "cache-redis-icn-01",
@@ -3515,11 +3515,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 27,
-          "memory": 75,
-          "disk": 19,
-          "network": 46,
-          "responseTime": 23,
-          "uptime": 2624391,
+          "memory": 74,
+          "disk": 18,
+          "network": 47,
+          "responseTime": 22,
+          "uptime": 2628471,
           "ip": "10.10.4.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3528,7 +3528,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 102
+          "processes": 136
         },
         "cache-redis-icn-02": {
           "id": "cache-redis-icn-02",
@@ -3538,12 +3538,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 19,
-          "memory": 75,
-          "disk": 19,
-          "network": 39,
-          "responseTime": 21,
-          "uptime": 2652993,
+          "cpu": 26,
+          "memory": 68,
+          "disk": 16,
+          "network": 45,
+          "responseTime": 19,
+          "uptime": 2594308,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3552,7 +3552,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 103
+          "processes": 108
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -3562,12 +3562,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 29,
-          "memory": 41,
-          "disk": 63,
-          "network": 49,
-          "responseTime": 122,
-          "uptime": 2633878,
+          "cpu": 32,
+          "memory": 40,
+          "disk": 64,
+          "network": 47,
+          "responseTime": 125,
+          "uptime": 2623742,
           "ip": "10.10.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3576,7 +3576,7 @@
             "disk_gb": 5000
           },
           "services": [],
-          "processes": 111
+          "processes": 125
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -3586,12 +3586,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 20,
-          "memory": 32,
-          "disk": 54,
-          "network": 59,
-          "responseTime": 137,
-          "uptime": 2611540,
+          "cpu": 18,
+          "memory": 35,
+          "disk": 56,
+          "network": 62,
+          "responseTime": 168,
+          "uptime": 2606525,
           "ip": "10.20.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3600,7 +3600,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 119
+          "processes": 144
         },
         "lb-haproxy-icn-01": {
           "id": "lb-haproxy-icn-01",
@@ -3610,12 +3610,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 41,
-          "memory": 38,
+          "cpu": 38,
+          "memory": 34,
           "disk": 14,
-          "network": 73,
+          "network": 65,
           "responseTime": 160,
-          "uptime": 2608106,
+          "uptime": 2600728,
           "ip": "10.10.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3624,7 +3624,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 133
+          "processes": 111
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -3634,12 +3634,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 42,
-          "memory": 30,
+          "cpu": 35,
+          "memory": 29,
           "disk": 15,
-          "network": 67,
-          "responseTime": 161,
-          "uptime": 2622211,
+          "network": 64,
+          "responseTime": 172,
+          "uptime": 2626856,
           "ip": "10.20.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3663,12 +3663,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 33,
-          "memory": 43,
+          "cpu": 35,
+          "memory": 45,
           "disk": 29,
-          "network": 57,
-          "responseTime": 138,
-          "uptime": 2658305,
+          "network": 55,
+          "responseTime": 125,
+          "uptime": 2632328,
           "ip": "10.10.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3677,7 +3677,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 120
+          "processes": 135
         },
         "web-nginx-icn-02": {
           "id": "web-nginx-icn-02",
@@ -3687,37 +3687,13 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 31,
-          "memory": 44,
-          "disk": 27,
-          "network": 59,
-          "responseTime": 142,
-          "uptime": 2644604,
+          "cpu": 29,
+          "memory": 45,
+          "disk": 28,
+          "network": 51,
+          "responseTime": 128,
+          "uptime": 2665885,
           "ip": "10.10.1.12",
-          "os": "Ubuntu 22.04 LTS",
-          "specs": {
-            "cpu_cores": 4,
-            "memory_gb": 8,
-            "disk_gb": 100
-          },
-          "services": [],
-          "processes": 124
-        },
-        "web-nginx-pus-01": {
-          "id": "web-nginx-pus-01",
-          "name": "Nginx Web Server DR",
-          "hostname": "web-nginx-pus-01.openmanager.kr",
-          "type": "web",
-          "location": "Busan-PUS-AZ1",
-          "environment": "production",
-          "status": "online",
-          "cpu": 24,
-          "memory": 36,
-          "disk": 23,
-          "network": 43,
-          "responseTime": 160,
-          "uptime": 2601631,
-          "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
             "cpu_cores": 4,
@@ -3727,6 +3703,30 @@
           "services": [],
           "processes": 131
         },
+        "web-nginx-pus-01": {
+          "id": "web-nginx-pus-01",
+          "name": "Nginx Web Server DR",
+          "hostname": "web-nginx-pus-01.openmanager.kr",
+          "type": "web",
+          "location": "Busan-PUS-AZ1",
+          "environment": "production",
+          "status": "online",
+          "cpu": 20,
+          "memory": 36,
+          "disk": 26,
+          "network": 39,
+          "responseTime": 151,
+          "uptime": 2641334,
+          "ip": "10.20.1.11",
+          "os": "Ubuntu 22.04 LTS",
+          "specs": {
+            "cpu_cores": 4,
+            "memory_gb": 8,
+            "disk_gb": 100
+          },
+          "services": [],
+          "processes": 140
+        },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
           "name": "WAS API Server 01",
@@ -3735,12 +3735,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 43,
-          "memory": 51,
+          "cpu": 46,
+          "memory": 57,
           "disk": 34,
           "network": 50,
-          "responseTime": 155,
-          "uptime": 2660490,
+          "responseTime": 125,
+          "uptime": 2667748,
           "ip": "10.10.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3749,7 +3749,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 128
+          "processes": 108
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -3759,12 +3759,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 38,
-          "memory": 48,
+          "cpu": 41,
+          "memory": 49,
           "disk": 33,
-          "network": 47,
-          "responseTime": 141,
-          "uptime": 2651004,
+          "network": 48,
+          "responseTime": 147,
+          "uptime": 2597309,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3773,7 +3773,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 102
+          "processes": 114
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -3784,11 +3784,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 24,
-          "memory": 42,
-          "disk": 28,
-          "network": 34,
-          "responseTime": 125,
-          "uptime": 2653591,
+          "memory": 39,
+          "disk": 29,
+          "network": 36,
+          "responseTime": 167,
+          "uptime": 2661804,
           "ip": "10.20.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3797,7 +3797,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 130
+          "processes": 134
         },
         "db-mysql-icn-primary": {
           "id": "db-mysql-icn-primary",
@@ -3807,12 +3807,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 54,
-          "memory": 66,
-          "disk": 47,
-          "network": 41,
-          "responseTime": 47,
-          "uptime": 2627489,
+          "cpu": 57,
+          "memory": 72,
+          "disk": 43,
+          "network": 44,
+          "responseTime": 51,
+          "uptime": 2666866,
           "ip": "10.10.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3821,7 +3821,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 108
+          "processes": 119
         },
         "db-mysql-icn-replica": {
           "id": "db-mysql-icn-replica",
@@ -3831,12 +3831,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 43,
-          "memory": 56,
+          "cpu": 41,
+          "memory": 58,
           "disk": 43,
-          "network": 35,
-          "responseTime": 41,
-          "uptime": 2669086,
+          "network": 37,
+          "responseTime": 42,
+          "uptime": 2658512,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3845,7 +3845,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 146
+          "processes": 122
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -3855,12 +3855,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 21,
-          "memory": 43,
-          "disk": 42,
+          "cpu": 23,
+          "memory": 46,
+          "disk": 41,
           "network": 27,
-          "responseTime": 44,
-          "uptime": 2629622,
+          "responseTime": 58,
+          "uptime": 2612774,
           "ip": "10.20.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3869,7 +3869,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 109
+          "processes": 107
         },
         "cache-redis-icn-01": {
           "id": "cache-redis-icn-01",
@@ -3879,12 +3879,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 24,
-          "memory": 76,
+          "cpu": 21,
+          "memory": 73,
           "disk": 18,
-          "network": 47,
+          "network": 45,
           "responseTime": 23,
-          "uptime": 2655975,
+          "uptime": 2603066,
           "ip": "10.10.4.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3893,7 +3893,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 108
+          "processes": 118
         },
         "cache-redis-icn-02": {
           "id": "cache-redis-icn-02",
@@ -3903,12 +3903,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 24,
-          "memory": 73,
-          "disk": 17,
-          "network": 40,
-          "responseTime": 20,
-          "uptime": 2627639,
+          "cpu": 22,
+          "memory": 71,
+          "disk": 18,
+          "network": 45,
+          "responseTime": 21,
+          "uptime": 2625130,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3917,7 +3917,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 136
+          "processes": 148
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -3927,12 +3927,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 28,
-          "memory": 41,
-          "disk": 63,
-          "network": 52,
-          "responseTime": 163,
-          "uptime": 2594114,
+          "cpu": 27,
+          "memory": 37,
+          "disk": 67,
+          "network": 48,
+          "responseTime": 122,
+          "uptime": 2654710,
           "ip": "10.10.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3941,7 +3941,7 @@
             "disk_gb": 5000
           },
           "services": [],
-          "processes": 122
+          "processes": 121
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -3951,12 +3951,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 23,
-          "memory": 37,
-          "disk": 55,
-          "network": 64,
-          "responseTime": 122,
-          "uptime": 2594520,
+          "cpu": 17,
+          "memory": 35,
+          "disk": 57,
+          "network": 62,
+          "responseTime": 147,
+          "uptime": 2664402,
           "ip": "10.20.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3965,7 +3965,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 134
+          "processes": 124
         },
         "lb-haproxy-icn-01": {
           "id": "lb-haproxy-icn-01",
@@ -3975,12 +3975,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 44,
-          "memory": 35,
-          "disk": 16,
-          "network": 73,
-          "responseTime": 142,
-          "uptime": 2675345,
+          "cpu": 42,
+          "memory": 36,
+          "disk": 13,
+          "network": 68,
+          "responseTime": 177,
+          "uptime": 2620845,
           "ip": "10.10.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -3989,7 +3989,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 140
+          "processes": 102
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -3999,12 +3999,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 42,
-          "memory": 33,
-          "disk": 14,
-          "network": 66,
-          "responseTime": 135,
-          "uptime": 2601716,
+          "cpu": 34,
+          "memory": 32,
+          "disk": 15,
+          "network": 68,
+          "responseTime": 144,
+          "uptime": 2594229,
           "ip": "10.20.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4028,12 +4028,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 38,
-          "memory": 46,
-          "disk": 28,
-          "network": 56,
-          "responseTime": 123,
-          "uptime": 2630592,
+          "cpu": 31,
+          "memory": 47,
+          "disk": 29,
+          "network": 57,
+          "responseTime": 121,
+          "uptime": 2630212,
           "ip": "10.10.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4042,7 +4042,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 139
+          "processes": 112
         },
         "web-nginx-icn-02": {
           "id": "web-nginx-icn-02",
@@ -4052,12 +4052,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 32,
-          "memory": 40,
-          "disk": 29,
-          "network": 57,
-          "responseTime": 180,
-          "uptime": 2608140,
+          "cpu": 29,
+          "memory": 45,
+          "disk": 27,
+          "network": 53,
+          "responseTime": 131,
+          "uptime": 2608797,
           "ip": "10.10.1.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4066,7 +4066,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 115
+          "processes": 134
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -4076,12 +4076,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 20,
-          "memory": 37,
-          "disk": 25,
-          "network": 37,
-          "responseTime": 161,
-          "uptime": 2605387,
+          "cpu": 19,
+          "memory": 34,
+          "disk": 23,
+          "network": 40,
+          "responseTime": 151,
+          "uptime": 2598831,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4090,7 +4090,7 @@
             "disk_gb": 100
           },
           "services": [],
-          "processes": 143
+          "processes": 108
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -4102,10 +4102,10 @@
           "status": "online",
           "cpu": 40,
           "memory": 57,
-          "disk": 34,
+          "disk": 37,
           "network": 51,
-          "responseTime": 140,
-          "uptime": 2594715,
+          "responseTime": 178,
+          "uptime": 2632719,
           "ip": "10.10.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4114,7 +4114,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 118
+          "processes": 136
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -4125,11 +4125,11 @@
           "environment": "production",
           "status": "online",
           "cpu": 43,
-          "memory": 52,
-          "disk": 31,
-          "network": 47,
-          "responseTime": 144,
-          "uptime": 2618790,
+          "memory": 48,
+          "disk": 32,
+          "network": 43,
+          "responseTime": 177,
+          "uptime": 2609628,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4138,7 +4138,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 144
+          "processes": 119
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -4148,12 +4148,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 27,
-          "memory": 42,
-          "disk": 27,
-          "network": 39,
+          "cpu": 26,
+          "memory": 40,
+          "disk": 30,
+          "network": 37,
           "responseTime": 127,
-          "uptime": 2600744,
+          "uptime": 2664606,
           "ip": "10.20.2.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4162,7 +4162,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 117
+          "processes": 109
         },
         "db-mysql-icn-primary": {
           "id": "db-mysql-icn-primary",
@@ -4172,12 +4172,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 54,
-          "memory": 72,
-          "disk": 47,
-          "network": 37,
+          "cpu": 59,
+          "memory": 69,
+          "disk": 44,
+          "network": 35,
           "responseTime": 53,
-          "uptime": 2657116,
+          "uptime": 2626009,
           "ip": "10.10.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4186,7 +4186,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 130
+          "processes": 138
         },
         "db-mysql-icn-replica": {
           "id": "db-mysql-icn-replica",
@@ -4196,12 +4196,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 44,
-          "memory": 60,
+          "cpu": 41,
+          "memory": 58,
           "disk": 43,
-          "network": 38,
-          "responseTime": 40,
-          "uptime": 2633438,
+          "network": 33,
+          "responseTime": 59,
+          "uptime": 2620041,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4210,7 +4210,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 128
+          "processes": 120
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -4220,12 +4220,12 @@
           "location": "Busan-PUS-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 23,
-          "memory": 44,
-          "disk": 40,
-          "network": 29,
-          "responseTime": 43,
-          "uptime": 2654400,
+          "cpu": 22,
+          "memory": 46,
+          "disk": 38,
+          "network": 27,
+          "responseTime": 59,
+          "uptime": 2637079,
           "ip": "10.20.3.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4234,7 +4234,7 @@
             "disk_gb": 1000
           },
           "services": [],
-          "processes": 136
+          "processes": 145
         },
         "cache-redis-icn-01": {
           "id": "cache-redis-icn-01",
@@ -4244,12 +4244,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 24,
-          "memory": 78,
+          "cpu": 28,
+          "memory": 76,
           "disk": 18,
-          "network": 40,
-          "responseTime": 22,
-          "uptime": 2641224,
+          "network": 43,
+          "responseTime": 17,
+          "uptime": 2608764,
           "ip": "10.10.4.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4258,7 +4258,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 144
+          "processes": 124
         },
         "cache-redis-icn-02": {
           "id": "cache-redis-icn-02",
@@ -4268,12 +4268,12 @@
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
           "status": "online",
-          "cpu": 20,
-          "memory": 70,
-          "disk": 19,
-          "network": 42,
-          "responseTime": 22,
-          "uptime": 2638606,
+          "cpu": 26,
+          "memory": 68,
+          "disk": 17,
+          "network": 45,
+          "responseTime": 21,
+          "uptime": 2606551,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4282,7 +4282,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 106
+          "processes": 139
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -4292,12 +4292,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 29,
-          "memory": 43,
+          "cpu": 31,
+          "memory": 39,
           "disk": 63,
           "network": 53,
-          "responseTime": 159,
-          "uptime": 2652092,
+          "responseTime": 124,
+          "uptime": 2675113,
           "ip": "10.10.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4306,7 +4306,7 @@
             "disk_gb": 5000
           },
           "services": [],
-          "processes": 123
+          "processes": 142
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -4316,12 +4316,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 17,
-          "memory": 33,
-          "disk": 53,
-          "network": 60,
-          "responseTime": 121,
-          "uptime": 2659078,
+          "cpu": 19,
+          "memory": 38,
+          "disk": 54,
+          "network": 59,
+          "responseTime": 155,
+          "uptime": 2596432,
           "ip": "10.20.5.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4330,7 +4330,7 @@
             "disk_gb": 200
           },
           "services": [],
-          "processes": 138
+          "processes": 127
         },
         "lb-haproxy-icn-01": {
           "id": "lb-haproxy-icn-01",
@@ -4340,12 +4340,12 @@
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
           "status": "online",
-          "cpu": 39,
-          "memory": 33,
-          "disk": 15,
-          "network": 71,
-          "responseTime": 131,
-          "uptime": 2627689,
+          "cpu": 41,
+          "memory": 38,
+          "disk": 14,
+          "network": 68,
+          "responseTime": 179,
+          "uptime": 2610255,
           "ip": "10.10.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4354,7 +4354,7 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 103
+          "processes": 123
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -4364,12 +4364,12 @@
           "location": "Busan-PUS-DR",
           "environment": "production",
           "status": "online",
-          "cpu": 34,
-          "memory": 29,
-          "disk": 14,
-          "network": 69,
-          "responseTime": 122,
-          "uptime": 2629318,
+          "cpu": 33,
+          "memory": 35,
+          "disk": 16,
+          "network": 66,
+          "responseTime": 141,
+          "uptime": 2654623,
           "ip": "10.20.6.11",
           "os": "Ubuntu 22.04 LTS",
           "specs": {
@@ -4378,13 +4378,13 @@
             "disk_gb": 50
           },
           "services": [],
-          "processes": 124
+          "processes": 101
         }
       }
     }
   ],
   "metadata": {
-    "generatedAt": "2026-01-01T05:02:14.471Z",
+    "generatedAt": "2026-01-01T05:27:58.777Z",
     "totalDataPoints": 12,
     "intervalMinutes": 5,
     "serverCount": 15,
