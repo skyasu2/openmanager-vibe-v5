@@ -34,6 +34,7 @@ import {
   getHybridAnomalyDetector,
   type ServerMetrics,
 } from '../lib/ai/monitoring/HybridAnomalyDetector';
+import { getAdaptiveThreshold } from '../lib/ai/monitoring/AdaptiveThreshold';
 import { getDataCache } from '../lib/cache-layer';
 
 // ============================================================================
@@ -356,6 +357,150 @@ export const detectAnomaliesHybrid = tool({
               : `${server.name}: 정상 (신뢰도 ${Math.round(result.confidence * 100)}%)`,
             timestamp: new Date().toISOString(),
             _algorithm: 'Hybrid (Statistical 2σ + Isolation Forest)',
+          };
+        }
+      );
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  },
+});
+
+/**
+ * Detect Anomalies with Adaptive Thresholds
+ * Adjusts thresholds based on time-of-day and day-of-week patterns
+ *
+ * @description
+ * - 시간대별 버킷 (24개 - 0~23시)
+ * - 요일별 버킷 (7개 - 일~토)
+ * - EMA 스무딩으로 점진적 적응
+ * - 정상 패턴 학습 후 자동 임계값 조정
+ */
+export const detectAnomaliesAdaptive = tool({
+  description:
+    '적응형 이상 탐지: 시간대/요일별 패턴을 학습하여 동적으로 임계값 조정. 피크 시간대 오탐 감소.',
+  inputSchema: z.object({
+    serverId: z
+      .string()
+      .optional()
+      .describe('분석할 서버 ID (선택, 미입력시 첫 번째 서버)'),
+    metricType: z
+      .enum(['cpu', 'memory', 'disk', 'all'])
+      .default('all')
+      .describe('분석할 메트릭 타입'),
+  }),
+  execute: async ({
+    serverId,
+    metricType,
+  }: {
+    serverId?: string;
+    metricType: 'cpu' | 'memory' | 'disk' | 'all';
+  }) => {
+    try {
+      const cache = getDataCache();
+
+      return await cache.getAnalysis(
+        'anomaly-adaptive',
+        { serverId: serverId || 'first', metricType },
+        async () => {
+          const state = getCurrentState();
+          const server: ServerSnapshot | undefined = serverId
+            ? state.servers.find((s) => s.id === serverId)
+            : state.servers[0];
+
+          if (!server) {
+            return {
+              success: false,
+              error: `서버를 찾을 수 없습니다: ${serverId || 'none'}`,
+            };
+          }
+
+          const metrics = ['cpu', 'memory', 'disk'] as const;
+          const targetMetrics =
+            metricType === 'all'
+              ? metrics
+              : [metricType as (typeof metrics)[number]];
+
+          const adaptiveThreshold = getAdaptiveThreshold();
+          const results: Record<
+            string,
+            {
+              isAnomaly: boolean;
+              direction: string;
+              deviation: number;
+              currentValue: number;
+              thresholds: {
+                upper: number;
+                lower: number;
+                expectedMean: number;
+                confidence: number;
+              };
+            }
+          > = {};
+
+          // Learn patterns from historical data if not already learned
+          for (const metric of targetMetrics) {
+            const currentValue = server[metric as keyof typeof server] as number;
+            const history = getHistoryForMetric(server.id, metric, currentValue);
+
+            // Check if we need to initialize learning
+            const status = adaptiveThreshold.getStatus();
+            if (!status.metrics.includes(metric)) {
+              adaptiveThreshold.learn(
+                metric,
+                history.map((h) => ({ timestamp: h.timestamp, value: h.value }))
+              );
+            }
+
+            // Run adaptive anomaly check
+            const result = adaptiveThreshold.isAnomaly(metric, currentValue);
+
+            results[metric] = {
+              isAnomaly: result.isAnomaly,
+              direction: result.direction,
+              deviation: Math.round(result.deviation * 100) / 100,
+              currentValue,
+              thresholds: {
+                upper: Math.round(result.thresholds.upper * 100) / 100,
+                lower: Math.round(result.thresholds.lower * 100) / 100,
+                expectedMean:
+                  Math.round(result.thresholds.expectedMean * 100) / 100,
+                confidence: Math.round(result.thresholds.confidence * 100) / 100,
+              },
+            };
+          }
+
+          const anomalyCount = Object.values(results).filter(
+            (r) => r.isAnomaly
+          ).length;
+
+          // Get current time context
+          const now = new Date();
+          const hour = now.getHours();
+          const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][
+            now.getDay()
+          ];
+
+          return {
+            success: true,
+            serverId: server.id,
+            serverName: server.name,
+            anomalyCount,
+            hasAnomalies: anomalyCount > 0,
+            timeContext: {
+              hour,
+              dayOfWeek,
+              description: `${dayOfWeek}요일 ${hour}시`,
+            },
+            results,
+            summary: anomalyCount > 0
+              ? `${server.name}: ${anomalyCount}개 메트릭에서 이상 감지 (${dayOfWeek}요일 ${hour}시 기준)`
+              : `${server.name}: 정상 (${dayOfWeek}요일 ${hour}시 패턴 대비)`,
+            timestamp: new Date().toISOString(),
+            _algorithm: 'Adaptive Thresholds (Temporal Pattern Learning)',
           };
         }
       );

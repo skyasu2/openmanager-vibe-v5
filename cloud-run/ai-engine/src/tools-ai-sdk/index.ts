@@ -31,6 +31,8 @@ export {
 // ============================================================================
 export {
   detectAnomalies,
+  detectAnomaliesHybrid,
+  detectAnomaliesAdaptive,
   predictTrends,
   analyzePattern,
 } from './analyst-tools';
@@ -50,7 +52,7 @@ export {
 // ============================================================================
 import { getServerMetrics, getServerMetricsAdvanced, filterServers } from './server-metrics';
 import { buildIncidentTimeline, correlateMetrics, findRootCause } from './rca-analysis';
-import { detectAnomalies, predictTrends, analyzePattern } from './analyst-tools';
+import { detectAnomalies, detectAnomaliesHybrid, detectAnomaliesAdaptive, predictTrends, analyzePattern } from './analyst-tools';
 import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-tools';
 
 /**
@@ -69,6 +71,8 @@ export const allTools = {
 
   // Analyst
   detectAnomalies,
+  detectAnomaliesHybrid,
+  detectAnomaliesAdaptive,
   predictTrends,
   analyzePattern,
 
@@ -94,6 +98,8 @@ export const toolCategories = {
   },
   analyst: {
     detectAnomalies,
+    detectAnomaliesHybrid,
+    detectAnomaliesAdaptive,
     predictTrends,
     analyzePattern,
   },
@@ -114,7 +120,9 @@ export const toolDescriptions = {
   buildIncidentTimeline: '장애 타임라인 구성',
   correlateMetrics: '메트릭 간 상관관계 분석',
   findRootCause: '근본 원인 분석 (RCA)',
-  detectAnomalies: '이상치 탐지',
+  detectAnomalies: '이상치 탐지 (통계: 2σ)',
+  detectAnomaliesHybrid: '하이브리드 이상 탐지 (통계 + Isolation Forest)',
+  detectAnomaliesAdaptive: '적응형 이상 탐지 (시간대/요일 패턴)',
   predictTrends: '트렌드 예측',
   analyzePattern: '패턴 분석',
   searchKnowledgeBase: '과거 장애 이력 및 해결 방법 검색 (GraphRAG)',

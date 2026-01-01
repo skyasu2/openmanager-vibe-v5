@@ -46,3 +46,14 @@ export {
   type TrendPredictionConfig,
   type TrendPrediction,
 } from './TrendPredictor.js';
+
+// Adaptive Thresholds
+export {
+  AdaptiveThreshold,
+  getAdaptiveThreshold,
+  resetAdaptiveThreshold,
+  type AdaptiveThresholdConfig,
+  type AdaptiveThresholds,
+  type TemporalBucket,
+  type MetricHistoryPoint,
+} from './AdaptiveThreshold.js';
