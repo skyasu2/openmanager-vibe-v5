@@ -303,6 +303,12 @@ export function getAdvisorModel(): {
  * Fallback: OpenRouter meta-llama/llama-3.1-8b-instruct:free
  *
  * @description Summarizer Agent 전용 - 빠른 요약 및 핵심 정보 추출
+ *
+ * 📌 Fallback 전략 설명:
+ * - 의도적으로 OpenRouter 내에서만 폴백 (Qwen → Llama)
+ * - Mistral 등 유료 프로바이더로 폴백하지 않음
+ * - 이유: 100% 무료 운영 유지가 목표
+ * - OpenRouter 자체 장애 시에만 Summarizer 사용 불가 (graceful degradation)
  */
 export function getSummarizerModel(): {
   model: LanguageModel;
