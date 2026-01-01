@@ -31,6 +31,43 @@ import {
 
 export type ProviderName = 'cerebras' | 'groq' | 'mistral' | 'openrouter';
 
+// ============================================================================
+// 2. Runtime Provider Toggle (for testing)
+// ============================================================================
+
+/**
+ * Runtime toggle state for providers (default: all enabled)
+ * Use toggleProvider() to enable/disable at runtime for testing
+ */
+const providerToggleState: Record<ProviderName, boolean> = {
+  cerebras: true,
+  groq: true,
+  mistral: true,
+  openrouter: true,
+};
+
+/**
+ * Toggle a provider on/off at runtime
+ */
+export function toggleProvider(provider: ProviderName, enabled: boolean): void {
+  providerToggleState[provider] = enabled;
+  console.log(`🔧 [Provider] ${provider} ${enabled ? 'ENABLED' : 'DISABLED'}`);
+}
+
+/**
+ * Get current toggle state for all providers
+ */
+export function getProviderToggleState(): Record<ProviderName, boolean> {
+  return { ...providerToggleState };
+}
+
+/**
+ * Check if provider is enabled (both has API key AND toggle is on)
+ */
+function isProviderEnabled(provider: ProviderName): boolean {
+  return providerToggleState[provider];
+}
+
 export interface ProviderConfig {
   apiKey: string | undefined;
   baseURL?: string;
@@ -174,20 +211,20 @@ export interface ProviderStatus {
 }
 
 /**
- * Check which providers are available
+ * Check which providers are available (API key exists AND toggle enabled)
  */
 export function checkProviderStatus(): ProviderStatus {
   return {
-    cerebras: !!getCerebrasApiKey(),
-    groq: !!getGroqApiKey(),
-    mistral: !!getMistralApiKey(),
-    openrouter: !!getOpenRouterApiKey(),
+    cerebras: !!getCerebrasApiKey() && isProviderEnabled('cerebras'),
+    groq: !!getGroqApiKey() && isProviderEnabled('groq'),
+    mistral: !!getMistralApiKey() && isProviderEnabled('mistral'),
+    openrouter: !!getOpenRouterApiKey() && isProviderEnabled('openrouter'),
   };
 }
 
 /**
  * Get primary model for Supervisor (Single-Agent Mode)
- * Fallback chain: Cerebras → Mistral (Groq reserved for NLQ Agent)
+ * Fallback chain: Cerebras → Mistral → OpenRouter (Groq reserved for NLQ Agent)
  */
 export function getSupervisorModel(): {
   model: LanguageModel;
@@ -209,7 +246,7 @@ export function getSupervisorModel(): {
     }
   }
 
-  // Fallback: Mistral (Groq is reserved for NLQ Agent tool calling)
+  // Fallback 1: Mistral (Groq is reserved for NLQ Agent tool calling)
   if (status.mistral) {
     return {
       model: getMistralModel('mistral-small-2506'),
@@ -218,7 +255,17 @@ export function getSupervisorModel(): {
     };
   }
 
-  throw new Error('No LLM provider configured. Set CEREBRAS_API_KEY or MISTRAL_API_KEY.');
+  // Fallback 2: OpenRouter (free tier - fast model)
+  if (status.openrouter) {
+    console.log('🔄 [Supervisor] Using OpenRouter fallback (nvidia/nemotron-3-nano-30b-a3b:free)');
+    return {
+      model: getOpenRouterModel('nvidia/nemotron-3-nano-30b-a3b:free'),
+      provider: 'openrouter',
+      modelId: 'nvidia/nemotron-3-nano-30b-a3b:free',
+    };
+  }
+
+  throw new Error('No LLM provider configured. Set CEREBRAS_API_KEY, MISTRAL_API_KEY, or OPENROUTER_API_KEY.');
 }
 
 /**

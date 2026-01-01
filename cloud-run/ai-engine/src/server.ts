@@ -37,6 +37,7 @@ import {
   graphragRouter,
   jobsRouter,
 } from './routes';
+import { providersRouter } from './routes/providers';
 
 // ============================================================================
 // App Initialization
@@ -153,6 +154,9 @@ app.route('/api/ai/graphrag', graphragRouter);
 // Async Job Processing
 app.route('/api/jobs', jobsRouter);
 
+// Provider Management (testing/debugging)
+app.route('/api/ai/providers', providersRouter);
+
 // ============================================================================
 // Server Start
 // ============================================================================
@@ -177,6 +181,7 @@ serve(
     console.log(`   - /api/ai/approval`);
     console.log(`   - /api/ai/analyze-server, /api/ai/incident-report, /api/ai/analyze-batch`);
     console.log(`   - /api/ai/graphrag`);
+    console.log(`   - /api/ai/providers (toggle)`);
     console.log(`   - /api/jobs`);
   }
 );
