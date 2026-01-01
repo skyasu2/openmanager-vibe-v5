@@ -174,7 +174,7 @@ analyticsRouter.post('/incident-report', async (c: Context) => {
         { toolCallId: 'ir-trend', messages: [] }
       ),
       serverId
-        ? (await import('../tools-ai-sdk').then((m) =>
+        ? (await import('../tools-ai-sdk/index.js').then((m) =>
             m.buildIncidentTimeline.execute!(
               { serverId, timeRangeHours: 6 },
               { toolCallId: 'ir-timeline', messages: [] }

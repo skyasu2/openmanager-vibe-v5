@@ -30,6 +30,10 @@ import {
   getTrendPredictor,
   type TrendDataPoint,
 } from '../lib/ai/monitoring/TrendPredictor';
+import {
+  getHybridAnomalyDetector,
+  type ServerMetrics,
+} from '../lib/ai/monitoring/HybridAnomalyDetector';
 import { getDataCache } from '../lib/cache-layer';
 
 // ============================================================================
@@ -203,6 +207,155 @@ export const detectAnomalies = tool({
               ? `${server.name}: ${anomalyCount}개 메트릭에서 이상 감지`
               : `${server.name}: 정상 (이상 없음)`,
             timestamp: new Date().toISOString(),
+          };
+        }
+      );
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  },
+});
+
+/**
+ * Detect Anomalies Hybrid Tool (Advanced)
+ * Combines Statistical (2σ) + Isolation Forest for higher accuracy
+ *
+ * @description
+ * - Statistical: 6시간 이동평균 + 2σ 임계값 (per-metric)
+ * - Isolation Forest: 다변량 패턴 감지 (CPU+Memory+Disk+Network)
+ * - Voting: 두 방식의 가중 합산으로 최종 판정
+ */
+export const detectAnomaliesHybrid = tool({
+  description:
+    '하이브리드 이상 탐지: 통계(2σ) + Isolation Forest 앙상블로 정확도 향상. 다변량 패턴 감지 지원.',
+  inputSchema: z.object({
+    serverId: z
+      .string()
+      .optional()
+      .describe('분석할 서버 ID (선택, 미입력시 첫 번째 서버)'),
+    requireConsensus: z
+      .boolean()
+      .default(false)
+      .describe('두 탐지기 모두 동의해야 이상으로 판정 (엄격 모드)'),
+  }),
+  execute: async ({
+    serverId,
+    requireConsensus,
+  }: {
+    serverId?: string;
+    requireConsensus?: boolean;
+  }) => {
+    try {
+      const cache = getDataCache();
+
+      return await cache.getAnalysis(
+        'anomaly-hybrid',
+        { serverId: serverId || 'first', requireConsensus: requireConsensus ?? false },
+        async () => {
+          const state = getCurrentState();
+          const server: ServerSnapshot | undefined = serverId
+            ? state.servers.find((s) => s.id === serverId)
+            : state.servers[0];
+
+          if (!server) {
+            return {
+              success: false,
+              error: `서버를 찾을 수 없습니다: ${serverId || 'none'}`,
+            };
+          }
+
+          // 1. Prepare metrics
+          const serverMetrics: ServerMetrics = {
+            serverId: server.id,
+            serverName: server.name,
+            cpu: server.cpu as number,
+            memory: server.memory as number,
+            disk: server.disk as number,
+            network: (server.network as number) ?? 0,
+            timestamp: Date.now(),
+          };
+
+          // 2. Prepare history for statistical detector
+          const metricHistory: Record<string, MetricDataPoint[]> = {};
+          for (const metric of ['cpu', 'memory', 'disk', 'network']) {
+            const currentValue = serverMetrics[metric as keyof typeof serverMetrics] as number;
+            metricHistory[metric] = getHistoryForMetric(
+              server.id,
+              metric,
+              currentValue || 0
+            );
+          }
+
+          // 3. Initialize hybrid detector
+          const hybridDetector = getHybridAnomalyDetector({
+            requireConsensus: requireConsensus ?? false,
+            statisticalWeight: 0.4,
+            isolationForestWeight: 0.6,
+          });
+
+          // 4. Initialize IF with historical data (if not already trained)
+          const status = hybridDetector.getStatus();
+          if (!status.isolationForestStatus.isTrained) {
+            const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === server.id);
+            if (dataset) {
+              const trainingData = dataset.data.map((d, i) => ({
+                timestamp: Date.now() - (dataset.data.length - i) * 600000,
+                cpu: d.cpu,
+                memory: d.memory,
+                disk: d.disk,
+                network: d.network,
+              }));
+              hybridDetector.initialize(trainingData);
+            }
+          }
+
+          // 5. Run hybrid detection
+          const result = hybridDetector.detect(serverMetrics, metricHistory);
+
+          // 6. Format response
+          return {
+            success: true,
+            serverId: server.id,
+            serverName: server.name,
+            isAnomaly: result.isAnomaly,
+            severity: result.severity,
+            confidence: Math.round(result.confidence * 100) / 100,
+            voting: {
+              statistical: result.voting.statisticalVote,
+              isolationForest: result.voting.isolationForestVote,
+              combinedScore: Math.round(result.voting.combinedScore * 100) / 100,
+              consensus: result.voting.consensus,
+            },
+            dominantMetric: result.dominantMetric,
+            detectorResults: {
+              statistical: result.detectorResults.statistical
+                ? {
+                    isAnomaly: result.detectorResults.statistical.isAnomaly,
+                    severity: result.detectorResults.statistical.severity,
+                    confidence: Math.round(
+                      result.detectorResults.statistical.confidence * 100
+                    ) / 100,
+                  }
+                : null,
+              isolationForest: result.detectorResults.isolationForest
+                ? {
+                    isAnomaly: result.detectorResults.isolationForest.isAnomaly,
+                    anomalyScore: Math.round(
+                      result.detectorResults.isolationForest.anomalyScore * 100
+                    ) / 100,
+                    metricContributions:
+                      result.detectorResults.isolationForest.metricContributions,
+                  }
+                : null,
+            },
+            summary: result.isAnomaly
+              ? `${server.name}: 이상 감지 (${result.severity}) - ${result.dominantMetric || 'multivariate'}`
+              : `${server.name}: 정상 (신뢰도 ${Math.round(result.confidence * 100)}%)`,
+            timestamp: new Date().toISOString(),
+            _algorithm: 'Hybrid (Statistical 2σ + Isolation Forest)',
           };
         }
       );

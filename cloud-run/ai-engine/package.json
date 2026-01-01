@@ -32,6 +32,7 @@
     "ai": "^6.0.3",
     "dotenv": "^16.4.7",
     "hono": "^4.11.1",
+    "isolation-forest": "^0.0.9",
     "js-tiktoken": "^1.0.21",
     "langfuse": "^3.38.6",
     "llamaindex": "^0.12.1",
