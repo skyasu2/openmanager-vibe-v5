@@ -21,38 +21,39 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 
 ### Agent Stack
 
-| Agent | Provider | Model | Fallback | Role | Tools |
-|-------|----------|-------|----------|------|-------|
-| **Orchestrator** | Cerebras | Llama 3.3-70b | Groq | Fast intent routing (~200ms) | Agent handoffs |
-| **NLQ Agent** | Groq | Llama 3.3-70b-versatile | Cerebras | Server metrics queries (simple + complex) | `getServerMetrics`, `getServerMetricsAdvanced`, `filterServers` |
-| **Analyst Agent** | Mistral | mistral-small-2506 | - | Anomaly detection, trend prediction | `detectAnomalies`, `predictTrends`, `analyzePattern`, `correlateMetrics`, `findRootCause` |
-| **Reporter Agent** | Mistral | mistral-small-2506 | - | Incident reports, timeline | `buildIncidentTimeline`, `findRootCause`, `correlateMetrics` |
-| **Advisor Agent** | Mistral | mistral-small-2506 | - | Troubleshooting, knowledge search | `searchKnowledgeBase` (GraphRAG), `recommendCommands` |
+| Agent | Primary Provider | Fallback | Role | Tools |
+|-------|------------------|----------|------|-------|
+| **Orchestrator** | Cerebras llama-3.3-70b | Groq llama-3.3-70b-versatile | Fast intent routing (~200ms) | Agent handoffs |
+| **NLQ Agent** | Cerebras llama-3.3-70b | Groq llama-3.3-70b-versatile | Server metrics queries (simple + complex) | `getServerMetrics`, `getServerMetricsAdvanced`, `filterServers` |
+| **Analyst Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | Anomaly detection, trend prediction | `detectAnomalies`, `predictTrends`, `analyzePattern`, `correlateMetrics`, `findRootCause` |
+| **Reporter Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | Incident reports, timeline | `buildIncidentTimeline`, `findRootCause`, `correlateMetrics` |
+| **Advisor Agent** | Mistral mistral-small-2506 | OpenRouter llama-3.1-8b:free | Troubleshooting, knowledge search | `searchKnowledgeBase` (GraphRAG), `recommendCommands` |
+| **Verifier** | Mistral mistral-small-2506 | OpenRouter gemma-2-9b:free | Response validation | N/A |
 
-> **Dual-Mode Strategy**: Single-agent mode for simple queries (low latency), Multi-agent mode for complex queries (specialized handling). Groq reserved for NLQ Agent tool calling stability.
+> **Dual-Mode Strategy**: Single-agent mode for simple queries (low latency), Multi-agent mode for complex queries (specialized handling). Cerebras for fast routing/NLQ, Groq for analysis/reporting stability.
 
 ### Key Features
 
 - **Dual-Mode Supervisor**: Single-agent (simple) vs Multi-agent (complex) mode auto-selection
 - **Agent Handoffs**: Pattern-based routing with `matchOn` keywords and regex
 - **Multi-Step Tool Calling**: Vercel AI SDK `maxSteps` for reliable tool execution
-- **Fallback Chains**: Per-agent provider fallbacks (Groq → Cerebras, Cerebras → Mistral)
-- **Human-in-the-Loop (HITL)**: Critical actions require approval
+- **Fallback Chains**: Per-agent provider fallbacks (Cerebras → Groq, Groq → Cerebras)
+- **User-Triggered Design**: All AI features are explicitly user-initiated (no auto-triggers)
 - **Circuit Breaker**: Model health monitoring with automatic failover
 - **GraphRAG Integration**: Advisor agent uses hybrid vector + graph search
 - **Protocol Adaptation**: SSE with Keep-Alive to prevent timeouts
-- **RAG Incident Injection**: Auto-sync approved incidents to knowledge_base
+- **Response Verification**: Verifier agent validates outputs before response
 
 #### New in v5.92.0 (2025-12-28)
 
 - **LangGraph → Vercel AI SDK Migration**: Complete rewrite using `@ai-sdk-tools/agents`
 - **Dual-Mode Supervisor**: Auto-selects single vs multi-agent based on query complexity
 - **Agent Specialization**:
-  - NLQ Agent (Groq): Simple + complex server queries
-  - Analyst Agent (Mistral): Anomaly detection, trend prediction
-  - Reporter Agent (Mistral): Incident reports, timeline
+  - NLQ Agent (Cerebras → Groq fallback): Simple + complex server queries
+  - Analyst Agent (Groq → Cerebras fallback): Anomaly detection, trend prediction
+  - Reporter Agent (Groq → Cerebras fallback): Incident reports, timeline
   - Advisor Agent (Mistral): Troubleshooting with GraphRAG
-- **Fallback Optimization**: NLQ uses Groq→Cerebras, Single-mode uses Cerebras→Mistral (Groq reserved)
+- **Fallback Optimization**: Cerebras for fast routing, Groq for analysis stability
 - **Test Coverage**: 65 unit tests including multi-agent orchestrator tests
 
 #### Previous Versions
@@ -84,7 +85,6 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 |---------|-------------|----------|
 | **Return-to-Supervisor** | Agent sets `returnToSupervisor=true` | Need different agent's expertise |
 | **Command Pattern** | Explicit `toAgent` in DelegationRequest | Direct delegation to specific agent |
-| **HITL Interrupt** | `requiresApproval=true` triggers interrupt | Critical incident reports |
 | **Verification Loop** | Verifier checks output before response | Quality assurance & hallucination check |
 
 ## Architecture Diagram
@@ -114,19 +114,18 @@ graph TD
 
         subgraph "Multi-Agent (Specialized)"
             MultiAgent --> Orchestrator[Orchestrator Agent]
-            Orchestrator -->|matchOn Pattern| NLQ[NLQ Agent<br/>Groq/Cerebras]
-            Orchestrator -->|matchOn Pattern| Analyst[Analyst Agent<br/>Mistral]
-            Orchestrator -->|matchOn Pattern| Reporter[Reporter Agent<br/>Mistral]
+            Orchestrator -->|matchOn Pattern| NLQ[NLQ Agent<br/>Cerebras/Groq]
+            Orchestrator -->|matchOn Pattern| Analyst[Analyst Agent<br/>Groq/Cerebras]
+            Orchestrator -->|matchOn Pattern| Reporter[Reporter Agent<br/>Groq/Cerebras]
             Orchestrator -->|matchOn Pattern| Advisor[Advisor Agent<br/>Mistral]
 
             NLQ -->|Handoff| Analyst
             Analyst -->|Handoff| Reporter
-            Reporter -->|Critical| Approval{HITL Check}
+            Reporter --> Verifier{Verifier}
             Advisor -->|GraphRAG| RAG[(Knowledge Base)]
         end
 
-        Approval -->|Approved| Response2[Response]
-        Approval -->|Pending| Interrupt[Human Interrupt]
+        Verifier --> Response2[Response]
     end
 
     subgraph "Data Layer"
@@ -147,7 +146,6 @@ graph TD
 | **System Architecture** | Full AI engine overview | [View](https://www.figma.com/online-whiteboard/create-diagram/9a4b29bd-0376-4e0a-8e22-3b9bd008854a) |
 | **Agent Routing Flow** | Supervisor → Agent routing | [View](https://www.figma.com/online-whiteboard/create-diagram/22dbc5b3-44c1-44e7-9eee-1fa0cf8e402a) |
 | **Multi-Agent Communication** | Inter-agent delegation | [View](https://www.figma.com/online-whiteboard/create-diagram/a32f26ab-5d3c-40f6-a8ed-4eb5ec0ed843) |
-| **HITL Workflow** | Human-in-the-Loop approval | [View](https://www.figma.com/online-whiteboard/create-diagram/da114603-ca00-4416-9e1a-9bb422826093) |
 | **Supervisor Execution Flow** | Query → Supervisor → Agents → Verifier flow | [View](https://www.figma.com/online-whiteboard/create-diagram/eb37f54b-2795-4320-bd2e-c41854a7ec52) |
 
 ## State Interfaces
@@ -212,18 +210,6 @@ interface MultiAgentResponse {
 }
 ```
 
-### PendingAction (HITL)
-
-```typescript
-interface PendingAction {
-  actionType: string;       // e.g., 'incident_report'
-  description: string;      // Human-readable description
-  payload: unknown;         // Action data
-  requestedAt: string;      // ISO timestamp
-  requestedBy: string;      // Requesting agent name
-}
-```
-
 <details>
 <summary>Legacy LangGraph Types (v5.91.0 and earlier)</summary>
 
@@ -236,8 +222,6 @@ interface PendingAction {
 | `routerDecision` | RouterDecision | Supervisor routing decision |
 | `delegationRequest` | DelegationRequest | A2A delegation info |
 | `agentResults` | AgentResult[] | Results from executed agents |
-| `requiresApproval` | boolean | HITL flag |
-| `approvalStatus` | 'pending' | 'approved' | 'rejected' | Approval state |
 | `modelHealth` | CircuitBreakerState | Model health tracking |
 | `finalResponse` | string | Final response to user |
 
@@ -288,10 +272,6 @@ d:{"finishReason":"stop","verified":true}     // Finish signal
 | `/api/ai/generate` | POST | Text generation (non-streaming) |
 | `/api/ai/generate/stream` | POST | Text generation (streaming SSE) |
 | `/api/ai/generate/stats` | GET | Generate service statistics |
-| `/api/ai/approval/status` | GET | Check pending HITL approval |
-| `/api/ai/approval/decide` | POST | Submit approval decision |
-| `/api/ai/approval/history` | GET | Get approval history (PostgreSQL) |
-| `/api/ai/approval/stats` | GET | Approval store statistics |
 | `/api/ai/graphrag/search` | POST | GraphRAG hybrid search |
 | `/api/ai/graphrag/stats` | GET | GraphRAG statistics |
 | `/api/ai/cache/stats` | GET | Redis cache statistics |
@@ -372,24 +352,23 @@ queued (Supabase) → pending (Redis) → processing (Redis) → completed/faile
 | **Redis L2 Cache** | Upstash Redis | Response caching, session optimization (TTL: 1hr) |
 | **Metrics History** | Supabase `server_metrics_history` | Server metrics for anomaly detection (6hr window) |
 | **Conversation History** | Supabase `conversation_history` | Compressed conversation storage |
-| **Approval History** | Supabase `approval_history` | HITL approval records with audit trail |
 | **Realtime** | Supabase Realtime | Live dashboard updates |
 | **Client State** | Zustand | Chat history, UI state |
 
 ### RAG Incident Injection (v5.83.14, 2025-12-30)
 
-Approved incident reports are automatically synced to the `knowledge_base` table for RAG search by Reporter Agent.
+Generated incident reports can be synced to the `knowledge_base` table for RAG search by Reporter Agent.
 
 ```mermaid
 sequenceDiagram
     participant User
-    participant HITL as HITL Approval
+    participant Reporter as Reporter Agent
     participant Injector as RAG Injector
     participant Mistral as Mistral Embedding
     participant KB as knowledge_base
 
-    User->>HITL: Approve Incident Report
-    HITL->>Injector: Trigger Auto-Sync
+    User->>Reporter: Request Incident Report
+    Reporter->>Injector: Trigger Sync
     Injector->>Mistral: embedText(title + content)
     Mistral-->>Injector: 1024-dim Vector
     Injector->>KB: INSERT (embedding, category='incident')
@@ -398,7 +377,7 @@ sequenceDiagram
 ```
 
 **Key Features:**
-- **Auto-Sync Trigger**: Fires on incident approval in `approval-store.ts`
+- **Sync Trigger**: Manual or auto-sync from incident reports
 - **Embedding Model**: Mistral `mistral-embed` (1024-dim)
 - **Dedup Logic**: Uses `session_id` in tags to prevent duplicates
 - **Content Extraction**: Title, root cause, recommendations, timeline from payload
@@ -460,6 +439,7 @@ GraphRAG combines:
 | `CEREBRAS_API_KEY` | Yes | Cerebras (Llama 3.3-70b) API key - Orchestrator, NLQ |
 | `GROQ_API_KEY` | Yes | Groq (Llama 3.3-70b) API key - Analyst, Reporter |
 | `MISTRAL_API_KEY` | Yes | Mistral API key - Advisor, Embedding (1024-dim) |
+| `OPENROUTER_API_KEY` | Yes | OpenRouter API key - Fallback for Advisor, Verifier |
 | `CLOUD_RUN_API_SECRET` | Yes | API authentication secret |
 | `UPSTASH_REDIS_URL` | Yes | Upstash Redis REST URL |
 | `UPSTASH_REDIS_TOKEN` | Yes | Upstash Redis REST token |
@@ -508,9 +488,6 @@ cloud-run/ai-engine/
 │       │   └── embedding-service.ts
 │       ├── generate/           # Generate service
 │       │   └── generate-service.ts
-│       ├── approval/           # HITL approval store
-│       │   ├── approval-store.ts        # In-memory + PostgreSQL persistence
-│       │   └── approval-store.test.ts   # Unit tests
 │       └── scenario/           # Demo data loader
 │           └── scenario-loader.ts
 ├── package.json                # ai, @ai-sdk-tools/agents, hono, @upstash/redis
@@ -525,7 +502,6 @@ src/app/api/ai/
 ├── supervisor/route.ts         # Main AI endpoint proxy
 ├── embedding/route.ts          # Embedding proxy
 ├── generate/route.ts           # Generate proxy
-├── approval/route.ts           # HITL approval proxy
 └── jobs/
     ├── route.ts                # Job creation (POST), list (GET)
     └── [id]/
@@ -566,8 +542,9 @@ cloud-run/supabase-mcp/         # Deprecated - direct Supabase JS client
 - **Framework**: Vercel AI SDK with `@ai-sdk-tools/agents`
 - **Architecture**: Dual-mode Supervisor (Single-Agent / Multi-Agent)
 - **Models**:
-  - Cerebras Llama 3.3-70b (Single-Agent primary, Orchestrator)
-  - Groq Llama 3.3-70b-versatile (NLQ Agent - tool calling)
-  - Mistral mistral-small-2506 (Analyst, Reporter, Advisor, Fallback)
+  - Cerebras Llama 3.3-70b (Orchestrator, NLQ Agent primary)
+  - Groq Llama 3.3-70b-versatile (Analyst, Reporter primary, NLQ fallback)
+  - Mistral mistral-small-2506 (Advisor, Verifier, Embedding)
+  - OpenRouter Free Models (Advisor, Verifier fallback)
 - **Endpoint**: `https://ai-engine-xxxxx.run.app`
 - **Test Coverage**: 65 unit tests (vitest)

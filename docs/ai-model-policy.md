@@ -11,13 +11,14 @@
 
 ### LLM 멀티 에이전트 시스템 (Cloud Run)
 
-| Agent | Model | Provider | 역할 |
-|-------|-------|----------|------|
-| **Orchestrator** | llama-3.3-70b | Cerebras | 빠른 라우팅, 태스크 분배 |
-| **NLQ Agent** | llama-3.3-70b | Cerebras | 자연어 쿼리 처리 |
-| **Analyst Agent** | llama-3.3-70b | Groq | 이상 탐지, 트렌드 예측 |
-| **Reporter Agent** | llama-3.3-70b | Groq | 인시던트 리포트, 타임라인 |
-| **Advisor Agent** | mistral-small-latest | Mistral | 트러블슈팅 가이드, RAG 검색 |
+| Agent | Primary | Fallback | 역할 |
+|-------|---------|----------|------|
+| **Orchestrator** | Cerebras llama-3.3-70b | Groq llama-3.3-70b-versatile | 빠른 라우팅, 태스크 분배 (~200ms) |
+| **NLQ Agent** | Cerebras llama-3.3-70b | Groq llama-3.3-70b-versatile | 자연어 쿼리, 서버 메트릭 조회 |
+| **Analyst Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | 이상 탐지, 트렌드 예측, 패턴 분석 |
+| **Reporter Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | 장애 보고서, 타임라인, GraphRAG |
+| **Advisor Agent** | Mistral mistral-small-2506 | OpenRouter llama-3.1-8b:free | 트러블슈팅 가이드, 명령어 추천 |
+| **Verifier** | Mistral mistral-small-2506 | OpenRouter gemma-2-9b:free | 응답 검증 |
 
 ### Embedding (Cloud Run)
 
@@ -41,9 +42,10 @@
 
 ```typescript
 // Provider 패키지
-"@ai-sdk/cerebras": "^2.0.2"  // Orchestrator, NLQ
-"@ai-sdk/groq": "^2.0.33"     // Analyst, Reporter
-"@ai-sdk/mistral": "^3.0.1"   // Advisor, Embedding
+"@ai-sdk/cerebras": "^2.0.2"   // Orchestrator, NLQ
+"@ai-sdk/groq": "^2.0.33"      // Analyst, Reporter
+"@ai-sdk/mistral": "^3.0.1"    // Advisor, Embedding
+"@ai-sdk/openrouter": "^1.0.0" // Fallback for Advisor, Verifier
 ```
 
 ### Agent Framework
@@ -87,9 +89,10 @@ User Query → Orchestrator (Cerebras)
 
 | Provider | 무료 할당량 | 용도 |
 |----------|-------------|------|
-| **Cerebras** | 무제한 (Llama) | 빠른 라우팅, NLQ |
-| **Groq** | 6K req/day | 분석, 리포팅 |
-| **Mistral** | 1M tokens/mo | RAG, 임베딩 |
+| **Cerebras** | 24M tokens/day | 빠른 라우팅, NLQ |
+| **Groq** | 100K tokens/day | 분석, 리포팅 |
+| **Mistral** | 1M tokens/mo | RAG, 임베딩, Advisor |
+| **OpenRouter** | Unlimited (Free models) | Mistral 폴백 |
 
 ---
 
@@ -104,6 +107,11 @@ CLOUD_RUN_AI_ENABLED=true
 CEREBRAS_API_KEY=xxx
 GROQ_API_KEY=xxx
 MISTRAL_API_KEY=xxx
+OPENROUTER_API_KEY=xxx
+
+# OpenRouter Free Models
+OPENROUTER_DEFAULT_MODEL=meta-llama/llama-3.1-8b-instruct:free
+OPENROUTER_FALLBACK_MODEL=google/gemma-2-9b-it:free
 
 # Note: Vercel에서는 Cloud Run URL만 필요
 # API 키는 Cloud Run 환경에서 관리

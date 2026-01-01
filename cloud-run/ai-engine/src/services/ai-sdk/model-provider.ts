@@ -1,18 +1,20 @@
 /**
  * AI SDK Model Provider
  *
- * Vercel AI SDK 6 based model provider with triple-provider fallback:
+ * Vercel AI SDK 6 based model provider with quad-provider fallback:
  * - Primary: Cerebras (llama-3.3-70b, 24M tokens/day)
  * - Fallback: Groq (llama-3.3-70b-versatile, 100K tokens/day)
  * - Verifier: Mistral (mistral-small-2506, 24B params)
+ * - OpenRouter: Fallback for Advisor/Verifier (free tier models)
  *
- * @version 1.2.0
- * @updated 2025-12-28
+ * @version 1.3.0
+ * @updated 2026-01-01 - Added OpenRouter fallback for Advisor/Verifier
  */
 
 import { createCerebras } from '@ai-sdk/cerebras';
 import { createMistral } from '@ai-sdk/mistral';
 import { createGroq } from '@ai-sdk/groq';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import type { LanguageModel } from 'ai';
 
 // Use centralized config getters (supports AI_PROVIDERS_CONFIG JSON format)
@@ -20,13 +22,14 @@ import {
   getCerebrasApiKey,
   getMistralApiKey,
   getGroqApiKey,
+  getOpenRouterApiKey,
 } from '../../lib/config-parser';
 
 // ============================================================================
 // 1. Types
 // ============================================================================
 
-export type ProviderName = 'cerebras' | 'groq' | 'mistral';
+export type ProviderName = 'cerebras' | 'groq' | 'mistral' | 'openrouter';
 
 export interface ProviderConfig {
   apiKey: string | undefined;
@@ -84,6 +87,22 @@ function createMistralProvider() {
   });
 }
 
+/**
+ * Create OpenRouter provider instance
+ * Used as fallback for Advisor and Verifier agents
+ * Free models: llama-3.1-8b-instruct:free, gemma-2-9b-it:free
+ */
+function createOpenRouterProvider() {
+  const apiKey = getOpenRouterApiKey();
+  if (!apiKey) {
+    throw new Error('OPENROUTER_API_KEY not configured');
+  }
+
+  return createOpenRouter({
+    apiKey,
+  });
+}
+
 // ============================================================================
 // 4. Model Factory Functions
 // ============================================================================
@@ -127,6 +146,22 @@ export function getMistralModel(
   return mistral(modelId) as any;
 }
 
+/**
+ * Get OpenRouter model (fallback for Advisor/Verifier)
+ * @param modelId - 'meta-llama/llama-3.1-8b-instruct:free' (default)
+ *
+ * Free models available:
+ * - meta-llama/llama-3.1-8b-instruct:free (Advisor fallback)
+ * - google/gemma-2-9b-it:free (Verifier fallback)
+ */
+export function getOpenRouterModel(
+  modelId: string = 'meta-llama/llama-3.1-8b-instruct:free'
+): LanguageModel {
+  const openrouter = createOpenRouterProvider();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return openrouter(modelId) as any;
+}
+
 // ============================================================================
 // 5. Supervisor Model with Fallback Chain
 // ============================================================================
@@ -135,6 +170,7 @@ export interface ProviderStatus {
   cerebras: boolean;
   groq: boolean;
   mistral: boolean;
+  openrouter: boolean;
 }
 
 /**
@@ -145,6 +181,7 @@ export function checkProviderStatus(): ProviderStatus {
     cerebras: !!getCerebrasApiKey(),
     groq: !!getGroqApiKey(),
     mistral: !!getMistralApiKey(),
+    openrouter: !!getOpenRouterApiKey(),
   };
 }
 
@@ -185,7 +222,9 @@ export function getSupervisorModel(): {
 }
 
 /**
- * Get verifier model (always Mistral for quality)
+ * Get verifier model with OpenRouter fallback
+ * Primary: Mistral mistral-small-2506
+ * Fallback: OpenRouter google/gemma-2-9b-it:free
  */
 export function getVerifierModel(): {
   model: LanguageModel;
@@ -194,15 +233,68 @@ export function getVerifierModel(): {
 } {
   const status = checkProviderStatus();
 
-  if (!status.mistral) {
-    throw new Error('MISTRAL_API_KEY required for verifier model');
+  // Try Mistral first (primary)
+  if (status.mistral) {
+    try {
+      return {
+        model: getMistralModel('mistral-small-2506'),
+        provider: 'mistral',
+        modelId: 'mistral-small-2506',
+      };
+    } catch (error) {
+      console.warn('⚠️ [Verifier] Mistral initialization failed:', error);
+    }
   }
 
-  return {
-    model: getMistralModel('mistral-small-2506'),
-    provider: 'mistral',
-    modelId: 'mistral-small-2506',
-  };
+  // Fallback: OpenRouter gemma-2-9b-it:free
+  if (status.openrouter) {
+    console.log('🔄 [Verifier] Using OpenRouter fallback (gemma-2-9b-it:free)');
+    return {
+      model: getOpenRouterModel('google/gemma-2-9b-it:free'),
+      provider: 'openrouter',
+      modelId: 'google/gemma-2-9b-it:free',
+    };
+  }
+
+  throw new Error('No provider available for verifier model. Set MISTRAL_API_KEY or OPENROUTER_API_KEY.');
+}
+
+/**
+ * Get advisor model with OpenRouter fallback
+ * Primary: Mistral mistral-small-2506
+ * Fallback: OpenRouter meta-llama/llama-3.1-8b-instruct:free
+ */
+export function getAdvisorModel(): {
+  model: LanguageModel;
+  provider: ProviderName;
+  modelId: string;
+} {
+  const status = checkProviderStatus();
+
+  // Try Mistral first (primary)
+  if (status.mistral) {
+    try {
+      return {
+        model: getMistralModel('mistral-small-2506'),
+        provider: 'mistral',
+        modelId: 'mistral-small-2506',
+      };
+    } catch (error) {
+      console.warn('⚠️ [Advisor] Mistral initialization failed:', error);
+    }
+  }
+
+  // Fallback: OpenRouter llama-3.1-8b-instruct:free
+  if (status.openrouter) {
+    console.log('🔄 [Advisor] Using OpenRouter fallback (llama-3.1-8b-instruct:free)');
+    return {
+      model: getOpenRouterModel('meta-llama/llama-3.1-8b-instruct:free'),
+      provider: 'openrouter',
+      modelId: 'meta-llama/llama-3.1-8b-instruct:free',
+    };
+  }
+
+  throw new Error('No provider available for advisor model. Set MISTRAL_API_KEY or OPENROUTER_API_KEY.');
 }
 
 // ============================================================================
@@ -234,6 +326,9 @@ export async function testProviderHealth(
         break;
       case 'mistral':
         getMistralModel();
+        break;
+      case 'openrouter':
+        getOpenRouterModel();
         break;
     }
 
@@ -267,6 +362,9 @@ export async function checkAllProvidersHealth(): Promise<ProviderHealth[]> {
   if (status.mistral) {
     results.push(await testProviderHealth('mistral'));
   }
+  if (status.openrouter) {
+    results.push(await testProviderHealth('openrouter'));
+  }
 
   return results;
 }
@@ -280,5 +378,6 @@ export function logProviderStatus(): void {
     Cerebras: status.cerebras ? '✅' : '❌',
     Groq: status.groq ? '✅' : '❌',
     Mistral: status.mistral ? '✅' : '❌',
+    OpenRouter: status.openrouter ? '✅' : '❌',
   });
 }

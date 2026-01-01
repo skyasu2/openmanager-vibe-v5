@@ -38,12 +38,15 @@ export interface SupabaseConfig {
 /**
  * AI Providers Configuration (Grouped)
  * Contains API keys for multiple AI providers
+ *
+ * @updated 2026-01-01 - Added OpenRouter for Advisor/Verifier fallback
  */
 export interface AIProvidersConfig {
   groq: string;
   mistral: string;
   cerebras: string;
   tavily: string;
+  openrouter?: string; // Fallback for Advisor/Verifier agents
 }
 
 /**
@@ -239,6 +242,19 @@ export function getTavilyApiKey(): string | null {
 }
 
 /**
+ * Get OpenRouter API Key (Advisor/Verifier Fallback)
+ * Uses AI_PROVIDERS_CONFIG or falls back to individual env var
+ * Free models: meta-llama/llama-3.1-8b-instruct:free, google/gemma-2-9b-it:free
+ * @see https://openrouter.ai/docs
+ * @added 2026-01-01
+ */
+export function getOpenRouterApiKey(): string | null {
+  const providersConfig = getAIProvidersConfig();
+  if (providersConfig?.openrouter) return providersConfig.openrouter;
+  return process.env.OPENROUTER_API_KEY || null;
+}
+
+/**
  * Get Upstash Redis configuration
  * Priority order:
  * 1. KV_CONFIG (grouped secret - preferred)
@@ -286,6 +302,7 @@ export function getConfigStatus(): {
   mistral: boolean;
   cerebras: boolean;
   tavily: boolean;
+  openrouter: boolean;
   cloudRunApi: boolean;
 } {
   return {
@@ -295,6 +312,7 @@ export function getConfigStatus(): {
     mistral: getMistralApiKey() !== null,
     cerebras: getCerebrasApiKey() !== null,
     tavily: getTavilyApiKey() !== null,
+    openrouter: getOpenRouterApiKey() !== null,
     cloudRunApi: getCloudRunApiSecret() !== null,
   };
 }

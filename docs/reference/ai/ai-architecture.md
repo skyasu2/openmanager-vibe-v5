@@ -55,8 +55,8 @@ The AI Assistant is built on a **LLM 멀티 에이전트 시스템** using **Ver
 - **Proxy**: `/api/ai/*` routes on Vercel forward to Cloud Run
 
 > **📖 상세 정보**: [AI Engine 5W1H 분석](../architecture/ai/ai-engine-5w1h.md) 참조
-> - 4대 에이전트 상세 (NLQ, Analyst, Reporter, Advisor)
-> - 3중 Provider 폴백 (Cerebras → Mistral → Groq)
+> - 5대 에이전트 상세 (NLQ, Analyst, Reporter, Advisor, Verifier)
+> - 듀얼 Provider 폴백 (Cerebras ↔ Groq, Mistral 단독)
 > - 12개 AI 도구 명세
 
 ## 3 AI Features
@@ -108,38 +108,34 @@ The AI uses 12 specialized tools within each agent for domain-specific operation
 4. **Orchestrator Routing**: Cerebras Llama classifies intent and routes to appropriate agent
 5. **Agent Execution**: Selected agent (NLQ/Analyst/Reporter/Advisor) processes query
 6. **Tool Calling**: Multi-step tool execution with Vercel AI SDK
-7. **Approval Check** (Reporter only): Critical actions require human approval
+7. **Verification**: Verifier agent validates response quality
 8. **Response**: AI SDK v5 Data Stream Protocol (`0:"text"\n`, `d:{...}\n`)
 
-## Human-in-the-Loop Workflow
+## User-Triggered Design
+
+All AI features are explicitly user-initiated (no automatic triggers or approvals required):
 
 ```mermaid
 sequenceDiagram
     participant U as User
     participant S as Supervisor
     participant R as Reporter Agent
-    participant A as Approval Node
-    participant Admin as Administrator
+    participant V as Verifier
 
     U->>S: "서버 5번 장애 분석해줘"
     S->>R: Route to Reporter (incident_ops)
     R->>R: Generate incident report
-    R->>A: requiresApproval = true
-    A->>U: "관리자 승인이 필요합니다"
-
-    Note over A,Admin: Interrupt - Graph paused
-
-    Admin->>A: Approve/Reject
-    A->>U: Final response (approved) or rejection message
+    R->>V: Validate response quality
+    V->>U: Verified response with confidence score
 ```
 
-### Approval Types
+### Response Verification
 
-| Action Type | Trigger | Requires Approval |
-|-------------|---------|-------------------|
-| `incident_report` | Root cause analysis completed | Yes |
-| `system_command` | Risky operations | Yes |
-| `critical_alert` | High-severity alerts | Yes |
+| Aspect | Check | Purpose |
+|--------|-------|---------|
+| `accuracy` | Cross-reference with data | Fact checking |
+| `completeness` | Required sections present | Full coverage |
+| `hallucination` | Pattern detection | Quality assurance |
 
 ## A2A (Agent-to-Agent) Communication
 
@@ -216,14 +212,13 @@ const checkpointer = PostgresSaver.fromConnString(
 // Graph compiled with checkpointer
 const graph = workflow.compile({
   checkpointer,
-  interruptBefore: ['approval_check'],
 });
 ```
 
 Features:
 - Conversation history preserved across requests
-- Resume from interrupt points (Human-in-the-Loop)
 - Thread-based isolation per session
+- Session message limit (100 messages, warning at 80)
 
 ## Circuit Breaker
 
@@ -242,7 +237,6 @@ Model health is monitored with Circuit Breaker pattern:
 | **Supabase** | pgvector | RAG knowledge base |
 | **Supabase** | PostgresCheckpointer | Session persistence |
 | **Supabase** | Realtime | Live updates |
-| **Supabase** | `approval_history` | HITL approval audit trail |
 | **GraphRAG** | pgvector + graph | Hybrid vector + graph search |
 | **Upstash Redis** | REST API | L2 response caching |
 | **Scenario Loader** | `src/services/scenario/` | Demo metrics data |
