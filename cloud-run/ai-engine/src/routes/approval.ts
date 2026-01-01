@@ -3,8 +3,14 @@
  *
  * Human-in-the-Loop approval endpoints.
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @created 2025-12-28
+ * @updated 2026-01-01
+ *
+ * @deprecated HITL workflow removed in v4.1 (user-triggered design)
+ * - `/status`, `/decide`, `/stats` endpoints are deprecated (no longer called from frontend)
+ * - `/history`, `/history/stats` endpoints kept for RAG context injection
+ *   (used by incident-rag-injector.ts for approval_history table queries)
  */
 
 import { Hono } from 'hono';

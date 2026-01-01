@@ -17,7 +17,7 @@ import type { AIThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types
 import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
 import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
-import { SESSION_LIMITS } from '@/types/hitl';
+import { SESSION_LIMITS } from '@/types/session';
 
 // ============================================================================
 // Types

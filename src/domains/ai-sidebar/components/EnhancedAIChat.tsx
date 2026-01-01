@@ -6,7 +6,7 @@ import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { AsyncQueryProgress } from '@/hooks/ai/useAsyncAIQuery';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
-import type { SessionState } from '@/types/hitl';
+import type { SessionState } from '@/types/session';
 import { JobProgressIndicator } from './JobProgressIndicator';
 
 /**

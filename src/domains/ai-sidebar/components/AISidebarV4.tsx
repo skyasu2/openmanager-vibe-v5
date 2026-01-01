@@ -27,7 +27,7 @@ import { EnhancedAIChat } from './EnhancedAIChat';
 import { type AgentStep, InlineAgentStatus } from './InlineAgentStatus';
 
 // 🔧 공통 로직은 useAIChatCore 훅에서 관리
-// - HITL 승인/거부
+// - Hybrid AI Query (Streaming + Job Queue)
 // - 세션 제한
 // - 피드백
 // - 메시지 변환
