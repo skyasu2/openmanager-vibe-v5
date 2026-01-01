@@ -133,7 +133,7 @@ export default function IntelligentMonitoringPage() {
     // 상승 추세 예측 추출
     const predictions: SystemAnalysisSummary['predictions'] = [];
     for (const server of serverResults) {
-      if (server.trendPrediction?.summary.hasRisingTrends) {
+      if (server.trendPrediction?.summary?.hasRisingTrends) {
         for (const [metric, result] of Object.entries(
           server.trendPrediction.results
         )) {

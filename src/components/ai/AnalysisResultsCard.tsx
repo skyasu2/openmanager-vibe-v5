@@ -212,7 +212,7 @@ function TrendSection({ data }: { data: CloudRunTrendPrediction }) {
         <h3 className="font-semibold text-gray-800">
           {data.predictionHorizon} 후 예측
         </h3>
-        {data.summary.hasRisingTrends && (
+        {data.summary?.hasRisingTrends && (
           <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
             상승 추세 감지
           </span>
