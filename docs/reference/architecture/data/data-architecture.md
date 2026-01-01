@@ -1,122 +1,183 @@
 # 서버 데이터 아키텍처 가이드
 
-**최종 업데이트**: 2025-12-17
-**작성자**: Antigravity + User Feedback
-**목적**: 난개발 방지 및 Zero-Internal-Traffic 아키텍처 확립
+**최종 업데이트**: 2026-01-01
+**버전**: v2.0.0 (Korean DC + SSOT Sync)
 
 ---
 
 ## 🎯 설계 의도: Zero-Internal-Traffic Strategy
 
 ### 왜 이 아키텍처인가?
+
 AI/ML 서비스가 단순히 API를 호출하는 비효율적인 구조를 탈피하고, 각 서비스의 특성에 맞는 **최적의 데이터 접근 경로**를 구축했습니다.
 
-- **Vercel API**: 오직 **외부 클라이언트(User Interface)**의 요청만 처리합니다.
-- **Internal Services**: API를 거치지 않고 **Direct Access (File/DB/Memory)**를 사용합니다.
+- **Vercel API**: 오직 **외부 클라이언트(User Interface)**의 요청만 처리
+- **Internal Services**: API를 거치지 않고 **Direct Access (File/DB/Memory)** 사용
 
 ### 🚀 Optimized Data Flow
 
-| Service | 기존 (Bad Flow) ❌ | **개선된 (Optimized Flow) ✅** | Data Source |
-| :--- | :--- | :--- | :--- |
-| **Client UI** | Vercel API 호출 | **Direct Logic** (Local File) | `src/data/fixed-24h-metrics.ts` |
-| **AI (RAG)** | Vercel API 호출 | **DB Query (Direct)** | **Supabase `server_logs` (RAG)** |
-| **ML Service** | Vercel API 호출 | **Memory Load (Pre-processed)** | `data/fixed-24h-data.json` |
-
-### 🛠️ 핵심 이점
-
-1. **Cost Efficiency**: 불필요한 내부 API 호출 제거로 **Vercel 비용 $0** 유지.
-2. **Latency**: ML/AI 서비스의 데이터 접근 지연 시간이 **Network RTT(수십 ms) → Memory Access(마이크로초)**로 단축.
-3. **Realism**: AI는 단순 텍스트 생성이 아닌, **실제 DB(Supabase)**를 조회하여 로그를 분석합니다.
-
-### 24시간 회전 데이터 시스템 (SSOT)
-
-**Single Source of Truth**: 모든 데이터는 `fixed-24h-metrics.ts`에서 시작됩니다.
-
-| 시간대 | 시나리오 | Critical 서버 | 연쇄 영향 |
-|--------|----------|---------------|-----------|
-| 02시 | DB 슬로우 쿼리 | db-main-01, db-repl-01 | API 지연 |
-| 07시 | 네트워크 패킷 손실 | web-prd-01/02, lb-main-01 | 전체 접근 불가 |
-| 12시 | OOM Killer 직전 | api-prd-01, cache-redis-01/02 | 캐시 미스 급증 |
-| 17시 | 디스크 90% 초과 | storage-nas-01, backup-server-01 | 쓰기 작업 실패 |
-| 22시 | CPU 95% 과부하 | web-prd-01/02, api-prd-01/02 | 응답 지연 심화 |
+| Service | Data Source | Access Method |
+|---------|-------------|---------------|
+| **Dashboard UI** | `src/data/fixed-24h-metrics.ts` | Direct Import |
+| **AI Engine** | `cloud-run/ai-engine/data/hourly-data/*.json` | File Load |
+| **RAG System** | Supabase `server_logs` | DB Query |
 
 ---
 
-## 🏛️ Hybrid Architecture (Method C)
+## 🏛️ SSOT (Single Source of Truth) 아키텍처
+
+### 데이터 흐름
 
 ```
-┌────────────────┐     Direct Load     ┌────────────────────────┐
-|   Frontend     │ ◄─────────────── │  fixed-24h-metrics.ts  │
-│   Dashboard    │                  │  (Single Source)       │
-└────────────────┘                  └────────────────────────┘
-        ▲
-        │ (NO API CALL for Metrics)
-        │ 
-┌────────────────┐     Direct Load     ┌────────────────────────┐
-│   ML Service   │ ◄─────────────── │  data/fixed-24h-data.json |
-│   Rust Engine  │                  │  (Pre-processed)       │
-└────────────────┘                  └────────────────────────┘
-
-┌────────────────┐     Direct Query    ┌────────────────────────┐
-│   AI Engine    │ ◄─────────────── │  Supabase DB           │
-│   Analyst      │                  │  table: server_logs    │
-└────────────────┘                  └────────────────────────┘
+┌─────────────────────────────────┐
+│  fixed-24h-metrics.ts (SSOT)    │  ← 원본 데이터 정의
+└─────────────────────────────────┘
+              │
+              │ npm run data:sync
+              ▼
+┌─────────────────────────────────┐
+│  sync-hourly-data.ts            │  ← Seeded Random 생성
+│  (Mulberry32 PRNG)              │
+└─────────────────────────────────┘
+              │
+       ┌──────┴──────┐
+       ▼             ▼
+┌────────────┐  ┌────────────────────────┐
+│ Dashboard  │  │ AI Engine (Cloud Run)  │
+│ public/    │  │ cloud-run/ai-engine/   │
+│ hourly-    │  │ data/hourly-data/      │
+│ data/      │  │                        │
+└────────────┘  └────────────────────────┘
 ```
 
-**역할 분담**:
-- **Internal Logic**: 빠른 UI 렌더링, ML 연산
-- **Supabase**: AI/ML 분석, 히스토리 쿼리 (RAG)
+### 동기화 명령어
+
+```bash
+# SSOT에서 hourly-data JSON 생성 (결정론적)
+npm run data:sync
+
+# 출력:
+#   - public/hourly-data/hour-XX.json (24개)
+#   - cloud-run/ai-engine/data/hourly-data/hour-XX.json (24개)
+```
 
 ---
 
-## 🎯 핵심 원칙: Single Source of Truth
+## 🖥️ 서버 구성 (15대 - Korean DC)
 
-**절대 규칙**: 모든 서버 데이터는 `fixed-24h-metrics.ts` (또는 파생된 JSON/DB)에서 유래합니다.
+### 서버 목록
 
-### ❌ 금지 사항
+| 유형 | ID | 이름 | 위치 |
+|------|-----|------|------|
+| **Web** | `web-nginx-icn-01` | Nginx Web Server 01 | Seoul-ICN-AZ1 |
+| **Web** | `web-nginx-icn-02` | Nginx Web Server 02 | Seoul-ICN-AZ2 |
+| **Web** | `web-nginx-pus-01` | Nginx Web Server DR | Busan-PUS-AZ1 |
+| **API** | `api-was-icn-01` | WAS API Server 01 | Seoul-ICN-AZ1 |
+| **API** | `api-was-icn-02` | WAS API Server 02 | Seoul-ICN-AZ2 |
+| **API** | `api-was-pus-01` | WAS API Server DR | Busan-PUS-AZ1 |
+| **DB** | `db-mysql-icn-primary` | MySQL Primary | Seoul-ICN-AZ1 |
+| **DB** | `db-mysql-icn-replica` | MySQL Replica | Seoul-ICN-AZ2 |
+| **DB** | `db-mysql-pus-dr` | MySQL DR | Busan-PUS-AZ1 |
+| **Cache** | `cache-redis-icn-01` | Redis Cache 01 | Seoul-ICN-AZ1 |
+| **Cache** | `cache-redis-icn-02` | Redis Cache 02 | Seoul-ICN-AZ2 |
+| **Storage** | `storage-nfs-icn-01` | NFS Storage | Seoul-ICN-AZ1 |
+| **Storage** | `storage-s3gw-pus-01` | S3 Gateway DR | Busan-PUS-AZ1 |
+| **LB** | `lb-haproxy-icn-01` | HAProxy LB 01 | Seoul-ICN-AZ1 |
+| **LB** | `lb-haproxy-pus-01` | HAProxy LB DR | Busan-PUS-AZ1 |
 
-```typescript
-// ❌ 절대 금지: 실시간 랜덤 생성
-const randomMetric = Math.random() * 100;
+### 서버 ID 명명 규칙
 
-// ❌ 절대 금지: 독자적인 Mock 로직
-class MyCustomMockSystem { ... }
+```
+{type}-{software}-{region}-{number}
+
+예시:
+  web-nginx-icn-01
+  │    │     │   └─ 서버 번호
+  │    │     └───── 리전 (icn=인천/서울, pus=부산)
+  │    └─────────── 소프트웨어 (nginx, mysql, redis 등)
+  └──────────────── 타입 (web, api, db, cache, storage, lb)
 ```
 
-### ✅ 올바른 방법
+---
 
-```typescript
-// ✅ 올바른 방법: SSOT 활용
-import { getDataAtMinute } from '@/data/fixed-24h-metrics';
-```
+## 🔴 장애 시나리오 (5개)
+
+| 시간 | 시나리오 | 영향 서버 | 상태 |
+|------|---------|----------|------|
+| **02시** | DB 자동 백업 - 디스크 I/O 과부하 | `db-mysql-icn-primary`, `storage-nfs-icn-01` | Warning |
+| **03시** | DB 슬로우 쿼리 누적 - 성능 저하 | `db-mysql-icn-primary` | Critical |
+| **07시** | 네트워크 패킷 손실 - LB 과부하 | `lb-haproxy-icn-01`, `api-was-icn-01/02` | Critical |
+| **12시** | Redis 캐시 메모리 누수 - OOM 직전 | `cache-redis-icn-01`, `cache-redis-icn-02` | Critical |
+| **21시** | API 요청 폭증 - CPU 과부하 | `api-was-icn-01/02`, `web-nginx-icn-01/02` | Critical |
 
 ---
 
 ## 📁 데이터 파일 구조
 
-### ✅ Active FIles (절대 삭제 금지)
+### Active Files (삭제 금지)
 
-| 파일 경로                                              | 용도                            | 수정 가능 여부       |
-| ------------------------------------------------------ | ------------------------------- | -------------------- |
-| `src/data/fixed-24h-metrics.ts`                        | **SSOT (24시간 고정 데이터)**    | ✅ 핵심 로직 수정 시 |
-| `cloud-run/rust-inference/data/fixed-24h-data.json`    | Rust 서비스용 전처리 데이터      | ❌ 자동 생성됨       |
-| `src/scripts/generate-rust-data.ts`                    | JSON 데이터 생성 스크립트        | ✅ 수동 수정 가능    |
+| 파일 경로 | 용도 | 수정 가능 |
+|-----------|------|----------|
+| `src/data/fixed-24h-metrics.ts` | **SSOT (24시간 고정 데이터)** | ✅ 핵심 로직 |
+| `scripts/data/sync-hourly-data.ts` | JSON 데이터 생성 스크립트 | ✅ 수정 가능 |
+| `public/hourly-data/*.json` | Dashboard용 24시간 데이터 | ❌ 자동 생성 |
+| `cloud-run/ai-engine/data/hourly-data/*.json` | AI Engine용 데이터 | ❌ 자동 생성 |
+
+### 파일 크기
+
+```
+public/hourly-data/
+├── hour-00.json ~ hour-23.json
+├── 파일당 크기: ~124KB
+├── 총 24개 파일
+└── 총 크기: ~3MB
+```
 
 ---
 
 ## 📝 새로운 기능 추가 시 체크리스트
 
-### 서버 데이터 관련 기능 추가 시
+### 서버 추가/수정 시
 
-- [ ] **1단계**: `fixed-24h-metrics.ts`에 로직 추가 가능한지 확인
-- [ ] **2단계**: AI가 필요한 데이터라면 `src/scripts/seed-logs-supabase-standalone.ts` 실행하여 DB 동기화
-- [ ] **3단계**: ML이 필요한 데이터라면 `npm run generate:rust-data` 실행하여 JSON 갱신
-- [ ] **4단계**: 내부 서비스가 Vercel API를 호출하지 않는지 확인
+- [ ] **1단계**: `scripts/data/sync-hourly-data.ts`의 `KOREAN_DC_SERVERS` 배열 수정
+- [ ] **2단계**: `npm run data:sync` 실행
+- [ ] **3단계**: 생성된 JSON 파일 Git 커밋
+- [ ] **4단계**: `src/data/fixed-24h-metrics.ts` 동기화 확인
+
+### 장애 시나리오 추가/수정 시
+
+- [ ] **1단계**: `scripts/data/sync-hourly-data.ts`의 `FAILURE_SCENARIOS` 배열 수정
+- [ ] **2단계**: `npm run data:sync` 실행
+- [ ] **3단계**: 생성된 JSON 파일 Git 커밋
 
 ---
 
-## 📖 참고 문서
+## 🎯 핵심 원칙
 
-- **SSOT**: `src/data/fixed-24h-metrics.ts`
-- **Rust 데이터 생성**: `src/scripts/generate-rust-data.ts`
-- **로그 DB 적재**: `src/scripts/seed-logs-supabase-standalone.ts`
+### ❌ 금지 사항
+
+```typescript
+// ❌ 절대 금지: 실시간 랜덤 생성 (비결정론적)
+const randomMetric = Math.random() * 100;
+
+// ❌ 절대 금지: hourly-data JSON 직접 수정
+// 항상 npm run data:sync로 생성
+```
+
+### ✅ 올바른 방법
+
+```typescript
+// ✅ Dashboard: SSOT에서 직접 import
+import { getDataAtMinute } from '@/data/fixed-24h-metrics';
+
+// ✅ AI Engine: JSON 파일 로드
+const hourlyData = JSON.parse(fs.readFileSync('data/hourly-data/hour-12.json'));
+```
+
+---
+
+## 📖 관련 문서
+
+- **SSOT 상세**: `src/data/fixed-24h-metrics.ts`
+- **Sync 스크립트**: `scripts/data/sync-hourly-data.ts`
+- **시뮬레이션 가이드**: `docs/guides/simulation.md`
