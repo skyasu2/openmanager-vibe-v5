@@ -4384,7 +4384,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-01-01T05:27:58.596Z",
+    "version": "1.0.0",
     "totalDataPoints": 12,
     "intervalMinutes": 5,
     "serverCount": 15,

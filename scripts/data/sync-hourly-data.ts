@@ -424,7 +424,7 @@ function generateHourlyData(hour: number) {
     scenario: scenario?.incident || `${hour}시 정상 운영`,
     dataPoints,
     metadata: {
-      generatedAt: new Date().toISOString(),
+      version: '1.0.0', // SSOT 버전 (변경 시 증가)
       totalDataPoints: 12,
       intervalMinutes: 5,
       serverCount: KOREAN_DC_SERVERS.length,
