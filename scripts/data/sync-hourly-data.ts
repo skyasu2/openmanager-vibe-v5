@@ -408,60 +408,65 @@ function generateHourlyData(hour: number) {
 // ============================================================================
 
 function main() {
-  console.log('🔄 SSOT 데이터 동기화 시작...\n');
-  console.log('📋 SSOT: fixed-24h-metrics.ts (한국 DC 서버 15개)\n');
+  try {
+    console.log('🔄 SSOT 데이터 동기화 시작...\n');
+    console.log('📋 SSOT: fixed-24h-metrics.ts (한국 DC 서버 15개)\n');
 
-  // 출력 디렉토리들
-  const outputDirs = [
-    path.join(process.cwd(), 'public/hourly-data'),
-    path.join(process.cwd(), 'cloud-run/ai-engine/data/hourly-data'),
-  ];
+    // 출력 디렉토리들
+    const outputDirs = [
+      path.join(process.cwd(), 'public/hourly-data'),
+      path.join(process.cwd(), 'cloud-run/ai-engine/data/hourly-data'),
+    ];
 
-  // 디렉토리 생성
-  outputDirs.forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  });
-
-  let totalSize = 0;
-
-  // 24시간 데이터 생성
-  for (let hour = 0; hour < 24; hour++) {
-    const data = generateHourlyData(hour);
-    const filename = `hour-${hour.toString().padStart(2, '0')}.json`;
-    const jsonContent = JSON.stringify(data, null, 2);
-
-    // 모든 출력 디렉토리에 저장
+    // 디렉토리 생성
     outputDirs.forEach((dir) => {
-      const filepath = path.join(dir, filename);
-      fs.writeFileSync(filepath, jsonContent);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
     });
 
-    const fileSize = Buffer.byteLength(jsonContent, 'utf8');
-    totalSize += fileSize;
+    let totalSize = 0;
 
-    const scenario = getScenarioForHour(hour);
-    const icon = scenario?.affectedServers.some((s) => s.status === 'critical')
-      ? '🔴'
-      : scenario?.affectedServers.some((s) => s.status === 'warning')
-        ? '🟡'
-        : '🟢';
+    // 24시간 데이터 생성
+    for (let hour = 0; hour < 24; hour++) {
+      const data = generateHourlyData(hour);
+      const filename = `hour-${hour.toString().padStart(2, '0')}.json`;
+      const jsonContent = JSON.stringify(data, null, 2);
 
-    console.log(`${icon} ${filename} - ${data.scenario} (${(fileSize / 1024).toFixed(1)}KB)`);
+      // 모든 출력 디렉토리에 저장
+      outputDirs.forEach((dir) => {
+        const filepath = path.join(dir, filename);
+        fs.writeFileSync(filepath, jsonContent);
+      });
+
+      const fileSize = Buffer.byteLength(jsonContent, 'utf8');
+      totalSize += fileSize;
+
+      const scenario = getScenarioForHour(hour);
+      const icon = scenario?.affectedServers.some((s) => s.status === 'critical')
+        ? '🔴'
+        : scenario?.affectedServers.some((s) => s.status === 'warning')
+          ? '🟡'
+          : '🟢';
+
+      console.log(`${icon} ${filename} - ${data.scenario} (${(fileSize / 1024).toFixed(1)}KB)`);
+    }
+
+    console.log(`\n📦 총 크기: ${(totalSize / 1024).toFixed(1)}KB (파일당 평균 ${(totalSize / 24 / 1024).toFixed(1)}KB)`);
+    console.log('\n✅ 동기화 완료!\n');
+
+    console.log('📁 출력 위치:');
+    outputDirs.forEach((dir) => console.log(`   - ${dir}`));
+
+    console.log('\n📊 통계:');
+    console.log(`   - 시간별 파일: 24개`);
+    console.log(`   - 서버 수: ${KOREAN_DC_SERVERS.length}개`);
+    console.log(`   - 데이터 포인트/파일: 12개 (5분 간격)`);
+    console.log(`   - 장애 시나리오: ${FAILURE_SCENARIOS.length}개`);
+  } catch (error) {
+    console.error('❌ 동기화 실패:', error instanceof Error ? error.message : error);
+    process.exit(1);
   }
-
-  console.log(`\n📦 총 크기: ${(totalSize / 1024).toFixed(1)}KB (파일당 평균 ${(totalSize / 24 / 1024).toFixed(1)}KB)`);
-  console.log('\n✅ 동기화 완료!\n');
-
-  console.log('📁 출력 위치:');
-  outputDirs.forEach((dir) => console.log(`   - ${dir}`));
-
-  console.log('\n📊 통계:');
-  console.log(`   - 시간별 파일: 24개`);
-  console.log(`   - 서버 수: ${KOREAN_DC_SERVERS.length}개`);
-  console.log(`   - 데이터 포인트/파일: 12개 (5분 간격)`);
-  console.log(`   - 장애 시나리오: ${FAILURE_SCENARIOS.length}개`);
 }
 
 main();
