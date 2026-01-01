@@ -193,19 +193,12 @@ export function useHybridAIQuery(
   // ============================================================================
   // TextStreamChatTransport for plain text streaming (non-chunked responses)
   // 우리 API는 Cloud Run에서 전체 응답을 받은 후 반환하므로 TextStream 사용
+  // Note: TextStreamChatTransport는 동적 body 함수를 지원하지 않음
   // @see https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol
   const transport = useMemo(
     () =>
       new TextStreamChatTransport({
         api: apiEndpoint,
-        // 동적 body 함수로 최신 sessionId 항상 전달
-        body: () => ({
-          sessionId: sessionIdRef.current,
-        }),
-        // 동적 headers 함수 (확장성)
-        headers: () => ({
-          'X-Session-Id': sessionIdRef.current,
-        }),
       }),
     [apiEndpoint]
   );
