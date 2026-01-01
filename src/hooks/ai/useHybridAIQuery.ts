@@ -28,7 +28,7 @@
 
 import type { UIMessage } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
+import { TextStreamChatTransport } from 'ai';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   analyzeQueryComplexity,
@@ -191,11 +191,12 @@ export function useHybridAIQuery(
   // ============================================================================
   // useChat Hook (Streaming Mode) - AI SDK v5 베스트 프랙티스 적용
   // ============================================================================
-  // DefaultChatTransport with dynamic body function for session ID sync
-  // @see https://github.com/vercel/ai - Dynamic options pattern
+  // TextStreamChatTransport for plain text streaming (non-chunked responses)
+  // 우리 API는 Cloud Run에서 전체 응답을 받은 후 반환하므로 TextStream 사용
+  // @see https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol
   const transport = useMemo(
     () =>
-      new DefaultChatTransport({
+      new TextStreamChatTransport({
         api: apiEndpoint,
         // 동적 body 함수로 최신 sessionId 항상 전달
         body: () => ({

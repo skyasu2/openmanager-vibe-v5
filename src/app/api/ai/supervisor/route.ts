@@ -375,66 +375,46 @@ export const POST = withRateLimit(
 
               if (data.success && data.response) {
                 // ================================================================
-                // 🔧 Data Stream Protocol 형식으로 변환 (AI SDK v5 호환)
-                // useChat 훅이 파싱할 수 있도록 표준 프로토콜 사용
-                // @see https://sdk.vercel.ai/docs/ai-sdk-ui/stream-protocol
+                // 🔧 TextStreamChatTransport용 일반 텍스트 응답
+                // useChat + TextStreamChatTransport는 plain text를 기대함
+                // @see https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol
                 // ================================================================
-                const dataStreamResponse = [
-                  `0:${JSON.stringify(data.response)}`,
-                  'd:{"finishReason":"stop","usage":{"promptTokens":0,"completionTokens":0}}',
-                  '', // 마지막 줄바꿈
-                ].join('\n');
-
-                return new NextResponse(dataStreamResponse, {
+                return new NextResponse(data.response, {
                   headers: {
                     'Content-Type': 'text/plain; charset=utf-8',
                     'Cache-Control': 'no-cache',
                     'X-Session-Id': sessionId,
                     'X-Backend': 'cloud-run',
-                    'X-Stream-Protocol': 'data-stream-v1',
                   },
                 });
               } else if (data.error) {
-                // 에러도 Data Stream Protocol 형식으로 반환
+                // 에러도 텍스트로 반환
                 const errorMessage = `⚠️ AI 오류: ${data.error}`;
-                const errorStreamResponse = [
-                  `0:${JSON.stringify(errorMessage)}`,
-                  'd:{"finishReason":"error","usage":{"promptTokens":0,"completionTokens":0}}',
-                  '',
-                ].join('\n');
-
-                return new NextResponse(errorStreamResponse, {
+                return new NextResponse(errorMessage, {
                   headers: {
                     'Content-Type': 'text/plain; charset=utf-8',
                     'X-Session-Id': sessionId,
                     'X-Backend': 'cloud-run',
-                    'X-Stream-Protocol': 'data-stream-v1',
                   },
                 });
               }
 
               throw new Error('Invalid response from Cloud Run');
             },
-            // Fallback: 로컬 폴백 응답 (Data Stream Protocol)
+            // Fallback: 로컬 폴백 응답 (Plain Text)
             () => {
               const fallback = createFallbackResponse('supervisor', {
                 query: userQuery,
               });
               const fallbackText = fallback.data?.response ?? fallback.message;
-              const fallbackStreamResponse = [
-                `0:${JSON.stringify(fallbackText)}`,
-                'd:{"finishReason":"stop","usage":{"promptTokens":0,"completionTokens":0}}',
-                '',
-              ].join('\n');
 
-              return new NextResponse(fallbackStreamResponse, {
+              return new NextResponse(fallbackText, {
                 headers: {
                   'Content-Type': 'text/plain; charset=utf-8',
                   'X-Session-Id': sessionId,
                   'X-Backend': 'fallback',
                   'X-Fallback-Response': 'true',
                   'X-Retry-After': '30000',
-                  'X-Stream-Protocol': 'data-stream-v1',
                 },
               });
             }
