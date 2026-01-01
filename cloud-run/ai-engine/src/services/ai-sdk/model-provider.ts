@@ -297,6 +297,43 @@ export function getAdvisorModel(): {
   throw new Error('No provider available for advisor model. Set MISTRAL_API_KEY or OPENROUTER_API_KEY.');
 }
 
+/**
+ * Get summarizer model (OpenRouter primary - 100% free tier)
+ * Primary: OpenRouter qwen/qwen-2.5-7b-instruct:free (한국어 우수)
+ * Fallback: OpenRouter meta-llama/llama-3.1-8b-instruct:free
+ *
+ * @description Summarizer Agent 전용 - 빠른 요약 및 핵심 정보 추출
+ */
+export function getSummarizerModel(): {
+  model: LanguageModel;
+  provider: ProviderName;
+  modelId: string;
+} {
+  const status = checkProviderStatus();
+
+  if (!status.openrouter) {
+    throw new Error('OpenRouter not configured. Set OPENROUTER_API_KEY for Summarizer Agent.');
+  }
+
+  // Primary: Qwen 2.5 7B (한국어 품질 우수)
+  try {
+    return {
+      model: getOpenRouterModel('qwen/qwen-2.5-7b-instruct:free'),
+      provider: 'openrouter',
+      modelId: 'qwen/qwen-2.5-7b-instruct:free',
+    };
+  } catch (error) {
+    console.warn('⚠️ [Summarizer] Qwen model failed, falling back to Llama:', error);
+  }
+
+  // Fallback: Llama 3.1 8B
+  return {
+    model: getOpenRouterModel('meta-llama/llama-3.1-8b-instruct:free'),
+    provider: 'openrouter',
+    modelId: 'meta-llama/llama-3.1-8b-instruct:free',
+  };
+}
+
 // ============================================================================
 // 6. Health Check
 // ============================================================================

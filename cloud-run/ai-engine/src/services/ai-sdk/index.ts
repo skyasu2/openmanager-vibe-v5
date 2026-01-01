@@ -24,9 +24,12 @@ export {
 export {
   getSupervisorModel,
   getVerifierModel,
+  getAdvisorModel,
+  getSummarizerModel,
   getCerebrasModel,
   getGroqModel,
   getMistralModel,
+  getOpenRouterModel,
   checkProviderStatus,
   checkAllProvidersHealth,
   logProviderStatus,
@@ -34,3 +37,19 @@ export {
   type ProviderStatus,
   type ProviderHealth,
 } from './model-provider';
+
+// Multi-Agent Orchestrator
+export {
+  orchestrator,
+  executeMultiAgent,
+  type MultiAgentRequest,
+  type MultiAgentResponse,
+  type MultiAgentError,
+} from './agents/orchestrator';
+
+// Individual Agents
+export { nlqAgent } from './agents/nlq-agent';
+export { analystAgent } from './agents/analyst-agent';
+export { reporterAgent } from './agents/reporter-agent';
+export { advisorAgent } from './agents/advisor-agent';
+export { summarizerAgent } from './agents/summarizer-agent';

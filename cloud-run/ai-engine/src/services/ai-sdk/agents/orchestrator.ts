@@ -16,6 +16,7 @@ import { nlqAgent } from './nlq-agent';
 import { analystAgent } from './analyst-agent';
 import { reporterAgent } from './reporter-agent';
 import { advisorAgent } from './advisor-agent';
+import { summarizerAgent } from './summarizer-agent';
 
 // ============================================================================
 // Types
@@ -86,6 +87,11 @@ const ORCHESTRATOR_INSTRUCTIONS = `당신은 서버 모니터링 AI 시스템의
 - "어떻게 해결해?", "명령어 알려줘", "과거 사례"
 - GraphRAG 기반 지식 검색
 
+### 5. Summarizer Agent (요약) - NEW
+- 빠른 요약, 핵심 정보 추출
+- "요약해줘", "간단히 알려줘", "핵심만", "TL;DR"
+- 3-5줄 이내 간결한 응답
+
 ## 라우팅 규칙
 1. 질문의 핵심 의도 파악
 2. 가장 적합한 에이전트 선택
@@ -97,6 +103,8 @@ const ORCHESTRATOR_INSTRUCTIONS = `당신은 서버 모니터링 AI 시스템의
 - "이상 징후 분석해줘" → Analyst Agent
 - "장애 보고서 작성해줘" → Reporter Agent
 - "메모리 부족 해결 방법" → Advisor Agent
+- "상태 요약해줘" → Summarizer Agent
+- "간단히 알려줘" → Summarizer Agent
 `;
 
 // ============================================================================
@@ -140,7 +148,7 @@ function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasModel>; p
 const orchestratorModelConfig = getOrchestratorModel();
 
 // Filter out null agents for handoffs
-const availableAgents = [nlqAgent, analystAgent, reporterAgent, advisorAgent].filter(
+const availableAgents = [nlqAgent, analystAgent, reporterAgent, advisorAgent, summarizerAgent].filter(
   (agent): agent is NonNullable<typeof agent> => agent !== null
 );
 
