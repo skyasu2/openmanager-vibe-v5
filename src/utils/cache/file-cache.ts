@@ -3,14 +3,15 @@ import type { FileCache, HourlyServerData } from '@/types/server-metrics';
 /**
  * 파일 캐시 시스템 (브라우저/서버 호환)
  *
- * 5분 TTL로 시간별 메트릭 JSON 파일을 캐싱합니다.
- * I/O 성능 최적화를 위해 Map 기반 인메모리 캐시 사용.
+ * ⚠️ DEPRECATED (v5.84.0): scenario-loader.ts가 SSOT를 직접 import하므로
+ * 이 파일은 더 이상 주요 데이터 로드 경로에서 사용되지 않습니다.
  *
- * @description
- * v5.80.0 업그레이드: fs/promises → fetch API로 변경 (Next.js 16 호환)
- * 새로운 JSON 구조 (dataPoints 배열)를 기존 구조 (servers 직접)로 변환합니다.
- * - 입력: { hour, scenario, dataPoints: [{ timestamp, servers }], metadata }
- * - 출력: { servers, scenario, summary }
+ * 용도:
+ * - 브라우저에서 직접 hourly-data JSON 접근 시 (폴백)
+ * - 레거시 코드 호환성 유지
+ *
+ * @see src/services/scenario/scenario-loader.ts - 새로운 SSOT 직접 import 방식
+ * @see src/data/fixed-24h-metrics.ts - SSOT 데이터 소스
  */
 
 const fileCache = new Map<string, FileCache>();

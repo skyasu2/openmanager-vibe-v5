@@ -1,10 +1,14 @@
 import {
+  FIXED_24H_DATASETS,
+  getDataAtMinute,
+  type Server24hDataset,
+} from '@/data/fixed-24h-metrics';
+import { FAILURE_SCENARIOS } from '@/data/scenarios';
+import {
   safeServerEnvironment,
   safeServerRole,
 } from '@/lib/utils/type-converters';
 import { RealisticVariationGenerator } from '@/services/metrics/variation-generator';
-import type { HourlyServerData, RawServerData } from '@/types/server-metrics';
-import { readCachedHourlyFile } from '@/utils/cache/file-cache';
 
 // Enhanced Server Metrics 인터페이스 (route.ts와 동기화 필요)
 export interface EnhancedServerMetrics {
@@ -71,260 +75,199 @@ export interface EnhancedServerMetrics {
 }
 
 /**
- * 🎯 24시간 고정 데이터 순차 회전 시스템 (I/O 최적화)
- *
- * 미리 정의된 24시간 데이터를 5분마다 순차적으로 회전시키며 사용
- * 하루가 끝나면 다시 처음부터 순환 (고정 패턴의 연속 회전)
- * KST(한국 시간) 기준으로 동기화
- */
-/**
  * 🎯 **Single Source of Truth** - 24시간 시나리오 데이터 로더
  *
- * **절대 규칙**: 모든 서버 데이터는 이 함수를 통해서만 접근합니다.
- * - ❌ JSON 파일 직접 import 금지
- * - ❌ 새로운 데이터 소스 생성 금지
- * - ❌ Mock 시스템 중복 생성 금지
+ * **v5.84.0 개선**: Self-fetch 제거, SSOT 직접 import
+ * - ✅ `fixed-24h-metrics.ts` 직접 import (번들 포함)
+ * - ✅ 런타임 fetch 제거 (~1GB/월 Bandwidth 절약)
+ * - ✅ 결정론적 데이터 보장
  *
  * @returns {Promise<EnhancedServerMetrics[]>} 15개 서버 메트릭스 (연쇄 장애 시나리오)
  *
  * @description
  * KST(한국 시간) 기반으로 24시간 데이터를 자동 회전시킵니다.
  * - 시간대: 0-23시 (KST)
- * - 회전 주기: 5분 단위 (동일 블록 내 동일 값)
- * - 서버 수: 15개 (Web 3, API 2, DB 2, Cache 2, Storage 2, Infra 4)
- * - 데이터 소스: `public/hourly-data/hour-XX.json`
+ * - 회전 주기: 10분 단위 (SSOT 데이터 기준)
+ * - 서버 수: 15개 (Web 3, API 3, DB 3, Cache 2, Storage 2, LB 2)
+ * - 데이터 소스: `src/data/fixed-24h-metrics.ts` (SSOT)
  *
  * @example
- * // ✅ 올바른 사용 (AI Assistant)
  * const servers = await loadHourlyScenarioData();
  * console.log(servers.length); // 15
  *
- * @example
- * // ✅ 올바른 사용 (UnifiedServerDataSource)
- * const scenarioMetrics = await loadHourlyScenarioData();
- * const servers = scenarioMetrics.map(m => convertToServer(m));
- *
- * @example
- * // ❌ 절대 금지
- * import data from '/public/fallback/servers.json';  // 직접 import
- * const mockData = new CustomMockSystem().getServers();  // 중복 시스템
- *
- * @throws {Error} JSON 파일 로드 실패 시 (폴백 없음, 명시적 실패)
- *
- * @see {@link docs/core/architecture/data/data-architecture.md} 데이터 아키텍처 가이드
- * @see {@link UnifiedServerDataSource} 통합 데이터 접근 계층
+ * @see {@link docs/reference/architecture/data/data-architecture.md} 데이터 아키텍처 가이드
  */
 export async function loadHourlyScenarioData(): Promise<
   EnhancedServerMetrics[]
 > {
-  try {
-    // 🇰🇷 KST (Asia/Seoul) 기준 시간 사용
-    const koreaTime = new Date().toLocaleString('en-US', {
-      timeZone: 'Asia/Seoul',
-    });
-    const koreaDate = new Date(koreaTime);
+  // 🇰🇷 KST (Asia/Seoul) 기준 시간 사용
+  const koreaTime = new Date().toLocaleString('en-US', {
+    timeZone: 'Asia/Seoul',
+  });
+  const koreaDate = new Date(koreaTime);
 
-    const currentHour = koreaDate.getHours(); // 0-23
-    const currentMinute = koreaDate.getMinutes(); // 0-59
+  const currentHour = koreaDate.getHours(); // 0-23
+  const currentMinute = koreaDate.getMinutes(); // 0-59
 
-    // 🔄 5분 단위로 시간별 데이터를 순차 회전 (12개 구간 = 60분)
-    // 각 시간대 내에서 5분마다 다른 분(minute) 데이터 포인트 사용
-    const segmentInHour = Math.floor(currentMinute / 5); // 0-11 (60분을 5분 구간으로 나눔)
-    const rotationMinute = segmentInHour * 5; // 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55
+  // 분 단위 (0-1439)
+  const minuteOfDay = currentHour * 60 + currentMinute;
 
-    // 🚀 캐시된 파일 읽기 (성능 최적화: 로그 간소화)
-    const hourlyData = await readCachedHourlyFile(currentHour);
-
-    return convertFixedRotationData(
-      hourlyData,
-      currentHour,
-      rotationMinute,
-      segmentInHour
-    );
-  } catch (error) {
-    console.error('❌ [VERCEL-ONLY] 베르셀 JSON 데이터 로드 실패:', error);
-    console.error(
-      '🚫 [VERCEL-ONLY] 폴백 시스템 비활성화 - 오류 발생 시 명시적 실패'
-    );
-    throw new Error(`베르셀 JSON 데이터 시스템 오류: ${error}`);
-  }
+  // 🎯 SSOT에서 직접 데이터 로드 (Self-fetch 제거!)
+  return convertFromSSOT(FIXED_24H_DATASETS, minuteOfDay, currentHour);
 }
 
 /**
- * 🎯 고정 데이터 회전 변환기
+ * 🎯 SSOT 데이터를 EnhancedServerMetrics로 변환
  *
- * 24시간 미리 정의된 데이터를 순차적으로 회전시키며 고정 패턴 유지
- * 동적 변화 없이 정확한 시간대별 고정 메트릭 제공
+ * @param datasets - SSOT 서버 데이터셋 (15개)
+ * @param minuteOfDay - 하루 중 분 (0-1439)
+ * @param currentHour - 현재 시간 (0-23)
  */
-function convertFixedRotationData(
-  hourlyData: HourlyServerData,
-  currentHour: number,
-  rotationMinute: number,
-  _segmentInHour: number
+function convertFromSSOT(
+  datasets: Server24hDataset[],
+  minuteOfDay: number,
+  currentHour: number
 ): EnhancedServerMetrics[] {
-  const servers = hourlyData.servers || {};
-  const _scenario = hourlyData.scenario || `${currentHour}시 고정 패턴`;
+  // 현재 시간대의 활성 시나리오 찾기
+  const activeScenarios = FAILURE_SCENARIOS.filter(
+    (scenario) =>
+      minuteOfDay >= scenario.timeRange[0] &&
+      minuteOfDay < scenario.timeRange[1]
+  );
 
-  // 🎯 15개 서버 보장: JSON에 부족하면 자동 생성 (성능 최적화)
-  if (Object.keys(servers).length < 15) {
-    const missingCount = 15 - Object.keys(servers).length;
-
-    // 부족한 서버 자동 생성
-    for (let i = 0; i < missingCount; i++) {
-      const serverIndex = Object.keys(servers).length + i + 1;
-      const serverTypes = ['security', 'backup', 'proxy', 'gateway'];
-      const serverType = serverTypes[i % serverTypes.length] ?? 'gateway';
-      const serverId = `${serverType}-server-${serverIndex}`;
-
-      servers[serverId] = {
-        id: serverId,
-        name: `${serverType.charAt(0).toUpperCase() + serverType.slice(1)} Server #${serverIndex}`,
-        hostname: `${serverType}-${serverIndex.toString().padStart(2, '0')}.prod.example.com`,
-        status: 'online' as const,
-        type: serverType,
-        service:
-          serverType === 'security'
-            ? 'Security Scanner'
-            : serverType === 'backup'
-              ? 'Backup Service'
-              : 'Service Gateway',
-        location: 'us-east-1a',
-        environment: 'production',
-        provider: 'Auto-Generated',
-        uptime: 2592000 + Math.floor(Math.random() * 86400),
-        cpu: Math.floor(
-          15 +
-            RealisticVariationGenerator.generateNaturalVariance(
-              12,
-              'default-cpu'
-            )
-        ),
-        memory: Math.floor(
-          20 +
-            RealisticVariationGenerator.generateNaturalVariance(
-              17,
-              'default-memory'
-            )
-        ),
-        disk: Math.floor(
-          25 +
-            RealisticVariationGenerator.generateNaturalVariance(
-              20,
-              'default-disk'
-            )
-        ),
-        network: Math.floor(
-          5 +
-            RealisticVariationGenerator.generateNaturalVariance(
-              12,
-              'default-network'
-            )
-        ),
-        specs: {
-          cpu_cores: 4,
-          memory_gb: 8,
-          disk_gb: 200,
-        },
-      };
-    }
+  // 서버별 상태 맵 생성
+  const serverStatusMap = new Map<string, 'online' | 'warning' | 'critical'>();
+  for (const scenario of activeScenarios) {
+    serverStatusMap.set(
+      scenario.serverId,
+      scenario.severity === 'critical'
+        ? 'critical'
+        : scenario.severity === 'warning'
+          ? 'warning'
+          : 'online'
+    );
   }
 
-  return Object.values(servers).map((serverData: RawServerData, index) => {
-    // 🔒 고정 데이터 그대로 사용 (5분 간격 패턴)
-    // rotationMinute를 사용하여 시간 내 5분별 고정 패턴 적용
-    const minuteFactor = rotationMinute / 55; // 0-1 사이 고정 팩터 (0, 5, 10, ..., 55분)
-    const fixedOffset = Math.sin(minuteFactor * 2 * Math.PI) * 2; // 고정된 2% 오프셋 (시간 내 패턴)
+  return datasets.map((dataset, index) => {
+    // SSOT에서 현재 시간대 데이터 가져오기 (폴백: baseline 값)
+    const dataPoint = getDataAtMinute(dataset, minuteOfDay) ?? {
+      minuteOfDay,
+      cpu: dataset.baseline.cpu,
+      memory: dataset.baseline.memory,
+      disk: dataset.baseline.disk,
+      network: dataset.baseline.network,
+      logs: [],
+    };
 
-    // 서버별 고정 특성 (항상 동일한 패턴)
-    const serverOffset = (index * 3.7) % 10; // 서버별 고정 오프셋 (0-10)
+    // 서버 상태 결정 (시나리오 기반)
+    const status = serverStatusMap.get(dataset.serverId) || 'online';
 
-    // 🎯 결정론적 변동성 적용 (성능 최적화: 로그 제거)
+    // 서버별 고정 오프셋 (결정론적)
+    const serverOffset = (index * 3.7) % 10;
     const deterministicNoise =
       RealisticVariationGenerator.generateNaturalVariance(
         0,
         `server-${index}-noise`
-      ) * 0.05; // ±5% 노이즈
-    const fixedVariation =
-      1 + (fixedOffset + serverOffset + deterministicNoise) / 100; // 결정론적 노이즈 추가
+      ) * 0.05;
+    const fixedVariation = 1 + (serverOffset + deterministicNoise) / 100;
+
+    // 서버 타입 매핑
+    const typeMapping: Record<string, string> = {
+      web: 'web',
+      application: 'api',
+      database: 'database',
+      cache: 'cache',
+      storage: 'storage',
+      loadbalancer: 'loadbalancer',
+    };
 
     const enhanced: EnhancedServerMetrics = {
-      id: serverData.id || `server-${index}`,
-      name: serverData.name || `Unknown Server ${index + 1}`,
-      hostname: serverData.hostname || serverData.name || `server-${index}`,
-      status: serverData.status as
-        | 'online'
-        | 'warning'
-        | 'critical'
-        | 'maintenance'
-        | 'offline'
-        | 'unknown',
-      cpu: Math.round((serverData.cpu || 0) * fixedVariation),
-      cpu_usage: Math.round((serverData.cpu || 0) * fixedVariation),
-      memory: Math.round((serverData.memory || 0) * fixedVariation),
-      memory_usage: Math.round((serverData.memory || 0) * fixedVariation),
-      disk: Math.round((serverData.disk || 0) * fixedVariation),
-      disk_usage: Math.round((serverData.disk || 0) * fixedVariation),
-      network: Math.round((serverData.network || 20) * fixedVariation),
-      network_in: Math.round((serverData.network || 20) * 0.6 * fixedVariation),
-      network_out: Math.round(
-        (serverData.network || 20) * 0.4 * fixedVariation
-      ),
-      uptime: serverData.uptime || 86400,
-      responseTime: Math.round(
-        (serverData.responseTime || 200) * fixedVariation
-      ),
+      id: dataset.serverId,
+      name: getServerName(dataset.serverId, dataset.serverType),
+      hostname: `${dataset.serverId}.openmanager.kr`,
+      status,
+      cpu: Math.round(dataPoint.cpu * fixedVariation),
+      cpu_usage: Math.round(dataPoint.cpu * fixedVariation),
+      memory: Math.round(dataPoint.memory * fixedVariation),
+      memory_usage: Math.round(dataPoint.memory * fixedVariation),
+      disk: Math.round(dataPoint.disk * fixedVariation),
+      disk_usage: Math.round(dataPoint.disk * fixedVariation),
+      network: Math.round(dataPoint.network * fixedVariation),
+      network_in: Math.round(dataPoint.network * 0.6 * fixedVariation),
+      network_out: Math.round(dataPoint.network * 0.4 * fixedVariation),
+      uptime: 2592000 + index * 86400, // 30일 + 서버별 오프셋
+      responseTime: Math.round((150 + index * 10) * fixedVariation),
       last_updated: new Date().toISOString(),
-      location: serverData.location || '서울',
+      location: dataset.location,
       alerts: [],
-      ip: serverData.ip || `192.168.1.${100 + index}`,
-      os: serverData.os || 'Ubuntu 22.04 LTS',
-      type: serverData.type || 'web',
-      role: safeServerRole(serverData.role || serverData.type),
-      environment: safeServerEnvironment(serverData.environment),
-      provider: `DataCenter-${currentHour.toString().padStart(2, '0')}${rotationMinute.toString().padStart(2, '0')}`,
+      ip: `10.10.${Math.floor(index / 5) + 1}.${(index % 5) + 11}`,
+      os: 'Ubuntu 22.04 LTS',
+      type: typeMapping[dataset.serverType] || dataset.serverType,
+      role: safeServerRole(dataset.serverType),
+      environment: safeServerEnvironment('production'),
+      provider: `DataCenter-${currentHour.toString().padStart(2, '0')}`,
       specs: {
-        cpu_cores: serverData.specs?.cpu_cores || 4,
-        memory_gb: serverData.specs?.memory_gb || 8,
-        disk_gb: serverData.specs?.disk_gb || 200,
+        cpu_cores: dataset.serverType === 'database' ? 16 : 8,
+        memory_gb: dataset.serverType === 'database' ? 32 : 16,
+        disk_gb: dataset.serverType === 'storage' ? 1000 : 200,
         network_speed: '1Gbps',
       },
       lastUpdate: new Date().toISOString(),
-      services: serverData.services || [],
+      services: [],
       systemInfo: {
-        os: serverData.os || 'Ubuntu 22.04 LTS',
-        uptime: `${Math.floor((serverData.uptime || 86400) / 3600)}h`,
-        processes: (serverData.processes || 120) + Math.floor(serverOffset),
+        os: 'Ubuntu 22.04 LTS',
+        uptime: `${Math.floor((2592000 + index * 86400) / 3600)}h`,
+        processes: 120 + Math.floor(serverOffset),
         zombieProcesses:
-          serverData.status === 'critical'
-            ? 3
-            : serverData.status === 'warning'
-              ? 1
-              : 0,
-        loadAverage: `${(((serverData.cpu || 0) * fixedVariation) / 20).toFixed(2)}, ${(((serverData.cpu || 0) * fixedVariation - 5) / 20).toFixed(2)}, ${(((serverData.cpu || 0) * fixedVariation - 10) / 20).toFixed(2)}`,
+          status === 'critical' ? 3 : status === 'warning' ? 1 : 0,
+        loadAverage: `${(dataPoint.cpu / 20).toFixed(2)}, ${((dataPoint.cpu - 5) / 20).toFixed(2)}, ${((dataPoint.cpu - 10) / 20).toFixed(2)}`,
         lastUpdate: new Date().toISOString(),
       },
       networkInfo: {
         interface: 'eth0',
-        receivedBytes: `${((serverData.network || 20) * 0.6 * fixedVariation).toFixed(1)} MB`,
-        sentBytes: `${((serverData.network || 20) * 0.4 * fixedVariation).toFixed(1)} MB`,
+        receivedBytes: `${(dataPoint.network * 0.6 * fixedVariation).toFixed(1)} MB`,
+        sentBytes: `${(dataPoint.network * 0.4 * fixedVariation).toFixed(1)} MB`,
         receivedErrors:
-          serverData.status === 'critical'
-            ? Math.floor(serverOffset % 5) + 1
-            : 0,
+          status === 'critical' ? Math.floor(serverOffset % 5) + 1 : 0,
         sentErrors:
-          serverData.status === 'critical'
-            ? Math.floor(serverOffset % 3) + 1
-            : 0,
-        status: serverData.status as
-          | 'online'
-          | 'warning'
-          | 'critical'
-          | 'maintenance'
-          | 'offline'
-          | 'unknown',
+          status === 'critical' ? Math.floor(serverOffset % 3) + 1 : 0,
+        status,
       },
     };
 
     return enhanced;
   });
 }
+
+/**
+ * 서버 ID에서 표시 이름 생성
+ */
+function getServerName(serverId: string, serverType: string): string {
+  const typeNames: Record<string, string> = {
+    web: 'Nginx Web Server',
+    application: 'WAS API Server',
+    database: 'MySQL Database',
+    cache: 'Redis Cache',
+    storage: 'Storage Server',
+    loadbalancer: 'HAProxy LB',
+  };
+
+  const baseName = typeNames[serverType] || 'Server';
+
+  // serverId에서 번호 추출
+  const match = serverId.match(/(\d+)$/);
+  const number = match ? match[1] : '';
+
+  // 위치 추출
+  if (serverId.includes('primary')) return `${baseName} Primary`;
+  if (serverId.includes('replica')) return `${baseName} Replica`;
+  if (serverId.includes('dr') || serverId.includes('pus'))
+    return `${baseName} DR`;
+
+  return number ? `${baseName} ${number.padStart(2, '0')}` : baseName;
+}
+
+// 🗑️ Legacy code removed (v5.84.0)
+// - convertFixedRotationData: Replaced by convertFromSSOT
+// - readCachedHourlyFile: Replaced by direct SSOT import
+// See: https://github.com/skyasu2/openmanager-vibe-v5/commit/XXX
