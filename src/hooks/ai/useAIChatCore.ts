@@ -10,6 +10,7 @@
  * - 메시지 변환
  *
  * @note HITL(Human-in-the-Loop) 제거됨 - 현재 컨셉상 모든 기능이 사용자 요청 기반
+ * @updated 2026-01-01 - crypto.randomUUID 기반 세션 ID 생성
  */
 
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -81,6 +82,18 @@ export interface UseAIChatCoreReturn {
 const SESSION_MESSAGE_LIMIT = SESSION_LIMITS.MESSAGE_LIMIT;
 const SESSION_WARNING_THRESHOLD = SESSION_LIMITS.WARNING_THRESHOLD;
 
+/**
+ * 고유 세션 ID 생성
+ * @description crypto.randomUUID 사용 (Date.now() 대비 충돌 방지)
+ */
+function generateSessionId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `session-${crypto.randomUUID()}`;
+  }
+  // Fallback for environments without crypto.randomUUID
+  return `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 // ============================================================================
 // Helpers
 // ============================================================================
@@ -130,10 +143,8 @@ export function useAIChatCore(
   // 입력 상태
   const [input, setInput] = useState('');
 
-  // 세션 ID 관리
-  const chatSessionIdRef = useRef<string>(
-    propSessionId || `session_${Date.now()}`
-  );
+  // 세션 ID 관리 (crypto.randomUUID 기반)
+  const chatSessionIdRef = useRef<string>(propSessionId || generateSessionId());
 
   // ============================================================================
   // Hybrid AI Query Hook
@@ -193,7 +204,7 @@ export function useAIChatCore(
 
   const handleNewSession = useCallback(() => {
     setMessages([]);
-    chatSessionIdRef.current = `session_${Date.now()}`;
+    chatSessionIdRef.current = generateSessionId();
     setInput('');
   }, [setMessages]);
 

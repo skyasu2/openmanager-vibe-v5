@@ -279,15 +279,16 @@ export const POST = withRateLimit(
       const { messages, sessionId: bodySessionId } = parseResult.data;
 
       // ====================================================================
-      // sessionId 추출 (2025-12-22 v5.83.9 수정)
+      // sessionId 추출 (2026-01-01 v5.84.0 개선)
       // ====================================================================
-      // TextStreamChatTransport는 body 전송을 지원하지 않아 query param 사용
-      // - 클라이언트: /api/ai/supervisor?sessionId=xxx
-      // - body.sessionId는 레거시 호환성을 위해 유지
+      // AI SDK v5 DefaultChatTransport는 body/headers 모두 지원
+      // 우선순위: Header > Body > Query Param (레거시 호환)
       // ====================================================================
       const url = new URL(req.url);
+      const headerSessionId = req.headers.get('X-Session-Id');
       const querySessionId = url.searchParams.get('sessionId');
-      const clientSessionId = querySessionId || bodySessionId;
+      const clientSessionId =
+        headerSessionId || bodySessionId || querySessionId;
 
       // 2. 마지막 사용자 쿼리 추출 + 입력 정제 (중앙화된 유틸리티 사용)
       const rawQuery =

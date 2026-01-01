@@ -20,12 +20,16 @@
  * ```
  *
  * @created 2025-12-30
+ * @updated 2026-01-01 - AI SDK v5 베스트 프랙티스 적용
+ *   - DefaultChatTransport 동적 헤더/바디 패턴 적용
+ *   - crypto.randomUUID 기반 메시지 ID 생성
+ *   - onData 콜백 지원 추가
  */
 
 import type { UIMessage } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
-import { TextStreamChatTransport } from 'ai';
-import { useCallback, useRef, useState } from 'react';
+import { DefaultChatTransport } from 'ai';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   analyzeQueryComplexity,
   type QueryComplexity,
@@ -57,6 +61,23 @@ export interface HybridQueryState {
   error: string | null;
 }
 
+/**
+ * 스트리밍 데이터 파트 타입
+ * AI SDK v5 onData 콜백으로 받는 데이터
+ */
+export interface StreamDataPart {
+  type: string;
+  data?: unknown;
+  /** 텍스트 청크 (type: 'text') */
+  text?: string;
+  /** 도구 호출 (type: 'tool-call') */
+  toolName?: string;
+  toolArgs?: Record<string, unknown>;
+  /** 사용자 정의 데이터 알림 (type: 'data-notification') */
+  message?: string;
+  level?: 'info' | 'warning' | 'error';
+}
+
 export interface UseHybridAIQueryOptions {
   /** 세션 ID */
   sessionId?: string;
@@ -70,6 +91,19 @@ export interface UseHybridAIQueryOptions {
   onJobResult?: (result: AsyncQueryResult) => void;
   /** 진행률 업데이트 콜백 */
   onProgress?: (progress: AsyncQueryProgress) => void;
+  /**
+   * 스트리밍 데이터 콜백 (AI SDK v5 베스트 프랙티스)
+   * 실시간으로 데이터 파트를 받아 처리
+   * @example
+   * ```tsx
+   * onData: (dataPart) => {
+   *   if (dataPart.type === 'data-notification') {
+   *     showToast(dataPart.message, dataPart.level);
+   *   }
+   * }
+   * ```
+   */
+  onData?: (dataPart: StreamDataPart) => void;
 }
 
 export interface UseHybridAIQueryReturn {
@@ -107,6 +141,22 @@ export interface UseHybridAIQueryReturn {
 const DEFAULT_COMPLEXITY_THRESHOLD = 45;
 
 // ============================================================================
+// Utilities
+// ============================================================================
+
+/**
+ * 고유 메시지 ID 생성
+ * @description crypto.randomUUID 사용 (Date.now() 대비 충돌 방지)
+ */
+function generateMessageId(prefix: string = 'msg'): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+  // Fallback for environments without crypto.randomUUID
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+// ============================================================================
 // Hook Implementation
 // ============================================================================
 
@@ -114,16 +164,19 @@ export function useHybridAIQuery(
   options: UseHybridAIQueryOptions = {}
 ): UseHybridAIQueryReturn {
   const {
-    sessionId = `session_${Date.now()}`,
+    sessionId: initialSessionId,
     apiEndpoint = '/api/ai/supervisor',
     complexityThreshold = DEFAULT_COMPLEXITY_THRESHOLD,
     onStreamFinish,
     onJobResult,
     onProgress,
+    onData,
   } = options;
 
-  // Ref for session ID
-  const sessionIdRef = useRef(sessionId);
+  // Session ID with stable initial value
+  const sessionIdRef = useRef<string>(
+    initialSessionId || generateMessageId('session')
+  );
 
   // State
   const [state, setState] = useState<HybridQueryState>({
@@ -136,8 +189,26 @@ export function useHybridAIQuery(
   });
 
   // ============================================================================
-  // useChat Hook (Streaming Mode)
+  // useChat Hook (Streaming Mode) - AI SDK v5 베스트 프랙티스 적용
   // ============================================================================
+  // DefaultChatTransport with dynamic body function for session ID sync
+  // @see https://github.com/vercel/ai - Dynamic options pattern
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: apiEndpoint,
+        // 동적 body 함수로 최신 sessionId 항상 전달
+        body: () => ({
+          sessionId: sessionIdRef.current,
+        }),
+        // 동적 headers 함수 (확장성)
+        headers: () => ({
+          'X-Session-Id': sessionIdRef.current,
+        }),
+      }),
+    [apiEndpoint]
+  );
+
   const {
     messages,
     sendMessage,
@@ -145,13 +216,17 @@ export function useHybridAIQuery(
     setMessages,
     stop: stopChat,
   } = useChat({
-    transport: new TextStreamChatTransport({
-      api: `${apiEndpoint}?sessionId=${encodeURIComponent(sessionIdRef.current)}`,
-    }),
+    transport,
     onFinish: () => {
       setState((prev) => ({ ...prev, isLoading: false }));
       onStreamFinish?.();
     },
+    // AI SDK v5: 실시간 데이터 파트 처리 콜백
+    onData: onData
+      ? (dataPart) => {
+          onData(dataPart as StreamDataPart);
+        }
+      : undefined,
   });
 
   // ============================================================================
@@ -172,12 +247,13 @@ export function useHybridAIQuery(
       onJobResult?.(result);
 
       // Job 결과를 메시지로 변환하여 추가
+      // crypto.randomUUID 기반 ID로 충돌 방지
       if (result.success && result.response) {
         // 메시지에 추가 (assistant 메시지로)
         setMessages((prev) => [
           ...prev,
           {
-            id: `job-result-${Date.now()}`,
+            id: generateMessageId('assistant'),
             role: 'assistant' as const,
             content: result.response,
             parts: [{ type: 'text' as const, text: result.response }],
@@ -220,10 +296,11 @@ export function useHybridAIQuery(
       if (isComplex) {
         // Job Queue 모드: 긴 작업, 진행률 표시
         // Job Queue에서는 sendMessage를 사용하지 않으므로 수동으로 메시지 추가
+        // crypto.randomUUID 기반 ID로 충돌 방지
         setMessages((prev) => [
           ...prev,
           {
-            id: `user-${Date.now()}`,
+            id: generateMessageId('user'),
             role: 'user' as const,
             content: query,
             parts: [{ type: 'text' as const, text: query }],

@@ -7,7 +7,102 @@
  * - 상태 변경 이벤트 발행 (circuit_open, circuit_close, circuit_half_open)
  * - Failover/Rate Limit 이벤트 지원
  * - 관리자 대시보드 연동 가능
+ *
+ * v2.1.0 (2026-01-01): 분산 상태 관리 인터페이스 추가
+ * - IDistributedStateStore 인터페이스로 Redis/Upstash 마이그레이션 지원
+ * - 서버리스 환경 인스턴스 간 상태 공유 준비
+ *
+ * @see https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/circuit-breaker.html
+ * @see https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker
  */
+
+// ============================================================================
+// 분산 상태 관리 인터페이스 (Redis/Upstash 마이그레이션 준비)
+// ============================================================================
+
+/**
+ * 분산 Circuit Breaker 상태 저장소 인터페이스
+ * 서버리스 환경에서 인스턴스 간 상태 공유를 위해 구현
+ *
+ * @example Redis 구현
+ * ```typescript
+ * class RedisStateStore implements IDistributedStateStore {
+ *   async getState(serviceName: string) {
+ *     return await redis.hgetall(`circuit:${serviceName}`);
+ *   }
+ *   async setState(serviceName: string, state: CircuitState) {
+ *     await redis.hset(`circuit:${serviceName}`, state);
+ *     await redis.expire(`circuit:${serviceName}`, 300); // 5분 TTL
+ *   }
+ * }
+ * ```
+ */
+export interface IDistributedStateStore {
+  getState(serviceName: string): Promise<CircuitState | null>;
+  setState(serviceName: string, state: CircuitState): Promise<void>;
+  incrementFailures(serviceName: string): Promise<number>;
+  resetState(serviceName: string): Promise<void>;
+}
+
+export interface CircuitState {
+  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  failures: number;
+  lastFailTime: number;
+  threshold: number;
+  resetTimeout: number;
+}
+
+/**
+ * 인메모리 상태 저장소 (기본 구현)
+ * 서버리스에서는 인스턴스 간 공유되지 않음 - Redis로 교체 권장
+ */
+export class InMemoryStateStore implements IDistributedStateStore {
+  private states = new Map<string, CircuitState>();
+
+  async getState(serviceName: string): Promise<CircuitState | null> {
+    return this.states.get(serviceName) || null;
+  }
+
+  async setState(serviceName: string, state: CircuitState): Promise<void> {
+    this.states.set(serviceName, state);
+  }
+
+  async incrementFailures(serviceName: string): Promise<number> {
+    const state = this.states.get(serviceName);
+    if (state) {
+      state.failures += 1;
+      state.lastFailTime = Date.now();
+      return state.failures;
+    }
+    return 0;
+  }
+
+  async resetState(serviceName: string): Promise<void> {
+    this.states.delete(serviceName);
+  }
+}
+
+// 기본 상태 저장소 (싱글톤)
+let defaultStateStore: IDistributedStateStore = new InMemoryStateStore();
+
+/**
+ * 분산 상태 저장소 설정
+ * @example
+ * ```typescript
+ * import { setDistributedStateStore } from '@/lib/ai/circuit-breaker';
+ * import { RedisStateStore } from '@/lib/redis/circuit-breaker-store';
+ *
+ * // 앱 초기화 시 Redis 저장소 설정
+ * setDistributedStateStore(new RedisStateStore(redis));
+ * ```
+ */
+export function setDistributedStateStore(store: IDistributedStateStore): void {
+  defaultStateStore = store;
+}
+
+export function getDistributedStateStore(): IDistributedStateStore {
+  return defaultStateStore;
+}
 
 // ============================================================================
 // Circuit Breaker 이벤트 시스템
