@@ -258,21 +258,44 @@ interface FailureScenario {
   }[];
 }
 
+/**
+ * 장애 진행 단계 정의
+ * - pre: 장애 1시간 전 (경고 징후)
+ * - onset: 장애 시작 (00-20분)
+ * - peak: 장애 피크 (30분)
+ * - sustained: 장애 지속 (40-50분)
+ * - recovery: 장애 후 회복 (다음 시간)
+ */
+type FailurePhase = 'normal' | 'pre' | 'onset' | 'peak' | 'sustained' | 'recovery';
+
+/**
+ * 단계별 메트릭 배수 (피크 대비)
+ */
+const PHASE_MULTIPLIERS: Record<FailurePhase, number> = {
+  normal: 0,      // 정상
+  pre: 0.4,       // 전조 징후 (40%)
+  onset: 0.6,     // 시작 (60%)
+  peak: 1.0,      // 피크 (100%)
+  sustained: 0.85, // 지속 (85%)
+  recovery: 0.3,  // 회복 중 (30%)
+};
+
 const FAILURE_SCENARIOS: FailureScenario[] = [
-  // 🔴 0-5시: DB 백업 장애
+  // 🔴 0-5시: DB 백업 → 슬로우 쿼리 연쇄 장애
   {
     hour: 2,
     incident: 'DB 자동 백업 중 디스크 I/O 과부하',
     affectedServers: [
-      { id: 'db-mysql-icn-primary', status: 'warning', metricsOverride: { cpu: 85, disk: 88 } },
-      { id: 'db-mysql-icn-replica', status: 'warning', metricsOverride: { cpu: 70, disk: 82 } },
+      { id: 'db-mysql-icn-primary', status: 'warning', metricsOverride: { cpu: 85, disk: 88, memory: 78 } },
+      { id: 'db-mysql-icn-replica', status: 'warning', metricsOverride: { cpu: 70, disk: 82, memory: 72 } },
     ],
   },
   {
     hour: 3,
     incident: 'DB 슬로우 쿼리 누적 - 성능 저하',
     affectedServers: [
-      { id: 'db-mysql-icn-primary', status: 'critical', metricsOverride: { cpu: 95, memory: 92 } },
+      // 백업 완료 후 disk는 여전히 높음 (70%대), CPU/Memory 폭증
+      { id: 'db-mysql-icn-primary', status: 'critical', metricsOverride: { cpu: 95, memory: 92, disk: 72 } },
       { id: 'api-was-icn-01', status: 'warning', metricsOverride: { cpu: 75, memory: 70 } },
     ],
   },
@@ -552,12 +575,63 @@ function getScenarioForHour(hour: number): FailureScenario | undefined {
   return FAILURE_SCENARIOS.find((s) => s.hour === hour);
 }
 
+/**
+ * 현재 시간/분에 대한 장애 단계 결정
+ * - 장애 1시간 전: pre (전조)
+ * - 장애 시간 00-20분: onset (시작)
+ * - 장애 시간 30분: peak (피크)
+ * - 장애 시간 40-50분: sustained (지속)
+ * - 장애 1시간 후: recovery (회복)
+ */
+function getFailurePhase(hour: number, minuteIndex: number): { phase: FailurePhase; scenario: FailureScenario | undefined } {
+  // 현재 시간이 장애 시간인 경우
+  const currentScenario = getScenarioForHour(hour);
+  if (currentScenario) {
+    if (minuteIndex <= 2) return { phase: 'onset', scenario: currentScenario };      // 00, 10, 20분
+    if (minuteIndex === 3) return { phase: 'peak', scenario: currentScenario };       // 30분
+    return { phase: 'sustained', scenario: currentScenario };                          // 40, 50분
+  }
+
+  // 다음 시간이 장애 시간인 경우 (현재는 전조)
+  const nextHour = (hour + 1) % 24;
+  const nextScenario = getScenarioForHour(nextHour);
+  if (nextScenario && minuteIndex >= 3) { // 후반부(30분 이후)에만 전조 나타남
+    return { phase: 'pre', scenario: nextScenario };
+  }
+
+  // 이전 시간이 장애 시간인 경우 (현재는 회복)
+  const prevHour = (hour - 1 + 24) % 24;
+  const prevScenario = getScenarioForHour(prevHour);
+  if (prevScenario && minuteIndex <= 3) { // 전반부(30분까지)에 회복 진행
+    return { phase: 'recovery', scenario: prevScenario };
+  }
+
+  return { phase: 'normal', scenario: undefined };
+}
+
+/**
+ * 단계별 상태 결정
+ */
+function getStatusForPhase(phase: FailurePhase, peakStatus: ServerStatus): ServerStatus {
+  switch (phase) {
+    case 'peak':
+    case 'sustained':
+      return peakStatus;
+    case 'onset':
+      return peakStatus === 'critical' ? 'warning' : 'online';
+    case 'pre':
+    case 'recovery':
+      return 'online'; // 전조/회복 시에는 online이지만 메트릭 높음
+    default:
+      return 'online';
+  }
+}
+
 function generateServerMetrics(
   server: ServerConfig,
   serverIndex: number,
   hour: number,
-  minuteIndex: number,
-  scenario?: FailureScenario
+  minuteIndex: number
 ): {
   id: string;
   name: string;
@@ -580,9 +654,12 @@ function generateServerMetrics(
   logs: string[]; // AI 분석용 로그
 } {
   // 결정론적 시드: hour * 10000 + serverIndex * 100 + minuteIndex
-  // 같은 조합이면 항상 동일한 값 생성
   const seed = hour * 10000 + serverIndex * 100 + minuteIndex;
   seededRandom = createSeededRandom(seed);
+
+  // 장애 단계 결정
+  const { phase, scenario } = getFailurePhase(hour, minuteIndex);
+  const multiplier = PHASE_MULTIPLIERS[phase];
 
   // 기본 메트릭 (baseline + 결정론적 랜덤 변동)
   let metrics = {
@@ -594,12 +671,22 @@ function generateServerMetrics(
 
   let status: ServerStatus = 'online';
 
-  // 시나리오 적용
-  if (scenario) {
+  // 시나리오 적용 (단계별 점진적 적용)
+  if (scenario && phase !== 'normal') {
     const affected = scenario.affectedServers.find((s) => s.id === server.id);
     if (affected) {
-      metrics = { ...metrics, ...affected.metricsOverride };
-      status = affected.status;
+      // 피크 메트릭과 기본 메트릭 사이를 단계에 따라 보간
+      const peakMetrics = { ...metrics, ...affected.metricsOverride };
+
+      metrics = {
+        cpu: Math.round(metrics.cpu + (peakMetrics.cpu - metrics.cpu) * multiplier),
+        memory: Math.round(metrics.memory + (peakMetrics.memory - metrics.memory) * multiplier),
+        disk: Math.round(metrics.disk + (peakMetrics.disk - metrics.disk) * multiplier),
+        network: Math.round(metrics.network + (peakMetrics.network - metrics.network) * multiplier),
+      };
+
+      // 상태 결정 (단계에 따라)
+      status = getStatusForPhase(phase, affected.status);
     }
   }
 
@@ -609,9 +696,9 @@ function generateServerMetrics(
   metrics.disk = Math.max(0, Math.min(100, metrics.disk));
   metrics.network = Math.max(0, Math.min(100, metrics.network));
 
-  // 응답 시간 계산
+  // 응답 시간 계산 (단계에 따라 점진적)
   const baseResponseTime = server.type === 'cache' ? 20 : server.type === 'database' ? 50 : 150;
-  const responseTimeMultiplier = status === 'critical' ? 20 : status === 'warning' ? 3 : 1;
+  const responseTimeMultiplier = status === 'critical' ? 20 : status === 'warning' ? 3 : (1 + multiplier * 2);
   const responseTime = Math.round(baseResponseTime * responseTimeMultiplier * (0.8 + seededRandom() * 0.4));
 
   // AI 분석용 로그 생성
@@ -642,6 +729,8 @@ function generateServerMetrics(
 
 function generateHourlyData(hour: number) {
   const scenario = getScenarioForHour(hour);
+  const prevScenario = getScenarioForHour((hour - 1 + 24) % 24);
+  const nextScenario = getScenarioForHour((hour + 1) % 24);
   const dataPoints = [];
 
   // 10분 간격 6개 데이터 포인트 (00, 10, 20, 30, 40, 50분)
@@ -651,22 +740,36 @@ function generateHourlyData(hour: number) {
     const servers: Record<string, ReturnType<typeof generateServerMetrics>> = {};
 
     KOREAN_DC_SERVERS.forEach((server, serverIndex) => {
-      servers[server.id] = generateServerMetrics(server, serverIndex, hour, minuteIndex, scenario);
+      servers[server.id] = generateServerMetrics(server, serverIndex, hour, minuteIndex);
     });
 
-    dataPoints.push({ timestamp, servers });
+    dataPoints.push({ minute, timestamp, servers });
+  }
+
+  // 시나리오 텍스트 결정 (현재/전조/회복 상태 반영)
+  let scenarioText: string;
+  if (scenario) {
+    scenarioText = scenario.incident;
+  } else if (prevScenario) {
+    scenarioText = `${prevScenario.incident} - 회복 중`;
+  } else if (nextScenario) {
+    scenarioText = `${hour}시 정상 운영 (${nextScenario.incident} 전조 감지)`;
+  } else {
+    scenarioText = `${hour}시 정상 운영`;
   }
 
   return {
     hour,
-    scenario: scenario?.incident || `${hour}시 정상 운영`,
+    scenario: scenarioText,
     dataPoints,
     metadata: {
-      version: '2.0.0', // SSOT 버전 (10분 간격으로 변경)
+      version: '2.1.0', // 점진적 장애 진행 버전
       totalDataPoints: 6,
       intervalMinutes: 10,
       serverCount: KOREAN_DC_SERVERS.length,
       affectedServers: scenario?.affectedServers.length || 0,
+      hasPreFailureSymptoms: !!nextScenario,
+      hasRecoveryPhase: !!prevScenario,
     },
   };
 }

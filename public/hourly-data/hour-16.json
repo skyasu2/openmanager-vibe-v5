@@ -3,6 +3,7 @@
   "scenario": "16시 정상 운영",
   "dataPoints": [
     {
+      "minute": 0,
       "timestamp": "16:00",
       "servers": {
         "web-nginx-icn-01": {
@@ -383,6 +384,7 @@
       }
     },
     {
+      "minute": 10,
       "timestamp": "16:10",
       "servers": {
         "web-nginx-icn-01": {
@@ -763,6 +765,7 @@
       }
     },
     {
+      "minute": 20,
       "timestamp": "16:20",
       "servers": {
         "web-nginx-icn-01": {
@@ -1143,6 +1146,7 @@
       }
     },
     {
+      "minute": 30,
       "timestamp": "16:30",
       "servers": {
         "web-nginx-icn-01": {
@@ -1523,6 +1527,7 @@
       }
     },
     {
+      "minute": 40,
       "timestamp": "16:40",
       "servers": {
         "web-nginx-icn-01": {
@@ -1903,6 +1908,7 @@
       }
     },
     {
+      "minute": 50,
       "timestamp": "16:50",
       "servers": {
         "web-nginx-icn-01": {
@@ -2284,10 +2290,12 @@
     }
   ],
   "metadata": {
-    "version": "2.0.0",
+    "version": "2.1.0",
     "totalDataPoints": 6,
     "intervalMinutes": 10,
     "serverCount": 15,
-    "affectedServers": 0
+    "affectedServers": 0,
+    "hasPreFailureSymptoms": false,
+    "hasRecoveryPhase": false
   }
 }
