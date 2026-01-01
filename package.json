@@ -19,6 +19,7 @@
     "dev:docker:ai": "bash scripts/dev/run-docker-functions.sh",
     "dev:index:background": "ts-node scripts/indexing/background-indexing.ts",
     "dev:index:background:help": "ts-node scripts/indexing/background-indexing.ts help",
+    "data:sync": "npx tsx scripts/data/sync-hourly-data.ts",
     "dev:optimize:ann": "ts-node scripts/optimization/ann-search-upgrade.ts",
     "dev:optimize:ann:help": "ts-node scripts/optimization/ann-search-upgrade.ts help",
     "build": "cross-env NODE_OPTIONS='--max-old-space-size=2048' next build --webpack",
