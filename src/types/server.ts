@@ -345,21 +345,7 @@ export interface EnhancedServerMetrics {
     uptime?: number;
   };
 
-  // 🔧 AI 분석 및 트렌드 속성 (Cloud Run AI Engine 연동)
-  aiAnalysis?: {
-    anomalyScore: number;
-    predictedIssues: string[];
-    recommendations: string[];
-    confidence: number;
-    correlatedLogs?: {
-      id: string;
-      timestamp: string;
-      level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
-      message: string;
-      source?: string;
-    }[];
-    rootCauseAnalysis?: string[];
-  };
+  // 🔧 트렌드 속성 (메트릭 변화 추이)
   trends?: {
     cpu: 'increasing' | 'decreasing' | 'stable';
     memory: 'increasing' | 'decreasing' | 'stable';

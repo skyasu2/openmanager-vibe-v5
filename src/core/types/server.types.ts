@@ -161,15 +161,9 @@ export interface ServerMetricsHistory {
 }
 
 /**
- * AI 분석이 포함된 확장 서버 메트릭
+ * 트렌드가 포함된 확장 서버 메트릭
  */
 export interface EnhancedServerMetrics extends ServerMetrics {
-  aiAnalysis?: {
-    anomalyScore: number;
-    predictedIssues: string[];
-    recommendations: string[];
-    confidence: number;
-  };
   trends?: {
     cpu: 'increasing' | 'decreasing' | 'stable';
     memory: 'increasing' | 'decreasing' | 'stable';
