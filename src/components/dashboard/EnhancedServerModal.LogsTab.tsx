@@ -1,18 +1,19 @@
 'use client';
 
 import type { FC } from 'react';
+import { useState } from 'react';
 /**
- * 🔔 Enhanced Server Modal System Alerts Tab
+ * 🔔 Enhanced Server Modal Logs Tab
  *
- * 메트릭 기반 시스템 알림 탭:
- * - CPU/Memory/Disk/Network 임계값 기반 자동 생성 알림
- * - 실시간 시스템 상태 모니터링
- * - 색상별 알림 레벨 구분 (info/warn/error)
+ * 서버 로그 탭 (v2.0 - Supabase 영구 저장 연동):
+ * - Supabase server_logs 테이블에서 실제 로그 조회
+ * - 메트릭 기반 시스템 알림도 함께 표시
+ * - 색상별 로그 레벨 구분 (info/warn/error)
+ * - 7일 보관 정책
  *
- * ⚠️ 참고: 이 탭은 실제 서버 로그가 아닌 메트릭 기반 자동 생성 알림입니다.
- *
- * @refactored 2025-12-31 - 로그 → 시스템 알림으로 명확화
+ * @refactored 2026-01-03 - Supabase 영구 저장 연동
  */
+import { useServerLogs } from '@/hooks/useServerLogs';
 import type {
   LogEntry,
   LogLevel,
@@ -23,7 +24,9 @@ import type {
  * Logs Tab Props
  */
 interface LogsTabProps {
-  /** 실시간 데이터 (로그 정보 포함) */
+  /** 서버 ID (Supabase 로그 조회용) */
+  serverId: string;
+  /** 실시간 데이터 (메트릭 기반 알림 포함) */
   realtimeData: RealtimeData;
 }
 
@@ -74,17 +77,39 @@ const formatTimestamp = (timestamp: string): string => {
 };
 
 /**
- * 🔔 System Alerts Tab Component
+ * 🔔 Server Logs Tab Component (v2.0)
  *
- * 서버의 메트릭 기반 시스템 알림을 표시하는 탭
- * - 알림 레벨별 색상 구분 (INFO/WARN/ERROR)
- * - 어두운 테마의 모니터링 콘솔 스타일
- * - 타임스탬프 및 소스 정보 표시
- * - 스크롤 가능한 알림 스트림
- *
- * ⚠️ 이 탭은 메트릭 임계값 기반 자동 생성 알림입니다.
+ * 서버 로그 탭:
+ * - Supabase에서 실제 서버 로그 조회 (7일 보관)
+ * - 메트릭 기반 시스템 알림도 함께 표시
+ * - 탭으로 전환 가능: 실제 로그 / 시스템 알림
  */
-export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
+export const LogsTab: FC<LogsTabProps> = ({ serverId, realtimeData }) => {
+  const [activeView, setActiveView] = useState<'logs' | 'alerts'>('logs');
+
+  // Supabase 로그 조회 (10초 폴링)
+  const {
+    logs: supabaseLogs,
+    isLoading,
+    error,
+    total,
+    refresh,
+  } = useServerLogs(serverId, {
+    pollingInterval: 10000,
+    limit: 50,
+  });
+
+  // 표시할 로그 결정
+  const displayLogs =
+    activeView === 'logs'
+      ? supabaseLogs.map((log) => ({
+          timestamp: log.timestamp,
+          level: log.level,
+          message: log.message,
+          source: log.source,
+        }))
+      : realtimeData.logs;
+
   return (
     <div className="space-y-6">
       <div className="animate-fade-in">
@@ -92,16 +117,56 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h3 className="bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
-              🔔 시스템 알림
+              📋 서버 로그
             </h3>
-            {/* 자동 생성 알림 표시 */}
-            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-              메트릭 기반 자동 생성
+            {/* 뷰 전환 버튼 */}
+            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+              <button
+                onClick={() => setActiveView('logs')}
+                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                  activeView === 'logs'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                📝 실제 로그
+              </button>
+              <button
+                onClick={() => setActiveView('alerts')}
+                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                  activeView === 'alerts'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                🔔 시스템 알림
+              </button>
+            </div>
+            {/* 데이터 소스 표시 */}
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                activeView === 'logs'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-blue-100 text-blue-700'
+              }`}
+            >
+              {activeView === 'logs'
+                ? 'Supabase 영구 저장'
+                : '메트릭 기반 자동 생성'}
             </span>
           </div>
 
-          {/* 알림 레벨 범례 */}
+          {/* 알림 레벨 범례 + 새로고침 */}
           <div className="flex items-center gap-4">
+            {activeView === 'logs' && (
+              <button
+                onClick={refresh}
+                disabled={isLoading}
+                className="rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-50"
+              >
+                {isLoading ? '로딩...' : '🔄 새로고침'}
+              </button>
+            )}
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-green-500" />
               <span className="text-xs text-gray-600">정보</span>
@@ -117,6 +182,13 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
           </div>
         </div>
 
+        {/* 에러 표시 */}
+        {activeView === 'logs' && error && (
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">
+            ⚠️ {error}
+          </div>
+        )}
+
         {/* 로그 콘솔 영역 */}
         <div className="relative overflow-hidden rounded-2xl shadow-2xl">
           {/* 터미널 스타일 배경 */}
@@ -124,8 +196,16 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
 
           {/* 로그 스트림 컨테이너 */}
           <div className="relative h-[500px] overflow-y-auto p-6 font-mono text-sm">
-            {realtimeData.logs.length > 0 ? (
-              realtimeData.logs.map((log: LogEntry, idx: number) => {
+            {isLoading && activeView === 'logs' ? (
+              /* 로딩 상태 */
+              <div className="flex h-full items-center justify-center">
+                <div className="text-center">
+                  <div className="mb-4 text-4xl animate-spin">⏳</div>
+                  <div className="text-gray-400">로그를 불러오는 중...</div>
+                </div>
+              </div>
+            ) : displayLogs.length > 0 ? (
+              displayLogs.map((log: LogEntry, idx: number) => {
                 const styles = getLogLevelStyles(log.level);
 
                 return (
@@ -162,15 +242,21 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
                 );
               })
             ) : (
-              /* 알림 없음 상태 */
+              /* 로그 없음 상태 */
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
-                  <div className="mb-4 text-6xl opacity-50">✅</div>
+                  <div className="mb-4 text-6xl opacity-50">
+                    {activeView === 'logs' ? '📋' : '✅'}
+                  </div>
                   <div className="mb-2 text-lg font-medium text-gray-400">
-                    시스템 알림이 없습니다
+                    {activeView === 'logs'
+                      ? '저장된 로그가 없습니다'
+                      : '시스템 알림이 없습니다'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    모든 시스템 지표가 정상 범위 내에 있습니다
+                    {activeView === 'logs'
+                      ? '서버 이벤트가 발생하면 여기에 기록됩니다'
+                      : '모든 시스템 지표가 정상 범위 내에 있습니다'}
                   </div>
                 </div>
               </div>
@@ -181,39 +267,38 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
           <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 bg-linear-to-t from-gray-900 to-transparent" />
         </div>
 
-        {/* 알림 통계 요약 */}
-        {realtimeData.logs.length > 0 && (
+        {/* 로그 통계 요약 */}
+        {displayLogs.length > 0 && (
           <div
             className="animate-fade-in mt-6 grid grid-cols-1 gap-4 md:grid-cols-4"
             style={{ animationDelay: '0.3s' }}
           >
-            {/* 총 알림 수 */}
+            {/* 총 로그 수 */}
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-medium text-gray-600">
-                    총 알림
+                    {activeView === 'logs' ? '총 로그' : '총 알림'}
                   </div>
                   <div className="text-2xl font-bold text-gray-800">
-                    {realtimeData.logs.length}
+                    {activeView === 'logs' ? total : displayLogs.length}
                   </div>
                 </div>
                 <div className="rounded-lg bg-gray-100 p-2">
-                  <span className="text-2xl">🔔</span>
+                  <span className="text-2xl">
+                    {activeView === 'logs' ? '📋' : '🔔'}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* INFO 알림 수 */}
+            {/* INFO 수 */}
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-medium text-gray-600">정보</div>
                   <div className="text-2xl font-bold text-green-600">
-                    {
-                      realtimeData.logs.filter((log) => log.level === 'info')
-                        .length
-                    }
+                    {displayLogs.filter((log) => log.level === 'info').length}
                   </div>
                 </div>
                 <div className="rounded-lg bg-green-100 p-2">
@@ -222,16 +307,13 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
               </div>
             </div>
 
-            {/* WARN 알림 수 */}
+            {/* WARN 수 */}
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-medium text-gray-600">경고</div>
                   <div className="text-2xl font-bold text-yellow-600">
-                    {
-                      realtimeData.logs.filter((log) => log.level === 'warn')
-                        .length
-                    }
+                    {displayLogs.filter((log) => log.level === 'warn').length}
                   </div>
                 </div>
                 <div className="rounded-lg bg-yellow-100 p-2">
@@ -240,16 +322,13 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
               </div>
             </div>
 
-            {/* ERROR 알림 수 */}
+            {/* ERROR 수 */}
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-medium text-gray-600">위험</div>
                   <div className="text-2xl font-bold text-red-600">
-                    {
-                      realtimeData.logs.filter((log) => log.level === 'error')
-                        .length
-                    }
+                    {displayLogs.filter((log) => log.level === 'error').length}
                   </div>
                 </div>
                 <div className="rounded-lg bg-red-100 p-2">

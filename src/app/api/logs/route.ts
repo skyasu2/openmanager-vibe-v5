@@ -1,105 +1,93 @@
 /**
- * 📝 로깅 시스템 API v1.0 (간소화 버전)
+ * 📝 Server Logs API v2.0 (Supabase 영구 저장)
  *
- * ✅ 로그 조회 및 검색
- * ✅ 로그 통계
- * ✅ 로그 내보내기
- * ✅ 로그 설정 관리
+ * ✅ 로그 조회 (GET) - Supabase에서 조회
+ * ✅ 로그 추가 (POST) - Supabase에 저장
+ * ✅ 로그 정리 (DELETE) - 7일 이상 오래된 로그 삭제
+ *
+ * @refactored 2026-01-03 - In-memory → Supabase 영구 저장
  */
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 
 // 타입 정의
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-type LogCategory = 'system' | 'api' | 'ai' | 'security' | 'performance';
+type LogLevel = 'info' | 'warn' | 'error';
 
 interface LogEntry {
   id: string;
-  timestamp: string;
+  server_id: string;
   level: LogLevel;
-  category: LogCategory;
   message: string;
-  source?: string;
+  source: string;
   context?: unknown;
-}
-
-// 간단한 인메모리 로그 저장소
-const logs: LogEntry[] = [];
-const MAX_LOGS = 1000;
-
-// 로그 추가 함수
-function addLog(
-  level: LogLevel,
-  category: LogCategory,
-  message: string,
-  context?: unknown
-) {
-  const entry: LogEntry = {
-    id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    timestamp: new Date().toISOString(),
-    level,
-    category,
-    message,
-    context,
-  };
-
-  logs.unshift(entry);
-  if (logs.length > MAX_LOGS) {
-    logs.pop();
-  }
-
-  return entry;
+  timestamp: string;
 }
 
 /**
- * 📝 GET - 로그 조회 및 검색
+ * 📝 GET - 로그 조회
+ *
+ * Query params:
+ * - server_id: 특정 서버의 로그만 조회 (필수)
+ * - levels: 로그 레벨 필터 (쉼표 구분, 예: 'warn,error')
+ * - limit: 조회 개수 (기본 50)
+ * - offset: 페이지네이션 오프셋
  */
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-
-    // 필터링
-    let filteredLogs = [...logs];
-
-    // 레벨 필터
+    const serverId = searchParams.get('server_id');
     const levels = searchParams.get('levels');
-    if (levels) {
-      const levelArray = levels.split(',') as LogLevel[];
-      filteredLogs = filteredLogs.filter((log) =>
-        levelArray.includes(log.level)
-      );
-    }
-
-    // 카테고리 필터
-    const categories = searchParams.get('categories');
-    if (categories) {
-      const categoryArray = categories.split(',') as LogCategory[];
-      filteredLogs = filteredLogs.filter((log) =>
-        categoryArray.includes(log.category)
-      );
-    }
-
-    // 검색어
-    const searchTerm = searchParams.get('search');
-    if (searchTerm) {
-      filteredLogs = filteredLogs.filter((log) =>
-        log.message.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // 페이지네이션
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    const paginatedLogs = filteredLogs.slice(offset, offset + limit);
+    if (!serverId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'server_id is required',
+        },
+        { status: 400 }
+      );
+    }
+
+    const supabase = await createClient();
+
+    // 쿼리 빌드
+    let query = supabase
+      .from('server_logs')
+      .select('*', { count: 'exact' })
+      .eq('server_id', serverId)
+      .order('timestamp', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // 레벨 필터 적용
+    if (levels) {
+      const levelArray = levels.split(',') as LogLevel[];
+      query = query.in('level', levelArray);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      logger.error('로그 조회 Supabase 오류:', error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: '로그 조회 중 오류가 발생했습니다.',
+          details: error.message,
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
       data: {
-        logs: paginatedLogs,
-        total: filteredLogs.length,
+        logs: data || [],
+        total: count || 0,
         limit,
         offset,
       },
@@ -119,27 +107,86 @@ export function GET(request: NextRequest) {
 
 /**
  * 📊 POST - 로그 추가
+ *
+ * Body:
+ * - server_id: 서버 ID (필수)
+ * - level: 로그 레벨 (info, warn, error)
+ * - message: 로그 메시지 (필수)
+ * - source: 로그 소스 (기본: 'system')
+ * - context: 추가 컨텍스트 (선택)
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { level = 'info', category = 'system', message, context } = body;
+    const {
+      server_id,
+      level = 'info',
+      message,
+      source = 'system',
+      context,
+    } = body;
 
-    if (!message) {
+    if (!server_id) {
       return NextResponse.json(
         {
           success: false,
-          error: '메시지가 필요합니다.',
+          error: 'server_id is required',
         },
         { status: 400 }
       );
     }
 
-    const logEntry = addLog(level, category, message, context);
+    if (!message) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'message is required',
+        },
+        { status: 400 }
+      );
+    }
+
+    // 레벨 검증
+    if (!['info', 'warn', 'error'].includes(level)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'level must be one of: info, warn, error',
+        },
+        { status: 400 }
+      );
+    }
+
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('server_logs')
+      .insert({
+        server_id,
+        level,
+        message,
+        source,
+        context: context || null,
+        timestamp: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      logger.error('로그 추가 Supabase 오류:', error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: '로그 추가 중 오류가 발생했습니다.',
+          details: error.message,
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      data: logEntry,
+      data,
     });
   } catch (error) {
     logger.error('로그 추가 오류:', error);
@@ -155,31 +202,44 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * 🗑️ DELETE - 로그 정리
+ * 🗑️ DELETE - 오래된 로그 정리 (7일 보관)
+ *
+ * Query params:
+ * - keepDays: 보관 기간 (기본: 7일)
  */
-export function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const keepDays = parseInt(searchParams.get('keepDays') || '7');
 
+    const supabase = await createClient();
+
+    // 7일 이전 로그 삭제
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - keepDays);
 
-    const beforeCount = logs.length;
-    logs.splice(
-      0,
-      logs.length,
-      ...logs.filter((log) => new Date(log.timestamp) > cutoffDate)
-    );
+    const { error, count } = await supabase
+      .from('server_logs')
+      .delete({ count: 'exact' })
+      .lt('created_at', cutoffDate.toISOString());
 
-    const deletedCount = beforeCount - logs.length;
+    if (error) {
+      logger.error('로그 정리 Supabase 오류:', error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: '로그 정리 중 오류가 발생했습니다.',
+          details: error.message,
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
       data: {
-        deletedCount,
-        remainingCount: logs.length,
-        message: `${deletedCount}개의 로그가 삭제되었습니다.`,
+        deletedCount: count || 0,
+        message: `${count || 0}개의 로그가 삭제되었습니다.`,
       },
     });
   } catch (error) {

@@ -604,7 +604,10 @@ export default function EnhancedServerModal({
                     <FileText className="h-5 w-5 text-blue-600" />
                     시스템 로그
                   </h3>
-                  <LogsTab realtimeData={realtimeData} />
+                  <LogsTab
+                    serverId={safeServer.id}
+                    realtimeData={realtimeData}
+                  />
                 </div>
 
                 <div className="rounded-xl p-5 bg-white shadow-sm border border-gray-200">
