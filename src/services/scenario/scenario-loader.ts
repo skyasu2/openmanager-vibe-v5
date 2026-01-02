@@ -326,14 +326,16 @@ export async function getCurrentScenario(): Promise<{
 }
 
 /**
- * 📋 시나리오 기반 로그 생성
+ * 📋 시나리오 기반 로그 생성 (실제 syslog 형식)
  *
- * 시나리오와 서버 메트릭에 맞는 로그를 동적으로 생성합니다.
- * DB 호출 없이 클라이언트에서 생성하여 비용 절감.
+ * 상용 로그 수집 프로그램과 유사한 형태의 로그를 생성합니다.
+ * - syslog 형식: hostname process[pid]: message
+ * - 다양한 소스: nginx, docker, kernel, systemd, mysqld, redis 등
+ * - 실제 에러 코드 포함
  *
  * @param scenario - 현재 시나리오 설명
  * @param serverMetrics - 서버 메트릭 (cpu, memory, disk, network)
- * @param serverId - 서버 ID
+ * @param serverId - 서버 ID (hostname으로 사용)
  * @returns 로그 배열
  */
 export function generateScenarioLogs(
@@ -355,6 +357,10 @@ export function generateScenarioLogs(
 
   const now = new Date();
   const { cpu, memory, disk, network } = serverMetrics;
+  const hostname = serverId.split('.')[0] || serverId;
+
+  // 랜덤 PID 생성 헬퍼
+  const pid = (base: number) => base + Math.floor(Math.random() * 1000);
 
   // 시나리오 키워드 매칭
   const scenarioLower = scenario.toLowerCase();
@@ -362,40 +368,66 @@ export function generateScenarioLogs(
   // 1. 정상 운영 시나리오
   if (scenarioLower.includes('정상')) {
     logs.push({
-      timestamp: new Date(now.getTime() - 60000).toISOString(),
+      timestamp: new Date(now.getTime() - 30000).toISOString(),
       level: 'info',
-      message: '시스템 헬스체크 통과 - 모든 서비스 정상',
-      source: 'health-monitor',
+      message: `${hostname} systemd[1]: Started Daily apt download activities.`,
+      source: 'systemd',
     });
     logs.push({
-      timestamp: new Date(now.getTime() - 120000).toISOString(),
+      timestamp: new Date(now.getTime() - 45000).toISOString(),
       level: 'info',
-      message: `현재 리소스 상태: CPU ${cpu.toFixed(1)}%, Memory ${memory.toFixed(1)}%`,
-      source: 'metrics-collector',
+      message: `${hostname} CRON[${pid(20000)}]: (root) CMD (/usr/lib/apt/apt.systemd.daily install)`,
+      source: 'cron',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 60000).toISOString(),
+      level: 'info',
+      message: `${hostname} nginx[${pid(1000)}]: 10.0.0.1 - - "GET /health HTTP/1.1" 200 15 "-" "kube-probe/1.28"`,
+      source: 'nginx',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 90000).toISOString(),
+      level: 'info',
+      message: `${hostname} dockerd[${pid(800)}]: time="2026-01-03T10:00:00.000000000Z" level=info msg="Container health status: healthy"`,
+      source: 'docker',
     });
   }
 
   // 2. CPU 과부하 시나리오
-  if (scenarioLower.includes('cpu') || scenarioLower.includes('과부하')) {
-    if (cpu > 80) {
-      logs.push({
-        timestamp: new Date(now.getTime() - 30000).toISOString(),
-        level: 'error',
-        message: `CPU 사용률 임계치 초과: ${cpu.toFixed(1)}% (임계값: 80%)`,
-        source: 'alert-manager',
-      });
-    }
+  if (
+    scenarioLower.includes('cpu') ||
+    scenarioLower.includes('과부하') ||
+    scenarioLower.includes('api')
+  ) {
     logs.push({
-      timestamp: new Date(now.getTime() - 90000).toISOString(),
-      level: 'warn',
-      message: 'API 요청 처리 지연 감지 - 큐 대기열 증가',
-      source: 'api-gateway',
+      timestamp: new Date(now.getTime() - 15000).toISOString(),
+      level: 'error',
+      message: `${hostname} kernel: [${pid(50000)}.${pid(100)}] CPU${Math.floor(Math.random() * 8)}: Package temperature above threshold, cpu clock throttled`,
+      source: 'kernel',
     });
     logs.push({
-      timestamp: new Date(now.getTime() - 180000).toISOString(),
+      timestamp: new Date(now.getTime() - 30000).toISOString(),
+      level: 'error',
+      message: `${hostname} nginx[${pid(1000)}]: upstream timed out (110: Connection timed out) while reading response header from upstream`,
+      source: 'nginx',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 45000).toISOString(),
+      level: 'warn',
+      message: `${hostname} java[${pid(5000)}]: GC overhead limit exceeded - heap usage at ${cpu.toFixed(0)}%`,
+      source: 'java',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 60000).toISOString(),
+      level: 'warn',
+      message: `${hostname} haproxy[${pid(2000)}]: backend api_servers has no server available! (qcur=${Math.floor(cpu * 2)})`,
+      source: 'haproxy',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 90000).toISOString(),
       level: 'info',
-      message: '요청 폭증 감지 - 오토스케일링 검토 필요',
-      source: 'load-balancer',
+      message: `${hostname} systemd[1]: node-exporter.service: Watchdog timeout (limit 30s)!`,
+      source: 'systemd',
     });
   }
 
@@ -403,27 +435,39 @@ export function generateScenarioLogs(
   if (
     scenarioLower.includes('메모리') ||
     scenarioLower.includes('memory') ||
-    scenarioLower.includes('oom')
+    scenarioLower.includes('oom') ||
+    scenarioLower.includes('redis') ||
+    scenarioLower.includes('캐시')
   ) {
-    if (memory > 85) {
-      logs.push({
-        timestamp: new Date(now.getTime() - 30000).toISOString(),
-        level: 'error',
-        message: `메모리 사용률 위험: ${memory.toFixed(1)}% - OOM 위험`,
-        source: 'memory-monitor',
-      });
-    }
     logs.push({
-      timestamp: new Date(now.getTime() - 120000).toISOString(),
-      level: 'warn',
-      message: '메모리 증가 추세 감지 - 누수 의심',
-      source: 'memory-monitor',
+      timestamp: new Date(now.getTime() - 10000).toISOString(),
+      level: 'error',
+      message: `${hostname} kernel: Out of memory: Killed process ${pid(10000)} (java) total-vm:${Math.floor(memory * 100)}kB, anon-rss:${Math.floor(memory * 80)}kB`,
+      source: 'kernel',
     });
     logs.push({
-      timestamp: new Date(now.getTime() - 300000).toISOString(),
+      timestamp: new Date(now.getTime() - 25000).toISOString(),
+      level: 'error',
+      message: `${hostname} redis-server[${pid(3000)}]: # WARNING: Memory usage ${memory.toFixed(0)}% of max. Consider increasing maxmemory.`,
+      source: 'redis',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 40000).toISOString(),
+      level: 'warn',
+      message: `${hostname} dockerd[${pid(800)}]: container ${serverId.substring(0, 12)} OOMKilled=true (memory limit: 2GiB)`,
+      source: 'docker',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 55000).toISOString(),
+      level: 'warn',
+      message: `${hostname} java[${pid(5000)}]: java.lang.OutOfMemoryError: GC overhead limit exceeded`,
+      source: 'java',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 80000).toISOString(),
       level: 'info',
-      message: 'GC 실행 완료 - 해제된 메모리: 256MB',
-      source: 'jvm-monitor',
+      message: `${hostname} java[${pid(5000)}]: [GC (Allocation Failure) ${Math.floor(memory * 50)}K->${Math.floor(memory * 30)}K(${Math.floor(memory * 100)}K), 0.${pid(100)} secs]`,
+      source: 'java',
     });
   }
 
@@ -431,27 +475,38 @@ export function generateScenarioLogs(
   if (
     scenarioLower.includes('디스크') ||
     scenarioLower.includes('disk') ||
-    scenarioLower.includes('백업')
+    scenarioLower.includes('백업') ||
+    scenarioLower.includes('i/o')
   ) {
-    if (disk > 80) {
-      logs.push({
-        timestamp: new Date(now.getTime() - 60000).toISOString(),
-        level: 'error',
-        message: `디스크 사용률 경고: ${disk.toFixed(1)}%`,
-        source: 'disk-monitor',
-      });
-    }
     logs.push({
-      timestamp: new Date(now.getTime() - 120000).toISOString(),
-      level: 'warn',
-      message: '디스크 I/O 대기열 증가 - 백업 작업 진행 중',
-      source: 'io-scheduler',
+      timestamp: new Date(now.getTime() - 20000).toISOString(),
+      level: 'error',
+      message: `${hostname} kernel: [${pid(80000)}.${pid(100)}] EXT4-fs warning (device sda1): ext4_dx_add_entry:2461: Directory (ino: ${pid(100000)}) index full, reach max htree level :2`,
+      source: 'kernel',
     });
     logs.push({
-      timestamp: new Date(now.getTime() - 180000).toISOString(),
+      timestamp: new Date(now.getTime() - 35000).toISOString(),
+      level: 'error',
+      message: `${hostname} mysqld[${pid(4000)}]: [ERROR] InnoDB: Write to file ./ib_logfile0 failed at offset ${pid(1000000)}. ${disk.toFixed(0)}% disk used.`,
+      source: 'mysql',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 50000).toISOString(),
+      level: 'warn',
+      message: `${hostname} rsync[${pid(15000)}]: rsync: write failed on "/backup/db-${hostname}.sql": No space left on device (28)`,
+      source: 'rsync',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 70000).toISOString(),
       level: 'info',
-      message: '자동 백업 시작 - 예상 소요시간: 15분',
-      source: 'backup-service',
+      message: `${hostname} systemd[1]: Starting Daily Backup Service...`,
+      source: 'systemd',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 120000).toISOString(),
+      level: 'info',
+      message: `${hostname} pg_dump[${pid(18000)}]: pg_dump: archiving data for table "public.logs" (${Math.floor(disk * 10)}MB)`,
+      source: 'postgres',
     });
   }
 
@@ -459,61 +514,55 @@ export function generateScenarioLogs(
   if (
     scenarioLower.includes('네트워크') ||
     scenarioLower.includes('network') ||
-    scenarioLower.includes('패킷')
+    scenarioLower.includes('패킷') ||
+    scenarioLower.includes('lb') ||
+    scenarioLower.includes('로드밸런서')
   ) {
     logs.push({
-      timestamp: new Date(now.getTime() - 45000).toISOString(),
+      timestamp: new Date(now.getTime() - 12000).toISOString(),
       level: 'error',
-      message: '패킷 손실률 증가 감지: 2.3%',
-      source: 'network-monitor',
+      message: `${hostname} kernel: [${pid(90000)}.${pid(100)}] nf_conntrack: nf_conntrack: table full, dropping packet`,
+      source: 'kernel',
     });
     logs.push({
-      timestamp: new Date(now.getTime() - 150000).toISOString(),
-      level: 'warn',
-      message: '로드밸런서 응답 지연: 평균 350ms',
-      source: 'load-balancer',
-    });
-    logs.push({
-      timestamp: new Date(now.getTime() - 240000).toISOString(),
-      level: 'info',
-      message: `현재 네트워크 사용률: ${network.toFixed(1)}%`,
-      source: 'network-monitor',
-    });
-  }
-
-  // 6. Redis/캐시 문제 시나리오
-  if (
-    scenarioLower.includes('redis') ||
-    scenarioLower.includes('캐시') ||
-    scenarioLower.includes('cache')
-  ) {
-    logs.push({
-      timestamp: new Date(now.getTime() - 60000).toISOString(),
+      timestamp: new Date(now.getTime() - 28000).toISOString(),
       level: 'error',
-      message: 'Redis 메모리 사용량 임계치 도달 - eviction 발생',
-      source: 'redis-monitor',
+      message: `${hostname} nginx[${pid(1000)}]: connect() failed (111: Connection refused) while connecting to upstream`,
+      source: 'nginx',
     });
     logs.push({
-      timestamp: new Date(now.getTime() - 180000).toISOString(),
+      timestamp: new Date(now.getTime() - 42000).toISOString(),
       level: 'warn',
-      message: '캐시 히트율 저하: 78% → 65%',
-      source: 'cache-manager',
+      message: `${hostname} haproxy[${pid(2000)}]: Server api_backend/server1 is DOWN, reason: Layer4 timeout, check duration: 5001ms`,
+      source: 'haproxy',
     });
     logs.push({
-      timestamp: new Date(now.getTime() - 300000).toISOString(),
+      timestamp: new Date(now.getTime() - 65000).toISOString(),
+      level: 'warn',
+      message: `${hostname} kernel: [${pid(90000)}.${pid(100)}] TCP: request_sock_TCP: Possible SYN flooding on port 80. Sending cookies.`,
+      source: 'kernel',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 95000).toISOString(),
       level: 'info',
-      message: 'Redis 연결 풀 상태: 45/50 활성',
-      source: 'redis-monitor',
+      message: `${hostname} sshd[${pid(22000)}]: Received disconnect from 10.0.0.${Math.floor(network / 10)} port ${pid(40000)}: 11: disconnected by user`,
+      source: 'sshd',
     });
   }
 
   // 기본 로그 (시나리오 매칭 없는 경우)
   if (logs.length === 0) {
     logs.push({
+      timestamp: new Date(now.getTime() - 30000).toISOString(),
+      level: 'info',
+      message: `${hostname} systemd[1]: Started Session ${pid(100)} of user root.`,
+      source: 'systemd',
+    });
+    logs.push({
       timestamp: new Date(now.getTime() - 60000).toISOString(),
       level: 'info',
-      message: `서버 상태 정상 - ${serverId}`,
-      source: 'system',
+      message: `${hostname} nginx[${pid(1000)}]: 10.0.0.1 - - "GET / HTTP/1.1" 200 612 "-" "curl/7.68.0"`,
+      source: 'nginx',
     });
   }
 
