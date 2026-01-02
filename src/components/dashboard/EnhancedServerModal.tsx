@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * 🚀 Enhanced Server Detail Modal v5.1 - Dark Glass UI
+ * 🚀 Enhanced Server Detail Modal v5.2 - Light Mode UI
  *
- * 완전히 모듈화된 현대적 서버 상세 모달 (Dark Theme 적용):
- * - Glassmorphism UI (투명 유리 효과)
- * - Neon Glow Effects (네온 글로우)
- * - Deep Dark Background (몰입감 향상)
+ * 완전히 모듈화된 현대적 서버 상세 모달 (Light Theme 적용):
+ * - Clean White Background (깔끔한 화이트 배경)
+ * - Subtle Shadows (부드러운 그림자 효과)
+ * - Professional Light Mode (가독성 향상)
  */
 
 import {
@@ -327,7 +327,7 @@ export default function EnhancedServerModal({
   if (!safeServer) {
     console.warn('⚠️ [EnhancedServerModal] 서버 데이터가 없습니다.');
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
         <button
           type="button"
           className="absolute inset-0 h-full w-full cursor-default"
@@ -335,18 +335,18 @@ export default function EnhancedServerModal({
           aria-label="Close modal"
         />
         <div
-          className="relative w-full max-w-md rounded-xl bg-[#0F1115] p-6 text-center border border-white/10"
+          className="relative w-full max-w-md rounded-xl bg-white p-6 text-center border border-gray-200 shadow-xl"
           role="alertdialog"
           aria-modal="true"
         >
           <div className="mb-4 text-4xl text-red-500">⚠️</div>
-          <h3 className="mb-2 text-lg font-semibold text-white">
+          <h3 className="mb-2 text-lg font-semibold text-gray-900">
             서버 데이터 오류
           </h3>
-          <p className="mb-4 text-white/70">서버 정보를 불러올 수 없습니다.</p>
+          <p className="mb-4 text-gray-600">서버 정보를 불러올 수 없습니다.</p>
           <button
             onClick={onClose}
-            className="rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-2 hover:bg-blue-500/30 transition-colors"
+            className="rounded-lg bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 transition-colors"
           >
             닫기
           </button>
@@ -361,7 +361,7 @@ export default function EnhancedServerModal({
 
   return (
     <div
-      className="gpu-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+      className="gpu-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       role="presentation"
     >
       <button
@@ -373,19 +373,23 @@ export default function EnhancedServerModal({
       <dialog
         ref={dialogRef}
         open
-        className="gpu-modal-content relative flex h-[95vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-[#0F1115] shadow-2xl ring-1 ring-white/10 sm:h-[90vh] sm:rounded-3xl"
+        className="gpu-modal-content relative flex h-[95vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 sm:h-[90vh] sm:rounded-3xl"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        {/* 헤더 - Dark Glass Style */}
-        <div
-          className={`bg-linear-to-r ${darkStatusTheme.background.replace('backdrop-blur-md', '')} border-b border-white/5 p-4 text-white sm:p-6`}
-        >
+        {/* 헤더 - Light Mode Style */}
+        <div className="bg-gradient-to-r from-slate-50 to-gray-100 border-b border-gray-200 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             {/* 💡 핵심 정보 통합 */}
             <div className="flex items-center gap-2 sm:gap-4">
               <div
-                className={`rounded-xl p-2 shadow-lg backdrop-blur-sm sm:p-3 bg-white/5 ${darkStatusTheme.text}`}
+                className={`rounded-xl p-2 shadow-md sm:p-3 bg-white ${
+                  safeServer.status === 'online'
+                    ? 'text-emerald-600'
+                    : safeServer.status === 'warning'
+                      ? 'text-amber-600'
+                      : 'text-red-600'
+                }`}
               >
                 <ServerIcon className="h-5 w-5 sm:h-7 sm:w-7" />
               </div>
@@ -393,17 +397,15 @@ export default function EnhancedServerModal({
                 {/* 1️⃣ 서버명 (헬스점수 배지 제거 - FIX-002) */}
                 <h2
                   id="modal-title"
-                  className="text-lg font-bold sm:text-2xl text-white"
+                  className="text-lg font-bold sm:text-2xl text-gray-900"
                 >
-                  <span className="truncate drop-shadow-md">
-                    {safeServer.name}
-                  </span>
+                  <span className="truncate">{safeServer.name}</span>
                 </h2>
 
                 {/* 2️⃣ 서버 정보 */}
-                <div className="mt-1 flex items-center gap-2 text-sm text-white/60 sm:gap-3 sm:text-base">
+                <div className="mt-1 flex items-center gap-2 text-sm text-gray-500 sm:gap-3 sm:text-base">
                   <span className="font-medium">{safeServer.type}</span>
-                  <span className="hidden sm:inline text-white/20">•</span>
+                  <span className="hidden sm:inline text-gray-300">•</span>
                   <span className="hidden sm:inline">
                     {safeServer.location}
                   </span>
@@ -418,15 +420,15 @@ export default function EnhancedServerModal({
                 onClick={() => setIsRealtime(!isRealtime)}
                 className={`flex items-center gap-1 rounded-xl px-2 py-2 text-sm font-medium transition-all duration-300 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-base ${
                   isRealtime
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-lg shadow-emerald-500/10'
-                    : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'
+                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 shadow-sm'
+                    : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
                 }`}
               >
                 {isRealtime ? (
                   <>
                     <Play className="h-4 w-4" />
                     <span className="hidden sm:inline">Live</span>
-                    <span className="animate-pulse text-emerald-400">●</span>
+                    <span className="animate-pulse text-emerald-500">●</span>
                   </>
                 ) : (
                   <>
@@ -439,7 +441,7 @@ export default function EnhancedServerModal({
               {/* 4️⃣ 모달 닫기 */}
               <button
                 onClick={onClose}
-                className="rounded-xl bg-white/5 p-2 backdrop-blur-sm transition-all duration-300 hover:rotate-90 hover:scale-110 hover:bg-white/10 border border-white/10 sm:p-2.5 text-white/70 hover:text-white"
+                className="rounded-xl bg-gray-100 p-2 transition-all duration-300 hover:rotate-90 hover:scale-110 hover:bg-gray-200 border border-gray-200 sm:p-2.5 text-gray-500 hover:text-gray-700"
                 title="모달 닫기"
               >
                 <X className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -468,12 +470,12 @@ export default function EnhancedServerModal({
                   onClick={() => setSelectedTab(tab.id)}
                   className={`relative flex items-center gap-1 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-base ${
                     isActive
-                      ? 'bg-white/10 text-white shadow-lg border border-white/20'
-                      : 'text-white/40 hover:bg-white/5 hover:text-white/70'
+                      ? 'bg-white text-gray-900 shadow-md border border-gray-200'
+                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
                   }`}
                 >
                   <Icon
-                    className={`h-4 w-4 shrink-0 ${isActive ? 'text-blue-400' : 'text-white/40'}`}
+                    className={`h-4 w-4 shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-400'}`}
                     aria-hidden="true"
                   />
                   <span>{tab.label}</span>
@@ -481,7 +483,7 @@ export default function EnhancedServerModal({
                   {/* 활성 탭 하이라이트 (Bottom Bar) */}
                   {isActive && (
                     <div
-                      className="absolute bottom-0 left-1/2 h-0.5 w-1/2 -translate-x-1/2 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"
+                      className="absolute bottom-0 left-1/2 h-0.5 w-1/2 -translate-x-1/2 bg-blue-600"
                       aria-hidden="true"
                     />
                   )}
@@ -492,7 +494,7 @@ export default function EnhancedServerModal({
         </div>
 
         {/* 콘텐츠 영역 */}
-        <div className="flex-1 overflow-y-auto bg-linear-to-br from-[#0F1115] to-[#1a1c20]">
+        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-white">
           <div
             key={selectedTab}
             id={`panel-${selectedTab}`}
@@ -508,68 +510,66 @@ export default function EnhancedServerModal({
                   statusTheme={getStatusTheme(safeServer.status)}
                 />
 
-                {/* 📈 핵심 메트릭 요약 - Dark Glass Card */}
-                <div className={`rounded-xl p-5 ${DARK_CARD_STYLES.glass}`}>
-                  <h3
-                    className={`mb-4 flex items-center gap-2 text-lg font-semibold ${DARK_CARD_STYLES.textPrimary}`}
-                  >
-                    <BarChart3 className="h-5 w-5 text-blue-400" />
+                {/* 📈 핵심 메트릭 요약 - Light Mode Card */}
+                <div className="rounded-xl p-5 bg-white shadow-sm border border-gray-200">
+                  <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                    <BarChart3 className="h-5 w-5 text-blue-600" />
                     핵심 성능 지표
                   </h3>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-                    <div className="text-center p-3 rounded-lg bg-white/5 border border-white/5">
+                    <div className="text-center p-3 rounded-lg bg-gray-50 border border-gray-100">
                       <div
                         className={`text-2xl font-bold ${
                           safeServer.cpu > 80
-                            ? 'text-red-400 shadow-red-500/20 drop-shadow-sm'
+                            ? 'text-red-600'
                             : safeServer.cpu > 60
-                              ? 'text-amber-400'
-                              : 'text-emerald-400'
+                              ? 'text-amber-600'
+                              : 'text-emerald-600'
                         }`}
                       >
                         {Math.round(safeServer.cpu)}%
                       </div>
-                      <div className="text-xs text-white/40 uppercase mt-1 tracking-wider">
+                      <div className="text-xs text-gray-500 uppercase mt-1 tracking-wider">
                         CPU
                       </div>
                     </div>
-                    <div className="text-center p-3 rounded-lg bg-white/5 border border-white/5">
+                    <div className="text-center p-3 rounded-lg bg-gray-50 border border-gray-100">
                       <div
                         className={`text-2xl font-bold ${
                           safeServer.memory > 80
-                            ? 'text-red-400'
+                            ? 'text-red-600'
                             : safeServer.memory > 60
-                              ? 'text-amber-400'
-                              : 'text-emerald-400'
+                              ? 'text-amber-600'
+                              : 'text-emerald-600'
                         }`}
                       >
                         {Math.round(safeServer.memory)}%
                       </div>
-                      <div className="text-xs text-white/40 uppercase mt-1 tracking-wider">
+                      <div className="text-xs text-gray-500 uppercase mt-1 tracking-wider">
                         Memory
                       </div>
                     </div>
-                    <div className="text-center p-3 rounded-lg bg-white/5 border border-white/5">
+                    <div className="text-center p-3 rounded-lg bg-gray-50 border border-gray-100">
                       <div
                         className={`text-2xl font-bold ${
                           safeServer.disk > 80
-                            ? 'text-red-400'
+                            ? 'text-red-600'
                             : safeServer.disk > 60
-                              ? 'text-amber-400'
-                              : 'text-emerald-400'
+                              ? 'text-amber-600'
+                              : 'text-emerald-600'
                         }`}
                       >
                         {Math.round(safeServer.disk)}%
                       </div>
-                      <div className="text-xs text-white/40 uppercase mt-1 tracking-wider">
+                      <div className="text-xs text-gray-500 uppercase mt-1 tracking-wider">
                         Disk
                       </div>
                     </div>
-                    <div className="text-center p-3 rounded-lg bg-white/5 border border-white/5">
-                      <div className="text-2xl font-bold text-blue-400">
+                    <div className="text-center p-3 rounded-lg bg-gray-50 border border-gray-100">
+                      <div className="text-2xl font-bold text-blue-600">
                         {safeServer.services?.length || 0}
                       </div>
-                      <div className="text-xs text-white/40 uppercase mt-1 tracking-wider">
+                      <div className="text-xs text-gray-500 uppercase mt-1 tracking-wider">
                         Services
                       </div>
                     </div>
@@ -587,11 +587,9 @@ export default function EnhancedServerModal({
                   onToggleRealtime={() => setIsRealtime((prev) => !prev)}
                 />
 
-                <div className={`rounded-xl p-5 ${DARK_CARD_STYLES.glass}`}>
-                  <h3
-                    className={`mb-4 flex items-center gap-2 text-lg font-semibold ${DARK_CARD_STYLES.textPrimary}`}
-                  >
-                    <Cpu className="h-5 w-5 text-emerald-400" />
+                <div className="rounded-xl p-5 bg-white shadow-sm border border-gray-200">
+                  <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                    <Cpu className="h-5 w-5 text-emerald-600" />
                     실행 중인 프로세스
                   </h3>
                   <ProcessesTab realtimeData={realtimeData} />
@@ -601,21 +599,17 @@ export default function EnhancedServerModal({
 
             {selectedTab === 'logs' && (
               <div className="space-y-6">
-                <div className={`rounded-xl p-5 ${DARK_CARD_STYLES.glass}`}>
-                  <h3
-                    className={`mb-4 flex items-center gap-2 text-lg font-semibold ${DARK_CARD_STYLES.textPrimary}`}
-                  >
-                    <FileText className="h-5 w-5 text-blue-400" />
+                <div className="rounded-xl p-5 bg-white shadow-sm border border-gray-200">
+                  <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                    <FileText className="h-5 w-5 text-blue-600" />
                     시스템 로그
                   </h3>
                   <LogsTab realtimeData={realtimeData} />
                 </div>
 
-                <div className={`rounded-xl p-5 ${DARK_CARD_STYLES.glass}`}>
-                  <h3
-                    className={`mb-4 flex items-center gap-2 text-lg font-semibold ${DARK_CARD_STYLES.textPrimary}`}
-                  >
-                    <Network className="h-5 w-5 text-purple-400" />
+                <div className="rounded-xl p-5 bg-white shadow-sm border border-gray-200">
+                  <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                    <Network className="h-5 w-5 text-purple-600" />
                     네트워크 상태
                   </h3>
                   <NetworkTab server={safeServer} realtimeData={realtimeData} />
@@ -626,25 +620,25 @@ export default function EnhancedServerModal({
         </div>
 
         {/* 하단 상태 요약 */}
-        <div className="border-t border-white/10 bg-[#0F1115]/50 backdrop-blur-xl px-4 py-3 sm:px-6">
+        <div className="border-t border-gray-200 bg-gray-50 px-4 py-3 sm:px-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs sm:gap-4 sm:text-sm">
               <div className="flex items-center gap-2">
                 <div
                   className={`h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5 ${
                     safeServer.status === 'online'
-                      ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                      ? 'bg-emerald-500'
                       : safeServer.status === 'warning'
-                        ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
-                        : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
+                        ? 'bg-amber-500'
+                        : 'bg-red-500'
                   }`}
                 />
-                <span className="font-medium capitalize text-white/70">
+                <span className="font-medium capitalize text-gray-700">
                   {safeServer.status}
                 </span>
               </div>
-              <div className="text-white/40 hidden sm:block">|</div>
-              <div className="text-white/60">
+              <div className="text-gray-300 hidden sm:block">|</div>
+              <div className="text-gray-600">
                 <span className="hidden sm:inline">
                   CPU: {Math.round(safeServer.cpu)}% · Mem:{' '}
                   {Math.round(safeServer.memory)}%
@@ -656,7 +650,7 @@ export default function EnhancedServerModal({
               </div>
             </div>
 
-            <div className="text-xs text-white/30 font-mono">
+            <div className="text-xs text-gray-400 font-mono">
               LAST UPDATE:{' '}
               {new Date().toLocaleTimeString('en-US', { hour12: false })}
             </div>

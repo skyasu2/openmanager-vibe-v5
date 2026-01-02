@@ -33,7 +33,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import type { Server as ServerType } from '@/types/server';
 import { MiniChart } from './cards/MiniChart';
-import { getServerIcon } from './utils/server-icons';
+import { getServerIcon, getServerTypeLabel } from './utils/server-icons';
 import { getStatusTheme } from './utils/status-theme';
 
 export interface EnhancedServerCardProps {
@@ -100,6 +100,22 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
     // 🎨 상태별 테마 (utils/status-theme.ts에서 import)
     const theme = getStatusTheme(server.status);
+
+    // 📊 전체 메트릭 기반 통합 차트 색상 계산
+    // 하나라도 심각(>=90) → 빨강, 하나라도 경고(>=70) → 노랑, 모두 정상 → 녹색
+    const getOverallChartColor = useMemo(() => {
+      const cpu = currentMetrics?.cpu ?? server.cpu;
+      const memory = currentMetrics?.memory ?? server.memory;
+      const disk = currentMetrics?.disk ?? server.disk;
+      const network = currentMetrics?.network ?? server.network ?? 0;
+
+      const metrics = [cpu, memory, disk, network];
+      const maxValue = Math.max(...metrics);
+
+      if (maxValue >= 90) return '#ef4444'; // 심각 - 빨강
+      if (maxValue >= 70) return '#f59e0b'; // 경고 - 노랑/주황
+      return '#10b981'; // 정상 - 녹색
+    }, [currentMetrics, server]);
 
     // 변형별 스타일 설정 - 개선된 버전
     const getVariantStyles = () => {
@@ -261,11 +277,11 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
           </motion.div>
         </div>
 
-        {/* 헤더 - 개선된 레이아웃 */}
-        <div className="flex items-start justify-between mb-5">
-          <div className="flex items-center gap-4 flex-1 min-w-0">
+        {/* 헤더 - 개선된 레이아웃 + 간격 조정 */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <motion.div
-              className={`p-3 rounded-xl ${theme.iconBg} ${theme.accent} shadow-sm border border-white/30`}
+              className={`p-2.5 rounded-xl ${theme.iconBg} ${theme.accent} shadow-sm border border-white/30`}
               whileHover={{
                 rotate: [0, -5, 5, 0],
                 scale: 1.05,
@@ -276,7 +292,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             </motion.div>
             <div className="flex-1 min-w-0">
               <h3
-                className={`font-bold text-gray-900 ${variantStyles.titleSize} group-hover:text-gray-700 transition-colors flex items-center gap-2 mb-1`}
+                className={`font-bold text-gray-900 ${variantStyles.titleSize} group-hover:text-gray-700 transition-colors flex items-center gap-1.5 mb-0.5`}
               >
                 <span className="truncate">{server.name}</span>
                 {server.health?.score !== undefined && (
@@ -288,11 +304,11 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                   </motion.span>
                 )}
               </h3>
-              <p className="text-sm text-gray-600 font-medium mb-1">
-                {server.type || 'Server'} • {server.location}
+              <p className="text-xs text-gray-600 font-medium">
+                {getServerTypeLabel(server.type)} • {server.location}
               </p>
               {server.specs?.network_speed && (
-                <p className="text-xs text-gray-500 flex items-center gap-1">
+                <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
                   <Globe className="w-3 h-3" />
                   <span className="font-medium">
                     {server.specs.network_speed}
@@ -324,7 +340,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             >
               <MiniChart
                 data={realtimeData.cpu}
-                color="#10b981"
+                color={getOverallChartColor}
                 label="CPU"
                 icon={<Cpu className="w-3 h-3" />}
                 serverId={server.id}
@@ -334,7 +350,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               />
               <MiniChart
                 data={realtimeData.memory}
-                color="#10b981"
+                color={getOverallChartColor}
                 label="MEM"
                 icon={<Activity className="w-3 h-3" />}
                 serverId={server.id}
@@ -344,7 +360,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               />
               <MiniChart
                 data={realtimeData.disk}
-                color="#10b981"
+                color={getOverallChartColor}
                 label="DISK"
                 icon={<HardDrive className="w-3 h-3" />}
                 serverId={server.id}
@@ -354,7 +370,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               />
               <MiniChart
                 data={realtimeData.network}
-                color="#10b981"
+                color={getOverallChartColor}
                 label="NET"
                 icon={<Network className="w-3 h-3" />}
                 serverId={server.id}

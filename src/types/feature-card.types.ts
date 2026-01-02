@@ -55,7 +55,10 @@ export type TechCategory =
   | 'custom'
   | 'deployment'
   | 'ui'
-  | 'utility'; // clsx, date-fns 등 유틸리티 라이브러리용
+  | 'utility' // clsx, date-fns 등 유틸리티 라이브러리용
+  | 'cache' // Redis, Memcached 등 캐시 시스템
+  | 'testing' // Playwright, Vitest 등 테스트 도구
+  | 'tooling'; // Biome, ESLint 등 개발 도구
 
 /**
  * 중요도 레벨
