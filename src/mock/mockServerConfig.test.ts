@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { isValidServerRole, isValidServerStatus } from '@/types/server';
 import {
   getFallbackServers,
   getInfrastructureSummary,
@@ -45,8 +46,9 @@ describe('mockServerConfig', () => {
       expect(uniqueIds.size).toBe(ids.length);
     });
 
-    it('모든 서버가 유효한 타입을 가져야 함', () => {
-      const validTypes = [
+    it('모든 서버가 유효한 타입을 가져야 함 (MockServerInfo.type)', () => {
+      // MockServerInfo.type은 'loadbalancer'를 포함 (getFallbackServers에서 정규화됨)
+      const validMockTypes = [
         'web',
         'app',
         'database',
@@ -57,14 +59,13 @@ describe('mockServerConfig', () => {
         'loadbalancer',
       ];
       mockServers.forEach((server) => {
-        expect(validTypes).toContain(server.type);
+        expect(validMockTypes).toContain(server.type);
       });
     });
 
     it('모든 서버가 유효한 상태를 가져야 함', () => {
-      const validStatuses = ['online', 'warning', 'critical'];
       mockServers.forEach((server) => {
-        expect(validStatuses).toContain(server.status);
+        expect(isValidServerStatus(server.status)).toBe(true);
       });
     });
 
@@ -274,6 +275,29 @@ describe('mockServerConfig', () => {
 
       servers.forEach((server) => {
         expect(server.type).toBe(server.role);
+      });
+    });
+
+    it('모든 서버 타입이 SSOT ServerRole에 유효해야 함', () => {
+      const servers = getFallbackServers();
+
+      servers.forEach((server) => {
+        // isValidServerRole 타입 가드를 사용하여 SSOT 정합성 검증
+        expect(isValidServerRole(server.type)).toBe(true);
+        expect(isValidServerRole(server.role)).toBe(true);
+      });
+    });
+
+    it('loadbalancer 타입이 load-balancer로 정규화되어야 함', () => {
+      const servers = getFallbackServers();
+
+      // lb-haproxy-icn-01, lb-haproxy-pus-01 서버가 load-balancer로 변환되었는지 확인
+      const lbServers = servers.filter((s) => s.id.startsWith('lb-'));
+      expect(lbServers.length).toBe(2);
+
+      lbServers.forEach((server) => {
+        expect(server.type).toBe('load-balancer');
+        expect(server.role).toBe('load-balancer');
       });
     });
   });

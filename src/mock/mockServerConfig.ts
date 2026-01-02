@@ -8,6 +8,7 @@
  */
 
 import type { Server, ServerEnvironment, ServerRole } from '@/types/server';
+import { isValidServerRole } from '@/types/server';
 
 export interface MockServerInfo {
   id: string;
@@ -332,8 +333,20 @@ export function getInfrastructureSummary(): {
  */
 export function getFallbackServers(): Server[] {
   return mockServers.map((info): Server => {
-    // 명시적 타입 변환으로 타입 안전성 확보
-    const serverType: ServerRole = info.type as ServerRole;
+    // MockServerInfo.type → ServerRole 정규화 (loadbalancer → load-balancer)
+    const normalizedType =
+      info.type === 'loadbalancer' ? 'load-balancer' : info.type;
+
+    // 런타임 타입 검증으로 SSOT 정합성 확보
+    if (!isValidServerRole(normalizedType)) {
+      console.warn(
+        `[getFallbackServers] Invalid server role: ${normalizedType}, defaulting to 'app'`
+      );
+    }
+
+    const serverType: ServerRole = isValidServerRole(normalizedType)
+      ? normalizedType
+      : 'app';
     const serverEnvironment: ServerEnvironment = 'production';
 
     return {
