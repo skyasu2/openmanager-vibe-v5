@@ -21,6 +21,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.83.15] - 2026-01-03
+
+### Changed
+- **서버 모니터링 로그 형식 변경**: AI 친화적 메시지에서 실제 syslog 형식으로 전환
+  - 형식: `hostname process[pid]: message`
+  - 지원 소스: nginx, docker, kernel, systemd, mysqld, redis, java, haproxy, rsync, postgres, sshd
+  - 실제 Linux 에러 코드 포함 (errno 28, 110, 111)
+- 타입 정의 문서 (`docs/guides/types.md`) 현행화
+
+### Removed
+- `EnhancedServerMetrics`에서 `aiAnalysis` 필드 제거
+  - 서버 모니터링 영역에서 Cloud Run 자동 호출 완전 분리
+  - AI 기능은 AI 사이드바/페이지에서만 사용자 요청 시 호출
+- `src/core/types/server.types.ts`에서 `aiAnalysis` 필드 제거
+
+### Verified
+- 서버 모니터링 영역(프론트엔드/백엔드)에서 Cloud Run 자동 호출 없음 확인
+  - Dashboard 컴포넌트: `/api/servers-unified` (로컬 API만 호출)
+  - API 라우트: JSON 파일 기반 데이터 제공
+  - 서비스 레이어: 외부 호출 없음
+
+---
+
 ## [5.83.14] - 2025-12-31
 
 ### Added

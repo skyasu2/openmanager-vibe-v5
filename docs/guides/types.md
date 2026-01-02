@@ -7,38 +7,76 @@
 interface Server {
   id: string;
   name: string;
-  type:
-    | 'web'
-    | 'api'
-    | 'database'
-    | 'cache'
-    | 'monitoring'
-    | 'security'
-    | 'backup';
-  status: 'healthy' | 'warning' | 'critical' | 'unknown';
-  uptime: number;
-  lastCheck: string;
-  metadata?: Record<string, unknown>;
-}
-
-interface ServerMetric {
-  id: string;
-  serverId: string;
-  timestamp: string;
+  hostname: string;
+  type: 'web' | 'api' | 'database' | 'cache' | 'storage' | 'loadbalancer';
+  status: 'online' | 'offline' | 'warning' | 'critical' | 'maintenance' | 'unknown';
+  environment: 'production' | 'staging' | 'development';
+  location: string;
+  provider: string;
   cpu: number;
   memory: number;
   disk: number;
-  networkIn: number;
-  networkOut: number;
-  responseTime: number;
-  status: string;
+  network: number;
+  uptime: string;
+  lastUpdate: Date;
+  alerts: number;
+  services: ServerService[];
+  specs?: ServerSpecs;
+  os?: string;
+  ip?: string;
 }
 
-interface ServerSummary {
-  server: Server;
-  currentMetrics: ServerMetric;
-  trend: 'up' | 'down' | 'stable';
-  alerts: Alert[];
+interface ServerService {
+  name: string;
+  status: 'running' | 'stopped' | 'warning' | 'failed' | 'starting' | 'stopping';
+  port: number;
+}
+
+interface ServerSpecs {
+  cpu_cores: number;
+  memory_gb: number;
+  disk_gb: number;
+  network_speed?: string;
+}
+
+// 확장 서버 메트릭 (API 응답용)
+interface EnhancedServerMetrics extends Server {
+  // 이중 메트릭 (호환성)
+  cpu_usage: number;
+  memory_usage: number;
+  disk_usage: number;
+  network_in: number;
+  network_out: number;
+  responseTime: number;
+  last_updated: string;
+
+  // 시스템/네트워크 정보
+  systemInfo: SystemInfo;
+  networkInfo: NetworkInfo;
+
+  // 트렌드 (메트릭 변화 추이)
+  trends?: {
+    cpu: 'increasing' | 'decreasing' | 'stable';
+    memory: 'increasing' | 'decreasing' | 'stable';
+    disk: 'increasing' | 'decreasing' | 'stable';
+    network: 'increasing' | 'decreasing' | 'stable';
+  };
+
+  // 메타데이터
+  metadata?: {
+    serverType?: string;
+    hour?: number;
+    minute?: number;
+    scenarios?: Array<{ type: string; severity: string; description: string }>;
+  };
+}
+
+// 로그 엔트리 (syslog 형식)
+interface LogEntry {
+  timestamp: string;  // ISO 8601
+  level: 'info' | 'warn' | 'error';
+  message: string;    // syslog 형식: "hostname process[pid]: message"
+  source: string;     // nginx, kernel, docker, systemd, mysqld, redis 등
 }
 ```
 
