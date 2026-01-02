@@ -7,6 +7,8 @@
  * - PUS: 부산 (DR 데이터센터)
  */
 
+import type { Server, ServerEnvironment, ServerRole } from '@/types/server';
+
 export interface MockServerInfo {
   id: string;
   hostname: string;
@@ -328,29 +330,36 @@ export function getInfrastructureSummary(): {
  *
  * @returns Server[] - 15개 서버 fallback 데이터
  */
-export function getFallbackServers(): import('@/types/server').Server[] {
-  return mockServers.map((info) => ({
-    id: info.id,
-    name: info.description,
-    hostname: `${info.hostname}.internal`,
-    type: info.type,
-    status: info.status,
-    cpu: 30 + Math.random() * 20, // 기본 30-50% 범위
-    memory: 40 + Math.random() * 30, // 기본 40-70% 범위
-    disk: 20 + Math.random() * 30, // 기본 20-50% 범위
-    network: 40 + Math.random() * 30, // 기본 40-70% 범위
-    uptime: '99.9%',
-    location: info.location,
-    lastUpdate: new Date(),
-    ip: info.ip,
-    os: info.os,
-    provider: 'On-Premise',
-    environment: 'production',
-    specs: {
-      cpu_cores: info.cpu.cores,
-      memory_gb: info.memory.total,
-      disk_gb: info.disk.total,
-      network_speed: '1Gbps',
-    },
-  })) as import('@/types/server').Server[];
+export function getFallbackServers(): Server[] {
+  return mockServers.map((info): Server => {
+    // 명시적 타입 변환으로 타입 안전성 확보
+    const serverType: ServerRole = info.type as ServerRole;
+    const serverEnvironment: ServerEnvironment = 'production';
+
+    return {
+      id: info.id,
+      name: info.description,
+      hostname: `${info.hostname}.internal`,
+      type: serverType,
+      status: info.status,
+      cpu: 30 + Math.random() * 20, // 기본 30-50% 범위
+      memory: 40 + Math.random() * 30, // 기본 40-70% 범위
+      disk: 20 + Math.random() * 30, // 기본 20-50% 범위
+      network: 40 + Math.random() * 30, // 기본 40-70% 범위
+      uptime: '99.9%',
+      location: info.location,
+      lastUpdate: new Date(),
+      ip: info.ip,
+      os: info.os,
+      provider: 'On-Premise',
+      environment: serverEnvironment,
+      role: serverType,
+      specs: {
+        cpu_cores: info.cpu.cores,
+        memory_gb: info.memory.total,
+        disk_gb: info.disk.total,
+        network_speed: '1Gbps',
+      },
+    };
+  });
 }
