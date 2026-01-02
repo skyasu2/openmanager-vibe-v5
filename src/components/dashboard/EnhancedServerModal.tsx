@@ -573,6 +573,13 @@ export default function EnhancedServerModal({
                   </h3>
                   <LogsTab
                     serverId={safeServer.id}
+                    serverMetrics={{
+                      cpu: currentMetrics?.cpu ?? safeServer.cpu,
+                      memory: currentMetrics?.memory ?? safeServer.memory,
+                      disk: currentMetrics?.disk ?? safeServer.disk,
+                      network:
+                        currentMetrics?.network ?? safeServer.network ?? 0,
+                    }}
                     realtimeData={realtimeData}
                   />
                 </div>

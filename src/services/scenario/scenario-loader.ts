@@ -296,3 +296,229 @@ function mapTypeToRole(type: string): string {
 export function clearJsonCache(): void {
   jsonCache.clear();
 }
+
+/**
+ * 🎯 현재 시나리오 정보 가져오기
+ *
+ * @returns {Promise<{scenario: string, hour: number} | null>}
+ */
+export async function getCurrentScenario(): Promise<{
+  scenario: string;
+  hour: number;
+} | null> {
+  try {
+    const koreaTime = new Date().toLocaleString('en-US', {
+      timeZone: 'Asia/Seoul',
+    });
+    const koreaDate = new Date(koreaTime);
+    const currentHour = koreaDate.getHours();
+
+    const hourlyData = await loadHourlyJsonFile(currentHour);
+    if (!hourlyData) return null;
+
+    return {
+      scenario: hourlyData.scenario,
+      hour: currentHour,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 📋 시나리오 기반 로그 생성
+ *
+ * 시나리오와 서버 메트릭에 맞는 로그를 동적으로 생성합니다.
+ * DB 호출 없이 클라이언트에서 생성하여 비용 절감.
+ *
+ * @param scenario - 현재 시나리오 설명
+ * @param serverMetrics - 서버 메트릭 (cpu, memory, disk, network)
+ * @param serverId - 서버 ID
+ * @returns 로그 배열
+ */
+export function generateScenarioLogs(
+  scenario: string,
+  serverMetrics: { cpu: number; memory: number; disk: number; network: number },
+  serverId: string
+): Array<{
+  timestamp: string;
+  level: 'info' | 'warn' | 'error';
+  message: string;
+  source: string;
+}> {
+  const logs: Array<{
+    timestamp: string;
+    level: 'info' | 'warn' | 'error';
+    message: string;
+    source: string;
+  }> = [];
+
+  const now = new Date();
+  const { cpu, memory, disk, network } = serverMetrics;
+
+  // 시나리오 키워드 매칭
+  const scenarioLower = scenario.toLowerCase();
+
+  // 1. 정상 운영 시나리오
+  if (scenarioLower.includes('정상')) {
+    logs.push({
+      timestamp: new Date(now.getTime() - 60000).toISOString(),
+      level: 'info',
+      message: '시스템 헬스체크 통과 - 모든 서비스 정상',
+      source: 'health-monitor',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 120000).toISOString(),
+      level: 'info',
+      message: `현재 리소스 상태: CPU ${cpu.toFixed(1)}%, Memory ${memory.toFixed(1)}%`,
+      source: 'metrics-collector',
+    });
+  }
+
+  // 2. CPU 과부하 시나리오
+  if (scenarioLower.includes('cpu') || scenarioLower.includes('과부하')) {
+    if (cpu > 80) {
+      logs.push({
+        timestamp: new Date(now.getTime() - 30000).toISOString(),
+        level: 'error',
+        message: `CPU 사용률 임계치 초과: ${cpu.toFixed(1)}% (임계값: 80%)`,
+        source: 'alert-manager',
+      });
+    }
+    logs.push({
+      timestamp: new Date(now.getTime() - 90000).toISOString(),
+      level: 'warn',
+      message: 'API 요청 처리 지연 감지 - 큐 대기열 증가',
+      source: 'api-gateway',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 180000).toISOString(),
+      level: 'info',
+      message: '요청 폭증 감지 - 오토스케일링 검토 필요',
+      source: 'load-balancer',
+    });
+  }
+
+  // 3. 메모리 누수 시나리오
+  if (
+    scenarioLower.includes('메모리') ||
+    scenarioLower.includes('memory') ||
+    scenarioLower.includes('oom')
+  ) {
+    if (memory > 85) {
+      logs.push({
+        timestamp: new Date(now.getTime() - 30000).toISOString(),
+        level: 'error',
+        message: `메모리 사용률 위험: ${memory.toFixed(1)}% - OOM 위험`,
+        source: 'memory-monitor',
+      });
+    }
+    logs.push({
+      timestamp: new Date(now.getTime() - 120000).toISOString(),
+      level: 'warn',
+      message: '메모리 증가 추세 감지 - 누수 의심',
+      source: 'memory-monitor',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 300000).toISOString(),
+      level: 'info',
+      message: 'GC 실행 완료 - 해제된 메모리: 256MB',
+      source: 'jvm-monitor',
+    });
+  }
+
+  // 4. 디스크 I/O 시나리오
+  if (
+    scenarioLower.includes('디스크') ||
+    scenarioLower.includes('disk') ||
+    scenarioLower.includes('백업')
+  ) {
+    if (disk > 80) {
+      logs.push({
+        timestamp: new Date(now.getTime() - 60000).toISOString(),
+        level: 'error',
+        message: `디스크 사용률 경고: ${disk.toFixed(1)}%`,
+        source: 'disk-monitor',
+      });
+    }
+    logs.push({
+      timestamp: new Date(now.getTime() - 120000).toISOString(),
+      level: 'warn',
+      message: '디스크 I/O 대기열 증가 - 백업 작업 진행 중',
+      source: 'io-scheduler',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 180000).toISOString(),
+      level: 'info',
+      message: '자동 백업 시작 - 예상 소요시간: 15분',
+      source: 'backup-service',
+    });
+  }
+
+  // 5. 네트워크 문제 시나리오
+  if (
+    scenarioLower.includes('네트워크') ||
+    scenarioLower.includes('network') ||
+    scenarioLower.includes('패킷')
+  ) {
+    logs.push({
+      timestamp: new Date(now.getTime() - 45000).toISOString(),
+      level: 'error',
+      message: '패킷 손실률 증가 감지: 2.3%',
+      source: 'network-monitor',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 150000).toISOString(),
+      level: 'warn',
+      message: '로드밸런서 응답 지연: 평균 350ms',
+      source: 'load-balancer',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 240000).toISOString(),
+      level: 'info',
+      message: `현재 네트워크 사용률: ${network.toFixed(1)}%`,
+      source: 'network-monitor',
+    });
+  }
+
+  // 6. Redis/캐시 문제 시나리오
+  if (
+    scenarioLower.includes('redis') ||
+    scenarioLower.includes('캐시') ||
+    scenarioLower.includes('cache')
+  ) {
+    logs.push({
+      timestamp: new Date(now.getTime() - 60000).toISOString(),
+      level: 'error',
+      message: 'Redis 메모리 사용량 임계치 도달 - eviction 발생',
+      source: 'redis-monitor',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 180000).toISOString(),
+      level: 'warn',
+      message: '캐시 히트율 저하: 78% → 65%',
+      source: 'cache-manager',
+    });
+    logs.push({
+      timestamp: new Date(now.getTime() - 300000).toISOString(),
+      level: 'info',
+      message: 'Redis 연결 풀 상태: 45/50 활성',
+      source: 'redis-monitor',
+    });
+  }
+
+  // 기본 로그 (시나리오 매칭 없는 경우)
+  if (logs.length === 0) {
+    logs.push({
+      timestamp: new Date(now.getTime() - 60000).toISOString(),
+      level: 'info',
+      message: `서버 상태 정상 - ${serverId}`,
+      source: 'system',
+    });
+  }
+
+  // 시간순 정렬 (최신 먼저)
+  return logs.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+}
