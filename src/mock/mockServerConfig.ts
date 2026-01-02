@@ -8,7 +8,6 @@
  */
 
 import type { Server, ServerEnvironment, ServerRole } from '@/types/server';
-import { isValidServerRole } from '@/types/server';
 
 export interface MockServerInfo {
   id: string;
@@ -21,7 +20,7 @@ export interface MockServerInfo {
     | 'backup'
     | 'cache'
     | 'monitoring'
-    | 'loadbalancer';
+    | 'load-balancer';
   os: string;
   service: string;
   ip: string;
@@ -249,7 +248,7 @@ export const mockServers: MockServerInfo[] = [
   {
     id: 'lb-haproxy-icn-01',
     hostname: 'lb-haproxy-icn-01',
-    type: 'loadbalancer',
+    type: 'load-balancer',
     os: 'Ubuntu 22.04 LTS',
     service: 'HAProxy 2.8.3',
     ip: '10.1.1.5',
@@ -263,7 +262,7 @@ export const mockServers: MockServerInfo[] = [
   {
     id: 'lb-haproxy-pus-01',
     hostname: 'lb-haproxy-pus-01',
-    type: 'loadbalancer',
+    type: 'load-balancer',
     os: 'Ubuntu 22.04 LTS',
     service: 'HAProxy 2.8.3',
     ip: '10.2.1.5',
@@ -333,20 +332,8 @@ export function getInfrastructureSummary(): {
  */
 export function getFallbackServers(): Server[] {
   return mockServers.map((info): Server => {
-    // MockServerInfo.type → ServerRole 정규화 (loadbalancer → load-balancer)
-    const normalizedType =
-      info.type === 'loadbalancer' ? 'load-balancer' : info.type;
-
-    // 런타임 타입 검증으로 SSOT 정합성 확보
-    if (!isValidServerRole(normalizedType)) {
-      console.warn(
-        `[getFallbackServers] Invalid server role: ${normalizedType}, defaulting to 'app'`
-      );
-    }
-
-    const serverType: ServerRole = isValidServerRole(normalizedType)
-      ? normalizedType
-      : 'app';
+    // MockServerInfo.type은 이미 SSOT ServerRole과 일치 (load-balancer 사용)
+    const serverType: ServerRole = info.type;
     const serverEnvironment: ServerEnvironment = 'production';
 
     return {

@@ -47,19 +47,9 @@ describe('mockServerConfig', () => {
     });
 
     it('모든 서버가 유효한 타입을 가져야 함 (MockServerInfo.type)', () => {
-      // MockServerInfo.type은 'loadbalancer'를 포함 (getFallbackServers에서 정규화됨)
-      const validMockTypes = [
-        'web',
-        'app',
-        'database',
-        'storage',
-        'backup',
-        'cache',
-        'monitoring',
-        'loadbalancer',
-      ];
+      // MockServerInfo.type은 SSOT ServerRole과 일치 (load-balancer 사용)
       mockServers.forEach((server) => {
-        expect(validMockTypes).toContain(server.type);
+        expect(isValidServerRole(server.type)).toBe(true);
       });
     });
 
@@ -288,10 +278,10 @@ describe('mockServerConfig', () => {
       });
     });
 
-    it('loadbalancer 타입이 load-balancer로 정규화되어야 함', () => {
+    it('로드밸런서 서버가 load-balancer 타입을 가져야 함', () => {
       const servers = getFallbackServers();
 
-      // lb-haproxy-icn-01, lb-haproxy-pus-01 서버가 load-balancer로 변환되었는지 확인
+      // lb-haproxy-icn-01, lb-haproxy-pus-01 서버 확인
       const lbServers = servers.filter((s) => s.id.startsWith('lb-'));
       expect(lbServers.length).toBe(2);
 
