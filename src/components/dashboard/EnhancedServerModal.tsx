@@ -22,10 +22,6 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
-import {
-  DARK_CARD_STYLES,
-  getDarkServerStatusTheme,
-} from '@/styles/design-constants';
 
 import { LogsTab } from './EnhancedServerModal.LogsTab';
 import { MetricsTab } from './EnhancedServerModal.MetricsTab';
@@ -354,10 +350,6 @@ export default function EnhancedServerModal({
       </div>
     );
   }
-
-  // 상태별 색상 테마 가져오기 (Dark Mode)
-  // const statusTheme = getStatusTheme(safeServer?.status); // Legacy
-  const darkStatusTheme = getDarkServerStatusTheme(safeServer?.status);
 
   return (
     <div
