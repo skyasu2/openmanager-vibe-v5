@@ -319,3 +319,38 @@ export function getInfrastructureSummary(): {
     byType,
   };
 }
+
+/**
+ * 🎯 SSOT: Server 타입으로 변환된 Fallback 데이터
+ *
+ * API 실패 시 사용되는 fallback 서버 목록
+ * MockServerInfo를 Server 타입으로 변환하여 반환
+ *
+ * @returns Server[] - 15개 서버 fallback 데이터
+ */
+export function getFallbackServers(): import('@/types/server').Server[] {
+  return mockServers.map((info) => ({
+    id: info.id,
+    name: info.description,
+    hostname: `${info.hostname}.internal`,
+    type: info.type,
+    status: info.status,
+    cpu: 30 + Math.random() * 20, // 기본 30-50% 범위
+    memory: 40 + Math.random() * 30, // 기본 40-70% 범위
+    disk: 20 + Math.random() * 30, // 기본 20-50% 범위
+    network: 40 + Math.random() * 30, // 기본 40-70% 범위
+    uptime: '99.9%',
+    location: info.location,
+    lastUpdate: new Date(),
+    ip: info.ip,
+    os: info.os,
+    provider: 'On-Premise',
+    environment: 'production',
+    specs: {
+      cpu_cores: info.cpu.cores,
+      memory_gb: info.memory.total,
+      disk_gb: info.disk.total,
+      network_speed: '1Gbps',
+    },
+  })) as import('@/types/server').Server[];
+}

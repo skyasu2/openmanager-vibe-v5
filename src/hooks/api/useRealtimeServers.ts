@@ -12,6 +12,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import type { APIRequest } from '@/lib/api/api-batcher';
 import { getAPIBatcher } from '@/lib/api/api-batcher';
+// 🎯 SSOT: 중앙집중식 서버 설정에서 Fallback 데이터 import
+import { getFallbackServers } from '@/mock/mockServerConfig';
 import type { Server } from '@/types/server';
 
 // 타입 정의
@@ -29,219 +31,6 @@ interface UseRealtimeServersReturn {
   refreshServers: () => Promise<void>;
   clearError: () => void;
 }
-
-/**
- * 🎯 SSOT 기반 Fallback 서버 목록 (API 실패 시 사용)
- *
- * 한국 데이터센터 기반 15개 서버:
- * - ICN: 인천/서울 (메인 데이터센터)
- * - PUS: 부산 (DR 데이터센터)
- *
- * @see src/mock/mockServerConfig.ts (SSOT)
- */
-const mockServers: Server[] = [
-  // 웹서버 (Nginx) - 3대
-  {
-    id: 'web-nginx-icn-01',
-    name: '서울 메인 Nginx #1',
-    status: 'online',
-    hostname: 'web-nginx-icn-01.internal',
-    cpu: 30,
-    memory: 45,
-    disk: 25,
-    network: 50,
-    uptime: '99.9%',
-    location: 'Seoul-ICN-AZ1',
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'web-nginx-icn-02',
-    name: '서울 Nginx #2 (AZ2)',
-    status: 'online',
-    hostname: 'web-nginx-icn-02.internal',
-    cpu: 35,
-    memory: 50,
-    disk: 30,
-    network: 55,
-    uptime: '99.9%',
-    location: 'Seoul-ICN-AZ2',
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'web-nginx-pus-01',
-    name: '부산 DR Nginx',
-    status: 'online',
-    hostname: 'web-nginx-pus-01.internal',
-    cpu: 25,
-    memory: 40,
-    disk: 28,
-    network: 45,
-    uptime: '99.9%',
-    location: 'Busan-PUS-DR',
-    lastUpdate: new Date(),
-  },
-  // API/WAS 서버 - 3대
-  {
-    id: 'api-was-icn-01',
-    name: '서울 메인 WAS #1',
-    status: 'online',
-    hostname: 'api-was-icn-01.internal',
-    cpu: 45,
-    memory: 60,
-    disk: 40,
-    network: 50,
-    uptime: '99.9%',
-    location: 'Seoul-ICN-AZ1',
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'api-was-icn-02',
-    name: '서울 WAS #2 (AZ2)',
-    status: 'online',
-    hostname: 'api-was-icn-02.internal',
-    cpu: 50,
-    memory: 70,
-    disk: 45,
-    network: 55,
-    uptime: '99.9%',
-    location: 'Seoul-ICN-AZ2',
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'api-was-pus-01',
-    name: '부산 DR WAS',
-    status: 'online',
-    hostname: 'api-was-pus-01.internal',
-    cpu: 35,
-    memory: 55,
-    disk: 38,
-    network: 40,
-    uptime: '99.9%',
-    location: 'Busan-PUS-DR',
-    lastUpdate: new Date(),
-  },
-  // 데이터베이스 (MySQL) - 3대
-  {
-    id: 'db-mysql-icn-primary',
-    name: '서울 MySQL Primary',
-    status: 'online',
-    hostname: 'db-mysql-icn-primary.internal',
-    cpu: 50,
-    memory: 70,
-    disk: 50,
-    network: 45,
-    uptime: '99.99%',
-    location: 'Seoul-ICN-AZ1',
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'db-mysql-icn-replica',
-    name: '서울 MySQL Replica',
-    status: 'online',
-    hostname: 'db-mysql-icn-replica.internal',
-    cpu: 40,
-    memory: 65,
-    disk: 48,
-    network: 40,
-    uptime: '99.99%',
-    location: 'Seoul-ICN-AZ2',
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'db-mysql-pus-dr',
-    name: '부산 MySQL DR',
-    status: 'online',
-    hostname: 'db-mysql-pus-dr.internal',
-    cpu: 25,
-    memory: 50,
-    disk: 45,
-    network: 30,
-    uptime: '99.99%',
-    location: 'Busan-PUS-DR',
-    lastUpdate: new Date(),
-  },
-  // 캐시 (Redis) - 2대
-  {
-    id: 'cache-redis-icn-01',
-    name: '서울 Redis Master',
-    status: 'online',
-    hostname: 'cache-redis-icn-01.internal',
-    cpu: 35,
-    memory: 80,
-    disk: 20,
-    network: 60,
-    uptime: '99.9%',
-    location: 'Seoul-ICN-AZ1',
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'cache-redis-icn-02',
-    name: '서울 Redis Replica',
-    status: 'online',
-    hostname: 'cache-redis-icn-02.internal',
-    cpu: 40,
-    memory: 85,
-    disk: 25,
-    network: 65,
-    uptime: '99.9%',
-    location: 'Seoul-ICN-AZ2',
-    lastUpdate: new Date(),
-  },
-  // 스토리지 - 2대
-  {
-    id: 'storage-nfs-icn-01',
-    name: '서울 NFS 스토리지',
-    status: 'online',
-    hostname: 'storage-nfs-icn-01.internal',
-    cpu: 20,
-    memory: 40,
-    disk: 75,
-    network: 35,
-    uptime: '99.9%',
-    location: 'Seoul-ICN-AZ1',
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'storage-s3gw-pus-01',
-    name: '부산 S3 Gateway',
-    status: 'online',
-    hostname: 'storage-s3gw-pus-01.internal',
-    cpu: 15,
-    memory: 35,
-    disk: 60,
-    network: 40,
-    uptime: '99.9%',
-    location: 'Busan-PUS-DR',
-    lastUpdate: new Date(),
-  },
-  // 로드밸런서 (HAProxy) - 2대
-  {
-    id: 'lb-haproxy-icn-01',
-    name: '서울 HAProxy LB',
-    status: 'online',
-    hostname: 'lb-haproxy-icn-01.internal',
-    cpu: 30,
-    memory: 50,
-    disk: 15,
-    network: 70,
-    uptime: '99.99%',
-    location: 'Seoul-ICN-AZ1',
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'lb-haproxy-pus-01',
-    name: '부산 HAProxy LB',
-    status: 'online',
-    hostname: 'lb-haproxy-pus-01.internal',
-    cpu: 25,
-    memory: 45,
-    disk: 12,
-    network: 65,
-    uptime: '99.99%',
-    location: 'Busan-PUS-DR',
-    lastUpdate: new Date(),
-  },
-];
 
 // 타입 안전 상태 매핑 함수
 const mapStatus = (
@@ -359,71 +148,14 @@ export function useRealtimeServers(
         }
       }
 
-      // API 응답이 실패했거나 데이터가 없으면 목업 데이터 반환
-      console.warn('🔄 API 응답 실패, 목업 데이터 사용');
-      return mockServers;
+      // API 응답이 실패했거나 데이터가 없으면 SSOT 기반 Fallback 데이터 반환
+      console.warn('🔄 API 응답 실패, SSOT Fallback 데이터 사용');
+      return getFallbackServers();
     } catch (fetchError) {
-      console.warn('🚨 API 배칭 실패, 목업 데이터 사용:', fetchError);
+      console.warn('🚨 API 배칭 실패, SSOT Fallback 데이터 사용:', fetchError);
 
-      // 목업 데이터에 랜덤 업데이트 적용
-      return mockServers.map((server) => {
-        if (!server.metrics) {
-          return server;
-        }
-
-        const updatedCpuUsage = Math.max(
-          0,
-          Math.min(100, server.metrics.cpu.usage + (Math.random() - 0.5) * 10)
-        );
-        const updatedMemoryUsage = Math.max(
-          0,
-          Math.min(
-            100,
-            server.metrics.memory.usage + (Math.random() - 0.5) * 10
-          )
-        );
-        const updatedDiskUsage = Math.max(
-          0,
-          Math.min(100, server.metrics.disk.usage + (Math.random() - 0.5) * 5)
-        );
-        const updatedNetworkIn = Math.max(
-          0,
-          server.metrics.network.bytesIn + Math.random() * 100000
-        );
-        const updatedNetworkOut = Math.max(
-          0,
-          server.metrics.network.bytesOut + Math.random() * 50000
-        );
-
-        return {
-          ...server,
-          cpu: updatedCpuUsage,
-          memory: updatedMemoryUsage,
-          disk: updatedDiskUsage,
-          metrics: {
-            ...server.metrics,
-            cpu: {
-              ...server.metrics.cpu,
-              usage: updatedCpuUsage,
-            },
-            memory: {
-              ...server.metrics.memory,
-              usage: updatedMemoryUsage,
-            },
-            disk: {
-              ...server.metrics.disk,
-              usage: updatedDiskUsage,
-            },
-            network: {
-              ...server.metrics.network,
-              bytesIn: updatedNetworkIn,
-              bytesOut: updatedNetworkOut,
-            },
-            timestamp: new Date().toISOString(),
-          },
-          lastUpdate: new Date(),
-        };
-      });
+      // 🎯 SSOT 기반 Fallback 데이터 반환 (이미 랜덤 값 포함)
+      return getFallbackServers();
     }
   }, []);
 

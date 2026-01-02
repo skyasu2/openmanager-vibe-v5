@@ -36,7 +36,7 @@ export const ServerConfigSchema = z.object({
     enabled: z.boolean().default(true),
     dataSource: z.enum(['basic', 'expanded', 'custom']).default('custom'), // 🎯 scenario-loader 사용
     autoRotation: z.boolean().default(false),
-    updateInterval: z.number().min(1000).default(300000), // 5분 (scenario-loader와 동기화)
+    updateInterval: z.number().min(1000).default(600000), // 10분 (JSON 데이터 10분 간격에 맞춤)
   }),
 
   // API 응답 설정
@@ -50,7 +50,7 @@ export const ServerConfigSchema = z.object({
   // 성능 최적화 설정
   performance: z.object({
     enableCache: z.boolean().default(true),
-    cacheTtlMs: z.number().min(1000).default(300000), // 5분
+    cacheTtlMs: z.number().min(1000).default(600000), // 10분 (JSON 데이터 10분 간격에 맞춤)
     batchSize: safeInt().min(1).max(1000).default(100),
     maxConcurrentRequests: safeInt().min(1).max(50).default(10),
   }),

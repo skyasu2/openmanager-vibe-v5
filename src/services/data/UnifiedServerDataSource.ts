@@ -88,7 +88,7 @@ export class UnifiedServerDataSource {
    * @description
    * - 서버 사이드: `scenario-loader` → `hourly-data/hour-*.json` (fs 모듈 사용)
    * - 클라이언트 사이드: `/api/servers-unified` API 사용 (브라우저 호환)
-   * - 캐싱: 5분 TTL (성능 최적화)
+   * - 캐싱: 10분 TTL (JSON 데이터 10분 간격에 맞춤)
    * - 검증: 서버 수 및 필수 필드 확인
    *
    * @example

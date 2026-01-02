@@ -2,18 +2,18 @@
  * 🎯 24시간 고정 데이터 훅 (v3.2 - Vercel 최적화)
  *
  * ✅ Single Source of Truth: scenario-loader 기반 통합 데이터
- * ✅ 5분 간격 데이터 갱신 (시뮬레이션 데이터 주기와 일치)
+ * ✅ 10분 간격 데이터 갱신 (JSON 데이터 주기와 일치)
  * ✅ 한국 시간(KST) 동기화
- * ✅ UnifiedServerDataSource 5분 TTL 캐시 활용
- * ✅ 히스토리 데이터 누적 (최대 60개 포인트 = 5시간 분량)
+ * ✅ UnifiedServerDataSource 10분 TTL 캐시 활용
+ * ✅ 히스토리 데이터 누적 (최대 60개 포인트 = 10시간 분량)
  * ✅ Vercel 사용량 최적화 (불필요한 API 호출 방지)
  *
  * 📊 데이터 구조:
  *   - 24개 JSON 파일 (hour-00 ~ hour-23)
- *   - 각 파일당 12개 dataPoints (5분 간격)
- *   - 총 288개 데이터 포인트 / 24시간
+ *   - 각 파일당 6개 dataPoints (10분 간격: 0, 10, 20, 30, 40, 50분)
+ *   - 총 144개 데이터 포인트 / 24시간
  *
- * @see src/services/data/UnifiedServerDataSource.ts - 통합 데이터 소스 (5분 TTL)
+ * @see src/services/data/UnifiedServerDataSource.ts - 통합 데이터 소스 (10분 TTL)
  * @see src/services/scenario/scenario-loader.ts - 시나리오 기반 데이터
  * @see public/hourly-data/hour-XX.json - 시간별 JSON 데이터
  */
@@ -40,7 +40,7 @@ const MAX_HISTORY_POINTS = 60;
  * 24시간 JSON 데이터 + 1분 선형 보간 훅
  *
  * @param serverId 서버 ID (예: "web-prod-01", "api-prod-01")
- * @param updateInterval 업데이트 주기 (밀리초, 기본 60000 = 1분)
+ * @param updateInterval 업데이트 주기 (밀리초, 기본 600000 = 10분)
  * @returns 실시간 메트릭 + 히스토리 데이터
  *
  * @example
@@ -61,7 +61,7 @@ const MAX_HISTORY_POINTS = 60;
  */
 export function useFixed24hMetrics(
   serverId: string,
-  updateInterval: number = 300000 // 5분 (데이터 갱신 주기와 일치)
+  updateInterval: number = 600000 // 10분 (JSON 데이터 10분 간격에 맞춤)
 ) {
   const [currentMetrics, setCurrentMetrics] = useState<Server | null>(null);
   const [historyData, setHistoryData] = useState<HistoryDataPoint[]>([]);
@@ -230,7 +230,7 @@ export function useFixed24hMetrics(
  * 여러 서버의 메트릭을 동시에 가져오는 훅
  *
  * @param serverIds 서버 ID 배열 (예: ["web-prod-01", "api-prod-01", "db-prod-01"])
- * @param updateInterval 업데이트 주기 (밀리초, 기본 60000 = 1분)
+ * @param updateInterval 업데이트 주기 (밀리초, 기본 600000 = 10분)
  * @returns 서버별 실시간 메트릭 맵
  *
  * @example
@@ -246,7 +246,7 @@ export function useFixed24hMetrics(
  */
 export function useMultipleFixed24hMetrics(
   serverIds: string[],
-  updateInterval: number = 300000 // 5분 (데이터 갱신 주기와 일치)
+  updateInterval: number = 600000 // 10분 (JSON 데이터 10분 간격에 맞춤)
 ) {
   const [metricsMap, setMetricsMap] = useState<Map<string, Server>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
@@ -315,7 +315,7 @@ export function useMultipleFixed24hMetrics(
  *
  * @param serverId 서버 ID
  * @param metricType 메트릭 타입
- * @param updateInterval 업데이트 주기 (밀리초, 기본 60000 = 1분)
+ * @param updateInterval 업데이트 주기 (밀리초, 기본 600000 = 10분)
  * @returns 단일 메트릭 값
  *
  * @example
@@ -326,7 +326,7 @@ export function useMultipleFixed24hMetrics(
 export function useSingleMetric(
   serverId: string,
   metricType: 'cpu' | 'memory' | 'disk' | 'network',
-  updateInterval: number = 300000 // 5분 (데이터 갱신 주기와 일치)
+  updateInterval: number = 600000 // 10분 (JSON 데이터 10분 간격에 맞춤)
 ) {
   const [value, setValue] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);

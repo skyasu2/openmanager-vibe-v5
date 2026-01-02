@@ -46,10 +46,10 @@ export interface EnhancedServerCardProps {
 
 const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
   ({ server, index, onClick, showMiniCharts = true, variant = 'default' }) => {
-    // 🎯 실제 24시간 메트릭 데이터 사용 (5분 간격 업데이트)
+    // 🎯 실제 24시간 메트릭 데이터 사용 (10분 간격 업데이트)
     const { historyData, currentMetrics } = useFixed24hMetrics(
       server.id,
-      300000 // 5분 간격 (데이터 갱신 주기와 일치)
+      600000 // 10분 간격 (JSON 데이터 10분 간격에 맞춤)
     );
 
     // UI 상태

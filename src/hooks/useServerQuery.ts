@@ -18,8 +18,8 @@ export function useServerQuery() {
   return useQuery({
     queryKey: ['servers'],
     queryFn: fetchServers,
-    refetchInterval: 5 * 60 * 1000, // 5분 폴링 (서버 데이터 갱신 주기에 맞춤)
-    staleTime: 4 * 60 * 1000, // 4분간 fresh 유지 (불필요한 리렌더링 방지)
-    gcTime: 10 * 60 * 1000, // 10분 미사용 데이터 보관
+    refetchInterval: 10 * 60 * 1000, // 10분 폴링 (JSON 데이터 10분 간격에 맞춤)
+    staleTime: 9 * 60 * 1000, // 9분간 fresh 유지 (다음 갱신 직전까지)
+    gcTime: 15 * 60 * 1000, // 15분 미사용 데이터 보관
   });
 }
