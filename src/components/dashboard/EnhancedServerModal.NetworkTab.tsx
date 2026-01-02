@@ -1,30 +1,27 @@
 'use client';
 
 import type { FC } from 'react';
-import { useMemo } from 'react';
 import { RealtimeChart } from './EnhancedServerModal.components';
 /**
- * 🌐 Enhanced Server Modal Network Tab
+ * 🌐 Enhanced Server Modal Network Tab (v2.0 간소화)
  *
- * Network monitoring tab with comprehensive network analysis:
- * - Real-time network status with animated indicators
- * - Live traffic monitoring (inbound/outbound) - 추정값
- * - Network latency visualization - 추정값
- * - SVG-based traffic flow charts with gradients
- * - Server connection details and specifications
+ * 네트워크 모니터링 탭:
+ * - 네트워크 상태 표시 (실제 데이터)
+ * - 네트워크 사용률 차트 (실제 데이터)
+ * - 서버 연결 정보
  *
- * ⚠️ 참고: In/Out 트래픽 및 Latency는 총 네트워크 사용률 기반 추정값입니다.
+ * ✅ v2.0 변경사항:
+ * - In/Out 분리 → 단일 Network 사용률
+ * - Latency 추정값 제거
+ * - 불필요한 추정값 섹션 정리
  *
- * @refactored 2025-12-31 - 추정값 표시 및 동적 스케일링 개선
+ * @refactored 2026-01-03 - 추정값 제거 및 간소화
  */
 import type {
-  NetworkData,
   NetworkStatus,
   RealtimeData,
   ServerData,
 } from './EnhancedServerModal.types';
-
-// framer-motion을 동적 import로 처리
 
 /**
  * Network Tab Props
@@ -34,13 +31,12 @@ interface NetworkTabProps {
   server: ServerData;
   /** 실시간 데이터 (네트워크 메트릭 포함) */
   realtimeData: RealtimeData;
+  /** 네트워크 사용률 배열 (단일값) */
+  networkUsage?: number[];
 }
 
 /**
  * 🎨 네트워크 상태별 색상 및 표시 텍스트
- *
- * @param status - 네트워크 상태
- * @returns 상태 정보 객체
  */
 const getNetworkStatusInfo = (status?: NetworkStatus) => {
   switch (status) {
@@ -78,36 +74,24 @@ const getNetworkStatusInfo = (status?: NetworkStatus) => {
 };
 
 /**
- * 🌐 Network Tab Component
+ * 🌐 Network Tab Component (v2.0)
  *
  * 서버의 네트워크 상태를 실시간으로 모니터링하는 탭
- * - 네트워크 상태, 실시간 트래픽, 지연시간 카드
- * - 트래픽 흐름 SVG 차트 (인바운드/아웃바운드)
- * - 네트워크 연결 정보 및 서버 상세 사양
- *
- * ⚠️ In/Out 및 Latency는 네트워크 총량 기반 추정값입니다.
+ * - 네트워크 상태 카드
+ * - 네트워크 사용률 차트 (실제 데이터)
+ * - 네트워크 연결 정보
  */
-export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
+export const NetworkTab: FC<NetworkTabProps> = ({
+  server,
+  realtimeData,
+  networkUsage,
+}) => {
   const networkStatusInfo = getNetworkStatusInfo(server.networkStatus);
-  const latestNetwork = realtimeData.network[
-    realtimeData.network.length - 1
-  ] || { in: 0, out: 0 };
-  const latestLatency =
-    realtimeData.latency[realtimeData.latency.length - 1] || 0;
 
-  // 동적 스케일링: 최대값 기반 차트 스케일 계산
-  const chartScale = useMemo(() => {
-    const maxIn = Math.max(...realtimeData.network.map((n) => n.in), 1);
-    const maxOut = Math.max(...realtimeData.network.map((n) => n.out), 1);
-    const maxLatency = Math.max(...realtimeData.latency, 1);
-
-    // 여유 공간 20% 추가
-    return {
-      maxIn: Math.ceil(maxIn * 1.2),
-      maxOut: Math.ceil(maxOut * 1.2),
-      maxLatency: Math.ceil(maxLatency * 1.2),
-    };
-  }, [realtimeData.network, realtimeData.latency]);
+  // 네트워크 사용률 (단일값 배열)
+  const networkData =
+    networkUsage || realtimeData.network.map((n) => n.in + n.out);
+  const latestNetwork = networkData[networkData.length - 1] || 0;
 
   return (
     <div className="space-y-6">
@@ -115,7 +99,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
       <div>
         <div className="mb-6 flex items-center justify-between">
           <h3 className="bg-linear-to-r from-emerald-600 to-teal-700 bg-clip-text text-2xl font-bold text-transparent">
-            🌐 네트워크 실시간 모니터링
+            🌐 네트워크 상태
           </h3>
           <div className="flex items-center gap-2 rounded-full bg-linear-to-r from-emerald-50 to-teal-50 px-3 py-1">
             <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
@@ -127,7 +111,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
       </div>
 
       {/* 네트워크 상태 카드들 */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 네트워크 상태 카드 */}
         <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-emerald-500 to-teal-600 p-6 shadow-xl">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
@@ -153,229 +137,55 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
           </div>
         </div>
 
-        {/* 실시간 트래픽 카드 */}
+        {/* 네트워크 사용률 카드 */}
         <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 p-6 shadow-xl">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
           <div className="relative z-10">
             <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h4 className="text-lg font-bold text-white">실시간 트래픽</h4>
-                <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white/80">
-                  추정값
-                </span>
-              </div>
+              <h4 className="text-lg font-bold text-white">네트워크 사용률</h4>
               <span className="text-2xl">📊</span>
             </div>
-            <div className="space-y-4">
-              <div className="rounded-lg bg-white/20 p-3 backdrop-blur-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-white/80">⬇️ 인바운드</span>
-                  <div className="text-xl font-bold text-green-300">
-                    {latestNetwork.in.toFixed(1)} MB/s
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-lg bg-white/20 p-3 backdrop-blur-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-white/80">⬆️ 아웃바운드</span>
-                  <div className="text-xl font-bold text-cyan-300">
-                    {latestNetwork.out.toFixed(1)} MB/s
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-3 text-xs text-white/50 text-center">
-              * 총 네트워크 사용률 기반 60:40 비율 추정
-            </div>
-          </div>
-        </div>
-
-        {/* 지연시간 카드 */}
-        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-purple-500 to-pink-600 p-6 shadow-xl">
-          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
-          <div className="relative z-10">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h4 className="text-lg font-bold text-white">응답 시간</h4>
-                <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white/80">
-                  추정값
-                </span>
-              </div>
-              <span className="text-2xl">⚡</span>
-            </div>
             <div className="mb-2 text-4xl font-bold text-white">
-              {latestLatency.toFixed(1)} ms
+              {latestNetwork.toFixed(1)}%
             </div>
             <div className="rounded-lg bg-white/20 p-3 backdrop-blur-sm">
-              <div className="text-sm text-white/80">평균 지연시간</div>
-              <div className="mt-1 text-xs text-white/60">
-                최적 상태 &lt; 50ms
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/80">대역폭 상태</span>
+                <span
+                  className={`font-bold ${
+                    latestNetwork > 80
+                      ? 'text-red-300'
+                      : latestNetwork > 60
+                        ? 'text-yellow-300'
+                        : 'text-green-300'
+                  }`}
+                >
+                  {latestNetwork > 80
+                    ? '높음'
+                    : latestNetwork > 60
+                      ? '보통'
+                      : '양호'}
+                </span>
               </div>
-            </div>
-            <div className="mt-3 text-xs text-white/50 text-center">
-              * 네트워크 부하 기반 추정 (20ms + α)
             </div>
           </div>
         </div>
       </div>
 
-      {/* 네트워크 트래픽 차트 */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* 트래픽 흐름 차트 */}
-        <div className="rounded-2xl bg-linear-to-br from-gray-50 to-gray-100 p-6 shadow-lg transition-shadow hover:shadow-xl">
-          <div className="mb-4 flex items-center justify-between">
-            <h4 className="bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-lg font-bold text-transparent">
-              네트워크 트래픽 흐름
-            </h4>
-            <span className="text-xl">📈</span>
-          </div>
-          <div className="relative h-40 rounded-xl bg-white p-2">
-            <svg
-              className="h-full w-full"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-            >
-              <defs>
-                {/* 인바운드 그라데이션 */}
-                <linearGradient
-                  id="network-in-gradient-modern"
-                  x1="0%"
-                  y1="0%"
-                  x2="0%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.05" />
-                </linearGradient>
-                {/* 아웃바운드 그라데이션 */}
-                <linearGradient
-                  id="network-out-gradient-modern"
-                  x1="0%"
-                  y1="0%"
-                  x2="0%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.05" />
-                </linearGradient>
-              </defs>
-
-              {/* 그리드 라인 */}
-              {[20, 40, 60, 80].map((y) => (
-                <line
-                  key={y}
-                  x1="0"
-                  y1={y}
-                  x2="100"
-                  y2={y}
-                  stroke="#e5e7eb"
-                  strokeWidth="0.5"
-                  strokeDasharray="2,2"
-                />
-              ))}
-
-              {/* 인바운드 영역 - 동적 스케일링 */}
-              <path
-                d={`M0,100 ${realtimeData.network
-                  .map((data: NetworkData, index: number) => {
-                    const x =
-                      (index / Math.max(realtimeData.network.length - 1, 1)) *
-                      100;
-                    const y =
-                      100 -
-                      Math.max(
-                        0,
-                        Math.min(100, (data.in / chartScale.maxIn) * 100)
-                      );
-                    return `L${x},${y}`;
-                  })
-                  .join(' ')} L100,100 Z`}
-                fill="url(#network-in-gradient-modern)"
-              />
-
-              {/* 인바운드 라인 */}
-              <polyline
-                fill="none"
-                stroke="#10b981"
-                strokeWidth="3"
-                points={realtimeData.network
-                  .map((data: NetworkData, index: number) => {
-                    const x =
-                      (index / Math.max(realtimeData.network.length - 1, 1)) *
-                      100;
-                    const y =
-                      100 -
-                      Math.max(
-                        0,
-                        Math.min(100, (data.in / chartScale.maxIn) * 100)
-                      );
-                    return `${x},${y}`;
-                  })
-                  .join(' ')}
-                vectorEffect="non-scaling-stroke"
-              />
-
-              {/* 아웃바운드 영역 - 동적 스케일링 */}
-              <path
-                d={`M0,100 ${realtimeData.network
-                  .map((data: NetworkData, index: number) => {
-                    const x =
-                      (index / Math.max(realtimeData.network.length - 1, 1)) *
-                      100;
-                    const y =
-                      100 -
-                      Math.max(
-                        0,
-                        Math.min(100, (data.out / chartScale.maxOut) * 100)
-                      );
-                    return `L${x},${y}`;
-                  })
-                  .join(' ')} L100,100 Z`}
-                fill="url(#network-out-gradient-modern)"
-              />
-
-              {/* 아웃바운드 라인 */}
-              <polyline
-                fill="none"
-                stroke="#3b82f6"
-                strokeWidth="3"
-                points={realtimeData.network
-                  .map((data: NetworkData, index: number) => {
-                    const x =
-                      (index / Math.max(realtimeData.network.length - 1, 1)) *
-                      100;
-                    const y =
-                      100 -
-                      Math.max(
-                        0,
-                        Math.min(100, (data.out / chartScale.maxOut) * 100)
-                      );
-                    return `${x},${y}`;
-                  })
-                  .join(' ')}
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-
-            {/* 범례 */}
-            <div className="absolute right-3 top-3 flex gap-3 rounded-lg bg-white/90 px-2 py-1 backdrop-blur-sm">
-              <div className="flex items-center gap-1">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></div>
-                <span className="text-xs font-medium">인바운드</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
-                <span className="text-xs font-medium">아웃바운드</span>
-              </div>
-            </div>
-          </div>
+      {/* 네트워크 사용률 차트 */}
+      <div className="rounded-2xl bg-linear-to-br from-gray-50 to-gray-100 p-6 shadow-lg">
+        <div className="mb-4 flex items-center justify-between">
+          <h4 className="bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-lg font-bold text-transparent">
+            네트워크 사용률 추이
+          </h4>
+          <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+            실시간 데이터
+          </span>
         </div>
-
-        {/* 지연시간 차트 */}
         <RealtimeChart
-          data={realtimeData.latency}
-          color="#8b5cf6"
-          label="네트워크 지연시간 (ms)"
+          data={networkData}
+          color="#10b981"
+          label="네트워크 사용률 (%)"
         />
       </div>
 
@@ -383,7 +193,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
       <div className="rounded-2xl bg-linear-to-br from-slate-50 to-gray-100 p-6 shadow-xl transition-shadow hover:shadow-2xl">
         <div className="mb-6 flex items-center justify-between">
           <h4 className="bg-linear-to-r from-slate-700 to-gray-900 bg-clip-text text-xl font-bold text-transparent">
-            🔗 네트워크 연결 상세 정보
+            🔗 연결 정보
           </h4>
           <div className="rounded-full bg-linear-to-r from-green-100 to-emerald-100 px-3 py-1">
             <span className="text-xs font-medium text-green-700">연결됨</span>

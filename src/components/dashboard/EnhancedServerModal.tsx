@@ -187,8 +187,6 @@ export default function EnhancedServerModal({
         memory: [],
         disk: [],
         network: [],
-        latency: [],
-        processes: [],
         logs: [],
       };
 
@@ -196,34 +194,11 @@ export default function EnhancedServerModal({
       cpu: historyData.map((h) => h.cpu),
       memory: historyData.map((h) => h.memory),
       disk: historyData.map((h) => h.disk),
-      // 📊 네트워크 In/Out: 실제 분리 데이터 없음 → 추정 비율 사용 (isEstimated 플래그)
+      // 📊 네트워크: In/Out 분리 데이터 없음 → NetworkTab에서 단일 사용률로 표시
       network: historyData.map((h) => ({
         in: h.network * 0.6,
         out: h.network * 0.4,
       })),
-      // ⚡ Latency: 실제 ping/RTT 없음 → 네트워크 기반 추정값
-      latency: historyData.map((h) => {
-        const baseLatency = 20;
-        const networkFactor = (h.network / 100) * 15;
-        return baseLatency + networkFactor;
-      }),
-      // ⚙️ 프로세스: 서비스 기반 추정 (실제 프로세스 데이터는 별도 API 필요)
-      processes:
-        safeServer?.services?.map((service, i) => ({
-          name: service.name || `service-${i}`,
-          cpu: parseFloat(
-            (
-              (currentMetrics?.cpu || 10) / (safeServer.services?.length || 1)
-            ).toFixed(2)
-          ),
-          memory: parseFloat(
-            (
-              (currentMetrics?.memory || 20) /
-              (safeServer.services?.length || 1)
-            ).toFixed(2)
-          ),
-          pid: 1000 + i,
-        })) || [],
       // 📋 시스템 알림: 메트릭 임계값 기반 자동 생성 (실제 서버 로그 아님)
       logs: (() => {
         const alerts: Array<{
@@ -582,9 +557,9 @@ export default function EnhancedServerModal({
                 <div className="rounded-xl p-5 bg-white shadow-sm border border-gray-200">
                   <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
                     <Cpu className="h-5 w-5 text-emerald-600" />
-                    실행 중인 프로세스
+                    서비스 목록
                   </h3>
-                  <ProcessesTab realtimeData={realtimeData} />
+                  <ProcessesTab services={safeServer.services} />
                 </div>
               </div>
             )}

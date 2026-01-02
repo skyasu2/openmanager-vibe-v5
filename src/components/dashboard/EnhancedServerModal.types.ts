@@ -75,13 +75,6 @@ export interface ServerData {
   alertsSummary?: AlertsSummary;
 }
 
-export interface ProcessData {
-  name: string;
-  cpu: number;
-  memory: number;
-  pid: number;
-}
-
 export interface LogEntry {
   timestamp: string;
   level: LogLevel;
@@ -99,8 +92,6 @@ export interface RealtimeData {
   memory: number[];
   disk: number[];
   network: NetworkData[];
-  latency: number[];
-  processes: ProcessData[];
   logs: LogEntry[];
 }
 
