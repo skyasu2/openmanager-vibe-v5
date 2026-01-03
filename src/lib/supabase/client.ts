@@ -57,10 +57,37 @@ export function getSupabaseClient(): SupabaseClient {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        // 2026-01-03: PKCE에서 implicit으로 변경
-        // PKCE code_verifier 저장/검증 이슈로 Google OAuth가 실패하는 문제
-        // implicit 플로우는 code_verifier가 필요 없어 더 안정적
-        flowType: 'implicit',
+        // 2026-01-03: PKCE 플로우 사용 (Supabase 공식 권장)
+        // implicit은 클라이언트 전용, PKCE가 더 안전하고 SSR 호환
+        flowType: 'pkce',
+        // 🔧 디버깅: storage adapter로 code_verifier 저장 상태 추적
+        storage: {
+          getItem: (key: string) => {
+            const value = localStorage.getItem(key);
+            if (key.includes('code-verifier')) {
+              console.log(
+                `🔍 [PKCE] getItem('${key}'):`,
+                value ? `${value.substring(0, 20)}...` : 'null'
+              );
+            }
+            return value;
+          },
+          setItem: (key: string, value: string) => {
+            if (key.includes('code-verifier')) {
+              console.log(
+                `💾 [PKCE] setItem('${key}'):`,
+                value ? `${value.substring(0, 20)}...` : 'null'
+              );
+            }
+            localStorage.setItem(key, value);
+          },
+          removeItem: (key: string) => {
+            if (key.includes('code-verifier')) {
+              console.log(`🗑️ [PKCE] removeItem('${key}')`);
+            }
+            localStorage.removeItem(key);
+          },
+        },
       },
     });
   }

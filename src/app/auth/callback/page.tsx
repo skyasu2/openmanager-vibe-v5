@@ -78,11 +78,44 @@ export default function AuthCallbackPage() {
           return;
         }
 
+        // 🔐 PKCE flow: authorization code가 있으면 명시적으로 토큰 교환
+        if (authCode) {
+          debug.log('🔐 PKCE flow: authorization code 감지 - 토큰 교환 시작');
+
+          // code_verifier 확인
+          const codeVerifierKey = getSupabaseStorageKey('code-verifier');
+          const codeVerifier = localStorage.getItem(codeVerifierKey);
+          debug.log('🔍 PKCE code_verifier 상태:', {
+            key: codeVerifierKey,
+            hasCodeVerifier: !!codeVerifier,
+            codeVerifierLength: codeVerifier?.length,
+          });
+
+          try {
+            // Supabase exchangeCodeForSession 호출
+            const { data, error } =
+              await getSupabase().auth.exchangeCodeForSession(authCode);
+
+            if (error) {
+              debug.error('❌ PKCE 코드 교환 실패:', error.message);
+              // 에러 처리는 아래에서 계속
+            } else if (data.session) {
+              debug.log(
+                '✅ PKCE 코드 교환 성공! userId:',
+                data.session.user.id
+              );
+              // 세션 성공 - 아래 로직으로 계속 진행
+            }
+          } catch (exchangeError) {
+            debug.error('❌ PKCE 코드 교환 예외:', exchangeError);
+            // 에러가 발생해도 아래 getSession으로 재확인
+          }
+        }
+
         // 🔐 Implicit flow: 해시에 토큰이 있으면 Supabase가 자동 처리하도록 대기
         if (hasImplicitTokens) {
           debug.log('🔐 Implicit flow 토큰 감지 - Supabase 자동 처리 대기');
           // Supabase가 detectSessionInUrl: true로 해시의 토큰을 자동 처리
-          // 약간의 대기 시간 후 세션 확인으로 진행
           await new Promise((resolve) => setTimeout(resolve, 500));
         }
 
