@@ -248,6 +248,9 @@ export function useAIChatCore(
   // 마지막 쿼리 저장 (재시도용)
   const lastQueryRef = useRef<string>('');
 
+  // 현재 전송 중인 쿼리 저장 (입력 유실 방지)
+  const pendingQueryRef = useRef<string>('');
+
   // 세션 ID 관리 (crypto.randomUUID 기반)
   const chatSessionIdRef = useRef<string>(propSessionId || generateSessionId());
 
@@ -263,22 +266,27 @@ export function useAIChatCore(
     isLoading: hybridIsLoading,
     stop,
     cancel,
+    reset: resetHybridQuery,
     currentMode,
   } = useHybridAIQuery({
     sessionId: chatSessionIdRef.current,
     onStreamFinish: () => {
-      onMessageSend?.(input);
-      setInput('');
-      setError(null); // 성공 시 에러 초기화
+      // 전송된 쿼리로 콜백 호출 (현재 입력값이 아닌)
+      onMessageSend?.(pendingQueryRef.current);
+      // 사용자가 새 입력을 타이핑 중이 아닐 때만 초기화
+      setInput((prev) => (prev === pendingQueryRef.current ? '' : prev));
+      setError(null);
+      pendingQueryRef.current = '';
     },
     onJobResult: (result) => {
-      onMessageSend?.(input);
-      setInput('');
+      onMessageSend?.(pendingQueryRef.current);
+      setInput((prev) => (prev === pendingQueryRef.current ? '' : prev));
       if (result.success) {
-        setError(null); // 성공 시 에러 초기화
+        setError(null);
       } else if (result.error) {
         setError(result.error);
       }
+      pendingQueryRef.current = '';
       if (process.env.NODE_ENV === 'development') {
         console.log('📦 [Job Queue] Result received:', result.success);
       }
@@ -292,9 +300,15 @@ export function useAIChatCore(
     },
   });
 
-  // hybridState.error 변경 감지 및 동기화
-  // useEffect가 아닌 useMemo로 처리하여 즉시 반영
-  const syncedError = error || hybridState.error || null;
+  // ============================================================================
+  // 에러 동기화 (hybridState.error → 로컬 error 상태)
+  // ============================================================================
+
+  useEffect(() => {
+    if (hybridState.error && !error) {
+      setError(hybridState.error);
+    }
+  }, [hybridState.error, error]);
 
   // ============================================================================
   // 로컬 스토리지에서 히스토리 복원 (마운트 시 1회)
@@ -351,12 +365,17 @@ export function useAIChatCore(
   }, [messages.length, disableSessionLimit]);
 
   const handleNewSession = useCallback(() => {
-    setMessages([]);
+    // 하이브리드 쿼리 상태 완전 초기화 (메시지, 에러, 진행 상태 등)
+    resetHybridQuery();
+    // 새 세션 ID 생성
     chatSessionIdRef.current = generateSessionId();
+    // 입력 및 에러 상태 초기화
     setInput('');
     setError(null);
-    clearChatHistory(); // 새 세션 시작 시 저장된 히스토리 삭제
-  }, [setMessages]);
+    pendingQueryRef.current = '';
+    // 로컬 스토리지 히스토리 삭제
+    clearChatHistory();
+  }, [resetHybridQuery]);
 
   // ============================================================================
   // 피드백 핸들러
@@ -510,8 +529,9 @@ export function useAIChatCore(
     // 에러 초기화
     setError(null);
 
-    // 마지막 쿼리 저장 (재시도용)
+    // 쿼리 저장 (재시도 및 입력 유실 방지용)
     lastQueryRef.current = input;
+    pendingQueryRef.current = input;
 
     // 쿼리 전송
     sendQuery(input);
@@ -539,8 +559,8 @@ export function useAIChatCore(
     },
     currentMode: currentMode ?? undefined,
 
-    // 에러 상태
-    error: syncedError,
+    // 에러 상태 (로컬 상태만 사용 - useEffect로 hybridState.error 동기화됨)
+    error,
     clearError,
 
     // 세션 관리

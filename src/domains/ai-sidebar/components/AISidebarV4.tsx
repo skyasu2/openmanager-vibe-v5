@@ -175,8 +175,11 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
 
   // 📱 스와이프 제스처 상태
   const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
   const touchEndX = useRef<number>(0);
+  const touchEndY = useRef<number>(0);
   const SWIPE_THRESHOLD = 100; // 100px 이상 스와이프 시 닫기
+  const SWIPE_RATIO_THRESHOLD = 2; // 수평 이동이 수직 이동의 2배 이상일 때만 인식
 
   // ============================================================================
   // 🎯 공통 AI 채팅 로직 (useAIChatCore 훅 사용)
@@ -228,24 +231,36 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // 📱 스와이프 제스처 핸들러
+  // 📱 스와이프 제스처 핸들러 (수평/수직 비율 체크로 오작동 방지)
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0]?.clientX ?? 0;
+    touchStartY.current = e.touches[0]?.clientY ?? 0;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.touches[0]?.clientX ?? 0;
+    touchEndY.current = e.touches[0]?.clientY ?? 0;
   };
 
   const handleTouchEnd = () => {
-    const swipeDistance = touchEndX.current - touchStartX.current;
-    // 오른쪽으로 스와이프 시 닫기 (사이드바가 오른쪽에 있으므로)
-    if (swipeDistance > SWIPE_THRESHOLD) {
+    const swipeDistanceX = touchEndX.current - touchStartX.current;
+    const swipeDistanceY = Math.abs(touchEndY.current - touchStartY.current);
+
+    // 수평 이동이 수직 이동의 2배 이상이고, 오른쪽으로 100px 이상 스와이프할 때만 닫기
+    // 이렇게 하면 코드 블록 수평 스크롤이나 텍스트 선택 시 오작동 방지
+    const isHorizontalSwipe =
+      swipeDistanceY === 0 ||
+      swipeDistanceX / swipeDistanceY > SWIPE_RATIO_THRESHOLD;
+
+    if (swipeDistanceX > SWIPE_THRESHOLD && isHorizontalSwipe) {
       onClose();
     }
+
     // 리셋
     touchStartX.current = 0;
+    touchStartY.current = 0;
     touchEndX.current = 0;
+    touchEndY.current = 0;
   };
 
   const canRenderSidebar =
