@@ -37,11 +37,23 @@ function validateAndCleanPkceData(): void {
 
       // code_verifier는 RFC 7636 PKCE 표준에 따른 unreserved URI 문자만 포함
       // 유효한 문자: A-Z, a-z, 0-9, -, _, ., ~ (RFC 3986 unreserved characters)
+      // 2026-01-03: Google OAuth 이슈 디버깅 - 실제 값 로깅 및 검증 완화
       if (key.includes('verifier')) {
-        const isValidCodeVerifier = /^[A-Za-z0-9\-_.~]+$/.test(value);
+        // Base64URL 문자만 허용 (Supabase 생성 기준: A-Za-z0-9_-)
+        const isValidCodeVerifier = /^[A-Za-z0-9_-]+$/.test(value);
         if (!isValidCodeVerifier) {
-          console.warn(`🧹 손상된 PKCE code_verifier 정리: ${key}`);
-          localStorage.removeItem(key);
+          // 디버깅: 잘못된 문자 식별
+          const invalidChars = value
+            .split('')
+            .filter((c) => !/[A-Za-z0-9_-]/.test(c))
+            .slice(0, 5);
+          console.warn(
+            `🧹 PKCE code_verifier 검증 실패: ${key}`,
+            `길이=${value.length}`,
+            `잘못된 문자=${JSON.stringify(invalidChars)}`
+          );
+          // 2026-01-03: 검증 실패 시에도 삭제하지 않음 (원인 분석 필요)
+          // localStorage.removeItem(key);
         }
       }
 
