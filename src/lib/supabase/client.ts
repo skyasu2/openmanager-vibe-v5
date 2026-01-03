@@ -15,63 +15,18 @@ declare global {
 }
 
 /**
- * 🛡️ PKCE code_verifier 검증 및 손상된 데이터 정리
- * OAuth 콜백 시 "Invalid value" fetch 에러 방지
+ * 🛡️ PKCE code_verifier 검증 (2026-01-03: 비활성화)
+ *
+ * ⚠️ 이 함수는 현재 비활성화되어 있습니다.
+ * Google OAuth에서 code_verifier가 JSON 형식으로 저장되어
+ * 기존 검증 로직이 유효한 값을 삭제하는 문제가 발생했습니다.
+ * Supabase가 자체적으로 PKCE를 처리하도록 위임합니다.
  */
 function validateAndCleanPkceData(): void {
-  if (typeof window === 'undefined' || globalThis.__supabasePkceValidated) {
-    return;
-  }
-
-  try {
-    const pkceKeys = Object.keys(localStorage).filter(
-      (key) =>
-        key.includes('code-verifier') ||
-        key.includes('code_verifier') ||
-        (key.startsWith('sb-') && key.includes('auth-token'))
-    );
-
-    for (const key of pkceKeys) {
-      const value = localStorage.getItem(key);
-      if (!value) continue;
-
-      // code_verifier는 RFC 7636 PKCE 표준에 따른 unreserved URI 문자만 포함
-      // 유효한 문자: A-Z, a-z, 0-9, -, _, ., ~ (RFC 3986 unreserved characters)
-      // 2026-01-03: Google OAuth 이슈 디버깅 - 실제 값 로깅 및 검증 완화
-      if (key.includes('verifier')) {
-        // Base64URL 문자만 허용 (Supabase 생성 기준: A-Za-z0-9_-)
-        const isValidCodeVerifier = /^[A-Za-z0-9_-]+$/.test(value);
-        if (!isValidCodeVerifier) {
-          // 디버깅: 잘못된 문자 식별
-          const invalidChars = value
-            .split('')
-            .filter((c) => !/[A-Za-z0-9_-]/.test(c))
-            .slice(0, 5);
-          console.warn(
-            `🧹 PKCE code_verifier 검증 실패: ${key}`,
-            `길이=${value.length}`,
-            `잘못된 문자=${JSON.stringify(invalidChars)}`
-          );
-          // 2026-01-03: 검증 실패 시에도 삭제하지 않음 (원인 분석 필요)
-          // localStorage.removeItem(key);
-        }
-      }
-
-      // auth-token JSON 검증
-      if (key.includes('auth-token') && !key.includes('verifier')) {
-        try {
-          JSON.parse(value);
-        } catch {
-          console.warn(`🧹 손상된 auth-token 정리: ${key}`);
-          localStorage.removeItem(key);
-        }
-      }
-    }
-
-    globalThis.__supabasePkceValidated = true;
-  } catch (error) {
-    console.error('❌ PKCE 데이터 검증 실패:', error);
-  }
+  // 2026-01-03: PKCE 검증 완전 비활성화
+  // Supabase gotrue-js가 자체적으로 code_verifier를 관리함
+  // 외부에서 검증/삭제하면 OAuth 흐름이 깨짐
+  return;
 }
 
 export function getSupabaseClient(): SupabaseClient {
