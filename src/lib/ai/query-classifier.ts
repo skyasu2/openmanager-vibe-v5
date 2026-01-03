@@ -1,30 +1,19 @@
-import { groq } from '@ai-sdk/groq';
-import { generateObject } from 'ai';
-import * as z from 'zod';
+/**
+ * Query Classifier - 서버 API를 통한 LLM 기반 쿼리 분류
+ *
+ * v2.0.0 (2026-01-04): 서버 API 방식으로 전환
+ * - 클라이언트에서 /api/ai/classify 호출
+ * - GROQ API 키 보안 유지
+ */
 
-// Define the classification schema
-const classificationSchema = z.object({
-  complexity: z
-    .number()
-    .min(1)
-    .max(5)
-    .describe(
-      'The complexity of the query from 1 (simple) to 5 (complex). 1-3: Simple retrieval or conversation. 4-5: Complex analysis, coding, or reasoning.'
-    ),
-  intent: z
-    .enum(['general', 'monitoring', 'analysis', 'guide', 'coding'])
-    .describe('The primary intent of the user.'),
-  reasoning: z.string().describe('Brief explanation for the classification.'),
-  confidence: z
-    .number()
-    .min(0)
-    .max(100)
-    .describe(
-      'Confidence level (0-100) in this classification. 90+: Very certain. 70-89: Confident. 50-69: Uncertain, may need clarification. <50: Ambiguous query.'
-    ),
-});
-
-export type QueryClassification = z.infer<typeof classificationSchema>;
+export interface QueryClassification {
+  complexity: number; // 1-5
+  intent: 'general' | 'monitoring' | 'analysis' | 'guide' | 'coding';
+  reasoning: string;
+  confidence: number; // 0-100
+  source?: 'llm' | 'fallback';
+  latency?: number;
+}
 
 /**
  * 명확화가 필요한 쿼리인지 확인
@@ -53,41 +42,26 @@ export class QueryClassifier {
   }
 
   /**
-   * Classifies a user query using Groq (Llama-3.1-8b-instant).
-   * This is designed to be extremely fast (< 500ms).
+   * Classifies a user query via server API (Groq LLM).
+   * 서버에서 GROQ API 키를 사용하여 분류 수행
    */
   async classify(query: string): Promise<QueryClassification> {
-    if (!process.env.GROQ_API_KEY) {
-      console.warn(
-        '⚠️ GROQ_API_KEY missing. Fallback to basic regex classification.'
-      );
-      return this.fallbackClassify(query);
-    }
-
     try {
-      const { object } = await generateObject({
-        model: groq('llama-3.1-8b-instant'),
-        schema: classificationSchema,
-        prompt: `Classify the following user query for an IT infrastructure monitoring assistant.
-
-        Query: "${query}"
-
-        Guidelines:
-        - Complexity 1-2: Greetings, simple status checks ("is server up?"), checking distinct metric ("cpu usage").
-        - Complexity 3: How-to guides, explanation of concepts, multiple metrics.
-        - Complexity 4-5: Root cause analysis, "why" questions, coding requests, log analysis, complex correlations.
-
-        Confidence Guidelines:
-        - 90-100: Query is very clear and specific (e.g., "Show CPU usage for web-server-01")
-        - 70-89: Query is reasonably clear but could be more specific (e.g., "Show server status")
-        - 50-69: Query is ambiguous, missing key details (e.g., "Check it", "Is there a problem?")
-        - 0-49: Query is very vague or unclear (e.g., "Help", "?")`,
-        temperature: 0, // Deterministic
+      const response = await fetch('/api/ai/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
       });
 
-      return object;
+      if (!response.ok) {
+        console.warn('⚠️ Classification API failed, using fallback');
+        return this.fallbackClassify(query);
+      }
+
+      const result = await response.json();
+      return result as QueryClassification;
     } catch (error) {
-      console.error('❌ Groq classification failed:', error);
+      console.error('❌ Classification request failed:', error);
       return this.fallbackClassify(query);
     }
   }
