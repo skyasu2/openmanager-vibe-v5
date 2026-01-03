@@ -139,13 +139,34 @@ export class QueryClassifier {
       q.includes('memory') ||
       q.includes('server') ||
       q.includes('상태') ||
-      q.includes('서버')
+      q.includes('서버') ||
+      q.includes('확인') ||
+      q.includes('체크') ||
+      q.includes('check')
     ) {
       return {
         complexity: 2,
         intent: 'monitoring',
         reasoning: 'Keyword match: Monitoring',
         confidence: Math.min(100, Math.max(0, confidence)),
+      };
+    }
+
+    // Problem/Issue detection -> Medium complexity (명확화 트리거 대상)
+    if (
+      q.includes('문제') ||
+      q.includes('이상') ||
+      q.includes('오류') ||
+      q.includes('에러') ||
+      q.includes('error') ||
+      q.includes('issue') ||
+      q.includes('problem')
+    ) {
+      return {
+        complexity: 2,
+        intent: 'monitoring',
+        reasoning: 'Keyword match: Problem detection',
+        confidence: Math.min(100, Math.max(0, confidence - 10)), // 문제 관련은 더 모호할 수 있음
       };
     }
 
