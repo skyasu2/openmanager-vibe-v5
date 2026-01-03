@@ -159,13 +159,19 @@ export function normalizeMessagesForCloudRun(
  * @description 복잡도 분석, 캐시 키 생성 등에 사용
  * @param messages - HybridMessage 배열
  * @returns 마지막 사용자 쿼리 (없으면 빈 문자열)
+ *
+ * @note 빈 텍스트를 가진 user 메시지는 건너뜁니다 (명확화 플로우에서 발생 가능)
  */
 export function extractLastUserQuery(messages: HybridMessage[]): string {
-  // 역순으로 순회하여 마지막 사용자 메시지 찾기
+  // 역순으로 순회하여 텍스트가 있는 마지막 사용자 메시지 찾기
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i];
     if (message && message.role === 'user') {
-      return extractTextFromHybridMessage(message);
+      const text = extractTextFromHybridMessage(message);
+      // 빈 메시지는 건너뛰고 다음 사용자 메시지 확인
+      if (text && text.trim().length > 0) {
+        return text;
+      }
     }
   }
   return '';
