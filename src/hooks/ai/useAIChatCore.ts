@@ -13,12 +13,105 @@
  * @updated 2026-01-01 - crypto.randomUUID 기반 세션 ID 생성
  */
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AIThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
 import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
 import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 import { SESSION_LIMITS } from '@/types/session';
+
+// ============================================================================
+// 로컬 스토리지 유틸리티
+// ============================================================================
+
+const CHAT_HISTORY_KEY = 'openmanager-chat-history';
+const MAX_STORED_MESSAGES = 50;
+
+interface StoredChatHistory {
+  sessionId: string;
+  messages: Array<{
+    id: string;
+    role: string;
+    content: string;
+    timestamp: string;
+  }>;
+  lastUpdated: string;
+}
+
+/**
+ * 로컬 스토리지에서 채팅 히스토리 로드
+ */
+function loadChatHistory(): StoredChatHistory | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const stored = localStorage.getItem(CHAT_HISTORY_KEY);
+    if (!stored) return null;
+
+    const parsed = JSON.parse(stored) as StoredChatHistory;
+
+    // 24시간 이상 된 데이터는 무효화
+    const lastUpdated = new Date(parsed.lastUpdated);
+    const hoursSinceUpdate =
+      (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60);
+    if (hoursSinceUpdate > 24) {
+      localStorage.removeItem(CHAT_HISTORY_KEY);
+      return null;
+    }
+
+    return parsed;
+  } catch (error) {
+    console.warn('[ChatHistory] Failed to load:', error);
+    return null;
+  }
+}
+
+/**
+ * 로컬 스토리지에 채팅 히스토리 저장
+ */
+function saveChatHistory(
+  sessionId: string,
+  messages: EnhancedChatMessage[]
+): void {
+  if (typeof window === 'undefined') return;
+
+  try {
+    // 저장할 메시지 필터링 (user/assistant만, 최대 50개)
+    const messagesToStore = messages
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .slice(-MAX_STORED_MESSAGES)
+      .map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp:
+          m.timestamp instanceof Date ? m.timestamp.toISOString() : m.timestamp,
+      }));
+
+    const history: StoredChatHistory = {
+      sessionId,
+      messages: messagesToStore,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(history));
+  } catch (error) {
+    console.warn('[ChatHistory] Failed to save:', error);
+  }
+}
+
+/**
+ * 로컬 스토리지에서 채팅 히스토리 삭제
+ */
+function clearChatHistory(): void {
+  if (typeof window === 'undefined') return;
+
+  try {
+    localStorage.removeItem(CHAT_HISTORY_KEY);
+  } catch (error) {
+    console.warn('[ChatHistory] Failed to clear:', error);
+  }
+}
 
 // ============================================================================
 // Types
@@ -54,8 +147,13 @@ export interface UseAIChatCoreReturn {
   hybridState: {
     progress?: { progress: number; stage: string; message?: string };
     jobId?: string;
+    error?: string | null;
   };
   currentMode?: 'streaming' | 'job-queue';
+
+  // 에러 상태
+  error: string | null;
+  clearError: () => void;
 
   // 세션 관리
   sessionId: string;
@@ -68,6 +166,7 @@ export interface UseAIChatCoreReturn {
     type: 'positive' | 'negative'
   ) => Promise<void>;
   regenerateLastResponse: () => void;
+  retryLastQuery: () => void;
   stop: () => void;
   cancel: () => void;
 
@@ -143,6 +242,12 @@ export function useAIChatCore(
   // 입력 상태
   const [input, setInput] = useState('');
 
+  // 에러 상태 (인라인 에러 표시용)
+  const [error, setError] = useState<string | null>(null);
+
+  // 마지막 쿼리 저장 (재시도용)
+  const lastQueryRef = useRef<string>('');
+
   // 세션 ID 관리 (crypto.randomUUID 기반)
   const chatSessionIdRef = useRef<string>(propSessionId || generateSessionId());
 
@@ -164,10 +269,16 @@ export function useAIChatCore(
     onStreamFinish: () => {
       onMessageSend?.(input);
       setInput('');
+      setError(null); // 성공 시 에러 초기화
     },
     onJobResult: (result) => {
       onMessageSend?.(input);
       setInput('');
+      if (result.success) {
+        setError(null); // 성공 시 에러 초기화
+      } else if (result.error) {
+        setError(result.error);
+      }
       if (process.env.NODE_ENV === 'development') {
         console.log('📦 [Job Queue] Result received:', result.success);
       }
@@ -180,6 +291,43 @@ export function useAIChatCore(
       }
     },
   });
+
+  // hybridState.error 변경 감지 및 동기화
+  // useEffect가 아닌 useMemo로 처리하여 즉시 반영
+  const syncedError = error || hybridState.error || null;
+
+  // ============================================================================
+  // 로컬 스토리지에서 히스토리 복원 (마운트 시 1회)
+  // ============================================================================
+
+  const isHistoryLoaded = useRef(false);
+
+  useEffect(() => {
+    // 이미 로드했거나 메시지가 있으면 스킵
+    if (isHistoryLoaded.current || messages.length > 0) return;
+
+    const history = loadChatHistory();
+    if (history && history.messages.length > 0) {
+      // 저장된 메시지를 UIMessage 형식으로 변환
+      const restoredMessages = history.messages.map((m) => ({
+        id: m.id,
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+        parts: [{ type: 'text' as const, text: m.content }],
+      }));
+
+      setMessages(restoredMessages);
+      chatSessionIdRef.current = history.sessionId;
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(
+          `📂 [ChatHistory] Restored ${restoredMessages.length} messages`
+        );
+      }
+    }
+
+    isHistoryLoaded.current = true;
+  }, [messages.length, setMessages]);
 
   // ============================================================================
   // 세션 제한 관리
@@ -206,6 +354,8 @@ export function useAIChatCore(
     setMessages([]);
     chatSessionIdRef.current = generateSessionId();
     setInput('');
+    setError(null);
+    clearChatHistory(); // 새 세션 시작 시 저장된 히스토리 삭제
   }, [setMessages]);
 
   // ============================================================================
@@ -236,6 +386,14 @@ export function useAIChatCore(
   );
 
   // ============================================================================
+  // 에러 관리
+  // ============================================================================
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  // ============================================================================
   // 재생성 함수
   // ============================================================================
 
@@ -251,9 +409,20 @@ export function useAIChatCore(
     const textContent = extractTextFromUIMessage(lastUserMessage);
     if (textContent) {
       setMessages(messages.slice(0, actualIndex));
+      setError(null); // 재생성 시 에러 초기화
       sendQuery(textContent);
     }
   }, [messages, setMessages, sendQuery]);
+
+  // ============================================================================
+  // 재시도 함수 (마지막 쿼리 재실행)
+  // ============================================================================
+
+  const retryLastQuery = useCallback(() => {
+    if (!lastQueryRef.current) return;
+    setError(null);
+    sendQuery(lastQueryRef.current);
+  }, [sendQuery]);
 
   // ============================================================================
   // 메시지 변환 (UIMessage -> EnhancedChatMessage)
@@ -313,6 +482,17 @@ export function useAIChatCore(
   }, [messages, hybridIsLoading]);
 
   // ============================================================================
+  // 로컬 스토리지 동기화
+  // ============================================================================
+
+  // 메시지 변경 시 자동 저장 (스트리밍 중이 아닐 때만)
+  useEffect(() => {
+    if (!hybridIsLoading && enhancedMessages.length > 0) {
+      saveChatHistory(chatSessionIdRef.current, enhancedMessages);
+    }
+  }, [enhancedMessages, hybridIsLoading]);
+
+  // ============================================================================
   // 입력 핸들러
   // ============================================================================
 
@@ -326,6 +506,12 @@ export function useAIChatCore(
       );
       return;
     }
+
+    // 에러 초기화
+    setError(null);
+
+    // 마지막 쿼리 저장 (재시도용)
+    lastQueryRef.current = input;
 
     // 쿼리 전송
     sendQuery(input);
@@ -349,8 +535,13 @@ export function useAIChatCore(
     hybridState: {
       progress: hybridState.progress ?? undefined,
       jobId: hybridState.jobId ?? undefined,
+      error: hybridState.error ?? undefined,
     },
     currentMode: currentMode ?? undefined,
+
+    // 에러 상태
+    error: syncedError,
+    clearError,
 
     // 세션 관리
     sessionId: chatSessionIdRef.current,
@@ -360,6 +551,7 @@ export function useAIChatCore(
     // 액션
     handleFeedback,
     regenerateLastResponse,
+    retryLastQuery,
     stop,
     cancel,
 

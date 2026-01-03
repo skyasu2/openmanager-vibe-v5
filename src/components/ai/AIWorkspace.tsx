@@ -178,12 +178,16 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     isLoading,
     hybridState,
     currentMode,
+    // 에러 상태
+    error,
+    clearError,
     // 세션 관리
     sessionState,
     handleNewSession,
     // 액션
     handleFeedback,
     regenerateLastResponse,
+    retryLastQuery,
     stop,
     cancel,
     // 통합 입력 핸들러
@@ -245,6 +249,9 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               jobId={hybridState.jobId}
               onCancelJob={cancel}
               queryMode={currentMode}
+              error={error}
+              onClearError={clearError}
+              onRetry={retryLastQuery}
             />
           ) : (
             <AIFunctionPages
@@ -437,6 +444,9 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                   jobId={hybridState.jobId}
                   onCancelJob={cancel}
                   queryMode={currentMode}
+                  error={error}
+                  onClearError={clearError}
+                  onRetry={retryLastQuery}
                 />
               ) : (
                 <div className="h-full p-0">

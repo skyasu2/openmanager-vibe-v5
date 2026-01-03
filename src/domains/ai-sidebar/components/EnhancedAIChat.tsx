@@ -1,6 +1,14 @@
 'use client';
 
-import { Bot, FileText, RefreshCw, Send, Square } from 'lucide-react';
+import {
+  AlertCircle,
+  Bot,
+  FileText,
+  RefreshCw,
+  Send,
+  Square,
+  X,
+} from 'lucide-react';
 import React, { memo, type RefObject } from 'react';
 import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
@@ -62,6 +70,12 @@ interface EnhancedAIChatProps {
   onCancelJob?: () => void;
   /** 현재 쿼리 모드 */
   queryMode?: 'streaming' | 'job-queue';
+  /** 에러 메시지 */
+  error?: string | null;
+  /** 에러 초기화 핸들러 */
+  onClearError?: () => void;
+  /** 재시도 핸들러 */
+  onRetry?: () => void;
 }
 
 /**
@@ -95,6 +109,9 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   jobId,
   onCancelJob,
   queryMode,
+  error,
+  onClearError,
+  onRetry,
 }: EnhancedAIChatProps) {
   return (
     <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
@@ -171,6 +188,46 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
           jobId={jobId}
           onCancel={onCancelJob}
         />
+      )}
+
+      {/* ⚠️ 인라인 에러 표시 */}
+      {error && !isGenerating && (
+        <div className="border-t border-red-200 bg-linear-to-r from-red-50 to-orange-50 p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-red-800">
+                  요청을 처리할 수 없습니다
+                </p>
+                <p className="mt-0.5 break-words text-xs text-red-600">
+                  {error}
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center space-x-2">
+              {onRetry && (
+                <button
+                  onClick={onRetry}
+                  className="flex items-center space-x-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                  aria-label="재시도"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span>재시도</span>
+                </button>
+              )}
+              {onClearError && (
+                <button
+                  onClick={onClearError}
+                  className="rounded-lg p-1.5 text-red-400 transition-colors hover:bg-red-100 hover:text-red-600"
+                  aria-label="닫기"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* 🔒 세션 제한 안내 */}

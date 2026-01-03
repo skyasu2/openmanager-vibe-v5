@@ -102,10 +102,16 @@ const MessageComponent = memo<{
               }`}
             >
               {message.role === 'assistant' ? (
-                <RenderMarkdownContent
-                  content={message.content}
-                  className="text-[15px] leading-relaxed"
-                />
+                <div className="relative">
+                  <RenderMarkdownContent
+                    content={message.content}
+                    className="text-[15px] leading-relaxed"
+                  />
+                  {/* 🎯 스트리밍 중 타이핑 커서 */}
+                  {message.isStreaming && (
+                    <span className="ml-0.5 inline-block h-5 w-0.5 animate-pulse bg-purple-500" />
+                  )}
+                </div>
               ) : (
                 <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
                   {message.content}
@@ -167,6 +173,11 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   const [selectedFunction, setSelectedFunction] =
     useState<AIAssistantFunction>('chat');
 
+  // 📱 스와이프 제스처 상태
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+  const SWIPE_THRESHOLD = 100; // 100px 이상 스와이프 시 닫기
+
   // ============================================================================
   // 🎯 공통 AI 채팅 로직 (useAIChatCore 훅 사용)
   // ============================================================================
@@ -180,12 +191,16 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     isLoading,
     hybridState,
     currentMode,
+    // 에러 상태
+    error,
+    clearError,
     // 세션 관리
     sessionState,
     handleNewSession,
     // 액션
     handleFeedback,
     regenerateLastResponse,
+    retryLastQuery,
     stop,
     cancel,
     // 통합 입력 핸들러
@@ -212,6 +227,26 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
+
+  // 📱 스와이프 제스처 핸들러
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0]?.clientX ?? 0;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0]?.clientX ?? 0;
+  };
+
+  const handleTouchEnd = () => {
+    const swipeDistance = touchEndX.current - touchStartX.current;
+    // 오른쪽으로 스와이프 시 닫기 (사이드바가 오른쪽에 있으므로)
+    if (swipeDistance > SWIPE_THRESHOLD) {
+      onClose();
+    }
+    // 리셋
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
 
   const canRenderSidebar =
     permissions.canToggleAI || isGuestFullAccessEnabled();
@@ -242,6 +277,9 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           jobId={hybridState.jobId}
           onCancelJob={cancel}
           queryMode={currentMode}
+          error={error}
+          onClearError={clearError}
+          onRetry={retryLastQuery}
         />
       );
     }
@@ -263,6 +301,10 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
       className={`gpu-sidebar-slide-in fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${
         isOpen ? '' : 'gpu-sidebar-slide-out'
       } ${className}`}
+      // 📱 스와이프 제스처 지원
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       <div className="flex min-w-0 flex-1 flex-col">
         <AISidebarHeader onClose={onClose} />
