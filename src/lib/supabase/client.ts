@@ -42,8 +42,8 @@ export function getSupabaseClient(): SupabaseClient {
       auth: {
         // Implicit 플로우 - 토큰이 URL hash로 반환
         flowType: 'implicit',
-        // 자동 세션 감지 비활성화 - 수동으로 처리
-        detectSessionInUrl: false,
+        // 자동 세션 감지 활성화 - Supabase가 자동으로 처리
+        detectSessionInUrl: true,
         // 자동 세션 새로고침
         autoRefreshToken: true,
         // 세션 유지
@@ -51,7 +51,9 @@ export function getSupabaseClient(): SupabaseClient {
       },
     });
 
-    console.log('🔐 Supabase Browser Client 초기화 (Implicit Flow)');
+    console.log(
+      '🔐 Supabase Browser Client 초기화 (Implicit Flow + Auto Detect)'
+    );
   }
 
   return globalThis.__supabaseInstance;

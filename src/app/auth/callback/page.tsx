@@ -55,26 +55,43 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // Implicit Flow: URL hash에서 토큰 추출
+        // Implicit Flow: URL hash에서 토큰 확인
         const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
 
         if (accessToken) {
-          console.log('🔑 Implicit Flow 토큰 감지');
+          console.log(
+            '🔑 Implicit Flow 토큰 감지 - Supabase 자동 처리 대기...'
+          );
           setStatus('processing');
           setMessage('세션 설정 중...');
 
           const supabase = getSupabase();
 
-          // 토큰으로 세션 설정
-          const { data, error: setSessionError } =
-            await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken || '',
-            });
+          // Supabase가 자동으로 hash 토큰을 처리할 시간을 줌
+          // detectSessionInUrl: true 설정으로 자동 처리됨
+          await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          if (setSessionError) {
-            console.error('❌ 세션 설정 실패:', setSessionError.message);
+          // 세션 확인 (최대 5초 대기)
+          let session = null;
+          for (let i = 0; i < 10; i++) {
+            const { data: sessionData, error: sessionError } =
+              await supabase.auth.getSession();
+
+            if (sessionError) {
+              console.error('❌ 세션 확인 에러:', sessionError.message);
+            }
+
+            if (sessionData.session) {
+              session = sessionData.session;
+              break;
+            }
+
+            console.log(`  세션 대기 ${i + 1}/10...`);
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
+
+          if (!session) {
+            console.error('❌ 세션 생성 실패');
             setStatus('error');
             setMessage('세션 설정에 실패했습니다. 다시 로그인해주세요.');
             setTimeout(() => {
@@ -83,21 +100,11 @@ export default function AuthCallbackPage() {
             return;
           }
 
-          if (!data.session) {
-            console.error('❌ 세션이 null');
-            setStatus('error');
-            setMessage('세션 생성에 실패했습니다.');
-            setTimeout(() => {
-              router.push('/login?error=no_session');
-            }, 2000);
-            return;
-          }
-
           // 성공!
           console.log('✅ OAuth 로그인 성공 (Implicit Flow):', {
-            userId: data.session.user.id,
-            email: data.session.user.email,
-            provider: data.session.user.app_metadata?.provider,
+            userId: session.user.id,
+            email: session.user.email,
+            provider: session.user.app_metadata?.provider,
           });
 
           setStatus('success');
