@@ -17,7 +17,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AIThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
 import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
 import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
-import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
+import type {
+  AnalysisBasis,
+  EnhancedChatMessage,
+} from '@/stores/useAISidebarStore';
 import { SESSION_LIMITS } from '@/types/session';
 
 // ============================================================================
@@ -488,6 +491,22 @@ export function useAIChatCore(
           };
         });
 
+        // 📊 분석 근거 생성 (assistant 메시지에만)
+        let analysisBasis: AnalysisBasis | undefined;
+        if (m.role === 'assistant') {
+          const isJobQueue = currentMode === 'job-queue';
+          const hasTools = toolParts.length > 0;
+
+          analysisBasis = {
+            dataSource: hasTools ? '서버 실시간 데이터 분석' : '일반 대화 응답',
+            engine: isJobQueue ? 'Cloud Run AI' : 'Streaming AI',
+            ragUsed: hasTools,
+            // TODO: 백엔드에서 실제 서버 수 및 신뢰도 제공 시 확장
+            confidence: hasTools ? 85 : undefined,
+            timeRange: hasTools ? '최근 1시간' : undefined,
+          };
+        }
+
         return {
           id: m.id,
           role: m.role as 'user' | 'assistant' | 'system' | 'thinking',
@@ -496,9 +515,10 @@ export function useAIChatCore(
           isStreaming:
             hybridIsLoading && m.id === messages[messages.length - 1]?.id,
           thinkingSteps: thinkingSteps.length > 0 ? thinkingSteps : undefined,
+          metadata: analysisBasis ? { analysisBasis } : undefined,
         };
       });
-  }, [messages, hybridIsLoading]);
+  }, [messages, hybridIsLoading, currentMode]);
 
   // ============================================================================
   // 로컬 스토리지 동기화

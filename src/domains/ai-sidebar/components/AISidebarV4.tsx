@@ -3,6 +3,7 @@
 // Icons
 import { Bot, User } from 'lucide-react';
 import { type FC, memo, useEffect, useRef, useState } from 'react';
+import { AnalysisBasisBadge } from '@/components/ai/AnalysisBasisBadge';
 // Components
 import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
 import {
@@ -137,6 +138,13 @@ const MessageComponent = memo<{
                 </p>
               )}
           </div>
+
+          {/* 📊 분석 근거 뱃지 (assistant 메시지 + 스트리밍 완료 시) */}
+          {message.role === 'assistant' &&
+            !message.isStreaming &&
+            message.metadata?.analysisBasis && (
+              <AnalysisBasisBadge basis={message.metadata.analysisBasis} />
+            )}
 
           {/* 메시지 액션 (복사, 피드백, 재생성) */}
           {message.content && (

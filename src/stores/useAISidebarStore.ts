@@ -26,6 +26,25 @@ export interface AgentLog {
   context?: unknown;
 }
 
+/**
+ * 📊 분석 근거 메타데이터
+ * AI 응답의 투명성을 위해 분석 근거 정보를 제공
+ */
+export interface AnalysisBasis {
+  /** 데이터 소스 설명 (예: "15개 서버 실시간 데이터") */
+  dataSource: string;
+  /** AI 엔진 (예: "Cloud Run AI", "Fallback", "Streaming") */
+  engine: string;
+  /** RAG 사용 여부 */
+  ragUsed?: boolean;
+  /** 분석된 서버 수 */
+  serverCount?: number;
+  /** 분석 시간 범위 (예: "최근 1시간") */
+  timeRange?: string;
+  /** 신뢰도 (0-100) */
+  confidence?: number;
+}
+
 export interface ChatMessage {
   id: string;
   content: string;
@@ -36,6 +55,8 @@ export interface ChatMessage {
     processingTime?: number;
     confidence?: number;
     error?: string;
+    /** 분석 근거 정보 */
+    analysisBasis?: AnalysisBasis;
   };
 }
 
