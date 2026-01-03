@@ -35,10 +35,10 @@ function validateAndCleanPkceData(): void {
       const value = localStorage.getItem(key);
       if (!value) continue;
 
-      // code_verifier는 Base64 URL-safe 문자만 포함해야 함
-      // 유효한 문자: A-Z, a-z, 0-9, -, _, .
+      // code_verifier는 RFC 7636 PKCE 표준에 따른 unreserved URI 문자만 포함
+      // 유효한 문자: A-Z, a-z, 0-9, -, _, ., ~ (RFC 3986 unreserved characters)
       if (key.includes('verifier')) {
-        const isValidCodeVerifier = /^[A-Za-z0-9\-_.]+$/.test(value);
+        const isValidCodeVerifier = /^[A-Za-z0-9\-_.~]+$/.test(value);
         if (!isValidCodeVerifier) {
           console.warn(`🧹 손상된 PKCE code_verifier 정리: ${key}`);
           localStorage.removeItem(key);

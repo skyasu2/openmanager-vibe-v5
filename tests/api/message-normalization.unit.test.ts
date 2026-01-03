@@ -206,9 +206,8 @@ describe('extractTextFromMessage', () => {
         content: 'content에서 추출',
       };
 
-      // parts에 text가 없으면 빈 문자열 (현재 구현)
-      // content 폴백은 parts 자체가 없을 때만 동작
-      expect(extractTextFromMessage(message)).toBe('');
+      // parts에 text type이 없으면 content로 폴백
+      expect(extractTextFromMessage(message)).toBe('content에서 추출');
     });
 
     it('parts가 undefined이면 content 사용', () => {
