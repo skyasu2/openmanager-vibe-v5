@@ -305,24 +305,30 @@ function extractToolBasedData(
 } {
   const id = randomUUID();
 
-  // Parse anomaly data
+  // Parse anomaly data - detectAnomalies returns Record<string, AnomalyResult>, not Array
   const anomaly = anomalyData as {
+    serverId?: string;
+    serverName?: string;
     hasAnomalies?: boolean;
     anomalyCount?: number;
-    results?: Array<{ serverId: string; serverName?: string; metric: string; currentValue: number; severity: string }>;
+    // results is a Record keyed by metric name (cpu, memory, disk, etc.)
+    results?: Record<string, { isAnomaly: boolean; severity: string; currentValue: number }>;
     summary?: { totalServers?: number; healthyCount?: number; warningCount?: number; criticalCount?: number };
   } | undefined;
 
   const anomalies: Array<{ server_id: string; server_name: string; metric: string; value: number; severity: string }> = [];
-  if (anomaly?.results) {
-    for (const r of anomaly.results) {
-      anomalies.push({
-        server_id: r.serverId,
-        server_name: r.serverName || r.serverId,
-        metric: r.metric,
-        value: r.currentValue,
-        severity: r.severity,
-      });
+  if (anomaly?.results && typeof anomaly.results === 'object') {
+    // Convert Record<metric, result> to array
+    for (const [metric, result] of Object.entries(anomaly.results)) {
+      if (result?.isAnomaly) {
+        anomalies.push({
+          server_id: anomaly.serverId || 'unknown',
+          server_name: anomaly.serverName || anomaly.serverId || 'unknown',
+          metric,
+          value: result.currentValue,
+          severity: result.severity,
+        });
+      }
     }
   }
 
