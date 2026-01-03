@@ -44,8 +44,16 @@ export async function GET(request: NextRequest) {
 
   try {
     const cookieStore = await cookies();
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    // trim()으로 환경 변수의 불필요한 공백/줄바꿈 제거
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? '';
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? '';
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('❌ Supabase 환경 변수 누락');
+      const loginUrl = new URL('/login', requestUrl.origin);
+      loginUrl.searchParams.set('error', 'config_error');
+      return NextResponse.redirect(loginUrl);
+    }
 
     // 응답 객체 생성 (쿠키 설정용)
     const response = NextResponse.redirect(new URL('/main', requestUrl.origin));

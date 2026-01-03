@@ -30,8 +30,9 @@ export function getSupabaseClient(): SupabaseClient {
   }
 
   if (!globalThis.__supabaseInstance) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    // trim()으로 환경 변수의 불필요한 공백/줄바꿈 제거
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
     if (!url || !key) {
       throw new Error('Missing Supabase environment variables');
