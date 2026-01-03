@@ -56,38 +56,12 @@ export function getSupabaseClient(): SupabaseClient {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true,
-        // 2026-01-03: PKCE 플로우 사용 (Supabase 공식 권장)
-        // implicit은 클라이언트 전용, PKCE가 더 안전하고 SSR 호환
-        flowType: 'pkce',
-        // 🔧 디버깅: storage adapter로 code_verifier 저장 상태 추적
-        storage: {
-          getItem: (key: string) => {
-            const value = localStorage.getItem(key);
-            if (key.includes('code-verifier')) {
-              console.log(
-                `🔍 [PKCE] getItem('${key}'):`,
-                value ? `${value.substring(0, 20)}...` : 'null'
-              );
-            }
-            return value;
-          },
-          setItem: (key: string, value: string) => {
-            if (key.includes('code-verifier')) {
-              console.log(
-                `💾 [PKCE] setItem('${key}'):`,
-                value ? `${value.substring(0, 20)}...` : 'null'
-              );
-            }
-            localStorage.setItem(key, value);
-          },
-          removeItem: (key: string) => {
-            if (key.includes('code-verifier')) {
-              console.log(`🗑️ [PKCE] removeItem('${key}')`);
-            }
-            localStorage.removeItem(key);
-          },
-        },
+        // 2026-01-03: detectSessionInUrl 비활성화
+        // 자동 처리에서 "Invalid value" fetch 에러 발생
+        // callback 페이지에서 수동으로 setSession 호출
+        detectSessionInUrl: false,
+        // implicit 플로우 사용 (서버가 이미 토큰을 해시에 반환)
+        flowType: 'implicit',
       },
     });
   }

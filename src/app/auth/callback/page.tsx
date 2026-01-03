@@ -112,11 +112,39 @@ export default function AuthCallbackPage() {
           }
         }
 
-        // 🔐 Implicit flow: 해시에 토큰이 있으면 Supabase가 자동 처리하도록 대기
+        // 🔐 Implicit flow: 해시에서 토큰을 직접 추출하여 세션 설정
         if (hasImplicitTokens) {
-          debug.log('🔐 Implicit flow 토큰 감지 - Supabase 자동 처리 대기');
-          // Supabase가 detectSessionInUrl: true로 해시의 토큰을 자동 처리
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          debug.log('🔐 Implicit flow 토큰 감지 - 수동 세션 설정 시도');
+
+          const refreshToken = hashParams.get('refresh_token');
+
+          if (accessToken && refreshToken) {
+            try {
+              debug.log('🔑 setSession 호출 시작...');
+              const { data, error } = await getSupabase().auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+
+              if (error) {
+                debug.error('❌ setSession 실패:', error.message);
+              } else if (data.session) {
+                debug.log('✅ setSession 성공! userId:', data.session.user.id);
+
+                // URL 해시 제거 (보안)
+                window.history.replaceState(
+                  {},
+                  document.title,
+                  window.location.pathname
+                );
+              }
+            } catch (setSessionError) {
+              debug.error('❌ setSession 예외:', setSessionError);
+            }
+          } else {
+            debug.warn('⚠️ refresh_token 없음, Supabase 자동 처리 대기');
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
         }
 
         // ✅ 보안 개선: 민감정보 로깅 제거, 필요한 상태만 기록
