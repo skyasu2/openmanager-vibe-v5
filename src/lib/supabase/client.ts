@@ -57,7 +57,10 @@ export function getSupabaseClient(): SupabaseClient {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        flowType: 'pkce',
+        // 2026-01-03: PKCE에서 implicit으로 변경
+        // PKCE code_verifier 저장/검증 이슈로 Google OAuth가 실패하는 문제
+        // implicit 플로우는 code_verifier가 필요 없어 더 안정적
+        flowType: 'implicit',
       },
     });
   }
