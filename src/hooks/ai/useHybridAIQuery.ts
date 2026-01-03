@@ -31,6 +31,14 @@ import { useChat } from '@ai-sdk/react';
 import { TextStreamChatTransport } from 'ai';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  applyClarification,
+  applyCustomClarification,
+  type ClarificationOption,
+  type ClarificationRequest,
+  generateClarification,
+} from '@/lib/ai/clarification-generator';
+import { classifyQuery } from '@/lib/ai/query-classifier';
+import {
   analyzeQueryComplexity,
   type QueryComplexity,
 } from '@/lib/ai/utils/query-complexity';
@@ -46,6 +54,9 @@ import {
 
 export type QueryMode = 'streaming' | 'job-queue';
 
+// Re-export clarification types for convenience
+export type { ClarificationRequest, ClarificationOption };
+
 export interface HybridQueryState {
   /** 현재 쿼리 모드 */
   mode: QueryMode;
@@ -59,6 +70,8 @@ export interface HybridQueryState {
   isLoading: boolean;
   /** 에러 메시지 */
   error: string | null;
+  /** 명확화 요청 (모호한 쿼리일 때) */
+  clarification: ClarificationRequest | null;
 }
 
 /**
@@ -131,6 +144,12 @@ export interface UseHybridAIQueryReturn {
   currentMode: QueryMode;
   /** 복잡도 미리 분석 (UI에서 힌트 표시용) */
   previewComplexity: (query: string) => QueryComplexity;
+  /** 명확화 옵션 선택 */
+  selectClarification: (option: ClarificationOption) => void;
+  /** 커스텀 명확화 입력 */
+  submitCustomClarification: (customInput: string) => void;
+  /** 명확화 건너뛰기 (원본 쿼리 그대로 전송) */
+  skipClarification: () => void;
 }
 
 // ============================================================================
@@ -186,7 +205,11 @@ export function useHybridAIQuery(
     jobId: null,
     isLoading: false,
     error: null,
+    clarification: null,
   });
+
+  // 명확화 건너뛰기 시 원본 쿼리 저장
+  const pendingQueryRef = useRef<string | null>(null);
 
   // ============================================================================
   // useChat Hook (Streaming Mode) - AI SDK v5 베스트 프랙티스 적용
@@ -274,23 +297,26 @@ export function useHybridAIQuery(
   // ============================================================================
   // Send Query (Auto Routing)
   // ============================================================================
-  const sendQuery = useCallback(
-    (query: string) => {
-      if (!query.trim()) return;
 
+  /**
+   * 실제 쿼리 전송 로직 (명확화 완료 후 호출)
+   */
+  const executeQuery = useCallback(
+    (query: string) => {
       // 1. 복잡도 분석
       const analysis = analyzeQueryComplexity(query);
       const isComplex = analysis.score > complexityThreshold;
 
-      console.log(
-        `[HybridAI] Query complexity: ${analysis.level} (score: ${analysis.score}), Mode: ${isComplex ? 'job-queue' : 'streaming'}`
-      );
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[HybridAI] Query complexity: ${analysis.level} (score: ${analysis.score}), Mode: ${isComplex ? 'job-queue' : 'streaming'}`
+        );
+      }
 
       // 2. 모드별 처리
       if (isComplex) {
         // Job Queue 모드: 긴 작업, 진행률 표시
-        // Job Queue에서는 sendMessage를 사용하지 않으므로 수동으로 메시지 추가
-        // crypto.randomUUID 기반 ID로 충돌 방지
         setMessages((prev) => [
           ...prev,
           {
@@ -301,35 +327,118 @@ export function useHybridAIQuery(
           } as UIMessage,
         ]);
 
-        setState({
+        setState((prev) => ({
+          ...prev,
           mode: 'job-queue',
           complexity: analysis.level,
           progress: null,
           jobId: null,
           isLoading: true,
           error: null,
-        });
+          clarification: null,
+        }));
 
         void asyncQuery.sendQuery(query).then((_result) => {
           setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
         });
       } else {
         // Streaming 모드: 빠른 응답
-        // 주의: sendMessage()가 자동으로 사용자 메시지를 추가하므로 수동 추가 불필요
-        setState({
+        setState((prev) => ({
+          ...prev,
           mode: 'streaming',
           complexity: analysis.level,
           progress: null,
           jobId: null,
           isLoading: true,
           error: null,
-        });
+          clarification: null,
+        }));
 
         void sendMessage({ text: query });
       }
     },
     [complexityThreshold, asyncQuery, sendMessage, setMessages]
   );
+
+  const sendQuery = useCallback(
+    async (query: string) => {
+      if (!query.trim()) return;
+
+      // 원본 쿼리 저장
+      pendingQueryRef.current = query;
+
+      // 1. 쿼리 분류 (Groq LLM 사용)
+      const classification = await classifyQuery(query);
+
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[HybridAI] Classification: intent=${classification.intent}, complexity=${classification.complexity}, confidence=${classification.confidence}%`
+        );
+      }
+
+      // 2. 명확화 필요 여부 체크
+      const clarificationRequest = generateClarification(query, classification);
+
+      if (clarificationRequest) {
+        setState((prev) => ({
+          ...prev,
+          clarification: clarificationRequest,
+        }));
+        return;
+      }
+
+      // 3. 명확화 불필요: 바로 실행
+      executeQuery(query);
+    },
+    [executeQuery]
+  );
+
+  // ============================================================================
+  // Clarification Functions
+  // ============================================================================
+
+  /**
+   * 명확화 옵션 선택
+   */
+  const selectClarification = useCallback(
+    (option: ClarificationOption) => {
+      const clarifiedQuery = applyClarification(option);
+      setState((prev) => ({ ...prev, clarification: null }));
+      executeQuery(clarifiedQuery);
+    },
+    [executeQuery]
+  );
+
+  /**
+   * 커스텀 명확화 입력
+   */
+  const submitCustomClarification = useCallback(
+    (customInput: string) => {
+      if (!pendingQueryRef.current) return;
+
+      const clarifiedQuery = applyCustomClarification(
+        pendingQueryRef.current,
+        customInput
+      );
+
+      // 명확화 상태 초기화 후 쿼리 실행
+      setState((prev) => ({ ...prev, clarification: null }));
+      executeQuery(clarifiedQuery);
+    },
+    [executeQuery]
+  );
+
+  /**
+   * 명확화 건너뛰기 (원본 쿼리 그대로 전송)
+   */
+  const skipClarification = useCallback(() => {
+    if (!pendingQueryRef.current) return;
+
+    // 명확화 상태 초기화 후 원본 쿼리 실행
+    setState((prev) => ({ ...prev, clarification: null }));
+    executeQuery(pendingQueryRef.current);
+  }, [executeQuery]);
 
   // ============================================================================
   // Control Functions
@@ -353,6 +462,7 @@ export function useHybridAIQuery(
   const reset = useCallback(() => {
     asyncQuery.reset();
     setMessages([]);
+    pendingQueryRef.current = null;
     setState({
       mode: 'streaming',
       complexity: null,
@@ -360,6 +470,7 @@ export function useHybridAIQuery(
       jobId: null,
       isLoading: false,
       error: null,
+      clarification: null,
     });
   }, [asyncQuery, setMessages]);
 
@@ -386,6 +497,10 @@ export function useHybridAIQuery(
     reset,
     currentMode: state.mode,
     previewComplexity,
+    // Clarification functions
+    selectClarification,
+    submitCustomClarification,
+    skipClarification,
   };
 }
 

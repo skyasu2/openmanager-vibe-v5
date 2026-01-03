@@ -13,8 +13,13 @@ import React, { memo, type RefObject } from 'react';
 import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { AsyncQueryProgress } from '@/hooks/ai/useAsyncAIQuery';
+import type {
+  ClarificationOption,
+  ClarificationRequest,
+} from '@/hooks/ai/useHybridAIQuery';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 import type { SessionState } from '@/types/session';
+import { ClarificationDialog } from './ClarificationDialog';
 import { JobProgressIndicator } from './JobProgressIndicator';
 
 /**
@@ -76,6 +81,14 @@ interface EnhancedAIChatProps {
   onClearError?: () => void;
   /** 재시도 핸들러 */
   onRetry?: () => void;
+  /** 명확화 요청 상태 */
+  clarification?: ClarificationRequest | null;
+  /** 명확화 옵션 선택 핸들러 */
+  onSelectClarification?: (option: ClarificationOption) => void;
+  /** 커스텀 명확화 입력 핸들러 */
+  onSubmitCustomClarification?: (customInput: string) => void;
+  /** 명확화 건너뛰기 핸들러 */
+  onSkipClarification?: () => void;
 }
 
 /**
@@ -112,6 +125,10 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   error,
   onClearError,
   onRetry,
+  clarification,
+  onSelectClarification,
+  onSubmitCustomClarification,
+  onSkipClarification,
 }: EnhancedAIChatProps) {
   return (
     <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
@@ -179,6 +196,19 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
           <div ref={messagesEndRef} />
         </div>
       </div>
+
+      {/* 💡 명확화 다이얼로그 (모호한 쿼리 시 표시) */}
+      {clarification &&
+        onSelectClarification &&
+        onSubmitCustomClarification &&
+        onSkipClarification && (
+          <ClarificationDialog
+            clarification={clarification}
+            onSelectOption={onSelectClarification}
+            onSubmitCustom={onSubmitCustomClarification}
+            onSkip={onSkipClarification}
+          />
+        )}
 
       {/* 📊 Job Queue 진행률 표시 */}
       {queryMode === 'job-queue' && isGenerating && (

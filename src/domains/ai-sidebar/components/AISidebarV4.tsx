@@ -216,6 +216,11 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     cancel,
     // 통합 입력 핸들러
     handleSendInput,
+    // 명확화 기능
+    clarification,
+    selectClarification,
+    submitCustomClarification,
+    skipClarification,
   } = useAIChatCore({
     sessionId: propSessionId,
     onMessageSend,
@@ -303,6 +308,10 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           error={error}
           onClearError={clearError}
           onRetry={retryLastQuery}
+          clarification={clarification}
+          onSelectClarification={selectClarification}
+          onSubmitCustomClarification={submitCustomClarification}
+          onSkipClarification={skipClarification}
         />
       );
     }

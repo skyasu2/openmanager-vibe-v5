@@ -15,7 +15,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AIThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
-import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
+import {
+  type ClarificationOption,
+  type ClarificationRequest,
+  useHybridAIQuery,
+} from '@/hooks/ai/useHybridAIQuery';
 import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
 import type {
   AnalysisBasis,
@@ -175,6 +179,12 @@ export interface UseAIChatCoreReturn {
 
   // 입력 처리
   handleSendInput: () => void;
+
+  // 명확화 기능
+  clarification: ClarificationRequest | null;
+  selectClarification: (option: ClarificationOption) => void;
+  submitCustomClarification: (customInput: string) => void;
+  skipClarification: () => void;
 }
 
 // ============================================================================
@@ -271,6 +281,10 @@ export function useAIChatCore(
     cancel,
     reset: resetHybridQuery,
     currentMode,
+    // Clarification functions
+    selectClarification,
+    submitCustomClarification,
+    skipClarification,
   } = useHybridAIQuery({
     sessionId: chatSessionIdRef.current,
     onStreamFinish: () => {
@@ -597,6 +611,12 @@ export function useAIChatCore(
 
     // 입력 핸들러
     handleSendInput,
+
+    // 명확화 기능
+    clarification: hybridState.clarification ?? null,
+    selectClarification,
+    submitCustomClarification,
+    skipClarification,
   };
 }
 
