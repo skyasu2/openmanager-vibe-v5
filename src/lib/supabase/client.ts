@@ -1,38 +1,25 @@
 /**
- * 🔐 Supabase Client (Singleton)
+ * 🔐 Supabase Client (Singleton with @supabase/ssr)
  *
- * Ensures a single instance of the Supabase client is used on the client-side.
+ * 브라우저 클라이언트도 @supabase/ssr을 사용하여 쿠키 기반 세션 관리.
+ * 이렇게 하면 서버 측 Route Handler와 code_verifier를 공유할 수 있습니다.
+ *
+ * @see https://supabase.com/docs/guides/auth/server-side/nextjs
  */
 
 'use client';
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Global declaration for singleton
 declare global {
   var __supabaseInstance: SupabaseClient | undefined;
-  var __supabasePkceValidated: boolean | undefined;
-}
-
-/**
- * 🛡️ PKCE code_verifier 검증 (2026-01-03: 비활성화)
- *
- * ⚠️ 이 함수는 현재 비활성화되어 있습니다.
- * Google OAuth에서 code_verifier가 JSON 형식으로 저장되어
- * 기존 검증 로직이 유효한 값을 삭제하는 문제가 발생했습니다.
- * Supabase가 자체적으로 PKCE를 처리하도록 위임합니다.
- */
-function validateAndCleanPkceData(): void {
-  // 2026-01-03: PKCE 검증 완전 비활성화
-  // Supabase gotrue-js가 자체적으로 code_verifier를 관리함
-  // 외부에서 검증/삭제하면 OAuth 흐름이 깨짐
-  return;
 }
 
 export function getSupabaseClient(): SupabaseClient {
   if (typeof window === 'undefined') {
     // ⚠️ SSR 환경에서는 createServerClient를 사용해야 합니다
-    // 이 경로는 실수로 호출된 경우의 폴백이며, 프로덕션에서는 경고를 발생시킵니다
     console.error(
       '❌ getSupabaseClient() should not be called in SSR. Use createServerClient() instead.'
     );
@@ -42,9 +29,6 @@ export function getSupabaseClient(): SupabaseClient {
   }
 
   if (!globalThis.__supabaseInstance) {
-    // 🛡️ Supabase 클라이언트 생성 전에 PKCE 데이터 검증
-    validateAndCleanPkceData();
-
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -52,18 +36,11 @@ export function getSupabaseClient(): SupabaseClient {
       throw new Error('Missing Supabase environment variables');
     }
 
-    globalThis.__supabaseInstance = createClient(url, key, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        // 2026-01-03: detectSessionInUrl 비활성화
-        // 자동 처리에서 "Invalid value" fetch 에러 발생
-        // callback 페이지에서 수동으로 setSession 호출
-        detectSessionInUrl: false,
-        // implicit 플로우 사용 (서버가 이미 토큰을 해시에 반환)
-        flowType: 'implicit',
-      },
-    });
+    // 🔐 @supabase/ssr의 createBrowserClient 사용
+    // 쿠키 기반 세션 관리로 서버와 클라이언트 간 세션 공유
+    globalThis.__supabaseInstance = createBrowserClient(url, key);
+
+    console.log('🔐 Supabase Browser Client 초기화 (@supabase/ssr)');
   }
 
   return globalThis.__supabaseInstance;

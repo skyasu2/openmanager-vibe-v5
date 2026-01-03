@@ -1,453 +1,236 @@
 /**
  * 🔐 OAuth 콜백 페이지 (클라이언트 컴포넌트)
  *
- * 미들웨어가 PKCE 플로우를 완전히 처리한 후 세션 확인
- * URL code 파라미터 검증 없이 세션 상태만 확인하여 타이밍 이슈 해결
+ * 서버 측 Route Handler(route.ts)가 PKCE 코드 교환을 처리합니다.
+ * 이 페이지는 세션 확인과 UI 표시만 담당합니다.
+ *
+ * 흐름:
+ * 1. Google → /auth/callback?code=xxx (route.ts가 처리)
+ * 2. route.ts에서 코드 교환 성공 → /main으로 리다이렉트
+ * 3. route.ts에서 실패 → /login?error=xxx로 리다이렉트
+ * 4. 직접 접근 또는 implicit flow → 이 페이지에서 처리
  */
 
 'use client';
 
-// Force dynamic rendering - this page uses browser APIs (window, document, localStorage)
-// and handles OAuth callbacks at runtime, cannot be statically generated
-export const dynamic = 'force-dynamic';
-
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getSupabase } from '@/lib/supabase/client';
 import debug from '@/utils/debug';
 
-/**
- * 🔧 Supabase 프로젝트 ID 동적 추출
- */
-function getSupabaseStorageKey(suffix: string = ''): string {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!url) return suffix ? `sb-auth-token-${suffix}` : 'sb-auth-token';
-
-  const projectId = url.match(/https?:\/\/([^.]+)\.supabase\.co/)?.[1];
-  if (!projectId) return suffix ? `sb-auth-token-${suffix}` : 'sb-auth-token';
-
-  return suffix
-    ? `sb-${projectId}-auth-token-${suffix}`
-    : `sb-${projectId}-auth-token`;
-}
-
 export default function AuthCallbackPage() {
   const router = useRouter();
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
+    'loading'
+  );
+  const [message, setMessage] = useState('인증 처리 중...');
 
   useEffect(() => {
     const handleCallback = async () => {
-      const startTime = performance.now();
-
       try {
-        debug.log('🔐 OAuth 콜백 페이지 로드...');
-        debug.log(
-          '⚡ Supabase가 자동으로 PKCE 처리합니다 (detectSessionInUrl: true)'
-        );
+        debug.log('🔐 OAuth 콜백 페이지 로드');
         debug.log('🌍 환경:', {
           origin: window.location.origin,
           pathname: window.location.pathname,
           search: window.location.search,
           hash: window.location.hash,
-          isVercel: window.location.origin.includes('vercel.app'),
         });
 
-        // 🔍 상세 디버깅: URL 파라미터 및 기존 토큰 상태 확인
+        // URL 파라미터 확인
         const urlParams = new URLSearchParams(window.location.search);
-        const authCode = urlParams.get('code');
-        const state = urlParams.get('state');
-        const error_param = urlParams.get('error');
+        const error = urlParams.get('error');
+        const errorMessage = urlParams.get('message');
 
-        // 🔐 Implicit flow 지원: URL 해시에서 토큰 확인
-        const hashParams = new URLSearchParams(
-          window.location.hash.substring(1)
-        );
-        const accessToken = hashParams.get('access_token');
-        const hasImplicitTokens = !!accessToken;
+        // 에러 파라미터가 있으면 로그인 페이지로 (route.ts에서 리다이렉트됨)
+        if (error) {
+          debug.error('❌ OAuth 에러:', error, errorMessage);
+          setStatus('error');
+          setMessage(errorMessage || '인증에 실패했습니다.');
 
-        debug.log('🔍 OAuth 응답 분석:', {
-          hasAuthCode: !!authCode,
-          hasImplicitTokens,
-          hasError: !!error_param,
-        });
+          // 2초 후 로그인 페이지로 이동
+          setTimeout(() => {
+            router.push(
+              `/login?error=${error}&message=${encodeURIComponent(errorMessage || '')}`
+            );
+          }, 2000);
+          return;
+        }
 
-        // 🚨 OAuth 코드/토큰 없이 콜백 페이지에 접근한 경우 - 로그인 페이지로 리다이렉트
-        if (!authCode && !hasImplicitTokens && !error_param) {
-          debug.log('⚠️ OAuth 코드/토큰 없음 - 로그인 페이지로 이동');
+        // 🔐 서버 측 route.ts가 이미 코드 교환을 처리했을 수 있음
+        // 세션이 있는지 확인
+        setMessage('세션 확인 중...');
+
+        // 잠시 대기 (쿠키가 설정될 시간)
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        const { data, error: sessionError } =
+          await getSupabase().auth.getSession();
+
+        if (sessionError) {
+          debug.error('❌ 세션 확인 에러:', sessionError.message);
+          setStatus('error');
+          setMessage('세션 확인에 실패했습니다.');
+
+          setTimeout(() => {
+            router.push(
+              `/login?error=session_error&message=${encodeURIComponent(sessionError.message)}`
+            );
+          }, 2000);
+          return;
+        }
+
+        if (data.session) {
+          debug.log('✅ 세션 확인됨:', {
+            userId: data.session.user.id,
+            email: data.session.user.email,
+          });
+
+          setStatus('success');
+          setMessage('로그인 성공! 리다이렉트 중...');
+
+          // 저장된 리다이렉트 목적지 확인
+          let redirectTo = '/main';
+          try {
+            const storedRedirect = sessionStorage.getItem('auth_redirect_to');
+            if (storedRedirect) {
+              redirectTo = storedRedirect;
+              sessionStorage.removeItem('auth_redirect_to');
+            }
+          } catch {
+            // sessionStorage 접근 실패 무시
+          }
+
+          // 게스트 데이터 정리
+          cleanupGuestData();
+
+          // 리다이렉트
+          setTimeout(() => {
+            window.location.href = redirectTo;
+          }, 500);
+          return;
+        }
+
+        // 세션이 없고, URL에 code도 없는 경우 - 직접 접근
+        const hasCode = urlParams.get('code');
+        if (!hasCode) {
+          debug.log('⚠️ 코드 없음, 세션 없음 - 로그인 페이지로 이동');
           router.push('/login');
           return;
         }
 
-        // 🔐 PKCE flow: authorization code가 있으면 명시적으로 토큰 교환
-        if (authCode) {
-          debug.log('🔐 PKCE flow: authorization code 감지 - 토큰 교환 시작');
+        // 서버 측에서 처리되지 않은 code가 있는 경우 (드문 경우)
+        debug.log('⏳ 서버 처리 대기 중... (재시도)');
+        setMessage('인증 완료 대기 중...');
 
-          // code_verifier 확인
-          const codeVerifierKey = getSupabaseStorageKey('code-verifier');
-          const codeVerifier = localStorage.getItem(codeVerifierKey);
-          debug.log('🔍 PKCE code_verifier 상태:', {
-            key: codeVerifierKey,
-            hasCodeVerifier: !!codeVerifier,
-            codeVerifierLength: codeVerifier?.length,
-          });
+        // 추가 대기 후 재확인
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
-          try {
-            // Supabase exchangeCodeForSession 호출
-            const { data, error } =
-              await getSupabase().auth.exchangeCodeForSession(authCode);
-
-            if (error) {
-              debug.error('❌ PKCE 코드 교환 실패:', error.message);
-              // 에러 처리는 아래에서 계속
-            } else if (data.session) {
-              debug.log(
-                '✅ PKCE 코드 교환 성공! userId:',
-                data.session.user.id
-              );
-              // 세션 성공 - 아래 로직으로 계속 진행
-            }
-          } catch (exchangeError) {
-            debug.error('❌ PKCE 코드 교환 예외:', exchangeError);
-            // 에러가 발생해도 아래 getSession으로 재확인
-          }
-        }
-
-        // 🔐 Implicit flow: 해시에서 토큰을 직접 추출하여 세션 설정
-        if (hasImplicitTokens) {
-          debug.log('🔐 Implicit flow 토큰 감지 - 수동 세션 설정 시도');
-
-          const refreshToken = hashParams.get('refresh_token');
-
-          if (accessToken && refreshToken) {
-            try {
-              debug.log('🔑 setSession 호출 시작...');
-              const { data, error } = await getSupabase().auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken,
-              });
-
-              if (error) {
-                debug.error('❌ setSession 실패:', error.message);
-              } else if (data.session) {
-                debug.log('✅ setSession 성공! userId:', data.session.user.id);
-
-                // URL 해시 제거 (보안)
-                window.history.replaceState(
-                  {},
-                  document.title,
-                  window.location.pathname
-                );
-              }
-            } catch (setSessionError) {
-              debug.error('❌ setSession 예외:', setSessionError);
-            }
-          } else {
-            debug.warn('⚠️ refresh_token 없음, Supabase 자동 처리 대기');
-            await new Promise((resolve) => setTimeout(resolve, 500));
-          }
-        }
-
-        // ✅ 보안 개선: 민감정보 로깅 제거, 필요한 상태만 기록
-        debug.log('🔍 OAuth 콜백 처리 시작:', {
-          hasAuthCode: !!authCode,
-          hasState: !!state,
-          hasError: !!error_param,
-          hasExistingTokens: {
-            codeVerifier: !!localStorage.getItem(
-              getSupabaseStorageKey('code-verifier')
-            ),
-            authToken: !!localStorage.getItem(getSupabaseStorageKey()),
-            hasAuthCookie: document.cookie.includes(getSupabaseStorageKey()),
-          },
-          timestamp: new Date().toISOString(),
-        });
-
-        // URL에서 에러 파라미터 확인 (이미 위에서 정의됨)
-        const error = error_param;
-
-        if (error) {
-          debug.error('❌ OAuth 에러:', error);
-          const errorDescription = urlParams.get('error_description');
-          const _errorMessage = errorDescription || error;
-
-          // 더 자세한 에러 메시지
-          let userMessage = 'GitHub 로그인에 실패했습니다.';
-          if (error === 'access_denied') {
-            userMessage = 'GitHub 인증이 취소되었습니다.';
-          } else if (error === 'server_error') {
-            userMessage =
-              '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-          } else if (error === 'temporarily_unavailable') {
-            userMessage = '일시적으로 서비스를 사용할 수 없습니다.';
-          }
-
-          router.push(
-            `/login?error=${error}&message=${encodeURIComponent(userMessage)}`
-          );
-          return;
-        }
-
-        debug.log('🔑 Supabase 자동 PKCE 처리 대기 중...');
-
-        // 🚀 세션 스토리지에서 최종 리다이렉트 목적지 읽기
-        // (useSupabaseSession.signIn()에서 저장한 값)
-        let finalRedirectTo = '/main'; // 기본값
-        try {
-          const storedRedirect = sessionStorage.getItem('auth_redirect_to');
-          if (storedRedirect) {
-            finalRedirectTo = storedRedirect;
-            sessionStorage.removeItem('auth_redirect_to'); // 사용 후 정리
-            debug.log('📍 저장된 리다이렉트 목적지:', finalRedirectTo);
-          }
-        } catch (err) {
-          debug.warn('sessionStorage 접근 오류 (무시됨):', err);
-        }
-
-        // 쿠키 설정 (리다이렉트 준비)
-        document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
-        document.cookie = `auth_redirect_to=${encodeURIComponent(finalRedirectTo)}; path=/; max-age=60; SameSite=Lax`;
-
-        // Supabase가 URL에서 코드를 감지하고 처리할 시간 최적화 (사용자 경험 개선)
-        const isVercel = window.location.origin.includes('vercel.app');
-        const initialWait = isVercel ? 1500 : 800; // 대기시간 50% 단축
-        await new Promise((resolve) => setTimeout(resolve, initialWait));
-
-        // 세션 확인 (Qwen 권장: 지수 백오프 알고리즘 적용)
-        let session = null;
-        let sessionError = null;
-        let attempts = 0;
-        const maxAttempts = isVercel ? 10 : 8; // 재시도 횟수 증가 (6→10, 4→8)
-        let fetchError = false; // fetch 에러 발생 여부 추적
-
-        do {
-          try {
-            const result = await getSupabase().auth.getSession();
-            session = result.data.session;
-            sessionError = result.error;
-          } catch (err) {
-            // 🚨 fetch 에러 처리 (PKCE 코드 교환 실패)
-            // "TypeError: Failed to execute 'fetch' on 'Window': Invalid value"
-            if (err instanceof TypeError && String(err).includes('fetch')) {
-              debug.error('❌ PKCE 코드 교환 실패 (fetch 에러):', err);
-              fetchError = true;
-
-              // OAuth 관련 localStorage 정리
-              const keysToRemove = Object.keys(localStorage).filter(
-                (key) => key.startsWith('sb-') || key.includes('supabase')
-              );
-              for (const key of keysToRemove) {
-                localStorage.removeItem(key);
-              }
-
-              break; // 루프 종료
-            }
-            throw err; // 다른 에러는 상위로 전파
-          }
-
-          if (!session && attempts < maxAttempts - 1) {
-            // 지수 백오프 알고리즘 최적화 (200ms → 360ms → 648ms → 1166ms → 2000ms)
-            const baseDelay = 200; // 기본 지연 시간 단축
-            const maxDelay = 2000; // 최대 지연 시간 50% 단축
-            const jitter = Math.random() * 0.1; // 10% 지터로 thundering herd 방지
-            const retryDelay = Math.min(
-              baseDelay * 1.8 ** attempts * (1 + jitter),
-              maxDelay
-            );
-
-            debug.log(
-              `🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts} (${Math.round(retryDelay)}ms 대기, 지수 백오프)`
-            );
-            await new Promise((resolve) => setTimeout(resolve, retryDelay));
-          }
-          attempts++;
-        } while (
-          !session &&
-          !sessionError &&
-          !fetchError &&
-          attempts < maxAttempts
-        );
-
-        // 🚨 fetch 에러 발생 시 사용자 친화적인 안내
-        if (fetchError) {
-          debug.log('⚠️ OAuth 인증 코드 처리 실패 - 게스트 로그인 안내');
-          router.push(
-            '/login?error=pkce_failed&message=' +
-              encodeURIComponent(
-                '인증 코드 처리에 실패했습니다. GitHub 로그인을 다시 시도하거나 게스트 모드를 이용해주세요.'
-              )
-          );
-          return;
-        }
-
-        debug.log('📊 세션 상태:', {
-          hasSession: !!session,
-          sessionError: sessionError?.message,
-          user: session?.user?.email,
-          attempts,
-        });
-
-        if (session?.user) {
-          debug.log('✅ 세션 확인됨, userId:', session.user.id);
-          debug.log(
-            `⏱️ 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
-          );
-
-          // 🧹 게스트 쿠키 정리 (GitHub 로그인 성공 시)
-          debug.log('🧹 게스트 쿠키 정리 시작...');
-          const isProduction = window.location.protocol === 'https:';
-          const secureFlag = isProduction ? '; Secure' : '';
-
-          // 게스트 쿠키 삭제
-          document.cookie = `guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
-          document.cookie = `auth_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
-          document.cookie = `auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
-
-          // localStorage 게스트 데이터 정리
-          localStorage.removeItem('auth_type');
-          localStorage.removeItem('auth_session_id');
-          localStorage.removeItem('auth_user');
-
-          debug.log('✅ 게스트 쿠키 및 localStorage 정리 완료');
-
-          // auth_verified 쿠키 설정 (Vercel HTTPS 환경 대응)
-          document.cookie = `auth_verified=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax${secureFlag}`;
-
-          // 최종 목적지로 이동
-          debug.log('🚀 최종 목적지로 이동:', finalRedirectTo);
-
-          // 세션 완전 설정 대기 최적화 (빠른 응답성)
-          const sessionWait = isVercel ? 800 : 500; // 대기시간 60% 단축
-          await new Promise((resolve) => setTimeout(resolve, sessionWait));
-
-          // 세션 쿠키 설정 확인 및 검증
-          const cookies = document.cookie.split(';').map((c) => c.trim());
-          const hasAuthToken = cookies.some(
-            (c) => c.startsWith('sb-') && c.includes('auth-token')
-          );
-
-          // 추가 세션 유효성 검증
-          const finalSessionCheck = await getSupabase().auth.getSession();
-          const sessionValid = !!finalSessionCheck.data.session?.access_token;
-
-          debug.log('🍪 세션 완전성 검증:', {
-            hasAuthToken,
-            sessionValid,
-            userId: finalSessionCheck.data.session?.user?.id,
-            environment: isVercel ? 'Vercel' : 'Local',
-          });
-
-          // 검증 통과 후 리다이렉트
-          if (hasAuthToken && sessionValid) {
-            window.location.href = finalRedirectTo;
-          } else {
-            debug.log('⚠️ 세션 검증 실패 - 추가 대기 후 리다이렉트');
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            window.location.href = finalRedirectTo; // 실패해도 진행 (클라이언트에서 재처리)
-          }
+        const finalCheck = await getSupabase().auth.getSession();
+        if (finalCheck.data.session) {
+          setStatus('success');
+          setMessage('로그인 성공!');
+          cleanupGuestData();
+          window.location.href = '/main';
         } else {
-          // 세션이 없는 경우
-          if (sessionError) {
-            debug.error('❌ 세션 에러:', sessionError.message);
+          debug.error('❌ 최종 세션 확인 실패');
+          setStatus('error');
+          setMessage('세션 생성에 실패했습니다. 다시 로그인해주세요.');
 
-            // 더 친화적인 에러 메시지
-            let userMessage = '인증 처리 중 오류가 발생했습니다.';
-            if (sessionError.message.includes('invalid_grant')) {
-              userMessage = '인증 코드가 만료되었습니다. 다시 로그인해주세요.';
-            } else if (sessionError.message.includes('network')) {
-              userMessage =
-                '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-            }
-
+          setTimeout(() => {
             router.push(
-              '/login?error=session_failed&message=' +
-                encodeURIComponent(userMessage)
+              '/login?error=session_timeout&message=' +
+                encodeURIComponent('세션 생성에 실패했습니다.')
             );
-          } else {
-            debug.log('⏳ PKCE 처리 중, 최종 재시도...');
-
-            // 최종 재시도 대기 시간 증가 (세션 생성 안정성 우선)
-            const finalRetryWait = isVercel ? 4000 : 3000; // 대기시간 증가 (2000→4000ms, 1500→3000ms)
-            debug.log(`⏱️ 최종 재시도 대기 중... (${finalRetryWait}ms)`);
-            await new Promise((resolve) => setTimeout(resolve, finalRetryWait));
-
-            // 최종 세션 확인 (더 엄격한 검증)
-            const finalCheck = await getSupabase().auth.getSession();
-            const finalSession = finalCheck.data.session;
-
-            debug.log('🔍 최종 세션 검증:', {
-              hasSession: !!finalSession,
-              hasAccessToken: !!finalSession?.access_token,
-              hasUser: !!finalSession?.user?.id,
-              userEmail: finalSession?.user?.email,
-              expiresAt: finalSession?.expires_at,
-            });
-
-            if (finalSession?.access_token && finalSession?.user) {
-              debug.log('✅ 최종 세션 검증 성공!');
-
-              // 세션 유효성 재확인 후 리다이렉트
-              await new Promise((resolve) => setTimeout(resolve, 500));
-              window.location.href = finalRedirectTo;
-            } else {
-              debug.log('❌ 최종 세션 생성 실패 - 로그인 페이지로 이동');
-
-              // 무한 리다이렉션 루프 방지: 메인 페이지 대신 로그인 페이지로 직접 이동
-              router.push(
-                '/login?error=session_timeout&message=' +
-                  encodeURIComponent(
-                    '세션 생성에 실패했습니다. 다시 로그인해주세요.'
-                  )
-              );
-            }
-          }
+          }, 2000);
         }
       } catch (error) {
-        debug.error('❌ OAuth 콜백 처리 오류:', error);
+        debug.error('❌ 콜백 처리 예외:', error);
+        setStatus('error');
+        setMessage('예상치 못한 오류가 발생했습니다.');
 
-        // 에러 타입별 사용자 친화적 메시지 생성
-        let errorMessage = '인증 처리 중 예상치 못한 오류가 발생했습니다.';
-        let errorCode = 'callback_failed';
-
-        if (error instanceof TypeError) {
-          if (String(error).includes('fetch')) {
-            errorMessage =
-              '네트워크 요청 중 오류가 발생했습니다. 다시 시도해주세요.';
-            errorCode = 'network_error';
-          } else if (
-            String(error).includes('null') ||
-            String(error).includes('undefined')
-          ) {
-            errorMessage = '세션 데이터 처리 중 오류가 발생했습니다.';
-            errorCode = 'data_error';
-          }
-        } else if (error instanceof Error) {
-          if (error.message.includes('invalid_grant')) {
-            errorMessage = '인증 코드가 만료되었습니다. 다시 로그인해주세요.';
-            errorCode = 'invalid_grant';
-          } else if (error.message.includes('network')) {
-            errorMessage = '네트워크 오류가 발생했습니다. 연결을 확인해주세요.';
-            errorCode = 'network_error';
-          }
-        }
-
-        router.push(
-          `/login?error=${errorCode}&message=${encodeURIComponent(errorMessage)}`
-        );
+        setTimeout(() => {
+          router.push('/login?error=callback_failed');
+        }, 2000);
       }
     };
 
     void handleCallback();
-  }, [router]); // router 함수 의존성 복구
+  }, [router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-black">
       <div className="text-center">
         <div className="mb-8">
-          <Loader2 className="mx-auto h-16 w-16 animate-spin text-blue-500" />
+          {status === 'loading' && (
+            <Loader2 className="mx-auto h-16 w-16 animate-spin text-blue-500" />
+          )}
+          {status === 'success' && (
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
+              <svg
+                className="h-10 w-10 text-green-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+          )}
+          {status === 'error' && (
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20">
+              <svg
+                className="h-10 w-10 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </div>
+          )}
         </div>
-        <h1 className="mb-2 text-2xl font-bold text-white">인증 처리 중...</h1>
-        <p className="text-gray-400">잠시만 기다려주세요</p>
+        <h1 className="mb-2 text-2xl font-bold text-white">
+          {status === 'loading' && '인증 처리 중...'}
+          {status === 'success' && '로그인 성공!'}
+          {status === 'error' && '오류 발생'}
+        </h1>
+        <p className="text-gray-400">{message}</p>
       </div>
     </div>
   );
+}
+
+/**
+ * 게스트 세션 데이터 정리
+ */
+function cleanupGuestData() {
+  try {
+    // 쿠키 정리
+    const isProduction = window.location.protocol === 'https:';
+    const secureFlag = isProduction ? '; Secure' : '';
+
+    document.cookie = `guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+    document.cookie = `auth_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+    document.cookie = `auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+
+    // localStorage 정리
+    localStorage.removeItem('auth_type');
+    localStorage.removeItem('auth_session_id');
+    localStorage.removeItem('auth_user');
+
+    debug.log('✅ 게스트 데이터 정리 완료');
+  } catch (error) {
+    debug.warn('게스트 데이터 정리 실패:', error);
+  }
 }
