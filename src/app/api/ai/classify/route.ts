@@ -2,41 +2,23 @@
  * Query Classification API Endpoint
  * 서버 사이드에서 Groq LLM을 사용한 쿼리 분류
  *
- * v1.0.0 (2026-01-04): 초기 구현
- * - POST: 쿼리 분류 (complexity, intent, confidence)
+ * v1.1.0 (2026-01-04): generateText + JSON 파싱 방식으로 변경
+ * - Groq 모델은 json_schema 미지원, text 기반 JSON 응답 사용
  */
 
 import { groq } from '@ai-sdk/groq';
-import { generateObject } from 'ai';
+import { generateText } from 'ai';
 import { type NextRequest, NextResponse } from 'next/server';
-import * as z from 'zod';
 
 // Node.js 런타임 사용
 export const runtime = 'nodejs';
 
-// Classification schema
-const classificationSchema = z.object({
-  complexity: z
-    .number()
-    .min(1)
-    .max(5)
-    .describe(
-      'The complexity of the query from 1 (simple) to 5 (complex). 1-3: Simple retrieval or conversation. 4-5: Complex analysis, coding, or reasoning.'
-    ),
-  intent: z
-    .enum(['general', 'monitoring', 'analysis', 'guide', 'coding'])
-    .describe('The primary intent of the user.'),
-  reasoning: z.string().describe('Brief explanation for the classification.'),
-  confidence: z
-    .number()
-    .min(0)
-    .max(100)
-    .describe(
-      'Confidence level (0-100) in this classification. 90+: Very certain. 70-89: Confident. 50-69: Uncertain, may need clarification. <50: Ambiguous query.'
-    ),
-});
-
-export type QueryClassification = z.infer<typeof classificationSchema>;
+export interface QueryClassification {
+  complexity: number;
+  intent: 'general' | 'monitoring' | 'analysis' | 'guide' | 'coding';
+  reasoning: string;
+  confidence: number;
+}
 
 /**
  * POST /api/ai/classify
@@ -68,29 +50,58 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // LLM Classification (llama-3.3-70b supports structured outputs)
-    const { object } = await generateObject({
-      model: groq('llama-3.3-70b-versatile'),
-      schema: classificationSchema,
-      prompt: `Classify the following user query for an IT infrastructure monitoring assistant.
+    // LLM Classification using generateText + JSON parsing
+    const { text } = await generateText({
+      model: groq('llama-3.1-8b-instant'),
+      prompt: `You are a query classifier for an IT infrastructure monitoring assistant.
+Classify the following query and respond ONLY with a valid JSON object (no markdown, no explanation).
 
-        Query: "${query}"
+Query: "${query}"
 
-        Guidelines:
-        - Complexity 1-2: Greetings, simple status checks ("is server up?"), checking distinct metric ("cpu usage").
-        - Complexity 3: How-to guides, explanation of concepts, multiple metrics.
-        - Complexity 4-5: Root cause analysis, "why" questions, coding requests, log analysis, complex correlations.
+Respond with this exact JSON format:
+{"complexity": <1-5>, "intent": "<general|monitoring|analysis|guide|coding>", "reasoning": "<brief explanation>", "confidence": <0-100>}
 
-        Confidence Guidelines:
-        - 90-100: Query is very clear and specific (e.g., "Show CPU usage for web-server-01")
-        - 70-89: Query is reasonably clear but could be more specific (e.g., "Show server status")
-        - 50-69: Query is ambiguous, missing key details (e.g., "Check it", "Is there a problem?")
-        - 0-49: Query is very vague or unclear (e.g., "Help", "?")`,
+Guidelines:
+- complexity 1-2: Greetings, simple status checks, single metric queries
+- complexity 3: How-to guides, concept explanations, multiple metrics
+- complexity 4-5: Root cause analysis, "why" questions, coding, log analysis
+- confidence 90-100: Very clear and specific query
+- confidence 70-89: Reasonably clear query
+- confidence 50-69: Ambiguous, may need clarification
+- confidence 0-49: Very vague or unclear`,
       temperature: 0,
     });
 
+    // Parse JSON from response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.warn('[Classify API] Failed to parse JSON, using fallback');
+      return NextResponse.json({
+        ...fallbackClassify(query),
+        source: 'fallback',
+        latency: Date.now() - startTime,
+      });
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]) as QueryClassification;
+
+    // Validate parsed result
+    if (
+      typeof parsed.complexity !== 'number' ||
+      typeof parsed.confidence !== 'number' ||
+      !parsed.intent ||
+      !parsed.reasoning
+    ) {
+      console.warn('[Classify API] Invalid response structure, using fallback');
+      return NextResponse.json({
+        ...fallbackClassify(query),
+        source: 'fallback',
+        latency: Date.now() - startTime,
+      });
+    }
+
     return NextResponse.json({
-      ...object,
+      ...parsed,
       source: 'llm',
       latency: Date.now() - startTime,
     });
