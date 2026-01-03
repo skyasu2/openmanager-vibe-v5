@@ -613,15 +613,7 @@ export function useAIChatCore(
     handleSendInput,
 
     // 명확화 기능
-    clarification: (() => {
-      const clar = hybridState.clarification ?? null;
-      // eslint-disable-next-line no-console
-      console.log(
-        '[useAIChatCore] hybridState.clarification:',
-        clar ? `has ${clar.options.length} options` : 'null'
-      );
-      return clar;
-    })(),
+    clarification: hybridState.clarification ?? null,
     selectClarification,
     submitCustomClarification,
     skipClarification,
