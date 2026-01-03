@@ -2,17 +2,89 @@
  * 🎯 MetricsProvider - 단일 데이터 소스 (Single Source of Truth)
  *
  * 역할:
- * - 현재 한국 시간(KST) 기준으로 고정 메트릭 데이터 제공
+ * - 현재 한국 시간(KST) 기준으로 hourly-data JSON 파일에서 메트릭 제공
+ * - Cloud Run AI와 동일한 데이터 소스 사용 (데이터 일관성 보장)
  * - 모든 API와 컴포넌트가 이 서비스를 통해 일관된 데이터 접근
- * - 날짜는 현재, 시간만 고정 데이터의 시간과 매칭
+ *
+ * @updated 2026-01-04 - hourly-data 통합 (AI와 데이터 동기화)
  */
 
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
 import {
   calculateAverageMetrics,
   FIXED_24H_DATASETS,
   type Fixed10MinMetric,
   getDataAtMinute,
 } from '@/data/fixed-24h-metrics';
+
+// ============================================================================
+// Hourly Data Types (Cloud Run과 동일)
+// ============================================================================
+
+interface HourlyDataServer {
+  id: string;
+  name: string;
+  type: string;
+  location: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+}
+
+interface HourlyDataPoint {
+  minute: number;
+  timestamp: string;
+  servers: Record<string, HourlyDataServer>;
+}
+
+interface HourlyData {
+  hour: number;
+  scenario: string;
+  dataPoints: HourlyDataPoint[];
+}
+
+// ============================================================================
+// Hourly Data Cache & Loader
+// ============================================================================
+
+let cachedHourlyData: { hour: number; data: HourlyData } | null = null;
+
+/**
+ * hourly-data JSON 파일 로드 (캐싱 적용)
+ */
+function loadHourlyData(hour: number): HourlyData | null {
+  // 캐시 히트
+  if (cachedHourlyData?.hour === hour) {
+    return cachedHourlyData.data;
+  }
+
+  const paddedHour = hour.toString().padStart(2, '0');
+  const filePath = join(
+    process.cwd(),
+    'public/hourly-data',
+    `hour-${paddedHour}.json`
+  );
+
+  if (!existsSync(filePath)) {
+    console.warn(`[MetricsProvider] hourly-data 파일 없음: ${filePath}`);
+    return null;
+  }
+
+  try {
+    const content = readFileSync(filePath, 'utf-8');
+    const data = JSON.parse(content) as HourlyData;
+    cachedHourlyData = { hour, data };
+    console.log(
+      `[MetricsProvider] hourly-data 로드: hour-${paddedHour}.json (${Object.keys(data.dataPoints[0]?.servers || {}).length}개 서버)`
+    );
+    return data;
+  } catch (error) {
+    console.error(`[MetricsProvider] hourly-data 파싱 실패:`, error);
+    return null;
+  }
+}
 
 /**
  * 서버 메트릭 (API 응답용)
@@ -109,12 +181,48 @@ export class MetricsProvider {
 
   /**
    * 현재 시간 기준 단일 서버 메트릭 조회
+   * @description hourly-data JSON에서 로드 (Cloud Run AI와 동일 소스)
    */
   public getServerMetrics(serverId: string): ServerMetrics | null {
+    const minuteOfDay = getKSTMinuteOfDay();
+    const timestamp = getKSTTimestamp();
+    const hour = Math.floor(minuteOfDay / 60);
+    const minute = minuteOfDay % 60;
+
+    // hourly-data에서 찾기 시도
+    const hourlyData = loadHourlyData(hour);
+    if (hourlyData) {
+      const slotIndex = Math.floor(minute / 10);
+      const dataPoint =
+        hourlyData.dataPoints[slotIndex] || hourlyData.dataPoints[0];
+
+      if (dataPoint?.servers?.[serverId]) {
+        const server = dataPoint.servers[serverId];
+        return {
+          serverId: server.id,
+          serverType: server.type,
+          location: server.location,
+          timestamp,
+          minuteOfDay,
+          cpu: server.cpu,
+          memory: server.memory,
+          disk: server.disk,
+          network: server.network,
+          logs: [],
+          status: determineStatus(
+            server.cpu,
+            server.memory,
+            server.disk,
+            server.network
+          ),
+        };
+      }
+    }
+
+    // fallback: fixed data에서 찾기
     const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === serverId);
     if (!dataset) return null;
 
-    const minuteOfDay = getKSTMinuteOfDay();
     const dataPoint = getDataAtMinute(dataset, minuteOfDay);
     if (!dataPoint) return null;
 
@@ -122,7 +230,7 @@ export class MetricsProvider {
       serverId: dataset.serverId,
       serverType: dataset.serverType,
       location: dataset.location,
-      timestamp: getKSTTimestamp(),
+      timestamp,
       minuteOfDay,
       cpu: dataPoint.cpu,
       memory: dataPoint.memory,
@@ -140,15 +248,51 @@ export class MetricsProvider {
 
   /**
    * 현재 시간 기준 모든 서버 메트릭 조회
+   * @description hourly-data JSON에서 로드 (Cloud Run AI와 동일 소스)
    */
   public getAllServerMetrics(): ServerMetrics[] {
     const minuteOfDay = getKSTMinuteOfDay();
     const timestamp = getKSTTimestamp();
+    const hour = Math.floor(minuteOfDay / 60);
+    const minute = minuteOfDay % 60;
 
+    // hourly-data 로드 시도
+    const hourlyData = loadHourlyData(hour);
+    if (hourlyData) {
+      // 10분 단위로 가장 가까운 dataPoint 찾기
+      const slotIndex = Math.floor(minute / 10);
+      const dataPoint =
+        hourlyData.dataPoints[slotIndex] || hourlyData.dataPoints[0];
+
+      if (dataPoint?.servers) {
+        return Object.values(dataPoint.servers).map((server) => ({
+          serverId: server.id,
+          serverType: server.type,
+          location: server.location,
+          timestamp,
+          minuteOfDay,
+          cpu: server.cpu,
+          memory: server.memory,
+          disk: server.disk,
+          network: server.network,
+          logs: [], // hourly-data에는 logs 없음
+          status: determineStatus(
+            server.cpu,
+            server.memory,
+            server.disk,
+            server.network
+          ),
+        }));
+      }
+    }
+
+    // fallback: 기존 fixed-24h-metrics 사용
+    console.warn(
+      '[MetricsProvider] hourly-data 로드 실패, fallback to fixed data'
+    );
     return FIXED_24H_DATASETS.map((dataset) => {
       const dataPoint = getDataAtMinute(dataset, minuteOfDay);
       if (!dataPoint) {
-        // fallback: baseline 사용
         return {
           serverId: dataset.serverId,
           serverType: dataset.serverType,
