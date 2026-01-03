@@ -1,8 +1,8 @@
 /**
- * 🔐 Supabase Client (Singleton with localStorage PKCE support)
+ * 🔐 Supabase Client (Singleton with Implicit Flow)
  *
- * PKCE 플로우를 위해 localStorage 기반 저장소 사용.
- * createBrowserClient(@supabase/ssr)는 쿠키 기반이라 PKCE code_verifier가 손실됨.
+ * Implicit 플로우 사용 - PKCE code_verifier 저장 문제 회피
+ * OAuth 리다이렉트 후 URL hash에서 토큰을 직접 받아 세션 생성
  *
  * @see https://supabase.com/docs/guides/auth/server-side/nextjs
  */
@@ -35,17 +35,15 @@ export function getSupabaseClient(): SupabaseClient {
       throw new Error('Missing Supabase environment variables');
     }
 
-    // 🔐 @supabase/supabase-js의 createClient 사용
-    // localStorage 기반 저장소로 PKCE code_verifier 보존
+    // 🔐 Implicit 플로우 사용
+    // PKCE code_verifier 저장 문제를 회피하기 위해 implicit 플로우 사용
+    // 토큰이 URL hash로 직접 전달됨
     globalThis.__supabaseInstance = createClient(url, key, {
       auth: {
-        // PKCE 플로우 사용 (기본값)
-        flowType: 'pkce',
-        // localStorage 기반 저장소 (기본값이지만 명시적으로 설정)
-        storage:
-          typeof window !== 'undefined' ? window.localStorage : undefined,
-        // 자동 세션 감지 활성화
-        detectSessionInUrl: true,
+        // Implicit 플로우 - 토큰이 URL hash로 반환
+        flowType: 'implicit',
+        // 자동 세션 감지 비활성화 - 수동으로 처리
+        detectSessionInUrl: false,
         // 자동 세션 새로고침
         autoRefreshToken: true,
         // 세션 유지
@@ -53,7 +51,7 @@ export function getSupabaseClient(): SupabaseClient {
       },
     });
 
-    console.log('🔐 Supabase Browser Client 초기화 (localStorage PKCE)');
+    console.log('🔐 Supabase Browser Client 초기화 (Implicit Flow)');
   }
 
   return globalThis.__supabaseInstance;

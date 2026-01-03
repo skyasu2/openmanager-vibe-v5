@@ -1,8 +1,8 @@
 /**
- * 🔐 OAuth 콜백 페이지 (클라이언트 컴포넌트)
+ * 🔐 OAuth 콜백 페이지 (Implicit Flow)
  *
- * Supabase가 detectSessionInUrl: true 설정으로 자동으로 코드 교환을 수행합니다.
- * 이 페이지는 세션이 설정될 때까지 대기하고 결과를 표시합니다.
+ * Implicit 플로우에서는 토큰이 URL hash로 전달됩니다.
+ * #access_token=xxx&refresh_token=xxx&... 형태
  */
 
 'use client';
@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getSupabase } from '@/lib/supabase/client';
 
-type Status = 'loading' | 'exchanging' | 'success' | 'error';
+type Status = 'loading' | 'processing' | 'success' | 'error';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -22,20 +22,25 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        console.log('🔐 OAuth 콜백 페이지 로드');
+        console.log('🔐 OAuth 콜백 페이지 로드 (Implicit Flow)');
         console.log('🌍 환경:', {
           origin: window.location.origin,
           pathname: window.location.pathname,
           search: window.location.search,
-          hash: window.location.hash,
+          hash: window.location.hash ? '(hash present)' : '(no hash)',
         });
 
-        // URL 파라미터 확인
+        // URL hash에서 토큰 파싱 (Implicit Flow)
+        const hash = window.location.hash.substring(1); // # 제거
+        const hashParams = new URLSearchParams(hash);
+
+        // URL query에서 에러 확인
         const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const error = urlParams.get('error');
+        const error = urlParams.get('error') || hashParams.get('error');
         const errorMessage =
-          urlParams.get('message') || urlParams.get('error_description');
+          urlParams.get('message') ||
+          urlParams.get('error_description') ||
+          hashParams.get('error_description');
 
         // OAuth 에러 처리
         if (error) {
@@ -50,49 +55,77 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // 코드가 없으면 로그인 페이지로
-        if (!code) {
-          console.log('⚠️ 코드 없음 - 로그인 페이지로 이동');
-          router.push('/login');
+        // Implicit Flow: URL hash에서 토큰 추출
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+
+        if (accessToken) {
+          console.log('🔑 Implicit Flow 토큰 감지');
+          setStatus('processing');
+          setMessage('세션 설정 중...');
+
+          const supabase = getSupabase();
+
+          // 토큰으로 세션 설정
+          const { data, error: setSessionError } =
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+            });
+
+          if (setSessionError) {
+            console.error('❌ 세션 설정 실패:', setSessionError.message);
+            setStatus('error');
+            setMessage('세션 설정에 실패했습니다. 다시 로그인해주세요.');
+            setTimeout(() => {
+              router.push('/login?error=session_failed');
+            }, 2000);
+            return;
+          }
+
+          if (!data.session) {
+            console.error('❌ 세션이 null');
+            setStatus('error');
+            setMessage('세션 생성에 실패했습니다.');
+            setTimeout(() => {
+              router.push('/login?error=no_session');
+            }, 2000);
+            return;
+          }
+
+          // 성공!
+          console.log('✅ OAuth 로그인 성공 (Implicit Flow):', {
+            userId: data.session.user.id,
+            email: data.session.user.email,
+            provider: data.session.user.app_metadata?.provider,
+          });
+
+          setStatus('success');
+          setMessage('로그인 성공! 리다이렉트 중...');
+
+          // URL hash 제거 (보안)
+          window.history.replaceState(null, '', window.location.pathname);
+
+          // 게스트 데이터 정리
+          cleanupGuestData();
+
+          // 리다이렉트
+          setTimeout(() => {
+            window.location.href = getRedirectUrl();
+          }, 500);
           return;
         }
 
-        // 🔐 Supabase 클라이언트 초기화 - detectSessionInUrl이 자동으로 코드 교환 수행
-        setStatus('exchanging');
-        setMessage('인증 코드 교환 중...');
-        console.log('🔑 PKCE 코드 교환 시작...');
+        // PKCE Flow fallback: code가 있는 경우 (이전 방식)
+        const code = urlParams.get('code');
+        if (code) {
+          console.log('🔑 Authorization Code 감지 (PKCE fallback)');
+          setStatus('processing');
+          setMessage('인증 코드 교환 중...');
 
-        // 디버깅: localStorage에서 PKCE 관련 키 확인
-        const allKeys = Object.keys(localStorage);
-        const pkceKeys = allKeys.filter(
-          (k) =>
-            k.includes('code_verifier') ||
-            k.includes('pkce') ||
-            k.startsWith('sb-')
-        );
-        console.log('🔍 localStorage PKCE 관련 키:', pkceKeys);
-        pkceKeys.forEach((k) => {
-          const value = localStorage.getItem(k);
-          console.log(
-            `  ${k}:`,
-            value?.substring(0, 50) + (value && value.length > 50 ? '...' : '')
-          );
-        });
+          const supabase = getSupabase();
 
-        const supabase = getSupabase();
-
-        // 방법 1: 수동 코드 교환 시도
-        console.log('🔄 수동 코드 교환 시도...');
-        const { data: exchangeData, error: exchangeError } =
-          await supabase.auth.exchangeCodeForSession(code);
-
-        if (exchangeError) {
-          console.error('❌ 수동 코드 교환 실패:', exchangeError.message);
-
-          // 방법 2: 세션 자동 감지 대기
-          console.log('🔄 세션 자동 감지 대기 중...');
-
-          // 최대 5초 동안 세션 확인
+          // 세션 자동 감지 대기 (최대 5초)
           let session = null;
           for (let i = 0; i < 10; i++) {
             await new Promise((resolve) => setTimeout(resolve, 500));
@@ -104,72 +137,35 @@ export default function AuthCallbackPage() {
             console.log(`  세션 확인 ${i + 1}/10...`);
           }
 
-          if (!session) {
-            // 에러 메시지 표시
-            let userMessage = '인증 코드 교환에 실패했습니다.';
-            if (
-              exchangeError.message.includes('invalid_grant') ||
-              exchangeError.message.includes('expired')
-            ) {
-              userMessage = '인증 코드가 만료되었습니다. 다시 로그인해주세요.';
-            } else if (exchangeError.message.includes('code_verifier')) {
-              userMessage = 'PKCE 검증에 실패했습니다. 다시 로그인해주세요.';
-            }
+          if (session) {
+            console.log('✅ 세션 감지 성공:', {
+              userId: session.user.id,
+              email: session.user.email,
+            });
 
-            setStatus('error');
-            setMessage(userMessage);
+            setStatus('success');
+            setMessage('로그인 성공! 리다이렉트 중...');
+            cleanupGuestData();
+
             setTimeout(() => {
-              router.push(
-                `/login?error=exchange_failed&message=${encodeURIComponent(userMessage)}`
-              );
-            }, 2000);
+              window.location.href = getRedirectUrl();
+            }, 500);
             return;
           }
 
-          // 자동 감지로 세션 획득 성공
-          console.log('✅ 자동 세션 감지 성공:', {
-            userId: session.user.id,
-            email: session.user.email,
-            provider: session.user.app_metadata?.provider,
-          });
-
-          setStatus('success');
-          setMessage('로그인 성공! 리다이렉트 중...');
-          cleanupGuestData();
-
-          setTimeout(() => {
-            window.location.href = getRedirectUrl();
-          }, 500);
-          return;
-        }
-
-        if (!exchangeData.session) {
-          console.error('❌ 세션 생성 실패: 세션이 null');
+          // 세션 없음 - 에러
+          console.error('❌ 세션 감지 실패');
           setStatus('error');
-          setMessage('세션 생성에 실패했습니다.');
+          setMessage('인증에 실패했습니다. 다시 로그인해주세요.');
           setTimeout(() => {
-            router.push('/login?error=no_session');
+            router.push('/login?error=session_timeout');
           }, 2000);
           return;
         }
 
-        // 성공!
-        console.log('✅ OAuth 로그인 성공:', {
-          userId: exchangeData.session.user.id,
-          email: exchangeData.session.user.email,
-          provider: exchangeData.session.user.app_metadata?.provider,
-        });
-
-        setStatus('success');
-        setMessage('로그인 성공! 리다이렉트 중...');
-
-        // 게스트 데이터 정리
-        cleanupGuestData();
-
-        // 리다이렉트
-        setTimeout(() => {
-          window.location.href = getRedirectUrl();
-        }, 500);
+        // 토큰도 코드도 없음 - 로그인 페이지로
+        console.log('⚠️ 인증 정보 없음 - 로그인 페이지로 이동');
+        router.push('/login');
       } catch (error) {
         console.error('❌ 콜백 처리 예외:', error);
         setStatus('error');
@@ -204,7 +200,7 @@ export default function AuthCallbackPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       <div className="text-center">
         <div className="mb-8">
-          {(status === 'loading' || status === 'exchanging') && (
+          {(status === 'loading' || status === 'processing') && (
             <Loader2 className="mx-auto h-16 w-16 animate-spin text-blue-500" />
           )}
           {status === 'success' && (
@@ -216,7 +212,7 @@ export default function AuthCallbackPage() {
         </div>
         <h1 className="mb-2 text-2xl font-bold text-white">
           {status === 'loading' && '인증 처리 중...'}
-          {status === 'exchanging' && '코드 교환 중...'}
+          {status === 'processing' && '세션 설정 중...'}
           {status === 'success' && '로그인 성공!'}
           {status === 'error' && '오류 발생'}
         </h1>
