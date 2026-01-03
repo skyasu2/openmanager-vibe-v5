@@ -41,12 +41,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // 코드가 없으면 클라이언트 측 페이지로 폴백 (implicit flow 지원)
+  // 코드가 없으면 로그인 페이지로 리다이렉트
   if (!code) {
-    console.log('⚠️ [Server] 코드 없음 - 클라이언트 측 처리로 위임');
-    // 클라이언트 측 page.tsx가 implicit flow 토큰을 처리하도록 허용
-    // route.ts는 GET 요청에서 code가 없으면 기본 동작 허용
-    return NextResponse.next();
+    console.log('⚠️ [Server] 코드 없음 - 로그인 페이지로 리다이렉트');
+    return NextResponse.redirect(`${origin}/login`);
   }
 
   // Supabase 환경 변수 확인
