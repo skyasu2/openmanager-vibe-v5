@@ -353,9 +353,8 @@ export function useHybridAIQuery(
         });
       } else {
         // Streaming 모드: 빠른 응답
-        // 먼저 사용자 메시지 추가
-        setMessages((prev) => [...prev, userMessage]);
-
+        // Note: sendMessage(AI SDK)가 자동으로 user 메시지를 추가하므로
+        //       수동으로 setMessages 하지 않음 (중복 방지)
         setState((prev) => ({
           ...prev,
           mode: 'streaming',
@@ -367,7 +366,7 @@ export function useHybridAIQuery(
           clarification: null,
         }));
 
-        // sendMessage는 messages 상태를 자동으로 사용함
+        // sendMessage는 user 메시지 추가 + API 호출을 자동으로 처리
         void sendMessage({ text: trimmedQuery });
       }
     },
