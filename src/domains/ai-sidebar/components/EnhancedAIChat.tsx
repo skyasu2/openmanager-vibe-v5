@@ -130,6 +130,13 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   onSubmitCustomClarification,
   onSkipClarification,
 }: EnhancedAIChatProps) {
+  // Debug: Log clarification state
+  // eslint-disable-next-line no-console
+  console.log(
+    '[EnhancedAIChat] clarification:',
+    clarification ? `has ${clarification.options.length} options` : 'null'
+  );
+
   return (
     <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
       {/* 헤더 - 모델 선택 */}

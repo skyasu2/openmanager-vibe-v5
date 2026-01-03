@@ -370,17 +370,28 @@ export function useHybridAIQuery(
       // 1. 쿼리 분류 (Groq LLM 사용)
       const classification = await classifyQuery(query);
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log(
-          `[HybridAI] Classification: intent=${classification.intent}, complexity=${classification.complexity}, confidence=${classification.confidence}%`
-        );
-      }
+      // eslint-disable-next-line no-console
+      console.log(
+        `[HybridAI] Classification: intent=${classification.intent}, complexity=${classification.complexity}, confidence=${classification.confidence}%`
+      );
 
       // 2. 명확화 필요 여부 체크
       const clarificationRequest = generateClarification(query, classification);
 
+      // eslint-disable-next-line no-console
+      console.log(
+        `[HybridAI] Clarification request:`,
+        clarificationRequest
+          ? `${clarificationRequest.options.length} options`
+          : 'null (no clarification needed)'
+      );
+
       if (clarificationRequest) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[HybridAI] Setting clarification state with options:`,
+          clarificationRequest.options.map((o) => o.text)
+        );
         setState((prev) => ({
           ...prev,
           clarification: clarificationRequest,
