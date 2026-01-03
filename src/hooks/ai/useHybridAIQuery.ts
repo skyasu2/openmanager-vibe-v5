@@ -303,8 +303,19 @@ export function useHybridAIQuery(
    */
   const executeQuery = useCallback(
     (query: string) => {
+      // 빈 쿼리 방어
+      if (!query || !query.trim()) {
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.warn('[HybridAI] executeQuery: Empty query, skipping');
+        }
+        return;
+      }
+
+      const trimmedQuery = query.trim();
+
       // 1. 복잡도 분석
-      const analysis = analyzeQueryComplexity(query);
+      const analysis = analyzeQueryComplexity(trimmedQuery);
       const isComplex = analysis.score > complexityThreshold;
 
       if (process.env.NODE_ENV === 'development') {
@@ -314,18 +325,17 @@ export function useHybridAIQuery(
         );
       }
 
+      // 사용자 메시지 생성 (공통) - AI SDK v5 UIMessage 형식
+      const userMessage: UIMessage = {
+        id: generateMessageId('user'),
+        role: 'user' as const,
+        parts: [{ type: 'text' as const, text: trimmedQuery }],
+      };
+
       // 2. 모드별 처리
       if (isComplex) {
         // Job Queue 모드: 긴 작업, 진행률 표시
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: generateMessageId('user'),
-            role: 'user' as const,
-            content: query,
-            parts: [{ type: 'text' as const, text: query }],
-          } as UIMessage,
-        ]);
+        setMessages((prev) => [...prev, userMessage]);
 
         setState((prev) => ({
           ...prev,
@@ -338,11 +348,14 @@ export function useHybridAIQuery(
           clarification: null,
         }));
 
-        void asyncQuery.sendQuery(query).then((_result) => {
+        void asyncQuery.sendQuery(trimmedQuery).then((_result) => {
           setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
         });
       } else {
         // Streaming 모드: 빠른 응답
+        // 먼저 사용자 메시지 추가
+        setMessages((prev) => [...prev, userMessage]);
+
         setState((prev) => ({
           ...prev,
           mode: 'streaming',
@@ -354,7 +367,8 @@ export function useHybridAIQuery(
           clarification: null,
         }));
 
-        void sendMessage({ text: query });
+        // sendMessage는 messages 상태를 자동으로 사용함
+        void sendMessage({ text: trimmedQuery });
       }
     },
     [complexityThreshold, asyncQuery, sendMessage, setMessages]
@@ -433,11 +447,21 @@ export function useHybridAIQuery(
    * 명확화 건너뛰기 (원본 쿼리 그대로 전송)
    */
   const skipClarification = useCallback(() => {
-    if (!pendingQueryRef.current) return;
+    const query = pendingQueryRef.current;
+
+    // 빈 쿼리 방어
+    if (!query || !query.trim()) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn('[HybridAI] skipClarification: No pending query to send');
+      }
+      setState((prev) => ({ ...prev, clarification: null }));
+      return;
+    }
 
     // 명확화 상태 초기화 후 원본 쿼리 실행
     setState((prev) => ({ ...prev, clarification: null }));
-    executeQuery(pendingQueryRef.current);
+    executeQuery(query);
   }, [executeQuery]);
 
   // ============================================================================

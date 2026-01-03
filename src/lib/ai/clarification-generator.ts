@@ -27,6 +27,19 @@ const SERVER_PATTERNS = {
   hasSpecific: /[a-z]+-[a-z]+-\d+|server-?\d+|web-\d+|db-\d+|api-\d+/i,
 };
 
+// 구체적 조건 패턴 (숫자 조건, 정렬, 필터링이 있으면 이미 구체적)
+const SPECIFIC_CONDITION_PATTERNS = {
+  // 숫자 조건: "80% 이상", "50% 초과", "70% 미만", "3개", "TOP 5"
+  numericCondition:
+    /\d+%\s*(이상|초과|미만|이하|넘는|넘어|보다)|top\s*\d+|\d+개|상위\s*\d+|하위\s*\d+/i,
+  // 상태 조건: "경고 상태인", "정상인", "오프라인"
+  statusCondition:
+    /경고\s*(상태)?인|정상인|오프라인|critical|warning|online|offline/i,
+  // 비교 조건: "가장 높은", "가장 낮은", "최대", "최소"
+  comparisonCondition:
+    /가장\s*(높|낮|많|적)|최대|최소|highest|lowest|most|least/i,
+};
+
 // 시간 관련 명확화 패턴
 const TIME_PATTERNS = {
   missing: /추이|변화|기록|history|trend|최근|과거/i,
@@ -40,6 +53,17 @@ const METRIC_PATTERNS = {
 };
 
 /**
+ * 쿼리가 이미 구체적인 조건을 포함하는지 확인
+ */
+function hasSpecificConditions(query: string): boolean {
+  return (
+    SPECIFIC_CONDITION_PATTERNS.numericCondition.test(query) ||
+    SPECIFIC_CONDITION_PATTERNS.statusCondition.test(query) ||
+    SPECIFIC_CONDITION_PATTERNS.comparisonCondition.test(query)
+  );
+}
+
+/**
  * 쿼리 분석 결과를 바탕으로 명확화가 필요한지 판단하고 옵션 생성
  */
 export function generateClarification(
@@ -50,6 +74,11 @@ export function generateClarification(
   if (
     !needsClarification(classification.confidence, classification.complexity)
   ) {
+    return null;
+  }
+
+  // 구체적 조건(숫자, 상태, 비교)이 있으면 명확화 불필요
+  if (hasSpecificConditions(query)) {
     return null;
   }
 
