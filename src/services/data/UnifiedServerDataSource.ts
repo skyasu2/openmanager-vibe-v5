@@ -12,8 +12,6 @@
 // 🎯 외부화된 규칙 시스템 (Single Source of Truth for thresholds)
 import { getServerStatus } from '@/config/rules';
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';
-// 🎯 Scenario-based failure data (Single Source of Truth)
-import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
 import type { Server } from '@/types/server';
 
 export interface ServerDataSourceConfig {
@@ -212,73 +210,55 @@ export class UnifiedServerDataSource {
   }
 
   /**
-   * 🔄 서버 데이터 로드 (scenario-loader 사용 -> fixed-24h-metrics로 변경)
+   * 🔄 서버 데이터 로드 (MetricsProvider 사용)
+   *
+   * @description
+   * MetricsProvider를 통해 hourly-data JSON 로드 (Cloud Run AI와 동일 소스)
+   * - Dashboard와 AI 응답 데이터 일관성 보장
+   * - Single Source of Truth: public/hourly-data/*.json
+   *
+   * @updated 2026-01-04 - MetricsProvider 통합 (AI와 데이터 동기화)
    */
   private async loadServersFromSource(): Promise<Server[]> {
-    // 🎯 Single Source of Truth: fixed-24h-metrics 사용
-    return this.loadFromFixedSource();
-  }
-
-  /**
-   * 🎛️ 데이터 소스 로드 (Fixed 24h Metrics)
-   * 🎯 Single Source of Truth: scenario-loader를 대체하여 `src/data/fixed-24h-metrics.ts` 사용
-   */
-  private async loadFromFixedSource(): Promise<Server[]> {
-    const { getDataAtMinute, FIXED_24H_DATASETS } = await import(
-      '@/data/fixed-24h-metrics'
+    const { metricsProvider } = await import(
+      '@/services/metrics/MetricsProvider'
     );
 
-    // 현재 시간 계산 (KST 기준 분)
-    const now = new Date();
-    // KST 시간 보정 (UTC+9)
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    const kstGap = 9 * 60 * 60 * 1000;
-    const kstDate = new Date(utc + kstGap);
-
-    const currentHour = kstDate.getHours();
-    const currentMinute = kstDate.getMinutes();
-    const minuteOfDay = currentHour * 60 + currentMinute; // 0 ~ 1439
+    // 🎯 Single Source of Truth: MetricsProvider → hourly-data JSON
+    const allMetrics = metricsProvider.getAllServerMetrics();
 
     if (process.env.NODE_ENV !== 'production') {
       console.log(
-        `🔄 Loading fixed metrics for minute: ${minuteOfDay} (${currentHour}:${currentMinute})`
+        `🔄 Loading servers from MetricsProvider: ${allMetrics.length} servers`
       );
     }
 
-    // 고정 데이터셋을 Server 타입으로 변환
-    const servers: Server[] = FIXED_24H_DATASETS.map((dataset) => {
-      // 해당 분(minute)의 데이터 가져오기
-      const dataPoint = getDataAtMinute(dataset, minuteOfDay);
-
-      // 데이터가 없으면 기본값 (0)
-      const cpu = dataPoint?.cpu ?? 0;
-      const memory = dataPoint?.memory ?? 0;
-      const disk = dataPoint?.disk ?? 0;
-      const network = dataPoint?.network ?? 0;
-      const logs = dataPoint?.logs ?? [];
-
-      // Status 결정 (외부화된 규칙 사용)
-      // @see src/config/rules/system-rules.json
-      const status = getServerStatus({ cpu, memory, disk, network });
+    // ServerMetrics를 Server 타입으로 변환
+    const servers: Server[] = allMetrics.map((metric) => {
+      const status = getServerStatus({
+        cpu: metric.cpu,
+        memory: metric.memory,
+        disk: metric.disk,
+        network: metric.network,
+      });
 
       return {
-        id: dataset.serverId,
-        name: dataset.serverId, // 이름이 없으면 ID 사용
-        hostname: `${dataset.serverId.toLowerCase()}.internal`,
-        type: dataset.serverType,
+        id: metric.serverId,
+        name: metric.serverId,
+        hostname: `${metric.serverId.toLowerCase()}.internal`,
+        type: metric.serverType,
         status,
-        cpu,
-        memory,
-        disk,
-        network,
+        cpu: metric.cpu,
+        memory: metric.memory,
+        disk: metric.disk,
+        network: metric.network,
         uptime: 86400 * 30, // 30일 가동 중으로 고정
-        responseTime: 50 + cpu * 2, // CPU 부하에 비례한 응답 시간 시뮬레이션
+        responseTime: 50 + metric.cpu * 2,
         lastUpdate: new Date(),
-        location: dataset.location,
-        provider: 'On-Premise', // 고정값
-        environment: 'production', // 고정값
-        // logs 필드 매핑
-        logs: logs.map((msg) => ({
+        location: metric.location,
+        provider: 'On-Premise',
+        environment: 'production',
+        logs: metric.logs.map((msg) => ({
           timestamp: new Date().toISOString(),
           level:
             msg.includes('[CRITICAL]') || msg.includes('[ERROR]')
@@ -296,8 +276,7 @@ export class UnifiedServerDataSource {
           disk_gb: 512,
           network_speed: '1Gbps',
         },
-        // 호환성을 위한 추가 필드 (server.ts와 일치)
-        role: dataset.serverType,
+        role: metric.serverType,
         ip: `10.0.1.${Math.floor(Math.random() * 255)}`,
         os: 'Ubuntu 22.04 LTS',
       } as unknown as Server;
