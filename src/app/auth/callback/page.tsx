@@ -1,9 +1,8 @@
 /**
  * 🔐 OAuth 콜백 페이지 (클라이언트 컴포넌트)
  *
- * URL에서 authorization code를 받아 클라이언트 측에서 PKCE 코드 교환을 수행합니다.
- * @supabase/ssr의 createBrowserClient는 localStorage에 code_verifier를 저장하므로
- * 클라이언트 측에서만 코드 교환이 가능합니다.
+ * Supabase가 detectSessionInUrl: true 설정으로 자동으로 코드 교환을 수행합니다.
+ * 이 페이지는 세션이 설정될 때까지 대기하고 결과를 표시합니다.
  */
 
 'use client';
@@ -58,39 +57,93 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // 🔐 클라이언트 측 PKCE 코드 교환
+        // 🔐 Supabase 클라이언트 초기화 - detectSessionInUrl이 자동으로 코드 교환 수행
         setStatus('exchanging');
         setMessage('인증 코드 교환 중...');
-        console.log('🔑 PKCE 코드 교환 시작 (클라이언트 측)...');
+        console.log('🔑 PKCE 코드 교환 시작...');
+
+        // 디버깅: localStorage에서 PKCE 관련 키 확인
+        const allKeys = Object.keys(localStorage);
+        const pkceKeys = allKeys.filter(
+          (k) =>
+            k.includes('code_verifier') ||
+            k.includes('pkce') ||
+            k.startsWith('sb-')
+        );
+        console.log('🔍 localStorage PKCE 관련 키:', pkceKeys);
+        pkceKeys.forEach((k) => {
+          const value = localStorage.getItem(k);
+          console.log(
+            `  ${k}:`,
+            value?.substring(0, 50) + (value && value.length > 50 ? '...' : '')
+          );
+        });
 
         const supabase = getSupabase();
-        const { data, error: exchangeError } =
+
+        // 방법 1: 수동 코드 교환 시도
+        console.log('🔄 수동 코드 교환 시도...');
+        const { data: exchangeData, error: exchangeError } =
           await supabase.auth.exchangeCodeForSession(code);
 
         if (exchangeError) {
-          console.error('❌ 코드 교환 실패:', exchangeError.message);
-          setStatus('error');
+          console.error('❌ 수동 코드 교환 실패:', exchangeError.message);
 
-          let userMessage = '인증 코드 교환에 실패했습니다.';
-          if (
-            exchangeError.message.includes('invalid_grant') ||
-            exchangeError.message.includes('expired')
-          ) {
-            userMessage = '인증 코드가 만료되었습니다. 다시 로그인해주세요.';
-          } else if (exchangeError.message.includes('code_verifier')) {
-            userMessage = 'PKCE 검증에 실패했습니다. 다시 로그인해주세요.';
+          // 방법 2: 세션 자동 감지 대기
+          console.log('🔄 세션 자동 감지 대기 중...');
+
+          // 최대 5초 동안 세션 확인
+          let session = null;
+          for (let i = 0; i < 10; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (sessionData.session) {
+              session = sessionData.session;
+              break;
+            }
+            console.log(`  세션 확인 ${i + 1}/10...`);
           }
 
-          setMessage(userMessage);
+          if (!session) {
+            // 에러 메시지 표시
+            let userMessage = '인증 코드 교환에 실패했습니다.';
+            if (
+              exchangeError.message.includes('invalid_grant') ||
+              exchangeError.message.includes('expired')
+            ) {
+              userMessage = '인증 코드가 만료되었습니다. 다시 로그인해주세요.';
+            } else if (exchangeError.message.includes('code_verifier')) {
+              userMessage = 'PKCE 검증에 실패했습니다. 다시 로그인해주세요.';
+            }
+
+            setStatus('error');
+            setMessage(userMessage);
+            setTimeout(() => {
+              router.push(
+                `/login?error=exchange_failed&message=${encodeURIComponent(userMessage)}`
+              );
+            }, 2000);
+            return;
+          }
+
+          // 자동 감지로 세션 획득 성공
+          console.log('✅ 자동 세션 감지 성공:', {
+            userId: session.user.id,
+            email: session.user.email,
+            provider: session.user.app_metadata?.provider,
+          });
+
+          setStatus('success');
+          setMessage('로그인 성공! 리다이렉트 중...');
+          cleanupGuestData();
+
           setTimeout(() => {
-            router.push(
-              `/login?error=exchange_failed&message=${encodeURIComponent(userMessage)}`
-            );
-          }, 2000);
+            window.location.href = getRedirectUrl();
+          }, 500);
           return;
         }
 
-        if (!data.session) {
+        if (!exchangeData.session) {
           console.error('❌ 세션 생성 실패: 세션이 null');
           setStatus('error');
           setMessage('세션 생성에 실패했습니다.');
@@ -102,9 +155,9 @@ export default function AuthCallbackPage() {
 
         // 성공!
         console.log('✅ OAuth 로그인 성공:', {
-          userId: data.session.user.id,
-          email: data.session.user.email,
-          provider: data.session.user.app_metadata?.provider,
+          userId: exchangeData.session.user.id,
+          email: exchangeData.session.user.email,
+          provider: exchangeData.session.user.app_metadata?.provider,
         });
 
         setStatus('success');
@@ -113,21 +166,9 @@ export default function AuthCallbackPage() {
         // 게스트 데이터 정리
         cleanupGuestData();
 
-        // 저장된 리다이렉트 목적지 확인
-        let redirectTo = '/main';
-        try {
-          const storedRedirect = sessionStorage.getItem('auth_redirect_to');
-          if (storedRedirect) {
-            redirectTo = storedRedirect;
-            sessionStorage.removeItem('auth_redirect_to');
-          }
-        } catch {
-          // sessionStorage 접근 실패 무시
-        }
-
         // 리다이렉트
         setTimeout(() => {
-          window.location.href = redirectTo;
+          window.location.href = getRedirectUrl();
         }, 500);
       } catch (error) {
         console.error('❌ 콜백 처리 예외:', error);
@@ -141,6 +182,23 @@ export default function AuthCallbackPage() {
 
     void handleCallback();
   }, [router]);
+
+  /**
+   * 저장된 리다이렉트 목적지 확인
+   */
+  function getRedirectUrl(): string {
+    let redirectTo = '/main';
+    try {
+      const storedRedirect = sessionStorage.getItem('auth_redirect_to');
+      if (storedRedirect) {
+        redirectTo = storedRedirect;
+        sessionStorage.removeItem('auth_redirect_to');
+      }
+    } catch {
+      // sessionStorage 접근 실패 무시
+    }
+    return redirectTo;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">

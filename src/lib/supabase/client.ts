@@ -1,16 +1,15 @@
 /**
- * 🔐 Supabase Client (Singleton with @supabase/ssr)
+ * 🔐 Supabase Client (Singleton with localStorage PKCE support)
  *
- * 브라우저 클라이언트도 @supabase/ssr을 사용하여 쿠키 기반 세션 관리.
- * 이렇게 하면 서버 측 Route Handler와 code_verifier를 공유할 수 있습니다.
+ * PKCE 플로우를 위해 localStorage 기반 저장소 사용.
+ * createBrowserClient(@supabase/ssr)는 쿠키 기반이라 PKCE code_verifier가 손실됨.
  *
  * @see https://supabase.com/docs/guides/auth/server-side/nextjs
  */
 
 'use client';
 
-import { createBrowserClient } from '@supabase/ssr';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 // Global declaration for singleton
 declare global {
@@ -36,11 +35,25 @@ export function getSupabaseClient(): SupabaseClient {
       throw new Error('Missing Supabase environment variables');
     }
 
-    // 🔐 @supabase/ssr의 createBrowserClient 사용
-    // 쿠키 기반 세션 관리로 서버와 클라이언트 간 세션 공유
-    globalThis.__supabaseInstance = createBrowserClient(url, key);
+    // 🔐 @supabase/supabase-js의 createClient 사용
+    // localStorage 기반 저장소로 PKCE code_verifier 보존
+    globalThis.__supabaseInstance = createClient(url, key, {
+      auth: {
+        // PKCE 플로우 사용 (기본값)
+        flowType: 'pkce',
+        // localStorage 기반 저장소 (기본값이지만 명시적으로 설정)
+        storage:
+          typeof window !== 'undefined' ? window.localStorage : undefined,
+        // 자동 세션 감지 활성화
+        detectSessionInUrl: true,
+        // 자동 세션 새로고침
+        autoRefreshToken: true,
+        // 세션 유지
+        persistSession: true,
+      },
+    });
 
-    console.log('🔐 Supabase Browser Client 초기화 (@supabase/ssr)');
+    console.log('🔐 Supabase Browser Client 초기화 (localStorage PKCE)');
   }
 
   return globalThis.__supabaseInstance;
