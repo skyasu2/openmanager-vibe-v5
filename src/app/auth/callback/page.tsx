@@ -58,11 +58,32 @@ export default function AuthCallbackPage() {
         const state = urlParams.get('state');
         const error_param = urlParams.get('error');
 
-        // 🚨 OAuth 코드 없이 콜백 페이지에 접근한 경우 - 로그인 페이지로 리다이렉트
-        if (!authCode && !error_param) {
-          debug.log('⚠️ OAuth 코드 없음 - 로그인 페이지로 이동');
+        // 🔐 Implicit flow 지원: URL 해시에서 토큰 확인
+        const hashParams = new URLSearchParams(
+          window.location.hash.substring(1)
+        );
+        const accessToken = hashParams.get('access_token');
+        const hasImplicitTokens = !!accessToken;
+
+        debug.log('🔍 OAuth 응답 분석:', {
+          hasAuthCode: !!authCode,
+          hasImplicitTokens,
+          hasError: !!error_param,
+        });
+
+        // 🚨 OAuth 코드/토큰 없이 콜백 페이지에 접근한 경우 - 로그인 페이지로 리다이렉트
+        if (!authCode && !hasImplicitTokens && !error_param) {
+          debug.log('⚠️ OAuth 코드/토큰 없음 - 로그인 페이지로 이동');
           router.push('/login');
           return;
+        }
+
+        // 🔐 Implicit flow: 해시에 토큰이 있으면 Supabase가 자동 처리하도록 대기
+        if (hasImplicitTokens) {
+          debug.log('🔐 Implicit flow 토큰 감지 - Supabase 자동 처리 대기');
+          // Supabase가 detectSessionInUrl: true로 해시의 토큰을 자동 처리
+          // 약간의 대기 시간 후 세션 확인으로 진행
+          await new Promise((resolve) => setTimeout(resolve, 500));
         }
 
         // ✅ 보안 개선: 민감정보 로깅 제거, 필요한 상태만 기록
