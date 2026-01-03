@@ -327,7 +327,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
                   ? '새 대화를 시작해주세요'
                   : '메시지를 입력하세요...'
               }
-              className="flex-1 resize-none border-none bg-transparent px-4 py-3 pr-14 text-[15px] focus:outline-hidden focus:ring-0"
+              className="flex-1 resize-none border-none bg-transparent px-4 py-3 pr-14 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-hidden focus:ring-0"
               minHeight={48}
               maxHeight={200}
               maxHeightVh={30}
