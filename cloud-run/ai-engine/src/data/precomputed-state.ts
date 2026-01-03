@@ -90,11 +90,15 @@ export interface CompactContext {
 // Thresholds
 // ============================================================================
 
+/**
+ * 🎯 임계값 정의 - Dashboard와 동일하게 유지
+ * @see /src/config/rules/system-rules.json (Single Source of Truth)
+ */
 const THRESHOLDS = {
   cpu: { warning: 70, critical: 85 },
   memory: { warning: 75, critical: 90 },
-  disk: { warning: 80, critical: 90 },
-  network: { warning: 80, critical: 95 },
+  disk: { warning: 80, critical: 95 },      // Fixed: 90 → 95 (Dashboard와 동기화)
+  network: { warning: 70, critical: 85 },   // Fixed: 80/95 → 70/85 (Dashboard와 동기화)
 } as const;
 
 // ============================================================================
