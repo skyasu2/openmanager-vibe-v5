@@ -68,9 +68,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // LLM Classification
+    // LLM Classification (llama-3.3-70b supports structured outputs)
     const { object } = await generateObject({
-      model: groq('llama-3.1-8b-instant'),
+      model: groq('llama-3.3-70b-versatile'),
       schema: classificationSchema,
       prompt: `Classify the following user query for an IT infrastructure monitoring assistant.
 
