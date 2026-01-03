@@ -4,19 +4,19 @@
   "lastUpdated": "2025-12-19",
   "thresholds": {
     "cpu": {
-      "warning": 70,
-      "critical": 85,
-      "description": "CPU 사용률 임계값. 70% 이상 경고, 85% 이상 심각"
+      "warning": 80,
+      "critical": 90,
+      "description": "CPU 사용률 임계값. 80% 이상 경고, 90% 이상 심각 (업계 표준)"
     },
     "memory": {
-      "warning": 75,
+      "warning": 80,
       "critical": 90,
-      "description": "메모리 사용률 임계값. 75% 이상 경고, 90% 이상 심각"
+      "description": "메모리 사용률 임계값. 80% 이상 경고, 90% 이상 심각 (업계 표준)"
     },
     "disk": {
       "warning": 80,
-      "critical": 95,
-      "description": "디스크 사용률 임계값. 80% 이상 경고, 95% 이상 심각"
+      "critical": 90,
+      "description": "디스크 사용률 임계값. 80% 이상 경고, 90% 이상 심각 (여유 10% 확보)"
     },
     "network": {
       "warning": 70,
@@ -67,20 +67,20 @@
       "name": "CPU 심각 경고",
       "metricType": "cpu",
       "operator": ">=",
-      "threshold": 85,
+      "threshold": 90,
       "severity": "critical",
       "enabled": true,
-      "description": "CPU 사용률이 85%를 초과하면 즉시 알림"
+      "description": "CPU 사용률이 90%를 초과하면 즉시 알림 (업계 표준)"
     },
     {
       "id": "cpu_warning",
       "name": "CPU 경고",
       "metricType": "cpu",
       "operator": ">=",
-      "threshold": 70,
+      "threshold": 80,
       "severity": "warning",
       "enabled": true,
-      "description": "CPU 사용률이 70%를 초과하면 주의 알림"
+      "description": "CPU 사용률이 80%를 초과하면 주의 알림 (업계 표준)"
     },
     {
       "id": "memory_critical",
@@ -97,20 +97,20 @@
       "name": "메모리 경고",
       "metricType": "memory",
       "operator": ">=",
-      "threshold": 75,
+      "threshold": 80,
       "severity": "warning",
       "enabled": true,
-      "description": "메모리 사용률이 75%를 초과하면 주의 알림"
+      "description": "메모리 사용률이 80%를 초과하면 주의 알림 (업계 표준)"
     },
     {
       "id": "disk_critical",
       "name": "디스크 심각 경고",
       "metricType": "disk",
       "operator": ">=",
-      "threshold": 95,
+      "threshold": 90,
       "severity": "critical",
       "enabled": true,
-      "description": "디스크 사용률이 95%를 초과하면 즉시 알림"
+      "description": "디스크 사용률이 90%를 초과하면 즉시 알림 (여유 10% 확보)"
     },
     {
       "id": "disk_warning",

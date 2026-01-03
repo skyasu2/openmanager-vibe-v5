@@ -91,14 +91,15 @@ export interface CompactContext {
 // ============================================================================
 
 /**
- * 🎯 임계값 정의 - Dashboard와 동일하게 유지
+ * 🎯 임계값 정의 - 업계 베스트 프랙티스 적용
  * @see /src/config/rules/system-rules.json (Single Source of Truth)
+ * @see https://docs.github.com/en/enterprise-server/admin/monitoring-and-managing-your-instance/monitoring-your-instance/recommended-alert-thresholds
  */
 const THRESHOLDS = {
-  cpu: { warning: 70, critical: 85 },
-  memory: { warning: 75, critical: 90 },
-  disk: { warning: 80, critical: 95 },      // Fixed: 90 → 95 (Dashboard와 동기화)
-  network: { warning: 70, critical: 85 },   // Fixed: 80/95 → 70/85 (Dashboard와 동기화)
+  cpu: { warning: 80, critical: 90 },       // 업계 표준: 80/90
+  memory: { warning: 80, critical: 90 },    // 업계 표준: 80/90
+  disk: { warning: 80, critical: 90 },      // 업계 표준: 여유 10% 확보
+  network: { warning: 70, critical: 85 },   // 네트워크는 워크로드 의존
 } as const;
 
 // ============================================================================
