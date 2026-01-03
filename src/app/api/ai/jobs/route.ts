@@ -4,7 +4,7 @@
  * POST /api/ai/jobs - 새 Job 생성
  * GET /api/ai/jobs - Job 목록 조회
  *
- * @version 1.1.0 - 타임아웃 + after() 로깅 개선
+ * @version 1.2.0 - Rate Limiting 추가 (2026-01-03)
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -14,6 +14,7 @@ import {
   inferJobType,
 } from '@/lib/ai/job-queue/complexity-analyzer';
 import { redisSet } from '@/lib/redis';
+import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import type {
   AIJob,
   CreateJobRequest,
@@ -43,10 +44,10 @@ function getSupabaseClient() {
 }
 
 // ============================================
-// POST /api/ai/jobs - Job 생성
+// POST /api/ai/jobs - Job 생성 (Rate Limited)
 // ============================================
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const body = (await request.json()) as CreateJobRequest;
     const { query, options } = body;
@@ -163,11 +164,14 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Rate Limiting 적용
+export const POST = withRateLimit(rateLimiters.aiAnalysis, handlePOST);
+
 // ============================================
-// GET /api/ai/jobs - Job 목록 조회
+// GET /api/ai/jobs - Job 목록 조회 (Rate Limited)
 // ============================================
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
@@ -216,6 +220,9 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Rate Limiting 적용
+export const GET = withRateLimit(rateLimiters.default, handleGET);
 
 // ============================================
 // 헬퍼 함수

@@ -382,20 +382,21 @@ export const rateLimiters = {
   serversNext: new RateLimiter({ maxRequests: 20, windowMs: 60 * 1000 }), // 1분에 20회
   monitoring: new RateLimiter({ maxRequests: 30, windowMs: 60 * 1000 }), // 1분에 30회
   /**
-   * 💰 AI Analysis Rate Limiter (Cloud Run 무료 티어 최적화)
+   * 💰 AI Analysis Rate Limiter (보안 강화 + Cloud Run 무료 티어 최적화)
    *
-   * 분당: 10회 (버스트 방지)
-   * 일일: 100회 (Cloud Run 무료 티어 보호)
+   * @updated 2026-01-03 - 악의적 사용/폭주 방지 강화
+   * 분당: 5회 (버스트 방지 강화)
+   * 일일: 50회 (세션 제한과 동기화)
    *
    * 계산 근거:
    * - Cloud Run 무료: 월 180,000 vCPU-seconds
    * - 일일 용량: 6,000초 / AI Engine 4초 = 1,500회
-   * - 안전 마진: 100회/일 × 4초 = 400초/일 (용량의 6.7%)
+   * - 안전 마진: 50회/일 × 4초 = 200초/일 (용량의 3.3%)
    */
   aiAnalysis: new RateLimiter({
-    maxRequests: 10,
+    maxRequests: 5,
     windowMs: 60 * 1000,
-    dailyLimit: 100,
+    dailyLimit: 50,
   }),
 };
 

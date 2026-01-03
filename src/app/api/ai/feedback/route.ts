@@ -1,4 +1,6 @@
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 
 /**
  * AI 피드백 API 엔드포인트
@@ -6,6 +8,8 @@ import { NextResponse } from 'next/server';
  * POST /api/ai/feedback
  *
  * 사용자 피드백 (👍/👎)을 수집하여 AI 품질 개선에 활용
+ *
+ * @version 1.1.0 - Rate Limiting 추가 (2026-01-03)
  */
 
 interface FeedbackRequest {
@@ -25,7 +29,7 @@ interface FeedbackLog {
 // 메모리 내 피드백 저장소 (MVP - 추후 DB 연동)
 const feedbackStore: FeedbackLog[] = [];
 
-export async function POST(request: Request) {
+async function handlePOST(request: NextRequest) {
   try {
     const body: FeedbackRequest = await request.json();
 
@@ -77,8 +81,11 @@ export async function POST(request: Request) {
   }
 }
 
+// Rate Limiting 적용 (분당 20회)
+export const POST = withRateLimit(rateLimiters.default, handlePOST);
+
 // GET: 피드백 통계 조회 (관리자용)
-export async function GET() {
+async function handleGET(_request: NextRequest) {
   const stats = {
     total: feedbackStore.length,
     positive: feedbackStore.filter((f) => f.type === 'positive').length,
@@ -88,3 +95,6 @@ export async function GET() {
 
   return NextResponse.json(stats);
 }
+
+// Rate Limiting 적용
+export const GET = withRateLimit(rateLimiters.default, handleGET);

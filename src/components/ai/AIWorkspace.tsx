@@ -189,8 +189,8 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     // 통합 입력 핸들러
     handleSendInput,
   } = useAIChatCore({
-    // 전체화면에서는 세션 제한 비활성화
-    disableSessionLimit: true,
+    // 전체화면에서도 세션 제한 적용 (악의적 사용/폭주 방지)
+    disableSessionLimit: false,
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);

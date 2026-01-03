@@ -231,23 +231,25 @@ export const RATE_LIMIT_CONFIGS = {
   } satisfies RateLimitConfig,
 
   /**
-   * AI Supervisor: 분당 10회 + 일일 100회
+   * AI Supervisor: 분당 5회 + 일일 50회 (보안 강화)
+   * @updated 2026-01-03 - 악의적 사용/폭주 방지
    * Cloud Run 무료 티어 보호
    */
   aiSupervisor: {
-    maxRequests: 10,
+    maxRequests: 5,
     windowMs: 60_000,
-    dailyLimit: 100,
+    dailyLimit: 50,
     prefix: 'api:ai:supervisor',
   } satisfies RateLimitConfig,
 
   /**
-   * AI 분석: 분당 10회 + 일일 100회
+   * AI 분석: 분당 5회 + 일일 50회 (보안 강화)
+   * @updated 2026-01-03 - 악의적 사용/폭주 방지
    */
   aiAnalysis: {
-    maxRequests: 10,
+    maxRequests: 5,
     windowMs: 60_000,
-    dailyLimit: 100,
+    dailyLimit: 50,
     prefix: 'api:ai:analysis',
   } satisfies RateLimitConfig,
 
