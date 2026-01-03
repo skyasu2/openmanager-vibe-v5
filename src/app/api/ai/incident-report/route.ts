@@ -114,12 +114,24 @@ async function postHandler(request: NextRequest) {
     // 3. 응답 반환
     if (result.source === 'fallback') {
       debug.info('[incident-report] Using fallback response');
-      return NextResponse.json(result.data, {
-        headers: {
-          'X-Fallback-Response': 'true',
-          'X-Retry-After': '30000',
+      // 프론트엔드 호환성을 위해 정상 응답 구조와 일치시킴
+      return NextResponse.json(
+        {
+          success: false,
+          report: null,
+          message:
+            result.data.message ||
+            '보고서 생성 서비스가 일시적으로 불안정합니다.',
+          source: 'fallback',
+          retryAfter: 30000,
         },
-      });
+        {
+          headers: {
+            'X-Fallback-Response': 'true',
+            'X-Retry-After': '30000',
+          },
+        }
+      );
     }
 
     debug.info('[incident-report] Cloud Run success');
