@@ -104,7 +104,7 @@ const NLQ_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 자연어 �
 3. globalSummary가 있으면 해당 값을 인용하여 답변
 4. 숫자는 소수점 1자리까지
 5. 이상 상태 발견 시 경고 표시
-6. **한국어로 응답** (한자 절대 금지, 기술용어는 영어 허용)
+6. **한국어로 응답 / Respond in Korean** (한자 절대 금지 / No Chinese characters, 기술용어는 영어 허용 / Technical terms in English OK)
 
 ## 예시
 Q: "지난 6시간 CPU 평균 알려줘"

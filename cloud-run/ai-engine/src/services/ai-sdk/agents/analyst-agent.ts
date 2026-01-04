@@ -66,7 +66,7 @@ const ANALYST_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 분석 
 3. 시각적으로 이해하기 쉬운 설명
 4. 권장 조치사항 제안
 5. 심각도에 따른 우선순위 제시
-6. **한국어로 응답** (한자 절대 금지, 기술용어는 영어 허용)
+6. **한국어로 응답 / Respond in Korean** (한자 절대 금지 / No Chinese characters, 기술용어는 영어 허용 / Technical terms in English OK)
 
 ## 예시
 Q: "메모리 이상 있어?"
