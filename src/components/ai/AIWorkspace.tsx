@@ -339,7 +339,9 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>AI Engine Active</span>
             </div>
-            <span className="text-gray-400">v5.83.12</span>
+            <span className="text-gray-400">
+              v{process.env.NEXT_PUBLIC_APP_VERSION || '5.83.14'}
+            </span>
           </div>
         </div>
       </div>

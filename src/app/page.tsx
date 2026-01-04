@@ -295,7 +295,7 @@ function Home() {
             <div className="flex items-center gap-4 text-xs text-white/70">
               <span className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>v5.83.12</span>
+                <span>v{process.env.NEXT_PUBLIC_APP_VERSION || '5.83.14'}</span>
               </span>
               <span>Next.js 16 + React 19</span>
               <span className="hidden sm:inline">Triple-Provider AI</span>
