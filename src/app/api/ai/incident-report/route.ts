@@ -6,9 +6,14 @@
  * - Cloud Run: AI Analysis & Report Generation
  *
  * 🔄 v5.84.0: Local Fallback Removed (Cloud Run dependency enforced)
+ * 🔄 v5.84.1: withAICache 추가 (중복 호출 방지, 1시간 TTL)
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import {
+  type CacheableAIResponse,
+  withAICache,
+} from '@/lib/ai/cache/ai-response-cache';
 import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
 import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
@@ -34,93 +39,120 @@ interface IncidentReport {
 }
 
 /**
- * POST handler - Proxy to Cloud Run with Circuit Breaker + Fallback
+ * POST handler - Proxy to Cloud Run with Circuit Breaker + Fallback + Cache
  *
  * @updated 2025-12-30 - Circuit Breaker 및 Fallback 적용
+ * @updated 2026-01-04 - withAICache 추가 (1시간 TTL)
  */
 async function postHandler(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action } = body;
+    const { action, serverId } = body;
+    const sessionId = body.sessionId ?? `incident_${serverId ?? 'system'}`;
+    const cacheQuery = `${action}:${serverId ?? 'all'}:${body.severity ?? 'any'}`;
 
     // 1. Cloud Run 활성화 확인
     if (!isCloudRunEnabled()) {
-      // Cloud Run 비활성화 시 폴백 응답 반환
       const fallback = createFallbackResponse('incident-report');
       return NextResponse.json(fallback);
     }
 
-    // 2. Cloud Run 프록시 호출 (Circuit Breaker + Fallback)
+    // 2. 캐시를 통한 Cloud Run 프록시 호출 (Circuit Breaker + Fallback + Cache)
     debug.info(`[incident-report] Proxying action '${action}' to Cloud Run...`);
 
-    const result = await executeWithCircuitBreakerAndFallback<
-      Record<string, unknown>
-    >(
-      'incident-report',
-      // Primary: Cloud Run 호출
+    const cacheResult = await withAICache<CacheableAIResponse>(
+      sessionId,
+      cacheQuery,
+      // Fetcher: Circuit Breaker + Fallback 적용
       async () => {
-        const cloudRunResult = await proxyToCloudRun({
-          path: '/api/ai/incident-report',
-          method: 'POST',
-          body,
-          timeout: 30000,
-        });
+        const result = await executeWithCircuitBreakerAndFallback<
+          Record<string, unknown>
+        >(
+          'incident-report',
+          async () => {
+            const cloudRunResult = await proxyToCloudRun({
+              path: '/api/ai/incident-report',
+              method: 'POST',
+              body,
+              timeout: 30000,
+            });
 
-        if (!cloudRunResult.success || !cloudRunResult.data) {
-          throw new Error(cloudRunResult.error ?? 'Cloud Run request failed');
-        }
-
-        const reportData = cloudRunResult.data as IncidentReport;
-
-        // generate 액션인 경우 DB 저장 시도
-        if (action === 'generate' && reportData.id) {
-          try {
-            const { error } = await supabaseAdmin
-              .from('incident_reports')
-              .insert({
-                id: reportData.id,
-                title: reportData.title,
-                severity: reportData.severity,
-                affected_servers: reportData.affected_servers || [],
-                anomalies: reportData.anomalies || [],
-                root_cause_analysis: reportData.root_cause_analysis || {},
-                recommendations: reportData.recommendations || [],
-                timeline: reportData.timeline || [],
-                pattern: reportData.pattern || 'unknown',
-                system_summary: reportData.system_summary || null,
-                created_at: reportData.created_at || new Date().toISOString(),
-              });
-
-            if (error) {
-              debug.error('DB save error (Cloud Run data):', error);
+            if (!cloudRunResult.success || !cloudRunResult.data) {
+              throw new Error(
+                cloudRunResult.error ?? 'Cloud Run request failed'
+              );
             }
-          } catch (dbError) {
-            debug.error('DB connection error:', dbError);
-          }
-        }
+
+            const reportData = cloudRunResult.data as IncidentReport;
+
+            // generate 액션인 경우 DB 저장 시도
+            if (action === 'generate' && reportData.id) {
+              try {
+                const { error } = await supabaseAdmin
+                  .from('incident_reports')
+                  .insert({
+                    id: reportData.id,
+                    title: reportData.title,
+                    severity: reportData.severity,
+                    affected_servers: reportData.affected_servers || [],
+                    anomalies: reportData.anomalies || [],
+                    root_cause_analysis: reportData.root_cause_analysis || {},
+                    recommendations: reportData.recommendations || [],
+                    timeline: reportData.timeline || [],
+                    pattern: reportData.pattern || 'unknown',
+                    system_summary: reportData.system_summary || null,
+                    created_at:
+                      reportData.created_at || new Date().toISOString(),
+                  });
+
+                if (error) {
+                  debug.error('DB save error (Cloud Run data):', error);
+                }
+              } catch (dbError) {
+                debug.error('DB connection error:', dbError);
+              }
+            }
+
+            return {
+              success: true,
+              report: {
+                ...cloudRunResult.data,
+                _source: 'Cloud Run AI Engine',
+              },
+            };
+          },
+          () =>
+            createFallbackResponse('incident-report') as Record<string, unknown>
+        );
 
         return {
           success: true,
-          report: {
-            ...cloudRunResult.data,
-            _source: 'Cloud Run AI Engine',
-          },
-        };
+          ...result.data,
+          _fallback: result.source === 'fallback',
+        } as CacheableAIResponse;
       },
-      // Fallback: 로컬 폴백 응답
-      () => createFallbackResponse('incident-report') as Record<string, unknown>
+      'incident-report'
     );
 
     // 3. 응답 반환
-    if (result.source === 'fallback') {
+    const responseData = cacheResult.data;
+    const isFallback = (responseData as Record<string, unknown>)._fallback;
+
+    if (cacheResult.cached) {
+      debug.info('[incident-report] Cache HIT');
+      return NextResponse.json(responseData, {
+        headers: { 'X-Cache': 'HIT' },
+      });
+    }
+
+    if (isFallback) {
       debug.info('[incident-report] Using fallback response');
-      // 프론트엔드 호환성을 위해 정상 응답 구조와 일치시킴
       return NextResponse.json(
         {
           success: false,
           report: null,
           message:
-            result.data.message ||
+            (responseData as Record<string, unknown>).message ||
             '보고서 생성 서비스가 일시적으로 불안정합니다.',
           source: 'fallback',
           retryAfter: 30000,
@@ -135,11 +167,12 @@ async function postHandler(request: NextRequest) {
     }
 
     debug.info('[incident-report] Cloud Run success');
-    return NextResponse.json(result.data);
+    return NextResponse.json(responseData, {
+      headers: { 'X-Cache': 'MISS' },
+    });
   } catch (error) {
     debug.error('Incident report proxy error:', error);
 
-    // 예상치 못한 에러 시에도 폴백 반환
     const fallback = createFallbackResponse('incident-report');
     return NextResponse.json(fallback, {
       headers: {
