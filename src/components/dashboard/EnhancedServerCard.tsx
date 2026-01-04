@@ -164,18 +164,24 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       const status = server.networkStatus || server.status;
       switch (status) {
         case 'online':
-          return <Wifi className="w-4 h-4 text-emerald-500" />;
+          return (
+            <Wifi className="w-4 h-4 text-emerald-500" aria-hidden="true" />
+          );
         case 'warning':
-          return <Wifi className="w-4 h-4 text-amber-500" />;
+          return <Wifi className="w-4 h-4 text-amber-500" aria-hidden="true" />;
         case 'critical':
-          return <Wifi className="w-4 h-4 text-rose-500" />;
+          return <Wifi className="w-4 h-4 text-rose-500" aria-hidden="true" />;
         case 'offline':
         case 'unknown':
-          return <Wifi className="w-4 h-4 text-slate-400" />;
+          return <Wifi className="w-4 h-4 text-slate-400" aria-hidden="true" />;
         case 'maintenance':
-          return <Wifi className="w-4 h-4 text-indigo-500" />;
+          return (
+            <Wifi className="w-4 h-4 text-indigo-500" aria-hidden="true" />
+          );
         default:
-          return <Network className="w-4 h-4 text-slate-400" />;
+          return (
+            <Network className="w-4 h-4 text-slate-400" aria-hidden="true" />
+          );
       }
     };
 
@@ -183,11 +189,20 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
     const getTrendIcon = () => {
       switch (realtimeData.trend) {
         case 'up':
-          return <TrendingUp className="w-3 h-3 text-rose-500" />;
+          return (
+            <TrendingUp className="w-3 h-3 text-rose-500" aria-hidden="true" />
+          );
         case 'down':
-          return <TrendingDown className="w-3 h-3 text-emerald-500" />;
+          return (
+            <TrendingDown
+              className="w-3 h-3 text-emerald-500"
+              aria-hidden="true"
+            />
+          );
         default:
-          return <Minus className="w-3 h-3 text-slate-400" />;
+          return (
+            <Minus className="w-3 h-3 text-slate-400" aria-hidden="true" />
+          );
       }
     };
 
@@ -309,7 +324,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               </p>
               {server.specs?.network_speed && (
                 <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                  <Globe className="w-3 h-3" />
+                  <Globe className="w-3 h-3" aria-hidden="true" />
                   <span className="font-medium">
                     {server.specs.network_speed}
                   </span>
@@ -342,7 +357,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 data={realtimeData.cpu}
                 color={getOverallChartColor}
                 label="CPU"
-                icon={<Cpu className="w-3 h-3" />}
+                icon={<Cpu className="w-3 h-3" aria-hidden="true" />}
                 serverId={server.id}
                 index={index}
                 isCompact={variantStyles.useCompactLabels}
@@ -352,7 +367,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 data={realtimeData.memory}
                 color={getOverallChartColor}
                 label="MEM"
-                icon={<Activity className="w-3 h-3" />}
+                icon={<Activity className="w-3 h-3" aria-hidden="true" />}
                 serverId={server.id}
                 index={index}
                 isCompact={variantStyles.useCompactLabels}
@@ -362,7 +377,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 data={realtimeData.disk}
                 color={getOverallChartColor}
                 label="DISK"
-                icon={<HardDrive className="w-3 h-3" />}
+                icon={<HardDrive className="w-3 h-3" aria-hidden="true" />}
                 serverId={server.id}
                 index={index}
                 isCompact={variantStyles.useCompactLabels}
@@ -372,7 +387,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 data={realtimeData.network}
                 color={getOverallChartColor}
                 label="NET"
-                icon={<Network className="w-3 h-3" />}
+                icon={<Network className="w-3 h-3" aria-hidden="true" />}
                 serverId={server.id}
                 index={index}
                 isCompact={variantStyles.useCompactLabels}

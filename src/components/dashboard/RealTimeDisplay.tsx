@@ -50,8 +50,11 @@ export const RealTimeDisplay = memo(function RealTimeDisplay() {
     : '--- -- (-- )';
 
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-600">
-      <Clock className="h-4 w-4 text-blue-500" />
+    <div
+      suppressHydrationWarning
+      className="flex items-center gap-2 text-sm text-gray-600"
+    >
+      <Clock className="h-4 w-4 text-blue-500" aria-hidden="true" />
       <span aria-live={isMounted ? 'polite' : 'off'}>{timeText}</span>
       <span className="text-gray-700">|</span>
       <span>{dateText}</span>

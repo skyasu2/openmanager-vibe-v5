@@ -190,6 +190,7 @@ export default function UnifiedProfileHeader({
   if (!isHydrated) {
     return (
       <div
+        suppressHydrationWarning
         ref={dropdownRef}
         className={`relative z-50 ${className}`}
         aria-hidden="true"
@@ -216,7 +217,11 @@ export default function UnifiedProfileHeader({
   }
 
   return (
-    <div ref={dropdownRef} className={`relative z-50 ${className}`}>
+    <div
+      suppressHydrationWarning
+      ref={dropdownRef}
+      className={`relative z-50 ${className}`}
+    >
       {/* 프로필 버튼 */}
       <button
         onClick={() => {

@@ -119,7 +119,7 @@ export default function AIAssistantIconPanel({
                   : `${item.bgColor} ${item.color}`
               } `}
             >
-              <Icon className="mx-auto h-5 w-5" />
+              <Icon className="mx-auto h-5 w-5" aria-hidden="true" />
 
               {/* 모바일 툴팁 (상단 표시) - 화이트 모드 */}
               <div className="pointer-events-none absolute bottom-full left-1/2 z-[60] mb-2 -translate-x-1/2 transform whitespace-nowrap rounded-lg bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
@@ -138,7 +138,7 @@ export default function AIAssistantIconPanel({
           data-testid="ai-fullscreen-button"
           className="group relative h-12 w-12 shrink-0 rounded-xl bg-gray-50 text-gray-600 transition-all duration-200 active:scale-95 hover:bg-gray-100"
         >
-          <Maximize className="mx-auto h-5 w-5" />
+          <Maximize className="mx-auto h-5 w-5" aria-hidden="true" />
         </button>
       </div>
     );
@@ -152,7 +152,7 @@ export default function AIAssistantIconPanel({
       {/* 헤더 */}
       <div className="mb-2 text-center">
         <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r from-purple-500 to-blue-500 shadow-sm">
-          <Brain className="h-4 w-4 text-white" />
+          <Brain className="h-4 w-4 text-white" aria-hidden="true" />
         </div>
         <p className="text-xs font-medium text-gray-600">AI 기능</p>
       </div>
@@ -176,7 +176,7 @@ export default function AIAssistantIconPanel({
               title={`${item.label}\n${item.description}`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <Icon className="mx-auto h-5 w-5" />
+              <Icon className="mx-auto h-5 w-5" aria-hidden="true" />
 
               {/* 선택 표시 (화이트 모드 - 파란색 인디케이터) */}
               {isSelected && (
@@ -218,7 +218,7 @@ export default function AIAssistantIconPanel({
           className="group relative h-12 w-12 rounded-xl bg-gray-50 text-gray-500 transition-all duration-200 hover:scale-105 hover:bg-gray-100 hover:text-gray-900 active:scale-95"
           title="전체 화면으로 열기"
         >
-          <Maximize className="mx-auto h-5 w-5" />
+          <Maximize className="mx-auto h-5 w-5" aria-hidden="true" />
 
           {/* 툴팁 */}
           <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 pointer-events-none z-[60] min-w-max whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">

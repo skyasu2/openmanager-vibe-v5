@@ -75,7 +75,7 @@ export const WelcomePromptCards = memo(function WelcomePromptCards({
       {/* 로고 및 인사말 */}
       <div className="mb-8 text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg">
-          <Bot className="h-8 w-8 text-white" />
+          <Bot className="h-8 w-8 text-white" aria-hidden="true" />
         </div>
         <h2 className="text-2xl font-semibold text-gray-900">
           무엇을 도와드릴까요?
@@ -101,7 +101,7 @@ export const WelcomePromptCards = memo(function WelcomePromptCards({
                 className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg
                             bg-gradient-to-br ${card.gradient} shadow-sm`}
               >
-                <Icon className="h-4 w-4 text-white" />
+                <Icon className="h-4 w-4 text-white" aria-hidden="true" />
               </div>
               <h4 className="font-medium text-gray-900 group-hover:text-blue-700">
                 {card.title}

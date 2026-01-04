@@ -80,7 +80,10 @@ const DashboardHeader = memo(function DashboardHeader({
 
   if (!isMounted) {
     return (
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-xs">
+      <header
+        suppressHydrationWarning
+        className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-xs"
+      >
         <div className="flex items-center justify-between px-6 py-4">
           <div className="h-10 w-32 animate-pulse rounded-lg bg-gray-200" />
           <div className="hidden items-center gap-6 md:flex">
@@ -97,7 +100,10 @@ const DashboardHeader = memo(function DashboardHeader({
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-xs">
+    <header
+      suppressHydrationWarning
+      className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-xs"
+    >
       <div className="flex items-center justify-between px-6 py-4">
         {/* 왼쪽: 브랜드 로고 */}
         <div className="flex items-center gap-4">

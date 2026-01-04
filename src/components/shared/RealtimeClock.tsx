@@ -68,9 +68,10 @@ export const RealtimeClock = memo(function RealtimeClock({
 
   return (
     <div
+      suppressHydrationWarning
       className={`flex items-center space-x-2 text-gray-600 dark:text-gray-300 ${className}`}
     >
-      {showIcon && <Clock className="h-5 w-5" />}
+      {showIcon && <Clock className="h-5 w-5" aria-hidden="true" />}
       <span className="font-mono text-sm">{formatTime()}</span>
     </div>
   );
@@ -115,7 +116,7 @@ export const DateTimeClock = memo(function DateTimeClock({
   };
 
   return (
-    <div className="flex flex-col items-end">
+    <div suppressHydrationWarning className="flex flex-col items-end">
       {showDate && (
         <span className="text-xs text-gray-500 dark:text-gray-400">
           {formatDate()}
