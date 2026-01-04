@@ -77,6 +77,7 @@ vi.mock('../../../tools-ai-sdk', () => ({
   findRootCause: { execute: vi.fn() },
   buildIncidentTimeline: { execute: vi.fn() },
   searchKnowledgeBase: { execute: vi.fn() },
+  searchWeb: { execute: vi.fn() },
   recommendCommands: { execute: vi.fn() },
 }));
 

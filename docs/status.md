@@ -70,7 +70,19 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 12-30)
+## 🔧 최근 유지보수 (2025-12-09 ~ 2026-01-04)
+
+**Tavily Best Practices + P0 단위 테스트 (2026-01-04)**
+- **Web Search 베스트 프랙티스 적용**:
+  - Timeout: 10초 (무한 대기 방지)
+  - Retry: 최대 2회 (transient errors 대응)
+  - Cache: 5분 TTL (반복 쿼리 비용 절감)
+  - Failover: Primary → Backup Key 자동 전환
+- **P0 단위 테스트 추가** (AI Engine):
+  - `config-parser.test.ts`: API 키 관리 18개 테스트
+  - `reporter-tools.test.ts`: Web Search 9개 테스트
+  - `orchestrator.test.ts`: Mock 수정 (`searchWeb` 추가)
+- **총 테스트**: 92개 통과 (32+18+9+14+10+9)
 
 **AI Engine 안정성 개선 + Job Queue 최적화 (2025-12-30)**
 - **Phase 1: Message Format 통합**
@@ -162,12 +174,12 @@
 
 ---
 
-## 📊 품질 지표 (2025-12-17 기준)
+## 📊 품질 지표 (2026-01-04 기준)
 
 | Metric | Status | Detail |
 |:---:|:---:|---|
 | **Build** | ✅ Passing | `npm run build` (Next.js 16.1.1) 성공 |
-| **Test** | ✅ 100% | 92/92 Tests Passing (Super-fast mode) |
+| **Test** | ✅ 100% | 92/92 Tests Passing (AI Engine P0 포함) |
 | **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
 | **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
 | **MCP** | ✅ 9/9 | 모든 MCP 서버 정상 연결 |
@@ -196,8 +208,8 @@
 
 **Container Registry (GCR)**
 - **Images**: 2개 유지 (latest + rollback)
-  - `v-20260104-120205-6c36e5964` (최신)
-  - `v-20260104-115233-6c36e5964` (롤백용)
+  - `v-20260104-230733-6d0d26e31` (최신 - Tavily Best Practices)
+  - `v-20260104-120205-6c36e5964` (롤백용)
 
 **GCS Storage**
 - **Cloud Build**: ~700KB (최적화 완료)
