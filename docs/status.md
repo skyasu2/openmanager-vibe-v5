@@ -186,6 +186,25 @@
 
 ---
 
+## 🐳 Infrastructure Status (2026-01-04)
+
+**Cloud Run AI Engine**
+- **Service URL**: `https://ai-engine-490817238363.asia-northeast1.run.app`
+- **Active Revision**: `ai-engine-00086-lhj` (2026-01-04 deployed)
+- **Health**: ✅ All providers connected (Supabase, Upstash, Groq, Mistral, Cerebras, Tavily, OpenRouter)
+
+**Container Registry (GCR)**
+- **Images**: 2개 유지 (latest + rollback)
+  - `v-20260104-120205-6c36e5964` (최신)
+  - `v-20260104-115233-6c36e5964` (롤백용)
+
+**GCS Storage**
+- **Cloud Build**: ~700KB (최적화 완료)
+- **Run Sources**: ~2.5MB
+- **정리 정책**: 최신 2개 빌드만 유지
+
+---
+
 ## 💰 리소스 효율
 
 - **비용**: 월 $0 유지 (Free Tier 활용 최적화)
