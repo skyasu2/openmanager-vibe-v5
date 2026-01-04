@@ -478,3 +478,101 @@ export function logProviderStatus(): void {
     OpenRouter: status.openrouter ? '✅' : '❌',
   });
 }
+
+// ============================================================================
+// 7. Pre-emptive Fallback with Quota Tracking
+// ============================================================================
+
+import {
+  selectAvailableProvider,
+  recordProviderUsage,
+  getQuotaSummary,
+  type ProviderName as QuotaProviderName,
+} from '../resilience/quota-tracker';
+
+/**
+ * Get Supervisor model with Pre-emptive Fallback (Quota-aware)
+ *
+ * 80% 임계값 도달 시 사전 전환하여 Rate Limit 에러 방지
+ *
+ * @param excludeProviders - 제외할 Provider 목록
+ * @returns 모델 정보 + Pre-emptive Fallback 여부
+ */
+export async function getSupervisorModelWithQuota(
+  excludeProviders: ProviderName[] = []
+): Promise<{
+  model: LanguageModel;
+  provider: ProviderName;
+  modelId: string;
+  isPreemptiveFallback: boolean;
+}> {
+  const status = checkProviderStatus();
+  const excluded = new Set(excludeProviders);
+
+  // Provider 우선순위 (Groq은 NLQ Agent 전용)
+  const preferredOrder: QuotaProviderName[] = ['cerebras', 'mistral', 'openrouter'];
+  const availableOrder = preferredOrder.filter(
+    (p) => status[p] && !excluded.has(p)
+  );
+
+  // Quota-aware Provider 선택
+  const selection = await selectAvailableProvider(availableOrder);
+
+  if (selection) {
+    const { provider, isPreemptiveFallback } = selection;
+
+    if (isPreemptiveFallback) {
+      console.log(`⚠️ [Supervisor] Pre-emptive fallback to ${provider}`);
+    }
+
+    // Provider별 모델 반환
+    switch (provider) {
+      case 'cerebras':
+        return {
+          model: getCerebrasModel('llama-3.3-70b'),
+          provider: 'cerebras',
+          modelId: 'llama-3.3-70b',
+          isPreemptiveFallback,
+        };
+      case 'mistral':
+        return {
+          model: getMistralModel('mistral-small-2506'),
+          provider: 'mistral',
+          modelId: 'mistral-small-2506',
+          isPreemptiveFallback,
+        };
+      case 'openrouter':
+        return {
+          model: getOpenRouterModel('nvidia/nemotron-3-nano-30b-a3b:free'),
+          provider: 'openrouter',
+          modelId: 'nvidia/nemotron-3-nano-30b-a3b:free',
+          isPreemptiveFallback,
+        };
+    }
+  }
+
+  // Quota 초과 시 기존 로직으로 폴백
+  console.warn('⚠️ [Supervisor] All providers at quota limit, using fallback logic');
+  const fallback = getSupervisorModel(excludeProviders);
+  return { ...fallback, isPreemptiveFallback: false };
+}
+
+/**
+ * Record token usage after API call
+ */
+export async function recordModelUsage(
+  provider: ProviderName,
+  tokensUsed: number
+): Promise<void> {
+  if (provider === 'groq') {
+    // Groq은 NLQ Agent 전용이므로 별도 추적
+    console.log(`[QuotaTracker] Groq (NLQ): ${tokensUsed} tokens`);
+    return;
+  }
+  await recordProviderUsage(provider as QuotaProviderName, tokensUsed);
+}
+
+/**
+ * Get quota summary for all providers
+ */
+export { getQuotaSummary };
