@@ -51,11 +51,11 @@
 |----------|----------|---------|
 | **serena** | 코드 검색, 심볼 분석, 메모리 | 높음 |
 | **context7** | 라이브러리 공식 문서 | 높음 |
+| **sequential-thinking** | 복잡한 리팩토링, 아키텍처 설계 | 높음 |
 | **supabase** | PostgreSQL 관리 | 중간 |
 | **vercel** | 배포 관리 | 중간 |
 | **playwright** | E2E 테스트 | 중간 |
 | **github** | 저장소 관리 | 중간 |
-| **figma** | Design-to-Code | 낮음 |
 | **tavily** | 웹 검색 (심층 리서치) | 낮음 |
 | **brave-search** | 웹 검색 (팩트체크) | 낮음 |
 

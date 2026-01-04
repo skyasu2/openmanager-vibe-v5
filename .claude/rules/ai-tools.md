@@ -6,15 +6,13 @@
 |-----|------|---------|------|
 | `serena` | 코드 검색, 심볼 분석, 메모리 | 높음 | 필수 |
 | `context7` | 라이브러리 공식 문서 | 높음 | 필수 |
+| `sequential-thinking` | 복잡한 리팩토링, 아키텍처 설계 | 높음 | 단계별 사고 |
 | `supabase` | PostgreSQL 관리 | 중간 | DB 작업시 |
 | `vercel` | 배포 상태 확인 | 중간 | 배포시 |
 | `playwright` | E2E 테스트 | 중간 | 테스트시 |
 | `github` | 저장소/PR 관리 | 중간 | PR/이슈시 |
 | `brave-search` | 팩트체크, 버전 확인 | 낮음 | 선택 |
 | `tavily` | 심층 리서치 | 낮음 | 선택 |
-| `figma` | Design-to-Code | 낮음 | 미사용 (제거 가능) |
-
-> **참고**: Figma MCP는 6회/월 제한이 있고 현재 미사용 중. 필요시 제거 가능.
 
 ## Skills (9개)
 
