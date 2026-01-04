@@ -68,32 +68,47 @@ const NLQ_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 자연어 �
 ## 역할
 사용자의 서버 관련 질문을 이해하고, 적절한 도구를 사용하여 정확한 답변을 제공합니다.
 
-## 처리 가능한 질의 유형
+## 도구 사용 가이드
 
-### 1. 단순 질의
+### getServerMetrics() - 현재 상태 조회
 - "서버 상태 알려줘" → getServerMetrics()
-- "CPU 사용률 높은 서버" → filterServers(field: "cpu", operator: ">", value: 70)
+- "CPU 높은 서버" → getServerMetrics() 호출 후 결과에서 필터링
 
-### 2. 복잡 질의
-- 다중 조건: "CPU 80% 이상이고 메모리 70% 이상" → 두 번 filterServers 호출 후 교집합
-- 시간 범위: "지난 1시간 데이터" → getServerMetricsAdvanced(timeRange: "1h")
-- 정렬/제한: "CPU 높은 순서로 5개" → filterServers 후 정렬
-- 집계: "평균 CPU 사용률" → getServerMetricsAdvanced(aggregation: "avg")
+### getServerMetricsAdvanced() - 시간 범위 집계 ⭐
+**중요**: serverId 생략 시 전체 서버 데이터 + globalSummary(전체 평균/최대/최소) 반환
 
-### 3. 비교 질의
-- "어제 대비 오늘 CPU 변화" → 두 시간대 데이터 조회 후 비교
+**timeRange 형식**: "last1h", "last6h", "last12h", "last24h"
+**aggregation**: "avg", "max", "min", "current"
+
+**예시 호출**:
+- "지난 6시간 CPU 평균" → getServerMetricsAdvanced({ timeRange: "last6h", metric: "cpu", aggregation: "avg" })
+- "1시간 메모리 최대" → getServerMetricsAdvanced({ timeRange: "last1h", metric: "memory", aggregation: "max" })
+- "전체 서버 평균" → getServerMetricsAdvanced({ timeRange: "last6h", metric: "all" })
+
+**응답 형식**:
+\`\`\`json
+{
+  "servers": [...],
+  "globalSummary": { "cpu_avg": 45.2, "cpu_max": 89, "cpu_min": 12 }
+}
+\`\`\`
+
+→ globalSummary.cpu_avg가 전체 서버 평균입니다.
+
+### filterServers() - 조건 필터링
+- "CPU 80% 이상" → filterServers({ field: "cpu", operator: ">", value: 80 })
 
 ## 응답 지침
-1. 항상 도구를 사용하여 실제 데이터 기반으로 답변
-2. 한국어로 응답
-3. 숫자는 소수점 1자리까지
-4. 서버명과 ID를 함께 표시
+1. **반드시 도구를 호출**하여 실제 데이터 기반으로 답변
+2. "평균", "최대", "지난 N시간" 질문 → getServerMetricsAdvanced 사용
+3. globalSummary가 있으면 해당 값을 인용하여 답변
+4. 숫자는 소수점 1자리까지
 5. 이상 상태 발견 시 경고 표시
 
 ## 예시
-Q: "CPU 80% 이상인 서버 몇 개야?"
-A: filterServers(field: "cpu", operator: ">", value: 80) 호출 후
-   "현재 CPU 80% 이상인 서버는 3개입니다: web-01 (85.2%), db-01 (92.1%), api-02 (81.5%)"
+Q: "지난 6시간 CPU 평균 알려줘"
+A: getServerMetricsAdvanced({ timeRange: "last6h", metric: "cpu", aggregation: "avg" }) 호출 후
+   globalSummary.cpu_avg 값을 확인하여 "지난 6시간 전체 서버 CPU 평균은 45.2%입니다." 응답
 `;
 
 // ============================================================================
@@ -118,7 +133,7 @@ export const nlqAgent = modelConfig
           filterServers,
         },
         // Description for orchestrator routing decisions
-        handoffDescription: '서버 상태 조회, CPU/메모리/디스크 메트릭 질의, 서버 목록 확인, 필터링 및 집계 쿼리를 처리합니다.',
+        handoffDescription: '서버 상태 조회, CPU/메모리/디스크 메트릭 질의, 시간 범위 집계(지난 N시간 평균/최대), 서버 목록 확인 및 필터링을 처리합니다.',
         // Pattern matching for auto-routing
         matchOn: [
           // Korean keywords
@@ -137,12 +152,17 @@ export const nlqAgent = modelConfig
           'disk',
           '네트워크',
           'network',
+          // Time range keywords
+          '지난',
+          '시간',
+          '전체',
           // Query patterns
           /\d+%/i, // Percentage patterns
           /이상|이하|초과|미만/i, // Comparison
           /몇\s*개|몇\s*대/i, // Count questions
           /평균|합계|최대|최소/i, // Aggregation
           /높은|낮은|많은|적은/i, // Comparison adjectives
+          /지난\s*\d+\s*시간/i, // Time range pattern
         ],
       });
     })()

@@ -45,6 +45,9 @@ export const getServerMetricsResponseSchema = z.object({
  */
 export const getServerMetricsAdvancedResponseSchema = z.object({
   success: z.boolean(),
+  answer: z.string().describe('⚠️ 사용자에게 이 값을 그대로 전달하세요'),
+  globalSummary: z.record(z.number()).describe('전체 서버 집계: cpu_avg, cpu_max, cpu_min 등'),
+  serverCount: z.number().describe('조회된 서버 수'),
   query: z.object({
     timeRange: z.string().optional(),
     metric: z.string().optional(),
@@ -59,12 +62,8 @@ export const getServerMetricsAdvancedResponseSchema = z.object({
     location: z.string(),
     metrics: z.record(z.number()),
     dataPoints: z.number().optional(),
-  })),
-  summary: z.object({
-    total: z.number(),
-    matchedFromTotal: z.string(),
-  }),
-  globalSummary: z.record(z.number()).describe('전체 서버 집계: cpu_avg, cpu_max, cpu_min 등'),
+  })).describe('상위 5개 서버 샘플'),
+  hasMore: z.boolean().describe('5개 이상일 때 true'),
   timestamp: z.string(),
 });
 
@@ -279,13 +278,12 @@ export const getServerMetrics = tool({
 export const getServerMetricsAdvanced = tool({
   description: `시간 범위 집계 도구. "지난 N시간", "평균", "최대값" 질문에 사용.
 
-serverId 생략 시 전체 서버 조회. 응답에 globalSummary(전체 서버 평균/최대/최소) 포함.
+⚠️ 중요: 응답의 "answer" 필드를 사용자에게 그대로 전달하세요.
 
 예시:
 - "6시간 CPU 평균" → { "timeRange": "last6h", "metric": "cpu", "aggregation": "avg" }
-- "1시간 메모리 최대" → { "timeRange": "last1h", "metric": "memory", "aggregation": "max" }
 
-출력: { servers: [...], globalSummary: { cpu_avg: 45.2, cpu_max: 89, cpu_min: 12 } }`,
+출력: { answer: "지난 6시간 전체 15대 서버 집계: cpu_avg=34%...", globalSummary: {...} }`,
   inputSchema: z.object({
     serverId: z
       .string()
@@ -458,15 +456,31 @@ serverId 생략 시 전체 서버 조회. 응답에 globalSummary(전체 서버 
         }
       }
 
+      // 7. Generate interpretation for LLM
+      const timeRangeKr = {
+        current: '현재',
+        last1h: '지난 1시간',
+        last6h: '지난 6시간',
+        last24h: '지난 24시간',
+      }[timeRange];
+
+      const interpretation = Object.keys(globalSummary).length > 0
+        ? `[응답 가이드] ${timeRangeKr} 전체 ${filteredResults.length}대 서버 집계: ` +
+          Object.entries(globalSummary)
+            .map(([k, v]) => `${k}=${v}%`)
+            .join(', ') +
+          '. 이 값을 사용자에게 전달하세요.'
+        : null;
+
       return {
         success: true,
+        // ⚠️ LLM: 아래 answer를 그대로 사용하세요
+        answer: interpretation || `${timeRangeKr} 데이터 조회 완료`,
+        globalSummary,
+        serverCount: filteredResults.length,
         query: { timeRange, metric, aggregation, sortBy, limit },
-        servers: filteredResults,
-        summary: {
-          total: filteredResults.length,
-          matchedFromTotal: `${filteredResults.length}/${targetDatasets.length}`,
-        },
-        globalSummary, // 전체 서버 집계 (LLM이 "전체 평균" 질문에 답변 가능)
+        servers: filteredResults.slice(0, 5), // 상위 5개만 반환 (토큰 절약)
+        hasMore: filteredResults.length > 5,
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
