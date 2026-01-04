@@ -459,8 +459,9 @@ export async function executeMultiAgent(
     console.log(`🎯 [Orchestrator] LLM routing with ${provider}/${modelId} (suggested: ${preFilterResult.suggestedAgent || 'none'})`);
 
     // Execute orchestrator with timeout protection
+    let timeoutId: NodeJS.Timeout;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         reject(new Error(`Orchestrator timeout after ${ORCHESTRATOR_CONFIG.timeout}ms`));
       }, ORCHESTRATOR_CONFIG.timeout);
     });
@@ -470,12 +471,17 @@ export async function executeMultiAgent(
       console.warn(`⚠️ [Orchestrator] Execution exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms threshold`);
     }, ORCHESTRATOR_CONFIG.warnThreshold);
 
-    const result = await Promise.race([
-      orchestrator.generate({ prompt: query }),
-      timeoutPromise,
-    ]);
-
-    clearTimeout(warnTimer);
+    let result;
+    try {
+      result = await Promise.race([
+        orchestrator.generate({ prompt: query }),
+        timeoutPromise,
+      ]);
+    } finally {
+      // Always cleanup timers (success, error, or timeout)
+      clearTimeout(timeoutId!);
+      clearTimeout(warnTimer);
+    }
 
     const durationMs = Date.now() - startTime;
 
