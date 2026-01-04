@@ -1,10 +1,13 @@
 /**
- * AI Provider Quota Tracker for Cloud Run
+ * AI Provider Quota Tracker (Cloud Run)
  *
  * 각 Provider의 사용량을 추적하고 Rate Limit 예측 전환 지원
  * - 실시간 사용량 추적 (토큰, 요청 수)
  * - 80% 임계값 도달 시 사전 전환 (Pre-emptive Fallback)
  * - Redis 기반 분산 상태 관리
+ *
+ * @see src/lib/ai/quota/provider-quota-tracker.ts (Vercel 버전)
+ * @note 두 파일은 동일한 로직, 다른 Redis 클라이언트 사용 (ioredis vs @upstash/redis)
  *
  * @version 1.0.0
  * @created 2026-01-04
