@@ -208,27 +208,20 @@ function getTimeRangeData(
  * - Clear response structure documentation
  */
 export const getServerMetrics = tool({
-  description: `서버 CPU/메모리/디스크 상태를 조회합니다.
+  description: `[현재 상태 전용] 서버 CPU/메모리/디스크의 실시간 상태를 조회합니다.
 
-## 입력 예시 (Input Examples)
-1. 전체 서버 조회: { }
-2. 특정 서버: { "serverId": "api-server-01" }
-3. CPU만 조회: { "metric": "cpu" }
-4. 특정 서버 메모리: { "serverId": "db-server-02", "metric": "memory" }
+⚠️ 시간 범위(지난 1시간, 6시간 등), 평균/최대값 집계가 필요하면 getServerMetricsAdvanced를 사용하세요.
 
-## 출력 형식 (Output Schema)
-{
-  "success": true,
-  "servers": [
-    { "id": "api-server-01", "name": "API Server 01", "status": "online", "cpu": 45.2, "memory": 67.8, "disk": 55.1 }
-  ],
-  "summary": { "total": 10, "alertCount": 2 },
-  "timestamp": "2025-01-04T12:00:00Z"
-}
+## 입력 예시
+1. 전체 서버 현재 상태: { }
+2. 특정 서버: { "serverId": "web-nginx-icn-01" }
+
+## 출력 형식
+{ "success": true, "servers": [{ "id": "...", "name": "...", "cpu": 45, "memory": 67, "disk": 55 }], "summary": { "total": 15 } }
 
 ## 사용 시나리오
-- "서버 상태 알려줘" → metric: "all" (기본값)
-- "api-server-01 CPU 확인" → serverId: "api-server-01", metric: "cpu"`,
+- "서버 상태" / "현재 CPU" → 이 도구
+- "지난 6시간 평균" / "최근 1시간 최대값" → getServerMetricsAdvanced 사용`,
   inputSchema: z.object({
     serverId: z
       .string()
@@ -283,35 +276,23 @@ export const getServerMetrics = tool({
  * - Clear response structure documentation
  */
 export const getServerMetricsAdvanced = tool({
-  description: `고급 서버 메트릭 조회 도구. 시간 범위, 필터링, 집계 기능을 지원합니다.
+  description: `[시간 범위/집계 전용] 과거 데이터 조회, 평균/최대/최소 집계, 필터링을 지원합니다.
 
-## 입력 예시 (Input Examples)
-1. 시간 범위 + 집계:
-   { "metric": "cpu", "timeRange": "last6h", "aggregation": "avg" }
+✅ 이 도구를 사용하세요: "지난 N시간", "평균", "최대값", "추이", "트렌드" 질문
+❌ 현재 상태만 필요하면: getServerMetrics 사용
 
-2. 필터링:
-   { "metric": "all", "filters": [{"field": "cpu", "operator": ">", "value": 80}] }
+## 입력 예시
+1. 전체 서버 6시간 CPU 평균: { "timeRange": "last6h", "metric": "cpu", "aggregation": "avg" }
+2. CPU 높은 순 TOP 5: { "sortBy": "cpu", "sortOrder": "desc", "limit": 5 }
+3. 특정 서버 24시간 추이: { "serverId": "web-nginx-icn-01", "timeRange": "last24h" }
 
-3. TOP N 정렬:
-   { "metric": "memory", "sortBy": "memory", "sortOrder": "desc", "limit": 5 }
-
-4. 복합 쿼리:
-   { "timeRange": "last1h", "aggregation": "max", "sortBy": "cpu", "limit": 3 }
-
-## 출력 형식 (Output Schema)
-{
-  "success": true,
-  "query": { "timeRange": "last6h", "metric": "cpu", "aggregation": "avg" },
-  "servers": [
-    { "id": "api-server-01", "name": "api-server-01", "type": "api", "location": "seoul", "metrics": { "cpu": 65.3 }, "dataPoints": 36 }
-  ],
-  "summary": { "total": 10, "matchedFromTotal": "10/10" },
-  "timestamp": "2025-01-04T12:00:00Z"
-}
+## 서버 ID 형식
+실제 ID 사용: "web-nginx-icn-01", "db-mysql-icn-primary", "api-was-icn-01"
+(화면 표시명 "Nginx Web Server 01" 대신 실제 ID 사용)
 
 ## 사용 시나리오
-- "지난 6시간 CPU 평균" → timeRange="last6h", metric="cpu", aggregation="avg"
-- "메모리 높은 순 5개" → sortBy="memory", sortOrder="desc", limit=5`,
+- "지난 6시간 CPU 평균" → { "timeRange": "last6h", "metric": "cpu", "aggregation": "avg" }
+- "최근 1시간 메모리 최대값" → { "timeRange": "last1h", "metric": "memory", "aggregation": "max" }`,
   inputSchema: z.object({
     serverId: z
       .string()
