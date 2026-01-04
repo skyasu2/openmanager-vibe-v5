@@ -1,10 +1,16 @@
 # TODO - OpenManager VIBE v5
 
-**Last Updated**: 2025-12-29
+**Last Updated**: 2026-01-04
 
 ## Active Tasks
 
 _(현재 활성 작업 없음)_
+
+### Completed (2026-01-04)
+- [x] AI Rate Limit 예측 전환 (Pre-emptive Fallback) 구현
+- [x] Provider Quota Tracker 구현 (Vercel + Cloud Run)
+- [x] Redis Distributed Circuit Breaker Store 구현
+- [x] MCP 서버 전체 동작 검증 (9/9 정상)
 
 ### Completed (2025-12-28)
 - [x] LangGraph → Vercel AI SDK 마이그레이션 (v5.92.0)

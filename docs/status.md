@@ -8,7 +8,7 @@
 
 **Core Frameworks** (2025 Standard)
 - **Next.js**: `v16.1.1` (App Router, Server Components)
-- **React**: `v19.2.1` (RSC, Actions, useOptimistic)
+- **React**: `v19.2.3` (RSC, Actions, useOptimistic)
 - **TypeScript**: `v5.9.3` (Strict Mode)
 - **Node.js**: `v22.x` (LTS Fixed, engines: >=22.0.0 <23.0.0)
 
@@ -55,9 +55,10 @@
 - **Agents**: 6개 Multi-Agent (Orchestrator → NLQ/Analyst/Reporter/Advisor/Summarizer)
 - **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
 - **Web Search**: Tavily API (Reporter Agent)
+- **Rate Limit**: Pre-emptive Fallback (80% 임계값 도달 시 사전 전환)
 - **Note**: Provider 장애 시 자동 폴백 (Cerebras→Groq, Mistral→OpenRouter)
 
-**AI CLI Tools** (2026-01-01 기준)
+**AI CLI Tools** (2026-01-04 기준)
 - **Claude Code**: `v2.0.76` (Interactive Development)
 - **Codex CLI**: `v0.77.0` (Code Review - 3-AI Rotation)
 - **Gemini CLI**: `v0.22.4` (Code Review - 3-AI Rotation)
@@ -165,11 +166,11 @@
 
 | Metric | Status | Detail |
 |:---:|:---:|---|
-| **Build** | ✅ Passing | `npm run build` (Next.js 16.0.10) 성공 |
+| **Build** | ✅ Passing | `npm run build` (Next.js 16.1.1) 성공 |
 | **Test** | ✅ 100% | 92/92 Tests Passing (Super-fast mode) |
 | **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
 | **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
-| **MCP** | ✅ 9/9 | 모든 MCP 서버 정상 연결 (Figma 포함) |
+| **MCP** | ✅ 9/9 | 모든 MCP 서버 정상 연결 |
 | **Vercel** | ✅ Deployed | Production 배포 정상 |
 
 ---
