@@ -54,8 +54,8 @@ export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
         style={{ background: backgroundStyle }}
       />
 
-      {/* 텍스트 영역 */}
-      <div className="text-left">
+      {/* 텍스트 영역 - suppressHydrationWarning for dynamic subtitle */}
+      <div className="text-left" suppressHydrationWarning>
         <h1 className={`text-xl font-bold ${titleColor}`}>OpenManager</h1>
         {(() => {
           const subtitleText =
