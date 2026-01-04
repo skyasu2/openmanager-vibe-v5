@@ -11,6 +11,87 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 
+// ============================================================================
+// Response Schemas (Best Practice: Structured Output Documentation)
+// ============================================================================
+
+/**
+ * Server info in response
+ */
+export const serverInfoSchema = z.object({
+  id: z.string().describe('서버 고유 ID'),
+  name: z.string().describe('서버 이름'),
+  status: z.enum(['online', 'offline', 'warning', 'critical']).describe('서버 상태'),
+  cpu: z.number().describe('CPU 사용률 (%)'),
+  memory: z.number().describe('메모리 사용률 (%)'),
+  disk: z.number().describe('디스크 사용률 (%)'),
+});
+
+/**
+ * getServerMetrics response schema
+ */
+export const getServerMetricsResponseSchema = z.object({
+  success: z.boolean(),
+  servers: z.array(serverInfoSchema),
+  summary: z.object({
+    total: z.number().describe('전체 서버 수'),
+    alertCount: z.number().describe('경고/위험 상태 서버 수'),
+  }),
+  timestamp: z.string().describe('조회 시간 (ISO 8601)'),
+});
+
+/**
+ * getServerMetricsAdvanced response schema
+ */
+export const getServerMetricsAdvancedResponseSchema = z.object({
+  success: z.boolean(),
+  query: z.object({
+    timeRange: z.string().optional(),
+    metric: z.string().optional(),
+    aggregation: z.string().optional(),
+    sortBy: z.string().optional(),
+    limit: z.number().optional(),
+  }),
+  servers: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.string(),
+    location: z.string(),
+    metrics: z.record(z.number()),
+    dataPoints: z.number().optional(),
+  })),
+  summary: z.object({
+    total: z.number(),
+    matchedFromTotal: z.string(),
+  }),
+  timestamp: z.string(),
+});
+
+/**
+ * filterServers response schema
+ */
+export const filterServersResponseSchema = z.object({
+  success: z.boolean(),
+  condition: z.string().describe('적용된 필터 조건'),
+  servers: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    status: z.string(),
+  }).passthrough()), // Allow additional fields
+  summary: z.object({
+    matched: z.number().describe('조건에 맞는 서버 수'),
+    returned: z.number().describe('반환된 서버 수'),
+    total: z.number().describe('전체 서버 수'),
+  }),
+  timestamp: z.string(),
+});
+
+// Export types for external use
+export type ServerInfo = z.infer<typeof serverInfoSchema>;
+export type GetServerMetricsResponse = z.infer<typeof getServerMetricsResponseSchema>;
+export type GetServerMetricsAdvancedResponse = z.infer<typeof getServerMetricsAdvancedResponseSchema>;
+export type FilterServersResponse = z.infer<typeof filterServersResponseSchema>;
+
 // Data sources
 import {
   getCurrentState,
@@ -120,16 +201,43 @@ function getTimeRangeData(
 /**
  * Basic Server Metrics Tool
  * O(1) lookup using precomputed state
+ *
+ * Best Practices Applied:
+ * - Detailed description with input/output examples
+ * - .describe() on all schema fields
+ * - Clear response structure documentation
  */
 export const getServerMetrics = tool({
-  description:
-    '서버 CPU/메모리/디스크 상태를 조회합니다. 현재 시점의 서버 상태를 빠르게 확인할 때 사용합니다.',
+  description: `서버 CPU/메모리/디스크 상태를 조회합니다.
+
+## 입력 예시 (Input Examples)
+1. 전체 서버 조회: { }
+2. 특정 서버: { "serverId": "api-server-01" }
+3. CPU만 조회: { "metric": "cpu" }
+4. 특정 서버 메모리: { "serverId": "db-server-02", "metric": "memory" }
+
+## 출력 형식 (Output Schema)
+{
+  "success": true,
+  "servers": [
+    { "id": "api-server-01", "name": "API Server 01", "status": "online", "cpu": 45.2, "memory": 67.8, "disk": 55.1 }
+  ],
+  "summary": { "total": 10, "alertCount": 2 },
+  "timestamp": "2025-01-04T12:00:00Z"
+}
+
+## 사용 시나리오
+- "서버 상태 알려줘" → metric: "all" (기본값)
+- "api-server-01 CPU 확인" → serverId: "api-server-01", metric: "cpu"`,
   inputSchema: z.object({
-    serverId: z.string().optional().describe('조회할 서버 ID (선택, 없으면 전체)'),
+    serverId: z
+      .string()
+      .optional()
+      .describe('조회할 서버 ID. 예: "api-server-01", "db-server-02". 생략하면 모든 서버 조회. 절대 "all" 문자열을 넣지 마세요.'),
     metric: z
       .enum(['cpu', 'memory', 'disk', 'all'])
       .default('all')
-      .describe('조회할 메트릭 타입'),
+      .describe('조회할 메트릭 종류. cpu=CPU 사용률, memory=메모리 사용률, disk=디스크 사용률, all=전체'),
   }),
   execute: async ({
     serverId,
@@ -168,45 +276,75 @@ export const getServerMetrics = tool({
 /**
  * Advanced Server Metrics Tool
  * Supports time range, filtering, aggregation
+ *
+ * Best Practices Applied:
+ * - Comprehensive description with input/output examples
+ * - .describe() on all schema fields
+ * - Clear response structure documentation
  */
 export const getServerMetricsAdvanced = tool({
   description: `고급 서버 메트릭 조회 도구. 시간 범위, 필터링, 집계 기능을 지원합니다.
 
-사용 예시:
-- "지난 6시간 동안 CPU 평균": timeRange="last6h", metric="cpu", aggregation="avg"
-- "CPU 80% 이상인 서버들": filters=[{field:"cpu", operator:">", value:80}]
-- "메모리 사용량 TOP 5 서버": metric="memory", sortBy="memory", limit=5
-- "어제 CPU 최고치가 90% 넘었던 서버": timeRange="last24h", aggregation="max"`,
+## 입력 예시 (Input Examples)
+1. 시간 범위 + 집계:
+   { "metric": "cpu", "timeRange": "last6h", "aggregation": "avg" }
+
+2. 필터링:
+   { "metric": "all", "filters": [{"field": "cpu", "operator": ">", "value": 80}] }
+
+3. TOP N 정렬:
+   { "metric": "memory", "sortBy": "memory", "sortOrder": "desc", "limit": 5 }
+
+4. 복합 쿼리:
+   { "timeRange": "last1h", "aggregation": "max", "sortBy": "cpu", "limit": 3 }
+
+## 출력 형식 (Output Schema)
+{
+  "success": true,
+  "query": { "timeRange": "last6h", "metric": "cpu", "aggregation": "avg" },
+  "servers": [
+    { "id": "api-server-01", "name": "api-server-01", "type": "api", "location": "seoul", "metrics": { "cpu": 65.3 }, "dataPoints": 36 }
+  ],
+  "summary": { "total": 10, "matchedFromTotal": "10/10" },
+  "timestamp": "2025-01-04T12:00:00Z"
+}
+
+## 사용 시나리오
+- "지난 6시간 CPU 평균" → timeRange="last6h", metric="cpu", aggregation="avg"
+- "메모리 높은 순 5개" → sortBy="memory", sortOrder="desc", limit=5`,
   inputSchema: z.object({
-    serverId: z.string().optional().describe('특정 서버 ID (선택)'),
+    serverId: z
+      .string()
+      .optional()
+      .describe('조회할 서버 ID. 예: "db-server-01". 생략하면 모든 서버 대상. 절대 "all" 문자열을 넣지 마세요.'),
     metric: z
       .enum(['cpu', 'memory', 'disk', 'network', 'all'])
       .default('all')
-      .describe('조회할 메트릭 타입'),
+      .describe('조회할 메트릭. cpu/memory/disk/network 중 선택 또는 all(전체)'),
     timeRange: z
       .enum(['current', 'last1h', 'last6h', 'last24h'])
       .default('current')
-      .describe('시간 범위'),
+      .describe('시간 범위. current=현재, last1h=최근 1시간, last6h=최근 6시간, last24h=최근 24시간'),
     filters: z
       .array(
         z.object({
-          field: z.enum(['cpu', 'memory', 'disk', 'network', 'status']),
-          operator: z.enum(['>', '<', '>=', '<=', '==', '!=']),
-          value: z.union([z.number(), z.string()]),
+          field: z.enum(['cpu', 'memory', 'disk', 'network', 'status']).describe('필터 대상 필드'),
+          operator: z.enum(['>', '<', '>=', '<=', '==', '!=']).describe('비교 연산자'),
+          value: z.union([z.number(), z.string()]).describe('비교할 값 (숫자 또는 문자열)'),
         })
       )
       .optional()
-      .describe('필터 조건 배열'),
+      .describe('필터 조건 배열. 예: [{field:"cpu", operator:">", value:80}]'),
     aggregation: z
       .enum(['avg', 'max', 'min', 'count', 'none'])
       .default('none')
-      .describe('집계 함수'),
+      .describe('집계 함수. avg=평균, max=최대값, min=최소값, count=개수, none=집계안함'),
     sortBy: z
       .enum(['cpu', 'memory', 'disk', 'network', 'name'])
       .optional()
-      .describe('정렬 기준'),
-    sortOrder: z.enum(['asc', 'desc']).default('desc').describe('정렬 순서'),
-    limit: z.number().optional().describe('결과 제한 개수'),
+      .describe('정렬 기준 필드'),
+    sortOrder: z.enum(['asc', 'desc']).default('desc').describe('정렬 순서. asc=오름차순, desc=내림차순'),
+    limit: z.number().optional().describe('반환할 최대 서버 수. 예: 5면 TOP 5'),
   }),
   execute: async ({
     serverId,
@@ -352,19 +490,48 @@ export const getServerMetricsAdvanced = tool({
 /**
  * Filter Servers Tool
  * Quick filtering by condition
+ *
+ * Best Practices Applied:
+ * - Clear description with input/output examples
+ * - .describe() on all schema fields
+ * - Clear response structure documentation
  */
 export const filterServers = tool({
-  description:
-    '조건에 맞는 서버를 필터링합니다. 예: CPU 80% 이상, 메모리 90% 이상인 서버 찾기',
+  description: `조건에 맞는 서버를 빠르게 필터링합니다.
+
+## 입력 예시 (Input Examples)
+1. CPU 80% 초과:
+   { "field": "cpu", "operator": ">", "value": 80 }
+
+2. 메모리 90% 이상 TOP 3:
+   { "field": "memory", "operator": ">=", "value": 90, "limit": 3 }
+
+3. 디스크 50% 미만:
+   { "field": "disk", "operator": "<", "value": 50 }
+
+## 출력 형식 (Output Schema)
+{
+  "success": true,
+  "condition": "cpu > 80%",
+  "servers": [
+    { "id": "db-server-01", "name": "DB Server 01", "status": "warning", "cpu": 92.5 }
+  ],
+  "summary": { "matched": 3, "returned": 3, "total": 10 },
+  "timestamp": "2025-01-04T12:00:00Z"
+}
+
+## 사용 시나리오
+- "CPU 80% 이상 서버" → field="cpu", operator=">", value=80
+- "메모리 90% 넘는 서버 3개" → field="memory", operator=">", value=90, limit=3`,
   inputSchema: z.object({
     field: z
       .enum(['cpu', 'memory', 'disk'])
-      .describe('필터링할 메트릭'),
+      .describe('필터링할 메트릭. cpu=CPU 사용률, memory=메모리 사용률, disk=디스크 사용률'),
     operator: z
       .enum(['>', '<', '>=', '<='])
-      .describe('비교 연산자'),
-    value: z.number().describe('비교 값 (퍼센트)'),
-    limit: z.number().default(10).describe('최대 결과 개수'),
+      .describe('비교 연산자. >: 초과, <: 미만, >=: 이상, <=: 이하'),
+    value: z.number().describe('비교할 임계값 (퍼센트). 예: 80이면 80% 의미'),
+    limit: z.number().default(10).describe('반환할 최대 서버 수 (기본값: 10). TOP N 결과'),
   }),
   execute: async ({
     field,

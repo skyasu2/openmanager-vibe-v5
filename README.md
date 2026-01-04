@@ -80,7 +80,7 @@ graph TD
 
 ### 3. 🧠 AI 엔진 아키텍처 (Intelligence)
 
-**Hybrid Multi-Agent AI Engine (LangGraph)**을 도입하여 단순한 응답을 넘어선 복합적인 추론과 작업을 수행합니다. **Google Cloud Run**을 유일한 AI 백엔드로 사용하며(Supervisor-Worker 패턴), Vercel은 순수한 프록시 역할만 수행합니다.
+**Vercel AI SDK Multi-Agent** (`@ai-sdk-tools/agents`)를 도입하여 단순한 응답을 넘어선 복합적인 추론과 작업을 수행합니다. **Google Cloud Run**을 유일한 AI 백엔드로 사용하며, Dual-mode Supervisor 패턴으로 단순/복잡 쿼리를 최적화합니다.
 
 ```mermaid
 graph TD
@@ -92,22 +92,28 @@ graph TD
         Check -- No --> Error[503 Service Unavailable]
     end
 
-    subgraph "AI Agents (Multi-LLM)"
-        Cloud --> Primary[🧠 Primary Agent (Cerebras Llama 3.3 70b)]
+    subgraph "Dual-Mode Supervisor"
+        Cloud --> Mode{쿼리 복잡도?}
+        Mode -- 단순 --> Single[Single-Agent Mode<br/>generateText + Tools]
+        Mode -- 복잡 --> Multi[Multi-Agent Mode<br/>Orchestrator + Handoffs]
+    end
 
-        Primary --> NLQ[🔍 NLQ Agent (Groq Llama 3.3 70b)]
-        Primary --> Analyst[📊 Analyst Agent (Groq Llama 3.3 70b)]
-        Primary --> Verifier[✅ Verifier (Mistral Small)]
+    subgraph "AI Agents (@ai-sdk-tools/agents)"
+        Multi --> Orchestrator[🎯 Orchestrator (Cerebras)]
+        Orchestrator --> NLQ[🔍 NLQ Agent (Cerebras→Groq)]
+        Orchestrator --> Analyst[📊 Analyst Agent (Groq→Cerebras)]
+        Orchestrator --> Reporter[📋 Reporter Agent (Groq→Cerebras)]
+        Orchestrator --> Advisor[💡 Advisor Agent (Mistral)]
+        Orchestrator --> Summarizer[📝 Summarizer (OpenRouter Free)]
     end
 
     subgraph "Data & Context"
         NLQ --> Metrics[(Live Metrics)]
-        Verifier --> VectorDB[(Knowledge Base)]
-        Primary --> Checkpoint[(Session State)]
+        Advisor --> VectorDB[(GraphRAG Knowledge)]
     end
 ```
 
-**Migration Plan**: Completed - Vercel 로컬 LangGraph 및 ML 코드 완전 제거, Cloud Run 전용 아키텍처 구축
+**Architecture**: Vercel AI SDK 기반 TypeScript Multi-Agent (LangGraph에서 마이그레이션 완료 2025-12-28)
 
 ## ✨ 핵심 기능
 
@@ -132,7 +138,7 @@ graph TD
 | 서비스 | 배포 환경 / 호스팅 | 역할 설명 |
 |--------|-------------------|-----------|
 | **Next.js App** | Vercel (Serverless) | 프론트엔드 + API Routes 제공 (AI Proxy) |
-| **AI Backend** | Google Cloud Run (Container / Serverless) | LangGraph 기반 멀티 에이전트 백엔드 |
+| **AI Backend** | Google Cloud Run (Container / Serverless) | Vercel AI SDK 기반 멀티 에이전트 백엔드 |
 | **Supabase DB** | Supabase Cloud (Managed PostgreSQL + Auth) | PostgreSQL 데이터베이스 + 인증(Auth) 제공 |
 
 ## 📚 문서 (Documentation)

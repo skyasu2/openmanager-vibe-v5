@@ -117,6 +117,8 @@ export const nlqAgent = modelConfig
           getServerMetricsAdvanced,
           filterServers,
         },
+        // Description for orchestrator routing decisions
+        handoffDescription: '서버 상태 조회, CPU/메모리/디스크 메트릭 질의, 서버 목록 확인, 필터링 및 집계 쿼리를 처리합니다.',
         // Pattern matching for auto-routing
         matchOn: [
           // Korean keywords

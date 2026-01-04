@@ -106,6 +106,8 @@ function createSummarizerAgent() {
         getServerMetrics,
         getServerMetricsAdvanced,
       },
+      // Description for orchestrator routing decisions
+      handoffDescription: '빠른 상태 요약, 핵심 정보 추출, 간결한 현황 설명을 제공합니다. "요약해줘", "간단히 알려줘" 요청에 적합합니다.',
       matchOn: [
         // Summary keywords
         '요약',

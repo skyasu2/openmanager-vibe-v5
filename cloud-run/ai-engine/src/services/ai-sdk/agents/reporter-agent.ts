@@ -164,6 +164,8 @@ function createReporterAgent() {
       findRootCause,
       correlateMetrics,
     },
+    // Description for orchestrator routing decisions
+    handoffDescription: '장애 보고서 생성, 인시던트 타임라인 구성, 영향도 분석 보고서를 작성합니다. "보고서 만들어줘", "장애 정리" 요청에 적합합니다.',
     matchOn: [
       // Report keywords
       '보고서',
@@ -179,9 +181,7 @@ function createReporterAgent() {
       'timeline',
       '시간순',
       // Summary keywords
-      '요약',
       '정리',
-      'summary',
       // Patterns
       /보고서.*만들|생성/i,
       /장애.*정리|요약/i,

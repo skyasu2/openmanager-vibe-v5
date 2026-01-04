@@ -11,8 +11,8 @@
 
 ### Cloud Run (AI Engine)
 - Heavy Lifting 작업
-- LangGraph Multi-Agent 처리
-- Python AI 연산
+- Vercel AI SDK Multi-Agent (@ai-sdk-tools/agents)
+- TypeScript 기반 에이전트 오케스트레이션
 
 ## Database
 - **Supabase** (PostgreSQL + pgvector)

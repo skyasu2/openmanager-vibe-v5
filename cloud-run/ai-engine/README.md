@@ -44,14 +44,17 @@ src/
     └── redis-client.ts            # Upstash Redis cache
 ```
 
-## LLM Providers (Failover Chain)
+## LLM Providers (Role-Based Assignment)
 
-| Priority | Provider | Model | Free Tier |
-|----------|----------|-------|-----------|
-| 1 | Google AI | gemini-2.0-flash | 15 RPM |
-| 2 | Groq | llama-3.3-70b-versatile | 30 RPM |
-| 3 | Cerebras | llama-3.3-70b | 30 RPM |
-| 4 | Mistral | mistral-small-latest | 1 RPS |
+| Agent | Primary | Fallback | Free Tier |
+|-------|---------|----------|-----------|
+| Supervisor | Cerebras `llama-3.3-70b` | Mistral → OpenRouter | 24M tokens/day |
+| Orchestrator | Cerebras `llama-3.3-70b` | Groq | 24M tokens/day |
+| NLQ Agent | Cerebras `llama-3.3-70b` | Groq | 24M tokens/day |
+| Analyst Agent | Groq `llama-3.3-70b-versatile` | Cerebras | 14.4K RPD |
+| Reporter Agent | Groq `llama-3.3-70b-versatile` | Cerebras | 14.4K RPD |
+| Advisor Agent | Mistral `mistral-small-2506` | - | 10K RPD |
+| Summarizer | OpenRouter `qwen-2.5-7b:free` | `llama-3.1-8b:free` | ∞ (free models) |
 
 ## Observability - Langfuse (FREE Tier)
 
@@ -101,10 +104,10 @@ curl -X POST https://ai-engine-xxx.run.app/monitoring/reset
 
 ```bash
 # Required - AI Providers (최소 1개)
-GOOGLE_GENERATIVE_AI_API_KEY=xxx   # Google AI
-GROQ_API_KEY=xxx                   # Groq
-CEREBRAS_API_KEY=xxx               # Cerebras
-MISTRAL_API_KEY=xxx                # Mistral
+CEREBRAS_API_KEY=xxx               # Cerebras (Primary - Supervisor, NLQ)
+GROQ_API_KEY=xxx                   # Groq (Analyst, Reporter)
+MISTRAL_API_KEY=xxx                # Mistral (Advisor, Verifier)
+OPENROUTER_API_KEY=xxx             # OpenRouter (Summarizer, Fallback)
 
 # Optional - Observability (FREE)
 LANGFUSE_SECRET_KEY=xxx

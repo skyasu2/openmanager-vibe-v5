@@ -98,6 +98,8 @@ function createAdvisorAgent() {
         searchKnowledgeBase,
         recommendCommands,
       },
+      // Description for orchestrator routing decisions
+      handoffDescription: '문제 해결 방법, CLI 명령어 추천, 과거 장애 사례 검색, 트러블슈팅 가이드를 제공합니다. "어떻게 해결?", "명령어 알려줘" 질문에 적합합니다.',
       matchOn: [
         // Solution keywords
         '해결',

@@ -139,6 +139,8 @@ function createAnalystAgent() {
       correlateMetrics,
       findRootCause,
     },
+    // Description for orchestrator routing decisions
+    handoffDescription: '이상 탐지, 트렌드 예측, 패턴 분석, 근본 원인 분석(RCA), 상관관계 분석을 수행합니다. "왜?", "이상 있어?", "예측해줘" 질문에 적합합니다.',
     matchOn: [
       // Anomaly keywords
       '이상',

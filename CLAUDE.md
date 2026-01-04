@@ -4,8 +4,9 @@
 
 ## 📦 프로젝트 개요
 **OpenManager VIBE** - AI Native Server Monitoring Platform
-- **Stack**: Next.js 15.3.3, React 19, Supabase, LangGraph
+- **Stack**: Next.js 15.3.3, React 19, Supabase, Vercel AI SDK
 - **Architecture**: Vercel (Frontend) + Cloud Run (AI Engine)
+- **AI Engine**: @ai-sdk-tools/agents 기반 Multi-Agent
 - **Environment**: WSL + Claude Code + Multi-LLM Review
 
 ## 🚀 Quick Commands
@@ -28,4 +29,4 @@ npm run release:patch       # 버전 릴리스
 - **AI 설정**: `config/ai/registry-core.yaml`
 - **TODO**: `reports/planning/TODO.md`
 
-_Last Updated: 2025-12-29_
+_Last Updated: 2026-01-04_

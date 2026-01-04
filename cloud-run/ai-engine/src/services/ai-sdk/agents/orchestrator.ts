@@ -63,49 +63,210 @@ export interface MultiAgentError {
 
 const ORCHESTRATOR_INSTRUCTIONS = `당신은 서버 모니터링 AI 시스템의 오케스트레이터입니다.
 
-## 역할
-사용자의 질문을 분석하여 가장 적합한 전문 에이전트에게 라우팅합니다.
+## 핵심 역할 (듀얼 모드)
+1. **일반 질문**: 직접 빠르게 답변
+2. **서버/모니터링 관련**: 전문 에이전트에게 핸드오프
 
-## 전문 에이전트
+## 1단계: 질문 분류
 
-### 1. NLQ Agent (자연어 질의)
-- 서버 상태 조회, 메트릭 질의
-- "서버 상태", "CPU 높은 서버", "메모리 사용률"
-- 복잡한 조건 필터링, 집계, 비교
+### 직접 답변 (핸드오프 없이 바로 응답)
+다음 유형의 질문은 **직접 답변**하세요:
+- 인사말: "안녕", "하이", "헬로", "반가워"
+- 날씨: "오늘 날씨", "날씨 어때"
+- 날짜/시간: "오늘 몇일", "지금 몇시", "오늘 요일"
+- 일반 대화: "고마워", "잘가", "수고해"
+- 시스템 소개: "넌 뭐야", "뭘 할 수 있어", "도움말"
 
-### 2. Analyst Agent (분석)
-- 이상 탐지, 트렌드 예측, 패턴 분석
-- "이상 있어?", "향후 예측", "원인 분석"
-- 근본 원인 분석 (RCA)
+**직접 답변 예시**:
+- "안녕" → "안녕하세요! 서버 모니터링 AI입니다. 서버 상태, 이상 탐지, 장애 분석 등을 도와드립니다."
+- "오늘 몇일이야" → "오늘은 [날짜]입니다."
+- "넌 뭐야" → "저는 OpenManager 서버 모니터링 AI입니다. 서버 상태 조회, 이상 탐지, 장애 보고서 생성 등을 지원합니다."
 
-### 3. Reporter Agent (보고서)
-- 장애 보고서 생성, 타임라인 구성
-- "보고서 만들어줘", "장애 요약", "인시던트 정리"
+### 핸드오프 대상 (전문 에이전트 위임)
+다음 키워드가 포함된 **서버/모니터링 관련** 질문만 핸드오프:
 
-### 4. Advisor Agent (조언)
-- 해결 방법 안내, 명령어 추천
-- "어떻게 해결해?", "명령어 알려줘", "과거 사례"
-- GraphRAG 기반 지식 검색
-
-### 5. Summarizer Agent (요약) - NEW
-- 빠른 요약, 핵심 정보 추출
-- "요약해줘", "간단히 알려줘", "핵심만", "TL;DR"
-- 3-5줄 이내 간결한 응답
-
-## 라우팅 규칙
-1. 질문의 핵심 의도 파악
-2. 가장 적합한 에이전트 선택
-3. 불명확한 경우 NLQ Agent로 기본 라우팅
-4. 복합 질문은 주요 의도 기준으로 라우팅
-
-## 예시
+#### NLQ Agent - 서버 데이터 질의
+**키워드**: 서버, 상태, CPU, 메모리, 디스크, 목록, 조회, 몇 대, 어떤 서버
 - "서버 상태 알려줘" → NLQ Agent
-- "이상 징후 분석해줘" → Analyst Agent
-- "장애 보고서 작성해줘" → Reporter Agent
+- "CPU 높은 서버" → NLQ Agent
+
+#### Analyst Agent - 이상 탐지/분석
+**키워드**: 이상, 분석, 예측, 트렌드, 패턴, 원인, 왜 (서버/시스템 관련)
+- "이상 있어?" → Analyst Agent
+- "왜 느려졌어?" → Analyst Agent
+
+#### Reporter Agent - 보고서 생성
+**키워드**: 보고서, 리포트, 타임라인, 장애 요약, 인시던트
+- "장애 보고서 만들어줘" → Reporter Agent
+
+#### Advisor Agent - 해결 방법 안내
+**키워드**: 해결, 방법, 명령어, 가이드, 과거 사례 (서버 관련)
 - "메모리 부족 해결 방법" → Advisor Agent
-- "상태 요약해줘" → Summarizer Agent
-- "간단히 알려줘" → Summarizer Agent
+
+#### Summarizer Agent - 서버 요약
+**키워드**: 요약, 간단히, 핵심만, TL;DR (서버 상태 관련)
+- "서버 현황 요약해줘" → Summarizer Agent
+
+## 2단계: 판단 기준
+
+**핸드오프 여부 결정 플로우**:
+1. 서버/CPU/메모리/디스크/장애/모니터링 키워드가 있는가?
+   - 없음 → 직접 답변
+   - 있음 → 2번으로
+2. 어떤 전문 에이전트가 적합한가?
+   - 데이터 조회 → NLQ Agent
+   - 이상/분석 → Analyst Agent
+   - 보고서 → Reporter Agent
+   - 해결법 → Advisor Agent
+   - 요약 → Summarizer Agent
+
+## 중요 규칙
+1. **일반 대화는 빠르게 직접 답변** (핸드오프 금지)
+2. **서버 관련 질문만 핸드오프**
+3. 불명확하지만 서버 관련인 것 같으면 → NLQ Agent
+4. 핸드오프 시 reason 명시
 `;
+
+// ============================================================================
+// Rule-based Pre-filter (Fast Path)
+// ============================================================================
+
+/**
+ * Intent classification for fast routing
+ * Returns direct response if applicable, otherwise null for LLM routing
+ */
+interface PreFilterResult {
+  shouldHandoff: boolean;
+  directResponse?: string;
+  suggestedAgent?: string;
+  confidence: number;
+}
+
+const GREETING_PATTERNS = [
+  /^(안녕|하이|헬로|hi|hello|hey|반가워|좋은\s*(아침|오후|저녁))[\s!?.]*$/i,
+  /^(고마워|감사|ㄱㅅ|수고|잘가|바이|bye|thanks)[\s!?.]*$/i,
+];
+
+const GENERAL_PATTERNS = [
+  /^(오늘|지금)\s*(날씨|몇\s*일|몇\s*시|요일|며칠)[\s?]*$/i,
+  /^(넌|너는?|뭐야|누구|뭘\s*할\s*수|도움말|help|도와줘)[\s?]*$/i,
+  /^(테스트|ping|echo)[\s?]*$/i,
+];
+
+const SERVER_KEYWORDS = [
+  '서버', 'cpu', '메모리', '디스크', 'memory', 'disk', '상태',
+  '이상', '분석', '예측', '트렌드', '장애', '보고서', '리포트',
+  '해결', '명령어', '요약', '모니터링', 'server', '알람', '경고',
+];
+
+/**
+ * Fast pre-filter before LLM routing
+ * Handles simple queries without LLM call
+ */
+export function preFilterQuery(query: string): PreFilterResult {
+  const normalized = query.trim().toLowerCase();
+
+  // 1. Check greeting patterns - direct response
+  for (const pattern of GREETING_PATTERNS) {
+    if (pattern.test(query)) {
+      return {
+        shouldHandoff: false,
+        directResponse: '안녕하세요! 서버 모니터링 AI입니다. 서버 상태, 이상 탐지, 장애 분석 등을 도와드립니다. 무엇을 도와드릴까요?',
+        confidence: 0.95,
+      };
+    }
+  }
+
+  // 2. Check general patterns - direct response
+  for (const pattern of GENERAL_PATTERNS) {
+    if (pattern.test(query)) {
+      // Date query
+      if (/날짜|몇\s*일|며칠/.test(query)) {
+        const today = new Date().toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long',
+        });
+        return {
+          shouldHandoff: false,
+          directResponse: `오늘은 ${today}입니다.`,
+          confidence: 0.95,
+        };
+      }
+      // Time query
+      if (/몇\s*시/.test(query)) {
+        const now = new Date().toLocaleTimeString('ko-KR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        return {
+          shouldHandoff: false,
+          directResponse: `현재 시간은 ${now}입니다.`,
+          confidence: 0.95,
+        };
+      }
+      // Identity query
+      if (/넌|너는?|뭐야|누구/.test(query)) {
+        return {
+          shouldHandoff: false,
+          directResponse: '저는 OpenManager 서버 모니터링 AI입니다. 서버 상태 조회, 이상 탐지, 트렌드 예측, 장애 보고서 생성 등을 지원합니다.',
+          confidence: 0.95,
+        };
+      }
+      // Help query
+      if (/도움말|help|뭘\s*할\s*수/.test(query)) {
+        return {
+          shouldHandoff: false,
+          directResponse: `다음과 같은 기능을 제공합니다:
+• **서버 상태 조회**: "서버 상태 알려줘", "CPU 높은 서버"
+• **이상 탐지**: "이상 있어?", "문제 서버 찾아줘"
+• **트렌드 분석**: "트렌드 예측해줘"
+• **장애 보고서**: "장애 보고서 만들어줘"
+• **해결 방법**: "메모리 부족 해결 방법"`,
+          confidence: 0.95,
+        };
+      }
+      // Test/ping
+      if (/테스트|ping|echo/.test(query)) {
+        return {
+          shouldHandoff: false,
+          directResponse: 'Pong! 서버 모니터링 AI가 정상 동작 중입니다.',
+          confidence: 0.95,
+        };
+      }
+    }
+  }
+
+  // 3. Check for server-related keywords - needs handoff
+  const hasServerKeyword = SERVER_KEYWORDS.some(kw => normalized.includes(kw));
+
+  if (hasServerKeyword) {
+    // Suggest agent based on keywords
+    let suggestedAgent = 'NLQ Agent';
+    if (/이상|분석|예측|트렌드|패턴|원인|왜/.test(query)) {
+      suggestedAgent = 'Analyst Agent';
+    } else if (/보고서|리포트|타임라인|인시던트/.test(query)) {
+      suggestedAgent = 'Reporter Agent';
+    } else if (/해결|방법|명령어|가이드|어떻게/.test(query)) {
+      suggestedAgent = 'Advisor Agent';
+    } else if (/요약|간단히|핵심|TL;?DR/i.test(query)) {
+      suggestedAgent = 'Summarizer Agent';
+    }
+
+    return {
+      shouldHandoff: true,
+      suggestedAgent,
+      confidence: 0.8,
+    };
+  }
+
+  // 4. Unknown - let LLM decide
+  return {
+    shouldHandoff: true, // Let orchestrator LLM decide
+    confidence: 0.5,
+  };
+}
 
 // ============================================================================
 // Orchestrator Instance
@@ -152,22 +313,52 @@ const availableAgents = [nlqAgent, analystAgent, reporterAgent, advisorAgent, su
   (agent): agent is NonNullable<typeof agent> => agent !== null
 );
 
+// Track handoff events for debugging
+const handoffEvents: Array<{ from: string; to: string; reason?: string; timestamp: Date }> = [];
+
 /**
  * Main Orchestrator Agent (null if no model available)
  */
 export const orchestrator = orchestratorModelConfig
   ? (() => {
       console.log(`🎯 [Orchestrator] Initialized with ${orchestratorModelConfig.provider}/${orchestratorModelConfig.modelId}`);
-      console.log(`📋 [Orchestrator] Available agents: ${availableAgents.length}`);
+      console.log(`📋 [Orchestrator] Available agents: ${availableAgents.length} - [${availableAgents.map(a => a.name).join(', ')}]`);
       return new Agent({
         name: 'OpenManager Orchestrator',
         model: orchestratorModelConfig.model,
         instructions: ORCHESTRATOR_INSTRUCTIONS,
         handoffs: availableAgents,
         maxTurns: 10,
+        // Track agent lifecycle events
+        onEvent: async (event) => {
+          switch (event.type) {
+            case 'agent-handoff':
+              console.log(`🔀 [Handoff] ${event.from} → ${event.to} (${event.reason || 'no reason'})`);
+              handoffEvents.push({
+                from: event.from,
+                to: event.to,
+                reason: event.reason,
+                timestamp: new Date(),
+              });
+              break;
+            case 'agent-start':
+              console.log(`▶️ [Agent Start] ${event.agent} (round ${event.round})`);
+              break;
+            case 'agent-finish':
+              console.log(`✅ [Agent Finish] ${event.agent} (round ${event.round})`);
+              break;
+          }
+        },
       });
     })()
   : null;
+
+/**
+ * Get recent handoff events (for debugging)
+ */
+export function getRecentHandoffs() {
+  return handoffEvents.slice(-10);
+}
 
 // ============================================================================
 // Execution Function
@@ -181,6 +372,54 @@ export async function executeMultiAgent(
 ): Promise<MultiAgentResponse | MultiAgentError> {
   const startTime = Date.now();
 
+  // Build prompt from messages
+  const lastUserMessage = request.messages
+    .filter((m) => m.role === 'user')
+    .pop();
+
+  if (!lastUserMessage) {
+    return {
+      success: false,
+      error: 'No user message found',
+      code: 'INVALID_REQUEST',
+    };
+  }
+
+  const query = lastUserMessage.content;
+
+  // =========================================================================
+  // Fast Path: Rule-based pre-filter for simple queries
+  // =========================================================================
+  const preFilterResult = preFilterQuery(query);
+
+  if (!preFilterResult.shouldHandoff && preFilterResult.directResponse) {
+    const durationMs = Date.now() - startTime;
+    console.log(`⚡ [Fast Path] Direct response in ${durationMs}ms (confidence: ${preFilterResult.confidence})`);
+
+    return {
+      success: true,
+      response: preFilterResult.directResponse,
+      handoffs: [],
+      finalAgent: 'Orchestrator (Fast Path)',
+      toolsCalled: [],
+      usage: {
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+      },
+      metadata: {
+        provider: 'rule-based',
+        modelId: 'prefilter',
+        totalRounds: 1,
+        durationMs,
+      },
+    };
+  }
+
+  // =========================================================================
+  // Slow Path: LLM-based routing for complex queries
+  // =========================================================================
+
   // Check if orchestrator is available
   if (!orchestrator || !orchestratorModelConfig) {
     return {
@@ -193,24 +432,11 @@ export async function executeMultiAgent(
   try {
     const { provider, modelId } = orchestratorModelConfig;
 
-    console.log(`🎯 [Orchestrator] Starting with ${provider}/${modelId}`);
-
-    // Build prompt from messages
-    const lastUserMessage = request.messages
-      .filter((m) => m.role === 'user')
-      .pop();
-
-    if (!lastUserMessage) {
-      return {
-        success: false,
-        error: 'No user message found',
-        code: 'INVALID_REQUEST',
-      };
-    }
+    console.log(`🎯 [Orchestrator] LLM routing with ${provider}/${modelId} (suggested: ${preFilterResult.suggestedAgent || 'none'})`);
 
     // Execute orchestrator with automatic handoffs
     const result = await orchestrator.generate({
-      prompt: lastUserMessage.content,
+      prompt: query,
     });
 
     const durationMs = Date.now() - startTime;
