@@ -12,7 +12,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 
 // Data sources
-import { getSupabaseConfig, getTavilyApiKey } from '../lib/config-parser';
+import { getSupabaseConfig, getTavilyApiKey, getTavilyApiKeyBackup } from '../lib/config-parser';
 import { searchWithEmbedding, embedText } from '../lib/embedding';
 import { hybridGraphSearch } from '../lib/llamaindex-rag-service';
 
@@ -349,13 +349,138 @@ interface WebSearchResult {
   score: number;
 }
 
+// ============================================================================
+// Tavily Best Practices Constants
+// ============================================================================
+const TAVILY_TIMEOUT_MS = 10000; // 10초 타임아웃 (베스트 프랙티스: 1-5초, 여유있게 10초)
+const TAVILY_MAX_RETRIES = 2; // 최대 재시도 횟수 (베스트 프랙티스: 2회)
+const TAVILY_RETRY_DELAY_MS = 1000; // 재시도 간 대기 시간
+const TAVILY_CACHE_TTL_MS = 5 * 60 * 1000; // 5분 캐시 (베스트 프랙티스: 반복 쿼리 캐싱)
+
+/**
+ * Simple in-memory cache for web search results
+ * @see Best Practice: "Cache results strategically to reduce costs"
+ */
+interface CacheEntry {
+  results: WebSearchResult[];
+  answer: string | null;
+  timestamp: number;
+}
+const searchCache = new Map<string, CacheEntry>();
+
+/**
+ * Get cached result if valid
+ */
+function getCachedResult(query: string): { results: WebSearchResult[]; answer: string | null } | null {
+  const cached = searchCache.get(query.toLowerCase().trim());
+  if (cached && Date.now() - cached.timestamp < TAVILY_CACHE_TTL_MS) {
+    console.log(`📦 [Tavily] Cache hit for: "${query.substring(0, 30)}..."`);
+    return { results: cached.results, answer: cached.answer };
+  }
+  return null;
+}
+
+/**
+ * Store result in cache
+ */
+function setCacheResult(query: string, results: WebSearchResult[], answer: string | null): void {
+  // Limit cache size to prevent memory leak
+  if (searchCache.size > 100) {
+    const oldestKey = searchCache.keys().next().value;
+    if (oldestKey) searchCache.delete(oldestKey);
+  }
+  searchCache.set(query.toLowerCase().trim(), { results, answer, timestamp: Date.now() });
+}
+
+/**
+ * Promise with timeout wrapper
+ * @see Best Practice: "Implement Timeouts: Don't let your agent wait indefinitely"
+ */
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  errorMessage: string
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    clearTimeout(timeoutId!);
+  }
+}
+
+/**
+ * Sleep utility for retry delay
+ */
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Execute Tavily search with a specific API key
+ * @see Best Practice: "Use Retry Limits: maximum of two attempts"
+ */
+async function executeTavilySearch(
+  apiKey: string,
+  query: string,
+  options: {
+    maxResults: number;
+    searchDepth: 'basic' | 'advanced';
+    includeDomains: string[];
+    excludeDomains: string[];
+  },
+  retryCount = 0
+): Promise<{ results: WebSearchResult[]; answer: string | null }> {
+  try {
+    const { tavily } = await import('@tavily/core');
+    const client = tavily({ apiKey });
+
+    // Timeout wrapper (Best Practice)
+    const response = await withTimeout(
+      client.search(query, {
+        maxResults: options.maxResults,
+        searchDepth: options.searchDepth,
+        includeDomains: options.includeDomains,
+        excludeDomains: options.excludeDomains,
+      }),
+      TAVILY_TIMEOUT_MS,
+      `Tavily search timeout after ${TAVILY_TIMEOUT_MS}ms`
+    );
+
+    const results: WebSearchResult[] = response.results.map((r) => ({
+      title: r.title,
+      url: r.url,
+      content: r.content.substring(0, 500),
+      score: r.score,
+    }));
+
+    return { results, answer: response.answer || null };
+  } catch (error) {
+    // Retry logic (Best Practice: max 2 retries)
+    if (retryCount < TAVILY_MAX_RETRIES) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      // Only retry on timeout or transient errors, not rate limits
+      if (errorMsg.includes('timeout') || errorMsg.includes('ECONNRESET')) {
+        console.log(`🔄 [Tavily] Retry ${retryCount + 1}/${TAVILY_MAX_RETRIES} after error: ${errorMsg}`);
+        await sleep(TAVILY_RETRY_DELAY_MS);
+        return executeTavilySearch(apiKey, query, options, retryCount + 1);
+      }
+    }
+    throw error;
+  }
+}
+
 /**
  * Web Search Tool
  * Uses Tavily API for real-time web search
+ * Supports failover to backup API key when primary fails
+ * @updated 2026-01-04 - Added failover support
  */
 export const searchWeb = tool({
   description:
-    '실시간 웹 검색을 수행합니다. 최신 기술 정보, 문서, 보안 이슈 등을 검색할 때 사용합니다.',
+    '실시간 웹 검색을 수행합니다. 최신 기술 정보, 문서, 보안 이슈, 에러 해결 방법 등을 검색할 때 사용합니다. 서버 모니터링과 관련 없는 일반 질문에도 활용 가능합니다.',
   inputSchema: z.object({
     query: z.string().describe('검색 쿼리'),
     maxResults: z
@@ -390,10 +515,24 @@ export const searchWeb = tool({
   }) => {
     console.log(`🌐 [Reporter Tools] Web search: ${query}`);
 
-    const tavilyApiKey = getTavilyApiKey();
+    // Best Practice: Check cache first to reduce API calls
+    const cached = getCachedResult(query);
+    if (cached) {
+      return {
+        success: true,
+        query,
+        results: cached.results,
+        totalFound: cached.results.length,
+        _source: 'Tavily Web Search (Cached)',
+        answer: cached.answer,
+      };
+    }
 
-    if (!tavilyApiKey) {
-      console.warn('⚠️ [Reporter Tools] Tavily API key not configured');
+    const primaryKey = getTavilyApiKey();
+    const backupKey = getTavilyApiKeyBackup();
+
+    if (!primaryKey && !backupKey) {
+      console.warn('⚠️ [Reporter Tools] No Tavily API keys configured');
       return {
         success: false,
         error: 'Tavily API key not configured',
@@ -402,37 +541,91 @@ export const searchWeb = tool({
       };
     }
 
+    const searchOptions = {
+      maxResults,
+      searchDepth,
+      includeDomains: includeDomains || [],
+      excludeDomains: excludeDomains || [],
+    };
+
+    // Try primary key first
+    if (primaryKey) {
+      try {
+        const { results, answer } = await executeTavilySearch(primaryKey, query, searchOptions);
+        console.log(`📊 [Reporter Tools] Web search (primary): ${results.length} results`);
+
+        // Cache successful results (Best Practice)
+        setCacheResult(query, results, answer);
+
+        return {
+          success: true,
+          query,
+          results,
+          totalFound: results.length,
+          _source: 'Tavily Web Search',
+          answer,
+        };
+      } catch (primaryError) {
+        const errorMsg = primaryError instanceof Error ? primaryError.message : String(primaryError);
+        console.warn(`⚠️ [Reporter Tools] Primary key failed: ${errorMsg}`);
+
+        // Failover to backup key
+        if (backupKey) {
+          console.log('🔄 [Reporter Tools] Attempting failover to backup key...');
+          try {
+            const { results, answer } = await executeTavilySearch(backupKey, query, searchOptions);
+            console.log(`📊 [Reporter Tools] Web search (backup): ${results.length} results`);
+
+            // Cache successful results (Best Practice)
+            setCacheResult(query, results, answer);
+
+            return {
+              success: true,
+              query,
+              results,
+              totalFound: results.length,
+              _source: 'Tavily Web Search (Failover)',
+              answer,
+            };
+          } catch (backupError) {
+            console.error('❌ [Reporter Tools] Backup key also failed:', backupError);
+            return {
+              success: false,
+              error: `Primary: ${errorMsg}, Backup: ${backupError instanceof Error ? backupError.message : String(backupError)}`,
+              results: [],
+              _source: 'Tavily (All Keys Failed)',
+            };
+          }
+        }
+
+        // No backup key available
+        return {
+          success: false,
+          error: errorMsg,
+          results: [],
+          _source: 'Tavily (Primary Failed, No Backup)',
+        };
+      }
+    }
+
+    // Only backup key available
     try {
-      const { tavily } = await import('@tavily/core');
-      const client = tavily({ apiKey: tavilyApiKey });
+      const { results, answer } = await executeTavilySearch(backupKey!, query, searchOptions);
+      console.log(`📊 [Reporter Tools] Web search (backup only): ${results.length} results`);
 
-      const response = await client.search(query, {
-        maxResults,
-        searchDepth,
-        includeDomains: includeDomains || [],
-        excludeDomains: excludeDomains || [],
-      });
-
-      const results: WebSearchResult[] = response.results.map((r) => ({
-        title: r.title,
-        url: r.url,
-        content: r.content.substring(0, 500),
-        score: r.score,
-      }));
-
-      console.log(`📊 [Reporter Tools] Web search: ${results.length} results`);
+      // Cache successful results (Best Practice)
+      setCacheResult(query, results, answer);
 
       return {
         success: true,
         query,
         results,
         totalFound: results.length,
-        _source: 'Tavily Web Search',
-        answer: response.answer || null,
+        _source: 'Tavily Web Search (Backup)',
+        answer,
       };
     } catch (error) {
-      console.error('❌ [Reporter Tools] Web search error:', error);
-
+      console.error('❌ [Reporter Tools] Backup key error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),

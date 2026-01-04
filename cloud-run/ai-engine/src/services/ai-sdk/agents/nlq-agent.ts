@@ -17,6 +17,7 @@ import {
   getServerMetrics,
   getServerMetricsAdvanced,
   filterServers,
+  searchWeb,
 } from '../../../tools-ai-sdk';
 
 // ============================================================================
@@ -98,6 +99,30 @@ const NLQ_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 자연어 �
 ### filterServers() - 조건 필터링
 - "CPU 80% 이상" → filterServers({ field: "cpu", operator: ">", value: 80 })
 
+### searchWeb() - 웹 검색 🌐 (보조적 사용)
+**⚠️ API 사용량 절약을 위해 꼭 필요할 때만 사용!**
+
+**사용 기준 (순서대로 판단)**:
+1. 먼저 자체 지식으로 답변 시도
+2. 서버 메트릭 질문 → getServerMetrics/getServerMetricsAdvanced 사용
+3. 위 방법으로 불충분할 때만 searchWeb 사용
+
+**웹 검색이 필요한 경우**:
+- 사용자가 명시적으로 "검색해줘", "찾아줘" 요청
+- 2024년 이후 최신 정보 (보안 패치, CVE, 신기술)
+- 특정 에러 코드/메시지의 해결 방법
+- 알 수 없는 기술 용어 설명 요청
+
+**웹 검색 불필요한 경우** (자체 지식 활용):
+- 일반적인 Linux/서버 명령어 질문
+- CPU/메모리 기본 개념 설명
+- 기본적인 트러블슈팅 가이드
+
+**예시**:
+- "OOM Killer란?" → 자체 지식으로 답변 (웹 검색 불필요)
+- "CVE-2026-xxxx 취약점" → searchWeb 필요 (최신 정보)
+- "nginx 504 기본 해결법" → 자체 지식 먼저, 부족하면 searchWeb
+
 ## 응답 지침
 1. **반드시 도구를 호출**하여 실제 데이터 기반으로 답변
 2. "평균", "최대", "지난 N시간" 질문 → getServerMetricsAdvanced 사용
@@ -132,9 +157,10 @@ export const nlqAgent = modelConfig
           getServerMetrics,
           getServerMetricsAdvanced,
           filterServers,
+          searchWeb,
         },
         // Description for orchestrator routing decisions
-        handoffDescription: '서버 상태 조회, CPU/메모리/디스크 메트릭 질의, 시간 범위 집계(지난 N시간 평균/최대), 서버 목록 확인 및 필터링을 처리합니다.',
+        handoffDescription: '서버 상태 조회, CPU/메모리/디스크 메트릭 질의, 시간 범위 집계(지난 N시간 평균/최대), 서버 목록 확인 및 필터링, 웹 검색(기술 문서, 에러 해결, 보안 이슈)을 처리합니다.',
         // Pattern matching for auto-routing
         matchOn: [
           // Korean keywords
@@ -164,6 +190,16 @@ export const nlqAgent = modelConfig
           /평균|합계|최대|최소/i, // Aggregation
           /높은|낮은|많은|적은/i, // Comparison adjectives
           /지난\s*\d+\s*시간/i, // Time range pattern
+          // Web search triggers
+          '검색',
+          'search',
+          '찾아',
+          '뭐야',
+          '뭔가요',
+          '알려줘',
+          /에러|error|오류/i, // Error troubleshooting
+          /해결|solution|fix/i, // Solution seeking
+          /방법|how to/i, // How-to questions
         ],
       });
     })()

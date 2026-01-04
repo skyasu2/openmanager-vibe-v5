@@ -242,6 +242,15 @@ export function getTavilyApiKey(): string | null {
 }
 
 /**
+ * Get Tavily Backup API Key (Failover)
+ * Used when primary key hits rate limit or fails
+ * @added 2026-01-04
+ */
+export function getTavilyApiKeyBackup(): string | null {
+  return process.env.TAVILY_API_KEY_BACKUP || null;
+}
+
+/**
  * Get OpenRouter API Key (Advisor/Verifier Fallback)
  * Uses AI_PROVIDERS_CONFIG or falls back to individual env var
  * Free models: meta-llama/llama-3.1-8b-instruct:free, google/gemma-2-9b-it:free
