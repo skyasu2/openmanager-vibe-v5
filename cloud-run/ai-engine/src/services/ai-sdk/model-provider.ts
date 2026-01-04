@@ -225,16 +225,23 @@ export function checkProviderStatus(): ProviderStatus {
 /**
  * Get primary model for Supervisor (Single-Agent Mode)
  * Fallback chain: Cerebras → Mistral → OpenRouter (Groq reserved for NLQ Agent)
+ *
+ * @param excludeProviders - Providers to skip (e.g., recently failed providers on retry)
  */
-export function getSupervisorModel(): {
+export function getSupervisorModel(excludeProviders: ProviderName[] = []): {
   model: LanguageModel;
   provider: ProviderName;
   modelId: string;
 } {
   const status = checkProviderStatus();
+  const excluded = new Set(excludeProviders);
 
-  // Try Cerebras first (24M tokens/day, fastest)
-  if (status.cerebras) {
+  if (excluded.size > 0) {
+    console.log(`🔄 [Supervisor] Excluding providers: [${excludeProviders.join(', ')}]`);
+  }
+
+  // Try Cerebras first (1M tokens/day, fastest)
+  if (status.cerebras && !excluded.has('cerebras')) {
     try {
       return {
         model: getCerebrasModel('llama-3.3-70b'),
@@ -247,7 +254,7 @@ export function getSupervisorModel(): {
   }
 
   // Fallback 1: Mistral (Groq is reserved for NLQ Agent tool calling)
-  if (status.mistral) {
+  if (status.mistral && !excluded.has('mistral')) {
     return {
       model: getMistralModel('mistral-small-2506'),
       provider: 'mistral',
@@ -256,7 +263,7 @@ export function getSupervisorModel(): {
   }
 
   // Fallback 2: OpenRouter (free tier - fast model)
-  if (status.openrouter) {
+  if (status.openrouter && !excluded.has('openrouter')) {
     console.log('🔄 [Supervisor] Using OpenRouter fallback (nvidia/nemotron-3-nano-30b-a3b:free)');
     return {
       model: getOpenRouterModel('nvidia/nemotron-3-nano-30b-a3b:free'),

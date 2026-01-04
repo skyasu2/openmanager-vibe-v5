@@ -1,10 +1,10 @@
-# CLAUDE.md - OpenManager VIBE v5.83.12
+# CLAUDE.md - OpenManager VIBE v5.83.14
 
 **한국어로 우선 대화, 기술용어는 영어 사용 허용**
 
 ## 📦 프로젝트 개요
 **OpenManager VIBE** - AI Native Server Monitoring Platform
-- **Stack**: Next.js 15.3.3, React 19, Supabase, Vercel AI SDK
+- **Stack**: Next.js 16.1.1, React 19, Supabase, Vercel AI SDK
 - **Architecture**: Vercel (Frontend) + Cloud Run (AI Engine)
 - **AI Engine**: @ai-sdk-tools/agents 기반 Multi-Agent
 - **Environment**: WSL + Claude Code + Multi-LLM Review

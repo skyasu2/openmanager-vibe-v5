@@ -48,13 +48,23 @@ src/
 
 | Agent | Primary | Fallback | Free Tier |
 |-------|---------|----------|-----------|
-| Supervisor | Cerebras `llama-3.3-70b` | Mistral → OpenRouter | 24M tokens/day |
-| Orchestrator | Cerebras `llama-3.3-70b` | Groq | 24M tokens/day |
-| NLQ Agent | Cerebras `llama-3.3-70b` | Groq | 24M tokens/day |
-| Analyst Agent | Groq `llama-3.3-70b-versatile` | Cerebras | 14.4K RPD |
-| Reporter Agent | Groq `llama-3.3-70b-versatile` | Cerebras | 14.4K RPD |
-| Advisor Agent | Mistral `mistral-small-2506` | - | 10K RPD |
-| Summarizer | OpenRouter `qwen-2.5-7b:free` | `llama-3.1-8b:free` | ∞ (free models) |
+| Supervisor | Cerebras `llama-3.3-70b` | Mistral → OpenRouter | 1M tokens/day, 60K TPM |
+| Orchestrator | Cerebras `llama-3.3-70b` | Groq | 1M tokens/day, 60K TPM |
+| NLQ Agent | Cerebras `llama-3.3-70b` | Groq | 1M tokens/day, 60K TPM |
+| Analyst Agent | Groq `llama-3.3-70b-versatile` | Cerebras | ~1K RPD, 12K TPM |
+| Reporter Agent | Groq `llama-3.3-70b-versatile` | Cerebras | ~1K RPD, 12K TPM |
+| Advisor Agent | Mistral `mistral-small-2506` | - | Limited (may require paid) |
+| Summarizer | OpenRouter `qwen-2.5-7b:free` | `llama-3.1-8b:free` | 50 RPD (low-volume only) |
+
+### Agent Usage by Feature
+
+| Feature | Primary Agent | Access Path |
+|---------|---------------|-------------|
+| AI Chat | Orchestrator → NLQ/Analyst/Reporter/Advisor/Summarizer | `/api/ai/supervisor` |
+| Auto Incident Report | Reporter (direct) | `/api/ai/incident-report` |
+| Intelligent Monitoring | Analyst (direct) | `/api/ai/analyze-server` |
+
+> **Note**: Advisor와 Summarizer는 Chat에서 Orchestrator handoff를 통해서만 사용됩니다.
 
 ## Observability - Langfuse (FREE Tier)
 
@@ -182,9 +192,14 @@ docker run -p 8080:8080 --env-file .env ai-engine:local
 
 ## Version
 
-Current: `5.84.0`
+Current: `5.83.14`
 
 ## Changelog
+
+### v5.83.14 (2026-01-04)
+- Free Tier 한도 정보 정확화 (Cerebras 1M, Groq ~1K, OpenRouter 50)
+- Agent Usage by Feature 섹션 추가
+- Summarizer Agent 문서화
 
 ### v5.84.0 (2025-12-29)
 - Vercel AI SDK v6 migration (from LangGraph)

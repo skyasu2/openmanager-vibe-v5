@@ -19,6 +19,22 @@ import { advisorAgent } from './advisor-agent';
 import { summarizerAgent } from './summarizer-agent';
 
 // ============================================================================
+// Configuration
+// ============================================================================
+
+/**
+ * Orchestrator timeout configuration
+ * - Multi-agent queries can take 20-60s with multiple handoffs
+ * - Set generous timeout but prevent infinite hangs
+ */
+const ORCHESTRATOR_CONFIG = {
+  /** Maximum execution time (ms) - 90s to allow for multiple agent handoffs */
+  timeout: 90_000,
+  /** Warning threshold (ms) - log warning if execution exceeds this */
+  warnThreshold: 30_000,
+};
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -316,6 +332,11 @@ const availableAgents = [nlqAgent, analystAgent, reporterAgent, advisorAgent, su
   (agent): agent is NonNullable<typeof agent> => agent !== null
 );
 
+// ⚠️ Critical validation: Ensure at least one agent is available
+if (availableAgents.length === 0) {
+  console.error('❌ [CRITICAL] No agents available! Check API keys: CEREBRAS_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY, OPENROUTER_API_KEY');
+}
+
 // Track handoff events for debugging
 const handoffEvents: Array<{ from: string; to: string; reason?: string; timestamp: Date }> = [];
 
@@ -437,10 +458,24 @@ export async function executeMultiAgent(
 
     console.log(`🎯 [Orchestrator] LLM routing with ${provider}/${modelId} (suggested: ${preFilterResult.suggestedAgent || 'none'})`);
 
-    // Execute orchestrator with automatic handoffs
-    const result = await orchestrator.generate({
-      prompt: query,
+    // Execute orchestrator with timeout protection
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Orchestrator timeout after ${ORCHESTRATOR_CONFIG.timeout}ms`));
+      }, ORCHESTRATOR_CONFIG.timeout);
     });
+
+    // Warn if execution is taking too long
+    const warnTimer = setTimeout(() => {
+      console.warn(`⚠️ [Orchestrator] Execution exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms threshold`);
+    }, ORCHESTRATOR_CONFIG.warnThreshold);
+
+    const result = await Promise.race([
+      orchestrator.generate({ prompt: query }),
+      timeoutPromise,
+    ]);
+
+    clearTimeout(warnTimer);
 
     const durationMs = Date.now() - startTime;
 

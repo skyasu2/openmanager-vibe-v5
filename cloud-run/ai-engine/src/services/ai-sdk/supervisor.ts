@@ -14,7 +14,7 @@
  */
 
 import { generateText, streamText, stepCountIs, type ModelMessage } from 'ai';
-import { getSupervisorModel, logProviderStatus } from './model-provider';
+import { getSupervisorModel, logProviderStatus, type ProviderName } from './model-provider';
 import { allTools, toolDescriptions, type ToolName } from '../../tools-ai-sdk';
 import { executeMultiAgent, type MultiAgentRequest, type MultiAgentResponse } from './agents';
 import {
@@ -272,21 +272,22 @@ async function executeMultiAgentMode(
 
 /**
  * Execute single-agent mode with multi-step tool calling
- * Includes retry logic for transient errors
+ * Includes retry logic for transient errors with provider rotation
  */
 async function executeSingleAgentMode(
   request: SupervisorRequest,
   startTime: number
 ): Promise<SupervisorResponse | SupervisorError> {
   let lastError: SupervisorError | null = null;
+  const failedProviders: ProviderName[] = [];
 
   for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
     if (attempt > 0) {
-      console.log(`🔄 [Supervisor] Retry attempt ${attempt}/${RETRY_CONFIG.maxRetries}`);
+      console.log(`🔄 [Supervisor] Retry attempt ${attempt}/${RETRY_CONFIG.maxRetries}, excluding: [${failedProviders.join(', ')}]`);
       await new Promise((r) => setTimeout(r, RETRY_CONFIG.retryDelayMs * attempt));
     }
 
-    const result = await executeSupervisorAttempt(request, startTime);
+    const result = await executeSupervisorAttempt(request, startTime, failedProviders);
 
     if (result.success) {
       // Add mode to metadata
@@ -295,6 +296,13 @@ async function executeSingleAgentMode(
     }
 
     lastError = result as SupervisorError;
+
+    // Track failed provider for next retry (extract from error metadata if available)
+    const failedProvider = (lastError as unknown as { provider?: ProviderName }).provider;
+    if (failedProvider && !failedProviders.includes(failedProvider)) {
+      failedProviders.push(failedProvider);
+      console.log(`📍 [Supervisor] Marking ${failedProvider} as failed for retry`);
+    }
 
     // Check if error is retryable
     if (!RETRY_CONFIG.retryableErrors.includes(lastError.code)) {
@@ -309,23 +317,15 @@ async function executeSingleAgentMode(
 
 /**
  * Single attempt of supervisor execution
- * Enhanced with Langfuse tracing, Circuit Breaker, and prepareStep optimization
+ * Enhanced with Langfuse tracing, per-provider Circuit Breaker, and prepareStep optimization
+ *
+ * @param excludeProviders - Providers to skip (failed in previous attempts)
  */
 async function executeSupervisorAttempt(
   request: SupervisorRequest,
-  startTime: number
-): Promise<SupervisorResponse | SupervisorError> {
-  const circuitBreaker = getCircuitBreaker('supervisor');
-
-  // Check circuit breaker
-  if (!circuitBreaker.isAllowed()) {
-    return {
-      success: false,
-      error: 'Service temporarily unavailable (circuit breaker open)',
-      code: 'CIRCUIT_OPEN',
-    };
-  }
-
+  startTime: number,
+  excludeProviders: ProviderName[] = []
+): Promise<SupervisorResponse | (SupervisorError & { provider?: ProviderName })> {
   // Create Langfuse trace
   const lastUserMessage = request.messages.filter((m) => m.role === 'user').pop();
   const trace = createSupervisorTrace({
@@ -334,14 +334,45 @@ async function executeSupervisorAttempt(
     query: lastUserMessage?.content || '',
   });
 
+  // Get model with fallback chain (excluding failed providers)
+  let provider: ProviderName;
+  let modelId: string;
+  let model;
+
   try {
-    // Execute with circuit breaker
+    const modelResult = getSupervisorModel(excludeProviders);
+    model = modelResult.model;
+    provider = modelResult.provider;
+    modelId = modelResult.modelId;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('❌ [Supervisor] No available providers:', errorMessage);
+    return {
+      success: false,
+      error: errorMessage,
+      code: 'NO_PROVIDER',
+    };
+  }
+
+  // Get provider-specific circuit breaker (not generic 'supervisor')
+  const circuitBreaker = getCircuitBreaker(`supervisor-${provider}`);
+
+  // Check circuit breaker for this specific provider
+  if (!circuitBreaker.isAllowed()) {
+    console.log(`⚡ [Supervisor] Circuit OPEN for ${provider}, will try next provider on retry`);
+    return {
+      success: false,
+      error: `Provider ${provider} circuit breaker is OPEN`,
+      code: 'CIRCUIT_OPEN',
+      provider, // Include provider for retry exclusion
+    };
+  }
+
+  try {
+    // Execute with provider-specific circuit breaker
     return await circuitBreaker.execute(async () => {
       // Log provider status on first call
       logProviderStatus();
-
-      // Get model with fallback chain
-      const { model, provider, modelId } = getSupervisorModel();
 
       console.log(`🤖 [Supervisor] Using ${provider}/${modelId}`);
 
@@ -463,6 +494,7 @@ async function executeSupervisorAttempt(
       success: false,
       error: errorMessage,
       code,
+      provider, // Include provider for retry exclusion
     };
   }
 }
@@ -521,25 +553,44 @@ export async function* executeSupervisorStream(
 
 /**
  * Stream single-agent mode with real streamText
+ * Uses provider-specific circuit breaker for isolation
  */
 async function* streamSingleAgent(
   request: SupervisorRequest,
   startTime: number
 ): AsyncGenerator<StreamEvent> {
-  const circuitBreaker = getCircuitBreaker('supervisor-stream');
+  // Get model first to determine provider
+  let provider: ProviderName;
+  let modelId: string;
+  let model;
 
-  // Check circuit breaker
+  try {
+    logProviderStatus();
+    const modelResult = getSupervisorModel();
+    model = modelResult.model;
+    provider = modelResult.provider;
+    modelId = modelResult.modelId;
+  } catch (error) {
+    yield {
+      type: 'error',
+      data: { code: 'NO_PROVIDER', message: error instanceof Error ? error.message : String(error) },
+    };
+    return;
+  }
+
+  // Get provider-specific circuit breaker
+  const circuitBreaker = getCircuitBreaker(`stream-${provider}`);
+
+  // Check circuit breaker for this specific provider
   if (!circuitBreaker.isAllowed()) {
     yield {
       type: 'error',
-      data: { code: 'CIRCUIT_OPEN', message: 'Service temporarily unavailable' },
+      data: { code: 'CIRCUIT_OPEN', message: `Provider ${provider} circuit breaker is OPEN` },
     };
     return;
   }
 
   try {
-    logProviderStatus();
-    const { model, provider, modelId } = getSupervisorModel();
 
     console.log(`🤖 [SupervisorStream] Using ${provider}/${modelId}`);
 

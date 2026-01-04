@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-01
+**마지막 업데이트**: 2026-01-04
 
 ---
 
@@ -47,11 +47,11 @@
 
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
-- **Models**: Quad-provider 전략 (Rate limit 최적화, 2026-01-01)
-  - Cerebras llama-3.3-70b: Orchestrator, NLQ (24M 토큰/일)
-  - Groq llama-3.3-70b: Analyst, Reporter (100K 토큰/일)
-  - Mistral Small 2506 (24B): Advisor, Verifier
-  - OpenRouter Free: Summarizer (qwen-2.5-7b, llama-3.1-8b) ← NEW
+- **Models**: Quad-provider 전략 (Rate limit 최적화, 2026-01-04)
+  - Cerebras llama-3.3-70b: Orchestrator, NLQ (1M tokens/day, 60K TPM)
+  - Groq llama-3.3-70b: Analyst, Reporter (~1K requests/day, 12K TPM)
+  - Mistral Small 2506 (24B): Advisor, Verifier (Limited free tier)
+  - OpenRouter Free: Summarizer (qwen-2.5-7b, llama-3.1-8b, 50 RPD)
 - **Agents**: 6개 Multi-Agent (Orchestrator → NLQ/Analyst/Reporter/Advisor/Summarizer)
 - **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
 - **Web Search**: Tavily API (Reporter Agent)

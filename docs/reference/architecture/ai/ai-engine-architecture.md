@@ -26,11 +26,33 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 | **Orchestrator** | Cerebras llama-3.3-70b | Groq llama-3.3-70b-versatile | Fast intent routing (~200ms) | Agent handoffs |
 | **NLQ Agent** | Cerebras llama-3.3-70b | Groq llama-3.3-70b-versatile | Server metrics queries (simple + complex) | `getServerMetrics`, `getServerMetricsAdvanced`, `filterServers` |
 | **Analyst Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | Anomaly detection, trend prediction | `detectAnomalies`, `predictTrends`, `analyzePattern`, `correlateMetrics`, `findRootCause` |
-| **Reporter Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | Incident reports, timeline | `buildIncidentTimeline`, `findRootCause`, `correlateMetrics` |
-| **Advisor Agent** | Mistral mistral-small-2506 | OpenRouter llama-3.1-8b:free | Troubleshooting, knowledge search | `searchKnowledgeBase` (GraphRAG), `recommendCommands` |
+| **Reporter Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | Incident reports, timeline | `buildIncidentTimeline`, `findRootCause`, `correlateMetrics`, `searchKnowledgeBase` |
+| **Advisor Agent** | Mistral mistral-small-2506 | - | Troubleshooting, knowledge search | `searchKnowledgeBase` (GraphRAG), `recommendCommands` |
+| **Summarizer Agent** | OpenRouter qwen-2.5-7b:free | OpenRouter llama-3.1-8b:free | Quick summaries, key info extraction | `getServerMetrics`, `getServerMetricsAdvanced` |
 | **Verifier** | Mistral mistral-small-2506 | OpenRouter gemma-2-9b:free | Response validation | N/A |
 
 > **Dual-Mode Strategy**: Single-agent mode for simple queries (low latency), Multi-agent mode for complex queries (specialized handling). Cerebras for fast routing/NLQ, Groq for analysis/reporting stability.
+
+### Frontend Features → Agent Mapping
+
+| Feature | Vercel API Route | Cloud Run Endpoint | Primary Agent | Handoff Agents |
+|---------|------------------|-------------------|---------------|----------------|
+| **AI Chat (NLQ)** | `/api/ai/supervisor` | `/api/ai/supervisor` | Orchestrator | NLQ, Analyst, Reporter, Advisor, Summarizer |
+| **Auto Incident Report** | `/api/ai/incident-report` | `/api/ai/incident-report` | Reporter | - (Direct call) |
+| **Intelligent Monitoring** | `/api/ai/intelligent-monitoring` | `/api/ai/analyze-server` | Analyst | - (Direct call) |
+
+> **Note**: Advisor와 Summarizer는 Chat을 통한 Orchestrator handoff로만 사용됩니다 (전용 UI 없음).
+
+### Free Tier Limits (2025-01 기준)
+
+| Provider | Daily Limit | TPM | RPM | Usage |
+|----------|-------------|-----|-----|-------|
+| **Cerebras** | 1M tokens/day | 60K | 30 | Orchestrator, NLQ Agent |
+| **Groq** | ~1K requests/day | 12K | Variable | Analyst, Reporter Agent |
+| **Mistral** | Limited (may require paid) | - | - | Advisor, Verifier |
+| **OpenRouter** | 50 requests/day | - | 20 | Summarizer Agent |
+
+> **주의**: OpenRouter 무료 모델은 일일 50회 제한으로 저사용량 시나리오에만 적합합니다.
 
 ### Key Features
 
@@ -118,11 +140,13 @@ graph TD
             Orchestrator -->|matchOn Pattern| Analyst[Analyst Agent<br/>Groq/Cerebras]
             Orchestrator -->|matchOn Pattern| Reporter[Reporter Agent<br/>Groq/Cerebras]
             Orchestrator -->|matchOn Pattern| Advisor[Advisor Agent<br/>Mistral]
+            Orchestrator -->|matchOn Pattern| Summarizer[Summarizer Agent<br/>OpenRouter]
 
             NLQ -->|Handoff| Analyst
             Analyst -->|Handoff| Reporter
             Reporter --> Verifier{Verifier}
             Advisor -->|GraphRAG| RAG[(Knowledge Base)]
+            Summarizer --> Verifier
         end
 
         Verifier --> Response2[Response]
@@ -132,6 +156,7 @@ graph TD
         NLQ --> Metrics[(Server Metrics)]
         Analyst --> Metrics
         Reporter --> RAG
+        Summarizer --> Metrics
         Orchestrator --> Cache[(Redis L2 Cache)]
     end
 
@@ -478,10 +503,11 @@ cloud-run/ai-engine/
 │       │       ├── index.ts    # Agent exports
 │       │       ├── orchestrator.ts      # Orchestrator with handoffs
 │       │       ├── orchestrator.test.ts # Unit tests (19 tests)
-│       │       ├── nlq-agent.ts         # NLQ (Groq → Cerebras fallback)
-│       │       ├── analyst-agent.ts     # Analyst (Mistral)
-│       │       ├── reporter-agent.ts    # Reporter (Mistral)
-│       │       └── advisor-agent.ts     # Advisor (Mistral + GraphRAG)
+│       │       ├── nlq-agent.ts         # NLQ (Cerebras → Groq fallback)
+│       │       ├── analyst-agent.ts     # Analyst (Groq → Cerebras fallback)
+│       │       ├── reporter-agent.ts    # Reporter (Groq → Cerebras fallback)
+│       │       ├── advisor-agent.ts     # Advisor (Mistral + GraphRAG)
+│       │       └── summarizer-agent.ts  # Summarizer (OpenRouter free models)
 │       ├── langgraph/          # LangGraph (Legacy - Deprecated)
 │       │   └── multi-agent-supervisor.ts
 │       ├── embedding/          # Embedding service

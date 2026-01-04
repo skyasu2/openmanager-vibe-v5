@@ -136,3 +136,105 @@ export const toolDescriptions = {
 
 export type ToolName = keyof typeof allTools;
 export type ToolCategory = keyof typeof toolCategories;
+
+// ============================================================================
+// Tool Validation
+// ============================================================================
+
+export interface ToolValidationResult {
+  isValid: boolean;
+  totalTools: number;
+  validTools: string[];
+  invalidTools: string[];
+  missingDescriptions: string[];
+  errors: string[];
+}
+
+/**
+ * Validate all tools at startup
+ * Checks:
+ * - Tool exists and is a function
+ * - Tool has a description
+ * - Tool categories are consistent
+ */
+export function validateTools(): ToolValidationResult {
+  const result: ToolValidationResult = {
+    isValid: true,
+    totalTools: 0,
+    validTools: [],
+    invalidTools: [],
+    missingDescriptions: [],
+    errors: [],
+  };
+
+  const toolNames = Object.keys(allTools) as ToolName[];
+  result.totalTools = toolNames.length;
+
+  for (const name of toolNames) {
+    const tool = allTools[name];
+
+    // Check if tool is defined
+    if (!tool) {
+      result.invalidTools.push(name);
+      result.errors.push(`Tool "${name}" is undefined`);
+      result.isValid = false;
+      continue;
+    }
+
+    // Check if tool has execute function (AI SDK tool interface)
+    if (typeof tool !== 'object' || !('execute' in tool || 'generate' in tool)) {
+      // Some tools might be wrapped differently, just warn
+      console.warn(`⚠️ [ToolValidation] Tool "${name}" may not have standard structure`);
+    }
+
+    // Check if tool has description
+    if (!toolDescriptions[name]) {
+      result.missingDescriptions.push(name);
+    }
+
+    result.validTools.push(name);
+  }
+
+  // Validate tool categories consistency
+  const categorizedTools = new Set<string>();
+  for (const category of Object.keys(toolCategories) as ToolCategory[]) {
+    const categoryTools = toolCategories[category];
+    for (const toolName of Object.keys(categoryTools)) {
+      categorizedTools.add(toolName);
+    }
+  }
+
+  // Find tools not in any category
+  for (const name of toolNames) {
+    if (!categorizedTools.has(name)) {
+      result.errors.push(`Tool "${name}" is not assigned to any category`);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Log tool validation result
+ */
+export function logToolValidation(): void {
+  const result = validateTools();
+
+  if (result.isValid) {
+    console.log(`✅ [ToolValidation] ${result.totalTools} tools validated successfully`);
+    console.log(`   Tools: [${result.validTools.join(', ')}]`);
+  } else {
+    console.error(`❌ [ToolValidation] Validation failed!`);
+    console.error(`   Invalid tools: [${result.invalidTools.join(', ')}]`);
+    for (const error of result.errors) {
+      console.error(`   - ${error}`);
+    }
+  }
+
+  if (result.missingDescriptions.length > 0) {
+    console.warn(`⚠️ [ToolValidation] Missing descriptions: [${result.missingDescriptions.join(', ')}]`);
+  }
+}
+
+// Run validation at module load (startup)
+logToolValidation();
