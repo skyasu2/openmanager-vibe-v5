@@ -64,6 +64,7 @@ export const getServerMetricsAdvancedResponseSchema = z.object({
     total: z.number(),
     matchedFromTotal: z.string(),
   }),
+  globalSummary: z.record(z.number()).describe('전체 서버 집계: cpu_avg, cpu_max, cpu_min 등'),
   timestamp: z.string(),
 });
 
@@ -276,23 +277,15 @@ export const getServerMetrics = tool({
  * - Clear response structure documentation
  */
 export const getServerMetricsAdvanced = tool({
-  description: `[시간 범위/집계 전용] 과거 데이터 조회, 평균/최대/최소 집계, 필터링을 지원합니다.
+  description: `시간 범위 집계 도구. "지난 N시간", "평균", "최대값" 질문에 사용.
 
-✅ 이 도구를 사용하세요: "지난 N시간", "평균", "최대값", "추이", "트렌드" 질문
-❌ 현재 상태만 필요하면: getServerMetrics 사용
+serverId 생략 시 전체 서버 조회. 응답에 globalSummary(전체 서버 평균/최대/최소) 포함.
 
-## 입력 예시
-1. 전체 서버 6시간 CPU 평균: { "timeRange": "last6h", "metric": "cpu", "aggregation": "avg" }
-2. CPU 높은 순 TOP 5: { "sortBy": "cpu", "sortOrder": "desc", "limit": 5 }
-3. 특정 서버 24시간 추이: { "serverId": "web-nginx-icn-01", "timeRange": "last24h" }
+예시:
+- "6시간 CPU 평균" → { "timeRange": "last6h", "metric": "cpu", "aggregation": "avg" }
+- "1시간 메모리 최대" → { "timeRange": "last1h", "metric": "memory", "aggregation": "max" }
 
-## 서버 ID 형식
-실제 ID 사용: "web-nginx-icn-01", "db-mysql-icn-primary", "api-was-icn-01"
-(화면 표시명 "Nginx Web Server 01" 대신 실제 ID 사용)
-
-## 사용 시나리오
-- "지난 6시간 CPU 평균" → { "timeRange": "last6h", "metric": "cpu", "aggregation": "avg" }
-- "최근 1시간 메모리 최대값" → { "timeRange": "last1h", "metric": "memory", "aggregation": "max" }`,
+출력: { servers: [...], globalSummary: { cpu_avg: 45.2, cpu_max: 89, cpu_min: 12 } }`,
   inputSchema: z.object({
     serverId: z
       .string()
@@ -449,6 +442,22 @@ export const getServerMetricsAdvanced = tool({
         filteredResults = filteredResults.slice(0, limit);
       }
 
+      // 6. Calculate global summary (across all servers)
+      const globalSummary: Record<string, number> = {};
+      if (filteredResults.length > 0) {
+        const metricsToSummarize = metric === 'all' ? ['cpu', 'memory', 'disk'] : [metric];
+        for (const m of metricsToSummarize) {
+          const values = filteredResults
+            .map((s) => s.metrics[m])
+            .filter((v) => v !== undefined);
+          if (values.length > 0) {
+            globalSummary[`${m}_avg`] = Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10;
+            globalSummary[`${m}_max`] = Math.max(...values);
+            globalSummary[`${m}_min`] = Math.min(...values);
+          }
+        }
+      }
+
       return {
         success: true,
         query: { timeRange, metric, aggregation, sortBy, limit },
@@ -457,6 +466,7 @@ export const getServerMetricsAdvanced = tool({
           total: filteredResults.length,
           matchedFromTotal: `${filteredResults.length}/${targetDatasets.length}`,
         },
+        globalSummary, // 전체 서버 집계 (LLM이 "전체 평균" 질문에 답변 가능)
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
