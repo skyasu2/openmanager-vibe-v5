@@ -557,7 +557,7 @@ ${
   const renderReportsTab = () => (
     <>
       {/* Filter */}
-      <div className="border-b border-red-200 bg-white/50 p-4">
+      <div className="border-b border-gray-200 bg-white/50 p-4">
         <div className="flex space-x-2">
           {[
             { id: 'all', label: '전체', count: reports.length },
@@ -872,7 +872,7 @@ ${
       </div>
 
       {/* Bottom stats */}
-      <div className="border-t border-red-200 bg-white/80 p-4 backdrop-blur-sm">
+      <div className="border-t border-gray-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <div className="text-lg font-bold text-red-600">
@@ -902,9 +902,9 @@ ${
   // ============================================================================
 
   return (
-    <div className="flex h-full flex-col bg-linear-to-br from-red-50 to-pink-50">
+    <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-pink-50">
       {/* Header */}
-      <div className="border-b border-red-200 bg-white/80 p-4 backdrop-blur-sm">
+      <div className="border-b border-gray-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-red-500 to-pink-500">

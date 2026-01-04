@@ -58,8 +58,9 @@ export const AIAssistantButton = memo(function AIAssistantButton({
         style={
           isMounted && (isOpen || isEnabled)
             ? {
+                // AI 텍스트 그라데이션과 동일 (blue-400 → purple-500 → pink-500)
                 background:
-                  'linear-gradient(90deg, #c084fc, #f472b6, #22d3ee, #c084fc)',
+                  'linear-gradient(90deg, #60a5fa, #a855f7, #ec4899, #60a5fa)',
                 backgroundSize: '200% 200%',
                 animation: 'gradient-shift 4s ease-in-out infinite',
               }
