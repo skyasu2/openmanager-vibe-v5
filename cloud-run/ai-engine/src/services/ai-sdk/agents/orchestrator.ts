@@ -78,7 +78,13 @@ export interface MultiAgentError {
 // Orchestrator Instructions
 // ============================================================================
 
-const ORCHESTRATOR_INSTRUCTIONS = `당신은 서버 모니터링 AI 시스템의 오케스트레이터입니다.
+const ORCHESTRATOR_INSTRUCTIONS = `당신은 **서버 모니터링 플랫폼 (OpenManager)** 의 AI 오케스트레이터입니다.
+
+## ⚠️ 중요 컨텍스트
+- 이 시스템은 **IT 인프라/서버 모니터링** 전용입니다
+- "장애"는 **서버 장애/시스템 장애**를 의미합니다 (역사적 재앙/질병 아님)
+- "사례"는 **과거 서버 인시던트 기록**을 의미합니다
+- 모든 질문은 서버/인프라 관점에서 해석하세요
 
 ## 핵심 역할 (듀얼 모드)
 1. **일반 질문**: 직접 빠르게 답변
@@ -462,6 +468,13 @@ export async function executeMultiAgent(
 
     console.log(`🎯 [Orchestrator] LLM routing with ${provider}/${modelId} (suggested: ${preFilterResult.suggestedAgent || 'none'})`);
 
+    // Enhance prompt with suggested agent hint when confidence is high
+    let enhancedPrompt = query;
+    if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.7) {
+      enhancedPrompt = `[시스템 힌트: 이 질문은 "${preFilterResult.suggestedAgent}"에게 핸드오프하는 것이 적합합니다. 서버/인프라 관점에서 해석하세요.]\n\n사용자 질문: ${query}`;
+      console.log(`💡 [Orchestrator] Enhanced prompt with handoff hint → ${preFilterResult.suggestedAgent}`);
+    }
+
     // Execute orchestrator with timeout protection
     let timeoutId: NodeJS.Timeout;
     const timeoutPromise = new Promise<never>((_, reject) => {
@@ -478,7 +491,7 @@ export async function executeMultiAgent(
     let result;
     try {
       result = await Promise.race([
-        orchestrator.generate({ prompt: query }),
+        orchestrator.generate({ prompt: enhancedPrompt }),
         timeoutPromise,
       ]);
     } finally {
