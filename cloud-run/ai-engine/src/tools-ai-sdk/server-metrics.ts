@@ -12,6 +12,30 @@ import { tool } from 'ai';
 import { z } from 'zod';
 
 // ============================================================================
+// Cache Key Utilities
+// ============================================================================
+
+/**
+ * Create stable cache key from filter array
+ * Ensures consistent key order in objects and sorted array items
+ */
+function stableStringify(filters: Array<Record<string, unknown>> | undefined): string {
+  if (!filters || filters.length === 0) return '[]';
+
+  // Sort each object's keys and stringify, then sort array by resulting strings
+  const normalized = filters.map(filter => {
+    const sortedKeys = Object.keys(filter).sort();
+    const sortedObj: Record<string, unknown> = {};
+    for (const key of sortedKeys) {
+      sortedObj[key] = filter[key];
+    }
+    return JSON.stringify(sortedObj);
+  }).sort();
+
+  return `[${normalized.join(',')}]`;
+}
+
+// ============================================================================
 // Response Schemas (Best Practice: Structured Output Documentation)
 // ============================================================================
 
@@ -355,7 +379,8 @@ export const getServerMetricsAdvanced = tool({
   }) => {
     const cache = getDataCache();
     // Cache key: combine all parameters that affect the result
-    const cacheKey = `adv:${serverId || 'all'}:${timeRange}:${metric}:${aggregation}:${sortBy || 'none'}:${sortOrder}:${limit || 0}:${JSON.stringify(filters || [])}`;
+    // Use stableStringify for filters to ensure consistent key order
+    const cacheKey = `adv:${serverId || 'all'}:${timeRange}:${metric}:${aggregation}:${sortBy || 'none'}:${sortOrder}:${limit || 0}:${stableStringify(filters)}`;
 
     return cache.getOrCompute('metrics', cacheKey, async () => {
     console.log(`📊 [getServerMetricsAdvanced] Computing for ${cacheKey} (cache miss)`);
