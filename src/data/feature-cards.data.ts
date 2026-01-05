@@ -195,7 +195,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     detailedContent: {
       overview: `Vibe Coding의 4단계 진화. [1단계] GPT 수동 코딩/Netlify 목업 → [2단계] Cursor 자동 개발 → [3단계] 분기점: Windsurf/VSCode는 스크린샷 분석 등 보조로 물러나고, WSL + Claude Code가 메인이 됨 → [4단계] 현재: WSL 환경에서 Claude Code(Main), Codex, Gemini, Qwen, Kiro-CLI가 협업하며, Google Antigravity(Agent-first IDE)가 함께하는 Agentic Era.`,
       features: [
-        '1️⃣ Stage 1 (Manual): GPT/Gemini 창에서 수동 코딩 → [Netlify 목업](https://openmanager-vibe-v2.netlify.app/) ([GitHub](https://github.com/skyasu2/openmanager-vibe-v2))',
+        '1️⃣ Stage 1 (Manual): GPT/Gemini 창에서 수동 코딩 → [Netlify 목업](https://openmanager-vibe-v2.netlify.app/)',
         '2️⃣ Stage 2 (Auto): Cursor의 등장, "IDE 자동 개발"의 시작',
         '3️⃣ Stage 3 (Pivot): IDE는 보조(시각 분석)로, 메인은 WSL + Claude Code로 이동',
         '4️⃣ Stage 4 (Current): WSL 위의 Multi-CLI (Codex/Gemini/Qwen/Kiro) + Google Antigravity',
