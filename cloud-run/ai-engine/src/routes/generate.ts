@@ -11,6 +11,7 @@ import { Hono } from 'hono';
 import type { Context } from 'hono';
 import { generateService } from '../services/generate/generate-service';
 import { handleApiError, handleValidationError, jsonSuccess } from '../lib/error-handler';
+import { sanitizeChineseCharacters } from '../lib/text-sanitizer';
 
 export const generateRouter = new Hono();
 
@@ -26,6 +27,12 @@ generateRouter.post('/', async (c: Context) => {
     }
 
     const result = await generateService.generate(prompt, options || {});
+
+    // Sanitize Chinese characters from LLM output
+    if (result && typeof result === 'object' && 'text' in result) {
+      (result as { text: string }).text = sanitizeChineseCharacters((result as { text: string }).text);
+    }
+
     return c.json(result);
   } catch (error) {
     return handleApiError(c, error, 'Generate');

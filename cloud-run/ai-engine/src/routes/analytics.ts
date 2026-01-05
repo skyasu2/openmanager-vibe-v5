@@ -22,6 +22,7 @@ import {
 } from '../tools-ai-sdk';
 import { getCurrentState } from '../data/precomputed-state';
 import { handleApiError, jsonSuccess } from '../lib/error-handler';
+import { sanitizeChineseCharacters, sanitizeJsonStrings } from '../lib/text-sanitizer';
 import { reporterAgent } from '../services/ai-sdk/agents/reporter-agent';
 import { analystAgent } from '../services/ai-sdk/agents/analyst-agent';
 import {
@@ -109,8 +110,11 @@ JSON 형식으로 응답하세요:
 
         const agentResult = await analystAgent.generate({ prompt });
 
+        // Sanitize Chinese characters from LLM output
+        const sanitizedText = sanitizeChineseCharacters(agentResult.text);
+
         // Try to parse JSON from agent response
-        const jsonMatch = agentResult.text.match(/\{[\s\S]*\}/);
+        const jsonMatch = sanitizedText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
             const insights = JSON.parse(jsonMatch[0]);
@@ -120,9 +124,9 @@ JSON 형식으로 응답하세요:
               confidence: insights.confidence || 0.8,
             };
           } catch {
-            // If JSON parse fails, use text as summary
+            // If JSON parse fails, use sanitized text as summary
             results.aiInsights = {
-              summary: agentResult.text.slice(0, 200),
+              summary: sanitizedText.slice(0, 200),
               recommendations: [],
               confidence: 0.7,
             };
@@ -248,8 +252,9 @@ ${metricsContext}
     const durationMs = Date.now() - startTime;
     console.log(`✅ [Incident Report] Agent completed in ${durationMs}ms`);
 
-    // 4. Parse JSON from agent response
-    const agentReport = parseAgentJsonResponse(result.text, toolBasedData);
+    // 4. Sanitize Chinese characters and parse JSON from agent response
+    const sanitizedText = sanitizeChineseCharacters(result.text);
+    const agentReport = parseAgentJsonResponse(sanitizedText, toolBasedData);
 
     // 5. Merge tool-based data with agent response (agent takes precedence for text fields)
     const finalReport = {
@@ -272,7 +277,7 @@ ${metricsContext}
         : toolBasedData.recommendations,
       pattern: agentReport.pattern || toolBasedData.pattern,
       created_at: new Date().toISOString(),
-      _agentResponse: result.text,
+      _agentResponse: sanitizedText,
       _source: 'Reporter Agent + Tool Data (Hybrid)',
       _durationMs: durationMs,
     };

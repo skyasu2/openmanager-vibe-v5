@@ -11,6 +11,7 @@ import { Hono } from 'hono';
 import type { Context } from 'hono';
 import { executeSupervisor, checkSupervisorHealth, logProviderStatus } from '../services/ai-sdk';
 import { handleApiError, handleValidationError, jsonSuccess } from '../lib/error-handler';
+import { sanitizeChineseCharacters } from '../lib/text-sanitizer';
 
 export const supervisorRouter = new Hono();
 
@@ -53,8 +54,11 @@ supervisorRouter.post('/', async (c: Context) => {
       }, 500);
     }
 
+    // Sanitize Chinese characters from LLM output
+    const sanitizedResponse = sanitizeChineseCharacters(result.response);
+
     return jsonSuccess(c, {
-      response: result.response,
+      response: sanitizedResponse,
       toolsCalled: result.toolsCalled,
       usage: result.usage,
       metadata: result.metadata,

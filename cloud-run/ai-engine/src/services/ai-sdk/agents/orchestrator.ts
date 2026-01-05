@@ -12,6 +12,7 @@
 
 import { Agent } from '@ai-sdk-tools/agents';
 import { getCerebrasModel, getGroqModel, checkProviderStatus } from '../model-provider';
+import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
 import { nlqAgent } from './nlq-agent';
 import { analystAgent } from './analyst-agent';
 import { reporterAgent } from './reporter-agent';
@@ -143,6 +144,7 @@ const ORCHESTRATOR_INSTRUCTIONS = `당신은 서버 모니터링 AI 시스템의
 2. **서버 관련 질문만 핸드오프**
 3. 불명확하지만 서버 관련인 것 같으면 → NLQ Agent
 4. 핸드오프 시 reason 명시
+5. **한국어로 응답 / Respond in Korean** (한자 절대 금지 / No Chinese characters, 러시아어/독일어/일본어/베트남어 등 다른 언어 금지, 기술용어는 영어 허용)
 `;
 
 // ============================================================================
@@ -176,6 +178,8 @@ const SERVER_KEYWORDS = [
   '이상', '분석', '예측', '트렌드', '장애', '보고서', '리포트',
   '해결', '명령어', '요약', '모니터링', 'server', '알람', '경고',
   '평균', '최대', '최소', '지난', '시간', '전체',
+  // 추가: 장애 사례, 이력 관련 키워드
+  '사례', '이력', '과거', '유사', '인시던트', 'incident',
 ];
 
 /**
@@ -267,7 +271,7 @@ export function preFilterQuery(query: string): PreFilterResult {
       suggestedAgent = 'Analyst Agent';
     } else if (/보고서|리포트|타임라인|인시던트/.test(query)) {
       suggestedAgent = 'Reporter Agent';
-    } else if (/해결|방법|명령어|가이드|어떻게/.test(query)) {
+    } else if (/해결|방법|명령어|가이드|어떻게|과거.*사례|사례.*찾|이력|유사/.test(query)) {
       suggestedAgent = 'Advisor Agent';
     } else if (/요약|간단히|핵심|TL;?DR/i.test(query)) {
       suggestedAgent = 'Summarizer Agent';
@@ -504,13 +508,16 @@ export async function executeMultiAgent(
       }
     }
 
+    // Sanitize Chinese/other foreign characters from LLM output
+    const sanitizedResponse = sanitizeChineseCharacters(result.text);
+
     console.log(
       `✅ [Orchestrator] Completed in ${durationMs}ms, final agent: ${result.finalAgent}, tools: [${toolsCalled.join(', ')}]`
     );
 
     return {
       success: true,
-      response: result.text,
+      response: sanitizedResponse,
       handoffs,
       finalAgent: result.finalAgent || 'Orchestrator',
       toolsCalled,

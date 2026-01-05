@@ -122,6 +122,7 @@ function createAdvisorAgent() {
         '사례',
         '이력',
         '비슷한',
+        '유사',
         // Patterns
         /어떻게.*해결|해결.*방법/i,
         /명령어.*알려|추천.*명령/i,
