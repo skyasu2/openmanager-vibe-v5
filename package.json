@@ -160,7 +160,7 @@
     "next": "^16.1.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-error-boundary": "^6.0.1",
+    "react-error-boundary": "^6.0.2",
     "react-hot-toast": "^2.6.0",
     "react-markdown": "^10.1.0",
     "recharts": "^3.6.0",
