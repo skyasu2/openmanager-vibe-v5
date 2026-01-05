@@ -126,11 +126,11 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'cloud-platform',
     title: '🏗️ 클라우드 플랫폼 활용',
     description:
-      'Vercel(웹) · Supabase(DB) · Google Cloud(AI) · Upstash(Redis) 통합. 각 서비스의 장점을 활용하여 배포했습니다.',
+      'Vercel(Frontend) + Cloud Run(Backend) 분산 아키텍처. 4개 플랫폼을 연동해 하나의 시스템으로 동작시킨 통합 구현.',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview: `Vercel, Supabase, GCP Cloud Run, Upstash 4대 플랫폼 완전 통합! 웹은 Vercel Edge, 데이터는 Supabase, AI는 Google Cloud Run, 캐시는 Upstash Redis에 분산 배포되어 최상의 성능과 안정성을 보장합니다.`,
+      overview: `4개의 서로 다른 클라우드 플랫폼을 연동하여 하나의 시스템으로 동작시킨 하이브리드 아키텍처입니다. Vercel(Frontend) + Cloud Run(Backend AI Engine) 분리 설계로 프론트엔드와 백엔드를 독립적으로 스케일링합니다. Supabase(DB+Vector)와 Upstash(Cache)가 데이터 계층을 담당합니다.`,
       features: [
         '▲ Vercel: Next.js 16 최적화 호스팅, 글로벌 CDN, Edge Runtime, 자동 스케일링',
         '🐘 Supabase: PostgreSQL 15 + pgVector(AI 벡터 검색) + RLS(행 수준 보안)',
