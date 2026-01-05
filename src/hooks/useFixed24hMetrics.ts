@@ -37,31 +37,44 @@ export interface HistoryDataPoint {
 const MAX_HISTORY_POINTS = 60;
 
 /**
+ * 다음 10분 단위(00, 10, 20, 30, 40, 50분)까지 남은 밀리초 계산
+ * @returns 다음 10분 정시까지 남은 ms (최소 1000ms 보장)
+ */
+function getMillisToNextTenMinutes(): number {
+  const now = new Date();
+  const minutes = now.getMinutes();
+  const seconds = now.getSeconds();
+  const ms = now.getMilliseconds();
+
+  // 다음 10분 단위까지 남은 분
+  const minutesToNext = 10 - (minutes % 10);
+  // 총 남은 밀리초
+  const totalMs = minutesToNext * 60 * 1000 - seconds * 1000 - ms;
+
+  // 최소 1초 보장 (즉시 실행 방지)
+  return Math.max(totalMs, 1000);
+}
+
+/**
  * 24시간 JSON 데이터 + 1분 선형 보간 훅
  *
  * @param serverId 서버 ID (예: "web-prod-01", "api-prod-01")
  * @param updateInterval 업데이트 주기 (밀리초, 기본 600000 = 10분)
+ *                       'sync' 전달 시 정시 10분 단위에만 갱신 (00, 10, 20, 30, 40, 50분)
  * @returns 실시간 메트릭 + 히스토리 데이터
  *
  * @example
  * ```tsx
- * const { currentMetrics, historyData, isLoading, error } = useFixed24hMetrics('web-prod-01');
+ * // 기본 사용 (10분 간격)
+ * const { currentMetrics, historyData } = useFixed24hMetrics('web-prod-01');
  *
- * if (isLoading) return <div>Loading...</div>;
- * if (error) return <div>Error: {error}</div>;
- *
- * return (
- *   <div>
- *     <p>CPU: {currentMetrics?.cpu}%</p>
- *     <p>Status: {currentMetrics?.status}</p>
- *     <p>{currentMetrics?.isInterpolated ? '보간값' : '실제값'}</p>
- *   </div>
- * );
+ * // 정시 동기화 모드 (모달용 - 10, 20, 30... 분에만 갱신)
+ * const { currentMetrics, historyData } = useFixed24hMetrics('web-prod-01', 'sync');
  * ```
  */
 export function useFixed24hMetrics(
   serverId: string,
-  updateInterval: number = 600000 // 10분 (JSON 데이터 10분 간격에 맞춤)
+  updateInterval: number | 'sync' = 600000 // 10분 or 'sync' (정시 동기화)
 ) {
   const [currentMetrics, setCurrentMetrics] = useState<Server | null>(null);
   const [historyData, setHistoryData] = useState<HistoryDataPoint[]>([]);
@@ -203,17 +216,42 @@ export function useFixed24hMetrics(
   useEffect(() => {
     isMountedRef.current = true;
 
-    // 초기 로드
+    // 초기 로드 (모달 열릴 때 즉시 갱신)
     void updateMetrics();
 
-    // 자동 업데이트 (기본 1분)
-    const intervalId = setInterval(() => {
-      void updateMetrics();
-    }, updateInterval);
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    if (updateInterval === 'sync') {
+      // 🕐 정시 동기화 모드: 10, 20, 30, 40, 50, 00분에만 갱신
+      // 1. 다음 10분 정시까지 대기
+      const msToNext = getMillisToNextTenMinutes();
+
+      timeoutId = setTimeout(() => {
+        if (!isMountedRef.current) return;
+        void updateMetrics();
+
+        // 2. 이후 10분마다 갱신
+        intervalId = setInterval(
+          () => {
+            if (isMountedRef.current) {
+              void updateMetrics();
+            }
+          },
+          10 * 60 * 1000
+        ); // 10분
+      }, msToNext);
+    } else {
+      // 기존 동작: 지정된 간격으로 갱신
+      intervalId = setInterval(() => {
+        void updateMetrics();
+      }, updateInterval);
+    }
 
     return () => {
       isMountedRef.current = false;
-      clearInterval(intervalId);
+      if (timeoutId) clearTimeout(timeoutId);
+      if (intervalId) clearInterval(intervalId);
     };
   }, [updateInterval, updateMetrics]);
 

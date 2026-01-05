@@ -48,10 +48,11 @@ export default function EnhancedServerModal({
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   // 🕒 Fixed 24h Metrics Hook (Client & AI Synchronization)
-  // 30초 주기로 변경: 3초는 과도한 리렌더링 유발 (flickering 방지)
+  // 정시 동기화 모드: 모달 열릴 때 즉시 로드 + 10분 정시(10,20,30,40,50,00분)에만 갱신
+  // hourly-data JSON이 10분 단위이므로 낭비 없는 최적화
   const { currentMetrics, historyData } = useFixed24hMetrics(
     server?.id || '',
-    30000 // 30초 주기 업데이트 (was: 3000ms)
+    'sync' // 정시 동기화 모드 (was: 30000ms)
   );
 
   // 📅 마지막 업데이트 시간 (메트릭 변경시에만 갱신 - flickering 방지)
