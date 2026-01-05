@@ -11,7 +11,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'ai-assistant-pro',
     title: '🧠 AI Assistant',
     description:
-      'Cerebras · Groq · Mistral · OpenRouter 4-Provider 기반 6-Agent 시스템. Isolation Forest ML 엔진 + LlamaIndex.TS GraphRAG.',
+      '4개 AI 프로바이더 + 6개 전문 에이전트로 서버 장애를 실시간 분석. ML 이상 탐지 + 과거 장애 이력 검색(GraphRAG) 지원.',
     icon: Bot,
     gradient: 'from-indigo-500 via-purple-500 to-pink-500',
     detailedContent: {
