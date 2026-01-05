@@ -83,6 +83,10 @@ const FOREIGN_TO_KOREAN_MAP: Record<string, string> = {
   // Japanese Katakana/Hiragana (common mixed outputs)
   'セント': '세인트',
   'ヘレンス': '헬렌스',
+  // Turkish (Latin with diacritics)
+  'önemli': '중요한',
+  'öğren': '배우다',
+  'güzel': '아름다운',
   // Common artifacts
   '_UNUSED_': '',
 };
@@ -100,14 +104,15 @@ export function containsChineseCharacters(text: string): boolean {
 }
 
 /**
- * Check if text contains other foreign characters (Cyrillic, Japanese, Vietnamese tones, etc.)
+ * Check if text contains other foreign characters (Cyrillic, Japanese, Thai, Arabic, etc.)
  */
 export function containsForeignCharacters(text: string): boolean {
   // Cyrillic: U+0400-U+04FF
   // Japanese Hiragana: U+3040-U+309F
   // Japanese Katakana: U+30A0-U+30FF
-  // Vietnamese tones are in Latin Extended (hard to detect without context)
-  return /[\u0400-\u04FF\u3040-\u309F\u30A0-\u30FF]/.test(text);
+  // Thai: U+0E00-U+0E7F
+  // Arabic: U+0600-U+06FF
+  return /[\u0400-\u04FF\u3040-\u309F\u30A0-\u30FF\u0E00-\u0E7F\u0600-\u06FF]/.test(text);
 }
 
 /**
@@ -162,15 +167,15 @@ export function sanitizeChineseCharacters(text: string): string {
     result = result.replace(/[\u4E00-\u9FFF]+/g, '');
   }
 
-  // 4. If other foreign characters remain (Cyrillic, Japanese), remove them
+  // 4. If other foreign characters remain (Cyrillic, Japanese, Thai, Arabic), remove them
   if (containsForeignCharacters(result)) {
-    const remaining = result.match(/[\u0400-\u04FF\u3040-\u309F\u30A0-\u30FF]+/g);
+    const remaining = result.match(/[\u0400-\u04FF\u3040-\u309F\u30A0-\u30FF\u0E00-\u0E7F\u0600-\u06FF]+/g);
     if (remaining) {
       console.warn(
         `⚠️ [TextSanitizer] Unknown foreign characters detected: ${remaining.join(', ')}. Consider adding to mapping.`
       );
     }
-    result = result.replace(/[\u0400-\u04FF\u3040-\u309F\u30A0-\u30FF]+/g, '');
+    result = result.replace(/[\u0400-\u04FF\u3040-\u309F\u30A0-\u30FF\u0E00-\u0E7F\u0600-\u06FF]+/g, '');
   }
 
   // 5. Clean up any double spaces or orphaned punctuation
