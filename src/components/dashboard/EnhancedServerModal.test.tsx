@@ -179,7 +179,8 @@ describe('🎯 EnhancedServerModal - User Event 테스트', () => {
     it('metrics 탭 클릭 시 탭이 전환된다', () => {
       render(<EnhancedServerModal server={mockServer} onClose={mockOnClose} />);
 
-      const metricsTabButton = screen.getByRole('button', {
+      // 탭은 role="tab"을 사용
+      const metricsTabButton = screen.getByRole('tab', {
         name: /성능 분석/,
       });
       fireEvent.click(metricsTabButton);
@@ -192,7 +193,8 @@ describe('🎯 EnhancedServerModal - User Event 테스트', () => {
     it('logs 탭 클릭 시 탭이 전환된다', () => {
       render(<EnhancedServerModal server={mockServer} onClose={mockOnClose} />);
 
-      const logsTabButton = screen.getByRole('button', { name: /로그/ });
+      // 탭은 role="tab"을 사용
+      const logsTabButton = screen.getByRole('tab', { name: /로그/ });
       fireEvent.click(logsTabButton);
 
       // LogsTab과 NetworkTab이 표시됨 (통합 탭)

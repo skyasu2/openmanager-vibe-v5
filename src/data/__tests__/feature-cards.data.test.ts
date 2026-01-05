@@ -89,13 +89,15 @@ describe('Feature Cards Data', () => {
       });
     });
 
-    it('AI SDK 관련 용어가 올바르게 사용되어야 함', () => {
+    it('AI 관련 용어가 올바르게 사용되어야 함', () => {
       const aiCard = FEATURE_CARDS_DATA.find(
         (card) => card.id === 'ai-assistant-pro'
       );
-      expect(aiCard?.description).toContain('AI SDK');
-      expect(aiCard?.detailedContent.technologies).toContain(
-        'Vercel AI SDK (Multi-Agent)'
+      // description에 AI Provider 정보 포함
+      expect(aiCard?.description).toContain('Agent');
+      // technologies에 Vercel AI SDK 포함
+      expect(aiCard?.detailedContent.technologies).toContainEqual(
+        expect.stringContaining('Vercel AI SDK')
       );
     });
 

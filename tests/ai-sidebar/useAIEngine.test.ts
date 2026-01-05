@@ -122,7 +122,7 @@ describe('useAIEngine (v4.0 - UNIFIED 전용)', () => {
     const description = result.current.getEngineDescription();
     expect(description).toContain('Supabase RAG');
     expect(description).toContain('ML');
-    expect(description).toContain('Google AI Gemini');
+    expect(description).toContain('Cloud Run AI');
     expect(description).toContain('자동 라우팅');
   });
 

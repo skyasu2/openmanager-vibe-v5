@@ -80,6 +80,58 @@ vi.mock('@/services/ai/embedding-service', () => ({
   },
 }));
 
+// UnifiedServerDataSource Mock - 테스트용 서버 데이터 포함
+const mockServerData = {
+  id: 'server-1',
+  name: 'Web Server 01',
+  hostname: 'web01.example.com',
+  type: 'web',
+  environment: 'production',
+  location: '서울',
+  provider: 'AWS',
+  status: 'online',
+  cpu: 45.2,
+  memory: 62.8,
+  disk: 73.5,
+  network: 28.9,
+  uptime: '24h 30m',
+  lastUpdate: new Date(),
+  services: [],
+  incidents: [],
+};
+
+vi.mock('@/services/data/UnifiedServerDataSource', () => ({
+  UnifiedServerDataSource: {
+    getInstance: vi.fn(() => ({
+      getServers: vi.fn().mockResolvedValue([mockServerData]),
+      getServerById: vi.fn().mockImplementation((id: string) => {
+        if (id === 'server-1') return Promise.resolve(mockServerData);
+        return Promise.resolve(null);
+      }),
+      getMetrics: vi
+        .fn()
+        .mockResolvedValue({ cpu: 50, memory: 60, disk: 70, network: 30 }),
+      getHistoricalMetrics: vi.fn().mockResolvedValue([
+        {
+          cpu: 45,
+          memory: 60,
+          disk: 70,
+          network: 25,
+          timestamp: Date.now() - 60000,
+        },
+        {
+          cpu: 48,
+          memory: 62,
+          disk: 71,
+          network: 28,
+          timestamp: Date.now() - 30000,
+        },
+        { cpu: 50, memory: 60, disk: 70, network: 30, timestamp: Date.now() },
+      ]),
+    })),
+  },
+}));
+
 // Logger Mock
 vi.mock('@/lib/logger', () => ({
   logger: {

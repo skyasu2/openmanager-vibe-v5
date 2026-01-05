@@ -83,9 +83,12 @@ describe('AIWorkspace', () => {
   it('renders AI workspace interface', () => {
     render(<AIWorkspace />);
 
-    // Check for key UI elements
-    expect(screen.getByTestId('logo')).toBeInTheDocument();
-    expect(screen.getByText('New Chat')).toBeInTheDocument();
+    // Check for key UI elements (로고는 desktop/mobile 두 곳에 표시될 수 있음)
+    const logos = screen.getAllByTestId('logo');
+    expect(logos.length).toBeGreaterThan(0);
+    // 새 대화 버튼 (한국어)
+    expect(screen.getByText('새 대화')).toBeInTheDocument();
+    // Features 섹션 레이블
     expect(screen.getByText('Features')).toBeInTheDocument();
   });
 
@@ -115,6 +118,7 @@ describe('AIWorkspace', () => {
     render(<AIWorkspace />);
 
     // Component should render without errors during streaming state
-    expect(screen.getByTestId('logo')).toBeInTheDocument();
+    const logos = screen.getAllByTestId('logo');
+    expect(logos.length).toBeGreaterThan(0);
   });
 });

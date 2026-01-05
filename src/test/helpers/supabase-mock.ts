@@ -234,29 +234,35 @@ export function createSupabaseMock(builder?: SupabaseMockBuilder) {
     ? builder.build()
     : SupabaseMockBuilder.createDefault();
 
-  return {
-    supabase: {
-      from: vi.fn(() => queryBuilder),
-      rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
-      storage: {
-        from: vi.fn(() => ({
-          upload: vi.fn().mockResolvedValue({ data: null, error: null }),
-          download: vi.fn().mockResolvedValue({ data: null, error: null }),
-          list: vi.fn().mockResolvedValue({ data: [], error: null }),
-          remove: vi.fn().mockResolvedValue({ data: null, error: null }),
-        })),
-      },
-      auth: {
-        getUser: vi
-          .fn()
-          .mockResolvedValue({ data: { user: null }, error: null }),
-        getSession: vi
-          .fn()
-          .mockResolvedValue({ data: { session: null }, error: null }),
-        signIn: vi.fn().mockResolvedValue({ data: null, error: null }),
-        signOut: vi.fn().mockResolvedValue({ error: null }),
-      },
+  const mockClient = {
+    from: vi.fn(() => queryBuilder),
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+    storage: {
+      from: vi.fn(() => ({
+        upload: vi.fn().mockResolvedValue({ data: null, error: null }),
+        download: vi.fn().mockResolvedValue({ data: null, error: null }),
+        list: vi.fn().mockResolvedValue({ data: [], error: null }),
+        remove: vi.fn().mockResolvedValue({ data: null, error: null }),
+      })),
     },
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: null }, error: null }),
+      signIn: vi.fn().mockResolvedValue({ data: null, error: null }),
+      signOut: vi.fn().mockResolvedValue({ error: null }),
+      onAuthStateChange: vi.fn().mockReturnValue({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      }),
+    },
+  };
+
+  return {
+    supabase: mockClient,
+    // 함수형 export 지원
+    getSupabase: vi.fn(() => mockClient),
+    getSupabaseClient: vi.fn(() => mockClient),
   };
 }
 

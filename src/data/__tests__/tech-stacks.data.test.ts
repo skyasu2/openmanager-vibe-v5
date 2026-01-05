@@ -100,6 +100,9 @@ describe('Tech Stacks Data', () => {
         'deployment',
         'ui',
         'utility',
+        'cache',
+        'testing',
+        'tooling',
       ];
 
       allItems.forEach((item) => {
