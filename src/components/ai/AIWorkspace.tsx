@@ -211,7 +211,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => router.push('/ai')}
-              className="text-gray-500 hover:text-gray-900 transition-colors"
+              className="text-gray-500 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-md p-1"
               title="전체 화면으로 보기"
             >
               <Maximize2 className="h-5 w-5" />
@@ -219,7 +219,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             {onClose && (
               <button
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-900 transition-colors"
+                className="text-gray-500 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-md p-1"
                 title="닫기"
               >
                 <ArrowLeftFromLine className="h-5 w-5" />
@@ -284,7 +284,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           <OpenManagerLogo variant="light" showSubtitle={false} href="/" />
           <button
             onClick={handleNewSession}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
             title="새 대화 시작"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -353,7 +353,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+              className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
               title="뒤로 가기"
             >
               <ArrowLeftFromLine className="h-5 w-5" />
@@ -363,7 +363,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           <div className="flex items-center gap-3">
             <button
               onClick={handleNewSession}
-              className="rounded-lg border border-gray-200 bg-white p-2 text-gray-500 hover:bg-gray-50 transition-colors shadow-sm"
+              className="rounded-lg border border-gray-200 bg-white p-2 text-gray-500 hover:bg-gray-50 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
               title="새 대화"
             >
               <Plus className="h-4 w-4" />
@@ -401,7 +401,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               {selectedFunction === 'chat' && (
                 <button
                   onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
-                  className="hidden lg:flex rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  className="hidden lg:flex rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
                   title="시스템 컨텍스트 패널 토글"
                 >
                   {isRightPanelOpen ? (

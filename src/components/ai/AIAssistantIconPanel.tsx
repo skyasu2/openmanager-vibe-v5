@@ -113,7 +113,7 @@ export default function AIAssistantIconPanel({
               key={item.id}
               data-testid={`ai-function-${item.id}`}
               onClick={() => onFunctionChange(item.id)}
-              className={`group relative h-12 w-12 shrink-0 rounded-xl transition-all duration-200 active:scale-95 ${
+              className={`group relative h-12 w-12 shrink-0 rounded-xl transition-all duration-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 ${
                 isSelected
                   ? `bg-linear-to-r ${item.gradient} scale-105 text-white shadow-lg`
                   : `${item.bgColor} ${item.color}`
@@ -136,7 +136,7 @@ export default function AIAssistantIconPanel({
         <button
           onClick={() => router.push('/dashboard/ai-assistant')}
           data-testid="ai-fullscreen-button"
-          className="group relative h-12 w-12 shrink-0 rounded-xl bg-gray-50 text-gray-600 transition-all duration-200 active:scale-95 hover:bg-gray-100"
+          className="group relative h-12 w-12 shrink-0 rounded-xl bg-gray-50 text-gray-600 transition-all duration-200 active:scale-95 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
         >
           <Maximize className="mx-auto h-5 w-5" aria-hidden="true" />
         </button>
@@ -168,7 +168,7 @@ export default function AIAssistantIconPanel({
               key={item.id}
               data-testid={`ai-function-${item.id}`}
               onClick={() => onFunctionChange(item.id)}
-              className={`animate-fade-in group relative h-12 w-12 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+              className={`animate-fade-in group relative h-12 w-12 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 ${
                 isSelected
                   ? `bg-linear-to-r ${item.gradient} scale-105 text-white shadow-lg`
                   : `${item.bgColor} ${item.color}`
