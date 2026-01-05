@@ -80,6 +80,8 @@ const FOREIGN_TO_KOREAN_MAP: Record<string, string> = {
   'und': '및',
   'unterstüt': '지원',
   'unterstützen': '지원하다',
+  'Lösung': '해결책',
+  'lösung': '해결책',
   // Japanese Katakana/Hiragana (common mixed outputs)
   'セント': '세인트',
   'ヘレンス': '헬렌스',
