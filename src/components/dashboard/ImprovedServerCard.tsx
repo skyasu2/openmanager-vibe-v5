@@ -158,9 +158,16 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     );
 
     return (
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => onClick(safeServer)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick(safeServer);
+          }
+        }}
         onMouseEnter={() => {
           setIsHovered(true);
           if (enableProgressiveDisclosure) setShowSecondaryInfo(true);
@@ -379,7 +386,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               )}
             </div>
           )}
-      </button>
+      </div>
     );
   }
 );
