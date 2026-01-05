@@ -75,20 +75,18 @@ test.describe('🧭 게스트 대시보드 핵심 플로우', () => {
 
     // Server cards: 서버 이름 패턴 (api-was-*, web-*, db-*, cache-*, storage-*, lb-*)
     // hourly-data에서 로드되는 실제 서버 ID 패턴에 맞춤
-    const serverCardLocator = page
-      .locator('h3')
-      .filter({
-        hasText:
-          /api-was|web-nginx|db-mysql|cache-redis|storage-|lb-haproxy|server/i,
-      })
-      .first();
-    await serverCardLocator.waitFor({
+    // AI Review (Qwen): 서버 카드 패턴으로 직접 카운트하는 것이 더 정확함
+    const serverCardLocators = page.locator('h3').filter({
+      hasText:
+        /api-was|web-nginx|db-mysql|cache-redis|storage-|lb-haproxy|server/i,
+    });
+    await serverCardLocators.first().waitFor({
       state: 'visible',
       timeout: TIMEOUTS.NETWORK_REQUEST, // 30초 - API 응답 대기
     });
 
-    // 서버 카드 수 확인 (Core Metrics 섹션이 있는 카드)
-    const cardCount = await page.locator('text=Core Metrics').count();
+    // 서버 카드 수 정확히 확인 (서버 이름 패턴 기반)
+    const cardCount = await serverCardLocators.count();
     console.log(`📊 대시보드 서버 카드 수: ${cardCount}`);
     expect(cardCount).toBeGreaterThan(0);
   });
