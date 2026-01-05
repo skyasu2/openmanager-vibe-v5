@@ -61,12 +61,12 @@ test.describe('🧭 게스트 대시보드 핵심 플로우', () => {
     await page.waitForURL(/\/(dashboard|main)/, {
       timeout: 45000, // 30초 → 45초 증가
     });
-    // Dashboard container: look for dashboard-specific content (System Health or Total servers)
-    // "Resource Overview" → "System Health"로 변경됨 (DashboardSummary.tsx 리팩토링)
+    // Dashboard container: look for dashboard-specific content (시스템 상태 or 전체 servers)
+    // "Resource Overview" → "시스템 상태"로 변경됨 (DashboardSummary.tsx 한국어화)
     const dashboardIndicator = page
-      .locator('text=System Health')
-      .or(page.locator('text=Total'))
-      .or(page.locator('text=Online'))
+      .locator('text=시스템 상태')
+      .or(page.locator('text=전체'))
+      .or(page.locator('text=온라인'))
       .or(page.locator('[class*="DashboardSummary"]'))
       .first();
     await expect(dashboardIndicator).toBeVisible({

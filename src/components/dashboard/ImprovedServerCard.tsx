@@ -29,9 +29,11 @@ import { AIInsightBadge } from '../shared/AIInsightBadge';
 import { MiniLineChart } from '../shared/MiniLineChart';
 
 /**
- * 🎨 White Mode Glassmorphism Server Card
- * - 반투명 유리 효과 (backdrop-blur)
+ * 🎨 Premium Server Card v2.0
+ * - 랜딩 페이지 스타일 그라데이션 애니메이션
  * - 상태별 색상: Critical(빨강), Warning(주황), Healthy(녹색)
+ * - 호버 스케일 + 글로우 효과
+ * - 서버 카드 독자 기능: 실시간 메트릭, AI Insight, Progressive Disclosure
  * - 카드 크기 50% 축소 (2025-12-13)
  */
 
@@ -57,6 +59,42 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       useSafeServer(server);
     // 🎨 White Mode with Glassmorphism + Status Colors
     const statusTheme = getServerStatusTheme(safeServer.status);
+
+    // 🎨 상태별 그라데이션 설정 (랜딩 카드 스타일)
+    const statusGradients = {
+      critical: {
+        gradient: 'from-red-500 via-rose-500 to-red-600',
+        shadow: 'shadow-red-500/30',
+        glow: 'rgba(239, 68, 68, 0.4)',
+      },
+      warning: {
+        gradient: 'from-amber-500 via-orange-500 to-amber-600',
+        shadow: 'shadow-amber-500/30',
+        glow: 'rgba(245, 158, 11, 0.4)',
+      },
+      online: {
+        gradient: 'from-emerald-500 via-green-500 to-emerald-600',
+        shadow: 'shadow-emerald-500/30',
+        glow: 'rgba(16, 185, 129, 0.3)',
+      },
+      offline: {
+        gradient: 'from-gray-500 via-slate-500 to-gray-600',
+        shadow: 'shadow-gray-500/20',
+        glow: 'rgba(107, 114, 128, 0.3)',
+      },
+      maintenance: {
+        gradient: 'from-blue-500 via-indigo-500 to-blue-600',
+        shadow: 'shadow-blue-500/30',
+        glow: 'rgba(59, 130, 246, 0.3)',
+      },
+      unknown: {
+        gradient: 'from-purple-500 via-violet-500 to-purple-600',
+        shadow: 'shadow-purple-500/20',
+        glow: 'rgba(139, 92, 246, 0.3)',
+      },
+    };
+    const currentGradient =
+      statusGradients[safeServer.status] || statusGradients.online;
 
     const [_isHovered, setIsHovered] = useState(false);
     const [showSecondaryInfo, setShowSecondaryInfo] = useState(false);
@@ -132,28 +170,66 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           if (enableProgressiveDisclosure && !showTertiaryInfo)
             setShowSecondaryInfo(false);
         }}
-        className={`group relative w-full cursor-pointer overflow-hidden rounded-xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg backdrop-blur-md text-left ${statusTheme.background} ${statusTheme.border} ${variantStyles.container}`}
+        className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl backdrop-blur-md text-left ${statusTheme.background} ${statusTheme.border} ${variantStyles.container} hover:${currentGradient.shadow}`}
       >
-        {/* Subtle Hover Glow Effect (Light Mode) */}
+        {/* 🎨 그라데이션 애니메이션 배경 (랜딩 카드 스타일) */}
         <div
-          className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-30 pointer-events-none rounded-xl"
-          style={{ backgroundColor: statusTheme.graphColor }}
+          className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${currentGradient.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08]`}
+          style={{
+            backgroundSize: '200% 200%',
+            animation: 'gradient-shift 4s ease-in-out infinite',
+          }}
         />
-        {/* Live Indicator - Minimal Pulse Only */}
+
+        {/* 🎨 호버 글로우 효과 */}
+        <div
+          className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-40 pointer-events-none rounded-2xl"
+          style={{
+            boxShadow: `inset 0 0 30px ${currentGradient.glow}`,
+          }}
+        />
+
+        {/* 🎨 상태별 장식 요소 (Critical/Warning 시 더 강조) */}
+        {(safeServer.status === 'critical' ||
+          safeServer.status === 'warning') && (
+          <>
+            <div
+              className={`absolute right-2 top-2 h-3 w-3 rounded-full animate-pulse ${
+                safeServer.status === 'critical'
+                  ? 'bg-red-400/40'
+                  : 'bg-amber-400/40'
+              }`}
+            />
+            <div
+              className={`absolute left-2 bottom-2 h-2 w-2 rounded-full animate-pulse delay-300 ${
+                safeServer.status === 'critical'
+                  ? 'bg-red-400/30'
+                  : 'bg-amber-400/30'
+              }`}
+            />
+          </>
+        )}
+
+        {/* Live Indicator - Enhanced Pulse */}
         {showRealTimeUpdates && (
           <div className="absolute right-3 top-3 z-10">
             <span
-              className={`block h-2 w-2 rounded-full animate-pulse ring-2 ring-white ${statusTheme.text.replace('text-', 'bg-')}`}
+              className={`block h-2.5 w-2.5 rounded-full animate-pulse ring-2 ring-white/80 shadow-lg ${statusTheme.text.replace('text-', 'bg-')}`}
+              style={{ boxShadow: `0 0 8px ${currentGradient.glow}` }}
             />
           </div>
         )}
         {/* Header - OS/타입 정보 추가 */}
         <header className="mb-2 flex items-start justify-between relative z-10">
           <div className="flex min-w-0 flex-1 items-center gap-2">
+            {/* 🎨 아이콘 박스 - 그라데이션 스타일 (랜딩 카드 참조) */}
             <div
-              className={`rounded-lg p-1.5 shadow-md backdrop-blur-sm transition-colors duration-300 bg-black/5 group-hover:bg-black/10 ${statusTheme.text}`}
+              className={`relative rounded-xl p-2 shadow-lg backdrop-blur-sm transition-all duration-300 group-hover:scale-110 bg-gradient-to-br ${currentGradient.gradient}`}
+              style={{
+                boxShadow: `0 4px 15px ${currentGradient.glow}`,
+              }}
             >
-              {serverIcon}
+              <div className="text-white">{serverIcon}</div>
             </div>
             <div className="min-w-0 flex-1">
               <div className="mb-0.5 flex items-center gap-1.5">
@@ -202,30 +278,35 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         </header>
         {/* Main Content Section */}
         <section className="relative z-10">
-          {/* Metrics - 가독성 개선 (Clean Layout) */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between mb-2">
-              {/* Remove 'Core Metrics' label to reduce noise */}
-              <div />
-              <AIInsightBadge {...realtimeMetrics} historyData={historyData} />
+          {/* 🎨 AI Insight - 강화된 표시 */}
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <div
+                className={`h-1.5 w-1.5 rounded-full bg-gradient-to-r ${currentGradient.gradient}`}
+              />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                Live Metrics
+              </span>
             </div>
+            <AIInsightBadge {...realtimeMetrics} historyData={historyData} />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4 px-1">
-              <MetricItem
-                type="cpu"
-                value={realtimeMetrics.cpu}
-                status={safeServer.status}
-                history={historyData?.map((h) => h.cpu)}
-                color={statusTheme.graphColor}
-              />
-              <MetricItem
-                type="memory"
-                value={realtimeMetrics.memory}
-                status={safeServer.status}
-                history={historyData?.map((h) => h.memory)}
-                color={statusTheme.graphColor}
-              />
-            </div>
+          {/* 🎨 Core Metrics - 개선된 그리드 */}
+          <div className="grid grid-cols-2 gap-3 px-0.5">
+            <MetricItem
+              type="cpu"
+              value={realtimeMetrics.cpu}
+              status={safeServer.status}
+              history={historyData?.map((h) => h.cpu)}
+              color={statusTheme.graphColor}
+            />
+            <MetricItem
+              type="memory"
+              value={realtimeMetrics.memory}
+              status={safeServer.status}
+              history={historyData?.map((h) => h.memory)}
+              color={statusTheme.graphColor}
+            />
           </div>
 
           {/* Secondary & Details */}
@@ -284,7 +365,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           safeServer.services?.length > 0 &&
           (showSecondaryInfo || !enableProgressiveDisclosure) && (
             <div
-              className={`mt-2 flex flex-wrap gap-1 transition-all duration-300 relative z-10 ${showSecondaryInfo || !enableProgressiveDisclosure ? 'opacity-100' : 'opacity-0'}`}
+              className={`mt-2 flex flex-wrap gap-1.5 transition-all duration-300 relative z-10 ${showSecondaryInfo || !enableProgressiveDisclosure ? 'opacity-100' : 'opacity-0'}`}
             >
               {safeServer.services
                 .slice(0, variantStyles.maxServices)
