@@ -30,6 +30,7 @@ export {
 // Analyst Tools (Anomaly Detection & Trend Prediction)
 // ============================================================================
 export {
+  checkThresholds,
   detectAnomalies,
   detectAnomaliesHybrid,
   detectAnomaliesAdaptive,
@@ -53,7 +54,7 @@ export {
 // ============================================================================
 import { getServerMetrics, getServerMetricsAdvanced, filterServers } from './server-metrics';
 import { buildIncidentTimeline, correlateMetrics, findRootCause } from './rca-analysis';
-import { detectAnomalies, detectAnomaliesHybrid, detectAnomaliesAdaptive, detectAnomaliesUnified, predictTrends, analyzePattern } from './analyst-tools';
+import { checkThresholds, detectAnomalies, detectAnomaliesHybrid, detectAnomaliesAdaptive, detectAnomaliesUnified, predictTrends, analyzePattern } from './analyst-tools';
 import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-tools';
 
 /**
@@ -71,6 +72,7 @@ export const allTools = {
   findRootCause,
 
   // Analyst
+  checkThresholds,
   detectAnomalies,
   detectAnomaliesHybrid,
   detectAnomaliesAdaptive,
@@ -99,6 +101,7 @@ export const toolCategories = {
     findRootCause,
   },
   analyst: {
+    checkThresholds,
     detectAnomalies,
     detectAnomaliesHybrid,
     detectAnomaliesAdaptive,
@@ -123,6 +126,7 @@ export const toolDescriptions = {
   buildIncidentTimeline: '장애 타임라인 구성',
   correlateMetrics: '메트릭 간 상관관계 분석',
   findRootCause: '근본 원인 분석 (RCA)',
+  checkThresholds: '임계값 초과 확인 (업계 표준: 80/90%)',
   detectAnomalies: '이상치 탐지 (통계: 2σ)',
   detectAnomaliesHybrid: '하이브리드 이상 탐지 (통계 + Isolation Forest)',
   detectAnomaliesAdaptive: '적응형 이상 탐지 (시간대/요일 패턴)',

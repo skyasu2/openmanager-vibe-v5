@@ -395,6 +395,93 @@ export function getRecentHandoffs() {
 }
 
 // ============================================================================
+// Forced Routing (Bypass LLM for high-confidence pre-filter)
+// ============================================================================
+
+/**
+ * Agent name to agent instance mapping
+ */
+const agentMap: Record<string, typeof nlqAgent> = {
+  'NLQ Agent': nlqAgent,
+  'Analyst Agent': analystAgent,
+  'Reporter Agent': reporterAgent,
+  'Advisor Agent': advisorAgent,
+  'Summarizer Agent': summarizerAgent,
+};
+
+/**
+ * Execute forced routing to a specific agent
+ * Bypasses LLM orchestration when pre-filter confidence is high (>=0.8)
+ *
+ * @returns MultiAgentResponse if successful, null if agent unavailable
+ */
+async function executeForcedRouting(
+  query: string,
+  suggestedAgentName: string,
+  startTime: number
+): Promise<MultiAgentResponse | null> {
+  const agent = agentMap[suggestedAgentName];
+
+  if (!agent) {
+    console.warn(`⚠️ [Forced Routing] Agent "${suggestedAgentName}" not available`);
+    return null;
+  }
+
+  console.log(`🎯 [Forced Routing] Directly calling ${suggestedAgentName} (bypassing LLM orchestration)`);
+
+  try {
+    const result = await agent.generate({ prompt: query });
+    const durationMs = Date.now() - startTime;
+
+    // Extract tool calls from steps
+    const toolsCalled: string[] = [];
+    if (result.steps) {
+      for (const step of result.steps) {
+        if (step.toolCalls) {
+          for (const tc of step.toolCalls) {
+            toolsCalled.push(tc.toolName);
+          }
+        }
+      }
+    }
+
+    // Sanitize response
+    const sanitizedResponse = sanitizeChineseCharacters(result.text);
+
+    console.log(
+      `✅ [Forced Routing] ${suggestedAgentName} completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`
+    );
+
+    return {
+      success: true,
+      response: sanitizedResponse,
+      handoffs: [{
+        from: 'Orchestrator',
+        to: suggestedAgentName,
+        reason: 'Forced routing (high confidence pre-filter)',
+      }],
+      finalAgent: suggestedAgentName,
+      toolsCalled,
+      usage: {
+        promptTokens: result.usage?.inputTokens ?? 0,
+        completionTokens: result.usage?.outputTokens ?? 0,
+        totalTokens: result.usage?.totalTokens ?? 0,
+      },
+      metadata: {
+        provider: 'forced-routing',
+        modelId: 'direct-agent',
+        totalRounds: 1,
+        durationMs,
+      },
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [Forced Routing] ${suggestedAgentName} failed:`, errorMessage);
+    return null;
+  }
+}
+
+// ============================================================================
 // Execution Function
 // ============================================================================
 
@@ -448,6 +535,22 @@ export async function executeMultiAgent(
         durationMs,
       },
     };
+  }
+
+  // =========================================================================
+  // Forced Routing: Bypass LLM when pre-filter confidence is high
+  // =========================================================================
+  if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.8) {
+    const forcedResult = await executeForcedRouting(
+      query,
+      preFilterResult.suggestedAgent,
+      startTime
+    );
+    if (forcedResult) {
+      return forcedResult;
+    }
+    // If forced routing fails, fall through to LLM routing
+    console.log('🔄 [Orchestrator] Forced routing failed, falling back to LLM routing');
   }
 
   // =========================================================================
@@ -527,6 +630,44 @@ export async function executeMultiAgent(
     console.log(
       `✅ [Orchestrator] Completed in ${durationMs}ms, final agent: ${result.finalAgent}, tools: [${toolsCalled.join(', ')}]`
     );
+
+    // =========================================================================
+    // Handoff Fallback: If LLM didn't handoff and no tools called,
+    // try the pre-filter suggested agent as fallback
+    // =========================================================================
+    const noHandoffOccurred = handoffs.length === 0 || result.finalAgent === 'Orchestrator';
+    const noToolsCalled = toolsCalled.length === 0;
+    const suggestedAgent = preFilterResult.suggestedAgent;
+    const hasSuggestedAgent = suggestedAgent !== undefined && preFilterResult.confidence >= 0.6;
+
+    if (noHandoffOccurred && noToolsCalled && hasSuggestedAgent) {
+      console.log(
+        `🔄 [Handoff Fallback] No handoff/tools detected, trying ${suggestedAgent} as fallback`
+      );
+
+      const fallbackResult = await executeForcedRouting(
+        query,
+        suggestedAgent,
+        startTime
+      );
+
+      if (fallbackResult && fallbackResult.toolsCalled.length > 0) {
+        console.log(
+          `✅ [Handoff Fallback] ${suggestedAgent} succeeded with tools: [${fallbackResult.toolsCalled.join(', ')}]`
+        );
+        return {
+          ...fallbackResult,
+          handoffs: [{
+            from: 'Orchestrator',
+            to: suggestedAgent,
+            reason: 'Handoff fallback (LLM failed to delegate)',
+          }],
+        };
+      }
+
+      // If fallback also didn't call tools, return original LLM response
+      console.log('⚠️ [Handoff Fallback] Fallback also failed, returning original response');
+    }
 
     return {
       success: true,
