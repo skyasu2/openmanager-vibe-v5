@@ -1,15 +1,17 @@
 /**
- * 🐕 시스템 Watchdog
+ * 🐕 시스템 Watchdog (리팩토링 버전)
  *
- * 시스템 안정성 모니터링 및 자동 복구:
- * - 메모리 누수 감지
- * - 성능 메트릭스 수집
- * - 자동 안정성 분석
- * - 위험 상황 조기 경고
+ * 순환 의존성 제거를 위해 이벤트 버스 패턴 적용
+ * ProcessManager와의 직접 의존성을 제거하고 이벤트 기반 통신 사용
  */
 
 import { systemLogger } from '../../lib/logger';
-import type { ProcessManager } from './ProcessManager';
+import {
+  type ISystemEventBus,
+  SystemEventType,
+  type SystemStatusPayload,
+  type WatchdogEventPayload,
+} from '../interfaces/SystemEventBus';
 
 export interface SystemMetrics {
   cpu: Array<{ timestamp: number; value: number }>;
@@ -34,11 +36,21 @@ interface ProcessStatus {
 
 interface SystemStatus {
   processes?: ProcessStatus[];
+  metrics?: {
+    uptime: number;
+    totalProcesses: number;
+    activeConnections: number;
+    totalRestarts?: number;
+  };
   [key: string]: unknown;
 }
 
+/**
+ * 리팩토링된 SystemWatchdog
+ * 이벤트 버스를 통해 ProcessManager와 통신
+ */
 export class SystemWatchdog {
-  private processManager: ProcessManager;
+  private eventBus?: ISystemEventBus;
   private metrics: SystemMetrics = {
     cpu: [],
     memory: [],
@@ -53,11 +65,67 @@ export class SystemWatchdog {
     type: string;
     message: string;
   }> = [];
+  private systemStatus?: SystemStatus;
   private readonly maxHistoryLength = 100;
   private readonly monitoringIntervalMs = 30000; // 30초 (과도한 헬스체크 방지)
 
-  constructor(processManager: ProcessManager) {
-    this.processManager = processManager;
+  constructor(eventBus?: ISystemEventBus) {
+    if (eventBus) {
+      this.setEventBus(eventBus);
+    }
+  }
+
+  /**
+   * 이벤트 버스 설정 및 이벤트 리스너 등록
+   */
+  setEventBus(eventBus: ISystemEventBus): void {
+    this.eventBus = eventBus;
+
+    // ProcessManager로부터 시스템 상태 업데이트 수신
+    this.eventBus.on<SystemStatusPayload>(
+      SystemEventType.SYSTEM_HEALTHY,
+      (event) => {
+        this.handleSystemStatusUpdate(event.payload);
+      }
+    );
+
+    this.eventBus.on<SystemStatusPayload>(
+      SystemEventType.SYSTEM_DEGRADED,
+      (event) => {
+        this.handleSystemStatusUpdate(event.payload);
+      }
+    );
+
+    this.eventBus.on<SystemStatusPayload>(
+      SystemEventType.SYSTEM_ERROR,
+      (event) => {
+        this.handleSystemStatusUpdate(event.payload);
+      }
+    );
+  }
+
+  /**
+   * 시스템 상태 업데이트 처리
+   */
+  private handleSystemStatusUpdate(payload: SystemStatusPayload): void {
+    // ProcessManager로부터 받은 시스템 상태 업데이트
+    this.systemStatus = {
+      processes: payload.services?.map((service) => ({
+        status:
+          service.status === 'up'
+            ? 'running'
+            : service.status === 'degraded'
+              ? 'degraded'
+              : 'error',
+        healthScore:
+          service.status === 'up'
+            ? 100
+            : service.status === 'degraded'
+              ? 50
+              : 0,
+      })),
+      metrics: payload.metrics,
+    };
   }
 
   /**
@@ -124,12 +192,29 @@ export class SystemWatchdog {
       );
 
       // 시스템 상태에서 오류율 및 재시작 횟수 업데이트
-      if (this.processManager?.getSystemStatus) {
-        const systemStatus = this.processManager.getSystemStatus();
-        const totalRestarts = systemStatus.metrics?.totalRestarts || 0;
-
+      if (this.systemStatus) {
+        const totalRestarts = this.systemStatus.metrics?.totalRestarts || 0;
         this.metrics.restartCount = totalRestarts;
-        this.metrics.errorRate = this.calculateErrorRate(systemStatus);
+        this.metrics.errorRate = this.calculateErrorRate(this.systemStatus);
+      }
+
+      // 메트릭스를 이벤트 버스를 통해 공유
+      if (this.eventBus) {
+        this.eventBus.emit<WatchdogEventPayload>({
+          type: SystemEventType.WATCHDOG_ALERT,
+          timestamp: Date.now(),
+          source: 'SystemWatchdog',
+          payload: {
+            alertType: 'metrics-update',
+            severity: 'info',
+            message: 'System metrics updated',
+            metrics: {
+              cpuUsage: cpuEstimate,
+              memoryUsage: memoryMB,
+              errorRate: this.metrics.errorRate,
+            },
+          },
+        });
       }
     } catch (error) {
       systemLogger.warn('메트릭스 수집 실패:', error);
@@ -159,18 +244,17 @@ export class SystemWatchdog {
   /**
    * 오류율 계산
    */
-  private calculateErrorRate(systemStatus: unknown): number {
-    const status = systemStatus as SystemStatus;
+  private calculateErrorRate(systemStatus: SystemStatus): number {
     if (
-      !status.processes ||
-      !Array.isArray(status.processes) ||
-      status.processes.length === 0
+      !systemStatus.processes ||
+      !Array.isArray(systemStatus.processes) ||
+      systemStatus.processes.length === 0
     ) {
       return 0;
     }
 
-    const totalProcesses = status.processes.length;
-    const errorProcesses = status.processes.filter(
+    const totalProcesses = systemStatus.processes.length;
+    const errorProcesses = systemStatus.processes.filter(
       (p: ProcessStatus) => p.status === 'error' || p.healthScore < 50
     ).length;
 
@@ -261,38 +345,80 @@ export class SystemWatchdog {
     const alerts = this.getCurrentAlerts();
 
     // 메모리 누수 알림
-    if (alerts.memoryLeak) {
+    if (alerts.memoryLeak && this.eventBus) {
       this.addAlert('memory-leak', '메모리 누수 패턴 감지됨');
-      this.processManager?.emit('system:memory-leak-detected');
+      this.eventBus.emit<WatchdogEventPayload>({
+        type: SystemEventType.WATCHDOG_ALERT,
+        timestamp: Date.now(),
+        source: 'SystemWatchdog',
+        payload: {
+          alertType: 'memory-leak',
+          severity: 'critical',
+          message: '메모리 누수 패턴 감지됨',
+          metrics: {
+            memoryUsage: this.getLatestMemory(),
+          },
+        },
+      });
     }
 
     // 높은 오류율 알림
-    if (alerts.highErrorRate) {
+    if (alerts.highErrorRate && this.eventBus) {
       this.addAlert(
         'high-error-rate',
         `높은 오류율 감지 (${this.metrics.errorRate.toFixed(1)}%)`
       );
-      this.processManager?.emit('system:high-error-rate', {
-        errorRate: this.metrics.errorRate,
+      this.eventBus.emit<WatchdogEventPayload>({
+        type: SystemEventType.WATCHDOG_ALERT,
+        timestamp: Date.now(),
+        source: 'SystemWatchdog',
+        payload: {
+          alertType: 'high-error-rate',
+          severity: 'warning',
+          message: `높은 오류율 감지 (${this.metrics.errorRate.toFixed(1)}%)`,
+          metrics: {
+            errorRate: this.metrics.errorRate,
+          },
+        },
       });
     }
 
     // 성능 저하 알림
-    if (alerts.performanceDegradation) {
+    if (alerts.performanceDegradation && this.eventBus) {
       this.addAlert('performance-degradation', '시스템 성능 저하 감지');
-      this.processManager?.emit('system:performance-degradation', {
-        score: this.metrics.performanceScore,
+      this.eventBus.emit<WatchdogEventPayload>({
+        type: SystemEventType.WATCHDOG_ALERT,
+        timestamp: Date.now(),
+        source: 'SystemWatchdog',
+        payload: {
+          alertType: 'performance-degradation',
+          severity: 'warning',
+          message: '시스템 성능 저하 감지',
+          metrics: {
+            performanceScore: this.metrics.performanceScore,
+          },
+        },
       });
     }
 
     // 빈번한 재시작 알림
-    if (alerts.frequentRestarts) {
+    if (alerts.frequentRestarts && this.eventBus) {
       this.addAlert(
         'frequent-restarts',
         `빈번한 프로세스 재시작 감지 (${this.metrics.restartCount}회)`
       );
-      this.processManager?.emit('system:frequent-restarts', {
-        count: this.metrics.restartCount,
+      this.eventBus.emit<WatchdogEventPayload>({
+        type: SystemEventType.WATCHDOG_ALERT,
+        timestamp: Date.now(),
+        source: 'SystemWatchdog',
+        payload: {
+          alertType: 'frequent-restarts',
+          severity: 'warning',
+          message: `빈번한 프로세스 재시작 감지 (${this.metrics.restartCount}회)`,
+          metrics: {
+            restartCount: this.metrics.restartCount,
+          },
+        },
       });
     }
   }
@@ -303,8 +429,8 @@ export class SystemWatchdog {
   private getCurrentAlerts(): WatchdogAlerts {
     return {
       memoryLeak: this.detectMemoryLeak(),
-      highErrorRate: this.metrics.errorRate > 15, // 15% 이상
-      performanceDegradation: this.metrics.performanceScore < 70,
+      highErrorRate: this.metrics.errorRate > 25,
+      performanceDegradation: this.metrics.performanceScore < 60,
       frequentRestarts: this.metrics.restartCount > 5,
     };
   }
@@ -313,62 +439,49 @@ export class SystemWatchdog {
    * 메모리 누수 감지
    */
   private detectMemoryLeak(): boolean {
-    if (this.metrics.memory.length < 10) return false;
+    if (this.metrics.memory.length < 10) {
+      return false; // 충분한 데이터가 없음
+    }
 
-    // 선형 회귀로 메모리 증가 추세 분석
-    const trend = this.calculateTrend(this.metrics.memory);
+    // 최근 10개 메모리 샘플
+    const recentMemory = this.metrics.memory.slice(-10);
 
-    // 분당 2MB 이상 증가하면 누수로 판단
-    const leakThreshold = 2; // MB/분
-    const memoryIncreasePerMinute = trend.slope * 60; // 초당 → 분당 변환
+    // 지속적인 증가 패턴 확인
+    let increasingCount = 0;
+    for (let i = 1; i < recentMemory.length; i++) {
+      const currentValue = recentMemory[i]?.value;
+      const previousValue = recentMemory[i - 1]?.value;
+      if (
+        currentValue !== undefined &&
+        previousValue !== undefined &&
+        currentValue > previousValue
+      ) {
+        increasingCount++;
+      }
+    }
 
-    return memoryIncreasePerMinute > leakThreshold;
+    // 80% 이상이 증가 추세면 메모리 누수로 판단
+    return increasingCount > recentMemory.length * 0.8;
   }
 
   /**
-   * 추세 계산 (선형 회귀)
+   * 최근 알림 조회
    */
-  private calculateTrend(data: Array<{ timestamp: number; value: number }>): {
-    slope: number;
-    intercept: number;
-    correlation: number;
-  } {
-    if (data.length < 2) return { slope: 0, intercept: 0, correlation: 0 };
-
-    const n = data.length;
-    const sumX = data.reduce((sum, d) => sum + d.timestamp, 0);
-    const sumY = data.reduce((sum, d) => sum + d.value, 0);
-    const sumXY = data.reduce((sum, d) => sum + d.timestamp * d.value, 0);
-    const sumXX = data.reduce((sum, d) => sum + d.timestamp * d.timestamp, 0);
-    const sumYY = data.reduce((sum, d) => sum + d.value * d.value, 0);
-
-    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-    const intercept = (sumY - slope * sumX) / n;
-
-    const correlation =
-      (n * sumXY - sumX * sumY) /
-      Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
-
-    return {
-      slope: slope / 1000, // timestamp를 초 단위로 변환 (ms → s)
-      intercept,
-      correlation: Number.isNaN(correlation) ? 0 : correlation,
-    };
+  private getRecentAlerts(timeWindow: number): Array<{
+    timestamp: Date;
+    type: string;
+    message: string;
+  }> {
+    const cutoffTime = Date.now() - timeWindow;
+    return this.alertsHistory.filter(
+      (alert) => alert.timestamp.getTime() > cutoffTime
+    );
   }
 
   /**
    * 알림 추가
    */
   private addAlert(type: string, message: string): void {
-    // 중복 알림 방지 (최근 5분 내 동일한 타입의 알림 확인)
-    const recentSimilar = this.alertsHistory.filter(
-      (alert) =>
-        alert.type === type &&
-        Date.now() - alert.timestamp.getTime() < 5 * 60 * 1000
-    );
-
-    if (recentSimilar.length > 0) return;
-
     const alert = {
       timestamp: new Date(),
       type,
@@ -376,24 +489,21 @@ export class SystemWatchdog {
     };
 
     this.alertsHistory.push(alert);
-    systemLogger.warn(`🚨 Watchdog 알림 [${type}]: ${message}`);
 
     // 히스토리 크기 제한
     if (this.alertsHistory.length > this.maxHistoryLength) {
       this.alertsHistory = this.alertsHistory.slice(-this.maxHistoryLength);
     }
+
+    systemLogger.warn(`⚠️ [Watchdog Alert] ${message}`);
   }
 
   /**
-   * 최근 알림 조회
+   * 최신 메모리 사용량 반환
    */
-  private getRecentAlerts(
-    timeWindowMs: number
-  ): Array<{ timestamp: Date; type: string; message: string }> {
-    const cutoffTime = Date.now() - timeWindowMs;
-    return this.alertsHistory.filter(
-      (alert) => alert.timestamp.getTime() > cutoffTime
-    );
+  private getLatestMemory(): number {
+    if (this.metrics.memory.length === 0) return 0;
+    return this.metrics.memory[this.metrics.memory.length - 1]?.value ?? 0;
   }
 
   /**
@@ -415,62 +525,41 @@ export class SystemWatchdog {
   }
 
   /**
-   * 시스템 건강 상태 종합 평가
+   * 상태 리포트 생성
    */
-  getHealthSummary(): {
-    overall: 'healthy' | 'warning' | 'critical';
-    performance: number;
-    stability: number;
+  generateReport(): {
+    metrics: SystemMetrics;
     alerts: WatchdogAlerts;
-    recommendations: string[];
+    recentAlerts: Array<{
+      timestamp: Date;
+      type: string;
+      message: string;
+    }>;
+    recommendation: string;
   } {
     const alerts = this.getCurrentAlerts();
-    const recommendations: string[] = [];
+    const recentAlerts = this.getRecentAlerts(15 * 60 * 1000); // 15분
 
-    // 전체 건강 상태 결정
-    let overall: 'healthy' | 'warning' | 'critical' = 'healthy';
+    let recommendation = '시스템이 정상적으로 작동 중입니다.';
 
-    if (
-      this.metrics.performanceScore < 70 ||
-      this.metrics.stabilityScore < 70
-    ) {
-      overall = 'warning';
-    }
-
-    if (
-      this.metrics.performanceScore < 50 ||
-      this.metrics.stabilityScore < 50
-    ) {
-      overall = 'critical';
-    }
-
-    // 권장사항 생성
     if (alerts.memoryLeak) {
-      recommendations.push('메모리 사용량 최적화 필요');
-    }
-
-    if (alerts.highErrorRate) {
-      recommendations.push('오류 발생 원인 분석 및 수정 필요');
-    }
-
-    if (alerts.performanceDegradation) {
-      recommendations.push('시스템 리소스 증설 검토');
-    }
-
-    if (alerts.frequentRestarts) {
-      recommendations.push('프로세스 안정성 개선 필요');
-    }
-
-    if (recommendations.length === 0) {
-      recommendations.push('시스템이 안정적으로 운영되고 있습니다');
+      recommendation =
+        '메모리 누수가 의심됩니다. 메모리 사용량을 모니터링하고 필요시 재시작을 고려하세요.';
+    } else if (alerts.highErrorRate) {
+      recommendation = '오류율이 높습니다. 로그를 확인하고 문제를 해결하세요.';
+    } else if (alerts.performanceDegradation) {
+      recommendation =
+        '성능이 저하되었습니다. 리소스 사용량을 확인하고 최적화를 고려하세요.';
+    } else if (alerts.frequentRestarts) {
+      recommendation =
+        '프로세스가 자주 재시작됩니다. 안정성 문제를 조사하세요.';
     }
 
     return {
-      overall,
-      performance: this.metrics.performanceScore,
-      stability: this.metrics.stabilityScore,
+      metrics: this.getMetrics(),
       alerts,
-      recommendations,
+      recentAlerts,
+      recommendation,
     };
   }
 }

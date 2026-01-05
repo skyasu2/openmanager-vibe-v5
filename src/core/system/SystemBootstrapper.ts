@@ -15,9 +15,9 @@ import type {
   ProcessConfig,
   ProcessState,
   SystemMetrics,
-} from './ProcessManager.refactored';
-import { ProcessManager } from './ProcessManager.refactored';
-import { SystemWatchdog } from './SystemWatchdog.refactored';
+} from './ProcessManager';
+import { ProcessManager } from './ProcessManager';
+import { SystemWatchdog } from './SystemWatchdog';
 
 export interface SystemBootstrapConfig {
   enableWatchdog?: boolean;
