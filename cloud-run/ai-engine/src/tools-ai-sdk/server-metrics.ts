@@ -105,6 +105,9 @@ import {
   type Fixed10MinMetric,
 } from '../data/fixed-24h-metrics';
 
+// Caching
+import { getDataCache } from '../lib/cache-layer';
+
 // ============================================================================
 // 1. Helper Functions
 // ============================================================================
@@ -239,30 +242,39 @@ export const getServerMetrics = tool({
     serverId?: string;
     metric: 'cpu' | 'memory' | 'disk' | 'all';
   }) => {
-    const state = getCurrentState();
+    const cache = getDataCache();
+    const cacheKey = serverId || 'all';
 
-    const servers: ServerSnapshot[] = serverId
-      ? state.servers.filter((s) => s.id === serverId)
-      : state.servers;
+    // Best Practice: Use cache.getMetrics with lazy computation
+    return cache.getMetrics(cacheKey, async () => {
+      const state = getCurrentState();
 
-    return {
-      success: true,
-      servers: servers.map((s) => ({
-        id: s.id,
-        name: s.name,
-        status: s.status,
-        cpu: s.cpu,
-        memory: s.memory,
-        disk: s.disk,
-      })),
-      summary: {
-        total: servers.length,
-        alertCount: servers.filter(
-          (s) => s.status === 'warning' || s.status === 'critical'
-        ).length,
-      },
-      timestamp: new Date().toISOString(),
-    };
+      const servers: ServerSnapshot[] = serverId
+        ? state.servers.filter((s) => s.id === serverId)
+        : state.servers;
+
+      console.log(`📊 [getServerMetrics] Computing for ${cacheKey} (cache miss)`);
+
+      return {
+        success: true,
+        servers: servers.map((s) => ({
+          id: s.id,
+          name: s.name,
+          status: s.status,
+          cpu: s.cpu,
+          memory: s.memory,
+          disk: s.disk,
+        })),
+        summary: {
+          total: servers.length,
+          alertCount: servers.filter(
+            (s) => s.status === 'warning' || s.status === 'critical'
+          ).length,
+        },
+        timestamp: new Date().toISOString(),
+        _cached: false,
+      };
+    });
   },
 });
 
@@ -341,6 +353,12 @@ export const getServerMetricsAdvanced = tool({
     sortOrder: 'asc' | 'desc';
     limit?: number;
   }) => {
+    const cache = getDataCache();
+    // Cache key: combine all parameters that affect the result
+    const cacheKey = `adv:${serverId || 'all'}:${timeRange}:${metric}:${aggregation}:${sortBy || 'none'}:${sortOrder}:${limit || 0}:${JSON.stringify(filters || [])}`;
+
+    return cache.getOrCompute('metrics', cacheKey, async () => {
+    console.log(`📊 [getServerMetricsAdvanced] Computing for ${cacheKey} (cache miss)`);
     try {
       // 1. Get target datasets
       const targetDatasets = serverId
@@ -489,6 +507,7 @@ export const getServerMetricsAdvanced = tool({
         error: error instanceof Error ? error.message : String(error),
       };
     }
+    }); // End of cache.getOrCompute wrapper
   },
 });
 
@@ -549,6 +568,11 @@ export const filterServers = tool({
     value: number;
     limit: number;
   }) => {
+    const cache = getDataCache();
+    const cacheKey = `filter:${field}:${operator}:${value}:${limit}`;
+
+    return cache.getOrCompute('metrics', cacheKey, async () => {
+    console.log(`📊 [filterServers] Computing for ${cacheKey} (cache miss)`);
     const state = getCurrentState();
 
     const filtered = state.servers.filter((server) => {
@@ -590,5 +614,6 @@ export const filterServers = tool({
       },
       timestamp: new Date().toISOString(),
     };
+    }); // End of cache.getOrCompute wrapper
   },
 });

@@ -127,6 +127,239 @@ const PATTERN_INSIGHTS: Record<string, string> = {
 // 3. AI SDK Tools
 // ============================================================================
 
+// ============================================================================
+// Threshold Constants (Industry Best Practices)
+// ============================================================================
+
+const THRESHOLDS = {
+  cpu: { warning: 80, critical: 90 },
+  memory: { warning: 80, critical: 90 },
+  disk: { warning: 80, critical: 90 },
+  network: { warning: 70, critical: 85 },
+} as const;
+
+// ============================================================================
+// 3.0 Threshold-based Check Tool (NEW) + AdaptiveThreshold Integration
+// ============================================================================
+
+/**
+ * Get adaptive thresholds blended with fixed thresholds
+ * Reduces false positives during peak hours (e.g., 09:00-10:00)
+ *
+ * @param metric - The metric type
+ * @param fixedThreshold - The fixed industry standard threshold
+ * @returns Blended threshold (adaptive 30% + fixed 70%)
+ */
+function getBlendedThreshold(
+  metric: 'cpu' | 'memory' | 'disk' | 'network',
+  fixedThreshold: { warning: number; critical: number }
+): { warning: number; critical: number; isAdaptive: boolean } {
+  try {
+    const adaptiveManager = getAdaptiveThreshold();
+    const status = adaptiveManager.getStatus();
+
+    // Check if adaptive threshold has learned this metric
+    if (status.metrics.includes(metric)) {
+      const adaptiveResult = adaptiveManager.isAnomaly(metric, 0); // Get thresholds only
+      const adaptiveUpper = adaptiveResult.thresholds.upper;
+
+      // Blend: 70% fixed + 30% adaptive upper threshold
+      // This makes thresholds more lenient during learned peak periods
+      const blendedWarning = Math.max(
+        fixedThreshold.warning,
+        Math.round(fixedThreshold.warning * 0.7 + adaptiveUpper * 0.3)
+      );
+      const blendedCritical = Math.max(
+        fixedThreshold.critical,
+        Math.round(fixedThreshold.critical * 0.7 + adaptiveUpper * 0.3)
+      );
+
+      return {
+        warning: Math.min(blendedWarning, 95), // Cap at 95%
+        critical: Math.min(blendedCritical, 98), // Cap at 98%
+        isAdaptive: true,
+      };
+    }
+
+    // Fallback to fixed thresholds
+    return { ...fixedThreshold, isAdaptive: false };
+  } catch {
+    // On any error, use fixed thresholds
+    return { ...fixedThreshold, isAdaptive: false };
+  }
+}
+
+/**
+ * Check Thresholds Tool
+ * Uses adaptive threshold-based detection with industry standard fallback
+ * Blends fixed thresholds (80/90%) with learned temporal patterns
+ */
+export const checkThresholds = tool({
+  description:
+    '서버 메트릭의 임계값 초과 여부를 확인합니다. 시간대별 패턴을 반영한 적응형 임계값을 사용하며, 기본값은 업계 표준(Warning: 80%, Critical: 90%)입니다.',
+  inputSchema: z.object({
+    serverId: z
+      .string()
+      .optional()
+      .describe('확인할 서버 ID (선택, 미입력시 모든 서버 확인)'),
+    useAdaptive: z
+      .boolean()
+      .default(true)
+      .describe('적응형 임계값 사용 여부 (기본: true)'),
+  }),
+  execute: async ({
+    serverId,
+    useAdaptive,
+  }: {
+    serverId?: string;
+    useAdaptive?: boolean;
+  }) => {
+    const cache = getDataCache();
+    const cacheKey = `thresholds:${serverId || 'all'}:${useAdaptive ?? true}`;
+
+    return cache.getOrCompute('analysis', cacheKey, async () => {
+    console.log(`🔍 [checkThresholds] Computing for ${cacheKey} (cache miss)`);
+    try {
+      const state = getCurrentState();
+
+      // Filter servers
+      const targetServers = serverId
+        ? state.servers.filter((s) => s.id === serverId)
+        : state.servers;
+
+      if (targetServers.length === 0) {
+        return {
+          success: false,
+          error: serverId
+            ? `서버를 찾을 수 없습니다: ${serverId}`
+            : '서버 목록이 비어있습니다',
+        };
+      }
+
+      interface ThresholdViolation {
+        serverId: string;
+        serverName: string;
+        metric: 'cpu' | 'memory' | 'disk' | 'network';
+        value: number;
+        threshold: number;
+        severity: 'warning' | 'critical';
+        isAdaptive: boolean;
+      }
+
+      const violations: ThresholdViolation[] = [];
+      const metrics = ['cpu', 'memory', 'disk', 'network'] as const;
+
+      // Track if adaptive thresholds were used
+      let adaptiveUsed = false;
+
+      for (const server of targetServers) {
+        for (const metric of metrics) {
+          const value = server[metric] as number;
+          const fixedThreshold = THRESHOLDS[metric];
+
+          // Get blended or fixed threshold based on useAdaptive flag
+          const threshold = (useAdaptive ?? true)
+            ? getBlendedThreshold(metric, fixedThreshold)
+            : { ...fixedThreshold, isAdaptive: false };
+
+          if (threshold.isAdaptive) {
+            adaptiveUsed = true;
+          }
+
+          if (value >= threshold.critical) {
+            violations.push({
+              serverId: server.id,
+              serverName: server.name,
+              metric,
+              value,
+              threshold: threshold.critical,
+              severity: 'critical',
+              isAdaptive: threshold.isAdaptive,
+            });
+          } else if (value >= threshold.warning) {
+            violations.push({
+              serverId: server.id,
+              serverName: server.name,
+              metric,
+              value,
+              threshold: threshold.warning,
+              severity: 'warning',
+              isAdaptive: threshold.isAdaptive,
+            });
+          }
+        }
+      }
+
+      // Group by severity
+      const criticalViolations = violations.filter((v) => v.severity === 'critical');
+      const warningViolations = violations.filter((v) => v.severity === 'warning');
+
+      // Build summary
+      let summary = '';
+      if (violations.length === 0) {
+        summary = `${targetServers.length}대 서버 모두 정상 (임계값 이내)`;
+      } else {
+        const parts: string[] = [];
+        if (criticalViolations.length > 0) {
+          const criticalServers = [...new Set(criticalViolations.map((v) => v.serverId))];
+          parts.push(`Critical ${criticalViolations.length}건 (${criticalServers.length}대 서버)`);
+        }
+        if (warningViolations.length > 0) {
+          const warningServers = [...new Set(warningViolations.map((v) => v.serverId))];
+          parts.push(`Warning ${warningViolations.length}건 (${warningServers.length}대 서버)`);
+        }
+        summary = `임계값 초과: ${parts.join(', ')}`;
+      }
+
+      // Get current time context for adaptive info
+      const now = new Date();
+      const hour = now.getHours();
+      const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][now.getDay()];
+
+      return {
+        success: true,
+        totalServers: targetServers.length,
+        violationCount: violations.length,
+        criticalCount: criticalViolations.length,
+        warningCount: warningViolations.length,
+        hasViolations: violations.length > 0,
+        thresholds: THRESHOLDS,
+        adaptiveInfo: {
+          enabled: useAdaptive ?? true,
+          used: adaptiveUsed,
+          timeContext: adaptiveUsed ? `${dayOfWeek}요일 ${hour}시` : null,
+        },
+        violations: violations.slice(0, 20), // Limit to top 20
+        critical: criticalViolations.slice(0, 10).map((v) => ({
+          server: `${v.serverName} (${v.serverId})`,
+          issue: `${v.metric.toUpperCase()} ${v.value}% (임계: ${v.threshold}%)`,
+          adaptive: v.isAdaptive,
+        })),
+        warning: warningViolations.slice(0, 10).map((v) => ({
+          server: `${v.serverName} (${v.serverId})`,
+          issue: `${v.metric.toUpperCase()} ${v.value}% (임계: ${v.threshold}%)`,
+          adaptive: v.isAdaptive,
+        })),
+        summary,
+        timestamp: new Date().toISOString(),
+        _algorithm: adaptiveUsed
+          ? 'Adaptive + Fixed Threshold Blend (70% Fixed + 30% Temporal)'
+          : 'Threshold-based (Industry Standard: 80/90%)',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+    }); // End of cache.getOrCompute wrapper
+  },
+});
+
+// ============================================================================
+// 3.1 Statistical Anomaly Detection
+// ============================================================================
+
 /**
  * Detect Anomalies Tool
  * Uses 6-hour moving average + 2σ threshold
