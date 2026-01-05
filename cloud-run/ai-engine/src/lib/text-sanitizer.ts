@@ -61,14 +61,25 @@ const CHINESE_TO_KOREAN_MAP: Record<string, string> = {
  * with their Korean equivalents
  */
 const FOREIGN_TO_KOREAN_MAP: Record<string, string> = {
-  // Vietnamese
+  // Vietnamese (Latin with diacritics)
   'hiện': '현재',
   'và': '및',
+  'xác định': '확인',
+  'xác': '확',
+  'định': '정',
+  'người': '사람',
+  'được': '되다',
+  'không': '안',
+  'trong': '안에',
+  'có thể': '가능',
   // Russian (Cyrillic)
   'цик': '사이클',
+  'циклон': '사이클론',
   // German
   'Menschen': '사람',
   'und': '및',
+  'unterstüt': '지원',
+  'unterstützen': '지원하다',
   // Japanese Katakana/Hiragana (common mixed outputs)
   'セント': '세인트',
   'ヘレンス': '헬렌스',
