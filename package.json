@@ -153,7 +153,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
-    "framer-motion": "^12.23.26",
+    "framer-motion": "^12.23.28",
     "lightningcss-linux-x64-gnu": "^1.30.2",
     "lodash-es": "^4.17.22",
     "lucide-react": "^0.562.0",
