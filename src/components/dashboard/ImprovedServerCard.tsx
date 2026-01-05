@@ -140,7 +140,6 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-30 pointer-events-none rounded-xl"
           style={{ backgroundColor: statusTheme.graphColor }}
         />
-
         {/* Live Indicator - Minimal Pulse Only */}
         {showRealTimeUpdates && (
           <div className="absolute right-3 top-3 z-10">
@@ -149,7 +148,6 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             />
           </div>
         )}
-
         {/* Header - OS/타입 정보 추가 */}
         <header className="mb-2 flex items-start justify-between relative z-10">
           <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -203,21 +201,17 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             )}
           </div>
         </header>
-
-        {/* Metrics - 가독성 개선 */}
-        <section className="space-y-2 relative z-10">
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Activity className="h-3 w-3 text-gray-500" />
-                <span className="text-[11px] font-semibold uppercase text-gray-500 tracking-wide">
-                  Core Metrics
-                </span>
-              </div>
+        {/* Main Content Section */}
+        <section className="relative z-10">
+          {/* Metrics - 가독성 개선 (Clean Layout) */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between mb-2">
+              {/* Remove 'Core Metrics' label to reduce noise */}
+              <div />
               <AIInsightBadge {...realtimeMetrics} historyData={historyData} />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-4 px-1">
               <MetricItem
                 type="cpu"
                 value={realtimeMetrics.cpu}
@@ -286,7 +280,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           </div>
         </section>
 
-        {/* Services */}
+        {/* Services Section */}
         {variantStyles.showServices &&
           safeServer.services?.length > 0 &&
           (showSecondaryInfo || !enableProgressiveDisclosure) && (
@@ -345,25 +339,28 @@ const MetricItem = ({
   const metricColor = getSeverityColor(value);
 
   return (
-    <div className="flex flex-col bg-black/5 rounded-lg p-2 border border-gray-200/50 hover:bg-black/10 transition-colors">
+    <div className="flex flex-col">
       {/* Header: Label + Value */}
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[11px] uppercase text-gray-500 font-semibold tracking-wide">
+        <span className="text-[11px] font-medium text-gray-500 tracking-wide">
           {labels[type]}
         </span>
-        <span className="text-sm font-bold" style={{ color: metricColor }}>
+        <span
+          className="text-sm font-bold tracking-tight"
+          style={{ color: metricColor }}
+        >
           {Math.round(value)}%
         </span>
       </div>
       {/* Primary: Line Chart */}
-      <div className="w-full h-8 flex items-center justify-center">
+      <div className="w-full h-10 flex items-center justify-center">
         <MiniLineChart
           data={history && history.length > 1 ? history : [value, value]}
           width={120}
-          height={28}
+          height={32}
           color={metricColor} // Apply severity color to graph
           fill
-          strokeWidth={1.5}
+          strokeWidth={2}
         />
       </div>
     </div>

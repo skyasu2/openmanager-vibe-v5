@@ -48,10 +48,23 @@ export default function EnhancedServerModal({
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   // 🕒 Fixed 24h Metrics Hook (Client & AI Synchronization)
+  // 30초 주기로 변경: 3초는 과도한 리렌더링 유발 (flickering 방지)
   const { currentMetrics, historyData } = useFixed24hMetrics(
     server?.id || '',
-    3000 // 3초 주기 업데이트
+    30000 // 30초 주기 업데이트 (was: 3000ms)
   );
+
+  // 📅 마지막 업데이트 시간 (메트릭 변경시에만 갱신 - flickering 방지)
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>(
+    new Date().toLocaleTimeString('en-US', { hour12: false })
+  );
+  useEffect(() => {
+    if (currentMetrics) {
+      setLastUpdateTime(
+        new Date().toLocaleTimeString('en-US', { hour12: false })
+      );
+    }
+  }, [currentMetrics]);
 
   // ♿ 접근성: 포커스 트랩 (모달 내부에서만 Tab 키 이동)
   const getFocusableElements = useCallback(() => {
@@ -179,6 +192,13 @@ export default function EnhancedServerModal({
     [server, currentMetrics]
   );
 
+  // 📅 로그 타임스탬프 메모이제이션 (flickering 방지)
+  // currentMetrics 변경시에만 새 타임스탬프 생성
+  const logTimestamp = useMemo(
+    () => new Date().toISOString(),
+    [currentMetrics?.cpu, currentMetrics?.memory, currentMetrics?.disk]
+  );
+
   // RealtimeData 변환 (Hook 데이터 -> UI 포맷)
   const realtimeData: RealtimeData = useMemo(() => {
     if (!safeServer)
@@ -200,6 +220,7 @@ export default function EnhancedServerModal({
         out: h.network * 0.4,
       })),
       // 📋 시스템 알림: 메트릭 임계값 기반 자동 생성 (실제 서버 로그 아님)
+      // 타임스탬프는 메모이제이션된 값 사용 (flickering 방지)
       logs: (() => {
         const alerts: Array<{
           timestamp: string;
@@ -215,14 +236,14 @@ export default function EnhancedServerModal({
         // CPU 경고
         if (cpu > 90) {
           alerts.push({
-            timestamp: new Date().toISOString(),
+            timestamp: logTimestamp,
             level: 'error',
             message: `CPU 사용률 위험: ${cpu.toFixed(1)}% (임계값: 90%)`,
             source: '시스템 모니터',
           });
         } else if (cpu > 80) {
           alerts.push({
-            timestamp: new Date().toISOString(),
+            timestamp: logTimestamp,
             level: 'warn',
             message: `CPU 사용률 경고: ${cpu.toFixed(1)}% (임계값: 80%)`,
             source: '시스템 모니터',
@@ -232,14 +253,14 @@ export default function EnhancedServerModal({
         // 메모리 경고
         if (memory > 90) {
           alerts.push({
-            timestamp: new Date().toISOString(),
+            timestamp: logTimestamp,
             level: 'error',
             message: `메모리 사용률 위험: ${memory.toFixed(1)}% (여유: ${(100 - memory).toFixed(1)}%)`,
             source: '시스템 모니터',
           });
         } else if (memory > 85) {
           alerts.push({
-            timestamp: new Date().toISOString(),
+            timestamp: logTimestamp,
             level: 'warn',
             message: `메모리 사용률 경고: ${memory.toFixed(1)}%`,
             source: '시스템 모니터',
@@ -249,14 +270,14 @@ export default function EnhancedServerModal({
         // 디스크 경고
         if (disk > 90) {
           alerts.push({
-            timestamp: new Date().toISOString(),
+            timestamp: logTimestamp,
             level: 'error',
             message: `디스크 사용률 위험: ${disk.toFixed(1)}%`,
             source: '시스템 모니터',
           });
         } else if (disk > 80) {
           alerts.push({
-            timestamp: new Date().toISOString(),
+            timestamp: logTimestamp,
             level: 'warn',
             message: `디스크 사용률 주의: ${disk.toFixed(1)}%`,
             source: '시스템 모니터',
@@ -266,7 +287,7 @@ export default function EnhancedServerModal({
         // 네트워크 경고
         if (network > 90) {
           alerts.push({
-            timestamp: new Date().toISOString(),
+            timestamp: logTimestamp,
             level: 'warn',
             message: `네트워크 사용률 높음: ${network.toFixed(1)}%`,
             source: '시스템 모니터',
@@ -276,7 +297,7 @@ export default function EnhancedServerModal({
         // 정상 상태
         if (alerts.length === 0) {
           alerts.push({
-            timestamp: new Date().toISOString(),
+            timestamp: logTimestamp,
             level: 'info',
             message: '모든 시스템 지표가 정상 범위 내에 있습니다.',
             source: '시스템 모니터',
@@ -286,7 +307,7 @@ export default function EnhancedServerModal({
         return alerts;
       })(),
     };
-  }, [historyData, safeServer, currentMetrics]);
+  }, [historyData, safeServer, currentMetrics, logTimestamp]);
 
   // 📊 탭 구성 최적화
   const tabs: TabInfo[] = [
@@ -628,8 +649,7 @@ export default function EnhancedServerModal({
             </div>
 
             <div className="text-xs text-gray-400 font-mono">
-              LAST UPDATE:{' '}
-              {new Date().toLocaleTimeString('en-US', { hour12: false })}
+              LAST UPDATE: {lastUpdateTime}
             </div>
           </div>
         </div>
