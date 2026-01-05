@@ -194,6 +194,7 @@ export default function EnhancedServerModal({
 
   // 📅 로그 타임스탬프 메모이제이션 (flickering 방지)
   // currentMetrics 변경시에만 새 타임스탬프 생성
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional - update timestamp only when metrics change
   const logTimestamp = useMemo(
     () => new Date().toISOString(),
     [currentMetrics?.cpu, currentMetrics?.memory, currentMetrics?.disk]

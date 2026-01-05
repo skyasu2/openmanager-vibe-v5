@@ -1,5 +1,4 @@
 import {
-  Activity,
   ChevronDown,
   ChevronUp,
   Clock,
