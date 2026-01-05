@@ -148,7 +148,8 @@ export async function POST(request: NextRequest) {
           case 'restart': {
             systemLogger.system(`🔄 프로세스 재시작 요청: ${processId}`);
             // 개별 프로세스 재시작은 내부적으로 처리됨
-            const state = manager.getProcessState(processId);
+            const systemStatus = manager.getSystemStatus();
+            const state = systemStatus.processes.get(processId);
 
             if (!state) {
               return NextResponse.json(
@@ -307,15 +308,27 @@ export async function GET(request: NextRequest) {
 
       case 'health': {
         const status = manager.getSystemStatus();
-        const isHealthy = status.health === 'healthy';
+        const { metrics } = status;
+        // 건강 상태 계산: 실행 중인 프로세스 비율과 평균 건강 점수 기반
+        const healthRatio =
+          metrics.totalProcesses > 0
+            ? metrics.healthyProcesses / metrics.totalProcesses
+            : 0;
+        const isHealthy =
+          healthRatio >= 0.7 && metrics.averageHealthScore >= 70;
+        const healthStatus = isHealthy
+          ? 'healthy'
+          : healthRatio >= 0.5
+            ? 'degraded'
+            : 'unhealthy';
 
         return NextResponse.json(
           {
             success: true,
             healthy: isHealthy,
-            status: status.health,
-            runningProcesses: status.metrics.runningProcesses,
-            totalProcesses: status.metrics.totalProcesses,
+            status: healthStatus,
+            runningProcesses: metrics.runningProcesses,
+            totalProcesses: metrics.totalProcesses,
             timestamp: new Date().toISOString(),
           },
           {
@@ -326,12 +339,14 @@ export async function GET(request: NextRequest) {
 
       case 'watchdog': {
         const status = manager.getSystemStatus();
-        const watchdogHealth = status.watchdogMetrics || null;
+        // ProcessManager에는 watchdog 메트릭이 없음 - SystemBootstrapper 사용 필요
+        const watchdogHealth = null;
 
         return NextResponse.json({
           success: true,
           data: {
             watchdogHealth,
+            metrics: status.metrics,
             timestamp: new Date().toISOString(),
           },
         });
@@ -339,18 +354,19 @@ export async function GET(request: NextRequest) {
 
       case 'processes': {
         const status = manager.getSystemStatus();
+        const processArray = Array.from(status.processes.values());
 
         return NextResponse.json({
           success: true,
           data: {
-            processes: status.processes.map((process) => ({
-              id: process.id,
-              status: process.status,
-              healthScore: process.healthScore,
-              restartCount: process.restartCount,
-              uptime: process.uptime,
-              lastHealthCheck: process.lastHealthCheck,
-              errorCount: process.errors.length,
+            processes: processArray.map((proc) => ({
+              id: proc.id,
+              status: proc.status,
+              healthScore: proc.healthScore,
+              restartCount: proc.restartCount,
+              uptime: proc.uptime,
+              lastHealthCheck: proc.lastHealthCheck,
+              errorCount: proc.errors.length,
             })),
             timestamp: new Date().toISOString(),
           },

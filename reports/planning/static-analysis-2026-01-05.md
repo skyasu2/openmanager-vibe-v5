@@ -2,7 +2,7 @@
 
 **분석일**: 2026-01-05
 **버전**: v5.83.14
-**분석 도구**: TypeScript strict, ESLint, Symbol Analysis (Serena)
+**분석 도구**: TypeScript strict, ESLint, Symbol Analysis (Serena), Code Volume Analysis
 
 ---
 
@@ -139,6 +139,75 @@
 |------|----------|------|
 | Backend 테스트 확대 | 낮음 | 현재 5개 → 주요 모듈 추가 |
 | E2E 테스트 보강 | 낮음 | Playwright 시나리오 추가 |
+
+---
+
+## 6. 코드량 적정성 분석
+
+### 6.1 전체 코드 분포 (Frontend ~137,000 lines)
+
+| 디렉토리 | 코드량 | 비율 | 평가 |
+|----------|--------|------|------|
+| `src/components` | 36,498 | 27% | ✅ 적정 |
+| `src/lib` | 28,570 | 21% | ✅ 적정 |
+| `src/app` | 21,865 | 16% | ✅ 적정 |
+| `src/services` | 16,353 | 12% | ✅ 적정 |
+| `src/hooks` | 15,437 | 11% | ✅ 적정 |
+| `src/types` | 9,735 | 7% | ✅ 적정 |
+| `src/core` | 4,130 | 3% | ✅ 적정 |
+| `src/domains` | 2,559 | 2% | ✅ 적정 |
+| `src/stores` | 2,226 | 2% | ✅ 적정 |
+
+### 6.2 집중 영역 분석 (디렉토리 내 비율 > 25%)
+
+| 하위 디렉토리 | 코드량 | 상위 비율 | 판정 |
+|---------------|--------|----------|------|
+| `components/dashboard` | 13,641 (55 files) | 37% | ✅ 적정 |
+| `app/api` | 17,639 | 81% | ✅ 적정 |
+| `lib/ai` | 6,734 | 24% | ✅ 적정 |
+
+#### `components/dashboard` (13,641 lines, 평균 248 lines/file)
+
+| 파일 | 라인 | 역할 |
+|------|------|------|
+| SystemChecklist.tsx | 774 | 시스템 전환 체크리스트 UI |
+| EnhancedServerModal.tsx | 639 | 서버 상세 모달 |
+| AIAssistantButton.test.tsx | 587 | 테스트 파일 |
+| EnhancedServerCard.tsx | 581 | 서버 카드 컴포넌트 |
+| ServerDashboard.tsx | 515 | 대시보드 메인 |
+
+**판정**: 서버 모니터링 플랫폼 핵심 UI 영역으로 집중도 정상
+
+#### `app/api` (17,639 lines)
+
+| 파일 | 라인 | 역할 |
+|------|------|------|
+| metrics/current/route.ts | 675 | 실시간 메트릭 API |
+| ai/supervisor/route.ts | 575 | AI Supervisor 엔드포인트 |
+| dashboard/route.ts | 532 | 대시보드 API |
+| servers/[id]/route.ts | 527 | 서버 상세 API |
+
+**판정**: Next.js App Router BFF 패턴으로 API 라우트 집중은 구조상 정상
+
+#### `lib/ai` (6,734 lines)
+
+| 파일 | 라인 | 역할 |
+|------|------|------|
+| core/types.ts | 816 | AI 타입 정의 |
+| circuit-breaker.ts | 709 | 장애 대응 패턴 |
+| metrics/AIMetricsCollector.ts | 625 | AI 메트릭 수집 |
+| core/prompt-builder.ts | 518 | 프롬프트 빌더 |
+
+**판정**: AI Native 플랫폼 설계 의도와 일치
+
+### 6.3 코드량 결론
+
+| 분석 결과 | 내용 |
+|----------|------|
+| 전체 분포 | ✅ 역할 대비 적정 |
+| 집중 영역 | ✅ 플랫폼 특성(서버 모니터링 + AI)에 부합 |
+| 개선 필요 | 없음 |
+| 추천 액션 | 현재 구조 유지 |
 
 ---
 

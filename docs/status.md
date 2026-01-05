@@ -197,6 +197,7 @@
 **분석 결과**:
 - `any` 타입: Frontend 17개, Backend 5개 → 모두 의도적 사용 (브라우저 호환성, AI SDK 타입)
 - 대형 파일: Frontend 5개, Backend 12개 → 모두 내부 구조 양호
+- 코드량 분포: Frontend ~137,000 lines → 역할 대비 적정 (집중 영역 3곳 모두 정상)
 - TypeScript strict: ✅ 양쪽 모두 PASS
 
 **상세 보고서**: [`reports/planning/static-analysis-2026-01-05.md`](../reports/planning/static-analysis-2026-01-05.md)
