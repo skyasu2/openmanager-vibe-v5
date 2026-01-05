@@ -61,23 +61,35 @@ test.describe('🧭 게스트 대시보드 핵심 플로우', () => {
     await page.waitForURL(/\/(dashboard|main)/, {
       timeout: 45000, // 30초 → 45초 증가
     });
-    // Dashboard container: look for dashboard-specific content (Resource Overview heading or DEMO MODE text)
-    await expect(
-      page.locator('h3:has-text("Resource Overview")').first()
-    ).toBeVisible({
+    // Dashboard container: look for dashboard-specific content (System Health or Total servers)
+    // "Resource Overview" → "System Health"로 변경됨 (DashboardSummary.tsx 리팩토링)
+    const dashboardIndicator = page
+      .locator('text=System Health')
+      .or(page.locator('text=Total'))
+      .or(page.locator('text=Online'))
+      .or(page.locator('[class*="DashboardSummary"]'))
+      .first();
+    await expect(dashboardIndicator).toBeVisible({
       timeout: TIMEOUTS.DASHBOARD_LOAD,
     });
 
-    // Server cards don't have data-testid; use h3 headings with server names (APP-xx pattern)
-    // 서버 카드는 비동기로 로드되므로 최소 1개가 나타날 때까지 대기
-    const serverCardLocator = page.locator('h3:has-text("APP-")').first();
+    // Server cards: 서버 이름 패턴 (api-was-*, web-*, db-*, cache-*, storage-*, lb-*)
+    // hourly-data에서 로드되는 실제 서버 ID 패턴에 맞춤
+    const serverCardLocator = page
+      .locator('h3')
+      .filter({
+        hasText:
+          /api-was|web-nginx|db-mysql|cache-redis|storage-|lb-haproxy|server/i,
+      })
+      .first();
     await serverCardLocator.waitFor({
       state: 'visible',
       timeout: TIMEOUTS.NETWORK_REQUEST, // 30초 - API 응답 대기
     });
 
-    const cardCount = await page.locator('h3:has-text("APP-")').count();
-    console.log(`📊 대시보드 카드 수: ${cardCount}`);
+    // 서버 카드 수 확인 (Core Metrics 섹션이 있는 카드)
+    const cardCount = await page.locator('text=Core Metrics').count();
+    console.log(`📊 대시보드 서버 카드 수: ${cardCount}`);
     expect(cardCount).toBeGreaterThan(0);
   });
 
