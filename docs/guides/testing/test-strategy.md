@@ -91,6 +91,8 @@ OpenManager VIBE의 테스트 전략은 **클라우드 네이티브 우선** 원
 | `src/mock/mockServerConfig.test.ts` | Mock 데이터 테스트 - 불필요 |
 | `tests/types/prediction-types.test.ts` | TypeScript 컴파일러가 검증 |
 | `tests/types/server-types.test.ts` | TypeScript 컴파일러가 검증 |
+| `tests/integration/ai-metrics-integration.test.ts` | Path alias 미해결로 실행 불가 |
+| `ai-supervisor-timeout.spec.ts` 내 1개 테스트 | Cold Start로 인한 Flaky 테스트 |
 
 ### 삭제 판단 기준
 

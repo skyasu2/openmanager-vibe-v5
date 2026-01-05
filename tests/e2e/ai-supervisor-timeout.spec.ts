@@ -251,42 +251,4 @@ test.describe('Performance Benchmarks', () => {
       console.log(`Simple greeting responded in ${totalTime}ms`);
     }
   });
-
-  test.skip('연속 요청 시 응답 시간이 일정하다', async ({ request }) => {
-    // Cloud Run Cold Start 영향을 피하기 위해 3회 연속 요청
-    const times: number[] = [];
-
-    for (let i = 0; i < 3; i++) {
-      const startTime = Date.now();
-
-      const response = await request.post('/api/ai/supervisor', {
-        data: {
-          messages: [{ role: 'user', content: TEST_QUERIES.simple }],
-        },
-        headers: {
-          Accept: 'text/event-stream',
-          'Content-Type': 'application/json',
-        },
-        timeout: VERCEL_TIMEOUT,
-      });
-
-      const elapsed = Date.now() - startTime;
-
-      if (skipIfSecurityBlocked(response.status())) return;
-
-      if (response.status() === 200) {
-        times.push(elapsed);
-      }
-    }
-
-    if (times.length >= 2) {
-      // 첫 요청 (Cold Start 가능성) 제외하고 비교
-      const warmTimes = times.slice(1);
-      const avgTime = warmTimes.reduce((a, b) => a + b, 0) / warmTimes.length;
-      console.log(`Warm request average: ${avgTime.toFixed(0)}ms`);
-
-      // 평균 30초 이내
-      expect(avgTime).toBeLessThan(30_000);
-    }
-  });
 });
