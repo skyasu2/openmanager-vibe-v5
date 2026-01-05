@@ -1,52 +1,216 @@
-# AGENTS.md - AI Agents Guidelines & Codex Reference
+# AGENTS.md - OpenManager VIBE v5
 
-<!-- Version: 2.0.0 | Scope: All AI Agents -->
-**모든 답변은 한국어로 제공 (기술 용어 영어 병기)**
+<!-- Version: 3.0.0 | For: AI Coding Agents -->
+**Language: Korean (기술 용어 영어 병기)**
 
-## 🌐 Universal AI Guidelines (공통 지침)
-이 프로젝트에 참여하는 모든 AI 에이전트(Claude, Codex, Gemini, Qwen 등)는 다음 규칙을 준수해야 합니다.
+## Project Overview
 
-1.  **Language**: 한국어(Korean)를 기본 언어로 사용합니다.
-2.  **Code Style**: TypeScript Strict Mode를 준수하며, `any` 사용을 금지합니다.
-3.  **Role Awareness**: 자신의 역할을 명확히 인지하고, 다른 에이전트와 협업합니다.
-    *   **Claude Code**: **Main Developer** (주 개발 & 설계 - 90% 담당)
-    *   **Codex**: Implementation Reviewer (구현 검증)
-    *   **Gemini**: Cross-Check Reviewer (교차 검증)
-    *   **Qwen**: Optimization Reviewer (최적화 제안)
-    *   **Kiro**: **Emergency Backup** (Claude 사용량 소진 시 대체)
+**OpenManager VIBE** - AI-Native Server Monitoring PoC
+- **Stack**: Next.js 16.1.1, React 19, TypeScript 5.9 (Strict), Supabase, Vercel AI SDK
+- **Architecture**: Vercel (Frontend) + Google Cloud Run (AI Engine)
+- **Node**: >=22.0.0 <23.0.0
 
 ---
 
-## 🤖 Codex CLI Reference
-Codex CLI는 본 프로젝트의 **메인 구현 도구**입니다.
+## Build / Lint / Test Commands
 
-### 🚀 Quick Start (v0.69.0)
-Codex는 GPT-5.1 기반의 강력한 추론 능력을 바탕으로, 복잡한 기능을 바닥부터 구현할 때 사용합니다.
-
+### Development
 ```bash
-# 기능 구현
-codex exec "shadcn/ui 기반의 데이터 테이블 컴포넌트 전체 구현"
-
-# 아키텍처 설계
-codex exec "Next.js 16 Server Actions 인증 흐름 설계"
+npm run dev:network     # Dev server (0.0.0.0:3000)
+npm run dev             # Dev server (localhost:3000)
+npm run build           # Production build
 ```
 
-### 📋 Codex Coding Standards
-Codex 에이전트는 코드를 생성할 때 다음 원칙을 반드시 따라야 합니다.
+### Validation (REQUIRED before commits)
+```bash
+npm run validate:all    # Full: type-check + lint + test
+npm run validate:quick  # Fast: type-check + lint only
+npm run type-check      # TypeScript only
+npm run lint            # Biome lint only
+npm run lint:fix        # Auto-fix lint issues
+```
 
-1.  **Simplicity (단순성)**: 과도한 기교를 피하고, 유지보수가 쉬운 직관적인 코드를 작성합니다. (KISS 원칙)
-2.  **Robustness (견고성)**: 엣지 케이스와 예외 처리를 꼼꼼히 하여 런타임 에러를 방지합니다.
-3.  **Type Safety (타입 안전성)**: TypeScript의 제네릭과 유틸리티 타입을 적절히 활용하여 타입 안전성을 보장합니다.
+### Testing
+```bash
+# Unit Tests (Vitest)
+npm run test                  # Full test suite
+npm run test:quick            # Minimal/fast tests
+npm run test:watch            # Watch mode
+npm run test:coverage         # With coverage report
+
+# Run single test file
+npx vitest run src/hooks/useAuth.test.ts
+npx vitest run --config config/testing/vitest.config.main.ts path/to/test.ts
+
+# E2E Tests (Playwright - Chromium only)
+npm run test:e2e              # All E2E tests
+npm run test:e2e:critical     # Smoke + guest + a11y only
+npm run test:e2e:no-ai        # Skip AI tests (@ai-test tag)
+
+# Run single E2E test
+npx playwright test tests/e2e/smoke.spec.ts
+```
 
 ---
 
-## 📚 Reference Links
-각 에이전트별 상세 가이드는 아래 전용 문서를 참조하세요.
+## Code Style Guidelines
 
-*   **Claude Guide**: `CLAUDE.md` (Project Rules & Workflow)
-*   **Gemini Guide**: `GEMINI.md` (Review & Cross-Check)
-*   **Qwen Guide**: `QWEN.md` (Performance & Algorithm)
-*   **Kiro Guide**: `KIRO.md` (System & Infrastructure)
-*   **Project Status**: `docs/status.md` (Tech Stack & Architecture)
+### TypeScript Rules (STRICT)
+- **Strict mode enabled** - all strict flags ON in tsconfig.json
+- **NO `any`** - `noExplicitAny: error` in Biome (src/**), use `unknown` + type guards
+- **NO `as any`**, **NO `@ts-ignore`**, **NO `@ts-expect-error`**
+- **Null safety** - `strictNullChecks`, `noUncheckedIndexedAccess` enabled
+- Use type guards for runtime validation (see `src/types/server.ts` for examples)
 
-_Last Updated: 2025-12-17_
+```typescript
+// ❌ BAD
+const data = response as any;
+// @ts-ignore
+someFunction(untypedValue);
+
+// ✅ GOOD
+function isServer(obj: unknown): obj is Server {
+  return typeof obj === 'object' && obj !== null && 'id' in obj;
+}
+if (isServer(data)) { /* safely use data */ }
+```
+
+### Formatting (Biome)
+- **Indent**: 2 spaces
+- **Line width**: 80 chars
+- **Quotes**: Single quotes for JS/TS, double for JSX attributes
+- **Semicolons**: Always
+- **Trailing commas**: ES5 style
+- **Line endings**: LF (Unix)
+
+### Imports
+- Use path aliases: `@/*` → `./src/*`
+- Common aliases: `@/components`, `@/lib`, `@/types`, `@/hooks`, `@/services`
+- Prefer `import type { X }` for type-only imports (Biome enforces this)
+- Order: React → External libs → Internal (@/) → Relative (./)
+
+```typescript
+import { useState, useCallback } from 'react';
+import type { FC } from 'react';
+
+import { useQuery } from '@tanstack/react-query';
+
+import type { Server, ServerStatus } from '@/types/server';
+import { cn } from '@/lib/utils';
+
+import { LocalComponent } from './LocalComponent';
+```
+
+### Naming Conventions
+| Type | Convention | Example |
+|------|------------|---------|
+| Files (components) | PascalCase | `ServerCard.tsx` |
+| Files (hooks) | camelCase with use- | `useAuth.ts` |
+| Files (utils) | kebab-case | `utils-functions.ts` |
+| Components | PascalCase | `ServerDashboard` |
+| Hooks | camelCase with use- | `useServerQuery` |
+| Types/Interfaces | PascalCase | `ServerInstance`, `UseAuthResult` |
+| Constants | UPPER_SNAKE_CASE | `SERVER_TYPE_DEFINITIONS` |
+| Functions | camelCase | `formatRelativeTime` |
+
+### Error Handling
+- Always handle errors explicitly - no empty catch blocks
+- Use `console.warn` for recoverable issues, `console.error` for failures
+- Wrap external calls (API, localStorage) in try-catch with fallbacks
+
+```typescript
+// ✅ GOOD
+function safeGetItem(key: string): string | null {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem(key);
+    }
+  } catch {
+    console.warn(`localStorage.getItem('${key}') failed`);
+  }
+  return null;
+}
+```
+
+### React Patterns
+- Functional components only (no class components)
+- Use `useCallback` for event handlers passed to children
+- Use `useMemo` for expensive computations
+- Prefer controlled components over uncontrolled
+
+---
+
+## Project Structure
+
+```
+src/
+├── app/            # Next.js App Router (pages, layouts, API routes)
+├── components/     # Reusable UI components
+├── domains/        # Feature-specific modules
+├── hooks/          # Custom React hooks
+├── lib/            # Core utilities (auth, supabase client)
+├── services/       # Business logic & API services
+├── types/          # TypeScript type definitions
+├── schemas/        # Zod validation schemas
+├── config/         # App configuration
+└── stores/         # Zustand state stores
+
+tests/
+├── e2e/           # Playwright E2E tests
+├── unit/          # Vitest unit tests
+└── integration/   # Integration tests
+```
+
+---
+
+## AI Agent Roles
+
+| Agent | Role | Responsibility |
+|-------|------|----------------|
+| **Claude Code** | Main Developer | 90% of development & design |
+| **Codex** | Implementation Reviewer | Code verification |
+| **Gemini** | Cross-Check Reviewer | Cross-validation |
+| **Qwen** | Optimization Reviewer | Performance suggestions |
+| **Kiro** | Emergency Backup | Fallback when Claude quota exhausted |
+
+---
+
+## Key Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `tsconfig.json` | TypeScript config (strict mode) |
+| `biome.json` | Linting & formatting |
+| `config/testing/vitest.config.main.ts` | Main test config |
+| `playwright.config.ts` | E2E test config |
+| `CLAUDE.md` | Claude-specific rules |
+
+---
+
+## Quick Reference
+
+### Before Every Commit
+```bash
+npm run validate:quick  # Fast validation
+# OR
+npm run validate:all    # Full validation with tests
+```
+
+### Run Specific Test
+```bash
+# Vitest (unit)
+npx vitest run path/to/file.test.ts
+
+# Playwright (E2E)
+npx playwright test path/to/file.spec.ts
+```
+
+### Fix Lint Issues
+```bash
+npm run lint:fix
+npm run format
+```
+
+---
+
+_Last Updated: 2026-01-05 | Version 5.83.14_

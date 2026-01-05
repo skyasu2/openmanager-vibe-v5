@@ -9,14 +9,13 @@
  * @updated 2026-01-04 - hourly-data 통합 (AI와 데이터 동기화)
  */
 
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
 import {
   calculateAverageMetrics,
   FIXED_24H_DATASETS,
   type Fixed10MinMetric,
   getDataAtMinute,
 } from '@/data/fixed-24h-metrics';
+import { isServer, requireServerModule } from '@/lib/runtime/environment';
 
 // ============================================================================
 // Hourly Data Types (Cloud Run과 동일)
@@ -53,27 +52,42 @@ let cachedHourlyData: { hour: number; data: HourlyData } | null = null;
 
 /**
  * hourly-data JSON 파일 로드 (캐싱 적용)
+ * @description 서버에서만 fs 사용, 클라이언트에서는 null 반환 (fallback 사용)
  */
 function loadHourlyData(hour: number): HourlyData | null {
+  // 클라이언트 환경에서는 fs 사용 불가 - fallback 데이터 사용
+  if (!isServer) {
+    return null;
+  }
+
   // 캐시 히트
   if (cachedHourlyData?.hour === hour) {
     return cachedHourlyData.data;
   }
 
-  const paddedHour = hour.toString().padStart(2, '0');
-  const filePath = join(
-    process.cwd(),
-    'public/hourly-data',
-    `hour-${paddedHour}.json`
-  );
+  // 서버에서만 동적으로 fs/path 로드
+  const fs = requireServerModule<typeof import('fs')>('fs');
+  const path = requireServerModule<typeof import('path')>('path');
 
-  if (!existsSync(filePath)) {
-    console.warn(`[MetricsProvider] hourly-data 파일 없음: ${filePath}`);
+  if (!fs || !path) {
+    console.warn('[MetricsProvider] fs/path 모듈 로드 실패');
     return null;
   }
 
   try {
-    const content = readFileSync(filePath, 'utf-8');
+    const paddedHour = hour.toString().padStart(2, '0');
+    const filePath = path.join(
+      process.cwd(),
+      'public/hourly-data',
+      `hour-${paddedHour}.json`
+    );
+
+    if (!fs.existsSync(filePath)) {
+      console.warn(`[MetricsProvider] hourly-data 파일 없음: ${filePath}`);
+      return null;
+    }
+
+    const content = fs.readFileSync(filePath, 'utf-8');
     const data = JSON.parse(content) as HourlyData;
     cachedHourlyData = { hour, data };
     console.log(
