@@ -165,6 +165,8 @@ const RETRY_CONFIG = {
 /**
  * Determine execution mode based on query complexity
  * Complex queries benefit from multi-agent orchestration
+ *
+ * @updated 2026-01-06: Added summarizer patterns for OpenRouter routing
  */
 function selectExecutionMode(query: string): SupervisorMode {
   const q = query.toLowerCase();
@@ -181,6 +183,10 @@ function selectExecutionMode(query: string): SupervisorMode {
     /예측|트렌드|향후|언제.*될|고갈/i,
     // Correlation analysis
     /상관관계|연관.*분석|correlat/i,
+    // Summary requests → Summarizer Agent (OpenRouter free tier)
+    // Only trigger for server-related summaries to avoid routing general queries
+    /(서버|상태|현황|모니터링|인프라).*(요약|간단히|핵심|tl;?dr)/i,
+    /(요약|간단히|핵심|tl;?dr).*(서버|상태|현황|알려|해줘)/i,
   ];
 
   // Check for complex patterns

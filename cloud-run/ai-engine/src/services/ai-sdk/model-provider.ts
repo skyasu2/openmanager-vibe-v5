@@ -31,6 +31,13 @@ import {
 
 export type ProviderName = 'cerebras' | 'groq' | 'mistral' | 'openrouter';
 
+export interface ProviderStatus {
+  cerebras: boolean;
+  groq: boolean;
+  mistral: boolean;
+  openrouter: boolean;
+}
+
 // ============================================================================
 // 2. Runtime Provider Toggle (for testing)
 // ============================================================================
@@ -47,10 +54,19 @@ const providerToggleState: Record<ProviderName, boolean> = {
 };
 
 /**
+ * Cached provider status (invalidated when toggling providers)
+ * @optimization Reduces redundant API key checks during agent initialization
+ */
+let cachedProviderStatus: ProviderStatus | null = null;
+
+/**
  * Toggle a provider on/off at runtime
+ * @note Invalidates provider status cache to reflect changes
  */
 export function toggleProvider(provider: ProviderName, enabled: boolean): void {
   providerToggleState[provider] = enabled;
+  // Invalidate cache when provider toggle changes
+  cachedProviderStatus = null;
   console.log(`🔧 [Provider] ${provider} ${enabled ? 'ENABLED' : 'DISABLED'}`);
 }
 
@@ -66,6 +82,32 @@ export function getProviderToggleState(): Record<ProviderName, boolean> {
  */
 function isProviderEnabled(provider: ProviderName): boolean {
   return providerToggleState[provider];
+}
+
+/**
+ * Check which providers are available (API key exists AND toggle enabled)
+ * @optimization Caches result for startup performance (agent-configs.ts calls this 5+ times)
+ */
+export function checkProviderStatus(): ProviderStatus {
+  if (cachedProviderStatus) {
+    return cachedProviderStatus;
+  }
+
+  cachedProviderStatus = {
+    cerebras: !!getCerebrasApiKey() && isProviderEnabled('cerebras'),
+    groq: !!getGroqApiKey() && isProviderEnabled('groq'),
+    mistral: !!getMistralApiKey() && isProviderEnabled('mistral'),
+    openrouter: !!getOpenRouterApiKey() && isProviderEnabled('openrouter'),
+  };
+
+  return cachedProviderStatus;
+}
+
+/**
+ * Invalidate provider status cache (call when toggling providers)
+ */
+export function invalidateProviderStatusCache(): void {
+  cachedProviderStatus = null;
 }
 
 export interface ProviderConfig {
@@ -145,18 +187,27 @@ function createOpenRouterProvider() {
 // ============================================================================
 
 /**
+ * AI SDK 타입 호환성 헬퍼
+ *
+ * Provider SDK들이 LanguageModelV3를 반환하지만 generateText()는 LanguageModelV2를 기대함.
+ * 런타임에서는 호환되므로 타입 캐스팅으로 해결.
+ *
+ * @see https://github.com/vercel/ai/issues - AI SDK 버전 호환성 이슈
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function asLanguageModel(model: any): LanguageModel {
+  return model as LanguageModel;
+}
+
+/**
  * Get Cerebras model via OpenAI-compatible API
  * @param modelId - 'llama-3.3-70b' (default) or 'llama-3.1-8b'
- *
- * Note: Type casting required because providers return LanguageModelV3
- * but generateText expects LanguageModelV2. This is a known AI SDK issue.
  */
 export function getCerebrasModel(
   modelId: string = 'llama-3.3-70b'
 ): LanguageModel {
   const cerebras = createCerebrasProvider();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return cerebras(modelId) as any;
+  return asLanguageModel(cerebras(modelId));
 }
 
 /**
@@ -167,8 +218,7 @@ export function getGroqModel(
   modelId: string = 'llama-3.3-70b-versatile'
 ): LanguageModel {
   const groq = createGroqProvider();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return groq(modelId) as any;
+  return asLanguageModel(groq(modelId));
 }
 
 /**
@@ -179,8 +229,7 @@ export function getMistralModel(
   modelId: string = 'mistral-small-2506'
 ): LanguageModel {
   const mistral = createMistralProvider();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return mistral(modelId) as any;
+  return asLanguageModel(mistral(modelId));
 }
 
 /**
@@ -195,32 +244,12 @@ export function getOpenRouterModel(
   modelId: string = 'meta-llama/llama-3.1-8b-instruct:free'
 ): LanguageModel {
   const openrouter = createOpenRouterProvider();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return openrouter(modelId) as any;
+  return asLanguageModel(openrouter(modelId));
 }
 
 // ============================================================================
 // 5. Supervisor Model with Fallback Chain
 // ============================================================================
-
-export interface ProviderStatus {
-  cerebras: boolean;
-  groq: boolean;
-  mistral: boolean;
-  openrouter: boolean;
-}
-
-/**
- * Check which providers are available (API key exists AND toggle enabled)
- */
-export function checkProviderStatus(): ProviderStatus {
-  return {
-    cerebras: !!getCerebrasApiKey() && isProviderEnabled('cerebras'),
-    groq: !!getGroqApiKey() && isProviderEnabled('groq'),
-    mistral: !!getMistralApiKey() && isProviderEnabled('mistral'),
-    openrouter: !!getOpenRouterApiKey() && isProviderEnabled('openrouter'),
-  };
-}
 
 /**
  * Get primary model for Supervisor (Single-Agent Mode)
@@ -353,16 +382,23 @@ export function getAdvisorModel(): {
 
 /**
  * Get summarizer model (OpenRouter primary - 100% free tier)
- * Primary: OpenRouter qwen/qwen-2.5-7b-instruct:free (한국어 우수)
- * Fallback: OpenRouter meta-llama/llama-3.1-8b-instruct:free
+ *
+ * Free Model Availability (2026-01-06 checked via API):
+ * - nvidia/nemotron-nano-9b-v2:free (128K context)
+ * - mistralai/devstral-2512:free (262K context)
+ * - openai/gpt-oss-20b:free (131K context)
+ *
+ * ⚠️ 다음 모델은 더 이상 사용 불가:
+ * - qwen/qwen-2.5-7b-instruct:free (제거됨)
+ * - meta-llama/llama-3.1-8b-instruct:free (제거됨)
  *
  * @description Summarizer Agent 전용 - 빠른 요약 및 핵심 정보 추출
  *
  * 📌 Fallback 전략 설명:
- * - 의도적으로 OpenRouter 내에서만 폴백 (Qwen → Llama)
- * - Mistral 등 유료 프로바이더로 폴백하지 않음
- * - 이유: 100% 무료 운영 유지가 목표
+ * - 의도적으로 OpenRouter 내에서만 폴백 (100% 무료 유지)
  * - OpenRouter 자체 장애 시에만 Summarizer 사용 불가 (graceful degradation)
+ *
+ * @updated 2026-01-06 - nemotron-nano-9b-v2:free로 변경
  */
 export function getSummarizerModel(): {
   model: LanguageModel;
@@ -375,22 +411,14 @@ export function getSummarizerModel(): {
     throw new Error('OpenRouter not configured. Set OPENROUTER_API_KEY for Summarizer Agent.');
   }
 
-  // Primary: Qwen 2.5 7B (한국어 품질 우수)
-  try {
-    return {
-      model: getOpenRouterModel('qwen/qwen-2.5-7b-instruct:free'),
-      provider: 'openrouter',
-      modelId: 'qwen/qwen-2.5-7b-instruct:free',
-    };
-  } catch (error) {
-    console.warn('⚠️ [Summarizer] Qwen model failed, falling back to Llama:', error);
-  }
+  // Primary: Nvidia Nemotron Nano 9B v2 (fast, 128K context)
+  const primaryModel = 'nvidia/nemotron-nano-9b-v2:free';
+  console.log(`📝 [Summarizer] Using model: ${primaryModel}`);
 
-  // Fallback: Llama 3.1 8B
   return {
-    model: getOpenRouterModel('meta-llama/llama-3.1-8b-instruct:free'),
+    model: getOpenRouterModel(primaryModel),
     provider: 'openrouter',
-    modelId: 'meta-llama/llama-3.1-8b-instruct:free',
+    modelId: primaryModel,
   };
 }
 

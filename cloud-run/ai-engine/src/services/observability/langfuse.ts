@@ -20,17 +20,7 @@ const DEFAULT_SAMPLE_RATE = 0.1; // 기본 10% 샘플링
 // 테스트 모드: 환경변수 또는 런타임 설정으로 100% 추적
 let testModeEnabled = process.env.LANGFUSE_TEST_MODE === 'true';
 
-/** 테스트 모드 활성화 (AI 어시스턴트 테스트 시 사용) */
-export function enableLangfuseTestMode(): void {
-  testModeEnabled = true;
-  console.log('🧪 [Langfuse] 테스트 모드 활성화 - 100% 추적');
-}
-
-/** 테스트 모드 비활성화 */
-export function disableLangfuseTestMode(): void {
-  testModeEnabled = false;
-  console.log('🔒 [Langfuse] 테스트 모드 비활성화 - 10% 샘플링 복귀');
-}
+// 테스트 모드 함수들은 클라이언트 선언 후 정의됨 (아래 섹션 참조)
 
 interface UsageState {
   eventCount: number;
@@ -223,15 +213,19 @@ async function initLangfuse(): Promise<LangfuseClient> {
     return createNoOpLangfuse();
   }
 
+  // 테스트 모드: 즉시 플러시 (flushAt: 1), 프로덕션: 배치 플러시 (flushAt: 10)
+  const flushConfig = testModeEnabled
+    ? { flushAt: 1, flushInterval: 1000 }
+    : { flushAt: 10, flushInterval: 5000 };
+
   const client = new Langfuse({
     secretKey,
     publicKey,
     baseUrl,
-    flushAt: 10,
-    flushInterval: 5000,
+    ...flushConfig,
   });
 
-  console.log('✅ [Langfuse] Initialized with', baseUrl);
+  console.log(`✅ [Langfuse] Initialized with ${baseUrl} (flushAt: ${flushConfig.flushAt})`);
   return client;
 }
 
@@ -250,6 +244,44 @@ export function getLangfuse(): LangfuseClient {
   }
 
   return langfuseClient;
+}
+
+// ============================================================================
+// 1.5. 테스트 모드 관리
+// ============================================================================
+
+/** Langfuse 클라이언트 재초기화 (설정 변경 시) */
+async function reinitializeLangfuse(): Promise<void> {
+  if (langfuseClient) {
+    await langfuseClient.flushAsync();
+    await langfuseClient.shutdownAsync();
+    langfuseClient = null;
+    initPromise = null;
+  }
+  // 새 클라이언트로 재초기화 트리거
+  initPromise = initLangfuse().then((client) => {
+    langfuseClient = client;
+    return client;
+  });
+  await initPromise;
+}
+
+/** 테스트 모드 활성화 (AI 어시스턴트 테스트 시 사용) */
+export async function enableLangfuseTestMode(): Promise<void> {
+  testModeEnabled = true;
+  console.log('🧪 [Langfuse] 테스트 모드 활성화 - 100% 추적, 즉시 플러시');
+
+  // 클라이언트 재초기화 (즉시 플러시 설정 적용)
+  await reinitializeLangfuse();
+}
+
+/** 테스트 모드 비활성화 */
+export async function disableLangfuseTestMode(): Promise<void> {
+  testModeEnabled = false;
+  console.log('🔒 [Langfuse] 테스트 모드 비활성화 - 10% 샘플링, 배치 플러시 복귀');
+
+  // 클라이언트 재초기화 (배치 플러시 설정 적용)
+  await reinitializeLangfuse();
 }
 
 // ============================================================================

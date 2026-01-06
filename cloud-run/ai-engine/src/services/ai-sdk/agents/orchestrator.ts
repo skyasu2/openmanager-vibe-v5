@@ -5,12 +5,14 @@
  * Uses Cerebras for ultra-fast routing decisions (~200ms).
  *
  * Architecture:
- * Orchestrator (Cerebras) → NLQ/Analyst/Reporter/Advisor (Groq/Mistral)
+ * Orchestrator (Cerebras) → NLQ/Analyst/Reporter/Advisor/Summarizer (Cerebras/Groq/Mistral)
  *
- * @version 1.0.0
+ * @version 2.0.0 - SSOT refactoring
+ * @updated 2026-01-06 - Import AGENT_CONFIGS from SSOT, removed duplication
  */
 
 import { Agent } from '@ai-sdk-tools/agents';
+import { generateText, stepCountIs } from 'ai';
 import { getCerebrasModel, getGroqModel, checkProviderStatus } from '../model-provider';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
 import { nlqAgent } from './nlq-agent';
@@ -18,6 +20,9 @@ import { analystAgent } from './analyst-agent';
 import { reporterAgent } from './reporter-agent';
 import { advisorAgent } from './advisor-agent';
 import { summarizerAgent } from './summarizer-agent';
+
+// Import SSOT config
+import { AGENT_CONFIGS } from './config';
 
 // ============================================================================
 // Configuration
@@ -280,6 +285,8 @@ export function preFilterQuery(query: string): PreFilterResult {
     } else if (/해결|방법|명령어|가이드|어떻게|과거.*사례|사례.*찾|이력|유사/.test(query)) {
       suggestedAgent = 'Advisor Agent';
     } else if (/요약|간단히|핵심|TL;?DR/i.test(query)) {
+      // FIX (2026-01-06): Summarizer Agent now uses Cerebras/Groq via generateText
+      // This provides reliable tool calling unlike OpenRouter free tier models
       suggestedAgent = 'Summarizer Agent';
     }
 
@@ -398,20 +405,30 @@ export function getRecentHandoffs() {
 // Forced Routing (Bypass LLM for high-confidence pre-filter)
 // ============================================================================
 
-/**
- * Agent name to agent instance mapping
- */
-const agentMap: Record<string, typeof nlqAgent> = {
-  'NLQ Agent': nlqAgent,
-  'Analyst Agent': analystAgent,
-  'Reporter Agent': reporterAgent,
-  'Advisor Agent': advisorAgent,
-  'Summarizer Agent': summarizerAgent,
-};
+// NOTE: AGENT_CONFIGS is now imported from './config' (SSOT)
+// This eliminates DRY violation where configs were duplicated here and in agent files
 
 /**
- * Execute forced routing to a specific agent
- * Bypasses LLM orchestration when pre-filter confidence is high (>=0.8)
+ * Get agent instance by name (dynamic lookup for lazy initialization)
+ * This ensures agents are available even if initialized after module load
+ */
+function getAgentByName(name: string): typeof nlqAgent | null {
+  const agents: Record<string, typeof nlqAgent | null> = {
+    'NLQ Agent': nlqAgent,
+    'Analyst Agent': analystAgent,
+    'Reporter Agent': reporterAgent,
+    'Advisor Agent': advisorAgent,
+    'Summarizer Agent': summarizerAgent,
+  };
+  return agents[name] ?? null;
+}
+
+/**
+ * Execute forced routing to a specific agent using generateText
+ * Uses direct generateText instead of Agent.generate() for reliable tool calling
+ *
+ * FIX (2026-01-06): Agent.generate() from @ai-sdk-tools/agents doesn't trigger
+ * tool calling properly. Using generateText directly with agent configuration.
  *
  * @returns MultiAgentResponse if successful, null if agent unavailable
  */
@@ -420,28 +437,49 @@ async function executeForcedRouting(
   suggestedAgentName: string,
   startTime: number
 ): Promise<MultiAgentResponse | null> {
-  const agent = agentMap[suggestedAgentName];
+  console.log(`🔍 [Forced Routing] Looking up agent config: "${suggestedAgentName}"`);
 
-  if (!agent) {
-    console.warn(`⚠️ [Forced Routing] Agent "${suggestedAgentName}" not available`);
+  // Get agent configuration
+  const agentConfig = AGENT_CONFIGS[suggestedAgentName];
+
+  if (!agentConfig) {
+    console.warn(`⚠️ [Forced Routing] No config for "${suggestedAgentName}"`);
     return null;
   }
 
-  console.log(`🎯 [Forced Routing] Directly calling ${suggestedAgentName} (bypassing LLM orchestration)`);
+  // Get model for this agent
+  const modelResult = agentConfig.getModel();
+
+  if (!modelResult) {
+    console.warn(`⚠️ [Forced Routing] No model available for "${suggestedAgentName}"`);
+    return null;
+  }
+
+  const { model, provider, modelId } = modelResult;
+  console.log(`✅ [Forced Routing] Using ${provider}/${modelId} for ${suggestedAgentName}`);
+  console.log(`🎯 [Forced Routing] Direct generateText call (bypassing Agent.generate)`);
 
   try {
-    const result = await agent.generate({ prompt: query });
+    // Use generateText directly with agent's configuration
+    const result = await generateText({
+      model,
+      messages: [
+        { role: 'system', content: agentConfig.instructions },
+        { role: 'user', content: query },
+      ],
+      tools: agentConfig.tools as Parameters<typeof generateText>[0]['tools'],
+      stopWhen: stepCountIs(5), // Allow up to 5 tool calls
+      temperature: 0.2,
+      maxOutputTokens: 2048,
+    });
+
     const durationMs = Date.now() - startTime;
 
     // Extract tool calls from steps
     const toolsCalled: string[] = [];
-    if (result.steps) {
-      for (const step of result.steps) {
-        if (step.toolCalls) {
-          for (const tc of step.toolCalls) {
-            toolsCalled.push(tc.toolName);
-          }
-        }
+    for (const step of result.steps) {
+      for (const toolCall of step.toolCalls) {
+        toolsCalled.push(toolCall.toolName);
       }
     }
 
@@ -468,8 +506,8 @@ async function executeForcedRouting(
         totalTokens: result.usage?.totalTokens ?? 0,
       },
       metadata: {
-        provider: 'forced-routing',
-        modelId: 'direct-agent',
+        provider,
+        modelId,
         totalRounds: 1,
         durationMs,
       },
@@ -513,6 +551,9 @@ export async function executeMultiAgent(
   // =========================================================================
   const preFilterResult = preFilterQuery(query);
 
+  // Debug logging for routing decisions
+  console.log(`📋 [PreFilter] Query: "${query.substring(0, 50)}..." → Suggested: ${preFilterResult.suggestedAgent || 'none'} (confidence: ${preFilterResult.confidence})`);
+
   if (!preFilterResult.shouldHandoff && preFilterResult.directResponse) {
     const durationMs = Date.now() - startTime;
     console.log(`⚡ [Fast Path] Direct response in ${durationMs}ms (confidence: ${preFilterResult.confidence})`);
@@ -540,17 +581,23 @@ export async function executeMultiAgent(
   // =========================================================================
   // Forced Routing: Bypass LLM when pre-filter confidence is high
   // =========================================================================
+  console.log(`🔍 [Orchestrator] Forced routing check: suggestedAgent=${preFilterResult.suggestedAgent}, confidence=${preFilterResult.confidence}`);
+
   if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.8) {
+    console.log(`🚀 [Orchestrator] Triggering forced routing to ${preFilterResult.suggestedAgent}`);
     const forcedResult = await executeForcedRouting(
       query,
       preFilterResult.suggestedAgent,
       startTime
     );
     if (forcedResult) {
+      console.log(`✅ [Orchestrator] Forced routing succeeded`);
       return forcedResult;
     }
     // If forced routing fails, fall through to LLM routing
     console.log('🔄 [Orchestrator] Forced routing failed, falling back to LLM routing');
+  } else {
+    console.log(`⏭️ [Orchestrator] Skipping forced routing (conditions not met)`);
   }
 
   // =========================================================================

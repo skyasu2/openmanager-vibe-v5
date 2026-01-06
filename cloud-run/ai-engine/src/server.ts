@@ -26,6 +26,7 @@ import { handleUnauthorizedError, jsonSuccess } from './lib/error-handler';
 // Observability & Resilience
 import { flushLangfuse, shutdownLangfuse, getLangfuseUsageStatus } from './services/observability/langfuse';
 import { getAllCircuitStats, resetAllCircuitBreakers } from './services/resilience/circuit-breaker';
+import { getAvailableAgentsStatus, preFilterQuery, executeMultiAgent, type MultiAgentRequest } from './services/ai-sdk/agents';
 
 // Routes
 import {
@@ -105,16 +106,18 @@ app.get('/warmup', (c: Context) => {
 });
 
 /**
- * GET /monitoring - Circuit Breaker, Langfuse & Resilience Status
+ * GET /monitoring - Circuit Breaker, Langfuse, Agents & Resilience Status
  */
 app.get('/monitoring', (c: Context) => {
   const circuitStats = getAllCircuitStats();
   const langfuseStatus = getLangfuseUsageStatus();
+  const agentsStatus = getAvailableAgentsStatus();
 
   return c.json({
     status: 'ok',
     circuits: circuitStats,
     langfuse: langfuseStatus,
+    agents: agentsStatus,
     timestamp: new Date().toISOString(),
   });
 });
@@ -203,6 +206,60 @@ app.get('/monitoring/traces', async (c: Context) => {
     return c.json({
       error: 'Failed to fetch Langfuse traces',
       message: error instanceof Error ? error.message : 'Unknown error',
+    }, 500);
+  }
+});
+
+/**
+ * GET /debug/prefilter - Test preFilterQuery function
+ * Query param: q (the query to test)
+ */
+app.get('/debug/prefilter', (c: Context) => {
+  const query = c.req.query('q') || '서버 상태 요약해줘';
+  const result = preFilterQuery(query);
+  const agentStatus = getAvailableAgentsStatus();
+
+  return c.json({
+    query,
+    preFilterResult: result,
+    agentStatus,
+    expectedBehavior: result.confidence >= 0.8 && result.suggestedAgent
+      ? `Forced routing to ${result.suggestedAgent}`
+      : result.shouldHandoff
+        ? 'LLM orchestrator decides'
+        : 'Direct response (fast path)',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * POST /debug/multi-agent - Test executeMultiAgent directly
+ * This bypasses the supervisor to test the orchestrator's forced routing
+ */
+app.post('/debug/multi-agent', async (c: Context) => {
+  const body = await c.req.json();
+  const query = body.query || '서버 상태 요약해줘';
+
+  const request: MultiAgentRequest = {
+    messages: [{ role: 'user', content: query }],
+    sessionId: 'debug-test-' + Date.now(),
+    enableTracing: false,
+  };
+
+  try {
+    const result = await executeMultiAgent(request);
+    return c.json({
+      query,
+      result,
+      agentStatus: getAvailableAgentsStatus(),
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    return c.json({
+      query,
+      error: error instanceof Error ? error.message : String(error),
+      agentStatus: getAvailableAgentsStatus(),
+      timestamp: new Date().toISOString(),
     }, 500);
   }
 });
