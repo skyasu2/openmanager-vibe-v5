@@ -47,7 +47,7 @@ export function MonitorSettingsTab({
             </div>
             <div className="rounded-lg bg-gray-800/50 p-3 text-center">
               <div className="mx-auto mb-2 h-3 w-3 rounded-full bg-cyan-400" />
-              <p className="mb-1 text-xs text-gray-400">활성 시나리오</p>
+              <p className="mb-1 text-xs text-gray-400">활성 패턴</p>
               <p className="text-lg font-medium text-white">
                 {settingsData.scenarios.active}/{settingsData.scenarios.total}
               </p>

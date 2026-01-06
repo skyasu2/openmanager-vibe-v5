@@ -99,7 +99,7 @@ export const LogsTab: FC<LogsTabProps> = ({
   const [activeView, setActiveView] = useState<'scenario' | 'alerts'>(
     'scenario'
   );
-  const [currentScenario, setCurrentScenario] = useState<string>('');
+  const [_currentScenario, setCurrentScenario] = useState<string>('');
   const [scenarioLogs, setScenarioLogs] = useState<LogEntry[]>([]);
 
   // 시나리오 로그 생성
@@ -147,7 +147,7 @@ export const LogsTab: FC<LogsTabProps> = ({
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                📝 시나리오 로그
+                📝 실시간 로그
               </button>
               <button
                 onClick={() => setActiveView('alerts')}
@@ -160,12 +160,7 @@ export const LogsTab: FC<LogsTabProps> = ({
                 🔔 시스템 알림
               </button>
             </div>
-            {/* 현재 시나리오 표시 */}
-            {activeView === 'scenario' && currentScenario && (
-              <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
-                {currentScenario}
-              </span>
-            )}
+            {/* 현재 상태 표시 - 내부용으로만 사용 */}
           </div>
 
           {/* 알림 레벨 범례 */}
@@ -238,12 +233,12 @@ export const LogsTab: FC<LogsTabProps> = ({
                   </div>
                   <div className="mb-2 text-lg font-medium text-gray-400">
                     {activeView === 'scenario'
-                      ? '시나리오 로그 로딩 중...'
+                      ? '로그 로딩 중...'
                       : '시스템 알림이 없습니다'}
                   </div>
                   <div className="text-sm text-gray-500">
                     {activeView === 'scenario'
-                      ? '현재 시나리오에 맞는 로그를 생성합니다'
+                      ? '서버 상태에 맞는 로그를 가져오는 중입니다'
                       : '모든 시스템 지표가 정상 범위 내에 있습니다'}
                   </div>
                 </div>
@@ -266,7 +261,7 @@ export const LogsTab: FC<LogsTabProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-medium text-gray-600">
-                    {activeView === 'scenario' ? '시나리오 로그' : '총 알림'}
+                    {activeView === 'scenario' ? '실시간 로그' : '총 알림'}
                   </div>
                   <div className="text-2xl font-bold text-gray-800">
                     {displayLogs.length}
