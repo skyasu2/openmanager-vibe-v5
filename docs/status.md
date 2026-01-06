@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-05
+**마지막 업데이트**: 2026-01-06
 
 ---
 
@@ -70,7 +70,17 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 2026-01-04)
+## 🔧 최근 유지보수 (2025-12-09 ~ 2026-01-06)
+
+**AI 분석 순수 메트릭 기반 전환 (2026-01-06)**
+- **시나리오 힌트 제거**: AI가 사전 정의된 힌트 대신 원시 메트릭으로 분석
+  - `rca-analysis.ts`: `getScenariosByServer` 제거, 메트릭 임계값 기반 가설 생성
+  - `incident-report-tools.ts`: cascade 감지 및 타임라인을 메트릭 기반으로 변경
+- **메트릭 기반 로그 생성**: 서버 타입별 로그 템플릿 추가
+  - `fixed-24h-metrics.ts`: `generateMetricLogs()` 함수 추가
+  - 서버 타입: web, database, cache, application, loadbalancer, storage
+- **네트워크 메트릭 누락 수정**: `generateIncidentReport`에 Network 임계값 체크 추가
+- **산업 표준 검증**: Prometheus, Datadog, Grafana 메트릭 호환성 확인
 
 **Tavily Best Practices + P0 단위 테스트 (2026-01-04)**
 - **Web Search 베스트 프랙티스 적용**:

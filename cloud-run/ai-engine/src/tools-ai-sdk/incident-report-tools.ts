@@ -629,6 +629,18 @@ export const generateIncidentReport = tool({
           serverId: server.id,
         });
       }
+      // Network 임계값 초과 이벤트
+      if (server.network >= thresholds.network) {
+        timeline.push({
+          timestamp: now.toISOString(),
+          eventType: 'threshold_breach',
+          metric: 'network',
+          value: server.network,
+          severity: server.network >= 90 ? 'critical' : 'warning',
+          description: `${server.name}: Network ${server.network.toFixed(1)}% (임계값 ${thresholds.network}% 초과)`,
+          serverId: server.id,
+        });
+      }
     }
 
     // Sort timeline
