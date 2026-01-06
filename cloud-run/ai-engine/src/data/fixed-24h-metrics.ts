@@ -152,6 +152,172 @@ function mapServerType(
   return typeMap[type.toLowerCase()] || 'application';
 }
 
+// ============================================================================
+// Log Generation (순수 메트릭 기반)
+// ============================================================================
+
+/**
+ * 서버 타입별 로그 템플릿 (원인이 아닌 증상만 표시)
+ */
+const LOG_TEMPLATES: Record<string, { normal: string[]; warning: string[]; critical: string[] }> = {
+  web: {
+    normal: [
+      '[INFO] GET /api/health 200 - 4ms',
+      '[INFO] Request processed successfully - avg latency 12ms',
+      '[INFO] Static assets served: 1,234 requests/min',
+    ],
+    warning: [
+      '[WARN] Response time exceeded 500ms for /api/dashboard',
+      '[WARN] Connection pool utilization at 75%',
+      '[WARN] Slow query detected: 2.3s response time',
+    ],
+    critical: [
+      '[ERROR] Request timeout after 30s - /api/metrics',
+      '[CRIT] Connection refused from upstream server',
+      '[ERROR] 503 Service Unavailable - backend not responding',
+    ],
+  },
+  database: {
+    normal: [
+      '[INFO] Query executed: SELECT * FROM metrics - 15ms',
+      '[INFO] Replication lag: 0.2s',
+      '[INFO] Checkpoint completed successfully',
+    ],
+    warning: [
+      '[WARN] Slow query: 5.2s - full table scan detected',
+      '[WARN] Disk I/O wait time: 150ms avg',
+      '[WARN] Connection count: 180/200',
+    ],
+    critical: [
+      '[CRIT] Query timeout after 60s - deadlock detected',
+      '[ERROR] Replication lag exceeded 30s',
+      '[CRIT] Disk write failed - no space left on device',
+    ],
+  },
+  cache: {
+    normal: [
+      '[INFO] Cache hit ratio: 98.5%',
+      '[INFO] Memory usage: 2.1GB/4GB',
+      '[INFO] Keys: 125,000 active',
+    ],
+    warning: [
+      '[WARN] Cache eviction rate increased: 500 keys/min',
+      '[WARN] Memory fragmentation: 15%',
+      '[WARN] Client connection queue: 50 pending',
+    ],
+    critical: [
+      '[CRIT] Out of memory - evicting keys',
+      '[ERROR] Cluster node unreachable - failover initiated',
+      '[CRIT] Persistence save failed - disk full',
+    ],
+  },
+  application: {
+    normal: [
+      '[INFO] API request completed - 200 OK',
+      '[INFO] Background job processed: 45 items',
+      '[INFO] Health check passed',
+    ],
+    warning: [
+      '[WARN] High CPU usage detected in worker process',
+      '[WARN] GC pause: 850ms - memory pressure',
+      '[WARN] Thread pool exhausted - queuing requests',
+    ],
+    critical: [
+      '[CRIT] Process unresponsive - initiating restart',
+      '[ERROR] Fatal: Maximum memory limit exceeded',
+      '[CRIT] Uncaught exception in main thread',
+    ],
+  },
+  loadbalancer: {
+    normal: [
+      '[INFO] Backend health check: all 4 servers healthy',
+      '[INFO] Request distribution: 25% per backend',
+      '[INFO] SSL handshake: avg 8ms',
+    ],
+    warning: [
+      '[WARN] Backend server removed from pool - health check failed',
+      '[WARN] Connection queue depth: 100',
+      '[WARN] SSL certificate expires in 7 days',
+    ],
+    critical: [
+      '[CRIT] No healthy backends available',
+      '[ERROR] Connection limit reached: 10000/10000',
+      '[CRIT] Backend pool reduced to 1 server',
+    ],
+  },
+  storage: {
+    normal: [
+      '[INFO] Object stored: 1.2MB - 45ms',
+      '[INFO] Bucket stats: 2.3TB used / 10TB quota',
+      '[INFO] Replication completed: 3 copies verified',
+    ],
+    warning: [
+      '[WARN] Storage throughput degraded: 50MB/s vs 100MB/s expected',
+      '[WARN] Object retrieval latency: 500ms',
+      '[WARN] Quota usage: 85%',
+    ],
+    critical: [
+      '[CRIT] Write operation failed - quota exceeded',
+      '[ERROR] Object corruption detected - checksum mismatch',
+      '[CRIT] Storage backend unreachable',
+    ],
+  },
+};
+
+/**
+ * 메트릭 기반 로그 생성 (시나리오 힌트 없이 순수 증상만)
+ */
+function generateMetricLogs(
+  serverType: Server24hDataset['serverType'],
+  cpu: number,
+  memory: number,
+  disk: number,
+  network: number
+): string[] {
+  const logs: string[] = [];
+  const templates = LOG_TEMPLATES[serverType] || LOG_TEMPLATES.application;
+
+  // Critical 상태 (90% 이상)
+  if (cpu >= 90 || memory >= 90 || disk >= 95 || network >= 85) {
+    const critLogs = templates.critical;
+    logs.push(critLogs[Math.floor(Math.random() * critLogs.length)]);
+
+    // 구체적 메트릭 로그 추가
+    if (cpu >= 90) {
+      logs.push(`[CRIT] CPU usage: ${cpu.toFixed(1)}% - load average: ${(cpu / 10).toFixed(2)}`);
+    }
+    if (memory >= 90) {
+      logs.push(`[CRIT] Memory usage: ${memory.toFixed(1)}% - available: ${((100 - memory) * 0.32).toFixed(1)}GB`);
+    }
+    if (disk >= 95) {
+      logs.push(`[CRIT] Disk usage: ${disk.toFixed(1)}% - free: ${((100 - disk) * 5).toFixed(0)}GB`);
+    }
+  }
+  // Warning 상태 (80% 이상)
+  else if (cpu >= 80 || memory >= 80 || disk >= 85 || network >= 70) {
+    const warnLogs = templates.warning;
+    logs.push(warnLogs[Math.floor(Math.random() * warnLogs.length)]);
+
+    // 구체적 메트릭 로그 추가
+    if (cpu >= 80) {
+      logs.push(`[WARN] CPU usage: ${cpu.toFixed(1)}% - load average: ${(cpu / 10).toFixed(2)}`);
+    }
+    if (memory >= 80) {
+      logs.push(`[WARN] Memory usage: ${memory.toFixed(1)}%`);
+    }
+    if (disk >= 85) {
+      logs.push(`[WARN] Disk usage: ${disk.toFixed(1)}%`);
+    }
+  }
+  // 정상 상태
+  else {
+    const normalLogs = templates.normal;
+    logs.push(normalLogs[Math.floor(Math.random() * normalLogs.length)]);
+  }
+
+  return logs;
+}
+
 /**
  * 24개 JSON 파일에서 Server24hDataset[] 빌드
  */
@@ -197,13 +363,18 @@ function buildDatasetsFromJson(): Server24hDataset[] {
 
         // 해당 10분 슬롯에 데이터가 없으면 추가
         if (!serverEntry.dataPoints.has(roundedMinute)) {
+          const cpu = serverData.cpu ?? 0;
+          const memory = serverData.memory ?? 0;
+          const disk = serverData.disk ?? 0;
+          const network = serverData.network ?? 0;
+
           serverEntry.dataPoints.set(roundedMinute, {
             minuteOfDay: roundedMinute,
-            cpu: serverData.cpu ?? 0,
-            memory: serverData.memory ?? 0,
-            disk: serverData.disk ?? 0,
-            network: serverData.network ?? 0,
-            logs: [],
+            cpu,
+            memory,
+            disk,
+            network,
+            logs: generateMetricLogs(serverEntry.serverType, cpu, memory, disk, network),
           });
         }
       }
@@ -227,13 +398,17 @@ function buildDatasetsFromJson(): Server24hDataset[] {
       } else {
         // 가장 가까운 이전 데이터 복사 또는 기본값
         const prevData = fullData[fullData.length - 1];
+        const cpu = prevData?.cpu ?? 30;
+        const memory = prevData?.memory ?? 40;
+        const disk = prevData?.disk ?? 25;
+        const network = prevData?.network ?? 50;
         fullData.push({
           minuteOfDay: minute,
-          cpu: prevData?.cpu ?? 30,
-          memory: prevData?.memory ?? 40,
-          disk: prevData?.disk ?? 25,
-          network: prevData?.network ?? 50,
-          logs: [],
+          cpu,
+          memory,
+          disk,
+          network,
+          logs: generateMetricLogs(entry.serverType, cpu, memory, disk, network),
         });
       }
     }
