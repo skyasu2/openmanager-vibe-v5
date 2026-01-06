@@ -57,6 +57,16 @@ export interface KVConfig {
   token: string;
 }
 
+/**
+ * Langfuse Configuration (LLM Observability)
+ * @added 2026-01-06
+ */
+export interface LangfuseConfig {
+  publicKey: string;
+  secretKey: string;
+  baseUrl: string;
+}
+
 // =============================================================================
 // JSON Parsing Helpers
 // =============================================================================
@@ -102,6 +112,7 @@ function getSupabaseConfigLegacy(): SupabaseConfig | null {
 let cachedSupabaseConfig: SupabaseConfig | null = null;
 let cachedAIProvidersConfig: AIProvidersConfig | null = null;
 let cachedKVConfig: KVConfig | null = null;
+let cachedLangfuseConfig: LangfuseConfig | null = null;
 
 /**
  * Get Supabase configuration
@@ -184,6 +195,41 @@ export function getKVConfig(): KVConfig | null {
   }
 
   return cachedKVConfig;
+}
+
+/**
+ * Get Langfuse configuration (LLM Observability)
+ * Tries JSON secret first, falls back to individual env vars
+ * @added 2026-01-06
+ */
+export function getLangfuseConfig(): LangfuseConfig | null {
+  if (cachedLangfuseConfig) return cachedLangfuseConfig;
+
+  // Try JSON secret first
+  cachedLangfuseConfig = parseJsonSecret<LangfuseConfig>(
+    'LANGFUSE_CONFIG',
+    'langfuse-config'
+  );
+
+  // Fallback to individual env vars
+  if (!cachedLangfuseConfig) {
+    const publicKey = process.env.LANGFUSE_PUBLIC_KEY;
+    const secretKey = process.env.LANGFUSE_SECRET_KEY;
+    const baseUrl = process.env.LANGFUSE_BASE_URL || 'https://us.cloud.langfuse.com';
+
+    if (publicKey && secretKey) {
+      cachedLangfuseConfig = { publicKey, secretKey, baseUrl };
+    }
+  }
+
+  // Set individual env vars for langfuse.ts compatibility
+  if (cachedLangfuseConfig) {
+    process.env.LANGFUSE_PUBLIC_KEY = cachedLangfuseConfig.publicKey;
+    process.env.LANGFUSE_SECRET_KEY = cachedLangfuseConfig.secretKey;
+    process.env.LANGFUSE_BASE_URL = cachedLangfuseConfig.baseUrl;
+  }
+
+  return cachedLangfuseConfig;
 }
 
 /**
@@ -312,6 +358,7 @@ export function getConfigStatus(): {
   cerebras: boolean;
   tavily: boolean;
   openrouter: boolean;
+  langfuse: boolean;
   cloudRunApi: boolean;
 } {
   return {
@@ -322,6 +369,7 @@ export function getConfigStatus(): {
     cerebras: getCerebrasApiKey() !== null,
     tavily: getTavilyApiKey() !== null,
     openrouter: getOpenRouterApiKey() !== null,
+    langfuse: getLangfuseConfig() !== null,
     cloudRunApi: getCloudRunApiSecret() !== null,
   };
 }
@@ -333,4 +381,5 @@ export function clearConfigCache(): void {
   cachedSupabaseConfig = null;
   cachedAIProvidersConfig = null;
   cachedKVConfig = null;
+  cachedLangfuseConfig = null;
 }

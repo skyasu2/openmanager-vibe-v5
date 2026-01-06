@@ -16,7 +16,7 @@ import { logger } from 'hono/logger';
 
 // Configuration
 import { logAPIKeyStatus, validateAPIKeys } from './lib/model-config';
-import { getConfigStatus } from './lib/config-parser';
+import { getConfigStatus, getLangfuseConfig } from './lib/config-parser';
 import { isRedisAvailable } from './lib/redis-client';
 import { getCurrentState } from './data/precomputed-state';
 
@@ -242,6 +242,14 @@ app.route('/api/ai/providers', providersRouter);
 const port = parseInt(process.env.PORT || '8080', 10);
 console.log(`🚀 AI Engine Server starting on port ${port}...`);
 logAPIKeyStatus();
+
+// Initialize Langfuse config (sets env vars from JSON secret)
+const langfuseConfig = getLangfuseConfig();
+if (langfuseConfig) {
+  console.log(`📊 [Langfuse] Initialized: ${langfuseConfig.baseUrl}`);
+} else {
+  console.warn(`⚠️ [Langfuse] Not configured - observability disabled`);
+}
 
 serve(
   {
