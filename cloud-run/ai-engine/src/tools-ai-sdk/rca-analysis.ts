@@ -11,12 +11,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 
-// Data sources
-import {
-  FAILURE_SCENARIOS,
-  getScenariosByServer,
-  type MetricType,
-} from '../data/scenarios';
+// Data sources - 순수 메트릭 기반 분석 (시나리오 정보 제거)
 import {
   FIXED_24H_DATASETS,
 } from '../data/fixed-24h-metrics';
@@ -44,11 +39,6 @@ interface RootCauseHypothesis {
 // ============================================================================
 // 2. Helper Functions
 // ============================================================================
-
-function getMinuteOfDay(): number {
-  const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
-}
 
 function calculateCorrelation(arr1: number[], arr2: number[]): number {
   if (arr1.length !== arr2.length || arr1.length === 0) return 0;
@@ -82,7 +72,7 @@ function calculateCorrelation(arr1: number[], arr2: number[]): number {
  */
 export const buildIncidentTimeline = tool({
   description:
-    '서버의 장애 타임라인을 구성합니다. 패턴, 메트릭 임계값 초과, 로그 이벤트를 시간순으로 정렬합니다.',
+    '서버의 장애 타임라인을 구성합니다. 메트릭 임계값 초과 이벤트를 시간순으로 정렬합니다.',
   inputSchema: z.object({
     serverId: z.string().describe('분석할 서버 ID'),
     timeRangeHours: z.number().default(6).describe('분석 시간 범위 (시간)'),
@@ -97,31 +87,8 @@ export const buildIncidentTimeline = tool({
     try {
       const events: TimelineEvent[] = [];
       const now = new Date();
-      const minuteOfDay = getMinuteOfDay();
 
-      // Get active scenarios for this server
-      const serverScenarios = getScenariosByServer(serverId);
-      const activeScenarios = serverScenarios.filter(
-        (s) => minuteOfDay >= s.timeRange[0] && minuteOfDay <= s.timeRange[1]
-      );
-
-      // Add scenario events
-      for (const scenario of activeScenarios) {
-        const startTime = new Date(now);
-        startTime.setMinutes(
-          startTime.getMinutes() - (minuteOfDay - scenario.timeRange[0])
-        );
-
-        events.push({
-          timestamp: startTime.toISOString(),
-          eventType: 'pattern_start',
-          metric: scenario.affectedMetric,
-          severity: scenario.severity === 'critical' ? 'critical' : 'warning',
-          description: `${scenario.affectedMetric.toUpperCase()} ${scenario.pattern} pattern detected`,
-        });
-      }
-
-      // Get threshold breaches from metrics
+      // 순수 메트릭 기반 분석 - 임계값 초과 감지
       const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === serverId);
       if (dataset) {
         const thresholds: Record<string, number> = {
@@ -212,7 +179,8 @@ export const correlateMetrics = tool({
         return { success: false, error: `Server not found: ${serverId}` };
       }
 
-      const allMetrics: MetricType[] = ['cpu', 'memory', 'disk', 'network'];
+      const allMetrics = ['cpu', 'memory', 'disk', 'network'] as const;
+      type MetricType = (typeof allMetrics)[number];
       const otherMetrics = allMetrics.filter((m) => m !== targetMetric);
 
       // Extract values (last 2 hours = 12 points)
@@ -290,43 +258,46 @@ export const findRootCause = tool({
   }) => {
     try {
       const hypotheses: RootCauseHypothesis[] = [];
-      const minuteOfDay = getMinuteOfDay();
       const symptomLower = symptom.toLowerCase();
 
-      // Pattern matching with active scenarios
-      const serverScenarios = getScenariosByServer(serverId);
-      const activeScenarios = serverScenarios.filter(
-        (s) => minuteOfDay >= s.timeRange[0] && minuteOfDay <= s.timeRange[1]
-      );
+      // 순수 메트릭 기반 분석 - 현재 메트릭 값 조회
+      const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === serverId);
+      if (dataset) {
+        const recentData = dataset.data.slice(-6); // 최근 1시간 데이터
+        const avgMetrics = {
+          cpu: recentData.reduce((sum, d) => sum + d.cpu, 0) / recentData.length,
+          memory: recentData.reduce((sum, d) => sum + d.memory, 0) / recentData.length,
+          disk: recentData.reduce((sum, d) => sum + d.disk, 0) / recentData.length,
+          network: recentData.reduce((sum, d) => sum + d.network, 0) / recentData.length,
+        };
 
-      for (const scenario of activeScenarios) {
-        const metricMatch = symptomLower.includes(scenario.affectedMetric);
+        // 메트릭 임계값 기반 가설 생성
+        const thresholds = { cpu: 80, memory: 85, disk: 90, network: 85 };
+        const metricNames: Record<string, string> = {
+          cpu: 'CPU 과부하',
+          memory: '메모리 부족',
+          disk: '디스크 용량 부족',
+          network: '네트워크 병목',
+        };
 
-        if (metricMatch) {
-          const patternDescriptions: Record<string, string> = {
-            spike: '급격한 부하 증가',
-            gradual: '점진적 리소스 누적',
-            oscillate: '불안정한 부하 변동',
-            sustained: '지속적 고부하 상태',
-          };
-
-          const fixes: Record<string, string> = {
-            spike: '급격한 부하 원인 제거 (배치작업 중지, 트래픽 제한)',
-            gradual: '누적 원인 해결 (로그 정리, 캐시 클리어)',
-            oscillate: '부하 분산 조정 (스케일아웃, 로드밸런서 설정)',
-            sustained: '리소스 확장 필요 (스케일업, 메모리 증설)',
-          };
-
-          hypotheses.push({
-            cause: `${scenario.affectedMetric.toUpperCase()} ${patternDescriptions[scenario.pattern]}`,
-            confidence: 0.85,
-            evidence: [
-              `Pattern: ${scenario.pattern}`,
-              `Severity: ${scenario.severity}`,
-              `Metric: ${scenario.affectedMetric}`,
-            ],
-            suggestedFix: fixes[scenario.pattern],
-          });
+        for (const [metric, threshold] of Object.entries(thresholds)) {
+          const value = avgMetrics[metric as keyof typeof avgMetrics];
+          if (value >= threshold && symptomLower.includes(metric)) {
+            const severity = value >= 90 ? 'critical' : 'warning';
+            hypotheses.push({
+              cause: metricNames[metric],
+              confidence: value >= 90 ? 0.9 : 0.75,
+              evidence: [
+                `현재 ${metric.toUpperCase()}: ${value.toFixed(1)}%`,
+                `임계값 초과: ${threshold}%`,
+                `심각도: ${severity}`,
+              ],
+              suggestedFix: metric === 'cpu' ? '프로세스 정리 또는 스케일아웃'
+                : metric === 'memory' ? '메모리 누수 점검 또는 증설'
+                : metric === 'disk' ? '불필요 파일 정리 또는 용량 확장'
+                : '네트워크 대역폭 확인 또는 트래픽 제한',
+            });
+          }
         }
       }
 

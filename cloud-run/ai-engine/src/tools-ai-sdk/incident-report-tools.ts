@@ -14,10 +14,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 
-// Data sources
+// Data sources - 순수 메트릭 기반 분석 (시나리오 정보 제거)
 import { getCurrentState, type ServerSnapshot } from '../data/precomputed-state';
 import { FIXED_24H_DATASETS } from '../data/fixed-24h-metrics';
-import { getScenariosByServer } from '../data/scenarios';
 
 // Caching
 import { getDataCache } from '../lib/cache-layer';
@@ -497,33 +496,22 @@ export const analyzeServerCorrelation = tool({
         }
       }
 
-      // Check for cascade patterns from scenarios
-      const scenarioMap = new Map<string, ReturnType<typeof getScenariosByServer>>();
-      for (const server of state.servers) {
-        scenarioMap.set(server.id, getScenariosByServer(server.id));
-      }
+      // 순수 메트릭 기반 cascade 감지 - 동일 메트릭 임계값 초과 시간 비교
+      for (let i = 0; i < problemServers.length; i++) {
+        for (let j = i + 1; j < problemServers.length; j++) {
+          const s1 = problemServers[i];
+          const s2 = problemServers[j];
 
-      // Detect cascade: if server A has spike and server B has gradual increase shortly after
-      for (const [serverId1, scenarios1] of scenarioMap) {
-        for (const [serverId2, scenarios2] of scenarioMap) {
-          if (serverId1 === serverId2) continue;
-
-          const spike1 = scenarios1.find(s => s.pattern === 'spike');
-          const gradual2 = scenarios2.find(s => s.pattern === 'gradual');
-
-          if (spike1 && gradual2 && spike1.affectedMetric === gradual2.affectedMetric) {
-            // Check time proximity
-            const timeDiff = gradual2.timeRange[0] - spike1.timeRange[0];
-            if (timeDiff > 0 && timeDiff < 30) {
-              correlations.push({
-                serverId: serverId1,
-                correlatedWith: serverId2,
-                correlationType: 'cascade',
-                timeLagSeconds: timeDiff * 60,
-                affectedMetric: spike1.affectedMetric,
-                confidence: 0.7,
-              });
-            }
+          // CPU 기반 cascade 감지 - 둘 다 높으면 가능성 있음
+          if (s1.cpu >= 80 && s2.cpu >= 70) {
+            correlations.push({
+              serverId: s1.id,
+              correlatedWith: s2.id,
+              correlationType: 'cascade',
+              timeLagSeconds: 60, // 추정치
+              affectedMetric: 'cpu',
+              confidence: 0.65,
+            });
           }
         }
       }
@@ -600,26 +588,44 @@ export const generateIncidentReport = tool({
       };
     });
 
-    // 2. Build timeline
+    // 2. Build timeline - 순수 메트릭 임계값 기반
     const timeline: TimelineEvent[] = [];
-    const minuteOfDay = now.getHours() * 60 + now.getMinutes();
+    const thresholds = { cpu: 80, memory: 85, disk: 90, network: 85 };
 
     for (const server of state.servers) {
-      const scenarios = getScenariosByServer(server.id);
-      const activeScenarios = scenarios.filter(
-        s => minuteOfDay >= s.timeRange[0] && minuteOfDay <= s.timeRange[1]
-      );
-
-      for (const scenario of activeScenarios) {
-        const eventTime = new Date(now);
-        eventTime.setMinutes(eventTime.getMinutes() - (minuteOfDay - scenario.timeRange[0]));
-
+      // CPU 임계값 초과 이벤트
+      if (server.cpu >= thresholds.cpu) {
         timeline.push({
-          timestamp: eventTime.toISOString(),
-          eventType: 'pattern_start',
-          metric: scenario.affectedMetric,
-          severity: scenario.severity === 'critical' ? 'critical' : 'warning',
-          description: `${server.name}: ${scenario.affectedMetric.toUpperCase()} ${scenario.pattern} 패턴 감지`,
+          timestamp: now.toISOString(),
+          eventType: 'threshold_breach',
+          metric: 'cpu',
+          value: server.cpu,
+          severity: server.cpu >= 90 ? 'critical' : 'warning',
+          description: `${server.name}: CPU ${server.cpu.toFixed(1)}% (임계값 ${thresholds.cpu}% 초과)`,
+          serverId: server.id,
+        });
+      }
+      // Memory 임계값 초과 이벤트
+      if (server.memory >= thresholds.memory) {
+        timeline.push({
+          timestamp: now.toISOString(),
+          eventType: 'threshold_breach',
+          metric: 'memory',
+          value: server.memory,
+          severity: server.memory >= 90 ? 'critical' : 'warning',
+          description: `${server.name}: Memory ${server.memory.toFixed(1)}% (임계값 ${thresholds.memory}% 초과)`,
+          serverId: server.id,
+        });
+      }
+      // Disk 임계값 초과 이벤트
+      if (server.disk >= thresholds.disk) {
+        timeline.push({
+          timestamp: now.toISOString(),
+          eventType: 'threshold_breach',
+          metric: 'disk',
+          value: server.disk,
+          severity: server.disk >= 95 ? 'critical' : 'warning',
+          description: `${server.name}: Disk ${server.disk.toFixed(1)}% (임계값 ${thresholds.disk}% 초과)`,
           serverId: server.id,
         });
       }
