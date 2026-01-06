@@ -760,7 +760,7 @@ function generateHourlyData(hour: number) {
 
   return {
     hour,
-    scenario: scenarioText,
+    _pattern: scenarioText, // underscore prefix to hide from AI
     dataPoints,
     metadata: {
       version: '2.1.0', // 점진적 장애 진행 버전
