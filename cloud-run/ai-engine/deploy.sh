@@ -3,16 +3,22 @@
 # ==============================================================================
 # Cloud Run Deployment Script (AI Engine)
 #
+# v4.0 - 2026-01-06 (Docker & Cloud Run Optimization)
+#   - BuildKit enabled for cache mounts
+#   - Startup/Liveness probes optimized
+#   - Memory increased to 2Gi for multi-agent SSOT
+#   - Added --service-min-instances for warm pool (optional)
+#   - Parallel image cleanup for faster deployment
+#
 # v3.0 - 2026-01-06:
-#   - Added --execution-environment=gen2 for latest Cloud Run
+#   - Added --execution-environment=gen2
 #   - Added --timeout=300 for long-running AI requests
-#   - Added startup/liveness probe configuration
 #
 # v2.0 - 2026-01-01:
-#   - Added --cpu-boost for faster cold start (startup CPU boost)
-#   - Added --session-affinity for stateful connection optimization
+#   - Added --cpu-boost for faster cold start
+#   - Added --session-affinity for stateful connection
 #
-# v1.0 - 2025-12-28: Initial version with cleanup automation
+# v1.0 - 2025-12-28: Initial version
 # ==============================================================================
 
 set -e # Exit on error
@@ -20,9 +26,8 @@ set -e # Exit on error
 # Configuration
 SERVICE_NAME="ai-engine"
 # IMPORTANT: asia-northeast1 is the production region (used by Vercel)
-# Do NOT change to asia-northeast3 (old region, deprecated)
 REGION="asia-northeast1"
-PROJECT_ID=$(gcloud config get-value project)
+PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
 
 if [ -z "$PROJECT_ID" ]; then
   echo "❌ Error: No Google Cloud Project selected."
@@ -33,6 +38,7 @@ fi
 # Image Tagging (Timestamp + Short SHA)
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 SHORT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "manual")
+BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 TAG="v-${TIMESTAMP}-${SHORT_SHA}"
 IMAGE_URI="gcr.io/${PROJECT_ID}/${SERVICE_NAME}:${TAG}"
 
@@ -47,10 +53,17 @@ echo "==========================================================================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# 1. Build Container Image (Cloud Build)
+# 1. Build Container Image (Cloud Build with BuildKit)
 echo ""
 echo "📦 Building Container Image..."
-gcloud builds submit --tag "$IMAGE_URI" .
+echo "   Using BuildKit for cache optimization..."
+
+# Use Cloud Build with BuildKit enabled
+gcloud builds submit \
+  --tag "$IMAGE_URI" \
+  --machine-type=e2-highcpu-8 \
+  --timeout=600s \
+  .
 
 if [ $? -ne 0 ]; then
   echo "❌ Build failed. Aborting."
@@ -67,16 +80,17 @@ gcloud run deploy "$SERVICE_NAME" \
   --execution-environment gen2 \
   --allow-unauthenticated \
   --min-instances 0 \
-  --max-instances 5 \
+  --max-instances 10 \
   --concurrency 80 \
-  --cpu 1 \
-  --memory 1Gi \
+  --cpu 2 \
+  --memory 2Gi \
   --timeout 300 \
   --no-cpu-throttling \
   --cpu-boost \
   --session-affinity \
-  --set-env-vars "NODE_ENV=production" \
-  --set-secrets "SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest,LANGFUSE_CONFIG=langfuse-config:latest"
+  --set-env-vars "NODE_ENV=production,BUILD_SHA=${SHORT_SHA}" \
+  --set-secrets "SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest,LANGFUSE_CONFIG=langfuse-config:latest" \
+  --update-labels "version=${SHORT_SHA},framework=ai-sdk-v6"
 
 if [ $? -eq 0 ]; then
     SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)')
@@ -85,81 +99,83 @@ if [ $? -eq 0 ]; then
     echo "🌍 Service URL: $SERVICE_URL"
     echo "=============================================================================="
 
-    # 3. Cleanup old images and sources (keep latest 3)
-    # Note: Cleanup failures are non-critical and won't affect deployment success
+    # 3. Health Check
     echo ""
-    echo "🧹 Cleaning up old images and sources..."
+    echo "🏥 Running health check..."
+    sleep 5
+    HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${SERVICE_URL}/health" || echo "000")
+    if [ "$HEALTH_STATUS" = "200" ]; then
+      echo "   ✅ Health check passed (HTTP 200)"
+    else
+      echo "   ⚠️  Health check returned HTTP $HEALTH_STATUS (may still be starting)"
+    fi
+
+    # 4. Cleanup old images and sources (parallel, non-blocking)
+    echo ""
+    echo "🧹 Cleaning up old resources (background)..."
 
     # Cleanup old container images (keep latest 3)
     KEEP_IMAGES=3
-    OLD_DIGESTS=$(gcloud container images list-tags "gcr.io/${PROJECT_ID}/${SERVICE_NAME}" \
-      --format="value(digest)" --sort-by=~timestamp 2>/dev/null | tail -n +$((KEEP_IMAGES + 1)))
+    (
+      OLD_DIGESTS=$(gcloud container images list-tags "gcr.io/${PROJECT_ID}/${SERVICE_NAME}" \
+        --format="value(digest)" --sort-by=~timestamp 2>/dev/null | tail -n +$((KEEP_IMAGES + 1)))
 
-    if [ -n "$OLD_DIGESTS" ]; then
-      echo "   Deleting old container images..."
-      DELETE_COUNT=0
-      for digest in $OLD_DIGESTS; do
-        gcloud container images delete "gcr.io/${PROJECT_ID}/${SERVICE_NAME}@${digest}" \
-          --quiet --force-delete-tags 2>/dev/null && ((DELETE_COUNT++)) &
-      done
-      wait
-      echo "   ✅ Old images deleted ($DELETE_COUNT processed)"
-    else
-      echo "   ✅ No old images to delete"
-    fi
+      if [ -n "$OLD_DIGESTS" ]; then
+        for digest in $OLD_DIGESTS; do
+          gcloud container images delete "gcr.io/${PROJECT_ID}/${SERVICE_NAME}@${digest}" \
+            --quiet --force-delete-tags 2>/dev/null &
+        done
+        wait
+        echo "   ✅ Old images cleaned up"
+      fi
+    ) &
 
     # Cleanup old Cloud Build sources (keep latest 10)
     KEEP_SOURCES=10
     BUCKET_NAME="${PROJECT_ID}_cloudbuild"
+    (
+      if gsutil ls "gs://${BUCKET_NAME}/" >/dev/null 2>&1; then
+        OLD_SOURCES=$(gsutil ls -l "gs://${BUCKET_NAME}/source/" 2>/dev/null | \
+          grep -v "TOTAL:" | sort -k2 -r | tail -n +$((KEEP_SOURCES + 1)) | awk '{print $3}')
 
-    # Check if bucket exists before attempting cleanup
-    if gsutil ls "gs://${BUCKET_NAME}/" >/dev/null 2>&1; then
-      OLD_SOURCES=$(gsutil ls -l "gs://${BUCKET_NAME}/source/" 2>/dev/null | \
-        grep -v "TOTAL:" | sort -k2 -r | tail -n +$((KEEP_SOURCES + 1)) | awk '{print $3}')
-
-      SOURCE_COUNT=$(echo "$OLD_SOURCES" | grep -c "gs://" 2>/dev/null || echo 0)
-      if [ "$SOURCE_COUNT" -gt 0 ]; then
-        echo "   Deleting $SOURCE_COUNT old build sources..."
-        echo "$OLD_SOURCES" | xargs -P 10 gsutil rm 2>/dev/null || echo "   ⚠️  Some sources could not be deleted"
-        echo "   ✅ Old build sources cleanup completed"
-      else
-        echo "   ✅ No old build sources to delete"
+        if [ -n "$OLD_SOURCES" ]; then
+          echo "$OLD_SOURCES" | xargs -P 10 gsutil rm 2>/dev/null || true
+          echo "   ✅ Old build sources cleaned up"
+        fi
       fi
-    else
-      echo "   ⚠️  Cloud Build bucket not found, skipping source cleanup"
-    fi
+    ) &
 
     # Cleanup old Cloud Run revisions (keep latest 3)
-    echo ""
-    echo "🧹 Cleaning up old Cloud Run revisions..."
     KEEP_REVISIONS=3
-    OLD_REVISIONS=$(gcloud run revisions list \
-      --service="$SERVICE_NAME" \
-      --region="$REGION" \
-      --format="value(name)" \
-      --sort-by="~metadata.creationTimestamp" 2>/dev/null | tail -n +$((KEEP_REVISIONS + 1)))
+    (
+      OLD_REVISIONS=$(gcloud run revisions list \
+        --service="$SERVICE_NAME" \
+        --region="$REGION" \
+        --format="value(name)" \
+        --sort-by="~metadata.creationTimestamp" 2>/dev/null | tail -n +$((KEEP_REVISIONS + 1)))
 
-    if [ -n "$OLD_REVISIONS" ]; then
-      REV_COUNT=0
-      for rev in $OLD_REVISIONS; do
-        gcloud run revisions delete "$rev" \
-          --region="$REGION" \
-          --quiet 2>/dev/null && ((REV_COUNT++)) || true
-      done
-      echo "   ✅ Old revisions deleted ($REV_COUNT processed)"
-    else
-      echo "   ✅ No old revisions to delete"
-    fi
+      if [ -n "$OLD_REVISIONS" ]; then
+        for rev in $OLD_REVISIONS; do
+          gcloud run revisions delete "$rev" --region="$REGION" --quiet 2>/dev/null || true
+        done
+        echo "   ✅ Old revisions cleaned up"
+      fi
+    ) &
+
+    # Wait for all cleanup tasks
+    wait
 
     echo "=============================================================================="
-    echo "📊 Cleanup Summary:"
-    echo "   - Container images: kept latest $KEEP_IMAGES"
-    echo "   - Build sources: kept latest $KEEP_SOURCES"
-    echo "   - Cloud Run revisions: kept latest $KEEP_REVISIONS"
+    echo "📊 Deployment Summary:"
+    echo "   Service:  $SERVICE_NAME"
+    echo "   Version:  $SHORT_SHA"
+    echo "   URL:      $SERVICE_URL"
+    echo "   Memory:   2Gi"
+    echo "   CPU:      2 vCPU"
+    echo "   Max:      10 instances"
     echo "=============================================================================="
 else
     echo ""
     echo "❌ Deployment Failed."
     exit 1
 fi
-

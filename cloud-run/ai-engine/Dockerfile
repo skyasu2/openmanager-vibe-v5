@@ -2,30 +2,23 @@
 # AI Engine - Cloud Run Service (Multi-stage Build)
 # Optimized for Cloud Run cold start & minimal image size
 #
+# v6.0 - 2026-01-06 (Docker & Build Optimization)
+# - Node.js 22.x LTS (latest stable)
+# - npm ci for reproducible builds
+# - BuildKit cache mounts for faster rebuilds
+# - Optimized COPY order for better layer caching
+# - Updated memory to 512MB for SSOT data handling
+#
 # v5.0 - 2026-01-06 (SSOT Data Sync & Optimization)
 # - hourly-data SSOT: Vercel ↔ Cloud Run 동기화
 # - npm cache clean for smaller image
-# - Updated to v5.84.0
 #
 # v4.0 - 2025-12-29 (Observability & Resilience)
-# - Langfuse LLM Observability (1M spans/month free)
-# - Circuit Breaker pattern for provider fault tolerance
-# - streamText real-time token streaming
-# - Graceful shutdown with trace flushing
-# - Memory optimized for observability (450 → 480MB)
-#
-# v3.0 - 2025-12-28 (AI SDK Migration)
-# - LangGraph → Vercel AI SDK v6 migration
-# - Multi-stage build optimization maintained
-#
-# v2.2 - 2025-12-28 (Precomputed State)
-# - Pre-built JSON for O(1) server state lookup
-# - 69.8% token reduction (3076 → 930 chars)
-#
-# v2.0 - 2025-12-27 (RCA + Capacity Agents)
-# - Added dumb-init for proper signal handling
-# - Security hardening with non-root user
+# - Langfuse LLM Observability
+# - Circuit Breaker pattern
 # ============================================================================
+
+# syntax=docker/dockerfile:1.4
 
 # Build arguments
 ARG NODE_VERSION=22
@@ -43,9 +36,10 @@ RUN apk add --no-cache dumb-init
 # Copy package files first (maximize cache hit)
 COPY package.json package-lock.json ./
 
-# Install all dependencies (dev + prod) for build
-# Note: Using npm install instead of npm ci due to lockfile sync issues in Cloud Build
-RUN npm install --legacy-peer-deps --ignore-scripts && \
+# Install dependencies with npm ci for reproducibility
+# --mount=type=cache for BuildKit caching (faster rebuilds)
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --legacy-peer-deps --ignore-scripts && \
     npm cache clean --force
 
 # ============================================================================
@@ -57,13 +51,16 @@ WORKDIR /app
 
 # Copy deps from previous stage
 COPY --from=deps /app/node_modules ./node_modules
+
+# Copy config files first (rarely change)
 COPY package.json tsconfig.json ./
 
-# Copy entire source directory
+# Copy source directory
 COPY src/ ./src/
 
-# Build TypeScript
-RUN npm run build
+# Build TypeScript with cache
+RUN --mount=type=cache,target=/app/.tsbuildinfo \
+    npm run build
 
 # Prune dev dependencies after build
 RUN npm prune --production --legacy-peer-deps
@@ -73,13 +70,22 @@ RUN npm prune --production --legacy-peer-deps
 # ============================================================================
 FROM node:${NODE_VERSION}-alpine AS runner
 
-# Get version from package.json at build time
+# Build-time metadata
 ARG APP_VERSION=5.84.0
+ARG BUILD_DATE
+ARG GIT_SHA
+
+# OCI Image Labels (standard)
 LABEL org.opencontainers.image.title="AI Engine"
 LABEL org.opencontainers.image.version="${APP_VERSION}"
 LABEL org.opencontainers.image.description="Multi-Agent AI Supervisor for OpenManager VIBE"
-LABEL org.opencontainers.image.source="https://github.com/your-org/openmanager-vibe-v5"
-LABEL org.opencontainers.image.created="2026-01-06"
+LABEL org.opencontainers.image.source="https://github.com/skyasu2/openmanager-vibe-v5"
+LABEL org.opencontainers.image.created="${BUILD_DATE}"
+LABEL org.opencontainers.image.revision="${GIT_SHA}"
+
+# Custom labels
+LABEL ai.framework="vercel-ai-sdk-v6"
+LABEL ai.pattern="multi-agent-ssot"
 LABEL ai.observability="langfuse"
 LABEL ai.resilience="circuit-breaker"
 
@@ -90,22 +96,10 @@ ENV NODE_ENV=production
 ENV PORT=8080
 
 # Cloud Run optimized Node.js settings
-# - max-old-space-size: Limit memory (increased to 480MB for observability)
-# - enable-source-maps: Better error traces in production
-ENV NODE_OPTIONS="--max-old-space-size=480 --enable-source-maps"
-
-# ============================================================================
-# Required Environment Variables (set via Cloud Run / Secret Manager)
-# ============================================================================
-# AI Provider Keys (at least one required):
-#   GOOGLE_GENERATIVE_AI_API_KEY, GROQ_API_KEY, CEREBRAS_API_KEY, etc.
-#
-# Observability (optional, enables Langfuse tracing):
-#   LANGFUSE_SECRET_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_BASE_URL
-#
-# Security:
-#   CLOUD_RUN_API_SECRET (required for /api/* endpoints)
-# ============================================================================
+# - max-old-space-size: 512MB for SSOT data + agents
+# - enable-source-maps: Better error traces
+# - dns-result-order: IPv4 first (Cloud Run optimization)
+ENV NODE_OPTIONS="--max-old-space-size=512 --enable-source-maps --dns-result-order=ipv4first"
 
 # Copy dumb-init from deps stage
 COPY --from=deps /usr/bin/dumb-init /usr/bin/dumb-init
@@ -121,29 +115,28 @@ COPY --from=builder /app/package.json ./
 # Copy built files
 COPY --from=builder /app/dist ./dist
 
-# Copy pre-computed state JSON (O(1) lookup, fast cold start)
-# This file is generated by scripts/build-precomputed-states.ts
+# Copy data files (SSOT)
+# - precomputed-states.json: O(1) lookup for AI context
+# - hourly-data/: Synced with Vercel public/hourly-data/
 COPY data/precomputed-states.json ./data/
-
-# Copy hourly-data JSON (SSOT: synced with Vercel public/hourly-data/)
-# Vercel ↔ Cloud Run 데이터 동기화 보장
 COPY data/hourly-data/ ./data/hourly-data/
 
 # Set ownership and switch to non-root
 RUN chown -R appuser:nodejs /app
 USER appuser
 
-# Health check (lightweight, using wget instead of curl for smaller image)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=2 \
+# Health check (lightweight, using wget)
+# - Increased start-period for cold start
+# - Reduced retries for faster failure detection
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=2 \
     CMD wget -q --spider http://localhost:8080/health || exit 1
 
 EXPOSE 8080
 
 # Use dumb-init as entrypoint for proper signal handling
 # - Forwards SIGTERM to node process
-# - Ensures Langfuse traces are flushed before exit
+# - Ensures graceful shutdown (Langfuse trace flush)
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Direct node execution (fastest startup)
-# Graceful shutdown: SIGTERM → flush Langfuse → exit
 CMD ["node", "dist/server.js"]

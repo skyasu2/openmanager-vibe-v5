@@ -1,0 +1,124 @@
+# ==============================================================================
+# Cloud Build Configuration (AI Engine)
+#
+# Features:
+# - BuildKit enabled for cache mounts
+# - Kaniko caching for faster rebuilds
+# - Parallel steps where possible
+# - Automatic image tagging
+#
+# Usage:
+#   gcloud builds submit --config cloudbuild.yaml .
+#
+# v1.0 - 2026-01-06
+# ==============================================================================
+
+options:
+  # Use higher-spec machine for faster builds
+  machineType: 'E2_HIGHCPU_8'
+  # Enable BuildKit for cache mounts in Dockerfile
+  env:
+    - 'DOCKER_BUILDKIT=1'
+  # Logging to Cloud Logging
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _SERVICE_NAME: 'ai-engine'
+  _REGION: 'asia-northeast1'
+  _IMAGE_TAG: 'latest'
+
+steps:
+  # Step 1: Build Docker image with BuildKit
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'BUILDKIT_INLINE_CACHE=1'
+      - '--build-arg'
+      - 'APP_VERSION=${TAG_NAME:-5.84.0}'
+      - '--build-arg'
+      - 'BUILD_DATE=${_BUILD_DATE}'
+      - '--build-arg'
+      - 'GIT_SHA=${SHORT_SHA}'
+      - '--cache-from'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+      - '.'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+
+  # Step 2: Push images (parallel)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-sha'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+    waitFor:
+      - 'build'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-latest'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+    waitFor:
+      - 'build'
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - '${_REGION}'
+      - '--execution-environment'
+      - 'gen2'
+      - '--allow-unauthenticated'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--concurrency'
+      - '80'
+      - '--cpu'
+      - '2'
+      - '--memory'
+      - '2Gi'
+      - '--timeout'
+      - '300'
+      - '--no-cpu-throttling'
+      - '--cpu-boost'
+      - '--session-affinity'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,BUILD_SHA=${SHORT_SHA}'
+      - '--set-secrets'
+      - 'SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest,LANGFUSE_CONFIG=langfuse-config:latest'
+      - '--update-labels'
+      - 'version=${SHORT_SHA},framework=ai-sdk-v6'
+    waitFor:
+      - 'push-sha'
+
+# Images to be pushed
+images:
+  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+
+# Build timeout
+timeout: '900s'
+
+# Tags for the build
+tags:
+  - 'ai-engine'
+  - 'cloud-run'
+  - 'multi-agent'
