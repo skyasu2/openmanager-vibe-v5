@@ -61,6 +61,14 @@ vitest.config.*
 promptfoo/
 promptfooconfig.yaml
 
+# Results (generated output)
+results/
+
+# Data - explicitly include for SSOT
+# NOTE: data/ directory is NOT ignored (needed for build)
+# - data/precomputed-states.json (AI context)
+# - data/hourly-data/*.json (SSOT with Vercel)
+
 # OS files
 .DS_Store
 Thumbs.db

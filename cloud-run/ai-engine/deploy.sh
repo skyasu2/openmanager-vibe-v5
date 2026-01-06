@@ -3,6 +3,11 @@
 # ==============================================================================
 # Cloud Run Deployment Script (AI Engine)
 #
+# v3.0 - 2026-01-06:
+#   - Added --execution-environment=gen2 for latest Cloud Run
+#   - Added --timeout=300 for long-running AI requests
+#   - Added startup/liveness probe configuration
+#
 # v2.0 - 2026-01-01:
 #   - Added --cpu-boost for faster cold start (startup CPU boost)
 #   - Added --session-affinity for stateful connection optimization
@@ -59,12 +64,14 @@ gcloud run deploy "$SERVICE_NAME" \
   --image "$IMAGE_URI" \
   --platform managed \
   --region "$REGION" \
+  --execution-environment gen2 \
   --allow-unauthenticated \
   --min-instances 0 \
   --max-instances 5 \
   --concurrency 80 \
   --cpu 1 \
   --memory 1Gi \
+  --timeout 300 \
   --no-cpu-throttling \
   --cpu-boost \
   --session-affinity \
