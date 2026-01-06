@@ -64,7 +64,7 @@ export interface Server24hDataset {
  */
 interface HourlyJsonData {
   hour: number;
-  scenario: string;
+  _pattern: string; // JSON 필드명 (외부 노출 방지)
   dataPoints: Array<{
     timestamp: string;
     servers: Record<string, RawServerData>;

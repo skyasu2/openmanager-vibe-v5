@@ -1,6 +1,6 @@
 {
   "hour": 2,
-  "scenario": "DB 자동 백업 중 디스크 I/O 과부하",
+  "_pattern": "DB 자동 백업 중 디스크 I/O 과부하",
   "dataPoints": [
     {
       "minute": 0,

@@ -82,7 +82,7 @@ function calculateCorrelation(arr1: number[], arr2: number[]): number {
  */
 export const buildIncidentTimeline = tool({
   description:
-    '서버의 장애 타임라인을 구성합니다. 시나리오, 메트릭 임계값 초과, 로그 이벤트를 시간순으로 정렬합니다.',
+    '서버의 장애 타임라인을 구성합니다. 패턴, 메트릭 임계값 초과, 로그 이벤트를 시간순으로 정렬합니다.',
   inputSchema: z.object({
     serverId: z.string().describe('분석할 서버 ID'),
     timeRangeHours: z.number().default(6).describe('분석 시간 범위 (시간)'),
@@ -114,7 +114,7 @@ export const buildIncidentTimeline = tool({
 
         events.push({
           timestamp: startTime.toISOString(),
-          eventType: 'scenario_start',
+          eventType: 'pattern_start',
           metric: scenario.affectedMetric,
           severity: scenario.severity === 'critical' ? 'critical' : 'warning',
           description: `${scenario.affectedMetric.toUpperCase()} ${scenario.pattern} pattern detected`,
@@ -276,7 +276,7 @@ export const correlateMetrics = tool({
  */
 export const findRootCause = tool({
   description:
-    '증상을 기반으로 근본 원인 가설을 생성합니다. 시나리오 패턴 매칭과 키워드 분석을 사용합니다.',
+    '증상을 기반으로 근본 원인 가설을 생성합니다. 메트릭 패턴 매칭과 키워드 분석을 사용합니다.',
   inputSchema: z.object({
     serverId: z.string().describe('문제가 발생한 서버 ID'),
     symptom: z.string().describe('증상 설명 (예: "CPU 급증", "메모리 부족")'),

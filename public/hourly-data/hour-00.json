@@ -1,6 +1,6 @@
 {
   "hour": 0,
-  "scenario": "0시 정상 운영",
+  "_pattern": "0시 정상 운영",
   "dataPoints": [
     {
       "minute": 0,

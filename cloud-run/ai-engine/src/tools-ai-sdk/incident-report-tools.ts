@@ -28,7 +28,7 @@ import { getDataCache } from '../lib/cache-layer';
 
 export interface TimelineEvent {
   timestamp: string;
-  eventType: 'threshold_breach' | 'scenario_start' | 'status_change' | 'prediction';
+  eventType: 'threshold_breach' | 'pattern_start' | 'status_change' | 'prediction';
   metric?: string;
   value?: number;
   severity: 'info' | 'warning' | 'critical';
@@ -616,10 +616,10 @@ export const generateIncidentReport = tool({
 
         timeline.push({
           timestamp: eventTime.toISOString(),
-          eventType: 'scenario_start',
+          eventType: 'pattern_start',
           metric: scenario.affectedMetric,
           severity: scenario.severity === 'critical' ? 'critical' : 'warning',
-          description: `${server.name}: ${scenario.affectedMetric.toUpperCase()} ${scenario.pattern} 패턴`,
+          description: `${server.name}: ${scenario.affectedMetric.toUpperCase()} ${scenario.pattern} 패턴 감지`,
           serverId: server.id,
         });
       }

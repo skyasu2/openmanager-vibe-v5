@@ -79,7 +79,7 @@ export interface EnhancedServerMetrics {
  */
 interface HourlyJsonData {
   hour: number;
-  scenario: string;
+  _pattern: string; // JSON 필드명 (외부 노출 방지)
   dataPoints: Array<{
     timestamp: string; // "00:00", "00:10", ...
     servers: Record<string, RawServerData>;
@@ -317,7 +317,7 @@ export async function getCurrentScenario(): Promise<{
     if (!hourlyData) return null;
 
     return {
-      scenario: hourlyData.scenario,
+      scenario: hourlyData._pattern, // _pattern에서 읽어서 내부 scenario로 매핑
       hour: currentHour,
     };
   } catch {

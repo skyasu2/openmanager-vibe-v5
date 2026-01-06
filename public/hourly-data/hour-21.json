@@ -1,6 +1,6 @@
 {
   "hour": 21,
-  "scenario": "API 요청 폭증 - CPU 과부하",
+  "_pattern": "API 요청 폭증 - CPU 과부하",
   "dataPoints": [
     {
       "minute": 0,

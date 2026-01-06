@@ -106,7 +106,7 @@ async function readFileContent(filePath: string): Promise<string> {
 function transformNewFormatToLegacy(
   rawData: {
     hour?: number;
-    scenario?: string;
+    _pattern?: string; // JSON 필드명 (외부 노출 방지)
     dataPoints?: Array<{ timestamp: string; servers: Record<string, unknown> }>;
     servers?: Record<string, unknown>; // 기존 형식 지원
     metadata?: { serverCount: number; scenarioType: string };
@@ -139,7 +139,7 @@ function transformNewFormatToLegacy(
 
   return {
     servers: servers as HourlyServerData['servers'],
-    scenario: rawData.scenario,
+    scenario: rawData._pattern, // _pattern에서 읽어서 내부 scenario로 매핑
     summary,
   };
 }

@@ -1,6 +1,6 @@
 {
   "hour": 22,
-  "scenario": "API 요청 폭증 - CPU 과부하 - 회복 중",
+  "_pattern": "API 요청 폭증 - CPU 과부하 - 회복 중",
   "dataPoints": [
     {
       "minute": 0,

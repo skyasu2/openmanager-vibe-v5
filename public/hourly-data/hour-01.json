@@ -1,6 +1,6 @@
 {
   "hour": 1,
-  "scenario": "1시 정상 운영 (DB 자동 백업 중 디스크 I/O 과부하 전조 감지)",
+  "_pattern": "1시 정상 운영 (DB 자동 백업 중 디스크 I/O 과부하 전조 감지)",
   "dataPoints": [
     {
       "minute": 0,

@@ -1,6 +1,6 @@
 {
   "hour": 4,
-  "scenario": "DB 슬로우 쿼리 누적 - 성능 저하 - 회복 중",
+  "_pattern": "DB 슬로우 쿼리 누적 - 성능 저하 - 회복 중",
   "dataPoints": [
     {
       "minute": 0,

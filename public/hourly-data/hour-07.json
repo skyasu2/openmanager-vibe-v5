@@ -1,6 +1,6 @@
 {
   "hour": 7,
-  "scenario": "네트워크 패킷 손실 - LB 과부하",
+  "_pattern": "네트워크 패킷 손실 - LB 과부하",
   "dataPoints": [
     {
       "minute": 0,

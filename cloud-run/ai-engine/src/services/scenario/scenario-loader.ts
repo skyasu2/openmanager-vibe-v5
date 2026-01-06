@@ -9,7 +9,7 @@ import { determineServerStatus } from '../../config/status-thresholds';
  */
 interface HourlyJsonData {
   hour: number;
-  scenario: string;
+  _pattern: string; // JSON 필드명 (외부 노출 방지)
   dataPoints: Array<{
     timestamp: string; // "00:00", "00:05", ...
     servers: Record<string, RawServerData>;

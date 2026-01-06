@@ -1,6 +1,6 @@
 {
   "hour": 11,
-  "scenario": "11시 정상 운영 (Redis 캐시 메모리 누수 - OOM 직전 전조 감지)",
+  "_pattern": "11시 정상 운영 (Redis 캐시 메모리 누수 - OOM 직전 전조 감지)",
   "dataPoints": [
     {
       "minute": 0,

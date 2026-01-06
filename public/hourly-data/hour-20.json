@@ -1,6 +1,6 @@
 {
   "hour": 20,
-  "scenario": "20시 정상 운영 (API 요청 폭증 - CPU 과부하 전조 감지)",
+  "_pattern": "20시 정상 운영 (API 요청 폭증 - CPU 과부하 전조 감지)",
   "dataPoints": [
     {
       "minute": 0,

@@ -1,6 +1,6 @@
 {
   "hour": 3,
-  "scenario": "DB 슬로우 쿼리 누적 - 성능 저하",
+  "_pattern": "DB 슬로우 쿼리 누적 - 성능 저하",
   "dataPoints": [
     {
       "minute": 0,
