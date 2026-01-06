@@ -1,10 +1,17 @@
 # TODO - OpenManager VIBE v5
 
-**Last Updated**: 2026-01-04
+**Last Updated**: 2026-01-07
 
 ## Active Tasks
 
 _(현재 활성 작업 없음)_
+
+### Completed (2026-01-07)
+- [x] Agent SSOT 패턴 리팩토링 (agent-configs.ts 중앙화)
+- [x] Langfuse 무료 티어 보호 시스템 구현 (10% 샘플링)
+- [x] Cloud Run 무료 티어 최적화 (1 vCPU, 512Mi)
+- [x] cloud-run-deploy Skill 추가 (토큰 65% 절감)
+- [x] Provider 상태 캐싱 구현 (checkProviderStatus)
 
 ### Completed (2026-01-04)
 - [x] AI Rate Limit 예측 전환 (Pre-emptive Fallback) 구현

@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-06
+**마지막 업데이트**: 2026-01-07
 
 ---
 
@@ -58,10 +58,10 @@
 - **Rate Limit**: Pre-emptive Fallback (80% 임계값 도달 시 사전 전환)
 - **Note**: Provider 장애 시 자동 폴백 (Cerebras→Groq, Mistral→OpenRouter)
 
-**AI CLI Tools** (2026-01-04 기준)
+**AI CLI Tools** (2026-01-07 기준)
 - **Claude Code**: `v2.0.76` (Interactive Development)
 - **Codex CLI**: `v0.77.0` (Code Review - 3-AI Rotation)
-- **Gemini CLI**: `v0.22.4` (Code Review - 3-AI Rotation)
+- **Gemini CLI**: `v0.22.5` (Code Review - 3-AI Rotation)
 - **Qwen CLI**: `v0.6.0` (Code Review - 3-AI Rotation)
 
 **Quality Control**
@@ -70,7 +70,28 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 2026-01-06)
+## 🔧 최근 유지보수 (2025-12-09 ~ 2026-01-07)
+
+**Agent SSOT 리팩토링 + Langfuse 무료 티어 보호 (2026-01-07)**
+- **SSOT 패턴 적용**: Agent 설정 중앙화
+  - `agents/config/agent-configs.ts`: Single Source of Truth
+  - 5개 Agent Instructions 분리 (`instructions/*.ts`)
+  - 코드 66-75% 감소 (872 → 249 lines, -404 lines)
+  - orchestrator.ts 중복 AGENT_CONFIGS 제거 (~180 lines)
+- **Provider 캐싱**: `checkProviderStatus()` 결과 캐싱 추가
+  - API 키 체크 중복 호출 방지
+  - `toggleProvider()` 시 캐시 무효화
+- **Langfuse 무료 티어 보호 시스템**:
+  - 10% 샘플링 기본 (월 ~450K 쿼리 지원)
+  - 90% 임계값 자동 비활성화 (45K events)
+  - 70%, 80% 경고 로그
+  - 테스트 모드 지원 (100% 트레이싱)
+  - `/monitoring/traces` 엔드포인트 추가
+- **Cloud Run 무료 티어 최적화**:
+  - CPU: 2 → 1 vCPU, Memory: 1Gi → 512Mi
+  - Max Instances: 10 → 3
+  - BuildKit 문법 제거 (Cloud Build 호환)
+- **신규 Skill**: `cloud-run-deploy` (토큰 65% 절감)
 
 **AI 분석 순수 메트릭 기반 전환 (2026-01-06)**
 - **시나리오 힌트 제거**: AI가 사전 정의된 힌트 대신 원시 메트릭으로 분석
@@ -226,12 +247,13 @@
 
 ---
 
-## 🐳 Infrastructure Status (2026-01-04)
+## 🐳 Infrastructure Status (2026-01-07)
 
 **Cloud Run AI Engine**
 - **Service URL**: `https://ai-engine-490817238363.asia-northeast1.run.app`
-- **Active Revision**: `ai-engine-00086-lhj` (2026-01-04 deployed)
+- **Active Revision**: `ai-engine-00112-w4g` (2026-01-07 deployed)
 - **Health**: ✅ All providers connected (Supabase, Upstash, Groq, Mistral, Cerebras, Tavily, OpenRouter)
+- **Observability**: Langfuse (10% sampling, 무료 티어 보호)
 
 **Container Registry (GCR)**
 - **Images**: 2개 유지 (latest + rollback)
