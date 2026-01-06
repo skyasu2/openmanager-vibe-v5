@@ -522,3 +522,6 @@ cloud-run/*/*.log
 # 🔐 Local Docker secrets (development only)
 cloud-run/.env
 cloud-run/docker-compose.override.yml
+
+# Cloud Run generated data (build-time generated)
+cloud-run/ai-engine/data/precomputed-states.json
