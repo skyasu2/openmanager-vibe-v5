@@ -95,11 +95,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Cloud Run optimized Node.js settings
-# - max-old-space-size: 512MB for SSOT data + agents
+# Cloud Run optimized Node.js settings (FREE TIER)
+# - max-old-space-size: 384MB (within 512Mi container limit)
 # - enable-source-maps: Better error traces
 # - dns-result-order: IPv4 first (Cloud Run optimization)
-ENV NODE_OPTIONS="--max-old-space-size=512 --enable-source-maps --dns-result-order=ipv4first"
+ENV NODE_OPTIONS="--max-old-space-size=384 --enable-source-maps --dns-result-order=ipv4first"
 
 # Copy dumb-init from deps stage
 COPY --from=deps /usr/bin/dumb-init /usr/bin/dumb-init

@@ -73,6 +73,14 @@ fi
 # 2. Deploy to Cloud Run
 echo ""
 echo "🚀 Deploying to Cloud Run..."
+# ============================================================================
+# FREE TIER OPTIMIZED Configuration
+# Monthly Free: 180,000 vCPU-sec, 360,000 GB-sec, 2M requests
+#
+# With 1 vCPU + 512Mi:
+# - vCPU: 180,000 sec = 50 hours of active time
+# - Memory: 360,000 / 0.5 = 720,000 sec = 200 hours
+# ============================================================================
 gcloud run deploy "$SERVICE_NAME" \
   --image "$IMAGE_URI" \
   --platform managed \
@@ -80,17 +88,16 @@ gcloud run deploy "$SERVICE_NAME" \
   --execution-environment gen2 \
   --allow-unauthenticated \
   --min-instances 0 \
-  --max-instances 10 \
+  --max-instances 3 \
   --concurrency 80 \
-  --cpu 2 \
-  --memory 2Gi \
+  --cpu 1 \
+  --memory 512Mi \
   --timeout 300 \
-  --no-cpu-throttling \
   --cpu-boost \
   --session-affinity \
   --set-env-vars "NODE_ENV=production,BUILD_SHA=${SHORT_SHA}" \
   --set-secrets "SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest,LANGFUSE_CONFIG=langfuse-config:latest" \
-  --update-labels "version=${SHORT_SHA},framework=ai-sdk-v6"
+  --update-labels "version=${SHORT_SHA},framework=ai-sdk-v6,tier=free"
 
 if [ $? -eq 0 ]; then
     SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)')
@@ -166,13 +173,13 @@ if [ $? -eq 0 ]; then
     wait
 
     echo "=============================================================================="
-    echo "📊 Deployment Summary:"
+    echo "📊 Deployment Summary (FREE TIER OPTIMIZED):"
     echo "   Service:  $SERVICE_NAME"
     echo "   Version:  $SHORT_SHA"
     echo "   URL:      $SERVICE_URL"
-    echo "   Memory:   2Gi"
-    echo "   CPU:      2 vCPU"
-    echo "   Max:      10 instances"
+    echo "   Memory:   512Mi (Free: ~200 hours/month)"
+    echo "   CPU:      1 vCPU (Free: ~50 hours/month)"
+    echo "   Max:      3 instances"
     echo "=============================================================================="
 else
     echo ""
