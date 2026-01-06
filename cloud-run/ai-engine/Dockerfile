@@ -18,8 +18,6 @@
 # - Circuit Breaker pattern
 # ============================================================================
 
-# syntax=docker/dockerfile:1.4
-
 # Build arguments
 ARG NODE_VERSION=22
 
@@ -37,9 +35,8 @@ RUN apk add --no-cache dumb-init
 COPY package.json package-lock.json ./
 
 # Install dependencies with npm ci for reproducibility
-# --mount=type=cache for BuildKit caching (faster rebuilds)
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --legacy-peer-deps --ignore-scripts && \
+# Note: Cloud Build caches layers, so npm cache is cleaned to reduce image size
+RUN npm ci --legacy-peer-deps --ignore-scripts && \
     npm cache clean --force
 
 # ============================================================================
@@ -58,9 +55,8 @@ COPY package.json tsconfig.json ./
 # Copy source directory
 COPY src/ ./src/
 
-# Build TypeScript with cache
-RUN --mount=type=cache,target=/app/.tsbuildinfo \
-    npm run build
+# Build TypeScript
+RUN npm run build
 
 # Prune dev dependencies after build
 RUN npm prune --production --legacy-peer-deps
