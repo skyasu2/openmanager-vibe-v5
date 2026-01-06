@@ -14,7 +14,7 @@
 | `brave-search` | 팩트체크, 버전 확인 | 낮음 | 선택 |
 | `tavily` | 심층 리서치 | 낮음 | 선택 |
 
-## Skills (9개)
+## Skills (10개)
 
 ### 코드 품질
 | Skill | 설명 | 트리거 예시 |
@@ -30,6 +30,11 @@
 | `security-audit-workflow` | OWASP Top 10 보안 감사 | "security audit" |
 | `playwright-triage` | E2E 테스트 실패 분류 | "playwright failure" |
 | `next-router-bottleneck` | 라우터 성능 분석 | "router bottleneck" |
+
+### 배포
+| Skill | 설명 | 트리거 예시 |
+|-------|------|------------|
+| `cloud-run-deploy` | Cloud Run AI Engine 배포 | "배포", "deploy cloud run" |
 
 ### 문서/리포트
 | Skill | 설명 | 트리거 예시 |
