@@ -34,5 +34,5 @@ Crawl-delay: 300
 User-agent: *
 Crawl-delay: 600
 
-# 사이트맵 (향후 추가 예정)
-# Sitemap: https://openmanager-vibe-v5.vercel.app/sitemap.xml
+# 사이트맵 (Next.js 자동 생성)
+Sitemap: https://openmanager-vibe-v5.vercel.app/sitemap.xml

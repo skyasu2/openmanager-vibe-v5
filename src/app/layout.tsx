@@ -27,12 +27,101 @@ const notoSansKR = Noto_Sans_KR({
   display: 'swap',
 });
 
+// 🌐 SEO Configuration
+const SITE_URL = 'https://openmanager-vibe-v5.vercel.app';
+const SITE_NAME = 'OpenManager VIBE';
+
 export const metadata: Metadata = {
-  title: 'OpenManager - Korean AI Hybrid Engine',
-  description: 'AI 기반 서버 모니터링 및 관리 시스템',
+  // 📌 기본 메타데이터
+  title: {
+    default: 'OpenManager VIBE - AI Native Server Monitoring',
+    template: '%s | OpenManager VIBE',
+  },
+  description:
+    'Next.js 16 + React 19 + Vercel AI SDK 기반 AI Native 서버 모니터링 플랫폼. 4개 AI 프로바이더와 6-Agent 시스템으로 실시간 장애 분석.',
+  keywords: [
+    'AI 서버 모니터링',
+    'Next.js 16',
+    'React 19',
+    'Vercel AI SDK',
+    'Multi-Agent AI',
+    'Server Monitoring',
+    'OpenManager',
+    '서버 관리',
+    'DevOps',
+    'Infrastructure Monitoring',
+  ],
+  authors: [{ name: 'OpenManager Team' }],
+  creator: 'OpenManager VIBE',
+  publisher: 'OpenManager',
+
+  // 🔗 Canonical & Base URL
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: '/',
+    languages: {
+      'ko-KR': '/ko',
+      'en-US': '/en',
+    },
+  },
+
+  // 🖼️ Icons
   icons: {
     icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
   },
+
+  // 📱 OpenGraph (Facebook, LinkedIn, Discord)
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: 'OpenManager VIBE - AI Native Server Monitoring',
+    description:
+      'Next.js 16 + React 19 기반 AI Native 서버 모니터링. 4개 AI 프로바이더 + 6-Agent 멀티 에이전트 시스템.',
+    images: [
+      {
+        url: '/api/og',
+        width: 1200,
+        height: 630,
+        alt: 'OpenManager VIBE - AI Server Monitoring Platform',
+      },
+    ],
+  },
+
+  // 🐦 Twitter Card
+  twitter: {
+    card: 'summary_large_image',
+    title: 'OpenManager VIBE - AI Native Server Monitoring',
+    description: 'Next.js 16 + React 19 기반 AI Native 서버 모니터링 플랫폼',
+    images: ['/api/og'],
+    creator: '@openmanager',
+  },
+
+  // 🤖 Robots
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+
+  // 📊 Verification (필요시 추가)
+  // verification: {
+  //   google: 'google-site-verification-code',
+  //   yandex: 'yandex-verification-code',
+  // },
+
+  // 🎨 Theme & Viewport
+  manifest: '/manifest.json',
+  category: 'technology',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
