@@ -2,11 +2,139 @@
  * Langfuse Observability Integration
  *
  * MIT 라이선스 LLM 관측성 플랫폼
- * - 무료 티어: 1M spans/월
+ * - 무료 티어: 50,000 events/월 (공식 가격)
  * - 트레이싱, 토큰 사용량, 성능 분석
+ * - ⚠️ 무료 티어 초과 시 자동 비활성화
  *
  * @see https://langfuse.com/docs
  */
+
+// ============================================================================
+// 0. 무료 티어 보호 시스템
+// ============================================================================
+
+const FREE_TIER_LIMIT = 50_000; // 월간 무료 한도
+const SAFETY_THRESHOLD = 0.9; // 90%에서 차단 (45,000)
+const DEFAULT_SAMPLE_RATE = 0.1; // 기본 10% 샘플링
+
+// 테스트 모드: 환경변수 또는 런타임 설정으로 100% 추적
+let testModeEnabled = process.env.LANGFUSE_TEST_MODE === 'true';
+
+/** 테스트 모드 활성화 (AI 어시스턴트 테스트 시 사용) */
+export function enableLangfuseTestMode(): void {
+  testModeEnabled = true;
+  console.log('🧪 [Langfuse] 테스트 모드 활성화 - 100% 추적');
+}
+
+/** 테스트 모드 비활성화 */
+export function disableLangfuseTestMode(): void {
+  testModeEnabled = false;
+  console.log('🔒 [Langfuse] 테스트 모드 비활성화 - 10% 샘플링 복귀');
+}
+
+interface UsageState {
+  eventCount: number;
+  monthKey: string; // "2025-01" 형식
+  isDisabled: boolean;
+  lastWarning: string | null;
+}
+
+// 메모리 내 사용량 추적 (서버 재시작 시 리셋 - 보수적 접근)
+let usageState: UsageState = {
+  eventCount: 0,
+  monthKey: getCurrentMonthKey(),
+  isDisabled: false,
+  lastWarning: null,
+};
+
+function getCurrentMonthKey(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function checkAndResetMonth(): void {
+  const currentMonth = getCurrentMonthKey();
+  if (usageState.monthKey !== currentMonth) {
+    console.log(`🔄 [Langfuse] 월간 카운터 리셋: ${usageState.monthKey} → ${currentMonth}`);
+    usageState = {
+      eventCount: 0,
+      monthKey: currentMonth,
+      isDisabled: false,
+      lastWarning: null,
+    };
+  }
+}
+
+function incrementUsage(count: number = 1): boolean {
+  checkAndResetMonth();
+
+  // 이미 비활성화된 경우
+  if (usageState.isDisabled) {
+    return false;
+  }
+
+  usageState.eventCount += count;
+  const usagePercent = (usageState.eventCount / FREE_TIER_LIMIT) * 100;
+
+  // 90% 도달 시 차단
+  if (usageState.eventCount >= FREE_TIER_LIMIT * SAFETY_THRESHOLD) {
+    usageState.isDisabled = true;
+    console.error(
+      `🚨 [Langfuse] 무료 티어 한도 90% 도달! 자동 비활성화됨 ` +
+        `(${usageState.eventCount.toLocaleString()}/${FREE_TIER_LIMIT.toLocaleString()} events)`
+    );
+    return false;
+  }
+
+  // 70%, 80% 경고
+  const warningThresholds = [0.7, 0.8];
+  for (const threshold of warningThresholds) {
+    const thresholdKey = `${threshold * 100}%`;
+    if (
+      usageState.eventCount >= FREE_TIER_LIMIT * threshold &&
+      usageState.lastWarning !== thresholdKey
+    ) {
+      usageState.lastWarning = thresholdKey;
+      console.warn(
+        `⚠️ [Langfuse] 무료 티어 ${thresholdKey} 사용 중 ` +
+          `(${usageState.eventCount.toLocaleString()}/${FREE_TIER_LIMIT.toLocaleString()} events)`
+      );
+    }
+  }
+
+  return true;
+}
+
+function shouldSample(): boolean {
+  // 테스트 모드: 100% 추적
+  if (testModeEnabled) {
+    return true;
+  }
+  // 프로덕션: 10% 샘플링
+  return Math.random() < DEFAULT_SAMPLE_RATE;
+}
+
+/** 현재 사용량 상태 조회 */
+export function getLangfuseUsageStatus(): {
+  eventCount: number;
+  limit: number;
+  usagePercent: number;
+  isDisabled: boolean;
+  monthKey: string;
+  testMode: boolean;
+  sampleRate: string;
+} {
+  checkAndResetMonth();
+  return {
+    eventCount: usageState.eventCount,
+    limit: FREE_TIER_LIMIT,
+    usagePercent: Math.round((usageState.eventCount / FREE_TIER_LIMIT) * 100),
+    isDisabled: usageState.isDisabled,
+    monthKey: usageState.monthKey,
+    testMode: testModeEnabled,
+    sampleRate: testModeEnabled ? '100%' : `${DEFAULT_SAMPLE_RATE * 100}%`,
+  };
+}
 
 // Langfuse types (manually defined to avoid import errors when module not installed)
 interface LangfuseConfig {
@@ -151,8 +279,22 @@ export interface GenerationParams {
 
 /**
  * Create a trace for a supervisor execution
+ *
+ * ⚠️ 무료 티어 보호:
+ * - 10% 샘플링 적용 (90%는 No-Op)
+ * - 월간 45,000 events 도달 시 자동 비활성화
  */
 export function createSupervisorTrace(metadata: TraceMetadata): LangfuseTrace {
+  // 1. 샘플링 체크 (10%만 추적)
+  if (!shouldSample()) {
+    return createNoOpTrace();
+  }
+
+  // 2. 한도 체크 (90% 초과 시 차단)
+  if (!incrementUsage(1)) {
+    return createNoOpTrace();
+  }
+
   const langfuse = getLangfuse();
 
   const trace = langfuse.trace({
@@ -162,11 +304,23 @@ export function createSupervisorTrace(metadata: TraceMetadata): LangfuseTrace {
     metadata: {
       mode: metadata.mode,
       queryLength: metadata.query.length,
+      sampled: true, // 샘플링된 트레이스임을 표시
     },
     input: metadata.query,
   });
 
   return trace;
+}
+
+/** No-Op 트레이스 (샘플링 제외 또는 한도 초과 시) */
+function createNoOpTrace(): LangfuseTrace {
+  return {
+    generation: () => ({}),
+    span: () => ({}),
+    event: () => ({}),
+    update: () => {},
+    score: () => {},
+  };
 }
 
 /**

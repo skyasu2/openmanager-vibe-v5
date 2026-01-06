@@ -58,8 +58,11 @@ export function useSystemControl(): UseSystemControlReturn {
   const _state = unifiedSystemStarted ? 'active' : 'inactive';
   const _sessionInfo = { isActive: unifiedSystemStarted };
 
-  // 누락된 속성들을 기본값으로 설정
-  const aiAgent = { isEnabled: false };
+  // 스토어에서 가져온 aiAgent 값 사용 (기본값: 활성화)
+  const aiAgent: AIAgentState = _unifiedAiAgent ?? {
+    isEnabled: true,
+    state: 'enabled',
+  };
   const isPaused = false;
   const pauseReason: string | undefined = undefined;
   const shouldAutoStop = false;
