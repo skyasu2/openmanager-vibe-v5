@@ -512,8 +512,10 @@ vitest_*.log
 /scripts/maintenance/cleanup-manager.js
 install_log.txt
 
-# Cloud Run data (use Supabase instead)
+# Cloud Run data (except hourly-data for SSOT sync)
 cloud-run/*/data/
+!cloud-run/ai-engine/data/
+!cloud-run/ai-engine/data/hourly-data/
 cloud-run/*/build*.log
 cloud-run/*/*.log
 
