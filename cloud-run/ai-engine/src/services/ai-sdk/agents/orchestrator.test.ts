@@ -121,7 +121,7 @@ describe('Multi-Agent Orchestrator', () => {
       const { orchestrator } = await import('./orchestrator');
 
       expect(orchestrator.handoffs).toBeDefined();
-      expect(orchestrator.handoffs.length).toBe(4);
+      expect(orchestrator.handoffs.length).toBe(5); // NLQ, Analyst, Reporter, Advisor, Summarizer
     });
   });
 
