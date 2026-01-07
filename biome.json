@@ -65,10 +65,7 @@
       "suspicious": {
         "noExplicitAny": "warn",
         "noArrayIndexKey": "off",
-        "noConsole": {
-          "level": "warn",
-          "options": { "allow": ["info", "warn", "error", "debug"] }
-        },
+        "noConsole": "off",
         "noImplicitAnyLet": "warn",
         "noDocumentCookie": "off",
         "noAssignInExpressions": "off",
@@ -124,7 +121,18 @@
         "rules": {
           "suspicious": {
             "noExplicitAny": "warn",
-            "noImplicitAnyLet": "warn"
+            "noImplicitAnyLet": "warn",
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["instrumentation.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
           }
         }
       }

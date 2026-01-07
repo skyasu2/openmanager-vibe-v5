@@ -158,16 +158,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     );
 
     return (
-      <div
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
         onClick={() => onClick(safeServer)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onClick(safeServer);
-          }
-        }}
         onMouseEnter={() => {
           setIsHovered(true);
           if (enableProgressiveDisclosure) setShowSecondaryInfo(true);
@@ -177,7 +170,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           if (enableProgressiveDisclosure && !showTertiaryInfo)
             setShowSecondaryInfo(false);
         }}
-        className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl backdrop-blur-md text-left ${statusTheme.background} ${statusTheme.border} ${variantStyles.container} hover:${currentGradient.shadow}`}
+        className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl backdrop-blur-md text-left bg-transparent ${statusTheme.background} ${statusTheme.border} ${variantStyles.container} hover:${currentGradient.shadow}`}
       >
         {/* 🎨 그라데이션 애니메이션 배경 (랜딩 카드 스타일) */}
         <div
@@ -386,7 +379,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               )}
             </div>
           )}
-      </div>
+      </button>
     );
   }
 );
