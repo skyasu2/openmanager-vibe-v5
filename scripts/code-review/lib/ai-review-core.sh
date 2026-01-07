@@ -23,12 +23,15 @@ try_codex_review() {
     log_ai_engine "🚀 Codex 코드 리뷰 시도 중..."
 
     # Codex 쿼리 생성 (Independent Practical Reviewer)
-    local query="다음 Git 변경사항을 **Senior Full-Stack Developer**로서 실무 관점에서 독립적으로 완벽하게 리뷰해주세요.
+    # Codex 쿼리 생성 (Task Instruction)
+    local query="[Review Task]
+    다음 Git 변경사항을 **Senior Reviewer**로서 실무 관점에서 독립적으로 검증해주세요.
+    (기본 설정 파일의 Identity를 유지하되, 이 작업에서는 '검증'에 집중하세요.)
 
-    **당신의 역할**:
-    - **목표**: 이 변경사항 하나만으로도 배포 가능한 수준인지 검증
-    - **범위**: 로직, 아키텍처, 성능, 보안, 스타일 등 **모든 영역**을 포괄적으로 검토
-    - **기준**: \"내가 이 코드를 승인하고 배포할 수 있는가?\"
+    **검증 목표**:
+    - 이 변경사항 하나만으로도 배포 가능한 수준인지 확인
+    - 로직, 아키텍처, 성능, 보안, 스타일 등 **모든 영역** 포괄적 검토
+    - 기준: \"내가 이 코드를 승인하고 배포할 수 있는가?\"
 
 ## 🔍 실시간 검증 결과 (${VERIFY_TIMESTAMP:-N/A})
 
@@ -95,13 +98,15 @@ try_gemini_review() {
 
     log_ai_engine "🟣 Gemini 코드 리뷰 시도 중..."
 
-    # Gemini 쿼리 생성 (Independent Practical Reviewer)
-    local query="다음 Git 변경사항을 **Senior Full-Stack Developer**로서 실무 관점에서 독립적으로 완벽하게 리뷰해주세요.
+    # Gemini 쿼리 생성 (Task Instruction)
+    local query="[Review Task]
+    다음 Git 변경사항을 **Senior Reviewer**로서 실무 관점에서 독립적으로 검증해주세요.
+    (기본 설정 파일의 Identity를 유지하되, 이 작업에서는 '검증'에 집중하세요.)
 
-    **당신의 역할**:
-    - **목표**: 이 변경사항 하나만으로도 배포 가능한 수준인지 검증
-    - **범위**: 로직, 아키텍처, 성능, 보안, 스타일 등 **모든 영역**을 포괄적으로 검토
-    - **기준**: \"내가 이 코드를 승인하고 배포할 수 있는가?\"
+    **검증 목표**:
+    - 이 변경사항 하나만으로도 배포 가능한 수준인지 확인
+    - 로직, 아키텍처, 성능, 보안, 스타일 등 **모든 영역** 포괄적 검토
+    - 기준: \"내가 이 코드를 승인하고 배포할 수 있는가?\"
 
 ## 🔍 실시간 검증 결과 (${VERIFY_TIMESTAMP:-N/A})
 

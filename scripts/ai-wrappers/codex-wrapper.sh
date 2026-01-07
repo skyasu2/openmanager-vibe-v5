@@ -68,13 +68,23 @@ trap cleanup_temp_files EXIT
 execute_codex() {
     local query="$1"
 
-    # Comprehensive Reviewer Context (v3.3.0)
-    # v3.3.0: 1인 개발자 제약 제거 -> 포괄적 리뷰어 관점 적용
-    local context="**당신의 관점**: Senior Full-Stack Developer & Architect.
-    - **목표**: 코드의 품질, 안정성, 보안, 성능을 타협 없이 검증.
-    - **범위**: 1인 개발자 관점에 국한되지 않고, 확장성과 유지보수성까지 고려한 '전반적인(Overall)' 리뷰 수행."
-    query="$context
+    # v4.0.0: AGENTS.md에서 Identity 로드 (동적 페르소나)
+    local identity_file="${PROJECT_ROOT}/AGENTS.md"
+    local identity_content=""
+    
+    if [ -f "$identity_file" ]; then
+        identity_content=$(cat "$identity_file")
+    else
+        # Fallback Identity
+        identity_content="You are a Senior Full-Stack Developer."
+    fi
 
+    # 쿼리와 결합 (Identity + User Query)
+    # 리뷰 스크립트에서 호출 시 "Review Mode" 관련 프롬프트가 query에 포함되어 들어옴
+    query="[System Configuration]
+$identity_content
+
+[User Request]
 $query"
 
     log_info "🤖 Codex 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 10분)..."
