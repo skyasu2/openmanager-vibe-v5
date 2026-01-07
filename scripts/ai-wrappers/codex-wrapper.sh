@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # Codex CLI Wrapper - 600초 타임아웃 + stderr 필터링
-# 버전: 3.3.0
-# 날짜: 2025-12-08 (Comprehensive Reviewer Context 적용)
+# 버전: 3.4.0
+# 날짜: 2026-01-07 (2-AI 시스템 적용)
+#
+# v3.4.0 (2026-01-07): 2-AI 시스템 (codex ↔ gemini) 문서 업데이트
 
 set -euo pipefail
 
@@ -154,14 +156,14 @@ $query"
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🤖 Codex CLI Wrapper v3.3.0 - Claude Code 내부 도구${NC}
+${CYAN}🤖 Codex CLI Wrapper v3.4.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 AI 교차검증 시스템의 내부 도구입니다${NC}
 ${YELLOW}   직접 실행보다 auto-ai-review.sh 또는 Skill ai-code-review 사용을 권장합니다${NC}
 
 사용 방법:
   ${GREEN}사용자${NC}: "코드 리뷰해줘" 또는 "Skill ai-code-review"
-  ${GREEN}auto-ai-review.sh${NC}: 이 wrapper를 자동 실행 (3-AI 순환)
+  ${GREEN}auto-ai-review.sh${NC}: 이 wrapper를 자동 실행 (2-AI 순환: codex ↔ gemini)
 
 직접 실행 (디버깅/테스트 전용):
   $0 "쿼리 내용"
@@ -214,7 +216,7 @@ main() {
 
     # 실행
     echo "" >&2
-    log_info "🚀 Codex Wrapper v3.3.0 시작"
+    log_info "🚀 Codex Wrapper v3.4.0 시작"
     echo "" >&2
 
     if execute_codex "$query"; then
