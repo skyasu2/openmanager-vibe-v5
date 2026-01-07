@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.84.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.84.0...v5.84.1) (2026-01-07)
+
+
+### Features
+
+* **cloud-run:** add Langfuse secret to deploy and config-parser ([0c5a1fc](https://github.com/skyasu2/openmanager-vibe-v5/commit/0c5a1fc3edefe02455bfd710a30ef5949f74ea4a))
+* **observability:** add Langfuse free tier protection and traces API ([b55fad2](https://github.com/skyasu2/openmanager-vibe-v5/commit/b55fad2d36092518a286b6765261bed4d18f6995))
+* **skills:** add cloud-run-deploy skill for AI Engine deployment ([6757dbe](https://github.com/skyasu2/openmanager-vibe-v5/commit/6757dbec874de485d086cb8b844ecb29731a1417))
+
+
+### Bug Fixes
+
+* **data:** update sync script to use _pattern field ([b32f3dd](https://github.com/skyasu2/openmanager-vibe-v5/commit/b32f3dda949e2d090e6bf98ac8ef67a09d507f46))
+* **docker:** remove BuildKit-specific syntax for Cloud Build compatibility ([987b90e](https://github.com/skyasu2/openmanager-vibe-v5/commit/987b90e69ff0c572318aeb0237eb42973d7c0316))
+* **versioning:** fix docs version updater for English patterns ([4d52fae](https://github.com/skyasu2/openmanager-vibe-v5/commit/4d52fae3030446564efe53e8f5437d40c70cb665))
+
 ## [5.84.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.83.14...v5.84.0) (2026-01-06)
 
 
