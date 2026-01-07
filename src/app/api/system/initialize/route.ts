@@ -1,7 +1,19 @@
-// Using mock system for system _initialization
 /**
- * 🚀 시스템 초기화 API - 통합 초기화 v3.0
+ * @deprecated Use /api/system with action='initialize' instead
+ *
+ * 🚀 시스템 초기화 API - 통합 초기화 v3.0 - DEPRECATED
+ * 이 엔드포인트는 /api/system 으로 통합되었습니다.
+ *
+ * Migration:
+ * - POST /api/system/initialize → POST /api/system (body: { action: 'initialize' })
  */
+
+// Log deprecation warning
+console.warn(
+  '[DEPRECATED] /api/system/initialize is deprecated. Use POST /api/system with action="initialize" instead.'
+);
+
+// Using mock system for system _initialization
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';

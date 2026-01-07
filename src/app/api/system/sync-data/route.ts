@@ -1,8 +1,19 @@
 /**
- * 🔄 데이터 동기화 API
+ * @deprecated Use /api/system with action='sync-data' instead
+ *
+ * 🔄 데이터 동기화 API - DEPRECATED
+ * 이 엔드포인트는 /api/system 으로 통합되었습니다.
+ *
+ * Migration:
+ * - POST /api/system/sync-data → POST /api/system (body: { action: 'sync-data' })
  *
  * 시스템 시작 시 데이터 동기화 및 백업 체크를 수행합니다
  */
+
+// Log deprecation warning
+console.warn(
+  '[DEPRECATED] /api/system/sync-data is deprecated. Use POST /api/system with action="sync-data" instead.'
+);
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { systemLogger } from '@/lib/logger';

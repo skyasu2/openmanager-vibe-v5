@@ -1,0 +1,426 @@
+/**
+ * 🔧 통합 시스템 API
+ *
+ * 시스템 상태, 제어, 최적화를 통합 관리
+ *
+ * v5.84.1 변경사항:
+ * - /api/system/status, initialize, start, optimize, sync-data, unified 기능 통합
+ * - Query parameter로 뷰 선택 (?view=status|metrics|health|processes|memory)
+ * - POST body.action으로 작업 통합
+ *
+ * GET /api/system
+ *   - (default): 시스템 상태
+ *   - ?view=metrics: 시스템 메트릭
+ *   - ?view=health: 헬스 상태
+ *   - ?view=processes: 프로세스 목록
+ *   - ?view=memory: 메모리 상태
+ *
+ * POST /api/system
+ *   - action: 'start' | 'stop' | 'restart'
+ *   - action: 'initialize'
+ *   - action: 'optimize' (with level: 'normal' | 'aggressive')
+ *   - action: 'sync-data'
+ */
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { ProcessManager } from '@/core/system/ProcessManager';
+import {
+  getProcessConfigs,
+  validateProcessConfigs,
+} from '@/core/system/process-configs';
+import { systemLogger } from '@/lib/logger';
+import debug from '@/utils/debug';
+import { memoryOptimizer } from '@/utils/MemoryOptimizer';
+
+// ============================================================================
+// ProcessManager Singleton
+// ============================================================================
+
+let processManager: ProcessManager | null = null;
+
+function getProcessManager(): ProcessManager {
+  if (!processManager) {
+    systemLogger.system('🔧 ProcessManager 인스턴스 생성');
+    processManager = new ProcessManager();
+
+    const configs = getProcessConfigs();
+    const validation = validateProcessConfigs(configs);
+
+    if (!validation.isValid) {
+      systemLogger.error('프로세스 설정 검증 실패:', validation.errors);
+      throw new Error(`프로세스 설정 오류: ${validation.errors.join(', ')}`);
+    }
+
+    configs.forEach((config) => {
+      processManager!.registerProcess(config);
+    });
+
+    systemLogger.system(
+      `✅ ProcessManager 초기화 완료 (${configs.length}개 프로세스 등록)`
+    );
+  }
+
+  return processManager;
+}
+
+// ============================================================================
+// Initialization State
+// ============================================================================
+
+let isInitialized = false;
+let isInitializing = false;
+
+async function runInitialization(): Promise<string[]> {
+  const logs: string[] = [];
+  isInitializing = true;
+
+  try {
+    logs.push('✅ 서버 데이터 생성기 초기화 완료');
+    systemLogger.info('✅ 서버 데이터 생성기 초기화 완료');
+
+    logs.push('🔄 MCP 서버 웜업 시작 (백그라운드)');
+    logs.push('✅ 기타 필수 서비스 초기화 완료');
+
+    isInitialized = true;
+    return logs;
+  } catch (error) {
+    isInitialized = false;
+    throw error;
+  } finally {
+    isInitializing = false;
+  }
+}
+
+// ============================================================================
+// GET Handler
+// ============================================================================
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const view = searchParams.get('view') || 'status';
+
+    debug.log('🔍 System GET requested:', { view });
+
+    const manager = getProcessManager();
+
+    switch (view) {
+      case 'metrics': {
+        const metrics = manager.getSystemMetrics();
+        return NextResponse.json({
+          success: true,
+          data: { metrics, timestamp: new Date().toISOString() },
+        });
+      }
+
+      case 'health': {
+        const status = manager.getSystemStatus();
+        const { metrics } = status;
+        const healthRatio =
+          metrics.totalProcesses > 0
+            ? metrics.healthyProcesses / metrics.totalProcesses
+            : 0;
+        const isHealthy =
+          healthRatio >= 0.7 && metrics.averageHealthScore >= 70;
+        const healthStatus = isHealthy
+          ? 'healthy'
+          : healthRatio >= 0.5
+            ? 'degraded'
+            : 'unhealthy';
+
+        return NextResponse.json(
+          {
+            success: true,
+            healthy: isHealthy,
+            status: healthStatus,
+            runningProcesses: metrics.runningProcesses,
+            totalProcesses: metrics.totalProcesses,
+            timestamp: new Date().toISOString(),
+          },
+          { status: isHealthy ? 200 : 503 }
+        );
+      }
+
+      case 'processes': {
+        const status = manager.getSystemStatus();
+        const processArray = Array.from(status.processes.values());
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            processes: processArray.map((proc) => ({
+              id: proc.id,
+              status: proc.status,
+              healthScore: proc.healthScore,
+              restartCount: proc.restartCount,
+              uptime: proc.uptime,
+              lastHealthCheck: proc.lastHealthCheck,
+              errorCount: proc.errors.length,
+            })),
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      case 'memory': {
+        const memorySummary = memoryOptimizer.getMemorySummary();
+        const optimizationHistory = memoryOptimizer.getOptimizationHistory();
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            status: memorySummary.status,
+            current: memorySummary.current,
+            monitoring: {
+              enabled: true,
+              lastOptimization: memorySummary.lastOptimization,
+              totalOptimizations: memorySummary.totalOptimizations,
+            },
+            history: optimizationHistory.slice(-5).map((result) => ({
+              timestamp: new Date(result.before.timestamp).toISOString(),
+              improvement: {
+                before: `${result.before.usagePercent}%`,
+                after: `${result.after.usagePercent}%`,
+                freedMB: result.freedMB,
+              },
+            })),
+          },
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      default: {
+        // case 'status' is handled by default
+        const status = manager.getSystemStatus();
+        return NextResponse.json({
+          success: true,
+          data: { ...status, timestamp: new Date().toISOString() },
+        });
+      }
+    }
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : '알 수 없는 오류';
+    systemLogger.error('System GET 오류:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: '시스템 상태 조회 실패',
+        message: errorMessage,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// ============================================================================
+// POST Handler
+// ============================================================================
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { action, options, level } = body;
+
+    debug.log('🔧 System POST action:', action);
+
+    const manager = getProcessManager();
+
+    switch (action) {
+      // System Control Actions (from unified)
+      case 'start': {
+        systemLogger.system('🚀 통합 시스템 시작 요청');
+        const result = await manager.startSystem(options);
+
+        return NextResponse.json({
+          success: result.success,
+          action: 'start',
+          message: result.message,
+          errors: result.errors,
+          warnings: result.warnings,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      case 'stop': {
+        systemLogger.system('🛑 통합 시스템 중지 요청');
+        const result = await manager.stopSystem();
+
+        return NextResponse.json({
+          success: result.success,
+          action: 'stop',
+          message: result.message,
+          errors: result.errors,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      case 'restart': {
+        systemLogger.system('🔄 통합 시스템 재시작 요청');
+
+        const stopResult = await manager.stopSystem();
+        if (!stopResult.success) {
+          return NextResponse.json(
+            {
+              success: false,
+              action: 'restart',
+              message: '시스템 중지 실패로 재시작 중단',
+              errors: stopResult.errors,
+              timestamp: new Date().toISOString(),
+            },
+            { status: 500 }
+          );
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        const startResult = await manager.startSystem(options);
+
+        return NextResponse.json({
+          success: startResult.success,
+          action: 'restart',
+          message: `재시작 완료: ${startResult.message}`,
+          errors: [...stopResult.errors, ...startResult.errors],
+          warnings: startResult.warnings,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      // Initialize Action (from initialize)
+      case 'initialize': {
+        if (isInitializing) {
+          return NextResponse.json(
+            {
+              success: false,
+              action: 'initialize',
+              message: '시스템이 이미 초기화 중입니다.',
+            },
+            { status: 429 }
+          );
+        }
+
+        if (isInitialized) {
+          return NextResponse.json({
+            success: true,
+            action: 'initialize',
+            message: '시스템이 이미 초기화되었습니다.',
+            logs: ['👍 시스템은 이미 준비되었습니다.'],
+          });
+        }
+
+        systemLogger.info('🚀 시스템 초기화 시작...');
+        const logs = await runInitialization();
+        systemLogger.info('🎉 시스템 초기화 완료');
+
+        return NextResponse.json({
+          success: true,
+          action: 'initialize',
+          message: '시스템 초기화 성공',
+          logs,
+        });
+      }
+
+      // Memory Optimize Action (from optimize)
+      case 'optimize': {
+        debug.log('🧠 메모리 최적화 API 호출');
+
+        const beforeStats = memoryOptimizer.getCurrentMemoryStats();
+
+        let optimizationResult: Awaited<
+          ReturnType<typeof memoryOptimizer.performAggressiveOptimization>
+        >;
+
+        if (level === 'aggressive' || beforeStats.usagePercent > 80) {
+          optimizationResult =
+            await memoryOptimizer.performAggressiveOptimization();
+        } else {
+          optimizationResult = await memoryOptimizer.optimizeMemoryNow();
+        }
+
+        const afterStats = memoryOptimizer.getCurrentMemoryStats();
+        const targetAchieved = afterStats.usagePercent <= 75;
+
+        return NextResponse.json({
+          success: true,
+          action: 'optimize',
+          message: `메모리 최적화 완료 - ${afterStats.usagePercent}%`,
+          data: {
+            level: level === 'aggressive' ? '극한 최적화' : '일반 최적화',
+            duration: optimizationResult.duration,
+            targetAchieved,
+            memory: {
+              before: {
+                usagePercent: optimizationResult.before.usagePercent,
+                heapUsed: optimizationResult.before.heapUsed,
+              },
+              after: {
+                usagePercent: optimizationResult.after.usagePercent,
+                heapUsed: optimizationResult.after.heapUsed,
+              },
+              freedMB: optimizationResult.freedMB,
+            },
+          },
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      // Sync Data Action (from sync-data)
+      case 'sync-data': {
+        systemLogger.info('🔄 데이터 동기화 API 호출됨');
+
+        const syncResult = {
+          backupChecked: true,
+          cacheValidated: true,
+          dataRestored: false,
+          syncTime: new Date().toISOString(),
+        };
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        systemLogger.info('✅ 데이터 동기화 완료:', syncResult);
+
+        return NextResponse.json({
+          success: true,
+          action: 'sync-data',
+          message: '데이터 동기화 완료',
+          data: syncResult,
+        });
+      }
+
+      default:
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Unknown action: ${action}`,
+            availableActions: [
+              'start',
+              'stop',
+              'restart',
+              'initialize',
+              'optimize',
+              'sync-data',
+            ],
+          },
+          { status: 400 }
+        );
+    }
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : '알 수 없는 오류';
+    systemLogger.error('System POST 오류:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: '시스템 제어 실패',
+        message: errorMessage,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
+  }
+}

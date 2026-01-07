@@ -1,8 +1,19 @@
 /**
- * 🚀 시스템 시작 API
+ * @deprecated Use /api/system with action='start' instead
+ *
+ * 🚀 시스템 시작 API - DEPRECATED
+ * 이 엔드포인트는 /api/system 으로 통합되었습니다.
+ *
+ * Migration:
+ * - POST /api/system/start → POST /api/system (body: { action: 'start' })
  *
  * 시스템 초기화 엔드포인트를 호출하여 시스템을 시작합니다
  */
+
+// Log deprecation warning
+console.warn(
+  '[DEPRECATED] /api/system/start is deprecated. Use POST /api/system with action="start" instead.'
+);
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { systemLogger } from '@/lib/logger';

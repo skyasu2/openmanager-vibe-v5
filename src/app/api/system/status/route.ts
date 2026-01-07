@@ -1,5 +1,13 @@
 /**
- * 🔄 페이지 갱신 기반 시스템 상태 API (Redis-Free)
+ * @deprecated Use /api/system instead
+ *
+ * 🔄 페이지 갱신 기반 시스템 상태 API (Redis-Free) - DEPRECATED
+ * 이 엔드포인트는 /api/system 으로 통합되었습니다.
+ *
+ * Migration:
+ * - GET /api/system/status → GET /api/system
+ * - POST /api/system/status (action: start) → POST /api/system (action: 'start')
+ * - POST /api/system/status (action: stop) → POST /api/system (action: 'stop')
  *
  * @description
  * 실시간 폴링 없이 페이지 이벤트 기반으로만 상태를 확인합니다.
@@ -14,6 +22,11 @@
  * - 5분 사용자 활동 추적
  * - 자동 비활성 사용자 정리
  */
+
+// Log deprecation warning
+console.warn(
+  '[DEPRECATED] /api/system/status is deprecated. Use /api/system instead.'
+);
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';

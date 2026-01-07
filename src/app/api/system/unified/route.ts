@@ -1,5 +1,17 @@
 /**
- * 🔧 통합 시스템 제어 API
+ * @deprecated Use /api/system instead
+ *
+ * 🔧 통합 시스템 제어 API - DEPRECATED
+ * 이 엔드포인트는 /api/system 으로 통합되었습니다.
+ *
+ * Migration:
+ * - GET /api/system/unified?action=status → GET /api/system
+ * - GET /api/system/unified?action=metrics → GET /api/system?view=metrics
+ * - GET /api/system/unified?action=health → GET /api/system?view=health
+ * - GET /api/system/unified?action=processes → GET /api/system?view=processes
+ * - POST /api/system/unified (action: start) → POST /api/system (action: 'start')
+ * - POST /api/system/unified (action: stop) → POST /api/system (action: 'stop')
+ * - POST /api/system/unified (action: restart) → POST /api/system (action: 'restart')
  *
  * 새로운 ProcessManager를 통한 시스템 제어:
  * - 시작/중지/재시작
@@ -7,6 +19,11 @@
  * - 헬스체크
  * - 모니터링 데이터
  */
+
+// Log deprecation warning
+console.warn(
+  '[DEPRECATED] /api/system/unified is deprecated. Use /api/system instead.'
+);
 
 // 강제 동적 라우팅 설정
 export const dynamic = 'force-dynamic';

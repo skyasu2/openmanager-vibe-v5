@@ -205,34 +205,56 @@ npm run test:vercel:e2e
 
 ---
 
-## 7. 실행 순서
+## 7. 실행 순서 및 진행 현황
 
-### Day 1: Phase 1 (Critical)
-1. [ ] `/api/health` 통합 로직 구현
-2. [ ] `/api/ping` deprecation 처리
-3. [ ] `/api/ai/health` 통합
-4. [ ] TypeScript 검증
-5. [ ] 커밋
+### Day 1: Phase 1 (Critical) - ✅ 완료
+1. [x] `/api/health` 통합 로직 구현
+2. [x] `/api/ping` deprecation 처리
+3. [x] `/api/ai/health` 통합
+4. [x] TypeScript 검증
+5. [x] 커밋 (`f97704f34`)
 
-### Day 2: Phase 2-3 (High/Medium)
-1. [ ] Server mock 라우트 검토
-2. [ ] System 라우트 통합
-3. [ ] Database/Cache 라우트 통합
-4. [ ] 전체 테스트
+### Day 2: Phase 2-3 (High/Medium) - ✅ 부분 완료
+1. [ ] Server mock 라우트 검토 (보류 - servers-unified가 이미 통합 역할 수행)
+2. [ ] System 라우트 통합 (미진행 - 추후 검토)
+3. [x] Database 라우트 통합 (`4bf4de35b`)
+4. [x] Cache 라우트 통합 (`4bf4de35b`)
+5. [x] TypeScript/Lint 검증
 
-### Day 3: Phase 4 + 문서화
-1. [ ] Test/Debug 라우트 정리
-2. [ ] API 문서 업데이트
-3. [ ] 최종 검증 및 배포
+### Day 3: Phase 4 + 문서화 - ✅ 완료
+1. [x] Test/Debug 라우트 정리 (`c4fecdaeb`)
+2. [ ] API 문서 업데이트 (선택)
+3. [x] 최종 검증
 
 ---
 
-## 8. 승인
+## 8. 완료 요약
 
-- [ ] 계획 검토 완료
-- [ ] Phase 1 진행 승인
+### 완료된 통합
+| 원본 라우트 | 통합 대상 | 커밋 |
+|------------|----------|------|
+| `/api/ping` | `/api/health?simple=true` | f97704f |
+| `/api/ai/health` | `/api/health?service=cloudrun` | f97704f |
+| `/api/database/status` | `/api/database` | 4bf4de3 |
+| `/api/database/reset-pool` | `/api/database?view=pool` | 4bf4de3 |
+| `/api/database/readonly-mode` | `/api/database?view=readonly` | 4bf4de3 |
+| `/api/cache/stats` | `GET /api/cache` | 4bf4de3 |
+| `/api/cache/optimize` | `POST /api/cache` | 4bf4de3 |
+| `/api/auth/test` | `/api/test/auth` | c4fecda |
+| `/api/auth/debug` | `/api/debug/auth` | c4fecda |
 
-**비고**: Phase 1만 먼저 진행하고, 결과에 따라 Phase 2-4 진행 여부 결정 가능
+### 남은 작업 (선택적)
+- [ ] System 라우트 통합 (`/api/system/*`)
+- [ ] Server mock 라우트 쿼리 파라미터 전환
+- [ ] API 문서 업데이트
+
+### 결과
+- **통합된 라우트**: 9개
+- **신규 통합 엔드포인트**: 3개 (`/api/health`, `/api/database`, `/api/cache`)
+- **재구성된 라우트**: 2개 (`/api/test/auth`, `/api/debug/auth`)
+- **Deprecated 라우트**: 8개 (하위호환 유지)
+
+**비고**: 핵심 통합 작업 완료. System 라우트 통합은 추후 필요시 진행
 
 ---
 

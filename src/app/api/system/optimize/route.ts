@@ -1,6 +1,12 @@
 /**
- * 🧠 시스템 메모리 최적화 API
- * POST /api/system/optimize
+ * @deprecated Use /api/system with action='optimize' or view='memory' instead
+ *
+ * 🧠 시스템 메모리 최적화 API - DEPRECATED
+ * 이 엔드포인트는 /api/system 으로 통합되었습니다.
+ *
+ * Migration:
+ * - GET /api/system/optimize → GET /api/system?view=memory
+ * - POST /api/system/optimize → POST /api/system (body: { action: 'optimize', level: 'normal'|'aggressive' })
  *
  * 메모리 사용률 최적화 및 성능 개선:
  * - 즉시 메모리 정리 실행
@@ -9,6 +15,11 @@
  * - 최적화 결과 반환
  * - Zod 스키마로 타입 안전성 보장
  */
+
+// Log deprecation warning
+console.warn(
+  '[DEPRECATED] /api/system/optimize is deprecated. Use /api/system?view=memory (GET) or POST /api/system with action="optimize" instead.'
+);
 
 import type { NextRequest, NextResponse } from 'next/server';
 import debug from '@/utils/debug';
