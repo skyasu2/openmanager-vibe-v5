@@ -26,7 +26,9 @@ localStorage.removeItem('auth_session_id');
 localStorage.removeItem('auth_type');
 ```
 
-### 보안 위험 분석 (AI 리뷰 - Qwen)
+### 보안 위험 분석 (AI 리뷰)
+
+> **Note**: 이 분석은 과거 Qwen이 포함된 3-AI 시스템에서 수행되었습니다.
 
 #### 1. XSS 공격 취약성 (중위험)
 - **문제**: localStorage는 JavaScript로 직접 접근 가능

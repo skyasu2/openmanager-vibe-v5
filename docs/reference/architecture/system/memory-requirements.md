@@ -158,7 +158,9 @@ Get-WmiObject -Class Win32_OperatingSystem | Select-Object TotalVisibleMemorySiz
 
 ## 📈 성능 최적화 전략
 
-### 🎯 Qwen AI 수학적 모델 기반 최적화
+### 🎯 AI 수학적 모델 기반 최적화
+
+> **Note**: 이 최적화 분석은 과거 3-AI 시스템에서 수행되었습니다. 현재는 2-AI 시스템으로 운영됩니다.
 
 #### V8 힙 크기 최적화 공식
 
@@ -273,4 +275,4 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 
 **문제 발생시**: 이 문서의 "Emergency" 섹션 참조 또는 팀 Slack #dev-support 채널 문의
 
-**마지막 업데이트**: 2025-08-24 (4-AI 교차검증 완료)
+**마지막 업데이트**: 2026-01-08 (2-AI 시스템 업데이트)

@@ -9,7 +9,7 @@
 | 문서 | 설명 |
 |------|------|
 | [Quick Start](./quick-start.md) | 5분 만에 시작하기 |
-| [Development Guide](./development.md) | 개발 환경 설정 |
+| [Development Guide](../DEVELOPMENT.md) | 개발 환경 설정 |
 
 ---
 

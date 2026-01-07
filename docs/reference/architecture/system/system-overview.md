@@ -12,7 +12,7 @@
 - **AI 엔진**: LangGraph Multi-Agent (Cloud Run) + Vercel AI SDK 5.x
 - **데이터 시스템**: StaticDataLoader (v5.71.0) - 99.6% CPU 절약, 92% 메모리 절약
 - **무료 티어**: 100% 무료로 운영 (Vercel/Supabase 무료 계정 최적화)
-- **개발 AI**: Claude Code 중심 + 3-AI 협업 (Codex + Gemini + Qwen) 교차검증 시스템
+- **개발 AI**: Claude Code 중심 + 2-AI 협업 (Codex + Gemini) 교차검증 시스템
 
 ---
 

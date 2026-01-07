@@ -4,6 +4,8 @@
 **Status**: Decided
 **Context**: This document records the architectural review of the `GoogleAiUnifiedEngine` (commit 47f920c9) using a 3-AI cross-verification process. The goal was to verify the quality of the architecture after its initial implementation.
 
+> **Note (2026-01-08)**: Qwen 제거됨. 현재 시스템은 2-AI (Codex + Gemini) 구조로 운영됩니다. 이 문서는 당시 3-AI 리뷰 히스토리를 기록한 것입니다.
+
 ---
 
 ## Summary of AI Findings

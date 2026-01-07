@@ -183,13 +183,13 @@ npm config set prefix ~/.npm-global
 echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
 
-# 글로벌 패키지 복원 (핵심 6개) - 2025.12.19 기준 최신화
-npm install -g @anthropic-ai/claude-code@2.0.71
-npm install -g @google/gemini-cli@0.25.0
-npm install -g @openai/codex@0.73.0
-npm install -g @qwen-code/qwen-code@0.5.1
-npm install -g n@10.2.0
-npm install -g vercel@48.9.0
+# 글로벌 패키지 복원 (핵심 5개) - 2026.01.08 기준 최신화
+# Note: Qwen 제거됨 (2026-01-07) - 2-AI 시스템으로 단순화
+npm install -g @anthropic-ai/claude-code@latest
+npm install -g @google/gemini-cli@latest
+npm install -g @openai/codex@latest
+npm install -g n@latest
+npm install -g vercel@latest
 
 # 설치 확인
 npm list -g --depth=0
@@ -307,14 +307,13 @@ git --version
 ### 3. 글로벌 패키지 확인
 
 ```bash
-# npm 글로벌 패키지 (6개)
+# npm 글로벌 패키지 (5개)
 npm list -g --depth=0
 
 # 예상 출력:
 # ├── @anthropic-ai/claude-code@latest
 # ├── @google/gemini-cli@latest
 # ├── @openai/codex@latest
-# ├── @qwen-code/qwen-code@latest
 # ├── n@latest
 # └── vercel@latest
 ```

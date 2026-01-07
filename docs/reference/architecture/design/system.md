@@ -6,7 +6,7 @@
 - **Frontend**: Next.js 16 + React 19 + TypeScript strict
 - **Backend**: Vercel Edge Functions + Supabase PostgreSQL
 - **Monitoring**: FNV-1a Hash Mock Simulation System
-- **AI**: 4-AI 교차검증 (Claude/Gemini/Codex/Qwen)
+- **AI**: 2-AI 교차검증 (Codex/Gemini) + Claude Code Lead
 
 ### 레이어 구조
 ```typescript
