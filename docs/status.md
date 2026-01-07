@@ -27,9 +27,9 @@
 
 ## 📚 Documentation Status
 
-**총 문서 수**: 184개 (최적화 완료)
-- **Core**: 55개 (아키텍처, AI, 성능, 보안, 플랫폼)
-- **Development**: 71개 (AI 도구, MCP, 테스팅, 표준, 워크플로우)
+**총 문서 수**: 130개 (최적화 완료)
+- **Reference**: 59개 (아키텍처, AI, 성능, 보안, 플랫폼)
+- **Guides**: 56개 (AI 도구, MCP, 테스팅, 표준, 워크플로우)
 - **Environment**: 14개 (WSL, Docker, 트러블슈팅)
 - **Planning**: 17개 (분석, 템플릿)
 - **Archive**: 22개 (정리 완료)
@@ -58,11 +58,10 @@
 - **Rate Limit**: Pre-emptive Fallback (80% 임계값 도달 시 사전 전환)
 - **Note**: Provider 장애 시 자동 폴백 (Cerebras→Groq, Mistral→OpenRouter)
 
-**AI CLI Tools** (2026-01-07 기준)
+**AI CLI Tools** (2026-01-08 기준)
 - **Claude Code**: `v2.0.76` (Interactive Development)
-- **Codex CLI**: `v0.77.0` (Code Review - 3-AI Rotation)
-- **Gemini CLI**: `v0.22.5` (Code Review - 3-AI Rotation)
-- **Qwen CLI**: `v0.6.0` (Code Review - 3-AI Rotation)
+- **Codex CLI**: `v0.77.0` (Code Review - 2-AI Rotation)
+- **Gemini CLI**: `v0.22.4` (Code Review - 2-AI Rotation)
 
 **Quality Control**
 - **Test**: Vitest `v4.0.15`, Playwright `v1.57.0`
@@ -200,8 +199,9 @@
 - Next.js 15 → 16, React 18 → 19, TS 5.7 → 5.9 마이그레이션 완료.
 - **Critical Fix**: Node.js `global` 객체 이슈 (`global` -> `globalThis`) 해결.
 
-**코드 리뷰 시스템 (v6.9.0)**
-- **구조**: 3-AI 순환 (Codex → Gemini → Qwen) + 상호 폴백 시스템.
+**코드 리뷰 시스템 (v7.0.0)**
+- **구조**: 2-AI 순환 (Codex ↔ Gemini) + 상호 폴백 시스템.
+- **Note**: Qwen 제거 (2026-01-07) - 평균 201초 응답, 13.3% 실패율로 인한 단순화.
 
 ---
 
@@ -238,7 +238,7 @@
 ## 📝 문서 관리 현황
 
 **최적화 진행 (JBGE 원칙)**
-- 문서 수: 184개 (최적화 완료)
+- 문서 수: 130개 (최적화 완료)
 - 관리 원칙: 400줄 이하 유지, 관련 내용 통합, 중복 제거.
 - **Key Docs**:
   - `README.md`: 프로젝트 개요

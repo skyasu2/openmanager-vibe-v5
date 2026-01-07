@@ -114,14 +114,6 @@ gemini auth login
 gemini "아키텍처 설계 검토"
 ```
 
-#### Qwen CLI
-
-```bash
-npm install -g qwen-code
-qwen auth login
-qwen -p "성능 최적화 분석"
-```
-
 ### AI 도구별 전문 분야
 
 | 도구            | 요금제            | 역할        | 전문 분야                        |
@@ -129,7 +121,6 @@ qwen -p "성능 최적화 분석"
 | **Claude Code** | Max ($200/월)     | 메인 개발   | 전체 아키텍처, 코드 리뷰, 문서화 |
 | **Codex CLI**   | Plus ($20/월)     | 병렬 개발   | 복잡한 로직, 테스트 코드         |
 | **Gemini CLI**  | 무료 (1K req/day) | 아키텍처    | 시스템 설계, SOLID 원칙          |
-| **Qwen Code**   | 무료 (2K req/day) | 성능 최적화 | 알고리즘, 성능 분석              |
 
 ## 🔌 MCP 서버 설정
 
@@ -321,7 +312,7 @@ git push origin main
 ### 4. AI 협업 워크플로우
 
 1. **메인 개발**: Claude Code로 핵심 기능 구현
-2. **병렬 검증**: Codex/Gemini/Qwen으로 교차 검증
+2. **병렬 검증**: Codex/Gemini 2-AI 교차 검증
 3. **코드 리뷰**: `ai-code-review` 스킬 활용
 4. **테스트**: `lint-smoke` 스킬 + Playwright MCP
 5. **문서화**: Claude Code 직접 수행

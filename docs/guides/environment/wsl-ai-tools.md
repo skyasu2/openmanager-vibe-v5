@@ -1,18 +1,19 @@
 # WSL AI Development Tools Configuration
 
-**Last Updated**: 2025-12-23
-**Environment**: WSL 2 (Ubuntu 22.04)
+**Last Updated**: 2026-01-08
+**Environment**: WSL 2 (Ubuntu 24.04)
 
 AI CLI 도구들의 WSL 환경 설치 및 구성 현황 문서입니다.
+
+> **Note**: Qwen 제거 (2026-01-07) - 평균 201초 응답, 13.3% 실패율로 2-AI 단순화
 
 ## 🛠 Installed AI CLI Tools
 
 | Tool | Version | Package | Path |
 |------|---------|---------|------|
-| **Claude Code** | `v2.0.71` | `@anthropic-ai/claude-code` | `~/.npm-global/bin/claude` |
+| **Claude Code** | `v2.0.76` | `@anthropic-ai/claude-code` | `~/.npm-global/bin/claude` |
 | **Codex CLI** | `v0.77.0` | `@openai/codex` | `~/.npm-global/bin/codex` |
-| **Gemini CLI** | `v0.21.2` | `@google/gemini-cli` | `~/.npm-global/bin/gemini` |
-| **Qwen CLI** | `v0.5.0` | `@qwen-code/qwen-code` | `~/.npm-global/bin/qwen` |
+| **Gemini CLI** | `v0.22.4` | `@google/gemini-cli` | `~/.npm-global/bin/gemini` |
 | **Mermaid CLI** | `v11.x` | `@mermaid-js/mermaid-cli` | `~/.npm-global/bin/mmdc` |
 
 ## 💰 Authentication & Pricing
@@ -24,7 +25,6 @@ AI CLI 도구들의 WSL 환경 설치 및 구성 현황 문서입니다.
 | **Claude Code** | Anthropic OAuth | **Max 20** | $200 |
 | **Codex CLI** | OpenAI OAuth | **Plus** | $20 |
 | **Gemini CLI** | Google OAuth | **Free** | $0 |
-| **Qwen CLI** | Alibaba OAuth | **Free** | $0 |
 
 ### 월간 총 비용: **$220/월**
 
@@ -54,25 +54,19 @@ AI CLI 도구들의 WSL 환경 설치 및 구성 현황 문서입니다.
 ├── oauth_creds.json          # Google OAuth (무료)
 ├── settings.json             # Settings
 └── google_accounts.json      # Account Info
-
-~/.qwen/                      # Qwen CLI
-├── oauth_creds.json          # Alibaba Cloud OAuth (무료)
-├── settings.json             # Settings
-└── todos/                    # Todo Management
 ```
 
-## 🔄 AI Wrapper Rotation System (3-AI Code Review)
+## 🔄 AI Wrapper Rotation System (2-AI Code Review)
 
 `scripts/ai-wrappers/` 폴더에 위치한 래퍼 스크립트들이 AI 도구 로테이션을 관리합니다.
 
 | Script | Version | Purpose |
 |--------|---------|---------|
-| `codex-wrapper.sh` | v3.3.0 | Codex 래퍼 |
-| `gemini-wrapper.sh` | v3.3.0 | Gemini 래퍼 |
-| `qwen-wrapper.sh` | v3.3.0 | Qwen 래퍼 |
+| `codex-wrapper.sh` | v4.0.0 | Codex 래퍼 |
+| `gemini-wrapper.sh` | v4.0.0 | Gemini 래퍼 |
 | `wrapper-verification-suite.sh` | - | 검증 도구 |
 
-**Rotation Logic**: `codex` → `gemini` → `qwen` (순번 자동 로테이션)
+**Rotation Logic**: `codex` ↔ `gemini` (1:1 순번 자동 로테이션)
 
 ## 🔧 Installation Method
 
@@ -89,7 +83,6 @@ export PATH="$HOME/.npm-global/bin:$PATH"
 npm install -g @anthropic-ai/claude-code
 npm install -g @openai/codex
 npm install -g @google/gemini-cli
-npm install -g @qwen-code/qwen-code
 npm install -g @mermaid-js/mermaid-cli
 ```
 
@@ -97,11 +90,11 @@ npm install -g @mermaid-js/mermaid-cli
 
 ```bash
 # 전체 업데이트
-npm update -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli @qwen-code/qwen-code
+npm update -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli
 
 # 개별 업데이트
 npm install -g @openai/codex@latest      # Codex
-npm install -g @qwen-code/qwen-code@latest  # Qwen
+npm install -g @google/gemini-cli@latest # Gemini
 ```
 
 ## 📊 Usage Limits (Codex Example)

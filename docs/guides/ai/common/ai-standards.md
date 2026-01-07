@@ -1,7 +1,9 @@
 # AI 도구 표준 가이드
 
 > **통합 문서**: ai-coding-standards.md + ai-usage-guidelines.md
-> **최종 갱신**: 2025-12-31
+> **최종 갱신**: 2026-01-08
+>
+> **Note**: Qwen 제거 (2026-01-07) - 평균 201초 응답, 13.3% 실패율로 2-AI 단순화
 
 ---
 
@@ -9,19 +11,18 @@
 
 ```bash
 # 코드 리뷰 순환 (자동)
-git commit -m "feat: 기능"  # → Codex → Gemini → Qwen 1:1:1
+git commit -m "feat: 기능"  # → Codex ↔ Gemini 1:1
 
 # 수동 호출
 Task codex-wrapper "실무 검증"
 Task gemini-wrapper "아키텍처 분석"
-Task qwen-wrapper "성능 최적화"
 ```
 
 ---
 
 ## 1. 핵심 코딩 규칙
 
-모든 AI 도구(Codex, Gemini, Qwen, Claude Code)가 준수하는 규칙:
+모든 AI 도구(Codex, Gemini, Claude Code)가 준수하는 규칙:
 
 ### 가독성 (Readability)
 - **명확한 네이밍**: `userCount` vs `u` 처럼 의도가 드러나는 이름
@@ -42,7 +43,7 @@ Task qwen-wrapper "성능 최적화"
 
 ### 테스트 & 검증
 - **테스트 필수**: 핵심 로직 단위 테스트 확보
-- **상호 검증**: 다른 AI(Claude, Gemini, Codex, Qwen)의 리뷰 필수
+- **상호 검증**: 다른 AI(Claude, Codex, Gemini)의 리뷰 필수
 
 ---
 
@@ -67,7 +68,6 @@ Task qwen-wrapper "성능 최적화"
 | **Claude Code** | 메인 개발 | 아키텍처, 비즈니스 로직 | 직접 |
 | **Codex (GPT-5)** | 코드 리뷰 | 호환성, 실무 검증 | `Task codex-wrapper` |
 | **Gemini** | 범용 분석 | 시스템 아키텍처 | `Task gemini-wrapper` |
-| **Qwen** | 성능 최적화 | 알고리즘, 수학 | `Task qwen-wrapper` |
 
 ---
 
@@ -80,13 +80,13 @@ Task qwen-wrapper "성능 최적화"
 4. **한국어 우선** - 기술용어 영어 병기 허용
 
 ### ❌ 공통 DON'T
-1. **무료 티어 한도 초과** - Codex(30-150/5h), Gemini(1K/day), Qwen(2K/day)
+1. **무료 티어 한도 초과** - Codex(30-150/5h), Gemini(1K/day)
 2. **맹목적 신뢰** - 검증 없이 적용 금지
 3. **컨텍스트 없는 질문** - 환경/목표 미명시 요청
 
 ### 도구별 DON'T
-- **Qwen**: Claude Code 없이 자동 호출 금지, 중국어 출력 금지
 - **Codex**: 긴 질문은 분할, 타임아웃 시 간결하게 수정
+- **Gemini**: Rate limit 주의 (1K RPD)
 - **Claude Code**: 단순 반복 작업은 다른 AI 활용
 
 ---
@@ -97,12 +97,10 @@ Task qwen-wrapper "성능 최적화"
 |---------|-----------|-----------|------|
 | **Codex** | 30-150 메시지/5시간 | - | Plus $20/월 |
 | **Gemini** | 1,000 RPD | 60 RPM | 무료 |
-| **Qwen** | 2,000/day | 60/minute | 무료 |
 
 ### 한도 초과 시 폴백
-1. Codex → Gemini → Qwen → Claude
-2. Gemini → Qwen → Codex → Claude
-3. Qwen → Codex → Gemini → Claude
+1. Codex → Gemini → Claude
+2. Gemini → Codex → Claude
 
 ---
 

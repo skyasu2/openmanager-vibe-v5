@@ -1,7 +1,9 @@
 # AI CLI 가이드
 
 > **통합 문서**: cli-strategy.md + verification.md + ai-benchmarks.md
-> **최종 갱신**: 2025-12-31
+> **최종 갱신**: 2026-01-08
+>
+> **Note**: Qwen 제거 (2026-01-07) - 평균 201초 응답, 13.3% 실패율로 2-AI 단순화
 
 ---
 
@@ -14,7 +16,7 @@ Task verification-specialist "src/components/Button.tsx quick review"
 # 표준 검토 (AI 1개 추가)
 Task ai-verification-coordinator "src/hooks/useAuth.ts standard review"
 
-# 전체 검토 (AI 3개 모두)
+# 전체 검토 (AI 2개 모두)
 Task ai-verification-coordinator "src/app/api/auth/route.ts full review"
 ```
 
@@ -24,10 +26,9 @@ Task ai-verification-coordinator "src/app/api/auth/route.ts full review"
 
 | CLI | 버전 | 요금제 | WSL 실행 | 전문 분야 |
 |-----|------|--------|----------|----------|
-| **Claude Code** | v2.0.71 | Max ($200) | ✅ 직접 | 메인 개발 |
-| **Codex CLI** | v0.73.0 | Plus ($20) | ✅ `codex exec` | 코드 리뷰 |
-| **Gemini CLI** | v0.21.0 | 무료 (1K/day) | ✅ `gemini` | 코드 리뷰 |
-| **Qwen CLI** | v0.5.0 | OAuth (2K/day) | ✅ `qwen` | 코드 리뷰 |
+| **Claude Code** | v2.0.76 | Max ($200) | ✅ 직접 | 메인 개발 |
+| **Codex CLI** | v0.77.0 | Plus ($20) | ✅ `codex exec` | 코드 리뷰 |
+| **Gemini CLI** | v0.22.4 | 무료 (1K/day) | ✅ `gemini` | 코드 리뷰 |
 
 ---
 
@@ -37,7 +38,6 @@ Task ai-verification-coordinator "src/app/api/auth/route.ts full review"
 |---------|-----------|-----------|-----------|-----------|
 | **Codex (GPT-5)** | 94% | 74.5% | ~8초 | 함수 단위 문제 해결 |
 | **Gemini 2.5** | - | 54% | ~10초 | 범용 개발 |
-| **Qwen 2.5** | 92.7% (32B) | - | ~15초 | 성능 최적화 |
 
 ### 상황별 최적 AI
 
@@ -46,7 +46,7 @@ Task ai-verification-coordinator "src/app/api/auth/route.ts full review"
 | 함수 단위 버그 | Codex | Claude | HumanEval 94% |
 | 다중 파일 리팩토링 | Codex | Gemini | SWE-bench 74.5% |
 | 아키텍처 설계 | Gemini | Claude | 범용 개발 파트너 |
-| 성능 최적화 | Qwen | Codex | Math 57.2% |
+| 성능 최적화 | Codex | Claude | 실무 검증 |
 | 통합 리뷰 | Claude | Gemini | 99.99% 가용성 |
 
 ---
@@ -58,16 +58,14 @@ Task ai-verification-coordinator "src/app/api/auth/route.ts full review"
 # 가중치 순서 (Plus 사용량 여유)
 Task codex-wrapper "실무 코드 검토"     # 0.99, 1순위
 Task gemini-wrapper "시스템 분석"       # 0.98, 2순위
-Task qwen-wrapper "알고리즘 최적화"     # 0.97, 3순위
 ```
 
 ### 병렬 분석
 ```bash
 Task external-ai-orchestrator "
-다음 3가지 관점으로 병렬 분석:
-1. Gemini: 아키텍처 검토
-2. Codex: 실무 이슈 탐지
-3. Qwen: 성능 최적화
+다음 2가지 관점으로 병렬 분석:
+1. Codex: 실무 이슈 탐지
+2. Gemini: 아키텍처 검토
 "
 ```
 
@@ -131,7 +129,7 @@ Task gemini-wrapper "전체 코드베이스 중복 제거 방안 제시"
 - ✅ codex-wrapper 적극 활용 (Plus 여유)
 
 ### DON'T (직접 CLI 호출 지양)
-- ❌ CLI 직접 호출 (`codex exec`, `gemini -p`, `qwen -p`)
+- ❌ CLI 직접 호출 (`codex exec`, `gemini -p`)
 - ❌ 무분별한 병렬 처리
 - ❌ 단순 작업에 과도한 협업
 - ❌ 무료 한도 초과

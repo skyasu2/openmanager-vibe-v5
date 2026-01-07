@@ -294,7 +294,7 @@ echo "test" > test-file.ts
 
 - [ ] `claude /status` 모든 항목 정상
 - [ ] 개발 환경 완전 작동
-- [ ] AI CLI 도구 통합 (Gemini, Qwen 등)
+- [ ] AI CLI 도구 통합 (Codex, Gemini)
 - [ ] WSL 환경 최적화 상태
 
 ## 🚨 긴급 복구 명령어
