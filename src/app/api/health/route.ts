@@ -1,19 +1,27 @@
 /**
- * 🏥 기본 헬스체크 API
+ * 🏥 통합 헬스체크 API
  *
- * E2E 테스트 및 기본 시스템 상태 확인용
- * Zod 스키마와 타입 안전성이 적용된 예시
+ * E2E 테스트 및 시스템 상태 확인용 통합 엔드포인트
+ * Zod 스키마와 타입 안전성 적용
+ *
+ * v5.84.1 변경사항:
+ * - /api/ping, /api/ai/health 통합 (API 라우트 정리)
+ * - Query parameter로 모드 선택 지원
  *
  * v5.80.1 변경사항:
  * - 60초 TTL 메모리 캐싱 추가 (Vercel 사용량 최적화)
  * - Cache-Control 헤더 설정
  *
  * GET /api/health
+ *   - (default): 전체 시스템 헬스체크 (DB, Cache, AI)
+ *   - ?simple=true: 단순 ping/pong 응답 (/api/ping 대체)
+ *   - ?service=cloudrun|ai: Cloud Run AI 엔진 헬스체크 (/api/ai/health 대체)
  */
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { env, isDevelopment } from '@/env';
+import { checkCloudRunHealth } from '@/lib/ai-proxy/proxy';
 import { getApiConfig } from '@/lib/api/api-config';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import { getCacheStats } from '@/lib/cache/cache-helper';
@@ -267,6 +275,46 @@ const healthCheckHandler = createApiRoute()
   });
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const simple = searchParams.get('simple') === 'true';
+  const service = searchParams.get('service');
+
+  // 1. Simple ping mode (?simple=true) - /api/ping 대체
+  if (simple) {
+    return NextResponse.json(
+      { ping: 'pong', timestamp: new Date().toISOString() },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store',
+        },
+      }
+    );
+  }
+
+  // 2. Service-specific health check (?service=cloudrun|ai) - /api/ai/health 대체
+  if (service === 'cloudrun' || service === 'ai') {
+    const result = await checkCloudRunHealth();
+    if (result.healthy) {
+      return NextResponse.json({
+        status: 'ok',
+        backend: 'cloud-run',
+        latency: result.latency,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    return NextResponse.json(
+      {
+        status: 'error',
+        backend: 'cloud-run',
+        error: result.error,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 503 }
+    );
+  }
+
+  // 3. Full system health check (default)
   try {
     // 캐시된 응답이 있으면 즉시 반환 (60초 TTL)
     if (isCacheValid() && healthCache.data) {
