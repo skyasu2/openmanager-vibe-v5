@@ -66,6 +66,9 @@ class DevLogger {
       'api',
       'performance',
       'error',
+      'cache',
+      'system',
+      'general',
     ]);
   }
 

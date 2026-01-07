@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { aiLogger } from '@/lib/logger';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 
 /**
@@ -60,7 +61,7 @@ async function handlePOST(request: NextRequest) {
     feedbackStore.push(feedbackLog);
 
     // 로그 출력 (개발/디버깅용)
-    console.log('[AI Feedback]', JSON.stringify(feedbackLog));
+    aiLogger.info('Feedback received', feedbackLog);
 
     // 최근 100개만 유지 (메모리 관리)
     if (feedbackStore.length > 100) {
@@ -73,7 +74,7 @@ async function handlePOST(request: NextRequest) {
       feedbackId: `fb_${Date.now()}`,
     });
   } catch (error) {
-    console.error('[AI Feedback Error]', error);
+    aiLogger.error('Feedback processing failed', error);
     return NextResponse.json(
       { error: 'Failed to process feedback' },
       { status: 500 }

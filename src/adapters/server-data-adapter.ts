@@ -8,6 +8,7 @@
  * - 실시간 검증 및 폴백 메커니즘
  */
 
+import { devLogger } from '@/lib/logger';
 import type { ServerInstance } from '@/types/data-generator';
 import type { Server } from '@/types/server';
 
@@ -133,11 +134,11 @@ export function transformServerInstancesToServersOptimized(
     now - transformCache.lastUpdate < CACHE_DURATION &&
     transformCache.data.size > 0
   ) {
-    console.log('⚡ 캐시 히트: 변환 생략');
+    devLogger.debug('cache', '캐시 히트: 변환 생략');
     return Array.from(transformCache.data.values());
   }
 
-  console.log('🔄 배치 변환 시작:', serverInstances.length, '개 서버');
+  devLogger.debug('cache', `배치 변환 시작: ${serverInstances.length}개 서버`);
 
   // 🚀 병렬 처리를 위한 배치 변환
   const transformedServers = serverInstances.map((instance) =>
@@ -151,7 +152,10 @@ export function transformServerInstancesToServersOptimized(
   });
   transformCache.lastUpdate = now;
 
-  console.log('✅ 배치 변환 완료:', transformedServers.length, '개 서버');
+  devLogger.debug(
+    'cache',
+    `배치 변환 완료: ${transformedServers.length}개 서버`
+  );
   return transformedServers;
 }
 
