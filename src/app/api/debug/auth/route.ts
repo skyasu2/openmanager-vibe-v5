@@ -1,20 +1,15 @@
 /**
- * @deprecated Use /api/debug/auth instead
- *
- * 🔍 인증 디버깅 API - DEPRECATED
- * 이 엔드포인트는 /api/debug/auth 로 이동되었습니다.
- *
- * Migration:
- * - GET /api/auth/debug → GET /api/debug/auth
- * - POST /api/auth/debug → POST /api/debug/auth
+ * 🔍 인증 디버깅 API
  *
  * Vercel 환경에서 세션 상태와 쿠키 정보를 확인합니다.
+ *
+ * v5.84.1 변경사항:
+ * - /api/auth/debug에서 /api/debug/auth로 이동
+ * - 디버그 라우트 그룹화로 일관성 향상
+ *
+ * GET /api/debug/auth - 인증 상태 디버깅
+ * POST /api/debug/auth - 세션 새로고침 테스트
  */
-
-// Log deprecation warning
-console.warn(
-  '[DEPRECATED] /api/auth/debug is deprecated. Use /api/debug/auth instead.'
-);
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';

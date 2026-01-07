@@ -1,21 +1,16 @@
 /**
- * @deprecated Use /api/test/auth instead
- *
- * 🧪 GitHub OAuth 및 Supabase Auth 테스트 API - DEPRECATED
- * 이 엔드포인트는 /api/test/auth 로 이동되었습니다.
- *
- * Migration:
- * - GET /api/auth/test → GET /api/test/auth
- * - POST /api/auth/test → POST /api/test/auth
+ * 🧪 GitHub OAuth 및 Supabase Auth 테스트 API
  *
  * 활성화된 GitHub OAuth가 올바르게 작동하는지 검증
  * Zod 스키마와 타입 안전성 적용
+ *
+ * v5.84.1 변경사항:
+ * - /api/auth/test에서 /api/test/auth로 이동
+ * - 테스트 라우트 그룹화로 일관성 향상
+ *
+ * GET /api/test/auth - 인증 시스템 전체 테스트
+ * POST /api/test/auth - GitHub OAuth 상세 진단
  */
-
-// Log deprecation warning
-console.warn(
-  '[DEPRECATED] /api/auth/test is deprecated. Use /api/test/auth instead.'
-);
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
