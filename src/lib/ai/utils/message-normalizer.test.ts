@@ -115,6 +115,65 @@ describe('message-normalizer', () => {
 
       expect(extractTextFromHybridMessage(message)).toBe('Line 1\nLine 2');
     });
+
+    it('혼합 parts에서 text만 추출한다 (image 무시)', () => {
+      const message: HybridMessage = {
+        role: 'user',
+        parts: [
+          { type: 'text', text: '이미지 설명:' },
+          { type: 'image', text: undefined },
+          { type: 'text', text: '추가 질문' },
+        ],
+      };
+
+      expect(extractTextFromHybridMessage(message)).toBe(
+        '이미지 설명:\n추가 질문'
+      );
+    });
+
+    it('혼합 parts에서 text만 추출한다 (tool-call 무시)', () => {
+      const message: HybridMessage = {
+        role: 'assistant',
+        parts: [
+          { type: 'text', text: '도구를 실행합니다' },
+          { type: 'tool-call', text: undefined },
+        ],
+      };
+
+      expect(extractTextFromHybridMessage(message)).toBe('도구를 실행합니다');
+    });
+
+    it('parts에 text가 없으면 content로 폴백한다', () => {
+      const message: HybridMessage = {
+        role: 'user',
+        parts: [{ type: 'image', text: undefined }],
+        content: 'content에서 추출',
+      };
+
+      expect(extractTextFromHybridMessage(message)).toBe('content에서 추출');
+    });
+
+    it('유니코드와 이모지를 올바르게 처리한다', () => {
+      const message: HybridMessage = {
+        role: 'user',
+        parts: [{ type: 'text', text: '한글 테스트 🎉 emoji' }],
+      };
+
+      expect(extractTextFromHybridMessage(message)).toBe(
+        '한글 테스트 🎉 emoji'
+      );
+    });
+
+    it('줄바꿈 문자가 포함된 텍스트를 처리한다', () => {
+      const message: HybridMessage = {
+        role: 'user',
+        parts: [{ type: 'text', text: '첫 줄\n둘째 줄\n셋째 줄' }],
+      };
+
+      expect(extractTextFromHybridMessage(message)).toBe(
+        '첫 줄\n둘째 줄\n셋째 줄'
+      );
+    });
   });
 
   describe('normalizeMessagesForCloudRun', () => {
@@ -148,6 +207,102 @@ describe('message-normalizer', () => {
 
     it('빈 배열은 빈 배열을 반환한다', () => {
       expect(normalizeMessagesForCloudRun([])).toEqual([]);
+    });
+
+    it('다중 메시지 순서를 유지한다', () => {
+      const messages: HybridMessage[] = [
+        { role: 'user', parts: [{ type: 'text', text: '질문입니다' }] },
+        { role: 'assistant', parts: [{ type: 'text', text: '답변입니다' }] },
+        { role: 'user', parts: [{ type: 'text', text: '후속 질문' }] },
+      ];
+
+      const result = normalizeMessagesForCloudRun(messages);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].content).toBe('질문입니다');
+      expect(result[1].content).toBe('답변입니다');
+      expect(result[2].content).toBe('후속 질문');
+    });
+
+    it('메시지 role을 보존한다', () => {
+      const messages: HybridMessage[] = [
+        { role: 'system', content: '시스템 프롬프트' },
+        { role: 'user', parts: [{ type: 'text', text: '사용자 질문' }] },
+        { role: 'assistant', parts: [{ type: 'text', text: 'AI 응답' }] },
+      ];
+
+      const result = normalizeMessagesForCloudRun(messages);
+
+      expect(result.map((m) => m.role)).toEqual([
+        'system',
+        'user',
+        'assistant',
+      ]);
+    });
+
+    it('연속된 비텍스트 메시지도 모두 보존한다', () => {
+      const messages: HybridMessage[] = [
+        { role: 'user', parts: [{ type: 'text', text: '여러 이미지야' }] },
+        { role: 'user', parts: [{ type: 'image', text: undefined }] },
+        { role: 'user', parts: [{ type: 'image', text: undefined }] },
+        {
+          role: 'assistant',
+          parts: [{ type: 'text', text: '이미지 확인' }],
+        },
+      ];
+
+      const result = normalizeMessagesForCloudRun(messages);
+
+      expect(result).toHaveLength(4);
+      expect(result[1].content).toBe('[Non-text content]');
+      expect(result[2].content).toBe('[Non-text content]');
+    });
+
+    it('긴 텍스트를 처리한다', () => {
+      const longText = 'A'.repeat(10000);
+      const messages: HybridMessage[] = [
+        { role: 'user', parts: [{ type: 'text', text: longText }] },
+      ];
+
+      const result = normalizeMessagesForCloudRun(messages);
+
+      expect(result[0].content).toBe(longText);
+      expect(result[0].content.length).toBe(10000);
+    });
+  });
+
+  describe('회귀 테스트', () => {
+    it('빈 content 필터링으로 인한 맥락 소실을 방지한다', () => {
+      const messages: HybridMessage[] = [
+        { role: 'user', parts: [{ type: 'text', text: '이 사진 뭐야?' }] },
+        { role: 'user', parts: [{ type: 'image', text: undefined }] },
+        { role: 'assistant', parts: [{ type: 'text', text: '고양이입니다' }] },
+      ];
+
+      const result = normalizeMessagesForCloudRun(messages);
+
+      expect(result).toHaveLength(3);
+      expect(result[1].content).toBe('[Non-text content]');
+      expect(result[1].role).toBe('user');
+    });
+
+    it('Tool Call 메시지를 보존한다', () => {
+      const messages: HybridMessage[] = [
+        { role: 'user', parts: [{ type: 'text', text: '서버 상태 확인해줘' }] },
+        {
+          role: 'assistant',
+          parts: [{ type: 'tool-call', text: undefined }],
+        },
+        {
+          role: 'assistant',
+          parts: [{ type: 'text', text: '서버 정상입니다' }],
+        },
+      ];
+
+      const result = normalizeMessagesForCloudRun(messages);
+
+      expect(result).toHaveLength(3);
+      expect(result[1].content).toBe('[Non-text content]');
     });
   });
 
