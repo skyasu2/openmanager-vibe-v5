@@ -1,6 +1,22 @@
+/**
+ * @deprecated Use /api/database instead
+ *
+ * 🔒 Database Readonly Mode API - DEPRECATED
+ * 이 엔드포인트는 /api/database 로 통합되었습니다.
+ *
+ * Migration:
+ * - GET /api/database/readonly-mode → GET /api/database?view=readonly
+ * - POST /api/database/readonly-mode { enabled, reason } → POST /api/database { action: 'set_readonly', enabled, reason }
+ * - PUT /api/database/readonly-mode { action: 'emergency_readonly' } → POST /api/database { action: 'emergency_readonly' }
+ */
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
+
+// Log deprecation warning
+console.warn(
+  '[DEPRECATED] /api/database/readonly-mode is deprecated. Use /api/database instead.'
+);
 
 // 읽기 전용 모드 상태 관리
 let readOnlyMode = false;

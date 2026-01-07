@@ -1,12 +1,15 @@
 /**
- * 🚀 캐시 통계 API
+ * @deprecated Use /api/cache instead
+ *
+ * 🚀 캐시 통계 API - DEPRECATED
+ * 이 엔드포인트는 /api/cache 로 통합되었습니다.
+ *
+ * Migration:
+ * - GET /api/cache/stats → GET /api/cache
  *
  * 메모리 기반 캐시 성능 모니터링
  * Zod 스키마와 타입 안전성이 적용된 버전
- *
- * GET /api/cache/stats
  */
-
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';

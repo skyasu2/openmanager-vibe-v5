@@ -1,3 +1,13 @@
+/**
+ * @deprecated Use /api/database instead
+ *
+ * 🔄 Database Reset Pool API - DEPRECATED
+ * 이 엔드포인트는 /api/database 로 통합되었습니다.
+ *
+ * Migration:
+ * - GET /api/database/reset-pool → GET /api/database?view=pool
+ * - POST /api/database/reset-pool { force, config } → POST /api/database { action: 'reset_pool', force, config }
+ */
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
@@ -11,6 +21,11 @@ import {
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
+
+// Log deprecation warning
+console.warn(
+  '[DEPRECATED] /api/database/reset-pool is deprecated. Use /api/database instead.'
+);
 
 // 연결 풀 재설정 시뮬레이션
 async function resetConnectionPool(config?: DatabasePoolConfig) {

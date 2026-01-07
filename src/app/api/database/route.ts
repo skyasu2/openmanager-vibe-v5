@@ -1,0 +1,411 @@
+/**
+ * 🗄️ 통합 데이터베이스 API
+ *
+ * 데이터베이스 상태, 연결 풀, 읽기전용 모드를 통합 관리
+ *
+ * v5.84.1 변경사항:
+ * - /api/database/status, reset-pool, readonly-mode 기능 통합
+ * - Query parameter로 뷰 선택 (?view=status|pool|readonly)
+ * - POST body.action으로 작업 통합
+ *
+ * GET /api/database
+ *   - (default): 전체 데이터베이스 상태
+ *   - ?view=pool: 연결 풀 상태
+ *   - ?view=readonly: 읽기전용 모드 상태
+ *   - ?detailed=true: 상세 정보 포함
+ *
+ * POST /api/database
+ *   - action: 'health_check' | 'refresh_connections' | 'clear_cache'
+ *   - action: 'reset_pool' (with force, config options)
+ *   - action: 'set_readonly' (with enabled, reason, duration)
+ */
+
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/api-auth';
+import debug from '@/utils/debug';
+
+export const runtime = 'nodejs';
+
+// ============================================================================
+// Shared State (for readonly mode)
+// ============================================================================
+
+let readOnlyMode = false;
+let readOnlyReason = '';
+let readOnlyStartTime: string | null = null;
+
+// ============================================================================
+// Database Status Functions
+// ============================================================================
+
+function getDatabaseStatus() {
+  const now = Date.now();
+  const uptime = now - (now % (24 * 60 * 60 * 1000));
+
+  return {
+    primary: {
+      status: 'online' as const,
+      host: 'db.supabase.co',
+      port: 5432,
+      database: 'postgres',
+      connectionPool: { total: 20, active: 8, idle: 12, waiting: 0 },
+      performance: { avgResponseTime: 35, queryCount: 1250, errorRate: 0.02 },
+      replication: { lag: 0, status: 'in_sync' },
+      uptime: Math.floor((Date.now() - uptime) / 1000),
+    },
+    redis: {
+      status: 'online' as const,
+      host: process.env.UPSTASH_REDIS_HOST || 'redis-host',
+      port: 6379,
+      memory: { used: '2.5MB', peak: '4.1MB', total: '1GB' },
+      performance: { avgResponseTime: 1.2, commandCount: 5420, hitRate: 0.95 },
+      persistence: {
+        lastSave: new Date(Date.now() - 300000).toISOString(),
+        bgSaveInProgress: false,
+      },
+    },
+    vector: {
+      status: 'online' as const,
+      engine: 'pgvector',
+      collections: 3,
+      totalVectors: 1024,
+      indexStatus: 'optimized',
+      performance: { avgSearchTime: 15, searchCount: 156, accuracy: 0.92 },
+    },
+    overall: {
+      status: 'healthy' as const,
+      score: 94,
+      issues: [] as string[],
+      lastHealthCheck: new Date().toISOString(),
+    },
+  };
+}
+
+function getPoolStatus() {
+  return {
+    current: { total: 20, active: 8, idle: 12, waiting: 0 },
+    statistics: {
+      totalAcquired: 1250,
+      totalReleased: 1242,
+      totalCreated: 20,
+      totalDestroyed: 0,
+      averageAcquireTime: 15,
+      maxAcquireTime: 125,
+    },
+    health: {
+      status: 'healthy',
+      lastReset: new Date(Date.now() - 3600000).toISOString(),
+      nextScheduledReset: null,
+    },
+    config: {
+      maxConnections: 20,
+      minConnections: 5,
+      acquireTimeout: 30000,
+      idleTimeout: 300000,
+    },
+  };
+}
+
+function getReadonlyStatus() {
+  return {
+    mode: readOnlyMode ? 'readonly' : 'readwrite',
+    enabled: readOnlyMode,
+    reason: readOnlyReason,
+    startTime: readOnlyStartTime,
+    duration: readOnlyStartTime
+      ? Date.now() - new Date(readOnlyStartTime).getTime()
+      : 0,
+    affectedOperations: [
+      'INSERT',
+      'UPDATE',
+      'DELETE',
+      'CREATE',
+      'DROP',
+      'ALTER',
+    ],
+    allowedOperations: ['SELECT', 'SHOW', 'DESCRIBE', 'EXPLAIN'],
+  };
+}
+
+// ============================================================================
+// Action Functions
+// ============================================================================
+
+async function resetConnectionPool(config?: {
+  maxConnections?: number;
+  minConnections?: number;
+  acquireTimeout?: number;
+  idleTimeout?: number;
+}) {
+  debug.log('🔄 Resetting database connection pool...');
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  return {
+    action: 'reset_pool' as const,
+    timestamp: new Date().toISOString(),
+    previousPool: { total: 20, active: 15, idle: 3, waiting: 2 },
+    newPool: { total: 20, active: 0, idle: 20, waiting: 0 },
+    config: {
+      maxConnections: config?.maxConnections ?? 20,
+      minConnections: config?.minConnections ?? 5,
+      acquireTimeout: config?.acquireTimeout ?? 30000,
+      idleTimeout: config?.idleTimeout ?? 300000,
+    },
+    result: 'success' as const,
+  };
+}
+
+async function setReadOnlyMode(enabled: boolean, reason?: string) {
+  debug.log(
+    `🔒 Setting database readonly mode: ${enabled ? 'ON' : 'OFF'}`,
+    reason
+  );
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  readOnlyMode = enabled;
+  if (enabled) {
+    readOnlyReason = reason || 'Manual activation';
+    readOnlyStartTime = new Date().toISOString();
+  } else {
+    readOnlyReason = '';
+    readOnlyStartTime = null;
+  }
+
+  return {
+    mode: enabled ? 'readonly' : 'readwrite',
+    enabled,
+    reason: readOnlyReason,
+    startTime: readOnlyStartTime,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+// ============================================================================
+// GET Handler
+// ============================================================================
+
+async function getHandler(request: NextRequest): Promise<NextResponse> {
+  try {
+    const { searchParams } = new URL(request.url);
+    const view = searchParams.get('view');
+    const detailed = searchParams.get('detailed') === 'true';
+
+    debug.log('🔍 Database GET requested:', { view, detailed });
+
+    // View-specific responses
+    if (view === 'pool') {
+      return NextResponse.json({
+        success: true,
+        data: getPoolStatus(),
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    if (view === 'readonly') {
+      return NextResponse.json({
+        success: true,
+        data: getReadonlyStatus(),
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // Default: full status
+    const status = getDatabaseStatus();
+
+    if (!detailed) {
+      // Simple status
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            primary: status.primary.status,
+            redis: status.redis.status,
+            vector: status.vector.status,
+            overall: status.overall.status,
+            readonly: readOnlyMode,
+          },
+          timestamp: new Date().toISOString(),
+        },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
+          },
+        }
+      );
+    }
+
+    // Detailed status
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          ...status,
+          pool: getPoolStatus(),
+          readonlyMode: getReadonlyStatus(),
+        },
+        timestamp: new Date().toISOString(),
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
+        },
+      }
+    );
+  } catch (error) {
+    debug.error('❌ Database GET error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to get database status' },
+      { status: 500 }
+    );
+  }
+}
+
+// ============================================================================
+// POST Handler
+// ============================================================================
+
+async function postHandler(request: NextRequest): Promise<NextResponse> {
+  try {
+    const body = await request.json();
+    const { action } = body;
+
+    debug.log('🔧 Database POST action:', action);
+
+    switch (action) {
+      // Status actions (from /api/database/status)
+      case 'health_check': {
+        const status = getDatabaseStatus();
+        return NextResponse.json({
+          success: true,
+          action: 'health_check',
+          data: status.overall,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      case 'refresh_connections':
+        return NextResponse.json({
+          success: true,
+          action: 'refresh_connections',
+          message: 'Database connections refreshed successfully',
+          timestamp: new Date().toISOString(),
+        });
+
+      case 'clear_cache':
+        return NextResponse.json({
+          success: true,
+          action: 'clear_cache',
+          message: 'Database cache cleared successfully',
+          timestamp: new Date().toISOString(),
+        });
+
+      // Pool actions (from /api/database/reset-pool)
+      case 'reset_pool': {
+        const { force, config } = body;
+        if (!force) {
+          const activeConnections = 15;
+          if (activeConnections > 10) {
+            return NextResponse.json(
+              {
+                success: false,
+                error:
+                  'Connection pool is busy. Use force=true to reset anyway.',
+              },
+              { status: 400 }
+            );
+          }
+        }
+        const result = await resetConnectionPool(config);
+        return NextResponse.json({
+          success: true,
+          message: 'Connection pool reset successfully',
+          data: result,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      // Readonly actions (from /api/database/readonly-mode)
+      case 'set_readonly': {
+        const { enabled, reason, duration } = body;
+        if (typeof enabled !== 'boolean') {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'enabled parameter must be boolean',
+            },
+            { status: 400 }
+          );
+        }
+        const result = await setReadOnlyMode(enabled, reason);
+
+        // Auto-disable after duration
+        if (enabled && duration && duration > 0) {
+          setTimeout(() => {
+            void setReadOnlyMode(false, 'Auto-disable after duration');
+          }, duration);
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: `Database ${enabled ? 'switched to readonly' : 'switched to read-write'} mode`,
+          data: result,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      case 'emergency_readonly': {
+        const emergencyResult = await setReadOnlyMode(
+          true,
+          'Emergency activation'
+        );
+        return NextResponse.json({
+          success: true,
+          action: 'emergency_readonly',
+          message: 'Database switched to emergency readonly mode',
+          data: emergencyResult,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      case 'restore_readwrite': {
+        const restoreResult = await setReadOnlyMode(false, 'Manual restore');
+        return NextResponse.json({
+          success: true,
+          action: 'restore_readwrite',
+          message: 'Database restored to read-write mode',
+          data: restoreResult,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      default:
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Unknown action: ${action}`,
+            availableActions: [
+              'health_check',
+              'refresh_connections',
+              'clear_cache',
+              'reset_pool',
+              'set_readonly',
+              'emergency_readonly',
+              'restore_readwrite',
+            ],
+          },
+          { status: 400 }
+        );
+    }
+  } catch (error) {
+    debug.error('❌ Database POST error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to execute database action' },
+      { status: 500 }
+    );
+  }
+}
+
+// Export with authentication
+export const GET = withAuth(getHandler);
+export const POST = withAuth(postHandler);

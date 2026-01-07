@@ -1,7 +1,23 @@
+/**
+ * @deprecated Use /api/database instead
+ *
+ * 🗄️ Database Status API - DEPRECATED
+ * 이 엔드포인트는 /api/database 로 통합되었습니다.
+ *
+ * Migration:
+ * - GET /api/database/status → GET /api/database
+ * - GET /api/database/status?detailed=true → GET /api/database?detailed=true
+ * - POST /api/database/status { action } → POST /api/database { action }
+ */
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
+
+// Log deprecation warning
+console.warn(
+  '[DEPRECATED] /api/database/status is deprecated. Use /api/database instead.'
+);
 
 // 데이터베이스 상태 시뮬레이션
 function getDatabaseStatus() {

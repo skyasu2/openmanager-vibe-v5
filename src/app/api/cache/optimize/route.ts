@@ -1,12 +1,17 @@
 /**
- * 🚀 캐시 최적화 API (Mock 시스템 기반)
+ * @deprecated Use /api/cache instead
+ *
+ * 🚀 캐시 최적화 API - DEPRECATED
+ * 이 엔드포인트는 /api/cache 로 통합되었습니다.
+ *
+ * Migration:
+ * - POST /api/cache/optimize { action, options }
+ *   → POST /api/cache { action, options }
  *
  * 캐시 워밍업 및 최적화 작업 실행
- * POST /api/cache/optimize
  * - Zod 스키마로 타입 안전성 보장
  * - Mock 시스템 기반 서버 데이터 활용
  */
-
 import { type NextRequest, NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
