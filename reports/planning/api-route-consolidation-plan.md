@@ -214,17 +214,22 @@ npm run test:vercel:e2e
 4. [x] TypeScript 검증
 5. [x] 커밋 (`f97704f34`)
 
-### Day 2: Phase 2-3 (High/Medium) - ✅ 부분 완료
+### Day 2: Phase 2-3 (High/Medium) - ✅ 완료
 1. [ ] Server mock 라우트 검토 (보류 - servers-unified가 이미 통합 역할 수행)
-2. [ ] System 라우트 통합 (미진행 - 추후 검토)
-3. [x] Database 라우트 통합 (`4bf4de35b`)
-4. [x] Cache 라우트 통합 (`4bf4de35b`)
-5. [x] TypeScript/Lint 검증
+2. [x] Database 라우트 통합 (`4bf4de35b`)
+3. [x] Cache 라우트 통합 (`4bf4de35b`)
+4. [x] TypeScript/Lint 검증
 
 ### Day 3: Phase 4 + 문서화 - ✅ 완료
 1. [x] Test/Debug 라우트 정리 (`c4fecdaeb`)
 2. [ ] API 문서 업데이트 (선택)
 3. [x] 최종 검증
+
+### Day 4: Phase 5 - System 라우트 통합 - ✅ 완료
+1. [x] `/api/system` 통합 엔드포인트 생성 (`95605467a`)
+2. [x] 6개 서브 라우트 deprecation 처리
+3. [x] TypeScript/Lint 검증
+4. [x] 커밋
 
 ---
 
@@ -242,19 +247,25 @@ npm run test:vercel:e2e
 | `/api/cache/optimize` | `POST /api/cache` | 4bf4de3 |
 | `/api/auth/test` | `/api/test/auth` | c4fecda |
 | `/api/auth/debug` | `/api/debug/auth` | c4fecda |
+| `/api/system/status` | `GET /api/system` | 9560546 |
+| `/api/system/initialize` | `POST /api/system (action: initialize)` | 9560546 |
+| `/api/system/start` | `POST /api/system (action: start)` | 9560546 |
+| `/api/system/optimize` | `GET /api/system?view=memory` or `POST (action: optimize)` | 9560546 |
+| `/api/system/sync-data` | `POST /api/system (action: sync-data)` | 9560546 |
+| `/api/system/unified` | `/api/system` | 9560546 |
 
 ### 남은 작업 (선택적)
-- [ ] System 라우트 통합 (`/api/system/*`)
+- [x] System 라우트 통합 (`/api/system/*`) ✅ 완료
 - [ ] Server mock 라우트 쿼리 파라미터 전환
 - [ ] API 문서 업데이트
 
 ### 결과
-- **통합된 라우트**: 9개
-- **신규 통합 엔드포인트**: 3개 (`/api/health`, `/api/database`, `/api/cache`)
+- **통합된 라우트**: 15개
+- **신규 통합 엔드포인트**: 4개 (`/api/health`, `/api/database`, `/api/cache`, `/api/system`)
 - **재구성된 라우트**: 2개 (`/api/test/auth`, `/api/debug/auth`)
-- **Deprecated 라우트**: 8개 (하위호환 유지)
+- **Deprecated 라우트**: 14개 (하위호환 유지)
 
-**비고**: 핵심 통합 작업 완료. System 라우트 통합은 추후 필요시 진행
+**비고**: 핵심 통합 작업 완료
 
 ---
 
