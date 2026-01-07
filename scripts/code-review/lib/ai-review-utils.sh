@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# AI Review Utilities - v7.2.0
+# AI Review Utilities - v7.3.0
 # 유틸리티 함수 모음 (로그, 카운터, 변경사항 수집 등)
+#
+# v7.3.0 (2026-01-07): Qwen 제거 - 2-AI 시스템 (codex ↔ gemini)
+#   - Qwen 제거 사유: 평균 201초 (Gemini 89초의 2.3배), 실패율 13.3%
+#   - 2-AI 1:1 순환: codex → gemini → codex
 # v7.2.0 (2025-12-14): 버전 추천 기능 제거 (standard-version 사용 권장)
 # v6.9.3 (2025-12-14): BREAKING 패턴 단어경계+콜론 필수 (Codex 2차 리뷰)
-# v6.9.2 (2025-12-14): BREAKING 감지 패턴 수정 (Codex 리뷰 반영)
-# v6.9.1 (2025-12-08): Claude 제거 완료, 3-AI 전용 (codex/gemini/qwen)
 
 # 색상 정의
 RED='\033[0;31m'
@@ -122,28 +124,23 @@ increment_ai_counter() {
     esac
 }
 
-# 순서 기반 AI 선택 (v6.9.0: codex→gemini→qwen 3-AI 순환)
+# 순서 기반 AI 선택 (v7.3.0: codex ↔ gemini 2-AI 순환)
 # - 이전 AI가 codex → 이번에 gemini
-# - 이전 AI가 gemini → 이번에 qwen
-# - 이전 AI가 qwen → 이번에 codex
-# - Claude 제거됨: Claude Code 세션 내 자기 호출 충돌 문제
-# - v6.9.0 (2025-12-08): 3-AI 1:1:1 순환 (codex → gemini → qwen)
-#   → 각 AI 실패 시 다른 AI로 폴백
+# - 이전 AI가 gemini → 이번에 codex
+# - v7.3.0 (2026-01-07): Qwen 제거, 2-AI 1:1 순환
+#   → 실패 시 상호 폴백 (codex ↔ gemini)
 select_primary_ai() {
     init_ai_counter
 
     local last_ai=$(get_last_ai)
 
-    # 순서 기반 선택: codex → gemini → qwen → codex (3-AI 순환)
+    # 순서 기반 선택: codex → gemini → codex (2-AI 순환)
     case "$last_ai" in
         codex)
             echo "gemini"
             ;;
-        gemini)
-            echo "qwen"
-            ;;
-        qwen|claude|*)
-            # qwen 이후 또는 기타 모든 경우 → codex
+        gemini|*)
+            # gemini 이후 또는 기타 모든 경우 → codex
             echo "codex"
             ;;
     esac
@@ -270,17 +267,8 @@ detect_gemini_rate_limit() {
     return 1  # False: 정상
 }
 
-# 🆕 v6.3.0: Qwen 사용량 제한 감지
-detect_qwen_rate_limit() {
-    local output="$1"
-
-    # Qwen API Rate limit 패턴 감지
-    if echo "$output" | grep -qiE "(429|rate.*limit|throttl|too.*many.*requests)"; then
-        return 0  # True: Rate limit 감지됨
-    fi
-
-    return 1  # False: 정상
-}
+# [REMOVED v7.3.0] detect_qwen_rate_limit - Qwen 제거됨
+# 제거 사유: 평균 201초, 실패율 13.3%로 인해 2-AI 시스템으로 전환
 
 # 검증 실행 함수는 별도 스크립트로 분리되었으므로 여기서는 제외
 # 버전 추천 기능은 standard-version 사용으로 대체됨 (v7.2.0)

@@ -1,10 +1,14 @@
 #!/bin/bash
 
-# Auto AI Code Review Script (3-AI 순환) with Smart Verification
+# Auto AI Code Review Script (2-AI 순환) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 6.13.0
-# 날짜: 2025-12-23
-# 전략: 3-AI 순환 (Codex → Gemini → Qwen) 1:1:1 비율 + 중복 방지 + 소규모 변경 필터 + 누적 리뷰
+# 버전: 7.0.0
+# 날짜: 2026-01-07
+# 전략: 2-AI 순환 (Codex ↔ Gemini) 1:1 비율 + 중복 방지 + 소규모 변경 필터 + 누적 리뷰
+#
+# v7.0.0 (2026-01-07): Qwen 제거 - 2-AI 시스템으로 단순화
+# - Qwen 제거 사유: 평균 201초 (Gemini 89초의 2.3배), 실패율 13.3%
+# - 2-AI 1:1 순환: codex → gemini → codex (상호 폴백)
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다

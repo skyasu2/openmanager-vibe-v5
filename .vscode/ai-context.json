@@ -6,9 +6,8 @@
     "primaryUsage": "메인 개발 환경 (WSL 터미널 내)",
     "description": "Claude Code가 주력 AI 개발 도구로 사용됨",
     "subAgents": {
-      "gemini": "gemini-cli - 주력 보조 AI (Claude 사용량 조절 및 토큰 부족시 대체)",
-      "codex": "codex-cli - ChatGPT Plus 요금제 활용 (추가 코드 생성 옵션)",
-      "qwen": "qwen-cli - 무료 제공량 풍부 (비용 절약용 대안)"
+      "gemini": "gemini-cli - 주력 보조 AI (2-AI 로테이션)",
+      "codex": "codex-cli - ChatGPT Plus 요금제 활용 (2-AI 로테이션)"
     },
     "windowsVSCode": {
       "role": "auxiliary",
@@ -25,7 +24,7 @@
   "aiTools": {
     "primary": "claude-code",
     "location": "WSL 터미널",
-    "subAgents": ["gemini-cli", "codex-cli", "qwen-cli"],
+    "subAgents": ["gemini-cli", "codex-cli"],
     "auxiliary": "github-copilot"
   },
   "priorityFiles": [

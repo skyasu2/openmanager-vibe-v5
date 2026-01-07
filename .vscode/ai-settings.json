@@ -38,7 +38,7 @@
       },
       "ai": {
         "primaryEngine": "claude-code",
-        "fallbackEngines": ["copilot", "gemini", "qwen"],
+        "fallbackEngines": ["copilot", "gemini", "codex"],
         "mcpIntegration": true
       }
     },
