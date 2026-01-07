@@ -1,157 +1,164 @@
 # OpenManager VIBE v5
 
-> **AI-Native 서버 모니터링 PoC**
-> **Vibe Coding**을 통해 DevOps의 미래인 **AX (AI Experience)**를 탐구합니다.
+> **AI-Native Server Monitoring Platform**
+> 자연어로 대화하며 서버를 모니터링하는 차세대 운영 플랫폼
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.1.1-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-61DAFB)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E)](https://supabase.com/)
-[![AI Engine](https://img.shields.io/badge/AI_Engine-Multi--Agent-purple)](https://sdk.vercel.ai/)
-[![Biome](https://img.shields.io/badge/Biome-Lint_%26_Format-orange)](https://biomejs.dev/)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](https://openmanager-vibe-v5.vercel.app)
+[![AI Engine](https://img.shields.io/badge/AI_Engine-Multi--Agent-purple)](https://ai-engine-490817238363.asia-northeast1.run.app)
+[![Version](https://img.shields.io/badge/Version-5.84.1-blue)](./CHANGELOG.md)
 
-## 🚀 Quick Start
+---
 
-```bash
-# 의존성 설치
-npm install
+## Overview
 
-# 개발 서버 실행
-npm run dev:network
+OpenManager VIBE는 **AI 어시스턴트**가 내장된 서버 모니터링 플랫폼입니다.
 
-# 전체 검증 (lint + typecheck + test)
-npm run validate:all
+기존 대시보드에서 그래프를 읽고 해석하는 대신, **"서버 상태 어때?"** 라고 물어보면 AI가 분석하고 답변합니다.
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **AI Chat** | 자연어로 서버 상태 질의, 장애 원인 분석 |
+| **Smart Dashboard** | 실시간 서버 메트릭 시각화 |
+| **Auto Report** | 장애 발생 시 자동 보고서 생성 |
+| **Predictive Analysis** | 이상 탐지 및 트렌드 예측 |
+
+---
+
+## AI Assistant
+
+6개의 전문 AI 에이전트가 협업하여 복잡한 질문도 처리합니다.
+
+```
+💬 "서버 상태 어때?"
+   → Orchestrator가 질문 분석 후 적절한 에이전트 선택
+
+📊 "CPU 사용량 높은 서버 찾아줘"
+   → NLQ Agent가 메트릭 조회 후 결과 반환
+
+🔍 "왜 서버가 느려졌어?"
+   → Analyst Agent가 이상 탐지 및 원인 분석
+
+📋 "장애 보고서 만들어줘"
+   → Reporter Agent가 마크다운 보고서 생성
 ```
 
-## 👨‍💻 프로젝트 철학
+### Agent Architecture
 
-이 프로젝트는 단순한 서버 모니터링 도구가 아닙니다. **인간과 AI의 협업(Vibe Coding)**이 만들어낼 수 있는 풀스택 개발의 가능성을 증명하는 **Proof of Concept (PoC)**입니다.
+```
+User Query
+    ↓
+Orchestrator (쿼리 분석 & 라우팅)
+    ├── NLQ Agent      : 서버 메트릭 조회
+    ├── Analyst Agent  : 이상 탐지, 예측 분석
+    ├── Reporter Agent : 보고서 자동 생성
+    ├── Advisor Agent  : 트러블슈팅 가이드
+    └── Summarizer     : 빠른 요약
+```
 
-기존의 "수동적 모니터링"을 넘어, **Multi-LLM AI Engine (Cerebras/Groq/Mistral/OpenRouter)**이 워크플로우에 직접 통합되어 **"예측하고 상호작용하는 운영(Predictive & Interactive Operations)"** 경험을 제공합니다.
+---
 
-## 🛠️ Tech Stack
+## Server Monitoring
 
-| Category | Technology |
-|----------|------------|
-| **Frontend** | Next.js 16.1.1, React 19, TypeScript 5.9 |
-| **Styling** | Tailwind CSS 4, Radix UI, Framer Motion |
+### Dashboard
+
+실시간 서버 상태를 한눈에 파악할 수 있는 대시보드를 제공합니다.
+
+- **Server Cards**: 각 서버의 CPU, Memory, Disk 사용량 시각화
+- **Health Status**: Normal / Warning / Critical 상태 표시
+- **Real-time Updates**: WebSocket 기반 실시간 메트릭 갱신
+- **Interactive Charts**: 시간대별 트렌드 그래프
+
+### Metrics
+
+| Metric | Description |
+|--------|-------------|
+| CPU Usage | 프로세서 사용률 (%) |
+| Memory | 메모리 사용량 (GB / %) |
+| Disk | 디스크 사용량 및 I/O |
+| Network | 네트워크 트래픽 (In/Out) |
+| Response Time | 서버 응답 시간 (ms) |
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    User Interface                       │
+│              (Next.js 16 + React 19)                   │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│                 Vercel (Frontend)                       │
+│           Dashboard + API Proxy + Auth                  │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│              Cloud Run (AI Engine)                      │
+│         Multi-Agent System + Tool Execution            │
+│                                                         │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐   │
+│  │   NLQ   │  │ Analyst │  │Reporter │  │ Advisor │   │
+│  └─────────┘  └─────────┘  └─────────┘  └─────────┘   │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────┐
+│                  Data Layer                             │
+│     Supabase (PostgreSQL) + Upstash (Redis Cache)      │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Deployment
+
+| Service | Platform | Region |
+|---------|----------|--------|
+| Frontend | Vercel | Global Edge |
+| AI Engine | Google Cloud Run | asia-northeast1 |
+| Database | Supabase | ap-northeast-1 |
+| Cache | Upstash Redis | ap-northeast-1 |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Next.js 16, React 19, TypeScript |
+| **UI** | Tailwind CSS, Radix UI, Framer Motion |
 | **State** | Zustand, TanStack Query |
-| **Backend** | Supabase (PostgreSQL + Auth + Realtime) |
-| **AI Engine** | Vercel AI SDK, @ai-sdk-tools/agents |
-| **Cache** | Upstash Redis (Serverless) |
-| **Testing** | Vitest, Playwright |
-| **Lint** | Biome |
+| **AI** | Vercel AI SDK, @ai-sdk-tools/agents |
+| **Database** | Supabase (PostgreSQL + pgvector) |
+| **Cache** | Upstash Redis |
 
-## 🤖 AI Features
+---
 
-3가지 AI 기능이 6개의 전문 에이전트를 활용합니다:
+## Demo
 
-| Feature | Description | Primary Agent |
-|---------|-------------|---------------|
-| **💬 AI Chat** | 자연어로 서버 상태 질의, 분석 요청 | Orchestrator → 5 Agents |
-| **📋 Auto Report** | 장애 보고서 자동 생성 | Reporter Agent |
-| **📊 Intelligent Monitoring** | 이상 탐지, 트렌드 예측 | Analyst Agent |
+**Live**: [openmanager-vibe-v5.vercel.app](https://openmanager-vibe-v5.vercel.app)
 
-### Agent Stack (6 Agents)
+### Sample Queries
 
 ```
-Orchestrator (Cerebras) ─┬─► NLQ Agent (Cerebras→Groq)      : 서버 메트릭 질의
-                         ├─► Analyst Agent (Groq→Cerebras)  : 이상 탐지, 예측
-                         ├─► Reporter Agent (Groq→Cerebras) : 보고서 생성
-                         ├─► Advisor Agent (Mistral)        : 트러블슈팅, RAG
-                         └─► Summarizer Agent (OpenRouter)  : 빠른 요약
+"현재 서버 상태 요약해줘"
+"CPU 80% 넘는 서버 있어?"
+"최근 1시간 동안 이상 징후 있었어?"
+"web-server-01 성능 분석해줘"
+"장애 보고서 만들어줘"
 ```
 
-### Free Tier Limits
+---
 
-| Provider | Limit | Usage |
-|----------|-------|-------|
-| Cerebras | 1M tokens/day | Orchestrator, NLQ |
-| Groq | ~1K requests/day | Analyst, Reporter |
-| Mistral | Limited | Advisor, Verifier |
-| OpenRouter | 50 requests/day | Summarizer |
+## Status
 
-## 🏗️ 시스템 아키텍처
-
-### Hybrid Architecture (Vercel + Cloud Run)
-
-```mermaid
-graph TD
-    Client[사용자/클라이언트] --> API[Next.js API Route]
-
-    subgraph "Vercel (Frontend + Proxy)"
-        API --> Check{Cloud Run 활성?}
-        Check -- Yes --> Cloud[Google Cloud Run]
-        Check -- No --> Error[503 Service Unavailable]
-    end
-
-    subgraph "Cloud Run (AI Engine)"
-        Cloud --> Mode{쿼리 복잡도?}
-        Mode -- 단순 --> Single[Single-Agent Mode]
-        Mode -- 복잡 --> Multi[Multi-Agent Mode]
-    end
-
-    subgraph "AI Agents (@ai-sdk-tools/agents)"
-        Multi --> Orchestrator[🎯 Orchestrator]
-        Orchestrator --> NLQ[🔍 NLQ Agent]
-        Orchestrator --> Analyst[📊 Analyst Agent]
-        Orchestrator --> Reporter[📋 Reporter Agent]
-        Orchestrator --> Advisor[💡 Advisor Agent]
-        Orchestrator --> Summarizer[📝 Summarizer]
-    end
-
-    subgraph "Data Layer"
-        NLQ --> Metrics[(Server Metrics)]
-        Advisor --> RAG[(GraphRAG Knowledge)]
-    end
-```
-
-### Service Deployment
-
-| 서비스 | 배포 환경 | 역할 |
-|--------|----------|------|
-| **Next.js App** | Vercel (Serverless) | Frontend + API Proxy |
-| **AI Engine** | Google Cloud Run | Multi-Agent Backend |
-| **Database** | Supabase Cloud | PostgreSQL + Auth + Realtime |
-| **Cache** | Upstash Redis | Response Caching, Job Queue |
-
-## ✨ 핵심 기능
-
-### 1. ⚡ 실시간 성능 (Real-time Performance)
-- **GPU 가속 UI**: 하드웨어 가속을 통한 부드러운 120fps 애니메이션
-- **WebSocket 통합**: 100ms 미만의 지연 시간으로 메트릭 업데이트
-- **최적화된 렌더링**: RSC와 클라이언트 하이드레이션의 조화
-
-### 2. 🤖 AI 기반 운영 (AI Operations)
-- **Multi-Agent System**: 6개 전문 에이전트가 협업하여 복잡한 질의 처리
-- **Dual-Mode Supervisor**: 단순 쿼리(Single-Agent) / 복잡 쿼리(Multi-Agent) 자동 선택
-- **GraphRAG**: 벡터 검색 + 그래프 탐색으로 과거 사례 참조
-- **Circuit Breaker**: Provider 장애 시 자동 폴백
-
-### 3. 🛡️ 개발 품질 (Development Quality)
-- **Strict TypeScript**: `any` 타입 사용 배제
-- **현대적 툴체인**: Biome(린트/포맷), Vitest(단위 테스트), Playwright(E2E)
-- **CI/CD 파이프라인**: Vercel을 통한 자동화된 검증 및 배포
-
-## 📚 문서 (Documentation)
-
-| 문서 | 설명 |
-|-----|------|
-| [Getting Started](docs/getting-started/README.md) | 빠른 시작 가이드 |
-| [AI Engine Architecture](docs/reference/architecture/ai/ai-engine-architecture.md) | Multi-Agent 아키텍처 |
-| [Project Status](docs/status.md) | 기술 스택 및 현황 |
-
-## 🧪 Project Status
-
-이 프로젝트는 **개인 연구용 토이 프로젝트(PoC)**입니다.
-AI-Native DevOps와 차세대 웹 기술(Next.js 16, Vercel AI SDK)의 가능성을 탐구하기 위한 기술 시연용으로 제작되었습니다.
-
-**Not intended for production use**
+이 프로젝트는 **AI-Native DevOps PoC**입니다.
+차세대 운영 패러다임인 **AX (AI Experience)**를 탐구합니다.
 
 ---
 
 <div align="center">
-  <sub>Built with 💜 using Vibe Coding methodologies.</sub>
+  <sub>Built with Vibe Coding</sub>
   <br/>
-  <sub>Version 5.83.14 | Last Updated: 2026-01-04</sub>
+  <sub>v5.84.1</sub>
 </div>
