@@ -1,28 +1,43 @@
 # 🔌 API 설계
 
-## 🔌 API 구조 (76개 엔드포인트)
+## 🔌 API 구조 (~57개 엔드포인트)
+
+> **v5.84.1 업데이트**: API 라우트 통합으로 72개 → 57개로 축소 (-21%)
 
 ### 기능별 분산 아키텍처
 ```typescript
 app/api/
-├── ai/           # 30개 AI 관련 API
-│   ├── analyze/
-│   ├── chat/
-│   └── suggestions/
-├── servers/      # 25개 서버 모니터링 API
-│   ├── metrics/
-│   ├── status/
-│   └── history/
-├── auth/         # 10개 인증 API
+├── ai/           # AI 관련 API
+│   ├── supervisor/     # 메인 AI 엔드포인트
+│   └── ...
+├── servers/      # 서버 모니터링 API
+│   ├── all/
+│   ├── [id]/
+│   └── realtime/
+├── servers-unified/    # 통합 서버 API
+├── auth/         # 인증 API
 │   ├── github/
 │   ├── session/
 │   └── logout/
-├── system/       # 15개 시스템 API
-│   ├── health/
-│   ├── config/
-│   └── logs/
-└── misc/         # 10개 기타 API
+├── health/       # 🆕 통합 헬스체크 (ping, ai/health 통합)
+├── system/       # 🆕 통합 시스템 API (status, initialize, optimize 등 통합)
+├── database/     # 🆕 통합 DB API (status, reset-pool, readonly-mode 통합)
+├── cache/        # 🆕 통합 캐시 API (stats, optimize 통합)
+├── test/         # 테스트 API (auth/test → test/auth 이동)
+└── debug/        # 디버그 API (auth/debug → debug/auth 이동)
 ```
+
+### 통합 엔드포인트 (v5.84.1+)
+
+| 엔드포인트 | 메서드 | 파라미터 | 설명 |
+|-----------|--------|----------|------|
+| `/api/health` | GET | `?simple=true`, `?service=ai` | 헬스체크 통합 |
+| `/api/system` | GET | `?view=status\|metrics\|health\|processes\|memory` | 시스템 상태 |
+| `/api/system` | POST | `action: start\|stop\|restart\|initialize\|optimize\|sync-data` | 시스템 제어 |
+| `/api/database` | GET | `?view=status\|pool\|readonly` | DB 상태 |
+| `/api/database` | POST | `action: reset\|readonly` | DB 제어 |
+| `/api/cache` | GET | - | 캐시 통계 |
+| `/api/cache` | POST | `action: optimize` | 캐시 최적화 |
 
 ### 핵심 API 패턴
 ```typescript
