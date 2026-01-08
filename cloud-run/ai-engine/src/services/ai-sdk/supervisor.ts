@@ -166,27 +166,43 @@ const RETRY_CONFIG = {
  * Determine execution mode based on query complexity
  * Complex queries benefit from multi-agent orchestration
  *
- * @updated 2026-01-06: Added summarizer patterns for OpenRouter routing
+ * @updated 2026-01-09: Enhanced patterns for better Korean NLP coverage
  */
 function selectExecutionMode(query: string): SupervisorMode {
   const q = query.toLowerCase();
 
   // Multi-agent indicators (complex queries requiring specialized agents)
   const multiAgentPatterns = [
-    // Report generation
-    /보고서|리포트|report|인시던트|incident/i,
-    // Deep analysis
-    /분석.*원인|근본.*원인|rca|root.*cause/i,
-    // Troubleshooting with knowledge search
-    /해결.*방법|과거.*사례|유사.*장애|어떻게.*해결/i,
-    // Trend prediction
-    /예측|트렌드|향후|언제.*될|고갈/i,
-    // Correlation analysis
-    /상관관계|연관.*분석|correlat/i,
-    // Summary requests → Summarizer Agent (OpenRouter free tier)
-    // Only trigger for server-related summaries to avoid routing general queries
+    // 1. Report generation (보고서/리포트)
+    /보고서|리포트|report|인시던트|incident|장애.*보고|일일.*리포트/i,
+
+    // 2. Root cause analysis (원인 분석)
+    /분석.*원인|근본.*원인|rca|root.*cause|왜.*그래|왜.*느려|왜.*높아|원인.*뭐/i,
+
+    // 3. Troubleshooting (문제 해결)
+    /해결.*방법|과거.*사례|유사.*장애|어떻게.*해결|어떻게.*하면|조치.*방법|대응.*방안/i,
+
+    // 4. Trend & prediction (예측/추세)
+    /예측|트렌드|향후|언제.*될|고갈|추세|추이|변화.*패턴|앞으로/i,
+
+    // 5. Correlation analysis (상관관계)
+    /상관관계|연관.*분석|correlat|같이.*올라|함께.*증가|연동/i,
+
+    // 6. Comparison (비교 분석)
+    /비교.*해|어제.*대비|지난.*주|전월.*대비|작년.*비교|변화.*있/i,
+
+    // 7. Capacity planning (용량 계획)
+    /용량.*계획|capacity|언제.*부족|얼마나.*남|증설.*필요/i,
+
+    // 8. Anomaly deep dive (이상 심층 분석)
+    /이상.*원인|왜.*이상|비정상.*이유|스파이크.*원인|급증.*이유/i,
+
+    // 9. Summary requests → Summarizer Agent (OpenRouter free tier)
     /(서버|상태|현황|모니터링|인프라).*(요약|간단히|핵심|tl;?dr)/i,
     /(요약|간단히|핵심|tl;?dr).*(서버|상태|현황|알려|해줘)/i,
+
+    // 10. Complex multi-server analysis (다중 서버 분석)
+    /전체.*서버.*분석|모든.*서버.*상태|서버.*전반|종합.*분석/i,
   ];
 
   // Check for complex patterns
