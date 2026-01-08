@@ -114,27 +114,6 @@ export const nextJsApiHandlers = [
   }),
 
   /**
-   * Health Check API
-   * @example GET /api/health
-   */
-  http.get(`${BASE_URL}/api/health`, () => {
-    return HttpResponse.json({
-      success: true,
-      data: {
-        status: 'healthy',
-        services: {
-          database: { status: 'connected', latency: 10 },
-          cache: { status: 'connected', latency: 5 },
-          ai: { status: 'connected', latency: 15 },
-        },
-        uptime: 86400,
-        version: '1.0.0',
-        timestamp: new Date().toISOString(),
-      },
-    });
-  }),
-
-  /**
    * Metrics API
    * @example GET /api/metrics
    */
@@ -314,6 +293,74 @@ export const nextJsApiHandlers = [
       },
       recentEvents: [],
       timestamp: Date.now(),
+    });
+  }),
+
+  /**
+   * Database API (Unified)
+   * @example GET /api/database
+   * @example POST /api/database { action: 'health_check' | 'reset_pool' }
+   */
+  http.get(`${BASE_URL}/api/database`, () => {
+    return HttpResponse.json({
+      success: true,
+      healthy: true,
+      primary: {
+        status: 'online',
+        host: 'db.supabase.co',
+        connections: { active: 5, idle: 10, total: 15 },
+      },
+      pool: {
+        size: 20,
+        available: 15,
+        waiting: 0,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  }),
+
+  http.post(`${BASE_URL}/api/database`, async ({ request }) => {
+    const body = (await request.json()) as { action: string };
+    console.log(`[MSW] Database API action: ${body.action}`);
+
+    return HttpResponse.json({
+      success: true,
+      message: `Database ${body.action} completed`,
+      timestamp: Date.now(),
+    });
+  }),
+
+  /**
+   * Health API with service parameter
+   * @example GET /api/health?service=ai
+   */
+  http.get(`${BASE_URL}/api/health`, ({ request }) => {
+    const url = new URL(request.url);
+    const service = url.searchParams.get('service');
+
+    if (service === 'ai' || service === 'cloudrun') {
+      return HttpResponse.json({
+        status: 'ok',
+        backend: 'cloud-run',
+        latency: 150,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // Full health check
+    return HttpResponse.json({
+      success: true,
+      data: {
+        status: 'healthy',
+        services: {
+          database: { status: 'connected', latency: 10 },
+          cache: { status: 'connected', latency: 5 },
+          ai: { status: 'connected', latency: 15 },
+        },
+        uptime: 86400,
+        version: '1.0.0',
+        timestamp: new Date().toISOString(),
+      },
     });
   }),
 ];
