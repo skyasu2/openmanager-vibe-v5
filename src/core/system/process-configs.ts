@@ -260,10 +260,10 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
 
       try {
         // 기존 useSystemControl과 연동하여 시스템 시작
-        const response = await fetch('/api/system/start', {
+        const response = await fetch('/api/system', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode: 'fast' }),
+          body: JSON.stringify({ action: 'start', mode: 'fast' }),
         });
 
         if (!response.ok) {
@@ -284,9 +284,10 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
       systemLogger.system('⚙️ 시뮬레이션 엔진 중지');
 
       try {
-        const response = await fetch('/api/system/stop', {
+        const response = await fetch('/api/system', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'stop' }),
         });
 
         if (response.ok) {
@@ -307,7 +308,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     },
     healthCheck: async () => {
       try {
-        const response = await fetch('/api/system/status', {
+        const response = await fetch('/api/system', {
           method: 'GET',
         });
 

@@ -108,7 +108,7 @@ export const api = {
   // 시스템 API
   system: {
     getStatus: async (): Promise<unknown> => {
-      const response = await fetch('/api/system/status');
+      const response = await fetch('/api/system');
       if (!response.ok) {
         throw new Error(`시스템 상태 조회 실패: ${response.status}`);
       }
@@ -116,7 +116,7 @@ export const api = {
     },
 
     getHealth: async (): Promise<unknown> => {
-      const response = await fetch('/api/system/health');
+      const response = await fetch('/api/system?view=health');
       if (!response.ok) {
         throw new Error(`시스템 헬스 조회 실패: ${response.status}`);
       }

@@ -90,7 +90,7 @@ export const useSystemState = (): UseSystemStateReturn => {
         isRequestingRef.current = true;
         setError(null);
 
-        const url = `/api/system/status?userId=${encodeURIComponent(userId)}&source=${encodeURIComponent(source)}`;
+        const url = `/api/system?userId=${encodeURIComponent(userId)}&source=${encodeURIComponent(source)}`;
 
         console.log(`🔄 시스템 상태 요청 - 소스: ${source}`);
 
@@ -156,7 +156,7 @@ export const useSystemState = (): UseSystemStateReturn => {
       isRequestingRef.current = true;
       setError(null);
 
-      const url = `/api/system/status?userId=${encodeURIComponent(userId)}&source=${encodeURIComponent(source)}`;
+      const url = `/api/system?userId=${encodeURIComponent(userId)}&source=${encodeURIComponent(source)}`;
 
       console.log(`🔄 시스템 상태 요청 - 소스: ${source}`);
 
@@ -210,7 +210,7 @@ export const useSystemState = (): UseSystemStateReturn => {
         `🚀 시스템 시작 요청 - 사용자: ${userId.substring(0, 12)}...`
       );
 
-      const response = await fetch('/api/system/status', {
+      const response = await fetch('/api/system', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +261,7 @@ export const useSystemState = (): UseSystemStateReturn => {
         `🛑 시스템 중지 요청 - 사용자: ${userId.substring(0, 12)}...`
       );
 
-      const response = await fetch('/api/system/status', {
+      const response = await fetch('/api/system', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

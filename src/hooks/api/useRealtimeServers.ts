@@ -84,7 +84,7 @@ export function useRealtimeServers(
         },
         {
           id: 'servers-status',
-          endpoint: '/api/system/status',
+          endpoint: '/api/system',
           priority: 'normal',
           options: {
             method: 'GET',

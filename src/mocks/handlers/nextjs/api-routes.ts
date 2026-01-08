@@ -153,10 +153,11 @@ export const nextJsApiHandlers = [
   }),
 
   /**
-   * System Status API
-   * @example GET /api/system/status
+   * System API (Unified)
+   * @example GET /api/system
+   * @example POST /api/system { action: 'start' | 'stop' | 'restart' }
    */
-  http.get(`${BASE_URL}/api/system/status`, () => {
+  http.get(`${BASE_URL}/api/system`, () => {
     return HttpResponse.json({
       success: true,
       timestamp: Date.now(),
@@ -167,6 +168,17 @@ export const nextJsApiHandlers = [
         version: '1.0.0',
         environment: 'development',
       },
+    });
+  }),
+
+  http.post(`${BASE_URL}/api/system`, async ({ request }) => {
+    const body = (await request.json()) as { action: string; mode?: string };
+    console.log(`[MSW] System API action: ${body.action}`);
+
+    return HttpResponse.json({
+      success: true,
+      message: `System ${body.action} completed`,
+      timestamp: Date.now(),
     });
   }),
 

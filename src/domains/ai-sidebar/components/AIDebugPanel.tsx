@@ -31,7 +31,7 @@ export function AIDebugPanel() {
     setStatus('idle');
     try {
       const start = Date.now();
-      const res = await fetch('/api/ai/health');
+      const res = await fetch('/api/health?service=ai');
       const data = await res.json();
 
       if (res.ok && data.status === 'ok') {

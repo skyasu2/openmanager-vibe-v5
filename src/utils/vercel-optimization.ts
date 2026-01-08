@@ -157,7 +157,7 @@ export async function preloadCriticalResources(): Promise<void> {
     }
 
     // 2. 중요 API 엔드포인트 사전 로딩 (HEAD 요청)
-    const criticalEndpoints = ['/api/system/status'];
+    const criticalEndpoints = ['/api/system'];
 
     await Promise.allSettled(
       criticalEndpoints.map(async (endpoint) => {

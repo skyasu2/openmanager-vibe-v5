@@ -101,7 +101,7 @@ export const MAIN_THREAD_OPTIMIZATION = {
 export const RESOURCE_HINTS = {
   preconnect: ['https://fonts.googleapis.com', 'https://api.openmanager.dev'],
 
-  prefetch: ['/api/servers', '/api/system/status'],
+  prefetch: ['/api/servers', '/api/system'],
 
   preload: ['/fonts/inter-var.woff2', '/images/hero-bg.webp'],
 };

@@ -16,7 +16,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
  *
  * ## v5.84.0: Google AI → Cloud Run Migration
  * - Removed Google AI status check (deprecated)
- * - Uses Cloud Run AI health endpoint (/api/ai/health)
+ * - Uses Cloud Run AI health endpoint (/api/health?service=ai)
  */
 export function SystemBootstrap(): React.ReactNode {
   const { isSystemStarted } = useUnifiedAdminStore();
@@ -91,7 +91,7 @@ export function SystemBootstrap(): React.ReactNode {
       // 1. 시스템 상태 확인
       try {
         console.log('🔄 시스템 상태 확인...');
-        const systemResponse = await fetch('/api/system/status', {
+        const systemResponse = await fetch('/api/system', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ export function SystemBootstrap(): React.ReactNode {
       // 2. Cloud Run AI 상태 확인 (한 번만)
       try {
         console.log('🤖 Cloud Run AI 상태 확인...');
-        const aiHealthResponse = await fetch('/api/ai/health', {
+        const aiHealthResponse = await fetch('/api/health?service=ai', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ export function SystemBootstrap(): React.ReactNode {
       // 3. Supabase 상태 확인 (한 번만)
       try {
         console.log('🟢 Supabase 상태 확인...');
-        const supabaseResponse = await fetch('/api/database/status', {
+        const supabaseResponse = await fetch('/api/database', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

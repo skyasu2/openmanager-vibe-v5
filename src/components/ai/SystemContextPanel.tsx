@@ -64,7 +64,7 @@ const SystemContextPanel = memo(function SystemContextPanel({
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/ai/health', {
+      const response = await fetch('/api/health?service=ai', {
         method: 'GET',
         cache: 'no-store',
         signal: controller.signal,

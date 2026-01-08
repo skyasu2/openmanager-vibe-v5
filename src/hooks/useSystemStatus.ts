@@ -35,7 +35,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
     try {
       setError(null);
 
-      const response = await fetch('/api/system/status');
+      const response = await fetch('/api/system');
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -76,7 +76,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
   const refresh = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/system/status');
+      const response = await fetch('/api/system');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -98,8 +98,10 @@ export function useSystemStatus(): UseSystemStatusReturn {
     try {
       setError(null);
 
-      const response = await fetch('/api/system/start', {
+      const response = await fetch('/api/system', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start' }),
       });
 
       if (!response.ok) {
@@ -107,7 +109,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
       }
 
       // 시스템 시작 후 상태 새로고침 - 인라인 구현
-      const statusResponse = await fetch('/api/system/status');
+      const statusResponse = await fetch('/api/system');
       if (statusResponse.ok) {
         const data = await statusResponse.json();
         setStatus(data);
@@ -126,7 +128,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
 
     const performFetch = async () => {
       try {
-        const response = await fetch('/api/system/status', {
+        const response = await fetch('/api/system', {
           signal: abortController.signal, // AbortController로 fetch 취소 가능
         });
         if (!response.ok) {
@@ -177,7 +179,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
           // 인라인 상태 조회 함수
           void (async () => {
             try {
-              const response = await fetch('/api/system/status', {
+              const response = await fetch('/api/system', {
                 signal: abortController.signal, // AbortController로 fetch 취소 가능
               });
               if (!response.ok) {

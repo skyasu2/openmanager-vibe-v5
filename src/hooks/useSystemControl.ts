@@ -97,7 +97,7 @@ export function useSystemControl(): UseSystemControlReturn {
   const checkStatus = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/system/status');
+      const response = await fetch('/api/system');
 
       if (!response.ok) {
         throw new Error(`Status check failed: ${response.status}`);
@@ -124,11 +124,12 @@ export function useSystemControl(): UseSystemControlReturn {
   const startSystem = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/system/start', {
+      const response = await fetch('/api/system', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ action: 'start' }),
       });
 
       if (!response.ok) {
@@ -163,11 +164,12 @@ export function useSystemControl(): UseSystemControlReturn {
   const stopSystem = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/system/stop', {
+      const response = await fetch('/api/system', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ action: 'stop' }),
       });
 
       if (!response.ok) {
@@ -274,14 +276,14 @@ export function useSystemControl(): UseSystemControlReturn {
         const fetchOptions: RequestInit = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode }),
+          body: JSON.stringify({ action: 'start', mode }),
         };
 
         if (options?.signal) {
           fetchOptions.signal = options.signal;
         }
 
-        const systemResponse = await fetch('/api/system/start', fetchOptions);
+        const systemResponse = await fetch('/api/system', fetchOptions);
         const systemData = await systemResponse.json();
 
         if (systemResponse.ok) {
@@ -401,9 +403,10 @@ export function useSystemControl(): UseSystemControlReturn {
       // 시뮬레이션 엔진 중지 (기존 로직)
       try {
         systemLogger.system('1️⃣ 시뮬레이션 엔진 중지...');
-        const response = await fetch('/api/system/stop', {
+        const response = await fetch('/api/system', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'stop' }),
         });
 
         if (response.ok || response.status === 503) {

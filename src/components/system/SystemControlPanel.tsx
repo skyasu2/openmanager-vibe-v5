@@ -46,7 +46,7 @@ export function SystemControlPanel() {
     setOperation(action);
 
     try {
-      const response = await fetch('/api/system/unified', {
+      const response = await fetch('/api/system', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, options }),

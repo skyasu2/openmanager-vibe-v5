@@ -41,7 +41,7 @@ export function CloudRunStatusIndicator({
     const startTime = Date.now();
 
     try {
-      const response = await fetch('/api/ai/health', {
+      const response = await fetch('/api/health?service=ai', {
         method: 'GET',
         cache: 'no-store',
       });
@@ -94,7 +94,7 @@ export function CloudRunStatusIndicator({
         waited += pollInterval;
 
         try {
-          const healthResponse = await fetch('/api/ai/health', {
+          const healthResponse = await fetch('/api/health?service=ai', {
             cache: 'no-store',
           });
           const healthData = await healthResponse.json();

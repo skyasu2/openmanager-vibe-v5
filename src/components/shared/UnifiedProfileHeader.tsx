@@ -77,7 +77,7 @@ export default function UnifiedProfileHeader({
         console.log('✅ 시스템 종료 성공 (스토어 통합)');
       } else {
         // Fallback: 직접 API 호출
-        const response = await fetch('/api/system/status', {
+        const response = await fetch('/api/system', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'stop' }),

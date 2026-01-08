@@ -220,7 +220,7 @@ export class RecoveryService {
 
     try {
       // 데이터베이스 상태 확인
-      const response = await fetch('/api/database/status');
+      const response = await fetch('/api/database');
       const status = await response.json();
 
       if (status.healthy) {
@@ -296,7 +296,7 @@ export class RecoveryService {
 
     try {
       // 메모리 상태 확인
-      const response = await fetch('/api/system/status');
+      const response = await fetch('/api/system');
       const status = await response.json();
 
       if (status.success) {
