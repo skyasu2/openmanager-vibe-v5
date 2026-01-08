@@ -97,11 +97,9 @@ export const POST = withRateLimit(
         querySessionId ||
         `stream_${Date.now()}`;
 
-      // 3. Extract and sanitize query
-      const rawQuery =
-        extractLastUserQuery(messages as HybridMessage[]) ||
-        'System status check';
-      if (!rawQuery || rawQuery.trim() === '') {
+      // 3. Extract and sanitize query (consistent with /supervisor endpoint)
+      const rawQuery = extractLastUserQuery(messages as HybridMessage[]);
+      if (!rawQuery?.trim()) {
         return NextResponse.json(
           { success: false, error: 'Empty query' },
           { status: 400 }
@@ -214,6 +212,15 @@ export const POST = withRateLimit(
                         if (event.type === 'text_delta' && event.data) {
                           controller.enqueue(encoder.encode(event.data));
                         }
+                        if (event.type === 'error') {
+                          const errorMsg =
+                            typeof event.data?.message === 'string'
+                              ? event.data.message
+                              : 'Stream error';
+                          controller.enqueue(
+                            encoder.encode(`\n\n⚠️ 오류: ${errorMsg}`)
+                          );
+                        }
                       } catch {
                         // Ignore parse errors
                       }
@@ -239,9 +246,25 @@ export const POST = withRateLimit(
 
                     const event = JSON.parse(jsonStr);
 
-                    // Only pass through text_delta content for streaming
+                    // Handle text_delta: pass through content for streaming
                     if (event.type === 'text_delta' && event.data) {
                       controller.enqueue(encoder.encode(event.data));
+                    }
+
+                    // Handle error: forward error message and close stream
+                    if (event.type === 'error') {
+                      const errorMsg =
+                        typeof event.data?.message === 'string'
+                          ? event.data.message
+                          : 'Stream error';
+                      console.error(
+                        `❌ [SupervisorStream] Cloud Run error: ${errorMsg}`
+                      );
+                      controller.enqueue(
+                        encoder.encode(`\n\n⚠️ 오류: ${errorMsg}`)
+                      );
+                      controller.close();
+                      return;
                     }
                   } catch {
                     // Ignore parse errors for malformed lines

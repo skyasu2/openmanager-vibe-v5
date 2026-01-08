@@ -11,9 +11,24 @@
 import { Hono } from 'hono';
 import type { Context } from 'hono';
 import { streamSSE } from 'hono/streaming';
+import { z } from 'zod';
 import { executeSupervisor, executeSupervisorStream, checkSupervisorHealth, logProviderStatus } from '../services/ai-sdk';
 import { handleApiError, handleValidationError, jsonSuccess } from '../lib/error-handler';
 import { sanitizeChineseCharacters } from '../lib/text-sanitizer';
+
+// ============================================================================
+// 📋 Stream Request Schema
+// ============================================================================
+
+const streamMessageSchema = z.object({
+  role: z.enum(['user', 'assistant', 'system']),
+  content: z.string().min(1, 'Message content required'),
+});
+
+const streamRequestSchema = z.object({
+  messages: z.array(streamMessageSchema).min(1, 'At least one message required'),
+  sessionId: z.string().optional(),
+});
 
 export const supervisorRouter = new Hono();
 
@@ -85,26 +100,35 @@ supervisorRouter.post('/', async (c: Context) => {
  */
 supervisorRouter.post('/stream', async (c: Context) => {
   try {
-    const { messages, sessionId } = await c.req.json();
+    // 1. Parse and validate request with Zod schema
+    const body = await c.req.json();
+    const parseResult = streamRequestSchema.safeParse(body);
 
-    // Validate input
-    const lastMessage = messages?.[messages.length - 1];
-    const query = lastMessage?.content;
-
-    if (!query) {
-      return handleValidationError(c, 'No query provided');
+    if (!parseResult.success) {
+      const errorDetails = parseResult.error.issues
+        .map((i) => i.message)
+        .join(', ');
+      console.warn(`⚠️ [SupervisorStream] Invalid payload: ${errorDetails}`);
+      return handleValidationError(c, `Invalid request: ${errorDetails}`);
     }
 
-    console.log(`🌊 [SupervisorStream] Starting SSE stream (session: ${sessionId})`);
+    const { messages, sessionId } = parseResult.data;
+
+    // 2. Get last user query for logging
+    const lastMessage = messages[messages.length - 1];
+    const query = lastMessage.content;
+
+    console.log(`🌊 [SupervisorStream] Starting SSE stream (session: ${sessionId || 'default'})`);
+    console.log(`🌊 [SupervisorStream] Query: "${query.slice(0, 50)}..."`);
     logProviderStatus();
 
-    // Stream response using SSE
+    // 3. Stream response using SSE
     return streamSSE(c, async (stream) => {
       let messageId = 0;
 
       try {
         const request = {
-          messages: messages.map((m: { role: string; content: string }) => ({
+          messages: messages.map((m) => ({
             role: m.role as 'user' | 'assistant',
             content: m.content,
           })),
