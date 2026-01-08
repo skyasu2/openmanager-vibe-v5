@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-07
+**마지막 업데이트**: 2026-01-09
 
 ---
 
@@ -69,7 +69,18 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 2026-01-07)
+## 🔧 최근 유지보수 (2025-12-09 ~ 2026-01-09)
+
+**NLP Intent Classification 개선 + Streaming SSE (2026-01-09)**
+- **Infrastructure Context Gating**: False Positive 감소를 위한 2단계 패턴 매칭
+  - `multiAgentPatterns`: 항상 Multi-Agent 트리거 (보고서, 해결방법, 용량계획)
+  - `contextGatedPatterns`: 인프라 컨텍스트 필수 (왜+메트릭, 예측/트렌드, 비교/대비)
+  - `infraContext` 게이팅: `/서버|인프라|시스템|모니터링|cpu|메모리|디스크|트래픽|네트워크/i`
+- **SSE Streaming 안정화**: AI Code Review 피드백 반영
+  - Vercel → Cloud Run 스트리밍 프로토콜 개선
+  - Response normalization 강화
+- **Docker Artifact Registry 마이그레이션**: gcr.io → asia-northeast1-docker.pkg.dev
+- **NLP 아키텍처 문서화**: `docs/ai-model-policy.md` 의도 분류 섹션 추가
 
 **Agent SSOT 리팩토링 + Langfuse 무료 티어 보호 (2026-01-07)**
 - **SSOT 패턴 적용**: Agent 설정 중앙화
@@ -247,23 +258,25 @@
 
 ---
 
-## 🐳 Infrastructure Status (2026-01-07)
+## 🐳 Infrastructure Status (2026-01-09)
 
 **Cloud Run AI Engine**
 - **Service URL**: `https://ai-engine-490817238363.asia-northeast1.run.app`
-- **Active Revision**: `ai-engine-00112-w4g` (2026-01-07 deployed)
-- **Health**: ✅ All providers connected (Supabase, Upstash, Groq, Mistral, Cerebras, Tavily, OpenRouter)
+- **Active Revision**: `ai-engine-00118-96v` (2026-01-09 deployed)
+- **Health**: ✅ All providers connected (Supabase, Upstash, Groq, Mistral, Cerebras, Tavily, OpenRouter, Langfuse)
 - **Observability**: Langfuse (10% sampling, 무료 티어 보호)
+- **Features**: cpu-boost, session-affinity, gen2, 512Mi/1vCPU
 
-**Container Registry (GCR)**
-- **Images**: 2개 유지 (latest + rollback)
-  - `v-20260104-230733-6d0d26e31` (최신 - Tavily Best Practices)
-  - `v-20260104-120205-6c36e5964` (롤백용)
+**Artifact Registry** (gcr.io에서 마이그레이션 완료)
+- **Repository**: `asia-northeast1-docker.pkg.dev/openmanager-free-tier/cloud-run/ai-engine`
+- **Images**: 3개 유지 (최신 + 롤백)
+  - `v-20260109-080312-49ba546d6` (최신 - NLP Context Gating)
+  - `v-20260109-001908-345078884` (SSE Streaming)
+- **정리 정책**: 최신 3개 이미지만 유지 (자동 정리)
 
 **GCS Storage**
-- **Cloud Build**: ~700KB (최적화 완료)
-- **Run Sources**: ~2.5MB
-- **정리 정책**: 최신 2개 빌드만 유지
+- **Cloud Build Sources**: ~2.5MB (최신 10개 유지)
+- **정리 정책**: 빌드/배포 시 자동 정리
 
 ---
 
