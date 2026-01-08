@@ -320,7 +320,19 @@ export const nextJsApiHandlers = [
   }),
 
   http.post(`${BASE_URL}/api/database`, async ({ request }) => {
-    const body = (await request.json()) as { action: string };
+    let body: { action: string };
+
+    // JSON 파싱 에러 처리 (malformed JSON)
+    try {
+      body = (await request.json()) as { action: string };
+    } catch {
+      console.log(`[MSW] Database API - Malformed JSON detected`);
+      return HttpResponse.json(
+        { error: 'Invalid JSON format', status: 400 },
+        { status: 400 }
+      );
+    }
+
     console.log(`[MSW] Database API action: ${body.action}`);
 
     return HttpResponse.json({
@@ -332,12 +344,24 @@ export const nextJsApiHandlers = [
 
   /**
    * Health API with service parameter
+   * @example GET /api/health
+   * @example GET /api/health?simple=true
    * @example GET /api/health?service=ai
    */
   http.get(`${BASE_URL}/api/health`, ({ request }) => {
     const url = new URL(request.url);
     const service = url.searchParams.get('service');
+    const simple = url.searchParams.get('simple');
 
+    // 경량 헬스 체크 (simple=true)
+    if (simple === 'true') {
+      return HttpResponse.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // AI/Cloud Run 서비스 헬스 체크
     if (service === 'ai' || service === 'cloudrun') {
       return HttpResponse.json({
         status: 'ok',
