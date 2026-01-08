@@ -171,44 +171,63 @@ const RETRY_CONFIG = {
 function selectExecutionMode(query: string): SupervisorMode {
   const q = query.toLowerCase();
 
+  // Domain context keywords for gating broad patterns
+  const infraContext = /서버|인프라|시스템|모니터링|cpu|메모리|디스크|트래픽|네트워크/i;
+  const hasInfraContext = infraContext.test(q);
+
   // Multi-agent indicators (complex queries requiring specialized agents)
   const multiAgentPatterns = [
-    // 1. Report generation (보고서/리포트)
+    // 1. Report generation (보고서/리포트) - always multi-agent
     /보고서|리포트|report|인시던트|incident|장애.*보고|일일.*리포트/i,
 
-    // 2. Root cause analysis (원인 분석)
-    /분석.*원인|근본.*원인|rca|root.*cause|왜.*그래|왜.*느려|왜.*높아|원인.*뭐/i,
+    // 2. Root cause analysis (원인 분석) - with infra context
+    /분석.*원인|근본.*원인|rca|root.*cause/i,
 
-    // 3. Troubleshooting (문제 해결)
-    /해결.*방법|과거.*사례|유사.*장애|어떻게.*해결|어떻게.*하면|조치.*방법|대응.*방안/i,
+    // 3. Troubleshooting (문제 해결) - always multi-agent
+    /해결.*방법|과거.*사례|유사.*장애|어떻게.*해결|조치.*방법|대응.*방안/i,
 
-    // 4. Trend & prediction (예측/추세)
-    /예측|트렌드|향후|언제.*될|고갈|추세|추이|변화.*패턴|앞으로/i,
-
-    // 5. Correlation analysis (상관관계)
-    /상관관계|연관.*분석|correlat|같이.*올라|함께.*증가|연동/i,
-
-    // 6. Comparison (비교 분석)
-    /비교.*해|어제.*대비|지난.*주|전월.*대비|작년.*비교|변화.*있/i,
-
-    // 7. Capacity planning (용량 계획)
+    // 4. Capacity planning (용량 계획) - always multi-agent
     /용량.*계획|capacity|언제.*부족|얼마나.*남|증설.*필요/i,
 
-    // 8. Anomaly deep dive (이상 심층 분석)
-    /이상.*원인|왜.*이상|비정상.*이유|스파이크.*원인|급증.*이유/i,
-
-    // 9. Summary requests → Summarizer Agent (OpenRouter free tier)
+    // 5. Summary requests → Summarizer Agent (OpenRouter free tier)
     /(서버|상태|현황|모니터링|인프라).*(요약|간단히|핵심|tl;?dr)/i,
     /(요약|간단히|핵심|tl;?dr).*(서버|상태|현황|알려|해줘)/i,
 
-    // 10. Complex multi-server analysis (다중 서버 분석)
+    // 6. Complex multi-server analysis (다중 서버 분석)
     /전체.*서버.*분석|모든.*서버.*상태|서버.*전반|종합.*분석/i,
   ];
 
-  // Check for complex patterns
+  // Patterns that require infrastructure context to avoid false positives
+  const contextGatedPatterns = [
+    // "왜" questions - only with infra/metric terms
+    /왜.*(느려|높아|이상|스파이크|지연|오류|급증)/i,
+
+    // Trend & prediction - requires infra context
+    /예측|트렌드|추세|추이|변화.*패턴/i,
+
+    // Comparison - requires infra context
+    /어제.*대비|지난.*주.*대비|전월.*대비|작년.*비교/i,
+
+    // Correlation analysis - requires infra context
+    /상관관계|연관.*분석|correlat|같이.*올라|함께.*증가/i,
+
+    // Anomaly deep dive
+    /이상.*원인|비정상.*이유|스파이크.*원인|급증.*이유/i,
+  ];
+
+  // Check for always-multi patterns (no context required)
   for (const pattern of multiAgentPatterns) {
     if (pattern.test(q)) {
       return 'multi';
+    }
+  }
+
+  // Check for context-gated patterns (require infra context to avoid false positives)
+  if (hasInfraContext) {
+    for (const pattern of contextGatedPatterns) {
+      if (pattern.test(q)) {
+        return 'multi';
+      }
     }
   }
 
