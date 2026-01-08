@@ -3,6 +3,11 @@
 # ==============================================================================
 # Cloud Run Deployment Script (AI Engine)
 #
+# v5.0 - 2026-01-08 (Artifact Registry Migration)
+#   - gcr.io → Artifact Registry (asia-northeast1-docker.pkg.dev)
+#   - Added --http2 for better performance
+#   - Added --startup-cpu-boost for faster cold start
+#
 # v4.0 - 2026-01-06 (Docker & Cloud Run Optimization)
 #   - BuildKit enabled for cache mounts
 #   - Startup/Liveness probes optimized
@@ -27,6 +32,7 @@ set -e # Exit on error
 SERVICE_NAME="ai-engine"
 # IMPORTANT: asia-northeast1 is the production region (used by Vercel)
 REGION="asia-northeast1"
+REPOSITORY="cloud-run"
 PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
 
 if [ -z "$PROJECT_ID" ]; then
@@ -35,18 +41,31 @@ if [ -z "$PROJECT_ID" ]; then
   exit 1
 fi
 
+# Check if Artifact Registry repository exists
+echo "📋 Checking Artifact Registry..."
+if ! gcloud artifacts repositories describe "$REPOSITORY" --location="$REGION" >/dev/null 2>&1; then
+  echo "⚠️  Repository '$REPOSITORY' not found. Creating..."
+  gcloud artifacts repositories create "$REPOSITORY" \
+    --repository-format=docker \
+    --location="$REGION" \
+    --description="Cloud Run container images"
+  echo "✅ Repository created."
+fi
+
 # Image Tagging (Timestamp + Short SHA)
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 SHORT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "manual")
 BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 TAG="v-${TIMESTAMP}-${SHORT_SHA}"
-IMAGE_URI="gcr.io/${PROJECT_ID}/${SERVICE_NAME}:${TAG}"
+# Artifact Registry format: REGION-docker.pkg.dev/PROJECT/REPOSITORY/IMAGE:TAG
+IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE_NAME}:${TAG}"
 
 echo "=============================================================================="
 echo "🚀 Starting Deployment for: $SERVICE_NAME"
-echo "   Project: $PROJECT_ID"
-echo "   Region:  $REGION"
-echo "   Image:   $IMAGE_URI"
+echo "   Project:    $PROJECT_ID"
+echo "   Region:     $REGION"
+echo "   Repository: $REPOSITORY (Artifact Registry)"
+echo "   Image:      $IMAGE_URI"
 echo "=============================================================================="
 
 # Ensure script directory
@@ -57,6 +76,7 @@ cd "$SCRIPT_DIR"
 echo ""
 echo "📦 Building Container Image..."
 echo "   Using BuildKit for cache optimization..."
+echo "   Target: Artifact Registry"
 
 # Use Cloud Build with BuildKit enabled
 gcloud builds submit \
@@ -94,10 +114,12 @@ gcloud run deploy "$SERVICE_NAME" \
   --memory 512Mi \
   --timeout 300 \
   --cpu-boost \
+  --startup-cpu-boost \
   --session-affinity \
+  --http2 \
   --set-env-vars "NODE_ENV=production,BUILD_SHA=${SHORT_SHA}" \
   --set-secrets "SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest,LANGFUSE_CONFIG=langfuse-config:latest" \
-  --update-labels "version=${SHORT_SHA},framework=ai-sdk-v6,tier=free"
+  --update-labels "version=${SHORT_SHA},framework=ai-sdk-v6,tier=free,registry=artifact"
 
 if [ $? -eq 0 ]; then
     SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)')
@@ -121,19 +143,20 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "🧹 Cleaning up old resources (background)..."
 
-    # Cleanup old container images (keep latest 3)
+    # Cleanup old container images from Artifact Registry (keep latest 3)
     KEEP_IMAGES=3
+    AR_IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE_NAME}"
     (
-      OLD_DIGESTS=$(gcloud container images list-tags "gcr.io/${PROJECT_ID}/${SERVICE_NAME}" \
-        --format="value(digest)" --sort-by=~timestamp 2>/dev/null | tail -n +$((KEEP_IMAGES + 1)))
+      OLD_DIGESTS=$(gcloud artifacts docker images list "$AR_IMAGE" \
+        --format="value(digest)" --sort-by=~CREATE_TIME 2>/dev/null | tail -n +$((KEEP_IMAGES + 1)))
 
       if [ -n "$OLD_DIGESTS" ]; then
         for digest in $OLD_DIGESTS; do
-          gcloud container images delete "gcr.io/${PROJECT_ID}/${SERVICE_NAME}@${digest}" \
-            --quiet --force-delete-tags 2>/dev/null &
+          gcloud artifacts docker images delete "${AR_IMAGE}@${digest}" \
+            --quiet --delete-tags 2>/dev/null &
         done
         wait
-        echo "   ✅ Old images cleaned up"
+        echo "   ✅ Old images cleaned up (Artifact Registry)"
       fi
     ) &
 
@@ -174,12 +197,14 @@ if [ $? -eq 0 ]; then
 
     echo "=============================================================================="
     echo "📊 Deployment Summary (FREE TIER OPTIMIZED):"
-    echo "   Service:  $SERVICE_NAME"
-    echo "   Version:  $SHORT_SHA"
-    echo "   URL:      $SERVICE_URL"
-    echo "   Memory:   512Mi (Free: ~200 hours/month)"
-    echo "   CPU:      1 vCPU (Free: ~50 hours/month)"
-    echo "   Max:      3 instances"
+    echo "   Service:    $SERVICE_NAME"
+    echo "   Version:    $SHORT_SHA"
+    echo "   URL:        $SERVICE_URL"
+    echo "   Registry:   Artifact Registry (${REGION})"
+    echo "   Memory:     512Mi (Free: ~200 hours/month)"
+    echo "   CPU:        1 vCPU (Free: ~50 hours/month)"
+    echo "   Max:        3 instances"
+    echo "   Features:   HTTP/2, startup-cpu-boost, session-affinity"
     echo "=============================================================================="
 else
     echo ""

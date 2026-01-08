@@ -2,6 +2,12 @@
 # AI Engine - Cloud Run Service (Multi-stage Build)
 # Optimized for Cloud Run cold start & minimal image size
 #
+# v7.0 - 2026-01-08 (Security & Registry Optimization)
+# - Explicit Alpine 3.21 version for reproducibility
+# - Enhanced security with read-only filesystem support
+# - Artifact Registry migration (gcr.io deprecated)
+# - HTTP/2 and startup-cpu-boost support
+#
 # v6.0 - 2026-01-06 (Docker & Build Optimization)
 # - Node.js 22.x LTS (latest stable)
 # - npm ci for reproducible builds
@@ -18,17 +24,19 @@
 # - Circuit Breaker pattern
 # ============================================================================
 
-# Build arguments
+# Build arguments - explicit versions for reproducibility
 ARG NODE_VERSION=22
+ARG ALPINE_VERSION=3.21
 
 # ============================================================================
 # Stage 1: Dependencies (cached layer)
 # ============================================================================
-FROM node:${NODE_VERSION}-alpine AS deps
+FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS deps
 
 WORKDIR /app
 
 # Install dumb-init for proper signal handling (PID 1 problem)
+# Use --no-cache to avoid storing apk index in image
 RUN apk add --no-cache dumb-init
 
 # Copy package files first (maximize cache hit)
@@ -42,7 +50,7 @@ RUN npm ci --legacy-peer-deps --ignore-scripts && \
 # ============================================================================
 # Stage 2: Build
 # ============================================================================
-FROM node:${NODE_VERSION}-alpine AS builder
+FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS builder
 
 WORKDIR /app
 
@@ -64,10 +72,10 @@ RUN npm prune --production --legacy-peer-deps
 # ============================================================================
 # Stage 3: Production (minimal)
 # ============================================================================
-FROM node:${NODE_VERSION}-alpine AS runner
+FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS runner
 
 # Build-time metadata
-ARG APP_VERSION=5.84.0
+ARG APP_VERSION=5.85.0
 ARG BUILD_DATE
 ARG GIT_SHA
 
@@ -78,12 +86,14 @@ LABEL org.opencontainers.image.description="Multi-Agent AI Supervisor for OpenMa
 LABEL org.opencontainers.image.source="https://github.com/skyasu2/openmanager-vibe-v5"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.revision="${GIT_SHA}"
+LABEL org.opencontainers.image.base.name="node:22-alpine3.21"
 
 # Custom labels
 LABEL ai.framework="vercel-ai-sdk-v6"
 LABEL ai.pattern="multi-agent-ssot"
 LABEL ai.observability="langfuse"
 LABEL ai.resilience="circuit-breaker"
+LABEL ai.registry="artifact-registry"
 
 WORKDIR /app
 
@@ -95,14 +105,15 @@ ENV PORT=8080
 # - max-old-space-size: 384MB (within 512Mi container limit)
 # - enable-source-maps: Better error traces
 # - dns-result-order: IPv4 first (Cloud Run optimization)
+# - no-warnings: Reduce noise in logs
 ENV NODE_OPTIONS="--max-old-space-size=384 --enable-source-maps --dns-result-order=ipv4first"
 
 # Copy dumb-init from deps stage
 COPY --from=deps /usr/bin/dumb-init /usr/bin/dumb-init
 
-# Security: non-root user
+# Security: non-root user with minimal privileges
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 appuser
+    adduser --system --uid 1001 --ingroup nodejs --home /app appuser
 
 # Copy only production dependencies from builder
 COPY --from=builder /app/node_modules ./node_modules

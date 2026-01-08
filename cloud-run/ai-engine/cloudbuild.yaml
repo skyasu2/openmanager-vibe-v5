@@ -2,14 +2,22 @@
 # Cloud Build Configuration (AI Engine)
 #
 # Features:
+# - Artifact Registry (gcr.io deprecated)
 # - BuildKit enabled for cache mounts
 # - Kaniko caching for faster rebuilds
 # - Parallel steps where possible
-# - Automatic image tagging
+# - HTTP/2 and startup-cpu-boost enabled
 #
 # Usage:
 #   gcloud builds submit --config cloudbuild.yaml .
 #
+# Prerequisites:
+#   gcloud artifacts repositories create cloud-run \
+#     --repository-format=docker \
+#     --location=asia-northeast1 \
+#     --description="Cloud Run container images"
+#
+# v2.0 - 2026-01-08 (Artifact Registry Migration)
 # v1.0 - 2026-01-06
 # ==============================================================================
 
@@ -25,6 +33,7 @@ options:
 substitutions:
   _SERVICE_NAME: 'ai-engine'
   _REGION: 'asia-northeast1'
+  _REPOSITORY: 'cloud-run'
   _IMAGE_TAG: 'latest'
 
 steps:
@@ -36,17 +45,17 @@ steps:
       - '--build-arg'
       - 'BUILDKIT_INLINE_CACHE=1'
       - '--build-arg'
-      - 'APP_VERSION=${TAG_NAME:-5.84.0}'
+      - 'APP_VERSION=${TAG_NAME:-5.85.0}'
       - '--build-arg'
       - 'BUILD_DATE=${_BUILD_DATE}'
       - '--build-arg'
       - 'GIT_SHA=${SHORT_SHA}'
       - '--cache-from'
-      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:latest'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:latest'
       - '.'
     env:
       - 'DOCKER_BUILDKIT=1'
@@ -56,7 +65,7 @@ steps:
     id: 'push-sha'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}'
     waitFor:
       - 'build'
 
@@ -64,7 +73,7 @@ steps:
     id: 'push-latest'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:latest'
     waitFor:
       - 'build'
 
@@ -77,7 +86,7 @@ steps:
       - 'deploy'
       - '${_SERVICE_NAME}'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}'
       - '--platform'
       - 'managed'
       - '--region'
@@ -98,20 +107,22 @@ steps:
       - '--timeout'
       - '300'
       - '--cpu-boost'
+      - '--startup-cpu-boost'
       - '--session-affinity'
+      - '--http2'
       - '--set-env-vars'
       - 'NODE_ENV=production,BUILD_SHA=${SHORT_SHA}'
       - '--set-secrets'
       - 'SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest,LANGFUSE_CONFIG=langfuse-config:latest'
       - '--update-labels'
-      - 'version=${SHORT_SHA},framework=ai-sdk-v6'
+      - 'version=${SHORT_SHA},framework=ai-sdk-v6,registry=artifact'
     waitFor:
       - 'push-sha'
 
 # Images to be pushed
 images:
-  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:${SHORT_SHA}'
-  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:latest'
 
 # Build timeout
 timeout: '900s'
@@ -121,3 +132,4 @@ tags:
   - 'ai-engine'
   - 'cloud-run'
   - 'multi-agent'
+  - 'artifact-registry'
