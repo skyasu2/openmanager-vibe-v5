@@ -38,6 +38,7 @@ import { MarkdownRenderer } from './MarkdownRenderer';
 import { MessageActions } from './MessageActions';
 import SystemContextPanel from './SystemContextPanel';
 import ThinkingProcessVisualizer from './ThinkingProcessVisualizer';
+import { TypewriterMarkdown } from './TypewriterMarkdown';
 
 // 🔧 공통 로직은 useAIChatCore 훅에서 관리
 
@@ -94,10 +95,19 @@ const MessageComponent = memo<{
           >
             {/* 마크다운 렌더링 (AI 응답) 또는 일반 텍스트 (사용자) */}
             {message.role === 'assistant' ? (
-              <MarkdownRenderer
-                content={message.content}
-                className="text-[15px] leading-relaxed"
-              />
+              // 마지막 메시지에만 타이핑 효과 적용 (UX 개선)
+              isLastMessage && !message.isStreaming ? (
+                <TypewriterMarkdown
+                  content={message.content}
+                  enableTypewriter={true}
+                  speed={12}
+                />
+              ) : (
+                <MarkdownRenderer
+                  content={message.content}
+                  className="text-[15px] leading-relaxed"
+                />
+              )
             ) : (
               <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
                 {message.content}
