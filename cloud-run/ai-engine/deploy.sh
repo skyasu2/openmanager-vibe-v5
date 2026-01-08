@@ -5,8 +5,7 @@
 #
 # v5.0 - 2026-01-08 (Artifact Registry Migration)
 #   - gcr.io → Artifact Registry (asia-northeast1-docker.pkg.dev)
-#   - Added --http2 for better performance
-#   - Added --startup-cpu-boost for faster cold start
+#   - Auto-create Artifact Registry repository if not exists
 #
 # v4.0 - 2026-01-06 (Docker & Cloud Run Optimization)
 #   - BuildKit enabled for cache mounts
@@ -114,9 +113,7 @@ gcloud run deploy "$SERVICE_NAME" \
   --memory 512Mi \
   --timeout 300 \
   --cpu-boost \
-  --startup-cpu-boost \
   --session-affinity \
-  --http2 \
   --set-env-vars "NODE_ENV=production,BUILD_SHA=${SHORT_SHA}" \
   --set-secrets "SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest,LANGFUSE_CONFIG=langfuse-config:latest" \
   --update-labels "version=${SHORT_SHA},framework=ai-sdk-v6,tier=free,registry=artifact"
@@ -204,7 +201,7 @@ if [ $? -eq 0 ]; then
     echo "   Memory:     512Mi (Free: ~200 hours/month)"
     echo "   CPU:        1 vCPU (Free: ~50 hours/month)"
     echo "   Max:        3 instances"
-    echo "   Features:   HTTP/2, startup-cpu-boost, session-affinity"
+    echo "   Features:   cpu-boost, session-affinity, gen2"
     echo "=============================================================================="
 else
     echo ""

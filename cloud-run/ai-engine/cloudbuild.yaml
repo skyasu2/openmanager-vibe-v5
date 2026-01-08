@@ -6,7 +6,7 @@
 # - BuildKit enabled for cache mounts
 # - Kaniko caching for faster rebuilds
 # - Parallel steps where possible
-# - HTTP/2 and startup-cpu-boost enabled
+# - cpu-boost enabled for faster cold start
 #
 # Usage:
 #   gcloud builds submit --config cloudbuild.yaml .
@@ -107,9 +107,7 @@ steps:
       - '--timeout'
       - '300'
       - '--cpu-boost'
-      - '--startup-cpu-boost'
       - '--session-affinity'
-      - '--http2'
       - '--set-env-vars'
       - 'NODE_ENV=production,BUILD_SHA=${SHORT_SHA}'
       - '--set-secrets'

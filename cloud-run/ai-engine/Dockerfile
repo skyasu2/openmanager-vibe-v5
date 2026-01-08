@@ -4,9 +4,9 @@
 #
 # v7.0 - 2026-01-08 (Security & Registry Optimization)
 # - Explicit Alpine 3.21 version for reproducibility
-# - Enhanced security with read-only filesystem support
+# - Enhanced security with non-root user
 # - Artifact Registry migration (gcr.io deprecated)
-# - HTTP/2 and startup-cpu-boost support
+# - cpu-boost enabled for faster cold start
 #
 # v6.0 - 2026-01-06 (Docker & Build Optimization)
 # - Node.js 22.x LTS (latest stable)
