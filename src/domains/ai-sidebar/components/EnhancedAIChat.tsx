@@ -9,7 +9,7 @@ import {
   Square,
   X,
 } from 'lucide-react';
-import React, { memo, type RefObject } from 'react';
+import React, { memo, type RefObject, useEffect, useRef } from 'react';
 import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { AsyncQueryProgress } from '@/hooks/ai/useAsyncAIQuery';
@@ -130,6 +130,33 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   onSubmitCustomClarification,
   onSkipClarification,
 }: EnhancedAIChatProps) {
+  // 🎯 스크롤 컨테이너 ref (사용자 스크롤 위치 확인용)
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 🎯 Best Practice: 메시지 추가 시 자동 스크롤
+  // - 사용자가 하단 근처에 있을 때만 스크롤 (읽는 중 방해 방지)
+  // - 새 메시지 또는 스트리밍 중일 때 스크롤
+  // biome-ignore lint/correctness/useExhaustiveDependencies: limitedMessages.length is intentional trigger
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    const endElement = messagesEndRef?.current;
+
+    if (!container || !endElement) return;
+
+    // 사용자가 하단에서 100px 이내에 있는지 확인
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      100;
+
+    // 조건: 새 메시지가 있거나 스트리밍 중이고 하단 근처에 있을 때
+    if (isNearBottom || isGenerating) {
+      // requestAnimationFrame으로 DOM 업데이트 후 스크롤
+      requestAnimationFrame(() => {
+        endElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      });
+    }
+  }, [limitedMessages.length, isGenerating, messagesEndRef]);
+
   return (
     <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
       {/* 헤더 - 모델 선택 */}
@@ -151,7 +178,10 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
       </div>
 
       {/* 메시지 영역 (중앙 정렬) */}
-      <div className="flex-1 overflow-y-auto scroll-smooth will-change-scroll">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto scroll-smooth will-change-scroll"
+      >
         <div className="mx-auto max-w-3xl space-y-3 p-3 sm:space-y-4 sm:p-4">
           {/* 자동장애보고서 알림 */}
           {autoReportTrigger.shouldGenerate && (

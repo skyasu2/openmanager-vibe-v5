@@ -290,14 +290,13 @@ export function useAIChatCore(
     onStreamFinish: () => {
       // 전송된 쿼리로 콜백 호출 (현재 입력값이 아닌)
       onMessageSend?.(pendingQueryRef.current);
-      // 사용자가 새 입력을 타이핑 중이 아닐 때만 초기화
-      setInput((prev) => (prev === pendingQueryRef.current ? '' : prev));
+      // 입력은 handleSendInput에서 이미 클리어됨
       setError(null);
       pendingQueryRef.current = '';
     },
     onJobResult: (result) => {
       onMessageSend?.(pendingQueryRef.current);
-      setInput((prev) => (prev === pendingQueryRef.current ? '' : prev));
+      // 입력은 handleSendInput에서 이미 클리어됨
       if (result.success) {
         setError(null);
       } else if (result.error) {
@@ -563,9 +562,13 @@ export function useAIChatCore(
     // 에러 초기화
     setError(null);
 
-    // 쿼리 저장 (재시도 및 입력 유실 방지용)
+    // 쿼리 저장 (재시도용)
     lastQueryRef.current = input;
     pendingQueryRef.current = input;
+
+    // 🎯 Best Practice: 전송 즉시 입력 클리어 (ChatGPT/Claude 스타일)
+    // 사용자가 전송 버튼을 누르면 입력창이 즉시 비워짐
+    setInput('');
 
     // 쿼리 전송
     sendQuery(input);
