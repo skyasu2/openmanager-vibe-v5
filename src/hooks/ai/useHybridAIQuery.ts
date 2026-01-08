@@ -184,7 +184,9 @@ export function useHybridAIQuery(
 ): UseHybridAIQueryReturn {
   const {
     sessionId: initialSessionId,
-    apiEndpoint = '/api/ai/supervisor',
+    // 🎯 Real-time streaming endpoint (2026-01-09)
+    // Cloud Run SSE streaming → Vercel proxy → Frontend
+    apiEndpoint = '/api/ai/supervisor/stream',
     complexityThreshold = DEFAULT_COMPLEXITY_THRESHOLD,
     onStreamFinish,
     onJobResult,
@@ -214,8 +216,9 @@ export function useHybridAIQuery(
   // ============================================================================
   // useChat Hook (Streaming Mode) - AI SDK v5 베스트 프랙티스 적용
   // ============================================================================
-  // TextStreamChatTransport for plain text streaming (non-chunked responses)
-  // 우리 API는 Cloud Run에서 전체 응답을 받은 후 반환하므로 TextStream 사용
+  // TextStreamChatTransport for plain text streaming
+  // Cloud Run SSE → Vercel proxy → plain text → TextStreamChatTransport
+  // 🎯 Real-time streaming enabled (2026-01-09)
   // Note: TextStreamChatTransport는 동적 body 함수를 지원하지 않음
   // @see https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol
   const transport = useMemo(

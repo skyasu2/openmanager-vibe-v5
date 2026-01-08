@@ -3,13 +3,15 @@
  *
  * AI SDK Supervisor endpoints for chat interactions.
  *
- * @version 1.0.0
+ * @version 2.0.0
  * @created 2025-12-28
+ * @updated 2026-01-09 - Added real SSE streaming endpoint
  */
 
 import { Hono } from 'hono';
 import type { Context } from 'hono';
-import { executeSupervisor, checkSupervisorHealth, logProviderStatus } from '../services/ai-sdk';
+import { streamSSE } from 'hono/streaming';
+import { executeSupervisor, executeSupervisorStream, checkSupervisorHealth, logProviderStatus } from '../services/ai-sdk';
 import { handleApiError, handleValidationError, jsonSuccess } from '../lib/error-handler';
 import { sanitizeChineseCharacters } from '../lib/text-sanitizer';
 
@@ -65,6 +67,84 @@ supervisorRouter.post('/', async (c: Context) => {
     });
   } catch (error) {
     return handleApiError(c, error, 'Supervisor');
+  }
+});
+
+/**
+ * POST /supervisor/stream - Real-time SSE Streaming Endpoint
+ *
+ * Uses Server-Sent Events (SSE) for real-time token streaming.
+ * Compatible with Vercel AI SDK's DataStreamChatTransport.
+ *
+ * Event types:
+ * - text_delta: Incremental text content
+ * - tool_call: Tool invocation notification
+ * - tool_result: Tool execution result
+ * - done: Final response with metadata
+ * - error: Error occurred
+ */
+supervisorRouter.post('/stream', async (c: Context) => {
+  try {
+    const { messages, sessionId } = await c.req.json();
+
+    // Validate input
+    const lastMessage = messages?.[messages.length - 1];
+    const query = lastMessage?.content;
+
+    if (!query) {
+      return handleValidationError(c, 'No query provided');
+    }
+
+    console.log(`🌊 [SupervisorStream] Starting SSE stream (session: ${sessionId})`);
+    logProviderStatus();
+
+    // Stream response using SSE
+    return streamSSE(c, async (stream) => {
+      let messageId = 0;
+
+      try {
+        const request = {
+          messages: messages.map((m: { role: string; content: string }) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          })),
+          sessionId: sessionId || 'default',
+        };
+
+        for await (const event of executeSupervisorStream(request)) {
+          const eventData = JSON.stringify({
+            type: event.type,
+            data: event.type === 'text_delta'
+              ? sanitizeChineseCharacters(event.data as string)
+              : event.data,
+          });
+
+          await stream.writeSSE({
+            id: String(messageId++),
+            event: event.type,
+            data: eventData,
+          });
+
+          // Small delay to prevent overwhelming the client
+          if (event.type === 'text_delta') {
+            await stream.sleep(5);
+          }
+        }
+
+        console.log(`✅ [SupervisorStream] Stream completed (${messageId} events)`);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`❌ [SupervisorStream] Error:`, errorMessage);
+
+        await stream.writeSSE({
+          id: String(messageId++),
+          event: 'error',
+          data: JSON.stringify({ type: 'error', data: { message: errorMessage } }),
+        });
+      }
+    });
+  } catch (error) {
+    return handleApiError(c, error, 'SupervisorStream');
   }
 });
 

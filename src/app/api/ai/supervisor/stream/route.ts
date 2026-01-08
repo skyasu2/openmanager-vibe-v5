@@ -1,0 +1,297 @@
+/**
+ * Cloud Run AI Supervisor Stream Proxy
+ *
+ * @endpoint POST /api/ai/supervisor/stream
+ *
+ * Real-time SSE streaming from Cloud Run to Frontend.
+ * Supports Server-Sent Events (SSE) for token-by-token streaming.
+ *
+ * @created 2026-01-09
+ */
+
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import {
+  compressContext,
+  shouldCompress,
+} from '@/lib/ai/utils/context-compressor';
+import {
+  extractLastUserQuery,
+  type HybridMessage,
+  normalizeMessagesForCloudRun,
+} from '@/lib/ai/utils/message-normalizer';
+import { withAuth } from '@/lib/auth/api-auth';
+import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
+import { quickSanitize } from '../security';
+
+// Allow streaming responses up to 120 seconds
+export const maxDuration = 120;
+
+// ============================================================================
+// 📋 Request Schema
+// ============================================================================
+
+const textPartSchema = z.object({
+  type: z.literal('text'),
+  text: z.string(),
+});
+
+const partSchema = z.discriminatedUnion('type', [
+  textPartSchema,
+  z.object({ type: z.literal('tool-invocation') }).passthrough(),
+  z.object({ type: z.literal('tool-result') }).passthrough(),
+  z.object({ type: z.literal('file') }).passthrough(),
+  z.object({ type: z.literal('reasoning') }).passthrough(),
+]);
+
+const messageSchema = z.object({
+  id: z.string().optional(),
+  role: z.enum(['user', 'assistant', 'system']),
+  parts: z.array(partSchema).optional(),
+  content: z.string().optional(),
+  createdAt: z.union([z.string(), z.date()]).optional(),
+});
+
+const requestSchema = z.object({
+  messages: z.array(messageSchema).min(1).max(50),
+  sessionId: z.string().optional(),
+});
+
+// ============================================================================
+// 🌊 SSE Stream Proxy
+// ============================================================================
+
+export const POST = withRateLimit(
+  rateLimiters.aiAnalysis,
+  withAuth(async (req: NextRequest) => {
+    try {
+      // 1. Validate request
+      const body = await req.json();
+      const parseResult = requestSchema.safeParse(body);
+
+      if (!parseResult.success) {
+        console.warn(
+          '⚠️ [SupervisorStream] Invalid payload:',
+          parseResult.error.issues
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Invalid request payload',
+            details: parseResult.error.issues.map((i) => i.message).join(', '),
+          },
+          { status: 400 }
+        );
+      }
+
+      const { messages, sessionId: bodySessionId } = parseResult.data;
+
+      // 2. Extract session ID
+      const url = new URL(req.url);
+      const headerSessionId = req.headers.get('X-Session-Id');
+      const querySessionId = url.searchParams.get('sessionId');
+      const sessionId =
+        headerSessionId ||
+        bodySessionId ||
+        querySessionId ||
+        `stream_${Date.now()}`;
+
+      // 3. Extract and sanitize query
+      const rawQuery =
+        extractLastUserQuery(messages as HybridMessage[]) ||
+        'System status check';
+      if (!rawQuery || rawQuery.trim() === '') {
+        return NextResponse.json(
+          { success: false, error: 'Empty query' },
+          { status: 400 }
+        );
+      }
+      const userQuery = quickSanitize(rawQuery);
+
+      console.log(
+        `🌊 [SupervisorStream] Query: "${userQuery.slice(0, 50)}..."`
+      );
+      console.log(`📡 [SupervisorStream] Session: ${sessionId}`);
+
+      // 4. Normalize and compress messages
+      const normalizedMessages = normalizeMessagesForCloudRun(messages);
+      let messagesToSend = normalizedMessages;
+
+      if (shouldCompress(normalizedMessages.length, 4)) {
+        const compression = compressContext(normalizedMessages, {
+          keepRecentCount: 3,
+          maxTotalMessages: 6,
+          maxCharsPerMessage: 800,
+        });
+        messagesToSend = compression.messages;
+        console.log(
+          `🗜️ [SupervisorStream] Context compressed: ${compression.originalCount} → ${compression.compressedCount}`
+        );
+      }
+
+      // 5. Get Cloud Run URL
+      const cloudRunUrl = process.env.CLOUD_RUN_AI_ENGINE_URL;
+      if (!cloudRunUrl) {
+        console.error(
+          '❌ [SupervisorStream] CLOUD_RUN_AI_ENGINE_URL not configured'
+        );
+        return NextResponse.json(
+          { success: false, error: 'Streaming not available' },
+          { status: 503 }
+        );
+      }
+
+      // 6. Proxy SSE stream from Cloud Run
+      const apiSecret = process.env.CLOUD_RUN_API_SECRET;
+      const streamUrl = `${cloudRunUrl}/api/ai/supervisor/stream`;
+
+      console.log(`🔗 [SupervisorStream] Connecting to: ${streamUrl}`);
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 120000);
+
+      try {
+        const cloudRunResponse = await fetch(streamUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'text/event-stream',
+            ...(apiSecret && { 'X-API-Key': apiSecret }),
+          },
+          body: JSON.stringify({
+            messages: messagesToSend,
+            sessionId,
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        if (!cloudRunResponse.ok) {
+          const errorText = await cloudRunResponse.text();
+          console.error(
+            `❌ [SupervisorStream] Cloud Run error: ${cloudRunResponse.status} - ${errorText}`
+          );
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Stream error: ${cloudRunResponse.status}`,
+            },
+            { status: cloudRunResponse.status }
+          );
+        }
+
+        // 7. Create a readable stream that transforms SSE events to plain text
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+
+        const reader = cloudRunResponse.body?.getReader();
+        if (!reader) {
+          return NextResponse.json(
+            { success: false, error: 'No response body' },
+            { status: 500 }
+          );
+        }
+
+        let buffer = '';
+
+        const stream = new ReadableStream({
+          async pull(controller) {
+            try {
+              const { done, value } = await reader.read();
+
+              if (done) {
+                // Process any remaining buffer
+                if (buffer) {
+                  const lines = buffer.split('\n');
+                  for (const line of lines) {
+                    if (line.startsWith('data:')) {
+                      try {
+                        const jsonStr = line.slice(5).trim();
+                        if (!jsonStr) continue;
+                        const event = JSON.parse(jsonStr);
+                        if (event.type === 'text_delta' && event.data) {
+                          controller.enqueue(encoder.encode(event.data));
+                        }
+                      } catch {
+                        // Ignore parse errors
+                      }
+                    }
+                  }
+                }
+                controller.close();
+                return;
+              }
+
+              // Decode chunk and add to buffer
+              buffer += decoder.decode(value, { stream: true });
+
+              // Process complete lines
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+              for (const line of lines) {
+                if (line.startsWith('data:')) {
+                  try {
+                    const jsonStr = line.slice(5).trim();
+                    if (!jsonStr) continue;
+
+                    const event = JSON.parse(jsonStr);
+
+                    // Only pass through text_delta content for streaming
+                    if (event.type === 'text_delta' && event.data) {
+                      controller.enqueue(encoder.encode(event.data));
+                    }
+                  } catch {
+                    // Ignore parse errors for malformed lines
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('❌ [SupervisorStream] Stream error:', error);
+              controller.error(error);
+            }
+          },
+
+          cancel() {
+            reader.cancel();
+          },
+        });
+
+        console.log(`✅ [SupervisorStream] Stream started`);
+
+        return new NextResponse(stream, {
+          headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 'no-cache',
+            'X-Session-Id': sessionId,
+            'X-Backend': 'cloud-run-stream',
+          },
+        });
+      } catch (error) {
+        clearTimeout(timeout);
+
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.error('❌ [SupervisorStream] Request timeout');
+          return NextResponse.json(
+            { success: false, error: 'Stream timeout' },
+            { status: 504 }
+          );
+        }
+
+        throw error;
+      }
+    } catch (error) {
+      console.error('❌ [SupervisorStream] Error:', error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Stream processing failed',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        },
+        { status: 500 }
+      );
+    }
+  })
+);
