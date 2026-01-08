@@ -24,6 +24,10 @@ import {
 import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
 import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import {
+  compressContext,
+  shouldCompress,
+} from '@/lib/ai/utils/context-compressor';
+import {
   extractLastUserQuery,
   type HybridMessage,
   normalizeMessagesForCloudRun,
@@ -445,8 +449,26 @@ export const POST = withRateLimit(
 
         // AI SDK v5 parts 형식 → Cloud Run content 형식으로 정규화
         const normalizedMessages = normalizeMessagesForCloudRun(messages);
+
+        // ====================================================================
+        // 5. 컨텍스트 압축 (2026-01-08 v5.85.0 추가)
+        // ====================================================================
+        // 메시지가 많을 경우 토큰 절감을 위해 압축
+        let messagesToSend = normalizedMessages;
+        if (shouldCompress(normalizedMessages.length, 4)) {
+          const compression = compressContext(normalizedMessages, {
+            keepRecentCount: 3,
+            maxTotalMessages: 6,
+            maxCharsPerMessage: 800,
+          });
+          messagesToSend = compression.messages;
+          console.log(
+            `🗜️ [Supervisor] Context compressed: ${compression.originalCount} → ${compression.compressedCount} messages (${compression.compressionRatio}% saved)`
+          );
+        }
+
         console.log(
-          `📝 [Supervisor] Normalized ${messages.length} messages → ${normalizedMessages.length} for Cloud Run`
+          `📝 [Supervisor] Normalized ${messages.length} messages → ${messagesToSend.length} for Cloud Run`
         );
 
         if (wantsStream) {
@@ -465,7 +487,7 @@ export const POST = withRateLimit(
             async () => {
               const proxyResult = await proxyToCloudRun({
                 path: '/api/ai/supervisor',
-                body: { messages: normalizedMessages, sessionId },
+                body: { messages: messagesToSend, sessionId },
                 timeout: dynamicTimeout,
               });
 
@@ -562,7 +584,7 @@ export const POST = withRateLimit(
             async () => {
               const proxyResult = await proxyToCloudRun({
                 path: '/api/ai/supervisor',
-                body: { messages: normalizedMessages, sessionId },
+                body: { messages: messagesToSend, sessionId },
                 timeout: dynamicTimeout,
               });
 
