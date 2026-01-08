@@ -16,6 +16,11 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import {
+  type AIEndpoint,
+  getAICache,
+  setAICache,
+} from '@/lib/ai/cache/ai-response-cache';
 import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
 import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import {
@@ -203,6 +208,66 @@ function _createDataStreamParserTransform(): TransformStream<
 export const maxDuration = 120;
 
 // ============================================================================
+// 🔒 캐시 제외 조건 감지
+// ============================================================================
+
+/**
+ * 실시간 데이터 요청 키워드
+ * 이 키워드가 포함된 쿼리는 캐싱에서 제외됨
+ */
+const REALTIME_KEYWORDS = [
+  '지금',
+  '현재',
+  '방금',
+  '실시간',
+  'now',
+  'current',
+  'latest',
+  'live',
+  'refresh',
+  '새로고침',
+];
+
+/**
+ * 캐시 제외 조건 검사
+ *
+ * @param query - 사용자 쿼리
+ * @param messageCount - 메시지 개수
+ * @returns 캐시 제외 여부 (true = 캐싱 안 함)
+ */
+function shouldSkipCache(query: string, messageCount: number): boolean {
+  // 1. 대화 컨텍스트가 있는 경우 (이전 메시지 참조 가능)
+  if (messageCount > 1) {
+    return true;
+  }
+
+  // 2. 실시간 데이터 요청 키워드 검사
+  const lowerQuery = query.toLowerCase();
+  for (const keyword of REALTIME_KEYWORDS) {
+    if (lowerQuery.includes(keyword.toLowerCase())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * 상태 조회 쿼리 여부 확인 (짧은 TTL 적용)
+ */
+function isStatusQuery(query: string): boolean {
+  const statusKeywords = [
+    '상태',
+    'status',
+    '서버 상태',
+    '시스템 상태',
+    'health',
+  ];
+  const lowerQuery = query.toLowerCase();
+  return statusKeywords.some((kw) => lowerQuery.includes(kw.toLowerCase()));
+}
+
+// ============================================================================
 // 📋 Request Schema (Zod Validation)
 // ============================================================================
 
@@ -323,12 +388,55 @@ export const POST = withRateLimit(
       console.log(`📡 [Supervisor] Session: ${sessionId}`);
       console.log(`⏱️ [Supervisor] Dynamic timeout: ${dynamicTimeout}ms`);
 
-      // 3. 스트리밍 요청 여부 확인
+      // ====================================================================
+      // 3. 캐시 조회 (2026-01-08 v5.85.0 추가)
+      // ====================================================================
+      const skipCache = shouldSkipCache(userQuery, messages.length);
+      const cacheEndpoint: AIEndpoint = isStatusQuery(userQuery)
+        ? 'supervisor-status'
+        : 'supervisor';
+
+      if (!skipCache) {
+        const cacheResult = await getAICache(
+          sessionId,
+          userQuery,
+          cacheEndpoint
+        );
+        if (cacheResult.hit && cacheResult.data?.response) {
+          console.log(
+            `📦 [Supervisor] Cache HIT (${cacheResult.source}, ${cacheResult.latencyMs}ms)`
+          );
+          // Accept 헤더에 따라 응답 형식 결정
+          const acceptHeader = req.headers.get('accept') || '';
+          const wantsJsonOnly = acceptHeader === 'application/json';
+
+          if (wantsJsonOnly) {
+            return NextResponse.json(
+              { ...cacheResult.data, _cached: true },
+              { headers: { 'X-Session-Id': sessionId, 'X-Cache': 'HIT' } }
+            );
+          }
+          return new NextResponse(cacheResult.data.response, {
+            headers: {
+              'Content-Type': 'text/plain; charset=utf-8',
+              'Cache-Control': 'no-cache',
+              'X-Session-Id': sessionId,
+              'X-Cache': 'HIT',
+              'X-Backend': 'cache',
+            },
+          });
+        }
+        console.log(`📦 [Supervisor] Cache MISS`);
+      } else {
+        console.log(`📦 [Supervisor] Cache SKIP (context or realtime query)`);
+      }
+
+      // 4. 스트리밍 요청 여부 확인
       // AI SDK v5 DefaultChatTransport는 */* 또는 다양한 Accept 헤더를 보냄
       // supervisor 엔드포인트는 기본적으로 스트리밍 활성화
       // 명시적으로 application/json만 요청하는 경우에만 JSON 응답
-      const acceptHeader = req.headers.get('accept') || '';
-      const wantsJsonOnly = acceptHeader === 'application/json';
+      const acceptHeaderFinal = req.headers.get('accept') || '';
+      const wantsJsonOnly = acceptHeaderFinal === 'application/json';
       const wantsStream = !wantsJsonOnly;
 
       // 4. Cloud Run 프록시 모드 (Primary - CLOUD_RUN_ENABLED=true)
@@ -379,12 +487,30 @@ export const POST = withRateLimit(
                 // useChat + TextStreamChatTransport는 plain text를 기대함
                 // @see https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol
                 // ================================================================
+
+                // 캐시 저장 (비동기, 응답 지연 없음)
+                if (!skipCache) {
+                  setAICache(
+                    sessionId,
+                    userQuery,
+                    {
+                      success: true,
+                      response: data.response,
+                      source: 'cloud-run',
+                    },
+                    cacheEndpoint
+                  ).catch((err) =>
+                    console.warn('[Supervisor] Cache set failed:', err)
+                  );
+                }
+
                 return new NextResponse(data.response, {
                   headers: {
                     'Content-Type': 'text/plain; charset=utf-8',
                     'Cache-Control': 'no-cache',
                     'X-Session-Id': sessionId,
                     'X-Backend': 'cloud-run',
+                    'X-Cache': 'MISS',
                   },
                 });
               } else if (data.error) {
@@ -472,8 +598,30 @@ export const POST = withRateLimit(
             });
           }
 
+          // 캐시 저장 (성공 응답만, 비동기)
+          if (!skipCache && result.data) {
+            const responseData = result.data as {
+              success?: boolean;
+              response?: string;
+            };
+            if (responseData.success && responseData.response) {
+              setAICache(
+                sessionId,
+                userQuery,
+                {
+                  success: true,
+                  response: responseData.response,
+                  source: 'cloud-run',
+                },
+                cacheEndpoint
+              ).catch((err) =>
+                console.warn('[Supervisor] Cache set failed:', err)
+              );
+            }
+          }
+
           return NextResponse.json(result.data, {
-            headers: { 'X-Session-Id': sessionId },
+            headers: { 'X-Session-Id': sessionId, 'X-Cache': 'MISS' },
           });
         }
       }
