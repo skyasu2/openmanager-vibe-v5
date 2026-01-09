@@ -7,7 +7,7 @@ import type { ScenarioPoint, Server, ServerType } from './types';
  * - ICN: 인천/서울 (메인 데이터센터)
  * - PUS: 부산 (DR 데이터센터)
  *
- * @see src/mock/mockServerConfig.ts (SSOT)
+ * @see src/__mocks__/data/mockServerConfig.ts (SSOT)
  * @see src/data/fixed-24h-metrics.ts (24시간 메트릭)
  */
 export const SERVERS: Server[] = [

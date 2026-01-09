@@ -9,7 +9,7 @@ export interface ScenarioPoint {
 
 /**
  * 🎯 서버 타입 정의 (SSOT와 일치)
- * @see src/mock/mockServerConfig.ts
+ * @see src/__mocks__/data/mockServerConfig.ts
  */
 export type ServerType =
   | 'web'

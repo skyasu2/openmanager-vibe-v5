@@ -6,7 +6,7 @@
  * - 메모리 사용량 최적화
  * - 함수 패널 기능 통합
  * - 공통 로직 중앙화
- * - modules/ai-sidebar 훅들과 통합
+ * - hooks/ai-sidebar 훅들과 통합
  */
 
 'use client';
@@ -192,8 +192,8 @@ export const useAIThinking = () => {
  * 실제 AI 통신은 AISidebarV4.tsx의 Vercel AI SDK useChat 훅이 담당합니다.
  * 이 훅은 메시지 상태 읽기와 초기화만 제공하며, sendMessage는 구현되지 않았습니다.
  *
- * @see src/domains/ai-sidebar/components/AISidebarV4.tsx - 실제 AI 통신 로직
- * @see src/domains/ai-sidebar/hooks/useAIChatSync.ts - 상태 동기화
+ * @see src/components/ai-sidebar/AISidebarV4.tsx - 실제 AI 통신 로직
+ * @see src/hooks/ai-sidebar/ - 상태 동기화
  */
 export const useAIChat = () => {
   const messages = useAISidebarStore((state) => state.messages);
@@ -340,7 +340,7 @@ interface AISidebarState {
   reset: () => void;
 }
 
-// ⚡ 메인 스토어 (간소화 - AI 로직은 modules/ai-sidebar 훅들 사용)
+// ⚡ 메인 스토어 (간소화 - AI 로직은 hooks/ai-sidebar 훅들 사용)
 export const useAISidebarStore = create<AISidebarState>()(
   devtools(
     persist(

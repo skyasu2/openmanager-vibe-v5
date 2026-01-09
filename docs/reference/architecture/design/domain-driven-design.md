@@ -1,116 +1,138 @@
-# 🏛️ Next.js + DDD-lite Structure
+# 🏛️ Next.js Standard + DDD-lite Structure
 
-OpenManager VIBE v5 adopts a pragmatic **Next.js + DDD-lite** approach to organize complex business logic and UI components. This structure helps in maintaining separation of concerns and scalability.
+> **Updated**: 2026-01-09 - Layer-First + Feature Grouping 구조로 전환
 
-## 📂 `src/domains` Directory
+OpenManager VIBE v5는 **Next.js 표준 구조**에 **DDD-lite** 원칙을 적용합니다.
+순수 DDD의 `src/domains/` 구조 대신, Next.js 친화적인 Layer-First 접근법을 사용합니다.
 
-The `src/domains` directory contains self-contained business domains. Each domain encapsulates its own logic, state, and UI, exposing only what is necessary to the rest of the application.
+## 📂 구조 원칙
 
-### Structure of a Domain
-
-Taking `ai-sidebar` as a reference implementation, a typical domain folder structure looks like this:
+### Layer-First + Feature Grouping
 
 ```
-src/domains/[domain-name]/
-├── components/           # Domain-specific React components
-│   └── index.ts          # Component exports
-├── hooks/                # Custom hooks for domain logic
-│   └── index.ts          # Hook exports
-├── types/                # TypeScript type definitions
-│   └── index.ts          # Type exports
-├── utils/                # Helper functions specific to the domain (optional)
-│   └── index.ts          # Utility exports
-└── index.ts              # Public API of the domain (unified exports)
+src/
+├── components/        # UI 컴포넌트 (Layer)
+│   └── ai-sidebar/    # 기능별 그룹 (Feature)
+├── hooks/             # 커스텀 훅 (Layer)
+│   ├── ai-sidebar/    # 기능별 그룹
+│   └── performance/   # 기능별 그룹
+├── services/          # 비즈니스 로직 (Layer)
+│   └── performance/   # 기능별 그룹
+├── types/             # 타입 정의 (Layer)
+│   ├── ai-sidebar/    # 기능별 그룹
+│   └── performance/   # 기능별 그룹
+└── utils/             # 유틸리티 (Layer)
+    └── ai-sidebar/    # 기능별 그룹
 ```
 
-> **Note**: `services/` 폴더는 필요에 따라 추가할 수 있습니다. 현재 ai-sidebar 도메인은 API 호출을 hooks에서 직접 처리합니다.
+### DDD-lite 원칙 적용
 
-### Key Principles
+| DDD 원칙 | Next.js 적용 |
+|----------|-------------|
+| **Encapsulation** | 각 기능 폴더 내 `index.ts`로 public API 정의 |
+| **Cohesion** | 관련 파일을 기능별 하위 디렉토리로 그룹화 |
+| **Loose Coupling** | Layer 간 의존성 방향 준수 (hooks → services → types) |
 
-1. **Encapsulation**: Internal details of a domain should not leak out. Use `index.ts` to explicitly export only the components and functions that other parts of the app need to use.
-2. **Cohesion**: All code related to a specific business capability (e.g., the AI Sidebar) stays together. This makes it easier to understand and modify features without jumping between disparate folders.
-3. **Independence**: Domains should ideally be loosely coupled. If one domain needs to interact with another, it should do so through well-defined interfaces or shared services/state.
+## 🌟 예시: AI Sidebar 기능
 
-## 🌟 Example: AI Sidebar Domain
+### 파일 분포
 
-The `ai-sidebar` domain handles the AI chat interface and interaction logic.
+```
+src/
+├── components/ai-sidebar/
+│   ├── AISidebarV4.tsx           # 메인 사이드바
+│   ├── AISidebarHeader.tsx       # 헤더
+│   ├── EnhancedAIChat.tsx        # 채팅 UI
+│   ├── AIDebugPanel.tsx          # 디버그 패널
+│   ├── AIEngineIndicator.tsx     # 엔진 상태
+│   ├── CloudRunStatusIndicator.tsx
+│   └── index.ts                  # Public exports
+├── hooks/ai-sidebar/
+│   ├── useAIEngine.ts            # 엔진 상태 관리
+│   ├── useAIThinking.ts          # 사고 과정 관리
+│   └── index.ts
+├── types/ai-sidebar/
+│   ├── ai-sidebar-types.ts       # 타입 정의
+│   └── index.ts
+└── utils/ai-sidebar/
+    └── index.ts
+```
 
-### Current Structure (v5.83.1)
+### Import 패턴
 
+```typescript
+// ✅ Good: Layer별 import
+import { AISidebarV4 } from '@/components/ai-sidebar';
+import { useAIEngine } from '@/hooks/ai-sidebar';
+import type { AIResponse } from '@/types/ai-sidebar';
+
+// ✅ Also Good: 개별 파일 import (필요시)
+import { useAIEngine } from '@/hooks/ai-sidebar/useAIEngine';
+```
+
+## 🔄 기존 DDD와의 비교
+
+### 이전 구조 (순수 DDD)
 ```
 src/domains/ai-sidebar/
 ├── components/
-│   ├── AISidebarV4.tsx           # 메인 사이드바 컴포넌트
-│   ├── AISidebarHeader.tsx       # 헤더 컴포넌트
-│   ├── EnhancedAIChat.tsx        # 채팅 인터페이스
-│   ├── AIDebugPanel.tsx          # 디버그 패널
-│   ├── AIEngineIndicator.tsx     # 엔진 상태 표시
-│   ├── AIFunctionPages.tsx       # 기능 페이지
-│   ├── CloudRunStatusIndicator.tsx # Cloud Run 상태
-│   ├── InlineAgentStatus.tsx     # 에이전트 상태
-│   └── index.ts
 ├── hooks/
-│   ├── useAIEngine.ts            # AI 엔진 상태 관리
-│   ├── useAIThinking.ts          # AI 사고 과정 관리
-│   └── index.ts
 ├── types/
-│   ├── ai-sidebar-types.ts       # 타입 정의
-│   └── index.ts
-├── utils/
-│   └── index.ts                  # (현재 비어있음)
-└── index.ts
+└── index.ts  # 모든 것을 하나의 domain에서 export
 ```
 
-### Exports
+### 현재 구조 (Next.js + DDD-lite)
+```
+src/
+├── components/ai-sidebar/  # Layer 우선
+├── hooks/ai-sidebar/       # 기능별 그룹화
+├── types/ai-sidebar/
+└── utils/ai-sidebar/
+```
 
-- **hooks**: `useAIEngine`, `useAIThinking`
-- **types**: `AIEngineInfo`, `AIResponse`, `AISidebarProps`, `AISidebarState`, `ChatMessage`, `ThinkingStep` 등
+### 변경 이유
 
-## 🔄 Migration to Next.js + DDD-lite
-
-We are gradually migrating core features to this structure. New major features should be implemented as domains if they represent a distinct business capability.
-
-### Current Domains (v5.83.1)
-
-| Domain | Status | Description |
-|--------|--------|-------------|
-| `ai-sidebar` | ✅ Active | AI 채팅 인터페이스 및 사이드바 |
-
-### Migration Candidates
-
-다음 기능들은 향후 domain으로 분리될 수 있습니다:
-
-- `dashboard` - 대시보드 컴포넌트 및 상태 관리
-- `server-monitoring` - 서버 모니터링 로직
-- `alerts` - 알림 시스템
+1. **Next.js 친화적**: App Router, Server Components와 자연스러운 통합
+2. **도구 호환성**: ESLint, Prettier 등 도구들이 Layer 구조 기대
+3. **팀 친숙도**: 대부분의 Next.js 개발자가 익숙한 패턴
+4. **Vercel 최적화**: 배포 시 자동 코드 스플리팅 최적화
 
 ## 📝 Best Practices
 
-### Next.js + DDD-lite Domain 생성 가이드
+### 새 기능 추가 시
 
-```typescript
-// src/domains/[domain-name]/index.ts
-/**
- * [Domain Name] Domain Export
- * 도메인 통합 export
- */
+```bash
+# 기능이 작은 경우 (파일 1-2개)
+src/hooks/useNewFeature.ts
+src/types/new-feature.ts
 
-// Hooks
-export { useMyHook } from './hooks';
-
-// Types
-export type { MyType } from './types';
-
-// Components (필요시)
-export { MyComponent } from './components';
+# 기능이 큰 경우 (파일 3개 이상)
+src/hooks/new-feature/
+├── useNewFeatureState.ts
+├── useNewFeatureActions.ts
+└── index.ts
 ```
 
-### Import 규칙
+### index.ts 패턴
 
 ```typescript
-// ✅ Good: domain index에서 import
-import { useAIEngine, type AIResponse } from '@/domains/ai-sidebar';
+// src/hooks/ai-sidebar/index.ts
+export { useAIEngine } from './useAIEngine';
+export { useAIThinking } from './useAIThinking';
 
-// ❌ Bad: 내부 파일 직접 import
-import { useAIEngine } from '@/domains/ai-sidebar/hooks/useAIEngine';
+// Re-export types for convenience
+export type { AIEngineState } from './useAIEngine';
 ```
+
+### 의존성 방향
+
+```
+components → hooks → services → types
+     ↓         ↓         ↓
+   utils     utils     utils
+```
+
+- **components**: hooks, types, utils 사용 가능
+- **hooks**: services, types, utils 사용 가능
+- **services**: types, utils만 사용
+- **types**: 다른 types만 참조 가능

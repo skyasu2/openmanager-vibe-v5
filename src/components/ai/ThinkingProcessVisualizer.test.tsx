@@ -11,7 +11,7 @@
 import { act, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ThinkingProcessVisualizer from '../../../src/components/ai/ThinkingProcessVisualizer';
-import type { ThinkingStep } from '../../../src/domains/ai-sidebar/types/ai-sidebar-types';
+import type { ThinkingStep } from '../../../src/types/ai-sidebar/ai-sidebar-types';
 
 // Lucide 아이콘 mock
 vi.mock('lucide-react', () => ({

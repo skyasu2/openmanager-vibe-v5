@@ -47,7 +47,7 @@ export default defineConfig({
         'src/utils/**/*.{ts,tsx}',
         'src/hooks/**/*.{ts,tsx}',
         'src/services/**/*.{ts,tsx}',
-        'src/domains/**/*.{ts,tsx}',
+        'src/types/**/*.{ts,tsx}',
         'src/stores/**/*.{ts,tsx}',
         'src/app/api/**/*.{ts,tsx}',
       ],

@@ -53,11 +53,11 @@ vi.mock('@/components/shared/OpenManagerLogo', () => ({
   OpenManagerLogo: () => <div data-testid="logo">Logo</div>,
 }));
 
-vi.mock('../../domains/ai-sidebar/components/EnhancedAIChat', () => ({
+vi.mock('@/components/ai-sidebar/EnhancedAIChat', () => ({
   EnhancedAIChat: () => <div data-testid="enhanced-ai-chat">AI Chat</div>,
 }));
 
-vi.mock('../../domains/ai-sidebar/components/AIFunctionPages', () => ({
+vi.mock('@/components/ai-sidebar/AIFunctionPages', () => ({
   AIFunctionPages: () => (
     <div data-testid="ai-function-pages">Function Pages</div>
   ),

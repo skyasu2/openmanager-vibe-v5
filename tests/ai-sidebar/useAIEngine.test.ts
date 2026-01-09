@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   type ChatMessage,
   useAIEngine,
-} from '../../src/domains/ai-sidebar/hooks/useAIEngine';
+} from '../../src/hooks/ai-sidebar/useAIEngine';
 
 /**
  * useAIEngine Hook 테스트 (v4.0)
