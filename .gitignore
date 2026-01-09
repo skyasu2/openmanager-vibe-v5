@@ -65,11 +65,9 @@ project-structure.txt
 .backups/
 backups/
 
-# Environment files
-.env
-.env.*
+# Environment files (unified)
+.env*
 !.env.example
-.env.e2e
 
 # Cache and debug
 .cache/
@@ -78,25 +76,6 @@ yarn-debug.log*
 yarn-error.log*
 
 # 🔐 보안 및 민감한 정보 방지
-# 원본 환경 변수 파일 (제외)
-.env
-.env.local
-.env.development
-.env.test
-.env.production
-.env.vercel.*
-
-# 암호화된 백업 파일 (추적)
-!.backup/
-!.backup/env.backup.*.enc
-# 환경변수 파일
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
-.env.backup
 
 # API 키 및 토큰이 포함될 수 있는 파일들
 **/secrets.*
@@ -158,21 +137,6 @@ ai-combined.log
 *.tmp
 *.temp
 
-# env files (can opt-in for committing if needed)
-.env*
-!.env.example
-.env.local.backup
-.env.wsl
-scripts/quick-push.sh
-# 🔐 복호화된 환경변수 파일들 (절대 커밋 금지)
-.env.decrypted
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.build
-*.decrypted
-.env.key
 
 # 🔄 환경변수 자동 백업 파일들 (임시 백업 제외)
 config/env-backups/
@@ -199,7 +163,6 @@ sensitive-env.md
 .secure-tokens-export.sh
 
 # 🔍 Tavily MCP 보안 파일
-.env.tavily
 config/tavily-encrypted.json
 
 # vercel
@@ -416,11 +379,6 @@ eslint-result.json
 *.swo
 *~
 
-# Build artifacts and temporary files
-# (logs는 133번 줄에서 설정됨 - ai-decisions 제외)
-test-results/
-playwright-report/
-.next/
 
 # Screenshots and temporary images
 screenshots/
