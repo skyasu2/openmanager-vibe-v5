@@ -1,4 +1,4 @@
-# CLAUDE.md - OpenManager VIBE v5.83.14
+# CLAUDE.md - OpenManager VIBE v5.84.2
 
 **한국어로 우선 대화, 기술용어는 영어 사용 허용**
 
@@ -29,4 +29,4 @@ npm run release:patch       # 버전 릴리스
 - **AI 설정**: `config/ai/registry-core.yaml`
 - **TODO**: `reports/planning/TODO.md`
 
-_Last Updated: 2026-01-04_
+_Last Updated: 2026-01-10_

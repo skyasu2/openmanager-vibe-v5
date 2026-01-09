@@ -2,55 +2,55 @@
 
 ## MCP Servers (9개)
 
-| MCP | 용도 | 우선순위 | 비고 |
-|-----|------|---------|------|
-| `serena` | 코드 검색, 심볼 분석, 메모리 | 높음 | 필수 |
-| `context7` | 라이브러리 공식 문서 | 높음 | 필수 |
-| `sequential-thinking` | 복잡한 리팩토링, 아키텍처 설계 | 높음 | 단계별 사고 |
-| `supabase` | PostgreSQL 관리 | 중간 | DB 작업시 |
-| `vercel` | 배포 상태 확인 | 중간 | 배포시 |
-| `playwright` | E2E 테스트 | 중간 | 테스트시 |
-| `github` | 저장소/PR 관리 | 중간 | PR/이슈시 |
-| `brave-search` | 팩트체크, 버전 확인 | 낮음 | 선택 |
-| `tavily` | 심층 리서치 | 낮음 | 선택 |
+| MCP | 용도 | 우선순위 |
+|-----|------|:-------:|
+| `serena` | 코드 검색, 심볼 분석, 메모리 | 높음 |
+| `context7` | 라이브러리 공식 문서 | 높음 |
+| `sequential-thinking` | 복잡한 리팩토링, 아키텍처 설계 | 높음 |
+| `supabase` | PostgreSQL 관리 | 중간 |
+| `vercel` | 배포 상태 확인 | 중간 |
+| `playwright` | E2E 테스트 | 중간 |
+| `github` | 저장소/PR 관리 | 중간 |
+| `brave-search` | 팩트체크, 버전 확인 | 낮음 |
+| `tavily` | 심층 리서치 | 낮음 |
 
 ## Skills (10개)
 
 ### 코드 품질
-| Skill | 설명 | 트리거 예시 |
-|-------|------|------------|
-| `review` | 검증 결과 요약 확인 | `/review` |
-| `ai-code-review` | 멀티 AI 코드 리뷰 | "ai code review" |
-| `lint-smoke` | Lint + 테스트 스모크 | "quality check" |
-| `validation-analysis` | 검증 결과 상세 분석 | "검증 결과 분석" |
+| Skill | 설명 |
+|-------|------|
+| `review` | 검증 결과 요약 확인 |
+| `ai-code-review` | 멀티 AI 코드 리뷰 (Codex + Gemini) |
+| `lint-smoke` | Lint + 테스트 스모크 |
+| `validation-analysis` | 검증 결과 상세 분석 |
 
 ### 분석/진단
-| Skill | 설명 | 트리거 예시 |
-|-------|------|------------|
-| `security-audit-workflow` | OWASP Top 10 보안 감사 | "security audit" |
-| `playwright-triage` | E2E 테스트 실패 분류 | "playwright failure" |
-| `next-router-bottleneck` | 라우터 성능 분석 | "router bottleneck" |
+| Skill | 설명 |
+|-------|------|
+| `security-audit-workflow` | OWASP Top 10 보안 감사 |
+| `playwright-triage` | E2E 테스트 실패 분류 |
+| `next-router-bottleneck` | 라우터 성능 분석 |
 
 ### 배포
-| Skill | 설명 | 트리거 예시 |
-|-------|------|------------|
-| `cloud-run-deploy` | Cloud Run AI Engine 배포 | "배포", "deploy cloud run" |
+| Skill | 설명 |
+|-------|------|
+| `cloud-run-deploy` | Cloud Run AI Engine 배포 |
 
 ### 문서/리포트
-| Skill | 설명 | 트리거 예시 |
-|-------|------|------------|
-| `ai-report-export` | AI 리포트 생성 | "export report" |
-| `mermaid-diagram` | 다이어그램 생성 | "mermaid diagram" |
+| Skill | 설명 |
+|-------|------|
+| `ai-report-export` | 2-AI 검증 리포트 생성 |
+| `mermaid-diagram` | 다이어그램 생성 |
 
 ## CLI Tools (WSL)
 
-| CLI | 용도 | 버전 |
+| CLI | 용도 | 비고 |
 |-----|------|------|
-| `claude` | 코드 생성/수정 (현재 세션) | v2.0.76 |
-| `codex` | 코드 리뷰 (2-AI 로테이션) | v0.77.0 |
-| `gemini` | 로직 검증 (2-AI 로테이션) | v0.22.4 |
+| `claude` | 코드 생성/수정 | 현재 세션 |
+| `codex` | 코드 리뷰 | 2-AI 로테이션 |
+| `gemini` | 로직 검증 | 2-AI 로테이션 |
 
-> Note: Qwen 제거됨 (2026-01-07) - 평균 201초, 실패율 13.3%로 인해 2-AI 시스템으로 단순화
+> Note: Qwen 제거됨 (2026-01-07) - 평균 201초, 실패율 13.3%
 
 ## Built-in Subagents (5개)
 
@@ -62,11 +62,21 @@
 | `claude-code-guide` | Claude Code 공식 문서 |
 | `statusline-setup` | 상태라인 설정 |
 
-## Permission Categories (settings.local.json)
+## Permission Pattern (Best Practice)
 
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(command:*)",
+      "Skill(skill-name)",
+      "MCP-Server:*",
+      "mcp__server__*"
+    ]
+  }
+}
 ```
-Bash Commands     : npm, npx, node, git, docker, gcloud, gsutil, curl, etc.
-MCP Servers       : Vercel, Serena, Supabase, Context7, Playwright, etc.
-Skills            : review, ai-code-review, lint-smoke, etc.
-WebFetch Domains  : anthropic.com, supabase.com, github.com, etc.
-```
+
+- Bash: 와일드카드 패턴 사용 (`npm:*`, `git:*`)
+- MCP: 서버별 와일드카드 (`mcp__serena__*`)
+- API Key: 환경변수 사용, 하드코딩 금지

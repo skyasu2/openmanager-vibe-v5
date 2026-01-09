@@ -1,5 +1,15 @@
 # Architecture Rules
 
+## Directory Structure
+Layer-First + Feature Grouping 방식:
+- `components/` - UI 컴포넌트 (feature별 하위 폴더)
+- `hooks/` - Custom Hooks (feature별 하위 폴더)
+- `services/` - 비즈니스 로직, API 클라이언트
+- `types/` - TypeScript 타입 정의
+- `lib/` - 유틸리티, 핵심 로직
+- `stores/` - Zustand 상태 관리
+- `__mocks__/` - 테스트 Mock 데이터
+
 ## Hybrid Architecture
 프로젝트는 **Vercel + Cloud Run** 하이브리드 구조를 따릅니다.
 
