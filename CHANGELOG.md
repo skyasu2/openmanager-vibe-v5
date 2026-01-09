@@ -2,6 +2,59 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.84.2](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.84.1...v5.84.2) (2026-01-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ai-review:** Qwen removed from AI code review rotation
+
+Reason for removal:
+- Average execution time: 201 seconds (2.3x slower than Gemini's 89s)
+- Failure rate: 13.3% (12 failures out of 90 runs in 2025-12)
+- Simplifies maintenance with codex ↔ gemini 1:1 rotation
+
+Changes:
+- ai-review-core.sh: Remove try_qwen_review function, simplify fallback
+- ai-review-utils.sh: Update select_primary_ai for 2-AI rotation
+- auto-ai-review.sh: Update to v7.0.0, change from 3-AI to 2-AI
+- ai-tools.md: Update CLI tools documentation
+- Deprecate: qwen-wrapper.sh → qwen-wrapper.sh.deprecated
+- Archive: QWEN.md → docs/archived/QWEN.md.deprecated
+- Update: .vscode/ai-context.json, ai-settings.json, .claude-project.json
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Features
+
+* **ai:** add context compression for token efficiency ([7fcb679](https://github.com/skyasu2/openmanager-vibe-v5/commit/7fcb6797f01baca5300c80986f7e6b45e8c00b44))
+* **ai:** add response caching to supervisor API ([390bf06](https://github.com/skyasu2/openmanager-vibe-v5/commit/390bf06b3afdfd38243e5c92cb99d6fa022326d0))
+* **cloud-run:** migrate to Artifact Registry and optimize Docker ([d1763bd](https://github.com/skyasu2/openmanager-vibe-v5/commit/d1763bd008fc219e33e6a878428b282987545f5c))
+* **components:** add barrel exports for ui, shared, ai directories ([41aa056](https://github.com/skyasu2/openmanager-vibe-v5/commit/41aa0562f591cc53fa3b37557e6573d1ffda6703))
+* **nlp:** add typo tolerance and English patterns to supervisor ([f638e8d](https://github.com/skyasu2/openmanager-vibe-v5/commit/f638e8d493a9a6c6c02930ff199b10bfea595022))
+* **nlp:** enhance intent classification regex patterns ([e0b64b2](https://github.com/skyasu2/openmanager-vibe-v5/commit/e0b64b2eb561d89bc86f244457aca46b37fbf63c))
+* **streaming:** implement real-time SSE streaming for AI chat ([3450788](https://github.com/skyasu2/openmanager-vibe-v5/commit/345078884abc6d9c40775bafd7725711825c94fc))
+* **ui:** add typewriter effect for AI responses ([76c845d](https://github.com/skyasu2/openmanager-vibe-v5/commit/76c845d28b9b6501114b3d84ed779b5b8f4aff76))
+
+
+### Bug Fixes
+
+* **ai-engine:** sync server version to 5.84.1 ([5347ce0](https://github.com/skyasu2/openmanager-vibe-v5/commit/5347ce0fc65439aa6ab4f8079fc8343e812c57dc))
+* **chat:** clear input immediately and add auto-scroll ([de45182](https://github.com/skyasu2/openmanager-vibe-v5/commit/de4518238513af969c623f9ca7e5b51c255a16e5))
+* **cloud-run:** remove HTTP/2 option causing protocol errors ([5a3bbea](https://github.com/skyasu2/openmanager-vibe-v5/commit/5a3bbeac0e10f9ebd0cdeada93824edb73188043))
+* frontend quality improvements ([d490db8](https://github.com/skyasu2/openmanager-vibe-v5/commit/d490db8fc0d98ca5a817f567022f07e3ee593028))
+* **lint:** disable noConsole rule and fix a11y warning ([f02c2b1](https://github.com/skyasu2/openmanager-vibe-v5/commit/f02c2b18e78e240969fa2d7c3cc105e7c09af4dd))
+* **mocks:** add database and health mock handlers for unified API ([d4d28ca](https://github.com/skyasu2/openmanager-vibe-v5/commit/d4d28cac8bb2a2c83d033a3e4cff0fcbcc028648))
+* **mocks:** improve mock handlers with error handling and simple health check ([b9231fd](https://github.com/skyasu2/openmanager-vibe-v5/commit/b9231fdb184dd84d57607f9cf8c8c046d43add21))
+* **nlp:** add infrastructure context gating to reduce false positives ([ee585d3](https://github.com/skyasu2/openmanager-vibe-v5/commit/ee585d3884a14818fec13f61012ad759bb91d65f))
+* **streaming:** address AI code review findings ([8829c55](https://github.com/skyasu2/openmanager-vibe-v5/commit/8829c55fe4234f190202000d08ec334e2abf3368))
+* **test:** update orchestrator handoffs count to 5 ([9cf9f26](https://github.com/skyasu2/openmanager-vibe-v5/commit/9cf9f268109c93eedf3292d08a0acefa40f8713d))
+
+
+* **ai-review:** remove Qwen from 3-AI to 2-AI system ([95860ef](https://github.com/skyasu2/openmanager-vibe-v5/commit/95860ef21fedee0231151eefd1c932000c127e88))
+
 ### [5.84.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.84.0...v5.84.1) (2026-01-07)
 
 
