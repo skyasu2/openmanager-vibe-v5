@@ -9,7 +9,7 @@
  */
 
 import { getLoggingConfig } from '@/config';
-import type { ILogger, LogEntry } from '@/interfaces/services';
+import type { ILogger, LogEntry } from '@/lib/interfaces/services';
 
 export class LoggingService implements ILogger {
   private logs: LogEntry[] = [];

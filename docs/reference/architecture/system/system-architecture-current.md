@@ -44,33 +44,40 @@
 
 ```
 src/
-├── app/                   # Next.js 15 App Router
+├── app/                   # Next.js App Router
 │   ├── (auth)/           # 인증 페이지
 │   ├── (dashboard)/      # 대시보드 페이지
-│   └── api/              # 85개 API Routes
+│   └── api/              # API Routes
 ├── components/           # React 컴포넌트
 │   ├── dashboard/        # 대시보드 UI
-│   ├── ai/              # AI 사이드바
+│   ├── ai-sidebar/       # AI 사이드바
 │   └── ui/              # shadcn/ui 컴포넌트
+├── hooks/                # 커스텀 훅
+│   ├── ai-sidebar/       # AI 사이드바 훅
+│   └── performance/      # 성능 모니터링 훅
 ├── lib/                  # 유틸리티 라이브러리
-│   ├── ai/              # AI 클라이언트
-│   ├── supabase/        # Supabase 클라이언트
-│   └── config/          # 설정 관리
-├── domains/             # [NEW] Domain-Driven Design (e.g., ai-sidebar)
-├── modules/             # [NEW] Feature Modules (e.g., performance-monitor)
-└── services/            # 비즈니스 로직 (Legacy/Shared)
-    ├── ai/              # AI 서비스
-    └── data/            # 데이터 서비스
+│   ├── core/            # 핵심 시스템 (ProcessManager, Watchdog)
+│   ├── interfaces/      # 공통 인터페이스
+│   └── supabase/        # Supabase 클라이언트
+├── services/            # 비즈니스 로직
+│   ├── ai/              # AI 서비스
+│   ├── adapters/        # 데이터 어댑터
+│   ├── performance/     # 성능 서비스
+│   └── data/            # 데이터 서비스
+├── types/               # TypeScript 타입
+│   ├── ai-sidebar/      # AI 사이드바 타입
+│   └── performance/     # 성능 타입
+└── __mocks__/           # Mock 데이터 (Jest/Vitest)
 ```
 
-#### 아키텍처 진화 (Hybrid Architecture)
+#### 아키텍처 (Next.js Standard + DDD-lite)
 
-현재 시스템은 기존의 Layered Architecture에서 Domain-Driven Design (DDD)으로 점진적 전환 중입니다.
+Layer-First 구조에 Feature Grouping을 적용한 Next.js 표준 아키텍처입니다.
 
-- **Legacy**: `src/services`, `src/components` (기능 중심 분리)
-- **Modern**: `src/domains`, `src/modules` (도메인/기능 단위 응집)
+- **Layer-First**: `components/`, `hooks/`, `services/`, `types/` 등 기능별 분리
+- **Feature Grouping**: 큰 기능은 각 계층 내 하위 디렉토리로 그룹화 (예: `hooks/ai-sidebar/`)
 
-자세한 내용은 [Domain-Driven Design](domain-driven-design.md) 및 [Module Structure](module-structure.md) 문서를 참조하세요.
+자세한 내용은 [Module Structure](module-structure.md) 문서를 참조하세요.
 
 #### 상태 관리
 

@@ -10,7 +10,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getRealTimeHub } from '@/core/realtime/RealTimeHub';
+import { getRealTimeHub } from '@/lib/core/realtime/RealTimeHub';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';

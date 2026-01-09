@@ -200,7 +200,7 @@ const performanceTrends = {
 - **복잡성**: 새 개발자 온보딩 시간 증가
 
 #### 2️⃣ **아키텍처 이론 차이**
-- **DDD 미적용**: Domain-Driven Design 대신 기능별 구조
+- **Next.js + DDD-lite**: 순수 DDD 대신 실용적인 Next.js + DDD-lite 적용
 - **API 분산**: RESTful 통합 대신 기능별 분산
 - **환경설정 복잡**: 단일 설정 대신 기능별 분산
 

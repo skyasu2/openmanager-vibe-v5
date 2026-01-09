@@ -14,7 +14,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { AIThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
 import {
   type ClarificationOption,
   type ClarificationRequest,
@@ -25,6 +24,7 @@ import type {
   AnalysisBasis,
   EnhancedChatMessage,
 } from '@/stores/useAISidebarStore';
+import type { AIThinkingStep } from '@/types/ai-sidebar/ai-sidebar-types';
 import { SESSION_LIMITS } from '@/types/session';
 
 // ============================================================================

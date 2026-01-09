@@ -28,4 +28,4 @@ export interface ServerAlert {
 }
 
 // 서버 메트릭은 중앙화된 타입 시스템에서 가져옴
-export type { ServerMetrics } from '@/core/types';
+export type { ServerMetrics } from '@/lib/core/types';

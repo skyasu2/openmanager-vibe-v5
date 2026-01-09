@@ -8,7 +8,7 @@
  * - 기존 API 호환성 유지
  */
 
-import type { ILogger } from '@/interfaces/services';
+import type { ILogger } from '@/lib/interfaces/services';
 import type { ErrorContext } from '@/types/ai-service-types';
 import { ErrorHandlingCore } from './core/ErrorHandlingCore';
 import { ErrorMonitoringService } from './monitoring/ErrorMonitoringService';

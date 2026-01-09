@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { getMockSystem } from '@/__mocks__/data';
 import { withAuth } from '@/lib/auth/api-auth';
-import { getMockSystem } from '@/mock';
 // server-details.schema에서 직접 import (올바른 구조를 위해)
 import type {
   ServerHistory,

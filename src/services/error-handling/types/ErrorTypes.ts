@@ -8,7 +8,7 @@
  * - 모니터링 타입들
  */
 
-import type { ILogger } from '@/interfaces/services';
+import type { ILogger } from '@/lib/interfaces/services';
 import type {
   ErrorContext,
   MonitoringEventData,

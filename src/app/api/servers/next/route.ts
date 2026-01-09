@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { getMockSystem } from '@/__mocks__/data';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { getMockSystem } from '@/mock';
 import {
   type PaginatedServer,
   ServerBatchRequestSchema,

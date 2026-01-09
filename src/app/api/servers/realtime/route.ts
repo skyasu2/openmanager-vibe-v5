@@ -10,7 +10,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMockSystem } from '@/mock';
+import { getMockSystem } from '@/__mocks__/data';
 import debug from '@/utils/debug';
 
 // 기본 경고 생성 함수 (폴백용)

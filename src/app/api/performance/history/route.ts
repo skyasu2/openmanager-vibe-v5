@@ -4,7 +4,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { PerformanceService } from '@/modules/performance-monitor/services/PerformanceService';
+import { PerformanceService } from '@/services/performance/PerformanceService';
 
 export function GET(request: NextRequest) {
   try {

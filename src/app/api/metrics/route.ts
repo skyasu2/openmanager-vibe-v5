@@ -10,7 +10,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMockSystem } from '@/mock';
+import { getMockSystem } from '@/__mocks__/data';
 import { metricsProvider } from '@/services/metrics/MetricsProvider';
 import debug from '@/utils/debug';
 

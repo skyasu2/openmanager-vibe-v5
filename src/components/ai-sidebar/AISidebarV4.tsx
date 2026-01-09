@@ -1,0 +1,367 @@
+'use client';
+
+// Icons
+import { Bot, User } from 'lucide-react';
+import { type FC, memo, useEffect, useRef, useState } from 'react';
+import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
+import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
+import { AnalysisBasisBadge } from '@/components/ai/AnalysisBasisBadge';
+import { MessageActions } from '@/components/ai/MessageActions';
+// Components
+import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
+import {
+  convertThinkingStepsToUI,
+  useAIChatCore,
+} from '@/hooks/ai/useAIChatCore';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
+import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
+// Types
+import type {
+  AISidebarV3Props,
+  AIThinkingStep,
+} from '@/types/ai-sidebar/ai-sidebar-types';
+import { RenderMarkdownContent } from '@/utils/markdown-parser';
+import { AIFunctionPages } from './AIFunctionPages';
+import { AISidebarHeader } from './AISidebarHeader';
+import { EnhancedAIChat } from './EnhancedAIChat';
+import { type AgentStep, InlineAgentStatus } from './InlineAgentStatus';
+
+// 🔧 공통 로직은 useAIChatCore 훅에서 관리
+// - Hybrid AI Query (Streaming + Job Queue)
+// - 세션 제한
+// - 피드백
+// - 메시지 변환
+
+/**
+ * ThinkingSteps를 AgentStep 형식으로 변환 (UI 표시용)
+ */
+function convertToAgentSteps(thinkingSteps?: AIThinkingStep[]): AgentStep[] {
+  return convertThinkingStepsToUI(thinkingSteps) as AgentStep[];
+}
+
+// 🎯 메시지 컴포넌트 성능 최적화 (Cursor/Copilot 스타일)
+const MessageComponent = memo<{
+  message: EnhancedChatMessage;
+  onRegenerateResponse?: (messageId: string) => void;
+  onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
+  isLastMessage?: boolean;
+}>(({ message, onRegenerateResponse, onFeedback, isLastMessage }) => {
+  // thinking 메시지일 경우 간소화된 인라인 상태 표시
+  if (message.role === 'thinking' && message.thinkingSteps) {
+    const agentSteps = convertToAgentSteps(message.thinkingSteps);
+    return (
+      <InlineAgentStatus steps={agentSteps} isComplete={!message.isStreaming} />
+    );
+  }
+
+  // 일반 메시지 렌더링
+  return (
+    <div
+      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+    >
+      <div
+        className={`flex max-w-[90%] items-start space-x-2 sm:max-w-[85%] ${
+          message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''
+        }`}
+      >
+        {/* 아바타 */}
+        <div
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-xs ${
+            message.role === 'user'
+              ? 'bg-blue-100 text-blue-600'
+              : 'bg-linear-to-br from-purple-500 to-pink-500 text-white'
+          }`}
+        >
+          {message.role === 'user' ? (
+            <User className="h-4 w-4" />
+          ) : (
+            <Bot className="h-4 w-4" />
+          )}
+        </div>
+
+        {/* 메시지 콘텐츠 */}
+        <div className="flex-1">
+          {/* 스트리밍 중 인라인 Agent 상태 표시 */}
+          {message.role === 'assistant' &&
+            message.isStreaming &&
+            message.thinkingSteps &&
+            message.thinkingSteps.length > 0 && (
+              <InlineAgentStatus
+                steps={convertToAgentSteps(message.thinkingSteps)}
+                isComplete={false}
+              />
+            )}
+
+          {/* 메시지 내용 (콘텐츠가 있을 때만 표시) */}
+          {message.content && (
+            <div
+              className={`rounded-2xl p-4 shadow-xs ${
+                message.role === 'user'
+                  ? 'rounded-tr-sm bg-linear-to-br from-blue-500 to-blue-600 text-white'
+                  : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
+              }`}
+            >
+              {message.role === 'assistant' ? (
+                <div className="relative">
+                  <RenderMarkdownContent
+                    content={message.content}
+                    className="text-[15px] leading-relaxed"
+                  />
+                  {/* 🎯 스트리밍 중 타이핑 커서 */}
+                  {message.isStreaming && (
+                    <span className="ml-0.5 inline-block h-5 w-0.5 animate-pulse bg-purple-500" />
+                  )}
+                </div>
+              ) : (
+                <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
+                  {message.content}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 타임스탬프 & 메타데이터 */}
+          <div
+            className={`mt-1 flex items-center justify-between ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
+          >
+            <p className="text-xs text-gray-500">
+              {typeof message.timestamp === 'string'
+                ? new Date(message.timestamp).toLocaleTimeString()
+                : message.timestamp.toLocaleTimeString()}
+            </p>
+            {/* 처리 시간 표시 (assistant 메시지만) */}
+            {message.role === 'assistant' &&
+              message.metadata?.processingTime && (
+                <p className="text-xs text-gray-400">
+                  {message.metadata.processingTime}ms
+                </p>
+              )}
+          </div>
+
+          {/* 📊 분석 근거 뱃지 (assistant 메시지 + 스트리밍 완료 시) */}
+          {message.role === 'assistant' &&
+            !message.isStreaming &&
+            message.metadata?.analysisBasis && (
+              <AnalysisBasisBadge basis={message.metadata.analysisBasis} />
+            )}
+
+          {/* 메시지 액션 (복사, 피드백, 재생성) */}
+          {message.content && (
+            <MessageActions
+              messageId={message.id}
+              content={message.content}
+              role={message.role}
+              onRegenerate={onRegenerateResponse}
+              onFeedback={onFeedback}
+              showRegenerate={isLastMessage && message.role === 'assistant'}
+              className="mt-2"
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+MessageComponent.displayName = 'MessageComponent';
+
+// 🔒 완전 Client-Only AI 사이드바 컴포넌트 (V4 - useAIChatCore 통합)
+export const AISidebarV4: FC<AISidebarV3Props> = ({
+  isOpen,
+  onClose,
+  className = '',
+  sessionId: propSessionId,
+  onMessageSend,
+}) => {
+  // 🔐 권한 확인
+  const permissions = useUserPermissions();
+
+  // 🔧 UI 상태 관리 (사이드바 전용)
+  const [selectedFunction, setSelectedFunction] =
+    useState<AIAssistantFunction>('chat');
+
+  // 📱 스와이프 제스처 상태
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+  const touchEndY = useRef<number>(0);
+  const SWIPE_THRESHOLD = 100; // 100px 이상 스와이프 시 닫기
+  const SWIPE_RATIO_THRESHOLD = 2; // 수평 이동이 수직 이동의 2배 이상일 때만 인식
+
+  // ============================================================================
+  // 🎯 공통 AI 채팅 로직 (useAIChatCore 훅 사용)
+  // ============================================================================
+  const {
+    // 입력 상태
+    input,
+    setInput,
+    // 메시지
+    messages: enhancedMessages,
+    // 로딩/진행 상태
+    isLoading,
+    hybridState,
+    currentMode,
+    // 에러 상태
+    error,
+    clearError,
+    // 세션 관리
+    sessionState,
+    handleNewSession,
+    // 액션
+    handleFeedback,
+    regenerateLastResponse,
+    retryLastQuery,
+    stop,
+    cancel,
+    // 통합 입력 핸들러
+    handleSendInput,
+    // 명확화 기능
+    clarification,
+    selectClarification,
+    submitCustomClarification,
+    skipClarification,
+  } = useAIChatCore({
+    sessionId: propSessionId,
+    onMessageSend,
+  });
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // 자동 스크롤
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  // ESC 키로 사이드바 닫기
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
+  // 📱 스와이프 제스처 핸들러 (수평/수직 비율 체크로 오작동 방지)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0]?.clientX ?? 0;
+    touchStartY.current = e.touches[0]?.clientY ?? 0;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0]?.clientX ?? 0;
+    touchEndY.current = e.touches[0]?.clientY ?? 0;
+  };
+
+  const handleTouchEnd = () => {
+    const swipeDistanceX = touchEndX.current - touchStartX.current;
+    const swipeDistanceY = Math.abs(touchEndY.current - touchStartY.current);
+
+    // 수평 이동이 수직 이동의 2배 이상이고, 오른쪽으로 100px 이상 스와이프할 때만 닫기
+    // 이렇게 하면 코드 블록 수평 스크롤이나 텍스트 선택 시 오작동 방지
+    const isHorizontalSwipe =
+      swipeDistanceY === 0 ||
+      swipeDistanceX / swipeDistanceY > SWIPE_RATIO_THRESHOLD;
+
+    if (swipeDistanceX > SWIPE_THRESHOLD && isHorizontalSwipe) {
+      onClose();
+    }
+
+    // 리셋
+    touchStartX.current = 0;
+    touchStartY.current = 0;
+    touchEndX.current = 0;
+    touchEndY.current = 0;
+  };
+
+  const canRenderSidebar =
+    permissions.canToggleAI || isGuestFullAccessEnabled();
+  if (!canRenderSidebar) {
+    return null;
+  }
+
+  const renderFunctionPage = () => {
+    if (selectedFunction === 'chat') {
+      return (
+        <EnhancedAIChat
+          autoReportTrigger={{ shouldGenerate: false }}
+          allMessages={enhancedMessages}
+          limitedMessages={enhancedMessages}
+          messagesEndRef={messagesEndRef}
+          MessageComponent={MessageComponent}
+          inputValue={input}
+          setInputValue={setInput}
+          handleSendInput={handleSendInput}
+          sessionState={sessionState}
+          onNewSession={handleNewSession}
+          isGenerating={isLoading}
+          regenerateResponse={regenerateLastResponse}
+          currentEngine="Vercel AI SDK"
+          onFeedback={handleFeedback}
+          onStopGeneration={stop}
+          jobProgress={hybridState.progress}
+          jobId={hybridState.jobId}
+          onCancelJob={cancel}
+          queryMode={currentMode}
+          error={error}
+          onClearError={clearError}
+          onRetry={retryLastQuery}
+          clarification={clarification}
+          onSelectClarification={selectClarification}
+          onSubmitCustomClarification={submitCustomClarification}
+          onSkipClarification={skipClarification}
+        />
+      );
+    }
+    return (
+      <AIFunctionPages
+        selectedFunction={selectedFunction}
+        onFunctionChange={setSelectedFunction}
+      />
+    );
+  };
+
+  return (
+    <div
+      data-testid="ai-sidebar"
+      role="dialog"
+      aria-labelledby="ai-sidebar-v4-title"
+      aria-modal="true"
+      aria-hidden={!isOpen}
+      className={`gpu-sidebar-slide-in fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${
+        isOpen ? '' : 'gpu-sidebar-slide-out'
+      } ${className}`}
+      // 📱 스와이프 제스처 지원
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AISidebarHeader onClose={onClose} />
+        <div className="flex-1 overflow-hidden pb-20 sm:pb-0">
+          <AIErrorBoundary
+            componentName="AISidebar"
+            onReset={() => {
+              // 에러 발생 시 세션 리셋
+              setInput('');
+            }}
+          >
+            {renderFunctionPage()}
+          </AIErrorBoundary>
+        </div>
+      </div>
+
+      <div className="hidden sm:block">
+        <AIAssistantIconPanel
+          selectedFunction={selectedFunction}
+          onFunctionChange={setSelectedFunction}
+          className="w-16 sm:w-20"
+        />
+      </div>
+    </div>
+  );
+};
+
+export default memo(AISidebarV4) as FC<AISidebarV3Props>;

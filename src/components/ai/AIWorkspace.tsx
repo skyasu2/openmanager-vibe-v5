@@ -21,11 +21,11 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { memo, useRef, useState } from 'react';
+import { AIFunctionPages } from '@/components/ai-sidebar/AIFunctionPages';
+import { EnhancedAIChat } from '@/components/ai-sidebar/EnhancedAIChat';
 import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
 import { useAIChatCore } from '@/hooks/ai/useAIChatCore';
-import { AIFunctionPages } from '../../domains/ai-sidebar/components/AIFunctionPages';
-import { EnhancedAIChat } from '../../domains/ai-sidebar/components/EnhancedAIChat';
-import type { AIThinkingStep } from '../../domains/ai-sidebar/types/ai-sidebar-types';
+import type { AIThinkingStep } from '@/types/ai-sidebar/ai-sidebar-types';
 import type { EnhancedChatMessage } from '../../stores/useAISidebarStore';
 import { RealTimeDisplay } from '../dashboard/RealTimeDisplay';
 import { OpenManagerLogo } from '../shared/OpenManagerLogo';

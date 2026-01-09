@@ -8,7 +8,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
-import { getMockSystem, mockHelpers } from '@/mock';
+import { getMockSystem, mockHelpers } from '@/__mocks__/data';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
 
     if (action === 'reset') {
       // Mock 시스템 리셋
-      const { resetMockSystem } = await import('@/mock');
+      const { resetMockSystem } = await import('@/__mocks__/data');
       resetMockSystem();
 
       return NextResponse.json({

@@ -18,13 +18,13 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { getMockSystem } from '@/__mocks__/data';
 import {
   getCacheService,
   getCacheStats,
   invalidateCache,
   warmupCache,
 } from '@/lib/cache/cache-helper';
-import { getMockSystem } from '@/mock';
 import type {
   CacheInvalidateResponse,
   CacheOptimizeResponse,

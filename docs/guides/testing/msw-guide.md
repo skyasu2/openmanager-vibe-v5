@@ -403,7 +403,7 @@ it('should handle rate limit errors', async () => {
 
 ### Scenario: AI API Mocking
 
-**Application Code (src/modules/third-party-ai-chat/core/AIConversationManager.ts)**:
+**Application Code (예: AI 서비스에서 외부 API 호출)**:
 
 ```typescript
 const response = await fetch(

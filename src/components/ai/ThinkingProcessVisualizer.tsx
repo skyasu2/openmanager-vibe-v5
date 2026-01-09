@@ -24,7 +24,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import type { ThinkingStep as AIThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
+import type { ThinkingStep as AIThinkingStep } from '@/types/ai-sidebar/ai-sidebar-types';
 
 interface ThinkingProcessVisualizerProps {
   steps: AIThinkingStep[];

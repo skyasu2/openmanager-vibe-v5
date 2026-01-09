@@ -10,10 +10,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
+// 🎯 SSOT: 중앙집중식 서버 설정에서 Fallback 데이터 import
+import { getFallbackServers } from '@/__mocks__/data/mockServerConfig';
 import type { APIRequest } from '@/lib/api/api-batcher';
 import { getAPIBatcher } from '@/lib/api/api-batcher';
-// 🎯 SSOT: 중앙집중식 서버 설정에서 Fallback 데이터 import
-import { getFallbackServers } from '@/mock/mockServerConfig';
 import type { Server } from '@/types/server';
 
 // 타입 정의

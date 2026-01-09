@@ -1,6 +1,6 @@
-# 🏛️ Domain-Driven Design (DDD) Structure
+# 🏛️ Next.js + DDD-lite Structure
 
-OpenManager VIBE v5 adopts a pragmatic Domain-Driven Design (DDD) approach to organize complex business logic and UI components. This structure helps in maintaining separation of concerns and scalability.
+OpenManager VIBE v5 adopts a pragmatic **Next.js + DDD-lite** approach to organize complex business logic and UI components. This structure helps in maintaining separation of concerns and scalability.
 
 ## 📂 `src/domains` Directory
 
@@ -66,7 +66,7 @@ src/domains/ai-sidebar/
 - **hooks**: `useAIEngine`, `useAIThinking`
 - **types**: `AIEngineInfo`, `AIResponse`, `AISidebarProps`, `AISidebarState`, `ChatMessage`, `ThinkingStep` 등
 
-## 🔄 Migration to DDD
+## 🔄 Migration to Next.js + DDD-lite
 
 We are gradually migrating core features to this structure. New major features should be implemented as domains if they represent a distinct business capability.
 
@@ -86,7 +86,7 @@ We are gradually migrating core features to this structure. New major features s
 
 ## 📝 Best Practices
 
-### Domain 생성 가이드
+### Next.js + DDD-lite Domain 생성 가이드
 
 ```typescript
 // src/domains/[domain-name]/index.ts

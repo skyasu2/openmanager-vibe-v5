@@ -12,11 +12,11 @@
 
 import { Activity, AlertCircle, Layout, RefreshCw, Server } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { AIDebugPanel } from '@/components/ai-sidebar/AIDebugPanel';
 import {
   type AIProviderConfig,
   getDefaultProviderStatus,
 } from '@/config/ai-providers';
-import { AIDebugPanel } from '../../domains/ai-sidebar/components/AIDebugPanel';
 
 /**
  * AI Provider 상태 타입 - AIProviderConfig 기반 확장

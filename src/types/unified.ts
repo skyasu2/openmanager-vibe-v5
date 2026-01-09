@@ -5,7 +5,7 @@
  * TypeScript strict 모드 완전 준수
  */
 
-import type { ServerMetrics } from '@/core/types';
+import type { ServerMetrics } from '@/lib/core/types';
 
 // ============================================
 // 🖥️ 서버 관련 통합 타입

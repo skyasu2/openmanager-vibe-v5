@@ -8,7 +8,7 @@
  * - 심각한 에러 감지
  */
 
-import type { ILogger } from '@/interfaces/services';
+import type { ILogger } from '@/lib/interfaces/services';
 import type {
   ErrorHandlerFunction,
   ErrorHandlingConfig,

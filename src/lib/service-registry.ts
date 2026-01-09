@@ -8,12 +8,12 @@
  */
 
 import { ConfigLoader } from '@/config';
+import { getCacheService } from '@/lib/cache/cache-helper';
 import type {
   IConfigLoader,
   IErrorHandler,
   ILogger,
-} from '@/interfaces/services';
-import { getCacheService } from '@/lib/cache/cache-helper';
+} from '@/lib/interfaces/services';
 import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';
 import { LoggingService } from '@/services/LoggingService';
 import {

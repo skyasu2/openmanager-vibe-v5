@@ -246,9 +246,7 @@ describe('useAIEngine Hook (v4.0)', () => {
   });
 
   it('currentEngine은 항상 UNIFIED를 반환한다', async () => {
-    const { useAIEngine } = await import(
-      '@/domains/ai-sidebar/hooks/useAIEngine'
-    );
+    const { useAIEngine } = await import('@/hooks/ai-sidebar/useAIEngine');
 
     // React Hook을 테스트하기 위한 간단한 검증
     // (실제 Hook 테스트는 @testing-library/react-hooks 필요)
@@ -259,9 +257,7 @@ describe('useAIEngine Hook (v4.0)', () => {
   it('localStorage에 레거시 모드가 있으면 자동 마이그레이션된다', async () => {
     localStorage.setItem('selected-ai-engine', 'GOOGLE_AI');
 
-    const { useAIEngine } = await import(
-      '@/domains/ai-sidebar/hooks/useAIEngine'
-    );
+    const { useAIEngine } = await import('@/hooks/ai-sidebar/useAIEngine');
 
     // Hook이 import되면 useEffect가 실행되어 마이그레이션됨
     // (실제로는 React 환경에서 테스트해야 함)
