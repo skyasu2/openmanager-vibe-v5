@@ -60,7 +60,7 @@ User Query
     ↓
 Orchestrator (쿼리 분석 & 라우팅)
     ├── NLQ Agent      : 서버 메트릭 조회
-    ├── Analyst Agent  : 이상 탐지, 예측 분석
+    ├── Analyst Agent  : 이상 탐지, 원인 분석
     ├── Reporter Agent : 보고서 자동 생성
     ├── Advisor Agent  : 트러블슈팅 가이드
     └── Summarizer     : 빠른 요약
