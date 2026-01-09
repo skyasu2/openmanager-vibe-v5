@@ -6,7 +6,7 @@
  * - 일관된 import 경로 제공
  *
  * @usage
- * import { ServerMetrics, Server } from '@/core/types';
+ * import { ServerMetrics, Server } from '@/lib/core/types';
  */
 
 // 서버 관련 타입

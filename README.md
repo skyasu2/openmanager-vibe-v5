@@ -3,9 +3,12 @@
 > **AI-Native Server Monitoring Platform**
 > 자연어로 대화하며 서버를 모니터링하는 차세대 운영 플랫폼
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](https://openmanager-vibe-v5.vercel.app)
-[![AI Engine](https://img.shields.io/badge/AI_Engine-Multi--Agent-purple)](https://ai-engine-490817238363.asia-northeast1.run.app)
-[![Version](https://img.shields.io/badge/Version-5.84.1-blue)](./CHANGELOG.md)
+![Next.js](https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase&logoColor=3ECF8E)
+![Google Cloud](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)
 
 ---
 
@@ -22,9 +25,15 @@ OpenManager VIBE는 **AI 어시스턴트**가 내장된 서버 모니터링 플�
 | **AI Chat** | 자연어로 서버 상태 질의, 장애 원인 분석 |
 | **Smart Dashboard** | 실시간 서버 메트릭 시각화 |
 | **Auto Report** | 장애 발생 시 자동 보고서 생성 |
-| **Predictive Analysis** | 이상 탐지 및 트렌드 예측 |
 
----
+### Technical Highlights
+
+이 프로젝트는 단순한 모니터링 대시보드를 넘어, **Multi-Agent Orchestration**과 **Real-time Data Streaming**을 결합한 기술적 챌린지를 해결했습니다.
+
+- **🤖 Multi-Agent Orchestrator**: 사용자 의도를 파악(Intent Classification)하고, NLQ(Natural Language Query)를 SQL/PromQL로 변환하거나 진단 에이전트를 호출하는 지능형 라우팅 시스템 구현.
+- **⚡ Hybrid Compute Architecture**: UI 렌더링은 **Vercel Edge Network**에서 처리하고, 무거운 AI 연산과 데이터 분석은 **Google Cloud Run**의 컨테이너 환경에서 처리하여 Latency와 비용 최적화.
+- **🔄 Zero-Latency Feedback**: AI 응답 생성 중에도 Tool 실행 상태(Server Check, DB Query 등)를 실시간 스트리밍으로 UI에 노출하여 UX 대기 시간 경험을 최소화.
+
 
 ## AI Assistant
 
@@ -150,10 +159,21 @@ Orchestrator (쿼리 분석 & 라우팅)
 
 ---
 
-## Status
+## Engineering Philosophy
 
-이 프로젝트는 **AI-Native DevOps PoC**입니다.
-차세대 운영 패러다임인 **AX (AI Experience)**를 탐구합니다.
+**"From Dashboard to Dialogue"**
+기존의 Ops 도구들이 "데이터를 보여주는 것"에 집중했다면, VIBE는 "데이터를 이해하고 설명하는 것"에 초점을 맞춥니다.
+
+1.  **Context-Aware**: 단순 메트릭 수치가 아닌, 서버의 과거 맥락과 연관성을 함께 분석합니다.
+2.  **Action-Oriented**: 문제 확인에서 그치지 않고, 구체적인 해결책(Shell Command, Config 수정안)을 제안합니다.
+3.  **Minimal Friction**: 복잡한 쿼리 언어(PromQL, SQL) 없이 자연어만으로 인프라를 제어합니다.
+
+---
+
+## License
+
+Copyright © 2026. All Rights Reserved.
+본 프로젝트는 개인 포트폴리오 목적으로 공개되었으며, 무단 복제 및 재배포를 금지합니다.
 
 ---
 
