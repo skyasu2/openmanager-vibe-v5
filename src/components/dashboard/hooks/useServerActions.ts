@@ -22,9 +22,9 @@
  */
 
 import { useCallback, useState } from 'react';
+import { logger } from '@/lib/logging';
 import type { Server } from '@/types/server';
 import type { ServerAction } from '../types/dashboard.types';
-import { logger } from '@/lib/logging';
 
 export const useServerActions = () => {
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);

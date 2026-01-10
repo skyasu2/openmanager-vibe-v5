@@ -20,9 +20,9 @@ import {
   Play,
   Terminal,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import { memo, useCallback, useState } from 'react';
 import { useCodeInterpreter } from '@/hooks/useCodeInterpreter';
+import { logger } from '@/lib/logging';
 import type { ExecutionResult } from '@/services/code-interpreter';
 
 export interface CodeExecutionBlockProps {

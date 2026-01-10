@@ -16,6 +16,7 @@ import { Monitor, Play, RefreshCw, Server } from 'lucide-react';
 import { useState } from 'react';
 import AnalysisResultsCard from '@/components/ai/AnalysisResultsCard';
 import { useServerQuery } from '@/hooks/useServerQuery';
+import { logger } from '@/lib/logging';
 import type {
   AnalysisResponse,
   CloudRunAnalysisResponse,
@@ -23,7 +24,6 @@ import type {
   ServerAnalysisResult,
   SystemAnalysisSummary,
 } from '@/types/intelligent-monitoring.types';
-import { logger } from '@/lib/logging';
 
 export default function IntelligentMonitoringPage() {
   // 서버 데이터 (React Query)

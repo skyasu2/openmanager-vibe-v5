@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { SYSTEM_AUTO_SHUTDOWN_TIME } from '@/config/system-constants';
-import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
 import { logger } from '@/lib/logging';
+import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
 
 interface UnifiedAdminState {
   // 시스템 상태

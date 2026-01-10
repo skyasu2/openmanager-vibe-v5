@@ -5,8 +5,8 @@
  */
 
 import { useCallback, useMemo, useState } from 'react';
-import type { ErrorState, SixWPrincipleResponse } from '@/types/ai-thinking';
 import { logger } from '@/lib/logging';
+import type { ErrorState, SixWPrincipleResponse } from '@/types/ai-thinking';
 
 interface FormatOptions {
   language: 'ko' | 'en';

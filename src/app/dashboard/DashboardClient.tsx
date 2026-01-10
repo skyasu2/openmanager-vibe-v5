@@ -23,8 +23,8 @@ import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { logger } from '@/lib/logging';
 import { cn } from '@/lib/utils';
-
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 // Admin mode removed - Phase 2: Admin removal complete
 import { useAISidebarStore } from '@/stores/useAISidebarStore'; // AI 사이드바 상태
@@ -35,7 +35,6 @@ import debug from '@/utils/debug';
 import DashboardContent from '../../components/dashboard/DashboardContent';
 // --- Static Imports for Core Components (SSR bailout 해결) ---
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
-import { logger } from '@/lib/logging';
 
 const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl'),

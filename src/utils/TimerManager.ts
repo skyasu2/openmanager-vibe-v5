@@ -6,6 +6,7 @@
  */
 
 import { logger } from '@/lib/logging';
+
 interface TimerConfig {
   id: string;
   callback: () => void | Promise<void>;
@@ -76,9 +77,7 @@ class ServerlessTimerManager {
    * 🚫 우선순위별 타이머 제어 비활성화
    */
   toggleByPriority(priority: TimerConfig['priority'], _enabled: boolean): void {
-    logger.warn(
-      `⚠️ 우선순위별 타이머 제어 무시됨: ${priority} - 서버리스 환경`
-    );
+    logger.warn(`⚠️ 우선순위별 타이머 제어 무시됨: ${priority} - 서버리스 환경`);
   }
 
   /**

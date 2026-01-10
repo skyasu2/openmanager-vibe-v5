@@ -11,8 +11,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SYSTEM_AUTO_SHUTDOWN_TIME } from '@/config/system-constants';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { logger } from '@/lib/logging';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 interface UseSystemAutoShutdownOptions {
   /** 경고 시간 (분) */

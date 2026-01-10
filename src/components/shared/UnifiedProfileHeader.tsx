@@ -9,7 +9,6 @@ import {
   Shield,
   User,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 // 프로필 컴포넌트 임포트
 import {
@@ -27,6 +26,7 @@ import type {
   UnifiedProfileHeaderProps,
 } from '@/components/unified-profile/types/profile.types';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { logger } from '@/lib/logging';
 import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 

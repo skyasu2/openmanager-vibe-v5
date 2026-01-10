@@ -36,10 +36,10 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { logger } from '@/lib/logging';
 
 export interface AdvancedNotification {
   id: string;

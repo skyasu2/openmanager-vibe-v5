@@ -6,11 +6,11 @@
 
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { logger } from '@/lib/logging';
 import {
   safeErrorLog as coreErrorLog,
   safeErrorMessage as coreErrorMessage,
 } from '../lib/error-handler';
-import { logger } from '@/lib/logging';
 
 /**
  * Combines class names with tailwind-merge to handle conflicts

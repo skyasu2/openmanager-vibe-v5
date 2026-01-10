@@ -26,12 +26,12 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 import {
   calculateBackoff,
   fetchWithRetry,
   RETRY_STANDARD,
 } from '@/lib/utils/retry';
-import { logger } from '@/lib/logging';
 
 // ============================================================================
 // Types

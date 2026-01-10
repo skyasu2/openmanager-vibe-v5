@@ -9,8 +9,8 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { logger } from '@/lib/logging';
 import { toast } from 'react-hot-toast';
+import { logger } from '@/lib/logging';
 import type {
   ContextDocument,
   ResponseLogData,

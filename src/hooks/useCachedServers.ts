@@ -10,8 +10,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import type { ServerInstance } from '@/types/data-generator';
 import { logger } from '@/lib/logging';
+import type { ServerInstance } from '@/types/data-generator';
 
 interface CachedServerData {
   servers: ServerInstance[];

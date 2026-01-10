@@ -8,8 +8,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ErrorState } from '../types/ai-thinking';
 import { logger } from '@/lib/logging';
+import type { ErrorState } from '../types/ai-thinking';
 
 interface PerformanceMetric {
   operation: string;

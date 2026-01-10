@@ -37,12 +37,12 @@ import {
   type ClarificationRequest,
   generateClarification,
 } from '@/lib/ai/clarification-generator';
-import { logger } from '@/lib/logging';
 import { classifyQuery } from '@/lib/ai/query-classifier';
 import {
   analyzeQueryComplexity,
   type QueryComplexity,
 } from '@/lib/ai/utils/query-complexity';
+import { logger } from '@/lib/logging';
 import {
   type AsyncQueryProgress,
   type AsyncQueryResult,

@@ -11,7 +11,6 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { logger } from '@/lib/logging';
 
 interface ServiceStatus {
   name: string;

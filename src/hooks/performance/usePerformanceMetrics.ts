@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 import type {
   Alert,
   AlertConfig,
@@ -12,7 +13,6 @@ import type {
   SystemHealth,
   WebSocketPerformanceMessage,
 } from '@/types/performance/performance';
-import { logger } from '@/lib/logging';
 
 interface UsePerformanceMetricsOptions {
   updateInterval?: number;

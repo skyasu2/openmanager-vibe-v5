@@ -1,9 +1,9 @@
 'use client';
 
 import { type KeyboardEvent, type MouseEvent, memo } from 'react';
+import { logger } from '@/lib/logging';
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { MenuItem } from '../types/profile.types';
-import { logger } from '@/lib/logging';
 
 interface ProfileMenuItemProps extends MenuItem {
   onClick?: (e: MouseEvent) => void;

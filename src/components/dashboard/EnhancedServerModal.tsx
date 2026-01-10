@@ -20,9 +20,9 @@ import {
   Server as ServerIcon,
   X,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
+import { logger } from '@/lib/logging';
 
 import { LogsTab } from './EnhancedServerModal.LogsTab';
 import { MetricsTab } from './EnhancedServerModal.MetricsTab';

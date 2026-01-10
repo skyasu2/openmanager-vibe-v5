@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { logger } from '@/lib/logging';
 import { useNaturalLoadingTime } from './useMinimumLoadingTime';
 import { useSequentialLoadingTime } from './useSequentialLoadingTime';
-import { logger } from '@/lib/logging';
 
 // Window 인터페이스 확장 for 대시보드 디버그
 interface WindowWithDashboard extends Window {

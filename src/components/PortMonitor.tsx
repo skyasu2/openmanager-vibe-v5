@@ -18,7 +18,6 @@ import {
   Timer,
   XCircle,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +26,7 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { logger } from '@/lib/logging';
 
 // 포트 상태 인터페이스
 interface PortInfo {

@@ -12,9 +12,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { FREE_TIER_INTERVALS } from '@/config/free-tier-intervals';
+import { logger } from '@/lib/logging';
 import { serverKeys } from './useServerQueries';
 import { systemKeys } from './useSystemQueries';
-import { logger } from '@/lib/logging';
 
 // 🔮 Prediction Query Keys (인라인 정의 - usePredictionQueries.ts에서 이동)
 const predictionKeys = {

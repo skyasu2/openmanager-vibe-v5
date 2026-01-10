@@ -232,9 +232,7 @@ export function useSmartMemo<T>(
       const duration = performance.now() - startTime;
 
       if (duration > threshold) {
-        logger.warn(
-          `🐌 메모이제이션 계산 시간 초과: ${duration.toFixed(2)}ms`
-        );
+        logger.warn(`🐌 메모이제이션 계산 시간 초과: ${duration.toFixed(2)}ms`);
       }
 
       setValue(newValue);

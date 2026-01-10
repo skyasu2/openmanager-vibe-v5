@@ -1,10 +1,10 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { logger } from '@/lib/logging';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { safeErrorLog, safeErrorMessage } from '../lib/error-handler';
 import { systemLogger } from '../lib/logger';
-import { logger } from '@/lib/logging';
 
 type AIAgentState = {
   isEnabled: boolean;

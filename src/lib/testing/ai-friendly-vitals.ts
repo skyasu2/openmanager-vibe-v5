@@ -6,7 +6,6 @@
  * @pattern Strategy + Factory + Dependency Injection 패턴 적용
  */
 
-import { logger } from '@/lib/logging';
 import {
   type UniversalVital,
   universalVitals,

@@ -4,8 +4,8 @@ import {
   persist,
   subscribeWithSelector,
 } from 'zustand/middleware';
-import { logger } from '@/lib/logging';
 import type { CircuitBreakerEvent } from '@/lib/ai/circuit-breaker';
+import { logger } from '@/lib/logging';
 
 /**
  * 🤖 AI Assistant Store Module

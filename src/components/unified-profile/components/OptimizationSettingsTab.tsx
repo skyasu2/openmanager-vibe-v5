@@ -16,8 +16,8 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import { useState } from 'react';
+import { logger } from '@/lib/logging';
 import { KST } from '@/lib/utils/time';
 
 interface OptimizationSettingsTabProps {

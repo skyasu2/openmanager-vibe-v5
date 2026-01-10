@@ -19,6 +19,7 @@
  * - 안전 여유분: 8초 설정 (베르셀 제한의 80%)
  */
 import { logger } from '@/lib/logging';
+
 const TIMEOUT_CONFIG = {
   CLOUD_RUN_AI: 8000, // 🎯 Cloud Run AI 타임아웃 (베르셀 10초 제한 고려)
   LOCAL_AI: 3500, // Local AI 충분한 타임아웃 (Cloud Run 응답 고려)

@@ -15,8 +15,8 @@ import type { AuthUser } from '@/lib/auth/auth-state-manager';
 import { authStateManager } from '@/lib/auth/auth-state-manager';
 // Supabase Auth 관련 임포트
 import { signInWithGitHub, signInWithGoogle } from '@/lib/auth/supabase-auth';
-import debug from '@/utils/debug';
 import { logger } from '@/lib/logging';
+import debug from '@/utils/debug';
 
 interface GuestSessionData {
   sessionId: string;

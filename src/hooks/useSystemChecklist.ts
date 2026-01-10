@@ -13,6 +13,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { logger } from '@/lib/logging';
 import { systemComponents } from '../config/system-components';
 import type {
   ComponentStatus,
@@ -20,7 +21,6 @@ import type {
   SystemComponent,
   UseSystemChecklistProps,
 } from '../types/system-checklist';
-import { logger } from '@/lib/logging';
 
 // 타입들을 re-export
 export type {

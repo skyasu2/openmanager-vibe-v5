@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 import type {
   EnhancedServerData,
   ServerStats,
 } from '@/types/dashboard/server-dashboard.types';
-import { logger } from '@/lib/logging';
 import {
   adaptWorkerStatsToLegacy,
   calculateServerStats,

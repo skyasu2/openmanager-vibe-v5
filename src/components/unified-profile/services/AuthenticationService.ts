@@ -7,8 +7,8 @@
  * @author AI Assistant
  */
 
-import type { ApiResponse, AuthenticationState } from '../types/ProfileTypes';
 import { logger } from '@/lib/logging';
+import type { ApiResponse, AuthenticationState } from '../types/ProfileTypes';
 
 interface ProfileStore {
   authenticateAIAgent(

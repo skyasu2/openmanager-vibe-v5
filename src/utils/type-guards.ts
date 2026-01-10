@@ -93,13 +93,13 @@ export function isString(value: unknown): value is string {
 // 🖥️ 서버 관련 타입 가드
 // ============================================
 
+import { logger } from '@/lib/logging';
 import type {
   ServerAlert,
   ServerInstance,
   ServerMetricsLegacy as ServerMetrics,
   ServerStatus,
 } from '@/types/unified';
-import { logger } from '@/lib/logging';
 
 /**
  * ServerInstance 타입 가드

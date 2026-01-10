@@ -29,8 +29,8 @@ import {
   TrendingUp,
   X,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import { useCallback, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 // ============================================================================
 // Types

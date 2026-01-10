@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ProfileMenuState } from '../types/profile.types';
 import { logger } from '@/lib/logging';
+import type { ProfileMenuState } from '../types/profile.types';
 
 /**
  * 프로필 메뉴 상태 관리 커스텀 훅

@@ -9,6 +9,7 @@
  */
 
 import { logger } from '@/lib/logging';
+
 interface SecurityVulnerability {
   type: 'critical' | 'warning' | 'info';
   category: 'environment' | 'configuration' | 'runtime' | 'build';

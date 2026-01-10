@@ -8,8 +8,8 @@ import {
   Info,
   Shield,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 interface SecurityStatus {
   csp: {

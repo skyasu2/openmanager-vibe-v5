@@ -7,7 +7,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { JobStatus, JobStatusResponse } from '@/types/ai-jobs';
-import { logger } from '@/lib/logging';
 
 // ============================================
 // 타입 정의

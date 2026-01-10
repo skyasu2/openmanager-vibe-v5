@@ -14,7 +14,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { logger } from '@/lib/logging';
 import {
   Select,
   SelectContent,
@@ -24,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import type { DashboardTab } from '@/hooks/useServerDashboard';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
+import { logger } from '@/lib/logging';
 import type { Server } from '@/types/server';
 // react-window Grid는 사용하지 않음 (VirtualizedServerList에서 List 사용)
 import { usePerformanceTracking } from '@/utils/performance';

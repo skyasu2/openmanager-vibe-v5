@@ -61,7 +61,9 @@ interface WorkerMessage {
 }
 
 type WorkerCallback = (result: unknown) => void;
+
 import { logger } from '@/lib/logging';
+
 type WorkerErrorCallback = (error: Error) => void;
 
 /**

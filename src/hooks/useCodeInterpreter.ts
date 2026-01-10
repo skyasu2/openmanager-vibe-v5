@@ -21,11 +21,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { logger } from '@/lib/logging';
 import {
   type ExecutionResult,
   pyodideService,
 } from '@/services/code-interpreter';
-import { logger } from '@/lib/logging';
 
 export interface UseCodeInterpreterReturn {
   /** Execute Python code */

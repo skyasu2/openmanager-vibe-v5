@@ -14,8 +14,8 @@ import { toast } from 'react-hot-toast';
 import { getFallbackServers } from '@/__mocks__/data/mockServerConfig';
 import type { APIRequest } from '@/lib/api/api-batcher';
 import { getAPIBatcher } from '@/lib/api/api-batcher';
-import type { Server } from '@/types/server';
 import { logger } from '@/lib/logging';
+import type { Server } from '@/types/server';
 
 // 타입 정의
 interface UseRealtimeServersOptions {

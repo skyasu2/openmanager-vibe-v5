@@ -17,11 +17,11 @@ import {
   User as UserIcon,
   XCircle,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { logger } from '@/lib/logging';
 import { supabase } from '@/lib/supabase/client';
 
 interface GuestUserData {

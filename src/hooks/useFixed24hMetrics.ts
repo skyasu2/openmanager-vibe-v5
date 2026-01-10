@@ -19,9 +19,9 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 import { UnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type { Server } from '@/types/server';
-import { logger } from '@/lib/logging';
 
 /**
  * 히스토리 데이터 포인트 (차트용)

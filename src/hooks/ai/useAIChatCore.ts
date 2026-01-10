@@ -19,8 +19,8 @@ import {
   type ClarificationRequest,
   useHybridAIQuery,
 } from '@/hooks/ai/useHybridAIQuery';
-import { logger } from '@/lib/logging';
 import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
+import { logger } from '@/lib/logging';
 import type {
   AnalysisBasis,
   EnhancedChatMessage,

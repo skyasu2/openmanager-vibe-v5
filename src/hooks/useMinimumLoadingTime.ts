@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { safeConsoleError } from '../utils/utils-functions';
 import { logger } from '@/lib/logging';
+import { safeConsoleError } from '../utils/utils-functions';
 
 // Window 인터페이스 확장 for 디버그 도구
 interface WindowWithLoadingDebug extends Window {

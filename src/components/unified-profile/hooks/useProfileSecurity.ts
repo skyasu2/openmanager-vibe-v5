@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import type { ProfileSecurityState } from '../types/profile.types';
 import { logger } from '@/lib/logging';
+import type { ProfileSecurityState } from '../types/profile.types';
 
 const defaultSecurityState: ProfileSecurityState = {
   failedAttempts: 0,

@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import type { AlertSeverity } from '@/types/common';
 import { logger } from '@/lib/logging';
+import type { AlertSeverity } from '@/types/common';
 
 interface Alert {
   id: string;

@@ -20,8 +20,8 @@ import {
   Filter,
   X,
 } from 'lucide-react';
-import { logger } from '@/lib/logging';
 import { type FC, useCallback, useMemo, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 interface ChatMessage {
   id: string;

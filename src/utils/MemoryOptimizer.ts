@@ -8,6 +8,7 @@
  */
 
 import { logger } from '@/lib/logging';
+
 interface MemoryStats {
   heapUsed: number;
   heapTotal: number;

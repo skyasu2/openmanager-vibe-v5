@@ -9,11 +9,11 @@
  */
 
 import { type RefObject, useEffect, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 import {
   centralDataManager,
   updateDataVisibility,
 } from '@/services/realtime/CentralizedDataManager';
-import { logger } from '@/lib/logging';
 import { useIntersectionObserver } from './useIntersectionObserver';
 
 type DataType = 'servers' | 'network' | 'system' | 'metrics';

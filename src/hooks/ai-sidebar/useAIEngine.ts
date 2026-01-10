@@ -8,8 +8,8 @@
  */
 
 import { useCallback, useEffect } from 'react';
-import type { ChatMessage } from '@/stores/useAISidebarStore';
 import { logger } from '@/lib/logging';
+import type { ChatMessage } from '@/stores/useAISidebarStore';
 
 export interface UseAIEngineReturn {
   // 상태 (하위 호환성)

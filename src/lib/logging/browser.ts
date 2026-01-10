@@ -56,25 +56,21 @@ function createBrowserLogger(prefix?: string): BrowserLoggerInterface {
   return {
     debug: (...args: unknown[]) => {
       if (shouldLog('debug')) {
-        // biome-ignore lint/suspicious/noConsole: Logger implementation
         console.debug(...formatArgs(args));
       }
     },
     info: (...args: unknown[]) => {
       if (shouldLog('info')) {
-        // biome-ignore lint/suspicious/noConsole: Logger implementation
         console.info(...formatArgs(args));
       }
     },
     warn: (...args: unknown[]) => {
       if (shouldLog('warn')) {
-        // biome-ignore lint/suspicious/noConsole: Logger implementation
         console.warn(...formatArgs(args));
       }
     },
     error: (...args: unknown[]) => {
       if (shouldLog('error')) {
-        // biome-ignore lint/suspicious/noConsole: Logger implementation
         console.error(...formatArgs(args));
       }
     },

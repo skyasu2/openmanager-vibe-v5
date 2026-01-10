@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { signOut, useSession } from '@/hooks/useSupabaseSession';
 import { authStateManager, clearAuthData } from '@/lib/auth/auth-state-manager';
+import { logger } from '@/lib/logging';
 // Unused imports removed: getCurrentUser, isGitHubAuthenticated, isGuestUser
 import type {
   ProfileAuthHook,
   UserInfo,
   UserType,
 } from '../types/profile.types';
-import { logger } from '@/lib/logging';
 
 /**
  * 프로필 인증 관련 커스텀 훅

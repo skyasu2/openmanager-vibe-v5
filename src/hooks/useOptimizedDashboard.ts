@@ -9,11 +9,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo } from 'react';
+import { logger } from '@/lib/logging';
 import { useAutoLogout } from './useAutoLogout';
 import { useSystemAutoShutdown } from './useSystemAutoShutdown';
 import { useSystemStatus } from './useSystemStatus';
 import { createTimerTask, useUnifiedTimer } from './useUnifiedTimer';
-import { logger } from '@/lib/logging';
 
 // Chrome 전용 Performance API 확장
 interface PerformanceMemory {

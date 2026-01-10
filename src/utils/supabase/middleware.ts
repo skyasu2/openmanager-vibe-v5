@@ -1,9 +1,9 @@
 import { createServerClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 import { withDefault } from '@/types/type-utils';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
-import { logger } from '@/lib/logging';
 
 // 🔧 타입 정의: Next.js 16 Response의 cookies 인터페이스
 interface ResponseWithCookies extends Omit<NextResponse, 'cookies'> {

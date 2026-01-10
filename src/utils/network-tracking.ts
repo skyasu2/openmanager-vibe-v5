@@ -7,8 +7,8 @@
  * @author AI Assistant
  */
 
-import type { NetworkRequestInfo } from '../types/system-checklist';
 import { logger } from '@/lib/logging';
+import type { NetworkRequestInfo } from '../types/system-checklist';
 
 /**
  * 네트워크 요청 추적을 위한 래퍼 함수
