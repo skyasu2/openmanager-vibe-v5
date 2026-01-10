@@ -11,6 +11,7 @@
 
 import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
+import { logger } from '@/lib/logging';
 
 export const runtime = 'edge';
 
@@ -166,7 +167,7 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('Error generating OG image:', error);
+    logger.error('Error generating OG image:', error);
 
     // 에러 발생 시 간단한 폴백 이미지 반환
     return new ImageResponse(

@@ -11,6 +11,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { signIn, signOut, useSession } from '@/hooks/useSupabaseSession';
+import { logger } from '@/lib/logging';
 
 export interface GitHubLoginButtonProps {
   onLoginError?: (error: string) => void;
@@ -58,16 +59,16 @@ export default function GitHubLoginButton({
     // Standalone mode: 내부 로직 사용
     try {
       setIsLoading(true);
-      console.log('🔐 Supabase Auth GitHub 로그인 시작...');
+      logger.info('🔐 Supabase Auth GitHub 로그인 시작...');
 
       await signIn('github', {
         callbackUrl,
       });
 
-      console.log('✅ GitHub 로그인 시작, OAuth 페이지로 이동...');
+      logger.info('✅ GitHub 로그인 시작, OAuth 페이지로 이동...');
     } catch (error) {
       const errorMessage = 'GitHub 로그인 중 오류가 발생했습니다.';
-      console.error(errorMessage, error);
+      logger.error(errorMessage, error);
       onLoginError?.(errorMessage);
     } finally {
       setIsLoading(false);
@@ -80,15 +81,15 @@ export default function GitHubLoginButton({
   const handleGitHubLogout = async () => {
     try {
       setIsLoading(true);
-      console.log('🔐 Supabase Auth GitHub 로그아웃...');
+      logger.info('🔐 Supabase Auth GitHub 로그아웃...');
 
       await signOut({
         callbackUrl: '/login',
       });
 
-      console.log('✅ GitHub 로그아웃 완료');
+      logger.info('✅ GitHub 로그아웃 완료');
     } catch (error) {
-      console.error('GitHub 로그아웃 중 오류:', error);
+      logger.error('GitHub 로그아웃 중 오류:', error);
     } finally {
       setIsLoading(false);
     }

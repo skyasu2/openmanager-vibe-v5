@@ -13,6 +13,7 @@
  * @created 2026-01-04
  */
 
+import { logger } from '@/lib/logging';
 import { getRedisClient, isRedisEnabled } from '@/lib/redis/client';
 
 // ============================================================================
@@ -181,7 +182,7 @@ export async function getProviderUsage(
       await redis.set(key, usage, { ex: 86400 });
       return usage;
     } catch (error) {
-      console.warn(`[QuotaTracker] Redis error for ${provider}:`, error);
+      logger.warn(`[QuotaTracker] Redis error for ${provider}:`, error);
     }
   }
 
@@ -225,7 +226,7 @@ export async function recordProviderUsage(
       const key = getRedisKey(provider);
       await redis.set(key, usage, { ex: 86400 });
     } catch (error) {
-      console.warn(`[QuotaTracker] Redis save error for ${provider}:`, error);
+      logger.warn(`[QuotaTracker] Redis save error for ${provider}:`, error);
     }
   }
 
@@ -236,7 +237,7 @@ export async function recordProviderUsage(
   if (process.env.NODE_ENV === 'development') {
     const quota = PROVIDER_QUOTAS[provider];
     const dailyRate = (usage.dailyTokens / quota.dailyTokenLimit) * 100;
-    console.log(
+    logger.info(
       `[QuotaTracker] ${provider}: ${tokensUsed} tokens (daily: ${dailyRate.toFixed(1)}%)`
     );
   }
@@ -325,7 +326,7 @@ export async function selectAvailableProvider(
 
     // 일일 한도 초과 → 다음 Provider로
     if (status.dailyTokenUsageRate >= 0.95) {
-      console.log(
+      logger.info(
         `[QuotaTracker] ${provider}: 일일 한도 95% 초과, 다음 Provider로 전환`
       );
       continue;
@@ -333,7 +334,7 @@ export async function selectAvailableProvider(
 
     // 분당 한도 임박 → 대기 또는 전환
     if (status.recommendedWaitMs && status.recommendedWaitMs < 30_000) {
-      console.log(
+      logger.info(
         `[QuotaTracker] ${provider}: 분당 한도 임박, ${status.recommendedWaitMs}ms 대기 권장`
       );
       // 짧은 대기면 해당 Provider 사용 (호출자가 대기 처리)
@@ -346,7 +347,7 @@ export async function selectAvailableProvider(
   }
 
   // 모든 Provider 한도 초과
-  console.warn('[QuotaTracker] 모든 Provider 한도 초과');
+  logger.warn('[QuotaTracker] 모든 Provider 한도 초과');
   return null;
 }
 
@@ -364,7 +365,7 @@ export async function resetProviderUsage(
       const key = getRedisKey(provider);
       await redis.set(key, usage, { ex: 86400 });
     } catch (error) {
-      console.warn(`[QuotaTracker] Redis reset error for ${provider}:`, error);
+      logger.warn(`[QuotaTracker] Redis reset error for ${provider}:`, error);
     }
   }
 

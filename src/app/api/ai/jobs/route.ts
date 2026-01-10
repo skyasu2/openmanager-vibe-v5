@@ -13,6 +13,7 @@ import {
   analyzeQueryComplexity,
   inferJobType,
 } from '@/lib/ai/job-queue/complexity-analyzer';
+import { logger } from '@/lib/logging';
 import { redisSet } from '@/lib/redis';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import type {
@@ -89,7 +90,7 @@ async function handlePOST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[AI Jobs] Failed to create job:', error);
+      logger.error('[AI Jobs] Failed to create job:', error);
       return NextResponse.json(
         { error: 'Failed to create job', details: error.message },
         { status: 500 }
@@ -122,7 +123,7 @@ async function handlePOST(request: NextRequest) {
     } catch (redisError) {
       // Redis 장애 시 경고만 남기고 계속 진행
       // SSE 스트림은 폴링 API로 폴백됨
-      console.warn(
+      logger.warn(
         '[AI Jobs] Redis initial state failed, SSE may use polling fallback:',
         redisError
       );
@@ -156,7 +157,7 @@ async function handlePOST(request: NextRequest) {
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('[AI Jobs] Error creating job:', error);
+    logger.error('[AI Jobs] Error creating job:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -198,7 +199,7 @@ async function handleGET(request: NextRequest) {
     const { data: jobs, count, error } = await query;
 
     if (error) {
-      console.error('[AI Jobs] Failed to list jobs:', error);
+      logger.error('[AI Jobs] Failed to list jobs:', error);
       return NextResponse.json(
         { error: 'Failed to list jobs' },
         { status: 500 }
@@ -213,7 +214,7 @@ async function handleGET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('[AI Jobs] Error listing jobs:', error);
+    logger.error('[AI Jobs] Error listing jobs:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -274,7 +275,7 @@ async function triggerWorker(
   const apiSecret = process.env.CLOUD_RUN_API_SECRET;
 
   if (!cloudRunUrl) {
-    console.warn('[AI Jobs] CLOUD_RUN_AI_URL not configured');
+    logger.warn('[AI Jobs] CLOUD_RUN_AI_URL not configured');
     return { status: 'skipped', error: 'URL not configured' };
   }
 
@@ -303,29 +304,29 @@ async function triggerWorker(
 
     if (!res.ok) {
       const errorText = await res.text().catch(() => 'Unknown error');
-      console.error(`[AI Jobs] Worker ${res.status}: ${errorText}`);
+      logger.error(`[AI Jobs] Worker ${res.status}: ${errorText}`);
 
       if (res.status === 401) {
-        console.error('[AI Jobs] ⚠️ API key issue - check CLOUD_RUN_API_SECRET');
+        logger.error('[AI Jobs] ⚠️ API key issue - check CLOUD_RUN_API_SECRET');
       }
 
       return { status: 'failed', responseTime, error: `HTTP ${res.status}` };
     }
 
-    console.log(`[AI Jobs] Worker triggered: ${jobId} (${responseTime}ms)`);
+    logger.info(`[AI Jobs] Worker triggered: ${jobId} (${responseTime}ms)`);
     return { status: 'sent', responseTime };
   } catch (error) {
     clearTimeout(timeoutId);
     const responseTime = Date.now() - startTime;
 
     if (error instanceof Error && error.name === 'AbortError') {
-      console.warn(
+      logger.warn(
         `[AI Jobs] Trigger timeout: ${jobId} (${TRIGGER_TIMEOUT_MS}ms)`
       );
       return { status: 'timeout', responseTime, error: 'Request timeout' };
     }
 
-    console.error('[AI Jobs] Trigger error:', error);
+    logger.error('[AI Jobs] Trigger error:', error);
     return {
       status: 'failed',
       responseTime,
@@ -347,7 +348,7 @@ async function logJobCreation(
 ): Promise<void> {
   try {
     // 추후 분석용 로그 (Vercel Logs, Datadog 등)
-    console.log(
+    logger.info(
       `[AI Jobs] Created: ${jobId} | type=${jobType} | trigger=${triggerStatus} | complexity=${complexityLevel}`
     );
 
@@ -368,6 +369,6 @@ async function logJobCreation(
     }
   } catch (error) {
     // 로깅 실패는 무시 (핵심 기능 아님)
-    console.warn('[AI Jobs] Log failed:', error);
+    logger.warn('[AI Jobs] Log failed:', error);
   }
 }

@@ -8,6 +8,7 @@
  */
 
 // 🧠 AI 엔진 버전 정보
+import { logger } from '@/lib/logging';
 export const AI_ENGINE_VERSIONS = {
   master: '4.0.0',
 
@@ -111,7 +112,7 @@ export class VersionManager {
       timestamp: new Date().toISOString(),
     });
 
-    console.log(
+    logger.info(
       `🔄 버전 변경 기록: ${log.component} ${log.previousVersion} → ${log.newVersion}`
     );
 
@@ -204,7 +205,7 @@ export class VersionManager {
   private static saveChangeLog(): void {
     // 🚨 베르셀 환경에서 파일 저장 건너뛰기
     if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-      console.log(
+      logger.info(
         '⚠️ [VersionManager] 베르셀 환경에서 버전 변경 로그 파일 저장 무력화'
       );
       return;
@@ -226,7 +227,7 @@ export class VersionManager {
         });
       });
     } catch (error) {
-      console.warn('⚠️ 버전 변경 로그 저장 실패:', error);
+      logger.warn('⚠️ 버전 변경 로그 저장 실패:', error);
     }
   }
 
@@ -234,7 +235,7 @@ export class VersionManager {
    * 시스템 버전 정보 출력
    */
   static printVersionInfo(): void {
-    console.log(`
+    logger.info(`
 🔢 OpenManager Vibe v5 - 버전 정보
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🧠 AI 엔진 마스터: v${AI_ENGINE_VERSIONS.master}

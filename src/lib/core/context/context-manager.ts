@@ -8,6 +8,7 @@
  */
 
 // 🧠 컨텍스트 인터페이스들
+import { logger } from '@/lib/logging';
 export interface Context {
   system: {
     current_metrics: MetricsSnapshot;
@@ -269,7 +270,7 @@ export class ContextManager {
         data: updateData,
       });
     } catch (error) {
-      console.error('❌ 컨텍스트 업데이트 오류:', error);
+      logger.error('❌ 컨텍스트 업데이트 오류:', error);
     }
   }
 
@@ -513,7 +514,7 @@ export class ContextManager {
         this.limitPatternStorage();
       }
     } catch (error) {
-      console.error('❌ 패턴 학습 오류:', error);
+      logger.error('❌ 패턴 학습 오류:', error);
     }
   }
 
@@ -568,7 +569,7 @@ export class ContextManager {
     try {
       // result가 객체인지 확인
       if (!result || typeof result !== 'object') {
-        console.warn('⚠️ 유효하지 않은 결과:', result);
+        logger.warn('⚠️ 유효하지 않은 결과:', result);
         return;
       }
 
@@ -607,7 +608,7 @@ export class ContextManager {
       // 단기 메모리에도 저장
       this.shortTermMemory.set('last_result', analysisResult);
     } catch (error) {
-      console.error('❌ 결과 저장 오류:', error);
+      logger.error('❌ 결과 저장 오류:', error);
     }
   }
 
@@ -689,7 +690,7 @@ export class ContextManager {
       }
     }
 
-    console.log(
+    logger.info(
       `🧹 컨텍스트 메모리 정리 완료 (무료 티어 최적화): ${this.shortTermMemory.size}개 항목 유지`
     );
   }

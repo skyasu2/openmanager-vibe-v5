@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { safeConsoleError } from '../utils/utils-functions';
+import { logger } from '@/lib/logging';
 
 // Window 인터페이스 확장 for 디버그 도구
 interface WindowWithLoadingDebug extends Window {
@@ -72,7 +73,7 @@ export const useNaturalLoadingTime = ({
   // 확실한 완료 처리 함수 (중복 호출 방지)
   const handleComplete = useCallback(() => {
     if (!isCompleted) {
-      console.log('🎯 useNaturalLoadingTime 완료 처리 시작');
+      logger.info('🎯 useNaturalLoadingTime 완료 처리 시작');
       setIsCompleted(true);
       setIsLoading(false);
       setPhase('completed');
@@ -81,7 +82,7 @@ export const useNaturalLoadingTime = ({
       // 콜백 호출 (약간의 지연으로 안정성 확보)
       setTimeout(() => {
         try {
-          console.log('🎉 onComplete 콜백 호출');
+          logger.info('🎉 onComplete 콜백 호출');
           onComplete?.();
         } catch (error) {
           safeConsoleError('❌ onComplete 콜백 실행 중 에러', error);
@@ -94,7 +95,7 @@ export const useNaturalLoadingTime = ({
   // 스킵 조건 체크 (즉시 실행)
   useEffect(() => {
     if (skipCondition && !isCompleted) {
-      console.log('⚡ 로딩 애니메이션 스킵 - 즉시 완료');
+      logger.info('⚡ 로딩 애니메이션 스킵 - 즉시 완료');
       // 즉시 상태 업데이트
       setIsCompleted(true);
       setIsLoading(false);
@@ -104,7 +105,7 @@ export const useNaturalLoadingTime = ({
       // 콜백도 즉시 실행
       setTimeout(() => {
         try {
-          console.log('🎉 onComplete 콜백 즉시 호출');
+          logger.info('🎉 onComplete 콜백 즉시 호출');
           onComplete?.();
         } catch (error) {
           safeConsoleError('❌ onComplete 콜백 실행 중 에러', error);
@@ -121,7 +122,7 @@ export const useNaturalLoadingTime = ({
         (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') &&
         !isCompleted
       ) {
-        console.log(`🚀 ${e.key} 키로 즉시 완료`);
+        logger.info(`🚀 ${e.key} 키로 즉시 완료`);
         handleComplete();
       }
     };
@@ -142,12 +143,12 @@ export const useNaturalLoadingTime = ({
     };
 
     (window as WindowWithLoadingDebug).emergencyComplete = () => {
-      console.log('🚨 비상 완료 실행!');
+      logger.info('🚨 비상 완료 실행!');
       handleComplete();
     };
 
     (window as WindowWithLoadingDebug).skipToServer = () => {
-      console.log('🚀 서버 대시보드로 바로 이동');
+      logger.info('🚀 서버 대시보드로 바로 이동');
       window.location.href = '/dashboard?instant=true';
     };
   }, [isLoading, phase, progress, isCompleted, elapsedTime, handleComplete]);
@@ -156,7 +157,7 @@ export const useNaturalLoadingTime = ({
   useEffect(() => {
     if (skipCondition || isCompleted) return;
 
-    console.log('🎬 자연스러운 시스템 로딩 시작');
+    logger.info('🎬 자연스러운 시스템 로딩 시작');
 
     let intervalId: NodeJS.Timeout | undefined;
     let phaseTimer: NodeJS.Timeout | undefined;
@@ -196,7 +197,7 @@ export const useNaturalLoadingTime = ({
       // 2초 후: 데이터 로딩 단계
       setTimeout(() => {
         if (!isCleanedUp && !isCompleted) {
-          console.log('📊 데이터 로딩 단계 시작');
+          logger.info('📊 데이터 로딩 단계 시작');
           setPhase('data-loading');
         }
       }, 2000);
@@ -204,7 +205,7 @@ export const useNaturalLoadingTime = ({
       // 3.5초 후: 파이썬 웜업 단계
       setTimeout(() => {
         if (!isCleanedUp && !isCompleted) {
-          console.log('🐍 파이썬 시스템 웜업 단계 시작');
+          logger.info('🐍 파이썬 시스템 웜업 단계 시작');
           setPhase('python-warmup');
         }
       }, 3500);
@@ -216,9 +217,9 @@ export const useNaturalLoadingTime = ({
     const handleActualLoading = async () => {
       if (actualLoadingPromise !== null && actualLoadingPromise !== undefined) {
         try {
-          console.log('📡 실제 데이터 로딩 시작');
+          logger.info('📡 실제 데이터 로딩 시작');
           await actualLoadingPromise;
-          console.log('✅ 실제 데이터 로딩 완료');
+          logger.info('✅ 실제 데이터 로딩 완료');
 
           // 데이터 로딩이 완료되면 빠르게 완료 처리
           if (!isCompleted) {
@@ -238,7 +239,7 @@ export const useNaturalLoadingTime = ({
     // 안전장치: 최대 5초 후 강제 완료
     cleanupTimer = setTimeout(() => {
       if (!isCompleted) {
-        console.log('⏰ 타임아웃 - 강제 완료');
+        logger.info('⏰ 타임아웃 - 강제 완료');
         handleComplete();
       }
     }, 5000);
@@ -258,7 +259,7 @@ export const useNaturalLoadingTime = ({
     const enableSkipTimer = setTimeout(() => {
       const handleClick = () => {
         if (!isCompleted) {
-          console.log('👆 클릭으로 로딩 스킵');
+          logger.info('👆 클릭으로 로딩 스킵');
           handleComplete();
         }
       };

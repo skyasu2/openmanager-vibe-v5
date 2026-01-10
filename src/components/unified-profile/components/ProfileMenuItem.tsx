@@ -3,6 +3,7 @@
 import { type KeyboardEvent, type MouseEvent, memo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { MenuItem } from '../types/profile.types';
+import { logger } from '@/lib/logging';
 
 interface ProfileMenuItemProps extends MenuItem {
   onClick?: (e: MouseEvent) => void;
@@ -35,7 +36,7 @@ export const ProfileMenuItem = memo(function ProfileMenuItem({
     }
 
     if (!disabled && action) {
-      console.log(`🔘 메뉴 클릭: ${label}`);
+      logger.info(`🔘 메뉴 클릭: ${label}`);
       await action();
     }
   };

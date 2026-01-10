@@ -3,6 +3,8 @@
  *
  * Chrome 전용 Performance API 확장
  */
+import { logger } from '@/lib/logging';
+
 interface PerformanceMemory {
   usedJSHeapSize: number;
   totalJSHeapSize: number;
@@ -72,7 +74,7 @@ class DataRetentionScheduler {
   private constructor() {
     this._initializeDefaultPolicies();
     this.startScheduler();
-    console.log('🗂️ DataRetentionScheduler 초기화 완료 (2025-07-02 18:10 KST)');
+    logger.info('🗂️ DataRetentionScheduler 초기화 완료 (2025-07-02 18:10 KST)');
   }
 
   static getInstance(): DataRetentionScheduler {
@@ -153,7 +155,7 @@ class DataRetentionScheduler {
 
     this.policies.set(policy.id, policy);
     this.updateActivePolicies();
-    console.log(`📋 새 보존 정책 추가: ${policy.name}`);
+    logger.info(`📋 새 보존 정책 추가: ${policy.name}`);
     return policy.id;
   }
 
@@ -166,7 +168,7 @@ class DataRetentionScheduler {
 
     Object.assign(policy, updates);
     this.updateActivePolicies();
-    console.log(`✏️ 보존 정책 업데이트: ${policy.name}`);
+    logger.info(`✏️ 보존 정책 업데이트: ${policy.name}`);
     return true;
   }
 
@@ -179,7 +181,7 @@ class DataRetentionScheduler {
 
     this.policies.delete(policyId);
     this.updateActivePolicies();
-    console.log(`🗑️ 보존 정책 삭제: ${policy.name}`);
+    logger.info(`🗑️ 보존 정책 삭제: ${policy.name}`);
     return true;
   }
 
@@ -189,7 +191,7 @@ class DataRetentionScheduler {
   private startScheduler(): void {
     // 브라우저 환경에서만 실행
     if (typeof window === 'undefined') {
-      console.log('⏭️ 서버 환경: DataRetentionScheduler 건너뛰기');
+      logger.info('⏭️ 서버 환경: DataRetentionScheduler 건너뛰기');
       return;
     }
 
@@ -199,11 +201,11 @@ class DataRetentionScheduler {
 
     this.cleanupInterval = setInterval(() => {
       this.runCleanup().catch((error) => {
-        console.error('❌ 자동 정리 실행 중 오류:', error);
+        logger.error('❌ 자동 정리 실행 중 오류:', error);
       });
     }, this.CLEANUP_INTERVAL);
 
-    console.log(
+    logger.info(
       `🔄 데이터 정리 스케줄러 시작 (${this.CLEANUP_INTERVAL / 1000}초 간격)`
     );
   }
@@ -215,7 +217,7 @@ class DataRetentionScheduler {
     const startTime = Date.now();
     const results: CleanupResult[] = [];
 
-    console.log('🧹 데이터 정리 작업 시작...');
+    logger.info('🧹 데이터 정리 작업 시작...');
 
     // 우선순위 순으로 정책 정렬
     const sortedPolicies = Array.from(this.policies.values())
@@ -243,7 +245,7 @@ class DataRetentionScheduler {
     this.updateStats(results, totalTime);
     this.addToCleanupHistory(results);
 
-    console.log(`✅ 데이터 정리 완료 (${totalTime}ms)`);
+    logger.info(`✅ 데이터 정리 완료 (${totalTime}ms)`);
     return results;
   }
 
@@ -616,7 +618,7 @@ class DataRetentionScheduler {
     const startTime = Date.now();
     const results: CleanupResult[] = [];
 
-    console.log(`🔧 수동 정리 시작${dataType ? ` (${dataType})` : ''}...`);
+    logger.info(`🔧 수동 정리 시작${dataType ? ` (${dataType})` : ''}...`);
 
     const policiesToRun = Array.from(this.policies.values())
       .filter((p) => p.enabled && (!dataType || p.dataType === dataType))
@@ -643,7 +645,7 @@ class DataRetentionScheduler {
     this.updateStats(results, totalTime);
     this.addToCleanupHistory(results);
 
-    console.log(`✅ 수동 정리 완료 (${totalTime}ms)`);
+    logger.info(`✅ 수동 정리 완료 (${totalTime}ms)`);
     return results;
   }
 
@@ -677,7 +679,7 @@ class DataRetentionScheduler {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
     }
-    console.log('🛑 DataRetentionScheduler 종료됨');
+    logger.info('🛑 DataRetentionScheduler 종료됨');
   }
 }
 

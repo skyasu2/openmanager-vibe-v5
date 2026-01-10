@@ -13,6 +13,7 @@ import {
   circuitBreakerEvents,
   getAIStatusSummary,
 } from '@/lib/ai/circuit-breaker';
+import { logger } from '@/lib/logging';
 
 // Node.js 런타임 사용 (인메모리 상태 유지)
 export const runtime = 'nodejs';
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
       timestamp: Date.now(),
     });
   } catch (error) {
-    console.error('[AI Status API] Error:', error);
+    logger.error('[AI Status API] Error:', error);
     return NextResponse.json(
       {
         error: 'Failed to get AI status',
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('[AI Status API] Error:', error);
+    logger.error('[AI Status API] Error:', error);
     return NextResponse.json(
       {
         error: 'Failed to process request',

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import * as z from 'zod';
+import { logger } from '@/lib/logging';
 import {
   validateQueryParams,
   validateRequestBody,
@@ -115,7 +116,7 @@ export class ApiRouteBuilder<
       try {
         // 로깅
         if (this.config.enableLogging) {
-          console.log(`[API] ${request.method} ${request.url}`);
+          logger.info(`[API] ${request.method} ${request.url}`);
         }
 
         // 타임아웃 처리
@@ -184,10 +185,7 @@ export class ApiRouteBuilder<
         if (this.responseSchema && this.config.validateResponse) {
           const validationResult = this.responseSchema.safeParse(responseData);
           if (!validationResult.success) {
-            console.error(
-              'Response validation failed:',
-              validationResult.error
-            );
+            logger.error('Response validation failed:', validationResult.error);
 
             if (this.config.showDetailedErrors) {
               return NextResponse.json(
@@ -222,7 +220,7 @@ export class ApiRouteBuilder<
         // 로깅
         if (this.config.enableLogging) {
           const duration = Date.now() - startTime;
-          console.log(`[API] ${request.method} ${request.url} - ${duration}ms`);
+          logger.info(`[API] ${request.method} ${request.url} - ${duration}ms`);
         }
 
         return response;
@@ -242,7 +240,7 @@ export class ApiRouteBuilder<
    * 에러 처리
    */
   private handleError(error: unknown, request: NextRequest): NextResponse {
-    console.error(`[API Error] ${request.method} ${request.url}:`, error);
+    logger.error(`[API Error] ${request.method} ${request.url}:`, error);
 
     // Zod 검증 에러
     if (error instanceof z.ZodError) {

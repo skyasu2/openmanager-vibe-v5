@@ -12,6 +12,7 @@
 
 import { shouldSendWebNotification } from '@/config/server-status-thresholds';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logging';
 
 interface NotificationOptions {
   title: string;
@@ -52,7 +53,7 @@ class BrowserNotificationService {
     }
 
     if (!('Notification' in window)) {
-      console.warn('⚠️ 이 브라우저는 웹 알림을 지원하지 않습니다');
+      logger.warn('⚠️ 이 브라우저는 웹 알림을 지원하지 않습니다');
       return;
     }
 
@@ -64,10 +65,10 @@ class BrowserNotificationService {
         this.isEnabled = this.permission === 'granted';
 
         if (this.isEnabled) {
-          console.log('✅ 웹 알림 권한이 허용되었습니다');
+          logger.info('✅ 웹 알림 권한이 허용되었습니다');
         }
       } catch (error) {
-        console.error('❌ 웹 알림 권한 요청 실패:', error);
+        logger.error('❌ 웹 알림 권한 요청 실패:', error);
       }
     } else {
       this.isEnabled = this.permission === 'granted';
@@ -105,7 +106,7 @@ class BrowserNotificationService {
         variant: variant,
       });
 
-      console.log(`💬 Toast 알림 발송: ${message}`);
+      logger.info(`💬 Toast 알림 발송: ${message}`);
     }
 
     // 현재 상태 저장
@@ -170,9 +171,9 @@ class BrowserNotificationService {
         notification.close();
       };
 
-      console.log(`🔔 웹 알림 발송: ${message}`);
+      logger.info(`🔔 웹 알림 발송: ${message}`);
     } catch (error) {
-      console.error('❌ 웹 알림 발송 실패:', error);
+      logger.error('❌ 웹 알림 발송 실패:', error);
     }
   }
 
@@ -201,7 +202,7 @@ class BrowserNotificationService {
   clearHistory(): void {
     this.notificationHistory = [];
     this.previousServerStates.clear();
-    console.log('🧹 서버 알림 히스토리 초기화 완료');
+    logger.info('🧹 서버 알림 히스토리 초기화 완료');
   }
 
   /**

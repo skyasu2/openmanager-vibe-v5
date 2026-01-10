@@ -9,6 +9,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 export interface DataLoaderOptions<T> {
   // 데이터 로더 함수
@@ -63,7 +64,7 @@ export function useDataLoader<T>({
       const error = err instanceof Error ? err : new Error('데이터 로드 실패');
       setError(error);
       onError?.(error);
-      console.error('데이터 로딩 오류:', error);
+      logger.error('데이터 로딩 오류:', error);
     } finally {
       setIsLoading(false);
     }
@@ -120,6 +121,6 @@ export const useMockDataLoader = <T>(
       return mockDataGenerator();
     },
     refreshInterval,
-    onError: (error) => console.error('Mock data loading error:', error),
+    onError: (error) => logger.error('Mock data loading error:', error),
   });
 };

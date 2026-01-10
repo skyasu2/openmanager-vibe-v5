@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 export interface SystemIntegrationState {
   isConnected: boolean;
@@ -93,7 +94,7 @@ export function useSystemIntegration() {
   }, []);
 
   const _initializeSystem = useCallback(async () => {
-    console.log('[useSystemIntegration] Initializing system...');
+    logger.info('[useSystemIntegration] Initializing system...');
     setState((prev) => ({ ...prev, systemStatus: 'running', isHealthy: true }));
     return true;
   }, []);

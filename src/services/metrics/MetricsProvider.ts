@@ -15,6 +15,7 @@ import {
   type Fixed10MinMetric,
   getDataAtMinute,
 } from '@/data/fixed-24h-metrics';
+import { logger } from '@/lib/logging';
 import { isServer, requireServerModule } from '@/lib/runtime/environment';
 
 // ============================================================================
@@ -70,7 +71,7 @@ function loadHourlyData(hour: number): HourlyData | null {
   const path = requireServerModule<typeof import('path')>('path');
 
   if (!fs || !path) {
-    console.warn('[MetricsProvider] fs/path 모듈 로드 실패');
+    logger.warn('[MetricsProvider] fs/path 모듈 로드 실패');
     return null;
   }
 
@@ -83,19 +84,19 @@ function loadHourlyData(hour: number): HourlyData | null {
     );
 
     if (!fs.existsSync(filePath)) {
-      console.warn(`[MetricsProvider] hourly-data 파일 없음: ${filePath}`);
+      logger.warn(`[MetricsProvider] hourly-data 파일 없음: ${filePath}`);
       return null;
     }
 
     const content = fs.readFileSync(filePath, 'utf-8');
     const data = JSON.parse(content) as HourlyData;
     cachedHourlyData = { hour, data };
-    console.log(
+    logger.info(
       `[MetricsProvider] hourly-data 로드: hour-${paddedHour}.json (${Object.keys(data.dataPoints[0]?.servers || {}).length}개 서버)`
     );
     return data;
   } catch (error) {
-    console.error(`[MetricsProvider] hourly-data 파싱 실패:`, error);
+    logger.error(`[MetricsProvider] hourly-data 파싱 실패:`, error);
     return null;
   }
 }
@@ -301,7 +302,7 @@ export class MetricsProvider {
     }
 
     // fallback: 기존 fixed-24h-metrics 사용
-    console.warn(
+    logger.warn(
       '[MetricsProvider] hourly-data 로드 실패, fallback to fixed data'
     );
     return FIXED_24H_DATASETS.map((dataset) => {

@@ -10,6 +10,7 @@ import {
   fetchWithTracking,
   recordNetworkRequest,
 } from '../utils/network-tracking';
+import { logger } from '@/lib/logging';
 
 // 🔧 네트워크 정보 타입 정의 (타입 안전성 강화)
 interface NetworkInfo {
@@ -66,7 +67,7 @@ export const systemComponents: SystemComponent[] = [
           ? error.originalError
           : error;
 
-        console.error('API 서버 체크 실패:', errorToLog);
+        logger.error('API 서버 체크 실패:', errorToLog);
         return false;
       }
     },
@@ -101,7 +102,7 @@ export const systemComponents: SystemComponent[] = [
           ? error.originalError
           : error;
 
-        console.error('메트릭 데이터베이스 체크 실패:', errorToLog);
+        logger.error('메트릭 데이터베이스 체크 실패:', errorToLog);
         return false;
       }
     },
@@ -130,12 +131,12 @@ export const systemComponents: SystemComponent[] = [
         recordNetworkRequest(networkInfo, response.ok, 'ai-supervisor');
 
         if (!response.ok) {
-          console.warn('⚠️ AI Supervisor 직접 체크 실패, 폴백 모드로 전환');
+          logger.warn('⚠️ AI Supervisor 직접 체크 실패, 폴백 모드로 전환');
           return true; // Graceful degradation - 폴백 모드로 동작
         }
 
         const data = await response.json();
-        console.log('✅ AI Supervisor 체크 성공:', {
+        logger.info('✅ AI Supervisor 체크 성공:', {
           engines: data.engines || 'unknown',
           tier: data.tier || 'fallback',
           responseTime: getResponseTime(networkInfo),
@@ -162,7 +163,7 @@ export const systemComponents: SystemComponent[] = [
             ? getResponseTime(error.networkInfo)
             : 'unknown';
 
-        console.warn(
+        logger.warn(
           '⚠️ AI Supervisor 체크 실패, Graceful Degradation 모드:',
           {
             error: errorMessage,
@@ -205,7 +206,7 @@ export const systemComponents: SystemComponent[] = [
           ? error.originalError
           : error;
 
-        console.error('서버 데이터 생성기 체크 실패:', errorToLog);
+        logger.error('서버 데이터 생성기 체크 실패:', errorToLog);
         return false;
       }
     },
@@ -240,7 +241,7 @@ export const systemComponents: SystemComponent[] = [
           ? error.originalError
           : error;
 
-        console.error('인증 시스템 체크 실패:', errorToLog);
+        logger.error('인증 시스템 체크 실패:', errorToLog);
         return false;
       }
     },
@@ -284,7 +285,7 @@ export const systemComponents: SystemComponent[] = [
           ? error.originalError
           : error;
 
-        console.error('실시간 통신 체크 실패:', errorToLog);
+        logger.error('실시간 통신 체크 실패:', errorToLog);
         return false;
       }
     },
@@ -319,7 +320,7 @@ export const systemComponents: SystemComponent[] = [
           ? error.originalError
           : error;
 
-        console.error('메모리 캐시 체크 실패:', errorToLog);
+        logger.error('메모리 캐시 체크 실패:', errorToLog);
         return false;
       }
     },

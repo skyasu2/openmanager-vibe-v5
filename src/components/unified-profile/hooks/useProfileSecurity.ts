@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { ProfileSecurityState } from '../types/profile.types';
+import { logger } from '@/lib/logging';
 
 const defaultSecurityState: ProfileSecurityState = {
   failedAttempts: 0,
@@ -17,7 +18,7 @@ export function useProfileSecurity() {
   const securityState = useMemo(() => defaultSecurityState, []);
 
   const authenticateAdmin = () => {
-    console.warn(
+    logger.warn(
       'useProfileSecurity.authenticateAdmin 호출됨 - 관리자 모드는 비활성화되었습니다.'
     );
     return Promise.resolve(false);

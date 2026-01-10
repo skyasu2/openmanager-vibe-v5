@@ -5,6 +5,7 @@
  */
 
 import { env, isDevelopment, isProduction, isTest } from '@/env';
+import { logger } from '@/lib/logging';
 
 // This logic is moved from the now-deleted env-config.ts
 function getSiteUrl(): string {
@@ -203,7 +204,7 @@ export async function apiCall<T = unknown>(
     return (await response.json()) as T;
   } catch (error) {
     if (isDevelopment) {
-      console.error('API Call Error:', { endpoint, error, options });
+      logger.error('API Call Error:', { endpoint, error, options });
     }
     throw error;
   }

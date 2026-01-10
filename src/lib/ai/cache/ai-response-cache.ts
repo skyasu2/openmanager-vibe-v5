@@ -19,6 +19,7 @@ import {
   CacheTTL,
   unifiedCache,
 } from '@/lib/cache/unified-cache';
+import { logger } from '@/lib/logging';
 import {
   type CacheResult,
   getAIResponseCache,
@@ -129,7 +130,7 @@ export async function getAICache(
 
     if (memoryResult) {
       const latencyMs = Math.round(performance.now() - startTime);
-      console.info(
+      logger.info(
         `[AI Cache] Memory HIT - Key: ${cacheKey.slice(0, 20)}..., Latency: ${latencyMs}ms`
       );
       return {
@@ -140,7 +141,7 @@ export async function getAICache(
       };
     }
   } catch (error) {
-    console.warn('[AI Cache] Memory cache error:', error);
+    logger.warn('[AI Cache] Memory cache error:', error);
   }
 
   // 2. Redis Cache 조회 (Fallback)
@@ -167,7 +168,7 @@ export async function getAICache(
         namespace: CacheNamespace.AI_RESPONSE,
       });
 
-      console.info(
+      logger.info(
         `[AI Cache] Redis HIT - Key: ${cacheKey.slice(0, 20)}..., Latency: ${latencyMs}ms`
       );
       return {
@@ -178,12 +179,12 @@ export async function getAICache(
       };
     }
   } catch (error) {
-    console.warn('[AI Cache] Redis cache error:', error);
+    logger.warn('[AI Cache] Redis cache error:', error);
   }
 
   // 3. Cache Miss
   const latencyMs = Math.round(performance.now() - startTime);
-  console.info(
+  logger.info(
     `[AI Cache] MISS - Key: ${cacheKey.slice(0, 20)}..., Latency: ${latencyMs}ms`
   );
   return {
@@ -222,7 +223,7 @@ export async function setAICache(
       namespace: CacheNamespace.AI_RESPONSE,
     });
   } catch (error) {
-    console.warn('[AI Cache] Memory set error:', error);
+    logger.warn('[AI Cache] Memory set error:', error);
   }
 
   // 2. Redis Cache 저장 (지속성, 전체 TTL)
@@ -239,10 +240,10 @@ export async function setAICache(
     // Redis AI Cache는 기본 TTL 사용 (1시간)
     await setAIResponseCache(sessionId, query, redisResponse);
   } catch (error) {
-    console.warn('[AI Cache] Redis set error:', error);
+    logger.warn('[AI Cache] Redis set error:', error);
   }
 
-  console.info(
+  logger.info(
     `[AI Cache] SET - Key: ${cacheKey.slice(0, 20)}..., TTL: ${ttlSeconds}s`
   );
 }
@@ -266,11 +267,11 @@ export async function invalidateAICache(sessionId: string): Promise<void> {
       CacheNamespace.AI_RESPONSE
     );
   } catch (error) {
-    console.warn('[AI Cache] Memory invalidate error:', error);
+    logger.warn('[AI Cache] Memory invalidate error:', error);
   }
 
   // Redis Cache 무효화는 ai-cache.ts의 invalidateSessionCache 사용
-  console.info(`[AI Cache] Invalidated session: ${sessionId}`);
+  logger.info(`[AI Cache] Invalidated session: ${sessionId}`);
 }
 
 // ============================================================================

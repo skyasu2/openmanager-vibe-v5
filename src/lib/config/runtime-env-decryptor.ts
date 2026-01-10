@@ -4,6 +4,7 @@
  */
 
 import CryptoJS from 'crypto-js';
+import { logger } from '@/lib/logging';
 
 export interface EncryptedEnvVar {
   encrypted: string;
@@ -111,7 +112,7 @@ export function getDecryptedRedisConfig(): {
       process.env.FORCE_MOCK_REDIS === 'true' ||
       process.env.REDIS_CONNECTION_DISABLED === 'true'
     ) {
-      console.log('🎭 테스트 환경 - Redis 복호화 건너뜀 (목업 모드)');
+      logger.info('🎭 테스트 환경 - Redis 복호화 건너뜀 (목업 모드)');
       return null;
     }
 
@@ -120,7 +121,7 @@ export function getDecryptedRedisConfig(): {
       process.env.HEALTH_CHECK_CONTEXT === 'true' ||
       process.env.DISABLE_HEALTH_CHECK === 'true'
     ) {
-      console.log('🏥 헬스체크 컨텍스트 - Redis 복호화 제한 (차단 방지)');
+      logger.info('🏥 헬스체크 컨텍스트 - Redis 복호화 제한 (차단 방지)');
       return null;
     }
 
@@ -148,12 +149,12 @@ export function getDecryptedRedisConfig(): {
 
     if (!teamPassword) {
       if (process.env.NODE_ENV === 'production') {
-        console.error(
+        logger.error(
           '❌ TEAM_DECRYPT_PASSWORD required in production - Redis disabled'
         );
         return null;
       }
-      console.warn(
+      logger.warn(
         '⚠️ TEAM_DECRYPT_PASSWORD not set - Redis disabled (development)'
       );
       return null;
@@ -163,7 +164,7 @@ export function getDecryptedRedisConfig(): {
     // ⚠️ 보안 개선 권장: SHA256 → PBKDF2로 업그레이드 (새로 암호화 시)
     const passwordHash = CryptoJS.SHA256(teamPassword).toString();
     if (passwordHash !== ENCRYPTED_REDIS_CONFIG.teamPasswordHash) {
-      console.warn('⚠️ 팀 비밀번호 불일치 - Redis 복호화 실패');
+      logger.warn('⚠️ 팀 비밀번호 불일치 - Redis 복호화 실패');
       return null;
     }
 
@@ -183,14 +184,14 @@ export function getDecryptedRedisConfig(): {
       UPSTASH_REDIS_REST_TOKEN: redisToken,
     };
 
-    console.log('🔓 Redis 환경변수 런타임 복호화 성공');
+    logger.info('🔓 Redis 환경변수 런타임 복호화 성공');
 
     return {
       url: redisUrl,
       token: redisToken,
     };
   } catch (error) {
-    console.error(
+    logger.error(
       '❌ Redis 환경변수 복호화 실패:',
       error instanceof Error ? error.message : String(error)
     );
@@ -227,7 +228,7 @@ export function getDecryptedEnvVar(varName: string): string | null {
 
     return varName === 'UPSTASH_REDIS_REST_URL' ? config.url : config.token;
   } catch (error) {
-    console.error(
+    logger.error(
       `❌ ${varName} 복호화 실패:`,
       error instanceof Error ? error.message : String(error)
     );

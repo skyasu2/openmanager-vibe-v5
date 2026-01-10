@@ -4,6 +4,7 @@
  */
 
 import * as z from 'zod';
+import { logger } from '@/lib/logging';
 
 // 🔧 Zod v4 ESM 호환 정수 검증 헬퍼
 // Zod v4의 .int() 메서드는 webpack 번들링 시 'int is not defined' 오류 발생
@@ -185,7 +186,7 @@ export class SystemConfigurationManager {
     const result = ServerConfigSchema.parse(rawConfig);
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log('🔧 SystemConfiguration loaded:', {
+      logger.info('🔧 SystemConfiguration loaded:', {
         totalServers: result.totalServers,
         dataSource: result.mockSystem.dataSource,
         environment: result.environment.mode,
@@ -287,7 +288,7 @@ export class SystemConfigurationManager {
     value: SystemConfig[T]
   ): boolean {
     if (process.env.NODE_ENV === 'production') {
-      console.warn('⚠️ Runtime config updates disabled in production');
+      logger.warn('⚠️ Runtime config updates disabled in production');
       return false;
     }
 
@@ -296,10 +297,10 @@ export class SystemConfigurationManager {
       const validated = ServerConfigSchema.parse(newConfig);
       this.config = validated;
 
-      console.log(`🔧 Config updated: ${key} = `, value);
+      logger.info(`🔧 Config updated: ${key} = `, value);
       return true;
     } catch (error) {
-      console.error(`❌ Config update failed for ${key}:`, error);
+      logger.error(`❌ Config update failed for ${key}:`, error);
       return false;
     }
   }
@@ -342,7 +343,7 @@ export const systemConfig = SystemConfigurationManager.getInstance();
 // 설정 검증 (시작 시)
 const validation = systemConfig.validate();
 if (!validation.isValid) {
-  console.error(
+  logger.error(
     '❌ System configuration validation failed:',
     validation.errors
   );

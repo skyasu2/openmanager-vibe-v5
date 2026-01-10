@@ -8,6 +8,7 @@
  */
 
 import * as crypto from 'crypto';
+import { logger } from '@/lib/logging';
 
 export interface EncryptedEnvData {
   encrypted: string;
@@ -70,7 +71,7 @@ export class EnhancedEnvCryptoManager {
       'sha256'
     );
 
-    console.log('🔐 마스터 키 초기화 완료');
+    logger.info('🔐 마스터 키 초기화 완료');
   }
 
   /**
@@ -130,7 +131,7 @@ export class EnhancedEnvCryptoManager {
 
     // 버전 호환성 체크
     if (encryptedData.version !== this.VERSION) {
-      console.warn(
+      logger.warn(
         `⚠️ 암호화 버전 불일치: ${encryptedData.version} != ${this.VERSION}`
       );
     }
@@ -224,7 +225,7 @@ export class EnhancedEnvCryptoManager {
       try {
         decryptedEnv[key] = this.decryptVariable(encryptedData, password);
       } catch (error) {
-        console.error(`❌ ${key} 복호화 실패:`, error);
+        logger.error(`❌ ${key} 복호화 실패:`, error);
       }
     }
 
@@ -241,7 +242,7 @@ export class EnhancedEnvCryptoManager {
       process.env[key] = value;
     }
 
-    console.log(`✅ ${Object.keys(decrypted).length}개 환경변수 로드 완료`);
+    logger.info(`✅ ${Object.keys(decrypted).length}개 환경변수 로드 완료`);
   }
 
   /**
@@ -275,7 +276,7 @@ export class EnhancedEnvCryptoManager {
    */
   clearCache(): void {
     this.decryptedCache.clear();
-    console.log('🧹 복호화 캐시 초기화됨');
+    logger.info('🧹 복호화 캐시 초기화됨');
   }
 
   /**

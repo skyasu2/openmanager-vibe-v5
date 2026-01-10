@@ -14,11 +14,11 @@
  *
  * // 임계값 조회
  * const cpuThreshold = getThreshold('cpu');
- * console.log(cpuThreshold.critical); // 85
+ * logger.info(cpuThreshold.critical); // 85
  *
  * // 상태 판정
  * if (isCritical('cpu', 90)) {
- *   console.log('CPU 심각 상태!');
+ *   logger.info('CPU 심각 상태!');
  * }
  *
  * // Supabase에서 최신 규칙 로드 (비동기)
@@ -32,6 +32,7 @@ import type {
   IRulesLoader,
   AlertRule,
 } from './types';
+import { logger } from '@/lib/logging';
 import systemRulesJson from './system-rules.json';
 
 /** Supabase system_rules 테이블 레코드 타입 */
@@ -94,22 +95,22 @@ class RulesLoader implements IRulesLoader {
         .eq('enabled', true);
 
       if (error) {
-        console.warn('⚠️ Supabase 규칙 로드 실패:', error.message);
+        logger.warn('⚠️ Supabase 규칙 로드 실패:', error.message);
         return null;
       }
 
       if (!data || data.length === 0) {
-        console.warn('⚠️ Supabase에 규칙 데이터 없음');
+        logger.warn('⚠️ Supabase에 규칙 데이터 없음');
         return null;
       }
 
       // Supabase 데이터를 SystemRules 형식으로 변환
       const rules = this.transformSupabaseData(data as SystemRuleRecord[]);
       this.dataSource = 'supabase';
-      console.log(`✅ Supabase에서 ${data.length}개 규칙 로드됨`);
+      logger.info(`✅ Supabase에서 ${data.length}개 규칙 로드됨`);
       return rules;
     } catch (err) {
-      console.warn('⚠️ Supabase 연결 실패, JSON 폴백 사용:', err);
+      logger.warn('⚠️ Supabase 연결 실패, JSON 폴백 사용:', err);
       return null;
     }
   }
@@ -132,7 +133,7 @@ class RulesLoader implements IRulesLoader {
       this.dataSource = 'supabase';
       return result.data as SystemRules;
     } catch (err) {
-      console.warn('⚠️ Rules API 호출 실패:', err);
+      logger.warn('⚠️ Rules API 호출 실패:', err);
       return null;
     }
   }
@@ -295,12 +296,12 @@ class RulesLoader implements IRulesLoader {
     if (supabaseRules) {
       this.rules = supabaseRules;
       this.lastRefreshTime = now;
-      console.log('✅ 규칙 새로고침 완료 (Supabase)');
+      logger.info('✅ 규칙 새로고침 완료 (Supabase)');
     } else {
       // Supabase 실패 시 JSON 폴백
       this.rules = this.loadFromJson();
       this.lastRefreshTime = now;
-      console.log('⚠️ 규칙 새로고침 완료 (JSON 폴백)');
+      logger.info('⚠️ 규칙 새로고침 완료 (JSON 폴백)');
     }
   }
 

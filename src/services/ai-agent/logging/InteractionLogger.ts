@@ -5,6 +5,7 @@
  * 무료 티어 한도 내에서 동작 (월 50,000 행)
  */
 
+import { logger } from '@/lib/logging';
 import { getSupabaseClient } from '@/lib/supabase/client';
 import type { UserFeedback } from '@/types/ai-learning';
 
@@ -34,7 +35,7 @@ export class InteractionLogger {
    */
   log(event: string, data?: unknown): void {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[InteractionLogger] ${event}`, data);
+      logger.info(`[InteractionLogger] ${event}`, data);
     }
   }
 
@@ -58,11 +59,11 @@ export class InteractionLogger {
    * 에러 로깅
    */
   logError(error: Error, context?: unknown): void {
-    console.error('[InteractionLogger] Error:', error.message, context);
+    logger.error('[InteractionLogger] Error:', error.message, context);
 
     // 개발 환경에서만 스택 트레이스 출력
     if (process.env.NODE_ENV === 'development') {
-      console.error(error.stack);
+      logger.error(error.stack);
     }
   }
 
@@ -93,19 +94,19 @@ export class InteractionLogger {
         .single();
 
       if (error) {
-        console.error('[InteractionLogger] Supabase 저장 실패:', error.message);
+        logger.error('[InteractionLogger] Supabase 저장 실패:', error.message);
         return { success: false, error: error.message };
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('[InteractionLogger] 피드백 저장 성공:', data?.id);
+        logger.info('[InteractionLogger] 피드백 저장 성공:', data?.id);
       }
 
       return { success: true, id: data?.id };
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : '알 수 없는 오류';
-      console.error('[InteractionLogger] 저장 중 예외:', errorMessage);
+      logger.error('[InteractionLogger] 저장 중 예외:', errorMessage);
       return { success: false, error: errorMessage };
     }
   }
@@ -182,7 +183,7 @@ export class InteractionLogger {
         .limit(30);
 
       if (error) {
-        console.error('[InteractionLogger] 통계 조회 실패:', error.message);
+        logger.error('[InteractionLogger] 통계 조회 실패:', error.message);
         return null;
       }
 
@@ -209,7 +210,7 @@ export class InteractionLogger {
 
       return stats;
     } catch (err) {
-      console.error('[InteractionLogger] 통계 조회 예외:', err);
+      logger.error('[InteractionLogger] 통계 조회 예외:', err);
       return null;
     }
   }

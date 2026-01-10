@@ -6,6 +6,7 @@
  */
 
 import type { UserPermissions } from '@/types/permissions.types';
+import { logger } from '@/lib/logging';
 
 export interface PermissionTestScenario {
   name: string;
@@ -102,9 +103,9 @@ export function testPermissions(
   console.group(`🧪 [Permission Test] ${scenarioName}`);
 
   if (allPassed) {
-    console.log('✅ 모든 권한 테스트 통과');
+    logger.info('✅ 모든 권한 테스트 통과');
   } else {
-    console.warn('❌ 일부 권한 테스트 실패');
+    logger.warn('❌ 일부 권한 테스트 실패');
   }
 
   results.forEach(({ key, expected, actual, passed }) => {
@@ -123,7 +124,7 @@ export function testPermissions(
         return '[unserializable]';
       }
     };
-    console.log(
+    logger.info(
       `${icon} ${key}: 예상=${formatValue(expected)}, 실제=${formatValue(actual)}`
     );
   });
@@ -175,7 +176,7 @@ export function testMenuItemVisibility(permissions: UserPermissions): void {
     const testPassed = visible === shouldBeVisible;
     const icon = testPassed ? '✅' : '❌';
 
-    console.log(
+    logger.info(
       `${icon} ${name}: ${visible ? '표시됨' : '숨김'} (예상: ${shouldBeVisible ? '표시' : '숨김'})`
     );
   });
@@ -211,12 +212,12 @@ export function runFullPermissionTest(permissions: UserPermissions): void {
 
     // 전체 결과
     if (permissionTestPassed) {
-      console.log('🎉 전체 권한 시스템 테스트 통과!');
+      logger.info('🎉 전체 권한 시스템 테스트 통과!');
     } else {
-      console.warn('⚠️ 권한 시스템에 문제가 있을 수 있습니다.');
+      logger.warn('⚠️ 권한 시스템에 문제가 있을 수 있습니다.');
     }
   } else {
-    console.warn(`⚠️ 알 수 없는 사용자 유형: ${permissions.userType}`);
+    logger.warn(`⚠️ 알 수 없는 사용자 유형: ${permissions.userType}`);
   }
 
   console.groupEnd();

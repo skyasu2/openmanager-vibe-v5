@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ProfileMenuState } from '../types/profile.types';
+import { logger } from '@/lib/logging';
 
 /**
  * 프로필 메뉴 상태 관리 커스텀 훅
@@ -60,7 +61,7 @@ export function useProfileMenu() {
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        console.log('🎯 외부 클릭 감지됨, 드롭다운 닫기');
+        logger.info('🎯 외부 클릭 감지됨, 드롭다운 닫기');
         setMenuState({
           showProfileMenu: false,
         });

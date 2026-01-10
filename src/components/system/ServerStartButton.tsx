@@ -7,6 +7,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { logger } from '@/lib/logging';
 
 interface WarmupProgress {
   active: boolean;
@@ -43,7 +44,7 @@ export default function ServerStartButton() {
         }
       }
     } catch (error) {
-      console.error('웜업 상태 확인 실패:', error);
+      logger.error('웜업 상태 확인 실패:', error);
     }
   }, [pollInterval]);
 
@@ -79,7 +80,7 @@ export default function ServerStartButton() {
         toast.error(`서버 시작 실패: ${data.message}`);
       }
     } catch (error) {
-      console.error('서버 시작 오류:', error);
+      logger.error('서버 시작 오류:', error);
       toast.error('서버 시작 중 오류가 발생했습니다');
     } finally {
       setIsLoading(false);
@@ -105,7 +106,7 @@ export default function ServerStartButton() {
         }
       }
     } catch (error) {
-      console.error('웜업 중지 오류:', error);
+      logger.error('웜업 중지 오류:', error);
       toast.error('웜업 중지 중 오류가 발생했습니다');
     }
   };

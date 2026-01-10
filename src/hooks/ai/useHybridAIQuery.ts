@@ -37,6 +37,7 @@ import {
   type ClarificationRequest,
   generateClarification,
 } from '@/lib/ai/clarification-generator';
+import { logger } from '@/lib/logging';
 import { classifyQuery } from '@/lib/ai/query-classifier';
 import {
   analyzeQueryComplexity,
@@ -310,7 +311,7 @@ export function useHybridAIQuery(
       if (!query || !query.trim()) {
         if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
-          console.warn('[HybridAI] executeQuery: Empty query, skipping');
+          logger.warn('[HybridAI] executeQuery: Empty query, skipping');
         }
         return;
       }
@@ -323,7 +324,7 @@ export function useHybridAIQuery(
 
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.log(
+        logger.info(
           `[HybridAI] Query complexity: ${analysis.level} (score: ${analysis.score}), Mode: ${isComplex ? 'job-queue' : 'streaming'}`
         );
       }
@@ -388,7 +389,7 @@ export function useHybridAIQuery(
 
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.log(
+        logger.info(
           `[HybridAI] Classification: intent=${classification.intent}, complexity=${classification.complexity}, confidence=${classification.confidence}%`
         );
       }
@@ -455,7 +456,7 @@ export function useHybridAIQuery(
     if (!query || !query.trim()) {
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.warn('[HybridAI] skipClarification: No pending query to send');
+        logger.warn('[HybridAI] skipClarification: No pending query to send');
       }
       setState((prev) => ({ ...prev, clarification: null }));
       return;

@@ -9,6 +9,7 @@
  */
 
 import { Redis } from '@upstash/redis';
+import { logger } from '@/lib/logging';
 
 // Redis 클라이언트 인스턴스 (싱글톤)
 let redisInstance: Redis | null = null;
@@ -43,7 +44,7 @@ export function getRedisClient(): Redis | null {
 
   // 환경 변수가 없으면 null 반환 (Graceful degradation)
   if (!url || !token) {
-    console.warn(
+    logger.warn(
       '[Redis] Missing environment variables: KV_REST_API_URL/UPSTASH_REDIS_REST_URL'
     );
     isRedisAvailable = false;
@@ -59,11 +60,11 @@ export function getRedisClient(): Redis | null {
     });
 
     isRedisAvailable = true;
-    console.info('[Redis] Client initialized successfully');
+    logger.info('[Redis] Client initialized successfully');
 
     return redisInstance;
   } catch (error) {
-    console.error('[Redis] Failed to initialize client:', error);
+    logger.error('[Redis] Failed to initialize client:', error);
     isRedisAvailable = false;
     return null;
   }
@@ -150,7 +151,7 @@ export async function safeRedisOp<T>(
   try {
     return await operation(client);
   } catch (error) {
-    console.error('[Redis] Operation failed:', error);
+    logger.error('[Redis] Operation failed:', error);
     // 연속 실패 시 Redis 비활성화 (Circuit Breaker 역할)
     isRedisAvailable = false;
     return fallback;
@@ -200,7 +201,7 @@ export async function redisGet<T>(key: string): Promise<T | null> {
     const value = await client.get<T>(key);
     return value;
   } catch (e) {
-    console.warn(`[Redis] GET failed for ${key}:`, e);
+    logger.warn(`[Redis] GET failed for ${key}:`, e);
     return null;
   }
 }
@@ -221,7 +222,7 @@ export async function redisSet<T>(
     await client.set(key, value, { ex: ttlSeconds });
     return true;
   } catch (e) {
-    console.warn(`[Redis] SET failed for ${key}:`, e);
+    logger.warn(`[Redis] SET failed for ${key}:`, e);
     return false;
   }
 }
@@ -237,7 +238,7 @@ export async function redisDel(key: string): Promise<boolean> {
     await client.del(key);
     return true;
   } catch (e) {
-    console.warn(`[Redis] DEL failed for ${key}:`, e);
+    logger.warn(`[Redis] DEL failed for ${key}:`, e);
     return false;
   }
 }

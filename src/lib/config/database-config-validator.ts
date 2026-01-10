@@ -9,6 +9,7 @@
  */
 
 import * as z from 'zod';
+import { logger } from '@/lib/logging';
 
 // 환경변수 스키마 정의
 const DatabaseConfigSchema = z.object({
@@ -381,10 +382,10 @@ if (process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
   validateDatabaseConfig()
     .then((result) => {
       if (!result.isValid || result.security.score < 80) {
-        console.warn('⚠️ 데이터베이스 설정 검증 결과:');
-        console.warn(generateConfigReport(result));
+        logger.warn('⚠️ 데이터베이스 설정 검증 결과:');
+        logger.warn(generateConfigReport(result));
       } else {
-        console.log('✅ 데이터베이스 설정 검증 통과');
+        logger.info('✅ 데이터베이스 설정 검증 통과');
       }
     })
     .catch(console.error);

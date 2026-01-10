@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logging';
 import type {
   CacheEntryMeta,
   QueryIntent,
@@ -197,7 +198,7 @@ export class MemoryRAGCache {
     const currentDay = getCurrentScenarioDay();
     if (currentDay !== this.lastScenarioDay) {
       // 새로운 날 -> 시나리오 데이터 갱신 필요
-      console.log(
+      logger.info(
         `🔄 24시간 시나리오 로테이션: Day ${this.lastScenarioDay} -> ${currentDay}`
       );
       this.invalidateSearchCache();
@@ -227,7 +228,7 @@ export class MemoryRAGCache {
     for (const key of keysToDelete) {
       this.searchCache.delete(key);
     }
-    console.log(
+    logger.info(
       `🗑️ Intent '${intent}' 캐시 무효화: ${keysToDelete.length}개 항목 제거`
     );
   }

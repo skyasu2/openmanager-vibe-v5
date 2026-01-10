@@ -33,6 +33,7 @@
  */
 
 import type { NextRequest } from 'next/server';
+import { logger } from '@/lib/logging';
 
 /**
  * Next.js 15 쿠키 객체 타입
@@ -93,7 +94,7 @@ export function getCookieValue(
 
   // 런타임 검증 (방어적 프로그래밍)
   if (typeof cookie.value !== 'string') {
-    console.warn(
+    logger.warn(
       `[safe-cookie-utils] Unexpected cookie format for "${name}":`,
       cookie
     );

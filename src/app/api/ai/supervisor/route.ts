@@ -35,6 +35,7 @@ import {
 import { calculateDynamicTimeout } from '@/lib/ai/utils/query-complexity';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
+import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { quickSanitize } from './security';
 
@@ -331,7 +332,7 @@ export const POST = withRateLimit(
       const parseResult = requestSchema.safeParse(body);
 
       if (!parseResult.success) {
-        console.warn(
+        logger.warn(
           '⚠️ [Supervisor] Invalid payload:',
           parseResult.error.issues
         );
@@ -388,9 +389,9 @@ export const POST = withRateLimit(
         maxTimeout: 120000, // 최대 120초
       });
 
-      console.log(`🚀 [Supervisor] Query: "${userQuery.slice(0, 50)}..."`);
-      console.log(`📡 [Supervisor] Session: ${sessionId}`);
-      console.log(`⏱️ [Supervisor] Dynamic timeout: ${dynamicTimeout}ms`);
+      logger.info(`🚀 [Supervisor] Query: "${userQuery.slice(0, 50)}..."`);
+      logger.info(`📡 [Supervisor] Session: ${sessionId}`);
+      logger.info(`⏱️ [Supervisor] Dynamic timeout: ${dynamicTimeout}ms`);
 
       // ====================================================================
       // 3. 캐시 조회 (2026-01-08 v5.85.0 추가)
@@ -407,7 +408,7 @@ export const POST = withRateLimit(
           cacheEndpoint
         );
         if (cacheResult.hit && cacheResult.data?.response) {
-          console.log(
+          logger.info(
             `📦 [Supervisor] Cache HIT (${cacheResult.source}, ${cacheResult.latencyMs}ms)`
           );
           // Accept 헤더에 따라 응답 형식 결정
@@ -430,9 +431,9 @@ export const POST = withRateLimit(
             },
           });
         }
-        console.log(`📦 [Supervisor] Cache MISS`);
+        logger.info(`📦 [Supervisor] Cache MISS`);
       } else {
-        console.log(`📦 [Supervisor] Cache SKIP (context or realtime query)`);
+        logger.info(`📦 [Supervisor] Cache SKIP (context or realtime query)`);
       }
 
       // 4. 스트리밍 요청 여부 확인
@@ -445,7 +446,7 @@ export const POST = withRateLimit(
 
       // 4. Cloud Run 프록시 모드 (Primary - CLOUD_RUN_ENABLED=true)
       if (isCloudRunEnabled()) {
-        console.log('☁️ [Supervisor] Using Cloud Run backend');
+        logger.info('☁️ [Supervisor] Using Cloud Run backend');
 
         // AI SDK v5 parts 형식 → Cloud Run content 형식으로 정규화
         const normalizedMessages = normalizeMessagesForCloudRun(messages);
@@ -462,12 +463,12 @@ export const POST = withRateLimit(
             maxCharsPerMessage: 800,
           });
           messagesToSend = compression.messages;
-          console.log(
+          logger.info(
             `🗜️ [Supervisor] Context compressed: ${compression.originalCount} → ${compression.compressedCount} messages (${compression.compressionRatio}% saved)`
           );
         }
 
-        console.log(
+        logger.info(
           `📝 [Supervisor] Normalized ${messages.length} messages → ${messagesToSend.length} for Cloud Run`
         );
 
@@ -522,7 +523,7 @@ export const POST = withRateLimit(
                     },
                     cacheEndpoint
                   ).catch((err) =>
-                    console.warn('[Supervisor] Cache set failed:', err)
+                    logger.warn('[Supervisor] Cache set failed:', err)
                   );
                 }
 
@@ -570,7 +571,7 @@ export const POST = withRateLimit(
 
           // 폴백 사용 시 로깅
           if (result.source === 'fallback') {
-            console.log('⚠️ [Supervisor] Using fallback response (stream mode)');
+            logger.info('⚠️ [Supervisor] Using fallback response (stream mode)');
           }
 
           return result.data;
@@ -610,7 +611,7 @@ export const POST = withRateLimit(
 
           // 폴백 사용 시 헤더 추가
           if (result.source === 'fallback') {
-            console.log('⚠️ [Supervisor] Using fallback response (json mode)');
+            logger.info('⚠️ [Supervisor] Using fallback response (json mode)');
             return NextResponse.json(result.data, {
               headers: {
                 'X-Session-Id': sessionId,
@@ -637,7 +638,7 @@ export const POST = withRateLimit(
                 },
                 cacheEndpoint
               ).catch((err) =>
-                console.warn('[Supervisor] Cache set failed:', err)
+                logger.warn('[Supervisor] Cache set failed:', err)
               );
             }
           }
@@ -649,7 +650,7 @@ export const POST = withRateLimit(
       }
 
       // 5. Fallback: Cloud Run 비활성화 시 폴백 응답
-      console.warn('⚠️ [Supervisor] Cloud Run disabled, returning fallback');
+      logger.warn('⚠️ [Supervisor] Cloud Run disabled, returning fallback');
       const fallback = createFallbackResponse('supervisor', {
         query: userQuery,
       });
@@ -668,11 +669,11 @@ export const POST = withRateLimit(
         }
       );
     } catch (error) {
-      console.error('❌ AI 스트리밍 처리 실패:', error);
+      logger.error('❌ AI 스트리밍 처리 실패:', error);
 
       // 에러 상세 정보 로깅
       if (error instanceof Error) {
-        console.error('Error details:', {
+        logger.error('Error details:', {
           name: error.name,
           message: error.message,
           stack: error.stack?.slice(0, 500),

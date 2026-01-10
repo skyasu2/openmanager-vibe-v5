@@ -4,6 +4,7 @@
  * 서버 개수를 중앙에서 관리하고, 이에 따라 다른 설정들이 자동으로 조정됩니다.
  */
 
+import { logger } from '@/lib/logging';
 interface PerformanceMemory {
   usedJSHeapSize: number;
   totalJSHeapSize: number;
@@ -132,7 +133,7 @@ export function calculateOptimalUpdateInterval(): number {
     }
   } catch {
     // Edge Runtime에서는 process.memoryUsage()가 지원되지 않음
-    console.log('🔧 Edge Runtime 환경 - 기본 업데이트 간격 사용');
+    logger.info('🔧 Edge Runtime 환경 - 기본 업데이트 간격 사용');
   }
 
   // 클라이언트 사이드에서는 performance.memory 사용
@@ -175,7 +176,7 @@ export function calculateOptimalCollectionInterval(): number {
     }
   } catch {
     // Edge Runtime에서는 process.memoryUsage()가 지원되지 않음
-    console.log('🔧 Edge Runtime 환경 - 데이터 수집 간격 기본값 사용');
+    logger.info('🔧 Edge Runtime 환경 - 데이터 수집 간격 기본값 사용');
   }
 
   // 클라이언트 사이드에서는 performance.memory 사용
@@ -310,18 +311,18 @@ export function getAllServersInfo() {
 export function logServerConfig(
   config: ServerGenerationConfig = ACTIVE_SERVER_CONFIG
 ): void {
-  console.log('🎯 서버 데이터 생성 설정:');
-  console.log(`  📊 총 서버 수: ${config.maxServers}개`);
-  console.log(
+  logger.info('🎯 서버 데이터 생성 설정:');
+  logger.info(`  📊 총 서버 수: ${config.maxServers}개`);
+  logger.info(
     `  🚨 심각 상태: ${config.scenario.criticalCount}개 (${Math.round((config.scenario.criticalCount / config.maxServers) * 100)}%)`
   );
-  console.log(
+  logger.info(
     `  ⚠️  경고 상태: ${Math.round(config.scenario.warningPercent * 100)}%`
   );
 
   // 서버 타입 정보 로깅
   if (config.serverTypes) {
-    console.log('  🏢 서버 타입 할당:');
+    logger.info('  🏢 서버 타입 할당:');
     const { serverTypes } = config;
     serverTypes.orderedTypes.forEach((type, index) => {
       let status = '🟢 정상';
@@ -330,18 +331,18 @@ export function logServerConfig(
       } else if (serverTypes.statusMapping.warning.includes(index)) {
         status = '🟡 경고';
       }
-      console.log(`    ${index + 1}. ${type} (${status})`);
+      logger.info(`    ${index + 1}. ${type} (${status})`);
     });
   }
 
-  console.log(
+  logger.info(
     `  📄 페이지 크기: ${config.pagination.defaultPageSize}개 (최대 ${config.pagination.maxPageSize}개)`
   );
-  console.log(`  🔄 업데이트 간격: ${config.cache.updateInterval / 1000}초`);
-  console.log(`  ⚡ 배치 크기: ${config.performance.batchSize}개`);
+  logger.info(`  🔄 업데이트 간격: ${config.cache.updateInterval / 1000}초`);
+  logger.info(`  ⚡ 배치 크기: ${config.performance.batchSize}개`);
 
   // 전체 서버 정보 로깅
-  console.log('\n  📋 전체 서버 정보:');
+  logger.info('\n  📋 전체 서버 정보:');
   getAllServersInfo().forEach((server) => {
     const statusIcon =
       server.status === 'critical'
@@ -349,6 +350,6 @@ export function logServerConfig(
         : server.status === 'warning'
           ? '🟡'
           : '🟢';
-    console.log(`    ${server.name}: ${server.type} ${statusIcon}`);
+    logger.info(`    ${server.name}: ${server.type} ${statusIcon}`);
   });
 }

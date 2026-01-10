@@ -9,6 +9,7 @@
 import { groq } from '@ai-sdk/groq';
 import { generateText } from 'ai';
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 
 // Node.js 런타임 사용
 export const runtime = 'nodejs';
@@ -40,9 +41,7 @@ export async function POST(request: NextRequest) {
 
     // Check GROQ API key
     if (!process.env.GROQ_API_KEY) {
-      console.warn(
-        '[Classify API] GROQ_API_KEY not configured, using fallback'
-      );
+      logger.warn('[Classify API] GROQ_API_KEY not configured, using fallback');
       return NextResponse.json({
         ...fallbackClassify(query),
         source: 'fallback',
@@ -75,7 +74,7 @@ Guidelines:
     // Parse JSON from response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.warn('[Classify API] Failed to parse JSON, using fallback');
+      logger.warn('[Classify API] Failed to parse JSON, using fallback');
       return NextResponse.json({
         ...fallbackClassify(query),
         source: 'fallback',
@@ -92,7 +91,7 @@ Guidelines:
       !parsed.intent ||
       !parsed.reasoning
     ) {
-      console.warn('[Classify API] Invalid response structure, using fallback');
+      logger.warn('[Classify API] Invalid response structure, using fallback');
       return NextResponse.json({
         ...fallbackClassify(query),
         source: 'fallback',
@@ -106,7 +105,7 @@ Guidelines:
       latency: Date.now() - startTime,
     });
   } catch (error) {
-    console.error('[Classify API] Error:', error);
+    logger.error('[Classify API] Error:', error);
 
     // Fallback on error
     try {

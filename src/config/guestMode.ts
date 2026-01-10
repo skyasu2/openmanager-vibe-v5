@@ -20,6 +20,7 @@
  * 📝 Build timestamp: 2025-10-21T13:05:00Z - Force rebuild for guest mode toggle
  */
 
+import { logger } from '@/lib/logging';
 export const GUEST_MODE = {
   /** 게스트가 모든 기능 사용 가능 (개발용) */
   FULL_ACCESS: 'full_access',
@@ -94,7 +95,7 @@ export function getGuestMode(): GuestModeType {
   // 디버그: 환경 변수 값 확인 (클라이언트, 한 번만)
   if (typeof window !== 'undefined' && !hasLoggedOnce) {
     hasLoggedOnce = true;
-    console.log('🎛️ [GuestMode] Init', {
+    logger.info('🎛️ [GuestMode] Init', {
       build: BUILD_TIMESTAMP,
       envBoolean: process.env.NEXT_PUBLIC_GUEST_FULL_ACCESS ?? null,
       envMode: process.env.NEXT_PUBLIC_GUEST_MODE ?? null,

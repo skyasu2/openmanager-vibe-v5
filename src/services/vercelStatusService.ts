@@ -9,6 +9,8 @@
  */
 
 // GlobalThis 확장 인터페이스
+import { logger } from '@/lib/logging';
+
 interface GlobalWithCache {
   scalingConfigCache?: {
     data: ScalingConfig;
@@ -86,7 +88,7 @@ export class VercelStatusService {
       // Vercel 환경 감지
       const isVercel = process.env.VERCEL === '1';
       if (!isVercel) {
-        console.log('🔧 개발 환경: 로컬 실행 (무제한 모드)');
+        logger.info('🔧 개발 환경: 로컬 실행 (무제한 모드)');
         return 'enterprise'; // 로컬에서는 무제한
       }
 
@@ -106,7 +108,7 @@ export class VercelStatusService {
         return 'hobby'; // 10초 기본값
       }
     } catch (error) {
-      console.warn('⚠️ Vercel 계획 감지 실패, hobby로 가정:', error);
+      logger.warn('⚠️ Vercel 계획 감지 실패, hobby로 가정:', error);
       return 'hobby';
     }
   }
@@ -219,7 +221,7 @@ export class VercelStatusService {
         baseConfig.updateInterval * 1.3,
         20000
       );
-      console.log(
+      logger.info(
         `⚠️ 높은 리소스 사용률 감지 (${status.executions.percentage.toFixed(1)}%), 보수적 설정: ${baseConfig.maxServers}개 서버`
       );
     } else if (status.executions.percentage < 30) {
@@ -232,7 +234,7 @@ export class VercelStatusService {
         baseConfig.updateInterval * 0.9,
         8000
       );
-      console.log(
+      logger.info(
         `✅ 낮은 리소스 사용률 (${status.executions.percentage.toFixed(1)}%), 적극적 설정: ${baseConfig.maxServers}개 서버`
       );
     }
@@ -266,7 +268,7 @@ export class VercelStatusService {
       // Prometheus 메트릭에서 현재 부하 확인
       const response = await fetch(`${baseUrl}/api/metrics/prometheus`);
       if (!response.ok) {
-        console.log(`📊 Prometheus 메트릭 조회 실패: ${response.status}`);
+        logger.info(`📊 Prometheus 메트릭 조회 실패: ${response.status}`);
         return;
       }
 
@@ -291,7 +293,7 @@ export class VercelStatusService {
           this.scalingConfig.maxServers - 2,
           5
         );
-        console.log(
+        logger.info(
           `🔥 높은 시스템 부하 감지 (CPU: ${avgCpu}%, MEM: ${avgMemory}%), 서버 수 감소: ${this.scalingConfig.maxServers}`
         );
       } else if (avgCpu < 20 && avgMemory < 30) {
@@ -303,14 +305,14 @@ export class VercelStatusService {
           this.scalingConfig.maxServers + 1,
           maxAllowed
         );
-        console.log(
+        logger.info(
           `📈 낮은 시스템 부하 (CPU: ${avgCpu}%, MEM: ${avgMemory}%), 서버 수 증가: ${this.scalingConfig.maxServers}`
         );
       }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      console.warn('⚠️ Prometheus 메트릭 조회 실패:', errorMessage);
+      logger.warn('⚠️ Prometheus 메트릭 조회 실패:', errorMessage);
     }
   }
 
@@ -328,11 +330,11 @@ export class VercelStatusService {
           await this.updateScalingConfig();
           await this.adjustFromPrometheusMetrics();
 
-          console.log(
+          logger.info(
             `🔄 스케일링 설정 업데이트: ${this.scalingConfig.maxServers}서버, ${this.scalingConfig.updateInterval}ms 간격`
           );
         } catch (error) {
-          console.error('❌ 상태 모니터링 실패:', error);
+          logger.error('❌ 상태 모니터링 실패:', error);
         }
       })();
     }, this.checkInterval);

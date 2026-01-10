@@ -19,6 +19,7 @@
  */
 
 import { env, isDevelopment, isProduction as _isProduction } from '@/env';
+import { logger } from '@/lib/logging';
 
 /**
  * 🎯 AI Model Types (Cloud Run)
@@ -240,7 +241,7 @@ export const getCacheConfig = (layer: keyof typeof aiEngineConfig.cache) => {
  * 🚀 Development logging
  */
 if (isDevelopment) {
-  console.log('🤖 AI Engine Config Loaded:', {
+  logger.info('🤖 AI Engine Config Loaded:', {
     model: aiEngineConfig.defaultModel,
     rateLimiting: aiEngineConfig.rateLimiting.enabled,
     streaming: aiEngineConfig.streaming.enabled,

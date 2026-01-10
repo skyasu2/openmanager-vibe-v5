@@ -5,6 +5,7 @@ import { AlertTriangle, Bug, Home, RefreshCw, Settings } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { logger } from '@/lib/logging';
 
 // framer-motion 제거 - CSS 애니메이션 사용
 
@@ -32,7 +33,7 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
         }),
       });
     } catch (e) {
-      console.error('Error reporting failed:', e);
+      logger.error('Error reporting failed:', e);
     } finally {
       setIsReporting(false);
     }

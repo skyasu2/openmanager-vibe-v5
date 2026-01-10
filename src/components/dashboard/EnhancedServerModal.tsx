@@ -20,6 +20,7 @@ import {
   Server as ServerIcon,
   X,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 
@@ -319,7 +320,7 @@ export default function EnhancedServerModal({
   ];
 
   if (!safeServer) {
-    console.warn('⚠️ [EnhancedServerModal] 서버 데이터가 없습니다.');
+    logger.warn('⚠️ [EnhancedServerModal] 서버 데이터가 없습니다.');
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
         <button

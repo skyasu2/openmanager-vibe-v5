@@ -3,6 +3,7 @@
  * React 컴포넌트 렌더링 성능 측정 및 최적화 도구
  */
 import React from 'react';
+import { logger } from '@/lib/logging';
 
 interface PerformanceMeasurement {
   name: string;
@@ -63,9 +64,9 @@ class PerformanceTracker {
       // 개발환경에서 성능 로그 출력
       if (duration > 16) {
         // 16ms 초과 시 경고 (60fps 기준)
-        console.warn(`🐌 성능 경고: ${name} - ${duration.toFixed(2)}ms`);
+        logger.warn(`🐌 성능 경고: ${name} - ${duration.toFixed(2)}ms`);
       } else if (duration > 5) {
-        console.log(`⚡ 성능 측정: ${name} - ${duration.toFixed(2)}ms`);
+        logger.info(`⚡ 성능 측정: ${name} - ${duration.toFixed(2)}ms`);
       }
 
       // 메모리 정리 (최근 100개만 유지)
@@ -75,7 +76,7 @@ class PerformanceTracker {
 
       return duration;
     } catch (error) {
-      console.error('성능 측정 오류:', error);
+      logger.error('성능 측정 오류:', error);
       return 0;
     }
   }
@@ -181,7 +182,7 @@ export function usePerformanceTracking(componentName: string) {
   React.useLayoutEffect(() => {
     const renderTime = Date.now() - startTime;
     if (renderTime > 5) {
-      console.log(`📊 ${componentName} 렌더링 시간: ${renderTime}ms`);
+      logger.info(`📊 ${componentName} 렌더링 시간: ${renderTime}ms`);
     }
   });
 
@@ -231,7 +232,7 @@ export function useSmartMemo<T>(
       const duration = performance.now() - startTime;
 
       if (duration > threshold) {
-        console.warn(
+        logger.warn(
           `🐌 메모이제이션 계산 시간 초과: ${duration.toFixed(2)}ms`
         );
       }

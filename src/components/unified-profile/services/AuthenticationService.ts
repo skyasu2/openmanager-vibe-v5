@@ -8,6 +8,7 @@
  */
 
 import type { ApiResponse, AuthenticationState } from '../types/ProfileTypes';
+import { logger } from '@/lib/logging';
 
 interface ProfileStore {
   authenticateAIAgent(
@@ -127,7 +128,7 @@ export class AuthenticationService {
         }
       }
     } catch (error) {
-      console.error('AI 에이전트 인증 오류:', error);
+      logger.error('AI 에이전트 인증 오류:', error);
       return {
         success: false,
         error: '인증 중 오류가 발생했습니다.',
@@ -155,7 +156,7 @@ export class AuthenticationService {
         };
       }
     } catch (error) {
-      console.error('AI 에이전트 비활성화 오류:', error);
+      logger.error('AI 에이전트 비활성화 오류:', error);
       return {
         success: false,
         error: '비활성화 중 오류가 발생했습니다.',
@@ -271,7 +272,7 @@ export class AuthenticationService {
       ip: 'local', // 실제 구현에서는 IP 추적 가능
     };
 
-    console.log('🔒 보안 이벤트:', logEntry);
+    logger.info('🔒 보안 이벤트:', logEntry);
 
     // 필요시 서버로 보안 로그 전송
     if (event === 'auth_failure' || event === 'account_locked') {
@@ -290,7 +291,7 @@ export class AuthenticationService {
         body: JSON.stringify(logEntry),
       });
     } catch (error) {
-      console.warn('보안 로그 전송 실패:', error);
+      logger.warn('보안 로그 전송 실패:', error);
     }
   }
 }

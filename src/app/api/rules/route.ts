@@ -12,6 +12,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import systemRulesJson from '@/config/rules/system-rules.json';
 import type { MetricThreshold, SystemRules } from '@/config/rules/types';
+import { logger } from '@/lib/logging';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 /**
@@ -29,12 +30,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .eq('enabled', true);
 
     if (error) {
-      console.warn('⚠️ Supabase rules fetch failed:', error.message);
+      logger.warn('⚠️ Supabase rules fetch failed:', error.message);
       return returnJsonFallback(metric);
     }
 
     if (!data || data.length === 0) {
-      console.warn('⚠️ No rules in Supabase, using JSON fallback');
+      logger.warn('⚠️ No rules in Supabase, using JSON fallback');
       return returnJsonFallback(metric);
     }
 
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       source: 'supabase',
     });
   } catch (err) {
-    console.error('❌ Rules API error:', err);
+    logger.error('❌ Rules API error:', err);
     return returnJsonFallback(metric);
   }
 }

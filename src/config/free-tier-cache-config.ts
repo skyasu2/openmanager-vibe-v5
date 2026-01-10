@@ -10,6 +10,7 @@
  * // Verified: 2025-12-12
  */
 
+import { logger } from '@/lib/logging';
 export const FREE_TIER_CACHE_CONFIG = {
   // 📊 캐시 TTL 설정 (무료 한도 최적화)
   ttl: {
@@ -117,7 +118,7 @@ export function validateDataSize(
   const maxSize = FREE_TIER_CACHE_CONFIG.maxSize[type];
 
   if (size > maxSize) {
-    console.warn(`⚠️ 데이터 크기 초과: ${size}bytes > ${maxSize}bytes`);
+    logger.warn(`⚠️ 데이터 크기 초과: ${size}bytes > ${maxSize}bytes`);
     return false;
   }
 

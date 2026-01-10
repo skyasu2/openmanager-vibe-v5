@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { logger } from '@/lib/logging';
 
 /**
  * 인증 상태 인터페이스
@@ -57,7 +58,7 @@ export const useAuthStore = create<AuthState>()(
 
       // 액션: 범용 인증 설정
       setAuth: (params) => {
-        console.log('🔐 [AuthStore] setAuth 호출:', params);
+        logger.info('🔐 [AuthStore] setAuth 호출:', params);
 
         set({
           authType: params.authType,
@@ -79,7 +80,7 @@ export const useAuthStore = create<AuthState>()(
 
       // 액션: GitHub 인증
       setGitHubAuth: (user) => {
-        console.log('🔐 [AuthStore] setGitHubAuth 호출:', user);
+        logger.info('🔐 [AuthStore] setGitHubAuth 호출:', user);
 
         set({
           authType: 'github',
@@ -101,7 +102,7 @@ export const useAuthStore = create<AuthState>()(
 
       // 액션: 인증 해제
       clearAuth: () => {
-        console.log('🔐 [AuthStore] clearAuth 호출');
+        logger.info('🔐 [AuthStore] clearAuth 호출');
 
         set({
           authType: null,
@@ -129,7 +130,7 @@ export const useAuthStore = create<AuthState>()(
       // 선택적 직렬화 (레거시 localStorage 키 호환)
       onRehydrateStorage: () => (state) => {
         if (state && typeof window !== 'undefined') {
-          console.log('🔐 [AuthStore] Rehydrate 완료:', state);
+          logger.info('🔐 [AuthStore] Rehydrate 완료:', state);
 
           // 레거시 localStorage 키 동기화 (읽기 전용)
           const legacyAuthType = localStorage.getItem('auth_type') as
@@ -138,7 +139,7 @@ export const useAuthStore = create<AuthState>()(
             | null;
 
           if (legacyAuthType !== state.authType) {
-            console.warn(
+            logger.warn(
               '🔐 [AuthStore] 레거시 localStorage와 불일치 감지, Zustand 우선'
             );
           }

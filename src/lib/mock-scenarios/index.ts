@@ -8,6 +8,7 @@ export * from './korean-nlp-scenarios';
 export * from './ml-analytics-scenarios';
 export * from './server-monitoring-scenarios';
 
+import { logger } from '@/lib/logging';
 import {
   BUSINESS_CONTEXT_CASES,
   COMPLEX_MIXED_CASES,
@@ -37,7 +38,7 @@ export class MockScenarioManager {
   private activeScenarios: Map<string, unknown> = new Map();
 
   constructor() {
-    console.log('🎬 시나리오 매니저 초기화 (실제 서비스 사용)');
+    logger.info('🎬 시나리오 매니저 초기화 (실제 서비스 사용)');
   }
 
   /**
@@ -46,7 +47,7 @@ export class MockScenarioManager {
   startServerScenario(scenarioId: keyof typeof SERVER_SCENARIOS) {
     const scenario = SERVER_SCENARIOS[scenarioId];
     if (!scenario) {
-      console.error(`❌ 시나리오를 찾을 수 없음: ${scenarioId}`);
+      logger.error(`❌ 시나리오를 찾을 수 없음: ${scenarioId}`);
       return;
     }
 
@@ -54,7 +55,7 @@ export class MockScenarioManager {
     this.serverScenarioRunner.start();
     this.activeScenarios.set('server', scenario);
 
-    console.log(`🎬 서버 시나리오 시작: ${scenario.name}`);
+    logger.info(`🎬 서버 시나리오 시작: ${scenario.name}`);
 
     // 주기적으로 상태 업데이트
     const updateInterval = setInterval(() => {
@@ -63,7 +64,7 @@ export class MockScenarioManager {
         this.serverScenarioRunner.isComplete()
       ) {
         clearInterval(updateInterval);
-        console.log('✅ 서버 시나리오 완료');
+        logger.info('✅ 서버 시나리오 완료');
         return;
       }
 
@@ -97,7 +98,7 @@ export class MockScenarioManager {
       ].filter((s) => s.category === category);
     }
 
-    console.log(
+    logger.info(
       `🧪 Korean NLP 시나리오 테스트 시작 (${scenarios.length}개) - 로컬 Mock`
     );
 
@@ -111,7 +112,7 @@ export class MockScenarioManager {
       success: true,
     }));
 
-    console.log(`✅ Korean NLP 시나리오 테스트 완료: ${results.length}개`);
+    logger.info(`✅ Korean NLP 시나리오 테스트 완료: ${results.length}개`);
     return results;
   }
 
@@ -124,7 +125,7 @@ export class MockScenarioManager {
   ) {
     const patterns = ML_PATTERN_LIBRARY[serverType];
     if (!patterns || patterns.length === 0) {
-      console.error(`❌ ${serverType}에 대한 ML 패턴이 없음`);
+      logger.error(`❌ ${serverType}에 대한 ML 패턴이 없음`);
       return;
     }
 
@@ -133,12 +134,12 @@ export class MockScenarioManager {
       : patterns[0];
 
     if (!pattern) {
-      console.error(`❌ ML 패턴을 찾을 수 없음: ${patternId}`);
+      logger.error(`❌ ML 패턴을 찾을 수 없음: ${patternId}`);
       return;
     }
 
     this.activeScenarios.set('ml', pattern);
-    console.log(`🤖 ML 패턴 적용: ${pattern.name}`);
+    logger.info(`🤖 ML 패턴 적용: ${pattern.name}`);
 
     // 메트릭 생성 및 적용
     this.generateAndApplyMLMetrics(pattern);
@@ -210,7 +211,7 @@ export class MockScenarioManager {
       this.serverScenarioRunner.stop();
     }
     this.activeScenarios.clear();
-    console.log('🛑 모든 시나리오 중지됨');
+    logger.info('🛑 모든 시나리오 중지됨');
   }
 
   /**
@@ -218,11 +219,11 @@ export class MockScenarioManager {
    */
   private updateMockData(state: ReturnType<ScenarioRunner['getCurrentState']>) {
     // 실제 Supabase 사용으로 로깅만 수행
-    console.log('📊 서버 메트릭 업데이트:', state.servers.size, '개 서버');
+    logger.info('📊 서버 메트릭 업데이트:', state.servers.size, '개 서버');
 
     // 최근 이벤트 로깅
     state.recentEvents.forEach((event) => {
-      console.log(`🔔 이벤트: [${event.severity}] ${event.message}`);
+      logger.info(`🔔 이벤트: [${event.severity}] ${event.message}`);
     });
   }
 
@@ -262,7 +263,7 @@ export class MockScenarioManager {
     const predictions = generatePredictions(metrics, pattern, 24);
 
     // ML 분석 결과 로깅
-    console.log(
+    logger.info(
       `📈 ML 분석 결과: ${anomalies.length}개 이상 징후, ${predictions.length}개 예측`
     );
   }

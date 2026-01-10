@@ -6,6 +6,7 @@
  * // Reviewed: 2025-12-12
  */
 
+import { logger } from '@/lib/logging';
 export interface SystemStateInfo {
   isSystemActive: boolean;
   powerMode: 'sleep' | 'active' | 'monitoring' | 'emergency';
@@ -52,7 +53,7 @@ export async function checkSystemState(): Promise<SystemStateInfo> {
       shouldSkipOperation: !defaultActive,
     };
   } catch (error) {
-    console.error('❌ 시스템 상태 확인 실패:', error);
+    logger.error('❌ 시스템 상태 확인 실패:', error);
 
     return {
       isSystemActive: false,
@@ -85,7 +86,7 @@ export async function validateSystemForOperation(
   const systemState = await checkSystemState();
 
   if (systemState.shouldSkipOperation) {
-    console.log(
+    logger.info(
       `🛑 [${operationName}] 시스템 비활성화로 인한 작업 중단: ${systemState.reason}`
     );
 
@@ -96,7 +97,7 @@ export async function validateSystemForOperation(
     };
   }
 
-  console.log(
+  logger.info(
     `✅ [${operationName}] 시스템 활성화 확인됨: ${systemState.reason}`
   );
 

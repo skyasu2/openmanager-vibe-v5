@@ -12,6 +12,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 
 // ⚡ Edge Runtime으로 전환 - 무료 티어 친화적 최적화
 export const runtime = 'edge';
@@ -204,7 +205,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { headers });
   } catch (error) {
-    console.error('Web Vitals API Error:', error);
+    logger.error('Web Vitals API Error:', error);
 
     return NextResponse.json(
       {

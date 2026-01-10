@@ -12,6 +12,7 @@ import { useState } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { signOut, useSession } from '@/hooks/useSupabaseSession';
 import { signInWithGoogle } from '@/lib/auth/supabase-auth';
+import { logger } from '@/lib/logging';
 
 export interface GoogleLoginButtonProps {
   onLoginError?: (error: string) => void;
@@ -57,7 +58,7 @@ export default function GoogleLoginButton({
     // Standalone mode: 내부 로직 사용
     try {
       setIsLoading(true);
-      console.log('🔐 Supabase Auth Google 로그인 시작...');
+      logger.info('🔐 Supabase Auth Google 로그인 시작...');
 
       // signInWithGoogle()은 이미 access_type, prompt 옵션을 내장하고 있음
       const { error } = await signInWithGoogle();
@@ -66,10 +67,10 @@ export default function GoogleLoginButton({
         throw error;
       }
 
-      console.log('✅ Google 로그인 시작, OAuth 페이지로 이동...');
+      logger.info('✅ Google 로그인 시작, OAuth 페이지로 이동...');
     } catch (error) {
       const errorMessage = 'Google 로그인 중 오류가 발생했습니다.';
-      console.error(errorMessage, error);
+      logger.error(errorMessage, error);
       onLoginError?.(errorMessage);
     } finally {
       setIsLoading(false);
@@ -82,15 +83,15 @@ export default function GoogleLoginButton({
   const handleGoogleLogout = async () => {
     try {
       setIsLoading(true);
-      console.log('🔐 Supabase Auth Google 로그아웃...');
+      logger.info('🔐 Supabase Auth Google 로그아웃...');
 
       await signOut({
         callbackUrl: '/login',
       });
 
-      console.log('✅ Google 로그아웃 완료');
+      logger.info('✅ Google 로그아웃 완료');
     } catch (error) {
-      console.error('Google 로그아웃 중 오류:', error);
+      logger.error('Google 로그아웃 중 오류:', error);
     } finally {
       setIsLoading(false);
     }

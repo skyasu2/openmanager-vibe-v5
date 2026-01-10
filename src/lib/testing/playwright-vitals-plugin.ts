@@ -8,6 +8,7 @@
 
 import type { Page } from '@playwright/test';
 import { test } from '@playwright/test';
+import { logger } from '@/lib/logging';
 import { type UniversalVital, universalVitals } from './universal-vitals';
 
 // 🎯 Playwright Vitals 수집 상태
@@ -56,7 +57,7 @@ export const PlaywrightVitals = {
       }
     );
 
-    console.log(
+    logger.info(
       `🎭 [Playwright Vitals] E2E 테스트 스위트 시작: ${suiteName} (${browserName})`
     );
   },
@@ -98,7 +99,7 @@ export const PlaywrightVitals = {
     }
 
     playwrightState.suiteMetrics.set(suiteName, suiteVital);
-    console.log(
+    logger.info(
       `✅ [Playwright Vitals] E2E 스위트 완료: ${suiteName} (${suiteVital.value.toFixed(0)}ms)`
     );
 
@@ -216,7 +217,7 @@ export const PlaywrightVitals = {
         }
       }
     } catch (error) {
-      console.warn('🎭 [Playwright Vitals] Web Vitals 수집 실패:', error);
+      logger.warn('🎭 [Playwright Vitals] Web Vitals 수집 실패:', error);
     }
 
     return navigationVital;
@@ -359,7 +360,7 @@ export const PlaywrightVitals = {
 
       return metrics;
     } catch (error) {
-      console.warn('🎭 [Playwright Vitals] 브라우저 메트릭 수집 실패:', error);
+      logger.warn('🎭 [Playwright Vitals] 브라우저 메트릭 수집 실패:', error);
       return null;
     }
   },
@@ -541,21 +542,21 @@ export function setupPlaywrightVitals(
 
     // 최종 리포트 생성
     const report = PlaywrightVitals.generateReport();
-    console.log('\n📊 [Playwright Vitals] 최종 E2E 리포트:');
-    console.log(
+    logger.info('\n📊 [Playwright Vitals] 최종 E2E 리포트:');
+    logger.info(
       `✅ 성공: ${report.testExecution.passedTests}/${report.testExecution.totalTests}`
     );
-    console.log(`📈 성공률: ${report.testExecution.successRate.toFixed(1)}%`);
-    console.log(`🎭 브라우저: ${report.browserName}`);
-    console.log(
+    logger.info(`📈 성공률: ${report.testExecution.successRate.toFixed(1)}%`);
+    logger.info(`🎭 브라우저: ${report.browserName}`);
+    logger.info(
       `🎯 Vitals 품질: ${report.summary.goodVitals}개 Good, ${report.summary.poorVitals}개 Poor`
     );
 
     // 권장사항 출력
     if (report.recommendations.length > 0) {
-      console.log('\n💡 [E2E 성능 개선 권장사항]:');
+      logger.info('\n💡 [E2E 성능 개선 권장사항]:');
       report.recommendations.forEach((rec) => {
-        console.log(`- ${rec.metric}: ${rec.recommendations?.join(', ')}`);
+        logger.info(`- ${rec.metric}: ${rec.recommendations?.join(', ')}`);
       });
     }
 
@@ -579,12 +580,12 @@ export function setupPlaywrightVitals(
         });
 
         if (response.ok) {
-          console.log(
+          logger.info(
             `📤 [Playwright Vitals] E2E 리포트 전송 완료: ${reportEndpoint}`
           );
         }
       } catch (error) {
-        console.warn(`⚠️ [Playwright Vitals] E2E 리포트 전송 실패:`, error);
+        logger.warn(`⚠️ [Playwright Vitals] E2E 리포트 전송 실패:`, error);
       }
     }
   });

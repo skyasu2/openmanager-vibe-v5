@@ -11,6 +11,7 @@
 
 import { Ratelimit } from '@upstash/ratelimit';
 import type { NextRequest } from 'next/server';
+import { logger } from '@/lib/logging';
 import { getRedisClient, isRedisDisabled, isRedisEnabled } from './client';
 
 // ==============================================
@@ -199,7 +200,7 @@ export async function checkRedisRateLimit(
       latencyMs,
     };
   } catch (error) {
-    console.error('[Redis Rate Limit] Error:', error);
+    logger.error('[Redis Rate Limit] Error:', error);
     return null; // 폴백 사용
   }
 }

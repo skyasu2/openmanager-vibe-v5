@@ -7,6 +7,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { KST } from '@/lib/utils/time';
+import { logger } from '@/lib/logging';
 
 export type PowerMode = 'sleep' | 'active' | 'monitoring' | 'emergency';
 
@@ -189,7 +190,7 @@ export const usePowerStore = create<PowerStore>()(
           // 🚨 컴포넌트 언마운트 후 상태 업데이트 방지
           const current = get();
           if (!current) {
-            console.warn(
+            logger.warn(
               '⚠️ [PowerStore] updateActivity: 스토어 상태가 없음 - 업데이트 중단'
             );
             return;
@@ -203,14 +204,14 @@ export const usePowerStore = create<PowerStore>()(
                 set({ lastActivity: new Date() });
               }
             } catch (batchError) {
-              console.warn(
+              logger.warn(
                 '⚠️ [PowerStore] 배치 업데이트 실패 (무시):',
                 batchError
               );
             }
           });
         } catch (error) {
-          console.error('❌ [PowerStore] updateActivity 실패:', error);
+          logger.error('❌ [PowerStore] updateActivity 실패:', error);
           // 에러 발생 시에도 안전하게 계속 진행
         }
       },

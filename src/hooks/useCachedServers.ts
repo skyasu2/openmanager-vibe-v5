@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import type { ServerInstance } from '@/types/data-generator';
+import { logger } from '@/lib/logging';
 
 interface CachedServerData {
   servers: ServerInstance[];
@@ -167,16 +168,16 @@ export function useCachedServers(
         }
 
         setData(result.data);
-        console.log(
+        logger.info(
           `✅ 캐시된 서버 데이터 로드: ${result.data.servers.length}개 서버 (v${result.data.cache.version})`
         );
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
-          console.log('🚫 요청이 취소되었습니다.');
+          logger.info('🚫 요청이 취소되었습니다.');
           return; // Explicit return
         }
 
-        console.error('❌ 캐시된 서버 데이터 로드 실패:', error);
+        logger.error('❌ 캐시된 서버 데이터 로드 실패:', error);
         setIsError(true);
         setError(error instanceof Error ? error.message : '알 수 없는 오류');
       } finally {
@@ -190,7 +191,7 @@ export function useCachedServers(
    * 🔄 수동 새로고침
    */
   const refresh = useCallback(async () => {
-    console.log('🔄 수동 새로고침 요청');
+    logger.info('🔄 수동 새로고침 요청');
 
     try {
       // 캐시 새로고침 API 호출
@@ -203,7 +204,7 @@ export function useCachedServers(
         await fetchData(false);
       }
     } catch (error) {
-      console.error('❌ 수동 새로고침 실패:', error);
+      logger.error('❌ 수동 새로고침 실패:', error);
     }
   }, [fetchData]);
 

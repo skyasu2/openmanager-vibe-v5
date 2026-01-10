@@ -16,6 +16,7 @@ import { authStateManager } from '@/lib/auth/auth-state-manager';
 // Supabase Auth 관련 임포트
 import { signInWithGitHub, signInWithGoogle } from '@/lib/auth/supabase-auth';
 import debug from '@/utils/debug';
+import { logger } from '@/lib/logging';
 
 interface GuestSessionData {
   sessionId: string;
@@ -318,7 +319,7 @@ export default function LoginClient() {
 
   // 게스트 로그인
   const handleGuestLogin = async () => {
-    console.log('🔍 [DEBUG Step 0] handleGuestLogin function CALLED');
+    logger.info('🔍 [DEBUG Step 0] handleGuestLogin function CALLED');
     try {
       _setShowPulse('guest');
       setTimeout(() => _setShowPulse(null), PULSE_ANIMATION_DURATION_MS);
@@ -343,12 +344,12 @@ export default function LoginClient() {
 
       // AuthStateManager를 통한 게스트 인증 설정
       await authStateManager.setGuestAuth(guestUser);
-      console.log('🔍 [DEBUG Step 1] setGuestAuth completed successfully');
+      logger.info('🔍 [DEBUG Step 1] setGuestAuth completed successfully');
 
       // 세션 ID 생성 (localStorage에서 가져옴)
       const sessionId =
         localStorage.getItem('auth_session_id') || `guest_${Date.now()}`;
-      console.log('🔍 [DEBUG Step 2] Retrieved sessionId from localStorage:', {
+      logger.info('🔍 [DEBUG Step 2] Retrieved sessionId from localStorage:', {
         sessionId,
         fromLocalStorage: !!localStorage.getItem('auth_session_id'),
         allAuthKeys: Object.keys(localStorage).filter((k) =>
@@ -357,7 +358,7 @@ export default function LoginClient() {
       });
 
       // 상태 업데이트 직전
-      console.log('🔍 [DEBUG Step 3] About to call setGuestSession with:', {
+      logger.info('🔍 [DEBUG Step 3] About to call setGuestSession with:', {
         sessionId,
         userId: guestUser.id,
         userName: guestUser.name,
@@ -365,7 +366,7 @@ export default function LoginClient() {
 
       setGuestSession({ sessionId, user: guestUser });
 
-      console.log('🔍 [DEBUG Step 4] setGuestSession called successfully');
+      logger.info('🔍 [DEBUG Step 4] setGuestSession called successfully');
     } catch (error) {
       debug.error('게스트 로그인 실패:', error);
       alert('게스트 로그인에 실패했습니다. 다시 시도해주세요.');

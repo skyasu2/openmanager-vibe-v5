@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getSystemConfig } from '@/config/SystemConfiguration';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import { logger } from '@/lib/logging';
 import {
   DashboardActionRequestSchema,
   type DashboardActionResponse,
@@ -24,7 +25,7 @@ function isTestMode(request: NextRequest): boolean {
   // Check for test mode header
   const testHeader = request.headers.get('X-Test-Mode');
   if (testHeader === 'enabled') {
-    console.log('🧪 [Dashboard API] Test mode detected via X-Test-Mode header');
+    logger.info('🧪 [Dashboard API] Test mode detected via X-Test-Mode header');
     return true;
   }
 
@@ -32,7 +33,7 @@ function isTestMode(request: NextRequest): boolean {
   const cookies = request.cookies;
   const testModeCookie = cookies.get('test_mode');
   if (testModeCookie?.value === 'enabled') {
-    console.log('🧪 [Dashboard API] Test mode detected via test_mode cookie');
+    logger.info('🧪 [Dashboard API] Test mode detected via test_mode cookie');
     return true;
   }
 
@@ -280,7 +281,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // 🧪 테스트 모드 확인 및 우회
   const testMode = isTestMode(request);
   if (testMode) {
-    console.log(
+    logger.info(
       '🧪 [Dashboard API] 테스트 모드 감지 - 인증 우회하고 테스트 데이터 반환'
     );
 

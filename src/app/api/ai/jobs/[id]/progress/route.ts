@@ -8,6 +8,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 import type { JobCompletionUpdate, JobProgressUpdate } from '@/types/ai-jobs';
 
 // Worker 인증 토큰 (환경 변수에서)
@@ -95,7 +96,7 @@ export async function PATCH(
         .eq('id', jobId);
 
       if (error) {
-        console.error('[AI Jobs] Failed to update job completion:', error);
+        logger.error('[AI Jobs] Failed to update job completion:', error);
         return NextResponse.json(
           { error: 'Failed to update job' },
           { status: 500 }
@@ -138,7 +139,7 @@ export async function PATCH(
         .eq('id', jobId);
 
       if (error) {
-        console.error('[AI Jobs] Failed to update job progress:', error);
+        logger.error('[AI Jobs] Failed to update job progress:', error);
         return NextResponse.json(
           { error: 'Failed to update progress' },
           { status: 500 }
@@ -152,7 +153,7 @@ export async function PATCH(
       });
     }
   } catch (error) {
-    console.error('[AI Jobs] Error updating job:', error);
+    logger.error('[AI Jobs] Error updating job:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

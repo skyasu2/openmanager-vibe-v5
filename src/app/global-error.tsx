@@ -8,6 +8,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
 import debug from '@/utils/debug';
+import { logger } from '@/lib/logging';
 
 // 클라이언트 컴포넌트에서 안전하게 환경 감지
 const getClientEnvironment = () => {
@@ -44,7 +45,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       });
 
       // 외부 리포팅 서비스 연동 지점
-      console.error('[GLOBAL_ERROR_REPORT]', {
+      logger.error('[GLOBAL_ERROR_REPORT]', {
         message: error.message,
         digest: error.digest,
         stack: error.stack,

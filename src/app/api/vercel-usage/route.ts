@@ -11,6 +11,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 
 // ⚡ Edge Runtime으로 전환 - 무료 티어 친화적 최적화
 export const runtime = 'edge';
@@ -281,7 +282,7 @@ export function GET(request: NextRequest) {
 
     return NextResponse.json(response, { headers });
   } catch (error) {
-    console.error('Vercel Usage API Error:', error);
+    logger.error('Vercel Usage API Error:', error);
 
     return NextResponse.json(
       {

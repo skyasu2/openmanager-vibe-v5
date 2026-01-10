@@ -1,4 +1,5 @@
 import type { CollectorConfig } from '@/types/collector';
+import { logger } from '@/lib/logging';
 
 /**
  * 수집기 설정 중앙 관리
@@ -91,7 +92,7 @@ const productionConfigs: CollectorConfig[] = [
  * 실제 환경변수 기반 Collector 설정 반환
  */
 export function getCollectorConfigs(): CollectorConfig[] {
-  console.log(`🔧 프로덕션 Collector 모드: ${COLLECTOR_MODE}`);
+  logger.info(`🔧 프로덕션 Collector 모드: ${COLLECTOR_MODE}`);
   return productionConfigs.filter((config) => config.enabled);
 }
 
@@ -101,7 +102,7 @@ export function getCollectorConfigs(): CollectorConfig[] {
 export function validateEnvironment(): { valid: boolean; errors: string[] } {
   // 빌드 타임에는 검증 건너뛰기
   if (isBuildTime()) {
-    console.log('🔨 빌드 타임: Collector 환경변수 검증 건너뜀');
+    logger.info('🔨 빌드 타임: Collector 환경변수 검증 건너뜀');
     return { valid: true, errors: [] };
   }
 

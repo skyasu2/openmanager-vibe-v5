@@ -8,6 +8,8 @@
  * - Edge Runtime 호환성 보장
  */
 
+import { logger } from '@/lib/logging';
+
 interface APIRequest {
   id: string;
   endpoint: string;
@@ -273,7 +275,7 @@ class VercelOptimizedAPIBatcher {
     results.forEach((result) => {
       // 🛡️ Phase 76: Batcher 응답 스키마 검증
       if (!isValidAPIResponse(result)) {
-        console.error('❌ Batcher 응답 스키마 불일치:', result);
+        logger.error('❌ Batcher 응답 스키마 불일치:', result);
         // result.id가 없을 수 있으므로 스킵
         return;
       }

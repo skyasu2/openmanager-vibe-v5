@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 /**
  * CSRF 토큰 자동 발급 컴포넌트
@@ -17,14 +18,14 @@ export function CSRFTokenProvider({ children }: { children: React.ReactNode }) {
       try {
         const response = await fetch('/api/csrf-token');
         if (response.ok) {
-          console.log('✅ [CSRF] 토큰 발급 완료');
+          logger.info('✅ [CSRF] 토큰 발급 완료');
           setIsReady(true);
         } else {
-          console.error('❌ [CSRF] 토큰 발급 실패:', response.status);
+          logger.error('❌ [CSRF] 토큰 발급 실패:', response.status);
           setIsReady(true); // 실패해도 페이지는 표시
         }
       } catch (error) {
-        console.error('❌ [CSRF] 토큰 발급 오류:', error);
+        logger.error('❌ [CSRF] 토큰 발급 오류:', error);
         setIsReady(true); // 오류가 있어도 페이지는 표시
       }
     };

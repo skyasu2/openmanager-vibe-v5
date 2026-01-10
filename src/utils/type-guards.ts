@@ -29,9 +29,9 @@ export function getErrorMessage(error: unknown): string {
  * 에러 정보를 안전하게 로깅
  */
 export function logError(context: string, error: unknown): void {
-  console.error(`${context}:`, getErrorMessage(error));
+  logger.error(`${context}:`, getErrorMessage(error));
   if (error instanceof Error && error.stack) {
-    console.debug('Stack trace:', error.stack);
+    logger.debug('Stack trace:', error.stack);
   }
 }
 
@@ -99,6 +99,7 @@ import type {
   ServerMetricsLegacy as ServerMetrics,
   ServerStatus,
 } from '@/types/unified';
+import { logger } from '@/lib/logging';
 
 /**
  * ServerInstance 타입 가드

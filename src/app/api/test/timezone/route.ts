@@ -5,6 +5,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 import { developmentOnly } from '../../../../lib/api/development-only';
 import { MockContextLoader } from '../../../../services/ai/MockContextLoader';
 
@@ -60,7 +61,7 @@ export const GET = developmentOnly(function GET() {
       timestamp: now.toISOString(),
     });
   } catch (error) {
-    console.error('타임존 테스트 오류:', error);
+    logger.error('타임존 테스트 오류:', error);
 
     return NextResponse.json(
       {

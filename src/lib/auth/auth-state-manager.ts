@@ -8,6 +8,7 @@
  */
 
 import type { Session } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
 import { getSupabase } from '../supabase/client';
 
 // 런타임에 클라이언트를 가져오는 헬퍼 (PKCE flow를 위해 필수)
@@ -81,13 +82,13 @@ export class AuthStateManager {
           const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24시간
           document.cookie = `auth_session_id=${sessionId}; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
           document.cookie = `guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict`;
-          console.log(
+          logger.info(
             '🔐 쿠키 마이그레이션: guest_session_id → auth_session_id'
           );
         }
       }
     } catch (error) {
-      console.warn('⚠️ 레거시 키 마이그레이션 실패:', error);
+      logger.warn('⚠️ 레거시 키 마이그레이션 실패:', error);
     }
   }
 
@@ -116,7 +117,7 @@ export class AuthStateManager {
         };
 
         this.setCachedState(state);
-        console.log('🔐 GitHub 세션 확인', { userId: githubUser.id });
+        logger.info('🔐 GitHub 세션 확인', { userId: githubUser.id });
         return state;
       }
 
@@ -124,7 +125,7 @@ export class AuthStateManager {
       const guestState = await this.getGuestState();
       if (guestState.isAuthenticated) {
         this.setCachedState(guestState);
-        console.log('🔐 게스트 세션 확인', { userId: guestState.user?.id });
+        logger.info('🔐 게스트 세션 확인', { userId: guestState.user?.id });
         return guestState;
       }
 
@@ -138,7 +139,7 @@ export class AuthStateManager {
       this.setCachedState(unknownState);
       return unknownState;
     } catch (error) {
-      console.error('❌ 인증 상태 확인 실패:', error);
+      logger.error('❌ 인증 상태 확인 실패:', error);
       const errorState: AuthState = {
         user: null,
         type: 'unknown',
@@ -158,7 +159,7 @@ export class AuthStateManager {
       const session = await this.getSupabaseSession();
       return !!(session?.user && this.isGitHubProvider(session));
     } catch (error) {
-      console.error('❌ GitHub 인증 상태 확인 실패:', error);
+      logger.error('❌ GitHub 인증 상태 확인 실패:', error);
       return false;
     }
   }
@@ -167,7 +168,7 @@ export class AuthStateManager {
    * 원자적 로그아웃 처리 (모든 인증 데이터 정리)
    */
   async clearAllAuthData(authType?: 'github' | 'guest'): Promise<void> {
-    console.log('🔐 clearAllAuthData 시작', { authType: authType || 'all' });
+    logger.info('🔐 clearAllAuthData 시작', { authType: authType || 'all' });
 
     try {
       // 1. React 상태 캐시 즉시 무효화
@@ -178,19 +179,19 @@ export class AuthStateManager {
         try {
           const { error } = await getClient().auth.signOut();
           if (error) {
-            console.warn('⚠️ Supabase 로그아웃 실패:', error.message);
+            logger.warn('⚠️ Supabase 로그아웃 실패:', error.message);
           }
         } catch (error) {
-          console.warn('⚠️ Supabase 로그아웃 예외:', error);
+          logger.warn('⚠️ Supabase 로그아웃 예외:', error);
         }
       }
 
       // 3. 통합 저장소 정리 (localStorage + sessionStorage + 쿠키)
       this.clearStorage(authType);
 
-      console.log('🔐 인증 데이터 정리 완료');
+      logger.info('🔐 인증 데이터 정리 완료');
     } catch (error) {
-      console.error('❌ 인증 데이터 정리 실패:', error);
+      logger.error('❌ 인증 데이터 정리 실패:', error);
       throw error;
     }
   }
@@ -207,17 +208,17 @@ export class AuthStateManager {
    * 게스트 로그인 설정 (기존 GitHub 세션 자동 정리)
    */
   async setGuestAuth(guestUser: AuthUser): Promise<void> {
-    console.log('🔐 게스트 로그인 설정 시작');
+    logger.info('🔐 게스트 로그인 설정 시작');
 
     // 1. 기존 GitHub 세션이 있으면 먼저 정리
     try {
       const existingSession = await this.getSupabaseSession();
       if (existingSession?.user) {
         await getClient().auth.signOut();
-        console.log('🔐 기존 GitHub 세션 정리 완료');
+        logger.info('🔐 기존 GitHub 세션 정리 완료');
       }
     } catch (error) {
-      console.warn('⚠️ 기존 세션 정리 실패 (계속 진행):', error);
+      logger.warn('⚠️ 기존 세션 정리 실패 (계속 진행):', error);
     }
 
     // 1.5. 🛡️ PKCE 관련 데이터 명시적 정리 (fetch 에러 방지)
@@ -231,7 +232,7 @@ export class AuthStateManager {
       );
       pkceKeys.forEach((key) => {
         localStorage.removeItem(key);
-        console.log(`🧹 PKCE 키 정리: ${key}`);
+        logger.info(`🧹 PKCE 키 정리: ${key}`);
       });
     }
 
@@ -258,7 +259,7 @@ export class AuthStateManager {
       document.cookie = `auth_session_id=${sessionId}; path=/; expires=${expires.toUTCString()}${secureFlag}; SameSite=Lax`;
       document.cookie = `auth_type=guest; path=/; expires=${expires.toUTCString()}${secureFlag}; SameSite=Lax`;
 
-      console.log('🔐 게스트 로그인 설정 완료', { userId: guestUser.id });
+      logger.info('🔐 게스트 로그인 설정 완료', { userId: guestUser.id });
     }
 
     // 캐시 무효화하여 다음 호출에서 새 상태 반영
@@ -283,9 +284,9 @@ export class AuthStateManager {
       if (userError) {
         // 'Auth session missing!'은 게스트 모드에서 예상된 동작 (경고 레벨 낮춤)
         if (userError.message === 'Auth session missing!') {
-          console.debug('🔐 Supabase 세션 없음 - 게스트 모드 확인 중...');
+          logger.debug('🔐 Supabase 세션 없음 - 게스트 모드 확인 중...');
         } else {
-          console.warn('⚠️ JWT 검증 실패:', userError.message);
+          logger.warn('⚠️ JWT 검증 실패:', userError.message);
         }
         return null;
       }
@@ -299,7 +300,7 @@ export class AuthStateManager {
         error: sessionError,
       } = await getClient().auth.getSession();
       if (sessionError) {
-        console.warn('⚠️ 세션 가져오기 실패:', sessionError.message);
+        logger.warn('⚠️ 세션 가져오기 실패:', sessionError.message);
         // JWT는 유효하므로 기본 세션 객체 생성
         return {
           user: validatedUser,
@@ -312,7 +313,7 @@ export class AuthStateManager {
       }
       return session || null;
     } catch (error) {
-      console.error('❌ Supabase 세션 에러:', error);
+      logger.error('❌ Supabase 세션 에러:', error);
       return null;
     }
   }
@@ -331,7 +332,7 @@ export class AuthStateManager {
           const createdAt = parseInt(createdAtStr, 10);
           // createdAt이 유효한 숫자인지 확인
           if (Number.isNaN(createdAt)) {
-            console.warn('⚠️ 유효하지 않은 세션 생성 시간 - 세션 정리');
+            logger.warn('⚠️ 유효하지 않은 세션 생성 시간 - 세션 정리');
             this.clearStorage('guest');
             return {
               user: null,
@@ -344,7 +345,7 @@ export class AuthStateManager {
           const age = now - createdAt;
 
           if (age > SESSION_MAX_AGE_MS) {
-            console.log('🔐 세션 만료됨 (7일 초과) - 자동 로그아웃');
+            logger.info('🔐 세션 만료됨 (7일 초과) - 자동 로그아웃');
             // 만료된 세션 정리
             this.clearStorage('guest');
             return {
@@ -364,7 +365,7 @@ export class AuthStateManager {
             sessionId: `${sessionId.substring(0, 8)}...`,
           };
         } catch (error) {
-          console.warn('⚠️ 게스트 사용자 정보 파싱 실패:', error);
+          logger.warn('⚠️ 게스트 사용자 정보 파싱 실패:', error);
         }
       }
     }
@@ -467,7 +468,7 @@ export class AuthStateManager {
 
     keysToRemove.forEach((key) => {
       localStorage.removeItem(key);
-      console.log(`🧹 localStorage 정리: ${key}`);
+      logger.info(`🧹 localStorage 정리: ${key}`);
     });
 
     // sessionStorage 정리
@@ -484,7 +485,7 @@ export class AuthStateManager {
         )
         .forEach((key) => {
           sessionStorage.removeItem(key);
-          console.log(`🧹 sessionStorage 정리: ${key}`);
+          logger.info(`🧹 sessionStorage 정리: ${key}`);
         });
     }
 
@@ -501,7 +502,7 @@ export class AuthStateManager {
       if (!isTestMode) {
         cookiesToClear.push('test_mode', 'vercel_test_token');
       } else {
-        console.log('🧪 테스트 모드 감지 - 테스트 쿠키 보존');
+        logger.info('🧪 테스트 모드 감지 - 테스트 쿠키 보존');
       }
 
       // 🔧 localhost(HTTP)에서도 쿠키가 정리되도록 Secure 플래그 조건부 적용
@@ -510,7 +511,7 @@ export class AuthStateManager {
 
       cookiesToClear.forEach((cookie) => {
         document.cookie = `${cookie}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT${secureFlag}; SameSite=Lax`;
-        console.log(`🧹 쿠키 정리: ${cookie}`);
+        logger.info(`🧹 쿠키 정리: ${cookie}`);
       });
     }
   }

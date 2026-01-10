@@ -8,6 +8,7 @@
 // 🚫 서버리스 타이머 차단
 // ============================================
 
+import { logger } from '@/lib/logging';
 export const SERVERLESS_TIMER_PROTECTION = {
   // 서버리스 환경 감지
   isServerless: () => {
@@ -22,7 +23,7 @@ export const SERVERLESS_TIMER_PROTECTION = {
   // 안전한 타이머 래퍼
   safeSetInterval: (callback: () => void, delay: number) => {
     if (SERVERLESS_TIMER_PROTECTION.isServerless()) {
-      console.warn('🚫 서버리스 환경에서 setInterval 차단됨');
+      logger.warn('🚫 서버리스 환경에서 setInterval 차단됨');
       return null; // 타이머 생성하지 않음
     }
     return setInterval(callback, delay);
@@ -30,7 +31,7 @@ export const SERVERLESS_TIMER_PROTECTION = {
 
   safeSetTimeout: (callback: () => void, delay: number) => {
     if (SERVERLESS_TIMER_PROTECTION.isServerless()) {
-      console.warn('🚫 서버리스 환경에서 setTimeout 차단됨');
+      logger.warn('🚫 서버리스 환경에서 setTimeout 차단됨');
       return null; // 타이머 생성하지 않음
     }
     return setTimeout(callback, delay);
@@ -53,7 +54,7 @@ export const FILE_SYSTEM_PROTECTION = {
   // 안전한 파일 쓰기 래퍼
   safeWriteFile: (operation: string, filePath: string, _data: unknown) => {
     if (!FILE_SYSTEM_PROTECTION.isFileWriteAllowed()) {
-      console.warn(
+      logger.warn(
         `🚫 베르셀 환경에서 파일 쓰기 차단됨: ${operation} (${filePath})`
       );
       return false;
@@ -64,7 +65,7 @@ export const FILE_SYSTEM_PROTECTION = {
   // 로그 파일 쓰기 차단
   safeLogWrite: (logType: string, _message: string) => {
     if (!FILE_SYSTEM_PROTECTION.isFileWriteAllowed()) {
-      console.warn(`🚫 베르셀 환경에서 로그 파일 쓰기 차단됨: ${logType}`);
+      logger.warn(`🚫 베르셀 환경에서 로그 파일 쓰기 차단됨: ${logType}`);
       return false;
     }
     return true;
@@ -73,7 +74,7 @@ export const FILE_SYSTEM_PROTECTION = {
   // 파일 업로드 차단
   safeFileUpload: (uploadType: string, fileName: string) => {
     if (!FILE_SYSTEM_PROTECTION.isFileWriteAllowed()) {
-      console.warn(
+      logger.warn(
         `🚫 베르셀 환경에서 파일 업로드 차단됨: ${uploadType} (${fileName})`
       );
       return false;
@@ -85,7 +86,7 @@ export const FILE_SYSTEM_PROTECTION = {
   alternativeLogging: {
     // 콘솔 로그를 통한 디버깅 정보 제공
     debugLog: (type: string, message: string) => {
-      console.log(`🔍 [${type}] ${message}`);
+      logger.info(`🔍 [${type}] ${message}`);
     },
 
     // 브라우저 환경에서 localStorage를 활용한 임시 로그 저장
@@ -94,9 +95,9 @@ export const FILE_SYSTEM_PROTECTION = {
         const logKey = `temp_log_${type}_${Date.now()}`;
         try {
           localStorage.setItem(logKey, JSON.stringify(data));
-          console.log(`📝 임시 로그 저장됨: ${logKey}`);
+          logger.info(`📝 임시 로그 저장됨: ${logKey}`);
         } catch (error) {
-          console.warn(`⚠️ 브라우저 로그 저장 실패: ${error}`);
+          logger.warn(`⚠️ 브라우저 로그 저장 실패: ${error}`);
         }
       }
     },
@@ -114,7 +115,7 @@ export const FILE_SYSTEM_PROTECTION = {
         timestamp: Date.now(),
         type: 'memory-backup',
       });
-      console.log(`💾 메모리 백업 생성됨: ${key}`);
+      logger.info(`💾 메모리 백업 생성됨: ${key}`);
     },
 
     // 임시 백업 조회
@@ -127,9 +128,9 @@ export const FILE_SYSTEM_PROTECTION = {
       if (typeof window !== 'undefined') {
         try {
           sessionStorage.setItem(`env_backup_${key}`, JSON.stringify(value));
-          console.log(`🔐 세션 백업 저장됨: ${key}`);
+          logger.info(`🔐 세션 백업 저장됨: ${key}`);
         } catch (error) {
-          console.warn(`⚠️ 세션 백업 실패: ${error}`);
+          logger.warn(`⚠️ 세션 백업 실패: ${error}`);
         }
       }
     },
@@ -152,7 +153,7 @@ export const FILE_SYSTEM_PROTECTION = {
         timestamp: Date.now(),
         type: 'context-bundle',
       });
-      console.log(`🎯 컨텍스트 캐시 저장됨: ${key}`);
+      logger.info(`🎯 컨텍스트 캐시 저장됨: ${key}`);
     },
 
     // 컨텍스트 캐시 조회
@@ -171,10 +172,10 @@ export const FILE_SYSTEM_PROTECTION = {
       if (typeof window !== 'undefined' && 'indexedDB' in window) {
         try {
           // 실제 IndexedDB 구현은 필요시 추가
-          console.log(`🗂️ IndexedDB 저장 시도: ${storeName}`);
+          logger.info(`🗂️ IndexedDB 저장 시도: ${storeName}`);
           return true;
         } catch (error) {
-          console.warn(`⚠️ IndexedDB 저장 실패: ${error}`);
+          logger.warn(`⚠️ IndexedDB 저장 실패: ${error}`);
           return false;
         }
       }
@@ -183,7 +184,7 @@ export const FILE_SYSTEM_PROTECTION = {
 
     // 외부 서비스를 통한 데이터 저장 (Supabase, Firebase 등)
     externalStore: async (service: string, _data: unknown) => {
-      console.log(`🌐 외부 서비스 저장: ${service}`);
+      logger.info(`🌐 외부 서비스 저장: ${service}`);
       // 외부 서비스 연동 로직은 필요시 추가
       return true;
     },
@@ -232,7 +233,7 @@ export class QuotaProtector {
 
     // 한도 체크
     if (this.apiCalls[service].count >= this.DAILY_LIMITS[service]) {
-      console.error(
+      logger.error(
         `🚫 ${service} 일일 할당량 초과: ${this.apiCalls[service].count}/${this.DAILY_LIMITS[service]}`
       );
       return false;
@@ -340,7 +341,7 @@ export class MemoryMonitor {
   static forceGarbageCollection(): void {
     if (global.gc) {
       global.gc();
-      console.log('🧹 가비지 컬렉션 강제 실행됨');
+      logger.info('🧹 가비지 컬렉션 강제 실행됨');
     }
   }
 
@@ -350,7 +351,7 @@ export class MemoryMonitor {
   static warnIfHighUsage(): void {
     const { safe, usage, limit } = this.checkMemoryUsage();
     if (!safe) {
-      console.warn(`⚠️ 메모리 사용량 높음: ${usage}MB/${limit}MB`);
+      logger.warn(`⚠️ 메모리 사용량 높음: ${usage}MB/${limit}MB`);
       this.forceGarbageCollection();
     }
   }
@@ -450,11 +451,11 @@ export const enableGlobalProtection = () => {
 
   // 전역 오류 핸들러
   process.on('uncaughtException', (error) => {
-    console.error('🚨 무료티어 보호: 치명적 오류 감지', error);
+    logger.error('🚨 무료티어 보호: 치명적 오류 감지', error);
     MemoryMonitor.forceGarbageCollection();
   });
 
-  console.log('🛡️ 무료티어 보호 기능 활성화됨');
+  logger.info('🛡️ 무료티어 보호 기능 활성화됨');
 
   return {
     quotaProtector,

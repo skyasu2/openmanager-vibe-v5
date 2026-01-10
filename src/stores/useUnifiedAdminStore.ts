@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { SYSTEM_AUTO_SHUTDOWN_TIME } from '@/config/system-constants';
 import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
+import { logger } from '@/lib/logging';
 
 interface UnifiedAdminState {
   // 시스템 상태
@@ -61,7 +62,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
 
           // 30분 후 자동 종료 타이머 설정
           const shutdownTimer = setTimeout(() => {
-            console.log('⏰ [System] 30분 자동 종료 타이머 실행');
+            logger.info('⏰ [System] 30분 자동 종료 타이머 실행');
 
             // 🔔 30분 자동 종료 알림 발송
             browserNotificationService.sendSystemShutdownNotification(
@@ -78,10 +79,10 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             systemShutdownTimer: shutdownTimer,
           }));
 
-          console.log('🚀 [System] 시스템 시작 완료');
-          console.log('🤖 [AI] AI 에이전트는 항상 활성화 상태 유지');
+          logger.info('🚀 [System] 시스템 시작 완료');
+          logger.info('🤖 [AI] AI 에이전트는 항상 활성화 상태 유지');
         } catch (error) {
-          console.error('❌ [System] 시스템 시작 실패:', error);
+          logger.error('❌ [System] 시스템 시작 실패:', error);
         }
       },
 
@@ -103,11 +104,11 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             // 관리자 모드는 선택적으로 유지
           }));
 
-          console.log(
+          logger.info(
             '⏹️ [System] 시스템 정지됨 - AI 에이전트는 계속 활성화 상태'
           );
         } catch (error) {
-          console.error('❌ [System] 시스템 정지 실패:', error);
+          logger.error('❌ [System] 시스템 정지 실패:', error);
         }
       },
 
@@ -125,9 +126,9 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       logout: () => {
         try {
           get().stopSystem();
-          console.log('🔐 [System] 전체 로그아웃 완료');
+          logger.info('🔐 [System] 전체 로그아웃 완료');
         } catch (error) {
-          console.error('❌ [System] 전체 로그아웃 실패:', error);
+          logger.error('❌ [System] 전체 로그아웃 실패:', error);
         }
       },
 
@@ -144,11 +145,11 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           }));
 
           const newState = get().aiAgent.isEnabled;
-          console.log(
+          logger.info(
             `🤖 [AI] AI 에이전트 ${newState ? '활성화' : '비활성화'}`
           );
         } catch (error) {
-          console.error('❌ [AI] AI 토글 실패:', error);
+          logger.error('❌ [AI] AI 토글 실패:', error);
         }
       },
 

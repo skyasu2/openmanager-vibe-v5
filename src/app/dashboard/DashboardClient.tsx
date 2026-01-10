@@ -35,6 +35,7 @@ import debug from '@/utils/debug';
 import DashboardContent from '../../components/dashboard/DashboardContent';
 // --- Static Imports for Core Components (SSR bailout 해결) ---
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
+import { logger } from '@/lib/logging';
 
 const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl'),
@@ -240,7 +241,7 @@ function DashboardPageContent() {
       const localStorageTestMode = localStorage.getItem('test_mode');
       hasLocalStorageTestMode = localStorageTestMode === 'enabled';
     } catch (error) {
-      console.error('❌ [Security] localStorage 접근 실패:', error);
+      logger.error('❌ [Security] localStorage 접근 실패:', error);
     }
 
     const isTestMode =

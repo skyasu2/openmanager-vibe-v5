@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { MetricsHistory } from '../types/server';
+import { logger } from '@/lib/logging';
 
 export interface MetricsStats {
   cpuAvg: number;
@@ -79,7 +80,7 @@ export function useServerMetrics() {
           process.env.NEXT_PUBLIC_NODE_ENV ||
           process.env.NODE_ENV === 'development'
         ) {
-          console.error('히스토리 데이터 로드 실패:', error);
+          logger.error('히스토리 데이터 로드 실패:', error);
         }
         setMetricsHistory(generateSimulatedHistory(range));
       } finally {

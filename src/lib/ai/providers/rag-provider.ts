@@ -21,6 +21,7 @@ import type {
   ProviderOptions,
   RAGData,
 } from '@/lib/ai/core/types';
+import { logger } from '@/lib/logging';
 
 // Supabase RAG Engine 임포트 (기존 구현 재사용)
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
@@ -106,7 +107,7 @@ export class RAGProvider implements IContextProvider {
         },
       };
     } catch (error) {
-      console.error('[RAGProvider] Search failed:', error);
+      logger.error('[RAGProvider] Search failed:', error);
       return this.getEmptyContext('search_error');
     }
   }

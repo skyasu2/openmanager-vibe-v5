@@ -2,6 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { type NextRequest, NextResponse } from 'next/server';
 import { getServerGuestMode } from '@/config/guestMode.server';
 import { developmentOnly } from '@/lib/api/development-only';
+import { logger } from '@/lib/logging';
 
 /**
  * 🚀 베르셀 친화적 AI 테스트 인증 API
@@ -179,7 +180,7 @@ export const POST = developmentOnly(async function POST(request: NextRequest) {
 
     if (!allowed) {
       const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
-      console.warn(`🚨 [Vercel Test Auth] Rate limit exceeded for IP: ${ip}`);
+      logger.warn(`🚨 [Vercel Test Auth] Rate limit exceeded for IP: ${ip}`);
 
       return NextResponse.json(
         {
@@ -200,7 +201,7 @@ export const POST = developmentOnly(async function POST(request: NextRequest) {
 
     // 🎯 게스트 전체 접근 모드: 인증 우회 (개발용)
     if (isGuestFullAccess) {
-      console.log('✅ [Vercel Test Auth] 게스트 모드 - 인증 우회', {
+      logger.info('✅ [Vercel Test Auth] 게스트 모드 - 인증 우회', {
         guestMode,
       });
 
@@ -233,7 +234,7 @@ export const POST = developmentOnly(async function POST(request: NextRequest) {
     const { secret, mode = 'guest', bypass = false } = body;
 
     // 📊 요청 로깅
-    console.log('🧪 [Vercel Test Auth] 요청 수신:', {
+    logger.info('🧪 [Vercel Test Auth] 요청 수신:', {
       mode,
       bypass,
       environment: process.env.VERCEL_ENV || 'local',
@@ -244,7 +245,7 @@ export const POST = developmentOnly(async function POST(request: NextRequest) {
 
     // 🔐 시크릿 키 검증 (필수)
     if (!verifySecret(secret)) {
-      console.warn('🚨 [Vercel Test Auth] 잘못된 시크릿 키');
+      logger.warn('🚨 [Vercel Test Auth] 잘못된 시크릿 키');
       return NextResponse.json(
         {
           success: false,
@@ -256,7 +257,7 @@ export const POST = developmentOnly(async function POST(request: NextRequest) {
     }
 
     // ✅ 시크릿 키 검증 통과
-    console.log('✅ [Vercel Test Auth] 시크릿 키 검증 통과');
+    logger.info('✅ [Vercel Test Auth] 시크릿 키 검증 통과');
 
     // 🎯 모드별 권한 부여
     let sessionData = {
@@ -290,7 +291,7 @@ export const POST = developmentOnly(async function POST(request: NextRequest) {
             ],
           };
         } else {
-          console.warn(
+          logger.warn(
             '🚨 [Vercel Test Auth] 완전 접근 요청 실패 - bypass 플래그 없음'
           );
           return NextResponse.json(
@@ -317,7 +318,7 @@ export const POST = developmentOnly(async function POST(request: NextRequest) {
       sessionData,
     };
 
-    console.log('✅ [Vercel Test Auth] 인증 성공:', {
+    logger.info('✅ [Vercel Test Auth] 인증 성공:', {
       mode,
       environment: process.env.VERCEL_ENV,
       adminMode: sessionData.adminMode,
@@ -336,7 +337,7 @@ export const POST = developmentOnly(async function POST(request: NextRequest) {
 
     return res;
   } catch (error) {
-    console.error('💥 [Vercel Test Auth] 처리 중 오류:', error);
+    logger.error('💥 [Vercel Test Auth] 처리 중 오류:', error);
     return NextResponse.json(
       {
         success: false,

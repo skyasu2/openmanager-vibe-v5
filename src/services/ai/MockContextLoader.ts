@@ -5,6 +5,7 @@
  * 컨텍스트 정보를 제공
  */
 
+import { logger } from '@/lib/logging';
 import { isMockMode } from '../../config/mock-config';
 import type { Server } from '../../types/server';
 import { UnifiedServerDataSource } from '../data/UnifiedServerDataSource';
@@ -76,13 +77,13 @@ export class MockContextLoader {
   getMockContext(): MockContext | null {
     // 프로덕션에서는 디버그 로그 제거
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 MockContextLoader.getMockContext() 호출됨');
-      console.log('🔍 isMockMode() 결과:', isMockMode());
+      logger.info('🔍 MockContextLoader.getMockContext() 호출됨');
+      logger.info('🔍 isMockMode() 결과:', isMockMode());
     }
 
     if (!isMockMode()) {
       if (process.env.NODE_ENV === 'development') {
-        console.log('❌ Mock 모드가 비활성화됨 - null 반환');
+        logger.info('❌ Mock 모드가 비활성화됨 - null 반환');
       }
       return null;
     }
@@ -90,14 +91,14 @@ export class MockContextLoader {
     // 캐시된 데이터가 유효하면 반환
     if (this.isCacheValid()) {
       if (process.env.NODE_ENV === 'development') {
-        console.log('⚡ 캐시된 MockContext 사용');
+        logger.info('⚡ 캐시된 MockContext 사용');
       }
       return this.cachedContext;
     }
 
     try {
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔄 UnifiedServerDataSource 동기 컨텍스트 조회 시도...');
+        logger.info('🔄 UnifiedServerDataSource 동기 컨텍스트 조회 시도...');
       }
       // 🚀 베르셀 최적화: UnifiedServerDataSource를 통해 정적 JSON 데이터 사용 (scenario-loader)
       const result = this.getStaticContextSync();
@@ -109,7 +110,7 @@ export class MockContextLoader {
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ UnifiedServerDataSource 동기 컨텍스트 성공:', {
+        logger.info('✅ UnifiedServerDataSource 동기 컨텍스트 성공:', {
           enabled: result?.enabled,
           serverCount: result?.servers?.length,
           currentTime: result?.currentTime,
@@ -118,11 +119,11 @@ export class MockContextLoader {
       }
       return result;
     } catch (error) {
-      console.error('❌ UnifiedServerDataSource 데이터 조회 실패:', error);
+      logger.error('❌ UnifiedServerDataSource 데이터 조회 실패:', error);
 
       // 폴백: null 반환 (UnifiedServerDataSource 캐시 초기화 대기 필요)
       // AI는 데이터 없음 상태를 gracefully 처리 가능
-      console.warn(
+      logger.warn(
         '⚠️ MockContext 사용 불가 - UnifiedServerDataSource 초기화 대기 중'
       );
 
@@ -224,7 +225,7 @@ export class MockContextLoader {
   private getStaticContextSync(): MockContext | null {
     try {
       if (process.env.NODE_ENV === 'development') {
-        console.log(
+        logger.info(
           '🚀 UnifiedServerDataSource 기반 컨텍스트 생성 시도 (동기 래퍼)'
         );
       }
@@ -236,7 +237,7 @@ export class MockContextLoader {
       // 캐시가 준비되지 않은 경우 null 반환
       if (servers.length === 0) {
         if (process.env.NODE_ENV === 'development') {
-          console.warn(
+          logger.warn(
             '⚠️ UnifiedServerDataSource 캐시 미준비 - 다음 요청에서 재시도'
           );
         }
@@ -244,7 +245,7 @@ export class MockContextLoader {
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ UnifiedServerDataSource 동기 데이터 로드 성공:', {
+        logger.info('✅ UnifiedServerDataSource 동기 데이터 로드 성공:', {
           serversCount: servers.length,
         });
       }
@@ -313,7 +314,7 @@ export class MockContextLoader {
         },
       };
     } catch (error) {
-      console.error('❌ UnifiedServerDataSource 컨텍스트 생성 실패:', error);
+      logger.error('❌ UnifiedServerDataSource 컨텍스트 생성 실패:', error);
       return null;
     }
   }

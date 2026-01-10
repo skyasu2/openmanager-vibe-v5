@@ -9,6 +9,7 @@
 
 import * as z from 'zod';
 import type { Environment } from '../types/common';
+import { logger } from '@/lib/logging';
 
 // 설정 스키마 정의
 export const ConfigSchema = z.object({
@@ -237,7 +238,7 @@ export class ConfigLoader {
       this.config = ConfigSchema.parse(rawConfig);
       return this.config;
     } catch (error) {
-      console.error('❌ Configuration validation failed:', error);
+      logger.error('❌ Configuration validation failed:', error);
       throw new Error('Invalid configuration');
     }
   }

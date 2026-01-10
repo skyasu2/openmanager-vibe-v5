@@ -14,6 +14,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import { logger } from '@/lib/logging';
 import {
   Select,
   SelectContent,
@@ -94,32 +95,32 @@ export default function ServerDashboard({
   const sortedServers = useMemo(() => {
     // 🛡️ AI 교차검증: paginatedServers 다층 안전성 검증 (Codex 94.1% 개선)
     if (!paginatedServers) {
-      console.warn('⚠️ ServerDashboard: paginatedServers가 undefined입니다.');
+      logger.warn('⚠️ ServerDashboard: paginatedServers가 undefined입니다.');
       return [];
     }
     if (!Array.isArray(paginatedServers)) {
-      console.error(
+      logger.error(
         '⚠️ ServerDashboard: paginatedServers가 배열이 아닙니다:',
         typeof paginatedServers
       );
       return [];
     }
     if (paginatedServers.length === 0) {
-      console.info('ℹ️ ServerDashboard: 표시할 서버가 없습니다.');
+      logger.info('ℹ️ ServerDashboard: 표시할 서버가 없습니다.');
       return [];
     }
 
     // 🛡️ Codex 권장: 각 서버 객체 유효성 검증
     const validatedServers = paginatedServers.filter((server, index) => {
       if (!server || typeof server !== 'object') {
-        console.warn(
+        logger.warn(
           `⚠️ ServerDashboard: 서버[${index}]가 유효하지 않음:`,
           server
         );
         return false;
       }
       if (!server.id || typeof server.id !== 'string') {
-        console.warn(
+        logger.warn(
           `⚠️ ServerDashboard: 서버[${index}]의 id가 유효하지 않음:`,
           server.id
         );
@@ -129,7 +130,7 @@ export default function ServerDashboard({
     });
 
     if (validatedServers.length !== paginatedServers.length) {
-      console.warn(
+      logger.warn(
         `⚠️ ServerDashboard: ${paginatedServers.length - validatedServers.length}개 서버가 유효하지 않아 제외되었습니다.`
       );
     }
@@ -163,9 +164,9 @@ export default function ServerDashboard({
     let safeServersLength = 0;
 
     if (!servers) {
-      console.warn('⚠️ ServerDashboard: servers가 undefined입니다.');
+      logger.warn('⚠️ ServerDashboard: servers가 undefined입니다.');
     } else if (!Array.isArray(servers)) {
-      console.error(
+      logger.error(
         '⚠️ ServerDashboard: servers가 배열이 아닙니다:',
         typeof servers
       );
@@ -191,7 +192,7 @@ export default function ServerDashboard({
 
     // 🎯 Qwen 권장: 계산 결과 유효성 검증
     if (startIndex > endIndex && safeServersLength > 0) {
-      console.warn('⚠️ ServerDashboard: 페이지네이션 계산 오류', {
+      logger.warn('⚠️ ServerDashboard: 페이지네이션 계산 오류', {
         startIndex,
         endIndex,
         safeServersLength,

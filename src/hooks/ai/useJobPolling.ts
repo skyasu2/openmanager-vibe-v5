@@ -7,6 +7,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { JobStatus, JobStatusResponse } from '@/types/ai-jobs';
+import { logger } from '@/lib/logging';
 
 // ============================================
 // 타입 정의
@@ -63,8 +64,8 @@ const TERMINAL_STATUSES: JobStatus[] = ['completed', 'failed', 'cancelled'];
  * @example
  * ```tsx
  * const { job, isPolling, error, cancelJob } = useJobPolling(jobId, {
- *   onComplete: (result) => console.log('완료:', result),
- *   onProgress: (progress, step) => console.log(`${progress}%: ${step}`),
+ *   onComplete: (result) => logger.info('완료:', result),
+ *   onProgress: (progress, step) => logger.info(`${progress}%: ${step}`),
  * });
  * ```
  */

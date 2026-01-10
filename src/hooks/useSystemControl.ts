@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { safeErrorLog, safeErrorMessage } from '../lib/error-handler';
 import { systemLogger } from '../lib/logger';
+import { logger } from '@/lib/logging';
 
 type AIAgentState = {
   isEnabled: boolean;
@@ -195,7 +196,7 @@ export function useSystemControl(): UseSystemControlReturn {
         safeError.name === 'TypeError' &&
         safeError.message.includes('fetch')
       ) {
-        console.log('🔍 네트워크 에러 - 시스템이 이미 중지되었을 수 있음');
+        logger.info('🔍 네트워크 에러 - 시스템이 이미 중지되었을 수 있음');
         setStatus((prev) => ({
           ...prev,
           isRunning: false,
@@ -217,7 +218,7 @@ export function useSystemControl(): UseSystemControlReturn {
   const restartSystem = useCallback(async () => {
     try {
       setIsLoading(true);
-      console.log('🔄 시스템 재시작 시도...');
+      logger.info('🔄 시스템 재시작 시도...');
 
       // First stop the system
       await stopSystem();
@@ -228,7 +229,7 @@ export function useSystemControl(): UseSystemControlReturn {
       // Then start it again
       await startSystem();
 
-      console.log('✅ 시스템 재시작 완료');
+      logger.info('✅ 시스템 재시작 완료');
     } catch (error) {
       const safeError = safeErrorLog('❌ 시스템 재시작 실패', error);
       setStatus((prev) => ({
@@ -493,11 +494,11 @@ export function useSystemControl(): UseSystemControlReturn {
     try {
       // AI 세션은 20분으로 시작하고 자동 종료됨
       // AI 세션 시작 로직 (기본 구현)
-      console.log('AI 세션 시작 요청:', reason);
+      logger.info('AI 세션 시작 요청:', reason);
 
       // 🔐 AI 에이전트 활성화는 별도의 인증이 필요함
       // enableAIAgent는 useUnifiedAdminStore를 통한 인증 후에만 사용 가능
-      console.log(
+      logger.info(
         'ℹ️ [AI Session] 시스템 시작됨 - AI 에이전트는 별도 인증 필요'
       );
 
@@ -518,9 +519,9 @@ export function useSystemControl(): UseSystemControlReturn {
     try {
       // updateActivity()는 빈 함수 - 직접 구현 (현재는 아무 작업 없음)
       // 향후 필요시 여기에 활동 기록 로직 추가
-      console.log('📊 [useSystemControl] 사용자 활동 기록');
+      logger.info('📊 [useSystemControl] 사용자 활동 기록');
     } catch (error) {
-      console.error('❌ [useSystemControl] recordActivity 실패:', error);
+      logger.error('❌ [useSystemControl] recordActivity 실패:', error);
       // 에러 발생 시에도 안전하게 계속 진행
     }
   }, []); // ✅ updateActivity 함수 의존성 제거하여 순환 의존성 해결

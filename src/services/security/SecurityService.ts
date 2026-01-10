@@ -6,6 +6,7 @@
  * - 복잡한 보안 기능은 향후 개발
  */
 
+import { logger } from '@/lib/logging';
 import { isNotNullOrUndefined } from '@/types/type-utils';
 import { generateSessionId } from '@/utils/utils-functions';
 
@@ -40,7 +41,7 @@ export class SecurityService {
   private readonly MAX_SESSIONS = 5;
 
   private constructor() {
-    console.log('🔒 간소화된 보안 서비스 초기화');
+    logger.info('🔒 간소화된 보안 서비스 초기화');
   }
 
   public static getInstance(): SecurityService {
@@ -63,7 +64,7 @@ export class SecurityService {
     error?: string;
   }> {
     try {
-      console.log(`🔓 사용자 인증: ${username}`);
+      logger.info(`🔓 사용자 인증: ${username}`);
 
       // 간단한 Mock 인증
       const mockUsers = {
@@ -98,7 +99,7 @@ export class SecurityService {
           details: { success: true },
         });
 
-        console.log(`✅ 인증 성공: ${username}`);
+        logger.info(`✅ 인증 성공: ${username}`);
         return { success: true, sessionId };
       } else {
         // 실패 이벤트 기록
@@ -112,7 +113,7 @@ export class SecurityService {
         return { success: false, error: '잘못된 자격 증명' };
       }
     } catch (error) {
-      console.error('❌ 인증 오류:', error);
+      logger.error('❌ 인증 오류:', error);
       return { success: false, error: '인증 시스템 오류' };
     }
   }
@@ -164,7 +165,7 @@ export class SecurityService {
         details: { sessionId },
       });
 
-      console.log(`🚪 로그아웃: ${session.userId}`);
+      logger.info(`🚪 로그아웃: ${session.userId}`);
     }
   }
 
@@ -231,7 +232,7 @@ export class SecurityService {
 
       for (const session of sessionsToRemove) {
         session.isValid = false;
-        console.log(`🧹 세션 만료: ${session.id} (최대 세션 수 초과)`);
+        logger.info(`🧹 세션 만료: ${session.id} (최대 세션 수 초과)`);
       }
     }
   }
@@ -255,7 +256,7 @@ export class SecurityService {
       this.securityEvents = this.securityEvents.slice(0, 1000);
     }
 
-    console.log(`📊 보안 이벤트: ${event.type} - ${event.userId || 'unknown'}`);
+    logger.info(`📊 보안 이벤트: ${event.type} - ${event.userId || 'unknown'}`);
   }
 
   /**
@@ -302,7 +303,7 @@ export class SecurityService {
    */
   clearAllSessions(): void {
     this.sessions.clear();
-    console.log('🧹 모든 세션 초기화 완료');
+    logger.info('🧹 모든 세션 초기화 완료');
   }
 
   async createSession(
@@ -337,7 +338,7 @@ export class SecurityService {
 
       return sessionId;
     } catch (error) {
-      console.error('❌ 세션 생성 오류:', error);
+      logger.error('❌ 세션 생성 오류:', error);
       throw new Error('세션 생성 실패');
     }
   }
@@ -351,5 +352,5 @@ export const getSecurityService = (): SecurityService => {
 // 🚀 간소화된 보안 서비스 초기화
 export const _initializeSecurityService = async (): Promise<void> => {
   const _security = getSecurityService();
-  console.log('🚀 간소화된 보안 서비스 초기화 완료');
+  logger.info('🚀 간소화된 보안 서비스 초기화 완료');
 };

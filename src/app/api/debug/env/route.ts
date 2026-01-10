@@ -12,6 +12,7 @@ import { NextResponse } from 'next/server';
 import { env, features, isProduction, isVercelProduction } from '@/env';
 import { developmentOnly } from '@/lib/api/development-only';
 import { authManager } from '@/lib/auth/auth';
+import { logger } from '@/lib/logging';
 
 export const GET = developmentOnly(function GET(request: NextRequest) {
   try {
@@ -123,7 +124,7 @@ export const GET = developmentOnly(function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ Environment diagnostics error:', error);
+    logger.error('❌ Environment diagnostics error:', error);
     return NextResponse.json(
       {
         success: false,

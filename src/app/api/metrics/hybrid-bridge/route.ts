@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logging';
 
 // 간단한 하이브리드 메트릭 응답
 interface HybridAnalysis {

@@ -9,6 +9,7 @@
  * - ✅ 시스템 종료시 베이스라인 자동 저장
  */
 
+import { logger } from '@/lib/logging';
 import type { EnhancedServerMetrics } from '../../types/server';
 
 // BaselineStorageService removed - using FixedDataSystem instead
@@ -186,7 +187,7 @@ export class EnrichedMetricsGenerator {
   private lastBaselineLoad: Date | null = null;
 
   private constructor() {
-    console.log('🚀 강화된 메트릭 생성기 v4.0 초기화 (VM 최적화)');
+    logger.info('🚀 강화된 메트릭 생성기 v4.0 초기화 (VM 최적화)');
   }
 
   static getInstance(): EnrichedMetricsGenerator {
@@ -201,11 +202,11 @@ export class EnrichedMetricsGenerator {
    */
   async startWithBaselineLoad(servers: EnhancedServerMetrics[]): Promise<void> {
     if (this.isRunning) {
-      console.warn('⚠️ 메트릭 생성기가 이미 실행 중입니다');
+      logger.warn('⚠️ 메트릭 생성기가 이미 실행 중입니다');
       return;
     }
 
-    console.log('🔄 시스템 시작 - 베이스라인 데이터 로드 중...');
+    logger.info('🔄 시스템 시작 - 베이스라인 데이터 로드 중...');
 
     // 1️⃣ 서버 목록 초기화 (15개 서버 유지)
     this._initializeServers(servers);
@@ -221,16 +222,16 @@ export class EnrichedMetricsGenerator {
     // 4️⃣ 24시간 연속 업데이트 시작
     this.startContinuousGeneration();
 
-    console.log('✅ 강화된 메트릭 생성기 시작 완료 (VM 24시간 모드)');
-    console.log(`📊 관리 중인 서버: ${this.servers.size}개`);
-    console.log(`🔄 업데이트 주기: ${this.UPDATE_CYCLE_MS / 1000}초`);
+    logger.info('✅ 강화된 메트릭 생성기 시작 완료 (VM 24시간 모드)');
+    logger.info(`📊 관리 중인 서버: ${this.servers.size}개`);
+    logger.info(`🔄 업데이트 주기: ${this.UPDATE_CYCLE_MS / 1000}초`);
   }
 
   /**
    * 🛑 시스템 종료시 자동 정리 (베이스라인 저장)
    */
   async stopWithBaselineSave(): Promise<void> {
-    console.log('🔄 시스템 종료 - 베이스라인 데이터 저장 중...');
+    logger.info('🔄 시스템 종료 - 베이스라인 데이터 저장 중...');
 
     // 1️⃣ 업데이트 중지
     if (this.updateInterval) {
@@ -247,7 +248,7 @@ export class EnrichedMetricsGenerator {
     await this.saveBaselineToStorage();
 
     this.isRunning = false;
-    console.log('✅ 강화된 메트릭 생성기 정지 완료 (베이스라인 저장됨)');
+    logger.info('✅ 강화된 메트릭 생성기 정지 완료 (베이스라인 저장됨)');
   }
 
   /**
@@ -260,7 +261,7 @@ export class EnrichedMetricsGenerator {
       this.servers.set(server.id, server);
     });
 
-    console.log(`📊 서버 목록 초기화: ${this.servers.size}개 서버 등록`);
+    logger.info(`📊 서버 목록 초기화: ${this.servers.size}개 서버 등록`);
   }
 
   /**
@@ -274,12 +275,12 @@ export class EnrichedMetricsGenerator {
         try {
           await this.generateEnrichedMetricsForAllServers();
         } catch (error) {
-          console.error('❌ 메트릭 생성 오류:', error);
+          logger.error('❌ 메트릭 생성 오류:', error);
         }
       })();
     }, this.UPDATE_CYCLE_MS);
 
-    console.log('🔄 24시간 연속 메트릭 생성 시작됨');
+    logger.info('🔄 24시간 연속 메트릭 생성 시작됨');
   }
 
   /**
@@ -302,12 +303,12 @@ export class EnrichedMetricsGenerator {
         this.servers.set(serverId, updatedServer);
         updatedServers.push(updatedServer);
       } catch (error) {
-        console.error(`❌ 서버 ${serverId} 메트릭 생성 실패:`, error);
+        logger.error(`❌ 서버 ${serverId} 메트릭 생성 실패:`, error);
       }
     }
 
     const duration = Date.now() - startTime;
-    console.log(
+    logger.info(
       `📊 강화된 메트릭 생성 완료: ${updatedServers.length}개 서버, ${duration}ms`
     );
   }
@@ -609,12 +610,12 @@ export class EnrichedMetricsGenerator {
    */
   private async loadBaselineFromStorage(): Promise<void> {
     try {
-      console.log('📥 베이스라인 데이터 로드 중...');
+      logger.info('📥 베이스라인 데이터 로드 중...');
       const _servers = Array.from(this.servers.values());
       this.lastBaselineLoad = new Date();
-      console.log('✅ 베이스라인 데이터 로드 완료 (동적 생성 모드)');
+      logger.info('✅ 베이스라인 데이터 로드 완료 (동적 생성 모드)');
     } catch (error) {
-      console.warn('⚠️ 베이스라인 로드 실패, 동적 생성으로 대체:', error);
+      logger.warn('⚠️ 베이스라인 로드 실패, 동적 생성으로 대체:', error);
     }
   }
 
@@ -624,10 +625,10 @@ export class EnrichedMetricsGenerator {
    */
   private async saveBaselineToStorage(): Promise<void> {
     try {
-      console.log('💾 베이스라인 데이터 저장 중...');
-      console.log('✅ 베이스라인 데이터 저장 완료 (동적 생성 모드)');
+      logger.info('💾 베이스라인 데이터 저장 중...');
+      logger.info('✅ 베이스라인 데이터 저장 완료 (동적 생성 모드)');
     } catch (error) {
-      console.error('❌ 베이스라인 저장 실패:', error);
+      logger.error('❌ 베이스라인 저장 실패:', error);
     }
   }
 

@@ -8,6 +8,7 @@
 'use client';
 
 import type { AuthError, Session } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
 import {
   guestSessionCookies,
   validateRedirectUrl,
@@ -70,8 +71,8 @@ export async function signInWithGitHub() {
       );
     }
 
-    console.log('🔗 OAuth 리다이렉트 URL:', redirectUrl);
-    console.log('🌍 현재 환경:', {
+    logger.info('🔗 OAuth 리다이렉트 URL:', redirectUrl);
+    logger.info('🌍 현재 환경:', {
       origin,
       isVercel: origin.includes('vercel.app'),
       isLocal: origin.includes('localhost'),
@@ -80,9 +81,9 @@ export async function signInWithGitHub() {
     });
 
     // GitHub OAuth App 설정 확인을 위한 로그
-    console.log('⚠️ 필요한 설정:');
-    console.log('  Supabase Redirect URLs:', redirectUrl);
-    console.log(
+    logger.info('⚠️ 필요한 설정:');
+    logger.info('  Supabase Redirect URLs:', redirectUrl);
+    logger.info(
       '  GitHub OAuth Callback:',
       `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`
     );
@@ -113,8 +114,8 @@ export async function signInWithGitHub() {
     });
 
     if (error) {
-      console.error('❌ GitHub OAuth 로그인 실패:', error);
-      console.error('🔧 디버깅 정보:', {
+      logger.error('❌ GitHub OAuth 로그인 실패:', error);
+      logger.error('🔧 디버깅 정보:', {
         errorCode: error.code,
         errorMessage: error.message,
         supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -123,10 +124,10 @@ export async function signInWithGitHub() {
       throw error;
     }
 
-    console.log('✅ GitHub OAuth 로그인 요청 성공');
+    logger.info('✅ GitHub OAuth 로그인 요청 성공');
     return { data, error: null };
   } catch (error) {
-    console.error('❌ GitHub OAuth 로그인 에러:', error);
+    logger.error('❌ GitHub OAuth 로그인 에러:', error);
     return { data: null, error };
   }
 }
@@ -149,8 +150,8 @@ export async function signInWithGoogle() {
       );
     }
 
-    console.log('🔗 OAuth 리다이렉트 URL:', redirectUrl);
-    console.log('🌍 현재 환경:', {
+    logger.info('🔗 OAuth 리다이렉트 URL:', redirectUrl);
+    logger.info('🌍 현재 환경:', {
       origin,
       isVercel: origin.includes('vercel.app'),
       isLocal: origin.includes('localhost'),
@@ -187,8 +188,8 @@ export async function signInWithGoogle() {
     });
 
     if (error) {
-      console.error('❌ Google OAuth 로그인 실패:', error);
-      console.error('🔧 디버깅 정보:', {
+      logger.error('❌ Google OAuth 로그인 실패:', error);
+      logger.error('🔧 디버깅 정보:', {
         errorCode: error.code,
         errorMessage: error.message,
         supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -197,10 +198,10 @@ export async function signInWithGoogle() {
       throw error;
     }
 
-    console.log('✅ Google OAuth 로그인 요청 성공');
+    logger.info('✅ Google OAuth 로그인 요청 성공');
     return { data, error: null };
   } catch (error) {
-    console.error('❌ Google OAuth 로그인 에러:', error);
+    logger.error('❌ Google OAuth 로그인 에러:', error);
     return { data: null, error };
   }
 }
@@ -211,19 +212,19 @@ export async function signInWithGoogle() {
  */
 export async function signOut(options?: { authType?: 'github' | 'guest' }) {
   try {
-    console.log('🚪 통합 로그아웃 시작:', options);
+    logger.info('🚪 통합 로그아웃 시작:', options);
 
     // AuthStateManager를 통한 통합 로그아웃 처리
     // authStateManager는 이미 import됨
     await authStateManager.clearAllAuthData(options?.authType);
 
-    console.log('✅ 통합 로그아웃 성공');
+    logger.info('✅ 통합 로그아웃 성공');
     return { error: null };
   } catch (error) {
-    console.error('❌ 통합 로그아웃 에러:', error);
+    logger.error('❌ 통합 로그아웃 에러:', error);
 
     // Fallback: 레거시 로직 사용
-    console.warn('⚠️ 레거시 로그아웃으로 fallback');
+    logger.warn('⚠️ 레거시 로그아웃으로 fallback');
     return await signOutLegacy(options?.authType);
   }
 }
@@ -233,7 +234,7 @@ export async function signOut(options?: { authType?: 'github' | 'guest' }) {
  */
 async function signOutLegacy(authType?: 'github' | 'guest') {
   try {
-    console.warn(
+    logger.warn(
       '⚠️ 레거시 signOut 사용 중 - AuthStateManager로 마이그레이션 권장'
     );
 
@@ -241,7 +242,7 @@ async function signOutLegacy(authType?: 'github' | 'guest') {
     if (!authType || authType === 'github') {
       const { error } = await getClient().auth.signOut();
       if (error) {
-        console.warn('⚠️ Supabase 로그아웃 실패:', error);
+        logger.warn('⚠️ Supabase 로그아웃 실패:', error);
       }
     }
 
@@ -273,13 +274,13 @@ async function signOutLegacy(authType?: 'github' | 'guest') {
     try {
       guestSessionCookies.clearGuestSession();
     } catch (error) {
-      console.warn('⚠️ guestSessionCookies 정리 실패:', error);
+      logger.warn('⚠️ guestSessionCookies 정리 실패:', error);
     }
 
-    console.log('✅ 레거시 로그아웃 완료');
+    logger.info('✅ 레거시 로그아웃 완료');
     return { error: null };
   } catch (error) {
-    console.error('❌ 레거시 로그아웃 에러:', error);
+    logger.error('❌ 레거시 로그아웃 에러:', error);
     return { error };
   }
 }
@@ -296,7 +297,7 @@ export async function getSession(): Promise<Session | null> {
       error: userError,
     } = await getClient().auth.getUser();
     if (userError) {
-      console.warn('⚠️ JWT 검증 실패:', userError.message);
+      logger.warn('⚠️ JWT 검증 실패:', userError.message);
       return null;
     }
     if (!validatedUser) {
@@ -309,13 +310,13 @@ export async function getSession(): Promise<Session | null> {
       error: sessionError,
     } = await getClient().auth.getSession();
     if (sessionError) {
-      console.error('❌ 세션 가져오기 실패:', sessionError);
+      logger.error('❌ 세션 가져오기 실패:', sessionError);
       return null;
     }
 
     return session;
   } catch (error) {
-    console.error('❌ 세션 가져오기 에러:', error);
+    logger.error('❌ 세션 가져오기 에러:', error);
     return null;
   }
 }
@@ -330,7 +331,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     // authStateManager는 이미 import됨
     const authState = await authStateManager.getAuthState();
 
-    console.log('🔄 getCurrentUser -> AuthStateManager 위임:', {
+    logger.info('🔄 getCurrentUser -> AuthStateManager 위임:', {
       type: authState.type,
       isAuthenticated: authState.isAuthenticated,
       userId: authState.user?.id,
@@ -338,10 +339,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
     return authState.user;
   } catch (error) {
-    console.error(
-      '❌ getCurrentUser 에러 (AuthStateManager 위임 실패):',
-      error
-    );
+    logger.error('❌ getCurrentUser 에러 (AuthStateManager 위임 실패):', error);
 
     // Fallback: 기존 로직 유지 (하위 호환성)
     return await getCurrentUserLegacy();
@@ -353,7 +351,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
  */
 async function getCurrentUserLegacy(): Promise<AuthUser | null> {
   try {
-    console.warn(
+    logger.warn(
       '⚠️ 레거시 getCurrentUser 사용 중 - AuthStateManager로 마이그레이션 권장'
     );
 
@@ -389,7 +387,7 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
           try {
             const tokenData = JSON.parse(supabaseAuthToken);
             if (tokenData?.access_token && tokenData?.user) {
-              console.log('🔄 Supabase 토큰에서 세션 복원 시도');
+              logger.info('🔄 Supabase 토큰에서 세션 복원 시도');
               // 세션을 한 번 더 시도해보기
               const retrySession = await getSession();
               if (retrySession?.user) {
@@ -408,7 +406,7 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
               }
             }
           } catch (e) {
-            console.warn('⚠️ Supabase 토큰 파싱 실패:', e);
+            logger.warn('⚠️ Supabase 토큰 파싱 실패:', e);
           }
         }
       }
@@ -461,7 +459,7 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
       provider: 'github',
     };
   } catch (error) {
-    console.error('❌ 레거시 getCurrentUser 에러:', error);
+    logger.error('❌ 레거시 getCurrentUser 에러:', error);
     return null;
   }
 }
@@ -476,14 +474,14 @@ export async function isAuthenticated(): Promise<boolean> {
     // authStateManager는 이미 import됨
     const authState = await authStateManager.getAuthState();
 
-    console.log('🔄 isAuthenticated -> AuthStateManager 위임:', {
+    logger.info('🔄 isAuthenticated -> AuthStateManager 위임:', {
       type: authState.type,
       isAuthenticated: authState.isAuthenticated,
     });
 
     return authState.isAuthenticated;
   } catch (error) {
-    console.error(
+    logger.error(
       '❌ isAuthenticated 에러 (AuthStateManager 위임 실패):',
       error
     );
@@ -504,13 +502,13 @@ export async function isGitHubAuthenticated(): Promise<boolean> {
     // authStateManager는 이미 import됨
     const isGitHub = await authStateManager.isGitHubAuthenticated();
 
-    console.log('🔄 isGitHubAuthenticated -> AuthStateManager 위임:', {
+    logger.info('🔄 isGitHubAuthenticated -> AuthStateManager 위임:', {
       isGitHub,
     });
 
     return isGitHub;
   } catch (error) {
-    console.error(
+    logger.error(
       '❌ isGitHubAuthenticated 에러 (AuthStateManager 위임 실패):',
       error
     );
@@ -533,7 +531,7 @@ export function isGuestUser(): boolean {
 
       // 간단한 게스트 세션 확인
       if (authType === 'guest' && sessionId) {
-        console.log('🔄 isGuestUser 간단 확인:', {
+        logger.info('🔄 isGuestUser 간단 확인:', {
           isGuest: true,
           sessionId: `${sessionId.substring(0, 8)}...`,
         });
@@ -544,7 +542,7 @@ export function isGuestUser(): boolean {
     }
     return false;
   } catch (error) {
-    console.error('❌ isGuestUser 에러:', error);
+    logger.error('❌ isGuestUser 에러:', error);
     return false;
   }
 }
@@ -553,7 +551,7 @@ export function isGuestUser(): boolean {
  * 레거시 GitHub 인증 확인 (하위 호환성용)
  */
 async function isGitHubAuthenticatedLegacy(): Promise<boolean> {
-  console.warn(
+  logger.warn(
     '⚠️ 레거시 isGitHubAuthenticated 사용 중 - AuthStateManager로 마이그레이션 권장'
   );
 
@@ -572,7 +570,7 @@ async function isGitHubAuthenticatedLegacy(): Promise<boolean> {
 export function onAuthStateChange(callback: (session: Session | null) => void) {
   const { data: authListener } = getClient().auth.onAuthStateChange(
     (event, session) => {
-      console.log('🔄 Auth 상태 변경:', event, 'userId:', session?.user?.id);
+      logger.info('🔄 Auth 상태 변경:', event, 'userId:', session?.user?.id);
       callback(session);
     }
   );
@@ -590,17 +588,17 @@ export async function handleAuthCallback(): Promise<AuthCallbackResult> {
     const error = response?.error;
 
     if (error) {
-      console.error('❌ Auth 콜백 처리 실패:', error);
+      logger.error('❌ Auth 콜백 처리 실패:', error);
       return { session: null, error };
     }
 
     if (session) {
-      console.log('✅ Auth 콜백 처리 성공, userId:', session.user.id);
+      logger.info('✅ Auth 콜백 처리 성공, userId:', session.user.id);
     }
 
     return { session, error: null };
   } catch (error) {
-    console.error('❌ Auth 콜백 처리 에러:', error);
+    logger.error('❌ Auth 콜백 처리 에러:', error);
     return {
       session: null,
       error: error instanceof Error ? error : new Error(String(error)),
@@ -618,14 +616,14 @@ export async function refreshSession() {
     const error = response?.error;
 
     if (error) {
-      console.error('❌ 세션 새로고침 실패:', error);
+      logger.error('❌ 세션 새로고침 실패:', error);
       return { session: null, error };
     }
 
-    console.log('✅ 세션 새로고침 성공');
+    logger.info('✅ 세션 새로고침 성공');
     return { session, error: null };
   } catch (error) {
-    console.error('❌ 세션 새로고침 에러:', error);
+    logger.error('❌ 세션 새로고침 에러:', error);
     return { session: null, error };
   }
 }

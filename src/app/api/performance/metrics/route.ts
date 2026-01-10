@@ -4,6 +4,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 import { PerformanceService } from '@/services/performance/PerformanceService';
 
 export function GET(_request: NextRequest) {
@@ -26,7 +27,7 @@ export function GET(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching performance metrics:', error);
+    logger.error('Error fetching performance metrics:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Error processing performance action:', error);
+    logger.error('Error processing performance action:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

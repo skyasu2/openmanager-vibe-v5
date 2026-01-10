@@ -13,6 +13,7 @@ import { useAutoLogout } from './useAutoLogout';
 import { useSystemAutoShutdown } from './useSystemAutoShutdown';
 import { useSystemStatus } from './useSystemStatus';
 import { createTimerTask, useUnifiedTimer } from './useUnifiedTimer';
+import { logger } from '@/lib/logging';
 
 // Chrome 전용 Performance API 확장
 interface PerformanceMemory {
@@ -88,12 +89,12 @@ export function useOptimizedDashboard({
     // 통합 타이머 모드에서는 추가 최적화 작업 등록
     const authTask = createTimerTask.authCheck(() => {
       // 기존 autoLogout 로직 보완
-      console.log('🔒 통합 타이머: 인증 상태 체크');
+      logger.info('🔒 통합 타이머: 인증 상태 체크');
     });
 
     const systemTask = createTimerTask.systemStatus(() => {
       // 기존 systemStatus 로직 보완
-      console.log('📊 통합 타이머: 시스템 상태 체크');
+      logger.info('📊 통합 타이머: 시스템 상태 체크');
     });
 
     unifiedTimer.registerTask(authTask);
@@ -145,7 +146,7 @@ export function useOptimizedDashboard({
           (window as WindowWithGC).gc
         ) {
           (window as WindowWithGC).gc?.();
-          console.log('🗑️ 강제 가비지 컬렉션 실행');
+          logger.info('🗑️ 강제 가비지 컬렉션 실행');
         }
       },
     }),

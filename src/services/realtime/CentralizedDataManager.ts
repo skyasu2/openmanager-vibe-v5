@@ -8,6 +8,7 @@
  * - API 호출량 70% 감소 목표
  */
 
+import { logger } from '@/lib/logging';
 import type { Server } from '@/types/server';
 
 type DataType = 'servers' | 'metrics' | 'network' | 'system';
@@ -79,14 +80,14 @@ class CentralizedDataManager {
       void this.fetchDataForType(dataType);
     }
 
-    console.log(
+    logger.info(
       `✅ 구독 등록: ${id} (${dataType}), 총 구독자: ${this.subscribers.size}`
     );
 
     // 구독 해제 함수 반환
     return () => {
       this.subscribers.delete(id);
-      console.log(`📡 구독 해제: ${id}, 남은 구독자: ${this.subscribers.size}`);
+      logger.info(`📡 구독 해제: ${id}, 남은 구독자: ${this.subscribers.size}`);
 
       // 구독자가 없으면 폴링 중지
       if (this.subscribers.size === 0) {
@@ -102,7 +103,7 @@ class CentralizedDataManager {
     const subscriber = this.subscribers.get(subscriberId);
     if (subscriber) {
       subscriber.isVisible = isVisible;
-      console.log(`👁️ 가시성 업데이트: ${subscriberId} = ${isVisible}`);
+      logger.info(`👁️ 가시성 업데이트: ${subscriberId} = ${isVisible}`);
     }
   }
 
@@ -110,7 +111,7 @@ class CentralizedDataManager {
    * 특정 데이터 타입 강제 업데이트
    */
   async forceUpdate(dataType: DataType): Promise<void> {
-    console.log(`🔄 강제 업데이트 요청: ${dataType}`);
+    logger.info(`🔄 강제 업데이트 요청: ${dataType}`);
     await this.fetchDataForType(dataType);
   }
 
@@ -147,7 +148,7 @@ class CentralizedDataManager {
       // 해당 타입의 가시적인 구독자들에게만 전달
       this.distributeToSubscribers(dataType, data);
     } catch (error) {
-      console.error(`❌ 데이터 페치 실패 (${dataType}):`, error);
+      logger.error(`❌ 데이터 페치 실패 (${dataType}):`, error);
     }
   }
 
@@ -224,7 +225,7 @@ class CentralizedDataManager {
       .filter((sub) => sub.dataType === dataType && sub.isVisible)
       .slice(0, this.BATCH_SIZE); // 배치 크기 제한
 
-    console.log(
+    logger.info(
       `📤 데이터 배포: ${dataType}에 ${relevantSubscribers.length}명`
     );
 
@@ -233,7 +234,7 @@ class CentralizedDataManager {
         subscriber.callback(data);
         subscriber.lastUpdate = now;
       } catch (error) {
-        console.error(`❌ 구독자 업데이트 실패 (${subscriber.id}):`, error);
+        logger.error(`❌ 구독자 업데이트 실패 (${subscriber.id}):`, error);
       }
     });
   }
@@ -249,7 +250,7 @@ class CentralizedDataManager {
         if (this.isUpdating || this.subscribers.size === 0) return;
 
         this.isUpdating = true;
-        console.log(
+        logger.info(
           `🔄 정기 업데이트 시작 (구독자: ${this.subscribers.size}명)`
         );
 
@@ -268,14 +269,14 @@ class CentralizedDataManager {
             )
           );
         } catch (error) {
-          console.error('❌ 정기 업데이트 실패:', error);
+          logger.error('❌ 정기 업데이트 실패:', error);
         } finally {
           this.isUpdating = false;
         }
       })();
     }, this.UPDATE_INTERVAL);
 
-    console.log('✅ 중앙 데이터 관리자 폴링 시작');
+    logger.info('✅ 중앙 데이터 관리자 폴링 시작');
   }
 
   /**
@@ -285,7 +286,7 @@ class CentralizedDataManager {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
       this.updateInterval = null;
-      console.log('⏹️ 중앙 데이터 관리자 폴링 중지');
+      logger.info('⏹️ 중앙 데이터 관리자 폴링 중지');
     }
   }
 
@@ -317,7 +318,7 @@ class CentralizedDataManager {
     this.stopPolling();
     this.subscribers.clear();
     this.cache.clear();
-    console.log('🧹 중앙 데이터 관리자 정리 완료');
+    logger.info('🧹 중앙 데이터 관리자 정리 완료');
   }
 }
 

@@ -4,6 +4,7 @@ import {
   persist,
   subscribeWithSelector,
 } from 'zustand/middleware';
+import { logger } from '@/lib/logging';
 
 /**
  * 🏗️ System Store Module
@@ -55,7 +56,7 @@ export const useSystemStore = create<SystemState>()(
               startTime: now,
             });
 
-            console.log('🚀 [System] 시스템 시작됨');
+            logger.info('🚀 [System] 시스템 시작됨');
 
             // 시스템 이벤트 발송
             if (typeof window !== 'undefined') {
@@ -69,7 +70,7 @@ export const useSystemStore = create<SystemState>()(
             // 메트릭 업데이트 시작
             get().updateMetrics();
           } catch (error) {
-            console.error('❌ [System] 시작 실패:', error);
+            logger.error('❌ [System] 시작 실패:', error);
           }
         },
 
@@ -82,7 +83,7 @@ export const useSystemStore = create<SystemState>()(
               uptime: 0,
             });
 
-            console.log('⏹️ [System] 시스템 정지됨');
+            logger.info('⏹️ [System] 시스템 정지됨');
 
             // 시스템 이벤트 발송
             if (typeof window !== 'undefined') {
@@ -93,7 +94,7 @@ export const useSystemStore = create<SystemState>()(
               );
             }
           } catch (error) {
-            console.error('❌ [System] 정지 실패:', error);
+            logger.error('❌ [System] 정지 실패:', error);
           }
         },
 
@@ -118,7 +119,7 @@ export const useSystemStore = create<SystemState>()(
               });
             }
           } catch (error) {
-            console.error('❌ [System] 메트릭 업데이트 실패:', error);
+            logger.error('❌ [System] 메트릭 업데이트 실패:', error);
           }
         },
       }),

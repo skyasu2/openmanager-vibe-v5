@@ -8,6 +8,7 @@
 
 import { performance } from 'perf_hooks';
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
+import { logger } from '@/lib/logging';
 import { type UniversalVital, universalVitals } from './universal-vitals';
 
 // 🎯 Vitest Vitals 수집 상태
@@ -43,7 +44,7 @@ export const VitestVitals = {
       suiteName,
     });
 
-    console.log(`🧪 [Vitest Vitals] 테스트 스위트 시작: ${suiteName}`);
+    logger.info(`🧪 [Vitest Vitals] 테스트 스위트 시작: ${suiteName}`);
   },
 
   // 🏁 테스트 스위트 완료
@@ -78,7 +79,7 @@ export const VitestVitals = {
     }
 
     vitestState.suiteMetrics.set(suiteName, suiteVital);
-    console.log(
+    logger.info(
       `✅ [Vitest Vitals] 테스트 스위트 완료: ${suiteName} (${suiteVital.value.toFixed(0)}ms)`
     );
 
@@ -327,20 +328,20 @@ export function setupVitestVitals(
 
     // 최종 리포트 생성
     const report = VitestVitals.generateReport();
-    console.log('\n📊 [Vitest Vitals] 최종 리포트:');
-    console.log(
+    logger.info('\n📊 [Vitest Vitals] 최종 리포트:');
+    logger.info(
       `✅ 성공: ${report.testExecution.passedTests}/${report.testExecution.totalTests}`
     );
-    console.log(`📈 성공률: ${report.testExecution.successRate.toFixed(1)}%`);
-    console.log(
+    logger.info(`📈 성공률: ${report.testExecution.successRate.toFixed(1)}%`);
+    logger.info(
       `🎯 Vitals 품질: ${report.summary.goodVitals}개 Good, ${report.summary.poorVitals}개 Poor`
     );
 
     // 권장사항 출력
     if (report.recommendations.length > 0) {
-      console.log('\n💡 [성능 개선 권장사항]:');
+      logger.info('\n💡 [성능 개선 권장사항]:');
       report.recommendations.forEach((rec) => {
-        console.log(`- ${rec.metric}: ${rec.recommendations?.join(', ')}`);
+        logger.info(`- ${rec.metric}: ${rec.recommendations?.join(', ')}`);
       });
     }
 
@@ -354,10 +355,10 @@ export function setupVitestVitals(
         });
 
         if (response.ok) {
-          console.log(`📤 [Vitest Vitals] 리포트 전송 완료: ${reportEndpoint}`);
+          logger.info(`📤 [Vitest Vitals] 리포트 전송 완료: ${reportEndpoint}`);
         }
       } catch (error) {
-        console.warn(`⚠️ [Vitest Vitals] 리포트 전송 실패:`, error);
+        logger.warn(`⚠️ [Vitest Vitals] 리포트 전송 실패:`, error);
       }
     }
   });

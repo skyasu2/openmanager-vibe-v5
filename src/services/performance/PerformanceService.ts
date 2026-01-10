@@ -3,6 +3,7 @@
  * Backend service for collecting and processing performance metrics
  */
 
+import { logger } from '@/lib/logging';
 import type {
   Alert,
   PerformanceMetric,
@@ -58,7 +59,7 @@ export class PerformanceService {
       // Check for alerts
       this.checkThresholds(metric);
     } catch (error) {
-      console.error('Error collecting metrics:', error);
+      logger.error('Error collecting metrics:', error);
     }
   }
 

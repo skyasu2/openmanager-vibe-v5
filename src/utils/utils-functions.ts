@@ -10,6 +10,7 @@ import {
   safeErrorLog as coreErrorLog,
   safeErrorMessage as coreErrorMessage,
 } from '../lib/error-handler';
+import { logger } from '@/lib/logging';
 
 /**
  * Combines class names with tailwind-merge to handle conflicts
@@ -58,7 +59,7 @@ export function generateSessionId(prefix?: string): string {
     }
     // 폴백: Math.random() (권장하지 않음)
     else {
-      console.warn(
+      logger.warn(
         '🔒 Cryptographically secure random not available, falling back to Math.random()'
       );
       for (let i = 0; i < array.length; i++) {
@@ -89,7 +90,7 @@ export function generateSessionId(prefix?: string): string {
 
     return prefix ? `${prefix}_${sessionId}` : sessionId;
   } catch (error) {
-    console.error('🔐 Secure session ID generation failed:', error);
+    logger.error('🔐 Secure session ID generation failed:', error);
     // 완전 폴백: 기존 방식
     const timestamp = Date.now().toString(36);
     const randomPart = Math.random().toString(36).substring(2, 15);

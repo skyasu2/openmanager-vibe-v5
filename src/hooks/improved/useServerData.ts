@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 interface ServerData {
   id: string;
@@ -108,7 +109,7 @@ export const useServerData = (
       try {
         callback();
       } catch (error) {
-        console.error('Cache subscriber callback error:', error);
+        logger.error('Cache subscriber callback error:', error);
       }
     });
   }, []);
@@ -384,7 +385,7 @@ export const ServerDataCacheManager = {
           subscribers: new Set(),
         });
       } catch (error) {
-        console.error(`Failed to preload server ${id}:`, error);
+        logger.error(`Failed to preload server ${id}:`, error);
       }
     });
 

@@ -15,6 +15,7 @@ import { getFallbackServers } from '@/__mocks__/data/mockServerConfig';
 import type { APIRequest } from '@/lib/api/api-batcher';
 import { getAPIBatcher } from '@/lib/api/api-batcher';
 import type { Server } from '@/types/server';
+import { logger } from '@/lib/logging';
 
 // 타입 정의
 interface UseRealtimeServersOptions {
@@ -141,7 +142,7 @@ export function useRealtimeServers(
 
           // 시스템 상태 정보와 결합 (선택적)
           if (statusResponse.status === 200 && statusResponse.data) {
-            console.log('🔄 시스템 상태 동기화:', statusResponse.data);
+            logger.info('🔄 시스템 상태 동기화:', statusResponse.data);
           }
 
           return transformedServers as Server[];
@@ -149,10 +150,10 @@ export function useRealtimeServers(
       }
 
       // API 응답이 실패했거나 데이터가 없으면 SSOT 기반 Fallback 데이터 반환
-      console.warn('🔄 API 응답 실패, SSOT Fallback 데이터 사용');
+      logger.warn('🔄 API 응답 실패, SSOT Fallback 데이터 사용');
       return getFallbackServers();
     } catch (fetchError) {
-      console.warn('🚨 API 배칭 실패, SSOT Fallback 데이터 사용:', fetchError);
+      logger.warn('🚨 API 배칭 실패, SSOT Fallback 데이터 사용:', fetchError);
 
       // 🎯 SSOT 기반 Fallback 데이터 반환 (이미 랜덤 값 포함)
       return getFallbackServers();

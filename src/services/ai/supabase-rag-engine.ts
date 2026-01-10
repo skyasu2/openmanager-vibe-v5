@@ -9,6 +9,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
 import { graphRAGService } from '../../services/rag/graph-rag-service';
 import { extractKeywords } from '../../services/rag/keyword-extractor';
 // Extracted Services
@@ -68,21 +69,21 @@ export class SupabaseRAGEngine {
 
     try {
       // 벡터 DB 초기화는 이미 생성자에서 시작됨
-      console.log('🚀 Supabase RAG 엔진 초기화 중... (Memory-based)');
+      logger.info('🚀 Supabase RAG 엔진 초기화 중... (Memory-based)');
 
       // 초기 지식 베이스 확인
       const stats = await this.vectorDB.getStats();
 
       // ✅ undefined 체크 추가 (테스트 환경 대응)
       if (!stats || typeof stats.total_documents === 'undefined') {
-        console.warn(
+        logger.warn(
           '⚠️ RAG stats unavailable (테스트 환경 또는 DB 연결 실패), 기본값으로 초기화'
         );
         this.isInitialized = true;
         return;
       }
 
-      console.log(
+      logger.info(
         `📊 벡터 DB 상태: ${stats.total_documents}개 문서, ${stats.total_categories}개 카테고리`
       );
 
@@ -92,9 +93,9 @@ export class SupabaseRAGEngine {
       }
 
       this.isInitialized = true;
-      console.log('✅ Supabase RAG 엔진 초기화 완료 (Memory-based)');
+      logger.info('✅ Supabase RAG 엔진 초기화 완료 (Memory-based)');
     } catch (error) {
-      console.error('❌ RAG 엔진 초기화 실패:', error);
+      logger.error('❌ RAG 엔진 초기화 실패:', error);
       // 초기화 실패 시 재시도 가능하도록 false 유지
       this.isInitialized = false;
     }
@@ -134,7 +135,7 @@ export class SupabaseRAGEngine {
         metadata: convertDocumentMetadataToAIMetadata(result.metadata),
       }));
     } catch (error) {
-      console.error('❌ 키워드 검색 실패:', error);
+      logger.error('❌ 키워드 검색 실패:', error);
       return [];
     }
   }
@@ -197,7 +198,7 @@ export class SupabaseRAGEngine {
 
       return vectorResults;
     } catch (error) {
-      console.error('❌ 하이브리드 검색 실패:', error);
+      logger.error('❌ 하이브리드 검색 실패:', error);
       return {
         success: false,
         results: [],
@@ -227,7 +228,7 @@ export class SupabaseRAGEngine {
 
     // 카테고리 매핑 경고 (unknown intent)
     if (intent && resolvedCategory === undefined && intent !== 'general') {
-      console.warn(
+      logger.warn(
         `⚠️ Unknown intent->category mapping: ${intent}, proceeding without category filter`
       );
     }
@@ -306,7 +307,7 @@ export class SupabaseRAGEngine {
     try {
       // GraphRAG 서비스 가용성 확인
       if (!graphRAGService.isAvailable()) {
-        console.warn(
+        logger.warn(
           '🕸️ GraphRAG service not available, falling back to vector search'
         );
         // 벡터 검색만으로 폴백
@@ -350,13 +351,13 @@ export class SupabaseRAGEngine {
         options
       );
 
-      console.log(
+      logger.info(
         `🕸️ GraphRAG 검색 완료: 벡터 ${graphResult.vectorResultCount}개, 그래프 ${graphResult.graphResultCount}개 (${graphResult.processingTime}ms)`
       );
 
       return graphResult;
     } catch (error) {
-      console.error('❌ GraphRAG 검색 실패:', error);
+      logger.error('❌ GraphRAG 검색 실패:', error);
       return {
         success: false,
         results: [],
@@ -475,7 +476,7 @@ export class SupabaseRAGEngine {
         return result;
       } catch (searchError) {
         // 벡터 검색 에러 처리
-        console.error('벡터 검색 실패:', searchError);
+        logger.error('벡터 검색 실패:', searchError);
         return {
           success: false,
           results: [],
@@ -489,7 +490,7 @@ export class SupabaseRAGEngine {
         };
       }
     } catch (error) {
-      console.error('❌ RAG 검색 실패:', error);
+      logger.error('❌ RAG 검색 실패:', error);
       return {
         success: false,
         results: [],
@@ -523,9 +524,9 @@ export class SupabaseRAGEngine {
 
       return embedding;
     } catch (error) {
-      console.error('❌ 임베딩 생성 실패:', error);
+      logger.error('❌ 임베딩 생성 실패:', error);
       // 폴백: 더미 임베딩 (서비스 중단 방지)
-      console.warn('⚠️ 더미 임베딩으로 폴백');
+      logger.warn('⚠️ 더미 임베딩으로 폴백');
       const dummyEmbedding = this.generateDummyEmbedding(text);
       this.memoryCache.setEmbedding(cacheKey, dummyEmbedding);
       return dummyEmbedding;
@@ -558,14 +559,14 @@ export class SupabaseRAGEngine {
       );
 
       if (result.success) {
-        console.log(`✅ 문서 인덱싱 완료: ${id}`);
+        logger.info(`✅ 문서 인덱싱 완료: ${id}`);
         // 검색 캐시 무효화
         this.memoryCache.invalidateSearchCache();
       }
 
       return result.success;
     } catch (error) {
-      console.error('❌ 문서 인덱싱 실패:', error);
+      logger.error('❌ 문서 인덱싱 실패:', error);
       return false;
     }
   }
@@ -616,7 +617,7 @@ export class SupabaseRAGEngine {
             failed++;
           }
         } catch (error) {
-          console.error(`문서 저장 실패 (${doc.id}):`, error);
+          logger.error(`문서 저장 실패 (${doc.id}):`, error);
           failed++;
         }
       }
@@ -630,7 +631,7 @@ export class SupabaseRAGEngine {
 
       return { success, failed };
     } catch (error) {
-      console.error('❌ 대량 인덱싱 실패:', error);
+      logger.error('❌ 대량 인덱싱 실패:', error);
       return { success: 0, failed: documents.length };
     }
   }
@@ -688,19 +689,19 @@ export class SupabaseRAGEngine {
    * 📚 초기 지식 베이스 확인 (기존 command_vectors 테이블 활용)
    */
   private async loadInitialKnowledgeBase(): Promise<void> {
-    console.log('📚 기존 지식 베이스 확인 중...');
+    logger.info('📚 기존 지식 베이스 확인 중...');
 
     try {
       // 기존 데이터 확인
       const stats = await this.vectorDB.getStats();
-      console.log(
+      logger.info(
         `✅ 기존 지식 베이스 발견: ${stats.total_documents}개 문서, ${stats.total_categories}개 카테고리`
       );
 
       // 기존 데이터가 충분하므로 추가 로드 불필요
-      console.log('✅ 초기 지식 베이스 준비 완료 (기존 데이터 활용)');
+      logger.info('✅ 초기 지식 베이스 준비 완료 (기존 데이터 활용)');
     } catch (error) {
-      console.warn('⚠️ 지식 베이스 확인 중 오류:', error);
+      logger.warn('⚠️ 지식 베이스 확인 중 오류:', error);
 
       // 폴백: 기본 문서 추가
       const fallbackDocuments = [
@@ -717,7 +718,7 @@ export class SupabaseRAGEngine {
       ];
 
       const result = await this.bulkIndex(fallbackDocuments);
-      console.log(
+      logger.info(
         `✅ 폴백 지식 베이스 로드 완료: ${result.success}개 성공, ${result.failed}개 실패`
       );
     }
@@ -773,7 +774,7 @@ export class SupabaseRAGEngine {
       clearInterval(this.cleanupTimer);
     }
     this.memoryCache.invalidateSearchCache();
-    console.log('🛑 RAG 엔진 리소스 정리 완료');
+    logger.info('🛑 RAG 엔진 리소스 정리 완료');
   }
 }
 

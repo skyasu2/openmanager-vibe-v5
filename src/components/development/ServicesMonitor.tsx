@@ -11,6 +11,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -106,14 +107,14 @@ export function ServicesMonitor({
       try {
         data = JSON.parse(text);
       } catch (parseError) {
-        console.error('JSON 파싱 오류:', parseError, 'Response:', text);
+        logger.error('JSON 파싱 오류:', parseError, 'Response:', text);
         throw new Error('서버 응답을 파싱할 수 없습니다');
       }
       setServicesData(data);
       setLastUpdated(new Date());
       onRefresh?.();
     } catch (error) {
-      console.error('서비스 상태 확인 실패:', error);
+      logger.error('서비스 상태 확인 실패:', error);
       // 기본 데이터 설정
       setServicesData({
         timestamp: new Date().toISOString(),

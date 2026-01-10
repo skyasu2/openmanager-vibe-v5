@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 interface UseSequentialLoadingTimeProps {
   onComplete?: () => void;
@@ -45,7 +46,7 @@ export const useSequentialLoadingTime = ({
   // 완료 처리 함수
   const handleComplete = useCallback(() => {
     if (!isCompleted) {
-      console.log('🎯 useSequentialLoadingTime 완료');
+      logger.info('🎯 useSequentialLoadingTime 완료');
       setIsCompleted(true);
       setIsLoading(false);
       setProgress(100);
@@ -55,7 +56,7 @@ export const useSequentialLoadingTime = ({
         try {
           onComplete?.();
         } catch (error) {
-          console.error('❌ onComplete 콜백 에러:', error);
+          logger.error('❌ onComplete 콜백 에러:', error);
         }
       }, 100);
     }
@@ -64,7 +65,7 @@ export const useSequentialLoadingTime = ({
   // 스킵 조건 처리
   useEffect(() => {
     if (skipCondition && !isCompleted) {
-      console.log('⚡ 순차 로딩 스킵');
+      logger.info('⚡ 순차 로딩 스킵');
       handleComplete();
       return;
     }
@@ -74,7 +75,7 @@ export const useSequentialLoadingTime = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.key === 'Enter' || e.key === ' ') && !isCompleted) {
-        console.log(`🚀 ${e.key} 키로 순차 로딩 스킵`);
+        logger.info(`🚀 ${e.key} 키로 순차 로딩 스킵`);
         handleComplete();
       }
     };
@@ -87,7 +88,7 @@ export const useSequentialLoadingTime = ({
   useEffect(() => {
     if (skipCondition || isCompleted) return;
 
-    console.log('🎬 순차적 로딩 시작');
+    logger.info('🎬 순차적 로딩 시작');
 
     let timeoutId: NodeJS.Timeout;
     let intervalId: NodeJS.Timeout;
@@ -112,7 +113,7 @@ export const useSequentialLoadingTime = ({
         return;
       }
 
-      console.log(`📊 ${stage.name} 단계 시작: ${stage.description}`);
+      logger.info(`📊 ${stage.name} 단계 시작: ${stage.description}`);
       setCurrentStage(stageIndex);
 
       const startTime = Date.now();
@@ -143,7 +144,7 @@ export const useSequentialLoadingTime = ({
     // 안전장치: 최대 5초 후 강제 완료
     const safetyTimer = setTimeout(() => {
       if (!isCompleted) {
-        console.log('⏰ 순차 로딩 타임아웃 - 강제 완료');
+        logger.info('⏰ 순차 로딩 타임아웃 - 강제 완료');
         handleComplete();
       }
     }, 5000);
@@ -159,7 +160,7 @@ export const useSequentialLoadingTime = ({
     const enableSkipTimer = setTimeout(() => {
       const handleClick = () => {
         if (!isCompleted) {
-          console.log('👆 클릭으로 순차 로딩 스킵');
+          logger.info('👆 클릭으로 순차 로딩 스킵');
           handleComplete();
         }
       };

@@ -10,6 +10,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSystemConfig } from '@/config/SystemConfiguration';
+import { logger } from '@/lib/logging';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type {
   AlertSeverity,
@@ -602,7 +603,7 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(response, { headers });
   } catch (error) {
-    console.error('❌ 통합 메트릭 API 오류:', error);
+    logger.error('❌ 통합 메트릭 API 오류:', error);
 
     return NextResponse.json(
       {

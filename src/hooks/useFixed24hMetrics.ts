@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { UnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type { Server } from '@/types/server';
+import { logger } from '@/lib/logging';
 
 /**
  * 히스토리 데이터 포인트 (차트용)
@@ -137,11 +138,11 @@ export function useFixed24hMetrics(
       } else {
         // Fallback: Mock Data for Dev/Demo if real ID not found
         // This ensures the UI doesn't look broken even if IDs mismatch
-        console.warn(`Server "${serverId}" not found, using fallback.`);
+        logger.warn(`Server "${serverId}" not found, using fallback.`);
         setIsLoading(false);
       }
     } catch (err) {
-      console.error('메트릭 업데이트 실패:', err);
+      logger.error('메트릭 업데이트 실패:', err);
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsLoading(false);
     }
@@ -313,7 +314,7 @@ export function useMultipleFixed24hMetrics(
       setError(null);
       setIsLoading(false);
     } catch (err) {
-      console.error('다중 메트릭 업데이트 실패:', err);
+      logger.error('다중 메트릭 업데이트 실패:', err);
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsLoading(false);
     }
@@ -391,7 +392,7 @@ export function useSingleMetric(
         setIsLoading(false);
       }
     } catch (err) {
-      console.error('단일 메트릭 업데이트 실패:', err);
+      logger.error('단일 메트릭 업데이트 실패:', err);
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsLoading(false);
     }
@@ -426,7 +427,7 @@ export function useSingleMetric(
  * @example
  * ```tsx
  * const metric = await getFixedMetricNow('web-prod-01');
- * console.log(metric?.cpu);
+ * logger.info(metric?.cpu);
  * ```
  */
 export async function getFixedMetricNow(
@@ -439,7 +440,7 @@ export async function getFixedMetricNow(
 
     return servers.find((s) => s.id === serverId) || null;
   } catch (error) {
-    console.error('현재 메트릭 가져오기 실패:', error);
+    logger.error('현재 메트릭 가져오기 실패:', error);
     return null;
   }
 }

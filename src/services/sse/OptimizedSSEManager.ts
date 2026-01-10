@@ -13,6 +13,7 @@
  * - 하트비트 모니터링
  */
 
+import { logger } from '@/lib/logging';
 import { isNotNullOrUndefined } from '@/types/type-utils';
 import { ServerlessSSEConnectionPool } from './SSEConnectionPool';
 import { SSEHealthMonitor } from './SSEHealthMonitor';
@@ -97,7 +98,7 @@ export class OptimizedSSEManager {
     // 하트비트 시작
     this.startHeartbeat(channel);
 
-    console.log(`🔌 SSE 연결 생성: ${channel}`);
+    logger.info(`🔌 SSE 연결 생성: ${channel}`);
     return eventSource;
   }
 
@@ -145,7 +146,7 @@ export class OptimizedSSEManager {
     const connection = this.connections.get(channel);
     if (connection) {
       this.cleanupConnection(channel);
-      console.log(`🔌 SSE 연결 종료: ${channel}`);
+      logger.info(`🔌 SSE 연결 종료: ${channel}`);
     }
   }
 
@@ -230,7 +231,7 @@ export class OptimizedSSEManager {
       try {
         (listener as (data: unknown) => void)(data);
       } catch (_error) {
-        console.error(`이벤트 리스너 오류 (${eventType}):`, _error);
+        logger.error(`이벤트 리스너 오류 (${eventType}):`, _error);
       }
     });
   }
@@ -258,7 +259,7 @@ export class OptimizedSSEManager {
     this.eventListeners.clear();
 
     this.destroyed = true;
-    console.log('🗑️ SSE Manager 파기 완료');
+    logger.info('🗑️ SSE Manager 파기 완료');
   }
 
   /**
@@ -267,7 +268,7 @@ export class OptimizedSSEManager {
   private setupEventListeners(connection: SSEConnection): void {
     const onOpen = (_event: Event) => {
       connection.lastActivity = new Date();
-      console.log(`✅ SSE 연결 열림: ${connection.channel}`);
+      logger.info(`✅ SSE 연결 열림: ${connection.channel}`);
     };
 
     const onMessage: EventListener = (_event: Event) => {
@@ -283,7 +284,7 @@ export class OptimizedSSEManager {
     };
 
     const onError = (event: Event) => {
-      console.error(`❌ SSE 연결 오류: ${connection.channel}`, event);
+      logger.error(`❌ SSE 연결 오류: ${connection.channel}`, event);
       // 비동기로 재연결 시도
       setTimeout(() => {
         void this.reconnect(connection.channel);
@@ -325,7 +326,7 @@ export class OptimizedSSEManager {
     }
 
     if (oldestChannel) {
-      console.log(
+      logger.info(
         `🗑️ 최대 연결 수 초과로 가장 오래된 연결 정리: ${oldestChannel}`
       );
       this.cleanupConnection(oldestChannel);
@@ -373,7 +374,7 @@ export class OptimizedSSEManager {
           await this.sendHeartbeat(channel);
           this.emit('heartbeat', { channel, timestamp: new Date() });
         } catch (_error) {
-          console.warn(`💓 하트비트 실패: ${channel}`, _error);
+          logger.warn(`💓 하트비트 실패: ${channel}`, _error);
         }
       })();
     }, this.config.heartbeatInterval);

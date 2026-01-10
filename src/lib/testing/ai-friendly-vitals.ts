@@ -6,6 +6,7 @@
  * @pattern Strategy + Factory + Dependency Injection 패턴 적용
  */
 
+import { logger } from '@/lib/logging';
 import {
   type UniversalVital,
   universalVitals,
@@ -413,7 +414,7 @@ const metric = aiVitals.quickCollect('test-duration', 45, 'test-execution');
 
 // 1줄로 분석
 const analysis = aiVitals.quickAnalyze([metric]);
-console.log(analysis.summary); // "우수한 성능! 1개 메트릭 중 대부분이 양호합니다."
+logger.info(analysis.summary); // "우수한 성능! 1개 메트릭 중 대부분이 양호합니다."
   `,
 
   // 타이머 사용법
@@ -435,7 +436,7 @@ const metric = collector.endTimer(timerId, { endpoint: '/api/test' });
 const analyzer = aiVitals.createAnalyzer();
 const regressions = analyzer.detectRegressions(currentMetrics, baselineMetrics);
 regressions.forEach(alert => {
-  console.log(\`🚨 \${alert.metric}: \${alert.impact}\`);
+  logger.info(\`🚨 \${alert.metric}: \${alert.impact}\`);
 });
   `,
 };

@@ -27,6 +27,7 @@ export {
   unifiedCache,
 } from './unified-cache';
 
+import { logger } from '@/lib/logging';
 // 추가 호환성 함수들
 import {
   CacheNamespace,
@@ -39,7 +40,7 @@ import {
  * @deprecated unified-cache.ts의 unifiedCache를 직접 사용하세요
  */
 export function getCacheService(): MemoryCacheService {
-  console.warn(
+  logger.warn(
     'getCacheService() is deprecated. Use MemoryCacheService or unifiedCache instead.'
   );
   return getGlobalCacheService();
@@ -141,7 +142,7 @@ export async function warmupCache(
     ttl?: number;
   }>
 ): Promise<void> {
-  console.log(`🔥 캐시 워밍업 시작: ${items.length}개 항목`);
+  logger.info(`🔥 캐시 워밍업 시작: ${items.length}개 항목`);
 
   const promises = items.map(async ({ key, fetcher, ttl }) => {
     try {
@@ -151,12 +152,12 @@ export async function warmupCache(
         namespace: CacheNamespace.GENERAL,
       });
     } catch (error) {
-      console.error(`캐시 워밍업 실패 (${key}):`, error);
+      logger.error(`캐시 워밍업 실패 (${key}):`, error);
     }
   });
 
   await Promise.allSettled(promises);
-  console.log('✅ 캐시 워밍업 완료');
+  logger.info('✅ 캐시 워밍업 완료');
 }
 
 /**
@@ -212,7 +213,7 @@ export class MemoryCacheService {
 
   // 하위 호환성을 위한 public cache 속성
   get cache() {
-    console.warn(
+    logger.warn(
       'Direct cache access is deprecated. Use the provided methods instead.'
     );
     return new Map();

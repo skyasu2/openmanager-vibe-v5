@@ -4,6 +4,7 @@
  * GitHub OAuth가 실패할 경우의 대체 인증 방법
  */
 
+import { logger } from '@/lib/logging';
 import { supabase } from '../supabase';
 
 /**
@@ -20,13 +21,13 @@ export async function signInWithMagicLink(email: string) {
 
     if (error) throw error;
 
-    console.log(
+    logger.info(
       '✅ Magic Link 발송 완료 (이메일 도메인:',
       `${email.split('@')[1]})`
     );
     return { success: true, message: '이메일을 확인해주세요!' };
   } catch (error) {
-    console.error('❌ Magic Link 오류:', error);
+    logger.error('❌ Magic Link 오류:', error);
     return { success: false, error };
   }
 }
@@ -40,10 +41,10 @@ export async function signInAnonymously() {
 
     if (error) throw error;
 
-    console.log('✅ 익명 로그인 성공');
+    logger.info('✅ 익명 로그인 성공');
     return { success: true, user: data.user };
   } catch (error) {
-    console.error('❌ 익명 로그인 오류:', error);
+    logger.error('❌ 익명 로그인 오류:', error);
     return { success: false, error };
   }
 }
@@ -83,7 +84,7 @@ export async function signInDevMode() {
 
     return { success: true, user: data.user };
   } catch (error) {
-    console.error('❌ 개발자 모드 오류:', error);
+    logger.error('❌ 개발자 모드 오류:', error);
     return { success: false, error };
   }
 }

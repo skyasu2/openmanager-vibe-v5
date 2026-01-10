@@ -1,4 +1,5 @@
 import type { FileCache, HourlyServerData } from '@/types/server-metrics';
+import { logger } from '@/lib/logging';
 
 /**
  * 파일 캐시 시스템 (브라우저/서버 호환)
@@ -199,12 +200,12 @@ export async function readCachedHourlyFile(
   } catch (error) {
     const baseUrl = getServerBaseUrl();
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error(`❌ [FILE-ERROR] 시간별 데이터 파일 로드 실패:`);
-    console.error(`  - 파일경로: ${filePath}`);
-    console.error(`  - 베이스URL: ${baseUrl}`);
-    console.error(`  - VERCEL_URL: ${process.env.VERCEL_URL || 'undefined'}`);
-    console.error(`  - VERCEL: ${process.env.VERCEL || 'undefined'}`);
-    console.error(`  - 오류: ${errorMsg}`);
+    logger.error(`❌ [FILE-ERROR] 시간별 데이터 파일 로드 실패:`);
+    logger.error(`  - 파일경로: ${filePath}`);
+    logger.error(`  - 베이스URL: ${baseUrl}`);
+    logger.error(`  - VERCEL_URL: ${process.env.VERCEL_URL || 'undefined'}`);
+    logger.error(`  - VERCEL: ${process.env.VERCEL || 'undefined'}`);
+    logger.error(`  - 오류: ${errorMsg}`);
     throw new Error(
       `베르셀 시간별 데이터 파일 누락: ${cacheKey}.json (baseUrl: ${baseUrl})`
     );

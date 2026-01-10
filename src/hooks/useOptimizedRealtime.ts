@@ -13,6 +13,7 @@ import {
   centralDataManager,
   updateDataVisibility,
 } from '@/services/realtime/CentralizedDataManager';
+import { logger } from '@/lib/logging';
 import { useIntersectionObserver } from './useIntersectionObserver';
 
 type DataType = 'servers' | 'network' | 'system' | 'metrics';
@@ -75,7 +76,7 @@ export function useOptimizedRealtime<T = unknown>({
 
   // 강제 업데이트 (단순 함수 호출이라 useCallback 불필요)
   const forceUpdate = () => {
-    console.log(`🔄 강제 업데이트 요청: ${subscriberIdRef.current}`);
+    logger.info(`🔄 강제 업데이트 요청: ${subscriberIdRef.current}`);
     centralDataManager.forceUpdate(dataType);
   };
 
@@ -83,7 +84,7 @@ export function useOptimizedRealtime<T = unknown>({
   useEffect(() => {
     const subscriberId = subscriberIdRef.current;
 
-    console.log(`📡 실시간 데이터 구독 시작: ${subscriberId}`);
+    logger.info(`📡 실시간 데이터 구독 시작: ${subscriberId}`);
 
     // 데이터 업데이트 핸들러 (useEffect 내부에서 정의하여 의존성 문제 해결)
     const handleDataUpdate = (newData: T) => {
@@ -97,9 +98,9 @@ export function useOptimizedRealtime<T = unknown>({
         // 외부 콜백 호출 (ref 사용)
         onUpdateRef.current?.(newData);
 
-        console.log(`📊 데이터 업데이트: ${subscriberId}`, newData);
+        logger.info(`📊 데이터 업데이트: ${subscriberId}`, newData);
       } catch (err) {
-        console.error(`❌ 데이터 업데이트 실패: ${subscriberId}`, err);
+        logger.error(`❌ 데이터 업데이트 실패: ${subscriberId}`, err);
         setError(err instanceof Error ? err.message : '데이터 업데이트 실패');
       }
     };
@@ -114,9 +115,9 @@ export function useOptimizedRealtime<T = unknown>({
 
       unsubscribeRef.current = unsubscribe;
 
-      console.log(`✅ 구독 완료: ${subscriberId} (${dataType})`);
+      logger.info(`✅ 구독 완료: ${subscriberId} (${dataType})`);
     } catch (err) {
-      console.error(`❌ 구독 실패: ${subscriberId}`, err);
+      logger.error(`❌ 구독 실패: ${subscriberId}`, err);
       setError(err instanceof Error ? err.message : '구독 실패');
       setIsLoading(false);
     }
@@ -124,7 +125,7 @@ export function useOptimizedRealtime<T = unknown>({
     // 정리 함수
     return () => {
       if (unsubscribeRef.current) {
-        console.log(`📡 구독 해제: ${subscriberId}`);
+        logger.info(`📡 구독 해제: ${subscriberId}`);
         unsubscribeRef.current();
         unsubscribeRef.current = null;
       }
@@ -137,7 +138,7 @@ export function useOptimizedRealtime<T = unknown>({
       const subscriberId = subscriberIdRef.current;
       updateDataVisibility(subscriberId, isVisible);
 
-      console.log(`👁️ 가시성 업데이트: ${subscriberId} = ${isVisible}`);
+      logger.info(`👁️ 가시성 업데이트: ${subscriberId} = ${isVisible}`);
     }
   }, [isVisible, enableVisibilityOptimization]);
 

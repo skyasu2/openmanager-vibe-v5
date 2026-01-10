@@ -9,6 +9,7 @@
  * - 시스템 리소스 최적화 분석
  */
 
+import { logger } from '@/lib/logging';
 export interface MemoryUsage {
   heapUsed: number; // MB
   heapTotal: number; // MB
@@ -272,7 +273,7 @@ export const PerformanceMonitor = {
     testFunction: () => Promise<T>,
     expectedResults?: T[]
   ): Promise<PerformanceBenchmark> {
-    console.log(`🔍 ${engineType} 성능 벤치마크 시작...`);
+    logger.info(`🔍 ${engineType} 성능 벤치마크 시작...`);
 
     // 메모리 사용량 측정
     const memoryBefore = this.getMemoryUsage();
@@ -325,7 +326,7 @@ export const PerformanceMonitor = {
     this.measurements.push(benchmark);
     this.updateBaselines(engineType, benchmark);
 
-    console.log(`✅ ${engineType} 벤치마크 완료:`, {
+    logger.info(`✅ ${engineType} 벤치마크 완료:`, {
       메모리: `${benchmark.memoryUsage.rss}MB (${benchmark.memoryUsage.percentage}%)`,
       응답시간: `${benchmark.responseTime.responseTime}ms`,
       정확도: `${benchmark.accuracy.accuracy}%`,
@@ -474,21 +475,21 @@ export const PerformanceMonitor = {
   clearMeasurements(): void {
     this.measurements = [];
     this.baselines.clear();
-    console.log('📊 성능 측정 데이터 초기화 완료');
+    logger.info('📊 성능 측정 데이터 초기화 완료');
   },
 
   /**
    * 📊 실시간 성능 모니터링
    */
   startRealTimeMonitoring(intervalMs: number = 5000): NodeJS.Timeout {
-    console.log(`🔄 실시간 성능 모니터링 시작 (${intervalMs}ms 간격)`);
+    logger.info(`🔄 실시간 성능 모니터링 시작 (${intervalMs}ms 간격)`);
 
     return setInterval(() => {
       void (async () => {
         const memory = this.getMemoryUsage();
         const cpu = await this.getCPUUsage();
 
-        console.log(
+        logger.info(
           `📊 [${new Date().toLocaleTimeString()}] 메모리: ${memory.rss}MB (${memory.percentage}%), CPU: ${cpu.usage}% (${cpu.category})`
         );
       })();

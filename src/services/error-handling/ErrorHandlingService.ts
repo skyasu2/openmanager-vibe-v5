@@ -9,6 +9,7 @@
  */
 
 import type { ILogger } from '@/lib/interfaces/services';
+import { logger } from '@/lib/logging';
 import type { ErrorContext } from '@/types/ai-service-types';
 import { ErrorHandlingCore } from './core/ErrorHandlingCore';
 import { ErrorMonitoringService } from './monitoring/ErrorMonitoringService';
@@ -64,7 +65,7 @@ export class ErrorHandlingService implements IErrorHandler {
         void this.attemptRecoveryAsync(error);
       }
     } catch (handlingError) {
-      console.error('통합 에러 처리 실패:', handlingError);
+      logger.error('통합 에러 처리 실패:', handlingError);
     }
   }
 
@@ -186,13 +187,13 @@ export class ErrorHandlingService implements IErrorHandler {
 
       if (result.success) {
         this.monitoringService.recordRecovery(error, result.attempts);
-        console.log(`✅ 복구 성공: ${error.code}`);
+        logger.info(`✅ 복구 성공: ${error.code}`);
       } else if (result.fallbackUrl) {
         this.monitoringService.recordFallback(error, result.fallbackUrl);
-        console.log(`🔄 폴백 활성화: ${error.code} -> ${result.fallbackUrl}`);
+        logger.info(`🔄 폴백 활성화: ${error.code} -> ${result.fallbackUrl}`);
       }
     } catch (recoveryError) {
-      console.error('비동기 복구 실패:', recoveryError);
+      logger.error('비동기 복구 실패:', recoveryError);
     }
   }
 
@@ -203,7 +204,7 @@ export class ErrorHandlingService implements IErrorHandler {
     // 복구 성공 시 모니터링 기록을 위한 이벤트 연동
     // 실제 구현에서는 EventEmitter 또는 Observer 패턴 사용 가능
 
-    console.log('🔗 에러 처리 모듈 통합 완료');
+    logger.info('🔗 에러 처리 모듈 통합 완료');
   }
 
   /**
@@ -213,7 +214,7 @@ export class ErrorHandlingService implements IErrorHandler {
     this.core.clearErrorHistory();
     this.monitoringService.reset();
     this.recoveryService.resetRecoveryState();
-    console.log('🔄 에러 처리 시스템 초기화 완료');
+    logger.info('🔄 에러 처리 시스템 초기화 완료');
   }
 }
 

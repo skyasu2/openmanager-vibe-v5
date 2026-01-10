@@ -20,6 +20,7 @@ import type {
   SystemComponent,
   UseSystemChecklistProps,
 } from '../types/system-checklist';
+import { logger } from '@/lib/logging';
 
 // 타입들을 re-export
 export type {
@@ -75,7 +76,7 @@ export const useSystemChecklist = ({
         };
       });
 
-      console.log(`🔄 ${componentDef.name} 체크 시작...`);
+      logger.info(`🔄 ${componentDef.name} 체크 시작...`);
 
       let animationFrame: number;
 
@@ -140,7 +141,7 @@ export const useSystemChecklist = ({
               },
             };
           });
-          console.log(
+          logger.info(
             `✅ ${componentDef.name} 완료 (${Date.now() - (components[componentId]?.startTime || Date.now())}ms)`
           );
         } else {
@@ -172,7 +173,7 @@ export const useSystemChecklist = ({
           };
         });
 
-        console.error(`❌ ${componentDef.name} 실패:`, errorMessage);
+        logger.error(`❌ ${componentDef.name} 실패:`, errorMessage);
         return; // Ensure all code paths return a value
       }
     },
@@ -199,7 +200,7 @@ export const useSystemChecklist = ({
 
   // 체크리스트 시작 함수
   const startChecklist = useCallback(async () => {
-    console.log('🚀 시스템 체크리스트 시작');
+    logger.info('🚀 시스템 체크리스트 시작');
 
     // 의존성이 없는 컴포넌트들 먼저 시작
     const independentComponents = systemComponents.filter(
@@ -260,7 +261,7 @@ export const useSystemChecklist = ({
 
     if (criticalCompleted && !isCompleted) {
       setIsCompleted(true);
-      console.log('✅ 모든 중요 컴포넌트 완료 - 시스템 준비됨');
+      logger.info('✅ 모든 중요 컴포넌트 완료 - 시스템 준비됨');
       onComplete?.();
     }
   }, [components, isCompleted, onComplete]); // onComplete 함수 의존성 복구
@@ -289,7 +290,7 @@ export const useSystemChecklist = ({
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && canSkip) {
         setIsCompleted(true);
-        console.log('⏭️ 사용자가 체크리스트를 건너뛰었습니다');
+        logger.info('⏭️ 사용자가 체크리스트를 건너뛰었습니다');
         onComplete?.();
       }
     };

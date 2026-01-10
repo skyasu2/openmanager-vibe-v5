@@ -4,6 +4,7 @@
  */
 
 import { SECURITY } from '@/config/constants';
+import { logger } from '@/lib/logging';
 
 interface SecurityLogEntry {
   ip: string;
@@ -33,7 +34,7 @@ class SecurityLogger {
     }
 
     // 새로운 로그 기록
-    console.warn(
+    logger.warn(
       `[Security] Authentication failure | IP: ${ip} | Reason: ${reason} | Time: ${new Date(now).toISOString()}`
     );
 
@@ -59,7 +60,7 @@ class SecurityLogger {
     ip?: string;
     details?: string;
   }): void {
-    console.error(
+    logger.error(
       `[Security Event] Type: ${event.type} | IP: ${event.ip || 'N/A'} | Details: ${event.details || 'N/A'} | Time: ${new Date().toISOString()}`
     );
   }

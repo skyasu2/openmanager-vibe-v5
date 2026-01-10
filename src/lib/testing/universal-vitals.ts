@@ -10,6 +10,7 @@
 // No import needed - using global performance object
 
 // 🎯 Universal Vitals 메트릭 타입 정의
+import { logger } from '@/lib/logging';
 export interface UniversalVital {
   name: string;
   category: VitalCategory;
@@ -418,9 +419,9 @@ export const exportMetrics = async (
     });
 
     if (!response.ok) {
-      console.warn(`메트릭 전송 실패: ${response.status}`);
+      logger.warn(`메트릭 전송 실패: ${response.status}`);
     }
   } catch (error) {
-    console.warn('메트릭 전송 오류:', error);
+    logger.warn('메트릭 전송 오류:', error);
   }
 };

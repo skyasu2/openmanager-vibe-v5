@@ -8,6 +8,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 interface UseAutoLogoutOptions {
   /** 비활성 시간 (밀리초) */
@@ -56,9 +57,9 @@ export function useAutoLogout({
       setIsLoggedIn(false);
       router.push(redirectPath);
 
-      console.log('🔐 자동 로그아웃 완료');
+      logger.info('🔐 자동 로그아웃 완료');
     } catch (error) {
-      console.error('❌ 자동 로그아웃 실패:', error);
+      logger.error('❌ 자동 로그아웃 실패:', error);
       // 실패해도 로그인 페이지로 이동
       router.push(redirectPath);
     }
@@ -108,7 +109,7 @@ export function useAutoLogout({
     try {
       await handleAutoLogout();
     } catch (error) {
-      console.error('❌ 강제 로그아웃 실패:', error);
+      logger.error('❌ 강제 로그아웃 실패:', error);
     }
   }, [handleAutoLogout]);
 
@@ -124,7 +125,7 @@ export function useAutoLogout({
 
       await handleAutoLogout();
     } catch (error) {
-      console.error('❌ 수동 로그아웃 실패:', error);
+      logger.error('❌ 수동 로그아웃 실패:', error);
     }
   };
 

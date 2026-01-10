@@ -11,6 +11,7 @@
  */
 
 import * as os from 'os';
+import { logger } from '@/lib/logging';
 import { memoryOptimizer } from '../utils/MemoryOptimizer';
 
 interface PerformanceMetrics {
@@ -226,7 +227,7 @@ export class PerformanceTester {
    * 🚀 부하 테스트 실행
    */
   async runLoadTest(config: LoadTestConfig): Promise<LoadTestResult> {
-    console.log('🚀 부하 테스트 시작:', config);
+    logger.info('🚀 부하 테스트 시작:', config);
 
     this.isRunning = true;
     this.metricsStore.clear();
@@ -248,7 +249,7 @@ export class PerformanceTester {
         try {
           await this.collectCurrentMetrics();
         } catch (error) {
-          console.error('❌ 메트릭 수집 실패:', error);
+          logger.error('❌ 메트릭 수집 실패:', error);
         }
       })();
     }, 5000); // 5초마다 수집
@@ -308,7 +309,7 @@ export class PerformanceTester {
     const metrics = this.metricsStore.getAllMetrics();
     const recommendations = this.generateRecommendations(summary, metrics);
 
-    console.log('✅ 부하 테스트 완료:', summary);
+    logger.info('✅ 부하 테스트 완료:', summary);
 
     return {
       config,
@@ -359,7 +360,7 @@ export class PerformanceTester {
         onRequest(responseTime, false);
 
         if (error instanceof Error && error.name !== 'AbortError') {
-          console.error('❌ 요청 실패:', error.message);
+          logger.error('❌ 요청 실패:', error.message);
         }
       }
 
@@ -444,7 +445,7 @@ export class PerformanceTester {
     cacheOptimization: boolean;
     systemCleanup: boolean;
   }> {
-    console.log('🔧 자동 성능 최적화 시작...');
+    logger.info('🔧 자동 성능 최적화 시작...');
 
     const results = {
       memoryOptimization: null as unknown,
@@ -456,7 +457,7 @@ export class PerformanceTester {
       // 1. 메모리 최적화
       const memoryStats = memoryOptimizer.getCurrentMemoryStats();
       if (memoryStats.usagePercent > 75) {
-        console.log('🧠 메모리 최적화 실행...');
+        logger.info('🧠 메모리 최적화 실행...');
         results.memoryOptimization =
           await memoryOptimizer.performAggressiveOptimization();
       }
@@ -467,28 +468,28 @@ export class PerformanceTester {
         if (storeSize.metrics > 500 || storeSize.responseTimes > 1000) {
           // 오래된 데이터 정리
           this.metricsStore.clear();
-          console.log('🗑️ 메트릭 저장소 정리 완료');
+          logger.info('🗑️ 메트릭 저장소 정리 완료');
         }
         results.cacheOptimization = true;
       } catch (error) {
-        console.error('❌ 메트릭 저장소 정리 실패:', error);
+        logger.error('❌ 메트릭 저장소 정리 실패:', error);
       }
 
       // 3. 시스템 정리 (가비지 컬렉션)
       try {
         if (global.gc) {
           global.gc();
-          console.log('♻️ 가비지 컬렉션 실행');
+          logger.info('♻️ 가비지 컬렉션 실행');
         }
         results.systemCleanup = true;
       } catch (error) {
-        console.warn('⚠️ 가비지 컬렉션 실행 실패:', error);
+        logger.warn('⚠️ 가비지 컬렉션 실행 실패:', error);
       }
 
-      console.log('✅ 자동 성능 최적화 완료:', results);
+      logger.info('✅ 자동 성능 최적화 완료:', results);
       return results;
     } catch (error) {
-      console.error('❌ 자동 성능 최적화 실패:', error);
+      logger.error('❌ 자동 성능 최적화 실패:', error);
       throw error;
     }
   }
@@ -575,7 +576,7 @@ ${this.calculatePerformanceGrade(summary)}
    */
   stopTest(): void {
     this.isRunning = false;
-    console.log('🛑 부하 테스트 중지됨');
+    logger.info('🛑 부하 테스트 중지됨');
   }
 
   /**
@@ -608,7 +609,7 @@ ${this.calculatePerformanceGrade(summary)}
   clearMetrics(): void {
     this.metricsStore.clear();
     this.responseTimes = [];
-    console.log('🧹 성능 메트릭 정리 완료');
+    logger.info('🧹 성능 메트릭 정리 완료');
   }
 }
 

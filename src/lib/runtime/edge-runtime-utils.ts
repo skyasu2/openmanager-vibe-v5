@@ -4,6 +4,7 @@
  */
 
 // Edge Runtime 호환 로거
+import { logger } from '@/lib/logging';
 export class EdgeLogger {
   private static instance: EdgeLogger;
   private logs: Array<{
@@ -33,9 +34,9 @@ export class EdgeLogger {
     // 콘솔 출력
     const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}`;
     if (meta) {
-      console.log(logMessage, meta);
+      logger.info(logMessage, meta);
     } else {
-      console.log(logMessage);
+      logger.info(logMessage);
     }
   }
 

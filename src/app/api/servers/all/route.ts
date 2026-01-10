@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getApiConfig, getSystemConfig } from '@/config/SystemConfiguration';
 import { withAuth } from '@/lib/auth/api-auth';
+import { logger } from '@/lib/logging';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import type { Server } from '@/types/server';
 import type { SortableKey } from '@/types/server-metrics';
@@ -13,7 +14,7 @@ export const revalidate = 300;
  * 모든 시스템(모니터링 UI, AI 어시스턴트, 저장 데이터)이 동일한 값 사용
  */
 function ensureDataConsistency(): void {
-  console.log(
+  logger.info(
     '✅ [DATA-CONSISTENCY] 결정론적 시스템 활성화 - 모든 컴포넌트 동일 값 보장'
   );
 }
@@ -160,7 +161,7 @@ export const GET = withAuth(async (request: NextRequest) => {
       }
     );
   } catch (error) {
-    console.error('서버 목록 조회 실패:', error);
+    logger.error('서버 목록 조회 실패:', error);
 
     // 🔒 Graceful Degradation - 서비스 연속성 보장
     const fallbackServers = [
@@ -201,7 +202,7 @@ export const GET = withAuth(async (request: NextRequest) => {
       }
     }
 
-    console.warn(`🔄 Fallback 모드 활성화: ${errorCode} - ${errorDetails}`);
+    logger.warn(`🔄 Fallback 모드 활성화: ${errorCode} - ${errorDetails}`);
 
     // 200 상태코드로 폴백 데이터 반환 (Graceful Degradation)
     return NextResponse.json(

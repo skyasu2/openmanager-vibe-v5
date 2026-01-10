@@ -8,6 +8,7 @@ import { timingSafeEqual } from 'crypto';
 import { type NextRequest, NextResponse } from 'next/server';
 import { SECURITY } from '@/config/constants';
 import { isGuestFullAccessEnabledServer } from '@/config/guestMode.server';
+import { logger } from '@/lib/logging';
 import { securityLogger } from '../security/security-logger';
 
 /**
@@ -43,7 +44,7 @@ export async function checkAPIAuth(request: NextRequest) {
   const envTestSecret = process.env.TEST_SECRET_KEY;
 
   if (testSecret && envTestSecret && testSecret === envTestSecret) {
-    console.log('✅ [API Auth] E2E 테스트 모드 바이패스 활성화');
+    logger.info('✅ [API Auth] E2E 테스트 모드 바이패스 활성화');
     return null; // E2E 테스트 인증 통과
   }
 

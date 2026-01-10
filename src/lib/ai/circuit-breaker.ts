@@ -37,6 +37,7 @@
  * }
  * ```
  */
+import { logger } from '@/lib/logging';
 export interface IDistributedStateStore {
   getState(serviceName: string): Promise<CircuitState | null>;
   setState(serviceName: string, state: CircuitState): Promise<void>;
@@ -170,13 +171,13 @@ class CircuitBreakerEventEmitter {
       try {
         listener(event);
       } catch (error) {
-        console.error('[CircuitBreaker] Event listener error:', error);
+        logger.error('[CircuitBreaker] Event listener error:', error);
       }
     }
 
     // 콘솔 로깅 (개발 환경)
     if (process.env.NODE_ENV === 'development') {
-      console.log(
+      logger.info(
         `[CircuitBreaker] ${event.type} - ${event.service}:`,
         event.details
       );
@@ -541,7 +542,7 @@ export async function executeWithCircuitBreakerAndFallback<T>(
 
   // Circuit Breaker가 열려있으면 즉시 폴백 사용
   if (status.state === 'OPEN') {
-    console.log(
+    logger.info(
       `[CircuitBreaker] ${serviceName}: OPEN 상태, 폴백 사용 (${status.resetTimeRemaining}ms 후 리셋)`
     );
 
@@ -574,7 +575,7 @@ export async function executeWithCircuitBreakerAndFallback<T>(
     const errorInstance =
       error instanceof Error ? error : new Error(String(error));
 
-    console.error(
+    logger.error(
       `[CircuitBreaker] ${serviceName}: Primary 실패, 폴백 사용 - ${errorInstance.message}`
     );
 

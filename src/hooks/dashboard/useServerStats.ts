@@ -3,6 +3,7 @@ import type {
   EnhancedServerData,
   ServerStats,
 } from '@/types/dashboard/server-dashboard.types';
+import { logger } from '@/lib/logging';
 import {
   adaptWorkerStatsToLegacy,
   calculateServerStats,
@@ -49,7 +50,7 @@ export function useServerStats(actualServers: EnhancedServerData[]) {
           })
           .catch((error) => {
             if (error?.name !== 'AbortError') {
-              console.error(
+              logger.error(
                 '❌ Web Worker 계산 실패, Fallback으로 대체:',
                 error
               );

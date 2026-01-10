@@ -8,6 +8,7 @@
  * - 트렌드 분석
  */
 
+import { logger } from '@/lib/logging';
 import type {
   ErrorHandlingConfig,
   ErrorStats,
@@ -63,7 +64,7 @@ export class ErrorMonitoringService {
       // 메트릭 정리 (메모리 관리)
       this.cleanupOldMetrics();
     } catch (monitoringError) {
-      console.error('에러 모니터링 기록 실패:', monitoringError);
+      logger.error('에러 모니터링 기록 실패:', monitoringError);
     }
   }
 
@@ -500,6 +501,6 @@ export class ErrorMonitoringService {
     this.criticalErrors = [];
     this.monitoringEvents = [];
     this.startTime = new Date();
-    console.log('📊 모니터링 상태 초기화 완료');
+    logger.info('📊 모니터링 상태 초기화 완료');
   }
 }

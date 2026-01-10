@@ -8,6 +8,7 @@
  */
 
 // Lodash 대신 네이티브 함수 사용
+import { logger } from '@/lib/logging';
 export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
@@ -117,7 +118,7 @@ export const BundleAnalyzer = {
     const start = performance.now();
     return () => {
       const end = performance.now();
-      console.log(
+      logger.info(
         `⚡ ${componentName} rendered in ${(end - start).toFixed(2)}ms`
       );
     };
@@ -127,7 +128,7 @@ export const BundleAnalyzer = {
     if (!this.isDev) return;
 
     // 웹팩 청크 정보 로그
-    console.log(`📦 Loading chunk: ${chunkName}`);
+    logger.info(`📦 Loading chunk: ${chunkName}`);
   },
 };
 

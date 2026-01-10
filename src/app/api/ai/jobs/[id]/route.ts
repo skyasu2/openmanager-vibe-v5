@@ -9,6 +9,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 import type { AIJob, JobStatusResponse } from '@/types/ai-jobs';
 
 // Supabase 클라이언트 생성
@@ -53,7 +54,7 @@ export async function GET(
       if (error.code === 'PGRST116') {
         return NextResponse.json({ error: 'Job not found' }, { status: 404 });
       }
-      console.error('[AI Jobs] Failed to get job:', error);
+      logger.error('[AI Jobs] Failed to get job:', error);
       return NextResponse.json(
         { error: 'Failed to get job status' },
         { status: 500 }
@@ -70,7 +71,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('[AI Jobs] Error getting job:', error);
+    logger.error('[AI Jobs] Error getting job:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -138,7 +139,7 @@ export async function DELETE(
       .eq('id', jobId);
 
     if (updateError) {
-      console.error('[AI Jobs] Failed to cancel job:', updateError);
+      logger.error('[AI Jobs] Failed to cancel job:', updateError);
       return NextResponse.json(
         { error: 'Failed to cancel job' },
         { status: 500 }
@@ -150,7 +151,7 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error) {
-    console.error('[AI Jobs] Error cancelling job:', error);
+    logger.error('[AI Jobs] Error cancelling job:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -10,6 +10,7 @@ import {
   TECH_STACKS_DATA,
   type VibeCodeData,
 } from '@/data/tech-stacks.data';
+import { logger } from '@/lib/logging';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import type {
   CategoryStyle,
@@ -296,7 +297,7 @@ export default function FeatureCardModal({
       }
       return mainContent;
     } catch (error) {
-      console.error('Modal rendering error:', error);
+      logger.error('Modal rendering error:', error);
       return (
         <div className="p-6 text-center text-white">
           <p>모달을 불러오는 중 오류가 발생했습니다.</p>

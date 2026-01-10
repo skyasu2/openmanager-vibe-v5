@@ -12,6 +12,7 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
 
 // Global declaration for singleton
 declare global {
@@ -21,7 +22,7 @@ declare global {
 export function getSupabaseClient(): SupabaseClient {
   if (typeof window === 'undefined') {
     // ⚠️ SSR 환경에서는 createServerClient를 사용해야 합니다
-    console.error(
+    logger.error(
       '❌ getSupabaseClient() should not be called in SSR. Use createServerClient() instead.'
     );
     throw new Error(
@@ -42,7 +43,7 @@ export function getSupabaseClient(): SupabaseClient {
     // PKCE code_verifier가 쿠키에 저장되어 OAuth 리다이렉트 후에도 유지됨
     globalThis.__supabaseInstance = createBrowserClient(url, key);
 
-    console.log('🔐 Supabase Browser Client 초기화 (PKCE + Cookie)');
+    logger.info('🔐 Supabase Browser Client 초기화 (PKCE + Cookie)');
   }
 
   return globalThis.__supabaseInstance;

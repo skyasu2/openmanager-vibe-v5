@@ -8,6 +8,7 @@
  * - 클라이언트 그룹 관리
  */
 
+import { logger } from '@/lib/logging';
 export interface RealTimeConnection {
   id: string;
   socket: WebSocket | null;
@@ -52,7 +53,7 @@ class RealTimeHub {
 
   constructor() {
     this.startCleanup();
-    console.log('🔄 RealTimeHub 초기화 완료');
+    logger.info('🔄 RealTimeHub 초기화 완료');
   }
 
   /**
@@ -77,7 +78,7 @@ class RealTimeHub {
     this.stats.totalConnections++;
     this.updateActiveConnections();
 
-    console.log(
+    logger.info(
       `🔗 새 연결 등록: ${connectionId} (총 ${this.connections.size}개)`
     );
 
@@ -104,7 +105,7 @@ class RealTimeHub {
     this.connections.delete(connectionId);
     this.updateActiveConnections();
 
-    console.log(
+    logger.info(
       `🚪 연결 해제: ${connectionId} (남은 ${this.connections.size}개)`
     );
     return true;
@@ -200,7 +201,7 @@ class RealTimeHub {
     this.stats.messagesSent += sentCount;
     this.stats.lastActivity = Date.now();
 
-    console.log(
+    logger.info(
       `📢 메시지 브로드캐스트: ${message.type} → ${sentCount}개 연결`
     );
     return sentCount;
@@ -228,10 +229,10 @@ class RealTimeHub {
       }
 
       // WebSocket이 없는 경우 (polling 등 다른 방식)
-      console.log(`📤 메시지 대기열에 추가: ${connectionId} → ${message.type}`);
+      logger.info(`📤 메시지 대기열에 추가: ${connectionId} → ${message.type}`);
       return true;
     } catch (error) {
-      console.error(`❌ 메시지 전송 실패: ${connectionId}`, error);
+      logger.error(`❌ 메시지 전송 실패: ${connectionId}`, error);
       return false;
     }
   }
@@ -294,7 +295,7 @@ class RealTimeHub {
       });
 
       if (toRemove.length > 0) {
-        console.log(`🧹 비활성 연결 정리: ${toRemove.length}개 제거`);
+        logger.info(`🧹 비활성 연결 정리: ${toRemove.length}개 제거`);
       }
 
       this.updateActiveConnections();
@@ -345,7 +346,7 @@ class RealTimeHub {
       this.disconnectConnection(connectionId);
     });
 
-    console.log('🛑 RealTimeHub 종료 완료');
+    logger.info('🛑 RealTimeHub 종료 완료');
   }
 }
 

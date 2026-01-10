@@ -4,6 +4,7 @@ import type { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { clearAuthData } from '@/lib/auth/auth-state-manager';
 import { getSupabase } from '@/lib/supabase/client';
+import { logger } from '@/lib/logging';
 
 // NextAuth 호환 세션 타입
 interface Session {
@@ -45,7 +46,7 @@ export function useSession(): UseSessionReturn {
         if (error) {
           // 'Auth session missing!'은 게스트 모드에서 예상된 동작 (경고 레벨 낮춤)
           if (error.message !== 'Auth session missing!') {
-            console.warn('⚠️ JWT 검증 실패:', error.message);
+            logger.warn('⚠️ JWT 검증 실패:', error.message);
           }
         }
         if (validatedUser) {
@@ -85,7 +86,7 @@ export function useSession(): UseSessionReturn {
                 } as User);
                 setStatus('authenticated');
               } catch (parseError) {
-                console.warn('게스트 사용자 정보 JSON 파싱 실패:', parseError);
+                logger.warn('게스트 사용자 정보 JSON 파싱 실패:', parseError);
                 // localStorage에서 잘못된 데이터 제거
                 localStorage.removeItem('auth_user');
                 localStorage.removeItem('auth_type');
@@ -98,7 +99,7 @@ export function useSession(): UseSessionReturn {
               setStatus('unauthenticated');
             }
           } catch (error) {
-            console.warn(
+            logger.warn(
               '게스트 세션 확인 오류 (localStorage 접근 제한):',
               error
             );
@@ -107,7 +108,7 @@ export function useSession(): UseSessionReturn {
           }
         }
       } catch (error) {
-        console.error('세션 확인 오류:', error);
+        logger.error('세션 확인 오류:', error);
         setStatus('unauthenticated');
       }
     };
@@ -158,7 +159,7 @@ export function useSession(): UseSessionReturn {
       error,
     } = await getSupabase().auth.getUser();
     if (error && error.message !== 'Auth session missing!') {
-      console.warn('⚠️ 세션 업데이트 JWT 검증 실패:', error.message);
+      logger.warn('⚠️ 세션 업데이트 JWT 검증 실패:', error.message);
     }
     if (validatedUser) {
       setUser(validatedUser);
@@ -180,7 +181,7 @@ export function useSession(): UseSessionReturn {
  */
 export async function signOut(options?: { callbackUrl?: string }) {
   try {
-    console.log('🚪 Supabase 로그아웃 시작');
+    logger.info('🚪 Supabase 로그아웃 시작');
 
     // Supabase 세션 종료 (핵심 동작)
     await getSupabase().auth.signOut();
@@ -189,9 +190,9 @@ export async function signOut(options?: { callbackUrl?: string }) {
     if (typeof window !== 'undefined') {
       try {
         await clearAuthData(); // 모든 인증 데이터 정리
-        console.log('✅ AuthStateManager를 통한 세션 정리 완료');
+        logger.info('✅ AuthStateManager를 통한 세션 정리 완료');
       } catch (error) {
-        console.warn('⚠️ AuthStateManager 정리 실패 (계속 진행):', error);
+        logger.warn('⚠️ AuthStateManager 정리 실패 (계속 진행):', error);
 
         // Fallback: 기본 localStorage 정리
         ['auth_session_id', 'auth_type', 'auth_user'].forEach((key) => {
@@ -200,14 +201,14 @@ export async function signOut(options?: { callbackUrl?: string }) {
       }
     }
 
-    console.log('✅ 로그아웃 완료');
+    logger.info('✅ 로그아웃 완료');
 
     // 페이지 이동
     if (typeof window !== 'undefined') {
       window.location.href = options?.callbackUrl || '/login';
     }
   } catch (error) {
-    console.error('❌ 로그아웃 오류:', error);
+    logger.error('❌ 로그아웃 오류:', error);
     // 실패해도 강제로 로그인 페이지로 이동
     if (typeof window !== 'undefined') {
       window.location.href = options?.callbackUrl || '/login';
@@ -232,7 +233,7 @@ export async function signIn(
         try {
           sessionStorage.setItem('auth_redirect_to', finalRedirect);
         } catch (error) {
-          console.warn('sessionStorage 접근 오류 (무시됨):', error);
+          logger.warn('sessionStorage 접근 오류 (무시됨):', error);
         }
       }
 
@@ -241,7 +242,7 @@ export async function signIn(
       // /auth/callback이 PKCE 처리를 담당하므로 이 경로로 통일
       const redirectTo = `${baseUrl}/auth/callback`;
 
-      console.log('🔐 GitHub OAuth 시작:', {
+      logger.info('🔐 GitHub OAuth 시작:', {
         baseUrl,
         finalRedirect,
         redirectTo,
@@ -260,14 +261,14 @@ export async function signIn(
       });
 
       if (error) {
-        console.error('GitHub 로그인 오류:', error);
+        logger.error('GitHub 로그인 오류:', error);
         throw error;
       }
 
-      console.log('✅ GitHub OAuth 요청 성공 - 리다이렉트 중...');
+      logger.info('✅ GitHub OAuth 요청 성공 - 리다이렉트 중...');
     }
   } catch (error) {
-    console.error('로그인 오류:', error);
+    logger.error('로그인 오류:', error);
     throw error;
   }
 }

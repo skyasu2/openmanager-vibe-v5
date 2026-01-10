@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SYSTEM_AUTO_SHUTDOWN_TIME } from '@/config/system-constants';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { logger } from '@/lib/logging';
 
 interface UseSystemAutoShutdownOptions {
   /** 경고 시간 (분) */
@@ -122,7 +123,7 @@ export function useSystemAutoShutdown({
 
   // 시스템 재시작 (페이지 새로고침)
   const restartSystem = useCallback(() => {
-    console.log('🔄 시스템 재시작 요청');
+    logger.info('🔄 시스템 재시작 요청');
     window.location.reload();
   }, []);
 
@@ -131,7 +132,7 @@ export function useSystemAutoShutdown({
     const timeSinceShutdown = checkPreviousShutdown();
     if (timeSinceShutdown !== null) {
       const minutes = Math.floor(timeSinceShutdown / 60000);
-      console.log(`📊 이전 자동 종료로부터 ${minutes}분 경과`);
+      logger.info(`📊 이전 자동 종료로부터 ${minutes}분 경과`);
     }
   }, [checkPreviousShutdown]);
 

@@ -5,6 +5,7 @@
  * "Cannot read properties of undefined (reading 'message')" 에러를 완전 근절
  */
 
+import { logger } from '@/lib/logging';
 import type { SafeError } from './types/error-types';
 
 /**
@@ -258,16 +259,16 @@ export function safeErrorLog(
   const errorType = classifyErrorType(safeError);
 
   // 콘솔 로깅
-  console.error(`${prefix}:`, safeError.message);
-  console.error(`↳ Type: ${errorType}`, `Code: ${safeError.code || 'NONE'}`);
+  logger.error(`${prefix}:`, safeError.message);
+  logger.error(`↳ Type: ${errorType}`, `Code: ${safeError.code || 'NONE'}`);
 
   if (includeStack && safeError.stack) {
-    console.error('↳ Stack:', safeError.stack);
+    logger.error('↳ Stack:', safeError.stack);
   }
 
   // 개발 환경에서는 원본 에러도 출력
   if (process.env.NODE_ENV === 'development' && safeError.originalError) {
-    console.error('↳ Original:', safeError.originalError);
+    logger.error('↳ Original:', safeError.originalError);
   }
 
   return safeError;
@@ -379,7 +380,7 @@ export function setupGlobalErrorHandler(): void {
 
     // 로딩 관련 에러면 자동 복구 시도
     if (isLoadingRelatedError(event.error)) {
-      console.log('🚀 로딩 관련 에러 감지 - 자동 복구 시도');
+      logger.info('🚀 로딩 관련 에러 감지 - 자동 복구 시도');
       setTimeout(() => {
         window.emergencyComplete?.();
       }, 1000);
@@ -404,7 +405,7 @@ export function setupGlobalErrorHandler(): void {
 
     // 로딩 관련 Promise 에러 자동 복구
     if (isLoadingRelatedError(event.reason)) {
-      console.log('🚀 Promise 로딩 에러 감지 - 자동 복구 시도');
+      logger.info('🚀 Promise 로딩 에러 감지 - 자동 복구 시도');
       setTimeout(() => {
         window.emergencyComplete?.();
       }, 1000);
@@ -423,11 +424,11 @@ export function setupGlobalErrorHandler(): void {
     try {
       throw new Error('Test error for handler verification');
     } catch (e) {
-      console.log('테스트 에러 처리 결과:', createSafeError(e));
+      logger.info('테스트 에러 처리 결과:', createSafeError(e));
     }
   };
 
-  console.log('🛡️ 전역 에러 핸들러 설정 완료');
+  logger.info('🛡️ 전역 에러 핸들러 설정 완료');
 }
 
 /**
@@ -443,7 +444,7 @@ export async function safeApiCall<T>(
     return { success: true, data };
   } catch (error) {
     const safeError = createSafeError(error);
-    console.error(`❌ ${errorContext} 실패`, error);
+    logger.error(`❌ ${errorContext} 실패`, error);
 
     // 로딩 화면에서 API 에러가 발생해도 진행할 수 있도록
     if (typeof window !== 'undefined' && isLoadingRelatedError(error)) {
@@ -500,7 +501,7 @@ export async function withErrorRecovery<T>(
       lastError = createSafeError(error);
 
       if (i < maxRetries - 1 && shouldRetry(lastError)) {
-        console.error(`🔄 재시도 ${i + 1}/${maxRetries}`, error);
+        logger.error(`🔄 재시도 ${i + 1}/${maxRetries}`, error);
         onRetry?.(i + 2, lastError); // 다음 시도 번호 전달
 
         if (retryDelay > 0) {
@@ -530,7 +531,7 @@ export async function withErrorRecovery<T>(
     result.data = fallbackValue as T;
   }
 
-  console.error('❌ 모든 재시도 실패', result.error);
+  logger.error('❌ 모든 재시도 실패', result.error);
   return result;
 }
 

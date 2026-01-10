@@ -4,6 +4,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 import { PerformanceService } from '@/services/performance/PerformanceService';
 
 export function GET(request: NextRequest) {
@@ -50,7 +51,7 @@ export function GET(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('Error fetching performance history:', error);
+    logger.error('Error fetching performance history:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

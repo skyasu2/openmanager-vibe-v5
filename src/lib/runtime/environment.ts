@@ -23,6 +23,7 @@
  * - SSR, API Routes, getServerSideProps 등에서 true
  * - 브라우저에서 false
  */
+import { logger } from '@/lib/logging';
 export const isServer: boolean = typeof window === 'undefined';
 
 /**
@@ -128,7 +129,7 @@ export function requireServerModule<T>(moduleName: string): T | null {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require(moduleName) as T;
   } catch {
-    console.warn(`[environment] Failed to load server module: ${moduleName}`);
+    logger.warn(`[environment] Failed to load server module: ${moduleName}`);
     return null;
   }
 }

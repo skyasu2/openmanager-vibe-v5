@@ -4,6 +4,7 @@
  * 서버 메트릭 데이터 시뮬레이션 및 생성
  */
 
+import { logger } from '@/lib/logging';
 import type {
   EnhancedServerMetrics,
   ServerEnvironment,
@@ -131,7 +132,7 @@ export class SimulationEngine {
    */
   start(): void {
     this.isRunning = true;
-    console.log('🚀 시뮬레이션 엔진 시작됨');
+    logger.info('🚀 시뮬레이션 엔진 시작됨');
   }
 
   /**
@@ -139,7 +140,7 @@ export class SimulationEngine {
    */
   stop(): void {
     this.isRunning = false;
-    console.log('⏹️ 시뮬레이션 엔진 중지됨');
+    logger.info('⏹️ 시뮬레이션 엔진 중지됨');
   }
 
   /**

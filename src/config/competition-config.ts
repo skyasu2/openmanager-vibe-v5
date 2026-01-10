@@ -8,6 +8,7 @@
  * - 리소스 사용량 최소화
  */
 
+import { logger } from '@/lib/logging';
 export interface CompetitionConfig {
   mode: 'competition' | 'demo' | 'production';
   environment: {
@@ -209,7 +210,7 @@ export class CompetitionConfigManager {
    */
   toggleActive(active: boolean): void {
     this.isActive = active;
-    console.log(`🎯 경연대회 모드: ${active ? '활성화' : '비활성화'}`);
+    logger.info(`🎯 경연대회 모드: ${active ? '활성화' : '비활성화'}`);
   }
 
   /**
@@ -227,17 +228,17 @@ export class CompetitionConfigManager {
       metrics.redisCommandsUsed / this.config.limits.redisCommands;
     if (redisUsagePercent > 0.8) {
       this.config.performance.dataGenerationInterval += 2000; // 간격 증가
-      console.log('🔻 Redis 사용량 높음 - 데이터 생성 간격 증가');
+      logger.info('🔻 Redis 사용량 높음 - 데이터 생성 간격 증가');
     }
 
     // 사용자 없을 때 절전 모드
     if (metrics.activeUsers === 0 && this.config.features.smartOnOff) {
       this.config.performance.dataGenerationInterval = 30000; // 30초로 증가
-      console.log('😴 사용자 없음 - 절전 모드 활성화');
+      logger.info('😴 사용자 없음 - 절전 모드 활성화');
     } else if (metrics.activeUsers > 0) {
       this.config.performance.dataGenerationInterval =
         COMPETITION_DEFAULTS.performance.dataGenerationInterval;
-      console.log('🔥 사용자 활동 감지 - 정상 모드 복귀');
+      logger.info('🔥 사용자 활동 감지 - 정상 모드 복귀');
     }
   }
 }

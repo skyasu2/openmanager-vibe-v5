@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { AuthUser } from '@/lib/auth/auth-state-manager';
 import { authStateManager } from '@/lib/auth/auth-state-manager';
+import { logger } from '@/lib/logging';
 
 // Safe localStorage access helpers (SSR compatible)
 function safeGetItem(key: string): string | null {
@@ -15,7 +16,7 @@ function safeGetItem(key: string): string | null {
       return localStorage.getItem(key);
     }
   } catch {
-    console.warn(`[useAuth] localStorage.getItem('${key}') failed`);
+    logger.warn(`[useAuth] localStorage.getItem('${key}') failed`);
   }
   return null;
 }
@@ -26,7 +27,7 @@ function safeRemoveItem(key: string): void {
       localStorage.removeItem(key);
     }
   } catch {
-    console.warn(`[useAuth] localStorage.removeItem('${key}') failed`);
+    logger.warn(`[useAuth] localStorage.removeItem('${key}') failed`);
   }
 }
 
@@ -73,7 +74,7 @@ export function useAuth(): UseAuthResult {
 
       return { success: true };
     } catch (error) {
-      console.error('로그인 실패:', error);
+      logger.error('로그인 실패:', error);
       return { success: false, error: '로그인 중 오류가 발생했습니다.' };
     } finally {
       setIsLoading(false);
@@ -95,9 +96,9 @@ export function useAuth(): UseAuthResult {
       safeRemoveItem('auth_session_id');
       safeRemoveItem('auth_type');
 
-      console.log('로그아웃 완료');
+      logger.info('로그아웃 완료');
     } catch (error) {
-      console.error('로그아웃 실패:', error);
+      logger.error('로그아웃 실패:', error);
     }
   };
 
@@ -133,7 +134,7 @@ export function useAuth(): UseAuthResult {
         setSessionId(null);
       }
     } catch (error) {
-      console.error('인증 상태 확인 실패:', error);
+      logger.error('인증 상태 확인 실패:', error);
       setUser(null);
       setSessionId(null);
     } finally {

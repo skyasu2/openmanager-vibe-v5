@@ -10,6 +10,7 @@
  * - 데이터 일관성 100% 보장
  */
 
+import { logger } from '@/lib/logging';
 import type { EnhancedServerMetrics } from '../types/server';
 
 export interface UnifiedDataResponse {
@@ -92,7 +93,7 @@ export class UnifiedDataService {
         },
       };
     } catch (error) {
-      console.error('❌ 통합 데이터 조회 실패:', error);
+      logger.error('❌ 통합 데이터 조회 실패:', error);
       throw error;
     }
   }

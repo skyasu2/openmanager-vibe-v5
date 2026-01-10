@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 export interface RealTimeAILog {
   id: string;
@@ -102,7 +103,7 @@ export const useRealTimeAILogs = (
       setIsConnected(true);
       setConnectionStatus('connected');
       reconnectAttemptsRef.current = 0;
-      console.log('AI 로그 스트림 연결됨');
+      logger.info('AI 로그 스트림 연결됨');
     };
 
     eventSource.onmessage = (event) => {
@@ -111,7 +112,7 @@ export const useRealTimeAILogs = (
 
         // 연결 메시지 처리
         if (data.type === 'connection') {
-          console.log('AI 로그 스트림 초기화:', data.message);
+          logger.info('AI 로그 스트림 초기화:', data.message);
           return;
         }
 
@@ -148,12 +149,12 @@ export const useRealTimeAILogs = (
           setIsProcessing(false);
         }
       } catch (error) {
-        console.error('로그 파싱 오류:', error);
+        logger.error('로그 파싱 오류:', error);
       }
     };
 
     eventSource.onerror = (error) => {
-      console.error('AI 로그 스트림 오류:', error);
+      logger.error('AI 로그 스트림 오류:', error);
       setIsConnected(false);
       setConnectionStatus('error');
       eventSource.close();
@@ -164,7 +165,7 @@ export const useRealTimeAILogs = (
         reconnectAttemptsRef.current < maxReconnectAttempts
       ) {
         reconnectAttemptsRef.current++;
-        console.log(
+        logger.info(
           `AI 로그 스트림 재연결 시도 ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`
         );
 
@@ -219,9 +220,9 @@ export const useRealTimeAILogs = (
         }
 
         const result = await response.json();
-        console.log('수동 로그 추가됨:', result);
+        logger.info('수동 로그 추가됨:', result);
       } catch (error) {
-        console.error('수동 로그 추가 오류:', error);
+        logger.error('수동 로그 추가 오류:', error);
         throw error;
       }
     },

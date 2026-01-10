@@ -36,6 +36,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -123,7 +124,7 @@ class AdvancedNotificationManager {
       }, newNotification.duration);
     }
 
-    console.log(
+    logger.info(
       `🔔 고급 알림 추가: ${newNotification.type} - ${newNotification.title}`
     );
     return newNotification.id;

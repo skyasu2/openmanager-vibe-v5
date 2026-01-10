@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
 
 if (typeof window !== 'undefined') {
   throw new Error('supabase/admin.ts should only be imported on the server.');
@@ -17,7 +18,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl || !supabaseServiceKey) {
   // Allow build to pass if env vars are missing (e.g. CI)
   if (process.env.NODE_ENV !== 'production') {
-    console.warn('Missing Supabase Admin keys, using placeholders');
+    logger.warn('Missing Supabase Admin keys, using placeholders');
   }
 }
 

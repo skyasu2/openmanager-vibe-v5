@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { AlertSeverity } from '@/types/common';
+import { logger } from '@/lib/logging';
 
 interface Alert {
   id: string;
@@ -58,7 +59,7 @@ export function useSystemAlerts() {
 
       setAlerts(extractedAlerts);
     } catch (err) {
-      console.error('시스템 알림 조회 실패:', err);
+      logger.error('시스템 알림 조회 실패:', err);
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
     } finally {
       setLoading(false);

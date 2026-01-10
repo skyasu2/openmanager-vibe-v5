@@ -14,6 +14,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
 
 interface SystemLogEntry {
   id: string;
@@ -167,14 +168,14 @@ export class CloudLoggingService {
       this.startBatchProcessor();
     }
 
-    console.log(
+    logger.info(
       `🌐 CloudLoggingService 초기화 완료 (${isProduction ? 'Production' : 'Development'} 모드)`
     );
-    console.log(
+    logger.info(
       `📦 스토리지: Memory${this.supabase ? ' + Supabase' : ' Only'}`
     );
     if (isProduction) {
-      console.log(
+      logger.info(
         `⚠️ 프로덕션 모드: ${this.config.productionLogLevels.join(', ')} 레벨만 처리`
       );
     }
@@ -240,7 +241,7 @@ export class CloudLoggingService {
 
       return true;
     } catch (error) {
-      console.error('❌ CloudLoggingService: 로그 기록 실패:', error);
+      logger.error('❌ CloudLoggingService: 로그 기록 실패:', error);
       return false;
     }
   }
@@ -251,11 +252,11 @@ export class CloudLoggingService {
   private addToMemoryStream(logEntry: SystemLogEntry): void {
     try {
       this.memoryStream.add(logEntry);
-      console.log(
+      logger.info(
         `✅ Memory Stream 로그 추가: ${logEntry.id} [${logEntry.level}]`
       );
     } catch (error) {
-      console.error('❌ Memory Stream 로그 추가 실패:', error);
+      logger.error('❌ Memory Stream 로그 추가 실패:', error);
       throw error;
     }
   }
@@ -286,7 +287,7 @@ export class CloudLoggingService {
       }
     }, this.config.batchInterval);
 
-    console.log('⏰ 로그 배치 처리기 시작');
+    logger.info('⏰ 로그 배치 처리기 시작');
   }
 
   /**
@@ -318,9 +319,9 @@ export class CloudLoggingService {
 
       if (error) throw error;
 
-      console.log(`📦 Supabase 로그 배치 저장 완료: ${batch.length}개`);
+      logger.info(`📦 Supabase 로그 배치 저장 완료: ${batch.length}개`);
     } catch (error) {
-      console.error('❌ Supabase 배치 저장 실패:', error);
+      logger.error('❌ Supabase 배치 저장 실패:', error);
       // 실패한 로그들 다시 버퍼에 추가
       this.logBuffer.unshift(...batch);
     } finally {
@@ -353,11 +354,11 @@ export class CloudLoggingService {
         });
       }
 
-      console.log(
+      logger.info(
         `🚨 실시간 알림 전송: ${logEntry.level} - ${logEntry.message}`
       );
     } catch (error) {
-      console.error('❌ 실시간 알림 전송 실패:', error);
+      logger.error('❌ 실시간 알림 전송 실패:', error);
     }
   }
 
@@ -371,7 +372,7 @@ export class CloudLoggingService {
     try {
       return this.memoryStream.getRecent(count, level);
     } catch (error) {
-      console.error('❌ 실시간 로그 조회 실패:', error);
+      logger.error('❌ 실시간 로그 조회 실패:', error);
       return [];
     }
   }
@@ -447,7 +448,7 @@ export class CloudLoggingService {
         realtimeCount,
       };
     } catch (error) {
-      console.error('❌ 로그 통계 조회 실패:', error);
+      logger.error('❌ 로그 통계 조회 실패:', error);
       return {
         totalLogs: 0,
         logLevels: {},
@@ -517,7 +518,7 @@ export class CloudLoggingService {
         stackTrace: String(log.stack_trace),
       }));
     } catch (error) {
-      console.error('❌ 로그 검색 실패:', error);
+      logger.error('❌ 로그 검색 실패:', error);
       return [];
     }
   }
@@ -551,7 +552,7 @@ export class CloudLoggingService {
       if (error) throw error;
 
       const deletedCount = Array.isArray(data) ? data.length : 0;
-      console.log(`🧹 오래된 로그 정리 완료: ${deletedCount}개 삭제`);
+      logger.info(`🧹 오래된 로그 정리 완료: ${deletedCount}개 삭제`);
 
       return {
         deletedCount,
@@ -559,7 +560,7 @@ export class CloudLoggingService {
         success: true,
       };
     } catch (error) {
-      console.error('❌ 로그 정리 실패:', error);
+      logger.error('❌ 로그 정리 실패:', error);
       return {
         deletedCount: 0,
         oldestDate: '',
@@ -645,7 +646,7 @@ export class CloudLoggingService {
    * 🧹 서비스 종료 시 정리
    */
   async shutdown(): Promise<void> {
-    console.log('🧹 CloudLoggingService 종료 시작...');
+    logger.info('🧹 CloudLoggingService 종료 시작...');
 
     // 배치 타이머 정지
     if (this.batchTimer) {
@@ -655,13 +656,13 @@ export class CloudLoggingService {
 
     // 남은 로그 배치 처리
     if (this.logBuffer.length > 0) {
-      console.log(`📦 종료 시 남은 로그 처리: ${this.logBuffer.length}개`);
+      logger.info(`📦 종료 시 남은 로그 처리: ${this.logBuffer.length}개`);
       await this.processBatch();
     }
 
     // 메모리 스트림 정리
     this.memoryStream.clear();
 
-    console.log('🧹 CloudLoggingService 종료 완료');
+    logger.info('🧹 CloudLoggingService 종료 완료');
   }
 }

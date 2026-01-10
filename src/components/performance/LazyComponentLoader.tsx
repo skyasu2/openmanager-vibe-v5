@@ -8,6 +8,7 @@
 import { Loader2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { lazy, Suspense } from 'react';
+import { logger } from '@/lib/logging';
 
 interface LazyLoadConfig {
   // 로딩 딜레이 (ms)
@@ -159,11 +160,11 @@ const processQueue = async () => {
     const { component, name } = queueItem;
 
     try {
-      console.log(`🚀 Loading component: ${name}`);
+      logger.info(`🚀 Loading component: ${name}`);
       await component();
-      console.log(`✅ Loaded component: ${name}`);
+      logger.info(`✅ Loaded component: ${name}`);
     } catch (error) {
-      console.error(`❌ Failed to load component: ${name}`, error);
+      logger.error(`❌ Failed to load component: ${name}`, error);
     }
 
     // 메인 스레드 블로킹 방지

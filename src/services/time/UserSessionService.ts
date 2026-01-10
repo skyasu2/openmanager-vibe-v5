@@ -5,6 +5,7 @@
  * 사용자 요구사항: "사용자 세션 30분 시스템 시작 종료에 맞춰서 동작"
  */
 
+import { logger } from '@/lib/logging';
 import { timeRotationService } from './TimeRotationService';
 
 export interface UserSession {
@@ -59,7 +60,7 @@ export class UserSessionService {
   };
 
   private constructor() {
-    console.log('🎯 사용자 세션 서비스 초기화');
+    logger.info('🎯 사용자 세션 서비스 초기화');
   }
 
   public static getInstance(): UserSessionService {
@@ -99,7 +100,7 @@ export class UserSessionService {
       completedCycles: 0,
     };
 
-    console.log('🎯 사용자 세션 시작:', {
+    logger.info('🎯 사용자 세션 시작:', {
       sessionId,
       userId,
       duration: '30분',
@@ -109,7 +110,7 @@ export class UserSessionService {
 
     // 시간 회전 시스템과 동기화
     if (this.settings.syncWithTimeRotation && !timeRotationState.isActive) {
-      console.log('🔄 시간 회전 시스템 자동 시작');
+      logger.info('🔄 시간 회전 시스템 자동 시작');
       timeRotationService.start();
     }
 
@@ -127,7 +128,7 @@ export class UserSessionService {
    */
   public pauseSession(): void {
     if (!this.currentSession || !this.currentSession.isActive) {
-      console.warn('⚠️ 활성 세션이 없습니다');
+      logger.warn('⚠️ 활성 세션이 없습니다');
       return;
     }
 
@@ -138,7 +139,7 @@ export class UserSessionService {
       timeRotationService.pause();
     }
 
-    console.log('⏸️ 세션 일시정지:', {
+    logger.info('⏸️ 세션 일시정지:', {
       sessionId: this.currentSession.sessionId,
       remainingTime: this.formatTime(this.currentSession.remainingTime),
     });
@@ -151,7 +152,7 @@ export class UserSessionService {
    */
   public resumeSession(): void {
     if (!this.currentSession || !this.currentSession.isActive) {
-      console.warn('⚠️ 활성 세션이 없습니다');
+      logger.warn('⚠️ 활성 세션이 없습니다');
       return;
     }
 
@@ -162,7 +163,7 @@ export class UserSessionService {
       timeRotationService.resume();
     }
 
-    console.log('▶️ 세션 재개:', {
+    logger.info('▶️ 세션 재개:', {
       sessionId: this.currentSession.sessionId,
       remainingTime: this.formatTime(this.currentSession.remainingTime),
     });
@@ -175,7 +176,7 @@ export class UserSessionService {
    */
   public endSession(reason: string = '수동 종료'): void {
     if (!this.currentSession) {
-      console.warn('⚠️ 종료할 세션이 없습니다');
+      logger.warn('⚠️ 종료할 세션이 없습니다');
       return;
     }
 
@@ -194,7 +195,7 @@ export class UserSessionService {
       this.currentSession.endTime.getTime() -
       this.currentSession.startTime.getTime();
 
-    console.log('🛑 세션 종료:', {
+    logger.info('🛑 세션 종료:', {
       sessionId: this.currentSession.sessionId,
       reason,
       duration: this.formatTime(sessionDuration),
@@ -210,7 +211,7 @@ export class UserSessionService {
 
     // 자동 갱신
     if (this.settings.autoRenew) {
-      console.log('🔄 세션 자동 갱신');
+      logger.info('🔄 세션 자동 갱신');
       setTimeout(() => {
         this.startSession(endedSession.userId);
       }, 1000);
@@ -222,14 +223,14 @@ export class UserSessionService {
    */
   public renewSession(): void {
     if (!this.currentSession || !this.currentSession.isActive) {
-      console.warn('⚠️ 갱신할 세션이 없습니다');
+      logger.warn('⚠️ 갱신할 세션이 없습니다');
       return;
     }
 
     this.currentSession.remainingTime = this.SESSION_DURATION;
     this.currentSession.isExpired = false;
 
-    console.log('🔄 세션 갱신:', {
+    logger.info('🔄 세션 갱신:', {
       sessionId: this.currentSession.sessionId,
       newDuration: '30분',
     });
@@ -300,7 +301,7 @@ export class UserSessionService {
     // 세션 만료 체크
     if (this.currentSession.remainingTime === 0) {
       this.currentSession.isExpired = true;
-      console.log('⏰ 세션 만료!');
+      logger.info('⏰ 세션 만료!');
       this.endSession('세션 시간 만료');
     }
 
@@ -322,7 +323,7 @@ export class UserSessionService {
    */
   public updateSettings(settings: Partial<SessionSettings>): void {
     this.settings = { ...this.settings, ...settings };
-    console.log('⚙️ 세션 설정 업데이트:', this.settings);
+    logger.info('⚙️ 세션 설정 업데이트:', this.settings);
   }
 
   /**
@@ -402,7 +403,7 @@ export class UserSessionService {
       try {
         callback(this.currentSession);
       } catch (error) {
-        console.error('❌ 세션 콜백 오류:', error);
+        logger.error('❌ 세션 콜백 오류:', error);
       }
     });
   }
@@ -411,13 +412,13 @@ export class UserSessionService {
    * ⚠️ 경고 콜백 알림
    */
   private notifyWarningCallbacks(remainingMinutes: number): void {
-    console.log(`⚠️ 세션 종료 ${remainingMinutes}분 전!`);
+    logger.info(`⚠️ 세션 종료 ${remainingMinutes}분 전!`);
 
     this.warningCallbacks.forEach((callback) => {
       try {
         callback(remainingMinutes);
       } catch (error) {
-        console.error('❌ 경고 콜백 오류:', error);
+        logger.error('❌ 경고 콜백 오류:', error);
       }
     });
   }

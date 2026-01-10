@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNaturalLoadingTime } from './useMinimumLoadingTime';
 import { useSequentialLoadingTime } from './useSequentialLoadingTime';
+import { logger } from '@/lib/logging';
 
 // Window 인터페이스 확장 for 대시보드 디버그
 interface WindowWithDashboard extends Window {
@@ -75,7 +76,7 @@ export const useDashboardLogic = () => {
 
   // 완료 처리 함수
   const handleLoadingComplete = useCallback(() => {
-    console.log('🎯 대시보드 로딩 완료');
+    logger.info('🎯 대시보드 로딩 완료');
     setDashboardState((prev) => ({
       ...prev,
       isLoading: false,
@@ -123,7 +124,7 @@ export const useDashboardLogic = () => {
 
   // 에러 처리
   const handleError = useCallback((error: string) => {
-    console.error('❌ 대시보드 에러:', error);
+    logger.error('❌ 대시보드 에러:', error);
     setDashboardState((prev) => ({
       ...prev,
       error,
@@ -149,15 +150,15 @@ export const useDashboardLogic = () => {
   }, [router]);
 
   const handleSystemStop = useCallback(async () => {
-    console.log('시스템 중지');
+    logger.info('시스템 중지');
   }, []);
 
   const handleSystemPause = useCallback(async () => {
-    console.log('시스템 일시정지');
+    logger.info('시스템 일시정지');
   }, []);
 
   const handleSystemResume = useCallback(async () => {
-    console.log('시스템 재개');
+    logger.info('시스템 재개');
   }, []);
 
   // 애니메이션 variants
@@ -169,7 +170,7 @@ export const useDashboardLogic = () => {
   // 대시보드 준비 완료 시 추가 초기화
   useEffect(() => {
     if (dashboardState.isReady && !dashboardState.error) {
-      console.log('✅ 대시보드 준비 완료 - 추가 초기화 시작');
+      logger.info('✅ 대시보드 준비 완료 - 추가 초기화 시작');
 
       // 서버 통계 초기화
       setServerStats({
@@ -186,7 +187,7 @@ export const useDashboardLogic = () => {
           (window as WindowWithDashboard).dashboardLoadTime = Date.now();
         }
       } catch (error) {
-        console.warn('⚠️ 전역 상태 설정 실패:', error);
+        logger.warn('⚠️ 전역 상태 설정 실패:', error);
       }
     }
   }, [dashboardState.isReady, dashboardState.error]);

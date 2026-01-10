@@ -16,6 +16,7 @@
 /**
  * 🎯 AI Error Types (Comprehensive)
  */
+import { logger } from '@/lib/logging';
 export enum AIErrorType {
   // API Quota & Rate Limiting
   RATE_LIMIT = 'rate_limit',
@@ -346,7 +347,7 @@ export const AIErrorHandler = {
         }
 
         // Log retry attempt
-        console.warn(
+        logger.warn(
           `🔄 Retrying (attempt ${attempt + 1}/${maxRetries}) after ${actualDelay}ms due to ${errorType}`
         );
 
@@ -399,7 +400,7 @@ export const AIErrorHandler = {
           }
         : error;
 
-    console.error(`🚨 AI Error ${context ? `[${context}]` : ''}:`, {
+    logger.error(`🚨 AI Error ${context ? `[${context}]` : ''}:`, {
       ...errorInfo,
       message: this.toErrorMessage(errorInfo.message),
       time: new Date(errorInfo.timestamp).toISOString(),

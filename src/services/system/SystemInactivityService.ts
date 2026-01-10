@@ -9,6 +9,8 @@
  * 4. 실시간 모니터링 중지
  */
 
+import { logger } from '@/lib/logging';
+
 interface BackgroundTask {
   id: string;
   name: string;
@@ -43,7 +45,7 @@ class SystemInactivityService {
       this.checkSystemInactivity();
     }, 5000);
 
-    console.log('🔍 시스템 비활성 모니터링 시작');
+    logger.info('🔍 시스템 비활성 모니터링 시작');
   }
 
   /**
@@ -57,13 +59,13 @@ class SystemInactivityService {
 
     if (systemInactive) {
       if (this.isSystemActive) {
-        console.log('⏸️ 시스템 비활성 감지 - 백그라운드 작업 중지');
+        logger.info('⏸️ 시스템 비활성 감지 - 백그라운드 작업 중지');
         this.pauseAllBackgroundTasks();
         this.isSystemActive = false;
       }
     } else {
       if (!this.isSystemActive) {
-        console.log('▶️ 시스템 활성 복귀 - 백그라운드 작업 재개');
+        logger.info('▶️ 시스템 활성 복귀 - 백그라운드 작업 재개');
         this.resumeAllBackgroundTasks();
         this.isSystemActive = true;
       }
@@ -94,7 +96,7 @@ class SystemInactivityService {
 
     this.backgroundTasks.set(id, task);
 
-    console.log(`📝 백그라운드 작업 등록: ${name} (${intervalMs}ms)`);
+    logger.info(`📝 백그라운드 작업 등록: ${name} (${intervalMs}ms)`);
   }
 
   /**
@@ -107,7 +109,7 @@ class SystemInactivityService {
         clearInterval(task.intervalId);
       }
       this.backgroundTasks.delete(id);
-      console.log(`🗑️ 백그라운드 작업 해제: ${task.name}`);
+      logger.info(`🗑️ 백그라운드 작업 해제: ${task.name}`);
     }
   }
 
@@ -123,7 +125,7 @@ class SystemInactivityService {
       }
     });
 
-    console.log(`⏸️ ${this.backgroundTasks.size}개 백그라운드 작업 일시 중지`);
+    logger.info(`⏸️ ${this.backgroundTasks.size}개 백그라운드 작업 일시 중지`);
   }
 
   /**
@@ -138,7 +140,7 @@ class SystemInactivityService {
       }
     });
 
-    console.log(
+    logger.info(
       `▶️ ${this.backgroundTasks.size}개 백그라운드 작업 재개 신호 전송`
     );
   }
@@ -164,7 +166,7 @@ class SystemInactivityService {
     localStorage.removeItem('system_inactive');
     localStorage.removeItem('auto_logout_time');
 
-    console.log('🔄 시스템 활성 상태 복귀');
+    logger.info('🔄 시스템 활성 상태 복귀');
   }
 
   /**
@@ -176,7 +178,7 @@ class SystemInactivityService {
     localStorage.setItem('system_inactive', 'true');
     localStorage.setItem('auto_logout_time', new Date().toISOString());
 
-    console.log('⏸️ 시스템 비활성 상태 설정');
+    logger.info('⏸️ 시스템 비활성 상태 설정');
   }
 
   /**
@@ -224,7 +226,7 @@ class SystemInactivityService {
     this.backgroundTasks.clear();
     SystemInactivityService.instance = null;
 
-    console.log('🧹 시스템 비활성 서비스 정리 완료');
+    logger.info('🧹 시스템 비활성 서비스 정리 완료');
   }
 }
 

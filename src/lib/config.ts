@@ -9,6 +9,8 @@
  */
 
 // 빌드 타임 감지 함수
+import { logger } from '@/lib/logging';
+
 const isBuildTime = (): boolean => {
   return !!(
     process.env.npm_lifecycle_event === 'build' ||
@@ -72,7 +74,7 @@ const validateEnvVar = (
   }
 
   if (required && (!value || value.trim() === '')) {
-    console.warn(`⚠️ 필수 환경변수 누락: ${key} (기본값 사용)`);
+    logger.warn(`⚠️ 필수 환경변수 누락: ${key} (기본값 사용)`);
     return '';
   }
 
@@ -104,7 +106,7 @@ const parseSupabaseConfig = () => {
     }
   } catch (_error) {
     if (!isBuildTime()) {
-      console.warn('⚠️ Supabase URL 파싱 실패, 기본값 사용:', _error);
+      logger.warn('⚠️ Supabase URL 파싱 실패, 기본값 사용:', _error);
     }
   }
 
@@ -182,7 +184,7 @@ const createConfig = (): EnvironmentConfig => {
     return config;
   } catch (_error) {
     if (!isBuildTime()) {
-      console.error('❌ 환경변수 검증 실패:', _error);
+      logger.error('❌ 환경변수 검증 실패:', _error);
     }
 
     // 빌드 타임에는 기본 설정 반환
@@ -277,7 +279,7 @@ export const validateEnvironment = (): {
 export const printConfig = (config: EnvironmentConfig) => {
   if (!config.development.verboseLogging || isBuildTime()) return;
 
-  console.log(`
+  logger.info(`
 🔧 OpenManager Vibe v5 - 환경 설정
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🌍 환경: ${config.nodeEnv}${config.isVercel ? ' (Vercel)' : ' (로컬)'}
@@ -299,7 +301,7 @@ try {
   config = createConfig();
   printConfig(config);
 } catch {
-  console.warn('⚠️ 환경설정 초기화 중 경고 발생, 기본값 사용');
+  logger.warn('⚠️ 환경설정 초기화 중 경고 발생, 기본값 사용');
   config = createConfig(); // 재시도
 }
 

@@ -9,6 +9,7 @@
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { onAuthStateChange } from '@/lib/auth/supabase-auth';
+import { logger } from '@/lib/logging';
 
 interface SupabaseAuthProviderProps {
   children: ReactNode;
@@ -30,7 +31,7 @@ export default function SupabaseAuthProvider({
     // 인증 상태 변경 리스너 설정
     const authListener = onAuthStateChange((session) => {
       // 전역 인증 상태 업데이트는 각 컴포넌트에서 처리
-      console.log(
+      logger.info(
         '🔐 Auth state changed:',
         session ? 'Authenticated' : 'Not authenticated'
       );

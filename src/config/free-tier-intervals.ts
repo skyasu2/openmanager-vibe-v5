@@ -8,6 +8,7 @@
 /**
  * 환경변수에서 숫자 값을 안전하게 가져오는 헬퍼 함수
  */
+import { logger } from '@/lib/logging';
 const getEnvNumber = (key: string, defaultValue: number): number => {
   const value = process.env[key];
   if (!value) return defaultValue;
@@ -200,22 +201,22 @@ if (typeof window === 'undefined') {
   const usage = calculateExpectedUsage();
   const savings = calculateSavings();
 
-  console.log('🎯 무료 티어 최적화 설정:');
-  console.log(
+  logger.info('🎯 무료 티어 최적화 설정:');
+  logger.info(
     `  API 폴링: ${FREE_TIER_INTERVALS.API_POLLING_INTERVAL / 1000}초`
   );
-  console.log(`  캐시 TTL: ${FREE_TIER_INTERVALS.CACHE_TTL_SECONDS / 60}분`);
-  console.log(
+  logger.info(`  캐시 TTL: ${FREE_TIER_INTERVALS.CACHE_TTL_SECONDS / 60}분`);
+  logger.info(
     `  예상 월간 API 호출: ${usage.actualApiCallsPerMonth.toLocaleString()}회`
   );
-  console.log(`  Cloud Run 사용률: ${usage.cloudRunUsagePercent.toFixed(1)}%`);
-  console.log(`  Redis 사용률: ${usage.redisUsagePercent.toFixed(1)}%`);
-  console.log('\n💰 절감 효과:');
-  console.log(`  API 호출 감소: ${savings.apiCallSavingsPercent}%`);
-  console.log(`  Redis 명령 감소: ${savings.redisCommandSavingsPercent}%`);
+  logger.info(`  Cloud Run 사용률: ${usage.cloudRunUsagePercent.toFixed(1)}%`);
+  logger.info(`  Redis 사용률: ${usage.redisUsagePercent.toFixed(1)}%`);
+  logger.info('\n💰 절감 효과:');
+  logger.info(`  API 호출 감소: ${savings.apiCallSavingsPercent}%`);
+  logger.info(`  Redis 명령 감소: ${savings.redisCommandSavingsPercent}%`);
 
   if (!validation.isValid) {
-    console.warn('\n⚠️ 경고:');
-    validation.warnings.forEach((warning) => console.warn(`  - ${warning}`));
+    logger.warn('\n⚠️ 경고:');
+    validation.warnings.forEach((warning) => logger.warn(`  - ${warning}`));
   }
 }

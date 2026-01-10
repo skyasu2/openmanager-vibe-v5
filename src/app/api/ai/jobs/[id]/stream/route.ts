@@ -17,6 +17,7 @@
  */
 
 import type { NextRequest } from 'next/server';
+import { logger } from '@/lib/logging';
 import { getRedisClient, redisGet } from '@/lib/redis';
 
 // ============================================================================
@@ -195,7 +196,7 @@ export async function GET(
 
     cancel() {
       // 클라이언트가 연결을 끊은 경우
-      console.log(`[Jobs Stream] Client disconnected: ${jobId}`);
+      logger.info(`[Jobs Stream] Client disconnected: ${jobId}`);
     },
   });
 

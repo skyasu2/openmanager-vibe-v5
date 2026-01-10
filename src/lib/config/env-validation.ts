@@ -3,6 +3,7 @@
  * 앱 시작 시점에 한 번만 검증하여 런타임 에러 방지
  */
 
+import { logger } from '@/lib/logging';
 const MIN_API_KEY_LENGTH = 8;
 
 /**
@@ -27,7 +28,7 @@ export function validateTestApiKey(): void {
     );
   }
 
-  console.log('[Config] TEST_API_KEY validation passed');
+  logger.info('[Config] TEST_API_KEY validation passed');
 }
 
 /**
@@ -39,7 +40,7 @@ export function validateEnvironmentVariables(): void {
     validateTestApiKey();
     // 향후 다른 환경 변수 검증 추가 가능
   } catch (error) {
-    console.error('[Config] Environment validation failed:', error);
+    logger.error('[Config] Environment validation failed:', error);
     // 프로덕션 환경에서는 프로세스 종료
     if (process.env.NODE_ENV === 'production') {
       process.exit(1);

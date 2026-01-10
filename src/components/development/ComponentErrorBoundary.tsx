@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { logger } from '@/lib/logging';
 
 interface Props {
   children: ReactNode;
@@ -30,11 +31,11 @@ export class ComponentErrorBoundary extends Component<Props, State> {
       error.message.includes("(reading 'length')");
 
     if (isTypeError) {
-      console.error(`🚨 TypeError 발견! 컴포넌트: ${this.props.componentName}`);
-      console.error(`📍 서버 ID: ${this.props.serverId || 'Unknown'}`);
-      console.error(`💥 에러 메시지:`, error.message);
-      console.error(`📋 컴포넌트 스택:`, errorInfo.componentStack);
-      console.error(`🔍 JavaScript 스택:`, error.stack);
+      logger.error(`🚨 TypeError 발견! 컴포넌트: ${this.props.componentName}`);
+      logger.error(`📍 서버 ID: ${this.props.serverId || 'Unknown'}`);
+      logger.error(`💥 에러 메시지:`, error.message);
+      logger.error(`📋 컴포넌트 스택:`, errorInfo.componentStack);
+      logger.error(`🔍 JavaScript 스택:`, error.stack);
 
       // 🎯 에러 위치 세밀 분석
       if (error.stack) {
@@ -47,7 +48,7 @@ export class ComponentErrorBoundary extends Component<Props, State> {
             line.includes('useServerDashboard')
         );
         if (relevantLine) {
-          console.error(`🎯 관련 코드 위치:`, relevantLine);
+          logger.error(`🎯 관련 코드 위치:`, relevantLine);
         }
       }
 
@@ -55,7 +56,7 @@ export class ComponentErrorBoundary extends Component<Props, State> {
       if (typeof window !== 'undefined') {
         const w = window as { __typeErrorCount?: number };
         w.__typeErrorCount = (w.__typeErrorCount || 0) + 1;
-        console.error(`📊 총 TypeError 개수: ${w.__typeErrorCount}/15`);
+        logger.error(`📊 총 TypeError 개수: ${w.__typeErrorCount}/15`);
       }
     }
 

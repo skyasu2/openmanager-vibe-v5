@@ -8,6 +8,7 @@
  * @param uptime - 숫자 또는 문자열 업타임 값
  * @returns 안전하게 포맷팅된 업타임 문자열
  */
+import { logger } from '@/lib/logging';
 export function safeFormatUptime(uptime: unknown): string {
   try {
     // null, undefined 체크
@@ -52,7 +53,7 @@ export function safeFormatUptime(uptime: unknown): string {
           })();
     return stringValue || 'N/A';
   } catch (error) {
-    console.warn('⚠️ [safeFormatUptime] 업타임 포맷팅 실패:', error);
+    logger.warn('⚠️ [safeFormatUptime] 업타임 포맷팅 실패:', error);
     return 'N/A';
   }
 }
@@ -86,7 +87,7 @@ export function extractDaysFromUptime(uptime: unknown): number {
 
     return 0;
   } catch (error) {
-    console.warn('⚠️ [extractDaysFromUptime] 일 수 추출 실패:', error);
+    logger.warn('⚠️ [extractDaysFromUptime] 일 수 추출 실패:', error);
     return 0;
   }
 }
@@ -113,7 +114,7 @@ export function safeIncludes(text: unknown, searchString: string): boolean {
     }
     return text.includes(searchString);
   } catch (error) {
-    console.warn('⚠️ [safeIncludes] 안전한 includes 체크 실패:', error);
+    logger.warn('⚠️ [safeIncludes] 안전한 includes 체크 실패:', error);
     return false;
   }
 }
@@ -136,7 +137,7 @@ export function safeArrayAccess<T>(
     }
     return array[index] ?? fallback;
   } catch (error) {
-    console.warn('⚠️ [safeArrayAccess] 안전한 배열 접근 실패:', error);
+    logger.warn('⚠️ [safeArrayAccess] 안전한 배열 접근 실패:', error);
     return fallback;
   }
 }
@@ -170,7 +171,7 @@ export function safePropertyAccess<T>(
 
     return (current as T) ?? fallback;
   } catch (error) {
-    console.warn('⚠️ [safePropertyAccess] 안전한 속성 접근 실패:', error);
+    logger.warn('⚠️ [safePropertyAccess] 안전한 속성 접근 실패:', error);
     return fallback;
   }
 }
@@ -188,7 +189,7 @@ export function safeJsonParse<T>(jsonString: unknown, fallback: T): T {
     }
     return JSON.parse(jsonString) ?? fallback;
   } catch (error) {
-    console.warn('⚠️ [safeJsonParse] JSON 파싱 실패:', error);
+    logger.warn('⚠️ [safeJsonParse] JSON 파싱 실패:', error);
     return fallback;
   }
 }
@@ -214,7 +215,7 @@ export function safeNumber(value: unknown, fallback: number = 0): number {
 
     return fallback;
   } catch (error) {
-    console.warn('⚠️ [safeNumber] 숫자 변환 실패:', error);
+    logger.warn('⚠️ [safeNumber] 숫자 변환 실패:', error);
     return fallback;
   }
 }
@@ -234,7 +235,7 @@ export function safePercentage(
     const percentage = asDecimal ? num * 100 : num;
     return `${Math.round(percentage)}%`;
   } catch (error) {
-    console.warn('⚠️ [safePercentage] 퍼센트 포맷팅 실패:', error);
+    logger.warn('⚠️ [safePercentage] 퍼센트 포맷팅 실패:', error);
     return '0%';
   }
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { logger } from '@/lib/logging';
 
 // 🔄 타이머 설정 인터페이스
 interface TimerConfig {
@@ -24,7 +25,7 @@ class TimerManager {
   // 타이머 등록
   register(config: TimerConfig): string {
     if (this.isDestroyed) {
-      console.warn('TimerManager is destroyed, cannot register timer');
+      logger.warn('TimerManager is destroyed, cannot register timer');
       return config.id;
     }
 
@@ -45,7 +46,7 @@ class TimerManager {
             timerInfo.runCount++;
           }
         } catch (error) {
-          console.error(`Timer ${config.id} callback error:`, error);
+          logger.error(`Timer ${config.id} callback error:`, error);
         }
       })();
     }, config.interval);
@@ -58,7 +59,7 @@ class TimerManager {
       runCount: 0,
     });
 
-    console.log(
+    logger.info(
       `✅ Timer registered: ${config.id} (${config.interval}ms, ${config.priority})`
     );
     return config.id;
@@ -70,7 +71,7 @@ class TimerManager {
     if (timer) {
       clearInterval(timer.handle);
       this.timers.delete(id);
-      console.log(`🗑️ Timer unregistered: ${id}`);
+      logger.info(`🗑️ Timer unregistered: ${id}`);
       return true;
     }
     return false;
@@ -81,7 +82,7 @@ class TimerManager {
     const timer = this.timers.get(id);
     if (timer) {
       timer.enabled = enabled;
-      console.log(
+      logger.info(
         `${enabled ? '▶️' : '⏸️'} Timer ${enabled ? 'enabled' : 'disabled'}: ${id}`
       );
       return true;
@@ -91,11 +92,11 @@ class TimerManager {
 
   // 모든 타이머 정리
   cleanup(): void {
-    console.log(`🧹 Cleaning up ${this.timers.size} timers`);
+    logger.info(`🧹 Cleaning up ${this.timers.size} timers`);
 
     for (const [id, timer] of this.timers) {
       clearInterval(timer.handle);
-      console.log(`🗑️ Timer cleaned: ${id}`);
+      logger.info(`🗑️ Timer cleaned: ${id}`);
     }
 
     this.timers.clear();

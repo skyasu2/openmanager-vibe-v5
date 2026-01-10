@@ -10,6 +10,7 @@
 /**
  * Vercel 환경 감지
  */
+import { logger } from '@/lib/logging';
 export function isVercelEnvironment(): boolean {
   if (typeof window !== 'undefined') {
     return (
@@ -64,7 +65,7 @@ export function setSecureCookie(
   const cookieString = `${name}=${value}; ${getSecureCookieOptions(maxAge)}`;
   document.cookie = cookieString;
 
-  console.log(`🍪 보안 쿠키 설정: ${name}`, {
+  logger.info(`🍪 보안 쿠키 설정: ${name}`, {
     secure: isSecureEnvironment(),
     sameSite: 'Strict',
     environment: isVercelEnvironment() ? 'Vercel' : 'Local',
@@ -83,7 +84,7 @@ export function deleteSecureCookie(name: string): void {
   );
   document.cookie = `${name}=; ${expireOptions}`;
 
-  console.log(`🗑️ 보안 쿠키 삭제: ${name}`);
+  logger.info(`🗑️ 보안 쿠키 삭제: ${name}`);
 }
 
 /**
@@ -109,7 +110,7 @@ export function validateRedirectUrl(url: string): boolean {
 
     // 🔧 프로덕션에서만 로그 출력하도록 조건부 로깅
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🔍 OAuth URL 검증: ${url}`, {
+      logger.info(`🔍 OAuth URL 검증: ${url}`, {
         hostname,
         port: urlObj.port,
         isVercelDeploy,
@@ -121,7 +122,7 @@ export function validateRedirectUrl(url: string): boolean {
     return isAllowed;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('❌ URL 검증 실패:', error);
+      logger.error('❌ URL 검증 실패:', error);
     }
     return false;
   }

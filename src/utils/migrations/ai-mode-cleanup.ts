@@ -17,6 +17,7 @@
  *
  * @returns void
  */
+import { logger } from '@/lib/logging';
 export function migrateAIModeStorage(): void {
   // SSR 환경에서는 실행하지 않음
   if (typeof window === 'undefined') return;
@@ -28,7 +29,7 @@ export function migrateAIModeStorage(): void {
 
     if (savedEngine && savedEngine !== 'UNIFIED') {
       localStorage.setItem(engineKey, 'UNIFIED');
-      console.info(`✅ AI 엔진 마이그레이션 완료: ${savedEngine} → UNIFIED`);
+      logger.info(`✅ AI 엔진 마이그레이션 완료: ${savedEngine} → UNIFIED`);
     }
 
     // 2. ai-sidebar-storage 정리 (Zustand persist)
@@ -43,13 +44,13 @@ export function migrateAIModeStorage(): void {
         if (parsed.state?.currentEngine) {
           delete parsed.state.currentEngine;
           localStorage.setItem(sidebarKey, JSON.stringify(parsed));
-          console.info('✅ ai-sidebar-storage 정리 완료 (currentEngine 제거)');
+          logger.info('✅ ai-sidebar-storage 정리 완료 (currentEngine 제거)');
         }
       } catch (err) {
-        console.warn('ai-sidebar-storage 파싱 실패:', err);
+        logger.warn('ai-sidebar-storage 파싱 실패:', err);
         // 파싱 실패 시 전체 제거하여 fresh start
         localStorage.removeItem(sidebarKey);
-        console.info('✅ 손상된 ai-sidebar-storage 제거됨 (재생성 예정)');
+        logger.info('✅ 손상된 ai-sidebar-storage 제거됨 (재생성 예정)');
       }
     }
 
@@ -65,17 +66,17 @@ export function migrateAIModeStorage(): void {
     });
 
     if (removedCount > 0) {
-      console.info(`✅ 레거시 키 ${removedCount}개 제거 완료`);
+      logger.info(`✅ 레거시 키 ${removedCount}개 제거 완료`);
     }
 
     // 마이그레이션 완료 플래그 설정 (중복 실행 방지)
     const migrationKey = 'ai-mode-migration-v4';
     if (!localStorage.getItem(migrationKey)) {
       localStorage.setItem(migrationKey, new Date().toISOString());
-      console.info('🔄 AI 모드 마이그레이션 v4.0 완료');
+      logger.info('🔄 AI 모드 마이그레이션 v4.0 완료');
     }
   } catch (error) {
-    console.error('❌ AI 모드 마이그레이션 실패:', error);
+    logger.error('❌ AI 모드 마이그레이션 실패:', error);
     // 실패해도 앱은 정상 작동 (기본값 UNIFIED 사용)
   }
 }
@@ -99,5 +100,5 @@ export function isMigrationCompleted(): boolean {
 export function resetMigration(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem('ai-mode-migration-v4');
-  console.warn('⚠️ AI 모드 마이그레이션 플래그 제거됨 (테스트 목적)');
+  logger.warn('⚠️ AI 모드 마이그레이션 플래그 제거됨 (테스트 목적)');
 }

@@ -9,6 +9,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { logger } from '@/lib/logging';
 import { toast } from 'react-hot-toast';
 import type {
   ContextDocument,
@@ -122,7 +123,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
 
         return await response.json();
       } catch (err) {
-        console.error(`API 호출 실패 (${endpoint}):`, err);
+        logger.error(`API 호출 실패 (${endpoint}):`, err);
         throw err;
       }
     },
@@ -137,7 +138,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         setLogs(result.data);
       }
     } catch (err) {
-      console.error('로그 로딩 실패:', err);
+      logger.error('로그 로딩 실패:', err);
       setError('로그 데이터를 불러오는데 실패했습니다.');
     }
   }, [fetchAPI]);
@@ -166,7 +167,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         );
       }
     } catch (err) {
-      console.error('제안 로딩 실패:', err);
+      logger.error('제안 로딩 실패:', err);
       setError('제안 데이터를 불러오는데 실패했습니다.');
     }
   }, [fetchAPI]);
@@ -178,7 +179,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         setDocuments(result.data);
       }
     } catch (err) {
-      console.error('문서 로딩 실패:', err);
+      logger.error('문서 로딩 실패:', err);
       setError('문서 데이터를 불러오는데 실패했습니다.');
     }
   }, [fetchAPI]);
@@ -190,7 +191,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         setSystemHealth(result.data as SystemHealth);
       }
     } catch (err) {
-      console.error('시스템 상태 로딩 실패:', err);
+      logger.error('시스템 상태 로딩 실패:', err);
       setError('시스템 상태를 불러오는데 실패했습니다.');
     }
   }, [fetchAPI]);
@@ -208,7 +209,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         loadSystemHealth(),
       ]);
     } catch (err) {
-      console.error('데이터 새로고침 실패:', err);
+      logger.error('데이터 새로고침 실패:', err);
       setError('데이터 새로고침에 실패했습니다.');
     } finally {
       setIsLoading(false);
@@ -229,7 +230,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
           toast.success('제안이 추가되었습니다.');
         }
       } catch (err) {
-        console.error('제안 추가 실패:', err);
+        logger.error('제안 추가 실패:', err);
         toast.error('제안 추가에 실패했습니다.');
         throw err;
       }
@@ -252,7 +253,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
           toast.success('제안 상태가 업데이트되었습니다.');
         }
       } catch (err) {
-        console.error('제안 상태 업데이트 실패:', err);
+        logger.error('제안 상태 업데이트 실패:', err);
         toast.error('제안 상태 업데이트에 실패했습니다.');
         throw err;
       }
@@ -270,7 +271,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         setSuggestions((prev) => prev.filter((s) => s.id !== id));
         toast.success('제안이 삭제되었습니다.');
       } catch (err) {
-        console.error('제안 삭제 실패:', err);
+        logger.error('제안 삭제 실패:', err);
         toast.error('제안 삭제에 실패했습니다.');
         throw err;
       }
@@ -302,7 +303,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
           toast.success('문서가 업로드되었습니다.');
         }
       } catch (err) {
-        console.error('문서 업로드 실패:', err);
+        logger.error('문서 업로드 실패:', err);
         toast.error('문서 업로드에 실패했습니다.');
         throw err;
       }
@@ -320,7 +321,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         setDocuments((prev) => prev.filter((d) => d.id !== id));
         toast.success('문서가 삭제되었습니다.');
       } catch (err) {
-        console.error('문서 삭제 실패:', err);
+        logger.error('문서 삭제 실패:', err);
         toast.error('문서 삭제에 실패했습니다.');
         throw err;
       }

@@ -9,6 +9,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
 
 interface DocumentMetadata {
   category?: string;
@@ -111,7 +112,7 @@ export class PostgresVectorDB {
     if (this.isInitialized) return;
 
     if (!this.supabase) {
-      console.warn(
+      logger.warn(
         '⚠️ PostgresVectorDB: Supabase client not provided, skipping initialization'
       );
       return;
@@ -126,14 +127,14 @@ export class PostgresVectorDB {
 
       if (!error) {
         this.isInitialized = true;
-        console.log('✅ PostgresVectorDB 초기화 완료');
+        logger.info('✅ PostgresVectorDB 초기화 완료');
       } else {
-        console.error('⚠️ PostgresVectorDB 초기화 경고:', error.message);
+        logger.error('⚠️ PostgresVectorDB 초기화 경고:', error.message);
         // 테이블이 없을 수 있으므로 계속 진행
         this.isInitialized = true;
       }
     } catch (error) {
-      console.error('❌ PostgresVectorDB 초기화 실패:', error);
+      logger.error('❌ PostgresVectorDB 초기화 실패:', error);
       // 초기화 실패해도 계속 진행 (폴백 처리)
       this.isInitialized = true;
     }
@@ -172,14 +173,14 @@ export class PostgresVectorDB {
       });
 
       if (error) {
-        console.error('문서 저장 오류:', error);
+        logger.error('문서 저장 오류:', error);
         return { success: false, error: error.message };
       }
 
-      console.log(`✅ 문서 저장 완료: ${id}`);
+      logger.info(`✅ 문서 저장 완료: ${id}`);
       return { success: true };
     } catch (error) {
-      console.error('❌ 문서 저장 실패:', error);
+      logger.error('❌ 문서 저장 실패:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : '알 수 없는 오류',
@@ -222,7 +223,7 @@ export class PostgresVectorDB {
         );
 
         if (error) {
-          console.error('카테고리별 벡터 검색 오류:', error);
+          logger.error('카테고리별 벡터 검색 오류:', error);
           // 폴백: 클라이언트 사이드 검색
           return this.fallbackSearch(queryEmbedding, options);
         }
@@ -244,7 +245,7 @@ export class PostgresVectorDB {
         );
 
         if (error) {
-          console.error('벡터 검색 오류:', error);
+          logger.error('벡터 검색 오류:', error);
           // 폴백: 클라이언트 사이드 검색
           return this.fallbackSearch(queryEmbedding, options);
         }
@@ -261,7 +262,7 @@ export class PostgresVectorDB {
         return data || [];
       }
     } catch (error) {
-      console.error('❌ 벡터 검색 실패:', error);
+      logger.error('❌ 벡터 검색 실패:', error);
       // 폴백: 클라이언트 사이드 검색
       return this.fallbackSearch(queryEmbedding, options);
     }
@@ -276,7 +277,7 @@ export class PostgresVectorDB {
     queryEmbedding: number[],
     options: SearchOptions = {}
   ): Promise<SearchResult[]> {
-    console.warn('⚠️ pgvector 네이티브 함수 실패, 2단계 최적화 폴백 검색 시작');
+    logger.warn('⚠️ pgvector 네이티브 함수 실패, 2단계 최적화 폴백 검색 시작');
 
     const {
       topK = 10,
@@ -306,11 +307,11 @@ export class PostgresVectorDB {
         await embedQuery.limit(100);
 
       if (embedError || !embedData || embedData.length === 0) {
-        console.error('1단계 조회 실패:', embedError?.message);
+        logger.error('1단계 조회 실패:', embedError?.message);
         return [];
       }
 
-      console.log(`📊 1단계: ${embedData.length}개 문서의 임베딩 조회 완료`);
+      logger.info(`📊 1단계: ${embedData.length}개 문서의 임베딩 조회 완료`);
 
       // ===== 클라이언트 사이드 유사도 계산 =====
       const candidatesWithSimilarity: Array<{
@@ -320,7 +321,7 @@ export class PostgresVectorDB {
 
       for (const row of embedData) {
         if (!row.embedding) {
-          console.warn(`문서 ${row.id}에 임베딩이 없습니다`);
+          logger.warn(`문서 ${row.id}에 임베딩이 없습니다`);
           continue;
         }
 
@@ -332,7 +333,7 @@ export class PostgresVectorDB {
           } else if (Array.isArray(row.embedding)) {
             embeddingArray = row.embedding;
           } else {
-            console.warn(
+            logger.warn(
               `알 수 없는 임베딩 형식 (${row.id}):`,
               typeof row.embedding
             );
@@ -351,7 +352,7 @@ export class PostgresVectorDB {
             });
           }
         } catch (e) {
-          console.error(`임베딩 처리 오류 (${row.id}):`, e);
+          logger.error(`임베딩 처리 오류 (${row.id}):`, e);
         }
       }
 
@@ -361,11 +362,11 @@ export class PostgresVectorDB {
         .slice(0, topK);
 
       if (topCandidates.length === 0) {
-        console.warn('임계값을 넘는 유사 문서가 없습니다');
+        logger.warn('임계값을 넘는 유사 문서가 없습니다');
         return [];
       }
 
-      console.log(`🎯 2단계 대상: ${topCandidates.length}개 문서 선별`);
+      logger.info(`🎯 2단계 대상: ${topCandidates.length}개 문서 선별`);
 
       // ===== 2단계: 상위 K개에 대해서만 content + metadata 조회 =====
       const selectedIds = topCandidates.map((c) => c.id);
@@ -378,11 +379,11 @@ export class PostgresVectorDB {
         .in('id', selectedIds);
 
       if (contentError || !contentData) {
-        console.error('2단계 조회 실패:', contentError?.message);
+        logger.error('2단계 조회 실패:', contentError?.message);
         return [];
       }
 
-      console.log(`✅ 2단계: ${contentData.length}개 문서의 내용 조회 완료`);
+      logger.info(`✅ 2단계: ${contentData.length}개 문서의 내용 조회 완료`);
 
       // ===== 결과 조합 및 반환 =====
       const results: SearchResult[] = [];
@@ -399,10 +400,10 @@ export class PostgresVectorDB {
         }
       }
 
-      console.log(`🎉 폴백 검색 완료: ${results.length}개 결과 반환`);
+      logger.info(`🎉 폴백 검색 완료: ${results.length}개 결과 반환`);
       return results;
     } catch (error) {
-      console.error('❌ 폴백 검색 전체 실패:', error);
+      logger.error('❌ 폴백 검색 전체 실패:', error);
       return [];
     }
   }
@@ -434,7 +435,7 @@ export class PostgresVectorDB {
       );
 
       if (error) {
-        console.error('하이브리드 검색 오류:', error);
+        logger.error('하이브리드 검색 오류:', error);
         // 폴백: 벡터 검색만 수행
         const vectorResults = await this.search(queryEmbedding, { topK });
         return vectorResults.map((result) => ({
@@ -447,7 +448,7 @@ export class PostgresVectorDB {
 
       return data || [];
     } catch (error) {
-      console.error('❌ 하이브리드 검색 실패:', error);
+      logger.error('❌ 하이브리드 검색 실패:', error);
       return [];
     }
   }
@@ -503,7 +504,7 @@ export class PostgresVectorDB {
       const { data, error } = await query;
 
       if (error) {
-        console.error('키워드 검색 오류:', error);
+        logger.error('키워드 검색 오류:', error);
 
         // Fallback: ILIKE 연산자로 부분 문자열 검색
         return await this.fallbackKeywordSearch(keywords, options);
@@ -521,7 +522,7 @@ export class PostgresVectorDB {
         score: 0.8 - index * 0.1, // 순서에 따라 점수 부여
       }));
     } catch (error) {
-      console.error('❌ 키워드 검색 실패:', error);
+      logger.error('❌ 키워드 검색 실패:', error);
       return await this.fallbackKeywordSearch(keywords, options);
     }
   }
@@ -573,7 +574,7 @@ export class PostgresVectorDB {
       const { data, error } = await query;
 
       if (error || !data) {
-        console.error('폴백 키워드 검색 오류:', error);
+        logger.error('폴백 키워드 검색 오류:', error);
         return [];
       }
 
@@ -594,7 +595,7 @@ export class PostgresVectorDB {
         })
         .sort((a, b) => (b.score || 0) - (a.score || 0));
     } catch (error) {
-      console.error('❌ 폴백 키워드 검색 실패:', error);
+      logger.error('❌ 폴백 키워드 검색 실패:', error);
       return [];
     }
   }
@@ -615,13 +616,13 @@ export class PostgresVectorDB {
         .single();
 
       if (error) {
-        console.error('문서 조회 오류:', error);
+        logger.error('문서 조회 오류:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('❌ 문서 조회 실패:', error);
+      logger.error('❌ 문서 조회 실패:', error);
       return null;
     }
   }
@@ -641,13 +642,13 @@ export class PostgresVectorDB {
         .eq('id', id);
 
       if (error) {
-        console.error('문서 삭제 오류:', error);
+        logger.error('문서 삭제 오류:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('❌ 문서 삭제 실패:', error);
+      logger.error('❌ 문서 삭제 실패:', error);
       return false;
     }
   }
@@ -670,7 +671,7 @@ export class PostgresVectorDB {
         .not('metadata->category', 'is', null);
 
       if (error) {
-        console.error('카테고리 통계 조회 오류:', error);
+        logger.error('카테고리 통계 조회 오류:', error);
         return [];
       }
 
@@ -687,7 +688,7 @@ export class PostgresVectorDB {
         .map(([category, document_count]) => ({ category, document_count }))
         .sort((a, b) => b.document_count - a.document_count);
     } catch (error) {
-      console.error('❌ 카테고리 통계 조회 실패:', error);
+      logger.error('❌ 카테고리 통계 조회 실패:', error);
       return [];
     }
   }
@@ -721,7 +722,7 @@ export class PostgresVectorDB {
       }
     }
 
-    console.log(`📊 대량 업로드 완료: 성공 ${success}개, 실패 ${failed}개`);
+    logger.info(`📊 대량 업로드 완료: 성공 ${success}개, 실패 ${failed}개`);
     return { success, failed };
   }
 
@@ -745,7 +746,7 @@ export class PostgresVectorDB {
         .single();
 
       if (error) {
-        console.error('통계 조회 오류:', error);
+        logger.error('통계 조회 오류:', error);
         return {
           total_documents: 0,
           total_categories: 0,
@@ -763,7 +764,7 @@ export class PostgresVectorDB {
         }
       );
     } catch (error) {
-      console.error('❌ 통계 조회 실패:', error);
+      logger.error('❌ 통계 조회 실패:', error);
       return {
         total_documents: 0,
         total_categories: 0,
@@ -791,13 +792,13 @@ export class PostgresVectorDB {
         .eq('id', id);
 
       if (error) {
-        console.error('메타데이터 업데이트 오류:', error);
+        logger.error('메타데이터 업데이트 오류:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('❌ 메타데이터 업데이트 실패:', error);
+      logger.error('❌ 메타데이터 업데이트 실패:', error);
       return false;
     }
   }
@@ -815,7 +816,7 @@ export class PostgresVectorDB {
   }> {
     // 임베딩 차원 검증
     if (queryEmbedding.length !== this.dimension) {
-      console.error(
+      logger.error(
         `임베딩 차원 오류: 예상 ${this.dimension}, 실제 ${queryEmbedding.length}`
       );
       throw new Error(
@@ -838,7 +839,7 @@ export class PostgresVectorDB {
       });
 
       if (error) {
-        console.error('네이티브 검색 오류:', error);
+        logger.error('네이티브 검색 오류:', error);
       }
       nativeTimes.push(Date.now() - start);
     }
@@ -894,13 +895,13 @@ export class PostgresVectorDB {
       const { data, error } = await query.limit(limit);
 
       if (error) {
-        console.error('메타데이터 검색 오류:', error);
+        logger.error('메타데이터 검색 오류:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('❌ 메타데이터 검색 실패:', error);
+      logger.error('❌ 메타데이터 검색 실패:', error);
       return [];
     }
   }

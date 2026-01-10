@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 
 // Edge Runtime 사용 (빠른 응답, 낮은 비용)
 // CSP 리포트는 실시간성이 덜 중요 - Node.js Runtime 사용
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
     const report = await request.json();
 
     // 📊 기본 로깅 (Vercel 함수 로그로 수집)
-    console.warn('🛡️ CSP Violation Report:', {
+    logger.warn('🛡️ CSP Violation Report:', {
       timestamp,
       ip: ip.split(',')[0], // 첫 번째 IP만 사용
       userAgent: userAgent.substring(0, 100), // 길이 제한
@@ -37,14 +38,14 @@ export async function POST(request: NextRequest) {
     if (violationType) {
       // 개발 환경에서만 상세 로깅
       if (process.env.NODE_ENV === 'development') {
-        console.info(`🔍 CSP Violation Type: ${violationType}`);
+        logger.info(`🔍 CSP Violation Type: ${violationType}`);
 
         // 일반적인 위반 원인 분석
         if (
           violationType === 'script-src' &&
           report['blocked-uri']?.includes('data:')
         ) {
-          console.warn(
+          logger.warn(
             '💡 Suggestion: Consider using nonce or hash for inline scripts'
           );
         }
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
           violationType === 'style-src' &&
           report['blocked-uri']?.includes('data:')
         ) {
-          console.warn(
+          logger.warn(
             '💡 Suggestion: Consider using CSS-in-JS with nonce or external stylesheets'
           );
         }
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ CSP Report Processing Error:', error);
+    logger.error('❌ CSP Report Processing Error:', error);
 
     // 에러 상황에서도 빠른 응답
     return new NextResponse('Error', {

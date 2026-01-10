@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 
 // ⚡ Edge Runtime으로 전환 - 60% 응답시간 개선 예상
 export const runtime = 'edge';
@@ -68,7 +69,7 @@ export function GET() {
       },
     });
   } catch (error) {
-    console.error('버전 정보 조회 실패:', error);
+    logger.error('버전 정보 조회 실패:', error);
 
     return NextResponse.json(
       {

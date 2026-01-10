@@ -9,6 +9,7 @@
  */
 
 import type { ILogger } from '@/lib/interfaces/services';
+import { logger } from '@/lib/logging';
 import type {
   ErrorHandlerFunction,
   ErrorHandlingConfig,
@@ -48,7 +49,7 @@ export class ErrorHandlingCore implements IErrorHandler {
         this.handleCriticalError(error);
       }
     } catch (handlerError) {
-      console.error('에러 핸들링 실패:', handlerError);
+      logger.error('에러 핸들링 실패:', handlerError);
     }
   }
 
@@ -174,11 +175,11 @@ export class ErrorHandlingCore implements IErrorHandler {
       // Promise 처리
       if (result instanceof Promise) {
         result.catch((handlerError) => {
-          console.error(`에러 핸들러 실행 실패 [${error.code}]:`, handlerError);
+          logger.error(`에러 핸들러 실행 실패 [${error.code}]:`, handlerError);
         });
       }
     } catch (handlerError) {
-      console.error(`에러 핸들러 실행 실패 [${error.code}]:`, handlerError);
+      logger.error(`에러 핸들러 실행 실패 [${error.code}]:`, handlerError);
     }
   }
 
@@ -207,7 +208,7 @@ export class ErrorHandlingCore implements IErrorHandler {
    * 심각한 에러 처리
    */
   private handleCriticalError(error: ServiceError): void {
-    console.error('🚨 심각한 에러 감지:', error);
+    logger.error('🚨 심각한 에러 감지:', error);
 
     // 모니터링 시스템 알림
     if (this.config.enableMonitoring) {
@@ -234,7 +235,7 @@ export class ErrorHandlingCore implements IErrorHandler {
       // 메트릭 전송 (Prometheus 등)
       if (typeof window === 'undefined') {
         // 서버 환경에서만 실행
-        console.log('📊 모니터링 시스템에 알림 전송:', {
+        logger.info('📊 모니터링 시스템에 알림 전송:', {
           errorCode: error.code,
           service: error.service,
           severity: error.severity,
@@ -242,7 +243,7 @@ export class ErrorHandlingCore implements IErrorHandler {
         });
       }
     } catch (notificationError) {
-      console.error('모니터링 시스템 알림 실패:', notificationError);
+      logger.error('모니터링 시스템 알림 실패:', notificationError);
     }
   }
 

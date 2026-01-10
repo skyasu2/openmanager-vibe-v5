@@ -6,6 +6,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 import { setupCSRFProtection } from '@/utils/security/csrf';
 
 export function GET(_request: NextRequest) {
@@ -18,14 +19,14 @@ export function GET(_request: NextRequest) {
     // CSRF 토큰 생성 및 쿠키 설정
     const token = setupCSRFProtection(response);
 
-    console.log(
+    logger.info(
       '✅ [CSRF API] 토큰 발급 완료:',
       `${token.substring(0, 10)}...`
     );
 
     return response;
   } catch (error) {
-    console.error('❌ [CSRF API] 토큰 발급 실패:', error);
+    logger.error('❌ [CSRF API] 토큰 발급 실패:', error);
 
     return NextResponse.json(
       {

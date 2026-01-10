@@ -5,6 +5,7 @@
  * 순환 의존성을 해결합니다.
  */
 
+import { logger } from '@/lib/logging';
 import {
   type EventListener,
   type ISystemEventBus,
@@ -48,7 +49,7 @@ export class SystemEventBus implements ISystemEventBus {
    */
   emit<T>(event: SystemEvent<T>): void {
     if (this.config.enableDebugLogging) {
-      console.log(`🚌 [EventBus] Emitting: ${event.type}`, event);
+      logger.info(`🚌 [EventBus] Emitting: ${event.type}`, event);
     }
 
     // 히스토리 저장
@@ -150,7 +151,7 @@ export class SystemEventBus implements ISystemEventBus {
       }
     } catch (error) {
       if (this.config.enableDebugLogging) {
-        console.error(`❌ [EventBus] Listener error for ${event.type}:`, error);
+        logger.error(`❌ [EventBus] Listener error for ${event.type}:`, error);
       }
 
       // 재시도 로직
@@ -344,7 +345,7 @@ export class SystemEventMediator {
    * 시스템 위급 상황 처리
    */
   private handleSystemCritical(event: SystemEvent<SystemStatusPayload>): void {
-    console.error(
+    logger.error(
       '🚨 [SystemEventMediator] System critical state detected!',
       event
     );

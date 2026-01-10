@@ -3,6 +3,7 @@
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { logger } from '@/lib/logging';
 
 /**
  * 🚀 시스템 부트스트랩 컴포넌트
@@ -34,7 +35,7 @@ export function SystemBootstrap(): React.ReactNode {
   useEffect(() => {
     // 🚨 중요: 시스템이 시작되지 않은 상태에서는 부트스트랩 실행 안 함
     if (!isSystemStarted) {
-      console.log('💤 시스템 부트스트랩 대기 중 - 시스템 시작 후 실행됩니다');
+      logger.info('💤 시스템 부트스트랩 대기 중 - 시스템 시작 후 실행됩니다');
       return;
     }
 
@@ -48,7 +49,7 @@ export function SystemBootstrap(): React.ReactNode {
     const bootstrap = async () => {
       // 🔒 부트스트랩 시작 시 즉시 플래그 설정 (중복 실행 방지)
       hasBootstrappedRef.current = true;
-      console.log(
+      logger.info(
         '🚀 시스템 부트스트랩 시작... (시스템 활성화 상태, 1회만 실행)'
       );
 
@@ -67,7 +68,7 @@ export function SystemBootstrap(): React.ReactNode {
           cachedBootstrap = sessionStorage.getItem(sessionKey);
         }
       } catch {
-        console.warn('[SystemBootstrap] sessionStorage.getItem failed');
+        logger.warn('[SystemBootstrap] sessionStorage.getItem failed');
       }
 
       if (cachedBootstrap) {
@@ -77,20 +78,20 @@ export function SystemBootstrap(): React.ReactNode {
 
           // 세션 캐시가 30분 이내면 재사용
           if (cacheAge < 30 * 60 * 1000) {
-            console.log('📦 부트스트랩 캐시 사용 (세션 동안 유효)');
+            logger.info('📦 부트스트랩 캐시 사용 (세션 동안 유효)');
             if (isMounted) {
               setBootstrapStatus({ ...cached.status, completed: true });
             }
             return;
           }
         } catch {
-          console.warn('⚠️ 부트스트랩 캐시 파싱 실패, 새로 시작');
+          logger.warn('⚠️ 부트스트랩 캐시 파싱 실패, 새로 시작');
         }
       }
 
       // 1. 시스템 상태 확인
       try {
-        console.log('🔄 시스템 상태 확인...');
+        logger.info('🔄 시스템 상태 확인...');
         const systemResponse = await fetch('/api/system', {
           method: 'GET',
           headers: {
@@ -101,17 +102,17 @@ export function SystemBootstrap(): React.ReactNode {
         if (isMounted) {
           if (systemResponse.ok) {
             const systemData = await systemResponse.json();
-            console.log('✅ 시스템 상태:', systemData.status || '정상');
+            logger.info('✅ 시스템 상태:', systemData.status || '정상');
             localStatus.mcp = 'success';
             setBootstrapStatus((prev) => ({ ...prev, mcp: 'success' }));
           } else {
-            console.warn('⚠️ 시스템 상태 확인 실패:', systemResponse.status);
+            logger.warn('⚠️ 시스템 상태 확인 실패:', systemResponse.status);
             localStatus.mcp = 'failed';
             setBootstrapStatus((prev) => ({ ...prev, mcp: 'failed' }));
           }
         }
       } catch (error) {
-        console.error('❌ 시스템 상태 확인 오류:', error);
+        logger.error('❌ 시스템 상태 확인 오류:', error);
         if (isMounted) {
           localStatus.mcp = 'failed';
           setBootstrapStatus((prev) => ({ ...prev, mcp: 'failed' }));
@@ -120,7 +121,7 @@ export function SystemBootstrap(): React.ReactNode {
 
       // 2. Cloud Run AI 상태 확인 (한 번만)
       try {
-        console.log('🤖 Cloud Run AI 상태 확인...');
+        logger.info('🤖 Cloud Run AI 상태 확인...');
         const aiHealthResponse = await fetch('/api/health?service=ai', {
           method: 'GET',
           headers: {
@@ -131,14 +132,14 @@ export function SystemBootstrap(): React.ReactNode {
         if (isMounted) {
           if (aiHealthResponse.ok) {
             const aiData = await aiHealthResponse.json();
-            console.log(
+            logger.info(
               '✅ Cloud Run AI 상태 확인 완료:',
               aiData.status === 'ok' ? '정상' : '오류'
             );
             localStatus.cloudRunAI = 'success';
             setBootstrapStatus((prev) => ({ ...prev, cloudRunAI: 'success' }));
           } else {
-            console.warn(
+            logger.warn(
               '⚠️ Cloud Run AI 상태 확인 실패:',
               aiHealthResponse.status
             );
@@ -147,7 +148,7 @@ export function SystemBootstrap(): React.ReactNode {
           }
         }
       } catch (error) {
-        console.error('❌ Cloud Run AI 상태 확인 오류:', error);
+        logger.error('❌ Cloud Run AI 상태 확인 오류:', error);
         if (isMounted) {
           localStatus.cloudRunAI = 'failed';
           setBootstrapStatus((prev) => ({ ...prev, cloudRunAI: 'failed' }));
@@ -156,7 +157,7 @@ export function SystemBootstrap(): React.ReactNode {
 
       // 3. Supabase 상태 확인 (한 번만)
       try {
-        console.log('🟢 Supabase 상태 확인...');
+        logger.info('🟢 Supabase 상태 확인...');
         const supabaseResponse = await fetch('/api/database', {
           method: 'GET',
           headers: {
@@ -167,20 +168,20 @@ export function SystemBootstrap(): React.ReactNode {
         if (isMounted) {
           if (supabaseResponse.ok) {
             const supabaseData = await supabaseResponse.json();
-            console.log(
+            logger.info(
               '✅ Supabase 상태 확인 완료:',
               supabaseData.primary?.status || '연결됨'
             );
             localStatus.supabase = 'success';
             setBootstrapStatus((prev) => ({ ...prev, supabase: 'success' }));
           } else {
-            console.warn('⚠️ Supabase 상태 확인 실패:', supabaseResponse.status);
+            logger.warn('⚠️ Supabase 상태 확인 실패:', supabaseResponse.status);
             localStatus.supabase = 'failed';
             setBootstrapStatus((prev) => ({ ...prev, supabase: 'failed' }));
           }
         }
       } catch (error) {
-        console.error('❌ Supabase 상태 확인 오류:', error);
+        logger.error('❌ Supabase 상태 확인 오류:', error);
         if (isMounted) {
           localStatus.supabase = 'failed';
           setBootstrapStatus((prev) => ({ ...prev, supabase: 'failed' }));
@@ -207,12 +208,12 @@ export function SystemBootstrap(): React.ReactNode {
               timestamp: Date.now(),
             })
           );
-          console.log('💾 부트스트랩 상태 세션 캐시에 저장');
+          logger.info('💾 부트스트랩 상태 세션 캐시에 저장');
         } catch (error) {
-          console.warn('⚠️ 세션 캐시 저장 실패:', error);
+          logger.warn('⚠️ 세션 캐시 저장 실패:', error);
         }
 
-        console.log('🎉 시스템 부트스트랩 완료 (세션 동안 재사용됨)');
+        logger.info('🎉 시스템 부트스트랩 완료 (세션 동안 재사용됨)');
       }
     };
 

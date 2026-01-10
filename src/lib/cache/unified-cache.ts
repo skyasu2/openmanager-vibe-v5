@@ -21,6 +21,8 @@
  */
 
 // 타입 정의
+import { logger } from '@/lib/logging';
+
 interface CacheItem<T = unknown> {
   value: T;
   expires: number;
@@ -156,7 +158,7 @@ export class UnifiedCacheService {
       }
     } catch {
       // setInterval 사용 불가 환경: 수동 cleanup만 사용
-      console.warn(
+      logger.warn(
         'Automatic cache cleanup disabled: setInterval not available'
       );
     }

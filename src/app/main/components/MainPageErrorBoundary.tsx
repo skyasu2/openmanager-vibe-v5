@@ -8,6 +8,7 @@
 
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Component, type ReactNode } from 'react';
+import { logger } from '@/lib/logging';
 
 interface Props {
   children: ReactNode;
@@ -31,7 +32,7 @@ export class MainPageErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('🚨 MainPage Error Boundary caught error:', error, errorInfo);
+    logger.error('🚨 MainPage Error Boundary caught error:', error, errorInfo);
   }
 
   handleRetry = () => {

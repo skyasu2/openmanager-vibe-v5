@@ -5,6 +5,7 @@
  * 예상치 못한 메트릭 값으로 인한 렌더링 오류 방지
  */
 
+import { logger } from '@/lib/logging';
 export type MetricType = 'cpu' | 'memory' | 'disk' | 'network';
 
 /**
@@ -18,7 +19,7 @@ export function validateMetricValue(
   // 비숫자 타입을 숫자로 변환 후 NaN 처리
   const numValue = Number(value);
   if (Number.isNaN(numValue)) {
-    console.warn(
+    logger.warn(
       `Invalid ${type} metric value:`,
       value,
       'Using fallback:',
@@ -29,12 +30,12 @@ export function validateMetricValue(
 
   // Infinity 처리 - 양의 무한대는 100, 음의 무한대는 0
   if (numValue === Infinity) {
-    console.warn(`${type} metric value is Infinity, using 100`);
+    logger.warn(`${type} metric value is Infinity, using 100`);
     return 100;
   }
 
   if (numValue === -Infinity) {
-    console.warn(`${type} metric value is -Infinity, using 0`);
+    logger.warn(`${type} metric value is -Infinity, using 0`);
     return 0;
   }
 
@@ -43,7 +44,7 @@ export function validateMetricValue(
 
   // 원본 값이 범위를 벗어났으면 경고 로그
   if (numValue !== clampedValue) {
-    console.warn(`${type} metric value ${numValue} clamped to ${clampedValue}`);
+    logger.warn(`${type} metric value ${numValue} clamped to ${clampedValue}`);
   }
 
   return Math.round(clampedValue * 100) / 100; // 소수점 2자리까지 반올림

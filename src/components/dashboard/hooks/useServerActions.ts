@@ -24,6 +24,7 @@
 import { useCallback, useState } from 'react';
 import type { Server } from '@/types/server';
 import type { ServerAction } from '../types/dashboard.types';
+import { logger } from '@/lib/logging';
 
 export const useServerActions = () => {
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
@@ -75,13 +76,13 @@ export const useServerActions = () => {
         const result = await response.json();
 
         if (result.success) {
-          console.log(`✅ ${action.label} 실행 완료:`, server.name);
+          logger.info(`✅ ${action.label} 실행 완료:`, server.name);
           return true;
         } else {
           throw new Error(result.message || '액션 실행 실패');
         }
       } catch (error) {
-        console.error(`❌ ${action.label} 실행 실패:`, error);
+        logger.error(`❌ ${action.label} 실행 실패:`, error);
         return false;
       } finally {
         setActionLoading(null);

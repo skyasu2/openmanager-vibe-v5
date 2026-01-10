@@ -7,6 +7,7 @@ import type {
   UserInfo,
   UserType,
 } from '../types/profile.types';
+import { logger } from '@/lib/logging';
 
 /**
  * 프로필 인증 관련 커스텀 훅
@@ -41,14 +42,14 @@ export function useProfileAuth(): ProfileAuthHook {
               : 'unknown'
         );
 
-        console.log('👤 사용자 정보 로드 (AuthStateManager 통합):', {
+        logger.info('👤 사용자 정보 로드 (AuthStateManager 통합):', {
           user: authState.user,
           type: authState.type,
           isAuthenticated: authState.isAuthenticated,
           sessionStatus: status,
         });
       } catch (error) {
-        console.error('❌ 사용자 정보 로드 실패:', error);
+        logger.error('❌ 사용자 정보 로드 실패:', error);
         setUserType('unknown');
       } finally {
         setIsLoading(false);
@@ -65,19 +66,19 @@ export function useProfileAuth(): ProfileAuthHook {
    */
   const handleLogout = useCallback(async () => {
     const userTypeLabel = userType === 'github' ? 'GitHub' : '게스트';
-    console.log('🚪 handleLogout 호출됨:', { userType, userTypeLabel });
+    logger.info('🚪 handleLogout 호출됨:', { userType, userTypeLabel });
 
     const confirmed = confirm(
       `🚪 ${userTypeLabel} 계정에서 로그아웃하시겠습니까?`
     );
 
     if (!confirmed) {
-      console.log('🚪 사용자가 로그아웃 취소');
+      logger.info('🚪 사용자가 로그아웃 취소');
       return false;
     }
 
     try {
-      console.log('🚪 통합 로그아웃 시작:', { userType });
+      logger.info('🚪 통합 로그아웃 시작:', { userType });
 
       // React 상태 즉시 업데이트 (UI 반응성 향상)
       setUserInfo(null);
@@ -85,19 +86,19 @@ export function useProfileAuth(): ProfileAuthHook {
       setIsLoading(true);
 
       // AuthStateManager를 통한 통합 로그아웃
-      console.log('🔄 AuthStateManager clearAuthData 호출 중...');
+      logger.info('🔄 AuthStateManager clearAuthData 호출 중...');
       await clearAuthData(userType === 'github' ? 'github' : 'guest');
 
-      console.log('✅ 통합 로그아웃 완료 - 리다이렉트 진행');
+      logger.info('✅ 통합 로그아웃 완료 - 리다이렉트 진행');
 
       // 로그인 페이지로 리다이렉트
       window.location.href = '/login';
       return true;
     } catch (error) {
-      console.error('❌ 통합 로그아웃 실패:', error);
+      logger.error('❌ 통합 로그아웃 실패:', error);
 
       // Fallback: 레거시 로그아웃 로직
-      console.warn('⚠️ 레거시 로그아웃으로 fallback');
+      logger.warn('⚠️ 레거시 로그아웃으로 fallback');
 
       try {
         // Supabase 로그아웃 (GitHub)
@@ -120,7 +121,7 @@ export function useProfileAuth(): ProfileAuthHook {
           }
         }
       } catch (fallbackError) {
-        console.error('❌ 레거시 로그아웃도 실패:', fallbackError);
+        logger.error('❌ 레거시 로그아웃도 실패:', fallbackError);
       }
 
       // 실패해도 로그인 페이지로 강제 이동
@@ -135,12 +136,12 @@ export function useProfileAuth(): ProfileAuthHook {
    * 페이지 이동 핸들러들
    */
   const navigateToLogin = useCallback(() => {
-    console.log('🚀 navigateToLogin 호출됨 - /login으로 이동');
+    logger.info('🚀 navigateToLogin 호출됨 - /login으로 이동');
     window.location.href = '/login';
   }, []);
 
   const navigateToDashboard = useCallback(() => {
-    console.log('🚀 navigateToDashboard 호출됨 - /dashboard로 이동');
+    logger.info('🚀 navigateToDashboard 호출됨 - /dashboard로 이동');
     window.location.href = '/dashboard';
   }, []);
 

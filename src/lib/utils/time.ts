@@ -15,6 +15,8 @@
  * 프로젝트 종속적인 로직(`project-meta.ts`)을 분리하여 재사용성과 유지보수성을 향상시켰습니다.
  */
 
+import { logger } from '@/lib/logging';
+
 interface NTPServer {
   name: string;
   host: string;
@@ -73,7 +75,7 @@ export const KoreanTimeUtil = {
           success: true,
         };
       } catch (error) {
-        console.warn(
+        logger.warn(
           `[${this.now()}] ⚠️ NTP 서버 ${server.name} 연결 실패:`,
           error
         );
@@ -100,17 +102,17 @@ export const KoreanTimeUtil = {
       if (ntpResponse.success) {
         this.timeOffset = ntpResponse.offset;
         this.lastNTPSync = now;
-        console.log(
+        logger.info(
           `[${this.now()}] ✅ NTP 시간 동기화 성공: ${ntpResponse.server} (오프셋: ${ntpResponse.offset}ms)`
         );
       } else {
-        console.warn(
+        logger.warn(
           `[${this.now()}] ⚠️ NTP 동기화 실패, 로컬 시간 사용: ${ntpResponse.error}`
         );
       }
       return new Date(now + this.timeOffset);
     } catch (error) {
-      console.error(`[${this.now()}] ❌ NTP 동기화 오류:`, error);
+      logger.error(`[${this.now()}] ❌ NTP 동기화 오류:`, error);
       return new Date();
     }
   },

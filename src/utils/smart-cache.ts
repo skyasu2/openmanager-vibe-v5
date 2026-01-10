@@ -5,6 +5,7 @@
  * 싱글톤 패턴 제거, 전역 상태 제거
  */
 
+import { logger } from '@/lib/logging';
 export interface CacheEntry<T = unknown> {
   data: T;
   timestamp: number;
@@ -88,7 +89,7 @@ export class RequestScopedCache {
       this.pendingRequests.delete(key);
     }
 
-    console.log(`🗑️ 캐시 무효화: ${keysToInvalidate.length}개 키 제거`);
+    logger.info(`🗑️ 캐시 무효화: ${keysToInvalidate.length}개 키 제거`);
   }
 
   removeQueries(keyPrefix: string): void {
@@ -105,7 +106,7 @@ export class RequestScopedCache {
       this.pendingRequests.delete(key);
     }
 
-    console.log(`🗑️ 캐시 제거: ${keysToRemove.length}개 키 삭제`);
+    logger.info(`🗑️ 캐시 제거: ${keysToRemove.length}개 키 삭제`);
   }
 
   getStats(): {
@@ -162,7 +163,7 @@ export class RequestScopedCache {
       return data;
     } catch (error) {
       if (retryCount < options.retry) {
-        console.warn(`🔄 재시도 ${retryCount + 1}/${options.retry}: ${key}`);
+        logger.warn(`🔄 재시도 ${retryCount + 1}/${options.retry}: ${key}`);
 
         // 🚫 setTimeout 제거: 서버리스에서 타이머 사용 금지
         // await new Promise(resolve => setTimeout(resolve, options.retryDelay * (retryCount + 1)));
@@ -228,7 +229,7 @@ export function createRequestCache(): RequestScopedCache {
  */
 export const SmartCache = {
   getInstance: () => {
-    console.warn(
+    logger.warn(
       '⚠️ SmartCache.getInstance()는 서버리스에서 사용 금지. createRequestCache() 사용하세요.'
     );
     return new RequestScopedCache();

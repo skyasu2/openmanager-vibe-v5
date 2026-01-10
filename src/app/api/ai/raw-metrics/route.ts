@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
+import { logger } from '@/lib/logging';
 import {
   safeConnections,
   safeResponseTime,
@@ -122,7 +123,7 @@ function loadPureRawMetrics(): Promise<RawServerMetric[]> {
       )
     );
   } catch (error) {
-    console.error('Raw metrics 로드 실패:', error);
+    logger.error('Raw metrics 로드 실패:', error);
     return Promise.resolve(generateFallbackMetrics());
   }
 }
@@ -379,7 +380,7 @@ export const GET = withAuth(async (request: NextRequest) => {
       }
     );
   } catch (error) {
-    console.error('AI Raw Metrics API 오류:', error);
+    logger.error('AI Raw Metrics API 오류:', error);
 
     return NextResponse.json(
       {

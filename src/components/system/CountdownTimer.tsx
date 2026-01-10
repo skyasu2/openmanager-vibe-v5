@@ -14,6 +14,7 @@
 
 import { AlertCircle, AlertTriangle, Clock } from 'lucide-react';
 import { type FC, useCallback, useEffect, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 interface CountdownTimerProps {
   endTime: number; // 종료 시간 (Unix timestamp)
@@ -73,7 +74,7 @@ export const CountdownTimer: FC<CountdownTimerProps> = ({
       // 시간 만료 체크
       if (newTimeLeft.total <= 0 && !isExpired) {
         setIsExpired(true);
-        console.log('⏰ 시스템 세션 시간 만료');
+        logger.info('⏰ 시스템 세션 시간 만료');
         onExpired?.();
         return;
       }
@@ -88,14 +89,14 @@ export const CountdownTimer: FC<CountdownTimerProps> = ({
         ) {
           setHasWarned5min(true);
           onWarning(newTimeLeft.minutes);
-          console.log(`⚠️ 시스템 세션 ${newTimeLeft.minutes}분 남음`);
+          logger.info(`⚠️ 시스템 세션 ${newTimeLeft.minutes}분 남음`);
         }
 
         // 1분 경고
         if (newTimeLeft.minutes <= 1 && !hasWarned1min) {
           setHasWarned1min(true);
           onWarning(newTimeLeft.minutes);
-          console.log('🚨 시스템 세션 1분 남음');
+          logger.info('🚨 시스템 세션 1분 남음');
         }
       }
     };

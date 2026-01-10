@@ -8,6 +8,7 @@
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { type CSSProperties, Fragment, useEffect, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 // 사용자 모션 설정 감지 (CSS 기반)
 const useReducedMotion = () => {
@@ -275,15 +276,15 @@ export const AnimationPerformanceMonitor = {
     animationCount++;
 
     if (animationCount > maxConcurrentAnimations) {
-      console.warn(`⚠️ Too many concurrent animations: ${animationCount}`);
+      logger.warn(`⚠️ Too many concurrent animations: ${animationCount}`);
     }
 
-    console.log(`🎭 Animation started: ${name} (total: ${animationCount})`);
+    logger.info(`🎭 Animation started: ${name} (total: ${animationCount})`);
   },
 
   endAnimation(name: string) {
     animationCount = Math.max(0, animationCount - 1);
-    console.log(`✅ Animation ended: ${name} (total: ${animationCount})`);
+    logger.info(`✅ Animation ended: ${name} (total: ${animationCount})`);
   },
 
   getActiveAnimations() {

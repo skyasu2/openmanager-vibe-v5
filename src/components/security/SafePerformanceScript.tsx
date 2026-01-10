@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { logger } from '@/lib/logging';
 
 /**
  * CSP 호환 성능 모니터링 컴포넌트
@@ -17,7 +18,7 @@ export default function SafePerformanceScript() {
         };
         const connection = navigatorWithConnection.connection;
         if (connection) {
-          console.log(
+          logger.info(
             `📶 Network: ${connection.effectiveType ?? 'unknown'}, ${connection.downlink ?? 0}Mbps`
           );
         }
@@ -37,7 +38,7 @@ export default function SafePerformanceScript() {
             total: Math.round(memory.totalJSHeapSize / 1024 / 1024),
             limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024),
           };
-          console.log(
+          logger.info(
             `🧠 Memory: ${memoryInfo.used}MB / ${memoryInfo.total}MB (Limit: ${memoryInfo.limit}MB)`
           );
         }
@@ -47,14 +48,14 @@ export default function SafePerformanceScript() {
           // LCP (Largest Contentful Paint)
           const lcpObserver = new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
-              console.log(`🎯 LCP: ${Math.round(entry.startTime)}ms`);
+              logger.info(`🎯 LCP: ${Math.round(entry.startTime)}ms`);
             }
           });
 
           // FID (First Input Delay) - INP로 대체
           const fidObserver = new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
-              console.log(
+              logger.info(
                 `👆 FID: ${Math.round(((entry as { processingStart?: number }).processingStart || entry.startTime) - entry.startTime)}ms`
               );
             }
@@ -69,7 +70,7 @@ export default function SafePerformanceScript() {
               }
             }
             if (clsValue > 0) {
-              console.log(`📐 CLS: ${clsValue.toFixed(4)}`);
+              logger.info(`📐 CLS: ${clsValue.toFixed(4)}`);
             }
           });
 
@@ -79,7 +80,7 @@ export default function SafePerformanceScript() {
             clsObserver.observe({ entryTypes: ['layout-shift'] });
           } catch (observerError) {
             // Observer not supported in some browsers
-            console.warn(
+            logger.warn(
               '⚠️ Some performance observers not supported',
               observerError
             );
@@ -93,15 +94,15 @@ export default function SafePerformanceScript() {
           const domContentLoaded =
             timing.domContentLoadedEventEnd - timing.navigationStart;
 
-          console.log(`⏱️ Page Load: ${loadTime}ms`);
-          console.log(`📄 DOM Ready: ${domContentLoaded}ms`);
+          logger.info(`⏱️ Page Load: ${loadTime}ms`);
+          logger.info(`📄 DOM Ready: ${domContentLoaded}ms`);
         }
 
         // 🎨 페인트 메트릭스
         if (performance.getEntriesByType) {
           const paintEntries = performance.getEntriesByType('paint');
           paintEntries.forEach((entry) => {
-            console.log(`🎨 ${entry.name}: ${Math.round(entry.startTime)}ms`);
+            logger.info(`🎨 ${entry.name}: ${Math.round(entry.startTime)}ms`);
           });
         }
 
@@ -121,7 +122,7 @@ export default function SafePerformanceScript() {
                 (sum, r) => sum + (r.transferSize || 0),
                 0
               );
-              console.log(
+              logger.info(
                 `📦 JS Bundle: ${Math.round(totalJsSize / 1024)}KB (${jsResources.length} files)`
               );
             }
@@ -131,7 +132,7 @@ export default function SafePerformanceScript() {
                 (sum, r) => sum + (r.transferSize || 0),
                 0
               );
-              console.log(
+              logger.info(
                 `🎨 CSS Bundle: ${Math.round(totalCssSize / 1024)}KB (${cssResources.length} files)`
               );
             }
@@ -158,7 +159,7 @@ export default function SafePerformanceScript() {
 
               // 메모리 사용량이 100MB를 초과하면 경고
               if (used > 100) {
-                console.warn(`⚠️ High Memory Usage: ${used}MB`);
+                logger.warn(`⚠️ High Memory Usage: ${used}MB`);
               }
             }
           };
@@ -173,7 +174,7 @@ export default function SafePerformanceScript() {
 
         return undefined;
       } catch (error) {
-        console.warn('⚠️ Performance monitoring initialization failed:', error);
+        logger.warn('⚠️ Performance monitoring initialization failed:', error);
         return undefined;
       }
     };

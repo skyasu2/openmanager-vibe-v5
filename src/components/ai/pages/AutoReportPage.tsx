@@ -29,6 +29,7 @@ import {
   TrendingUp,
   X,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import { useCallback, useState } from 'react';
 
 // ============================================================================
@@ -258,7 +259,7 @@ export default function AutoReportPage() {
         setReports((prev) => [newReport, ...prev]);
       }
     } catch (err) {
-      console.error('보고서 생성 실패:', err);
+      logger.error('보고서 생성 실패:', err);
       setError(
         err instanceof Error
           ? err.message

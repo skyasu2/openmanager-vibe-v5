@@ -16,6 +16,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 export interface SystemState {
   isRunning: boolean;
@@ -82,7 +83,7 @@ export const useSystemState = (): UseSystemStateReturn => {
     async (source: string = 'manual'): Promise<SystemState | null> => {
       // 중복 요청 방지
       if (isRequestingRef.current) {
-        console.log('⏸️ 이미 요청 중이므로 스킵');
+        logger.info('⏸️ 이미 요청 중이므로 스킵');
         return systemState;
       }
 
@@ -92,7 +93,7 @@ export const useSystemState = (): UseSystemStateReturn => {
 
         const url = `/api/system?userId=${encodeURIComponent(userId)}&source=${encodeURIComponent(source)}`;
 
-        console.log(`🔄 시스템 상태 요청 - 소스: ${source}`);
+        logger.info(`🔄 시스템 상태 요청 - 소스: ${source}`);
 
         const response = await fetch(url, {
           method: 'GET',
@@ -111,7 +112,7 @@ export const useSystemState = (): UseSystemStateReturn => {
 
         if (data.success && data.state) {
           setSystemState(data.state);
-          console.log(
+          logger.info(
             `✅ 상태 업데이트 - 실행중: ${data.state.isRunning}, 사용자: ${data.state.activeUsers}명`
           );
           return data.state;
@@ -122,7 +123,7 @@ export const useSystemState = (): UseSystemStateReturn => {
         const errorMessage =
           err instanceof Error ? err.message : '알 수 없는 오류';
         setError(errorMessage);
-        console.error(`❌ 시스템 상태 확인 실패 (${source}):`, errorMessage);
+        logger.error(`❌ 시스템 상태 확인 실패 (${source}):`, errorMessage);
 
         // 오류 시 기본 상태 설정
         const defaultState = getDefaultState();
@@ -148,7 +149,7 @@ export const useSystemState = (): UseSystemStateReturn => {
 
     // 중복 요청 방지
     if (isRequestingRef.current) {
-      console.log('⏸️ 이미 요청 중이므로 스킵');
+      logger.info('⏸️ 이미 요청 중이므로 스킵');
       return;
     }
 
@@ -158,7 +159,7 @@ export const useSystemState = (): UseSystemStateReturn => {
 
       const url = `/api/system?userId=${encodeURIComponent(userId)}&source=${encodeURIComponent(source)}`;
 
-      console.log(`🔄 시스템 상태 요청 - 소스: ${source}`);
+      logger.info(`🔄 시스템 상태 요청 - 소스: ${source}`);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -177,7 +178,7 @@ export const useSystemState = (): UseSystemStateReturn => {
 
       if (data.success && data.state) {
         setSystemState(data.state);
-        console.log(
+        logger.info(
           `✅ 상태 업데이트 - 실행중: ${data.state.isRunning}, 사용자: ${data.state.activeUsers}명`
         );
       } else {
@@ -187,7 +188,7 @@ export const useSystemState = (): UseSystemStateReturn => {
       const errorMessage =
         err instanceof Error ? err.message : '알 수 없는 오류';
       setError(errorMessage);
-      console.error(`❌ 시스템 상태 확인 실패 (${source}):`, errorMessage);
+      logger.error(`❌ 시스템 상태 확인 실패 (${source}):`, errorMessage);
 
       // 오류 시 기본 상태 설정
       const defaultState = getDefaultState();
@@ -206,7 +207,7 @@ export const useSystemState = (): UseSystemStateReturn => {
       setIsLoading(true);
       setError(null);
 
-      console.log(
+      logger.info(
         `🚀 시스템 시작 요청 - 사용자: ${userId.substring(0, 12)}...`
       );
 
@@ -231,7 +232,7 @@ export const useSystemState = (): UseSystemStateReturn => {
 
       if (result.success && result.state) {
         setSystemState(result.state);
-        console.log(
+        logger.info(
           `✅ 시스템 시작 완료 - 종료 예정: ${new Date(result.state.endTime).toLocaleString()}`
         );
         return true;
@@ -242,7 +243,7 @@ export const useSystemState = (): UseSystemStateReturn => {
       const errorMessage =
         err instanceof Error ? err.message : '시스템 시작 실패';
       setError(errorMessage);
-      console.error('❌ 시스템 시작 실패:', errorMessage);
+      logger.error('❌ 시스템 시작 실패:', errorMessage);
       return false;
     } finally {
       setIsLoading(false);
@@ -257,7 +258,7 @@ export const useSystemState = (): UseSystemStateReturn => {
       setIsLoading(true);
       setError(null);
 
-      console.log(
+      logger.info(
         `🛑 시스템 중지 요청 - 사용자: ${userId.substring(0, 12)}...`
       );
 
@@ -282,7 +283,7 @@ export const useSystemState = (): UseSystemStateReturn => {
 
       if (result.success && result.state) {
         setSystemState(result.state);
-        console.log(`✅ 시스템 중지 완료`);
+        logger.info(`✅ 시스템 중지 완료`);
         return true;
       } else {
         throw new Error(result.error || '시스템 중지 실패');
@@ -291,7 +292,7 @@ export const useSystemState = (): UseSystemStateReturn => {
       const errorMessage =
         err instanceof Error ? err.message : '시스템 중지 실패';
       setError(errorMessage);
-      console.error('❌ 시스템 중지 실패:', errorMessage);
+      logger.error('❌ 시스템 중지 실패:', errorMessage);
       return false;
     } finally {
       setIsLoading(false);

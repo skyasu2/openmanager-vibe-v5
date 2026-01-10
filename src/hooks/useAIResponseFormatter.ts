@@ -6,6 +6,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import type { ErrorState, SixWPrincipleResponse } from '@/types/ai-thinking';
+import { logger } from '@/lib/logging';
 
 interface FormatOptions {
   language: 'ko' | 'en';
@@ -150,7 +151,7 @@ export const useAIResponseFormatter = () => {
         maxRetries: 3,
       };
       setError(errorState);
-      console.error(`🚨 AI Response Formatter Error [${type}]:`, message);
+      logger.error(`🚨 AI Response Formatter Error [${type}]:`, message);
     },
     []
   );
@@ -161,7 +162,7 @@ export const useAIResponseFormatter = () => {
       try {
         updateFn();
       } catch (error) {
-        console.error('❌ 상태 업데이트 실패:', error);
+        logger.error('❌ 상태 업데이트 실패:', error);
         handleError('unknown', '상태 업데이트 중 오류가 발생했습니다.');
       }
     },
@@ -320,7 +321,7 @@ export const useAIResponseFormatter = () => {
           sources: ['AI 분석', '시스템 메트릭', '실시간 모니터링'],
         };
       } catch (error) {
-        console.error('❌ 응답 파싱 실패:', error);
+        logger.error('❌ 응답 파싱 실패:', error);
         throw new Error('응답 파싱 중 오류가 발생했습니다.');
       }
     },
@@ -367,7 +368,7 @@ export const useAIResponseFormatter = () => {
 
         const result = await Promise.race([formatPromise, timeoutPromise]);
 
-        console.log('✅ AI 응답 포맷팅 완료:', result);
+        logger.info('✅ AI 응답 포맷팅 완료:', result);
         return result;
       } catch (error) {
         const errorMessage =

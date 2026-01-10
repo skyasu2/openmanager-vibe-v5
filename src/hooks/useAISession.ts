@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AISessionData, AISessionSummary } from '@/lib/ai/session-storage';
 import { getAISessionStorage } from '@/lib/ai/session-storage';
+import { logger } from '@/lib/logging';
 
 // ==============================================
 // 🎯 AI 세션 상태 타입 정의
@@ -102,7 +103,7 @@ export function useAISession(
         }));
       }
     } catch (error) {
-      console.warn('로컬 스토리지 복원 실패:', error);
+      logger.warn('로컬 스토리지 복원 실패:', error);
     }
   }, []);
 
@@ -120,7 +121,7 @@ export function useAISession(
         };
         localStorage.setItem(localStorageKey, JSON.stringify(stateToSave));
       } catch (error) {
-        console.warn('로컬 스토리지 저장 실패:', error);
+        logger.warn('로컬 스토리지 저장 실패:', error);
       }
     },
     [enableHistory]
@@ -137,7 +138,7 @@ export function useAISession(
       );
       setSessionState((prev) => ({ ...prev, history }));
     } catch (error) {
-      console.warn('세션 이력 로드 실패:', error);
+      logger.warn('세션 이력 로드 실패:', error);
     }
   }, [maxHistoryItems]);
 
@@ -307,7 +308,7 @@ export function useAISession(
             await loadSessionHistory();
           }
         } catch (error) {
-          console.warn('세션 자동 저장 실패:', error);
+          logger.warn('세션 자동 저장 실패:', error);
         }
       }
     },
@@ -369,7 +370,7 @@ export function useAISession(
 
         return false;
       } catch (error) {
-        console.error('세션 복원 실패:', error);
+        logger.error('세션 복원 실패:', error);
         return false;
       }
     },

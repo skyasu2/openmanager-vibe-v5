@@ -3,6 +3,7 @@
  */
 
 import { env, isDevelopment } from '@/env';
+import { logger } from '@/lib/logging';
 
 const isDebugEnabled = isDevelopment || env.NEXT_PUBLIC_DEBUG === 'true';
 
@@ -24,20 +25,20 @@ interface DebugLogger {
  */
 export const debug: DebugLogger = {
   log: (...args: unknown[]) => {
-    if (isDebugEnabled) console.log(...args);
+    if (isDebugEnabled) logger.info(...args);
   },
   warn: (...args: unknown[]) => {
-    if (isDebugEnabled) console.warn(...args);
+    if (isDebugEnabled) logger.warn(...args);
   },
   error: (...args: unknown[]) => {
     // 에러는 항상 출력 (프로덕션에서도 필요)
-    console.error(...args);
+    logger.error(...args);
   },
   info: (...args: unknown[]) => {
-    if (isDebugEnabled) console.info(...args);
+    if (isDebugEnabled) logger.info(...args);
   },
   debug: (...args: unknown[]) => {
-    if (isDebugEnabled) console.debug(...args);
+    if (isDebugEnabled) logger.debug(...args);
   },
   group: (label?: string) => {
     if (isDebugEnabled) console.group(label);

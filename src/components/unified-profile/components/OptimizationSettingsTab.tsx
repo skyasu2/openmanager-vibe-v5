@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import { useState } from 'react';
 import { KST } from '@/lib/utils/time';
 
@@ -48,7 +49,7 @@ export function OptimizationSettingsTab({
         lastOptimized: KST.nowString(),
       }));
     } catch (err) {
-      console.error('최적화 실행 중 오류:', err);
+      logger.error('최적화 실행 중 오류:', err);
     } finally {
       setIsOptimizing(false);
     }
@@ -59,7 +60,7 @@ export function OptimizationSettingsTab({
     try {
       await onPerformanceAnalysis();
     } catch (err) {
-      console.error('성능 분석 중 오류:', err);
+      logger.error('성능 분석 중 오류:', err);
     } finally {
       setIsAnalyzing(false);
     }

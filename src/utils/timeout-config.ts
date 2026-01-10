@@ -18,6 +18,7 @@
  * - 베르셀 무료 티어 제한: 10초 최대
  * - 안전 여유분: 8초 설정 (베르셀 제한의 80%)
  */
+import { logger } from '@/lib/logging';
 const TIMEOUT_CONFIG = {
   CLOUD_RUN_AI: 8000, // 🎯 Cloud Run AI 타임아웃 (베르셀 10초 제한 고려)
   LOCAL_AI: 3500, // Local AI 충분한 타임아웃 (Cloud Run 응답 고려)
@@ -36,7 +37,7 @@ export function getEnvironmentTimeouts() {
   const envMCP = process.env.MCP_TIMEOUT;
 
   if (process.env.NODE_ENV === 'development') {
-    console.log('🔧 [DEBUG] Environment variables loading:', {
+    logger.info('🔧 [DEBUG] Environment variables loading:', {
       CLOUD_RUN_AI_TIMEOUT: envCloudRunAI,
       LOCAL_AI_TIMEOUT: envLocalAI,
       MCP_TIMEOUT: envMCP,

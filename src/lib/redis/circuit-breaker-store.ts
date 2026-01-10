@@ -14,6 +14,7 @@ import type {
   CircuitState,
   IDistributedStateStore,
 } from '@/lib/ai/circuit-breaker';
+import { logger } from '@/lib/logging';
 import { getRedisClient, isRedisEnabled } from './client';
 
 // ============================================================================
@@ -80,7 +81,7 @@ export class RedisCircuitBreakerStore implements IDistributedStateStore {
 
         return null;
       } catch (error) {
-        console.warn(
+        logger.warn(
           `[RedisCircuitBreaker] getState error for ${serviceName}:`,
           error
         );
@@ -117,12 +118,12 @@ export class RedisCircuitBreakerStore implements IDistributedStateStore {
 
         // 상태 변경 로깅
         if (process.env.NODE_ENV === 'development') {
-          console.log(
+          logger.info(
             `[RedisCircuitBreaker] ${serviceName}: ${state.state} (failures: ${state.failures})`
           );
         }
       } catch (error) {
-        console.warn(
+        logger.warn(
           `[RedisCircuitBreaker] setState error for ${serviceName}:`,
           error
         );
@@ -163,7 +164,7 @@ export class RedisCircuitBreakerStore implements IDistributedStateStore {
 
         return result || newFailures;
       } catch (error) {
-        console.warn(
+        logger.warn(
           `[RedisCircuitBreaker] incrementFailures error for ${serviceName}:`,
           error
         );
@@ -188,7 +189,7 @@ export class RedisCircuitBreakerStore implements IDistributedStateStore {
         const key = this.getKey(serviceName);
         await redis.del(key);
       } catch (error) {
-        console.warn(
+        logger.warn(
           `[RedisCircuitBreaker] resetState error for ${serviceName}:`,
           error
         );
@@ -230,7 +231,7 @@ export class RedisCircuitBreakerStore implements IDistributedStateStore {
 
         return result;
       } catch (error) {
-        console.warn('[RedisCircuitBreaker] getAllStates error:', error);
+        logger.warn('[RedisCircuitBreaker] getAllStates error:', error);
       }
     }
 
@@ -307,6 +308,6 @@ export function getRedisCircuitBreakerStore(): RedisCircuitBreakerStore {
  */
 export function initializeRedisCircuitBreakerStore(): RedisCircuitBreakerStore {
   const store = getRedisCircuitBreakerStore();
-  console.log('[RedisCircuitBreaker] Store initialized');
+  logger.info('[RedisCircuitBreaker] Store initialized');
   return store;
 }

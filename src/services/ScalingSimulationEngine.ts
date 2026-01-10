@@ -4,6 +4,8 @@
  * 자동 스케일링 시뮬레이션 및 용량 계획
  */
 
+import { logger } from '@/lib/logging';
+
 interface ScalingMetricInput {
   cpu: number;
   memory: number;
@@ -325,7 +327,7 @@ export class ScalingSimulationEngine {
    * 📝 스케일링 정책 업데이트
    */
   updateScalingPolicy(policy: ScalingPolicy): void {
-    console.log('📝 스케일링 정책 업데이트:', policy);
+    logger.info('📝 스케일링 정책 업데이트:', policy);
     // 정책 업데이트 로직은 필요에 따라 구현
     if (policy.maxInstances) this.maxInstances = policy.maxInstances;
     if (policy.minInstances) this.minInstances = policy.minInstances;

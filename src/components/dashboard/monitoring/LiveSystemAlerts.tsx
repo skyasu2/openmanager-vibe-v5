@@ -1,6 +1,7 @@
 'use client';
 
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
+import { logger } from '@/lib/logging';
 
 // SystemAlert type definition (moved from admin)
 interface SystemAlert {
@@ -168,7 +169,7 @@ export default function LiveSystemAlerts() {
           setAlerts(newAlerts);
         }
       } catch (error) {
-        console.error('알림 조회 실패:', error);
+        logger.error('알림 조회 실패:', error);
       }
     };
 

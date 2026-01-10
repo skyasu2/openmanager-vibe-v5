@@ -2,6 +2,7 @@
 
 import { Check, Copy, RefreshCw, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { memo, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 interface MessageActionsProps {
   messageId: string;
@@ -39,7 +40,7 @@ export const MessageActions = memo(function MessageActions({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy:', error);
+      logger.error('Failed to copy:', error);
     }
   };
 

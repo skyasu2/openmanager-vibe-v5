@@ -3,6 +3,7 @@
  * Supabase 설정 문제 시 임시 사용
  */
 
+import { logger } from '@/lib/logging';
 export async function directGitHubAuth() {
   const clientId =
     process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || 'Ov23liFnUsRO0ttNegju';
@@ -14,7 +15,7 @@ export async function directGitHubAuth() {
   githubAuthUrl.searchParams.set('scope', 'read:user user:email');
   githubAuthUrl.searchParams.set('state', Math.random().toString(36));
 
-  console.log('🔗 직접 GitHub OAuth URL:', githubAuthUrl.toString());
+  logger.info('🔗 직접 GitHub OAuth URL:', githubAuthUrl.toString());
 
   // GitHub으로 리다이렉트
   window.location.href = githubAuthUrl.toString();

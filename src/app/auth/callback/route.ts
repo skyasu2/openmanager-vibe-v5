@@ -12,6 +12,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
 
-  console.log('🔐 OAuth 콜백 수신 (Server-side):', {
+  logger.info('🔐 OAuth 콜백 수신 (Server-side):', {
     hasCode: !!code,
     hasError: !!error,
     origin: requestUrl.origin,
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
 
   // OAuth 에러 처리
   if (error) {
-    console.error('❌ OAuth 에러:', error, errorDescription);
+    logger.error('❌ OAuth 에러:', error, errorDescription);
     const loginUrl = new URL('/login', requestUrl.origin);
     loginUrl.searchParams.set('error', error);
     if (errorDescription) {
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
 
   // 코드가 없으면 로그인 페이지로
   if (!code) {
-    console.log('⚠️ 인증 코드 없음 - 로그인 페이지로 이동');
+    logger.info('⚠️ 인증 코드 없음 - 로그인 페이지로 이동');
     return NextResponse.redirect(new URL('/login', requestUrl.origin));
   }
 
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? '';
 
     if (!supabaseUrl || !supabaseKey) {
-      console.error('❌ Supabase 환경 변수 누락');
+      logger.error('❌ Supabase 환경 변수 누락');
       const loginUrl = new URL('/login', requestUrl.origin);
       loginUrl.searchParams.set('error', 'config_error');
       return NextResponse.redirect(loginUrl);
@@ -73,12 +74,12 @@ export async function GET(request: NextRequest) {
     });
 
     // PKCE 코드 교환
-    console.log('🔑 PKCE 코드 교환 시작...');
+    logger.info('🔑 PKCE 코드 교환 시작...');
     const { data, error: exchangeError } =
       await supabase.auth.exchangeCodeForSession(code);
 
     if (exchangeError) {
-      console.error('❌ 코드 교환 실패:', exchangeError.message);
+      logger.error('❌ 코드 교환 실패:', exchangeError.message);
       const loginUrl = new URL('/login', requestUrl.origin);
       loginUrl.searchParams.set('error', 'exchange_failed');
       loginUrl.searchParams.set('message', exchangeError.message);
@@ -86,13 +87,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (!data.session) {
-      console.error('❌ 세션 생성 실패');
+      logger.error('❌ 세션 생성 실패');
       const loginUrl = new URL('/login', requestUrl.origin);
       loginUrl.searchParams.set('error', 'no_session');
       return NextResponse.redirect(loginUrl);
     }
 
-    console.log('✅ OAuth 로그인 성공:', {
+    logger.info('✅ OAuth 로그인 성공:', {
       userId: data.session.user.id,
       email: data.session.user.email,
       provider: data.session.user.app_metadata?.provider,
@@ -105,7 +106,7 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('❌ 콜백 처리 예외:', error);
+    logger.error('❌ 콜백 처리 예외:', error);
     const loginUrl = new URL('/login', requestUrl.origin);
     loginUrl.searchParams.set('error', 'callback_exception');
     return NextResponse.redirect(loginUrl);

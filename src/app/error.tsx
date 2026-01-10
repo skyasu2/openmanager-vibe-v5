@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { logger } from '@/lib/logging';
 
 // biome-ignore lint/suspicious/noShadowRestrictedNames: Next.js error page convention requires 'error' prop name
 export default function Error({
@@ -11,7 +12,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    logger.error(error);
   }, [error]);
 
   return (

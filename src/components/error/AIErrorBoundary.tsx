@@ -13,6 +13,7 @@
 
 import { AlertTriangle, Copy, RefreshCw } from 'lucide-react';
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+import { logger } from '@/lib/logging';
 
 // ============================================================================
 // Types
@@ -64,7 +65,7 @@ export class AIErrorBoundary extends Component<
     this.setState({ errorInfo });
 
     // 에러 로깅
-    console.error(
+    logger.error(
       `[AIErrorBoundary${this.props.componentName ? `:${this.props.componentName}` : ''}] Error caught:`,
       error,
       errorInfo
@@ -93,7 +94,7 @@ export class AIErrorBoundary extends Component<
       this.setState({ copied: true });
       setTimeout(() => this.setState({ copied: false }), 2000);
     } catch {
-      console.warn('Failed to copy error to clipboard');
+      logger.warn('Failed to copy error to clipboard');
     }
   };
 

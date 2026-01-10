@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ErrorState } from '../types/ai-thinking';
+import { logger } from '@/lib/logging';
 
 interface PerformanceMetric {
   operation: string;
@@ -71,7 +72,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       setErrors((prev) => prev.filter((e) => e.timestamp !== error.timestamp));
     }
     setCurrentError(null);
-    console.log('✅ AI Error 해결됨:', error?.errorType);
+    logger.info('✅ AI Error 해결됨:', error?.errorType);
   }, []);
 
   // 자동 복구 시도
@@ -81,7 +82,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
 
       const timeout = setTimeout(
         () => {
-          console.log(
+          logger.info(
             `🔄 자동 복구 시도 [${error.errorType}] - 시도 ${error.retryCount + 1}/${error.maxRetries}`
           );
 
@@ -172,7 +173,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       setCurrentError(errorState);
       setErrors((prev) => [...prev, errorState]);
 
-      console.error(`🚨 AI Error Monitor [${errorType}]:`, {
+      logger.error(`🚨 AI Error Monitor [${errorType}]:`, {
         context,
         message,
         originalError: error,
@@ -209,7 +210,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
     }
     retryTimeouts.current.clear();
 
-    console.log('🧹 모든 AI 에러 클리어됨');
+    logger.info('🧹 모든 AI 에러 클리어됨');
   }, []);
 
   // 성능 모니터링 시작
@@ -224,7 +225,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       };
 
       performanceTracker.current.set(operation, metric);
-      console.log(`📊 성능 추적 시작: ${operation}`);
+      logger.info(`📊 성능 추적 시작: ${operation}`);
     },
     [defaultConfig.enablePerformanceTracking]
   );
@@ -251,7 +252,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       setPerformanceMetrics((prev) => [...prev.slice(-49), completedMetric]); // 최근 50개만 유지
       performanceTracker.current.delete(operation);
 
-      console.log(
+      logger.info(
         `📊 성능 추적 완료: ${operation} - ${duration.toFixed(2)}ms (${success ? '성공' : '실패'})`
       );
     },
@@ -261,7 +262,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
   // 폴백 처리
   const handleFallback = useCallback(
     (operation: string, fallbackData: unknown) => {
-      console.warn(`🔄 폴백 처리 활성화: ${operation}`, fallbackData);
+      logger.warn(`🔄 폴백 처리 활성화: ${operation}`, fallbackData);
 
       // 폴백 사용 메트릭 기록
       endPerformanceMonitoring(`${operation}-fallback`, true);
@@ -274,7 +275,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
   // 네트워크 상태 모니터링
   useEffect(() => {
     const handleOnline = () => {
-      console.log('🌐 네트워크 연결됨 - 자동 복구 가능');
+      logger.info('🌐 네트워크 연결됨 - 자동 복구 가능');
 
       // 네트워크 에러 자동 해결
       setErrors((prev) =>
@@ -286,7 +287,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
     };
 
     const handleOffline = () => {
-      console.warn('📴 네트워크 연결 끊김');
+      logger.warn('📴 네트워크 연결 끊김');
       const networkError = createError(
         'network',
         '네트워크 연결이 끊어졌습니다.'

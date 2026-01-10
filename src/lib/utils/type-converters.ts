@@ -8,6 +8,7 @@
  * - Qwen: 성능 최적화된 타입 체크
  */
 
+import { logger } from '@/lib/logging';
 import {
   getDefaultServerEnvironment,
   getDefaultServerRole,
@@ -63,14 +64,14 @@ export function safeServerStatus(value: unknown): ServerStatus {
       case 'maint':
         return 'maintenance';
       default:
-        console.warn(
+        logger.warn(
           `[safeServerStatus] Unknown status: "${valueString}", using default`
         );
         return getDefaultServerStatus();
     }
   }
 
-  console.warn(
+  logger.warn(
     `[safeServerStatus] Invalid value: ${valueString}, using default`
   );
   return getDefaultServerStatus();
@@ -103,14 +104,14 @@ export function safeServerEnvironment(value: unknown): ServerEnvironment {
       case 'testing':
         return 'testing';
       default:
-        console.warn(
+        logger.warn(
           `[safeServerEnvironment] Unknown environment: "${valueString}", using default`
         );
         return getDefaultServerEnvironment();
     }
   }
 
-  console.warn(
+  logger.warn(
     `[safeServerEnvironment] Invalid value: ${valueString}, using default`
   );
   return getDefaultServerEnvironment();
@@ -178,14 +179,14 @@ export function safeServerRole(value: unknown): ServerRole {
       case 'job':
         return 'queue';
       default:
-        console.warn(
+        logger.warn(
           `[safeServerRole] Unknown role: "${valueString}", using default`
         );
         return getDefaultServerRole();
     }
   }
 
-  console.warn(`[safeServerRole] Invalid value: ${valueString}, using default`);
+  logger.warn(`[safeServerRole] Invalid value: ${valueString}, using default`);
   return getDefaultServerRole();
 }
 
@@ -313,7 +314,7 @@ export function normalizeServerDataBatch(
   rawDataArray: unknown[]
 ): ReturnType<typeof normalizeRawServerData>[] {
   if (!Array.isArray(rawDataArray)) {
-    console.warn(
+    logger.warn(
       '[normalizeServerDataBatch] Input is not an array, returning empty array'
     );
     return [];
@@ -328,7 +329,7 @@ export function normalizeServerDataBatch(
       try {
         return normalizeRawServerData(rawData);
       } catch (error) {
-        console.error(
+        logger.error(
           '[normalizeServerDataBatch] Failed to normalize server data:',
           error
         );
@@ -345,19 +346,19 @@ export function normalizeServerDataBatch(
 // 타입 변환 테스트 유틸리티 (개발용)
 export const TypeConverterTests = {
   testServerStatus: () => {
-    console.log('Testing ServerStatus conversions:');
-    console.log('  "online" →', safeServerStatus('online'));
-    console.log('  "healthy" →', safeServerStatus('healthy'));
-    console.log('  "invalid" →', safeServerStatus('invalid'));
-    console.log('  123 →', safeServerStatus(123));
+    logger.info('Testing ServerStatus conversions:');
+    logger.info('  "online" →', safeServerStatus('online'));
+    logger.info('  "healthy" →', safeServerStatus('healthy'));
+    logger.info('  "invalid" →', safeServerStatus('invalid'));
+    logger.info('  123 →', safeServerStatus(123));
   },
 
   testServerRole: () => {
-    console.log('Testing ServerRole conversions:');
-    console.log('  "web" →', safeServerRole('web'));
-    console.log('  "webserver" →', safeServerRole('webserver'));
-    console.log('  "postgres" →', safeServerRole('postgres'));
-    console.log('  "invalid" →', safeServerRole('invalid'));
+    logger.info('Testing ServerRole conversions:');
+    logger.info('  "web" →', safeServerRole('web'));
+    logger.info('  "webserver" →', safeServerRole('webserver'));
+    logger.info('  "postgres" →', safeServerRole('postgres'));
+    logger.info('  "invalid" →', safeServerRole('invalid'));
   },
 
   testNormalization: () => {
@@ -370,6 +371,6 @@ export const TypeConverterTests = {
       memory: 80,
       responseTime: '125.6',
     };
-    console.log('Testing normalization:', normalizeRawServerData(testData));
+    logger.info('Testing normalization:', normalizeRawServerData(testData));
   },
 };

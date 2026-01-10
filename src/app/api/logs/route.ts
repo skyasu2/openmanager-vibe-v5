@@ -11,7 +11,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logging';
 
 // 타입 정의
 type LogLevel = 'info' | 'warn' | 'error';

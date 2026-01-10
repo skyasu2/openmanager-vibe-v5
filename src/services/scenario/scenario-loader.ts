@@ -11,6 +11,7 @@
  */
 
 // Enhanced Server Metrics 인터페이스 (route.ts와 동기화 필요)
+import { logger } from '@/lib/logging';
 export interface EnhancedServerMetrics {
   id: string;
   name: string;
@@ -141,7 +142,7 @@ async function loadHourlyJsonFile(
     // 브라우저/서버 모두 fetch 사용
     const response = await fetch(`/hourly-data/hour-${paddedHour}.json`);
     if (!response.ok) {
-      console.error(`[ScenarioLoader] JSON 로드 실패: ${response.status}`);
+      logger.error(`[ScenarioLoader] JSON 로드 실패: ${response.status}`);
       return null;
     }
 
@@ -152,7 +153,7 @@ async function loadHourlyJsonFile(
 
     return data;
   } catch (error) {
-    console.error('[ScenarioLoader] JSON 파싱 오류:', error);
+    logger.error('[ScenarioLoader] JSON 파싱 오류:', error);
     return null;
   }
 }
@@ -183,7 +184,7 @@ export async function loadHourlyScenarioData(): Promise<
     // JSON 파일 로드
     const hourlyData = await loadHourlyJsonFile(currentHour);
     if (!hourlyData) {
-      console.error(`[ScenarioLoader] hour-${currentHour} 데이터 없음`);
+      logger.error(`[ScenarioLoader] hour-${currentHour} 데이터 없음`);
       return [];
     }
 
@@ -196,7 +197,7 @@ export async function loadHourlyScenarioData(): Promise<
     const dataPoint = hourlyData.dataPoints[clampedIndex];
 
     if (!dataPoint?.servers) {
-      console.error(`[ScenarioLoader] dataPoint[${clampedIndex}] 없음`);
+      logger.error(`[ScenarioLoader] dataPoint[${clampedIndex}] 없음`);
       return [];
     }
 
@@ -205,7 +206,7 @@ export async function loadHourlyScenarioData(): Promise<
       convertToEnhancedMetrics(serverData, currentHour)
     );
   } catch (error) {
-    console.error('[ScenarioLoader] 데이터 로드 오류:', error);
+    logger.error('[ScenarioLoader] 데이터 로드 오류:', error);
     return [];
   }
 }

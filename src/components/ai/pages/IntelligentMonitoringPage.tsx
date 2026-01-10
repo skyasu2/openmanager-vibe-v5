@@ -23,6 +23,7 @@ import type {
   ServerAnalysisResult,
   SystemAnalysisSummary,
 } from '@/types/intelligent-monitoring.types';
+import { logger } from '@/lib/logging';
 
 export default function IntelligentMonitoringPage() {
   // 서버 데이터 (React Query)
@@ -52,14 +53,14 @@ export default function IntelligentMonitoringPage() {
       });
 
       if (!response.ok) {
-        console.error(`[${serverName}] API 요청 실패: ${response.status}`);
+        logger.error(`[${serverName}] API 요청 실패: ${response.status}`);
         return null;
       }
 
       const data = await response.json();
 
       if (!data.success) {
-        console.error(`[${serverName}] 분석 실패:`, data.error);
+        logger.error(`[${serverName}] 분석 실패:`, data.error);
         return null;
       }
 
@@ -83,7 +84,7 @@ export default function IntelligentMonitoringPage() {
         overallStatus,
       };
     } catch (err) {
-      console.error(`[${serverName}] 분석 오류:`, err);
+      logger.error(`[${serverName}] 분석 오류:`, err);
       return null;
     }
   };

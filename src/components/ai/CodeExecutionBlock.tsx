@@ -20,6 +20,7 @@ import {
   Play,
   Terminal,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import { memo, useCallback, useState } from 'react';
 import { useCodeInterpreter } from '@/hooks/useCodeInterpreter';
 import type { ExecutionResult } from '@/services/code-interpreter';
@@ -65,7 +66,7 @@ export const CodeExecutionBlock = memo(function CodeExecutionBlock({
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
-      console.error('복사 실패:', err);
+      logger.error('복사 실패:', err);
     }
   }, [code]);
 

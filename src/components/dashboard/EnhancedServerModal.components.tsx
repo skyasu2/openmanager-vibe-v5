@@ -7,6 +7,7 @@
  */
 
 import type { FC } from 'react';
+import { logger } from '@/lib/logging';
 
 // 🎯 Bundle-Safe Inline 매크로 - getSafe 함수들 (압축 방지)
 const getSafeArrayLength = (arr: unknown): number => {
@@ -35,7 +36,7 @@ const getSafeArrayLength = (arr: unknown): number => {
     if (Number.isNaN(lengthValue) || lengthValue < 0) return 0;
     return Math.floor(lengthValue);
   } catch (error) {
-    console.error('🛡️ getSafeArrayLength Bundle-Safe error:', error);
+    logger.error('🛡️ getSafeArrayLength Bundle-Safe error:', error);
     return 0;
   }
 };
@@ -48,7 +49,7 @@ const getSafeLastArrayItem = <T,>(arr: unknown, fallback: T): T => {
     const lastItem = arr[arr.length - 1];
     return lastItem !== undefined && lastItem !== null ? lastItem : fallback;
   } catch (error) {
-    console.error('🛡️ getSafeLastArrayItem Bundle-Safe error:', error);
+    logger.error('🛡️ getSafeLastArrayItem Bundle-Safe error:', error);
     return fallback;
   }
 };

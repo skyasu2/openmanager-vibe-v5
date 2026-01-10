@@ -10,6 +10,7 @@
  */
 
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
+import { logger } from '@/lib/logging';
 
 /**
  * 환경변수에서 세션 시크릿 가져오기
@@ -28,9 +29,9 @@ function getSessionSecret(): string {
       '⚠️ SESSION_SECRET not set, using default (insecure for production)';
 
     if (isProduction) {
-      console.error(message);
+      logger.error(message);
     } else {
-      console.warn(message);
+      logger.warn(message);
     }
     return 'default-insecure-secret-change-me-in-production';
   }
@@ -70,9 +71,9 @@ export function generateSignedSessionId(): string {
  * @example
  * const originalId = verifySignedSessionId(signedId);
  * if (originalId) {
- *   console.log('Valid session:', originalId);
+ *   logger.info('Valid session:', originalId);
  * } else {
- *   console.error('Invalid or tampered session');
+ *   logger.error('Invalid or tampered session');
  * }
  */
 export function verifySignedSessionId(signedId: string): string | null {
@@ -80,7 +81,7 @@ export function verifySignedSessionId(signedId: string): string | null {
     // 형식 검증: {id}.{signature}
     const parts = signedId.split('.');
     if (parts.length !== 2) {
-      console.warn('🔐 Invalid session format: missing signature');
+      logger.warn('🔐 Invalid session format: missing signature');
       return null;
     }
 
@@ -89,7 +90,7 @@ export function verifySignedSessionId(signedId: string): string | null {
 
     // Null check
     if (!id || !providedSignature) {
-      console.warn('🔐 Invalid session format: empty id or signature');
+      logger.warn('🔐 Invalid session format: empty id or signature');
       return null;
     }
 
@@ -97,7 +98,7 @@ export function verifySignedSessionId(signedId: string): string | null {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(id)) {
-      console.warn('🔐 Invalid session format: malformed UUID');
+      logger.warn('🔐 Invalid session format: malformed UUID');
       return null;
     }
 
@@ -110,7 +111,7 @@ export function verifySignedSessionId(signedId: string): string | null {
     // Timing attack 방지: crypto.timingSafeEqual 사용 (네이티브 C++ 구현)
     // Buffer 길이가 다르면 timingSafeEqual이 에러를 발생시키므로 먼저 체크
     if (providedSignature.length !== expectedSignature.length) {
-      console.warn('🔐 Session signature length mismatch');
+      logger.warn('🔐 Session signature length mismatch');
       return null;
     }
 
@@ -118,13 +119,13 @@ export function verifySignedSessionId(signedId: string): string | null {
     const expectedBuffer = Buffer.from(expectedSignature, 'hex');
 
     if (!timingSafeEqual(providedBuffer, expectedBuffer)) {
-      console.warn('🔐 Session signature mismatch: possible tampering');
+      logger.warn('🔐 Session signature mismatch: possible tampering');
       return null;
     }
 
     return id;
   } catch (error) {
-    console.error('🔐 Session verification error:', error);
+    logger.error('🔐 Session verification error:', error);
     return null;
   }
 }

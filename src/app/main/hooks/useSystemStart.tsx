@@ -14,6 +14,7 @@ import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import debug from '@/utils/debug';
 import { debugWithEnv } from '@/utils/vercel-env-utils';
+import { logger } from '@/lib/logging';
 
 const SYSTEM_START_COUNTDOWN_SECONDS = 3;
 const COUNTDOWN_INTERVAL_MS = 1000;
@@ -174,7 +175,7 @@ export function useSystemStart(options: UseSystemStartOptions) {
       (authLoading && !isAuthenticated && !isGitHubUser);
 
     if (isActuallyLoading) {
-      console.log('🚫 시스템 토글 차단:', {
+      logger.info('🚫 시스템 토글 차단:', {
         statusLoading,
         isSystemStarting,
         authLoading,
@@ -191,7 +192,7 @@ export function useSystemStart(options: UseSystemStartOptions) {
       return;
     }
 
-    console.log('✅ 시스템 토글 실행 - GitHub 사용자:', isGitHubUser);
+    logger.info('✅ 시스템 토글 실행 - GitHub 사용자:', isGitHubUser);
 
     // 카운트다운 중이면 취소
     if (systemStartCountdown > 0) {

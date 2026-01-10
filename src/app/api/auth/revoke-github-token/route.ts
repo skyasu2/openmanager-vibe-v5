@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 
 /**
  * GitHub OAuth 토큰 무효화 API
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🔐 GitHub OAuth 토큰 무효화 시작');
+    logger.info('🔐 GitHub OAuth 토큰 무효화 시작');
 
     // GitHub API를 사용하여 OAuth 토큰 무효화
     // DELETE /applications/{client_id}/token
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
     const clientSecret = process.env.GITHUB_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
-      console.warn('⚠️ GitHub OAuth 설정 없음 - 토큰 무효화 스킵');
+      logger.warn('⚠️ GitHub OAuth 설정 없음 - 토큰 무효화 스킵');
       return NextResponse.json(
         { message: 'GitHub OAuth 설정이 없어 토큰 무효화를 스킵합니다' },
         { status: 200 }
@@ -48,14 +49,14 @@ export async function POST(request: NextRequest) {
     );
 
     if (response.ok) {
-      console.log('✅ GitHub OAuth 토큰 무효화 성공');
+      logger.info('✅ GitHub OAuth 토큰 무효화 성공');
       return NextResponse.json({
         success: true,
         message: 'GitHub OAuth 토큰이 성공적으로 무효화되었습니다.',
       });
     } else {
       const errorText = await response.text();
-      console.warn('⚠️ GitHub OAuth 토큰 무효화 실패:', {
+      logger.warn('⚠️ GitHub OAuth 토큰 무효화 실패:', {
         status: response.status,
         statusText: response.statusText,
         error: errorText,
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
       ); // 200으로 반환하여 클라이언트에서 오류로 처리하지 않음
     }
   } catch (error) {
-    console.error('❌ GitHub OAuth 토큰 무효화 오류:', error);
+    logger.error('❌ GitHub OAuth 토큰 무효화 오류:', error);
 
     // 서버 오류라도 클라이언트 로그아웃에는 영향 없음
     return NextResponse.json(

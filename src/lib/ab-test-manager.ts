@@ -12,6 +12,7 @@
 // 🎯 A/B 테스트 타입 정의
 // ==============================================
 
+import { logger } from '@/lib/logging';
 export type ABTestGroup = 'legacy' | 'optimized' | 'auto';
 
 export interface ABTestConfig {
@@ -231,13 +232,13 @@ export class ABTestManager {
           this.DEFAULT_CONFIG,
           3600 // 1시간 TTL
         );
-        console.log('🧪 A/B 테스트 기본 설정 생성');
+        logger.info('🧪 A/B 테스트 기본 설정 생성');
       }
 
       this.isInitialized = true;
-      console.log('🧪 A/B 테스트 관리자 초기화 완료 (Memory-based)');
+      logger.info('🧪 A/B 테스트 관리자 초기화 완료 (Memory-based)');
     } catch (error) {
-      console.error('❌ A/B 테스트 관리자 초기화 실패:', error);
+      logger.error('❌ A/B 테스트 관리자 초기화 실패:', error);
       throw error;
     }
   }
@@ -288,10 +289,10 @@ export class ABTestManager {
         3600 // 1시간 유지
       );
 
-      console.log(`👥 사용자 ${userKey} → ${group} 그룹 할당`);
+      logger.info(`👥 사용자 ${userKey} → ${group} 그룹 할당`);
       return group;
     } catch (error) {
-      console.error('❌ A/B 테스트 그룹 할당 실패:', error);
+      logger.error('❌ A/B 테스트 그룹 할당 실패:', error);
       return 'legacy'; // 안전한 기본값
     }
   }
@@ -360,7 +361,7 @@ export class ABTestManager {
       // 자동 롤백 검사
       await this.checkAutoRollback(group, metrics);
     } catch (error) {
-      console.error('❌ A/B 테스트 메트릭 기록 실패:', error);
+      logger.error('❌ A/B 테스트 메트릭 기록 실패:', error);
     }
   }
 
@@ -417,7 +418,7 @@ export class ABTestManager {
         },
       };
     } catch (error) {
-      console.error('❌ A/B 테스트 결과 조회 실패:', error);
+      logger.error('❌ A/B 테스트 결과 조회 실패:', error);
       throw error;
     }
   }
@@ -434,9 +435,9 @@ export class ABTestManager {
 
       this.memoryCache.set(this.CACHE_KEYS.CONFIG, updatedConfig, 3600);
 
-      console.log('⚙️ A/B 테스트 설정 업데이트:', newConfig);
+      logger.info('⚙️ A/B 테스트 설정 업데이트:', newConfig);
     } catch (error) {
-      console.error('❌ A/B 테스트 설정 업데이트 실패:', error);
+      logger.error('❌ A/B 테스트 설정 업데이트 실패:', error);
       throw error;
     }
   }
@@ -459,7 +460,7 @@ export class ABTestManager {
       },
     });
 
-    console.log(
+    logger.info(
       `🔄 트래픽 분할 조정: Legacy ${legacyPercent}%, Optimized ${optimizedPercent}%`
     );
   }
@@ -476,7 +477,7 @@ export class ABTestManager {
       },
     });
 
-    console.log(`🚨 긴급 롤백 실행: ${reason}`);
+    logger.info(`🚨 긴급 롤백 실행: ${reason}`);
   }
 
   /**
@@ -488,9 +489,9 @@ export class ABTestManager {
       keys.forEach((key) => {
         this.memoryCache.delete(key);
       });
-      console.log('🧹 A/B 테스트 데이터 정리 완료');
+      logger.info('🧹 A/B 테스트 데이터 정리 완료');
     } catch (error) {
-      console.error('❌ A/B 테스트 데이터 정리 실패:', error);
+      logger.error('❌ A/B 테스트 데이터 정리 실패:', error);
     }
   }
 
@@ -502,7 +503,7 @@ export class ABTestManager {
       clearInterval(this.cleanupTimer);
     }
     this.memoryCache.clear();
-    console.log('🛑 A/B 테스트 관리자 리소스 정리 완료');
+    logger.info('🛑 A/B 테스트 관리자 리소스 정리 완료');
   }
 
   // ==============================================

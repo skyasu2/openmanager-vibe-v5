@@ -6,6 +6,7 @@
  * - GROQ API 키 보안 유지
  */
 
+import { logger } from '@/lib/logging';
 export interface QueryClassification {
   complexity: number; // 1-5
   intent: 'general' | 'monitoring' | 'analysis' | 'guide' | 'coding';
@@ -54,14 +55,14 @@ export class QueryClassifier {
       });
 
       if (!response.ok) {
-        console.warn('⚠️ Classification API failed, using fallback');
+        logger.warn('⚠️ Classification API failed, using fallback');
         return this.fallbackClassify(query);
       }
 
       const result = await response.json();
       return result as QueryClassification;
     } catch (error) {
-      console.error('❌ Classification request failed:', error);
+      logger.error('❌ Classification request failed:', error);
       return this.fallbackClassify(query);
     }
   }

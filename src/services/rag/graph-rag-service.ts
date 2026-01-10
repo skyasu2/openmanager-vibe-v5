@@ -11,6 +11,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
 import type {
   CreateRelationshipInput,
   GraphRAGSearchResult,
@@ -64,7 +65,7 @@ class GraphRAGService {
     input: CreateRelationshipInput
   ): Promise<KnowledgeRelationship | null> {
     if (!this.supabase) {
-      console.warn('🕸️ [GraphRAG] Supabase not initialized');
+      logger.warn('🕸️ [GraphRAG] Supabase not initialized');
       return null;
     }
 
@@ -85,7 +86,7 @@ class GraphRAGService {
       .single();
 
     if (error) {
-      console.error('🕸️ [GraphRAG] Failed to create relationship:', error);
+      logger.error('🕸️ [GraphRAG] Failed to create relationship:', error);
       return null;
     }
 
@@ -118,7 +119,7 @@ class GraphRAGService {
       .select();
 
     if (error) {
-      console.error('🕸️ [GraphRAG] Batch insert failed:', error);
+      logger.error('🕸️ [GraphRAG] Batch insert failed:', error);
       return 0;
     }
 
@@ -145,7 +146,7 @@ class GraphRAGService {
     });
 
     if (error) {
-      console.error('🕸️ [GraphRAG] Failed to get neighbors:', error);
+      logger.error('🕸️ [GraphRAG] Failed to get neighbors:', error);
       return [];
     }
 
@@ -185,7 +186,7 @@ class GraphRAGService {
     );
 
     if (error) {
-      console.error('🕸️ [GraphRAG] Graph traversal failed:', error);
+      logger.error('🕸️ [GraphRAG] Graph traversal failed:', error);
       return [];
     }
 
@@ -233,7 +234,7 @@ class GraphRAGService {
     );
 
     if (error) {
-      console.error('🕸️ [GraphRAG] Hybrid search failed:', error);
+      logger.error('🕸️ [GraphRAG] Hybrid search failed:', error);
       return {
         success: false,
         results: [],
@@ -320,7 +321,7 @@ class GraphRAGService {
     });
 
     if (error) {
-      console.error('🕸️ [GraphRAG] Hybrid text search failed:', error);
+      logger.error('🕸️ [GraphRAG] Hybrid text search failed:', error);
       return {
         success: false,
         results: [],
@@ -415,7 +416,7 @@ class GraphRAGService {
     });
 
     if (error) {
-      console.error('🕸️ [GraphRAG] Text search failed:', error);
+      logger.error('🕸️ [GraphRAG] Text search failed:', error);
       return [];
     }
 

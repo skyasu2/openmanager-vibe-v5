@@ -6,6 +6,7 @@
  */
 
 import { ACTIVE_SERVER_CONFIG } from './serverConfig';
+import { logger } from '@/lib/logging';
 
 export interface DataConsistencyConfig {
   // 서버 데이터 설정
@@ -123,24 +124,24 @@ export function logDataConsistencyStatus(): void {
   const validation = validateDataConsistency();
   const config = DATA_CONSISTENCY_CONFIG;
 
-  console.log('��� 데이터 일관성 설정 상태:');
-  console.log(`  ��� 서버 총 개수: ${config.servers.totalCount}개`);
-  console.log(`  ��� 페이지당 표시: ${config.servers.itemsPerPage}개`);
-  console.log(`  ��� API 기본 제한: ${config.servers.apiDefaultLimit}개`);
-  console.log(
+  logger.info('��� 데이터 일관성 설정 상태:');
+  logger.info(`  ��� 서버 총 개수: ${config.servers.totalCount}개`);
+  logger.info(`  ��� 페이지당 표시: ${config.servers.itemsPerPage}개`);
+  logger.info(`  ��� API 기본 제한: ${config.servers.apiDefaultLimit}개`);
+  logger.info(
     `  ��� 목업 모드: ${config.cache.enableMockMode ? '활성화' : '비활성화'}`
   );
-  console.log(
+  logger.info(
     `  ⏱️ 헬스체크 간격: ${config.cache.healthCheckInterval / 1000}초`
   );
 
   if (validation.isConsistent) {
-    console.log('✅ 데이터 일관성 검증 통과');
+    logger.info('✅ 데이터 일관성 검증 통과');
   } else {
-    console.warn('⚠️ 데이터 일관성 문제 발견:');
-    validation.issues.forEach((issue) => console.warn(`  - ${issue}`));
-    console.log('��� 권장사항:');
-    validation.recommendations.forEach((rec) => console.log(`  - ${rec}`));
+    logger.warn('⚠️ 데이터 일관성 문제 발견:');
+    validation.issues.forEach((issue) => logger.warn(`  - ${issue}`));
+    logger.info('��� 권장사항:');
+    validation.recommendations.forEach((rec) => logger.info(`  - ${rec}`));
   }
 }
 

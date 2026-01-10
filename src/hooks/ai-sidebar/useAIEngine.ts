@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect } from 'react';
 import type { ChatMessage } from '@/stores/useAISidebarStore';
+import { logger } from '@/lib/logging';
 
 export interface UseAIEngineReturn {
   // 상태 (하위 호환성)
@@ -48,7 +49,7 @@ export function useAIEngine(): UseAIEngineReturn {
 
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && saved !== 'UNIFIED') {
-      console.info(`🔄 AI 모드 자동 마이그레이션: ${saved} → UNIFIED`);
+      logger.info(`🔄 AI 모드 자동 마이그레이션: ${saved} → UNIFIED`);
       localStorage.setItem(STORAGE_KEY, 'UNIFIED');
     }
   }, []);
@@ -56,7 +57,7 @@ export function useAIEngine(): UseAIEngineReturn {
   // 엔진 설정 (더 이상 아무것도 하지 않음)
   const setEngine = useCallback((engine: string) => {
     if (engine !== 'UNIFIED') {
-      console.warn(
+      logger.warn(
         `⚠️ AI 모드 "${engine}"는 더 이상 지원되지 않습니다. UNIFIED 사용.`
       );
     }
@@ -79,7 +80,7 @@ export function useAIEngine(): UseAIEngineReturn {
   const handleModeChange = useCallback(
     async (newMode: string): Promise<ChatMessage | null> => {
       if (newMode !== 'UNIFIED') {
-        console.warn(
+        logger.warn(
           `⚠️ AI 모드 "${newMode}"는 더 이상 지원되지 않습니다. UNIFIED 사용.`
         );
       }

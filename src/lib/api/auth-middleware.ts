@@ -6,6 +6,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 import { authManager } from '../auth/auth';
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -82,7 +83,7 @@ export function withAdminAuth(
       // 원래 핸들러 실행
       return await handler(authenticatedReq);
     } catch (error) {
-      console.error('❌ Auth middleware error:', error);
+      logger.error('❌ Auth middleware error:', error);
       return NextResponse.json(
         {
           success: false,
@@ -130,7 +131,7 @@ export function withApiKeyAuth(
 
       return await handler(req);
     } catch (error) {
-      console.error('❌ API key auth error:', error);
+      logger.error('❌ API key auth error:', error);
       return NextResponse.json(
         {
           success: false,

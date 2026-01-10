@@ -12,6 +12,7 @@ import type {
   SystemHealth,
   WebSocketPerformanceMessage,
 } from '@/types/performance/performance';
+import { logger } from '@/lib/logging';
 
 interface UsePerformanceMetricsOptions {
   updateInterval?: number;
@@ -154,7 +155,7 @@ export const usePerformanceMetrics = (
       }
       return await response.json();
     } catch (error) {
-      console.error('Error fetching performance metrics:', error);
+      logger.error('Error fetching performance metrics:', error);
       // Return mock data for development
       return {
         timestamp: Date.now(),
@@ -208,7 +209,7 @@ export const usePerformanceMetrics = (
       wsRef.current.onopen = () => {
         setIsConnected(true);
         setError(null);
-        console.log('Performance WebSocket connected');
+        logger.info('Performance WebSocket connected');
       };
 
       wsRef.current.onmessage = (event) => {
@@ -248,18 +249,18 @@ export const usePerformanceMetrics = (
             }
           }
         } catch (err) {
-          console.error('Error parsing WebSocket message:', err);
+          logger.error('Error parsing WebSocket message:', err);
         }
       };
 
       wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        logger.error('WebSocket error:', error);
         setError('WebSocket connection error');
       };
 
       wsRef.current.onclose = () => {
         setIsConnected(false);
-        console.log('Performance WebSocket disconnected');
+        logger.info('Performance WebSocket disconnected');
 
         // Attempt to reconnect after 5 seconds
         setTimeout(() => {

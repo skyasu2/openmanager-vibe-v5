@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 export interface Server {
   id: string;
@@ -97,7 +98,7 @@ export function useSequentialServerGeneration(
     error?: string;
   }> => {
     try {
-      console.log('🔄 서버 생성 API 호출 시작...');
+      logger.info('🔄 서버 생성 API 호출 시작...');
 
       // 새로운 AbortController 생성
       abortControllerRef.current = new AbortController();
@@ -114,7 +115,7 @@ export function useSequentialServerGeneration(
         signal: abortControllerRef.current.signal,
       });
 
-      console.log(
+      logger.info(
         `📡 API 응답 상태: ${response.status} ${response.statusText}`
       );
 
@@ -123,10 +124,10 @@ export function useSequentialServerGeneration(
       }
 
       const data = await response.json();
-      console.log('📦 서버 생성 API 응답:', data);
+      logger.info('📦 서버 생성 API 응답:', data);
 
       if (data.success && data.server) {
-        console.log('✅ 서버 생성 성공:', data.server.hostname);
+        logger.info('✅ 서버 생성 성공:', data.server.hostname);
         return {
           success: true,
           server: data.server,
@@ -137,7 +138,7 @@ export function useSequentialServerGeneration(
           message: data.message || '서버 생성 완료',
         };
       } else {
-        console.error('❌ 서버 생성 실패 - API 응답 형식 오류:', data);
+        logger.error('❌ 서버 생성 실패 - API 응답 형식 오류:', data);
         return {
           success: false,
           currentCount: servers.length,
@@ -147,7 +148,7 @@ export function useSequentialServerGeneration(
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log('⏹️ 서버 생성 요청이 취소됨');
+        logger.info('⏹️ 서버 생성 요청이 취소됨');
         return {
           success: false,
           currentCount: servers.length,
@@ -155,7 +156,7 @@ export function useSequentialServerGeneration(
         };
       }
 
-      console.error('❌ 서버 생성 API 오류:', error);
+      logger.error('❌ 서버 생성 API 오류:', error);
       return {
         success: false,
         currentCount: servers.length,
@@ -168,11 +169,11 @@ export function useSequentialServerGeneration(
   // 서버 생성 시작
   const startGeneration = useCallback(async () => {
     if (status.isGenerating) {
-      console.warn('⚠️ 이미 서버 생성이 진행 중입니다');
+      logger.warn('⚠️ 이미 서버 생성이 진행 중입니다');
       return;
     }
 
-    console.log('🚀 순차 서버 생성 시작...');
+    logger.info('🚀 순차 서버 생성 시작...');
 
     setStatus((prev) => ({
       ...prev,
@@ -298,7 +299,7 @@ export function useSequentialServerGeneration(
 
   // 서버 생성 중지
   const stopGeneration = useCallback(() => {
-    console.log('⏹️ 서버 생성 중지...');
+    logger.info('⏹️ 서버 생성 중지...');
 
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -319,7 +320,7 @@ export function useSequentialServerGeneration(
 
   // 리셋
   const reset = useCallback(async () => {
-    console.log('🔄 서버 생성 리셋...');
+    logger.info('🔄 서버 생성 리셋...');
 
     stopGeneration();
 
@@ -345,7 +346,7 @@ export function useSequentialServerGeneration(
         lastGeneratedServer: null,
       });
     } catch (error) {
-      console.error('❌ 리셋 실패:', error);
+      logger.error('❌ 리셋 실패:', error);
       setStatus((prev) => ({
         ...prev,
         error: '리셋 실패',

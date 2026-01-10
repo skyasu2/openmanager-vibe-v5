@@ -8,6 +8,7 @@ import {
   Info,
   Shield,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useState } from 'react';
 
 interface SecurityStatus {
@@ -83,7 +84,7 @@ export default function SecurityDashboard() {
 
       setLastCheck(new Date().toLocaleTimeString());
     } catch (error) {
-      console.error('Security status check failed:', error);
+      logger.error('Security status check failed:', error);
     } finally {
       setLoading(false);
     }

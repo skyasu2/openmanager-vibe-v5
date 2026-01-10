@@ -13,7 +13,7 @@
  *
  * const handleRun = async () => {
  *   const result = await execute('print("Hello!")');
- *   console.log(result.output);
+ *   logger.info(result.output);
  * };
  * ```
  */
@@ -25,6 +25,7 @@ import {
   type ExecutionResult,
   pyodideService,
 } from '@/services/code-interpreter';
+import { logger } from '@/lib/logging';
 
 export interface UseCodeInterpreterReturn {
   /** Execute Python code */
@@ -62,7 +63,7 @@ export function useCodeInterpreter(): UseCodeInterpreterReturn {
       const errorMessage =
         err instanceof Error ? err.message : 'Pyodide 초기화 실패';
       setError(errorMessage);
-      console.error('🐍 [Pyodide] 초기화 오류:', err);
+      logger.error('🐍 [Pyodide] 초기화 오류:', err);
     } finally {
       setIsLoading(false);
     }

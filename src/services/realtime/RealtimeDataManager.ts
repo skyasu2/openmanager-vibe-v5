@@ -8,6 +8,8 @@
  * - 환경별 갱신 주기 설정
  */
 
+import { logger } from '@/lib/logging';
+
 type DataType = 'server' | 'network' | 'system' | 'metrics';
 type UpdateFrequency = 'high' | 'medium' | 'low';
 
@@ -73,8 +75,8 @@ class RealtimeDataManager {
 
     this.subscribers.set(id, subscriber);
 
-    console.log(`📡 구독자 등록: ${id} (${dataType}, ${frequency})`);
-    console.log(`📊 총 구독자 수: ${this.subscribers.size}`);
+    logger.info(`📡 구독자 등록: ${id} (${dataType}, ${frequency})`);
+    logger.info(`📊 총 구독자 수: ${this.subscribers.size}`);
 
     // 즉시 첫 데이터 전송
     this.updateSubscriber(subscriber);
@@ -88,8 +90,8 @@ class RealtimeDataManager {
    */
   public unsubscribe(id: string): void {
     if (this.subscribers.delete(id)) {
-      console.log(`📡 구독자 해제: ${id}`);
-      console.log(`📊 남은 구독자 수: ${this.subscribers.size}`);
+      logger.info(`📡 구독자 해제: ${id}`);
+      logger.info(`📊 남은 구독자 수: ${this.subscribers.size}`);
     }
 
     // 구독자가 없으면 타이머 정지
@@ -105,7 +107,7 @@ class RealtimeDataManager {
     const subscriber = this.subscribers.get(id);
     if (subscriber) {
       subscriber.isVisible = isVisible;
-      console.log(`👁️ 가시성 업데이트: ${id} = ${isVisible}`);
+      logger.info(`👁️ 가시성 업데이트: ${id} = ${isVisible}`);
     }
   }
 
@@ -116,7 +118,7 @@ class RealtimeDataManager {
     if (this.isRunning) return;
 
     this.isRunning = true;
-    console.log('🚀 RealtimeDataManager 타이머 시작');
+    logger.info('🚀 RealtimeDataManager 타이머 시작');
 
     // 각 주기별 타이머 설정
     Object.entries(this.config).forEach(([frequency, interval]) => {
@@ -125,7 +127,7 @@ class RealtimeDataManager {
       }, interval);
 
       this.timers.set(frequency as UpdateFrequency, timer);
-      console.log(`⏰ ${frequency} 타이머 설정: ${interval}ms`);
+      logger.info(`⏰ ${frequency} 타이머 설정: ${interval}ms`);
     });
   }
 
@@ -136,11 +138,11 @@ class RealtimeDataManager {
     if (!this.isRunning) return;
 
     this.isRunning = false;
-    console.log('⏹️ RealtimeDataManager 타이머 정지');
+    logger.info('⏹️ RealtimeDataManager 타이머 정지');
 
     this.timers.forEach((timer, frequency) => {
       clearInterval(timer);
-      console.log(`⏰ ${frequency} 타이머 정지`);
+      logger.info(`⏰ ${frequency} 타이머 정지`);
     });
 
     this.timers.clear();
@@ -162,7 +164,7 @@ class RealtimeDataManager {
     });
 
     this.updateCount++;
-    console.log(
+    logger.info(
       `🔄 ${frequency} 업데이트 완료: ${updatedCount}개 구독자 (총 ${this.updateCount}회)`
     );
   }
@@ -175,7 +177,7 @@ class RealtimeDataManager {
       const data = this.generateData(subscriber.dataType);
       subscriber.callback(data);
     } catch (error) {
-      console.error(`❌ 구독자 업데이트 실패: ${subscriber.id}`, error);
+      logger.error(`❌ 구독자 업데이트 실패: ${subscriber.id}`, error);
     }
   }
 
@@ -285,7 +287,7 @@ class RealtimeDataManager {
    * 강제 업데이트 (디버깅용)
    */
   public forceUpdate(dataType?: DataType): void {
-    console.log(`🔄 강제 업데이트 실행: ${dataType || 'all'}`);
+    logger.info(`🔄 강제 업데이트 실행: ${dataType || 'all'}`);
 
     this.subscribers.forEach((subscriber) => {
       if (!dataType || subscriber.dataType === dataType) {
@@ -298,7 +300,7 @@ class RealtimeDataManager {
    * 정리 (앱 종료 시)
    */
   public destroy(): void {
-    console.log('🧹 RealtimeDataManager 정리');
+    logger.info('🧹 RealtimeDataManager 정리');
     this.stopTimers();
     this.subscribers.clear();
     this.updateCount = 0;

@@ -19,6 +19,7 @@ import {
   type ClarificationRequest,
   useHybridAIQuery,
 } from '@/hooks/ai/useHybridAIQuery';
+import { logger } from '@/lib/logging';
 import { extractTextFromUIMessage } from '@/lib/ai/utils/message-normalizer';
 import type {
   AnalysisBasis,
@@ -68,7 +69,7 @@ function loadChatHistory(): StoredChatHistory | null {
 
     return parsed;
   } catch (error) {
-    console.warn('[ChatHistory] Failed to load:', error);
+    logger.warn('[ChatHistory] Failed to load:', error);
     return null;
   }
 }
@@ -103,7 +104,7 @@ function saveChatHistory(
 
     localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(history));
   } catch (error) {
-    console.warn('[ChatHistory] Failed to save:', error);
+    logger.warn('[ChatHistory] Failed to save:', error);
   }
 }
 
@@ -116,7 +117,7 @@ function clearChatHistory(): void {
   try {
     localStorage.removeItem(CHAT_HISTORY_KEY);
   } catch (error) {
-    console.warn('[ChatHistory] Failed to clear:', error);
+    logger.warn('[ChatHistory] Failed to clear:', error);
   }
 }
 
@@ -304,12 +305,12 @@ export function useAIChatCore(
       }
       pendingQueryRef.current = '';
       if (process.env.NODE_ENV === 'development') {
-        console.log('📦 [Job Queue] Result received:', result.success);
+        logger.info('📦 [Job Queue] Result received:', result.success);
       }
     },
     onProgress: (progress) => {
       if (process.env.NODE_ENV === 'development') {
-        console.log(
+        logger.info(
           `📊 [Job Queue] Progress: ${progress.progress}% - ${progress.stage}`
         );
       }
@@ -350,7 +351,7 @@ export function useAIChatCore(
       chatSessionIdRef.current = history.sessionId;
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(
+        logger.info(
           `📂 [ChatHistory] Restored ${restoredMessages.length} messages`
         );
       }
@@ -411,10 +412,10 @@ export function useAIChatCore(
           }),
         });
         if (!response.ok) {
-          console.error('[AIChatCore] Feedback API error:', response.status);
+          logger.error('[AIChatCore] Feedback API error:', response.status);
         }
       } catch (error) {
-        console.error('[AIChatCore] Feedback error:', error);
+        logger.error('[AIChatCore] Feedback error:', error);
       }
     },
     []
@@ -553,7 +554,7 @@ export function useAIChatCore(
 
     // 세션 제한 체크
     if (!disableSessionLimit && sessionState.isLimitReached) {
-      console.warn(
+      logger.warn(
         `⚠️ [Session] Limit reached (${SESSION_MESSAGE_LIMIT} messages)`
       );
       return;

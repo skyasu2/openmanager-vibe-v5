@@ -9,6 +9,7 @@
 
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { logger } from '@/lib/logging';
 
 interface Props {
   children: ReactNode;
@@ -40,7 +41,7 @@ class ServerCardErrorBoundary extends Component<Props, State> {
       error.message.includes('Cannot read properties');
 
     if (isTypeError) {
-      console.error('🚨 ServerCard Race Condition TypeError 캐치됨:', {
+      logger.error('🚨 ServerCard Race Condition TypeError 캐치됨:', {
         serverId: this.props.serverId || 'Unknown', // Gemini 리뷰 반영: 디버깅 컨텍스트 추가
         message: error.message,
         stack: error.stack?.split('\n').slice(0, 3).join('\n'),
@@ -52,7 +53,7 @@ class ServerCardErrorBoundary extends Component<Props, State> {
     }
 
     // 에러 로깅 (콘솔 기반 - 외부 서비스 미연동)
-    console.error('ServerCard Error:', error, errorInfo);
+    logger.error('ServerCard Error:', error, errorInfo);
   }
 
   handleRetry = () => {

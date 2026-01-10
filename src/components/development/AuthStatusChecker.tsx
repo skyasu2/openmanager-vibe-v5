@@ -17,6 +17,7 @@ import {
   User as UserIcon,
   XCircle,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -91,7 +92,7 @@ export default function AuthStatusChecker() {
           cookieAuthType = document.cookie.includes('auth_type=guest');
         }
       } catch {
-        console.warn('[AuthStatusChecker] Browser storage access failed');
+        logger.warn('[AuthStatusChecker] Browser storage access failed');
       }
 
       const status: AuthStatus = {
@@ -125,7 +126,7 @@ export default function AuthStatusChecker() {
       setAuthStatus(status);
       setLastRefresh(new Date());
     } catch (error) {
-      console.error('Auth status check failed:', error);
+      logger.error('Auth status check failed:', error);
     } finally {
       setIsLoading(false);
     }

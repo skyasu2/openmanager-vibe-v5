@@ -61,6 +61,7 @@ interface WorkerMessage {
 }
 
 type WorkerCallback = (result: unknown) => void;
+import { logger } from '@/lib/logging';
 type WorkerErrorCallback = (error: Error) => void;
 
 /**
@@ -92,7 +93,7 @@ export const useWorkerStats = () => {
         const { type, id, data, error } = e.data;
 
         if (type === 'WORKER_READY') {
-          console.log('🚀 Server Stats Worker initialized successfully');
+          logger.info('🚀 Server Stats Worker initialized successfully');
           return;
         }
 
@@ -118,7 +119,7 @@ export const useWorkerStats = () => {
 
       // 에러 핸들러 설정
       workerRef.current.onerror = (error) => {
-        console.error('🚨 Worker error:', error);
+        logger.error('🚨 Worker error:', error);
         // 모든 대기 중인 콜백에 에러 전달
         callbacksRef.current.forEach(({ reject }) => {
           reject(new Error('Worker crashed'));
@@ -126,7 +127,7 @@ export const useWorkerStats = () => {
         callbacksRef.current.clear();
       };
     } catch (error) {
-      console.error('🚨 Worker initialization failed:', error);
+      logger.error('🚨 Worker initialization failed:', error);
       isInitializedRef.current = false;
     }
   }, []);
@@ -199,13 +200,13 @@ export const useWorkerStats = () => {
 
         // 🛡️ Phase 76: Worker 응답 스키마 검증
         if (!isValidServerStats(result)) {
-          console.error('❌ Worker 응답 스키마 불일치, Fallback 사용:', result);
+          logger.error('❌ Worker 응답 스키마 불일치, Fallback 사용:', result);
           return calculateServerStatsFallback(servers);
         }
 
         return result;
       } catch (error) {
-        console.error('❌ Worker 계산 실패, Fallback 사용:', error);
+        logger.error('❌ Worker 계산 실패, Fallback 사용:', error);
         return calculateServerStatsFallback(servers);
       }
     },

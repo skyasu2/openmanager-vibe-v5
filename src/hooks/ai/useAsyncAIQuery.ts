@@ -17,7 +17,7 @@
  * const handleSubmit = async () => {
  *   const response = await sendQuery('서버 상태를 분석해주세요');
  *   if (response.success) {
- *     console.log('Result:', response.data);
+ *     logger.info('Result:', response.data);
  *   }
  * };
  * ```
@@ -31,6 +31,7 @@ import {
   fetchWithRetry,
   RETRY_STANDARD,
 } from '@/lib/utils/retry';
+import { logger } from '@/lib/logging';
 
 // ============================================================================
 // Types
@@ -121,7 +122,7 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
       try {
         await fetch(`/api/ai/jobs/${state.jobId}`, { method: 'DELETE' });
       } catch (e) {
-        console.warn('[AsyncAI] Failed to cancel job:', e);
+        logger.warn('[AsyncAI] Failed to cancel job:', e);
       }
     }
 
@@ -184,7 +185,7 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
             setState((prev) => ({ ...prev, isConnected: true }));
             // 재연결 성공 시 attempt 리셋
             if (reconnectAttempt > 0) {
-              console.log(
+              logger.info(
                 `[AsyncAI] SSE reconnected after ${reconnectAttempt} attempts`
               );
             }
@@ -197,7 +198,7 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
               setState((prev) => ({ ...prev, progress }));
               onProgress?.(progress);
             } catch (e) {
-              console.warn('[AsyncAI] Failed to parse progress:', e);
+              logger.warn('[AsyncAI] Failed to parse progress:', e);
             }
           });
 
@@ -245,7 +246,7 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
                 10000,
                 0.1
               );
-              console.log(
+              logger.info(
                 `[AsyncAI] SSE disconnected, reconnecting in ${delay}ms (attempt ${reconnectAttempt + 1}/${maxReconnects})`
               );
 
@@ -292,7 +293,7 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
           {
             ...RETRY_STANDARD,
             onRetry: (error, attempt, delayMs) => {
-              console.log(
+              logger.info(
                 `[AsyncAI] Job creation retry ${attempt}, waiting ${delayMs}ms`,
                 error
               );

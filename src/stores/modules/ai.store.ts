@@ -4,6 +4,7 @@ import {
   persist,
   subscribeWithSelector,
 } from 'zustand/middleware';
+import { logger } from '@/lib/logging';
 import type { CircuitBreakerEvent } from '@/lib/ai/circuit-breaker';
 
 /**
@@ -158,7 +159,7 @@ export const useAIStore = create<AIState>()(
               state: 'enabled',
             });
 
-            console.log('🤖 [AI] AI 어시스턴트 활성화');
+            logger.info('🤖 [AI] AI 어시스턴트 활성화');
 
             // AI 활성화 이벤트
             if (typeof window !== 'undefined') {
@@ -169,7 +170,7 @@ export const useAIStore = create<AIState>()(
               );
             }
           } catch (error) {
-            console.error('❌ [AI] 활성화 실패:', error);
+            logger.error('❌ [AI] 활성화 실패:', error);
           }
         },
 
@@ -182,7 +183,7 @@ export const useAIStore = create<AIState>()(
               isProcessing: false,
             });
 
-            console.log('🤖 [AI] AI 어시스턴트 비활성화');
+            logger.info('🤖 [AI] AI 어시스턴트 비활성화');
 
             // AI 비활성화 이벤트
             if (typeof window !== 'undefined') {
@@ -193,7 +194,7 @@ export const useAIStore = create<AIState>()(
               );
             }
           } catch (error) {
-            console.error('❌ [AI] 비활성화 실패:', error);
+            logger.error('❌ [AI] 비활성화 실패:', error);
           }
         },
 
@@ -207,7 +208,7 @@ export const useAIStore = create<AIState>()(
             state: 'processing',
           });
 
-          console.log('⚡ [AI] 처리 시작');
+          logger.info('⚡ [AI] 처리 시작');
         },
 
         // 처리 중지
@@ -217,7 +218,7 @@ export const useAIStore = create<AIState>()(
             state: 'idle',
           });
 
-          console.log('⏸️ [AI] 처리 중지');
+          logger.info('⏸️ [AI] 처리 중지');
         },
 
         // 메트릭 업데이트
@@ -249,11 +250,11 @@ export const useAIStore = create<AIState>()(
               },
             });
 
-            console.log(
+            logger.info(
               `📊 [AI] 메트릭 업데이트 - Query: ${query}, Success: ${success}`
             );
           } catch (error) {
-            console.error('❌ [AI] 메트릭 업데이트 실패:', error);
+            logger.error('❌ [AI] 메트릭 업데이트 실패:', error);
           }
         },
 
@@ -269,9 +270,9 @@ export const useAIStore = create<AIState>()(
               },
             });
 
-            console.log(`🧠 [AI] 패턴 학습: ${pattern}`);
+            logger.info(`🧠 [AI] 패턴 학습: ${pattern}`);
           } catch (error) {
-            console.error('❌ [AI] 패턴 추가 실패:', error);
+            logger.error('❌ [AI] 패턴 추가 실패:', error);
           }
         },
 
@@ -289,9 +290,9 @@ export const useAIStore = create<AIState>()(
               },
             });
 
-            console.log(`📈 [AI] 개선사항 기록: ${improvement}`);
+            logger.info(`📈 [AI] 개선사항 기록: ${improvement}`);
           } catch (error) {
-            console.error('❌ [AI] 개선사항 추가 실패:', error);
+            logger.error('❌ [AI] 개선사항 추가 실패:', error);
           }
         },
 
@@ -310,9 +311,9 @@ export const useAIStore = create<AIState>()(
               },
             });
 
-            console.log(`❌ [AI] 에러 로그: ${error}`);
+            logger.info(`❌ [AI] 에러 로그: ${error}`);
           } catch (error) {
-            console.error('❌ [AI] 에러 로그 실패:', error);
+            logger.error('❌ [AI] 에러 로그 실패:', error);
           }
         },
 
@@ -328,9 +329,9 @@ export const useAIStore = create<AIState>()(
               },
             });
 
-            console.log('⚙️ [AI] 설정 업데이트:', newConfig);
+            logger.info('⚙️ [AI] 설정 업데이트:', newConfig);
           } catch (error) {
-            console.error('❌ [AI] 설정 업데이트 실패:', error);
+            logger.error('❌ [AI] 설정 업데이트 실패:', error);
           }
         },
 
@@ -362,7 +363,7 @@ export const useAIStore = create<AIState>()(
               },
             });
           } catch (error) {
-            console.error('❌ [AI] Circuit Breaker 상태 업데이트 실패:', error);
+            logger.error('❌ [AI] Circuit Breaker 상태 업데이트 실패:', error);
           }
         },
 
@@ -402,13 +403,13 @@ export const useAIStore = create<AIState>()(
               event.type === 'failover' ||
               event.type === 'rate_limit'
             ) {
-              console.warn(
+              logger.warn(
                 `⚠️ [AI] ${event.type} - ${event.service}:`,
                 event.details
               );
             }
           } catch (error) {
-            console.error('❌ [AI] Circuit Breaker 이벤트 추가 실패:', error);
+            logger.error('❌ [AI] Circuit Breaker 이벤트 추가 실패:', error);
           }
         },
 
@@ -425,7 +426,7 @@ export const useAIStore = create<AIState>()(
               },
             });
           } catch (error) {
-            console.error('❌ [AI] 관리 통계 업데이트 실패:', error);
+            logger.error('❌ [AI] 관리 통계 업데이트 실패:', error);
           }
         },
 
@@ -450,9 +451,9 @@ export const useAIStore = create<AIState>()(
               },
             });
 
-            console.log('🔄 [AI] 관리 데이터 새로고침 완료');
+            logger.info('🔄 [AI] 관리 데이터 새로고침 완료');
           } catch (error) {
-            console.error('❌ [AI] 관리 데이터 새로고침 실패:', error);
+            logger.error('❌ [AI] 관리 데이터 새로고침 실패:', error);
           }
         },
       }),
@@ -476,7 +477,7 @@ if (typeof window !== 'undefined') {
   useAIStore.subscribe(
     (state) => state.isEnabled,
     (isEnabled) => {
-      console.log(`🤖 [AI] 상태 변화: ${isEnabled ? '활성화' : '비활성화'}`);
+      logger.info(`🤖 [AI] 상태 변화: ${isEnabled ? '활성화' : '비활성화'}`);
     }
   );
 }

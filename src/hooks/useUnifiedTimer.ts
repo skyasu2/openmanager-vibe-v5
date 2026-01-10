@@ -13,6 +13,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 export interface TimerTask {
   id: string;
@@ -113,16 +114,16 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
           task.lastRun = now;
           task.retryCount = 0; // 성공 시 재시도 카운트 초기화
         } catch (error) {
-          console.warn(`⚠️ Timer task ${task.id} failed:`, error);
+          logger.warn(`⚠️ Timer task ${task.id} failed:`, error);
 
           // 🔄 Phase 3: 재시도 로직
           if (task.maxRetries && (task.retryCount || 0) < task.maxRetries) {
             task.retryCount = (task.retryCount || 0) + 1;
-            console.log(
+            logger.info(
               `🔄 Retrying task ${task.id} (${task.retryCount}/${task.maxRetries})`
             );
           } else if (task.maxRetries) {
-            console.error(
+            logger.error(
               `❌ Task ${task.id} failed after ${task.maxRetries} retries, disabling`
             );
             task.enabled = false; // 최대 재시도 후 자동 비활성화
@@ -146,7 +147,7 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
       return updated;
     });
 
-    console.log(`✅ Timer task registered: ${task.id} (${task.interval}ms)`);
+    logger.info(`✅ Timer task registered: ${task.id} (${task.interval}ms)`);
   }, []);
 
   // 작업 제거
@@ -158,7 +159,7 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
       return updated;
     });
 
-    console.log(`❌ Timer task unregistered: ${taskId}`);
+    logger.info(`❌ Timer task unregistered: ${taskId}`);
   }, []);
 
   // 작업 활성화
@@ -205,13 +206,13 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
   // 🚀 Phase 3: 모든 작업 일시정지
   const pauseAllTasks = useCallback(() => {
     setIsPaused(true);
-    console.log('⏸️ All timer tasks paused');
+    logger.info('⏸️ All timer tasks paused');
   }, []);
 
   // 🚀 Phase 3: 모든 작업 재개
   const resumeAllTasks = useCallback(() => {
     setIsPaused(false);
-    console.log('▶️ All timer tasks resumed');
+    logger.info('▶️ All timer tasks resumed');
   }, []);
 
   // 🚀 Vercel 최적화: 메모리 사용량 추적 및 정리
@@ -246,7 +247,7 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
         if (!task.enabled && task.lastRun && now - task.lastRun > maxAge) {
           updated.delete(id);
           cleanedCount++;
-          console.warn(
+          logger.warn(
             `🧹 Cleaned stale timer: ${id} (inactive for ${Math.round((now - task.lastRun) / 1000)}s)`
           );
         }
@@ -255,7 +256,7 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
         if (task.retryCount && task.retryCount > 10) {
           updated.delete(id);
           cleanedCount++;
-          console.warn(
+          logger.warn(
             `🚫 Cleaned failed timer: ${id} (${task.retryCount} failures)`
           );
         }
@@ -266,7 +267,7 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
     });
 
     if (cleanedCount > 0) {
-      console.log(
+      logger.info(
         `🧹 Cleaned ${cleanedCount} stale timers for Vercel memory optimization`
       );
     }
@@ -284,7 +285,7 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
       // ⚡ Phase 2 개선: 활성 작업 존재하고 일시정지 상태가 아닐 때만 타이머 시작
       if (!timerRef.current) {
         timerRef.current = setInterval(runTimer, baseInterval);
-        console.log(
+        logger.info(
           `🕒 Unified timer started (${baseInterval}ms) with ${tasks.size} total tasks`
         );
       }
@@ -294,19 +295,19 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
         clearInterval(timerRef.current);
         timerRef.current = null;
         const reason = isPaused ? 'paused' : 'no active tasks';
-        console.log(`⏹️ Unified timer stopped - ${reason}`);
+        logger.info(`⏹️ Unified timer stopped - ${reason}`);
       }
     }
 
     // 🚀 Phase 3: BF-Cache 호환성을 위한 페이지 생명주기 이벤트 리스너
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        console.log(
+        logger.info(
           '🔄 Page hidden - pausing timer tasks for BF-Cache compatibility'
         );
         setIsPaused(true);
       } else {
-        console.log('👀 Page visible - resuming timer tasks');
+        logger.info('👀 Page visible - resuming timer tasks');
         setIsPaused(false);
       }
     };
@@ -332,7 +333,7 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
 
       // 메모리 사용량이 높으면 추가 경고
       if (stats.memoryUsagePercent > 50) {
-        console.warn(
+        logger.warn(
           `⚠️ High timer memory usage: ${stats.memoryUsagePercent}% (${stats.totalTasks} tasks)`
         );
       }

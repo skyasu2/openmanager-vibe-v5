@@ -14,6 +14,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FREE_TIER_INTERVALS } from '@/config/free-tier-intervals';
@@ -430,14 +431,14 @@ export const useServerConnection = () => {
       return; // 이미 연결됨
     }
 
-    console.log('🔄 SSE 연결 시작...');
+    logger.info('🔄 SSE 연결 시작...');
     setConnectionStatus('connecting');
 
     try {
       eventSourceRef.current = new EventSource('/api/stream');
 
       eventSourceRef.current.onopen = () => {
-        console.log('✅ SSE 연결 성공');
+        logger.info('✅ SSE 연결 성공');
         setIsConnected(true);
         setConnectionStatus('connected');
 
@@ -454,7 +455,7 @@ export const useServerConnection = () => {
 
           switch (parsed.type) {
             case 'connected':
-              console.log('🔗 SSE 초기 연결:', parsed.message);
+              logger.info('🔗 SSE 초기 연결:', parsed.message);
               break;
 
             case 'server_update':
@@ -462,30 +463,30 @@ export const useServerConnection = () => {
               queryClient.setQueryData(serverKeys.lists(), parsed.data);
               setUpdateCount(parsed.updateCount || 0);
 
-              console.log(`📊 서버 데이터 업데이트 #${parsed.updateCount}`);
+              logger.info(`📊 서버 데이터 업데이트 #${parsed.updateCount}`);
               break;
 
             case 'heartbeat':
-              console.log(`💓 SSE 하트비트: ${parsed.uptime}초`);
+              logger.info(`💓 SSE 하트비트: ${parsed.uptime}초`);
               break;
 
             case 'timeout':
-              console.log('⏰ SSE 타임아웃:', parsed.message);
+              logger.info('⏰ SSE 타임아웃:', parsed.message);
               // 자동 재연결 시작
               setTimeout(() => connect(), 1000);
               break;
 
             case 'error':
-              console.error('❌ SSE 서버 에러:', parsed.message);
+              logger.error('❌ SSE 서버 에러:', parsed.message);
               break;
           }
         } catch (error) {
-          console.error('❌ SSE 메시지 파싱 오류:', error);
+          logger.error('❌ SSE 메시지 파싱 오류:', error);
         }
       };
 
       eventSourceRef.current.onerror = (error) => {
-        console.error('❌ SSE 연결 오류:', error);
+        logger.error('❌ SSE 연결 오류:', error);
         setIsConnected(false);
         setConnectionStatus('error');
 
@@ -497,18 +498,18 @@ export const useServerConnection = () => {
 
         // 5초 후 재연결 시도
         reconnectTimeoutRef.current = setTimeout(() => {
-          console.log('🔄 SSE 재연결 시도...');
+          logger.info('🔄 SSE 재연결 시도...');
           connect();
         }, FREE_TIER_INTERVALS.API_POLLING_INTERVAL);
       };
     } catch (error) {
-      console.error('❌ SSE 초기화 실패:', error);
+      logger.error('❌ SSE 초기화 실패:', error);
       setConnectionStatus('error');
     }
   }, [queryClient]);
 
   const disconnect = useCallback(() => {
-    console.log('🔌 SSE 연결 해제');
+    logger.info('🔌 SSE 연결 해제');
 
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
@@ -541,11 +542,11 @@ export const useServerConnection = () => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        console.log('📴 페이지 숨김 - SSE 일시정지');
+        logger.info('📴 페이지 숨김 - SSE 일시정지');
         disconnect();
       } else if (isSystemStarted) {
         // ⚡ 시스템이 시작된 경우에만 재연결
-        console.log('👁️ 페이지 표시 - SSE 재연결');
+        logger.info('👁️ 페이지 표시 - SSE 재연결');
         connect();
       }
     };

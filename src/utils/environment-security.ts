@@ -8,6 +8,7 @@
  * @created 2025-08-10
  */
 
+import { logger } from '@/lib/logging';
 interface SecurityVulnerability {
   type: 'critical' | 'warning' | 'info';
   category: 'environment' | 'configuration' | 'runtime' | 'build';
@@ -532,7 +533,7 @@ export class EnvironmentSecurityFixer {
 
       try {
         // 자동 수정 로직 구현 (실제로는 환경변수 파일 수정)
-        console.log(`🔧 자동 수정 중: ${vuln.message}`);
+        logger.info(`🔧 자동 수정 중: ${vuln.message}`);
         fixed++;
       } catch (error) {
         errors.push(`수정 실패: ${vuln.message} - ${error}`);
@@ -568,32 +569,32 @@ export async function getSecurityScore(): Promise<number> {
 export async function printSecurityReport(): Promise<void> {
   const result = await scanner.scanEnvironmentSecurity();
 
-  console.log('🔐 환경변수 보안 스캔 결과');
-  console.log('================================');
-  console.log(`보안 점수: ${result.score}/100`);
-  console.log(
+  logger.info('🔐 환경변수 보안 스캔 결과');
+  logger.info('================================');
+  logger.info(`보안 점수: ${result.score}/100`);
+  logger.info(
     `심각: ${result.summary.critical}개, 경고: ${result.summary.warnings}개, 정보: ${result.summary.info}개`
   );
-  console.log('');
+  logger.info('');
 
   if (result.vulnerabilities.length === 0) {
-    console.log('✅ 발견된 보안 취약점이 없습니다!');
+    logger.info('✅ 발견된 보안 취약점이 없습니다!');
   } else {
-    console.log('발견된 취약점:');
+    logger.info('발견된 취약점:');
     result.vulnerabilities.forEach((vuln, i) => {
       const icon =
         vuln.type === 'critical' ? '🚨' : vuln.type === 'warning' ? '⚠️' : 'ℹ️';
-      console.log(
+      logger.info(
         `${icon} ${i + 1}. [${vuln.type.toUpperCase()}] ${vuln.message}`
       );
       if (vuln.recommendation) {
-        console.log(`   💡 권장: ${vuln.recommendation}`);
+        logger.info(`   💡 권장: ${vuln.recommendation}`);
       }
     });
   }
 
-  console.log('');
+  logger.info('');
   for (const rec of result.recommendations) {
-    console.log(`- ${rec}`);
+    logger.info(`- ${rec}`);
   }
 }

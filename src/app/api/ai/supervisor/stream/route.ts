@@ -22,6 +22,7 @@ import {
   normalizeMessagesForCloudRun,
 } from '@/lib/ai/utils/message-normalizer';
 import { withAuth } from '@/lib/auth/api-auth';
+import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { quickSanitize } from '../security';
 
@@ -71,7 +72,7 @@ export const POST = withRateLimit(
       const parseResult = requestSchema.safeParse(body);
 
       if (!parseResult.success) {
-        console.warn(
+        logger.warn(
           '⚠️ [SupervisorStream] Invalid payload:',
           parseResult.error.issues
         );
@@ -107,10 +108,10 @@ export const POST = withRateLimit(
       }
       const userQuery = quickSanitize(rawQuery);
 
-      console.log(
+      logger.info(
         `🌊 [SupervisorStream] Query: "${userQuery.slice(0, 50)}..."`
       );
-      console.log(`📡 [SupervisorStream] Session: ${sessionId}`);
+      logger.info(`📡 [SupervisorStream] Session: ${sessionId}`);
 
       // 4. Normalize and compress messages
       const normalizedMessages = normalizeMessagesForCloudRun(messages);
@@ -123,7 +124,7 @@ export const POST = withRateLimit(
           maxCharsPerMessage: 800,
         });
         messagesToSend = compression.messages;
-        console.log(
+        logger.info(
           `🗜️ [SupervisorStream] Context compressed: ${compression.originalCount} → ${compression.compressedCount}`
         );
       }
@@ -131,7 +132,7 @@ export const POST = withRateLimit(
       // 5. Get Cloud Run URL
       const cloudRunUrl = process.env.CLOUD_RUN_AI_ENGINE_URL;
       if (!cloudRunUrl) {
-        console.error(
+        logger.error(
           '❌ [SupervisorStream] CLOUD_RUN_AI_ENGINE_URL not configured'
         );
         return NextResponse.json(
@@ -144,7 +145,7 @@ export const POST = withRateLimit(
       const apiSecret = process.env.CLOUD_RUN_API_SECRET;
       const streamUrl = `${cloudRunUrl}/api/ai/supervisor/stream`;
 
-      console.log(`🔗 [SupervisorStream] Connecting to: ${streamUrl}`);
+      logger.info(`🔗 [SupervisorStream] Connecting to: ${streamUrl}`);
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 120000);
@@ -168,7 +169,7 @@ export const POST = withRateLimit(
 
         if (!cloudRunResponse.ok) {
           const errorText = await cloudRunResponse.text();
-          console.error(
+          logger.error(
             `❌ [SupervisorStream] Cloud Run error: ${cloudRunResponse.status} - ${errorText}`
           );
           return NextResponse.json(
@@ -257,7 +258,7 @@ export const POST = withRateLimit(
                         typeof event.data?.message === 'string'
                           ? event.data.message
                           : 'Stream error';
-                      console.error(
+                      logger.error(
                         `❌ [SupervisorStream] Cloud Run error: ${errorMsg}`
                       );
                       controller.enqueue(
@@ -272,7 +273,7 @@ export const POST = withRateLimit(
                 }
               }
             } catch (error) {
-              console.error('❌ [SupervisorStream] Stream error:', error);
+              logger.error('❌ [SupervisorStream] Stream error:', error);
               controller.error(error);
             }
           },
@@ -282,7 +283,7 @@ export const POST = withRateLimit(
           },
         });
 
-        console.log(`✅ [SupervisorStream] Stream started`);
+        logger.info(`✅ [SupervisorStream] Stream started`);
 
         return new NextResponse(stream, {
           headers: {
@@ -296,7 +297,7 @@ export const POST = withRateLimit(
         clearTimeout(timeout);
 
         if (error instanceof Error && error.name === 'AbortError') {
-          console.error('❌ [SupervisorStream] Request timeout');
+          logger.error('❌ [SupervisorStream] Request timeout');
           return NextResponse.json(
             { success: false, error: 'Stream timeout' },
             { status: 504 }
@@ -306,7 +307,7 @@ export const POST = withRateLimit(
         throw error;
       }
     } catch (error) {
-      console.error('❌ [SupervisorStream] Error:', error);
+      logger.error('❌ [SupervisorStream] Error:', error);
       return NextResponse.json(
         {
           success: false,

@@ -7,6 +7,7 @@ import {
   type ErrorInfo,
   type ReactNode,
 } from 'react';
+import { logger } from '@/lib/logging';
 
 interface ErrorFallbackProps {
   error: Error;
@@ -130,7 +131,7 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    logger.error('ErrorBoundary caught an error:', error, errorInfo);
 
     // 에러 리포팅 서비스에 전송 (선택사항)
     if (typeof window !== 'undefined') {
@@ -147,7 +148,7 @@ export class ErrorBoundary extends Component<
           })
         );
       } catch (e) {
-        console.warn('Failed to log error to localStorage:', e);
+        logger.warn('Failed to log error to localStorage:', e);
       }
     }
   }

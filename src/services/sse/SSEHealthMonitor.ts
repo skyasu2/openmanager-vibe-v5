@@ -10,6 +10,7 @@
  * - SystemInactivityService 통합 (시스템 비활성 시 자동 중지)
  */
 
+import { logger } from '@/lib/logging';
 import { systemInactivityService } from '../system/SystemInactivityService';
 
 export interface SSEHealthMonitorConfig {
@@ -91,7 +92,7 @@ export class SSEHealthMonitor {
       this.healthStatus.isHealthy = false;
     }
 
-    console.warn(
+    logger.warn(
       `🚨 SSE 건강 모니터 오류 기록: ${errorMessage} (연속 ${this.healthStatus.consecutiveErrors}회)`
     );
   }
@@ -112,11 +113,11 @@ export class SSEHealthMonitor {
     const isVercel = process.env.VERCEL === '1';
 
     if (isVercel) {
-      console.warn('⚠️ 서버리스 환경에서 SSE 지속적 모니터링 비활성화');
-      console.warn('📊 Vercel 플랫폼 모니터링 사용 권장:');
-      console.warn('   - Functions > Logs 탭에서 SSE 연결 로그 확인');
-      console.warn('   - Analytics 탭에서 실시간 연결 메트릭 확인');
-      console.warn('   - Edge Network 탭에서 네트워크 상태 확인');
+      logger.warn('⚠️ 서버리스 환경에서 SSE 지속적 모니터링 비활성화');
+      logger.warn('📊 Vercel 플랫폼 모니터링 사용 권장:');
+      logger.warn('   - Functions > Logs 탭에서 SSE 연결 로그 확인');
+      logger.warn('   - Analytics 탭에서 실시간 연결 메트릭 확인');
+      logger.warn('   - Edge Network 탭에서 네트워크 상태 확인');
 
       // 서버리스 환경에서는 즉시 성공 상태로 설정
       this.healthStatus.isHealthy = true;
@@ -139,7 +140,7 @@ export class SSEHealthMonitor {
 
     // 시스템 재개 이벤트 리스너 등록
     this.systemResumeHandler = () => {
-      console.log('🔄 시스템 재개 - SSE 모니터링 재시작');
+      logger.info('🔄 시스템 재개 - SSE 모니터링 재시작');
       this.healthStatus.isHealthy = true;
     };
 
@@ -164,7 +165,7 @@ export class SSEHealthMonitor {
     }, this.config.checkInterval);
 
     const intervalMinutes = Math.round(this.config.checkInterval / 60000);
-    console.log(
+    logger.info(
       `🔄 SSE 건강 모니터링 시작 (${intervalMinutes}분 간격, SystemInactivityService 통합) - 로컬 환경`
     );
   }
@@ -188,7 +189,7 @@ export class SSEHealthMonitor {
     }
 
     this.isMonitoring = false;
-    console.log('⏹️ SSE 건강 모니터링 중지');
+    logger.info('⏹️ SSE 건강 모니터링 중지');
   }
 
   /**
@@ -212,7 +213,7 @@ export class SSEHealthMonitor {
       this.systemResumeHandler = undefined;
     }
 
-    console.log('🗑️ SSE 건강 모니터 파기 완료');
+    logger.info('🗑️ SSE 건강 모니터 파기 완료');
   }
 
   /**
@@ -259,7 +260,7 @@ export class SSEHealthMonitor {
       }
     }
 
-    console.log('🔧 SSE 건강 모니터 임계치 업데이트 완료', newThresholds);
+    logger.info('🔧 SSE 건강 모니터 임계치 업데이트 완료', newThresholds);
   }
 
   /**
@@ -275,6 +276,6 @@ export class SSEHealthMonitor {
     };
     this.startTime = new Date();
 
-    console.log('🔄 SSE 건강 모니터 상태 리셋 완료');
+    logger.info('🔄 SSE 건강 모니터 상태 리셋 완료');
   }
 }

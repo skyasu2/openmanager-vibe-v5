@@ -8,6 +8,8 @@
  * @created 2025-12-18
  */
 
+import { logger } from '@/lib/logging';
+
 // Pyodide types
 interface PyodideInterface {
   runPython: (code: string) => unknown;
@@ -108,7 +110,7 @@ class PyodideService {
     }
 
     // Initialize Pyodide
-    console.log('🐍 [Pyodide] 초기화 중...');
+    logger.info('🐍 [Pyodide] 초기화 중...');
     const startTime = Date.now();
 
     this.pyodide = await window.loadPyodide({
@@ -121,11 +123,11 @@ class PyodideService {
 
     // Preload common packages
     const packagesToLoad = config?.preloadPackages || this.DEFAULT_PACKAGES;
-    console.log(`🐍 [Pyodide] 패키지 로드 중: ${packagesToLoad.join(', ')}`);
+    logger.info(`🐍 [Pyodide] 패키지 로드 중: ${packagesToLoad.join(', ')}`);
     await this.pyodide.loadPackage(packagesToLoad);
 
     const loadTime = Date.now() - startTime;
-    console.log(`🐍 [Pyodide] 초기화 완료 (${loadTime}ms)`);
+    logger.info(`🐍 [Pyodide] 초기화 완료 (${loadTime}ms)`);
   }
 
   private async _loadScript(src: string): Promise<void> {

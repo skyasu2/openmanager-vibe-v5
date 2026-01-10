@@ -12,6 +12,7 @@
 // 🎯 외부화된 규칙 시스템 (Single Source of Truth for thresholds)
 import { getServerStatus } from '@/config/rules';
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';
+import { logger } from '@/lib/logging';
 import type { Server } from '@/types/server';
 
 export interface ServerDataSourceConfig {
@@ -46,7 +47,7 @@ export class UnifiedServerDataSource {
     this.config = this.loadDataSourceConfig();
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log('🎯 UnifiedServerDataSource initialized:', {
+      logger.info('🎯 UnifiedServerDataSource initialized:', {
         totalServers: this.config.totalServers,
         dataSource: this.config.dataSource,
         cacheTtl: `${this.config.cacheTtl / 1000}s`,
@@ -157,15 +158,15 @@ export class UnifiedServerDataSource {
         this.cacheTimestamp = Date.now();
       }
 
-      console.log(
+      logger.info(
         `✅ [Client] Loaded ${servers.length} servers from /api/servers-unified`
       );
       return servers;
     } catch (error) {
-      console.error('❌ [Client] API fetch failed:', error);
+      logger.error('❌ [Client] API fetch failed:', error);
       // 캐시된 데이터가 있으면 반환
       if (this.cachedServers && this.cachedServers.length > 0) {
-        console.warn('⚠️ [Client] Using stale cache due to API error');
+        logger.warn('⚠️ [Client] Using stale cache due to API error');
         return this.cachedServers;
       }
       throw error;
@@ -203,7 +204,7 @@ export class UnifiedServerDataSource {
       !this.cachedServers ||
       this.cachedServers.length === 0
     ) {
-      console.warn('⚠️ getCachedServersSync(): Cache not ready or empty');
+      logger.warn('⚠️ getCachedServersSync(): Cache not ready or empty');
       return [];
     }
     return this.cachedServers;
@@ -228,7 +229,7 @@ export class UnifiedServerDataSource {
     const allMetrics = metricsProvider.getAllServerMetrics();
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log(
+      logger.info(
         `🔄 Loading servers from MetricsProvider: ${allMetrics.length} servers`
       );
     }
@@ -290,7 +291,7 @@ export class UnifiedServerDataSource {
    */
   private validateServers(servers: Server[]): void {
     if (servers.length !== this.config.totalServers) {
-      console.warn(
+      logger.warn(
         `⚠️ Server count mismatch: expected ${this.config.totalServers}, got ${servers.length}`
       );
     }
@@ -299,7 +300,7 @@ export class UnifiedServerDataSource {
       (s) => !s.id || !s.name || !s.hostname
     );
     if (invalidServers.length > 0) {
-      console.error('❌ Invalid servers found:', invalidServers.length);
+      logger.error('❌ Invalid servers found:', invalidServers.length);
     }
   }
 
@@ -321,7 +322,7 @@ export class UnifiedServerDataSource {
   public invalidateCache(): void {
     this.cachedServers = null;
     this.cacheTimestamp = 0;
-    console.log('🗑️ Server data cache invalidated');
+    logger.info('🗑️ Server data cache invalidated');
   }
 
   /**

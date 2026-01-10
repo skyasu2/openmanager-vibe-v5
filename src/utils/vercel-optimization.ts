@@ -11,6 +11,7 @@
 /**
  * Vercel 환경 정보
  */
+import { logger } from '@/lib/logging';
 export interface VercelEnvironment {
   isVercel: boolean;
   region: string;
@@ -93,7 +94,7 @@ export class VercelPerformanceTracker {
   end(label: string): number {
     const startTime = this.startTimes.get(label);
     if (!startTime) {
-      console.warn(`⚠️ 성능 측정 시작점을 찾을 수 없음: ${label}`);
+      logger.warn(`⚠️ 성능 측정 시작점을 찾을 수 없음: ${label}`);
       return 0;
     }
 
@@ -103,7 +104,7 @@ export class VercelPerformanceTracker {
 
     // Vercel 환경에서는 console.log가 모니터링됨
     if (getVercelEnvironment().isVercel) {
-      console.log(`📊 Vercel Performance [${label}]: ${duration.toFixed(2)}ms`);
+      logger.info(`📊 Vercel Performance [${label}]: ${duration.toFixed(2)}ms`);
     }
 
     return duration;
@@ -169,9 +170,9 @@ export async function preloadCriticalResources(): Promise<void> {
       })
     );
 
-    console.log('🚀 Vercel 사전 로딩 완료');
+    logger.info('🚀 Vercel 사전 로딩 완료');
   } catch (error) {
-    console.warn('⚠️ 사전 로딩 중 일부 실패:', error);
+    logger.warn('⚠️ 사전 로딩 중 일부 실패:', error);
   } finally {
     performanceTracker.end('preload-resources');
   }
@@ -307,4 +308,4 @@ export function getDeploymentChecklist(): {
 }
 
 // 초기화 로그
-console.log('🚀 Vercel 최적화 유틸리티 초기화됨:', getVercelEnvironment());
+logger.info('🚀 Vercel 최적화 유틸리티 초기화됨:', getVercelEnvironment());

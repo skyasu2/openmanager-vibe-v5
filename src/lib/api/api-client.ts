@@ -6,6 +6,7 @@
  */
 
 import * as z from 'zod';
+import { logger } from '@/lib/logging';
 import { type ApiResponse, isApiResponse } from '@/types/api-responses';
 
 /**
@@ -31,7 +32,7 @@ export function createApiUrl(endpoint: string): string {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const fullUrl = `${baseUrl}${cleanEndpoint}`;
 
-  console.log(`🔗 API URL 생성: ${endpoint} → ${fullUrl}`);
+  logger.info(`🔗 API URL 생성: ${endpoint} → ${fullUrl}`);
   return fullUrl;
 }
 
@@ -52,40 +53,40 @@ export async function apiFetch(
     ...options,
   };
 
-  console.log(`🚀 API 요청 시작: ${options?.method || 'GET'} ${url}`);
-  console.log(`📝 요청 옵션:`, defaultOptions);
+  logger.info(`🚀 API 요청 시작: ${options?.method || 'GET'} ${url}`);
+  logger.info(`📝 요청 옵션:`, defaultOptions);
 
   try {
     const response = await fetch(url, defaultOptions);
 
-    console.log(`📡 응답 수신: ${response.status} ${response.statusText}`);
-    console.log(
+    logger.info(`📡 응답 수신: ${response.status} ${response.statusText}`);
+    logger.info(
       `📋 응답 헤더:`,
       Object.fromEntries(response.headers.entries())
     );
 
     if (!response.ok) {
-      console.error(
+      logger.error(
         `❌ API 요청 실패: ${response.status} ${response.statusText} - ${url}`
       );
       // 에러 응답 본문도 로깅
       const errorText = await response.clone().text();
-      console.error(`📄 에러 응답 본문:`, errorText.substring(0, 500));
+      logger.error(`📄 에러 응답 본문:`, errorText.substring(0, 500));
     } else {
-      console.log(`✅ API 요청 성공: ${response.status} - ${url}`);
+      logger.info(`✅ API 요청 성공: ${response.status} - ${url}`);
       // 성공 응답의 크기 확인
       const contentLength = response.headers.get('content-length');
       if (contentLength) {
-        console.log(`📊 응답 크기: ${contentLength} bytes`);
+        logger.info(`📊 응답 크기: ${contentLength} bytes`);
       }
     }
 
     return response;
   } catch (error) {
-    console.error(`❌ 네트워크 오류 발생: ${url}`);
-    console.error(`🔍 오류 상세:`, error);
-    console.error(`🌐 URL 확인:`, url);
-    console.error(`⚙️ 요청 설정:`, defaultOptions);
+    logger.error(`❌ 네트워크 오류 발생: ${url}`);
+    logger.error(`🔍 오류 상세:`, error);
+    logger.error(`🌐 URL 확인:`, url);
+    logger.error(`⚙️ 요청 설정:`, defaultOptions);
     throw error;
   }
 }
@@ -105,10 +106,10 @@ export async function apiRequest<T = unknown>(
 
   try {
     const responseText = await response.text();
-    console.log(`📄 응답 본문 (첫 200자):`, responseText.substring(0, 200));
+    logger.info(`📄 응답 본문 (첫 200자):`, responseText.substring(0, 200));
 
     const jsonData = JSON.parse(responseText);
-    console.log(
+    logger.info(
       `✅ JSON 파싱 성공:`,
       typeof jsonData,
       Object.keys(jsonData || {})
@@ -116,8 +117,8 @@ export async function apiRequest<T = unknown>(
 
     return jsonData;
   } catch (error) {
-    console.error(`❌ JSON 파싱 실패:`, error);
-    console.error(`📄 원본 응답:`, await response.clone().text());
+    logger.error(`❌ JSON 파싱 실패:`, error);
+    logger.error(`📄 원본 응답:`, await response.clone().text());
     throw new Error(`응답 JSON 파싱 실패: ${error}`);
   }
 }
@@ -188,13 +189,13 @@ export async function safeApiCall<T>(
     // Zod 스키마로 런타임 검증 + TypeScript 타입 안전성 확보
     const validatedData = responseSchema.parse(rawData);
 
-    console.log(`✅ 타입 안전한 API 호출 성공: ${endpoint}`);
+    logger.info(`✅ 타입 안전한 API 호출 성공: ${endpoint}`);
     return validatedData;
   } catch (error) {
-    console.error(`❌ 타입 안전한 API 호출 실패: ${endpoint}`, error);
+    logger.error(`❌ 타입 안전한 API 호출 실패: ${endpoint}`, error);
 
     if (error instanceof z.ZodError) {
-      console.error('스키마 검증 실패:', error.issues);
+      logger.error('스키마 검증 실패:', error.issues);
       throw new Error(
         `응답 데이터 형식 오류: ${error.issues.map((e) => e.message).join(', ')}`
       );
@@ -229,7 +230,7 @@ export async function safeApiCallWithResponse<T>(
       data: validatedData,
     } as ApiResponse<T>;
   } catch (error) {
-    console.error(`❌ ApiResponse 안전한 호출 실패: ${endpoint}`, error);
+    logger.error(`❌ ApiResponse 안전한 호출 실패: ${endpoint}`, error);
     throw error;
   }
 }

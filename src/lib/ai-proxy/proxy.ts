@@ -16,6 +16,8 @@
 // This ensures fresh values on each request.
 
 // 로컬 Docker 기본 설정 (개발 환경에서만 사용)
+import { logger } from '@/lib/logging';
+
 const LOCAL_DOCKER_CONFIG = {
   url: process.env.LOCAL_DOCKER_URL || 'http://localhost:8080',
   apiSecret: process.env.LOCAL_DOCKER_SECRET || 'dev-only-secret',
@@ -44,7 +46,7 @@ function resolveConfig() {
   if (isDev) {
     // USE_LOCAL_DOCKER=true 또는 AI_ENGINE_MODE=AUTO (기본값)
     if (useLocalDocker || aiEngineMode === 'AUTO') {
-      console.info(
+      logger.info(
         '🐳 [Proxy] Development mode - Using local Docker (localhost:8080)'
       );
       return {
@@ -57,7 +59,7 @@ function resolveConfig() {
 
     // AI_ENGINE_MODE=CLOUD → Cloud Run 강제 사용
     if (aiEngineMode === 'CLOUD') {
-      console.info('☁️ [Proxy] Development mode - Forced Cloud Run');
+      logger.info('☁️ [Proxy] Development mode - Forced Cloud Run');
       return {
         url: process.env.CLOUD_RUN_AI_URL?.trim() || '',
         enabled: process.env.CLOUD_RUN_ENABLED?.trim() === 'true',
@@ -206,7 +208,7 @@ export async function proxyStreamToCloudRun(
 
   if (!isCloudRunEnabled()) {
     const errorMsg = 'Cloud Run configuration is missing or disabled.';
-    console.error(`❌ [Proxy] ${errorMsg}`);
+    logger.error(`❌ [Proxy] ${errorMsg}`);
     throw new Error(errorMsg); // Fail Loudly
   }
 
@@ -225,13 +227,13 @@ export async function proxyStreamToCloudRun(
     });
 
     if (!response.ok) {
-      console.error(`❌ Cloud Run stream error: ${response.status}`);
+      logger.error(`❌ Cloud Run stream error: ${response.status}`);
       return null;
     }
 
     return response.body;
   } catch (error) {
-    console.error('❌ Cloud Run stream proxy failed:', error);
+    logger.error('❌ Cloud Run stream proxy failed:', error);
     throw error; // Fail Loudly
   }
 }

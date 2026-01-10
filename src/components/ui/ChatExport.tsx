@@ -20,6 +20,7 @@ import {
   Filter,
   X,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import { type FC, useCallback, useMemo, useState } from 'react';
 
 interface ChatMessage {
@@ -235,7 +236,7 @@ export const ChatExport: FC<ChatExportProps> = ({
         setExportSuccess(true);
         setTimeout(() => setExportSuccess(false), 2000);
       } catch (error) {
-        console.error('Export failed:', error);
+        logger.error('Export failed:', error);
         alert('내보내기에 실패했습니다.');
       } finally {
         setIsExporting(false);

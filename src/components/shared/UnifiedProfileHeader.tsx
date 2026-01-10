@@ -9,6 +9,7 @@ import {
   Shield,
   User,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 // 프로필 컴포넌트 임포트
 import {
@@ -69,12 +70,12 @@ export default function UnifiedProfileHeader({
 
     try {
       closeMenu();
-      console.log('🛑 시스템 종료 요청 (프로필에서)');
+      logger.info('🛑 시스템 종료 요청 (프로필에서)');
 
       // 스토어에 등록된 DashboardClient의 stopSystem 호출
       if (systemStopHandler) {
         systemStopHandler();
-        console.log('✅ 시스템 종료 성공 (스토어 통합)');
+        logger.info('✅ 시스템 종료 성공 (스토어 통합)');
       } else {
         // Fallback: 직접 API 호출
         const response = await fetch('/api/system', {
@@ -84,7 +85,7 @@ export default function UnifiedProfileHeader({
         });
 
         if (response.ok) {
-          console.log('✅ 시스템 종료 성공');
+          logger.info('✅ 시스템 종료 성공');
           localStorage.removeItem('system_auto_shutdown');
           alert('✅ 시스템이 성공적으로 종료되었습니다.');
         } else {
@@ -92,7 +93,7 @@ export default function UnifiedProfileHeader({
         }
       }
     } catch (error) {
-      console.error('❌ 시스템 종료 오류:', error);
+      logger.error('❌ 시스템 종료 오류:', error);
       alert('❌ 시스템 종료 중 오류가 발생했습니다.');
     }
   }, [closeMenu, systemStopHandler]);
@@ -225,7 +226,7 @@ export default function UnifiedProfileHeader({
       {/* 프로필 버튼 */}
       <button
         onClick={() => {
-          console.log('👤 프로필 버튼 클릭됨');
+          logger.info('👤 프로필 버튼 클릭됨');
           toggleMenu();
         }}
         className="group pointer-events-auto relative z-50 flex cursor-pointer items-center space-x-3 rounded-lg p-3 transition-all duration-200 hover:bg-gray-100"

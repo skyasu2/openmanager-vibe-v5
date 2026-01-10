@@ -7,6 +7,7 @@
  * // Verified: 2025-12-12 (Serverless Compatible)
  */
 
+import { logger } from '@/lib/logging';
 interface MemoryStats {
   heapUsed: number;
   heapTotal: number;
@@ -30,7 +31,7 @@ interface OptimizationResult {
  */
 export class ServerlessMemoryManager {
   constructor() {
-    console.warn(
+    logger.warn(
       '⚠️ 서버리스 환경에서는 메모리 최적화가 비활성화됩니다. Vercel이 자동 관리합니다.'
     );
   }
@@ -39,7 +40,7 @@ export class ServerlessMemoryManager {
    * 🚫 메모리 상태 분석 비활성화
    */
   getCurrentMemoryStats(): MemoryStats {
-    console.warn('⚠️ 메모리 상태 분석 무시됨 - Vercel Analytics 사용 권장');
+    logger.warn('⚠️ 메모리 상태 분석 무시됨 - Vercel Analytics 사용 권장');
     return {
       heapUsed: 0,
       heapTotal: 0,
@@ -54,8 +55,8 @@ export class ServerlessMemoryManager {
    * 🚫 메모리 최적화 비활성화
    */
   async optimizeMemoryNow(): Promise<OptimizationResult> {
-    console.warn('⚠️ 메모리 최적화 무시됨 - Vercel이 자동 관리');
-    console.warn('📊 Vercel Analytics: https://vercel.com/analytics');
+    logger.warn('⚠️ 메모리 최적화 무시됨 - Vercel이 자동 관리');
+    logger.warn('📊 Vercel Analytics: https://vercel.com/analytics');
 
     return {
       before: this.getCurrentMemoryStats(),
@@ -70,7 +71,7 @@ export class ServerlessMemoryManager {
    * 🚫 적극적 최적화 비활성화
    */
   async performAggressiveOptimization(): Promise<OptimizationResult> {
-    console.warn('⚠️ 적극적 메모리 최적화 무시됨 - 서버리스 환경');
+    logger.warn('⚠️ 적극적 메모리 최적화 무시됨 - 서버리스 환경');
     return this.optimizeMemoryNow();
   }
 
@@ -78,22 +79,22 @@ export class ServerlessMemoryManager {
    * 🚫 메모리 모니터링 비활성화
    */
   startMemoryMonitoring(_intervalMs: number = 60000): void {
-    console.warn('⚠️ 메모리 모니터링 무시됨 - Vercel Dashboard 사용');
-    console.warn('📊 Vercel Dashboard: https://vercel.com/dashboard');
+    logger.warn('⚠️ 메모리 모니터링 무시됨 - Vercel Dashboard 사용');
+    logger.warn('📊 Vercel Dashboard: https://vercel.com/dashboard');
   }
 
   /**
    * 🚫 메모리 모니터링 중지 비활성화
    */
   stopMemoryMonitoring(): void {
-    console.warn('⚠️ 메모리 모니터링 중지 무시됨 - 서버리스 환경');
+    logger.warn('⚠️ 메모리 모니터링 중지 무시됨 - 서버리스 환경');
   }
 
   /**
    * 🚫 최적화 히스토리 조회 비활성화
    */
   getOptimizationHistory(): OptimizationResult[] {
-    console.warn('⚠️ 최적화 히스토리 조회 무시됨 - 서버리스 환경');
+    logger.warn('⚠️ 최적화 히스토리 조회 무시됨 - 서버리스 환경');
     return [];
   }
 
@@ -106,7 +107,7 @@ export class ServerlessMemoryManager {
     lastOptimization: string | null;
     totalOptimizations: number;
   } {
-    console.warn('⚠️ 메모리 요약 정보 무시됨 - Vercel Analytics 사용');
+    logger.warn('⚠️ 메모리 요약 정보 무시됨 - Vercel Analytics 사용');
     return {
       current: this.getCurrentMemoryStats(),
       status: 'optimal',
@@ -129,8 +130,8 @@ export function createServerlessMemoryManager(): ServerlessMemoryManager {
  */
 export const MemoryOptimizer = {
   getInstance: () => {
-    console.warn('⚠️ MemoryOptimizer.getInstance()는 서버리스에서 사용 금지.');
-    console.warn(
+    logger.warn('⚠️ MemoryOptimizer.getInstance()는 서버리스에서 사용 금지.');
+    logger.warn(
       '📊 대신 Vercel Analytics를 사용하세요: https://vercel.com/analytics'
     );
     return new ServerlessMemoryManager();

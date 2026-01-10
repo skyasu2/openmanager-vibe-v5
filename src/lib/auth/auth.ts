@@ -8,6 +8,7 @@
  * - 보안 로깅
  */
 
+import { logger } from '@/lib/logging';
 export interface AuthSession {
   sessionId: string;
   userId: string;
@@ -69,7 +70,7 @@ export class AuthManager {
 
     this.sessions.set(sessionId, session);
 
-    console.log(`🎮 Demo user authenticated: ${session.userId} (${sessionId})`);
+    logger.info(`🎮 Demo user authenticated: ${session.userId} (${sessionId})`);
     return { success: true, sessionId };
   }
 
@@ -83,7 +84,7 @@ export class AuthManager {
     // 세션 만료 확인
     if (Date.now() > session.expiresAt) {
       this.sessions.delete(sessionId);
-      console.log(`⏰ Session expired: ${sessionId}`);
+      logger.info(`⏰ Session expired: ${sessionId}`);
       return null;
     }
 
@@ -113,7 +114,7 @@ export class AuthManager {
     if (!session) return false;
 
     this.sessions.delete(sessionId);
-    console.log(`🚪 Session invalidated: ${sessionId}`);
+    logger.info(`🚪 Session invalidated: ${sessionId}`);
     return true;
   }
 
@@ -130,7 +131,7 @@ export class AuthManager {
       }
     }
 
-    console.log(
+    logger.info(
       `🚨 Invalidated ${count} sessions${userId ? ` for user: ${userId}` : ''}`
     );
     return count;
@@ -276,7 +277,7 @@ export class AuthManager {
     const cleanedAttempts = originalLength - this.authAttempts.length;
 
     if (cleanedSessions > 0 || cleanedBlocks > 0 || cleanedAttempts > 0) {
-      console.log(
+      logger.info(
         `🧹 Auth cleanup: ${cleanedSessions} sessions, ${cleanedBlocks} IP blocks, ${cleanedAttempts} auth attempts`
       );
     }

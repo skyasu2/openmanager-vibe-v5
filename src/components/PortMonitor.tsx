@@ -18,6 +18,7 @@ import {
   Timer,
   XCircle,
 } from 'lucide-react';
+import { logger } from '@/lib/logging';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -117,7 +118,7 @@ export function PortMonitor({
       setPortStates(newPortStates);
       setLastUpdate(new Date());
     } catch (error) {
-      console.error('포트 상태 조회 실패:', error);
+      logger.error('포트 상태 조회 실패:', error);
     } finally {
       setIsRefreshing(false);
     }

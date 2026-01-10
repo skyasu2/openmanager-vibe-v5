@@ -8,6 +8,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
 
 // 버전 관리 인터페이스
 export interface CloudVersion {
@@ -130,19 +131,19 @@ export class CloudVersionManager {
     if (this.config.enableSupabase) {
       try {
         this.supabase = this.supabase!;
-        console.log('✅ CloudVersionManager - Supabase 싱글톤 연결 성공');
+        logger.info('✅ CloudVersionManager - Supabase 싱글톤 연결 성공');
       } catch (error) {
-        console.warn(
+        logger.warn(
           '⚠️ CloudVersionManager - Supabase 연결 실패, 메모리 캐시만 사용:',
           error
         );
       }
     }
 
-    console.log(
+    logger.info(
       `🌐 CloudVersionManager 초기화 완료 (${isProduction ? 'Production' : 'Development'} 모드)`
     );
-    console.log(`📦 캐시: Memory${this.supabase ? ' + Supabase' : ' Only'}`);
+    logger.info(`📦 캐시: Memory${this.supabase ? ' + Supabase' : ' Only'}`);
   }
 
   static getInstance(
@@ -158,7 +159,7 @@ export class CloudVersionManager {
    * 🚀 버전 관리 시작
    */
   async startVersionTracking(): Promise<void> {
-    console.log('🚀 CloudVersionManager 버전 추적 시작');
+    logger.info('🚀 CloudVersionManager 버전 추적 시작');
 
     // 현재 버전 감지 및 등록
     await this.detectAndRegisterCurrentVersion();
@@ -170,12 +171,12 @@ export class CloudVersionManager {
           try {
             await this.syncVersions();
           } catch (error) {
-            console.error('❌ CloudVersionManager 자동 동기화 실패:', error);
+            logger.error('❌ CloudVersionManager 자동 동기화 실패:', error);
           }
         })();
       }, this.config.syncInterval);
 
-      console.log('✅ CloudVersionManager 자동 동기화 시작');
+      logger.info('✅ CloudVersionManager 자동 동기화 시작');
     }
   }
 
@@ -186,7 +187,7 @@ export class CloudVersionManager {
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
       this.syncInterval = null;
-      console.log('🛑 CloudVersionManager 자동 동기화 중지');
+      logger.info('🛑 CloudVersionManager 자동 동기화 중지');
     }
   }
 
@@ -195,7 +196,7 @@ export class CloudVersionManager {
    */
   async detectAndRegisterCurrentVersion(): Promise<CloudVersion> {
     try {
-      console.log('🔍 현재 버전 감지 중...');
+      logger.info('🔍 현재 버전 감지 중...');
 
       // package.json에서 버전 정보 추출
       const packageJson = await this.getPackageInfo();
@@ -226,10 +227,10 @@ export class CloudVersionManager {
         await this.saveVersionToSupabase(currentVersion);
       }
 
-      console.log(`✅ 현재 버전 등록 완료: v${currentVersion.version}`);
+      logger.info(`✅ 현재 버전 등록 완료: v${currentVersion.version}`);
       return currentVersion;
     } catch (error) {
-      console.error('❌ 현재 버전 감지 실패:', error);
+      logger.error('❌ 현재 버전 감지 실패:', error);
       throw error;
     }
   }
@@ -273,10 +274,10 @@ export class CloudVersionManager {
       // 캐시에 저장
       this.memoryCache.set(cacheKey, versions, 300);
 
-      console.log(`📋 버전 히스토리 조회 완료: ${versions.length}개`);
+      logger.info(`📋 버전 히스토리 조회 완료: ${versions.length}개`);
       return versions;
     } catch (error) {
-      console.error('❌ 버전 히스토리 조회 실패:', error);
+      logger.error('❌ 버전 히스토리 조회 실패:', error);
       return [];
     }
   }
@@ -304,12 +305,12 @@ export class CloudVersionManager {
         compatibility: await this.checkCompatibility(current, previous),
       };
 
-      console.log(
+      logger.info(
         `⚡ 버전 비교 완료: ${current.version} vs ${previous.version}`
       );
       return comparison;
     } catch (error) {
-      console.error('❌ 버전 비교 실패:', error);
+      logger.error('❌ 버전 비교 실패:', error);
       return null;
     }
   }
@@ -319,7 +320,7 @@ export class CloudVersionManager {
    */
   async rollbackToVersion(versionId: string): Promise<boolean> {
     try {
-      console.log(`🔄 버전 롤백 시작: ${versionId}`);
+      logger.info(`🔄 버전 롤백 시작: ${versionId}`);
 
       const versions = await this.getVersionHistory(50);
       const targetVersion = versions.find((v) => v.id === versionId);
@@ -351,10 +352,10 @@ export class CloudVersionManager {
       // 캐시 무효화
       this.memoryCache.clear();
 
-      console.log(`✅ 버전 롤백 완료: v${targetVersion.version}`);
+      logger.info(`✅ 버전 롤백 완료: v${targetVersion.version}`);
       return true;
     } catch (error) {
-      console.error('❌ 버전 롤백 실패:', error);
+      logger.error('❌ 버전 롤백 실패:', error);
       return false;
     }
   }
@@ -422,10 +423,10 @@ export class CloudVersionManager {
       // 캐시에 저장
       this.memoryCache.set(cacheKey, metrics, 600);
 
-      console.log('📊 배포 메트릭 조회 완료');
+      logger.info('📊 배포 메트릭 조회 완료');
       return metrics;
     } catch (error) {
-      console.error('❌ 배포 메트릭 조회 실패:', error);
+      logger.error('❌ 배포 메트릭 조회 실패:', error);
       return {
         successRate: 0,
         averageDeployTime: 0,
@@ -450,7 +451,7 @@ export class CloudVersionManager {
         return packageJson;
       }
     } catch (error) {
-      console.warn('package.json 읽기 실패:', error);
+      logger.warn('package.json 읽기 실패:', error);
     }
     return { version: '0.0.0' };
   }
@@ -468,7 +469,7 @@ export class CloudVersionManager {
         return { commitHash, commitMessage };
       }
     } catch (error) {
-      console.warn('Git 정보 읽기 실패:', error);
+      logger.warn('Git 정보 읽기 실패:', error);
     }
     return { commitHash: 'unknown', commitMessage: 'Unknown commit' };
   }
@@ -507,13 +508,13 @@ export class CloudVersionManager {
     });
 
     if (error) {
-      console.warn('Supabase 버전 저장 실패:', error);
+      logger.warn('Supabase 버전 저장 실패:', error);
     }
   }
 
   private async syncVersions(): Promise<void> {
     // 정기적인 버전 동기화 로직
-    console.log('🔄 버전 동기화 실행');
+    logger.info('🔄 버전 동기화 실행');
     await this.detectAndRegisterCurrentVersion();
   }
 
@@ -553,7 +554,7 @@ export class CloudVersionManager {
       .eq('is_active', true);
 
     if (error) {
-      console.warn('현재 버전 비활성화 실패:', error);
+      logger.warn('현재 버전 비활성화 실패:', error);
     }
   }
 
@@ -588,6 +589,6 @@ export class CloudVersionManager {
   dispose(): void {
     this.stopVersionTracking();
     this.memoryCache.clear();
-    console.log('🧹 CloudVersionManager 정리 완료');
+    logger.info('🧹 CloudVersionManager 정리 완료');
   }
 }

@@ -16,6 +16,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import * as z from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import { logger } from '@/lib/logging';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import { metricsProvider } from '@/services/metrics/MetricsProvider';
 import type {
@@ -141,7 +142,7 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
       };
     });
   } catch (error) {
-    console.error('❌ MetricsProvider 오류, Fallback 사용:', error);
+    logger.error('❌ MetricsProvider 오류, Fallback 사용:', error);
     // Fallback to UnifiedServerDataSource
     const dataSource = getUnifiedServerDataSource();
     const rawServers = await dataSource.getServers();
@@ -432,7 +433,7 @@ async function handleServersUnified(
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    console.error(`❌ 통합 서버 API 오류 (${action}):`, error);
+    logger.error(`❌ 통합 서버 API 오류 (${action}):`, error);
 
     return {
       success: false,

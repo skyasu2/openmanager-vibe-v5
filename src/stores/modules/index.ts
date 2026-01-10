@@ -7,6 +7,7 @@
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { useServerQuery } from '@/hooks/useServerQuery';
 import { useUnifiedAdminStore } from '../useUnifiedAdminStore';
+import { logger } from '@/lib/logging';
 
 // 기본 스토어들 익스포트
 export { useUnifiedAdminStore } from '../useUnifiedAdminStore';
@@ -27,7 +28,7 @@ export const useSystemAuth = () => {
       if (canControlSystem) {
         startSystem();
       } else {
-        console.warn('⚠️ 관리자 인증이 필요합니다.');
+        logger.warn('⚠️ 관리자 인증이 필요합니다.');
       }
     },
 
@@ -79,7 +80,7 @@ export const resetAllStores = () => {
     // 스토어 재설정
     window.location.reload();
 
-    console.log('🔄 모든 스토어 초기화 완료');
+    logger.info('🔄 모든 스토어 초기화 완료');
   }
 };
 
@@ -90,8 +91,8 @@ export const debugStores = () => {
     const auth = useUnifiedAdminStore.getState();
 
     console.group('🔍 Store Debug Info');
-    console.log('Servers:', servers);
-    console.log('Auth:', auth);
+    logger.info('Servers:', servers);
+    logger.info('Auth:', auth);
     console.groupEnd();
 
     return { servers, auth };

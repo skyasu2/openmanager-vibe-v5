@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withDefault } from '@/types/type-utils';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
+import { logger } from '@/lib/logging';
 
 // 🔧 타입 정의: Next.js 16 Response의 cookies 인터페이스
 interface ResponseWithCookies extends Omit<NextResponse, 'cookies'> {
@@ -124,17 +125,17 @@ export async function updateSession(
 
   if (session) {
     // ✅ 보안 개선: 이메일 로깅 제거, 세션 존재 여부만 기록
-    console.log('✅ updateSession: 세션 복원됨', 'userId:', session.user.id);
+    logger.info('✅ updateSession: 세션 복원됨', 'userId:', session.user.id);
 
     // 세션이 있으면 사용자 정보도 확인 (토큰 유효성 검증)
     const {
       data: { user },
     } = await (supabase as SupabaseClient).auth.getUser();
     if (user) {
-      console.log('✅ updateSession: 사용자 확인됨', 'userId:', user.id);
+      logger.info('✅ updateSession: 사용자 확인됨', 'userId:', user.id);
     }
   } else {
-    console.log('⚠️ updateSession: 세션 없음', error?.message);
+    logger.info('⚠️ updateSession: 세션 없음', error?.message);
   }
 
   return supabaseResponse;

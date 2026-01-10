@@ -6,6 +6,7 @@
  * SSE 연결 풀 기능을 비활성화하고 Vercel 플랫폼 모니터링 사용 권장
  */
 
+import { logger } from '@/lib/logging';
 export interface SSEConnectionPoolConfig {
   maxPoolSize?: number;
   idleTimeout?: number;
@@ -29,16 +30,16 @@ export class ServerlessSSEConnectionPool {
     //   cleanupInterval: config.cleanupInterval || 5000,
     // };
 
-    console.warn('⚠️ SSE 연결 풀 비활성화 - 서버리스에서는 지속적 연결 불가');
-    console.warn('📊 Vercel Dashboard: https://vercel.com/dashboard');
+    logger.warn('⚠️ SSE 연결 풀 비활성화 - 서버리스에서는 지속적 연결 불가');
+    logger.warn('📊 Vercel Dashboard: https://vercel.com/dashboard');
   }
 
   /**
    * 🚫 연결 획득 비활성화
    */
   async acquire(_url: string): Promise<PooledConnection | null> {
-    console.warn('⚠️ SSE 연결 획득 무시됨 - 서버리스 환경');
-    console.warn('📊 Vercel 실시간 모니터링 사용 권장');
+    logger.warn('⚠️ SSE 연결 획득 무시됨 - 서버리스 환경');
+    logger.warn('📊 Vercel 실시간 모니터링 사용 권장');
     return null;
   }
 
@@ -46,7 +47,7 @@ export class ServerlessSSEConnectionPool {
    * 🚫 연결 반환 비활성화
    */
   release(_connection: PooledConnection): void {
-    console.warn('⚠️ SSE 연결 반환 무시됨 - 서버리스 환경');
+    logger.warn('⚠️ SSE 연결 반환 무시됨 - 서버리스 환경');
   }
 
   /**
@@ -67,7 +68,7 @@ export class ServerlessSSEConnectionPool {
    * 🚫 리소스 정리 비활성화
    */
   destroy(): void {
-    console.warn('⚠️ SSE 리소스 정리 무시됨 - 서버리스에서는 자동 정리');
+    logger.warn('⚠️ SSE 리소스 정리 무시됨 - 서버리스에서는 자동 정리');
   }
 }
 

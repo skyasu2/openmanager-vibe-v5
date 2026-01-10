@@ -14,6 +14,7 @@ import type {
   IErrorHandler,
   ILogger,
 } from '@/lib/interfaces/services';
+import { logger } from '@/lib/logging';
 import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';
 import { LoggingService } from '@/services/LoggingService';
 import {
@@ -58,7 +59,7 @@ export class ServiceRegistry {
    * 실제 서비스 등록 로직
    */
   private async doRegisterServices(): Promise<void> {
-    console.log('🏗️ Registering services...');
+    logger.info('🏗️ Registering services...');
 
     try {
       // 1. 기본 서비스들 (의존성 없음)
@@ -77,9 +78,9 @@ export class ServiceRegistry {
       this.registerAdditionalServices();
 
       this.isInitialized = true;
-      console.log('✅ All services registered successfully');
+      logger.info('✅ All services registered successfully');
     } catch (error) {
-      console.error('❌ Service registration failed:', error);
+      logger.error('❌ Service registration failed:', error);
       throw error;
     }
   }
@@ -248,7 +249,7 @@ export class ServiceRegistry {
    * 서비스 초기화
    */
   async _initializeServices(): Promise<void> {
-    console.log('🚀 Initializing services...');
+    logger.info('🚀 Initializing services...');
 
     try {
       // 1. 로깅 서비스 초기화
@@ -264,9 +265,9 @@ export class ServiceRegistry {
       // 3. 추가 서비스들 초기화
       logger.info('Additional services _initialized');
 
-      console.log('✅ All services _initialized successfully');
+      logger.info('✅ All services _initialized successfully');
     } catch (error) {
-      console.error('❌ Service _initialization failed:', error);
+      logger.error('❌ Service _initialization failed:', error);
       throw error;
     }
   }
@@ -275,7 +276,7 @@ export class ServiceRegistry {
    * 서비스 정리
    */
   async cleanupServices(): Promise<void> {
-    console.log('🧹 Cleaning up services...');
+    logger.info('🧹 Cleaning up services...');
 
     try {
       // 로그 정리
@@ -284,9 +285,9 @@ export class ServiceRegistry {
         logger.info('Services cleanup completed');
       }
 
-      console.log('✅ Services cleanup completed');
+      logger.info('✅ Services cleanup completed');
     } catch (error) {
-      console.error('❌ Service cleanup failed:', error);
+      logger.error('❌ Service cleanup failed:', error);
     }
   }
 

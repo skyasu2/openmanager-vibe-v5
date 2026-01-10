@@ -9,6 +9,7 @@
  * @module redis/ai-cache
  */
 
+import { logger } from '@/lib/logging';
 import { getRedisClient, isRedisDisabled, isRedisEnabled } from './client';
 
 // ==============================================
@@ -111,7 +112,7 @@ export async function getAIResponseCache(
       // TTL 확인
       const ttl = await client.ttl(cacheKey);
 
-      console.info(
+      logger.info(
         `[AI Cache] HIT - Key: ${queryHash}, TTL: ${ttl}s, Latency: ${latencyMs}ms`
       );
 
@@ -123,12 +124,10 @@ export async function getAIResponseCache(
       };
     }
 
-    console.info(
-      `[AI Cache] MISS - Key: ${queryHash}, Latency: ${latencyMs}ms`
-    );
+    logger.info(`[AI Cache] MISS - Key: ${queryHash}, Latency: ${latencyMs}ms`);
     return { hit: false, data: null, latencyMs };
   } catch (error) {
-    console.error('[AI Cache] Get error:', error);
+    logger.error('[AI Cache] Get error:', error);
     return { hit: false, data: null };
   }
 }
@@ -163,11 +162,11 @@ export async function setAIResponseCache(
   try {
     await client.set(cacheKey, response, { ex: ttlSeconds });
 
-    console.info(`[AI Cache] SET - Key: ${queryHash}, TTL: ${ttlSeconds}s`);
+    logger.info(`[AI Cache] SET - Key: ${queryHash}, TTL: ${ttlSeconds}s`);
 
     return true;
   } catch (error) {
-    console.error('[AI Cache] Set error:', error);
+    logger.error('[AI Cache] Set error:', error);
     return false;
   }
 }
@@ -200,12 +199,12 @@ export async function invalidateSessionCache(
     // 일괄 삭제
     await client.del(...keys);
 
-    console.info(
+    logger.info(
       `[AI Cache] Invalidated ${keys.length} keys for session: ${sessionId}`
     );
     return keys.length;
   } catch (error) {
-    console.error('[AI Cache] Invalidate error:', error);
+    logger.error('[AI Cache] Invalidate error:', error);
     return 0;
   }
 }
@@ -247,7 +246,7 @@ export async function getHealthCache(
 
     return { hit: false, data: null };
   } catch (error) {
-    console.error('[Health Cache] Get error:', error);
+    logger.error('[Health Cache] Get error:', error);
     return { hit: false, data: null };
   }
 }
@@ -275,7 +274,7 @@ export async function setHealthCache(
     await client.set(cacheKey, result, { ex: ttlSeconds });
     return true;
   } catch (error) {
-    console.error('[Health Cache] Set error:', error);
+    logger.error('[Health Cache] Set error:', error);
     return false;
   }
 }
@@ -313,7 +312,7 @@ export async function getCacheStats(): Promise<CacheStats> {
       healthKeys: healthKeys.length,
     };
   } catch (error) {
-    console.error('[Cache Stats] Error:', error);
+    logger.error('[Cache Stats] Error:', error);
     return { enabled: false, aiResponseKeys: 0, healthKeys: 0 };
   }
 }

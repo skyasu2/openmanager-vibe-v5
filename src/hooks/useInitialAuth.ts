@@ -8,6 +8,7 @@ import {
   getAuthState,
   isGitHubAuthenticated,
 } from '@/lib/auth/auth-state-manager';
+import { logger } from '@/lib/logging';
 
 // This logic is now inlined from the old vercel-env.ts
 const _authRetryDelay = isVercel ? 5000 : 3000;
@@ -62,7 +63,7 @@ export function useInitialAuth() {
 
     try {
       updateState({ currentStep: 'auth-check', isLoading: true });
-      console.log(debugWithEnv('🔄 인증 상태 확인 중...'));
+      logger.info(debugWithEnv('🔄 인증 상태 확인 중...'));
 
       const [authState, isGitHub] = await Promise.all([
         getAuthState(),
@@ -70,7 +71,7 @@ export function useInitialAuth() {
       ]);
       const user = authState.user;
 
-      console.log(debugWithEnv('📊 인증 결과'), {
+      logger.info(debugWithEnv('📊 인증 결과'), {
         hasUser: !!user,
         userType: user?.provider,
         userName: user?.name,
@@ -91,7 +92,7 @@ export function useInitialAuth() {
         error: null,
       });
 
-      console.log(debugWithEnv('🔧 GitHub 인증 상태 개선:'), {
+      logger.info(debugWithEnv('🔧 GitHub 인증 상태 개선:'), {
         isGitHubFromSession: isGitHub,
         userProvider: user?.provider,
         finalGitHubStatus: isActuallyGitHubUser,
@@ -99,18 +100,18 @@ export function useInitialAuth() {
 
       // 비로그인 상태에서도 메인 페이지 표시 (로그인 버튼으로 유도)
       if (!user) {
-        console.log(
+        logger.info(
           debugWithEnv('ℹ️ 비로그인 상태 - 메인 페이지에서 로그인 버튼 표시')
         );
       } else {
-        console.log(
+        logger.info(
           debugWithEnv('✅ 인증 성공'),
           user.name,
           `(${user.provider})`
         );
       }
     } catch (error) {
-      console.error('Authentication initialization failed:', error);
+      logger.error('Authentication initialization failed:', error);
       updateState({
         currentStep: 'complete',
         isLoading: false,
@@ -120,18 +121,18 @@ export function useInitialAuth() {
         error: error instanceof Error ? error.message : 'Authentication failed',
       });
       // 에러 발생 시에도 메인 페이지에서 로그인 버튼 표시 (리다이렉트 제거)
-      console.log(
+      logger.info(
         debugWithEnv('⚠️ 인증 에러 - 메인 페이지에서 로그인 버튼 표시')
       );
     }
   }, [pathname, updateState]);
 
   useEffect(() => {
-    console.log(debugWithEnv('🔄 useInitialAuth 초기화 시작'));
+    logger.info(debugWithEnv('🔄 useInitialAuth 초기화 시작'));
 
     const timeoutId = setTimeout(() => {
       if (initRef.current) {
-        console.log(
+        logger.info(
           debugWithEnv('🚫 useInitialAuth: 이미 초기화 중이므로 스킵')
         );
         return;
@@ -145,7 +146,7 @@ export function useInitialAuth() {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-      console.log(debugWithEnv('🧹 useInitialAuth 타이머 정리 완료'));
+      logger.info(debugWithEnv('🧹 useInitialAuth 타이머 정리 완료'));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initializeAuth]);

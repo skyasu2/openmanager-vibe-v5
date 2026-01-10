@@ -14,6 +14,7 @@ import { toast } from 'react-hot-toast';
 import { FREE_TIER_INTERVALS } from '@/config/free-tier-intervals';
 import { serverKeys } from './useServerQueries';
 import { systemKeys } from './useSystemQueries';
+import { logger } from '@/lib/logging';
 
 // 🔮 Prediction Query Keys (인라인 정의 - usePredictionQueries.ts에서 이동)
 const predictionKeys = {
@@ -101,7 +102,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
-        console.log('🔗 서버 WebSocket 연결됨');
+        logger.info('🔗 서버 WebSocket 연결됨');
         reconnectAttemptsRef.current = 0;
 
         // 하트비트 시작
@@ -184,16 +185,16 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
             }
           }
         } catch (error) {
-          console.error('❌ WebSocket 메시지 파싱 오류:', error);
+          logger.error('❌ WebSocket 메시지 파싱 오류:', error);
         }
       };
 
       wsRef.current.onerror = (error: Event) => {
-        console.error('❌ WebSocket 오류:', error);
+        logger.error('❌ WebSocket 오류:', error);
       };
 
       wsRef.current.onclose = () => {
-        console.log('📡 서버 WebSocket 연결 종료');
+        logger.info('📡 서버 WebSocket 연결 종료');
 
         if (heartbeatRef.current) {
           clearInterval(heartbeatRef.current);
@@ -203,7 +204,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
         // 자동 재연결
         if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current++;
-          console.log(
+          logger.info(
             `🔄 재연결 시도 ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`
           );
 
@@ -215,7 +216,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
         }
       };
     } catch (error) {
-      console.error('❌ WebSocket 연결 실패:', error);
+      logger.error('❌ WebSocket 연결 실패:', error);
     }
   }, [
     url,
@@ -307,7 +308,7 @@ export const useRealtimePredictions = () => {
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
-      console.log('🔮 AI 예측 WebSocket 연결됨');
+      logger.info('🔮 AI 예측 WebSocket 연결됨');
     };
 
     wsRef.current.onmessage = (event: MessageEvent) => {
@@ -336,12 +337,12 @@ export const useRealtimePredictions = () => {
           );
         }
       } catch (error) {
-        console.error('❌ 예측 WebSocket 메시지 오류:', error);
+        logger.error('❌ 예측 WebSocket 메시지 오류:', error);
       }
     };
 
     wsRef.current.onerror = (error: Event) => {
-      console.error('❌ 예측 WebSocket 오류:', error);
+      logger.error('❌ 예측 WebSocket 오류:', error);
     };
 
     return () => {

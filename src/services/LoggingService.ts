@@ -10,6 +10,7 @@
 
 import { getLoggingConfig } from '@/config';
 import type { ILogger, LogEntry } from '@/lib/interfaces/services';
+import { logger } from '@/lib/logging';
 
 export class LoggingService implements ILogger {
   private logs: LogEntry[] = [];
@@ -174,16 +175,16 @@ export class LoggingService implements ILogger {
 
     switch (entry.level) {
       case 'debug':
-        console.debug(output);
+        logger.debug(output);
         break;
       case 'info':
-        console.info(output);
+        logger.info(output);
         break;
       case 'warn':
-        console.warn(output);
+        logger.warn(output);
         break;
       case 'error':
-        console.error(output);
+        logger.error(output);
         break;
     }
   }
@@ -219,7 +220,7 @@ export class LoggingService implements ILogger {
 
       localStorage.setItem(fileKey, JSON.stringify(logs));
     } catch (error) {
-      console.error('Failed to write log to file:', error);
+      logger.error('Failed to write log to file:', error);
     }
   }
 

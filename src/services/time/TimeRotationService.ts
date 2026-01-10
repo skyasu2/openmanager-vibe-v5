@@ -10,6 +10,8 @@
 // import { getCurrentSimulatedHour } from '../../mock/fixedHourlyData';
 
 // Helper to get current simulated hour (KST)
+import { logger } from '@/lib/logging';
+
 function getCurrentSimulatedHour(): number {
   const now = new Date();
   const kstTime = new Date(
@@ -322,11 +324,11 @@ export class TimeRotationService {
    */
   public start(): void {
     if (this.state.isActive) {
-      console.log('⚠️ 시간 회전 시스템이 이미 실행 중입니다');
+      logger.info('⚠️ 시간 회전 시스템이 이미 실행 중입니다');
       return;
     }
 
-    console.log('🕐 시간 회전 시스템 시작 - 30초 = 1시간');
+    logger.info('🕐 시간 회전 시스템 시작 - 30초 = 1시간');
     this.state.isActive = true;
     this.state.isPaused = false;
     this.state.realStartTime = Date.now();
@@ -344,7 +346,7 @@ export class TimeRotationService {
    */
   public pause(): void {
     this.state.isPaused = true;
-    console.log('⏸️ 시간 회전 시스템 일시정지');
+    logger.info('⏸️ 시간 회전 시스템 일시정지');
     this.notifyCallbacks();
   }
 
@@ -360,7 +362,7 @@ export class TimeRotationService {
     this.state.isPaused = false;
     // 시작 시간을 조정하여 일시정지된 시간을 보정
     this.state.realStartTime = Date.now() - this.state.realElapsedMs;
-    console.log('▶️ 시간 회전 시스템 재개');
+    logger.info('▶️ 시간 회전 시스템 재개');
     this.notifyCallbacks();
   }
 
@@ -376,7 +378,7 @@ export class TimeRotationService {
       this.intervalId = null;
     }
 
-    console.log('⏹️ 시간 회전 시스템 중지');
+    logger.info('⏹️ 시간 회전 시스템 중지');
     this.notifyCallbacks();
   }
 
@@ -418,7 +420,7 @@ export class TimeRotationService {
         0
       );
     } catch (error) {
-      console.error('❌ 고정 데이터 시간 로드 실패, 폴백 사용:', error);
+      logger.error('❌ 고정 데이터 시간 로드 실패, 폴백 사용:', error);
       // 폴백: 기존 복잡한 계산 방식
       const now = Date.now();
       this.state.realElapsedMs = now - this.state.realStartTime;
@@ -600,7 +602,7 @@ export class TimeRotationService {
       try {
         callback(this.state);
       } catch (error) {
-        console.error('❌ 시간 회전 콜백 오류:', error);
+        logger.error('❌ 시간 회전 콜백 오류:', error);
       }
     });
   }
@@ -610,7 +612,7 @@ export class TimeRotationService {
    */
   public jumpToHour(hour: number): void {
     if (hour < 0 || hour > 23) {
-      console.warn('⚠️ 유효하지 않은 시간:', hour);
+      logger.warn('⚠️ 유효하지 않은 시간:', hour);
       return;
     }
 
@@ -621,7 +623,7 @@ export class TimeRotationService {
     this.state.realStartTime = Date.now() - realTimeNeeded;
     this.updateSimulatedTime();
 
-    console.log(`🕐 시간 점프: ${hour}:00으로 이동`);
+    logger.info(`🕐 시간 점프: ${hour}:00으로 이동`);
   }
 }
 

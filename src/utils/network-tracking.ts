@@ -8,6 +8,7 @@
  */
 
 import type { NetworkRequestInfo } from '../types/system-checklist';
+import { logger } from '@/lib/logging';
 
 /**
  * 네트워크 요청 추적을 위한 래퍼 함수
@@ -28,7 +29,7 @@ export const fetchWithTracking = async (
   const startTime = Date.now();
   const method = options.method || 'GET';
 
-  console.log(`🌐 API 요청 시작: ${method} ${url}`);
+  logger.info(`🌐 API 요청 시작: ${method} ${url}`);
 
   try {
     const response = await fetch(url, {
@@ -46,7 +47,7 @@ export const fetchWithTracking = async (
       headers: {} as Record<string, string>, // Headers를 객체로 변환 시 타입 이슈로 인해 임시로 빈 객체 사용
     };
 
-    console.log(
+    logger.info(
       `📊 API 응답: ${method} ${url} - ${response.status} (${responseTime}ms)`
     );
 
@@ -61,7 +62,7 @@ export const fetchWithTracking = async (
       error: error instanceof Error ? error.message : 'Unknown error',
     };
 
-    console.error(
+    logger.error(
       `❌ API 에러: ${method} ${url} - ${error} (${responseTime}ms)`
     );
 

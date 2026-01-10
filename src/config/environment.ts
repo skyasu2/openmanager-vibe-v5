@@ -85,13 +85,13 @@ const getEnvVar = (key: string, defaultValue: string = ''): string => {
   }
 
   if (typeof process === 'undefined' || !process.env) {
-    console.warn(`⚠️ 환경변수 접근 불가: ${key}`);
+    logger.warn(`⚠️ 환경변수 접근 불가: ${key}`);
     return defaultValue;
   }
   const value = process.env[key];
   if (!value && defaultValue === '') {
     // 서버 사이드에서만 경고 출력
-    console.warn(`⚠️ 환경변수 미설정: ${key}`);
+    logger.warn(`⚠️ 환경변수 미설정: ${key}`);
   }
   return value || defaultValue;
 };
@@ -235,6 +235,7 @@ export function getCurrentEnvironment() {
 
 import { ACTIVE_SERVER_CONFIG } from './serverConfig';
 import { FREE_TIER_INTERVALS } from './free-tier-intervals';
+import { logger } from '@/lib/logging';
 
 /**
  * 데이터 생성기 설정 반환 (로컬/Vercel 통일)
@@ -245,7 +246,7 @@ export function getDataGeneratorConfig() {
 
   // 🚫 Vercel 환경에서는 데이터 생성기 완전 비활성화
   if (config.IS_VERCEL) {
-    console.log(
+    logger.info(
       '🚫 Vercel 환경: 목업 데이터 생성기 비활성화 (GCP 실제 데이터만 사용)'
     );
     return {
@@ -276,7 +277,7 @@ export function getDataGeneratorConfig() {
     | 'load-balanced'
     | 'microservices' = 'load-balanced';
 
-  console.log(
+  logger.info(
     `🎯 로컬 환경 설정: ${minServers}-${maxServers}개 서버 (중앙설정: ${centralConfig.maxServers}개, 간격: ${centralConfig.cache.updateInterval}ms)`
   );
 
@@ -381,7 +382,7 @@ export function checkPaths(paths: string[]): { [key: string]: boolean } {
     // 동적 import로 fs 모듈 사용 (번들링 방지)
     return paths.reduce((acc, path) => ({ ...acc, [path]: true }), {});
   } catch (error) {
-    console.warn('⚠️ 경로 확인 건너뜀 (빌드 환경):', error);
+    logger.warn('⚠️ 경로 확인 건너뜀 (빌드 환경):', error);
     return paths.reduce((acc, path) => ({ ...acc, [path]: false }), {});
   }
 }
@@ -391,7 +392,7 @@ export function checkPaths(paths: string[]): { [key: string]: boolean } {
  */
 export function envLog(message: string, data?: unknown): void {
   if (shouldEnableDebugLogging()) {
-    console.log(`[ENV] ${message}`, data || '');
+    logger.info(`[ENV] ${message}`, data || '');
   }
 }
 
@@ -485,52 +486,52 @@ export function logEnvironmentStatus(): void {
   const config = getEnvironmentConfig();
   const validation = validateEnvironmentConfig();
 
-  console.log('🌍 ===== 환경 설정 상태 =====');
-  console.log(
+  logger.info('🌍 ===== 환경 설정 상태 =====');
+  logger.info(
     `📋 NODE_ENV: ${config.IS_DEVELOPMENT ? 'development' : config.IS_PRODUCTION ? 'production' : 'test'}`
   );
-  console.log(`🏷️ Platform: ${config.platform}`);
-  console.log(`☁️ Vercel: ${config.IS_VERCEL ? '✅ 활성화' : '❌ 비활성화'}`);
-  console.log(`🏠 Local: ${config.IS_LOCAL ? '✅ 활성화' : '❌ 비활성화'}`);
+  logger.info(`🏷️ Platform: ${config.platform}`);
+  logger.info(`☁️ Vercel: ${config.IS_VERCEL ? '✅ 활성화' : '❌ 비활성화'}`);
+  logger.info(`🏠 Local: ${config.IS_LOCAL ? '✅ 활성화' : '❌ 비활성화'}`);
 
-  console.log('\n🗄️ ===== 데이터베이스 연결 =====');
-  console.log(
+  logger.info('\n🗄️ ===== 데이터베이스 연결 =====');
+  logger.info(
     `📊 Supabase: ${config.database.supabase.enabled ? '✅ 연결됨' : '❌ 비활성화'}`
   );
-  console.log(
+  logger.info(
     `⚡ Redis: ${config.database.redis.enabled ? '✅ 연결됨' : '❌ 비활성화'}`
   );
 
-  console.log('\n🎛️ ===== 기능 상태 =====');
-  console.log(`🧠 AI: ${config.features.enableAI ? '✅' : '❌'}`);
-  console.log(`📊 실시간: ${config.features.enableRealtime ? '✅' : '❌'}`);
-  console.log(`🔌 WebSocket: ${config.features.enableWebSocket ? '✅' : '❌'}`);
-  console.log(
+  logger.info('\n🎛️ ===== 기능 상태 =====');
+  logger.info(`🧠 AI: ${config.features.enableAI ? '✅' : '❌'}`);
+  logger.info(`📊 실시간: ${config.features.enableRealtime ? '✅' : '❌'}`);
+  logger.info(`🔌 WebSocket: ${config.features.enableWebSocket ? '✅' : '❌'}`);
+  logger.info(
     `🎭 목업 데이터: ${config.features.enableMockData ? '✅' : '❌'}`
   );
 
-  console.log('\n⚡ ===== 성능 설정 =====');
-  console.log(`💾 최대 메모리: ${config.performance.maxMemory}MB`);
-  console.log(`🔄 동시 처리: ${config.performance.maxConcurrency}`);
-  console.log(`⏱️ 타임아웃: ${config.performance.timeout}ms`);
+  logger.info('\n⚡ ===== 성능 설정 =====');
+  logger.info(`💾 최대 메모리: ${config.performance.maxMemory}MB`);
+  logger.info(`🔄 동시 처리: ${config.performance.maxConcurrency}`);
+  logger.info(`⏱️ 타임아웃: ${config.performance.timeout}ms`);
 
   // 🚨 검증 결과 출력
   if (!validation.isValid) {
-    console.log('\n🚨 ===== 환경 설정 오류 =====');
-    validation.errors.forEach((error) => console.error(`❌ ${error}`));
+    logger.info('\n🚨 ===== 환경 설정 오류 =====');
+    validation.errors.forEach((error) => logger.error(`❌ ${error}`));
   }
 
   if (validation.warnings.length > 0) {
-    console.log('\n⚠️ ===== 환경 설정 경고 =====');
-    validation.warnings.forEach((warning) => console.warn(`⚠️ ${warning}`));
+    logger.info('\n⚠️ ===== 환경 설정 경고 =====');
+    validation.warnings.forEach((warning) => logger.warn(`⚠️ ${warning}`));
   }
 
   if (validation.recommendations.length > 0) {
-    console.log('\n💡 ===== 권장사항 =====');
-    validation.recommendations.forEach((rec) => console.log(`💡 ${rec}`));
+    logger.info('\n💡 ===== 권장사항 =====');
+    validation.recommendations.forEach((rec) => logger.info(`💡 ${rec}`));
   }
 
-  console.log('\n✅ 환경 설정 상태 로그 완료\n');
+  logger.info('\n✅ 환경 설정 상태 로그 완료\n');
 }
 
 /**
@@ -540,7 +541,7 @@ export function applyEnvironmentOptimizations(): void {
   const config = getEnvironmentConfig();
 
   if (config.IS_VERCEL) {
-    console.log('🚀 Vercel 환경 최적화 적용');
+    logger.info('🚀 Vercel 환경 최적화 적용');
 
     // Vercel Edge Function 최적화
     if (globalThis.process) {
@@ -549,12 +550,12 @@ export function applyEnvironmentOptimizations(): void {
 
     // 메모리 사용량 모니터링
     if (config.performance.maxMemory > 1024) {
-      console.warn('⚠️ Vercel Free Plan 메모리 제한 초과 위험');
+      logger.warn('⚠️ Vercel Free Plan 메모리 제한 초과 위험');
     }
   }
 
   if (config.IS_LOCAL) {
-    console.log('🏠 로컬 환경 최적화 적용');
+    logger.info('🏠 로컬 환경 최적화 적용');
 
     // 개발 도구 활성화
     if (globalThis.process) {
@@ -564,7 +565,7 @@ export function applyEnvironmentOptimizations(): void {
   }
 
   if (config.IS_PRODUCTION) {
-    console.log('🔒 프로덕션 환경 보안 강화');
+    logger.info('🔒 프로덕션 환경 보안 강화');
 
     // 프로덕션 보안 설정
     if (globalThis.process) {

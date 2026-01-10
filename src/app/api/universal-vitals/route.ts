@@ -7,6 +7,7 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logging';
 import {
   UNIVERSAL_THRESHOLDS,
   type UniversalVital,
@@ -331,21 +332,21 @@ export async function POST(request: NextRequest) {
 
     // 📝 개발 환경에서 로깅
     if (process.env.NODE_ENV === 'development') {
-      console.log(
+      logger.info(
         `📊 [Universal Vitals] ${body.source}에서 ${body.metrics.length}개 메트릭 처리`
       );
-      console.log(`🎯 전체 점수: ${analysis.score}점 (${analysis.overall})`);
+      logger.info(`🎯 전체 점수: ${analysis.score}점 (${analysis.overall})`);
       if (recommendations.length > 0) {
-        console.log(`💡 권장사항 ${recommendations.length}개 제공`);
+        logger.info(`💡 권장사항 ${recommendations.length}개 제공`);
       }
       if (regressions.length > 0) {
-        console.log(`🚨 성능 회귀 ${regressions.length}개 감지`);
+        logger.info(`🚨 성능 회귀 ${regressions.length}개 감지`);
       }
     }
 
     return NextResponse.json(response, { headers });
   } catch (error) {
-    console.error('Universal Vitals API Error:', error);
+    logger.error('Universal Vitals API Error:', error);
 
     return NextResponse.json(
       {
