@@ -7,7 +7,6 @@
  *
  * 2. ChartDataInput 호환성:
  *    프로젝트의 ChartDataPoint 타입이 Recharts의 ChartDataInput과 호환되도록 보장합니다.
- *    TypeScript의 구조적 타이핑 제한을 우회하기 위해 any를 사용합니다.
  *
  * 3. Legend formatter 타입 확장:
  *    LegendPayload의 color가 optional이므로 타입 확장으로 처리합니다.
@@ -15,16 +14,34 @@
 
 import { ReactNode } from 'react';
 
+/** Chart data point with required properties for Recharts */
+interface ChartDataPoint {
+  name: string;
+  value: number;
+  [key: string]: string | number | undefined;
+}
+
+/** Legend entry payload */
+interface LegendEntry {
+  value: string;
+  color?: string;
+  payload?: ChartDataPoint;
+}
+
 declare module 'recharts' {
   // Pie 컴포넌트 타입 확장
   interface PieProps {
     children?: ReactNode;
-    // ChartDataPoint[] 호환을 위한 data prop 타입 완전 재정의
-    data?: any[];
+    // ChartDataPoint[] 호환을 위한 data prop 타입
+    data?: ChartDataPoint[];
   }
 
   // Legend 컴포넌트 타입 확장
   interface LegendProps {
-    formatter?: (value: any, entry: any, index: number) => React.ReactNode;
+    formatter?: (
+      value: string,
+      entry: LegendEntry,
+      index: number
+    ) => React.ReactNode;
   }
 }

@@ -154,7 +154,15 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function seedLogs() {
   console.log('🚀 Seeding Fixed Logs to Supabase (Self-Contained)...');
 
-  const logsToInsert: any[] = [];
+  interface LogEntry {
+    server_id: string;
+    level: 'info' | 'warn' | 'error';
+    message: string;
+    timestamp: string;
+    source: string;
+    created_at: string;
+  }
+  const logsToInsert: LogEntry[] = [];
   const today = new Date().toISOString().split('T')[0];
 
   for (const dataset of FIXED_24H_DATASETS) {
@@ -166,13 +174,13 @@ async function seedLogs() {
             const timestamp = new Date(`${today}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00Z`).toISOString();
 
             for (const logMsg of metric.logs) {
-                let level = 'info';
+                let level: 'info' | 'warn' | 'error' = 'info';
                 if (logMsg.includes('[CRITICAL]') || logMsg.includes('[ERROR]')) level = 'error';
                 else if (logMsg.includes('[WARN]')) level = 'warn';
 
                 logsToInsert.push({
                     server_id: dataset.serverId,
-                    level: level,
+                    level,
                     message: logMsg,
                     timestamp: timestamp,
                     source: 'system-monitor',
