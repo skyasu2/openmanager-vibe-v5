@@ -35,6 +35,11 @@ export function blockInProduction(): NextResponse | null {
 }
 
 /**
+ * Generic function type for route handlers
+ */
+type RouteHandler = (...args: unknown[]) => unknown;
+
+/**
  * Wrapper for development-only route handlers
  *
  * Usage:
@@ -44,10 +49,7 @@ export function blockInProduction(): NextResponse | null {
  * });
  * ```
  */
-// biome-ignore lint/suspicious/noExplicitAny: Generic wrapper for API route handlers requires flexible typing
-export function developmentOnly<T extends (...args: any[]) => any>(
-  handler: T
-): T {
+export function developmentOnly<T extends RouteHandler>(handler: T): T {
   return ((...args: Parameters<T>) => {
     const blockResponse = blockInProduction();
     if (blockResponse) {

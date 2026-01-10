@@ -188,7 +188,6 @@ autoMemoryReclaim=gradual
 # 활성화된 MCP 서버
 - serena      # 코드/구조 파악
 - context7    # 최신 문서 참조
-- brave-search # 웹 검색
 - tavily      # 심층 리서치
 - supabase    # DB 관리
 - vercel      # 배포 관리
@@ -206,7 +205,7 @@ autoMemoryReclaim=gradual
 @context7 "Next.js 16 App Router"
 
 # 리서치
-@brave-search "Vitest vmThreads performance"
+@tavily "Vitest vmThreads performance"
 ```
 
 ---

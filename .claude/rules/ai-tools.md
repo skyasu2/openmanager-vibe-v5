@@ -1,6 +1,6 @@
 # AI Tools Usage Rules
 
-## MCP Servers (9개)
+## MCP Servers (8개)
 
 | MCP | 용도 | 우선순위 |
 |-----|------|:-------:|
@@ -11,8 +11,7 @@
 | `vercel` | 배포 상태 확인 | 중간 |
 | `playwright` | E2E 테스트 | 중간 |
 | `github` | 저장소/PR 관리 | 중간 |
-| `brave-search` | 팩트체크, 버전 확인 | 낮음 |
-| `tavily` | 심층 리서치 | 낮음 |
+| `tavily` | 심층 리서치, 팩트체크 | 낮음 |
 
 ## Skills (10개)
 

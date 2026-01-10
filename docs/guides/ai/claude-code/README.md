@@ -23,14 +23,14 @@ ls .claude/skills/
 
 주요 스킬: `ai-code-review`, `lint-smoke`, `security-audit-workflow`, `validation-analysis`
 
-### 3. MCP 서버 (9개)
+### 3. MCP 서버 (8개)
 
 ```bash
 # MCP 상태 확인
 claude mcp list
 ```
 
-주요 서버: serena, context7, vercel, supabase, playwright, figma, github, tavily, brave-search
+주요 서버: serena, context7, vercel, supabase, playwright, figma, github, tavily
 
 ---
 

@@ -27,9 +27,8 @@ source .env.local            # 환경변수 로드
 | **🎉 figma**        | ✅   | ✅ 완전 작동 | Design-to-Code 워크플로우  | **6회/월**     |
 | **🎉 github**       | ✅   | ✅ 완전 작동 | 저장소, PR, Issues 관리    | 무제한         |
 | **🎉 tavily**       | ✅   | ✅ 완전 작동 | 웹 검색 (심층 리서치)      | 1,000/월       |
-| **🎉 brave-search** | ✅   | ✅ 완전 작동 | 웹 검색 (빠른 팩트체크)    | 2,000/월       |
 
-**9개 서버 연결** | **CLI-only 방식** | **100% 완전 작동**
+**8개 서버 연결** | **CLI-only 방식** | **100% 완전 작동**
 
 ### 제거된 MCP 서버 (2025-12-11)
 
@@ -40,6 +39,7 @@ source .env.local            # 환경변수 로드
 | time                  | 사용 빈도 낮음                     | Bash `date` 명령                  |
 | shadcn-ui             | Context7로 문서 조회 가능          | `context7__get_library_docs`      |
 | sequential-thinking   | Claude 자체 추론으로 충분          | TodoWrite + 직접 분석             |
+| brave-search          | Tavily로 대체 (웹 검색 중복)       | `tavily__search`                  |
 
 ## 🚀 빠른 시작
 
@@ -150,4 +150,4 @@ claude mcp add SERVER_NAME -s local -e VAR=value -- COMMAND
 
 ---
 
-**연결 성공률**: 100% (9/9)
+**연결 성공률**: 100% (8/8)
