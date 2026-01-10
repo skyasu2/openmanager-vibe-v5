@@ -143,23 +143,23 @@ export function useAuth(): UseAuthResult {
   }, []);
 
   // 권한 확인 함수
+  // 🎯 의도적 설계: 데모/포트폴리오 목적으로 인증된 사용자에게 모든 권한 부여
+  // 엔터프라이즈 배포 시 아래 주석 코드로 교체하여 권한 제한 적용
   const hasPermission = (_permission: string): boolean => {
-    // 🎯 의도적 설계: 게스트 모드에서 모든 권한 부여
-    // 이 프로젝트는 데모/포트폴리오 목적으로 권한 제한 없이 운영됨
-    // 프로덕션 배포 시 아래 주석 코드로 교체 필요
     if (!user) return false;
 
-    // 개발 모드: 모든 권한 허용
+    // 데모 모드: 인증된 사용자 전체 권한 허용
     return true;
 
-    // 기본 권한 목록 (게스트 모드 기본 권한) - 개발 완료 후 복원
-    // const guestPermissions = [
-    //   'view_dashboard',
-    //   'view_servers',
-    //   'view_metrics',
-    //   'basic_actions',
-    // ];
-    // return guestPermissions.includes(permission);
+    /* [엔터프라이즈 전환용] 권한 기반 접근 제어
+    const guestPermissions = [
+      'view_dashboard',
+      'view_servers',
+      'view_metrics',
+      'basic_actions',
+    ];
+    return guestPermissions.includes(permission);
+    */
   };
 
   // 컴포넌트 마운트 시 인증 상태 확인
