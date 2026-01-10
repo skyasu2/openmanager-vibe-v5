@@ -8,7 +8,7 @@
  */
 
 import { beforeAll, afterEach, afterAll } from 'vitest';
-import { server } from '../../src/mocks/server';
+import { server } from '../../src/__mocks__/msw/server';
 
 /**
  * 테스트 시작 전: MSW 서버 시작

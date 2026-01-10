@@ -17,6 +17,15 @@ export default defineConfig({
       'src/lib/project-meta.test.ts',
       'src/lib/utils/time.test.ts',
       'src/safe-format.test.ts',
+      // Phase 1 추가: validators + AI utils
+      'src/validators/paginationQuerySchema.test.ts',
+      'src/lib/ai/utils/context-compressor.test.ts',
+      'src/lib/ai/utils/query-complexity.test.ts',
+      // Phase 2 추가: AI supervisor utils
+      'src/app/api/ai/supervisor/cache-utils.test.ts',
+      'src/app/api/ai/supervisor/security.test.ts',
+      // Phase 2 추가: metrics
+      'src/services/metrics/variation-generator.test.ts',
       // 참고: integration 테스트는 jsdom 필요하므로 vitest.config.ts 사용
     ],
     exclude: [
