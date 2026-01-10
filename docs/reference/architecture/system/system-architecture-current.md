@@ -61,9 +61,9 @@ src/
 │   └── supabase/        # Supabase 클라이언트
 ├── services/            # 비즈니스 로직
 │   ├── ai/              # AI 서비스
-│   ├── adapters/        # 데이터 어댑터
-│   ├── performance/     # 성능 서비스
-│   └── data/            # 데이터 서비스
+│   ├── data/            # 데이터 서비스
+│   ├── metrics/         # 메트릭 서비스
+│   └── performance/     # 성능 서비스
 ├── types/               # TypeScript 타입
 │   ├── ai-sidebar/      # AI 사이드바 타입
 │   └── performance/     # 성능 타입

@@ -24,7 +24,8 @@ src/
 │   └── interfaces/    # 공통 인터페이스
 ├── schemas/           # 검증 스키마
 ├── services/          # 비즈니스 서비스
-│   ├── adapters/      # 데이터 어댑터
+│   ├── ai/            # AI 서비스
+│   ├── data/          # 데이터 서비스
 │   └── performance/   # 성능 서비스
 ├── stores/            # 상태 관리
 ├── styles/            # CSS 스타일
