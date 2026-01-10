@@ -14,19 +14,22 @@ const textPartSchema = z.object({
   text: z.string(),
 });
 
-// AI SDK v5+ 호환성: 알려진 타입 + unknown 타입 fallback
-const knownPartTypes = z.discriminatedUnion('type', [
+// AI SDK v5+ 호환성: 모든 part 타입 허용 (union으로 유연성 확보)
+// discriminatedUnion은 알 수 없는 타입에서 실패하므로 union 사용
+const partSchema = z.union([
   textPartSchema,
   z.object({ type: z.literal('tool-invocation') }).passthrough(),
   z.object({ type: z.literal('tool-result') }).passthrough(),
   z.object({ type: z.literal('file') }).passthrough(),
   z.object({ type: z.literal('reasoning') }).passthrough(),
+  z.object({ type: z.literal('source') }).passthrough(),
+  z.object({ type: z.literal('step-start') }).passthrough(),
+  z.object({ type: z.literal('step-finish') }).passthrough(),
+  // Fallback: 알 수 없는 타입도 허용 (AI SDK 업데이트 대응)
+  z
+    .object({ type: z.string() })
+    .passthrough(),
 ]);
-
-// Unknown part 타입 허용 (향후 AI SDK 업데이트 호환성)
-const unknownPartSchema = z.object({ type: z.string() }).passthrough();
-
-const partSchema = z.union([knownPartTypes, unknownPartSchema]);
 
 // 하이브리드 메시지 스키마: AI SDK v5 (parts) + 레거시 (content) 모두 지원
 export const messageSchema = z

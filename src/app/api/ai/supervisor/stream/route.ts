@@ -38,12 +38,21 @@ const textPartSchema = z.object({
   text: z.string(),
 });
 
-const partSchema = z.discriminatedUnion('type', [
+// AI SDK v5 호환: 알려진 타입 + unknown 타입 모두 허용
+// discriminatedUnion 대신 union 사용하여 유연성 확보
+const partSchema = z.union([
   textPartSchema,
   z.object({ type: z.literal('tool-invocation') }).passthrough(),
   z.object({ type: z.literal('tool-result') }).passthrough(),
   z.object({ type: z.literal('file') }).passthrough(),
   z.object({ type: z.literal('reasoning') }).passthrough(),
+  z.object({ type: z.literal('source') }).passthrough(),
+  z.object({ type: z.literal('step-start') }).passthrough(),
+  z.object({ type: z.literal('step-finish') }).passthrough(),
+  // Fallback: 알 수 없는 타입도 허용 (AI SDK 업데이트 대응)
+  z
+    .object({ type: z.string() })
+    .passthrough(),
 ]);
 
 const messageSchema = z.object({
