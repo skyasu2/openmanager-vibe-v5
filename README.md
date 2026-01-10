@@ -170,6 +170,33 @@ Orchestrator (쿼리 분석 & 라우팅)
 
 ---
 
+## Development Story
+
+> **"Zero to Production with Vibe Coding"**
+
+이 프로젝트는 **Claude Code**를 메인 개발 도구로 사용하여 **처음부터 끝까지** 구축한 Full-Stack AI Platform입니다.
+
+### What We Built
+
+| Layer | Implementation |
+|-------|----------------|
+| **Frontend** | Next.js 16 + React 19 Dashboard |
+| **Backend** | Google Cloud Run AI Engine |
+| **Database** | Supabase PostgreSQL + pgvector |
+| **Cache** | Upstash Redis |
+| **AI System** | 6-Agent Multi-Agent Orchestration |
+
+### Development Approach
+
+- **Vibe Coding**: Claude Code를 활용한 대화형 개발
+- **Multi-LLM Review**: Codex + Gemini 2-AI 코드 리뷰 로테이션
+- **MCP Integration**: 9개 MCP 서버 연동 (Serena, Context7, Playwright 등)
+- **Hybrid Architecture**: Vercel Edge + Cloud Run Heavy Lifting
+
+**결과**: 약 **170,000 Lines of Code** (Frontend 50K+ / Backend 18K+ / Config & Docs)
+
+---
+
 ## License
 
 Copyright © 2026. All Rights Reserved.
@@ -180,5 +207,5 @@ Copyright © 2026. All Rights Reserved.
 <div align="center">
   <sub>Built with Vibe Coding</sub>
   <br/>
-  <sub>v5.84.1</sub>
+  <sub>v5.84.3</sub>
 </div>

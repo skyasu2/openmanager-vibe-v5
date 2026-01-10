@@ -1,10 +1,10 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-09
+**마지막 업데이트**: 2026-01-10
 
 ---
 
-## 🏗️ Technical Stack (v5.84.1)
+## 🏗️ Technical Stack (v5.84.3)
 
 **Core Frameworks** (2025 Standard)
 - **Next.js**: `v16.1.1` (App Router, Server Components)
@@ -69,7 +69,21 @@
 
 ---
 
-## 🔧 최근 유지보수 (2025-12-09 ~ 2026-01-09)
+## 🔧 최근 유지보수 (2025-12-09 ~ 2026-01-10)
+
+**AI SDK v5 Zod Schema 호환성 수정 (2026-01-10)**
+- **문제**: 연속 NLQ 쿼리 시 400 에러 발생
+  - 첫 쿼리는 성공 (text parts만 포함)
+  - 두 번째부터 실패 (source, step-start 등 추가 parts 포함)
+- **원인**: `z.discriminatedUnion`이 알 수 없는 part 타입에서 실패
+- **해결**: `z.union`으로 변경 + fallback 패턴 추가
+  ```typescript
+  // Before: discriminatedUnion (엄격, 알 수 없는 타입 거부)
+  // After: union + fallback (유연, AI SDK 업데이트 대응)
+  z.object({ type: z.string() }).passthrough() // fallback
+  ```
+- **변경 파일**: `schemas.ts`, `stream/route.ts`
+- **검증**: Vercel Production 4개 연속 NLQ 테스트 통과
 
 **NLP Intent Classification 개선 + Streaming SSE (2026-01-09)**
 - **Infrastructure Context Gating**: False Positive 감소를 위한 2단계 패턴 매칭
@@ -287,3 +301,27 @@
 - **Performance**:
   - Dev Server: ~22s startup
   - Test Suite: ~21s execution
+
+---
+
+## 🎯 Development Methodology
+
+**Zero to Production with Vibe Coding**
+
+이 프로젝트는 **Claude Code**를 메인 개발 도구로 사용하여 처음부터 끝까지 구축한 Full-Stack AI Platform입니다.
+
+| 구현 영역 | 기술 스택 | 상태 |
+|----------|----------|------|
+| Web UI | Next.js 16 + React 19 Dashboard | ✅ 완료 |
+| AI Assistant | useChat + TextStreamChatTransport | ✅ 완료 |
+| Multi-Agent | 6-Agent Orchestration (Cloud Run) | ✅ 완료 |
+| Database | Supabase PostgreSQL + pgvector | ✅ 완료 |
+| Cache | Upstash Redis | ✅ 완료 |
+| Monitoring | Server Metrics + Real-time Updates | ✅ 완료 |
+
+**개발 도구 체인**:
+- **Primary**: Claude Code (Interactive Development)
+- **Code Review**: Codex + Gemini 2-AI Rotation
+- **MCP**: 9개 서버 연동 (Serena, Context7, Playwright 등)
+
+**총 코드량**: ~169,000 Lines (Frontend 50K+ / Backend 18K+ / Config & Tests)
