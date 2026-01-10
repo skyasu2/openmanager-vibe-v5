@@ -40,7 +40,7 @@ function createLogger() {
     // Base context
     base: {
       service: 'ai-engine',
-      version: process.env.npm_package_version || '5.84.3',
+      version: process.env.npm_package_version || '5.85.0',
     },
 
     // GCP-compatible timestamp
