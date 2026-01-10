@@ -37,7 +37,8 @@ export function blockInProduction(): NextResponse | null {
 /**
  * Generic function type for route handlers
  */
-type RouteHandler = (...args: unknown[]) => unknown;
+// biome-ignore lint/suspicious/noExplicitAny: Route handlers have varied signatures
+type RouteHandler = (...args: any[]) => any;
 
 /**
  * Wrapper for development-only route handlers
