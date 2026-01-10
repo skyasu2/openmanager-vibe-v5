@@ -12,7 +12,8 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import type { Context, Next } from 'hono';
 import { cors } from 'hono/cors';
-import { logger } from 'hono/logger';
+import { logger as honoLogger } from 'hono/logger';
+import { logger } from './lib/logger';
 
 // Configuration
 import { logAPIKeyStatus, validateAPIKeys } from './lib/model-config';
@@ -50,7 +51,7 @@ const app = new Hono();
 // Middleware
 // ============================================================================
 
-app.use('*', logger());
+app.use('*', honoLogger());
 app.use('*', cors());
 
 // Security Middleware (Skip for health/warmup)
@@ -297,15 +298,15 @@ app.route('/api/ai/providers', providersRouter);
 // ============================================================================
 
 const port = parseInt(process.env.PORT || '8080', 10);
-console.log(`🚀 AI Engine Server starting on port ${port}...`);
+logger.info({ port }, 'AI Engine Server starting');
 logAPIKeyStatus();
 
 // Initialize Langfuse config (sets env vars from JSON secret)
 const langfuseConfig = getLangfuseConfig();
 if (langfuseConfig) {
-  console.log(`📊 [Langfuse] Initialized: ${langfuseConfig.baseUrl}`);
+  logger.info({ baseUrl: langfuseConfig.baseUrl }, 'Langfuse initialized');
 } else {
-  console.warn(`⚠️ [Langfuse] Not configured - observability disabled`);
+  logger.warn('Langfuse not configured - observability disabled');
 }
 
 serve(
@@ -315,17 +316,27 @@ serve(
     hostname: '0.0.0.0', // Required for Cloud Run
   },
   (info: { address: string; port: number }) => {
-    console.log(`✅ Server listening on http://${info.address}:${info.port}`);
-    console.log(`📚 Routes registered:`);
-    console.log(`   - /health, /warmup, /monitoring`);
-    console.log(`   - /api/ai/supervisor`);
-    console.log(`   - /api/ai/embedding`);
-    console.log(`   - /api/ai/generate`);
-    console.log(`   - /api/ai/approval`);
-    console.log(`   - /api/ai/analyze-server, /api/ai/incident-report, /api/ai/analyze-batch`);
-    console.log(`   - /api/ai/graphrag`);
-    console.log(`   - /api/ai/providers (toggle)`);
-    console.log(`   - /api/jobs`);
+    logger.info(
+      {
+        address: info.address,
+        port: info.port,
+        routes: [
+          '/health',
+          '/warmup',
+          '/monitoring',
+          '/api/ai/supervisor',
+          '/api/ai/embedding',
+          '/api/ai/generate',
+          '/api/ai/approval',
+          '/api/ai/analyze-server',
+          '/api/ai/incident-report',
+          '/api/ai/graphrag',
+          '/api/ai/providers',
+          '/api/jobs',
+        ],
+      },
+      'Server listening'
+    );
   }
 );
 
@@ -334,21 +345,19 @@ serve(
 // ============================================================================
 
 async function gracefulShutdown(signal: string): Promise<void> {
-  console.log(`\n⏳ Received ${signal}, shutting down gracefully...`);
+  logger.info({ signal }, 'Received shutdown signal');
 
   try {
-    // Flush Langfuse traces before shutdown
-    console.log('📊 Flushing Langfuse traces...');
+    logger.info('Flushing Langfuse traces');
     await flushLangfuse();
 
-    // Shutdown Langfuse client
-    console.log('🔌 Shutting down Langfuse...');
+    logger.info('Shutting down Langfuse');
     await shutdownLangfuse();
 
-    console.log('✅ Graceful shutdown complete');
+    logger.info('Graceful shutdown complete');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error during shutdown:', error);
+    logger.error({ error }, 'Error during shutdown');
     process.exit(1);
   }
 }

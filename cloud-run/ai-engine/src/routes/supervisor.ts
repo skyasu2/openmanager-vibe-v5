@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { executeSupervisor, executeSupervisorStream, checkSupervisorHealth, logProviderStatus } from '../services/ai-sdk';
 import { handleApiError, handleValidationError, jsonSuccess } from '../lib/error-handler';
 import { sanitizeChineseCharacters } from '../lib/text-sanitizer';
+import { logger } from '../lib/logger';
 
 // ============================================================================
 // 📋 Stream Request Schema
@@ -51,7 +52,7 @@ supervisorRouter.post('/', async (c: Context) => {
       return handleValidationError(c, 'No query provided');
     }
 
-    console.log(`🤖 [Supervisor] Using AI SDK (session: ${sessionId})`);
+    logger.info({ sessionId }, 'Supervisor processing request');
     logProviderStatus();
 
     const result = await executeSupervisor({
@@ -108,7 +109,7 @@ supervisorRouter.post('/stream', async (c: Context) => {
       const errorDetails = parseResult.error.issues
         .map((i) => i.message)
         .join(', ');
-      console.warn(`⚠️ [SupervisorStream] Invalid payload: ${errorDetails}`);
+      logger.warn({ errorDetails }, 'SupervisorStream invalid payload');
       return handleValidationError(c, `Invalid request: ${errorDetails}`);
     }
 
@@ -118,8 +119,7 @@ supervisorRouter.post('/stream', async (c: Context) => {
     const lastMessage = messages[messages.length - 1];
     const query = lastMessage.content;
 
-    console.log(`🌊 [SupervisorStream] Starting SSE stream (session: ${sessionId || 'default'})`);
-    console.log(`🌊 [SupervisorStream] Query: "${query.slice(0, 50)}..."`);
+    logger.info({ sessionId: sessionId || 'default', query: query.slice(0, 50) }, 'SupervisorStream starting');
     logProviderStatus();
 
     // 3. Stream response using SSE
@@ -155,10 +155,10 @@ supervisorRouter.post('/stream', async (c: Context) => {
           }
         }
 
-        console.log(`✅ [SupervisorStream] Stream completed (${messageId} events)`);
+        logger.info({ eventCount: messageId }, 'SupervisorStream completed');
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`❌ [SupervisorStream] Error:`, errorMessage);
+        logger.error({ error: errorMessage }, 'SupervisorStream error');
 
         await stream.writeSSE({
           id: String(messageId++),
