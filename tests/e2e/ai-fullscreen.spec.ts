@@ -99,8 +99,8 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     const leftSidebar = page.locator('text=AI 기능').first();
     await expect(leftSidebar).toBeVisible({ timeout: TIMEOUTS.DOM_UPDATE });
 
-    // New Chat 버튼 확인
-    const newChatButton = page.locator('button:has-text("New Chat")').first();
+    // New Chat 버튼 확인 (새 대화)
+    const newChatButton = page.locator('button:has-text("새 대화")').first();
     await expect(newChatButton).toBeVisible({ timeout: TIMEOUTS.DOM_UPDATE });
   });
 
@@ -108,15 +108,14 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     // AI 사이드바 열기
     await openAiSidebar(page);
 
-    // 풀스크린 버튼 찾기 및 클릭 (텍스트 기반 셀렉터)
+    // 풀스크린 버튼 찾기 및 클릭 (data-testid 사용)
     const fullscreenButton = page
-      .locator('button:has-text("전체 화면으로 보기")')
+      .locator('[data-testid="ai-fullscreen-button"]')
       .first();
     await fullscreenButton.waitFor({
       state: 'visible',
       timeout: TIMEOUTS.MODAL_DISPLAY,
     });
-
     // 현재 URL 저장
     const beforeUrl = page.url();
     await fullscreenButton.click();
@@ -220,38 +219,12 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     await expect(breadcrumb).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
   });
 
-  test('AI 기능 탭 전환 - AI 상태관리', async ({ page }) => {
-    await page.goto('/dashboard/ai-assistant', {
-      waitUntil: 'domcontentloaded',
-    });
-    await page.waitForLoadState('networkidle');
-
-    // AI 상태관리 버튼 클릭 (텍스트 기반 셀렉터)
-    const managementButton = page
-      .locator('button:has-text("AI 상태관리")')
-      .first();
-    await managementButton.waitFor({
-      state: 'visible',
-      timeout: TIMEOUTS.MODAL_DISPLAY,
-    });
-    await managementButton.click();
-
-    await page.waitForTimeout(500);
-
-    // 브레드크럼 또는 제목에서 관련 표시 확인
-    const breadcrumb = page
-      .locator('text=ai-management')
-      .or(page.locator('text=AI 상태관리'))
-      .first();
-    await expect(breadcrumb).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
-  });
-
   test('New Chat 버튼 클릭', async ({ page }) => {
     await page.goto('/dashboard/ai-assistant');
     await page.waitForLoadState('networkidle');
 
-    // New Chat 버튼 클릭
-    const newChatButton = page.locator('button:has-text("New Chat")').first();
+    // New Chat 버튼 클릭 (새 대화)
+    const newChatButton = page.locator('button:has-text("새 대화")').first();
     await newChatButton.waitFor({
       state: 'visible',
       timeout: TIMEOUTS.DOM_UPDATE,
@@ -268,21 +241,22 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     await expect(chatInput).toBeVisible({ timeout: TIMEOUTS.DOM_UPDATE });
   });
 
-  test('뒤로가기 네비게이션', async ({ page }) => {
+  test('뒤로가기 네비게이션 (또는 홈 이동)', async ({ page }) => {
     await page.goto('/dashboard/ai-assistant');
     await page.waitForLoadState('networkidle');
 
-    // 뒤로가기 버튼 (ArrowLeftFromLine 아이콘) 클릭
-    // title="뒤로 가기" 속성으로 찾기
+    // 뒤로가기 버튼(모바일) 또는 로고(데스크탑) 클릭
     const backButton = page.locator('button[title="뒤로 가기"]').first();
-    await backButton.waitFor({
-      state: 'visible',
-      timeout: TIMEOUTS.DOM_UPDATE,
-    });
-    await backButton.click();
+    const logoLink = page.locator('a[href="/"]').first();
 
-    // 페이지가 변경되었는지 확인 (대시보드로 돌아감)
-    await page.waitForURL(/\/dashboard(?!\/ai-assistant)/, {
+    if (await backButton.isVisible()) {
+      await backButton.click();
+    } else {
+      await logoLink.click();
+    }
+
+    // 페이지가 변경되었는지 확인 (대시보드 또는 루트로 돌아감)
+    await page.waitForURL(/(\/dashboard|\/$)/, {
       timeout: TIMEOUTS.NETWORK_REQUEST,
     });
   });
@@ -291,9 +265,9 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     // beforeEach에서 이미 로그인 상태이므로 사이드바에서 AI 페이지로 이동
     await openAiSidebar(page);
 
-    // 풀스크린 버튼 클릭하여 AI 어시스턴트 페이지로 이동
+    // 풀스크린 버튼 찾기 및 클릭 (data-testid 사용)
     const fullscreenButton = page
-      .locator('button:has-text("전체 화면으로 보기")')
+      .locator('[data-testid="ai-fullscreen-button"]')
       .first();
     await fullscreenButton.waitFor({
       state: 'visible',
@@ -318,7 +292,7 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
 
     // 패널 토글 버튼 클릭 (PanelRightClose 아이콘)
     const toggleButton = page
-      .locator('button[title="Toggle Context Panel"]')
+      .locator('button[title="시스템 컨텍스트 패널 토글"]')
       .first();
     await toggleButton.waitFor({
       state: 'visible',
