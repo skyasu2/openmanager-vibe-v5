@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.85.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.84.3...v5.85.0) (2026-01-10)
+
+
+### Features
+
+* **ai:** add dashboard warmup for Cold Start prevention ([0254aa7](https://github.com/skyasu2/openmanager-vibe-v5/commit/0254aa77e710c972ad26ba7cab73e3194916a999))
+* **logging:** add Pino logger to Cloud Run AI Engine ([971c123](https://github.com/skyasu2/openmanager-vibe-v5/commit/971c123fc924f95a2e841769b7ca331a239bb04b))
+
+
+### Bug Fixes
+
+* **ai:** improve Zod schema flexibility for AI SDK v5 parts ([b065904](https://github.com/skyasu2/openmanager-vibe-v5/commit/b0659041969d5c34aec2bfe52a790e2e4cc93502))
+* **schemas:** improve AI SDK compatibility and validation ([4617eff](https://github.com/skyasu2/openmanager-vibe-v5/commit/4617effd466e163d46cada7a4e0b238aeae6016a))
+
 ### [5.84.3](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.84.2...v5.84.3) (2026-01-10)
 
 
