@@ -1,10 +1,15 @@
 #!/bin/bash
 
-# doc-test-validator.sh - v1.0.0
+# doc-test-validator.sh - v1.1.0
 # 코드 변경에 따른 문서/테스트 업데이트 필요성 검증
 #
 # 목적: 코드 변경 시 관련 문서와 테스트가 함께 업데이트되어야 하는지 분석
 # 출력: logs/doc-validation-warning.txt
+#
+# v1.1.0 (2026-01-10): False Positive 개선
+#   - Release 커밋 자동 스킵 (chore(release))
+#   - 버전 파일 제외 (versions.ts, version/route.ts)
+#   - 단순 상수값 변경 제외
 #
 # v1.0.0 (2025-12-19): 초기 버전
 #   - 새 함수/클래스 추가 시 테스트 필요 여부 감지
@@ -22,6 +27,29 @@ mkdir -p "$(dirname "$OUTPUT_FILE")"
 
 # 초기화
 > "$OUTPUT_FILE"
+
+# Release 커밋 여부 확인
+is_release_commit() {
+    local commit_hash="${1:-HEAD}"
+    local commit_msg=$(git -C "$PROJECT_ROOT" log -1 --format="%s" "$commit_hash" 2>/dev/null || echo "")
+
+    # chore(release) 또는 release: 패턴 매칭
+    if [[ "$commit_msg" =~ ^chore\(release\): ]] || [[ "$commit_msg" =~ ^release: ]]; then
+        return 0  # Release 커밋
+    fi
+    return 1  # 일반 커밋
+}
+
+# 버전/설정 전용 파일 여부 확인 (테스트 불필요)
+is_version_only_file() {
+    local file="$1"
+    # 버전 정보만 포함된 파일 (테스트 경고 제외 대상)
+    [[ "$file" =~ versions?\.ts$ ]] || \
+    [[ "$file" =~ /version/route\.ts$ ]] || \
+    [[ "$file" =~ manifest\.json$ ]] || \
+    [[ "$file" =~ package(-lock)?\.json$ ]] || \
+    [[ "$file" =~ CHANGELOG\.md$ ]]
+}
 
 # 변경된 파일 가져오기 (staged 또는 최근 커밋)
 get_changed_files() {
@@ -126,6 +154,13 @@ find_test_file() {
 # 메인 분석 로직
 analyze_changes() {
     local commit_hash="${1:-HEAD}"
+
+    # Release 커밋은 스킵 (버전 메타데이터만 변경)
+    if is_release_commit "$commit_hash"; then
+        echo "✅ Release 커밋 - 문서/테스트 검증 스킵 (버전 메타데이터만 변경)" >> "$OUTPUT_FILE"
+        return
+    fi
+
     local changed_files=$(get_changed_files "$commit_hash")
 
     if [ -z "$changed_files" ]; then
@@ -156,6 +191,11 @@ analyze_changes() {
             config_changes+=("$file")
         elif is_code_file "$file"; then
             code_only_changes+=("$file")
+
+            # 버전 전용 파일은 테스트 경고 제외
+            if is_version_only_file "$file"; then
+                continue
+            fi
 
             # 새 심볼 추가 감지
             if detect_new_symbols "$file" "$commit_hash" >/dev/null; then
