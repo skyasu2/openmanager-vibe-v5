@@ -458,6 +458,15 @@ function DashboardPageContent() {
     // Supabase에서 24시간 데이터를 직접 가져오므로 별도 초기화 불필요
   }, []);
 
+  // 🔥 AI Engine Cold Start 방지 - 대시보드 진입 시 미리 깨우기
+  useEffect(() => {
+    // Fire-and-forget: 응답을 기다리지 않고 백그라운드에서 실행
+    fetch('/api/ai/wake-up', { method: 'POST' }).catch(() => {
+      // Ignore errors - this is a best-effort warmup
+    });
+    debug.log('🔥 AI Engine warmup 신호 전송');
+  }, []);
+
   // 🚀 시스템 자동 시작 로직 - "시스템 종료됨" 문제 해결
   useEffect(() => {
     if (!isSystemStarted) {

@@ -132,6 +132,8 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
 }: EnhancedAIChatProps) {
   // 🎯 스크롤 컨테이너 ref (사용자 스크롤 위치 확인용)
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // 🎯 입력창 ref (자동 포커스용)
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 🎯 Best Practice: 메시지 추가 시 자동 스크롤
   // - 사용자가 하단 근처에 있을 때만 스크롤 (읽는 중 방해 방지)
@@ -156,6 +158,18 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
       });
     }
   }, [limitedMessages.length, isGenerating, messagesEndRef]);
+
+  // 🎯 생성 완료 시 입력창으로 포커스 복귀
+  useEffect(() => {
+    if (!isGenerating && !sessionState?.isLimitReached) {
+      // 약간의 지연을 두어 렌더링 완료 후 포커스 (Mobile Safari 등 호환성)
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+    return undefined; // TypeScript: 모든 코드 경로에서 반환값 명시
+  }, [isGenerating, sessionState?.isLimitReached]);
 
   return (
     <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
@@ -349,6 +363,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
           {/* 메인 입력 컨테이너 */}
           <div className="relative flex items-end rounded-2xl border border-gray-200 bg-white shadow-sm transition-all focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
             <AutoResizeTextarea
+              ref={textareaRef}
               value={inputValue}
               onValueChange={setInputValue}
               onKeyboardShortcut={() => handleSendInput()}

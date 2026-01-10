@@ -248,6 +248,14 @@ export function useHybridAIQuery(
           onData(dataPart as StreamDataPart);
         }
       : undefined,
+    onError: (error) => {
+      logger.error('[HybridAI] useChat error:', error);
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: error.message || 'AI 응답 중 오류가 발생했습니다.',
+      }));
+    },
   });
 
   // ============================================================================
@@ -384,29 +392,47 @@ export function useHybridAIQuery(
       // 원본 쿼리 저장
       pendingQueryRef.current = query;
 
-      // 1. 쿼리 분류 (Groq LLM 사용)
-      const classification = await classifyQuery(query);
+      // 0. 초기화
+      setState((prev) => ({ ...prev, error: null }));
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        logger.info(
-          `[HybridAI] Classification: intent=${classification.intent}, complexity=${classification.complexity}, confidence=${classification.confidence}%`
+      try {
+        // 1. 쿼리 분류 (Groq LLM 사용)
+        const classification = await classifyQuery(query);
+
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          logger.info(
+            `[HybridAI] Classification: intent=${classification.intent}, complexity=${classification.complexity}, confidence=${classification.confidence}%`
+          );
+        }
+
+        // 2. 명확화 필요 여부 체크
+        const clarificationRequest = generateClarification(
+          query,
+          classification
         );
-      }
 
-      // 2. 명확화 필요 여부 체크
-      const clarificationRequest = generateClarification(query, classification);
+        if (clarificationRequest) {
+          setState((prev) => ({
+            ...prev,
+            clarification: clarificationRequest,
+          }));
+          return;
+        }
 
-      if (clarificationRequest) {
+        // 3. 명확화 불필요: 바로 실행
+        executeQuery(query);
+      } catch (error) {
+        logger.error('[HybridAI] sendQuery error:', error);
         setState((prev) => ({
           ...prev,
-          clarification: clarificationRequest,
+          isLoading: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : '쿼리 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
         }));
-        return;
       }
-
-      // 3. 명확화 불필요: 바로 실행
-      executeQuery(query);
     },
     [executeQuery]
   );
