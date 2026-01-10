@@ -23,8 +23,8 @@ import type {
   DebugInfo,
   ErrorInfo,
   NetworkRequest,
-  PerformanceInfo,
   SystemChecklistProps,
+  WindowWithDebug,
 } from '../../../types/system-checklist';
 import debug from '../../../utils/debug';
 import {
@@ -32,26 +32,7 @@ import {
   getPriorityBorder,
   getStatusIcon,
 } from '../../../utils/system-checklist-icons';
-
-// Window 인터페이스 확장 for 디버그 도구
-interface DebugTools {
-  getState: () => unknown;
-  analyzeComponent: (componentId: string) => unknown;
-  retryFailedComponents: () => void;
-  diagnoseNetwork: () => unknown;
-  analyzePerformance: () => PerformanceInfo;
-  exportDebugInfo: () => unknown;
-  forceComplete: () => void;
-  toggleDebugPanel: () => boolean;
-}
-
-interface WindowWithDebug extends Window {
-  debugSystemChecklistAdvanced?: DebugTools;
-  systemChecklistDebug?: DebugTools;
-  debugSystemChecklist?: unknown;
-  emergencyCompleteChecklist?: () => void;
-  [key: `retry_${string}`]: number | undefined;
-}
+import { DebugPanel } from './DebugPanel';
 
 export default function SystemChecklist({
   onComplete,
@@ -446,60 +427,14 @@ export default function SystemChecklist({
 
       {/* 🛠️ 개발자 디버그 패널 */}
       {showDebugPanel && (
-        <div className="fixed right-4 top-4 z-50 max-w-md rounded-lg border border-cyan-500/50 bg-black/90 p-4 text-xs text-white backdrop-blur-lg">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="font-semibold text-cyan-400">
-              🛠️ 시스템 체크리스트 디버그
-            </span>
-            <button
-              onClick={() => setShowDebugPanel(false)}
-              className="text-gray-400 hover:text-white"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <div className="grid grid-cols-2 gap-2">
-              <div>진행률: {totalProgress}%</div>
-              <div>완료: {completedCount}</div>
-              <div>실패: {failedCount}</div>
-              <div>로딩: {loadingCount}</div>
-            </div>
-
-            <div className="border-t border-gray-600 pt-2">
-              <div className="mb-1 text-yellow-300">⚡ 성능:</div>
-              <div>
-                소요시간:{' '}
-                {Math.round(debugInfo.performance.checklistDuration / 1000)}s
-              </div>
-              <div>
-                평균 응답:{' '}
-                {Math.round(debugInfo.performance.averageResponseTime)}ms
-              </div>
-            </div>
-
-            {debugInfo.errors.length > 0 && (
-              <div className="border-t border-gray-600 pt-2">
-                <div className="mb-1 text-red-300">
-                  🚨 에러 ({debugInfo.errors.length}):
-                </div>
-                {debugInfo.errors.slice(-2).map((error, idx) => (
-                  <div key={idx} className="text-xs text-red-200">
-                    {error.component}: {error.error.substring(0, 30)}...
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="border-t border-gray-600 pt-2">
-              <div className="mb-1 text-green-300">🔧 도구:</div>
-              <div>• D: 패널 토글</div>
-              <div>• R: 재시도</div>
-              <div>• systemChecklistDebug.*</div>
-            </div>
-          </div>
-        </div>
+        <DebugPanel
+          debugInfo={debugInfo}
+          totalProgress={totalProgress}
+          completedCount={completedCount}
+          failedCount={failedCount}
+          loadingCount={loadingCount}
+          onClose={() => setShowDebugPanel(false)}
+        />
       )}
 
       <div

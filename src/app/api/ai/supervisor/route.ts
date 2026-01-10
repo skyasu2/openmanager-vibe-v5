@@ -8,6 +8,9 @@
  * - Fallback: Simple error response
  * - All AI processing handled by Cloud Run
  *
+ * Changes (2026-01-10 v5.85.0):
+ * - Refactored: schemas.ts, stream-parser.ts, cache-utils.ts 분리
+ *
  * Changes (2025-12-22 v5.83.9):
  * - Added normalizeMessagesForCloudRun(): AI SDK v5 parts[] → Cloud Run content 변환
  * - Added sessionId query parameter 지원 (TextStreamChatTransport 호환)
@@ -15,7 +18,6 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import {
   type AIEndpoint,
   getAICache,
@@ -37,287 +39,15 @@ import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
+import { isStatusQuery, shouldSkipCache } from './cache-utils';
+import { requestSchema } from './schemas';
 import { quickSanitize } from './security';
-
-// ============================================================================
-// 🔧 Stream Transformer: Vercel Data Stream Protocol → Plain Text
-// ============================================================================
-// Cloud Run이 반환하는 Data Stream Protocol을 파싱하여 순수 텍스트로 변환
-//
-// @see https://sdk.vercel.ai/docs/ai-sdk-ui/stream-protocol
-// ============================================================================
-
-/**
- * Vercel AI SDK Data Stream Protocol 상수
- *
- * @warning 이 프로토콜은 Vercel AI SDK 버전에 의존합니다.
- *          SDK 업그레이드 시 호환성 확인 필요
- *
- * @see https://sdk.vercel.ai/docs/ai-sdk-ui/stream-protocol
- */
-const DATA_STREAM_PREFIXES = {
-  TEXT: '0', // 텍스트 콘텐츠 (주요)
-  DATA: '2', // JSON 데이터 배열
-  ERROR: '3', // 에러 메시지
-  ANNOTATION: '8', // 메시지 주석
-  FINISH: 'd', // 완료 신호
-  START: 'e', // 시작 신호
-} as const;
-
-/**
- * Data Stream Protocol 라인 파싱 정규식
- *
- * @pattern ^(prefix):(content)$
- * - prefix: 숫자 또는 알파벳 한 글자
- * - content: JSON 문자열 또는 객체
- *
- * @fragility 이 정규식은 SDK 프로토콜 변경에 취약합니다.
- *            SDK 버전 업그레이드 시 반드시 테스트 필요
- */
-const DATA_STREAM_LINE_REGEX = /^([0-9a-z]):(.*)$/;
-
-/**
- * Data Stream Protocol을 Plain Text로 변환하는 TransformStream
- *
- * @description
- * Cloud Run이 반환하는 `0:"텍스트"` 형식을 파싱하여 순수 텍스트만 추출합니다.
- * TextStreamChatTransport와 함께 사용됩니다.
- *
- * @example
- * Input:  0:"Hello "\n0:"World"\nd:{"finishReason":"stop"}
- * Output: Hello World
- *
- * @warning
- * - Vercel AI SDK v5 Data Stream Protocol에 의존
- * - Cloud Run 응답 형식 변경 시 파싱 실패 가능
- * - 장기적으로 SDK의 공식 파서 사용 권장
- */
-// NOTE: Reserved for future streaming implementation
-function _createDataStreamParserTransform(): TransformStream<
-  Uint8Array,
-  Uint8Array
-> {
-  const decoder = new TextDecoder();
-  const encoder = new TextEncoder();
-  let buffer = '';
-
-  /**
-   * JSON 문자열 안전하게 파싱
-   */
-  const safeJsonParse = (str: string): unknown => {
-    try {
-      return JSON.parse(str);
-    } catch {
-      return null;
-    }
-  };
-
-  /**
-   * 텍스트 콘텐츠 추출 (prefix: 0)
-   */
-  const extractTextContent = (content: string): string | null => {
-    const parsed = safeJsonParse(content);
-    if (typeof parsed === 'string') {
-      return parsed;
-    }
-    // JSON 파싱 실패 시 raw content 반환 (fallback)
-    if (content.startsWith('"') && content.endsWith('"')) {
-      return content.slice(1, -1);
-    }
-    return null;
-  };
-
-  /**
-   * 에러 메시지 추출 (prefix: 3)
-   */
-  const extractErrorMessage = (content: string): string => {
-    const parsed = safeJsonParse(content);
-
-    if (typeof parsed === 'string') {
-      // 중첩된 JSON 에러 처리
-      const innerParsed = safeJsonParse(parsed);
-      if (
-        innerParsed &&
-        typeof innerParsed === 'object' &&
-        'error' in innerParsed
-      ) {
-        const errorObj = innerParsed as { error?: { message?: string } };
-        return errorObj.error?.message || parsed;
-      }
-      return parsed;
-    }
-
-    if (parsed && typeof parsed === 'object' && 'message' in parsed) {
-      return (parsed as { message: string }).message;
-    }
-
-    return content;
-  };
-
-  return new TransformStream({
-    transform(chunk, controller) {
-      buffer += decoder.decode(chunk, { stream: true });
-
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // 마지막 불완전한 라인은 버퍼에 유지
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-
-        const match = trimmed.match(DATA_STREAM_LINE_REGEX);
-        if (!match?.[1] || match[2] === undefined) continue;
-
-        const prefix = match[1];
-        const content = match[2];
-
-        switch (prefix) {
-          case DATA_STREAM_PREFIXES.TEXT: {
-            const text = extractTextContent(content);
-            if (text) {
-              controller.enqueue(encoder.encode(text));
-            }
-            break;
-          }
-
-          case DATA_STREAM_PREFIXES.ERROR: {
-            const errorMsg = extractErrorMessage(content);
-            controller.enqueue(encoder.encode(`\n\n⚠️ AI 오류: ${errorMsg}`));
-            break;
-          }
-
-          // DATA, ANNOTATION, FINISH, START: 메타데이터는 무시
-          // 필요 시 여기에 추가 처리 로직 구현 가능
-        }
-      }
-    },
-
-    flush(controller) {
-      // 버퍼에 남은 불완전한 라인 처리
-      if (buffer.trim()) {
-        const match = buffer.trim().match(DATA_STREAM_LINE_REGEX);
-        if (match?.[1] === DATA_STREAM_PREFIXES.TEXT && match[2]) {
-          const text = extractTextContent(match[2]);
-          if (text) {
-            controller.enqueue(encoder.encode(text));
-          }
-        }
-      }
-    },
-  });
-}
+// NOTE: Stream parser available at ./stream-parser.ts for future streaming implementation
 
 // Allow streaming responses up to 120 seconds (Vercel Pro: max 300s)
 // Note: Increased from 60s to handle complex NLQ queries with tool calls
 // Supervisor → Agent → Tool → Verifier pipeline can take 60-90s
 export const maxDuration = 120;
-
-// ============================================================================
-// 🔒 캐시 제외 조건 감지
-// ============================================================================
-
-/**
- * 실시간 데이터 요청 키워드
- * 이 키워드가 포함된 쿼리는 캐싱에서 제외됨
- */
-const REALTIME_KEYWORDS = [
-  '지금',
-  '현재',
-  '방금',
-  '실시간',
-  'now',
-  'current',
-  'latest',
-  'live',
-  'refresh',
-  '새로고침',
-];
-
-/**
- * 캐시 제외 조건 검사
- *
- * @param query - 사용자 쿼리
- * @param messageCount - 메시지 개수
- * @returns 캐시 제외 여부 (true = 캐싱 안 함)
- */
-function shouldSkipCache(query: string, messageCount: number): boolean {
-  // 1. 대화 컨텍스트가 있는 경우 (이전 메시지 참조 가능)
-  if (messageCount > 1) {
-    return true;
-  }
-
-  // 2. 실시간 데이터 요청 키워드 검사
-  const lowerQuery = query.toLowerCase();
-  for (const keyword of REALTIME_KEYWORDS) {
-    if (lowerQuery.includes(keyword.toLowerCase())) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * 상태 조회 쿼리 여부 확인 (짧은 TTL 적용)
- */
-function isStatusQuery(query: string): boolean {
-  const statusKeywords = [
-    '상태',
-    'status',
-    '서버 상태',
-    '시스템 상태',
-    'health',
-  ];
-  const lowerQuery = query.toLowerCase();
-  return statusKeywords.some((kw) => lowerQuery.includes(kw.toLowerCase()));
-}
-
-// ============================================================================
-// 📋 Request Schema (Zod Validation)
-// ============================================================================
-
-// AI SDK v5 UIMessage 'parts' 포맷
-const textPartSchema = z.object({
-  type: z.literal('text'),
-  text: z.string(),
-});
-
-const partSchema = z.discriminatedUnion('type', [
-  textPartSchema,
-  // 다른 part 타입들 (tool-invocation, tool-result 등)은 무시
-  z
-    .object({ type: z.literal('tool-invocation') })
-    .passthrough(),
-  z.object({ type: z.literal('tool-result') }).passthrough(),
-  z.object({ type: z.literal('file') }).passthrough(),
-  z.object({ type: z.literal('reasoning') }).passthrough(),
-]);
-
-// 하이브리드 메시지 스키마: AI SDK v5 (parts) + 레거시 (content) 모두 지원
-const messageSchema = z.object({
-  id: z.string().optional(),
-  role: z.enum(['user', 'assistant', 'system']),
-  // AI SDK v5: parts 배열 (UIMessage 포맷)
-  parts: z.array(partSchema).optional(),
-  // 레거시: content 문자열
-  content: z.string().optional(),
-  // 추가 메타데이터 허용
-  createdAt: z.union([z.string(), z.date()]).optional(),
-});
-
-const requestSchema = z.object({
-  messages: z.array(messageSchema).min(1).max(50),
-  sessionId: z.string().optional(),
-});
-
-// ============================================================================
-// 🔧 Utility: 메시지 정규화 (중앙화됨)
-// ============================================================================
-// @see /src/lib/ai/utils/message-normalizer.ts
-// - extractTextFromHybridMessage(): 텍스트 추출
-// - normalizeMessagesForCloudRun(): Cloud Run 형식 변환
-// - extractLastUserQuery(): 마지막 사용자 쿼리 추출
-// ============================================================================
 
 // ============================================================================
 // 🧠 Main Handler - Cloud Run Multi-Agent System

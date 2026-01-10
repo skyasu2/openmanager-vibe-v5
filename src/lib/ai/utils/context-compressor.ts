@@ -46,7 +46,8 @@ function estimateTokens(text: string): number {
 /**
  * 메시지 요약 (간단한 truncate 버전)
  *
- * TODO: LLM 기반 요약으로 업그레이드
+ * 현재: 문장 단위 truncation
+ * 향후 개선: LLM 기반 요약 (Cloud Run AI Engine 활용)
  */
 function summarizeMessage(message: string, maxChars: number): string {
   if (message.length <= maxChars) return message;

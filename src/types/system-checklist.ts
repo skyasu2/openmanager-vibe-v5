@@ -106,3 +106,23 @@ export interface PerformanceInfo {
   fastestComponent: string;
   averageResponseTime: number;
 }
+
+// Window 인터페이스 확장 for 디버그 도구
+export interface DebugTools {
+  getState: () => unknown;
+  analyzeComponent: (componentId: string) => unknown;
+  retryFailedComponents: () => void;
+  diagnoseNetwork: () => unknown;
+  analyzePerformance: () => PerformanceInfo;
+  exportDebugInfo: () => unknown;
+  forceComplete: () => void;
+  toggleDebugPanel: () => boolean;
+}
+
+export interface WindowWithDebug extends Window {
+  debugSystemChecklistAdvanced?: DebugTools;
+  systemChecklistDebug?: DebugTools;
+  debugSystemChecklist?: unknown;
+  emergencyCompleteChecklist?: () => void;
+  [key: `retry_${string}`]: number | undefined;
+}
