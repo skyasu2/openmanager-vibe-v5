@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.84.3](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.84.2...v5.84.3) (2026-01-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* Directory structure reorganized
+
+## Directory Changes
+- src/domains/ → src/components/, src/hooks/, src/types/, src/utils/
+- src/modules/ → src/services/, src/hooks/, src/types/
+- src/core/ → src/lib/core/
+- src/interfaces/ → src/lib/interfaces/
+- src/mock/, src/mocks/ → src/__mocks__/
+- src/adapters/ → src/services/adapters/
+- src/presentation/ → deleted (re-export only)
+
+## Env File Consolidation
+- Created .env (baseline, no secrets)
+- Updated .env.example (comprehensive template)
+- Deleted redundant: .env.local.template, .env.test.example,
+  .env.vercel.production, .env.vercel-production
+
+## Documentation Updates
+- Updated module-structure.md (new architecture)
+- Updated system-architecture-current.md
+- Updated msw-guide.md
+
+## Validation
+- TypeScript: passed
+- Lint: 748 files, no errors
+- Tests: 92 passed
+- Build: successful
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Features
+
+* **logging:** migrate console statements to Pino logger ([82bc157](https://github.com/skyasu2/openmanager-vibe-v5/commit/82bc157f9f0f7cc3b2ecef5e6175881d7b59a449))
+
+
+### Bug Fixes
+
+* **docs:** align Analyst Agent description with feature table ([7cf8a69](https://github.com/skyasu2/openmanager-vibe-v5/commit/7cf8a69667d93d10584f9c5a8906d33264297d72))
+* remove unused logger imports and biome-ignore comments ([a275da8](https://github.com/skyasu2/openmanager-vibe-v5/commit/a275da8c0b33b6423cec4d0ceb7ba8c1b7de7b02))
+* **types:** remove any types from polyfills and development-only ([1be267a](https://github.com/skyasu2/openmanager-vibe-v5/commit/1be267aa9ce88df291d9aa1e2f268590eb8ca65a))
+* **types:** remove any types from seed-logs and recharts declarations ([ab178ec](https://github.com/skyasu2/openmanager-vibe-v5/commit/ab178ecb4f7b9f67eaff5c807ce2030e1ae3d8c1))
+* update import path documentation and README ([526b29a](https://github.com/skyasu2/openmanager-vibe-v5/commit/526b29a8d5ccc9a20fd46995029ddeff1e66866b))
+
+
+* migrate DDD to Next.js standard structure ([23f7e2d](https://github.com/skyasu2/openmanager-vibe-v5/commit/23f7e2d771202748425728d9f51afbeec556f566))
+
 ### [5.84.2](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.84.1...v5.84.2) (2026-01-09)
 
 
