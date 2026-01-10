@@ -4,7 +4,7 @@
 
 ---
 
-## 🏗️ Technical Stack (v5.84.3)
+## 🏗️ Technical Stack (v5.85.0)
 
 **Core Frameworks** (2025 Standard)
 - **Next.js**: `v16.1.1` (App Router, Server Components)

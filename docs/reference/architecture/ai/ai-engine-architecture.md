@@ -380,7 +380,7 @@ queued (Supabase) → pending (Redis) → processing (Redis) → completed/faile
 | **Realtime** | Supabase Realtime | Live dashboard updates |
 | **Client State** | Zustand | Chat history, UI state |
 
-### RAG Incident Injection (v5.83.14, 2025-12-30)
+### RAG Incident Injection (v5.85.0, 2025-12-30)
 
 Generated incident reports can be synced to the `knowledge_base` table for RAG search by Reporter Agent.
 
@@ -487,7 +487,7 @@ cloud-run/ai-engine/
 │   │   ├── graph-rag-service.ts # GraphRAG hybrid search service
 │   │   ├── embedding.ts        # Text embedding utilities
 │   │   ├── config-parser.ts    # YAML config parsing
-│   │   ├── incident-rag-injector.ts # RAG incident injection (v5.83.14)
+│   │   ├── incident-rag-injector.ts # RAG incident injection (v5.85.0)
 │   │   └── context-compression/ # Context compression for long conversations
 │   │       ├── compression-trigger.ts    # Token threshold detection
 │   │       ├── summary-generator.ts      # Conversation summarization

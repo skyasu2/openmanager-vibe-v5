@@ -1,4 +1,4 @@
-# CLAUDE.md - OpenManager VIBE v5.84.3
+# CLAUDE.md - OpenManager VIBE v5.85.0
 
 **한국어로 우선 대화, 기술용어는 영어 사용 허용**
 

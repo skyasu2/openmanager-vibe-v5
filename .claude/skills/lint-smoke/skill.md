@@ -29,7 +29,7 @@ Automated lint + test workflow for quick code quality verification without manua
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.83.9
+- **Project**: OpenManager VIBE v5.85.0
 - **Test Framework**: Vitest v4.0.15
 - **Linter**: Biome v2.3.8 (lint + format)
 - **Current Pass Rate**: 98.2% (134/134 tests)
@@ -202,7 +202,7 @@ Tokens: ~114 (62% reduction)
 
 ## Changelog
 
-- 2025-12-22: v1.2.1 - Version sync with project v5.83.9
+- 2025-12-22: v1.2.1 - Version sync with project v5.85.0
 - 2025-12-12: v1.2.0 - Tech stack upgrade alignment
   - Vitest 3.2.4 → 4.0.15
   - ESLint → Biome v2.3.8 migration

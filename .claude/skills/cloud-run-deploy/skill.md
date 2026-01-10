@@ -27,7 +27,7 @@ Automate Cloud Run AI Engine deployment with free tier optimized configuration, 
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.84.x
+- **Project**: OpenManager VIBE v5.85.0
 - **Region**: asia-northeast1 (Seoul)
 - **Service**: ai-engine
 - **Tier**: FREE TIER OPTIMIZED

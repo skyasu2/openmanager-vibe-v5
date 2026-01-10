@@ -22,7 +22,7 @@ Automated 2-AI verification result documentation without manual formatting or fi
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.84.x
+- **Project**: OpenManager VIBE v5.85.0
 - **AI Tools**: Codex, Gemini (2-AI cross-verification)
 - **Output Location**: logs/ai-decisions/
 - **Note**: Qwen 제거됨 (2026-01-07) - 평균 201초, 실패율 13.3%

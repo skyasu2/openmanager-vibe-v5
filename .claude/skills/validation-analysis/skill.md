@@ -27,7 +27,7 @@ Automated analysis of background validation results (Biome + TypeScript + AI Rev
 
 ## Context
 
-- **Project**: OpenManager VIBE v5.83.12
+- **Project**: OpenManager VIBE v5.85.0
 - **Validation Workflow**: post-commit hook (background, 5min timeout)
 - **Output Location**: `logs/validation/validation-complete-latest.md`
 - **Components**:
@@ -276,7 +276,7 @@ This Skill analyzes and reports
 - 2025-12-29: v1.3.0 - 이슈 트래킹 통합
   - `.issue-tracking.json` 이슈 추적 JSON 연동
   - `review-issue-tracker.sh` 스캔 도구 추가
-  - 프로젝트 버전 v5.83.12 반영
+  - 프로젝트 버전 v5.85.0 반영
 - 2025-12-22: v1.2.0 - Cross-platform hooks support
   - Husky hooks → Node.js scripts 위임 (Windows 호환)
   - Workflow 다이어그램 업데이트
