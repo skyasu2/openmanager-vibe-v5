@@ -21,6 +21,10 @@ import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
+// Allow responses up to 60 seconds (Vercel Hobby: max 60s)
+// Cloud Run handles AI processing, Vercel just proxies
+export const maxDuration = 60;
+
 /**
  * POST handler - Proxy to Cloud Run with Circuit Breaker + Fallback
  *
