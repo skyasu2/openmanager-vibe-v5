@@ -145,12 +145,25 @@ async function testApiEndpoint(
 const shouldRunIntegration =
   process.env.CI === 'true' || process.env.RUN_INTEGRATION_TESTS === 'true';
 
+// 원본 fetch 저장 (서버 가용성 체크용)
+const realFetch = globalThis.fetch;
+
 describe.skipIf(!shouldRunIntegration)(
   '🚀 OpenManager VIBE v5 - 핵심 API 엔드포인트 테스트',
   () => {
     beforeAll(async () => {
-      // 서버 실행 상태 확인 (mocked fetch 사용 전 원본 fetch로 체크)
-      // Note: skipIf에서 이미 환경 검증됨
+      // 서버 실행 상태 확인 (원본 fetch로 체크)
+      try {
+        const response = await realFetch(BASE_URL);
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
+        }
+      } catch (error) {
+        throw new Error(
+          `테스트 서버에 연결할 수 없습니다: ${BASE_URL}. ` +
+            `통합 테스트 실행 전 서버가 실행 중인지 확인하세요.`
+        );
+      }
     }, TIMEOUT);
 
     beforeEach(() => {

@@ -1,12 +1,15 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // 환경변수가 설정되지 않으면 테스트 스킵 (CI/로컬 환경 호환)
+// 통합 테스트는 명시적 APP_URL이 필요함
 const hasRequiredEnv =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+  !!process.env.NEXT_PUBLIC_APP_URL;
 
 describe.skipIf(!hasRequiredEnv)('Servers API Integration Tests', () => {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
+  // NEXT_PUBLIC_APP_URL이 없으면 테스트가 스킵되므로 타입 단언 안전
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL as string;
 
   beforeEach(() => {
     // Mock setup (환경변수 검증은 describe.skipIf에서 처리)
