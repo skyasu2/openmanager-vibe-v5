@@ -244,8 +244,9 @@ export async function proxyStreamToCloudRun(
 
 /**
  * Cloud Run 헬스 체크
+ * @param timeout - 타임아웃 (기본값: 5000ms, Cloud Run cold start 고려)
  */
-export async function checkCloudRunHealth(): Promise<{
+export async function checkCloudRunHealth(timeout = 5000): Promise<{
   healthy: boolean;
   latency?: number;
   error?: string;
@@ -260,6 +261,8 @@ export async function checkCloudRunHealth(): Promise<{
   }
 
   const startTime = Date.now();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
     const response = await fetch(`${config.url}/health`, {
@@ -268,8 +271,10 @@ export async function checkCloudRunHealth(): Promise<{
         Accept: 'application/json',
         'X-API-Key': config.apiSecret,
       },
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
     const latency = Date.now() - startTime;
 
     if (response.ok) {
@@ -285,8 +290,20 @@ export async function checkCloudRunHealth(): Promise<{
       error: `Health check failed: ${response.status}`,
     };
   } catch (error) {
+    clearTimeout(timeoutId);
+    const latency = Date.now() - startTime;
+
+    if (error instanceof Error && error.name === 'AbortError') {
+      return {
+        healthy: false,
+        latency,
+        error: `Cloud Run health check timeout (>${timeout}ms) - possible cold start`,
+      };
+    }
+
     return {
       healthy: false,
+      latency,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }

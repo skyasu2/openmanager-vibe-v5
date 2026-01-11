@@ -9,9 +9,10 @@
 'use client';
 
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
-import { Brain, X } from 'lucide-react';
+import { Brain, Plus, X } from 'lucide-react';
 import type { FC } from 'react';
 import BasicTyping from '@/components/ui/BasicTyping';
+import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { CloudRunStatusIndicator } from './CloudRunStatusIndicator';
 
 interface AISidebarHeaderProps {
@@ -21,6 +22,12 @@ interface AISidebarHeaderProps {
 export const AISidebarHeader: FC<AISidebarHeaderProps> = ({
   onClose,
 }: AISidebarHeaderProps) => {
+  const clearMessages = useAISidebarStore((state) => state.clearMessages);
+
+  const handleNewChat = () => {
+    clearMessages();
+  };
+
   return (
     <header className="flex items-center justify-between border-b border-gray-200 bg-linear-to-r from-purple-50 to-blue-50 p-3 sm:p-4">
       <div className="flex min-w-0 items-center space-x-2 sm:space-x-3">
@@ -47,6 +54,17 @@ export const AISidebarHeader: FC<AISidebarHeaderProps> = ({
       <div className="mx-2 shrink-0">
         <CloudRunStatusIndicator compact autoCheckInterval={30000} />
       </div>
+
+      {/* 새 대화 버튼 */}
+      <button
+        onClick={handleNewChat}
+        className="shrink-0 rounded-lg p-2 transition-colors hover:bg-purple-100 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+        title="새 대화 시작"
+        aria-label="새 대화 시작"
+        type="button"
+      >
+        <Plus className="h-5 w-5 text-purple-600" aria-hidden="true" />
+      </button>
 
       {/* 닫기 버튼 - 접근성 강화 */}
       <button
