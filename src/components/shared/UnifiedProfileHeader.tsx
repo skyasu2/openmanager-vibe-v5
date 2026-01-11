@@ -27,7 +27,6 @@ import type {
 } from '@/components/unified-profile/types/profile.types';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { logger } from '@/lib/logging';
-import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 /**
@@ -55,12 +54,10 @@ export default function UnifiedProfileHeader({
   }, []);
 
   const { status: systemStatus } = useSystemStatus();
-  const { isSystemStarted } = useUnifiedAdminStore(); // 🎯 로컬 상태 직접 접근으로 즉시 동기화
+  // 🎯 useUnifiedAdminStore에서 직접 stopSystem 사용 (useSystemStatusStore 제거)
+  const { isSystemStarted, stopSystem } = useUnifiedAdminStore();
 
-  // 🔄 Zustand 스토어에서 시스템 상태 직접 읽기 (Props Drilling 제거)
-  const { stop: systemStopHandler } = useSystemStatusStore();
-
-  // 시스템 종료 핸들러 - 스토어의 stop 함수 사용
+  // 시스템 종료 핸들러 - useUnifiedAdminStore.stopSystem 직접 사용
   const handleSystemStop = useCallback(async () => {
     const confirmed = confirm(
       '⚠️ 시스템을 종료하시겠습니까?\n\n종료 후 메인 페이지에서 다시 시작할 수 있습니다.'
@@ -72,31 +69,15 @@ export default function UnifiedProfileHeader({
       closeMenu();
       logger.info('🛑 시스템 종료 요청 (프로필에서)');
 
-      // 스토어에 등록된 DashboardClient의 stopSystem 호출
-      if (systemStopHandler) {
-        systemStopHandler();
-        logger.info('✅ 시스템 종료 성공 (스토어 통합)');
-      } else {
-        // Fallback: 직접 API 호출
-        const response = await fetch('/api/system', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'stop' }),
-        });
-
-        if (response.ok) {
-          logger.info('✅ 시스템 종료 성공');
-          localStorage.removeItem('system_auto_shutdown');
-          alert('✅ 시스템이 성공적으로 종료되었습니다.');
-        } else {
-          alert('❌ 시스템 종료에 실패했습니다. 다시 시도해주세요.');
-        }
-      }
+      // useUnifiedAdminStore.stopSystem() 직접 호출
+      stopSystem();
+      logger.info('✅ 시스템 종료 성공 (Unified Store 직접 사용)');
+      localStorage.removeItem('system_auto_shutdown');
     } catch (error) {
       logger.error('❌ 시스템 종료 오류:', error);
       alert('❌ 시스템 종료 중 오류가 발생했습니다.');
     }
-  }, [closeMenu, systemStopHandler]);
+  }, [closeMenu, stopSystem]);
 
   // 관리자 인증 핸들러
   const handleLogoutClick = useCallback(async () => {

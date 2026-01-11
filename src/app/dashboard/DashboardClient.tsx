@@ -28,7 +28,6 @@ import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 // Admin mode removed - Phase 2: Admin removal complete
 import { useAISidebarStore } from '@/stores/useAISidebarStore'; // AI 사이드바 상태
-import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import type { Server } from '@/types/server';
 import debug from '@/utils/debug';
@@ -369,7 +368,7 @@ function DashboardPageContent() {
   useSystemStatus();
 
   // 🛑 시스템 제어 함수들
-  const { isSystemStarted, startSystem, stopSystem } = useUnifiedAdminStore();
+  const { isSystemStarted, startSystem } = useUnifiedAdminStore();
 
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화 (1초→10초 최적화 적용)
   const {
@@ -392,7 +391,7 @@ function DashboardPageContent() {
 
   // 🕐 20분 시스템 자동 종료 - 포트폴리오 최적화 (1초→5초 최적화 적용)
   const {
-    isSystemActive,
+    // isSystemActive - useUnifiedAdminStore.isSystemStarted로 대체됨
     remainingTime: systemRemainingTime,
     formatTime,
     // isWarning, restartSystem - 미사용 (showSystemWarning 상태로 대체됨)
@@ -423,22 +422,7 @@ function DashboardPageContent() {
     },
   });
 
-  // 🔄 시스템 상태를 Zustand 스토어에 동기화 (Props Drilling 제거)
-  const { setActive, setRemainingTime, setStopHandler } =
-    useSystemStatusStore();
-
-  useEffect(() => {
-    setActive(isSystemActive);
-    setRemainingTime(systemRemainingTime);
-    setStopHandler(stopSystem);
-  }, [
-    isSystemActive,
-    systemRemainingTime,
-    stopSystem,
-    setActive,
-    setRemainingTime,
-    setStopHandler,
-  ]);
+  // ✅ useSystemStatusStore 제거 - useUnifiedAdminStore로 직접 접근
 
   // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
   const {

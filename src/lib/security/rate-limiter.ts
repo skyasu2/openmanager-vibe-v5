@@ -42,6 +42,7 @@ import {
   type RateLimitConfig as RedisRateLimitConfig,
 } from '../redis/rate-limiter';
 import { EdgeLogger } from '../runtime/edge-runtime-utils';
+import { InMemoryRateLimiter } from './in-memory-rate-limiter';
 
 // ==============================================
 // 🎯 Rate Limit 관련 타입 정의
@@ -83,10 +84,22 @@ class RateLimiter {
   private logger: EdgeLogger;
   private supabase: SupabaseClient | null = null;
   private supabaseInitialized = false;
+  /** 🛡️ In-Memory Fallback Rate Limiter (DDoS 방어) */
+  private inMemoryLimiter: InMemoryRateLimiter;
 
   constructor(public config: RateLimitConfig) {
     this.logger = EdgeLogger.getInstance();
     // Supabase client will be initialized lazily on first use
+
+    // In-Memory Fallback 초기화 (Redis + Supabase 장애 시 최후 방어선)
+    this.inMemoryLimiter = new InMemoryRateLimiter({
+      maxRequests: config.maxRequests,
+      windowMs: config.windowMs,
+      dailyLimit: config.dailyLimit,
+      maxEntries: 1000, // 최대 1000 IP
+      cleanupIntervalMs: 60_000, // 1분마다 정리
+      failClosedThreshold: config.maxRequests * 20, // 20배 버스트 허용 후 Fail-Closed
+    });
   }
 
   /**
@@ -124,7 +137,6 @@ class RateLimiter {
   async checkLimit(request: NextRequest): Promise<RateLimitResult> {
     const ip = this.getClientIP(request);
     const path = request.nextUrl.pathname;
-    const now = Date.now();
 
     // 🚀 1차: Redis Rate Limit 시도 (고성능)
     try {
@@ -157,16 +169,12 @@ class RateLimiter {
     // Lazy initialization (SSR-compatible)
     await this.initializeSupabase();
 
-    // Supabase 비활성화 시 graceful fallback (요청 허용하되 경고)
+    // 🛡️ Supabase 비활성화 시 In-Memory Fallback 사용 (DDoS 방어)
     if (!this.supabase) {
       this.logger.warn(
-        `[Rate Limit] Redis + Supabase 모두 비활성화 - 요청 허용 (IP: ${ip}, Path: ${path})`
+        `[Rate Limit] Redis + Supabase 모두 비활성화 - In-Memory Fallback 사용 (IP: ${ip}, Path: ${path})`
       );
-      return {
-        allowed: true,
-        remaining: this.config.maxRequests,
-        resetTime: now + this.config.windowMs,
-      };
+      return this.checkInMemoryFallback(`${ip}:${path}`);
     }
 
     try {
@@ -180,14 +188,14 @@ class RateLimiter {
 
       if (error) {
         this.logger.error('[Rate Limit] Supabase RPC 실행 실패', error);
-        return this.fallbackAllow(now);
+        return this.checkInMemoryFallback(`${ip}:${path}`);
       }
 
       const result = Array.isArray(data) ? data[0] : data;
 
       if (!result) {
         this.logger.error('[Rate Limit] Supabase RPC 결과 없음');
-        return this.fallbackAllow(now);
+        return this.checkInMemoryFallback(`${ip}:${path}`);
       }
 
       // 분당 제한 초과 시 즉시 거부
@@ -238,7 +246,7 @@ class RateLimiter {
       };
     } catch (error) {
       this.logger.error('[Rate Limit] 예상치 못한 오류', error);
-      return this.fallbackAllow(now);
+      return this.checkInMemoryFallback(`${ip}:${path}`);
     }
   }
 
@@ -321,13 +329,27 @@ class RateLimiter {
   }
 
   /**
-   * 🔄 Graceful Fallback (Supabase 실패 시 요청 허용)
+   * 🛡️ In-Memory Fallback (Redis + Supabase 장애 시 최후 방어선)
+   *
+   * DDoS 공격 방어를 위해 Fail-Open 대신 In-Memory Rate Limiting 적용
+   * 글로벌 임계값 초과 시 모든 요청 거부 (Fail-Closed)
+   *
+   * @param identifier - IP:Path 형식의 고유 식별자
    */
-  private fallbackAllow(now: number): RateLimitResult {
+  private checkInMemoryFallback(identifier: string): RateLimitResult {
+    const result = this.inMemoryLimiter.checkLimit(identifier);
+
+    if (!result.allowed) {
+      this.logger.warn(
+        `[Rate Limit] In-Memory Fallback 거부: ${identifier} (reason: ${result.reason})`
+      );
+    }
+
     return {
-      allowed: true,
-      remaining: this.config.maxRequests,
-      resetTime: now + this.config.windowMs,
+      allowed: result.allowed,
+      remaining: result.remaining,
+      resetTime: result.resetTime,
+      daily: result.daily,
     };
   }
 
