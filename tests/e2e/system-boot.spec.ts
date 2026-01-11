@@ -79,11 +79,13 @@ test.describe('시스템 부트 테스트', () => {
     });
 
     test('시스템 초기화 API가 존재한다', async ({ page }) => {
-      const response = await page.request.post('/api/system/initialize', {
+      // 통합 API: /api/system에 action: 'initialize'로 요청
+      const response = await page.request.post('/api/system', {
         headers: {
           'Content-Type': 'application/json',
           'x-test-secret': process.env.TEST_SECRET_KEY || '',
         },
+        data: { action: 'initialize' },
       });
 
       if (skipIfSecurityBlocked(response.status())) return;
