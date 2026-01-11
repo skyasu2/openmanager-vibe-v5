@@ -1,6 +1,10 @@
 /**
  * 타입 안전성을 위한 유틸리티 함수들
+ *
+ * @updated 2026-01-11 - 미사용 함수 16개 제거 (319줄 → 170줄)
  */
+
+// ===== 기본 타입 가드 =====
 
 // Error 타입 가드
 export function isError(error: unknown): error is Error {
@@ -18,6 +22,8 @@ export function getErrorMessage(error: unknown): string {
   return '알 수 없는 오류가 발생했습니다.';
 }
 
+// ===== 안전한 접근 함수 =====
+
 // 배열 안전 접근
 export function safeArrayAccess<T>(array: T[], index: number): T | undefined {
   return array && array.length > index && index >= 0 ? array[index] : undefined;
@@ -31,32 +37,9 @@ export function safeObjectAccess<T, K extends keyof T>(
   return obj?.[key];
 }
 
-// 숫자 안전 변환
-export function safeParseFloat(value: string | undefined): number {
-  if (!value) return 0;
-  const parsed = parseFloat(value);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-export function safeParseInt(value: string | undefined): number {
-  if (!value) return 0;
-  const parsed = parseInt(value, 10);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-// 배열이 비어있지 않은지 확인하는 타입 가드
-export function isNonEmptyArray<T>(array: T[]): array is [T, ...T[]] {
-  return array.length > 0;
-}
-
 // undefined가 아닌지 확인하는 타입 가드
 export function isDefined<T>(value: T | undefined): value is T {
   return value !== undefined;
-}
-
-// null이 아닌지 확인하는 타입 가드
-export function isNotNull<T>(value: T | null): value is T {
-  return value !== null;
 }
 
 // null과 undefined가 아닌지 확인하는 타입 가드
@@ -73,16 +56,6 @@ export function safeJsonParse<T>(json: string, fallback: T): T {
   } catch {
     return fallback;
   }
-}
-
-// 안전한 배열 마지막 요소 접근
-export function getLastElement<T>(array: T[]): T | undefined {
-  return isNonEmptyArray(array) ? array[array.length - 1] : undefined;
-}
-
-// 안전한 배열 첫 번째 요소 접근
-export function getFirstElement<T>(array: T[]): T | undefined {
-  return isNonEmptyArray(array) ? array[0] : undefined;
 }
 
 // 안전한 객체 키 접근
@@ -140,25 +113,6 @@ export function getArrayElement<T>(
   return element !== undefined ? element : defaultValue;
 }
 
-// 안전한 Math.min/max (빈 배열 처리)
-export function safeMin(values: number[]): number | undefined {
-  return isNonEmptyArray(values) ? Math.min(...values) : undefined;
-}
-
-export function safeMax(values: number[]): number | undefined {
-  return isNonEmptyArray(values) ? Math.max(...values) : undefined;
-}
-
-// 안전한 배열 슬라이스
-export function safeSlice<T>(array: T[], start?: number, end?: number): T[] {
-  return array ? array.slice(start, end) : [];
-}
-
-// 배열 요소 존재 확인
-export function hasIndex<T>(array: T[], index: number): boolean {
-  return array && index >= 0 && index < array.length;
-}
-
 // 객체 속성 존재 확인
 export function hasProperty<T extends Record<string, unknown>>(
   obj: T | null | undefined,
@@ -167,33 +121,9 @@ export function hasProperty<T extends Record<string, unknown>>(
   return obj != null && key in obj;
 }
 
-// 안전한 문자열 분할
-export function safeSplit(
-  str: string | undefined,
-  separator: string
-): string[] {
-  return str ? str.split(separator) : [];
-}
+// ===== unknown 타입 처리를 위한 타입 가드 =====
 
-// 안전한 정규식 매치
-export function safeMatch(
-  str: string | undefined,
-  regex: RegExp
-): RegExpMatchArray | null {
-  return str ? str.match(regex) : null;
-}
-
-// 안전한 배열 정렬 (원본 보존)
-export function safeSorted<T>(
-  array: T[],
-  compareFn?: (a: T, b: T) => number
-): T[] {
-  return array ? [...array].sort(compareFn) : [];
-}
-
-// ===== unknown 타입 처리를 위한 강화된 타입 가드들 =====
-
-// 객체인지 확인하는 기본 타입 가드 (unknown 타입 처리 핵심)
+// 객체인지 확인하는 기본 타입 가드
 export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -277,31 +207,6 @@ export function isArrayOf<T>(
   itemCheck: (item: unknown) => item is T
 ): value is T[] {
   return isArray(value) && value.every(itemCheck);
-}
-
-// 안전한 타입 단언 (캐스팅)
-export function assertType<T>(
-  value: unknown,
-  typeGuard: (value: unknown) => value is T,
-  fallback: T
-): T {
-  return typeGuard(value) ? value : fallback;
-}
-
-// unknown 배열에서 특정 타입만 필터링
-export function filterByType<T>(
-  array: unknown[],
-  typeGuard: (item: unknown) => item is T
-): T[] {
-  return array.filter(typeGuard);
-}
-
-// unknown 객체에서 안전한 속성 추출
-export function extractProperty<K extends PropertyKey>(
-  obj: unknown,
-  key: K
-): unknown {
-  return hasPropertyOfType(obj, key) ? obj[key] : undefined;
 }
 
 // 안전한 JSON 파싱 (강화 버전)
