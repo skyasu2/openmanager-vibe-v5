@@ -6,9 +6,11 @@
  * - IsolationForestDetector: ML approach (multivariate isolation)
  * - HybridAnomalyDetector: Ensemble of both for higher accuracy
  * - TrendPredictor: Linear regression based forecasting
+ *   - 🆕 v2.0: Threshold breach prediction (Prometheus predict_linear style)
+ *   - 🆕 v2.0: Recovery time prediction (Datadog style)
  *
- * @version 1.0.0
- * @date 2026-01-01
+ * @version 2.0.0
+ * @date 2026-01-12
  */
 
 // Anomaly Detection
@@ -38,13 +40,18 @@ export {
   type ServerMetrics,
 } from './HybridAnomalyDetector.js';
 
-// Trend Prediction
+// Trend Prediction (v2.0 - Enhanced with threshold breach & recovery predictions)
 export {
   TrendPredictor,
   getTrendPredictor,
   type TrendDataPoint,
   type TrendPredictionConfig,
   type TrendPrediction,
+  // 🆕 v2.0 Enhanced Types
+  type EnhancedTrendPrediction,
+  type ThresholdBreachPrediction,
+  type RecoveryPrediction,
+  type MetricThresholds,
 } from './TrendPredictor.js';
 
 // Adaptive Thresholds
@@ -68,3 +75,12 @@ export {
   type UnifiedDetectionResult,
   type StreamingStats,
 } from './UnifiedAnomalyEngine.js';
+
+// Threshold + Seasonal Detector (Dashboard Compatible)
+export {
+  ThresholdSeasonalDetector,
+  getThresholdSeasonalDetector,
+  resetThresholdSeasonalDetector,
+  type ThresholdSeasonalResult,
+  type ServerAnalysisResult,
+} from './ThresholdSeasonalDetector.js';

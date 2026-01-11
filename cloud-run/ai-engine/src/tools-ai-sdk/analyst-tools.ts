@@ -357,16 +357,21 @@ export const checkThresholds = tool({
 });
 
 // ============================================================================
-// 3.1 Statistical Anomaly Detection
+// 3.1 Statistical + Threshold Anomaly Detection (Dashboard Compatible)
 // ============================================================================
 
 /**
- * Detect Anomalies Tool
- * Uses 6-hour moving average + 2σ threshold
+ * Detect Anomalies Tool v2.0
+ *
+ * Hybrid approach combining:
+ * 1. Fixed thresholds (Dashboard compatible) - Primary
+ * 2. Statistical (6-hour moving average + 2σ) - Secondary
+ *
+ * Dashboard 일관성: 임계값 초과 시 무조건 이상으로 판정
  */
 export const detectAnomalies = tool({
   description:
-    '서버 메트릭의 이상치를 탐지합니다. 6시간 이동평균과 2σ 임계값을 사용합니다.',
+    '서버 메트릭의 이상치를 탐지합니다. Dashboard와 동일한 임계값 + 통계적 분석을 결합합니다.',
   inputSchema: z.object({
     serverId: z
       .string()
@@ -409,24 +414,42 @@ export const detectAnomalies = tool({
               ? metrics
               : [metricType as (typeof metrics)[number]];
 
-          const results: Record<string, AnomalyResultItem> = {};
+          const results: Record<string, AnomalyResultItem & { thresholdExceeded?: boolean }> = {};
           const detector = getAnomalyDetector();
 
           for (const metric of targetMetrics) {
             const currentValue = server[metric as keyof typeof server] as number;
             const history = getHistoryForMetric(server.id, metric, currentValue);
 
+            // 1. Statistical detection (existing)
             const detection = detector.detectAnomaly(currentValue, history);
 
+            // 2. Fixed threshold check (Dashboard compatible)
+            const threshold = THRESHOLDS[metric as keyof typeof THRESHOLDS];
+            const thresholdExceeded = currentValue >= threshold.warning;
+            const isCritical = currentValue >= threshold.critical;
+
+            // 3. Combine: Threshold exceeded = anomaly (Dashboard consistency)
+            const isAnomaly = thresholdExceeded || detection.isAnomaly;
+
+            // 4. Determine severity
+            let severity = detection.severity;
+            if (isCritical) {
+              severity = 'high';
+            } else if (thresholdExceeded) {
+              severity = 'medium';
+            }
+
             results[metric] = {
-              isAnomaly: detection.isAnomaly,
-              severity: detection.severity,
-              confidence: Math.round(detection.confidence * 100) / 100,
+              isAnomaly,
+              severity,
+              confidence: thresholdExceeded ? 0.95 : Math.round(detection.confidence * 100) / 100,
               currentValue,
               threshold: {
-                upper: Math.round(detection.details.upperThreshold * 100) / 100,
+                upper: threshold.warning,
                 lower: Math.round(detection.details.lowerThreshold * 100) / 100,
               },
+              thresholdExceeded,
             };
           }
 
@@ -434,17 +457,28 @@ export const detectAnomalies = tool({
             (r) => r.isAnomaly
           ).length;
 
+          // Determine overall status
+          const hasCritical = Object.values(results).some(
+            (r) => r.isAnomaly && r.severity === 'high'
+          );
+          const hasWarning = Object.values(results).some(
+            (r) => r.isAnomaly && r.severity === 'medium'
+          );
+          const overallStatus = hasCritical ? 'critical' : hasWarning ? 'warning' : 'healthy';
+
           return {
             success: true,
             serverId: server.id,
             serverName: server.name,
+            status: overallStatus,
             anomalyCount,
             hasAnomalies: anomalyCount > 0,
             results,
             summary: anomalyCount > 0
-              ? `${server.name}: ${anomalyCount}개 메트릭에서 이상 감지`
+              ? `${server.name}: ${anomalyCount}개 메트릭에서 이상 감지 (${overallStatus})`
               : `${server.name}: 정상 (이상 없음)`,
             timestamp: new Date().toISOString(),
+            _algorithm: 'Threshold + Statistical (Dashboard Compatible)',
           };
         }
       );
@@ -894,12 +928,19 @@ export const detectAnomaliesUnified = tool({
 });
 
 /**
- * Predict Trends Tool
- * Uses linear regression for 1-hour prediction
+ * Predict Trends Tool v2.0
+ *
+ * 🆕 Enhanced Prediction (상용 도구 수준):
+ * - 임계값 도달 시간 예측 (Prometheus predict_linear 스타일)
+ * - 정상 복귀 시간 예측 (Datadog Recovery Forecast 스타일)
+ * - 현재 상태 + 미래 상태 예측
+ *
+ * @version 2.0.0
+ * @date 2026-01-12
  */
 export const predictTrends = tool({
   description:
-    '서버 메트릭의 트렌드를 예측합니다. 선형 회귀 기반 1시간 예측을 수행합니다.',
+    '🆕 v2.0: 서버 메트릭의 트렌드를 예측합니다. 임계값 도달 시간과 정상 복귀 시간을 포함한 향상된 예측을 제공합니다.',
   inputSchema: z.object({
     serverId: z
       .string()
@@ -948,17 +989,39 @@ export const predictTrends = tool({
             metricType === 'all'
               ? metrics
               : [metricType as (typeof metrics)[number]];
-          const horizon = hours * 3600 * 1000;
 
-          const results: Record<string, TrendResultItem> = {};
+          // 🆕 Enhanced Results Interface
+          interface EnhancedTrendResult extends TrendResultItem {
+            currentStatus: 'healthy' | 'warning' | 'critical';
+            thresholdBreach: {
+              willBreachWarning: boolean;
+              timeToWarning: number | null;
+              willBreachCritical: boolean;
+              timeToCritical: number | null;
+              humanReadable: string;
+            };
+            recovery: {
+              willRecover: boolean;
+              timeToRecovery: number | null;
+              humanReadable: string | null;
+            };
+          }
+
+          const results: Record<string, EnhancedTrendResult> = {};
           const predictor = getTrendPredictor();
+
+          // 🆕 Alerts for critical predictions
+          const warnings: string[] = [];
+          const criticalAlerts: string[] = [];
+          const recoveryPredictions: string[] = [];
 
           for (const metric of targetMetrics) {
             const currentValue = server[metric as keyof typeof server] as number;
             const history = getHistoryForMetric(server.id, metric, currentValue);
             const trendHistory = toTrendDataPoints(history);
 
-            const prediction = predictor.predictTrend(trendHistory, horizon);
+            // 🆕 Use enhanced prediction
+            const prediction = predictor.predictEnhanced(trendHistory, metric);
 
             results[metric] = {
               trend: prediction.trend,
@@ -967,15 +1030,51 @@ export const predictTrends = tool({
               changePercent:
                 Math.round(prediction.details.predictedChangePercent * 100) / 100,
               confidence: Math.round(prediction.confidence * 100) / 100,
+              // 🆕 Enhanced fields
+              currentStatus: prediction.currentStatus,
+              thresholdBreach: prediction.thresholdBreach,
+              recovery: prediction.recovery,
             };
+
+            // 🆕 Collect alerts
+            if (prediction.thresholdBreach.willBreachCritical) {
+              criticalAlerts.push(
+                `${metric.toUpperCase()}: ${prediction.thresholdBreach.humanReadable}`
+              );
+            } else if (prediction.thresholdBreach.willBreachWarning) {
+              warnings.push(
+                `${metric.toUpperCase()}: ${prediction.thresholdBreach.humanReadable}`
+              );
+            }
+
+            if (prediction.currentStatus !== 'healthy' && prediction.recovery.willRecover) {
+              recoveryPredictions.push(
+                `${metric.toUpperCase()}: ${prediction.recovery.humanReadable}`
+              );
+            }
           }
 
           const increasingMetrics = Object.entries(results)
             .filter(([, r]) => r.trend === 'increasing')
             .map(([m]) => m);
 
+          // 🆕 Build enhanced message
+          let message = '';
+          if (criticalAlerts.length > 0) {
+            message = `🚨 ${server.name}: ${criticalAlerts.join('; ')}`;
+          } else if (warnings.length > 0) {
+            message = `⚠️ ${server.name}: ${warnings.join('; ')}`;
+          } else if (recoveryPredictions.length > 0) {
+            message = `✅ ${server.name}: ${recoveryPredictions.join('; ')}`;
+          } else if (increasingMetrics.length > 0) {
+            message = `📈 ${server.name}: ${increasingMetrics.join(', ')} 상승 추세 (임계값 미도달 예상)`;
+          } else {
+            message = `✅ ${server.name}: 안정적 추세`;
+          }
+
           return {
             success: true,
+            version: '2.0.0',
             serverId: server.id,
             serverName: server.name,
             predictionHorizon: `${hours}시간`,
@@ -983,10 +1082,15 @@ export const predictTrends = tool({
             summary: {
               increasingMetrics,
               hasRisingTrends: increasingMetrics.length > 0,
+              // 🆕 Enhanced summary
+              hasWarningPredictions: warnings.length > 0,
+              hasCriticalPredictions: criticalAlerts.length > 0,
+              hasRecoveryPredictions: recoveryPredictions.length > 0,
+              warnings,
+              criticalAlerts,
+              recoveryPredictions,
             },
-            message: increasingMetrics.length > 0
-              ? `${server.name}: ${increasingMetrics.join(', ')} 상승 추세`
-              : `${server.name}: 안정적 추세`,
+            message,
             timestamp: new Date().toISOString(),
           };
         }
