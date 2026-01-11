@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.86.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.85.0...v5.86.0) (2026-01-11)
+
+
+### Features
+
+* **ai-sidebar:** add new chat button and fix PWA icons ([5a0a819](https://github.com/skyasu2/openmanager-vibe-v5/commit/5a0a8197f0f438b8bb6e85e03891e9d819832da3))
+* **auth:** require login for AI assistant feature ([d5eece8](https://github.com/skyasu2/openmanager-vibe-v5/commit/d5eece8a189cbbc1975416f9938017cac59c9eb5))
+* **security:** add XML prompt structure and circuit breaker forceOpen ([aa2cdb5](https://github.com/skyasu2/openmanager-vibe-v5/commit/aa2cdb56824c39adedd133a1755f35319ad8d126))
+
+
+### Bug Fixes
+
+* **cloud-run:** sync version to 5.85.0 in server.ts and logger.ts ([6a3bf47](https://github.com/skyasu2/openmanager-vibe-v5/commit/6a3bf47aabf13d35bc45b689e4c761b3dc4325cf))
+* **e2e:** use data-testid for fullscreen button selectors ([6426f8b](https://github.com/skyasu2/openmanager-vibe-v5/commit/6426f8b1070b66e4a4e76c9e66b4e9109e65e661))
+* **scripts:** reduce false positives in doc-test-validator ([d15bff8](https://github.com/skyasu2/openmanager-vibe-v5/commit/d15bff80b6b188074ebe33f15f6ba352d7c5ec55))
+* **security:** resolve DDoS vulnerability and prompt injection, clean up stores ([4957ae5](https://github.com/skyasu2/openmanager-vibe-v5/commit/4957ae5fc42c5356c003f835d7400fce9da53a2a))
+* **security:** resolve getRandomValues TypedArray bug and update API test ([beb8274](https://github.com/skyasu2/openmanager-vibe-v5/commit/beb827488a01731cfb6764681c16d6dc6fa3792d))
+* **test:** improve integration test reliability per code review ([d495d8c](https://github.com/skyasu2/openmanager-vibe-v5/commit/d495d8c35b440c3420b7c31e1f859ca2dd765fc7))
+* **test:** make checkRandomEvent test deterministic ([02e4965](https://github.com/skyasu2/openmanager-vibe-v5/commit/02e49657fe65727948f1f890dfa44275bf9a92cc))
+* **test:** resolve logger mock issues and improve test stability ([217ed5e](https://github.com/skyasu2/openmanager-vibe-v5/commit/217ed5e36cd78d86a310dc933569b844d2696d9a))
+
 ## [5.85.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.84.3...v5.85.0) (2026-01-10)
 
 
