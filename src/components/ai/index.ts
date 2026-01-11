@@ -23,13 +23,6 @@ export {
   CodeExecutionBlock,
   type CodeExecutionBlockProps,
 } from './CodeExecutionBlock';
-// Lazy Loading Components
-export {
-  LazyAIWorkspace,
-  LazyAutoReportPage,
-  LazyIntelligentMonitoringPage,
-  LazyThinkingProcessVisualizer,
-} from './LazyAIComponents';
 // Chat & Messaging
 export { MarkdownRenderer } from './MarkdownRenderer';
 export { MessageActions } from './MessageActions';

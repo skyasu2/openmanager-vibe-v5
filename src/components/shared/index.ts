@@ -13,7 +13,6 @@ export { AnomalyFeed } from './AnomalyFeed';
 export { default as AuthLoadingUI } from './AuthLoadingUI';
 // Layout & Containers
 export { default as CollapsibleCard } from './CollapsibleCard';
-export { EnvironmentBadge, EnvironmentDebugInfo } from './EnvironmentBadge';
 // Error Handling
 export { ErrorBoundary, withErrorBoundary } from './ErrorBoundary';
 export { default as FeatureCardModal } from './FeatureCardModal';
