@@ -108,13 +108,13 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     // AI 사이드바 열기
     await openAiSidebar(page);
 
-    // 풀스크린 버튼 찾기 및 클릭 (data-testid 사용)
+    // 풀스크린 버튼 찾기 및 클릭 (Vercel 환경: title="전체 화면으로 열기")
     const fullscreenButton = page
-      .locator('[data-testid="ai-fullscreen-button"]')
+      .locator('button[title="전체 화면으로 열기"]')
       .first();
     await fullscreenButton.waitFor({
       state: 'visible',
-      timeout: TIMEOUTS.MODAL_DISPLAY,
+      timeout: 10000,
     });
     // 현재 URL 저장
     const beforeUrl = page.url();
@@ -265,13 +265,13 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     // beforeEach에서 이미 로그인 상태이므로 사이드바에서 AI 페이지로 이동
     await openAiSidebar(page);
 
-    // 풀스크린 버튼 찾기 및 클릭 (data-testid 사용)
+    // 풀스크린 버튼 찾기 및 클릭 (Vercel 환경: title="전체 화면으로 열기")
     const fullscreenButton = page
-      .locator('[data-testid="ai-fullscreen-button"]')
+      .locator('button[title="전체 화면으로 열기"]')
       .first();
     await fullscreenButton.waitFor({
       state: 'visible',
-      timeout: TIMEOUTS.MODAL_DISPLAY,
+      timeout: 10000,
     });
     await fullscreenButton.click();
 

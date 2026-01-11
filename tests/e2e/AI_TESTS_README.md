@@ -65,7 +65,25 @@ npm run test:ai:all
 npx playwright test tests/e2e/ai-sidebar-vercel-validation.spec.ts --project=chromium
 ```
 
-#### 2. `ai-input-validation.spec.ts` (Phase 2, 6개 테스트)
+#### 2. `ai-fullscreen.spec.ts` (Phase 1.5, 7개 테스트)
+
+**목적**: AI 어시스턴트 전체 화면 페이지(/dashboard/ai-assistant) 기능 검증
+
+**테스트 범위**:
+- 풀스크린 페이지 직접 접근 및 네비게이션
+- 사이드바에서 풀스크린 전환
+- 기능 탭(Chat, Report, Monitoring, Management) 전환
+- New Chat 등 주요 버튼 동작 확인
+- System Context 패널 토글
+
+**Vercel 부하**: 낮음
+**실행 빈도**: 배포 전/후 필수
+
+```bash
+npx playwright test tests/e2e/ai-fullscreen.spec.ts --project=chromium
+```
+
+#### 3. `ai-input-validation.spec.ts` (Phase 2, 6개 테스트)
 
 **목적**: AI 사이드바 입력 검증 및 에러 핸들링
 
@@ -89,7 +107,7 @@ npx playwright test tests/e2e/ai-input-validation.spec.ts --project=chromium
 
 ### 기능별 검증 테스트 (Phase 3-5)
 
-#### 3. `ai-functions.spec.ts` (Phase 3, 7개 테스트)
+#### 4. `ai-functions.spec.ts` (Phase 3, 7개 테스트)
 
 **목적**: AI 기능 전환 및 UI 업데이트 검증
 
@@ -118,7 +136,7 @@ npx playwright test tests/e2e/ai-input-validation.spec.ts --project=chromium
 npx playwright test tests/e2e/ai-functions.spec.ts --project=chromium
 ```
 
-#### 4. `ai-history-persistence.spec.ts` (Phase 4, 4개 테스트)
+#### 5. `ai-history-persistence.spec.ts` (Phase 4, 4개 테스트)
 
 **목적**: 채팅 히스토리 메모리 유지 검증
 
@@ -138,7 +156,7 @@ npx playwright test tests/e2e/ai-functions.spec.ts --project=chromium
 npx playwright test tests/e2e/ai-history-persistence.spec.ts --project=chromium
 ```
 
-#### 5. `ai-network-recovery.spec.ts` (Phase 4, 5개 테스트)
+#### 6. `ai-network-recovery.spec.ts` (Phase 4, 5개 테스트)
 
 **목적**: 네트워크 오류 복구 및 에러 핸들링 검증
 
@@ -163,7 +181,7 @@ npx playwright test tests/e2e/ai-history-persistence.spec.ts --project=chromium
 npx playwright test tests/e2e/ai-network-recovery.spec.ts --project=chromium
 ```
 
-#### 6. `ai-accessibility.spec.ts` (Phase 5, 6개 테스트)
+#### 7. `ai-accessibility.spec.ts` (Phase 5, 6개 테스트)
 
 **목적**: 웹 접근성 (WCAG 2.1) 준수 검증
 

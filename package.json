@@ -16,6 +16,7 @@
     "dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096' next dev -p 3000",
     "dev:network": "cross-env NODE_OPTIONS='--max-old-space-size=4096' next dev -p 3000 --hostname 0.0.0.0",
     "dev:stable": "cross-env NEXT_DISABLE_DEVTOOLS=1 NODE_OPTIONS='--max-old-space-size=4096' next dev",
+    "dev:playwright": "cross-env NEXT_DISABLE_DEVTOOLS=1 NEXT_PUBLIC_E2E_TESTING=true NODE_OPTIONS='--max-old-space-size=4096' next dev -p 3000",
     "dev:docker:ai": "bash scripts/dev/run-docker-functions.sh",
     "dev:index:background": "ts-node scripts/indexing/background-indexing.ts",
     "dev:index:background:help": "ts-node scripts/indexing/background-indexing.ts help",

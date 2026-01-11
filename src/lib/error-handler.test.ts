@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { logger } from '@/lib/logging';
 import {
   classifyErrorType,
   createErrorBoundaryInfo,
@@ -26,14 +27,12 @@ vi.mock('@/lib/logger', () => ({
 }));
 
 describe('Error Handler', () => {
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
-    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(logger.error).mockClear();
   });
 
   afterEach(() => {
-    consoleSpy.mockRestore();
+    vi.clearAllMocks();
   });
 
   describe('createSafeError', () => {
@@ -242,8 +241,8 @@ describe('Error Handler', () => {
       const error = new Error('Test error');
       const result = safeErrorLog('TEST', error);
 
-      expect(consoleSpy).toHaveBeenCalledWith('TEST:', 'Test error');
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith('TEST:', 'Test error');
+      expect(logger.error).toHaveBeenCalledWith(
         expect.stringContaining('↳ Type:'),
         expect.stringContaining('Code:')
       );
@@ -254,7 +253,7 @@ describe('Error Handler', () => {
       const error = new Error('Test error with stack');
       safeErrorLog('TEST', error, true);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         expect.stringContaining('↳ Stack:'),
         expect.any(String)
       );
@@ -266,7 +265,7 @@ describe('Error Handler', () => {
       const error = new Error('Development error');
       safeErrorLog('DEV', error);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         expect.stringContaining('↳ Original:'),
         error
       );

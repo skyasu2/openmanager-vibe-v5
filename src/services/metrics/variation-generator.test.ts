@@ -134,11 +134,13 @@ describe('RealisticVariationGenerator', () => {
 
     it('should return "정상" when no event', () => {
       // Run multiple times to find a non-event case
-      // Use fixed seeds for determinism (avoid Date.now() which causes flakiness)
+      // Use different first characters since implementation uses charCodeAt(0) for seed
+      const prefixes =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let foundNormal = false;
-      for (let i = 0; i < 500; i++) {
+      for (let i = 0; i < prefixes.length; i++) {
         const result = RealisticVariationGenerator.checkRandomEvent(
-          `deterministic-server-${i}`
+          `${prefixes[i]}-server-${i}`
         );
         if (!result.hasEvent) {
           expect(result.type).toBe('정상');
@@ -147,7 +149,7 @@ describe('RealisticVariationGenerator', () => {
           break;
         }
       }
-      // At least some should be normal (80%+ probability with 500 samples)
+      // At least some should be normal (80%+ probability with 62 different seeds)
       expect(foundNormal).toBe(true);
     });
   });

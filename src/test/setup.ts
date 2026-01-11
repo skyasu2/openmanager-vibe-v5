@@ -142,6 +142,45 @@ vi.mock('@/lib/logger', () => ({
   },
 }));
 
+// Logging Module Mock (unified logger)
+vi.mock('@/lib/logging', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(() => ({
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+    })),
+  },
+  createModuleLogger: vi.fn(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  })),
+  browserLogger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+  serverLogger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+  loggerConfig: {
+    level: 'info',
+    enabled: false,
+  },
+  shouldLog: vi.fn(() => false),
+}));
+
 // Fetch Mock - 더 현실적인 응답
 globalThis.fetch = vi.fn().mockImplementation((url: string) => {
   return Promise.resolve({

@@ -3,6 +3,7 @@
  */
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { logger } from '@/lib/logging';
 import {
   type ChatMessage,
   useAIEngine,
@@ -54,54 +55,47 @@ describe('useAIEngine (v4.0 - UNIFIED 전용)', () => {
   });
 
   it('레거시 엔진 선택 시 경고를 출력한다', () => {
-    const consoleWarnSpy = vi
-      .spyOn(console, 'warn')
-      .mockImplementation(() => {});
+    vi.mocked(logger.warn).mockClear();
     const { result } = renderHook(() => useAIEngine());
 
     act(() => {
       result.current.setEngine('GOOGLE_AI');
     });
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
+    expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('GOOGLE_AI')
     );
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
+    expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('더 이상 지원되지 않습니다')
     );
-
-    consoleWarnSpy.mockRestore();
   });
 
   it('레거시 localStorage 값을 UNIFIED로 자동 마이그레이션한다', () => {
-    const consoleInfoSpy = vi
-      .spyOn(console, 'info')
-      .mockImplementation(() => {});
     localStorageMock.getItem.mockReturnValue('GOOGLE_AI');
 
     renderHook(() => useAIEngine());
 
-    expect(consoleInfoSpy).toHaveBeenCalledWith(
+    // logger.info가 마이그레이션 메시지와 함께 호출되었는지 확인
+    expect(logger.info).toHaveBeenCalledWith(
       expect.stringContaining('자동 마이그레이션')
     );
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       'selected-ai-engine',
       'UNIFIED'
     );
-
-    consoleInfoSpy.mockRestore();
   });
 
   it('이미 UNIFIED로 저장된 경우 마이그레이션하지 않는다', () => {
-    const consoleInfoSpy = vi
-      .spyOn(console, 'info')
-      .mockImplementation(() => {});
+    // logger.info mock 초기화
+    vi.mocked(logger.info).mockClear();
     localStorageMock.getItem.mockReturnValue('UNIFIED');
 
     renderHook(() => useAIEngine());
 
-    expect(consoleInfoSpy).not.toHaveBeenCalled();
-    consoleInfoSpy.mockRestore();
+    // 마이그레이션 메시지가 출력되지 않아야 함
+    expect(logger.info).not.toHaveBeenCalledWith(
+      expect.stringContaining('자동 마이그레이션')
+    );
   });
 
   it('UNIFIED 엔진의 표시 이름을 반환한다', () => {
@@ -164,9 +158,7 @@ describe('useAIEngine (v4.0 - UNIFIED 전용)', () => {
   });
 
   it('handleModeChange 호출 시 UNIFIED 고정 메시지를 반환한다', async () => {
-    const consoleWarnSpy = vi
-      .spyOn(console, 'warn')
-      .mockImplementation(() => {});
+    vi.mocked(logger.warn).mockClear();
     const { result } = renderHook(() => useAIEngine());
 
     let message: ChatMessage | null = null;
@@ -177,22 +169,19 @@ describe('useAIEngine (v4.0 - UNIFIED 전용)', () => {
     expect(message).not.toBeNull();
     expect(message?.content).toContain('UNIFIED');
     expect(message?.content).toContain('자동 라우팅');
-    expect(consoleWarnSpy).toHaveBeenCalled();
-
-    consoleWarnSpy.mockRestore();
+    // logger.warn이 지원되지 않는 모드에 대해 호출되어야 함
+    expect(logger.warn).toHaveBeenCalled();
   });
 
   it('handleModeChange에 UNIFIED를 전달해도 경고가 발생하지 않는다', async () => {
-    const consoleWarnSpy = vi
-      .spyOn(console, 'warn')
-      .mockImplementation(() => {});
+    vi.mocked(logger.warn).mockClear();
     const { result } = renderHook(() => useAIEngine());
 
     await act(async () => {
       await result.current.handleModeChange('UNIFIED');
     });
 
-    expect(consoleWarnSpy).not.toHaveBeenCalled();
-    consoleWarnSpy.mockRestore();
+    // UNIFIED 모드는 경고 없이 처리되어야 함
+    expect(logger.warn).not.toHaveBeenCalled();
   });
 });

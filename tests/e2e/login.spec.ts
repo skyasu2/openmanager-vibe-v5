@@ -26,8 +26,8 @@ test.describe('🔐 로그인 기능 테스트', () => {
     }) => {
       await page.goto('/', { waitUntil: 'networkidle' });
 
-      // 페이지 완전 로딩 대기
-      await page.waitForTimeout(2000);
+      // DOM 완전 로딩 대기 (hardcoded timeout 대신 명시적 상태 대기)
+      await page.waitForLoadState('domcontentloaded');
 
       // 로그인 버튼 찾기 및 클릭
       let loginButtonFound = false;
