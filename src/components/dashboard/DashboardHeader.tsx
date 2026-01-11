@@ -1,15 +1,15 @@
 'use client';
 
 // 사용자 정보 관련 import는 UnifiedProfileHeader에서 처리됨
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { OpenManagerLogo } from '@/components/shared/OpenManagerLogo';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import debug from '@/utils/debug';
 import { AIAssistantButton } from './AIAssistantButton';
+import { AILoginRequiredModal } from './AILoginRequiredModal';
 import { RealTimeDisplay } from './RealTimeDisplay';
 
 // framer-motion 제거 - CSS 애니메이션 사용
@@ -65,9 +65,19 @@ const DashboardHeader = memo(function DashboardHeader({
   const { isOpen: isSidebarOpen, setOpen: setSidebarOpen } =
     useAISidebarStore();
 
+  // 🔐 AI 로그인 필요 모달 상태
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
   // AI 에이전트 토글 핸들러 (새로운 사이드바 연동)
   const handleAIAgentToggle = () => {
     debug.log('🤖 AI 어시스턴트 토글');
+
+    // 🔐 비로그인 사용자는 로그인 모달 표시
+    if (!permissions.isGitHubAuthenticated) {
+      debug.log('🔒 로그인 필요 - 모달 표시');
+      setShowLoginModal(true);
+      return;
+    }
 
     // 새로운 사이드바 토글
     setSidebarOpen(!isSidebarOpen);
@@ -117,19 +127,23 @@ const DashboardHeader = memo(function DashboardHeader({
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
         <div className="flex items-center gap-4">
-          {/* 🔐 권한이 있는 사용자 또는 게스트 전체 접근 모드에서 AI 어시스턴트 토글 버튼 표시 */}
-          {(permissions.canToggleAI || isGuestFullAccessEnabled()) && (
-            <AIAssistantButton
-              isOpen={isSidebarOpen}
-              isEnabled={aiAgent.isEnabled}
-              onClick={handleAIAgentToggle}
-            />
-          )}
+          {/* 🔐 AI 어시스턴트 토글 버튼 - 항상 표시, 클릭 시 인증 체크 */}
+          <AIAssistantButton
+            isOpen={isSidebarOpen}
+            isEnabled={aiAgent.isEnabled}
+            onClick={handleAIAgentToggle}
+          />
 
           {/* 🎯 UnifiedProfileHeader 사용 - Zustand 스토어로 Props Drilling 제거 */}
           <UnifiedProfileHeader />
         </div>
       </div>
+
+      {/* 🔐 AI 로그인 필요 모달 */}
+      <AILoginRequiredModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
 
       {/* 모바일용 실시간 정보 */}
       <div className="border-t border-gray-200 bg-gray-50 px-6 py-2 md:hidden">
