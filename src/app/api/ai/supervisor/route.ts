@@ -44,10 +44,10 @@ import { requestSchema } from './schemas';
 import { quickSanitize } from './security';
 // NOTE: Stream parser available at ./stream-parser.ts for future streaming implementation
 
-// Allow streaming responses up to 120 seconds (Vercel Pro: max 300s)
-// Note: Increased from 60s to handle complex NLQ queries with tool calls
-// Supervisor → Agent → Tool → Verifier pipeline can take 60-90s
-export const maxDuration = 120;
+// Allow streaming responses up to 60 seconds (Vercel Hobby: max 60s)
+// Note: Reduced from 120s for Vercel Free Tier compatibility
+// Cloud Run AI Engine handles heavy processing, Vercel just proxies
+export const maxDuration = 60;
 
 // ============================================================================
 // 🧠 Main Handler - Cloud Run Multi-Agent System

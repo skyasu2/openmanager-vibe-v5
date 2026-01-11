@@ -26,8 +26,8 @@ import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { quickSanitize } from '../security';
 
-// Allow streaming responses up to 120 seconds
-export const maxDuration = 120;
+// Allow streaming responses up to 60 seconds (Vercel Hobby: max 60s)
+export const maxDuration = 60;
 
 // ============================================================================
 // 📋 Request Schema
