@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.86.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.86.0...v5.86.1) (2026-01-11)
+
+
+### Features
+
+* **ai-engine:** enhance TrendPredictor with threshold breach & recovery predictions ([9c1b7dd](https://github.com/skyasu2/openmanager-vibe-v5/commit/9c1b7dddd16cd56ce4ba3c4ae0aae7d7ffb4bf47))
+* **auth:** enable AI access for guest mode testing ([ccf4600](https://github.com/skyasu2/openmanager-vibe-v5/commit/ccf46002759b89e375796fa39c8f09ce9c0ea0be))
+
+
+### Bug Fixes
+
+* **ci:** add debug logging for keep-alive workflow ([7927602](https://github.com/skyasu2/openmanager-vibe-v5/commit/7927602b9aba2f3633328bece0832ba23c4c6e79))
+
 ## [5.86.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.85.0...v5.86.0) (2026-01-11)
 
 
