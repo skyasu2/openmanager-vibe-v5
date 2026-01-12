@@ -76,11 +76,3 @@ export {
   type StreamingStats,
 } from './UnifiedAnomalyEngine.js';
 
-// Threshold + Seasonal Detector (Dashboard Compatible)
-export {
-  ThresholdSeasonalDetector,
-  getThresholdSeasonalDetector,
-  resetThresholdSeasonalDetector,
-  type ThresholdSeasonalResult,
-  type ServerAnalysisResult,
-} from './ThresholdSeasonalDetector.js';
