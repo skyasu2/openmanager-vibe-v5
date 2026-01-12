@@ -31,7 +31,6 @@ export { default as IntelligentMonitoringModal } from './modals/IntelligentMonit
 export { default as AutoReportPage } from './pages/AutoReportPage';
 // Pages (re-export from subdirectory)
 export { default as IntelligentMonitoringPage } from './pages/IntelligentMonitoringPage';
-export { default as ResultCard, type ResultCardData } from './ResultCard';
 export { default as SystemContextPanel } from './SystemContextPanel';
 // Visualization
 export { ThinkingProcessVisualizer } from './ThinkingProcessVisualizer';

@@ -18,11 +18,15 @@ export const AIFunctionPages: FC<AIFunctionPagesProps> = ({
 }: AIFunctionPagesProps) => {
   return (
     <div className={`flex h-full flex-col ${className}`}>
-      {/* AI 기능 아이콘 패널 */}
-      <div className="shrink-0" data-testid="ai-function-navigation">
+      {/* AI 기능 아이콘 패널 - 모바일에서만 표시 (데스크톱은 Sidebar 부모가 처리) */}
+      <div
+        className="block shrink-0 sm:hidden"
+        data-testid="ai-function-navigation"
+      >
         <AIAssistantIconPanel
           selectedFunction={selectedFunction}
           onFunctionChange={onFunctionChange}
+          isMobile={true}
         />
       </div>
 
