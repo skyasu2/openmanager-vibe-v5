@@ -14,12 +14,13 @@
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createMockResponse } from '../../tests/utils/mock-response';
 import {
   type TimeSeriesData,
   useTimeSeriesMetrics,
 } from './useTimeSeriesMetrics';
 
-// Mock fetch with proper Response-like object
+// Mock fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
@@ -32,29 +33,6 @@ vi.mock('@/lib/logging', () => ({
     debug: vi.fn(),
   },
 }));
-
-// Create a mock Response-like object
-function createMockResponse(data: unknown, ok = true, status = 200) {
-  const response = {
-    ok,
-    status,
-    statusText: ok ? 'OK' : 'Error',
-    headers: new Headers(),
-    redirected: false,
-    type: 'basic' as ResponseType,
-    url: '',
-    bodyUsed: false,
-    body: null,
-    json: vi.fn().mockResolvedValue(data),
-    text: vi.fn().mockResolvedValue(JSON.stringify(data)),
-    blob: vi.fn().mockResolvedValue(new Blob()),
-    arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
-    formData: vi.fn().mockResolvedValue(new FormData()),
-    clone: vi.fn(),
-  };
-  response.clone.mockReturnValue({ ...response });
-  return response;
-}
 
 // Mock 응답 데이터 생성
 function createMockTimeSeriesData(

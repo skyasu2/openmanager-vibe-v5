@@ -14,9 +14,13 @@
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  createErrorResponse,
+  createMockResponse,
+} from '../../../tests/utils/mock-response';
 import { SLAWidget } from './SLAWidget';
 
-// Mock fetch with proper Response-like object
+// Mock fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
@@ -36,35 +40,8 @@ function createMockReport(overrides?: Record<string, unknown>) {
   };
 }
 
-function createMockResponse(data: unknown, ok = true, status = 200) {
-  const response = {
-    ok,
-    status,
-    statusText: ok ? 'OK' : 'Error',
-    headers: new Headers(),
-    redirected: false,
-    type: 'basic' as ResponseType,
-    url: '',
-    bodyUsed: false,
-    body: null,
-    json: vi.fn().mockResolvedValue(data),
-    text: vi.fn().mockResolvedValue(JSON.stringify(data)),
-    blob: vi.fn().mockResolvedValue(new Blob()),
-    arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
-    formData: vi.fn().mockResolvedValue(new FormData()),
-    clone: vi.fn(),
-  };
-  // clone returns a copy of the response
-  response.clone.mockReturnValue({ ...response });
-  return response;
-}
-
 function createSuccessResponse(reports: unknown[]) {
   return createMockResponse({ reports }, true, 200);
-}
-
-function createErrorResponse(status: number) {
-  return createMockResponse({ message: 'API Error' }, false, status);
 }
 
 describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
