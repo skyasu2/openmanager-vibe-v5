@@ -193,7 +193,7 @@ function selectExecutionMode(query: string): SupervisorMode {
     // 4. Capacity planning (용량 계획) - always multi-agent
     /용량.*계획|capacity|언제.*부족|얼마나.*남|증설.*필요/i,
 
-    // 5. Summary requests → Summarizer Agent (OpenRouter free tier)
+    // 5. Summary requests → NLQ Agent (merged from Summarizer Agent)
     // Includes typos: 서버→서벼/썹, 요약→요먁, server→servr/sever, summary→sumary/summry
     /(서버|서벼|썹|상태|현황|모니터링|인프라).*(요약|요먁|간단히|핵심|tl;?dr)/i,
     /(요약|요먁|간단히|핵심|tl;?dr).*(서버|서벼|썹|상태|현황|알려|해줘)/i,

@@ -4,8 +4,8 @@
  * Central export point for Vercel AI SDK services.
  * Replaces LangGraph-based agents.
  *
- * @version 1.0.0
- * @updated 2025-12-28
+ * @version 2.0.0 - Removed OpenRouter and Summarizer Agent
+ * @updated 2026-01-12
  */
 
 // Supervisor
@@ -25,11 +25,9 @@ export {
   getSupervisorModel,
   getVerifierModel,
   getAdvisorModel,
-  getSummarizerModel,
   getCerebrasModel,
   getGroqModel,
   getMistralModel,
-  getOpenRouterModel,
   checkProviderStatus,
   checkAllProvidersHealth,
   logProviderStatus,
@@ -52,4 +50,3 @@ export { nlqAgent } from './agents/nlq-agent';
 export { analystAgent } from './agents/analyst-agent';
 export { reporterAgent } from './agents/reporter-agent';
 export { advisorAgent } from './agents/advisor-agent';
-export { summarizerAgent } from './agents/summarizer-agent';

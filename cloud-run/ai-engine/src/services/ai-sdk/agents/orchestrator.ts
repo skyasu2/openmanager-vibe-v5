@@ -5,21 +5,21 @@
  * Uses Cerebras for ultra-fast routing decisions (~200ms).
  *
  * Architecture:
- * Orchestrator (Cerebras) → NLQ/Analyst/Reporter/Advisor/Summarizer (Cerebras/Groq/Mistral)
+ * Orchestrator (Cerebras) → NLQ/Analyst/Reporter/Advisor (Cerebras/Groq/Mistral)
  *
- * @version 2.0.0 - SSOT refactoring
- * @updated 2026-01-06 - Import AGENT_CONFIGS from SSOT, removed duplication
+ * @version 2.1.0 - Removed Summarizer Agent (merged into NLQ)
+ * @updated 2026-01-12 - OpenRouter and Summarizer Agent removed
  */
 
 import { Agent } from '@ai-sdk-tools/agents';
 import { generateText, stepCountIs } from 'ai';
-import { getCerebrasModel, getGroqModel, checkProviderStatus } from '../model-provider';
+import { getCerebrasModel, getGroqModel, getMistralModel, checkProviderStatus, type ProviderName } from '../model-provider';
+import { generateTextWithRetry } from '../../resilience/retry-with-fallback';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
 import { nlqAgent } from './nlq-agent';
 import { analystAgent } from './analyst-agent';
 import { reporterAgent } from './reporter-agent';
 import { advisorAgent } from './advisor-agent';
-import { summarizerAgent } from './summarizer-agent';
 
 // Import SSOT config
 import { AGENT_CONFIGS } from './config';
@@ -133,10 +133,6 @@ const ORCHESTRATOR_INSTRUCTIONS = `당신은 **서버 모니터링 플랫폼 (Op
 **키워드**: 해결, 방법, 명령어, 가이드, 과거 사례 (서버 관련)
 - "메모리 부족 해결 방법" → Advisor Agent
 
-#### Summarizer Agent - 서버 요약
-**키워드**: 요약, 간단히, 핵심만, TL;DR (서버 상태 관련)
-- "서버 현황 요약해줘" → Summarizer Agent
-
 ## 2단계: 판단 기준
 
 **핸드오프 여부 결정 플로우**:
@@ -144,11 +140,10 @@ const ORCHESTRATOR_INSTRUCTIONS = `당신은 **서버 모니터링 플랫폼 (Op
    - 없음 → 직접 답변
    - 있음 → 2번으로
 2. 어떤 전문 에이전트가 적합한가?
-   - 데이터 조회 → NLQ Agent
+   - 데이터 조회/요약 → NLQ Agent (요약 포함)
    - 이상/분석 → Analyst Agent
    - 보고서 → Reporter Agent
    - 해결법 → Advisor Agent
-   - 요약 → Summarizer Agent
 
 ## 중요 규칙
 1. **일반 대화는 빠르게 직접 답변** (핸드오프 금지)
@@ -284,11 +279,8 @@ export function preFilterQuery(query: string): PreFilterResult {
       suggestedAgent = 'Reporter Agent';
     } else if (/해결|방법|명령어|가이드|어떻게|과거.*사례|사례.*찾|이력|유사/.test(query)) {
       suggestedAgent = 'Advisor Agent';
-    } else if (/요약|간단히|핵심|TL;?DR/i.test(query)) {
-      // FIX (2026-01-06): Summarizer Agent now uses Cerebras/Groq via generateText
-      // This provides reliable tool calling unlike OpenRouter free tier models
-      suggestedAgent = 'Summarizer Agent';
     }
+    // Note: Summary requests (요약, 간단히, 핵심, TL;DR) now handled by NLQ Agent (default)
 
     return {
       shouldHandoff: true,
@@ -309,14 +301,14 @@ export function preFilterQuery(query: string): PreFilterResult {
 // ============================================================================
 
 /**
- * Get orchestrator model with fallback
- * Primary: Cerebras (fastest)
- * Fallback: Groq (stable)
- * Returns null if no model available (graceful degradation)
+ * Get orchestrator model with 3-way fallback
+ * Cerebras → Groq → Mistral
+ * Ensures operation even if 2 of 3 providers are down
  */
 function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasModel>; provider: string; modelId: string } | null {
   const status = checkProviderStatus();
 
+  // Primary: Cerebras (fastest routing ~200ms)
   if (status.cerebras) {
     try {
       return {
@@ -325,19 +317,37 @@ function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasModel>; p
         modelId: 'llama-3.3-70b',
       };
     } catch {
-      console.warn('⚠️ [Orchestrator] Cerebras unavailable, falling back to Groq');
+      console.warn('⚠️ [Orchestrator] Cerebras unavailable, trying Groq');
     }
   }
 
+  // Fallback 1: Groq (stable)
   if (status.groq) {
-    return {
-      model: getGroqModel('llama-3.3-70b-versatile'),
-      provider: 'groq',
-      modelId: 'llama-3.3-70b-versatile',
-    };
+    try {
+      return {
+        model: getGroqModel('llama-3.3-70b-versatile'),
+        provider: 'groq',
+        modelId: 'llama-3.3-70b-versatile',
+      };
+    } catch {
+      console.warn('⚠️ [Orchestrator] Groq unavailable, trying Mistral');
+    }
   }
 
-  console.warn('⚠️ [Orchestrator] No model available (need CEREBRAS_API_KEY or GROQ_API_KEY)');
+  // Fallback 2: Mistral (last resort)
+  if (status.mistral) {
+    try {
+      return {
+        model: getMistralModel('mistral-small-2506'),
+        provider: 'mistral',
+        modelId: 'mistral-small-2506',
+      };
+    } catch {
+      console.warn('⚠️ [Orchestrator] Mistral unavailable');
+    }
+  }
+
+  console.warn('⚠️ [Orchestrator] No model available (all 3 providers down)');
   return null;
 }
 
@@ -345,13 +355,13 @@ function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasModel>; p
 const orchestratorModelConfig = getOrchestratorModel();
 
 // Filter out null agents for handoffs
-const availableAgents = [nlqAgent, analystAgent, reporterAgent, advisorAgent, summarizerAgent].filter(
+const availableAgents = [nlqAgent, analystAgent, reporterAgent, advisorAgent].filter(
   (agent): agent is NonNullable<typeof agent> => agent !== null
 );
 
 // ⚠️ Critical validation: Ensure at least one agent is available
 if (availableAgents.length === 0) {
-  console.error('❌ [CRITICAL] No agents available! Check API keys: CEREBRAS_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY, OPENROUTER_API_KEY');
+  console.error('❌ [CRITICAL] No agents available! Check API keys: CEREBRAS_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY');
 }
 
 // Track handoff events for debugging
@@ -418,19 +428,35 @@ function getAgentByName(name: string): typeof nlqAgent | null {
     'Analyst Agent': analystAgent,
     'Reporter Agent': reporterAgent,
     'Advisor Agent': advisorAgent,
-    'Summarizer Agent': summarizerAgent,
   };
   return agents[name] ?? null;
 }
 
 /**
- * Execute forced routing to a specific agent using generateText
- * Uses direct generateText instead of Agent.generate() for reliable tool calling
+ * Get preferred provider order for an agent
+ * Different agents have different optimal provider orders
+ */
+function getAgentProviderOrder(agentName: string): ProviderName[] {
+  switch (agentName) {
+    case 'NLQ Agent':
+      return ['cerebras', 'groq', 'mistral'];
+    case 'Analyst Agent':
+    case 'Reporter Agent':
+      return ['groq', 'cerebras', 'mistral'];
+    case 'Advisor Agent':
+      return ['mistral', 'groq', 'cerebras'];
+    default:
+      return ['cerebras', 'groq', 'mistral'];
+  }
+}
+
+/**
+ * Execute forced routing to a specific agent with retry and fallback
  *
- * FIX (2026-01-06): Agent.generate() from @ai-sdk-tools/agents doesn't trigger
- * tool calling properly. Using generateText directly with agent configuration.
+ * Uses generateTextWithRetry for automatic 429 handling and provider fallback.
+ * If primary provider hits rate limit, automatically switches to fallback.
  *
- * @returns MultiAgentResponse if successful, null if agent unavailable
+ * @returns MultiAgentResponse if successful, null if all providers exhausted
  */
 async function executeForcedRouting(
   query: string,
@@ -447,32 +473,37 @@ async function executeForcedRouting(
     return null;
   }
 
-  // Get model for this agent
-  const modelResult = agentConfig.getModel();
-
-  if (!modelResult) {
-    console.warn(`⚠️ [Forced Routing] No model available for "${suggestedAgentName}"`);
-    return null;
-  }
-
-  const { model, provider, modelId } = modelResult;
-  console.log(`✅ [Forced Routing] Using ${provider}/${modelId} for ${suggestedAgentName}`);
-  console.log(`🎯 [Forced Routing] Direct generateText call (bypassing Agent.generate)`);
+  // Get preferred provider order for this agent
+  const providerOrder = getAgentProviderOrder(suggestedAgentName);
+  console.log(`🎯 [Forced Routing] Using retry with fallback: [${providerOrder.join(' → ')}]`);
 
   try {
-    // Use generateText directly with agent's configuration
-    const result = await generateText({
-      model,
-      messages: [
-        { role: 'system', content: agentConfig.instructions },
-        { role: 'user', content: query },
-      ],
-      tools: agentConfig.tools as Parameters<typeof generateText>[0]['tools'],
-      stopWhen: stepCountIs(5), // Allow up to 5 tool calls
-      temperature: 0.2,
-      maxOutputTokens: 2048,
-    });
+    // Use generateTextWithRetry for automatic 429 handling
+    const retryResult = await generateTextWithRetry(
+      {
+        messages: [
+          { role: 'system', content: agentConfig.instructions },
+          { role: 'user', content: query },
+        ],
+        tools: agentConfig.tools as Parameters<typeof generateText>[0]['tools'],
+        stopWhen: stepCountIs(5),
+        temperature: 0.2,
+        maxOutputTokens: 2048,
+      },
+      providerOrder,
+      { timeoutMs: 60000 }
+    );
 
+    if (!retryResult.success || !retryResult.result) {
+      console.warn(`⚠️ [Forced Routing] All providers failed for ${suggestedAgentName}`);
+      // Log attempt details
+      for (const attempt of retryResult.attempts) {
+        console.log(`   - ${attempt.provider}: ${attempt.error || 'unknown error'}`);
+      }
+      return null;
+    }
+
+    const { result, provider, modelId, usedFallback, attempts } = retryResult;
     const durationMs = Date.now() - startTime;
 
     // Extract tool calls from steps
@@ -486,8 +517,13 @@ async function executeForcedRouting(
     // Sanitize response
     const sanitizedResponse = sanitizeChineseCharacters(result.text);
 
+    // Log fallback info if used
+    if (usedFallback) {
+      console.log(`🔀 [Forced Routing] Used fallback: ${attempts.map(a => a.provider).join(' → ')}`);
+    }
+
     console.log(
-      `✅ [Forced Routing] ${suggestedAgentName} completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`
+      `✅ [Forced Routing] ${suggestedAgentName} completed in ${durationMs}ms via ${provider}, tools: [${toolsCalled.join(', ')}]`
     );
 
     return {
@@ -496,7 +532,9 @@ async function executeForcedRouting(
       handoffs: [{
         from: 'Orchestrator',
         to: suggestedAgentName,
-        reason: 'Forced routing (high confidence pre-filter)',
+        reason: usedFallback
+          ? `Forced routing with fallback (${attempts.length} attempts)`
+          : 'Forced routing (high confidence pre-filter)',
       }],
       finalAgent: suggestedAgentName,
       toolsCalled,
@@ -508,7 +546,7 @@ async function executeForcedRouting(
       metadata: {
         provider,
         modelId,
-        totalRounds: 1,
+        totalRounds: attempts.length,
         durationMs,
       },
     };

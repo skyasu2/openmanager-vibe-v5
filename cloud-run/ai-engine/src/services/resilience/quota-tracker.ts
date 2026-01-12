@@ -19,7 +19,7 @@ import { getRedisClient } from '../../lib/redis-client';
 // Types
 // ============================================================================
 
-export type ProviderName = 'cerebras' | 'groq' | 'mistral' | 'openrouter';
+export type ProviderName = 'cerebras' | 'groq' | 'mistral';
 
 export interface ProviderQuota {
   dailyTokenLimit: number;
@@ -70,12 +70,6 @@ export const PROVIDER_QUOTAS: Record<ProviderName, ProviderQuota> = {
     requestsPerMinute: 30,
     tokensPerMinute: 30_000,
     requestsPerDay: 500,
-  },
-  openrouter: {
-    dailyTokenLimit: 10_000_000,
-    requestsPerMinute: 20,
-    tokensPerMinute: 20_000,
-    requestsPerDay: 50,
   },
 };
 
@@ -261,7 +255,7 @@ export async function getQuotaStatus(
  * 사용 가능한 최적 Provider 선택 (Pre-emptive Fallback)
  */
 export async function selectAvailableProvider(
-  preferredOrder: ProviderName[] = ['cerebras', 'mistral', 'openrouter']
+  preferredOrder: ProviderName[] = ['cerebras', 'mistral', 'groq']
 ): Promise<{
   provider: ProviderName;
   status: QuotaStatus;
@@ -306,7 +300,6 @@ export async function getQuotaSummary(): Promise<{
     'cerebras',
     'groq',
     'mistral',
-    'openrouter',
   ];
   const statuses = await Promise.all(providers.map(getQuotaStatus));
 

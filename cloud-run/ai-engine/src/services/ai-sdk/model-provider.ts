@@ -1,20 +1,18 @@
 /**
  * AI SDK Model Provider
  *
- * Vercel AI SDK 6 based model provider with quad-provider fallback:
+ * Vercel AI SDK 6 based model provider with tri-provider architecture:
  * - Primary: Cerebras (llama-3.3-70b, 24M tokens/day)
  * - Fallback: Groq (llama-3.3-70b-versatile, 100K tokens/day)
  * - Verifier: Mistral (mistral-small-2506, 24B params)
- * - OpenRouter: Fallback for Advisor/Verifier (free tier models)
  *
- * @version 1.3.0
- * @updated 2026-01-01 - Added OpenRouter fallback for Advisor/Verifier
+ * @version 2.0.0
+ * @updated 2026-01-12 - Removed OpenRouter (free tier tool calling unreliable)
  */
 
 import { createCerebras } from '@ai-sdk/cerebras';
 import { createMistral } from '@ai-sdk/mistral';
 import { createGroq } from '@ai-sdk/groq';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import type { LanguageModel } from 'ai';
 
 // Use centralized config getters (supports AI_PROVIDERS_CONFIG JSON format)
@@ -22,20 +20,18 @@ import {
   getCerebrasApiKey,
   getMistralApiKey,
   getGroqApiKey,
-  getOpenRouterApiKey,
 } from '../../lib/config-parser';
 
 // ============================================================================
 // 1. Types
 // ============================================================================
 
-export type ProviderName = 'cerebras' | 'groq' | 'mistral' | 'openrouter';
+export type ProviderName = 'cerebras' | 'groq' | 'mistral';
 
 export interface ProviderStatus {
   cerebras: boolean;
   groq: boolean;
   mistral: boolean;
-  openrouter: boolean;
 }
 
 // ============================================================================
@@ -50,7 +46,6 @@ const providerToggleState: Record<ProviderName, boolean> = {
   cerebras: true,
   groq: true,
   mistral: true,
-  openrouter: true,
 };
 
 /**
@@ -97,7 +92,6 @@ export function checkProviderStatus(): ProviderStatus {
     cerebras: !!getCerebrasApiKey() && isProviderEnabled('cerebras'),
     groq: !!getGroqApiKey() && isProviderEnabled('groq'),
     mistral: !!getMistralApiKey() && isProviderEnabled('mistral'),
-    openrouter: !!getOpenRouterApiKey() && isProviderEnabled('openrouter'),
   };
 
   return cachedProviderStatus;
@@ -166,22 +160,6 @@ function createMistralProvider() {
   });
 }
 
-/**
- * Create OpenRouter provider instance
- * Used as fallback for Advisor and Verifier agents
- * Free models: llama-3.1-8b-instruct:free, gemma-2-9b-it:free
- */
-function createOpenRouterProvider() {
-  const apiKey = getOpenRouterApiKey();
-  if (!apiKey) {
-    throw new Error('OPENROUTER_API_KEY not configured');
-  }
-
-  return createOpenRouter({
-    apiKey,
-  });
-}
-
 // ============================================================================
 // 4. Model Factory Functions
 // ============================================================================
@@ -232,28 +210,13 @@ export function getMistralModel(
   return asLanguageModel(mistral(modelId));
 }
 
-/**
- * Get OpenRouter model (fallback for Advisor/Verifier)
- * @param modelId - 'meta-llama/llama-3.1-8b-instruct:free' (default)
- *
- * Free models available:
- * - meta-llama/llama-3.1-8b-instruct:free (Advisor fallback)
- * - google/gemma-2-9b-it:free (Verifier fallback)
- */
-export function getOpenRouterModel(
-  modelId: string = 'meta-llama/llama-3.1-8b-instruct:free'
-): LanguageModel {
-  const openrouter = createOpenRouterProvider();
-  return asLanguageModel(openrouter(modelId));
-}
-
 // ============================================================================
 // 5. Supervisor Model with Fallback Chain
 // ============================================================================
 
 /**
  * Get primary model for Supervisor (Single-Agent Mode)
- * Fallback chain: Cerebras → Mistral → OpenRouter (Groq reserved for NLQ Agent)
+ * Fallback chain: Cerebras → Mistral → Groq
  *
  * @param excludeProviders - Providers to skip (e.g., recently failed providers on retry)
  */
@@ -269,7 +232,7 @@ export function getSupervisorModel(excludeProviders: ProviderName[] = []): {
     console.log(`🔄 [Supervisor] Excluding providers: [${excludeProviders.join(', ')}]`);
   }
 
-  // Try Cerebras first (1M tokens/day, fastest)
+  // Try Cerebras first (24M tokens/day, fastest)
   if (status.cerebras && !excluded.has('cerebras')) {
     try {
       return {
@@ -282,7 +245,7 @@ export function getSupervisorModel(excludeProviders: ProviderName[] = []): {
     }
   }
 
-  // Fallback 1: Mistral (Groq is reserved for NLQ Agent tool calling)
+  // Fallback 1: Mistral
   if (status.mistral && !excluded.has('mistral')) {
     return {
       model: getMistralModel('mistral-small-2506'),
@@ -291,23 +254,23 @@ export function getSupervisorModel(excludeProviders: ProviderName[] = []): {
     };
   }
 
-  // Fallback 2: OpenRouter (free tier - fast model)
-  if (status.openrouter && !excluded.has('openrouter')) {
-    console.log('🔄 [Supervisor] Using OpenRouter fallback (nvidia/nemotron-3-nano-30b-a3b:free)');
+  // Fallback 2: Groq
+  if (status.groq && !excluded.has('groq')) {
+    console.log('🔄 [Supervisor] Using Groq fallback');
     return {
-      model: getOpenRouterModel('nvidia/nemotron-3-nano-30b-a3b:free'),
-      provider: 'openrouter',
-      modelId: 'nvidia/nemotron-3-nano-30b-a3b:free',
+      model: getGroqModel('llama-3.3-70b-versatile'),
+      provider: 'groq',
+      modelId: 'llama-3.3-70b-versatile',
     };
   }
 
-  throw new Error('No LLM provider configured. Set CEREBRAS_API_KEY, MISTRAL_API_KEY, or OPENROUTER_API_KEY.');
+  throw new Error('No LLM provider configured. Set CEREBRAS_API_KEY, MISTRAL_API_KEY, or GROQ_API_KEY.');
 }
 
 /**
- * Get verifier model with OpenRouter fallback
- * Primary: Mistral mistral-small-2506
- * Fallback: OpenRouter google/gemma-2-9b-it:free
+ * Get verifier model with 3-way fallback
+ * Mistral → Cerebras → Groq
+ * Ensures operation even if 2 of 3 providers are down
  */
 export function getVerifierModel(): {
   model: LanguageModel;
@@ -316,7 +279,7 @@ export function getVerifierModel(): {
 } {
   const status = checkProviderStatus();
 
-  // Try Mistral first (primary)
+  // Primary: Mistral (best for verification)
   if (status.mistral) {
     try {
       return {
@@ -325,27 +288,41 @@ export function getVerifierModel(): {
         modelId: 'mistral-small-2506',
       };
     } catch (error) {
-      console.warn('⚠️ [Verifier] Mistral initialization failed:', error);
+      console.warn('⚠️ [Verifier] Mistral initialization failed, trying Cerebras:', error);
     }
   }
 
-  // Fallback: OpenRouter gemma-2-9b-it:free
-  if (status.openrouter) {
-    console.log('🔄 [Verifier] Using OpenRouter fallback (gemma-2-9b-it:free)');
+  // Fallback 1: Cerebras
+  if (status.cerebras) {
+    try {
+      console.log('🔄 [Verifier] Using Cerebras fallback');
+      return {
+        model: getCerebrasModel('llama-3.3-70b'),
+        provider: 'cerebras',
+        modelId: 'llama-3.3-70b',
+      };
+    } catch (error) {
+      console.warn('⚠️ [Verifier] Cerebras initialization failed, trying Groq:', error);
+    }
+  }
+
+  // Fallback 2: Groq (last resort)
+  if (status.groq) {
+    console.log('🔄 [Verifier] Using Groq fallback (last resort)');
     return {
-      model: getOpenRouterModel('google/gemma-2-9b-it:free'),
-      provider: 'openrouter',
-      modelId: 'google/gemma-2-9b-it:free',
+      model: getGroqModel('llama-3.3-70b-versatile'),
+      provider: 'groq',
+      modelId: 'llama-3.3-70b-versatile',
     };
   }
 
-  throw new Error('No provider available for verifier model. Set MISTRAL_API_KEY or OPENROUTER_API_KEY.');
+  throw new Error('No provider available for verifier model (all 3 providers down).');
 }
 
 /**
- * Get advisor model with OpenRouter fallback
- * Primary: Mistral mistral-small-2506
- * Fallback: OpenRouter meta-llama/llama-3.1-8b-instruct:free
+ * Get advisor model with 3-way fallback
+ * Mistral → Groq → Cerebras
+ * Ensures operation even if 2 of 3 providers are down
  */
 export function getAdvisorModel(): {
   model: LanguageModel;
@@ -354,7 +331,7 @@ export function getAdvisorModel(): {
 } {
   const status = checkProviderStatus();
 
-  // Try Mistral first (primary)
+  // Primary: Mistral (best for RAG + reasoning)
   if (status.mistral) {
     try {
       return {
@@ -363,63 +340,35 @@ export function getAdvisorModel(): {
         modelId: 'mistral-small-2506',
       };
     } catch (error) {
-      console.warn('⚠️ [Advisor] Mistral initialization failed:', error);
+      console.warn('⚠️ [Advisor] Mistral initialization failed, trying Groq:', error);
     }
   }
 
-  // Fallback: OpenRouter llama-3.1-8b-instruct:free
-  if (status.openrouter) {
-    console.log('🔄 [Advisor] Using OpenRouter fallback (llama-3.1-8b-instruct:free)');
+  // Fallback 1: Groq
+  if (status.groq) {
+    try {
+      console.log('🔄 [Advisor] Using Groq fallback');
+      return {
+        model: getGroqModel('llama-3.3-70b-versatile'),
+        provider: 'groq',
+        modelId: 'llama-3.3-70b-versatile',
+      };
+    } catch (error) {
+      console.warn('⚠️ [Advisor] Groq initialization failed, trying Cerebras:', error);
+    }
+  }
+
+  // Fallback 2: Cerebras (last resort)
+  if (status.cerebras) {
+    console.log('🔄 [Advisor] Using Cerebras fallback (last resort)');
     return {
-      model: getOpenRouterModel('meta-llama/llama-3.1-8b-instruct:free'),
-      provider: 'openrouter',
-      modelId: 'meta-llama/llama-3.1-8b-instruct:free',
+      model: getCerebrasModel('llama-3.3-70b'),
+      provider: 'cerebras',
+      modelId: 'llama-3.3-70b',
     };
   }
 
-  throw new Error('No provider available for advisor model. Set MISTRAL_API_KEY or OPENROUTER_API_KEY.');
-}
-
-/**
- * Get summarizer model (OpenRouter primary - 100% free tier)
- *
- * Free Model Availability (2026-01-06 checked via API):
- * - nvidia/nemotron-nano-9b-v2:free (128K context)
- * - mistralai/devstral-2512:free (262K context)
- * - openai/gpt-oss-20b:free (131K context)
- *
- * ⚠️ 다음 모델은 더 이상 사용 불가:
- * - qwen/qwen-2.5-7b-instruct:free (제거됨)
- * - meta-llama/llama-3.1-8b-instruct:free (제거됨)
- *
- * @description Summarizer Agent 전용 - 빠른 요약 및 핵심 정보 추출
- *
- * 📌 Fallback 전략 설명:
- * - 의도적으로 OpenRouter 내에서만 폴백 (100% 무료 유지)
- * - OpenRouter 자체 장애 시에만 Summarizer 사용 불가 (graceful degradation)
- *
- * @updated 2026-01-06 - nemotron-nano-9b-v2:free로 변경
- */
-export function getSummarizerModel(): {
-  model: LanguageModel;
-  provider: ProviderName;
-  modelId: string;
-} {
-  const status = checkProviderStatus();
-
-  if (!status.openrouter) {
-    throw new Error('OpenRouter not configured. Set OPENROUTER_API_KEY for Summarizer Agent.');
-  }
-
-  // Primary: Nvidia Nemotron Nano 9B v2 (fast, 128K context)
-  const primaryModel = 'nvidia/nemotron-nano-9b-v2:free';
-  console.log(`📝 [Summarizer] Using model: ${primaryModel}`);
-
-  return {
-    model: getOpenRouterModel(primaryModel),
-    provider: 'openrouter',
-    modelId: primaryModel,
-  };
+  throw new Error('No provider available for advisor model (all 3 providers down).');
 }
 
 // ============================================================================
@@ -451,9 +400,6 @@ export async function testProviderHealth(
         break;
       case 'mistral':
         getMistralModel();
-        break;
-      case 'openrouter':
-        getOpenRouterModel();
         break;
     }
 
@@ -487,9 +433,6 @@ export async function checkAllProvidersHealth(): Promise<ProviderHealth[]> {
   if (status.mistral) {
     results.push(await testProviderHealth('mistral'));
   }
-  if (status.openrouter) {
-    results.push(await testProviderHealth('openrouter'));
-  }
 
   return results;
 }
@@ -503,7 +446,6 @@ export function logProviderStatus(): void {
     Cerebras: status.cerebras ? '✅' : '❌',
     Groq: status.groq ? '✅' : '❌',
     Mistral: status.mistral ? '✅' : '❌',
-    OpenRouter: status.openrouter ? '✅' : '❌',
   });
 }
 
@@ -537,8 +479,8 @@ export async function getSupervisorModelWithQuota(
   const status = checkProviderStatus();
   const excluded = new Set(excludeProviders);
 
-  // Provider 우선순위 (Groq은 NLQ Agent 전용)
-  const preferredOrder: QuotaProviderName[] = ['cerebras', 'mistral', 'openrouter'];
+  // Provider 우선순위
+  const preferredOrder: QuotaProviderName[] = ['cerebras', 'mistral', 'groq'];
   const availableOrder = preferredOrder.filter(
     (p) => status[p] && !excluded.has(p)
   );
@@ -569,11 +511,11 @@ export async function getSupervisorModelWithQuota(
           modelId: 'mistral-small-2506',
           isPreemptiveFallback,
         };
-      case 'openrouter':
+      case 'groq':
         return {
-          model: getOpenRouterModel('nvidia/nemotron-3-nano-30b-a3b:free'),
-          provider: 'openrouter',
-          modelId: 'nvidia/nemotron-3-nano-30b-a3b:free',
+          model: getGroqModel('llama-3.3-70b-versatile'),
+          provider: 'groq',
+          modelId: 'llama-3.3-70b-versatile',
           isPreemptiveFallback,
         };
     }

@@ -30,10 +30,9 @@ providersRouter.get('/', (c: Context) => {
     toggle: toggleState,
     available: availableStatus,
     info: {
-      cerebras: { role: 'Primary (Supervisor)', model: 'llama-3.3-70b' },
-      groq: { role: 'NLQ Agent', model: 'llama-3.3-70b-versatile' },
-      mistral: { role: 'Verifier/Advisor Primary', model: 'mistral-small-2506' },
-      openrouter: { role: 'Fallback (Summarizer/Advisor/Verifier)', model: 'qwen-2.5-7b / llama-3.1-8b / gemma-2-9b' },
+      cerebras: { role: 'Primary (Supervisor/Orchestrator)', model: 'llama-3.3-70b' },
+      groq: { role: 'NLQ/Analyst/Reporter Agent', model: 'llama-3.3-70b-versatile' },
+      mistral: { role: 'Verifier/Advisor Agent', model: 'mistral-small-2506' },
     },
   });
 });
@@ -45,7 +44,7 @@ providersRouter.get('/', (c: Context) => {
  */
 providersRouter.post('/:name/toggle', async (c: Context) => {
   const name = c.req.param('name') as ProviderName;
-  const validProviders: ProviderName[] = ['cerebras', 'groq', 'mistral', 'openrouter'];
+  const validProviders: ProviderName[] = ['cerebras', 'groq', 'mistral'];
 
   if (!validProviders.includes(name)) {
     return handleValidationError(c, `Invalid provider: ${name}. Valid: ${validProviders.join(', ')}`);
@@ -68,7 +67,7 @@ providersRouter.post('/:name/toggle', async (c: Context) => {
  * POST /providers/reset - Reset all providers to enabled
  */
 providersRouter.post('/reset', (c: Context) => {
-  const providers: ProviderName[] = ['cerebras', 'groq', 'mistral', 'openrouter'];
+  const providers: ProviderName[] = ['cerebras', 'groq', 'mistral'];
 
   for (const provider of providers) {
     toggleProvider(provider, true);

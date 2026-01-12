@@ -3,7 +3,7 @@
  *
  * Architecture:
  * - Orchestrator (Cerebras): Fast routing
- * - NLQ Agent (Cerebras): Natural language query processing
+ * - NLQ Agent (Cerebras): Natural language query processing + summaries
  * - Analyst Agent (Groq): Anomaly detection, trend prediction
  * - Reporter Agent (Groq): Incident reports, timelines
  * - Advisor Agent (Mistral): Troubleshooting guides, RAG search
@@ -12,8 +12,8 @@
  * - Multi-agent mode: Orchestrator → NLQ/Analyst/Reporter/Advisor
  * - Direct routes: /analyze-server → Analyst, /incident-report → Reporter
  *
- * @version 2.0.0 - Agent model optimization
- * @updated 2025-12-30
+ * @version 2.1.0 - Removed Summarizer Agent (merged into NLQ)
+ * @updated 2026-01-12
  */
 
 export { orchestrator, executeMultiAgent, getRecentHandoffs, preFilterQuery } from './orchestrator';
@@ -21,7 +21,6 @@ export { nlqAgent } from './nlq-agent';
 export { analystAgent } from './analyst-agent';
 export { reporterAgent } from './reporter-agent';
 export { advisorAgent } from './advisor-agent';
-export { summarizerAgent } from './summarizer-agent';
 export type { MultiAgentRequest, MultiAgentResponse } from './orchestrator';
 
 // ============================================================================
@@ -32,7 +31,6 @@ import { nlqAgent as _nlqAgent } from './nlq-agent';
 import { analystAgent as _analystAgent } from './analyst-agent';
 import { reporterAgent as _reporterAgent } from './reporter-agent';
 import { advisorAgent as _advisorAgent } from './advisor-agent';
-import { summarizerAgent as _summarizerAgent } from './summarizer-agent';
 
 /**
  * Get available agents status for debugging
@@ -48,7 +46,6 @@ export function getAvailableAgentsStatus(): {
     'Analyst Agent': _analystAgent !== null,
     'Reporter Agent': _reporterAgent !== null,
     'Advisor Agent': _advisorAgent !== null,
-    'Summarizer Agent': _summarizerAgent !== null,
   };
 
   const available = Object.entries(agents)

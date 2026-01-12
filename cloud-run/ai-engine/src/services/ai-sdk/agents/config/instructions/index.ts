@@ -10,4 +10,3 @@ export { NLQ_INSTRUCTIONS } from './nlq';
 export { ANALYST_INSTRUCTIONS } from './analyst';
 export { REPORTER_INSTRUCTIONS } from './reporter';
 export { ADVISOR_INSTRUCTIONS } from './advisor';
-export { SUMMARIZER_INSTRUCTIONS } from './summarizer';
