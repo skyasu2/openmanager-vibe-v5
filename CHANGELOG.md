@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [Unreleased]
+
+### Features
+
+* **dashboard:** add SessionCountdown timer and optimize health checks ([b468cea](https://github.com/skyasu2/openmanager-vibe-v5/commit/b468ceac4))
+* **incident-report:** add history UI, SLA widget, and timeline visualization ([6f723a5](https://github.com/skyasu2/openmanager-vibe-v5/commit/6f723a54b))
+* **metrics:** add TimeSeriesChart with prediction and anomaly detection ([38f8068](https://github.com/skyasu2/openmanager-vibe-v5/commit/38f806876))
+
+### Tests
+
+* **charts:** add TimeSeriesChart component tests
+* **hooks:** add useTimeSeriesMetrics hook tests
+* **dashboard:** add SLAWidget component tests
+
+### Documentation
+
+* **planning:** update incident-report-and-anomaly-improvement-plan.md with completion status
+
 ### [5.86.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.86.0...v5.86.1) (2026-01-11)
 
 
