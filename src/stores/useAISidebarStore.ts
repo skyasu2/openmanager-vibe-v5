@@ -15,8 +15,8 @@ import { useCallback, useState } from 'react';
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-// AI Thinking Step 타입 import (중복 정의 제거)
-import type { AIThinkingStep } from '../types/ai-thinking';
+// AI Thinking Step 타입 import (ai-sidebar에서 제공)
+import type { AIThinkingStep } from '../types/ai-sidebar';
 
 export interface AgentLog {
   id: string;
