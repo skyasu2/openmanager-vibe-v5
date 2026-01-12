@@ -481,5 +481,5 @@ cloud-run/*/*.log
 cloud-run/.env
 cloud-run/docker-compose.override.yml
 
-# Cloud Run generated data (build-time generated)
-cloud-run/ai-engine/data/precomputed-states.json
+# Cloud Run generated data
+# Note: precomputed-states.json is now tracked (SSOT with hourly-data)
