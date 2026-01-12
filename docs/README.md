@@ -1,6 +1,6 @@
 # OpenManager VIBE Documentation
 
-> **Version**: v5.86.1
+> **Version**: v5.87.0
 
 ---
 

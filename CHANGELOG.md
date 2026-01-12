@@ -2,23 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [Unreleased]
+## [5.87.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.86.1...v5.87.0) (2026-01-12)
+
 
 ### Features
 
-* **dashboard:** add SessionCountdown timer and optimize health checks ([b468cea](https://github.com/skyasu2/openmanager-vibe-v5/commit/b468ceac4))
-* **incident-report:** add history UI, SLA widget, and timeline visualization ([6f723a5](https://github.com/skyasu2/openmanager-vibe-v5/commit/6f723a54b))
-* **metrics:** add TimeSeriesChart with prediction and anomaly detection ([38f8068](https://github.com/skyasu2/openmanager-vibe-v5/commit/38f806876))
+* **ai-sidebar:** add drag-to-resize functionality ([c470e9b](https://github.com/skyasu2/openmanager-vibe-v5/commit/c470e9b0a03da8010d0be53e693c80dfc9cd330e))
+* **dashboard:** add SessionCountdown timer and optimize health checks ([b468cea](https://github.com/skyasu2/openmanager-vibe-v5/commit/b468ceac43ebe244a73d16c80c55d578027a90c0))
+* **incident-report:** add history UI, SLA widget, and timeline visualization ([6f723a5](https://github.com/skyasu2/openmanager-vibe-v5/commit/6f723a54b6e26ac54d774961511e2d34eefca892))
+* **metrics:** add TimeSeriesChart with prediction and anomaly detection ([38f8068](https://github.com/skyasu2/openmanager-vibe-v5/commit/38f806876619a50925922e658ce147d18908d302))
+* **ui:** add dashboard navigation and improve button UX ([3050773](https://github.com/skyasu2/openmanager-vibe-v5/commit/3050773cb6ebe6add24dca7aac5123f76e57b659))
 
-### Tests
 
-* **charts:** add TimeSeriesChart component tests
-* **hooks:** add useTimeSeriesMetrics hook tests
-* **dashboard:** add SLAWidget component tests
+### Bug Fixes
 
-### Documentation
-
-* **planning:** update incident-report-and-anomaly-improvement-plan.md with completion status
+* **a11y:** add aria-label to dashboard navigation button ([6f38476](https://github.com/skyasu2/openmanager-vibe-v5/commit/6f384761f7f79918c650d1f2eccacdc3fc502177))
+* **ai-engine:** update hardcoded version to 5.86.1 ([cd55d05](https://github.com/skyasu2/openmanager-vibe-v5/commit/cd55d05cdd0355a92bdcff082525c474ab10ac4d))
+* **lint:** apply optional chain and remove unused error variable ([0cb2a86](https://github.com/skyasu2/openmanager-vibe-v5/commit/0cb2a8608b18519030ef5fc257e152dc448b16a1))
+* **security:** restore RESTRICTED as default guest mode ([ed03498](https://github.com/skyasu2/openmanager-vibe-v5/commit/ed034985a4ceb6d709525fca6ab59a8b4f8b5e6b))
+* **test:** improve fetch mock with proper Response-like object ([7fafed4](https://github.com/skyasu2/openmanager-vibe-v5/commit/7fafed4ed912535290969485ef478738960fd8f3))
+* **types:** restore AIMetadata type used by RAG and auth modules ([13c0e7d](https://github.com/skyasu2/openmanager-vibe-v5/commit/13c0e7d96acafa99ee133c3f1e279e1935fc9faf))
+* **types:** update AIMetadata.timestamp to allow Date type ([214d2cf](https://github.com/skyasu2/openmanager-vibe-v5/commit/214d2cf9db556b929c6a64207c28efa36234c8bb))
+* **ui:** improve AI sidebar UX with cleaner layout ([11acec9](https://github.com/skyasu2/openmanager-vibe-v5/commit/11acec9cff5f6463f03ab5c3578381cf06c4786b))
 
 ### [5.86.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.86.0...v5.86.1) (2026-01-11)
 
