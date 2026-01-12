@@ -12,8 +12,10 @@
 import {
   ArrowLeftFromLine,
   Bot,
+  FileText,
   Maximize2,
   MessageSquare,
+  Monitor,
   PanelRightClose,
   PanelRightOpen,
   Plus,
@@ -289,39 +291,42 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     <div className="flex h-full w-full overflow-hidden bg-white text-gray-900">
       {/* LEFT SIDEBAR (Navigation) - Hidden on mobile */}
       <div className="hidden md:flex w-[280px] flex-col border-r border-gray-200 bg-gray-50">
-        {/* Header with Logo + New Chat */}
+        {/* Header with Logo */}
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <OpenManagerLogo variant="light" showSubtitle={false} href="/" />
-          <button
-            onClick={handleNewSession}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
-            title="새 대화 시작"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>새 대화</span>
-          </button>
         </div>
 
-        {/* Chat History Section (상단) */}
+        {/* Current Session Section */}
         <div className="flex-1 px-3 overflow-y-auto">
           <div className="mb-4">
-            <div className="mb-2 px-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-              Recent Chats
+            <div className="mb-2 flex items-center justify-between px-1">
+              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                현재 세션
+              </span>
+              <button
+                onClick={handleNewSession}
+                className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
+                title="새 대화 시작"
+              >
+                <Plus className="h-3 w-3" />
+                <span>새 대화</span>
+              </button>
             </div>
             {enhancedMessages.length > 0 ? (
               <div className="space-y-1">
                 <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2.5 text-sm text-blue-700 border border-blue-100">
                   <MessageSquare className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate flex-1">현재 대화</span>
+                  <span className="truncate flex-1">진행 중인 대화</span>
                   <span className="text-xs text-blue-500 shrink-0">
                     {enhancedMessages.filter((m) => m.role === 'user').length}개
+                    질문
                   </span>
                 </div>
               </div>
             ) : (
               <div className="px-3 py-6 text-center">
                 <Bot className="mx-auto mb-2 h-10 w-10 text-gray-300" />
-                <p className="text-sm text-gray-500">아직 대화가 없습니다</p>
+                <p className="text-sm text-gray-500">새 대화를 시작하세요</p>
                 <p className="mt-1 text-xs text-gray-400">
                   AI에게 질문해보세요!
                 </p>
@@ -330,16 +335,62 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           </div>
         </div>
 
-        {/* Features Section (하단) */}
+        {/* Features Section (하단) - Fullscreen용 리스트 레이아웃 */}
         <div className="shrink-0 border-t border-gray-200 px-3 py-3">
           <div className="mb-2 px-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-            Features
+            AI 기능
           </div>
-          <AIAssistantIconPanel
-            selectedFunction={selectedFunction}
-            onFunctionChange={setSelectedFunction}
-            className="w-full bg-transparent! border-none! p-0! items-start"
-          />
+          <div className="space-y-1">
+            {/* 자연어 질의 */}
+            <button
+              onClick={() => setSelectedFunction('chat')}
+              className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+                selectedFunction === 'chat'
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <MessageSquare className="h-4 w-4 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium">자연어 질의</div>
+                <div className="text-xs text-gray-500 truncate">NLQ Agent</div>
+              </div>
+            </button>
+            {/* 자동 장애보고서 */}
+            <button
+              onClick={() => setSelectedFunction('auto-report')}
+              className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+                selectedFunction === 'auto-report'
+                  ? 'bg-pink-50 text-pink-700 border border-pink-200'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <FileText className="h-4 w-4 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium">장애 보고서</div>
+                <div className="text-xs text-gray-500 truncate">
+                  Reporter Agent
+                </div>
+              </div>
+            </button>
+            {/* 이상감지/예측 */}
+            <button
+              onClick={() => setSelectedFunction('intelligent-monitoring')}
+              className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+                selectedFunction === 'intelligent-monitoring'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Monitor className="h-4 w-4 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium">이상감지/예측</div>
+                <div className="text-xs text-gray-500 truncate">
+                  Analyst Agent
+                </div>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Bottom Status */}

@@ -349,16 +349,16 @@ export default function AutoReportPage() {
             <div className="text-xs text-gray-500">활성 이슈</div>
           </div>
           <div>
-            <div className="text-lg font-bold text-yellow-600">
-              {reports.filter((r) => r.status === 'investigating').length}
-            </div>
-            <div className="text-xs text-gray-500">조사중</div>
-          </div>
-          <div>
             <div className="text-lg font-bold text-green-600">
               {reports.filter((r) => r.status === 'resolved').length}
             </div>
             <div className="text-xs text-gray-500">해결됨</div>
+          </div>
+          <div>
+            <div className="text-lg font-bold text-gray-600">
+              {reports.length}
+            </div>
+            <div className="text-xs text-gray-500">전체</div>
           </div>
         </div>
       </div>
