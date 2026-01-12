@@ -126,19 +126,70 @@ export function CloudRunStatusIndicator({
   }, [isWarmingUp, onStatusChange]);
 
   // 초기 체크 및 자동 갱신
+  // 🛡️ 페이지가 보이지 않을 때는 헬스 체크 중지 (과도한 동작 방지)
   useEffect(() => {
-    void checkHealth();
+    let intervalId: NodeJS.Timeout | null = null;
+    let isActive = true; // 컴포넌트 마운트 상태 추적
 
+    // 페이지 가시성 체크 함수
+    const isPageVisible = () =>
+      typeof document !== 'undefined' && document.visibilityState === 'visible';
+
+    // 초기 체크 (페이지가 보일 때만)
+    if (isPageVisible()) {
+      void checkHealth();
+    }
+
+    // 자동 갱신 설정
     if (autoCheckInterval > 0) {
-      const intervalId = setInterval(() => {
-        if (!isWarmingUp) {
+      intervalId = setInterval(() => {
+        // 🛡️ 컴포넌트가 활성 상태이고, 웜업 중이 아니고, 페이지가 보일 때만 체크
+        if (isActive && !isWarmingUp && isPageVisible()) {
           void checkHealth();
         }
       }, autoCheckInterval);
-
-      return () => clearInterval(intervalId);
     }
-    return undefined;
+
+    // 페이지 가시성 변경 핸들러
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && intervalId) {
+        // 페이지가 숨겨지면 interval 일시 중지 (메모리에서는 유지)
+        clearInterval(intervalId);
+        intervalId = null;
+      } else if (
+        document.visibilityState === 'visible' &&
+        !intervalId &&
+        autoCheckInterval > 0
+      ) {
+        // 페이지가 다시 보이면 interval 재시작 및 즉시 체크
+        void checkHealth();
+        intervalId = setInterval(() => {
+          if (isActive && !isWarmingUp && isPageVisible()) {
+            void checkHealth();
+          }
+        }, autoCheckInterval);
+      }
+    };
+
+    // 가시성 변경 이벤트 리스너 등록
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    // 🛡️ Cleanup: 컴포넌트 언마운트 시 모든 동작 0으로
+    return () => {
+      isActive = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      if (typeof document !== 'undefined') {
+        document.removeEventListener(
+          'visibilitychange',
+          handleVisibilityChange
+        );
+      }
+    };
   }, [autoCheckInterval, checkHealth, isWarmingUp]);
 
   // 상태별 스타일 및 텍스트

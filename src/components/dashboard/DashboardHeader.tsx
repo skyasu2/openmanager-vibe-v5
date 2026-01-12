@@ -12,6 +12,7 @@ import debug from '@/utils/debug';
 import { AIAssistantButton } from './AIAssistantButton';
 import { AILoginRequiredModal } from './AILoginRequiredModal';
 import { RealTimeDisplay } from './RealTimeDisplay';
+import { SessionCountdown } from './SessionCountdown';
 
 // framer-motion 제거 - CSS 애니메이션 사용
 
@@ -121,9 +122,10 @@ const DashboardHeader = memo(function DashboardHeader({
           <OpenManagerLogo variant="light" href="/" />
         </div>
 
-        {/* 중앙: 실시간 정보 */}
-        <div className="hidden items-center gap-6 md:flex">
+        {/* 중앙: 실시간 정보 + 세션 카운트다운 */}
+        <div className="hidden items-center gap-4 md:flex">
           <RealTimeDisplay />
+          <SessionCountdown />
         </div>
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
@@ -146,10 +148,11 @@ const DashboardHeader = memo(function DashboardHeader({
         onClose={() => setShowLoginModal(false)}
       />
 
-      {/* 모바일용 실시간 정보 */}
+      {/* 모바일용 실시간 정보 + 세션 카운트다운 */}
       <div className="border-t border-gray-200 bg-gray-50 px-6 py-2 md:hidden">
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center gap-3">
           <RealTimeDisplay />
+          <SessionCountdown />
         </div>
       </div>
     </header>

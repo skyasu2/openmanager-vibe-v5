@@ -372,8 +372,14 @@ export class ProcessManager
 
   /**
    * 헬스체크 수행
+   * 🛡️ 시스템이 실행 중이 아니면 헬스 체크를 건너뜀 (과도한 동작 방지)
    */
   private async performHealthCheck(processId: string): Promise<void> {
+    // 시스템 실행 상태 확인 - 시스템이 멈춘 경우 헬스체크 건너뜀
+    if (!this.isSystemRunning) {
+      return;
+    }
+
     const config = this.processes.get(processId);
     const state = this.states.get(processId);
 
@@ -648,24 +654,53 @@ export class ProcessManager
     }
   }
 
+  /**
+   * 헬스체크 시작
+   * 🛡️ 시스템이 실행 중일 때만 interval 시작
+   */
   private startHealthChecks(): void {
+    // 이미 존재하는 interval 정리
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = undefined;
+    }
+
+    // 시스템이 실행 중이 아니면 interval 시작하지 않음
+    if (!this.isSystemRunning) {
+      systemLogger.warn(
+        '⚠️ 시스템이 실행 중이 아니므로 헬스체크 시작을 건너뜁니다'
+      );
+      return;
     }
 
     this.healthCheckInterval = setInterval(() => {
       void (async () => {
+        // interval 콜백 내부에서도 시스템 상태 재확인
+        if (!this.isSystemRunning) {
+          this.stopHealthChecks();
+          return;
+        }
+
         for (const processId of Array.from(this.processes.keys())) {
           await this.performHealthCheck(processId);
         }
       })();
     }, this.healthCheckIntervalMs);
+
+    systemLogger.system(
+      `🏥 헬스체크 시작 (간격: ${this.healthCheckIntervalMs / 1000}초)`
+    );
   }
 
+  /**
+   * 헬스체크 중지
+   * 🛡️ 시스템 종료 시 모든 헬스체크 동작을 0으로 만듦
+   */
   private stopHealthChecks(): void {
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
       this.healthCheckInterval = undefined;
+      systemLogger.system('🛑 헬스체크 중지됨 - 모든 헬스체크 동작 0');
     }
   }
 
