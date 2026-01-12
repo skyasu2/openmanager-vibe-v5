@@ -306,6 +306,8 @@ interface AISidebarState {
   isOpen: boolean;
   isMinimized: boolean;
   activeTab: 'chat' | 'presets' | 'thinking' | 'settings' | 'functions';
+  /** 사이드바 너비 (px) - 드래그 리사이즈용 */
+  sidebarWidth: number;
 
   // 채팅 관련 상태
   messages: EnhancedChatMessage[];
@@ -320,6 +322,7 @@ interface AISidebarState {
   setOpen: (open: boolean) => void;
   setMinimized: (minimized: boolean) => void;
   toggleSidebar: () => void;
+  setSidebarWidth: (width: number) => void;
   setActiveTab: (
     tab: 'chat' | 'presets' | 'thinking' | 'settings' | 'functions'
   ) => void;
@@ -349,6 +352,7 @@ export const useAISidebarStore = create<AISidebarState>()(
         isOpen: false,
         isMinimized: false,
         activeTab: 'chat',
+        sidebarWidth: 600, // 기본 너비 600px
         functionTab: 'qa',
         selectedContext: 'basic',
         messages: [],
@@ -367,6 +371,8 @@ export const useAISidebarStore = create<AISidebarState>()(
         setMinimized: (minimized) => set({ isMinimized: minimized }),
 
         toggleSidebar: () => set((state) => ({ isOpen: !state.isOpen })),
+
+        setSidebarWidth: (width) => set({ sidebarWidth: width }),
 
         setActiveTab: (tab) => set({ activeTab: tab }),
 
@@ -396,6 +402,7 @@ export const useAISidebarStore = create<AISidebarState>()(
             isOpen: false,
             isMinimized: false,
             activeTab: 'chat',
+            sidebarWidth: 600, // 기본 너비로 리셋
             functionTab: 'qa',
             selectedContext: 'basic',
             messages: [],
@@ -411,6 +418,7 @@ export const useAISidebarStore = create<AISidebarState>()(
           // 중요한 상태만 영속화
           isMinimized: state.isMinimized,
           activeTab: state.activeTab,
+          sidebarWidth: state.sidebarWidth, // 사이드바 너비 영속화
           functionTab: state.functionTab,
           selectedContext: state.selectedContext,
           // 🔥 대화 기록 영속화 추가
@@ -439,20 +447,24 @@ export const useAISidebarUI = () => {
   const isMinimized = useAISidebarStore((state) => state.isMinimized);
   const activeTab = useAISidebarStore((state) => state.activeTab);
   const functionTab = useAISidebarStore((state) => state.functionTab);
+  const sidebarWidth = useAISidebarStore((state) => state.sidebarWidth);
   const setOpen = useAISidebarStore((state) => state.setOpen);
   const setMinimized = useAISidebarStore((state) => state.setMinimized);
   const setActiveTab = useAISidebarStore((state) => state.setActiveTab);
   const setFunctionTab = useAISidebarStore((state) => state.setFunctionTab);
+  const setSidebarWidth = useAISidebarStore((state) => state.setSidebarWidth);
 
   return {
     isOpen,
     isMinimized,
     activeTab,
     functionTab,
+    sidebarWidth,
     setOpen,
     setMinimized,
     setActiveTab,
     setFunctionTab,
+    setSidebarWidth,
   };
 };
 

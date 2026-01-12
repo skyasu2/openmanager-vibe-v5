@@ -14,8 +14,11 @@ import {
   convertThinkingStepsToUI,
   useAIChatCore,
 } from '@/hooks/ai/useAIChatCore';
+import { useResizable } from '@/hooks/ui/useResizable';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { cn } from '@/lib/utils';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
+import { useAISidebarStore } from '@/stores/useAISidebarStore';
 // Types
 import type {
   AISidebarV3Props,
@@ -26,6 +29,7 @@ import { AIFunctionPages } from './AIFunctionPages';
 import { AISidebarHeader } from './AISidebarHeader';
 import { EnhancedAIChat } from './EnhancedAIChat';
 import { type AgentStep, InlineAgentStatus } from './InlineAgentStatus';
+import { ResizeHandle } from './ResizeHandle';
 
 // 🔧 공통 로직은 useAIChatCore 훅에서 관리
 // - Hybrid AI Query (Streaming + Job Queue)
@@ -166,6 +170,12 @@ const MessageComponent = memo<{
 
 MessageComponent.displayName = 'MessageComponent';
 
+// 📐 리사이즈 상수
+const SIDEBAR_MIN_WIDTH = 400;
+const SIDEBAR_MAX_WIDTH = 900;
+const SIDEBAR_DEFAULT_WIDTH = 600;
+const MOBILE_BREAKPOINT = 768; // md breakpoint
+
 // 🔒 완전 Client-Only AI 사이드바 컴포넌트 (V4 - useAIChatCore 통합)
 export const AISidebarV4: FC<AISidebarV3Props> = ({
   isOpen,
@@ -180,6 +190,30 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   // 🔧 UI 상태 관리 (사이드바 전용)
   const [selectedFunction, setSelectedFunction] =
     useState<AIAssistantFunction>('chat');
+
+  // 📐 사이드바 너비 상태 (Zustand Store)
+  const sidebarWidth = useAISidebarStore((state) => state.sidebarWidth);
+  const setSidebarWidth = useAISidebarStore((state) => state.setSidebarWidth);
+
+  // 📐 드래그 리사이즈 훅
+  const { width, isResizing, handleMouseDown, handleTouchStart } = useResizable(
+    {
+      initialWidth: sidebarWidth || SIDEBAR_DEFAULT_WIDTH,
+      minWidth: SIDEBAR_MIN_WIDTH,
+      maxWidth: SIDEBAR_MAX_WIDTH,
+      onWidthChange: setSidebarWidth,
+    }
+  );
+
+  // 📱 모바일 여부 확인 (리사이즈 비활성화용)
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () =>
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // 📱 스와이프 제스처 상태
   const touchStartX = useRef<number>(0);
@@ -245,17 +279,17 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   }, [isOpen, onClose]);
 
   // 📱 스와이프 제스처 핸들러 (수평/수직 비율 체크로 오작동 방지)
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleSwipeTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0]?.clientX ?? 0;
     touchStartY.current = e.touches[0]?.clientY ?? 0;
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleSwipeTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.touches[0]?.clientX ?? 0;
     touchEndY.current = e.touches[0]?.clientY ?? 0;
   };
 
-  const handleTouchEnd = () => {
+  const handleSwipeTouchEnd = () => {
     const swipeDistanceX = touchEndX.current - touchStartX.current;
     const swipeDistanceY = Math.abs(touchEndY.current - touchStartY.current);
 
@@ -330,14 +364,31 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
       aria-labelledby="ai-sidebar-v4-title"
       aria-modal="true"
       aria-hidden={!isOpen}
-      className={`gpu-sidebar-slide-in fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${
-        isOpen ? '' : 'gpu-sidebar-slide-out'
-      } ${className}`}
+      className={cn(
+        'gpu-sidebar-slide-in fixed right-0 top-0 z-30 flex h-full bg-white shadow-2xl',
+        // 모바일에서는 기존 반응형 너비 사용
+        isMobile && 'w-full max-w-[90vw]',
+        // 리사이징 중이 아닐 때만 너비 전환 애니메이션
+        !isResizing && 'transition-[width] duration-200 ease-out',
+        isOpen ? '' : 'gpu-sidebar-slide-out',
+        className
+      )}
+      // 📐 데스크톱에서는 동적 너비 적용
+      style={!isMobile ? { width: `${width}px` } : undefined}
       // 📱 스와이프 제스처 지원
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={handleSwipeTouchStart}
+      onTouchMove={handleSwipeTouchMove}
+      onTouchEnd={handleSwipeTouchEnd}
     >
+      {/* 📐 리사이즈 핸들 (데스크톱 전용) */}
+      {!isMobile && (
+        <ResizeHandle
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          isResizing={isResizing}
+        />
+      )}
+
       <div className="flex min-w-0 flex-1 flex-col">
         <AISidebarHeader onClose={onClose} />
         <div className="flex-1 overflow-hidden pb-20 sm:pb-0">
