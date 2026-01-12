@@ -438,17 +438,31 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         <div className="flex flex-1 flex-col relative min-w-0">
           {/* 🎯 통합 헤더 (대시보드와 동일한 스타일) - Desktop Only */}
           <header className="hidden md:flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 shadow-xs">
-            {/* 좌측: 브레드크럼 */}
-            <div className="flex items-center gap-2 text-gray-500 text-sm">
-              <span className="font-medium text-gray-900">AI Workspace</span>
-              <span>/</span>
-              <span className="text-blue-600 capitalize font-medium">
-                {selectedFunction === 'chat'
-                  ? '대화'
-                  : selectedFunction === 'auto-report'
-                    ? '보고서'
-                    : '모니터링'}
-              </span>
+            {/* 좌측: 대시보드 버튼 + 브레드크럼 */}
+            <div className="flex items-center gap-4">
+              {/* 대시보드 돌아가기 버튼 */}
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
+                title="대시보드로 돌아가기"
+              >
+                <ArrowLeftFromLine className="h-4 w-4" />
+                <span>대시보드</span>
+              </button>
+              {/* 브레드크럼 구분선 */}
+              <div className="h-5 w-px bg-gray-200" />
+              {/* 브레드크럼 */}
+              <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <span className="font-medium text-gray-900">AI Workspace</span>
+                <span>/</span>
+                <span className="text-blue-600 capitalize font-medium">
+                  {selectedFunction === 'chat'
+                    ? '대화'
+                    : selectedFunction === 'auto-report'
+                      ? '보고서'
+                      : '모니터링'}
+                </span>
+              </div>
             </div>
 
             {/* 중앙: 실시간 정보 (숨김 on mobile) */}
