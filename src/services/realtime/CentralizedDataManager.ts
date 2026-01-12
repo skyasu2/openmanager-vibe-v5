@@ -156,7 +156,7 @@ class CentralizedDataManager {
    * 서버 데이터 페치
    */
   private async fetchServers(): Promise<Server[]> {
-    const response = await fetch('/api/servers/realtime', {
+    const response = await fetch('/api/servers', {
       signal: AbortSignal.timeout(5000),
     });
 
@@ -172,7 +172,7 @@ class CentralizedDataManager {
    * 메트릭 데이터 페치
    */
   private async fetchMetrics(): Promise<unknown> {
-    const response = await fetch('/api/servers/realtime?type=metrics', {
+    const response = await fetch('/api/servers?type=metrics', {
       signal: AbortSignal.timeout(5000),
     });
 
@@ -188,7 +188,7 @@ class CentralizedDataManager {
    * 네트워크 데이터 페치
    */
   private async fetchNetworkData(): Promise<unknown> {
-    const response = await fetch('/api/servers/realtime?type=network', {
+    const response = await fetch('/api/servers?type=network', {
       signal: AbortSignal.timeout(5000),
     });
 
@@ -204,7 +204,7 @@ class CentralizedDataManager {
    * 시스템 데이터 페치
    */
   private async fetchSystemData(): Promise<unknown> {
-    const response = await fetch('/api/servers/realtime?type=system', {
+    const response = await fetch('/api/servers?type=system', {
       signal: AbortSignal.timeout(5000),
     });
 

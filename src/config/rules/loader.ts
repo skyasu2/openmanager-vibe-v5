@@ -116,26 +116,13 @@ class RulesLoader implements IRulesLoader {
   }
 
   /**
-   * 클라이언트 사이드: API를 통해 규칙 로드
+   * 클라이언트 사이드: JSON 폴백 사용
+   * v3.0: /api/rules 제거됨 (Dead Code 정리)
    */
   private async loadFromAPI(): Promise<SystemRules | null> {
-    try {
-      const response = await fetch('/api/rules');
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (!result.success || !result.data) {
-        return null;
-      }
-
-      this.dataSource = 'supabase';
-      return result.data as SystemRules;
-    } catch (err) {
-      logger.warn('⚠️ Rules API 호출 실패:', err);
-      return null;
-    }
+    // 클라이언트에서는 JSON 폴백만 사용
+    logger.info('ℹ️ 클라이언트에서 JSON 규칙 사용');
+    return null;
   }
 
   /**

@@ -247,47 +247,20 @@ export const systemComponents: SystemComponent[] = [
     },
   },
 
-  // 📡 실시간 통신 (WebSocket/SSE)
+  // 📡 실시간 통신 (Polling 기반 - SSE/WebSocket 미사용)
   {
     id: 'realtime-communication',
     name: '실시간 통신',
-    description: 'WebSocket & SSE 스트림',
+    description: 'Polling 기반 데이터 갱신',
     category: 'realtime',
     icon: '📡',
     priority: 'medium',
-    estimatedTime: 700,
+    estimatedTime: 100,
     dependencies: ['api-server'],
     checkFunction: async () => {
-      try {
-        const { response, networkInfo } = await fetchWithTracking(
-          '/api/realtime/status',
-          {
-            method: 'GET',
-          }
-        );
-
-        recordNetworkRequest(
-          networkInfo,
-          response.ok,
-          'realtime-communication'
-        );
-        return response.ok;
-      } catch (error: unknown) {
-        if (isNetworkError(error)) {
-          recordNetworkRequest(
-            error.networkInfo,
-            false,
-            'realtime-communication'
-          );
-        }
-
-        const errorToLog = hasOriginalError(error)
-          ? error.originalError
-          : error;
-
-        logger.error('실시간 통신 체크 실패:', errorToLog);
-        return false;
-      }
+      // v5.87: SSE/WebSocket 미사용, Polling 기반으로 전환
+      // /api/realtime 제거됨 (Dead Code 정리)
+      return true;
     },
   },
 

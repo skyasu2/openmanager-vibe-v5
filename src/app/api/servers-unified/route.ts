@@ -1,15 +1,14 @@
 /**
- * 🎯 통합 서버 관리 API (8개 API 통합)
+ * 🎯 통합 서버 관리 API
  *
  * 통합된 기능:
  * - /api/servers (기본 서버 목록)
  * - /api/servers/all (전체 서버 데이터)
- * - /api/servers/cached (캐시된 서버 데이터)
- * - /api/servers/mock (목업 서버 데이터)
  * - /api/servers/next (다음 서버 데이터)
- * - /api/servers/realtime (실시간 서버 데이터)
  * - /api/servers/[id] (특정 서버 상세)
  * - /api/servers/[id]/processes (서버 프로세스 목록)
+ *
+ * v5.87: /mock, /realtime, /cached 제거 (Dead Code 정리)
  */
 
 import type { NextRequest } from 'next/server';

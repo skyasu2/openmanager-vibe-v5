@@ -1,12 +1,12 @@
 /**
- * Query Classifier - 서버 API를 통한 LLM 기반 쿼리 분류
+ * Query Classifier - 로컬 규칙 기반 쿼리 분류
  *
- * v2.0.0 (2026-01-04): 서버 API 방식으로 전환
- * - 클라이언트에서 /api/ai/classify 호출
- * - GROQ API 키 보안 유지
+ * v3.0.0 (2026-01-13): 로컬 분류로 전환
+ * - /api/ai/classify 제거 (Dead Code 정리)
+ * - 로컬 키워드 매칭 방식 사용
+ * - Cloud Run Supervisor가 고급 분류 담당
  */
 
-import { logger } from '@/lib/logging';
 export interface QueryClassification {
   complexity: number; // 1-5
   intent: 'general' | 'monitoring' | 'analysis' | 'guide' | 'coding';
@@ -43,28 +43,11 @@ export class QueryClassifier {
   }
 
   /**
-   * Classifies a user query via server API (Groq LLM).
-   * 서버에서 GROQ API 키를 사용하여 분류 수행
+   * Classifies a user query using local keyword matching.
+   * v3.0: API 호출 제거, 로컬 분류만 사용
    */
   async classify(query: string): Promise<QueryClassification> {
-    try {
-      const response = await fetch('/api/ai/classify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      });
-
-      if (!response.ok) {
-        logger.warn('⚠️ Classification API failed, using fallback');
-        return this.fallbackClassify(query);
-      }
-
-      const result = await response.json();
-      return result as QueryClassification;
-    } catch (error) {
-      logger.error('❌ Classification request failed:', error);
-      return this.fallbackClassify(query);
-    }
+    return this.fallbackClassify(query);
   }
 
   /**
