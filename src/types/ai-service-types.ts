@@ -18,8 +18,8 @@ export interface AIMetadata {
   tags?: string[];
   /** 데이터 소스 */
   source?: string;
-  /** 타임스탬프 */
-  timestamp?: string;
+  /** 타임스탬프 (문자열 또는 Date) */
+  timestamp?: string | Date;
   /** 중요도 (0-100) */
   importance?: number;
   /** 버전 정보 */
