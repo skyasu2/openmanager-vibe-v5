@@ -445,6 +445,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
                 title="대시보드로 돌아가기"
+                aria-label="대시보드로 돌아가기"
               >
                 <ArrowLeftFromLine className="h-4 w-4" />
                 <span>대시보드</span>
