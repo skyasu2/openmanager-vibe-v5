@@ -427,57 +427,6 @@ export class AIServiceCircuitBreaker {
     this.lastFailTime = 0;
     this.transitionTo('CLOSED');
   }
-
-  /**
-   * 🚨 Circuit Breaker 강제 오픈
-   *
-   * Rate Limiter 또는 보안 시스템에서 DDoS 공격 등
-   * 비상 상황 감지 시 외부에서 강제로 서킷을 열 수 있음
-   *
-   * @param reason - 강제 오픈 사유 (로깅/이벤트용)
-   * @param durationMs - 열린 상태 유지 시간 (기본: resetTimeout)
-   *
-   * @example
-   * ```typescript
-   * // Rate Limiter에서 글로벌 임계값 초과 시
-   * aiCircuitBreaker.getBreaker('ai-supervisor').forceOpen(
-   *   'Global rate limit exceeded (DDoS detected)',
-   *   120000 // 2분간 차단
-   * );
-   * ```
-   */
-  forceOpen(reason: string, durationMs?: number): void {
-    this.failures = this.threshold; // 임계값까지 실패 카운트 설정
-    this.lastFailTime = Date.now();
-
-    // 선택적으로 리셋 타임아웃 오버라이드
-    if (durationMs) {
-      // 일시적으로 resetTimeout 효과를 내기 위해 lastFailTime 조정
-      // (실제 resetTimeout은 readonly라서 직접 변경 불가)
-      // durationMs 후에 자동으로 HALF_OPEN으로 전환됨
-    }
-
-    this.transitionTo('OPEN');
-
-    // 강제 오픈 이벤트 발행
-    circuitBreakerEvents.emit({
-      type: 'circuit_open',
-      service: this.serviceName,
-      timestamp: Date.now(),
-      details: {
-        previousState: 'CLOSED',
-        newState: 'OPEN',
-        failures: this.failures,
-        threshold: this.threshold,
-        resetTimeMs: durationMs || this.resetTimeout,
-        error: `[FORCED] ${reason}`,
-      },
-    });
-
-    logger.warn(
-      `[CircuitBreaker] ${this.serviceName}: 강제 오픈 - ${reason} (${(durationMs || this.resetTimeout) / 1000}초 후 리셋)`
-    );
-  }
 }
 
 /**
@@ -534,57 +483,10 @@ class AICircuitBreakerManager {
       breaker.reset();
     }
   }
-
-  /**
-   * 🚨 특정 서비스 Circuit Breaker 강제 오픈
-   *
-   * Rate Limiter나 보안 시스템에서 호출
-   *
-   * @param serviceName - 서비스 이름
-   * @param reason - 강제 오픈 사유
-   * @param durationMs - 열린 상태 유지 시간 (선택)
-   * @returns 성공 여부
-   */
-  forceOpenBreaker(
-    serviceName: string,
-    reason: string,
-    durationMs?: number
-  ): boolean {
-    const breaker = this.breakers.get(serviceName);
-    if (breaker) {
-      breaker.forceOpen(reason, durationMs);
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * 🚨 모든 Circuit Breaker 강제 오픈 (비상 상황용)
-   *
-   * @param reason - 강제 오픈 사유
-   * @param durationMs - 열린 상태 유지 시간 (선택)
-   */
-  forceOpenAll(reason: string, durationMs?: number): void {
-    for (const breaker of this.breakers.values()) {
-      breaker.forceOpen(reason, durationMs);
-    }
-    logger.warn(`[CircuitBreaker] 모든 서킷 강제 오픈 - ${reason}`);
-  }
 }
 
 // 싱글톤 인스턴스
 export const aiCircuitBreaker = new AICircuitBreakerManager();
-
-/**
- * AI 서비스 실행을 위한 편의 함수
- */
-export async function executeWithCircuitBreaker<T>(
-  serviceName: string,
-  fn: () => Promise<T>
-): Promise<T> {
-  const breaker = aiCircuitBreaker.getBreaker(serviceName);
-  return breaker.execute(fn);
-}
 
 /**
  * 실행 결과 타입 (Primary 또는 Fallback 구분)
@@ -687,73 +589,6 @@ export async function executeWithCircuitBreakerAndFallback<T>(
       originalError: errorInstance,
     };
   }
-}
-
-// ============================================================================
-// Failover & Rate Limit 이벤트 유틸리티
-// ============================================================================
-
-/**
- * Key Failover 이벤트 발행
- * API 키 전환 시 호출
- */
-export function emitKeyFailoverEvent(
-  service: string,
-  fromKey: string,
-  toKey: string,
-  reason?: string
-): void {
-  circuitBreakerEvents.emit({
-    type: 'failover',
-    service,
-    timestamp: Date.now(),
-    details: {
-      failoverFrom: `key:${fromKey}`,
-      failoverTo: `key:${toKey}`,
-      error: reason,
-    },
-  });
-}
-
-/**
- * Model Failover 이벤트 발행
- * AI 모델 전환 시 호출
- */
-export function emitModelFailoverEvent(
-  service: string,
-  fromModel: string,
-  toModel: string,
-  reason?: string
-): void {
-  circuitBreakerEvents.emit({
-    type: 'failover',
-    service,
-    timestamp: Date.now(),
-    details: {
-      failoverFrom: `model:${fromModel}`,
-      failoverTo: `model:${toModel}`,
-      error: reason,
-    },
-  });
-}
-
-/**
- * Rate Limit 이벤트 발행
- * API 호출 제한 발생 시 호출
- */
-export function emitRateLimitEvent(
-  service: string,
-  retryAfterMs?: number
-): void {
-  circuitBreakerEvents.emit({
-    type: 'rate_limit',
-    service,
-    timestamp: Date.now(),
-    details: {
-      resetTimeMs: retryAfterMs,
-      error: `Rate limit exceeded${retryAfterMs ? `, retry after ${retryAfterMs}ms` : ''}`,
-    },
-  });
 }
 
 /**
