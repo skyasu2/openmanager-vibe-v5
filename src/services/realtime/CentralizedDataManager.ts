@@ -154,9 +154,10 @@ class CentralizedDataManager {
 
   /**
    * 서버 데이터 페치
+   * v5.87: /api/servers-unified 사용 (인증 불필요, 게스트 접근 가능)
    */
   private async fetchServers(): Promise<Server[]> {
-    const response = await fetch('/api/servers', {
+    const response = await fetch('/api/servers-unified', {
       signal: AbortSignal.timeout(5000),
     });
 
@@ -164,56 +165,52 @@ class CentralizedDataManager {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const result = await response.json();
-    return result.servers || [];
+    const result: { success?: boolean; data?: Server[] } =
+      await response.json();
+    return result.data ?? [];
   }
 
   /**
    * 메트릭 데이터 페치
+   * v5.87: 서버 데이터에서 메트릭 추출 (type 쿼리 파라미터 미지원)
    */
   private async fetchMetrics(): Promise<unknown> {
-    const response = await fetch('/api/servers?type=metrics', {
-      signal: AbortSignal.timeout(5000),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const result = await response.json();
-    return result.data || {};
+    const servers = await this.fetchServers();
+    // 서버 데이터에서 메트릭 정보 추출
+    return servers.map((server) => ({
+      id: server.id,
+      cpu: server.cpu,
+      memory: server.memory,
+      disk: server.disk,
+      network: server.network,
+    }));
   }
 
   /**
    * 네트워크 데이터 페치
+   * v5.87: 서버 데이터에서 네트워크 정보 추출
    */
   private async fetchNetworkData(): Promise<unknown> {
-    const response = await fetch('/api/servers?type=network', {
-      signal: AbortSignal.timeout(5000),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const result = await response.json();
-    return result.data || {};
+    const servers = await this.fetchServers();
+    return servers.map((server) => ({
+      id: server.id,
+      network: server.network,
+      status: server.status,
+    }));
   }
 
   /**
    * 시스템 데이터 페치
+   * v5.87: 서버 데이터에서 시스템 정보 추출
    */
   private async fetchSystemData(): Promise<unknown> {
-    const response = await fetch('/api/servers?type=system', {
-      signal: AbortSignal.timeout(5000),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const result = await response.json();
-    return result.data || {};
+    const servers = await this.fetchServers();
+    return servers.map((server) => ({
+      id: server.id,
+      name: server.name,
+      status: server.status,
+      uptime: server.uptime,
+    }));
   }
 
   /**

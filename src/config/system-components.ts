@@ -11,6 +11,7 @@ import {
   recordNetworkRequest,
 } from '../utils/network-tracking';
 import { logger } from '@/lib/logging';
+import { getCentralDataStats } from '@/services/realtime/CentralizedDataManager';
 
 // 🔧 네트워크 정보 타입 정의 (타입 안전성 강화)
 interface NetworkInfo {
@@ -259,8 +260,16 @@ export const systemComponents: SystemComponent[] = [
     dependencies: ['api-server'],
     checkFunction: async () => {
       // v5.87: SSE/WebSocket 미사용, Polling 기반으로 전환
-      // /api/realtime 제거됨 (Dead Code 정리)
-      return true;
+      // CentralizedDataManager 상태를 통해 실시간 통신 상태 확인
+      try {
+        const stats = getCentralDataStats();
+        // 폴링 중이거나 캐시에 데이터가 있으면 정상
+        // 구독자가 없는 초기 상태도 정상으로 처리
+        return stats.isPolling || stats.cacheSize > 0 || stats.totalSubscribers === 0;
+      } catch {
+        // 브라우저 환경이 아니거나 초기화 전이면 true 반환
+        return true;
+      }
     },
   },
 

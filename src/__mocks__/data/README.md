@@ -1,6 +1,6 @@
 # Mock 데이터 시스템 현황
 
-**마지막 업데이트**: 2025-11-29
+**마지막 업데이트**: 2026-01-13 (v5.87 Dead Code 정리 반영)
 
 ---
 
@@ -61,14 +61,16 @@ private async loadFromCustomSource(): Promise<Server[]> {
 
 레거시 Mock 시스템은 다음 API에서만 사용됩니다 (테스트/데모 전용):
 
-1. **`/api/servers/mock/route.ts`** - Mock 시스템 전용 API (테스트용)
-2. **`/api/servers/realtime/route.ts`** - 실시간 데이터 API (30초 autoRotate)
+1. ~~**`/api/servers/mock/route.ts`**~~ - v5.87에서 제거됨
+2. ~~**`/api/servers/realtime/route.ts`**~~ - v5.87에서 제거됨
 3. **`/api/servers/next/route.ts`** - 서버 페이지네이션 API
 4. **`/api/servers/[id]/route.ts`** - 개별 서버 조회 API
 5. **`/api/metrics/route.ts`** - Prometheus 메트릭 API
 6. **`/api/cache/optimize/route.ts`** - 캐시 최적화 API
 7. **`src/context/basic-context-manager.ts`** - AI 컨텍스트 관리
 8. **`/api/test/timezone/route.ts`** - 테스트 전용
+
+> ⚠️ **v5.87 변경사항**: `/api/servers/mock`, `/api/servers/realtime` 제거됨 (Dead Code 정리)
 
 ### 프로덕션 데이터 소스
 
