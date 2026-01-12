@@ -19,7 +19,7 @@ import {
   useTimeSeriesMetrics,
 } from './useTimeSeriesMetrics';
 
-// Mock fetch
+// Mock fetch with proper Response-like object
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
@@ -32,6 +32,29 @@ vi.mock('@/lib/logging', () => ({
     debug: vi.fn(),
   },
 }));
+
+// Create a mock Response-like object
+function createMockResponse(data: unknown, ok = true, status = 200) {
+  const response = {
+    ok,
+    status,
+    statusText: ok ? 'OK' : 'Error',
+    headers: new Headers(),
+    redirected: false,
+    type: 'basic' as ResponseType,
+    url: '',
+    bodyUsed: false,
+    body: null,
+    json: vi.fn().mockResolvedValue(data),
+    text: vi.fn().mockResolvedValue(JSON.stringify(data)),
+    blob: vi.fn().mockResolvedValue(new Blob()),
+    arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
+    formData: vi.fn().mockResolvedValue(new FormData()),
+    clone: vi.fn(),
+  };
+  response.clone.mockReturnValue({ ...response });
+  return response;
+}
 
 // Mock 응답 데이터 생성
 function createMockTimeSeriesData(
@@ -66,18 +89,15 @@ function createMockTimeSeriesData(
 }
 
 function createSuccessResponse(data: TimeSeriesData) {
-  return {
-    ok: true,
-    json: async () => ({ success: true, data }),
-  };
+  return createMockResponse({ success: true, data }, true, 200);
 }
 
 function createErrorResponse(status: number) {
-  return {
-    ok: false,
-    status,
-    json: async () => ({ success: false, message: 'API Error' }),
-  };
+  return createMockResponse(
+    { success: false, message: 'API Error' },
+    false,
+    status
+  );
 }
 
 describe('🎯 useTimeSeriesMetrics - 시계열 메트릭 훅 테스트', () => {
