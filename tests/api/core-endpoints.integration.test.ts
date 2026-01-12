@@ -158,7 +158,7 @@ describe.skipIf(!shouldRunIntegration)(
         if (!response.ok) {
           throw new Error(`Server returned ${response.status}`);
         }
-      } catch (error) {
+      } catch {
         throw new Error(
           `테스트 서버에 연결할 수 없습니다: ${BASE_URL}. ` +
             `통합 테스트 실행 전 서버가 실행 중인지 확인하세요.`

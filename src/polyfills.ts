@@ -123,7 +123,7 @@ if (typeof globalThis !== 'undefined') {
           // getRandomValues는 Web Crypto API와 호환되게
           // 🔐 crypto.randomFillSync 사용으로 Uint16Array/Float32Array 등 모든 TypedArray 지원
           getRandomValues: <T extends ArrayBufferView>(arr: T): T => {
-            if (arr && arr.buffer) {
+            if (arr?.buffer) {
               // Web API와 Node.js API 타입 차이 해결 (런타임 호환 보장)
               crypto.randomFillSync(arr as unknown as NodeJS.ArrayBufferView);
             }
