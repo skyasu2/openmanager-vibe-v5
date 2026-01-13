@@ -129,12 +129,21 @@ export default function EnhancedServerModal({
       server
         ? {
             id: server.id || 'unknown',
-            hostname: server.hostname || 'unknown.local',
-            name: server.name || 'Unknown Server',
+            // hostname: 서버 이름에서 추출하거나 기본값
+            hostname:
+              server.hostname ||
+              server.name?.toLowerCase().replace(/\s+/g, '-') ||
+              '미확인 호스트',
+            name: server.name || '서버',
             type: server.type || 'unknown',
             environment: server.environment || 'production',
-            location: server.location || 'Unknown Location',
-            provider: server.provider || 'Unknown Provider',
+            location: server.location || '위치 미지정',
+            // provider: 환경에 따라 추정
+            provider:
+              server.provider ||
+              (server.environment === 'production'
+                ? 'Cloud Provider'
+                : 'Local'),
             // Status는 Fixed Metrics에 따라 실시간 업데이트
             status: currentMetrics
               ? currentMetrics.cpu > 80
@@ -177,12 +186,19 @@ export default function EnhancedServerModal({
             specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
             os: server.os || 'Unknown OS',
             ip: server.ip || '0.0.0.0',
-            networkStatus:
-              server.status === 'online'
-                ? 'excellent'
-                : server.status === 'warning'
-                  ? 'good'
-                  : 'offline',
+            // NetworkStatus: ServerStatus + 리소스 부하 기반 추정
+            networkStatus: (() => {
+              if (server.status === 'offline') return 'offline';
+              if (server.status === 'critical') return 'poor';
+              // 리소스 부하 기반 품질 추정
+              const avgLoad =
+                ((currentMetrics?.cpu ?? server.cpu ?? 0) +
+                  (currentMetrics?.memory ?? server.memory ?? 0)) /
+                2;
+              if (server.status === 'online' && avgLoad < 70)
+                return 'excellent';
+              return 'good';
+            })(),
             health: server.health || { score: 0, trend: [] },
             alertsSummary: server.alertsSummary || {
               total: 0,

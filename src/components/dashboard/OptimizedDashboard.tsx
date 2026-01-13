@@ -260,7 +260,8 @@ export default function OptimizedDashboard({
                 : Array.isArray(selectedServer.alerts)
                   ? selectedServer.alerts.length
                   : 0,
-            networkStatus: undefined, // 🔧 수정: 타입 불일치로 undefined 처리 (Server.networkStatus는 ServerStatus 형태)
+            // networkStatus는 EnhancedServerModal 내부에서 자동 변환됨
+            networkStatus: selectedServer.networkStatus,
             lastUpdate: selectedServer.lastUpdate || new Date(),
             cpu: selectedServer.cpu || 0,
             memory: selectedServer.memory || 0,
