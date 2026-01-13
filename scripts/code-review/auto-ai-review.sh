@@ -185,12 +185,13 @@ if [ -z "$PROJECT_ROOT" ] || [ ! -d "$PROJECT_ROOT" ]; then
     echo "✅ PROJECT_ROOT 설정 완료: $PROJECT_ROOT"
 fi
 
-# 리뷰 저장 경로
-REVIEW_DIR="$PROJECT_ROOT/logs/code-reviews"
+# 리뷰 저장 경로 (reports/ = 동적 문서, logs/ = 순수 로그)
+REVIEW_DIR="$PROJECT_ROOT/reports/ai-review"
 mkdir -p "$REVIEW_DIR"
 
-# 상태 파일 경로 (AI 사용 카운터 추적)
+# 상태 파일 경로 (AI 사용 카운터 추적 - logs는 휘발성 데이터)
 STATE_FILE="$PROJECT_ROOT/logs/code-reviews/.ai-usage-state"
+mkdir -p "$(dirname "$STATE_FILE")"
 
 # ===== 분할 리뷰 설정 (v5.0.0) =====
 MAX_FILES_PER_REVIEW=10  # 한 번에 리뷰할 최대 파일 수 (초과 시 자동 분할)
