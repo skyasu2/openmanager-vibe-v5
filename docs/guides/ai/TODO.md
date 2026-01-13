@@ -1,6 +1,6 @@
 # AI Development TODO
 
-**Last Updated**: 2025-12-28
+**Last Updated**: 2026-01-13
 
 ## In Progress
 
@@ -17,7 +17,7 @@ _(현재 진행 중인 작업 없음)_
 
 | Task | Date | Notes |
 |------|------|-------|
-| **LangGraph → Vercel AI SDK Migration** | **2025-12-28** | **v5.92.0 - Complete rewrite using `@ai-sdk-tools/agents`** |
+| **LangGraph → Vercel AI SDK Migration** | **2025-12-28** | **v5.85.0 - Complete rewrite using Vercel AI SDK** |
 | - Dual-Mode Supervisor | 2025-12-28 | Single-agent (simple) / Multi-agent (complex) auto-selection |
 | - Multi-Agent Orchestrator | 2025-12-28 | NLQ/Analyst/Reporter/Advisor with handoffs |
 | - Model Fallback Optimization | 2025-12-28 | NLQ: Groq→Cerebras, Single: Cerebras→Mistral |

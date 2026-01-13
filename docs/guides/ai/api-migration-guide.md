@@ -2,8 +2,8 @@
 
 ## unified-stream → supervisor 마이그레이션
 
-> **버전**: v5.83.8 ~ v5.84.x
-> **상태**: 진행 중
+> **버전**: v5.83.8 → v5.85.0
+> **상태**: 완료 ✅ (v5.85.0에서 unified-stream 제거됨)
 
 ### 변경 사항 요약
 
@@ -16,9 +16,9 @@
 ### 마이그레이션 타임라인
 
 ```
-v5.83.8  (현재)  - supervisor 기본, unified-stream 호환 프록시 제공
-v5.84.x  (예정)  - unified-stream 프록시 deprecation 경고 추가
-v5.85.0  (예정)  - unified-stream 완전 제거
+v5.83.8  - supervisor 기본, unified-stream 호환 프록시 제공
+v5.84.x  - unified-stream 프록시 deprecation 경고 추가
+v5.85.0  - unified-stream 완전 제거 ✅ 완료
 ```
 
 ---
