@@ -225,6 +225,9 @@ reports/gcp-quota-report-*.md
 reports/*
 !reports/README.md
 !reports/planning/
+!reports/history/
+!reports/ai-review/
+!reports/qa/
 
 # External MCP servers (cloned from GitHub)
 fetch-mcp/
