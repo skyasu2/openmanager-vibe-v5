@@ -226,7 +226,8 @@ reports/*
 !reports/README.md
 !reports/planning/
 !reports/ai-review/
-# reports/history/ - 완료된 문서 아카이브 (gitignored)
+reports/ai-review/.*
+# reports/history/ - 완료된 문서 아카이브 (gitignored, 삭제 금지)
 
 # External MCP servers (cloned from GitHub)
 fetch-mcp/

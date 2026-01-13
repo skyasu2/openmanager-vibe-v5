@@ -189,9 +189,8 @@ fi
 REVIEW_DIR="$PROJECT_ROOT/reports/ai-review"
 mkdir -p "$REVIEW_DIR"
 
-# 상태 파일 경로 (AI 사용 카운터 추적 - logs는 휘발성 데이터)
-STATE_FILE="$PROJECT_ROOT/logs/code-reviews/.ai-usage-state"
-mkdir -p "$(dirname "$STATE_FILE")"
+# 상태 파일 경로 (reports/ai-review/에 통합)
+STATE_FILE="$REVIEW_DIR/.ai-usage-state"
 
 # ===== 분할 리뷰 설정 (v5.0.0) =====
 MAX_FILES_PER_REVIEW=10  # 한 번에 리뷰할 최대 파일 수 (초과 시 자동 분할)
@@ -277,10 +276,10 @@ source "$LIB_DIR/doc-test-validator.sh"
 # 중복 리뷰 방지 함수 (v6.5.0)
 # ============================================================================
 
-# 락 파일 경로
-LOCK_FILE="$PROJECT_ROOT/logs/code-reviews/.review-lock"
-REVIEWED_COMMITS_FILE="$PROJECT_ROOT/logs/code-reviews/.reviewed-commits"
-LAST_REVIEWED_COMMIT_FILE="$PROJECT_ROOT/logs/code-reviews/.last-reviewed-commit"
+# 락 파일 및 상태 파일 경로 (reports/ai-review/에 통합)
+LOCK_FILE="$REVIEW_DIR/.review-lock"
+REVIEWED_COMMITS_FILE="$REVIEW_DIR/.reviewed-commits"
+LAST_REVIEWED_COMMIT_FILE="$REVIEW_DIR/.last-reviewed-commit"
 
 # 누적 리뷰 설정 (v6.12.0)
 CUMULATIVE_REVIEW=${CUMULATIVE_REVIEW:-true}  # 미검토 커밋 누적 리뷰 활성화

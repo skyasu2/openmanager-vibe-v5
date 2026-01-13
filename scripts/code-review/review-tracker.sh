@@ -22,10 +22,10 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# 파일 경로
-REVIEWED_COMMITS_FILE="$PROJECT_ROOT/logs/code-reviews/.reviewed-commits"
-ACKNOWLEDGED_FILE="$PROJECT_ROOT/logs/code-reviews/.reviewed-by-human"
+# 파일 경로 (reports/ai-review/에 통합)
 REVIEW_DIR="$PROJECT_ROOT/reports/ai-review"
+REVIEWED_COMMITS_FILE="$REVIEW_DIR/.reviewed-commits"
+ACKNOWLEDGED_FILE="$REVIEW_DIR/.reviewed-by-human"
 
 # 도움말
 show_help() {

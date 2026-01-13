@@ -17,7 +17,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 REVIEWS_DIR="$PROJECT_ROOT/reports/ai-review"
-TRACKING_FILE="$PROJECT_ROOT/logs/code-reviews/.issue-tracking.json"
+TRACKING_FILE="$REVIEWS_DIR/.issue-tracking.json"
 
 # 색상 정의
 RED='\033[0;31m'

@@ -33,8 +33,8 @@ Automated analysis of background validation results (Biome + TypeScript + AI Rev
 - **Components**:
   - Biome: Full codebase lint + format check → `logs/lint-reports/`
   - TypeScript: Type check → `logs/typecheck-reports/`
-  - AI Review: Codex → Gemini → Qwen rotation → `logs/code-reviews/`
-- **Issue Tracking**: `logs/code-reviews/.issue-tracking.json`
+  - AI Review: Codex → Gemini → Qwen rotation → `reports/ai-review/`
+- **Issue Tracking**: `reports/ai-review/.issue-tracking.json`
 
 ## Workflow
 
@@ -128,7 +128,7 @@ Date: [timestamp]
    → See: logs/typecheck-reports/typecheck-YYYYMMDD-HHMMSS.md
 
 2. [HIGH] Address AI review security concerns
-   → See: logs/code-reviews/review-AI-YYYYMMDD-HHMMSS.md
+   → See: reports/ai-review/review-AI-YYYYMMDD-HHMMSS.md
 
 3. [MEDIUM] Resolve Biome warnings
    → Run: npm run lint:fix
