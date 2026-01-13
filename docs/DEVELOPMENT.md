@@ -15,18 +15,19 @@
 ### Prerequisites
 
 - **Windows 11 + WSL 2** (권장 개발 환경)
-- Node.js v22.21.1 (`.nvmrc` 참조)
+- **Node.js** v22.21.1 (`.nvmrc` 참조)
 - npm 10.9.2 이상
 - Docker Desktop (AI 서비스용)
+- Git
 
-### 기술 스택 (v5.85.0)
+### 기술 스택 (v5.87.0)
 
 ```
 Next.js 16.1.1 (App Router)
-React 19.2.1
+React 19.2.3
 TypeScript 5.9.3 (strict mode)
 Supabase (PostgreSQL + Realtime)
-Tailwind CSS 4.1.17 + Shadcn/UI
+Tailwind CSS 4.1.18 + Shadcn/UI
 ```
 - Git
 - **Claude Code** (메인 AI 개발 도구)
@@ -119,8 +120,10 @@ gemini "아키텍처 설계 검토"
 | 도구            | 요금제            | 역할        | 전문 분야                        |
 | --------------- | ----------------- | ----------- | -------------------------------- |
 | **Claude Code** | Max ($200/월)     | 메인 개발   | 전체 아키텍처, 코드 리뷰, 문서화 |
-| **Codex CLI**   | Plus ($20/월)     | 병렬 개발   | 복잡한 로직, 테스트 코드         |
-| **Gemini CLI**  | 무료 (1K req/day) | 아키텍처    | 시스템 설계, SOLID 원칙          |
+| **Codex CLI**   | Plus ($20/월)     | 코드 리뷰   | 복잡한 로직, 테스트 코드         |
+| **Gemini CLI**  | 무료 (1K req/day) | 코드 리뷰   | 시스템 설계, SOLID 원칙          |
+
+> **2-AI 교차검증**: Codex ↔ Gemini 순환 (2026-01-07 단순화)
 
 ## 🔌 MCP 서버 설정
 
@@ -312,7 +315,7 @@ git push origin main
 ### 4. AI 협업 워크플로우
 
 1. **메인 개발**: Claude Code로 핵심 기능 구현
-2. **병렬 검증**: Codex/Gemini 2-AI 교차 검증
+2. **2-AI 교차검증**: Codex ↔ Gemini 자동 코드 리뷰
 3. **코드 리뷰**: `ai-code-review` 스킬 활용
 4. **테스트**: `lint-smoke` 스킬 + Playwright MCP
 5. **문서화**: Claude Code 직접 수행

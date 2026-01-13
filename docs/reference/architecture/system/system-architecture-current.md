@@ -19,9 +19,10 @@
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
 │            Google Cloud Run (AI Engine)                      │
-│  - LangGraph StateGraph (Multi-Agent System)                │
-│  - Supervisor (Groq Llama-70b) → NLQ/Analyst/Reporter Agents│
-│  - Gemini 2.5 Flash/Pro, Llama 3.3-70b                      │
+│  - Vercel AI SDK Multi-Agent System                         │
+│  - Dual-Mode Supervisor (Single/Multi Agent)                │
+│  - Orchestrator (Cerebras Llama-70b)                        │
+│  - Agents: NLQ, Analyst, Reporter, Advisor, Verifier        │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌──────────────────┬──────────────────┬──────────────────────┐
@@ -146,11 +147,13 @@ Layer-First 구조에 Feature Grouping을 적용한 Next.js 표준 아키텍처�
   → 헤더/인증 정보 전달
   → 응답 스트리밍 지원
 
-// Cloud Run (AI Engine - LangGraph)
-Supervisor Agent              # Groq Llama-3.3-70b-versatile (라우팅)
-  ├── NLQ Agent              # Gemini 2.5 Flash (자연어 쿼리)
-  ├── Analyst Agent          # Gemini 2.5 Flash (데이터 분석)
-  └── Reporter Agent         # Groq Llama-3.3-70b (보고서 생성)
+// Cloud Run (AI Engine - Vercel AI SDK)
+Supervisor (Dual-Mode)        # Cerebras Llama-3.3-70b (Orchestrator)
+  ├── NLQ Agent              # Cerebras/Groq Llama-3.3-70b (Server Queries)
+  ├── Analyst Agent          # Groq Llama-3.3-70b (Anomaly/Trend)
+  ├── Reporter Agent         # Groq Llama-3.3-70b (Incident Reports)
+  ├── Advisor Agent          # Mistral Small (Troubleshooting/RAG)
+  └── Verifier Agent         # Mistral Small (Response Validation)
 
 // 지원 서비스 (Vercel - 레거시/폴백)
 SupabaseRAGEngine             # RAG 검색 (벡터 DB)
@@ -231,13 +234,14 @@ AI 사이드바 (React)
     ↓
 /api/ai/supervisor (Vercel - Pure Proxy)
     ↓
-Cloud Run AI Engine (LangGraph)
+Cloud Run AI Engine (Vercel AI SDK)
     ↓
 ┌────────────────────────────────────────┐
-│ Supervisor (Groq Llama-70b)            │
-│   ├── NLQ Agent (Gemini 2.5 Flash)     │
-│   ├── Analyst Agent (Gemini 2.5 Flash) │
-│   └── Reporter Agent (Llama 70b)       │
+│ Orchestrator (Cerebras Llama-70b)      │
+│   ├── NLQ Agent (Cerebras/Groq)        │
+│   ├── Analyst Agent (Groq/Cerebras)    │
+│   ├── Reporter Agent (Groq)            │
+│   └── Advisor Agent (Mistral)          │
 └────────────────────────────────────────┘
     ↓
 ┌─────────────┬──────────────┐

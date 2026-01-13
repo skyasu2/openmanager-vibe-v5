@@ -31,6 +31,8 @@ cat logs/code-reviews/review-*.md | tail -100
 | **Codex (GPT-5)** | 호환성 전문가 | 버전 충돌, 라이브러리 호환성 | SWE-bench 74.9% |
 | **Gemini 2.5** | 시스템 분석가 | 대규모 시스템, 웹 개발 | WebDev Arena 1위 |
 
+> **Note**: 2026-01-07부터 Qwen 제거, 2-AI 교차검증 시스템으로 단순화
+
 ### 중앙 분배기 패턴
 
 ```
@@ -38,8 +40,7 @@ Claude Code
     ↓
 auto-ai-review.sh (Dispatcher)
     ├─→ Codex CLI (Primary)
-    ├─→ Gemini CLI (Secondary)
-    └─→ Claude Code (Final Fallback)
+    └─→ Gemini CLI (Secondary)
 ```
 
 ---
@@ -79,11 +80,13 @@ Task gemini-wrapper "SOLID 원칙 위반 여부"
 - **전략**: Claude + AI 2개 모든 협업
 - **소요시간**: 30-60분
 
+> **2-AI 시스템**: Codex ↔ Gemini 교차검증 (2026-01-07 단순화)
+
 ---
 
 ## 4. 성공 사례
 
-> **Note**: 아래 사례들은 3-AI 시스템 운영 당시 기록입니다. 현재는 2-AI (Codex + Gemini)로 운영됩니다.
+> **Note**: 아래 사례들은 3-AI 시스템 운영 당시 기록입니다. 현재는 **2-AI (Codex ↔ Gemini)**로 운영됩니다.
 
 ### 사례 1: Serena MCP 해결
 - **문제**: MCP 서버 통신 불가, 타임아웃 반복

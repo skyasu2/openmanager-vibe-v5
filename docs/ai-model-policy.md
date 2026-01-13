@@ -37,8 +37,7 @@ Cloud Run AI Engine (asia-northeast1)
 Vercel AI SDK 6 (@ai-sdk)
 ├── @ai-sdk/cerebras     # Cerebras 통합 (Primary)
 ├── @ai-sdk/groq         # Groq 통합 (NLQ Agent)
-├── @ai-sdk/mistral      # Mistral 통합 (Verifier)
-└── @openrouter/ai-sdk-provider  # OpenRouter 통합 (Fallback)
+└── @ai-sdk/mistral      # Mistral 통합 (Verifier)
 ```
 
 ### 의도 분류 (Intent Classification)
@@ -67,12 +66,12 @@ Vercel AI SDK 6 (@ai-sdk)
 
 | Agent | Primary | Fallback | 역할 |
 |-------|---------|----------|------|
-| **Orchestrator** | Cerebras llama-3.3-70b | Groq llama-3.3-70b-versatile | 빠른 라우팅, 태스크 분배 (~200ms) |
+| **Orchestrator** | Cerebras llama-3.3-70b | Mistral mistral-small-2506 | 빠른 라우팅, 태스크 분배 (~200ms) |
 | **NLQ Agent** | Cerebras llama-3.3-70b | Groq llama-3.3-70b-versatile | 자연어 쿼리, 서버 메트릭 조회 |
 | **Analyst Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | 이상 탐지, 트렌드 예측, 패턴 분석 |
 | **Reporter Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | 장애 보고서, 타임라인, GraphRAG |
-| **Advisor Agent** | Mistral mistral-small-2506 | OpenRouter llama-3.1-8b:free | 트러블슈팅 가이드, 명령어 추천 |
-| **Verifier** | Mistral mistral-small-2506 | OpenRouter gemma-2-9b:free | 응답 검증 |
+| **Advisor Agent** | Mistral mistral-small-2506 | Groq llama-3.3-70b-versatile | 트러블슈팅 가이드, 명령어 추천 |
+| **Verifier** | Mistral mistral-small-2506 | Cerebras llama-3.3-70b | 응답 검증 |
 
 ### Embedding (Cloud Run)
 
@@ -99,7 +98,6 @@ Vercel AI SDK 6 (@ai-sdk)
 "@ai-sdk/cerebras": "^2.0.2"   // Orchestrator, NLQ
 "@ai-sdk/groq": "^2.0.33"      // Analyst, Reporter
 "@ai-sdk/mistral": "^3.0.1"    // Advisor, Embedding
-"@ai-sdk/openrouter": "^1.0.0" // Fallback for Advisor, Verifier
 ```
 
 ### Agent Framework
@@ -146,7 +144,6 @@ User Query → Orchestrator (Cerebras)
 | **Cerebras** | 24M tokens/day | Primary (Supervisor, NLQ) | llama-3.3-70b |
 | **Groq** | 100K tokens/day | NLQ Agent 전용 | llama-3.3-70b-versatile |
 | **Mistral** | 1M tokens/mo | Verifier, Advisor | mistral-small-2506 |
-| **OpenRouter** | Unlimited (:free models) | Summarizer, Fallback | nvidia/nemotron-nano-9b-v2:free |
 
 ### Fallback 체인
 
@@ -155,7 +152,7 @@ Cerebras (Primary)
     ↓ quota 80% 초과 시
 Mistral (Fallback 1)
     ↓ 실패 시
-OpenRouter (Fallback 2 - 무료)
+Groq (Fallback 2)
 ```
 
 > **참고**: Groq은 NLQ Agent 전용으로 예약되어 Supervisor fallback 체인에서 제외됩니다.
@@ -173,11 +170,6 @@ CLOUD_RUN_AI_ENABLED=true
 CEREBRAS_API_KEY=xxx
 GROQ_API_KEY=xxx
 MISTRAL_API_KEY=xxx
-OPENROUTER_API_KEY=xxx
-
-# OpenRouter Free Models
-OPENROUTER_DEFAULT_MODEL=meta-llama/llama-3.1-8b-instruct:free
-OPENROUTER_FALLBACK_MODEL=google/gemma-2-9b-it:free
 
 # Note: Vercel에서는 Cloud Run URL만 필요
 # API 키는 Cloud Run 환경에서 관리

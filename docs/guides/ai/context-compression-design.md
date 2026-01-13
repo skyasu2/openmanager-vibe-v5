@@ -238,8 +238,8 @@ if (shouldCompress && !cachedSummary) {
 1. ✅ **tiktoken 기반 토큰 카운터**: `js-tiktoken` (cl100k_base) 사용
 2. ✅ **Compression Trigger**: 85%/95% 임계값 압축 시스템
 3. ✅ **하이브리드 버퍼**: BufferManager (최근 10개 + 요약)
-4. ✅ **LLM 기반 요약**: Gemini 2.5 Flash Lite 사용
-5. ✅ **LangGraph 통합**: compressionNode + shouldCompress 엣지
+4. ✅ **LLM 기반 요약**: OpenRouter Free Models (Qwen/Llama) 사용
+5. ✅ **Vercel AI SDK 통합**: `@ai-sdk-tools/agents` 기반 오케스트레이션
 
 ### 6.2 향후 로드맵 (Optional)
 1. ⏳ **중요도 스코어링**: ImportanceScorer (Phase 4)

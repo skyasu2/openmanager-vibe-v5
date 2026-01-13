@@ -10,7 +10,7 @@ Based on the current architecture and usage patterns, **OpenManager Vibe v5** ca
 ---
 
 ## 🔧 Service Configuration
-- **Service**: `ai-engine` (LangGraph Backend)
+- **Service**: `ai-engine` (Vercel AI SDK Backend)
 - **Resources**:
   - 1 vCPU
   - 1GB Memory
@@ -60,18 +60,15 @@ Based on the current architecture and usage patterns, **OpenManager Vibe v5** ca
   - **Result**: You would exceed the free tier by **14x**, costing ~$25/month.
 - **Best Practice**: Use `min-instances: 0` (Scale to Zero) and use the "Wake Up" button to mitigate cold starts only when needed.
 
-### Q2. Should we merge Rust ML + LangGraph into one Docker container?
-**Recommendation: NO (Keep Separate)**
+### Q2. Is the Rust ML service still needed?
+**Recommendation: NO (Removed)**
 
-- **Memory Risk**: Cloud Run Free Tier gives **1GB Memory**.
-  - Node.js (LangGraph): ~300-500MB
-  - Rust ML: ~200-400MB
-  - **Risk**: Running both leaves very little headroom. One spike will cause an **OOM (Out Of Memory) Crash**, killing BOTH services.
-- **Cold Start**: A combined Docker image (Node + Rust runtimes) would be significantly larger, making cold starts slower (5s+ vs 1-2s).
-- **Maintenance**: Updating the AI logic (Node) shouldn't require rebuilding the ML engine (Rust).
+- **Status**: The Rust ML service was removed in v5.84.0.
+- **Reason**: The AI agents (Analyst Agent) running on Node.js/Vercel AI SDK now handle anomaly detection and trend prediction efficiently using optimized TypeScript implementations (`SimpleAnomalyDetector.ts`, `TrendPredictor.ts`).
+- **Benefit**: Simplifies deployment (single container) and reduces cold start times.
 
 ### Q3. Is the current architecture optimized?
 **YES.**
 - **Decoupled**: Services scale independently.
 - **Cost-Efficient**: Fits 100% inside Free Tier.
-- **Stable**: Isolated failure domains (AI crash doesn't kill ML).
+- **Stable**: Vercel AI SDK handles streaming and timeouts robustly.

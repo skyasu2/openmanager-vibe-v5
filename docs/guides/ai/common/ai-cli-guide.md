@@ -37,7 +37,7 @@ Task ai-verification-coordinator "src/app/api/auth/route.ts full review"
 | AI 도구 | HumanEval | SWE-bench | 응답 시간 | 특화 영역 |
 |---------|-----------|-----------|-----------|-----------|
 | **Codex (GPT-5)** | 94% | 74.5% | ~8초 | 함수 단위 문제 해결 |
-| **Gemini 2.5** | - | 54% | ~10초 | 범용 개발 |
+| **Gemini 2.5** | 89% | 54% | ~10초 | 범용 개발 |
 
 ### 상황별 최적 AI
 
@@ -109,6 +109,8 @@ Task gemini-wrapper "전체 코드베이스 중복 제거 방안 제시"
 - **메인 개발**: Claude Max $200/월 (별도)
 - **총 개발 도구**: $220/월
 - **실제 가치**: $2,200+ (API 환산, 10배 절약)
+
+> **2-AI 시스템**: 2026-01-07부터 Codex ↔ Gemini 교차검증
 
 ### 성과 지표
 

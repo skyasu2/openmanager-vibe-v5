@@ -18,12 +18,12 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
 
 ### 2. Google Cloud Run (AI Engine)
 **Role**: The "Heavy Lifter"
-- **Hosting**: Docker Container (Node.js 22 + LangGraph)
+- **Hosting**: Docker Container (Node.js 22 + Vercel AI SDK)
 - **Responsibilities**:
-  - **LangGraph Supervisor**: Decides which agent (NLQ, Analyst, Reporter, Writer) to use.
-  - **Agent Execution**: Runs the prompt engineering and tool calls.
-  - **Heavy Computation**: Handles long-running tasks (up to 60 mins) that would timeout on Vercel (60s limit).
-  - **Streaming**: Streams tokens back to Vercel.
+  - **AI SDK Multi-Agent**: Orchestrates agents (NLQ, Analyst, Reporter, Advisor, Verifier).
+  - **Agent Execution**: Runs the prompt engineering and tool calls using `@ai-sdk-tools/agents`.
+  - **Heavy Computation**: Handles complex queries and multi-step reasoning.
+  - **Streaming**: Streams tokens back to Vercel via SSE.
 
 ### 3. TypeScript ML (Built into AI Engine)
 **Role**: The "Mathematician"
@@ -31,7 +31,7 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
 - **Responsibilities**:
   - **Anomaly Detection**: 6-hour moving avg + 2σ (`SimpleAnomalyDetector.ts`)
   - **Trend Prediction**: Linear regression (`TrendPredictor.ts`)
-- **Note**: Rust ML service was removed in v5.84.0 (dead code elimination).
+- **Note**: Rust ML service was removed in v5.84.0 and replaced by these optimized TypeScript implementations.
 
 ---
 
@@ -47,9 +47,9 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
    - Adds `X-API-Key` for security.
 4. **Cloud Run**:
    - Receives request.
-   - `LangGraph` processes the intent.
-   - **(Optional)** Calls `Rust ML Service` for pattern analysis.
-   - Streams response back to Vercel.
+   - **Vercel AI SDK** processes the intent and routes to the appropriate agent.
+   - **Analyst Agent** performs pattern analysis if needed.
+   - Streams response back to Vercel via SSE.
 5. **Vercel**:
    - Pipes the stream to the User's browser.
 
