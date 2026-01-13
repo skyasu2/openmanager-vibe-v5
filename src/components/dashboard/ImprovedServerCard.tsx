@@ -121,23 +121,23 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       [currentMetrics, safeServer]
     );
 
-    // UI Variants - Disk/Network 제거로 높이 최적화
+    // UI Variants - 높이 증가 (그래프 영역 확대)
     const variantStyles = useMemo(() => {
       const styles = {
         compact: {
-          container: 'min-h-[130px] p-2',
+          container: 'min-h-[155px] p-2',
           maxServices: 2,
           showDetails: false,
           showServices: false,
         },
         detailed: {
-          container: 'min-h-[160px] p-3',
+          container: 'min-h-[185px] p-3',
           maxServices: 4,
           showDetails: true,
           showServices: true,
         },
         standard: {
-          container: 'min-h-[150px] p-2.5',
+          container: 'min-h-[175px] p-2.5',
           maxServices: 3,
           showDetails: true,
           showServices: true,
@@ -404,12 +404,12 @@ const MetricItem = ({
           {Math.round(value)}%
         </span>
       </div>
-      {/* Primary: Line Chart */}
-      <div className="w-full h-10 flex items-center justify-center">
+      {/* Primary: Line Chart - 높이 증가 */}
+      <div className="w-full h-12 flex items-center justify-center">
         <MiniLineChart
           data={history && history.length > 1 ? history : [value, value]}
-          width={120}
-          height={32}
+          width={100}
+          height={40}
           color={metricColor} // Apply severity color to graph
           fill
           strokeWidth={2}

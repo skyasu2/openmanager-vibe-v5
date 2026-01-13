@@ -106,11 +106,11 @@ export default function VirtualizedServerList({
         </div>
       </div>
 
-      {/* 반응형 그리드 - 카드 50% 축소에 맞춤 */}
+      {/* 반응형 그리드 - 카드 너비 고정 (min 200px, max 240px) */}
       <div
-        className="grid gap-3"
+        className="grid gap-3 justify-center"
         style={{
-          gridTemplateColumns: `repeat(auto-fit, minmax(280px, 1fr))`,
+          gridTemplateColumns: `repeat(auto-fit, minmax(200px, 240px))`,
         }}
       >
         {servers

@@ -13,7 +13,7 @@
 
 import type React from 'react';
 import { useMemo } from 'react';
-import { Area, AreaChart, Tooltip } from 'recharts';
+import { Area, AreaChart, Tooltip, YAxis } from 'recharts';
 
 interface MiniLineChartProps {
   /** 데이터 배열 (숫자 또는 {time, value} 객체) */
@@ -135,6 +135,8 @@ export const MiniLineChart: React.FC<MiniLineChartProps> = ({
       data={chartData}
       margin={{ top: 2, right: 2, bottom: 2, left: 2 }}
     >
+      {/* Y축 고정 도메인 [0, 100] - 퍼센트 값 일관된 시각화 */}
+      <YAxis domain={[0, 100]} hide />
       {showTooltip && (
         <Tooltip
           content={<CustomTooltip />}
