@@ -64,7 +64,6 @@ AI CLI 도구들의 WSL 환경 설치 및 구성 현황 문서입니다.
 |--------|---------|---------|
 | `codex-wrapper.sh` | v4.0.0 | Codex 래퍼 |
 | `gemini-wrapper.sh` | v4.0.0 | Gemini 래퍼 |
-| `wrapper-verification-suite.sh` | - | 검증 도구 |
 
 **Rotation Logic**: `codex` ↔ `gemini` (1:1 순번 자동 로테이션)
 

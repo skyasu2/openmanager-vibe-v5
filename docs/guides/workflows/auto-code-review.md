@@ -51,39 +51,20 @@ git commit -m "✨ feat: 새 기능 추가"
 Claude Code에서 다음과 같이 요청하세요:
 
 ```
-방금 커밋한 코드를 Codex가 리뷰했어. 
-scripts/code-review/analyze-codex-review.sh 실행해서 
-리뷰 결과를 분석하고 개선점이 있으면 알려줘.
+최신 AI 코드 리뷰 결과를 확인하고 개선점이 있으면 알려줘.
 ```
 
-**또는 직접 실행**:
+**또는 직접 확인**:
 
 ```bash
-./scripts/code-review/analyze-codex-review.sh
+# 최신 리뷰 파일 확인
+ls -lt logs/code-reviews/review-*.md | head -1
+
+# 리뷰 내용 보기
+cat $(ls -t logs/code-reviews/review-*.md | head -1)
 ```
 
-**출력 예시**:
-```
-📊 Codex 리뷰 분석 중...
-
-📈 분석 결과:
-  - 종합 점수: 8/10
-  - 버그 위험: 2 항목
-  - 보안 이슈: 1 항목
-
-💬 Claude Code에게 전달할 메시지
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Codex가 방금 커밋한 변경사항을 리뷰했습니다.
-
-📂 리뷰 파일: logs/code-reviews/review-2025-11-19-14-30-45.md
-
-다음 작업을 수행해주세요:
-1️⃣  리뷰 파일 확인
-2️⃣  개선 필요 사항 파악
-3️⃣  코드 수정 제안
-4️⃣  재커밋 여부 판단
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
+**리뷰 파일 위치**: `logs/code-reviews/review-{AI}-{DATE}-{TIME}.md`
 
 ---
 

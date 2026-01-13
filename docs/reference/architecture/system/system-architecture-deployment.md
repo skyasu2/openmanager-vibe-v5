@@ -255,38 +255,22 @@ const performanceTrends = {
 
 ## 🛠️ **운영 도구 및 스크립트**
 
-### 📊 **배포 자동화 스크립트**
+### 📊 **배포 명령어**
+
+프로덕션 배포는 **Vercel 자동 배포**를 사용합니다:
+
 ```bash
-#!/bin/bash
-# deploy-production.sh
+# 1. 전체 검증 (Lint + Type + Test)
+npm run validate:all
 
-echo "🚀 프로덕션 배포 시작..."
+# 2. Git Push로 자동 배포 (권장)
+git push origin main
 
-# 1. 테스트 실행
-npm run test
-if [ $? -ne 0 ]; then
-  echo "❌ 테스트 실패"
-  exit 1
-fi
-
-# 2. 타입 체크
-npm run type-check
-if [ $? -ne 0 ]; then
-  echo "❌ 타입 체크 실패"
-  exit 1
-fi
-
-# 3. 린트 검사
-npm run lint
-if [ $? -ne 0 ]; then
-  echo "❌ 린트 검사 실패"
-  exit 1
-fi
-
-# 4. Vercel 배포
+# 또는 수동 배포
 vercel --prod
-echo "✅ 배포 완료"
 ```
+
+> **Note**: `git push` 시 Vercel이 자동으로 빌드/배포합니다.
 
 ### 📈 **성능 모니터링 스크립트**
 ```typescript
