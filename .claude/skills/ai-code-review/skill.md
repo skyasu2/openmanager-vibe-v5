@@ -46,7 +46,7 @@ Orchestrate external AI tools (Codex, Gemini, Claude) for code review with autom
 
 ```bash
 # Check if review already exists for latest commit
-ls -la logs/code-reviews/review-*-$(date +%Y-%m-%d)*.md 2>/dev/null | tail -5
+ls -la reports/ai-review/review-*-$(date +%Y-%m-%d)*.md 2>/dev/null | tail -5
 ```
 
 **Expected Output**:
@@ -57,7 +57,7 @@ ls -la logs/code-reviews/review-*-$(date +%Y-%m-%d)*.md 2>/dev/null | tail -5
 
 ```bash
 # View current AI rotation state
-cat logs/code-reviews/.ai-usage-state 2>/dev/null || echo "No state file"
+cat reports/ai-review/.ai-usage-state 2>/dev/null || echo "No state file"
 ```
 
 **Expected State**:
@@ -77,7 +77,7 @@ bash scripts/code-review/auto-ai-review.sh
 ```
 
 **Expected Outcomes**:
-- ✅ Success: Review file created in `logs/code-reviews/`
+- ✅ Success: Review file created in `reports/ai-review/`
 - ⏭️ Skip: Commit already reviewed (duplicate prevention)
 - ⚠️ Fallback: Primary AI failed, using fallback
 - ❌ Fail: All AIs failed (very rare)
@@ -86,7 +86,7 @@ bash scripts/code-review/auto-ai-review.sh
 
 ```bash
 # Read latest review
-LATEST_REVIEW=$(ls -t logs/code-reviews/review-*.md 2>/dev/null | head -1)
+LATEST_REVIEW=$(ls -t reports/ai-review/review-*.md 2>/dev/null | head -1)
 if [ -f "$LATEST_REVIEW" ]; then
     head -50 "$LATEST_REVIEW"
 fi
@@ -117,7 +117,7 @@ bash scripts/ai-wrappers/qwen-wrapper.sh "리뷰 요청: [내용]"
 ├─ Response Time: Xs
 ├─ Commit: abc1234
 ├─ Status: ✅ Success / ⚠️ Fallback / ❌ Failed
-└─ Review File: logs/code-reviews/review-{AI}-{DATE}.md
+└─ Review File: reports/ai-review/review-{AI}-{DATE}.md
 
 📋 Key Findings:
 1. [Finding 1]
@@ -201,7 +201,7 @@ claude -p "Say hello"
 
 **Clear Stuck Lock**:
 ```bash
-rm -f logs/code-reviews/.review-lock
+rm -f reports/ai-review/.review-lock
 ```
 
 ## Success Criteria

@@ -4,34 +4,27 @@
 
 ## 개념 정리
 
-| 폴더 | 성격 | 예시 |
-|------|------|------|
-| `docs/` | 정적 | 가이드, API 문서 |
-| `reports/` | 동적 | 계획, 리뷰, 분석 |
-| `logs/` | 휘발성 | 실행 로그, 상태 파일 |
+| 폴더 | 성격 | Git |
+|------|------|-----|
+| `docs/` | 정적 (가이드) | ✅ Tracked |
+| `reports/` | 동적 (계획, 리뷰) | ✅ Tracked |
+| `reports/history/` | 아카이브 | ❌ Ignored |
+| `logs/` | 휘발성 (로그) | ❌ Ignored |
 
 ## 폴더 구조
 
 ```
 reports/
-├── planning/     # 진행 중 (7 files)
-├── ai-review/    # AI 리뷰 결과 (1 file)
-└── history/      # 완료 보관 (42 files)
-    ├── completed-plans/
-    ├── completed-analysis/
-    └── completed-reviews/
+├── planning/     # 진행 중 계획 (tracked)
+├── ai-review/    # AI 리뷰 결과 (tracked)
+└── history/      # 완료 아카이브 (gitignored, local only)
 ```
 
 ## 워크플로우
 
-### 작업 계획
 ```
-신규 → reports/planning/*.md → 완료 → reports/history/completed-plans/
-```
-
-### AI 코드 리뷰
-```
-커밋 → reports/ai-review/*.md → 완료 → reports/history/completed-reviews/
+[계획]   planning/*.md  →  완료  →  history/completed-plans/
+[리뷰]   ai-review/*.md →  완료  →  history/completed-reviews/
 ```
 
 _Last Updated: 2026-01-14_

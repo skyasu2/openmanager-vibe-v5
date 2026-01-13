@@ -25,7 +25,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # 파일 경로
 REVIEWED_COMMITS_FILE="$PROJECT_ROOT/logs/code-reviews/.reviewed-commits"
 ACKNOWLEDGED_FILE="$PROJECT_ROOT/logs/code-reviews/.reviewed-by-human"
-REVIEW_DIR="$PROJECT_ROOT/logs/code-reviews"
+REVIEW_DIR="$PROJECT_ROOT/reports/ai-review"
 
 # 도움말
 show_help() {
