@@ -405,14 +405,15 @@ const MetricItem = ({
         </span>
       </div>
       {/* Primary: Line Chart - 높이 증가 */}
-      <div className="w-full h-12 flex items-center justify-center">
+      <div className="w-full h-12 flex items-center justify-center overflow-visible">
         <MiniLineChart
           data={history && history.length > 1 ? history : [value, value]}
-          width={100}
-          height={40}
-          color={metricColor} // Apply severity color to graph
+          width={60}
+          height={36}
+          color={metricColor}
           fill
-          strokeWidth={2}
+          strokeWidth={1.5}
+          showLabels
         />
       </div>
     </div>

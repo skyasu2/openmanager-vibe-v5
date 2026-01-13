@@ -32,6 +32,8 @@ interface MiniLineChartProps {
   showTooltip?: boolean;
   /** 애니메이션 비활성화 (기본: true - 성능 최적화) */
   disableAnimation?: boolean;
+  /** 시작/끝 레이블 표시 여부 (기본: false) */
+  showLabels?: boolean;
 }
 
 interface ChartDataPoint {
@@ -91,6 +93,7 @@ export const MiniLineChart: React.FC<MiniLineChartProps> = ({
   fill = false,
   showTooltip = false,
   disableAnimation = true,
+  showLabels = false,
 }) => {
   // 데이터 변환: number[] → ChartDataPoint[]
   const chartData = useMemo((): ChartDataPoint[] => {
@@ -126,40 +129,60 @@ export const MiniLineChart: React.FC<MiniLineChartProps> = ({
     );
   }
 
+  // 시작/끝 값 계산
+  const firstValue = chartData[0]?.value ?? 0;
+  const lastValue = chartData[chartData.length - 1]?.value ?? 0;
+
   // ResponsiveContainer 제거 - flex 컨테이너 내 크기 계산 이슈 해결
   // 고정 크기 AreaChart 직접 사용으로 -1 width/height 경고 해결
   return (
-    <AreaChart
-      width={width}
-      height={height}
-      data={chartData}
-      margin={{ top: 2, right: 2, bottom: 2, left: 2 }}
-    >
-      {/* Y축 고정 도메인 [0, 100] - 퍼센트 값 일관된 시각화 */}
-      <YAxis domain={[0, 100]} hide />
-      {showTooltip && (
-        <Tooltip
-          content={<CustomTooltip />}
-          cursor={{ stroke: color, strokeWidth: 1, strokeOpacity: 0.3 }}
-        />
+    <div className="relative flex items-center gap-1">
+      {/* 시작 값 레이블 */}
+      {showLabels && (
+        <span className="text-[10px] font-bold tabular-nums text-gray-500 shrink-0">
+          {Math.round(firstValue)}
+        </span>
       )}
-      <Area
-        type="monotone"
-        dataKey="value"
-        stroke={color}
-        strokeWidth={strokeWidth}
-        fill={fill ? color : 'transparent'}
-        fillOpacity={fill ? 0.15 : 0}
-        isAnimationActive={!disableAnimation}
-        animationDuration={300}
-        dot={false}
-        activeDot={
-          showTooltip
-            ? { r: 3, fill: color, stroke: '#fff', strokeWidth: 1 }
-            : false
-        }
-      />
-    </AreaChart>
+
+      <AreaChart
+        width={width}
+        height={height}
+        data={chartData}
+        margin={{ top: 2, right: 2, bottom: 2, left: 2 }}
+      >
+        {/* Y축 고정 도메인 [0, 100] - 퍼센트 값 일관된 시각화 */}
+        <YAxis domain={[0, 100]} hide />
+        {showTooltip && (
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ stroke: color, strokeWidth: 1, strokeOpacity: 0.3 }}
+          />
+        )}
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          fill={fill ? color : 'transparent'}
+          fillOpacity={fill ? 0.15 : 0}
+          isAnimationActive={!disableAnimation}
+          animationDuration={300}
+          dot={false}
+          activeDot={
+            showTooltip
+              ? { r: 3, fill: color, stroke: '#fff', strokeWidth: 1 }
+              : false
+          }
+        />
+      </AreaChart>
+
+      {/* 끝 값 레이블 */}
+      {showLabels && (
+        <span className="text-[10px] font-bold tabular-nums text-gray-500 shrink-0">
+          {Math.round(lastValue)}
+        </span>
+      )}
+    </div>
   );
 };
 
