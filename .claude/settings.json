@@ -1,11 +1,7 @@
 {
   "outputStyle": "color",
   "env": {
-    "FORCE_COLOR": "1",
-    "CI": "true",
-    "NO_TTY": "1",
-    "NODE_NO_READLINE": "1",
-    "FORCE_TTY": "false"
+    "FORCE_COLOR": "1"
   },
   "hooks": {
     "PostToolUse": [
