@@ -7,22 +7,40 @@
 
 ```
 reports/
-├── planning/           # 계획 및 분석 (활성)
+├── planning/           # 계획 및 분석 (활성) - 7 files
 │   ├── TODO.md         # 현재 작업 목록
-│   ├── analysis/       # 분석 보고서
-│   └── templates/      # 작업 계획 템플릿
+│   └── *-plan.md       # 진행 중인 계획서
 │
-└── history/            # 완료된 작업 기록 (보관)
-    ├── completed/      # 완료된 주요 작업
-    ├── planning/       # 구현된 설계 문서
-    └── reports/        # 완료된 프로젝트 보고서
+└── history/            # 완료된 작업 기록 (보관) - 112 files
+    ├── docs/               # 완료된 문서 (guides, migrations, designs)
+    ├── completed-plans/    # 완료된 계획서
+    ├── completed-analysis/ # 완료된 분석 보고서
+    └── completed-reviews/  # 완료된 코드 리뷰
 ```
 
-## 문서 수명 주기
+## 워크플로우
 
-1. **계획 작성**: `reports/planning/` 에 새 문서 생성
-2. **작업 진행**: 진행 상황 업데이트
-3. **작업 완료**: `reports/history/` 로 이동
+### 1. 작업 계획 (Planning)
+```
+reports/planning/TODO.md    → 신규 작업 추가
+reports/planning/*-plan.md  → 상세 계획서 작성
+```
+
+### 2. AI 코드 리뷰
+```
+# 자동 생성 리뷰 (gitignored)
+logs/code-reviews/review-{AI}-{DATE}.md
+
+# 주요 리뷰 결과 (tracked)
+reports/history/completed-reviews/*.md
+```
+
+### 3. 문서 수명 주기
+```
+1. 신규 → reports/planning/*.md
+2. 진행 → 상태 업데이트
+3. 완료 → reports/history/completed-*/
+```
 
 ## vs docs/
 
@@ -30,6 +48,7 @@ reports/
 |------|---------|------------|
 | 성격 | 최신 유지 필요 | 시점별 스냅샷 |
 | 예시 | 가이드, API 문서 | 분석 결과, 완료 보고서 |
-| 업데이트 | 수시 | 작성 후 거의 없음 |
+| 개수 | 35 files | 119 files |
+| Git | Tracked | Tracked (history 포함) |
 
-_Last Updated: 2025-12-19_
+_Last Updated: 2026-01-14_
