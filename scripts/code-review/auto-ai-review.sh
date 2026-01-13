@@ -2,9 +2,14 @@
 
 # Auto AI Code Review Script (2-AI 순환) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 7.0.0
-# 날짜: 2026-01-07
+# 버전: 7.4.0
+# 날짜: 2026-01-13
 # 전략: 2-AI 순환 (Codex ↔ Gemini) 1:1 비율 + 중복 방지 + 소규모 변경 필터 + 누적 리뷰
+#
+# v7.4.0 (2026-01-13): 리포트 품질 개선
+# - ✨ 신규: 삭제 전용 커밋 감지 → "해당 없음 (코드 삭제)" 표시
+# - ✨ 신규: 일반 커밋 → "자동 검증 (pre-push)" 표시
+# - 🎯 효과: 검증 결과 섹션이 더 이상 N/A로 비어있지 않음
 #
 # v7.0.0 (2026-01-07): Qwen 제거 - 2-AI 시스템으로 단순화
 # - Qwen 제거 사유: 평균 201초 (Gemini 89초의 2.3배), 실패율 13.3%
@@ -210,6 +215,45 @@ TS_SUMMARY=""
 LINT_LOG=""
 TS_LOG=""
 
+# v7.4.0: 삭제 전용 커밋 감지 함수
+is_delete_only_commit() {
+    local commit_hash="${1:-HEAD}"
+
+    # numstat: additions deletions filename
+    # 삭제 전용이면 additions가 모두 0
+    local additions=$(git -C "$PROJECT_ROOT" diff-tree --numstat -r "$commit_hash" 2>/dev/null | awk '{sum += $1} END {print sum+0}')
+    local deletions=$(git -C "$PROJECT_ROOT" diff-tree --numstat -r "$commit_hash" 2>/dev/null | awk '{sum += $2} END {print sum+0}')
+
+    # 추가된 줄이 0이고 삭제된 줄이 0보다 크면 삭제 전용
+    if [ "$additions" -eq 0 ] && [ "$deletions" -gt 0 ]; then
+        return 0  # True: 삭제 전용
+    fi
+    return 1  # False: 일반 커밋
+}
+
+# v7.4.0: 검증 결과 변수 설정
+set_verification_status() {
+    local commit_hash="${1:-HEAD}"
+
+    VERIFY_TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+
+    if is_delete_only_commit "$commit_hash"; then
+        LINT_SUMMARY="해당 없음 (코드 삭제)"
+        TS_SUMMARY="해당 없음 (코드 삭제)"
+        LINT_LOG="N/A (삭제 전용 커밋)"
+        TS_LOG="N/A (삭제 전용 커밋)"
+    else
+        # 일반 커밋: 검증 스킵 표시 (별도 스크립트에서 실행)
+        LINT_SUMMARY="자동 검증 (pre-push)"
+        TS_SUMMARY="자동 검증 (pre-push)"
+        LINT_LOG="logs/validation/"
+        TS_LOG="logs/validation/"
+    fi
+
+    # 변수 내보내기 (lib 모듈에서 사용)
+    export VERIFY_TIMESTAMP LINT_SUMMARY TS_SUMMARY LINT_LOG TS_LOG
+}
+
 # ============================================================================
 # 모듈 임포트 (v5.0.0: 모듈화 구조)
 # ============================================================================
@@ -410,6 +454,9 @@ main() {
 
     # 2단계: 변경된 파일 목록 가져오기
     local head_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%H)
+
+    # v7.4.0: 검증 결과 변수 설정 (삭제 전용 커밋 감지)
+    set_verification_status "$head_commit"
 
     # 2-0단계: 누적 리뷰 체크 (v6.12.0)
     local unreviewed_count=1
