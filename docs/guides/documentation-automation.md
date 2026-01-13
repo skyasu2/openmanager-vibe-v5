@@ -1,7 +1,7 @@
 # 문서 자동화 시스템 가이드
 
-**버전**: v5.83.1
-**최종 업데이트**: 2025-12-19
+**버전**: v5.87.0
+**최종 업데이트**: 2026-01-13
 
 ---
 
@@ -19,7 +19,7 @@
 
 ### 목적
 
-- **CHANGELOG 자동화**: Git 커밋 메시지에서 자동으로 CHANGELOG 생성
+- **CHANGELOG 자동화**: `standard-version`을 통한 시맨틱 버저닝 + CHANGELOG 생성
 - **문서 품질 보장**: 코드 변경 시 문서/테스트 갱신 검증
 - **일관된 문서화**: Conventional Commits 기반 표준화
 
@@ -27,7 +27,7 @@
 
 | 컴포넌트                         | 역할                          | 실행 시점      |
 | -------------------------------- | ----------------------------- | -------------- |
-| `update-changelog.sh`            | CHANGELOG 자동 생성           | 수동 실행      |
+| `npm run release:*`              | 버전 + CHANGELOG 자동 생성    | 릴리스 시      |
 | `README.md`                      | 프로젝트 메인 문서            | 수동 유지보수  |
 
 ---
@@ -37,23 +37,23 @@
 ### 사용 방법
 
 ```bash
-# CHANGELOG 갱신 (마지막 업데이트 이후 커밋 분석)
-./scripts/docs/update-changelog.sh
+# 릴리스 및 CHANGELOG 갱신 (standard-version 사용)
+npm run release:patch    # 패치 릴리스 (5.87.0 → 5.87.1)
+npm run release:minor    # 마이너 릴리스 (5.87.0 → 5.88.0)
+npm run release:major    # 메이저 릴리스 (5.87.0 → 6.0.0)
+npm run release:dry-run  # 미리보기 (실제 변경 없음)
 ```
 
 ### 작동 원리
 
-1. **마지막 업데이트 날짜 확인**:
-   ```bash
-   LAST_UPDATE_DATE=$(grep -oP '## \[\d+\.\d+\.\d+\] - \K\d{4}-\d{2}-\d{2}' CHANGELOG.md | head -1)
-   ```
+`standard-version`은 다음 과정을 자동으로 수행합니다:
 
-2. **새로운 커밋 수집** (Conventional Commits):
-   ```bash
-   git log --since="$LAST_UPDATE_DATE" --pretty=format:"%h|%s|%an|%ad" --date=short --no-merges
-   ```
+1. **버전 결정**: Conventional Commits 분석
+   - `feat:` → minor 버전 증가
+   - `fix:` → patch 버전 증가
+   - `BREAKING CHANGE:` → major 버전 증가
 
-3. **커밋 분류** (8가지 타입):
+2. **커밋 분류** (8가지 타입):
    - `feat`: 🚀 Features (새 기능)
    - `fix`: 🐛 Bug Fixes (버그 수정)
    - `docs`: 📚 Documentation (문서)
@@ -63,39 +63,30 @@
    - `test`: 🧪 Tests (테스트)
    - `chore`: 🔧 Chores (잡무)
 
-4. **CHANGELOG 생성** (마크다운 형식):
-   ```markdown
-   ## [Unreleased] - 2025-11-28
-
-   ### 🚀 Features
-   - GPU 애니메이션 시스템 추가 ([abc123](링크))
-
-   ### 🐛 Bug Fixes
-   - SSR 안전성 개선 ([def456](링크))
-   ```
+3. **자동 수행 작업**:
+   - `package.json` 버전 업데이트
+   - `CHANGELOG.md` 갱신
+   - Git 태그 생성 (`v5.87.1`)
+   - 커밋 자동 생성
 
 ### 출력 예시
 
 ```
-📝 CHANGELOG 자동 갱신 시작...
-  마지막 CHANGELOG 업데이트: 2025-11-15
-✅ CHANGELOG 갱신 완료!
-  새로운 커밋 수: 324
-  업데이트 날짜: 2025-11-28
+✔ bumping version in package.json from 5.87.0 to 5.87.1
+✔ bumping version in cloud-run/ai-engine/package.json from 5.87.0 to 5.87.1
+✔ outputting changes to CHANGELOG.md
+✔ committing package.json and CHANGELOG.md
+✔ tagging release v5.87.1
 ```
 
 ### 통합 워크플로우
 
 ```bash
-# 1. 작업 완료 후 CHANGELOG 갱신
-./scripts/docs/update-changelog.sh
+# 1. 작업 완료 후 릴리스
+npm run release:patch  # 또는 :minor, :major
 
-# 2. CHANGELOG 커밋
-git add CHANGELOG.md
-git commit -m "docs(changelog): 2025-11-28 업데이트"
-
-# 3. 푸시
-git push
+# 2. 태그와 함께 푸시 (자동 배포 트리거)
+git push --follow-tags
 ```
 
 ---
@@ -145,7 +136,7 @@ fi
 
 💡 권장 사항:
    - 테스트 추가: npm run test:super-fast
-   - 문서 갱신: ./scripts/docs/update-changelog.sh
+   - 릴리스 시: npm run release:patch
    - README 업데이트: 주요 변경사항 반영
 
 계속 진행하려면 Enter를 누르세요...
@@ -223,22 +214,25 @@ fi
 
 ## 🔧 트러블슈팅
 
-### 문제 1: CHANGELOG 갱신 실패
+### 문제 1: 릴리스 실패
 
 **증상**:
 ```
-❌ 스크립트 실패 (라인: 31, 명령어: grep -oP ...)
+✖ bumping version failed
 ```
 
-**원인**: CHANGELOG.md 파일 형식이 예상과 다름
+**원인**: 작업 디렉토리에 uncommitted 변경사항 존재
 
 **해결**:
 ```bash
-# 수동으로 첫 버전 추가
-echo "## [Unreleased] - $(date +%Y-%m-%d)" >> CHANGELOG.md
+# 변경사항 확인
+git status
+
+# 변경사항 커밋 또는 스태시
+git stash  # 또는 git commit
 
 # 재실행
-./scripts/docs/update-changelog.sh
+npm run release:patch
 ```
 
 ### 문제 2: 커밋 메시지 형식 불일치
@@ -269,6 +263,6 @@ git commit -m "feat(api): 새 API 엔드포인트 추가"
 
 ---
 
-**마지막 업데이트**: 2025-11-28
+**마지막 업데이트**: 2026-01-13
 **작성자**: Claude Code
-**버전**: 1.0.0
+**버전**: 2.0.0 (standard-version 전환)
