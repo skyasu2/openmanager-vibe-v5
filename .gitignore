@@ -221,13 +221,12 @@ logs/gcp-*.json
 reports/gcp-quota-report-*.md
 .vscode/gcp-alerts.json
 
-# AI 검토 보고서 및 분석 리포트 (GitHub 제외)
+# AI 검토 보고서 및 분석 리포트
 reports/*
 !reports/README.md
 !reports/planning/
-!reports/history/
 !reports/ai-review/
-!reports/qa/
+# reports/history/ - 완료된 문서 아카이브 (gitignored)
 
 # External MCP servers (cloned from GitHub)
 fetch-mcp/
