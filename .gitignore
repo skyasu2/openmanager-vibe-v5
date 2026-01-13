@@ -483,3 +483,6 @@ cloud-run/docker-compose.override.yml
 
 # Cloud Run generated data
 # Note: precomputed-states.json is now tracked (SSOT with hourly-data)
+
+# Local npm global directory
+.npm-global/
