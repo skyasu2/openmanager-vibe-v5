@@ -34,7 +34,7 @@ export interface HistoryDataPoint {
   network: number;
 }
 
-// 히스토리 데이터 최대 포인트 수 (60분 = 60개 포인트)
+// 히스토리 데이터 최대 포인트 수 (10분 간격 시 10시간 분량)
 const MAX_HISTORY_POINTS = 60;
 
 /**
