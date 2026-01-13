@@ -18,25 +18,25 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
-# 로그 함수들
+# 로그 함수들 (stderr 출력으로 마크다운 리포트 오염 방지)
 log_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
+    echo -e "${BLUE}ℹ️  $1${NC}" >&2
 }
 
 log_success() {
-    echo -e "${GREEN}✅ $1${NC}"
+    echo -e "${GREEN}✅ $1${NC}" >&2
 }
 
 log_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    echo -e "${YELLOW}⚠️  $1${NC}" >&2
 }
 
 log_error() {
-    echo -e "${RED}❌ $1${NC}"
+    echo -e "${RED}❌ $1${NC}" >&2
 }
 
 log_ai_engine() {
-    echo -e "${MAGENTA}🤖 $1${NC}"
+    echo -e "${MAGENTA}🤖 $1${NC}" >&2
 }
 
 # AI 사용 카운터 초기화 (v6.9.1: claude 제거, 3-AI만)

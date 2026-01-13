@@ -153,6 +153,15 @@ $changes
             return 1  # 실패 반환 → Codex로 폴백 (2-AI 상호 폴백)
         fi
 
+        # v7.4.0: Gemini thinking 과정 제거 (리포트 품질 개선)
+        # "I will..." 패턴의 중간 사고 과정 필터링
+        gemini_output=$(echo "$gemini_output" | sed '/^I will /d')
+
+        # [Review Task] 이후 내용만 추출 (있는 경우)
+        if echo "$gemini_output" | grep -q '\[Review Task\]'; then
+            gemini_output=$(echo "$gemini_output" | sed -n '/\[Review Task\]/,$p')
+        fi
+
         # 파일 디스크립터를 통해 AI_ENGINE 전파
         echo "gemini" > /tmp/ai_engine_auto_review
         echo "$gemini_output"
