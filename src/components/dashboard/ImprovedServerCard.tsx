@@ -3,7 +3,6 @@ import {
   ChevronUp,
   Clock,
   Globe,
-  HardDrive,
   MapPin,
   Zap,
 } from 'lucide-react';
@@ -122,23 +121,23 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       [currentMetrics, safeServer]
     );
 
-    // UI Variants - 50% 축소된 크기
+    // UI Variants - Disk/Network 제거로 높이 최적화
     const variantStyles = useMemo(() => {
       const styles = {
         compact: {
-          container: 'min-h-[150px] p-2',
+          container: 'min-h-[130px] p-2',
           maxServices: 2,
           showDetails: false,
           showServices: false,
         },
         detailed: {
-          container: 'min-h-[190px] p-3',
+          container: 'min-h-[160px] p-3',
           maxServices: 4,
           showDetails: true,
           showServices: true,
         },
         standard: {
-          container: 'min-h-[170px] p-2.5',
+          container: 'min-h-[150px] p-2.5',
           maxServices: 3,
           showDetails: true,
           showServices: true,
@@ -309,34 +308,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             />
           </div>
 
-          {/* Secondary & Details */}
-          <div
-            className={`space-y-1.5 overflow-hidden transition-all duration-300 ${showSecondaryInfo ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
-          >
-            <div className="flex items-center gap-1 pt-1">
-              <HardDrive className="h-3 w-3 text-gray-500" />
-              <span className="text-[11px] font-medium uppercase text-gray-500 tracking-wide">
-                Storage & Network
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <MetricItem
-                type="disk"
-                value={realtimeMetrics.disk}
-                status={safeServer.status}
-                history={historyData?.map((h) => h.disk)}
-                color={statusTheme.graphColor}
-              />
-              <MetricItem
-                type="network"
-                value={realtimeMetrics.network}
-                status={safeServer.status}
-                history={historyData?.map((h) => h.network)}
-                color={statusTheme.graphColor}
-              />
-            </div>
-          </div>
-
+          {/* Tertiary Details (OS, Uptime, IP) */}
           <div
             className={`space-y-2 overflow-hidden transition-all duration-500 ${showTertiaryInfo ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
           >
