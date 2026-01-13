@@ -174,10 +174,10 @@ export function useFixed24hMetrics(
 
           const initialHistory: HistoryDataPoint[] = [];
 
-          // 과거 12개 포인트 (1시간) 생성 - 5분 간격
+          // 과거 12개 포인트 (2시간) 생성 - 10분 간격 (실제 데이터 주기와 일치)
           for (let i = 11; i >= 0; i--) {
-            // i번째 과거 시점 (5분 * i)
-            let targetMinute = currentMinuteOfDay - i * 5;
+            // i번째 과거 시점 (10분 * i)
+            let targetMinute = currentMinuteOfDay - i * 10;
 
             // 자정 넘어가는 경우 처리 (음수 -> 전날)
             if (targetMinute < 0) targetMinute += 1440;
