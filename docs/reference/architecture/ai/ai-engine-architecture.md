@@ -6,7 +6,7 @@
 
 The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel AI SDK** with `@ai-sdk-tools/agents`. It uses a dual-mode Supervisor pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
 
-## Architecture (v5.92.0, Updated 2025-12-28)
+## Architecture (v5.87.0, Updated 2026-01-13)
 
 ### Deployment Mode
 
@@ -64,7 +64,7 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 - **Protocol Adaptation**: SSE with Keep-Alive to prevent timeouts
 - **Response Verification**: Verifier agent validates outputs before response
 
-#### New in v5.92.0 (2025-12-28)
+#### New in v5.87.0 (2026-01-13)
 
 - **LangGraph → Vercel AI SDK Migration**: Complete rewrite using `@ai-sdk-tools/agents`
 - **Dual-Mode Supervisor**: Auto-selects single vs multi-agent based on query complexity
@@ -170,7 +170,7 @@ graph TD
 
 ## State Interfaces
 
-### Vercel AI SDK Types (v5.92.0)
+### Vercel AI SDK Types (v5.87.0)
 
 The core interfaces for AI SDK multi-agent orchestration:
 
@@ -473,7 +473,7 @@ GraphRAG combines:
 cloud-run/ai-engine/
 ├── src/
 │   ├── server.ts               # Hono HTTP server (main entry)
-│   ├── tools-ai-sdk.ts         # Vercel AI SDK tool definitions (11 tools)
+│   ├── tools-ai-sdk/           # Vercel AI SDK tool definitions
 │   ├── lib/
 │   │   ├── cache-layer.ts      # Multi-tier caching (L1: Memory, L2: Redis)
 │   │   ├── redis-client.ts     # Upstash Redis client (L2 cache)
@@ -489,7 +489,7 @@ cloud-run/ai-engine/
 │   ├── routes/
 │   │   └── jobs.ts             # Async job processing endpoints
 │   └── services/
-│       ├── ai-sdk/             # Vercel AI SDK (v5.92.0 - Primary)
+│       ├── ai-sdk/             # Vercel AI SDK (v5.87.0 - Primary)
 │       │   ├── supervisor.ts   # Dual-mode supervisor (single/multi)
 │       │   ├── supervisor.test.ts
 │       │   ├── model-provider.ts # Provider factory (Cerebras/Groq/Mistral)
@@ -556,7 +556,7 @@ cloud-run/supabase-mcp/         # Deprecated - direct Supabase JS client
 
 ## Cloud Run Services
 
-### ai-engine (Vercel AI SDK v5.92.0)
+### ai-engine (Vercel AI SDK v5.87.0)
 
 - **Runtime**: Node.js 22 + Hono
 - **Framework**: Vercel AI SDK with `@ai-sdk-tools/agents`
