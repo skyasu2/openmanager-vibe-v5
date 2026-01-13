@@ -4,7 +4,7 @@
 
 **버전**: 1.0.0
 **최종 업데이트**: 2025-12-31
-**관련 문서**: [AI Engine Architecture](./ai-engine-architecture.md) | [AI Architecture Overview](../../ai/ai-architecture.md)
+**관련 문서**: [AI Engine Architecture](./ai-engine-architecture.md)
 
 ---
 
@@ -408,9 +408,8 @@ curl -X POST /api/supervisor \
 
 | 문서 | 경로 | 내용 |
 |------|------|------|
-| AI Engine 상세 아키텍처 | `docs/core/architecture/ai/ai-engine-architecture.md` | 기술 상세 명세 |
-| AI 전체 아키텍처 | `docs/core/ai/ai-architecture.md` | Frontend + Backend 통합 |
-| API 엔드포인트 | `docs/api/endpoints.md` | REST API 명세 |
+| AI Engine 상세 아키텍처 | `docs/reference/architecture/ai/ai-engine-architecture.md` | 기술 상세 명세 |
+| AI 라우팅 아키텍처 | `docs/reference/architecture/ai/ai-routing-architecture.md` | 라우팅 로직 |
 | 배포 가이드 | `cloud-run/ai-engine/README.md` | Cloud Run 배포 |
 
 ---
