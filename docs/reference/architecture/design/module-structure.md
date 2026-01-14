@@ -1,6 +1,6 @@
 # 🧩 Project Structure (Next.js Standard)
 
-> **Updated**: 2026-01-13 - DDD에서 Next.js 표준 구조로 마이그레이션됨
+> **프로젝트 버전**: v5.87.0 | **Updated**: 2026-01-14
 
 ## 📂 디렉토리 구조
 

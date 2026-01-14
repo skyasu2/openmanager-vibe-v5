@@ -2,8 +2,8 @@
 
 > **OpenManager VIBE v5 AI Engine의 육하원칙(5W1H) 기반 아키텍처 분석**
 
-**버전**: 1.0.0
-**최종 업데이트**: 2025-12-31
+**프로젝트 버전**: v5.87.0
+**최종 업데이트**: 2026-01-14
 **관련 문서**: [AI Engine Architecture](./ai-engine-architecture.md)
 
 ---
