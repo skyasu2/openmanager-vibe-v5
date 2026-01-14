@@ -59,10 +59,10 @@ interface CustomNodeData extends Record<string, unknown> {
 // Constants
 // =============================================================================
 
-const NODE_WIDTH = 130;
-const NODE_HEIGHT = 48;
-const LAYER_GAP = 80;
-const NODE_GAP = 10;
+const NODE_WIDTH = 160;
+const NODE_HEIGHT = 52;
+const LAYER_GAP = 90;
+const NODE_GAP = 30;
 const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
 
 const NODE_STYLES: Record<
@@ -110,6 +110,7 @@ const CustomNode = memo(({ data }: NodeProps<Node<CustomNodeData>>) => {
       {/* 노드 본체 */}
       <div
         className={`flex min-w-[110px] items-center gap-1.5 rounded-lg border px-2 py-1.5 transition-all duration-200 hover:scale-105 ${styles.bg} ${styles.border} ${styles.shadow}`}
+        title={`${data.label}${data.sublabel ? `\n${data.sublabel}` : ''}`}
       >
         {data.icon && <span className="text-sm">{data.icon}</span>}
         <div className="min-w-0 flex-1">
@@ -205,7 +206,7 @@ function convertToReactFlow(diagram: DiagramData): {
       id: `layer-${layerIndex}`,
       type: 'layerLabel',
       position: {
-        x: -layerWidth / 2 - 80,
+        x: -layerWidth / 2 - 180,
         y: labelY,
       },
       data: { title: layer.title, color: layer.color },

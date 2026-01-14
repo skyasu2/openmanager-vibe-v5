@@ -94,43 +94,30 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
           {
             id: 'nlq',
             label: 'NLQ Agent',
-            sublabel: 'Cerebras → Groq',
+            sublabel: 'Server Metrics (w/ Fallback)',
             type: 'secondary',
             icon: '🔍',
           },
           {
             id: 'analyst',
             label: 'Analyst Agent',
-            sublabel: 'Groq → Cerebras',
+            sublabel: 'RCA & Anomaly (w/ Fallback)',
             type: 'secondary',
             icon: '📊',
           },
           {
             id: 'reporter',
             label: 'Reporter Agent',
-            sublabel: 'Groq → Cerebras',
+            sublabel: 'Incident Report (w/ Fallback)',
             type: 'secondary',
             icon: '📝',
           },
           {
             id: 'advisor',
             label: 'Advisor Agent',
-            sublabel: 'Mistral + GraphRAG',
+            sublabel: 'GraphRAG + Reasoning',
             type: 'secondary',
             icon: '💡',
-          },
-        ],
-      },
-      {
-        title: 'Verification',
-        color: 'from-emerald-500 to-teal-600',
-        nodes: [
-          {
-            id: 'verifier',
-            label: 'Verifier',
-            sublabel: 'Mistral mistral-small',
-            type: 'highlight',
-            icon: '✅',
           },
         ],
       },
@@ -142,10 +129,6 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
       { from: 'orchestrator', to: 'analyst', label: 'Handoff' },
       { from: 'orchestrator', to: 'reporter', label: 'Handoff' },
       { from: 'orchestrator', to: 'advisor', label: 'Handoff' },
-      { from: 'nlq', to: 'verifier', type: 'dashed' },
-      { from: 'analyst', to: 'verifier', type: 'dashed' },
-      { from: 'reporter', to: 'verifier', type: 'dashed' },
-      { from: 'advisor', to: 'verifier', type: 'dashed' },
     ],
   },
 
@@ -275,11 +258,11 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             icon: '🎨',
           },
           {
-            id: 'framer',
-            label: 'Framer Motion 12',
-            sublabel: 'Animations',
+            id: 'animate',
+            label: 'Tailwind Animate',
+            sublabel: 'CSS Animations',
             type: 'secondary',
-            icon: '🎬',
+            icon: '✨',
           },
         ],
       },
@@ -375,7 +358,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
     id: 'vibe-coding',
     title: 'Development Environment',
     description:
-      'Google Antigravity IDE + WSL Terminal + Claude Code 중심의 Agentic Development 환경. AI가 주도하고 인간이 검증.',
+      'Google Antigravity IDE + WSL Terminal + Claude Code 중심의 Agentic Development 환경. AI가 만들고 AI가 검증.',
     layers: [
       {
         title: 'IDE (Agent-First)',

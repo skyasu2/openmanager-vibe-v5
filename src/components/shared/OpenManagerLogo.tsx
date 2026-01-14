@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type React from 'react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { AI_GRADIENT_STYLE } from '@/styles/design-constants';
+import { AI_GRADIENT_ANIMATED_STYLE } from '@/styles/design-constants';
 
 interface OpenManagerLogoProps {
   /**
@@ -37,10 +37,12 @@ export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
 
   // 배경 그라데이션 로직 (상태 반응형)
   const backgroundStyle = aiAgent.isEnabled
-    ? AI_GRADIENT_STYLE // AI 모드: 표준 AI 그라데이션 (Purple -> Pink -> Cyan)
-    : isSystemStarted
-      ? 'linear-gradient(135deg, #10b981, #059669)' // 시스템 시작: 에메랄드
-      : 'linear-gradient(135deg, #6b7280, #4b5563)'; // 정지: 회색
+    ? AI_GRADIENT_ANIMATED_STYLE // AI 모드: 애니메이션 AI 그라데이션
+    : {
+        background: isSystemStarted
+          ? 'linear-gradient(135deg, #10b981, #059669)' // 시스템 시작: 에메랄드
+          : 'linear-gradient(135deg, #6b7280, #4b5563)', // 정지: 회색
+      };
 
   // 텍스트 색상 설정
   const titleColor = variant === 'dark' ? 'text-white' : 'text-gray-900';
@@ -51,7 +53,7 @@ export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
       {/* 아이콘 영역 (아이콘 제거됨 - 그라데이션 스퀘어 컨셉) */}
       <div
         className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg"
-        style={{ background: backgroundStyle }}
+        style={backgroundStyle}
       />
 
       {/* 텍스트 영역 - suppressHydrationWarning for dynamic subtitle */}

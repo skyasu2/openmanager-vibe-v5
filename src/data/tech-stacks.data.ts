@@ -61,20 +61,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       tags: ['SLM', '24B', '오픈웨이트'],
       type: 'commercial',
     },
-    {
-      name: 'OpenRouter',
-      category: 'ai',
-      importance: 'medium',
-      description:
-        '200+ AI 모델에 통합 접근하는 API 게이트웨이. 무료 티어로 llama-3.1-8b, gemma-2-9b 등 오픈소스 모델 제공',
-      implementation:
-        '→ Advisor/Verifier 폴백으로 사용. Mistral 장애 시 자동 전환되어 서비스 연속성 보장',
-      version: 'llama-3.1-8b:free / gemma-2-9b:free',
-      status: 'active',
-      icon: '🔀',
-      tags: ['Fallback', '무료티어', '다중모델'],
-      type: 'commercial',
-    },
+
     // ========== Framework & SDK ==========
     {
       name: 'Vercel AI SDK',
