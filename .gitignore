@@ -440,12 +440,10 @@ docs/maintenance/
 docs/testing/pin-authentication-*.md
 **/pin-authentication-*.md
 *.pid
-.dev-server.pid
 
 # Runtime temp files
 .dev-server.pid
 dev-server.log
-.mcp.json.README.md
 
 # Biome and linting reports (temporary analysis files)
 biome_report*.txt
