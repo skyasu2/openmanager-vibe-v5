@@ -59,10 +59,11 @@ interface CustomNodeData extends Record<string, unknown> {
 // Constants
 // =============================================================================
 
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 70;
-const LAYER_GAP = 120;
-const NODE_GAP = 20;
+const NODE_WIDTH = 130;
+const NODE_HEIGHT = 48;
+const LAYER_GAP = 80;
+const NODE_GAP = 10;
+const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
 
 const NODE_STYLES: Record<
   CustomNodeData['nodeType'],
@@ -108,15 +109,15 @@ const CustomNode = memo(({ data }: NodeProps<Node<CustomNodeData>>) => {
 
       {/* 노드 본체 */}
       <div
-        className={`flex min-w-[160px] items-center gap-2 rounded-xl border-2 p-3 transition-all duration-200 hover:scale-105 ${styles.bg} ${styles.border} ${styles.shadow}`}
+        className={`flex min-w-[110px] items-center gap-1.5 rounded-lg border px-2 py-1.5 transition-all duration-200 hover:scale-105 ${styles.bg} ${styles.border} ${styles.shadow}`}
       >
-        {data.icon && <span className="text-lg">{data.icon}</span>}
+        {data.icon && <span className="text-sm">{data.icon}</span>}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-white">
+          <div className="truncate text-xs font-semibold text-white">
             {data.label}
           </div>
           {data.sublabel && (
-            <div className="truncate text-xs text-white/60">
+            <div className="truncate text-[10px] leading-tight text-white/60">
               {data.sublabel}
             </div>
           )}
@@ -157,9 +158,11 @@ const LayerLabelNode = memo(
   ({ data }: NodeProps<Node<{ title: string; color: string }>>) => {
     return (
       <div
-        className={`rounded-full bg-gradient-to-r ${data.color} px-4 py-1.5 shadow-lg`}
+        className={`rounded-full bg-gradient-to-r ${data.color} px-2.5 py-1 shadow-md`}
       >
-        <span className="text-xs font-bold text-white">{data.title}</span>
+        <span className="whitespace-nowrap text-[10px] font-bold text-white">
+          {data.title}
+        </span>
       </div>
     );
   }
@@ -173,6 +176,7 @@ LayerLabelNode.displayName = 'LayerLabelNode';
 
 /**
  * 기존 데이터 형식을 React Flow 노드/엣지로 변환
+ * 노드가 많은 레이어는 2줄로 배치
  */
 function convertToReactFlow(diagram: DiagramData): {
   nodes: Node[];
@@ -186,26 +190,36 @@ function convertToReactFlow(diagram: DiagramData): {
 
   // 레이어별로 노드 생성
   diagram.layers.forEach((layer, layerIndex) => {
-    const layerWidth = layer.nodes.length * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
+    const nodeCount = layer.nodes.length;
+    const needsMultiRow = nodeCount > MAX_NODES_PER_ROW;
+    const nodesPerRow = needsMultiRow ? Math.ceil(nodeCount / 2) : nodeCount;
+    const rowCount = needsMultiRow ? 2 : 1;
+
+    const layerWidth = nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
     const startX = -layerWidth / 2;
 
     // 레이어 라벨 노드 추가
+    const labelY =
+      currentY + (rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP) / 2 - 10;
     nodes.push({
       id: `layer-${layerIndex}`,
       type: 'layerLabel',
       position: {
-        x: -layerWidth / 2 - 100,
-        y: currentY + NODE_HEIGHT / 2 - 12,
+        x: -layerWidth / 2 - 80,
+        y: labelY,
       },
       data: { title: layer.title, color: layer.color },
       draggable: false,
       selectable: false,
     });
 
-    // 레이어 내 노드들 배치
+    // 레이어 내 노드들 배치 (2줄 지원)
     layer.nodes.forEach((node, nodeIndex) => {
-      const x = startX + nodeIndex * (NODE_WIDTH + NODE_GAP);
-      const y = currentY;
+      const row = needsMultiRow ? Math.floor(nodeIndex / nodesPerRow) : 0;
+      const col = needsMultiRow ? nodeIndex % nodesPerRow : nodeIndex;
+
+      const x = startX + col * (NODE_WIDTH + NODE_GAP);
+      const y = currentY + row * (NODE_HEIGHT + NODE_GAP);
 
       nodePositions[node.id] = { x, y };
 
@@ -224,7 +238,8 @@ function convertToReactFlow(diagram: DiagramData): {
       });
     });
 
-    currentY += LAYER_GAP;
+    // 다음 레이어 Y 위치 (멀티 로우 고려)
+    currentY += rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP + LAYER_GAP;
   });
 
   // 연결선 생성
@@ -331,12 +346,12 @@ function ReactFlowDiagram({
           onInit={onInit}
           fitView
           fitViewOptions={{
-            padding: 0.2,
-            minZoom: 0.5,
-            maxZoom: 1.5,
+            padding: 0.15,
+            minZoom: 0.6,
+            maxZoom: 1.2,
           }}
-          minZoom={0.3}
-          maxZoom={2}
+          minZoom={0.4}
+          maxZoom={1.5}
           defaultEdgeOptions={{
             type: 'smoothstep',
           }}
@@ -368,26 +383,26 @@ function ReactFlowDiagram({
       </div>
 
       {/* 범례 */}
-      <div className="flex flex-wrap justify-center gap-4 border-t border-white/10 pt-4">
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded bg-gradient-to-br from-yellow-500/40 to-amber-500/40 ring-1 ring-yellow-400/50" />
-          <span className="text-xs text-gray-400">핵심 컴포넌트</span>
+      <div className="flex flex-wrap justify-center gap-3 border-t border-white/10 pt-3">
+        <div className="flex items-center gap-1.5">
+          <div className="h-2.5 w-2.5 rounded bg-gradient-to-br from-yellow-500/40 to-amber-500/40 ring-1 ring-yellow-400/50" />
+          <span className="text-[10px] text-gray-400">핵심</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded bg-white/15 ring-1 ring-white/30" />
-          <span className="text-xs text-gray-400">주요 기술</span>
+        <div className="flex items-center gap-1.5">
+          <div className="h-2.5 w-2.5 rounded bg-white/15 ring-1 ring-white/30" />
+          <span className="text-[10px] text-gray-400">주요</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded bg-white/5 ring-1 ring-white/10" />
-          <span className="text-xs text-gray-400">보조 도구</span>
+        <div className="flex items-center gap-1.5">
+          <div className="h-2.5 w-2.5 rounded bg-white/5 ring-1 ring-white/10" />
+          <span className="text-[10px] text-gray-400">보조</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-6 border-t-2 border-dashed border-purple-400/60" />
-          <span className="text-xs text-gray-400">검증 흐름</span>
+        <div className="flex items-center gap-1.5">
+          <div className="h-3 w-4 border-t border-dashed border-purple-400/60" />
+          <span className="text-[10px] text-gray-400">검증</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-6 border-t-2 border-white/40" />
-          <span className="text-xs text-gray-400">데이터 흐름</span>
+        <div className="flex items-center gap-1.5">
+          <div className="h-3 w-4 border-t border-white/40" />
+          <span className="text-[10px] text-gray-400">데이터</span>
         </div>
       </div>
     </div>
