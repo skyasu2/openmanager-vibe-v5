@@ -262,7 +262,7 @@ function convertToReactFlow(diagram: DiagramData): {
         target: conn.to,
         sourceHandle: isHorizontal ? 'right' : undefined,
         targetHandle: isHorizontal ? 'left' : undefined,
-        type: 'smoothstep',
+        type: 'default', // smoothstep -> default (Bezier)
         animated: conn.type === 'dashed',
         style: {
           stroke:

@@ -131,7 +131,7 @@ export const UserTypeIcon = memo(function UserTypeIcon({
   userType,
   className = 'w-4 h-4',
 }: {
-  userType: 'github' | 'guest' | 'unknown';
+  userType: 'github' | 'google' | 'guest' | 'unknown';
   className?: string;
 }) {
   if (userType === 'github') {

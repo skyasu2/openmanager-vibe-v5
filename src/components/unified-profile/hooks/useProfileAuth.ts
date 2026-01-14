@@ -37,9 +37,11 @@ export function useProfileAuth(): ProfileAuthHook {
         setUserType(
           authState.type === 'github'
             ? 'github'
-            : authState.type === 'guest'
-              ? 'guest'
-              : 'unknown'
+            : authState.type === 'google'
+              ? 'google'
+              : authState.type === 'guest'
+                ? 'guest'
+                : 'unknown'
         );
 
         logger.info('👤 사용자 정보 로드 (AuthStateManager 통합):', {

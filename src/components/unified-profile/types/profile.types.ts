@@ -16,7 +16,7 @@ export interface UserInfo {
 /**
  * 사용자 타입
  */
-export type UserType = 'github' | 'guest' | 'unknown';
+export type UserType = 'github' | 'google' | 'guest' | 'unknown';
 
 /**
  * 메뉴 아이템 타입

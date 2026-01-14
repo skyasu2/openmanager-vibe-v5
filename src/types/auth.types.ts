@@ -52,7 +52,7 @@ export interface UserSession {
   access_token?: string;
   refresh_token?: string;
   expires_at?: string;
-  provider?: 'github' | 'guest';
+  provider?: 'github' | 'google' | 'guest';
 }
 
 // 사용자 프로필 업데이트 타입
@@ -181,7 +181,7 @@ export interface DatabaseUser {
   followers?: number;
   following?: number;
   verified: boolean;
-  user_type: 'github' | 'guest';
+  user_type: 'github' | 'google' | 'guest';
   permissions: string[];
   settings: UserSettings;
   last_sign_in_at?: string;

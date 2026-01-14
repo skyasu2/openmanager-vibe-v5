@@ -45,7 +45,7 @@ export interface AuthUser {
   email?: string;
   name?: string;
   avatar?: string;
-  provider?: 'github' | 'guest';
+  provider?: 'github' | 'google' | 'guest';
 }
 
 export interface AuthCallbackResult {

@@ -39,12 +39,12 @@ export interface AuthUser {
   email?: string;
   name?: string;
   avatar?: string;
-  provider?: 'github' | 'guest';
+  provider?: 'github' | 'google' | 'guest';
 }
 
 export interface AuthState {
   user: AuthUser | null;
-  type: 'github' | 'guest' | 'unknown';
+  type: 'github' | 'google' | 'guest' | 'unknown';
   isAuthenticated: boolean;
   sessionId?: string;
 }
@@ -105,23 +105,26 @@ export class AuthStateManager {
     }
 
     try {
-      // 1. Supabase 세션 확인 (GitHub OAuth) 우선 - GitHub 로그인 정확한 감지
+      // 1. Supabase 세션 확인 (GitHub/Google OAuth) 우선
       const session = await this.getSupabaseSession();
       if (session?.user) {
-        const githubUser = this.extractGitHubUser(session);
+        const authUser = this.extractUserFromSession(session);
         const state: AuthState = {
-          user: githubUser,
-          type: 'github',
+          user: authUser,
+          type: (authUser.provider as 'github' | 'google') || 'github',
           isAuthenticated: true,
           sessionId: `${session.access_token?.substring(0, 8)}...`,
         };
 
         this.setCachedState(state);
-        logger.info('🔐 GitHub 세션 확인', { userId: githubUser.id });
+        logger.info('🔐 인증 세션 확인', {
+          userId: authUser.id,
+          provider: authUser.provider,
+        });
         return state;
       }
 
-      // 2. 게스트 세션 확인 - GitHub 세션이 없을 때만
+      // 2. 게스트 세션 확인 - OAuth 세션이 없을 때만
       const guestState = await this.getGuestState();
       if (guestState.isAuthenticated) {
         this.setCachedState(guestState);
@@ -157,7 +160,7 @@ export class AuthStateManager {
   async isGitHubAuthenticated(): Promise<boolean> {
     try {
       const session = await this.getSupabaseSession();
-      return !!(session?.user && this.isGitHubProvider(session));
+      return !!(session?.user && this.isProvider(session, 'github'));
     } catch (error) {
       logger.error('❌ GitHub 인증 상태 확인 실패:', error);
       return false;
@@ -404,25 +407,36 @@ export class AuthStateManager {
     };
   }
 
-  private extractGitHubUser(session: Session): AuthUser {
+  private extractUserFromSession(session: Session): AuthUser {
     const user = session.user;
+    // Provider 감지 (app_metadata 우선)
+    const provider =
+      user.app_metadata?.provider === 'google'
+        ? 'google'
+        : user.app_metadata?.provider === 'github'
+          ? 'github'
+          : user.user_metadata?.provider === 'google'
+            ? 'google'
+            : 'github'; // Default fallback
+
     return {
       id: user.id,
       email: user.email,
       name:
         user.user_metadata?.full_name ||
         user.user_metadata?.user_name ||
+        user.user_metadata?.name || // Google uses 'name'
         user.email?.split('@')[0] ||
-        'GitHub User',
-      avatar: user.user_metadata?.avatar_url,
-      provider: 'github',
+        `${provider === 'google' ? 'Google' : 'GitHub'} User`,
+      avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture, // Google uses 'picture'
+      provider: provider as 'github' | 'google',
     };
   }
 
-  private isGitHubProvider(session: Session): boolean {
+  private isProvider(session: Session, provider: string): boolean {
     return !!(
-      session.user?.app_metadata?.provider === 'github' ||
-      session.user?.user_metadata?.provider === 'github'
+      session.user?.app_metadata?.provider === provider ||
+      session.user?.user_metadata?.provider === provider
     );
   }
 
