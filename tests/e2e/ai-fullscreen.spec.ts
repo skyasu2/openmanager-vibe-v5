@@ -166,15 +166,15 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     await expect(chatInput).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
   });
 
-  test('AI 기능 탭 전환 - 자동장애 보고서', async ({ page }) => {
+  test('AI 기능 탭 전환 - 장애 보고서', async ({ page }) => {
     await page.goto('/dashboard/ai-assistant', {
       waitUntil: 'domcontentloaded',
     });
     await page.waitForLoadState('networkidle');
 
-    // 자동장애 보고서 버튼 클릭 (텍스트 기반 셀렉터)
+    // v5.87.0: 버튼 텍스트가 "장애 보고서"로 변경됨
     const autoReportButton = page
-      .locator('button:has-text("자동장애 보고서")')
+      .locator('button:has-text("장애 보고서"), div:has-text("장애 보고서")')
       .first();
     await autoReportButton.waitFor({
       state: 'visible',
@@ -185,12 +185,15 @@ test.describe('AI 어시스턴트 풀스크린 테스트', () => {
     // 탭 전환 후 UI 확인
     await page.waitForTimeout(500); // 탭 전환 애니메이션 대기
 
-    // 브레드크럼 또는 제목에서 auto-report 관련 표시 확인
-    const breadcrumb = page
-      .locator('text=auto-report')
-      .or(page.locator('text=자동 장애보고서'))
+    // auto-report 관련 콘텐츠 또는 data-testid 확인
+    const reportContent = page
+      .locator('[data-testid="auto-report-page"]')
+      .or(page.locator('text=auto-report'))
+      .or(page.locator('text=장애 보고서'))
       .first();
-    await expect(breadcrumb).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
+    await expect(reportContent).toBeVisible({
+      timeout: TIMEOUTS.MODAL_DISPLAY,
+    });
   });
 
   test('AI 기능 탭 전환 - 이상감지/예측', async ({ page }) => {

@@ -12,8 +12,10 @@ import { expect, test } from '@playwright/test';
 import { guestLogin } from './helpers/guest';
 import { TIMEOUTS } from './helpers/timeouts';
 
-// Server cards don't have data-testid; they are clickable cards with server name headings (APP-01, etc.)
-// Selector reference: '[class*="cursor-pointer"]:has(h3), .group:has(h3[class*="font"]), article:has(h3)'
+// Server cards don't have data-testid; they are clickable cards with server name headings
+// v5.87.0: 서버 이름이 "Nginx Web Server 01", "WAS API Server 01" 등으로 변경됨 (APP- 접두사 제거)
+// Selector: 서버 카드 컨테이너 내의 h3 (서버 이름 포함)
+const SERVER_NAME_HEADING_SELECTOR = 'h3';
 
 test.describe('대시보드 서버 카드 테스트', () => {
   test.beforeEach(async ({ page }) => {
@@ -40,17 +42,26 @@ test.describe('대시보드 서버 카드 테스트', () => {
     });
     await page.waitForLoadState('networkidle');
 
-    // Fix: UI 안정화 대기 - 서버 카드(h3 heading 포함하는 클릭 가능 요소)가 로드될 때까지 명시적 대기
-    await expect(page.locator('h3:has-text("APP-")').first()).toBeVisible({
-      timeout: TIMEOUTS.DOM_UPDATE,
+    // Fix: UI 안정화 대기 - 서버 카드가 로드될 때까지 충분히 대기
+    // v5.87.0: 서버 이름 패턴이 변경되어 "Nginx" 또는 "WAS" 키워드로 검색
+    await expect(
+      page
+        .locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("Nginx")`)
+        .or(page.locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("WAS")`))
+        .first()
+    ).toBeVisible({
+      timeout: TIMEOUTS.DASHBOARD_LOAD,
     });
   });
 
   test('서버 카드 렌더링 확인', async ({ page }) => {
     // 서버 카드가 최소 1개 이상 렌더링되는지 확인 (h3 heading으로 식별)
-    const serverCards = page.locator('h3:has-text("APP-")');
+    // v5.87.0: 서버 이름에 "Nginx" 또는 "WAS" 키워드 포함
+    const serverCards = page
+      .locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("Nginx")`)
+      .or(page.locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("WAS")`));
     await expect(serverCards.first()).toBeVisible({
-      timeout: TIMEOUTS.DOM_UPDATE,
+      timeout: TIMEOUTS.MODAL_DISPLAY,
     });
 
     const cardCount = await serverCards.count();
@@ -59,7 +70,11 @@ test.describe('대시보드 서버 카드 테스트', () => {
 
   test('서버 카드 메트릭 표시 확인', async ({ page }) => {
     // 첫 번째 서버 카드의 부모 컨테이너에서 메트릭 확인
-    await expect(page.locator('h3:has-text("APP-")').first()).toBeVisible();
+    const serverCard = page
+      .locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("Nginx")`)
+      .or(page.locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("WAS")`))
+      .first();
+    await expect(serverCard).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
 
     // CPU, Memory, Disk 메트릭이 페이지 어딘가에 표시되는지 확인
     await expect(page.getByText(/CPU|cpu/i).first()).toBeVisible();
@@ -68,10 +83,15 @@ test.describe('대시보드 서버 카드 테스트', () => {
 
   test('서버 카드 클릭 → 모달 열기', async ({ page }) => {
     // 서버 카드(h3 heading 포함) 클릭
-    const firstCardHeading = page.locator('h3:has-text("APP-")').first();
+    const firstCardHeading = page
+      .locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("Nginx")`)
+      .or(page.locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("WAS")`))
+      .first();
 
     // Fix: 카드 로드 완료 확인 후 클릭
-    await expect(firstCardHeading).toBeVisible();
+    await expect(firstCardHeading).toBeVisible({
+      timeout: TIMEOUTS.MODAL_DISPLAY,
+    });
     await firstCardHeading.click();
 
     // 모달이 나타나는지 확인 (native <dialog> element or [role="dialog"])
@@ -81,32 +101,42 @@ test.describe('대시보드 서버 카드 테스트', () => {
 
   test('서버 모달 닫기 (ESC 키)', async ({ page }) => {
     // 카드 클릭 → 모달 열기
-    const firstCardHeading = page.locator('h3:has-text("APP-")').first();
+    const firstCardHeading = page
+      .locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("Nginx")`)
+      .or(page.locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("WAS")`))
+      .first();
 
     // Fix: 카드 로드 완료 확인 후 클릭
-    await expect(firstCardHeading).toBeVisible();
+    await expect(firstCardHeading).toBeVisible({
+      timeout: TIMEOUTS.MODAL_DISPLAY,
+    });
     await firstCardHeading.click();
 
     // Native <dialog> element or [role="dialog"]
     const modal = page.locator('dialog, [role="dialog"]').first();
-    await expect(modal).toBeVisible();
+    await expect(modal).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
 
     // ESC 키로 닫기
     await page.keyboard.press('Escape');
-    await expect(modal).not.toBeVisible({ timeout: TIMEOUTS.DOM_UPDATE });
+    await expect(modal).not.toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
   });
 
   test('서버 모달 탭 전환 확인', async ({ page }) => {
     // 카드 클릭 → 모달 열기
-    const firstCardHeading = page.locator('h3:has-text("APP-")').first();
+    const firstCardHeading = page
+      .locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("Nginx")`)
+      .or(page.locator(`${SERVER_NAME_HEADING_SELECTOR}:has-text("WAS")`))
+      .first();
 
     // Fix: 카드 로드 완료 확인 후 클릭
-    await expect(firstCardHeading).toBeVisible();
+    await expect(firstCardHeading).toBeVisible({
+      timeout: TIMEOUTS.MODAL_DISPLAY,
+    });
     await firstCardHeading.click();
 
     // Native <dialog> element or [role="dialog"]
     const modal = page.locator('dialog, [role="dialog"]').first();
-    await expect(modal).toBeVisible();
+    await expect(modal).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
 
     // 탭 버튼이 존재하는지 확인 (종합 상황, 성능 분석 등)
     const tabButtons = modal.locator(

@@ -4,6 +4,7 @@
 import { Bot, X, Zap } from 'lucide-react';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { getDiagramByCardId } from '@/data/architecture-diagrams.data';
 import {
   CATEGORY_STYLES,
   IMPORTANCE_STYLES,
@@ -20,6 +21,7 @@ import type {
   TechCategory,
   TechItem,
 } from '@/types/feature-card.types';
+import ArchitectureDiagram from './ArchitectureDiagram';
 
 // 🛡️ Codex 제안: 타입 가드 함수 (프로덕션 안정성 강화)
 const isValidCard = (
@@ -52,6 +54,8 @@ export default function FeatureCardModal({
   // 모달은 항상 다크 테마로 고정
   // 바이브 코딩 카드 전용 히스토리 뷰 상태
   const [isHistoryView, setIsHistoryView] = React.useState(false);
+  // 아키텍처 다이어그램 뷰 상태 (모든 카드에 적용)
+  const [showDiagram, setShowDiagram] = React.useState(false);
 
   // AI 상태 확인 (AI 제한 처리용)
   const aiAgentEnabled = useUnifiedAdminStore(
@@ -101,6 +105,12 @@ export default function FeatureCardModal({
 
   // 일관된 구조분해 할당 (Hook 순서에 영향 없음)
   const { title, icon: Icon, gradient, detailedContent, requiresAI } = cardData;
+
+  // 다이어그램 데이터 조회
+  const diagramData = React.useMemo(() => {
+    if (!cardData.id) return null;
+    return getDiagramByCardId(cardData.id);
+  }, [cardData.id]);
 
   // 중요도별 스타일 가져오기
   const getImportanceStyle = (importance: ImportanceLevel): ImportanceStyle => {
@@ -314,253 +324,262 @@ export default function FeatureCardModal({
 
   const mainContent = (
     <div className="p-6 text-white">
-      {/* 헤더 섹션 */}
-      <div className="mb-8 text-center">
-        <div
-          className={`mx-auto mb-4 h-16 w-16 rounded-2xl bg-linear-to-br ${gradient} flex items-center justify-center`}
-        >
-          <Icon className="h-8 w-8 text-white" />
-        </div>
-        <h3 className="mb-3 text-2xl font-bold">
-          {renderTextWithAIGradient(title)}
-          {/* 바이브 코딩 카드 전용 뷰 표시 */}
-          {cardData.id === 'vibe-coding' && (
-            <span className="ml-2 text-lg font-medium text-amber-400">
-              {isHistoryView ? '• 발전 히스토리' : '• 현재 도구'}
-            </span>
-          )}
-        </h3>
-        <p className="mx-auto max-w-2xl text-sm text-gray-300">
-          {cardData.id === 'vibe-coding' && isHistoryView
-            ? '바이브 코딩의 4단계 발전 과정을 시간 순서대로 보여줍니다. 초기(ChatGPT 개별 페이지) → 중기(Cursor + Vercel + Supabase) → 후기(Claude Code + WSL + 멀티 AI CLI) → 현재(Claude Code v2.0+ + MCP 완전 통합)로 진화한 개발 도구들의 역사를 확인할 수 있습니다.'
-            : sanitizeText(detailedContent.overview)}
-        </p>
-      </div>
-
-      {/* AI Sub-Sections (Grid Layout) */}
-      {cardData.subSections && (
-        <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {cardData.subSections.map((section) => (
-            <div
-              key={section.title}
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:shadow-xl"
-            >
-              {/* Gradient Border/Glow effect on hover */}
-              <div
-                className={`absolute inset-0 bg-linear-to-br ${section.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
-              />
-
-              <div className="relative z-10">
-                <div
-                  className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br ${section.gradient}`}
-                >
-                  <section.icon className="h-5 w-5 text-white" />
-                </div>
-                <h4 className="mb-2 text-base font-bold text-white">
-                  {section.title}
-                </h4>
-                <p className="mb-4 text-xs leading-relaxed text-gray-300">
-                  {section.description}
-                </p>
-                <ul className="space-y-1.5">
-                  {section.features.map((feature, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2 text-xs text-gray-400"
-                    >
-                      <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-white/40" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* AI 제한 경고 배너 */}
-      {requiresAI && !aiAgentEnabled && (
-        <div className="mb-8 rounded-xl border-2 border-orange-500/30 bg-linear-to-r from-orange-500/20 via-amber-500/15 to-orange-500/20 p-4">
-          <div className="flex items-start gap-4">
-            <div className="shrink-0">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/30">
-                <Bot className="h-5 w-5 text-orange-300" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <h4 className="mb-2 font-semibold text-orange-300">
-                🤖 AI 어시스턴트 모드 필요
-              </h4>
-              <p className="text-sm leading-relaxed text-orange-200/90">
-                이 기능을 사용하려면 AI 어시스턴트 모드를 활성화해야 합니다.
-                메인 페이지로 돌아가서 AI 모드를 켜주세요.
-              </p>
-              <div className="mt-3 flex items-center gap-2 text-xs text-orange-300/80">
-                <Zap className="h-4 w-4" />
-                <span>AI 모드는 항상 무료로 사용할 수 있습니다</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 바이브 코딩 히스토리 섹션 또는 중요도별 기술 스택 섹션 */}
-      {cardData.id === 'vibe-coding' && isHistoryView && vibeHistoryStages ? (
-        <div className="space-y-10">
-          {/* 1단계: 초기 */}
-          <div className="space-y-4">
-            <div className="mb-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
-              <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-emerald-300">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-300">
-                  1
-                </div>
-                초기 단계 (2025.05~06)
-                <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-sm text-emerald-300">
-                  {vibeHistoryStages.stage1?.length || 0}개 도구
-                </span>
-              </h4>
-              <p className="text-sm text-emerald-200/80">
-                ChatGPT로 개별 페이지 생성 → GitHub 수동 업로드 → Netlify 배포 →
-                데모용 목업 수준
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage1?.map(
-                (tech: TechItem, _index: number) => (
-                  <TechCard key={tech.name} tech={tech} />
-                )
-              ) || null}
-            </div>
-          </div>
-
-          {/* 2단계: 중기 */}
-          <div className="space-y-4">
-            <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
-              <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-amber-300">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-sm font-bold text-amber-300">
-                  2
-                </div>
-                중기 단계 (2025.06~07)
-                <span className="rounded-full bg-amber-500/20 px-3 py-1 text-sm text-amber-300">
-                  {vibeHistoryStages.stage2?.length || 0}개 도구
-                </span>
-              </h4>
-              <p className="text-sm text-amber-200/80">
-                Cursor 도입 → GitHub 연동 → Vercel 배포 → Supabase CRUD 웹앱
-                완성
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage2?.map(
-                (tech: TechItem, _index: number) => (
-                  <TechCard key={tech.name} tech={tech} />
-                )
-              ) || null}
-            </div>
-          </div>
-
-          {/* 3단계: 후기 */}
-          <div className="space-y-4">
-            <div className="mb-6 rounded-lg border border-purple-500/30 bg-purple-500/10 p-4">
-              <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-purple-300">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/20 text-sm font-bold text-purple-300">
-                  3
-                </div>
-                후기 단계 (2025.07~10)
-                <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">
-                  {vibeHistoryStages.stage3?.length || 0}개 도구
-                </span>
-              </h4>
-              <p className="text-sm text-purple-200/80">
-                Claude Code 전환 → WSL 최적화 → 멀티 AI CLI 협업 → GCP Functions
-                활용
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage3?.map(
-                (tech: TechItem, _index: number) => (
-                  <TechCard key={tech.name} tech={tech} />
-                )
-              ) || null}
-            </div>
-          </div>
-        </div>
+      {/* 아키텍처 다이어그램 뷰 */}
+      {showDiagram && diagramData ? (
+        <ArchitectureDiagram diagram={diagramData} />
       ) : (
-        // 기존 중요도별 분류 방식
-        <div className="space-y-8">
-          {/* 필수 기술 (Critical) */}
-          {criticalTech.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="flex items-center gap-2 text-lg font-semibold text-red-300">
-                <div className="h-3 w-3 rounded-full bg-red-400"></div>
-                필수 기술 (Critical)
-                <span className="rounded-full bg-red-500/20 px-2 py-1 text-xs text-red-300">
-                  {criticalTech.length}개
+        <>
+          {/* 헤더 섹션 */}
+          <div className="mb-8 text-center">
+            <div
+              className={`mx-auto mb-4 h-16 w-16 rounded-2xl bg-linear-to-br ${gradient} flex items-center justify-center`}
+            >
+              <Icon className="h-8 w-8 text-white" />
+            </div>
+            <h3 className="mb-3 text-2xl font-bold">
+              {renderTextWithAIGradient(title)}
+              {/* 바이브 코딩 카드 전용 뷰 표시 */}
+              {cardData.id === 'vibe-coding' && (
+                <span className="ml-2 text-lg font-medium text-amber-400">
+                  {isHistoryView ? '• 발전 히스토리' : '• 현재 도구'}
                 </span>
-              </h4>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {criticalTech.map((tech, _index) => (
-                  <TechCard key={tech.name} tech={tech} />
-                ))}
+              )}
+            </h3>
+            <p className="mx-auto max-w-2xl text-sm text-gray-300">
+              {cardData.id === 'vibe-coding' && isHistoryView
+                ? '바이브 코딩의 4단계 발전 과정을 시간 순서대로 보여줍니다. 초기(ChatGPT 개별 페이지) → 중기(Cursor + Vercel + Supabase) → 후기(Claude Code + WSL + 멀티 AI CLI) → 현재(Claude Code v2.0+ + MCP 완전 통합)로 진화한 개발 도구들의 역사를 확인할 수 있습니다.'
+                : sanitizeText(detailedContent.overview)}
+            </p>
+          </div>
+
+          {/* AI Sub-Sections (Grid Layout) */}
+          {cardData.subSections && (
+            <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-3">
+              {cardData.subSections.map((section) => (
+                <div
+                  key={section.title}
+                  className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:shadow-xl"
+                >
+                  {/* Gradient Border/Glow effect on hover */}
+                  <div
+                    className={`absolute inset-0 bg-linear-to-br ${section.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
+                  />
+
+                  <div className="relative z-10">
+                    <div
+                      className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br ${section.gradient}`}
+                    >
+                      <section.icon className="h-5 w-5 text-white" />
+                    </div>
+                    <h4 className="mb-2 text-base font-bold text-white">
+                      {section.title}
+                    </h4>
+                    <p className="mb-4 text-xs leading-relaxed text-gray-300">
+                      {section.description}
+                    </p>
+                    <ul className="space-y-1.5">
+                      {section.features.map((feature, idx) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2 text-xs text-gray-400"
+                        >
+                          <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-white/40" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* AI 제한 경고 배너 */}
+          {requiresAI && !aiAgentEnabled && (
+            <div className="mb-8 rounded-xl border-2 border-orange-500/30 bg-linear-to-r from-orange-500/20 via-amber-500/15 to-orange-500/20 p-4">
+              <div className="flex items-start gap-4">
+                <div className="shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/30">
+                    <Bot className="h-5 w-5 text-orange-300" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="mb-2 font-semibold text-orange-300">
+                    🤖 AI 어시스턴트 모드 필요
+                  </h4>
+                  <p className="text-sm leading-relaxed text-orange-200/90">
+                    이 기능을 사용하려면 AI 어시스턴트 모드를 활성화해야 합니다.
+                    메인 페이지로 돌아가서 AI 모드를 켜주세요.
+                  </p>
+                  <div className="mt-3 flex items-center gap-2 text-xs text-orange-300/80">
+                    <Zap className="h-4 w-4" />
+                    <span>AI 모드는 항상 무료로 사용할 수 있습니다</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* 중요 기술 (High) */}
-          {highTech.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="flex items-center gap-2 text-lg font-semibold text-orange-300">
-                <div className="h-3 w-3 rounded-full bg-orange-400"></div>
-                중요 기술 (High)
-                <span className="rounded-full bg-orange-500/20 px-2 py-1 text-xs text-orange-300">
-                  {highTech.length}개
-                </span>
-              </h4>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {highTech.map((tech, _index) => (
-                  <TechCard key={tech.name} tech={tech} />
-                ))}
+          {/* 바이브 코딩 히스토리 섹션 또는 중요도별 기술 스택 섹션 */}
+          {cardData.id === 'vibe-coding' &&
+          isHistoryView &&
+          vibeHistoryStages ? (
+            <div className="space-y-10">
+              {/* 1단계: 초기 */}
+              <div className="space-y-4">
+                <div className="mb-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
+                  <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-emerald-300">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-300">
+                      1
+                    </div>
+                    초기 단계 (2025.05~06)
+                    <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-sm text-emerald-300">
+                      {vibeHistoryStages.stage1?.length || 0}개 도구
+                    </span>
+                  </h4>
+                  <p className="text-sm text-emerald-200/80">
+                    ChatGPT로 개별 페이지 생성 → GitHub 수동 업로드 → Netlify
+                    배포 → 데모용 목업 수준
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {vibeHistoryStages.stage1?.map(
+                    (tech: TechItem, _index: number) => (
+                      <TechCard key={tech.name} tech={tech} />
+                    )
+                  ) || null}
+                </div>
               </div>
-            </div>
-          )}
 
-          {/* 보통 기술 (Medium) */}
-          {mediumTech.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="flex items-center gap-2 text-lg font-semibold text-blue-300">
-                <div className="h-3 w-3 rounded-full bg-blue-400"></div>
-                보통 기술 (Medium)
-                <span className="rounded-full bg-blue-500/20 px-2 py-1 text-xs text-blue-300">
-                  {mediumTech.length}개
-                </span>
-              </h4>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {mediumTech.map((tech, _index) => (
-                  <TechCard key={tech.name} tech={tech} />
-                ))}
+              {/* 2단계: 중기 */}
+              <div className="space-y-4">
+                <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+                  <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-amber-300">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-sm font-bold text-amber-300">
+                      2
+                    </div>
+                    중기 단계 (2025.06~07)
+                    <span className="rounded-full bg-amber-500/20 px-3 py-1 text-sm text-amber-300">
+                      {vibeHistoryStages.stage2?.length || 0}개 도구
+                    </span>
+                  </h4>
+                  <p className="text-sm text-amber-200/80">
+                    Cursor 도입 → GitHub 연동 → Vercel 배포 → Supabase CRUD 웹앱
+                    완성
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {vibeHistoryStages.stage2?.map(
+                    (tech: TechItem, _index: number) => (
+                      <TechCard key={tech.name} tech={tech} />
+                    )
+                  ) || null}
+                </div>
               </div>
-            </div>
-          )}
 
-          {/* 낮은 우선순위 기술 (Low) */}
-          {lowTech.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-300">
-                <div className="h-3 w-3 rounded-full bg-gray-400"></div>
-                보조 기술 (Low)
-                <span className="rounded-full bg-gray-500/20 px-2 py-1 text-xs text-gray-300">
-                  {lowTech.length}개
-                </span>
-              </h4>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {lowTech.map((tech, _index) => (
-                  <TechCard key={tech.name} tech={tech} />
-                ))}
+              {/* 3단계: 후기 */}
+              <div className="space-y-4">
+                <div className="mb-6 rounded-lg border border-purple-500/30 bg-purple-500/10 p-4">
+                  <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-purple-300">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/20 text-sm font-bold text-purple-300">
+                      3
+                    </div>
+                    후기 단계 (2025.07~10)
+                    <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">
+                      {vibeHistoryStages.stage3?.length || 0}개 도구
+                    </span>
+                  </h4>
+                  <p className="text-sm text-purple-200/80">
+                    Claude Code 전환 → WSL 최적화 → 멀티 AI CLI 협업 → GCP
+                    Functions 활용
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {vibeHistoryStages.stage3?.map(
+                    (tech: TechItem, _index: number) => (
+                      <TechCard key={tech.name} tech={tech} />
+                    )
+                  ) || null}
+                </div>
               </div>
             </div>
+          ) : (
+            // 기존 중요도별 분류 방식
+            <div className="space-y-8">
+              {/* 필수 기술 (Critical) */}
+              {criticalTech.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="flex items-center gap-2 text-lg font-semibold text-red-300">
+                    <div className="h-3 w-3 rounded-full bg-red-400"></div>
+                    필수 기술 (Critical)
+                    <span className="rounded-full bg-red-500/20 px-2 py-1 text-xs text-red-300">
+                      {criticalTech.length}개
+                    </span>
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {criticalTech.map((tech, _index) => (
+                      <TechCard key={tech.name} tech={tech} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 중요 기술 (High) */}
+              {highTech.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="flex items-center gap-2 text-lg font-semibold text-orange-300">
+                    <div className="h-3 w-3 rounded-full bg-orange-400"></div>
+                    중요 기술 (High)
+                    <span className="rounded-full bg-orange-500/20 px-2 py-1 text-xs text-orange-300">
+                      {highTech.length}개
+                    </span>
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {highTech.map((tech, _index) => (
+                      <TechCard key={tech.name} tech={tech} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 보통 기술 (Medium) */}
+              {mediumTech.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="flex items-center gap-2 text-lg font-semibold text-blue-300">
+                    <div className="h-3 w-3 rounded-full bg-blue-400"></div>
+                    보통 기술 (Medium)
+                    <span className="rounded-full bg-blue-500/20 px-2 py-1 text-xs text-blue-300">
+                      {mediumTech.length}개
+                    </span>
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {mediumTech.map((tech, _index) => (
+                      <TechCard key={tech.name} tech={tech} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 낮은 우선순위 기술 (Low) */}
+              {lowTech.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-300">
+                    <div className="h-3 w-3 rounded-full bg-gray-400"></div>
+                    보조 기술 (Low)
+                    <span className="rounded-full bg-gray-500/20 px-2 py-1 text-xs text-gray-300">
+                      {lowTech.length}개
+                    </span>
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {lowTech.map((tech, _index) => (
+                      <TechCard key={tech.name} tech={tech} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
@@ -621,8 +640,23 @@ export default function FeatureCardModal({
             </div>
 
             <div className="flex items-center gap-2">
+              {/* 아키텍처 다이어그램 토글 버튼 (모든 카드) */}
+              {diagramData && (
+                <button
+                  onClick={() => {
+                    setShowDiagram(!showDiagram);
+                    // 다이어그램 뷰로 전환 시 히스토리 뷰 해제
+                    if (!showDiagram) setIsHistoryView(false);
+                  }}
+                  className="rounded-lg bg-linear-to-r from-indigo-600 to-purple-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:from-indigo-500 hover:to-purple-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/50"
+                  aria-label={showDiagram ? '상세 내용 보기' : '아키텍처 보기'}
+                >
+                  {showDiagram ? '📄 상세 내용' : '📊 아키텍처'}
+                </button>
+              )}
+
               {/* 바이브 코딩 카드 전용 히스토리 전환 버튼 */}
-              {cardData.id === 'vibe-coding' && (
+              {cardData.id === 'vibe-coding' && !showDiagram && (
                 <button
                   onClick={() => setIsHistoryView(!isHistoryView)}
                   className="rounded-lg bg-linear-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:from-amber-500 hover:to-orange-500 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50"
