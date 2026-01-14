@@ -1142,4 +1142,4 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ---
 
-> 이전 버전 기록은 [CHANGELOG-LEGACY.md](./CHANGELOG-LEGACY.md)를 참조하세요.
+> 이전 버전 기록 (v5.80.0 이전)은 [reports/history/changelog/](./reports/history/changelog/)를 참조하세요.
