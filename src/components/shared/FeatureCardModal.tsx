@@ -2,6 +2,7 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, X, Zap } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { getDiagramByCardId } from '@/data/architecture-diagrams.data';
@@ -21,7 +22,16 @@ import type {
   TechCategory,
   TechItem,
 } from '@/types/feature-card.types';
-import ArchitectureDiagram from './ArchitectureDiagram';
+
+// React Flow는 클라이언트 사이드에서만 렌더링 (SSR 비활성화)
+const ReactFlowDiagram = dynamic(() => import('./ReactFlowDiagram'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[400px] items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-purple-500" />
+    </div>
+  ),
+});
 
 // 🛡️ Codex 제안: 타입 가드 함수 (프로덕션 안정성 강화)
 const isValidCard = (
@@ -324,9 +334,9 @@ export default function FeatureCardModal({
 
   const mainContent = (
     <div className="p-6 text-white">
-      {/* 아키텍처 다이어그램 뷰 */}
+      {/* 아키텍처 다이어그램 뷰 (React Flow 기반) */}
       {showDiagram && diagramData ? (
-        <ArchitectureDiagram diagram={diagramData} />
+        <ReactFlowDiagram diagram={diagramData} compact showControls />
       ) : (
         <>
           {/* 헤더 섹션 */}
