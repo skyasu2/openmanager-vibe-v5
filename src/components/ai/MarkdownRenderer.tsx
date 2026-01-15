@@ -35,10 +35,16 @@ const CodeBlock = memo(function CodeBlock({
   // ref를 통해 실제 텍스트를 추출합니다.
   const handleCopy = async () => {
     const textToCopy = codeRef.current?.innerText || '';
-    if (textToCopy) {
+    if (!textToCopy) return;
+
+    try {
       await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // 클립보드 API 실패 시 (권한 거부, HTTPS 미사용 등)
+      // 조용히 실패 처리 - 사용자 경험 방해 최소화
+      setCopied(false);
     }
   };
 
