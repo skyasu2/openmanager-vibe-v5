@@ -1,10 +1,13 @@
 /**
- * 🤖 AI 어시스턴트 기능 아이콘 패널 v3.0
+ * 🤖 AI 어시스턴트 기능 아이콘 패널 v3.1
  *
  * 사이드바 오른쪽에 세로로 배치되는 AI 기능 아이콘들
- * - AI 채팅: 자연어로 시스템 질의 및 대화
- * - 자동 장애 보고서: AI 기반 장애 분석 보고서 생성
- * - 이상감지/예측: AI Supervisor 분석 + 예측 분석
+ * - AI 채팅: 자연어로 시스템 질의 및 대화 (NLQ Agent + Advisor Agent)
+ * - 자동 장애 보고서: AI 기반 장애 분석 보고서 생성 (Reporter Agent)
+ * - 이상감지/예측: AI Supervisor 분석 + 예측 분석 (Analyst Agent)
+ *
+ * v3.1 변경사항 (2026-01-15):
+ * - 문서 정리: Advisor Agent는 NLQ의 하위 기능 (Orchestrator 자동 라우팅)
  *
  * v3.0 변경사항 (2025-12-23):
  * - AI 상태관리 탭 제거 (Coming Soon 상태로 미구현)
@@ -46,7 +49,7 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
     id: 'chat',
     icon: MessageSquare,
     label: '자연어 질의',
-    description: '💬 NLQ Agent: 자연어로 시스템 질의',
+    description: '💬 서버 질의 + 트러블슈팅 + 명령어 추천',
     color: 'text-blue-600',
     bgColor: 'bg-blue-50 hover:bg-blue-100',
     gradient: 'from-blue-500 to-cyan-500',
