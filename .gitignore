@@ -227,7 +227,12 @@ reports/*
 !reports/planning/
 !reports/ai-review/
 reports/ai-review/.*
-# reports/history/ - 완료된 문서 아카이브 (gitignored, 삭제 금지)
+# AI 코드 리뷰 파일 (로컬 전용, GitHub 제외)
+# - pending/*.md: 미검토 리뷰
+# - history/**/*.md: 검토 완료 리뷰
+# - .evaluation-log: 평가 기록 (로컬 전용)
+reports/ai-review/pending/*.md
+reports/ai-review/history/**/*.md
 
 # External MCP servers (cloned from GitHub)
 fetch-mcp/
