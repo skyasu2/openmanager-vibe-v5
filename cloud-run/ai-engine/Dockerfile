@@ -75,7 +75,7 @@ RUN npm prune --production --legacy-peer-deps
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS runner
 
 # Build-time metadata
-ARG APP_VERSION=5.86.1
+ARG APP_VERSION=5.87.0
 ARG BUILD_DATE
 ARG GIT_SHA
 
