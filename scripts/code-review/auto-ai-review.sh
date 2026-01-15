@@ -2,9 +2,22 @@
 
 # Auto AI Code Review Script (2-AI 순환) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 7.4.0
-# 날짜: 2026-01-13
-# 전략: 2-AI 순환 (Codex ↔ Gemini) 1:1 비율 + 중복 방지 + 소규모 변경 필터 + 누적 리뷰
+# 버전: 9.0.0
+# 날짜: 2026-01-15
+# 전략: 2-AI 순환 (Codex ↔ Gemini) 1:1 비율 + pending/history 구조
+#
+# v9.0.0 (2026-01-15): pending/history 구조 + Claude Code 자동 평가
+# - ✨ 신규: 리뷰 파일 → pending/ 디렉토리에 저장
+# - ✨ 신규: Claude Code 평가 후 → history/ 이동 + .evaluation-log 기록
+# - ✨ 신규: 월간 통계 (.monthly-stats.json) 지원
+# - 🎯 효과: 체계적인 리뷰 관리 + 품질 추적
+#
+# v8.0.0 (2026-01-15): 러프 리뷰 모드 + 미검토 보정
+# - ✨ 신규: SINGLE_COMMIT_MODE=true → 마지막 커밋만 리뷰 (누적 X)
+# - ✨ 신규: CODE_FILES_ONLY=true → 코드 파일만 리뷰 (.md, .json 등 제외)
+# - ✨ 신규: 이전 미검토 커밋 자동 보정 (mark_previous_unreviewed_commits)
+# - 🎯 효과: 247개 파일 → 1개 파일, 2시간 → 35초
+# - 💡 설정: SINGLE_COMMIT_MODE=false, CODE_FILES_ONLY=false로 기존 모드 사용 가능
 #
 # v7.4.0 (2026-01-13): 리포트 품질 개선
 # - ✨ 신규: 삭제 전용 커밋 감지 → "해당 없음 (코드 삭제)" 표시
@@ -198,6 +211,15 @@ MAX_FILES_PER_REVIEW=10  # 한 번에 리뷰할 최대 파일 수 (초과 시 �
 # ===== 소규모 변경 필터 설정 (v6.10.0) =====
 SKIP_DOCS_ONLY=${SKIP_DOCS_ONLY:-true}   # .md/.txt만 변경 시 리뷰 스킵
 SKIP_MIN_LINES=${SKIP_MIN_LINES:-3}       # 최소 변경 라인 수 (미달 시 스킵)
+
+# ===== v8.0.0: 러프 리뷰 모드 설정 =====
+SINGLE_COMMIT_MODE=${SINGLE_COMMIT_MODE:-true}   # true: 마지막 커밋만 리뷰 (누적 X)
+CODE_FILES_ONLY=${CODE_FILES_ONLY:-true}          # true: 코드 파일만 리뷰 (docs 제외)
+
+# 코드 파일 패턴 (CODE_FILES_ONLY=true 시 적용)
+CODE_FILE_PATTERNS="src/ lib/ scripts/ hooks/ components/ app/ pages/ api/ tests/ __tests__"
+# 제외할 확장자
+EXCLUDE_EXTENSIONS=".md .txt .json .yaml .yml .lock .log .env"
 
 # 오늘 날짜
 TODAY=$(date +%Y-%m-%d)
@@ -410,18 +432,76 @@ get_unreviewed_commits() {
     fi
 }
 
-# 미검토 커밋들의 누적 변경 파일 목록 가져오기
+# 미검토 커밋들의 누적 변경 파일 목록 가져오기 (v8.0.0: 러프 리뷰 모드)
 get_cumulative_changed_files() {
     local last_reviewed=$(get_last_reviewed_commit)
     local head_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%H)
+    local all_files=""
 
-    if [ -z "$last_reviewed" ] || [ "$last_reviewed" = "$head_commit" ]; then
-        # 첫 실행 또는 이미 최신: 마지막 커밋만
-        git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit"
+    # v8.0.0: 단일 커밋 모드 (기본값)
+    if [ "$SINGLE_COMMIT_MODE" = "true" ]; then
+        log_info "🎯 단일 커밋 모드: 마지막 커밋만 리뷰"
+        all_files=$(git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit")
     else
-        # 누적 diff: last_reviewed..HEAD
-        git -C "$PROJECT_ROOT" diff --name-only "$last_reviewed" HEAD 2>/dev/null || \
-            git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit"
+        # 기존 누적 모드
+        if [ -z "$last_reviewed" ] || [ "$last_reviewed" = "$head_commit" ]; then
+            all_files=$(git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit")
+        else
+            log_info "📚 누적 모드: $last_reviewed → HEAD"
+            all_files=$(git -C "$PROJECT_ROOT" diff --name-only "$last_reviewed" HEAD 2>/dev/null || \
+                git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit")
+        fi
+    fi
+
+    # v8.0.0: 코드 파일 필터링 (기본값)
+    if [ "$CODE_FILES_ONLY" = "true" ]; then
+        local filtered_files=""
+        local total_count=0
+        local filtered_count=0
+
+        while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            total_count=$((total_count + 1))
+
+            local is_code_file=false
+
+            # 1순위: 코드 확장자는 무조건 포함 (.ts, .tsx, .js, .jsx, .sh, .py)
+            case "$file" in
+                *.ts|*.tsx|*.js|*.jsx|*.sh|*.py)
+                    is_code_file=true
+                    ;;
+            esac
+
+            # 2순위: 코드 디렉토리 패턴 매칭
+            if [ "$is_code_file" = "false" ]; then
+                for pattern in $CODE_FILE_PATTERNS; do
+                    if [[ "$file" == ${pattern}* ]]; then
+                        is_code_file=true
+                        break
+                    fi
+                done
+            fi
+
+            # 3순위: 확장자 제외 (코드 파일이 아닐 때만)
+            if [ "$is_code_file" = "false" ]; then
+                local ext=".${file##*.}"
+                if echo "$EXCLUDE_EXTENSIONS" | grep -q "$ext"; then
+                    continue
+                fi
+                # 제외 대상이 아니면 포함
+                is_code_file=true
+            fi
+
+            if [ "$is_code_file" = "true" ]; then
+                filtered_files+="$file"$'\n'
+                filtered_count=$((filtered_count + 1))
+            fi
+        done <<< "$all_files"
+
+        log_info "🔍 코드 파일 필터: ${filtered_count}/${total_count}개 선별"
+        echo "$filtered_files"
+    else
+        echo "$all_files"
     fi
 }
 
@@ -429,6 +509,40 @@ get_cumulative_changed_files() {
 get_unreviewed_commit_count() {
     local commits=$(get_unreviewed_commits 30 3)
     echo "$commits" | wc -w | tr -d ' '
+}
+
+# v8.0.0: 이전 미검토 커밋 자동 보정 (SINGLE_COMMIT_MODE용)
+# 마지막 커밋 리뷰 후, 이전 미검토 커밋들도 .reviewed-commits에 기록
+mark_previous_unreviewed_commits() {
+    local current_commit="$1"
+    local max_lookback=${2:-10}
+    local marked_count=0
+
+    log_info "🔄 이전 미검토 커밋 보정 중..."
+
+    # 최근 N개 커밋 순회
+    for commit in $(git -C "$PROJECT_ROOT" log -${max_lookback} --format=%H 2>/dev/null); do
+        local short_hash="${commit:0:7}"
+
+        # 현재 리뷰 중인 커밋은 스킵
+        if [ "$commit" = "$current_commit" ]; then
+            continue
+        fi
+
+        # 이미 기록된 커밋은 스킵
+        if grep -q "^$short_hash$" "$REVIEWED_COMMITS_FILE" 2>/dev/null; then
+            continue
+        fi
+
+        # 미기록 커밋을 기록
+        echo "$short_hash" >> "$REVIEWED_COMMITS_FILE"
+        marked_count=$((marked_count + 1))
+        log_info "  ✅ $short_hash 보정 완료"
+    done
+
+    if [ "$marked_count" -gt 0 ]; then
+        log_info "📋 총 ${marked_count}개 이전 커밋 보정됨 (중복 리뷰 방지)"
+    fi
 }
 
 # ============================================================================
@@ -485,6 +599,10 @@ main() {
         log_warning "⏭️  이미 리뷰된 커밋입니다: ${head_commit:0:7}"
         # 누적 추적 파일도 업데이트 (sync)
         save_last_reviewed_commit "$head_commit"
+        # v8.0.0: 이전 미검토 커밋 보정 (이미 리뷰된 경우에도)
+        if [ "$SINGLE_COMMIT_MODE" = "true" ]; then
+            mark_previous_unreviewed_commits "$head_commit" 10
+        fi
         exit 0
     fi
 
@@ -532,6 +650,11 @@ main() {
     # 4단계: 리뷰 완료 마킹 (v6.5.0: 중복 방지 + v6.12.0: 누적 추적)
     mark_commit_reviewed "$head_commit"
     save_last_reviewed_commit "$head_commit"
+
+    # v8.0.0: 단일 커밋 모드에서 이전 미검토 커밋 자동 보정
+    if [ "$SINGLE_COMMIT_MODE" = "true" ]; then
+        mark_previous_unreviewed_commits "$head_commit" 10
+    fi
 
     if [ "$unreviewed_count" -gt 1 ]; then
         log_success "✅ 누적 리뷰 완료 (${unreviewed_count}개 커밋)"

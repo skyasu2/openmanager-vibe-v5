@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# AI Review Split Functions - v5.0.0
+# AI Review Split Functions - v9.0.0
 # 분할 리뷰 및 리포트 생성 함수들
+# v9.0.0: pending/history 구조 + Claude Code 자동 평가 지원
 
 # ============================================================================
 # 리뷰 리포트 생성 함수
@@ -11,8 +12,9 @@ generate_review_report() {
     local changes="$1"
     local ai_review="$2"
 
-    # AI 엔진 이름을 파일명에 포함
-    REVIEW_FILE="$REVIEW_DIR/review-${AI_ENGINE}-$TODAY-$TIMESTAMP.md"
+    # AI 엔진 이름을 파일명에 포함 (v9.0.0: pending/ 디렉토리에 저장)
+    mkdir -p "$REVIEW_DIR/pending"
+    REVIEW_FILE="$REVIEW_DIR/pending/review-${AI_ENGINE}-$TODAY-$TIMESTAMP.md"
 
     log_info "📝 리뷰 리포트 생성 중... (AI: $AI_ENGINE)"
 
@@ -107,9 +109,12 @@ show_review_summary() {
     echo -e "${BLUE}📂 리뷰 파일: $review_file${NC}"
     echo ""
     echo -e "${YELLOW}💡 다음 단계:${NC}"
-    echo "  1️⃣  리뷰 파일 확인: cat $review_file"
-    echo "  2️⃣  Claude Code에서 리뷰 분석 요청"
-    echo "  3️⃣  필요 시 코드 수정 후 재커밋"
+    echo "  1️⃣  Claude Code 자동 평가: /ai-code-review"
+    echo "  2️⃣  또는 수동 확인: cat $review_file"
+    echo ""
+    echo -e "${GREEN}📝 평가 완료 시 자동으로:${NC}"
+    echo "  - 리뷰 파일 → history/ 이동"
+    echo "  - 점수 + 한줄평가 → .evaluation-log 기록"
     echo ""
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
@@ -207,8 +212,9 @@ split_and_review() {
                 AI_ENGINE=$(cat /tmp/ai_engine_auto_review)
             fi
 
-            # 리뷰 파일 생성 (part 번호 포함)
-            local part_review_file="$REVIEW_DIR/review-${AI_ENGINE}-part${part}-$TODAY-$part_timestamp.md"
+            # 리뷰 파일 생성 (part 번호 포함) - v9.0.0: pending/에 저장
+            mkdir -p "$REVIEW_DIR/pending"
+            local part_review_file="$REVIEW_DIR/pending/review-${AI_ENGINE}-part${part}-$TODAY-$part_timestamp.md"
             REVIEW_FILE="$part_review_file"
 
             # 리포트 생성 (part 정보 추가)
