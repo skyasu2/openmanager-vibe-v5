@@ -136,7 +136,12 @@ export default function UnifiedProfileHeader({
     // 로그아웃 메뉴
     items.push({
       id: 'logout',
-      label: userType === 'github' ? 'GitHub 로그아웃' : '게스트 세션 종료',
+      label:
+        userType === 'github'
+          ? 'GitHub 로그아웃'
+          : userType === 'google'
+            ? 'Google 로그아웃'
+            : '게스트 세션 종료',
       icon: LogOut,
       action: handleLogoutClick,
       visible: true,
@@ -163,7 +168,11 @@ export default function UnifiedProfileHeader({
       return (
         userInfo.name ||
         userInfo.email ||
-        (userType === 'github' ? 'GitHub 사용자' : '게스트 사용자')
+        (userType === 'github'
+          ? 'GitHub 사용자'
+          : userType === 'google'
+            ? 'Google 사용자'
+            : '게스트 사용자')
       );
     }
     return status === 'loading' ? '로딩 중...' : '사용자';
@@ -229,11 +238,13 @@ export default function UnifiedProfileHeader({
           <div className="flex items-center gap-1 text-xs text-gray-500">
             {userType === 'github'
               ? 'GitHub 로그인'
-              : userType === 'guest'
-                ? '게스트 로그인'
-                : status === 'loading'
-                  ? '확인 중...'
-                  : '알 수 없음'}
+              : userType === 'google'
+                ? 'Google 로그인'
+                : userType === 'guest'
+                  ? '게스트 로그인'
+                  : status === 'loading'
+                    ? '확인 중...'
+                    : '알 수 없음'}
             {status === 'loading' && (
               <div className="animate-pulse h-2 w-2 rounded-full bg-gray-400" />
             )}

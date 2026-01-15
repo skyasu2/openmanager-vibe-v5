@@ -2,8 +2,8 @@
  * Architecture Diagrams Data
  * 랜딩 페이지 Feature Card 모달용 아키텍처 다이어그램 데이터
  *
- * @version 5.87.0
- * @updated 2026-01-14
+ * @version 5.88.0
+ * @updated 2026-01-15
  */
 
 export interface DiagramNode {
@@ -142,7 +142,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
       '4개 클라우드 플랫폼을 연동한 하이브리드 아키텍처. 프론트엔드와 AI 백엔드 분리로 독립적 스케일링.',
     layers: [
       {
-        title: 'Frontend',
+        title: 'Compute Layer',
         color: 'from-slate-600 to-slate-700',
         nodes: [
           {
@@ -152,38 +152,6 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             type: 'primary',
             icon: '▲',
           },
-        ],
-      },
-      {
-        title: 'Database',
-        color: 'from-emerald-500 to-teal-600',
-        nodes: [
-          {
-            id: 'supabase',
-            label: 'Supabase',
-            sublabel: 'PostgreSQL + pgVector + RLS',
-            type: 'primary',
-            icon: '🐘',
-          },
-        ],
-      },
-      {
-        title: 'Cache',
-        color: 'from-red-500 to-orange-500',
-        nodes: [
-          {
-            id: 'upstash',
-            label: 'Upstash Redis',
-            sublabel: 'Response Cache + Rate Limit',
-            type: 'secondary',
-            icon: '⚡',
-          },
-        ],
-      },
-      {
-        title: 'AI Backend',
-        color: 'from-blue-500 to-indigo-600',
-        nodes: [
           {
             id: 'cloudrun',
             label: 'Cloud Run',
@@ -194,8 +162,28 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
         ],
       },
       {
-        title: 'Features',
-        color: 'from-gray-500 to-gray-600',
+        title: 'Data Layer',
+        color: 'from-emerald-500 to-teal-600',
+        nodes: [
+          {
+            id: 'supabase',
+            label: 'Supabase',
+            sublabel: 'PostgreSQL + pgVector + RLS',
+            type: 'primary',
+            icon: '🐘',
+          },
+          {
+            id: 'upstash',
+            label: 'Upstash Redis',
+            sublabel: 'Response Cache + Rate Limit',
+            type: 'secondary',
+            icon: '⚡',
+          },
+        ],
+      },
+      {
+        title: 'Platform Features',
+        color: 'from-purple-500 to-pink-500',
         nodes: [
           {
             id: 'feature-1',
@@ -348,6 +336,22 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
         ],
       },
     ],
+    connections: [
+      // Framework → Presentation
+      { from: 'nextjs', to: 'react', label: 'Renders' },
+      { from: 'radix', to: 'react', label: 'Components' },
+      { from: 'tailwind', to: 'react', label: 'Styles' },
+      // State → Presentation
+      { from: 'zustand', to: 'react', label: 'Global' },
+      { from: 'hooks', to: 'react', label: 'Local' },
+      // State → Framework
+      { from: 'tanstack', to: 'nextjs', label: 'Server State' },
+      // Framework internal
+      { from: 'typescript', to: 'nextjs', label: 'Types' },
+      // Build → Framework
+      { from: 'biome', to: 'typescript', label: 'Lint' },
+      { from: 'vitest', to: 'nextjs', label: 'Test' },
+    ],
   },
 
   /**
@@ -467,9 +471,15 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
       { from: 'antigravity', to: 'claude-code', label: 'Terminal' },
       { from: 'claude-code', to: 'codex', label: '2-AI Review' },
       { from: 'claude-code', to: 'gemini', label: '2-AI Review' },
+      // MCP Servers (8개 전체)
       { from: 'claude-code', to: 'serena', label: 'MCP' },
       { from: 'claude-code', to: 'context7', label: 'MCP' },
       { from: 'claude-code', to: 'supabase-mcp', label: 'MCP' },
+      { from: 'claude-code', to: 'vercel-mcp', label: 'MCP' },
+      { from: 'claude-code', to: 'playwright-mcp', label: 'MCP' },
+      { from: 'claude-code', to: 'github-mcp', label: 'MCP' },
+      { from: 'claude-code', to: 'tavily-mcp', label: 'MCP' },
+      { from: 'claude-code', to: 'seq-think', label: 'MCP' },
     ],
   },
 };

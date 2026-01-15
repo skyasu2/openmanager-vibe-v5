@@ -22,7 +22,11 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
       return (
         userInfo.name ||
         userInfo.email ||
-        (userType === 'github' ? 'GitHub 사용자' : '게스트 사용자')
+        (userType === 'github'
+          ? 'GitHub 사용자'
+          : userType === 'google'
+            ? 'Google 사용자'
+            : '게스트 사용자')
       );
     }
     return '사용자';
@@ -34,12 +38,14 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
 
   const getUserTypeLabel = () => {
     if (userType === 'github') return 'GitHub';
+    if (userType === 'google') return 'Google';
     if (userType === 'guest') return '게스트';
     return '알 수 없음';
   };
 
   const getUserTypeClass = () => {
     if (userType === 'github') return 'bg-green-100 text-green-700';
+    if (userType === 'google') return 'bg-red-100 text-red-700';
     if (userType === 'guest') return 'bg-blue-100 text-blue-700';
     return 'bg-gray-100 text-gray-700';
   };

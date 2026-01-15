@@ -35,7 +35,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       return (
         userInfo.name ||
         userInfo.email ||
-        (userType === 'github' ? 'GitHub 사용자' : '게스트 사용자')
+        (userType === 'github'
+          ? 'GitHub 사용자'
+          : userType === 'google'
+            ? 'Google 사용자'
+            : '게스트 사용자')
       );
     }
     return '사용자';
@@ -61,6 +65,8 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const getBackgroundClass = () => {
     if (userType === 'github')
       return 'bg-linear-to-r from-purple-500 to-pink-500';
+    if (userType === 'google')
+      return 'bg-linear-to-r from-red-500 to-yellow-500';
     if (userType === 'guest') return 'bg-linear-to-r from-blue-500 to-cyan-500';
     return 'bg-gray-500';
   };
@@ -68,6 +74,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   // 배지 색상 결정
   const getBadgeColor = () => {
     if (userType === 'github') return 'bg-green-500';
+    if (userType === 'google') return 'bg-red-500';
     if (userType === 'guest') return 'bg-blue-500';
     return 'bg-gray-400';
   };
@@ -75,6 +82,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   // 사용자 타입 타이틀
   const getUserTypeTitle = () => {
     if (userType === 'github') return 'GitHub 사용자';
+    if (userType === 'google') return 'Google 사용자';
     if (userType === 'guest') return '게스트 사용자';
     return '알 수 없음';
   };
@@ -138,6 +146,14 @@ export const UserTypeIcon = memo(function UserTypeIcon({
     return (
       <span title="GitHub 인증">
         <Shield className={`${className} text-green-600`} />
+      </span>
+    );
+  }
+
+  if (userType === 'google') {
+    return (
+      <span title="Google 인증">
+        <Shield className={`${className} text-red-600`} />
       </span>
     );
   }
