@@ -1,120 +1,110 @@
 ---
 name: ai-code-review
-version: v2.0.0
-description: Multi-AI code review orchestration using Codex, Gemini, Claude with automatic fallback. Triggers when user requests AI code review, cross-validation, or multi-AI analysis. Integrates with existing auto-ai-review.sh workflow.
+version: v3.0.0
+description: AI 코드 리뷰 결과 분석 및 개선 실행. pending 리뷰를 읽고, 개선 필요사항을 분석하여 실제 코드 수정까지 진행. 평가는 부산물.
 ---
 
-# AI Code Review Skill v2.0.0
+# AI Code Review Analysis & Action
 
 ## Purpose
 
-1. **리뷰 생성**: Codex/Gemini로 코드 리뷰 실행
-2. **리뷰 평가**: pending/ 리뷰를 Claude Code가 평가
-3. **히스토리 관리**: 평가 완료 → history/ 이동 + .evaluation-log 기록
+1. **리뷰 분석**: pending/ 리뷰에서 지적사항 추출
+2. **개선 판단**: 진짜 문제인지, 오탐인지 분석
+3. **코드 수정**: 필요시 실제 개선 진행
+4. **평가 기록**: 조치 결과를 부산물로 기록
 
 ## Trigger Keywords
 
 - "/ai-code-review"
-- "ai code review"
-- "코드 리뷰"
-- "리뷰 평가"
-- "리뷰 결과"
+- "리뷰 분석"
+- "코드 리뷰 검토"
+- "개선사항 확인"
 
 ## Workflow
 
-### Phase 1: 리뷰 상태 확인
+### Phase 1: 리뷰 읽기
 
 ```bash
 # pending 리뷰 확인
-ls -la reports/ai-review/pending/*.md 2>/dev/null | tail -5
+ls reports/ai-review/pending/*.md 2>/dev/null
 
 # 최신 리뷰 읽기
-LATEST=$(ls -t reports/ai-review/pending/*.md 2>/dev/null | head -1)
-if [ -f "$LATEST" ]; then cat "$LATEST"; fi
+cat reports/ai-review/pending/review-*.md
 ```
 
-### Phase 2: 리뷰 평가 (Claude Code)
+### Phase 2: 개선 필요사항 분석
 
-pending 리뷰 파일을 읽고 다음을 평가:
+리뷰에서 지적된 각 항목을 분석:
 
-1. **점수 추출**: AI 리뷰에서 점수(X/10) 찾기
-2. **핵심 이슈**: Critical/High 이슈 있는지 확인
-3. **한줄평가**: 변경사항 요약 (20자 이내)
+| 분류 | 설명 | 조치 |
+|------|------|------|
+| **Critical** | 버그, 보안 이슈 | 반드시 수정 |
+| **High** | 성능, 안정성 문제 | 수정 권장 |
+| **Medium** | 코드 품질 개선 | 검토 후 결정 |
+| **Low** | 스타일, 권장사항 | 선택적 |
+| **False Positive** | 오탐, 해당없음 | 스킵 + 사유 기록 |
 
-### Phase 3: 평가 결과 기록
+### Phase 3: 실제 개선 진행
+
+개선이 필요한 항목에 대해:
+
+1. **파일 읽기**: 지적된 코드 위치 확인
+2. **문제 분석**: 실제로 문제가 맞는지 판단
+3. **코드 수정**: Edit 도구로 수정
+4. **검증**: 수정이 올바른지 확인
+
+### Phase 4: 평가 기록 (부산물)
 
 ```bash
-# 1. .evaluation-log에 추가
-DATE="2026-01-15"
-COMMIT="abc1234"
-SCORE="8.5/10"
-ENGINE="codex"
-COMMENT="스킬 구조 추가, 보안 개선 권장"
+# 조치 결과 기록
+# 형식: 날짜 | 커밋 | 점수 | 엔진 | 조치내용
+echo "2026-01-15 | abc1234 | 8/10 | codex | Critical 1건 수정, Low 2건 스킵" >> reports/ai-review/.evaluation-log
 
-echo "$DATE | $COMMIT | $SCORE | $ENGINE | $COMMENT" >> reports/ai-review/.evaluation-log
-
-# 2. history/로 이동
-mkdir -p reports/ai-review/history/$(date +%Y-%m)
+# history로 이동
 mv reports/ai-review/pending/review-*.md reports/ai-review/history/$(date +%Y-%m)/
-
-# 3. 월간 통계 업데이트 (선택)
 ```
 
-## 평가 기준
-
-| 점수 | 의미 | 조치 |
-|------|------|------|
-| 9-10 | 우수 | 즉시 승인 |
-| 7-8 | 양호 | 권고사항 참고 |
-| 5-6 | 보통 | 개선 필요 |
-| 1-4 | 미흡 | 수정 후 재커밋 |
-
-## 한줄평가 예시
+## 분석 예시
 
 ```
-# .evaluation-log 형식
-2026-01-15 | 9e04dae | 8.5/10 | codex | 스킬 구조 추가, execFileSync 보안 개선 권장
-2026-01-14 | 6501af8 | 9/10 | gemini | React Flow 레이아웃 최적화 깔끔함
-2026-01-13 | 5af3caa | 7/10 | codex | PostgresVectorDB 분리 좋으나 에러핸들링 보완 필요
-```
-
-## Output Format
-
-```
-📋 AI 코드 리뷰 평가 완료
+📋 AI 리뷰 분석 결과
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📊 평가 결과:
-  - 커밋: abc1234
-  - AI 엔진: CODEX
-  - 점수: 8.5/10
-  - 평가: 양호 (권고사항 참고)
+📊 지적사항 요약:
+  - Critical: 0건
+  - High: 1건 (로그 파일 비대화)
+  - Low: 2건 (주석 추가 권장)
 
-📝 한줄평가:
-  스킬 구조 추가, execFileSync 보안 개선 권장
+🔍 상세 분석:
 
-✅ 처리 완료:
-  - 리뷰 파일 → history/2026-01/ 이동
-  - .evaluation-log에 기록됨
+1. [High] 로그 파일 비대화 방지
+   - 위치: scripts/hooks/post-commit.js:52
+   - 판정: ✅ 유효한 지적
+   - 조치: 1MB 초과 시 초기화 로직 추가
 
+2. [Low] 주석 추가 권장
+   - 판정: ⏭️ 스킵 (이미 충분함)
+
+✏️ 수정 진행 중...
+   - post-commit.js 수정 완료
+
+📝 평가 기록:
+   8/10 | High 1건 수정, Low 스킵
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## Related Files
+## 오탐(False Positive) 처리
 
-| 파일 | 용도 |
-|------|------|
-| `reports/ai-review/pending/` | 평가 대기 리뷰 |
-| `reports/ai-review/history/` | 평가 완료 리뷰 |
-| `reports/ai-review/.evaluation-log` | 평가 기록 (영구 보관) |
-| `reports/ai-review/.reviewed-commits` | 리뷰 완료 커밋 해시 |
+AI 리뷰가 잘못 지적한 경우:
+
+```bash
+# .evaluation-log에 오탐 사유 기록
+echo "2026-01-15 | abc1234 | 9/10 | gemini | 오탐: limit 검증은 Mock 핸들러라 해당없음" >> reports/ai-review/.evaluation-log
+```
 
 ## Changelog
 
-- 2026-01-15: v2.0.0 - pending/history 구조 + 자동 평가 시스템
-  - pending/ 디렉토리에 리뷰 저장
-  - Claude Code 평가 후 history/ 이동
-  - .evaluation-log에 점수 + 한줄평가 기록
-  - 월간 통계 지원 (.monthly-stats.json)
-- 2025-12-29: v1.2.0 - 이슈 트래커 통합
-- 2025-12-07: v1.1.0 - Claude CLI 수정 및 3-AI 순환 복원
+- 2026-01-15: v3.0.0 - 분석 + 개선 실행 워크플로우
+  - 단순 평가 → 실제 코드 수정까지 진행
+  - 평가는 조치 결과의 부산물로 기록
+  - 오탐 처리 프로세스 추가

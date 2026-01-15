@@ -62,6 +62,16 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 
+// 로그 파일 크기 체크 (1MB 초과 시 초기화)
+if (fs.existsSync(logPath)) {
+  try {
+    const stats = fs.statSync(logPath);
+    if (stats.size > 1024 * 1024) {
+      fs.writeFileSync(logPath, `[${new Date().toISOString()}] Log rotated (exceeded 1MB)\n`);
+    }
+  } catch { /* ignore */ }
+}
+
 try {
   // 백그라운드 프로세스 실행
   const logStream = fs.openSync(logPath, 'a');
