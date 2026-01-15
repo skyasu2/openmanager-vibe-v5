@@ -2,59 +2,31 @@
 
 /**
  * Cross-platform Post-commit Hook
- * Launches background AI review (WSL/Linux only)
- * On Windows, provides guidance for manual review
+ * v2.0.0 - Simplified for Claude Code skill integration
+ *
+ * AI code review is now integrated into /commit skill
+ * This hook only provides guidance
  */
 
-const { spawn } = require('child_process');
-const os = require('os');
-const path = require('path');
-const fs = require('fs');
+const { execFileSync } = require('child_process');
 
-const isWindows = os.platform() === 'win32';
-const cwd = process.cwd();
-
-console.log('🚀 Post-commit validation started...');
-
-if (isWindows) {
-  // Windows: Background process not supported, skip gracefully
-  console.log('ℹ️  Background AI review skipped (Windows native)');
-  console.log('💡 For AI review, run: npm run review:show');
-  console.log('   Or use WSL for full background support');
-  process.exit(0);
-}
-
-// Unix/WSL: Run background script
-const scriptPath = path.join(cwd, 'scripts/git/post-commit-background.sh');
-const logPath = path.join(cwd, 'logs/post-commit.log');
-
-// Ensure logs directory exists
-const logsDir = path.dirname(logPath);
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
-}
-
+// Get commit info safely using execFileSync (no shell injection risk)
+let commitHash, commitMsg;
 try {
-  // Check if background script exists
-  if (!fs.existsSync(scriptPath)) {
-    console.log('⚠️  Background script not found, skipping');
-    process.exit(0);
-  }
-
-  // Launch detached background process
-  const logStream = fs.openSync(logPath, 'a');
-  const child = spawn('bash', [scriptPath], {
-    cwd,
-    detached: true,
-    stdio: ['ignore', logStream, logStream],
-  });
-  child.unref();
-
-  console.log('✅ Background tasks launched.');
-  console.log(`💡 Logs: ${logPath}`);
-} catch (err) {
-  console.log('⚠️  Background launch failed:', err.message);
-  console.log('   This is non-blocking, commit succeeded.');
+  commitHash = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim();
+  commitMsg = execFileSync('git', ['log', '-1', '--format=%s'], { encoding: 'utf8' }).trim();
+} catch {
+  commitHash = 'unknown';
+  commitMsg = 'unknown';
 }
+
+console.log('');
+console.log(`✅ 커밋 완료: ${commitHash} ${commitMsg.substring(0, 50)}`);
+console.log('');
+console.log('💡 AI 코드 리뷰는 Claude Code /commit 스킬에 통합되었습니다.');
+console.log('   다음 커밋부터 자동 AI 리뷰가 포함됩니다.');
+console.log('');
+console.log('   수동 리뷰: /ai-code-review 또는 npm run review:show');
+console.log('');
 
 process.exit(0);
