@@ -165,11 +165,23 @@ const MessageComponent = memo<{
 
 MessageComponent.displayName = 'MessageComponent';
 
+/**
+ * AIWorkspace Props
+ * @property mode - 뷰 모드 ('sidebar' | 'fullscreen')
+ * @property onClose - 사이드바 모드일 때 닫기 함수
+ */
 interface AIWorkspaceProps {
   mode: 'sidebar' | 'fullscreen';
   onClose?: () => void;
 }
 
+/**
+ * AIWorkspace Component
+ *
+ * 통합된 AI 작업 공간을 제공합니다.
+ * Sidebar 모드와 Fullscreen 모드를 모두 지원하며,
+ * Chat, Auto Report, Intelligent Monitoring 기능을 포함합니다.
+ */
 export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
   const router = useRouter();
   const [selectedFunction, setSelectedFunction] =

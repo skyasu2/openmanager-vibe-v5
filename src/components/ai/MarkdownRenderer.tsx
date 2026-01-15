@@ -1,9 +1,13 @@
 'use client';
 
 import { Check, Copy } from 'lucide-react';
-import { memo, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
+
+// Highlight.js 스타일 import (Dark Theme)
+import 'highlight.js/styles/github-dark.css';
 
 interface MarkdownRendererProps {
   content: string;
@@ -23,14 +27,19 @@ const CodeBlock = memo(function CodeBlock({
   children: React.ReactNode;
 }) {
   const [copied, setCopied] = useState(false);
+  const codeRef = useRef<HTMLElement>(null);
   const match = /language-(\w+)/.exec(className || '');
   const language = match ? match[1] : '';
-  const codeString = String(children).replace(/\n$/, '');
 
+  // rehype-highlight 적용 시 children이 객체 트리일 수 있으므로,
+  // ref를 통해 실제 텍스트를 추출합니다.
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(codeString);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const textToCopy = codeRef.current?.innerText || '';
+    if (textToCopy) {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   // 인라인 코드
@@ -69,6 +78,7 @@ const CodeBlock = memo(function CodeBlock({
       {/* 코드 내용 */}
       <pre className="overflow-x-auto p-4 text-sm">
         <code
+          ref={codeRef}
           className={`${className || ''} text-gray-100 font-mono leading-relaxed`}
         >
           {children}
@@ -92,6 +102,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
     <div className={`markdown-content ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeHighlight]} // Syntax Highlighting 추가
         components={{
           // 코드 블록
           code: ({ className, children, node }) => {
