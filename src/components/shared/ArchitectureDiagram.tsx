@@ -4,11 +4,16 @@
  * ArchitectureDiagram Component
  * Feature Card 모달용 아키텍처 다이어그램 렌더링 컴포넌트
  *
- * @version 5.87.0
- * @updated 2026-01-14
+ * @version 5.89.0
+ * @updated 2026-01-16
+ *
+ * 개선사항:
+ * - Swimlane 배경 추가 (영역 구분 명확화)
+ * - 호버 시 상세 정보 툴팁
+ * - 시각적 계층 구조 강화
  */
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import type {
   ArchitectureDiagram as DiagramData,
   DiagramLayer,
@@ -21,23 +26,43 @@ interface ArchitectureDiagramProps {
 }
 
 /**
- * 개별 노드 컴포넌트
+ * 개별 노드 컴포넌트 (호버 툴팁 포함)
  */
 const DiagramNodeItem = memo(({ node }: { node: DiagramNode }) => {
   const styles = NODE_STYLES[node.type];
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-lg border p-3 transition-all duration-200 hover:scale-105 ${styles.bg} ${styles.border}`}
+      role="group"
+      aria-label={node.label}
+      className="relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {node.icon && <span className="text-xl">{node.icon}</span>}
-      <div className="min-w-0 flex-1">
-        <div className={`text-sm font-semibold ${styles.text}`}>
-          {node.label}
+      {/* 호버 툴팁 */}
+      {isHovered && node.sublabel && (
+        <div className="absolute -top-10 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-3 py-1.5 text-xs text-white shadow-lg ring-1 ring-white/20">
+          {node.sublabel}
+          <div className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-800 ring-1 ring-white/20 ring-t-0 ring-l-0" />
         </div>
-        {node.sublabel && (
-          <div className="truncate text-xs text-white/60">{node.sublabel}</div>
-        )}
+      )}
+
+      {/* 노드 */}
+      <div
+        className={`flex items-center gap-3 rounded-lg border p-3 transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-white/5 ${styles.bg} ${styles.border}`}
+      >
+        {node.icon && <span className="text-xl">{node.icon}</span>}
+        <div className="min-w-0 flex-1">
+          <div className={`text-sm font-semibold ${styles.text}`}>
+            {node.label}
+          </div>
+          {node.sublabel && (
+            <div className="truncate text-xs text-white/50">
+              {node.sublabel}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -46,37 +71,51 @@ const DiagramNodeItem = memo(({ node }: { node: DiagramNode }) => {
 DiagramNodeItem.displayName = 'DiagramNodeItem';
 
 /**
- * 레이어 컴포넌트
+ * 레이어 컴포넌트 (Swimlane 배경 포함)
  */
-const DiagramLayerSection = memo(({ layer }: { layer: DiagramLayer }) => {
-  return (
-    <div className="relative">
-      {/* 레이어 타이틀 */}
-      <div
-        className={`mb-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${layer.color} px-3 py-1`}
-      >
-        <span className="text-xs font-semibold text-white">{layer.title}</span>
-      </div>
+const DiagramLayerSection = memo(
+  ({ layer, isLast }: { layer: DiagramLayer; isLast?: boolean }) => {
+    return (
+      <div className="relative">
+        {/* Swimlane 배경 */}
+        <div className="absolute inset-0 -mx-4 rounded-xl bg-white/[0.02]" />
 
-      {/* 노드 그리드 */}
-      <div
-        className={`grid gap-3 ${
-          layer.nodes.length === 1
-            ? 'grid-cols-1'
-            : layer.nodes.length === 2
-              ? 'grid-cols-2'
-              : layer.nodes.length === 3
-                ? 'grid-cols-3'
-                : 'grid-cols-2 md:grid-cols-4'
-        }`}
-      >
-        {layer.nodes.map((node) => (
-          <DiagramNodeItem key={node.id} node={node} />
-        ))}
+        <div className="relative px-4 py-4">
+          {/* 레이어 타이틀 */}
+          <div
+            className={`mb-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${layer.color} px-3 py-1 shadow-sm`}
+          >
+            <span className="text-xs font-semibold text-white">
+              {layer.title}
+            </span>
+          </div>
+
+          {/* 노드 그리드 */}
+          <div
+            className={`grid gap-3 ${
+              layer.nodes.length === 1
+                ? 'grid-cols-1 max-w-xs mx-auto'
+                : layer.nodes.length === 2
+                  ? 'grid-cols-2'
+                  : layer.nodes.length === 3
+                    ? 'grid-cols-3'
+                    : 'grid-cols-2 md:grid-cols-4'
+            }`}
+          >
+            {layer.nodes.map((node) => (
+              <DiagramNodeItem key={node.id} node={node} />
+            ))}
+          </div>
+        </div>
+
+        {/* 레이어 구분선 (마지막 제외) */}
+        {!isLast && (
+          <div className="absolute -bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        )}
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 DiagramLayerSection.displayName = 'DiagramLayerSection';
 
@@ -112,7 +151,10 @@ function ArchitectureDiagram({ diagram }: ArchitectureDiagramProps) {
       <div className="mx-auto max-w-3xl space-y-1">
         {diagram.layers.map((layer, index) => (
           <div key={layer.title}>
-            <DiagramLayerSection layer={layer} />
+            <DiagramLayerSection
+              layer={layer}
+              isLast={index === diagram.layers.length - 1}
+            />
             {index < diagram.layers.length - 1 && <LayerConnector />}
           </div>
         ))}
