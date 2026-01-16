@@ -1,0 +1,307 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`🎯 ReactFlowDiagram 컴포넌트 > 스냅샷 테스트 > 기본 다이어그램 스냅샷 1`] = `
+<div
+  class="flex flex-col space-y-4"
+>
+  <div
+    class="text-center"
+  >
+    <h3
+      class="mb-2 text-xl font-bold text-white"
+    >
+      Test Architecture
+    </h3>
+    <p
+      class="mx-auto max-w-2xl text-sm text-gray-300"
+    >
+      Test description for the architecture diagram
+    </p>
+  </div>
+  <div
+    class="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 h-[400px]"
+  >
+    <div
+      data-edges="2"
+      data-nodes="7"
+      data-testid="react-flow-container"
+    >
+      <div
+        data-testid="react-flow-background"
+      />
+      <div
+        data-testid="react-flow-controls"
+      />
+    </div>
+  </div>
+  <div
+    class="flex flex-wrap justify-center gap-3 border-t border-white/10 pt-3"
+  >
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-2.5 w-2.5 rounded bg-gradient-to-br from-yellow-500/40 to-amber-500/40 ring-1 ring-yellow-400/50"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        핵심
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-2.5 w-2.5 rounded bg-white/15 ring-1 ring-white/30"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        주요
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-2.5 w-2.5 rounded bg-white/5 ring-1 ring-white/10"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        보조
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-3 w-4 border-t border-dashed border-purple-400/60"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        검증
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-3 w-4 border-t border-white/40"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        데이터
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`🎯 ReactFlowDiagram 컴포넌트 > 스냅샷 테스트 > 모든 옵션 활성화 스냅샷 1`] = `
+<div
+  class="flex flex-col space-y-4"
+>
+  <div
+    class="text-center"
+  >
+    <h3
+      class="mb-2 text-xl font-bold text-white"
+    >
+      Test Architecture
+    </h3>
+    <p
+      class="mx-auto max-w-2xl text-sm text-gray-300"
+    >
+      Test description for the architecture diagram
+    </p>
+  </div>
+  <div
+    class="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 h-[600px]"
+  >
+    <div
+      data-edges="2"
+      data-nodes="7"
+      data-testid="react-flow-container"
+    >
+      <div
+        data-testid="react-flow-background"
+      />
+      <div
+        data-testid="react-flow-controls"
+      />
+      <div
+        data-testid="react-flow-minimap"
+      />
+    </div>
+  </div>
+  <div
+    class="flex flex-wrap justify-center gap-3 border-t border-white/10 pt-3"
+  >
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-2.5 w-2.5 rounded bg-gradient-to-br from-yellow-500/40 to-amber-500/40 ring-1 ring-yellow-400/50"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        핵심
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-2.5 w-2.5 rounded bg-white/15 ring-1 ring-white/30"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        주요
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-2.5 w-2.5 rounded bg-white/5 ring-1 ring-white/10"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        보조
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-3 w-4 border-t border-dashed border-purple-400/60"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        검증
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-3 w-4 border-t border-white/40"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        데이터
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`🎯 ReactFlowDiagram 컴포넌트 > 스냅샷 테스트 > 큰 다이어그램 스냅샷 1`] = `
+<div
+  class="flex flex-col space-y-4"
+>
+  <div
+    class="text-center"
+  >
+    <h3
+      class="mb-2 text-xl font-bold text-white"
+    >
+      Large Architecture
+    </h3>
+    <p
+      class="mx-auto max-w-2xl text-sm text-gray-300"
+    >
+      Large diagram with many nodes
+    </p>
+  </div>
+  <div
+    class="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 h-[400px]"
+  >
+    <div
+      data-edges="0"
+      data-nodes="8"
+      data-testid="react-flow-container"
+    >
+      <div
+        data-testid="react-flow-background"
+      />
+      <div
+        data-testid="react-flow-controls"
+      />
+    </div>
+  </div>
+  <div
+    class="flex flex-wrap justify-center gap-3 border-t border-white/10 pt-3"
+  >
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-2.5 w-2.5 rounded bg-gradient-to-br from-yellow-500/40 to-amber-500/40 ring-1 ring-yellow-400/50"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        핵심
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-2.5 w-2.5 rounded bg-white/15 ring-1 ring-white/30"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        주요
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-2.5 w-2.5 rounded bg-white/5 ring-1 ring-white/10"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        보조
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-3 w-4 border-t border-dashed border-purple-400/60"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        검증
+      </span>
+    </div>
+    <div
+      class="flex items-center gap-1.5"
+    >
+      <div
+        class="h-3 w-4 border-t border-white/40"
+      />
+      <span
+        class="text-[10px] text-gray-400"
+      >
+        데이터
+      </span>
+    </div>
+  </div>
+</div>
+`;
