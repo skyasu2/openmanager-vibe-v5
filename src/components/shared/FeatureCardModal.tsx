@@ -332,127 +332,11 @@ export default function FeatureCardModal({
     }
   };
 
-  // 다이어그램에서 Tech Specs 추출
-  const diagramSpecs = React.useMemo(() => {
-    if (!diagramData) return null;
-
-    // 레이어별 핵심 노드 추출 (highlight 타입 우선)
-    const keyNodes = diagramData.layers
-      .flatMap((layer) => layer.nodes)
-      .filter((node) => node.type === 'highlight' || node.sublabel)
-      .slice(0, 5);
-
-    return {
-      layerCount: diagramData.layers.length,
-      totalNodes: diagramData.layers.reduce(
-        (sum, layer) => sum + layer.nodes.length,
-        0
-      ),
-      connectionCount: diagramData.connections?.length || 0,
-      keyNodes,
-      layers: diagramData.layers.map((l) => ({
-        title: l.title,
-        nodeCount: l.nodes.length,
-        color: l.color,
-      })),
-    };
-  }, [diagramData]);
-
   const mainContent = (
     <div className="p-6 text-white">
-      {/* 아키텍처 다이어그램 뷰 - Split Screen (2-Column) 레이아웃 */}
+      {/* 아키텍처 다이어그램 뷰 (React Flow 기반) */}
       {showDiagram && diagramData ? (
-        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
-          {/* 좌측: 설명 & Tech Specs */}
-          <div className="flex flex-col justify-center lg:w-2/5">
-            {/* 제목 (좌측 정렬) */}
-            <h3 className="mb-3 text-2xl font-bold text-white">
-              {diagramData.title}
-            </h3>
-
-            {/* 설명 */}
-            <p className="mb-6 text-sm leading-relaxed text-gray-300">
-              {diagramData.description}
-            </p>
-
-            {/* Tech Specs */}
-            {diagramSpecs && (
-              <div className="space-y-4">
-                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-400 uppercase tracking-wide">
-                  <span className="h-px flex-1 bg-gray-700" />
-                  Core Specs
-                  <span className="h-px flex-1 bg-gray-700" />
-                </h4>
-
-                {/* 통계 배지 */}
-                <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-medium text-indigo-300">
-                    📊 {diagramSpecs.layerCount} Layers
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/20 px-3 py-1 text-xs font-medium text-purple-300">
-                    🔷 {diagramSpecs.totalNodes} Nodes
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-pink-500/20 px-3 py-1 text-xs font-medium text-pink-300">
-                    🔗 {diagramSpecs.connectionCount} Connections
-                  </span>
-                </div>
-
-                {/* 핵심 컴포넌트 */}
-                <div className="space-y-2">
-                  <span className="text-xs font-medium text-gray-500">
-                    Key Components
-                  </span>
-                  <ul className="space-y-1.5">
-                    {diagramSpecs.keyNodes.map((node) => (
-                      <li
-                        key={node.id}
-                        className="flex items-center gap-2 text-sm text-gray-300"
-                      >
-                        <span className="text-base">{node.icon || '•'}</span>
-                        <span className="font-medium">{node.label}</span>
-                        {node.sublabel && (
-                          <span className="text-xs text-gray-500">
-                            {node.sublabel}
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* 레이어 구조 */}
-                <div className="space-y-2">
-                  <span className="text-xs font-medium text-gray-500">
-                    Architecture Layers
-                  </span>
-                  <div className="space-y-1">
-                    {diagramSpecs.layers.map((layer, idx) => (
-                      <div
-                        key={layer.title}
-                        className="flex items-center gap-2 text-xs"
-                      >
-                        <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-800 text-[10px] font-bold text-gray-400">
-                          {idx + 1}
-                        </span>
-                        <span className="text-gray-300">{layer.title}</span>
-                        <span className="text-gray-600">
-                          ({layer.nodeCount})
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* 우측: 다이어그램 */}
-          <div className="lg:w-3/5">
-            <div className="rounded-xl border border-white/10 bg-gray-900/50 p-2">
-              <ReactFlowDiagram diagram={diagramData} compact showControls />
-            </div>
-          </div>
-        </div>
+        <ReactFlowDiagram diagram={diagramData} compact showControls />
       ) : (
         <>
           {/* 헤더 섹션 */}
@@ -735,9 +619,9 @@ export default function FeatureCardModal({
       {/* 모달 컨텐츠 - Hook 안정화를 위해 항상 렌더링 */}
       <div
         ref={modalRef}
-        className={`relative max-h-[85vh] w-full transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-all duration-300 ${
-          showDiagram && diagramData ? 'max-w-5xl' : 'max-w-3xl'
-        } ${!cardData.id ? 'hidden' : ''}`}
+        className={`relative max-h-[85vh] w-full max-w-3xl transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-transform duration-300 ${
+          !cardData.id ? 'hidden' : ''
+        }`}
         data-modal-content="portal-unified-v4-ai-cross-verified"
         style={{
           transform: isVisible && cardData.id ? 'scale(1)' : 'scale(0.95)',
