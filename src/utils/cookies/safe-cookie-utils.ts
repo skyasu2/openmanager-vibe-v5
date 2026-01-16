@@ -24,12 +24,10 @@
  *
  * ## 근본적 개선
  *
- * Issue #001에서 발견된 cookies.get() 버그를 근본적으로 해결:
+ * cookies.get() 버그를 근본적으로 해결:
  * - 타입 단언(as) 제거 → 타입 가드 사용
  * - 코드 중복 제거 → 중앙화된 유틸리티
  * - 런타임 검증 추가 → 안전성 향상
- *
- * @see {@link https://github.com/skyasu2/openmanager-vibe-v5/issues/001}
  */
 
 import type { NextRequest } from 'next/server';
