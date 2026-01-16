@@ -406,6 +406,18 @@ const nodeTypes = {
   swimlaneBg: SwimlaneBgNode,
 };
 
+// 🔧 P0: AriaLabelConfig (WCAG AA 접근성)
+const ariaLabelConfig = {
+  'node.ariaLabel': '노드: {label}',
+  'edge.ariaLabel': '연결: {sourceLabel}에서 {targetLabel}로',
+  'controls.ariaLabel': '다이어그램 컨트롤',
+  'controls.zoomIn.ariaLabel': '확대',
+  'controls.zoomOut.ariaLabel': '축소',
+  'controls.fitView.ariaLabel': '화면에 맞춤',
+  'controls.lock.ariaLabel': '인터랙션 잠금',
+  'minimap.ariaLabel': '미니맵 - 다이어그램 전체 보기',
+};
+
 function ReactFlowDiagram({
   diagram,
   compact = true,
@@ -417,8 +429,14 @@ function ReactFlowDiagram({
     [diagram]
   );
 
-  // defaultViewport로 초기 뷰 설정 (fitView 대신 사용)
-  // 사용자가 Controls의 Fit View 버튼으로 전체 보기 가능
+  // 🔧 P1: defaultEdgeOptions 메모이제이션 (렌더링 최적화)
+  const defaultEdgeOptions = useMemo(
+    () => ({
+      type: 'smoothstep',
+      style: { stroke: 'rgba(255, 255, 255, 0.4)', strokeWidth: 2 },
+    }),
+    []
+  );
 
   return (
     <div className="flex flex-col space-y-4">
@@ -448,17 +466,17 @@ function ReactFlowDiagram({
           }}
           minZoom={0.3}
           maxZoom={2.5}
-          defaultEdgeOptions={{
-            type: 'smoothstep',
-          }}
+          defaultEdgeOptions={defaultEdgeOptions}
           proOptions={{ hideAttribution: true }}
           className="react-flow-dark"
+          aria-label={`${diagram.title} 아키텍처 다이어그램`}
         >
           <Background color="rgba(255, 255, 255, 0.05)" gap={20} size={1} />
           {showControls && (
             <Controls
               className="!border-white/20 !bg-slate-800/80 [&>button]:!border-white/20 [&>button]:!bg-slate-700/80 [&>button:hover]:!bg-slate-600/80 [&>button>svg]:!fill-white/80"
               showInteractive={false}
+              aria-label={ariaLabelConfig['controls.ariaLabel']}
             />
           )}
           {showMiniMap && (
@@ -473,6 +491,7 @@ function ReactFlowDiagram({
                 return 'rgba(255, 255, 255, 0.3)';
               }}
               maskColor="rgba(0, 0, 0, 0.8)"
+              aria-label={ariaLabelConfig['minimap.ariaLabel']}
             />
           )}
         </ReactFlow>

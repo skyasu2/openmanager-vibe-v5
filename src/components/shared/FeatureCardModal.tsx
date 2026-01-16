@@ -3,7 +3,7 @@
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, X, Zap } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { getDiagramByCardId } from '@/data/architecture-diagrams.data';
 import {
@@ -72,17 +72,78 @@ export default function FeatureCardModal({
     (state) => state.aiAgent.isEnabled
   );
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+  // 내부 ref (외부 modalRef가 없을 경우 대체)
+  const internalRef = useRef<HTMLDivElement>(null);
+  const actualModalRef = modalRef || internalRef;
+
+  // 🔧 P0: Escape 이중 호출 방지 (stopPropagation 추가)
+  const handleEscapeClose = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isVisible) {
+        e.preventDefault();
+        e.stopPropagation();
         onClose();
       }
-    };
-    window.addEventListener('keydown', handleKeyDown);
+    },
+    [isVisible, onClose]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleEscapeClose);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleEscapeClose);
     };
-  }, [onClose]); // ✅ onClose 의존성 복원 - stale closure 방지
+  }, [handleEscapeClose]);
+
+  // 🔧 P0: 포커스 트래핑 (WCAG AA 필수)
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const modal =
+      actualModalRef && 'current' in actualModalRef
+        ? actualModalRef.current
+        : null;
+    if (!modal) return;
+
+    // 이전 활성 요소 저장 (모달 닫을 때 복원용)
+    const previousActiveElement = document.activeElement as HTMLElement | null;
+
+    const focusableSelector =
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const focusableElements =
+      modal.querySelectorAll<HTMLElement>(focusableSelector);
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    // 모달 열릴 때 첫 포커스 가능한 요소로 이동
+    firstFocusable?.focus();
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        // Shift + Tab: 첫 요소에서 마지막으로 순환
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable?.focus();
+        }
+      } else {
+        // Tab: 마지막 요소에서 첫 요소로 순환
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable?.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleTabKey);
+
+    return () => {
+      window.removeEventListener('keydown', handleTabKey);
+      // 모달 닫힐 때 이전 포커스 복원
+      previousActiveElement?.focus();
+    };
+  }, [isVisible, actualModalRef]);
 
   // 🎯 Gemini 제안: 타입 안전성 강화 + 의존성 최적화
   const cardData = React.useMemo(() => {
@@ -618,7 +679,7 @@ export default function FeatureCardModal({
 
       {/* 모달 컨텐츠 - Hook 안정화를 위해 항상 렌더링 */}
       <div
-        ref={modalRef}
+        ref={actualModalRef}
         className={`relative max-h-[96vh] w-full max-w-[96vw] transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-transform duration-300 ${
           !cardData.id ? 'hidden' : ''
         }`}
@@ -628,6 +689,7 @@ export default function FeatureCardModal({
         }}
         role="dialog"
         aria-modal="true"
+        aria-labelledby="modal-title"
         tabIndex={-1}
       >
         {/* Hook 안정화: 조건부 렌더링 제거, CSS로 가시성 제어 */}
@@ -646,7 +708,9 @@ export default function FeatureCardModal({
                   }}
                 />
               </div>
-              <h2 className="text-lg font-semibold text-white">{title}</h2>
+              <h2 id="modal-title" className="text-lg font-semibold text-white">
+                {title}
+              </h2>
             </div>
 
             <div className="flex items-center gap-2">
