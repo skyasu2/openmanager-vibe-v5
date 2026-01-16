@@ -15,7 +15,7 @@
 
 const FREE_TIER_LIMIT = 50_000; // 월간 무료 한도
 const SAFETY_THRESHOLD = 0.9; // 90%에서 차단 (45,000)
-const DEFAULT_SAMPLE_RATE = 0.1; // 기본 10% 샘플링
+const DEFAULT_SAMPLE_RATE = 1.0; // 100% 전체 추적 (사용량 낮아 안전)
 
 // 테스트 모드: 환경변수 또는 런타임 설정으로 100% 추적
 let testModeEnabled = process.env.LANGFUSE_TEST_MODE === 'true';
