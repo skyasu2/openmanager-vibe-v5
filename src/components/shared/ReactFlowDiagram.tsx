@@ -25,7 +25,7 @@ import {
   Position,
   ReactFlow,
 } from '@xyflow/react';
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import '@xyflow/react/dist/style.css';
 import type { ArchitectureDiagram as DiagramData } from '@/data/architecture-diagrams.data';
 
@@ -56,11 +56,11 @@ interface CustomNodeData extends Record<string, unknown> {
 // Constants
 // =============================================================================
 
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 48;
-const NODE_GAP = 70;
+const NODE_WIDTH = 200;
+const NODE_HEIGHT = 56;
+const NODE_GAP = 80;
 const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
-const LABEL_AREA_WIDTH = 120; // Swimlane 라벨 영역 너비
+const LABEL_AREA_WIDTH = 180; // Swimlane 라벨 영역 너비 (확장: 120 -> 180)
 const LABEL_CONTENT_GAP = 40; // 라벨과 콘텐츠 사이 간격
 const SWIMLANE_PADDING = 16; // Swimlane 내부 패딩
 
@@ -106,18 +106,18 @@ const CustomNode = memo(({ data }: NodeProps<Node<CustomNodeData>>) => {
         className="!h-2 !w-2 !border-2 !border-white/40 !bg-white/20"
       />
 
-      {/* 노드 본체 */}
+      {/* 노드 본체 - 더 큰 사이즈로 가독성 개선 */}
       <div
-        className={`flex min-w-[110px] max-w-[170px] items-center gap-1.5 rounded-lg border px-2 py-1.5 transition-all duration-200 hover:scale-105 ${styles.bg} ${styles.border} ${styles.shadow}`}
+        className={`flex min-w-[120px] max-w-[180px] items-center gap-2 rounded-lg border px-3 py-2 transition-all duration-200 hover:scale-105 ${styles.bg} ${styles.border} ${styles.shadow}`}
         title={`${data.label}${data.sublabel ? `\n${data.sublabel}` : ''}`}
       >
-        {data.icon && <span className="text-sm">{data.icon}</span>}
+        {data.icon && <span className="text-base">{data.icon}</span>}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-xs font-semibold text-white">
+          <div className="truncate text-sm font-semibold text-white">
             {data.label}
           </div>
           {data.sublabel && (
-            <div className="truncate text-[10px] leading-tight text-white/60">
+            <div className="line-clamp-2 text-[10px] leading-tight text-white/70">
               {data.sublabel}
             </div>
           )}
@@ -157,16 +157,24 @@ CustomNode.displayName = 'CustomNode';
 const LayerLabelNode = memo(
   ({ data }: NodeProps<Node<{ title: string; color: string }>>) => {
     return (
-      <div className="relative flex items-center">
+      <div className="relative flex items-center justify-end pr-4">
         {/* Swimlane 라벨 배경 (왼쪽 영역 표시) */}
-        <div className="absolute -left-2 -top-3 -bottom-3 w-[120px] rounded-l-lg border-r border-white/15 bg-gradient-to-r from-white/[0.06] to-transparent" />
-        {/* 라벨 뱃지 */}
         <div
-          className={`relative z-10 rounded-full bg-gradient-to-r ${data.color} px-2.5 py-1 shadow-md`}
+          className="absolute right-0 top-[-24px] bottom-[-24px] rounded-l-xl border-r border-white/20 bg-gradient-to-l from-white/[0.05] to-transparent"
+          style={{ width: LABEL_AREA_WIDTH }}
+        />
+        {/* 라벨 뱃지 - 디자인 개선 */}
+        <div
+          className={`relative z-10 flex w-full max-w-[150px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-slate-900/60 p-3 text-center backdrop-blur-md transition-transform hover:scale-105 ${data.color.replace(
+            'bg-',
+            'shadow-lg shadow-'
+          )}/20`}
         >
-          <span className="whitespace-nowrap text-[10px] font-bold text-white">
+          {/* 장식용 라인 */}
+          <div className={`h-1 w-6 rounded-full ${data.color}`} />
+          <div className="w-full break-words text-xs font-bold leading-snug text-white">
             {data.title}
-          </span>
+          </div>
         </div>
       </div>
     );
@@ -239,8 +247,9 @@ function convertToReactFlow(diagram: DiagramData): {
 
   // 라벨의 X 위치 (모든 라벨이 이 위치로 고정되어 좌측 정렬 효과)
   // 콘텐츠는 X=0 기준 중앙 정렬, 라벨은 콘텐츠 왼쪽 바깥에 위치
+  // React Flow 좌표계는 노드의 Left를 기준점으로 하므로, 라벨 영역의 전체 너비를 빼주어야 함 (중심점이 아님)
   const fixedLabelX =
-    -(maxContentWidth / 2) - LABEL_CONTENT_GAP - LABEL_AREA_WIDTH / 2;
+    -(maxContentWidth / 2) - LABEL_CONTENT_GAP - LABEL_AREA_WIDTH;
 
   // 레이어별로 노드 생성
   diagram.layers.forEach((layer, layerIndex) => {
@@ -410,9 +419,8 @@ function ReactFlowDiagram({
     [diagram]
   );
 
-  const onInit = useCallback(() => {
-    // React Flow 초기화 완료
-  }, []);
+  // defaultViewport로 초기 뷰 설정 (fitView 대신 사용)
+  // 사용자가 Controls의 Fit View 버튼으로 전체 보기 가능
 
   return (
     <div className="flex flex-col space-y-4">
@@ -427,22 +435,21 @@ function ReactFlowDiagram({
       {/* React Flow 캔버스 */}
       <div
         className={`rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 ${
-          compact ? 'h-[400px]' : 'h-[600px]'
+          compact ? 'h-[500px]' : 'h-[650px]'
         }`}
       >
         <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
-          onInit={onInit}
           fitView
           fitViewOptions={{
-            padding: 0.2,
-            minZoom: 0.5,
-            maxZoom: 1.2,
+            padding: 0.05,
+            minZoom: 1.0,
+            maxZoom: 1.5,
           }}
-          minZoom={0.4}
-          maxZoom={1.5}
+          minZoom={0.3}
+          maxZoom={2.5}
           defaultEdgeOptions={{
             type: 'smoothstep',
           }}
