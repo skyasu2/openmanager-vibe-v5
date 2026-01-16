@@ -196,7 +196,9 @@ function Home() {
       <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="text-center text-white">
           <div className="mx-auto mb-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-          <div className="text-sm">인증 확인 중... ({envLabel})</div>
+          <div className="text-sm" suppressHydrationWarning>
+            인증 확인 중... ({envLabel})
+          </div>
         </div>
       </div>
     );

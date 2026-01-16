@@ -49,7 +49,7 @@ export default function AuthLoadingUI({
         <div>
           <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-white" />
         </div>
-        <p className="font-medium text-white/90">
+        <p className="font-medium text-white/90" suppressHydrationWarning>
           {loadingMessage} ({envLabel} 환경)
         </p>
         {authError && onRetry && (
@@ -63,7 +63,7 @@ export default function AuthLoadingUI({
             </button>
           </div>
         )}
-        <div className="mt-2 text-xs text-white/90">
+        <div className="mt-2 text-xs text-white/90" suppressHydrationWarning>
           {envLabel} 서버에서 로딩 중...
         </div>
       </div>
