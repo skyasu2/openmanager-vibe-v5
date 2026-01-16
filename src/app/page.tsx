@@ -176,8 +176,10 @@ function Home() {
     [guestSystemStartEnabled]
   );
 
-  // 로딩 상태
-  const shouldShowLoading = !isMounted || authLoading || shouldRedirect;
+  // 로딩 상태 - 단일 조건으로 통합 (깜빡임 방지)
+  // 이전: shouldShowLoading → AuthLoadingUI, !authReady → 별도 스피너 (2단계 로딩)
+  // 개선: authReady 하나만 체크하여 단일 로딩 화면
+  const shouldShowLoading = !isMounted || !authReady;
 
   if (shouldShowLoading) {
     return (
@@ -187,20 +189,6 @@ function Home() {
         authError={authError}
         onRetry={retryAuth}
       />
-    );
-  }
-
-  // 미인증 상태 처리: 게스트 시스템 시작이 허용된 경우 메인 콘텐츠 표시
-  if (!authReady) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="text-center text-white">
-          <div className="mx-auto mb-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-          <div className="text-sm" suppressHydrationWarning>
-            인증 확인 중... ({envLabel})
-          </div>
-        </div>
-      </div>
     );
   }
 

@@ -3,11 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isVercel } from '@/env';
-import {
-  type AuthUser,
-  getAuthState,
-  isGitHubAuthenticated,
-} from '@/lib/auth/auth-state-manager';
+import { type AuthUser, getAuthState } from '@/lib/auth/auth-state-manager';
 import { logger } from '@/lib/logging';
 
 // This logic is now inlined from the old vercel-env.ts
@@ -65,23 +61,28 @@ export function useInitialAuth() {
       updateState({ currentStep: 'auth-check', isLoading: true });
       logger.info(debugWithEnv('🔄 인증 상태 확인 중...'));
 
-      const [authState, isGitHub] = await Promise.all([
-        getAuthState(),
-        isGitHubAuthenticated(),
-      ]);
+      // 단일 getAuthState() 호출로 통합 - 중복 Supabase API 호출 제거
+      // 이전: Promise.all([getAuthState(), isGitHubAuthenticated()]) → 4회 API 호출
+      // 개선: getAuthState()만 호출 → 2회 API 호출 (50% 감소)
+      const authState = await getAuthState();
       const user = authState.user;
+
+      // provider 정보는 authState에서 직접 추출 (isGitHubAuthenticated() 불필요)
+      const isGitHubUser =
+        user?.provider === 'github' || authState.type === 'github';
 
       logger.info(debugWithEnv('📊 인증 결과'), {
         hasUser: !!user,
         userType: user?.provider,
+        authType: authState.type,
         userName: user?.name,
         userEmail: user?.email,
         userId: user?.id,
-        isGitHub,
+        isGitHubUser,
         currentPath: pathname,
       });
 
-      const isActuallyGitHubUser = isGitHub || user?.provider === 'github';
+      const isActuallyGitHubUser = isGitHubUser;
 
       updateState({
         currentStep: 'complete',
@@ -92,8 +93,8 @@ export function useInitialAuth() {
         error: null,
       });
 
-      logger.info(debugWithEnv('🔧 GitHub 인증 상태 개선:'), {
-        isGitHubFromSession: isGitHub,
+      logger.info(debugWithEnv('🔧 인증 상태 확정:'), {
+        authType: authState.type,
         userProvider: user?.provider,
         finalGitHubStatus: isActuallyGitHubUser,
       });
