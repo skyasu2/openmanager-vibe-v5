@@ -9,8 +9,8 @@
  * - 인터랙티브한 노드 (드래그, 줌, 패닝)
  * - 더 정교한 레이아웃
  *
- * @version 5.89.0
- * @updated 2026-01-16 - Swimlane 레이아웃 개선 (왼쪽 라벨 + 오른쪽 콘텐츠 구분)
+ * @version 5.90.0
+ * @updated 2026-01-17 - P2 개선: 에러 바운더리, 키보드 접근성 (Arrow 키)
  */
 
 import {
@@ -25,7 +25,7 @@ import {
   Position,
   ReactFlow,
 } from '@xyflow/react';
-import { memo, useMemo } from 'react';
+import React, { Component, memo, type ReactNode, useMemo } from 'react';
 import '@xyflow/react/dist/style.css';
 import type { ArchitectureDiagram as DiagramData } from '@/data/architecture-diagrams.data';
 
@@ -53,9 +53,105 @@ interface CustomNodeData extends Record<string, unknown> {
 }
 
 // =============================================================================
+// Error Boundary (P2: React Flow 렌더링 오류 격리)
+// =============================================================================
+
+interface DiagramErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+  diagramTitle?: string;
+}
+
+interface DiagramErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+/**
+ * 🔧 P2: React Flow 전용 에러 바운더리
+ * - 다이어그램 렌더링 실패 시 전체 앱 크래시 방지
+ * - 사용자 친화적 오류 메시지 표시
+ * - 개발 모드에서 상세 에러 정보 제공
+ */
+class DiagramErrorBoundary extends Component<
+  DiagramErrorBoundaryProps,
+  DiagramErrorBoundaryState
+> {
+  constructor(props: DiagramErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): DiagramErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    console.error('[ReactFlowDiagram] 렌더링 오류:', error);
+    console.error(
+      '[ReactFlowDiagram] 컴포넌트 스택:',
+      errorInfo.componentStack
+    );
+  }
+
+  render(): ReactNode {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
+      return (
+        <div className="flex h-[400px] flex-col items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 p-8">
+          <div className="mb-4 text-4xl">⚠️</div>
+          <h3 className="mb-2 text-lg font-semibold text-red-400">
+            다이어그램 로드 실패
+          </h3>
+          <p className="mb-4 text-center text-sm text-gray-400">
+            {this.props.diagramTitle
+              ? `"${this.props.diagramTitle}" 다이어그램을 표시할 수 없습니다.`
+              : '다이어그램을 표시할 수 없습니다.'}
+          </p>
+          {process.env.NODE_ENV === 'development' && this.state.error && (
+            <details className="mt-2 max-w-full">
+              <summary className="cursor-pointer text-xs text-gray-500 hover:text-gray-400">
+                기술적 세부정보 보기
+              </summary>
+              <pre className="mt-2 max-h-32 overflow-auto rounded bg-black/50 p-2 text-xs text-red-300">
+                {this.state.error.message}
+              </pre>
+            </details>
+          )}
+          <button
+            type="button"
+            onClick={() => this.setState({ hasError: false, error: null })}
+            className="mt-4 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white transition-colors hover:bg-white/20"
+          >
+            다시 시도
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// =============================================================================
 // Constants
 // =============================================================================
 
+/**
+ * 레이아웃 상수
+ *
+ * 📐 설계 결정 (node.measured vs 고정 크기):
+ * - React Flow v12는 node.measured?.width/height를 제공하지만,
+ *   Swimlane 레이아웃은 노드 렌더링 전에 배경 크기를 알아야 함
+ * - 현재 CustomNode는 CSS로 크기 제한 (min-w-[120px] max-w-[180px])
+ * - 텍스트는 truncate/line-clamp로 고정 높이 보장
+ * - 결론: 예측 가능한 고정 크기가 Swimlane 구조에 더 적합
+ *
+ * 향후 동적 크기가 필요하면 useNodesInitialized() + 2-pass 렌더링 적용
+ */
 const NODE_WIDTH = 200;
 const NODE_HEIGHT = 56;
 const NODE_GAP = 80;
@@ -448,56 +544,61 @@ function ReactFlowDiagram({
         </p>
       </div>
 
-      {/* React Flow 캔버스 */}
-      <div
-        className={`rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 ${
-          compact ? 'h-[500px]' : 'h-[650px]'
-        }`}
-      >
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{
-            padding: 0.05,
-            minZoom: 1.0,
-            maxZoom: 1.5,
-          }}
-          minZoom={0.3}
-          maxZoom={2.5}
-          defaultEdgeOptions={defaultEdgeOptions}
-          proOptions={{ hideAttribution: true }}
-          // 🔧 P1: 대량 노드 성능 최적화 - 보이는 요소만 렌더링
-          onlyRenderVisibleElements
-          className="react-flow-dark"
-          aria-label={`${diagram.title} 아키텍처 다이어그램`}
+      {/* React Flow 캔버스 (🔧 P2: 에러 바운더리로 보호) */}
+      <DiagramErrorBoundary diagramTitle={diagram.title}>
+        <div
+          className={`rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 ${
+            compact ? 'h-[500px]' : 'h-[650px]'
+          }`}
         >
-          <Background color="rgba(255, 255, 255, 0.05)" gap={20} size={1} />
-          {showControls && (
-            <Controls
-              className="!border-white/20 !bg-slate-800/80 [&>button]:!border-white/20 [&>button]:!bg-slate-700/80 [&>button:hover]:!bg-slate-600/80 [&>button>svg]:!fill-white/80"
-              showInteractive={false}
-              aria-label={ariaLabelConfig['controls.ariaLabel']}
-            />
-          )}
-          {showMiniMap && (
-            <MiniMap
-              className="!border-white/20 !bg-slate-800/80"
-              nodeColor={(node) => {
-                const data = node.data as CustomNodeData;
-                if (data?.nodeType === 'highlight')
-                  return 'rgba(250, 204, 21, 0.8)';
-                if (data?.nodeType === 'primary')
-                  return 'rgba(255, 255, 255, 0.6)';
-                return 'rgba(255, 255, 255, 0.3)';
-              }}
-              maskColor="rgba(0, 0, 0, 0.8)"
-              aria-label={ariaLabelConfig['minimap.ariaLabel']}
-            />
-          )}
-        </ReactFlow>
-      </div>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            fitView
+            fitViewOptions={{
+              padding: 0.05,
+              minZoom: 1.0,
+              maxZoom: 1.5,
+            }}
+            minZoom={0.3}
+            maxZoom={2.5}
+            defaultEdgeOptions={defaultEdgeOptions}
+            proOptions={{ hideAttribution: true }}
+            // 🔧 P1: 대량 노드 성능 최적화 - 보이는 요소만 렌더링
+            onlyRenderVisibleElements
+            // 🔧 P2: 키보드 접근성 - Tab으로 노드/엣지 포커스, Arrow 키로 이동
+            nodesFocusable
+            edgesFocusable
+            className="react-flow-dark"
+            aria-label={`${diagram.title} 아키텍처 다이어그램`}
+          >
+            <Background color="rgba(255, 255, 255, 0.05)" gap={20} size={1} />
+            {showControls && (
+              <Controls
+                className="!border-white/20 !bg-slate-800/80 [&>button]:!border-white/20 [&>button]:!bg-slate-700/80 [&>button:hover]:!bg-slate-600/80 [&>button>svg]:!fill-white/80"
+                showInteractive={false}
+                aria-label={ariaLabelConfig['controls.ariaLabel']}
+              />
+            )}
+            {showMiniMap && (
+              <MiniMap
+                className="!border-white/20 !bg-slate-800/80"
+                nodeColor={(node) => {
+                  const data = node.data as CustomNodeData;
+                  if (data?.nodeType === 'highlight')
+                    return 'rgba(250, 204, 21, 0.8)';
+                  if (data?.nodeType === 'primary')
+                    return 'rgba(255, 255, 255, 0.6)';
+                  return 'rgba(255, 255, 255, 0.3)';
+                }}
+                maskColor="rgba(0, 0, 0, 0.8)"
+                aria-label={ariaLabelConfig['minimap.ariaLabel']}
+              />
+            )}
+          </ReactFlow>
+        </div>
+      </DiagramErrorBoundary>
 
       {/* 범례 */}
       <div className="flex flex-wrap justify-center gap-3 border-t border-white/10 pt-3">
