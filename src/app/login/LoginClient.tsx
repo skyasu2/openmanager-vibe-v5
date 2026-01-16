@@ -494,9 +494,12 @@ export default function LoginClient() {
           <p className="text-xs text-white/60">
             OpenManager Vibe v{process.env.NEXT_PUBLIC_APP_VERSION || '5.83.3'}
           </p>
-          <p className="mt-2 text-[10px] text-gray-500">
-            Portfolio Project by skyasu
-          </p>
+          <a
+            href="/privacy"
+            className="mt-2 inline-block text-[10px] text-gray-500 hover:text-white/70 transition-colors"
+          >
+            개인정보 처리방침
+          </a>
         </div>
       </div>
     </div>
