@@ -69,48 +69,51 @@ const DiagramNodeItem = memo(({ node }: { node: DiagramNode }) => {
 DiagramNodeItem.displayName = 'DiagramNodeItem';
 
 /**
- * 레이어 컴포넌트 (Swimlane 배경 포함)
+ * 레이어 컴포넌트 (Swimlane 레이아웃: 왼쪽 라벨 + 오른쪽 콘텐츠)
  */
 const DiagramLayerSection = memo(
   ({ layer, isLast }: { layer: DiagramLayer; isLast?: boolean }) => {
     return (
       <div className="relative">
         {/* Swimlane 배경 */}
-        <div className="absolute inset-0 -mx-4 rounded-xl bg-white/[0.02]" />
+        <div className="absolute inset-0 rounded-lg bg-white/[0.02]" />
 
-        <div className="relative px-4 py-4">
-          {/* 레이어 타이틀 - 중앙 정렬 */}
-          <div className="mb-3 flex justify-center">
+        {/* Swimlane 레이아웃: 왼쪽 라벨 | 오른쪽 콘텐츠 */}
+        <div className="relative flex items-stretch gap-4 p-3">
+          {/* 왼쪽: 레이어 라벨 (세로 중앙 정렬) */}
+          <div className="flex w-32 shrink-0 items-center justify-center border-r border-white/10 pr-4">
             <div
-              className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${layer.color} px-3 py-1 shadow-sm`}
+              className={`rounded-full bg-gradient-to-r ${layer.color} px-3 py-1.5 shadow-sm`}
             >
-              <span className="text-xs font-semibold text-white">
+              <span className="whitespace-nowrap text-[11px] font-semibold text-white">
                 {layer.title}
               </span>
             </div>
           </div>
 
-          {/* 노드 그리드 - 중앙 정렬 */}
-          <div
-            className={`grid gap-3 justify-items-center ${
-              layer.nodes.length === 1
-                ? 'grid-cols-1 max-w-xs mx-auto'
-                : layer.nodes.length === 2
-                  ? 'grid-cols-2 max-w-lg mx-auto'
-                  : layer.nodes.length === 3
-                    ? 'grid-cols-3 max-w-2xl mx-auto'
-                    : 'grid-cols-2 md:grid-cols-4'
-            }`}
-          >
-            {layer.nodes.map((node) => (
-              <DiagramNodeItem key={node.id} node={node} />
-            ))}
+          {/* 오른쪽: 노드 그리드 */}
+          <div className="flex-1">
+            <div
+              className={`grid gap-2 ${
+                layer.nodes.length === 1
+                  ? 'grid-cols-1 max-w-[180px]'
+                  : layer.nodes.length === 2
+                    ? 'grid-cols-2'
+                    : layer.nodes.length === 3
+                      ? 'grid-cols-3'
+                      : 'grid-cols-2 md:grid-cols-4'
+              }`}
+            >
+              {layer.nodes.map((node) => (
+                <DiagramNodeItem key={node.id} node={node} />
+              ))}
+            </div>
           </div>
         </div>
 
         {/* 레이어 구분선 (마지막 제외) */}
         {!isLast && (
-          <div className="absolute -bottom-1 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         )}
       </div>
     );
@@ -120,13 +123,13 @@ const DiagramLayerSection = memo(
 DiagramLayerSection.displayName = 'DiagramLayerSection';
 
 /**
- * 연결선 화살표 (레이어 간)
+ * 연결선 화살표 (레이어 간) - Swimlane 레이아웃용
  */
 const LayerConnector = memo(() => (
-  <div className="flex items-center justify-center py-2">
+  <div className="flex items-center py-1 pl-36">
     <div className="flex flex-col items-center">
-      <div className="h-4 w-px bg-gradient-to-b from-white/40 to-white/20" />
-      <div className="h-0 w-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white/30" />
+      <div className="h-3 w-px bg-gradient-to-b from-white/30 to-white/10" />
+      <div className="h-0 w-0 border-l-[5px] border-r-[5px] border-t-[5px] border-transparent border-t-white/20" />
     </div>
   </div>
 ));
