@@ -351,13 +351,13 @@ export default function FeatureCardModal({
               {/* 바이브 코딩 카드 전용 뷰 표시 */}
               {cardData.id === 'vibe-coding' && (
                 <span className="ml-2 text-lg font-medium text-amber-400">
-                  {isHistoryView ? '• 발전 히스토리' : '• 현재 도구'}
+                  {isHistoryView ? '• 개발 환경 변화' : '• 현재 도구'}
                 </span>
               )}
             </h3>
             <p className="mx-auto max-w-2xl text-sm text-gray-300">
               {cardData.id === 'vibe-coding' && isHistoryView
-                ? '바이브 코딩의 4단계 발전 과정을 시간 순서대로 보여줍니다. 초기(ChatGPT 개별 페이지) → 중기(Cursor + Vercel + Supabase) → 후기(Claude Code + WSL + 멀티 AI CLI) → 현재(Claude Code v2.0+ + MCP 완전 통합)로 진화한 개발 도구들의 역사를 확인할 수 있습니다.'
+                ? '바이브 코딩 여정: 초기(ChatGPT 개별 페이지) → 중기(Cursor + Vercel + Supabase) → 후기(Claude Code + WSL)로 이어진 개발 환경의 변화를 시간 순서대로 보여줍니다.'
                 : sanitizeText(detailedContent.overview)}
             </p>
           </div>
@@ -442,7 +442,7 @@ export default function FeatureCardModal({
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-300">
                       1
                     </div>
-                    초기 단계 (2025.05~06)
+                    초기 단계
                     <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-sm text-emerald-300">
                       {vibeHistoryStages.stage1?.length || 0}개 도구
                     </span>
@@ -468,7 +468,7 @@ export default function FeatureCardModal({
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-sm font-bold text-amber-300">
                       2
                     </div>
-                    중기 단계 (2025.06~07)
+                    중기 단계
                     <span className="rounded-full bg-amber-500/20 px-3 py-1 text-sm text-amber-300">
                       {vibeHistoryStages.stage2?.length || 0}개 도구
                     </span>
@@ -494,7 +494,7 @@ export default function FeatureCardModal({
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/20 text-sm font-bold text-purple-300">
                       3
                     </div>
-                    후기 단계 (2025.07~10)
+                    후기 단계
                     <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">
                       {vibeHistoryStages.stage3?.length || 0}개 도구
                     </span>
@@ -671,10 +671,10 @@ export default function FeatureCardModal({
                   onClick={() => setIsHistoryView(!isHistoryView)}
                   className="rounded-lg bg-linear-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:from-amber-500 hover:to-orange-500 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50"
                   aria-label={
-                    isHistoryView ? '현재 도구 보기' : '히스토리 보기'
+                    isHistoryView ? '현재 도구 보기' : '개발 환경 변화 보기'
                   }
                 >
-                  {isHistoryView ? '🔄 현재 도구' : '📚 발전 히스토리'}
+                  {isHistoryView ? '🔄 현재 도구' : '📚 개발 환경 변화'}
                 </button>
               )}
 
