@@ -1,8 +1,10 @@
 /**
- * 🔐 Login Client Component - GitHub OAuth & 게스트 로그인
+ * 🔐 Login Client Component - OAuth & 게스트 로그인
  *
- * OpenManager Vibe v5 로그인 시스템 (Google OAuth 제거됨)
- * 모든 로그인 성공 시 루트 페이지(/)로 리다이렉트
+ * OpenManager Vibe v5 로그인 시스템
+ * - GitHub OAuth, Google OAuth, Guest Mode 지원
+ * - Supabase Auth PKCE 기반 인증
+ * - 모든 로그인 성공 시 루트 페이지(/)로 리다이렉트
  */
 
 'use client';
@@ -419,6 +421,7 @@ export default function LoginClient() {
           <button
             onClick={() => void handleGitHubLogin()}
             disabled={isLoading}
+            aria-label="GitHub 계정으로 로그인"
             className="group relative flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-lg hover:bg-white/30 hover:shadow-xl transition-all duration-300 active:scale-[0.98] disabled:opacity-70"
           >
             {loadingType === 'github' ? (
@@ -435,6 +438,7 @@ export default function LoginClient() {
           <button
             onClick={() => void handleGoogleLogin()}
             disabled={isLoading}
+            aria-label="Google 계정으로 로그인"
             className="group relative flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-lg hover:bg-white/30 hover:shadow-xl transition-all duration-300 active:scale-[0.98] disabled:opacity-70"
           >
             {loadingType === 'google' ? (
@@ -473,6 +477,7 @@ export default function LoginClient() {
           <button
             onClick={() => void handleGuestLogin()}
             disabled={isLoading}
+            aria-label="게스트 모드로 체험하기"
             className="group relative flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-lg hover:bg-white/30 hover:shadow-xl transition-all duration-300 active:scale-[0.98] disabled:opacity-70"
           >
             {loadingType === 'guest' ? (
@@ -489,15 +494,9 @@ export default function LoginClient() {
           <p className="text-xs text-white/60">
             OpenManager Vibe v{process.env.NEXT_PUBLIC_APP_VERSION || '5.83.3'}
           </p>
-          <div className="mt-2 text-[10px] text-gray-400">
-            <span className="hover:text-white transition-colors cursor-pointer">
-              이용약관
-            </span>
-            <span className="mx-2">•</span>
-            <span className="hover:text-white transition-colors cursor-pointer">
-              개인정보처리방침
-            </span>
-          </div>
+          <p className="mt-2 text-[10px] text-gray-500">
+            Portfolio Project by skyasu
+          </p>
         </div>
       </div>
     </div>
