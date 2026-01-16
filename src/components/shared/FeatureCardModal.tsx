@@ -660,11 +660,11 @@ export default function FeatureCardModal({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-1 transition-opacity duration-300 sm:p-2 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-2 ${
         isVisible && selectedCard
           ? 'pointer-events-auto opacity-100'
           : 'pointer-events-none opacity-0'
-      }`}
+      } transition-opacity duration-300 motion-reduce:transition-none`}
       data-modal-version="v4.0-ai-cross-verified"
       aria-hidden={!isVisible || !selectedCard}
       role="presentation"
@@ -678,9 +678,10 @@ export default function FeatureCardModal({
       />
 
       {/* 모달 컨텐츠 - Hook 안정화를 위해 항상 렌더링 */}
+      {/* 🔧 P1: dvh 단위로 모바일 주소바 문제 해결, motion-reduce 지원 */}
       <div
         ref={actualModalRef}
-        className={`relative max-h-[96vh] w-full max-w-[96vw] transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-transform duration-300 ${
+        className={`relative max-h-[96dvh] w-full max-w-[96vw] transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-transform duration-300 motion-reduce:transition-none ${
           !cardData.id ? 'hidden' : ''
         }`}
         data-modal-content="portal-unified-v4-ai-cross-verified"
@@ -753,7 +754,7 @@ export default function FeatureCardModal({
           </header>
           <div
             className="overflow-y-auto scroll-smooth"
-            style={{ maxHeight: 'calc(94vh - 70px)' }}
+            style={{ maxHeight: 'calc(94dvh - 70px)' }}
           >
             {renderModalSafely()}
           </div>

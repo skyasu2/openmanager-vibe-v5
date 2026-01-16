@@ -468,6 +468,8 @@ function ReactFlowDiagram({
           maxZoom={2.5}
           defaultEdgeOptions={defaultEdgeOptions}
           proOptions={{ hideAttribution: true }}
+          // 🔧 P1: 대량 노드 성능 최적화 - 보이는 요소만 렌더링
+          onlyRenderVisibleElements
           className="react-flow-dark"
           aria-label={`${diagram.title} 아키텍처 다이어그램`}
         >
