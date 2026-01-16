@@ -196,7 +196,7 @@
     "@types/pg": "^8.16.0",
     "@types/pixelmatch": "^5.2.6",
     "@types/pngjs": "^6.0.5",
-    "@types/react": "^19.2.7",
+    "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@types/supertest": "^6.0.3",
     "@vitest/coverage-v8": "^4.0.16",
