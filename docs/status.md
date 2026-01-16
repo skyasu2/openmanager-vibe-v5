@@ -55,10 +55,10 @@
 - **Rate Limit**: Pre-emptive Fallback (80% 임계값 도달 시 사전 전환)
 - **Note**: Provider 장애 시 자동 폴백 (Cerebras→Groq→Mistral)
 
-**AI CLI Tools** (2026-01-08 기준)
-- **Claude Code**: `v2.0.76` (Interactive Development)
-- **Codex CLI**: `v0.77.0` (Code Review - 2-AI Rotation)
-- **Gemini CLI**: `v0.22.4` (Code Review - 2-AI Rotation)
+**AI CLI Tools** (2026-01-16 기준)
+- **Claude Code**: `v2.1.7` (Interactive Development)
+- **Codex CLI**: `v0.85.0` (Code Review - 2-AI Rotation)
+- **Gemini CLI**: `v0.24.0` (Code Review - 2-AI Rotation)
 
 **Quality Control**
 - **Test**: Vitest `v4.0.15`, Playwright `v1.57.0`

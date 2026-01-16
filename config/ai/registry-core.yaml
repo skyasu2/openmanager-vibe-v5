@@ -31,18 +31,18 @@ ai-architecture:
 # ============================================================================
 ai-tools:
   claude-code:
-    current_version: "v2.0.71"
+    current_version: "v2.1.7"
     status: "✅ Active"
     role: "Interactive development (NOT for auto code review)"
 
   codex:
-    current_version: "v0.73.0"
+    current_version: "v0.85.0"
     wrapper_version: "v3.3.0"
     status: "✅ Active"
     role: "Code review - 2-AI rotation (codex→gemini)"
 
   gemini-cli:
-    current_version: "v0.21.0"
+    current_version: "v0.24.0"
     wrapper_version: "v3.3.0"
     status: "✅ Active"
     role: "Code review - 2-AI rotation (codex→gemini)"

@@ -25,9 +25,9 @@ docs/guides/ai/
 
 | 도구 | 버전 | 역할 | 가이드 |
 |------|------|------|--------|
-| Claude Code | v2.0.76 | Lead + MCP + 스킬 | [claude-code/](./claude-code/) |
-| Codex | v0.77.0 | 2-AI 순환 (Primary) | [common/](./common/) |
-| Gemini | v0.22.4 | 2-AI 순환 (Secondary) | [common/](./common/) |
+| Claude Code | v2.1.7 | Lead + MCP + 스킬 | [claude-code/](./claude-code/) |
+| Codex | v0.85.0 | 2-AI 순환 (Primary) | [common/](./common/) |
+| Gemini | v0.24.0 | 2-AI 순환 (Secondary) | [common/](./common/) |
 
 ## 빠른 참조
 
