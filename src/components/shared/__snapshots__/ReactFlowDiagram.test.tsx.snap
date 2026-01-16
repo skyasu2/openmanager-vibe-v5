@@ -19,7 +19,7 @@ exports[`🎯 ReactFlowDiagram 컴포넌트 > 스냅샷 테스트 > 기본 다�
     </p>
   </div>
   <div
-    class="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 h-[400px]"
+    class="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 h-[500px]"
   >
     <div
       data-edges="2"
@@ -120,7 +120,7 @@ exports[`🎯 ReactFlowDiagram 컴포넌트 > 스냅샷 테스트 > 모든 옵�
     </p>
   </div>
   <div
-    class="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 h-[600px]"
+    class="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 h-[650px]"
   >
     <div
       data-edges="2"
@@ -224,7 +224,7 @@ exports[`🎯 ReactFlowDiagram 컴포넌트 > 스냅샷 테스트 > 큰 다이�
     </p>
   </div>
   <div
-    class="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 h-[400px]"
+    class="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 h-[500px]"
   >
     <div
       data-edges="0"
