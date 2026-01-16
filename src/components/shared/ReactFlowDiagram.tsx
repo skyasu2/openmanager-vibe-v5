@@ -230,6 +230,21 @@ function convertToReactFlow(diagram: DiagramData): {
 
   let currentY = 0;
 
+  // 1. 전체 레이어 중 가장 넓은 너비 계산 (좌측 정렬을 위해)
+  let maxSwimlaneWidth = 0;
+  diagram.layers.forEach((layer) => {
+    const nodeCount = layer.nodes.length;
+    const needsMultiRow = nodeCount > MAX_NODES_PER_ROW;
+    const nodesPerRow = needsMultiRow ? Math.ceil(nodeCount / 2) : nodeCount;
+    const contentWidth = nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
+    const swimlaneWidth =
+      LABEL_WIDTH + contentWidth + SWIMLANE_PADDING * 2 + 20;
+    if (swimlaneWidth > maxSwimlaneWidth) maxSwimlaneWidth = swimlaneWidth;
+  });
+
+  // 모든 레이어의 시작 X 위치를 통일 (가장 넓은 레이어 기준 중앙 정렬 -> 내부적으로는 좌측 정렬 효과)
+  const commonSwimlaneX = -maxSwimlaneWidth / 2;
+
   // 레이어별로 노드 생성 (Swimlane 레이아웃)
   diagram.layers.forEach((layer, layerIndex) => {
     const nodeCount = layer.nodes.length;
@@ -241,21 +256,18 @@ function convertToReactFlow(diagram: DiagramData): {
     const layerHeight =
       rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP + SWIMLANE_PADDING * 2;
 
-    // 콘텐츠 영역 너비 계산
+    // 콘텐츠 영역 너비 계산 (개별 레이어 너비)
     const contentWidth = nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
     const swimlaneWidth =
       LABEL_WIDTH + contentWidth + SWIMLANE_PADDING * 2 + 20;
-
-    // Swimlane 시작 X 위치
-    const swimlaneX = -swimlaneWidth / 2;
 
     // Swimlane 배경 노드 추가 (맨 먼저 추가해서 뒤에 렌더링)
     nodes.push({
       id: `swimlane-bg-${layerIndex}`,
       type: 'swimlaneBg',
-      position: { x: swimlaneX, y: currentY - SWIMLANE_PADDING },
+      position: { x: commonSwimlaneX, y: currentY - SWIMLANE_PADDING },
       data: {
-        width: swimlaneWidth,
+        width: swimlaneWidth, // 배경 너비는 콘텐츠에 맞게 유지 (or maxSwimlaneWidth로 통일 가능)
         height: layerHeight,
         color: layer.color,
         title: layer.title,
@@ -266,7 +278,8 @@ function convertToReactFlow(diagram: DiagramData): {
     });
 
     // 레이어 라벨 노드 추가 (Swimlane 왼쪽 영역 중앙)
-    const labelX = swimlaneX + LABEL_WIDTH / 2 - 40;
+    // commonSwimlaneX를 사용하여 모든 라벨이 동일한 수직선상에 위치
+    const labelX = commonSwimlaneX + LABEL_WIDTH / 2 - 40;
     const labelY =
       currentY + (rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP) / 2 - 10;
     nodes.push({
@@ -279,7 +292,7 @@ function convertToReactFlow(diagram: DiagramData): {
     });
 
     // 콘텐츠 영역 시작 위치 (라벨 영역 + 패딩 이후)
-    const contentStartX = swimlaneX + LABEL_WIDTH + SWIMLANE_PADDING + 10;
+    const contentStartX = commonSwimlaneX + LABEL_WIDTH + SWIMLANE_PADDING + 10;
 
     // 레이어 내 노드들 배치 (2줄 지원)
     layer.nodes.forEach((node, nodeIndex) => {
