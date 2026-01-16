@@ -27,10 +27,7 @@ import {
 } from '@xyflow/react';
 import { memo, useCallback, useMemo } from 'react';
 import '@xyflow/react/dist/style.css';
-import type {
-  DiagramNode as DataNode,
-  ArchitectureDiagram as DiagramData,
-} from '@/data/architecture-diagrams.data';
+import type { ArchitectureDiagram as DiagramData } from '@/data/architecture-diagrams.data';
 
 // =============================================================================
 // Types
@@ -61,7 +58,6 @@ interface CustomNodeData extends Record<string, unknown> {
 
 const NODE_WIDTH = 150;
 const NODE_HEIGHT = 48;
-const LAYER_GAP = 80;
 const NODE_GAP = 25;
 const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
 const LABEL_WIDTH = 140; // Swimlane 라벨 영역 너비
@@ -333,8 +329,6 @@ function convertToReactFlow(diagram: DiagramData): {
 
       // 같은 레이어인지 확인 (수평 연결)
       const isHorizontal = Math.abs(sourcePos.y - targetPos.y) < 10;
-      // 소스가 타겟보다 위에 있는지 (수직 연결)
-      const isSourceAbove = sourcePos.y < targetPos.y;
 
       edges.push({
         id: `edge-${index}`,
