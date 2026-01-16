@@ -527,7 +527,7 @@
   }
 
   .animate-ai-icon {
-    animation: ai-icon-combined 12s ease-in-out infinite;
+    animation: ai-icon-simple 12s ease-in-out infinite;
   }
 
   .animate-vibe-icon {
@@ -749,6 +749,19 @@ a {
 
 /* Removed unused animation classes: animate-fade-in-delay, animate-spin-slow, animate-progress-bar */
 .animate-gradient-shift {
+  animation: gradient-shift 4s ease-in-out infinite;
+}
+
+/* Feature Card 그라데이션 배경 + 애니메이션 */
+.bg-ai-card-gradient {
+  background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(236,72,153,0.3), rgba(34,211,238,0.3), rgba(59,130,246,0.3));
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease-in-out infinite;
+}
+
+.bg-vibe-card-gradient {
+  background: linear-gradient(135deg, #f59e0b, #ea580c, #b91c1c, #f59e0b);
+  background-size: 200% 200%;
   animation: gradient-shift 4s ease-in-out infinite;
 }
 
