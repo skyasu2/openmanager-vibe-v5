@@ -50,19 +50,17 @@ const DiagramNodeItem = memo(({ node }: { node: DiagramNode }) => {
 
       {/* 노드 */}
       <div
-        className={`flex items-center gap-3 rounded-lg border p-3 transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-white/5 ${styles.bg} ${styles.border}`}
+        className={`flex flex-col items-center gap-1 rounded-lg border p-3 text-center transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-white/5 ${styles.bg} ${styles.border}`}
       >
         {node.icon && <span className="text-xl">{node.icon}</span>}
-        <div className="min-w-0 flex-1">
-          <div className={`text-sm font-semibold ${styles.text}`}>
-            {node.label}
-          </div>
-          {node.sublabel && (
-            <div className="truncate text-xs text-white/50">
-              {node.sublabel}
-            </div>
-          )}
+        <div className={`text-sm font-semibold ${styles.text}`}>
+          {node.label}
         </div>
+        {node.sublabel && (
+          <div className="truncate text-xs text-white/50 max-w-[140px]">
+            {node.sublabel}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -81,24 +79,26 @@ const DiagramLayerSection = memo(
         <div className="absolute inset-0 -mx-4 rounded-xl bg-white/[0.02]" />
 
         <div className="relative px-4 py-4">
-          {/* 레이어 타이틀 */}
-          <div
-            className={`mb-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${layer.color} px-3 py-1 shadow-sm`}
-          >
-            <span className="text-xs font-semibold text-white">
-              {layer.title}
-            </span>
+          {/* 레이어 타이틀 - 중앙 정렬 */}
+          <div className="mb-3 flex justify-center">
+            <div
+              className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${layer.color} px-3 py-1 shadow-sm`}
+            >
+              <span className="text-xs font-semibold text-white">
+                {layer.title}
+              </span>
+            </div>
           </div>
 
-          {/* 노드 그리드 */}
+          {/* 노드 그리드 - 중앙 정렬 */}
           <div
-            className={`grid gap-3 ${
+            className={`grid gap-3 justify-items-center ${
               layer.nodes.length === 1
                 ? 'grid-cols-1 max-w-xs mx-auto'
                 : layer.nodes.length === 2
-                  ? 'grid-cols-2'
+                  ? 'grid-cols-2 max-w-lg mx-auto'
                   : layer.nodes.length === 3
-                    ? 'grid-cols-3'
+                    ? 'grid-cols-3 max-w-2xl mx-auto'
                     : 'grid-cols-2 md:grid-cols-4'
             }`}
           >
