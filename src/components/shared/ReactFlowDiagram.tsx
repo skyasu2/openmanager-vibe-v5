@@ -165,10 +165,7 @@ const LayerLabelNode = memo(
         />
         {/* 라벨 뱃지 - 디자인 개선 */}
         <div
-          className={`relative z-10 flex w-full max-w-[150px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-slate-900/60 p-3 text-center backdrop-blur-md transition-transform hover:scale-105 ${data.color.replace(
-            'bg-',
-            'shadow-lg shadow-'
-          )}/20`}
+          className={`relative z-10 flex w-full max-w-[150px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-slate-900/60 p-3 text-center shadow-lg shadow-white/10 backdrop-blur-md transition-transform hover:scale-105`}
         >
           {/* 장식용 라인 */}
           <div className={`h-1 w-6 rounded-full ${data.color}`} />
@@ -268,7 +265,8 @@ function convertToReactFlow(diagram: DiagramData): {
 
     // Swimlane 배경 위치 계산 (라벨 + 콘텐츠 전체를 감싸는 박스)
     // React Flow는 노드의 top-left corner를 position으로 사용함
-    const bgLeft = fixedLabelX - LABEL_AREA_WIDTH / 2 - SWIMLANE_PADDING;
+    // fixedLabelX는 이미 LABEL_AREA_WIDTH 전체를 포함하므로 추가 오프셋 불필요
+    const bgLeft = fixedLabelX - SWIMLANE_PADDING;
 
     // ⭐️ 꿀팁: 중앙 정렬을 완벽하게 맞추기 위해 배경을 좌우 대칭으로 만듭니다.
     // 왼쪽(라벨 영역)만큼 오른쪽에도 여백을 주어 전체 Bounding Box의 중심이 X=0(콘텐츠 중심)이 되도록 합니다.
