@@ -9,8 +9,8 @@
  * - 인터랙티브한 노드 (드래그, 줌, 패닝)
  * - 더 정교한 레이아웃
  *
- * @version 5.88.0
- * @updated 2026-01-15
+ * @version 5.89.0
+ * @updated 2026-01-16 - Swimlane 레이아웃 개선 (왼쪽 라벨 + 오른쪽 콘텐츠 구분)
  */
 
 import {
@@ -59,11 +59,13 @@ interface CustomNodeData extends Record<string, unknown> {
 // Constants
 // =============================================================================
 
-const NODE_WIDTH = 160;
-const NODE_HEIGHT = 52;
-const LAYER_GAP = 90;
-const NODE_GAP = 30;
+const NODE_WIDTH = 150;
+const NODE_HEIGHT = 48;
+const LAYER_GAP = 80;
+const NODE_GAP = 25;
 const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
+const LABEL_WIDTH = 140; // Swimlane 라벨 영역 너비
+const SWIMLANE_PADDING = 16; // Swimlane 내부 패딩
 
 const NODE_STYLES: Record<
   CustomNodeData['nodeType'],
@@ -158,18 +160,57 @@ CustomNode.displayName = 'CustomNode';
 const LayerLabelNode = memo(
   ({ data }: NodeProps<Node<{ title: string; color: string }>>) => {
     return (
-      <div
-        className={`rounded-full bg-gradient-to-r ${data.color} px-2.5 py-1 shadow-md`}
-      >
-        <span className="whitespace-nowrap text-[10px] font-bold text-white">
-          {data.title}
-        </span>
+      <div className="relative flex items-center">
+        {/* Swimlane 라벨 배경 (왼쪽 영역 표시) */}
+        <div className="absolute -left-2 -top-3 -bottom-3 w-[120px] rounded-l-lg border-r border-white/15 bg-gradient-to-r from-white/[0.06] to-transparent" />
+        {/* 라벨 뱃지 */}
+        <div
+          className={`relative z-10 rounded-full bg-gradient-to-r ${data.color} px-2.5 py-1 shadow-md`}
+        >
+          <span className="whitespace-nowrap text-[10px] font-bold text-white">
+            {data.title}
+          </span>
+        </div>
       </div>
     );
   }
 );
 
 LayerLabelNode.displayName = 'LayerLabelNode';
+
+// =============================================================================
+// Swimlane Background Node Component
+// =============================================================================
+
+interface SwimlaneBgData extends Record<string, unknown> {
+  width: number;
+  height: number;
+  color: string;
+  title: string;
+}
+
+const SwimlaneBgNode = memo(({ data }: NodeProps<Node<SwimlaneBgData>>) => {
+  return (
+    <div
+      className="pointer-events-none relative rounded-xl"
+      style={{
+        width: data.width,
+        height: data.height,
+      }}
+    >
+      {/* Swimlane 배경 */}
+      <div className="absolute inset-0 rounded-xl border border-white/5 bg-white/[0.03]" />
+
+      {/* 왼쪽 라벨 영역 배경 (구분선 역할) */}
+      <div
+        className="absolute left-0 top-0 bottom-0 rounded-l-xl border-r border-white/10 bg-gradient-to-r from-white/[0.04] to-transparent"
+        style={{ width: LABEL_WIDTH }}
+      />
+    </div>
+  );
+});
+
+SwimlaneBgNode.displayName = 'SwimlaneBgNode';
 
 // =============================================================================
 // Conversion Utilities
@@ -189,37 +230,63 @@ function convertToReactFlow(diagram: DiagramData): {
 
   let currentY = 0;
 
-  // 레이어별로 노드 생성
+  // 레이어별로 노드 생성 (Swimlane 레이아웃)
   diagram.layers.forEach((layer, layerIndex) => {
     const nodeCount = layer.nodes.length;
     const needsMultiRow = nodeCount > MAX_NODES_PER_ROW;
     const nodesPerRow = needsMultiRow ? Math.ceil(nodeCount / 2) : nodeCount;
     const rowCount = needsMultiRow ? 2 : 1;
 
-    const layerWidth = nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
-    const startX = -layerWidth / 2;
+    // 레이어 높이 계산 (노드 + 패딩)
+    const layerHeight =
+      rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP + SWIMLANE_PADDING * 2;
 
-    // 레이어 라벨 노드 추가
+    // 콘텐츠 영역 너비 계산
+    const contentWidth = nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
+    const swimlaneWidth =
+      LABEL_WIDTH + contentWidth + SWIMLANE_PADDING * 2 + 20;
+
+    // Swimlane 시작 X 위치
+    const swimlaneX = -swimlaneWidth / 2;
+
+    // Swimlane 배경 노드 추가 (맨 먼저 추가해서 뒤에 렌더링)
+    nodes.push({
+      id: `swimlane-bg-${layerIndex}`,
+      type: 'swimlaneBg',
+      position: { x: swimlaneX, y: currentY - SWIMLANE_PADDING },
+      data: {
+        width: swimlaneWidth,
+        height: layerHeight,
+        color: layer.color,
+        title: layer.title,
+      } as SwimlaneBgData,
+      draggable: false,
+      selectable: false,
+      zIndex: -1, // 배경으로 렌더링
+    });
+
+    // 레이어 라벨 노드 추가 (Swimlane 왼쪽 영역 중앙)
+    const labelX = swimlaneX + LABEL_WIDTH / 2 - 40;
     const labelY =
       currentY + (rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP) / 2 - 10;
     nodes.push({
       id: `layer-${layerIndex}`,
       type: 'layerLabel',
-      position: {
-        x: -layerWidth / 2 - 180,
-        y: labelY,
-      },
+      position: { x: labelX, y: labelY },
       data: { title: layer.title, color: layer.color },
       draggable: false,
       selectable: false,
     });
+
+    // 콘텐츠 영역 시작 위치 (라벨 영역 + 패딩 이후)
+    const contentStartX = swimlaneX + LABEL_WIDTH + SWIMLANE_PADDING + 10;
 
     // 레이어 내 노드들 배치 (2줄 지원)
     layer.nodes.forEach((node, nodeIndex) => {
       const row = needsMultiRow ? Math.floor(nodeIndex / nodesPerRow) : 0;
       const col = needsMultiRow ? nodeIndex % nodesPerRow : nodeIndex;
 
-      const x = startX + col * (NODE_WIDTH + NODE_GAP);
+      const x = contentStartX + col * (NODE_WIDTH + NODE_GAP);
       const y = currentY + row * (NODE_HEIGHT + NODE_GAP);
 
       nodePositions[node.id] = { x, y };
@@ -239,8 +306,8 @@ function convertToReactFlow(diagram: DiagramData): {
       });
     });
 
-    // 다음 레이어 Y 위치 (멀티 로우 고려)
-    currentY += rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP + LAYER_GAP;
+    // 다음 레이어 Y 위치 (Swimlane 높이 + 간격)
+    currentY += layerHeight + NODE_GAP;
   });
 
   // 연결선 생성
@@ -307,6 +374,7 @@ function convertToReactFlow(diagram: DiagramData): {
 const nodeTypes = {
   customNode: CustomNode,
   layerLabel: LayerLabelNode,
+  swimlaneBg: SwimlaneBgNode,
 };
 
 function ReactFlowDiagram({
