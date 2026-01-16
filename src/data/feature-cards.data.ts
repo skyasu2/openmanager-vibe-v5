@@ -187,11 +187,11 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'vibe-coding',
     title: '🔥 Vibe Coding',
     description:
-      'Claude Code가 주도하고 Codex·Gemini가 코드 리뷰합니다. 커밋 시 자동 실행되는 다중 모델 검증 파이프라인.',
+      'AI 도구를 활용한 개발 환경. WSL + Claude Code 기반으로 Codex·Gemini 코드 리뷰가 커밋마다 자동 실행됩니다.',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
-      overview: `Vibe Coding의 4단계 진화. [1단계] GPT 수동 코딩/Netlify 목업 → [2단계] Cursor 자동 개발 → [3단계] 분기점: Windsurf/VSCode는 스크린샷 분석 등 보조로 물러나고, WSL + Claude Code가 메인이 됨 → [4단계] 현재: WSL 환경에서 Claude Code(Main), Codex, Gemini가 협업하며, Google Antigravity(Agent-first IDE)가 함께하는 Agentic Era.`,
+      overview: `이 프로젝트의 개발 환경입니다. 초기 ChatGPT 활용부터 현재 멀티 에이전트 협업 환경까지 바이브 코딩 적용.`,
       features: [
         '1️⃣ Stage 1 (Manual): GPT/Gemini 창에서 수동 코딩 → [Netlify 목업](https://openmanager-vibe-v2.netlify.app/)',
         '2️⃣ Stage 2 (Auto): Cursor의 등장, "IDE 자동 개발"의 시작',
