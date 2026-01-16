@@ -56,9 +56,9 @@ interface CustomNodeData extends Record<string, unknown> {
 // Constants
 // =============================================================================
 
-const NODE_WIDTH = 150;
+const NODE_WIDTH = 180;
 const NODE_HEIGHT = 48;
-const NODE_GAP = 25;
+const NODE_GAP = 50;
 const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
 const LABEL_AREA_WIDTH = 120; // Swimlane 라벨 영역 너비
 const LABEL_CONTENT_GAP = 40; // 라벨과 콘텐츠 사이 간격
@@ -108,7 +108,7 @@ const CustomNode = memo(({ data }: NodeProps<Node<CustomNodeData>>) => {
 
       {/* 노드 본체 */}
       <div
-        className={`flex min-w-[110px] items-center gap-1.5 rounded-lg border px-2 py-1.5 transition-all duration-200 hover:scale-105 ${styles.bg} ${styles.border} ${styles.shadow}`}
+        className={`flex min-w-[110px] max-w-[170px] items-center gap-1.5 rounded-lg border px-2 py-1.5 transition-all duration-200 hover:scale-105 ${styles.bg} ${styles.border} ${styles.shadow}`}
         title={`${data.label}${data.sublabel ? `\n${data.sublabel}` : ''}`}
       >
         {data.icon && <span className="text-sm">{data.icon}</span>}
