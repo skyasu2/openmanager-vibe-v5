@@ -258,15 +258,15 @@ function convertToReactFlow(diagram: DiagramData): {
       nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
 
     // Swimlane 배경 위치 계산 (라벨 + 콘텐츠 전체를 감싸는 박스)
+    // React Flow는 노드의 top-left corner를 position으로 사용함
     const bgLeft = fixedLabelX - LABEL_AREA_WIDTH / 2 - SWIMLANE_PADDING;
     const bgRight = maxContentWidth / 2 + SWIMLANE_PADDING;
     const bgWidth = bgRight - bgLeft;
-    const bgCenterX = bgLeft + bgWidth / 2;
 
     nodes.push({
       id: `swimlane-bg-${layerIndex}`,
       type: 'swimlaneBg',
-      position: { x: bgCenterX, y: currentY - SWIMLANE_PADDING },
+      position: { x: bgLeft, y: currentY - SWIMLANE_PADDING },
       data: {
         width: bgWidth,
         height: layerHeight,
@@ -275,7 +275,11 @@ function convertToReactFlow(diagram: DiagramData): {
       } as SwimlaneBgData,
       draggable: false,
       selectable: false,
+      focusable: false,
       zIndex: -1,
+      // React Flow 12에서 fitView가 이 노드를 포함하도록 width/height 직접 설정
+      width: bgWidth,
+      height: layerHeight,
     });
 
     // 1. 레이어 라벨 (좌측 고정 위치)
@@ -429,8 +433,8 @@ function ReactFlowDiagram({
           onInit={onInit}
           fitView
           fitViewOptions={{
-            padding: 0.15,
-            minZoom: 0.6,
+            padding: 0.2,
+            minZoom: 0.5,
             maxZoom: 1.2,
           }}
           minZoom={0.4}
