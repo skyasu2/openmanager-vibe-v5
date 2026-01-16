@@ -39,19 +39,15 @@ ai-tools:
     current_version: "v0.73.0"
     wrapper_version: "v3.3.0"
     status: "✅ Active"
-    role: "Code review - 3-AI rotation (codex→gemini→qwen)"
+    role: "Code review - 2-AI rotation (codex→gemini)"
 
   gemini-cli:
     current_version: "v0.21.0"
     wrapper_version: "v3.3.0"
     status: "✅ Active"
-    role: "Code review - 3-AI rotation (codex→gemini→qwen)"
+    role: "Code review - 2-AI rotation (codex→gemini)"
 
-  qwen-cli:
-    current_version: "v0.5.0"
-    wrapper_version: "v3.3.0"
-    status: "✅ Active"
-    role: "Code review - 3-AI rotation (codex→gemini→qwen)"
+  # qwen-cli: 제거됨 (2026-01-07) - 평균 201초, 실패율 13.3%
 
   kiro-cli:
     current_version: "v1.22.0"
@@ -81,7 +77,7 @@ subagents:
   #         ui-ux-specialist, documentation-manager
 
 # 대체 방안:
-#   - 코드 리뷰: ai-code-review 스킬 + 외부 CLI (codex, gemini, qwen)
+#   - 코드 리뷰: ai-code-review 스킬 + 외부 CLI (codex, gemini)
 #   - 보안 감사: security-audit-workflow 스킬
 #   - 테스트: lint-smoke 스킬 + playwright MCP
 #   - 문서화: Claude Code 직접 수행

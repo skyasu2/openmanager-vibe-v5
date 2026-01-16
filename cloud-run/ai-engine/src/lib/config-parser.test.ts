@@ -12,7 +12,6 @@ import {
   getTavilyApiKeyBackup,
   getGroqApiKey,
   getCerebrasApiKey,
-  getOpenRouterApiKey,
   getConfigStatus,
   clearConfigCache,
   getAIProvidersConfig,
@@ -153,29 +152,7 @@ describe('Config Parser', () => {
     });
   });
 
-  describe('getOpenRouterApiKey', () => {
-    it('should return key from AI_PROVIDERS_CONFIG JSON', () => {
-      process.env.AI_PROVIDERS_CONFIG = JSON.stringify({
-        groq: '',
-        mistral: '',
-        cerebras: '',
-        tavily: '',
-        openrouter: 'openrouter-from-json',
-      });
-
-      const result = getOpenRouterApiKey();
-
-      expect(result).toBe('openrouter-from-json');
-    });
-
-    it('should fallback to OPENROUTER_API_KEY env var', () => {
-      process.env.OPENROUTER_API_KEY = 'openrouter-from-env';
-
-      const result = getOpenRouterApiKey();
-
-      expect(result).toBe('openrouter-from-env');
-    });
-  });
+  // getOpenRouterApiKey: 제거됨 (2026-01-07) - Summarizer Agent 통합
 
   // ============================================================================
   // 4. Config Status Tests
@@ -187,7 +164,7 @@ describe('Config Parser', () => {
       expect(status.tavily).toBe(false);
       expect(status.groq).toBe(false);
       expect(status.cerebras).toBe(false);
-      expect(status.openrouter).toBe(false);
+      expect(status.mistral).toBe(false);
     });
 
     it('should return true for configured providers', () => {

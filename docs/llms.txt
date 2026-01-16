@@ -6,7 +6,7 @@
 ## Project Overview
 
 OpenManager VIBE is an AI-native server monitoring platform built with:
-- Frontend: Next.js 15, React 19, TypeScript 5.9
+- Frontend: Next.js 16, React 19, TypeScript 5.9
 - AI Engine: Vercel AI SDK 6, Multi-Agent System
 - Database: Supabase (PostgreSQL + pgVector)
 - Deployment: Vercel (Frontend) + Cloud Run (AI Engine)
@@ -42,7 +42,7 @@ OpenManager VIBE is an AI-native server monitoring platform built with:
 - `docs/README.md` - Documentation index
 - `docs/getting-started/quick-start.md` - Getting started
 - `docs/getting-started/development.md` - Development guide
-- `docs/reference/architecture/ai/ai-engine-5w1h.md` - AI architecture
+- `docs/reference/architecture/ai/ai-engine-architecture.md` - AI architecture
 
 ## Common Tasks
 
@@ -74,5 +74,5 @@ curl https://ai-engine-xxx.run.app/health  # Health check
 ## Contact
 
 - Repository: github.com/skyasu2/openmanager-vibe-v5
-- Version: 5.83.14
-- Last Updated: 2025-12-31
+- Version: 5.88.0
+- Last Updated: 2026-01-16

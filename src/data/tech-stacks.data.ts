@@ -489,7 +489,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         description:
           'AI가 작성한 코드는 다른 AI 모델이 리뷰 - Single Point of Failure 방지',
         implementation:
-          'Claude가 작성한 코드를 Codex/Gemini/Qwen이 검토. 동일 모델의 편향(bias)과 blind spot을 다른 모델이 보완. 커밋 시 자동 트리거',
+          'Claude가 작성한 코드를 Codex/Gemini가 검토. 동일 모델의 편향(bias)과 blind spot을 다른 모델이 보완. 커밋 시 자동 트리거',
         version: 'v5.0',
         status: 'active',
         icon: '🔄',
@@ -524,20 +524,6 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         tags: ['Google', 'OpenSource', '1M-Context'],
         type: 'opensource',
         aiType: 'google-api',
-      },
-      {
-        name: 'Qwen Code CLI',
-        category: 'ai',
-        importance: 'high',
-        description:
-          'A CLI tool that enables developers to delegate engineering tasks to AI using natural language (Alibaba)',
-        implementation:
-          'Adapted from Gemini CLI with enhanced parser and tool support. Qwen3-Coder 모델 최적화. Cross-Model 리뷰어',
-        version: 'v0.3.0',
-        status: 'active',
-        icon: '🧠',
-        tags: ['Alibaba', 'OpenSource', 'Qwen3-Coder'],
-        type: 'opensource',
       },
       {
         name: 'Git + GitHub 통합',

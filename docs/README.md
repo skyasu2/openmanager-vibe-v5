@@ -1,6 +1,6 @@
 # OpenManager VIBE Documentation
 
-> **프로젝트 버전**: v5.87.0 | **Updated**: 2026-01-14
+> **프로젝트 버전**: v5.88.0 | **Updated**: 2026-01-16
 
 ---
 
@@ -62,8 +62,7 @@ flowchart LR
 - [AI Model Policy](./ai-model-policy.md) - 모델 정책
 
 ### Architecture
-- [AI Engine 5W1H](./reference/architecture/ai/ai-engine-5w1h.md) - 아키텍처 요약
-- [AI Engine Architecture](./reference/architecture/ai/ai-engine-architecture.md) - 상세 명세
+- [AI Engine Architecture](./reference/architecture/ai/ai-engine-architecture.md) - AI 엔진 상세 명세
 - [System Architecture](./reference/architecture/system/system-architecture-current.md) - 시스템 구조
 
 ### Testing
@@ -80,9 +79,8 @@ flowchart LR
 3. [Testing Guide](./guides/testing/) - 테스트 작성법
 
 ### AI/ML Engineer
-1. [AI Engine 5W1H](./reference/architecture/ai/ai-engine-5w1h.md) - 아키텍처 요약
-2. [AI Engine Architecture](./reference/architecture/ai/ai-engine-architecture.md) - 상세 명세
-3. [AI Model Policy](./ai-model-policy.md) - 모델 정책
+1. [AI Engine Architecture](./reference/architecture/ai/ai-engine-architecture.md) - AI 엔진 아키텍처
+2. [AI Model Policy](./ai-model-policy.md) - 모델 정책
 
 ### DevOps
 1. [Hybrid Architecture](./reference/architecture/infrastructure/hybrid_split.md) - Vercel + Cloud Run

@@ -1,6 +1,6 @@
 # Reference
 
-> **최종 갱신**: 2025-12-31
+> **최종 갱신**: 2026-01-16
 > 기술 레퍼런스 문서
 
 ---
@@ -10,7 +10,7 @@
 ```mermaid
 flowchart TB
     subgraph Frontend["Vercel (Frontend)"]
-        Next["Next.js 15<br/>React 19"]
+        Next["Next.js 16<br/>React 19"]
         UI["Dashboard UI"]
     end
 
@@ -48,8 +48,7 @@ flowchart TB
 ## Key Documents
 
 ### Architecture
-- [AI Engine 5W1H](./architecture/ai/ai-engine-5w1h.md) - 아키텍처 요약
-- [AI Engine Architecture](./architecture/ai/ai-engine-architecture.md) - 상세 명세
+- [AI Engine Architecture](./architecture/ai/ai-engine-architecture.md) - AI 엔진 상세 명세
 - [System Architecture](./architecture/system/system-architecture-current.md) - 시스템 구조
 
 ### API

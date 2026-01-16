@@ -45,16 +45,15 @@
 
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
-- **Models**: Quad-provider 전략 (Rate limit 최적화, 2026-01-04)
+- **Models**: Tri-provider 전략 (Rate limit 최적화, 2026-01-16)
   - Cerebras llama-3.3-70b: Orchestrator, NLQ (1M tokens/day, 60K TPM)
   - Groq llama-3.3-70b: Analyst, Reporter (~1K requests/day, 12K TPM)
   - Mistral Small 2506 (24B): Advisor, Verifier (Limited free tier)
-  - OpenRouter Free: Summarizer (qwen-2.5-7b, llama-3.1-8b, 50 RPD)
-- **Agents**: 6개 Multi-Agent (Orchestrator → NLQ/Analyst/Reporter/Advisor/Summarizer)
+- **Agents**: 5개 Multi-Agent (Orchestrator → NLQ/Analyst/Reporter/Advisor)
 - **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
 - **Web Search**: Tavily API (Reporter Agent)
 - **Rate Limit**: Pre-emptive Fallback (80% 임계값 도달 시 사전 전환)
-- **Note**: Provider 장애 시 자동 폴백 (Cerebras→Groq, Mistral→OpenRouter)
+- **Note**: Provider 장애 시 자동 폴백 (Cerebras→Groq→Mistral)
 
 **AI CLI Tools** (2026-01-08 기준)
 - **Claude Code**: `v2.0.76` (Interactive Development)
@@ -312,7 +311,7 @@
 |----------|----------|------|
 | Web UI | Next.js 16 + React 19 Dashboard | ✅ 완료 |
 | AI Assistant | useChat + TextStreamChatTransport | ✅ 완료 |
-| Multi-Agent | 6-Agent Orchestration (Cloud Run) | ✅ 완료 |
+| Multi-Agent | 5-Agent Orchestration (Cloud Run) | ✅ 완료 |
 | Database | Supabase PostgreSQL + pgvector | ✅ 완료 |
 | Cache | Upstash Redis | ✅ 완료 |
 | Monitoring | Server Metrics + Real-time Updates | ✅ 완료 |

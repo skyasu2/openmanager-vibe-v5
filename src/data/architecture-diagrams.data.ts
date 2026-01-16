@@ -46,7 +46,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
     id: 'ai-assistant-pro',
     title: 'Multi-Agent Architecture',
     description:
-      'Vercel AI SDK 기반 6-Agent 멀티 에이전트 시스템. Orchestrator가 의도를 분석하고 전문 에이전트로 라우팅합니다.',
+      'Vercel AI SDK 기반 5-Agent 멀티 에이전트 시스템. Orchestrator가 의도를 분석하고 전문 에이전트로 라우팅합니다.',
     layers: [
       {
         title: 'Client',

@@ -11,17 +11,17 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'ai-assistant-pro',
     title: '🧠 AI Assistant',
     description:
-      '4개 AI 프로바이더 + 6개 전문 에이전트로 서버 장애를 실시간 분석. ML 이상 탐지 + 과거 장애 이력 검색(GraphRAG) 지원.',
+      '3개 AI 프로바이더 + 5개 전문 에이전트로 서버 장애를 실시간 분석. ML 이상 탐지 + 과거 장애 이력 검색(GraphRAG) 지원.',
     icon: Bot,
     gradient: 'from-indigo-500 via-purple-500 to-pink-500',
     detailedContent: {
-      overview: `3개의 AI Provider(Cerebras, Groq, Mistral)와 Vercel AI SDK 6.0 기반 6-Agent 멀티 에이전트 시스템입니다. Isolation Forest ML 엔진으로 다변량 이상 탐지, LlamaIndex.TS GraphRAG로 하이브리드 검색, Mistral Embedding(1024d)으로 벡터 유사도 검색을 수행합니다. GCP Cloud Run에서 Node.js 22 + Hono로 운영됩니다.`,
+      overview: `3개의 AI Provider(Cerebras, Groq, Mistral)와 Vercel AI SDK 6.0 기반 5-Agent 멀티 에이전트 시스템입니다. Isolation Forest ML 엔진으로 다변량 이상 탐지, LlamaIndex.TS GraphRAG로 하이브리드 검색, Mistral Embedding(1024d)으로 벡터 유사도 검색을 수행합니다. GCP Cloud Run에서 Node.js 22 + Hono로 운영됩니다.`,
       features: [
         '🧠 Cerebras Inference: WSE-3 칩 기반 24M 토큰/일 초고속 추론 (llama-3.3-70b)',
         '⚡ Groq Cloud: LPU 기반 500 Tokens/s 초고속 추론 (llama-3.3-70b-versatile)',
         '🛡️ Mistral AI: 24B SLM + mistral-embed 1024차원 벡터 임베딩',
         '▲ Vercel AI SDK 6.0: streamText, generateObject, embed 통합 API',
-        '🤖 @ai-sdk-tools/agents: 6-Agent Orchestrator-Worker Handoff 패턴',
+        '🤖 @ai-sdk-tools/agents: 5-Agent Orchestrator-Worker Handoff 패턴',
         '🌲 Isolation Forest: ML 기반 다변량 이상 탐지 + Adaptive Thresholds',
         '🦙 LlamaIndex.TS: GraphRAG + Knowledge Triplet Extraction',
         '🐘 Supabase pgVector: 벡터 유사도 검색 + 그래프 탐색',
@@ -59,13 +59,13 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
       {
         title: 'Mistral AI',
         description:
-          'Mistral AI(24B SLM)로 Advisor/Verifier/Summarizer 처리, mistral-embed로 1024차원 벡터 임베딩을 전담합니다.',
+          'Mistral AI(24B SLM)로 Advisor/Verifier 처리, mistral-embed로 1024차원 벡터 임베딩을 전담합니다.',
         icon: Sparkles,
         gradient: 'from-purple-500 to-pink-600',
         features: [
           'Mistral: Advisor + Verifier + Embedding',
-          'Summarizer: Mistral Small (24B)',
-          'Fallback: Mistral Nemo (12B)',
+          'Model: mistral-small-2506 (24B)',
+          'Fallback: Groq llama-3.3-70b',
         ],
       },
       {
@@ -83,11 +83,11 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
       {
         title: 'Vercel AI SDK 6.0',
         description:
-          '@ai-sdk-tools/agents v1.2 패키지로 6-Agent 오케스트레이션. Supervisor → NLQ/Analyst/Reporter/Advisor/Summarizer Handoff 패턴.',
+          '@ai-sdk-tools/agents v1.2 패키지로 5-Agent 오케스트레이션. Orchestrator → NLQ/Analyst/Reporter/Advisor Handoff 패턴.',
         icon: Database,
         gradient: 'from-slate-500 to-gray-600',
         features: [
-          '6-Agent: +Summarizer (Qwen 2.5)',
+          '5-Agent: Multi-Agent (Vercel AI SDK)',
           'Pattern: Orchestrator-Worker Handoff',
           'API: streamText, generateObject, embed',
         ],
@@ -191,12 +191,12 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
-      overview: `Vibe Coding의 4단계 진화. [1단계] GPT 수동 코딩/Netlify 목업 → [2단계] Cursor 자동 개발 → [3단계] 분기점: Windsurf/VSCode는 스크린샷 분석 등 보조로 물러나고, WSL + Claude Code가 메인이 됨 → [4단계] 현재: WSL 환경에서 Claude Code(Main), Codex, Gemini, Qwen, Kiro-CLI가 협업하며, Google Antigravity(Agent-first IDE)가 함께하는 Agentic Era.`,
+      overview: `Vibe Coding의 4단계 진화. [1단계] GPT 수동 코딩/Netlify 목업 → [2단계] Cursor 자동 개발 → [3단계] 분기점: Windsurf/VSCode는 스크린샷 분석 등 보조로 물러나고, WSL + Claude Code가 메인이 됨 → [4단계] 현재: WSL 환경에서 Claude Code(Main), Codex, Gemini가 협업하며, Google Antigravity(Agent-first IDE)가 함께하는 Agentic Era.`,
       features: [
         '1️⃣ Stage 1 (Manual): GPT/Gemini 창에서 수동 코딩 → [Netlify 목업](https://openmanager-vibe-v2.netlify.app/)',
         '2️⃣ Stage 2 (Auto): Cursor의 등장, "IDE 자동 개발"의 시작',
         '3️⃣ Stage 3 (Pivot): IDE는 보조(시각 분석)로, 메인은 WSL + Claude Code로 이동',
-        '4️⃣ Stage 4 (Current): WSL 위의 Multi-CLI (Codex/Gemini/Qwen/Kiro) + Google Antigravity',
+        '4️⃣ Stage 4 (Current): WSL 위의 Multi-CLI (Codex/Gemini) + Google Antigravity',
         '📺 IDE Role Shift: 개발의 주체에서 "터미널 뷰어" 및 "스크린샷 분석도구"로 축소',
         '🐧 WSL Main Base: 모든 지능형 에이전트들이 활동하는 실제 본부',
         '🤖 Agentic Ecosystem: Claude Code(Main)을 중심으로 복수 에이전트 협업',

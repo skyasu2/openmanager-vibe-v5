@@ -48,23 +48,22 @@ src/
 
 | Agent | Primary | Fallback | Free Tier |
 |-------|---------|----------|-----------|
-| Supervisor | Cerebras `llama-3.3-70b` | Mistral → OpenRouter | 1M tokens/day, 60K TPM |
+| Supervisor | Cerebras `llama-3.3-70b` | Groq → Mistral | 1M tokens/day, 60K TPM |
 | Orchestrator | Cerebras `llama-3.3-70b` | Groq | 1M tokens/day, 60K TPM |
 | NLQ Agent | Cerebras `llama-3.3-70b` | Groq | 1M tokens/day, 60K TPM |
 | Analyst Agent | Groq `llama-3.3-70b-versatile` | Cerebras | ~1K RPD, 12K TPM |
 | Reporter Agent | Groq `llama-3.3-70b-versatile` | Cerebras | ~1K RPD, 12K TPM |
-| Advisor Agent | Mistral `mistral-small-2506` | - | Limited (may require paid) |
-| Summarizer | OpenRouter `qwen-2.5-7b:free` | `llama-3.1-8b:free` | 50 RPD (low-volume only) |
+| Advisor Agent | Mistral `mistral-small-2506` | Groq | Limited (may require paid) |
 
 ### Agent Usage by Feature
 
 | Feature | Primary Agent | Access Path |
 |---------|---------------|-------------|
-| AI Chat | Orchestrator → NLQ/Analyst/Reporter/Advisor/Summarizer | `/api/ai/supervisor` |
+| AI Chat | Orchestrator → NLQ/Analyst/Reporter/Advisor | `/api/ai/supervisor` |
 | Auto Incident Report | Reporter (direct) | `/api/ai/incident-report` |
 | Intelligent Monitoring | Analyst (direct) | `/api/ai/analyze-server` |
 
-> **Note**: Advisor와 Summarizer는 Chat에서 Orchestrator handoff를 통해서만 사용됩니다.
+> **Note**: Advisor는 Chat에서 Orchestrator handoff를 통해서만 사용됩니다.
 
 ## Observability - Langfuse (FREE Tier)
 
@@ -117,7 +116,7 @@ curl -X POST https://ai-engine-xxx.run.app/monitoring/reset
 CEREBRAS_API_KEY=xxx               # Cerebras (Primary - Supervisor, NLQ)
 GROQ_API_KEY=xxx                   # Groq (Analyst, Reporter)
 MISTRAL_API_KEY=xxx                # Mistral (Advisor, Verifier)
-OPENROUTER_API_KEY=xxx             # OpenRouter (Summarizer, Fallback)
+# OPENROUTER_API_KEY=xxx           # 제거됨 (2026-01-07) - Summarizer Agent 통합
 
 # Optional - Observability (FREE)
 LANGFUSE_SECRET_KEY=xxx
@@ -195,6 +194,11 @@ docker run -p 8080:8080 --env-file .env ai-engine:local
 Current: `5.83.14`
 
 ## Changelog
+
+### v5.88.0 (2026-01-16)
+- Summarizer Agent 제거 (NLQ Agent로 통합)
+- OpenRouter 프로바이더 제거 (Tri-provider: Cerebras/Groq/Mistral)
+- 5-Agent 시스템으로 단순화
 
 ### v5.83.14 (2026-01-04)
 - Free Tier 한도 정보 정확화 (Cerebras 1M, Groq ~1K, OpenRouter 50)

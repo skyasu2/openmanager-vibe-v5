@@ -19,7 +19,7 @@ export const runtime = 'edge';
 const DEFAULTS = {
   title: 'OpenManager VIBE',
   description: 'AI Native Server Monitoring Platform',
-  tags: ['Next.js 16', 'React 19', 'Vercel AI SDK', '6-Agent System'],
+  tags: ['Next.js 16', 'React 19', 'Vercel AI SDK', '5-Agent System'],
   url: 'openmanager-vibe-v5.vercel.app',
 } as const;
 

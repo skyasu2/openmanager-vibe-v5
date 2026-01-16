@@ -37,7 +37,7 @@ OpenManager VIBE는 **AI 어시스턴트**가 내장된 서버 모니터링 플�
 
 ## AI Assistant
 
-6개의 전문 AI 에이전트가 협업하여 복잡한 질문도 처리합니다.
+5개의 전문 AI 에이전트가 협업하여 복잡한 질문도 처리합니다.
 
 ```
 💬 "서버 상태 어때?"
@@ -62,8 +62,7 @@ Orchestrator (쿼리 분석 & 라우팅)
     ├── NLQ Agent      : 서버 메트릭 조회
     ├── Analyst Agent  : 이상 탐지, 원인 분석
     ├── Reporter Agent : 보고서 자동 생성
-    ├── Advisor Agent  : 트러블슈팅 가이드
-    └── Summarizer     : 빠른 요약
+    └── Advisor Agent  : 트러블슈팅 가이드
 ```
 
 ---
@@ -184,7 +183,7 @@ Orchestrator (쿼리 분석 & 라우팅)
 | **Backend** | Google Cloud Run AI Engine |
 | **Database** | Supabase PostgreSQL + pgvector |
 | **Cache** | Upstash Redis |
-| **AI System** | 6-Agent Multi-Agent Orchestration |
+| **AI System** | 5-Agent Multi-Agent Orchestration |
 
 ### Development Approach
 

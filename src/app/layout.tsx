@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     template: '%s | OpenManager VIBE',
   },
   description:
-    'Next.js 16 + React 19 + Vercel AI SDK 기반 AI Native 서버 모니터링 플랫폼. 4개 AI 프로바이더와 6-Agent 시스템으로 실시간 장애 분석.',
+    'Next.js 16 + React 19 + Vercel AI SDK 기반 AI Native 서버 모니터링 플랫폼. 3개 AI 프로바이더와 5-Agent 시스템으로 실시간 장애 분석.',
   keywords: [
     'AI 서버 모니터링',
     'Next.js 16',
@@ -80,7 +80,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: 'OpenManager VIBE - AI Native Server Monitoring',
     description:
-      'Next.js 16 + React 19 기반 AI Native 서버 모니터링. 4개 AI 프로바이더 + 6-Agent 멀티 에이전트 시스템.',
+      'Next.js 16 + React 19 기반 AI Native 서버 모니터링. 3개 AI 프로바이더 + 5-Agent 멀티 에이전트 시스템.',
     images: [
       {
         url: '/api/og',
