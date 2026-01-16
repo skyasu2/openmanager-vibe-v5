@@ -58,7 +58,7 @@ interface CustomNodeData extends Record<string, unknown> {
 
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 48;
-const NODE_GAP = 50;
+const NODE_GAP = 70;
 const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
 const LABEL_AREA_WIDTH = 120; // Swimlane 라벨 영역 너비
 const LABEL_CONTENT_GAP = 40; // 라벨과 콘텐츠 사이 간격
@@ -260,7 +260,11 @@ function convertToReactFlow(diagram: DiagramData): {
     // Swimlane 배경 위치 계산 (라벨 + 콘텐츠 전체를 감싸는 박스)
     // React Flow는 노드의 top-left corner를 position으로 사용함
     const bgLeft = fixedLabelX - LABEL_AREA_WIDTH / 2 - SWIMLANE_PADDING;
-    const bgRight = maxContentWidth / 2 + SWIMLANE_PADDING;
+
+    // ⭐️ 꿀팁: 중앙 정렬을 완벽하게 맞추기 위해 배경을 좌우 대칭으로 만듭니다.
+    // 왼쪽(라벨 영역)만큼 오른쪽에도 여백을 주어 전체 Bounding Box의 중심이 X=0(콘텐츠 중심)이 되도록 합니다.
+    const bgRight = Math.abs(bgLeft);
+
     const bgWidth = bgRight - bgLeft;
 
     nodes.push({
