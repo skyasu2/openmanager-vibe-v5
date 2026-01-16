@@ -110,6 +110,8 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]} // Syntax Highlighting 추가
         components={{
+          // pre 태그 제거 (CodeBlock이 자체적으로 pre를 포함하므로 중첩 방지)
+          pre: ({ children }) => <>{children}</>,
           // 코드 블록
           code: ({ className, children, node }) => {
             // node?.position 없으면 인라인으로 판단 (react-markdown v9+)
