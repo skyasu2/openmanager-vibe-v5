@@ -61,7 +61,6 @@ function Home() {
     isGitHubConnected: isGitHubUser,
     error: authError,
     isReady: authReady,
-    shouldRedirect,
     getLoadingMessage,
     retry: retryAuth,
   } = useInitialAuth();
