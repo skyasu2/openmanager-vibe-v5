@@ -60,7 +60,8 @@ const NODE_WIDTH = 150;
 const NODE_HEIGHT = 48;
 const NODE_GAP = 25;
 const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
-const LABEL_WIDTH = 140; // Swimlane 라벨 영역 너비
+const LABEL_AREA_WIDTH = 120; // Swimlane 라벨 영역 너비
+const LABEL_CONTENT_GAP = 40; // 라벨과 콘텐츠 사이 간격
 const SWIMLANE_PADDING = 16; // Swimlane 내부 패딩
 
 const NODE_STYLES: Record<
@@ -200,7 +201,7 @@ const SwimlaneBgNode = memo(({ data }: NodeProps<Node<SwimlaneBgData>>) => {
       {/* 왼쪽 라벨 영역 배경 (구분선 역할) */}
       <div
         className="absolute left-0 top-0 bottom-0 rounded-l-xl border-r border-white/10 bg-gradient-to-r from-white/[0.04] to-transparent"
-        style={{ width: LABEL_WIDTH }}
+        style={{ width: LABEL_AREA_WIDTH }}
       />
     </div>
   );
@@ -226,79 +227,85 @@ function convertToReactFlow(diagram: DiagramData): {
 
   let currentY = 0;
 
-  // 1. 전체 레이어 중 가장 넓은 너비 계산 (좌측 정렬을 위해)
-  let maxSwimlaneWidth = 0;
+  // 1. 콘텐츠 영역의 최대 너비 계산 (중앙 정렬 기준점 확보)
+  let maxContentWidth = 0;
   diagram.layers.forEach((layer) => {
     const nodeCount = layer.nodes.length;
     const needsMultiRow = nodeCount > MAX_NODES_PER_ROW;
     const nodesPerRow = needsMultiRow ? Math.ceil(nodeCount / 2) : nodeCount;
     const contentWidth = nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
-    const swimlaneWidth =
-      LABEL_WIDTH + contentWidth + SWIMLANE_PADDING * 2 + 20;
-    if (swimlaneWidth > maxSwimlaneWidth) maxSwimlaneWidth = swimlaneWidth;
+    if (contentWidth > maxContentWidth) maxContentWidth = contentWidth;
   });
 
-  // 모든 레이어의 시작 X 위치를 통일 (가장 넓은 레이어 기준 중앙 정렬 -> 내부적으로는 좌측 정렬 효과)
-  const commonSwimlaneX = -maxSwimlaneWidth / 2;
+  // 라벨의 X 위치 (모든 라벨이 이 위치로 고정되어 좌측 정렬 효과)
+  // 콘텐츠는 X=0 기준 중앙 정렬, 라벨은 콘텐츠 왼쪽 바깥에 위치
+  const fixedLabelX =
+    -(maxContentWidth / 2) - LABEL_CONTENT_GAP - LABEL_AREA_WIDTH / 2;
 
-  // 레이어별로 노드 생성 (Swimlane 레이아웃)
+  // 레이어별로 노드 생성
   diagram.layers.forEach((layer, layerIndex) => {
     const nodeCount = layer.nodes.length;
     const needsMultiRow = nodeCount > MAX_NODES_PER_ROW;
     const nodesPerRow = needsMultiRow ? Math.ceil(nodeCount / 2) : nodeCount;
     const rowCount = needsMultiRow ? 2 : 1;
 
-    // 레이어 높이 계산 (노드 + 패딩)
+    // 레이어 높이 계산
     const layerHeight =
       rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP + SWIMLANE_PADDING * 2;
 
-    // 콘텐츠 영역 너비 계산 (개별 레이어 너비)
-    const contentWidth = nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
-    const swimlaneWidth =
-      LABEL_WIDTH + contentWidth + SWIMLANE_PADDING * 2 + 20;
+    // 현재 레이어의 콘텐츠 너비
+    const currentContentWidth =
+      nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
 
-    // Swimlane 배경 노드 추가 (맨 먼저 추가해서 뒤에 렌더링)
+    // Swimlane 배경 위치 계산 (라벨 + 콘텐츠 전체를 감싸는 박스)
+    const bgLeft = fixedLabelX - LABEL_AREA_WIDTH / 2 - SWIMLANE_PADDING;
+    const bgRight = maxContentWidth / 2 + SWIMLANE_PADDING;
+    const bgWidth = bgRight - bgLeft;
+    const bgCenterX = bgLeft + bgWidth / 2;
+
     nodes.push({
       id: `swimlane-bg-${layerIndex}`,
       type: 'swimlaneBg',
-      position: { x: commonSwimlaneX, y: currentY - SWIMLANE_PADDING },
+      position: { x: bgCenterX, y: currentY - SWIMLANE_PADDING },
       data: {
-        width: swimlaneWidth, // 배경 너비는 콘텐츠에 맞게 유지 (or maxSwimlaneWidth로 통일 가능)
+        width: bgWidth,
         height: layerHeight,
         color: layer.color,
         title: layer.title,
       } as SwimlaneBgData,
       draggable: false,
       selectable: false,
-      zIndex: -1, // 배경으로 렌더링
+      zIndex: -1,
     });
 
-    // 레이어 라벨 노드 추가 (Swimlane 왼쪽 영역 중앙)
-    // commonSwimlaneX를 사용하여 모든 라벨이 동일한 수직선상에 위치
-    const labelX = commonSwimlaneX + LABEL_WIDTH / 2 - 40;
-    const labelY =
-      currentY + (rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP) / 2 - 10;
+    // 1. 레이어 라벨 (좌측 고정 위치)
+    // vertical center에 위치
+    const labelY = currentY + (layerHeight - SWIMLANE_PADDING * 2) / 2 - 10; // 높이 절반 - 텍스트보정
+
     nodes.push({
       id: `layer-${layerIndex}`,
       type: 'layerLabel',
-      position: { x: labelX, y: labelY },
+      position: { x: fixedLabelX, y: labelY },
       data: { title: layer.title, color: layer.color },
       draggable: false,
       selectable: false,
     });
 
-    // 콘텐츠 영역 시작 위치 (라벨 영역 + 패딩 이후)
-    const contentStartX = commonSwimlaneX + LABEL_WIDTH + SWIMLANE_PADDING + 10;
+    // 콘텐츠 노드 (중앙 정렬, X=0 기준)
+    const contentStartLeft = -(currentContentWidth / 2);
 
-    // 레이어 내 노드들 배치 (2줄 지원)
     layer.nodes.forEach((node, nodeIndex) => {
       const row = needsMultiRow ? Math.floor(nodeIndex / nodesPerRow) : 0;
       const col = needsMultiRow ? nodeIndex % nodesPerRow : nodeIndex;
 
-      const x = contentStartX + col * (NODE_WIDTH + NODE_GAP);
+      // 중앙 정렬된 배치를 위한 X 좌표
+      const x = contentStartLeft + col * (NODE_WIDTH + NODE_GAP);
       const y = currentY + row * (NODE_HEIGHT + NODE_GAP);
 
-      nodePositions[node.id] = { x, y };
+      nodePositions[node.id] = {
+        x: x + NODE_WIDTH / 2,
+        y: y + NODE_HEIGHT / 2,
+      }; // 연결선 계산용 중심 좌표 저장
 
       nodes.push({
         id: node.id,
@@ -315,7 +322,7 @@ function convertToReactFlow(diagram: DiagramData): {
       });
     });
 
-    // 다음 레이어 Y 위치 (Swimlane 높이 + 간격)
+    // 다음 레이어 Y 위치
     currentY += layerHeight + NODE_GAP;
   });
 
