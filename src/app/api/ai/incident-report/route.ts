@@ -268,7 +268,14 @@ async function getHandler(request: NextRequest) {
     }
 
     if (search) {
-      query = query.or(`title.ilike.%${search}%,pattern.ilike.%${search}%`);
+      // 🔧 사이드이펙트 수정: SQL LIKE 와일드카드 이스케이프 (%, _ → \%, \_)
+      const escapedSearch = search
+        .replace(/\\/g, '\\\\') // 백슬래시 먼저 이스케이프
+        .replace(/%/g, '\\%')
+        .replace(/_/g, '\\_');
+      query = query.or(
+        `title.ilike.%${escapedSearch}%,pattern.ilike.%${escapedSearch}%`
+      );
     }
 
     // 정렬 및 페이지네이션
