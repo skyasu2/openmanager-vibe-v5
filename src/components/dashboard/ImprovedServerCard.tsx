@@ -176,21 +176,26 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       [onClick, safeServer]
     );
 
+    // 🔧 인라인 화살표 함수를 useCallback으로 최적화
+    const handleMouseEnter = useCallback(() => {
+      setIsHovered(true);
+      if (enableProgressiveDisclosure) setShowSecondaryInfo(true);
+    }, [enableProgressiveDisclosure]);
+
+    const handleMouseLeave = useCallback(() => {
+      setIsHovered(false);
+      if (enableProgressiveDisclosure && !showTertiaryInfo)
+        setShowSecondaryInfo(false);
+    }, [enableProgressiveDisclosure, showTertiaryInfo]);
+
     return (
       <div
         role="button"
         tabIndex={0}
         onClick={handleCardClick}
         onKeyDown={handleCardKeyDown}
-        onMouseEnter={() => {
-          setIsHovered(true);
-          if (enableProgressiveDisclosure) setShowSecondaryInfo(true);
-        }}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          if (enableProgressiveDisclosure && !showTertiaryInfo)
-            setShowSecondaryInfo(false);
-        }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl backdrop-blur-md text-left bg-transparent ${statusTheme.background} ${statusTheme.border} ${variantStyles.container} hover:${currentGradient.shadow}`}
       >
         {/* 🎨 그라데이션 애니메이션 배경 (랜딩 카드 스타일) */}

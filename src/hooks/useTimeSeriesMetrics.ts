@@ -74,58 +74,85 @@ export function useTimeSeriesMetrics({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
-    if (!serverId || !metric) {
-      setData(null);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const params = new URLSearchParams({
-        serverId,
-        metric,
-        range,
-        includeHistory: 'true',
-        includePrediction: includePrediction.toString(),
-        includeAnomalies: includeAnomalies.toString(),
-      });
-
-      const response = await fetch(`/api/ai/raw-metrics?${params.toString()}`);
-
-      if (!response.ok) {
-        throw new Error(`API 오류: ${response.status}`);
+  // 🔧 AbortController를 사용한 안전한 fetch
+  const fetchData = useCallback(
+    async (signal?: AbortSignal) => {
+      if (!serverId || !metric) {
+        setData(null);
+        setIsLoading(false);
+        return;
       }
 
-      const result = await response.json();
+      setIsLoading(true);
+      setError(null);
 
-      if (!result.success) {
-        throw new Error(result.message || '데이터 조회 실패');
+      try {
+        const params = new URLSearchParams({
+          serverId,
+          metric,
+          range,
+          includeHistory: 'true',
+          includePrediction: includePrediction.toString(),
+          includeAnomalies: includeAnomalies.toString(),
+        });
+
+        const response = await fetch(
+          `/api/ai/raw-metrics?${params.toString()}`,
+          {
+            signal, // 🔧 AbortController signal 전달
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`API 오류: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.message || '데이터 조회 실패');
+        }
+
+        setData(result.data);
+      } catch (err) {
+        // 🔧 AbortError는 정상적인 cleanup이므로 무시
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
+        logger.error('시계열 데이터 조회 실패:', err);
+        setError(err instanceof Error ? err.message : '알 수 없는 오류');
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [serverId, metric, range, includePrediction, includeAnomalies]
+  );
 
-      setData(result.data);
-    } catch (err) {
-      logger.error('시계열 데이터 조회 실패:', err);
-      setError(err instanceof Error ? err.message : '알 수 없는 오류');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [serverId, metric, range, includePrediction, includeAnomalies]);
-
-  // Initial fetch
+  // 🔧 Initial fetch with AbortController
   useEffect(() => {
-    fetchData();
+    const abortController = new AbortController();
+    void fetchData(abortController.signal);
+
+    return () => {
+      abortController.abort(); // 컴포넌트 unmount 시 fetch 취소
+    };
   }, [fetchData]);
 
-  // Auto refresh
+  // 🔧 Auto refresh with AbortController
   useEffect(() => {
     if (refreshInterval <= 0) return;
 
-    const interval = setInterval(fetchData, refreshInterval);
-    return () => clearInterval(interval);
+    let abortController: AbortController | null = null;
+
+    const interval = setInterval(() => {
+      abortController = new AbortController();
+      void fetchData(abortController.signal);
+    }, refreshInterval);
+
+    return () => {
+      clearInterval(interval);
+      abortController?.abort(); // 진행 중인 fetch 취소
+    };
   }, [fetchData, refreshInterval]);
 
   return {

@@ -3,7 +3,7 @@
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, X, Zap } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { getDiagramByCardId } from '@/data/architecture-diagrams.data';
 import {
@@ -76,26 +76,7 @@ export default function FeatureCardModal({
   const internalRef = useRef<HTMLDivElement>(null);
   const actualModalRef = modalRef || internalRef;
 
-  // 🔧 P0: Escape 이중 호출 방지 (stopPropagation 추가)
-  const handleEscapeClose = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isVisible) {
-        e.preventDefault();
-        e.stopPropagation();
-        onClose();
-      }
-    },
-    [isVisible, onClose]
-  );
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleEscapeClose);
-    return () => {
-      window.removeEventListener('keydown', handleEscapeClose);
-    };
-  }, [handleEscapeClose]);
-
-  // 🔧 P0: 포커스 트래핑 (WCAG AA 필수)
+  // 🔧 P0: 통합 키보드 핸들러 (ESC 닫기 + Tab 포커스 트래핑)
   useEffect(() => {
     if (!isVisible) return;
 
@@ -103,47 +84,58 @@ export default function FeatureCardModal({
       actualModalRef && 'current' in actualModalRef
         ? actualModalRef.current
         : null;
-    if (!modal) return;
 
     // 이전 활성 요소 저장 (모달 닫을 때 복원용)
     const previousActiveElement = document.activeElement as HTMLElement | null;
 
+    // 포커스 가능 요소 조회
     const focusableSelector =
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-    const focusableElements =
-      modal.querySelectorAll<HTMLElement>(focusableSelector);
+    const focusableElements = modal
+      ? modal.querySelectorAll<HTMLElement>(focusableSelector)
+      : [];
     const firstFocusable = focusableElements[0];
     const lastFocusable = focusableElements[focusableElements.length - 1];
 
     // 모달 열릴 때 첫 포커스 가능한 요소로 이동
     firstFocusable?.focus();
 
-    const handleTabKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+    // 🔧 단일 이벤트 리스너로 ESC + Tab 모두 처리 (성능 최적화)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // ESC: 모달 닫기
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+        return;
+      }
 
-      if (e.shiftKey) {
-        // Shift + Tab: 첫 요소에서 마지막으로 순환
-        if (document.activeElement === firstFocusable) {
-          e.preventDefault();
-          lastFocusable?.focus();
-        }
-      } else {
-        // Tab: 마지막 요소에서 첫 요소로 순환
-        if (document.activeElement === lastFocusable) {
-          e.preventDefault();
-          firstFocusable?.focus();
+      // Tab: 포커스 트래핑
+      if (e.key === 'Tab' && firstFocusable && lastFocusable) {
+        if (e.shiftKey) {
+          // Shift + Tab: 첫 요소에서 마지막으로 순환
+          if (document.activeElement === firstFocusable) {
+            e.preventDefault();
+            lastFocusable.focus();
+          }
+        } else {
+          // Tab: 마지막 요소에서 첫 요소로 순환
+          if (document.activeElement === lastFocusable) {
+            e.preventDefault();
+            firstFocusable.focus();
+          }
         }
       }
     };
 
-    window.addEventListener('keydown', handleTabKey);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleTabKey);
+      window.removeEventListener('keydown', handleKeyDown);
       // 모달 닫힐 때 이전 포커스 복원
       previousActiveElement?.focus();
     };
-  }, [isVisible, actualModalRef]);
+  }, [isVisible, actualModalRef, onClose]);
 
   // 🎯 Gemini 제안: 타입 안전성 강화 + 의존성 최적화
   const cardData = React.useMemo(() => {

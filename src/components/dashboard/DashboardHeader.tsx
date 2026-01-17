@@ -60,12 +60,13 @@ const DashboardHeader = memo(function DashboardHeader({
     setIsMounted(true);
   }, []);
 
-  const { aiAgent } = useUnifiedAdminStore();
+  // 🔧 선택적 구독으로 불필요한 리렌더 방지
+  const aiAgent = useUnifiedAdminStore((state) => state.aiAgent);
   // 🔐 사용자 권한 확인
   const permissions = useUserPermissions();
-  // 새로운 AI 사이드바 상태
-  const { isOpen: isSidebarOpen, setOpen: setSidebarOpen } =
-    useAISidebarStore();
+  // 🔧 새로운 AI 사이드바 상태 (선택적 구독)
+  const isSidebarOpen = useAISidebarStore((state) => state.isOpen);
+  const setSidebarOpen = useAISidebarStore((state) => state.setOpen);
 
   // 🔐 AI 로그인 필요 모달 상태
   const [showLoginModal, setShowLoginModal] = useState(false);
