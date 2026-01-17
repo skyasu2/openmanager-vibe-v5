@@ -49,10 +49,10 @@ import { logger } from '@/lib/logging';
  * includeHiddenNodes: 숨겨진 노드도 포함
  */
 const FIT_VIEW_OPTIONS = {
-  padding: 0.15, // 15% 여백 (노트북 화면에서 공간 효율 최적화)
+  padding: 0.12, // 12% 여백 (모달 내 공간 효율 최적화)
   includeHiddenNodes: true,
   minZoom: 0.05, // 더 축소 가능하게
-  maxZoom: 0.6, // fitView가 더 축소된 상태로 시작 (노트북 화면 최적화)
+  maxZoom: 0.85, // fitView가 더 큰 상태로 시작 (가독성 향상)
 };
 
 /**
@@ -614,8 +614,8 @@ function ReactFlowDiagram({
         <div
           className={`rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 ${
             compact
-              ? 'h-[38dvh] sm:h-[42dvh] lg:h-[48dvh] max-h-[320px] sm:max-h-[360px] lg:max-h-[420px]'
-              : 'h-[45dvh] sm:h-[50dvh] lg:h-[55dvh] max-h-[380px] sm:max-h-[420px] lg:max-h-[500px]'
+              ? 'h-[48dvh] sm:h-[50dvh] lg:h-[52dvh] max-h-[380px] sm:max-h-[400px] lg:max-h-[440px]'
+              : 'h-[52dvh] sm:h-[55dvh] lg:h-[58dvh] max-h-[420px] sm:max-h-[460px] lg:max-h-[520px]'
           }`}
         >
           <ReactFlow
