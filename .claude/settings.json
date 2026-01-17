@@ -10,8 +10,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx @biomejs/biome check --write \"$(echo $CLAUDE_TOOL_INPUT | jq -r '.file_path // empty')\" 2>/dev/null || true",
-            "timeout": 30
+            "command": "./node_modules/.bin/biome format --write \"$(echo $CLAUDE_TOOL_INPUT | jq -r '.file_path // empty')\" 2>/dev/null || true",
+            "timeout": 10
           }
         ]
       }
