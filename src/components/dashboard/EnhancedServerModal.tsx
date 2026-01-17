@@ -68,6 +68,15 @@ export default function EnhancedServerModal({
     }
   }, [currentMetrics]);
 
+  // 🔧 P2: 핸들러 최적화 - useCallback으로 불필요한 리렌더 방지
+  const handleToggleRealtime = useCallback(() => {
+    setIsRealtime((prev) => !prev);
+  }, []);
+
+  const handleTabSelect = useCallback((tabId: TabId) => {
+    setSelectedTab(tabId);
+  }, []);
+
   // ♿ 접근성: 포커스 트랩 (모달 내부에서만 Tab 키 이동)
   const getFocusableElements = useCallback(() => {
     if (!dialogRef.current) return [];
@@ -424,7 +433,7 @@ export default function EnhancedServerModal({
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               {/* 3️⃣ 실시간 모니터링 토글 */}
               <button
-                onClick={() => setIsRealtime(!isRealtime)}
+                onClick={handleToggleRealtime}
                 className={`flex items-center gap-1 rounded-xl px-2 py-2 text-sm font-medium transition-all duration-300 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-base ${
                   isRealtime
                     ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 shadow-sm'
@@ -474,7 +483,7 @@ export default function EnhancedServerModal({
                   aria-selected={isActive}
                   aria-controls={`panel-${tab.id}`}
                   tabIndex={isActive ? 0 : -1}
-                  onClick={() => setSelectedTab(tab.id)}
+                  onClick={() => handleTabSelect(tab.id)}
                   className={`relative flex items-center gap-1 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-base ${
                     isActive
                       ? 'bg-white text-gray-900 shadow-md border border-gray-200'
@@ -591,7 +600,7 @@ export default function EnhancedServerModal({
                   server={safeServer}
                   realtimeData={realtimeData}
                   isRealtime={isRealtime}
-                  onToggleRealtime={() => setIsRealtime((prev) => !prev)}
+                  onToggleRealtime={handleToggleRealtime}
                 />
 
                 <div className="rounded-xl p-5 bg-white shadow-sm border border-gray-200">

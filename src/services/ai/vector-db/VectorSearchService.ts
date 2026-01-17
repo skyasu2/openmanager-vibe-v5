@@ -20,7 +20,6 @@ import type {
 
 export class VectorSearchService {
   private tableName = 'command_vectors';
-  private dimension = 384;
 
   constructor(
     private supabase: SupabaseClient | null,

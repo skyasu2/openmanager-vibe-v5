@@ -26,6 +26,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { ChartErrorBoundary } from '@/components/error/ChartErrorBoundary';
 
 // ============================================================================
 // Types
@@ -196,7 +197,7 @@ interface CombinedDataPoint {
   lower?: number;
 }
 
-export const TimeSeriesChart = memo(function TimeSeriesChart({
+const TimeSeriesChartInner = memo(function TimeSeriesChartInner({
   data,
   predictions,
   anomalies,
@@ -453,5 +454,26 @@ export const TimeSeriesChart = memo(function TimeSeriesChart({
     </div>
   );
 });
+
+TimeSeriesChartInner.displayName = 'TimeSeriesChartInner';
+
+/**
+ * TimeSeriesChart with Error Boundary
+ * 차트 렌더링 오류를 안전하게 처리합니다.
+ */
+export const TimeSeriesChart = memo(function TimeSeriesChart(
+  props: TimeSeriesChartProps
+) {
+  return (
+    <ChartErrorBoundary
+      height={props.height || 300}
+      chartName={props.metric ? METRIC_LABELS[props.metric] : undefined}
+    >
+      <TimeSeriesChartInner {...props} />
+    </ChartErrorBoundary>
+  );
+});
+
+TimeSeriesChart.displayName = 'TimeSeriesChart';
 
 export default TimeSeriesChart;

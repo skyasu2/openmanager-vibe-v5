@@ -24,7 +24,6 @@ import {
 import type { DashboardTab } from '@/hooks/useServerDashboard';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { logger } from '@/lib/logging';
-import type { Server } from '@/types/server';
 // react-window Grid는 사용하지 않음 (VirtualizedServerList에서 List 사용)
 import { usePerformanceTracking } from '@/utils/performance';
 
@@ -45,11 +44,6 @@ const getAlertsCountOptimized = (alerts: unknown): number => {
 };
 
 interface ServerDashboardProps {
-  servers?: Server[];
-  onServerClick?: (server: Server) => void;
-  showModal?: boolean;
-  onClose?: () => void;
-  selectedServerId?: string;
   onStatsUpdate?: (stats: {
     total: number;
     online: number;
@@ -61,11 +55,6 @@ interface ServerDashboardProps {
 }
 
 export default function ServerDashboard({
-  servers: _externalServers,
-  onServerClick: _onServerClick,
-  showModal: _showModal,
-  onClose: _onClose,
-  selectedServerId: _selectedServerId,
   onStatsUpdate,
 }: ServerDashboardProps) {
   // 🚀 성능 추적 활성화

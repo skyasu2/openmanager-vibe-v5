@@ -25,24 +25,18 @@ interface DashboardStatus {
   type?: string;
 }
 
-interface DashboardActions {
-  startSystem?: () => void;
-  stopSystem?: () => void;
-  restartSystem?: () => void;
-  refreshData?: () => void;
-}
-
+/**
+ * DashboardContent Props
+ * 🔧 레거시 정리 (2026-01-17):
+ * - 제거됨: actions, selectedServer, onServerClick, onServerModalClose
+ * - ServerDashboard가 useServerDashboard hook으로 직접 데이터 관리
+ */
 interface DashboardContentProps {
   showSequentialGeneration: boolean;
   servers: Server[];
   status: DashboardStatus;
-  actions: DashboardActions;
-  selectedServer: Server | null;
-  onServerClick: (server: Server) => void;
-  onServerModalClose: () => void;
   onStatsUpdate: (stats: DashboardStats) => void;
   onShowSequentialChange: (show: boolean) => void;
-  // mainContentVariants 제거
   isAgentOpen: boolean;
 }
 
@@ -59,13 +53,8 @@ export default function DashboardContent({
   showSequentialGeneration,
   servers,
   status,
-  actions: _actions,
-  selectedServer,
-  onServerClick: _onServerClick,
-  onServerModalClose: _onServerModalClose,
   onStatsUpdate,
   onShowSequentialChange,
-  // mainContentVariants 제거
   isAgentOpen,
 }: DashboardContentProps) {
   // 🚀 디버깅 로그 (한 번만 출력 - 리렌더링 스팸 방지)
@@ -74,7 +63,6 @@ export default function DashboardContent({
     debug.log('🔍 DashboardContent 초기 렌더링:', {
       showSequentialGeneration,
       serversCount: servers?.length,
-      selectedServer: selectedServer?.name,
       isAgentOpen,
       status: status?.type,
       timestamp: new Date().toISOString(),
@@ -329,23 +317,11 @@ export default function DashboardContent({
                   </div>
                 }
               >
-                <ServerDashboardDynamic
-                  servers={servers}
-                  onServerClick={(server: Server) => {
-                    try {
-                      debug.log('🖱️ 서버 클릭:', server);
-                      // 서버 클릭 처리는 부모에서 관리됨
-                    } catch (error) {
-                      safeConsoleError('서버 클릭 처리 오류:', error);
-                    }
-                  }}
-                  showModal={!!selectedServer}
-                  onClose={() => {
-                    debug.log('🔲 서버 모달 닫기');
-                  }}
-                  onStatsUpdate={onStatsUpdate}
-                  selectedServerId={selectedServer?.id}
-                />
+                {/* 🔧 레거시 props 정리 (2026-01-17):
+                    - servers, onServerClick, showModal, onClose, selectedServerId 제거
+                    - ServerDashboard는 useServerDashboard hook에서 직접 데이터 관리
+                    - onStatsUpdate만 유일하게 사용됨 */}
+                <ServerDashboardDynamic onStatsUpdate={onStatsUpdate} />
               </Suspense>
             </>
           ) : (

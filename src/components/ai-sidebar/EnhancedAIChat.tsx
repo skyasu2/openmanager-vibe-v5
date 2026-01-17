@@ -191,10 +191,20 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         </div>
       </div>
 
-      {/* 메시지 영역 (중앙 정렬) */}
+      {/* 메시지 영역 (중앙 정렬) - ARIA Live Region
+          🔧 스트리밍 접근성 최적화 (2026-01-17):
+          - aria-busy: 생성 중일 때 스크린 리더에 알림 → 완료까지 대기
+          - aria-atomic="false": 전체 재읽기 방지, 변경분만 읽음
+          - aria-relevant="additions text": 새 콘텐츠 및 텍스트 변경만 알림 */}
       <div
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto scroll-smooth will-change-scroll"
+        role="log"
+        aria-live="polite"
+        aria-label="AI 대화 메시지"
+        aria-relevant="additions text"
+        aria-atomic="false"
+        aria-busy={isGenerating}
       >
         <div className="mx-auto max-w-3xl space-y-3 p-3 sm:space-y-4 sm:p-4">
           {/* 자동장애보고서 알림 */}

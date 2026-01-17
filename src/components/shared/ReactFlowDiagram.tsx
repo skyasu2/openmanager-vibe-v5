@@ -37,6 +37,7 @@ import React, {
 } from 'react';
 import '@xyflow/react/dist/style.css';
 import type { ArchitectureDiagram as DiagramData } from '@/data/architecture-diagrams.data';
+import { logger } from '@/lib/logging';
 
 // =============================================================================
 // FitView 옵션 및 컴포넌트
@@ -76,7 +77,6 @@ function AutoFitView() {
           duration: 200, // 부드러운 애니메이션
         });
         hasFitted.current = true;
-        console.log('[AutoFitView] fitView 실행 완료 (nodesInitialized)');
       }, 100);
 
       return () => clearTimeout(timer);
@@ -148,11 +148,8 @@ class DiagramErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('[ReactFlowDiagram] 렌더링 오류:', error);
-    console.error(
-      '[ReactFlowDiagram] 컴포넌트 스택:',
-      errorInfo.componentStack
-    );
+    logger.error('[ReactFlowDiagram] 렌더링 오류:', error);
+    logger.error('[ReactFlowDiagram] 컴포넌트 스택:', errorInfo.componentStack);
   }
 
   render(): ReactNode {

@@ -96,7 +96,6 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const currentGradient =
       statusGradients[safeServer.status] || statusGradients.online;
 
-    const [_isHovered, setIsHovered] = useState(false);
     const [showSecondaryInfo, setShowSecondaryInfo] = useState(false);
     const [showTertiaryInfo, setShowTertiaryInfo] = useState(false);
 
@@ -178,17 +177,16 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 
     // 🔧 인라인 화살표 함수를 useCallback으로 최적화
     const handleMouseEnter = useCallback(() => {
-      setIsHovered(true);
       if (enableProgressiveDisclosure) setShowSecondaryInfo(true);
     }, [enableProgressiveDisclosure]);
 
     const handleMouseLeave = useCallback(() => {
-      setIsHovered(false);
       if (enableProgressiveDisclosure && !showTertiaryInfo)
         setShowSecondaryInfo(false);
     }, [enableProgressiveDisclosure, showTertiaryInfo]);
 
     return (
+      // biome-ignore lint/a11y/useSemanticElements: 카드 내부에 별도 토글 버튼이 있어 button 요소로 변경 시 HTML 명세 위반 (button 내 interactive 요소 금지)
       <div
         role="button"
         tabIndex={0}
@@ -196,7 +194,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         onKeyDown={handleCardKeyDown}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl backdrop-blur-md text-left bg-transparent ${statusTheme.background} ${statusTheme.border} ${variantStyles.container} hover:${currentGradient.shadow}`}
+        className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl backdrop-blur-md text-left bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${statusTheme.background} ${statusTheme.border} ${variantStyles.container} hover:${currentGradient.shadow}`}
       >
         {/* 🎨 그라데이션 애니메이션 배경 (랜딩 카드 스타일) */}
         <div

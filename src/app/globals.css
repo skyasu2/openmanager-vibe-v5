@@ -744,14 +744,37 @@ a {
   background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(236,72,153,0.3), rgba(34,211,238,0.3), rgba(59,130,246,0.3));
   background-size: 200% 200%;
   animation: gradient-shift 4s ease-in-out infinite;
-  will-change: background-position; /* 애니메이션 최적화 - 리렌더 시 깜빡임 방지 */
+  animation-play-state: paused; /* 기본 정지 - hover 시 재생 */
+  contain: layout paint; /* 레이아웃 격리로 리페인트 최소화 */
+}
+
+.bg-ai-card-gradient:hover,
+.bg-ai-card-gradient:focus-within {
+  animation-play-state: running;
+  will-change: background-position; /* hover 시에만 GPU 레이어 생성 */
 }
 
 .bg-vibe-card-gradient {
   background: linear-gradient(135deg, #f59e0b, #ea580c, #b91c1c, #f59e0b);
   background-size: 200% 200%;
   animation: gradient-shift 4s ease-in-out infinite;
-  will-change: background-position; /* 애니메이션 최적화 - 리렌더 시 깜빡임 방지 */
+  animation-play-state: paused; /* 기본 정지 - hover 시 재생 */
+  contain: layout paint; /* 레이아웃 격리로 리페인트 최소화 */
+}
+
+.bg-vibe-card-gradient:hover,
+.bg-vibe-card-gradient:focus-within {
+  animation-play-state: running;
+  will-change: background-position; /* hover 시에만 GPU 레이어 생성 */
+}
+
+/* 접근성: 모션 감소 선호 사용자 */
+@media (prefers-reduced-motion: reduce) {
+  .bg-ai-card-gradient,
+  .bg-vibe-card-gradient {
+    animation: none;
+    will-change: auto;
+  }
 }
 
 /* 유틸리티 클래스 */

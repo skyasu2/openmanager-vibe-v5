@@ -8,10 +8,19 @@
  * - Ready/Not Ready 상태 표시
  * - 웜업 버튼 (콜드 스타트 시)
  * - 응답 시간(latency) 표시
+ * - Error Boundary로 렌더링 오류 격리
  */
 
-import { Activity, Loader2, Zap } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { Activity, AlertCircle, Loader2, Zap } from 'lucide-react';
+import {
+  Component,
+  type ErrorInfo,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
+import { logger } from '@/lib/logging';
 
 type CloudRunStatus = 'unknown' | 'checking' | 'ready' | 'cold' | 'error';
 
@@ -337,4 +346,75 @@ export function CloudRunStatusIndicator({
   );
 }
 
-export default CloudRunStatusIndicator;
+// =============================================================================
+// Error Boundary
+// =============================================================================
+
+interface CloudRunErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class CloudRunErrorBoundary extends Component<
+  { children: ReactNode; compact?: boolean },
+  CloudRunErrorBoundaryState
+> {
+  constructor(props: { children: ReactNode; compact?: boolean }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): CloudRunErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    logger.error('[CloudRunStatusIndicator] 렌더링 오류:', error);
+    logger.error(
+      '[CloudRunStatusIndicator] 컴포넌트 스택:',
+      errorInfo.componentStack
+    );
+  }
+
+  render(): ReactNode {
+    if (this.state.hasError) {
+      const { compact } = this.props;
+
+      if (compact) {
+        return (
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-gray-100"
+            title="상태 표시 오류"
+          >
+            <AlertCircle className="h-4 w-4 text-gray-400" />
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5">
+          <AlertCircle className="h-4 w-4 text-gray-400" />
+          <span className="text-xs text-gray-500">상태 확인 불가</span>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// =============================================================================
+// Wrapped Export
+// =============================================================================
+
+function CloudRunStatusIndicatorWithBoundary(
+  props: CloudRunStatusIndicatorProps
+) {
+  return (
+    <CloudRunErrorBoundary compact={props.compact}>
+      <CloudRunStatusIndicator {...props} />
+    </CloudRunErrorBoundary>
+  );
+}
+
+export default CloudRunStatusIndicatorWithBoundary;

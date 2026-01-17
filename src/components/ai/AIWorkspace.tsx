@@ -22,7 +22,7 @@ import {
   User,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { memo, useRef, useState } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import { AIFunctionPages } from '@/components/ai-sidebar/AIFunctionPages';
 import { EnhancedAIChat } from '@/components/ai-sidebar/EnhancedAIChat';
 import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
@@ -188,6 +188,15 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     useState<AIAssistantFunction>('chat');
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
+  // 🔧 P2: 핸들러 최적화 - useCallback으로 불필요한 리렌더 방지
+  const handleFunctionSelect = useCallback((func: AIAssistantFunction) => {
+    setSelectedFunction(func);
+  }, []);
+
+  const handleToggleRightPanel = useCallback(() => {
+    setIsRightPanelOpen((prev) => !prev);
+  }, []);
+
   // ============================================================================
   // 🎯 공통 AI 채팅 로직 (useAIChatCore 훅 사용)
   // 전체화면에서는 세션 제한 비활성화 (더 큰 화면에서 더 많은 대화 가능)
@@ -280,7 +289,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           ) : (
             <AIFunctionPages
               selectedFunction={selectedFunction}
-              onFunctionChange={setSelectedFunction}
+              onFunctionChange={handleFunctionSelect}
             />
           )}
         </div>
@@ -288,7 +297,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           <div className="shrink-0 border-t border-gray-200 bg-gray-50 p-2">
             <AIAssistantIconPanel
               selectedFunction={selectedFunction}
-              onFunctionChange={setSelectedFunction}
+              onFunctionChange={handleFunctionSelect}
               isMobile
             />
           </div>
@@ -355,7 +364,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           <div className="space-y-1">
             {/* 자연어 질의 */}
             <button
-              onClick={() => setSelectedFunction('chat')}
+              onClick={() => handleFunctionSelect('chat')}
               className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
                 selectedFunction === 'chat'
                   ? 'bg-blue-50 text-blue-700 border border-blue-200'
@@ -370,7 +379,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             </button>
             {/* 자동 장애보고서 */}
             <button
-              onClick={() => setSelectedFunction('auto-report')}
+              onClick={() => handleFunctionSelect('auto-report')}
               className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
                 selectedFunction === 'auto-report'
                   ? 'bg-pink-50 text-pink-700 border border-pink-200'
@@ -387,7 +396,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             </button>
             {/* 이상감지/예측 */}
             <button
-              onClick={() => setSelectedFunction('intelligent-monitoring')}
+              onClick={() => handleFunctionSelect('intelligent-monitoring')}
               className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
                 selectedFunction === 'intelligent-monitoring'
                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -488,7 +497,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               {/* 패널 토글 버튼 */}
               {selectedFunction === 'chat' && (
                 <button
-                  onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
+                  onClick={handleToggleRightPanel}
                   className="hidden lg:flex rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
                   title="시스템 컨텍스트 패널 토글"
                 >

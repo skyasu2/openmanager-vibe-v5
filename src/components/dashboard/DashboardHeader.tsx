@@ -20,14 +20,8 @@ import { SessionCountdown } from './SessionCountdown';
  * 대시보드 헤더 컴포넌트 Props
  */
 interface DashboardHeaderProps {
-  /** @deprecated 홈으로 이동 핸들러 - OpenManagerLogo의 href prop으로 대체됨 */
-  onNavigateHome?: () => void;
   /** AI 에이전트 토글 핸들러 - 기존 호환성을 위해 유지 */
   onToggleAgent?: () => void;
-  /** AI 에이전트 열림 상태 - 기존 호환성을 위해 유지 */
-  isAgentOpen?: boolean;
-  onMenuClick?: () => void;
-  title?: string;
 }
 
 /**
@@ -41,17 +35,11 @@ interface DashboardHeaderProps {
  *
  * @example
  * ```tsx
- * <DashboardHeader
- *   onNavigateHome={() => router.push('/')}
- * />
+ * <DashboardHeader />
  * ```
  */
 const DashboardHeader = memo(function DashboardHeader({
-  onNavigateHome: _onNavigateHome, // deprecated - OpenManagerLogo href로 대체
-  onToggleAgent, // 기존 호환성을 위해 유지
-  isAgentOpen: _isAgentOpen = false, // 기존 호환성을 위해 유지
-  onMenuClick: _onMenuClick,
-  title: _title = 'OpenManager Dashboard',
+  onToggleAgent,
 }: DashboardHeaderProps) {
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = React.useState(false);
@@ -60,8 +48,10 @@ const DashboardHeader = memo(function DashboardHeader({
     setIsMounted(true);
   }, []);
 
-  // 🔧 선택적 구독으로 불필요한 리렌더 방지
-  const aiAgent = useUnifiedAdminStore((state) => state.aiAgent);
+  // 🔧 P2: 세분화된 Selector - aiAgent.isEnabled만 구독하여 불필요한 리렌더 방지
+  const isAIAgentEnabled = useUnifiedAdminStore(
+    (state) => state.aiAgent.isEnabled
+  );
   // 🔐 사용자 권한 확인
   const permissions = useUserPermissions();
   // 🔧 새로운 AI 사이드바 상태 (선택적 구독)
@@ -134,7 +124,7 @@ const DashboardHeader = memo(function DashboardHeader({
           {/* 🔐 AI 어시스턴트 토글 버튼 - 항상 표시, 클릭 시 인증 체크 */}
           <AIAssistantButton
             isOpen={isSidebarOpen}
-            isEnabled={aiAgent.isEnabled}
+            isEnabled={isAIAgentEnabled}
             onClick={handleAIAgentToggle}
           />
 

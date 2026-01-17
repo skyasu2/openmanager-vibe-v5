@@ -11,7 +11,8 @@
           {
             "type": "command",
             "command": "./node_modules/.bin/biome format --write \"$(echo $CLAUDE_TOOL_INPUT | jq -r '.file_path // empty')\" 2>/dev/null || true",
-            "timeout": 10
+            "timeout": 10,
+            "showOutput": false
           }
         ]
       }
@@ -23,7 +24,8 @@
           {
             "type": "command",
             "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] $(echo $CLAUDE_TOOL_INPUT | jq -r '.command // empty' | head -c 200)\" >> logs/claude-bash-commands.log 2>/dev/null || true",
-            "timeout": 5
+            "timeout": 5,
+            "showOutput": false
           }
         ]
       }

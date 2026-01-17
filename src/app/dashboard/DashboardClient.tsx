@@ -29,7 +29,7 @@ import { systemInactivityService } from '@/services/system/SystemInactivityServi
 // Admin mode removed - Phase 2: Admin removal complete
 import { useAISidebarStore } from '@/stores/useAISidebarStore'; // AI 사이드바 상태
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import type { Server } from '@/types/server';
+// 🔧 레거시 정리 (2026-01-17): Server 타입 import 제거 - AnimatedServerModal 제거됨
 import debug from '@/utils/debug';
 import DashboardContent from '../../components/dashboard/DashboardContent';
 // --- Static Imports for Core Components (SSR bailout 해결) ---
@@ -41,7 +41,7 @@ const FloatingSystemControl = dynamic(
     ssr: false, // 클라이언트 전용 컴포넌트 (변경 없음)
   }
 );
-// EnhancedServerModal은 AnimatedServerModal로 통합됨
+// 🔧 레거시 정리 (2026-01-17): EnhancedServerModal은 ServerDashboard 내부에서 직접 사용
 
 // AI Sidebar를 CSS 애니메이션으로 동적 로드
 const AnimatedAISidebar = dynamic(
@@ -86,41 +86,9 @@ const AnimatedAISidebar = dynamic(
   }
 );
 
-// 서버 모달을 CSS 애니메이션으로 동적 로드
-const AnimatedServerModal = dynamic(
-  async () => {
-    const EnhancedServerModal = await import(
-      '../../components/dashboard/EnhancedServerModal'
-    );
-
-    return function AnimatedServerModalWrapper({
-      isOpen,
-      server,
-      onClose,
-    }: {
-      isOpen: boolean;
-      server: Server | null;
-      onClose: () => void;
-    }) {
-      // 🎯 직접 전달 (EnhancedServerModal 내부에서 안전하게 변환됨)
-      return (
-        <>
-          {isOpen && server && (
-            <EnhancedServerModal.default server={server} onClose={onClose} />
-          )}
-        </>
-      );
-    };
-  },
-  {
-    loading: () => (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-      </div>
-    ),
-    ssr: false, // 클라이언트 전용 컴포넌트
-  }
-);
+// 🔧 레거시 정리 (2026-01-17): AnimatedServerModal dynamic import 제거
+// - ServerDashboard 내부에서 EnhancedServerModal 직접 렌더링
+// - 중복 모달 시스템 제거로 번들 크기 최적화
 
 const ContentLoadingSkeleton = () => (
   <div className="min-h-screen bg-gray-100 p-6 dark:bg-gray-900">
@@ -262,8 +230,8 @@ function DashboardPageContent() {
     }
   }, [testModeDetected]); // testModeDetected 의존성 추가
 
-  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
-  const [isServerModalOpen, setIsServerModalOpen] = useState(false);
+  // 🔧 레거시 정리 (2026-01-17): selectedServer, isServerModalOpen 제거
+  // - ServerDashboard 내부에서 EnhancedServerModal로 직접 관리
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   // 🔧 showSystemWarning - setter만 사용 (onWarning 콜백에서 설정, UI 반영은 NotificationToast로 대체)
   const [, setShowSystemWarning] = useState(false);
@@ -425,13 +393,10 @@ function DashboardPageContent() {
   // ✅ useSystemStatusStore 제거 - useUnifiedAdminStore로 직접 접근
 
   // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
-  const {
-    paginatedServers: realServers,
-    handleServerSelect,
-    selectedServer: dashboardSelectedServer,
-    handleModalClose: dashboardModalClose,
-    // isLoading - 미사용 (별도 로딩 상태 관리)
-  } = useServerDashboard({});
+  // 🔧 레거시 정리 (2026-01-17):
+  // - selectedServer, handleServerSelect, handleModalClose 제거
+  // - ServerDashboard 내부에서 EnhancedServerModal로 직접 관리
+  const { paginatedServers: realServers } = useServerDashboard({});
 
   // 🕐 Supabase에서 24시간 데이터를 직접 가져오므로 시간 회전 시스템 제거됨
   // API가 30초마다 다른 시간대 데이터를 자동으로 반환
@@ -524,31 +489,9 @@ function DashboardPageContent() {
     []
   );
 
-  // 🎯 서버 클릭 핸들러 - 실제 데이터와 연동
-  const handleServerClick = useCallback(
-    (server: Server) => {
-      try {
-        debug.log('🖱️ 서버 카드 클릭됨:', server?.name || server?.id);
-        if (!server) {
-          debug.warn('⚠️ 유효하지 않은 서버 데이터');
-          return;
-        }
-        handleServerSelect(server);
-        setSelectedServer(server);
-        setIsServerModalOpen(true);
-      } catch (error) {
-        debug.error('❌ 서버 클릭 처리 중 오류:', error);
-      }
-    },
-    [handleServerSelect]
-  );
-
-  // 🔒 서버 모달 닫기
-  const handleServerModalClose = useCallback(() => {
-    dashboardModalClose();
-    setSelectedServer(null);
-    setIsServerModalOpen(false);
-  }, [dashboardModalClose]);
+  // 🔧 레거시 정리 (2026-01-17): handleServerClick, handleServerModalClose 제거
+  // - ServerDashboard가 useServerDashboard hook에서 직접 클릭/모달 핸들링
+  // - 외부에서 서버 클릭/모달 핸들러를 주입할 필요 없음
 
   // 🚀 시스템 제어 더미 데이터 최적화
   const dummySystemControl = {
@@ -608,22 +551,19 @@ function DashboardPageContent() {
       )}
     >
       <div className="flex min-h-0 flex-1 flex-col">
-        <DashboardHeader
-          onNavigateHome={() => (window.location.href = '/')}
-          onToggleAgent={toggleAgent}
-          isAgentOpen={isAgentOpen}
-        />
+        {/* 🔧 레거시 정리 (2026-01-17):
+            - onNavigateHome, isAgentOpen 제거 - DashboardHeader 내부에서 직접 관리 */}
+        <DashboardHeader onToggleAgent={toggleAgent} />
 
         <div className="flex-1 overflow-hidden">
           <Suspense fallback={<ContentLoadingSkeleton />}>
+            {/* 🔧 레거시 props 정리 (2026-01-17):
+                - 제거됨: actions, selectedServer, onServerClick, onServerModalClose
+                - ServerDashboard가 useServerDashboard hook으로 직접 데이터 관리 */}
             <DashboardContent
               showSequentialGeneration={false}
               servers={realServers}
               status={{ type: 'idle' }}
-              actions={{ startSystem: () => {}, stopSystem: () => {} }}
-              selectedServer={selectedServer || dashboardSelectedServer}
-              onServerClick={handleServerClick}
-              onServerModalClose={handleServerModalClose}
               onStatsUpdate={handleStatsUpdate}
               onShowSequentialChange={() => {}}
               isAgentOpen={isAgentOpen}
@@ -641,14 +581,9 @@ function DashboardPageContent() {
             />
           )}
 
-        {/* 🎯 서버 모달 - 동적 로딩으로 최적화 (Hydration 안전성 추가) */}
-        {isMounted && (
-          <AnimatedServerModal
-            isOpen={isServerModalOpen}
-            server={selectedServer}
-            onClose={handleServerModalClose}
-          />
-        )}
+        {/* 🔧 레거시 정리 (2026-01-17): AnimatedServerModal 제거
+            - ServerDashboard 내부에서 EnhancedServerModal로 직접 관리
+            - 중복 모달 시스템 제거로 번들 크기 최적화 */}
 
         {/* 🔒 자동 로그아웃 경고 모달 - 베르셀 사용량 최적화 */}
         <AutoLogoutWarning
