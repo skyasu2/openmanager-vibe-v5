@@ -748,7 +748,11 @@ export default function FeatureCardModal({
           </header>
           <div
             className="overflow-y-auto scroll-smooth"
-            style={{ maxHeight: 'calc(94dvh - 70px)' }}
+            style={{
+              maxHeight: showDiagram
+                ? 'calc(85dvh - 70px)' // 다이어그램 모드: 모달 max-h-[85dvh]에 맞춤
+                : 'calc(80dvh - 70px)', // 상세 모드: 모달 max-h-[80dvh]에 맞춤
+            }}
           >
             {renderModalSafely()}
           </div>

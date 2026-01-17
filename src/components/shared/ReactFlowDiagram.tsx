@@ -49,10 +49,10 @@ import { logger } from '@/lib/logging';
  * includeHiddenNodes: 숨겨진 노드도 포함
  */
 const FIT_VIEW_OPTIONS = {
-  padding: 0.2, // 20% 여백 (노트북 화면 최적화)
+  padding: 0.15, // 15% 여백 (노트북 화면에서 공간 효율 최적화)
   includeHiddenNodes: true,
   minZoom: 0.05, // 더 축소 가능하게
-  maxZoom: 0.8, // fitView가 더 축소된 상태로 시작
+  maxZoom: 0.6, // fitView가 더 축소된 상태로 시작 (노트북 화면 최적화)
 };
 
 /**
@@ -517,7 +517,7 @@ function convertToReactFlow(diagram: DiagramData): {
         target: conn.to,
         sourceHandle: isHorizontal ? 'right' : undefined,
         targetHandle: isHorizontal ? 'left' : undefined,
-        type: 'default', // smoothstep -> default (Bezier)
+        type: 'smoothstep', // smoothstep: 깔끔한 직각 연결
         animated: conn.type === 'dashed',
         style: {
           stroke:
@@ -614,8 +614,8 @@ function ReactFlowDiagram({
         <div
           className={`rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 ${
             compact
-              ? 'h-[60dvh] sm:h-[65dvh] lg:h-[70dvh] max-h-[600px] lg:max-h-[700px]'
-              : 'h-[65dvh] sm:h-[70dvh] lg:h-[75dvh] max-h-[650px] lg:max-h-[750px]'
+              ? 'h-[38dvh] sm:h-[42dvh] lg:h-[48dvh] max-h-[320px] sm:max-h-[360px] lg:max-h-[420px]'
+              : 'h-[45dvh] sm:h-[50dvh] lg:h-[55dvh] max-h-[380px] sm:max-h-[420px] lg:max-h-[500px]'
           }`}
         >
           <ReactFlow
