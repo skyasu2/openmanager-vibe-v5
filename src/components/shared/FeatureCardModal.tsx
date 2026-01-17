@@ -675,7 +675,7 @@ export default function FeatureCardModal({
         ref={actualModalRef}
         className={`relative w-full transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-all duration-300 motion-reduce:transition-none ${
           showDiagram
-            ? 'max-h-[85dvh] max-w-[78vw] sm:max-w-[76vw] lg:max-w-5xl xl:max-w-6xl'
+            ? 'max-h-[85dvh] max-w-[72vw] sm:max-w-[68vw] lg:max-w-4xl xl:max-w-5xl'
             : 'max-h-[80dvh] max-w-[76vw] sm:max-w-lg md:max-w-xl lg:max-w-3xl'
         } ${!cardData.id ? 'hidden' : ''}`}
         data-modal-content="portal-unified-v4-ai-cross-verified"
