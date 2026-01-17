@@ -464,6 +464,10 @@ function DashboardPageContent() {
     ? formatTime(systemRemainingTime)
     : '00:00';
 
+  // 🔥 Cloud Run warmup 쿨다운 (5분)
+  const lastWarmupAtRef = useRef(0);
+  const WARMUP_COOLDOWN_MS = 5 * 60 * 1000; // 5분
+
   const toggleAgent = useCallback(() => {
     // 🔒 AI 기능은 권한이 있는 사용자 또는 게스트 전체 접근 모드에서 사용 가능
     if (!permissions.canToggleAI && !isGuestFullAccessEnabled()) {
@@ -471,12 +475,18 @@ function DashboardPageContent() {
       return;
     }
 
-    // 🔥 AI 사이드바 열릴 때 Cloud Run warmup 호출 (Cold Start 방지)
+    // 🔥 AI 사이드바 열릴 때 Cloud Run warmup 호출 (Cold Start 방지, 5분 쿨다운)
     if (!isAgentOpen) {
-      fetch('/api/ai/wake-up', { method: 'POST' }).catch(() => {
-        // Ignore errors - this is a best-effort warmup
-      });
-      debug.log('🔥 AI 어시스턴트 열기 - Cloud Run warmup 신호 전송');
+      const now = Date.now();
+      if (now - lastWarmupAtRef.current > WARMUP_COOLDOWN_MS) {
+        lastWarmupAtRef.current = now;
+        fetch('/api/ai/wake-up', { method: 'POST' }).catch(() => {
+          // Ignore errors - this is a best-effort warmup
+        });
+        debug.log('🔥 AI 어시스턴트 열기 - Cloud Run warmup 신호 전송');
+      } else {
+        debug.log('⏳ AI warmup 쿨다운 중 - 스킵');
+      }
     }
 
     setIsAgentOpen(!isAgentOpen);

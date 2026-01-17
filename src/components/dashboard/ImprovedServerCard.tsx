@@ -28,13 +28,13 @@ import { AIInsightBadge } from '../shared/AIInsightBadge';
 import { MiniLineChart } from '../shared/MiniLineChart';
 
 /**
- * 🎨 Premium Server Card v2.1
+ * 🎨 Premium Server Card v2.2
  * - 랜딩 페이지 스타일 그라데이션 애니메이션
  * - 상태별 색상: Critical(빨강), Warning(주황), Healthy(녹색)
  * - 호버 스케일 + 글로우 효과
  * - 서버 카드 독자 기능: 실시간 메트릭, AI Insight, Progressive Disclosure
  * - 카드 크기 50% 축소 (2025-12-13)
- * - HTML 중첩 버튼 오류 수정 (2026-01-17)
+ * - HTML 접근성 완전 수정: 카드=div[role=button], 토글=button (2026-01-17)
  */
 
 export interface ImprovedServerCardProps {
@@ -149,7 +149,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 
     // Interactions - Progressive Disclosure Toggle
     const toggleExpansion = useCallback(
-      (e: React.MouseEvent | React.KeyboardEvent) => {
+      (e: React.MouseEvent) => {
         e.stopPropagation();
         setShowTertiaryInfo((prev) => !prev);
         if (!showTertiaryInfo) setShowSecondaryInfo(true);
@@ -157,10 +157,31 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       [showTertiaryInfo]
     );
 
+    // 카드 클릭 핸들러 (키보드 지원)
+    const handleCardClick = useCallback(() => {
+      onClick(safeServer);
+    }, [onClick, safeServer]);
+
+    const handleCardKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        // 내부 토글 버튼에서 이벤트가 발생한 경우 무시 (버블링 방지)
+        if ((e.target as HTMLElement).closest('[data-toggle-button]')) {
+          return;
+        }
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick(safeServer);
+        }
+      },
+      [onClick, safeServer]
+    );
+
     return (
-      <button
-        type="button"
-        onClick={() => onClick(safeServer)}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={handleCardClick}
+        onKeyDown={handleCardKeyDown}
         onMouseEnter={() => {
           setIsHovered(true);
           if (enableProgressiveDisclosure) setShowSecondaryInfo(true);
@@ -263,16 +284,10 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 
           <div className="flex items-center gap-1 pt-4">
             {enableProgressiveDisclosure && (
-              <div
-                role="button"
-                tabIndex={0}
+              <button
+                type="button"
+                data-toggle-button
                 onClick={toggleExpansion}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggleExpansion(e as unknown as React.MouseEvent);
-                  }
-                }}
                 className="flex h-6 w-6 items-center justify-center rounded-full bg-black/5 hover:bg-black/10 text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
                 aria-expanded={showTertiaryInfo}
                 aria-label={
@@ -284,7 +299,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 ) : (
                   <ChevronDown className="h-3 w-3" />
                 )}
-              </div>
+              </button>
             )}
           </div>
         </header>
@@ -364,7 +379,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               )}
             </div>
           )}
-      </button>
+      </div>
     );
   }
 );
