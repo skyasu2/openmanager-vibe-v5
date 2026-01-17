@@ -46,10 +46,21 @@ import {
   preloadCriticalResources,
 } from '@/utils/vercel-optimization';
 
-// Phase 2: Lazy loading
+// Phase 2: Lazy loading with skeleton (깜빡임 방지)
+const FeatureCardsGridSkeleton = () => (
+  <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
+    {[1, 2, 3, 4].map((i) => (
+      <div
+        key={i}
+        className="h-40 animate-pulse rounded-2xl border border-white/10 bg-white/5"
+      />
+    ))}
+  </div>
+);
+
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
-  { ssr: false }
+  { ssr: false, loading: () => <FeatureCardsGridSkeleton /> }
 );
 
 function Home() {

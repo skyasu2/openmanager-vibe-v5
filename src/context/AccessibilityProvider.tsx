@@ -122,14 +122,8 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
   const announcementTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // 🛡️ 베르셀 하이드레이션 안전성: 클라이언트 사이드 감지
+  // ⚡ 깜빡임 방지: 단일 setState로 모든 클라이언트 상태 초기화
   useEffect(() => {
-    setIsClient(true);
-    setState((prev) => ({
-      ...prev,
-      isClient: true,
-      isHydrated: true,
-    }));
-
     // 브라우저 접근성 설정 감지 (클라이언트 사이드만)
     if (typeof window !== 'undefined') {
       const mediaReducedMotion = window.matchMedia(
@@ -137,8 +131,12 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
       );
       const mediaHighContrast = window.matchMedia('(prefers-contrast: high)');
 
+      // ⚡ 단일 setState로 모든 초기화 통합 (깜빡임 방지)
+      setIsClient(true);
       setState((prev) => ({
         ...prev,
+        isClient: true,
+        isHydrated: true,
         reducedMotion: mediaReducedMotion.matches,
         highContrast: mediaHighContrast.matches,
       }));
@@ -423,20 +421,20 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
   return (
     <AccessibilityContext.Provider value={value}>
       {children}
-      {/* 🔊 ARIA Live 영역 (SSR 안전) */}
-      {isClient && (
-        // biome-ignore lint/a11y/useSemanticElements: role="status" is intentional for screen reader announcements
-        <div
-          aria-live={state.ariaLive}
-          aria-atomic="true"
-          className="sr-only"
-          role="status"
-        >
-          {state.announcements.map((announcement, index) => (
+      {/* 🔊 ARIA Live 영역 - 항상 렌더링 (깜빡임 방지, sr-only로 숨김) */}
+      {/* biome-ignore lint/a11y/useSemanticElements: role="status" is intentional for screen reader announcements */}
+      <div
+        aria-live={state.ariaLive}
+        aria-atomic="true"
+        className="sr-only"
+        role="status"
+      >
+        {/* 클라이언트 사이드에서만 announcements 표시 */}
+        {isClient &&
+          state.announcements.map((announcement, index) => (
             <div key={`${announcement}-${index}`}>{announcement}</div>
           ))}
-        </div>
-      )}
+      </div>
     </AccessibilityContext.Provider>
   );
 };
