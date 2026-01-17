@@ -75,6 +75,70 @@ interface DBIncidentReport {
   };
 }
 
+// 🔧 P3: 메모이제이션된 리포트 카드 컴포넌트 (map 내 인라인 핸들러 최적화)
+interface ReportCardProps {
+  report: IncidentReport;
+  isSelected: boolean;
+  onSelect: (report: IncidentReport) => void;
+  formatDate: (date: Date) => string;
+  getStatusBadge: (status: string) => React.ReactNode;
+}
+
+const ReportCard = memo(function ReportCard({
+  report,
+  isSelected,
+  onSelect,
+  formatDate,
+  getStatusBadge,
+}: ReportCardProps) {
+  const handleClick = useCallback(() => {
+    onSelect(report);
+  }, [onSelect, report]);
+
+  return (
+    <button
+      onClick={handleClick}
+      className={`w-full rounded-lg border bg-white p-4 text-left transition-all hover:shadow-md ${
+        isSelected
+          ? 'border-blue-500 ring-2 ring-blue-200'
+          : 'border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${getSeverityColor(report.severity)}`}
+            >
+              {getSeverityLabel(report.severity)}
+            </span>
+            {getStatusBadge(report.status)}
+          </div>
+          <h3 className="mt-2 truncate font-medium text-gray-800">
+            {report.title}
+          </h3>
+          <p className="mt-1 line-clamp-2 text-sm text-gray-500">
+            {report.description}
+          </p>
+        </div>
+        <div className="shrink-0 text-right">
+          <div className="flex items-center gap-1 text-xs text-gray-500">
+            <Calendar className="h-3 w-3" />
+            {formatDate(report.timestamp)}
+          </div>
+          {report.affectedServers.length > 0 && (
+            <div className="mt-1 text-xs text-gray-400">
+              {report.affectedServers.length}개 서버 영향
+            </div>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+});
+
+ReportCard.displayName = 'ReportCard';
+
 function mapDBToIncidentReport(db: DBIncidentReport): IncidentReport {
   return {
     id: db.id,
@@ -175,16 +239,70 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
     fetchReports();
   }, [fetchReports]);
 
-  const handlePageChange = (newPage: number) => {
+  // 🔧 P3: useCallback으로 핸들러 메모이제이션
+  const handlePageChange = useCallback((newPage: number) => {
     setPagination((prev) => ({ ...prev, page: newPage }));
-  };
+  }, []);
 
-  const handleFilterChange = (key: keyof HistoryFilters, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-    setPagination((prev) => ({ ...prev, page: 1 }));
-  };
+  const handleFilterChange = useCallback(
+    (key: keyof HistoryFilters, value: string) => {
+      setFilters((prev) => ({ ...prev, [key]: value }));
+      setPagination((prev) => ({ ...prev, page: 1 }));
+    },
+    []
+  );
 
-  const clearFilters = () => {
+  // 🔧 P3: 각 필터별 개별 핸들러 메모이제이션 (인라인 화살표 함수 제거)
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      handleFilterChange('search', e.target.value);
+    },
+    [handleFilterChange]
+  );
+
+  const handleSeverityChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      handleFilterChange('severity', e.target.value);
+    },
+    [handleFilterChange]
+  );
+
+  const handleStatusChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      handleFilterChange('status', e.target.value);
+    },
+    [handleFilterChange]
+  );
+
+  const handleDateRangeChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      handleFilterChange('dateRange', e.target.value);
+    },
+    [handleFilterChange]
+  );
+
+  // 🔧 P3: 토글 및 네비게이션 핸들러 메모이제이션
+  const toggleFilters = useCallback(() => {
+    setShowFilters((prev) => !prev);
+  }, []);
+
+  const handlePrevPage = useCallback(() => {
+    handlePageChange(pagination.page - 1);
+  }, [handlePageChange, pagination.page]);
+
+  const handleNextPage = useCallback(() => {
+    handlePageChange(pagination.page + 1);
+  }, [handlePageChange, pagination.page]);
+
+  const handleReportSelect = useCallback((report: IncidentReport) => {
+    setSelectedReport(report);
+  }, []);
+
+  const handleCloseDetail = useCallback(() => {
+    setSelectedReport(null);
+  }, []);
+
+  const clearFilters = useCallback(() => {
     setFilters({
       severity: 'all',
       status: 'all',
@@ -192,7 +310,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
       search: '',
     });
     setPagination((prev) => ({ ...prev, page: 1 }));
-  };
+  }, []);
 
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
@@ -246,7 +364,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowFilters(!showFilters)}
+              onClick={toggleFilters}
               className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors ${
                 showFilters
                   ? 'bg-blue-100 text-blue-700'
@@ -281,7 +399,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
                 type="text"
                 placeholder="보고서 검색..."
                 value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
+                onChange={handleSearchChange}
                 className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
               />
             </div>
@@ -289,7 +407,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
             {/* Severity Filter */}
             <select
               value={filters.severity}
-              onChange={(e) => handleFilterChange('severity', e.target.value)}
+              onChange={handleSeverityChange}
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             >
               <option value="all">모든 심각도</option>
@@ -302,7 +420,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
             {/* Status Filter */}
             <select
               value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
+              onChange={handleStatusChange}
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             >
               <option value="all">모든 상태</option>
@@ -315,7 +433,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
             {/* Date Range Filter */}
             <select
               value={filters.dateRange}
-              onChange={(e) => handleFilterChange('dateRange', e.target.value)}
+              onChange={handleDateRangeChange}
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             >
               <option value="all">전체 기간</option>
@@ -369,45 +487,14 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
           ) : (
             <div className="space-y-3">
               {reports.map((report) => (
-                <button
+                <ReportCard
                   key={report.id}
-                  onClick={() => setSelectedReport(report)}
-                  className={`w-full rounded-lg border bg-white p-4 text-left transition-all hover:shadow-md ${
-                    selectedReport?.id === report.id
-                      ? 'border-blue-500 ring-2 ring-blue-200'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${getSeverityColor(report.severity)}`}
-                        >
-                          {getSeverityLabel(report.severity)}
-                        </span>
-                        {getStatusBadge(report.status)}
-                      </div>
-                      <h3 className="mt-2 truncate font-medium text-gray-800">
-                        {report.title}
-                      </h3>
-                      <p className="mt-1 line-clamp-2 text-sm text-gray-500">
-                        {report.description}
-                      </p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(report.timestamp)}
-                      </div>
-                      {report.affectedServers.length > 0 && (
-                        <div className="mt-1 text-xs text-gray-400">
-                          {report.affectedServers.length}개 서버 영향
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </button>
+                  report={report}
+                  isSelected={selectedReport?.id === report.id}
+                  onSelect={handleReportSelect}
+                  formatDate={formatDate}
+                  getStatusBadge={getStatusBadge}
+                />
               ))}
             </div>
           )}
@@ -416,7 +503,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
           {!loading && pagination.totalPages > 1 && (
             <div className="mt-4 flex items-center justify-center gap-2">
               <button
-                onClick={() => handlePageChange(pagination.page - 1)}
+                onClick={handlePrevPage}
                 disabled={pagination.page <= 1}
                 className="rounded-lg border border-gray-200 p-2 text-gray-500 hover:bg-gray-50 disabled:opacity-50"
               >
@@ -426,7 +513,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
                 {pagination.page} / {pagination.totalPages}
               </span>
               <button
-                onClick={() => handlePageChange(pagination.page + 1)}
+                onClick={handleNextPage}
                 disabled={pagination.page >= pagination.totalPages}
                 className="rounded-lg border border-gray-200 p-2 text-gray-500 hover:bg-gray-50 disabled:opacity-50"
               >
@@ -442,7 +529,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-800">보고서 상세</h3>
               <button
-                onClick={() => setSelectedReport(null)}
+                onClick={handleCloseDetail}
                 className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
               >
                 <X className="h-5 w-5" />

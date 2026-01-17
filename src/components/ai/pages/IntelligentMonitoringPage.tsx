@@ -13,7 +13,7 @@
 'use client';
 
 import { Monitor, Play, RefreshCw, Server } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import AnalysisResultsCard from '@/components/ai/AnalysisResultsCard';
 import { useServerQuery } from '@/hooks/useServerQuery';
 import { logger } from '@/lib/logging';
@@ -36,135 +36,149 @@ export default function IntelligentMonitoringPage() {
   const [result, setResult] = useState<AnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // 🔧 P3: useCallback으로 핸들러 메모이제이션
+  const handleServerChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSelectedServer(e.target.value);
+    },
+    []
+  );
+
   // 단일 서버 분석 함수
-  const analyzeSingleServer = async (
-    serverId: string,
-    serverName: string
-  ): Promise<ServerAnalysisResult | null> => {
-    try {
-      const response = await fetch('/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'analyze_server',
-          serverId,
-          analysisType: 'full',
-        }),
-      });
+  const analyzeSingleServer = useCallback(
+    async (
+      serverId: string,
+      serverName: string
+    ): Promise<ServerAnalysisResult | null> => {
+      try {
+        const response = await fetch('/api/ai/intelligent-monitoring', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'analyze_server',
+            serverId,
+            analysisType: 'full',
+          }),
+        });
 
-      if (!response.ok) {
-        logger.error(`[${serverName}] API 요청 실패: ${response.status}`);
+        if (!response.ok) {
+          logger.error(`[${serverName}] API 요청 실패: ${response.status}`);
+          return null;
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+          logger.error(`[${serverName}] 분석 실패:`, data.error);
+          return null;
+        }
+
+        const analysisData = data.data as CloudRunAnalysisResponse;
+
+        // 전체 상태 판단
+        let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
+        if (analysisData.anomalyDetection?.hasAnomalies) {
+          const anomalyResults = analysisData.anomalyDetection.results;
+          const severities = Object.values(anomalyResults).map(
+            (r) => r.severity
+          );
+          if (severities.includes('high')) {
+            overallStatus = 'critical';
+          } else if (severities.includes('medium')) {
+            overallStatus = 'warning';
+          }
+        }
+
+        return {
+          ...analysisData,
+          serverName,
+          overallStatus,
+        };
+      } catch (err) {
+        logger.error(`[${serverName}] 분석 오류:`, err);
         return null;
       }
+    },
+    []
+  );
 
-      const data = await response.json();
-
-      if (!data.success) {
-        logger.error(`[${serverName}] 분석 실패:`, data.error);
-        return null;
-      }
-
-      const analysisData = data.data as CloudRunAnalysisResponse;
+  // 종합 요약 생성 함수
+  const createSummary = useCallback(
+    (serverResults: ServerAnalysisResult[]): SystemAnalysisSummary => {
+      const healthyServers = serverResults.filter(
+        (s) => s.overallStatus === 'healthy'
+      ).length;
+      const warningServers = serverResults.filter(
+        (s) => s.overallStatus === 'warning'
+      ).length;
+      const criticalServers = serverResults.filter(
+        (s) => s.overallStatus === 'critical'
+      ).length;
 
       // 전체 상태 판단
       let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
-      if (analysisData.anomalyDetection?.hasAnomalies) {
-        const anomalyResults = analysisData.anomalyDetection.results;
-        const severities = Object.values(anomalyResults).map((r) => r.severity);
-        if (severities.includes('high')) {
-          overallStatus = 'critical';
-        } else if (severities.includes('medium')) {
-          overallStatus = 'warning';
+      if (criticalServers > 0) {
+        overallStatus = 'critical';
+      } else if (warningServers > 0) {
+        overallStatus = 'warning';
+      }
+
+      // Top Issues 추출 (이상 감지된 것들)
+      const topIssues: SystemAnalysisSummary['topIssues'] = [];
+      for (const server of serverResults) {
+        if (server.anomalyDetection?.hasAnomalies) {
+          for (const [metric, result] of Object.entries(
+            server.anomalyDetection.results || {}
+          )) {
+            if (result.isAnomaly) {
+              topIssues.push({
+                serverId: server.serverId,
+                serverName: server.serverName,
+                metric,
+                severity: result.severity,
+                currentValue: result.currentValue,
+              });
+            }
+          }
+        }
+      }
+
+      // 상승 추세 예측 추출
+      const predictions: SystemAnalysisSummary['predictions'] = [];
+      for (const server of serverResults) {
+        if (server.trendPrediction?.summary?.hasRisingTrends) {
+          for (const [metric, result] of Object.entries(
+            server.trendPrediction.results || {}
+          )) {
+            if (result.trend === 'increasing' && result.changePercent > 5) {
+              predictions.push({
+                serverId: server.serverId,
+                serverName: server.serverName,
+                metric,
+                trend: result.trend,
+                predictedValue: result.predictedValue,
+                changePercent: result.changePercent,
+              });
+            }
+          }
         }
       }
 
       return {
-        ...analysisData,
-        serverName,
+        totalServers: serverResults.length,
+        healthyServers,
+        warningServers,
+        criticalServers,
         overallStatus,
+        topIssues: topIssues.slice(0, 5), // 상위 5개
+        predictions: predictions.slice(0, 5), // 상위 5개
       };
-    } catch (err) {
-      logger.error(`[${serverName}] 분석 오류:`, err);
-      return null;
-    }
-  };
-
-  // 종합 요약 생성 함수
-  const createSummary = (
-    serverResults: ServerAnalysisResult[]
-  ): SystemAnalysisSummary => {
-    const healthyServers = serverResults.filter(
-      (s) => s.overallStatus === 'healthy'
-    ).length;
-    const warningServers = serverResults.filter(
-      (s) => s.overallStatus === 'warning'
-    ).length;
-    const criticalServers = serverResults.filter(
-      (s) => s.overallStatus === 'critical'
-    ).length;
-
-    // 전체 상태 판단
-    let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
-    if (criticalServers > 0) {
-      overallStatus = 'critical';
-    } else if (warningServers > 0) {
-      overallStatus = 'warning';
-    }
-
-    // Top Issues 추출 (이상 감지된 것들)
-    const topIssues: SystemAnalysisSummary['topIssues'] = [];
-    for (const server of serverResults) {
-      if (server.anomalyDetection?.hasAnomalies) {
-        for (const [metric, result] of Object.entries(
-          server.anomalyDetection.results || {}
-        )) {
-          if (result.isAnomaly) {
-            topIssues.push({
-              serverId: server.serverId,
-              serverName: server.serverName,
-              metric,
-              severity: result.severity,
-              currentValue: result.currentValue,
-            });
-          }
-        }
-      }
-    }
-
-    // 상승 추세 예측 추출
-    const predictions: SystemAnalysisSummary['predictions'] = [];
-    for (const server of serverResults) {
-      if (server.trendPrediction?.summary?.hasRisingTrends) {
-        for (const [metric, result] of Object.entries(
-          server.trendPrediction.results || {}
-        )) {
-          if (result.trend === 'increasing' && result.changePercent > 5) {
-            predictions.push({
-              serverId: server.serverId,
-              serverName: server.serverName,
-              metric,
-              trend: result.trend,
-              predictedValue: result.predictedValue,
-              changePercent: result.changePercent,
-            });
-          }
-        }
-      }
-    }
-
-    return {
-      totalServers: serverResults.length,
-      healthyServers,
-      warningServers,
-      criticalServers,
-      overallStatus,
-      topIssues: topIssues.slice(0, 5), // 상위 5개
-      predictions: predictions.slice(0, 5), // 상위 5개
-    };
-  };
+    },
+    []
+  );
 
   // 분석 실행
-  const runAnalysis = async () => {
+  const runAnalysis = useCallback(async () => {
     setIsAnalyzing(true);
     setResult(null);
     setError(null);
@@ -237,13 +251,13 @@ export default function IntelligentMonitoringPage() {
       setIsAnalyzing(false);
       setProgress({ current: 0, total: 0 });
     }
-  };
+  }, [selectedServer, servers, analyzeSingleServer, createSummary]);
 
   // 초기화
-  const resetAnalysis = () => {
+  const resetAnalysis = useCallback(() => {
     setResult(null);
     setError(null);
-  };
+  }, []);
 
   return (
     <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-emerald-50">
@@ -273,7 +287,7 @@ export default function IntelligentMonitoringPage() {
             <select
               id="server-select"
               value={selectedServer}
-              onChange={(e) => setSelectedServer(e.target.value)}
+              onChange={handleServerChange}
               disabled={isAnalyzing}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
             >
@@ -310,7 +324,7 @@ export default function IntelligentMonitoringPage() {
               초기화
             </button>
             <button
-              onClick={() => void runAnalysis()}
+              onClick={runAnalysis}
               disabled={isAnalyzing}
               className="rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-2 text-sm font-medium text-white shadow-md hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50"
             >
@@ -361,7 +375,7 @@ export default function IntelligentMonitoringPage() {
           result={result}
           isLoading={isAnalyzing}
           error={error}
-          onRetry={() => void runAnalysis()}
+          onRetry={runAnalysis}
         />
       </div>
     </div>
