@@ -9,8 +9,8 @@
  * - 인터랙티브한 노드 (드래그, 줌, 패닝)
  * - 더 정교한 레이아웃
  *
- * @version 5.92.0
- * @updated 2026-01-17 - Smart Grid Layout & AutoFitView Improvement
+ * @version 5.92.2
+ * @updated 2026-01-18 - Fixed layer positioning (layer-first algorithm)
  */
 
 import Dagre from '@dagrejs/dagre';
@@ -374,9 +374,14 @@ SwimlaneBgNode.displayName = 'SwimlaneBgNode';
 // =============================================================================
 
 /**
- * 📐 Dagre.js 기반 자동 레이아웃 알고리즘
- * React Flow 공식 문서 권장 패턴 적용
- * @see https://reactflow.dev/learn/layouting/layouting
+ * 📐 레이어 우선 레이아웃 알고리즘
+ *
+ * Dagre의 rank 제약이 그래프 구조를 오버라이드하지 못하므로,
+ * 레이어 인덱스 기반으로 Y 위치를 직접 계산하고
+ * 각 레이어 내에서 X 위치를 균등 분배합니다.
+ *
+ * @param nodeLayerMap - 노드 ID → 레이어 인덱스 매핑
+ * @param layerNodeCounts - 각 레이어의 노드 수 배열
  */
 function getLayoutedElements(
   nodes: Node[],
@@ -385,12 +390,85 @@ function getLayoutedElements(
     direction?: 'TB' | 'LR';
     nodesep?: number;
     ranksep?: number;
+    nodeLayerMap?: Map<string, number>;
+    layerNodeCounts?: number[];
   } = {}
 ): { nodes: Node[]; edges: Edge[] } {
-  const { direction = 'TB', nodesep = 60, ranksep = 80 } = options;
+  const {
+    direction = 'TB',
+    nodesep = 60,
+    ranksep = 80,
+    nodeLayerMap,
+    layerNodeCounts = [],
+  } = options;
   const isHorizontal = direction === 'LR';
 
-  // Dagre 그래프 인스턴스 생성 (매번 새로 생성하여 상태 오염 방지)
+  // 레이어 정보가 없으면 Dagre 폴백
+  if (!nodeLayerMap || nodeLayerMap.size === 0) {
+    return fallbackDagreLayout(nodes, edges, {
+      direction,
+      nodesep,
+      ranksep,
+    });
+  }
+
+  // 레이어별 노드 그룹화
+  const layerNodes: Map<number, Node[]> = new Map();
+  nodes.forEach((node) => {
+    if (node.type !== 'customNode') return;
+    const layerIndex = nodeLayerMap.get(node.id);
+    if (layerIndex === undefined) return;
+
+    const existing = layerNodes.get(layerIndex) || [];
+    existing.push(node);
+    layerNodes.set(layerIndex, existing);
+  });
+
+  // 전체 최대 너비 계산 (가장 많은 노드를 가진 레이어 기준)
+  const maxNodesInAnyLayer = Math.max(...layerNodeCounts, 1);
+  const totalWidth = maxNodesInAnyLayer * (NODE_WIDTH + nodesep) - nodesep;
+
+  // 레이어별 위치 계산
+  const layoutedNodes = nodes.map((node) => {
+    if (node.type !== 'customNode') return node;
+
+    const layerIndex = nodeLayerMap.get(node.id);
+    if (layerIndex === undefined) return node;
+
+    const nodesInLayer = layerNodes.get(layerIndex) || [];
+    const nodeIndexInLayer = nodesInLayer.findIndex((n) => n.id === node.id);
+    const nodeCountInLayer = nodesInLayer.length;
+
+    // X 위치: 레이어 내 중앙 정렬
+    const layerWidth = nodeCountInLayer * (NODE_WIDTH + nodesep) - nodesep;
+    const layerStartX = (totalWidth - layerWidth) / 2;
+    const x = layerStartX + nodeIndexInLayer * (NODE_WIDTH + nodesep);
+
+    // Y 위치: 레이어 인덱스 기반
+    const y = layerIndex * (NODE_HEIGHT + ranksep);
+
+    return {
+      ...node,
+      targetPosition: isHorizontal ? Position.Left : Position.Top,
+      sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
+      position: { x, y },
+    };
+  });
+
+  return { nodes: layoutedNodes, edges };
+}
+
+/**
+ * Dagre 폴백 레이아웃 (레이어 정보 없을 때)
+ */
+function fallbackDagreLayout(
+  nodes: Node[],
+  edges: Edge[],
+  options: { direction: string; nodesep: number; ranksep: number }
+): { nodes: Node[]; edges: Edge[] } {
+  const { direction, nodesep, ranksep } = options;
+  const isHorizontal = direction === 'LR';
+
   const dagreGraph = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
   dagreGraph.setGraph({
@@ -399,44 +477,30 @@ function getLayoutedElements(
     ranksep,
     marginx: 40,
     marginy: 40,
-    align: 'UL', // Upper-Left 정렬
-    acyclicer: 'greedy',
-    ranker: 'network-simplex', // 최적 랭킹 알고리즘
   });
 
-  // 노드 등록 (customNode만 레이아웃 대상)
   nodes.forEach((node) => {
     if (node.type === 'customNode') {
-      dagreGraph.setNode(node.id, {
-        width: NODE_WIDTH,
-        height: NODE_HEIGHT,
-      });
+      dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
     }
   });
 
-  // 엣지 등록
   edges.forEach((edge) => {
     dagreGraph.setEdge(edge.source, edge.target);
   });
 
-  // Dagre 레이아웃 실행
   Dagre.layout(dagreGraph);
 
-  // 레이아웃된 위치 적용
   const layoutedNodes = nodes.map((node) => {
     if (node.type !== 'customNode') return node;
-
-    const nodeWithPosition = dagreGraph.node(node.id);
-    if (!nodeWithPosition) return node;
+    const pos = dagreGraph.node(node.id);
+    if (!pos) return node;
 
     return {
       ...node,
       targetPosition: isHorizontal ? Position.Left : Position.Top,
       sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
-      position: {
-        x: nodeWithPosition.x - NODE_WIDTH / 2,
-        y: nodeWithPosition.y - NODE_HEIGHT / 2,
-      },
+      position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - NODE_HEIGHT / 2 },
     };
   });
 
@@ -464,6 +528,8 @@ function convertToReactFlow(diagram: DiagramData): {
 
   // 레이어별 노드 ID 매핑 (Swimlane 생성용)
   const layerNodeIds: Map<number, string[]> = new Map();
+  // 노드 ID → 레이어 인덱스 매핑 (Dagre rank 제약용)
+  const nodeLayerMap: Map<string, number> = new Map();
 
   // 1단계: 콘텐츠 노드 생성
   diagram.layers.forEach((layer, layerIndex) => {
@@ -471,6 +537,7 @@ function convertToReactFlow(diagram: DiagramData): {
 
     layer.nodes.forEach((node) => {
       nodeIds.push(node.id);
+      nodeLayerMap.set(node.id, layerIndex); // 레이어 매핑 추가
       contentNodes.push({
         id: node.id,
         type: 'customNode',
@@ -570,6 +637,9 @@ function convertToReactFlow(diagram: DiagramData): {
       : 80;
 
   // 3단계: Dagre 레이아웃 적용
+  // 레이어별 노드 수 배열 생성
+  const layerNodeCounts = diagram.layers.map((layer) => layer.nodes.length);
+
   const { nodes: layoutedContentNodes } = getLayoutedElements(
     contentNodes,
     edges,
@@ -577,6 +647,8 @@ function convertToReactFlow(diagram: DiagramData): {
       direction: 'TB',
       nodesep: dynamicNodesep,
       ranksep: dynamicRanksep,
+      nodeLayerMap,
+      layerNodeCounts,
     }
   );
 
