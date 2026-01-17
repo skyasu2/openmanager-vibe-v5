@@ -13,6 +13,7 @@
  * @updated 2026-01-17 - Smart Grid Layout & AutoFitView Improvement
  */
 
+import Dagre from '@dagrejs/dagre';
 import {
   Background,
   Controls,
@@ -27,7 +28,6 @@ import {
   useNodesInitialized,
   useReactFlow,
 } from '@xyflow/react';
-import Dagre from '@dagrejs/dagre';
 import React, {
   Component,
   memo,
@@ -213,14 +213,10 @@ class DiagramErrorBoundary extends Component<
 
 /**
  * 레이아웃 상수
- * 📐 Smart Grid Layout 적용
+ * 📐 Dagre.js 기반 자동 레이아웃
  */
 const NODE_WIDTH = 180; // 노드 너비
 const NODE_HEIGHT = 52; // 노드 높이
-const NODE_GAP_H = 40; // 수평 간격 (노드 사이)
-const NODE_GAP_V = 40; // 수직 간격 (행 사이 - 연결선 통과 공간 확보)
-const MAX_NODES_PER_ROW_DEFAULT = 4;
-const MAX_NODES_PER_ROW_WIDE = 5;
 
 const LABEL_AREA_WIDTH = 160; // Swimlane 라벨 영역 너비
 const LABEL_NODE_HEIGHT = 36; // 라벨 노드 높이
