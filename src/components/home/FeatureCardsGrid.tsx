@@ -172,35 +172,17 @@ export default function FeatureCardsGrid() {
     (state) => state.aiAgent.isEnabled
   );
 
-  // 모달 외부 클릭 시 닫기 처리 - React Error #310 무한 루프 해결
+  // 🔧 모달 열림 시 body 스크롤 잠금 (ESC/외부클릭 핸들러는 모달 내부에서 처리)
   useEffect(() => {
-    if (!selectedCard) return; // selectedCard가 없으면 이벤트 추가 안함
+    if (!selectedCard) return;
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
-        setSelectedCard(null);
-      }
-    };
-
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setSelectedCard(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscapeKey);
+    // 스크롤 잠금만 처리 (이벤트 핸들러는 FeatureCardModal에서 담당)
     document.body.style.overflow = 'hidden';
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscapeKey);
       document.body.style.overflow = 'unset';
     };
-  }, [selectedCard]); // selectedCard 의존성 유지하지만 조건부 실행으로 무한 루프 방지
+  }, [selectedCard]);
 
   // ✅ 핵심 수정: aiAgent.isEnabled primitive 값으로 의존성 변경 (React Error #310 근본 해결)
   const handleCardClick = useCallback(
@@ -245,17 +227,15 @@ export default function FeatureCardsGrid() {
         ))}
       </div>
 
-      {/* Feature Card Modal - 조건부 렌더링으로 Hook 순서 일관성 보장 */}
-      {selectedCard && (
-        <FeatureCardModal
-          selectedCard={selectedCardData}
-          onClose={closeModal}
-          renderTextWithAIGradient={renderAIGradientWithAnimation}
-          modalRef={modalRef as RefObject<HTMLDivElement>}
-          variant="home"
-          isVisible={true}
-        />
-      )}
+      {/* 🔧 Feature Card Modal - 상시 렌더링 + isVisible로 가시성 제어 (깜빡임 방지) */}
+      <FeatureCardModal
+        selectedCard={selectedCardData}
+        onClose={closeModal}
+        renderTextWithAIGradient={renderAIGradientWithAnimation}
+        modalRef={modalRef as RefObject<HTMLDivElement>}
+        variant="home"
+        isVisible={!!selectedCard}
+      />
     </>
   );
 }
