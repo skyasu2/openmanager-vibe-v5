@@ -163,6 +163,23 @@ function mapDBToIncidentReport(db: DBIncidentReport): IncidentReport {
   };
 }
 
+// 🔧 P3: 모듈 레벨 상수로 호이스팅 (매 호출마다 객체 생성 방지)
+const STATUS_STYLES: Record<string, string> = {
+  open: 'bg-red-100 text-red-700 border-red-200',
+  investigating: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  resolved: 'bg-green-100 text-green-700 border-green-200',
+  closed: 'bg-gray-100 text-gray-700 border-gray-200',
+  active: 'bg-red-100 text-red-700 border-red-200',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  open: '열림',
+  investigating: '조사중',
+  resolved: '해결됨',
+  closed: '종료',
+  active: '활성',
+};
+
 export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
   const [reports, setReports] = useState<IncidentReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -243,7 +260,10 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
         }
         setError(err instanceof Error ? err.message : '알 수 없는 오류');
       } finally {
-        setLoading(false);
+        // 🔧 P3: 언마운트 상태에서 상태 업데이트 방지
+        if (!signal?.aborted) {
+          setLoading(false);
+        }
       }
     },
     [pagination.page, pagination.limit, filters]
@@ -289,6 +309,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
       // 300ms 후 실제 필터 업데이트
       searchDebounceRef.current = setTimeout(() => {
         handleFilterChange('search', value);
+        searchDebounceRef.current = null; // 🔧 P3: 타이머 완료 후 ref 정리
       }, 300);
     },
     [handleFilterChange]
@@ -371,29 +392,17 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
     return `${year}-${month}-${day} ${hours}:${minutes}`;
   }, []);
 
-  const getStatusBadge = useCallback((status: string) => {
-    const statusStyles: Record<string, string> = {
-      open: 'bg-red-100 text-red-700 border-red-200',
-      investigating: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      resolved: 'bg-green-100 text-green-700 border-green-200',
-      closed: 'bg-gray-100 text-gray-700 border-gray-200',
-      active: 'bg-red-100 text-red-700 border-red-200',
-    };
-    const statusLabels: Record<string, string> = {
-      open: '열림',
-      investigating: '조사중',
-      resolved: '해결됨',
-      closed: '종료',
-      active: '활성',
-    };
-    return (
+  // 🔧 P3: 모듈 레벨 상수 사용 (STATUS_STYLES, STATUS_LABELS)
+  const getStatusBadge = useCallback(
+    (status: string) => (
       <span
-        className={`rounded-full border px-2 py-0.5 text-xs font-medium ${statusStyles[status] || statusStyles.open}`}
+        className={`rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status] || STATUS_STYLES.open}`}
       >
-        {statusLabels[status] || status}
+        {STATUS_LABELS[status] || status}
       </span>
-    );
-  }, []);
+    ),
+    []
+  );
 
   return (
     <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-blue-50">
