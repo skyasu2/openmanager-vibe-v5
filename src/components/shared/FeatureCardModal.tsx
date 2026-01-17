@@ -681,11 +681,11 @@ export default function FeatureCardModal({
       {/* 🔧 P1: dvh 단위로 모바일 주소바 문제 해결, motion-reduce 지원 */}
       <div
         ref={actualModalRef}
-        className={`relative max-h-[96dvh] w-full ${
-          showDiagram ? 'max-w-[96vw]' : 'max-w-4xl'
-        } transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-all duration-300 motion-reduce:transition-none ${
-          !cardData.id ? 'hidden' : ''
-        }`}
+        className={`relative w-full transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-all duration-300 motion-reduce:transition-none ${
+          showDiagram
+            ? 'max-h-[92dvh] max-w-[98vw] sm:max-w-[95vw] lg:max-w-6xl xl:max-w-7xl'
+            : 'max-h-[90dvh] max-w-[95vw] sm:max-w-xl md:max-w-2xl lg:max-w-4xl'
+        } ${!cardData.id ? 'hidden' : ''}`}
         data-modal-content="portal-unified-v4-ai-cross-verified"
         style={{
           transform: isVisible && cardData.id ? 'scale(1)' : 'scale(0.95)',

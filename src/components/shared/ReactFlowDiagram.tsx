@@ -628,7 +628,9 @@ function ReactFlowDiagram({
       <DiagramErrorBoundary diagramTitle={diagram.title}>
         <div
           className={`rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 ${
-            compact ? 'h-[min(70dvh,650px)]' : 'h-[min(75dvh,700px)]'
+            compact
+              ? 'h-[60dvh] sm:h-[65dvh] lg:h-[70dvh] max-h-[600px] lg:max-h-[700px]'
+              : 'h-[65dvh] sm:h-[70dvh] lg:h-[75dvh] max-h-[650px] lg:max-h-[750px]'
           }`}
         >
           <ReactFlow
