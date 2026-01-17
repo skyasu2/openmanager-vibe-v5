@@ -160,15 +160,17 @@ function Home() {
     return () => clearTimeout(authRetryTimeout);
   }, [authError, authReady, retryAuth]);
 
-  // 시스템 남은 시간 업데이트
+  // 시스템 남은 시간 업데이트 - 시스템 시작 시에만 인터벌 실행 (불필요한 리렌더 방지)
   useEffect(() => {
+    if (!isSystemStarted) {
+      setSystemTimeRemaining(0);
+      return; // 시스템 미시작 시 인터벌 없음
+    }
+
     const timerInterval = setInterval(() => {
-      if (isSystemStarted) {
-        setSystemTimeRemaining(getSystemRemainingTime());
-      } else {
-        setSystemTimeRemaining(0);
-      }
+      setSystemTimeRemaining(getSystemRemainingTime());
     }, 1000);
+
     return () => clearInterval(timerInterval);
   }, [isSystemStarted, getSystemRemainingTime]);
 

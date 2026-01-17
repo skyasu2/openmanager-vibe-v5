@@ -54,8 +54,11 @@ export default function UnifiedProfileHeader({
   }, []);
 
   const { status: systemStatus } = useSystemStatus();
-  // 🎯 useUnifiedAdminStore에서 직접 stopSystem 사용 (useSystemStatusStore 제거)
-  const { isSystemStarted, stopSystem } = useUnifiedAdminStore();
+  // 🎯 Zustand selector 패턴 사용 - 불필요한 리렌더 방지
+  const isSystemStarted = useUnifiedAdminStore(
+    (state) => state.isSystemStarted
+  );
+  const stopSystem = useUnifiedAdminStore((state) => state.stopSystem);
 
   // 시스템 종료 핸들러 - useUnifiedAdminStore.stopSystem 직접 사용
   const handleSystemStop = useCallback(async () => {

@@ -744,12 +744,14 @@ a {
   background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(236,72,153,0.3), rgba(34,211,238,0.3), rgba(59,130,246,0.3));
   background-size: 200% 200%;
   animation: gradient-shift 4s ease-in-out infinite;
+  will-change: background-position; /* 애니메이션 최적화 - 리렌더 시 깜빡임 방지 */
 }
 
 .bg-vibe-card-gradient {
   background: linear-gradient(135deg, #f59e0b, #ea580c, #b91c1c, #f59e0b);
   background-size: 200% 200%;
   animation: gradient-shift 4s ease-in-out infinite;
+  will-change: background-position; /* 애니메이션 최적화 - 리렌더 시 깜빡임 방지 */
 }
 
 /* 유틸리티 클래스 */
