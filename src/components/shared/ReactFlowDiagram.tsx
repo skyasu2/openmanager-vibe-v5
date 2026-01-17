@@ -317,13 +317,9 @@ CustomNode.displayName = 'CustomNode';
 const LayerLabelNode = memo(
   ({ data }: NodeProps<Node<{ title: string; color: string }>>) => {
     return (
+      // 🔧 P3: 중복 배경 제거 - SwimlaneBgNode에서 통합 관리
       <div className="relative flex items-center justify-end pr-4">
-        {/* Swimlane 라벨 배경 (왼쪽 영역 표시) */}
-        <div
-          className="absolute right-0 top-[-24px] bottom-[-24px] rounded-l-xl border-r border-white/20 bg-gradient-to-l from-white/[0.05] to-transparent"
-          style={{ width: LABEL_AREA_WIDTH }}
-        />
-        {/* 라벨 뱃지 - 디자인 개선 */}
+        {/* 라벨 뱃지 */}
         <div
           className={`relative z-10 flex w-full max-w-[150px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-slate-900/60 p-3 text-center shadow-lg shadow-white/10 backdrop-blur-md transition-transform hover:scale-105`}
         >
@@ -363,10 +359,13 @@ const SwimlaneBgNode = memo(({ data }: NodeProps<Node<SwimlaneBgData>>) => {
       {/* Swimlane 배경 */}
       <div className="absolute inset-0 rounded-xl border border-white/5 bg-white/[0.03]" />
 
-      {/* 왼쪽 라벨 영역 배경 (구분선 역할) */}
+      {/* 왼쪽 라벨 영역 배경 (구분선 역할) - 🔧 정렬 수정: Padding 만큼 이동하여 LabelNode와 위치 일치시킴 */}
       <div
-        className="absolute left-0 top-0 bottom-0 rounded-l-xl border-r border-white/10 bg-gradient-to-r from-white/[0.04] to-transparent"
-        style={{ width: LABEL_AREA_WIDTH }}
+        className="absolute top-0 bottom-0 rounded-l-xl border-r border-white/10 bg-gradient-to-r from-white/[0.04] to-transparent"
+        style={{
+          left: SWIMLANE_PADDING,
+          width: LABEL_AREA_WIDTH,
+        }}
       />
     </div>
   );
@@ -461,6 +460,9 @@ function convertToReactFlow(diagram: DiagramData): {
       id: `layer-${layerIndex}`,
       type: 'layerLabel',
       position: { x: fixedLabelX, y: labelY },
+      // 🔧 라벨 노드에 명시적 width 설정 (180px)
+      style: { width: LABEL_AREA_WIDTH },
+      width: LABEL_AREA_WIDTH,
       data: { title: layer.title, color: layer.color },
       draggable: false,
       selectable: false,
