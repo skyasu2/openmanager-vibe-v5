@@ -10,6 +10,8 @@ import { logger } from '@/lib/logging';
 const _authRetryDelay = isVercel ? 5000 : 3000;
 // 깜빡임 방지: 지연 제거 (이전: isVercel ? 300 : 100)
 const initDelay = 0;
+// 🔧 인증 체크 타임아웃: 3초 (Vercel) / 2초 (로컬)
+const AUTH_TIMEOUT_MS = isVercel ? 3000 : 2000;
 const debugWithEnv = (message: string) =>
   `[${isVercel ? 'Vercel' : 'Local'}] ${message}`;
 
@@ -62,10 +64,31 @@ export function useInitialAuth() {
       updateState({ currentStep: 'auth-check', isLoading: true });
       logger.info(debugWithEnv('🔄 인증 상태 확인 중...'));
 
-      // 단일 getAuthState() 호출로 통합 - 중복 Supabase API 호출 제거
-      // 이전: Promise.all([getAuthState(), isGitHubAuthenticated()]) → 4회 API 호출
-      // 개선: getAuthState()만 호출 → 2회 API 호출 (50% 감소)
-      const authState = await getAuthState();
+      // 🔧 타임아웃이 있는 인증 체크 - 느린 네트워크에서도 빠르게 페이지 표시
+      const timeoutPromise = new Promise<null>((resolve) =>
+        setTimeout(() => resolve(null), AUTH_TIMEOUT_MS)
+      );
+
+      const authState = await Promise.race([getAuthState(), timeoutPromise]);
+
+      // 타임아웃 발생 시 비인증 상태로 페이지 표시
+      if (!authState) {
+        logger.warn(
+          debugWithEnv(
+            `⏱️ 인증 체크 타임아웃 (${AUTH_TIMEOUT_MS}ms) - 비인증 상태로 진행`
+          )
+        );
+        updateState({
+          currentStep: 'complete',
+          isLoading: false,
+          isAuthenticated: false,
+          user: null,
+          isGitHubConnected: false,
+          error: null,
+        });
+        return;
+      }
+
       const user = authState.user;
 
       // provider 정보는 authState에서 직접 추출 (isGitHubAuthenticated() 불필요)

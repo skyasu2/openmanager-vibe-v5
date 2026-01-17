@@ -27,9 +27,8 @@ export function useProfileAuth(): ProfileAuthHook {
         setIsLoading(true);
 
         // 🚀 AuthStateManager를 통한 통합 인증 상태 확인 - 정확한 타입 감지
-
-        // 🔄 캐시 무효화 후 최신 상태 확인 (GitHub 로그인 후 즉시 반영)
-        authStateManager.invalidateCache();
+        // 캐시된 상태 사용 (5초 TTL) - 중복 API 호출 방지
+        // 캐시 무효화는 로그인/로그아웃 액션 시에만 수행
         const authState = await authStateManager.getAuthState();
 
         // AuthStateManager의 결과를 직접 사용 (더 정확함)
