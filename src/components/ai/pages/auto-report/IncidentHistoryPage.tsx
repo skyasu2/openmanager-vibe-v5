@@ -346,7 +346,12 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
   }, []);
 
   const clearFilters = useCallback(() => {
-    setSearchInput(''); // 🔧 P3: 검색 입력 상태도 초기화
+    // 🔧 사이드이펙트 수정: 대기 중인 debounce 타이머 취소 (race condition 방지)
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = null;
+    }
+    setSearchInput('');
     setFilters({
       severity: 'all',
       status: 'all',
