@@ -312,17 +312,17 @@ CustomNode.displayName = 'CustomNode';
 const LayerLabelNode = memo(
   ({ data }: NodeProps<Node<{ title: string; color: string }>>) => {
     return (
-      // 🔧 P3: 중복 배경 제거 - SwimlaneBgNode에서 통합 관리
-      <div className="relative flex items-center justify-end pr-4">
-        {/* 라벨 뱃지 */}
-        <div
-          className={`relative z-10 flex w-full max-w-[150px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-slate-900/60 p-3 text-center shadow-lg shadow-white/10 backdrop-blur-md transition-transform hover:scale-105`}
-        >
-          {/* 장식용 라인 */}
-          <div className={`h-1 w-6 rounded-full ${data.color}`} />
-          <div className="w-full break-words text-xs font-bold leading-snug text-white">
+      // 🔧 P4: Unified Sidebar Design - 카드 제거, 텍스트 중심 디자인
+      <div className="flex h-full w-full flex-col justify-center pr-6 text-right">
+        {/* 메인 라벨 */}
+        <div className="relative z-10">
+          <span className="text-xs font-bold leading-tight text-white/90">
             {data.title}
-          </div>
+          </span>
+          {/* 하단 강조 라인 (Accent) - bg-gradient-to-r 필수 */}
+          <div
+            className={`ml-auto mt-1.5 h-0.5 w-8 rounded-full opacity-80 bg-gradient-to-r ${data.color}`}
+          />
         </div>
       </div>
     );
@@ -354,9 +354,9 @@ const SwimlaneBgNode = memo(({ data }: NodeProps<Node<SwimlaneBgData>>) => {
       {/* Swimlane 배경 */}
       <div className="absolute inset-0 rounded-xl border border-white/5 bg-white/[0.03]" />
 
-      {/* 왼쪽 라벨 영역 배경 (구분선 역할) - 🔧 정렬 수정: Padding 만큼 이동하여 LabelNode와 위치 일치시킴 */}
+      {/* 왼쪽 라벨 영역 배경 (Unified Sidebar Style) */}
       <div
-        className="absolute top-0 bottom-0 rounded-l-xl border-r border-white/10 bg-gradient-to-r from-white/[0.04] to-transparent"
+        className="absolute top-0 bottom-0 rounded-l-xl border-r border-white/10 bg-slate-900/40 backdrop-blur-sm"
         style={{
           left: SWIMLANE_PADDING,
           width: LABEL_AREA_WIDTH,
