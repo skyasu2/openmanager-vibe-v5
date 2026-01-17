@@ -18,7 +18,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 
 import { IncidentTimeline } from './IncidentTimeline';
 import type { IncidentReport } from './types';
@@ -187,6 +187,10 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
 
   const [showFilters, setShowFilters] = useState(false);
 
+  // 🔧 P3: 검색 입력 debounce (300ms) - API 과다 호출 방지
+  const [searchInput, setSearchInput] = useState('');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // 🔧 StrictMode 이슈 수정: AbortController 추가
   const fetchReports = useCallback(
     async (signal?: AbortSignal) => {
@@ -271,13 +275,33 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
     []
   );
 
-  // 🔧 P3: 각 필터별 개별 핸들러 메모이제이션 (인라인 화살표 함수 제거)
+  // 🔧 P3: 검색 입력 debounce 핸들러 (300ms 지연 후 API 호출)
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      handleFilterChange('search', e.target.value);
+      const value = e.target.value;
+      setSearchInput(value);
+
+      // 이전 타이머 취소
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+
+      // 300ms 후 실제 필터 업데이트
+      searchDebounceRef.current = setTimeout(() => {
+        handleFilterChange('search', value);
+      }, 300);
     },
     [handleFilterChange]
   );
+
+  // 🔧 P3: 컴포넌트 언마운트 시 debounce 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, []);
 
   const handleSeverityChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -322,6 +346,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
   }, []);
 
   const clearFilters = useCallback(() => {
+    setSearchInput(''); // 🔧 P3: 검색 입력 상태도 초기화
     setFilters({
       severity: 'all',
       status: 'all',
@@ -412,13 +437,13 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
       {showFilters && (
         <div className="border-b border-gray-200 bg-white/50 p-4">
           <div className="flex flex-wrap items-center gap-4">
-            {/* Search */}
+            {/* Search - 🔧 P3: debounced searchInput 사용 */}
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="보고서 검색..."
-                value={filters.search}
+                value={searchInput}
                 onChange={handleSearchChange}
                 className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
               />
