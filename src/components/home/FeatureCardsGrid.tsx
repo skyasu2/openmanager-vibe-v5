@@ -31,14 +31,14 @@ const FeatureCardItem = memo(
     // 카드 타입별 스타일 헬퍼 - 성능 최적화 (shadow 제거, ring만 유지)
     const getCardStyles = useCallback((card: FeatureCard) => {
       return {
-        title: 'text-white/95',
-        description: 'text-white/80 font-medium',
+        title: 'text-white/95 group-hover:text-white',
+        description: 'text-white/80 group-hover:text-white/90 font-medium',
         hoverRing: card.isAICard
-          ? 'group-hover:ring-pink-400/30'
+          ? 'group-hover:ring-pink-400/40'
           : card.isVibeCard
-            ? 'group-hover:ring-yellow-400/30'
+            ? 'group-hover:ring-yellow-400/40'
             : card.isSpecial
-              ? 'group-hover:ring-amber-400/30'
+              ? 'group-hover:ring-amber-400/40'
               : 'group-hover:ring-white/20',
         iconColor: 'text-white',
       };
@@ -74,7 +74,7 @@ const FeatureCardItem = memo(
         }}
       >
         <div
-          className={`relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 transition-colors duration-200 ease-out hover:bg-white/15 ${
+          className={`relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 transition-all duration-200 ease-out hover:bg-white/15 group-hover:scale-[1.01] ${
             card.isSpecial
               ? 'border-amber-500/30 bg-linear-to-br from-amber-500/10 to-orange-500/10'
               : ''
