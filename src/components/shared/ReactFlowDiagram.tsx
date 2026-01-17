@@ -9,8 +9,8 @@
  * - 인터랙티브한 노드 (드래그, 줌, 패닝)
  * - 더 정교한 레이아웃
  *
- * @version 5.90.0
- * @updated 2026-01-17 - P2 개선: 에러 바운더리, 키보드 접근성 (Arrow 키)
+ * @version 5.92.0
+ * @updated 2026-01-17 - Smart Grid Layout & AutoFitView Improvement
  */
 
 import {
@@ -45,94 +45,68 @@ import { logger } from '@/lib/logging';
 
 /**
  * fitView 옵션 - 모든 노드가 화면에 보이도록 설정
- * padding: 15% 여백으로 노드가 가장자리에 닿지 않도록
+ * padding: 12% 여백으로 노드가 가장자리에 닿지 않도록
  * includeHiddenNodes: 숨겨진 노드도 포함
  */
 const FIT_VIEW_OPTIONS = {
-  padding: 0.12, // 12% 여백 (모달 내 공간 효율 최적화)
+  padding: 0.12,
   includeHiddenNodes: true,
-  minZoom: 0.05, // 더 축소 가능하게
-  maxZoom: 0.85, // fitView가 더 큰 상태로 시작 (가독성 향상)
+  minZoom: 0.05,
+  maxZoom: 0.85,
+};
+
+/**
+ * 기본 뷰포트 설정 - fitView가 실패할 경우의 폴백
+ */
+const DEFAULT_VIEWPORT = {
+  x: 550,
+  y: 10,
+  zoom: 0.75,
 };
 
 /**
  * AutoFitView - 노드 초기화 완료 후 자동 fitView 실행
  *
- * 🔧 수정 (2026-01-17): useNodesInitialized + useReactFlow 조합 사용
- * - nodesInitialized가 true가 되면 모든 노드의 dimensions이 계산됨
- * - 이 시점에 fitView()를 호출하면 정확한 bounds 계산 가능
+ * 🔧 수정 (2026-01-17): 모달 트랜지션 완료 대기를 위해 긴 지연 시간 사용
+ * - 모달 CSS 트랜지션(300ms)이 완료된 후 fitView 실행
+ * - 여러 시점에서 실행하여 안정적인 뷰 맞춤 보장
  */
 function AutoFitView() {
   const nodesInitialized = useNodesInitialized();
-  const { fitView } = useReactFlow();
-  const lastSizeRef = useRef<{ width: number; height: number } | null>(null);
-  const fitViewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { fitView, getViewport } = useReactFlow();
+  const hasCalledFitView = useRef(false);
 
   useEffect(() => {
     if (!nodesInitialized) return undefined;
 
-    // 🔧 ResizeObserver: 컨테이너 크기 변경 감지
-    // 상세보기 → 아키텍처 전환 시 CSS 트랜지션으로 컨테이너 크기가 변경됨
-    const container = document.querySelector('.react-flow');
-    if (!container) return undefined;
+    let cancelled = false;
 
-    const handleResize = () => {
-      const rect = container.getBoundingClientRect();
-      const newSize = {
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
-      };
-
-      // 크기가 변경되었을 때만 fitView 호출 (debounce)
-      if (
-        !lastSizeRef.current ||
-        lastSizeRef.current.width !== newSize.width ||
-        lastSizeRef.current.height !== newSize.height
-      ) {
-        lastSizeRef.current = newSize;
-
-        // 이전 타이머 취소
-        if (fitViewTimeoutRef.current) {
-          clearTimeout(fitViewTimeoutRef.current);
-        }
-
-        // 🔧 150ms debounce: CSS 트랜지션 중 여러 번 호출 방지
-        fitViewTimeoutRef.current = setTimeout(() => {
-          fitView({
-            ...FIT_VIEW_OPTIONS,
-            duration: 200,
-          });
-        }, 150);
-      }
-    };
-
-    const resizeObserver = new ResizeObserver(handleResize);
-    resizeObserver.observe(container);
-
-    // 🔧 2-stage fitView: 정확한 bounds 계산을 위한 지연된 재호출
-    // Stage 1: 초기 fitView (노드 초기화 직후)
-    // Stage 2: 보정 fitView (ReactFlow 내부 상태 안정화 후)
-    const correctionTimer = setTimeout(() => {
-      // window resize 이벤트 dispatch로 ReactFlow 내부 dimensions 재계산 트리거
-      window.dispatchEvent(new Event('resize'));
-
-      // resize 후 fitView 재호출
-      requestAnimationFrame(() => {
+    const executeFitView = () => {
+      if (cancelled) return;
+      const currentViewport = getViewport();
+      // 아직 기본 zoom 상태이거나 한 번도 호출되지 않은 경우에만 실행
+      if (currentViewport.zoom >= 0.95 || !hasCalledFitView.current) {
+        hasCalledFitView.current = true;
         fitView({
           ...FIT_VIEW_OPTIONS,
-          duration: 200,
+          duration: 300,
         });
-      });
-    }, 100);
-
-    return () => {
-      resizeObserver.disconnect();
-      clearTimeout(correctionTimer);
-      if (fitViewTimeoutRef.current) {
-        clearTimeout(fitViewTimeoutRef.current);
       }
     };
-  }, [nodesInitialized, fitView]);
+
+    // 모달 트랜지션 완료 후 실행 (500ms, 800ms, 1200ms)
+    // 초기 실행은 건너뛰고 트랜지션 완료 후에만 실행
+    const timer1 = setTimeout(executeFitView, 500);
+    const timer2 = setTimeout(executeFitView, 800);
+    const timer3 = setTimeout(executeFitView, 1200);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, [nodesInitialized, fitView, getViewport]);
 
   return null;
 }
@@ -141,7 +115,7 @@ function AutoFitView() {
 // Types
 // =============================================================================
 
-interface ReactFlowDiagramProps {
+export interface ReactFlowDiagramProps {
   diagram: DiagramData;
   /** 컴팩트 모드 (모달 내부용) */
   compact?: boolean;
@@ -181,7 +155,6 @@ interface DiagramErrorBoundaryState {
  * 🔧 P2: React Flow 전용 에러 바운더리
  * - 다이어그램 렌더링 실패 시 전체 앱 크래시 방지
  * - 사용자 친화적 오류 메시지 표시
- * - 개발 모드에서 상세 에러 정보 제공
  */
 class DiagramErrorBoundary extends Component<
   DiagramErrorBoundaryProps,
@@ -218,16 +191,6 @@ class DiagramErrorBoundary extends Component<
               ? `"${this.props.diagramTitle}" 다이어그램을 표시할 수 없습니다.`
               : '다이어그램을 표시할 수 없습니다.'}
           </p>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
-            <details className="mt-2 max-w-full">
-              <summary className="cursor-pointer text-xs text-gray-500 hover:text-gray-400">
-                기술적 세부정보 보기
-              </summary>
-              <pre className="mt-2 max-h-32 overflow-auto rounded bg-black/50 p-2 text-xs text-red-300">
-                {this.state.error.message}
-              </pre>
-            </details>
-          )}
           <button
             type="button"
             onClick={() => this.setState({ hasError: false, error: null })}
@@ -249,24 +212,19 @@ class DiagramErrorBoundary extends Component<
 
 /**
  * 레이아웃 상수
- *
- * 📐 설계 결정 (node.measured vs 고정 크기):
- * - React Flow v12는 node.measured?.width/height를 제공하지만,
- *   Swimlane 레이아웃은 노드 렌더링 전에 배경 크기를 알아야 함
- * - 현재 CustomNode는 CSS로 크기 제한 (min-w-[120px] max-w-[180px])
- * - 텍스트는 truncate/line-clamp로 고정 높이 보장
- * - 결론: 예측 가능한 고정 크기가 Swimlane 구조에 더 적합
- *
- * 향후 동적 크기가 필요하면 useNodesInitialized() + 2-pass 렌더링 적용
+ * 📐 Smart Grid Layout 적용
  */
-const NODE_WIDTH = 200;
-const NODE_HEIGHT = 56;
-const NODE_GAP = 24; // 30 → 24: 더 컴팩트한 레이아웃으로 전체 높이 감소
-const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
-const LABEL_AREA_WIDTH = 180; // Swimlane 라벨 영역 너비 (확장: 120 -> 180)
-const LABEL_NODE_HEIGHT = 40; // 라벨 노드 명시적 높이 (P4: Unified Sidebar)
-const LABEL_CONTENT_GAP = 40; // 라벨과 콘텐츠 사이 간격
-const SWIMLANE_PADDING = 16; // Swimlane 내부 패딩
+const NODE_WIDTH = 180; // 노드 너비
+const NODE_HEIGHT = 52; // 노드 높이
+const NODE_GAP_H = 40; // 수평 간격 (노드 사이)
+const NODE_GAP_V = 40; // 수직 간격 (행 사이 - 연결선 통과 공간 확보)
+const MAX_NODES_PER_ROW_DEFAULT = 4;
+const MAX_NODES_PER_ROW_WIDE = 5;
+
+const LABEL_AREA_WIDTH = 160; // Swimlane 라벨 영역 너비
+const LABEL_NODE_HEIGHT = 36; // 라벨 노드 높이
+const LABEL_CONTENT_GAP = 32; // 라벨과 콘텐츠 사이 간격
+const SWIMLANE_PADDING = 24; // Swimlane 내부 패딩 (넉넉하게)
 
 const NODE_STYLES: Record<
   CustomNodeData['nodeType'],
@@ -303,25 +261,25 @@ const CustomNode = memo(({ data }: NodeProps<Node<CustomNodeData>>) => {
 
   return (
     <>
-      {/* 입력 핸들 (상단) */}
+      {/* 입력 핸들 (상단) - 투명화로 깔끔하게 */}
       <Handle
         type="target"
         position={Position.Top}
-        className="!h-2 !w-2 !border-2 !border-white/40 !bg-white/20"
+        className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
       />
 
-      {/* 노드 본체 - 더 큰 사이즈로 가독성 개선 */}
+      {/* 노드 본체 - 컴팩트 사이즈 */}
       <div
-        className={`flex min-w-[120px] max-w-[180px] items-center gap-2 rounded-lg border px-3 py-2 transition-all duration-200 hover:scale-105 ${styles.bg} ${styles.border} ${styles.shadow}`}
+        className={`flex min-w-[110px] max-w-[170px] items-center gap-1.5 rounded-lg border px-2.5 py-1.5 transition-all duration-200 hover:scale-[1.03] ${styles.bg} ${styles.border} ${styles.shadow}`}
         title={`${data.label}${data.sublabel ? `\n${data.sublabel}` : ''}`}
       >
-        {data.icon && <span className="text-base">{data.icon}</span>}
+        {data.icon && <span className="text-sm">{data.icon}</span>}
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-white">
+          <div className="truncate text-xs font-semibold text-white">
             {data.label}
           </div>
           {data.sublabel && (
-            <div className="line-clamp-2 text-[10px] leading-tight text-white/70">
+            <div className="line-clamp-2 text-[9px] leading-tight text-white/70">
               {data.sublabel}
             </div>
           )}
@@ -332,7 +290,7 @@ const CustomNode = memo(({ data }: NodeProps<Node<CustomNodeData>>) => {
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!h-2 !w-2 !border-2 !border-white/40 !bg-white/20"
+        className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
       />
 
       {/* 좌우 핸들 (수평 연결용) */}
@@ -340,13 +298,13 @@ const CustomNode = memo(({ data }: NodeProps<Node<CustomNodeData>>) => {
         type="target"
         position={Position.Left}
         id="left"
-        className="!h-2 !w-2 !border-2 !border-white/40 !bg-white/20"
+        className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
       />
       <Handle
         type="source"
         position={Position.Right}
         id="right"
-        className="!h-2 !w-2 !border-2 !border-white/40 !bg-white/20"
+        className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
       />
     </>
   );
@@ -361,16 +319,13 @@ CustomNode.displayName = 'CustomNode';
 const LayerLabelNode = memo(
   ({ data }: NodeProps<Node<{ title: string; color: string }>>) => {
     return (
-      // 🔧 P4: Unified Sidebar Design - 카드 제거, 텍스트 중심 디자인
-      <div className="group flex h-full w-full flex-col justify-center pr-6 text-right transition-opacity">
-        {/* 메인 라벨 - truncate로 오버플로우 방지, title로 전체 텍스트 표시 */}
+      <div className="group flex h-full w-full flex-col justify-center pr-4 text-right transition-opacity">
         <div className="relative z-10" title={data.title}>
           <span className="block truncate text-xs font-bold leading-tight text-white/90 transition-colors group-hover:text-white">
             {data.title}
           </span>
-          {/* 하단 강조 라인 (Accent) - bg-gradient-to-r 필수, hover 시 확장 */}
           <div
-            className={`ml-auto mt-1.5 h-0.5 w-8 rounded-full opacity-80 transition-all duration-200 group-hover:w-12 group-hover:opacity-100 bg-gradient-to-r ${data.color}`}
+            className={`ml-auto mt-1 h-0.5 w-6 rounded-full opacity-80 transition-all duration-200 group-hover:w-10 group-hover:opacity-100 bg-gradient-to-r ${data.color}`}
           />
         </div>
       </div>
@@ -418,12 +373,13 @@ const SwimlaneBgNode = memo(({ data }: NodeProps<Node<SwimlaneBgData>>) => {
 SwimlaneBgNode.displayName = 'SwimlaneBgNode';
 
 // =============================================================================
-// Conversion Utilities
+// Conversion Utilities (Layout Engine)
 // =============================================================================
 
 /**
- * 기존 데이터 형식을 React Flow 노드/엣지로 변환
- * 노드가 많은 레이어는 2줄로 배치
+ * 기존 데이터 형식을 React Flow 노드/엣지로 변환 (Smart Grid Layout)
+ * 1. 노드 수에 따라 줄바꿈 최적화 (5개까지 1줄, 8개는 4개씩 2줄)
+ * 2. 레이어 내부 줄간격을 넉넉히 주어 연결선 겹침 방지
  */
 function convertToReactFlow(diagram: DiagramData): {
   nodes: Node[];
@@ -433,47 +389,48 @@ function convertToReactFlow(diagram: DiagramData): {
   const edges: Edge[] = [];
   const nodePositions: Record<string, { x: number; y: number }> = {};
 
-  // 🔧 상단 여백 추가 (fitView가 노드 중심 기준 계산 → 시각적 콘텐츠 잘림 방지)
-  // 80px 여백으로 User Query 노드가 완전히 보이도록 함
-  let currentY = 80;
-
-  // 1. 콘텐츠 영역의 최대 너비 계산 (중앙 정렬 기준점 확보)
+  // 1. 전체 레이아웃 계산 (1st Pass)
   let maxContentWidth = 0;
-  diagram.layers.forEach((layer) => {
+
+  const layerMeta = diagram.layers.map((layer) => {
     const nodeCount = layer.nodes.length;
-    const needsMultiRow = nodeCount > MAX_NODES_PER_ROW;
-    const nodesPerRow = needsMultiRow ? Math.ceil(nodeCount / 2) : nodeCount;
-    const contentWidth = nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
+    // 💡 Smart Grid: 5개면 1줄(5열), 그 외는 기본 4열 (8개 -> 4개씩 2줄)
+    const nodesPerRow =
+      nodeCount === 5 ? MAX_NODES_PER_ROW_WIDE : MAX_NODES_PER_ROW_DEFAULT;
+
+    // 실제 필요한 행 수
+    const rowCount = Math.ceil(nodeCount / nodesPerRow);
+
+    // 현재 레이어의 콘텐츠 너비 계산
+    const currentNodesInRow = Math.min(nodeCount, nodesPerRow);
+    const contentWidth =
+      currentNodesInRow * (NODE_WIDTH + NODE_GAP_H) - NODE_GAP_H;
+
     if (contentWidth > maxContentWidth) maxContentWidth = contentWidth;
+
+    return { nodesPerRow, rowCount };
   });
 
-  // 라벨의 X 위치 (모든 라벨이 이 위치로 고정되어 좌측 정렬 효과)
-  // 콘텐츠는 X=0 기준 중앙 정렬, 라벨은 콘텐츠 왼쪽 바깥에 위치
-  // React Flow 좌표계는 노드의 Left를 기준점으로 하므로, 라벨 영역의 전체 너비를 빼주어야 함 (중심점이 아님)
+  // 2. 노드 배치 (2nd Pass)
+  let currentY = 80;
+
+  // 라벨 X 위치 (콘텐츠 영역 기준 좌측 정렬)
   const fixedLabelX =
     -(maxContentWidth / 2) - LABEL_CONTENT_GAP - LABEL_AREA_WIDTH;
 
-  // 레이어별로 노드 생성
   diagram.layers.forEach((layer, layerIndex) => {
-    const nodeCount = layer.nodes.length;
-    const needsMultiRow = nodeCount > MAX_NODES_PER_ROW;
-    const nodesPerRow = needsMultiRow ? Math.ceil(nodeCount / 2) : nodeCount;
-    const rowCount = needsMultiRow ? 2 : 1;
+    const meta = layerMeta[layerIndex];
+    if (!meta) return; // 타입 가드
+    const { nodesPerRow, rowCount } = meta;
 
-    // 레이어 높이 계산
+    // 레이어 높이 계산 (내부 패딩 및 줄간격 포함)
     const layerHeight =
-      rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP + SWIMLANE_PADDING * 2;
+      rowCount * NODE_HEIGHT +
+      (rowCount - 1) * NODE_GAP_V +
+      SWIMLANE_PADDING * 2;
 
-    // 현재 레이어의 콘텐츠 너비 (노드 배치에 사용)
-    const currentContentWidth =
-      nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
-
-    // 🔧 모든 레이어의 배경을 maxContentWidth 기준으로 통일 (일관된 레이아웃)
-    // 콘텐츠는 X=0 기준 중앙 정렬, 배경은 maxContentWidth를 감싸도록 설정
-
-    // Swimlane 배경 위치 계산
+    // Swimlane 배경
     const bgLeft = fixedLabelX - SWIMLANE_PADDING;
-    // 콘텐츠 영역의 오른쪽 끝 = maxContentWidth/2 + 패딩
     const bgRight = maxContentWidth / 2 + SWIMLANE_PADDING;
     const bgWidth = bgRight - bgLeft;
 
@@ -491,13 +448,11 @@ function convertToReactFlow(diagram: DiagramData): {
       selectable: false,
       focusable: false,
       zIndex: -1,
-      // React Flow 12에서 fitView가 이 노드를 포함하도록 width/height 직접 설정
       width: bgWidth,
       height: layerHeight,
     });
 
-    // 1. 레이어 라벨 (좌측 고정 위치)
-    // 🔧 P4: LABEL_NODE_HEIGHT 기준 수직 중앙 정렬
+    // 레이어 라벨
     const labelY =
       currentY +
       (layerHeight - SWIMLANE_PADDING * 2) / 2 -
@@ -507,28 +462,33 @@ function convertToReactFlow(diagram: DiagramData): {
       id: `layer-${layerIndex}`,
       type: 'layerLabel',
       position: { x: fixedLabelX, y: labelY },
-      // 🔧 라벨 노드에 명시적 크기 설정 (width/height)
       style: { width: LABEL_AREA_WIDTH, height: LABEL_NODE_HEIGHT },
       data: { title: layer.title, color: layer.color },
       draggable: false,
       selectable: false,
     });
 
-    // 콘텐츠 노드 (중앙 정렬, X=0 기준)
-    const contentStartLeft = -(currentContentWidth / 2);
-
+    // 콘텐츠 노드 배치
     layer.nodes.forEach((node, nodeIndex) => {
-      const row = needsMultiRow ? Math.floor(nodeIndex / nodesPerRow) : 0;
-      const col = needsMultiRow ? nodeIndex % nodesPerRow : nodeIndex;
+      const row = Math.floor(nodeIndex / nodesPerRow);
+      const col = nodeIndex % nodesPerRow;
 
-      // 중앙 정렬된 배치를 위한 X 좌표
-      const x = contentStartLeft + col * (NODE_WIDTH + NODE_GAP);
-      const y = currentY + row * (NODE_HEIGHT + NODE_GAP);
+      // 현재 행의 노드 수 계산 (마지막 줄 처리를 위해)
+      const isLastRow = row === rowCount - 1;
+      const nodesInThisRow = isLastRow
+        ? layer.nodes.length - row * nodesPerRow
+        : nodesPerRow;
+
+      const rowWidth = nodesInThisRow * (NODE_WIDTH + NODE_GAP_H) - NODE_GAP_H;
+      const rowStartLeft = -(rowWidth / 2);
+
+      const x = rowStartLeft + col * (NODE_WIDTH + NODE_GAP_H);
+      const y = currentY + row * (NODE_HEIGHT + NODE_GAP_V);
 
       nodePositions[node.id] = {
         x: x + NODE_WIDTH / 2,
         y: y + NODE_HEIGHT / 2,
-      }; // 연결선 계산용 중심 좌표 저장
+      };
 
       nodes.push({
         id: node.id,
@@ -545,8 +505,9 @@ function convertToReactFlow(diagram: DiagramData): {
       });
     });
 
-    // 다음 레이어 Y 위치
-    currentY += layerHeight + NODE_GAP;
+    // 다음 레이어 Y 시작점 (레이어 간 여백 넉넉히)
+    // NODE_GAP_V * 1.5 만큼 띄워서 화살표 공간 확보
+    currentY += layerHeight + NODE_GAP_V * 1.5;
   });
 
   // 연결선 생성
@@ -557,16 +518,16 @@ function convertToReactFlow(diagram: DiagramData): {
 
       if (!sourcePos || !targetPos) return;
 
-      // 같은 레이어인지 확인 (수평 연결)
+      // 같은 레이어(수평) 확인
       const isHorizontal = Math.abs(sourcePos.y - targetPos.y) < 10;
 
       edges.push({
         id: `edge-${index}`,
         source: conn.from,
         target: conn.to,
-        sourceHandle: isHorizontal ? 'right' : undefined,
-        targetHandle: isHorizontal ? 'left' : undefined,
-        type: 'smoothstep', // smoothstep: 깔끔한 직각 연결
+        sourceHandle: isHorizontal ? 'right' : 'bottom',
+        targetHandle: isHorizontal ? 'left' : 'top',
+        type: 'smoothstep',
         animated: conn.type === 'dashed',
         style: {
           stroke:
@@ -622,7 +583,6 @@ const ariaLabelConfig = {
   'controls.zoomIn.ariaLabel': '확대',
   'controls.zoomOut.ariaLabel': '축소',
   'controls.fitView.ariaLabel': '화면에 맞춤',
-  'controls.lock.ariaLabel': '인터랙션 잠금',
   'minimap.ariaLabel': '미니맵 - 다이어그램 전체 보기',
 };
 
@@ -637,7 +597,6 @@ function ReactFlowDiagram({
     [diagram]
   );
 
-  // 🔧 P1: defaultEdgeOptions 메모이제이션 (렌더링 최적화)
   const defaultEdgeOptions = useMemo(
     () => ({
       type: 'smoothstep',
@@ -645,8 +604,6 @@ function ReactFlowDiagram({
     }),
     []
   );
-
-  // 🔧 fitView는 AutoFitView 컴포넌트에서 nodesInitialized 기반으로 처리
 
   return (
     <div className="flex flex-col space-y-4">
@@ -658,7 +615,7 @@ function ReactFlowDiagram({
         </p>
       </div>
 
-      {/* React Flow 캔버스 (🔧 P2: 에러 바운더리로 보호) */}
+      {/* React Flow 캔버스 */}
       <DiagramErrorBoundary diagramTitle={diagram.title}>
         <div
           className={`rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 ${
@@ -671,20 +628,22 @@ function ReactFlowDiagram({
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
-            // 🔧 fitView prop 제거: AutoFitView에서 CSS 트랜지션 완료 후 처리
-            // 내장 fitView가 먼저 실행되면 잘못된 scale 계산 문제 발생
+            defaultViewport={DEFAULT_VIEWPORT}
+            fitView
+            fitViewOptions={FIT_VIEW_OPTIONS}
+            onInit={(instance) => {
+              // 모달 트랜지션 완료 후 확실하게 맞춤
+              setTimeout(() => instance.fitView(FIT_VIEW_OPTIONS), 800);
+            }}
             minZoom={0.05}
             maxZoom={2.5}
             defaultEdgeOptions={defaultEdgeOptions}
             proOptions={{ hideAttribution: true }}
-            // 🔧 P2: 키보드 접근성 - Tab으로 노드/엣지 포커스, Arrow 키로 이동
             nodesFocusable
             edgesFocusable
             className="react-flow-dark"
             aria-label={`${diagram.title} 아키텍처 다이어그램`}
           >
-            {/* 🔧 AutoFitView: 노드 초기화 후 fitView 자동 실행 */}
-            <AutoFitView />
             <Background color="rgba(255, 255, 255, 0.05)" gap={20} size={1} />
             {showControls && (
               <Controls
@@ -708,6 +667,7 @@ function ReactFlowDiagram({
                 aria-label={ariaLabelConfig['minimap.ariaLabel']}
               />
             )}
+            <AutoFitView />
           </ReactFlow>
         </div>
       </DiagramErrorBoundary>

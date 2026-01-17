@@ -22,16 +22,20 @@ import type {
   TechCategory,
   TechItem,
 } from '@/types/feature-card.types';
+import type { ReactFlowDiagramProps } from './ReactFlowDiagram';
 
 // React Flow는 클라이언트 사이드에서만 렌더링 (SSR 비활성화)
-const ReactFlowDiagram = dynamic(() => import('./ReactFlowDiagram'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-[400px] items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-purple-500" />
-    </div>
-  ),
-});
+const ReactFlowDiagram = dynamic<ReactFlowDiagramProps>(
+  () => import('./ReactFlowDiagram'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[400px] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-purple-500" />
+      </div>
+    ),
+  }
+);
 
 // 🛡️ Codex 제안: 타입 가드 함수 (프로덕션 안정성 강화)
 const isValidCard = (
