@@ -388,8 +388,14 @@ export default function FeatureCardModal({
   const mainContent = (
     <div className="p-6 text-white">
       {/* 아키텍처 다이어그램 뷰 (React Flow 기반) */}
+      {/* 🔧 key prop: showDiagram 전환 시 ReactFlow 완전 재마운트 (fitView 재계산 보장) */}
       {showDiagram && diagramData ? (
-        <ReactFlowDiagram diagram={diagramData} compact showControls />
+        <ReactFlowDiagram
+          key={`diagram-${cardData.id}`}
+          diagram={diagramData}
+          compact
+          showControls
+        />
       ) : (
         <>
           {/* 헤더 섹션 */}

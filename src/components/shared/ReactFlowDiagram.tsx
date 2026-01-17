@@ -65,24 +65,73 @@ const FIT_VIEW_OPTIONS = {
 function AutoFitView() {
   const nodesInitialized = useNodesInitialized();
   const { fitView } = useReactFlow();
-  const hasFitted = useRef(false);
+  const lastSizeRef = useRef<{ width: number; height: number } | null>(null);
+  const fitViewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // 노드가 초기화되고 아직 fitView를 실행하지 않았을 때만 실행
-    if (nodesInitialized && !hasFitted.current) {
-      // 약간의 지연 후 fitView 실행 (렌더링 완료 보장)
-      const timer = setTimeout(() => {
+    if (!nodesInitialized) return undefined;
+
+    // 🔧 ResizeObserver: 컨테이너 크기 변경 감지
+    // 상세보기 → 아키텍처 전환 시 CSS 트랜지션으로 컨테이너 크기가 변경됨
+    const container = document.querySelector('.react-flow');
+    if (!container) return undefined;
+
+    const handleResize = () => {
+      const rect = container.getBoundingClientRect();
+      const newSize = {
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+      };
+
+      // 크기가 변경되었을 때만 fitView 호출 (debounce)
+      if (
+        !lastSizeRef.current ||
+        lastSizeRef.current.width !== newSize.width ||
+        lastSizeRef.current.height !== newSize.height
+      ) {
+        lastSizeRef.current = newSize;
+
+        // 이전 타이머 취소
+        if (fitViewTimeoutRef.current) {
+          clearTimeout(fitViewTimeoutRef.current);
+        }
+
+        // 🔧 150ms debounce: CSS 트랜지션 중 여러 번 호출 방지
+        fitViewTimeoutRef.current = setTimeout(() => {
+          fitView({
+            ...FIT_VIEW_OPTIONS,
+            duration: 200,
+          });
+        }, 150);
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
+
+    // 🔧 2-stage fitView: 정확한 bounds 계산을 위한 지연된 재호출
+    // Stage 1: 초기 fitView (노드 초기화 직후)
+    // Stage 2: 보정 fitView (ReactFlow 내부 상태 안정화 후)
+    const correctionTimer = setTimeout(() => {
+      // window resize 이벤트 dispatch로 ReactFlow 내부 dimensions 재계산 트리거
+      window.dispatchEvent(new Event('resize'));
+
+      // resize 후 fitView 재호출
+      requestAnimationFrame(() => {
         fitView({
           ...FIT_VIEW_OPTIONS,
-          duration: 200, // 부드러운 애니메이션
+          duration: 200,
         });
-        hasFitted.current = true;
-      }, 100);
+      });
+    }, 100);
 
-      return () => clearTimeout(timer);
-    }
-    // TypeScript: 모든 경로에서 반환값 필요
-    return undefined;
+    return () => {
+      resizeObserver.disconnect();
+      clearTimeout(correctionTimer);
+      if (fitViewTimeoutRef.current) {
+        clearTimeout(fitViewTimeoutRef.current);
+      }
+    };
   }, [nodesInitialized, fitView]);
 
   return null;
@@ -622,10 +671,8 @@ function ReactFlowDiagram({
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
-            // 🔧 fitView: 초기 로드 시 모든 노드가 보이도록 자동 맞춤
-            // minZoom을 0.1로 낮춰 충분히 축소 가능하게 설정
-            fitView
-            fitViewOptions={FIT_VIEW_OPTIONS}
+            // 🔧 fitView prop 제거: AutoFitView에서 CSS 트랜지션 완료 후 처리
+            // 내장 fitView가 먼저 실행되면 잘못된 scale 계산 문제 발생
             minZoom={0.05}
             maxZoom={2.5}
             defaultEdgeOptions={defaultEdgeOptions}
@@ -636,7 +683,7 @@ function ReactFlowDiagram({
             className="react-flow-dark"
             aria-label={`${diagram.title} 아키텍처 다이어그램`}
           >
-            {/* 🔧 AutoFitView: 500ms 후 Fit View 버튼 자동 클릭 */}
+            {/* 🔧 AutoFitView: 노드 초기화 후 fitView 자동 실행 */}
             <AutoFitView />
             <Background color="rgba(255, 255, 255, 0.05)" gap={20} size={1} />
             {showControls && (
