@@ -216,6 +216,7 @@ const NODE_HEIGHT = 56;
 const NODE_GAP = 24; // 30 → 24: 더 컴팩트한 레이아웃으로 전체 높이 감소
 const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
 const LABEL_AREA_WIDTH = 180; // Swimlane 라벨 영역 너비 (확장: 120 -> 180)
+const LABEL_NODE_HEIGHT = 40; // 라벨 노드 명시적 높이 (P4: Unified Sidebar)
 const LABEL_CONTENT_GAP = 40; // 라벨과 콘텐츠 사이 간격
 const SWIMLANE_PADDING = 16; // Swimlane 내부 패딩
 
@@ -448,8 +449,7 @@ function convertToReactFlow(diagram: DiagramData): {
     });
 
     // 1. 레이어 라벨 (좌측 고정 위치)
-    // 🔧 P4: 새 텍스트 디자인 기준 보정값 조정 (카드 -10 → 텍스트 -12)
-    const LABEL_NODE_HEIGHT = 40; // 라벨 노드 명시적 높이
+    // 🔧 P4: LABEL_NODE_HEIGHT 기준 수직 중앙 정렬
     const labelY =
       currentY +
       (layerHeight - SWIMLANE_PADDING * 2) / 2 -
