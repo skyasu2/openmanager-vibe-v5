@@ -11,10 +11,9 @@ import { isVercel } from '@/env';
 
 /**
  * Component mount delay (ms)
- * - Vercel: 100ms (reduce hydration mismatch)
- * - Local: 0ms (instant mount)
+ * 깜빡임 방지: 지연 제거 (이전: isVercel ? 100 : 0)
  */
-export const mountDelay = isVercel ? 100 : 0;
+export const mountDelay = 0;
 
 /**
  * State sync debounce delay (ms)

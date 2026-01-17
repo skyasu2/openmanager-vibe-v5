@@ -175,10 +175,9 @@ function Home() {
     [guestSystemStartEnabled]
   );
 
-  // 로딩 상태 - 단일 조건으로 통합 (깜빡임 방지)
-  // 이전: shouldShowLoading → AuthLoadingUI, !authReady → 별도 스피너 (2단계 로딩)
-  // 개선: authReady 하나만 체크하여 단일 로딩 화면
-  const shouldShowLoading = !isMounted || !authReady;
+  // 로딩 상태 - authReady 단일 조건 (깜빡임 방지)
+  // isMounted는 성능 추적용으로만 사용, 로딩 조건에서 제거
+  const shouldShowLoading = !authReady;
 
   if (shouldShowLoading) {
     return (

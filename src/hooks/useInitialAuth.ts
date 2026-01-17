@@ -8,7 +8,8 @@ import { logger } from '@/lib/logging';
 
 // This logic is now inlined from the old vercel-env.ts
 const _authRetryDelay = isVercel ? 5000 : 3000;
-const initDelay = isVercel ? 300 : 100;
+// 깜빡임 방지: 지연 제거 (이전: isVercel ? 300 : 100)
+const initDelay = 0;
 const debugWithEnv = (message: string) =>
   `[${isVercel ? 'Vercel' : 'Local'}] ${message}`;
 
