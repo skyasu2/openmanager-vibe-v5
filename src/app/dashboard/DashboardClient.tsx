@@ -470,6 +470,15 @@ function DashboardPageContent() {
       // 토스트 메시지로 안내 (선택사항)
       return;
     }
+
+    // 🔥 AI 사이드바 열릴 때 Cloud Run warmup 호출 (Cold Start 방지)
+    if (!isAgentOpen) {
+      fetch('/api/ai/wake-up', { method: 'POST' }).catch(() => {
+        // Ignore errors - this is a best-effort warmup
+      });
+      debug.log('🔥 AI 어시스턴트 열기 - Cloud Run warmup 신호 전송');
+    }
+
     setIsAgentOpen(!isAgentOpen);
   }, [permissions.canToggleAI, isAgentOpen, setIsAgentOpen]);
 

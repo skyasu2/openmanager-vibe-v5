@@ -28,12 +28,13 @@ import { AIInsightBadge } from '../shared/AIInsightBadge';
 import { MiniLineChart } from '../shared/MiniLineChart';
 
 /**
- * 🎨 Premium Server Card v2.0
+ * 🎨 Premium Server Card v2.1
  * - 랜딩 페이지 스타일 그라데이션 애니메이션
  * - 상태별 색상: Critical(빨강), Warning(주황), Healthy(녹색)
  * - 호버 스케일 + 글로우 효과
  * - 서버 카드 독자 기능: 실시간 메트릭, AI Insight, Progressive Disclosure
  * - 카드 크기 50% 축소 (2025-12-13)
+ * - HTML 중첩 버튼 오류 수정 (2026-01-17)
  */
 
 export interface ImprovedServerCardProps {
@@ -146,9 +147,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       return styles[variant] || styles.standard;
     }, [variant]);
 
-    // Interactions
+    // Interactions - Progressive Disclosure Toggle
     const toggleExpansion = useCallback(
-      (e: React.MouseEvent) => {
+      (e: React.MouseEvent | React.KeyboardEvent) => {
         e.stopPropagation();
         setShowTertiaryInfo((prev) => !prev);
         if (!showTertiaryInfo) setShowSecondaryInfo(true);
@@ -262,16 +263,28 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 
           <div className="flex items-center gap-1 pt-4">
             {enableProgressiveDisclosure && (
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={toggleExpansion}
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-black/5 hover:bg-black/10 text-gray-500 hover:text-gray-700 transition-colors"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleExpansion(e as unknown as React.MouseEvent);
+                  }
+                }}
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-black/5 hover:bg-black/10 text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                aria-expanded={showTertiaryInfo}
+                aria-label={
+                  showTertiaryInfo ? '상세 정보 접기' : '상세 정보 펼치기'
+                }
               >
                 {showTertiaryInfo ? (
                   <ChevronUp className="h-3 w-3" />
                 ) : (
                   <ChevronDown className="h-3 w-3" />
                 )}
-              </button>
+              </div>
             )}
           </div>
         </header>
