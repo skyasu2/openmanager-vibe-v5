@@ -312,16 +312,17 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
     setPagination((prev) => ({ ...prev, page: 1 }));
   }, []);
 
-  const formatDate = (date: Date) => {
+  // 🔧 사이드이펙트 수정: ReportCard에 전달되는 함수들 메모이제이션
+  const formatDate = useCallback((date: Date) => {
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${year}-${month}-${day} ${hours}:${minutes}`;
-  };
+  }, []);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = useCallback((status: string) => {
     const statusStyles: Record<string, string> = {
       open: 'bg-red-100 text-red-700 border-red-200',
       investigating: 'bg-yellow-100 text-yellow-700 border-yellow-200',
@@ -343,7 +344,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
         {statusLabels[status] || status}
       </span>
     );
-  };
+  }, []);
 
   return (
     <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-blue-50">
