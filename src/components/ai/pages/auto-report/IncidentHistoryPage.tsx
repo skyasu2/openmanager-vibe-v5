@@ -187,55 +187,74 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
 
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchReports = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // 🔧 StrictMode 이슈 수정: AbortController 추가
+  const fetchReports = useCallback(
+    async (signal?: AbortSignal) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
-      });
+      try {
+        const params = new URLSearchParams({
+          page: pagination.page.toString(),
+          limit: pagination.limit.toString(),
+        });
 
-      if (filters.severity !== 'all') {
-        params.append('severity', filters.severity);
-      }
-      if (filters.status !== 'all') {
-        params.append('status', filters.status);
-      }
-      if (filters.dateRange !== 'all') {
-        params.append('dateRange', filters.dateRange);
-      }
-      if (filters.search) {
-        params.append('search', filters.search);
-      }
+        if (filters.severity !== 'all') {
+          params.append('severity', filters.severity);
+        }
+        if (filters.status !== 'all') {
+          params.append('status', filters.status);
+        }
+        if (filters.dateRange !== 'all') {
+          params.append('dateRange', filters.dateRange);
+        }
+        if (filters.search) {
+          params.append('search', filters.search);
+        }
 
-      const response = await fetch(`/api/ai/incident-report?${params}`);
-      if (!response.ok) {
-        throw new Error('보고서 조회 실패');
-      }
+        const response = await fetch(`/api/ai/incident-report?${params}`, {
+          signal,
+        });
+        if (!response.ok) {
+          throw new Error('보고서 조회 실패');
+        }
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (data.success) {
-        const mappedReports = (data.reports || []).map(mapDBToIncidentReport);
-        setReports(mappedReports);
-        setPagination((prev) => ({
-          ...prev,
-          total: data.total || mappedReports.length,
-          totalPages:
-            data.totalPages ||
-            Math.ceil((data.total || mappedReports.length) / prev.limit),
-        }));
+        if (data.success) {
+          const mappedReports = (data.reports || []).map(mapDBToIncidentReport);
+          setReports(mappedReports);
+          setPagination((prev) => ({
+            ...prev,
+            total: data.total || mappedReports.length,
+            totalPages:
+              data.totalPages ||
+              Math.ceil((data.total || mappedReports.length) / prev.limit),
+          }));
+        }
+      } catch (err) {
+        // AbortError는 정상적인 cleanup이므로 무시
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
+        setError(err instanceof Error ? err.message : '알 수 없는 오류');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류');
-    } finally {
-      setLoading(false);
-    }
-  }, [pagination.page, pagination.limit, filters]);
+    },
+    [pagination.page, pagination.limit, filters]
+  );
 
   useEffect(() => {
+    const abortController = new AbortController();
+    fetchReports(abortController.signal);
+    return () => {
+      abortController.abort();
+    };
+  }, [fetchReports]);
+
+  // 🔧 새로고침 버튼 핸들러 (AbortController 없이 수동 호출)
+  const handleRefresh = useCallback(() => {
     fetchReports();
   }, [fetchReports]);
 
@@ -376,7 +395,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
               필터
             </button>
             <button
-              onClick={fetchReports}
+              onClick={handleRefresh}
               disabled={loading}
               className="flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
             >
