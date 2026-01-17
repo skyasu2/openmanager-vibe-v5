@@ -455,9 +455,8 @@ function convertToReactFlow(diagram: DiagramData): {
       id: `layer-${layerIndex}`,
       type: 'layerLabel',
       position: { x: fixedLabelX, y: labelY },
-      // 🔧 라벨 노드에 명시적 width 설정 (180px)
+      // 🔧 라벨 노드에 명시적 width 설정 (180px) - style.width만 사용 (DRY)
       style: { width: LABEL_AREA_WIDTH },
-      width: LABEL_AREA_WIDTH,
       data: { title: layer.title, color: layer.color },
       draggable: false,
       selectable: false,
@@ -623,12 +622,7 @@ function ReactFlowDiagram({
             // 🔧 fitView: 초기 로드 시 모든 노드가 보이도록 자동 맞춤
             // minZoom을 0.1로 낮춰 충분히 축소 가능하게 설정
             fitView
-            fitViewOptions={{
-              padding: 0.2, // 20% 여백 (노트북 최적화)
-              minZoom: 0.05,
-              maxZoom: 0.8, // 더 축소된 상태로 시작
-              includeHiddenNodes: true,
-            }}
+            fitViewOptions={FIT_VIEW_OPTIONS}
             minZoom={0.05}
             maxZoom={2.5}
             defaultEdgeOptions={defaultEdgeOptions}
