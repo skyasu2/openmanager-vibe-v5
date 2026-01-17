@@ -50,10 +50,10 @@ import type { ArchitectureDiagram as DiagramData } from '@/data/architecture-dia
  * includeHiddenNodes: 숨겨진 노드도 포함
  */
 const FIT_VIEW_OPTIONS = {
-  padding: 0.15, // 15% 여백
+  padding: 0.2, // 20% 여백 (노트북 화면 최적화)
   includeHiddenNodes: true,
-  minZoom: 0.1,
-  maxZoom: 1.0, // fitView가 줌을 결정하도록
+  minZoom: 0.05, // 더 축소 가능하게
+  maxZoom: 0.8, // fitView가 더 축소된 상태로 시작
 };
 
 /**
@@ -74,10 +74,10 @@ function AutoFitView() {
       // 약간의 지연 후 fitView 실행 (렌더링 완료 보장)
       const timer = setTimeout(() => {
         fitView({
-          padding: 0.12,
+          padding: 0.2, // 20% 여백 (노트북 최적화)
           includeHiddenNodes: true,
-          minZoom: 0.1,
-          maxZoom: 1.0,
+          minZoom: 0.05,
+          maxZoom: 0.8, // 더 축소된 상태로 시작
           duration: 200, // 부드러운 애니메이션
         });
         hasFitted.current = true;
@@ -628,7 +628,7 @@ function ReactFlowDiagram({
       <DiagramErrorBoundary diagramTitle={diagram.title}>
         <div
           className={`rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 ${
-            compact ? 'h-[750px]' : 'h-[800px]'
+            compact ? 'h-[min(70dvh,650px)]' : 'h-[min(75dvh,700px)]'
           }`}
         >
           <ReactFlow
@@ -639,12 +639,12 @@ function ReactFlowDiagram({
             // minZoom을 0.1로 낮춰 충분히 축소 가능하게 설정
             fitView
             fitViewOptions={{
-              padding: 0.15, // 15% 여백
-              minZoom: 0.1,
-              maxZoom: 1.0,
+              padding: 0.2, // 20% 여백 (노트북 최적화)
+              minZoom: 0.05,
+              maxZoom: 0.8, // 더 축소된 상태로 시작
               includeHiddenNodes: true,
             }}
-            minZoom={0.1}
+            minZoom={0.05}
             maxZoom={2.5}
             defaultEdgeOptions={defaultEdgeOptions}
             proOptions={{ hideAttribution: true }}
