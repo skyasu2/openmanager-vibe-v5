@@ -28,31 +28,26 @@ const FeatureCardItem = memo(
     onCardClick: (cardId: string) => void;
     isAIDisabled: boolean;
   }) => {
-    // 카드 타입별 스타일 헬퍼
+    // 카드 타입별 스타일 헬퍼 - 성능 최적화 (shadow 제거, ring만 유지)
     const getCardStyles = useCallback((card: FeatureCard) => {
       return {
-        title: 'text-white/95 group-hover:text-white',
-        description: 'text-white/80 group-hover:text-white/90 font-medium',
+        title: 'text-white/95',
+        description: 'text-white/80 font-medium',
         hoverRing: card.isAICard
-          ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
+          ? 'group-hover:ring-pink-400/30'
           : card.isVibeCard
-            ? 'group-hover:ring-yellow-400/50'
+            ? 'group-hover:ring-yellow-400/30'
             : card.isSpecial
-              ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
-              : 'group-hover:ring-white/30',
+              ? 'group-hover:ring-amber-400/30'
+              : 'group-hover:ring-white/20',
         iconColor: 'text-white',
       };
     }, []);
 
-    // 아이콘 CSS 애니메이션 클래스 설정
-    const getIconAnimationClass = useCallback((card: FeatureCard) => {
-      if (card.isAICard) {
-        return 'animate-ai-icon';
-      }
-      if (card.isVibeCard) {
-        return 'animate-vibe-icon';
-      }
-      return 'animate-icon-hover';
+    // 아이콘 CSS 애니메이션 클래스 설정 - 깜빡임 방지로 비활성화
+    const getIconAnimationClass = useCallback((_card: FeatureCard) => {
+      // 성능 최적화: 아이콘 애니메이션 제거
+      return '';
     }, []);
 
     const cardStyles = useMemo(
@@ -69,11 +64,7 @@ const FeatureCardItem = memo(
         type="button"
         key={card.id}
         aria-label={`${card.title} 상세 정보 보기`}
-        className={`w-full text-left group relative cursor-pointer ${
-          card.isVibeCard
-            ? 'transform-gpu hover:shadow-2xl hover:shadow-yellow-500/30'
-            : ''
-        }`}
+        className="w-full text-left group relative cursor-pointer"
         onClick={() => onCardClick(card.id)}
         onKeyDown={(e: React.KeyboardEvent<HTMLButtonElement>) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -83,15 +74,15 @@ const FeatureCardItem = memo(
         }}
       >
         <div
-          className={`relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300 ease-out hover:bg-white/20 ${
+          className={`relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 transition-colors duration-200 ease-out hover:bg-white/15 ${
             card.isSpecial
               ? 'border-amber-500/30 bg-linear-to-br from-amber-500/10 to-orange-500/10'
               : ''
-          } group-hover:scale-[1.02] group-hover:transform group-hover:shadow-2xl`}
+          }`}
         >
-          {/* 그라데이션 배경 */}
+          {/* 그라데이션 배경 - 호버 효과 단순화 */}
           <div
-            className={`absolute inset-0 bg-linear-to-br ${card.gradient} rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
+            className={`absolute inset-0 bg-linear-to-br ${card.gradient} rounded-2xl opacity-5`}
           />
 
           {/* AI 카드 특별 이색 그라데이션 애니메이션 */}
@@ -99,12 +90,12 @@ const FeatureCardItem = memo(
             <div className="absolute inset-0 rounded-2xl opacity-90 bg-ai-card-gradient" />
           )}
 
-          {/* Vibe Coding 카드 특별 디자인 */}
+          {/* Vibe Coding 카드 특별 디자인 - animate-pulse 제거 */}
           {card.isVibeCard && (
             <>
-              {/* 장식 요소 */}
-              <div className="animate-pulse absolute right-2 top-2 h-6 w-6 rounded-full bg-yellow-400/30"></div>
-              <div className="animate-pulse absolute bottom-2 left-2 h-4 w-4 rounded-full bg-yellow-400/20"></div>
+              {/* 장식 요소 - 정적으로 변경 */}
+              <div className="absolute right-2 top-2 h-6 w-6 rounded-full bg-yellow-400/30"></div>
+              <div className="absolute bottom-2 left-2 h-4 w-4 rounded-full bg-yellow-400/20"></div>
 
               {/* 개선된 배경 그라데이션 */}
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
@@ -116,13 +107,13 @@ const FeatureCardItem = memo(
             </>
           )}
 
-          {/* 일반 카드들의 아이콘 (바이브 코딩 포함) */}
+          {/* 일반 카드들의 아이콘 (바이브 코딩 포함) - scale 제거 */}
           <div
             className={`h-12 w-12 ${
               card.isVibeCard
                 ? 'bg-linear-to-br from-yellow-400 to-amber-500'
                 : `bg-linear-to-br ${card.gradient}`
-            } relative z-10 mb-3 flex items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${
+            } relative z-10 mb-3 flex items-center justify-center rounded-xl ${
               card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
             }`}
           >
@@ -152,9 +143,9 @@ const FeatureCardItem = memo(
             )}
           </div>
 
-          {/* 호버 효과 */}
+          {/* 호버 효과 - 단순화 */}
           <div
-            className={`absolute inset-0 rounded-2xl ring-2 ring-transparent transition-all duration-300 ${cardStyles.hoverRing}`}
+            className={`absolute inset-0 rounded-2xl ring-1 ring-white/10 ${cardStyles.hoverRing}`}
           />
         </div>
       </button>

@@ -330,7 +330,7 @@
   }
 }
 
-/* 🌊 웨이브 파티클 배경 효과 - Material Design 3 최적화 */
+/* 🌊 웨이브 파티클 배경 효과 - 성능 최적화 버전 */
 .wave-particles {
   position: fixed;
   top: 0;
@@ -339,38 +339,25 @@
   height: 100%;
   pointer-events: none;
   z-index: 1;
-  /* Material Design 3 색상 팔레트 적용 */
+  /* 단순화된 그라데이션 (2개로 축소) */
   background:
     radial-gradient(
       ellipse at center,
-      rgba(103, 80, 164, 0.22) 0% /* MD3 Primary Purple */,
-      rgba(121, 134, 203, 0.16) 30% /* MD3 Secondary Blue */,
+      rgba(103, 80, 164, 0.18) 0%,
+      rgba(121, 134, 203, 0.12) 40%,
       transparent 70%
     ),
     radial-gradient(
       ellipse at 80% 20%,
-      rgba(156, 39, 176, 0.24) 0% /* MD3 Tertiary Purple */,
-      rgba(186, 104, 200, 0.18) 30% /* MD3 Purple Light */,
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse at 20% 80%,
-      rgba(233, 30, 99, 0.2) 0% /* MD3 Accent Pink */,
-      rgba(255, 138, 101, 0.14) 30% /* MD3 Warm Orange */,
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse at 60% 40%,
-      rgba(0, 150, 136, 0.12) 0% /* MD3 Success Teal */,
+      rgba(156, 39, 176, 0.15) 0%,
       transparent 60%
     );
-  animation:
-    wave-drift 25s ease-in-out infinite,
-    wave-glow 15s ease-in-out infinite alternate;
-  filter: blur(0.8px); /* 약간 강화된 블러 */
-  /* GPU 가속 최적화 */
+  /* 단일 느린 애니메이션으로 변경 (깜빡임 방지) */
+  animation: wave-drift 40s ease-in-out infinite;
+  /* blur 제거 - 성능 개선 */
+  /* GPU 가속 */
   transform: translateZ(0);
-  will-change: transform, opacity;
+  will-change: transform;
 }
 
 @keyframes wave-drift {
