@@ -27,6 +27,7 @@ import {
   useNodesInitialized,
   useReactFlow,
 } from '@xyflow/react';
+import Dagre from '@dagrejs/dagre';
 import React, {
   Component,
   memo,
@@ -373,127 +374,111 @@ const SwimlaneBgNode = memo(({ data }: NodeProps<Node<SwimlaneBgData>>) => {
 SwimlaneBgNode.displayName = 'SwimlaneBgNode';
 
 // =============================================================================
-// Conversion Utilities (Layout Engine)
+// Dagre Layout Engine (React Flow Best Practice)
 // =============================================================================
 
 /**
- * 기존 데이터 형식을 React Flow 노드/엣지로 변환 (Smart Grid Layout)
- * 1. 노드 수에 따라 줄바꿈 최적화 (5개까지 1줄, 8개는 4개씩 2줄)
- * 2. 레이어 내부 줄간격을 넉넉히 주어 연결선 겹침 방지
+ * 📐 Dagre.js 기반 자동 레이아웃 알고리즘
+ * React Flow 공식 문서 권장 패턴 적용
+ * @see https://reactflow.dev/learn/layouting/layouting
+ */
+function getLayoutedElements(
+  nodes: Node[],
+  edges: Edge[],
+  options: {
+    direction?: 'TB' | 'LR';
+    nodesep?: number;
+    ranksep?: number;
+  } = {}
+): { nodes: Node[]; edges: Edge[] } {
+  const { direction = 'TB', nodesep = 60, ranksep = 80 } = options;
+  const isHorizontal = direction === 'LR';
+
+  // Dagre 그래프 인스턴스 생성 (매번 새로 생성하여 상태 오염 방지)
+  const dagreGraph = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+
+  dagreGraph.setGraph({
+    rankdir: direction,
+    nodesep,
+    ranksep,
+    marginx: 40,
+    marginy: 40,
+    align: 'UL', // Upper-Left 정렬
+    acyclicer: 'greedy',
+    ranker: 'network-simplex', // 최적 랭킹 알고리즘
+  });
+
+  // 노드 등록 (customNode만 레이아웃 대상)
+  nodes.forEach((node) => {
+    if (node.type === 'customNode') {
+      dagreGraph.setNode(node.id, {
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
+      });
+    }
+  });
+
+  // 엣지 등록
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  // Dagre 레이아웃 실행
+  Dagre.layout(dagreGraph);
+
+  // 레이아웃된 위치 적용
+  const layoutedNodes = nodes.map((node) => {
+    if (node.type !== 'customNode') return node;
+
+    const nodeWithPosition = dagreGraph.node(node.id);
+    if (!nodeWithPosition) return node;
+
+    return {
+      ...node,
+      targetPosition: isHorizontal ? Position.Left : Position.Top,
+      sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
+      position: {
+        x: nodeWithPosition.x - NODE_WIDTH / 2,
+        y: nodeWithPosition.y - NODE_HEIGHT / 2,
+      },
+    };
+  });
+
+  return { nodes: layoutedNodes, edges };
+}
+
+// =============================================================================
+// Conversion Utilities (Hybrid: Swimlane + Dagre)
+// =============================================================================
+
+/**
+ * 기존 데이터 형식을 React Flow 노드/엣지로 변환
+ * 📐 하이브리드 레이아웃: Swimlane 배경 + Dagre 자동 배치
+ *
+ * 1단계: 콘텐츠 노드와 엣지 생성
+ * 2단계: Dagre 레이아웃 적용
+ * 3단계: 레이아웃 결과 기반 Swimlane 배경 생성
  */
 function convertToReactFlow(diagram: DiagramData): {
   nodes: Node[];
   edges: Edge[];
 } {
-  const nodes: Node[] = [];
+  const contentNodes: Node[] = [];
   const edges: Edge[] = [];
-  const nodePositions: Record<string, { x: number; y: number }> = {};
 
-  // 1. 전체 레이아웃 계산 (1st Pass)
-  let maxContentWidth = 0;
+  // 레이어별 노드 ID 매핑 (Swimlane 생성용)
+  const layerNodeIds: Map<number, string[]> = new Map();
 
-  const layerMeta = diagram.layers.map((layer) => {
-    const nodeCount = layer.nodes.length;
-    // 💡 Smart Grid: 5개면 1줄(5열), 그 외는 기본 4열 (8개 -> 4개씩 2줄)
-    const nodesPerRow =
-      nodeCount === 5 ? MAX_NODES_PER_ROW_WIDE : MAX_NODES_PER_ROW_DEFAULT;
-
-    // 실제 필요한 행 수
-    const rowCount = Math.ceil(nodeCount / nodesPerRow);
-
-    // 현재 레이어의 콘텐츠 너비 계산
-    const currentNodesInRow = Math.min(nodeCount, nodesPerRow);
-    const contentWidth =
-      currentNodesInRow * (NODE_WIDTH + NODE_GAP_H) - NODE_GAP_H;
-
-    if (contentWidth > maxContentWidth) maxContentWidth = contentWidth;
-
-    return { nodesPerRow, rowCount };
-  });
-
-  // 2. 노드 배치 (2nd Pass)
-  let currentY = 80;
-
-  // 라벨 X 위치 (콘텐츠 영역 기준 좌측 정렬)
-  const fixedLabelX =
-    -(maxContentWidth / 2) - LABEL_CONTENT_GAP - LABEL_AREA_WIDTH;
-
+  // 1단계: 콘텐츠 노드 생성
   diagram.layers.forEach((layer, layerIndex) => {
-    const meta = layerMeta[layerIndex];
-    if (!meta) return; // 타입 가드
-    const { nodesPerRow, rowCount } = meta;
+    const nodeIds: string[] = [];
 
-    // 레이어 높이 계산 (내부 패딩 및 줄간격 포함)
-    const layerHeight =
-      rowCount * NODE_HEIGHT +
-      (rowCount - 1) * NODE_GAP_V +
-      SWIMLANE_PADDING * 2;
-
-    // Swimlane 배경
-    const bgLeft = fixedLabelX - SWIMLANE_PADDING;
-    const bgRight = maxContentWidth / 2 + SWIMLANE_PADDING;
-    const bgWidth = bgRight - bgLeft;
-
-    nodes.push({
-      id: `swimlane-bg-${layerIndex}`,
-      type: 'swimlaneBg',
-      position: { x: bgLeft, y: currentY - SWIMLANE_PADDING },
-      data: {
-        width: bgWidth,
-        height: layerHeight,
-        color: layer.color,
-        title: layer.title,
-      } as SwimlaneBgData,
-      draggable: false,
-      selectable: false,
-      focusable: false,
-      zIndex: -1,
-      width: bgWidth,
-      height: layerHeight,
-    });
-
-    // 레이어 라벨
-    const labelY =
-      currentY +
-      (layerHeight - SWIMLANE_PADDING * 2) / 2 -
-      LABEL_NODE_HEIGHT / 2;
-
-    nodes.push({
-      id: `layer-${layerIndex}`,
-      type: 'layerLabel',
-      position: { x: fixedLabelX, y: labelY },
-      style: { width: LABEL_AREA_WIDTH, height: LABEL_NODE_HEIGHT },
-      data: { title: layer.title, color: layer.color },
-      draggable: false,
-      selectable: false,
-    });
-
-    // 콘텐츠 노드 배치
-    layer.nodes.forEach((node, nodeIndex) => {
-      const row = Math.floor(nodeIndex / nodesPerRow);
-      const col = nodeIndex % nodesPerRow;
-
-      // 현재 행의 노드 수 계산 (마지막 줄 처리를 위해)
-      const isLastRow = row === rowCount - 1;
-      const nodesInThisRow = isLastRow
-        ? layer.nodes.length - row * nodesPerRow
-        : nodesPerRow;
-
-      const rowWidth = nodesInThisRow * (NODE_WIDTH + NODE_GAP_H) - NODE_GAP_H;
-      const rowStartLeft = -(rowWidth / 2);
-
-      const x = rowStartLeft + col * (NODE_WIDTH + NODE_GAP_H);
-      const y = currentY + row * (NODE_HEIGHT + NODE_GAP_V);
-
-      nodePositions[node.id] = {
-        x: x + NODE_WIDTH / 2,
-        y: y + NODE_HEIGHT / 2,
-      };
-
-      nodes.push({
+    layer.nodes.forEach((node) => {
+      nodeIds.push(node.id);
+      contentNodes.push({
         id: node.id,
         type: 'customNode',
-        position: { x, y },
+        position: { x: 0, y: 0 }, // Dagre가 계산할 예정
         data: {
           label: node.label,
           sublabel: node.sublabel,
@@ -505,48 +490,48 @@ function convertToReactFlow(diagram: DiagramData): {
       });
     });
 
-    // 다음 레이어 Y 시작점 (레이어 간 여백 넉넉히)
-    // NODE_GAP_V * 1.5 만큼 띄워서 화살표 공간 확보
-    currentY += layerHeight + NODE_GAP_V * 1.5;
+    layerNodeIds.set(layerIndex, nodeIds);
   });
 
-  // 연결선 생성
+  // 엣지 생성
   if (diagram.connections) {
+    // 팬아웃 감지: 동일 소스에서 여러 타겟으로 연결
+    const sourceConnectionCount: Record<string, number> = {};
+    diagram.connections.forEach((conn) => {
+      sourceConnectionCount[conn.from] =
+        (sourceConnectionCount[conn.from] || 0) + 1;
+    });
+
     diagram.connections.forEach((conn, index) => {
-      const sourcePos = nodePositions[conn.from];
-      const targetPos = nodePositions[conn.to];
-
-      if (!sourcePos || !targetPos) return;
-
-      // 같은 레이어(수평) 확인
-      const isHorizontal = Math.abs(sourcePos.y - targetPos.y) < 10;
+      const isFanOut = (sourceConnectionCount[conn.from] ?? 0) >= 4;
 
       edges.push({
         id: `edge-${index}`,
         source: conn.from,
         target: conn.to,
-        sourceHandle: isHorizontal ? 'right' : 'bottom',
-        targetHandle: isHorizontal ? 'left' : 'top',
-        type: 'smoothstep',
+        type: 'smoothstep', // Dagre와 호환성 좋음
         animated: conn.type === 'dashed',
         style: {
           stroke:
             conn.type === 'dashed'
               ? 'rgba(167, 139, 250, 0.6)'
-              : 'rgba(255, 255, 255, 0.4)',
-          strokeWidth: 2,
+              : isFanOut
+                ? 'rgba(255, 255, 255, 0.3)'
+                : 'rgba(255, 255, 255, 0.4)',
+          strokeWidth: isFanOut ? 1.5 : 2,
           strokeDasharray: conn.type === 'dashed' ? '5 5' : undefined,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          width: 15,
-          height: 15,
+          width: isFanOut ? 12 : 15,
+          height: isFanOut ? 12 : 15,
           color:
             conn.type === 'dashed'
               ? 'rgba(167, 139, 250, 0.8)'
               : 'rgba(255, 255, 255, 0.6)',
         },
-        label: conn.label,
+        // 팬아웃 시 라벨 간소화 (첫 번째만 표시)
+        label: isFanOut && index > 0 ? undefined : conn.label,
         labelStyle: {
           fill: 'rgba(255, 255, 255, 0.8)',
           fontSize: 10,
@@ -562,7 +547,127 @@ function convertToReactFlow(diagram: DiagramData): {
     });
   }
 
-  return { nodes, edges };
+  // 2단계: 동적 Dagre 파라미터 계산
+  const maxNodesInLayer = Math.max(
+    ...diagram.layers.map((layer) => layer.nodes.length)
+  );
+
+  // 노드가 많을수록 간격 축소 (동적 파라미터)
+  const dynamicNodesep =
+    maxNodesInLayer > 6
+      ? 30 // 7개 이상: 좁은 간격
+      : maxNodesInLayer > 4
+        ? 45 // 5-6개: 중간 간격
+        : 60; // 4개 이하: 넓은 간격
+
+  const dynamicRanksep =
+    maxNodesInLayer > 6
+      ? 60 // 레이어 간 간격도 축소
+      : 80;
+
+  // 3단계: Dagre 레이아웃 적용
+  const { nodes: layoutedContentNodes } = getLayoutedElements(
+    contentNodes,
+    edges,
+    {
+      direction: 'TB',
+      nodesep: dynamicNodesep,
+      ranksep: dynamicRanksep,
+    }
+  );
+
+  // 4단계: Swimlane 배경 및 라벨 생성 (레이아웃 결과 기반)
+  const allNodes: Node[] = [];
+
+  // 레이어별 bounds 계산
+  const layerBounds: Map<
+    number,
+    { minX: number; maxX: number; minY: number; maxY: number }
+  > = new Map();
+
+  layoutedContentNodes.forEach((node) => {
+    if (node.type !== 'customNode') return;
+
+    // 어느 레이어에 속하는지 찾기
+    for (const [layerIndex, nodeIds] of layerNodeIds.entries()) {
+      if (nodeIds.includes(node.id)) {
+        const bounds = layerBounds.get(layerIndex) ?? {
+          minX: Infinity,
+          maxX: -Infinity,
+          minY: Infinity,
+          maxY: -Infinity,
+        };
+
+        bounds.minX = Math.min(bounds.minX, node.position.x);
+        bounds.maxX = Math.max(bounds.maxX, node.position.x + NODE_WIDTH);
+        bounds.minY = Math.min(bounds.minY, node.position.y);
+        bounds.maxY = Math.max(bounds.maxY, node.position.y + NODE_HEIGHT);
+
+        layerBounds.set(layerIndex, bounds);
+        break;
+      }
+    }
+  });
+
+  // 전체 콘텐츠 영역 계산 (Swimlane 폭 통일)
+  let globalMinX = Infinity;
+  let globalMaxX = -Infinity;
+
+  layerBounds.forEach((bounds) => {
+    globalMinX = Math.min(globalMinX, bounds.minX);
+    globalMaxX = Math.max(globalMaxX, bounds.maxX);
+  });
+
+  // Swimlane 배경 및 라벨 생성
+  diagram.layers.forEach((layer, layerIndex) => {
+    const bounds = layerBounds.get(layerIndex);
+    if (!bounds) return;
+
+    const bgLeft =
+      globalMinX - SWIMLANE_PADDING - LABEL_AREA_WIDTH - LABEL_CONTENT_GAP;
+    const bgRight = globalMaxX + SWIMLANE_PADDING;
+    const bgWidth = bgRight - bgLeft;
+    const bgHeight = bounds.maxY - bounds.minY + SWIMLANE_PADDING * 2;
+
+    // Swimlane 배경
+    allNodes.push({
+      id: `swimlane-bg-${layerIndex}`,
+      type: 'swimlaneBg',
+      position: { x: bgLeft, y: bounds.minY - SWIMLANE_PADDING },
+      data: {
+        width: bgWidth,
+        height: bgHeight,
+        color: layer.color,
+        title: layer.title,
+      } as SwimlaneBgData,
+      draggable: false,
+      selectable: false,
+      focusable: false,
+      zIndex: -1,
+      width: bgWidth,
+      height: bgHeight,
+    });
+
+    // 레이어 라벨 (Swimlane 좌측)
+    const labelX = bgLeft + SWIMLANE_PADDING;
+    const labelY =
+      bounds.minY + (bounds.maxY - bounds.minY) / 2 - LABEL_NODE_HEIGHT / 2;
+
+    allNodes.push({
+      id: `layer-${layerIndex}`,
+      type: 'layerLabel',
+      position: { x: labelX, y: labelY },
+      style: { width: LABEL_AREA_WIDTH, height: LABEL_NODE_HEIGHT },
+      data: { title: layer.title, color: layer.color },
+      draggable: false,
+      selectable: false,
+    });
+  });
+
+  // 콘텐츠 노드 추가
+  allNodes.push(...layoutedContentNodes);
+
+  return { nodes: allNodes, edges };
 }
 
 // =============================================================================
