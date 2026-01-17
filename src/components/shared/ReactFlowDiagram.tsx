@@ -421,19 +421,17 @@ function convertToReactFlow(diagram: DiagramData): {
     const layerHeight =
       rowCount * NODE_HEIGHT + (rowCount - 1) * NODE_GAP + SWIMLANE_PADDING * 2;
 
-    // 현재 레이어의 콘텐츠 너비
+    // 현재 레이어의 콘텐츠 너비 (노드 배치에 사용)
     const currentContentWidth =
       nodesPerRow * (NODE_WIDTH + NODE_GAP) - NODE_GAP;
 
-    // Swimlane 배경 위치 계산 (라벨 + 콘텐츠 전체를 감싸는 박스)
-    // React Flow는 노드의 top-left corner를 position으로 사용함
-    // fixedLabelX는 이미 LABEL_AREA_WIDTH 전체를 포함하므로 추가 오프셋 불필요
+    // 🔧 모든 레이어의 배경을 maxContentWidth 기준으로 통일 (일관된 레이아웃)
+    // 콘텐츠는 X=0 기준 중앙 정렬, 배경은 maxContentWidth를 감싸도록 설정
+
+    // Swimlane 배경 위치 계산
     const bgLeft = fixedLabelX - SWIMLANE_PADDING;
-
-    // ⭐️ 꿀팁: 중앙 정렬을 완벽하게 맞추기 위해 배경을 좌우 대칭으로 만듭니다.
-    // 왼쪽(라벨 영역)만큼 오른쪽에도 여백을 주어 전체 Bounding Box의 중심이 X=0(콘텐츠 중심)이 되도록 합니다.
-    const bgRight = Math.abs(bgLeft);
-
+    // 콘텐츠 영역의 오른쪽 끝 = maxContentWidth/2 + 패딩
+    const bgRight = maxContentWidth / 2 + SWIMLANE_PADDING;
     const bgWidth = bgRight - bgLeft;
 
     nodes.push({
