@@ -24,7 +24,6 @@ import {
   type NodeProps,
   Position,
   ReactFlow,
-  ReactFlowProvider,
   useNodesInitialized,
   useReactFlow,
 } from '@xyflow/react';
@@ -32,7 +31,6 @@ import React, {
   Component,
   memo,
   type ReactNode,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -74,10 +72,7 @@ function AutoFitView() {
       // 약간의 지연 후 fitView 실행 (렌더링 완료 보장)
       const timer = setTimeout(() => {
         fitView({
-          padding: 0.2, // 20% 여백 (노트북 최적화)
-          includeHiddenNodes: true,
-          minZoom: 0.05,
-          maxZoom: 0.8, // 더 축소된 상태로 시작
+          ...FIT_VIEW_OPTIONS,
           duration: 200, // 부드러운 애니메이션
         });
         hasFitted.current = true;
@@ -600,19 +595,7 @@ function ReactFlowDiagram({
     []
   );
 
-  // 🔧 onInit: React Flow 초기화 완료 시 fitView 호출 (여러 번 시도)
-  const handleInit = useCallback(
-    (instance: { fitView: (options?: typeof FIT_VIEW_OPTIONS) => void }) => {
-      // 초기화 직후, 500ms 후, 1000ms 후 fitView 시도
-      const delays = [100, 500, 1000];
-      delays.forEach((delay) => {
-        setTimeout(() => {
-          instance.fitView(FIT_VIEW_OPTIONS);
-        }, delay);
-      });
-    },
-    []
-  );
+  // 🔧 fitView는 AutoFitView 컴포넌트에서 nodesInitialized 기반으로 처리
 
   return (
     <div className="flex flex-col space-y-4">
