@@ -681,7 +681,9 @@ export default function FeatureCardModal({
       {/* 🔧 P1: dvh 단위로 모바일 주소바 문제 해결, motion-reduce 지원 */}
       <div
         ref={actualModalRef}
-        className={`relative max-h-[96dvh] w-full max-w-[96vw] transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-transform duration-300 motion-reduce:transition-none ${
+        className={`relative max-h-[96dvh] w-full ${
+          showDiagram ? 'max-w-[96vw]' : 'max-w-4xl'
+        } transform overflow-hidden rounded-2xl border border-gray-600/50 bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-all duration-300 motion-reduce:transition-none ${
           !cardData.id ? 'hidden' : ''
         }`}
         data-modal-content="portal-unified-v4-ai-cross-verified"
