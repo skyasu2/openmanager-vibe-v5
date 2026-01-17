@@ -31,6 +31,12 @@ vi.mock('@xyflow/react', () => ({
   Handle: vi.fn(() => <div data-testid="react-flow-handle" />),
   Position: { Top: 'top', Bottom: 'bottom', Left: 'left', Right: 'right' },
   MarkerType: { ArrowClosed: 'arrowclosed' },
+  // AutoFitView 컴포넌트에서 사용하는 훅
+  useNodesInitialized: vi.fn(() => true),
+  useReactFlow: vi.fn(() => ({
+    fitView: vi.fn(),
+    getViewport: vi.fn(() => ({ x: 0, y: 0, zoom: 1 })),
+  })),
 }));
 
 // 컴포넌트 import (모킹 후)

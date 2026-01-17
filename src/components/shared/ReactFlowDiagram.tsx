@@ -491,6 +491,9 @@ function convertToReactFlow(diagram: DiagramData): {
 
   // 엣지 생성
   if (diagram.connections) {
+    // 유효한 노드 ID 집합 생성 (존재하지 않는 노드 참조 필터링용)
+    const validNodeIds = new Set(contentNodes.map((n) => n.id));
+
     // 팬아웃 감지: 동일 소스에서 여러 타겟으로 연결
     const sourceConnectionCount: Record<string, number> = {};
     diagram.connections.forEach((conn) => {
@@ -499,6 +502,11 @@ function convertToReactFlow(diagram: DiagramData): {
     });
 
     diagram.connections.forEach((conn, index) => {
+      // 유효성 검사: source와 target 노드가 모두 존재하는지 확인
+      if (!validNodeIds.has(conn.from) || !validNodeIds.has(conn.to)) {
+        return; // 유효하지 않은 연결은 생략
+      }
+
       const isFanOut = (sourceConnectionCount[conn.from] ?? 0) >= 4;
 
       edges.push({
