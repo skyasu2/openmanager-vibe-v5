@@ -82,14 +82,20 @@ export function useSystemStart(options: UseSystemStartOptions) {
   // 게스트 제한 모달 상태 (alert 대체)
   const [showGuestRestriction, setShowGuestRestriction] = useState(false);
 
+  // 🔧 카운트다운 취소 함수 (setState 배칭 최적화)
+  const cancelCountdown = useCallback(() => {
+    if (countdownTimer) clearInterval(countdownTimer);
+    // React 18+ 자동 배칭: 동일 이벤트 핸들러 내 setState는 배칭됨
+    setCountdownTimer(null);
+    setSystemStartCountdown(0);
+    setIsSystemStarting(false);
+  }, [countdownTimer]);
+
   // ESC 키로 카운트다운 취소
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && systemStartCountdown > 0) {
-        if (countdownTimer) clearInterval(countdownTimer);
-        setCountdownTimer(null);
-        setSystemStartCountdown(0);
-        setIsSystemStarting(false);
+        cancelCountdown();
       }
     };
     if (systemStartCountdown > 0) {
@@ -97,7 +103,7 @@ export function useSystemStart(options: UseSystemStartOptions) {
       return () => window.removeEventListener('keydown', handleEscKey);
     }
     return undefined;
-  }, [systemStartCountdown, countdownTimer]);
+  }, [systemStartCountdown, cancelCountdown]);
 
   // 타이머 클린업
   useEffect(() => {
@@ -194,12 +200,9 @@ export function useSystemStart(options: UseSystemStartOptions) {
 
     logger.info('✅ 시스템 토글 실행 - GitHub 사용자:', isGitHubUser);
 
-    // 카운트다운 중이면 취소
+    // 카운트다운 중이면 취소 (최적화된 함수 사용)
     if (systemStartCountdown > 0) {
-      if (countdownTimer) clearInterval(countdownTimer);
-      setCountdownTimer(null);
-      setSystemStartCountdown(0);
-      setIsSystemStarting(false);
+      cancelCountdown();
       return;
     }
 
@@ -243,7 +246,7 @@ export function useSystemStart(options: UseSystemStartOptions) {
     isGitHubUser,
     authLoading,
     statusLoading,
-    countdownTimer,
+    cancelCountdown, // 🔧 countdownTimer → cancelCountdown으로 최적화
     router,
     startMultiUserSystem,
     startSystem,

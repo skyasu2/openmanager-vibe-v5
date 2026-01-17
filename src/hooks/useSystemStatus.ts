@@ -1,7 +1,24 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { logger } from '@/lib/logging';
+
+// 🔧 깊은 비교 함수 (불필요한 리렌더링 방지)
+function isStatusEqual(
+  a: SystemStatus | null,
+  b: SystemStatus | null
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.isRunning === b.isRunning &&
+    a.isStarting === b.isStarting &&
+    a.userCount === b.userCount &&
+    a.uptime === b.uptime &&
+    a.version === b.version &&
+    a.environment === b.environment
+  );
+}
 
 export interface SystemStatus {
   isRunning: boolean;
@@ -31,6 +48,15 @@ export function useSystemStatus(): UseSystemStatusReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastFocusRefresh, setLastFocusRefresh] = useState<number>(0);
+  const statusRef = useRef<SystemStatus | null>(null); // 🔧 비교용 ref
+
+  // 🔧 상태 업데이트 최적화: 변경된 경우만 setState 호출
+  const updateStatusIfChanged = useCallback((newStatus: SystemStatus) => {
+    if (!isStatusEqual(statusRef.current, newStatus)) {
+      statusRef.current = newStatus;
+      setStatus(newStatus);
+    }
+  }, []);
 
   const _fetchStatus = useCallback(async () => {
     try {
@@ -137,7 +163,8 @@ export function useSystemStatus(): UseSystemStatusReturn {
         }
 
         const data = await response.json();
-        setStatus(data);
+        // 🔧 불필요한 리렌더링 방지: 상태가 변경된 경우만 업데이트
+        updateStatusIfChanged(data);
         setError(null);
       } catch (err) {
         // AbortError는 무시 (정상적인 cleanup)
@@ -165,7 +192,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
       clearInterval(interval);
       abortController.abort(); // 🔧 컴포넌트 unmount 시 진행 중인 fetch 취소
     };
-  }, []); // fetchStatus 함수 의존성 제거하여 React Error #310 해결
+  }, [updateStatusIfChanged]); // 🔧 최적화 함수 의존성 추가
 
   // 페이지 포커스 시 상태 새로고침 (2분 throttle) - 인라인 구현
   useEffect(() => {
@@ -188,7 +215,8 @@ export function useSystemStatus(): UseSystemStatusReturn {
               }
 
               const data = await response.json();
-              setStatus(data);
+              // 🔧 불필요한 리렌더링 방지
+              updateStatusIfChanged(data);
               setError(null);
             } catch (err) {
               // AbortError는 무시 (정상적인 cleanup)
@@ -215,7 +243,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
       window.removeEventListener('focus', handleFocus);
       abortController.abort(); // 🔧 컴포넌트 unmount 시 진행 중인 fetch 취소
     };
-  }, [lastFocusRefresh]); // fetchStatus 함수 의존성 제거하여 React Error #310 해결
+  }, [lastFocusRefresh, updateStatusIfChanged]); // 🔧 최적화 함수 의존성 추가
 
   return {
     status,
