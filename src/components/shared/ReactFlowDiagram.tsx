@@ -107,7 +107,9 @@ interface CustomNodeData extends Record<string, unknown> {
   sublabel?: string;
   icon?: string;
   nodeType: 'primary' | 'secondary' | 'tertiary' | 'highlight';
+  /** @description 레이어 색상 (디버깅/확장용, 현재 UI 미사용) */
   layerColor: string;
+  /** @description 레이어 제목 (디버깅/확장용, 현재 UI 미사용) */
   layerTitle: string;
 }
 
@@ -314,15 +316,15 @@ const LayerLabelNode = memo(
   ({ data }: NodeProps<Node<{ title: string; color: string }>>) => {
     return (
       // 🔧 P4: Unified Sidebar Design - 카드 제거, 텍스트 중심 디자인
-      <div className="flex h-full w-full flex-col justify-center pr-6 text-right">
+      <div className="group flex h-full w-full flex-col justify-center pr-6 text-right transition-opacity">
         {/* 메인 라벨 - truncate로 오버플로우 방지, title로 전체 텍스트 표시 */}
         <div className="relative z-10" title={data.title}>
-          <span className="block truncate text-xs font-bold leading-tight text-white/90">
+          <span className="block truncate text-xs font-bold leading-tight text-white/90 transition-colors group-hover:text-white">
             {data.title}
           </span>
-          {/* 하단 강조 라인 (Accent) - bg-gradient-to-r 필수 */}
+          {/* 하단 강조 라인 (Accent) - bg-gradient-to-r 필수, hover 시 확장 */}
           <div
-            className={`ml-auto mt-1.5 h-0.5 w-8 rounded-full opacity-80 bg-gradient-to-r ${data.color}`}
+            className={`ml-auto mt-1.5 h-0.5 w-8 rounded-full opacity-80 transition-all duration-200 group-hover:w-12 group-hover:opacity-100 bg-gradient-to-r ${data.color}`}
           />
         </div>
       </div>
