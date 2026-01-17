@@ -10,13 +10,22 @@ function isStatusEqual(
 ): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
+
+  // services 깊은 비교 (DB/Cache/AI 장애 감지)
+  const servicesEqual =
+    a.services?.database === b.services?.database &&
+    a.services?.cache === b.services?.cache &&
+    a.services?.ai === b.services?.ai;
+
   return (
     a.isRunning === b.isRunning &&
     a.isStarting === b.isStarting &&
     a.userCount === b.userCount &&
     a.uptime === b.uptime &&
     a.version === b.version &&
-    a.environment === b.environment
+    a.environment === b.environment &&
+    servicesEqual
+    // Note: lastUpdate 변경은 의도적으로 무시 (리렌더링 방지)
   );
 }
 
