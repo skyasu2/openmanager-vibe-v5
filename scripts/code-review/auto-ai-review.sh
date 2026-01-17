@@ -2,9 +2,14 @@
 
 # Auto AI Code Review Script (2-AI 순환) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 9.0.0
-# 날짜: 2026-01-15
+# 버전: 9.1.0
+# 날짜: 2026-01-17
 # 전략: 2-AI 순환 (Codex ↔ Gemini) 1:1 비율 + pending/history 구조
+#
+# v9.1.0 (2026-01-17): 사이드 이펙트 수정
+# - 🐛 수정: 누적 리뷰에서 전체 범위 검증 (is_delete_only_range 추가)
+# - 🐛 수정: Gemini 필터 정밀화 (thinking 동사만 필터)
+# - 🎯 효과: False Positive 감소, 누적 리뷰 정확도 향상
 #
 # v9.0.0 (2026-01-15): pending/history 구조 + Claude Code 자동 평가
 # - ✨ 신규: 리뷰 파일 → pending/ 디렉토리에 저장
@@ -236,12 +241,11 @@ TS_SUMMARY=""
 LINT_LOG=""
 TS_LOG=""
 
-# v7.4.0: 삭제 전용 커밋 감지 함수
+# v7.4.0: 삭제 전용 커밋 감지 함수 (단일 커밋)
 is_delete_only_commit() {
     local commit_hash="${1:-HEAD}"
 
     # numstat: additions deletions filename
-    # 삭제 전용이면 additions가 모두 0
     local additions=$(git -C "$PROJECT_ROOT" diff-tree --numstat -r "$commit_hash" 2>/dev/null | awk '{sum += $1} END {print sum+0}')
     local deletions=$(git -C "$PROJECT_ROOT" diff-tree --numstat -r "$commit_hash" 2>/dev/null | awk '{sum += $2} END {print sum+0}')
 
@@ -252,19 +256,60 @@ is_delete_only_commit() {
     return 1  # False: 일반 커밋
 }
 
-# v7.4.0: 검증 결과 변수 설정
+# v7.5.0: 삭제 전용 범위 감지 함수 (누적 리뷰용)
+is_delete_only_range() {
+    local from_commit="${1}"
+    local to_commit="${2:-HEAD}"
+
+    # 범위가 없으면 단일 커밋 검사
+    if [ -z "$from_commit" ]; then
+        is_delete_only_commit "$to_commit"
+        return $?
+    fi
+
+    # 범위 diff의 additions/deletions 계산
+    local additions=$(git -C "$PROJECT_ROOT" diff --numstat "$from_commit".."$to_commit" 2>/dev/null | awk '{sum += $1} END {print sum+0}')
+    local deletions=$(git -C "$PROJECT_ROOT" diff --numstat "$from_commit".."$to_commit" 2>/dev/null | awk '{sum += $2} END {print sum+0}')
+
+    if [ "$additions" -eq 0 ] && [ "$deletions" -gt 0 ]; then
+        return 0  # True: 삭제 전용
+    fi
+    return 1  # False: 일반 변경
+}
+
+# v7.5.0: 검증 결과 변수 설정 (누적 리뷰 지원)
+# Usage: set_verification_status [commit_or_range] [to_commit]
+#   단일 커밋: set_verification_status "abc123"
+#   범위: set_verification_status "from_commit" "to_commit"
 set_verification_status() {
-    local commit_hash="${1:-HEAD}"
+    local from_commit="${1:-HEAD}"
+    local to_commit="${2:-}"
 
     VERIFY_TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-    if is_delete_only_commit "$commit_hash"; then
+    local is_delete_only=false
+    local range_desc=""
+
+    if [ -n "$to_commit" ]; then
+        # 범위 모드 (누적 리뷰)
+        range_desc="누적 ${from_commit:0:7}..${to_commit:0:7}"
+        if is_delete_only_range "$from_commit" "$to_commit"; then
+            is_delete_only=true
+        fi
+    else
+        # 단일 커밋 모드
+        range_desc="커밋 ${from_commit:0:7}"
+        if is_delete_only_commit "$from_commit"; then
+            is_delete_only=true
+        fi
+    fi
+
+    if [ "$is_delete_only" = true ]; then
         LINT_SUMMARY="해당 없음 (코드 삭제)"
         TS_SUMMARY="해당 없음 (코드 삭제)"
-        LINT_LOG="N/A (삭제 전용 커밋)"
-        TS_LOG="N/A (삭제 전용 커밋)"
+        LINT_LOG="N/A (${range_desc})"
+        TS_LOG="N/A (${range_desc})"
     else
-        # 일반 커밋: 검증 스킵 표시 (별도 스크립트에서 실행)
         LINT_SUMMARY="자동 검증 (pre-push)"
         TS_SUMMARY="자동 검증 (pre-push)"
         LINT_LOG="logs/validation/"
@@ -568,30 +613,34 @@ main() {
     # 2단계: 변경된 파일 목록 가져오기
     local head_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%H)
 
-    # v7.4.0: 검증 결과 변수 설정 (삭제 전용 커밋 감지)
-    set_verification_status "$head_commit"
-
     # 2-0단계: 누적 리뷰 체크 (v6.12.0)
     local unreviewed_count=1
     local changed_files=""
     local review_range_desc=""
+    local last_reviewed=""
 
     if [ "$CUMULATIVE_REVIEW" = "true" ]; then
         unreviewed_count=$(get_unreviewed_commit_count)
-        local last_reviewed=$(get_last_reviewed_commit)
+        last_reviewed=$(get_last_reviewed_commit)
 
         if [ "$unreviewed_count" -gt 1 ]; then
             log_info "📚 미검토 커밋 ${unreviewed_count}개 발견 (누적 리뷰 모드)"
             log_info "   마지막 리뷰: ${last_reviewed:0:7} → HEAD: ${head_commit:0:7}"
             changed_files=$(get_cumulative_changed_files)
             review_range_desc="누적 ${unreviewed_count}개 커밋"
+            # v7.5.0: 누적 범위로 검증 상태 설정
+            set_verification_status "$last_reviewed" "$head_commit"
         else
             changed_files=$(git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit")
             review_range_desc="단일 커밋 ${head_commit:0:7}"
+            # v7.5.0: 단일 커밋으로 검증 상태 설정
+            set_verification_status "$head_commit"
         fi
     else
         changed_files=$(git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$head_commit")
         review_range_desc="단일 커밋 ${head_commit:0:7}"
+        # v7.5.0: 단일 커밋으로 검증 상태 설정
+        set_verification_status "$head_commit"
     fi
 
     # 2-1단계: 중복 리뷰 체크 (v6.5.0) - 단일 커밋 모드에서만
