@@ -24,10 +24,74 @@ import {
   type NodeProps,
   Position,
   ReactFlow,
+  ReactFlowProvider,
+  useNodesInitialized,
+  useReactFlow,
 } from '@xyflow/react';
-import React, { Component, memo, type ReactNode, useMemo } from 'react';
+import React, {
+  Component,
+  memo,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import '@xyflow/react/dist/style.css';
 import type { ArchitectureDiagram as DiagramData } from '@/data/architecture-diagrams.data';
+
+// =============================================================================
+// FitView 옵션 및 컴포넌트
+// =============================================================================
+
+/**
+ * fitView 옵션 - 모든 노드가 화면에 보이도록 설정
+ * padding: 15% 여백으로 노드가 가장자리에 닿지 않도록
+ * includeHiddenNodes: 숨겨진 노드도 포함
+ */
+const FIT_VIEW_OPTIONS = {
+  padding: 0.15, // 15% 여백
+  includeHiddenNodes: true,
+  minZoom: 0.1,
+  maxZoom: 1.0, // fitView가 줌을 결정하도록
+};
+
+/**
+ * AutoFitView - 노드 초기화 완료 후 자동 fitView 실행
+ *
+ * 🔧 수정 (2026-01-17): useNodesInitialized + useReactFlow 조합 사용
+ * - nodesInitialized가 true가 되면 모든 노드의 dimensions이 계산됨
+ * - 이 시점에 fitView()를 호출하면 정확한 bounds 계산 가능
+ */
+function AutoFitView() {
+  const nodesInitialized = useNodesInitialized();
+  const { fitView } = useReactFlow();
+  const hasFitted = useRef(false);
+
+  useEffect(() => {
+    // 노드가 초기화되고 아직 fitView를 실행하지 않았을 때만 실행
+    if (nodesInitialized && !hasFitted.current) {
+      // 약간의 지연 후 fitView 실행 (렌더링 완료 보장)
+      const timer = setTimeout(() => {
+        fitView({
+          padding: 0.12,
+          includeHiddenNodes: true,
+          minZoom: 0.1,
+          maxZoom: 1.0,
+          duration: 200, // 부드러운 애니메이션
+        });
+        hasFitted.current = true;
+        console.log('[AutoFitView] fitView 실행 완료 (nodesInitialized)');
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+    // TypeScript: 모든 경로에서 반환값 필요
+    return undefined;
+  }, [nodesInitialized, fitView]);
+
+  return null;
+}
 
 // =============================================================================
 // Types
@@ -154,7 +218,7 @@ class DiagramErrorBoundary extends Component<
  */
 const NODE_WIDTH = 200;
 const NODE_HEIGHT = 56;
-const NODE_GAP = 80;
+const NODE_GAP = 24; // 30 → 24: 더 컴팩트한 레이아웃으로 전체 높이 감소
 const MAX_NODES_PER_ROW = 4; // 한 줄 최대 노드 수
 const LABEL_AREA_WIDTH = 180; // Swimlane 라벨 영역 너비 (확장: 120 -> 180)
 const LABEL_CONTENT_GAP = 40; // 라벨과 콘텐츠 사이 간격
@@ -326,7 +390,9 @@ function convertToReactFlow(diagram: DiagramData): {
   const edges: Edge[] = [];
   const nodePositions: Record<string, { x: number; y: number }> = {};
 
-  let currentY = 0;
+  // 🔧 상단 여백 추가 (fitView가 노드 중심 기준 계산 → 시각적 콘텐츠 잘림 방지)
+  // 80px 여백으로 User Query 노드가 완전히 보이도록 함
+  let currentY = 80;
 
   // 1. 콘텐츠 영역의 최대 너비 계산 (중앙 정렬 기준점 확보)
   let maxContentWidth = 0;
@@ -534,6 +600,20 @@ function ReactFlowDiagram({
     []
   );
 
+  // 🔧 onInit: React Flow 초기화 완료 시 fitView 호출 (여러 번 시도)
+  const handleInit = useCallback(
+    (instance: { fitView: (options?: typeof FIT_VIEW_OPTIONS) => void }) => {
+      // 초기화 직후, 500ms 후, 1000ms 후 fitView 시도
+      const delays = [100, 500, 1000];
+      delays.forEach((delay) => {
+        setTimeout(() => {
+          instance.fitView(FIT_VIEW_OPTIONS);
+        }, delay);
+      });
+    },
+    []
+  );
+
   return (
     <div className="flex flex-col space-y-4">
       {/* 다이어그램 헤더 */}
@@ -548,31 +628,34 @@ function ReactFlowDiagram({
       <DiagramErrorBoundary diagramTitle={diagram.title}>
         <div
           className={`rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 ${
-            compact ? 'h-[500px]' : 'h-[650px]'
+            compact ? 'h-[750px]' : 'h-[800px]'
           }`}
         >
           <ReactFlow
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
+            // 🔧 fitView: 초기 로드 시 모든 노드가 보이도록 자동 맞춤
+            // minZoom을 0.1로 낮춰 충분히 축소 가능하게 설정
             fitView
             fitViewOptions={{
-              padding: 0.05,
-              minZoom: 1.0,
-              maxZoom: 1.5,
+              padding: 0.15, // 15% 여백
+              minZoom: 0.1,
+              maxZoom: 1.0,
+              includeHiddenNodes: true,
             }}
-            minZoom={0.3}
+            minZoom={0.1}
             maxZoom={2.5}
             defaultEdgeOptions={defaultEdgeOptions}
             proOptions={{ hideAttribution: true }}
-            // 🔧 P1: 대량 노드 성능 최적화 - 보이는 요소만 렌더링
-            onlyRenderVisibleElements
             // 🔧 P2: 키보드 접근성 - Tab으로 노드/엣지 포커스, Arrow 키로 이동
             nodesFocusable
             edgesFocusable
             className="react-flow-dark"
             aria-label={`${diagram.title} 아키텍처 다이어그램`}
           >
+            {/* 🔧 AutoFitView: 500ms 후 Fit View 버튼 자동 클릭 */}
+            <AutoFitView />
             <Background color="rgba(255, 255, 255, 0.05)" gap={20} size={1} />
             {showControls && (
               <Controls
