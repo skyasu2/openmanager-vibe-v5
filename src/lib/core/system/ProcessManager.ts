@@ -72,8 +72,9 @@ export class ProcessManager
   private isSystemRunning = false;
   private systemStartTime?: Date;
   private stabilityTimeout?: NodeJS.Timeout;
-  private readonly healthCheckIntervalMs =
-    process.env.NODE_ENV === 'development' ? 60000 : 30000; // 개발: 60초, 운영: 30초
+  // 🔧 헬스체크 간격 최적화: 웜업 3단계 이후에만 동작, 5분 간격
+  // 웜업 단계: 1) 시스템 시작 2) 대시보드 진입 3) AI 어시스턴트 클릭
+  private readonly healthCheckIntervalMs = 300000; // 5분 (Vercel 사용량 최적화)
   private readonly stabilityTimeoutMs = 30 * 60 * 1000; // 30분
 
   constructor(eventBus?: ISystemEventBus) {

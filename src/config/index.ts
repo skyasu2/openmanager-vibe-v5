@@ -84,7 +84,7 @@ export const ConfigSchema = z.object({
   // 모니터링 설정
   monitoring: z.object({
     enableHealthCheck: z.boolean().default(true),
-    healthCheckInterval: z.number().min(5000).default(30000), // 30초
+    healthCheckInterval: z.number().min(5000).default(300000), // 5분 (Vercel 최적화)
     enableMetricsCollection: z.boolean().default(true),
     metricsRetentionDays: z.number().min(1).default(30),
     enablePerformanceMonitoring: z.boolean().default(true),

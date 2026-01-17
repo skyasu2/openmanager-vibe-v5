@@ -39,8 +39,9 @@ export const FREE_TIER_INTERVALS = {
   // 데이터 수집 간격 (밀리초)
   DATA_COLLECTION_INTERVAL: getEnvNumber('DATA_COLLECTION_INTERVAL', 300000), // 기본값: 5분
 
-  // 헬스체크 간격 (밀리초)
-  HEALTH_CHECK_INTERVAL: getEnvNumber('HEALTH_CHECK_INTERVAL', 60000), // 기본값: 1분
+  // 헬스체크 간격 (밀리초) - 웜업 3단계 이후에만 동작
+  // 🔧 최적화: 시스템 시작 전 헬스체크 비활성화, 5분 간격으로 최소화
+  HEALTH_CHECK_INTERVAL: getEnvNumber('HEALTH_CHECK_INTERVAL', 300000), // 기본값: 5분
 
   // 메트릭 수집 간격 (밀리초)
   METRICS_COLLECTION_INTERVAL: getEnvNumber(
