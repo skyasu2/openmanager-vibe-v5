@@ -314,9 +314,9 @@ const LayerLabelNode = memo(
     return (
       // 🔧 P4: Unified Sidebar Design - 카드 제거, 텍스트 중심 디자인
       <div className="flex h-full w-full flex-col justify-center pr-6 text-right">
-        {/* 메인 라벨 */}
-        <div className="relative z-10">
-          <span className="text-xs font-bold leading-tight text-white/90">
+        {/* 메인 라벨 - truncate로 오버플로우 방지, title로 전체 텍스트 표시 */}
+        <div className="relative z-10" title={data.title}>
+          <span className="block truncate text-xs font-bold leading-tight text-white/90">
             {data.title}
           </span>
           {/* 하단 강조 라인 (Accent) - bg-gradient-to-r 필수 */}
@@ -448,15 +448,19 @@ function convertToReactFlow(diagram: DiagramData): {
     });
 
     // 1. 레이어 라벨 (좌측 고정 위치)
-    // vertical center에 위치
-    const labelY = currentY + (layerHeight - SWIMLANE_PADDING * 2) / 2 - 10; // 높이 절반 - 텍스트보정
+    // 🔧 P4: 새 텍스트 디자인 기준 보정값 조정 (카드 -10 → 텍스트 -12)
+    const LABEL_NODE_HEIGHT = 40; // 라벨 노드 명시적 높이
+    const labelY =
+      currentY +
+      (layerHeight - SWIMLANE_PADDING * 2) / 2 -
+      LABEL_NODE_HEIGHT / 2;
 
     nodes.push({
       id: `layer-${layerIndex}`,
       type: 'layerLabel',
       position: { x: fixedLabelX, y: labelY },
-      // 🔧 라벨 노드에 명시적 width 설정 (180px) - style.width만 사용 (DRY)
-      style: { width: LABEL_AREA_WIDTH },
+      // 🔧 라벨 노드에 명시적 크기 설정 (width/height)
+      style: { width: LABEL_AREA_WIDTH, height: LABEL_NODE_HEIGHT },
       data: { title: layer.title, color: layer.color },
       draggable: false,
       selectable: false,
