@@ -394,7 +394,7 @@ export default function EnhancedServerModal({
         aria-labelledby="modal-title"
       >
         {/* 헤더 - Light Mode Style */}
-        <div className="bg-gradient-to-r from-slate-50 to-gray-100 border-b border-gray-200 p-4 sm:p-6">
+        <div className="bg-linear-to-r from-slate-50 to-gray-100 border-b border-gray-200 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             {/* 💡 핵심 정보 통합 */}
             <div className="flex items-center gap-2 sm:gap-4">
@@ -510,7 +510,7 @@ export default function EnhancedServerModal({
         </div>
 
         {/* 콘텐츠 영역 */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-white">
+        <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 to-white">
           <div
             key={selectedTab}
             id={`panel-${selectedTab}`}

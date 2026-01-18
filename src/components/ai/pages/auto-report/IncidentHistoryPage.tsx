@@ -405,12 +405,12 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
   );
 
   return (
-    <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="flex h-full flex-col bg-linear-to-br from-slate-50 to-blue-50">
       {/* Header */}
       <div className="border-b border-gray-200 bg-white/80 p-4 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-blue-500 to-indigo-500">
               <FileText className="h-5 w-5 text-white" />
             </div>
             <div>

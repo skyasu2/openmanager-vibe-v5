@@ -52,7 +52,7 @@ export const ClarificationDialog: FC<ClarificationDialogProps> = memo(
     };
 
     return (
-      <div className="mx-4 my-3 rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 shadow-sm">
+      <div className="mx-4 my-3 rounded-xl border border-amber-200 bg-linear-to-br from-amber-50 to-orange-50 p-4 shadow-sm">
         {/* 헤더 */}
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center gap-2">

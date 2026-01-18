@@ -91,7 +91,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
       <div className="group relative flex flex-row items-center justify-between rounded-2xl border border-white/60 bg-white/60 backdrop-blur-md p-5 shadow-sm transition-all duration-300 hover:shadow-lg hover:scale-[1.02] lg:col-span-2 overflow-hidden">
         {/* 그라데이션 배경 */}
         <div
-          className={`absolute inset-0 bg-gradient-to-br ${statusGradients.total.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
+          className={`absolute inset-0 bg-linear-to-br ${statusGradients.total.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
         />
         <div className="relative z-10">
           <div className="flex items-center gap-1.5 text-gray-500 mb-1.5">
@@ -108,7 +108,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
         </div>
         {/* 그라데이션 아이콘 박스 */}
         <div
-          className={`relative h-10 w-10 rounded-full bg-gradient-to-br ${statusGradients.total.gradient} flex items-center justify-center text-white shadow-md`}
+          className={`relative h-10 w-10 rounded-full bg-linear-to-br ${statusGradients.total.gradient} flex items-center justify-center text-white shadow-md`}
         >
           <Activity size={18} />
         </div>
@@ -121,7 +121,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           className={`group relative overflow-hidden rounded-2xl ${statusGradients.online.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.online.glow}`}
         >
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${statusGradients.online.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
+            className={`absolute inset-0 bg-linear-to-br ${statusGradients.online.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
           />
           <div className="relative z-10 flex flex-col">
             <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-600/80">
@@ -138,7 +138,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           className={`group relative overflow-hidden rounded-2xl ${statusGradients.warning.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.warning.glow}`}
         >
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${statusGradients.warning.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
+            className={`absolute inset-0 bg-linear-to-br ${statusGradients.warning.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
           />
           {/* 경고 펄스 효과 */}
           {safeStats.warning > 0 && (
@@ -161,7 +161,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           className={`group relative overflow-hidden rounded-2xl ${statusGradients.critical.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.critical.glow}`}
         >
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${statusGradients.critical.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
+            className={`absolute inset-0 bg-linear-to-br ${statusGradients.critical.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
           />
           {/* 위험 펄스 효과 - 더 강조 */}
           {safeStats.critical > 0 && (
@@ -187,7 +187,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           className={`group relative overflow-hidden rounded-2xl ${statusGradients.offline.border} bg-white/60 backdrop-blur-md p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${statusGradients.offline.glow}`}
         >
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${statusGradients.offline.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
+            className={`absolute inset-0 bg-linear-to-br ${statusGradients.offline.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
           />
           <div className="relative z-10 flex flex-col">
             <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
@@ -206,13 +206,13 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
       >
         {/* 상태 기반 그라데이션 배경 */}
         <div
-          className={`absolute inset-0 bg-gradient-to-br ${systemHealthGradient.gradient} opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500`}
+          className={`absolute inset-0 bg-linear-to-br ${systemHealthGradient.gradient} opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500`}
         />
 
         {/* 위험/경고 시 글로우 효과 */}
         {showPulse && (
           <div
-            className={`absolute inset-0 bg-gradient-to-r ${systemHealthGradient.gradient} opacity-[0.02] animate-pulse`}
+            className={`absolute inset-0 bg-linear-to-r ${systemHealthGradient.gradient} opacity-[0.02] animate-pulse`}
           />
         )}
 
@@ -220,13 +220,13 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           <div className="flex items-center gap-4">
             {/* 동적 아이콘 박스 */}
             <div
-              className={`relative flex h-12 w-12 items-center justify-center rounded-2xl shadow-md bg-gradient-to-br ${systemHealthGradient.gradient} text-white`}
+              className={`relative flex h-12 w-12 items-center justify-center rounded-2xl shadow-md bg-linear-to-br ${systemHealthGradient.gradient} text-white`}
             >
               <ShieldAlert size={22} />
               {/* 상태에 따른 펄스 링 */}
               {showPulse && (
                 <div
-                  className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${systemHealthGradient.gradient} animate-ping opacity-30`}
+                  className={`absolute inset-0 rounded-2xl bg-linear-to-br ${systemHealthGradient.gradient} animate-ping opacity-30`}
                 />
               )}
             </div>

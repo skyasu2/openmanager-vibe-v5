@@ -114,7 +114,7 @@ export class AIErrorBoundary extends Component<
     // 기본 에러 UI
     return (
       <div className="flex h-full min-h-[200px] items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-xl border border-red-200 bg-gradient-to-br from-red-50 to-orange-50 p-6 shadow-sm">
+        <div className="w-full max-w-md rounded-xl border border-red-200 bg-linear-to-br from-red-50 to-orange-50 p-6 shadow-sm">
           {/* 헤더 */}
           <div className="mb-4 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">

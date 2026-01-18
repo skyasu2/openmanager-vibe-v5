@@ -232,7 +232,7 @@ export const SLAWidget = memo(function SLAWidget({
       </div>
 
       {/* Main Metric */}
-      <div className="mb-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+      <div className="mb-4 rounded-lg bg-linear-to-r from-blue-50 to-indigo-50 p-4">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm text-gray-600">현재 가용률</div>

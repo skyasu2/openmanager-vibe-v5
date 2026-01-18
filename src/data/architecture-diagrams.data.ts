@@ -490,32 +490,3 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
 export function getDiagramByCardId(cardId: string): ArchitectureDiagram | null {
   return ARCHITECTURE_DIAGRAMS[cardId] || null;
 }
-
-/**
- * 노드 타입별 스타일 매핑
- */
-export const NODE_STYLES: Record<
-  DiagramNode['type'],
-  { bg: string; border: string; text: string }
-> = {
-  primary: {
-    bg: 'bg-white/15',
-    border: 'border-white/30',
-    text: 'text-white',
-  },
-  secondary: {
-    bg: 'bg-white/10',
-    border: 'border-white/20',
-    text: 'text-white/90',
-  },
-  tertiary: {
-    bg: 'bg-white/5',
-    border: 'border-white/10',
-    text: 'text-white/70',
-  },
-  highlight: {
-    bg: 'bg-linear-to-br from-yellow-500/20 to-amber-500/20',
-    border: 'border-yellow-400/50',
-    text: 'text-yellow-100',
-  },
-};

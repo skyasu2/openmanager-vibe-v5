@@ -161,7 +161,7 @@ export const JobProgressIndicator = memo<JobProgressIndicatorProps>(
     const displayMessage = progress?.message || config.defaultMessage;
 
     return (
-      <div className="mx-4 my-3 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 shadow-sm">
+      <div className="mx-4 my-3 rounded-xl border border-blue-200 bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 shadow-sm">
         {/* Header: 현재 작업 표시 */}
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -205,19 +205,19 @@ export const JobProgressIndicator = memo<JobProgressIndicatorProps>(
         {/* Progress Bar */}
         <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-blue-100">
           <div
-            className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-500 ease-out"
+            className="absolute left-0 top-0 h-full rounded-full bg-linear-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
           />
           {/* Shimmer effect */}
           {isLoading && progressPercent > 0 && (
             <div
-              className="absolute left-0 top-0 h-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              className="absolute left-0 top-0 h-full animate-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent"
               style={{ width: `${progressPercent}%` }}
             />
           )}
           {/* Pulse animation when starting */}
           {progressPercent === 0 && isLoading && (
-            <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-blue-300/50 to-transparent" />
+            <div className="absolute inset-0 animate-pulse bg-linear-to-r from-transparent via-blue-300/50 to-transparent" />
           )}
         </div>
 

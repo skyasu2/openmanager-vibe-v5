@@ -198,7 +198,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       >
         {/* 🎨 그라데이션 애니메이션 배경 (랜딩 카드 스타일) */}
         <div
-          className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${currentGradient.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08]`}
+          className={`absolute inset-0 rounded-2xl bg-linear-to-br ${currentGradient.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08]`}
           style={{
             backgroundSize: '200% 200%',
             animation: 'gradient-shift 4s ease-in-out infinite',
@@ -248,7 +248,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {/* 🎨 아이콘 박스 - 그라데이션 스타일 (랜딩 카드 참조) */}
             <div
-              className={`relative rounded-xl p-2 shadow-lg backdrop-blur-sm transition-all duration-300 group-hover:scale-110 bg-gradient-to-br ${currentGradient.gradient}`}
+              className={`relative rounded-xl p-2 shadow-lg backdrop-blur-sm transition-all duration-300 group-hover:scale-110 bg-linear-to-br ${currentGradient.gradient}`}
               style={{
                 boxShadow: `0 4px 15px ${currentGradient.glow}`,
               }}
@@ -312,7 +312,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <div
-                className={`h-1.5 w-1.5 rounded-full bg-gradient-to-r ${currentGradient.gradient}`}
+                className={`h-1.5 w-1.5 rounded-full bg-linear-to-r ${currentGradient.gradient}`}
               />
               <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
                 Live Metrics

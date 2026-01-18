@@ -389,7 +389,7 @@ export default function LoginClient() {
         {/* Header */}
         <div className="mb-10 text-center">
           {/* Gradient Box */}
-          <div className="mx-auto mb-6 h-14 w-14 rounded-2xl bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-400 shadow-lg shadow-purple-500/25" />
+          <div className="mx-auto mb-6 h-14 w-14 rounded-2xl bg-linear-to-br from-pink-500 via-purple-500 to-cyan-400 shadow-lg shadow-purple-500/25" />
           <h1 className="mb-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
             OpenManager 로그인
           </h1>
