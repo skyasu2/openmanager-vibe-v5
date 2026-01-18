@@ -477,14 +477,13 @@ const nextConfig = {
   },
 };
 
-
 export default withSentryConfig(
   withBundleAnalyzer(nextConfig),
   {
     // 🎯 무료 티어: 소스맵 업로드 비활성화
     silent: true,
-    org: "openmanager-vibe",
-    project: "openmanager-vibe-v5",
+    org: 'openmanager-vibe',
+    project: 'openmanager-vibe-v5',
 
     // 🎯 무료 티어: 소스맵 업로드 완전 비활성화
     sourcemaps: {
@@ -493,11 +492,11 @@ export default withSentryConfig(
   },
   {
     // 🎯 무료 티어 최적화 설정
-    widenClientFileUpload: false,    // 소스맵 업로드 비활성화
-    transpileClientSDK: false,       // 번들 사이즈 최적화
-    tunnelRoute: "/monitoring",      // ad-blocker 우회 (유지)
-    hideSourceMaps: true,            // 클라이언트 소스맵 숨김
-    disableLogger: true,             // 로거 트리쉐이킹
-    automaticVercelMonitors: false,  // Cron 모니터링 비활성화 (무료 제한)
+    widenClientFileUpload: false, // 소스맵 업로드 비활성화
+    transpileClientSDK: false, // 번들 사이즈 최적화
+    tunnelRoute: '/_sentry/tunnel', // ad-blocker 우회 (기존 /monitoring → 충돌 방지)
+    hideSourceMaps: true, // 클라이언트 소스맵 숨김
+    disableLogger: true, // 로거 트리쉐이킹
+    automaticVercelMonitors: false, // Cron 모니터링 비활성화 (무료 제한)
   }
 );
