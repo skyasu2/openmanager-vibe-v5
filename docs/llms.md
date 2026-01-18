@@ -1,7 +1,8 @@
-# OpenManager VIBE v5 - LLM Context File
+# OpenManager VIBE v5 - LLM Context
 
-> This file helps AI assistants understand the project structure and key information.
-> Format: llms.txt (2025 standard for AI-optimized documentation)
+> **v5.88.0** | Updated 2026-01-18
+>
+> AI 어시스턴트가 프로젝트를 이해하는 데 필요한 핵심 정보
 
 ## Project Overview
 
@@ -75,4 +76,3 @@ curl https://ai-engine-xxx.run.app/health  # Health check
 
 - Repository: github.com/skyasu2/openmanager-vibe-v5
 - Version: 5.88.0
-- Last Updated: 2026-01-16

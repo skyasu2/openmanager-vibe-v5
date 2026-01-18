@@ -40,7 +40,7 @@ docs/
 ├── 📄 DEVELOPMENT.md               # 개발 환경 가이드
 ├── 📄 status.md                    # 프로젝트 현재 상태 ⭐
 ├── 📄 ai-model-policy.md           # AI 모델 정책
-├── 📄 llms.txt                     # LLM 설정
+├── 📄 llms.md                      # LLM 컨텍스트
 ├── 📁 design/                      # 디자인 문서
 ├── 📄 QUICK-START.md               # 시작 가이드
 ├── 📁 guides/                      # 가이드 문서 ⭐

@@ -96,7 +96,7 @@ flowchart LR
 | [Project Status](./status.md) | 현재 프로젝트 상태 |
 | [Changelog](../CHANGELOG.md) | 변경 이력 (루트) |
 | [AI Model Policy](./ai-model-policy.md) | AI 모델 정책 |
-| [llms.txt](./llms.txt) | AI 최적화 컨텍스트 |
+| [llms.md](./llms.md) | AI 최적화 컨텍스트 |
 
 ---
 
