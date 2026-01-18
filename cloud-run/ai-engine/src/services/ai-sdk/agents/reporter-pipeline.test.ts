@@ -242,8 +242,8 @@ describe('Pipeline Configuration', () => {
     const result = await executeReporterPipeline('기본 설정 테스트');
 
     expect(result.success).toBe(true);
-    // Default maxIterations is 3
-    expect(result.quality.iterations).toBeLessThanOrEqual(3);
+    // Default maxIterations is 1 (optimized for faster responses)
+    expect(result.quality.iterations).toBeLessThanOrEqual(1);
   });
 
   it('should merge custom config with defaults', async () => {

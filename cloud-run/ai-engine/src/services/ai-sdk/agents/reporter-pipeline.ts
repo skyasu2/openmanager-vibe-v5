@@ -146,7 +146,9 @@ export async function executeReporterPipeline(
     }
 
     let currentReport = initialReport;
-    let initialScore = calculateQuickScore(currentReport);
+    // Use evaluateReport for consistent scoring (same as finalScore calculation)
+    const initialEvaluation = evaluateReport(currentReport);
+    let initialScore = initialEvaluation.overallScore;
     let currentScore = initialScore;
 
     // =========================================================================
@@ -476,16 +478,7 @@ function determineFocusArea(report: ReportForEvaluation): keyof typeof COMMAND_T
   return 'general';
 }
 
-function calculateQuickScore(report: ReportForEvaluation): number {
-  let score = 0;
-  if (report.title && report.title.length > 5) score += 0.1;
-  if (report.summary && report.summary.length > 20) score += 0.15;
-  if (report.affectedServers && report.affectedServers.length > 0) score += 0.15;
-  if (report.timeline && report.timeline.length >= 3) score += 0.2;
-  if (report.rootCause) score += report.rootCause.confidence * 0.25;
-  if (report.suggestedActions && report.suggestedActions.length >= 2) score += 0.15;
-  return score;
-}
+// calculateQuickScore removed - using evaluateReport for consistent initial/final scoring
 
 // ============================================================================
 // Export
