@@ -193,12 +193,12 @@
           "type": "database",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 39,
           "memory": 63,
-          "disk": 41,
+          "disk": 82,
           "network": 34,
-          "responseTime": 116,
+          "responseTime": 200,
           "uptime": 2620297,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
@@ -207,9 +207,28 @@
             "memory_gb": 64,
             "disk_gb": 1000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "mysqld",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "mysql-router",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 129,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "21:00:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 82% - 하루 트랜잭션 로그 누적으로 디스크 증가"
+            }
+          ]
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -268,12 +287,12 @@
           "type": "cache",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 21,
-          "memory": 75,
+          "memory": 96,
           "disk": 18,
           "network": 43,
-          "responseTime": 37,
+          "responseTime": 380,
           "uptime": 2624798,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
@@ -282,9 +301,33 @@
             "memory_gb": 32,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 110,
-          "logs": []
+          "services": [
+            {
+              "name": "redis-server",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-server"
+            },
+            {
+              "name": "redis-sentinel",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-sentinel"
+            }
+          ],
+          "processes": 196,
+          "logs": [
+            {
+              "timestamp": "21:00:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 96% - 저녁 피크 타임 캐시 히트율 증가로 메모리 위험"
+            },
+            {
+              "timestamp": "21:01:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -368,11 +411,11 @@
           "type": "loadbalancer",
           "location": "Busan-PUS-DR",
           "environment": "production",
-          "status": "online",
-          "cpu": 35,
+          "status": "warning",
+          "cpu": 76,
           "memory": 35,
           "disk": 16,
-          "network": 67,
+          "network": 68,
           "responseTime": 341,
           "uptime": 2593935,
           "ip": "10.20.6.11",
@@ -382,9 +425,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 138,
-          "logs": []
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 176,
+          "logs": [
+            {
+              "timestamp": "21:00:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 76% - 저녁 SSL termination + health check 오버헤드"
+            }
+          ]
         }
       }
     },
@@ -579,12 +641,12 @@
           "type": "database",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 44,
           "memory": 58,
-          "disk": 44,
+          "disk": 82,
           "network": 37,
-          "responseTime": 91,
+          "responseTime": 200,
           "uptime": 2633420,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
@@ -593,9 +655,28 @@
             "memory_gb": 64,
             "disk_gb": 1000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "mysqld",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "mysql-router",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 116,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "21:10:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 82% - 하루 트랜잭션 로그 누적으로 디스크 증가"
+            }
+          ]
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -654,12 +735,12 @@
           "type": "cache",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 22,
-          "memory": 68,
+          "memory": 96,
           "disk": 16,
           "network": 38,
-          "responseTime": 42,
+          "responseTime": 380,
           "uptime": 2645015,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
@@ -668,9 +749,33 @@
             "memory_gb": 32,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 109,
-          "logs": []
+          "services": [
+            {
+              "name": "redis-server",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-server"
+            },
+            {
+              "name": "redis-sentinel",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-sentinel"
+            }
+          ],
+          "processes": 196,
+          "logs": [
+            {
+              "timestamp": "21:10:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 96% - 저녁 피크 타임 캐시 히트율 증가로 메모리 위험"
+            },
+            {
+              "timestamp": "21:11:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -754,11 +859,11 @@
           "type": "loadbalancer",
           "location": "Busan-PUS-DR",
           "environment": "production",
-          "status": "online",
-          "cpu": 40,
+          "status": "warning",
+          "cpu": 76,
           "memory": 29,
           "disk": 15,
-          "network": 71,
+          "network": 69,
           "responseTime": 285,
           "uptime": 2621719,
           "ip": "10.20.6.11",
@@ -768,9 +873,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 100,
-          "logs": []
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 176,
+          "logs": [
+            {
+              "timestamp": "21:10:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 76% - 저녁 SSL termination + health check 오버헤드"
+            }
+          ]
         }
       }
     },
@@ -965,12 +1089,12 @@
           "type": "database",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 38,
           "memory": 61,
-          "disk": 41,
+          "disk": 82,
           "network": 37,
-          "responseTime": 103,
+          "responseTime": 200,
           "uptime": 2651075,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
@@ -979,9 +1103,28 @@
             "memory_gb": 64,
             "disk_gb": 1000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "mysqld",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "mysql-router",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 117,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "21:20:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 82% - 하루 트랜잭션 로그 누적으로 디스크 증가"
+            }
+          ]
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -1040,12 +1183,12 @@
           "type": "cache",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 18,
-          "memory": 72,
+          "memory": 96,
           "disk": 19,
           "network": 40,
-          "responseTime": 51,
+          "responseTime": 380,
           "uptime": 2625558,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
@@ -1054,9 +1197,33 @@
             "memory_gb": 32,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 140,
-          "logs": []
+          "services": [
+            {
+              "name": "redis-server",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-server"
+            },
+            {
+              "name": "redis-sentinel",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-sentinel"
+            }
+          ],
+          "processes": 196,
+          "logs": [
+            {
+              "timestamp": "21:20:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 96% - 저녁 피크 타임 캐시 히트율 증가로 메모리 위험"
+            },
+            {
+              "timestamp": "21:21:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -1140,11 +1307,11 @@
           "type": "loadbalancer",
           "location": "Busan-PUS-DR",
           "environment": "production",
-          "status": "online",
-          "cpu": 41,
+          "status": "warning",
+          "cpu": 76,
           "memory": 30,
           "disk": 16,
-          "network": 65,
+          "network": 68,
           "responseTime": 364,
           "uptime": 2666046,
           "ip": "10.20.6.11",
@@ -1154,9 +1321,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 117,
-          "logs": []
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 176,
+          "logs": [
+            {
+              "timestamp": "21:20:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 76% - 저녁 SSL termination + health check 오버헤드"
+            }
+          ]
         }
       }
     },
@@ -1352,12 +1538,12 @@
           "type": "database",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 41,
           "memory": 60,
-          "disk": 41,
+          "disk": 82,
           "network": 35,
-          "responseTime": 120,
+          "responseTime": 200,
           "uptime": 2592135,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
@@ -1366,9 +1552,28 @@
             "memory_gb": 64,
             "disk_gb": 1000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "mysqld",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "mysql-router",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 106,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "21:30:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 82% - 하루 트랜잭션 로그 누적으로 디스크 증가"
+            }
+          ]
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -1427,12 +1632,12 @@
           "type": "cache",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 22,
-          "memory": 73,
+          "memory": 96,
           "disk": 15,
           "network": 44,
-          "responseTime": 60,
+          "responseTime": 380,
           "uptime": 2668390,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
@@ -1441,9 +1646,33 @@
             "memory_gb": 32,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 147,
-          "logs": []
+          "services": [
+            {
+              "name": "redis-server",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-server"
+            },
+            {
+              "name": "redis-sentinel",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-sentinel"
+            }
+          ],
+          "processes": 196,
+          "logs": [
+            {
+              "timestamp": "21:30:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 96% - 저녁 피크 타임 캐시 히트율 증가로 메모리 위험"
+            },
+            {
+              "timestamp": "21:31:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -1530,11 +1759,11 @@
           "type": "loadbalancer",
           "location": "Busan-PUS-DR",
           "environment": "production",
-          "status": "online",
-          "cpu": 38,
+          "status": "warning",
+          "cpu": 76,
           "memory": 30,
           "disk": 14,
-          "network": 70,
+          "network": 69,
           "responseTime": 381,
           "uptime": 2656835,
           "ip": "10.20.6.11",
@@ -1544,9 +1773,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 128,
-          "logs": []
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 176,
+          "logs": [
+            {
+              "timestamp": "21:30:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 76% - 저녁 SSL termination + health check 오버헤드"
+            }
+          ]
         }
       }
     },
@@ -1742,12 +1990,12 @@
           "type": "database",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 37,
           "memory": 61,
-          "disk": 41,
+          "disk": 82,
           "network": 38,
-          "responseTime": 143,
+          "responseTime": 200,
           "uptime": 2673691,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
@@ -1756,9 +2004,28 @@
             "memory_gb": 64,
             "disk_gb": 1000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "mysqld",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "mysql-router",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 146,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "21:40:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 82% - 하루 트랜잭션 로그 누적으로 디스크 증가"
+            }
+          ]
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -1817,12 +2084,12 @@
           "type": "cache",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 20,
-          "memory": 74,
+          "memory": 96,
           "disk": 16,
           "network": 39,
-          "responseTime": 49,
+          "responseTime": 380,
           "uptime": 2608027,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
@@ -1831,9 +2098,33 @@
             "memory_gb": 32,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 123,
-          "logs": []
+          "services": [
+            {
+              "name": "redis-server",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-server"
+            },
+            {
+              "name": "redis-sentinel",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-sentinel"
+            }
+          ],
+          "processes": 196,
+          "logs": [
+            {
+              "timestamp": "21:40:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 96% - 저녁 피크 타임 캐시 히트율 증가로 메모리 위험"
+            },
+            {
+              "timestamp": "21:41:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -1920,8 +2211,8 @@
           "type": "loadbalancer",
           "location": "Busan-PUS-DR",
           "environment": "production",
-          "status": "online",
-          "cpu": 35,
+          "status": "warning",
+          "cpu": 76,
           "memory": 36,
           "disk": 12,
           "network": 67,
@@ -1934,9 +2225,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 121,
-          "logs": []
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 176,
+          "logs": [
+            {
+              "timestamp": "21:40:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 76% - 저녁 SSL termination + health check 오버헤드"
+            }
+          ]
         }
       }
     },
@@ -2132,12 +2442,12 @@
           "type": "database",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 35,
           "memory": 59,
-          "disk": 40,
+          "disk": 82,
           "network": 34,
-          "responseTime": 152,
+          "responseTime": 200,
           "uptime": 2622212,
           "ip": "10.10.3.12",
           "os": "Ubuntu 22.04 LTS",
@@ -2146,9 +2456,28 @@
             "memory_gb": 64,
             "disk_gb": 1000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "mysqld",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "mysql-router",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 132,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "21:50:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 82% - 하루 트랜잭션 로그 누적으로 디스크 증가"
+            }
+          ]
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -2207,12 +2536,12 @@
           "type": "cache",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 26,
-          "memory": 72,
+          "memory": 96,
           "disk": 19,
           "network": 42,
-          "responseTime": 45,
+          "responseTime": 380,
           "uptime": 2600970,
           "ip": "10.10.4.12",
           "os": "Ubuntu 22.04 LTS",
@@ -2221,9 +2550,33 @@
             "memory_gb": 32,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 129,
-          "logs": []
+          "services": [
+            {
+              "name": "redis-server",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-server"
+            },
+            {
+              "name": "redis-sentinel",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting redis-sentinel"
+            }
+          ],
+          "processes": 196,
+          "logs": [
+            {
+              "timestamp": "21:50:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 96% - 저녁 피크 타임 캐시 히트율 증가로 메모리 위험"
+            },
+            {
+              "timestamp": "21:51:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -2310,11 +2663,11 @@
           "type": "loadbalancer",
           "location": "Busan-PUS-DR",
           "environment": "production",
-          "status": "online",
-          "cpu": 35,
+          "status": "warning",
+          "cpu": 76,
           "memory": 31,
           "disk": 14,
-          "network": 64,
+          "network": 66,
           "responseTime": 327,
           "uptime": 2622373,
           "ip": "10.20.6.11",
@@ -2324,9 +2677,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
-          "processes": 100,
-          "logs": []
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 176,
+          "logs": [
+            {
+              "timestamp": "21:50:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 76% - 저녁 SSL termination + health check 오버헤드"
+            }
+          ]
         }
       }
     }

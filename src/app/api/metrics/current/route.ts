@@ -405,32 +405,12 @@ async function generateUnifiedServerMetrics(
       cycleResponseMultiplier *
       (0.8 + fnv1aHash(normalizedTimestamp + serverId.charCodeAt(0)) * 0.4);
 
-    // 📊 초기 상태 기반 상태 결정 (mockServersExpanded 반영)
-    const initialStatus = serverInfo.status; // 'critical', 'warning', 'online'
-
-    // 초기 상태에 따라 메트릭 값 조정하여 임계값에 맞춤
-    let adjustedCpu = cpu;
-    let adjustedMemory = memory;
-
-    if (initialStatus === 'critical') {
-      // Critical 서버: CPU 85%+ 또는 Memory 90%+ 되도록 조정
-      adjustedCpu = Math.max(cpu, 87 + cycleInfo.intensity * 8); // 87-95% 범위
-      adjustedMemory = Math.max(memory, 91 + cycleInfo.intensity * 5); // 91-96% 범위
-    } else if (initialStatus === 'warning') {
-      // Warning 서버: CPU 70-84% 또는 Memory 80-89% 범위
-      adjustedCpu = Math.max(cpu, 72 + cycleInfo.intensity * 12); // 72-84% 범위
-      adjustedMemory = Math.max(memory, 82 + cycleInfo.intensity * 7); // 82-89% 범위
-    } else {
-      // Online 서버: 낮은 값 유지 (CPU <70%, Memory <80%)
-      adjustedCpu = Math.min(cpu, 65); // 최대 65%
-      adjustedMemory = Math.min(memory, 75); // 최대 75%
-    }
-
-    // 최종 상태 결정 (기존 임계값 유지)
+    // 📊 메트릭 기반 상태 결정 (hourly-data 원본값 사용 - SSOT 원칙)
+    // 인위적 조정 제거: hourly-data에 실제 시나리오 값이 반영되어 있음
     const status =
-      adjustedCpu > 85 || adjustedMemory > 90
+      cpu > 85 || memory > 90
         ? 'critical'
-        : adjustedCpu > 70 || adjustedMemory > 80
+        : cpu > 70 || memory > 80
           ? 'warning'
           : 'online';
 
@@ -459,9 +439,9 @@ async function generateUnifiedServerMetrics(
       role: serverRole,
       status,
 
-      // Enhanced metrics with required naming (조정된 값 사용)
-      cpu_usage: Math.round(adjustedCpu * 10) / 10,
-      memory_usage: Math.round(adjustedMemory * 10) / 10,
+      // Enhanced metrics with required naming (hourly-data 원본값 사용)
+      cpu_usage: Math.round(cpu * 10) / 10,
+      memory_usage: Math.round(memory * 10) / 10,
       disk_usage: Math.round(disk * 10) / 10,
       network_in: Math.round(network * 10) / 10,
       network_out: Math.round(network * 10) / 10,
@@ -470,9 +450,9 @@ async function generateUnifiedServerMetrics(
       last_updated: new Date(normalizedTimestamp).toISOString(),
       alerts: scenarios, // 생성된 시나리오를 alerts 배열에 연결
 
-      // Compatibility fields (조정된 값 사용)
-      cpu: Math.round(adjustedCpu * 10) / 10,
-      memory: Math.round(adjustedMemory * 10) / 10,
+      // Compatibility fields (hourly-data 원본값 사용)
+      cpu: Math.round(cpu * 10) / 10,
+      memory: Math.round(memory * 10) / 10,
       disk: Math.round(disk * 10) / 10,
       network: Math.round(network * 10) / 10,
 
@@ -506,11 +486,10 @@ async function generateUnifiedServerMetrics(
           disk: diskBaseline,
           network: networkBaseline,
         },
-        adjustedMetrics: {
-          cpu: adjustedCpu,
-          memory: adjustedMemory,
-          originalCpu: cpu,
-          originalMemory: memory,
+        // 조정 로직 제거됨 - hourly-data 원본값 사용 (SSOT)
+        metrics: {
+          cpu: cpu,
+          memory: memory,
         },
         initialServerInfo: {
           type: serverInfo.type,

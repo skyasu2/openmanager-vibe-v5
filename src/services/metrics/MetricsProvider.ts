@@ -159,6 +159,180 @@ export function getKSTTimestamp(): string {
   return kstTime.toISOString().replace('Z', '+09:00');
 }
 
+// ============================================================================
+// Date/Time Calculation (24시간 순환 + 실제 날짜)
+// ============================================================================
+
+/**
+ * 현재 KST 날짜/시간 정보 반환
+ */
+export function getKSTDateTime(): {
+  date: string;
+  time: string;
+  slotIndex: number;
+  minuteOfDay: number;
+} {
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000; // 9시간 (ms)
+  const kstDate = new Date(now.getTime() + kstOffset);
+
+  const year = kstDate.getUTCFullYear();
+  const month = String(kstDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(kstDate.getUTCDate()).padStart(2, '0');
+  const hours = String(kstDate.getUTCHours()).padStart(2, '0');
+  const minutes = String(
+    Math.floor(kstDate.getUTCMinutes() / 10) * 10
+  ).padStart(2, '0');
+
+  const minuteOfDay =
+    kstDate.getUTCHours() * 60 + Math.floor(kstDate.getUTCMinutes() / 10) * 10;
+  const slotIndex = Math.floor(minuteOfDay / 10);
+
+  return {
+    date: `${year}-${month}-${day}`,
+    time: `${hours}:${minutes}`,
+    slotIndex,
+    minuteOfDay,
+  };
+}
+
+/**
+ * 상대 시간(분) 기준으로 실제 날짜/시간 계산
+ * @param minutesAgo 몇 분 전 (양수 = 과거, 음수 = 미래)
+ */
+export function calculateRelativeDateTime(minutesAgo: number): {
+  date: string;
+  time: string;
+  slotIndex: number;
+  timestamp: string;
+  isYesterday: boolean;
+} {
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000;
+  const targetTime = new Date(
+    now.getTime() + kstOffset - minutesAgo * 60 * 1000
+  );
+  const currentKST = new Date(now.getTime() + kstOffset);
+
+  const year = targetTime.getUTCFullYear();
+  const month = String(targetTime.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(targetTime.getUTCDate()).padStart(2, '0');
+  const hours = String(targetTime.getUTCHours()).padStart(2, '0');
+  const mins = Math.floor(targetTime.getUTCMinutes() / 10) * 10;
+  const minutes = String(mins).padStart(2, '0');
+
+  const minuteOfDay = targetTime.getUTCHours() * 60 + mins;
+  const slotIndex = Math.floor(minuteOfDay / 10);
+
+  // 오늘/어제 판별
+  const currentDay = String(currentKST.getUTCDate()).padStart(2, '0');
+  const isYesterday = day !== currentDay;
+
+  return {
+    date: `${year}-${month}-${day}`,
+    time: `${hours}:${minutes}`,
+    slotIndex,
+    timestamp: `${year}-${month}-${day}T${hours}:${minutes}:00+09:00`,
+    isYesterday,
+  };
+}
+
+/**
+ * 🎯 상대 시간 기준 메트릭 조회 (날짜 포함)
+ * @param serverId 서버 ID
+ * @param minutesAgo 몇 분 전 (0 = 현재)
+ */
+export function getMetricsAtRelativeTime(
+  serverId: string,
+  minutesAgo: number = 0
+): (ServerMetrics & { dateLabel: string; isYesterday: boolean }) | null {
+  const { date, time, slotIndex, timestamp, isYesterday } =
+    calculateRelativeDateTime(minutesAgo);
+  const minuteOfDay = slotIndex * 10;
+
+  // fixed-24h-metrics에서 조회
+  const dataset = FIXED_24H_DATASETS.find((d) => d.serverId === serverId);
+  if (!dataset) return null;
+
+  const dataPoint = getDataAtMinute(dataset, minuteOfDay);
+  if (!dataPoint) return null;
+
+  return {
+    serverId: dataset.serverId,
+    serverType: dataset.serverType,
+    location: dataset.location,
+    timestamp,
+    minuteOfDay,
+    cpu: dataPoint.cpu,
+    memory: dataPoint.memory,
+    disk: dataPoint.disk,
+    network: dataPoint.network,
+    logs: dataPoint.logs,
+    status: determineStatus(
+      dataPoint.cpu,
+      dataPoint.memory,
+      dataPoint.disk,
+      dataPoint.network
+    ),
+    dateLabel: isYesterday ? `${date} (어제)` : date,
+    isYesterday,
+  };
+}
+
+/**
+ * 🎯 시간 비교 결과 (현재 vs N분 전)
+ */
+export interface TimeComparisonResult {
+  current: {
+    timestamp: string;
+    date: string;
+    metrics: ServerMetrics;
+  };
+  past: {
+    timestamp: string;
+    date: string;
+    metrics: ServerMetrics;
+  };
+  delta: {
+    cpu: number;
+    memory: number;
+    disk: number;
+    network: number;
+  };
+}
+
+/**
+ * 🎯 서버 메트릭 시간 비교
+ */
+export function compareServerMetrics(
+  serverId: string,
+  minutesAgo: number
+): TimeComparisonResult | null {
+  const current = getMetricsAtRelativeTime(serverId, 0);
+  const past = getMetricsAtRelativeTime(serverId, minutesAgo);
+
+  if (!current || !past) return null;
+
+  return {
+    current: {
+      timestamp: current.timestamp,
+      date: current.dateLabel,
+      metrics: current,
+    },
+    past: {
+      timestamp: past.timestamp,
+      date: past.dateLabel,
+      metrics: past,
+    },
+    delta: {
+      cpu: Math.round((current.cpu - past.cpu) * 10) / 10,
+      memory: Math.round((current.memory - past.memory) * 10) / 10,
+      disk: Math.round((current.disk - past.disk) * 10) / 10,
+      network: Math.round((current.network - past.network) * 10) / 10,
+    },
+  };
+}
+
 /**
  * 메트릭 값 기반 서버 상태 판별
  * @see /src/config/rules/system-rules.json (Single Source of Truth)

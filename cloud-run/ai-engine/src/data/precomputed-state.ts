@@ -79,7 +79,9 @@ export interface PrecomputedSlot {
 
 /** LLM용 압축 컨텍스트 */
 export interface CompactContext {
+  date: string;
   time: string;
+  timestamp: string;
   summary: string;
   critical: Array<{ server: string; issue: string }>;
   warning: Array<{ server: string; issue: string }>;
@@ -485,10 +487,10 @@ export function getStateByTime(hour: number, minute: number): PrecomputedSlot | 
 }
 
 /**
- * LLM용 압축 컨텍스트 생성 (~100 토큰)
+ * LLM용 압축 컨텍스트 생성 (~100 토큰, 날짜 포함)
  */
 export function getCompactContext(): CompactContext {
-  const state = getCurrentState();
+  const state = getStateAtRelativeTime(0);
 
   const critical = state.alerts
     .filter((a) => a.severity === 'critical')
@@ -511,7 +513,9 @@ export function getCompactContext(): CompactContext {
   );
 
   return {
+    date: state.dateLabel,
     time: state.timeLabel,
+    timestamp: state.fullTimestamp,
     summary: `${state.summary.total}서버: ${state.summary.healthy} healthy, ${state.summary.warning} warning, ${state.summary.critical} critical`,
     critical,
     warning,
@@ -520,11 +524,11 @@ export function getCompactContext(): CompactContext {
 }
 
 /**
- * LLM용 텍스트 요약 (최소 토큰)
+ * LLM용 텍스트 요약 (최소 토큰, 날짜 포함)
  */
 export function getTextSummary(): string {
   const ctx = getCompactContext();
-  let text = `[${ctx.time}] ${ctx.summary}`;
+  let text = `[${ctx.date} ${ctx.time}] ${ctx.summary}`;
 
   if (ctx.critical.length > 0) {
     text += `\nCritical: ${ctx.critical.map((c) => `${c.server}(${c.issue})`).join(', ')}`;
@@ -569,6 +573,154 @@ export function exportToJson(outputPath: string): void {
 }
 
 // ============================================================================
+// Date/Time Calculation (24시간 순환 + 실제 날짜)
+// ============================================================================
+
+/**
+ * 현재 KST 날짜/시간 정보 반환
+ */
+export function getKSTDateTime(): { date: string; time: string; slotIndex: number; minuteOfDay: number } {
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000; // 9시간 (ms)
+  const kstDate = new Date(now.getTime() + kstOffset);
+
+  const year = kstDate.getUTCFullYear();
+  const month = String(kstDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(kstDate.getUTCDate()).padStart(2, '0');
+  const hours = String(kstDate.getUTCHours()).padStart(2, '0');
+  const minutes = String(Math.floor(kstDate.getUTCMinutes() / 10) * 10).padStart(2, '0');
+
+  const minuteOfDay = kstDate.getUTCHours() * 60 + Math.floor(kstDate.getUTCMinutes() / 10) * 10;
+  const slotIndex = Math.floor(minuteOfDay / 10);
+
+  return {
+    date: `${year}-${month}-${day}`,
+    time: `${hours}:${minutes}`,
+    slotIndex,
+    minuteOfDay,
+  };
+}
+
+/**
+ * 상대 시간(분) 기준으로 실제 날짜/시간 계산
+ * @param minutesAgo 몇 분 전 (양수 = 과거, 음수 = 미래)
+ * @returns { date, time, slotIndex, timestamp }
+ */
+export function calculateRelativeDateTime(minutesAgo: number): {
+  date: string;
+  time: string;
+  slotIndex: number;
+  timestamp: string;
+} {
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000;
+  const targetTime = new Date(now.getTime() + kstOffset - minutesAgo * 60 * 1000);
+
+  const year = targetTime.getUTCFullYear();
+  const month = String(targetTime.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(targetTime.getUTCDate()).padStart(2, '0');
+  const hours = String(targetTime.getUTCHours()).padStart(2, '0');
+  const mins = Math.floor(targetTime.getUTCMinutes() / 10) * 10;
+  const minutes = String(mins).padStart(2, '0');
+
+  const minuteOfDay = targetTime.getUTCHours() * 60 + mins;
+  const slotIndex = Math.floor(minuteOfDay / 10);
+
+  return {
+    date: `${year}-${month}-${day}`,
+    time: `${hours}:${minutes}`,
+    slotIndex,
+    timestamp: `${year}-${month}-${day}T${hours}:${minutes}:00+09:00`,
+  };
+}
+
+/**
+ * 🎯 상대 시간 기준 상태 조회 (날짜 포함)
+ * @param minutesAgo 몇 분 전 (0 = 현재)
+ */
+export function getStateAtRelativeTime(minutesAgo: number = 0): PrecomputedSlot & {
+  fullTimestamp: string;
+  dateLabel: string;
+  isYesterday: boolean;
+} {
+  const { date, time, slotIndex, timestamp } = calculateRelativeDateTime(minutesAgo);
+  const currentDate = getKSTDateTime().date;
+  const isYesterday = date !== currentDate;
+
+  const slots = getSlots();
+  const state = slots[slotIndex] || slots[0];
+
+  return {
+    ...state,
+    timeLabel: time, // 원래 timeLabel 덮어쓰기
+    fullTimestamp: timestamp,
+    dateLabel: isYesterday ? `${date} (어제)` : date,
+    isYesterday,
+  };
+}
+
+/**
+ * 🎯 최근 N개 슬롯 히스토리 (날짜 포함)
+ * @param count 조회할 슬롯 수 (기본 6 = 1시간)
+ */
+export function getRecentHistory(count: number = 6): Array<PrecomputedSlot & {
+  fullTimestamp: string;
+  dateLabel: string;
+  isYesterday: boolean;
+}> {
+  const history = [];
+  for (let i = 0; i < count; i++) {
+    const minutesAgo = i * 10;
+    history.push(getStateAtRelativeTime(minutesAgo));
+  }
+  return history;
+}
+
+/**
+ * 🎯 시간 범위 비교 (현재 vs N분 전)
+ */
+export function compareWithPast(minutesAgo: number): {
+  current: { timestamp: string; summary: PrecomputedSlot['summary']; alerts: ServerAlert[] };
+  past: { timestamp: string; summary: PrecomputedSlot['summary']; alerts: ServerAlert[] };
+  changes: {
+    healthyDelta: number;
+    warningDelta: number;
+    criticalDelta: number;
+    newAlerts: ServerAlert[];
+    resolvedAlerts: ServerAlert[];
+  };
+} {
+  const current = getStateAtRelativeTime(0);
+  const past = getStateAtRelativeTime(minutesAgo);
+
+  const currentAlertIds = new Set(current.alerts.map(a => `${a.serverId}-${a.metric}`));
+  const pastAlertIds = new Set(past.alerts.map(a => `${a.serverId}-${a.metric}`));
+
+  const newAlerts = current.alerts.filter(a => !pastAlertIds.has(`${a.serverId}-${a.metric}`));
+  const resolvedAlerts = past.alerts.filter(a => !currentAlertIds.has(`${a.serverId}-${a.metric}`));
+
+  return {
+    current: {
+      timestamp: current.fullTimestamp,
+      summary: current.summary,
+      alerts: current.alerts,
+    },
+    past: {
+      timestamp: past.fullTimestamp,
+      summary: past.summary,
+      alerts: past.alerts,
+    },
+    changes: {
+      healthyDelta: current.summary.healthy - past.summary.healthy,
+      warningDelta: current.summary.warning - past.summary.warning,
+      criticalDelta: current.summary.critical - past.summary.critical,
+      newAlerts,
+      resolvedAlerts,
+    },
+  };
+}
+
+// ============================================================================
 // LLM Context Helpers (토큰 최적화)
 // ============================================================================
 
@@ -576,14 +728,14 @@ export function exportToJson(outputPath: string): void {
  * 🎯 LLM 시스템 프롬프트용 서버 상태 컨텍스트
  * 기존 loadHourlyScenarioData() 대신 사용 권장
  *
- * @returns 최소 토큰으로 압축된 현재 상태
+ * @returns 최소 토큰으로 압축된 현재 상태 (날짜 포함)
  */
 export function getLLMContext(): string {
-  const state = getCurrentState();
-  const { summary, alerts, timeLabel } = state;
+  const state = getStateAtRelativeTime(0);
+  const { summary, alerts, dateLabel, timeLabel } = state;
 
-  // 헤더
-  let context = `## 현재 서버 상태 [${timeLabel} KST]\n`;
+  // 헤더 (날짜 포함)
+  let context = `## 현재 서버 상태 [${dateLabel} ${timeLabel} KST]\n`;
   context += `총 ${summary.total}대: ✓${summary.healthy} ⚠${summary.warning} ✗${summary.critical}\n\n`;
 
   // Critical 알림
@@ -637,17 +789,21 @@ export function getServerLLMContext(serverId: string): string {
 }
 
 /**
- * 🎯 JSON 형식 컨텍스트 (API 응답용)
+ * 🎯 JSON 형식 컨텍스트 (API 응답용, 날짜 포함)
  */
 export function getJSONContext(): {
+  date: string;
   time: string;
+  timestamp: string;
   summary: PrecomputedSlot['summary'];
   critical: ServerAlert[];
   warning: ServerAlert[];
 } {
-  const state = getCurrentState();
+  const state = getStateAtRelativeTime(0);
   return {
+    date: state.dateLabel,
     time: state.timeLabel,
+    timestamp: state.fullTimestamp,
     summary: state.summary,
     critical: state.alerts.filter((a) => a.severity === 'critical'),
     warning: state.alerts.filter((a) => a.severity === 'warning').slice(0, 10),

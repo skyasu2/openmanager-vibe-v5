@@ -63,12 +63,12 @@
           "type": "web",
           "location": "Busan-PUS-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 18,
-          "memory": 34,
+          "memory": 91,
           "disk": 22,
-          "network": 41,
-          "responseTime": 237,
+          "network": 45,
+          "responseTime": 420,
           "uptime": 2647529,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
@@ -77,9 +77,33 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 144,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting nginx"
+            },
+            {
+              "name": "php-fpm",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting php-fpm"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "13:00:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
+            },
+            {
+              "timestamp": "13:01:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -88,8 +112,8 @@
           "type": "application",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 54,
+          "status": "warning",
+          "cpu": 79,
           "memory": 64,
           "disk": 35,
           "network": 54,
@@ -102,9 +126,28 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 130,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "tomcat",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "13:00:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
+            }
+          ]
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -288,10 +331,10 @@
           "type": "storage",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 33,
           "memory": 37,
-          "disk": 65,
+          "disk": 86,
           "network": 53,
           "responseTime": 257,
           "uptime": 2624733,
@@ -302,9 +345,28 @@
             "memory_gb": 16,
             "disk_gb": 5000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "nfs-server",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "rpcbind",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 133,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "13:00:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
+            }
+          ]
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -444,12 +506,12 @@
           "type": "web",
           "location": "Busan-PUS-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 15,
-          "memory": 33,
+          "memory": 91,
           "disk": 25,
-          "network": 39,
-          "responseTime": 239,
+          "network": 45,
+          "responseTime": 420,
           "uptime": 2649751,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
@@ -458,9 +520,33 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 101,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting nginx"
+            },
+            {
+              "name": "php-fpm",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting php-fpm"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "13:10:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
+            },
+            {
+              "timestamp": "13:11:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -469,8 +555,8 @@
           "type": "application",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 51,
+          "status": "warning",
+          "cpu": 79,
           "memory": 60,
           "disk": 34,
           "network": 51,
@@ -483,9 +569,28 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 132,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "tomcat",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "13:10:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
+            }
+          ]
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -669,10 +774,10 @@
           "type": "storage",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 28,
           "memory": 40,
-          "disk": 63,
+          "disk": 86,
           "network": 52,
           "responseTime": 232,
           "uptime": 2607507,
@@ -683,9 +788,28 @@
             "memory_gb": 16,
             "disk_gb": 5000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "nfs-server",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "rpcbind",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 109,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "13:10:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
+            }
+          ]
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -825,12 +949,12 @@
           "type": "web",
           "location": "Busan-PUS-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 20,
-          "memory": 34,
+          "memory": 91,
           "disk": 24,
-          "network": 38,
-          "responseTime": 273,
+          "network": 46,
+          "responseTime": 420,
           "uptime": 2616245,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
@@ -839,9 +963,33 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 149,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting nginx"
+            },
+            {
+              "name": "php-fpm",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting php-fpm"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "13:20:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
+            },
+            {
+              "timestamp": "13:21:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -850,12 +998,12 @@
           "type": "application",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 53,
+          "status": "warning",
+          "cpu": 79,
           "memory": 63,
           "disk": 36,
           "network": 53,
-          "responseTime": 202,
+          "responseTime": 225,
           "uptime": 2670476,
           "ip": "10.10.2.11",
           "os": "Ubuntu 22.04 LTS",
@@ -864,9 +1012,28 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 135,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "tomcat",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "13:20:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
+            }
+          ]
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -1050,10 +1217,10 @@
           "type": "storage",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 30,
           "memory": 42,
-          "disk": 66,
+          "disk": 86,
           "network": 50,
           "responseTime": 265,
           "uptime": 2639940,
@@ -1064,9 +1231,28 @@
             "memory_gb": 16,
             "disk_gb": 5000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "nfs-server",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "rpcbind",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 132,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "13:20:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
+            }
+          ]
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -1206,12 +1392,12 @@
           "type": "web",
           "location": "Busan-PUS-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 21,
-          "memory": 37,
+          "memory": 91,
           "disk": 27,
-          "network": 35,
-          "responseTime": 231,
+          "network": 48,
+          "responseTime": 420,
           "uptime": 2614648,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
@@ -1220,9 +1406,33 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 101,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting nginx"
+            },
+            {
+              "name": "php-fpm",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting php-fpm"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "13:30:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
+            },
+            {
+              "timestamp": "13:31:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -1231,8 +1441,8 @@
           "type": "application",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 51,
+          "status": "warning",
+          "cpu": 79,
           "memory": 63,
           "disk": 34,
           "network": 46,
@@ -1245,9 +1455,28 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 113,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "tomcat",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "13:30:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
+            }
+          ]
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -1431,10 +1660,10 @@
           "type": "storage",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 25,
           "memory": 39,
-          "disk": 67,
+          "disk": 86,
           "network": 46,
           "responseTime": 273,
           "uptime": 2595126,
@@ -1445,9 +1674,28 @@
             "memory_gb": 16,
             "disk_gb": 5000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "nfs-server",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "rpcbind",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 123,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "13:30:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
+            }
+          ]
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -1587,12 +1835,12 @@
           "type": "web",
           "location": "Busan-PUS-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 20,
-          "memory": 36,
+          "memory": 91,
           "disk": 24,
-          "network": 42,
-          "responseTime": 133,
+          "network": 45,
+          "responseTime": 420,
           "uptime": 2638266,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
@@ -1601,9 +1849,33 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 147,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting nginx"
+            },
+            {
+              "name": "php-fpm",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting php-fpm"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "13:40:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
+            },
+            {
+              "timestamp": "13:41:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -1612,12 +1884,12 @@
           "type": "application",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 45,
+          "status": "warning",
+          "cpu": 79,
           "memory": 56,
           "disk": 35,
           "network": 49,
-          "responseTime": 163,
+          "responseTime": 225,
           "uptime": 2656737,
           "ip": "10.10.2.11",
           "os": "Ubuntu 22.04 LTS",
@@ -1626,9 +1898,28 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 137,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "tomcat",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "13:40:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
+            }
+          ]
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -1812,12 +2103,12 @@
           "type": "storage",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 28,
           "memory": 42,
-          "disk": 65,
+          "disk": 86,
           "network": 54,
-          "responseTime": 135,
+          "responseTime": 225,
           "uptime": 2626564,
           "ip": "10.10.5.11",
           "os": "Ubuntu 22.04 LTS",
@@ -1826,9 +2117,28 @@
             "memory_gb": 16,
             "disk_gb": 5000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "nfs-server",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "rpcbind",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 139,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "13:40:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
+            }
+          ]
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
@@ -1968,12 +2278,12 @@
           "type": "web",
           "location": "Busan-PUS-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 16,
-          "memory": 31,
+          "memory": 91,
           "disk": 23,
-          "network": 35,
-          "responseTime": 170,
+          "network": 47,
+          "responseTime": 420,
           "uptime": 2617682,
           "ip": "10.20.1.11",
           "os": "Ubuntu 22.04 LTS",
@@ -1982,9 +2292,33 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 128,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting nginx"
+            },
+            {
+              "name": "php-fpm",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting php-fpm"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "13:50:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 91% - 오후 트래픽 집중으로 Nginx worker 메모리 누수"
+            },
+            {
+              "timestamp": "13:51:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-icn-01": {
           "id": "api-was-icn-01",
@@ -1993,12 +2327,12 @@
           "type": "application",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 42,
+          "status": "warning",
+          "cpu": 79,
           "memory": 57,
           "disk": 35,
           "network": 50,
-          "responseTime": 121,
+          "responseTime": 225,
           "uptime": 2629927,
           "ip": "10.10.2.11",
           "os": "Ubuntu 22.04 LTS",
@@ -2007,9 +2341,28 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 140,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "tomcat",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "13:50:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 79% - 오후 API 요청 처리로 CPU 증가"
+            }
+          ]
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -2193,12 +2546,12 @@
           "type": "storage",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
+          "status": "warning",
           "cpu": 29,
           "memory": 42,
-          "disk": 64,
+          "disk": 86,
           "network": 45,
-          "responseTime": 178,
+          "responseTime": 225,
           "uptime": 2662465,
           "ip": "10.10.5.11",
           "os": "Ubuntu 22.04 LTS",
@@ -2207,9 +2560,28 @@
             "memory_gb": 16,
             "disk_gb": 5000
           },
-          "services": [],
+          "services": [
+            {
+              "name": "nfs-server",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            },
+            {
+              "name": "rpcbind",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated disk usage"
+            }
+          ],
           "processes": 120,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "13:50:00",
+              "level": "WARN",
+              "message": "[WARNING] DISK usage at 86% - 업무 시간 파일 업로드 누적으로 디스크 증가"
+            }
+          ]
         },
         "storage-s3gw-pus-01": {
           "id": "storage-s3gw-pus-01",
