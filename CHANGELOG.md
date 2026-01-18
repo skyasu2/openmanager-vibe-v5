@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.88.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.88.0...v5.88.1) (2026-01-18)
+
+
+### Bug Fixes
+
+* **sync:** unify thresholds and timezone between Vercel and Cloud Run ([e66455d](https://github.com/skyasu2/openmanager-vibe-v5/commit/e66455dce477016733ada05e096710850e3091d9))
+
 ## [5.88.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.87.0...v5.88.0) (2026-01-18)
 
 
