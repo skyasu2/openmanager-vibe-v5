@@ -71,12 +71,19 @@ echo "==========================================================================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# 0. Sync SSOT Config Files (system-rules.json)
+# 0. Sync SSOT Config & Data Files
 echo ""
-echo "📋 Syncing SSOT config files..."
+echo "📋 Syncing SSOT config and data files..."
+
+# Config files
 mkdir -p config
 cp ../../src/config/rules/system-rules.json ./config/system-rules.json
 echo "   ✅ system-rules.json synced to config/"
+
+# Hourly-data files (24h metrics SSOT)
+mkdir -p data/hourly-data
+cp ../../public/hourly-data/*.json ./data/hourly-data/
+echo "   ✅ hourly-data synced ($(ls -1 data/hourly-data/*.json | wc -l) files)"
 
 # 1. Build Container Image (Cloud Build with BuildKit)
 echo ""

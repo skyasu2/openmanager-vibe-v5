@@ -38,11 +38,11 @@
           "type": "web",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
-          "cpu": 44,
+          "status": "warning",
+          "cpu": 78,
           "memory": 40,
           "disk": 29,
-          "network": 62,
+          "network": 57,
           "responseTime": 261,
           "uptime": 2615141,
           "ip": "10.10.1.12",
@@ -52,9 +52,28 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 127,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "php-fpm",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "08:00:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 78% - 출근 피크 시간 Nginx worker CPU 급증"
+            }
+          ]
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -113,12 +132,12 @@
           "type": "application",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 38,
-          "memory": 54,
+          "memory": 94,
           "disk": 31,
           "network": 48,
-          "responseTime": 240,
+          "responseTime": 460,
           "uptime": 2629045,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
@@ -127,9 +146,33 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 124,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting java"
+            },
+            {
+              "name": "tomcat",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting tomcat"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "08:00:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 94% - 출근 시간대 API 트래픽 급증으로 JVM 힙 메모리 누수"
+            },
+            {
+              "timestamp": "08:01:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -338,12 +381,12 @@
           "type": "loadbalancer",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 52,
+          "status": "warning",
+          "cpu": 75,
           "memory": 38,
           "disk": 14,
           "network": 80,
-          "responseTime": 238,
+          "responseTime": 250,
           "uptime": 2648960,
           "ip": "10.10.6.11",
           "os": "Ubuntu 22.04 LTS",
@@ -352,9 +395,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
           "processes": 134,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "08:00:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 75% - 트래픽 분산 처리로 로드밸런서 CPU 증가"
+            }
+          ]
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -419,11 +481,11 @@
           "type": "web",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
-          "cpu": 48,
+          "status": "warning",
+          "cpu": 78,
           "memory": 45,
           "disk": 30,
-          "network": 61,
+          "network": 55,
           "responseTime": 250,
           "uptime": 2594977,
           "ip": "10.10.1.12",
@@ -433,9 +495,28 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 133,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "php-fpm",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "08:10:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 78% - 출근 피크 시간 Nginx worker CPU 급증"
+            }
+          ]
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -494,12 +575,12 @@
           "type": "application",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 45,
-          "memory": 51,
+          "memory": 94,
           "disk": 32,
           "network": 50,
-          "responseTime": 286,
+          "responseTime": 460,
           "uptime": 2656416,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
@@ -508,9 +589,33 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 101,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting java"
+            },
+            {
+              "name": "tomcat",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting tomcat"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "08:10:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 94% - 출근 시간대 API 트래픽 급증으로 JVM 힙 메모리 누수"
+            },
+            {
+              "timestamp": "08:11:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -719,12 +824,12 @@
           "type": "loadbalancer",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 54,
+          "status": "warning",
+          "cpu": 75,
           "memory": 32,
           "disk": 15,
           "network": 78,
-          "responseTime": 231,
+          "responseTime": 250,
           "uptime": 2622285,
           "ip": "10.10.6.11",
           "os": "Ubuntu 22.04 LTS",
@@ -733,9 +838,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
           "processes": 101,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "08:10:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 75% - 트래픽 분산 처리로 로드밸런서 CPU 증가"
+            }
+          ]
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -800,12 +924,12 @@
           "type": "web",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
-          "cpu": 45,
+          "status": "warning",
+          "cpu": 78,
           "memory": 43,
           "disk": 27,
-          "network": 61,
-          "responseTime": 239,
+          "network": 57,
+          "responseTime": 250,
           "uptime": 2643931,
           "ip": "10.10.1.12",
           "os": "Ubuntu 22.04 LTS",
@@ -814,9 +938,28 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 109,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "php-fpm",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "08:20:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 78% - 출근 피크 시간 Nginx worker CPU 급증"
+            }
+          ]
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -875,12 +1018,12 @@
           "type": "application",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 38,
-          "memory": 55,
+          "memory": 94,
           "disk": 32,
           "network": 43,
-          "responseTime": 196,
+          "responseTime": 460,
           "uptime": 2634702,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
@@ -889,9 +1032,33 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 106,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting java"
+            },
+            {
+              "name": "tomcat",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting tomcat"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "08:20:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 94% - 출근 시간대 API 트래픽 급증으로 JVM 힙 메모리 누수"
+            },
+            {
+              "timestamp": "08:21:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -1100,8 +1267,8 @@
           "type": "loadbalancer",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 56,
+          "status": "warning",
+          "cpu": 75,
           "memory": 36,
           "disk": 16,
           "network": 80,
@@ -1114,9 +1281,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
           "processes": 136,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "08:20:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 75% - 트래픽 분산 처리로 로드밸런서 CPU 증가"
+            }
+          ]
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -1181,11 +1367,11 @@
           "type": "web",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
-          "cpu": 41,
+          "status": "warning",
+          "cpu": 78,
           "memory": 41,
           "disk": 28,
-          "network": 63,
+          "network": 59,
           "responseTime": 259,
           "uptime": 2636191,
           "ip": "10.10.1.12",
@@ -1195,9 +1381,28 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 149,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "php-fpm",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "08:30:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 78% - 출근 피크 시간 Nginx worker CPU 급증"
+            }
+          ]
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -1256,12 +1461,12 @@
           "type": "application",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 41,
-          "memory": 49,
+          "memory": 94,
           "disk": 34,
           "network": 50,
-          "responseTime": 216,
+          "responseTime": 460,
           "uptime": 2593145,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
@@ -1270,9 +1475,33 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 111,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting java"
+            },
+            {
+              "name": "tomcat",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting tomcat"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "08:30:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 94% - 출근 시간대 API 트래픽 급증으로 JVM 힙 메모리 누수"
+            },
+            {
+              "timestamp": "08:31:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -1481,8 +1710,8 @@
           "type": "loadbalancer",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 53,
+          "status": "warning",
+          "cpu": 75,
           "memory": 38,
           "disk": 14,
           "network": 78,
@@ -1495,9 +1724,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
           "processes": 118,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "08:30:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 75% - 트래픽 분산 처리로 로드밸런서 CPU 증가"
+            }
+          ]
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -1562,12 +1810,12 @@
           "type": "web",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
-          "cpu": 29,
+          "status": "warning",
+          "cpu": 78,
           "memory": 41,
           "disk": 29,
-          "network": 57,
-          "responseTime": 133,
+          "network": 56,
+          "responseTime": 250,
           "uptime": 2634307,
           "ip": "10.10.1.12",
           "os": "Ubuntu 22.04 LTS",
@@ -1576,9 +1824,28 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 100,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "php-fpm",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "08:40:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 78% - 출근 피크 시간 Nginx worker CPU 급증"
+            }
+          ]
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -1637,12 +1904,12 @@
           "type": "application",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 45,
-          "memory": 54,
+          "memory": 94,
           "disk": 30,
           "network": 46,
-          "responseTime": 172,
+          "responseTime": 460,
           "uptime": 2607742,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
@@ -1651,9 +1918,33 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 142,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting java"
+            },
+            {
+              "name": "tomcat",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting tomcat"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "08:40:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 94% - 출근 시간대 API 트래픽 급증으로 JVM 힙 메모리 누수"
+            },
+            {
+              "timestamp": "08:41:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -1862,12 +2153,12 @@
           "type": "loadbalancer",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 35,
+          "status": "warning",
+          "cpu": 75,
           "memory": 37,
           "disk": 12,
           "network": 66,
-          "responseTime": 160,
+          "responseTime": 250,
           "uptime": 2673272,
           "ip": "10.10.6.11",
           "os": "Ubuntu 22.04 LTS",
@@ -1876,9 +2167,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
           "processes": 148,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "08:40:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 75% - 트래픽 분산 처리로 로드밸런서 CPU 증가"
+            }
+          ]
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
@@ -1943,12 +2253,12 @@
           "type": "web",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
-          "cpu": 33,
+          "status": "warning",
+          "cpu": 78,
           "memory": 41,
           "disk": 29,
-          "network": 58,
-          "responseTime": 145,
+          "network": 59,
+          "responseTime": 250,
           "uptime": 2627621,
           "ip": "10.10.1.12",
           "os": "Ubuntu 22.04 LTS",
@@ -1957,9 +2267,28 @@
             "memory_gb": 8,
             "disk_gb": 100
           },
-          "services": [],
-          "processes": 114,
-          "logs": []
+          "services": [
+            {
+              "name": "nginx",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "php-fpm",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
+          "processes": 178,
+          "logs": [
+            {
+              "timestamp": "08:50:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 78% - 출근 피크 시간 Nginx worker CPU 급증"
+            }
+          ]
         },
         "web-nginx-pus-01": {
           "id": "web-nginx-pus-01",
@@ -2018,12 +2347,12 @@
           "type": "application",
           "location": "Seoul-ICN-AZ2",
           "environment": "production",
-          "status": "online",
+          "status": "critical",
           "cpu": 43,
-          "memory": 52,
+          "memory": 94,
           "disk": 34,
           "network": 52,
-          "responseTime": 124,
+          "responseTime": 460,
           "uptime": 2654396,
           "ip": "10.10.2.12",
           "os": "Ubuntu 22.04 LTS",
@@ -2032,9 +2361,33 @@
             "memory_gb": 16,
             "disk_gb": 200
           },
-          "services": [],
-          "processes": 132,
-          "logs": []
+          "services": [
+            {
+              "name": "java",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting java"
+            },
+            {
+              "name": "tomcat",
+              "status": "degraded",
+              "health": "critical",
+              "message": "High memory usage affecting tomcat"
+            }
+          ],
+          "processes": 198,
+          "logs": [
+            {
+              "timestamp": "08:50:00",
+              "level": "ERROR",
+              "message": "[CRITICAL] MEMORY usage reached 94% - 출근 시간대 API 트래픽 급증으로 JVM 힙 메모리 누수"
+            },
+            {
+              "timestamp": "08:51:00",
+              "level": "WARN",
+              "message": "[ALERT] Threshold exceeded: memory > 90%. Immediate action required."
+            }
+          ]
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -2243,12 +2596,12 @@
           "type": "loadbalancer",
           "location": "Seoul-ICN-AZ1",
           "environment": "production",
-          "status": "online",
-          "cpu": 40,
+          "status": "warning",
+          "cpu": 75,
           "memory": 33,
           "disk": 14,
           "network": 68,
-          "responseTime": 148,
+          "responseTime": 250,
           "uptime": 2650074,
           "ip": "10.10.6.11",
           "os": "Ubuntu 22.04 LTS",
@@ -2257,9 +2610,28 @@
             "memory_gb": 8,
             "disk_gb": 50
           },
-          "services": [],
+          "services": [
+            {
+              "name": "haproxy",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            },
+            {
+              "name": "keepalived",
+              "status": "running",
+              "health": "warning",
+              "message": "Elevated cpu usage"
+            }
+          ],
           "processes": 102,
-          "logs": []
+          "logs": [
+            {
+              "timestamp": "08:50:00",
+              "level": "WARN",
+              "message": "[WARNING] CPU usage at 75% - 트래픽 분산 처리로 로드밸런서 CPU 증가"
+            }
+          ]
         },
         "lb-haproxy-pus-01": {
           "id": "lb-haproxy-pus-01",
