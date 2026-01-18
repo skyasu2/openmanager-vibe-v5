@@ -381,7 +381,6 @@ SwimlaneBgNode.displayName = 'SwimlaneBgNode';
  * 각 레이어 내에서 X 위치를 균등 분배합니다.
  *
  * @param nodeLayerMap - 노드 ID → 레이어 인덱스 매핑
- * @param layerNodeCounts - 각 레이어의 노드 수 배열
  */
 function getLayoutedElements(
   nodes: Node[],
@@ -391,7 +390,6 @@ function getLayoutedElements(
     nodesep?: number;
     ranksep?: number;
     nodeLayerMap?: Map<string, number>;
-    layerNodeCounts?: number[];
   } = {}
 ): { nodes: Node[]; edges: Edge[] } {
   const {
@@ -399,7 +397,6 @@ function getLayoutedElements(
     nodesep = 60,
     ranksep = 80,
     nodeLayerMap,
-    layerNodeCounts = [],
   } = options;
   const isHorizontal = direction === 'LR';
 
@@ -699,9 +696,6 @@ function convertToReactFlow(diagram: DiagramData): {
       : 80;
 
   // 3단계: Dagre 레이아웃 적용
-  // 레이어별 노드 수 배열 생성
-  const layerNodeCounts = diagram.layers.map((layer) => layer.nodes.length);
-
   const { nodes: layoutedContentNodes } = getLayoutedElements(
     contentNodes,
     edges,
@@ -710,7 +704,6 @@ function convertToReactFlow(diagram: DiagramData): {
       nodesep: dynamicNodesep,
       ranksep: dynamicRanksep,
       nodeLayerMap,
-      layerNodeCounts,
     }
   );
 

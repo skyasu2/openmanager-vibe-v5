@@ -514,7 +514,7 @@ export const NODE_STYLES: Record<
     text: 'text-white/70',
   },
   highlight: {
-    bg: 'bg-gradient-to-br from-yellow-500/20 to-amber-500/20',
+    bg: 'bg-linear-to-br from-yellow-500/20 to-amber-500/20',
     border: 'border-yellow-400/50',
     text: 'text-yellow-100',
   },
