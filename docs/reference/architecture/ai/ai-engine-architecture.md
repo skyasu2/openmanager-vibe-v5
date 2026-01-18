@@ -1,6 +1,6 @@
 # AI Engine Architecture
 
-> **v5.88.0** | Updated 2026-01-16
+> **v5.88.0** | Updated 2026-01-18
 
 ## Overview
 
@@ -29,6 +29,8 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 | **Reporter Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | Incident reports, timeline | `buildIncidentTimeline`, `findRootCause`, `correlateMetrics`, `searchKnowledgeBase` |
 | **Advisor Agent** | Mistral mistral-small-2506 | Groq llama-3.3-70b-versatile | Troubleshooting, knowledge search | `searchKnowledgeBase` (GraphRAG), `recommendCommands` |
 | **Verifier** | Mistral mistral-small-2506 | Cerebras llama-3.3-70b | Response validation | N/A |
+
+> **Note**: 실제 export되는 Agent는 4개 (NLQ, Analyst, Reporter, Advisor)입니다. Verifier는 별도의 검증 컴포넌트로, 응답 품질 검증을 담당하며 Agent handoff 대상이 아닙니다.
 
 > **Dual-Mode Strategy**: Single-agent mode for simple queries (low latency), Multi-agent mode for complex queries (specialized handling). Cerebras for fast routing/NLQ, Groq for analysis/reporting stability.
 
@@ -98,6 +100,65 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 - GraphRAG Hybrid Search, Redis L2 Caching
 
 </details>
+
+### Resilience & Performance
+
+#### 3-Way Provider Fallback
+
+모든 에이전트는 3중 Fallback 체계를 갖추고 있어 특정 제공자(API) 장애 시 자동으로 다음 순위 모델로 전환됩니다.
+
+```
+Primary (Cerebras) ──[fail]──► Secondary (Groq) ──[fail]──► Tertiary (Mistral)
+       │                              │                            │
+       └──────────────────────────────┴────────────────────────────┘
+                              ↓ Success
+                         Response to User
+```
+
+| Agent | Primary | Secondary | Tertiary |
+|-------|---------|-----------|----------|
+| Orchestrator | Cerebras | Mistral | - |
+| NLQ Agent | Cerebras | Groq | Mistral |
+| Analyst Agent | Groq | Cerebras | Mistral |
+| Reporter Agent | Groq | Cerebras | Mistral |
+| Advisor Agent | Mistral | Groq | - |
+
+#### Circuit Breaker & Retry
+
+| 메커니즘 | 동작 |
+|---------|------|
+| **Circuit Breaker** | API 실패 반복 시 해당 제공자를 일시 차단하여 불필요한 대기 시간 감소 |
+| **Exponential Backoff** | Rate Limit(429) 발생 시 지수적으로 재시도 간격 증가 (1s → 2s → 4s) |
+| **Health Check** | 주기적으로 차단된 제공자의 복구 상태 확인 후 자동 복원 |
+
+#### Fast Path & Forced Routing
+
+LLM 호출 없이 RegExp 기반 Pre-filter가 처리하여 속도와 비용을 최적화합니다.
+
+| 패턴 | 처리 방식 | 예시 |
+|------|----------|------|
+| **Fast Path** | 단순 인사말은 LLM 없이 즉시 응답 | "안녕", "고마워" |
+| **Forced Routing** | 키워드 매칭으로 특정 에이전트 직접 호출 | "보고서 만들어줘" → Reporter |
+| **LLM Routing** | 복잡한 의도는 Orchestrator가 LLM으로 판단 | "왜 서버가 느려졌어?" |
+
+```typescript
+// Pre-filter 우선순위
+1. Fast Path Check (RegExp)     // ~1ms
+2. Forced Routing (Keywords)    // ~1ms
+3. LLM Intent Classification    // ~200ms (Cerebras)
+```
+
+#### Observability (Langfuse)
+
+모든 에이전트의 실행 과정이 Langfuse로 추적되어 실시간 모니터링 및 디버깅이 가능합니다.
+
+| 추적 항목 | 설명 |
+|----------|------|
+| **Input/Output** | 각 에이전트의 입력 메시지 및 응답 |
+| **Tool Calls** | 호출된 도구 목록 및 결과 |
+| **Latency** | 에이전트별 처리 시간 |
+| **Token Usage** | Prompt/Completion 토큰 수 |
+| **Handoff Chain** | 에이전트 간 위임 경로 |
 
 ### Agent Communication Patterns
 

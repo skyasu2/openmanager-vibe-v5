@@ -22,12 +22,12 @@
 │  - Vercel AI SDK Multi-Agent System                         │
 │  - Dual-Mode Supervisor (Single/Multi Agent)                │
 │  - Orchestrator (Cerebras Llama-70b)                        │
-│  - Agents: NLQ, Analyst, Reporter, Advisor, Verifier        │
+│  - Agents: NLQ, Analyst, Reporter, Advisor (4개)            │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌──────────────────┬──────────────────┬──────────────────────┐
 │ StaticDataLoader │  Multi-AI Models  │  Supabase PostgreSQL │
-│  (Mock 데이터)    │  - Gemini 2.5     │  (RAG + 대화 이력)   │
+│  (Mock 데이터)    │  - Cerebras Llama │  (RAG + 대화 이력)   │
 │  - 17개 서버     │  - Groq Llama     │  - pgvector          │
 │  - 24시간 데이터 │  - Circuit Breaker│  - PostgresCheckpoint│
 │  - 99.6% CPU 절약│  - Key Failover   │  - Session State     │
@@ -152,8 +152,8 @@ Supervisor (Dual-Mode)        # Cerebras Llama-3.3-70b (Orchestrator)
   ├── NLQ Agent              # Cerebras/Groq Llama-3.3-70b (Server Queries)
   ├── Analyst Agent          # Groq Llama-3.3-70b (Anomaly/Trend)
   ├── Reporter Agent         # Groq Llama-3.3-70b (Incident Reports)
-  ├── Advisor Agent          # Mistral Small (Troubleshooting/RAG)
-  └── Verifier Agent         # Mistral Small (Response Validation)
+  └── Advisor Agent          # Mistral Small (Troubleshooting/RAG)
+  (+ Verifier)               # Mistral Small (Response Validation, 별도 검증 컴포넌트)
 
 // 지원 서비스 (Vercel - 레거시/폴백)
 SupabaseRAGEngine             # RAG 검색 (벡터 DB)
@@ -161,7 +161,7 @@ MockContextLoader             # Mock 컨텍스트
 IncidentReportService         # 장애 보고서
 
 // Key Failover & Circuit Breaker
-- Model-level failover (Gemini → Groq)
+- Model-level failover (Cerebras → Groq → Mistral)
 - Key rotation (다중 API 키)
 - Circuit breaker (장애 시 폴백)
 ```
@@ -209,13 +209,17 @@ class StaticDataLoader {
 - Realtime 구독
 ```
 
-#### Google AI (Gemini 2.5 Flash)
+#### AI Providers (Cerebras/Groq/Mistral)
 
 ```typescript
-// 사용량
-- 1500 요청/일 (무료)
-- 현재 사용: ~300 요청/일 (20%)
-- 평균 응답: 1초 이내
+// Provider 구성
+- Cerebras: Orchestrator, NLQ Agent (Primary)
+- Groq: Analyst, Reporter Agent (Primary)
+- Mistral: Advisor Agent, Embedding (Primary)
+
+// Fallback Chain
+- Cerebras → Groq → Mistral (3-way)
+- Circuit Breaker 패턴 적용
 
 // 기능
 - 자연어 처리
