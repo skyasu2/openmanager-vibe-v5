@@ -31,6 +31,16 @@ import { quickSanitize } from '../security';
 export const maxDuration = 60;
 
 // ============================================================================
+// 🛡️ Backpressure Configuration
+// ============================================================================
+
+/** Maximum buffer size before triggering overflow protection (64KB) */
+const MAX_BUFFER_SIZE = 64 * 1024;
+
+/** Warning threshold for buffer size (48KB) */
+const BUFFER_WARNING_THRESHOLD = 48 * 1024;
+
+// ============================================================================
 // 📋 Request Schema
 // ============================================================================
 
@@ -243,11 +253,39 @@ export const POST = withRateLimit(
         }
 
         let buffer = '';
+        let totalBufferSize = 0;
+        let backpressureWarned = false;
 
         const stream = new ReadableStream({
           async pull(controller) {
             try {
               const { done, value } = await reader.read();
+
+              // Backpressure: Check buffer size before processing
+              if (totalBufferSize > MAX_BUFFER_SIZE) {
+                logger.warn(
+                  `⚠️ [SupervisorStream] Buffer overflow protection triggered (${Math.round(totalBufferSize / 1024)}KB)`
+                );
+                controller.enqueue(
+                  encoder.encode(
+                    '\n\n⚠️ 스트림 버퍼 초과. 연결을 재시도해 주세요.\n'
+                  )
+                );
+                controller.close();
+                reader.cancel();
+                return;
+              }
+
+              // Backpressure warning at threshold
+              if (
+                totalBufferSize > BUFFER_WARNING_THRESHOLD &&
+                !backpressureWarned
+              ) {
+                logger.warn(
+                  `⚠️ [SupervisorStream] Buffer approaching limit (${Math.round(totalBufferSize / 1024)}KB)`
+                );
+                backpressureWarned = true;
+              }
 
               if (done) {
                 // Process any remaining buffer
@@ -292,11 +330,16 @@ export const POST = withRateLimit(
               }
 
               // Decode chunk and add to buffer
-              buffer += decoder.decode(value, { stream: true });
+              const chunk = decoder.decode(value, { stream: true });
+              buffer += chunk;
+              totalBufferSize += chunk.length;
 
               // Process complete lines
               const lines = buffer.split('\n');
               buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+              // Update buffer size after processing (buffer now only contains incomplete line)
+              totalBufferSize = buffer.length;
 
               for (const line of lines) {
                 if (line.startsWith('data:')) {

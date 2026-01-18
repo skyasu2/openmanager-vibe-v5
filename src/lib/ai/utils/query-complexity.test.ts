@@ -87,7 +87,8 @@ describe('query-complexity', () => {
         );
         expect(result.level).toBe('very_complex');
         expect(result.score).toBeGreaterThanOrEqual(70);
-        expect(result.recommendedTimeout).toBe(120000);
+        // Vercel 60초 제한으로 인해 55초로 상한 조정됨 (Job Queue 전환 대상)
+        expect(result.recommendedTimeout).toBe(55000);
       });
 
       it('should handle long queries with multiple factors', () => {

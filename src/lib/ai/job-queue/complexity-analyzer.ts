@@ -1,8 +1,13 @@
 /**
- * 쿼리 복잡도 분석기
+ * 쿼리 복잡도 분석기 (Job Queue 전용)
  *
- * @description 쿼리의 복잡도를 분석하여 동기/비동기 처리 결정
- * @version 1.0.0
+ * @description 쿼리의 복잡도를 분석하여 동기/비동기 Job Queue 처리 결정
+ * @version 1.1.0
+ *
+ * @note 이 분석기는 Job Queue 라우팅 전용입니다.
+ *       타임아웃 계산에는 `@/lib/ai/utils/query-complexity.ts`를 사용하세요.
+ *
+ * @see {@link @/lib/ai/utils/query-complexity.ts} - 동적 타임아웃 계산용 분석기
  */
 
 import type { ComplexityAnalysis, QueryComplexity } from '@/types/ai-jobs';
@@ -64,13 +69,13 @@ const COMPLEXITY_KEYWORDS = {
 };
 
 // ============================================
-// 예상 시간 (초)
+// 예상 시간 (초) - Vercel 60초 제한 고려
 // ============================================
 
 const ESTIMATED_TIMES: Record<QueryComplexity, number> = {
-  simple: 5,
-  medium: 30,
-  complex: 120,
+  simple: 5, // 동기 처리 (스트리밍)
+  medium: 30, // Job Queue 권장
+  complex: 55, // Job Queue 필수 (Vercel 60초 한도)
 };
 
 // ============================================
