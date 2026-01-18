@@ -776,6 +776,18 @@ function ReactFlowDiagram({
   showControls = true,
   showMiniMap = false,
 }: ReactFlowDiagramProps) {
+  // 🔧 onInit setTimeout 클린업용 ref (언마운트 시 메모리 누수 방지)
+  const initTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const { nodes, edges } = useMemo(
     () => convertToReactFlow(diagram),
     [diagram]
@@ -816,8 +828,12 @@ function ReactFlowDiagram({
             fitView
             fitViewOptions={FIT_VIEW_OPTIONS}
             onInit={(instance) => {
-              // 모달 트랜지션 완료 후 확실하게 맞춤
-              setTimeout(() => instance.fitView(FIT_VIEW_OPTIONS), 800);
+              // 모달 트랜지션 완료 후 확실하게 맞춤 (클린업 가능하도록 ref 저장)
+              if (initTimeoutRef.current) clearTimeout(initTimeoutRef.current);
+              initTimeoutRef.current = setTimeout(
+                () => instance.fitView(FIT_VIEW_OPTIONS),
+                800
+              );
             }}
             minZoom={0.05}
             maxZoom={2.5}
