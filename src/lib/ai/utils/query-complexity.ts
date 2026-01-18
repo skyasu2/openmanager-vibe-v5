@@ -220,10 +220,10 @@ export function analyzeQueryComplexity(query: string): ComplexityAnalysis {
     recommendedTimeout = 30000; // 30초
   } else if (score <= 70) {
     level = 'complex';
-    recommendedTimeout = 60000; // 60초
+    recommendedTimeout = 45000; // 45초
   } else {
     level = 'very_complex';
-    recommendedTimeout = 120000; // 120초
+    recommendedTimeout = 55000; // Vercel 60초 제한으로 상한 조정 (Job Queue 전환 대상)
   }
 
   return {
@@ -251,7 +251,7 @@ export function calculateDynamicTimeout(
 ): number {
   const {
     minTimeout = 10000,
-    maxTimeout = 120000,
+    maxTimeout = 55000, // Vercel 60초 제한 고려 (5초 안전 마진)
     messageCount = 1,
   } = options || {};
 

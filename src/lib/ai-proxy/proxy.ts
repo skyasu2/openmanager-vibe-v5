@@ -146,7 +146,8 @@ export async function proxyToCloudRun(
   }
 
   const url = `${config.url}${options.path}`;
-  const timeout = options.timeout || 30000;
+  // Vercel 60초 제한 고려 - 최대 55초로 강제 제한
+  const timeout = Math.min(options.timeout || 30000, 55000);
 
   try {
     const controller = new AbortController();

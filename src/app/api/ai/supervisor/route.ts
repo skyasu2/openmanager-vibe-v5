@@ -34,7 +34,10 @@ import {
   type HybridMessage,
   normalizeMessagesForCloudRun,
 } from '@/lib/ai/utils/message-normalizer';
-import { calculateDynamicTimeout } from '@/lib/ai/utils/query-complexity';
+import {
+  analyzeQueryComplexity,
+  calculateDynamicTimeout,
+} from '@/lib/ai/utils/query-complexity';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
@@ -116,12 +119,46 @@ export const POST = withRateLimit(
       const dynamicTimeout = calculateDynamicTimeout(userQuery, {
         messageCount: messages.length,
         minTimeout: 15000, // 최소 15초
-        maxTimeout: 120000, // 최대 120초
+        maxTimeout: 55000, // Vercel 60초 제한 (5초 안전 마진)
       });
 
       logger.info(`🚀 [Supervisor] Query: "${userQuery.slice(0, 50)}..."`);
       logger.info(`📡 [Supervisor] Session: ${sessionId}`);
       logger.info(`⏱️ [Supervisor] Dynamic timeout: ${dynamicTimeout}ms`);
+
+      // ====================================================================
+      // 3.5. 복잡도 기반 Job Queue 리다이렉트 (2026-01-18 추가)
+      // ====================================================================
+      // very_complex 쿼리 또는 보고서 생성 요청은 Job Queue로 전환
+      // 202 Accepted 응답으로 클라이언트에게 비동기 처리 알림
+      // ====================================================================
+      const complexity = analyzeQueryComplexity(userQuery);
+      const shouldUseJobQueue =
+        complexity.level === 'very_complex' ||
+        (complexity.level === 'complex' &&
+          /보고서|리포트|근본.*원인|장애.*분석/i.test(userQuery));
+
+      if (shouldUseJobQueue) {
+        logger.info(
+          `🔀 [Supervisor] Redirecting to Job Queue (complexity: ${complexity.level})`
+        );
+        return NextResponse.json(
+          {
+            success: true,
+            redirect: 'job-queue',
+            complexity: complexity.level,
+            estimatedTime: Math.round(complexity.recommendedTimeout / 1000),
+            message: '복잡한 분석 요청입니다. 비동기 처리로 전환합니다.',
+          },
+          {
+            status: 202, // Accepted
+            headers: {
+              'X-Session-Id': sessionId,
+              'X-Redirect-Mode': 'job-queue',
+            },
+          }
+        );
+      }
 
       // ====================================================================
       // 3. 캐시 조회 (2026-01-08 v5.85.0 추가)

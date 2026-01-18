@@ -442,13 +442,14 @@ async function executeSupervisorAttempt(
       ];
 
       // Execute with multi-step tool calling and prepareStep optimization
+      // Reduced step count and tokens for faster responses (Vercel 60s limit)
       const result = await generateText({
         model,
         messages: modelMessages,
         tools: allTools,
-        stopWhen: stepCountIs(5), // Allow up to 5 tool calls
+        stopWhen: stepCountIs(3), // Reduced from 5 to 3 for faster responses
         temperature: 0.2,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 1536, // Reduced from 2048 for faster responses
         // Note: prepareStep optimization moved to intent classification
         // AI SDK v6 uses different approach - tools are filtered upfront
       });
@@ -675,13 +676,14 @@ async function* streamSingleAgent(
     let fullText = '';
 
     // Execute streamText with multi-step tool calling
+    // Reduced step count and tokens for faster responses (Vercel 60s limit)
     const result = streamText({
       model,
       messages: modelMessages,
       tools: allTools,
-      stopWhen: stepCountIs(5),
+      stopWhen: stepCountIs(3), // Reduced from 5 to 3 for faster responses
       temperature: 0.2,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 1536, // Reduced from 2048 for faster responses
     });
 
     // Stream text deltas

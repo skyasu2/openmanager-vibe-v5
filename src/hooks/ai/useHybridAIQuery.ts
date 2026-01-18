@@ -86,6 +86,7 @@ export type StreamEventType =
   | 'step_finish'
   | 'handoff'
   | 'agent_status'
+  | 'redirect' // Job Queue 리다이렉트 이벤트 (2026-01-18)
   | 'done'
   | 'error';
 
@@ -112,6 +113,16 @@ export interface AgentStatusEventData {
 }
 
 /**
+ * Redirect 이벤트 데이터 (Job Queue 전환)
+ */
+export interface RedirectEventData {
+  mode: 'job-queue';
+  complexity: QueryComplexity;
+  estimatedTime: number;
+  message: string;
+}
+
+/**
  * 스트리밍 데이터 파트 타입
  * AI SDK v5 onData 콜백으로 받는 데이터
  */
@@ -130,6 +141,8 @@ export interface StreamDataPart {
   handoff?: HandoffEventData;
   /** Agent Status 이벤트 데이터 (type: 'agent_status') */
   agentStatus?: AgentStatusEventData;
+  /** Redirect 이벤트 데이터 (type: 'redirect') */
+  redirect?: RedirectEventData;
 }
 
 export interface UseHybridAIQueryOptions {
@@ -254,6 +267,9 @@ export function useHybridAIQuery(
   // 명확화 건너뛰기 시 원본 쿼리 저장
   const pendingQueryRef = useRef<string | null>(null);
 
+  // Redirect 이벤트 처리를 위한 쿼리 저장
+  const currentQueryRef = useRef<string | null>(null);
+
   // ============================================================================
   // useChat Hook (Streaming Mode) - AI SDK v6 베스트 프랙티스 적용
   // ============================================================================
@@ -282,12 +298,41 @@ export function useHybridAIQuery(
       setState((prev) => ({ ...prev, isLoading: false }));
       onStreamFinish?.();
     },
-    // AI SDK v6: 실시간 데이터 파트 처리 콜백
-    onData: onData
-      ? (dataPart) => {
-          onData(dataPart as StreamDataPart);
+    // AI SDK v6: 실시간 데이터 파트 처리 콜백 + Redirect 이벤트 내부 처리
+    onData: (dataPart) => {
+      const part = dataPart as StreamDataPart;
+
+      // Redirect 이벤트 내부 처리 (Job Queue 모드 전환)
+      if (part.type === 'redirect' && part.data) {
+        const redirectData = part.data as RedirectEventData;
+        logger.info(
+          `🔀 [HybridAI] Redirect received: switching to job-queue (${redirectData.complexity})`
+        );
+
+        // Job Queue 모드로 전환
+        setState((prev) => ({
+          ...prev,
+          mode: 'job-queue',
+          complexity: redirectData.complexity,
+          isLoading: true,
+        }));
+
+        // 현재 스트리밍 중단
+        stopChat();
+
+        // Job Queue로 쿼리 전송
+        const query = currentQueryRef.current;
+        if (query) {
+          void asyncQuery.sendQuery(query).then(() => {
+            setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
+          });
         }
-      : undefined,
+        return;
+      }
+
+      // 사용자 onData 콜백 호출
+      onData?.(part);
+    },
     onError: (error) => {
       logger.error('[HybridAI] useChat error:', error);
       setState((prev) => ({
@@ -365,6 +410,9 @@ export function useHybridAIQuery(
       }
 
       const trimmedQuery = query.trim();
+
+      // Redirect 이벤트 처리를 위해 현재 쿼리 저장
+      currentQueryRef.current = trimmedQuery;
 
       // 1. 복잡도 분석
       const analysis = analyzeQueryComplexity(trimmedQuery);

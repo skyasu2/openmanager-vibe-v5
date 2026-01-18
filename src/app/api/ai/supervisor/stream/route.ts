@@ -21,6 +21,7 @@ import {
   type HybridMessage,
   normalizeMessagesForCloudRun,
 } from '@/lib/ai/utils/message-normalizer';
+import { analyzeQueryComplexity } from '@/lib/ai/utils/query-complexity';
 import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
@@ -121,6 +122,45 @@ export const POST = withRateLimit(
         `🌊 [SupervisorStream] Query: "${userQuery.slice(0, 50)}..."`
       );
       logger.info(`📡 [SupervisorStream] Session: ${sessionId}`);
+
+      // 3.5. 복잡도 기반 Job Queue 리다이렉트 (2026-01-18 추가)
+      // very_complex 쿼리는 스트리밍 대신 Job Queue 사용 권장
+      const complexity = analyzeQueryComplexity(userQuery);
+      const shouldUseJobQueue =
+        complexity.level === 'very_complex' ||
+        (complexity.level === 'complex' &&
+          /보고서|리포트|근본.*원인|장애.*분석/i.test(userQuery));
+
+      if (shouldUseJobQueue) {
+        logger.info(
+          `🔀 [SupervisorStream] Redirecting to Job Queue (complexity: ${complexity.level})`
+        );
+        // SSE 형식으로 redirect 이벤트 전송 (클라이언트에서 처리)
+        const encoder = new TextEncoder();
+        const redirectEvent = JSON.stringify({
+          type: 'redirect',
+          data: {
+            mode: 'job-queue',
+            complexity: complexity.level,
+            estimatedTime: Math.round(complexity.recommendedTimeout / 1000),
+            message: '복잡한 분석 요청입니다. 비동기 처리로 전환합니다.',
+          },
+        });
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(`data: ${redirectEvent}\n\n`));
+            controller.close();
+          },
+        });
+        return new NextResponse(stream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'X-Session-Id': sessionId,
+            'X-Redirect-Mode': 'job-queue',
+          },
+        });
+      }
 
       // 4. Normalize and compress messages
       const normalizedMessages = normalizeMessagesForCloudRun(messages);

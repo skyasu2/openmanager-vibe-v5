@@ -35,10 +35,10 @@ import { AGENT_CONFIGS } from './config';
  * - Set generous timeout but prevent infinite hangs
  */
 const ORCHESTRATOR_CONFIG = {
-  /** Maximum execution time (ms) - 90s to allow for multiple agent handoffs */
-  timeout: 90_000,
+  /** Maximum execution time (ms) - 50s for Vercel 60s limit compliance */
+  timeout: 50_000,
   /** Warning threshold (ms) - log warning if execution exceeds this */
-  warnThreshold: 30_000,
+  warnThreshold: 25_000,
 };
 
 // ============================================================================
