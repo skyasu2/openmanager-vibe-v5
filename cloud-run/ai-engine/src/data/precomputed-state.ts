@@ -380,13 +380,20 @@ function getSlots(): PrecomputedSlot[] {
   return _cachedSlots;
 }
 
-/** 현재 시각의 슬롯 인덱스 계산 */
+/**
+ * 현재 시각의 슬롯 인덱스 계산
+ * @see src/services/metrics/MetricsProvider.ts (Vercel과 동일한 로직)
+ *
+ * 중요: toLocaleString 방식은 환경에 따라 불안정하므로
+ * UTC + 9시간 직접 계산 방식 사용 (Vercel과 동일)
+ */
 function getCurrentSlotIndex(): number {
   const now = new Date();
-  // KST 기준
-  const kstNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
-  const minuteOfDay = kstNow.getHours() * 60 + kstNow.getMinutes();
-  return Math.floor(minuteOfDay / 10);
+  // UTC + 9시간 = KST (Vercel MetricsProvider와 동일 로직)
+  const kstOffset = 9 * 60; // 분 단위
+  const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const kstMinutes = (utcMinutes + kstOffset) % 1440; // 1440 = 24시간
+  return Math.floor(kstMinutes / 10);
 }
 
 // ============================================================================

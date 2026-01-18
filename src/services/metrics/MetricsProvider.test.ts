@@ -323,12 +323,13 @@ describe('MetricsProvider', () => {
       const allMetrics = metricsProvider.getAllServerMetrics();
       let criticalFound = false;
 
+      // 임계값: AI Engine과 동일 (disk 90, network 85)
       allMetrics.forEach((metric) => {
         if (
           metric.cpu >= 90 ||
           metric.memory >= 90 ||
-          metric.disk >= 95 ||
-          metric.network >= 90
+          metric.disk >= 90 ||
+          metric.network >= 85
         ) {
           expect(metric.status).toBe('critical');
           criticalFound = true;
@@ -344,8 +345,8 @@ describe('MetricsProvider', () => {
             expect(
               metric.cpu >= 90 ||
                 metric.memory >= 90 ||
-                metric.disk >= 95 ||
-                metric.network >= 90
+                metric.disk >= 90 ||
+                metric.network >= 85
             ).toBe(true);
           }
         });
@@ -355,17 +356,18 @@ describe('MetricsProvider', () => {
     it('should mark as warning when any metric >= 80% (but not critical)', () => {
       const allMetrics = metricsProvider.getAllServerMetrics();
 
+      // 임계값: AI Engine과 동일 (disk 80, network 70)
       allMetrics.forEach((metric) => {
         const isCritical =
           metric.cpu >= 90 ||
           metric.memory >= 90 ||
-          metric.disk >= 95 ||
-          metric.network >= 90;
+          metric.disk >= 90 ||
+          metric.network >= 85;
         const isWarning =
           metric.cpu >= 80 ||
           metric.memory >= 80 ||
-          metric.disk >= 85 ||
-          metric.network >= 80;
+          metric.disk >= 80 ||
+          metric.network >= 70;
 
         if (isWarning && !isCritical) {
           expect(metric.status).toBe('warning');

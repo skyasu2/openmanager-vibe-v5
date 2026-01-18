@@ -160,6 +160,12 @@ export function getKSTTimestamp(): string {
 
 /**
  * 메트릭 값 기반 서버 상태 판별
+ * @see cloud-run/ai-engine/src/data/precomputed-state.ts (SSOT for thresholds)
+ *
+ * 임계값 (업계 표준 - AI Engine과 동일):
+ * - CPU/Memory: warning 80%, critical 90%
+ * - Disk: warning 80%, critical 90%
+ * - Network: warning 70%, critical 85%
  */
 function determineStatus(
   cpu: number,
@@ -167,12 +173,12 @@ function determineStatus(
   disk: number,
   network: number
 ): 'online' | 'warning' | 'critical' | 'offline' {
-  // Critical: 어느 하나라도 90% 이상
-  if (cpu >= 90 || memory >= 90 || disk >= 95 || network >= 90) {
+  // Critical: AI Engine 임계값과 동일
+  if (cpu >= 90 || memory >= 90 || disk >= 90 || network >= 85) {
     return 'critical';
   }
-  // Warning: 어느 하나라도 80% 이상
-  if (cpu >= 80 || memory >= 80 || disk >= 85 || network >= 80) {
+  // Warning: AI Engine 임계값과 동일
+  if (cpu >= 80 || memory >= 80 || disk >= 80 || network >= 70) {
     return 'warning';
   }
   return 'online';
