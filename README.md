@@ -134,7 +134,7 @@ Orchestrator (쿼리 분석 & 라우팅)
 | Layer | Technology |
 |-------|------------|
 | **Frontend** | Next.js 16, React 19, TypeScript |
-| **UI** | Tailwind CSS, Radix UI, Framer Motion |
+| **UI** | Tailwind CSS, Radix UI, Lucide Icons |
 | **State** | Zustand, TanStack Query |
 | **AI** | Vercel AI SDK, @ai-sdk-tools/agents |
 | **Database** | Supabase (PostgreSQL + pgvector) |

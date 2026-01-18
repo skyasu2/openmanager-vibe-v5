@@ -46,7 +46,7 @@ export const BUNDLE_OPTIMIZATION = {
   // vendor 라이브러리 분할 (1.1MB → 250KB씩 분할)
   vendorChunks: {
     react: ['react', 'react-dom'],
-    ui: ['@radix-ui', 'framer-motion', 'lucide-react'],
+    ui: ['@radix-ui', 'lucide-react'],
     charts: ['recharts', 'react-chartjs-2'],
     utils: ['date-fns', 'lodash', 'axios'],
     ai: ['@ai-sdk/mistral', '@supabase/supabase-js'],

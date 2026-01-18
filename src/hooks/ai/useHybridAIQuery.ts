@@ -20,7 +20,7 @@
  * ```
  *
  * @created 2025-12-30
- * @updated 2026-01-01 - AI SDK v5 베스트 프랙티스 적용
+ * @updated 2026-01-01 - AI SDK v6 베스트 프랙티스 적용
  *   - DefaultChatTransport 동적 헤더/바디 패턴 적용
  *   - crypto.randomUUID 기반 메시지 ID 생성
  *   - onData 콜백 지원 추가
@@ -106,7 +106,7 @@ export interface UseHybridAIQueryOptions {
   /** 진행률 업데이트 콜백 */
   onProgress?: (progress: AsyncQueryProgress) => void;
   /**
-   * 스트리밍 데이터 콜백 (AI SDK v5 베스트 프랙티스)
+   * 스트리밍 데이터 콜백 (AI SDK v6 베스트 프랙티스)
    * 실시간으로 데이터 파트를 받아 처리
    * @example
    * ```tsx
@@ -215,7 +215,7 @@ export function useHybridAIQuery(
   const pendingQueryRef = useRef<string | null>(null);
 
   // ============================================================================
-  // useChat Hook (Streaming Mode) - AI SDK v5 베스트 프랙티스 적용
+  // useChat Hook (Streaming Mode) - AI SDK v6 베스트 프랙티스 적용
   // ============================================================================
   // TextStreamChatTransport for plain text streaming
   // Cloud Run SSE → Vercel proxy → plain text → TextStreamChatTransport
@@ -242,7 +242,7 @@ export function useHybridAIQuery(
       setState((prev) => ({ ...prev, isLoading: false }));
       onStreamFinish?.();
     },
-    // AI SDK v5: 실시간 데이터 파트 처리 콜백
+    // AI SDK v6: 실시간 데이터 파트 처리 콜백
     onData: onData
       ? (dataPart) => {
           onData(dataPart as StreamDataPart);

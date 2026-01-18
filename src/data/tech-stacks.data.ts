@@ -71,7 +71,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         'Vercel이 개발한 AI 애플리케이션 프레임워크. streamText, generateObject 등 API로 스트리밍 응답, 도구 호출, 멀티 에이전트 오케스트레이션 지원',
       implementation:
         '@ai-sdk-tools/agents 패키지로 5-Agent 멀티 에이전트 시스템 구축. Orchestrator-Worker Handoff 패턴 구현',
-      version: '5.x',
+      version: '6.0',
       status: 'active',
       icon: '▲',
       tags: ['AI SDK', 'Streaming', 'Multi-Agent'],
@@ -85,7 +85,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         'Vercel AI SDK 확장 패키지. Agent 클래스로 전문 에이전트 정의, matchOn으로 패턴 매칭, handoffs로 에이전트 간 작업 위임 지원',
       implementation:
         'Orchestrator + NLQ + Analyst + Reporter + Advisor 5개 에이전트 정의. 질문 유형별 자동 라우팅 구현',
-      version: '1.0.0',
+      version: '1.2',
       status: 'active',
       icon: '🤖',
       tags: ['Agents', 'Handoff', 'Pattern Matching'],
@@ -416,19 +416,6 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       status: 'active',
       icon: '🧰',
       tags: ['상태관리', 'Store', 'React'],
-      type: 'opensource',
-    },
-    {
-      name: 'Framer Motion 12',
-      category: 'ui',
-      importance: 'high',
-      description: '고성능 애니메이션 및 제스처 라이브러리',
-      implementation:
-        'React 19 호환 선언적 애니메이션, 레이아웃 전환, 드래그 제스처 지원',
-      version: '12.23.26',
-      status: 'active',
-      icon: '🎬',
-      tags: ['애니메이션', 'UX', 'React'],
       type: 'opensource',
     },
   ],

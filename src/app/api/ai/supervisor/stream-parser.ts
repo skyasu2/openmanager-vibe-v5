@@ -101,7 +101,7 @@ function extractErrorMessage(content: string): string {
  * Output: Hello World
  *
  * @warning
- * - Vercel AI SDK v5 Data Stream Protocol에 의존
+ * - Vercel AI SDK v6 Data Stream Protocol에 의존
  * - Cloud Run 응답 형식 변경 시 파싱 실패 가능
  * - 장기적으로 SDK의 공식 파서 사용 권장
  */

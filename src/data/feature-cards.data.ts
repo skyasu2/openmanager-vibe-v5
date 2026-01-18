@@ -1,6 +1,7 @@
 /**
  * Feature Cards 데이터
  * 메인 페이지에 표시되는 4개의 주요 기능 카드 데이터
+ * @updated 2026-01-18 - AI Assistant subSections 제거 (UX 간소화)
  */
 
 import { Bot, Database, Sparkles, Zap } from 'lucide-react';
@@ -43,80 +44,6 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         'GCP Cloud Run + Hono',
       ],
     },
-    subSections: [
-      {
-        title: 'Cerebras + Groq',
-        description:
-          'Cerebras WSE-3 (850K 코어)와 Groq LPU 듀얼 추론 인프라. Supervisor/NLQ는 Cerebras, Analyst/Reporter는 Groq로 최적 분배합니다.',
-        icon: Zap,
-        gradient: 'from-orange-500 to-red-500',
-        features: [
-          'Cerebras: 24M tokens/day (Supervisor, NLQ)',
-          'Groq: 500 T/s LPU (Analyst, Reporter)',
-          'Fallback: Mistral Large / Small',
-        ],
-      },
-      {
-        title: 'Mistral AI',
-        description:
-          'Mistral AI(24B SLM)로 Advisor/Verifier 처리, mistral-embed로 1024차원 벡터 임베딩을 전담합니다.',
-        icon: Sparkles,
-        gradient: 'from-purple-500 to-pink-600',
-        features: [
-          'Mistral: Advisor + Verifier + Embedding',
-          'Model: mistral-small-2506 (24B)',
-          'Fallback: Groq llama-3.3-70b',
-        ],
-      },
-      {
-        title: 'ML Anomaly Engine',
-        description:
-          'Isolation Forest 기반 다변량 이상 탐지 엔진. Statistical 빠른 체크 → ML 다변량 분석 → Adaptive Thresholds 시계열 패턴 앙상블 투표.',
-        icon: Zap,
-        gradient: 'from-blue-500 to-indigo-600',
-        features: [
-          'Algorithm: Isolation Forest (다변량)',
-          'Adaptive: 시계열 패턴 학습 임계값',
-          'Ensemble: 3-방식 앙상블 투표',
-        ],
-      },
-      {
-        title: 'Vercel AI SDK 6.0',
-        description:
-          '@ai-sdk-tools/agents v1.2 패키지로 5-Agent 오케스트레이션. Orchestrator → NLQ/Analyst/Reporter/Advisor Handoff 패턴.',
-        icon: Database,
-        gradient: 'from-slate-500 to-gray-600',
-        features: [
-          '5-Agent: Multi-Agent (Vercel AI SDK)',
-          'Pattern: Orchestrator-Worker Handoff',
-          'API: streamText, generateObject, embed',
-        ],
-      },
-      {
-        title: 'LlamaIndex.TS + pgVector',
-        description:
-          'LlamaIndex.TS 오픈소스 기반 GraphRAG. Mistral AI로 Knowledge Triplet을 추출하고, Supabase pgVector(1024d)와 결합한 하이브리드 검색.',
-        icon: Database,
-        gradient: 'from-green-500 to-emerald-600',
-        features: [
-          'Framework: LlamaIndex.TS v0.12',
-          'Embedding: Mistral 1024d',
-          'Search: Vector + Graph Hybrid',
-        ],
-      },
-      {
-        title: 'Observability Stack',
-        description:
-          'Langfuse로 AI 호출 추적 및 품질 모니터링, Upstash Redis로 응답 캐싱(3시간 TTL) 및 Rate Limiting, OpenTelemetry 통합.',
-        icon: Database,
-        gradient: 'from-cyan-500 to-teal-600',
-        features: [
-          'Langfuse: AI 호출 추적/품질 모니터링',
-          'Upstash Redis: 캐싱 + Rate Limiting',
-          'OpenTelemetry: 분산 추적',
-        ],
-      },
-    ],
     requiresAI: true,
     isAICard: true,
   },
@@ -167,7 +94,6 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '🔄 TanStack Query v5: 서버 상태 관리 및 데이터 캐싱 최적화',
         '🧰 Zustand 5.0: 글로벌 상태 관리 및 미들웨어 최적화',
         '🏬 Radix UI: 접근성이 보장된 Headless UI 컴포넌트',
-        '🎬 Framer Motion 12: 고성능 애니메이션 및 제스처 라이브러리',
       ],
       technologies: [
         'Next.js 16',
@@ -178,7 +104,6 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         'TanStack Query v5',
         'Zustand 5.0',
         'Radix UI / Lucide',
-        'Framer Motion 12',
       ],
     },
     requiresAI: false,

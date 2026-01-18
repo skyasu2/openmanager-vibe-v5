@@ -10,7 +10,7 @@
 
 ## State Interfaces
 
-### Vercel AI SDK Types (v5.87.0)
+### Vercel AI SDK Types (ai v6.0)
 
 The core interfaces for AI SDK multi-agent orchestration:
 

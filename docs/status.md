@@ -15,7 +15,7 @@
 **UI & Styling**
 - **Tailwind CSS**: `v4.1.17` (PostCSS optimized)
 - **Component Lib**: Radix UI (Latest), Lucide React `v0.562.0`
-- **Animation**: Framer Motion (via `tailwindcss-animate`)
+- **Animation**: tailwindcss-animate (CSS-based, Framer Motion 제거됨)
 
 **State & Data**
 - **Zustand**: Global client state
@@ -44,7 +44,7 @@
 - **Utility**: tailwind-merge `v3.4.0`
 
 **AI Ecosystem**
-- **SDK**: Vercel AI SDK `v5.0.102` (`@ai-sdk/*` 패키지 포함)
+- **SDK**: Vercel AI SDK `v6.0.3` (`@ai-sdk/*` 패키지 포함)
 - **Models**: Tri-provider 전략 (Rate limit 최적화, 2026-01-16)
   - Cerebras llama-3.3-70b: Orchestrator, NLQ (1M tokens/day, 60K TPM)
   - Groq llama-3.3-70b: Analyst, Reporter (~1K requests/day, 12K TPM)
