@@ -571,6 +571,9 @@ function convertToReactFlow(diagram: DiagramData): {
     diagram.connections.forEach((conn, index) => {
       // 유효성 검사: source와 target 노드가 모두 존재하는지 확인
       if (!validNodeIds.has(conn.from) || !validNodeIds.has(conn.to)) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('[ReactFlowDiagram] Invalid connection skipped:', conn);
+        }
         return; // 유효하지 않은 연결은 생략
       }
 
