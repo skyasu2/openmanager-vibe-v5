@@ -1,6 +1,6 @@
 # Hybrid AI Architecture: Vercel vs. Cloud Run
 
-## 🎯 Architecture Overview
+## Architecture Overview
 
 This project uses a **Hybrid Architecture** to balance cost, performance, and scalability.
 
@@ -35,7 +35,7 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
 
 ---
 
-## 🔄 Request Flow
+## Request Flow
 
 1. **User** types "Analyze server status".
 2. **Vercel Frontend**:
@@ -55,7 +55,7 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
 
 ---
 
-## 🛠️ Status Comparison
+## Status Comparison
 
 | Feature | Vercel (Frontend) | Cloud Run (Backend) |
 |:--- |:--- |:--- |
@@ -65,7 +65,7 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
 | **Timeout** | 10-60 Seconds (Hard limit) | 60 Minutes (Configurable) |
 | **Logic** | Display & Routing | AI Reasoning & Processing |
 
-## 📊 Data Architecture (Updated: 2025-12-18)
+## Data Architecture
 
 The system follows a **Stateless Cloud Run** design where all persistent data lives in Supabase.
 
@@ -80,14 +80,14 @@ The system follows a **Stateless Cloud Run** design where all persistent data li
    │  • 15 Servers         │ seed   │  • 15 servers          │
    │  • 360 Data Points    │        │  • 360 metrics/24h     │
    └───────────────────────┘        └──────────┬─────────────┘
-                                               │ query
-                                               ▼
-                                    ┌────────────────────────┐
-                                    │  Cloud Run (Stateless) │
-                                    │  • NO local data files │
-                                    │  • Queries Supabase    │
-                                    │  • Pure AI computation │
-                                    └────────────────────────┘
+                                              │ query
+                                              ▼
+                                   ┌────────────────────────┐
+                                   │  Cloud Run (Stateless) │
+                                   │  • NO local data files │
+                                   │  • Queries Supabase    │
+                                   │  • Pure AI computation │
+                                   └────────────────────────┘
 ```
 
 ### Key Principles
@@ -103,7 +103,7 @@ The system follows a **Stateless Cloud Run** design where all persistent data li
 
 ---
 
-## 🕹️ Controls (Planned)
+## Controls (Planned)
 
 - **Start (Wake Up)**: Triggers `/warmup` on Cloud Run to spin up an instance (Cold Start mitigation).
 - **Stop**: Not applicable (Serverless scales to 0 automatically when idle).

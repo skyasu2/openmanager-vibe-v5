@@ -1,7 +1,7 @@
 # Common Issues & Solutions
 
 > **통합 문서**: common.md + build.md + claude-400-invalid-json.md + github-actions-analysis.md
-> **최종 갱신**: 2025-12-31
+> **최종 갱신**: 2026-01-18
 
 ---
 
@@ -113,7 +113,7 @@ npm run type-check
 npm run lint
 
 # 일반적인 수정
-npm run lint:fix           # ESLint 수정
+npm run lint               # Biome 린트 검사
 rm -rf .next && npm run build  # 캐시 삭제
 npm install --legacy-peer-deps # 의존성 충돌 해결
 ```
@@ -340,7 +340,7 @@ vercel inspect
 
 - [System Recovery Guide](./system-recovery-guide-2025.md) - 긴급 복구
 - [Test Strategy](../guides/testing/test-strategy.md) - 테스트 전략
-- [Development Guide](../getting-started/development.md) - 개발 가이드
+- [Development Guide](../DEVELOPMENT.md) - 개발 가이드
 
 ---
 

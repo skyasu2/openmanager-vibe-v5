@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-14
+**마지막 업데이트**: 2026-01-18
 
 ---
 
@@ -27,14 +27,14 @@
 
 ## 📚 Documentation Status
 
-**총 문서 수**: 34개 (경량화 완료, 122개→34개)
-- **Reference**: 18개 (아키텍처, AI, API)
-- **Guides**: 12개 (AI 도구, MCP, 테스팅, 표준)
+**총 문서 수**: 32개 (경량화 완료, 122개→32개)
+- **Reference**: 17개 (아키텍처, AI, API)
+- **Guides**: 11개 (AI 도구, MCP, 테스팅, 표준)
 - **Troubleshooting**: 2개 (문제 해결)
 - **Root**: 4개 (README, QUICK-START, DEVELOPMENT, status)
 
-**최근 최적화 (2026-01-14)**:
-- 문서 경량화: 122개 → 34개 (72% 감소)
+**최근 최적화 (2026-01-18)**:
+- 문서 경량화: 122개 → 32개 (74% 감소)
 - 레거시 문서 → `reports/history/` 이동
 - CHANGELOG 통합 (중복 제거)
 - 버전 표기 통일 (v5.87.0)
@@ -50,7 +50,7 @@
   - Groq llama-3.3-70b: Analyst, Reporter (~1K requests/day, 12K TPM)
   - Mistral Small 2506 (24B): Advisor, Verifier (Limited free tier)
 - **Agents**: 5개 Multi-Agent (Orchestrator → NLQ/Analyst/Reporter/Advisor)
-- **Tools**: MCP (Model Context Protocol) 9/9 Server Connected
+- **Tools**: MCP (Model Context Protocol) 8/8 Server Connected
 - **Web Search**: Tavily API (Reporter Agent)
 - **Rate Limit**: Pre-emptive Fallback (80% 임계값 도달 시 사전 전환)
 - **Note**: Provider 장애 시 자동 폴백 (Cerebras→Groq→Mistral)
@@ -235,7 +235,7 @@
 | **Test** | ✅ 100% | 92/92 Tests Passing (AI Engine P0 포함) |
 | **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
 | **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
-| **MCP** | ✅ 9/9 | 모든 MCP 서버 정상 연결 |
+| **MCP** | ✅ 8/8 | 모든 MCP 서버 정상 연결 |
 | **Vercel** | ✅ Deployed | Production 배포 정상 |
 
 ---
@@ -260,7 +260,7 @@
 ## 📝 문서 관리 현황
 
 **최적화 진행 (JBGE 원칙)**
-- 문서 수: 130개 (최적화 완료)
+- 문서 수: 34개 (최적화 완료)
 - 관리 원칙: 400줄 이하 유지, 관련 내용 통합, 중복 제거.
 - **Key Docs**:
   - `README.md`: 프로젝트 개요
@@ -319,6 +319,6 @@
 **개발 도구 체인**:
 - **Primary**: Claude Code (Interactive Development)
 - **Code Review**: Codex + Gemini 2-AI Rotation
-- **MCP**: 9개 서버 연동 (Serena, Context7, Playwright 등)
+- **MCP**: 8개 서버 연동 (Serena, Context7, Playwright 등)
 
 **총 코드량**: ~169,000 Lines (Frontend 50K+ / Backend 18K+ / Config & Tests)

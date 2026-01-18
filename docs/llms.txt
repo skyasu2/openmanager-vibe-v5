@@ -40,8 +40,8 @@ OpenManager VIBE is an AI-native server monitoring platform built with:
 
 ### Documentation
 - `docs/README.md` - Documentation index
-- `docs/getting-started/quick-start.md` - Getting started
-- `docs/getting-started/development.md` - Development guide
+- `docs/QUICK-START.md` - Getting started
+- `docs/DEVELOPMENT.md` - Development guide
 - `docs/reference/architecture/ai/ai-engine-architecture.md` - AI architecture
 
 ## Common Tasks

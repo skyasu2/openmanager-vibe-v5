@@ -189,7 +189,7 @@ Orchestrator (쿼리 분석 & 라우팅)
 
 - **Vibe Coding**: Claude Code를 활용한 대화형 개발
 - **Multi-LLM Review**: Codex + Gemini 2-AI 코드 리뷰 로테이션
-- **DevTools Integration**: 개발 생산성 향상을 위해 9개의 MCP 서버(Serena, Context7, Playwright 등)를 Claude Code 개발 환경에 연동하여 활용
+- **DevTools Integration**: 개발 생산성 향상을 위해 8개의 MCP 서버(Serena, Context7, Playwright 등)를 Claude Code 개발 환경에 연동하여 활용
 - **Hybrid Architecture**: Vercel Edge + Cloud Run Heavy Lifting
 
 **결과**: 약 **170,000 Lines of Code** (Frontend 50K+ / Backend 18K+ / Config & Docs)

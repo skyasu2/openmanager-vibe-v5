@@ -1,5 +1,7 @@
 # 배포 아키텍처
 
+> **최종 갱신**: 2026-01-18
+
 ## 🚀 Vercel 배포 시스템
 
 ### 플랫폼 구성
@@ -46,7 +48,7 @@ const edgeConfig = {
   }
 };
 
-// Next.js 15 최적화
+// Next.js 16 최적화
 const nextConfig = {
   output: 'standalone',
   experimental: {

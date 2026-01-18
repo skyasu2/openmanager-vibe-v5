@@ -70,7 +70,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Next.js API',
             sublabel: '/api/ai/supervisor',
             type: 'secondary',
-            icon: '▲',
+            icon: '▲', // Vercel Triangle
           },
         ],
       },
@@ -83,7 +83,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Orchestrator',
             sublabel: 'Cerebras llama-3.3-70b',
             type: 'highlight',
-            icon: '🎯',
+            icon: '🧠', // Brain for Orchestrator
           },
         ],
       },
@@ -110,7 +110,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Reporter Agent',
             sublabel: 'Incident Report (w/ Fallback)',
             type: 'secondary',
-            icon: '📝',
+            icon: '📑', // Document for report
           },
           {
             id: 'advisor',
@@ -157,7 +157,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Cloud Run',
             sublabel: 'Node.js 22 + Hono + AI SDK',
             type: 'highlight',
-            icon: '☁️',
+            icon: '🚀', // Rocket for Cloud Run
           },
         ],
       },
@@ -170,14 +170,14 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Supabase',
             sublabel: 'PostgreSQL + pgVector + RLS',
             type: 'primary',
-            icon: '🐘',
+            icon: '⚡', // Bolt (Supabase uses bolt often) or Generic DB 🗄️. Sticking with simple.
           },
           {
             id: 'upstash',
             label: 'Upstash Redis',
             sublabel: 'Response Cache + Rate Limit',
             type: 'secondary',
-            icon: '⚡',
+            icon: '🔄', // Redis fast cycle
           },
         ],
       },
@@ -190,7 +190,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Scale to Zero',
             sublabel: '무료 티어 최적화',
             type: 'tertiary',
-            icon: '💰',
+            icon: '📉',
           },
           {
             id: 'feature-2',
@@ -204,7 +204,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Global CDN',
             sublabel: 'Edge 배포',
             type: 'tertiary',
-            icon: '🌐',
+            icon: '🌍',
           },
         ],
       },
@@ -250,7 +250,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Tailwind Animate',
             sublabel: 'CSS Animations',
             type: 'secondary',
-            icon: '✨',
+            icon: '🎭', // Mask for animation/drama
           },
         ],
       },
@@ -270,14 +270,14 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'TanStack Query v5',
             sublabel: 'Server State',
             type: 'secondary',
-            icon: '🔄',
+            icon: '📡', // Satellite for remote data
           },
           {
             id: 'hooks',
             label: 'React 19 Hooks',
             sublabel: 'Local State',
             type: 'tertiary',
-            icon: '🪝',
+            icon: '⚓', // Hook
           },
         ],
       },
@@ -297,7 +297,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'TypeScript 5.9',
             sublabel: 'Strict Mode',
             type: 'primary',
-            icon: '🔷',
+            icon: '📘', // Blue book for TS
           },
           {
             id: 'radix',
@@ -373,7 +373,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Google Antigravity',
             sublabel: 'Agent-first IDE (Google)',
             type: 'highlight',
-            icon: '🚀',
+            icon: '🪐', // Planet/Gravity
           },
         ],
       },
@@ -413,7 +413,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Serena',
             sublabel: 'Code Intelligence',
             type: 'secondary',
-            icon: '🔬',
+            icon: '🧠',
           },
           {
             id: 'context7',
@@ -427,7 +427,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Supabase',
             sublabel: 'Database Access',
             type: 'secondary',
-            icon: '🐘',
+            icon: '⚡',
           },
           {
             id: 'vercel-mcp',
@@ -455,14 +455,14 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             label: 'Tavily',
             sublabel: 'Web Research',
             type: 'tertiary',
-            icon: '🔎',
+            icon: '🌐',
           },
           {
             id: 'seq-think',
             label: 'Sequential Thinking',
             sublabel: 'Complex Planning',
             type: 'tertiary',
-            icon: '🧠',
+            icon: '🔗', // Chain of thought
           },
         ],
       },

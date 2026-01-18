@@ -87,6 +87,6 @@ reference/
 
 ## Related
 
-- [Getting Started](../getting-started/) - 시작 가이드
+- [Getting Started](../QUICK-START.md) - 시작 가이드
 - [Guides](../guides/) - How-to 가이드
 - [Troubleshooting](../troubleshooting/) - 문제 해결

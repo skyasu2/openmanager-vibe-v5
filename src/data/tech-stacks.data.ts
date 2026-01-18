@@ -459,10 +459,9 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
 • serena: 고급 코드 분석 및 리팩토링
 • context7: 라이브러리 문서 실시간 검색
 • playwright: 브라우저 자동화 및 E2E 테스트
-• figma: Design-to-Code (6회/월)
 • github: 저장소 관리 및 자동화
 • tavily: 웹 검색 - 심층 리서치
-• brave-search: 웹 검색 - 팩트체크`,
+• sequential-thinking: 복잡한 추론/설계`,
         status: 'active',
         icon: '🔌',
         tags: ['MCP서버', '자동화도구', '확장기능'],

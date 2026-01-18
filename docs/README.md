@@ -1,6 +1,6 @@
 # OpenManager VIBE Documentation
 
-> **프로젝트 버전**: v5.88.0 | **Updated**: 2026-01-16
+> **프로젝트 버전**: v5.88.0 | **Updated**: 2026-01-18
 
 ---
 
@@ -43,10 +43,10 @@ flowchart LR
 
 | 폴더 | 설명 | 문서 수 |
 |------|------|:-------:|
-| `guides/` | How-to 가이드 | 12개 |
-| `reference/` | 기술 레퍼런스 | 18개 |
+| `guides/` | How-to 가이드 | 11개 |
+| `reference/` | 기술 레퍼런스 | 17개 |
 | `troubleshooting/` | 문제 해결 | 2개 |
-| **합계** | | **35개** |
+| **합계** | | **32개** |
 
 ---
 
@@ -83,7 +83,7 @@ flowchart LR
 2. [AI Model Policy](./ai-model-policy.md) - 모델 정책
 
 ### DevOps
-1. [Hybrid Architecture](./reference/architecture/infrastructure/hybrid_split.md) - Vercel + Cloud Run
+1. [Hybrid Architecture](./reference/architecture/infrastructure/hybrid-split.md) - Vercel + Cloud Run
 2. [Deployment](./reference/architecture/infrastructure/deployment.md) - 배포 가이드
 3. [Troubleshooting](./troubleshooting/) - 문제 해결
 

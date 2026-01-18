@@ -243,7 +243,7 @@ const NODE_STYLES: Record<
     shadow: '',
   },
   highlight: {
-    bg: 'bg-gradient-to-br from-yellow-500/25 to-amber-500/25 backdrop-blur-sm',
+    bg: 'bg-linear-to-br from-yellow-500/25 to-amber-500/25 backdrop-blur-sm',
     border: 'border-yellow-400/50',
     shadow: 'shadow-lg shadow-yellow-500/10',
   },
@@ -322,7 +322,7 @@ const LayerLabelNode = memo(
             {data.title}
           </span>
           <div
-            className={`ml-auto mt-1 h-0.5 w-6 rounded-full opacity-80 transition-all duration-200 group-hover:w-10 group-hover:opacity-100 bg-gradient-to-r ${data.color}`}
+            className={`ml-auto mt-1 h-0.5 w-6 rounded-full opacity-80 transition-all duration-200 group-hover:w-10 group-hover:opacity-100 bg-linear-to-r ${data.color}`}
           />
         </div>
       </div>
@@ -424,11 +424,48 @@ function getLayoutedElements(
     layerNodes.set(layerIndex, existing);
   });
 
-  // 전체 최대 너비 계산 (가장 많은 노드를 가진 레이어 기준)
-  const maxNodesInAnyLayer = Math.max(...layerNodeCounts, 1);
-  const totalWidth = maxNodesInAnyLayer * (NODE_WIDTH + nodesep) - nodesep;
+  // 2. 레이어 메타데이터 계산 (높이, 행 수, Wrapping)
+  const layerMeta = new Map<
+    number,
+    { startY: number; nodesPerRow: number; rowCount: number }
+  >();
+  let currentY = 0;
+  // 레이어 인덱스가 0부터 순차적이라고 가정 (안전하게 키 정렬)
+  const sortedLayerIndices = Array.from(layerNodes.keys()).sort(
+    (a, b) => a - b
+  );
 
-  // 레이어별 위치 계산
+  sortedLayerIndices.forEach((layerIndex) => {
+    const nodesInLayer = layerNodes.get(layerIndex) || [];
+    const count = nodesInLayer.length;
+
+    // Smart Grid: 8개 이상(예: MCP)은 4개씩, 그 외는 최대 5개씩
+    const nodesPerRow = count >= 8 ? 4 : 5;
+    const rowCount = Math.ceil(count / nodesPerRow);
+
+    layerMeta.set(layerIndex, { startY: currentY, nodesPerRow, rowCount });
+
+    // 레이어 높이: 노드 높이 * 줄 수 + 줄 간격(ranksep/2) + 다음 레이어 간격(ranksep)
+    const rowGap = ranksep * 0.4;
+    const layerHeight = rowCount * NODE_HEIGHT + (rowCount - 1) * rowGap;
+
+    currentY += layerHeight + ranksep;
+  });
+
+  // 3. 전체 최대 너비 계산 (Wrapping 고려)
+  let maxRowWidth = 0;
+  sortedLayerIndices.forEach((layerIndex) => {
+    const nodesInLayer = layerNodes.get(layerIndex) || [];
+    const meta = layerMeta.get(layerIndex)!;
+
+    // 가장 넓은 행(꽉 찬 행) 기준으로 너비 계산
+    const effectiveCols = Math.min(nodesInLayer.length, meta.nodesPerRow);
+    const width = effectiveCols * (NODE_WIDTH + nodesep) - nodesep;
+    if (width > maxRowWidth) maxRowWidth = width;
+  });
+  const totalWidth = maxRowWidth;
+
+  // 4. 노드 위치 매핑
   const layoutedNodes = nodes.map((node) => {
     if (node.type !== 'customNode') return node;
 
@@ -437,15 +474,29 @@ function getLayoutedElements(
 
     const nodesInLayer = layerNodes.get(layerIndex) || [];
     const nodeIndexInLayer = nodesInLayer.findIndex((n) => n.id === node.id);
-    const nodeCountInLayer = nodesInLayer.length;
+    const meta = layerMeta.get(layerIndex);
 
-    // X 위치: 레이어 내 중앙 정렬
-    const layerWidth = nodeCountInLayer * (NODE_WIDTH + nodesep) - nodesep;
-    const layerStartX = (totalWidth - layerWidth) / 2;
-    const x = layerStartX + nodeIndexInLayer * (NODE_WIDTH + nodesep);
+    if (!meta) return node;
 
-    // Y 위치: 레이어 인덱스 기반
-    const y = layerIndex * (NODE_HEIGHT + ranksep);
+    // Grid 위치 (Row, Col)
+    const row = Math.floor(nodeIndexInLayer / meta.nodesPerRow);
+    const col = nodeIndexInLayer % meta.nodesPerRow;
+
+    // 마지막 줄 중앙 정렬 로직
+    const isLastRow = row === meta.rowCount - 1;
+    const itemsInLastRow =
+      nodesInLayer.length % meta.nodesPerRow || meta.nodesPerRow;
+    const itemsInCurrentRow = isLastRow ? itemsInLastRow : meta.nodesPerRow;
+
+    const rowWidth = itemsInCurrentRow * (NODE_WIDTH + nodesep) - nodesep;
+    // 전체 중앙 정렬: (전체폭 - 현재행폭) / 2
+    const rowStartX = (totalWidth - rowWidth) / 2;
+
+    const x = rowStartX + col * (NODE_WIDTH + nodesep);
+
+    // Y 위치
+    const rowGap = ranksep * 0.4;
+    const y = meta.startY + row * (NODE_HEIGHT + rowGap);
 
     return {
       ...node,
@@ -579,21 +630,27 @@ function convertToReactFlow(diagram: DiagramData): {
 
       const isFanOut = (sourceConnectionCount[conn.from] ?? 0) >= 4;
 
+      // 🚀 데이터 흐름 강조: 모든 연결선에 애니메이션 적용 (흐름 표현)
+      // 실선은 느리게(데이터 흐름), 점선은 빠르게(비동기/이벤트)
+      const animateEdge = true;
+      const animationSpeed = conn.type === 'dashed' ? 1.5 : 3; // 숫자가 작을수록 빠름 (s)
+
       edges.push({
         id: `edge-${index}`,
         source: conn.from,
         target: conn.to,
         type: 'smoothstep', // Dagre와 호환성 좋음
-        animated: conn.type === 'dashed',
+        animated: animateEdge,
         style: {
           stroke:
             conn.type === 'dashed'
               ? 'rgba(167, 139, 250, 0.6)'
               : isFanOut
-                ? 'rgba(255, 255, 255, 0.3)'
-                : 'rgba(255, 255, 255, 0.4)',
+                ? 'rgba(255, 255, 255, 0.4)'
+                : 'rgba(255, 255, 255, 0.6)',
           strokeWidth: isFanOut ? 1.5 : 2,
           strokeDasharray: conn.type === 'dashed' ? '5 5' : undefined,
+          animationDuration: `${animationSpeed}s`, // CSS animation duration
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
@@ -602,17 +659,19 @@ function convertToReactFlow(diagram: DiagramData): {
           color:
             conn.type === 'dashed'
               ? 'rgba(167, 139, 250, 0.8)'
-              : 'rgba(255, 255, 255, 0.6)',
+              : isFanOut
+                ? 'rgba(255, 255, 255, 0.5)'
+                : 'rgba(255, 255, 255, 0.8)',
         },
         // 팬아웃 시 라벨 간소화 (첫 번째만 표시)
         label: isFanOut && index > 0 ? undefined : conn.label,
         labelStyle: {
-          fill: 'rgba(255, 255, 255, 0.8)',
+          fill: 'rgba(255, 255, 255, 0.9)',
           fontSize: 10,
           fontWeight: 600,
         },
         labelBgStyle: {
-          fill: 'rgba(30, 30, 46, 0.9)',
+          fill: 'rgba(15, 23, 42, 0.9)',
           fillOpacity: 0.9,
         },
         labelBgPadding: [4, 4] as [number, number],
@@ -814,7 +873,7 @@ function ReactFlowDiagram({
       {/* React Flow 캔버스 */}
       <DiagramErrorBoundary diagramTitle={diagram.title}>
         <div
-          className={`rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/50 ${
+          className={`rounded-xl border border-white/10 bg-linear-to-br from-slate-900/50 to-slate-800/50 ${
             compact
               ? 'h-[48dvh] sm:h-[50dvh] lg:h-[52dvh] max-h-[380px] sm:max-h-[400px] lg:max-h-[440px]'
               : 'h-[52dvh] sm:h-[55dvh] lg:h-[58dvh] max-h-[420px] sm:max-h-[460px] lg:max-h-[520px]'
@@ -875,7 +934,7 @@ function ReactFlowDiagram({
       {/* 범례 */}
       <div className="flex flex-wrap justify-center gap-3 border-t border-white/10 pt-3">
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded bg-gradient-to-br from-yellow-500/40 to-amber-500/40 ring-1 ring-yellow-400/50" />
+          <div className="h-2.5 w-2.5 rounded bg-linear-to-br from-yellow-500/40 to-amber-500/40 ring-1 ring-yellow-400/50" />
           <span className="text-[10px] text-gray-400">핵심</span>
         </div>
         <div className="flex items-center gap-1.5">

@@ -1,7 +1,7 @@
 # Troubleshooting Guide
 
-> **최종 갱신**: 2025-12-31
-> **문서 수**: 3개 (8개에서 통합)
+> **최종 갱신**: 2026-01-18
+> **문서 수**: 2개 (8개에서 통합)
 
 ---
 
@@ -81,9 +81,9 @@ wsl
 
 ## Related
 
-- [Getting Started](../getting-started/) - 시작 가이드
 - [Guides](../guides/) - How-to 가이드
 - [Reference](../reference/) - 기술 레퍼런스
+- [DEVELOPMENT.md](../DEVELOPMENT.md) - 개발 가이드
 
 ---
 

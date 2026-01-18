@@ -13,7 +13,7 @@
 | `github` | 저장소/PR 관리 | 중간 |
 | `tavily` | 심층 리서치, 팩트체크 | 낮음 |
 
-## Skills (10개)
+## Skills (11개)
 
 ### 코드 품질
 | Skill | 설명 |
@@ -30,10 +30,11 @@
 | `playwright-triage` | E2E 테스트 실패 분류 |
 | `next-router-bottleneck` | 라우터 성능 분석 |
 
-### 배포
+### 배포/Git
 | Skill | 설명 |
 |-------|------|
 | `cloud-run-deploy` | Cloud Run AI Engine 배포 |
+| `commit-commands` | Git 커밋 워크플로우 (commit, commit-push-pr, clean_gone) |
 
 ### 문서/리포트
 | Skill | 설명 |
@@ -48,6 +49,7 @@
 | `claude` | 코드 생성/수정 | 현재 세션 |
 | `codex` | 코드 리뷰 | 2-AI 로테이션 |
 | `gemini` | 로직 검증 | 2-AI 로테이션 |
+| `kiro` | 터미널 멀티에이전트 | 수동 사용 (chat/agent/doctor) |
 
 > Note: Qwen 제거됨 (2026-01-07) - 평균 201초, 실패율 13.3%
 

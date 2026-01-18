@@ -31,7 +31,7 @@
 | `claude-code-guide` | Claude Code/Agent SDK/API 문서 안내 |
 | `statusline-setup` | Claude Code 상태라인 설정 |
 
-## 🛠️ 커스텀 스킬 (9개)
+## 🛠️ 커스텀 스킬 (11개)
 
 | 스킬 | 버전 | 용도 |
 |------|------|------|
@@ -39,13 +39,15 @@
 | `ai-code-review` | v1.2.0 | Multi-AI 코드 리뷰 + 이슈 트래커 |
 | `validation-analysis` | v1.3.0 | 검증 결과 분석 + 이슈 트래킹 |
 | `lint-smoke` | v1.1.0 | Lint + 테스트 스모크 체크 |
-| `ai-report-export` | v1.1.0 | 3-AI 검증 결과 문서화 |
+| `ai-report-export` | v1.1.0 | 2-AI 검증 결과 문서화 |
 | `mermaid-diagram` | v1.0.0 | Mermaid 다이어그램 생성/검증 |
 | `next-router-bottleneck` | v1.1.0 | Next.js 라우터 성능 분석 |
 | `playwright-triage` | v1.2.0 | E2E 테스트 실패 분류 |
 | `security-audit-workflow` | v1.1.0 | 보안 감사 워크플로우 |
+| `cloud-run-deploy` | v1.0.0 | Cloud Run AI Engine 배포 |
+| `commit-commands` | v1.0.0 | Git 커밋 워크플로우 (commit, commit-push-pr, clean_gone) |
 
-## 📊 MCP 서버 (9개)
+## 📊 MCP 서버 (8개)
 
 | MCP 서버 | 주요 기능 | 우선순위 |
 |----------|----------|---------|
@@ -57,7 +59,6 @@
 | **playwright** | E2E 테스트 | 중간 |
 | **github** | 저장소 관리 | 중간 |
 | **tavily** | 웹 검색 (심층 리서치) | 낮음 |
-| **brave-search** | 웹 검색 (팩트체크) | 낮음 |
 
 ## ⚡ Hooks 설정
 

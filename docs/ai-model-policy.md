@@ -85,7 +85,7 @@ Vercel AI SDK 6 (@ai-sdk)
 |------|------|------|
 | **Proxy** | API 라우팅 | Cloud Run으로 요청 전달 |
 | **Cache** | 응답 캐싱 | Rate Limiting 보호 |
-| **UI** | 사용자 인터페이스 | React 19 + Next.js 15 |
+| **UI** | 사용자 인터페이스 | React 19 + Next.js 16 |
 
 ---
 

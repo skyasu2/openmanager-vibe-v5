@@ -2,9 +2,9 @@
 # 핵심 정보만 포함, 상세 내역은 별도 문서 참조
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
-version: "2.9.0"  # registry-core 버전 (v2.9.0: LangGraph → AI SDK 마이그레이션 반영)
-last_updated: "2025-12-29"
-project: "OpenManager VIBE v5.83.12"
+version: "3.0.0"  # registry-core 버전 (v3.0.0: MCP 정리 및 버전 동기화)
+last_updated: "2026-01-18"
+project: "OpenManager VIBE v5.87.0"
 
 # ============================================================================
 # 0. AI Architecture Overview (v6.0 - AI SDK Multi-Agent)
@@ -86,36 +86,36 @@ subagents:
 # 3. MCP Servers (개발 vs 프로덕션 구분)
 # ============================================================================
 mcp-servers:
-  # 개발 환경 (Claude Code에서 사용) - 9/9 연결
+  # 개발 환경 (Claude Code에서 사용) - 8/8 연결
   development:
-    - vercel          # @open-mcp/vercel, 배포 관리 (무제한)
-    - supabase        # @supabase/mcp-server-supabase, DB 관리 (무제한)
-    - serena          # 코드 검색/메모리 (심볼, 구조 분석) (무제한)
-    - context7        # 라이브러리 공식 문서 조회 (무제한)
-    - playwright      # E2E 테스트 자동화 (무제한)
-    - figma           # Design-to-Code (HTTP 원격, **6회/월 Starter**)
-    - github          # GitHub 저장소 관리 (무제한)
-    - tavily          # 웹 검색 - 심층 리서치 (1,000/월)
-    - brave-search    # 웹 검색 - 팩트체크/버전확인 (2,000/월)
+    - vercel              # @vercel/mcp, 배포 관리 (무제한)
+    - supabase            # @supabase/mcp-server-supabase, DB 관리 (무제한)
+    - serena              # 코드 검색/메모리 (심볼, 구조 분석) (무제한)
+    - context7            # @upstash/context7-mcp, 라이브러리 문서 (무제한)
+    - playwright          # @playwright/mcp, E2E 테스트 자동화 (무제한)
+    - github              # @modelcontextprotocol/server-github, 저장소 관리 (무제한)
+    - tavily              # tavily-mcp, 웹 검색 - 심층 리서치 (1,000/월)
+    - sequential-thinking # @modelcontextprotocol/server-sequential-thinking, 복잡한 추론 (무제한)
 
   # 프로덕션 환경 (Cloud Run AI 엔진에서 사용)
   production:
     - supabase        # AI SDK 에이전트가 DB 조회에 사용 (유일한 프로덕션 MCP)
 
-  removed:  # 2025-12-11 정리
+  removed:  # 2026-01-18 정리
     - filesystem      # Claude Code 내장 도구와 100% 중복
     - memory          # Serena write_memory/read_memory로 대체
     - time            # 사용 빈도 낮음, 대안 존재
     - shadcn-ui       # Context7로 문서 조회 가능
-    - sequential-thinking  # Claude 자체 추론 + TodoWrite로 대체
+    - figma           # 미사용 (6회/월 Starter 제한)
+    - brave-search    # Tavily로 통합
 
 # 환경 구분:
-#   - Development: Claude Code 작업 시 9개 MCP 모두 사용
+#   - Development: Claude Code 작업 시 8개 MCP 사용
 #   - Production: Cloud Run AI 엔진에서 Supabase MCP만 사용
 # 상세 정보: .mcp.json 참조
 
 # ============================================================================
-# 4. Claude Code Skills (Phase 1.3)
+# 4. Claude Code Skills (Phase 1.5)
 # ============================================================================
 skills:
   active:
@@ -126,10 +126,12 @@ skills:
     - security-audit-workflow # 70% token savings (v1.0.0)
     - validation-analysis     # Post-commit validation (v1.0.0)
     - ai-code-review          # 70% token savings (v1.0.0)
-    - mermaid-diagram         # Mermaid 다이어그램 생성 (v1.0.0) 🆕
+    - mermaid-diagram         # Mermaid 다이어그램 생성 (v1.0.0)
+    - cloud-run-deploy        # Cloud Run 배포 자동화 (v1.0.0)
+    - commit-commands         # Git 커밋 워크플로우 (commit, commit-push-pr, clean_gone)
 
   average_efficiency: "72%"
-  status: "✅ Phase 1.4 Complete (8 Skills)"
+  status: "✅ Phase 1.5 Complete (10 Skills)"
 
 # 상세 정보: .claude/skills/*/*.md 참조
 

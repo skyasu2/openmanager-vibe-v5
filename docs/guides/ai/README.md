@@ -1,6 +1,6 @@
 # 개발용 AI 도구
 
-> **최종 갱신**: 2026-01-08
+> **최종 갱신**: 2026-01-18
 > **Note**: Qwen 제거 (2026-01-07) - 2-AI 시스템으로 단순화
 
 개발 시 사용하는 AI 도구 및 방법론
@@ -9,25 +9,20 @@
 
 ```
 docs/guides/ai/
-├── claude-code/           # Claude Code 기능 가이드
-│   └── README.md          # 기본 서브에이전트 + 스킬 + MCP
-│
 ├── common/                # 공통/Multi-AI
-│   ├── ai-standards.md    # 코딩 규칙 통합
-│   ├── ai-cli-guide.md    # CLI + 벤치마크 통합
-│   ├── ai-workflow.md     # 워크플로우 통합
-│   └── ai-wrappers-guide.md
-│
+│   └── ai-standards.md    # 코딩 규칙 통합
 └── README.md              # 이 파일
 ```
+
+> **참고**: Claude Code 상세 가이드는 `.claude/rules/ai-tools.md` 참조
 
 ## 도구별 가이드
 
 | 도구 | 버전 | 역할 | 가이드 |
 |------|------|------|--------|
-| Claude Code | v2.1.7 | Lead + MCP + 스킬 | [claude-code/](./claude-code/) |
-| Codex | v0.85.0 | 2-AI 순환 (Primary) | [common/](./common/) |
-| Gemini | v0.24.0 | 2-AI 순환 (Secondary) | [common/](./common/) |
+| Claude Code | v2.1.7 | Lead + MCP + 스킬 | [.claude/rules/ai-tools.md](../../../.claude/rules/ai-tools.md) |
+| Codex | v0.85.0 | 2-AI 순환 (Primary) | [ai-standards.md](./common/ai-standards.md) |
+| Gemini | v0.24.0 | 2-AI 순환 (Secondary) | [ai-standards.md](./common/ai-standards.md) |
 
 ## 빠른 참조
 
@@ -43,4 +38,4 @@ gemini "아키텍처 검토"
 
 ---
 
-**관련**: [배포용 AI](../../reference/ai/) | [AI Registry](../../../config/ai/registry-core.yaml)
+**관련**: [AI Architecture](../../reference/architecture/ai/) | [AI Registry](../../../config/ai/registry-core.yaml)

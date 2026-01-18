@@ -174,7 +174,7 @@ claude mcp list | grep supabase
 ./scripts/mcp-health-check.sh
 
 # 주요 기능:
-# - 9개 MCP 서버 연결 상태 실시간 체크
+# - 8개 MCP 서버 연결 상태 실시간 체크
 # - Serena 프로젝트 활성화 상태 체크 (신규) ⭐
 # - 메모리 사용량 모니터링
 # - 자동 문제 진단 및 복구 제안
@@ -185,12 +185,12 @@ claude mcp list | grep supabase
 ### 보안 검사 및 서버 상태 체크
 
 ```bash
-# 토큰 보안 검사 + 9개 MCP 서버 상태 종합 체크
+# 토큰 보안 검사 + 8개 MCP 서버 상태 종합 체크
 ./scripts/setup-mcp-env.sh --security-check
 
 # 주요 기능:
 # - API 키 노출 검사
-# - 9개 MCP 서버별 연결 상태 개별 확인 (개선됨) ⭐
+# - 8개 MCP 서버별 연결 상태 개별 확인 (개선됨) ⭐
 # - 백업 파일 보안 검사
 # - 환경변수 파일 권한 검사
 ```
