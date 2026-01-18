@@ -128,6 +128,10 @@ COPY --from=builder /app/dist ./dist
 COPY data/precomputed-states.json ./data/
 COPY data/hourly-data/ ./data/hourly-data/
 
+# Copy config files (SSOT)
+# - system-rules.json: Threshold values synced with Vercel
+COPY config/system-rules.json ./config/
+
 # Set ownership and switch to non-root
 RUN chown -R appuser:nodejs /app
 USER appuser

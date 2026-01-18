@@ -87,20 +87,78 @@ export interface CompactContext {
 }
 
 // ============================================================================
-// Thresholds
+// Thresholds (from system-rules.json - Single Source of Truth)
 // ============================================================================
 
+interface ThresholdConfig {
+  warning: number;
+  critical: number;
+}
+
+interface SystemRulesThresholds {
+  cpu: ThresholdConfig;
+  memory: ThresholdConfig;
+  disk: ThresholdConfig;
+  network: ThresholdConfig;
+}
+
 /**
- * 🎯 임계값 정의 - 업계 베스트 프랙티스 적용
- * @see /src/config/rules/system-rules.json (Single Source of Truth)
- * @see https://docs.github.com/en/enterprise-server/admin/monitoring-and-managing-your-instance/monitoring-your-instance/recommended-alert-thresholds
+ * 🎯 system-rules.json 경로 후보
+ * Cloud Run 배포 환경과 로컬 개발 환경 모두 지원
  */
-const THRESHOLDS = {
-  cpu: { warning: 80, critical: 90 },       // 업계 표준: 80/90
-  memory: { warning: 80, critical: 90 },    // 업계 표준: 80/90
-  disk: { warning: 80, critical: 90 },      // 업계 표준: 여유 10% 확보
-  network: { warning: 70, critical: 85 },   // 네트워크는 워크로드 의존
-} as const;
+function getSystemRulesPaths(): string[] {
+  return [
+    // Cloud Run 배포 시 복사된 경로
+    join(__dirname, '../../config/system-rules.json'),
+    join(process.cwd(), 'config/system-rules.json'),
+    // 로컬 개발 시 원본 경로
+    join(process.cwd(), 'src/config/rules/system-rules.json'),
+    join(process.cwd(), '../src/config/rules/system-rules.json'),
+  ];
+}
+
+/**
+ * 🎯 system-rules.json에서 임계값 로드
+ * @returns SystemRulesThresholds | null
+ */
+function loadThresholdsFromSystemRules(): SystemRulesThresholds | null {
+  for (const filePath of getSystemRulesPaths()) {
+    if (existsSync(filePath)) {
+      try {
+        const content = readFileSync(filePath, 'utf-8');
+        const rules = JSON.parse(content);
+        if (rules?.thresholds) {
+          console.log(`[PrecomputedState] system-rules.json 로드: ${filePath}`);
+          return {
+            cpu: { warning: rules.thresholds.cpu.warning, critical: rules.thresholds.cpu.critical },
+            memory: { warning: rules.thresholds.memory.warning, critical: rules.thresholds.memory.critical },
+            disk: { warning: rules.thresholds.disk.warning, critical: rules.thresholds.disk.critical },
+            network: { warning: rules.thresholds.network.warning, critical: rules.thresholds.network.critical },
+          };
+        }
+      } catch (e) {
+        console.warn(`[PrecomputedState] system-rules.json 파싱 실패: ${filePath}`, e);
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * 🎯 임계값 정의 - Single Source of Truth
+ * @see /src/config/rules/system-rules.json
+ *
+ * 우선순위:
+ * 1. system-rules.json에서 로드
+ * 2. 폴백: 업계 표준 기본값
+ */
+const THRESHOLDS: SystemRulesThresholds = loadThresholdsFromSystemRules() ?? {
+  // 폴백 기본값 (업계 표준)
+  cpu: { warning: 80, critical: 90 },
+  memory: { warning: 80, critical: 90 },
+  disk: { warning: 80, critical: 90 },
+  network: { warning: 70, critical: 85 },
+};
 
 // ============================================================================
 // State Builder

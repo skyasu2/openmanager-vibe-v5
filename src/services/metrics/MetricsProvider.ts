@@ -9,6 +9,7 @@
  * @updated 2026-01-04 - hourly-data 통합 (AI와 데이터 동기화)
  */
 
+import { getServerStatus as getRulesServerStatus } from '@/config/rules/loader';
 import {
   calculateAverageMetrics,
   FIXED_24H_DATASETS,
@@ -160,9 +161,10 @@ export function getKSTTimestamp(): string {
 
 /**
  * 메트릭 값 기반 서버 상태 판별
- * @see cloud-run/ai-engine/src/data/precomputed-state.ts (SSOT for thresholds)
+ * @see /src/config/rules/system-rules.json (Single Source of Truth)
+ * @see /src/config/rules/loader.ts (rulesLoader.getServerStatus)
  *
- * 임계값 (업계 표준 - AI Engine과 동일):
+ * 임계값은 system-rules.json에서 관리됨:
  * - CPU/Memory: warning 80%, critical 90%
  * - Disk: warning 80%, critical 90%
  * - Network: warning 70%, critical 85%
@@ -173,15 +175,8 @@ function determineStatus(
   disk: number,
   network: number
 ): 'online' | 'warning' | 'critical' | 'offline' {
-  // Critical: AI Engine 임계값과 동일
-  if (cpu >= 90 || memory >= 90 || disk >= 90 || network >= 85) {
-    return 'critical';
-  }
-  // Warning: AI Engine 임계값과 동일
-  if (cpu >= 80 || memory >= 80 || disk >= 80 || network >= 70) {
-    return 'warning';
-  }
-  return 'online';
+  // rulesLoader.getServerStatus() 사용 - Single Source of Truth
+  return getRulesServerStatus({ cpu, memory, disk, network });
 }
 
 /**
