@@ -9,9 +9,9 @@
 
 import { render, screen } from '@testing-library/react';
 import {
+  type AgentStatus,
   AgentStatusIndicator,
   parseAgentStatus,
-  type AgentStatus,
 } from './AgentStatusIndicator';
 
 // ============================================================================
