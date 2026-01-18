@@ -15,6 +15,124 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
  */
 export const nextJsApiHandlers = [
   /**
+   * AI Supervisor Stream API - SSE Streaming
+   *
+   * @example POST /api/ai/supervisor/stream
+   *
+   * Returns Server-Sent Events with handoff and agent_status events
+   */
+  http.post(`${BASE_URL}/api/ai/supervisor/stream`, async ({ request }) => {
+    let body: {
+      messages: Array<{ role: string; content: string }>;
+      sessionId?: string;
+    };
+
+    try {
+      body = (await request.json()) as typeof body;
+    } catch {
+      console.log('[MSW] Supervisor Stream API - Malformed JSON');
+      return new HttpResponse(
+        'data: {"type":"error","data":{"code":"INVALID_JSON","error":"Malformed JSON"}}\n\n',
+        {
+          status: 400,
+          headers: { 'Content-Type': 'text/event-stream' },
+        }
+      );
+    }
+
+    const userMessage = body.messages?.find((m) => m.role === 'user');
+    const query = userMessage?.content || '';
+
+    console.log(
+      `[MSW] Supervisor Stream API: query="${query.slice(0, 50)}..."`
+    );
+
+    // SSE 스트림 생성
+    const encoder = new TextEncoder();
+
+    // 스트림 이벤트 생성
+    const events = [
+      // 1. Agent status: thinking
+      {
+        type: 'agent_status',
+        data: { agent: 'Orchestrator', status: 'thinking' },
+      },
+      // 2. Text delta (시작)
+      { type: 'text_delta', data: '서버 상태를 ' },
+      // 3. Handoff event
+      {
+        type: 'handoff',
+        data: {
+          from: 'OpenManager Orchestrator',
+          to: 'NLQ Agent',
+          reason: '서버 메트릭 조회',
+        },
+      },
+      // 4. Agent status: processing
+      {
+        type: 'agent_status',
+        data: { agent: 'NLQ Agent', status: 'processing' },
+      },
+      // 5. Tool call event
+      {
+        type: 'tool_call',
+        data: {
+          toolName: 'getServerMetrics',
+          toolCallId: 'call_mock_001',
+          args: { serverId: 'web-server-01' },
+        },
+      },
+      // 6. Tool result event
+      {
+        type: 'tool_result',
+        data: {
+          toolCallId: 'call_mock_001',
+          toolName: 'getServerMetrics',
+          result: { cpu: 45, memory: 67, disk: 23, status: 'online' },
+        },
+      },
+      // 7. More text deltas
+      { type: 'text_delta', data: '확인하고 있습니다.\n\n' },
+      { type: 'text_delta', data: '**서버 상태 요약**\n' },
+      { type: 'text_delta', data: '- CPU: 45%\n' },
+      { type: 'text_delta', data: '- 메모리: 67%\n' },
+      { type: 'text_delta', data: '- 디스크: 23%\n' },
+      // 8. Step finish event
+      {
+        type: 'step_finish',
+        data: { stepNumber: 1, totalSteps: 1 },
+      },
+      // 9. Done event
+      {
+        type: 'done',
+        data: {
+          success: true,
+          finalAgent: 'NLQ Agent',
+          toolsCalled: ['getServerMetrics'],
+          usage: { promptTokens: 150, completionTokens: 80 },
+          metadata: { durationMs: 1200, provider: 'cerebras' },
+        },
+      },
+    ];
+
+    // SSE 형식으로 변환
+    const sseData = events
+      .map((event) => `data: ${JSON.stringify(event)}\n\n`)
+      .join('');
+
+    return new HttpResponse(encoder.encode(sseData), {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+        'X-Session-Id': body.sessionId || 'mock-session',
+        'X-Backend': 'mock-stream',
+      },
+    });
+  }),
+
+  /**
    * AI Supervisor API - Cloud Run Multi-Agent Supervisor
    *
    * @example POST /api/ai/supervisor

@@ -222,6 +222,16 @@ export const POST = withRateLimit(
                         if (event.type === 'text_delta' && event.data) {
                           controller.enqueue(encoder.encode(event.data));
                         }
+                        // Handle handoff in remaining buffer
+                        if (event.type === 'handoff' && event.data) {
+                          const { from, to, reason } = event.data as {
+                            from: string;
+                            to: string;
+                            reason?: string;
+                          };
+                          const handoffMsg = `\n\n🔄 **${from}** → **${to}**${reason ? `: ${reason}` : ''}\n\n`;
+                          controller.enqueue(encoder.encode(handoffMsg));
+                        }
                         if (event.type === 'error') {
                           const errorMsg =
                             typeof event.data?.message === 'string'
@@ -259,6 +269,34 @@ export const POST = withRateLimit(
                     // Handle text_delta: pass through content for streaming
                     if (event.type === 'text_delta' && event.data) {
                       controller.enqueue(encoder.encode(event.data));
+                    }
+
+                    // Handle handoff: show agent transition in stream
+                    if (event.type === 'handoff' && event.data) {
+                      const { from, to, reason } = event.data as {
+                        from: string;
+                        to: string;
+                        reason?: string;
+                      };
+                      const handoffMsg = `\n\n🔄 **${from}** → **${to}**${reason ? `: ${reason}` : ''}\n\n`;
+                      controller.enqueue(encoder.encode(handoffMsg));
+                      logger.info(
+                        `🔄 [SupervisorStream] Handoff: ${from} → ${to}`
+                      );
+                    }
+
+                    // Handle agent_status: show agent activity indicator
+                    if (event.type === 'agent_status' && event.data) {
+                      const { agent, status } = event.data as {
+                        agent: string;
+                        status: 'thinking' | 'processing' | 'complete';
+                      };
+                      // Only show thinking/processing status as inline indicator
+                      if (status === 'thinking' || status === 'processing') {
+                        const statusEmoji = status === 'thinking' ? '🤔' : '⚙️';
+                        const statusMsg = `${statusEmoji} *${agent}*... `;
+                        controller.enqueue(encoder.encode(statusMsg));
+                      }
                     }
 
                     // Handle error: forward error message and close stream

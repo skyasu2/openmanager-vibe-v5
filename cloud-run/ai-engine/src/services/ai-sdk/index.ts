@@ -40,13 +40,21 @@ export {
 export {
   orchestrator,
   executeMultiAgent,
+  executeMultiAgentStream,
   type MultiAgentRequest,
   type MultiAgentResponse,
   type MultiAgentError,
 } from './agents/orchestrator';
 
+// Reporter Pipeline (Evaluator-Optimizer Pattern)
+export {
+  executeReporterPipeline,
+  type PipelineResult,
+  type PipelineConfig,
+} from './agents/reporter-pipeline';
+
 // Individual Agents
 export { nlqAgent } from './agents/nlq-agent';
 export { analystAgent } from './agents/analyst-agent';
-export { reporterAgent } from './agents/reporter-agent';
+export { reporterAgent, generateHighQualityReport } from './agents/reporter-agent';
 export { advisorAgent } from './agents/advisor-agent';

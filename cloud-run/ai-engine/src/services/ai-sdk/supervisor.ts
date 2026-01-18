@@ -16,7 +16,7 @@
 import { generateText, streamText, stepCountIs, type ModelMessage } from 'ai';
 import { getSupervisorModel, logProviderStatus, type ProviderName } from './model-provider';
 import { allTools, toolDescriptions, type ToolName } from '../../tools-ai-sdk';
-import { executeMultiAgent, type MultiAgentRequest, type MultiAgentResponse } from './agents';
+import { executeMultiAgent, executeMultiAgentStream, type MultiAgentRequest, type MultiAgentResponse } from './agents';
 import {
   createSupervisorTrace,
   logGeneration,
@@ -561,6 +561,8 @@ export type StreamEventType =
   | 'tool_result'
   | 'text_delta'
   | 'step_finish'
+  | 'handoff'       // NEW: 에이전트 핸드오프 이벤트
+  | 'agent_status'  // NEW: 에이전트 상태 변경
   | 'done'
   | 'error';
 
@@ -594,9 +596,14 @@ export async function* executeSupervisorStream(
 
   console.log(`🎯 [SupervisorStream] Mode: ${mode}`);
 
-  // Multi-agent mode falls back to non-streaming (complex orchestration)
+  // Multi-agent mode with real streaming
   if (mode === 'multi') {
-    yield* streamFromNonStreaming(request, startTime);
+    // Use real streaming from orchestrator
+    yield* executeMultiAgentStream({
+      messages: request.messages,
+      sessionId: request.sessionId,
+      enableTracing: request.enableTracing,
+    });
     return;
   }
 

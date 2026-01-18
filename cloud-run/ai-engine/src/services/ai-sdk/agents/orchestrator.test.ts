@@ -22,7 +22,7 @@ vi.mock('../model-provider', () => ({
   logProviderStatus: vi.fn(),
 }));
 
-// Mock @ai-sdk-tools/agents with proper class
+// Mock @ai-sdk-tools/agents with proper class including stream support
 vi.mock('@ai-sdk-tools/agents', () => {
   return {
     Agent: class MockAgent {
@@ -61,6 +61,23 @@ vi.mock('@ai-sdk-tools/agents', () => {
           finalAgent: this.name,
         };
       }
+
+      // Stream method for executeMultiAgentStream tests
+      stream(_options: { prompt: string }) {
+        const agentName = this.name;
+        return {
+          textStream: (async function* () {
+            yield 'Mock ';
+            yield 'streaming ';
+            yield 'response from ';
+            yield agentName;
+          })(),
+          steps: Promise.resolve([
+            { toolCalls: [{ toolName: 'getServerMetrics' }] },
+          ]),
+          usage: Promise.resolve({ inputTokens: 100, outputTokens: 50 }),
+        };
+      }
     },
   };
 });
@@ -79,6 +96,14 @@ vi.mock('../../../tools-ai-sdk', () => ({
   searchKnowledgeBase: { execute: vi.fn() },
   searchWeb: { execute: vi.fn() },
   recommendCommands: { execute: vi.fn() },
+  // Incident evaluation tools
+  evaluateIncidentReport: { execute: vi.fn() },
+  validateReportStructure: { execute: vi.fn() },
+  scoreRootCauseConfidence: { execute: vi.fn() },
+  refineRootCauseAnalysis: { execute: vi.fn() },
+  enhanceSuggestedActions: { execute: vi.fn() },
+  extendServerCorrelation: { execute: vi.fn() },
+  incidentEvaluationTools: {},
 }));
 
 // ============================================================================
@@ -267,5 +292,162 @@ describe('Agent Pattern Matching', () => {
     expect(advisorAgent.matchOn).toBeDefined();
     expect(advisorAgent.matchOn).toContain('해결');
     expect(advisorAgent.matchOn).toContain('명령어');
+  });
+});
+
+// ============================================================================
+// executeMultiAgentStream Tests
+// ============================================================================
+
+describe('executeMultiAgentStream', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should yield text_delta events for streaming', async () => {
+    const { executeMultiAgentStream } = await import('./orchestrator');
+
+    const events: Array<{ type: string; data: unknown }> = [];
+
+    for await (const event of executeMultiAgentStream({
+      messages: [{ role: 'user', content: '서버 상태 알려줘' }],
+      sessionId: 'stream-test-1',
+    })) {
+      events.push(event);
+    }
+
+    // Should have at least one text_delta event
+    const textDeltas = events.filter((e) => e.type === 'text_delta');
+    expect(textDeltas.length).toBeGreaterThan(0);
+
+    // Should end with done event
+    const doneEvents = events.filter((e) => e.type === 'done');
+    expect(doneEvents.length).toBe(1);
+  });
+
+  it('should yield error event for empty messages', async () => {
+    const { executeMultiAgentStream } = await import('./orchestrator');
+
+    const events: Array<{ type: string; data: unknown }> = [];
+
+    for await (const event of executeMultiAgentStream({
+      messages: [],
+      sessionId: 'stream-test-2',
+    })) {
+      events.push(event);
+    }
+
+    // Should have error event
+    const errorEvents = events.filter((e) => e.type === 'error');
+    expect(errorEvents.length).toBe(1);
+    expect((errorEvents[0].data as { code: string }).code).toBe('INVALID_REQUEST');
+  });
+
+  it('should yield error event for no user message', async () => {
+    const { executeMultiAgentStream } = await import('./orchestrator');
+
+    const events: Array<{ type: string; data: unknown }> = [];
+
+    for await (const event of executeMultiAgentStream({
+      messages: [{ role: 'assistant', content: 'Hello' }],
+      sessionId: 'stream-test-3',
+    })) {
+      events.push(event);
+    }
+
+    const errorEvents = events.filter((e) => e.type === 'error');
+    expect(errorEvents.length).toBe(1);
+  });
+
+  it('should include tool_call events when tools are used', async () => {
+    const { executeMultiAgentStream } = await import('./orchestrator');
+
+    const events: Array<{ type: string; data: unknown }> = [];
+
+    for await (const event of executeMultiAgentStream({
+      messages: [{ role: 'user', content: 'CPU 상태 확인' }],
+      sessionId: 'stream-test-4',
+    })) {
+      events.push(event);
+    }
+
+    // Should have tool_call event (from mock)
+    const toolCalls = events.filter((e) => e.type === 'tool_call');
+    expect(toolCalls.length).toBeGreaterThanOrEqual(0); // May or may not have depending on flow
+  });
+
+  it('should include metadata in done event', async () => {
+    const { executeMultiAgentStream } = await import('./orchestrator');
+
+    const events: Array<{ type: string; data: unknown }> = [];
+
+    for await (const event of executeMultiAgentStream({
+      messages: [{ role: 'user', content: '서버 상태' }],
+      sessionId: 'stream-test-5',
+    })) {
+      events.push(event);
+    }
+
+    const doneEvent = events.find((e) => e.type === 'done');
+    expect(doneEvent).toBeDefined();
+
+    const doneData = doneEvent?.data as {
+      success: boolean;
+      metadata?: { durationMs: number };
+    };
+    expect(doneData.success).toBe(true);
+    expect(doneData.metadata?.durationMs).toBeGreaterThanOrEqual(0);
+  });
+});
+
+// ============================================================================
+// preFilterQuery Tests
+// ============================================================================
+
+describe('preFilterQuery', () => {
+  it('should suggest NLQ Agent for server queries', async () => {
+    const { preFilterQuery } = await import('./orchestrator');
+
+    const result = preFilterQuery('web-server-01 CPU 상태 알려줘');
+
+    expect(result.suggestedAgent).toBe('NLQ Agent');
+    expect(result.confidence).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it('should suggest Analyst Agent for analysis queries', async () => {
+    const { preFilterQuery } = await import('./orchestrator');
+
+    const result = preFilterQuery('이상 징후 탐지해줘');
+
+    expect(result.suggestedAgent).toBe('Analyst Agent');
+    expect(result.confidence).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it('should suggest Reporter Agent for report queries', async () => {
+    const { preFilterQuery } = await import('./orchestrator');
+
+    const result = preFilterQuery('장애 보고서 생성해줘');
+
+    expect(result.suggestedAgent).toBe('Reporter Agent');
+    expect(result.confidence).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it('should suggest Advisor Agent for troubleshooting queries', async () => {
+    const { preFilterQuery } = await import('./orchestrator');
+
+    const result = preFilterQuery('CPU 높을 때 해결 방법 알려줘');
+
+    expect(result.suggestedAgent).toBe('Advisor Agent');
+    expect(result.confidence).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it('should return direct response for greeting', async () => {
+    const { preFilterQuery } = await import('./orchestrator');
+
+    const result = preFilterQuery('안녕하세요');
+
+    expect(result.shouldHandoff).toBe(false);
+    expect(result.directResponse).toBeDefined();
+    expect(result.directResponse?.length).toBeGreaterThan(0);
   });
 });

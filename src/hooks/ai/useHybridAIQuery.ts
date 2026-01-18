@@ -76,20 +76,60 @@ export interface HybridQueryState {
 }
 
 /**
+ * 스트리밍 이벤트 타입
+ * Cloud Run AI Engine의 StreamEventType과 동기화
+ */
+export type StreamEventType =
+  | 'text_delta'
+  | 'tool_call'
+  | 'tool_result'
+  | 'step_finish'
+  | 'handoff'
+  | 'agent_status'
+  | 'done'
+  | 'error';
+
+/**
+ * Agent Status 타입
+ */
+export type AgentStatus = 'thinking' | 'processing' | 'completed' | 'idle';
+
+/**
+ * Handoff 이벤트 데이터
+ */
+export interface HandoffEventData {
+  from: string;
+  to: string;
+  reason?: string;
+}
+
+/**
+ * Agent Status 이벤트 데이터
+ */
+export interface AgentStatusEventData {
+  agent: string;
+  status: AgentStatus;
+}
+
+/**
  * 스트리밍 데이터 파트 타입
  * AI SDK v5 onData 콜백으로 받는 데이터
  */
 export interface StreamDataPart {
-  type: string;
+  type: StreamEventType | string;
   data?: unknown;
-  /** 텍스트 청크 (type: 'text') */
+  /** 텍스트 청크 (type: 'text_delta') */
   text?: string;
-  /** 도구 호출 (type: 'tool-call') */
+  /** 도구 호출 (type: 'tool_call') */
   toolName?: string;
   toolArgs?: Record<string, unknown>;
   /** 사용자 정의 데이터 알림 (type: 'data-notification') */
   message?: string;
   level?: 'info' | 'warning' | 'error';
+  /** Handoff 이벤트 데이터 (type: 'handoff') */
+  handoff?: HandoffEventData;
+  /** Agent Status 이벤트 데이터 (type: 'agent_status') */
+  agentStatus?: AgentStatusEventData;
 }
 
 export interface UseHybridAIQueryOptions {

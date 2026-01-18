@@ -16,11 +16,12 @@
  * @updated 2026-01-12
  */
 
-export { orchestrator, executeMultiAgent, getRecentHandoffs, preFilterQuery } from './orchestrator';
+export { orchestrator, executeMultiAgent, executeMultiAgentStream, getRecentHandoffs, preFilterQuery } from './orchestrator';
 export { nlqAgent } from './nlq-agent';
 export { analystAgent } from './analyst-agent';
-export { reporterAgent } from './reporter-agent';
+export { reporterAgent, generateHighQualityReport } from './reporter-agent';
 export { advisorAgent } from './advisor-agent';
+export { executeReporterPipeline, type PipelineResult, type PipelineConfig } from './reporter-pipeline';
 export type { MultiAgentRequest, MultiAgentResponse } from './orchestrator';
 
 // ============================================================================

@@ -15,8 +15,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  type AgentStatusEventData,
   type ClarificationOption,
   type ClarificationRequest,
+  type HandoffEventData,
+  type StreamDataPart,
   useHybridAIQuery,
 } from '@/hooks/ai/useHybridAIQuery';
 import { logger } from '@/lib/logging';
@@ -100,6 +103,10 @@ export interface UseAIChatCoreReturn {
   selectClarification: (option: ClarificationOption) => void;
   submitCustomClarification: (customInput: string) => void;
   skipClarification: () => void;
+
+  // 🎯 실시간 Agent 상태 (스트리밍 중 표시)
+  currentAgentStatus: AgentStatusEventData | null;
+  currentHandoff: HandoffEventData | null;
 }
 
 // ============================================================================
@@ -136,6 +143,13 @@ export function useAIChatCore(
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  // 🎯 실시간 Agent 상태 (스트리밍 중 표시)
+  const [currentAgentStatus, setCurrentAgentStatus] =
+    useState<AgentStatusEventData | null>(null);
+  const [currentHandoff, setCurrentHandoff] = useState<HandoffEventData | null>(
+    null
+  );
+
   // Refs
   const lastQueryRef = useRef<string>('');
   const pendingQueryRef = useRef<string>('');
@@ -165,6 +179,9 @@ export function useAIChatCore(
       onMessageSend?.(pendingQueryRef.current);
       setError(null);
       pendingQueryRef.current = '';
+      // 🎯 스트리밍 완료 시 상태 초기화
+      setCurrentAgentStatus(null);
+      setCurrentHandoff(null);
     },
     onJobResult: (result) => {
       onMessageSend?.(pendingQueryRef.current);
@@ -183,6 +200,28 @@ export function useAIChatCore(
         logger.info(
           `📊 [Job Queue] Progress: ${progress.progress}% - ${progress.stage}`
         );
+      }
+    },
+    // 🎯 실시간 SSE 이벤트 처리 (agent_status, handoff)
+    onData: (dataPart: StreamDataPart) => {
+      if (dataPart.type === 'agent_status' && dataPart.agentStatus) {
+        setCurrentAgentStatus(dataPart.agentStatus);
+        if (process.env.NODE_ENV === 'development') {
+          logger.info(
+            `🤖 [Agent Status] ${dataPart.agentStatus.agent}: ${dataPart.agentStatus.status}`
+          );
+        }
+      } else if (dataPart.type === 'handoff' && dataPart.handoff) {
+        setCurrentHandoff(dataPart.handoff);
+        if (process.env.NODE_ENV === 'development') {
+          logger.info(
+            `🔄 [Handoff] ${dataPart.handoff.from} → ${dataPart.handoff.to}`
+          );
+        }
+      } else if (dataPart.type === 'done') {
+        // 완료 시 상태 초기화
+        setCurrentAgentStatus(null);
+        setCurrentHandoff(null);
       }
     },
   });
@@ -384,6 +423,9 @@ export function useAIChatCore(
     selectClarification,
     submitCustomClarification,
     skipClarification,
+    // 🎯 실시간 Agent 상태
+    currentAgentStatus,
+    currentHandoff,
   };
 }
 

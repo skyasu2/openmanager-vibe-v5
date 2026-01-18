@@ -5,6 +5,11 @@ import { memo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
+import {
+  AgentHandoffBadge,
+  containsHandoffMarker,
+  parseHandoffMarker,
+} from './AgentHandoffBadge';
 
 // Highlight.js 스타일 import (Dark Theme)
 import 'highlight.js/styles/github-dark.css';
@@ -192,10 +197,38 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
           ),
           // 구분선
           hr: () => <hr className="my-4 border-gray-200" />,
-          // 단락
-          p: ({ children }) => (
-            <p className="my-2 leading-relaxed text-gray-800">{children}</p>
-          ),
+          // 단락 - handoff 마커 감지 및 변환
+          p: ({ children }) => {
+            // children이 문자열이고 handoff 마커가 포함된 경우
+            if (
+              typeof children === 'string' &&
+              containsHandoffMarker(children)
+            ) {
+              const handoff = parseHandoffMarker(children);
+              if (handoff) {
+                return <AgentHandoffBadge {...handoff} />;
+              }
+            }
+            // children이 배열인 경우 (마크다운 파싱 결과)
+            if (Array.isArray(children)) {
+              const textContent = children
+                .map((child) => {
+                  if (typeof child === 'string') return child;
+                  if (child?.props?.children) return child.props.children;
+                  return '';
+                })
+                .join('');
+              if (containsHandoffMarker(textContent)) {
+                const handoff = parseHandoffMarker(textContent);
+                if (handoff) {
+                  return <AgentHandoffBadge {...handoff} />;
+                }
+              }
+            }
+            return (
+              <p className="my-2 leading-relaxed text-gray-800">{children}</p>
+            );
+          },
           // 강조
           strong: ({ children }) => (
             <strong className="font-semibold text-gray-900">{children}</strong>

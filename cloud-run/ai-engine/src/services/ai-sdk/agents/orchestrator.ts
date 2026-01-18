@@ -16,6 +16,7 @@ import { generateText, stepCountIs } from 'ai';
 import { getCerebrasModel, getGroqModel, getMistralModel, checkProviderStatus, type ProviderName } from '../model-provider';
 import { generateTextWithRetry } from '../../resilience/retry-with-fallback';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
+import type { StreamEvent } from '../supervisor';
 import { nlqAgent } from './nlq-agent';
 import { analystAgent } from './analyst-agent';
 import { reporterAgent } from './reporter-agent';
@@ -171,8 +172,8 @@ interface PreFilterResult {
 }
 
 const GREETING_PATTERNS = [
-  /^(안녕|하이|헬로|hi|hello|hey|반가워|좋은\s*(아침|오후|저녁))[\s!?.]*$/i,
-  /^(고마워|감사|ㄱㅅ|수고|잘가|바이|bye|thanks)[\s!?.]*$/i,
+  /^(안녕하세요|안녕|하이|헬로|hi|hello|hey|반가워|좋은\s*(아침|오후|저녁))[\s!?.]*$/i,
+  /^(고마워|감사합니다|감사|ㄱㅅ|수고|잘가|바이|bye|thanks)[\s!?.]*$/i,
 ];
 
 const GENERAL_PATTERNS = [
@@ -797,6 +798,185 @@ export async function executeMultiAgent(
       error: errorMessage,
       code,
     };
+  }
+}
+
+// ============================================================================
+// Multi-Agent Streaming Execution
+// ============================================================================
+
+/**
+ * Execute multi-agent mode with real-time streaming
+ * 
+ * Unlike executeMultiAgent which returns a complete response,
+ * this function yields StreamEvent chunks in real-time.
+ * 
+ * @param request - Multi-agent request with messages and session info
+ * @yields StreamEvent - Real-time streaming events (text_delta, tool_call, handoff, done, error)
+ */
+export async function* executeMultiAgentStream(
+  request: MultiAgentRequest
+): AsyncGenerator<StreamEvent> {
+  const startTime = Date.now();
+
+  // Build prompt from messages
+  const lastUserMessage = request.messages
+    .filter((m) => m.role === 'user')
+    .pop();
+
+  if (!lastUserMessage) {
+    yield { type: 'error', data: { code: 'INVALID_REQUEST', error: 'No user message found' } };
+    return;
+  }
+
+  const query = lastUserMessage.content;
+
+  // =========================================================================
+  // Fast Path: Rule-based pre-filter for simple queries
+  // =========================================================================
+  const preFilterResult = preFilterQuery(query);
+
+  console.log(`📋 [Stream PreFilter] Query: "${query.substring(0, 50)}..." → Suggested: ${preFilterResult.suggestedAgent || 'none'} (confidence: ${preFilterResult.confidence})`);
+
+  if (!preFilterResult.shouldHandoff && preFilterResult.directResponse) {
+    const durationMs = Date.now() - startTime;
+    console.log(`⚡ [Stream Fast Path] Direct response in ${durationMs}ms`);
+
+    yield { type: 'text_delta', data: preFilterResult.directResponse };
+    yield {
+      type: 'done',
+      data: {
+        success: true,
+        finalAgent: 'Orchestrator (Fast Path)',
+        toolsCalled: [],
+        usage: { promptTokens: 0, completionTokens: 0 },
+        metadata: { durationMs, provider: 'rule-based' }
+      }
+    };
+    return;
+  }
+
+  // =========================================================================
+  // Check orchestrator availability
+  // =========================================================================
+  if (!orchestrator || !orchestratorModelConfig) {
+    yield { type: 'error', data: { code: 'MODEL_UNAVAILABLE', error: 'Orchestrator not available' } };
+    return;
+  }
+
+  try {
+    const { provider, modelId } = orchestratorModelConfig;
+
+    console.log(`🎯 [Stream Orchestrator] Starting with ${provider}/${modelId}`);
+
+    // Enhance prompt with suggested agent hint when confidence is high
+    let enhancedPrompt = query;
+    if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.7) {
+      enhancedPrompt = `[시스템 힌트: 이 질문은 "${preFilterResult.suggestedAgent}"에게 핸드오프하는 것이 적합합니다. 서버/인프라 관점에서 해석하세요.]\n\n사용자 질문: ${query}`;
+    }
+
+    // =========================================================================
+    // Stream from orchestrator
+    // =========================================================================
+    const streamResult = orchestrator.stream({
+      prompt: enhancedPrompt,
+    });
+
+    // Yield text chunks as they arrive
+    for await (const textChunk of streamResult.textStream) {
+      const sanitized = sanitizeChineseCharacters(textChunk);
+      if (sanitized) {
+        yield { type: 'text_delta', data: sanitized };
+      }
+    }
+
+    // =========================================================================
+    // After streaming completes, gather metadata
+    // =========================================================================
+    const [steps, usage] = await Promise.all([
+      streamResult.steps,
+      streamResult.usage,
+    ]);
+
+    // Extract tool calls and handoff information from steps
+    const toolsCalled: string[] = [];
+    const handoffList: Array<{ from: string; to: string; reason?: string }> = [];
+    let detectedFinalAgent = 'Orchestrator';
+
+    if (steps) {
+      for (const step of steps) {
+        // Extract tool calls
+        if (step.toolCalls) {
+          for (const tc of step.toolCalls) {
+            toolsCalled.push(tc.toolName);
+            yield { type: 'tool_call', data: { name: tc.toolName } };
+          }
+        }
+
+        // Check for agent info in step (if available)
+        const stepAny = step as Record<string, unknown>;
+        if (stepAny.agent && typeof stepAny.agent === 'string') {
+          detectedFinalAgent = stepAny.agent;
+        }
+      }
+    }
+
+    // Yield handoff events from tracked handoffs
+    const recentHandoffs = getRecentHandoffs();
+    for (const h of recentHandoffs) {
+      yield {
+        type: 'handoff',
+        data: {
+          from: h.from,
+          to: h.to,
+          reason: h.reason,
+        }
+      };
+      handoffList.push({ from: h.from, to: h.to, reason: h.reason });
+    }
+
+    const durationMs = Date.now() - startTime;
+
+    console.log(`✅ [Stream Orchestrator] Completed in ${durationMs}ms, final agent: ${detectedFinalAgent}, tools: [${toolsCalled.join(', ')}]`);
+
+    yield {
+      type: 'done',
+      data: {
+        success: true,
+        finalAgent: detectedFinalAgent,
+        toolsCalled,
+        handoffs: handoffList,
+        usage: {
+          promptTokens: usage?.inputTokens ?? 0,
+          completionTokens: usage?.outputTokens ?? 0,
+        },
+        metadata: {
+          provider,
+          modelId,
+          durationMs,
+        }
+      }
+    };
+
+  } catch (error) {
+    const durationMs = Date.now() - startTime;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    console.error(`❌ [Stream Orchestrator] Error after ${durationMs}ms:`, errorMessage);
+
+    // Classify error
+    let code = 'UNKNOWN_ERROR';
+    if (errorMessage.includes('API key')) {
+      code = 'AUTH_ERROR';
+    } else if (errorMessage.includes('rate limit')) {
+      code = 'RATE_LIMIT';
+    } else if (errorMessage.includes('timeout')) {
+      code = 'TIMEOUT';
+    } else if (errorMessage.includes('model')) {
+      code = 'MODEL_ERROR';
+    }
+
+    yield { type: 'error', data: { code, error: errorMessage } };
   }
 }
 

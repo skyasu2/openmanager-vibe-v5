@@ -60,6 +60,19 @@ export {
 } from './incident-report-tools';
 
 // ============================================================================
+// Incident Evaluation Tools (Evaluator-Optimizer Pattern)
+// ============================================================================
+export {
+  evaluateIncidentReport,
+  validateReportStructure,
+  scoreRootCauseConfidence,
+  refineRootCauseAnalysis,
+  enhanceSuggestedActions,
+  extendServerCorrelation,
+  incidentEvaluationTools,
+} from './incident-evaluation-tools';
+
+// ============================================================================
 // Tool Collections (for Supervisor)
 // ============================================================================
 import { getServerMetrics, getServerMetricsAdvanced, filterServers } from './server-metrics';
@@ -67,6 +80,7 @@ import { buildIncidentTimeline, correlateMetrics, findRootCause } from './rca-an
 import { checkThresholds, detectAnomalies, detectAnomaliesHybrid, detectAnomaliesAdaptive, detectAnomaliesUnified, predictTrends, analyzePattern } from './analyst-tools';
 import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-tools';
 import { calculateSLA, predictMetrics, analyzeServerCorrelation, generateIncidentReport } from './incident-report-tools';
+import { evaluateIncidentReport, validateReportStructure, scoreRootCauseConfidence, refineRootCauseAnalysis, enhanceSuggestedActions, extendServerCorrelation } from './incident-evaluation-tools';
 
 /**
  * All available tools for the AI SDK Supervisor
@@ -101,6 +115,14 @@ export const allTools = {
   predictMetrics,
   analyzeServerCorrelation,
   generateIncidentReport,
+
+  // Incident Evaluation (Evaluator-Optimizer Pattern)
+  evaluateIncidentReport,
+  validateReportStructure,
+  scoreRootCauseConfidence,
+  refineRootCauseAnalysis,
+  enhanceSuggestedActions,
+  extendServerCorrelation,
 };
 
 /**
@@ -137,6 +159,14 @@ export const toolCategories = {
     analyzeServerCorrelation,
     generateIncidentReport,
   },
+  evaluation: {
+    evaluateIncidentReport,
+    validateReportStructure,
+    scoreRootCauseConfidence,
+    refineRootCauseAnalysis,
+    enhanceSuggestedActions,
+    extendServerCorrelation,
+  },
 };
 
 /**
@@ -163,6 +193,13 @@ export const toolDescriptions = {
   predictMetrics: '메트릭 예측 (30분 후 값 추정)',
   analyzeServerCorrelation: '다중 서버 간 장애 연관성 분석',
   generateIncidentReport: '종합 장애 보고서 생성 (Markdown/JSON)',
+  // Incident Evaluation
+  evaluateIncidentReport: '장애 보고서 품질 종합 평가 (구조, 완성도, 정확도, 실행가능성)',
+  validateReportStructure: '보고서 구조적 완성도 검증',
+  scoreRootCauseConfidence: '근본원인 분석 신뢰도 상세 점수화',
+  refineRootCauseAnalysis: '낮은 신뢰도 근본원인 분석 심화',
+  enhanceSuggestedActions: '권장 조치 CLI 명령어 포함 구체화',
+  extendServerCorrelation: '서버 간 연관성 분석 확장',
 };
 
 export type ToolName = keyof typeof allTools;

@@ -3,6 +3,8 @@
 // Icons
 import { Bot, User } from 'lucide-react';
 import { type FC, memo, useEffect, useRef, useState } from 'react';
+import { AgentHandoffBadge } from '@/components/ai/AgentHandoffBadge';
+import { AgentStatusIndicator } from '@/components/ai/AgentStatusIndicator';
 import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
 import { AnalysisBasisBadge } from '@/components/ai/AnalysisBasisBadge';
@@ -255,6 +257,9 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     selectClarification,
     submitCustomClarification,
     skipClarification,
+    // 🎯 실시간 Agent 상태
+    currentAgentStatus,
+    currentHandoff,
   } = useAIChatCore({
     sessionId: propSessionId,
     onMessageSend,
@@ -346,6 +351,8 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           onSelectClarification={selectClarification}
           onSubmitCustomClarification={submitCustomClarification}
           onSkipClarification={skipClarification}
+          currentAgentStatus={currentAgentStatus}
+          currentHandoff={currentHandoff}
         />
       );
     }

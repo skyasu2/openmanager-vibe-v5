@@ -6,13 +6,18 @@
  *
  * Model: Groq llama-3.3-70b (primary) / Cerebras (fallback)
  *
- * @version 2.0.0 - SSOT refactoring
+ * Usage:
+ * - reporterAgent: Direct agent for orchestrator handoff (fast)
+ * - generateHighQualityReport: Pipeline with Evaluator-Optimizer (thorough)
+ *
+ * @version 2.1.0 - Added Evaluator-Optimizer pipeline integration
  * @created 2025-12-01
- * @updated 2026-01-06 - Import config from SSOT
+ * @updated 2026-01-18 - Added generateHighQualityReport function
  */
 
 import { Agent } from '@ai-sdk-tools/agents';
 import { AGENT_CONFIGS } from './config';
+import { executeReporterPipeline, type PipelineConfig, type PipelineResult } from './reporter-pipeline';
 
 // ============================================================================
 // Agent Instance (Created from SSOT Config)
@@ -45,5 +50,45 @@ function createReporterAgent() {
 }
 
 export const reporterAgent = createReporterAgent();
+
+// ============================================================================
+// High-Quality Report Generation (Evaluator-Optimizer Pipeline)
+// ============================================================================
+
+/**
+ * Generate a high-quality incident report using the Evaluator-Optimizer pipeline.
+ *
+ * This function uses a 3-stage pipeline:
+ * 1. Reporter Agent generates initial report
+ * 2. Evaluator Agent assesses quality (structure, completeness, accuracy)
+ * 3. Optimizer Agent improves if score < threshold (default 0.75)
+ *
+ * Use this when report quality is critical (e.g., customer-facing, post-mortems).
+ * For quick internal reports, use the direct reporterAgent instead.
+ *
+ * @param query - The incident query or description
+ * @param options - Pipeline configuration options
+ * @returns PipelineResult with optimized report and quality metrics
+ *
+ * @example
+ * ```typescript
+ * const result = await generateHighQualityReport(
+ *   'web-server-01 장애 보고서 생성',
+ *   { qualityThreshold: 0.8, maxIterations: 3 }
+ * );
+ *
+ * if (result.success) {
+ *   console.log(`Quality: ${result.quality.finalScore * 100}%`);
+ *   console.log(result.report);
+ * }
+ * ```
+ */
+export async function generateHighQualityReport(
+  query: string,
+  options: Partial<PipelineConfig> = {}
+): Promise<PipelineResult> {
+  console.log(`📋 [Reporter] Generating high-quality report with pipeline...`);
+  return executeReporterPipeline(query, options);
+}
 
 export default reporterAgent;

@@ -10,12 +10,16 @@ import {
   X,
 } from 'lucide-react';
 import React, { memo, type RefObject, useEffect, useRef } from 'react';
+import { AgentHandoffBadge } from '@/components/ai/AgentHandoffBadge';
+import { AgentStatusIndicator } from '@/components/ai/AgentStatusIndicator';
 import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { AsyncQueryProgress } from '@/hooks/ai/useAsyncAIQuery';
 import type {
+  AgentStatusEventData,
   ClarificationOption,
   ClarificationRequest,
+  HandoffEventData,
 } from '@/hooks/ai/useHybridAIQuery';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 import type { SessionState } from '@/types/session';
@@ -89,6 +93,10 @@ interface EnhancedAIChatProps {
   onSubmitCustomClarification?: (customInput: string) => void;
   /** 명확화 건너뛰기 핸들러 */
   onSkipClarification?: () => void;
+  /** 🎯 실시간 Agent 상태 (스트리밍 중 표시) */
+  currentAgentStatus?: AgentStatusEventData | null;
+  /** 🔄 현재 Handoff 정보 */
+  currentHandoff?: HandoffEventData | null;
 }
 
 /**
@@ -129,6 +137,8 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   onSelectClarification,
   onSubmitCustomClarification,
   onSkipClarification,
+  currentAgentStatus,
+  currentHandoff,
 }: EnhancedAIChatProps) {
   // 🎯 스크롤 컨테이너 ref (사용자 스크롤 위치 확인용)
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -272,6 +282,31 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
           jobId={jobId}
           onCancel={onCancelJob}
         />
+      )}
+
+      {/* 🎯 실시간 Agent 상태 표시 (스트리밍 모드) */}
+      {queryMode === 'streaming' && isGenerating && (
+        <div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white px-4 py-2">
+          <div className="mx-auto max-w-3xl">
+            {/* Agent Status */}
+            {currentAgentStatus && (
+              <AgentStatusIndicator
+                agent={currentAgentStatus.agent}
+                status={currentAgentStatus.status}
+                compact
+              />
+            )}
+            {/* Handoff Badge */}
+            {currentHandoff && (
+              <AgentHandoffBadge
+                from={currentHandoff.from}
+                to={currentHandoff.to}
+                reason={currentHandoff.reason}
+                compact
+              />
+            )}
+          </div>
+        </div>
       )}
 
       {/* ⚠️ 인라인 에러 표시 */}
