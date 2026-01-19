@@ -1,10 +1,19 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-18
+**마지막 업데이트**: 2026-01-19
 
 ---
 
-## 🏗️ Technical Stack (v5.87.0)
+## 🔄 Recent Changes (v5.88.2)
+
+- **서버 상태 용어 통합**: `'healthy'` → `'online'` (SSOT)
+  - 내부 타입: `'online' | 'warning' | 'critical'`
+  - 서비스 헬스: `'healthy' | 'degraded' | 'unhealthy'` (별도 도메인 유지)
+- **Cloud Run 배포**: ai-engine v5.88.2
+
+---
+
+## 🏗️ Technical Stack (v5.88.2)
 
 **Core Frameworks** (2025 Standard)
 - **Next.js**: `v16.1.1` (App Router, Server Components)

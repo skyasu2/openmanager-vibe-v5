@@ -147,7 +147,7 @@ const getHandler = createApiRoute()
         type: server.type || 'server',
         status:
           server.status === 'online'
-            ? 'healthy'
+            ? 'online'
             : server.status === 'critical'
               ? 'critical'
               : 'warning',
