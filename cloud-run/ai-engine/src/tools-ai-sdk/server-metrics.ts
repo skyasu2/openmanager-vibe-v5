@@ -733,10 +733,16 @@ export const getServerByGroup = tool({
       const targetType = typeMap[normalizedGroup] || normalizedGroup;
       const state = getCurrentState();
 
-      // Filter by server type
+      // Normalize server type (handles both directions)
+      const normalizeType = (type: string): string => {
+        const t = type.toLowerCase().trim();
+        return typeMap[t] || t;
+      };
+
+      // Filter by server type (exact match only after normalization)
       const filteredServers = state.servers.filter((s) => {
-        const serverType = (s.type || '').toLowerCase();
-        return serverType === targetType || serverType.includes(targetType);
+        const serverType = normalizeType(s.type || '');
+        return serverType === targetType;
       });
 
       // Calculate summary

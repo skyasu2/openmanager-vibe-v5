@@ -109,6 +109,18 @@ export function generateClarification(
         text: 'DB 서버만',
         suggestedQuery: `${query} (db-server 그룹)`,
         category: 'specificity',
+      },
+      {
+        id: 'server-lb',
+        text: '로드밸런서만',
+        suggestedQuery: `${query} (loadbalancer 그룹)`,
+        category: 'specificity',
+      },
+      {
+        id: 'server-cache',
+        text: '캐시 서버만',
+        suggestedQuery: `${query} (cache 그룹)`,
+        category: 'specificity',
       }
     );
   }

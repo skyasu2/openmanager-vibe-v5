@@ -331,6 +331,80 @@ describe('getServerByGroup', () => {
       expect(result.success).toBe(true);
       expect(result.group).toBe('database');
     });
+
+    it('should NOT false match partial type names', async () => {
+      // This tests that "database" doesn't match "databaseX" or similar
+      const result = await getServerByGroup.execute({ group: 'data' }, {} as never);
+
+      expect(result.success).toBe(true);
+      expect(result.servers).toHaveLength(0); // "data" is not a valid type
+    });
+
+    it('should handle empty string input', async () => {
+      const result = await getServerByGroup.execute({ group: '' }, {} as never);
+
+      expect(result.success).toBe(true);
+      expect(result.servers).toHaveLength(0);
+    });
+  });
+
+  describe('Type Normalization', () => {
+    it('should normalize "db" to "database" in response', async () => {
+      const result = await getServerByGroup.execute({ group: 'db' }, {} as never);
+
+      expect(result.group).toBe('database');
+      result.servers.forEach((server: { type: string }) => {
+        expect(server.type).toBe('database');
+      });
+    });
+
+    it('should normalize "lb" to "loadbalancer" in response', async () => {
+      const result = await getServerByGroup.execute({ group: 'lb' }, {} as never);
+
+      expect(result.group).toBe('loadbalancer');
+    });
+
+    it('should normalize "api" to "application" in response', async () => {
+      const result = await getServerByGroup.execute({ group: 'api' }, {} as never);
+
+      expect(result.group).toBe('application');
+    });
+
+    it('should normalize "app" to "application" in response', async () => {
+      const result = await getServerByGroup.execute({ group: 'app' }, {} as never);
+
+      expect(result.group).toBe('application');
+    });
+
+    it('should keep non-aliased types as-is', async () => {
+      const result = await getServerByGroup.execute({ group: 'cache' }, {} as never);
+
+      expect(result.group).toBe('cache');
+    });
+  });
+
+  describe('Summary Validation', () => {
+    it('should have summary.total equal to servers array length', async () => {
+      const result = await getServerByGroup.execute({ group: 'web' }, {} as never);
+
+      expect(result.summary.total).toBe(result.servers.length);
+    });
+
+    it('should have status counts sum equal to total', async () => {
+      const result = await getServerByGroup.execute({ group: 'database' }, {} as never);
+      const { total, online, warning, critical } = result.summary;
+
+      expect(online + warning + critical).toBe(total);
+    });
+
+    it('should return zero counts for empty group', async () => {
+      const result = await getServerByGroup.execute({ group: 'nonexistent' }, {} as never);
+
+      expect(result.summary.total).toBe(0);
+      expect(result.summary.online).toBe(0);
+      expect(result.summary.warning).toBe(0);
+      expect(result.summary.critical).toBe(0);
+    });
   });
 });
 
