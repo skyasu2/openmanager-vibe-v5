@@ -384,13 +384,16 @@ describe('MetricsProvider', () => {
     it('should mark as online when all metrics are normal', () => {
       const allMetrics = metricsProvider.getAllServerMetrics();
 
+      // 임계값: system-rules.json 및 위의 warning 테스트와 동일
+      // cpu: warning >= 80, memory: warning >= 80
+      // disk: warning >= 80, network: warning >= 70
       allMetrics.forEach((metric) => {
         if (metric.status === 'online') {
-          // online 상태는 모든 메트릭이 정상 범위
+          // online 상태는 모든 메트릭이 warning 임계값 미만
           expect(metric.cpu).toBeLessThan(80);
           expect(metric.memory).toBeLessThan(80);
-          expect(metric.disk).toBeLessThan(85);
-          expect(metric.network).toBeLessThan(80);
+          expect(metric.disk).toBeLessThan(80); // 80으로 수정 (system-rules.json 일치)
+          expect(metric.network).toBeLessThan(70); // 70으로 수정 (system-rules.json 일치)
         }
       });
     });
