@@ -1452,9 +1452,7 @@
           },
           "services": [],
           "processes": 104,
-          "logs": [
-            "[INFO] CPU throttling detected - scaling recommended"
-          ]
+          "logs": ["[INFO] CPU throttling detected - scaling recommended"]
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -1897,9 +1895,7 @@
           },
           "services": [],
           "processes": 134,
-          "logs": [
-            "[INFO] CPU throttling detected - scaling recommended"
-          ]
+          "logs": ["[INFO] CPU throttling detected - scaling recommended"]
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",
@@ -2342,9 +2338,7 @@
           },
           "services": [],
           "processes": 137,
-          "logs": [
-            "[WARN] JVM: Minor GC frequency increased (>10/min)"
-          ]
+          "logs": ["[WARN] JVM: Minor GC frequency increased (>10/min)"]
         },
         "api-was-icn-02": {
           "id": "api-was-icn-02",

@@ -2022,9 +2022,7 @@
           },
           "services": [],
           "processes": 120,
-          "logs": [
-            "[WARN] InnoDB: Tablespace approaching 90% capacity"
-          ]
+          "logs": ["[WARN] InnoDB: Tablespace approaching 90% capacity"]
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",
@@ -2467,9 +2465,7 @@
           },
           "services": [],
           "processes": 110,
-          "logs": [
-            "[WARN] InnoDB: Tablespace approaching 90% capacity"
-          ]
+          "logs": ["[WARN] InnoDB: Tablespace approaching 90% capacity"]
         },
         "db-mysql-pus-dr": {
           "id": "db-mysql-pus-dr",

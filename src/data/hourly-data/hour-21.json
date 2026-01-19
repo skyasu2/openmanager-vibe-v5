@@ -132,9 +132,7 @@
           },
           "services": [],
           "processes": 113,
-          "logs": [
-            "[INFO] CPU throttling detected - scaling recommended"
-          ]
+          "logs": ["[INFO] CPU throttling detected - scaling recommended"]
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -580,9 +578,7 @@
           },
           "services": [],
           "processes": 133,
-          "logs": [
-            "[INFO] CPU throttling detected - scaling recommended"
-          ]
+          "logs": ["[INFO] CPU throttling detected - scaling recommended"]
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",
@@ -1028,9 +1024,7 @@
           },
           "services": [],
           "processes": 100,
-          "logs": [
-            "[INFO] CPU throttling detected - scaling recommended"
-          ]
+          "logs": ["[INFO] CPU throttling detected - scaling recommended"]
         },
         "api-was-pus-01": {
           "id": "api-was-pus-01",

@@ -104,7 +104,11 @@ const SystemContextPanel = memo(function SystemContextPanel({
           );
         }
 
-        setSystemOnline(data.status === 'ok' || data.status === 'healthy' || data.status === 'online');
+        setSystemOnline(
+          data.status === 'ok' ||
+            data.status === 'healthy' ||
+            data.status === 'online'
+        );
         setLastUpdated(new Date());
       } else {
         // API 실패 시 상태 강등

@@ -297,9 +297,7 @@
           },
           "services": [],
           "processes": 107,
-          "logs": [
-            "[INFO] redis: Evicting keys using volatile-lru policy"
-          ]
+          "logs": ["[INFO] redis: Evicting keys using volatile-lru policy"]
         },
         "cache-redis-icn-02": {
           "id": "cache-redis-icn-02",
@@ -742,9 +740,7 @@
           },
           "services": [],
           "processes": 118,
-          "logs": [
-            "[INFO] redis: Evicting keys using volatile-lru policy"
-          ]
+          "logs": ["[INFO] redis: Evicting keys using volatile-lru policy"]
         },
         "cache-redis-icn-02": {
           "id": "cache-redis-icn-02",
@@ -1187,9 +1183,7 @@
           },
           "services": [],
           "processes": 138,
-          "logs": [
-            "[WARN] redis: Memory usage above 85% threshold"
-          ]
+          "logs": ["[WARN] redis: Memory usage above 85% threshold"]
         },
         "cache-redis-icn-02": {
           "id": "cache-redis-icn-02",
@@ -1659,9 +1653,7 @@
           },
           "services": [],
           "processes": 138,
-          "logs": [
-            "[WARN] redis: Memory usage above 85% threshold"
-          ]
+          "logs": ["[WARN] redis: Memory usage above 85% threshold"]
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -2106,9 +2098,7 @@
           },
           "services": [],
           "processes": 145,
-          "logs": [
-            "[WARN] redis: Memory usage above 85% threshold"
-          ]
+          "logs": ["[WARN] redis: Memory usage above 85% threshold"]
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
@@ -2526,9 +2516,7 @@
           },
           "services": [],
           "processes": 142,
-          "logs": [
-            "[ERROR] redis: Cannot allocate memory for SET operation"
-          ]
+          "logs": ["[ERROR] redis: Cannot allocate memory for SET operation"]
         },
         "cache-redis-icn-02": {
           "id": "cache-redis-icn-02",
@@ -2553,9 +2541,7 @@
           },
           "services": [],
           "processes": 137,
-          "logs": [
-            "[WARN] redis: Memory usage above 85% threshold"
-          ]
+          "logs": ["[WARN] redis: Memory usage above 85% threshold"]
         },
         "storage-nfs-icn-01": {
           "id": "storage-nfs-icn-01",
