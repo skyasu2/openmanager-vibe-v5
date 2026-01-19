@@ -20,7 +20,6 @@ import {
 import {
   getHourlyData as getBundledHourlyData,
   type HourlyData,
-  type HourlyDataServer,
 } from '@/data/hourly-data';
 import { logger } from '@/lib/logging';
 
@@ -198,7 +197,7 @@ export function getMetricsAtRelativeTime(
   serverId: string,
   minutesAgo: number = 0
 ): (ServerMetrics & { dateLabel: string; isYesterday: boolean }) | null {
-  const { date, time, slotIndex, timestamp, isYesterday } =
+  const { date, slotIndex, timestamp, isYesterday } =
     calculateRelativeDateTime(minutesAgo);
   const minuteOfDay = slotIndex * 10;
 

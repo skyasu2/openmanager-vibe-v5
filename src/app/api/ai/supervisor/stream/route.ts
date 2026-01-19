@@ -2,11 +2,15 @@
  * Cloud Run AI Supervisor Stream Proxy
  *
  * @endpoint POST /api/ai/supervisor/stream
+ * @endpoint GET /api/ai/supervisor/stream?sessionId=xxx (Resume)
  *
- * Real-time SSE streaming from Cloud Run to Frontend.
- * Supports Server-Sent Events (SSE) for token-by-token streaming.
+ * Real-time SSE streaming with Resumable Streams support.
+ * - Streams from Cloud Run to Frontend
+ * - Saves partial results to Redis for recovery
+ * - Supports stream resumption on reconnect
  *
  * @created 2026-01-09
+ * @updated 2026-01-19 - Added Resumable Streams support
  */
 
 import type { NextRequest } from 'next/server';
@@ -21,9 +25,9 @@ import {
   type HybridMessage,
   normalizeMessagesForCloudRun,
 } from '@/lib/ai/utils/message-normalizer';
-import { analyzeQueryComplexity } from '@/lib/ai/utils/query-complexity';
 import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
+import { getRedisClient, isRedisEnabled } from '@/lib/redis/client';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { quickSanitize } from '../security';
 
@@ -31,14 +35,27 @@ import { quickSanitize } from '../security';
 export const maxDuration = 60;
 
 // ============================================================================
-// 🛡️ Backpressure Configuration
+// 📦 Redis Stream State Keys
 // ============================================================================
 
-/** Maximum buffer size before triggering overflow protection (64KB) */
-const MAX_BUFFER_SIZE = 64 * 1024;
+const STREAM_KEY_PREFIX = 'ai:stream:';
+/** 활성 스트리밍 TTL: 10분 (복잡한 분석 쿼리 지원) */
+const STREAM_TTL_SECONDS = 600;
+/** 완료 후 TTL: 5분 (캐시용, 메모리 절약) */
+const COMPLETED_TTL_SECONDS = 300;
 
-/** Warning threshold for buffer size (48KB) */
-const BUFFER_WARNING_THRESHOLD = 48 * 1024;
+interface StreamState {
+  sessionId: string;
+  content: string;
+  status: 'streaming' | 'completed' | 'error';
+  lastUpdate: number;
+  /** 시퀀스 번호: 데이터 중복/손실 방지를 위한 monotonic counter */
+  sequence: number;
+  metadata?: {
+    agentPath?: string[];
+    toolsCalled?: string[];
+  };
+}
 
 // ============================================================================
 // 📋 Request Schema
@@ -49,8 +66,6 @@ const textPartSchema = z.object({
   text: z.string(),
 });
 
-// AI SDK v5 호환: 알려진 타입 + unknown 타입 모두 허용
-// discriminatedUnion 대신 union 사용하여 유연성 확보
 const partSchema = z.union([
   textPartSchema,
   z.object({ type: z.literal('tool-invocation') }).passthrough(),
@@ -60,10 +75,7 @@ const partSchema = z.union([
   z.object({ type: z.literal('source') }).passthrough(),
   z.object({ type: z.literal('step-start') }).passthrough(),
   z.object({ type: z.literal('step-finish') }).passthrough(),
-  // Fallback: 알 수 없는 타입도 허용 (AI SDK 업데이트 대응)
-  z
-    .object({ type: z.string() })
-    .passthrough(),
+  z.object({ type: z.string() }).passthrough(),
 ]);
 
 const messageSchema = z.object({
@@ -80,7 +92,77 @@ const requestSchema = z.object({
 });
 
 // ============================================================================
-// 🌊 SSE Stream Proxy
+// 🔄 Stream State Management (Redis)
+// ============================================================================
+
+async function saveStreamState(state: StreamState): Promise<void> {
+  if (!isRedisEnabled()) return;
+
+  const redis = getRedisClient();
+  if (!redis) return;
+
+  try {
+    // 동적 TTL: 스트리밍 중이면 10분, 완료/에러면 5분 (메모리 절약)
+    const ttl =
+      state.status === 'streaming' ? STREAM_TTL_SECONDS : COMPLETED_TTL_SECONDS;
+
+    await redis.set(
+      `${STREAM_KEY_PREFIX}${state.sessionId}`,
+      JSON.stringify(state),
+      { ex: ttl }
+    );
+  } catch (e) {
+    logger.warn('[Stream] Failed to save state to Redis:', e);
+  }
+}
+
+async function getStreamState(sessionId: string): Promise<StreamState | null> {
+  if (!isRedisEnabled()) return null;
+
+  const redis = getRedisClient();
+  if (!redis) return null;
+
+  try {
+    const data = await redis.get<string>(`${STREAM_KEY_PREFIX}${sessionId}`);
+    return data ? JSON.parse(data) : null;
+  } catch (e) {
+    logger.warn('[Stream] Failed to get state from Redis:', e);
+    return null;
+  }
+}
+
+// ============================================================================
+// 🔁 GET - Resume Stream (재연결 시 부분 결과 반환)
+// ============================================================================
+
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const sessionId = url.searchParams.get('sessionId');
+
+  if (!sessionId) {
+    return NextResponse.json({ error: 'sessionId required' }, { status: 400 });
+  }
+
+  const state = await getStreamState(sessionId);
+
+  if (!state) {
+    // 활성 스트림 없음
+    return new Response(null, { status: 204 });
+  }
+
+  // 저장된 부분 결과 반환 (sequence 포함)
+  return NextResponse.json({
+    sessionId: state.sessionId,
+    content: state.content,
+    status: state.status,
+    canResume: state.status === 'streaming',
+    sequence: state.sequence,
+    metadata: state.metadata,
+  });
+}
+
+// ============================================================================
+// 🌊 POST - SSE Stream Proxy
 // ============================================================================
 
 export const POST = withRateLimit(
@@ -118,7 +200,7 @@ export const POST = withRateLimit(
         querySessionId ||
         `stream_${Date.now()}`;
 
-      // 3. Extract and sanitize query (consistent with /supervisor endpoint)
+      // 3. Extract and sanitize query
       const rawQuery = extractLastUserQuery(messages as HybridMessage[]);
       if (!rawQuery?.trim()) {
         return NextResponse.json(
@@ -132,45 +214,6 @@ export const POST = withRateLimit(
         `🌊 [SupervisorStream] Query: "${userQuery.slice(0, 50)}..."`
       );
       logger.info(`📡 [SupervisorStream] Session: ${sessionId}`);
-
-      // 3.5. 복잡도 기반 Job Queue 리다이렉트 (2026-01-18 추가)
-      // very_complex 쿼리는 스트리밍 대신 Job Queue 사용 권장
-      const complexity = analyzeQueryComplexity(userQuery);
-      const shouldUseJobQueue =
-        complexity.level === 'very_complex' ||
-        (complexity.level === 'complex' &&
-          /보고서|리포트|근본.*원인|장애.*분석/i.test(userQuery));
-
-      if (shouldUseJobQueue) {
-        logger.info(
-          `🔀 [SupervisorStream] Redirecting to Job Queue (complexity: ${complexity.level})`
-        );
-        // SSE 형식으로 redirect 이벤트 전송 (클라이언트에서 처리)
-        const encoder = new TextEncoder();
-        const redirectEvent = JSON.stringify({
-          type: 'redirect',
-          data: {
-            mode: 'job-queue',
-            complexity: complexity.level,
-            estimatedTime: Math.round(complexity.recommendedTimeout / 1000),
-            message: '복잡한 분석 요청입니다. 비동기 처리로 전환합니다.',
-          },
-        });
-        const stream = new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode(`data: ${redirectEvent}\n\n`));
-            controller.close();
-          },
-        });
-        return new NextResponse(stream, {
-          headers: {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'X-Session-Id': sessionId,
-            'X-Redirect-Mode': 'job-queue',
-          },
-        });
-      }
 
       // 4. Normalize and compress messages
       const normalizedMessages = normalizeMessagesForCloudRun(messages);
@@ -200,14 +243,26 @@ export const POST = withRateLimit(
         );
       }
 
-      // 6. Proxy SSE stream from Cloud Run
+      // 6. Initialize stream state in Redis
+      let currentSequence = 0;
+      const initialState: StreamState = {
+        sessionId,
+        content: '',
+        status: 'streaming',
+        lastUpdate: Date.now(),
+        sequence: currentSequence,
+        metadata: { agentPath: [], toolsCalled: [] },
+      };
+      await saveStreamState(initialState);
+
+      // 7. Proxy SSE stream from Cloud Run
       const apiSecret = process.env.CLOUD_RUN_API_SECRET;
       const streamUrl = `${cloudRunUrl}/api/ai/supervisor/stream`;
 
       logger.info(`🔗 [SupervisorStream] Connecting to: ${streamUrl}`);
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 120000);
+      const timeout = setTimeout(() => controller.abort(), 55000); // 55초 타임아웃 (Vercel 60초 전 안전 마진)
 
       try {
         const cloudRunResponse = await fetch(streamUrl, {
@@ -231,6 +286,16 @@ export const POST = withRateLimit(
           logger.error(
             `❌ [SupervisorStream] Cloud Run error: ${cloudRunResponse.status} - ${errorText}`
           );
+
+          // 에러 상태 저장
+          currentSequence++;
+          await saveStreamState({
+            ...initialState,
+            status: 'error',
+            content: `Error: ${cloudRunResponse.status}`,
+            sequence: currentSequence,
+          });
+
           return NextResponse.json(
             {
               success: false,
@@ -240,7 +305,7 @@ export const POST = withRateLimit(
           );
         }
 
-        // 7. Create a readable stream that transforms SSE events to plain text
+        // 8. Create streaming response with Redis state saving
         const encoder = new TextEncoder();
         const decoder = new TextDecoder();
 
@@ -253,93 +318,39 @@ export const POST = withRateLimit(
         }
 
         let buffer = '';
-        let totalBufferSize = 0;
-        let backpressureWarned = false;
+        let accumulatedContent = '';
+        let lastSaveTime = Date.now();
+        const SAVE_INTERVAL_MS = 2000; // 2초마다 Redis에 저장
 
         const stream = new ReadableStream({
-          async pull(controller) {
+          async pull(streamController) {
             try {
               const { done, value } = await reader.read();
 
-              // Backpressure: Check buffer size before processing
-              if (totalBufferSize > MAX_BUFFER_SIZE) {
-                logger.warn(
-                  `⚠️ [SupervisorStream] Buffer overflow protection triggered (${Math.round(totalBufferSize / 1024)}KB)`
-                );
-                controller.enqueue(
-                  encoder.encode(
-                    '\n\n⚠️ 스트림 버퍼 초과. 연결을 재시도해 주세요.\n'
-                  )
-                );
-                controller.close();
-                reader.cancel();
-                return;
-              }
-
-              // Backpressure warning at threshold
-              if (
-                totalBufferSize > BUFFER_WARNING_THRESHOLD &&
-                !backpressureWarned
-              ) {
-                logger.warn(
-                  `⚠️ [SupervisorStream] Buffer approaching limit (${Math.round(totalBufferSize / 1024)}KB)`
-                );
-                backpressureWarned = true;
-              }
-
               if (done) {
-                // Process any remaining buffer
+                // 완료 시 최종 상태 저장
+                currentSequence++;
+                await saveStreamState({
+                  sessionId,
+                  content: accumulatedContent,
+                  status: 'completed',
+                  lastUpdate: Date.now(),
+                  sequence: currentSequence,
+                  metadata: initialState.metadata,
+                });
+
                 if (buffer) {
-                  const lines = buffer.split('\n');
-                  for (const line of lines) {
-                    if (line.startsWith('data:')) {
-                      try {
-                        const jsonStr = line.slice(5).trim();
-                        if (!jsonStr) continue;
-                        const event = JSON.parse(jsonStr);
-                        if (event.type === 'text_delta' && event.data) {
-                          controller.enqueue(encoder.encode(event.data));
-                        }
-                        // Handle handoff in remaining buffer
-                        if (event.type === 'handoff' && event.data) {
-                          const { from, to, reason } = event.data as {
-                            from: string;
-                            to: string;
-                            reason?: string;
-                          };
-                          const handoffMsg = `\n\n🔄 **${from}** → **${to}**${reason ? `: ${reason}` : ''}\n\n`;
-                          controller.enqueue(encoder.encode(handoffMsg));
-                        }
-                        if (event.type === 'error') {
-                          const errorMsg =
-                            typeof event.data?.message === 'string'
-                              ? event.data.message
-                              : 'Stream error';
-                          controller.enqueue(
-                            encoder.encode(`\n\n⚠️ 오류: ${errorMsg}`)
-                          );
-                        }
-                      } catch {
-                        // Ignore parse errors
-                      }
-                    }
-                  }
+                  processBuffer(buffer, streamController, encoder);
                 }
-                controller.close();
+                streamController.close();
                 return;
               }
 
-              // Decode chunk and add to buffer
               const chunk = decoder.decode(value, { stream: true });
               buffer += chunk;
-              totalBufferSize += chunk.length;
 
-              // Process complete lines
               const lines = buffer.split('\n');
-              buffer = lines.pop() || ''; // Keep incomplete line in buffer
-
-              // Update buffer size after processing (buffer now only contains incomplete line)
-              totalBufferSize = buffer.length;
+              buffer = lines.pop() || '';
 
               for (const line of lines) {
                 if (line.startsWith('data:')) {
@@ -349,62 +360,72 @@ export const POST = withRateLimit(
 
                     const event = JSON.parse(jsonStr);
 
-                    // Handle text_delta: pass through content for streaming
                     if (event.type === 'text_delta' && event.data) {
-                      controller.enqueue(encoder.encode(event.data));
+                      streamController.enqueue(encoder.encode(event.data));
+                      accumulatedContent += event.data;
                     }
 
-                    // Handle handoff: show agent transition in stream
                     if (event.type === 'handoff' && event.data) {
-                      const { from, to, reason } = event.data as {
-                        from: string;
-                        to: string;
-                        reason?: string;
-                      };
+                      const { from, to, reason } = event.data;
                       const handoffMsg = `\n\n🔄 **${from}** → **${to}**${reason ? `: ${reason}` : ''}\n\n`;
-                      controller.enqueue(encoder.encode(handoffMsg));
-                      logger.info(
-                        `🔄 [SupervisorStream] Handoff: ${from} → ${to}`
+                      streamController.enqueue(encoder.encode(handoffMsg));
+                      accumulatedContent += handoffMsg;
+
+                      // Agent path 추적
+                      initialState.metadata?.agentPath?.push(to);
+                    }
+
+                    if (event.type === 'tool_call' && event.data?.toolName) {
+                      initialState.metadata?.toolsCalled?.push(
+                        event.data.toolName
                       );
                     }
 
-                    // Handle agent_status: show agent activity indicator
-                    if (event.type === 'agent_status' && event.data) {
-                      const { agent, status } = event.data as {
-                        agent: string;
-                        status: 'thinking' | 'processing' | 'complete';
-                      };
-                      // Only show thinking/processing status as inline indicator
-                      if (status === 'thinking' || status === 'processing') {
-                        const statusEmoji = status === 'thinking' ? '🤔' : '⚙️';
-                        const statusMsg = `${statusEmoji} *${agent}*... `;
-                        controller.enqueue(encoder.encode(statusMsg));
-                      }
-                    }
-
-                    // Handle error: forward error message and close stream
                     if (event.type === 'error') {
                       const errorMsg =
                         typeof event.data?.message === 'string'
                           ? event.data.message
                           : 'Stream error';
-                      logger.error(
-                        `❌ [SupervisorStream] Cloud Run error: ${errorMsg}`
-                      );
-                      controller.enqueue(
+                      logger.error(`❌ [SupervisorStream] Error: ${errorMsg}`);
+
+                      currentSequence++;
+                      await saveStreamState({
+                        sessionId,
+                        content: accumulatedContent,
+                        status: 'error',
+                        lastUpdate: Date.now(),
+                        sequence: currentSequence,
+                      });
+
+                      streamController.enqueue(
                         encoder.encode(`\n\n⚠️ 오류: ${errorMsg}`)
                       );
-                      controller.close();
+                      streamController.close();
                       return;
                     }
                   } catch {
-                    // Ignore parse errors for malformed lines
+                    // Ignore parse errors
                   }
                 }
               }
+
+              // 주기적으로 Redis에 상태 저장 (백업)
+              const now = Date.now();
+              if (now - lastSaveTime > SAVE_INTERVAL_MS) {
+                currentSequence++;
+                await saveStreamState({
+                  sessionId,
+                  content: accumulatedContent,
+                  status: 'streaming',
+                  lastUpdate: now,
+                  sequence: currentSequence,
+                  metadata: initialState.metadata,
+                });
+                lastSaveTime = now;
+              }
             } catch (error) {
               logger.error('❌ [SupervisorStream] Stream error:', error);
-              controller.error(error);
+              streamController.error(error);
             }
           },
 
@@ -421,6 +442,7 @@ export const POST = withRateLimit(
             'Cache-Control': 'no-cache',
             'X-Session-Id': sessionId,
             'X-Backend': 'cloud-run-stream',
+            'X-Resumable': 'true',
           },
         });
       } catch (error) {
@@ -428,8 +450,19 @@ export const POST = withRateLimit(
 
         if (error instanceof Error && error.name === 'AbortError') {
           logger.error('❌ [SupervisorStream] Request timeout');
+
+          // 타임아웃 시 부분 결과 저장
+          currentSequence++;
+          await saveStreamState({
+            sessionId,
+            content: 'Request timed out',
+            status: 'error',
+            lastUpdate: Date.now(),
+            sequence: currentSequence,
+          });
+
           return NextResponse.json(
-            { success: false, error: 'Stream timeout' },
+            { success: false, error: 'Stream timeout', sessionId },
             { status: 504 }
           );
         }
@@ -449,3 +482,26 @@ export const POST = withRateLimit(
     }
   })
 );
+
+// Helper function to process remaining buffer
+function processBuffer(
+  buffer: string,
+  controller: ReadableStreamDefaultController,
+  encoder: TextEncoder
+) {
+  const lines = buffer.split('\n');
+  for (const line of lines) {
+    if (line.startsWith('data:')) {
+      try {
+        const jsonStr = line.slice(5).trim();
+        if (!jsonStr) continue;
+        const event = JSON.parse(jsonStr);
+        if (event.type === 'text_delta' && event.data) {
+          controller.enqueue(encoder.encode(event.data));
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }
+}

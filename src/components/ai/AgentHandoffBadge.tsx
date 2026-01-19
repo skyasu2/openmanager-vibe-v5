@@ -20,7 +20,7 @@ import {
   HelpCircle,
   Search,
 } from 'lucide-react';
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 interface AgentHandoffBadgeProps {
   /** Source agent name */

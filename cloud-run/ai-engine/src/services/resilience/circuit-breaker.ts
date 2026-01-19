@@ -60,7 +60,8 @@ export class CircuitBreaker {
       failureThreshold: 5,
       successThreshold: 2,
       openDuration: 30000, // 30초
-      timeout: 10000, // 10초
+      // 타임아웃 체인: Tavily(10s) → Reporter(25s) → Orchestrator(50s) → CB(55s) → Vercel(60s)
+      timeout: 55000, // 55초 (Orchestrator 50s + 5s 마진, Vercel 60초 제한 내)
       ...config,
     };
   }

@@ -3,8 +3,6 @@
 // Icons
 import { Bot, User } from 'lucide-react';
 import { type FC, memo, useEffect, useRef, useState } from 'react';
-import { AgentHandoffBadge } from '@/components/ai/AgentHandoffBadge';
-import { AgentStatusIndicator } from '@/components/ai/AgentStatusIndicator';
 import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
 import { AnalysisBasisBadge } from '@/components/ai/AnalysisBasisBadge';

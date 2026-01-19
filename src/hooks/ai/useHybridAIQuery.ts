@@ -73,6 +73,10 @@ export interface HybridQueryState {
   error: string | null;
   /** 명확화 요청 (모호한 쿼리일 때) */
   clarification: ClarificationRequest | null;
+  /** 처리 지연 경고 메시지 (25초 초과 시) */
+  warning: string | null;
+  /** 현재 처리 경과 시간 (ms) */
+  processingTime: number;
 }
 
 /**
@@ -86,6 +90,7 @@ export type StreamEventType =
   | 'step_finish'
   | 'handoff'
   | 'agent_status'
+  | 'warning' // 처리 지연 경고 (25초 초과 시) (2026-01-19)
   | 'redirect' // Job Queue 리다이렉트 이벤트 (2026-01-18)
   | 'done'
   | 'error';
@@ -123,6 +128,16 @@ export interface RedirectEventData {
 }
 
 /**
+ * Warning 이벤트 데이터 (처리 지연)
+ */
+export interface WarningEventData {
+  code: 'SLOW_PROCESSING';
+  message: string;
+  elapsed: number;
+  threshold: number;
+}
+
+/**
  * 스트리밍 데이터 파트 타입
  * AI SDK v5 onData 콜백으로 받는 데이터
  */
@@ -141,6 +156,8 @@ export interface StreamDataPart {
   handoff?: HandoffEventData;
   /** Agent Status 이벤트 데이터 (type: 'agent_status') */
   agentStatus?: AgentStatusEventData;
+  /** Warning 이벤트 데이터 (type: 'warning') */
+  warning?: WarningEventData;
   /** Redirect 이벤트 데이터 (type: 'redirect') */
   redirect?: RedirectEventData;
 }
@@ -262,6 +279,8 @@ export function useHybridAIQuery(
     isLoading: false,
     error: null,
     clarification: null,
+    warning: null,
+    processingTime: 0,
   });
 
   // 명확화 건너뛰기 시 원본 쿼리 저장
@@ -269,6 +288,9 @@ export function useHybridAIQuery(
 
   // Redirect 이벤트 처리를 위한 쿼리 저장
   const currentQueryRef = useRef<string | null>(null);
+
+  // Stream Recovery: 마지막으로 알려진 시퀀스 번호 (데이터 중복 방지)
+  const lastKnownSequenceRef = useRef<number>(0);
 
   // ============================================================================
   // useChat Hook (Streaming Mode) - AI SDK v6 베스트 프랙티스 적용
@@ -298,9 +320,28 @@ export function useHybridAIQuery(
       setState((prev) => ({ ...prev, isLoading: false }));
       onStreamFinish?.();
     },
-    // AI SDK v6: 실시간 데이터 파트 처리 콜백 + Redirect 이벤트 내부 처리
+    // AI SDK v6: 실시간 데이터 파트 처리 콜백 + Redirect/Warning 이벤트 내부 처리
     onData: (dataPart) => {
       const part = dataPart as StreamDataPart;
+
+      // Warning 이벤트 처리 (처리 지연 경고)
+      if (part.type === 'warning' && part.data) {
+        const warningData = part.data as WarningEventData;
+        logger.warn(
+          `⚠️ [HybridAI] Warning received: ${warningData.message} (${warningData.elapsed}ms)`
+        );
+
+        // 경고 상태 업데이트 (1회만)
+        setState((prev) => {
+          if (prev.warning) return prev; // 이미 경고 표시 중
+          return {
+            ...prev,
+            warning: warningData.message,
+            processingTime: warningData.elapsed,
+          };
+        });
+        return;
+      }
 
       // Redirect 이벤트 내부 처리 (Job Queue 모드 전환)
       if (part.type === 'redirect' && part.data) {
@@ -320,12 +361,16 @@ export function useHybridAIQuery(
         // 현재 스트리밍 중단
         stopChat();
 
-        // Job Queue로 쿼리 전송
+        // Race condition 방지: stopChat 완료 후 Job Queue 순차 실행
+        // stopChat은 내부적으로 비동기 처리가 있어 즉시 sendQuery 호출 시
+        // 두 요청이 동시에 진행되어 상태 불일치 발생 가능
         const query = currentQueryRef.current;
         if (query) {
-          void asyncQuery.sendQuery(query).then(() => {
-            setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
-          });
+          setTimeout(() => {
+            void asyncQuery.sendQuery(query).then(() => {
+              setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
+            });
+          }, 50);
         }
         return;
       }
@@ -333,12 +378,62 @@ export function useHybridAIQuery(
       // 사용자 onData 콜백 호출
       onData?.(part);
     },
-    onError: (error) => {
+    onError: async (error) => {
       logger.error('[HybridAI] useChat error:', error);
+
+      // Stream Recovery 시도 (네트워크 오류 시)
+      if (sessionIdRef.current && error.message?.includes('network')) {
+        try {
+          logger.info('[HybridAI] Attempting stream recovery...');
+          const response = await fetch(
+            `/api/ai/supervisor/stream?sessionId=${sessionIdRef.current}`
+          );
+
+          if (response.ok) {
+            const recoveredState = await response.json();
+            const serverSequence = recoveredState.sequence ?? 0;
+
+            // 시퀀스 기반 중복 방지: 이미 본 데이터는 무시
+            if (serverSequence <= lastKnownSequenceRef.current) {
+              logger.info(
+                `[HybridAI] Skipping recovery - stale sequence (server: ${serverSequence}, local: ${lastKnownSequenceRef.current})`
+              );
+            } else if (
+              recoveredState.content &&
+              recoveredState.status !== 'error'
+            ) {
+              logger.info(
+                `[HybridAI] Stream recovery successful (sequence: ${serverSequence})`
+              );
+              // 시퀀스 업데이트
+              lastKnownSequenceRef.current = serverSequence;
+
+              // 부분 결과 복구
+              setState((prev) => ({
+                ...prev,
+                isLoading: false,
+                error:
+                  recoveredState.status === 'completed'
+                    ? null
+                    : '연결이 끊겼습니다. 부분 결과를 복구했습니다.',
+                warning: null,
+                processingTime: 0,
+              }));
+              return;
+            }
+          }
+        } catch (recoveryError) {
+          logger.warn('[HybridAI] Recovery failed:', recoveryError);
+        }
+      }
+
+      // 복구 실패 시 기존 에러 처리
       setState((prev) => ({
         ...prev,
         isLoading: false,
         error: error.message || 'AI 응답 중 오류가 발생했습니다.',
+        warning: null,
+        processingTime: 0,
       }));
     },
   });
@@ -604,6 +699,8 @@ export function useHybridAIQuery(
     asyncQuery.reset();
     setMessages([]);
     pendingQueryRef.current = null;
+    currentQueryRef.current = null;
+    lastKnownSequenceRef.current = 0; // 시퀀스 리셋
     setState({
       mode: 'streaming',
       complexity: null,
@@ -612,6 +709,8 @@ export function useHybridAIQuery(
       isLoading: false,
       error: null,
       clarification: null,
+      warning: null,
+      processingTime: 0,
     });
   }, [asyncQuery, setMessages]);
 

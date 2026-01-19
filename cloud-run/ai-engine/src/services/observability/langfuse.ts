@@ -104,6 +104,89 @@ function shouldSample(): boolean {
   return Math.random() < DEFAULT_SAMPLE_RATE;
 }
 
+// ============================================================================
+// 0.5. 통합 샘플링 컨텍스트 (Issue #5 개선)
+// ============================================================================
+
+/**
+ * 세션별 샘플링 상태 맵
+ * - 동일 세션의 모든 이벤트가 일관되게 샘플링됨
+ * - 메모리 누수 방지를 위해 TTL 적용 (5분)
+ */
+interface SamplingContext {
+  sampled: boolean;
+  createdAt: number;
+}
+
+const samplingContextMap = new Map<string, SamplingContext>();
+const SAMPLING_CONTEXT_TTL_MS = 5 * 60 * 1000; // 5분
+
+/**
+ * 세션에 대한 샘플링 결정 초기화
+ * 이미 결정된 세션은 기존 결정을 유지
+ */
+export function initSamplingContext(sessionId: string): boolean {
+  // 오래된 컨텍스트 정리 (5분 이상)
+  cleanupStaleSamplingContexts();
+
+  const existing = samplingContextMap.get(sessionId);
+  if (existing) {
+    return existing.sampled;
+  }
+
+  // 새 세션: 샘플링 결정
+  const sampled = shouldSample();
+  samplingContextMap.set(sessionId, {
+    sampled,
+    createdAt: Date.now(),
+  });
+
+  return sampled;
+}
+
+/**
+ * 세션의 샘플링 상태 조회
+ * 컨텍스트가 없으면 자동 초기화
+ */
+export function getSamplingContext(sessionId: string): boolean {
+  const existing = samplingContextMap.get(sessionId);
+  if (existing) {
+    return existing.sampled;
+  }
+
+  // 컨텍스트 없으면 초기화
+  return initSamplingContext(sessionId);
+}
+
+/**
+ * 오래된 샘플링 컨텍스트 정리 (메모리 누수 방지)
+ */
+function cleanupStaleSamplingContexts(): void {
+  const now = Date.now();
+  for (const [sessionId, context] of samplingContextMap.entries()) {
+    if (now - context.createdAt > SAMPLING_CONTEXT_TTL_MS) {
+      samplingContextMap.delete(sessionId);
+    }
+  }
+}
+
+/**
+ * 세션별 샘플링 여부 확인 (컨텍스트 기반)
+ * sessionId가 없으면 독립 샘플링 사용
+ */
+function shouldSampleWithContext(sessionId?: string): boolean {
+  if (testModeEnabled) {
+    return true;
+  }
+
+  if (sessionId) {
+    return getSamplingContext(sessionId);
+  }
+
+  // sessionId 없으면 독립 샘플링
+  return shouldSample();
+}
+
 /** 현재 사용량 상태 조회 */
 export function getLangfuseUsageStatus(): {
   eventCount: number;
@@ -315,10 +398,13 @@ export interface GenerationParams {
  * ⚠️ 무료 티어 보호:
  * - 10% 샘플링 적용 (90%는 No-Op)
  * - 월간 45,000 events 도달 시 자동 비활성화
+ * - 통합 샘플링 컨텍스트: 동일 세션 내 모든 이벤트 일관 추적
  */
 export function createSupervisorTrace(metadata: TraceMetadata): LangfuseTrace {
-  // 1. 샘플링 체크 (10%만 추적)
-  if (!shouldSample()) {
+  // 1. 통합 샘플링 컨텍스트 체크 (세션 단위)
+  //    - 세션 첫 요청 시 샘플링 결정
+  //    - 이후 동일 세션의 모든 이벤트가 동일하게 추적됨
+  if (!shouldSampleWithContext(metadata.sessionId)) {
     return createNoOpTrace();
   }
 
@@ -486,7 +572,180 @@ function createNoOpLangfuse(): LangfuseClient {
 }
 
 // ============================================================================
-// 4. Export Types
+// 4. Timeout Tracking Functions
+// ============================================================================
+
+/**
+ * 타임아웃 이벤트 컨텍스트
+ */
+export interface TimeoutEventContext {
+  operation: string;
+  elapsed: number;
+  threshold: number;
+  sessionId?: string;
+}
+
+/**
+ * 타임아웃 이벤트 로깅
+ *
+ * 경고(warning) 또는 오류(error) 수준의 타임아웃 이벤트를 Langfuse에 기록합니다.
+ * 통합 샘플링 컨텍스트: 동일 세션 내 모든 이벤트가 일관되게 추적됩니다.
+ *
+ * @param type - 이벤트 유형 ('warning' | 'error')
+ * @param context - 타임아웃 컨텍스트
+ *
+ * @example
+ * ```ts
+ * logTimeoutEvent('warning', {
+ *   operation: 'orchestrator',
+ *   elapsed: 25000,
+ *   threshold: 25000,
+ *   sessionId: 'sess-123',
+ * });
+ * ```
+ */
+export function logTimeoutEvent(
+  type: 'warning' | 'error',
+  context: TimeoutEventContext
+): void {
+  // 1. 통합 샘플링 컨텍스트 체크 (세션 단위)
+  if (!shouldSampleWithContext(context.sessionId)) {
+    return;
+  }
+
+  // 2. 한도 체크 (90% 초과 시 차단)
+  if (!incrementUsage(1)) {
+    return;
+  }
+
+  const langfuse = getLangfuse();
+
+  langfuse.trace({
+    name: `timeout_${type}`,
+    sessionId: context.sessionId,
+    metadata: {
+      operation: context.operation,
+      elapsed: context.elapsed,
+      threshold: context.threshold,
+      ratio: Math.round((context.elapsed / context.threshold) * 100) / 100,
+      level: type === 'error' ? 'ERROR' : 'WARNING',
+    },
+    input: JSON.stringify({
+      operation: context.operation,
+      elapsed: `${context.elapsed}ms`,
+      threshold: `${context.threshold}ms`,
+    }),
+  });
+
+  // 콘솔에도 로그 (디버깅용)
+  const logFn = type === 'error' ? console.error : console.warn;
+  logFn(
+    `⏱️ [Langfuse] Timeout ${type}: ${context.operation} ` +
+      `(${context.elapsed}ms / ${context.threshold}ms threshold)`
+  );
+}
+
+/**
+ * 타임아웃 모니터링 Span 생성자 반환 타입
+ */
+export interface TimeoutSpanHandle {
+  /**
+   * Span 완료 처리
+   * @param success - 작업 성공 여부
+   * @param elapsed - 경과 시간 (ms)
+   */
+  complete: (success: boolean, elapsed: number) => void;
+}
+
+/**
+ * 타임아웃 모니터링 Span 생성
+ *
+ * 작업의 타임아웃 상태를 추적하는 span을 생성합니다.
+ * 작업 완료 시 complete() 호출로 성공/실패 및 시간 활용률을 기록합니다.
+ * 통합 샘플링 컨텍스트: 동일 세션 내 모든 이벤트가 일관되게 추적됩니다.
+ *
+ * @param traceId - 연결할 trace ID (sessionId로 사용)
+ * @param operation - 작업 이름
+ * @param timeout - 타임아웃 임계값 (ms)
+ * @returns Span 완료 핸들러
+ *
+ * @example
+ * ```ts
+ * const span = createTimeoutSpan('sess-123', 'orchestrator', 50000);
+ * try {
+ *   await doWork();
+ *   span.complete(true, Date.now() - startTime);
+ * } catch (error) {
+ *   span.complete(false, Date.now() - startTime);
+ * }
+ * ```
+ */
+export function createTimeoutSpan(
+  traceId: string,
+  operation: string,
+  timeout: number
+): TimeoutSpanHandle {
+  // 통합 샘플링 컨텍스트 체크 (traceId = sessionId)
+  if (!shouldSampleWithContext(traceId) || !incrementUsage(1)) {
+    return {
+      complete: () => {},
+    };
+  }
+
+  const langfuse = getLangfuse();
+  const startTime = Date.now();
+
+  // Trace 생성 (span 역할)
+  const trace = langfuse.trace({
+    name: `timeout_monitor_${operation}`,
+    sessionId: traceId,
+    metadata: {
+      timeout,
+      operation,
+      startTime: new Date().toISOString(),
+    },
+  });
+
+  return {
+    complete: (success: boolean, elapsed: number) => {
+      const didTimeout = elapsed >= timeout;
+      const utilizationPercent = Math.round((elapsed / timeout) * 100);
+
+      trace.update({
+        output: JSON.stringify({
+          success,
+          elapsed: `${elapsed}ms`,
+          didTimeout,
+          utilizationPercent: `${utilizationPercent}%`,
+        }),
+        metadata: {
+          success,
+          elapsed,
+          didTimeout,
+          utilizationPercent,
+          endTime: new Date().toISOString(),
+          actualDuration: Date.now() - startTime,
+        },
+      });
+
+      // 타임아웃 발생 시 스코어 기록
+      if (didTimeout) {
+        trace.score({
+          name: 'timeout-occurred',
+          value: 0,
+        });
+      } else if (success) {
+        trace.score({
+          name: 'within-timeout',
+          value: 1,
+        });
+      }
+    },
+  };
+}
+
+// ============================================================================
+// 5. Export Types
 // ============================================================================
 
 export type { LangfuseClient, LangfuseTrace };

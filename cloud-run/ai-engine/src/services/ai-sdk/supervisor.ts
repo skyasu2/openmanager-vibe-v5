@@ -564,6 +564,7 @@ export type StreamEventType =
   | 'step_finish'
   | 'handoff'       // NEW: 에이전트 핸드오프 이벤트
   | 'agent_status'  // NEW: 에이전트 상태 변경
+  | 'warning'       // NEW: 처리 지연 경고 (25초 초과 시)
   | 'done'
   | 'error';
 

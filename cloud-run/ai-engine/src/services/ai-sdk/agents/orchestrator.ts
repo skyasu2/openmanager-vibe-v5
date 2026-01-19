@@ -17,6 +17,7 @@ import { getCerebrasModel, getGroqModel, getMistralModel, checkProviderStatus, t
 import { generateTextWithRetry } from '../../resilience/retry-with-fallback';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
 import type { StreamEvent } from '../supervisor';
+import { logTimeoutEvent, createTimeoutSpan } from '../../observability/langfuse';
 import { nlqAgent } from './nlq-agent';
 import { analystAgent } from './analyst-agent';
 import { reporterAgent } from './reporter-agent';
@@ -869,6 +870,13 @@ export async function* executeMultiAgentStream(
 
     console.log(`🎯 [Stream Orchestrator] Starting with ${provider}/${modelId}`);
 
+    // Langfuse timeout span for tracking
+    const timeoutSpan = createTimeoutSpan(
+      request.sessionId,
+      'orchestrator_stream',
+      ORCHESTRATOR_CONFIG.timeout
+    );
+
     // Enhance prompt with suggested agent hint when confidence is high
     let enhancedPrompt = query;
     if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.7) {
@@ -876,19 +884,56 @@ export async function* executeMultiAgentStream(
     }
 
     // =========================================================================
-    // Stream from orchestrator
+    // Stream from orchestrator with warning tracking
     // =========================================================================
     const streamResult = orchestrator.stream({
       prompt: enhancedPrompt,
     });
 
-    // Yield text chunks as they arrive
+    // Warning state (only emit once)
+    let warningEmitted = false;
+
+    // Yield text chunks as they arrive with elapsed time check
     for await (const textChunk of streamResult.textStream) {
+      const elapsed = Date.now() - startTime;
+
+      // Emit warning once when threshold exceeded (25s)
+      if (!warningEmitted && elapsed >= ORCHESTRATOR_CONFIG.warnThreshold) {
+        warningEmitted = true;
+
+        console.warn(
+          `⚠️ [Stream Orchestrator] Execution exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms threshold`
+        );
+
+        // Yield warning event to frontend
+        yield {
+          type: 'warning',
+          data: {
+            code: 'SLOW_PROCESSING',
+            message: '처리 시간이 25초를 초과했습니다. 복잡한 분석이 진행 중입니다.',
+            elapsed,
+            threshold: ORCHESTRATOR_CONFIG.warnThreshold,
+          },
+        };
+
+        // Log to Langfuse
+        logTimeoutEvent('warning', {
+          operation: 'orchestrator_stream',
+          elapsed,
+          threshold: ORCHESTRATOR_CONFIG.warnThreshold,
+          sessionId: request.sessionId,
+        });
+      }
+
       const sanitized = sanitizeChineseCharacters(textChunk);
       if (sanitized) {
         yield { type: 'text_delta', data: sanitized };
       }
     }
+
+    // Complete timeout span
+    const finalElapsed = Date.now() - startTime;
+    timeoutSpan.complete(true, finalElapsed);
 
     // =========================================================================
     // After streaming completes, gather metadata
@@ -972,6 +1017,14 @@ export async function* executeMultiAgentStream(
       code = 'RATE_LIMIT';
     } else if (errorMessage.includes('timeout')) {
       code = 'TIMEOUT';
+
+      // Log timeout error to Langfuse
+      logTimeoutEvent('error', {
+        operation: 'orchestrator_stream',
+        elapsed: durationMs,
+        threshold: ORCHESTRATOR_CONFIG.timeout,
+        sessionId: request.sessionId,
+      });
     } else if (errorMessage.includes('model')) {
       code = 'MODEL_ERROR';
     }

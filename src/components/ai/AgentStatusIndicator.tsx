@@ -11,7 +11,7 @@
  */
 
 import { Bot, Cpu, FileText, HelpCircle, Loader2, Search } from 'lucide-react';
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 export type AgentStatus = 'thinking' | 'processing' | 'completed' | 'idle';
 
