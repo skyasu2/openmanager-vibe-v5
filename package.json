@@ -202,7 +202,7 @@
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@types/supertest": "^6.0.3",
-    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/coverage-v8": "^4.0.17",
     "@vitest/ui": "^4.0.17",
     "cross-env": "^10.1.0",
     "doctoc": "^2.2.1",
