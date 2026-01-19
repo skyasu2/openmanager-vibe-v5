@@ -230,7 +230,7 @@
     "npm": ">=10.0.0"
   },
   "optionalDependencies": {
-    "@biomejs/cli-linux-x64": "^2.3.8",
+    "@biomejs/cli-linux-x64": "^2.3.11",
     "@biomejs/cli-win32-x64": "^2.3.8"
   },
   "packageManager": "npm@10.9.2",
