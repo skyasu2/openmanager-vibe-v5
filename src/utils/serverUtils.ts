@@ -256,7 +256,7 @@ export function getMetricColor(
     };
     return {
       ...colors[type],
-      status: 'healthy' as const,
+      status: 'online' as const,
     };
   }
 }

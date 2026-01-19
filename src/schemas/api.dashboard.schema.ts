@@ -26,7 +26,7 @@ export const DashboardServerSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.string().optional(),
-  status: z.enum(['online', 'offline', 'critical', 'healthy', 'warning']),
+  status: z.enum(['online', 'offline', 'critical', 'warning']),
   cpu: z.number().min(0).max(100),
   memory: z.number().min(0).max(100),
   disk: z.number().min(0).max(100),
@@ -143,9 +143,7 @@ export const DashboardActionDataSchema = z.union([
           .optional(),
         serverTypes: z.array(z.string()).optional(),
         status: z
-          .array(
-            z.enum(['online', 'offline', 'critical', 'healthy', 'warning'])
-          )
+          .array(z.enum(['online', 'offline', 'critical', 'warning']))
           .optional(),
       })
       .optional(),
@@ -227,7 +225,7 @@ export const DashboardActionResponseSchema = z.object({
 export const DashboardOptimizedServerSchema = z.object({
   id: z.string(),
   name: z.string(),
-  status: z.enum(['healthy', 'warning', 'critical', 'online', 'offline']),
+  status: z.enum(['online', 'warning', 'critical', 'offline']),
   cpu: z.number().min(0).max(100),
   memory: z.number().min(0).max(100),
   disk: z.number().min(0).max(100),
