@@ -9,8 +9,6 @@
  * @version 2.0.0 (SSOT Architecture Implemented)
  */
 
-// 🎯 외부화된 규칙 시스템 (Single Source of Truth for thresholds)
-import { getServerStatus } from '@/config/rules';
 import { SystemConfigurationManager } from '@/config/SystemConfiguration';
 import { logger } from '@/lib/logging';
 import type { Server } from '@/types/server';
@@ -235,20 +233,14 @@ export class UnifiedServerDataSource {
     }
 
     // ServerMetrics를 Server 타입으로 변환
+    // 🎯 MetricsProvider의 status 직접 사용 (JSON SSOT 보장)
     const servers: Server[] = allMetrics.map((metric) => {
-      const status = getServerStatus({
-        cpu: metric.cpu,
-        memory: metric.memory,
-        disk: metric.disk,
-        network: metric.network,
-      });
-
       return {
         id: metric.serverId,
         name: metric.serverId,
         hostname: `${metric.serverId.toLowerCase()}.internal`,
         type: metric.serverType,
-        status,
+        status: metric.status, // JSON status 직접 사용 (재계산 X)
         cpu: metric.cpu,
         memory: metric.memory,
         disk: metric.disk,

@@ -155,7 +155,7 @@ export function adaptGCPMetricsToServerInstances(
         total: g.metrics?.network?.connections || 0,
         success: Math.round((g.metrics?.network?.connections || 0) * 0.95), // 95% 성공률 가정
         errors: Math.round((g.metrics?.network?.connections || 0) * 0.05),
-        averageTime: g.status === 'healthy' ? 120 : 500, // 상태에 따른 응답시간 추정
+        averageTime: g.status === 'online' ? 120 : 500, // 상태에 따른 응답시간 추정
       },
 
       // 에러 정보

@@ -16,8 +16,8 @@ import { join } from 'path';
 // Types
 // ============================================================================
 
-/** 서버 상태 */
-export type ServerStatus = 'healthy' | 'warning' | 'critical';
+/** 서버 상태 (JSON SSOT와 동일한 용어 사용) */
+export type ServerStatus = 'online' | 'warning' | 'critical';
 
 /** 트렌드 방향 */
 export type TrendDirection = 'up' | 'down' | 'stable';
@@ -211,7 +211,7 @@ interface RawServerData {
   status?: string;
 }
 
-/** 서버 상태 결정 */
+/** 서버 상태 결정 (JSON SSOT와 동일한 용어 사용) */
 function determineStatus(server: RawServerData): ServerStatus {
   const { cpu, memory, disk, network } = server;
 
@@ -235,7 +235,7 @@ function determineStatus(server: RawServerData): ServerStatus {
     return 'warning';
   }
 
-  return 'healthy';
+  return 'online'; // 'healthy' → 'online' (JSON SSOT 통일)
 }
 
 /** 트렌드 계산 (이전 슬롯과 비교) */
@@ -356,10 +356,10 @@ export function buildPrecomputedStates(): PrecomputedSlot[] {
         network: s.network,
       }));
 
-      // 요약 통계
+      // 요약 통계 (healthy 필드명 유지, 값은 online 서버 수)
       const summary = {
         total: servers.length,
-        healthy: servers.filter((s) => s.status === 'healthy').length,
+        healthy: servers.filter((s) => s.status === 'online').length, // 'online' 상태 카운트
         warning: servers.filter((s) => s.status === 'warning').length,
         critical: servers.filter((s) => s.status === 'critical').length,
       };

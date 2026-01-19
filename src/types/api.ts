@@ -162,7 +162,7 @@ export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 
 // 🏥 시스템 헬스 API 응답 타입
 export interface SystemHealthAPIResponse {
-  status: 'healthy' | 'warning' | 'critical';
+  status: 'online' | 'warning' | 'critical';
   metrics: {
     cpu: number;
     memory: number;

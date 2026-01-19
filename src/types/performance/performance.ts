@@ -13,7 +13,7 @@ export interface PerformanceMetric {
 }
 
 export interface SystemHealth {
-  status: 'healthy' | 'warning' | 'critical';
+  status: 'online' | 'warning' | 'critical';
   score: number;
   lastUpdate: number;
 }

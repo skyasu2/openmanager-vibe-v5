@@ -365,7 +365,7 @@ export const TypeConverterTests = {
     const testData = {
       id: 'test-01',
       name: 'Test Server',
-      status: 'healthy',
+      status: 'online',
       role: 'webserver',
       cpu: '75.5',
       memory: 80,

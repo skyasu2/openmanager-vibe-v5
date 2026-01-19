@@ -98,7 +98,7 @@ export interface EnhancedTrendPrediction extends TrendPrediction {
   /** 정상 복귀 예측 (Datadog Recovery Forecast 스타일) */
   recovery: RecoveryPrediction;
   /** 현재 상태 */
-  currentStatus: 'healthy' | 'warning' | 'critical';
+  currentStatus: 'online' | 'warning' | 'critical';
 }
 
 /**
@@ -353,10 +353,10 @@ export class TrendPredictor {
   private determineStatus(
     value: number,
     thresholds: MetricThresholds
-  ): 'healthy' | 'warning' | 'critical' {
+  ): 'online' | 'warning' | 'critical' {
     if (value >= thresholds.critical) return 'critical';
     if (value >= thresholds.warning) return 'warning';
-    return 'healthy';
+    return 'online';
   }
 
   /**
@@ -370,7 +370,7 @@ export class TrendPredictor {
     currentValue: number,
     slope: number,
     thresholds: MetricThresholds,
-    currentStatus: 'healthy' | 'warning' | 'critical'
+    currentStatus: 'online' | 'warning' | 'critical'
   ): ThresholdBreachPrediction {
     // 이미 Critical 상태면 더 이상 도달 예측 불필요
     if (currentStatus === 'critical') {
@@ -401,7 +401,7 @@ export class TrendPredictor {
     let timeToWarning: number | null = null;
     let willBreachWarning = currentStatus === 'warning';
 
-    if (currentStatus === 'healthy' && currentValue < thresholds.warning) {
+    if (currentStatus === 'online' && currentValue < thresholds.warning) {
       // time = (threshold - current) / slope (slope는 per-second)
       const timeSeconds = (thresholds.warning - currentValue) / slope;
       const timeMs = timeSeconds * 1000;
@@ -455,10 +455,10 @@ export class TrendPredictor {
     currentValue: number,
     slope: number,
     thresholds: MetricThresholds,
-    currentStatus: 'healthy' | 'warning' | 'critical'
+    currentStatus: 'online' | 'warning' | 'critical'
   ): RecoveryPrediction {
     // 이미 정상이면 복귀 예측 불필요
-    if (currentStatus === 'healthy') {
+    if (currentStatus === 'online') {
       return {
         willRecover: true,
         timeToRecovery: 0,
@@ -506,7 +506,7 @@ export class TrendPredictor {
     timeToWarning: number | null,
     willBreachCritical: boolean,
     timeToCritical: number | null,
-    currentStatus: 'healthy' | 'warning' | 'critical'
+    currentStatus: 'online' | 'warning' | 'critical'
   ): string {
     if (currentStatus === 'warning') {
       if (willBreachCritical && timeToCritical !== null) {

@@ -10,30 +10,30 @@ import { useQuery } from '@tanstack/react-query';
 
 // 타입 정의
 export interface SystemHealth {
-  status: 'healthy' | 'warning' | 'critical';
+  status: 'online' | 'warning' | 'critical';
   timestamp: string;
   uptime: number;
   version: string;
   environment: string;
   checks: {
     memory: {
-      status: 'healthy' | 'warning' | 'critical';
+      status: 'online' | 'warning' | 'critical';
       heapUsed: string;
       heapTotal: string;
       usage: number;
     };
     database: {
-      status: 'healthy' | 'warning' | 'critical';
+      status: 'online' | 'warning' | 'critical';
       responseTime: number;
       connections: number;
     };
     redis: {
-      status: 'healthy' | 'warning' | 'critical';
+      status: 'online' | 'warning' | 'critical';
       responseTime: number;
       memoryUsage: number;
     };
     ai_engine: {
-      status: 'healthy' | 'warning' | 'critical';
+      status: 'online' | 'warning' | 'critical';
       responseTime: number;
       predictionsToday: number;
     };
@@ -87,7 +87,7 @@ const fetchSystemHealth = async (): Promise<SystemHealth> => {
   await new Promise((resolve) => setTimeout(resolve, 100)); // 네트워크 지연 시뮬레이션
 
   return {
-    status: 'healthy',
+    status: 'online',
     timestamp: new Date().toISOString(),
     uptime: Math.floor(Math.random() * 86400), // 0-24시간
     version: '5.44.3',
@@ -95,23 +95,23 @@ const fetchSystemHealth = async (): Promise<SystemHealth> => {
       process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV || 'development',
     checks: {
       memory: {
-        status: 'healthy',
+        status: 'online',
         heapUsed: '45.2 MB',
         heapTotal: '128.0 MB',
         usage: 35.3,
       },
       database: {
-        status: 'healthy',
+        status: 'online',
         responseTime: 120,
         connections: 5,
       },
       redis: {
-        status: 'healthy',
+        status: 'online',
         responseTime: 50,
         memoryUsage: 15.6,
       },
       ai_engine: {
-        status: 'healthy',
+        status: 'online',
         responseTime: 250,
         predictionsToday: Math.floor(Math.random() * 100),
       },
@@ -310,7 +310,7 @@ export const useSystemDashboard = () => {
 // 🔧 유틸리티 함수들
 function calculateOverallHealth(
   health: SystemHealth
-): 'healthy' | 'warning' | 'critical' {
+): 'online' | 'warning' | 'critical' {
   const checks = Object.values(health.checks);
   const criticalCount = checks.filter(
     (check) => check.status === 'critical'
@@ -321,7 +321,7 @@ function calculateOverallHealth(
 
   if (criticalCount > 0) return 'critical';
   if (warningCount > 0) return 'warning';
-  return 'healthy';
+  return 'online';
 }
 
 function getCriticalIssues(health: SystemHealth): string[] {
@@ -337,7 +337,7 @@ function getCriticalIssues(health: SystemHealth): string[] {
 function calculateHealthScore(health: SystemHealth): number {
   const checks = Object.values(health.checks);
   const healthyCount = checks.filter(
-    (check) => check.status === 'healthy'
+    (check) => check.status === 'online'
   ).length;
   return (healthyCount / checks.length) * 100;
 }
@@ -345,17 +345,17 @@ function calculateHealthScore(health: SystemHealth): number {
 function generateHealthRecommendations(health: SystemHealth): string[] {
   const recommendations: string[] = [];
 
-  if (health.checks.memory.status !== 'healthy') {
+  if (health.checks.memory.status !== 'online') {
     recommendations.push(
       '메모리 사용량을 확인하고 불필요한 프로세스를 종료하세요.'
     );
   }
 
-  if (health.checks.database.status !== 'healthy') {
+  if (health.checks.database.status !== 'online') {
     recommendations.push('데이터베이스 연결 상태를 확인하세요.');
   }
 
-  if (health.checks.ai_engine.status !== 'healthy') {
+  if (health.checks.ai_engine.status !== 'online') {
     recommendations.push('AI 엔진 상태를 점검하고 재시작을 고려하세요.');
   }
 

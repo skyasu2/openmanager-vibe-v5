@@ -783,10 +783,14 @@ function main() {
     console.log('🔄 SSOT 데이터 동기화 시작...\n');
     console.log('📋 SSOT: fixed-24h-metrics.ts (한국 DC 서버 15개)\n');
 
-    // 출력 디렉토리들
+    // 출력 디렉토리들 (3곳 동기화)
+    // - public/hourly-data: 원본 SSOT
+    // - cloud-run/ai-engine/data: Cloud Run 배포용
+    // - src/data/hourly-data: Vercel 번들 포함용 (fs 없이 import)
     const outputDirs = [
       path.join(process.cwd(), 'public/hourly-data'),
       path.join(process.cwd(), 'cloud-run/ai-engine/data/hourly-data'),
+      path.join(process.cwd(), 'src/data/hourly-data'),
     ];
 
     // 디렉토리 생성

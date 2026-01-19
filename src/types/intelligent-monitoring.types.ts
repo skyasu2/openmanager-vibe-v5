@@ -189,7 +189,7 @@ export interface SimpleAnalysisRequest {
 /** 개별 서버 분석 결과 */
 export interface ServerAnalysisResult extends CloudRunAnalysisResponse {
   serverName: string;
-  overallStatus: 'healthy' | 'warning' | 'critical';
+  overallStatus: 'online' | 'warning' | 'critical';
 }
 
 /** 전체 서버 종합 요약 */
@@ -198,7 +198,7 @@ export interface SystemAnalysisSummary {
   healthyServers: number;
   warningServers: number;
   criticalServers: number;
-  overallStatus: 'healthy' | 'warning' | 'critical';
+  overallStatus: 'online' | 'warning' | 'critical';
   topIssues: Array<{
     serverId: string;
     serverName: string;

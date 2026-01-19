@@ -92,7 +92,7 @@ const SystemContextPanel = memo(function SystemContextPanel({
                 return {
                   ...p,
                   status:
-                    found.status === 'healthy'
+                    found.status === 'healthy' || found.status === 'online'
                       ? 'active'
                       : found.status === 'error'
                         ? 'error'
@@ -104,7 +104,7 @@ const SystemContextPanel = memo(function SystemContextPanel({
           );
         }
 
-        setSystemOnline(data.status === 'ok' || data.status === 'healthy');
+        setSystemOnline(data.status === 'ok' || data.status === 'healthy' || data.status === 'online');
         setLastUpdated(new Date());
       } else {
         // API 실패 시 상태 강등

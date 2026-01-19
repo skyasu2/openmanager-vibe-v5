@@ -76,7 +76,7 @@ export default function IntelligentMonitoringPage() {
         const analysisData = data.data as CloudRunAnalysisResponse;
 
         // 전체 상태 판단
-        let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
+        let overallStatus: 'online' | 'warning' | 'critical' = 'online';
         if (analysisData.anomalyDetection?.hasAnomalies) {
           const anomalyResults = analysisData.anomalyDetection.results;
           const severities = Object.values(anomalyResults).map(
@@ -106,7 +106,7 @@ export default function IntelligentMonitoringPage() {
   const createSummary = useCallback(
     (serverResults: ServerAnalysisResult[]): SystemAnalysisSummary => {
       const healthyServers = serverResults.filter(
-        (s) => s.overallStatus === 'healthy'
+        (s) => s.overallStatus === 'online'
       ).length;
       const warningServers = serverResults.filter(
         (s) => s.overallStatus === 'warning'
@@ -116,7 +116,7 @@ export default function IntelligentMonitoringPage() {
       ).length;
 
       // 전체 상태 판단
-      let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
+      let overallStatus: 'online' | 'warning' | 'critical' = 'online';
       if (criticalServers > 0) {
         overallStatus = 'critical';
       } else if (warningServers > 0) {

@@ -164,7 +164,7 @@ export async function warmupCache(
  * 메모리 기반 캐시 헬스체크 (하위 호환성)
  */
 export function getCacheHealth(): {
-  status: 'healthy' | 'warning' | 'critical';
+  status: 'online' | 'warning' | 'critical';
   details: {
     size: number;
     maxSize: number;
@@ -177,7 +177,7 @@ export function getCacheHealth(): {
   const usagePercent = (stats.size / stats.maxSize) * 100;
 
   const recommendations: string[] = [];
-  let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+  let status: 'online' | 'warning' | 'critical' = 'online';
   let memoryPressure: 'low' | 'medium' | 'high' = 'low';
 
   if (usagePercent > 90) {
@@ -191,7 +191,7 @@ export function getCacheHealth(): {
   }
 
   if (stats.hitRate < 50) {
-    if (status === 'healthy') status = 'warning';
+    if (status === 'online') status = 'warning';
     recommendations.push('캐시 히트율이 낮습니다. TTL을 검토하세요.');
   }
 

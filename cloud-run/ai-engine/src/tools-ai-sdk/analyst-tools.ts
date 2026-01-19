@@ -464,7 +464,7 @@ export const detectAnomalies = tool({
           const hasWarning = Object.values(results).some(
             (r) => r.isAnomaly && r.severity === 'medium'
           );
-          const overallStatus = hasCritical ? 'critical' : hasWarning ? 'warning' : 'healthy';
+          const overallStatus = hasCritical ? 'critical' : hasWarning ? 'warning' : 'online';
 
           return {
             success: true,
@@ -992,7 +992,7 @@ export const predictTrends = tool({
 
           // 🆕 Enhanced Results Interface
           interface EnhancedTrendResult extends TrendResultItem {
-            currentStatus: 'healthy' | 'warning' | 'critical';
+            currentStatus: 'online' | 'warning' | 'critical';
             thresholdBreach: {
               willBreachWarning: boolean;
               timeToWarning: number | null;
@@ -1047,7 +1047,7 @@ export const predictTrends = tool({
               );
             }
 
-            if (prediction.currentStatus !== 'healthy' && prediction.recovery.willRecover) {
+            if (prediction.currentStatus !== 'online' && prediction.recovery.willRecover) {
               recoveryPredictions.push(
                 `${metric.toUpperCase()}: ${prediction.recovery.humanReadable}`
               );

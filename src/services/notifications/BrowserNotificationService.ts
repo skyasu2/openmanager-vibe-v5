@@ -33,7 +33,7 @@ class BrowserNotificationService {
   // 서버별 이전 상태 추적 (상태 변화 감지용)
   private previousServerStates = new Map<
     string,
-    'healthy' | 'warning' | 'critical'
+    'online' | 'warning' | 'critical'
   >();
 
   constructor() {
@@ -81,7 +81,7 @@ class BrowserNotificationService {
   processServerNotification(
     serverId: string,
     serverName: string,
-    currentStatus: 'healthy' | 'warning' | 'critical'
+    currentStatus: 'online' | 'warning' | 'critical'
   ): void {
     const previousStatus = this.previousServerStates.get(serverId);
 
@@ -118,20 +118,20 @@ class BrowserNotificationService {
    */
   private getStatusMessage(
     serverName: string,
-    currentStatus: 'healthy' | 'warning' | 'critical',
-    previousStatus?: 'healthy' | 'warning' | 'critical'
+    currentStatus: 'online' | 'warning' | 'critical',
+    previousStatus?: 'online' | 'warning' | 'critical'
   ): string {
     if (currentStatus === 'critical') {
       return `${serverName} 서버가 심각한 상태입니다`;
     }
 
-    if (currentStatus === 'warning' && previousStatus === 'healthy') {
+    if (currentStatus === 'warning' && previousStatus === 'online') {
       return `${serverName} 서버에 주의가 필요합니다`;
     }
 
     if (
       previousStatus === 'critical' &&
-      (currentStatus === 'warning' || currentStatus === 'healthy')
+      (currentStatus === 'warning' || currentStatus === 'online')
     ) {
       return `${serverName} 서버가 복구되었습니다`;
     }

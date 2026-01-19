@@ -62,7 +62,7 @@ export const SERVER_STATUS_THRESHOLDS: ServerStatusThresholds = {
  * 🔍 서버 상태 판별 함수
  *
  * @param metrics 서버 메트릭
- * @returns 서버 상태 ('healthy' | 'warning' | 'critical')
+ * @returns 서버 상태 ('online' | 'warning' | 'critical') - JSON SSOT 통일
  */
 export interface ServerMetrics {
   cpu: number;
@@ -74,7 +74,7 @@ export interface ServerMetrics {
 
 export function determineServerStatus(
   metrics: ServerMetrics
-): 'healthy' | 'warning' | 'critical' {
+): 'online' | 'warning' | 'critical' {
   const {
     cpu,
     memory,
@@ -106,7 +106,7 @@ export function determineServerStatus(
     return 'warning';
   }
 
-  return 'healthy';
+  return 'online';
 }
 
 /**
@@ -117,23 +117,23 @@ export function determineServerStatus(
  * @returns 웹 알림 발송 여부
  */
 export function shouldSendWebNotification(
-  currentStatus: 'healthy' | 'warning' | 'critical',
-  previousStatus?: 'healthy' | 'warning' | 'critical'
+  currentStatus: 'online' | 'warning' | 'critical',
+  previousStatus?: 'online' | 'warning' | 'critical'
 ): boolean {
   // Critical 상태는 항상 알림
   if (currentStatus === 'critical') {
     return true;
   }
 
-  // Healthy에서 Warning으로 변화한 경우 알림
-  if (currentStatus === 'warning' && previousStatus === 'healthy') {
+  // Online에서 Warning으로 변화한 경우 알림
+  if (currentStatus === 'warning' && previousStatus === 'online') {
     return true;
   }
 
-  // 복구 알림: Critical에서 Warning/Healthy로 변화
+  // 복구 알림: Critical에서 Warning/Online으로 변화
   if (
     previousStatus === 'critical' &&
-    (currentStatus === 'warning' || currentStatus === 'healthy')
+    (currentStatus === 'warning' || currentStatus === 'online')
   ) {
     return true;
   }
@@ -145,10 +145,10 @@ export function shouldSendWebNotification(
  * 🎨 상태별 UI 색상 반환
  */
 export function getStatusColor(
-  status: 'healthy' | 'warning' | 'critical'
+  status: 'online' | 'warning' | 'critical'
 ): string {
   switch (status) {
-    case 'healthy':
+    case 'online':
       return 'text-green-600';
     case 'warning':
       return 'text-yellow-600';
@@ -163,10 +163,10 @@ export function getStatusColor(
  * 🎨 상태별 배경 색상 반환
  */
 export function getStatusBgColor(
-  status: 'healthy' | 'warning' | 'critical'
+  status: 'online' | 'warning' | 'critical'
 ): string {
   switch (status) {
-    case 'healthy':
+    case 'online':
       return 'bg-green-50 border-green-200';
     case 'warning':
       return 'bg-yellow-50 border-yellow-200';
@@ -181,10 +181,10 @@ export function getStatusBgColor(
  * 📊 상태별 아이콘 반환
  */
 export function getStatusIcon(
-  status: 'healthy' | 'warning' | 'critical'
+  status: 'online' | 'warning' | 'critical'
 ): string {
   switch (status) {
-    case 'healthy':
+    case 'online':
       return '✅';
     case 'warning':
       return '⚠️';

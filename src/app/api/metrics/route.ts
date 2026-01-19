@@ -200,7 +200,7 @@ function _convertToPrometheusFormat(servers: ServerMetrics[]): string {
 
   // 인프라 건강도 메트릭
   const healthyServers = servers.filter(
-    (s: ServerMetrics) => s.status === 'healthy'
+    (s: ServerMetrics) => s.status === 'online'
   ).length;
   const healthPercentage = (healthyServers / servers.length) * 100;
 

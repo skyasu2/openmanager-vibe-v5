@@ -36,7 +36,7 @@ vi.mock('../../../data/precomputed-state', () => ({
       {
         id: 'api-server-01',
         name: 'API Server 01',
-        status: 'healthy',
+        status: 'online',
         cpu: 45,
         memory: 55,
         disk: 30,

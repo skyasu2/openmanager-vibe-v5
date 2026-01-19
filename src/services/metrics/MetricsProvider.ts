@@ -6,6 +6,7 @@
  * - Cloud Run AI와 동일한 데이터 소스 사용 (데이터 일관성 보장)
  * - 모든 API와 컴포넌트가 이 서비스를 통해 일관된 데이터 접근
  *
+ * @updated 2026-01-19 - Vercel 호환성: 번들 기반 loader로 변경 (fs 제거)
  * @updated 2026-01-04 - hourly-data 통합 (AI와 데이터 동기화)
  */
 
@@ -16,90 +17,41 @@ import {
   type Fixed10MinMetric,
   getDataAtMinute,
 } from '@/data/fixed-24h-metrics';
+import {
+  getHourlyData as getBundledHourlyData,
+  type HourlyData,
+  type HourlyDataServer,
+} from '@/data/hourly-data';
 import { logger } from '@/lib/logging';
-import { isServer, requireServerModule } from '@/lib/runtime/environment';
 
 // ============================================================================
-// Hourly Data Types (Cloud Run과 동일)
-// ============================================================================
-
-interface HourlyDataServer {
-  id: string;
-  name: string;
-  type: string;
-  location: string;
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: number;
-}
-
-interface HourlyDataPoint {
-  minute: number;
-  timestamp: string;
-  servers: Record<string, HourlyDataServer>;
-}
-
-interface HourlyData {
-  hour: number;
-  scenario: string;
-  dataPoints: HourlyDataPoint[];
-}
-
-// ============================================================================
-// Hourly Data Cache & Loader
+// Hourly Data Cache & Loader (번들 기반 - Vercel 호환)
 // ============================================================================
 
 let cachedHourlyData: { hour: number; data: HourlyData } | null = null;
 
 /**
- * hourly-data JSON 파일 로드 (캐싱 적용)
- * @description 서버에서만 fs 사용, 클라이언트에서는 null 반환 (fallback 사용)
+ * hourly-data 로드 (번들 기반)
+ * @description fs 대신 빌드 시 번들에 포함된 데이터 사용 - Vercel Serverless 호환
  */
 function loadHourlyData(hour: number): HourlyData | null {
-  // 클라이언트 환경에서는 fs 사용 불가 - fallback 데이터 사용
-  if (!isServer) {
-    return null;
-  }
-
   // 캐시 히트
   if (cachedHourlyData?.hour === hour) {
     return cachedHourlyData.data;
   }
 
-  // 서버에서만 동적으로 fs/path 로드
-  const fs = requireServerModule<typeof import('fs')>('fs');
-  const path = requireServerModule<typeof import('path')>('path');
-
-  if (!fs || !path) {
-    logger.warn('[MetricsProvider] fs/path 모듈 로드 실패');
-    return null;
-  }
-
-  try {
-    const paddedHour = hour.toString().padStart(2, '0');
-    const filePath = path.join(
-      process.cwd(),
-      'public/hourly-data',
-      `hour-${paddedHour}.json`
-    );
-
-    if (!fs.existsSync(filePath)) {
-      logger.warn(`[MetricsProvider] hourly-data 파일 없음: ${filePath}`);
-      return null;
-    }
-
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(content) as HourlyData;
+  // 번들에서 로드 (fs 불필요)
+  const data = getBundledHourlyData(hour);
+  if (data) {
     cachedHourlyData = { hour, data };
     logger.info(
-      `[MetricsProvider] hourly-data 로드: hour-${paddedHour}.json (${Object.keys(data.dataPoints[0]?.servers || {}).length}개 서버)`
+      `[MetricsProvider] hourly-data 로드: hour-${hour.toString().padStart(2, '0')} (${Object.keys(data.dataPoints[0]?.servers || {}).length}개 서버)`
     );
     return data;
-  } catch (error) {
-    logger.error(`[MetricsProvider] hourly-data 파싱 실패:`, error);
-    return null;
   }
+
+  logger.warn(`[MetricsProvider] hourly-data 없음: hour-${hour}`);
+  return null;
 }
 
 /**
@@ -399,12 +351,16 @@ export class MetricsProvider {
           disk: server.disk,
           network: server.network,
           logs: [],
-          status: determineStatus(
-            server.cpu,
-            server.memory,
-            server.disk,
-            server.network
-          ),
+          // JSON의 status 필드 우선 사용 (SSOT 보장)
+          // fallback: 메트릭 기반 재계산 (system-rules.json 임계값)
+          status:
+            server.status ||
+            determineStatus(
+              server.cpu,
+              server.memory,
+              server.disk,
+              server.network
+            ),
         };
       }
     }
@@ -466,12 +422,15 @@ export class MetricsProvider {
           disk: server.disk,
           network: server.network,
           logs: [], // hourly-data에는 logs 없음
-          status: determineStatus(
-            server.cpu,
-            server.memory,
-            server.disk,
-            server.network
-          ),
+          // JSON의 status 필드 우선 사용 (SSOT 보장)
+          status:
+            server.status ||
+            determineStatus(
+              server.cpu,
+              server.memory,
+              server.disk,
+              server.network
+            ),
         }));
       }
     }

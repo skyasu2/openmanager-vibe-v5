@@ -27,7 +27,7 @@ export function ServerResultCard({ server }: ServerResultCardProps) {
           <span className="font-medium">{server.serverName}</span>
           <span
             className={`rounded px-1.5 py-0.5 text-xs font-medium ${
-              server.overallStatus === 'healthy'
+              server.overallStatus === 'online'
                 ? 'bg-green-200 text-green-700'
                 : server.overallStatus === 'warning'
                   ? 'bg-yellow-200 text-yellow-700'

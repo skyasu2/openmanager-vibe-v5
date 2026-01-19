@@ -50,7 +50,7 @@ export const usePerformanceMetrics = (
     },
     history: [],
     health: {
-      status: 'healthy',
+      status: 'online',
       score: 100,
       lastUpdate: Date.now(),
     },
@@ -77,7 +77,7 @@ export const usePerformanceMetrics = (
       const averageScore =
         scores.reduce((sum, score) => sum + score, 0) / scores.length;
 
-      let status: SystemHealth['status'] = 'healthy';
+      let status: SystemHealth['status'] = 'online';
       if (averageScore < 60) status = 'critical';
       else if (averageScore < 80) status = 'warning';
 

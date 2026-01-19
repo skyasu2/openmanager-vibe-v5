@@ -27,14 +27,14 @@ export const severityColors: Record<string, string> = {
 
 // 상태별 색상
 export const statusColors: Record<string, string> = {
-  healthy: 'text-green-600 bg-green-50 border-green-200',
+  online: 'text-green-600 bg-green-50 border-green-200',
   warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
   critical: 'text-red-600 bg-red-50 border-red-200',
 };
 
 // 상태 라벨
 export const statusLabel: Record<string, string> = {
-  healthy: '정상',
+  online: '정상',
   warning: '주의',
   critical: '위험',
 };
