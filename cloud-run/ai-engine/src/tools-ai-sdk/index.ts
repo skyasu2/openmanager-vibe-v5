@@ -15,6 +15,7 @@ export {
   getServerMetrics,
   getServerMetricsAdvanced,
   filterServers,
+  getServerByGroup,
 } from './server-metrics';
 
 // ============================================================================
@@ -75,7 +76,7 @@ export {
 // ============================================================================
 // Tool Collections (for Supervisor)
 // ============================================================================
-import { getServerMetrics, getServerMetricsAdvanced, filterServers } from './server-metrics';
+import { getServerMetrics, getServerMetricsAdvanced, filterServers, getServerByGroup } from './server-metrics';
 import { buildIncidentTimeline, correlateMetrics, findRootCause } from './rca-analysis';
 import { checkThresholds, detectAnomalies, detectAnomaliesHybrid, detectAnomaliesAdaptive, detectAnomaliesUnified, predictTrends, analyzePattern } from './analyst-tools';
 import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-tools';
@@ -90,6 +91,7 @@ export const allTools = {
   getServerMetrics,
   getServerMetricsAdvanced,
   filterServers,
+  getServerByGroup,
 
   // RCA Analysis
   buildIncidentTimeline,
@@ -133,6 +135,7 @@ export const toolCategories = {
     getServerMetrics,
     getServerMetricsAdvanced,
     filterServers,
+    getServerByGroup,
   },
   rca: {
     buildIncidentTimeline,
@@ -176,6 +179,7 @@ export const toolDescriptions = {
   getServerMetrics: '서버 상태 조회 (CPU, 메모리, 디스크)',
   getServerMetricsAdvanced: '고급 서버 메트릭 조회 (시간범위, 필터, 집계)',
   filterServers: '조건에 맞는 서버 필터링',
+  getServerByGroup: '서버 그룹/타입 조회 (db, lb, web, cache 등)',
   buildIncidentTimeline: '장애 타임라인 구성',
   correlateMetrics: '메트릭 간 상관관계 분석',
   findRootCause: '근본 원인 분석 (RCA)',

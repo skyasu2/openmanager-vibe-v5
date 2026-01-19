@@ -844,6 +844,20 @@ export function classifyIntent(query: string): ClassifiedIntent {
     };
   }
 
+  // Server group/type queries (DB, 로드밸런서, 웹, 캐시 등)
+  if (/(db|database|데이터베이스|디비)\s*(서버|현황|상태|목록)/i.test(q) ||
+      /(lb|loadbalancer|로드\s*밸런서|로드밸런서)\s*(서버|현황|상태|목록)?/i.test(q) ||
+      /(web|웹)\s*(서버|현황|상태|목록)/i.test(q) ||
+      /(cache|캐시|redis|레디스)\s*(서버|현황|상태|목록)/i.test(q) ||
+      /(storage|스토리지|저장소)\s*(서버|현황|상태|목록)/i.test(q) ||
+      /(api|app|application|애플리케이션|앱)\s*(서버|현황|상태|목록)/i.test(q)) {
+    return {
+      category: 'metrics',
+      suggestedTools: ['getServerByGroup'],
+      confidence: 0.95,
+    };
+  }
+
   // Metrics queries
   if (/cpu|메모리|memory|디스크|disk|서버.*상태|상태.*요약/i.test(q)) {
     if (/\d+%.*이상|>\s*\d+|초과|높은/i.test(q)) {

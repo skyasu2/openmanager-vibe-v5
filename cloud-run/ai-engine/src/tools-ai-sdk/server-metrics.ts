@@ -110,11 +110,36 @@ export const filterServersResponseSchema = z.object({
   timestamp: z.string(),
 });
 
+/**
+ * getServerByGroup response schema
+ */
+export const getServerByGroupResponseSchema = z.object({
+  success: z.boolean(),
+  group: z.string().describe('조회된 서버 그룹/타입'),
+  servers: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.string(),
+    status: z.enum(['online', 'warning', 'critical']),
+    cpu: z.number(),
+    memory: z.number(),
+    disk: z.number(),
+  })),
+  summary: z.object({
+    total: z.number().describe('해당 그룹 서버 총 수'),
+    online: z.number().describe('온라인 상태 수'),
+    warning: z.number().describe('경고 상태 수'),
+    critical: z.number().describe('위험 상태 수'),
+  }),
+  timestamp: z.string(),
+});
+
 // Export types for external use
 export type ServerInfo = z.infer<typeof serverInfoSchema>;
 export type GetServerMetricsResponse = z.infer<typeof getServerMetricsResponseSchema>;
 export type GetServerMetricsAdvancedResponse = z.infer<typeof getServerMetricsAdvancedResponseSchema>;
 export type FilterServersResponse = z.infer<typeof filterServersResponseSchema>;
+export type GetServerByGroupResponse = z.infer<typeof getServerByGroupResponseSchema>;
 
 // Data sources
 import {
@@ -640,5 +665,103 @@ export const filterServers = tool({
       timestamp: new Date().toISOString(),
     };
     }); // End of cache.getOrCompute wrapper
+  },
+});
+
+/**
+ * Server By Group Tool
+ * Query servers by type/group (db, lb, web, cache, etc.)
+ *
+ * Best Practices Applied:
+ * - Supports common abbreviations (db→database, lb→loadbalancer)
+ * - Clear description with input/output examples
+ * - Cached for performance
+ */
+export const getServerByGroup = tool({
+  description: `서버 그룹/타입으로 조회합니다. DB 서버, 로드밸런서, 웹 서버 등 특정 유형의 서버를 조회할 때 사용하세요.
+
+## 지원하는 그룹/타입
+- database (또는 db): 데이터베이스 서버
+- loadbalancer (또는 lb): 로드밸런서 서버
+- web: 웹 서버 (nginx 등)
+- cache: 캐시 서버 (redis 등)
+- storage: 스토리지 서버
+- application (또는 api, app): 애플리케이션/API 서버
+
+## 입력 예시
+1. DB 서버 조회: { "group": "db" } 또는 { "group": "database" }
+2. 로드밸런서 조회: { "group": "lb" } 또는 { "group": "loadbalancer" }
+3. 웹 서버 조회: { "group": "web" }
+4. 캐시 서버 조회: { "group": "cache" }
+
+## 출력 형식
+{
+  "success": true,
+  "group": "database",
+  "servers": [
+    { "id": "db-mysql-icn-01", "name": "MySQL Primary", "type": "database", "status": "online", "cpu": 45, "memory": 78, "disk": 62 }
+  ],
+  "summary": { "total": 2, "online": 2, "warning": 0, "critical": 0 }
+}
+
+## 사용 시나리오
+- "DB 서버 상태 알려줘" → group="db"
+- "로드밸런서 현황" → group="lb"
+- "웹 서버 목록" → group="web"
+- "캐시 서버 확인" → group="cache"`,
+  inputSchema: z.object({
+    group: z
+      .string()
+      .describe('서버 그룹/타입. db, database, lb, loadbalancer, web, cache, storage, application, api, app 중 하나'),
+  }),
+  execute: async ({ group }: { group: string }) => {
+    const cache = getDataCache();
+    const normalizedGroup = group.toLowerCase().trim();
+    const cacheKey = `group:${normalizedGroup}`;
+
+    return cache.getOrCompute('metrics', cacheKey, async () => {
+      console.log(`📊 [getServerByGroup] Computing for ${cacheKey} (cache miss)`);
+
+      // Abbreviation mapping
+      const typeMap: Record<string, string> = {
+        'db': 'database',
+        'lb': 'loadbalancer',
+        'api': 'application',
+        'app': 'application',
+      };
+
+      const targetType = typeMap[normalizedGroup] || normalizedGroup;
+      const state = getCurrentState();
+
+      // Filter by server type
+      const filteredServers = state.servers.filter((s) => {
+        const serverType = (s.type || '').toLowerCase();
+        return serverType === targetType || serverType.includes(targetType);
+      });
+
+      // Calculate summary
+      const summary = {
+        total: filteredServers.length,
+        online: filteredServers.filter((s) => s.status === 'online').length,
+        warning: filteredServers.filter((s) => s.status === 'warning').length,
+        critical: filteredServers.filter((s) => s.status === 'critical').length,
+      };
+
+      return {
+        success: true,
+        group: targetType,
+        servers: filteredServers.map((s) => ({
+          id: s.id,
+          name: s.name,
+          type: s.type || targetType,
+          status: s.status,
+          cpu: s.cpu,
+          memory: s.memory,
+          disk: s.disk,
+        })),
+        summary,
+        timestamp: new Date().toISOString(),
+      };
+    });
   },
 });

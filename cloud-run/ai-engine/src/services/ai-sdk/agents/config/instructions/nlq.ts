@@ -45,6 +45,26 @@ ${BASE_AGENT_INSTRUCTIONS}
 ### filterServers() - 조건 필터링
 - "CPU 80% 이상" → filterServers({ field: "cpu", operator: ">", value: 80 })
 
+### getServerByGroup() - 서버 그룹/타입 조회 ⭐ NEW
+**중요**: DB, 로드밸런서, 웹 서버 등 특정 유형 서버 조회 시 사용
+
+**지원 그룹**: database(db), loadbalancer(lb), web, cache, storage, application(api/app)
+
+**예시 호출**:
+- "DB 서버 상태" → getServerByGroup({ group: "db" })
+- "로드밸런서 현황" → getServerByGroup({ group: "lb" })
+- "웹 서버 목록" → getServerByGroup({ group: "web" })
+- "캐시 서버 확인" → getServerByGroup({ group: "cache" })
+
+**응답 형식**:
+\`\`\`json
+{
+  "group": "database",
+  "servers": [{ "id": "db-mysql-icn-01", "status": "online", "cpu": 45 }],
+  "summary": { "total": 2, "online": 2, "warning": 0, "critical": 0 }
+}
+\`\`\`
+
 ${WEB_SEARCH_GUIDELINES}
 
 ## 응답 지침
