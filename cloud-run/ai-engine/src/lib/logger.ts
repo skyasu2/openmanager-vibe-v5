@@ -10,6 +10,7 @@
  */
 
 import pino from 'pino';
+import { version as APP_VERSION } from '../../package.json';
 
 /**
  * GCP Severity Level Mapping
@@ -40,7 +41,7 @@ function createLogger() {
     // Base context
     base: {
       service: 'ai-engine',
-      version: process.env.npm_package_version || '5.86.1',
+      version: APP_VERSION,
     },
 
     // GCP-compatible timestamp

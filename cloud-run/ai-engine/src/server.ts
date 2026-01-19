@@ -3,12 +3,10 @@
  *
  * Modular Hono server with route separation.
  * Refactored for maintainability and consistency.
- *
- * @version 5.86.1
- * @updated 2026-01-10
  */
 
 import { serve } from '@hono/node-server';
+import { version as APP_VERSION } from '../package.json';
 import { Hono } from 'hono';
 import type { Context, Next } from 'hono';
 import { cors } from 'hono/cors';
@@ -77,7 +75,7 @@ app.get('/health', (c: Context) =>
   c.json({
     status: 'ok',
     service: 'ai-engine-v5',
-    version: '5.86.1',
+    version: APP_VERSION,
     config: getConfigStatus(),
     redis: isRedisAvailable(),
     timestamp: new Date().toISOString(),
