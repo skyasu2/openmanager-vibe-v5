@@ -87,6 +87,7 @@ vi.mock('../../../tools-ai-sdk', () => ({
   getServerMetrics: { execute: vi.fn() },
   getServerMetricsAdvanced: { execute: vi.fn() },
   filterServers: { execute: vi.fn() },
+  getServerByGroup: { execute: vi.fn() },
   detectAnomalies: { execute: vi.fn() },
   predictTrends: { execute: vi.fn() },
   analyzePattern: { execute: vi.fn() },
