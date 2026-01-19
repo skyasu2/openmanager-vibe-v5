@@ -32,7 +32,6 @@ const STATUS_PRIORITY = {
   critical: 0,
   offline: 0,
   warning: 1,
-  healthy: 2,
   online: 2,
 } as const;
 

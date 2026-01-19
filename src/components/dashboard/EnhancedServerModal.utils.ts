@@ -43,7 +43,7 @@ export const getMetricColorByStatus = (
       color: '#f59e0b', // amber-500
       gradient: 'from-amber-500 to-amber-600',
     };
-  } else if (normalizedStatus === 'healthy' || normalizedStatus === 'online') {
+  } else if (normalizedStatus === 'online') {
     // 정상 상황 - 녹색 계열
     return {
       color: '#10b981', // emerald-500

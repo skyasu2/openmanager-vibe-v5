@@ -124,7 +124,6 @@ export default function DashboardContent({
 
           // 정상 온라인
           case 'online':
-          case 'healthy':
           case 'running':
           case 'active':
             acc.online += 1;

@@ -432,9 +432,7 @@ function calculateServerStats(servers: DatabaseServer[]): DashboardStats {
   }
 
   // 🎯 포트폴리오 시나리오 데이터의 실제 상태 매핑
-  const online = servers.filter(
-    (s) => s.status === 'online' || s.status === 'healthy'
-  ).length;
+  const online = servers.filter((s) => s.status === 'online').length;
   const warning = servers.filter((s) => s.status === 'warning').length;
   const critical = servers.filter(
     (s) => s.status === 'critical' || s.status === 'offline'

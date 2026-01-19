@@ -25,7 +25,6 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'online':
-      case 'healthy':
         return {
           color: 'text-green-600',
           bgColor: 'bg-green-50',
