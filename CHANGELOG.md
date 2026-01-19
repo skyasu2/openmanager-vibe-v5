@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.88.2](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.88.1...v5.88.2) (2026-01-19)
+
+
+### Features
+
+* **data:** add dynamic date calculation for 24h cycling metrics ([167909a](https://github.com/skyasu2/openmanager-vibe-v5/commit/167909a468903a1b66967d687fcc83e1ee5bcced))
+
 ### [5.88.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.88.0...v5.88.1) (2026-01-18)
 
 

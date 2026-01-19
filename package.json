@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.88.1",
+  "version": "5.88.2",
   "private": true,
   "scripts": {
     "docs:check": "bash scripts/docs/check-docs.sh",

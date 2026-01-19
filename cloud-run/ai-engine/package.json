@@ -1,6 +1,6 @@
 {
   "name": "ai-engine",
-  "version": "5.88.1",
+  "version": "5.88.2",
   "description": "Vercel AI SDK Supervisor Engine for Cloud Run",
   "main": "dist/server.js",
   "scripts": {
