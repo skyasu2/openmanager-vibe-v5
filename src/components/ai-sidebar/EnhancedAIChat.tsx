@@ -322,6 +322,13 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
                 <p className="mt-0.5 break-words text-xs text-red-600">
                   {error}
                 </p>
+                {(error?.includes('timeout') ||
+                  error?.includes('Stream error') ||
+                  error?.includes('504')) && (
+                  <p className="mt-1 text-xs text-orange-700">
+                    💡 AI 엔진이 웜업 중일 수 있습니다. (Cloud Run Cold Start)
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex shrink-0 items-center space-x-2">

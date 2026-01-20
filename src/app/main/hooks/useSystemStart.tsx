@@ -213,6 +213,8 @@ export function useSystemStart(options: UseSystemStartOptions) {
       // 카운트다운 시작
       setSystemStartCountdown(SYSTEM_START_COUNTDOWN_SECONDS);
       setIsSystemStarting(false);
+      // 🚀 AI 엔진 조기 웜업 (카운트다운 동안 백그라운드 기동)
+      triggerAIWakeup();
       const timer = setInterval(() => {
         setSystemStartCountdown((prev) => {
           if (prev <= 1) {
@@ -342,8 +344,22 @@ export function useSystemStart(options: UseSystemStartOptions) {
 
     // 액션
     handleSystemToggle,
-    navigateToDashboard: () => router.push('/dashboard'),
+    navigateToDashboard: () => {
+      // 대시보드 직접 이동 시에도 웜업 시도
+      fetch('/api/ai/wake-up', { method: 'POST' }).catch(() => {});
+      router.push('/dashboard');
+    },
   };
+}
+
+// AI 엔진 웜업 트리거 (Fire-and-forget)
+async function triggerAIWakeup() {
+  try {
+    await fetch('/api/ai/wake-up', { method: 'POST' });
+  } catch (error) {
+    // 웜업 실패는 사용자 경험을 막지 않음 (백그라운드 처리)
+    console.error('AI Wake-up signal failed:', error);
+  }
 }
 
 export type { StatusInfo, ButtonConfig };

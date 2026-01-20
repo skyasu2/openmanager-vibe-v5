@@ -108,6 +108,11 @@ export default function SystemBootClient() {
 
     debug.log('🚀 OpenManager 시스템 로딩 시작');
 
+    // 🚀 AI 엔진 웜업 요청 (병렬 실행)
+    fetch('/api/ai/wake-up', { method: 'POST' }).catch((err) =>
+      console.error('Boot wake-up failed:', err)
+    );
+
     const timeouts: NodeJS.Timeout[] = [];
 
     // 로딩 애니메이션 실행 (순수 타이머 방식)
