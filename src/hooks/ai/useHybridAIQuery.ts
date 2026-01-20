@@ -342,11 +342,11 @@ export function useHybridAIQuery(
     transport,
     onFinish: ({ message }) => {
       // 🔒 Race Condition 방지: onError가 이미 에러를 처리했으면 스킵
+      // Note: errorHandledRef는 executeQuery에서 새 요청 시작 시 리셋됨
       if (errorHandledRef.current) {
         logger.debug(
           '[HybridAI] onFinish skipped (error already handled by onError)'
         );
-        errorHandledRef.current = false; // 다음 요청을 위해 리셋
         setState((prev) => ({ ...prev, isLoading: false }));
         onStreamFinish?.();
         return;
@@ -564,6 +564,9 @@ export function useHybridAIQuery(
       }
 
       const trimmedQuery = query.trim();
+
+      // 🔒 새 요청 시작 시 에러 핸들링 플래그 리셋 (Codex review feedback)
+      errorHandledRef.current = false;
 
       // Redirect 이벤트 처리를 위해 현재 쿼리 저장
       currentQueryRef.current = trimmedQuery;

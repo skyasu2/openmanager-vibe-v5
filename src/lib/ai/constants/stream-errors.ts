@@ -6,6 +6,7 @@
  * - Client Hooks: detects errors from stream content
  *
  * @created 2026-01-20
+ * @updated 2026-01-20 - Codex review feedback: improved regex, simplified logic
  */
 
 // ============================================================================
@@ -38,11 +39,16 @@ export const COLD_START_ERROR_PATTERNS = [
 
 /**
  * Regex pattern to extract error message from stream content
- * Matches: "\n\n⚠️ 오류: {message}" or "^⚠️ 오류: {message}"
- * Non-greedy to avoid false positives with legitimate content
+ * Robust to various newline formats:
+ * - Start of string: "^⚠️ 오류: {message}"
+ * - Double newline: "\n\n⚠️ 오류: {message}"
+ * - Single newline: "\n⚠️ 오류: {message}"
+ * - Windows CRLF: "\r\n⚠️ 오류: {message}"
+ *
+ * @updated 2026-01-20 - Made newline-agnostic per Codex review
  */
 export const STREAM_ERROR_REGEX = new RegExp(
-  `(?:^|\\n\\n)${STREAM_ERROR_MARKER}\\s*([^\\n]+)`,
+  `(?:^|\\r?\\n\\r?\\n?|\\n)${STREAM_ERROR_MARKER}\\s*([^\\n]+)`,
   'm'
 );
 
@@ -52,26 +58,18 @@ export const STREAM_ERROR_REGEX = new RegExp(
  *
  * @example
  * extractStreamError("\n\n⚠️ 오류: Stream error") // "Stream error"
+ * extractStreamError("⚠️ 오류: timeout") // "timeout"
  * extractStreamError("Normal AI response") // null
+ *
+ * @updated 2026-01-20 - Simplified logic per Codex review (removed dead branches)
  */
 export function extractStreamError(content: string): string | null {
   if (!content?.trim()) return null;
 
   const match = content.match(STREAM_ERROR_REGEX);
-  if (!match?.[1]) return null;
+  const errorMessage = match?.[1]?.trim();
 
-  const errorMessage = match[1].trim();
-  if (!errorMessage) return null;
-
-  // Check if it's a cold start error for special handling
-  const isColdStartError = COLD_START_ERROR_PATTERNS.some((pattern) =>
-    errorMessage.toLowerCase().includes(pattern.toLowerCase())
-  );
-
-  // Return error message regardless of type (cold start check is for caller's use)
-  return isColdStartError || content.startsWith(`\n\n${STREAM_ERROR_MARKER}`)
-    ? errorMessage
-    : errorMessage;
+  return errorMessage || null;
 }
 
 /**
