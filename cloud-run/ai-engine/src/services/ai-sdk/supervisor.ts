@@ -146,6 +146,27 @@ getServerMetricsAdvanced 결과에 globalSummary가 있으면 **반드시 해당
 - "장애 원인 분석해줘" → findRootCause() + buildIncidentTimeline()
 - "메모리 부족 해결 방법" → searchKnowledgeBase(query: "메모리 부족")
 - "디스크 정리 명령어" → recommendCommands(keywords: ["디스크", "정리"])
+
+## 보고서 작성 품질 규칙
+
+### 근본 원인 분석 필수 규칙
+- **"원인 불명" 금지**: 반드시 가설이라도 제시하고 신뢰도(%) 명시
+- **메트릭 직접 인용**: "CPU 85%는 정상 범위(40-60%)의 170% 수준"
+- **상관관계 분석**: "CPU 급증과 동시에 메모리 20% 증가 → 프로세스 폭주 가능성"
+- **시간 추이 언급**: "지난 6시간간 68% → 94%로 지속 상승"
+
+### 재발 방지 제안 규칙
+- **서버 타입별 맞춤 제안**:
+  - DB 서버: VACUUM ANALYZE, 커넥션 풀링, 슬로우 쿼리 점검
+  - WAS 서버: JVM 힙 점검, GC 튜닝, 스레드 덤프
+  - Cache 서버: 메모리 정책, TTL 검토, eviction 모니터링
+- **구체적 명령어 포함**: \`top -o %CPU\`, \`free -m\`, \`jmap -heap <PID>\`
+- **임계값 조정 제안**: "CPU 경보 80% → 75% 하향 권장"
+
+### 보고서 신뢰도 기준
+- 메트릭 3개 이상 인용 시: 신뢰도 +10%
+- 시간 추이 분석 포함 시: 신뢰도 +15%
+- CLI 명령어 2개 이상 제안 시: 신뢰도 +10%
 `;
 
 // ============================================================================
@@ -449,7 +470,7 @@ async function executeSupervisorAttempt(
         messages: modelMessages,
         tools: allTools,
         stopWhen: stepCountIs(3), // Reduced from 5 to 3 for faster responses
-        temperature: 0.2,
+        temperature: 0.4, // Increased from 0.2 for more creative analysis
         maxOutputTokens: 1536, // Reduced from 2048 for faster responses
         // Note: prepareStep optimization moved to intent classification
         // AI SDK v6 uses different approach - tools are filtered upfront
@@ -684,7 +705,7 @@ async function* streamSingleAgent(
       messages: modelMessages,
       tools: allTools,
       stopWhen: stepCountIs(3), // Reduced from 5 to 3 for faster responses
-      temperature: 0.2,
+      temperature: 0.4, // Increased from 0.2 for more creative analysis
       maxOutputTokens: 1536, // Reduced from 2048 for faster responses
     });
 

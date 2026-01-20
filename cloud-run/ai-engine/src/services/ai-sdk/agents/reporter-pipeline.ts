@@ -85,8 +85,8 @@ interface EvaluationScores {
 // ============================================================================
 
 const DEFAULT_CONFIG: PipelineConfig = {
-  maxIterations: 1, // Reduced from 3 for faster responses (single evaluation)
-  qualityThreshold: 0.7, // Slightly lowered to avoid unnecessary iterations
+  maxIterations: 2, // Increased from 1 for quality improvement via optimization pass
+  qualityThreshold: 0.75, // Slightly raised to trigger optimization
   timeout: 40_000, // Increased from 25s for complex report generation (Job Queue has 120s)
 };
 

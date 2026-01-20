@@ -495,7 +495,7 @@ async function executeForcedRouting(
         ],
         tools: agentConfig.tools as Parameters<typeof generateText>[0]['tools'],
         stopWhen: stepCountIs(5),
-        temperature: 0.2,
+        temperature: 0.4, // Increased from 0.2 for more creative analysis
         maxOutputTokens: 2048,
       },
       providerOrder,
