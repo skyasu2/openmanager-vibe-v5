@@ -10,6 +10,13 @@
 
 import { tool } from 'ai';
 import { z } from 'zod';
+import {
+  SERVER_TYPE_MAP,
+  SERVER_TYPE_DESCRIPTIONS,
+  SERVER_GROUP_INPUT_DESCRIPTION,
+  SERVER_GROUP_DESCRIPTION_LIST,
+  normalizeServerType,
+} from '../config/server-types';
 
 // ============================================================================
 // Cache Key Utilities
@@ -706,13 +713,8 @@ export const filterServers = tool({
 export const getServerByGroup = tool({
   description: `서버 그룹/타입으로 조회합니다. DB 서버, 로드밸런서, 웹 서버 등 특정 유형의 서버를 조회할 때 사용하세요.
 
-## 지원하는 그룹/타입
-- database (또는 db, mysql, postgres, postgresql, mongodb, oracle, mariadb): 데이터베이스 서버
-- loadbalancer (또는 lb, haproxy, f5, elb, alb): 로드밸런서 서버
-- web (또는 nginx, apache, httpd, frontend): 웹 서버
-- cache (또는 redis, memcached, varnish, elasticache): 캐시 서버
-- storage (또는 nas, s3, minio, nfs, efs): 스토리지 서버
-- application (또는 api, app, backend, server): 애플리케이션/API 서버
+## 지원하는 그룹/타입 (config/server-types.ts 기준)
+${SERVER_GROUP_DESCRIPTION_LIST}
 
 ## 입력 예시
 1. DB 서버 조회: { "group": "db" } 또는 { "group": "database" }
@@ -736,9 +738,7 @@ export const getServerByGroup = tool({
 - "웹 서버 목록" → group="web"
 - "캐시 서버 확인" → group="cache"`,
   inputSchema: z.object({
-    group: z
-      .string()
-      .describe('서버 그룹/타입. 기본: db, database, lb, loadbalancer, web, cache, storage, application, api, app. 확장: mysql, postgres/postgresql, mongodb, oracle, mariadb, haproxy, f5, elb, alb, nginx, apache, httpd, frontend, redis, memcached, varnish, elasticache, nas, s3, minio, nfs, efs, backend, server'),
+    group: z.string().describe(SERVER_GROUP_INPUT_DESCRIPTION),
   }),
   execute: async ({ group }: { group: string }) => {
     const cache = getDataCache();
@@ -748,57 +748,13 @@ export const getServerByGroup = tool({
     return cache.getOrCompute('metrics', cacheKey, async () => {
       console.log(`📊 [getServerByGroup] Computing for ${cacheKey} (cache miss)`);
 
-      // Abbreviation mapping (technology stack → canonical type)
-      const typeMap: Record<string, string> = {
-        // Database variants
-        'db': 'database',
-        'mysql': 'database',
-        'postgres': 'database',
-        'postgresql': 'database',
-        'mongodb': 'database',
-        'oracle': 'database',
-        'mariadb': 'database',
-        // Load Balancer variants
-        'lb': 'loadbalancer',
-        'haproxy': 'loadbalancer',
-        'f5': 'loadbalancer',
-        'elb': 'loadbalancer',
-        'alb': 'loadbalancer',
-        // Web server variants
-        'nginx': 'web',
-        'apache': 'web',
-        'httpd': 'web',
-        'frontend': 'web',
-        // Cache variants
-        'redis': 'cache',
-        'memcached': 'cache',
-        'varnish': 'cache',
-        'elasticache': 'cache',
-        // Storage variants
-        'nas': 'storage',
-        's3': 'storage',
-        'minio': 'storage',
-        'nfs': 'storage',
-        'efs': 'storage',
-        // Application variants
-        'api': 'application',
-        'app': 'application',
-        'backend': 'application',
-        'server': 'application',
-      };
-
-      const targetType = typeMap[normalizedGroup] || normalizedGroup;
+      // Use shared type mapping from config/server-types.ts
+      const targetType = normalizeServerType(normalizedGroup);
       const state = getCurrentState();
-
-      // Normalize server type (handles both directions)
-      const normalizeType = (type: string): string => {
-        const t = type.toLowerCase().trim();
-        return typeMap[t] || t;
-      };
 
       // Filter by server type (exact match only after normalization)
       const filteredServers = state.servers.filter((s) => {
-        const serverType = normalizeType(s.type || '');
+        const serverType = normalizeServerType(s.type || '');
         return serverType === targetType;
       });
 
@@ -847,13 +803,8 @@ export const getServerByGroupAdvanced = tool({
 - "캐시 서버 중 warning 상태" → group="cache", filters={ status: "warning" }
 - "상위 3개 DB 서버 (CPU 기준)" → group="db", sort={ by: "cpu", order: "desc" }, limit=3
 
-## 지원 그룹 (getServerByGroup과 동일)
-- database: db, mysql, postgres/postgresql, mongodb, oracle, mariadb
-- loadbalancer: lb, haproxy, f5, elb, alb
-- web: nginx, apache, httpd, frontend
-- cache: redis, memcached, varnish, elasticache
-- storage: nas, s3, minio, nfs, efs
-- application: api, app, backend, server
+## 지원 그룹 (config/server-types.ts 기준)
+${SERVER_GROUP_DESCRIPTION_LIST}
 
 ## 필터 옵션
 - cpuMin/cpuMax: CPU 사용률 범위 (0-100)
@@ -864,9 +815,7 @@ export const getServerByGroupAdvanced = tool({
 - by: cpu | memory | disk | network | name
 - order: asc | desc`,
   inputSchema: z.object({
-    group: z
-      .string()
-      .describe('서버 그룹/타입. 지원: db, mysql, postgres, mongodb, oracle, mariadb, lb, haproxy, f5, elb, alb, nginx, apache, redis, memcached, varnish, elasticache, nas, s3, minio, nfs, efs, api, app, backend, server'),
+    group: z.string().describe(SERVER_GROUP_INPUT_DESCRIPTION),
     filters: z.object({
       cpuMin: z.number().min(0).max(100).optional().describe('최소 CPU 사용률'),
       cpuMax: z.number().min(0).max(100).optional().describe('최대 CPU 사용률'),
@@ -909,57 +858,13 @@ export const getServerByGroupAdvanced = tool({
     return cache.getOrCompute('metrics', cacheKey, async () => {
       console.log(`📊 [getServerByGroupAdvanced] Computing for ${cacheKey} (cache miss)`);
 
-      // Reuse typeMap from getServerByGroup
-      const typeMap: Record<string, string> = {
-        // Database variants
-        'db': 'database',
-        'mysql': 'database',
-        'postgres': 'database',
-        'postgresql': 'database',
-        'mongodb': 'database',
-        'oracle': 'database',
-        'mariadb': 'database',
-        // Load Balancer variants
-        'lb': 'loadbalancer',
-        'haproxy': 'loadbalancer',
-        'f5': 'loadbalancer',
-        'elb': 'loadbalancer',
-        'alb': 'loadbalancer',
-        // Web server variants
-        'nginx': 'web',
-        'apache': 'web',
-        'httpd': 'web',
-        'frontend': 'web',
-        // Cache variants
-        'redis': 'cache',
-        'memcached': 'cache',
-        'varnish': 'cache',
-        'elasticache': 'cache',
-        // Storage variants
-        'nas': 'storage',
-        's3': 'storage',
-        'minio': 'storage',
-        'nfs': 'storage',
-        'efs': 'storage',
-        // Application variants
-        'api': 'application',
-        'app': 'application',
-        'backend': 'application',
-        'server': 'application',
-      };
-
-      const targetType = typeMap[normalizedGroup] || normalizedGroup;
+      // Use shared type mapping from config/server-types.ts
+      const targetType = normalizeServerType(normalizedGroup);
       const state = getCurrentState();
-
-      // Normalize server type
-      const normalizeType = (type: string): string => {
-        const t = type.toLowerCase().trim();
-        return typeMap[t] || t;
-      };
 
       // Step 1: Filter by server type
       let filteredServers = state.servers.filter((s) => {
-        const serverType = normalizeType(s.type || '');
+        const serverType = normalizeServerType(s.type || '');
         return serverType === targetType;
       });
 
