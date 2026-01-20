@@ -16,7 +16,22 @@ const SENTRY_DSN =
   process.env.NEXT_PUBLIC_SENTRY_DSN ||
   'https://c4cfe13cdda790d1d9a6c3f92c593f39@o4509732473667584.ingest.de.sentry.io/4510731369119824';
 
+// Sentry 초기화 (serverless 환경에서 필요)
+function ensureSentryInitialized() {
+  if (!Sentry.getClient()) {
+    Sentry.init({
+      dsn: SENTRY_DSN,
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
+      enabled: process.env.NODE_ENV === 'production',
+      debug: false,
+    });
+  }
+}
+
 export async function GET(request: Request) {
+  // Sentry 초기화 확인
+  ensureSentryInitialized();
+
   const url = new URL(request.url);
   const action = url.searchParams.get('action') || 'info';
 
