@@ -10,6 +10,12 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+// Sentry DSN (fallback 포함)
+const SENTRY_DSN =
+  process.env.SENTRY_DSN ||
+  process.env.NEXT_PUBLIC_SENTRY_DSN ||
+  'https://c4cfe13cdda790d1d9a6c3f92c593f39@o4509732473667584.ingest.de.sentry.io/4510731369119824';
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const action = url.searchParams.get('action') || 'info';
@@ -20,7 +26,12 @@ export async function GET(request: Request) {
       status: 'ok',
       sentry: {
         enabled: process.env.NODE_ENV === 'production',
-        dsn: process.env.SENTRY_DSN ? 'configured' : 'missing',
+        dsn: SENTRY_DSN ? 'configured' : 'missing',
+        dsnSource: process.env.SENTRY_DSN
+          ? 'env'
+          : process.env.NEXT_PUBLIC_SENTRY_DSN
+            ? 'next_public'
+            : 'fallback',
         environment: process.env.NODE_ENV,
       },
       timestamp: new Date().toISOString(),
