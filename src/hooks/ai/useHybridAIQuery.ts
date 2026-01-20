@@ -316,8 +316,27 @@ export function useHybridAIQuery(
     stop: stopChat,
   } = useChat({
     transport,
-    onFinish: () => {
-      setState((prev) => ({ ...prev, isLoading: false }));
+    onFinish: ({ message }) => {
+      // 🚨 스트림 완료 후 에러 패턴 감지 (Cold Start 등)
+      // AI SDK v6: message.parts 배열에서 텍스트 추출
+      const parts = message.parts ?? [];
+      const content = parts
+        .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+        .map((p) => p.text)
+        .join('');
+      const errorMatch = content.match(/⚠️ 오류:\s*(.+)/);
+
+      if (errorMatch?.[1]) {
+        const errorMessage = errorMatch[1].trim();
+        logger.warn(`[HybridAI] Stream error detected: ${errorMessage}`);
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: errorMessage,
+        }));
+      } else {
+        setState((prev) => ({ ...prev, isLoading: false }));
+      }
       onStreamFinish?.();
     },
     // AI SDK v6: 실시간 데이터 파트 처리 콜백 + Redirect/Warning 이벤트 내부 처리
