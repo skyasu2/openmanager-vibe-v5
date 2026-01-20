@@ -129,7 +129,7 @@ vi.mock('../data/fixed-24h-metrics', () => ({
   getRecentData: vi.fn(() => []),
 }));
 
-import { getServerByGroup, getServerMetrics, filterServers } from './server-metrics';
+import { getServerByGroup, getServerByGroupAdvanced, getServerMetrics, filterServers } from './server-metrics';
 
 // ============================================================================
 // getServerByGroup Tests
@@ -231,6 +231,84 @@ describe('getServerByGroup', () => {
 
     it('should map "app" to "application"', async () => {
       const result = await getServerByGroup.execute({ group: 'app' }, {} as never);
+      expect(result.group).toBe('application');
+    });
+  });
+
+  describe('Technology Stack Mapping', () => {
+    // Database technology stacks
+    it('should map "mysql" to "database"', async () => {
+      const result = await getServerByGroup.execute({ group: 'mysql' }, {} as never);
+      expect(result.group).toBe('database');
+    });
+
+    it('should map "postgres" to "database"', async () => {
+      const result = await getServerByGroup.execute({ group: 'postgres' }, {} as never);
+      expect(result.group).toBe('database');
+    });
+
+    it('should map "mongodb" to "database"', async () => {
+      const result = await getServerByGroup.execute({ group: 'mongodb' }, {} as never);
+      expect(result.group).toBe('database');
+    });
+
+    it('should map "oracle" to "database"', async () => {
+      const result = await getServerByGroup.execute({ group: 'oracle' }, {} as never);
+      expect(result.group).toBe('database');
+    });
+
+    // Load Balancer technology stacks
+    it('should map "haproxy" to "loadbalancer"', async () => {
+      const result = await getServerByGroup.execute({ group: 'haproxy' }, {} as never);
+      expect(result.group).toBe('loadbalancer');
+    });
+
+    it('should map "f5" to "loadbalancer"', async () => {
+      const result = await getServerByGroup.execute({ group: 'f5' }, {} as never);
+      expect(result.group).toBe('loadbalancer');
+    });
+
+    // Web server technology stacks
+    it('should map "nginx" to "web"', async () => {
+      const result = await getServerByGroup.execute({ group: 'nginx' }, {} as never);
+      expect(result.group).toBe('web');
+    });
+
+    it('should map "apache" to "web"', async () => {
+      const result = await getServerByGroup.execute({ group: 'apache' }, {} as never);
+      expect(result.group).toBe('web');
+    });
+
+    it('should map "frontend" to "web"', async () => {
+      const result = await getServerByGroup.execute({ group: 'frontend' }, {} as never);
+      expect(result.group).toBe('web');
+    });
+
+    // Cache technology stacks
+    it('should map "redis" to "cache"', async () => {
+      const result = await getServerByGroup.execute({ group: 'redis' }, {} as never);
+      expect(result.group).toBe('cache');
+    });
+
+    it('should map "memcached" to "cache"', async () => {
+      const result = await getServerByGroup.execute({ group: 'memcached' }, {} as never);
+      expect(result.group).toBe('cache');
+    });
+
+    // Storage technology stacks
+    it('should map "s3" to "storage"', async () => {
+      const result = await getServerByGroup.execute({ group: 's3' }, {} as never);
+      expect(result.group).toBe('storage');
+    });
+
+    it('should map "nas" to "storage"', async () => {
+      const result = await getServerByGroup.execute({ group: 'nas' }, {} as never);
+      expect(result.group).toBe('storage');
+    });
+
+    // Application technology stacks
+    it('should map "backend" to "application"', async () => {
+      const result = await getServerByGroup.execute({ group: 'backend' }, {} as never);
       expect(result.group).toBe('application');
     });
   });
@@ -404,6 +482,210 @@ describe('getServerByGroup', () => {
       expect(result.summary.online).toBe(0);
       expect(result.summary.warning).toBe(0);
       expect(result.summary.critical).toBe(0);
+    });
+  });
+});
+
+// ============================================================================
+// getServerByGroupAdvanced Tests
+// ============================================================================
+
+describe('getServerByGroupAdvanced', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('Basic Functionality', () => {
+    it('should return database servers without filters', async () => {
+      const result = await getServerByGroupAdvanced.execute({ group: 'db' }, {} as never);
+
+      expect(result.success).toBe(true);
+      expect(result.group).toBe('database');
+      expect(result.servers).toHaveLength(2);
+      expect(result.summary.total).toBe(2);
+      expect(result.summary.filtered).toBe(2);
+    });
+
+    it('should support technology stack abbreviations', async () => {
+      const result = await getServerByGroupAdvanced.execute({ group: 'mysql' }, {} as never);
+
+      expect(result.success).toBe(true);
+      expect(result.group).toBe('database');
+    });
+  });
+
+  describe('CPU Filtering', () => {
+    it('should filter by cpuMin', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'web', filters: { cpuMin: 70 } },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.appliedFilters?.cpuMin).toBe(70);
+      // All returned servers should have cpu >= 70
+      result.servers.forEach((s: { cpu: number }) => {
+        expect(s.cpu).toBeGreaterThanOrEqual(70);
+      });
+    });
+
+    it('should filter by cpuMax', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'database', filters: { cpuMax: 50 } },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+      // All returned servers should have cpu <= 50
+      result.servers.forEach((s: { cpu: number }) => {
+        expect(s.cpu).toBeLessThanOrEqual(50);
+      });
+    });
+
+    it('should filter by CPU range', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'database', filters: { cpuMin: 30, cpuMax: 60 } },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+      result.servers.forEach((s: { cpu: number }) => {
+        expect(s.cpu).toBeGreaterThanOrEqual(30);
+        expect(s.cpu).toBeLessThanOrEqual(60);
+      });
+    });
+  });
+
+  describe('Memory Filtering', () => {
+    it('should filter by memoryMin', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'cache', filters: { memoryMin: 60 } },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+      result.servers.forEach((s: { memory: number }) => {
+        expect(s.memory).toBeGreaterThanOrEqual(60);
+      });
+    });
+  });
+
+  describe('Status Filtering', () => {
+    it('should filter by status "warning"', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'web', filters: { status: 'warning' } },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+      result.servers.forEach((s: { status: string }) => {
+        expect(s.status).toBe('warning');
+      });
+    });
+
+    it('should filter by status "critical"', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'storage', filters: { status: 'critical' } },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+      result.servers.forEach((s: { status: string }) => {
+        expect(s.status).toBe('critical');
+      });
+    });
+  });
+
+  describe('Sorting', () => {
+    it('should sort by CPU descending', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'database', sort: { by: 'cpu', order: 'desc' } },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.appliedSort?.by).toBe('cpu');
+      expect(result.appliedSort?.order).toBe('desc');
+
+      // Verify descending order
+      for (let i = 0; i < result.servers.length - 1; i++) {
+        expect(result.servers[i].cpu).toBeGreaterThanOrEqual(result.servers[i + 1].cpu);
+      }
+    });
+
+    it('should sort by memory ascending', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'cache', sort: { by: 'memory', order: 'asc' } },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+
+      // Verify ascending order
+      for (let i = 0; i < result.servers.length - 1; i++) {
+        expect(result.servers[i].memory).toBeLessThanOrEqual(result.servers[i + 1].memory);
+      }
+    });
+
+    it('should sort by name ascending', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'web', sort: { by: 'name', order: 'asc' } },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+
+      // Verify alphabetical order
+      for (let i = 0; i < result.servers.length - 1; i++) {
+        expect(result.servers[i].name.localeCompare(result.servers[i + 1].name)).toBeLessThanOrEqual(0);
+      }
+    });
+  });
+
+  describe('Limit', () => {
+    it('should limit results', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'database', limit: 1 },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.servers).toHaveLength(1);
+      expect(result.summary.total).toBe(2); // Total before limit
+      expect(result.summary.filtered).toBe(1); // After limit
+    });
+  });
+
+  describe('Combined Filters and Sort', () => {
+    it('should filter and sort together', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        {
+          group: 'web',
+          filters: { cpuMin: 0 },
+          sort: { by: 'cpu', order: 'desc' },
+          limit: 2,
+        },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.servers.length).toBeLessThanOrEqual(2);
+      expect(result.appliedFilters).toBeDefined();
+      expect(result.appliedSort).toBeDefined();
+    });
+  });
+
+  describe('Summary Calculation', () => {
+    it('should calculate summary correctly after filtering', async () => {
+      const result = await getServerByGroupAdvanced.execute(
+        { group: 'web', filters: { status: 'online' } },
+        {} as never
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.summary.total).toBe(2); // Total web servers
+      expect(result.summary.filtered).toBe(result.servers.length);
+      expect(result.summary.online).toBe(result.servers.length); // All filtered are online
     });
   });
 });

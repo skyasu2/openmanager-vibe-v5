@@ -41,6 +41,7 @@ import {
   getServerMetricsAdvanced,
   filterServers,
   getServerByGroup,
+  getServerByGroupAdvanced,
   // Analysis tools
   detectAnomalies,
   predictTrends,
@@ -315,6 +316,7 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
       getServerMetricsAdvanced,
       filterServers,
       getServerByGroup,
+      getServerByGroupAdvanced,
       searchWeb,
     },
     matchPatterns: [

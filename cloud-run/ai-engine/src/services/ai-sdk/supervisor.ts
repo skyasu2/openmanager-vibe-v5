@@ -845,13 +845,24 @@ export function classifyIntent(query: string): ClassifiedIntent {
     };
   }
 
-  // Server group/type queries (DB, 로드밸런서, 웹, 캐시 등)
-  if (/(db|database|데이터베이스|디비)\s*(서버|현황|상태|목록)/i.test(q) ||
-      /(lb|loadbalancer|로드\s*밸런서|로드밸런서)\s*(서버|현황|상태|목록)?/i.test(q) ||
-      /(web|웹)\s*(서버|현황|상태|목록)/i.test(q) ||
-      /(cache|캐시|redis|레디스)\s*(서버|현황|상태|목록)/i.test(q) ||
-      /(storage|스토리지|저장소)\s*(서버|현황|상태|목록)/i.test(q) ||
-      /(api|app|application|애플리케이션|앱)\s*(서버|현황|상태|목록)/i.test(q)) {
+  // Complex group queries with filters (DB 서버 중 CPU 80% 이상, 웹 서버 메모리 순 등)
+  const groupPattern = /(db|database|mysql|postgres|mongodb|lb|loadbalancer|haproxy|web|웹|nginx|apache|cache|캐시|redis|storage|스토리지|api|app|backend)/i;
+  const filterPattern = /(이상|초과|미만|이하|\d+%|높은|낮은|순|정렬|warning|critical|online|상위|top)/i;
+  if (groupPattern.test(q) && filterPattern.test(q)) {
+    return {
+      category: 'metrics',
+      suggestedTools: ['getServerByGroupAdvanced'],
+      confidence: 0.95,
+    };
+  }
+
+  // Server group/type queries (DB, 로드밸런서, 웹, 캐시 등 + 기술 스택)
+  if (/(db|database|데이터베이스|디비|mysql|postgres|mongodb|oracle|mariadb)\s*(서버|현황|상태|목록)?/i.test(q) ||
+      /(lb|loadbalancer|로드\s*밸런서|로드밸런서|haproxy|f5)\s*(서버|현황|상태|목록)?/i.test(q) ||
+      /(web|웹|nginx|apache|httpd|frontend)\s*(서버|현황|상태|목록)?/i.test(q) ||
+      /(cache|캐시|redis|레디스|memcached|varnish)\s*(서버|현황|상태|목록)?/i.test(q) ||
+      /(storage|스토리지|저장소|nas|s3|minio|nfs)\s*(서버|현황|상태|목록)?/i.test(q) ||
+      /(api|app|application|애플리케이션|앱|backend|백엔드)\s*(서버|현황|상태|목록)/i.test(q)) {
     return {
       category: 'metrics',
       suggestedTools: ['getServerByGroup'],

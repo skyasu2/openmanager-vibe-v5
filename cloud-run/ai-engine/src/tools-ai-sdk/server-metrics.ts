@@ -113,6 +113,31 @@ export const filterServersResponseSchema = z.object({
 /**
  * getServerByGroup response schema
  */
+export const getServerByGroupAdvancedResponseSchema = z.object({
+  success: z.boolean(),
+  group: z.string(),
+  servers: z.array(serverInfoSchema),
+  summary: z.object({
+    total: z.number(),
+    online: z.number(),
+    warning: z.number(),
+    critical: z.number(),
+    filtered: z.number().describe('Number of servers after applying filters'),
+  }),
+  appliedFilters: z.object({
+    cpuMin: z.number().optional(),
+    cpuMax: z.number().optional(),
+    memoryMin: z.number().optional(),
+    memoryMax: z.number().optional(),
+    status: z.string().optional(),
+  }).optional(),
+  appliedSort: z.object({
+    by: z.string(),
+    order: z.string(),
+  }).optional(),
+  timestamp: z.string(),
+});
+
 export const getServerByGroupResponseSchema = z.object({
   success: z.boolean(),
   group: z.string().describe('조회된 서버 그룹/타입'),
@@ -681,12 +706,12 @@ export const getServerByGroup = tool({
   description: `서버 그룹/타입으로 조회합니다. DB 서버, 로드밸런서, 웹 서버 등 특정 유형의 서버를 조회할 때 사용하세요.
 
 ## 지원하는 그룹/타입
-- database (또는 db): 데이터베이스 서버
-- loadbalancer (또는 lb): 로드밸런서 서버
-- web: 웹 서버 (nginx 등)
-- cache: 캐시 서버 (redis 등)
-- storage: 스토리지 서버
-- application (또는 api, app): 애플리케이션/API 서버
+- database (또는 db, mysql, postgres, mongodb, oracle): 데이터베이스 서버
+- loadbalancer (또는 lb, haproxy, f5): 로드밸런서 서버
+- web (또는 nginx, apache, httpd, frontend): 웹 서버
+- cache (또는 redis, memcached, varnish): 캐시 서버
+- storage (또는 nas, s3, minio, nfs): 스토리지 서버
+- application (또는 api, app, backend): 애플리케이션/API 서버
 
 ## 입력 예시
 1. DB 서버 조회: { "group": "db" } 또는 { "group": "database" }
@@ -712,7 +737,7 @@ export const getServerByGroup = tool({
   inputSchema: z.object({
     group: z
       .string()
-      .describe('서버 그룹/타입. db, database, lb, loadbalancer, web, cache, storage, application, api, app 중 하나'),
+      .describe('서버 그룹/타입. 기본: db, database, lb, loadbalancer, web, cache, storage, application, api, app. 확장: mysql, postgres, mongodb, oracle, haproxy, f5, nginx, apache, redis, memcached, nas, s3, backend'),
   }),
   execute: async ({ group }: { group: string }) => {
     const cache = getDataCache();
@@ -722,12 +747,43 @@ export const getServerByGroup = tool({
     return cache.getOrCompute('metrics', cacheKey, async () => {
       console.log(`📊 [getServerByGroup] Computing for ${cacheKey} (cache miss)`);
 
-      // Abbreviation mapping
+      // Abbreviation mapping (technology stack → canonical type)
       const typeMap: Record<string, string> = {
+        // Database variants
         'db': 'database',
+        'mysql': 'database',
+        'postgres': 'database',
+        'postgresql': 'database',
+        'mongodb': 'database',
+        'oracle': 'database',
+        'mariadb': 'database',
+        // Load Balancer variants
         'lb': 'loadbalancer',
+        'haproxy': 'loadbalancer',
+        'f5': 'loadbalancer',
+        'elb': 'loadbalancer',
+        'alb': 'loadbalancer',
+        // Web server variants
+        'nginx': 'web',
+        'apache': 'web',
+        'httpd': 'web',
+        'frontend': 'web',
+        // Cache variants
+        'redis': 'cache',
+        'memcached': 'cache',
+        'varnish': 'cache',
+        'elasticache': 'cache',
+        // Storage variants
+        'nas': 'storage',
+        's3': 'storage',
+        'minio': 'storage',
+        'nfs': 'storage',
+        'efs': 'storage',
+        // Application variants
         'api': 'application',
         'app': 'application',
+        'backend': 'application',
+        'server': 'application',
       };
 
       const targetType = typeMap[normalizedGroup] || normalizedGroup;
@@ -766,6 +822,236 @@ export const getServerByGroup = tool({
           disk: s.disk,
         })),
         summary,
+        timestamp: new Date().toISOString(),
+      };
+    });
+  },
+});
+
+/**
+ * Server By Group Advanced Tool
+ * Query servers by type/group with filtering and sorting support
+ *
+ * Best Practices Applied:
+ * - Extends getServerByGroup with filtering/sorting
+ * - Supports compound queries like "DB 서버 중 CPU 80% 이상"
+ * - Maintains backward compatibility
+ */
+export const getServerByGroupAdvanced = tool({
+  description: `서버 그룹/타입 조회 + 필터링/정렬 기능. 복합 조건 쿼리에 사용하세요.
+
+## 사용 시나리오
+- "DB 서버 중 CPU 80% 이상" → group="db", filters={ cpuMin: 80 }
+- "웹 서버 메모리 순으로 정렬" → group="web", sort={ by: "memory", order: "desc" }
+- "캐시 서버 중 warning 상태" → group="cache", filters={ status: "warning" }
+- "상위 3개 DB 서버 (CPU 기준)" → group="db", sort={ by: "cpu", order: "desc" }, limit=3
+
+## 지원 그룹 (getServerByGroup과 동일)
+database, loadbalancer, web, cache, storage, application + 기술 스택 약어
+
+## 필터 옵션
+- cpuMin/cpuMax: CPU 사용률 범위 (0-100)
+- memoryMin/memoryMax: 메모리 사용률 범위 (0-100)
+- status: online | warning | critical
+
+## 정렬 옵션
+- by: cpu | memory | disk | network | name
+- order: asc | desc`,
+  inputSchema: z.object({
+    group: z
+      .string()
+      .describe('서버 그룹/타입 (db, mysql, nginx, redis 등)'),
+    filters: z.object({
+      cpuMin: z.number().min(0).max(100).optional().describe('최소 CPU 사용률'),
+      cpuMax: z.number().min(0).max(100).optional().describe('최대 CPU 사용률'),
+      memoryMin: z.number().min(0).max(100).optional().describe('최소 메모리 사용률'),
+      memoryMax: z.number().min(0).max(100).optional().describe('최대 메모리 사용률'),
+      status: z.enum(['online', 'warning', 'critical']).optional().describe('서버 상태'),
+    }).optional().describe('필터 조건'),
+    sort: z.object({
+      by: z.enum(['cpu', 'memory', 'disk', 'network', 'name']).describe('정렬 기준'),
+      order: z.enum(['asc', 'desc']).describe('정렬 순서'),
+    }).optional().describe('정렬 옵션'),
+    limit: z.number().min(1).max(100).optional().describe('최대 결과 수'),
+  }),
+  execute: async ({
+    group,
+    filters,
+    sort,
+    limit,
+  }: {
+    group: string;
+    filters?: {
+      cpuMin?: number;
+      cpuMax?: number;
+      memoryMin?: number;
+      memoryMax?: number;
+      status?: 'online' | 'warning' | 'critical';
+    };
+    sort?: {
+      by: 'cpu' | 'memory' | 'disk' | 'network' | 'name';
+      order: 'asc' | 'desc';
+    };
+    limit?: number;
+  }) => {
+    const cache = getDataCache();
+    const normalizedGroup = group.toLowerCase().trim();
+    const filterKey = filters ? JSON.stringify(filters) : 'none';
+    const sortKey = sort ? `${sort.by}-${sort.order}` : 'none';
+    const cacheKey = `group-adv:${normalizedGroup}:${filterKey}:${sortKey}:${limit || 'all'}`;
+
+    return cache.getOrCompute('metrics', cacheKey, async () => {
+      console.log(`📊 [getServerByGroupAdvanced] Computing for ${cacheKey} (cache miss)`);
+
+      // Reuse typeMap from getServerByGroup
+      const typeMap: Record<string, string> = {
+        // Database variants
+        'db': 'database',
+        'mysql': 'database',
+        'postgres': 'database',
+        'postgresql': 'database',
+        'mongodb': 'database',
+        'oracle': 'database',
+        'mariadb': 'database',
+        // Load Balancer variants
+        'lb': 'loadbalancer',
+        'haproxy': 'loadbalancer',
+        'f5': 'loadbalancer',
+        'elb': 'loadbalancer',
+        'alb': 'loadbalancer',
+        // Web server variants
+        'nginx': 'web',
+        'apache': 'web',
+        'httpd': 'web',
+        'frontend': 'web',
+        // Cache variants
+        'redis': 'cache',
+        'memcached': 'cache',
+        'varnish': 'cache',
+        'elasticache': 'cache',
+        // Storage variants
+        'nas': 'storage',
+        's3': 'storage',
+        'minio': 'storage',
+        'nfs': 'storage',
+        'efs': 'storage',
+        // Application variants
+        'api': 'application',
+        'app': 'application',
+        'backend': 'application',
+        'server': 'application',
+      };
+
+      const targetType = typeMap[normalizedGroup] || normalizedGroup;
+      const state = getCurrentState();
+
+      // Normalize server type
+      const normalizeType = (type: string): string => {
+        const t = type.toLowerCase().trim();
+        return typeMap[t] || t;
+      };
+
+      // Step 1: Filter by server type
+      let filteredServers = state.servers.filter((s) => {
+        const serverType = normalizeType(s.type || '');
+        return serverType === targetType;
+      });
+
+      const totalBeforeFilters = filteredServers.length;
+
+      // Step 2: Apply metric filters
+      if (filters) {
+        if (filters.cpuMin !== undefined) {
+          filteredServers = filteredServers.filter((s) => s.cpu >= filters.cpuMin!);
+        }
+        if (filters.cpuMax !== undefined) {
+          filteredServers = filteredServers.filter((s) => s.cpu <= filters.cpuMax!);
+        }
+        if (filters.memoryMin !== undefined) {
+          filteredServers = filteredServers.filter((s) => s.memory >= filters.memoryMin!);
+        }
+        if (filters.memoryMax !== undefined) {
+          filteredServers = filteredServers.filter((s) => s.memory <= filters.memoryMax!);
+        }
+        if (filters.status) {
+          filteredServers = filteredServers.filter((s) => s.status === filters.status);
+        }
+      }
+
+      // Step 3: Apply sorting
+      if (sort) {
+        filteredServers.sort((a, b) => {
+          let valueA: number | string;
+          let valueB: number | string;
+
+          switch (sort.by) {
+            case 'cpu':
+              valueA = a.cpu;
+              valueB = b.cpu;
+              break;
+            case 'memory':
+              valueA = a.memory;
+              valueB = b.memory;
+              break;
+            case 'disk':
+              valueA = a.disk;
+              valueB = b.disk;
+              break;
+            case 'network':
+              valueA = a.network || 0;
+              valueB = b.network || 0;
+              break;
+            case 'name':
+              valueA = a.name;
+              valueB = b.name;
+              break;
+            default:
+              valueA = a.cpu;
+              valueB = b.cpu;
+          }
+
+          if (typeof valueA === 'string' && typeof valueB === 'string') {
+            return sort.order === 'asc'
+              ? valueA.localeCompare(valueB)
+              : valueB.localeCompare(valueA);
+          }
+
+          return sort.order === 'asc'
+            ? (valueA as number) - (valueB as number)
+            : (valueB as number) - (valueA as number);
+        });
+      }
+
+      // Step 4: Apply limit
+      if (limit && limit > 0) {
+        filteredServers = filteredServers.slice(0, limit);
+      }
+
+      // Calculate summary (from filtered results)
+      const summary = {
+        total: totalBeforeFilters,
+        online: filteredServers.filter((s) => s.status === 'online').length,
+        warning: filteredServers.filter((s) => s.status === 'warning').length,
+        critical: filteredServers.filter((s) => s.status === 'critical').length,
+        filtered: filteredServers.length,
+      };
+
+      return {
+        success: true,
+        group: targetType,
+        servers: filteredServers.map((s) => ({
+          id: s.id,
+          name: s.name,
+          type: s.type || targetType,
+          status: s.status,
+          cpu: s.cpu,
+          memory: s.memory,
+          disk: s.disk,
+          network: s.network,
+        })),
+        summary,
+        appliedFilters: filters || undefined,
+        appliedSort: sort || undefined,
         timestamp: new Date().toISOString(),
       };
     });

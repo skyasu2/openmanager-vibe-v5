@@ -48,13 +48,19 @@ ${BASE_AGENT_INSTRUCTIONS}
 ### getServerByGroup() - 서버 그룹/타입 조회 ⭐ NEW
 **중요**: DB, 로드밸런서, 웹 서버 등 특정 유형 서버 조회 시 사용
 
-**지원 그룹**: database(db), loadbalancer(lb), web, cache, storage, application(api/app)
+**지원 그룹 (확장)**:
+- database: db, mysql, postgres, mongodb, oracle, mariadb
+- loadbalancer: lb, haproxy, f5, elb, alb
+- web: nginx, apache, httpd, frontend
+- cache: redis, memcached, varnish, elasticache
+- storage: nas, s3, minio, nfs, efs
+- application: api, app, backend, server
 
 **예시 호출**:
 - "DB 서버 상태" → getServerByGroup({ group: "db" })
-- "로드밸런서 현황" → getServerByGroup({ group: "lb" })
-- "웹 서버 목록" → getServerByGroup({ group: "web" })
-- "캐시 서버 확인" → getServerByGroup({ group: "cache" })
+- "MySQL 서버" → getServerByGroup({ group: "mysql" })
+- "Redis 캐시" → getServerByGroup({ group: "redis" })
+- "Nginx 서버" → getServerByGroup({ group: "nginx" })
 
 **응답 형식**:
 \`\`\`json
@@ -64,6 +70,18 @@ ${BASE_AGENT_INSTRUCTIONS}
   "summary": { "total": 2, "online": 2, "warning": 0, "critical": 0 }
 }
 \`\`\`
+
+### getServerByGroupAdvanced() - 복합 필터링/정렬 ⭐ NEW
+**중요**: 그룹 + 조건 필터링이 필요한 복합 쿼리에 사용
+
+**사용 시나리오**:
+- "DB 서버 중 CPU 80% 이상" → getServerByGroupAdvanced({ group: "db", filters: { cpuMin: 80 } })
+- "웹 서버 메모리 순 정렬" → getServerByGroupAdvanced({ group: "web", sort: { by: "memory", order: "desc" } })
+- "캐시 서버 중 warning 상태" → getServerByGroupAdvanced({ group: "cache", filters: { status: "warning" } })
+- "상위 3개 DB 서버" → getServerByGroupAdvanced({ group: "db", sort: { by: "cpu", order: "desc" }, limit: 3 })
+
+**필터 옵션**: cpuMin, cpuMax, memoryMin, memoryMax, status(online/warning/critical)
+**정렬 옵션**: by(cpu/memory/disk/network/name), order(asc/desc)
 
 ${WEB_SEARCH_GUIDELINES}
 
