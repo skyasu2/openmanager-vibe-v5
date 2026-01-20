@@ -229,6 +229,7 @@ const nextConfig = {
         'https://vercel.live', // Vercel Toolbar
         'https://va.vercel-scripts.com', // Vercel Analytics
         'https://vitals.vercel-insights.com', // Speed Insights
+        'https://js-de.sentry-cdn.com', // Sentry Loader (EU)
         'blob:', // 동적 스크립트 허용
       ].filter(Boolean),
       'style-src': [
@@ -259,6 +260,7 @@ const nextConfig = {
         // Cloud Run AI Engine은 별도 도메인 사용 (CLOUD_RUN_AI_URL)
         'https://va.vercel-scripts.com', // Vercel Analytics
         'https://vitals.vercel-insights.com', // Speed Insights
+        'https://*.ingest.de.sentry.io', // Sentry EU (tunnel fallback)
         isDev ? 'ws://localhost:3000' : '', // 개발 환경 WebSocket
         isDev ? 'http://localhost:3000' : '', // 개발 환경 API
       ].filter(Boolean),
@@ -482,8 +484,8 @@ export default withSentryConfig(
   {
     // 🎯 무료 티어: 소스맵 업로드 비활성화
     silent: true,
-    org: 'openmanager-vibe',
-    project: 'openmanager-vibe-v5',
+    org: 'om-4g',
+    project: 'javascript-nextjs',
 
     // 🎯 무료 티어: 소스맵 업로드 완전 비활성화
     sourcemaps: {
