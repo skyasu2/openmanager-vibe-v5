@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-19
+**마지막 업데이트**: 2026-01-20
 
 ---
 
@@ -143,7 +143,7 @@
   - `config-parser.test.ts`: API 키 관리 18개 테스트
   - `reporter-tools.test.ts`: Web Search 9개 테스트
   - `orchestrator.test.ts`: Mock 수정 (`searchWeb` 추가)
-- **총 테스트**: 92개 통과 (32+18+9+14+10+9)
+- **총 테스트**: 228개 통과 (Vitest 12 files, 228 tests)
 
 **AI Engine 안정성 개선 + Job Queue 최적화 (2025-12-30)**
 - **Phase 1: Message Format 통합**
@@ -236,16 +236,17 @@
 
 ---
 
-## 📊 품질 지표 (2026-01-04 기준)
+## 📊 품질 지표 (2026-01-20 기준)
 
 | Metric | Status | Detail |
 |:---:|:---:|---|
 | **Build** | ✅ Passing | `npm run build` (Next.js 16.1.1) 성공 |
-| **Test** | ✅ 100% | 92/92 Tests Passing (AI Engine P0 포함) |
+| **Test** | ✅ 100% | 228/228 Tests Passing (12 test files) |
 | **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
 | **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
 | **MCP** | ✅ 8/8 | 모든 MCP 서버 정상 연결 |
 | **Vercel** | ✅ Deployed | Production 배포 정상 |
+| **Sentry** | ✅ Active | Vercel + Cloud Run 에러 트래킹 |
 
 ---
 
@@ -278,14 +279,25 @@
 
 ---
 
-## 🐳 Infrastructure Status (2026-01-09)
+## 🐳 Infrastructure Status (2026-01-20)
 
 **Cloud Run AI Engine**
 - **Service URL**: `https://ai-engine-490817238363.asia-northeast1.run.app`
-- **Active Revision**: `ai-engine-00118-96v` (2026-01-09 deployed)
+- **Active Revision**: `ai-engine-00118-96v` (최신 배포)
 - **Health**: ✅ All providers connected (Supabase, Upstash, Groq, Mistral, Cerebras, Tavily, OpenRouter, Langfuse)
-- **Observability**: Langfuse (10% sampling, 무료 티어 보호)
+- **Observability**:
+  - Langfuse (10% sampling, 무료 티어 보호)
+  - Sentry (Node.js SDK, 글로벌 에러 핸들링)
 - **Features**: cpu-boost, session-affinity, gen2, 512Mi/1vCPU
+
+**Error Monitoring (Sentry)**
+- **Vercel (Next.js)**: `@sentry/nextjs` SDK 통합
+  - 서버/클라이언트 에러 자동 캡처
+  - `/api/debug/sentry-test` 테스트 엔드포인트
+- **Cloud Run (AI Engine)**: `@sentry/node` SDK 통합
+  - 글로벌 에러 핸들러 연동
+  - `/debug/sentry` 테스트 엔드포인트
+  - 서버리스 환경 최적화 (`flushSentry()` 적용)
 
 **Artifact Registry** (gcr.io에서 마이그레이션 완료)
 - **Repository**: `asia-northeast1-docker.pkg.dev/openmanager-free-tier/cloud-run/ai-engine`

@@ -57,8 +57,8 @@ export function getServerGuestMode(): GuestModeType {
     return stringMode;
   }
 
-  // TODO: 테스트 완료 후 RESTRICTED로 복원 필요
-  return GUEST_MODE.FULL_ACCESS;
+  // 기본값: 보안 원칙에 따라 RESTRICTED (2026-01-20 수정)
+  return GUEST_MODE.RESTRICTED;
 }
 
 export function isGuestFullAccessEnabledServer(): boolean {
