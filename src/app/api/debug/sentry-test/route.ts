@@ -22,6 +22,10 @@ export async function GET(request: Request) {
 
   // 상태 정보
   if (action === 'info') {
+    // Sentry 클라이언트 상태 확인
+    const client = Sentry.getClient();
+    const options = client?.getOptions();
+
     return NextResponse.json({
       status: 'ok',
       sentry: {
@@ -33,6 +37,10 @@ export async function GET(request: Request) {
             ? 'next_public'
             : 'fallback',
         environment: process.env.NODE_ENV,
+        // SDK 클라이언트 상태
+        clientInitialized: !!client,
+        sdkEnabled: options?.enabled ?? 'unknown',
+        sdkDsn: options?.dsn ? 'set' : 'not set',
       },
       timestamp: new Date().toISOString(),
     });
