@@ -13,6 +13,10 @@ import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
 import { logger } from './lib/logger';
 
+// 🎯 Sentry 에러 모니터링 (최우선 초기화)
+import { initSentry, captureError, flushSentry, closeSentry } from './lib/sentry';
+initSentry();
+
 // Configuration
 import { logAPIKeyStatus, validateAPIKeys } from './lib/model-config';
 import { getConfigStatus, getLangfuseConfig } from './lib/config-parser';
@@ -62,6 +66,27 @@ app.use('/api/*', async (c: Context, next: Next) => {
     return handleUnauthorizedError(c);
   }
   await next();
+});
+
+// 🎯 Global Error Handler (Sentry 연동)
+app.onError((err, c) => {
+  // Sentry에 에러 전송
+  const eventId = captureError(err, {
+    url: c.req.url,
+    method: c.req.method,
+    headers: Object.fromEntries(c.req.raw.headers),
+  });
+
+  logger.error({ err, eventId, url: c.req.url }, 'Unhandled error');
+
+  return c.json(
+    {
+      error: 'Internal Server Error',
+      message: err.message,
+      sentryEventId: eventId,
+    },
+    500
+  );
 });
 
 // ============================================================================
@@ -210,6 +235,54 @@ app.get('/monitoring/traces', async (c: Context) => {
 });
 
 /**
+ * GET /debug/sentry - Sentry 연동 테스트
+ * Query param: action (info, error, message)
+ */
+app.get('/debug/sentry', async (c: Context) => {
+  const action = c.req.query('action') || 'info';
+  const { Sentry } = await import('./lib/sentry.js');
+  const client = Sentry.getClient();
+  const options = client?.getOptions();
+
+  if (action === 'info') {
+    return c.json({
+      status: 'ok',
+      sentry: {
+        enabled: process.env.NODE_ENV === 'production',
+        clientInitialized: !!client,
+        sdkEnabled: options?.enabled ?? 'unknown',
+        release: options?.release ?? 'unknown',
+      },
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  if (action === 'error') {
+    const error = new Error('AI Engine Sentry Test Error - 테스트용 에러');
+    const eventId = captureError(error, { action: 'test', endpoint: '/debug/sentry' });
+    await flushSentry();
+    return c.json({
+      status: 'error_sent',
+      eventId,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  if (action === 'message') {
+    const { captureMessage } = await import('./lib/sentry.js');
+    const eventId = captureMessage('AI Engine Sentry Test Message', 'info');
+    await flushSentry();
+    return c.json({
+      status: 'message_sent',
+      eventId,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  return c.json({ error: 'Invalid action' }, 400);
+});
+
+/**
  * GET /debug/prefilter - Test preFilterQuery function
  * Query param: q (the query to test)
  */
@@ -349,8 +422,14 @@ async function gracefulShutdown(signal: string): Promise<void> {
     logger.info('Flushing Langfuse traces');
     await flushLangfuse();
 
+    logger.info('Flushing Sentry events');
+    await flushSentry();
+
     logger.info('Shutting down Langfuse');
     await shutdownLangfuse();
+
+    logger.info('Closing Sentry');
+    await closeSentry();
 
     logger.info('Graceful shutdown complete');
     process.exit(0);

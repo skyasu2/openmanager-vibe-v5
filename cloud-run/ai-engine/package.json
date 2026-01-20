@@ -24,6 +24,7 @@
     "@llamaindex/groq": "^0.0.94",
     "@llamaindex/mistral": "^0.1.22",
     "@opentelemetry/api": "^1.9.0",
+    "@sentry/node": "^10.35.0",
     "@supabase/supabase-js": "^2.47.7",
     "@tavily/core": "^0.6.0",
     "@upstash/redis": "^1.36.0",
@@ -35,8 +36,8 @@
     "langfuse": "^3.38.6",
     "llamaindex": "^0.12.1",
     "pg": "^8.13.1",
-    "zod": "^3.24.1",
-    "pino": "^9.6.0"
+    "pino": "^9.6.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
