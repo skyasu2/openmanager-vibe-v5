@@ -254,11 +254,11 @@ export interface UseHybridAIQueryReturn {
  * @note 45 → 30으로 하향 조정 (2026-01-21)
  *   - moderate 레벨 (21-45점) 쿼리가 스트리밍 모드에서 타임아웃 발생
  *   - "전체 서버 상태 요약" (35점) 같은 쿼리가 Vercel 55s 타임아웃에 걸림
- *   - 25점 초과 시 Job Queue로 라우팅하여 안정성 확보 (보고서 쿼리 포함)
+ *   - 19점 초과 시 Job Queue로 라우팅 (보고서=20점 포함)
  *
- * @updated 2026-01-21 - 30 → 25로 추가 하향 (장애 보고서 쿼리 Stream error 방지)
+ * @updated 2026-01-21 - 25 → 19로 재조정 (보고서 키워드 20점이 Job Queue로 라우팅되도록)
  */
-const DEFAULT_COMPLEXITY_THRESHOLD = 25;
+const DEFAULT_COMPLEXITY_THRESHOLD = 19;
 
 // ============================================================================
 // Utilities
