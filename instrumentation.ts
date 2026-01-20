@@ -2,9 +2,21 @@
  * Next.js Instrumentation
  *
  * 앱 시작 시 실행되는 초기화 코드
+ * Sentry 서버 측 SDK 초기화 포함
  */
 
 export async function register() {
+  // 🎯 Sentry 서버 측 SDK 초기화
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    // Node.js 런타임에서 Sentry 서버 설정 로드
+    await import('./sentry.server.config');
+  }
+
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    // Edge 런타임에서 Sentry Edge 설정 로드
+    await import('./sentry.edge.config');
+  }
+
   // 서버 사이드에서만 실행
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     try {
