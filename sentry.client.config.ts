@@ -13,8 +13,8 @@ const SENTRY_DSN =
 Sentry.init({
   dsn: SENTRY_DSN,
 
-  // 🎯 Tunnel 경로 (ad-blocker 우회)
-  tunnel: '/sentry-tunnel',
+  // 🎯 Tunnel 경로 (ad-blocker 우회, 수동 API route)
+  tunnel: '/api/sentry-tunnel',
 
   // 🎯 무료 티어 최적화: Replay 비활성화 (이벤트 절약)
   integrations: [],
