@@ -41,6 +41,7 @@ import { classifyQuery } from '@/lib/ai/query-classifier';
 import {
   analyzeQueryComplexity,
   type QueryComplexity,
+  shouldForceJobQueue,
 } from '@/lib/ai/utils/query-complexity';
 import { logger } from '@/lib/logging';
 import {
@@ -580,14 +581,18 @@ export function useHybridAIQuery(
       // Redirect 이벤트 처리를 위해 현재 쿼리 저장
       currentQueryRef.current = trimmedQuery;
 
-      // 1. 복잡도 분석
+      // 1. 복잡도 분석 + 의도 기반 Job Queue 강제 라우팅
       const analysis = analyzeQueryComplexity(trimmedQuery);
-      const isComplex = analysis.score > complexityThreshold;
+      const forceJobQueue = shouldForceJobQueue(trimmedQuery);
+      const isComplex =
+        analysis.score > complexityThreshold || forceJobQueue.force;
 
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
         logger.info(
-          `[HybridAI] Query complexity: ${analysis.level} (score: ${analysis.score}), Mode: ${isComplex ? 'job-queue' : 'streaming'}`
+          `[HybridAI] Query complexity: ${analysis.level} (score: ${analysis.score}), ` +
+            `Force Job Queue: ${forceJobQueue.force}${forceJobQueue.matchedKeyword ? ` (keyword: "${forceJobQueue.matchedKeyword}")` : ''}, ` +
+            `Mode: ${isComplex ? 'job-queue' : 'streaming'}`
         );
       }
 

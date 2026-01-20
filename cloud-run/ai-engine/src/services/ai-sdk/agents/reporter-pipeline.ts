@@ -87,7 +87,7 @@ interface EvaluationScores {
 const DEFAULT_CONFIG: PipelineConfig = {
   maxIterations: 1, // Reduced from 3 for faster responses (single evaluation)
   qualityThreshold: 0.7, // Slightly lowered to avoid unnecessary iterations
-  timeout: 25_000, // Reduced from 30s for Vercel 60s limit compliance
+  timeout: 40_000, // Increased from 25s for complex report generation (Job Queue has 120s)
 };
 
 const COMMAND_TEMPLATES: Record<string, string[]> = {

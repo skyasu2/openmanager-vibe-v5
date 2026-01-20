@@ -270,6 +270,82 @@ export function calculateDynamicTimeout(
   return Math.max(minTimeout, Math.min(timeout, maxTimeout));
 }
 
+// ============================================================================
+// 의도 기반 Job Queue 강제 라우팅
+// ============================================================================
+
+/**
+ * Job Queue 강제 라우팅 키워드
+ * 이 키워드가 포함된 쿼리는 점수와 무관하게 Job Queue로 라우팅
+ *
+ * @description
+ * - 보고서/리포트: 복잡한 마크다운 생성 필요
+ * - 예측/전망: 시계열 분석 필요
+ * - 장애/근본원인: 다단계 분석 필요
+ *
+ * @updated 2026-01-21 - 근본 원인 해결을 위해 추가
+ */
+const JOB_QUEUE_FORCE_KEYWORDS = [
+  // 보고서 관련
+  '보고서',
+  '리포트',
+  'report',
+  // 예측 관련
+  '예측',
+  '전망',
+  'forecast',
+  'predict',
+  // 장애 분석 관련
+  '장애',
+  '근본 원인',
+  'root cause',
+  // 종합 분석 관련
+  '종합 분석',
+  '전체 분석',
+  '심층 분석',
+] as const;
+
+/**
+ * 의도 기반 Job Queue 강제 라우팅 판단
+ *
+ * @description
+ * 특정 키워드가 포함된 쿼리는 점수(threshold)와 무관하게
+ * Job Queue로 라우팅해야 함. 이는 다음 이유 때문:
+ * 1. 보고서 생성은 복잡한 마크다운 구조화 필요
+ * 2. 예측 쿼리는 시계열 데이터 분석 필요
+ * 3. 장애 분석은 다단계 원인 추적 필요
+ *
+ * @param query - 사용자 쿼리 텍스트
+ * @returns Job Queue 강제 라우팅 여부와 매칭된 키워드
+ *
+ * @example
+ * shouldForceJobQueue("장애 보고서 작성해줘") // { force: true, matchedKeyword: "보고서" }
+ * shouldForceJobQueue("CPU 사용률 알려줘") // { force: false, matchedKeyword: null }
+ */
+export function shouldForceJobQueue(query: string): {
+  force: boolean;
+  matchedKeyword: string | null;
+  reason: string | null;
+} {
+  const normalizedQuery = query.toLowerCase().trim();
+
+  for (const keyword of JOB_QUEUE_FORCE_KEYWORDS) {
+    if (normalizedQuery.includes(keyword.toLowerCase())) {
+      return {
+        force: true,
+        matchedKeyword: keyword,
+        reason: `Query contains "${keyword}" which requires extended processing time`,
+      };
+    }
+  }
+
+  return {
+    force: false,
+    matchedKeyword: null,
+    reason: null,
+  };
+}
+
 /**
  * 타임아웃 추천 메시지 생성
  *

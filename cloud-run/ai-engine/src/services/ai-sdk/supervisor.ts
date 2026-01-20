@@ -688,8 +688,9 @@ async function* streamSingleAgent(
       maxOutputTokens: 1536, // Reduced from 2048 for faster responses
     });
 
-    // Hard timeout constant (45s - same as multi-agent)
-    const SINGLE_AGENT_HARD_TIMEOUT = 45_000;
+    // Hard timeout constant (50s - increased from 45s for complex queries)
+    // Vercel has 55s proxy timeout, so 50s gives 5s margin
+    const SINGLE_AGENT_HARD_TIMEOUT = 50_000;
 
     // Stream text deltas with hard timeout check
     for await (const textPart of result.textStream) {

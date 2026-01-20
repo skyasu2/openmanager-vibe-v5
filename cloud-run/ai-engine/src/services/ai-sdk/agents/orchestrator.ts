@@ -40,10 +40,10 @@ import { AGENT_CONFIGS } from './config';
 const ORCHESTRATOR_CONFIG = {
   /** Maximum execution time (ms) - 50s for Vercel 60s limit compliance */
   timeout: 50_000,
-  /** Hard timeout (ms) - 45s, forcefully abort stream (Vercel 60s - 15s margin) */
-  hardTimeout: 45_000,
+  /** Hard timeout (ms) - 50s, increased from 45s (Vercel 55s proxy - 5s margin) */
+  hardTimeout: 50_000,
   /** Warning threshold (ms) - log warning if execution exceeds this */
-  warnThreshold: 25_000,
+  warnThreshold: 30_000,
 };
 
 // ============================================================================
