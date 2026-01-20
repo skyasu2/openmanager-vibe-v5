@@ -34,10 +34,14 @@ import { AGENT_CONFIGS } from './config';
  * Orchestrator timeout configuration
  * - Multi-agent queries can take 20-60s with multiple handoffs
  * - Set generous timeout but prevent infinite hangs
+ *
+ * @updated 2026-01-20 - Added hardTimeout for stream abort (Best Practice)
  */
 const ORCHESTRATOR_CONFIG = {
   /** Maximum execution time (ms) - 50s for Vercel 60s limit compliance */
   timeout: 50_000,
+  /** Hard timeout (ms) - 45s, forcefully abort stream (Vercel 60s - 15s margin) */
+  hardTimeout: 45_000,
   /** Warning threshold (ms) - log warning if execution exceeds this */
   warnThreshold: 25_000,
 };
@@ -892,10 +896,39 @@ export async function* executeMultiAgentStream(
 
     // Warning state (only emit once)
     let warningEmitted = false;
+    let hardTimeoutReached = false;
 
     // Yield text chunks as they arrive with elapsed time check
     for await (const textChunk of streamResult.textStream) {
       const elapsed = Date.now() - startTime;
+
+      // 🔥 Hard timeout: Abort stream immediately (Best Practice)
+      if (elapsed >= ORCHESTRATOR_CONFIG.hardTimeout) {
+        hardTimeoutReached = true;
+        console.error(
+          `🛑 [Stream Orchestrator] Hard timeout reached at ${elapsed}ms (limit: ${ORCHESTRATOR_CONFIG.hardTimeout}ms)`
+        );
+
+        // Log timeout to Langfuse
+        logTimeoutEvent('error', {
+          operation: 'orchestrator_stream_hard_timeout',
+          elapsed,
+          threshold: ORCHESTRATOR_CONFIG.hardTimeout,
+          sessionId: request.sessionId,
+        });
+
+        // Yield timeout error and exit
+        yield {
+          type: 'error',
+          data: {
+            code: 'HARD_TIMEOUT',
+            error: `처리 시간이 ${ORCHESTRATOR_CONFIG.hardTimeout / 1000}초를 초과했습니다. 더 간단한 질문으로 다시 시도해주세요.`,
+            elapsed,
+            threshold: ORCHESTRATOR_CONFIG.hardTimeout,
+          },
+        };
+        return; // Exit generator immediately
+      }
 
       // Emit warning once when threshold exceeded (25s)
       if (!warningEmitted && elapsed >= ORCHESTRATOR_CONFIG.warnThreshold) {
@@ -929,6 +962,11 @@ export async function* executeMultiAgentStream(
       if (sanitized) {
         yield { type: 'text_delta', data: sanitized };
       }
+    }
+
+    // Skip metadata gathering if hard timeout was reached
+    if (hardTimeoutReached) {
+      return;
     }
 
     // Complete timeout span

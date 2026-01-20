@@ -688,8 +688,29 @@ async function* streamSingleAgent(
       maxOutputTokens: 1536, // Reduced from 2048 for faster responses
     });
 
-    // Stream text deltas
+    // Hard timeout constant (45s - same as multi-agent)
+    const SINGLE_AGENT_HARD_TIMEOUT = 45_000;
+
+    // Stream text deltas with hard timeout check
     for await (const textPart of result.textStream) {
+      const elapsed = Date.now() - startTime;
+
+      // 🔥 Hard timeout: Abort stream immediately
+      if (elapsed >= SINGLE_AGENT_HARD_TIMEOUT) {
+        console.error(
+          `🛑 [SingleAgent] Hard timeout reached at ${elapsed}ms (limit: ${SINGLE_AGENT_HARD_TIMEOUT}ms)`
+        );
+        yield {
+          type: 'error',
+          data: {
+            code: 'HARD_TIMEOUT',
+            error: `처리 시간이 ${SINGLE_AGENT_HARD_TIMEOUT / 1000}초를 초과했습니다.`,
+            elapsed,
+          },
+        };
+        return; // Exit generator immediately
+      }
+
       fullText += textPart;
       yield { type: 'text_delta', data: textPart };
     }

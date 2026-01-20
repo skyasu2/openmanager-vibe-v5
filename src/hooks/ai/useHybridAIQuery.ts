@@ -248,8 +248,15 @@ export interface UseHybridAIQueryReturn {
 // Constants
 // ============================================================================
 
-/** 복잡도 임계값: 이 점수 초과시 Job Queue 사용 */
-const DEFAULT_COMPLEXITY_THRESHOLD = 45;
+/**
+ * 복잡도 임계값: 이 점수 초과시 Job Queue 사용
+ *
+ * @note 45 → 30으로 하향 조정 (2026-01-21)
+ *   - moderate 레벨 (21-45점) 쿼리가 스트리밍 모드에서 타임아웃 발생
+ *   - "전체 서버 상태 요약" (35점) 같은 쿼리가 Vercel 55s 타임아웃에 걸림
+ *   - 30점 초과 시 Job Queue로 라우팅하여 안정성 확보
+ */
+const DEFAULT_COMPLEXITY_THRESHOLD = 30;
 
 // ============================================================================
 // Utilities
