@@ -16,6 +16,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { STREAM_ERROR_MARKER } from '@/lib/ai/constants/stream-errors';
 import {
   compressContext,
   shouldCompress,
@@ -398,7 +399,7 @@ export const POST = withRateLimit(
                       });
 
                       streamController.enqueue(
-                        encoder.encode(`\n\n⚠️ 오류: ${errorMsg}`)
+                        encoder.encode(`\n\n${STREAM_ERROR_MARKER} ${errorMsg}`)
                       );
                       streamController.close();
                       return;

@@ -162,6 +162,27 @@ export interface StreamDataPart {
   redirect?: RedirectEventData;
 }
 
+// ============================================================================
+// Error Detection Constants (SSOT)
+// ============================================================================
+// Import for local use and re-export for backward compatibility
+import {
+  COLD_START_ERROR_PATTERNS as _COLD_START_ERROR_PATTERNS,
+  STREAM_ERROR_MARKER as _STREAM_ERROR_MARKER,
+  STREAM_ERROR_REGEX as _STREAM_ERROR_REGEX,
+  extractStreamError,
+  isColdStartRelatedError,
+} from '@/lib/ai/constants/stream-errors';
+
+// Re-export for consumers
+export {
+  _STREAM_ERROR_MARKER as STREAM_ERROR_MARKER,
+  _COLD_START_ERROR_PATTERNS as COLD_START_ERROR_PATTERNS,
+  _STREAM_ERROR_REGEX as STREAM_ERROR_REGEX,
+  extractStreamError,
+  isColdStartRelatedError,
+};
+
 export interface UseHybridAIQueryOptions {
   /** 세션 ID */
   sessionId?: string;
@@ -292,6 +313,9 @@ export function useHybridAIQuery(
   // Stream Recovery: 마지막으로 알려진 시퀀스 번호 (데이터 중복 방지)
   const lastKnownSequenceRef = useRef<number>(0);
 
+  // 🔒 Error Race Condition 방지: onError/onFinish 중 먼저 처리된 쪽이 에러 핸들링
+  const errorHandledRef = useRef<boolean>(false);
+
   // ============================================================================
   // useChat Hook (Streaming Mode) - AI SDK v6 베스트 프랙티스 적용
   // ============================================================================
@@ -317,6 +341,17 @@ export function useHybridAIQuery(
   } = useChat({
     transport,
     onFinish: ({ message }) => {
+      // 🔒 Race Condition 방지: onError가 이미 에러를 처리했으면 스킵
+      if (errorHandledRef.current) {
+        logger.debug(
+          '[HybridAI] onFinish skipped (error already handled by onError)'
+        );
+        errorHandledRef.current = false; // 다음 요청을 위해 리셋
+        setState((prev) => ({ ...prev, isLoading: false }));
+        onStreamFinish?.();
+        return;
+      }
+
       // 🚨 스트림 완료 후 에러 패턴 감지 (Cold Start 등)
       // AI SDK v6: message.parts 배열에서 텍스트 추출
       const parts = message.parts ?? [];
@@ -324,11 +359,13 @@ export function useHybridAIQuery(
         .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
         .map((p) => p.text)
         .join('');
-      const errorMatch = content.match(/⚠️ 오류:\s*(.+)/);
 
-      if (errorMatch?.[1]) {
-        const errorMessage = errorMatch[1].trim();
+      // 🎯 개선된 에러 추출 (false positive 방지)
+      const errorMessage = extractStreamError(content);
+
+      if (errorMessage) {
         logger.warn(`[HybridAI] Stream error detected: ${errorMessage}`);
+        errorHandledRef.current = true;
         setState((prev) => ({
           ...prev,
           isLoading: false,
@@ -445,6 +482,9 @@ export function useHybridAIQuery(
           logger.warn('[HybridAI] Recovery failed:', recoveryError);
         }
       }
+
+      // 🔒 Race Condition 방지: onError가 먼저 에러를 처리했음을 표시
+      errorHandledRef.current = true;
 
       // 복구 실패 시 기존 에러 처리
       setState((prev) => ({

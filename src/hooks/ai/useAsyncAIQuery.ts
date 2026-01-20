@@ -26,6 +26,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import { extractStreamError } from '@/lib/ai/constants/stream-errors';
 import { logger } from '@/lib/logging';
 import {
   calculateBackoff,
@@ -206,6 +207,19 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
           eventSource.addEventListener('result', (event) => {
             try {
               const resultData = JSON.parse(event.data);
+
+              // 🎯 응답 내용에서 스트림 에러 패턴 확인 (일관성 유지)
+              const errorInResponse = extractStreamError(
+                resultData.response || ''
+              );
+              if (errorInResponse) {
+                logger.warn(
+                  `[AsyncAI] Stream error in result: ${errorInResponse}`
+                );
+                handleError(errorInResponse);
+                return;
+              }
+
               handleResult({
                 success: true,
                 response: resultData.response,
