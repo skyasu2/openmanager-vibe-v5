@@ -118,11 +118,12 @@ export const getServerByGroupAdvancedResponseSchema = z.object({
   group: z.string(),
   servers: z.array(serverInfoSchema),
   summary: z.object({
-    total: z.number(),
-    online: z.number(),
-    warning: z.number(),
-    critical: z.number(),
-    filtered: z.number().describe('Number of servers after applying filters'),
+    total: z.number().describe('Total servers in group before filters'),
+    online: z.number().describe('Online servers after filters (before limit)'),
+    warning: z.number().describe('Warning servers after filters (before limit)'),
+    critical: z.number().describe('Critical servers after filters (before limit)'),
+    filtered: z.number().describe('Total servers after filters (before limit)'),
+    returned: z.number().describe('Actual returned servers (after limit)'),
   }),
   appliedFilters: z.object({
     cpuMin: z.number().optional(),
@@ -706,12 +707,12 @@ export const getServerByGroup = tool({
   description: `서버 그룹/타입으로 조회합니다. DB 서버, 로드밸런서, 웹 서버 등 특정 유형의 서버를 조회할 때 사용하세요.
 
 ## 지원하는 그룹/타입
-- database (또는 db, mysql, postgres, mongodb, oracle): 데이터베이스 서버
-- loadbalancer (또는 lb, haproxy, f5): 로드밸런서 서버
+- database (또는 db, mysql, postgres, postgresql, mongodb, oracle, mariadb): 데이터베이스 서버
+- loadbalancer (또는 lb, haproxy, f5, elb, alb): 로드밸런서 서버
 - web (또는 nginx, apache, httpd, frontend): 웹 서버
-- cache (또는 redis, memcached, varnish): 캐시 서버
-- storage (또는 nas, s3, minio, nfs): 스토리지 서버
-- application (또는 api, app, backend): 애플리케이션/API 서버
+- cache (또는 redis, memcached, varnish, elasticache): 캐시 서버
+- storage (또는 nas, s3, minio, nfs, efs): 스토리지 서버
+- application (또는 api, app, backend, server): 애플리케이션/API 서버
 
 ## 입력 예시
 1. DB 서버 조회: { "group": "db" } 또는 { "group": "database" }
@@ -737,7 +738,7 @@ export const getServerByGroup = tool({
   inputSchema: z.object({
     group: z
       .string()
-      .describe('서버 그룹/타입. 기본: db, database, lb, loadbalancer, web, cache, storage, application, api, app. 확장: mysql, postgres, mongodb, oracle, haproxy, f5, nginx, apache, redis, memcached, nas, s3, backend'),
+      .describe('서버 그룹/타입. 기본: db, database, lb, loadbalancer, web, cache, storage, application, api, app. 확장: mysql, postgres/postgresql, mongodb, oracle, mariadb, haproxy, f5, elb, alb, nginx, apache, httpd, frontend, redis, memcached, varnish, elasticache, nas, s3, minio, nfs, efs, backend, server'),
   }),
   execute: async ({ group }: { group: string }) => {
     const cache = getDataCache();
@@ -847,7 +848,12 @@ export const getServerByGroupAdvanced = tool({
 - "상위 3개 DB 서버 (CPU 기준)" → group="db", sort={ by: "cpu", order: "desc" }, limit=3
 
 ## 지원 그룹 (getServerByGroup과 동일)
-database, loadbalancer, web, cache, storage, application + 기술 스택 약어
+- database: db, mysql, postgres/postgresql, mongodb, oracle, mariadb
+- loadbalancer: lb, haproxy, f5, elb, alb
+- web: nginx, apache, httpd, frontend
+- cache: redis, memcached, varnish, elasticache
+- storage: nas, s3, minio, nfs, efs
+- application: api, app, backend, server
 
 ## 필터 옵션
 - cpuMin/cpuMax: CPU 사용률 범위 (0-100)
@@ -860,7 +866,7 @@ database, loadbalancer, web, cache, storage, application + 기술 스택 약어
   inputSchema: z.object({
     group: z
       .string()
-      .describe('서버 그룹/타입 (db, mysql, nginx, redis 등)'),
+      .describe('서버 그룹/타입. 지원: db, mysql, postgres, mongodb, oracle, mariadb, lb, haproxy, f5, elb, alb, nginx, apache, redis, memcached, varnish, elasticache, nas, s3, minio, nfs, efs, api, app, backend, server'),
     filters: z.object({
       cpuMin: z.number().min(0).max(100).optional().describe('최소 CPU 사용률'),
       cpuMax: z.number().min(0).max(100).optional().describe('최대 CPU 사용률'),
@@ -1022,18 +1028,25 @@ database, loadbalancer, web, cache, storage, application + 기술 스택 약어
         });
       }
 
+      // Calculate summary BEFORE applying limit (reflects filter results, not limit)
+      const filteredCount = filteredServers.length;
+      const filteredStatus = {
+        online: filteredServers.filter((s) => s.status === 'online').length,
+        warning: filteredServers.filter((s) => s.status === 'warning').length,
+        critical: filteredServers.filter((s) => s.status === 'critical').length,
+      };
+
       // Step 4: Apply limit
       if (limit && limit > 0) {
         filteredServers = filteredServers.slice(0, limit);
       }
 
-      // Calculate summary (from filtered results)
+      // Summary reflects filtered results (before limit)
       const summary = {
         total: totalBeforeFilters,
-        online: filteredServers.filter((s) => s.status === 'online').length,
-        warning: filteredServers.filter((s) => s.status === 'warning').length,
-        critical: filteredServers.filter((s) => s.status === 'critical').length,
-        filtered: filteredServers.length,
+        ...filteredStatus,
+        filtered: filteredCount,
+        returned: filteredServers.length,  // Actual returned count after limit
       };
 
       return {

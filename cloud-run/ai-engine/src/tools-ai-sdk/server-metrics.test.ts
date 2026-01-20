@@ -651,8 +651,9 @@ describe('getServerByGroupAdvanced', () => {
 
       expect(result.success).toBe(true);
       expect(result.servers).toHaveLength(1);
-      expect(result.summary.total).toBe(2); // Total before limit
-      expect(result.summary.filtered).toBe(1); // After limit
+      expect(result.summary.total).toBe(2); // Total before filters
+      expect(result.summary.filtered).toBe(2); // After filters (before limit)
+      expect(result.summary.returned).toBe(1); // After limit
     });
   });
 
@@ -684,7 +685,7 @@ describe('getServerByGroupAdvanced', () => {
 
       expect(result.success).toBe(true);
       expect(result.summary.total).toBe(2); // Total web servers
-      expect(result.summary.filtered).toBe(result.servers.length);
+      expect(result.summary.filtered).toBe(result.summary.returned); // No limit, so equal
       expect(result.summary.online).toBe(result.servers.length); // All filtered are online
     });
   });

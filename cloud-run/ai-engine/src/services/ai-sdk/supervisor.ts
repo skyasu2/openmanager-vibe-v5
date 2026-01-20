@@ -846,7 +846,7 @@ export function classifyIntent(query: string): ClassifiedIntent {
   }
 
   // Complex group queries with filters (DB 서버 중 CPU 80% 이상, 웹 서버 메모리 순 등)
-  const groupPattern = /(db|database|mysql|postgres|mongodb|lb|loadbalancer|haproxy|web|웹|nginx|apache|cache|캐시|redis|storage|스토리지|api|app|backend)/i;
+  const groupPattern = /(db|database|mysql|postgres|postgresql|mongodb|oracle|mariadb|lb|loadbalancer|haproxy|f5|elb|alb|web|웹|nginx|apache|httpd|frontend|cache|캐시|redis|memcached|varnish|elasticache|storage|스토리지|nas|s3|minio|nfs|efs|api|app|backend|server)/i;
   const filterPattern = /(이상|초과|미만|이하|\d+%|높은|낮은|순|정렬|warning|critical|online|상위|top)/i;
   if (groupPattern.test(q) && filterPattern.test(q)) {
     return {
