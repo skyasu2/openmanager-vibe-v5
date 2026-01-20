@@ -13,6 +13,9 @@ const SENTRY_DSN =
 Sentry.init({
   dsn: SENTRY_DSN,
 
+  // 🎯 Tunnel 경로 (ad-blocker 우회)
+  tunnel: '/sentry-tunnel',
+
   // 🎯 무료 티어 최적화: Replay 비활성화 (이벤트 절약)
   integrations: [],
 
@@ -23,7 +26,7 @@ Sentry.init({
   replaysSessionSampleRate: 0,
   replaysOnErrorSampleRate: 0,
 
-  // 개발 환경에서만 에러 전송
+  // Production에서만 활성화
   enabled: process.env.NODE_ENV === 'production',
 
   debug: false,

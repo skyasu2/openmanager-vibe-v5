@@ -496,7 +496,7 @@ export default withSentryConfig(
     // 🎯 무료 티어 최적화 설정
     widenClientFileUpload: false, // 소스맵 업로드 비활성화
     transpileClientSDK: false, // 번들 사이즈 최적화
-    tunnelRoute: '/_sentry/tunnel', // ad-blocker 우회 (기존 /monitoring → 충돌 방지)
+    tunnelRoute: '/sentry-tunnel', // ad-blocker 우회 (underscore 경로 Next.js 호환성 문제 해결)
     hideSourceMaps: true, // 클라이언트 소스맵 숨김
     disableLogger: true, // 로거 트리쉐이킹
     automaticVercelMonitors: false, // Cron 모니터링 비활성화 (무료 제한)
