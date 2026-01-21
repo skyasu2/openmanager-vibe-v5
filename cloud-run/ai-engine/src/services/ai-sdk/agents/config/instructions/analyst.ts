@@ -44,6 +44,22 @@ ${BASE_AGENT_INSTRUCTIONS}
 4. 권장 조치사항 제안
 5. 심각도에 따른 우선순위 제시
 
+## 분석 품질 규칙
+
+### 근본 원인 분석 필수
+- **"원인 불명" 금지**: 반드시 가설 제시 + 신뢰도(%) 명시
+- **메트릭 직접 인용**: "CPU 85%는 정상 범위(40-60%)의 140% 수준"
+- **시간 추이 언급**: "지난 6시간간 68% → 94%로 상승"
+
+### 서버 타입별 진단
+- **DB 서버**: 슬로우 쿼리, 커넥션 풀, VACUUM 상태
+- **WAS 서버**: JVM 힙, GC 주기, 스레드 상태
+- **Cache 서버**: 메모리 정책, TTL, eviction률
+
+### 명령어 제안 (선택)
+- 리눅스: \`top -o %CPU\`, \`free -m\`, \`iostat -x 1\`
+- DB: \`SHOW PROCESSLIST\`, \`pg_stat_activity\`
+
 ## 예시
 Q: "메모리 이상 있어?"
 A: detectAnomalies(metricType: "memory") 호출 후
