@@ -905,88 +905,89 @@ function ReactFlowDiagram({
 
         {/* React Flow 캔버스 */}
         <DiagramErrorBoundary diagramTitle={diagram.title}>
-        <div
-          className={`rounded-xl border border-white/10 bg-linear-to-br from-slate-900/50 to-slate-800/50 ${
-            compact
-              ? 'h-[48dvh] sm:h-[50dvh] lg:h-[52dvh] max-h-[380px] sm:max-h-[400px] lg:max-h-[440px]'
-              : 'h-[52dvh] sm:h-[55dvh] lg:h-[58dvh] max-h-[420px] sm:max-h-[460px] lg:max-h-[520px]'
-          }`}
-        >
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            defaultViewport={DEFAULT_VIEWPORT}
-            fitView
-            fitViewOptions={FIT_VIEW_OPTIONS}
-            onInit={(instance) => {
-              // 모달 트랜지션 완료 후 확실하게 맞춤 (클린업 가능하도록 ref 저장)
-              if (initTimeoutRef.current) clearTimeout(initTimeoutRef.current);
-              initTimeoutRef.current = setTimeout(
-                () => instance.fitView(FIT_VIEW_OPTIONS),
-                800
-              );
-            }}
-            minZoom={0.05}
-            maxZoom={2.5}
-            defaultEdgeOptions={defaultEdgeOptions}
-            proOptions={{ hideAttribution: true }}
-            nodesFocusable
-            edgesFocusable
-            className="react-flow-dark"
-            aria-label={`${diagram.title} 아키텍처 다이어그램`}
+          <div
+            className={`rounded-xl border border-white/10 bg-linear-to-br from-slate-900/50 to-slate-800/50 ${
+              compact
+                ? 'h-[48dvh] sm:h-[50dvh] lg:h-[52dvh] max-h-[380px] sm:max-h-[400px] lg:max-h-[440px]'
+                : 'h-[52dvh] sm:h-[55dvh] lg:h-[58dvh] max-h-[420px] sm:max-h-[460px] lg:max-h-[520px]'
+            }`}
           >
-            <Background color="rgba(255, 255, 255, 0.05)" gap={20} size={1} />
-            {showControls && (
-              <Controls
-                className="!border-white/20 !bg-slate-800/80 [&>button]:!border-white/20 [&>button]:!bg-slate-700/80 [&>button:hover]:!bg-slate-600/80 [&>button>svg]:!fill-white/80"
-                showInteractive={false}
-                aria-label={ariaLabelConfig['controls.ariaLabel']}
-              />
-            )}
-            {showMiniMap && (
-              <MiniMap
-                className="!border-white/20 !bg-slate-800/80"
-                nodeColor={(node) => {
-                  const data = node.data as CustomNodeData;
-                  if (data?.nodeType === 'highlight')
-                    return 'rgba(250, 204, 21, 0.8)';
-                  if (data?.nodeType === 'primary')
-                    return 'rgba(255, 255, 255, 0.6)';
-                  return 'rgba(255, 255, 255, 0.3)';
-                }}
-                maskColor="rgba(0, 0, 0, 0.8)"
-                aria-label={ariaLabelConfig['minimap.ariaLabel']}
-              />
-            )}
-            <AutoFitView />
-          </ReactFlow>
-        </div>
-      </DiagramErrorBoundary>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              defaultViewport={DEFAULT_VIEWPORT}
+              fitView
+              fitViewOptions={FIT_VIEW_OPTIONS}
+              onInit={(instance) => {
+                // 모달 트랜지션 완료 후 확실하게 맞춤 (클린업 가능하도록 ref 저장)
+                if (initTimeoutRef.current)
+                  clearTimeout(initTimeoutRef.current);
+                initTimeoutRef.current = setTimeout(
+                  () => instance.fitView(FIT_VIEW_OPTIONS),
+                  800
+                );
+              }}
+              minZoom={0.05}
+              maxZoom={2.5}
+              defaultEdgeOptions={defaultEdgeOptions}
+              proOptions={{ hideAttribution: true }}
+              nodesFocusable
+              edgesFocusable
+              className="react-flow-dark"
+              aria-label={`${diagram.title} 아키텍처 다이어그램`}
+            >
+              <Background color="rgba(255, 255, 255, 0.05)" gap={20} size={1} />
+              {showControls && (
+                <Controls
+                  className="!border-white/20 !bg-slate-800/80 [&>button]:!border-white/20 [&>button]:!bg-slate-700/80 [&>button:hover]:!bg-slate-600/80 [&>button>svg]:!fill-white/80"
+                  showInteractive={false}
+                  aria-label={ariaLabelConfig['controls.ariaLabel']}
+                />
+              )}
+              {showMiniMap && (
+                <MiniMap
+                  className="!border-white/20 !bg-slate-800/80"
+                  nodeColor={(node) => {
+                    const data = node.data as CustomNodeData;
+                    if (data?.nodeType === 'highlight')
+                      return 'rgba(250, 204, 21, 0.8)';
+                    if (data?.nodeType === 'primary')
+                      return 'rgba(255, 255, 255, 0.6)';
+                    return 'rgba(255, 255, 255, 0.3)';
+                  }}
+                  maskColor="rgba(0, 0, 0, 0.8)"
+                  aria-label={ariaLabelConfig['minimap.ariaLabel']}
+                />
+              )}
+              <AutoFitView />
+            </ReactFlow>
+          </div>
+        </DiagramErrorBoundary>
 
-      {/* 범례 */}
-      <div className="flex flex-wrap justify-center gap-3 border-t border-white/10 pt-3">
-        <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded bg-linear-to-br from-yellow-500/40 to-amber-500/40 ring-1 ring-yellow-400/50" />
-          <span className="text-[10px] text-gray-400">핵심</span>
+        {/* 범례 */}
+        <div className="flex flex-wrap justify-center gap-3 border-t border-white/10 pt-3">
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded bg-linear-to-br from-yellow-500/40 to-amber-500/40 ring-1 ring-yellow-400/50" />
+            <span className="text-[10px] text-gray-400">핵심</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded bg-white/15 ring-1 ring-white/30" />
+            <span className="text-[10px] text-gray-400">주요</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded bg-white/5 ring-1 ring-white/10" />
+            <span className="text-[10px] text-gray-400">보조</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-3 w-4 border-t border-dashed border-purple-400/60" />
+            <span className="text-[10px] text-gray-400">검증</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-3 w-4 border-t border-white/40" />
+            <span className="text-[10px] text-gray-400">데이터</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded bg-white/15 ring-1 ring-white/30" />
-          <span className="text-[10px] text-gray-400">주요</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded bg-white/5 ring-1 ring-white/10" />
-          <span className="text-[10px] text-gray-400">보조</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="h-3 w-4 border-t border-dashed border-purple-400/60" />
-          <span className="text-[10px] text-gray-400">검증</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="h-3 w-4 border-t border-white/40" />
-          <span className="text-[10px] text-gray-400">데이터</span>
-        </div>
-      </div>
       </div>
     </Tooltip.Provider>
   );
