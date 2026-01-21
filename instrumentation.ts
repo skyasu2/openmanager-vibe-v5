@@ -1,66 +1,113 @@
 /**
- * Next.js Instrumentation
+ * Next.js Instrumentation (Next.js 16 권장 방식)
  *
  * 앱 시작 시 실행되는 초기화 코드
- * Sentry 서버 측 SDK 초기화 포함
+ * - Sentry Server/Edge SDK 통합 초기화
+ * - 환경변수 검증
+ *
+ * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
+ * @see https://docs.sentry.io/platforms/javascript/guides/nextjs/
  */
 
+import * as Sentry from '@sentry/nextjs';
+
+// Sentry DSN (Public Key - 전송만 가능, 읽기 불가)
+const SENTRY_DSN =
+  process.env.SENTRY_DSN ||
+  process.env.NEXT_PUBLIC_SENTRY_DSN ||
+  'https://c4cfe13cdda790d1d9a6c3f92c593f39@o4509732473667584.ingest.de.sentry.io/4510731369119824';
+
 export async function register() {
-  // 🎯 Sentry 서버 측 SDK 초기화
+  // Node.js 런타임 (Server)
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    // Node.js 런타임에서 Sentry 서버 설정 로드
-    await import('./sentry.server.config');
-  }
+    Sentry.init({
+      dsn: SENTRY_DSN,
 
-  if (process.env.NEXT_RUNTIME === 'edge') {
-    // Edge 런타임에서 Sentry Edge 설정 로드
-    await import('./sentry.edge.config');
-  }
+      // 🎯 무료 티어: 샘플링 10% (월 5,000 이벤트 제한)
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
 
-  // 서버 사이드에서만 실행
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
+      // Production에서만 활성화
+      enabled: process.env.NODE_ENV === 'production',
+
+      debug: false,
+    });
+
+    // 환경변수 검증
     try {
-      // 이 import는 Zod 스키마를 사용하여 환경 변수를 즉시 검증합니다.
-      // 실패 시, 앱 시작이 중단됩니다.
       await import('./src/env');
-      console.log('✅ 통합 환경변수 검증 완료');
+      console.log('✅ 환경변수 검증 완료');
     } catch (error) {
-      console.error(
-        '🚨 치명적 오류: 환경변수 설정이 올바르지 않습니다.',
-        error
-      );
-      // 프로덕션에서는 프로세스를 종료하여 배포 실패를 유도
+      console.error('🚨 환경변수 검증 실패:', error);
       if (process.env.NODE_ENV === 'production') {
         process.exit(1);
       }
     }
 
-    // 🔐 선택적 환경 변수 검증 (TEST_API_KEY 등)
+    // 선택적 환경변수 검증
     try {
       const { validateEnvironmentVariables } = await import(
         './src/lib/config/env-validation'
       );
       validateEnvironmentVariables();
     } catch (error) {
-      console.error('🚨 선택적 환경변수 검증 실패:', error);
-      // 프로덕션에서는 프로세스를 종료하여 배포 실패를 유도
+      console.error('⚠️ 선택적 환경변수 검증 실패:', error);
       if (process.env.NODE_ENV === 'production') {
         process.exit(1);
       }
     }
-
-    // 🎯 통합 설정 관리자 초기화 (비활성화 - 파일 존재하지 않음)
-    // NOTE: config/index.js가 존재하지 않아 초기화 건너뜀
-    // 필요시 src/lib/config 모듈 활용
-
-    // 테스트 모드에서 브라우저 API polyfill 로드
-    if (process.env.__NEXT_TEST_MODE === 'true') {
-      try {
-        require('./src/polyfills');
-        console.log('🧪 테스트 모드: 브라우저 API polyfill 로드됨');
-      } catch (error) {
-        console.warn('⚠️ Polyfill 로드 실패:', error.message);
-      }
-    }
   }
+
+  // Edge 런타임
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    Sentry.init({
+      dsn: SENTRY_DSN,
+
+      // 🎯 무료 티어: 샘플링 10%
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
+
+      // Production에서만 활성화
+      enabled: process.env.NODE_ENV === 'production',
+
+      debug: false,
+    });
+  }
+}
+
+/**
+ * Next.js 16 권장: Request Error 캡처
+ * Server Components, Route Handlers 등에서 발생하는 에러 캡처
+ */
+export function onRequestError(
+  error: Error & { digest?: string },
+  request: {
+    path: string;
+    method: string;
+    headers: Record<string, string>;
+  },
+  context: {
+    routerKind: 'Pages Router' | 'App Router';
+    routePath: string;
+    routeType: 'render' | 'route' | 'action' | 'middleware';
+    renderSource?:
+      | 'react-server-components'
+      | 'react-server-components-payload'
+      | 'server-rendering';
+    revalidateReason?: 'on-demand' | 'stale' | undefined;
+    renderType?: 'dynamic' | 'dynamic-resume';
+  }
+) {
+  Sentry.captureException(error, {
+    extra: {
+      routerKind: context.routerKind,
+      routePath: context.routePath,
+      routeType: context.routeType,
+      renderSource: context.renderSource,
+      method: request.method,
+      path: request.path,
+    },
+    tags: {
+      routeType: context.routeType,
+      routerKind: context.routerKind,
+    },
+  });
 }
