@@ -13,6 +13,7 @@
  * @updated 2026-01-18 - Fixed layer positioning (layer-first algorithm)
  */
 
+import * as Tooltip from '@radix-ui/react-tooltip';
 import Dagre from '@dagrejs/dagre';
 import {
   Background,
@@ -256,54 +257,86 @@ const NODE_STYLES: Record<
 const CustomNode = memo(({ data }: NodeProps<Node<CustomNodeData>>) => {
   const styles = NODE_STYLES[data.nodeType];
 
-  return (
-    <>
-      {/* 입력 핸들 (상단) - 투명화로 깔끔하게 */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
-      />
-
-      {/* 노드 본체 - 컴팩트 사이즈 */}
-      <div
-        className={`flex min-w-[110px] max-w-[170px] items-center gap-1.5 rounded-lg border px-2.5 py-1.5 transition-all duration-200 hover:scale-[1.03] ${styles.bg} ${styles.border} ${styles.shadow}`}
-        title={`${data.label}${data.sublabel ? `\n${data.sublabel}` : ''}`}
-      >
-        {data.icon && <span className="text-sm">{data.icon}</span>}
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-xs font-semibold text-white">
-            {data.label}
-          </div>
-          {data.sublabel && (
-            <div className="line-clamp-2 text-[9px] leading-tight text-white/70">
-              {data.sublabel}
-            </div>
-          )}
-        </div>
+  // 툴팁 내용 생성
+  const tooltipContent = (
+    <div className="max-w-[200px] space-y-1">
+      <div className="flex items-center gap-2">
+        {data.icon && <span className="text-base">{data.icon}</span>}
+        <span className="font-semibold text-white">{data.label}</span>
       </div>
+      {data.sublabel && (
+        <p className="text-xs leading-relaxed text-gray-300">{data.sublabel}</p>
+      )}
+      <div className="mt-1.5 flex items-center gap-1.5 border-t border-white/10 pt-1.5">
+        <span className="text-[10px] text-gray-400">Layer:</span>
+        <span className="text-[10px] text-gray-300">{data.layerTitle}</span>
+      </div>
+    </div>
+  );
 
-      {/* 출력 핸들 (하단) */}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
-      />
+  return (
+    <Tooltip.Provider delayDuration={300}>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+          <div className="relative">
+            {/* 입력 핸들 (상단) - 투명화로 깔끔하게 */}
+            <Handle
+              type="target"
+              position={Position.Top}
+              className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
+            />
 
-      {/* 좌우 핸들 (수평 연결용) */}
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="left"
-        className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right"
-        className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
-      />
-    </>
+            {/* 노드 본체 - 컴팩트 사이즈 */}
+            <div
+              className={`flex min-w-[110px] max-w-[170px] cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1.5 transition-all duration-200 hover:scale-[1.03] ${styles.bg} ${styles.border} ${styles.shadow}`}
+            >
+              {data.icon && <span className="text-sm">{data.icon}</span>}
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[clamp(10px,2.5vw,12px)] font-semibold text-white">
+                  {data.label}
+                </div>
+                {data.sublabel && (
+                  <div className="line-clamp-2 text-[clamp(8px,2vw,9px)] leading-tight text-white/70">
+                    {data.sublabel}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 출력 핸들 (하단) */}
+            <Handle
+              type="source"
+              position={Position.Bottom}
+              className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
+            />
+
+            {/* 좌우 핸들 (수평 연결용) */}
+            <Handle
+              type="target"
+              position={Position.Left}
+              id="left"
+              className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
+            />
+            <Handle
+              type="source"
+              position={Position.Right}
+              id="right"
+              className="!h-1.5 !w-1.5 !border !border-white/30 !bg-white/10"
+            />
+          </div>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content
+            className="z-[100] rounded-lg border border-white/10 bg-slate-800/95 px-3 py-2 shadow-xl backdrop-blur-sm animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
+            sideOffset={8}
+            side="top"
+          >
+            {tooltipContent}
+            <Tooltip.Arrow className="fill-slate-800/95" />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
   );
 });
 
@@ -609,11 +642,14 @@ function convertToReactFlow(diagram: DiagramData): {
     // 유효한 노드 ID 집합 생성 (존재하지 않는 노드 참조 필터링용)
     const validNodeIds = new Set(contentNodes.map((n) => n.id));
 
-    // 팬아웃 감지: 동일 소스에서 여러 타겟으로 연결
+    // 팬아웃/팬인 감지: 동일 소스/타겟에서 여러 연결
     const sourceConnectionCount: Record<string, number> = {};
+    const targetConnectionCount: Record<string, number> = {};
     diagram.connections.forEach((conn) => {
       sourceConnectionCount[conn.from] =
         (sourceConnectionCount[conn.from] || 0) + 1;
+      targetConnectionCount[conn.to] =
+        (targetConnectionCount[conn.to] || 0) + 1;
     });
 
     diagram.connections.forEach((conn, index) => {
@@ -626,11 +662,26 @@ function convertToReactFlow(diagram: DiagramData): {
       }
 
       const isFanOut = (sourceConnectionCount[conn.from] ?? 0) >= 4;
+      const isFanIn = (targetConnectionCount[conn.to] ?? 0) >= 3;
+      const isConverging = isFanOut || isFanIn; // 연결선이 밀집되는 경우
 
       // 🚀 데이터 흐름 강조: 모든 연결선에 애니메이션 적용 (흐름 표현)
       // 실선은 느리게(데이터 흐름), 점선은 빠르게(비동기/이벤트)
       const animateEdge = true;
       const animationSpeed = conn.type === 'dashed' ? 1.5 : 3; // 숫자가 작을수록 빠름 (s)
+
+      // 🎨 연결선 스타일 계산 (Fan-in/Fan-out 시 투명도/두께 조절)
+      const getStrokeColor = () => {
+        if (conn.type === 'dashed') return 'rgba(167, 139, 250, 0.5)'; // 점선: 보라색 (Fan-in 고려 투명도↓)
+        if (isConverging) return 'rgba(255, 255, 255, 0.35)'; // 밀집: 더 투명하게
+        return 'rgba(255, 255, 255, 0.6)';
+      };
+
+      const getMarkerColor = () => {
+        if (conn.type === 'dashed') return 'rgba(167, 139, 250, 0.7)';
+        if (isConverging) return 'rgba(255, 255, 255, 0.45)';
+        return 'rgba(255, 255, 255, 0.8)';
+      };
 
       edges.push({
         id: `edge-${index}`,
@@ -639,26 +690,16 @@ function convertToReactFlow(diagram: DiagramData): {
         type: 'smoothstep', // Dagre와 호환성 좋음
         animated: animateEdge,
         style: {
-          stroke:
-            conn.type === 'dashed'
-              ? 'rgba(167, 139, 250, 0.6)'
-              : isFanOut
-                ? 'rgba(255, 255, 255, 0.4)'
-                : 'rgba(255, 255, 255, 0.6)',
-          strokeWidth: isFanOut ? 1.5 : 2,
+          stroke: getStrokeColor(),
+          strokeWidth: isConverging ? 1.2 : 2, // 밀집 시 더 얇게
           strokeDasharray: conn.type === 'dashed' ? '5 5' : undefined,
           animationDuration: `${animationSpeed}s`, // CSS animation duration
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          width: isFanOut ? 12 : 15,
-          height: isFanOut ? 12 : 15,
-          color:
-            conn.type === 'dashed'
-              ? 'rgba(167, 139, 250, 0.8)'
-              : isFanOut
-                ? 'rgba(255, 255, 255, 0.5)'
-                : 'rgba(255, 255, 255, 0.8)',
+          width: isConverging ? 10 : 15, // 밀집 시 화살표 축소
+          height: isConverging ? 10 : 15,
+          color: getMarkerColor(),
         },
         // 팬아웃 시 라벨 간소화 (첫 번째만 표시)
         label: isFanOut && index > 0 ? undefined : conn.label,
