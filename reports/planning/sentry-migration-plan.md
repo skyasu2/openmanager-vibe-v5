@@ -153,11 +153,11 @@ Sentry.init({
 
 ## 4. 검증 체크리스트
 
-- [ ] `npm run dev` 500 에러 해결
-- [ ] `npm run build` 성공
-- [ ] Vercel Preview 배포 정상
-- [ ] Production 배포 정상
-- [ ] Sentry 이벤트 수신 확인 (Production)
+- [x] `npm run dev` 500 에러 해결 ✅ HTTP 200 (2026-01-22)
+- [x] `npm run build` 성공 ✅ Compiled successfully (2026-01-22)
+- [x] Vercel Preview 배포 정상 ✅ build_id: 6e46a02 (2026-01-22)
+- [x] Production 배포 정상 ✅ HTTP 200 (2026-01-22)
+- [ ] Sentry 이벤트 수신 확인 (Production) - Production 환경에서 확인 필요
 
 ---
 
@@ -181,7 +181,31 @@ git revert HEAD  # 커밋 되돌리기
 
 ---
 
-## 7. 참고 문서
+## 7. 실행 결과 (2026-01-22)
+
+### 커밋
+```
+6e46a020f fix(sentry): migrate to Next.js 16 instrumentation pattern
+```
+
+### 변경 파일
+| 파일 | 액션 |
+|------|------|
+| `instrumentation.ts` | 수정 (Server + Edge 통합) |
+| `instrumentation-client.ts` | 신규 (Client + onRouterTransitionStart) |
+| `sentry.server.config.ts` | 삭제 |
+| `sentry.edge.config.ts` | 삭제 |
+| `sentry.client.config.ts` | 삭제 |
+| `src/instrumentation.ts` | 삭제 |
+
+### 테스트 결과
+- 로컬 개발: `HTTP 200` ✅
+- 빌드: `228 tests passed`, `Compiled successfully` ✅
+- Production: `HTTP 200` ✅
+
+---
+
+## 8. 참고 문서
 
 - [Sentry Next.js Migration Guide](https://docs.sentry.io/platforms/javascript/guides/nextjs/migration/)
 - [Next.js Instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation)
