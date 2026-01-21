@@ -65,7 +65,7 @@ export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
               ? null // AI 모드 텍스트 제거 요청 반영 (2025-12-13)
               : isSystemStarted
                 ? '기본 모니터링'
-                : '시스템 정지';
+                : '시스템 대기';
 
           if (!showSubtitle || !subtitleText) return null;
 
