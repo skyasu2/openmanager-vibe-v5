@@ -2,8 +2,13 @@
  * Architecture Diagrams Data
  * 랜딩 페이지 Feature Card 모달용 아키텍처 다이어그램 데이터
  *
- * @version 5.88.0
- * @updated 2026-01-15
+ * ⚠️ SYNC: docs/reference/architecture/ 다이어그램과 동기화 필요
+ * - system-architecture-current.md (ASCII)
+ * - ai-engine-architecture.md (Mermaid + ASCII)
+ * - hybrid-split.md (ASCII)
+ *
+ * @version 5.88.2
+ * @updated 2026-01-21
  */
 
 export interface DiagramNode {
@@ -41,12 +46,13 @@ export interface ArchitectureDiagram {
 export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
   /**
    * 1. AI Assistant - Multi-Agent 오케스트레이션
+   * @sync docs/reference/architecture/ai/ai-engine-architecture.md
    */
   'ai-assistant-pro': {
     id: 'ai-assistant-pro',
     title: 'Multi-Agent Architecture',
     description:
-      'Vercel AI SDK 기반 5-Agent 멀티 에이전트 시스템. Orchestrator가 의도를 분석하고 전문 에이전트로 라우팅합니다.',
+      'Vercel AI SDK + @ai-sdk-tools/agents 기반 멀티 에이전트 시스템. Dual-Mode Supervisor가 의도를 분석하고 전문 에이전트로 라우팅.',
     layers: [
       {
         title: 'Client',
@@ -121,6 +127,19 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
           },
         ],
       },
+      {
+        title: 'Validation Layer',
+        color: 'from-green-500 to-emerald-600',
+        nodes: [
+          {
+            id: 'verifier',
+            label: 'Verifier',
+            sublabel: 'Response Validation',
+            type: 'tertiary',
+            icon: '✅',
+          },
+        ],
+      },
     ],
     connections: [
       { from: 'user', to: 'vercel-proxy', label: 'POST' },
@@ -129,17 +148,22 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
       { from: 'orchestrator', to: 'analyst', label: 'Handoff' },
       { from: 'orchestrator', to: 'reporter', label: 'Handoff' },
       { from: 'orchestrator', to: 'advisor', label: 'Handoff' },
+      { from: 'nlq', to: 'verifier', type: 'dashed' },
+      { from: 'analyst', to: 'verifier', type: 'dashed' },
+      { from: 'reporter', to: 'verifier', type: 'dashed' },
+      { from: 'advisor', to: 'verifier', type: 'dashed' },
     ],
   },
 
   /**
    * 2. Cloud Platform - Hybrid Infrastructure
+   * @sync docs/reference/architecture/infrastructure/hybrid-split.md
    */
   'cloud-platform': {
     id: 'cloud-platform',
     title: 'Hybrid Cloud Architecture',
     description:
-      '4개 클라우드 플랫폼을 연동한 하이브리드 아키텍처. 프론트엔드와 AI 백엔드 분리로 독립적 스케일링.',
+      '4개 클라우드 플랫폼 연동. Vercel(Frontend) + Cloud Run(AI) + Supabase(DB) + Upstash(Cache). 독립적 스케일링.',
     layers: [
       {
         title: 'Compute Layer',
@@ -220,6 +244,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
 
   /**
    * 3. Tech Stack - Frontend Architecture
+   * @sync docs/reference/architecture/system/system-architecture-current.md
    */
   'tech-stack': {
     id: 'tech-stack',
@@ -356,7 +381,8 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
 
   /**
    * 4. Vibe Coding - Development Environment
-   * Note: Google Antigravity 사용 중 (Cursor/VSCode는 이전에 사용, 현재 미사용)
+   * Note: Google Antigravity IDE 사용 중 (Cursor/VSCode는 미사용)
+   * @sync .claude/rules/ai-tools.md (MCP Servers 목록)
    */
   'vibe-coding': {
     id: 'vibe-coding',
