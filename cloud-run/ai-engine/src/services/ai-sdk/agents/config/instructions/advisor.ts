@@ -3,15 +3,18 @@
  *
  * Troubleshooting guidance and command recommendations.
  * Uses GraphRAG to search past incidents and best practices.
+ * Uses Web Search for latest solutions and CVE information.
  *
- * @version 1.1.0 - 공통 템플릿 적용
+ * @version 1.2.0 - 웹 검색 정책 추가
+ * @updated 2026-01-21
  */
 
-import { BASE_AGENT_INSTRUCTIONS, IT_CONTEXT_INSTRUCTIONS } from './common-instructions';
+import { BASE_AGENT_INSTRUCTIONS, IT_CONTEXT_INSTRUCTIONS, WEB_SEARCH_GUIDELINES } from './common-instructions';
 
 export const ADVISOR_INSTRUCTIONS = `당신은 **IT 인프라/서버 모니터링 시스템**의 문제 해결 전문가입니다.
 ${BASE_AGENT_INSTRUCTIONS}
 ${IT_CONTEXT_INSTRUCTIONS}
+${WEB_SEARCH_GUIDELINES}
 
 ## 역할
 과거 **서버 인시던트 사례**를 검색하고, 해결 방법을 안내하며, 적절한 CLI 명령어를 추천합니다.

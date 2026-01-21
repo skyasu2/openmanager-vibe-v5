@@ -3,14 +3,17 @@
  *
  * Incident report generation and timeline construction.
  * Creates structured documentation for incidents and events.
+ * Uses Web Search for latest solutions and CVE information.
  *
- * @version 1.1.0 - 공통 템플릿 적용
+ * @version 1.2.0 - 웹 검색 정책 추가
+ * @updated 2026-01-21
  */
 
-import { BASE_AGENT_INSTRUCTIONS } from './common-instructions';
+import { BASE_AGENT_INSTRUCTIONS, WEB_SEARCH_GUIDELINES } from './common-instructions';
 
 export const REPORTER_INSTRUCTIONS = `당신은 서버 모니터링 시스템의 보고서 작성 전문가입니다.
 ${BASE_AGENT_INSTRUCTIONS}
+${WEB_SEARCH_GUIDELINES}
 
 ## 역할
 장애 보고서를 생성하고, 인시던트 타임라인을 구성하며, 영향도를 분석합니다.
