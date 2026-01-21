@@ -213,9 +213,9 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'Vercel Platform',
       category: 'deployment',
       importance: 'critical',
-      description: '프론트엔드 애플리케이션 클라우드 호스팅 플랫폼',
-      implementation:
-        'GitHub 연동으로 Push 시 자동 빌드, 전 세계 CDN으로 즉시 배포',
+      description:
+        '프론트엔드 배포에 최적화된 클라우드 플랫폼. 글로벌 Edge Network, 자동 HTTPS, Preview Deployments, 서버리스 Functions 제공',
+      implementation: '→ GitHub 연동 자동 빌드/배포. Next.js 16 최적화 호스팅',
       status: 'active',
       icon: '▲',
       tags: ['배포', '클라우드 호스팅', '전역 CDN'],
@@ -225,44 +225,48 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'Supabase PostgreSQL',
       category: 'database',
       importance: 'critical',
-      description: '메인 데이터베이스로 모든 데이터 저장 및 관리',
-      implementation: 'PostgreSQL + pgVector (벡터 검색) + RLS (행 수준 보안)',
+      description:
+        '오픈소스 Firebase 대안 BaaS. PostgreSQL 기반으로 인증, 스토리지, 실시간 구독, Edge Functions, 벡터 검색(pgVector) 통합 제공',
+      implementation: '→ pgVector로 AI 벡터 검색, RLS로 행 수준 보안 적용',
       status: 'active',
       icon: '🐘',
-      tags: ['데이터베이스', 'pgVector', '확장가능'],
+      tags: ['데이터베이스', 'pgVector', 'BaaS'],
       type: 'commercial',
     },
     {
       name: 'GCP Cloud Run',
       category: 'deployment',
       importance: 'high',
-      description: 'AI Engine + ML 추론 마이크로서비스 컨테이너 플랫폼',
+      description:
+        'Google Cloud 서버리스 컨테이너 플랫폼. Scale to Zero로 유휴 비용 제로, 트래픽 증가 시 자동 확장, 콜드 스타트 최소화',
       implementation:
-        'Node.js 22 기반 AI SDK Multi-Agent Engine + Rust native ML Engine(anomaly/trend/cluster) 운영. Docker 컨테이너로 Cold Start 최소화 및 확장성 확보',
+        '→ Node.js 22 + Hono AI Engine 운영. asia-northeast1(서울) 배포',
       status: 'active',
       icon: '☁️',
-      tags: ['CloudRun', 'Container', 'TypeScript', 'Rust'],
+      tags: ['CloudRun', 'Container', 'Serverless'],
       type: 'commercial',
     },
     {
-      name: 'Docker (개발환경)',
+      name: 'Docker',
       category: 'deployment',
       importance: 'high',
-      description: '로컬에서 Cloud Run 환경 완벽 에뮬레이션',
+      description:
+        '컨테이너 기반 가상화 플랫폼. 애플리케이션과 의존성을 패키징하여 어디서든 동일하게 실행. 개발-프로덕션 환경 일관성 보장',
       implementation:
-        'WSL 위에서 Docker를 실행하여 GCP Cloud Run과 동일한 컨테이너 개발 환경 구축. 로컬-프로덕션 환경 불일치 문제 원천 차단',
+        '→ WSL + Docker로 Cloud Run 로컬 에뮬레이션. 환경 불일치 원천 차단',
       version: '24.0.x',
       status: 'active',
       icon: '🐋',
-      tags: ['Docker', 'Local-Dev', 'Container'],
-      type: 'commercial',
+      tags: ['Docker', 'Container', 'DevOps'],
+      type: 'opensource',
     },
     {
       name: 'GitHub Actions',
       category: 'deployment',
       importance: 'medium',
-      description: 'CI/CD 파이프라인으로 자동 테스트 및 배포',
-      implementation: 'Workflow 파일로 테스트→빌드→배포 자동화',
+      description:
+        'GitHub 내장 CI/CD 플랫폼. YAML 기반 워크플로우 정의, 다양한 러너 환경, 마켓플레이스 액션으로 자동화 파이프라인 구축',
+      implementation: '→ Push 시 자동 테스트→빌드→배포 파이프라인 실행',
       status: 'active',
       icon: '🔄',
       tags: ['CI/CD', '자동화', '워크플로우'],
@@ -272,13 +276,42 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'Upstash Redis',
       category: 'cache',
       importance: 'critical',
-      description: 'Serverless Redis로 AI 응답 캐싱 및 Rate Limiting',
+      description:
+        'Serverless Redis 서비스. 글로벌 복제, 초저지연 캐싱, 사용량 기반 과금. REST API로 Edge 환경에서도 접근 가능',
       implementation:
-        'AI Engine 응답 캐싱으로 중복 요청 방지, API Rate Limiting으로 무료 티어 할당량 보호. 글로벌 엣지에서 초저지연 캐시 히트',
+        '→ AI 응답 캐싱(3시간 TTL), API Rate Limiting으로 할당량 보호',
       status: 'active',
       icon: '⚡',
       tags: ['Redis', 'Serverless', 'Cache', 'Rate-Limit'],
       type: 'commercial',
+    },
+    {
+      name: 'Sentry',
+      category: 'deployment',
+      importance: 'medium',
+      description:
+        '프로덕션 에러 모니터링 및 성능 추적 플랫폼. 크래시 리포트, 성능 병목 탐지, Release Health 추적 제공',
+      implementation:
+        '→ 에러 발생 시 스택 트레이스, 브레드크럼 자동 수집. Next.js Client/Server/Edge 전체 커버',
+      version: '10.34',
+      status: 'active',
+      icon: '🛡️',
+      tags: ['Error-Tracking', 'Performance', 'Monitoring'],
+      type: 'commercial',
+    },
+    {
+      name: 'Pino',
+      category: 'deployment',
+      importance: 'medium',
+      description:
+        'Node.js 초고속 JSON 로깅 라이브러리. 낮은 오버헤드, 구조화된 로그, Child Logger 지원. Bunyan/Winston 대비 5배 빠른 성능',
+      implementation:
+        '→ 서버/브라우저 통합 로거 구현. Cloud Run에서 GCP Cloud Logging 호환 포맷 출력',
+      version: '10.1',
+      status: 'active',
+      icon: '📋',
+      tags: ['Logging', 'JSON', 'Performance'],
+      type: 'opensource',
     },
   ],
   'tech-stack': [
@@ -286,9 +319,10 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'React 19',
       category: 'framework',
       importance: 'critical',
-      description: 'Concurrent Rendering, Server Components 등 최신 기능 적용',
+      description:
+        'Meta의 UI 라이브러리. Concurrent Rendering, Server Components, Suspense, Transitions 등 최신 렌더링 패턴 제공',
       implementation:
-        'React 19의 Concurrent 기능과 Server Components로 성능 최적화',
+        '→ Concurrent 기능과 Server Components로 성능 최적화 적용',
       version: '19.2.3',
       status: 'active',
       icon: '⚛️',
@@ -299,9 +333,10 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'Next.js 16',
       category: 'framework',
       importance: 'critical',
-      description: 'Server Actions, Partial Prerendering, Edge Runtime 지원',
+      description:
+        'Vercel의 React 풀스택 프레임워크. App Router, Server Actions, Partial Prerendering, Edge Runtime, 자동 코드 분할 제공',
       implementation:
-        'App Router + Server Actions + Partial Prerendering으로 최적화된 렌더링',
+        '→ App Router + Server Actions + PPR로 최적화된 렌더링 구현',
       version: '16.1.1',
       status: 'active',
       icon: '▲',
@@ -312,8 +347,10 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'TypeScript 5.9',
       category: 'language',
       importance: 'critical',
-      description: '최신 컴파일러 기능을 활용한 강력한 타입 안전성 확보',
-      implementation: 'strict 모드로 컴파일 타임 오류 방지 및 개발 생산성 향상',
+      description:
+        'Microsoft의 정적 타입 언어. JavaScript 슈퍼셋으로 컴파일 타임 타입 검사, IDE 자동완성, 리팩토링 안전성 제공',
+      implementation:
+        '→ strict 모드로 컴파일 타임 오류 방지 및 개발 생산성 향상',
       version: '5.9.3',
       status: 'active',
       icon: '🔷',
@@ -324,34 +361,37 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'Node.js 22 + Hono',
       category: 'language',
       importance: 'critical',
-      description: 'Cloud Run 기반의 초경량 고성능 AI 백엔드',
+      description:
+        'Node.js: V8 기반 서버사이드 JS 런타임. Hono: Web Standards API 기반 초경량 웹 프레임워크로 Express 대비 10배 빠른 성능',
       implementation:
-        'Cloud Run에서 실행되는 TypeScript 기반 Hono 웹 프레임워크 (AI Engine)',
+        '→ Cloud Run에서 AI Engine 백엔드로 운영. TypeScript 기반',
       version: '22.x',
       status: 'active',
       icon: '🚀',
-      tags: ['백엔드', 'TypeScript', 'AI'],
+      tags: ['백엔드', 'TypeScript', 'Hono'],
       type: 'opensource',
     },
     {
       name: 'Rust ML Engine',
       category: 'ai',
       importance: 'high',
-      description: 'Native 성능의 머신러닝 분석 엔진',
+      description:
+        'Rust 언어로 구현한 네이티브 ML 엔진. 메모리 안전성과 제로 코스트 추상화로 C++ 수준 성능 제공. WASM 컴파일 지원',
       implementation:
-        'Rust로 직접 구현한 Anomaly Detection, K-Means Clustering, Linear Regression 엔진',
+        '→ Anomaly Detection, K-Means Clustering, Linear Regression 직접 구현',
       version: '1.0.0',
       status: 'active',
       icon: '🦀',
       tags: ['Rust', 'ML', 'Native', 'WASM'],
-      type: 'opensource',
+      type: 'custom',
     },
     {
       name: 'Recharts 3.6',
       category: 'ui',
       importance: 'high',
-      description: '실시간 대시보드 차트 및 메트릭 시각화',
-      implementation: '실시간 메트릭 시각화, 반응형 차트, React 19 호환',
+      description:
+        'React 기반 선언적 차트 라이브러리. D3.js 위에 구축, SVG 렌더링, 반응형 컨테이너, 애니메이션 지원',
+      implementation: '→ 실시간 메트릭 시각화, 반응형 차트 구현. React 19 호환',
       version: '3.6.0',
       status: 'active',
       icon: '📊',
@@ -362,8 +402,9 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'TanStack Query v5',
       category: 'framework',
       importance: 'high',
-      description: '서버 상태 관리 및 데이터 캐싱 최적화',
-      implementation: '서버 데이터 캐싱, 자동 리패칭, 무한 스크롤 구현',
+      description:
+        '비동기 상태 관리 라이브러리. 서버 데이터 캐싱, 자동 리패칭, 낙관적 업데이트, 무한 스크롤, 오프라인 지원',
+      implementation: '→ 서버 데이터 캐싱 및 자동 리패칭으로 API 호출 최적화',
       version: '5.x',
       status: 'active',
       icon: '🔄',
@@ -374,9 +415,9 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'Supabase Auth',
       category: 'framework',
       importance: 'critical',
-      description: 'SSR 지원 보안 인증 시스템',
-      implementation:
-        'Supabase SSR 패키지를 활용한 쿠키 기반 세션 관리 및 RLS 보안',
+      description:
+        'Supabase 인증 서비스. OAuth, Magic Link, 이메일/비밀번호 인증 제공. Row Level Security(RLS)와 통합되어 DB 수준 보안',
+      implementation: '→ SSR 패키지로 쿠키 기반 세션 관리. RLS 정책 연동',
       version: 'Auth v2',
       status: 'active',
       icon: '🔒',
@@ -387,8 +428,9 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'Tailwind CSS 4.1',
       category: 'ui',
       importance: 'high',
-      description: '최신 Oxides 엔진으로 빌드 성능 극대화',
-      implementation: 'v4 Oxides 엔진으로 빌드 10배 빠름, CSS-first 설정',
+      description:
+        '유틸리티 퍼스트 CSS 프레임워크. v4 Oxides 엔진으로 빌드 10배 향상, CSS-first 설정, 클래스 기반 스타일링',
+      implementation: '→ 컴포넌트 스타일링 전체 적용. 다크 모드, 반응형 지원',
       version: '4.1.18',
       status: 'active',
       icon: '🎨',
@@ -399,8 +441,9 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'Radix UI',
       category: 'ui',
       importance: 'high',
-      description: '접근성이 보장된 Headless UI 컴포넌트',
-      implementation: '접근성(a11y)이 보장된 기본 UI 프리미티브 사용',
+      description:
+        '접근성 우선 Headless UI 라이브러리. 스타일 없는 프리미티브 컴포넌트로 완전한 커스터마이징 가능. WAI-ARIA 준수',
+      implementation: '→ Dialog, Tooltip, Dropdown 등 복잡한 UI 패턴에 사용',
       status: 'active',
       icon: '🏬',
       tags: ['UI', '접근성', '컴포넌트'],
@@ -410,12 +453,27 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       name: 'Zustand 5.0',
       category: 'framework',
       importance: 'medium',
-      description: '글로벌 상태 관리 및 미들웨어 최적화',
-      implementation: '가볍고 빠른 클라이언트 측 상태 관리 솔루션',
+      description:
+        '경량 상태 관리 라이브러리. Redux 대비 간결한 API, 미들웨어 지원, React 외부에서도 사용 가능. 번들 사이즈 1KB',
+      implementation: '→ 글로벌 UI 상태 및 Admin 설정 관리에 사용',
       version: '5.0.9',
       status: 'active',
       icon: '🧰',
       tags: ['상태관리', 'Store', 'React'],
+      type: 'opensource',
+    },
+    {
+      name: 'Zod 4',
+      category: 'framework',
+      importance: 'high',
+      description:
+        'TypeScript-first 스키마 선언 및 검증 라이브러리. 런타임 타입 검증, 자동 타입 추론, 파서 조합, 커스텀 에러 메시지 지원',
+      implementation:
+        '→ API 응답/요청 검증, 환경변수 검증, 폼 유효성 검사에 전역 사용',
+      version: '4.0',
+      status: 'active',
+      icon: '🛡️',
+      tags: ['검증', 'TypeScript', '스키마'],
       type: 'opensource',
     },
   ],
@@ -439,19 +497,12 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         name: 'MCP 서버',
         category: 'ai',
         importance: 'high',
-        description: `Claude Code의 기능을 확장하는 Model Context Protocol 서버들 (${MCP_SERVERS.TOTAL_ACTIVE}개)`,
-        implementation: `핵심 ${MCP_SERVERS.TOTAL_ACTIVE}개 서버로 개발 효율성 극대화:
-• vercel: Vercel 플랫폼 배포 및 관리
-• supabase: PostgreSQL 데이터베이스 직접 작업
-• serena: 고급 코드 분석 및 리팩토링
-• context7: 라이브러리 문서 실시간 검색
-• playwright: 브라우저 자동화 및 E2E 테스트
-• github: 저장소 관리 및 자동화
-• tavily: 웹 검색 - 심층 리서치
-• sequential-thinking: 복잡한 추론/설계`,
+        description:
+          'Anthropic의 Model Context Protocol. AI가 외부 도구, 데이터 소스, API에 표준화된 방식으로 접근하는 오픈 프로토콜. 다양한 MCP 서버로 AI 기능 확장',
+        implementation: `→ ${MCP_SERVERS.TOTAL_ACTIVE}개 서버 연동: vercel(배포), supabase(DB), serena(코드분석), context7(문서), playwright(E2E), github(저장소), tavily(검색), sequential-thinking(추론)`,
         status: 'active',
         icon: '🔌',
-        tags: ['MCP서버', '자동화도구', '확장기능'],
+        tags: ['MCP', 'Protocol', '확장기능'],
         type: 'opensource',
       },
       {
@@ -527,22 +578,24 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         name: 'Vitest 4.0',
         category: 'testing',
         importance: 'high',
-        description: '차세대 테스트 프레임워크로 빠른 피드백 루프',
+        description:
+          'Vite 기반 차세대 테스트 프레임워크. Jest 호환 API, 네이티브 ESM, HMR 지원으로 초고속 테스트 실행. 워치 모드에서 변경 파일만 재실행',
         implementation:
-          'Vite 기반 초고속 테스트 실행. HMR 지원으로 개발 중 실시간 테스트. Coverage 리포트 생성',
+          '→ 유닛/통합 테스트 전체 적용. Coverage 리포트 및 실시간 피드백',
         version: '4.0.16',
         status: 'active',
         icon: '🧪',
-        tags: ['테스트', 'Vite', 'DX'],
+        tags: ['테스트', 'Vite', 'Jest호환'],
         type: 'opensource',
       },
       {
         name: 'Biome 2.3',
         category: 'tooling',
         importance: 'high',
-        description: 'Rust 기반 초고속 Linter + Formatter',
+        description:
+          'Rust 기반 초고속 Linter + Formatter. ESLint/Prettier 통합 대체, 단일 도구로 린트와 포맷팅 동시 수행. 10배 빠른 속도',
         implementation:
-          'ESLint/Prettier 대체. Rust로 작성되어 10배 빠른 속도. 일관된 코드 스타일 자동 적용',
+          '→ 코드 스타일 자동 적용. PostToolUse hook으로 저장 시 자동 포맷',
         version: '2.3.10',
         status: 'active',
         icon: '🔧',
@@ -553,13 +606,14 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         name: 'Playwright 1.57',
         category: 'testing',
         importance: 'high',
-        description: 'E2E 테스트 및 브라우저 자동화',
+        description:
+          'Microsoft의 E2E 테스트 프레임워크. Chromium/Firefox/WebKit 크로스 브라우저, 자동 대기, 트레이싱, 스크린샷 캡처 지원',
         implementation:
-          'Chromium, Firefox, WebKit 크로스 브라우저 테스트. MCP 서버로 Claude Code에서 직접 제어',
+          '→ 크리티컬 플로우 E2E 테스트. MCP 서버로 Claude Code에서 직접 제어',
         version: '1.57.0',
         status: 'active',
         icon: '🎭',
-        tags: ['E2E', '브라우저', '자동화'],
+        tags: ['E2E', 'Microsoft', '크로스브라우저'],
         type: 'opensource',
       },
     ],
