@@ -155,6 +155,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
             {/* 뷰 모드 토글 */}
             <div className="flex rounded-lg border border-gray-200 bg-gray-100 p-1">
               <button
+                type="button"
                 onClick={() => setViewMode('simple')}
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
                   viewMode === 'simple'
@@ -166,6 +167,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
                 기본
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode('advanced')}
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
                   viewMode === 'advanced'
@@ -180,6 +182,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
 
             {/* 실시간 제어 버튼 */}
             <button
+              type="button"
               onClick={onToggleRealtime}
               className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold shadow-lg transition-all hover:scale-105 active:scale-95 ${
                 isRealtime
@@ -322,6 +325,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
                   {(['cpu', 'memory', 'disk', 'network'] as MetricType[]).map(
                     (m) => (
                       <button
+                        type="button"
                         key={m}
                         onClick={() => setSelectedMetric(m)}
                         className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
@@ -380,6 +384,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
 
               {/* 새로고침 버튼 */}
               <button
+                type="button"
                 onClick={() => refetchTimeSeries()}
                 disabled={timeSeriesLoading}
                 className="ml-auto rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-200 disabled:opacity-50"
@@ -432,6 +437,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
                     이 서버의 시계열 데이터가 아직 수집되지 않았습니다.
                   </p>
                   <button
+                    type="button"
                     onClick={() => refetchTimeSeries()}
                     className="rounded-lg bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-200"
                   >

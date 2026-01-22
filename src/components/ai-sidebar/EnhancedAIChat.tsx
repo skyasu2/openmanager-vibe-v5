@@ -204,6 +204,7 @@ function ColdStartErrorBanner({
           <div className="flex shrink-0 flex-col gap-2">
             {onRetry && (
               <button
+                type="button"
                 onClick={() => {
                   cancelAutoRetry();
                   onRetry();
@@ -216,6 +217,7 @@ function ColdStartErrorBanner({
             )}
             {isAutoRetrying && (
               <button
+                type="button"
                 onClick={cancelAutoRetry}
                 className="text-xs text-orange-600 underline hover:text-orange-800"
               >
@@ -244,6 +246,7 @@ function ColdStartErrorBanner({
         <div className="flex shrink-0 items-center space-x-2">
           {onRetry && (
             <button
+              type="button"
               onClick={onRetry}
               className="flex items-center space-x-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
               aria-label="재시도"
@@ -254,6 +257,7 @@ function ColdStartErrorBanner({
           )}
           {onClearError && (
             <button
+              type="button"
               onClick={onClearError}
               className="rounded-lg p-1.5 text-red-400 transition-colors hover:bg-red-100 hover:text-red-600"
               aria-label="닫기"
@@ -507,6 +511,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             </div>
             {onNewSession && (
               <button
+                type="button"
                 onClick={onNewSession}
                 className="flex items-center space-x-1 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
               >
@@ -533,6 +538,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             </div>
             {onNewSession && (
               <button
+                type="button"
                 onClick={onNewSession}
                 className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
               >
@@ -570,6 +576,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             <div className="absolute bottom-2 right-2">
               {isGenerating && onStopGeneration ? (
                 <button
+                  type="button"
                   onClick={onStopGeneration}
                   className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500 text-white shadow-sm transition-all hover:bg-red-600"
                   title="생성 중단"
@@ -579,6 +586,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={() => {
                     void handleSendInput();
                   }}

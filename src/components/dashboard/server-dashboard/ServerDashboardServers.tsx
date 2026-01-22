@@ -106,6 +106,7 @@ export function ServerDashboardServers({
     return (
       <div className="mt-6 flex items-center justify-center space-x-2">
         <button
+          type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className="rounded-lg border border-gray-300 p-2 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -117,6 +118,7 @@ export function ServerDashboardServers({
         {startPage > 1 && (
           <>
             <button
+              type="button"
               onClick={() => onPageChange(1)}
               className="rounded-lg border border-gray-300 px-3 py-2 hover:bg-gray-50"
             >
@@ -128,6 +130,7 @@ export function ServerDashboardServers({
 
         {pages.map((page) => (
           <button
+            type="button"
             key={page}
             onClick={() => onPageChange(page)}
             className={`rounded-lg border px-3 py-2 ${
@@ -144,6 +147,7 @@ export function ServerDashboardServers({
           <>
             {endPage < totalPages - 1 && <span className="px-2">...</span>}
             <button
+              type="button"
               onClick={() => onPageChange(totalPages)}
               className="rounded-lg border border-gray-300 px-3 py-2 hover:bg-gray-50"
             >
@@ -153,6 +157,7 @@ export function ServerDashboardServers({
         )}
 
         <button
+          type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           className="rounded-lg border border-gray-300 p-2 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -248,6 +253,7 @@ export function ServerDashboardServers({
             statusFilter !== 'all' ||
             locationFilter !== 'all') && (
             <button
+              type="button"
               onClick={onResetFilters}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
             >
@@ -265,6 +271,7 @@ export function ServerDashboardServers({
                 const IconComponent = option.icon;
                 return (
                   <button
+                    type="button"
                     key={option.value}
                     onClick={() =>
                       onDisplayModeChange(option.value as ServerDisplayMode)
@@ -287,6 +294,7 @@ export function ServerDashboardServers({
           {/* 뷰 모드 토글 */}
           <div className="flex items-center space-x-2 rounded-lg bg-gray-100 p-1">
             <button
+              type="button"
               onClick={() => onViewModeChange('grid')}
               className={`rounded-md p-2 transition-colors ${
                 viewMode === 'grid'
@@ -298,6 +306,7 @@ export function ServerDashboardServers({
               <LayoutGrid size={16} />
             </button>
             <button
+              type="button"
               onClick={() => onViewModeChange('list')}
               className={`rounded-md p-2 transition-colors ${
                 viewMode === 'list'

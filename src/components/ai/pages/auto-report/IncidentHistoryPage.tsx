@@ -423,6 +423,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={toggleFilters}
               className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors ${
                 showFilters
@@ -434,6 +435,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
               필터
             </button>
             <button
+              type="button"
               onClick={handleRefresh}
               disabled={loading}
               className="flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
@@ -503,6 +505,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
 
             {/* Clear Filters */}
             <button
+              type="button"
               onClick={clearFilters}
               className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-100"
             >
@@ -562,6 +565,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
           {!loading && pagination.totalPages > 1 && (
             <div className="mt-4 flex items-center justify-center gap-2">
               <button
+                type="button"
                 onClick={handlePrevPage}
                 disabled={pagination.page <= 1}
                 className="rounded-lg border border-gray-200 p-2 text-gray-500 hover:bg-gray-50 disabled:opacity-50"
@@ -572,6 +576,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
                 {pagination.page} / {pagination.totalPages}
               </span>
               <button
+                type="button"
                 onClick={handleNextPage}
                 disabled={pagination.page >= pagination.totalPages}
                 className="rounded-lg border border-gray-200 p-2 text-gray-500 hover:bg-gray-50 disabled:opacity-50"
@@ -588,6 +593,7 @@ export const IncidentHistoryPage = memo(function IncidentHistoryPage() {
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-800">보고서 상세</h3>
               <button
+                type="button"
                 onClick={handleCloseDetail}
                 className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
               >
