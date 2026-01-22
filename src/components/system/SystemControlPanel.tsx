@@ -157,6 +157,7 @@ export function SystemControlPanel() {
 
         <div className="flex items-center space-x-2">
           <button
+            type="button"
             onClick={handleManualRefresh}
             className="rounded-md bg-blue-50 px-3 py-1 text-sm text-blue-600 transition-colors hover:bg-blue-100"
           >
@@ -164,6 +165,7 @@ export function SystemControlPanel() {
           </button>
 
           <button
+            type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="rounded-md p-2 transition-colors hover:bg-gray-100"
           >
@@ -203,6 +205,7 @@ export function SystemControlPanel() {
           {/* 수동 제어 버튼들 */}
           <div className="grid grid-cols-3 gap-3">
             <button
+              type="button"
               onClick={handleStart}
               disabled={isLoading}
               className="flex items-center justify-center space-x-2 rounded-lg bg-green-600 px-4 py-3 text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -212,6 +215,7 @@ export function SystemControlPanel() {
             </button>
 
             <button
+              type="button"
               onClick={handleStop}
               disabled={isLoading}
               className="flex items-center justify-center space-x-2 rounded-lg bg-red-600 px-4 py-3 text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -221,6 +225,7 @@ export function SystemControlPanel() {
             </button>
 
             <button
+              type="button"
               onClick={handleRestart}
               disabled={isLoading}
               className="flex items-center justify-center space-x-2 rounded-lg bg-orange-600 px-4 py-3 text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
