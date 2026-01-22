@@ -243,6 +243,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           <span className="font-semibold text-gray-900">AI Assistant</span>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => router.push('/ai')}
               className="text-gray-500 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-md p-1"
               title="전체 화면으로 보기"
@@ -251,6 +252,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             </button>
             {onClose && (
               <button
+                type="button"
                 onClick={onClose}
                 className="text-gray-500 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-md p-1"
                 title="닫기"
@@ -325,6 +327,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                 현재 세션
               </span>
               <button
+                type="button"
                 onClick={handleNewSession}
                 className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
                 title="새 대화 시작"
@@ -364,6 +367,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           <div className="space-y-1">
             {/* 자연어 질의 */}
             <button
+              type="button"
               onClick={() => handleFunctionSelect('chat')}
               className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
                 selectedFunction === 'chat'
@@ -379,6 +383,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             </button>
             {/* 자동 장애보고서 */}
             <button
+              type="button"
               onClick={() => handleFunctionSelect('auto-report')}
               className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
                 selectedFunction === 'auto-report'
@@ -396,6 +401,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             </button>
             {/* 이상감지/예측 */}
             <button
+              type="button"
               onClick={() => handleFunctionSelect('intelligent-monitoring')}
               className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
                 selectedFunction === 'intelligent-monitoring'
@@ -434,6 +440,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         <div className="flex md:hidden h-14 items-center justify-between border-b border-gray-200 bg-white px-4 shrink-0 shadow-xs">
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={() => router.back()}
               className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
               title="뒤로 가기"
@@ -444,6 +451,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
           </div>
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={handleNewSession}
               className="rounded-lg border border-gray-200 bg-white p-2 text-gray-500 hover:bg-gray-50 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
               title="새 대화"
@@ -463,6 +471,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
             <div className="flex items-center gap-4">
               {/* 대시보드 돌아가기 버튼 */}
               <button
+                type="button"
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
                 title="대시보드로 돌아가기"
@@ -497,6 +506,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               {/* 패널 토글 버튼 */}
               {selectedFunction === 'chat' && (
                 <button
+                  type="button"
                   onClick={handleToggleRightPanel}
                   className="hidden lg:flex rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
                   title="시스템 컨텍스트 패널 토글"

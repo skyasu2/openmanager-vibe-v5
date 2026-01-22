@@ -19,6 +19,7 @@ export function ServerResultCard({ server }: ServerResultCardProps) {
     <div className={`rounded-xl border ${statusColors[server.overallStatus]}`}>
       {/* 헤더 (클릭하여 접기/펴기) */}
       <button
+        type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex w-full items-center justify-between p-3 text-left"
       >

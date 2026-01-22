@@ -119,6 +119,7 @@ const IconButton = memo(function IconButton({
   if (isMobile) {
     return (
       <button
+        type="button"
         key={item.id}
         data-testid={`ai-function-${item.id}`}
         onClick={handleClick}
@@ -142,6 +143,7 @@ const IconButton = memo(function IconButton({
 
   return (
     <button
+      type="button"
       key={item.id}
       data-testid={`ai-function-${item.id}`}
       onClick={handleClick}
@@ -206,6 +208,7 @@ export default function AIAssistantIconPanel({
 
         {/* 전체 화면 이동 버튼 (Mobile) */}
         <button
+          type="button"
           onClick={handleFullscreen}
           data-testid="ai-fullscreen-button"
           className="group relative h-12 w-12 shrink-0 rounded-xl bg-gray-50 text-gray-600 transition-all duration-200 active:scale-95 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
@@ -253,6 +256,7 @@ export default function AIAssistantIconPanel({
       {/* 전체 화면 이동 버튼 (Desktop - 하단 분리) */}
       <div className="mt-2 border-t border-gray-200 pt-2">
         <button
+          type="button"
           onClick={handleFullscreen}
           data-testid="ai-fullscreen-button"
           className="group relative h-12 w-12 rounded-xl bg-gray-50 text-gray-500 transition-all duration-200 hover:scale-105 hover:bg-gray-100 hover:text-gray-900 active:scale-95"

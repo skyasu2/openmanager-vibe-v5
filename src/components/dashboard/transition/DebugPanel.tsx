@@ -36,7 +36,11 @@ export function DebugPanel({
         <span className="font-semibold text-cyan-400">
           🛠️ 시스템 체크리스트 디버그
         </span>
-        <button onClick={onClose} className="text-gray-400 hover:text-white">
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-gray-400 hover:text-white"
+        >
           ✕
         </button>
       </div>

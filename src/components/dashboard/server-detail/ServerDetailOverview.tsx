@@ -112,7 +112,13 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
 
     return (
       <div className="relative inline-flex items-center justify-center">
-        <svg width={size} height={size} className="-rotate-90 transform">
+        <svg
+          width={size}
+          height={size}
+          className="-rotate-90 transform"
+          role="img"
+          aria-label={`${value}% 진행률`}
+        >
           <circle
             cx={size / 2}
             cy={size / 2}

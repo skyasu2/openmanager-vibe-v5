@@ -170,7 +170,13 @@ export function ServerDetailMetrics({
 
             <div className="relative ml-8">
               {metricsHistory.length > 0 && (
-                <svg width="100%" height="160" className="overflow-visible">
+                <svg
+                  width="100%"
+                  height="160"
+                  className="overflow-visible"
+                  role="img"
+                  aria-label="서버 메트릭 시계열 차트"
+                >
                   {/* 그리드 라인 */}
                   {[0, 25, 50, 75, 100].map((percent) => (
                     <line
