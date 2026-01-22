@@ -8,17 +8,17 @@
  * 3단계: 레이아웃 결과 기반 Swimlane 배경 생성
  */
 
-import type { Node, Edge } from '@xyflow/react';
+import type { Edge, Node } from '@xyflow/react';
 import { MarkerType } from '@xyflow/react';
 
 import type { ArchitectureDiagram } from '@/data/architecture-diagrams.data';
 
 import {
-  NODE_WIDTH,
-  NODE_HEIGHT,
   LABEL_AREA_WIDTH,
-  LABEL_NODE_HEIGHT,
   LABEL_CONTENT_GAP,
+  LABEL_NODE_HEIGHT,
+  NODE_HEIGHT,
+  NODE_WIDTH,
   SWIMLANE_PADDING,
 } from '../constants';
 import { getLayoutedElements } from '../layout';

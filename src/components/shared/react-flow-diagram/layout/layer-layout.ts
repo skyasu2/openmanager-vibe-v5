@@ -7,10 +7,10 @@
  * 각 레이어 내에서 X 위치를 균등 분배합니다.
  */
 
-import type { Node, Edge } from '@xyflow/react';
+import type { Edge, Node } from '@xyflow/react';
 import { Position } from '@xyflow/react';
 
-import { NODE_WIDTH, NODE_HEIGHT } from '../constants';
+import { NODE_HEIGHT, NODE_WIDTH } from '../constants';
 import type { LayoutOptions } from '../types';
 import { fallbackDagreLayout } from './dagre-fallback';
 

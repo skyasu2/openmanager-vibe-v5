@@ -168,4 +168,4 @@ function ReactFlowDiagram({
 export default memo(ReactFlowDiagram);
 
 // Re-export types for external use
-export type { ReactFlowDiagramProps, CustomNodeData } from './types';
+export type { CustomNodeData, ReactFlowDiagramProps } from './types';

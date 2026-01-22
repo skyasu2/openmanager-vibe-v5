@@ -5,7 +5,7 @@
  * @description Swimlane 배경 노드 컴포넌트
  */
 
-import type { NodeProps, Node } from '@xyflow/react';
+import type { Node, NodeProps } from '@xyflow/react';
 import { memo } from 'react';
 
 import { LABEL_AREA_WIDTH, SWIMLANE_PADDING } from '../constants';

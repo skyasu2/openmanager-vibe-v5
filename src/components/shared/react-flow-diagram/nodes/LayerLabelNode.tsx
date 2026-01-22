@@ -5,7 +5,7 @@
  * @description Swimlane 라벨 노드 컴포넌트
  */
 
-import type { NodeProps, Node } from '@xyflow/react';
+import type { Node, NodeProps } from '@xyflow/react';
 import { memo } from 'react';
 
 import type { LayerLabelData } from '../types';

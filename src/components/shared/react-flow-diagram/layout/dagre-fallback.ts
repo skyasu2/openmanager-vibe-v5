@@ -4,10 +4,10 @@
  */
 
 import Dagre from '@dagrejs/dagre';
-import type { Node, Edge } from '@xyflow/react';
+import type { Edge, Node } from '@xyflow/react';
 import { Position } from '@xyflow/react';
 
-import { NODE_WIDTH, NODE_HEIGHT } from '../constants';
+import { NODE_HEIGHT, NODE_WIDTH } from '../constants';
 
 interface DagreFallbackOptions {
   direction: string;

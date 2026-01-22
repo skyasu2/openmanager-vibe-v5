@@ -6,7 +6,7 @@
  */
 
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
+import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
 import { memo } from 'react';
 
 import { NODE_STYLES } from '../constants';

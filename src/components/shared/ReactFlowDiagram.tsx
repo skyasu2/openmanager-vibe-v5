@@ -9,8 +9,8 @@
  * @updated 2026-01-22 - Redirects to modular implementation
  */
 
-export { default } from './react-flow-diagram';
 export type {
-  ReactFlowDiagramProps,
   CustomNodeData,
+  ReactFlowDiagramProps,
 } from './react-flow-diagram';
+export { default } from './react-flow-diagram';

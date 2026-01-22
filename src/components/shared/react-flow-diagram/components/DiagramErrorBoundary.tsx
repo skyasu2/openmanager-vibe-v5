@@ -7,8 +7,8 @@
  * - 사용자 친화적 오류 메시지 표시
  */
 
-import { logger } from '@/lib/logging';
 import React, { Component, type ReactNode } from 'react';
+import { logger } from '@/lib/logging';
 
 interface DiagramErrorBoundaryProps {
   children: ReactNode;
