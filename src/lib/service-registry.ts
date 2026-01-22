@@ -9,13 +9,8 @@
 
 import { ConfigLoader } from '@/config';
 import { getCacheService } from '@/lib/cache/cache-helper';
-import type {
-  IConfigLoader,
-  IErrorHandler,
-  ILogger,
-} from '@/lib/interfaces/services';
+import type { IConfigLoader, ILogger } from '@/lib/interfaces/services';
 import { logger } from '@/lib/logging';
-import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';
 import { LoggingService } from '@/services/LoggingService';
 import {
   container,
@@ -68,10 +63,7 @@ export class ServiceRegistry {
       // 2. 로깅 서비스 (기본 서비스)
       this.registerLoggingService();
 
-      // 3. 에러 처리 서비스 (로깅 서비스 의존)
-      this.registerErrorHandlingService();
-
-      // 4. 설정 서비스
+      // 3. 설정 서비스
       this.registerConfigService();
 
       // 5. 추가 서비스들
@@ -102,21 +94,6 @@ export class ServiceRegistry {
    */
   private registerLoggingService(): void {
     registerService(SERVICE_TOKENS.LOGGER, LoggingService, 'singleton');
-  }
-
-  /**
-   * 에러 처리 서비스 등록
-   */
-  private registerErrorHandlingService(): void {
-    registerFactory(
-      SERVICE_TOKENS.ERROR_HANDLER,
-      () => {
-        const logger = container.resolve<ILogger>(SERVICE_TOKENS.LOGGER);
-        return new ErrorHandlingService(logger);
-      },
-      'singleton',
-      [SERVICE_TOKENS.LOGGER]
-    );
   }
 
   /**
@@ -256,13 +233,7 @@ export class ServiceRegistry {
       const logger = container.resolve<ILogger>(SERVICE_TOKENS.LOGGER);
       logger.info('Logging service _initialized');
 
-      // 2. 에러 처리 서비스 초기화
-      const _errorHandler = container.resolve<IErrorHandler>(
-        SERVICE_TOKENS.ERROR_HANDLER
-      );
-      logger.info('Error handling service _initialized');
-
-      // 3. 추가 서비스들 초기화
+      // 2. 추가 서비스들 초기화
       logger.info('Additional services _initialized');
 
       logger.info('✅ All services _initialized successfully');
@@ -343,7 +314,5 @@ export function getService<T>(token: string | symbol): T {
 // 타입 안전한 서비스 접근자들
 export const getLogger = (): ILogger =>
   getService<ILogger>(SERVICE_TOKENS.LOGGER);
-export const getErrorHandler = (): IErrorHandler =>
-  getService<IErrorHandler>(SERVICE_TOKENS.ERROR_HANDLER);
 export const getConfigLoader = (): IConfigLoader =>
   getService<IConfigLoader>(SERVICE_TOKENS.CONFIG_LOADER);

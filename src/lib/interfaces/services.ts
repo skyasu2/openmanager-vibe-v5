@@ -166,26 +166,6 @@ export interface IAIAssistantEngine {
 }
 
 // ============================================================================
-// 에러 처리 인터페이스
-// ============================================================================
-
-export interface ServiceError extends Error {
-  code: string;
-  service: string;
-  timestamp: Date;
-  context?: Record<string, unknown>;
-  cause?: Error;
-}
-
-export interface IErrorHandler {
-  handle(error: ServiceError): void;
-  register(errorType: string, handler: (error: ServiceError) => void): void;
-  unregister(errorType: string): void;
-  getErrorHistory(limit?: number): ServiceError[];
-  clearErrorHistory(): void;
-}
-
-// ============================================================================
 // 이벤트 시스템 인터페이스
 // ============================================================================
 

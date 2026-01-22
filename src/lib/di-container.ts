@@ -223,9 +223,6 @@ export const SERVICE_TOKENS = {
   // 로깅 서비스
   LOGGER: Symbol('Logger'),
 
-  // 에러 처리 서비스
-  ERROR_HANDLER: Symbol('ErrorHandler'),
-
   // 설정 서비스
   CONFIG_LOADER: Symbol('ConfigLoader'),
 
