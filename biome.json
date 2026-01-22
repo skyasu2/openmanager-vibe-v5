@@ -74,7 +74,7 @@
       "a11y": {
         "useButtonType": "off",
         "useKeyWithClickEvents": "warn",
-        "noSvgWithoutTitle": "off",
+        "noSvgWithoutTitle": "warn",
         "useAriaPropsSupportedByRole": "warn",
         "useSemanticElements": "warn"
       }

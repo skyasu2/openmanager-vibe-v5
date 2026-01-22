@@ -2,7 +2,7 @@
 
 **작성일**: 2026-01-23
 **작성자**: Claude Opus 4.5
-**상태**: 진행 중
+**상태**: P2 완료 (noSvgWithoutTitle 해결)
 
 ---
 
@@ -14,7 +14,7 @@
 |------|:--------:|-------:|------|
 | `useKeyWithClickEvents` | **warn** | 0 | ✅ 완료 |
 | `useButtonType` | off | 142 | 🔧 개선 필요 |
-| `noSvgWithoutTitle` | off | 153 | 🔧 개선 필요 |
+| `noSvgWithoutTitle` | **warn** | 0 | ✅ 완료 |
 | `useAriaPropsSupportedByRole` | warn | 0 | ✅ 준수 |
 | `useSemanticElements` | warn | 0 | ✅ 준수 |
 
@@ -184,20 +184,41 @@ git revert HEAD  # 마지막 커밋 되돌리기
 
 ---
 
-## 7. 향후 계획
+## 7. Phase 2 완료 (2026-01-23)
 
-### Phase 2 (P2 우선순위)
-- `system-checklist-icons.tsx`: 아이콘 컴포넌트 aria-hidden 일괄 적용
-- `UnifiedCircularGauge.tsx`: 차트 접근성 개선
-- 나머지 1개 위반 파일들 정리
+### P2 작업 내역
+| 커밋 | 내용 | 파일 수 |
+|------|------|:------:|
+| `933c2634d` | SVG aria-hidden 일괄 적용 | 7개 |
 
-### Phase 3 (최종 목표)
-- 모든 위반 해결 후 규칙 활성화:
-  ```json
-  "useButtonType": "warn",
-  "noSvgWithoutTitle": "warn"
-  ```
+### P2 수정 파일
+- `system-checklist-icons.tsx` - 2개 SVG
+- `UnifiedCircularGauge.tsx` - 차트 SVG
+- `global-error.tsx` - 에러 아이콘
+- `ErrorBoundary.tsx` - 에러 아이콘
+- `FeatureCardModal.tsx` - 외부 링크 아이콘
+- `Sparkline.tsx` - 스파크라인 차트
+
+### 결과
+- **noSvgWithoutTitle**: 153 → 0 ✅ **완전 해결**
+- **useButtonType**: 132개 잔여 (향후 진행)
 
 ---
 
-_Last Updated: 2026-01-23_
+## 8. 향후 계획
+
+### Phase 3 (최종 목표)
+- [ ] useButtonType 132개 위반 해결
+- [ ] 모든 위반 해결 후 규칙 활성화:
+  ```json
+  "useButtonType": "warn"
+  ```
+
+### 권장: noSvgWithoutTitle 규칙 활성화
+```json
+"noSvgWithoutTitle": "warn"  // 0개 위반, 즉시 활성화 가능
+```
+
+---
+
+_Last Updated: 2026-01-23 (P2 완료)_
