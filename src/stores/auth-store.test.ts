@@ -9,9 +9,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAuthStore, useAuthType, useAuthUser } from './auth-store';
 
-// CustomEvent 스파이
-const dispatchEventSpy = vi.fn();
-const originalDispatchEvent = window.dispatchEvent;
+// CustomEvent 스파이 - beforeEach에서 설정됨
+let dispatchEventSpy: ReturnType<typeof vi.spyOn>;
 
 describe('useAuthStore', () => {
   beforeEach(() => {
@@ -21,14 +20,15 @@ describe('useAuthStore', () => {
       result.current.clearAuth();
     });
 
-    // CustomEvent 스파이 설정
-    window.dispatchEvent = dispatchEventSpy;
-    dispatchEventSpy.mockClear();
+    // vi.spyOn을 사용하여 안전하게 스파이 설정 (jsdom 환경 필수)
+    dispatchEventSpy = vi
+      .spyOn(window, 'dispatchEvent')
+      .mockImplementation(() => true);
   });
 
   afterEach(() => {
-    // 원본 dispatchEvent 복원
-    window.dispatchEvent = originalDispatchEvent;
+    // 스파이 복원
+    dispatchEventSpy.mockRestore();
   });
 
   describe('초기 상태', () => {
