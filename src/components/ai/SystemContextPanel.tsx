@@ -180,6 +180,7 @@ const SystemContextPanel = memo(function SystemContextPanel({
           System Context
         </h3>
         <button
+          type="button"
           onClick={() => void fetchHealthStatus()}
           disabled={isLoading}
           className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 disabled:opacity-50"

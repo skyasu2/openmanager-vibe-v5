@@ -23,6 +23,7 @@ export function DashboardSection({
         <div className="flex flex-col items-center">
           {canAccessDashboard ? (
             <button
+              type="button"
               onClick={onNavigateDashboard}
               className="flex h-16 w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700 sm:w-64"
             >

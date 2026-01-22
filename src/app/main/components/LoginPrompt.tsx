@@ -28,6 +28,7 @@ export function LoginPrompt({ isMounted, guestModeMessage }: LoginPromptProps) {
           시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수 있습니다.
         </p>
         <button
+          type="button"
           onClick={() => router.push('/login')}
           className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
         >

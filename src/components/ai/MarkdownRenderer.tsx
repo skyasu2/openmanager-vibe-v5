@@ -69,6 +69,7 @@ const CodeBlock = memo(function CodeBlock({
       <div className="flex items-center justify-between bg-gray-800 px-4 py-2 text-xs">
         <span className="text-gray-400 font-mono">{language || 'code'}</span>
         <button
+          type="button"
           onClick={handleCopy}
           className="flex items-center gap-1.5 rounded px-2 py-1 text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
           title="코드 복사"

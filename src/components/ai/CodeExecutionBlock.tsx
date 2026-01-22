@@ -134,6 +134,7 @@ export const CodeExecutionBlock = memo(function CodeExecutionBlock({
         <div className="flex items-center space-x-2">
           {/* Copy Button */}
           <button
+            type="button"
             onClick={handleCopy}
             className="flex items-center space-x-1 rounded px-2 py-1 text-xs text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
             title="코드 복사"
@@ -154,6 +155,7 @@ export const CodeExecutionBlock = memo(function CodeExecutionBlock({
           {/* Run Button */}
           {canExecute && (
             <button
+              type="button"
               onClick={handleRun}
               disabled={isExecuting || isPyodideLoading}
               className="flex items-center space-x-1 rounded bg-green-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -237,6 +239,7 @@ export const CodeExecutionBlock = memo(function CodeExecutionBlock({
                           className="max-w-full rounded border border-gray-700"
                         />
                         <button
+                          type="button"
                           onClick={() => handleDownloadPlot(plot, index)}
                           className="absolute right-2 top-2 rounded bg-gray-800/80 p-1.5 text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
                           title="이미지 다운로드"

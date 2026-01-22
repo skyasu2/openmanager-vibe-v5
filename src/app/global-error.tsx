@@ -117,6 +117,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
         <div className="space-y-3">
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <button
+              type="button"
               onClick={reset}
               className="rounded-lg bg-red-600 px-6 py-3 font-medium text-white transition-colors hover:bg-red-700"
             >

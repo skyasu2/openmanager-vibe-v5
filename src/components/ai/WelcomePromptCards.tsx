@@ -91,6 +91,7 @@ export const WelcomePromptCards = memo(function WelcomePromptCards({
           const Icon = card.icon;
           return (
             <button
+              type="button"
               key={card.title}
               onClick={() => onPromptClick(card.prompt)}
               className="group rounded-xl border border-gray-200 bg-white p-4 text-left

@@ -29,6 +29,7 @@ export default function Error({
       <h1>오류가 발생했습니다</h1>
       <p>시스템에 일시적인 문제가 발생했습니다.</p>
       <button
+        type="button"
         onClick={reset}
         style={{
           padding: '10px 20px',

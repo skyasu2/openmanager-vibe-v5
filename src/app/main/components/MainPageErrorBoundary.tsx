@@ -66,6 +66,7 @@ export class MainPageErrorBoundary extends Component<Props, State> {
               </details>
             )}
             <button
+              type="button"
               onClick={this.handleRetry}
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
             >

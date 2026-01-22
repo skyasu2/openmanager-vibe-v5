@@ -26,6 +26,7 @@ export default function Custom500() {
 
         <div className="space-y-3">
           <button
+            type="button"
             onClick={() => window.location.reload()}
             className="w-full rounded bg-blue-500 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-600"
           >
@@ -33,6 +34,7 @@ export default function Custom500() {
           </button>
 
           <button
+            type="button"
             onClick={() => window.history.back()}
             className="w-full rounded bg-gray-500 px-4 py-2 font-medium text-white transition-colors hover:bg-gray-600"
           >

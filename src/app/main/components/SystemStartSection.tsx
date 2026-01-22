@@ -41,6 +41,7 @@ export function SystemStartSection({
       <div className="mb-6 flex flex-col items-center space-y-4">
         {/* 시스템 시작 버튼 */}
         <button
+          type="button"
           onClick={onSystemToggle}
           disabled={buttonConfig.disabled}
           className={`flex h-16 w-full max-w-xs items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 sm:w-64 ${buttonConfig.className}`}

@@ -260,6 +260,7 @@ export default function AutoReportPage() {
           {/* Tabs */}
           <div className="flex gap-1">
             <button
+              type="button"
               onClick={() => setActiveTab('generate')}
               className="flex items-center gap-2 rounded-t-lg border-b-2 border-transparent px-4 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
             >
@@ -267,6 +268,7 @@ export default function AutoReportPage() {
               보고서 생성
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('history')}
               className="flex items-center gap-2 rounded-t-lg border-b-2 border-blue-500 px-4 py-2 text-sm font-medium text-blue-600"
             >
@@ -302,6 +304,7 @@ export default function AutoReportPage() {
           </div>
 
           <button
+            type="button"
             onClick={handleGenerateReport}
             disabled={isGenerating}
             className="flex items-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-all duration-200 hover:scale-105 hover:bg-red-600 active:scale-95 disabled:opacity-50"
@@ -316,6 +319,7 @@ export default function AutoReportPage() {
         {/* Tabs */}
         <div className="flex gap-1">
           <button
+            type="button"
             onClick={() => setActiveTab('generate')}
             className="flex items-center gap-2 rounded-t-lg border-b-2 border-red-500 px-4 py-2 text-sm font-medium text-red-600"
           >
@@ -323,6 +327,7 @@ export default function AutoReportPage() {
             보고서 생성
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('history')}
             className="flex items-center gap-2 rounded-t-lg border-b-2 border-transparent px-4 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
           >

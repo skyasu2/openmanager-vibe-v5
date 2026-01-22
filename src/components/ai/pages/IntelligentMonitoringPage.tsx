@@ -316,6 +316,7 @@ export default function IntelligentMonitoringPage() {
           {/* 버튼 그룹 */}
           <div className="flex items-end gap-2">
             <button
+              type="button"
               onClick={resetAnalysis}
               disabled={isAnalyzing || (!result && !error)}
               className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 disabled:opacity-50"
@@ -324,6 +325,7 @@ export default function IntelligentMonitoringPage() {
               초기화
             </button>
             <button
+              type="button"
               onClick={runAnalysis}
               disabled={isAnalyzing}
               className="rounded-lg bg-linear-to-r from-emerald-500 to-teal-500 px-6 py-2 text-sm font-medium text-white shadow-md hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50"
