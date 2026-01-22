@@ -64,6 +64,7 @@ export const MessageActions = memo(function MessageActions({
     <div className={`flex items-center gap-1 ${className}`}>
       {/* 복사 버튼 */}
       <button
+        type="button"
         onClick={handleCopy}
         className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
         title="메시지 복사"
@@ -88,6 +89,7 @@ export const MessageActions = memo(function MessageActions({
 
           {/* 좋아요 버튼 */}
           <button
+            type="button"
             onClick={() => handleFeedback('positive')}
             className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 ${
               feedback === 'positive'
@@ -101,6 +103,7 @@ export const MessageActions = memo(function MessageActions({
 
           {/* 싫어요 버튼 */}
           <button
+            type="button"
             onClick={() => handleFeedback('negative')}
             className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1 ${
               feedback === 'negative'
@@ -117,6 +120,7 @@ export const MessageActions = memo(function MessageActions({
             <>
               <div className="h-4 w-px bg-gray-200" />
               <button
+                type="button"
                 onClick={handleRegenerate}
                 className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
                 title="다시 생성"

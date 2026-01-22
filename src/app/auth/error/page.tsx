@@ -81,6 +81,7 @@ function AuthErrorContent() {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -103,6 +104,7 @@ function AuthErrorContent() {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -146,12 +148,14 @@ function AuthErrorContent() {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <button
+              type="button"
               onClick={handleTryAgain}
               className="rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700"
             >
               다시 시도
             </button>
             <button
+              type="button"
               onClick={handleBackToLogin}
               className="rounded-lg border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50"
             >
@@ -165,6 +169,7 @@ function AuthErrorContent() {
               또는 다른 방법으로 로그인
             </p>
             <button
+              type="button"
               onClick={() => router.push('/login')}
               className="w-full rounded bg-gray-50 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
             >
