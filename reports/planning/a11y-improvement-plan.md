@@ -177,10 +177,10 @@ git revert HEAD  # 마지막 커밋 되돌리기
 
 - [x] P1 파일 3개 수정 완료 (2026-01-23)
 - [x] `npm run lint` 통과
-- [ ] `npm run test:quick` 통과
+- [x] `npm run test:quick` 통과 (228 tests passed)
 - [x] useButtonType 위반 142 → 132 (10개 감소)
 - [x] noSvgWithoutTitle 위반 153 → 7 (146개 감소, 예상보다 큰 효과)
-- [ ] 커밋 및 푸시 완료
+- [x] 커밋 완료: `fd954e61e`
 
 ---
 

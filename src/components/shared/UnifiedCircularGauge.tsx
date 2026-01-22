@@ -147,6 +147,7 @@ export default function UnifiedCircularGauge({
           width={currentConfig.size}
           height={currentConfig.size}
           className={`-rotate-90 transform ${variant === 'modal-3d' ? 'drop-shadow-lg' : ''}`}
+          aria-hidden="true"
         >
           <defs>
             {/* 그라데이션 정의 */}

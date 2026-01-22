@@ -49,6 +49,7 @@ export const Sparkline: React.FC<SparklineProps> = ({
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       className="overflow-visible"
+      aria-hidden="true"
     >
       {fill && <polygon points={fillPath} fill={color} fillOpacity={0.1} />}
       <polyline
