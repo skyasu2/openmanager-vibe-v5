@@ -57,7 +57,13 @@ interface RawServerMetric {
 
 // 시간별 데이터 구조 타입 정의
 interface HourlyDataStructure {
-  servers: Record<string, ServerDataStructure>;
+  hour?: number;
+  dataPoints?: Array<{
+    minute: number;
+    timestamp: string;
+    servers: Record<string, ServerDataStructure>;
+  }>;
+  servers?: Record<string, ServerDataStructure>; // 하위 호환
   scenario?: string;
 }
 
@@ -137,7 +143,9 @@ function convertToPureMetrics(
   rotationMinute: number,
   _segmentInHour: number
 ): RawServerMetric[] {
-  const servers = hourlyData.servers || {};
+  // dataPoints 구조 지원 (실제 JSON 형식)
+  const dataPoint = hourlyData.dataPoints?.[0];
+  const servers = dataPoint?.servers ?? hourlyData.servers ?? {};
 
   // 🔒 시나리오 정보를 로그하지 않음 - AI 분석 무결성 유지
 

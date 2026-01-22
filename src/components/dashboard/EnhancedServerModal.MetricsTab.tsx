@@ -425,6 +425,21 @@ export const MetricsTab: FC<MetricsTabProps> = ({
                 </div>
               )}
 
+              {!timeSeriesLoading && !timeSeriesData && !timeSeriesError && (
+                <div className="flex h-[300px] flex-col items-center justify-center gap-3 rounded-lg bg-gray-50 text-gray-500">
+                  <BarChart3 className="h-12 w-12 text-gray-300" />
+                  <p className="text-sm">
+                    이 서버의 시계열 데이터가 아직 수집되지 않았습니다.
+                  </p>
+                  <button
+                    onClick={() => refetchTimeSeries()}
+                    className="rounded-lg bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-200"
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              )}
+
               {timeSeriesData && (
                 <TimeSeriesChart
                   data={timeSeriesData.history}

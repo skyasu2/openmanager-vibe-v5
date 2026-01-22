@@ -104,6 +104,12 @@ export function useTimeSeriesMetrics({
         );
 
         if (!response.ok) {
+          // 404는 데이터 없음 - 에러로 취급하지 않음 (Graceful Degradation)
+          if (response.status === 404) {
+            setData(null);
+            setIsLoading(false);
+            return;
+          }
           throw new Error(`API 오류: ${response.status}`);
         }
 
@@ -119,8 +125,14 @@ export function useTimeSeriesMetrics({
         if (err instanceof Error && err.name === 'AbortError') {
           return;
         }
-        logger.error('시계열 데이터 조회 실패:', err);
-        setError(err instanceof Error ? err.message : '알 수 없는 오류');
+        // 예상 가능한 에러는 debug로 처리
+        const message = err instanceof Error ? err.message : '알 수 없는 오류';
+        if (message.includes('404')) {
+          logger.debug('시계열 데이터 없음:', message);
+        } else {
+          logger.warn('시계열 데이터 조회 실패:', err);
+        }
+        setError(message);
       } finally {
         setIsLoading(false);
       }
