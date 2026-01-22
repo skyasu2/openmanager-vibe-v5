@@ -66,7 +66,7 @@ export class ServiceRegistry {
       // 3. 설정 서비스
       this.registerConfigService();
 
-      // 5. 추가 서비스들
+      // 4. 추가 서비스들
       this.registerAdditionalServices();
 
       this.isInitialized = true;

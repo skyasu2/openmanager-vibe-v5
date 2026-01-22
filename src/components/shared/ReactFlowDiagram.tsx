@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * ReactFlowDiagram Re-export
  * @description Backward compatibility wrapper

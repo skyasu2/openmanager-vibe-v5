@@ -75,6 +75,9 @@ export function convertToReactFlow(diagram: ArchitectureDiagram): {
         (targetConnectionCount[conn.to] || 0) + 1;
     });
 
+    // 소스별 첫 번째 라벨 표시 여부 추적 (fan-out 시 첫 연결만 라벨 표시)
+    const sourceFirstLabelShown = new Set<string>();
+
     diagram.connections.forEach((conn, index) => {
       // 유효성 검사
       if (!validNodeIds.has(conn.from) || !validNodeIds.has(conn.to)) {
@@ -103,6 +106,12 @@ export function convertToReactFlow(diagram: ArchitectureDiagram): {
         return 'rgba(255, 255, 255, 0.8)';
       };
 
+      // fan-out 소스의 첫 번째 연결만 라벨 표시
+      const showLabel = !isFanOut || !sourceFirstLabelShown.has(conn.from);
+      if (isFanOut && showLabel) {
+        sourceFirstLabelShown.add(conn.from);
+      }
+
       edges.push({
         id: `edge-${index}`,
         source: conn.from,
@@ -121,7 +130,7 @@ export function convertToReactFlow(diagram: ArchitectureDiagram): {
           height: isConverging ? 10 : 15,
           color: getMarkerColor(),
         },
-        label: isFanOut && index > 0 ? undefined : conn.label,
+        label: showLabel ? conn.label : undefined,
         labelStyle: {
           fill: 'rgba(255, 255, 255, 0.9)',
           fontSize: 10,
