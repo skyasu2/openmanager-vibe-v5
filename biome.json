@@ -73,7 +73,7 @@
       },
       "a11y": {
         "useButtonType": "off",
-        "useKeyWithClickEvents": "off",
+        "useKeyWithClickEvents": "warn",
         "noSvgWithoutTitle": "off",
         "useAriaPropsSupportedByRole": "warn",
         "useSemanticElements": "warn"
