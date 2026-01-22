@@ -327,7 +327,7 @@ Claude Code는 도구 실행 전후에 자동 명령을 실행할 수 있습니�
 
       // Skills
       "Skill(commit)",
-      "Skill(review)",
+      "Skill(ai-code-review)",
 
       // MCP 서버
       "mcp__serena__*",

@@ -14,9 +14,10 @@ Claude Code v1.0.119에서 .mcp.json 파서 제한으로 **CLI-only 방식**만 
 # 기본 서버들 - CLI로 추가
 claude mcp add memory -s local -- npx -y @modelcontextprotocol/server-memory
 claude mcp add sequential-thinking -s local -- npx -y @modelcontextprotocol/server-sequential-thinking@latest
-claude mcp add shadcn-ui -s local -- npx -y @jpisnice/shadcn-ui-mcp-server@latest
 claude mcp add playwright -s local -- npx -y @executeautomation/playwright-mcp-server
 ```
+
+> **Note**: `shadcn-ui` MCP는 Context7로 대체되어 제거됨 (2026-01)
 
 **🎭 Playwright MCP 상세 설정**: WSL 환경에서 윈도우 크롬 브라우저 연동이 필요한 경우 [WSL 최적화 가이드](../environment/wsl/wsl-optimization.md)를 참조하세요.
 
