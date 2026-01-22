@@ -207,7 +207,7 @@ export const aiEngineConfig = {
     // Graceful degradation
     gracefulDegradation: true,
 
-    // Retry configuration (basic - will be enhanced by AIErrorHandler)
+    // Retry configuration (Vercel AI SDK handles advanced retry)
     maxRetries: 3,
     retryDelay: 1000, // 1 second base delay
   },
