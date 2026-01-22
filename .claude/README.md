@@ -111,8 +111,11 @@ claude mcp list
 `settings.local.json`은 와일드카드 패턴으로 최적화됨:
 - `Bash(npm:*)` - npm 명령어 전체
 - `Bash(git:*)` - git 명령어 전체
-- `mcp__*` - 모든 MCP 서버 도구
+- `mcp__serena__*` - MCP 서버별 와일드카드
+- `Skill(commit)` - 스킬 권한
 - `WebFetch(domain:*.vercel.app)` - Vercel 도메인 전체
+
+**Note**: `SlashCommand(*)` 로 `/review` 등 commands 폴더 명령어 허용
 
 ## 📚 참고 문서
 
