@@ -8,7 +8,7 @@
  * @description 서버 카드의 렌더링, 인터랙션, 안전성 검증 테스트
  * @author Claude Code
  * @created 2025-11-26
- * @updated 2025-12-13 - aria-label 관련 테스트 수정
+ * @updated 2026-01-22 - div[role=button] 구조로 변경됨에 따른 테스트 수정
  */
 
 import { fireEvent, render, screen, within } from '@testing-library/react';
@@ -80,6 +80,10 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
     vi.clearAllMocks();
   });
 
+  // Helper to get the main card element (div[role=button] since 2026-01-17)
+  const getCard = (container: HTMLElement) =>
+    container.querySelector('div[role="button"]') as HTMLElement;
+
   describe('기본 렌더링', () => {
     it('서버 이름이 정상적으로 표시된다', () => {
       render(<ImprovedServerCard server={mockServer} onClick={mockOnClick} />);
@@ -136,10 +140,6 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
   });
 
   describe('클릭 인터랙션', () => {
-    // Helper to get the main card element (semantic button element)
-    const getCard = (container: HTMLElement) =>
-      container.querySelector('button[type="button"]') as HTMLElement;
-
     it('카드 클릭 시 onClick 핸들러가 호출된다', () => {
       const { container } = render(
         <ImprovedServerCard server={mockServer} onClick={mockOnClick} />
@@ -176,31 +176,38 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
       );
 
       const card = getCard(container);
-      // semantic button은 기본적으로 focusable
-      expect(card.tagName).toBe('BUTTON');
+      // div[role=button]은 tabIndex=0으로 focusable
+      expect(card.getAttribute('tabindex')).toBe('0');
       // 포커스 시뮬레이션
       card.focus();
       expect(document.activeElement).toBe(card);
     });
 
-    it('버튼 클릭으로 카드를 활성화할 수 있다', () => {
+    it('키보드 Enter로 카드를 활성화할 수 있다', () => {
       const { container } = render(
         <ImprovedServerCard server={mockServer} onClick={mockOnClick} />
       );
 
       const card = getCard(container);
-      // 네이티브 button은 Enter/Space 시 click 이벤트 발생
-      fireEvent.click(card);
+      // div[role=button]은 onKeyDown에서 Enter/Space 처리
+      fireEvent.keyDown(card, { key: 'Enter' });
+
+      expect(mockOnClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('키보드 Space로 카드를 활성화할 수 있다', () => {
+      const { container } = render(
+        <ImprovedServerCard server={mockServer} onClick={mockOnClick} />
+      );
+
+      const card = getCard(container);
+      fireEvent.keyDown(card, { key: ' ' });
 
       expect(mockOnClick).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('호버 인터랙션', () => {
-    // Helper to get the main card element
-    const getCard = (container: HTMLElement) =>
-      container.querySelector('button[type="button"]') as HTMLElement;
-
     it('마우스 호버 시 컴포넌트가 정상 작동한다', () => {
       const { container } = render(
         <ImprovedServerCard server={mockServer} onClick={mockOnClick} />
@@ -252,10 +259,6 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
   });
 
   describe('상태별 스타일', () => {
-    // Helper to get the main card element
-    const getCard = (container: HTMLElement) =>
-      container.querySelector('button[type="button"]') as HTMLElement;
-
     it('online 상태에서 정상 렌더링된다', () => {
       const onlineServer = { ...mockServer, status: 'online' as const };
       const { container } = render(
@@ -299,31 +302,27 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
   });
 
   describe('접근성', () => {
-    // Helper to get the main card element
-    const getCard = (container: HTMLElement) =>
-      container.querySelector('button[type="button"]') as HTMLElement;
-
-    it('카드가 semantic button 요소이다', () => {
+    it('카드가 div[role=button] 요소이다', () => {
       const { container } = render(
         <ImprovedServerCard server={mockServer} onClick={mockOnClick} />
       );
 
       const card = getCard(container);
       expect(card).toBeInTheDocument();
-      // semantic button element for accessibility
-      expect(card.tagName).toBe('BUTTON');
-      expect(card.getAttribute('type')).toBe('button');
+      // div with role=button for accessibility (내부에 다른 버튼이 있어 button 요소 사용 불가)
+      expect(card.tagName).toBe('DIV');
+      expect(card.getAttribute('role')).toBe('button');
     });
 
-    it('버튼이 키보드 탐색 가능하다', () => {
+    it('카드가 tabIndex=0으로 키보드 탐색 가능하다', () => {
       const { container } = render(
         <ImprovedServerCard server={mockServer} onClick={mockOnClick} />
       );
 
       const card = getCard(container);
-      // semantic button은 기본적으로 focusable
-      expect(card.tagName).toBe('BUTTON');
-      // button 요소는 tabIndex 없이도 포커스 가능
+      // tabIndex=0으로 focusable
+      expect(card.getAttribute('tabindex')).toBe('0');
+      // 포커스 가능
       card.focus();
       expect(document.activeElement).toBe(card);
     });
@@ -340,10 +339,6 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
   });
 
   describe('variant 속성', () => {
-    // Helper to get the main card element
-    const getCard = (container: HTMLElement) =>
-      container.querySelector('button[type="button"]') as HTMLElement;
-
     it('compact variant를 렌더링한다', () => {
       const { container } = render(
         <ImprovedServerCard
@@ -386,10 +381,6 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
   });
 
   describe('서비스 목록', () => {
-    // Helper to get the main card element
-    const getCard = (container: HTMLElement) =>
-      container.querySelector('button[type="button"]') as HTMLElement;
-
     it('서버에 서비스 정보가 있을 때 정상 렌더링된다', () => {
       const { container } = render(
         <ImprovedServerCard server={mockServer} onClick={mockOnClick} />
@@ -408,10 +399,8 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
         <ImprovedServerCard server={mockServer} onClick={mockOnClick} />
       );
 
-      // 버튼 요소가 존재하는지 확인
-      expect(
-        container.querySelector('button[type="button"]')
-      ).toBeInTheDocument();
+      // 카드 요소가 존재하는지 확인
+      expect(getCard(container)).toBeInTheDocument();
 
       // 서비스 데이터 구조 검증
       expect(mockServer.services[0]).toHaveProperty('name');
@@ -438,10 +427,6 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
   });
 
   describe('Progressive Disclosure', () => {
-    // Helper to get the main card element
-    const getCard = (container: HTMLElement) =>
-      container.querySelector('button[type="button"]') as HTMLElement;
-
     it('enableProgressiveDisclosure가 true일 때 확장 버튼이 있다', () => {
       const { container } = render(
         <ImprovedServerCard
@@ -455,9 +440,9 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
       const card = getCard(container);
       expect(card).toBeInTheDocument();
 
-      // 내부에 확장 버튼(button 태그)이 있음
-      const expandButton = container.querySelector('button');
-      expect(expandButton).toBeInTheDocument();
+      // 내부에 토글 버튼이 있음
+      const toggleButton = container.querySelector('[data-toggle-button]');
+      expect(toggleButton).toBeInTheDocument();
     });
 
     it('enableProgressiveDisclosure가 false일 때 정상 렌더링된다', () => {
@@ -507,10 +492,6 @@ describe('🎯 ImprovedServerCard - User Event 테스트', () => {
   });
 
   describe('추가 메트릭 표시', () => {
-    // Helper to get the main card element
-    const getCard = (container: HTMLElement) =>
-      container.querySelector('button[type="button"]') as HTMLElement;
-
     it('서버 메트릭 데이터가 올바르게 전달된다', () => {
       const { container } = render(
         <ImprovedServerCard server={mockServer} onClick={mockOnClick} />

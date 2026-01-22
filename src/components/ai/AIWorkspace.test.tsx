@@ -21,16 +21,38 @@ vi.mock('next/navigation', () => ({
   useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
 
-// Mock the AI SDK
-vi.mock('@ai-sdk/react', () => ({
-  useChat: vi.fn(() => ({
-    messages: [],
+// Mock the AI Chat Core hook
+vi.mock('@/hooks/ai/useAIChatCore', () => ({
+  useAIChatCore: vi.fn(() => ({
+    // 입력 상태
     input: '',
-    handleInputChange: vi.fn(),
-    handleSubmit: vi.fn(),
-    sendMessage: vi.fn(),
-    status: 'idle',
-    setMessages: vi.fn(),
+    setInput: vi.fn(),
+    // 메시지
+    messages: [],
+    // 로딩/진행 상태
+    isLoading: false,
+    hybridState: {
+      progress: null,
+      jobId: null,
+    },
+    currentMode: 'fast',
+    // 에러 상태
+    error: null,
+    clearError: vi.fn(),
+    // 세션 관리
+    sessionState: {
+      messagesRemaining: 10,
+      isLimited: false,
+    },
+    handleNewSession: vi.fn(),
+    // 액션
+    handleFeedback: vi.fn(),
+    regenerateLastResponse: vi.fn(),
+    retryLastQuery: vi.fn(),
+    stop: vi.fn(),
+    cancel: vi.fn(),
+    // 통합 입력 핸들러
+    handleSendInput: vi.fn(),
   })),
 }));
 
@@ -75,6 +97,40 @@ vi.mock('@/components/ai/ThinkingProcessVisualizer', () => ({
   default: () => <div data-testid="thinking-visualizer">Thinking</div>,
 }));
 
+vi.mock('@/components/shared/UnifiedProfileHeader', () => ({
+  default: () => <div data-testid="profile-header">Profile Header</div>,
+}));
+
+vi.mock('@/components/dashboard/RealTimeDisplay', () => ({
+  RealTimeDisplay: () => <div data-testid="realtime-display">RealTime</div>,
+}));
+
+vi.mock('@/components/ai/MarkdownRenderer', () => ({
+  MarkdownRenderer: ({ content }: { content: string }) => (
+    <div data-testid="markdown-renderer">{content}</div>
+  ),
+}));
+
+vi.mock('@/components/ai/TypewriterMarkdown', () => ({
+  TypewriterMarkdown: ({ content }: { content: string }) => (
+    <div data-testid="typewriter-markdown">{content}</div>
+  ),
+}));
+
+vi.mock('@/components/ai/MessageActions', () => ({
+  MessageActions: () => <div data-testid="message-actions">Actions</div>,
+}));
+
+vi.mock('@/components/ai/SystemContextPanel', () => ({
+  default: () => <div data-testid="system-context">System Context</div>,
+}));
+
+vi.mock('@/components/error/AIErrorBoundary', () => ({
+  AIErrorBoundary: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="error-boundary">{children}</div>
+  ),
+}));
+
 describe('AIWorkspace', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -88,8 +144,8 @@ describe('AIWorkspace', () => {
     expect(logos.length).toBeGreaterThan(0);
     // 새 대화 버튼 (한국어)
     expect(screen.getByText('새 대화')).toBeInTheDocument();
-    // Features 섹션 레이블
-    expect(screen.getByText('Features')).toBeInTheDocument();
+    // AI 기능 섹션 레이블 (한국어로 변경됨)
+    expect(screen.getByText('AI 기능')).toBeInTheDocument();
   });
 
   it('handles back navigation', () => {
@@ -103,22 +159,46 @@ describe('AIWorkspace', () => {
   });
 
   it('displays loading state correctly', async () => {
-    const { useChat } = await import('@ai-sdk/react');
+    const { useAIChatCore } = await import('@/hooks/ai/useAIChatCore');
 
-    vi.mocked(useChat).mockReturnValue({
-      messages: [],
+    vi.mocked(useAIChatCore).mockReturnValue({
       input: '',
-      handleInputChange: vi.fn(),
-      handleSubmit: vi.fn(),
-      sendMessage: vi.fn(),
-      status: 'streaming',
-      setMessages: vi.fn(),
-    } as unknown as ReturnType<typeof useChat>);
+      setInput: vi.fn(),
+      messages: [],
+      isLoading: true,
+      hybridState: {
+        progress: null,
+        jobId: null,
+      },
+      currentMode: 'fast',
+      error: null,
+      clearError: vi.fn(),
+      sessionState: {
+        messagesRemaining: 10,
+        isLimited: false,
+      },
+      handleNewSession: vi.fn(),
+      handleFeedback: vi.fn(),
+      regenerateLastResponse: vi.fn(),
+      retryLastQuery: vi.fn(),
+      stop: vi.fn(),
+      cancel: vi.fn(),
+      handleSendInput: vi.fn(),
+    } as unknown as ReturnType<typeof useAIChatCore>);
 
     render(<AIWorkspace />);
 
-    // Component should render without errors during streaming state
+    // Component should render without errors during loading state
     const logos = screen.getAllByTestId('logo');
     expect(logos.length).toBeGreaterThan(0);
+  });
+
+  it('renders AI function buttons', () => {
+    render(<AIWorkspace />);
+
+    // AI 기능 버튼들 확인
+    expect(screen.getByText('자연어 질의')).toBeInTheDocument();
+    expect(screen.getByText('장애 보고서')).toBeInTheDocument();
+    expect(screen.getByText('이상감지/예측')).toBeInTheDocument();
   });
 });

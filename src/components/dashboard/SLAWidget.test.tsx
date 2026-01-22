@@ -10,6 +10,8 @@
  * - MTTR/MTTA 계산
  * - 다운타임 예산
  * - 표시 로직
+ *
+ * @updated 2026-01-22 - toBeDefined() → toBeInTheDocument() 수정
  */
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -20,9 +22,8 @@ import {
 } from '../../../tests/utils/mock-response';
 import { SLAWidget } from './SLAWidget';
 
-// Mock fetch
+// Mock fetch - 각 테스트에서 재설정됨
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 // 테스트용 보고서 데이터 생성
 function createMockReport(overrides?: Record<string, unknown>) {
@@ -47,6 +48,8 @@ function createSuccessResponse(reports: unknown[]) {
 describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 각 테스트 전에 fetch를 다시 모킹 (restoreAllMocks로 인한 복원 방지)
+    vi.stubGlobal('fetch', mockFetch);
   });
 
   afterEach(() => {
@@ -61,7 +64,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
 
       // RefreshCw 아이콘 (로딩 스피너)이 animate-spin 클래스를 가짐
       const container = document.querySelector('.animate-spin');
-      expect(container).toBeDefined();
+      expect(container).toBeInTheDocument();
     });
 
     it('데이터 로드 성공 시 SLA 현황이 표시된다', async () => {
@@ -71,12 +74,12 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
       render(<SLAWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText('SLA 현황')).toBeDefined();
+        expect(screen.getByText('SLA 현황')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('현재 가용률')).toBeDefined();
-      expect(screen.getByText(/MTTR/)).toBeDefined();
-      expect(screen.getByText(/MTTA/)).toBeDefined();
+      expect(screen.getByText('현재 가용률')).toBeInTheDocument();
+      expect(screen.getByText(/MTTR/)).toBeInTheDocument();
+      expect(screen.getByText(/MTTA/)).toBeInTheDocument();
     });
 
     it('에러 시 에러 메시지가 표시된다', async () => {
@@ -85,7 +88,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
       render(<SLAWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText(/SLA 데이터 조회 실패/)).toBeDefined();
+        expect(screen.getByText(/SLA 데이터 조회 실패/)).toBeInTheDocument();
       });
     });
 
@@ -96,11 +99,11 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
       render(<SLAWidget compact={true} />);
 
       await waitFor(() => {
-        expect(screen.getByText('SLA')).toBeDefined();
+        expect(screen.getByText('SLA')).toBeInTheDocument();
       });
 
       // compact 모드에서는 "SLA 현황" 대신 "SLA"만 표시
-      expect(screen.queryByText('SLA 현황')).toBeNull();
+      expect(screen.queryByText('SLA 현황')).not.toBeInTheDocument();
     });
   });
 
@@ -115,7 +118,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
         render(<SLAWidget period={period} />);
 
         await waitFor(() => {
-          expect(screen.getByText('SLA 현황')).toBeDefined();
+          expect(screen.getByText('SLA 현황')).toBeInTheDocument();
         });
 
         const periodLabels: Record<string, string> = {
@@ -124,7 +127,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
           monthly: '월간',
         };
 
-        expect(screen.getByText(periodLabels[period])).toBeDefined();
+        expect(screen.getByText(periodLabels[period])).toBeInTheDocument();
       });
     });
 
@@ -153,7 +156,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
       await waitFor(() => {
         // 보고서가 없으면 다운타임이 0이므로 100% 가용률
         const uptimeElement = screen.getByText(/100\.000%/);
-        expect(uptimeElement).toBeDefined();
+        expect(uptimeElement).toBeInTheDocument();
       });
     });
 
@@ -165,7 +168,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
 
       await waitFor(() => {
         // 다운타임이 15분으로 표시되어야 함
-        expect(screen.getByText('15분')).toBeDefined();
+        expect(screen.getByText('15분')).toBeInTheDocument();
       });
     });
 
@@ -177,7 +180,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
 
       await waitFor(() => {
         // 다운타임이 5분으로 표시되어야 함
-        expect(screen.getByText('5분')).toBeDefined();
+        expect(screen.getByText('5분')).toBeInTheDocument();
       });
     });
 
@@ -201,7 +204,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
 
       await waitFor(() => {
         // 평균 MTTR = (60 + 30) / 2 = 45분
-        expect(screen.getByText('45분')).toBeDefined();
+        expect(screen.getByText('45분')).toBeInTheDocument();
       });
     });
 
@@ -225,7 +228,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
 
       await waitFor(() => {
         // 해결된 보고서 1개만 계산: MTTR = 30분
-        expect(screen.getByText('30분')).toBeDefined();
+        expect(screen.getByText('30분')).toBeInTheDocument();
       });
     });
   });
@@ -241,7 +244,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
       render(<SLAWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText('SLA 위반')).toBeDefined();
+        expect(screen.getByText('SLA 위반')).toBeInTheDocument();
       });
     });
 
@@ -252,7 +255,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
       render(<SLAWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText('정상')).toBeDefined();
+        expect(screen.getByText('정상')).toBeInTheDocument();
       });
     });
   });
@@ -265,7 +268,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
       render(<SLAWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText('SLA 현황')).toBeDefined();
+        expect(screen.getByText('SLA 현황')).toBeInTheDocument();
       });
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -274,7 +277,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
       const refreshButton = document.querySelector(
         'button[class*="hover:bg-gray-100"]'
       );
-      expect(refreshButton).toBeDefined();
+      expect(refreshButton).toBeInTheDocument();
 
       if (refreshButton) {
         fireEvent.click(refreshButton);
@@ -303,7 +306,9 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
 
       await waitFor(() => {
         // MTTR = 2분, MTTA = 2 * 0.3 = 0.6분 → "< 1분"
-        expect(screen.getByText('< 1분')).toBeDefined();
+        // 정규식으로 검색 (HTML 엔티티 디코딩 문제 방지)
+        const elements = screen.getAllByText(/< ?1분/);
+        expect(elements.length).toBeGreaterThan(0);
       });
     });
 
@@ -322,7 +327,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
 
       await waitFor(() => {
         // MTTR = 120분 = 2시간
-        expect(screen.getByText('2시간')).toBeDefined();
+        expect(screen.getByText('2시간')).toBeInTheDocument();
       });
     });
   });
@@ -339,7 +344,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
       render(<SLAWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText('3건')).toBeDefined();
+        expect(screen.getByText('3건')).toBeInTheDocument();
       });
     });
   });
@@ -369,7 +374,7 @@ describe('🎯 SLAWidget - SLA 대시보드 위젯 테스트', () => {
       await waitFor(() => {
         // 다운타임이 많아서 가용률이 낮음
         const container = document.querySelector('.text-red-600');
-        expect(container).toBeDefined();
+        expect(container).toBeInTheDocument();
       });
     });
   });

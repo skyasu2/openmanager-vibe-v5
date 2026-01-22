@@ -12,7 +12,7 @@
  * - 에러 처리
  */
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMockResponse } from '../../tests/utils/mock-response';
 import {
@@ -20,9 +20,8 @@ import {
   useTimeSeriesMetrics,
 } from './useTimeSeriesMetrics';
 
-// Mock fetch
+// Mock fetch - 각 테스트에서 재설정됨
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 // Mock logger
 vi.mock('@/lib/logging', () => ({
@@ -81,12 +80,12 @@ function createErrorResponse(status: number) {
 describe('🎯 useTimeSeriesMetrics - 시계열 메트릭 훅 테스트', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
+    // 각 테스트 전에 fetch를 다시 모킹 (restoreAllMocks로 인한 복원 방지)
+    vi.stubGlobal('fetch', mockFetch);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.useRealTimers();
   });
 
   describe('기본 동작', () => {
@@ -317,7 +316,9 @@ describe('🎯 useTimeSeriesMetrics - 시계열 메트릭 훅 테스트', () => 
       expect(result.current.data?.history[0].value).toBe(50);
 
       // refetch 호출
-      await result.current.refetch();
+      await act(async () => {
+        await result.current.refetch();
+      });
 
       await waitFor(() => {
         expect(result.current.data?.history[0].value).toBe(70);
@@ -326,6 +327,15 @@ describe('🎯 useTimeSeriesMetrics - 시계열 메트릭 훅 테스트', () => 
   });
 
   describe('자동 새로고침', () => {
+    beforeEach(() => {
+      // 자동 새로고침 테스트에서만 Fake Timer 사용
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('refreshInterval이 설정되면 자동으로 데이터를 다시 가져온다', async () => {
       const mockData = createMockTimeSeriesData();
       mockFetch.mockResolvedValue(createSuccessResponse(mockData));
@@ -338,21 +348,26 @@ describe('🎯 useTimeSeriesMetrics - 시계열 메트릭 훅 테스트', () => 
         })
       );
 
-      await waitFor(() => {
+      // 초기 호출 대기
+      await vi.waitFor(() => {
         expect(mockFetch).toHaveBeenCalledTimes(1);
       });
 
       // 5초 경과
-      vi.advanceTimersByTime(5000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5000);
+      });
 
-      await waitFor(() => {
+      await vi.waitFor(() => {
         expect(mockFetch).toHaveBeenCalledTimes(2);
       });
 
       // 추가 5초 경과
-      vi.advanceTimersByTime(5000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5000);
+      });
 
-      await waitFor(() => {
+      await vi.waitFor(() => {
         expect(mockFetch).toHaveBeenCalledTimes(3);
       });
     });
@@ -369,12 +384,14 @@ describe('🎯 useTimeSeriesMetrics - 시계열 메트릭 훅 테스트', () => 
         })
       );
 
-      await waitFor(() => {
+      await vi.waitFor(() => {
         expect(mockFetch).toHaveBeenCalledTimes(1);
       });
 
       // 10초 경과
-      vi.advanceTimersByTime(10000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10000);
+      });
 
       // 여전히 1번만 호출
       expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -383,6 +400,7 @@ describe('🎯 useTimeSeriesMetrics - 시계열 메트릭 훅 테스트', () => 
 
   describe('컴포넌트 언마운트 처리', () => {
     it('언마운트 시 인터벌이 정리된다', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
       const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
       const mockData = createMockTimeSeriesData();
       mockFetch.mockResolvedValue(createSuccessResponse(mockData));
@@ -395,13 +413,14 @@ describe('🎯 useTimeSeriesMetrics - 시계열 메트릭 훅 테스트', () => 
         })
       );
 
-      await waitFor(() => {
+      await vi.waitFor(() => {
         expect(mockFetch).toHaveBeenCalledTimes(1);
       });
 
       unmount();
 
       expect(clearIntervalSpy).toHaveBeenCalled();
+      vi.useRealTimers();
     });
   });
 
