@@ -1,7 +1,8 @@
 # 📁 .claude 폴더 구조 가이드
 
-> **Claude Code 공식 표준 준수** (2025-12-29 업데이트)
+> **Claude Code 공식 표준 준수** (2026-01-22 업데이트)
 > 공식 문서: https://docs.anthropic.com/en/docs/claude-code/settings
+> 상세 가이드: `docs/vibe-coding/claude-code.md`
 
 ## 🎯 폴더 구조
 
@@ -36,7 +37,7 @@
 | 스킬 | 버전 | 용도 |
 |------|------|------|
 | `review` | v1.0.0 | 검증 결과 요약 확인 (`/review`) |
-| `ai-code-review` | v1.2.0 | Multi-AI 코드 리뷰 + 이슈 트래커 |
+| `ai-code-review` | v3.1.0 | Multi-AI 코드 리뷰 분석 + 개선 실행 |
 | `validation-analysis` | v1.3.0 | 검증 결과 분석 + 이슈 트래킹 |
 | `lint-smoke` | v1.1.0 | Lint + 테스트 스모크 체크 |
 | `ai-report-export` | v1.1.0 | 2-AI 검증 결과 문서화 |
@@ -68,19 +69,38 @@
 ### PreToolUse (Bash 전)
 - 명령어 로깅 (`logs/claude-bash-commands.log`)
 
+## 📝 Custom Commands
+
+`.claude/commands/` 디렉토리에 슬래시 명령어 정의:
+
+| 명령어 | 파일 | 설명 |
+|--------|------|------|
+| `/review` | `review.md` | AI 코드 리뷰 결과 확인 |
+
+### 명령어 생성 방법
+
+```markdown
+<!-- .claude/commands/my-command.md -->
+# /my-command 설명
+
+실행할 작업 내용...
+```
+
 ## 💡 활용 방법
 
 ```bash
 # 스킬 목록 확인
 ls .claude/skills/
 
-# 스킬 실행
+# 스킬 실행 (Skill 도구 사용)
 Skill ai-code-review
 Skill validation-analysis
 Skill lint-smoke
 
 # 슬래시 명령어
 /review              # 검증 결과 분석
+/commit              # Git 커밋 (AI 리뷰 포함)
+/commit-push-pr      # 커밋 → 푸시 → PR
 
 # MCP 상태 확인
 claude mcp list

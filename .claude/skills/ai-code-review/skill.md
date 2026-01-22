@@ -1,6 +1,6 @@
 ---
 name: ai-code-review
-version: v3.0.0
+version: v3.1.0
 description: AI 코드 리뷰 결과 분석 및 개선 실행. pending 리뷰를 읽고, 개선 필요사항을 분석하여 실제 코드 수정까지 진행. 평가는 부산물.
 ---
 
@@ -55,14 +55,18 @@ cat reports/ai-review/pending/review-*.md
 
 ### Phase 4: 평가 기록 (부산물)
 
-```bash
-# 조치 결과 기록
-# 형식: 날짜 | 커밋 | 점수 | 엔진 | 조치내용
-echo "2026-01-15 | abc1234 | 8/10 | codex | Critical 1건 수정, Low 2건 스킵" >> reports/ai-review/.evaluation-log
+**중요: 각 리뷰 분석 완료 직후 즉시 이동** (컨텍스트 초과 방지)
 
-# history로 이동
-mv reports/ai-review/pending/review-*.md reports/ai-review/history/$(date +%Y-%m)/
+```bash
+# 1. 조치 결과 기록
+echo "2026-01-15 | abc1234 | 8/10 | codex | Critical 1건 수정" >> reports/ai-review/.evaluation-log
+
+# 2. 해당 리뷰만 즉시 이동 (와일드카드 금지!)
+mkdir -p reports/ai-review/history/$(date +%Y-%m)
+mv reports/ai-review/pending/review-codex-2026-01-15-XXX.md reports/ai-review/history/$(date +%Y-%m)/
 ```
+
+**절대 금지**: `mv review-*.md` 와일드카드 사용 → 미분석 파일까지 이동됨
 
 ## 분석 예시
 
@@ -104,6 +108,9 @@ echo "2026-01-15 | abc1234 | 9/10 | gemini | 오탐: limit 검증은 Mock 핸들
 
 ## Changelog
 
+- 2026-01-22: v3.1.0 - 즉시 이동 정책 추가
+  - 각 리뷰 분석 완료 직후 즉시 history로 이동
+  - 와일드카드 사용 금지 명시 (컨텍스트 초과 방지)
 - 2026-01-15: v3.0.0 - 분석 + 개선 실행 워크플로우
   - 단순 평가 → 실제 코드 수정까지 진행
   - 평가는 조치 결과의 부산물로 기록
