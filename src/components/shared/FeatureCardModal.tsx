@@ -364,6 +364,7 @@ export default function FeatureCardModal({
           <div className="p-6 text-center text-white">
             <p>모달을 불러올 수 없습니다.</p>
             <button
+              type="button"
               onClick={onClose}
               className="mt-4 rounded bg-red-600 px-4 py-2"
             >
@@ -379,6 +380,7 @@ export default function FeatureCardModal({
         <div className="p-6 text-center text-white">
           <p>모달을 불러오는 중 오류가 발생했습니다.</p>
           <button
+            type="button"
             onClick={onClose}
             className="mt-4 rounded bg-red-600 px-4 py-2"
           >
@@ -745,6 +747,7 @@ export default function FeatureCardModal({
               {/* 아키텍처 다이어그램 토글 버튼 (모든 카드) */}
               {diagramData && (
                 <button
+                  type="button"
                   onClick={() => {
                     setShowDiagram(!showDiagram);
                     // 다이어그램 뷰로 전환 시 히스토리 뷰 해제
@@ -760,6 +763,7 @@ export default function FeatureCardModal({
               {/* 바이브 코딩 카드 전용 히스토리 전환 버튼 */}
               {cardData.id === 'vibe-coding' && !showDiagram && (
                 <button
+                  type="button"
                   onClick={() => setIsHistoryView(!isHistoryView)}
                   className="rounded-lg bg-linear-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:from-amber-500 hover:to-orange-500 focus:outline-hidden focus:ring-2 focus:ring-amber-500/50"
                   aria-label={
@@ -771,6 +775,7 @@ export default function FeatureCardModal({
               )}
 
               <button
+                type="button"
                 onClick={onClose}
                 className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
                 aria-label="Close modal"

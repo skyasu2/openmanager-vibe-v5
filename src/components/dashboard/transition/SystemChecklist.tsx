@@ -572,6 +572,7 @@ export default function SystemChecklist({
         {failedCount > 0 && (
           <div className="mt-4 space-y-2 text-center">
             <button
+              type="button"
               onClick={() =>
                 (
                   window as unknown as WindowWithDebug
@@ -585,6 +586,7 @@ export default function SystemChecklist({
             {process.env.NEXT_PUBLIC_NODE_ENV ||
               (process.env.NODE_ENV === 'development' && (
                 <button
+                  type="button"
                   onClick={() =>
                     (
                       window as unknown as WindowWithDebug
@@ -665,6 +667,7 @@ export default function SystemChecklist({
         {canSkip && !showCompleted && (
           <div className="mt-4 text-center">
             <button
+              type="button"
               onClick={onComplete}
               className="rounded-lg border border-blue-500/50 bg-blue-500/20 px-4 py-2 text-sm text-blue-300 transition-colors hover:bg-blue-500/30"
             >
@@ -682,6 +685,7 @@ export default function SystemChecklist({
       {/* 돌아가기 버튼 (왼쪽 아래 고정) */}
       <div className="absolute bottom-6 left-6 z-20">
         <button
+          type="button"
           onClick={() => {
             if (typeof window !== 'undefined') {
               window.history.back();

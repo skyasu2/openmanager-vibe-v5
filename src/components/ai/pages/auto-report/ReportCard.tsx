@@ -167,6 +167,7 @@ function DownloadMenu({
   return (
     <div className="absolute bottom-full right-0 z-10 mb-1 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
       <button
+        type="button"
         onClick={() => {
           downloadReport(report, 'md');
           onClose();
@@ -176,6 +177,7 @@ function DownloadMenu({
         <span>Markdown (.md)</span>
       </button>
       <button
+        type="button"
         onClick={() => {
           downloadReport(report, 'txt');
           onClose();
@@ -267,6 +269,7 @@ export default function ReportCard({
           </span>
 
           <button
+            type="button"
             onClick={() => onToggleDetail(report.id)}
             className={`rounded p-1.5 transition-all duration-200 hover:scale-110 active:scale-90 ${
               isSelected
@@ -280,6 +283,7 @@ export default function ReportCard({
 
           {report.status !== 'resolved' && (
             <button
+              type="button"
               onClick={() => onResolve(report.id)}
               className="rounded p-1.5 text-gray-400 transition-all duration-200 hover:scale-110 hover:bg-green-100 hover:text-green-600 active:scale-90"
               title="해결 완료"
@@ -290,6 +294,7 @@ export default function ReportCard({
 
           <div className="relative">
             <button
+              type="button"
               onClick={() =>
                 onSetDownloadMenuId(
                   downloadMenuId === report.id ? null : report.id

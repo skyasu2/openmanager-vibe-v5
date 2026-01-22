@@ -365,6 +365,7 @@ export default function EnhancedServerModal({
           </h3>
           <p className="mb-4 text-gray-600">서버 정보를 불러올 수 없습니다.</p>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 transition-colors"
           >
@@ -433,6 +434,7 @@ export default function EnhancedServerModal({
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               {/* 3️⃣ 실시간 모니터링 토글 */}
               <button
+                type="button"
                 onClick={handleToggleRealtime}
                 className={`flex items-center gap-1 rounded-xl px-2 py-2 text-sm font-medium transition-all duration-300 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-base ${
                   isRealtime
@@ -456,6 +458,7 @@ export default function EnhancedServerModal({
 
               {/* 4️⃣ 모달 닫기 */}
               <button
+                type="button"
                 onClick={onClose}
                 className="rounded-xl bg-gray-100 p-2 transition-all duration-300 hover:rotate-90 hover:scale-110 hover:bg-gray-200 border border-gray-200 sm:p-2.5 text-gray-500 hover:text-gray-700"
                 title="모달 닫기"
@@ -477,6 +480,7 @@ export default function EnhancedServerModal({
 
               return (
                 <button
+                  type="button"
                   key={tab.id}
                   role="tab"
                   id={`tab-${tab.id}`}
