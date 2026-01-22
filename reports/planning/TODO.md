@@ -63,10 +63,7 @@ _(현재 활성 작업 없음 - 모든 코드 작업 완료)_
 
 | Task | Description | Status |
 |------|-------------|--------|
-| 게스트 모드 보안 복원 | 개발 bypass 비활성화 | 보류 (포트폴리오 시연용) |
-| Langfuse 대시보드 알림 | 에러율 > 5% 알림 설정 | 수동 작업 필요 |
-| Human-in-the-Loop | 중요 명령 사용자 승인 | 낮은 우선순위 |
-| External Memory | Supabase 장기 컨텍스트 | 낮은 우선순위 |
+| 게스트 모드 보안 복원 | 개발 bypass 비활성화 | 보류 (포트폴리오 시연용, 요청 시 진행) |
 
 ## Completed Archive
 
