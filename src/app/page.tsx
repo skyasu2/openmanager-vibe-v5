@@ -112,6 +112,13 @@ function Home() {
   // 클라이언트 마운트
   useEffect(() => {
     if (isVercel) performanceTracker.start('page-mount');
+
+    // 🚀 AI 엔진 조기 웜업 (페이지 로드 즉시 시작)
+    // Cloud Run cold start가 5-10초 소요되므로 사용자가 페이지를 읽는 동안 미리 준비
+    fetch('/api/ai/wake-up', { method: 'POST' }).catch(() => {
+      // Fire-and-forget: 실패해도 사용자 경험에 영향 없음
+    });
+
     const mountTimer = setTimeout(() => {
       setIsMounted(true);
       debug.log(debugWithEnv('✅ 클라이언트 마운트 완료'), { isVercel });
