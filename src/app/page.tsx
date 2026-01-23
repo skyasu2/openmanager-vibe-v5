@@ -32,6 +32,7 @@ import { isVercel } from '@/env';
 import { useInitialAuth } from '@/hooks/useInitialAuth';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
+import { triggerAIWarmup } from '@/utils/ai-warmup';
 import debug from '@/utils/debug';
 import { renderTextWithAIGradient } from '@/utils/text-rendering';
 import {
@@ -45,7 +46,6 @@ import {
   performanceTracker,
   preloadCriticalResources,
 } from '@/utils/vercel-optimization';
-import { triggerAIWarmup } from '@/utils/ai-warmup';
 
 // Phase 2: Lazy loading with skeleton (깜빡임 방지)
 const FeatureCardsGridSkeleton = () => (
