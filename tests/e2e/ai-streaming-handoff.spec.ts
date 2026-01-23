@@ -22,17 +22,21 @@ import { TIMEOUTS } from './helpers/timeouts';
 async function handleClarificationIfPresent(
   page: import('@playwright/test').Page
 ): Promise<void> {
+  // data-testid 또는 텍스트 기반으로 Clarification Dialog 감지
   const clarificationDialog = page.locator(
-    '[data-testid="clarification-dialog"]'
+    '[data-testid="clarification-dialog"], :has-text("조금 더 구체적으로 알려주세요")'
   );
   const isVisible = await clarificationDialog
+    .first()
     .isVisible({ timeout: 3000 })
     .catch(() => false);
 
   if (isVisible) {
-    // 건너뛰기 버튼 클릭 (원래 질문으로 진행)
-    const skipButton = page.locator('[data-testid="clarification-skip"]');
-    await skipButton.click();
+    // 건너뛰기 버튼 클릭 (data-testid 또는 aria-label 또는 텍스트 기반)
+    const skipButton = page.locator(
+      '[data-testid="clarification-skip"], button[aria-label="건너뛰기"], button:has-text("건너뛰기")'
+    );
+    await skipButton.first().click();
     await page.waitForTimeout(500);
   }
 }
@@ -197,10 +201,8 @@ test.describe('AI 스트리밍 Handoff 마커 테스트', () => {
   });
 
   test('채팅 히스토리에 사용자 메시지 표시', async ({ page }) => {
-    await page.goto('/dashboard/ai-assistant', {
-      waitUntil: 'domcontentloaded',
-    });
-    await page.waitForLoadState('networkidle');
+    // beforeEach에서 대시보드 이동 완료됨, AI 사이드바 열기
+    await openAiSidebar(page);
 
     const chatInput = page
       .locator('textarea[placeholder*="메시지"], textarea[placeholder*="질문"]')
@@ -213,14 +215,13 @@ test.describe('AI 스트리밍 Handoff 마커 테스트', () => {
     await chatInput.fill(testMessage);
     await chatInput.press('Enter');
 
-    // 사용자 메시지가 히스토리에 표시되는지 확인
-    // role="log" 영역에서 특정 메시지 텍스트를 검증
-    const messageLog = page.locator('[role="log"]').first();
-    await expect(messageLog).toBeVisible({ timeout: TIMEOUTS.AI_RESPONSE });
+    // Clarification 다이얼로그 처리 (나타나면 건너뛰기)
+    await handleClarificationIfPresent(page);
 
-    // 사용자가 보낸 특정 메시지가 나타나는지 확인 (조건 기반 대기)
-    const userMessage = messageLog
-      .locator('p, [class*="message"]')
+    // 사용자 메시지가 히스토리에 표시되는지 확인
+    // data-testid (최신 배포) 또는 role="log" 내 텍스트 (기존 배포)로 검증
+    const userMessage = page
+      .locator('[data-testid="user-message"], [role="log"]')
       .filter({ hasText: testMessage })
       .first();
 
