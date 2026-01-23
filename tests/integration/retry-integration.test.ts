@@ -17,8 +17,8 @@ import {
   calculateBackoff,
   defaultShouldRetry,
   RETRY_AGGRESSIVE,
-  RETRY_STANDARD,
   RETRY_CONSERVATIVE,
+  RETRY_STANDARD,
 } from '@/lib/utils/retry';
 
 describe('Retry Utility Integration', () => {

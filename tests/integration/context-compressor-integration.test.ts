@@ -14,9 +14,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  type CompressibleMessage,
   compressContext,
   shouldCompress,
-  type CompressibleMessage,
 } from '@/lib/ai/utils/context-compressor';
 
 describe('Context Compressor Integration', () => {

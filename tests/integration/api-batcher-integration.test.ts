@@ -14,9 +14,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  VercelOptimizedAPIBatcher,
-  getAPIBatcher,
   cleanupGlobalBatcher,
+  getAPIBatcher,
+  VercelOptimizedAPIBatcher,
 } from '@/lib/api/api-batcher';
 
 // Mock fetch
