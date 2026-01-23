@@ -9,30 +9,46 @@
 const WARMUP_COOLDOWN_MS = 60_000; // 60초 쿨다운
 const WARMUP_STORAGE_KEY = 'ai_warmup_timestamp';
 
+// sessionStorage 비활성 환경을 위한 메모리 fallback
+let lastWarmupMemory = 0;
+
 /**
  * 마지막 웜업 시간 조회
+ * - NaN 값 자동 복구
+ * - sessionStorage 비활성 시 메모리 fallback
  */
 function getLastWarmupTime(): number {
   try {
     if (typeof window === 'undefined') return 0;
     const stored = sessionStorage.getItem(WARMUP_STORAGE_KEY);
-    return stored ? parseInt(stored, 10) : 0;
+    const parsed = stored ? Number.parseInt(stored, 10) : 0;
+    // NaN 값 자동 복구
+    if (Number.isNaN(parsed)) {
+      sessionStorage.removeItem(WARMUP_STORAGE_KEY);
+      return 0;
+    }
+    return parsed;
   } catch {
-    return 0;
+    // sessionStorage 비활성 시 메모리 fallback
+    return lastWarmupMemory;
   }
 }
 
 /**
  * 웜업 시간 기록
+ * - sessionStorage 비활성 시 메모리에 저장
  */
 function setWarmupTime(): void {
+  const now = Date.now();
   try {
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem(WARMUP_STORAGE_KEY, Date.now().toString());
+      sessionStorage.setItem(WARMUP_STORAGE_KEY, now.toString());
+      return;
     }
   } catch {
-    // sessionStorage 비활성화 환경 무시
+    // sessionStorage 비활성 시 메모리에 저장
   }
+  lastWarmupMemory = now;
 }
 
 /**

@@ -214,18 +214,17 @@ test.describe('AI 스트리밍 Handoff 마커 테스트', () => {
     await chatInput.press('Enter');
 
     // 사용자 메시지가 히스토리에 표시되는지 확인
-    // role="log" 영역에 메시지가 나타났는지 확인
-    // 메시지 전송 후 응답이 올 때까지 충분히 대기
-    await page.waitForTimeout(1000); // 메시지 처리 대기
-
+    // role="log" 영역에서 특정 메시지 텍스트를 검증
     const messageLog = page.locator('[role="log"]').first();
     await expect(messageLog).toBeVisible({ timeout: TIMEOUTS.AI_RESPONSE });
 
-    // 로그 영역에 메시지가 있는지 확인 (새 메시지 또는 기존 메시지)
-    const hasMessages = await messageLog
+    // 사용자가 보낸 특정 메시지가 나타나는지 확인 (조건 기반 대기)
+    const userMessage = messageLog
       .locator('p, [class*="message"]')
-      .count();
-    expect(hasMessages).toBeGreaterThan(0);
+      .filter({ hasText: testMessage })
+      .first();
+
+    await expect(userMessage).toBeVisible({ timeout: TIMEOUTS.AI_RESPONSE });
   });
 
   test('입력 필드 비활성화 상태 확인 (전송 중)', async ({ page }) => {
