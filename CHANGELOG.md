@@ -2,6 +2,80 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.0.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.88.2...v6.0.0) (2026-01-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* **sentry:** Removed deprecated Sentry config files
+
+- Consolidate server/edge Sentry init into instrumentation.ts
+- Create instrumentation-client.ts for client-side Sentry
+- Add onRouterTransitionStart for navigation tracking
+- Add onRequestError for server-side error capturing
+- Delete deprecated sentry.*.config.ts files
+- Delete src/instrumentation.ts (merged to root)
+- Add migration plan document for reference
+
+Fixes local dev 500 error caused by Sentry SSR initialization
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Features
+
+* **agents:** add conditional web search policy (min 1, max 3) ([8f73b9a](https://github.com/skyasu2/openmanager-vibe-v5/commit/8f73b9a925a54f0484b13c9f92461acdbc051f80))
+* **ai-engine:** add getServerByGroup tool for NLQ type queries ([580bb53](https://github.com/skyasu2/openmanager-vibe-v5/commit/580bb539277ebfd6c9b24a2ef02c9831de570f6c))
+* **ai-engine:** add getServerByGroupAdvanced tool and expand typeMap ([e129474](https://github.com/skyasu2/openmanager-vibe-v5/commit/e1294745c982802ff5d4697a0120c32904410920))
+* **ai-engine:** add Sentry error monitoring ([2e8bcb5](https://github.com/skyasu2/openmanager-vibe-v5/commit/2e8bcb524dbe37f0d8e7a2e95ebf83cde00c8f15))
+* **ai:** add Resumable Streams and Timeout Monitoring ([b61cff8](https://github.com/skyasu2/openmanager-vibe-v5/commit/b61cff833ac858f0dc98705194cccc11db2b113a))
+* **ai:** improve response quality within free tier ([cf5a1a4](https://github.com/skyasu2/openmanager-vibe-v5/commit/cf5a1a4770afa46974ff3c35cd733e833b18fef9))
+* **cold-start:** implement 3-layer AI engine warm-up strategy ([d523ad3](https://github.com/skyasu2/openmanager-vibe-v5/commit/d523ad397c580481dbd6c651caee0c0db41606bd))
+* **debug:** add Sentry test endpoint for integration verification ([78cca01](https://github.com/skyasu2/openmanager-vibe-v5/commit/78cca013768f8102b886918496d2fcce8beab70d))
+* **diagram:** add Radix Tooltip and improve UX for architecture diagrams ([ce65405](https://github.com/skyasu2/openmanager-vibe-v5/commit/ce65405e2716006aa2f97bbb4930e250f15c4689))
+* **ui:** add Cold Start error banner with auto-retry countdown ([1d25f79](https://github.com/skyasu2/openmanager-vibe-v5/commit/1d25f796cafd8b5628ceac32f5a8740221a3f8bf))
+
+
+### Bug Fixes
+
+* **a11y:** add button type to improve accessibility (P3 batch 1) ([ae5e7ce](https://github.com/skyasu2/openmanager-vibe-v5/commit/ae5e7cefd3f9ebd0658f4a8918e69b96cf9e7ae1))
+* **a11y:** add button types and SVG accessibility to P1 files ([fd954e6](https://github.com/skyasu2/openmanager-vibe-v5/commit/fd954e61e511ea61e7b87efb6a5673a1f1bed125))
+* **a11y:** add type="button" to 18 buttons (batch 3) ([b0bcbb8](https://github.com/skyasu2/openmanager-vibe-v5/commit/b0bcbb897718709d96a29b02979e7814abb56e5d))
+* **a11y:** add type="button" to 29 buttons (batch 2) ([834fac8](https://github.com/skyasu2/openmanager-vibe-v5/commit/834fac88dee1c23cd58e9b6d829b058252512666))
+* **a11y:** add type="button" to SystemControlPanel (5 buttons) ([2f3d06b](https://github.com/skyasu2/openmanager-vibe-v5/commit/2f3d06b3f9c4919ab876b50b5545ad60f76bca3c))
+* **a11y:** complete SVG accessibility improvements (P2) ([933c263](https://github.com/skyasu2/openmanager-vibe-v5/commit/933c2634d2dec3b541aaaaec2f954a318309e82a))
+* **a11y:** improve SVG and button accessibility across components ([082b629](https://github.com/skyasu2/openmanager-vibe-v5/commit/082b629e070e432657da86646c2653dab7f1265e))
+* **ai-engine:** address AI code review findings ([8e9ca75](https://github.com/skyasu2/openmanager-vibe-v5/commit/8e9ca759d1d0ce0fa50c62a63178fb47d7987979))
+* **ai-engine:** improve getServerByGroup filtering and add disambiguation options ([620195b](https://github.com/skyasu2/openmanager-vibe-v5/commit/620195b494df62f274335f34aa07956cbffc54b7))
+* **ai-engine:** properly regenerate package-lock.json with @sentry/node ([2d197d9](https://github.com/skyasu2/openmanager-vibe-v5/commit/2d197d93b370de9ee1fedad1ec479f4ac04c1010))
+* **ai-engine:** regenerate package-lock.json for npm ci ([d2d93e0](https://github.com/skyasu2/openmanager-vibe-v5/commit/d2d93e0315e4acfbf6c1ff9402b59b61eea1b56e))
+* **ai-engine:** use dynamic version from package.json instead of hardcoded values ([ec82364](https://github.com/skyasu2/openmanager-vibe-v5/commit/ec8236408e76ed023c32df270ede8b9e574bad5a))
+* **ai:** add 45s hard timeout and lower Job Queue threshold ([a278fd2](https://github.com/skyasu2/openmanager-vibe-v5/commit/a278fd2ab28871f733462fb6bbdc9786353c28c7))
+* **ai:** address Codex review feedback for stream error handling ([d916246](https://github.com/skyasu2/openmanager-vibe-v5/commit/d9162466dd4129df530c7289f4a2d29d39dca84e))
+* **ai:** detect stream errors to trigger ColdStartErrorBanner ([ed41aba](https://github.com/skyasu2/openmanager-vibe-v5/commit/ed41aba75865fd6007dad5d5e66e52f7bb6b9373))
+* **ai:** lower complexity threshold 25→19 for report queries ([1f490a3](https://github.com/skyasu2/openmanager-vibe-v5/commit/1f490a3d90e586dd66becb1a1cd6fb6df807e8da))
+* **ai:** lower complexity threshold 30→25 for report queries ([14d381a](https://github.com/skyasu2/openmanager-vibe-v5/commit/14d381a7efd50dccc1b5213bf7f2d9e8535591cc))
+* **ai:** resolve ColdStartErrorBanner side effects ([341a970](https://github.com/skyasu2/openmanager-vibe-v5/commit/341a97047e0e2df75003d42798591de370ebcba1))
+* **ai:** root cause fix for Stream timeout errors ([fc3eedf](https://github.com/skyasu2/openmanager-vibe-v5/commit/fc3eedff805f64a6b4b1a2fb896f25690b10da5c))
+* **api:** remove backwards compatibility layer for server status ([559613b](https://github.com/skyasu2/openmanager-vibe-v5/commit/559613b69011c19c5e146f5df10dcae868483dd8))
+* **api:** resolve 404 error in server modal metrics by fixing JSON parsing ([34138ed](https://github.com/skyasu2/openmanager-vibe-v5/commit/34138ed7bd934c64a56ea91bdfdb1fbe76ea07a9))
+* **config:** update stale comment referencing deleted AIErrorHandler ([ed48c0d](https://github.com/skyasu2/openmanager-vibe-v5/commit/ed48c0d01302dde2aceb9d84dd3a580577f20a7c))
+* **data:** correct 286 status values in hourly-data JSONs ([3429666](https://github.com/skyasu2/openmanager-vibe-v5/commit/3429666c8edb4fa84779fc6fd3000210128506ca))
+* **data:** correct status values in hourly-data JSONs ([8ec505a](https://github.com/skyasu2/openmanager-vibe-v5/commit/8ec505a7ece3e3bb0e92cd607ee99392db67a7b6))
+* **diagram:** address AI code review findings ([ad11adf](https://github.com/skyasu2/openmanager-vibe-v5/commit/ad11adf9d17c98c4c3b272424563f31b4c18431b))
+* **security:** change guestMode default to RESTRICTED & update docs ([1dbb974](https://github.com/skyasu2/openmanager-vibe-v5/commit/1dbb9746313b3fa214f6d982f2c0b348aff7f3be))
+* **sentry:** add ensureSentryInitialized for serverless env ([a1b5db9](https://github.com/skyasu2/openmanager-vibe-v5/commit/a1b5db9d2043d39a2cba3ac7d6cf0ed480a7f097))
+* **sentry:** add fallback DSN for Vercel deployment ([b0815fd](https://github.com/skyasu2/openmanager-vibe-v5/commit/b0815fdc3a06440c9efae14185e5b8171b1d99bc))
+* **sentry:** add manual tunnel API route for Next.js 16 compatibility ([7349a52](https://github.com/skyasu2/openmanager-vibe-v5/commit/7349a52a7b1adc700d32d53d13f67a1c90b4fdbf))
+* **sentry:** add SDK initialization to instrumentation.ts ([a4393da](https://github.com/skyasu2/openmanager-vibe-v5/commit/a4393da93a1beb652d81ba572538634b7433b60f))
+* **sentry:** change tunnel route path and add explicit tunnel config ([1d51501](https://github.com/skyasu2/openmanager-vibe-v5/commit/1d515015337d78c7f2848fd5eb0472cd6890c20b))
+* **sentry:** correct org/project names and add CSP domains ([22de3b0](https://github.com/skyasu2/openmanager-vibe-v5/commit/22de3b0e45282db3dedef76f5395fbb7b8a761b6))
+* **sentry:** migrate to Next.js 16 instrumentation pattern ([6e46a02](https://github.com/skyasu2/openmanager-vibe-v5/commit/6e46a020f139f19901fc98f08fe2b6e91627f2bb))
+* **test:** remove useAIEngine tests for deleted hook ([4cb5cfd](https://github.com/skyasu2/openmanager-vibe-v5/commit/4cb5cfd95ed65f18787ea4562a3c1dbe9398d6d7))
+* **test:** resolve 33 failing tests across 4 test files ([0b4968e](https://github.com/skyasu2/openmanager-vibe-v5/commit/0b4968e3c4ac3a094539146bd8d6bc0ad1d9ba64))
+* **test:** use vi.spyOn for window.dispatchEvent in auth-store tests ([8936840](https://github.com/skyasu2/openmanager-vibe-v5/commit/8936840cd8a4b1b5633eecf8ca066bb600d1b3a6))
+* trigger Vercel redeploy to fix chunk cache issue ([1707f3a](https://github.com/skyasu2/openmanager-vibe-v5/commit/1707f3ac190bcb82eeb10080a2dd3aac9b878101))
+* **ui:** change '시스템 정지' to '시스템 대기' for better UX ([6883325](https://github.com/skyasu2/openmanager-vibe-v5/commit/6883325691bee675f6a842899a514f34ce426a07))
+
 ### [5.88.2](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.88.1...v5.88.2) (2026-01-19)
 
 
