@@ -9,13 +9,13 @@
  * - getServiceStatusStyle: 서비스 상태에 따른 CSS
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  formatUptime,
   formatEnvironment,
+  formatUptime,
+  getServiceStatusStyle,
   getStatusStyle,
   getStatusText,
-  getServiceStatusStyle,
 } from './system-status-formatters';
 
 describe('formatUptime', () => {

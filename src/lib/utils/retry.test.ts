@@ -10,16 +10,16 @@
  * - RETRY_PRESETS: 프리셋 설정
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   calculateBackoff,
   defaultShouldRetry,
-  withRetry,
-  withRetryResult,
   fetchWithRetry,
   RETRY_AGGRESSIVE,
-  RETRY_STANDARD,
   RETRY_CONSERVATIVE,
+  RETRY_STANDARD,
+  withRetry,
+  withRetryResult,
 } from './retry';
 
 describe('calculateBackoff', () => {

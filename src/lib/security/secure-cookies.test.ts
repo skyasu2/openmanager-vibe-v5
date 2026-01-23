@@ -9,13 +9,13 @@
  * - 게스트 세션 쿠키 관리
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  isVercelEnvironment,
-  isSecureEnvironment,
   getSecureCookieOptions,
-  validateRedirectUrl,
   guestSessionCookies,
+  isSecureEnvironment,
+  isVercelEnvironment,
+  validateRedirectUrl,
 } from './secure-cookies';
 
 // logger 모킹

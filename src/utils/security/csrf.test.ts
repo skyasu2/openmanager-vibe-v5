@@ -7,14 +7,14 @@
  * - 쿠키 설정: Secure, SameSite, HttpOnly 플래그
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { NextRequest, NextResponse } from 'next/server';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   generateCSRFToken,
-  verifyCSRFToken,
+  getCSRFTokenFromCookie,
   setCSRFCookie,
   setupCSRFProtection,
-  getCSRFTokenFromCookie,
+  verifyCSRFToken,
 } from './csrf';
 
 describe('generateCSRFToken', () => {
