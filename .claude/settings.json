@@ -16,19 +16,6 @@
           }
         ]
       }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] $(echo $CLAUDE_TOOL_INPUT | jq -r '.command // empty' | head -c 200)\" >> logs/claude-bash-commands.log 2>/dev/null || true",
-            "timeout": 5,
-            "showOutput": false
-          }
-        ]
-      }
     ]
   }
 }
