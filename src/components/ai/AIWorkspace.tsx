@@ -67,6 +67,7 @@ const MessageComponent = memo<{
   return (
     <div
       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+      data-testid={message.role === 'user' ? 'user-message' : 'ai-message'}
     >
       <div
         className={`flex max-w-[90%] items-start space-x-2 sm:max-w-[85%] ${
@@ -94,6 +95,9 @@ const MessageComponent = memo<{
                 ? 'rounded-tr-sm bg-linear-to-br from-blue-500 to-blue-600 text-white'
                 : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
             }`}
+            data-testid={
+              message.role === 'assistant' ? 'ai-response' : undefined
+            }
           >
             {/* 마크다운 렌더링 (AI 응답) 또는 일반 텍스트 (사용자) */}
             {message.role === 'assistant' ? (
