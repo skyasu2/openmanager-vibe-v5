@@ -304,13 +304,13 @@ describe('guestSessionCookies', () => {
             // 쿠키 삭제
             const cookies = cookieStore
               .split('; ')
-              .filter((c) => !c.startsWith(name + '='));
+              .filter((c) => !c.startsWith(`${name}=`));
             cookieStore = cookies.join('; ');
           } else {
             // 쿠키 추가/업데이트
             const cookies = cookieStore
               .split('; ')
-              .filter((c) => c && !c.startsWith(name + '='));
+              .filter((c) => c && !c.startsWith(`${name}=`));
             cookies.push(`${name}=${val}`);
             cookieStore = cookies.join('; ');
           }
