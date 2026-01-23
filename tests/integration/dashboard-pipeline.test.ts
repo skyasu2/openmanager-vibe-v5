@@ -56,12 +56,12 @@ vi.mock('@/lib/api/zod-middleware', () => ({
   })),
 }));
 
+import { GET, POST } from '@/app/api/dashboard/route';
 // Import after mocks
 import {
   getServerMetricsFromUnifiedSource,
   getUnifiedServerDataSource,
 } from '@/services/data/UnifiedServerDataSource';
-import { GET, POST } from '@/app/api/dashboard/route';
 
 // Mock server data
 const mockServers = [
