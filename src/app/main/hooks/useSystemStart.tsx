@@ -16,7 +16,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import debug from '@/utils/debug';
 import { debugWithEnv } from '@/utils/vercel-env-utils';
 
-const SYSTEM_START_COUNTDOWN_SECONDS = 3;
+const SYSTEM_START_COUNTDOWN_SECONDS = 5; // Cloud Run cold start 대기 (5-10초)
 const COUNTDOWN_INTERVAL_MS = 1000;
 
 interface UseSystemStartOptions {
