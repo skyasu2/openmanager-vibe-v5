@@ -16,6 +16,28 @@ import { guestLogin, openAiSidebar } from './helpers/guest';
 import { TIMEOUTS } from './helpers/timeouts';
 
 /**
+ * Clarification 다이얼로그가 나타나면 건너뛰기
+ * 모호한 질문에 대해 시스템이 명확화를 요청할 때 처리
+ */
+async function handleClarificationIfPresent(
+  page: import('@playwright/test').Page
+): Promise<void> {
+  const clarificationDialog = page.locator(
+    '[data-testid="clarification-dialog"]'
+  );
+  const isVisible = await clarificationDialog
+    .isVisible({ timeout: 3000 })
+    .catch(() => false);
+
+  if (isVisible) {
+    // 건너뛰기 버튼 클릭 (원래 질문으로 진행)
+    const skipButton = page.locator('[data-testid="clarification-skip"]');
+    await skipButton.click();
+    await page.waitForTimeout(500);
+  }
+}
+
+/**
  * 대시보드로 안전하게 이동하는 헬퍼 함수
  */
 async function navigateToDashboard(
@@ -68,8 +90,8 @@ test.describe('AI 스트리밍 Handoff 마커 테스트', () => {
 
     await expect(input).toBeVisible({ timeout: TIMEOUTS.DOM_UPDATE });
 
-    // 테스트 메시지 입력
-    await input.fill('서버 상태 알려줘');
+    // 테스트 메시지 입력 (구체적인 질문으로 clarification 회피)
+    await input.fill('전체 서버 상태를 요약해줘');
 
     // 전송 버튼 찾기 및 클릭
     const sendButton = page
@@ -87,13 +109,14 @@ test.describe('AI 스트리밍 Handoff 마커 테스트', () => {
       await input.press('Enter');
     }
 
-    // 응답 영역이 나타날 때까지 대기
-    // 스트리밍 응답이 오면 text가 렌더링됨
+    // Clarification 다이얼로그 처리 (나타나면 건너뛰기)
+    await handleClarificationIfPresent(page);
+
+    // 응답 영역이 나타날 때까지 대기 (data-testid 사용)
     const responseArea = page
-      .locator('.prose, .markdown-body, [data-testid="ai-response"]')
+      .locator('[data-testid="ai-response"], [data-testid="ai-message"]')
       .first();
 
-    // MSW mock이 설정되어 있으므로 응답이 올 것임
     await expect(responseArea).toBeVisible({ timeout: TIMEOUTS.AI_RESPONSE });
   });
 
@@ -111,18 +134,21 @@ test.describe('AI 스트리밍 Handoff 마커 테스트', () => {
 
     await expect(chatInput).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
 
-    // 메시지 입력 및 전송
-    await chatInput.fill('CPU 상태 확인');
+    // 메시지 입력 및 전송 (구체적인 질문)
+    await chatInput.fill('전체 서버의 CPU 사용률을 알려줘');
 
     // Enter로 전송 시도
     await chatInput.press('Enter');
 
+    // Clarification 다이얼로그 처리
+    await handleClarificationIfPresent(page);
+
     // 응답 영역에서 텍스트가 나타나는지 확인
     const aiMessage = page
-      .locator('[data-testid="ai-message"], .ai-message, .assistant-message')
+      .locator('[data-testid="ai-message"], [data-testid="ai-response"]')
       .first();
 
-    // 메시지가 나타나면 성공 (MSW mock 응답)
+    // 메시지가 나타나면 성공
     await expect(aiMessage).toBeVisible({ timeout: TIMEOUTS.AI_RESPONSE });
   });
 
@@ -176,13 +202,16 @@ test.describe('AI 스트리밍 Handoff 마커 테스트', () => {
 
     await expect(chatInput).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
 
-    // 메시지 전송
-    const testMessage = '서버 메트릭 조회해줘';
+    // 메시지 전송 (구체적인 질문)
+    const testMessage = '전체 서버 메트릭을 조회해줘';
     await chatInput.fill(testMessage);
     await chatInput.press('Enter');
 
-    // 사용자 메시지가 히스토리에 표시되는지 확인
-    const userMessage = page.locator(`text=${testMessage}`).first();
+    // 사용자 메시지가 히스토리에 표시되는지 확인 (data-testid 활용)
+    const userMessage = page
+      .locator('[data-testid="user-message"]')
+      .filter({ hasText: testMessage })
+      .first();
 
     await expect(userMessage).toBeVisible({ timeout: TIMEOUTS.DOM_UPDATE });
   });
@@ -312,25 +341,23 @@ test.describe('AI 응답 오류 처리 테스트', () => {
     });
     await page.waitForLoadState('networkidle');
 
-    // 네트워크 오류 시뮬레이션을 위해 오프라인 모드 설정
-    // MSW가 처리하지 않는 경우에 대한 오류 처리 테스트
-    // 이 테스트는 실제 네트워크 오류가 아닌 UI 오류 표시 확인
-
     const chatInput = page
       .locator('textarea[placeholder*="메시지"], textarea[placeholder*="질문"]')
       .first();
 
     await expect(chatInput).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
 
-    // 메시지 전송 (MSW mock이 응답)
-    await chatInput.fill('오류 테스트');
+    // 메시지 전송 (구체적인 질문)
+    await chatInput.fill('전체 서버 오류 상태를 확인해줘');
     await chatInput.press('Enter');
 
-    // 응답 또는 에러 메시지 확인
+    // Clarification 다이얼로그 처리
+    await handleClarificationIfPresent(page);
+
+    // 응답 또는 에러 메시지 확인 (data-testid 사용)
     const response = page
-      .locator('.prose, .markdown-body, [data-testid="ai-response"]')
+      .locator('[data-testid="ai-response"], [data-testid="ai-message"]')
       .or(page.locator('[data-testid="error-message"]'))
-      .or(page.locator('text=오류'))
       .first();
 
     // 어떤 형태로든 응답이 있어야 함

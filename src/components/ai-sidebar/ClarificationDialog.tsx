@@ -52,7 +52,10 @@ export const ClarificationDialog: FC<ClarificationDialogProps> = memo(
     };
 
     return (
-      <div className="mx-4 my-3 rounded-xl border border-amber-200 bg-linear-to-br from-amber-50 to-orange-50 p-4 shadow-sm">
+      <div
+        className="mx-4 my-3 rounded-xl border border-amber-200 bg-linear-to-br from-amber-50 to-orange-50 p-4 shadow-sm"
+        data-testid="clarification-dialog"
+      >
         {/* 헤더 */}
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -71,6 +74,7 @@ export const ClarificationDialog: FC<ClarificationDialogProps> = memo(
             onClick={onSkip}
             className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
             aria-label="건너뛰기"
+            data-testid="clarification-skip"
           >
             <X className="h-4 w-4" />
           </button>
