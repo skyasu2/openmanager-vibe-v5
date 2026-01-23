@@ -31,6 +31,7 @@ describe('VercelOptimizedAPIBatcher Integration', () => {
 
   afterEach(() => {
     cleanupGlobalBatcher();
+    vi.unstubAllGlobals();
   });
 
   describe('타입 가드 검증', () => {
