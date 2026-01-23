@@ -226,7 +226,7 @@
     "vitest": "^4.0.16"
   },
   "engines": {
-    "node": ">=22.0.0 <23.0.0",
+    "node": ">=24.0.0 <25.0.0",
     "npm": ">=10.0.0"
   },
   "optionalDependencies": {
