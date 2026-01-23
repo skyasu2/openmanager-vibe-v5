@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.0.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v6.0.0...v6.0.1) (2026-01-23)
+
+
+### Bug Fixes
+
+* address AI code review findings ([4db29d3](https://github.com/skyasu2/openmanager-vibe-v5/commit/4db29d37e58e3497fef933ca8b09e08561c851cd))
+* **e2e:** add data-testid attributes and handle clarification dialog ([bf8d100](https://github.com/skyasu2/openmanager-vibe-v5/commit/bf8d100a7c6e3cb0727f88302a84bdde3a8735b6))
+* **e2e:** add data-testid to AIWorkspace MessageComponent ([1faa6a5](https://github.com/skyasu2/openmanager-vibe-v5/commit/1faa6a59fcdc687a4cbec50954f173e2e663ca1e))
+* **e2e:** improve AI test selectors and status code handling ([7098323](https://github.com/skyasu2/openmanager-vibe-v5/commit/7098323c217ae2ffee8a75f1879cb3b4820228fa))
+* **e2e:** improve test selectors for cross-version compatibility ([c6d67e5](https://github.com/skyasu2/openmanager-vibe-v5/commit/c6d67e5bde925cd32bb3393f94590eeac1f6581a))
+* remove platform-specific lightningcss dependency ([62e87cd](https://github.com/skyasu2/openmanager-vibe-v5/commit/62e87cdef504c683317bf16c7ecf78f1d4dbcb61))
+* **ux:** extend system start countdown to 5s for Cloud Run cold start ([0d5c6be](https://github.com/skyasu2/openmanager-vibe-v5/commit/0d5c6be075dab3222891b1d2c941206a75b0bd1f))
+
 ## [6.0.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v5.88.2...v6.0.0) (2026-01-23)
 
 
