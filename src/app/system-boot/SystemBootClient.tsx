@@ -19,6 +19,7 @@ import {
   useState,
 } from 'react';
 import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
+import { triggerAIWarmup } from '@/utils/ai-warmup';
 import debug from '@/utils/debug';
 import { BootProgressBar } from './components/BootProgressBar';
 import { SmoothLoadingSpinner } from './components/SmoothLoadingSpinner';
@@ -108,10 +109,8 @@ export default function SystemBootClient() {
 
     debug.log('🚀 OpenManager 시스템 로딩 시작');
 
-    // 🚀 AI 엔진 웜업 요청 (병렬 실행)
-    fetch('/api/ai/wake-up', { method: 'POST' }).catch((err) =>
-      console.error('Boot wake-up failed:', err)
-    );
+    // 🚀 AI 엔진 웜업 요청 (중복 요청 자동 방지)
+    void triggerAIWarmup('system-boot');
 
     const timeouts: NodeJS.Timeout[] = [];
 

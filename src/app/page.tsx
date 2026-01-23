@@ -45,6 +45,7 @@ import {
   performanceTracker,
   preloadCriticalResources,
 } from '@/utils/vercel-optimization';
+import { triggerAIWarmup } from '@/utils/ai-warmup';
 
 // Phase 2: Lazy loading with skeleton (깜빡임 방지)
 const FeatureCardsGridSkeleton = () => (
@@ -115,9 +116,8 @@ function Home() {
 
     // 🚀 AI 엔진 조기 웜업 (페이지 로드 즉시 시작)
     // Cloud Run cold start가 5-10초 소요되므로 사용자가 페이지를 읽는 동안 미리 준비
-    fetch('/api/ai/wake-up', { method: 'POST' }).catch(() => {
-      // Fire-and-forget: 실패해도 사용자 경험에 영향 없음
-    });
+    // 60초 쿨다운으로 새로고침 시 중복 요청 방지
+    void triggerAIWarmup('landing-page');
 
     const mountTimer = setTimeout(() => {
       setIsMounted(true);
