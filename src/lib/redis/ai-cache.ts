@@ -111,7 +111,8 @@ export async function getAIResponseCache(
     if (cached) {
       // 🎯 Free Tier 최적화: TTL 조회 제거 (Redis 커맨드 ~30% 절약)
       // TTL은 캐시 히트 로직에 불필요, 로깅용으로만 사용됨
-      logger.info(
+      // 🎯 CODEX 피드백: warn 레벨로 승격 (운영 관측성 유지)
+      logger.warn(
         `[AI Cache] HIT - Key: ${queryHash}, Latency: ${latencyMs}ms`
       );
 
@@ -123,7 +124,10 @@ export async function getAIResponseCache(
       };
     }
 
-    logger.info(`[AI Cache] MISS - Key: ${queryHash}, Latency: ${latencyMs}ms`);
+    // MISS는 info 유지 (정상 동작, 첫 쿼리에서 발생)
+    logger.debug(
+      `[AI Cache] MISS - Key: ${queryHash}, Latency: ${latencyMs}ms`
+    );
     return { hit: false, data: null, latencyMs };
   } catch (error) {
     logger.error('[AI Cache] Get error:', error);
