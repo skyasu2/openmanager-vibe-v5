@@ -32,11 +32,7 @@ export {
 // Analyst Tools (Anomaly Detection & Trend Prediction)
 // ============================================================================
 export {
-  checkThresholds,
   detectAnomalies,
-  detectAnomaliesHybrid,
-  detectAnomaliesAdaptive,
-  detectAnomaliesUnified,
   predictTrends,
   analyzePattern,
 } from './analyst-tools';
@@ -84,7 +80,7 @@ export { finalAnswer, type FinalAnswerResult } from './final-answer';
 // ============================================================================
 import { getServerMetrics, getServerMetricsAdvanced, filterServers, getServerByGroup, getServerByGroupAdvanced } from './server-metrics';
 import { buildIncidentTimeline, correlateMetrics, findRootCause } from './rca-analysis';
-import { checkThresholds, detectAnomalies, detectAnomaliesHybrid, detectAnomaliesAdaptive, detectAnomaliesUnified, predictTrends, analyzePattern } from './analyst-tools';
+import { detectAnomalies, predictTrends, analyzePattern } from './analyst-tools';
 import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-tools';
 import { calculateSLA, predictMetrics, analyzeServerCorrelation, generateIncidentReport } from './incident-report-tools';
 import { evaluateIncidentReport, validateReportStructure, scoreRootCauseConfidence, refineRootCauseAnalysis, enhanceSuggestedActions, extendServerCorrelation } from './incident-evaluation-tools';
@@ -107,11 +103,7 @@ export const allTools = {
   findRootCause,
 
   // Analyst
-  checkThresholds,
   detectAnomalies,
-  detectAnomaliesHybrid,
-  detectAnomaliesAdaptive,
-  detectAnomaliesUnified,
   predictTrends,
   analyzePattern,
 
@@ -155,11 +147,7 @@ export const toolCategories = {
     findRootCause,
   },
   analyst: {
-    checkThresholds,
     detectAnomalies,
-    detectAnomaliesHybrid,
-    detectAnomaliesAdaptive,
-    detectAnomaliesUnified,
     predictTrends,
     analyzePattern,
   },
@@ -199,11 +187,7 @@ export const toolDescriptions = {
   buildIncidentTimeline: '장애 타임라인 구성',
   correlateMetrics: '메트릭 간 상관관계 분석',
   findRootCause: '근본 원인 분석 (RCA)',
-  checkThresholds: '임계값 초과 확인 (업계 표준: 80/90%)',
   detectAnomalies: '이상치 탐지 (통계: 2σ)',
-  detectAnomaliesHybrid: '하이브리드 이상 탐지 (통계 + Isolation Forest)',
-  detectAnomaliesAdaptive: '적응형 이상 탐지 (시간대/요일 패턴)',
-  detectAnomaliesUnified: '통합 이상 탐지 (모든 탐지기 앙상블)',
   predictTrends: '트렌드 예측',
   analyzePattern: '패턴 분석',
   searchKnowledgeBase: '과거 장애 이력 및 해결 방법 검색 (GraphRAG)',
