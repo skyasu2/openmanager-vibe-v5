@@ -1,27 +1,24 @@
 /**
- * Cloud Run AI Supervisor Stream V2 Proxy (Resumable Mode)
+ * Cloud Run AI Supervisor Stream V2 Proxy
  *
  * @endpoint POST /api/ai/supervisor/stream/v2
- * @endpoint GET /api/ai/supervisor/stream/v2?sessionId=xxx (Resume)
+ * @endpoint GET /api/ai/supervisor/stream/v2?sessionId=xxx (Resume - placeholder)
  *
- * AI SDK v6 Native UIMessageStream with resumable stream support.
- * Uses official `resumable-stream` package for Redis-based stream persistence.
+ * AI SDK v6 Native UIMessageStream proxy to Cloud Run.
  *
- * Benefits:
- * - Native AI SDK protocol preserved (UIMessageStream)
- * - Resumable streams via Redis (survives reconnects, refreshes)
- * - Works directly with useChat + resume option
- * - Structured data events (handoffs, tool calls, metadata)
+ * Note: Resumable stream feature temporarily disabled.
+ * - `resumable-stream` requires standard `redis` package
+ * - Project uses Upstash (REST-based, incompatible)
+ * - TODO: Implement Upstash-compatible resumable stream
  *
  * @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
  * @created 2026-01-24
- * @updated 2026-01-24 - Added resumable stream support
+ * @updated 2026-01-24 - Disabled resumable-stream (redis incompatibility)
  */
 
 import { generateId } from 'ai';
 import type { NextRequest } from 'next/server';
-import { after, NextResponse } from 'next/server';
-import { createResumableStreamContext } from 'resumable-stream';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import {
   extractLastUserQuery,
@@ -38,7 +35,8 @@ import {
   saveActiveStreamId,
 } from './stream-state';
 
-// Allow streaming responses up to 60 seconds (Vercel Hobby: max 60s)
+// Allow streaming responses up to 60 seconds
+// Vercel Tier Limits: Free=10s, Pro=60s (current), Enterprise=900s
 export const maxDuration = 60;
 
 // UI Message Stream headers (AI SDK standard)
@@ -83,15 +81,13 @@ const requestSchema = z.object({
 });
 
 // ============================================================================
-// 🔁 GET - Resume Stream (AI SDK v6 Official Pattern)
+// 🔁 GET - Resume Stream (Placeholder - resumable-stream disabled)
 // ============================================================================
 
-// CODEX Review: GET 핸들러에도 인증/레이트리밋 적용 필요 (보안)
 const resumeStreamHandler = async (req: NextRequest) => {
   const url = new URL(req.url);
   const rawSessionId = url.searchParams.get('sessionId');
 
-  // CODEX Review: sessionId 검증 추가 (길이/형식 제한)
   const sessionIdResult = z.string().min(8).max(128).safeParse(rawSessionId);
   if (!sessionIdResult.success) {
     return NextResponse.json(
@@ -109,49 +105,28 @@ const resumeStreamHandler = async (req: NextRequest) => {
   const activeStreamId = await getActiveStreamId(sessionId);
 
   if (!activeStreamId) {
-    // No active stream - 204 No Content (AI SDK official pattern)
     logger.debug(
       `[SupervisorStreamV2] No active stream for session: ${sessionId}`
     );
     return new Response(null, { status: 204 });
   }
 
-  try {
-    // Create resumable stream context with Next.js after() for cleanup
-    const streamContext = createResumableStreamContext({
-      waitUntil: after,
-    });
-
-    // Attempt to resume existing stream
-    const resumedStream =
-      await streamContext.resumeExistingStream(activeStreamId);
-
-    logger.info(`✅ [SupervisorStreamV2] Stream resumed: ${activeStreamId}`);
-
-    return new Response(resumedStream, {
-      headers: {
-        ...UI_MESSAGE_STREAM_HEADERS,
-        'X-Session-Id': sessionId,
-        'X-Stream-Id': activeStreamId,
-        'X-Resumed': 'true',
-      },
-    });
-  } catch (error) {
-    // Stream expired or not found - clear state and return 204
-    logger.warn(`[SupervisorStreamV2] Stream resume failed:`, error);
-    await clearActiveStreamId(sessionId);
-    return new Response(null, { status: 204 });
-  }
+  // Note: Resumable stream feature disabled (redis incompatibility)
+  // Return 204 to indicate stream cannot be resumed
+  logger.warn(
+    `[SupervisorStreamV2] Resumable stream disabled - cannot resume: ${activeStreamId}`
+  );
+  await clearActiveStreamId(sessionId);
+  return new Response(null, { status: 204 });
 };
 
-// Apply auth and rate limiting to GET handler
 export const GET = withRateLimit(
   rateLimiters.aiAnalysis,
   withAuth(resumeStreamHandler)
 );
 
 // ============================================================================
-// 🌊 POST - Create Resumable UIMessageStream
+// 🌊 POST - Create UIMessageStream (Pass-through, no resumable)
 // ============================================================================
 
 export const POST = withRateLimit(
@@ -184,11 +159,7 @@ export const POST = withRateLimit(
       const headerSessionId = req.headers.get('X-Session-Id');
       const querySessionId = url.searchParams.get('sessionId');
       const sessionId =
-        headerSessionId ||
-        bodySessionId ||
-        querySessionId ||
-        // CODEX Review: Use generateId() for cryptographic randomness
-        generateId();
+        headerSessionId || bodySessionId || querySessionId || generateId();
 
       // 3. Extract and sanitize query
       const rawQuery = extractLastUserQuery(messages as HybridMessage[]);
@@ -220,7 +191,7 @@ export const POST = withRateLimit(
         );
       }
 
-      // 6. Generate stream ID for resumability
+      // 6. Generate stream ID for tracking
       const streamId = generateId();
 
       // 7. Proxy to Cloud Run v2 endpoint
@@ -231,7 +202,7 @@ export const POST = withRateLimit(
       logger.info(`🆔 [SupervisorStreamV2] Stream ID: ${streamId}`);
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 55000); // 55s timeout
+      const timeout = setTimeout(() => controller.abort(), 55000);
 
       try {
         const cloudRunResponse = await fetch(streamUrl, {
@@ -247,8 +218,6 @@ export const POST = withRateLimit(
           }),
           signal: controller.signal,
         });
-
-        // Note: clearTimeout moved to finally block (P1-3 fix)
 
         if (!cloudRunResponse.ok) {
           const errorText = await cloudRunResponse.text();
@@ -272,40 +241,23 @@ export const POST = withRateLimit(
           );
         }
 
-        // 8. Create resumable stream context
-        const streamContext = createResumableStreamContext({
-          waitUntil: after,
-        });
-
-        // 9. Transform Uint8Array stream to string stream for resumable-stream
-        // AI SDK v6 Best Practice: Use resumable-stream for durability
-        const textStream = cloudRunResponse.body!.pipeThrough(
-          new TextDecoderStream()
-        );
-
-        const resumableStream = await streamContext.createNewResumableStream(
-          streamId,
-          () => textStream
-        );
-
-        // 10. Save stream ID to Redis for resumption
+        // 8. Save stream ID to Redis for tracking (not resumable)
         await saveActiveStreamId(sessionId, streamId);
 
-        logger.info(`✅ [SupervisorStreamV2] Resumable stream started`);
+        logger.info(`✅ [SupervisorStreamV2] Stream started (pass-through)`);
 
-        // 11. Return resumable stream response
-        return new Response(resumableStream, {
+        // 9. Return pass-through stream response (no resumable wrapper)
+        return new Response(cloudRunResponse.body, {
           headers: {
             ...UI_MESSAGE_STREAM_HEADERS,
             'X-Session-Id': sessionId,
             'X-Stream-Id': streamId,
             'X-Backend': 'cloud-run-stream-v2',
             'X-Stream-Protocol': 'ui-message-stream',
-            'X-Resumable': 'true',
+            'X-Resumable': 'false', // Disabled until Upstash-compatible solution
           },
         });
       } catch (error) {
-        // Clear stream state on error
         await clearActiveStreamId(sessionId);
 
         if (error instanceof Error && error.name === 'AbortError') {
@@ -318,7 +270,6 @@ export const POST = withRateLimit(
 
         throw error;
       } finally {
-        // 🎯 P1-3 Fix: Guaranteed timeout cleanup regardless of success/failure
         clearTimeout(timeout);
       }
     } catch (error) {
