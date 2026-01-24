@@ -15,13 +15,13 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
  */
 export const nextJsApiHandlers = [
   /**
-   * AI Supervisor Stream API - SSE Streaming
+   * AI Supervisor Stream API v2 - UIMessageStream (Resumable)
    *
-   * @example POST /api/ai/supervisor/stream
+   * @example POST /api/ai/supervisor/stream/v2
    *
-   * Returns Server-Sent Events with handoff and agent_status events
+   * Returns AI SDK v6 UIMessageStream with resumable stream support
    */
-  http.post(`${BASE_URL}/api/ai/supervisor/stream`, async ({ request }) => {
+  http.post(`${BASE_URL}/api/ai/supervisor/stream/v2`, async ({ request }) => {
     let body: {
       messages: Array<{ role: string; content: string }>;
       sessionId?: string;
@@ -44,7 +44,7 @@ export const nextJsApiHandlers = [
     const query = userMessage?.content || '';
 
     console.log(
-      `[MSW] Supervisor Stream API: query="${query.slice(0, 50)}..."`
+      `[MSW] Supervisor Stream v2 API: query="${query.slice(0, 50)}..."`
     );
 
     // SSE 스트림 생성
@@ -127,7 +127,9 @@ export const nextJsApiHandlers = [
         'Cache-Control': 'no-cache',
         Connection: 'keep-alive',
         'X-Session-Id': body.sessionId || 'mock-session',
-        'X-Backend': 'mock-stream',
+        'X-Backend': 'mock-stream-v2',
+        'X-Stream-Protocol': 'ui-message-stream',
+        'X-Resumable': 'true',
       },
     });
   }),

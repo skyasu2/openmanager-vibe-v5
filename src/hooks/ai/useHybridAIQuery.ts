@@ -28,7 +28,7 @@
 
 import type { UIMessage } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport, TextStreamChatTransport } from 'ai';
+import { DefaultChatTransport } from 'ai';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   applyClarification,
@@ -210,20 +210,6 @@ export interface UseHybridAIQueryOptions {
    * ```
    */
   onData?: (dataPart: StreamDataPart) => void;
-  /**
-   * AI SDK Native Protocol 사용 여부 (v2 엔드포인트)
-   *
-   * - true: `/api/ai/supervisor/stream/v2` 사용 (UIMessageStream)
-   * - false (default): `/api/ai/supervisor/stream` 사용 (TextStreamChatTransport)
-   *
-   * Native Protocol 장점:
-   * - AI SDK 네이티브 프로토콜 (text, data, source 이벤트)
-   * - 구조화된 데이터 이벤트 (handoff, tool_call, metadata)
-   * - useChat과 직접 통합 (TextStreamChatTransport 불필요)
-   *
-   * @default false
-   */
-  useNativeProtocol?: boolean;
 }
 
 export interface UseHybridAIQueryReturn {
@@ -308,16 +294,11 @@ export function useHybridAIQuery(
     onJobResult,
     onProgress,
     onData,
-    useNativeProtocol = false,
   } = options;
 
-  // Determine API endpoint based on protocol
-  // v2 uses AI SDK native UIMessageStream protocol
-  const apiEndpoint =
-    customEndpoint ??
-    (useNativeProtocol
-      ? '/api/ai/supervisor/stream/v2'
-      : '/api/ai/supervisor/stream');
+  // Determine API endpoint (v2 only - v1 deprecated and removed)
+  // v2 uses AI SDK native UIMessageStream protocol with resumable streams
+  const apiEndpoint = customEndpoint ?? '/api/ai/supervisor/stream/v2';
 
   // Session ID with stable initial value
   const sessionIdRef = useRef<string>(
@@ -343,36 +324,26 @@ export function useHybridAIQuery(
   // Redirect 이벤트 처리를 위한 쿼리 저장
   const currentQueryRef = useRef<string | null>(null);
 
-  // Stream Recovery: 마지막으로 알려진 시퀀스 번호 (데이터 중복 방지)
-  const lastKnownSequenceRef = useRef<number>(0);
-
   // 🔒 Error Race Condition 방지: onError/onFinish 중 먼저 처리된 쪽이 에러 핸들링
   const errorHandledRef = useRef<boolean>(false);
 
   // ============================================================================
   // useChat Hook (Streaming Mode) - AI SDK v6 베스트 프랙티스 적용
   // ============================================================================
-  // Transport selection based on protocol:
-  // - TextStreamChatTransport: Plain text streaming (legacy, v1)
-  // - DefaultChatTransport: AI SDK native protocol (UIMessageStream, v2)
+  // Transport: DefaultChatTransport with AI SDK native UIMessageStream protocol
+  // Features: Resumable streams, structured data events, automatic reconnection
   //
   // 🎯 Real-time streaming enabled (2026-01-09)
-  // 🌊 Native protocol support added (2026-01-24)
+  // 🌊 Native protocol support (2026-01-24)
   // @see https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol
-  const transport = useMemo(() => {
-    if (useNativeProtocol) {
-      // v2: AI SDK native UIMessageStream protocol
-      // Works directly with useChat, supports structured data events
-      return new DefaultChatTransport({
+  // v2 only: AI SDK native UIMessageStream with resumable stream support
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
         api: apiEndpoint,
-      });
-    }
-    // v1: Plain text streaming (TextStreamChatTransport)
-    // Requires Vercel proxy to convert SSE → plain text
-    return new TextStreamChatTransport({
-      api: apiEndpoint,
-    });
-  }, [apiEndpoint, useNativeProtocol]);
+      }),
+    [apiEndpoint]
+  );
 
   const {
     messages,
@@ -382,13 +353,11 @@ export function useHybridAIQuery(
     stop: stopChat,
   } = useChat({
     // AI SDK v6: Session ID for resumable streams
-    // When using native protocol (v2), enable automatic stream resumption
-    id: useNativeProtocol ? sessionIdRef.current : undefined,
+    id: sessionIdRef.current,
     transport,
-    // AI SDK v6 Best Practice: Enable resume for native protocol streams
-    // This allows automatic reconnection if the stream is interrupted
+    // AI SDK v6 Best Practice: Enable resume for automatic reconnection
     // @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
-    ...(useNativeProtocol && { resume: true }),
+    resume: true,
     onFinish: ({ message }) => {
       // 🔒 Race Condition 방지: onError가 이미 에러를 처리했으면 스킵
       // Note: errorHandledRef는 executeQuery에서 새 요청 시작 시 리셋됨
@@ -486,51 +455,8 @@ export function useHybridAIQuery(
     onError: async (error) => {
       logger.error('[HybridAI] useChat error:', error);
 
-      // Stream Recovery 시도 (네트워크 오류 시)
-      if (sessionIdRef.current && error.message?.includes('network')) {
-        try {
-          logger.info('[HybridAI] Attempting stream recovery...');
-          const response = await fetch(
-            `/api/ai/supervisor/stream?sessionId=${sessionIdRef.current}`
-          );
-
-          if (response.ok) {
-            const recoveredState = await response.json();
-            const serverSequence = recoveredState.sequence ?? 0;
-
-            // 시퀀스 기반 중복 방지: 이미 본 데이터는 무시
-            if (serverSequence <= lastKnownSequenceRef.current) {
-              logger.info(
-                `[HybridAI] Skipping recovery - stale sequence (server: ${serverSequence}, local: ${lastKnownSequenceRef.current})`
-              );
-            } else if (
-              recoveredState.content &&
-              recoveredState.status !== 'error'
-            ) {
-              logger.info(
-                `[HybridAI] Stream recovery successful (sequence: ${serverSequence})`
-              );
-              // 시퀀스 업데이트
-              lastKnownSequenceRef.current = serverSequence;
-
-              // 부분 결과 복구
-              setState((prev) => ({
-                ...prev,
-                isLoading: false,
-                error:
-                  recoveredState.status === 'completed'
-                    ? null
-                    : '연결이 끊겼습니다. 부분 결과를 복구했습니다.',
-                warning: null,
-                processingTime: 0,
-              }));
-              return;
-            }
-          }
-        } catch (recoveryError) {
-          logger.warn('[HybridAI] Recovery failed:', recoveryError);
-        }
-      }
+      // v2: Automatic stream recovery via useChat({ resume: true })
+      // Manual recovery code removed - AI SDK v6 handles reconnection natively
 
       // 🔒 Race Condition 방지: onError가 먼저 에러를 처리했음을 표시
       errorHandledRef.current = true;
@@ -815,7 +741,6 @@ export function useHybridAIQuery(
     setMessages([]);
     pendingQueryRef.current = null;
     currentQueryRef.current = null;
-    lastKnownSequenceRef.current = 0; // 시퀀스 리셋
     setState({
       mode: 'streaming',
       complexity: null,
