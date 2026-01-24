@@ -28,7 +28,7 @@
 
 import type { UIMessage } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
-import { TextStreamChatTransport } from 'ai';
+import { TextStreamChatTransport, DefaultChatTransport } from 'ai';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   applyClarification,
@@ -210,6 +210,20 @@ export interface UseHybridAIQueryOptions {
    * ```
    */
   onData?: (dataPart: StreamDataPart) => void;
+  /**
+   * AI SDK Native Protocol 사용 여부 (v2 엔드포인트)
+   *
+   * - true: `/api/ai/supervisor/stream/v2` 사용 (UIMessageStream)
+   * - false (default): `/api/ai/supervisor/stream` 사용 (TextStreamChatTransport)
+   *
+   * Native Protocol 장점:
+   * - AI SDK 네이티브 프로토콜 (text, data, source 이벤트)
+   * - 구조화된 데이터 이벤트 (handoff, tool_call, metadata)
+   * - useChat과 직접 통합 (TextStreamChatTransport 불필요)
+   *
+   * @default false
+   */
+  useNativeProtocol?: boolean;
 }
 
 export interface UseHybridAIQueryReturn {
@@ -288,13 +302,22 @@ export function useHybridAIQuery(
     sessionId: initialSessionId,
     // 🎯 Real-time streaming endpoint (2026-01-09)
     // Cloud Run SSE streaming → Vercel proxy → Frontend
-    apiEndpoint = '/api/ai/supervisor/stream',
+    apiEndpoint: customEndpoint,
     complexityThreshold = DEFAULT_COMPLEXITY_THRESHOLD,
     onStreamFinish,
     onJobResult,
     onProgress,
     onData,
+    useNativeProtocol = false,
   } = options;
+
+  // Determine API endpoint based on protocol
+  // v2 uses AI SDK native UIMessageStream protocol
+  const apiEndpoint =
+    customEndpoint ??
+    (useNativeProtocol
+      ? '/api/ai/supervisor/stream/v2'
+      : '/api/ai/supervisor/stream');
 
   // Session ID with stable initial value
   const sessionIdRef = useRef<string>(
@@ -329,18 +352,27 @@ export function useHybridAIQuery(
   // ============================================================================
   // useChat Hook (Streaming Mode) - AI SDK v6 베스트 프랙티스 적용
   // ============================================================================
-  // TextStreamChatTransport for plain text streaming
-  // Cloud Run SSE → Vercel proxy → plain text → TextStreamChatTransport
+  // Transport selection based on protocol:
+  // - TextStreamChatTransport: Plain text streaming (legacy, v1)
+  // - DefaultChatTransport: AI SDK native protocol (UIMessageStream, v2)
+  //
   // 🎯 Real-time streaming enabled (2026-01-09)
-  // Note: TextStreamChatTransport는 동적 body 함수를 지원하지 않음
+  // 🌊 Native protocol support added (2026-01-24)
   // @see https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol
-  const transport = useMemo(
-    () =>
-      new TextStreamChatTransport({
+  const transport = useMemo(() => {
+    if (useNativeProtocol) {
+      // v2: AI SDK native UIMessageStream protocol
+      // Works directly with useChat, supports structured data events
+      return new DefaultChatTransport({
         api: apiEndpoint,
-      }),
-    [apiEndpoint]
-  );
+      });
+    }
+    // v1: Plain text streaming (TextStreamChatTransport)
+    // Requires Vercel proxy to convert SSE → plain text
+    return new TextStreamChatTransport({
+      api: apiEndpoint,
+    });
+  }, [apiEndpoint, useNativeProtocol]);
 
   const {
     messages,
