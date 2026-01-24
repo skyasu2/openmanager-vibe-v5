@@ -153,17 +153,31 @@ export class DataCacheLayer {
 
   /**
    * Set item in cache
+   * 🎯 P2-4 Fix: Cleanup BEFORE insert to prevent temporary maxSize overflow
    */
   set<T>(type: CacheType, identifier: string, data: T): void {
     const key = this.generateKey(type, identifier);
+
+    // P2-4: Pre-insert size check and cleanup
+    // If at or over capacity (before new insert), cleanup first
+    if (this.cache.size >= this.config.maxSize) {
+      this.cleanup();
+
+      // If still at capacity after cleanup, force-evict oldest entry
+      if (this.cache.size >= this.config.maxSize) {
+        const oldestKey = this.cache.keys().next().value;
+        if (oldestKey) {
+          this.cache.delete(oldestKey);
+        }
+      }
+    }
+
     this.cache.set(key, {
       data,
       cachedAt: Date.now(),
       ttl: this.getTTL(type),
       hits: 0,
     });
-
-    this.cleanup(); // Cleanup after adding to enforce maxSize
   }
 
   /**

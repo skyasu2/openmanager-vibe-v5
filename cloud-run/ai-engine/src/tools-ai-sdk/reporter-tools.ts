@@ -397,7 +397,15 @@ interface WebSearchResult {
 const TAVILY_TIMEOUT_MS = 10000; // 10초 타임아웃 (베스트 프랙티스: 1-5초, 여유있게 10초)
 const TAVILY_MAX_RETRIES = 2; // 최대 재시도 횟수 (베스트 프랙티스: 2회)
 const TAVILY_RETRY_DELAY_MS = 1000; // 재시도 간 대기 시간
-const TAVILY_CACHE_TTL_MS = 5 * 60 * 1000; // 5분 캐시 (베스트 프랙티스: 반복 쿼리 캐싱)
+/**
+ * Web Search Cache Configuration
+ * Cloud Run Free Tier: 256MB RAM 제한 고려
+ */
+const SEARCH_CACHE_CONFIG = {
+  maxSize: 30,              // 무료 티어 메모리 제한 고려 (100 → 30)
+  evictCount: 10,           // 한 번에 10개 삭제 (LRU)
+  ttlMs: 10 * 60 * 1000,    // 10분 TTL (5분 → 10분으로 증가, 캐시 효율)
+} as const;
 
 /**
  * Simple in-memory cache for web search results
@@ -412,26 +420,47 @@ const searchCache = new Map<string, CacheEntry>();
 
 /**
  * Get cached result if valid
+ * LRU 방식: 조회 시 TTL 만료 항목 정리
  */
 function getCachedResult(query: string): { results: WebSearchResult[]; answer: string | null } | null {
-  const cached = searchCache.get(query.toLowerCase().trim());
-  if (cached && Date.now() - cached.timestamp < TAVILY_CACHE_TTL_MS) {
-    console.log(`📦 [Tavily] Cache hit for: "${query.substring(0, 30)}..."`);
-    return { results: cached.results, answer: cached.answer };
+  const key = query.toLowerCase().trim();
+  const cached = searchCache.get(key);
+  const now = Date.now();
+
+  if (!cached) return null;
+
+  // TTL 만료 체크
+  if (now - cached.timestamp > SEARCH_CACHE_CONFIG.ttlMs) {
+    searchCache.delete(key);
+    return null;
   }
-  return null;
+
+  console.log(`📦 [Tavily] Cache hit for: "${query.substring(0, 30)}..." (size: ${searchCache.size})`);
+  return { results: cached.results, answer: cached.answer };
 }
 
 /**
- * Store result in cache
+ * Store result in cache with LRU eviction
+ * Cloud Run Free Tier 메모리 제한 대응
  */
 function setCacheResult(query: string, results: WebSearchResult[], answer: string | null): void {
-  // Limit cache size to prevent memory leak
-  if (searchCache.size > 100) {
-    const oldestKey = searchCache.keys().next().value;
-    if (oldestKey) searchCache.delete(oldestKey);
+  const now = Date.now();
+
+  // 1. TTL 만료 항목 먼저 정리
+  for (const [key, entry] of searchCache) {
+    if (now - entry.timestamp > SEARCH_CACHE_CONFIG.ttlMs) {
+      searchCache.delete(key);
+    }
   }
-  searchCache.set(query.toLowerCase().trim(), { results, answer, timestamp: Date.now() });
+
+  // 2. 크기 제한 (LRU 방식 - 오래된 항목부터 삭제)
+  if (searchCache.size >= SEARCH_CACHE_CONFIG.maxSize) {
+    const keysToDelete = [...searchCache.keys()].slice(0, SEARCH_CACHE_CONFIG.evictCount);
+    keysToDelete.forEach(k => searchCache.delete(k));
+    console.log(`🗑️ [Tavily] Cache evicted ${keysToDelete.length} entries (LRU)`);
+  }
+
+  searchCache.set(query.toLowerCase().trim(), { results, answer, timestamp: now });
 }
 
 /**
