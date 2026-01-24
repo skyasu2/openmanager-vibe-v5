@@ -851,11 +851,11 @@ async function* streamSingleAgent(
       `✅ [SupervisorStream] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`
     );
 
-    // Emit done event
+    // 🎯 CODEX Review Fix: streamError 발생 시 success=false 반영
     yield {
       type: 'done',
       data: {
-        success: true,
+        success: streamError === null,
         toolsCalled,
         usage: {
           promptTokens: usage?.inputTokens ?? 0,
@@ -869,6 +869,13 @@ async function* streamSingleAgent(
           durationMs,
           mode: 'single',
         },
+        // Include warning info if stream error occurred
+        ...(streamError && {
+          warning: {
+            code: 'STREAM_ERROR_OCCURRED',
+            message: streamError.message,
+          },
+        }),
       },
     };
   } catch (error) {

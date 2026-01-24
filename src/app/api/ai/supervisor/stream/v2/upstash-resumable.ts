@@ -58,9 +58,11 @@ export function createUpstashResumableContext() {
 
       const sourceStream = makeStream();
       const reader = sourceStream.getReader();
+      // 🎯 CODEX Review Fix: stream: true 옵션으로 UTF-8 멀티바이트 경계 손상 방지
       const decoder = new TextDecoder();
 
       let chunkIndex = 0;
+      const initialStartedAt = Date.now();
 
       // Create a transform stream that stores chunks in Redis
       return new ReadableStream<Uint8Array>({
@@ -71,10 +73,11 @@ export function createUpstashResumableContext() {
             if (done) {
               // Mark stream as completed
               if (redis) {
+                // 🎯 CODEX Review Fix: 원래 startedAt 유지
                 const metadata: StreamMetadata = {
                   status: 'completed',
                   totalChunks: chunkIndex,
-                  startedAt: Date.now(),
+                  startedAt: initialStartedAt,
                   completedAt: Date.now(),
                 };
                 await redis.set(metaKey, JSON.stringify(metadata), {
@@ -87,7 +90,8 @@ export function createUpstashResumableContext() {
 
             // Store chunk in Redis list
             if (redis && value) {
-              const chunkStr = decoder.decode(value);
+              // 🎯 CODEX Review Fix: stream: true로 UTF-8 멀티바이트 경계 손상 방지
+              const chunkStr = decoder.decode(value, { stream: true });
               await redis.rpush(dataKey, chunkStr);
               // Refresh TTL
               await redis.expire(dataKey, STREAM_TTL_SECONDS);
@@ -100,10 +104,11 @@ export function createUpstashResumableContext() {
 
             // Mark stream as error
             if (redis) {
+              // 🎯 CODEX Review Fix: 원래 startedAt 유지
               const metadata: StreamMetadata = {
                 status: 'error',
                 totalChunks: chunkIndex,
-                startedAt: Date.now(),
+                startedAt: initialStartedAt,
               };
               await redis.set(metaKey, JSON.stringify(metadata), {
                 ex: STREAM_TTL_SECONDS,
@@ -144,27 +149,29 @@ export function createUpstashResumableContext() {
 
       const metadata: StreamMetadata = JSON.parse(metaStr);
 
-      if (metadata.status === 'completed') {
-        logger.debug(
-          `[UpstashResumable] Stream already completed: ${streamId}`
-        );
-        return null;
-      }
-
+      // 🎯 CODEX Review Fix: error 상태만 거부, completed는 남은 chunk 재전송 허용
       if (metadata.status === 'error') {
         logger.warn(`[UpstashResumable] Stream had error: ${streamId}`);
         return null;
       }
+
+      const isCompleted = metadata.status === 'completed';
 
       // Get all chunks from skip position
       const chunks = await redis.lrange(dataKey, skipChunks, -1);
       const encoder = new TextEncoder();
 
       let currentIndex = 0;
+      let cancelled = false;
       const pollInterval = 500; // Poll every 500ms for new chunks
 
       return new ReadableStream<Uint8Array>({
         async pull(controller) {
+          if (cancelled) {
+            controller.close();
+            return;
+          }
+
           // First, emit buffered chunks
           if (currentIndex < chunks.length) {
             const chunk = chunks[currentIndex];
@@ -175,7 +182,13 @@ export function createUpstashResumableContext() {
             return;
           }
 
-          // Poll for new chunks
+          // 🎯 CODEX Review Fix: completed 상태면 남은 chunk 모두 전송 후 종료
+          if (isCompleted) {
+            controller.close();
+            return;
+          }
+
+          // Poll for new chunks (only for active streams)
           const newChunks = await redis.lrange(
             dataKey,
             skipChunks + currentIndex,
@@ -203,6 +216,9 @@ export function createUpstashResumableContext() {
 
           // Wait and poll again
           await new Promise((resolve) => setTimeout(resolve, pollInterval));
+        },
+        cancel() {
+          cancelled = true;
         },
       });
     },

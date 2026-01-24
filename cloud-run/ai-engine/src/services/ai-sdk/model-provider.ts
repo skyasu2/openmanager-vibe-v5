@@ -175,8 +175,9 @@ function createMistralProvider() {
  * @see https://github.com/vercel/ai/issues - AI SDK 버전 호환성 이슈
  */
 function asLanguageModel(model: unknown): LanguageModel {
-  if (!model || typeof model !== 'object') {
-    throw new TypeError('[ModelProvider] Model must be an object');
+  // 🎯 CODEX Review Fix: 함수형 모델도 허용 (callable + 속성 조합 가능)
+  if (!model || (typeof model !== 'object' && typeof model !== 'function')) {
+    throw new TypeError('[ModelProvider] Model must be an object or function');
   }
 
   // Check for essential LanguageModel interface methods

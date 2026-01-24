@@ -88,7 +88,16 @@ const requestSchema = z.object({
 const resumeStreamHandler = async (req: NextRequest) => {
   const url = new URL(req.url);
   const rawSessionId = url.searchParams.get('sessionId');
-  const skipChunks = parseInt(url.searchParams.get('skip') || '0', 10);
+  const skipParam = url.searchParams.get('skip');
+
+  // 🎯 CODEX Review Fix: skip 파라미터 검증 (NaN/음수 방지)
+  const skipChunks = skipParam ? Number(skipParam) : 0;
+  if (!Number.isInteger(skipChunks) || skipChunks < 0) {
+    return NextResponse.json(
+      { error: 'skip must be a non-negative integer' },
+      { status: 400 }
+    );
+  }
 
   const sessionIdResult = z.string().min(8).max(128).safeParse(rawSessionId);
   if (!sessionIdResult.success) {
@@ -125,15 +134,15 @@ const resumeStreamHandler = async (req: NextRequest) => {
     return new Response(null, { status: 204 });
   }
 
+  // 🎯 CODEX Review Fix: completed 상태에서도 남은 chunk 재전송 허용
+  // 네트워크 단절 후 복구 시 이미 완료된 스트림도 이어받기 가능
   if (streamStatus === 'completed') {
     logger.info(
-      `[SupervisorStreamV2] Stream already completed: ${activeStreamId}`
+      `[SupervisorStreamV2] Stream completed, attempting resume for remaining chunks: ${activeStreamId}`
     );
-    await clearActiveStreamId(sessionId);
-    return new Response(null, { status: 204 });
   }
 
-  // Resume the stream
+  // Resume the stream (works for both active and completed)
   const resumedStream = await resumableContext.resumeExistingStream(
     activeStreamId,
     skipChunks

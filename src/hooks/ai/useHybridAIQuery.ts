@@ -129,14 +129,20 @@ export interface RedirectEventData {
 }
 
 /**
- * Warning 이벤트 데이터 (처리 지연)
+ * Warning 이벤트 데이터 (처리 지연 또는 스트림 에러)
+ * 🎯 CODEX Review Fix: STREAM_ERROR_OCCURRED 코드 추가
  */
-export interface WarningEventData {
-  code: 'SLOW_PROCESSING';
-  message: string;
-  elapsed: number;
-  threshold: number;
-}
+export type WarningEventData =
+  | {
+      code: 'SLOW_PROCESSING';
+      message: string;
+      elapsed: number;
+      threshold: number;
+    }
+  | {
+      code: 'STREAM_ERROR_OCCURRED';
+      message: string;
+    };
 
 /**
  * 스트리밍 데이터 파트 타입
@@ -402,22 +408,34 @@ export function useHybridAIQuery(
     onData: (dataPart) => {
       const part = dataPart as StreamDataPart;
 
-      // Warning 이벤트 처리 (처리 지연 경고)
+      // Warning 이벤트 처리 (처리 지연 또는 스트림 에러 경고)
+      // 🎯 CODEX Review Fix: SLOW_PROCESSING과 STREAM_ERROR_OCCURRED 분기 처리
       if (part.type === 'warning' && part.data) {
         const warningData = part.data as WarningEventData;
-        logger.warn(
-          `⚠️ [HybridAI] Warning received: ${warningData.message} (${warningData.elapsed}ms)`
-        );
 
-        // 경고 상태 업데이트 (1회만)
-        setState((prev) => {
-          if (prev.warning) return prev; // 이미 경고 표시 중
-          return {
-            ...prev,
-            warning: warningData.message,
-            processingTime: warningData.elapsed,
-          };
-        });
+        if (warningData.code === 'SLOW_PROCESSING') {
+          logger.warn(
+            `⚠️ [HybridAI] Slow processing: ${warningData.message} (${warningData.elapsed}ms)`
+          );
+          setState((prev) => {
+            if (prev.warning) return prev;
+            return {
+              ...prev,
+              warning: warningData.message,
+              processingTime: warningData.elapsed,
+            };
+          });
+        } else {
+          // STREAM_ERROR_OCCURRED - elapsed 필드 없음
+          logger.warn(`⚠️ [HybridAI] Stream error: ${warningData.message}`);
+          setState((prev) => {
+            if (prev.warning) return prev;
+            return {
+              ...prev,
+              warning: warningData.message,
+            };
+          });
+        }
         return;
       }
 
