@@ -2,18 +2,18 @@
  * Cloud Run AI Supervisor Stream V2 Proxy
  *
  * @endpoint POST /api/ai/supervisor/stream/v2
- * @endpoint GET /api/ai/supervisor/stream/v2?sessionId=xxx (Resume - placeholder)
+ * @endpoint GET /api/ai/supervisor/stream/v2?sessionId=xxx (Resume stream)
  *
  * AI SDK v6 Native UIMessageStream proxy to Cloud Run.
  *
- * Note: Resumable stream feature temporarily disabled.
- * - `resumable-stream` requires standard `redis` package
- * - Project uses Upstash (REST-based, incompatible)
- * - TODO: Implement Upstash-compatible resumable stream
+ * Features:
+ * - Upstash-compatible resumable stream (polling-based)
+ * - Redis List storage for stream chunks
+ * - Auto-expire after 10 minutes
  *
  * @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
  * @created 2026-01-24
- * @updated 2026-01-24 - Disabled resumable-stream (redis incompatibility)
+ * @updated 2026-01-24 - Implemented Upstash-compatible resumable stream
  */
 
 import { generateId } from 'ai';
@@ -34,6 +34,7 @@ import {
   getActiveStreamId,
   saveActiveStreamId,
 } from './stream-state';
+import { createUpstashResumableContext } from './upstash-resumable';
 
 // Allow streaming responses up to 60 seconds
 // Vercel Tier Limits: Free=10s, Pro=60s (current), Enterprise=900s
@@ -81,12 +82,13 @@ const requestSchema = z.object({
 });
 
 // ============================================================================
-// 🔁 GET - Resume Stream (Placeholder - resumable-stream disabled)
+// 🔁 GET - Resume Stream (Upstash-compatible polling)
 // ============================================================================
 
 const resumeStreamHandler = async (req: NextRequest) => {
   const url = new URL(req.url);
   const rawSessionId = url.searchParams.get('sessionId');
+  const skipChunks = parseInt(url.searchParams.get('skip') || '0', 10);
 
   const sessionIdResult = z.string().min(8).max(128).safeParse(rawSessionId);
   if (!sessionIdResult.success) {
@@ -98,7 +100,7 @@ const resumeStreamHandler = async (req: NextRequest) => {
   const sessionId = sessionIdResult.data;
 
   logger.info(
-    `🔄 [SupervisorStreamV2] Resume request for session: ${sessionId}`
+    `🔄 [SupervisorStreamV2] Resume request for session: ${sessionId}, skip: ${skipChunks}`
   );
 
   // Check for active stream in Redis
@@ -111,13 +113,51 @@ const resumeStreamHandler = async (req: NextRequest) => {
     return new Response(null, { status: 204 });
   }
 
-  // Note: Resumable stream feature disabled (redis incompatibility)
-  // Return 204 to indicate stream cannot be resumed
-  logger.warn(
-    `[SupervisorStreamV2] Resumable stream disabled - cannot resume: ${activeStreamId}`
+  // Create resumable context and attempt to resume
+  const resumableContext = createUpstashResumableContext();
+  const streamStatus = await resumableContext.hasExistingStream(activeStreamId);
+
+  if (!streamStatus) {
+    logger.debug(
+      `[SupervisorStreamV2] Stream not found in Redis: ${activeStreamId}`
+    );
+    await clearActiveStreamId(sessionId);
+    return new Response(null, { status: 204 });
+  }
+
+  if (streamStatus === 'completed') {
+    logger.info(
+      `[SupervisorStreamV2] Stream already completed: ${activeStreamId}`
+    );
+    await clearActiveStreamId(sessionId);
+    return new Response(null, { status: 204 });
+  }
+
+  // Resume the stream
+  const resumedStream = await resumableContext.resumeExistingStream(
+    activeStreamId,
+    skipChunks
   );
-  await clearActiveStreamId(sessionId);
-  return new Response(null, { status: 204 });
+
+  if (!resumedStream) {
+    logger.warn(
+      `[SupervisorStreamV2] Failed to resume stream: ${activeStreamId}`
+    );
+    await clearActiveStreamId(sessionId);
+    return new Response(null, { status: 204 });
+  }
+
+  logger.info(`✅ [SupervisorStreamV2] Stream resumed: ${activeStreamId}`);
+
+  return new Response(resumedStream, {
+    headers: {
+      ...UI_MESSAGE_STREAM_HEADERS,
+      'X-Session-Id': sessionId,
+      'X-Stream-Id': activeStreamId,
+      'X-Resumed': 'true',
+      'X-Skip-Chunks': String(skipChunks),
+    },
+  });
 };
 
 export const GET = withRateLimit(
@@ -241,24 +281,34 @@ export const POST = withRateLimit(
           );
         }
 
-        // 8. Save stream ID to Redis for tracking (not resumable)
+        // 8. Save stream ID to Redis for tracking
         await saveActiveStreamId(sessionId, streamId);
 
-        logger.info(`✅ [SupervisorStreamV2] Stream started (pass-through)`);
+        // 9. Wrap stream with Upstash-compatible resumable context
+        const resumableContext = createUpstashResumableContext();
+        const resumableStream = await resumableContext.createNewResumableStream(
+          streamId,
+          () => cloudRunResponse.body!
+        );
 
-        // 9. Return pass-through stream response (no resumable wrapper)
-        return new Response(cloudRunResponse.body, {
+        logger.info(`✅ [SupervisorStreamV2] Stream started (resumable)`);
+
+        // 10. Return resumable stream response
+        return new Response(resumableStream, {
           headers: {
             ...UI_MESSAGE_STREAM_HEADERS,
             'X-Session-Id': sessionId,
             'X-Stream-Id': streamId,
             'X-Backend': 'cloud-run-stream-v2',
             'X-Stream-Protocol': 'ui-message-stream',
-            'X-Resumable': 'false', // Disabled until Upstash-compatible solution
+            'X-Resumable': 'true',
           },
         });
       } catch (error) {
+        // Clear both session mapping and resumable stream data
         await clearActiveStreamId(sessionId);
+        const cleanupContext = createUpstashResumableContext();
+        await cleanupContext.clearStream(streamId);
 
         if (error instanceof Error && error.name === 'AbortError') {
           logger.error('❌ [SupervisorStreamV2] Request timeout');
