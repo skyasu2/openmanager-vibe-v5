@@ -86,13 +86,20 @@ const requestSchema = z.object({
 // 🔁 GET - Resume Stream (AI SDK v6 Official Pattern)
 // ============================================================================
 
-export async function GET(req: NextRequest) {
+// CODEX Review: GET 핸들러에도 인증/레이트리밋 적용 필요 (보안)
+const resumeStreamHandler = async (req: NextRequest) => {
   const url = new URL(req.url);
-  const sessionId = url.searchParams.get('sessionId');
+  const rawSessionId = url.searchParams.get('sessionId');
 
-  if (!sessionId) {
-    return NextResponse.json({ error: 'sessionId required' }, { status: 400 });
+  // CODEX Review: sessionId 검증 추가 (길이/형식 제한)
+  const sessionIdResult = z.string().min(8).max(128).safeParse(rawSessionId);
+  if (!sessionIdResult.success) {
+    return NextResponse.json(
+      { error: 'sessionId required (8-128 chars)' },
+      { status: 400 }
+    );
   }
+  const sessionId = sessionIdResult.data;
 
   logger.info(
     `🔄 [SupervisorStreamV2] Resume request for session: ${sessionId}`
@@ -135,7 +142,13 @@ export async function GET(req: NextRequest) {
     await clearActiveStreamId(sessionId);
     return new Response(null, { status: 204 });
   }
-}
+};
+
+// Apply auth and rate limiting to GET handler
+export const GET = withRateLimit(
+  rateLimiters.aiAnalysis,
+  withAuth(resumeStreamHandler)
+);
 
 // ============================================================================
 // 🌊 POST - Create Resumable UIMessageStream
@@ -174,7 +187,8 @@ export const POST = withRateLimit(
         headerSessionId ||
         bodySessionId ||
         querySessionId ||
-        `stream_${Date.now()}`;
+        // CODEX Review: Use generateId() for cryptographic randomness
+        generateId();
 
       // 3. Extract and sanitize query
       const rawQuery = extractLastUserQuery(messages as HybridMessage[]);
