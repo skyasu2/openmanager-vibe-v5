@@ -2,6 +2,51 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.0.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v6.1.0...v7.0.0) (2026-01-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* **supervisor:** v1 stream endpoint removed
+
+- Delete /api/ai/supervisor/stream (v1) - 508 lines removed
+- Switch default to v2 with UIMessageStream + Resumable
+- Remove useNativeProtocol option (always v2 now)
+- Remove TextStreamChatTransport import
+- Simplify useHybridAIQuery hook (always use resume: true)
+- Update MSW mock to v2 endpoint
+
+v2 benefits:
+- AI SDK v6 native UIMessageStream protocol
+- Resumable streams via Redis (survives refreshes)
+- Built-in useChat + resume support
+- Structured data events (handoffs, tool calls)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Features
+
+* **ai-sdk:** add UIMessageStream native protocol support (v2) ([d85025a](https://github.com/skyasu2/openmanager-vibe-v5/commit/d85025a3ecd1812d26b97b3ecf728aa8eceb07d6))
+* **stream-v2:** add resumable stream support with AI SDK v6 best practices ([da38977](https://github.com/skyasu2/openmanager-vibe-v5/commit/da389778493f4f6443c05f6886f14fd6bcb895f1))
+* **stream-v2:** implement Upstash-compatible resumable stream ([96a24a3](https://github.com/skyasu2/openmanager-vibe-v5/commit/96a24a37acb7da163c2fdf1e98529d9b36b9d663))
+
+
+### Bug Fixes
+
+* **ai-cache:** apply CODEX review - preserve cache HIT observability ([18f243d](https://github.com/skyasu2/openmanager-vibe-v5/commit/18f243d1f6ddab0d5338c516dc4ae0625ef90753))
+* **ai-engine:** address code review findings ([0af200f](https://github.com/skyasu2/openmanager-vibe-v5/commit/0af200f652b28cd40333c0367ded61dac4007fc7))
+* **ai-hooks:** P0-P1 memory leak and error handling improvements ([64a4573](https://github.com/skyasu2/openmanager-vibe-v5/commit/64a45731130b9ac1ccb438b45690a6d1f866b23a))
+* **ai:** P1/P2 code quality improvements from analysis ([8890fd0](https://github.com/skyasu2/openmanager-vibe-v5/commit/8890fd0dd98e9b1be53cf81797ca3af0febbb35c))
+* **critical:** P0+P1 AI code quality improvements ([66d15e0](https://github.com/skyasu2/openmanager-vibe-v5/commit/66d15e036277f299555e84a1ae346e8ba16dcf5d))
+* **orchestrator:** extract finalAnswer result to prevent empty responses ([055d321](https://github.com/skyasu2/openmanager-vibe-v5/commit/055d321ba82a7c48b2a29cdc30367c194c95a05a))
+* **stream-v2:** apply CODEX security review fixes ([59e11c6](https://github.com/skyasu2/openmanager-vibe-v5/commit/59e11c6504f1166e488b0d9f8535288acb690f01))
+* **stream-v2:** remove resumable-stream dependency (redis incompatible) ([4bdfad0](https://github.com/skyasu2/openmanager-vibe-v5/commit/4bdfad0b3c208232eb273e5f1015715c526c80d7))
+* **supervisor:** apply AI SDK v6 best practices from CODEX review ([101a65c](https://github.com/skyasu2/openmanager-vibe-v5/commit/101a65cfa038a68470e56304eb5de1d12de19711))
+* **supervisor:** apply CODEX review improvements for AI SDK v6 compliance ([17beb28](https://github.com/skyasu2/openmanager-vibe-v5/commit/17beb28d434edf52de349a00f3dacf35432c6a79))
+
+
+* **supervisor:** remove deprecated v1 stream endpoint ([633aec3](https://github.com/skyasu2/openmanager-vibe-v5/commit/633aec3fe2b489ef8448aa90428c4404f08b9925))
+
 ## [6.1.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v6.0.1...v6.1.0) (2026-01-24)
 
 
