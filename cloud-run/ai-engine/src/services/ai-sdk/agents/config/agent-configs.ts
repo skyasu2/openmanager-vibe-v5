@@ -454,6 +454,10 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
       searchKnowledgeBase,
       recommendCommands,
       searchWeb, // Added for external knowledge when RAG insufficient
+      // Diagnostic tools for informed recommendations (P2 enhancement)
+      findRootCause,
+      correlateMetrics,
+      detectAnomalies,
     },
     matchPatterns: [
       // Solution keywords
@@ -582,11 +586,14 @@ export function getAgentConfig(name: string): AgentConfig | undefined {
 }
 
 /**
- * Check if agent is available (has valid model)
+ * Check if agent is available (has valid model and is routable)
+ * Agents with empty matchPatterns are internal-only (e.g., Evaluator, Optimizer)
  */
 export function isAgentAvailable(name: string): boolean {
   const config = AGENT_CONFIGS[name];
   if (!config) return false;
+  // Internal agents (matchPatterns: []) are not publicly available
+  if (config.matchPatterns.length === 0) return false;
   return config.getModel() !== null;
 }
 
