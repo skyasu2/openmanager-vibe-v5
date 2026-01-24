@@ -16,6 +16,7 @@
  * Uses MISTRAL_API_KEY environment variable
  */
 
+import { createHash } from 'crypto';
 import { createMistral } from '@ai-sdk/mistral';
 import { embed, embedMany } from 'ai';
 import { getMistralConfig } from './config-parser';
@@ -58,10 +59,11 @@ const EMBEDDING_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const EMBEDDING_CACHE_MAX_SIZE = 100; // Prevent memory leak
 
 /**
- * Generate cache key from text (normalized)
+ * Generate cache key from text using SHA-256 hash
+ * Prevents cache collision for texts with identical prefixes
  */
 function getCacheKey(text: string): string {
-  return text.trim().toLowerCase().substring(0, 200); // Limit key size
+  return createHash('sha256').update(text.trim().toLowerCase()).digest('hex');
 }
 
 /**

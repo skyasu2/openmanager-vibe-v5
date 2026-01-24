@@ -186,6 +186,27 @@ export function resolveWebSearchSetting(
   return shouldEnableWebSearch(query);
 }
 
+/**
+ * Filter tools based on web search setting
+ * Removes searchWeb tool when web search is disabled
+ */
+function filterToolsByWebSearch(
+  tools: Record<string, unknown>,
+  webSearchEnabled: boolean
+): Record<string, unknown> {
+  if (webSearchEnabled) {
+    return tools;
+  }
+
+  // Remove searchWeb tool when disabled
+  const filtered = { ...tools };
+  if ('searchWeb' in filtered) {
+    delete filtered.searchWeb;
+    console.log('🚫 [Tools] searchWeb disabled by enableWebSearch setting');
+  }
+  return filtered;
+}
+
 // ============================================================================
 // Orchestrator Instructions
 // ============================================================================
@@ -534,7 +555,8 @@ function getAgentProviderOrder(agentName: string): ProviderName[] {
 async function executeForcedRouting(
   query: string,
   suggestedAgentName: string,
-  startTime: number
+  startTime: number,
+  webSearchEnabled = true
 ): Promise<MultiAgentResponse | null> {
   console.log(`🔍 [Forced Routing] Looking up agent config: "${suggestedAgentName}"`);
 
@@ -550,6 +572,9 @@ async function executeForcedRouting(
   const providerOrder = getAgentProviderOrder(suggestedAgentName);
   console.log(`🎯 [Forced Routing] Using retry with fallback: [${providerOrder.join(' → ')}]`);
 
+  // Filter tools based on web search setting
+  const filteredTools = filterToolsByWebSearch(agentConfig.tools, webSearchEnabled);
+
   try {
     // Use generateTextWithRetry for automatic 429 handling
     const retryResult = await generateTextWithRetry(
@@ -558,7 +583,7 @@ async function executeForcedRouting(
           { role: 'system', content: agentConfig.instructions },
           { role: 'user', content: query },
         ],
-        tools: agentConfig.tools as Parameters<typeof generateText>[0]['tools'],
+        tools: filteredTools as Parameters<typeof generateText>[0]['tools'],
         stopWhen: stepCountIs(5),
         temperature: 0.4, // Increased from 0.2 for more creative analysis
         maxOutputTokens: 2048,
@@ -721,7 +746,8 @@ ${query}
 async function executeParallelSubtasks(
   subtasks: Subtask[],
   query: string,
-  startTime: number
+  startTime: number,
+  webSearchEnabled = true
 ): Promise<MultiAgentResponse | null> {
   console.log(`🚀 [Parallel] Executing ${subtasks.length} subtasks in parallel...`);
 
@@ -732,7 +758,8 @@ async function executeParallelSubtasks(
     const result = await executeForcedRouting(
       subtask.task,
       subtask.agent,
-      startTime
+      startTime,
+      webSearchEnabled
     );
 
     return {
@@ -843,6 +870,10 @@ export async function executeMultiAgent(
 
   const query = lastUserMessage.content;
 
+  // Resolve web search setting for this request
+  const webSearchEnabled = resolveWebSearchSetting(request.enableWebSearch, query);
+  console.log(`🔍 [WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
+
   // =========================================================================
   // Fast Path: Rule-based pre-filter for simple queries
   // =========================================================================
@@ -889,7 +920,7 @@ export async function executeMultiAgent(
       let lastResult: MultiAgentResponse | null = null;
 
       for (const subtask of decomposition.subtasks) {
-        lastResult = await executeForcedRouting(subtask.task, subtask.agent, startTime);
+        lastResult = await executeForcedRouting(subtask.task, subtask.agent, startTime, webSearchEnabled);
         if (!lastResult) {
           console.warn(`⚠️ [Orchestrator] Sequential subtask failed: ${subtask.agent}`);
           break;
@@ -904,7 +935,8 @@ export async function executeMultiAgent(
       const parallelResult = await executeParallelSubtasks(
         decomposition.subtasks,
         query,
-        startTime
+        startTime,
+        webSearchEnabled
       );
 
       if (parallelResult) {
@@ -925,7 +957,8 @@ export async function executeMultiAgent(
     const forcedResult = await executeForcedRouting(
       query,
       preFilterResult.suggestedAgent,
-      startTime
+      startTime,
+      webSearchEnabled
     );
     if (forcedResult) {
       console.log(`✅ [Orchestrator] Forced routing succeeded`);
@@ -1011,7 +1044,7 @@ ${query}
       // Execute the selected agent
       recordHandoff('Orchestrator', selectedAgent, 'LLM routing');
 
-      const agentResult = await executeForcedRouting(query, selectedAgent, startTime);
+      const agentResult = await executeForcedRouting(query, selectedAgent, startTime, webSearchEnabled);
 
       if (agentResult) {
         return {
@@ -1030,7 +1063,7 @@ ${query}
     if (suggestedAgent && preFilterResult.confidence >= 0.5) {
       console.log(`🔄 [Orchestrator] LLM routing inconclusive, falling back to ${suggestedAgent}`);
 
-      const fallbackResult = await executeForcedRouting(query, suggestedAgent, startTime);
+      const fallbackResult = await executeForcedRouting(query, suggestedAgent, startTime, webSearchEnabled);
 
       if (fallbackResult) {
         return {
@@ -1122,6 +1155,10 @@ export async function* executeMultiAgentStream(
 
   const query = lastUserMessage.content;
 
+  // Resolve web search setting for this request
+  const webSearchEnabled = resolveWebSearchSetting(request.enableWebSearch, query);
+  console.log(`🔍 [Stream WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
+
   // =========================================================================
   // Fast Path: Rule-based pre-filter for simple queries
   // =========================================================================
@@ -1156,7 +1193,8 @@ export async function* executeMultiAgentStream(
       query,
       preFilterResult.suggestedAgent,
       startTime,
-      request.sessionId
+      request.sessionId,
+      webSearchEnabled
     );
     return;
   }
@@ -1208,7 +1246,7 @@ ${query}
       recordHandoff('Orchestrator', selectedAgent, 'LLM routing');
       yield { type: 'handoff', data: { from: 'Orchestrator', to: selectedAgent, reason: 'LLM routing' } };
 
-      yield* executeAgentStream(query, selectedAgent, startTime, request.sessionId);
+      yield* executeAgentStream(query, selectedAgent, startTime, request.sessionId, webSearchEnabled);
       return;
     }
 
@@ -1219,7 +1257,7 @@ ${query}
       recordHandoff('Orchestrator', suggestedAgent, 'Fallback routing');
       yield { type: 'handoff', data: { from: 'Orchestrator', to: suggestedAgent, reason: 'Fallback' } };
 
-      yield* executeAgentStream(query, suggestedAgent, startTime, request.sessionId);
+      yield* executeAgentStream(query, suggestedAgent, startTime, request.sessionId, webSearchEnabled);
       return;
     }
 
@@ -1263,7 +1301,8 @@ async function* executeAgentStream(
   query: string,
   agentName: string,
   startTime: number,
-  sessionId: string
+  sessionId: string,
+  webSearchEnabled = true
 ): AsyncGenerator<StreamEvent> {
   const agentConfig = getAgentConfig(agentName);
 
@@ -1281,6 +1320,9 @@ async function* executeAgentStream(
   const { model, provider, modelId } = modelResult;
   console.log(`🤖 [Stream ${agentName}] Using ${provider}/${modelId}`);
 
+  // Filter tools based on web search setting
+  const filteredTools = filterToolsByWebSearch(agentConfig.tools, webSearchEnabled);
+
   // Langfuse timeout span
   const timeoutSpan = createTimeoutSpan(sessionId, `${agentName}_stream`, ORCHESTRATOR_CONFIG.timeout);
 
@@ -1291,7 +1333,7 @@ async function* executeAgentStream(
         { role: 'system', content: agentConfig.instructions },
         { role: 'user', content: query },
       ],
-      tools: agentConfig.tools,
+      tools: filteredTools as Parameters<typeof generateText>[0]['tools'],
       stopWhen: stepCountIs(3),
       temperature: 0.4,
       maxOutputTokens: 1536,
