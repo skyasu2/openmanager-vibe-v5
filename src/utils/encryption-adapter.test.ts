@@ -11,12 +11,12 @@ import { describe, expect, it } from 'vitest';
 import type { EncryptedEnvData } from '@/lib/crypto/EnhancedEnvCryptoManager';
 import {
   adaptEncryptedEnvDataToEnvVar,
+  adaptEncryptedEnvironmentConfigToEnvConfig,
   adaptEncryptedEnvVarArrayToEnvDataArray,
   adaptEncryptedEnvVarRecordToEnvDataRecord,
   adaptEncryptedEnvVarToEnvData,
-  adaptEncryptedEnvironmentConfigToEnvConfig,
-  type EncryptedEnvVar,
   type EncryptedEnvironmentConfig,
+  type EncryptedEnvVar,
   isCompleteEncryptedEnvData,
   safeAdaptToEncryptedEnvData,
 } from './encryption-adapter';

@@ -381,7 +381,14 @@ export function useHybridAIQuery(
     setMessages,
     stop: stopChat,
   } = useChat({
+    // AI SDK v6: Session ID for resumable streams
+    // When using native protocol (v2), enable automatic stream resumption
+    id: useNativeProtocol ? sessionIdRef.current : undefined,
     transport,
+    // AI SDK v6 Best Practice: Enable resume for native protocol streams
+    // This allows automatic reconnection if the stream is interrupted
+    // @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
+    ...(useNativeProtocol && { resume: true }),
     onFinish: ({ message }) => {
       // 🔒 Race Condition 방지: onError가 이미 에러를 처리했으면 스킵
       // Note: errorHandledRef는 executeQuery에서 새 요청 시작 시 리셋됨

@@ -139,11 +139,13 @@ export async function checkAPIAuth(request: NextRequest) {
  * 사용법:
  * export const GET = withAuth(async (request) => { ... })
  * export const GET = withAuth(async (request, context) => { ... }) // 동적 라우트
+ *
+ * Note: Response 타입도 지원하여 스트리밍 엔드포인트에서 사용 가능
  */
 export function withAuth<T = undefined>(
   handler: T extends undefined
-    ? (request: NextRequest) => Promise<NextResponse>
-    : (request: NextRequest, context: T) => Promise<NextResponse>
+    ? (request: NextRequest) => Promise<NextResponse | Response>
+    : (request: NextRequest, context: T) => Promise<NextResponse | Response>
 ) {
   return async (request: NextRequest, context?: T) => {
     const authError = await checkAPIAuth(request);

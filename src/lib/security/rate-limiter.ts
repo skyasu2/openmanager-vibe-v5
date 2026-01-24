@@ -429,11 +429,15 @@ export const rateLimiters = {
 // 🎯 Rate Limit Middleware
 // ==============================================
 
+/**
+ * Rate limit middleware wrapper
+ * Note: Response 타입도 지원하여 스트리밍 엔드포인트에서 사용 가능
+ */
 export function withRateLimit(
   rateLimiter: RateLimiter,
-  handler: (request: NextRequest) => Promise<NextResponse>
+  handler: (request: NextRequest) => Promise<NextResponse | Response>
 ) {
-  return async (request: NextRequest): Promise<NextResponse> => {
+  return async (request: NextRequest): Promise<NextResponse | Response> => {
     const result = await rateLimiter.checkLimit(request);
 
     if (!result.allowed) {

@@ -1,23 +1,27 @@
 /**
- * Cloud Run AI Supervisor Stream V2 Proxy (Passthrough Mode)
+ * Cloud Run AI Supervisor Stream V2 Proxy (Resumable Mode)
  *
  * @endpoint POST /api/ai/supervisor/stream/v2
+ * @endpoint GET /api/ai/supervisor/stream/v2?sessionId=xxx (Resume)
  *
- * AI SDK Native UIMessageStream passthrough proxy.
- * Simply forwards the Cloud Run response directly to the frontend,
- * preserving the AI SDK native protocol for direct useChat integration.
+ * AI SDK v6 Native UIMessageStream with resumable stream support.
+ * Uses official `resumable-stream` package for Redis-based stream persistence.
  *
  * Benefits:
- * - No SSE parsing overhead
- * - Native AI SDK protocol preserved
- * - Works directly with useChat (no TextStreamChatTransport needed)
+ * - Native AI SDK protocol preserved (UIMessageStream)
+ * - Resumable streams via Redis (survives reconnects, refreshes)
+ * - Works directly with useChat + resume option
  * - Structured data events (handoffs, tool calls, metadata)
  *
+ * @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
  * @created 2026-01-24
+ * @updated 2026-01-24 - Added resumable stream support
  */
 
+import { generateId } from 'ai';
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
+import { createResumableStreamContext } from 'resumable-stream';
 import { z } from 'zod';
 import {
   extractLastUserQuery,
@@ -28,9 +32,21 @@ import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { quickSanitize } from '../../security';
+import {
+  clearActiveStreamId,
+  getActiveStreamId,
+  saveActiveStreamId,
+} from './stream-state';
 
 // Allow streaming responses up to 60 seconds (Vercel Hobby: max 60s)
 export const maxDuration = 60;
+
+// UI Message Stream headers (AI SDK standard)
+const UI_MESSAGE_STREAM_HEADERS = {
+  'Content-Type': 'text/event-stream',
+  'Cache-Control': 'no-cache',
+  Connection: 'keep-alive',
+};
 
 // ============================================================================
 // 📋 Request Schema
@@ -67,7 +83,62 @@ const requestSchema = z.object({
 });
 
 // ============================================================================
-// 🌊 POST - UIMessageStream Passthrough Proxy
+// 🔁 GET - Resume Stream (AI SDK v6 Official Pattern)
+// ============================================================================
+
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const sessionId = url.searchParams.get('sessionId');
+
+  if (!sessionId) {
+    return NextResponse.json({ error: 'sessionId required' }, { status: 400 });
+  }
+
+  logger.info(
+    `🔄 [SupervisorStreamV2] Resume request for session: ${sessionId}`
+  );
+
+  // Check for active stream in Redis
+  const activeStreamId = await getActiveStreamId(sessionId);
+
+  if (!activeStreamId) {
+    // No active stream - 204 No Content (AI SDK official pattern)
+    logger.debug(
+      `[SupervisorStreamV2] No active stream for session: ${sessionId}`
+    );
+    return new Response(null, { status: 204 });
+  }
+
+  try {
+    // Create resumable stream context with Next.js after() for cleanup
+    const streamContext = createResumableStreamContext({
+      waitUntil: after,
+    });
+
+    // Attempt to resume existing stream
+    const resumedStream =
+      await streamContext.resumeExistingStream(activeStreamId);
+
+    logger.info(`✅ [SupervisorStreamV2] Stream resumed: ${activeStreamId}`);
+
+    return new Response(resumedStream, {
+      headers: {
+        ...UI_MESSAGE_STREAM_HEADERS,
+        'X-Session-Id': sessionId,
+        'X-Stream-Id': activeStreamId,
+        'X-Resumed': 'true',
+      },
+    });
+  } catch (error) {
+    // Stream expired or not found - clear state and return 204
+    logger.warn(`[SupervisorStreamV2] Stream resume failed:`, error);
+    await clearActiveStreamId(sessionId);
+    return new Response(null, { status: 204 });
+  }
+}
+
+// ============================================================================
+// 🌊 POST - Create Resumable UIMessageStream
 // ============================================================================
 
 export const POST = withRateLimit(
@@ -135,11 +206,15 @@ export const POST = withRateLimit(
         );
       }
 
-      // 6. Passthrough proxy to Cloud Run v2 endpoint
+      // 6. Generate stream ID for resumability
+      const streamId = generateId();
+
+      // 7. Proxy to Cloud Run v2 endpoint
       const apiSecret = process.env.CLOUD_RUN_API_SECRET;
       const streamUrl = `${cloudRunUrl}/api/ai/supervisor/stream/v2`;
 
       logger.info(`🔗 [SupervisorStreamV2] Connecting to: ${streamUrl}`);
+      logger.info(`🆔 [SupervisorStreamV2] Stream ID: ${streamId}`);
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 55000); // 55s timeout
@@ -176,21 +251,50 @@ export const POST = withRateLimit(
           );
         }
 
-        // 7. Passthrough - forward Cloud Run response directly
-        // No parsing, no transformation - pure passthrough for AI SDK native protocol
-        logger.info(`✅ [SupervisorStreamV2] Passthrough stream started`);
+        if (!cloudRunResponse.body) {
+          return NextResponse.json(
+            { success: false, error: 'No response body' },
+            { status: 500 }
+          );
+        }
 
-        return new NextResponse(cloudRunResponse.body, {
+        // 8. Create resumable stream context
+        const streamContext = createResumableStreamContext({
+          waitUntil: after,
+        });
+
+        // 9. Transform Uint8Array stream to string stream for resumable-stream
+        // AI SDK v6 Best Practice: Use resumable-stream for durability
+        const textStream = cloudRunResponse.body!.pipeThrough(
+          new TextDecoderStream()
+        );
+
+        const resumableStream = await streamContext.createNewResumableStream(
+          streamId,
+          () => textStream
+        );
+
+        // 10. Save stream ID to Redis for resumption
+        await saveActiveStreamId(sessionId, streamId);
+
+        logger.info(`✅ [SupervisorStreamV2] Resumable stream started`);
+
+        // 11. Return resumable stream response
+        return new Response(resumableStream, {
           headers: {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
+            ...UI_MESSAGE_STREAM_HEADERS,
             'X-Session-Id': sessionId,
+            'X-Stream-Id': streamId,
             'X-Backend': 'cloud-run-stream-v2',
             'X-Stream-Protocol': 'ui-message-stream',
+            'X-Resumable': 'true',
           },
         });
       } catch (error) {
         clearTimeout(timeout);
+
+        // Clear stream state on error
+        await clearActiveStreamId(sessionId);
 
         if (error instanceof Error && error.name === 'AbortError') {
           logger.error('❌ [SupervisorStreamV2] Request timeout');
