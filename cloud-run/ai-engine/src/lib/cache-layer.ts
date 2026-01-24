@@ -163,11 +163,13 @@ export class DataCacheLayer {
     if (this.cache.size >= this.config.maxSize) {
       this.cleanup();
 
-      // If still at capacity after cleanup, force-evict oldest entry
+      // 🎯 P2-6 Fix: If still at capacity after cleanup, force-evict oldest entry
+      // TypeScript strict mode: iterator.next().value is T | undefined
       if (this.cache.size >= this.config.maxSize) {
-        const oldestKey = this.cache.keys().next().value;
-        if (oldestKey) {
-          this.cache.delete(oldestKey);
+        const iterator = this.cache.keys();
+        const firstResult = iterator.next();
+        if (!firstResult.done && firstResult.value !== undefined) {
+          this.cache.delete(firstResult.value);
         }
       }
     }

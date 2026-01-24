@@ -25,7 +25,7 @@
  * @version 1.0.0
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { extractStreamError } from '@/lib/ai/constants/stream-errors';
 import { logger } from '@/lib/logging';
 import {
@@ -103,6 +103,9 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 🎯 P1-5 Fix: Cleanup function defined before useEffect to avoid stale closure
+  const cleanupRef = useRef<() => void>(() => {});
+
   // Cleanup function
   const cleanup = useCallback(() => {
     if (eventSourceRef.current) {
@@ -113,6 +116,17 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
+  }, []);
+
+  // 🎯 P1-5 Fix: Keep cleanupRef updated with latest cleanup function
+  cleanupRef.current = cleanup;
+
+  // 🎯 P1-5 Fix: Cleanup on unmount to prevent EventSource memory leak
+  // Uses ref to avoid stale closure issues with useCallback dependencies
+  useEffect(() => {
+    return () => {
+      cleanupRef.current();
+    };
   }, []);
 
   // Cancel current query

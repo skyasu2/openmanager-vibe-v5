@@ -934,6 +934,9 @@ ${query}
 /**
  * Execute subtasks in parallel and unify results
  *
+ * 🎯 P1-6 Fix: Individual timeout per subtask to prevent infinite hang
+ * Uses Promise.allSettled + race pattern for graceful degradation
+ *
  * @param subtasks - Array of subtasks to execute
  * @param query - Original user query for context
  * @param startTime - Execution start time
@@ -947,16 +950,29 @@ async function executeParallelSubtasks(
 ): Promise<MultiAgentResponse | null> {
   console.log(`🚀 [Parallel] Executing ${subtasks.length} subtasks in parallel...`);
 
-  // Execute all subtasks in parallel
+  // 🎯 P1-6: Per-subtask timeout (30s) to prevent one hanging subtask from blocking all
+  const SUBTASK_TIMEOUT_MS = 30_000;
+
+  // Execute all subtasks in parallel with individual timeouts
   const subtaskPromises = subtasks.map(async (subtask, index) => {
     console.log(`   [${index + 1}/${subtasks.length}] ${subtask.agent}: ${subtask.task.substring(0, 50)}...`);
 
-    const result = await executeForcedRouting(
+    // Wrap each subtask with its own timeout
+    const timeoutPromise = new Promise<null>((resolve) => {
+      setTimeout(() => {
+        console.warn(`⏱️ [Parallel] Subtask ${index + 1} timeout after ${SUBTASK_TIMEOUT_MS}ms`);
+        resolve(null); // Resolve with null instead of reject for graceful degradation
+      }, SUBTASK_TIMEOUT_MS);
+    });
+
+    const executionPromise = executeForcedRouting(
       subtask.task,
       subtask.agent,
       startTime,
       webSearchEnabled
     );
+
+    const result = await Promise.race([executionPromise, timeoutPromise]);
 
     return {
       subtask,
@@ -1202,15 +1218,18 @@ ${query}
 - 서버/모니터링 관련 질문 → 적절한 에이전트 선택
 - 일반 대화(인사, 날씨, 시간 등) → NONE`;
 
+    // 🎯 P2-5 Fix: Properly initialized timeout variables to avoid undefined issues
     // Execute routing decision with timeout protection
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: NodeJS.Timeout | null = null;
+    let warnTimer: NodeJS.Timeout | null = null;
+
     const timeoutPromise = new Promise<never>((_, reject) => {
       timeoutId = setTimeout(() => {
         reject(new Error(`Orchestrator timeout after ${ORCHESTRATOR_CONFIG.timeout}ms`));
       }, ORCHESTRATOR_CONFIG.timeout);
     });
 
-    const warnTimer = setTimeout(() => {
+    warnTimer = setTimeout(() => {
       console.warn(`⚠️ [Orchestrator] Execution exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms threshold`);
     }, ORCHESTRATOR_CONFIG.warnThreshold);
 
@@ -1229,8 +1248,9 @@ ${query}
       ]);
       routingDecision = routingResult.object;
     } finally {
-      clearTimeout(timeoutId!);
-      clearTimeout(warnTimer);
+      // 🎯 P2-5: Safe cleanup with null checks (no non-null assertion)
+      if (timeoutId) clearTimeout(timeoutId);
+      if (warnTimer) clearTimeout(warnTimer);
     }
 
     console.log(`🎯 [Orchestrator] LLM routing decision: ${routingDecision.selectedAgent} (confidence: ${routingDecision.confidence.toFixed(2)}, reason: ${routingDecision.reasoning})`);
