@@ -178,6 +178,13 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
         const connectSSE = (jobId: string, reconnectAttempt = 0) => {
           const maxReconnects = 3;
 
+          // 🎯 Phase 2 개선: 기존 EventSource를 명시적으로 닫은 후 새로 생성
+          // 이전 연결이 완전히 정리되지 않으면 메모리 누수 및 이벤트 중복 발생 가능
+          if (eventSourceRef.current) {
+            eventSourceRef.current.close();
+            eventSourceRef.current = null;
+          }
+
           const eventSource = new EventSource(`/api/ai/jobs/${jobId}/stream`);
           eventSourceRef.current = eventSource;
 
@@ -274,7 +281,18 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
                 } as AsyncQueryProgress,
               }));
 
-              setTimeout(() => {
+              // 🎯 P1-1 Fix: Store reconnection timer in ref for cleanup
+              if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+              }
+              timeoutRef.current = setTimeout(() => {
+                // Skip if already cleaned up (component unmounted)
+                if (
+                  eventSourceRef.current === null &&
+                  timeoutRef.current === null
+                ) {
+                  return;
+                }
                 connectSSE(jobId, reconnectAttempt + 1);
               }, delay);
             } else {

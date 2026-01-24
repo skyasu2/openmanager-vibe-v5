@@ -486,8 +486,8 @@ function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasModel>; p
   return null;
 }
 
-// Get model config at startup (for LLM-based routing fallback)
-const orchestratorModelConfig = getOrchestratorModel();
+// Note: Model config is now fetched per-request to avoid stale data
+// Removed: const orchestratorModelConfig = getOrchestratorModel();
 
 // Log available agents from AGENT_CONFIGS
 const availableAgentNames = Object.keys(AGENT_CONFIGS).filter(name => {
@@ -501,15 +501,43 @@ if (availableAgentNames.length === 0) {
   console.log(`📋 [Orchestrator] Available agents: ${availableAgentNames.length} - [${availableAgentNames.join(', ')}]`);
 }
 
-// Track handoff events for debugging
+// ============================================================================
+// Handoff Event Tracking (Bounded for Cloud Run Memory Safety)
+// ============================================================================
+
+/**
+ * Handoff events configuration
+ * - maxSize: 50 entries (Cloud Run 256MB memory constraint)
+ * - cleanupAge: 1 hour TTL for automatic cleanup
+ */
+const HANDOFF_EVENTS_CONFIG = {
+  maxSize: 50,
+  cleanupAge: 3600000, // 1 hour in ms
+} as const;
+
+// Track handoff events for debugging (bounded array)
 const handoffEvents: Array<{ from: string; to: string; reason?: string; timestamp: Date }> = [];
 
 /**
  * Record a handoff event for debugging/observability
+ * Implements FIFO eviction + TTL cleanup for memory safety
  */
 function recordHandoff(from: string, to: string, reason?: string) {
-  handoffEvents.push({ from, to, reason, timestamp: new Date() });
-  console.log(`🔀 [Handoff] ${from} → ${to} (${reason || 'no reason'})`);
+  const now = new Date();
+
+  // TTL-based cleanup: Remove events older than cleanupAge
+  const cutoff = now.getTime() - HANDOFF_EVENTS_CONFIG.cleanupAge;
+  while (handoffEvents.length > 0 && handoffEvents[0].timestamp.getTime() < cutoff) {
+    handoffEvents.shift();
+  }
+
+  // FIFO eviction: Remove oldest if at capacity
+  if (handoffEvents.length >= HANDOFF_EVENTS_CONFIG.maxSize) {
+    handoffEvents.shift();
+  }
+
+  handoffEvents.push({ from, to, reason, timestamp: now });
+  console.log(`🔀 [Handoff] ${from} → ${to} (${reason || 'no reason'}) [${handoffEvents.length}/${HANDOFF_EVENTS_CONFIG.maxSize}]`);
 }
 
 /**
@@ -862,7 +890,41 @@ ${query}
     const decomposition = result.object;
     console.log(`🔀 [Decompose] Created ${decomposition.subtasks.length} subtasks (sequential: ${decomposition.requiresSequential})`);
 
-    return decomposition;
+    // 🎯 Phase 3: Task Decomposition 검증 로직 추가
+    // 할당된 agent가 실제로 사용 가능한지 검증
+    const validSubtasks = decomposition.subtasks.filter(subtask => {
+      const agentConfig = getAgentConfig(subtask.agent);
+
+      if (!agentConfig) {
+        console.warn(`⚠️ [Decompose] Agent "${subtask.agent}" not found, removing subtask: "${subtask.task.substring(0, 40)}..."`);
+        return false;
+      }
+
+      // Agent 모델 가용성 확인 (선택적 - 실행 시점에도 체크됨)
+      const modelResult = agentConfig.getModel();
+      if (!modelResult) {
+        console.warn(`⚠️ [Decompose] Agent "${subtask.agent}" model unavailable, removing subtask: "${subtask.task.substring(0, 40)}..."`);
+        return false;
+      }
+
+      return true;
+    });
+
+    // 유효한 subtask가 없으면 null 반환 (fallback to single-agent)
+    if (validSubtasks.length === 0) {
+      console.warn('⚠️ [Decompose] No valid subtasks after validation, falling back to single-agent');
+      return null;
+    }
+
+    // 원래 subtask 수와 다르면 로그
+    if (validSubtasks.length !== decomposition.subtasks.length) {
+      console.log(`🔀 [Decompose] Validated: ${validSubtasks.length}/${decomposition.subtasks.length} subtasks kept`);
+    }
+
+    return {
+      ...decomposition,
+      subtasks: validSubtasks,
+    };
   } catch (error) {
     console.error('❌ [Decompose] Task decomposition failed:', error);
     return null;
@@ -1108,7 +1170,9 @@ export async function executeMultiAgent(
   // Slow Path: LLM-based routing for complex queries (AI SDK v6 Native)
   // =========================================================================
 
-  // Check if orchestrator model is available
+  // Fetch fresh model config per request (avoids stale data on provider failover)
+  const orchestratorModelConfig = getOrchestratorModel();
+
   if (!orchestratorModelConfig) {
     return {
       success: false,
@@ -1336,6 +1400,10 @@ export async function* executeMultiAgentStream(
   // =========================================================================
   // LLM-based routing for complex queries (AI SDK v6 Native)
   // =========================================================================
+
+  // Fetch fresh model config per request (avoids stale data on provider failover)
+  const orchestratorModelConfig = getOrchestratorModel();
+
   if (!orchestratorModelConfig) {
     yield { type: 'error', data: { code: 'MODEL_UNAVAILABLE', error: 'Orchestrator not available' } };
     return;

@@ -29,7 +29,7 @@
 import type { UIMessage } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   applyClarification,
   applyCustomClarification,
@@ -327,6 +327,10 @@ export function useHybridAIQuery(
   // 🔒 Error Race Condition 방지: onError/onFinish 중 먼저 처리된 쪽이 에러 핸들링
   const errorHandledRef = useRef<boolean>(false);
 
+  // 🎯 AbortController for graceful request cancellation (Phase 2 개선)
+  // Vercel 10s timeout 대응: 8초 내부 timeout + graceful abort
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // ============================================================================
   // useChat Hook (Streaming Mode) - AI SDK v6 베스트 프랙티스 적용
   // ============================================================================
@@ -435,16 +439,29 @@ export function useHybridAIQuery(
         // 현재 스트리밍 중단
         stopChat();
 
-        // Race condition 방지: stopChat 완료 후 Job Queue 순차 실행
-        // stopChat은 내부적으로 비동기 처리가 있어 즉시 sendQuery 호출 시
-        // 두 요청이 동시에 진행되어 상태 불일치 발생 가능
+        // 🎯 Phase 2 개선: AbortController 패턴으로 race condition 방지
+        // setTimeout(50ms) 대신 queueMicrotask 사용하여 stopChat 완료 후 실행 보장
+        // AbortController로 컴포넌트 언마운트 시 안전한 취소 지원
         const query = currentQueryRef.current;
         if (query) {
-          setTimeout(() => {
+          // 기존 abort controller가 있으면 취소
+          abortControllerRef.current?.abort();
+          const controller = new AbortController();
+          abortControllerRef.current = controller;
+
+          // queueMicrotask: stopChat의 현재 실행 컨텍스트 완료 후 실행
+          queueMicrotask(() => {
+            // 이미 취소되었으면 스킵 (컴포넌트 언마운트 등)
+            if (controller.signal.aborted) {
+              logger.debug('[HybridAI] Job Queue redirect aborted');
+              return;
+            }
             void asyncQuery.sendQuery(query).then(() => {
-              setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
+              if (!controller.signal.aborted) {
+                setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
+              }
             });
-          }, 50);
+          });
         }
         return;
       }
@@ -455,11 +472,18 @@ export function useHybridAIQuery(
     onError: async (error) => {
       logger.error('[HybridAI] useChat error:', error);
 
+      // 🎯 P1-4 Fix: Atomic check-and-set pattern to prevent double handling
+      // Check FIRST, then set immediately to prevent race with onFinish
+      if (errorHandledRef.current) {
+        logger.debug(
+          '[HybridAI] onError skipped (already handled by onFinish)'
+        );
+        return;
+      }
+      errorHandledRef.current = true; // Set immediately after check (atomic pattern)
+
       // v2: Automatic stream recovery via useChat({ resume: true })
       // Manual recovery code removed - AI SDK v6 handles reconnection natively
-
-      // 🔒 Race Condition 방지: onError가 먼저 에러를 처리했음을 표시
-      errorHandledRef.current = true;
 
       // 복구 실패 시 기존 에러 처리
       setState((prev) => ({
@@ -721,6 +745,10 @@ export function useHybridAIQuery(
   // Control Functions
   // ============================================================================
   const stop = useCallback(() => {
+    // 🎯 Phase 2: AbortController cleanup on stop
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+
     if (state.mode === 'streaming') {
       stopChat();
     }
@@ -737,6 +765,10 @@ export function useHybridAIQuery(
   }, [state.mode, asyncQuery, stopChat]);
 
   const reset = useCallback(() => {
+    // 🎯 Phase 2: AbortController cleanup on reset
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+
     asyncQuery.reset();
     setMessages([]);
     pendingQueryRef.current = null;
@@ -759,6 +791,17 @@ export function useHybridAIQuery(
   // ============================================================================
   const previewComplexity = useCallback((query: string): QueryComplexity => {
     return analyzeQueryComplexity(query).level;
+  }, []);
+
+  // ============================================================================
+  // Cleanup on Unmount (Phase 2 개선)
+  // ============================================================================
+  useEffect(() => {
+    return () => {
+      // 🎯 AbortController cleanup on unmount
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+    };
   }, []);
 
   // ============================================================================

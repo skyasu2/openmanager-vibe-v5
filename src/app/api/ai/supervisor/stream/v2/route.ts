@@ -248,7 +248,7 @@ export const POST = withRateLimit(
           signal: controller.signal,
         });
 
-        clearTimeout(timeout);
+        // Note: clearTimeout moved to finally block (P1-3 fix)
 
         if (!cloudRunResponse.ok) {
           const errorText = await cloudRunResponse.text();
@@ -305,8 +305,6 @@ export const POST = withRateLimit(
           },
         });
       } catch (error) {
-        clearTimeout(timeout);
-
         // Clear stream state on error
         await clearActiveStreamId(sessionId);
 
@@ -319,6 +317,9 @@ export const POST = withRateLimit(
         }
 
         throw error;
+      } finally {
+        // 🎯 P1-3 Fix: Guaranteed timeout cleanup regardless of success/failure
+        clearTimeout(timeout);
       }
     } catch (error) {
       logger.error('❌ [SupervisorStreamV2] Error:', error);

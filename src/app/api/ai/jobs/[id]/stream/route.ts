@@ -81,6 +81,10 @@ export async function GET(
 
   // SSE 스트림 생성
   const encoder = new TextEncoder();
+
+  // 🎯 P1-2 Fix: Abort flag for clean loop termination
+  let aborted = false;
+
   const stream = new ReadableStream({
     async start(controller) {
       const startTime = Date.now();
@@ -96,7 +100,7 @@ export async function GET(
       sendEvent('connected', { jobId, timestamp: new Date().toISOString() });
 
       try {
-        while (true) {
+        while (!aborted) {
           const elapsed = Date.now() - startTime;
 
           // 타임아웃 체크
@@ -195,8 +199,11 @@ export async function GET(
     },
 
     cancel() {
-      // 클라이언트가 연결을 끊은 경우
-      logger.info(`[Jobs Stream] Client disconnected: ${jobId}`);
+      // 🎯 P1-2 Fix: Set abort flag to terminate polling loop
+      aborted = true;
+      logger.info(
+        `[Jobs Stream] Client disconnected, aborting polling: ${jobId}`
+      );
     },
   });
 
