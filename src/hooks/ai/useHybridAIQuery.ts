@@ -28,7 +28,7 @@
 
 import type { UIMessage } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
-import { TextStreamChatTransport, DefaultChatTransport } from 'ai';
+import { DefaultChatTransport, TextStreamChatTransport } from 'ai';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   applyClarification,

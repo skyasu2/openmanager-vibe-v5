@@ -922,6 +922,17 @@ function createPrepareStep(query: string) {
     // After first step, allow all tools for flexibility
     if (stepNumber > 0) return {};
 
+    // AI SDK v6 Best Practice: Order patterns from specific to general
+    // CODEX Review: "원인/왜" should match RCA before Analyst for proper root cause analysis
+
+    // RCA: root cause analysis (PRIORITY - check before Analyst)
+    // Includes "원인", "왜" which need RCA tools
+    if (/장애|rca|타임라인|상관관계|원인|왜/.test(q)) {
+      return {
+        activeTools: ['findRootCause', 'buildIncidentTimeline', 'correlateMetrics', 'getServerMetrics', 'detectAnomalies', 'finalAnswer'] as ToolName[]
+      };
+    }
+
     // Reporter/Advisor: RAG + commands
     if (/해결|방법|명령어|가이드|이력|과거|사례/.test(q)) {
       return {
@@ -929,17 +940,10 @@ function createPrepareStep(query: string) {
       };
     }
 
-    // Analyst: anomaly detection + prediction
-    if (/이상|트렌드|예측|패턴|원인|왜/.test(q)) {
+    // Analyst: anomaly detection + prediction (general patterns)
+    if (/이상|트렌드|예측|패턴/.test(q)) {
       return {
-        activeTools: ['detectAnomalies', 'predictTrends', 'analyzePattern', 'findRootCause', 'correlateMetrics', 'finalAnswer'] as ToolName[]
-      };
-    }
-
-    // RCA: root cause analysis
-    if (/장애|rca|타임라인|상관관계/.test(q)) {
-      return {
-        activeTools: ['findRootCause', 'buildIncidentTimeline', 'correlateMetrics', 'getServerMetrics', 'finalAnswer'] as ToolName[]
+        activeTools: ['detectAnomalies', 'predictTrends', 'analyzePattern', 'correlateMetrics', 'finalAnswer'] as ToolName[]
       };
     }
 
@@ -1019,6 +1023,9 @@ export function createSupervisorStreamResponse(
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       const startTime = Date.now();
+      // AI SDK v6 Best Practice: Use consistent message ID for all text deltas
+      // CODEX Review: Different IDs per delta causes client rendering issues
+      const messageId = `assistant-${request.sessionId}-${startTime}`;
 
       try {
         // Emit start event with session info
@@ -1047,11 +1054,11 @@ export function createSupervisorStreamResponse(
         for await (const event of executeSupervisorStream({ ...request, mode })) {
           switch (event.type) {
             case 'text_delta':
-              // Native text streaming
+              // Native text streaming with consistent message ID
               writer.write({
                 type: 'text-delta',
                 delta: event.data as string,
-                id: `text-${Date.now()}`,
+                id: messageId, // Use same ID for all deltas to merge into single message
               });
               break;
 
@@ -1097,13 +1104,16 @@ export function createSupervisorStreamResponse(
 
             case 'done':
               // Completion metadata
+              // AI SDK v6 Best Practice: Passthrough success status from upstream
+              // CODEX Review: Don't hardcode success=true, respect upstream status
               const doneData = event.data as Record<string, unknown>;
               writer.write({
                 type: 'data-done',
                 data: {
-                  success: true,
                   durationMs: Date.now() - startTime,
                   ...doneData,
+                  // Passthrough success from upstream, default to true if not specified
+                  success: (doneData.success as boolean | undefined) ?? true,
                 },
               });
               break;
