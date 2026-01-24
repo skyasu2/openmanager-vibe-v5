@@ -40,6 +40,75 @@ function getMistralProvider() {
   return mistralProvider;
 }
 
+// ============================================================================
+// Embedding Cache (Cost Optimization)
+// ============================================================================
+
+/**
+ * In-memory cache for embeddings to reduce Mistral API calls
+ * TTL: 5 minutes (same as Tavily cache for consistency)
+ */
+interface EmbeddingCacheEntry {
+  embedding: number[];
+  timestamp: number;
+}
+
+const embeddingCache = new Map<string, EmbeddingCacheEntry>();
+const EMBEDDING_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const EMBEDDING_CACHE_MAX_SIZE = 100; // Prevent memory leak
+
+/**
+ * Generate cache key from text (normalized)
+ */
+function getCacheKey(text: string): string {
+  return text.trim().toLowerCase().substring(0, 200); // Limit key size
+}
+
+/**
+ * Get cached embedding if valid
+ */
+function getCachedEmbedding(text: string): number[] | null {
+  const key = getCacheKey(text);
+  const cached = embeddingCache.get(key);
+
+  if (cached && Date.now() - cached.timestamp < EMBEDDING_CACHE_TTL_MS) {
+    console.log(`📦 [Embedding] Cache hit for: "${text.substring(0, 30)}..."`);
+    return cached.embedding;
+  }
+
+  // Remove expired entry
+  if (cached) {
+    embeddingCache.delete(key);
+  }
+
+  return null;
+}
+
+/**
+ * Store embedding in cache
+ */
+function setCachedEmbedding(text: string, embedding: number[]): void {
+  // Limit cache size to prevent memory leak
+  if (embeddingCache.size >= EMBEDDING_CACHE_MAX_SIZE) {
+    // Remove oldest entry (first inserted)
+    const oldestKey = embeddingCache.keys().next().value;
+    if (oldestKey) {
+      embeddingCache.delete(oldestKey);
+    }
+  }
+
+  const key = getCacheKey(text);
+  embeddingCache.set(key, { embedding, timestamp: Date.now() });
+}
+
+/**
+ * Clear embedding cache (for testing)
+ */
+export function clearEmbeddingCache(): void {
+  embeddingCache.clear();
+  console.log('🧹 [Embedding] Cache cleared');
+}
+
 // Supabase 클라이언트 인터페이스 (동적 import 호환)
 interface SupabaseClientLike {
   rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
@@ -47,12 +116,18 @@ interface SupabaseClientLike {
 
 /**
  * 텍스트를 1024차원 벡터로 임베딩
- * Mistral mistral-embed 사용
+ * Mistral mistral-embed 사용 (캐싱 적용)
  *
  * @param text - 임베딩할 텍스트
  * @returns 1024차원 float 배열
  */
 export async function embedText(text: string): Promise<number[]> {
+  // Check cache first (cost optimization)
+  const cached = getCachedEmbedding(text);
+  if (cached) {
+    return cached;
+  }
+
   const mistral = getMistralProvider();
   const model = mistral.embedding('mistral-embed');
 
@@ -61,6 +136,9 @@ export async function embedText(text: string): Promise<number[]> {
     value: text,
     experimental_telemetry: { isEnabled: false },
   });
+
+  // Cache the result
+  setCachedEmbedding(text, embedding);
 
   return embedding;
 }

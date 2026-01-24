@@ -1,30 +1,28 @@
 /**
  * Multi-Agent Orchestrator
  *
- * Routes user queries to specialized agents using pattern matching and LLM.
- * Uses Cerebras for ultra-fast routing decisions (~200ms).
+ * Routes user queries to specialized agents using pattern matching.
+ * Removed @ai-sdk-tools/agents dependency for AI SDK v6 compatibility.
  *
  * Architecture:
- * Orchestrator (Cerebras) → NLQ/Analyst/Reporter/Advisor (Cerebras/Groq/Mistral)
+ * Orchestrator (Rule-based + LLM fallback) → NLQ/Analyst/Reporter/Advisor
  *
- * @version 2.1.0 - Removed Summarizer Agent (merged into NLQ)
- * @updated 2026-01-12 - OpenRouter and Summarizer Agent removed
+ * @version 3.0.0 - Migrated to AI SDK v6 native approach
+ * @updated 2026-01-24 - Removed @ai-sdk-tools/agents dependency
  */
 
-import { Agent } from '@ai-sdk-tools/agents';
-import { generateText, stepCountIs } from 'ai';
+import { generateText, generateObject, streamText, stepCountIs, type ModelMessage } from 'ai';
 import { getCerebrasModel, getGroqModel, getMistralModel, checkProviderStatus, type ProviderName } from '../model-provider';
 import { generateTextWithRetry } from '../../resilience/retry-with-fallback';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
 import type { StreamEvent } from '../supervisor';
 import { logTimeoutEvent, createTimeoutSpan } from '../../observability/langfuse';
-import { nlqAgent } from './nlq-agent';
-import { analystAgent } from './analyst-agent';
-import { reporterAgent } from './reporter-agent';
-import { advisorAgent } from './advisor-agent';
 
-// Import SSOT config
-import { AGENT_CONFIGS } from './config';
+// Import SSOT config (agents are now executed via generateText, not Agent instances)
+import { AGENT_CONFIGS, type AgentConfig } from './config';
+
+// Import Zod schemas for type-safe structured output
+import { routingSchema, taskDecomposeSchema, getAgentFromRouting, type RoutingDecision, type TaskDecomposition, type Subtask } from './schemas';
 
 // ============================================================================
 // Configuration
@@ -54,6 +52,13 @@ export interface MultiAgentRequest {
   messages: Array<{ role: 'user' | 'assistant'; content: string }>;
   sessionId: string;
   enableTracing?: boolean;
+  /**
+   * Web search control:
+   * - true: Force enable web search tools
+   * - false: Disable web search tools
+   * - undefined/'auto': Auto-detect based on query content
+   */
+  enableWebSearch?: boolean | 'auto';
 }
 
 export interface MultiAgentResponse {
@@ -83,6 +88,102 @@ export interface MultiAgentError {
   success: false;
   error: string;
   code: string;
+}
+
+// ============================================================================
+// Web Search Auto-Detection
+// ============================================================================
+
+/**
+ * Keywords that indicate web search might be beneficial
+ * These suggest the query needs external/up-to-date information
+ */
+const WEB_SEARCH_INDICATORS = {
+  // External knowledge indicators
+  external: [
+    '최신', 'latest', '2024', '2025', '2026',
+    '뉴스', 'news', '업데이트', 'update',
+    'CVE', 'security advisory', '보안 취약점',
+  ],
+  // Technology/library specific
+  technology: [
+    'kubernetes', 'k8s', 'docker', 'aws', 'azure', 'gcp',
+    'nginx', 'apache', 'redis', 'postgresql', 'mysql',
+    'linux', 'ubuntu', 'centos', 'debian',
+  ],
+  // Problem solving that might need external docs
+  problemSolving: [
+    '공식 문서', 'documentation', 'docs',
+    '버그', 'bug', '이슈', 'issue',
+    '릴리스', 'release', '버전', 'version',
+  ],
+};
+
+/**
+ * Keywords that indicate internal data is sufficient (no web search needed)
+ */
+const INTERNAL_ONLY_INDICATORS = [
+  '서버 상태', '서버 목록', 'CPU', '메모리', '디스크',
+  '과거 장애', '인시던트', '보고서', '타임라인',
+  '우리 서버', '내부', '현재 상태',
+];
+
+/**
+ * Detect if web search would be beneficial for the query
+ * Conservative approach to minimize Tavily API calls
+ *
+ * @param query User's query text
+ * @returns true if web search is likely beneficial
+ */
+export function shouldEnableWebSearch(query: string): boolean {
+  const q = query.toLowerCase();
+
+  // Check if query is clearly internal-only
+  const isInternalOnly = INTERNAL_ONLY_INDICATORS.some(keyword =>
+    q.includes(keyword.toLowerCase())
+  );
+  if (isInternalOnly) {
+    return false;
+  }
+
+  // Check for external knowledge indicators
+  const hasExternalIndicator = WEB_SEARCH_INDICATORS.external.some(keyword =>
+    q.includes(keyword.toLowerCase())
+  );
+  if (hasExternalIndicator) {
+    return true;
+  }
+
+  // Check for technology-specific queries that might need docs
+  const hasTechIndicator = WEB_SEARCH_INDICATORS.technology.some(keyword =>
+    q.includes(keyword.toLowerCase())
+  );
+  const hasProblemSolving = WEB_SEARCH_INDICATORS.problemSolving.some(keyword =>
+    q.includes(keyword.toLowerCase())
+  );
+
+  // Technology + problem solving = likely needs web search
+  if (hasTechIndicator && hasProblemSolving) {
+    return true;
+  }
+
+  // Default: don't enable web search (conservative)
+  return false;
+}
+
+/**
+ * Resolve web search setting based on request and query
+ */
+export function resolveWebSearchSetting(
+  enableWebSearch: boolean | 'auto' | undefined,
+  query: string
+): boolean {
+  // Explicit true/false takes precedence
+  if (enableWebSearch === true) return true;
+  if (enableWebSearch === false) return false;
+
+  // Auto or undefined: detect based on query
+  return shouldEnableWebSearch(query);
 }
 
 // ============================================================================
@@ -359,58 +460,31 @@ function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasModel>; p
   return null;
 }
 
-// Get model config at startup
+// Get model config at startup (for LLM-based routing fallback)
 const orchestratorModelConfig = getOrchestratorModel();
 
-// Filter out null agents for handoffs
-const availableAgents = [nlqAgent, analystAgent, reporterAgent, advisorAgent].filter(
-  (agent): agent is NonNullable<typeof agent> => agent !== null
-);
+// Log available agents from AGENT_CONFIGS
+const availableAgentNames = Object.keys(AGENT_CONFIGS).filter(name => {
+  const config = AGENT_CONFIGS[name];
+  return config && config.getModel() !== null;
+});
 
-// ⚠️ Critical validation: Ensure at least one agent is available
-if (availableAgents.length === 0) {
+if (availableAgentNames.length === 0) {
   console.error('❌ [CRITICAL] No agents available! Check API keys: CEREBRAS_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY');
+} else {
+  console.log(`📋 [Orchestrator] Available agents: ${availableAgentNames.length} - [${availableAgentNames.join(', ')}]`);
 }
 
 // Track handoff events for debugging
 const handoffEvents: Array<{ from: string; to: string; reason?: string; timestamp: Date }> = [];
 
 /**
- * Main Orchestrator Agent (null if no model available)
+ * Record a handoff event for debugging/observability
  */
-export const orchestrator = orchestratorModelConfig
-  ? (() => {
-      console.log(`🎯 [Orchestrator] Initialized with ${orchestratorModelConfig.provider}/${orchestratorModelConfig.modelId}`);
-      console.log(`📋 [Orchestrator] Available agents: ${availableAgents.length} - [${availableAgents.map(a => a.name).join(', ')}]`);
-      return new Agent({
-        name: 'OpenManager Orchestrator',
-        model: orchestratorModelConfig.model,
-        instructions: ORCHESTRATOR_INSTRUCTIONS,
-        handoffs: availableAgents,
-        maxTurns: 10,
-        // Track agent lifecycle events
-        onEvent: async (event) => {
-          switch (event.type) {
-            case 'agent-handoff':
-              console.log(`🔀 [Handoff] ${event.from} → ${event.to} (${event.reason || 'no reason'})`);
-              handoffEvents.push({
-                from: event.from,
-                to: event.to,
-                reason: event.reason,
-                timestamp: new Date(),
-              });
-              break;
-            case 'agent-start':
-              console.log(`▶️ [Agent Start] ${event.agent} (round ${event.round})`);
-              break;
-            case 'agent-finish':
-              console.log(`✅ [Agent Finish] ${event.agent} (round ${event.round})`);
-              break;
-          }
-        },
-      });
-    })()
-  : null;
+function recordHandoff(from: string, to: string, reason?: string) {
+  handoffEvents.push({ from, to, reason, timestamp: new Date() });
+  console.log(`🔀 [Handoff] ${from} → ${to} (${reason || 'no reason'})`);
+}
 
 /**
  * Get recent handoff events (for debugging)
@@ -420,24 +494,15 @@ export function getRecentHandoffs() {
 }
 
 // ============================================================================
-// Forced Routing (Bypass LLM for high-confidence pre-filter)
+// Agent Execution (AI SDK v6 Native)
 // ============================================================================
 
-// NOTE: AGENT_CONFIGS is now imported from './config' (SSOT)
-// This eliminates DRY violation where configs were duplicated here and in agent files
-
 /**
- * Get agent instance by name (dynamic lookup for lazy initialization)
- * This ensures agents are available even if initialized after module load
+ * Get agent config by name
+ * Returns the AGENT_CONFIGS entry for direct generateText execution
  */
-function getAgentByName(name: string): typeof nlqAgent | null {
-  const agents: Record<string, typeof nlqAgent | null> = {
-    'NLQ Agent': nlqAgent,
-    'Analyst Agent': analystAgent,
-    'Reporter Agent': reporterAgent,
-    'Advisor Agent': advisorAgent,
-  };
-  return agents[name] ?? null;
+function getAgentConfig(name: string): AgentConfig | null {
+  return AGENT_CONFIGS[name] ?? null;
 }
 
 /**
@@ -566,6 +631,192 @@ async function executeForcedRouting(
 }
 
 // ============================================================================
+// Orchestrator-Worker Pattern (Priority 3)
+// ============================================================================
+
+/**
+ * Complexity indicators for task decomposition decision
+ */
+const COMPLEXITY_INDICATORS = [
+  /그리고|또한|동시에|함께/,  // Conjunction words
+  /비교|차이|대비/,           // Comparison requests
+  /분석.*보고서|보고서.*분석/, // Multiple agent types
+  /전체.*상세|상세.*전체/,    // Breadth + depth requests
+];
+
+/**
+ * Check if query is complex enough to benefit from decomposition
+ */
+function isComplexQuery(query: string): boolean {
+  const matchCount = COMPLEXITY_INDICATORS.filter(pattern => pattern.test(query)).length;
+  return matchCount >= 2 || query.length > 100;
+}
+
+/**
+ * Decompose a complex query into subtasks using generateObject
+ *
+ * @param query - The user query to decompose
+ * @returns TaskDecomposition with subtasks, or null if decomposition not needed
+ */
+async function decomposeTask(query: string): Promise<TaskDecomposition | null> {
+  // Skip decomposition for simple queries
+  if (!isComplexQuery(query)) {
+    console.log('📋 [Decompose] Query is simple, skipping decomposition');
+    return null;
+  }
+
+  const modelConfig = getOrchestratorModel();
+  if (!modelConfig) {
+    console.warn('⚠️ [Decompose] No model available');
+    return null;
+  }
+
+  const { model } = modelConfig;
+
+  try {
+    console.log('🔀 [Decompose] Analyzing complex query for task decomposition...');
+
+    const decomposePrompt = `다음 복합 질문을 서브태스크로 분해하세요.
+
+## 사용 가능한 에이전트
+- NLQ Agent: 서버 상태 조회, 메트릭 필터링/집계
+- Analyst Agent: 이상 탐지, 트렌드 예측, 근본 원인 분석
+- Reporter Agent: 장애 보고서, 인시던트 타임라인
+- Advisor Agent: 해결 방법, CLI 명령어, 과거 사례
+
+## 사용자 질문
+${query}
+
+## 분해 가이드라인
+- 각 서브태스크는 하나의 에이전트가 독립적으로 처리할 수 있어야 함
+- 의존성이 있으면 requiresSequential=true
+- 최대 4개의 서브태스크로 제한`;
+
+    const result = await generateObject({
+      model,
+      schema: taskDecomposeSchema,
+      system: '복합 질문을 서브태스크로 분해하는 전문가입니다.',
+      prompt: decomposePrompt,
+      temperature: 0.2,
+    });
+
+    const decomposition = result.object;
+    console.log(`🔀 [Decompose] Created ${decomposition.subtasks.length} subtasks (sequential: ${decomposition.requiresSequential})`);
+
+    return decomposition;
+  } catch (error) {
+    console.error('❌ [Decompose] Task decomposition failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Execute subtasks in parallel and unify results
+ *
+ * @param subtasks - Array of subtasks to execute
+ * @param query - Original user query for context
+ * @param startTime - Execution start time
+ * @returns Unified response string
+ */
+async function executeParallelSubtasks(
+  subtasks: Subtask[],
+  query: string,
+  startTime: number
+): Promise<MultiAgentResponse | null> {
+  console.log(`🚀 [Parallel] Executing ${subtasks.length} subtasks in parallel...`);
+
+  // Execute all subtasks in parallel
+  const subtaskPromises = subtasks.map(async (subtask, index) => {
+    console.log(`   [${index + 1}/${subtasks.length}] ${subtask.agent}: ${subtask.task.substring(0, 50)}...`);
+
+    const result = await executeForcedRouting(
+      subtask.task,
+      subtask.agent,
+      startTime
+    );
+
+    return {
+      subtask,
+      result,
+      index,
+    };
+  });
+
+  const results = await Promise.all(subtaskPromises);
+
+  // Check for failures
+  const successfulResults = results.filter(r => r.result !== null);
+  if (successfulResults.length === 0) {
+    console.warn('⚠️ [Parallel] All subtasks failed');
+    return null;
+  }
+
+  // Unify results
+  const unifiedResponse = unifyResults(
+    successfulResults.map(r => ({
+      agent: r.subtask.agent,
+      response: r.result!.response,
+    })),
+    query
+  );
+
+  // Aggregate metadata
+  const durationMs = Date.now() - startTime;
+  const handoffs = successfulResults.flatMap(r => r.result!.handoffs);
+  const toolsCalled = [...new Set(successfulResults.flatMap(r => r.result!.toolsCalled))];
+  const totalTokens = successfulResults.reduce((sum, r) => sum + (r.result!.usage?.totalTokens ?? 0), 0);
+
+  console.log(`✅ [Parallel] Completed ${successfulResults.length}/${subtasks.length} subtasks in ${durationMs}ms`);
+
+  return {
+    success: true,
+    response: unifiedResponse,
+    handoffs,
+    finalAgent: 'Orchestrator (Multi-Agent)',
+    toolsCalled,
+    usage: {
+      promptTokens: successfulResults.reduce((sum, r) => sum + (r.result!.usage?.promptTokens ?? 0), 0),
+      completionTokens: successfulResults.reduce((sum, r) => sum + (r.result!.usage?.completionTokens ?? 0), 0),
+      totalTokens,
+    },
+    metadata: {
+      provider: 'multi-agent',
+      modelId: 'orchestrator-worker',
+      totalRounds: successfulResults.length,
+      durationMs,
+    },
+  };
+}
+
+/**
+ * Unify results from multiple agents into a coherent response
+ *
+ * @param agentResults - Array of agent responses
+ * @param originalQuery - Original user query for context
+ * @returns Unified response string
+ */
+function unifyResults(
+  agentResults: Array<{ agent: string; response: string }>,
+  originalQuery: string
+): string {
+  if (agentResults.length === 0) {
+    return '결과를 생성할 수 없습니다.';
+  }
+
+  if (agentResults.length === 1) {
+    return agentResults[0].response;
+  }
+
+  // Build unified response with section headers
+  const sections = agentResults.map(({ agent, response }) => {
+    const agentLabel = agent.replace(' Agent', '');
+    return `## ${agentLabel} 분석\n${response}`;
+  });
+
+  return `# 종합 분석 결과\n\n${sections.join('\n\n---\n\n')}`;
+}
+
+// ============================================================================
 // Execution Function
 // ============================================================================
 
@@ -625,6 +876,46 @@ export async function executeMultiAgent(
   }
 
   // =========================================================================
+  // Orchestrator-Worker: Try task decomposition for complex queries
+  // =========================================================================
+  const decomposition = await decomposeTask(query);
+
+  if (decomposition && decomposition.subtasks.length > 1) {
+    console.log(`🔀 [Orchestrator] Complex query detected, using Orchestrator-Worker pattern`);
+
+    if (decomposition.requiresSequential) {
+      // Sequential execution for dependent tasks
+      console.log('📋 [Orchestrator] Executing subtasks sequentially (dependencies detected)');
+      let lastResult: MultiAgentResponse | null = null;
+
+      for (const subtask of decomposition.subtasks) {
+        lastResult = await executeForcedRouting(subtask.task, subtask.agent, startTime);
+        if (!lastResult) {
+          console.warn(`⚠️ [Orchestrator] Sequential subtask failed: ${subtask.agent}`);
+          break;
+        }
+      }
+
+      if (lastResult) {
+        return lastResult;
+      }
+    } else {
+      // Parallel execution for independent tasks
+      const parallelResult = await executeParallelSubtasks(
+        decomposition.subtasks,
+        query,
+        startTime
+      );
+
+      if (parallelResult) {
+        return parallelResult;
+      }
+    }
+
+    console.log('🔄 [Orchestrator] Task decomposition failed, falling back to single-agent routing');
+  }
+
+  // =========================================================================
   // Forced Routing: Bypass LLM when pre-filter confidence is high
   // =========================================================================
   console.log(`🔍 [Orchestrator] Forced routing check: suggestedAgent=${preFilterResult.suggestedAgent}, confidence=${preFilterResult.confidence}`);
@@ -647,11 +938,11 @@ export async function executeMultiAgent(
   }
 
   // =========================================================================
-  // Slow Path: LLM-based routing for complex queries
+  // Slow Path: LLM-based routing for complex queries (AI SDK v6 Native)
   // =========================================================================
 
-  // Check if orchestrator is available
-  if (!orchestrator || !orchestratorModelConfig) {
+  // Check if orchestrator model is available
+  if (!orchestratorModelConfig) {
     return {
       success: false,
       error: 'Orchestrator not available (no AI provider configured)',
@@ -660,18 +951,27 @@ export async function executeMultiAgent(
   }
 
   try {
-    const { provider, modelId } = orchestratorModelConfig;
+    const { model, provider, modelId } = orchestratorModelConfig;
 
     console.log(`🎯 [Orchestrator] LLM routing with ${provider}/${modelId} (suggested: ${preFilterResult.suggestedAgent || 'none'})`);
 
-    // Enhance prompt with suggested agent hint when confidence is high
-    let enhancedPrompt = query;
-    if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.7) {
-      enhancedPrompt = `[시스템 힌트: 이 질문은 "${preFilterResult.suggestedAgent}"에게 핸드오프하는 것이 적합합니다. 서버/인프라 관점에서 해석하세요.]\n\n사용자 질문: ${query}`;
-      console.log(`💡 [Orchestrator] Enhanced prompt with handoff hint → ${preFilterResult.suggestedAgent}`);
-    }
+    // Use generateObject for type-safe structured routing decision
+    const routingPrompt = `사용자 질문을 분석하고 적절한 에이전트를 선택하세요.
 
-    // Execute orchestrator with timeout protection
+## 사용 가능한 에이전트
+- NLQ Agent: 서버 상태 조회, CPU/메모리/디스크 메트릭, 필터링, 요약
+- Analyst Agent: 이상 탐지, 트렌드 예측, 패턴 분석, 근본 원인 분석
+- Reporter Agent: 장애 보고서 생성, 인시던트 타임라인
+- Advisor Agent: 문제 해결 방법, CLI 명령어 추천, 과거 사례 검색
+
+## 사용자 질문
+${query}
+
+## 판단 기준
+- 서버/모니터링 관련 질문 → 적절한 에이전트 선택
+- 일반 대화(인사, 날씨, 시간 등) → NONE`;
+
+    // Execute routing decision with timeout protection
     let timeoutId: NodeJS.Timeout;
     const timeoutPromise = new Promise<never>((_, reject) => {
       timeoutId = setTimeout(() => {
@@ -679,104 +979,90 @@ export async function executeMultiAgent(
       }, ORCHESTRATOR_CONFIG.timeout);
     });
 
-    // Warn if execution is taking too long
     const warnTimer = setTimeout(() => {
       console.warn(`⚠️ [Orchestrator] Execution exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms threshold`);
     }, ORCHESTRATOR_CONFIG.warnThreshold);
 
-    let result;
+    let routingDecision: RoutingDecision;
     try {
-      result = await Promise.race([
-        orchestrator.generate({ prompt: enhancedPrompt }),
+      // Use generateObject for type-safe structured output
+      const routingResult = await Promise.race([
+        generateObject({
+          model,
+          schema: routingSchema,
+          system: ORCHESTRATOR_INSTRUCTIONS,
+          prompt: routingPrompt,
+          temperature: 0.1, // Low temperature for consistent routing
+        }),
         timeoutPromise,
       ]);
+      routingDecision = routingResult.object;
     } finally {
-      // Always cleanup timers (success, error, or timeout)
       clearTimeout(timeoutId!);
       clearTimeout(warnTimer);
     }
 
-    const durationMs = Date.now() - startTime;
+    console.log(`🎯 [Orchestrator] LLM routing decision: ${routingDecision.selectedAgent} (confidence: ${routingDecision.confidence.toFixed(2)}, reason: ${routingDecision.reasoning})`);
 
-    // Extract handoff information
-    const handoffs = result.handoffs?.map((h) => ({
-      from: 'Orchestrator',
-      to: h.targetAgent || 'Unknown',
-      reason: h.reason,
-    })) || [];
+    // Get selected agent from structured response (type-safe, no regex)
+    const selectedAgent = getAgentFromRouting(routingDecision);
 
-    // Extract tool calls from all steps
-    const toolsCalled: string[] = [];
-    if (result.steps) {
-      for (const step of result.steps) {
-        if (step.toolCalls) {
-          for (const tc of step.toolCalls) {
-            toolsCalled.push(tc.toolName);
-          }
-        }
+    if (selectedAgent) {
+      // Execute the selected agent
+      recordHandoff('Orchestrator', selectedAgent, 'LLM routing');
+
+      const agentResult = await executeForcedRouting(query, selectedAgent, startTime);
+
+      if (agentResult) {
+        return {
+          ...agentResult,
+          handoffs: [{
+            from: 'Orchestrator',
+            to: selectedAgent,
+            reason: 'LLM routing decision',
+          }],
+        };
       }
     }
 
-    // Sanitize Chinese/other foreign characters from LLM output
-    const sanitizedResponse = sanitizeChineseCharacters(result.text);
-
-    console.log(
-      `✅ [Orchestrator] Completed in ${durationMs}ms, final agent: ${result.finalAgent}, tools: [${toolsCalled.join(', ')}]`
-    );
-
-    // =========================================================================
-    // Handoff Fallback: If LLM didn't handoff and no tools called,
-    // try the pre-filter suggested agent as fallback
-    // =========================================================================
-    const noHandoffOccurred = handoffs.length === 0 || result.finalAgent === 'Orchestrator';
-    const noToolsCalled = toolsCalled.length === 0;
+    // If routing failed or returned NONE, try pre-filter suggestion as fallback
     const suggestedAgent = preFilterResult.suggestedAgent;
-    const hasSuggestedAgent = suggestedAgent !== undefined && preFilterResult.confidence >= 0.6;
+    if (suggestedAgent && preFilterResult.confidence >= 0.5) {
+      console.log(`🔄 [Orchestrator] LLM routing inconclusive, falling back to ${suggestedAgent}`);
 
-    if (noHandoffOccurred && noToolsCalled && hasSuggestedAgent) {
-      console.log(
-        `🔄 [Handoff Fallback] No handoff/tools detected, trying ${suggestedAgent} as fallback`
-      );
+      const fallbackResult = await executeForcedRouting(query, suggestedAgent, startTime);
 
-      const fallbackResult = await executeForcedRouting(
-        query,
-        suggestedAgent,
-        startTime
-      );
-
-      if (fallbackResult && fallbackResult.toolsCalled.length > 0) {
-        console.log(
-          `✅ [Handoff Fallback] ${suggestedAgent} succeeded with tools: [${fallbackResult.toolsCalled.join(', ')}]`
-        );
+      if (fallbackResult) {
         return {
           ...fallbackResult,
           handoffs: [{
             from: 'Orchestrator',
             to: suggestedAgent,
-            reason: 'Handoff fallback (LLM failed to delegate)',
+            reason: 'Fallback routing (LLM inconclusive)',
           }],
         };
       }
-
-      // If fallback also didn't call tools, return original LLM response
-      console.log('⚠️ [Handoff Fallback] Fallback also failed, returning original response');
     }
+
+    // Last resort: Direct response from orchestrator (no suitable agent found)
+    const durationMs = Date.now() - startTime;
+    const fallbackResponse = routingDecision.reasoning || '죄송합니다. 질문을 처리할 적절한 에이전트를 찾지 못했습니다.';
 
     return {
       success: true,
-      response: sanitizedResponse,
-      handoffs,
-      finalAgent: result.finalAgent || 'Orchestrator',
-      toolsCalled,
+      response: fallbackResponse,
+      handoffs: [],
+      finalAgent: 'Orchestrator',
+      toolsCalled: [],
       usage: {
-        promptTokens: result.usage?.inputTokens ?? 0,
-        completionTokens: result.usage?.outputTokens ?? 0,
-        totalTokens: result.usage?.totalTokens ?? 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
       },
       metadata: {
         provider,
         modelId,
-        totalRounds: (result.handoffs?.length ?? 0) + 1,
+        totalRounds: 1,
         durationMs,
       },
     };
@@ -862,99 +1148,205 @@ export async function* executeMultiAgentStream(
   }
 
   // =========================================================================
-  // Check orchestrator availability
+  // Forced Routing: Use pre-filter suggestion if confidence is high
   // =========================================================================
-  if (!orchestrator || !orchestratorModelConfig) {
+  if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.8) {
+    console.log(`🚀 [Stream] Forced routing to ${preFilterResult.suggestedAgent}`);
+    yield* executeAgentStream(
+      query,
+      preFilterResult.suggestedAgent,
+      startTime,
+      request.sessionId
+    );
+    return;
+  }
+
+  // =========================================================================
+  // LLM-based routing for complex queries (AI SDK v6 Native)
+  // =========================================================================
+  if (!orchestratorModelConfig) {
     yield { type: 'error', data: { code: 'MODEL_UNAVAILABLE', error: 'Orchestrator not available' } };
     return;
   }
 
   try {
-    const { provider, modelId } = orchestratorModelConfig;
+    const { model, provider, modelId } = orchestratorModelConfig;
 
     console.log(`🎯 [Stream Orchestrator] Starting with ${provider}/${modelId}`);
 
-    // Langfuse timeout span for tracking
-    const timeoutSpan = createTimeoutSpan(
-      request.sessionId,
-      'orchestrator_stream',
-      ORCHESTRATOR_CONFIG.timeout
-    );
+    // Quick routing decision using generateObject for type-safe structured output
+    const routingPrompt = `사용자 질문을 분석하고 적절한 에이전트를 선택하세요.
 
-    // Enhance prompt with suggested agent hint when confidence is high
-    let enhancedPrompt = query;
-    if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.7) {
-      enhancedPrompt = `[시스템 힌트: 이 질문은 "${preFilterResult.suggestedAgent}"에게 핸드오프하는 것이 적합합니다. 서버/인프라 관점에서 해석하세요.]\n\n사용자 질문: ${query}`;
-    }
+## 사용 가능한 에이전트
+- NLQ Agent: 서버 상태 조회, CPU/메모리/디스크 메트릭, 필터링, 요약
+- Analyst Agent: 이상 탐지, 트렌드 예측, 패턴 분석, 근본 원인 분석
+- Reporter Agent: 장애 보고서 생성, 인시던트 타임라인
+- Advisor Agent: 문제 해결 방법, CLI 명령어 추천, 과거 사례 검색
 
-    // =========================================================================
-    // Stream from orchestrator with warning tracking
-    // =========================================================================
-    const streamResult = orchestrator.stream({
-      prompt: enhancedPrompt,
+## 사용자 질문
+${query}
+
+## 판단 기준
+- 서버/모니터링 관련 질문 → 적절한 에이전트 선택
+- 일반 대화(인사, 날씨, 시간 등) → NONE`;
+
+    const routingResult = await generateObject({
+      model,
+      schema: routingSchema,
+      system: '에이전트 라우터입니다. 사용자 질문에 가장 적합한 에이전트를 선택하세요.',
+      prompt: routingPrompt,
+      temperature: 0.1,
     });
 
-    // Warning state (only emit once)
+    const routingDecision = routingResult.object;
+    console.log(`🎯 [Stream] LLM routing decision: ${routingDecision.selectedAgent} (confidence: ${routingDecision.confidence.toFixed(2)})`);
+
+    // Get selected agent from structured response (type-safe, no regex)
+    const selectedAgent = getAgentFromRouting(routingDecision);
+
+    if (selectedAgent) {
+      recordHandoff('Orchestrator', selectedAgent, 'LLM routing');
+      yield { type: 'handoff', data: { from: 'Orchestrator', to: selectedAgent, reason: 'LLM routing' } };
+
+      yield* executeAgentStream(query, selectedAgent, startTime, request.sessionId);
+      return;
+    }
+
+    // Fallback to pre-filter suggestion
+    const suggestedAgent = preFilterResult.suggestedAgent;
+    if (suggestedAgent && preFilterResult.confidence >= 0.5) {
+      console.log(`🔄 [Stream] Fallback to ${suggestedAgent}`);
+      recordHandoff('Orchestrator', suggestedAgent, 'Fallback routing');
+      yield { type: 'handoff', data: { from: 'Orchestrator', to: suggestedAgent, reason: 'Fallback' } };
+
+      yield* executeAgentStream(query, suggestedAgent, startTime, request.sessionId);
+      return;
+    }
+
+    // No suitable agent found
+    const durationMs = Date.now() - startTime;
+    yield { type: 'text_delta', data: '죄송합니다. 질문을 처리할 적절한 에이전트를 찾지 못했습니다. 서버 상태, 분석, 보고서, 해결 방법 등에 대해 질문해 주세요.' };
+    yield {
+      type: 'done',
+      data: {
+        success: true,
+        finalAgent: 'Orchestrator',
+        toolsCalled: [],
+        handoffs: [],
+        usage: {
+          promptTokens: routingResult.usage?.inputTokens ?? 0,
+          completionTokens: routingResult.usage?.outputTokens ?? 0,
+        },
+        metadata: { provider, modelId, durationMs },
+      },
+    };
+  } catch (error) {
+    const durationMs = Date.now() - startTime;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    console.error(`❌ [Stream Orchestrator] Error after ${durationMs}ms:`, errorMessage);
+
+    let code = 'UNKNOWN_ERROR';
+    if (errorMessage.includes('API key')) code = 'AUTH_ERROR';
+    else if (errorMessage.includes('rate limit')) code = 'RATE_LIMIT';
+    else if (errorMessage.includes('timeout')) code = 'TIMEOUT';
+    else if (errorMessage.includes('model')) code = 'MODEL_ERROR';
+
+    yield { type: 'error', data: { code, error: errorMessage } };
+  }
+}
+
+/**
+ * Stream agent response using AI SDK v6 streamText
+ */
+async function* executeAgentStream(
+  query: string,
+  agentName: string,
+  startTime: number,
+  sessionId: string
+): AsyncGenerator<StreamEvent> {
+  const agentConfig = getAgentConfig(agentName);
+
+  if (!agentConfig) {
+    yield { type: 'error', data: { code: 'AGENT_NOT_FOUND', error: `Agent ${agentName} not found` } };
+    return;
+  }
+
+  const modelResult = agentConfig.getModel();
+  if (!modelResult) {
+    yield { type: 'error', data: { code: 'MODEL_UNAVAILABLE', error: `No model available for ${agentName}` } };
+    return;
+  }
+
+  const { model, provider, modelId } = modelResult;
+  console.log(`🤖 [Stream ${agentName}] Using ${provider}/${modelId}`);
+
+  // Langfuse timeout span
+  const timeoutSpan = createTimeoutSpan(sessionId, `${agentName}_stream`, ORCHESTRATOR_CONFIG.timeout);
+
+  try {
+    const streamResult = streamText({
+      model,
+      messages: [
+        { role: 'system', content: agentConfig.instructions },
+        { role: 'user', content: query },
+      ],
+      tools: agentConfig.tools,
+      stopWhen: stepCountIs(3),
+      temperature: 0.4,
+      maxOutputTokens: 1536,
+    });
+
     let warningEmitted = false;
     let hardTimeoutReached = false;
+    const toolsCalled: string[] = [];
 
-    // Yield text chunks as they arrive with elapsed time check
+    // Stream text deltas
     for await (const textChunk of streamResult.textStream) {
       const elapsed = Date.now() - startTime;
 
-      // 🔥 Hard timeout: Abort stream immediately (Best Practice)
+      // Hard timeout check
       if (elapsed >= ORCHESTRATOR_CONFIG.hardTimeout) {
         hardTimeoutReached = true;
-        console.error(
-          `🛑 [Stream Orchestrator] Hard timeout reached at ${elapsed}ms (limit: ${ORCHESTRATOR_CONFIG.hardTimeout}ms)`
-        );
+        console.error(`🛑 [Stream ${agentName}] Hard timeout at ${elapsed}ms`);
 
-        // Log timeout to Langfuse
         logTimeoutEvent('error', {
-          operation: 'orchestrator_stream_hard_timeout',
+          operation: `${agentName}_stream_hard_timeout`,
           elapsed,
           threshold: ORCHESTRATOR_CONFIG.hardTimeout,
-          sessionId: request.sessionId,
+          sessionId,
         });
 
-        // Yield timeout error and exit
         yield {
           type: 'error',
           data: {
             code: 'HARD_TIMEOUT',
-            error: `처리 시간이 ${ORCHESTRATOR_CONFIG.hardTimeout / 1000}초를 초과했습니다. 더 간단한 질문으로 다시 시도해주세요.`,
+            error: `처리 시간이 ${ORCHESTRATOR_CONFIG.hardTimeout / 1000}초를 초과했습니다.`,
             elapsed,
-            threshold: ORCHESTRATOR_CONFIG.hardTimeout,
           },
         };
-        return; // Exit generator immediately
+        return;
       }
 
-      // Emit warning once when threshold exceeded (25s)
+      // Warning at threshold
       if (!warningEmitted && elapsed >= ORCHESTRATOR_CONFIG.warnThreshold) {
         warningEmitted = true;
+        console.warn(`⚠️ [Stream ${agentName}] Exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms`);
 
-        console.warn(
-          `⚠️ [Stream Orchestrator] Execution exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms threshold`
-        );
-
-        // Yield warning event to frontend
         yield {
           type: 'warning',
           data: {
             code: 'SLOW_PROCESSING',
-            message: '처리 시간이 25초를 초과했습니다. 복잡한 분석이 진행 중입니다.',
+            message: '처리 시간이 25초를 초과했습니다.',
             elapsed,
-            threshold: ORCHESTRATOR_CONFIG.warnThreshold,
           },
         };
 
-        // Log to Langfuse
         logTimeoutEvent('warning', {
-          operation: 'orchestrator_stream',
+          operation: `${agentName}_stream`,
           elapsed,
           threshold: ORCHESTRATOR_CONFIG.warnThreshold,
-          sessionId: request.sessionId,
+          sessionId,
         });
       }
 
@@ -964,111 +1356,50 @@ export async function* executeMultiAgentStream(
       }
     }
 
-    // Skip metadata gathering if hard timeout was reached
-    if (hardTimeoutReached) {
-      return;
-    }
+    if (hardTimeoutReached) return;
 
-    // Complete timeout span
+    // Gather metadata
+    const [steps, usage] = await Promise.all([streamResult.steps, streamResult.usage]);
     const finalElapsed = Date.now() - startTime;
     timeoutSpan.complete(true, finalElapsed);
 
-    // =========================================================================
-    // After streaming completes, gather metadata
-    // =========================================================================
-    const [steps, usage] = await Promise.all([
-      streamResult.steps,
-      streamResult.usage,
-    ]);
-
-    // Extract tool calls and handoff information from steps
-    const toolsCalled: string[] = [];
-    const handoffList: Array<{ from: string; to: string; reason?: string }> = [];
-    let detectedFinalAgent = 'Orchestrator';
-
+    // Extract tool calls
     if (steps) {
       for (const step of steps) {
-        // Extract tool calls
         if (step.toolCalls) {
           for (const tc of step.toolCalls) {
             toolsCalled.push(tc.toolName);
             yield { type: 'tool_call', data: { name: tc.toolName } };
           }
         }
-
-        // Check for agent info in step (if available)
-        const stepAny = step as Record<string, unknown>;
-        if (stepAny.agent && typeof stepAny.agent === 'string') {
-          detectedFinalAgent = stepAny.agent;
-        }
       }
     }
 
-    // Yield handoff events from tracked handoffs
-    const recentHandoffs = getRecentHandoffs();
-    for (const h of recentHandoffs) {
-      yield {
-        type: 'handoff',
-        data: {
-          from: h.from,
-          to: h.to,
-          reason: h.reason,
-        }
-      };
-      handoffList.push({ from: h.from, to: h.to, reason: h.reason });
-    }
-
     const durationMs = Date.now() - startTime;
-
-    console.log(`✅ [Stream Orchestrator] Completed in ${durationMs}ms, final agent: ${detectedFinalAgent}, tools: [${toolsCalled.join(', ')}]`);
+    console.log(`✅ [Stream ${agentName}] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`);
 
     yield {
       type: 'done',
       data: {
         success: true,
-        finalAgent: detectedFinalAgent,
+        finalAgent: agentName,
         toolsCalled,
-        handoffs: handoffList,
+        handoffs: [{ from: 'Orchestrator', to: agentName, reason: 'Routing' }],
         usage: {
           promptTokens: usage?.inputTokens ?? 0,
           completionTokens: usage?.outputTokens ?? 0,
         },
-        metadata: {
-          provider,
-          modelId,
-          durationMs,
-        }
-      }
+        metadata: { provider, modelId, durationMs },
+      },
     };
-
   } catch (error) {
     const durationMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [Stream ${agentName}] Error after ${durationMs}ms:`, errorMessage);
 
-    console.error(`❌ [Stream Orchestrator] Error after ${durationMs}ms:`, errorMessage);
-
-    // Classify error
-    let code = 'UNKNOWN_ERROR';
-    if (errorMessage.includes('API key')) {
-      code = 'AUTH_ERROR';
-    } else if (errorMessage.includes('rate limit')) {
-      code = 'RATE_LIMIT';
-    } else if (errorMessage.includes('timeout')) {
-      code = 'TIMEOUT';
-
-      // Log timeout error to Langfuse
-      logTimeoutEvent('error', {
-        operation: 'orchestrator_stream',
-        elapsed: durationMs,
-        threshold: ORCHESTRATOR_CONFIG.timeout,
-        sessionId: request.sessionId,
-      });
-    } else if (errorMessage.includes('model')) {
-      code = 'MODEL_ERROR';
-    }
-
-    yield { type: 'error', data: { code, error: errorMessage } };
+    yield { type: 'error', data: { code: 'STREAM_ERROR', error: errorMessage } };
   }
 }
 
-export default orchestrator;
+// Legacy export for compatibility (now just exports null)
+export const orchestrator = null;

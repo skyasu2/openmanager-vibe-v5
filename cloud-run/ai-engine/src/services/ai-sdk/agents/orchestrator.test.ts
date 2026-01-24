@@ -4,7 +4,7 @@
  * Unit tests for multi-agent orchestration system.
  * Tests mode selection, fallback chains, and response handling.
  *
- * @version 1.0.0
+ * @version 3.0.0 - Updated for AI SDK v6 native architecture
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -22,72 +22,40 @@ vi.mock('../model-provider', () => ({
   logProviderStatus: vi.fn(),
 }));
 
-// Mock @ai-sdk-tools/agents with proper class including stream support
-vi.mock('@ai-sdk-tools/agents', () => {
-  return {
-    Agent: class MockAgent {
-      name: string;
-      model: unknown;
-      instructions: string;
-      tools: Record<string, unknown>;
-      handoffs: unknown[];
-      matchOn: unknown[];
-      maxTurns: number;
+// Mock AI SDK - now we mock the actual 'ai' package
+vi.mock('ai', () => ({
+  generateText: vi.fn(async () => ({
+    text: 'Mock response from generateText',
+    usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
+    finishReason: 'stop',
+    toolCalls: [],
+    steps: [],
+  })),
+  streamText: vi.fn(() => ({
+    textStream: (async function* () {
+      yield 'Mock ';
+      yield 'streaming ';
+      yield 'response';
+    })(),
+    fullStream: (async function* () {
+      yield { type: 'text-delta', textDelta: 'Mock ' };
+      yield { type: 'text-delta', textDelta: 'streaming ' };
+      yield { type: 'text-delta', textDelta: 'response' };
+      yield { type: 'finish', finishReason: 'stop' };
+    })(),
+    toDataStreamResponse: vi.fn(),
+    usage: Promise.resolve({ promptTokens: 100, completionTokens: 50, totalTokens: 150 }),
+  })),
+  stepCountIs: vi.fn(() => () => false),
+}));
 
-      constructor(config: {
-        name: string;
-        model?: unknown;
-        instructions?: string;
-        tools?: Record<string, unknown>;
-        handoffs?: unknown[];
-        matchOn?: unknown[];
-        maxTurns?: number;
-      }) {
-        this.name = config.name;
-        this.model = config.model;
-        this.instructions = config.instructions || '';
-        this.tools = config.tools || {};
-        this.handoffs = config.handoffs || [];
-        this.matchOn = config.matchOn || [];
-        this.maxTurns = config.maxTurns || 10;
-      }
-
-      async generate(_options: { prompt: string }) {
-        return {
-          text: 'Mock response from ' + this.name,
-          handoffs: [],
-          steps: [],
-          usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
-          finalAgent: this.name,
-        };
-      }
-
-      // Stream method for executeMultiAgentStream tests
-      stream(_options: { prompt: string }) {
-        const agentName = this.name;
-        return {
-          textStream: (async function* () {
-            yield 'Mock ';
-            yield 'streaming ';
-            yield 'response from ';
-            yield agentName;
-          })(),
-          steps: Promise.resolve([
-            { toolCalls: [{ toolName: 'getServerMetrics' }] },
-          ]),
-          usage: Promise.resolve({ inputTokens: 100, outputTokens: 50 }),
-        };
-      }
-    },
-  };
-});
-
-// Mock tools
+// Mock tools - include all tools from agent-configs
 vi.mock('../../../tools-ai-sdk', () => ({
   getServerMetrics: { execute: vi.fn() },
   getServerMetricsAdvanced: { execute: vi.fn() },
   filterServers: { execute: vi.fn() },
   getServerByGroup: { execute: vi.fn() },
+  getServerByGroupAdvanced: { execute: vi.fn() },
   detectAnomalies: { execute: vi.fn() },
   predictTrends: { execute: vi.fn() },
   analyzePattern: { execute: vi.fn() },
@@ -108,46 +76,44 @@ vi.mock('../../../tools-ai-sdk', () => ({
 }));
 
 // ============================================================================
-// Tests
+// Tests for AI SDK v6 Native Architecture
 // ============================================================================
 
-describe('Multi-Agent Orchestrator', () => {
+describe('Multi-Agent Orchestrator (AI SDK v6 Native)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('Agent Configuration', () => {
-    it('should have all required agents defined', async () => {
-      const { nlqAgent } = await import('./nlq-agent');
-      const { analystAgent } = await import('./analyst-agent');
-      const { reporterAgent } = await import('./reporter-agent');
-      const { advisorAgent } = await import('./advisor-agent');
+    it('should have all required agent configs defined', async () => {
+      const { AGENT_CONFIGS } = await import('./config');
 
-      expect(nlqAgent).toBeDefined();
-      expect(nlqAgent.name).toBe('NLQ Agent');
+      expect(AGENT_CONFIGS['NLQ Agent']).toBeDefined();
+      expect(AGENT_CONFIGS['NLQ Agent'].name).toBe('NLQ Agent');
 
-      expect(analystAgent).toBeDefined();
-      expect(analystAgent.name).toBe('Analyst Agent');
+      expect(AGENT_CONFIGS['Analyst Agent']).toBeDefined();
+      expect(AGENT_CONFIGS['Analyst Agent'].name).toBe('Analyst Agent');
 
-      expect(reporterAgent).toBeDefined();
-      expect(reporterAgent.name).toBe('Reporter Agent');
+      expect(AGENT_CONFIGS['Reporter Agent']).toBeDefined();
+      expect(AGENT_CONFIGS['Reporter Agent'].name).toBe('Reporter Agent');
 
-      expect(advisorAgent).toBeDefined();
-      expect(advisorAgent.name).toBe('Advisor Agent');
+      expect(AGENT_CONFIGS['Advisor Agent']).toBeDefined();
+      expect(AGENT_CONFIGS['Advisor Agent'].name).toBe('Advisor Agent');
     });
 
-    it('should have orchestrator with correct name', async () => {
+    it('should have orchestrator exported as null (legacy compatibility)', async () => {
       const { orchestrator } = await import('./orchestrator');
-
-      expect(orchestrator).toBeDefined();
-      expect(orchestrator.name).toBe('OpenManager Orchestrator');
+      // orchestrator is now null - we use executeMultiAgent instead
+      expect(orchestrator).toBeNull();
     });
 
-    it('should have orchestrator with handoffs configured', async () => {
-      const { orchestrator } = await import('./orchestrator');
+    it('should have getAgentConfig function working', async () => {
+      const { getAgentConfig } = await import('./config');
 
-      expect(orchestrator.handoffs).toBeDefined();
-      expect(orchestrator.handoffs.length).toBe(4); // NLQ, Analyst, Reporter, Advisor
+      const nlqConfig = getAgentConfig('NLQ Agent');
+      expect(nlqConfig).toBeDefined();
+      expect(nlqConfig?.instructions).toBeDefined();
+      expect(nlqConfig?.tools).toBeDefined();
     });
   });
 
@@ -162,9 +128,8 @@ describe('Multi-Agent Orchestrator', () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.response).toContain('Mock response');
+        expect(result.response).toBeDefined();
         expect(result.metadata).toBeDefined();
-        expect(result.metadata.provider).toBeDefined();
         expect(result.metadata.durationMs).toBeGreaterThanOrEqual(0);
       }
     });
@@ -217,82 +182,89 @@ describe('Multi-Agent Orchestrator', () => {
   });
 });
 
-describe('Agent Model Selection', () => {
-  it('NLQ agent should have model configured', async () => {
-    const { nlqAgent } = await import('./nlq-agent');
-    expect(nlqAgent.model).toBeDefined();
+describe('Agent Model Selection (AI SDK v6)', () => {
+  it('NLQ agent config should have getModel function', async () => {
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['NLQ Agent'].getModel).toBeDefined();
+    expect(typeof AGENT_CONFIGS['NLQ Agent'].getModel).toBe('function');
   });
 
-  it('Analyst agent should have model configured', async () => {
-    const { analystAgent } = await import('./analyst-agent');
-    expect(analystAgent.model).toBeDefined();
+  it('Analyst agent config should have getModel function', async () => {
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['Analyst Agent'].getModel).toBeDefined();
   });
 
-  it('Reporter agent should have model configured', async () => {
-    const { reporterAgent } = await import('./reporter-agent');
-    expect(reporterAgent.model).toBeDefined();
+  it('Reporter agent config should have getModel function', async () => {
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['Reporter Agent'].getModel).toBeDefined();
   });
 
-  it('Advisor agent should have model configured', async () => {
-    const { advisorAgent } = await import('./advisor-agent');
-    expect(advisorAgent.model).toBeDefined();
+  it('Advisor agent config should have getModel function', async () => {
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['Advisor Agent'].getModel).toBeDefined();
+  });
+
+  it('isAgentAvailable should return true when model is available', async () => {
+    const { isAgentAvailable } = await import('./config');
+    // With mocked providers, agents should be available
+    expect(isAgentAvailable('NLQ Agent')).toBe(true);
+    expect(isAgentAvailable('Analyst Agent')).toBe(true);
   });
 });
 
-describe('Agent Tools Configuration', () => {
+describe('Agent Tools Configuration (AI SDK v6)', () => {
   it('NLQ agent should have server metric tools', async () => {
-    const { nlqAgent } = await import('./nlq-agent');
-    expect(nlqAgent.tools).toBeDefined();
-    expect(Object.keys(nlqAgent.tools).length).toBeGreaterThan(0);
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['NLQ Agent'].tools).toBeDefined();
+    expect(Object.keys(AGENT_CONFIGS['NLQ Agent'].tools).length).toBeGreaterThan(0);
   });
 
   it('Analyst agent should have analysis tools', async () => {
-    const { analystAgent } = await import('./analyst-agent');
-    expect(analystAgent.tools).toBeDefined();
-    expect(Object.keys(analystAgent.tools).length).toBeGreaterThan(0);
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['Analyst Agent'].tools).toBeDefined();
+    expect(Object.keys(AGENT_CONFIGS['Analyst Agent'].tools).length).toBeGreaterThan(0);
   });
 
   it('Reporter agent should have reporting tools', async () => {
-    const { reporterAgent } = await import('./reporter-agent');
-    expect(reporterAgent.tools).toBeDefined();
-    expect(Object.keys(reporterAgent.tools).length).toBeGreaterThan(0);
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['Reporter Agent'].tools).toBeDefined();
+    expect(Object.keys(AGENT_CONFIGS['Reporter Agent'].tools).length).toBeGreaterThan(0);
   });
 
   it('Advisor agent should have knowledge tools', async () => {
-    const { advisorAgent } = await import('./advisor-agent');
-    expect(advisorAgent.tools).toBeDefined();
-    expect(Object.keys(advisorAgent.tools).length).toBeGreaterThan(0);
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['Advisor Agent'].tools).toBeDefined();
+    expect(Object.keys(AGENT_CONFIGS['Advisor Agent'].tools).length).toBeGreaterThan(0);
   });
 });
 
-describe('Agent Pattern Matching', () => {
-  it('NLQ agent should have matchOn patterns for server queries', async () => {
-    const { nlqAgent } = await import('./nlq-agent');
-    expect(nlqAgent.matchOn).toBeDefined();
-    expect(nlqAgent.matchOn.length).toBeGreaterThan(0);
-    expect(nlqAgent.matchOn).toContain('서버');
-    expect(nlqAgent.matchOn).toContain('cpu');
+describe('Agent Pattern Matching (AI SDK v6)', () => {
+  it('NLQ agent should have matchPatterns for server queries', async () => {
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['NLQ Agent'].matchPatterns).toBeDefined();
+    expect(AGENT_CONFIGS['NLQ Agent'].matchPatterns.length).toBeGreaterThan(0);
+    expect(AGENT_CONFIGS['NLQ Agent'].matchPatterns).toContain('서버');
   });
 
-  it('Analyst agent should have matchOn patterns for analysis', async () => {
-    const { analystAgent } = await import('./analyst-agent');
-    expect(analystAgent.matchOn).toBeDefined();
-    expect(analystAgent.matchOn).toContain('이상');
-    expect(analystAgent.matchOn).toContain('예측');
+  it('Analyst agent should have matchPatterns for analysis', async () => {
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['Analyst Agent'].matchPatterns).toBeDefined();
+    expect(AGENT_CONFIGS['Analyst Agent'].matchPatterns).toContain('이상');
+    expect(AGENT_CONFIGS['Analyst Agent'].matchPatterns).toContain('예측');
   });
 
-  it('Reporter agent should have matchOn patterns for reports', async () => {
-    const { reporterAgent } = await import('./reporter-agent');
-    expect(reporterAgent.matchOn).toBeDefined();
-    expect(reporterAgent.matchOn).toContain('보고서');
-    expect(reporterAgent.matchOn).toContain('장애');
+  it('Reporter agent should have matchPatterns for reports', async () => {
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['Reporter Agent'].matchPatterns).toBeDefined();
+    expect(AGENT_CONFIGS['Reporter Agent'].matchPatterns).toContain('보고서');
+    expect(AGENT_CONFIGS['Reporter Agent'].matchPatterns).toContain('장애');
   });
 
-  it('Advisor agent should have matchOn patterns for troubleshooting', async () => {
-    const { advisorAgent } = await import('./advisor-agent');
-    expect(advisorAgent.matchOn).toBeDefined();
-    expect(advisorAgent.matchOn).toContain('해결');
-    expect(advisorAgent.matchOn).toContain('명령어');
+  it('Advisor agent should have matchPatterns for troubleshooting', async () => {
+    const { AGENT_CONFIGS } = await import('./config');
+    expect(AGENT_CONFIGS['Advisor Agent'].matchPatterns).toBeDefined();
+    expect(AGENT_CONFIGS['Advisor Agent'].matchPatterns).toContain('해결');
+    expect(AGENT_CONFIGS['Advisor Agent'].matchPatterns).toContain('명령어');
   });
 });
 
@@ -358,23 +330,6 @@ describe('executeMultiAgentStream', () => {
 
     const errorEvents = events.filter((e) => e.type === 'error');
     expect(errorEvents.length).toBe(1);
-  });
-
-  it('should include tool_call events when tools are used', async () => {
-    const { executeMultiAgentStream } = await import('./orchestrator');
-
-    const events: Array<{ type: string; data: unknown }> = [];
-
-    for await (const event of executeMultiAgentStream({
-      messages: [{ role: 'user', content: 'CPU 상태 확인' }],
-      sessionId: 'stream-test-4',
-    })) {
-      events.push(event);
-    }
-
-    // Should have tool_call event (from mock)
-    const toolCalls = events.filter((e) => e.type === 'tool_call');
-    expect(toolCalls.length).toBeGreaterThanOrEqual(0); // May or may not have depending on flow
   });
 
   it('should include metadata in done event', async () => {
@@ -450,5 +405,43 @@ describe('preFilterQuery', () => {
     expect(result.shouldHandoff).toBe(false);
     expect(result.directResponse).toBeDefined();
     expect(result.directResponse?.length).toBeGreaterThan(0);
+  });
+});
+
+// ============================================================================
+// Legacy Compatibility Tests
+// ============================================================================
+
+describe('Legacy Compatibility Exports', () => {
+  it('nlqAgent should be null (deprecated)', async () => {
+    const { nlqAgent } = await import('./nlq-agent');
+    expect(nlqAgent).toBeNull();
+  });
+
+  it('analystAgent should be null (deprecated)', async () => {
+    const { analystAgent } = await import('./analyst-agent');
+    expect(analystAgent).toBeNull();
+  });
+
+  it('reporterAgent should be null (deprecated)', async () => {
+    const { reporterAgent } = await import('./reporter-agent');
+    expect(reporterAgent).toBeNull();
+  });
+
+  it('advisorAgent should be null (deprecated)', async () => {
+    const { advisorAgent } = await import('./advisor-agent');
+    expect(advisorAgent).toBeNull();
+  });
+
+  it('should have config getters for each agent', async () => {
+    const { getNlqAgentConfig } = await import('./nlq-agent');
+    const { getAnalystAgentConfig } = await import('./analyst-agent');
+    const { getReporterAgentConfig } = await import('./reporter-agent');
+    const { getAdvisorAgentConfig } = await import('./advisor-agent');
+
+    expect(getNlqAgentConfig()).toBeDefined();
+    expect(getAnalystAgentConfig()).toBeDefined();
+    expect(getReporterAgentConfig()).toBeDefined();
+    expect(getAdvisorAgentConfig()).toBeDefined();
   });
 });

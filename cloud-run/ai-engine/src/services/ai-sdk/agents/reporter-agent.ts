@@ -7,49 +7,44 @@
  * Model: Groq llama-3.3-70b (primary) / Cerebras (fallback)
  *
  * Usage:
- * - reporterAgent: Direct agent for orchestrator handoff (fast)
+ * - getReporterAgentConfig: Get config for orchestrator routing
  * - generateHighQualityReport: Pipeline with Evaluator-Optimizer (thorough)
  *
- * @version 2.1.0 - Added Evaluator-Optimizer pipeline integration
+ * @version 3.0.0 - Migrated to AI SDK v6 native (no Agent class)
  * @created 2025-12-01
- * @updated 2026-01-18 - Added generateHighQualityReport function
+ * @updated 2026-01-24 - Removed @ai-sdk-tools/agents dependency
  */
 
-import { Agent } from '@ai-sdk-tools/agents';
-import { AGENT_CONFIGS } from './config';
+import { AGENT_CONFIGS, type AgentConfig } from './config';
 import { executeReporterPipeline, type PipelineConfig, type PipelineResult } from './reporter-pipeline';
 
 // ============================================================================
-// Agent Instance (Created from SSOT Config)
+// Agent Config Export (for use with generateText/streamText)
 // ============================================================================
 
-function createReporterAgent() {
+/**
+ * Get Reporter Agent configuration
+ * Use with orchestrator's executeForcedRouting or executeAgentStream
+ */
+export function getReporterAgentConfig(): AgentConfig | null {
   const config = AGENT_CONFIGS['Reporter Agent'];
   if (!config) {
     console.error('❌ [Reporter Agent] Config not found in AGENT_CONFIGS');
     return null;
   }
-
-  const modelResult = config.getModel();
-  if (!modelResult) {
-    console.warn('⚠️ [Reporter Agent] No model available (need GROQ_API_KEY or CEREBRAS_API_KEY)');
-    return null;
-  }
-
-  const { model, provider, modelId } = modelResult;
-  console.log(`📋 [Reporter Agent] Using ${provider}/${modelId}`);
-
-  return new Agent({
-    name: config.name,
-    model,
-    instructions: config.instructions,
-    tools: config.tools,
-    handoffDescription: config.description,
-    matchOn: config.matchPatterns,
-  });
+  return config;
 }
 
-export const reporterAgent = createReporterAgent();
+/**
+ * Check if Reporter Agent is available (has valid model)
+ */
+export function isReporterAgentAvailable(): boolean {
+  const config = getReporterAgentConfig();
+  return config?.getModel() !== null;
+}
+
+// Legacy export for compatibility (deprecated - use getReporterAgentConfig instead)
+export const reporterAgent = null;
 
 // ============================================================================
 // High-Quality Report Generation (Evaluator-Optimizer Pipeline)

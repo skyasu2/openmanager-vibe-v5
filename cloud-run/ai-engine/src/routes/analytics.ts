@@ -4,14 +4,15 @@
  * Server analysis, incident reporting, and batch analysis endpoints.
  * Uses specialized AI agents for natural language responses.
  *
- * @version 2.0.0 - Agent Integration
+ * @version 3.0.0 - Migrated to AI SDK v6 native
  * @created 2025-12-28
- * @updated 2025-12-30
+ * @updated 2026-01-24 - Removed @ai-sdk-tools/agents dependency
  */
 
 import { Hono } from 'hono';
 import type { Context } from 'hono';
 import { randomUUID } from 'crypto';
+import { generateText } from 'ai';
 import {
   detectAnomalies,
   predictTrends,
@@ -23,8 +24,8 @@ import {
 import { getCurrentState } from '../data/precomputed-state';
 import { handleApiError, jsonSuccess } from '../lib/error-handler';
 import { sanitizeChineseCharacters, sanitizeJsonStrings } from '../lib/text-sanitizer';
-import { reporterAgent } from '../services/ai-sdk/agents/reporter-agent';
-import { analystAgent } from '../services/ai-sdk/agents/analyst-agent';
+import { getReporterAgentConfig, isReporterAgentAvailable } from '../services/ai-sdk/agents/reporter-agent';
+import { getAnalystAgentConfig, isAnalystAgentAvailable } from '../services/ai-sdk/agents/analyst-agent';
 import {
   syncIncidentsToRAG,
   getRAGInjectionStats,
@@ -90,7 +91,9 @@ analyticsRouter.post('/analyze-server', async (c: Context) => {
     }
 
     // 2. Use Agent for natural language insights (if available)
-    if (analystAgent) {
+    const analystConfig = getAnalystAgentConfig();
+    const analystModelResult = analystConfig?.getModel();
+    if (analystConfig && analystModelResult && isAnalystAgentAvailable()) {
       try {
         const anomalyData = results.anomalyDetection as { hasAnomalies?: boolean; anomalyCount?: number } | undefined;
         const trendData = results.trendPrediction as { summary?: { hasRisingTrends?: boolean } } | undefined;
@@ -108,7 +111,15 @@ analyticsRouter.post('/analyze-server', async (c: Context) => {
 JSON 형식으로 응답하세요:
 {"summary": "...", "recommendations": ["...", "..."], "confidence": 0.9}`;
 
-        const agentResult = await analystAgent.generate({ prompt });
+        const agentResult = await generateText({
+          model: analystModelResult.model,
+          messages: [
+            { role: 'system', content: analystConfig.instructions },
+            { role: 'user', content: prompt },
+          ],
+          temperature: 0.4,
+          maxOutputTokens: 512,
+        });
 
         // Sanitize Chinese characters from LLM output
         const sanitizedText = sanitizeChineseCharacters(agentResult.text);
@@ -191,7 +202,9 @@ analyticsRouter.post('/incident-report', async (c: Context) => {
     const toolBasedData = extractToolBasedData(anomalyData, trendData, timelineData, serverId);
 
     // Check if Reporter Agent is available
-    if (!reporterAgent) {
+    const reporterConfig = getReporterAgentConfig();
+    const reporterModelResult = reporterConfig?.getModel();
+    if (!reporterConfig || !reporterModelResult || !isReporterAgentAvailable()) {
       console.warn('⚠️ [Incident Report] Reporter Agent unavailable, using tool-based fallback');
       return jsonSuccess(c, {
         ...toolBasedData,
@@ -245,8 +258,14 @@ ${metricsContext}
 
     console.log(`🤖 [Incident Report] Invoking Reporter Agent with JSON output...`);
 
-    const result = await reporterAgent.generate({
-      prompt,
+    const result = await generateText({
+      model: reporterModelResult.model,
+      messages: [
+        { role: 'system', content: reporterConfig.instructions },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.4,
+      maxOutputTokens: 1024,
     });
 
     const durationMs = Date.now() - startTime;

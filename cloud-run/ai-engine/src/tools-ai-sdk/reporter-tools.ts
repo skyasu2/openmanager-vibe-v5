@@ -77,9 +77,37 @@ async function getSupabaseClient(): Promise<SupabaseClientLike | null> {
 // 3. AI SDK Tools
 // ============================================================================
 
+// ============================================================================
+// Dynamic Similarity Threshold (Cost Optimization)
+// ============================================================================
+
+/**
+ * Calculate dynamic similarity threshold based on query context
+ * - Urgent/incident queries: Lower threshold (more results)
+ * - General queries: Higher threshold (precise results)
+ */
+function getDynamicThreshold(query: string, category?: string): number {
+  const q = query.toLowerCase();
+
+  // Urgent keywords → Lower threshold (more inclusive)
+  const urgentKeywords = ['장애', '긴급', 'critical', 'urgent', '에러', 'error', 'incident', '다운'];
+  if (urgentKeywords.some(k => q.includes(k)) || category === 'incident') {
+    return 0.25;
+  }
+
+  // Security/performance → Medium threshold
+  if (category === 'security' || category === 'performance') {
+    return 0.35;
+  }
+
+  // Default threshold
+  return 0.4;
+}
+
 /**
  * Search Knowledge Base Tool
  * Uses GraphRAG hybrid search (Vector + Graph traversal)
+ * with dynamic similarity threshold
  */
 export const searchKnowledgeBase = tool({
   description:
@@ -110,8 +138,10 @@ export const searchKnowledgeBase = tool({
     severity?: 'low' | 'medium' | 'high' | 'critical';
     useGraphRAG?: boolean;
   }) => {
+    // Dynamic threshold based on query context
+    const initialThreshold = getDynamicThreshold(query, category);
     console.log(
-      `🔍 [Reporter Tools] GraphRAG search: ${query} (graph: ${useGraphRAG})`
+      `🔍 [Reporter Tools] GraphRAG search: ${query} (graph: ${useGraphRAG}, threshold: ${initialThreshold})`
     );
 
     const supabase = await getSupabaseClient();
@@ -138,17 +168,29 @@ export const searchKnowledgeBase = tool({
     }
 
     try {
-      // 1. Generate query embedding
+      // 1. Generate query embedding (uses cache)
       const queryEmbedding = await embedText(query);
 
       // 2. Use hybrid GraphRAG search if enabled
       if (useGraphRAG) {
-        const hybridResults = await hybridGraphSearch(queryEmbedding, {
-          similarityThreshold: 0.3,
+        // First attempt with dynamic threshold
+        let hybridResults = await hybridGraphSearch(queryEmbedding, {
+          similarityThreshold: initialThreshold,
           maxVectorResults: 5,
           maxGraphHops: 2,
           maxTotalResults: 10,
         });
+
+        // Retry with lower threshold if no results (adaptive fallback)
+        if (hybridResults.length === 0 && initialThreshold > 0.25) {
+          console.log(`🔄 [Reporter Tools] No results, retrying with lower threshold (0.2)`);
+          hybridResults = await hybridGraphSearch(queryEmbedding, {
+            similarityThreshold: 0.2,
+            maxVectorResults: 5,
+            maxGraphHops: 2,
+            maxTotalResults: 10,
+          });
+        }
 
         if (hybridResults.length > 0) {
           const graphEnhanced: RAGResultItem[] = hybridResults.map((r) => ({
@@ -182,9 +224,9 @@ export const searchKnowledgeBase = tool({
         }
       }
 
-      // 3. Fallback to traditional vector search
+      // 3. Fallback to traditional vector search (with dynamic threshold)
       const result = await searchWithEmbedding(supabase, query, {
-        similarityThreshold: 0.3,
+        similarityThreshold: initialThreshold,
         maxResults: 5,
         category: category || undefined,
         severity: severity || undefined,

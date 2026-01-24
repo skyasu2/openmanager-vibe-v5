@@ -1,37 +1,64 @@
 /**
- * Multi-Agent System with @ai-sdk-tools/agents
+ * Multi-Agent System with AI SDK v6 Native
  *
  * Architecture:
- * - Orchestrator (Cerebras): Fast routing
+ * - Orchestrator: Rule-based + LLM routing using generateText
  * - NLQ Agent (Cerebras): Natural language query processing + summaries
  * - Analyst Agent (Groq): Anomaly detection, trend prediction
  * - Reporter Agent (Groq): Incident reports, timelines
  * - Advisor Agent (Mistral): Troubleshooting guides, RAG search
  *
- * Usage:
- * - Multi-agent mode: Orchestrator → NLQ/Analyst/Reporter/Advisor
- * - Direct routes: /analyze-server → Analyst, /incident-report → Reporter
+ * All agents are now executed via generateText/streamText directly,
+ * eliminating the @ai-sdk-tools/agents dependency.
  *
- * @version 2.1.0 - Removed Summarizer Agent (merged into NLQ)
- * @updated 2026-01-12
+ * @version 3.0.0 - Migrated to AI SDK v6 native
+ * @updated 2026-01-24 - Removed @ai-sdk-tools/agents dependency
  */
 
-export { orchestrator, executeMultiAgent, executeMultiAgentStream, getRecentHandoffs, preFilterQuery } from './orchestrator';
-export { nlqAgent } from './nlq-agent';
-export { analystAgent } from './analyst-agent';
-export { reporterAgent, generateHighQualityReport } from './reporter-agent';
-export { advisorAgent } from './advisor-agent';
+export {
+  orchestrator,
+  executeMultiAgent,
+  executeMultiAgentStream,
+  getRecentHandoffs,
+  preFilterQuery,
+  shouldEnableWebSearch,
+  resolveWebSearchSetting,
+} from './orchestrator';
+export { nlqAgent, getNlqAgentConfig, isNlqAgentAvailable } from './nlq-agent';
+export { analystAgent, getAnalystAgentConfig, isAnalystAgentAvailable } from './analyst-agent';
+export { reporterAgent, getReporterAgentConfig, isReporterAgentAvailable, generateHighQualityReport } from './reporter-agent';
+export { advisorAgent, getAdvisorAgentConfig, isAdvisorAgentAvailable } from './advisor-agent';
 export { executeReporterPipeline, type PipelineResult, type PipelineConfig } from './reporter-pipeline';
 export type { MultiAgentRequest, MultiAgentResponse } from './orchestrator';
+export { AGENT_CONFIGS, type AgentConfig, getAgentNames, getAgentConfig, isAgentAvailable, getAvailableAgents } from './config';
+
+// Zod schemas for type-safe structured output
+export {
+  routingSchema,
+  taskDecomposeSchema,
+  anomalySchema,
+  incidentReportSchema,
+  serverQueryResultSchema,
+  recommendationSchema,
+  type RoutingDecision,
+  type TaskDecomposition,
+  type Subtask,
+  type AnomalyResult,
+  type IncidentReport,
+  type ServerQueryResult,
+  type Recommendation,
+  AGENT_NAMES,
+  type AgentName,
+} from './schemas';
 
 // ============================================================================
 // Agent Availability Check (Debugging)
 // ============================================================================
 
-import { nlqAgent as _nlqAgent } from './nlq-agent';
-import { analystAgent as _analystAgent } from './analyst-agent';
-import { reporterAgent as _reporterAgent } from './reporter-agent';
-import { advisorAgent as _advisorAgent } from './advisor-agent';
+import { isNlqAgentAvailable } from './nlq-agent';
+import { isAnalystAgentAvailable } from './analyst-agent';
+import { isReporterAgentAvailable } from './reporter-agent';
+import { isAdvisorAgentAvailable } from './advisor-agent';
 
 /**
  * Get available agents status for debugging
@@ -43,10 +70,10 @@ export function getAvailableAgentsStatus(): {
   details: string[];
 } {
   const agents = {
-    'NLQ Agent': _nlqAgent !== null,
-    'Analyst Agent': _analystAgent !== null,
-    'Reporter Agent': _reporterAgent !== null,
-    'Advisor Agent': _advisorAgent !== null,
+    'NLQ Agent': isNlqAgentAvailable(),
+    'Analyst Agent': isAnalystAgentAvailable(),
+    'Reporter Agent': isReporterAgentAvailable(),
+    'Advisor Agent': isAdvisorAgentAvailable(),
   };
 
   const available = Object.entries(agents)

@@ -8,44 +8,39 @@
  * Model: Cerebras llama-3.3-70b (primary) - 24M tokens/day free
  * Fallback: Groq llama-3.3-70b-versatile
  *
- * @version 2.0.0 - SSOT refactoring
+ * @version 3.0.0 - Migrated to AI SDK v6 native (no Agent class)
  * @created 2025-12-01
- * @updated 2026-01-06 - Import config from SSOT
+ * @updated 2026-01-24 - Removed @ai-sdk-tools/agents dependency
  */
 
-import { Agent } from '@ai-sdk-tools/agents';
-import { AGENT_CONFIGS } from './config';
+import { AGENT_CONFIGS, type AgentConfig } from './config';
 
 // ============================================================================
-// Agent Instance (Created from SSOT Config)
+// Agent Config Export (for use with generateText/streamText)
 // ============================================================================
 
-function createNlqAgent() {
+/**
+ * Get NLQ Agent configuration
+ * Use with orchestrator's executeForcedRouting or executeAgentStream
+ */
+export function getNlqAgentConfig(): AgentConfig | null {
   const config = AGENT_CONFIGS['NLQ Agent'];
   if (!config) {
     console.error('❌ [NLQ Agent] Config not found in AGENT_CONFIGS');
     return null;
   }
-
-  const modelResult = config.getModel();
-  if (!modelResult) {
-    console.warn('⚠️ [NLQ Agent] No model available (need CEREBRAS_API_KEY or GROQ_API_KEY)');
-    return null;
-  }
-
-  const { model, provider, modelId } = modelResult;
-  console.log(`🔧 [NLQ Agent] Using ${provider}/${modelId}`);
-
-  return new Agent({
-    name: config.name,
-    model,
-    instructions: config.instructions,
-    tools: config.tools,
-    handoffDescription: config.description,
-    matchOn: config.matchPatterns,
-  });
+  return config;
 }
 
-export const nlqAgent = createNlqAgent();
+/**
+ * Check if NLQ Agent is available (has valid model)
+ */
+export function isNlqAgentAvailable(): boolean {
+  const config = getNlqAgentConfig();
+  return config?.getModel() !== null;
+}
+
+// Legacy export for compatibility (deprecated - use getNlqAgentConfig instead)
+export const nlqAgent = null;
 
 export default nlqAgent;
