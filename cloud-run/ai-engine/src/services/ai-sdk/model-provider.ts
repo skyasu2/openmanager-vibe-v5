@@ -170,10 +170,26 @@ function createMistralProvider() {
  * Provider SDK들이 LanguageModelV3를 반환하지만 generateText()는 LanguageModelV2를 기대함.
  * 런타임에서는 호환되므로 타입 캐스팅으로 해결.
  *
+ * 🎯 P1 Fix: 런타임 검증 추가로 Provider SDK 변경 시 조기 에러 감지
+ *
  * @see https://github.com/vercel/ai/issues - AI SDK 버전 호환성 이슈
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function asLanguageModel(model: any): LanguageModel {
+function asLanguageModel(model: unknown): LanguageModel {
+  if (!model || typeof model !== 'object') {
+    throw new TypeError('[ModelProvider] Model must be an object');
+  }
+
+  // Check for essential LanguageModel interface methods
+  const m = model as Record<string, unknown>;
+  const hasDoGenerate = typeof m.doGenerate === 'function';
+  const hasDoStream = typeof m.doStream === 'function';
+
+  if (!hasDoGenerate && !hasDoStream) {
+    throw new TypeError(
+      '[ModelProvider] Model does not implement LanguageModel interface (missing doGenerate/doStream)'
+    );
+  }
+
   return model as LanguageModel;
 }
 

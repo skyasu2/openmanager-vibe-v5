@@ -730,6 +730,9 @@ async function* streamSingleAgent(
     const toolsCalled: string[] = [];
     let fullText = '';
 
+    // 🎯 P2 Fix: Track stream errors for warning emission
+    let streamError: Error | null = null;
+
     // Execute streamText with multi-step tool calling
     // AI SDK v6 Best Practice:
     // - prepareStep: Runtime tool filtering based on query intent
@@ -744,7 +747,7 @@ async function* streamSingleAgent(
       temperature: 0.4,
       maxOutputTokens: 1536,
       // 🎯 Phase 3: AI SDK v6 권장 - onError 콜백 추가
-      // 스트림 에러 발생 시 로깅 (Cloud Run에서 디버깅용)
+      // 스트림 에러 발생 시 로깅 및 추적 (Cloud Run에서 디버깅용)
       onError: ({ error }) => {
         console.error('❌ [SingleAgent] streamText error:', {
           error: error instanceof Error ? error.message : String(error),
@@ -752,6 +755,8 @@ async function* streamSingleAgent(
           provider,
           query: queryText.substring(0, 100),
         });
+        // 🎯 P2 Fix: Track error for later warning emission
+        streamError = error instanceof Error ? error : new Error(String(error));
       },
     });
 
@@ -768,19 +773,34 @@ async function* streamSingleAgent(
         console.error(
           `🛑 [SingleAgent] Hard timeout reached at ${elapsed}ms (limit: ${SINGLE_AGENT_HARD_TIMEOUT}ms)`
         );
+
+        // 🎯 P0 Fix: Log partial text info and exit cleanly
+        // Note: AI SDK internally handles stream cleanup on generator return
         yield {
           type: 'error',
           data: {
             code: 'HARD_TIMEOUT',
             error: `처리 시간이 ${SINGLE_AGENT_HARD_TIMEOUT / 1000}초를 초과했습니다.`,
             elapsed,
+            partialText: fullText.length > 0 ? fullText.slice(0, 100) + '...' : undefined,
           },
         };
-        return; // Exit generator immediately
+        return; // Exit generator - AI SDK handles cleanup internally
       }
 
       fullText += textPart;
       yield { type: 'text_delta', data: textPart };
+    }
+
+    // 🎯 P2 Fix: Emit warning if stream error occurred but stream completed
+    if (streamError !== null) {
+      yield {
+        type: 'warning',
+        data: {
+          code: 'STREAM_ERROR_OCCURRED',
+          message: (streamError as Error).message,
+        },
+      };
     }
 
     // Await promises for final data

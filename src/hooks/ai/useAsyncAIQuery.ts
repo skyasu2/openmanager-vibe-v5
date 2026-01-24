@@ -179,6 +179,7 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
             isLoading: false,
             isConnected: false,
             error,
+            progress: null, // 🎯 P2 Fix: Clear progress on error to avoid "80% complete... ERROR" UX
           }));
           onError?.(error);
           resolve({ success: false, error });

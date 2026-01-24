@@ -449,6 +449,10 @@ export function useHybridAIQuery(
           const controller = new AbortController();
           abortControllerRef.current = controller;
 
+          // 🎯 P0 Fix: Capture current references before microtask to avoid stale closure
+          const currentAsyncQuery = asyncQuery;
+          const currentQuery = query;
+
           // queueMicrotask: stopChat의 현재 실행 컨텍스트 완료 후 실행
           queueMicrotask(() => {
             // 이미 취소되었으면 스킵 (컴포넌트 언마운트 등)
@@ -457,11 +461,14 @@ export function useHybridAIQuery(
               return;
             }
             // 🎯 P1 Fix: Add catch handler for unhandled promise rejection
-            asyncQuery
-              .sendQuery(query)
+            currentAsyncQuery
+              .sendQuery(currentQuery)
               .then(() => {
                 if (!controller.signal.aborted) {
-                  setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
+                  setState((prev) => ({
+                    ...prev,
+                    jobId: currentAsyncQuery.jobId,
+                  }));
                 }
               })
               .catch((error) => {
