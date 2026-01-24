@@ -46,9 +46,10 @@ import { isStatusQuery, shouldSkipCache } from './cache-utils';
 import { requestSchema } from './schemas';
 import { quickSanitize } from './security';
 
-// Allow streaming responses up to 60 seconds (Vercel Hobby: max 60s)
-// Note: Reduced from 120s for Vercel Free Tier compatibility
-// Cloud Run AI Engine handles heavy processing, Vercel just proxies
+// Allow streaming responses up to 60 seconds
+// Vercel Tier Limits: Free=10s, Pro=60s (current), Enterprise=900s
+// 🎯 Note: Requires Vercel Pro plan. Free tier users should set to 10.
+// Cloud Run AI Engine handles heavy processing, Vercel just proxies.
 export const maxDuration = 60;
 
 // ============================================================================

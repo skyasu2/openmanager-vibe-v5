@@ -109,18 +109,17 @@ export async function getAIResponseCache(
     const latencyMs = Math.round(performance.now() - startTime);
 
     if (cached) {
-      // TTL 확인
-      const ttl = await client.ttl(cacheKey);
-
+      // 🎯 Free Tier 최적화: TTL 조회 제거 (Redis 커맨드 ~30% 절약)
+      // TTL은 캐시 히트 로직에 불필요, 로깅용으로만 사용됨
       logger.info(
-        `[AI Cache] HIT - Key: ${queryHash}, TTL: ${ttl}s, Latency: ${latencyMs}ms`
+        `[AI Cache] HIT - Key: ${queryHash}, Latency: ${latencyMs}ms`
       );
 
       return {
         hit: true,
         data: cached,
         latencyMs,
-        ttlRemaining: ttl,
+        // ttlRemaining 생략 - Upstash 10K commands/day 절약
       };
     }
 

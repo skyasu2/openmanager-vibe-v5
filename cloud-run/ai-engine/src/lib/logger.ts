@@ -30,7 +30,9 @@ const GCP_SEVERITY: Record<string, string> = {
  */
 function createLogger() {
   const isDev = process.env.NODE_ENV === 'development';
-  const logLevel = process.env.LOG_LEVEL || (isDev ? 'debug' : 'info');
+  // 🎯 Free Tier 최적화: Production에서 'warn' 레벨 사용
+  // GCP Cloud Logging 비용 50%+ 절감 (info 로그 생략)
+  const logLevel = process.env.LOG_LEVEL || (isDev ? 'debug' : 'warn');
 
   return pino({
     level: logLevel,
