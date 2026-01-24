@@ -727,16 +727,27 @@ async function executeForcedRouting(
     const { result, provider, modelId, usedFallback, attempts } = retryResult;
     const durationMs = Date.now() - startTime;
 
-    // Extract tool calls from steps
+    // Extract tool calls from steps and check for finalAnswer
     const toolsCalled: string[] = [];
+    let finalAnswerResult: { answer: string } | null = null;
+
     for (const step of result.steps) {
       for (const toolCall of step.toolCalls) {
         toolsCalled.push(toolCall.toolName);
       }
+      // AI SDK v6 Best Practice: Extract finalAnswer result if called
+      if (step.toolResults) {
+        for (const tr of step.toolResults) {
+          if ('result' in tr && tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
+            finalAnswerResult = tr.result as { answer: string };
+          }
+        }
+      }
     }
 
-    // Sanitize response
-    const sanitizedResponse = sanitizeChineseCharacters(result.text);
+    // Use finalAnswer if called, otherwise fall back to result.text
+    const response = finalAnswerResult?.answer ?? result.text;
+    const sanitizedResponse = sanitizeChineseCharacters(response);
 
     // Log fallback info if used
     if (usedFallback) {
@@ -1465,6 +1476,7 @@ async function* executeAgentStream(
 
     let warningEmitted = false;
     let hardTimeoutReached = false;
+    let textEmitted = false; // Track if any text was emitted
     const toolsCalled: string[] = [];
 
     // Stream text deltas
@@ -1518,6 +1530,7 @@ async function* executeAgentStream(
 
       const sanitized = sanitizeChineseCharacters(textChunk);
       if (sanitized) {
+        textEmitted = true;
         yield { type: 'text_delta', data: sanitized };
       }
     }
@@ -1529,7 +1542,9 @@ async function* executeAgentStream(
     const finalElapsed = Date.now() - startTime;
     timeoutSpan.complete(true, finalElapsed);
 
-    // Extract tool calls
+    // Extract tool calls and check for finalAnswer
+    let finalAnswerResult: { answer: string } | null = null;
+
     if (steps) {
       for (const step of steps) {
         if (step.toolCalls) {
@@ -1538,6 +1553,22 @@ async function* executeAgentStream(
             yield { type: 'tool_call', data: { name: tc.toolName } };
           }
         }
+        // AI SDK v6 Best Practice: Extract finalAnswer result if called
+        if (step.toolResults) {
+          for (const tr of step.toolResults) {
+            if ('result' in tr && tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
+              finalAnswerResult = tr.result as { answer: string };
+            }
+          }
+        }
+      }
+    }
+
+    // If no text was emitted but finalAnswer exists, emit it
+    if (!textEmitted && finalAnswerResult?.answer) {
+      const sanitized = sanitizeChineseCharacters(finalAnswerResult.answer);
+      if (sanitized) {
+        yield { type: 'text_delta', data: sanitized };
       }
     }
 
