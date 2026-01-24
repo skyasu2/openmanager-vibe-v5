@@ -48,16 +48,6 @@ export {
 } from './reporter-tools';
 
 // ============================================================================
-// Incident Report Tools (Structured Reports, SLA, Prediction, Correlation)
-// ============================================================================
-export {
-  calculateSLA,
-  predictMetrics,
-  analyzeServerCorrelation,
-  generateIncidentReport,
-} from './incident-report-tools';
-
-// ============================================================================
 // Incident Evaluation Tools (Evaluator-Optimizer Pattern)
 // ============================================================================
 export {
@@ -82,7 +72,6 @@ import { getServerMetrics, getServerMetricsAdvanced, filterServers, getServerByG
 import { buildIncidentTimeline, correlateMetrics, findRootCause } from './rca-analysis';
 import { detectAnomalies, predictTrends, analyzePattern } from './analyst-tools';
 import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-tools';
-import { calculateSLA, predictMetrics, analyzeServerCorrelation, generateIncidentReport } from './incident-report-tools';
 import { evaluateIncidentReport, validateReportStructure, scoreRootCauseConfidence, refineRootCauseAnalysis, enhanceSuggestedActions, extendServerCorrelation } from './incident-evaluation-tools';
 import { finalAnswer } from './final-answer';
 
@@ -111,12 +100,6 @@ export const allTools = {
   searchKnowledgeBase,
   recommendCommands,
   searchWeb,
-
-  // Incident Report
-  calculateSLA,
-  predictMetrics,
-  analyzeServerCorrelation,
-  generateIncidentReport,
 
   // Incident Evaluation (Evaluator-Optimizer Pattern)
   evaluateIncidentReport,
@@ -156,12 +139,6 @@ export const toolCategories = {
     recommendCommands,
     searchWeb,
   },
-  incident: {
-    calculateSLA,
-    predictMetrics,
-    analyzeServerCorrelation,
-    generateIncidentReport,
-  },
   evaluation: {
     evaluateIncidentReport,
     validateReportStructure,
@@ -193,10 +170,6 @@ export const toolDescriptions = {
   searchKnowledgeBase: '과거 장애 이력 및 해결 방법 검색 (GraphRAG)',
   recommendCommands: 'CLI 명령어 추천',
   searchWeb: '실시간 웹 검색 (Tavily) - 최신 기술 정보, 보안 이슈',
-  calculateSLA: 'SLA 가용률 계산 및 위반 여부 확인',
-  predictMetrics: '메트릭 예측 (30분 후 값 추정)',
-  analyzeServerCorrelation: '다중 서버 간 장애 연관성 분석',
-  generateIncidentReport: '종합 장애 보고서 생성 (Markdown/JSON)',
   // Incident Evaluation
   evaluateIncidentReport: '장애 보고서 품질 종합 평가 (구조, 완성도, 정확도, 실행가능성)',
   validateReportStructure: '보고서 구조적 완성도 검증',
