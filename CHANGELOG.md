@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.1.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v6.0.1...v6.1.0) (2026-01-24)
+
+
+### Features
+
+* **ai-engine:** migrate to AI SDK v6 native pattern ([21cbe4b](https://github.com/skyasu2/openmanager-vibe-v5/commit/21cbe4bf752356b0666ec194529aa678bf21b303))
+
+
+### Bug Fixes
+
+* **test:** restore global fetch stub after each test ([0a5eeba](https://github.com/skyasu2/openmanager-vibe-v5/commit/0a5eeba6d32b9c9fdc1b09ce181061ef0fd87a5d))
+
 ### [6.0.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v6.0.0...v6.0.1) (2026-01-23)
 
 
