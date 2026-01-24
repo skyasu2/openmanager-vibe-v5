@@ -9,7 +9,7 @@
  * - All AI processing handled by Cloud Run
  *
  * Changes (2026-01-10 v5.85.0):
- * - Refactored: schemas.ts, stream-parser.ts, cache-utils.ts 분리
+ * - Refactored: schemas.ts, cache-utils.ts 분리
  *
  * Changes (2025-12-22 v5.83.9):
  * - Added normalizeMessagesForCloudRun(): AI SDK v5 parts[] → Cloud Run content 변환
@@ -45,7 +45,6 @@ import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { isStatusQuery, shouldSkipCache } from './cache-utils';
 import { requestSchema } from './schemas';
 import { quickSanitize } from './security';
-// NOTE: Stream parser available at ./stream-parser.ts for future streaming implementation
 
 // Allow streaming responses up to 60 seconds (Vercel Hobby: max 60s)
 // Note: Reduced from 120s for Vercel Free Tier compatibility

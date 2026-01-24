@@ -16,7 +16,6 @@
  */
 
 export {
-  orchestrator,
   executeMultiAgent,
   executeMultiAgentStream,
   getRecentHandoffs,

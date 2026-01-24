@@ -1597,6 +1597,3 @@ async function* executeAgentStream(
     yield { type: 'error', data: { code: 'STREAM_ERROR', error: errorMessage } };
   }
 }
-
-// Legacy export for compatibility (now just exports null)
-export const orchestrator = null;

@@ -103,12 +103,6 @@ describe('Multi-Agent Orchestrator (AI SDK v6 Native)', () => {
       expect(AGENT_CONFIGS['Advisor Agent'].name).toBe('Advisor Agent');
     });
 
-    it('should have orchestrator exported as null (legacy compatibility)', async () => {
-      const { orchestrator } = await import('./orchestrator');
-      // orchestrator is now null - we use executeMultiAgent instead
-      expect(orchestrator).toBeNull();
-    });
-
     it('should have getAgentConfig function working', async () => {
       const { getAgentConfig } = await import('./config');
 

@@ -845,46 +845,6 @@ async function* streamSingleAgent(
   }
 }
 
-/**
- * Fallback: Convert non-streaming result to stream events
- */
-async function* streamFromNonStreaming(
-  request: SupervisorRequest,
-  startTime: number
-): AsyncGenerator<StreamEvent> {
-  const result = await executeSupervisor(request);
-
-  if (!result.success) {
-    yield {
-      type: 'error',
-      data: { code: (result as SupervisorError).code, message: (result as SupervisorError).error },
-    };
-    return;
-  }
-
-  const successResult = result as SupervisorResponse;
-
-  // Emit tool calls
-  for (const toolName of successResult.toolsCalled) {
-    yield { type: 'tool_call', data: { name: toolName } };
-  }
-
-  // Emit tool results
-  for (const toolResult of successResult.toolResults) {
-    yield { type: 'tool_result', data: toolResult };
-  }
-
-  // Emit text as chunks (simulate streaming)
-  const text = successResult.response;
-  const chunkSize = 20; // Characters per chunk
-  for (let i = 0; i < text.length; i += chunkSize) {
-    yield { type: 'text_delta', data: text.slice(i, i + chunkSize) };
-  }
-
-  // Emit done event
-  yield { type: 'done', data: successResult };
-}
-
 // ============================================================================
 // 5. prepareStep for Runtime Tool Filtering (AI SDK v6 Best Practice)
 // ============================================================================

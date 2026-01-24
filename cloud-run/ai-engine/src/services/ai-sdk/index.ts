@@ -38,7 +38,6 @@ export {
 
 // Multi-Agent Orchestrator
 export {
-  orchestrator,
   executeMultiAgent,
   executeMultiAgentStream,
   type MultiAgentRequest,
