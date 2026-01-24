@@ -957,9 +957,14 @@ async function executeParallelSubtasks(
   const subtaskPromises = subtasks.map(async (subtask, index) => {
     console.log(`   [${index + 1}/${subtasks.length}] ${subtask.agent}: ${subtask.task.substring(0, 50)}...`);
 
+    // 🎯 P1 Fix: Track timeout ID for proper cleanup
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let isTimedOut = false;
+
     // Wrap each subtask with its own timeout
     const timeoutPromise = new Promise<null>((resolve) => {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
+        isTimedOut = true;
         console.warn(`⏱️ [Parallel] Subtask ${index + 1} timeout after ${SUBTASK_TIMEOUT_MS}ms`);
         resolve(null); // Resolve with null instead of reject for graceful degradation
       }, SUBTASK_TIMEOUT_MS);
@@ -972,13 +977,31 @@ async function executeParallelSubtasks(
       webSearchEnabled
     );
 
-    const result = await Promise.race([executionPromise, timeoutPromise]);
+    try {
+      const result = await Promise.race([executionPromise, timeoutPromise]);
 
-    return {
-      subtask,
-      result,
-      index,
-    };
+      // 🎯 P1 Fix: Clear timeout if execution completed before timeout
+      if (timeoutId !== null && !isTimedOut) {
+        clearTimeout(timeoutId);
+      }
+
+      return {
+        subtask,
+        result,
+        index,
+      };
+    } catch (error) {
+      // 🎯 P1 Fix: Ensure cleanup even on error
+      if (timeoutId !== null && !isTimedOut) {
+        clearTimeout(timeoutId);
+      }
+      console.error(`❌ [Parallel] Subtask ${index + 1} error:`, error);
+      return {
+        subtask,
+        result: null,
+        index,
+      };
+    }
   });
 
   const results = await Promise.all(subtaskPromises);

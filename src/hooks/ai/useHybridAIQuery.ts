@@ -456,11 +456,27 @@ export function useHybridAIQuery(
               logger.debug('[HybridAI] Job Queue redirect aborted');
               return;
             }
-            void asyncQuery.sendQuery(query).then(() => {
-              if (!controller.signal.aborted) {
-                setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
-              }
-            });
+            // 🎯 P1 Fix: Add catch handler for unhandled promise rejection
+            asyncQuery
+              .sendQuery(query)
+              .then(() => {
+                if (!controller.signal.aborted) {
+                  setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
+                }
+              })
+              .catch((error) => {
+                if (!controller.signal.aborted) {
+                  logger.error('[HybridAI] Job Queue redirect failed:', error);
+                  setState((prev) => ({
+                    ...prev,
+                    isLoading: false,
+                    error:
+                      error instanceof Error
+                        ? error.message
+                        : 'Job Queue 전환 실패',
+                  }));
+                }
+              });
           });
         }
         return;
@@ -608,9 +624,21 @@ export function useHybridAIQuery(
           clarification: null,
         }));
 
-        void asyncQuery.sendQuery(trimmedQuery).then((_result) => {
-          setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
-        });
+        // 🎯 P1 Fix: Add catch handler for unhandled promise rejection
+        asyncQuery
+          .sendQuery(trimmedQuery)
+          .then((_result) => {
+            setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
+          })
+          .catch((error) => {
+            logger.error('[HybridAI] Job Queue query failed:', error);
+            setState((prev) => ({
+              ...prev,
+              isLoading: false,
+              error:
+                error instanceof Error ? error.message : 'Job Queue 쿼리 실패',
+            }));
+          });
       } else {
         // Streaming 모드: 빠른 응답
         // Note: sendMessage(AI SDK)가 자동으로 user 메시지를 추가하므로
@@ -627,7 +655,18 @@ export function useHybridAIQuery(
         }));
 
         // sendMessage는 user 메시지 추가 + API 호출을 자동으로 처리
-        void sendMessage({ text: trimmedQuery });
+        // Note: useChat의 onError 콜백이 async 에러를 처리하지만,
+        // sync 에러는 catch 필요
+        // 🎯 P1 Fix: Add catch for potential sync/async errors
+        Promise.resolve(sendMessage({ text: trimmedQuery })).catch((error) => {
+          logger.error('[HybridAI] Streaming send failed:', error);
+          setState((prev) => ({
+            ...prev,
+            isLoading: false,
+            error:
+              error instanceof Error ? error.message : '스트리밍 전송 실패',
+          }));
+        });
       }
     },
     [complexityThreshold, asyncQuery, sendMessage, setMessages]

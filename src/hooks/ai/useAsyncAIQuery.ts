@@ -103,12 +103,20 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 🎯 P0 Fix: Store listener references for explicit removal
+  const listenersRef = useRef<Map<string, EventListener>>(new Map());
+
   // 🎯 P1-5 Fix: Cleanup function defined before useEffect to avoid stale closure
   const cleanupRef = useRef<() => void>(() => {});
 
   // Cleanup function
   const cleanup = useCallback(() => {
+    // 🎯 P0 Fix: Explicitly remove all listeners before closing
     if (eventSourceRef.current) {
+      listenersRef.current.forEach((listener, eventType) => {
+        eventSourceRef.current?.removeEventListener(eventType, listener);
+      });
+      listenersRef.current.clear();
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
@@ -192,9 +200,12 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
         const connectSSE = (jobId: string, reconnectAttempt = 0) => {
           const maxReconnects = 3;
 
-          // 🎯 Phase 2 개선: 기존 EventSource를 명시적으로 닫은 후 새로 생성
-          // 이전 연결이 완전히 정리되지 않으면 메모리 누수 및 이벤트 중복 발생 가능
+          // 🎯 P0 Fix: 기존 리스너 제거 후 EventSource 닫기
           if (eventSourceRef.current) {
+            listenersRef.current.forEach((listener, eventType) => {
+              eventSourceRef.current?.removeEventListener(eventType, listener);
+            });
+            listenersRef.current.clear();
             eventSourceRef.current.close();
             eventSourceRef.current = null;
           }
@@ -202,8 +213,17 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
           const eventSource = new EventSource(`/api/ai/jobs/${jobId}/stream`);
           eventSourceRef.current = eventSource;
 
+          // 🎯 P0 Fix: Helper to add and track listeners
+          const addTrackedListener = (
+            eventType: string,
+            handler: EventListener
+          ) => {
+            eventSource.addEventListener(eventType, handler);
+            listenersRef.current.set(eventType, handler);
+          };
+
           // Handle connection
-          eventSource.addEventListener('connected', () => {
+          addTrackedListener('connected', () => {
             setState((prev) => ({ ...prev, isConnected: true }));
             // 재연결 성공 시 attempt 리셋
             if (reconnectAttempt > 0) {
@@ -214,7 +234,7 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
           });
 
           // Handle progress updates
-          eventSource.addEventListener('progress', (event) => {
+          addTrackedListener('progress', ((event: MessageEvent) => {
             try {
               const progress = JSON.parse(event.data) as AsyncQueryProgress;
               setState((prev) => ({ ...prev, progress }));
@@ -222,10 +242,10 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
             } catch (e) {
               logger.warn('[AsyncAI] Failed to parse progress:', e);
             }
-          });
+          }) as EventListener);
 
           // Handle result
-          eventSource.addEventListener('result', (event) => {
+          addTrackedListener('result', ((event: MessageEvent) => {
             try {
               const resultData = JSON.parse(event.data);
 
@@ -251,10 +271,10 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
             } catch (e) {
               handleError(`Failed to parse result: ${e}`);
             }
-          });
+          }) as EventListener);
 
           // Handle error from stream with reconnection
-          eventSource.addEventListener('error', (event) => {
+          addTrackedListener('error', ((event: Event) => {
             if (eventSource.readyState === EventSource.CLOSED) {
               return; // 정상 종료
             }
@@ -271,8 +291,13 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
               }
             }
 
-            // 연결 끊김 - 재연결 시도
+            // 🎯 P0 Fix: 리스너 제거 후 연결 닫기
+            listenersRef.current.forEach((listener, eventType) => {
+              eventSourceRef.current?.removeEventListener(eventType, listener);
+            });
+            listenersRef.current.clear();
             eventSource.close();
+            eventSourceRef.current = null;
 
             if (reconnectAttempt < maxReconnects) {
               const delay = calculateBackoff(
@@ -312,17 +337,17 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
             } else {
               handleError('연결이 끊어졌습니다. 다시 시도해주세요.');
             }
-          });
+          }) as EventListener);
 
           // Handle timeout from stream
-          eventSource.addEventListener('timeout', (event) => {
+          addTrackedListener('timeout', ((event: MessageEvent) => {
             try {
-              const timeoutData = JSON.parse((event as MessageEvent).data);
+              const timeoutData = JSON.parse(event.data);
               handleError(timeoutData.message || 'Request timeout');
             } catch {
               handleError('Request timeout');
             }
-          });
+          }) as EventListener);
         };
 
         // Step 1: Create Job with Retry
