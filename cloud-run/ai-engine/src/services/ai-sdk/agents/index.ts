@@ -24,10 +24,10 @@ export {
   shouldEnableWebSearch,
   resolveWebSearchSetting,
 } from './orchestrator';
-export { nlqAgent, getNlqAgentConfig, isNlqAgentAvailable } from './nlq-agent';
-export { analystAgent, getAnalystAgentConfig, isAnalystAgentAvailable } from './analyst-agent';
-export { reporterAgent, getReporterAgentConfig, isReporterAgentAvailable, generateHighQualityReport } from './reporter-agent';
-export { advisorAgent, getAdvisorAgentConfig, isAdvisorAgentAvailable } from './advisor-agent';
+export { getNlqAgentConfig, isNlqAgentAvailable } from './nlq-agent';
+export { getAnalystAgentConfig, isAnalystAgentAvailable } from './analyst-agent';
+export { getReporterAgentConfig, isReporterAgentAvailable, generateHighQualityReport } from './reporter-agent';
+export { getAdvisorAgentConfig, isAdvisorAgentAvailable } from './advisor-agent';
 export { executeReporterPipeline, type PipelineResult, type PipelineConfig } from './reporter-pipeline';
 export type { MultiAgentRequest, MultiAgentResponse } from './orchestrator';
 export { AGENT_CONFIGS, type AgentConfig, getAgentNames, getAgentConfig, isAgentAvailable, getAvailableAgents } from './config';

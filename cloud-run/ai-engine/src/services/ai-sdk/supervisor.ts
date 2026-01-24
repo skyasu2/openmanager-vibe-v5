@@ -13,7 +13,15 @@
  * @updated 2025-12-28
  */
 
-import { generateText, streamText, stepCountIs, type ModelMessage } from 'ai';
+import {
+  generateText,
+  streamText,
+  stepCountIs,
+  hasToolCall,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  type ModelMessage,
+} from 'ai';
 import { getSupervisorModel, logProviderStatus, type ProviderName } from './model-provider';
 import { allTools, toolDescriptions, type ToolName } from '../../tools-ai-sdk';
 import { executeMultiAgent, executeMultiAgentStream, type MultiAgentRequest, type MultiAgentResponse } from './agents';
@@ -25,7 +33,6 @@ import {
   type TraceMetadata,
 } from '../observability/langfuse';
 import { getCircuitBreaker, CircuitOpenError } from '../resilience/circuit-breaker';
-import { SERVER_GROUP_PATTERN, FILTER_PATTERN } from '../../config/server-types';
 
 // ============================================================================
 // 1. Types
@@ -451,8 +458,8 @@ async function executeSupervisorAttempt(
 
       console.log(`🤖 [Supervisor] Using ${provider}/${modelId}`);
 
-      // Classify intent for tool optimization
-      const intent = classifyIntent(lastUserMessage?.content || '');
+      const queryText = lastUserMessage?.content || '';
+      const intentCategory = getIntentCategory(queryText);
 
       // Convert messages to ModelMessage format (AI SDK 6)
       const modelMessages: ModelMessage[] = [
@@ -463,22 +470,27 @@ async function executeSupervisorAttempt(
         })),
       ];
 
-      // Execute with multi-step tool calling and prepareStep optimization
-      // Reduced step count and tokens for faster responses (Vercel 60s limit)
+      // Execute with multi-step tool calling
+      // AI SDK v6 Best Practice:
+      // - prepareStep: Runtime tool filtering based on query intent
+      // - hasToolCall('finalAnswer'): Graceful loop termination
+      // - stepCountIs(3): Safety limit
       const result = await generateText({
         model,
         messages: modelMessages,
         tools: allTools,
-        stopWhen: stepCountIs(3), // Reduced from 5 to 3 for faster responses
-        temperature: 0.4, // Increased from 0.2 for more creative analysis
-        maxOutputTokens: 1536, // Reduced from 2048 for faster responses
-        // Note: prepareStep optimization moved to intent classification
-        // AI SDK v6 uses different approach - tools are filtered upfront
+        prepareStep: createPrepareStep(queryText),
+        stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)],
+        temperature: 0.4,
+        maxOutputTokens: 1536,
       });
 
       // Extract tool call information with Langfuse logging
       const toolsCalled: string[] = [];
       const toolResults: Record<string, unknown>[] = [];
+
+      // AI SDK v6 Best Practice: Extract finalAnswer response if called
+      let finalAnswerResult: { answer: string } | null = null;
 
       for (const step of result.steps) {
         for (const toolCall of step.toolCalls) {
@@ -491,10 +503,17 @@ async function executeSupervisorAttempt(
               toolResults.push(tr.result as Record<string, unknown>);
               // Log tool call to Langfuse
               logToolCall(trace, tr.toolName, {}, tr.result, 0);
+              // Check for finalAnswer tool result
+              if (tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
+                finalAnswerResult = tr.result as { answer: string };
+              }
             }
           }
         }
       }
+
+      // Use finalAnswer if called, otherwise fall back to result.text
+      const response = finalAnswerResult?.answer ?? result.text;
 
       const durationMs = Date.now() - startTime;
 
@@ -503,31 +522,31 @@ async function executeSupervisorAttempt(
         model: modelId,
         provider,
         input: lastUserMessage?.content || '',
-        output: result.text,
+        output: response,
         usage: {
           inputTokens: result.usage?.inputTokens ?? 0,
           outputTokens: result.usage?.outputTokens ?? 0,
           totalTokens: result.usage?.totalTokens ?? 0,
         },
         duration: durationMs,
-        metadata: { intent: intent.category, intentConfidence: intent.confidence },
+        metadata: { intent: intentCategory, usedFinalAnswer: !!finalAnswerResult, usedPrepareStep: true },
       });
 
       // Finalize trace
-      finalizeTrace(trace, result.text, true, {
+      finalizeTrace(trace, response, true, {
         toolsCalled,
         stepsExecuted: result.steps.length,
         durationMs,
-        intent: intent.category,
+        intent: intentCategory,
       });
 
       console.log(
-        `✅ [Supervisor] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`
+        `✅ [Supervisor] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]${finalAnswerResult ? ' (via finalAnswer)' : ''}`
       );
 
       return {
         success: true,
-        response: result.text,
+        response,
         toolsCalled,
         toolResults,
         usage: {
@@ -680,10 +699,11 @@ async function* streamSingleAgent(
 
     // Create Langfuse trace
     const lastUserMessage = request.messages.filter((m) => m.role === 'user').pop();
+    const queryText = lastUserMessage?.content || '';
     const trace = createSupervisorTrace({
       sessionId: request.sessionId,
       mode: 'single',
-      query: lastUserMessage?.content || '',
+      query: queryText,
     });
 
     // Convert messages to ModelMessage format
@@ -699,14 +719,18 @@ async function* streamSingleAgent(
     let fullText = '';
 
     // Execute streamText with multi-step tool calling
-    // Reduced step count and tokens for faster responses (Vercel 60s limit)
+    // AI SDK v6 Best Practice:
+    // - prepareStep: Runtime tool filtering based on query intent
+    // - hasToolCall('finalAnswer'): Graceful loop termination
+    // - stepCountIs(3): Safety limit
     const result = streamText({
       model,
       messages: modelMessages,
       tools: allTools,
-      stopWhen: stepCountIs(3), // Reduced from 5 to 3 for faster responses
-      temperature: 0.4, // Increased from 0.2 for more creative analysis
-      maxOutputTokens: 1536, // Reduced from 2048 for faster responses
+      prepareStep: createPrepareStep(queryText),
+      stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)],
+      temperature: 0.4,
+      maxOutputTokens: 1536,
     });
 
     // Hard timeout constant (50s - increased from 45s for complex queries)
@@ -862,96 +886,74 @@ async function* streamFromNonStreaming(
 }
 
 // ============================================================================
-// 5. Intent Classification (Optional Enhancement)
+// 5. prepareStep for Runtime Tool Filtering (AI SDK v6 Best Practice)
 // ============================================================================
 
 type IntentCategory = 'metrics' | 'rca' | 'analyst' | 'reporter' | 'general';
 
-interface ClassifiedIntent {
-  category: IntentCategory;
-  suggestedTools: ToolName[];
-  confidence: number;
+/**
+ * Classify query intent (lightweight, for logging only)
+ */
+function getIntentCategory(query: string): IntentCategory {
+  const q = query.toLowerCase();
+  if (/해결|방법|명령어|가이드|이력|과거|사례/.test(q)) return 'reporter';
+  if (/장애|원인|rca|타임라인|상관관계/.test(q)) return 'rca';
+  if (/이상|트렌드|예측|패턴/.test(q)) return 'analyst';
+  if (/cpu|메모리|디스크|서버|상태/.test(q)) return 'metrics';
+  return 'general';
 }
 
 /**
- * Classify user intent (rule-based, for optimization)
- * This can reduce token usage by pre-filtering tools
+ * Create prepareStep function for runtime tool filtering
+ * AI SDK v6 Best Practice: Filter tools dynamically based on query intent
+ *
+ * Benefits:
+ * - Reduces token usage by limiting tool descriptions sent to LLM
+ * - First step uses filtered tools, subsequent steps allow all tools
+ * - More flexible than static pre-filtering
+ *
+ * @param query User's query text
+ * @returns PrepareStep function for generateText/streamText
  */
-export function classifyIntent(query: string): ClassifiedIntent {
+function createPrepareStep(query: string) {
   const q = query.toLowerCase();
 
-  // Reporter/RAG queries - knowledge base search, troubleshooting, commands
-  if (/해결.*방법|방법|조치|명령어|command|이력|과거.*사례|문제.*해결|가이드/i.test(q)) {
-    return {
-      category: 'reporter',
-      suggestedTools: ['searchKnowledgeBase', 'recommendCommands'],
-      confidence: 0.9,
-    };
-  }
+  return async ({ stepNumber }: { stepNumber: number }) => {
+    // After first step, allow all tools for flexibility
+    if (stepNumber > 0) return {};
 
-  // Complex group queries with filters (DB 서버 중 CPU 80% 이상, 웹 서버 메모리 순 등)
-  // Uses shared constants from config/server-types.ts
-  if (SERVER_GROUP_PATTERN.test(q) && FILTER_PATTERN.test(q)) {
-    return {
-      category: 'metrics',
-      suggestedTools: ['getServerByGroupAdvanced'],
-      confidence: 0.95,
-    };
-  }
-
-  // Server group/type queries (DB, 로드밸런서, 웹, 캐시 등 + 기술 스택)
-  if (/(db|database|데이터베이스|디비|mysql|postgres|mongodb|oracle|mariadb)\s*(서버|현황|상태|목록)?/i.test(q) ||
-      /(lb|loadbalancer|로드\s*밸런서|로드밸런서|haproxy|f5)\s*(서버|현황|상태|목록)?/i.test(q) ||
-      /(web|웹|nginx|apache|httpd|frontend)\s*(서버|현황|상태|목록)?/i.test(q) ||
-      /(cache|캐시|redis|레디스|memcached|varnish)\s*(서버|현황|상태|목록)?/i.test(q) ||
-      /(storage|스토리지|저장소|nas|s3|minio|nfs)\s*(서버|현황|상태|목록)?/i.test(q) ||
-      /(api|app|application|애플리케이션|앱|backend|백엔드)\s*(서버|현황|상태|목록)/i.test(q)) {
-    return {
-      category: 'metrics',
-      suggestedTools: ['getServerByGroup'],
-      confidence: 0.95,
-    };
-  }
-
-  // Metrics queries
-  if (/cpu|메모리|memory|디스크|disk|서버.*상태|상태.*요약/i.test(q)) {
-    if (/\d+%.*이상|>\s*\d+|초과|높은/i.test(q)) {
+    // Reporter/Advisor: RAG + commands
+    if (/해결|방법|명령어|가이드|이력|과거|사례/.test(q)) {
       return {
-        category: 'metrics',
-        suggestedTools: ['filterServers'],
-        confidence: 0.9,
+        activeTools: ['searchKnowledgeBase', 'recommendCommands', 'searchWeb', 'finalAnswer'] as ToolName[]
       };
     }
-    return {
-      category: 'metrics',
-      suggestedTools: ['getServerMetrics', 'getServerMetricsAdvanced'],
-      confidence: 0.85,
-    };
-  }
 
-  // RCA queries
-  if (/장애|원인|root.*cause|rca|타임라인|상관관계/i.test(q)) {
-    return {
-      category: 'rca',
-      suggestedTools: ['findRootCause', 'buildIncidentTimeline', 'correlateMetrics'],
-      confidence: 0.9,
-    };
-  }
+    // Analyst: anomaly detection + prediction
+    if (/이상|트렌드|예측|패턴|원인|왜/.test(q)) {
+      return {
+        activeTools: ['detectAnomalies', 'predictTrends', 'analyzePattern', 'findRootCause', 'correlateMetrics', 'finalAnswer'] as ToolName[]
+      };
+    }
 
-  // Analyst queries
-  if (/이상|anomaly|트렌드|trend|예측|predict|패턴/i.test(q)) {
-    return {
-      category: 'analyst',
-      suggestedTools: ['detectAnomalies', 'predictTrends', 'analyzePattern'],
-      confidence: 0.85,
-    };
-  }
+    // RCA: root cause analysis
+    if (/장애|rca|타임라인|상관관계/.test(q)) {
+      return {
+        activeTools: ['findRootCause', 'buildIncidentTimeline', 'correlateMetrics', 'getServerMetrics', 'finalAnswer'] as ToolName[]
+      };
+    }
 
-  // General - let LLM decide
-  return {
-    category: 'general',
-    suggestedTools: ['getServerMetrics'],
-    confidence: 0.5,
+    // Server group queries
+    if (/(db|web|cache|lb|api|storage|로드\s*밸런서|캐시|스토리지)\s*(서버)?/i.test(q)) {
+      return {
+        activeTools: ['getServerByGroup', 'getServerByGroupAdvanced', 'filterServers', 'finalAnswer'] as ToolName[]
+      };
+    }
+
+    // Default: NLQ metrics tools
+    return {
+      activeTools: ['getServerMetrics', 'getServerMetricsAdvanced', 'filterServers', 'getServerByGroup', 'finalAnswer'] as ToolName[]
+    };
   };
 }
 
@@ -988,4 +990,158 @@ export async function checkSupervisorHealth(): Promise<SupervisorHealth> {
       toolsAvailable: 0,
     };
   }
+}
+
+// ============================================================================
+// 7. AI SDK Native UIMessageStream (Best Practice)
+// ============================================================================
+
+/**
+ * Create AI SDK Native UIMessageStream Response
+ *
+ * Uses AI SDK v6 `createUIMessageStream` for native streaming that works
+ * directly with `useChat` on the frontend without custom transport.
+ *
+ * Benefits:
+ * - Native AI SDK protocol (text, data, source, tool-call events)
+ * - Direct integration with useChat (no TextStreamChatTransport needed)
+ * - Structured data events (handoffs, tool calls, metadata)
+ * - Better error handling and retry support
+ *
+ * @param request - Supervisor request with messages and session info
+ * @returns Response object with UIMessageStream
+ */
+export function createSupervisorStreamResponse(
+  request: SupervisorRequest
+): Response {
+  console.log(`🌊 [UIMessageStream] Creating native stream for session: ${request.sessionId}`);
+
+  const stream = createUIMessageStream({
+    execute: async ({ writer }) => {
+      const startTime = Date.now();
+
+      try {
+        // Emit start event with session info
+        // Use 'data-start' type for custom data (AI SDK requires 'data-${string}' pattern)
+        writer.write({
+          type: 'data-start',
+          data: {
+            sessionId: request.sessionId,
+            timestamp: new Date().toISOString(),
+          },
+        });
+
+        // Determine execution mode
+        let mode: SupervisorMode = request.mode || 'auto';
+        if (mode === 'auto') {
+          const lastUserMessage = request.messages.filter((m) => m.role === 'user').pop();
+          mode = lastUserMessage ? selectExecutionMode(lastUserMessage.content) : 'single';
+        }
+
+        writer.write({
+          type: 'data-mode',
+          data: { mode },
+        });
+
+        // Execute and stream
+        for await (const event of executeSupervisorStream({ ...request, mode })) {
+          switch (event.type) {
+            case 'text_delta':
+              // Native text streaming
+              writer.write({
+                type: 'text-delta',
+                delta: event.data as string,
+                id: `text-${Date.now()}`,
+              });
+              break;
+
+            case 'handoff':
+              // Structured handoff event
+              writer.write({
+                type: 'data-handoff',
+                data: event.data as object,
+              });
+              break;
+
+            case 'tool_call':
+              // Tool call notification
+              writer.write({
+                type: 'data-tool-call',
+                data: event.data as object,
+              });
+              break;
+
+            case 'tool_result':
+              // Tool result (optional, can be verbose)
+              writer.write({
+                type: 'data-tool-result',
+                data: event.data as object,
+              });
+              break;
+
+            case 'warning':
+              // Processing warning (e.g., slow processing)
+              writer.write({
+                type: 'data-warning',
+                data: event.data as object,
+              });
+              break;
+
+            case 'agent_status':
+              // Agent status change
+              writer.write({
+                type: 'data-agent-status',
+                data: event.data as object,
+              });
+              break;
+
+            case 'done':
+              // Completion metadata
+              const doneData = event.data as Record<string, unknown>;
+              writer.write({
+                type: 'data-done',
+                data: {
+                  success: true,
+                  durationMs: Date.now() - startTime,
+                  ...doneData,
+                },
+              });
+              break;
+
+            case 'error':
+              // Error event
+              const errorData = event.data as Record<string, unknown>;
+              writer.write({
+                type: 'error',
+                errorText: (errorData.error as string) ?? (errorData.message as string) ?? 'Unknown error',
+              });
+              break;
+
+            default:
+              // Pass through unknown events as data
+              writer.write({
+                type: `data-${event.type}` as `data-${string}`,
+                data: typeof event.data === 'object' ? event.data as object : { value: event.data },
+              });
+          }
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`❌ [UIMessageStream] Error:`, errorMessage);
+
+        writer.write({
+          type: 'error',
+          errorText: errorMessage,
+        });
+      }
+    },
+  });
+
+  return createUIMessageStreamResponse({
+    stream,
+    headers: {
+      'X-Session-Id': request.sessionId,
+      'X-Stream-Protocol': 'ui-message-stream',
+    },
+  });
 }

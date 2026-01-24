@@ -40,7 +40,3 @@ export function isNlqAgentAvailable(): boolean {
   return config?.getModel() !== null;
 }
 
-// Legacy export for compatibility (deprecated - use getNlqAgentConfig instead)
-export const nlqAgent = null;
-
-export default nlqAgent;

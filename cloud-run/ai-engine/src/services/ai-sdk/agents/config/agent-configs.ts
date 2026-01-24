@@ -62,6 +62,8 @@ import {
   refineRootCauseAnalysis,
   enhanceSuggestedActions,
   extendServerCorrelation,
+  // Final answer (AI SDK v6 Best Practice)
+  finalAnswer,
 } from '../../../../tools-ai-sdk';
 
 // ============================================================================
@@ -318,6 +320,7 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
       getServerByGroup,
       getServerByGroupAdvanced,
       searchWeb,
+      finalAnswer, // AI SDK v6 Best Practice: graceful loop termination
     },
     matchPatterns: [
       // Korean keywords
@@ -382,6 +385,7 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
       analyzePattern,
       correlateMetrics,
       findRootCause,
+      finalAnswer, // AI SDK v6 Best Practice: graceful loop termination
     },
     matchPatterns: [
       // Anomaly keywords
@@ -421,6 +425,7 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
       buildIncidentTimeline,
       findRootCause,
       correlateMetrics,
+      finalAnswer, // AI SDK v6 Best Practice: graceful loop termination
     },
     matchPatterns: [
       // Report keywords
@@ -458,6 +463,7 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
       findRootCause,
       correlateMetrics,
       detectAnomalies,
+      finalAnswer, // AI SDK v6 Best Practice: graceful loop termination
     },
     matchPatterns: [
       // Solution keywords

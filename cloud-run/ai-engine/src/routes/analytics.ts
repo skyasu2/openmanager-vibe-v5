@@ -26,10 +26,7 @@ import { handleApiError, jsonSuccess } from '../lib/error-handler';
 import { sanitizeChineseCharacters, sanitizeJsonStrings } from '../lib/text-sanitizer';
 import { getReporterAgentConfig, isReporterAgentAvailable } from '../services/ai-sdk/agents/reporter-agent';
 import { getAnalystAgentConfig, isAnalystAgentAvailable } from '../services/ai-sdk/agents/analyst-agent';
-import {
-  syncIncidentsToRAG,
-  getRAGInjectionStats,
-} from '../lib/incident-rag-injector';
+// incident-rag-injector imports removed - endpoints deprecated
 
 export const analyticsRouter = new Hono();
 
@@ -603,127 +600,6 @@ async function incidentReportFallback(
   });
 }
 
-// Batch processing constants
-const BATCH_LIMITS = {
-  MAX_SERVERS: 50,
-  DEFAULT_CHUNK_SIZE: 10,
-} as const;
+// analyze-batch endpoint removed - not used by frontend
 
-/**
- * POST /analyze-batch - Batch Server Analysis
- *
- * Uses Precomputed State for O(1) lookup
- * Analyzes multiple servers in parallel with chunking for memory efficiency
- *
- * @limit Max 50 servers per request
- */
-analyticsRouter.post('/analyze-batch', async (c: Context) => {
-  try {
-    const body = await c.req.json().catch(() => ({}));
-    const serverIds: string[] = Array.isArray(body.serverIds) ? body.serverIds : [];
-    const analysisType = body.analysisType || 'anomaly';
-
-    // Input validation
-    if (serverIds.length > BATCH_LIMITS.MAX_SERVERS) {
-      return c.json({
-        success: false,
-        error: `Too many servers requested. Maximum: ${BATCH_LIMITS.MAX_SERVERS}`,
-      }, 400);
-    }
-
-    console.log(`🔬 [Batch Analysis] servers=${serverIds.length}, type=${analysisType}`);
-
-    // Get servers from precomputed state (O(1))
-    const state = getCurrentState();
-    const targetServers = serverIds.length > 0
-      ? state.servers.filter((s) => serverIds.includes(s.id)).slice(0, BATCH_LIMITS.MAX_SERVERS)
-      : state.servers.slice(0, BATCH_LIMITS.MAX_SERVERS);
-
-    const results = await Promise.all(
-      targetServers.map(async (server) => {
-        const anomalyResult = await detectAnomalies.execute!({
-          serverId: server.id,
-          metricType: 'all',
-        }, { toolCallId: `batch-${server.id}`, messages: [] });
-
-        return {
-          serverId: server.id,
-          serverName: server.name,
-          ...anomalyResult,
-        };
-      })
-    );
-
-    return jsonSuccess(c, {
-      totalServers: results.length,
-      analysisType,
-      results,
-      _dataSource: 'precomputed-state',
-    });
-  } catch (error) {
-    return handleApiError(c, error, 'Batch Analysis');
-  }
-});
-
-/**
- * POST /rag/sync-incidents - Sync Incidents to RAG Knowledge Base
- *
- * Injects approved incident reports into knowledge_base for RAG search.
- * Should be called periodically or after batch approvals.
- *
- * @version 1.0.0 - RAG injection
- */
-analyticsRouter.post('/rag/sync-incidents', async (c: Context) => {
-  try {
-    const { limit = 10, daysBack = 30 } = await c.req.json().catch(() => ({}));
-
-    console.log(`📥 [RAG Sync] Starting incident sync (limit=${limit}, days=${daysBack})`);
-
-    const result = await syncIncidentsToRAG({ limit, daysBack });
-
-    if (!result.success && result.synced === 0) {
-      return c.json({
-        success: false,
-        error: result.errors.join('; ') || 'Sync failed',
-        timestamp: new Date().toISOString(),
-      }, 500);
-    }
-
-    return jsonSuccess(c, {
-      ...result,
-      message: `Synced ${result.synced} incidents to RAG knowledge base`,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    return handleApiError(c, error, 'RAG Sync Incidents');
-  }
-});
-
-/**
- * GET /rag/stats - Get RAG Injection Statistics
- *
- * Returns counts of total incidents, synced incidents, and pending sync.
- */
-analyticsRouter.get('/rag/stats', async (c: Context) => {
-  try {
-    const stats = await getRAGInjectionStats();
-
-    if (!stats) {
-      return c.json({
-        success: false,
-        error: 'Unable to fetch RAG stats (Supabase not available)',
-        timestamp: new Date().toISOString(),
-      }, 503);
-    }
-
-    return jsonSuccess(c, {
-      ...stats,
-      syncRatio: stats.totalIncidents > 0
-        ? Math.round((stats.syncedIncidents / stats.totalIncidents) * 100)
-        : 100,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    return handleApiError(c, error, 'RAG Stats');
-  }
-});
+// RAG sync/stats endpoints removed - not used by frontend

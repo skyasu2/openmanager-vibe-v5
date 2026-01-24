@@ -38,7 +38,3 @@ export function isAnalystAgentAvailable(): boolean {
   return config?.getModel() !== null;
 }
 
-// Legacy export for compatibility (deprecated - use getAnalystAgentConfig instead)
-export const analystAgent = null;
-
-export default analystAgent;

@@ -75,6 +75,11 @@ export {
 } from './incident-evaluation-tools';
 
 // ============================================================================
+// Final Answer Tool (AI SDK v6 Best Practice)
+// ============================================================================
+export { finalAnswer, type FinalAnswerResult } from './final-answer';
+
+// ============================================================================
 // Tool Collections (for Supervisor)
 // ============================================================================
 import { getServerMetrics, getServerMetricsAdvanced, filterServers, getServerByGroup, getServerByGroupAdvanced } from './server-metrics';
@@ -83,6 +88,7 @@ import { checkThresholds, detectAnomalies, detectAnomaliesHybrid, detectAnomalie
 import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-tools';
 import { calculateSLA, predictMetrics, analyzeServerCorrelation, generateIncidentReport } from './incident-report-tools';
 import { evaluateIncidentReport, validateReportStructure, scoreRootCauseConfidence, refineRootCauseAnalysis, enhanceSuggestedActions, extendServerCorrelation } from './incident-evaluation-tools';
+import { finalAnswer } from './final-answer';
 
 /**
  * All available tools for the AI SDK Supervisor
@@ -127,6 +133,9 @@ export const allTools = {
   refineRootCauseAnalysis,
   enhanceSuggestedActions,
   extendServerCorrelation,
+
+  // Final Answer (AI SDK v6 Best Practice - terminates tool loop)
+  finalAnswer,
 };
 
 /**
@@ -173,6 +182,9 @@ export const toolCategories = {
     enhanceSuggestedActions,
     extendServerCorrelation,
   },
+  control: {
+    finalAnswer,
+  },
 };
 
 /**
@@ -208,6 +220,8 @@ export const toolDescriptions = {
   refineRootCauseAnalysis: '낮은 신뢰도 근본원인 분석 심화',
   enhanceSuggestedActions: '권장 조치 CLI 명령어 포함 구체화',
   extendServerCorrelation: '서버 간 연관성 분석 확장',
+  // Control
+  finalAnswer: '최종 응답 제출 (도구 루프 종료 신호)',
 };
 
 export type ToolName = keyof typeof allTools;

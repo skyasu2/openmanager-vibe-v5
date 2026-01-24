@@ -11,7 +11,7 @@
  * @updated 2026-01-24 - Removed @ai-sdk-tools/agents dependency
  */
 
-import { generateText, generateObject, streamText, stepCountIs, type ModelMessage } from 'ai';
+import { generateText, generateObject, streamText, stepCountIs, hasToolCall, type ModelMessage } from 'ai';
 import { getCerebrasModel, getGroqModel, getMistralModel, checkProviderStatus, type ProviderName } from '../model-provider';
 import { generateTextWithRetry } from '../../resilience/retry-with-fallback';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
@@ -23,6 +23,9 @@ import { AGENT_CONFIGS, type AgentConfig } from './config';
 
 // Import Zod schemas for type-safe structured output
 import { routingSchema, taskDecomposeSchema, getAgentFromRouting, type RoutingDecision, type TaskDecomposition, type Subtask } from './schemas';
+
+// Import Reporter Pipeline for Evaluator-Optimizer pattern
+import { executeReporterPipeline, type PipelineResult } from './reporter-pipeline';
 
 // ============================================================================
 // Configuration
@@ -81,6 +84,8 @@ export interface MultiAgentResponse {
     modelId: string;
     totalRounds: number;
     durationMs: number;
+    /** Quality score from Reporter Pipeline (optional, 0-1) */
+    qualityScore?: number;
   };
 }
 
@@ -515,6 +520,112 @@ export function getRecentHandoffs() {
 }
 
 // ============================================================================
+// Reporter Pipeline Execution (Evaluator-Optimizer Pattern)
+// ============================================================================
+
+/**
+ * Execute Reporter Agent through the Pipeline for quality-controlled reports
+ *
+ * Uses Evaluator-Optimizer pattern:
+ * 1. Generate initial report
+ * 2. Evaluate quality (threshold: 0.75)
+ * 3. Optimize if needed (max 2 iterations)
+ *
+ * @param query - User query for report generation
+ * @param startTime - Execution start time for duration tracking
+ * @returns MultiAgentResponse with quality metrics, or null on failure
+ */
+async function executeReporterWithPipeline(
+  query: string,
+  startTime: number
+): Promise<MultiAgentResponse | null> {
+  console.log(`📋 [ReporterPipeline] Starting pipeline for query: "${query.substring(0, 50)}..."`);
+
+  try {
+    const pipelineResult = await executeReporterPipeline(query, {
+      qualityThreshold: 0.75,
+      maxIterations: 2,
+      timeout: 45_000,
+    });
+
+    if (!pipelineResult.success || !pipelineResult.report) {
+      console.warn(`⚠️ [ReporterPipeline] Pipeline failed: ${pipelineResult.error || 'No report generated'}`);
+      return null;
+    }
+
+    const durationMs = Date.now() - startTime;
+
+    // Build response text from report
+    let responseText = pipelineResult.report.markdown ?? '';
+
+    // Fallback to structured report if no markdown
+    if (!responseText) {
+      responseText = `# ${pipelineResult.report.title}\n\n`;
+      responseText += `## 요약\n${pipelineResult.report.summary}\n\n`;
+
+      if (pipelineResult.report.affectedServers.length > 0) {
+        responseText += `## 영향받은 서버 (${pipelineResult.report.affectedServers.length}대)\n`;
+        for (const server of pipelineResult.report.affectedServers) {
+          responseText += `- **${server.name}** (${server.status}): ${server.primaryIssue}\n`;
+        }
+        responseText += '\n';
+      }
+
+      if (pipelineResult.report.rootCause) {
+        responseText += `## 근본 원인 분석\n`;
+        responseText += `- **원인**: ${pipelineResult.report.rootCause.cause}\n`;
+        responseText += `- **신뢰도**: ${(pipelineResult.report.rootCause.confidence * 100).toFixed(0)}%\n`;
+        responseText += `- **제안**: ${pipelineResult.report.rootCause.suggestedFix}\n\n`;
+      }
+
+      if (pipelineResult.report.suggestedActions.length > 0) {
+        responseText += `## 권장 조치\n`;
+        for (const action of pipelineResult.report.suggestedActions) {
+          responseText += `- ${action}\n`;
+        }
+      }
+    }
+
+    // Sanitize response
+    const sanitizedResponse = sanitizeChineseCharacters(responseText);
+
+    console.log(
+      `✅ [ReporterPipeline] Completed in ${durationMs}ms, ` +
+      `Quality: ${(pipelineResult.quality.initialScore * 100).toFixed(0)}% → ${(pipelineResult.quality.finalScore * 100).toFixed(0)}%, ` +
+      `Iterations: ${pipelineResult.quality.iterations}`
+    );
+
+    return {
+      success: true,
+      response: sanitizedResponse,
+      handoffs: [{
+        from: 'Orchestrator',
+        to: 'Reporter Agent',
+        reason: `Pipeline execution (quality: ${(pipelineResult.quality.finalScore * 100).toFixed(0)}%)`,
+      }],
+      finalAgent: 'Reporter Agent',
+      toolsCalled: ['executeReporterPipeline'],
+      usage: {
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+      },
+      metadata: {
+        provider: 'pipeline',
+        modelId: 'reporter-pipeline',
+        totalRounds: pipelineResult.quality.iterations,
+        durationMs,
+        qualityScore: pipelineResult.quality.finalScore,
+      },
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [ReporterPipeline] Error: ${errorMessage}`);
+    return null;
+  }
+}
+
+// ============================================================================
 // Agent Execution (AI SDK v6 Native)
 // ============================================================================
 
@@ -560,6 +671,17 @@ async function executeForcedRouting(
 ): Promise<MultiAgentResponse | null> {
   console.log(`🔍 [Forced Routing] Looking up agent config: "${suggestedAgentName}"`);
 
+  // Reporter Agent → Use Pipeline for quality-controlled reports
+  if (suggestedAgentName === 'Reporter Agent') {
+    console.log(`📋 [Forced Routing] Routing to Reporter Pipeline`);
+    const pipelineResult = await executeReporterWithPipeline(query, startTime);
+    if (pipelineResult) {
+      return pipelineResult;
+    }
+    // Fallback to direct agent execution if pipeline fails
+    console.log(`🔄 [Forced Routing] Pipeline failed, falling back to direct Reporter Agent`);
+  }
+
   // Get agent configuration
   const agentConfig = AGENT_CONFIGS[suggestedAgentName];
 
@@ -577,6 +699,7 @@ async function executeForcedRouting(
 
   try {
     // Use generateTextWithRetry for automatic 429 handling
+    // AI SDK v6 Best Practice: Use hasToolCall('finalAnswer') + stepCountIs(N) for graceful termination
     const retryResult = await generateTextWithRetry(
       {
         messages: [
@@ -584,7 +707,7 @@ async function executeForcedRouting(
           { role: 'user', content: query },
         ],
         tools: filteredTools as Parameters<typeof generateText>[0]['tools'],
-        stopWhen: stepCountIs(5),
+        stopWhen: [hasToolCall('finalAnswer'), stepCountIs(5)], // Graceful termination + safety limit
         temperature: 0.4, // Increased from 0.2 for more creative analysis
         maxOutputTokens: 2048,
       },
@@ -1327,6 +1450,7 @@ async function* executeAgentStream(
   const timeoutSpan = createTimeoutSpan(sessionId, `${agentName}_stream`, ORCHESTRATOR_CONFIG.timeout);
 
   try {
+    // AI SDK v6 Best Practice: Use hasToolCall('finalAnswer') + stepCountIs(N) for graceful termination
     const streamResult = streamText({
       model,
       messages: [
@@ -1334,7 +1458,7 @@ async function* executeAgentStream(
         { role: 'user', content: query },
       ],
       tools: filteredTools as Parameters<typeof generateText>[0]['tools'],
-      stopWhen: stepCountIs(3),
+      stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)], // Graceful termination + safety limit
       temperature: 0.4,
       maxOutputTokens: 1536,
     });

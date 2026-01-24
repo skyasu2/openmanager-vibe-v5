@@ -1,100 +1,22 @@
 /**
  * Approval Routes
  *
- * Human-in-the-Loop approval endpoints.
+ * Approval history endpoints for RAG context injection.
  *
- * @version 1.1.0
+ * @version 2.0.0
  * @created 2025-12-28
- * @updated 2026-01-01
+ * @updated 2026-01-24
  *
- * @deprecated HITL workflow removed in v4.1 (user-triggered design)
- * - `/status`, `/decide`, `/stats` endpoints are deprecated (no longer called from frontend)
- * - `/history`, `/history/stats` endpoints kept for RAG context injection
- *   (used by incident-rag-injector.ts for approval_history table queries)
+ * Note: HITL workflow removed in v4.1.
+ * Only `/history` and `/history/stats` endpoints remain for RAG use.
  */
 
 import { Hono } from 'hono';
 import type { Context } from 'hono';
 import { approvalStore } from '../services/approval/approval-store';
-import { handleApiError, handleValidationError, handleNotFoundError, jsonSuccess } from '../lib/error-handler';
+import { handleApiError, jsonSuccess } from '../lib/error-handler';
 
 export const approvalRouter = new Hono();
-
-/**
- * GET /approval/status - Check pending approval status
- */
-approvalRouter.get('/status', async (c: Context) => {
-  try {
-    const sessionId = c.req.query('sessionId');
-
-    if (!sessionId) {
-      return handleValidationError(c, 'sessionId is required');
-    }
-
-    const pending = await approvalStore.getPending(sessionId);
-
-    if (!pending) {
-      return jsonSuccess(c, {
-        hasPending: false,
-        action: null,
-        sessionId,
-      });
-    }
-
-    return jsonSuccess(c, {
-      hasPending: true,
-      action: {
-        type: pending.actionType,
-        description: pending.description,
-        details: pending.payload,
-        requestedAt: pending.requestedAt.toISOString(),
-        requestedBy: pending.requestedBy,
-        expiresAt: pending.expiresAt.toISOString(),
-      },
-      sessionId,
-    });
-  } catch (error) {
-    return handleApiError(c, error, 'Approval Status');
-  }
-});
-
-/**
- * POST /approval/decide - Submit approval decision
- */
-approvalRouter.post('/decide', async (c: Context) => {
-  try {
-    const { sessionId, approved, reason, approvedBy } = await c.req.json();
-
-    if (!sessionId || typeof approved !== 'boolean') {
-      return handleValidationError(c, 'sessionId and approved are required');
-    }
-
-    const success = await approvalStore.submitDecision(sessionId, approved, {
-      reason,
-      decidedBy: approvedBy,
-    });
-
-    if (!success) {
-      return handleNotFoundError(c, 'Pending approval for this session');
-    }
-
-    return jsonSuccess(c, {
-      sessionId,
-      decision: approved ? 'approved' : 'rejected',
-      decidedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    return handleApiError(c, error, 'Approval Decision');
-  }
-});
-
-/**
- * GET /approval/stats - Monitor approval store status
- */
-approvalRouter.get('/stats', (c: Context) => {
-  const stats = approvalStore.getStats();
-  return jsonSuccess(c, stats);
-});
 
 /**
  * GET /approval/history - Get approval history from PostgreSQL

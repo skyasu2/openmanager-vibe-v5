@@ -12,7 +12,7 @@
 export {
   executeSupervisor,
   executeSupervisorStream,
-  classifyIntent,
+  createSupervisorStreamResponse,  // AI SDK Native UIMessageStream
   checkSupervisorHealth,
   type SupervisorRequest,
   type SupervisorResponse,
@@ -53,8 +53,8 @@ export {
   type PipelineConfig,
 } from './agents/reporter-pipeline';
 
-// Individual Agents
-export { nlqAgent } from './agents/nlq-agent';
-export { analystAgent } from './agents/analyst-agent';
-export { reporterAgent, generateHighQualityReport } from './agents/reporter-agent';
-export { advisorAgent } from './agents/advisor-agent';
+// Individual Agent Configs
+export { getNlqAgentConfig, isNlqAgentAvailable } from './agents/nlq-agent';
+export { getAnalystAgentConfig, isAnalystAgentAvailable } from './agents/analyst-agent';
+export { getReporterAgentConfig, isReporterAgentAvailable, generateHighQualityReport } from './agents/reporter-agent';
+export { getAdvisorAgentConfig, isAdvisorAgentAvailable } from './agents/advisor-agent';

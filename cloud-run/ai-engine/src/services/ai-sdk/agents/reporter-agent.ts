@@ -43,8 +43,6 @@ export function isReporterAgentAvailable(): boolean {
   return config?.getModel() !== null;
 }
 
-// Legacy export for compatibility (deprecated - use getReporterAgentConfig instead)
-export const reporterAgent = null;
 
 // ============================================================================
 // High-Quality Report Generation (Evaluator-Optimizer Pipeline)
@@ -85,5 +83,3 @@ export async function generateHighQualityReport(
   console.log(`📋 [Reporter] Generating high-quality report with pipeline...`);
   return executeReporterPipeline(query, options);
 }
-
-export default reporterAgent;

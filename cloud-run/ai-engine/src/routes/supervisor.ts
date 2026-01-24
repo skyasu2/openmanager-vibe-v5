@@ -12,7 +12,13 @@ import { Hono } from 'hono';
 import type { Context } from 'hono';
 import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
-import { executeSupervisor, executeSupervisorStream, checkSupervisorHealth, logProviderStatus } from '../services/ai-sdk';
+import {
+  executeSupervisor,
+  executeSupervisorStream,
+  checkSupervisorHealth,
+  logProviderStatus,
+  createSupervisorStreamResponse,
+} from '../services/ai-sdk';
 import { handleApiError, handleValidationError, jsonSuccess } from '../lib/error-handler';
 import { sanitizeChineseCharacters } from '../lib/text-sanitizer';
 import { logger } from '../lib/logger';
@@ -169,6 +175,64 @@ supervisorRouter.post('/stream', async (c: Context) => {
     });
   } catch (error) {
     return handleApiError(c, error, 'SupervisorStream');
+  }
+});
+
+/**
+ * POST /supervisor/stream/v2 - AI SDK Native UIMessageStream Endpoint
+ *
+ * Uses AI SDK v6 createUIMessageStream for native streaming that works
+ * directly with useChat on the frontend without custom transport.
+ *
+ * Benefits over /stream:
+ * - Native AI SDK protocol (no TextStreamChatTransport needed)
+ * - Structured data events (handoffs, tool calls, metadata)
+ * - Better frontend integration with useChat hooks
+ *
+ * Event types:
+ * - text: Incremental text content (native AI SDK)
+ * - data: Structured events (handoff, tool_call, done, error)
+ */
+supervisorRouter.post('/stream/v2', async (c: Context) => {
+  try {
+    // 1. Parse and validate request with Zod schema
+    const body = await c.req.json();
+    const parseResult = streamRequestSchema.safeParse(body);
+
+    if (!parseResult.success) {
+      const errorDetails = parseResult.error.issues
+        .map((i) => i.message)
+        .join(', ');
+      logger.warn({ errorDetails }, 'SupervisorStreamV2 invalid payload');
+      return handleValidationError(c, `Invalid request: ${errorDetails}`);
+    }
+
+    const { messages, sessionId } = parseResult.data;
+
+    // 2. Get last user query for logging
+    const lastMessage = messages[messages.length - 1];
+    const query = lastMessage.content;
+
+    logger.info(
+      { sessionId: sessionId || 'default', query: query.slice(0, 50) },
+      'SupervisorStreamV2 starting (UIMessageStream)'
+    );
+    logProviderStatus();
+
+    // 3. Create and return UIMessageStream response
+    const response = createSupervisorStreamResponse({
+      messages: messages.map((m) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      })),
+      sessionId: sessionId || 'default',
+    });
+
+    logger.info('SupervisorStreamV2 response created');
+
+    return response;
+  } catch (error) {
+    return handleApiError(c, error, 'SupervisorStreamV2');
   }
 });
 

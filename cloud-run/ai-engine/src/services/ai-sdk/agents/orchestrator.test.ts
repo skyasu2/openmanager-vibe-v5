@@ -65,6 +65,8 @@ vi.mock('../../../tools-ai-sdk', () => ({
   searchKnowledgeBase: { execute: vi.fn() },
   searchWeb: { execute: vi.fn() },
   recommendCommands: { execute: vi.fn() },
+  // AI SDK v6 Best Practice: finalAnswer for graceful loop termination
+  finalAnswer: { execute: vi.fn() },
   // Incident evaluation tools
   evaluateIncidentReport: { execute: vi.fn() },
   validateReportStructure: { execute: vi.fn() },
@@ -409,30 +411,10 @@ describe('preFilterQuery', () => {
 });
 
 // ============================================================================
-// Legacy Compatibility Tests
+// Agent Config Tests
 // ============================================================================
 
-describe('Legacy Compatibility Exports', () => {
-  it('nlqAgent should be null (deprecated)', async () => {
-    const { nlqAgent } = await import('./nlq-agent');
-    expect(nlqAgent).toBeNull();
-  });
-
-  it('analystAgent should be null (deprecated)', async () => {
-    const { analystAgent } = await import('./analyst-agent');
-    expect(analystAgent).toBeNull();
-  });
-
-  it('reporterAgent should be null (deprecated)', async () => {
-    const { reporterAgent } = await import('./reporter-agent');
-    expect(reporterAgent).toBeNull();
-  });
-
-  it('advisorAgent should be null (deprecated)', async () => {
-    const { advisorAgent } = await import('./advisor-agent');
-    expect(advisorAgent).toBeNull();
-  });
-
+describe('Agent Config Exports', () => {
   it('should have config getters for each agent', async () => {
     const { getNlqAgentConfig } = await import('./nlq-agent');
     const { getAnalystAgentConfig } = await import('./analyst-agent');

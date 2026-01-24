@@ -38,7 +38,3 @@ export function isAdvisorAgentAvailable(): boolean {
   return config?.getModel() !== null;
 }
 
-// Legacy export for compatibility (deprecated - use getAdvisorAgentConfig instead)
-export const advisorAgent = null;
-
-export default advisorAgent;
