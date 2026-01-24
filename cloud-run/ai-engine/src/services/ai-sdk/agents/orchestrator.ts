@@ -965,7 +965,12 @@ async function executeParallelSubtasks(
     const timeoutPromise = new Promise<null>((resolve) => {
       timeoutId = setTimeout(() => {
         isTimedOut = true;
-        console.warn(`⏱️ [Parallel] Subtask ${index + 1} timeout after ${SUBTASK_TIMEOUT_MS}ms`);
+        // 🎯 P1 Fix: Enhanced timeout logging with agent name and task details
+        console.warn(
+          `⏱️ [Parallel] Subtask ${index + 1}/${subtasks.length} timeout after ${SUBTASK_TIMEOUT_MS}ms\n` +
+          `   Agent: ${subtask.agent}\n` +
+          `   Task: "${subtask.task.substring(0, 80)}${subtask.task.length > 80 ? '...' : ''}"`
+        );
         resolve(null); // Resolve with null instead of reject for graceful degradation
       }, SUBTASK_TIMEOUT_MS);
     });
@@ -1006,10 +1011,19 @@ async function executeParallelSubtasks(
 
   const results = await Promise.all(subtaskPromises);
 
-  // Check for failures
+  // 🎯 P1 Fix: Enhanced failure logging with details
   const successfulResults = results.filter(r => r.result !== null);
+  const failedResults = results.filter(r => r.result === null);
+
+  if (failedResults.length > 0) {
+    console.warn(
+      `⚠️ [Parallel] ${failedResults.length}/${results.length} subtasks failed:\n` +
+      failedResults.map(r => `   - [${r.index + 1}] ${r.subtask.agent}: "${r.subtask.task.substring(0, 50)}..."`).join('\n')
+    );
+  }
+
   if (successfulResults.length === 0) {
-    console.warn('⚠️ [Parallel] All subtasks failed');
+    console.error('❌ [Parallel] All subtasks failed - no results to aggregate');
     return null;
   }
 

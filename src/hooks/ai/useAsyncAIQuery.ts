@@ -103,20 +103,31 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 🎯 P1 Fix: AbortController for fetch cancellation on unmount/cancel
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // 🎯 P0 Fix: Store listener references for explicit removal
-  const listenersRef = useRef<Map<string, EventListener>>(new Map());
+  // Changed from Map to Array to prevent overwrite issues with duplicate event types
+  const listenersRef = useRef<
+    Array<{ eventType: string; handler: EventListener }>
+  >([]);
 
   // 🎯 P1-5 Fix: Cleanup function defined before useEffect to avoid stale closure
   const cleanupRef = useRef<() => void>(() => {});
 
   // Cleanup function
   const cleanup = useCallback(() => {
-    // 🎯 P0 Fix: Explicitly remove all listeners before closing
+    // 🎯 P1 Fix: Abort any pending fetch requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    // 🎯 P0 Fix: Explicitly remove all listeners before closing (Array version)
     if (eventSourceRef.current) {
-      listenersRef.current.forEach((listener, eventType) => {
-        eventSourceRef.current?.removeEventListener(eventType, listener);
-      });
-      listenersRef.current.clear();
+      for (const { eventType, handler } of listenersRef.current) {
+        eventSourceRef.current.removeEventListener(eventType, handler);
+      }
+      listenersRef.current = [];
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
@@ -201,12 +212,12 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
         const connectSSE = (jobId: string, reconnectAttempt = 0) => {
           const maxReconnects = 3;
 
-          // 🎯 P0 Fix: 기존 리스너 제거 후 EventSource 닫기
+          // 🎯 P0 Fix: 기존 리스너 제거 후 EventSource 닫기 (Array version)
           if (eventSourceRef.current) {
-            listenersRef.current.forEach((listener, eventType) => {
-              eventSourceRef.current?.removeEventListener(eventType, listener);
-            });
-            listenersRef.current.clear();
+            for (const { eventType, handler } of listenersRef.current) {
+              eventSourceRef.current.removeEventListener(eventType, handler);
+            }
+            listenersRef.current = [];
             eventSourceRef.current.close();
             eventSourceRef.current = null;
           }
@@ -214,13 +225,13 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
           const eventSource = new EventSource(`/api/ai/jobs/${jobId}/stream`);
           eventSourceRef.current = eventSource;
 
-          // 🎯 P0 Fix: Helper to add and track listeners
+          // 🎯 P0 Fix: Helper to add and track listeners (Array version)
           const addTrackedListener = (
             eventType: string,
             handler: EventListener
           ) => {
             eventSource.addEventListener(eventType, handler);
-            listenersRef.current.set(eventType, handler);
+            listenersRef.current.push({ eventType, handler });
           };
 
           // Handle connection
@@ -292,11 +303,11 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
               }
             }
 
-            // 🎯 P0 Fix: 리스너 제거 후 연결 닫기
-            listenersRef.current.forEach((listener, eventType) => {
-              eventSourceRef.current?.removeEventListener(eventType, listener);
-            });
-            listenersRef.current.clear();
+            // 🎯 P0 Fix: 리스너 제거 후 연결 닫기 (Array version)
+            for (const { eventType: et, handler: h } of listenersRef.current) {
+              eventSourceRef.current?.removeEventListener(et, h);
+            }
+            listenersRef.current = [];
             eventSource.close();
             eventSourceRef.current = null;
 
@@ -333,7 +344,13 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
                 ) {
                   return;
                 }
-                connectSSE(jobId, reconnectAttempt + 1);
+                // 🎯 P0 Fix: Wrap recursive call in try-catch for safety
+                try {
+                  connectSSE(jobId, reconnectAttempt + 1);
+                } catch (err) {
+                  logger.error('[AsyncAI] Reconnection failed:', err);
+                  handleError('재연결에 실패했습니다.');
+                }
               }, delay);
             } else {
               handleError('연결이 끊어졌습니다. 다시 시도해주세요.');
@@ -351,6 +368,10 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
           }) as EventListener);
         };
 
+        // 🎯 P1 Fix: Create AbortController for this request
+        abortControllerRef.current = new AbortController();
+        const { signal } = abortControllerRef.current;
+
         // Step 1: Create Job with Retry
         fetchWithRetry(
           '/api/ai/jobs',
@@ -361,6 +382,7 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
               query,
               options: { sessionId },
             }),
+            signal, // 🎯 P1 Fix: Pass abort signal for cancellation
           },
           {
             ...RETRY_STANDARD,

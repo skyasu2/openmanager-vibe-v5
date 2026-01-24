@@ -460,15 +460,15 @@ export function useHybridAIQuery(
               logger.debug('[HybridAI] Job Queue redirect aborted');
               return;
             }
+            // 🎯 P0 Fix: Removed stale jobId reference - asyncQuery manages its own jobId state
             // 🎯 P1 Fix: Add catch handler for unhandled promise rejection
             currentAsyncQuery
               .sendQuery(currentQuery)
               .then(() => {
+                // Note: jobId is managed internally by useAsyncAIQuery
+                // Access via asyncQuery.jobId (not currentAsyncQuery which is stale)
                 if (!controller.signal.aborted) {
-                  setState((prev) => ({
-                    ...prev,
-                    jobId: currentAsyncQuery.jobId,
-                  }));
+                  logger.debug('[HybridAI] Job Queue redirect completed');
                 }
               })
               .catch((error) => {

@@ -490,4 +490,28 @@ git revert <commit-hash>
 
 ---
 
+---
+
+## 9. 완료 이력
+
+### Round 1 (2026-01-24) - commit 6902c4159
+**Phase 1-3 완료**:
+- ✅ P0-1: Generator Resource Leak (supervisor.ts) - partial text 포함
+- ✅ P0-2: Stale Closure (useHybridAIQuery.ts) - 변수 캡처 추가
+- ✅ P0-3: EventSource Leak (useAsyncAIQuery.ts) - 이전 세션에서 수정됨
+- ✅ P1-1: Promise.all → 이미 정상 (개별 timeout 적용됨)
+- ✅ P1-2: Type Casting (model-provider.ts) - 런타임 검증 추가
+- ✅ P2-1: Progress state on error (useAsyncAIQuery.ts)
+- ✅ P2-2: streamError tracking (supervisor.ts)
+
+### Round 2 (2026-01-24) - 재분석 후 수정
+**신규 이슈 발견 및 수정**:
+- ✅ P0-1: Listener Map Overwrite (useAsyncAIQuery.ts:107) - Array 방식으로 변경
+- ✅ P0-2: Stale Closure jobId (useHybridAIQuery.ts:468) - 중복 setState 제거
+- ✅ P0-3: Reconnection error handling (useAsyncAIQuery.ts:340) - try-catch 추가
+- ✅ P1-1: AbortController for fetch (useAsyncAIQuery.ts:106) - signal 전달
+- ✅ P1-2: Subtask timeout logging (orchestrator.ts:968) - 상세 로깅 추가
+
+---
+
 **승인 후 Phase 1부터 순차 진행**
