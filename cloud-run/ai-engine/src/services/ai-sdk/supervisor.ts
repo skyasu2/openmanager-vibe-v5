@@ -896,8 +896,10 @@ type IntentCategory = 'metrics' | 'rca' | 'analyst' | 'reporter' | 'general';
  */
 function getIntentCategory(query: string): IntentCategory {
   const q = query.toLowerCase();
+  // AI SDK v6 Best Practice: Pattern order from specific to general
+  // Synced with createPrepareStep patterns for consistent logging/filtering
+  if (/장애|rca|타임라인|상관관계|원인|왜/.test(q)) return 'rca';
   if (/해결|방법|명령어|가이드|이력|과거|사례/.test(q)) return 'reporter';
-  if (/장애|원인|rca|타임라인|상관관계/.test(q)) return 'rca';
   if (/이상|트렌드|예측|패턴/.test(q)) return 'analyst';
   if (/cpu|메모리|디스크|서버|상태/.test(q)) return 'metrics';
   return 'general';
@@ -1023,9 +1025,11 @@ export function createSupervisorStreamResponse(
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       const startTime = Date.now();
-      // AI SDK v6 Best Practice: Use consistent message ID for all text deltas
+      // AI SDK v6 Best Practice: Use consistent message ID for all text deltas within same message block
       // CODEX Review: Different IDs per delta causes client rendering issues
-      const messageId = `assistant-${request.sessionId}-${startTime}`;
+      // Multi-agent: Increment sequence on handoff to create separate message blocks
+      let messageSeq = 0;
+      let currentMessageId = `assistant-${request.sessionId}-${startTime}-${messageSeq}`;
 
       try {
         // Emit start event with session info
@@ -1054,15 +1058,20 @@ export function createSupervisorStreamResponse(
         for await (const event of executeSupervisorStream({ ...request, mode })) {
           switch (event.type) {
             case 'text_delta':
-              // Native text streaming with consistent message ID
+              // Native text streaming with consistent message ID within same block
               writer.write({
                 type: 'text-delta',
                 delta: event.data as string,
-                id: messageId, // Use same ID for all deltas to merge into single message
+                id: currentMessageId, // Use same ID for all deltas to merge into single message
               });
               break;
 
             case 'handoff':
+              // AI SDK v6 Best Practice: Create new message ID on handoff
+              // This separates different agent responses into distinct UI messages
+              messageSeq += 1;
+              currentMessageId = `assistant-${request.sessionId}-${startTime}-${messageSeq}`;
+
               // Structured handoff event
               writer.write({
                 type: 'data-handoff',
@@ -1104,16 +1113,18 @@ export function createSupervisorStreamResponse(
 
             case 'done':
               // Completion metadata
-              // AI SDK v6 Best Practice: Passthrough success status from upstream
-              // CODEX Review: Don't hardcode success=true, respect upstream status
+              // AI SDK v6 Best Practice: Passthrough success status from upstream with type safety
               const doneData = event.data as Record<string, unknown>;
+              // Type guard: only accept boolean success values, default to true otherwise
+              const upstreamSuccess = doneData.success;
+              const success = typeof upstreamSuccess === 'boolean' ? upstreamSuccess : true;
+
               writer.write({
                 type: 'data-done',
                 data: {
                   durationMs: Date.now() - startTime,
                   ...doneData,
-                  // Passthrough success from upstream, default to true if not specified
-                  success: (doneData.success as boolean | undefined) ?? true,
+                  success,
                 },
               });
               break;
