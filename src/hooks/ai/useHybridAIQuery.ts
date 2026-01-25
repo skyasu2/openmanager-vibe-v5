@@ -469,9 +469,11 @@ export function useHybridAIQuery(
     // AI SDK v6: Session ID for resumable streams
     id: sessionIdRef.current,
     transport,
-    // AI SDK v6 Best Practice: Enable resume for automatic reconnection
+    // 🚫 resume 비활성화: 명확화 흐름에서 "Cannot read properties of undefined (reading 'text')" 에러 발생
+    // AI SDK 내부에서 이전 세션 메시지 복원 시 parts 배열 처리 문제로 추정
+    // TODO: AI SDK 업데이트 후 재활성화 테스트 필요
     // @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
-    resume: true,
+    resume: false,
     onFinish: ({ message }) => {
       // 🔒 Race Condition 방지: onError가 이미 에러를 처리했으면 스킵
       // Note: errorHandledRef는 executeQuery에서 새 요청 시작 시 리셋됨
