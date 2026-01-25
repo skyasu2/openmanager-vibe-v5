@@ -229,9 +229,10 @@ reports/*
 !reports/ai-review/**/
 !reports/ai-review/**/.gitkeep
 # AI 코드 리뷰 파일 (로컬 전용, GitHub 제외)
-# - 모든 .md 파일은 추적 제외
+# - 모든 .md 파일은 추적 제외 (README.md 포함)
 # - .gitkeep만 추적하여 폴더 구조 유지
 reports/ai-review/**/*.md
+reports/ai-review/*.md
 reports/ai-review/.*
 
 # External MCP servers (cloned from GitHub)
@@ -327,6 +328,9 @@ scripts/fix-case-declarations.cjs
 !QWEN.md
 !AGENTS.md
 !KIRO.md
+
+# AI 리뷰 폴더 README 제외 (위 !README.md 규칙 재정의)
+reports/ai-review/README.md
 
 # Scripts moved to /scripts/
 enhanced-vm-control.ps1
