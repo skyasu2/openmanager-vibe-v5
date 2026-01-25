@@ -243,12 +243,14 @@ export function useAIChatCore(
 
     const history = loadChatHistory();
     if (history && history.messages.length > 0) {
-      const restoredMessages = history.messages.map((m) => ({
-        id: m.id,
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-        parts: [{ type: 'text' as const, text: m.content }],
-      }));
+      const restoredMessages = history.messages
+        .filter((m) => m.content && m.content.trim().length > 0) // 빈 메시지 필터링
+        .map((m) => ({
+          id: m.id,
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+          parts: [{ type: 'text' as const, text: m.content }],
+        }));
 
       setMessages(restoredMessages);
       chatSessionIdRef.current = history.sessionId;

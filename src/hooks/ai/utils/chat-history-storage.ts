@@ -72,9 +72,14 @@ export function saveChatHistory(
   if (typeof window === 'undefined') return;
 
   try {
-    // 저장할 메시지 필터링 (user/assistant만, 최대 50개)
+    // 저장할 메시지 필터링 (user/assistant만, content가 있는 것만, 최대 50개)
     const messagesToStore = messages
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .filter(
+        (m) =>
+          (m.role === 'user' || m.role === 'assistant') &&
+          m.content &&
+          m.content.trim().length > 0
+      )
       .slice(-MAX_STORED_MESSAGES)
       .map((m) => ({
         id: m.id,
