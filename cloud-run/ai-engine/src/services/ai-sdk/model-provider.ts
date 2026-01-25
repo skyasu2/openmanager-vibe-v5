@@ -546,17 +546,27 @@ export async function getSupervisorModelWithQuota(
 
 /**
  * Record token usage after API call
+ *
+ * 🎯 AI SDK v6 Best Practice: Track all provider usage for pre-emptive fallback
+ * All providers including Groq are tracked for accurate quota management
+ *
+ * @param provider - Provider name
+ * @param tokensUsed - Number of tokens consumed
+ * @param context - Optional context for logging (e.g., 'nlq', 'fallback', 'supervisor')
  */
 export async function recordModelUsage(
   provider: ProviderName,
-  tokensUsed: number
+  tokensUsed: number,
+  context: string = 'general'
 ): Promise<void> {
-  if (provider === 'groq') {
-    // Groq은 NLQ Agent 전용이므로 별도 추적
-    console.log(`[QuotaTracker] Groq (NLQ): ${tokensUsed} tokens`);
-    return;
-  }
+  // Track all providers for quota management
+  // Groq has lower limits (100K/day) so tracking is especially important for fallback scenarios
   await recordProviderUsage(provider as QuotaProviderName, tokensUsed);
+
+  // Enhanced logging with context
+  if (provider === 'groq') {
+    console.log(`[QuotaTracker] Groq (${context}): ${tokensUsed} tokens - low quota provider, monitor closely`);
+  }
 }
 
 /**

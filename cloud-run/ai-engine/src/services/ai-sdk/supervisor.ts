@@ -763,26 +763,56 @@ async function* streamSingleAgent(
     // Hard timeout constant (50s - increased from 45s for complex queries)
     // Vercel has 55s proxy timeout, so 50s gives 5s margin
     const SINGLE_AGENT_HARD_TIMEOUT = 50_000;
+    // Warning threshold (40s) - notify user before hard timeout
+    const TIMEOUT_WARNING_THRESHOLD = 40_000;
+    let warningEmitted = false;
 
     // Stream text deltas with hard timeout check
     for await (const textPart of result.textStream) {
       const elapsed = Date.now() - startTime;
 
-      // 🔥 Hard timeout: Abort stream immediately
+      // ⚠️ AI SDK v6 Best Practice: Emit warning before hard timeout
+      // Gives user time to understand response may be incomplete
+      if (!warningEmitted && elapsed >= TIMEOUT_WARNING_THRESHOLD) {
+        warningEmitted = true;
+        console.warn(`⚠️ [SingleAgent] Approaching timeout at ${elapsed}ms`);
+        yield {
+          type: 'warning',
+          data: {
+            code: 'SLOW_PROCESSING',
+            message: '응답 생성이 지연되고 있습니다. 곧 완료됩니다.',
+            elapsed,
+            threshold: TIMEOUT_WARNING_THRESHOLD,
+          },
+        };
+      }
+
+      // 🔥 Hard timeout: Graceful degradation with partial response
       if (elapsed >= SINGLE_AGENT_HARD_TIMEOUT) {
         console.error(
           `🛑 [SingleAgent] Hard timeout reached at ${elapsed}ms (limit: ${SINGLE_AGENT_HARD_TIMEOUT}ms)`
         );
 
-        // 🎯 P0 Fix: Log partial text info and exit cleanly
-        // Note: AI SDK internally handles stream cleanup on generator return
+        // 🎯 AI SDK v6 Best Practice: Graceful timeout with partial response summary
+        // Emit what we have so far before error, improving UX
+        if (fullText.length > 0) {
+          yield {
+            type: 'text_delta',
+            data: '\n\n---\n⏱️ *응답 시간 초과로 여기까지만 전달됩니다.*',
+          };
+        }
+
         yield {
           type: 'error',
           data: {
             code: 'HARD_TIMEOUT',
             error: `처리 시간이 ${SINGLE_AGENT_HARD_TIMEOUT / 1000}초를 초과했습니다.`,
             elapsed,
-            partialText: fullText.length > 0 ? fullText.slice(0, 100) + '...' : undefined,
+            // Provide more context for debugging/retry
+            partialResponseLength: fullText.length,
+            suggestion: fullText.length > 0
+              ? '부분 응답이 제공되었습니다. 추가 정보가 필요하면 질문을 더 구체적으로 해주세요.'
+              : '쿼리를 간단하게 나눠서 다시 시도해주세요.',
           },
         };
         return; // Exit generator - AI SDK handles cleanup internally
@@ -900,31 +930,26 @@ async function* streamSingleAgent(
 // 5. prepareStep for Runtime Tool Filtering (AI SDK v6 Best Practice)
 // ============================================================================
 
-type IntentCategory = 'metrics' | 'rca' | 'analyst' | 'reporter' | 'general';
+// ============================================================================
+// 🎯 SSOT: Unified Routing Patterns (AI SDK v6 Best Practice)
+// Single source of truth for both intent classification and tool filtering
+// Compiled once at module load for ~3x perf improvement
+// ============================================================================
 
 /**
- * Classify query intent (lightweight, for logging only)
+ * Intent categories for query classification
+ * Used for logging, tracing, and tool filtering
  */
-function getIntentCategory(query: string): IntentCategory {
-  const q = query.toLowerCase();
-  // AI SDK v6 Best Practice: Pattern order from specific to general
-  // Synced with createPrepareStep patterns for consistent logging/filtering
-  if (/장애|rca|타임라인|상관관계|원인|왜/.test(q)) return 'rca';
-  if (/해결|방법|명령어|가이드|이력|과거|사례/.test(q)) return 'reporter';
-  if (/이상|트렌드|예측|패턴/.test(q)) return 'analyst';
-  if (/cpu|메모리|디스크|서버|상태/.test(q)) return 'metrics';
-  return 'general';
-}
+type IntentCategory = 'anomaly' | 'prediction' | 'rca' | 'advisor' | 'serverGroup' | 'metrics' | 'general';
 
-// ============================================================================
-// 🎯 P2-1 Fix: Pre-compiled Regex Patterns for Tool Routing
-// Compiled once at module load, not per-request (~3x perf improvement)
-// ============================================================================
-
+/**
+ * Pre-compiled regex patterns for routing
+ * Order: specific to general (AI SDK v6 Best Practice)
+ */
 const TOOL_ROUTING_PATTERNS = {
-  /** 이상 탐지: 급증/급감/스파이크/anomaly 등 */
+  /** 이상 탐지: 급증/급감/스파이크/anomaly 등 (Analyst) */
   anomaly: /이상|급증|급감|스파이크|anomal|탐지|감지|비정상/i,
-  /** 예측/트렌드 분석 */
+  /** 예측/트렌드 분석 (Analyst) */
   prediction: /예측|트렌드|추이|전망|forecast|추세/i,
   /** RCA: 근본 원인 분석, 장애, 인시던트 */
   rca: /장애|rca|타임라인|상관관계|원인|왜|근본|incident/i,
@@ -932,7 +957,29 @@ const TOOL_ROUTING_PATTERNS = {
   advisor: /해결|방법|명령어|가이드|이력|과거|사례|검색/i,
   /** Server Group: DB/Web/Cache/LB 등 */
   serverGroup: /(db|web|cache|lb|api|storage|로드\s*밸런서|캐시|스토리지)\s*(서버)?/i,
+  /** Metrics: 기본 서버/CPU/메모리 상태 (NLQ) */
+  metrics: /cpu|메모리|디스크|서버|상태|memory|disk/i,
 } as const;
+
+/**
+ * Classify query intent using unified patterns (SSOT)
+ * AI SDK v6 Best Practice: Same patterns used for both logging and tool filtering
+ *
+ * @param query User's query text
+ * @returns Intent category for logging and tracing
+ */
+function getIntentCategory(query: string): IntentCategory {
+  const q = query.toLowerCase();
+
+  // Order: specific to general (matches createPrepareStep order)
+  if (TOOL_ROUTING_PATTERNS.anomaly.test(q)) return 'anomaly';
+  if (TOOL_ROUTING_PATTERNS.prediction.test(q)) return 'prediction';
+  if (TOOL_ROUTING_PATTERNS.rca.test(q)) return 'rca';
+  if (TOOL_ROUTING_PATTERNS.advisor.test(q)) return 'advisor';
+  if (TOOL_ROUTING_PATTERNS.serverGroup.test(q)) return 'serverGroup';
+  if (TOOL_ROUTING_PATTERNS.metrics.test(q)) return 'metrics';
+  return 'general';
+}
 
 /**
  * Create prepareStep function for runtime tool filtering
