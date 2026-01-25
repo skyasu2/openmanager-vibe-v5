@@ -23,7 +23,20 @@ import {
   generateId, // 🎯 P2-2: Cryptographically secure ID generation
   type ModelMessage,
 } from 'ai';
-import { getSupervisorModel, logProviderStatus, type ProviderName } from './model-provider';
+import {
+  getSupervisorModel,
+  getSupervisorModelWithQuota,
+  recordModelUsage,
+  logProviderStatus,
+  type ProviderName,
+} from './model-provider';
+import {
+  TIMEOUT_CONFIG,
+  getHardTimeout,
+  getWarningThreshold,
+  logTimeoutWarning,
+  logTimeoutError,
+} from '../../config/timeout-config';
 import { allTools, toolDescriptions, type ToolName } from '../../tools-ai-sdk';
 import { executeMultiAgent, executeMultiAgentStream, type MultiAgentRequest, type MultiAgentResponse } from './agents';
 import {
@@ -556,6 +569,12 @@ async function executeSupervisorAttempt(
         `✅ [Supervisor] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]${finalAnswerResult ? ' (via finalAnswer)' : ''}`
       );
 
+      // 🎯 P1-1: Record token usage for quota tracking (pre-emptive fallback)
+      const totalTokens = result.usage?.totalTokens ?? 0;
+      if (totalTokens > 0) {
+        await recordModelUsage(provider, totalTokens, 'supervisor');
+      }
+
       return {
         success: true,
         response,
@@ -564,7 +583,7 @@ async function executeSupervisorAttempt(
         usage: {
           promptTokens: result.usage?.inputTokens ?? 0,
           completionTokens: result.usage?.outputTokens ?? 0,
-          totalTokens: result.usage?.totalTokens ?? 0,
+          totalTokens,
         },
         metadata: {
           provider,
@@ -760,11 +779,10 @@ async function* streamSingleAgent(
       },
     });
 
-    // Hard timeout constant (50s - increased from 45s for complex queries)
-    // Vercel has 55s proxy timeout, so 50s gives 5s margin
-    const SINGLE_AGENT_HARD_TIMEOUT = 50_000;
-    // Warning threshold (40s) - notify user before hard timeout
-    const TIMEOUT_WARNING_THRESHOLD = 40_000;
+    // 🎯 P2-1: Centralized timeout configuration
+    // Uses TIMEOUT_CONFIG.supervisor for consistent timeout management
+    const SINGLE_AGENT_HARD_TIMEOUT = TIMEOUT_CONFIG.supervisor.hard;
+    const TIMEOUT_WARNING_THRESHOLD = TIMEOUT_CONFIG.supervisor.warning;
     let warningEmitted = false;
 
     // Stream text deltas with hard timeout check
@@ -884,6 +902,12 @@ async function* streamSingleAgent(
       `✅ [SupervisorStream] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`
     );
 
+    // 🎯 P1-1: Record token usage for quota tracking (pre-emptive fallback)
+    const totalTokensUsed = usage?.totalTokens ?? 0;
+    if (totalTokensUsed > 0) {
+      await recordModelUsage(provider, totalTokensUsed, 'supervisor-stream');
+    }
+
     // 🎯 CODEX Review Fix: streamError 발생 시 success=false 반영
     yield {
       type: 'done',
@@ -893,7 +917,7 @@ async function* streamSingleAgent(
         usage: {
           promptTokens: usage?.inputTokens ?? 0,
           completionTokens: usage?.outputTokens ?? 0,
-          totalTokens: usage?.totalTokens ?? 0,
+          totalTokens: totalTokensUsed,
         },
         metadata: {
           provider,

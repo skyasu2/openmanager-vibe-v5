@@ -7,8 +7,8 @@
  * Architecture:
  * Orchestrator (Rule-based + LLM fallback) → NLQ/Analyst/Reporter/Advisor
  *
- * @version 3.0.0 - Migrated to AI SDK v6 native approach
- * @updated 2026-01-24 - Removed @ai-sdk-tools/agents dependency
+ * @version 3.1.0 - Added Context Store for agent communication
+ * @updated 2026-01-25 - P1-2: Session context sharing, P2-1: Centralized timeouts
  */
 
 import { generateText, generateObject, streamText, stepCountIs, hasToolCall, type ModelMessage } from 'ai';
@@ -27,6 +27,21 @@ import { routingSchema, taskDecomposeSchema, getAgentFromRouting, type RoutingDe
 // Import Reporter Pipeline for Evaluator-Optimizer pattern
 import { executeReporterPipeline, type PipelineResult } from './reporter-pipeline';
 
+// 🎯 P1-2: Import Context Store for agent communication
+import {
+  getOrCreateSessionContext,
+  updateSessionContext,
+  recordHandoffEvent,
+  getContextSummary,
+  appendAffectedServers,
+  appendAnomalies,
+  appendMetrics,
+  type AgentContext,
+} from './context-store';
+
+// 🎯 P2-1: Import centralized timeout config
+import { TIMEOUT_CONFIG, getHardTimeout, getWarningThreshold } from '../../../config/timeout-config';
+
 // ============================================================================
 // Configuration
 // ============================================================================
@@ -38,13 +53,14 @@ import { executeReporterPipeline, type PipelineResult } from './reporter-pipelin
  *
  * @updated 2026-01-20 - Added hardTimeout for stream abort (Best Practice)
  */
+// 🎯 P2-1: Use centralized timeout configuration
 const ORCHESTRATOR_CONFIG = {
-  /** Maximum execution time (ms) - 50s for Vercel 60s limit compliance */
-  timeout: 50_000,
-  /** Hard timeout (ms) - 50s, increased from 45s (Vercel 55s proxy - 5s margin) */
-  hardTimeout: 50_000,
-  /** Warning threshold (ms) - log warning if execution exceeds this */
-  warnThreshold: 30_000,
+  /** Maximum execution time (ms) - from TIMEOUT_CONFIG.orchestrator */
+  timeout: TIMEOUT_CONFIG.orchestrator.hard,
+  /** Hard timeout (ms) - same as timeout for consistency */
+  hardTimeout: TIMEOUT_CONFIG.orchestrator.hard,
+  /** Warning threshold (ms) - from TIMEOUT_CONFIG.orchestrator */
+  warnThreshold: TIMEOUT_CONFIG.orchestrator.warning,
 };
 
 // ============================================================================
@@ -210,6 +226,213 @@ function filterToolsByWebSearch(
     console.log('🚫 [Tools] searchWeb disabled by enableWebSearch setting');
   }
   return filtered;
+}
+
+// ============================================================================
+// 🎯 P1-2: Context Store Integration - Parse and Save Agent Findings
+// ============================================================================
+
+/**
+ * Server name extraction patterns
+ * Matches common server naming conventions
+ */
+const SERVER_NAME_PATTERNS = [
+  /(?:서버|server)[:\s]+([a-zA-Z0-9-_]+(?:-\d+)?)/gi,
+  /\b(web-server-\d+)\b/gi,
+  /\b(api-server-\d+)\b/gi,
+  /\b(db-(?:master|slave)-\d+)\b/gi,
+  /\b(cache-\d+)\b/gi,
+  /\b([a-z]+-[a-z]+-\d{2})\b/gi, // Pattern like "web-server-01"
+];
+
+/**
+ * Anomaly indicator keywords for detection
+ */
+const ANOMALY_INDICATORS = [
+  '높은 CPU', 'CPU 사용률', 'CPU 과부하', 'CPU 급등',
+  '메모리 부족', '메모리 사용률', 'OOM', 'OutOfMemory',
+  '디스크 부족', '디스크 사용률', '스토리지',
+  '네트워크 지연', '레이턴시', 'latency',
+  '장애', '에러', '오류', 'error', 'failure',
+  '임계값 초과', 'threshold', '알림', 'alert',
+];
+
+/**
+ * Parse agent response and save findings to context store
+ *
+ * @param sessionId - Current session ID
+ * @param agentName - Name of the agent that produced the response
+ * @param response - Agent's text response
+ */
+async function saveAgentFindingsToContext(
+  sessionId: string,
+  agentName: string,
+  response: string
+): Promise<void> {
+  try {
+    const normalizedAgent = agentName.toLowerCase();
+
+    // NLQ Agent: Extract affected servers
+    if (normalizedAgent.includes('nlq')) {
+      const servers = extractServerNames(response);
+      if (servers.length > 0) {
+        await appendAffectedServers(sessionId, servers);
+        console.log(`💾 [Context] NLQ Agent saved ${servers.length} servers: [${servers.slice(0, 3).join(', ')}${servers.length > 3 ? '...' : ''}]`);
+      }
+    }
+
+    // Analyst Agent: Extract anomalies
+    if (normalizedAgent.includes('analyst')) {
+      const anomalies = extractAnomalies(response);
+      if (anomalies.length > 0) {
+        await appendAnomalies(sessionId, anomalies);
+        console.log(`💾 [Context] Analyst Agent saved ${anomalies.length} anomalies`);
+      }
+    }
+
+    // Reporter Agent: Extract metrics and root cause
+    if (normalizedAgent.includes('reporter')) {
+      const metrics = extractMetrics(response);
+      if (metrics.length > 0) {
+        await appendMetrics(sessionId, metrics);
+        console.log(`💾 [Context] Reporter Agent saved ${metrics.length} metrics`);
+      }
+    }
+
+    // Advisor Agent: Save recommendations (via lastAgent update)
+    if (normalizedAgent.includes('advisor')) {
+      await updateSessionContext(sessionId, { lastAgent: agentName });
+      console.log(`💾 [Context] Advisor Agent updated lastAgent`);
+    }
+  } catch (error) {
+    // Non-critical: log but don't throw
+    console.warn(`⚠️ [Context] Failed to save findings for ${agentName}:`, error);
+  }
+}
+
+/**
+ * Extract server names from response text
+ */
+function extractServerNames(text: string): string[] {
+  const servers = new Set<string>();
+
+  for (const pattern of SERVER_NAME_PATTERNS) {
+    const matches = text.matchAll(new RegExp(pattern));
+    for (const match of matches) {
+      if (match[1]) {
+        servers.add(match[1].toLowerCase());
+      }
+    }
+  }
+
+  return Array.from(servers);
+}
+
+/**
+ * Extract anomaly information from response text
+ */
+function extractAnomalies(text: string): Array<{
+  serverId: string;
+  metric: string;
+  value: number;
+  threshold: number;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  detectedAt: string;
+}> {
+  const anomalies: Array<{
+    serverId: string;
+    metric: string;
+    value: number;
+    threshold: number;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    detectedAt: string;
+  }> = [];
+
+  // Extract server names mentioned in anomaly context
+  const servers = extractServerNames(text);
+  const lines = text.split('\n');
+
+  for (const line of lines) {
+    const hasAnomalyIndicator = ANOMALY_INDICATORS.some(ind =>
+      line.toLowerCase().includes(ind.toLowerCase())
+    );
+
+    if (hasAnomalyIndicator) {
+      // Extract percentage values
+      const percentMatch = line.match(/(\d+(?:\.\d+)?)\s*%/);
+      const value = percentMatch ? parseFloat(percentMatch[1]) : 0;
+
+      // Determine metric type
+      let metric = 'unknown';
+      if (/cpu/i.test(line)) metric = 'cpu';
+      else if (/메모리|memory|mem/i.test(line)) metric = 'memory';
+      else if (/디스크|disk|storage/i.test(line)) metric = 'disk';
+      else if (/네트워크|network|latency/i.test(line)) metric = 'network';
+
+      // Determine severity
+      let severity: 'low' | 'medium' | 'high' | 'critical' = 'medium';
+      if (value >= 95 || /critical|심각|긴급/i.test(line)) severity = 'critical';
+      else if (value >= 85 || /high|높음|경고/i.test(line)) severity = 'high';
+      else if (value >= 70 || /medium|중간/i.test(line)) severity = 'medium';
+      else severity = 'low';
+
+      // Create anomaly for each server mentioned
+      const targetServers = servers.length > 0 ? servers : ['unknown'];
+      for (const serverId of targetServers.slice(0, 3)) { // Limit to 3 servers
+        anomalies.push({
+          serverId,
+          metric,
+          value,
+          threshold: metric === 'cpu' ? 80 : 85,
+          severity,
+          detectedAt: new Date().toISOString(),
+        });
+      }
+    }
+  }
+
+  return anomalies.slice(0, 10); // Limit to 10 anomalies
+}
+
+/**
+ * Extract metric snapshots from response text
+ */
+function extractMetrics(text: string): Array<{
+  serverId: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  timestamp: string;
+}> {
+  const metrics: Array<{
+    serverId: string;
+    cpu: number;
+    memory: number;
+    disk: number;
+    timestamp: string;
+  }> = [];
+
+  const servers = extractServerNames(text);
+  const timestamp = new Date().toISOString();
+
+  // Look for metric patterns like "CPU: 85%" or "메모리 사용률 78%"
+  const cpuMatch = text.match(/CPU[:\s]+(\d+(?:\.\d+)?)\s*%/i);
+  const memMatch = text.match(/(?:메모리|Memory)[:\s]+(\d+(?:\.\d+)?)\s*%/i);
+  const diskMatch = text.match(/(?:디스크|Disk)[:\s]+(\d+(?:\.\d+)?)\s*%/i);
+
+  const cpu = cpuMatch ? parseFloat(cpuMatch[1]) : 0;
+  const memory = memMatch ? parseFloat(memMatch[1]) : 0;
+  const disk = diskMatch ? parseFloat(diskMatch[1]) : 0;
+
+  // Only save if we found some metrics
+  if (cpu > 0 || memory > 0 || disk > 0) {
+    const targetServers = servers.length > 0 ? servers : ['unknown'];
+    for (const serverId of targetServers.slice(0, 5)) {
+      metrics.push({ serverId, cpu, memory, disk, timestamp });
+    }
+  }
+
+  return metrics;
 }
 
 // ============================================================================
@@ -946,12 +1169,13 @@ async function executeParallelSubtasks(
   subtasks: Subtask[],
   query: string,
   startTime: number,
-  webSearchEnabled = true
+  webSearchEnabled = true,
+  sessionId = ''
 ): Promise<MultiAgentResponse | null> {
   console.log(`🚀 [Parallel] Executing ${subtasks.length} subtasks in parallel...`);
 
-  // 🎯 P1-6: Per-subtask timeout (30s) to prevent one hanging subtask from blocking all
-  const SUBTASK_TIMEOUT_MS = 30_000;
+  // 🎯 P2-1: Use centralized timeout configuration for subtasks
+  const SUBTASK_TIMEOUT_MS = TIMEOUT_CONFIG.subtask.hard;
 
   // Execute all subtasks in parallel with individual timeouts
   const subtaskPromises = subtasks.map(async (subtask, index) => {
@@ -1044,6 +1268,13 @@ async function executeParallelSubtasks(
 
   console.log(`✅ [Parallel] Completed ${successfulResults.length}/${subtasks.length} subtasks in ${durationMs}ms`);
 
+  // 🎯 P1-2: Save findings from each agent to session context
+  if (sessionId) {
+    for (const result of successfulResults) {
+      await saveAgentFindingsToContext(sessionId, result.subtask.agent, result.result!.response);
+    }
+  }
+
   return {
     success: true,
     response: unifiedResponse,
@@ -1123,6 +1354,10 @@ export async function executeMultiAgent(
   const webSearchEnabled = resolveWebSearchSetting(request.enableWebSearch, query);
   console.log(`🔍 [WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
 
+  // 🎯 P1-2: Initialize session context for agent communication
+  const sessionContext = await getOrCreateSessionContext(request.sessionId, query);
+  console.log(`📋 [Context] Session ${request.sessionId}: ${sessionContext.handoffs.length} previous handoffs`);
+
   // =========================================================================
   // Fast Path: Rule-based pre-filter for simple queries
   // =========================================================================
@@ -1174,6 +1409,8 @@ export async function executeMultiAgent(
           console.warn(`⚠️ [Orchestrator] Sequential subtask failed: ${subtask.agent}`);
           break;
         }
+        // 🎯 P1-2: Save findings from each sequential subtask
+        await saveAgentFindingsToContext(request.sessionId, subtask.agent, lastResult.response);
       }
 
       if (lastResult) {
@@ -1181,11 +1418,13 @@ export async function executeMultiAgent(
       }
     } else {
       // Parallel execution for independent tasks
+      // 🎯 P1-2: Pass sessionId for context saving
       const parallelResult = await executeParallelSubtasks(
         decomposition.subtasks,
         query,
         startTime,
-        webSearchEnabled
+        webSearchEnabled,
+        request.sessionId
       );
 
       if (parallelResult) {
@@ -1211,6 +1450,8 @@ export async function executeMultiAgent(
     );
     if (forcedResult) {
       console.log(`✅ [Orchestrator] Forced routing succeeded`);
+      // 🎯 P1-2: Save agent findings to session context
+      await saveAgentFindingsToContext(request.sessionId, preFilterResult.suggestedAgent, forcedResult.response);
       return forcedResult;
     }
     // If forced routing fails, fall through to LLM routing
@@ -1298,10 +1539,15 @@ ${query}
     if (selectedAgent) {
       // Execute the selected agent
       recordHandoff('Orchestrator', selectedAgent, 'LLM routing');
+      // 🎯 P1-2: Record handoff to session context for agent communication
+      await recordHandoffEvent(request.sessionId, 'Orchestrator', selectedAgent, 'LLM routing');
 
       const agentResult = await executeForcedRouting(query, selectedAgent, startTime, webSearchEnabled);
 
       if (agentResult) {
+        // 🎯 P1-2: Save agent findings to session context
+        await saveAgentFindingsToContext(request.sessionId, selectedAgent, agentResult.response);
+
         return {
           ...agentResult,
           handoffs: [{
@@ -1321,6 +1567,9 @@ ${query}
       const fallbackResult = await executeForcedRouting(query, suggestedAgent, startTime, webSearchEnabled);
 
       if (fallbackResult) {
+        // 🎯 P1-2: Save agent findings to session context
+        await saveAgentFindingsToContext(request.sessionId, suggestedAgent, fallbackResult.response);
+
         return {
           ...fallbackResult,
           handoffs: [{
@@ -1414,6 +1663,10 @@ export async function* executeMultiAgentStream(
   const webSearchEnabled = resolveWebSearchSetting(request.enableWebSearch, query);
   console.log(`🔍 [Stream WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
 
+  // 🎯 P1-2: Initialize session context for agent communication
+  const sessionContext = await getOrCreateSessionContext(request.sessionId, query);
+  console.log(`📋 [Stream Context] Session ${request.sessionId}: ${sessionContext.handoffs.length} previous handoffs`);
+
   // =========================================================================
   // Fast Path: Rule-based pre-filter for simple queries
   // =========================================================================
@@ -1503,6 +1756,8 @@ ${query}
 
     if (selectedAgent) {
       recordHandoff('Orchestrator', selectedAgent, 'LLM routing');
+      // 🎯 P1-2: Record handoff to session context for agent communication
+      await recordHandoffEvent(request.sessionId, 'Orchestrator', selectedAgent, 'LLM routing');
       yield { type: 'handoff', data: { from: 'Orchestrator', to: selectedAgent, reason: 'LLM routing' } };
 
       yield* executeAgentStream(query, selectedAgent, startTime, request.sessionId, webSearchEnabled);
@@ -1514,6 +1769,8 @@ ${query}
     if (suggestedAgent && preFilterResult.confidence >= 0.5) {
       console.log(`🔄 [Stream] Fallback to ${suggestedAgent}`);
       recordHandoff('Orchestrator', suggestedAgent, 'Fallback routing');
+      // 🎯 P1-2: Record handoff to session context for agent communication
+      await recordHandoffEvent(request.sessionId, 'Orchestrator', suggestedAgent, 'Fallback routing');
       yield { type: 'handoff', data: { from: 'Orchestrator', to: suggestedAgent, reason: 'Fallback' } };
 
       yield* executeAgentStream(query, suggestedAgent, startTime, request.sessionId, webSearchEnabled);
