@@ -24,30 +24,25 @@ import {
 } from '@/hooks/ai/useHybridAIQuery';
 import { logger } from '@/lib/logging';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
-import { SESSION_LIMITS } from '@/types/session';
-import {
-  clearChatHistory,
-  loadChatHistory,
-  saveChatHistory,
-} from './utils/chat-history-storage';
 import {
   convertThinkingStepsToUI,
   transformMessages,
 } from './utils/message-helpers';
+import { useChatSession } from './core/useChatSession';
+import { useChatFeedback } from './core/useChatFeedback';
+import { useChatHistory } from './core/useChatHistory';
+import {
+  useChatSessionState,
+  type SessionState,
+} from './core/useChatSessionState';
 
 // Re-export for backwards compatibility
 export { convertThinkingStepsToUI };
+export type { SessionState };
 
 // ============================================================================
 // Types
 // ============================================================================
-
-export interface SessionState {
-  count: number;
-  remaining: number;
-  isWarning: boolean;
-  isLimitReached: boolean;
-}
 
 export interface UseAIChatCoreOptions {
   /** 세션 ID (외부에서 전달 시 사용) */
@@ -110,23 +105,6 @@ export interface UseAIChatCoreReturn {
 }
 
 // ============================================================================
-// Constants
-// ============================================================================
-
-const SESSION_MESSAGE_LIMIT = SESSION_LIMITS.MESSAGE_LIMIT;
-const SESSION_WARNING_THRESHOLD = SESSION_LIMITS.WARNING_THRESHOLD;
-
-/**
- * 고유 세션 ID 생성
- */
-function generateSessionId(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return `session-${crypto.randomUUID()}`;
-  }
-  return `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-}
-
-// ============================================================================
 // Hook
 // ============================================================================
 
@@ -153,8 +131,11 @@ export function useAIChatCore(
   // Refs
   const lastQueryRef = useRef<string>('');
   const pendingQueryRef = useRef<string>('');
-  const chatSessionIdRef = useRef<string>(propSessionId || generateSessionId());
-  const isHistoryLoaded = useRef(false);
+
+  // 🧩 Composed Hooks
+  const { sessionId, refreshSessionId, setSessionId } =
+    useChatSession(propSessionId);
+  const { handleFeedback } = useChatFeedback(sessionId);
 
   // ============================================================================
   // Hybrid AI Query Hook
@@ -174,7 +155,7 @@ export function useAIChatCore(
     submitCustomClarification,
     skipClarification,
   } = useHybridAIQuery({
-    sessionId: chatSessionIdRef.current,
+    sessionId: sessionId,
     onStreamFinish: () => {
       onMessageSend?.(pendingQueryRef.current);
       setError(null);
@@ -227,6 +208,33 @@ export function useAIChatCore(
   });
 
   // ============================================================================
+  // Message Transformation
+  // ============================================================================
+
+  const enhancedMessages = useMemo<EnhancedChatMessage[]>(() => {
+    return transformMessages(messages, {
+      isLoading: hybridIsLoading,
+      currentMode: currentMode ?? undefined,
+    });
+  }, [messages, hybridIsLoading, currentMode]);
+
+  // 🧩 History Hook (Needs messages from hybrid query)
+  const { clearHistory } = useChatHistory({
+    sessionId,
+    isMessagesEmpty: messages.length === 0,
+    enhancedMessages,
+    setMessages,
+    isLoading: hybridIsLoading,
+    onSessionRestore: setSessionId,
+  });
+
+  // 🧩 Session State Hook
+  const sessionState = useChatSessionState(
+    messages.length,
+    disableSessionLimit
+  );
+
+  // ============================================================================
   // Effects
   // ============================================================================
 
@@ -237,90 +245,14 @@ export function useAIChatCore(
     }
   }, [hybridState.error, error]);
 
-  // 로컬 스토리지에서 히스토리 복원
-  useEffect(() => {
-    if (isHistoryLoaded.current || messages.length > 0) return;
-
-    const history = loadChatHistory();
-    if (history && history.messages.length > 0) {
-      const restoredMessages = history.messages
-        .filter((m) => m.content && m.content.trim().length > 0) // 빈 메시지 필터링
-        .map((m) => ({
-          id: m.id,
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-          parts: [{ type: 'text' as const, text: m.content }],
-        }));
-
-      setMessages(restoredMessages);
-      chatSessionIdRef.current = history.sessionId;
-
-      if (process.env.NODE_ENV === 'development') {
-        logger.info(
-          `📂 [ChatHistory] Restored ${restoredMessages.length} messages`
-        );
-      }
-    }
-
-    isHistoryLoaded.current = true;
-  }, [messages.length, setMessages]);
-
-  // ============================================================================
-  // Session Management
-  // ============================================================================
-
-  const sessionState = useMemo<SessionState>(() => {
-    if (disableSessionLimit) {
-      return {
-        count: 0,
-        remaining: Infinity,
-        isWarning: false,
-        isLimitReached: false,
-      };
-    }
-    const count = messages.length;
-    const remaining = SESSION_MESSAGE_LIMIT - count;
-    const isWarning = count >= SESSION_WARNING_THRESHOLD;
-    const isLimitReached = count >= SESSION_MESSAGE_LIMIT;
-
-    return { count, remaining, isWarning, isLimitReached };
-  }, [messages.length, disableSessionLimit]);
-
   const handleNewSession = useCallback(() => {
     resetHybridQuery();
-    chatSessionIdRef.current = generateSessionId();
+    refreshSessionId();
     setInput('');
     setError(null);
     pendingQueryRef.current = '';
-    clearChatHistory();
-  }, [resetHybridQuery]);
-
-  // ============================================================================
-  // Handlers
-  // ============================================================================
-
-  const handleFeedback = useCallback(
-    async (messageId: string, type: 'positive' | 'negative') => {
-      try {
-        const response = await fetch('/api/ai/feedback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messageId,
-            type,
-            sessionId: chatSessionIdRef.current,
-            timestamp: new Date().toISOString(),
-          }),
-        });
-        if (!response.ok) {
-          logger.error('[AIChatCore] Feedback API error:', response.status);
-        }
-      } catch (err) {
-        logger.error('[AIChatCore] Feedback error:', err);
-      }
-    },
-    []
-  );
+    clearHistory();
+  }, [resetHybridQuery, refreshSessionId, clearHistory]);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -356,24 +288,6 @@ export function useAIChatCore(
   }, [sendQuery]);
 
   // ============================================================================
-  // Message Transformation
-  // ============================================================================
-
-  const enhancedMessages = useMemo<EnhancedChatMessage[]>(() => {
-    return transformMessages(messages, {
-      isLoading: hybridIsLoading,
-      currentMode: currentMode ?? undefined,
-    });
-  }, [messages, hybridIsLoading, currentMode]);
-
-  // 메시지 변경 시 자동 저장
-  useEffect(() => {
-    if (!hybridIsLoading && enhancedMessages.length > 0) {
-      saveChatHistory(chatSessionIdRef.current, enhancedMessages);
-    }
-  }, [enhancedMessages, hybridIsLoading]);
-
-  // ============================================================================
   // Input Handler
   // ============================================================================
 
@@ -381,9 +295,7 @@ export function useAIChatCore(
     if (!input.trim()) return;
 
     if (!disableSessionLimit && sessionState.isLimitReached) {
-      logger.warn(
-        `⚠️ [Session] Limit reached (${SESSION_MESSAGE_LIMIT} messages)`
-      );
+      logger.warn(`⚠️ [Session] Limit reached (${sessionState.count} messages)`);
       return;
     }
 
@@ -392,7 +304,7 @@ export function useAIChatCore(
     pendingQueryRef.current = input;
     setInput('');
     sendQuery(input);
-  }, [input, disableSessionLimit, sessionState.isLimitReached, sendQuery]);
+  }, [input, disableSessionLimit, sessionState, sendQuery]);
 
   // ============================================================================
   // Return
@@ -412,7 +324,7 @@ export function useAIChatCore(
     currentMode: currentMode ?? undefined,
     error,
     clearError,
-    sessionId: chatSessionIdRef.current,
+    sessionId: sessionId,
     sessionState,
     handleNewSession,
     handleFeedback,

@@ -9,32 +9,34 @@ import {
   saveChatHistory,
 } from '../utils/chat-history-storage';
 
-// Base message type for setMessages compatibility with useChat
-interface BaseMessage {
+// Restored message structure (minimal for history restore)
+interface RestoredMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  timestamp?: Date;
-  parts?: Array<{ type: string; text: string }>;
+  parts: Array<{ type: 'text'; text: string }>;
 }
 
-interface UseChatHistoryProps {
+interface UseChatHistoryProps<
+  TMessage extends RestoredMessage = RestoredMessage,
+> {
   sessionId: string;
   isMessagesEmpty: boolean;
   enhancedMessages: EnhancedChatMessage[];
-  setMessages: (messages: BaseMessage[]) => void;
+  /** setMessages that accepts our restored message format */
+  setMessages: (messages: TMessage[]) => void;
   isLoading: boolean;
   onSessionRestore?: (sessionId: string) => void;
 }
 
-export function useChatHistory({
+export function useChatHistory<TMessage extends RestoredMessage>({
   sessionId,
   isMessagesEmpty,
   enhancedMessages,
   setMessages,
   isLoading,
   onSessionRestore,
-}: UseChatHistoryProps) {
+}: UseChatHistoryProps<TMessage>) {
   const isHistoryLoaded = useRef(false);
 
   // 로컬 스토리지에서 히스토리 복원
@@ -44,16 +46,16 @@ export function useChatHistory({
     const history = loadChatHistory();
     if (history && history.messages.length > 0) {
       const restoredMessages = history.messages
-        .filter((m) => m.content && m.content.trim().length > 0) // 빈 메시지 필터링
+        .filter((m) => m.content && m.content.trim().length > 0)
         .map((m) => ({
           id: m.id,
           role: m.role as 'user' | 'assistant',
           content: m.content,
-          timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
           parts: [{ type: 'text' as const, text: m.content }],
         }));
 
-      setMessages(restoredMessages);
+      // Cast to TMessage[] - the restored messages satisfy RestoredMessage constraint
+      setMessages(restoredMessages as TMessage[]);
 
       if (history.sessionId && onSessionRestore) {
         onSessionRestore(history.sessionId);
