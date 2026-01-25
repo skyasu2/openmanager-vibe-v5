@@ -28,6 +28,8 @@
     "build:ci": "npm run build:prod",
     "build:vercel": "./.vercel-deploy-check.sh && npm run build:ci && npm run lint:ci && npm run test:quick",
     "deploy:safe": "./.vercel-deploy-check.sh && npx vercel --prod",
+    "env:sync:production": "bash scripts/env/sync-vercel.sh production",
+    "env:sync:preview": "bash scripts/env/sync-vercel.sh preview",
     "start": "next start",
     "start:prod": "NODE_ENV=production next start",
     "check": "bash scripts/dev/biome-wrapper.sh check .",
