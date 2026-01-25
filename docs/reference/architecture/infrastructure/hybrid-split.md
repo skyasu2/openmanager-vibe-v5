@@ -131,6 +131,105 @@ The system follows a **Stateless Cloud Run** design where all persistent data li
 
 ---
 
+---
+
+## Resumable Stream v2 (AI SDK v6)
+
+네트워크 단절 시 스트림을 자동으로 복구하는 Upstash Redis 기반 Resumable Stream 패턴입니다.
+
+### Flow
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    Resumable Stream v2 Flow                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+ ┌────────┐      ┌──────────────────────┐      ┌──────────────────────┐
+ │  User  │ ───► │   Vercel Frontend    │ ───► │   Cloud Run AI       │
+ │        │      │   (Next.js 16)       │      │   (Node.js 22)       │
+ └────────┘      └──────────────────────┘      └──────────────────────┘
+     │                    │                             │
+     │  1. POST /stream/v2│  2. Proxy + Redis Save      │
+     │  ───────────────►  │  ─────────────────────────► │
+     │                    │     + X-Stream-Id header    │
+     │                    │                             │
+     │  [네트워크 단절]   │                             │
+     │  ───────────────►  │                             │
+     │                    │                             │
+     │  3. GET /stream/v2?sessionId=xxx&skip=N         │
+     │  ───────────────►  │                             │
+     │                    │  4. Redis에서 남은 chunk 조회
+     │                    │  ─────────────────────────► │
+     │                    │                             │
+     │  5. 이어서 수신    │  ◄───────────────────────── │
+     │  ◄───────────────  │     (skip 이후 chunk)       │
+     │                    │                             │
+```
+
+### 주요 컴포넌트
+
+| 컴포넌트 | 파일 | 역할 |
+|---------|------|------|
+| **POST Handler** | `stream/v2/route.ts` | 새 스트림 생성, Redis 저장 |
+| **GET Handler** | `stream/v2/route.ts` | 스트림 재개 (skip 파라미터) |
+| **Stream State** | `stream/v2/stream-state.ts` | Redis 세션-스트림 매핑 |
+| **Upstash Context** | `stream/v2/upstash-resumable.ts` | Redis List 기반 chunk 저장 |
+
+### 설정
+
+| 항목 | 값 | 설명 |
+|------|-----|------|
+| **Stream TTL** | 10분 | Redis 자동 만료 |
+| **Chunk Storage** | Redis List | RPUSH로 순서 보장 |
+| **Resume API** | GET + skip 파라미터 | 마지막 수신 chunk 이후부터 |
+
+---
+
+## Circuit Breaker & Quota Tracker
+
+API 장애 시 자동 차단 및 할당량 초과 방지 메커니즘입니다.
+
+### Circuit Breaker 상태 전이
+
+```
+┌───────────────────────────────────────────────────────────┐
+│                  Circuit Breaker States                    │
+│                                                            │
+│  ┌──────────┐    5회 실패     ┌──────────┐                │
+│  │  CLOSED  │ ─────────────► │   OPEN   │                │
+│  │ (정상)   │                 │ (차단)   │                │
+│  └────┬─────┘                 └────┬─────┘                │
+│       │                            │                       │
+│   2회 성공                      30초 후                    │
+│       │                            │                       │
+│       │                       ┌────▼─────┐                │
+│       └────────────────────── │HALF_OPEN │                │
+│                               │ (시험)   │                │
+│                               └──────────┘                │
+└───────────────────────────────────────────────────────────┘
+```
+
+### Quota Tracker
+
+| 항목 | 값 | 동작 |
+|------|-----|------|
+| **Preemptive Threshold** | 80% | 할당량 80% 도달 시 Fallback |
+| **Hard Limit** | 100% | 요청 즉시 거부 |
+| **Reset Period** | Daily/Monthly | 프로바이더별 상이 |
+
+### Fallback 체인
+
+```
+Cerebras (Primary)
+    ↓ 실패 또는 quota 80%
+Groq (Secondary)
+    ↓ 실패 또는 quota 80%
+Mistral (Tertiary)
+    ↓ 모두 실패 시
+Static Fallback Response
+```
+
+---
+
 ## Controls (Planned)
 
 - **Start (Wake Up)**: Triggers `/warmup` on Cloud Run to spin up an instance (Cold Start mitigation).

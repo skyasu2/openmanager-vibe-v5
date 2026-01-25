@@ -166,6 +166,48 @@ LLM 호출 없이 RegExp 기반 Pre-filter가 처리하여 속도와 비용을 �
 3. LLM Intent Classification    // ~200ms (Cerebras)
 ```
 
+#### Reporter Pipeline (Evaluator-Optimizer)
+
+Reporter Agent는 고품질 보고서를 위해 3단계 파이프라인을 실행합니다.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  Reporter Pipeline                          │
+│  ┌──────────┐   ┌───────────┐   ┌───────────┐              │
+│  │ Generate │ → │ Evaluate  │ → │ Optimize  │ → Re-evaluate│
+│  │ (Draft)  │   │ (0.75점)  │   │ (Improve) │              │
+│  └──────────┘   └───────────┘   └───────────┘              │
+│                      │                                      │
+│                  quality ≥ 0.75? ─────→ Return              │
+│                      │                                      │
+│                  No: Iterate (max 2회)                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| 설정 | 값 | 설명 |
+|------|-----|------|
+| **qualityThreshold** | 0.75 | 최소 품질 점수 |
+| **maxIterations** | 2 | 최대 개선 반복 |
+| **timeout** | 40초 | 파이프라인 타임아웃 |
+
+#### Task Decomposition
+
+복잡한 쿼리는 Orchestrator가 **Task Decomposition** 패턴으로 분할 처리합니다.
+
+```typescript
+// Orchestrator-Worker 패턴
+1. Query 분석 → Task 분할
+2. 병렬/순차 실행 결정
+3. Worker Agent별 Task 할당
+4. 결과 병합 (Aggregation)
+```
+
+| 실행 모드 | 조건 | 예시 |
+|----------|------|------|
+| **Parallel** | 독립적 작업 | "모든 서버 CPU와 메모리 현황" |
+| **Sequential** | 의존적 작업 | "장애 원인 분석 후 해결책 제시" |
+| **Hybrid** | 혼합 | 병렬 수집 → 순차 분석 |
+
 #### Observability (Langfuse)
 
 모든 에이전트의 실행 과정이 Langfuse로 추적되어 실시간 모니터링 및 디버깅이 가능합니다.
@@ -185,6 +227,37 @@ LLM 호출 없이 RegExp 기반 Pre-filter가 처리하여 속도와 비용을 �
 | **Return-to-Supervisor** | Agent sets `returnToSupervisor=true` | Need different agent's expertise |
 | **Command Pattern** | Explicit `toAgent` in DelegationRequest | Direct delegation to specific agent |
 | **Verification Loop** | Verifier checks output before response | Quality assurance & hallucination check |
+
+### Tool Registry (22개 도구)
+
+에이전트가 사용할 수 있는 22개 도구가 6개 카테고리로 구성되어 있습니다.
+
+| Category | Tool | Agent | Description |
+|----------|------|-------|-------------|
+| **Metrics (5)** | `getServerMetrics` | NLQ | 서버 메트릭 조회 |
+| | `getServerMetricsAdvanced` | NLQ | 고급 메트릭 분석 |
+| | `filterServers` | NLQ | 서버 필터링 |
+| | `getServerList` | NLQ | 서버 목록 |
+| | `getServerSummary` | NLQ | 서버 요약 |
+| **RCA (3)** | `findRootCause` | Analyst, Reporter | 근본 원인 분석 |
+| | `correlateMetrics` | Analyst, Reporter | 메트릭 상관관계 |
+| | `buildIncidentTimeline` | Reporter | 인시던트 타임라인 |
+| **Analyst (3)** | `detectAnomalies` | Analyst | 이상 탐지 |
+| | `predictTrends` | Analyst | 트렌드 예측 |
+| | `analyzePattern` | Analyst | 패턴 분석 |
+| **Reporter (4)** | `searchWebWithTavily` | Reporter | 웹 검색 (Tavily) |
+| | `extractWebContent` | Reporter | URL 콘텐츠 추출 |
+| | `generateReport` | Reporter | 보고서 생성 |
+| | `formatIncidentReport` | Reporter | 인시던트 형식화 |
+| **Evaluation (6)** | `evaluateReport` | Reporter Pipeline | 보고서 평가 |
+| | `optimizeReport` | Reporter Pipeline | 보고서 최적화 |
+| | `checkCompleteness` | Verifier | 완전성 검증 |
+| | `checkAccuracy` | Verifier | 정확도 검증 |
+| | `checkClarity` | Verifier | 명확성 검증 |
+| | `checkActionability` | Verifier | 실행가능성 검증 |
+| **Control (1)** | `finalAnswer` | All | 에이전트 종료 신호 |
+
+> **Note**: `finalAnswer`는 AI SDK v6 베스트 프랙티스에 따른 에이전트 종료 도구입니다. `stopWhen: [hasToolCall('finalAnswer')]` 패턴과 함께 사용됩니다.
 
 ## Architecture Diagram
 

@@ -60,15 +60,24 @@
 
 **AI Ecosystem**
 - **SDK**: Vercel AI SDK `v6.0.3` (`@ai-sdk/*` 패키지 포함)
+- **Native Patterns** (v6.1.0):
+  - `finalAnswer` 도구: `stopWhen: [hasToolCall('finalAnswer'), stepCountIs(5)]`
+  - `UIMessageStream`: 네이티브 스트리밍 프로토콜
+  - `Resumable Stream v2`: Upstash Redis 기반 자동 재연결
+  - `prepareStep`: 에이전트 라우팅 순서 최적화
 - **Models**: Tri-provider 전략 (Rate limit 최적화, 2026-01-16)
   - Cerebras llama-3.3-70b: Orchestrator, NLQ (1M tokens/day, 60K TPM)
   - Groq llama-3.3-70b: Analyst, Reporter (~1K requests/day, 12K TPM)
   - Mistral Small 2506 (24B): Advisor, Verifier (Limited free tier)
 - **Agents**: 5개 Multi-Agent (Orchestrator → NLQ/Analyst/Reporter/Advisor)
-- **Tools**: MCP (Model Context Protocol) 8/8 Server Connected
-- **Web Search**: Tavily API (Reporter Agent)
-- **Rate Limit**: Pre-emptive Fallback (80% 임계값 도달 시 사전 전환)
-- **Note**: Provider 장애 시 자동 폴백 (Cerebras→Groq→Mistral)
+- **Tools**: 22개 도구 Registry (Metrics 5, RCA 3, Analyst 3, Reporter 4, Evaluation 6, Control 1)
+- **Reporter Pipeline**: Evaluator-Optimizer 패턴 (0.75 품질 임계값, 최대 2회 반복)
+- **MCP**: 8/8 Server Connected (Serena, Context7, Supabase, Vercel, Playwright, GitHub, Tavily, Sequential-Thinking)
+- **Web Search**: Tavily API (10s timeout, 2 retries, 30 cache entries)
+- **Resilience**:
+  - Circuit Breaker: CLOSED → OPEN (5 failures) → HALF_OPEN (30s)
+  - Quota Tracker: Pre-emptive Fallback (80% 임계값 도달 시 사전 전환)
+  - 3-way Fallback: Cerebras → Groq → Mistral
 
 **AI CLI Tools** (2026-01-16 기준)
 - **Claude Code**: `v2.1.7` (Interactive Development)

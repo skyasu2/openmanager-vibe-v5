@@ -1,9 +1,9 @@
 # AI Model Policy (Cloud Run + Vercel AI SDK) - 2026.01
 
 이 문서는 OpenManager Vibe의 AI 아키텍처를 정리합니다.
-현재 AI 처리는 **Cloud Run 기반 LLM 멀티 에이전트 시스템 (Vercel AI SDK)** 으로 구성되어 있습니다.
+현재 AI 처리는 **Cloud Run 기반 LLM 멀티 에이전트 시스템 (Vercel AI SDK v6 Native)** 으로 구성되어 있습니다.
 
-> **최종 업데이트**: 2026-01-09 (NLP 아키텍처 문서화)
+> **최종 업데이트**: 2026-01-25 (AI SDK v6 Native 패턴, Reporter Pipeline 문서화)
 
 ---
 
@@ -23,13 +23,15 @@
 ```
 Cloud Run AI Engine (asia-northeast1)
 ├── cloud-run/ai-engine/src/services/ai-sdk/
-│   ├── model-provider.ts     # LLM 프로바이더 관리
+│   ├── model-provider.ts     # LLM 프로바이더 관리 (3-way Fallback)
 │   ├── supervisor.ts         # 메인 에이전트 오케스트레이션
 │   └── agents/
+│       ├── orchestrator.ts   # 멀티에이전트 오케스트레이터 (Dual-Path Routing)
 │       ├── nlq-agent.ts      # 자연어 쿼리 처리 (NLP)
-│       ├── analyst-agent.ts  # 분석
-│       ├── advisor-agent.ts  # 조언
-│       └── summarizer-agent.ts # 요약
+│       ├── analyst-agent.ts  # 분석, 이상 탐지
+│       ├── reporter-agent.ts # 보고서 생성
+│       ├── reporter-pipeline.ts  # Evaluator-Optimizer 패턴
+│       └── advisor-agent.ts  # RAG 기반 조언
 ```
 
 ### 기술 스택
@@ -100,10 +102,18 @@ Vercel AI SDK 6 (@ai-sdk)
 "@ai-sdk/mistral": "^3.0.1"    // Advisor, Embedding
 ```
 
-### Agent Framework
+### Agent Framework (Native AI SDK v6)
 
 ```typescript
-"@ai-sdk-tools/agents": "^1.2.0"  // Multi-agent orchestration
+// Native AI SDK v6 patterns (no external agent library)
+import { generateText, streamUI, tool } from 'ai';
+import { createDataStreamResponse, createUIMessageStream } from '@ai-sdk/ui-utils';
+
+// Key patterns:
+// - stopWhen: [hasToolCall('finalAnswer'), stepCountIs(5)]
+// - prepareStep: Agent priority optimization
+// - UIMessageStream: Native streaming protocol
+// - Resumable Stream v2: Redis-backed reconnection
 ```
 
 ---
@@ -125,6 +135,66 @@ User Query → Orchestrator (Cerebras)
 | `/analyze-server` | Analyst | 서버 분석 직접 호출 |
 | `/incident-report` | Reporter | 인시던트 리포트 생성 |
 | `/troubleshoot` | Advisor | RAG 기반 가이드 |
+
+---
+
+## 📊 Reporter Pipeline (Evaluator-Optimizer 패턴)
+
+Reporter Agent는 고품질 보고서 생성을 위해 **Evaluator-Optimizer** 패턴을 사용합니다.
+
+### 파이프라인 구성
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  Reporter Pipeline                          │
+│  ┌──────────┐   ┌───────────┐   ┌───────────┐              │
+│  │ Generate │ → │ Evaluate  │ → │ Optimize  │ → Re-evaluate│
+│  │ (Draft)  │   │ (Score)   │   │ (Improve) │              │
+│  └──────────┘   └───────────┘   └───────────┘              │
+│                      │                                      │
+│                  quality ≥ 0.75? ─────→ Return              │
+│                      │                                      │
+│                  No: Iterate (max 2회)                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 설정값
+| 항목 | 값 | 설명 |
+|------|-----|------|
+| **qualityThreshold** | 0.75 | 최소 품질 점수 |
+| **maxIterations** | 2 | 최대 개선 반복 횟수 |
+| **timeout** | 40초 | 파이프라인 타임아웃 |
+
+### 평가 기준 (5가지)
+1. **completeness** (0.2): 필수 정보 포함 여부
+2. **accuracy** (0.25): 데이터 정확도
+3. **clarity** (0.2): 명확한 표현
+4. **actionability** (0.2): 실행 가능한 권고
+5. **structure** (0.15): 논리적 구조
+
+---
+
+## 🔍 Tavily 웹 검색 통합
+
+Reporter Agent는 **Tavily API**를 통해 실시간 웹 검색 기능을 제공합니다.
+
+### 설정
+| 항목 | 값 | 설명 |
+|------|-----|------|
+| **timeout** | 10초 | 검색 타임아웃 |
+| **maxRetries** | 2 | 재시도 횟수 |
+| **cacheSize** | 30 | LRU 캐시 항목 수 |
+| **cacheTTL** | 5분 | 캐시 TTL |
+
+### API 키 Failover
+```
+TAVILY_API_KEY (Primary)
+     ↓ 실패 시
+TAVILY_API_KEY_BACKUP (Backup)
+```
+
+### 사용 도구
+- `searchWebWithTavily`: 웹 검색 수행
+- `extractWebContent`: 특정 URL 콘텐츠 추출
 
 ---
 
@@ -187,4 +257,4 @@ MISTRAL_API_KEY=xxx
 - **Vector DB**: Supabase pgvector
 - **Vercel**: Proxy + Cache only
 
-_Last Updated: 2026-01-09_
+_Last Updated: 2026-01-25_

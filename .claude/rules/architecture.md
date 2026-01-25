@@ -21,8 +21,10 @@ Layer-First + Feature Grouping 방식:
 
 ### Cloud Run (AI Engine)
 - Heavy Lifting 작업
-- Vercel AI SDK Multi-Agent (@ai-sdk-tools/agents)
+- Vercel AI SDK v6 Native Multi-Agent (UIMessageStream, finalAnswer 패턴)
 - TypeScript 기반 에이전트 오케스트레이션
+- Dual-Path Routing: Fast Path (RegExp ~10ms) + LLM Routing (~200ms)
+- Reporter Pipeline: Evaluator-Optimizer 패턴 (0.75 품질 임계값)
 
 ## Database
 - **Supabase** (PostgreSQL + pgvector)
