@@ -23,7 +23,7 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
   - **AI SDK Multi-Agent**: Orchestrates agents (NLQ, Analyst, Reporter, Advisor, Verifier).
   - **Agent Execution**: Runs the prompt engineering and tool calls using `@ai-sdk-tools/agents`.
   - **Heavy Computation**: Handles complex queries and multi-step reasoning.
-  - **Streaming**: Streams tokens back to Vercel via SSE.
+  - **Streaming**: Streams tokens back to Vercel via UIMessageStream (AI SDK v6 native protocol).
 
 ### 3. TypeScript ML (Built into AI Engine)
 **Role**: The "Mathematician"
@@ -49,7 +49,7 @@ This project uses a **Hybrid Architecture** to balance cost, performance, and sc
    - Receives request.
    - **Vercel AI SDK** processes the intent and routes to the appropriate agent.
    - **Analyst Agent** performs pattern analysis if needed.
-   - Streams response back to Vercel via SSE.
+   - Streams response back to Vercel via UIMessageStream.
 5. **Vercel**:
    - Pipes the stream to the User's browser.
 
@@ -112,7 +112,7 @@ The system follows a **Stateless Cloud Run** design where all persistent data li
      │  ───────────────►  │  ─────────────────────────► │
      │                    │     + X-API-Key header      │
      │                    │                             │
-     │                    │  3. SSE Stream              │
+     │                    │  3. UIMessageStream         │
      │  4. 렌더링 결과    │  ◄───────────────────────── │
      │  ◄───────────────  │                             │
      │                    │                             │
