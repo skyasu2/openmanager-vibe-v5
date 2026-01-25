@@ -16,7 +16,7 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 | **Resumable Stream v2** | Automatic stream reconnection via Redis |
 | **prepareStep** | Pre-step optimization for agent routing |
 
-## Architecture (v5.87.0, Updated 2026-01-13)
+## Architecture (v6.1.0, Updated 2026-01-25)
 
 ### Deployment Mode
 
@@ -246,8 +246,8 @@ graph TD
     SingleAgent --> Cache
     Verifier --> Cache
     
-    SingleAgent -->|SSE Stream| User
-    Verifier -->|SSE Stream| User
+    SingleAgent -->|UIMessageStream| User
+    Verifier -->|UIMessageStream| User
 ```
 
 <details>
@@ -306,7 +306,7 @@ graph TD
 │           └──────────────────────────────┤                               │
 │                                          ▼                               │
 │                              ┌────────────────────┐                     │
-│                              │   SSE Response     │                     │
+│                              │  UIMessageStream   │                     │
 │                              └────────────────────┘                     │
 └─────────────────────────────────────────────────────────────────────────┘
                               │

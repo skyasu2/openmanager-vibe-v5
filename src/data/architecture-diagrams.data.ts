@@ -7,8 +7,8 @@
  * - ai-engine-architecture.md (Mermaid + ASCII)
  * - hybrid-split.md (ASCII)
  *
- * @version 5.88.2
- * @updated 2026-01-21
+ * @version 6.1.0
+ * @updated 2026-01-25
  */
 
 export interface DiagramNode {
@@ -47,12 +47,13 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
   /**
    * 1. AI Assistant - Multi-Agent 오케스트레이션
    * @sync docs/reference/architecture/ai/ai-engine-architecture.md
+   * @version v6.1.0 - AI SDK v6 Native (UIMessageStream, Resumable Stream v2)
    */
   'ai-assistant-pro': {
     id: 'ai-assistant-pro',
-    title: 'Multi-Agent Architecture',
+    title: 'Multi-Agent Architecture (AI SDK v6)',
     description:
-      'Vercel AI SDK + @ai-sdk-tools/agents 기반 멀티 에이전트 시스템. Dual-Mode Supervisor가 의도를 분석하고 전문 에이전트로 라우팅.',
+      'Vercel AI SDK v6 + @ai-sdk-tools/agents 기반 멀티 에이전트. UIMessageStream 네이티브 프로토콜, Resumable Stream v2, finalAnswer 패턴 적용.',
     layers: [
       {
         title: 'Client',
@@ -140,6 +141,26 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
           },
         ],
       },
+      {
+        title: 'AI SDK v6 Protocol',
+        color: 'from-cyan-500 to-blue-600',
+        nodes: [
+          {
+            id: 'uimessagestream',
+            label: 'UIMessageStream',
+            sublabel: 'Native Streaming Protocol',
+            type: 'highlight',
+            icon: '📡',
+          },
+          {
+            id: 'resumable',
+            label: 'Resumable Stream v2',
+            sublabel: 'Redis State + Auto-Reconnect',
+            type: 'secondary',
+            icon: '🔄',
+          },
+        ],
+      },
     ],
     connections: [
       { from: 'user', to: 'vercel-proxy', label: 'POST' },
@@ -152,6 +173,9 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
       { from: 'analyst', to: 'verifier', type: 'dashed' },
       { from: 'reporter', to: 'verifier', type: 'dashed' },
       { from: 'advisor', to: 'verifier', type: 'dashed' },
+      { from: 'verifier', to: 'uimessagestream', label: 'Stream' },
+      { from: 'uimessagestream', to: 'resumable', type: 'dashed' },
+      { from: 'uimessagestream', to: 'user', label: 'Response' },
     ],
   },
 
