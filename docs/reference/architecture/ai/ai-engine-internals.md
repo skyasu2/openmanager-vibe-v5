@@ -4,7 +4,9 @@
 >
 > API, 데이터 계층, 환경변수, 파일 구조 상세
 
-**관련 문서**: [AI Engine Architecture](./ai-engine-architecture.md) - 개요 및 아키텍처
+**관련 문서**: 
+- [AI Engine Architecture](./ai-engine-architecture.md) - 개요 및 아키텍처
+- [RAG & Knowledge Engine](./rag-knowledge-engine.md) - 검색 및 지식 그래프 상세
 
 ---
 
@@ -147,7 +149,7 @@ Redis 상태 관리:
 | **Redis L2 Cache** | Upstash Redis | Response caching (TTL: 1hr) |
 | **Metrics History** | Supabase | Server metrics (6hr window) |
 | **Conversation History** | Supabase | Compressed conversation storage |
-| **Client State** | Zustand | Chat history, UI state |
+| **Client State** | React Hooks + Zustand | Chat session (`useChatSession`), history (`useChatHistory`), UI state |
 
 ### Redis Caching Strategy
 
