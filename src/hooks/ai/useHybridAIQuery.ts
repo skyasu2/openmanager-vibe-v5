@@ -28,8 +28,8 @@
 
 import type { UIMessage } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
 import type { ChatTransport } from 'ai';
+import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   applyClarification,
