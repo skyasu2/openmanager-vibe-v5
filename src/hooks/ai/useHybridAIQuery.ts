@@ -30,6 +30,7 @@ import type { UIMessage } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import {
   applyClarification,
   applyCustomClarification,
@@ -736,7 +737,10 @@ export function useHybridAIQuery(
 
         // 🛡️ AI SDK 에러 방지: 메시지 배열 정리 (undefined parts 제거)
         // AI SDK가 메시지를 직렬화할 때 undefined parts가 있으면 에러 발생
-        setMessages((prev) => sanitizeMessages(prev));
+        // flushSync로 상태 업데이트를 동기적으로 완료시킴 (sendMessage가 sanitized messages를 읽을 수 있도록)
+        flushSync(() => {
+          setMessages((prev) => sanitizeMessages(prev));
+        });
 
         // sendMessage는 user 메시지 추가 + API 호출을 자동으로 처리
         // Note: useChat의 onError 콜백이 async 에러를 처리하지만,
