@@ -871,12 +871,13 @@ async function* streamSingleAgent(
     });
 
     // 🎯 CODEX Review R3 Fix: streamError 발생 시 tracing에도 success=false 반영
-    const streamSucceeded = streamError === null;
+    const capturedError = streamError as Error | null;
+    const streamSucceeded = capturedError === null;
     finalizeTrace(trace, fullText, streamSucceeded, {
       toolsCalled,
       stepsExecuted: steps.length,
       durationMs,
-      ...(streamError && { error: streamError.message }),
+      ...(capturedError && { error: capturedError.message }),
     });
 
     console.log(
@@ -887,7 +888,7 @@ async function* streamSingleAgent(
     yield {
       type: 'done',
       data: {
-        success: streamError === null,
+        success: capturedError === null,
         toolsCalled,
         usage: {
           promptTokens: usage?.inputTokens ?? 0,
@@ -902,10 +903,10 @@ async function* streamSingleAgent(
           mode: 'single',
         },
         // Include warning info if stream error occurred
-        ...(streamError && {
+        ...(capturedError && {
           warning: {
             code: 'STREAM_ERROR_OCCURRED',
-            message: streamError.message,
+            message: capturedError.message,
           },
         }),
       },

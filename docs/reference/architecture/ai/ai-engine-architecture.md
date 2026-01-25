@@ -1,10 +1,20 @@
 # AI Engine Architecture
 
-> **v5.88.0** | Updated 2026-01-18
+> **v6.1.0** | Updated 2026-01-25
 
 ## Overview
 
-The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel AI SDK** with `@ai-sdk-tools/agents`. It uses a dual-mode Supervisor pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
+The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel AI SDK v6** with `@ai-sdk-tools/agents`. It uses a dual-mode Supervisor pattern with specialized agents for different tasks, running on **Google Cloud Run** with frontend on **Vercel**.
+
+### AI SDK v6 Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **UIMessageStream** | Native streaming protocol (replaces custom SSE) |
+| **DefaultChatTransport** | Built-in transport with `resume: true` |
+| **finalAnswer Tool** | Agent termination pattern (`hasToolCall` + `stepCountIs`) |
+| **Resumable Stream v2** | Automatic stream reconnection via Redis |
+| **prepareStep** | Pre-step optimization for agent routing |
 
 ## Architecture (v5.87.0, Updated 2026-01-13)
 
@@ -63,8 +73,17 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 - **User-Triggered Design**: All AI features are explicitly user-initiated (no auto-triggers)
 - **Circuit Breaker**: Model health monitoring with automatic failover
 - **GraphRAG Integration**: Advisor agent uses hybrid vector + graph search
-- **Protocol Adaptation**: SSE with Keep-Alive to prevent timeouts
+- **Protocol Adaptation**: UIMessageStream native protocol (v6)
 - **Response Verification**: Verifier agent validates outputs before response
+
+#### New in v6.1.0 (2026-01-25)
+
+- **AI SDK v6 Native Protocol**: UIMessageStream for streaming
+- **Resumable Stream v2**: `resumable-stream` package with Redis state
+- **finalAnswer Pattern**: `hasToolCall('finalAnswer')` + `stepCountIs(N)` for clean termination
+- **prepareStep Optimization**: Agent routing order (RCA → Reporter → Analyst)
+- **DefaultChatTransport**: Built-in transport with `resume: true` for auto-reconnect
+- **v1 Removal**: Legacy stream endpoint removed (508 lines deleted)
 
 #### New in v5.87.0 (2026-01-13)
 
@@ -76,7 +95,6 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
   - Reporter Agent (Groq → Cerebras fallback): Incident reports, timeline
   - Advisor Agent (Mistral): Troubleshooting with GraphRAG
 - **Fallback Optimization**: Cerebras for fast routing, Groq for analysis stability
-- **Test Coverage**: 65 unit tests including multi-agent orchestrator tests
 
 #### Previous Versions
 

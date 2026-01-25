@@ -1,6 +1,6 @@
 # AI Engine Internals
 
-> **v5.88.0** | Updated 2026-01-18
+> **v6.1.0** | Updated 2026-01-25
 >
 > API, 데이터 계층, 환경변수, 파일 구조 상세
 
@@ -89,20 +89,38 @@ interface MultiAgentResponse {
 }
 ```
 
-### Response Format (Streaming - AI SDK v5 Protocol)
+### Response Format (Streaming - AI SDK v6 UIMessageStream Protocol)
 
 ```
 Headers:
 - Content-Type: text/event-stream; charset=utf-8
-- X-Vercel-AI-Data-Stream: v1
-- X-Backend: cloud-run
+- X-Stream-Protocol: ui-message-stream
+- X-Resumable: true
+- X-Session-Id: {sessionId}
 
-Body Parts:
-0:"Hello! I'm checking the server status..."  // Text content
-8:[{"type":"progress","message":"Analyzing metrics..."}] // Custom annotation
-8:[{"type":"verification","isValid":true,"confidence":0.98}] // Verification
-d:{"finishReason":"stop","verified":true}     // Finish signal
+Body (UIMessageStream native format):
+{"type":"text_delta","data":"Hello! I'm checking..."}
+{"type":"tool_call","data":{"name":"getServerMetrics","args":{}}}
+{"type":"tool_result","data":{"result":{...}}}
+{"type":"text_delta","data":"Based on the analysis..."}
+{"type":"finish","data":{"finishReason":"stop"}}
 ```
+
+### Resumable Stream v2 (신규)
+
+```
+# 재연결 시 (GET 요청)
+GET /api/ai/supervisor/stream/v2?sessionId={sessionId}
+
+Headers:
+- X-Resumed: true
+- X-Stream-Id: {streamId}
+```
+
+Redis 상태 관리:
+| Key Pattern | TTL | Purpose |
+|-------------|-----|---------|
+| `ai:stream:v2:{sessionId}` | 10분 | 활성 스트림 ID 저장 |
 
 ### Additional Cloud Run Endpoints
 
@@ -213,7 +231,11 @@ src/lib/ai-proxy/
 
 # Vercel API Routes
 src/app/api/ai/
-├── supervisor/route.ts         # Main AI endpoint proxy
+├── supervisor/
+│   └── stream/
+│       └── v2/
+│           ├── route.ts        # POST: 새 스트림, GET: 재연결
+│           └── stream-state.ts # Redis 상태 헬퍼
 ├── embedding/route.ts          # Embedding proxy
 └── jobs/                       # Async job handling
     ├── route.ts
@@ -228,6 +250,8 @@ src/app/api/ai/
 
 | Component | Status | Replacement |
 |-----------|--------|-------------|
+| `stream/route.ts` (v1) | Removed (2026-01-25) | `stream/v2/route.ts` + UIMessageStream |
+| `TextStreamChatTransport` | Removed (2026-01-25) | `DefaultChatTransport` + `resume: true` |
 | `services/langgraph/` | Deprecated (2025-12-28) | `services/ai-sdk/` |
 | `cloud-run/supabase-mcp/` | Deprecated | Direct Supabase JS client |
 | `cloud-run/rust-inference/` | Removed | Vercel AI SDK agents |

@@ -1,19 +1,25 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-20
+**마지막 업데이트**: 2026-01-25
 
 ---
 
-## 🔄 Recent Changes (v5.88.2)
+## 🔄 Recent Changes (v6.1.0)
 
+- **AI SDK v6 마이그레이션 완료** (2026-01-25)
+  - `TextStreamChatTransport` → `DefaultChatTransport` + `resume: true`
+  - UIMessageStream 네이티브 프로토콜 적용
+  - Resumable Stream v2 엔드포인트 (`/api/ai/supervisor/stream/v2`)
+  - v1 레거시 엔드포인트 제거 (508줄 삭제)
+  - `finalAnswer` 도구 패턴 적용 (`hasToolCall` + `stepCountIs`)
 - **서버 상태 용어 통합**: `'healthy'` → `'online'` (SSOT)
   - 내부 타입: `'online' | 'warning' | 'critical'`
   - 서비스 헬스: `'healthy' | 'degraded' | 'unhealthy'` (별도 도메인 유지)
-- **Cloud Run 배포**: ai-engine v5.88.2
+- **Cloud Run 배포**: ai-engine v6.1.0
 
 ---
 
-## 🏗️ Technical Stack (v5.88.2)
+## 🏗️ Technical Stack (v6.1.0)
 
 **Core Frameworks** (2025 Standard)
 - **Next.js**: `v16.1.1` (App Router, Server Components)
@@ -210,15 +216,14 @@
 - **서버 타입별 실제 로그 템플릿 구현**: MySQL, Redis, Nginx, HAProxy, NFS 등
 - **변경 파일**: 16개 파일 (1,699 추가 / 1,300 삭제)
 
-**AI 어시스턴트 스트리밍 수정 (v5.83.9, 2025-12-22)**
+**AI 어시스턴트 스트리밍 수정 (v5.83.9, 2025-12-22)** _(⚠️ v6 마이그레이션으로 대체됨)_
 - **문제 1**: AI SDK v5가 `parts` 배열 형식으로 메시지 전송 → Cloud Run 503 에러
   - 해결: `normalizeMessagesForCloudRun()` 함수 추가 (parts → content 변환)
 - **문제 2**: `DefaultChatTransport`가 SSE JSON 기대 → Cloud Run plain text 스트림과 불일치
   - 해결: `TextStreamChatTransport`로 변경 (plain text 스트림 처리)
-- **변경 파일**:
-  - `src/domains/ai-sidebar/components/AISidebarV4.tsx`
-  - `src/app/api/ai/supervisor/route.ts`
-- **검증**: Vercel 프로덕션에서 브라우저 테스트 통과
+- ~~**변경 파일**~~: _v6에서 제거됨_
+  - ~~`src/app/api/ai/supervisor/stream/route.ts`~~ (508줄 삭제)
+- **v6 대체**: `DefaultChatTransport` + `resume: true` + UIMessageStream 네이티브 프로토콜
 
 **기술 부채 검토 완료 (v5.81.0)**
 - **Next.js 보안 패치**: 16.0.7 → 16.0.10 (CVE 대응)
@@ -331,7 +336,7 @@
 | 구현 영역 | 기술 스택 | 상태 |
 |----------|----------|------|
 | Web UI | Next.js 16 + React 19 Dashboard | ✅ 완료 |
-| AI Assistant | useChat + TextStreamChatTransport | ✅ 완료 |
+| AI Assistant | useChat + DefaultChatTransport (resume: true) | ✅ 완료 |
 | Multi-Agent | 5-Agent Orchestration (Cloud Run) | ✅ 완료 |
 | Database | Supabase PostgreSQL + pgvector | ✅ 완료 |
 | Cache | Upstash Redis | ✅ 완료 |
