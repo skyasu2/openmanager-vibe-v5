@@ -330,21 +330,24 @@ function extractServerNames(text: string): string[] {
 
 /**
  * Extract anomaly information from response text
+ * Returns data matching AnomalyData interface from context-store
  */
 function extractAnomalies(text: string): Array<{
   serverId: string;
-  metric: string;
+  serverName: string;
+  metric: 'cpu' | 'memory' | 'disk' | 'network';
   value: number;
   threshold: number;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: 'warning' | 'critical';
   detectedAt: string;
 }> {
   const anomalies: Array<{
     serverId: string;
-    metric: string;
+    serverName: string;
+    metric: 'cpu' | 'memory' | 'disk' | 'network';
     value: number;
     threshold: number;
-    severity: 'low' | 'medium' | 'high' | 'critical';
+    severity: 'warning' | 'critical';
     detectedAt: string;
   }> = [];
 
@@ -363,24 +366,22 @@ function extractAnomalies(text: string): Array<{
       const value = percentMatch ? parseFloat(percentMatch[1]) : 0;
 
       // Determine metric type
-      let metric = 'unknown';
+      let metric: 'cpu' | 'memory' | 'disk' | 'network' = 'cpu';
       if (/cpu/i.test(line)) metric = 'cpu';
       else if (/메모리|memory|mem/i.test(line)) metric = 'memory';
       else if (/디스크|disk|storage/i.test(line)) metric = 'disk';
       else if (/네트워크|network|latency/i.test(line)) metric = 'network';
 
-      // Determine severity
-      let severity: 'low' | 'medium' | 'high' | 'critical' = 'medium';
-      if (value >= 95 || /critical|심각|긴급/i.test(line)) severity = 'critical';
-      else if (value >= 85 || /high|높음|경고/i.test(line)) severity = 'high';
-      else if (value >= 70 || /medium|중간/i.test(line)) severity = 'medium';
-      else severity = 'low';
+      // Determine severity (warning or critical only)
+      const severity: 'warning' | 'critical' =
+        (value >= 90 || /critical|심각|긴급/i.test(line)) ? 'critical' : 'warning';
 
       // Create anomaly for each server mentioned
       const targetServers = servers.length > 0 ? servers : ['unknown'];
       for (const serverId of targetServers.slice(0, 3)) { // Limit to 3 servers
         anomalies.push({
           serverId,
+          serverName: serverId, // Use serverId as serverName
           metric,
           value,
           threshold: metric === 'cpu' ? 80 : 85,
@@ -396,19 +397,24 @@ function extractAnomalies(text: string): Array<{
 
 /**
  * Extract metric snapshots from response text
+ * Returns data matching MetricSnapshot interface from context-store
  */
 function extractMetrics(text: string): Array<{
   serverId: string;
+  serverName: string;
   cpu: number;
   memory: number;
   disk: number;
+  status: 'normal' | 'warning' | 'critical';
   timestamp: string;
 }> {
   const metrics: Array<{
     serverId: string;
+    serverName: string;
     cpu: number;
     memory: number;
     disk: number;
+    status: 'normal' | 'warning' | 'critical';
     timestamp: string;
   }> = [];
 
@@ -424,11 +430,24 @@ function extractMetrics(text: string): Array<{
   const memory = memMatch ? parseFloat(memMatch[1]) : 0;
   const disk = diskMatch ? parseFloat(diskMatch[1]) : 0;
 
+  // Determine status based on metric values
+  const maxValue = Math.max(cpu, memory, disk);
+  const status: 'normal' | 'warning' | 'critical' =
+    maxValue >= 90 ? 'critical' : maxValue >= 70 ? 'warning' : 'normal';
+
   // Only save if we found some metrics
   if (cpu > 0 || memory > 0 || disk > 0) {
     const targetServers = servers.length > 0 ? servers : ['unknown'];
     for (const serverId of targetServers.slice(0, 5)) {
-      metrics.push({ serverId, cpu, memory, disk, timestamp });
+      metrics.push({
+        serverId,
+        serverName: serverId, // Use serverId as serverName
+        cpu,
+        memory,
+        disk,
+        status,
+        timestamp,
+      });
     }
   }
 
