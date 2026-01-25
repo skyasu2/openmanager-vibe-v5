@@ -1152,6 +1152,10 @@ export function createSupervisorStreamResponse(
       let messageSeq = 0;
       let currentMessageId = `assistant-${request.sessionId}-${startTime}-${nonce}-${messageSeq}`;
 
+      // 🛡️ UIMessageStream Protocol: Track text-start/text-end lifecycle
+      // text-start MUST precede text-delta, text-end MUST follow text-start
+      let textPartStarted = false;
+
       try {
         // Emit start event with session info
         // Use 'data-start' type for custom data (AI SDK requires 'data-${string}' pattern)
@@ -1179,6 +1183,15 @@ export function createSupervisorStreamResponse(
         for await (const event of executeSupervisorStream({ ...request, mode })) {
           switch (event.type) {
             case 'text_delta':
+              // 🛡️ UIMessageStream Protocol: text-start MUST precede text-delta
+              if (!textPartStarted) {
+                writer.write({
+                  type: 'text-start',
+                  id: currentMessageId,
+                });
+                textPartStarted = true;
+              }
+
               // Native text streaming with consistent message ID within same block
               writer.write({
                 type: 'text-delta',
@@ -1188,6 +1201,15 @@ export function createSupervisorStreamResponse(
               break;
 
             case 'handoff':
+              // 🛡️ UIMessageStream Protocol: Close previous text part before handoff
+              if (textPartStarted) {
+                writer.write({
+                  type: 'text-end',
+                  id: currentMessageId,
+                });
+                textPartStarted = false;
+              }
+
               // AI SDK v6 Best Practice: Create new message ID on handoff
               // This separates different agent responses into distinct UI messages
               messageSeq += 1;
@@ -1233,6 +1255,15 @@ export function createSupervisorStreamResponse(
               break;
 
             case 'done':
+              // 🛡️ UIMessageStream Protocol: Close text part before done
+              if (textPartStarted) {
+                writer.write({
+                  type: 'text-end',
+                  id: currentMessageId,
+                });
+                textPartStarted = false;
+              }
+
               // Completion metadata
               // AI SDK v6 Best Practice: Passthrough success status from upstream with type safety
               const doneData = event.data as Record<string, unknown>;
@@ -1251,6 +1282,15 @@ export function createSupervisorStreamResponse(
               break;
 
             case 'error':
+              // 🛡️ UIMessageStream Protocol: Close text part before error
+              if (textPartStarted) {
+                writer.write({
+                  type: 'text-end',
+                  id: currentMessageId,
+                });
+                textPartStarted = false;
+              }
+
               // Error event
               const errorData = event.data as Record<string, unknown>;
               writer.write({
@@ -1270,6 +1310,14 @@ export function createSupervisorStreamResponse(
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error(`❌ [UIMessageStream] Error:`, errorMessage);
+
+        // 🛡️ UIMessageStream Protocol: Close text part before error in catch
+        if (textPartStarted) {
+          writer.write({
+            type: 'text-end',
+            id: currentMessageId,
+          });
+        }
 
         writer.write({
           type: 'error',
