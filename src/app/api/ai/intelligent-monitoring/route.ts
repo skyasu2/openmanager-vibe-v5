@@ -16,6 +16,7 @@ import {
 import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
 import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
+import { getDefaultTimeout } from '@/lib/ai-proxy/proxy-config';
 import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
 
@@ -70,7 +71,7 @@ async function postHandler(request: NextRequest) {
                 ...body,
                 analysisType: body.analysisDepth || 'full',
               },
-              timeout: 15000,
+              timeout: getDefaultTimeout('intelligent-monitoring'),
             });
 
             if (!cloudRunResult.success || !cloudRunResult.data) {

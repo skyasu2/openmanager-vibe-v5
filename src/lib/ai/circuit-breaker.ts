@@ -85,6 +85,7 @@ export class InMemoryStateStore implements IDistributedStateStore {
 
 // 기본 상태 저장소 (싱글톤)
 let defaultStateStore: IDistributedStateStore = new InMemoryStateStore();
+let redisInitialized = false;
 
 /**
  * 분산 상태 저장소 설정
@@ -99,10 +100,35 @@ let defaultStateStore: IDistributedStateStore = new InMemoryStateStore();
  */
 export function setDistributedStateStore(store: IDistributedStateStore): void {
   defaultStateStore = store;
+  redisInitialized = true;
 }
 
 export function getDistributedStateStore(): IDistributedStateStore {
   return defaultStateStore;
+}
+
+/**
+ * Redis Circuit Breaker Store 자동 초기화
+ *
+ * @description
+ * Redis가 활성화되어 있으면 분산 상태 저장소로 자동 전환
+ * 첫 호출 시에만 초기화 (싱글톤)
+ *
+ * @returns 초기화 성공 여부
+ */
+export async function ensureRedisStateStore(): Promise<boolean> {
+  if (redisInitialized) return true;
+
+  try {
+    // 동적 import로 순환 참조 방지
+    const { initializeRedisCircuitBreaker } = await import(
+      '@/lib/redis/circuit-breaker-store'
+    );
+    return await initializeRedisCircuitBreaker();
+  } catch {
+    // Redis 모듈 로드 실패 시 InMemory 유지
+    return false;
+  }
 }
 
 // ============================================================================
@@ -527,6 +553,9 @@ export async function executeWithCircuitBreakerAndFallback<T>(
   primaryFn: () => Promise<T>,
   fallbackFn: () => T | Promise<T>
 ): Promise<ExecutionResult<T>> {
+  // Redis 분산 상태 저장소 자동 초기화 (첫 호출 시)
+  await ensureRedisStateStore();
+
   const breaker = aiCircuitBreaker.getBreaker(serviceName);
   const status = breaker.getStatus();
 

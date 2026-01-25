@@ -1,15 +1,21 @@
 /**
- * Redis Distributed Circuit Breaker Store
+ * Redis-based Distributed Circuit Breaker State Store
  *
- * 서버리스 환경에서 인스턴스 간 Circuit Breaker 상태 공유
- * - Upstash Redis 기반
- * - 자동 TTL 관리 (5분)
- * - Graceful Degradation (Redis 장애 시 In-Memory 폴백)
+ * @description
+ * Upstash Redis를 사용한 분산 Circuit Breaker 상태 관리
+ * 서버리스 환경(Vercel)에서 인스턴스 간 상태 공유 지원
  *
- * @version 1.0.0
- * @created 2026-01-04
+ * Best Practices Applied:
+ * - Redis Hash로 상태 저장 (HSET/HGETALL)
+ * - TTL 자동 만료로 자가 복구
+ * - Pipeline으로 명령어 배칭 (무료 티어 절약)
+ * - Graceful degradation (Redis 장애 시 InMemory 폴백)
+ *
+ * @see https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/circuit-breaker.html
+ * @created 2026-01-25
  */
 
+import type { Redis } from '@upstash/redis';
 import type {
   CircuitState,
   IDistributedStateStore,
@@ -21,8 +27,15 @@ import { getRedisClient, isRedisEnabled } from './client';
 // Constants
 // ============================================================================
 
-const CIRCUIT_BREAKER_PREFIX = 'circuit:';
-const DEFAULT_TTL_SECONDS = 300; // 5분
+const CIRCUIT_KEY_PREFIX = 'circuit:';
+const CIRCUIT_TTL_SECONDS = 300; // 5분 (Circuit Breaker 리셋 시간)
+const DEFAULT_STATE: CircuitState = {
+  state: 'CLOSED',
+  failures: 0,
+  lastFailTime: 0,
+  threshold: 3,
+  resetTimeout: 60000,
+};
 
 // ============================================================================
 // Redis Circuit Breaker Store
@@ -36,253 +49,156 @@ const DEFAULT_TTL_SECONDS = 300; // 5분
  * import { RedisCircuitBreakerStore } from '@/lib/redis/circuit-breaker-store';
  * import { setDistributedStateStore } from '@/lib/ai/circuit-breaker';
  *
- * // 앱 초기화 시 설정
- * const store = new RedisCircuitBreakerStore();
- * setDistributedStateStore(store);
+ * // 앱 초기화 시 Redis 저장소 설정
+ * setDistributedStateStore(new RedisCircuitBreakerStore());
  * ```
  */
 export class RedisCircuitBreakerStore implements IDistributedStateStore {
-  private ttlSeconds: number;
-  private inMemoryFallback: Map<string, CircuitState>;
+  private readonly keyPrefix: string;
+  private readonly ttlSeconds: number;
 
-  constructor(ttlSeconds: number = DEFAULT_TTL_SECONDS) {
-    this.ttlSeconds = ttlSeconds;
-    this.inMemoryFallback = new Map();
+  constructor(options?: { keyPrefix?: string; ttlSeconds?: number }) {
+    this.keyPrefix = options?.keyPrefix ?? CIRCUIT_KEY_PREFIX;
+    this.ttlSeconds = options?.ttlSeconds ?? CIRCUIT_TTL_SECONDS;
   }
 
   /**
-   * Redis 키 생성
-   */
-  private getKey(serviceName: string): string {
-    return `${CIRCUIT_BREAKER_PREFIX}${serviceName}`;
-  }
-
-  /**
-   * Circuit Breaker 상태 조회
+   * Circuit 상태 조회
    */
   async getState(serviceName: string): Promise<CircuitState | null> {
-    const redis = getRedisClient();
+    const redis = this.getRedis();
+    if (!redis) return null;
 
-    // Redis 사용 가능 시
-    if (redis && isRedisEnabled()) {
-      try {
-        const key = this.getKey(serviceName);
-        const state = await redis.hgetall(key);
+    try {
+      const key = this.getKey(serviceName);
+      const data = await redis.hgetall<Record<string, string>>(key);
 
-        if (state && Object.keys(state).length > 0) {
-          return {
-            state: state.state as CircuitState['state'],
-            failures: Number(state.failures) || 0,
-            lastFailTime: Number(state.lastFailTime) || 0,
-            threshold: Number(state.threshold) || 3,
-            resetTimeout: Number(state.resetTimeout) || 60000,
-          };
-        }
-
+      if (!data || Object.keys(data).length === 0) {
         return null;
-      } catch (error) {
-        logger.warn(
-          `[RedisCircuitBreaker] getState error for ${serviceName}:`,
-          error
-        );
       }
-    }
 
-    // In-Memory Fallback
-    return this.inMemoryFallback.get(serviceName) || null;
+      return this.parseState(data);
+    } catch (error) {
+      logger.warn(
+        `[CircuitBreakerStore] getState failed for ${serviceName}:`,
+        error
+      );
+      return null;
+    }
   }
 
   /**
-   * Circuit Breaker 상태 저장
+   * Circuit 상태 저장
    */
   async setState(serviceName: string, state: CircuitState): Promise<void> {
-    const redis = getRedisClient();
+    const redis = this.getRedis();
+    if (!redis) return;
 
-    // In-Memory 항상 업데이트
-    this.inMemoryFallback.set(serviceName, state);
+    try {
+      const key = this.getKey(serviceName);
+      const data = this.serializeState(state);
 
-    // Redis 저장
-    if (redis && isRedisEnabled()) {
-      try {
-        const key = this.getKey(serviceName);
+      // Pipeline으로 HSET + EXPIRE 원자적 실행
+      const pipeline = redis.pipeline();
+      pipeline.hset(key, data);
+      pipeline.expire(key, this.ttlSeconds);
+      await pipeline.exec();
 
-        // 개별 명령어로 저장
-        await redis.hset(key, {
-          state: state.state,
-          failures: state.failures.toString(),
-          lastFailTime: state.lastFailTime.toString(),
-          threshold: state.threshold.toString(),
-          resetTimeout: state.resetTimeout.toString(),
-        });
-        await redis.expire(key, this.ttlSeconds);
-
-        // 상태 변경 로깅
-        if (process.env.NODE_ENV === 'development') {
-          logger.info(
-            `[RedisCircuitBreaker] ${serviceName}: ${state.state} (failures: ${state.failures})`
-          );
-        }
-      } catch (error) {
-        logger.warn(
-          `[RedisCircuitBreaker] setState error for ${serviceName}:`,
-          error
-        );
-      }
+      logger.debug(
+        `[CircuitBreakerStore] setState: ${serviceName} → ${state.state}`
+      );
+    } catch (error) {
+      logger.warn(
+        `[CircuitBreakerStore] setState failed for ${serviceName}:`,
+        error
+      );
     }
   }
 
   /**
-   * 실패 횟수 증가 (Atomic Operation)
+   * 실패 카운터 증가 (Atomic)
    */
   async incrementFailures(serviceName: string): Promise<number> {
-    const redis = getRedisClient();
+    const redis = this.getRedis();
+    if (!redis) return 0;
 
-    // In-Memory 업데이트
-    const existing = this.inMemoryFallback.get(serviceName);
-    const newFailures = (existing?.failures || 0) + 1;
+    try {
+      const key = this.getKey(serviceName);
+      const now = Date.now();
 
-    if (existing) {
-      existing.failures = newFailures;
-      existing.lastFailTime = Date.now();
-    } else {
-      this.inMemoryFallback.set(serviceName, {
-        state: 'CLOSED',
-        failures: newFailures,
-        lastFailTime: Date.now(),
-        threshold: 3,
-        resetTimeout: 60000,
-      });
+      // Pipeline으로 원자적 업데이트
+      const pipeline = redis.pipeline();
+      pipeline.hincrby(key, 'failures', 1);
+      pipeline.hset(key, { lastFailTime: now.toString() });
+      pipeline.expire(key, this.ttlSeconds);
+
+      const results = await pipeline.exec<[number, number, number]>();
+      const newFailures = results[0];
+
+      logger.debug(
+        `[CircuitBreakerStore] incrementFailures: ${serviceName} → ${newFailures}`
+      );
+      return newFailures;
+    } catch (error) {
+      logger.warn(
+        `[CircuitBreakerStore] incrementFailures failed for ${serviceName}:`,
+        error
+      );
+      return 0;
     }
-
-    // Redis Atomic Increment
-    if (redis && isRedisEnabled()) {
-      try {
-        const key = this.getKey(serviceName);
-        const result = await redis.hincrby(key, 'failures', 1);
-        await redis.hset(key, { lastFailTime: Date.now().toString() });
-        await redis.expire(key, this.ttlSeconds);
-
-        return result || newFailures;
-      } catch (error) {
-        logger.warn(
-          `[RedisCircuitBreaker] incrementFailures error for ${serviceName}:`,
-          error
-        );
-      }
-    }
-
-    return newFailures;
   }
 
   /**
-   * Circuit Breaker 상태 리셋
+   * Circuit 상태 리셋 (삭제)
    */
   async resetState(serviceName: string): Promise<void> {
-    const redis = getRedisClient();
+    const redis = this.getRedis();
+    if (!redis) return;
 
-    // In-Memory 삭제
-    this.inMemoryFallback.delete(serviceName);
-
-    // Redis 삭제
-    if (redis && isRedisEnabled()) {
-      try {
-        const key = this.getKey(serviceName);
-        await redis.del(key);
-      } catch (error) {
-        logger.warn(
-          `[RedisCircuitBreaker] resetState error for ${serviceName}:`,
-          error
-        );
-      }
+    try {
+      const key = this.getKey(serviceName);
+      await redis.del(key);
+      logger.debug(`[CircuitBreakerStore] resetState: ${serviceName}`);
+    } catch (error) {
+      logger.warn(
+        `[CircuitBreakerStore] resetState failed for ${serviceName}:`,
+        error
+      );
     }
   }
 
-  /**
-   * 모든 Circuit Breaker 상태 조회 (모니터링용)
-   */
-  async getAllStates(): Promise<Map<string, CircuitState>> {
-    const redis = getRedisClient();
-    const result = new Map<string, CircuitState>();
+  // ============================================================================
+  // Private Helpers
+  // ============================================================================
 
-    // Redis에서 조회
-    if (redis && isRedisEnabled()) {
-      try {
-        // SCAN으로 모든 키 조회
-        const keys: string[] = [];
-        let cursor = 0;
-
-        do {
-          const [newCursor, foundKeys] = await redis.scan(cursor, {
-            match: `${CIRCUIT_BREAKER_PREFIX}*`,
-            count: 100,
-          });
-          cursor = Number(newCursor);
-          keys.push(...foundKeys);
-        } while (cursor !== 0);
-
-        // 각 키의 상태 조회
-        for (const key of keys) {
-          const serviceName = key.replace(CIRCUIT_BREAKER_PREFIX, '');
-          const state = await this.getState(serviceName);
-          if (state) {
-            result.set(serviceName, state);
-          }
-        }
-
-        return result;
-      } catch (error) {
-        logger.warn('[RedisCircuitBreaker] getAllStates error:', error);
-      }
+  private getRedis(): Redis | null {
+    if (!isRedisEnabled()) {
+      return null;
     }
-
-    // Fallback: In-Memory
-    return new Map(this.inMemoryFallback);
+    return getRedisClient();
   }
 
-  /**
-   * 상태 요약 (대시보드용)
-   */
-  async getSummary(): Promise<{
-    total: number;
-    closed: number;
-    open: number;
-    halfOpen: number;
-    services: Array<{ name: string; state: string; failures: number }>;
-  }> {
-    const states = await this.getAllStates();
+  private getKey(serviceName: string): string {
+    return `${this.keyPrefix}${serviceName}`;
+  }
 
-    let closed = 0;
-    let open = 0;
-    let halfOpen = 0;
-    const services: Array<{ name: string; state: string; failures: number }> =
-      [];
-
-    for (const [name, state] of states) {
-      services.push({
-        name,
-        state: state.state,
-        failures: state.failures,
-      });
-
-      switch (state.state) {
-        case 'CLOSED':
-          closed++;
-          break;
-        case 'OPEN':
-          open++;
-          break;
-        case 'HALF_OPEN':
-          halfOpen++;
-          break;
-      }
-    }
-
+  private serializeState(state: CircuitState): Record<string, string> {
     return {
-      total: states.size,
-      closed,
-      open,
-      halfOpen,
-      services,
+      state: state.state,
+      failures: state.failures.toString(),
+      lastFailTime: state.lastFailTime.toString(),
+      threshold: state.threshold.toString(),
+      resetTimeout: state.resetTimeout.toString(),
+    };
+  }
+
+  private parseState(data: Record<string, string>): CircuitState {
+    return {
+      state: (data.state as CircuitState['state']) || DEFAULT_STATE.state,
+      failures: parseInt(data.failures || '0', 10),
+      lastFailTime: parseInt(data.lastFailTime || '0', 10),
+      threshold: parseInt(data.threshold || '3', 10),
+      resetTimeout: parseInt(data.resetTimeout || '60000', 10),
     };
   }
 }
@@ -294,7 +210,7 @@ export class RedisCircuitBreakerStore implements IDistributedStateStore {
 let storeInstance: RedisCircuitBreakerStore | null = null;
 
 /**
- * Redis Circuit Breaker Store 싱글톤 인스턴스 가져오기
+ * Redis Circuit Breaker Store 싱글톤 반환
  */
 export function getRedisCircuitBreakerStore(): RedisCircuitBreakerStore {
   if (!storeInstance) {
@@ -303,11 +219,38 @@ export function getRedisCircuitBreakerStore(): RedisCircuitBreakerStore {
   return storeInstance;
 }
 
+// ============================================================================
+// Auto-initialization
+// ============================================================================
+
 /**
- * Redis Circuit Breaker Store 초기화 (앱 시작 시 호출)
+ * Circuit Breaker에 Redis Store 자동 연결
+ *
+ * @description
+ * Redis가 활성화되어 있으면 자동으로 분산 상태 저장소로 설정
+ * Redis가 비활성화되면 기본 InMemoryStateStore 사용 (폴백)
+ *
+ * @example
+ * ```typescript
+ * // 앱 초기화 시 호출
+ * import { initializeRedisCircuitBreaker } from '@/lib/redis/circuit-breaker-store';
+ * await initializeRedisCircuitBreaker();
+ * ```
  */
-export function initializeRedisCircuitBreakerStore(): RedisCircuitBreakerStore {
+export async function initializeRedisCircuitBreaker(): Promise<boolean> {
+  // 동적 import로 순환 참조 방지
+  const { setDistributedStateStore } = await import('@/lib/ai/circuit-breaker');
+
+  if (!isRedisEnabled()) {
+    logger.info(
+      '[CircuitBreakerStore] Redis not available, using InMemory fallback'
+    );
+    return false;
+  }
+
   const store = getRedisCircuitBreakerStore();
-  logger.info('[RedisCircuitBreaker] Store initialized');
-  return store;
+  setDistributedStateStore(store);
+
+  logger.info('[CircuitBreakerStore] Redis distributed store initialized');
+  return true;
 }
