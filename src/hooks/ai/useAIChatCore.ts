@@ -334,9 +334,9 @@ export function useAIChatCore(
     const lastUserMessage = messages[actualIndex];
     if (!lastUserMessage) return;
 
-    // Extract text content from the message
+    // Extract text content from the message (null/undefined 방어 코드)
     const textPart = lastUserMessage.parts?.find(
-      (p): p is { type: 'text'; text: string } => p.type === 'text'
+      (p): p is { type: 'text'; text: string } => p != null && p.type === 'text'
     );
     const textContent = textPart?.text;
 

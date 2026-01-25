@@ -388,10 +388,13 @@ export function useHybridAIQuery(
       }
 
       // 🚨 스트림 완료 후 에러 패턴 감지 (Cold Start 등)
-      // AI SDK v6: message.parts 배열에서 텍스트 추출
+      // AI SDK v6: message.parts 배열에서 텍스트 추출 (null/undefined 방어 코드)
       const parts = message.parts ?? [];
       const content = parts
-        .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+        .filter(
+          (p): p is { type: 'text'; text: string } =>
+            p != null && p.type === 'text'
+        )
         .map((p) => p.text)
         .join('');
 
