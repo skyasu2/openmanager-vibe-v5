@@ -65,11 +65,14 @@ export function transformUIMessageToEnhanced(
   const { isLoading, currentMode } = options;
   const textContent = extractTextFromUIMessage(message);
 
-  // Tool parts 추출
+  // Tool parts 추출 (null/undefined 방어 코드 추가)
   const toolParts =
     message.parts?.filter(
       (part): part is typeof part & { toolCallId: string } =>
-        part.type.startsWith('tool-') && 'toolCallId' in part
+        part != null &&
+        typeof part.type === 'string' &&
+        part.type.startsWith('tool-') &&
+        'toolCallId' in part
     ) ?? [];
 
   // ThinkingSteps 생성
