@@ -594,6 +594,36 @@ export function useHybridAIQuery(
   });
 
   // ============================================================================
+  // 🛡️ Message Sanitization Effect
+  // AI SDK 에러 방지: 메시지가 변경될 때마다 undefined parts가 있으면 자동 정리
+  // ============================================================================
+  useEffect(() => {
+    // 메시지가 없으면 스킵
+    if (messages.length === 0) return;
+
+    // undefined parts가 있는 메시지 확인
+    const hasInvalidParts = messages.some(
+      (msg) =>
+        !msg.parts ||
+        msg.parts.length === 0 ||
+        msg.parts.some(
+          (part) =>
+            part == null ||
+            (part.type === 'text' &&
+              typeof (part as { text?: string }).text !== 'string')
+        )
+    );
+
+    // 문제가 있으면 sanitize
+    if (hasInvalidParts) {
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('[HybridAI] Detected invalid message parts, sanitizing...');
+      }
+      setMessages(sanitizeMessages(messages));
+    }
+  }, [messages, setMessages]);
+
+  // ============================================================================
   // useAsyncAIQuery Hook (Job Queue Mode)
   // ============================================================================
   const asyncQuery = useAsyncAIQuery({
