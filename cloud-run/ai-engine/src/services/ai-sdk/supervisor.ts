@@ -338,6 +338,16 @@ async function executeMultiAgentMode(
 
     const multiResult = result as MultiAgentResponse;
 
+    // 🎯 P1-1: Record token usage for quota tracking (multi-agent mode)
+    // Fix: Gemini review identified missing recordModelUsage in multi-agent path
+    if (multiResult.usage.totalTokens > 0) {
+      await recordModelUsage(
+        multiResult.metadata.provider as import('./model-provider').ProviderName,
+        multiResult.usage.totalTokens,
+        'multi-agent'
+      );
+    }
+
     return {
       success: true,
       response: multiResult.response,
