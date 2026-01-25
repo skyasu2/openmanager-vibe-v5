@@ -186,6 +186,29 @@ export const useAIThinking = () => {
   };
 };
 
+/**
+ * @deprecated v4.0부터 사용되지 않음
+ *
+ * 실제 AI 통신은 AISidebarV4.tsx의 Vercel AI SDK useChat 훅이 담당합니다.
+ * 이 훅은 메시지 상태 읽기와 초기화만 제공하며, sendMessage는 구현되지 않았습니다.
+ *
+ * @see src/components/ai-sidebar/AISidebarV4.tsx - 실제 AI 통신 로직
+ * @see src/hooks/ai-sidebar/ - 상태 동기화
+ */
+export const useAIChat = () => {
+  const messages = useAISidebarStore((state) => state.messages);
+  const addMessage = useAISidebarStore((state) => state.addMessage);
+  const clearMessages = useAISidebarStore((state) => state.clearMessages);
+
+  return {
+    messages,
+    addMessage,
+    clearMessages,
+    /** @deprecated useChat from AISidebarV4.tsx instead */
+    isLoading: false,
+  };
+};
+
 // 🔧 타입 정의 (기존 호환성 유지)
 export interface PresetQuestion {
   id: string;

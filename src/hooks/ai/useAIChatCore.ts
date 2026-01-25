@@ -24,17 +24,17 @@ import {
 } from '@/hooks/ai/useHybridAIQuery';
 import { logger } from '@/lib/logging';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
+import { useChatFeedback } from './core/useChatFeedback';
+import { useChatHistory } from './core/useChatHistory';
+import { useChatSession } from './core/useChatSession';
+import {
+  type SessionState,
+  useChatSessionState,
+} from './core/useChatSessionState';
 import {
   convertThinkingStepsToUI,
   transformMessages,
 } from './utils/message-helpers';
-import { useChatSession } from './core/useChatSession';
-import { useChatFeedback } from './core/useChatFeedback';
-import { useChatHistory } from './core/useChatHistory';
-import {
-  useChatSessionState,
-  type SessionState,
-} from './core/useChatSessionState';
 
 // Re-export for backwards compatibility
 export { convertThinkingStepsToUI };
@@ -133,9 +133,9 @@ export function useAIChatCore(
   const pendingQueryRef = useRef<string>('');
 
   // 🧩 Composed Hooks
-  const { sessionId, refreshSessionId, setSessionId } =
+  const { sessionId, sessionIdRef, refreshSessionId, setSessionId } =
     useChatSession(propSessionId);
-  const { handleFeedback } = useChatFeedback(sessionId);
+  const { handleFeedback } = useChatFeedback(sessionIdRef);
 
   // ============================================================================
   // Hybrid AI Query Hook

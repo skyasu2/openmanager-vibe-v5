@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 /**
  * 고유 세션 ID 생성
@@ -12,20 +12,37 @@ function generateSessionId(): string {
   return `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
+/**
+ * 세션 ID 관리 훅
+ *
+ * useState + useRef 하이브리드 패턴:
+ * - useState: 세션 변경 시 리렌더 트리거
+ * - useRef: 콜백 내부에서 최신 값 참조
+ */
 export function useChatSession(initialSessionId?: string) {
-  const sessionIdRef = useRef<string>(initialSessionId || generateSessionId());
+  const [sessionId, setSessionIdState] = useState(
+    () => initialSessionId ?? generateSessionId()
+  );
+  const sessionIdRef = useRef(sessionId);
+
+  // ref를 항상 최신 상태와 동기화
+  sessionIdRef.current = sessionId;
 
   const refreshSessionId = useCallback(() => {
-    sessionIdRef.current = generateSessionId();
-    return sessionIdRef.current;
+    const next = generateSessionId();
+    sessionIdRef.current = next;
+    setSessionIdState(next);
+    return next;
   }, []);
 
   const setSessionId = useCallback((newSessionId: string) => {
     sessionIdRef.current = newSessionId;
+    setSessionIdState(newSessionId);
   }, []);
 
   return {
-    sessionId: sessionIdRef.current,
+    sessionId,
+    sessionIdRef,
     refreshSessionId,
     setSessionId,
   };

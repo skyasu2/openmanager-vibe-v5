@@ -1,9 +1,15 @@
 'use client';
 
+import type { MutableRefObject } from 'react';
 import { useCallback } from 'react';
 import { logger } from '@/lib/logging';
 
-export function useChatFeedback(sessionId: string) {
+/**
+ * 피드백 API 호출 훅
+ *
+ * @param sessionIdRef - 세션 ID ref (최신 값 보장)
+ */
+export function useChatFeedback(sessionIdRef: MutableRefObject<string>) {
   const handleFeedback = useCallback(
     async (messageId: string, type: 'positive' | 'negative') => {
       try {
@@ -13,7 +19,7 @@ export function useChatFeedback(sessionId: string) {
           body: JSON.stringify({
             messageId,
             type,
-            sessionId,
+            sessionId: sessionIdRef.current, // ref에서 최신 값 참조
             timestamp: new Date().toISOString(),
           }),
         });
@@ -24,7 +30,7 @@ export function useChatFeedback(sessionId: string) {
         logger.error('[AIChatCore] Feedback error:', err);
       }
     },
-    [sessionId]
+    [sessionIdRef]
   );
 
   return { handleFeedback };
