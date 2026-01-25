@@ -767,7 +767,7 @@ export function useHybridAIQuery(
 
         // 🛡️ AI SDK 에러 방지: 메시지 배열 정리 (undefined parts 제거)
         // AI SDK가 메시지를 직렬화할 때 undefined parts가 있으면 에러 발생
-        // flushSync로 상태 업데이트를 동기적으로 완료시킴 (sendMessage가 sanitized messages를 읽을 수 있도록)
+        // flushSync로 상태 업데이트를 동기적으로 완료시킴
         flushSync(() => {
           setMessages((prev) => sanitizeMessages(prev));
         });
@@ -775,16 +775,21 @@ export function useHybridAIQuery(
         // sendMessage는 user 메시지 추가 + API 호출을 자동으로 처리
         // Note: useChat의 onError 콜백이 async 에러를 처리하지만,
         // sync 에러는 catch 필요
-        // 🎯 P1 Fix: Add catch for potential sync/async errors
-        Promise.resolve(sendMessage({ text: trimmedQuery })).catch((error) => {
-          logger.error('[HybridAI] Streaming send failed:', error);
-          setState((prev) => ({
-            ...prev,
-            isLoading: false,
-            error:
-              error instanceof Error ? error.message : '스트리밍 전송 실패',
-          }));
-        });
+        // 🎯 P1 Fix: setTimeout(0)으로 React 배치 업데이트 완료 후 sendMessage 호출
+        // flushSync만으로는 AI SDK 내부 상태와 동기화되지 않을 수 있음
+        setTimeout(() => {
+          Promise.resolve(sendMessage({ text: trimmedQuery })).catch(
+            (error) => {
+              logger.error('[HybridAI] Streaming send failed:', error);
+              setState((prev) => ({
+                ...prev,
+                isLoading: false,
+                error:
+                  error instanceof Error ? error.message : '스트리밍 전송 실패',
+              }));
+            }
+          );
+        }, 0);
       }
     },
     [complexityThreshold, asyncQuery, sendMessage, setMessages]
