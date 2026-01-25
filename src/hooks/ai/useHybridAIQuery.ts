@@ -347,10 +347,17 @@ export function useHybridAIQuery(
   // 🌊 Native protocol support (2026-01-24)
   // @see https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol
   // v2 only: AI SDK native UIMessageStream with resumable stream support
+  // 🎯 Best Practice: prepareReconnectToStreamRequest로 resume URL 커스터마이징
+  // AI SDK 기본 패턴 {api}/{id}/stream 대신 query parameter 방식 사용
+  // @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: apiEndpoint,
+        // Resume stream URL customization (fixes 404 error)
+        prepareReconnectToStreamRequest: ({ id }) => ({
+          api: `${apiEndpoint}?sessionId=${id}`,
+        }),
       }),
     [apiEndpoint]
   );
