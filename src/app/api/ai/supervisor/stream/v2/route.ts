@@ -238,11 +238,9 @@ export const POST = withRateLimit(
       const normalizedMessages = normalizeMessagesForCloudRun(messages);
 
       // 5. Get Cloud Run URL
-      const cloudRunUrl = process.env.CLOUD_RUN_AI_ENGINE_URL;
+      const cloudRunUrl = process.env.CLOUD_RUN_AI_URL;
       if (!cloudRunUrl) {
-        logger.error(
-          '❌ [SupervisorStreamV2] CLOUD_RUN_AI_ENGINE_URL not configured'
-        );
+        logger.error('❌ [SupervisorStreamV2] CLOUD_RUN_AI_URL not configured');
         return NextResponse.json(
           { success: false, error: 'Streaming not available' },
           { status: 503 }
