@@ -66,7 +66,7 @@ export function extractTextFromUIMessage(message: UIMessage): string {
   }
 
   return message.parts
-    .filter((part): part is TextPart => part.type === 'text')
+    .filter((part): part is TextPart => part != null && part.type === 'text')
     .map((part) => part.text)
     .join('');
 }
@@ -93,7 +93,7 @@ export function extractTextFromHybridMessage(message: HybridMessage): string {
     const textParts = message.parts
       .filter(
         (part): part is TextPart =>
-          part.type === 'text' && typeof part.text === 'string'
+          part != null && part.type === 'text' && typeof part.text === 'string'
       )
       .map((part) => part.text);
 
