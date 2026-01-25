@@ -226,15 +226,13 @@ reports/*
 !reports/README.md
 !reports/planning/
 !reports/ai-review/
-reports/ai-review/.*
+!reports/ai-review/**/
+!reports/ai-review/**/.gitkeep
 # AI 코드 리뷰 파일 (로컬 전용, GitHub 제외)
-# - pending/*.md: 미검토 리뷰
-# - archived/*.md: 검토 완료 리뷰
-# - history/**/*.md: 과거 리뷰 히스토리
-# - .evaluation-log: 평가 기록 (로컬 전용)
-reports/ai-review/pending/*.md
-reports/ai-review/archived/*.md
-reports/ai-review/history/**/*.md
+# - 모든 .md 파일은 추적 제외
+# - .gitkeep만 추적하여 폴더 구조 유지
+reports/ai-review/**/*.md
+reports/ai-review/.*
 
 # External MCP servers (cloned from GitHub)
 fetch-mcp/

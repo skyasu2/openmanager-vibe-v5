@@ -28,7 +28,6 @@
 
 import type { UIMessage } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
-import type { ChatTransport } from 'ai';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
@@ -330,55 +329,6 @@ function sanitizeMessages(messages: UIMessage[]): UIMessage[] {
   });
 }
 
-/**
- * 🛡️ SanitizingChatTransport
- *
- * AI SDK의 DefaultChatTransport를 래핑하여 메시지 전송 전에 sanitize 적용
- * 이는 AI SDK 내부 상태와 React 상태의 동기화 문제를 해결합니다.
- *
- * 문제: AI SDK가 메시지를 직렬화할 때 undefined parts가 있으면
- * "Cannot read properties of undefined (reading 'text')" 에러 발생
- *
- * 해결: Transport 레벨에서 메시지를 sanitize하여 에러 방지
- */
-class SanitizingChatTransport implements ChatTransport<UIMessage> {
-  private baseTransport: DefaultChatTransport<UIMessage>;
-
-  constructor(
-    options: ConstructorParameters<typeof DefaultChatTransport<UIMessage>>[0]
-  ) {
-    this.baseTransport = new DefaultChatTransport<UIMessage>(options);
-  }
-
-  // ChatTransport 인터페이스 구현: sendMessages
-  // 메시지 전송 전에 sanitize 적용
-  sendMessages(
-    options: Parameters<ChatTransport<UIMessage>['sendMessages']>[0]
-  ): ReturnType<ChatTransport<UIMessage>['sendMessages']> {
-    // 메시지 sanitize 적용
-    const sanitizedMessages = sanitizeMessages(options.messages as UIMessage[]);
-
-    if (process.env.NODE_ENV === 'development') {
-      logger.debug(
-        `[SanitizingTransport] Sanitizing ${options.messages.length} messages`
-      );
-    }
-
-    // sanitized 메시지로 기본 transport 호출
-    return this.baseTransport.sendMessages({
-      ...options,
-      messages: sanitizedMessages,
-    });
-  }
-
-  // ChatTransport 인터페이스 구현: reconnectToStream (기본 transport 위임)
-  reconnectToStream(
-    ...args: Parameters<ChatTransport<UIMessage>['reconnectToStream']>
-  ): ReturnType<ChatTransport<UIMessage>['reconnectToStream']> {
-    return this.baseTransport.reconnectToStream(...args);
-  }
-}
-
 // ============================================================================
 // Hook Implementation
 // ============================================================================
@@ -446,11 +396,9 @@ export function useHybridAIQuery(
   // 🎯 Best Practice: prepareReconnectToStreamRequest로 resume URL 커스터마이징
   // AI SDK 기본 패턴 {api}/{id}/stream 대신 query parameter 방식 사용
   // @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
-  // 🛡️ SanitizingChatTransport: 메시지 전송 전에 undefined parts 제거
-  // 이는 AI SDK 내부 직렬화 에러 "Cannot read properties of undefined (reading 'text')" 방지
   const transport = useMemo(
     () =>
-      new SanitizingChatTransport({
+      new DefaultChatTransport({
         api: apiEndpoint,
         // Resume stream URL customization (fixes 404 error)
         prepareReconnectToStreamRequest: ({ id }) => ({
@@ -789,9 +737,7 @@ export function useHybridAIQuery(
           clarification: null,
         }));
 
-        // 🛡️ Pre-sanitize 전략: sendMessage 호출 전에 기존 messages를 sanitize
-        // AI SDK는 transport.sendMessages() 호출 전에 내부적으로 messages를 처리하므로
-        // SanitizingChatTransport의 sanitization이 너무 늦게 적용되는 문제 해결
+        // 🛡️ Pre-sanitize: sendMessage 호출 전에 기존 messages를 sanitize
         // flushSync로 동기적 상태 업데이트 보장 후 sendMessage 호출
         // 🎯 Fix: "Cannot read properties of undefined (reading 'text')" 에러 방지
         flushSync(() => {
