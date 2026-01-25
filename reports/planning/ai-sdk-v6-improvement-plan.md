@@ -44,13 +44,18 @@
 
 ---
 
-## Phase 3: 아키텍처 다이어그램 (선택)
+## Phase 3: 아키텍처 다이어그램 ✅ 완료
 
-### 3.1 Mermaid 다이어그램 생성
-- [ ] AI SDK v6 데이터 플로우 (선택)
-- [ ] Resumable Stream 시퀀스 (선택)
+### 3.1 Mermaid/ASCII 다이어그램 업데이트 ✅
+- [x] `ai-engine-architecture.md` - `SSE Stream` → `UIMessageStream` 수정
+- [x] ASCII fallback 다이어그램 - `SSE Response` → `UIMessageStream` 수정
+- [x] 버전 표기 `v5.87.0` → `v6.1.0` 업데이트
 
-> **Note**: 기존 `ai-engine-architecture.md`에 Mermaid 다이어그램이 이미 포함되어 있음
+### 3.2 랜딩페이지 아키텍처 다이어그램 ✅
+- [x] `architecture-diagrams.data.ts` 버전 업데이트 (5.88.2 → 6.1.0)
+- [x] AI Assistant 카드 설명에 v6 정보 반영
+- [x] `AI SDK v6 Protocol` 레이어 추가 (UIMessageStream, Resumable Stream v2)
+- [x] 새로운 연결 플로우 추가 (Verifier → UIMessageStream → User)
 
 ---
 
@@ -83,6 +88,6 @@
 | Phase 1.2 | ✅ | AI 아키텍처 문서 업데이트 |
 | Phase 2.1 | ⚠️ | Cloud Run 테스트 - 기존 커버리지 충분 |
 | Phase 2.2 | ✅ | Frontend Hook - 이미 v6 적용됨 |
-| Phase 3 | ⏸️ | 다이어그램 - 기존 문서에 포함됨 |
+| Phase 3 | ✅ | 다이어그램 v6 업데이트 완료 |
 
-_Status: Phase 1 완료, Phase 2 평가 완료, 작업 종료_
+_Status: Phase 1 완료, Phase 2 평가 완료, Phase 3 완료_
