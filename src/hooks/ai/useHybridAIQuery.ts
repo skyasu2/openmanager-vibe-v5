@@ -29,8 +29,8 @@
 import type { UIMessage } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
+import type { ChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
 import {
   applyClarification,
   applyCustomClarification,
@@ -329,6 +329,55 @@ function sanitizeMessages(messages: UIMessage[]): UIMessage[] {
   });
 }
 
+/**
+ * 🛡️ SanitizingChatTransport
+ *
+ * AI SDK의 DefaultChatTransport를 래핑하여 메시지 전송 전에 sanitize 적용
+ * 이는 AI SDK 내부 상태와 React 상태의 동기화 문제를 해결합니다.
+ *
+ * 문제: AI SDK가 메시지를 직렬화할 때 undefined parts가 있으면
+ * "Cannot read properties of undefined (reading 'text')" 에러 발생
+ *
+ * 해결: Transport 레벨에서 메시지를 sanitize하여 에러 방지
+ */
+class SanitizingChatTransport implements ChatTransport<UIMessage> {
+  private baseTransport: DefaultChatTransport<UIMessage>;
+
+  constructor(
+    options: ConstructorParameters<typeof DefaultChatTransport<UIMessage>>[0]
+  ) {
+    this.baseTransport = new DefaultChatTransport<UIMessage>(options);
+  }
+
+  // ChatTransport 인터페이스 구현: sendMessages
+  // 메시지 전송 전에 sanitize 적용
+  sendMessages(
+    options: Parameters<ChatTransport<UIMessage>['sendMessages']>[0]
+  ): ReturnType<ChatTransport<UIMessage>['sendMessages']> {
+    // 메시지 sanitize 적용
+    const sanitizedMessages = sanitizeMessages(options.messages as UIMessage[]);
+
+    if (process.env.NODE_ENV === 'development') {
+      logger.debug(
+        `[SanitizingTransport] Sanitizing ${options.messages.length} messages`
+      );
+    }
+
+    // sanitized 메시지로 기본 transport 호출
+    return this.baseTransport.sendMessages({
+      ...options,
+      messages: sanitizedMessages,
+    });
+  }
+
+  // ChatTransport 인터페이스 구현: reconnectToStream (기본 transport 위임)
+  reconnectToStream(
+    ...args: Parameters<ChatTransport<UIMessage>['reconnectToStream']>
+  ): ReturnType<ChatTransport<UIMessage>['reconnectToStream']> {
+    return this.baseTransport.reconnectToStream(...args);
+  }
+}
+
 // ============================================================================
 // Hook Implementation
 // ============================================================================
@@ -396,9 +445,11 @@ export function useHybridAIQuery(
   // 🎯 Best Practice: prepareReconnectToStreamRequest로 resume URL 커스터마이징
   // AI SDK 기본 패턴 {api}/{id}/stream 대신 query parameter 방식 사용
   // @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
+  // 🛡️ SanitizingChatTransport: 메시지 전송 전에 undefined parts 제거
+  // 이는 AI SDK 내부 직렬화 에러 "Cannot read properties of undefined (reading 'text')" 방지
   const transport = useMemo(
     () =>
-      new DefaultChatTransport({
+      new SanitizingChatTransport({
         api: apiEndpoint,
         // Resume stream URL customization (fixes 404 error)
         prepareReconnectToStreamRequest: ({ id }) => ({
@@ -594,36 +645,6 @@ export function useHybridAIQuery(
   });
 
   // ============================================================================
-  // 🛡️ Message Sanitization Effect
-  // AI SDK 에러 방지: 메시지가 변경될 때마다 undefined parts가 있으면 자동 정리
-  // ============================================================================
-  useEffect(() => {
-    // 메시지가 없으면 스킵
-    if (messages.length === 0) return;
-
-    // undefined parts가 있는 메시지 확인
-    const hasInvalidParts = messages.some(
-      (msg) =>
-        !msg.parts ||
-        msg.parts.length === 0 ||
-        msg.parts.some(
-          (part) =>
-            part == null ||
-            (part.type === 'text' &&
-              typeof (part as { text?: string }).text !== 'string')
-        )
-    );
-
-    // 문제가 있으면 sanitize
-    if (hasInvalidParts) {
-      if (process.env.NODE_ENV === 'development') {
-        logger.warn('[HybridAI] Detected invalid message parts, sanitizing...');
-      }
-      setMessages(sanitizeMessages(messages));
-    }
-  }, [messages, setMessages]);
-
-  // ============================================================================
   // useAsyncAIQuery Hook (Job Queue Mode)
   // ============================================================================
   const asyncQuery = useAsyncAIQuery({
@@ -765,31 +786,18 @@ export function useHybridAIQuery(
           clarification: null,
         }));
 
-        // 🛡️ AI SDK 에러 방지: 메시지 배열 정리 (undefined parts 제거)
-        // AI SDK가 메시지를 직렬화할 때 undefined parts가 있으면 에러 발생
-        // flushSync로 상태 업데이트를 동기적으로 완료시킴
-        flushSync(() => {
-          setMessages((prev) => sanitizeMessages(prev));
-        });
-
+        // 🛡️ SanitizingChatTransport가 메시지 전송 전에 undefined parts를 자동 정리
+        // 따라서 별도의 flushSync나 setTimeout이 필요 없음
         // sendMessage는 user 메시지 추가 + API 호출을 자동으로 처리
-        // Note: useChat의 onError 콜백이 async 에러를 처리하지만,
-        // sync 에러는 catch 필요
-        // 🎯 P1 Fix: setTimeout(0)으로 React 배치 업데이트 완료 후 sendMessage 호출
-        // flushSync만으로는 AI SDK 내부 상태와 동기화되지 않을 수 있음
-        setTimeout(() => {
-          Promise.resolve(sendMessage({ text: trimmedQuery })).catch(
-            (error) => {
-              logger.error('[HybridAI] Streaming send failed:', error);
-              setState((prev) => ({
-                ...prev,
-                isLoading: false,
-                error:
-                  error instanceof Error ? error.message : '스트리밍 전송 실패',
-              }));
-            }
-          );
-        }, 0);
+        Promise.resolve(sendMessage({ text: trimmedQuery })).catch((error) => {
+          logger.error('[HybridAI] Streaming send failed:', error);
+          setState((prev) => ({
+            ...prev,
+            isLoading: false,
+            error:
+              error instanceof Error ? error.message : '스트리밍 전송 실패',
+          }));
+        });
       }
     },
     [complexityThreshold, asyncQuery, sendMessage, setMessages]
