@@ -15,6 +15,9 @@ import { z } from 'zod';
 import { getSupabaseConfig, getTavilyApiKey, getTavilyApiKeyBackup } from '../lib/config-parser';
 import { searchWithEmbedding, embedText } from '../lib/embedding';
 import { hybridGraphSearch } from '../lib/llamaindex-rag-service';
+import { shouldUseHyDE, expandQueryWithHyDE } from '../lib/query-expansion';
+import { rerankDocuments, isRerankerAvailable } from '../lib/reranker';
+import { enhanceWithWebSearch, isTavilyAvailable, type HybridRAGDocument } from '../lib/tavily-hybrid-rag';
 
 // ============================================================================
 // 1. Types
@@ -33,8 +36,9 @@ interface RAGResultItem {
   content: string;
   category: string;
   similarity: number;
-  sourceType: 'vector' | 'graph' | 'fallback';
+  sourceType: 'vector' | 'graph' | 'web' | 'fallback';
   hopDistance: number;
+  url?: string; // For web search results
 }
 
 interface CommandRecommendation {
@@ -126,22 +130,45 @@ export const searchKnowledgeBase = tool({
       .boolean()
       .default(true)
       .describe('GraphRAG 하이브리드 검색 사용 여부'),
+    includeWebSearch: z
+      .boolean()
+      .default(true)
+      .describe('KB 결과 부족 시 웹 검색 자동 보강'),
   }),
   execute: async ({
     query,
     category,
     severity,
     useGraphRAG = true,
+    includeWebSearch = true,
   }: {
     query: string;
     category?: 'troubleshooting' | 'security' | 'performance' | 'incident' | 'best_practice';
     severity?: 'low' | 'medium' | 'high' | 'critical';
     useGraphRAG?: boolean;
+    includeWebSearch?: boolean;
   }) => {
     // Dynamic threshold based on query context
     const initialThreshold = getDynamicThreshold(query, category);
+
+    // HyDE Query Expansion for short/ambiguous queries
+    let searchQuery = query;
+    let hydeApplied = false;
+
+    if (shouldUseHyDE(query)) {
+      try {
+        searchQuery = await expandQueryWithHyDE(query);
+        hydeApplied = searchQuery !== query;
+        if (hydeApplied) {
+          console.log(`🧠 [Reporter Tools] HyDE applied: "${query}" → "${searchQuery.substring(0, 50)}..."`);
+        }
+      } catch (err) {
+        console.warn(`⚠️ [Reporter Tools] HyDE expansion failed, using original query:`, err);
+      }
+    }
+
     console.log(
-      `🔍 [Reporter Tools] GraphRAG search: ${query} (graph: ${useGraphRAG}, threshold: ${initialThreshold})`
+      `🔍 [Reporter Tools] GraphRAG search: ${query} (graph: ${useGraphRAG}, threshold: ${initialThreshold}, hyde: ${hydeApplied})`
     );
 
     const supabase = await getSupabaseClient();
@@ -168,8 +195,8 @@ export const searchKnowledgeBase = tool({
     }
 
     try {
-      // 1. Generate query embedding (uses cache)
-      const queryEmbedding = await embedText(query);
+      // 1. Generate query embedding (uses cache, apply HyDE if expanded)
+      const queryEmbedding = await embedText(searchQuery);
 
       // 2. Use hybrid GraphRAG search if enabled
       if (useGraphRAG) {
@@ -214,12 +241,95 @@ export const searchKnowledgeBase = tool({
             `📊 [Reporter Tools] GraphRAG: ${vectorCount} vector, ${graphCount} graph`
           );
 
+          // Apply LLM reranking for improved relevance
+          let finalResults = graphEnhanced;
+          let reranked = false;
+
+          if (isRerankerAvailable() && graphEnhanced.length > 2) {
+            try {
+              const rerankedResults = await rerankDocuments(
+                query, // Use original query for reranking
+                graphEnhanced.map((r) => ({
+                  id: r.id,
+                  title: r.title,
+                  content: r.content,
+                  originalScore: r.similarity,
+                })),
+                { topK: 5, minScore: 0.3 }
+              );
+
+              finalResults = rerankedResults.map((r) => ({
+                id: r.id,
+                title: r.title,
+                content: r.content,
+                category: category || 'auto',
+                similarity: r.rerankScore,
+                sourceType: graphEnhanced.find((g) => g.id === r.id)?.sourceType || 'vector',
+                hopDistance: graphEnhanced.find((g) => g.id === r.id)?.hopDistance || 0,
+              })) as RAGResultItem[];
+
+              reranked = true;
+              console.log(`🎯 [Reporter Tools] Reranked ${graphEnhanced.length} → ${finalResults.length} results`);
+            } catch (rerankError) {
+              console.warn('⚠️ [Reporter Tools] Reranking failed, using original order:', rerankError);
+            }
+          }
+
+          // Enhance with web search if enabled and KB results insufficient
+          let webSearchTriggered = false;
+          let webResultsCount = 0;
+
+          if (includeWebSearch && isTavilyAvailable()) {
+            try {
+              const hybridDocs: HybridRAGDocument[] = finalResults.map((r) => ({
+                id: r.id,
+                title: r.title,
+                content: r.content,
+                score: r.similarity,
+                source: 'knowledge_base' as const,
+              }));
+
+              const webEnhanced = await enhanceWithWebSearch(query, hybridDocs, {
+                minKBResults: 2,
+                minKBScore: 0.4,
+                maxWebResults: 3,
+              });
+
+              webSearchTriggered = webEnhanced.webSearchTriggered;
+              webResultsCount = webEnhanced.webResultsCount;
+
+              if (webSearchTriggered && webResultsCount > 0) {
+                finalResults = webEnhanced.results.map((r) => ({
+                  id: r.id,
+                  title: r.title,
+                  content: r.content,
+                  category: category || 'auto',
+                  similarity: r.score,
+                  sourceType: r.source === 'web' ? 'web' as const : (graphEnhanced.find((g) => g.id === r.id)?.sourceType || 'vector'),
+                  hopDistance: r.source === 'web' ? 0 : (graphEnhanced.find((g) => g.id === r.id)?.hopDistance || 0),
+                  url: r.url,
+                })) as RAGResultItem[];
+
+                console.log(`🌐 [Reporter Tools] Web search added ${webResultsCount} results`);
+              }
+            } catch (webError) {
+              console.warn('⚠️ [Reporter Tools] Web search enhancement failed:', webError);
+            }
+          }
+
           return {
             success: true,
-            results: graphEnhanced,
-            totalFound: graphEnhanced.length,
-            _source: 'GraphRAG Hybrid (Vector + Graph)',
-            graphStats: { vectorResults: vectorCount, graphResults: graphCount },
+            results: finalResults,
+            totalFound: finalResults.length,
+            _source: webSearchTriggered
+              ? 'GraphRAG Hybrid + Web'
+              : reranked
+                ? 'GraphRAG Hybrid + Rerank'
+                : 'GraphRAG Hybrid (Vector + Graph)',
+            graphStats: { vectorResults: vectorCount, graphResults: graphCount, webResults: webResultsCount },
+            hydeApplied,
+            reranked,
+            webSearchTriggered,
           };
         }
       }
@@ -245,6 +355,7 @@ export const searchKnowledgeBase = tool({
         })),
         totalFound: result.results.length,
         _source: 'Supabase pgvector (Vector Only)',
+        hydeApplied,
       };
     } catch (error) {
       console.error('❌ [Reporter Tools] RAG search error:', error);

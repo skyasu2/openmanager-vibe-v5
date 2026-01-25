@@ -16,6 +16,10 @@ import {
 } from 'llamaindex';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseConfig, getMistralApiKey } from './config-parser';
+import {
+  hybridTextVectorSearch,
+  type HybridSearchResult as TextSearchResult,
+} from './hybrid-text-search';
 
 // ============================================================================
 // Types
@@ -399,10 +403,18 @@ export async function getStats(): Promise<LlamaIndexStats | null> {
 /**
  * Backward-compatible hybridGraphSearch that accepts embedding array
  * Used by reporter-tools.ts
+ *
+ * @param queryEmbedding - Query embedding vector (1024 dimensions)
+ * @param options - Search options including BM25 text search
+ * @returns Array of search results
  */
 export async function hybridGraphSearch(
   queryEmbedding: number[],
   options: {
+    /** Original query text for BM25 search */
+    query?: string;
+    /** Enable BM25 text search (requires query) */
+    useBM25?: boolean;
     similarityThreshold?: number;
     maxVectorResults?: number;
     maxGraphHops?: number;
@@ -412,11 +424,49 @@ export async function hybridGraphSearch(
   await initializeLlamaIndex();
 
   const {
+    query,
+    useBM25 = false,
     similarityThreshold = 0.3,
     maxVectorResults = 5,
     maxGraphHops = 2,
     maxTotalResults = 15,
   } = options;
+
+  // Use BM25 hybrid search if enabled and query text is provided
+  if (useBM25 && query) {
+    console.log(`[LlamaIndex] Using BM25 hybrid search for: "${query.substring(0, 30)}..."`);
+
+    try {
+      const bm25Results = await hybridTextVectorSearch(query, queryEmbedding, {
+        vectorWeight: 0.5,
+        textWeight: 0.3,
+        graphWeight: 0.2,
+        maxVectorResults,
+        maxTextResults: maxVectorResults,
+        maxTotalResults,
+        threshold: similarityThreshold,
+        maxGraphHops,
+      });
+
+      // Convert to LlamaIndexSearchResult format
+      return bm25Results.map((r: TextSearchResult) => ({
+        id: r.id,
+        title: r.title,
+        content: r.content,
+        score: r.score,
+        sourceType: r.sourceType === 'hybrid' ? 'vector' as const : 'graph' as const,
+        hopDistance: r.hopDistance,
+        metadata: {
+          vectorScore: r.vectorScore,
+          textScore: r.textScore,
+          graphScore: r.graphScore,
+        },
+      }));
+    } catch (error) {
+      console.warn('[LlamaIndex] BM25 search failed, falling back to vector-only:', error);
+      // Fall through to vector-only search
+    }
+  }
 
   if (!supabaseClient) {
     console.warn('⚠️ [LlamaIndex] Supabase not available');

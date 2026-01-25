@@ -1,74 +1,14 @@
 -- =============================================================================
--- BM25 Text Search: Full-Text Search Enhancement for RAG
+-- Update hybrid_search_with_text: Vector Dimension 384 → 1024
 -- =============================================================================
--- Purpose: Add PostgreSQL full-text search (tsvector/ts_rank) to knowledge_base
---          for hybrid Vector + Text + Graph search capabilities.
+-- Purpose: Update the vector dimension to match Mistral mistral-embed (1024d)
+--          Previously used Google text-embedding-004 (384d)
 --
--- Best Practice: 2025 RAG trends recommend combining:
---   1. Vector similarity (semantic meaning)
---   2. BM25/Keyword search (exact term matching)
---   3. Graph traversal (relationship understanding)
---
--- Cost Impact: $0 (uses existing PostgreSQL capabilities)
+-- Migration: 2026-01-26
+-- Related: 20251219_add_bm25_text_search.sql (original function creation)
 -- =============================================================================
 
--- 1. Add tsvector column for full-text search
-ALTER TABLE knowledge_base
-ADD COLUMN IF NOT EXISTS search_vector tsvector;
-
--- 2. Create GIN index for efficient full-text search
-CREATE INDEX IF NOT EXISTS idx_knowledge_base_search_vector
-ON knowledge_base USING GIN (search_vector);
-
--- 3. Function to generate weighted tsvector from title + content
--- Title gets weight 'A' (highest), content gets weight 'B'
-CREATE OR REPLACE FUNCTION generate_knowledge_search_vector(
-    p_title TEXT,
-    p_content TEXT,
-    p_tags TEXT[] DEFAULT '{}'
-)
-RETURNS tsvector AS $$
-DECLARE
-    tags_text TEXT;
-BEGIN
-    -- Convert tags array to space-separated string
-    tags_text := COALESCE(array_to_string(p_tags, ' '), '');
-
-    RETURN (
-        setweight(to_tsvector('simple', COALESCE(p_title, '')), 'A') ||
-        setweight(to_tsvector('simple', tags_text), 'A') ||
-        setweight(to_tsvector('simple', COALESCE(p_content, '')), 'B')
-    );
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
-
--- 4. Trigger to auto-update search_vector on INSERT/UPDATE
-CREATE OR REPLACE FUNCTION update_knowledge_search_vector()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.search_vector := generate_knowledge_search_vector(
-        NEW.title,
-        NEW.content,
-        NEW.tags
-    );
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trigger_update_knowledge_search_vector ON knowledge_base;
-CREATE TRIGGER trigger_update_knowledge_search_vector
-    BEFORE INSERT OR UPDATE OF title, content, tags ON knowledge_base
-    FOR EACH ROW
-    EXECUTE FUNCTION update_knowledge_search_vector();
-
--- 5. Backfill existing rows with search vectors
-UPDATE knowledge_base
-SET search_vector = generate_knowledge_search_vector(title, content, tags)
-WHERE search_vector IS NULL;
-
--- 6. Create hybrid search function with text search support
--- Combines: Vector similarity + BM25 text search + Graph traversal
--- NOTE: metadata column removed (not in knowledge_base schema)
+-- Drop and recreate the function with updated vector dimension
 CREATE OR REPLACE FUNCTION hybrid_search_with_text(
     p_query_embedding vector(1024),  -- Updated: 384 → 1024 (Mistral mistral-embed)
     p_query_text TEXT DEFAULT NULL,
@@ -218,43 +158,5 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 7. Simple text-only search function (for fallback/testing)
-CREATE OR REPLACE FUNCTION search_knowledge_text(
-    p_query_text TEXT,
-    p_max_results INT DEFAULT 10,
-    p_filter_category TEXT DEFAULT NULL
-)
-RETURNS TABLE (
-    id UUID,
-    title TEXT,
-    content TEXT,
-    category TEXT,
-    tags TEXT[],
-    text_rank FLOAT
-) AS $$
-DECLARE
-    query_tsquery tsquery;
-BEGIN
-    query_tsquery := plainto_tsquery('simple', p_query_text);
-
-    RETURN QUERY
-    SELECT
-        kb.id,
-        kb.title,
-        kb.content,
-        kb.category,
-        kb.tags,
-        ts_rank_cd(kb.search_vector, query_tsquery, 32)::FLOAT as text_rank
-    FROM knowledge_base kb
-    WHERE kb.search_vector @@ query_tsquery
-      AND (p_filter_category IS NULL OR kb.category = p_filter_category)
-    ORDER BY ts_rank_cd(kb.search_vector, query_tsquery, 32) DESC
-    LIMIT p_max_results;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 8. Add comments
-COMMENT ON COLUMN knowledge_base.search_vector IS 'Full-text search vector (tsvector) for BM25-style keyword matching';
-COMMENT ON FUNCTION hybrid_search_with_text IS 'Hybrid RAG search combining Vector + Text (BM25) + Graph traversal';
-COMMENT ON FUNCTION search_knowledge_text IS 'Text-only search using PostgreSQL full-text search (ts_rank)';
-COMMENT ON FUNCTION generate_knowledge_search_vector IS 'Generates weighted tsvector from title (A) + tags (A) + content (B)';
+-- Update comment
+COMMENT ON FUNCTION hybrid_search_with_text IS 'Hybrid RAG search: Vector (1024d Mistral) + BM25 Text + Graph traversal. Updated 2026-01-26.';
