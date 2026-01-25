@@ -33,6 +33,7 @@ export {
 // ============================================================================
 export {
   detectAnomalies,
+  detectAnomaliesAllServers,
   predictTrends,
   analyzePattern,
 } from './analyst-tools';
@@ -70,7 +71,7 @@ export { finalAnswer, type FinalAnswerResult } from './final-answer';
 // ============================================================================
 import { getServerMetrics, getServerMetricsAdvanced, filterServers, getServerByGroup, getServerByGroupAdvanced } from './server-metrics';
 import { buildIncidentTimeline, correlateMetrics, findRootCause } from './rca-analysis';
-import { detectAnomalies, predictTrends, analyzePattern } from './analyst-tools';
+import { detectAnomalies, detectAnomaliesAllServers, predictTrends, analyzePattern } from './analyst-tools';
 import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-tools';
 import { evaluateIncidentReport, validateReportStructure, scoreRootCauseConfidence, refineRootCauseAnalysis, enhanceSuggestedActions, extendServerCorrelation } from './incident-evaluation-tools';
 import { finalAnswer } from './final-answer';
@@ -93,6 +94,7 @@ export const allTools = {
 
   // Analyst
   detectAnomalies,
+  detectAnomaliesAllServers,
   predictTrends,
   analyzePattern,
 
@@ -131,6 +133,7 @@ export const toolCategories = {
   },
   analyst: {
     detectAnomalies,
+    detectAnomaliesAllServers,
     predictTrends,
     analyzePattern,
   },
@@ -165,6 +168,7 @@ export const toolDescriptions = {
   correlateMetrics: '메트릭 간 상관관계 분석',
   findRootCause: '근본 원인 분석 (RCA)',
   detectAnomalies: '이상치 탐지 (통계: 2σ)',
+  detectAnomaliesAllServers: '전체 서버 이상치 스캔 (장애보고서용)',
   predictTrends: '트렌드 예측',
   analyzePattern: '패턴 분석',
   searchKnowledgeBase: '과거 장애 이력 및 해결 방법 검색 (GraphRAG)',

@@ -15,6 +15,7 @@ import { randomUUID } from 'crypto';
 import { generateText } from 'ai';
 import {
   detectAnomalies,
+  detectAnomaliesAllServers,
   predictTrends,
   analyzePattern,
   searchKnowledgeBase,
@@ -176,10 +177,11 @@ analyticsRouter.post('/incident-report', async (c: Context) => {
     const startTime = Date.now();
 
     // 1. Collect real-time data from tools first (parallel execution)
+    // Use detectAnomaliesAllServers to get full system summary for incident reports
     const [anomalyData, trendData, timelineData] = await Promise.all([
-      detectAnomalies.execute!(
-        { serverId: serverId || undefined, metricType: 'all' },
-        { toolCallId: 'ir-anomaly', messages: [] }
+      detectAnomaliesAllServers.execute!(
+        { metricType: 'all' },
+        { toolCallId: 'ir-anomaly-all', messages: [] }
       ),
       predictTrends.execute!(
         { serverId: serverId || undefined, metricType: 'all', predictionHours: 1 },
@@ -306,6 +308,7 @@ ${metricsContext}
 
 /**
  * Extract structured data from tool results
+ * Updated to work with detectAnomaliesAllServers output
  */
 function extractToolBasedData(
   anomalyData: unknown,
@@ -319,47 +322,36 @@ function extractToolBasedData(
   description: string;
   affected_servers: string[];
   anomalies: Array<{ server_id: string; server_name: string; metric: string; value: number; severity: string }>;
-  system_summary: { totalServers: number; healthyServers: number; warningServers: number; criticalServers: number };
+  system_summary: { total_servers: number; healthy_servers: number; warning_servers: number; critical_servers: number };
   timeline: Array<{ timestamp: string; event: string; severity: string }>;
   recommendations: Array<{ action: string; priority: string; expected_impact: string }>;
   pattern: string;
 } {
   const id = randomUUID();
 
-  // Parse anomaly data - detectAnomalies returns Record<string, AnomalyResult>, not Array
-  const anomaly = anomalyData as {
-    serverId?: string;
-    serverName?: string;
+  // Parse anomaly data from detectAnomaliesAllServers
+  const allServerAnomaly = anomalyData as {
+    success?: boolean;
+    totalServers?: number;
+    anomalies?: Array<{ server_id: string; server_name: string; metric: string; value: number; severity: string }>;
+    affectedServers?: string[];
+    summary?: { totalServers?: number; healthyCount?: number; warningCount?: number; criticalCount?: number };
     hasAnomalies?: boolean;
     anomalyCount?: number;
-    // results is a Record keyed by metric name (cpu, memory, disk, etc.)
-    results?: Record<string, { isAnomaly: boolean; severity: string; currentValue: number }>;
-    summary?: { totalServers?: number; healthyCount?: number; warningCount?: number; criticalCount?: number };
   } | undefined;
 
-  const anomalies: Array<{ server_id: string; server_name: string; metric: string; value: number; severity: string }> = [];
-  if (anomaly?.results && typeof anomaly.results === 'object') {
-    // Convert Record<metric, result> to array
-    for (const [metric, result] of Object.entries(anomaly.results)) {
-      if (result?.isAnomaly) {
-        anomalies.push({
-          server_id: anomaly.serverId || 'unknown',
-          server_name: anomaly.serverName || anomaly.serverId || 'unknown',
-          metric,
-          value: result.currentValue,
-          severity: result.severity,
-        });
-      }
-    }
-  }
+  // Get anomalies directly from the new format
+  const anomalies: Array<{ server_id: string; server_name: string; metric: string; value: number; severity: string }> =
+    allServerAnomaly?.anomalies || [];
 
-  // System summary from anomaly data
-  const summary = anomaly?.summary || {};
+  // System summary from anomaly data (now properly structured)
+  // Use snake_case to match frontend expectations
+  const summary = allServerAnomaly?.summary || {};
   const systemSummary = {
-    totalServers: summary.totalServers ?? 0,
-    healthyServers: summary.healthyCount ?? 0,
-    warningServers: summary.warningCount ?? 0,
-    criticalServers: summary.criticalCount ?? 0,
+    total_servers: summary.totalServers ?? allServerAnomaly?.totalServers ?? 0,
+    healthy_servers: summary.healthyCount ?? 0,
+    warning_servers: summary.warningCount ?? 0,
+    critical_servers: summary.criticalCount ?? 0,
   };
 
   // Parse timeline data
@@ -377,9 +369,9 @@ function extractToolBasedData(
 
   // Determine severity from data
   let severity = 'info';
-  if (systemSummary.criticalServers > 0 || anomalies.some((a) => a.severity === 'critical')) {
+  if (systemSummary.critical_servers > 0 || anomalies.some((a) => a.severity === 'critical')) {
     severity = 'critical';
-  } else if (systemSummary.warningServers > 0 || anomalies.some((a) => a.severity === 'warning' || a.severity === 'medium')) {
+  } else if (systemSummary.warning_servers > 0 || anomalies.some((a) => a.severity === 'warning' || a.severity === 'medium')) {
     severity = 'warning';
   }
 
@@ -396,25 +388,29 @@ function extractToolBasedData(
     }
   }
 
-  // Generate title and description
-  const title = anomaly?.hasAnomalies
-    ? `이상 감지: ${anomaly.anomalyCount}건 발견`
+  // Generate title and description using allServerAnomaly data
+  const hasAnomalies = allServerAnomaly?.hasAnomalies ?? anomalies.length > 0;
+  const anomalyCount = allServerAnomaly?.anomalyCount ?? anomalies.length;
+  const affectedServerIds = allServerAnomaly?.affectedServers ?? [...new Set(anomalies.map((a) => a.server_id))];
+
+  const title = hasAnomalies
+    ? `이상 감지: ${anomalyCount}건 발견`
     : '서버 상태 정상';
-  const description = anomaly?.hasAnomalies
-    ? `총 ${systemSummary.totalServers}대 서버 중 ${anomaly.anomalyCount}건의 이상 징후가 감지되었습니다.`
-    : `총 ${systemSummary.totalServers}대 서버가 정상 상태입니다.`;
+  const description = hasAnomalies
+    ? `총 ${systemSummary.total_servers}대 서버 중 ${anomalyCount}건의 이상 징후가 감지되었습니다.`
+    : `총 ${systemSummary.total_servers}대 서버가 정상 상태입니다.`;
 
   return {
     id,
     title,
     severity,
     description,
-    affected_servers: serverId ? [serverId] : anomalies.map((a) => a.server_id),
+    affected_servers: serverId ? [serverId] : affectedServerIds,
     anomalies,
     system_summary: systemSummary,
     timeline,
     recommendations,
-    pattern: anomaly?.hasAnomalies ? '이상 패턴 감지됨' : '정상 패턴',
+    pattern: hasAnomalies ? '이상 패턴 감지됨' : '정상 패턴',
   };
 }
 

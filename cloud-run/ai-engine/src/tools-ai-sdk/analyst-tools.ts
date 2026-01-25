@@ -254,6 +254,35 @@ export const detectAnomalies = tool({
           );
           const overallStatus = hasCritical ? 'critical' : hasWarning ? 'warning' : 'online';
 
+          // Calculate system-wide summary (all servers)
+          const allServers = state.servers;
+          let healthyCount = 0;
+          let warningCount = 0;
+          let criticalCount = 0;
+
+          for (const srv of allServers) {
+            const srvCpu = srv.cpu as number;
+            const srvMemory = srv.memory as number;
+            const srvDisk = srv.disk as number;
+
+            const isCriticalSrv =
+              srvCpu >= THRESHOLDS.cpu.critical ||
+              srvMemory >= THRESHOLDS.memory.critical ||
+              srvDisk >= THRESHOLDS.disk.critical;
+            const isWarningSrv =
+              srvCpu >= THRESHOLDS.cpu.warning ||
+              srvMemory >= THRESHOLDS.memory.warning ||
+              srvDisk >= THRESHOLDS.disk.warning;
+
+            if (isCriticalSrv) {
+              criticalCount++;
+            } else if (isWarningSrv) {
+              warningCount++;
+            } else {
+              healthyCount++;
+            }
+          }
+
           return {
             success: true,
             serverId: server.id,
@@ -262,9 +291,16 @@ export const detectAnomalies = tool({
             anomalyCount,
             hasAnomalies: anomalyCount > 0,
             results,
-            summary: anomalyCount > 0
+            // v2.1: Return both message and structured summary
+            summaryMessage: anomalyCount > 0
               ? `${server.name}: ${anomalyCount}개 메트릭에서 이상 감지 (${overallStatus})`
               : `${server.name}: 정상 (이상 없음)`,
+            summary: {
+              totalServers: allServers.length,
+              healthyCount,
+              warningCount,
+              criticalCount,
+            },
             timestamp: new Date().toISOString(),
             _algorithm: 'Threshold + Statistical (Dashboard Compatible)',
           };
@@ -503,6 +539,121 @@ export const analyzePattern = tool({
         analysisResults,
         summary: `${patterns.length}개 패턴 감지: ${patterns.join(', ')}`,
         timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  },
+});
+
+// ============================================================================
+// 3.4 Detect Anomalies for All Servers (Incident Report)
+// ============================================================================
+
+/**
+ * Detect Anomalies for All Servers
+ *
+ * Scans all servers and returns detailed anomaly information.
+ * Used for incident reports to provide complete system overview.
+ *
+ * @version 1.0.0
+ * @date 2026-01-25
+ */
+export const detectAnomaliesAllServers = tool({
+  description:
+    '전체 서버의 이상치를 탐지합니다. 장애보고서용으로 모든 서버를 스캔합니다.',
+  inputSchema: z.object({
+    metricType: z
+      .enum(['cpu', 'memory', 'disk', 'all'])
+      .default('all')
+      .describe('분석할 메트릭 타입'),
+  }),
+  execute: async ({
+    metricType,
+  }: {
+    metricType: 'cpu' | 'memory' | 'disk' | 'all';
+  }) => {
+    try {
+      const state = getCurrentState();
+      const allServers = state.servers;
+
+      const metrics = ['cpu', 'memory', 'disk'] as const;
+      const targetMetrics =
+        metricType === 'all'
+          ? metrics
+          : [metricType as (typeof metrics)[number]];
+
+      // Collect all anomalies across all servers
+      const allAnomalies: Array<{
+        server_id: string;
+        server_name: string;
+        metric: string;
+        value: number;
+        severity: string;
+      }> = [];
+
+      let healthyCount = 0;
+      let warningCount = 0;
+      let criticalCount = 0;
+      const affectedServers: string[] = [];
+
+      for (const server of allServers) {
+        let serverHasAnomaly = false;
+        let serverIsCritical = false;
+        let serverIsWarning = false;
+
+        for (const metric of targetMetrics) {
+          const currentValue = server[metric as keyof typeof server] as number;
+          const threshold = THRESHOLDS[metric as keyof typeof THRESHOLDS];
+
+          const isCritical = currentValue >= threshold.critical;
+          const isWarning = currentValue >= threshold.warning;
+
+          if (isCritical || isWarning) {
+            serverHasAnomaly = true;
+            if (isCritical) serverIsCritical = true;
+            else if (isWarning) serverIsWarning = true;
+
+            allAnomalies.push({
+              server_id: server.id,
+              server_name: server.name,
+              metric: metric.charAt(0).toUpperCase() + metric.slice(1),
+              value: Math.round(currentValue * 10) / 10,
+              severity: isCritical ? 'critical' : 'warning',
+            });
+          }
+        }
+
+        if (serverHasAnomaly) {
+          affectedServers.push(server.id);
+          if (serverIsCritical) {
+            criticalCount++;
+          } else if (serverIsWarning) {
+            warningCount++;
+          }
+        } else {
+          healthyCount++;
+        }
+      }
+
+      return {
+        success: true,
+        totalServers: allServers.length,
+        anomalies: allAnomalies,
+        affectedServers,
+        summary: {
+          totalServers: allServers.length,
+          healthyCount,
+          warningCount,
+          criticalCount,
+        },
+        hasAnomalies: allAnomalies.length > 0,
+        anomalyCount: allAnomalies.length,
+        timestamp: new Date().toISOString(),
+        _algorithm: 'All-Server Threshold Scan',
       };
     } catch (error) {
       return {
