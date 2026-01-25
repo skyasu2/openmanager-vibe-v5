@@ -283,6 +283,51 @@ function generateMessageId(prefix: string = 'msg'): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
+/**
+ * 메시지 배열에서 undefined parts를 정리 (AI SDK 에러 방지)
+ *
+ * AI SDK가 메시지를 직렬화할 때 undefined parts가 있으면
+ * "Cannot read properties of undefined (reading 'text')" 에러 발생
+ */
+function sanitizeMessages(messages: UIMessage[]): UIMessage[] {
+  return messages.map((msg) => {
+    // parts가 없거나 비어있으면 빈 text part로 대체
+    if (!msg.parts || msg.parts.length === 0) {
+      return {
+        ...msg,
+        parts: [{ type: 'text' as const, text: '' }],
+      };
+    }
+
+    // undefined parts 필터링 및 유효한 text 보장
+    const sanitizedParts = msg.parts
+      .filter((part): part is NonNullable<typeof part> => part != null)
+      .map((part) => {
+        // text 타입이면서 text가 undefined인 경우 빈 문자열로 대체
+        if (
+          part.type === 'text' &&
+          typeof (part as { text?: string }).text !== 'string'
+        ) {
+          return { ...part, text: '' };
+        }
+        return part;
+      });
+
+    // 정리 후에도 parts가 비어있으면 빈 text part 추가
+    if (sanitizedParts.length === 0) {
+      return {
+        ...msg,
+        parts: [{ type: 'text' as const, text: '' }],
+      };
+    }
+
+    return {
+      ...msg,
+      parts: sanitizedParts,
+    };
+  });
+}
+
 // ============================================================================
 // Hook Implementation
 // ============================================================================
@@ -688,6 +733,10 @@ export function useHybridAIQuery(
           error: null,
           clarification: null,
         }));
+
+        // 🛡️ AI SDK 에러 방지: 메시지 배열 정리 (undefined parts 제거)
+        // AI SDK가 메시지를 직렬화할 때 undefined parts가 있으면 에러 발생
+        setMessages((prev) => sanitizeMessages(prev));
 
         // sendMessage는 user 메시지 추가 + API 호출을 자동으로 처리
         // Note: useChat의 onError 콜백이 async 에러를 처리하지만,
