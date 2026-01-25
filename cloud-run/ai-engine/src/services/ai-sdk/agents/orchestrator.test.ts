@@ -31,6 +31,14 @@ vi.mock('ai', () => ({
     toolCalls: [],
     steps: [],
   })),
+  generateObject: vi.fn(async () => ({
+    object: {
+      selectedAgent: 'NLQ Agent',
+      reasoning: 'Mock reasoning for agent selection',
+    },
+    usage: { promptTokens: 50, completionTokens: 30, totalTokens: 80 },
+    finishReason: 'stop',
+  })),
   streamText: vi.fn(() => ({
     textStream: (async function* () {
       yield 'Mock ';
@@ -47,6 +55,7 @@ vi.mock('ai', () => ({
     usage: Promise.resolve({ promptTokens: 100, completionTokens: 50, totalTokens: 150 }),
   })),
   stepCountIs: vi.fn(() => () => false),
+  hasToolCall: vi.fn(() => () => false),
 }));
 
 // Mock tools - include all tools from agent-configs

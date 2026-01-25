@@ -41,6 +41,15 @@ import {
 } from '../lib/ai/monitoring/UnifiedAnomalyEngine';
 import { getDataCache } from '../lib/cache-layer';
 
+// Config (SSOT)
+import { STATUS_THRESHOLDS } from '../config/status-thresholds';
+
+// Types
+import type {
+  ServerAnomalyItem,
+  SystemSummary,
+} from '../types/analysis-results';
+
 // ============================================================================
 // 1. Types
 // ============================================================================
@@ -128,19 +137,9 @@ const PATTERN_INSIGHTS: Record<string, string> = {
 // ============================================================================
 
 // ============================================================================
-// Threshold Constants (Industry Best Practices)
-// ============================================================================
-
-const THRESHOLDS = {
-  cpu: { warning: 80, critical: 90 },
-  memory: { warning: 80, critical: 90 },
-  disk: { warning: 80, critical: 90 },
-  network: { warning: 70, critical: 85 },
-} as const;
-
-// ============================================================================
 // 3.0 Threshold-based Check Tool (NEW) + AdaptiveThreshold Integration
 // ============================================================================
+// NOTE: Using STATUS_THRESHOLDS from config/status-thresholds.ts (SSOT)
 
 
 
@@ -213,7 +212,7 @@ export const detectAnomalies = tool({
             const detection = detector.detectAnomaly(currentValue, history);
 
             // 2. Fixed threshold check (Dashboard compatible)
-            const threshold = THRESHOLDS[metric as keyof typeof THRESHOLDS];
+            const threshold = STATUS_THRESHOLDS[metric as keyof typeof STATUS_THRESHOLDS];
             const thresholdExceeded = currentValue >= threshold.warning;
             const isCritical = currentValue >= threshold.critical;
 
@@ -266,13 +265,13 @@ export const detectAnomalies = tool({
             const srvDisk = srv.disk as number;
 
             const isCriticalSrv =
-              srvCpu >= THRESHOLDS.cpu.critical ||
-              srvMemory >= THRESHOLDS.memory.critical ||
-              srvDisk >= THRESHOLDS.disk.critical;
+              srvCpu >= STATUS_THRESHOLDS.cpu.critical ||
+              srvMemory >= STATUS_THRESHOLDS.memory.critical ||
+              srvDisk >= STATUS_THRESHOLDS.disk.critical;
             const isWarningSrv =
-              srvCpu >= THRESHOLDS.cpu.warning ||
-              srvMemory >= THRESHOLDS.memory.warning ||
-              srvDisk >= THRESHOLDS.disk.warning;
+              srvCpu >= STATUS_THRESHOLDS.cpu.warning ||
+              srvMemory >= STATUS_THRESHOLDS.memory.warning ||
+              srvDisk >= STATUS_THRESHOLDS.disk.warning;
 
             if (isCriticalSrv) {
               criticalCount++;
@@ -577,87 +576,91 @@ export const detectAnomaliesAllServers = tool({
     metricType: 'cpu' | 'memory' | 'disk' | 'all';
   }) => {
     try {
-      const state = getCurrentState();
-      const allServers = state.servers;
+      const cache = getDataCache();
 
-      const metrics = ['cpu', 'memory', 'disk'] as const;
-      const targetMetrics =
-        metricType === 'all'
-          ? metrics
-          : [metricType as (typeof metrics)[number]];
+      return await cache.getAnalysis(
+        'anomaly-all',
+        { metricType },
+        async () => {
+          const state = getCurrentState();
+          const allServers = state.servers;
 
-      // Collect all anomalies across all servers
-      const allAnomalies: Array<{
-        server_id: string;
-        server_name: string;
-        metric: string;
-        value: number;
-        severity: string;
-      }> = [];
+          const metrics = ['cpu', 'memory', 'disk'] as const;
+          const targetMetrics =
+            metricType === 'all'
+              ? metrics
+              : [metricType as (typeof metrics)[number]];
 
-      let healthyCount = 0;
-      let warningCount = 0;
-      let criticalCount = 0;
-      const affectedServers: string[] = [];
+          // Collect all anomalies across all servers
+          const allAnomalies: ServerAnomalyItem[] = [];
 
-      for (const server of allServers) {
-        let serverHasAnomaly = false;
-        let serverIsCritical = false;
-        let serverIsWarning = false;
+          let healthyCount = 0;
+          let warningCount = 0;
+          let criticalCount = 0;
+          const affectedServers: string[] = [];
 
-        for (const metric of targetMetrics) {
-          const currentValue = server[metric as keyof typeof server] as number;
-          const threshold = THRESHOLDS[metric as keyof typeof THRESHOLDS];
+          for (const server of allServers) {
+            let serverHasAnomaly = false;
+            let serverIsCritical = false;
+            let serverIsWarning = false;
 
-          const isCritical = currentValue >= threshold.critical;
-          const isWarning = currentValue >= threshold.warning;
+            for (const metric of targetMetrics) {
+              const currentValue = server[metric as keyof typeof server] as number;
+              const threshold = STATUS_THRESHOLDS[metric as keyof typeof STATUS_THRESHOLDS];
 
-          if (isCritical || isWarning) {
-            serverHasAnomaly = true;
-            if (isCritical) serverIsCritical = true;
-            else if (isWarning) serverIsWarning = true;
+              const isCritical = currentValue >= threshold.critical;
+              const isWarning = currentValue >= threshold.warning;
 
-            allAnomalies.push({
-              server_id: server.id,
-              server_name: server.name,
-              metric: metric.charAt(0).toUpperCase() + metric.slice(1),
-              value: Math.round(currentValue * 10) / 10,
-              severity: isCritical ? 'critical' : 'warning',
-            });
+              if (isCritical || isWarning) {
+                serverHasAnomaly = true;
+                if (isCritical) serverIsCritical = true;
+                else if (isWarning) serverIsWarning = true;
+
+                allAnomalies.push({
+                  server_id: server.id,
+                  server_name: server.name,
+                  metric: metric.charAt(0).toUpperCase() + metric.slice(1),
+                  value: Math.round(currentValue * 10) / 10,
+                  severity: isCritical ? 'critical' : 'warning',
+                });
+              }
+            }
+
+            if (serverHasAnomaly) {
+              affectedServers.push(server.id);
+              if (serverIsCritical) {
+                criticalCount++;
+              } else if (serverIsWarning) {
+                warningCount++;
+              }
+            } else {
+              healthyCount++;
+            }
           }
-        }
 
-        if (serverHasAnomaly) {
-          affectedServers.push(server.id);
-          if (serverIsCritical) {
-            criticalCount++;
-          } else if (serverIsWarning) {
-            warningCount++;
-          }
-        } else {
-          healthyCount++;
-        }
-      }
+          const summary: SystemSummary = {
+            totalServers: allServers.length,
+            healthyCount,
+            warningCount,
+            criticalCount,
+          };
 
-      return {
-        success: true,
-        totalServers: allServers.length,
-        anomalies: allAnomalies,
-        affectedServers,
-        summary: {
-          totalServers: allServers.length,
-          healthyCount,
-          warningCount,
-          criticalCount,
-        },
-        hasAnomalies: allAnomalies.length > 0,
-        anomalyCount: allAnomalies.length,
-        timestamp: new Date().toISOString(),
-        _algorithm: 'All-Server Threshold Scan',
-      };
+          return {
+            success: true as const,
+            totalServers: allServers.length,
+            anomalies: allAnomalies,
+            affectedServers,
+            summary,
+            hasAnomalies: allAnomalies.length > 0,
+            anomalyCount: allAnomalies.length,
+            timestamp: new Date().toISOString(),
+            _algorithm: 'All-Server Threshold Scan (Cached)',
+          };
+        }
+      );
     } catch (error) {
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : String(error),
       };
     }

@@ -39,6 +39,21 @@ export {
 } from './analyst-tools';
 
 // ============================================================================
+// Analysis Result Types
+// ============================================================================
+export type {
+  SystemSummary,
+  ServerAnomalyItem,
+  DetectAnomaliesAllServersResult,
+  DetectAnomaliesAllServersError,
+  DetectAnomaliesAllServersResponse,
+  AnomalyResultItem,
+  DetectAnomaliesResult,
+  DetectAnomaliesError,
+  DetectAnomaliesResponse,
+} from '../types/analysis-results';
+
+// ============================================================================
 // Reporter Tools (RAG Search & Command Recommendations & Web Search)
 // ============================================================================
 export {
