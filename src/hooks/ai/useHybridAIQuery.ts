@@ -31,6 +31,7 @@ import { useChat } from '@ai-sdk/react';
 import type { ChatTransport } from 'ai';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import {
   applyClarification,
   applyCustomClarification,
@@ -788,9 +789,15 @@ export function useHybridAIQuery(
           clarification: null,
         }));
 
-        // 🛡️ SanitizingChatTransport가 메시지 전송 전에 undefined parts를 자동 정리
-        // 따라서 별도의 flushSync나 setTimeout이 필요 없음
-        // sendMessage는 user 메시지 추가 + API 호출을 자동으로 처리
+        // 🛡️ Pre-sanitize 전략: sendMessage 호출 전에 기존 messages를 sanitize
+        // AI SDK는 transport.sendMessages() 호출 전에 내부적으로 messages를 처리하므로
+        // SanitizingChatTransport의 sanitization이 너무 늦게 적용되는 문제 해결
+        // flushSync로 동기적 상태 업데이트 보장 후 sendMessage 호출
+        // 🎯 Fix: "Cannot read properties of undefined (reading 'text')" 에러 방지
+        flushSync(() => {
+          setMessages((prev) => sanitizeMessages(prev));
+        });
+
         // 🎯 AI SDK v6: sendMessage는 { text: string } 또는 { parts: [...] } 형식
         // @see node_modules/ai/dist/index.d.ts line 3260-3275
         Promise.resolve(
