@@ -71,8 +71,15 @@ export function createUpstashResumableContext() {
             const { done, value } = await reader.read();
 
             if (done) {
-              // Mark stream as completed
+              // 🎯 CODEX Review R3 Fix: UTF-8 멀티바이트 버퍼 flush
+              // TextDecoder의 stream:true 옵션 사용 시 버퍼에 남은 바이트를 flush해야 함
               if (redis) {
+                const flush = decoder.decode(); // 빈 인자로 호출하면 버퍼 flush
+                if (flush) {
+                  await redis.rpush(dataKey, flush);
+                  await redis.expire(dataKey, STREAM_TTL_SECONDS);
+                  chunkIndex++;
+                }
                 // 🎯 CODEX Review Fix: 원래 startedAt 유지
                 const metadata: StreamMetadata = {
                   status: 'completed',

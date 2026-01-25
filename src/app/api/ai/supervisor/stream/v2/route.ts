@@ -156,6 +156,15 @@ const resumeStreamHandler = async (req: NextRequest) => {
     return new Response(null, { status: 204 });
   }
 
+  // 🎯 CODEX Review R3 Fix: 완료된 스트림은 one-shot replay이므로
+  // session mapping 즉시 정리 (더 이상 polling 불필요)
+  if (streamStatus === 'completed') {
+    await clearActiveStreamId(sessionId);
+    logger.info(
+      `[SupervisorStreamV2] Cleared session mapping for completed stream: ${activeStreamId}`
+    );
+  }
+
   logger.info(`✅ [SupervisorStreamV2] Stream resumed: ${activeStreamId}`);
 
   return new Response(resumedStream, {

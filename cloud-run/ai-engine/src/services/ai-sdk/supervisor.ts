@@ -840,11 +840,13 @@ async function* streamSingleAgent(
       duration: durationMs,
     });
 
-    // Finalize trace
-    finalizeTrace(trace, fullText, true, {
+    // 🎯 CODEX Review R3 Fix: streamError 발생 시 tracing에도 success=false 반영
+    const streamSucceeded = streamError === null;
+    finalizeTrace(trace, fullText, streamSucceeded, {
       toolsCalled,
       stepsExecuted: steps.length,
       durationMs,
+      ...(streamError && { error: streamError.message }),
     });
 
     console.log(
