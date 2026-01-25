@@ -42,8 +42,8 @@ export const maxDuration = 60;
 
 // UI Message Stream headers (AI SDK v6 standard)
 // 🎯 CRITICAL: x-vercel-ai-ui-message-stream header is REQUIRED for AI SDK v6
-// Without this header, the SDK cannot parse the stream correctly and throws:
-// "Cannot read properties of undefined (reading 'text')"
+// Cloud Run uses createUIMessageStreamResponse which produces UIMessageStream format.
+// Without this header, the SDK cannot parse the stream correctly.
 // @see https://ai-sdk.dev/docs/ai-sdk-ui/stream-protocol
 const UI_MESSAGE_STREAM_HEADERS = {
   'Content-Type': 'text/event-stream',

@@ -789,7 +789,13 @@ export function useHybridAIQuery(
         // 🛡️ SanitizingChatTransport가 메시지 전송 전에 undefined parts를 자동 정리
         // 따라서 별도의 flushSync나 setTimeout이 필요 없음
         // sendMessage는 user 메시지 추가 + API 호출을 자동으로 처리
-        Promise.resolve(sendMessage({ text: trimmedQuery })).catch((error) => {
+        // 🎯 AI SDK v6: sendMessage는 { text: string } 또는 { parts: [...] } 형식
+        // @see node_modules/ai/dist/index.d.ts line 3260-3275
+        Promise.resolve(
+          sendMessage({ text: trimmedQuery } as Parameters<
+            typeof sendMessage
+          >[0])
+        ).catch((error) => {
           logger.error('[HybridAI] Streaming send failed:', error);
           setState((prev) => ({
             ...prev,
