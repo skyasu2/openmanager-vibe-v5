@@ -1,70 +1,131 @@
 # Architecture Rules
 
+## Quick Reference
+
+| 질문 | 답변 |
+|------|------|
+| UI 컴포넌트 어디에? | `src/components/{feature}/` |
+| API 라우트 어디에? | `src/app/api/{domain}/route.ts` |
+| 비즈니스 로직 어디에? | `src/services/{domain}/` |
+| AI 관련 코드 어디에? | `src/lib/ai/` 또는 `cloud-run/ai-engine/` |
+| 타입 정의 어디에? | `src/types/{domain}.ts` |
+| 훅 어디에? | `src/hooks/{feature}/` |
+
 ## Directory Structure
-Layer-First + Feature Grouping 방식:
-- `components/` - UI 컴포넌트 (feature별 하위 폴더)
-- `hooks/` - Custom Hooks (feature별 하위 폴더)
-- `services/` - 비즈니스 로직, API 클라이언트
-- `types/` - TypeScript 타입 정의
-- `lib/` - 유틸리티, 핵심 로직
-- `stores/` - Zustand 상태 관리
-- `__mocks__/` - 테스트 Mock 데이터
 
-## Hybrid Architecture
-프로젝트는 **Vercel + Cloud Run** 하이브리드 구조를 따릅니다.
+```
+src/
+├── app/                 # Next.js App Router
+│   ├── api/            # API Routes (REST)
+│   └── (pages)/        # Page components
+├── components/          # UI 컴포넌트 (feature별)
+│   ├── dashboard/
+│   ├── ai-sidebar/
+│   └── ui/             # 공용 UI (Button, Card...)
+├── hooks/               # Custom Hooks (feature별)
+│   └── ai/             # AI 관련 훅
+├── services/            # 비즈니스 로직, API 클라이언트
+├── lib/                 # 핵심 유틸리티
+│   └── ai/             # AI 유틸리티
+├── stores/              # Zustand 상태관리
+└── types/               # TypeScript 타입
 
-### Vercel (Frontend/BFF)
-- UI/Interactive 기능
-- Edge Runtime 최적화
-- 빠른 응답 (Speed First)
-- Next.js 16 + React 19
+cloud-run/ai-engine/     # AI Engine (별도 배포)
+└── src/
+    ├── agents/         # Multi-Agent 정의
+    ├── tools/          # Agent 도구
+    └── data/           # 사전 계산 데이터
+```
 
-### Cloud Run (AI Engine)
-- Heavy Lifting 작업
-- Vercel AI SDK v6 Native Multi-Agent (UIMessageStream, finalAnswer 패턴)
-- TypeScript 기반 에이전트 오케스트레이션
-- Dual-Path Routing: Fast Path (RegExp ~10ms) + LLM Routing (~200ms)
-- Reporter Pipeline: Evaluator-Optimizer 패턴 (0.75 품질 임계값)
+## Hybrid Architecture (When to Use)
 
-## Database
-- **Supabase** (PostgreSQL + pgvector)
-- RLS(Row Level Security) 정책 필수
-- 벡터 검색 지원
+### Vercel (Frontend) - 사용 시점
+- UI 렌더링, 상호작용
+- 빠른 응답 필요 (<100ms)
+- Edge Runtime 활용
+- 경량 API 처리
 
-## API Design
-- REST 엔드포인트: `/api/*`
-- AI Supervisor: `/api/ai/supervisor`
-- Health Check: `/api/health`
+### Cloud Run (AI Engine) - 사용 시점
+- LLM 호출, Multi-Agent 오케스트레이션
+- Heavy Lifting (>3초 처리)
+- RAG 파이프라인
+- 복잡한 분석 작업
+
+```
+[User] → [Vercel/Next.js] ──→ [Cloud Run/AI Engine]
+              │                       │
+         빠른 응답              무거운 AI 처리
+         UI/API                  Multi-Agent
+```
+
+## 파일 생성 가이드
+
+### 새 API 엔드포인트
+```
+위치: src/app/api/{domain}/route.ts
+예시: src/app/api/servers/[id]/route.ts
+```
+
+### 새 컴포넌트
+```
+위치: src/components/{feature}/{ComponentName}.tsx
+예시: src/components/dashboard/ServerCard.tsx
+훅 필요시: src/hooks/{feature}/use{Feature}.ts
+```
+
+### 새 AI 기능
+```
+Vercel 측: src/lib/ai/{feature}.ts
+Cloud Run 측: cloud-run/ai-engine/src/{agents|tools}/
+```
 
 ## Data Source (SSOT)
 
-### 서버 메트릭 데이터 소스
 **Single Source of Truth**: `public/hourly-data/hour-XX.json`
 
-```
-Dashboard (Vercel)              Cloud Run AI
-       ↓                              ↓
-UnifiedServerDataSource         precomputed-state.ts
-       ↓                              ↓
-   MetricsProvider  ←─────────────────┘
-       ↓
-hourly-data/hour-XX.json (24개 파일)
-```
-
-### 데이터 수정 시 체크리스트
-hourly-data JSON 수정 시 **양쪽 모두 영향받음** (자동 동기화):
-- [ ] Dashboard 표시값 확인
-- [ ] AI 응답값 확인
-- [ ] 두 값이 일치하는지 검증
-
-### 관련 파일
 | 컴포넌트 | 파일 | 역할 |
 |---------|------|------|
-| 데이터 소스 | `public/hourly-data/*.json` | 24시간 시나리오 데이터 |
-| Vercel | `src/services/metrics/MetricsProvider.ts` | 메트릭 제공 (캐싱) |
-| Vercel | `src/services/data/UnifiedServerDataSource.ts` | API 데이터 소스 |
-| Cloud Run | `cloud-run/ai-engine/src/data/precomputed-state.ts` | AI 컨텍스트 |
+| 데이터 원본 | `public/hourly-data/*.json` | 24시간 시나리오 |
+| Vercel 소비 | `src/services/data/UnifiedServerDataSource.ts` | API 제공 |
+| AI 소비 | `cloud-run/ai-engine/src/data/precomputed-state.ts` | AI 컨텍스트 |
 
-### 주의사항
-- `fixed-24h-metrics.ts`는 **fallback 전용** (hourly-data 로드 실패 시)
-- 메트릭 값 변경은 반드시 `hourly-data/*.json`에서 수행
+**주의**: 메트릭 수정 시 Dashboard와 AI 응답 **양쪽 확인** 필수
+
+## Anti-Patterns (하지 말 것)
+
+| 잘못된 패턴 | 올바른 방법 |
+|------------|------------|
+| `src/` 루트에 파일 생성 | feature별 폴더에 배치 |
+| API에서 직접 LLM 호출 | Cloud Run AI Engine 위임 |
+| 컴포넌트에 비즈니스 로직 | `services/`로 분리 |
+| 하드코딩된 서버 데이터 | `hourly-data/*.json` 사용 |
+| `any` 타입 사용 | 명시적 타입 정의 |
+
+## Import 패턴
+
+```typescript
+// ✅ Good: 절대 경로
+import { ServerCard } from '@/components/dashboard/ServerCard';
+import { useServerStatus } from '@/hooks/dashboard/useServerStatus';
+import type { ServerMetrics } from '@/types/metrics';
+
+// ❌ Bad: 상대 경로 (깊은 중첩)
+import { ServerCard } from '../../../components/dashboard/ServerCard';
+```
+
+## 핵심 파일 참조
+
+| 용도 | 파일 |
+|------|------|
+| AI Supervisor API | `src/app/api/ai/supervisor/route.ts` |
+| 메트릭 제공자 | `src/services/metrics/MetricsProvider.ts` |
+| AI 훅 (메인) | `src/hooks/ai/useAIChatCore.ts` |
+| 상태 관리 | `src/stores/useAISidebarStore.ts` |
+| AI Engine 진입점 | `cloud-run/ai-engine/src/index.ts` |
+
+---
+
+**See Also**: 상세 아키텍처 → `docs/reference/architecture/`
+- 시스템 전체: `system/system-architecture-current.md`
+- AI 엔진: `ai/ai-engine-architecture.md`
+- 하이브리드 분리: `infrastructure/hybrid-split.md`
