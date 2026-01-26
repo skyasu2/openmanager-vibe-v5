@@ -9,7 +9,7 @@
 
 | 문서 | 설명 |
 |------|------|
-| [WSL 설정](./development/wsl-setup.md) | Windows Subsystem for Linux |
+| [전체 환경 구축](./development/full-setup-guide.md) | WSL + Node.js + AI 도구 (필독) |
 | [개발 도구](./development/dev-tools.md) | Node.js, npm, IDE |
 | [프로젝트 설정](./development/project-setup.md) | 클론, 환경변수 |
 

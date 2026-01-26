@@ -24,7 +24,7 @@ docs/
 ├── QUICK-START.md           # 빠른 시작
 ├── development/             # 개발 환경 ⭐ NEW
 │   ├── README.md            # 개발 환경 개요
-│   ├── wsl-setup.md         # WSL 설정
+│   ├── full-setup-guide.md  # 전체 환경 구축 (WSL 포함)
 │   ├── dev-tools.md         # 개발 도구
 │   └── project-setup.md     # 프로젝트 설정
 ├── vibe-coding/             # Vibe Coding ⭐ NEW
@@ -72,7 +72,7 @@ docs/
 ## Essential Documents
 
 ### 개발 환경 (NEW)
-- [WSL 설정](./development/wsl-setup.md) - Windows Subsystem for Linux
+- [전체 환경 구축](./development/full-setup-guide.md) - WSL + Node.js + AI 도구 (필독)
 - [개발 도구](./development/dev-tools.md) - Node.js, npm, IDE
 - [프로젝트 설정](./development/project-setup.md) - 클론, 환경변수
 

@@ -187,6 +187,6 @@ AI_ENGINE_URL=
 
 ## 관련 문서
 
-- [WSL 설정](./wsl-setup.md)
+- [전체 환경 구축](./full-setup-guide.md)
 - [프로젝트 설정](./project-setup.md)
 - [Vibe Coding](../vibe-coding/README.md)

@@ -10,8 +10,7 @@
 
 | 문서 | 설명 |
 |------|------|
-| [전체 환경 구축](./full-setup-guide.md) | 제로베이스에서 완전 구축 (필독) |
-| [WSL 설정](./wsl-setup.md) | Windows Subsystem for Linux |
+| [전체 환경 구축](./full-setup-guide.md) | 제로베이스에서 완전 구축 **(필독, WSL 포함)** |
 | [개발 도구](./dev-tools.md) | Node.js, npm, IDE 설정 |
 | [프로젝트 설정](./project-setup.md) | 프로젝트 초기화 및 환경변수 |
 | [코딩 표준](./coding-standards.md) | 개발 방법론 및 코드 스타일 |

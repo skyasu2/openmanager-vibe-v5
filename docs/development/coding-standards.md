@@ -328,6 +328,6 @@ import type { ServerConfig } from '@/types';
 ## 관련 문서
 
 - [개발 환경](./README.md)
-- [WSL 설정](./wsl-setup.md)
+- [전체 환경 구축](./full-setup-guide.md)
 - [Vibe Coding](../vibe-coding/README.md)
 - [테스트 전략](../guides/testing/test-strategy.md)
