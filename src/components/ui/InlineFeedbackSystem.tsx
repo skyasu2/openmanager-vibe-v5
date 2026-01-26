@@ -378,6 +378,7 @@ export function ButtonWithFeedback({
   return (
     <div className="space-y-2">
       <button
+        type="button"
         onClick={() => {
           void handleClick();
         }}

@@ -32,6 +32,7 @@ export default function IntelligentMonitoringModal({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg p-2 transition-colors hover:bg-gray-100"
             title="모달 닫기"

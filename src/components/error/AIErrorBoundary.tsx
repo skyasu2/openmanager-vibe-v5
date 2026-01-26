@@ -140,6 +140,7 @@ export class AIErrorBoundary extends Component<
           {/* 액션 버튼 */}
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={this.handleReset}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
             >
@@ -147,6 +148,7 @@ export class AIErrorBoundary extends Component<
               다시 시도
             </button>
             <button
+              type="button"
               onClick={this.handleCopyError}
               className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               title="오류 정보 복사"
@@ -188,6 +190,7 @@ export function AIErrorFallback({
         <AlertTriangle className="mx-auto mb-2 h-8 w-8 text-amber-600" />
         <p className="mb-3 text-sm text-amber-800">{error.message}</p>
         <button
+          type="button"
           onClick={resetError}
           className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
         >

@@ -79,6 +79,7 @@ class ServerModalErrorBoundary extends Component<Props, State> {
 
               <div className="flex justify-center gap-3">
                 <button
+                  type="button"
                   onClick={this.handleRetry}
                   className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
                 >
@@ -87,6 +88,7 @@ class ServerModalErrorBoundary extends Component<Props, State> {
                 </button>
 
                 <button
+                  type="button"
                   onClick={this.props.onClose}
                   className="flex items-center gap-2 rounded-lg bg-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-400"
                 >

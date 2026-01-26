@@ -56,6 +56,7 @@ export default function AuthLoadingUI({
           <div className="mx-auto mt-4 max-w-md">
             <p className="mb-2 text-sm text-red-400">인증 오류: {authError}</p>
             <button
+              type="button"
               onClick={onRetry}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
             >

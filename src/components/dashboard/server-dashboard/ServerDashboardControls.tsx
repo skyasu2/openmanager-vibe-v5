@@ -81,6 +81,7 @@ export function ServerDashboardControls({
 
         {(searchTerm || statusFilter !== 'all' || locationFilter !== 'all') && (
           <button
+            type="button"
             onClick={onResetFilters}
             className="rounded-lg border border-gray-700 px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white"
           >
@@ -92,12 +93,14 @@ export function ServerDashboardControls({
       {/* View Mode */}
       <div className="flex items-center space-x-2">
         <button
+          type="button"
           onClick={() => onViewModeChange('grid')}
           className={`rounded-lg p-2 ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}`}
         >
           <LayoutGrid size={20} />
         </button>
         <button
+          type="button"
           onClick={() => onViewModeChange('list')}
           className={`rounded-lg p-2 ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800'}`}
         >

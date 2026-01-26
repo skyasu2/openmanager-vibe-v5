@@ -172,6 +172,7 @@ export default function ServerStartButton() {
         <div className="space-y-3">
           {!progress?.active && !progress?.completed && (
             <button
+              type="button"
               onClick={() => {
                 void handleStartServer();
               }}
@@ -194,6 +195,7 @@ export default function ServerStartButton() {
 
           {progress?.active && !progress?.completed && (
             <button
+              type="button"
               onClick={() => {
                 void handleStopWarmup();
               }}
@@ -212,6 +214,7 @@ export default function ServerStartButton() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setProgress(null)}
                 className="mt-3 text-sm text-gray-500 hover:text-gray-700"
               >

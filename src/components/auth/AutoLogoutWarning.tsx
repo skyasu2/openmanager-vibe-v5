@@ -71,6 +71,7 @@ export function AutoLogoutWarning({
         {/* 버튼들 */}
         <div className="flex gap-3">
           <button
+            type="button"
             onClick={onExtendSession}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700"
           >
@@ -78,6 +79,7 @@ export function AutoLogoutWarning({
             세션 연장
           </button>
           <button
+            type="button"
             onClick={onLogoutNow}
             className="rounded-lg border border-gray-300 px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           >

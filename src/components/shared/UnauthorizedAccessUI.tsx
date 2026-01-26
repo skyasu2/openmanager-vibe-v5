@@ -74,6 +74,7 @@ export default function UnauthorizedAccessUI({
 
         <div className="space-y-3">
           <button
+            type="button"
             onClick={handleLoginClick}
             className="w-full rounded-lg bg-linear-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white transition-all duration-200 hover:from-blue-600 hover:to-blue-700"
           >
@@ -81,6 +82,7 @@ export default function UnauthorizedAccessUI({
           </button>
 
           <button
+            type="button"
             onClick={handleBackClick}
             className="w-full rounded-lg bg-gray-700 px-6 py-3 font-medium text-gray-200 transition-all duration-200 hover:bg-gray-600"
           >

@@ -342,6 +342,7 @@ export default function AutoReportPage() {
         <div className="flex space-x-2">
           {filterOptions.map((filter) => (
             <button
+              type="button"
               key={filter.id}
               onClick={() => setSelectedSeverity(filter.id)}
               className={`rounded-full px-3 py-1 text-sm transition-colors ${
@@ -370,6 +371,7 @@ export default function AutoReportPage() {
               </div>
             </div>
             <button
+              type="button"
               onClick={() => setError(null)}
               className="rounded-lg p-1 text-red-400 transition-colors hover:bg-red-100 hover:text-red-600"
               aria-label="닫기"
@@ -407,6 +409,7 @@ export default function AutoReportPage() {
               새 보고서를 생성하여 장애 현황을 분석해보세요.
             </p>
             <button
+              type="button"
               onClick={handleGenerateReport}
               disabled={isGenerating}
               className="inline-flex items-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-sm text-white transition-all hover:scale-105 hover:bg-red-600 active:scale-95 disabled:opacity-50"

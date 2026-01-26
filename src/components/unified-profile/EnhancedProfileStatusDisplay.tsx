@@ -131,6 +131,7 @@ export function EnhancedProfileStatusDisplay({
         <div className="flex items-center gap-2">
           {/* 새로고침 버튼 */}
           <button
+            type="button"
             data-testid="refresh-button"
             onClick={refresh}
             className="rounded p-1 transition-colors hover:bg-gray-200"
@@ -142,6 +143,7 @@ export function EnhancedProfileStatusDisplay({
           {/* 상세 정보 토글 */}
           {!compact && (
             <button
+              type="button"
               data-testid="detail-toggle"
               onClick={() => setShowDetails(!showDetails)}
               className="rounded p-1 transition-colors hover:bg-gray-200"

@@ -77,12 +77,14 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
 
           <div className="flex space-x-3">
             <button
+              type="button"
               onClick={resetErrorBoundary}
               className="flex-1 rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
               다시 시도
             </button>
             <button
+              type="button"
               onClick={() => (window.location.href = '/')}
               className="flex-1 rounded-md bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             >

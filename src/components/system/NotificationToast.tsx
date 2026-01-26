@@ -148,6 +148,7 @@ export const NotificationToast: FC = () => {
               )}
             </div>
             <button
+              type="button"
               onClick={() => removeNotification(notification.id)}
               className="text-gray-400 transition-colors hover:text-gray-600"
               title="알림 닫기"

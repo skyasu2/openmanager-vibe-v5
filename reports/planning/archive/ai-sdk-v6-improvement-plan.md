@@ -25,9 +25,9 @@
 - [x] `ai-engine-architecture.md` - v6 패턴 반영, AI SDK v6 Key Features 테이블 추가
 - [x] `ai-engine-internals.md` - UIMessageStream 프로토콜 설명, Resumable Stream v2 섹션 추가, Deprecated 컴포넌트 업데이트
 
-### 1.3 프론트엔드 소개 업데이트
-- [ ] README.md AI 섹션 현행화 (선택)
-- [ ] CLAUDE.md AI 도구 섹션 검토 (선택)
+### 1.3 프론트엔드 소개 업데이트 ✅
+- [x] README.md AI 섹션 현행화 (2026-01-26)
+- [x] CLAUDE.md AI 도구 섹션 검토 - 이미 최신 상태
 
 ---
 

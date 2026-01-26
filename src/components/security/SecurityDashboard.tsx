@@ -180,6 +180,7 @@ export default function SecurityDashboard() {
           </div>
 
           <button
+            type="button"
             onClick={() => setShowDetails(!showDetails)}
             className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-700/50 hover:text-white"
             title={showDetails ? '세부사항 숨기기' : '세부사항 보기'}
@@ -326,6 +327,7 @@ export default function SecurityDashboard() {
         <span>마지막 확인: {lastCheck}</span>
 
         <button
+          type="button"
           onClick={() => {
             void checkSecurityStatus();
           }}

@@ -140,6 +140,7 @@ export const LogsTab: FC<LogsTabProps> = ({
             {/* 뷰 전환 버튼 */}
             <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
               <button
+                type="button"
                 onClick={() => setActiveView('scenario')}
                 className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
                   activeView === 'scenario'
@@ -150,6 +151,7 @@ export const LogsTab: FC<LogsTabProps> = ({
                 📝 실시간 로그
               </button>
               <button
+                type="button"
                 onClick={() => setActiveView('alerts')}
                 className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
                   activeView === 'alerts'

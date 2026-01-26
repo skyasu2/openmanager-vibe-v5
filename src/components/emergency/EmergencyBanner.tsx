@@ -22,6 +22,7 @@ export function EmergencyBanner() {
         <span className="animate-pulse">🚨</span>
       </div>
       <button
+        type="button"
         onClick={() => setIsVisible(false)}
         className="absolute right-4 top-1/2 -translate-y-1/2 transform rounded px-2 py-1 hover:bg-red-700"
       >

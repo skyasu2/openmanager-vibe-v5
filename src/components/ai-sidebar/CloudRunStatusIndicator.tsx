@@ -258,6 +258,7 @@ export function CloudRunStatusIndicator({
   if (compact) {
     return (
       <button
+        type="button"
         onClick={() =>
           status === 'cold' || status === 'error'
             ? triggerWarmup()
@@ -309,6 +310,7 @@ export function CloudRunStatusIndicator({
       {/* 웜업 버튼 (cold/error 상태일 때만) */}
       {(status === 'cold' || status === 'error') && (
         <button
+          type="button"
           onClick={triggerWarmup}
           disabled={isWarmingUp}
           className="flex items-center gap-1 rounded bg-yellow-500 px-2 py-0.5 text-xs font-medium text-white transition-colors hover:bg-yellow-600 disabled:cursor-not-allowed disabled:opacity-50"
@@ -331,6 +333,7 @@ export function CloudRunStatusIndicator({
       {/* 새로고침 버튼 (ready 상태일 때) */}
       {status === 'ready' && (
         <button
+          type="button"
           onClick={() => void checkHealth()}
           className="text-xs text-gray-400 hover:text-gray-600"
           title={

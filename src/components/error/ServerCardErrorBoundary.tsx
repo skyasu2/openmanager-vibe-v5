@@ -94,6 +94,7 @@ class ServerCardErrorBoundary extends Component<Props, State> {
             </div>
 
             <button
+              type="button"
               onClick={this.handleRetry}
               className="flex items-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-red-500/20"
               aria-label="서버 카드 다시 로드"

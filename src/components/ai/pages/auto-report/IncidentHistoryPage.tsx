@@ -97,6 +97,7 @@ const ReportCard = memo(function ReportCard({
 
   return (
     <button
+      type="button"
       onClick={handleClick}
       className={`w-full rounded-lg border bg-white p-4 text-left transition-all hover:shadow-md ${
         isSelected

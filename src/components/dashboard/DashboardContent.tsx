@@ -253,6 +253,7 @@ export default function DashboardContent({
             </h2>
             <p className="mb-4 text-gray-600">{renderError}</p>
             <button
+              type="button"
               onClick={() => window.location.reload()}
               className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
             >
@@ -279,6 +280,7 @@ export default function DashboardContent({
                 시퀀셜 서버 생성 모드가 활성화되었습니다.
               </p>
               <button
+                type="button"
                 onClick={() => onShowSequentialChange(false)}
                 className="mt-4 rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
               >
@@ -341,6 +343,7 @@ export default function DashboardContent({
         <div className="text-center text-gray-500">
           <p>대시보드를 불러올 수 없습니다.</p>
           <button
+            type="button"
             onClick={() => window.location.reload()}
             className="mt-2 rounded bg-blue-500 px-3 py-1 text-sm text-white"
           >

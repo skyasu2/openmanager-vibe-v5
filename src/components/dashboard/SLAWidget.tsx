@@ -224,6 +224,7 @@ export const SLAWidget = memo(function SLAWidget({
           </span>
         </div>
         <button
+          type="button"
           onClick={calculateSLAMetrics}
           className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
         >

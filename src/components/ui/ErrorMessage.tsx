@@ -171,6 +171,7 @@ export const ErrorMessage: FC<ErrorMessageProps> = ({
       <div className="flex flex-col justify-center gap-3 sm:flex-row">
         {allActions.map((action, index) => (
           <button
+            type="button"
             key={index}
             onClick={action.onClick}
             className={`inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium transition-all ${

@@ -70,6 +70,7 @@ export const ProfileMenuItem = memo(function ProfileMenuItem({
     <>
       {dividerBefore && <div className="my-1 border-t border-gray-100" />}
       <button
+        type="button"
         id={id}
         data-testid={id}
         onClick={(e) => {

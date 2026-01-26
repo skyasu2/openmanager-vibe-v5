@@ -122,6 +122,7 @@ export default function VirtualizedServerList({
       {remainingCount > 0 && !expanded && (
         <div className="mt-6 flex justify-center">
           <button
+            type="button"
             onClick={() => setExpanded(true)}
             className="rounded-lg border-2 border-purple-300 bg-white px-6 py-3 font-medium text-purple-700 transition-all hover:bg-purple-50 hover:border-purple-400"
           >
@@ -150,6 +151,7 @@ export default function VirtualizedServerList({
       {expanded && remainingCount > 0 && (
         <div className="mt-6 flex justify-center">
           <button
+            type="button"
             onClick={() => setExpanded(false)}
             className="rounded-lg border-2 border-purple-300 bg-white px-6 py-3 font-medium text-purple-700 transition-all hover:bg-purple-50 hover:border-purple-400"
           >

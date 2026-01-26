@@ -274,6 +274,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
                   로딩이 오래 걸리고 있습니다. 아래 버튼으로 바로 이동하세요.
                 </div>
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     debug.log('🚀 비상 완료 버튼 클릭');

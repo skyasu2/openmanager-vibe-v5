@@ -60,6 +60,7 @@ export function AIDebugPanel() {
         {/* Controls */}
         <div className="grid grid-cols-2 gap-2">
           <button
+            type="button"
             onClick={handleWakeUp}
             disabled={loading}
             data-testid="ai-debug-start"
@@ -71,6 +72,7 @@ export function AIDebugPanel() {
           </button>
 
           <button
+            type="button"
             onClick={handleHealthCheck}
             disabled={loading}
             data-testid="ai-debug-check"

@@ -75,6 +75,7 @@ export class ChartErrorBoundary extends Component<
           {error?.message || '데이터 렌더링 중 오류가 발생했습니다'}
         </p>
         <button
+          type="button"
           onClick={this.handleReset}
           className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-50"
         >

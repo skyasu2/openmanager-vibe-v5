@@ -199,6 +199,7 @@ export default function UnifiedProfileHeader({
     return (
       <div ref={dropdownRef} className={`relative z-50 ${className}`}>
         <button
+          type="button"
           onClick={navigateToLogin}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           data-testid="login-button"
@@ -218,6 +219,7 @@ export default function UnifiedProfileHeader({
     >
       {/* 프로필 버튼 */}
       <button
+        type="button"
         onClick={() => {
           logger.info('👤 프로필 버튼 클릭됨');
           toggleMenu();

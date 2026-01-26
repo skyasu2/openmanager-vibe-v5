@@ -34,6 +34,7 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
             <div className="flex items-center justify-between border-b border-slate-700 p-4">
               <h3 className="text-lg font-semibold text-white">{title}</h3>
               <button
+                type="button"
                 onClick={onClose}
                 className="rounded-full p-1 text-slate-400 transition-colors hover:text-white"
                 aria-label="Close modal"

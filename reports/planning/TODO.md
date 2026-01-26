@@ -1,10 +1,22 @@
 # TODO - OpenManager VIBE v5
 
-**Last Updated**: 2026-01-22 09:25 KST
+**Last Updated**: 2026-01-26 19:40 KST
 
 ## Active Tasks
 
 _(현재 활성 작업 없음 - 모든 코드 작업 완료)_
+
+### Completed (2026-01-26)
+- [x] P1: useButtonType A11y 위반 해결 (142개 → 0개)
+- [x] P2: README AI 섹션 업데이트 (AI SDK v6, 5-Agent)
+- [x] P3: 레거시 계획서 아카이브 이동 (10개 → archive/)
+
+### 활성 계획서 (Active Plans)
+| 파일 | 상태 | 비고 |
+|------|------|------|
+| `ai-codebase-improvement-plan.md` | P0 대기 | Resource/Memory Leak 수정 필요 |
+| `incident-report-and-anomaly-improvement-plan.md` | 참조 | 구현 가이드 |
+| `landing-card-diagrams.md` | 참조 | 다이어그램 데이터 |
 
 ### Completed (2026-01-22)
 - [x] 코드 단순화 리팩토링 (YAGNI 원칙 적용)

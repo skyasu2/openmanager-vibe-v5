@@ -201,6 +201,7 @@ export default function OptimizedDashboard({
 
                 {/* 로그아웃 버튼 */}
                 <button
+                  type="button"
                   onClick={handleLogout}
                   className="p-2 text-gray-500 transition-colors hover:text-red-600"
                   title="로그아웃"
