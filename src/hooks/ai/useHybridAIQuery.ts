@@ -708,10 +708,11 @@ export function useHybridAIQuery(
         }));
 
         // 🎯 P1 Fix: Add catch handler for unhandled promise rejection
+        // 🎯 Stale Closure Fix: Use returned jobId instead of asyncQuery.jobId
         asyncQuery
           .sendQuery(trimmedQuery)
-          .then((_result) => {
-            setState((prev) => ({ ...prev, jobId: asyncQuery.jobId }));
+          .then((result) => {
+            setState((prev) => ({ ...prev, jobId: result.jobId ?? null }));
           })
           .catch((error) => {
             logger.error('[HybridAI] Job Queue query failed:', error);

@@ -52,6 +52,8 @@ export interface AsyncQueryResult {
   toolResults?: unknown[];
   processingTimeMs?: number;
   error?: string;
+  /** Job ID (Stale Closure 방지용) */
+  jobId?: string;
 }
 
 export interface AsyncQueryState {
@@ -183,6 +185,9 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
       });
 
       return new Promise((resolve) => {
+        // 🎯 Store jobId for closure access (Stale Closure 방지)
+        let capturedJobId: string | null = null;
+
         const handleError = (error: string) => {
           cleanup();
           setState((prev) => ({
@@ -193,19 +198,24 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
             progress: null, // 🎯 P2 Fix: Clear progress on error to avoid "80% complete... ERROR" UX
           }));
           onError?.(error);
-          resolve({ success: false, error });
+          resolve({ success: false, error, jobId: capturedJobId ?? undefined });
         };
 
         const handleResult = (result: AsyncQueryResult) => {
           cleanup();
+          // 🎯 Include jobId in result for Stale Closure prevention
+          const resultWithJobId = {
+            ...result,
+            jobId: capturedJobId ?? undefined,
+          };
           setState((prev) => ({
             ...prev,
             isLoading: false,
             isConnected: false,
-            result,
+            result: resultWithJobId,
           }));
-          onResult?.(result);
-          resolve(result);
+          onResult?.(resultWithJobId);
+          resolve(resultWithJobId);
         };
 
         // SSE 재연결 로직
@@ -410,6 +420,8 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
           })
           .then((data: { jobId: string; status: string }) => {
             const { jobId } = data;
+            // 🎯 Capture jobId for Stale Closure prevention
+            capturedJobId = jobId;
             setState((prev) => ({ ...prev, jobId }));
 
             // Step 2: Connect to SSE Stream

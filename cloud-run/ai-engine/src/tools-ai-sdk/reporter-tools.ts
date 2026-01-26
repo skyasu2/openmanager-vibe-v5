@@ -132,15 +132,15 @@ export const searchKnowledgeBase = tool({
       .describe('GraphRAG 하이브리드 검색 사용 여부'),
     includeWebSearch: z
       .boolean()
-      .default(true)
-      .describe('KB 결과 부족 시 웹 검색 자동 보강'),
+      .default(false)
+      .describe('KB 결과 부족 시 웹 검색 자동 보강 (개인정보 보호를 위해 기본 비활성화)'),
   }),
   execute: async ({
     query,
     category,
     severity,
     useGraphRAG = true,
-    includeWebSearch = true,
+    includeWebSearch = false,
   }: {
     query: string;
     category?: 'troubleshooting' | 'security' | 'performance' | 'incident' | 'best_practice';

@@ -177,6 +177,8 @@ next-env.d.ts
 
 # 🔐 MCP 민감한 정보 포함 파일들 (GitHub 완전 차단)
 .mcp.json
+.mcp.json.backup*
+*.mcp.json.backup
 .claude/mcp.json
 .claude/claude_workspace.json
 

@@ -48,18 +48,28 @@ const PROGRESS_TTL_SECONDS = 600; // 10 minutes
 
 /**
  * Mark job as processing (started)
+ * 🎯 Fix: Merge with existing job data to preserve metadata (Stale Closure 방지)
  */
 export async function markJobProcessing(jobId: string): Promise<boolean> {
+  // Read existing job data to preserve metadata
+  const existingJob = await redisGet<Record<string, unknown>>(`${JOB_KEY_PREFIX}${jobId}`);
+
   const result: JobResult = {
     status: 'processing',
     startedAt: new Date().toISOString(),
   };
 
-  return redisSet(`${JOB_KEY_PREFIX}${jobId}`, result, JOB_TTL_SECONDS);
+  // Merge with existing data (preserve query, sessionId, type, metadata)
+  const mergedResult = existingJob
+    ? { ...existingJob, ...result }
+    : result;
+
+  return redisSet(`${JOB_KEY_PREFIX}${jobId}`, mergedResult, JOB_TTL_SECONDS);
 }
 
 /**
  * Store completed job result
+ * 🎯 Fix: Merge with existing job data to preserve metadata (query, sessionId, type)
  */
 export async function storeJobResult(
   jobId: string,
@@ -74,7 +84,10 @@ export async function storeJobResult(
     modelId?: string;
   }
 ): Promise<boolean> {
-  const startedAt = options?.startedAt || new Date().toISOString();
+  // Read existing job data to preserve metadata
+  const existingJob = await redisGet<Record<string, unknown>>(`${JOB_KEY_PREFIX}${jobId}`);
+
+  const startedAt = options?.startedAt || (existingJob?.startedAt as string) || new Date().toISOString();
   const completedAt = new Date().toISOString();
   const processingTimeMs =
     new Date(completedAt).getTime() - new Date(startedAt).getTime();
@@ -89,35 +102,50 @@ export async function storeJobResult(
     processingTimeMs,
   };
 
+  // Merge with existing data (preserve query, sessionId, type, metadata)
+  const mergedResult = existingJob
+    ? { ...existingJob, ...result }
+    : result;
+
   console.log(
     `✅ [JobNotifier] Storing result for job ${jobId} (${processingTimeMs}ms)`
   );
-  return redisSet(`${JOB_KEY_PREFIX}${jobId}`, result, JOB_TTL_SECONDS);
+  return redisSet(`${JOB_KEY_PREFIX}${jobId}`, mergedResult, JOB_TTL_SECONDS);
 }
 
 /**
  * Store failed job result
+ * 🎯 Fix: Merge with existing job data to preserve metadata (query, sessionId, type)
  */
 export async function storeJobError(
   jobId: string,
   error: string,
   startedAt?: string
 ): Promise<boolean> {
+  // Read existing job data to preserve metadata
+  const existingJob = await redisGet<Record<string, unknown>>(`${JOB_KEY_PREFIX}${jobId}`);
+
+  const effectiveStartedAt = startedAt || (existingJob?.startedAt as string) || new Date().toISOString();
   const completedAt = new Date().toISOString();
-  const processingTimeMs = startedAt
-    ? new Date(completedAt).getTime() - new Date(startedAt).getTime()
+  const processingTimeMs = effectiveStartedAt
+    ? new Date(completedAt).getTime() - new Date(effectiveStartedAt).getTime()
     : 0;
 
   const result: JobResult = {
     status: 'failed',
     error,
-    startedAt: startedAt || completedAt,
+    startedAt: effectiveStartedAt,
     completedAt,
     processingTimeMs,
   };
 
+  // Merge with existing data (preserve query, sessionId, type, metadata)
+  const mergedResult = existingJob
+    ? { ...existingJob, ...result }
+    : result;
+
   console.log(`❌ [JobNotifier] Storing error for job ${jobId}: ${error}`);
-  return redisSet(`${JOB_KEY_PREFIX}${jobId}`, result, JOB_TTL_SECONDS);
+  return redisSet(`${JOB_KEY_PREFIX}${jobId}`, mergedResult, JOB_TTL_SECONDS);
 }
 
 /**
