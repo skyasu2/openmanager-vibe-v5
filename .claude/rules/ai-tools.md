@@ -1,12 +1,13 @@
 # AI Tools Usage Rules
 
-## MCP Servers (8개)
+## MCP Servers (9개)
 
 | MCP | 용도 | 우선순위 |
 |-----|------|:-------:|
 | `serena` | 코드 검색, 심볼 분석, 메모리 | 높음 |
 | `context7` | 라이브러리 공식 문서 | 높음 |
 | `sequential-thinking` | 복잡한 리팩토링, 아키텍처 설계 | 높음 |
+| `stitch` | Google Stitch AI UI 디자인 | 중간 |
 | `supabase` | PostgreSQL 관리 | 중간 |
 | `vercel` | 배포 상태 확인 | 중간 |
 | `playwright` | E2E 테스트 | 중간 |
