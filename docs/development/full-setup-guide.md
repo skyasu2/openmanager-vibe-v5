@@ -85,10 +85,13 @@ wsl --version
 ### 2.2 Ubuntu 설치
 
 ```powershell
-# Ubuntu 22.04 설치
-wsl --install -d Ubuntu-22.04
+# Ubuntu 24.04 설치 (권장 - 2026년 기준)
+wsl --install -d Ubuntu-24.04
 
-# 또는 Microsoft Store에서 "Ubuntu 22.04" 검색 후 설치
+# 또는 Microsoft Store에서 "Ubuntu 24.04" 검색 후 설치
+
+# 기존 Ubuntu 22.04도 호환됨
+# wsl --install -d Ubuntu-22.04
 ```
 
 ### 2.3 Ubuntu 초기 설정
@@ -514,7 +517,7 @@ git reset --hard HEAD~1
 
 ```
 [✓] Windows 11 WSL 2 설정
-[✓] Ubuntu 22.04 설치 및 설정
+[✓] Ubuntu 24.04 (또는 22.04) 설치 및 설정
 [✓] Node.js 22.21.1 (nvm)
 [✓] Git + SSH 키 설정
 [✓] Claude Code 설치 + 로그인
@@ -525,6 +528,7 @@ git reset --hard HEAD~1
 [✓] 환경변수 설정
 [✓] 개발 서버 동작 확인
 [✓] AI 리뷰 동작 확인
+[✓] Git Hooks 동작 확인 (pre-commit, pre-push)
 ```
 
 ---
@@ -580,6 +584,7 @@ git reset --hard HEAD~1
 1. [Vibe Coding 가이드](../vibe-coding/README.md) - AI 도구 활용법
 2. [워크플로우](../vibe-coding/workflows.md) - 일일 개발 사이클
 3. [코딩 표준](./coding-standards.md) - 프로젝트 규칙
+4. [Git Hooks 워크플로우](./git-hooks-workflow.md) - Pre-commit/Pre-push 설정
 
 ---
 
@@ -589,12 +594,12 @@ git reset --hard HEAD~1
 |------|------|
 | Windows | 11 |
 | WSL | 2 |
-| Ubuntu | 22.04 |
+| Ubuntu | 24.04 (또는 22.04) |
 | Node.js | 22.21.1 |
-| npm | 10.9.2+ |
+| npm | 11.6.2+ |
 | Python | 3.10+ |
 | Next.js | 16.1.1 |
-| React | 19.2.3 |
+| React | 19 |
 | TypeScript | 5.9.3 |
 
-_Last Updated: 2026-01-22_
+_Last Updated: 2026-01-27_

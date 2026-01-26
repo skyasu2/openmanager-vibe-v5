@@ -11,6 +11,7 @@
 | 문서 | 설명 |
 |------|------|
 | [전체 환경 구축](./full-setup-guide.md) | 제로베이스에서 완전 구축 **(필독, WSL 포함)** |
+| [Git Hooks 워크플로우](./git-hooks-workflow.md) | Pre-commit, Pre-push, CI/CD 최적화 |
 | [개발 도구](./dev-tools.md) | Node.js, npm, IDE 설정 |
 | [프로젝트 설정](./project-setup.md) | 프로젝트 초기화 및 환경변수 |
 | [코딩 표준](./coding-standards.md) | 개발 방법론 및 코드 스타일 |
@@ -19,7 +20,7 @@
 
 ```
 Runtime:      Node.js 22.21.1 (LTS)
-Package:      npm 10.9.2
+Package:      npm 11.6.2
 Framework:    Next.js 16.1.1 (App Router)
 Language:     TypeScript 5.9.3 (strict mode)
 UI:           React 19, Tailwind CSS 4
@@ -35,8 +36,8 @@ AI:           Vercel AI SDK 6, Multi-Agent
 - SSD 저장소
 
 ### 소프트웨어
-- WSL 2 (Ubuntu 22.04+)
-- Docker Desktop
+- WSL 2 (Ubuntu 24.04 권장, 22.04+ 호환)
+- Docker Desktop (선택)
 - Git
 - Claude Code CLI
 

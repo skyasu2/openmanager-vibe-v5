@@ -253,7 +253,11 @@ Claude: [평가 기록에 오탐 사유 추가]
 ```bash
 # 자동 배포 (git push)
 git push origin main
-# → Vercel이 자동 배포
+# → Pre-push Hook: TypeScript 검증 + 빠른 테스트 (~78초)
+# → Vercel이 Full Build + 배포
+
+# 긴급 시 Hook 우회
+HUSKY=0 git push origin main
 
 # 상태 확인
 mcp__vercel__list_deployments()
@@ -331,3 +335,4 @@ You: "아까 만든 훅에 캐싱 추가해줘"
 - [Claude Code](./claude-code.md)
 - [Skills](./skills.md)
 - [AI 도구들](./ai-tools.md)
+- [Git Hooks 워크플로우](../development/git-hooks-workflow.md) - Pre-commit/Pre-push 상세
