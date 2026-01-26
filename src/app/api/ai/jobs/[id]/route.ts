@@ -1,27 +1,46 @@
 /**
- * AI Job Queue API - 개별 Job 상태 조회
+ * AI Job Queue API - 개별 Job 상태 조회 (Redis Only)
  *
  * GET /api/ai/jobs/:id - Job 상태 조회 (폴링)
  * DELETE /api/ai/jobs/:id - Job 취소
  *
- * @version 1.0.0
+ * @version 2.0.0 - Redis Only 전환 (2026-01-26)
  */
 
-import { createClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logging';
-import type { AIJob, JobStatusResponse } from '@/types/ai-jobs';
+import { redisGet, redisSet, redisDel } from '@/lib/redis';
+import type { JobStatus, JobStatusResponse, JobType } from '@/types/ai-jobs';
 
-// Supabase 클라이언트 생성
-function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// ============================================
+// Redis Job 타입 (route.ts와 동일)
+// ============================================
 
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase configuration missing');
-  }
+interface RedisJob {
+  id: string;
+  type: JobType;
+  query: string;
+  status: JobStatus;
+  progress: number;
+  currentStep: string | null;
+  result: string | null;
+  error: string | null;
+  createdAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  sessionId: string | null;
+  metadata: {
+    complexity: string;
+    estimatedTime: number;
+    factors: Record<string, unknown>;
+  };
+}
 
-  return createClient(supabaseUrl, supabaseKey);
+interface JobProgress {
+  stage: string;
+  progress: number;
+  message?: string;
+  updatedAt: string;
 }
 
 // ============================================
@@ -42,26 +61,34 @@ export async function GET(
       );
     }
 
-    const supabase = getSupabaseClient();
+    // Redis에서 Job 조회
+    const job = await redisGet<RedisJob>(`job:${jobId}`);
 
-    const { data: job, error } = await supabase
-      .from('ai_jobs')
-      .select('*')
-      .eq('id', jobId)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return NextResponse.json({ error: 'Job not found' }, { status: 404 });
-      }
-      logger.error('[AI Jobs] Failed to get job:', error);
+    if (!job) {
       return NextResponse.json(
-        { error: 'Failed to get job status' },
-        { status: 500 }
+        { error: 'Job not found or expired' },
+        { status: 404 }
       );
     }
 
-    const response: JobStatusResponse = mapJobToResponse(job);
+    // 진행 중인 경우 progress 정보도 조회
+    let progressInfo: JobProgress | null = null;
+    if (job.status === 'queued' || job.status === 'processing') {
+      progressInfo = await redisGet<JobProgress>(`job:progress:${jobId}`);
+    }
+
+    const response: JobStatusResponse = {
+      jobId: job.id,
+      type: job.type,
+      status: job.status,
+      progress: progressInfo?.progress ?? job.progress,
+      currentStep: progressInfo?.stage ?? job.currentStep,
+      result: job.result ? { content: job.result } : null,
+      error: job.error,
+      createdAt: job.createdAt,
+      startedAt: job.startedAt,
+      completedAt: job.completedAt,
+    };
 
     // Cache 헤더 설정 (폴링 최적화)
     return NextResponse.json(response, {
@@ -97,20 +124,14 @@ export async function DELETE(
       );
     }
 
-    const supabase = getSupabaseClient();
+    // Redis에서 Job 조회
+    const job = await redisGet<RedisJob>(`job:${jobId}`);
 
-    // 현재 Job 상태 확인
-    const { data: job, error: fetchError } = await supabase
-      .from('ai_jobs')
-      .select('status')
-      .eq('id', jobId)
-      .single();
-
-    if (fetchError) {
-      if (fetchError.code === 'PGRST116') {
-        return NextResponse.json({ error: 'Job not found' }, { status: 404 });
-      }
-      throw fetchError;
+    if (!job) {
+      return NextResponse.json(
+        { error: 'Job not found or expired' },
+        { status: 404 }
+      );
     }
 
     // 이미 완료된 Job은 취소 불가
@@ -130,21 +151,16 @@ export async function DELETE(
     }
 
     // Job 취소 처리
-    const { error: updateError } = await supabase
-      .from('ai_jobs')
-      .update({
-        status: 'cancelled',
-        completed_at: new Date().toISOString(),
-      })
-      .eq('id', jobId);
+    const updatedJob: RedisJob = {
+      ...job,
+      status: 'cancelled',
+      completedAt: new Date().toISOString(),
+    };
 
-    if (updateError) {
-      logger.error('[AI Jobs] Failed to cancel job:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to cancel job' },
-        { status: 500 }
-      );
-    }
+    await redisSet(`job:${jobId}`, updatedJob, 3600); // 1시간 유지 후 삭제
+
+    // Progress 정보 삭제
+    await redisDel(`job:progress:${jobId}`);
 
     return NextResponse.json(
       { message: 'Job cancelled successfully', jobId },
@@ -157,26 +173,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
-
-// ============================================
-// 헬퍼 함수
-// ============================================
-
-/**
- * DB Job 엔티티를 API 응답 형식으로 변환
- */
-function mapJobToResponse(job: AIJob): JobStatusResponse {
-  return {
-    jobId: job.id,
-    type: job.type,
-    status: job.status,
-    progress: job.progress,
-    currentStep: job.current_step,
-    result: job.result,
-    error: job.error,
-    createdAt: job.created_at,
-    startedAt: job.started_at,
-    completedAt: job.completed_at,
-  };
 }

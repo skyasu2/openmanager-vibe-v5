@@ -78,23 +78,25 @@ export interface JobListResponse {
 // 내부 타입
 // ============================================
 
-/** DB 저장용 Job 엔티티 */
+/** Redis 저장용 Job 엔티티 */
 export interface AIJob {
   id: string;
-  user_id: string | null;
-  session_id: string | null;
+  sessionId: string | null;
   type: JobType;
   query: string;
-  priority: JobPriority;
   status: JobStatus;
   progress: number;
-  current_step: string | null;
-  result: AIJobResult | null;
+  currentStep: string | null;
+  result: string | null;
   error: string | null;
-  created_at: string;
-  started_at: string | null;
-  completed_at: string | null;
-  metadata: Record<string, unknown>;
+  createdAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  metadata: {
+    complexity: string;
+    estimatedTime: number;
+    factors: Record<string, unknown>;
+  };
 }
 
 /** AI Job 결과 */

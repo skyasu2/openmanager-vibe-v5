@@ -7,6 +7,7 @@
 ## 🔄 Recent Changes (v7.0.1)
 
 - **v7.0.1** (2026-01-26)
+  - **Job Queue Redis Only 전환**: Supabase ai_jobs 테이블 제거, Redis 단일 저장소
   - useAIChatCore 4개 hook 분해 리팩토링
   - sessionId 전파 문제 해결 (useState + useRef 하이브리드)
   - RAG 문서 v1.1.0 (HyDE, LLM Reranker, Tavily 반영)
@@ -186,7 +187,7 @@
 - **Job Queue SSE 진행률 개선**
   - Redis 초기 상태 저장 (pending, 5% progress) → Job 생성 즉시 SSE 진행률 표시
   - SSE 스트림에서 pending/null 상태 처리 개선
-  - Redis 장애 시 Graceful Degradation (Supabase 기반 폴백)
+  - Redis Only 아키텍처 (v7.0.1에서 Supabase 제거)
 - **신규 컴포넌트**:
   - `src/components/error/AIErrorBoundary.tsx` - AI 에러 바운더리
   - `src/domains/ai-sidebar/components/JobProgressIndicator.tsx` - 진행률 UI
@@ -205,15 +206,19 @@
 
 **Async Job Queue + SSE 실시간 알림 시스템 (2025-12-27)**
 - **목적**: Vercel 120초 타임아웃 우회 (기존 111초 응답 → 즉시 반환)
-- **아키텍처**: Store-and-Retrieve 패턴 (Upstash HTTP Redis 호환)
-  - Vercel: Job 생성 → Cloud Run: 백그라운드 처리 → Redis: 결과 저장 → SSE: 실시간 전달
+- **아키텍처**: Redis Only (v7.0.1 단순화)
+  - Vercel: Job 생성 (Redis) → Cloud Run: 백그라운드 처리 → Redis: 결과 저장 → SSE: 실시간 전달
+  - ~~Supabase ai_jobs 테이블~~: v7.0.1에서 제거됨
+- **Redis 키 구조**:
+  - `job:{jobId}` → Job 데이터 (24h TTL)
+  - `job:progress:{jobId}` → 진행률 (10min TTL)
+  - `job:list:{sessionId}` → Job ID 목록 (1h TTL)
 - **신규 파일**:
   - `cloud-run/ai-engine/src/routes/jobs.ts` - Cloud Run Job 처리 엔드포인트
   - `cloud-run/ai-engine/src/lib/job-notifier.ts` - Redis 결과 저장
   - `src/app/api/ai/jobs/[id]/stream/route.ts` - Vercel SSE 스트리밍
   - `src/hooks/ai/useAsyncAIQuery.ts` - Frontend React Hook
 - **효율**: Redis 명령어 93% 절감 (폴링 90K → SSE 6K/월)
-- **호환성**: 기존 `/api/ai/jobs/*` API 100% 호환 유지
 
 **NLQ Agent SubGraph 아키텍처 + 모델 분배 최적화 (2025-12-26)**
 - **NLQ SubGraph 구현**: 5노드 워크플로우 (parse→extract→validate→execute→format)

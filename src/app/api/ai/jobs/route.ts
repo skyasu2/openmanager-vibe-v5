@@ -1,27 +1,29 @@
 /**
- * AI Job Queue API - Job 생성 및 목록 조회
+ * AI Job Queue API - Redis Only
  *
  * POST /api/ai/jobs - 새 Job 생성
- * GET /api/ai/jobs - Job 목록 조회
+ * GET /api/ai/jobs - Job 목록 조회 (sessionId 필터만 지원)
  *
- * @version 1.2.0 - Rate Limiting 추가 (2026-01-03)
+ * @version 2.0.0 - Redis Only 전환 (2026-01-26)
+ * @description Supabase 제거, Redis를 단일 저장소로 사용
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { randomUUID } from 'crypto';
 import { after, type NextRequest, NextResponse } from 'next/server';
 import {
   analyzeQueryComplexity,
   inferJobType,
 } from '@/lib/ai/job-queue/complexity-analyzer';
 import { logger } from '@/lib/logging';
-import { redisSet } from '@/lib/redis';
+import { redisGet, redisSet, getRedisClient } from '@/lib/redis';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import type {
-  AIJob,
   CreateJobRequest,
   CreateJobResponse,
   JobListResponse,
+  JobStatus,
   JobStatusResponse,
+  JobType,
   TriggerStatus,
 } from '@/types/ai-jobs';
 
@@ -32,16 +34,37 @@ import type {
 /** Cloud Run 트리거 타임아웃 (ms) */
 const TRIGGER_TIMEOUT_MS = 5000;
 
-// Supabase 클라이언트 생성
-function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+/** Job TTL (24시간) */
+const JOB_TTL_SECONDS = 86400;
 
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase configuration missing');
-  }
+/** Job 목록 TTL (1시간) */
+const JOB_LIST_TTL_SECONDS = 3600;
 
-  return createClient(supabaseUrl, supabaseKey);
+/** Progress TTL (10분) */
+const PROGRESS_TTL_SECONDS = 600;
+
+// ============================================
+// Redis Job 타입
+// ============================================
+
+interface RedisJob {
+  id: string;
+  type: JobType;
+  query: string;
+  status: JobStatus;
+  progress: number;
+  currentStep: string | null;
+  result: string | null;
+  error: string | null;
+  createdAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  sessionId: string | null;
+  metadata: {
+    complexity: string;
+    estimatedTime: number;
+    factors: Record<string, unknown>;
+  };
 }
 
 // ============================================
@@ -58,89 +81,92 @@ async function handlePOST(request: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
+    // Redis 가용성 확인
+    const redis = getRedisClient();
+    if (!redis) {
+      return NextResponse.json(
+        {
+          error: 'Job queue unavailable',
+          fallback: 'Use /api/ai/supervisor directly',
+        },
+        { status: 503 }
+      );
+    }
+
     // 복잡도 분석
     const complexity = analyzeQueryComplexity(query);
 
-    // 간단한 쿼리는 Job Queue 없이 처리 권장 (클라이언트에서 결정)
-    // 여기서는 항상 Job 생성 (클라이언트가 이미 결정함)
-
-    // Job 타입 자동 추론 (명시되지 않은 경우)
+    // Job 타입 자동 추론
     const jobType = body.type || inferJobType(query);
 
-    const supabase = getSupabaseClient();
+    // Job ID 생성
+    const jobId = randomUUID();
+    const now = new Date().toISOString();
 
-    // Job 생성
-    const { data: job, error } = await supabase
-      .from('ai_jobs')
-      .insert({
-        type: jobType,
-        query: query.trim(),
-        priority: options?.priority || 'normal',
-        session_id: options?.sessionId || null,
-        status: 'queued',
-        progress: 0,
-        metadata: {
-          complexity: complexity.level,
-          estimatedTime: complexity.estimatedTime,
-          factors: complexity.factors,
-          ...options?.metadata,
-        },
-      })
-      .select()
-      .single();
+    // Redis에 Job 저장
+    const job: RedisJob = {
+      id: jobId,
+      type: jobType,
+      query: query.trim(),
+      status: 'queued',
+      progress: 0,
+      currentStep: null,
+      result: null,
+      error: null,
+      createdAt: now,
+      startedAt: null,
+      completedAt: null,
+      sessionId: options?.sessionId || null,
+      metadata: {
+        complexity: complexity.level,
+        estimatedTime: complexity.estimatedTime,
+        factors: complexity.factors,
+      },
+    };
 
-    if (error) {
-      logger.error('[AI Jobs] Failed to create job:', error);
+    const saved = await redisSet(`job:${jobId}`, job, JOB_TTL_SECONDS);
+
+    if (!saved) {
+      logger.error('[AI Jobs] Failed to save job to Redis');
       return NextResponse.json(
-        { error: 'Failed to create job', details: error.message },
+        { error: 'Failed to create job' },
         { status: 500 }
       );
     }
 
-    // Redis에 초기 상태 저장 (SSE 스트림에서 폴링하기 위함)
-    // Redis 장애 시에도 Job 생성은 계속 진행 (Graceful Degradation)
-    try {
-      await redisSet(
-        `job:${job.id}`,
-        {
-          status: 'pending',
-          startedAt: new Date().toISOString(),
-        },
-        300 // 5분 TTL
-      );
+    // 초기 진행률 저장
+    await redisSet(
+      `job:progress:${jobId}`,
+      {
+        stage: 'initializing',
+        progress: 5,
+        message: 'AI 에이전트 초기화 중...',
+        updatedAt: now,
+      },
+      PROGRESS_TTL_SECONDS
+    );
 
-      // 초기 진행률 저장
-      await redisSet(
-        `job:progress:${job.id}`,
-        {
-          stage: 'initializing',
-          progress: 5,
-          message: 'AI 에이전트 초기화 중...',
-          updatedAt: new Date().toISOString(),
-        },
-        300
-      );
-    } catch (redisError) {
-      // Redis 장애 시 경고만 남기고 계속 진행
-      // SSE 스트림은 폴링 API로 폴백됨
-      logger.warn(
-        '[AI Jobs] Redis initial state failed, SSE may use polling fallback:',
-        redisError
-      );
+    // Session별 Job 목록에 추가 (선택적)
+    if (options?.sessionId) {
+      const listKey = `job:list:${options.sessionId}`;
+      const existingList = (await redisGet<string[]>(listKey)) || [];
+      existingList.unshift(jobId);
+      // 최근 50개만 유지
+      await redisSet(listKey, existingList.slice(0, 50), JOB_LIST_TTL_SECONDS);
     }
 
-    // Cloud Run Worker에 Job 처리 요청 (타임아웃 적용)
+    // Cloud Run Worker에 Job 처리 요청
     const triggerResult = await triggerWorker(
-      job.id,
+      jobId,
       query,
       jobType,
       options?.sessionId
     );
 
-    // 비동기 로깅 (응답 차단 안함)
+    // 비동기 로깅
     after(async () => {
       await logJobCreation(
-        job.id,
+        jobId,
         jobType,
         triggerResult.status,
         complexity.level
@@ -148,9 +174,9 @@ async function handlePOST(request: NextRequest) {
     });
 
     const response: CreateJobResponse = {
-      jobId: job.id,
+      jobId,
       status: 'queued',
-      pollUrl: `/api/ai/jobs/${job.id}`,
+      pollUrl: `/api/ai/jobs/${jobId}`,
       estimatedTime: complexity.estimatedTime,
       triggerStatus: triggerResult.status,
     };
@@ -176,40 +202,33 @@ async function handleGET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
-    const status = searchParams.get('status');
     const limit = Math.min(parseInt(searchParams.get('limit') || '10', 10), 50);
-    const offset = parseInt(searchParams.get('offset') || '0', 10);
 
-    const supabase = getSupabaseClient();
-
-    let query = supabase
-      .from('ai_jobs')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    // 필터 적용
-    if (sessionId) {
-      query = query.eq('session_id', sessionId);
-    }
-    if (status) {
-      query = query.eq('status', status);
-    }
-
-    const { data: jobs, count, error } = await query;
-
-    if (error) {
-      logger.error('[AI Jobs] Failed to list jobs:', error);
+    // sessionId 필수 (Redis는 복잡한 쿼리 불가)
+    if (!sessionId) {
       return NextResponse.json(
-        { error: 'Failed to list jobs' },
-        { status: 500 }
+        { error: 'sessionId is required for job list query' },
+        { status: 400 }
       );
     }
 
+    // Session의 Job 목록 조회
+    const listKey = `job:list:${sessionId}`;
+    const jobIds = (await redisGet<string[]>(listKey)) || [];
+
+    // 각 Job 상세 조회
+    const jobs: JobStatusResponse[] = [];
+    for (const jobId of jobIds.slice(0, limit)) {
+      const job = await redisGet<RedisJob>(`job:${jobId}`);
+      if (job) {
+        jobs.push(mapJobToResponse(job));
+      }
+    }
+
     const response: JobListResponse = {
-      jobs: (jobs || []).map(mapJobToResponse),
-      total: count || 0,
-      hasMore: (count || 0) > offset + limit,
+      jobs,
+      total: jobIds.length,
+      hasMore: jobIds.length > limit,
     };
 
     return NextResponse.json(response);
@@ -230,20 +249,20 @@ export const GET = withRateLimit(rateLimiters.default, handleGET);
 // ============================================
 
 /**
- * DB Job 엔티티를 API 응답 형식으로 변환
+ * Redis Job을 API 응답 형식으로 변환
  */
-function mapJobToResponse(job: AIJob): JobStatusResponse {
+function mapJobToResponse(job: RedisJob): JobStatusResponse {
   return {
     jobId: job.id,
     type: job.type,
     status: job.status,
     progress: job.progress,
-    currentStep: job.current_step,
-    result: job.result,
+    currentStep: job.currentStep,
+    result: job.result ? { content: job.result } : null,
     error: job.error,
-    createdAt: job.created_at,
-    startedAt: job.started_at,
-    completedAt: job.completed_at,
+    createdAt: job.createdAt,
+    startedAt: job.startedAt,
+    completedAt: job.completedAt,
   };
 }
 
@@ -259,11 +278,6 @@ interface TriggerResult {
 
 /**
  * Cloud Run Worker에 Job 처리 요청 (타임아웃 적용)
- *
- * @description
- * - AbortController로 타임아웃 관리 (기본 5초)
- * - 응답 지연 시 클라이언트는 SSE 폴링으로 폴백
- * - Vercel Serverless에서는 반드시 await 필요 (fire-and-forget 불가)
  */
 async function triggerWorker(
   jobId: string,
@@ -337,8 +351,6 @@ async function triggerWorker(
 
 /**
  * Job 생성 로깅 (after()에서 호출)
- *
- * @description 응답 후 비동기 실행 - 분석/모니터링용
  */
 async function logJobCreation(
   jobId: string,
@@ -347,12 +359,11 @@ async function logJobCreation(
   complexityLevel: string
 ): Promise<void> {
   try {
-    // 추후 분석용 로그 (Vercel Logs, Datadog 등)
     logger.info(
       `[AI Jobs] Created: ${jobId} | type=${jobType} | trigger=${triggerStatus} | complexity=${complexityLevel}`
     );
 
-    // 트리거 실패 시 Redis에 상태 업데이트 (SSE에서 확인 가능)
+    // 트리거 실패 시 상태 업데이트
     if (triggerStatus !== 'sent') {
       await redisSet(
         `job:trigger:${jobId}`,
@@ -364,11 +375,10 @@ async function logJobCreation(
               ? 'Worker 연결 지연 - 잠시 후 자동 처리됩니다'
               : 'Worker 연결 실패 - 재시도 중입니다',
         },
-        60 // 1분 TTL
+        60
       );
     }
   } catch (error) {
-    // 로깅 실패는 무시 (핵심 기능 아님)
     logger.warn('[AI Jobs] Log failed:', error);
   }
 }

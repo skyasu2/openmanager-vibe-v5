@@ -96,7 +96,7 @@ describe('AI Raw Metrics API Integration Tests', () => {
     // Mock fetch implementation
     global.fetch = vi
       .fn()
-      .mockImplementation((url: string, options?: RequestInit) => {
+      .mockImplementation((url: string, _options?: RequestInit) => {
         const urlObj = new URL(url);
         const pathname = urlObj.pathname;
         const searchParams = urlObj.searchParams;
