@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.1.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.0.2...v7.1.0) (2026-01-26)
+
+
+### Features
+
+* **ci:** add Dependabot auto-merge for patch updates ([22ff3b3](https://github.com/skyasu2/openmanager-vibe-v5/commit/22ff3b35f921cef9394dacc2c15fe8ab1f97c536))
+
+
+### Bug Fixes
+
+* **ai-engine:** add graceful stream abort on timeout (P0) ([d036d95](https://github.com/skyasu2/openmanager-vibe-v5/commit/d036d95b90dd298271377011dd6750648c19a534))
+* **ai-engine:** use AbortController for proper stream cancellation ([f3665af](https://github.com/skyasu2/openmanager-vibe-v5/commit/f3665af7ed8a84fc8d345ba8398bc62576df4c47))
+* apply AI code review critical fixes ([e4f8939](https://github.com/skyasu2/openmanager-vibe-v5/commit/e4f8939cde0efc5c8715e3033c526478accac7c8))
+
 ### [7.0.2](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.0.1...v7.0.2) (2026-01-26)
 
 
