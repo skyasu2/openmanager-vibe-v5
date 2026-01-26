@@ -1,6 +1,6 @@
 # OpenManager VIBE v5 - LLM Context
 
-> **v5.88.0** | Updated 2026-01-18
+> **v7.0.1** | Updated 2026-01-26
 >
 > AI 어시스턴트가 프로젝트를 이해하는 데 필요한 핵심 정보
 

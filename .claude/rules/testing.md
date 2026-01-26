@@ -66,3 +66,7 @@ tests/
 
 - MSW (Mock Service Worker): `config/testing/msw-setup.ts`
 - Mock 데이터: `src/__mocks__/`
+
+---
+
+**See Also**: 상세 문서 → `docs/guides/testing/` (test-strategy.md, e2e-testing-guide.md)

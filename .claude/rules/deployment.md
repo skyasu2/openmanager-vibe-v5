@@ -74,3 +74,7 @@ gcloud run services update-traffic ai-engine \
 - [ ] `npm run test:e2e:critical` 통과
 - [ ] CHANGELOG.md 업데이트
 - [ ] 환경변수 동기화 확인
+
+---
+
+**See Also**: 상세 문서 → `docs/reference/architecture/infrastructure/deployment.md`

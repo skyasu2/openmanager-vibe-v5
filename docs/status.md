@@ -1,25 +1,31 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-25
+**마지막 업데이트**: 2026-01-26
 
 ---
 
-## 🔄 Recent Changes (v6.1.0)
+## 🔄 Recent Changes (v7.0.1)
 
-- **AI SDK v6 마이그레이션 완료** (2026-01-25)
+- **v7.0.1** (2026-01-26)
+  - useAIChatCore 4개 hook 분해 리팩토링
+  - sessionId 전파 문제 해결 (useState + useRef 하이브리드)
+  - RAG 문서 v1.1.0 (HyDE, LLM Reranker, Tavily 반영)
+  - 문서 DRY 원칙 적용 (WSL 중복 문서 통합)
+
+- **v7.0.0** (2026-01-24) - BREAKING CHANGES
+  - v1 stream endpoint 제거 → v2 UIMessageStream 전용
+  - Resumable streams via Redis (새로고침 시에도 유지)
+  - AI SDK v6 native `resume: true` 기본 적용
+
+- **v6.1.0** (2026-01-25)
   - `TextStreamChatTransport` → `DefaultChatTransport` + `resume: true`
   - UIMessageStream 네이티브 프로토콜 적용
   - Resumable Stream v2 엔드포인트 (`/api/ai/supervisor/stream/v2`)
-  - v1 레거시 엔드포인트 제거 (508줄 삭제)
   - `finalAnswer` 도구 패턴 적용 (`hasToolCall` + `stepCountIs`)
-- **서버 상태 용어 통합**: `'healthy'` → `'online'` (SSOT)
-  - 내부 타입: `'online' | 'warning' | 'critical'`
-  - 서비스 헬스: `'healthy' | 'degraded' | 'unhealthy'` (별도 도메인 유지)
-- **Cloud Run 배포**: ai-engine v6.1.0
 
 ---
 
-## 🏗️ Technical Stack (v6.1.0)
+## 🏗️ Technical Stack (v7.0.1)
 
 **Core Frameworks** (2025 Standard)
 - **Next.js**: `v16.1.1` (App Router, Server Components)
@@ -42,11 +48,17 @@
 
 ## 📚 Documentation Status
 
-**총 문서 수**: 32개 (경량화 완료, 122개→32개)
-- **Reference**: 17개 (아키텍처, AI, API)
-- **Guides**: 11개 (AI 도구, MCP, 테스팅, 표준)
-- **Troubleshooting**: 2개 (문제 해결)
-- **Root**: 4개 (README, QUICK-START, DEVELOPMENT, status)
+**총 문서 수**: 46개 (~10,000 lines)
+- **development/**: 5개 (WSL 통합 완료)
+- **vibe-coding/**: 7개 (AI 도구, MCP, Skills)
+- **reference/**: 15개 (아키텍처, AI, API)
+- **guides/**: 10개 (테스팅, 표준, DB)
+- **troubleshooting/**: 2개 (문제 해결)
+- **Root**: 7개 (README, QUICK-START 등)
+
+**DRY 구조**:
+- `.claude/rules/` → Claude Code 전용 간략 규칙
+- `docs/` → 개발자용 상세 문서
 
 **최근 최적화 (2026-01-18)**:
 - 문서 경량화: 122개 → 32개 (74% 감소)

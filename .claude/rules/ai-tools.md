@@ -81,3 +81,7 @@
 - Bash: 와일드카드 패턴 사용 (`npm:*`, `git:*`)
 - MCP: 서버별 와일드카드 (`mcp__serena__*`)
 - API Key: 환경변수 사용, 하드코딩 금지
+
+---
+
+**See Also**: 상세 문서 → `docs/vibe-coding/` (mcp-servers.md, skills.md, ai-tools.md)
