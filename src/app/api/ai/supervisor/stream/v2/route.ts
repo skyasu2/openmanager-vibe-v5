@@ -28,6 +28,7 @@ import {
 import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
+import { getMaxTimeout } from '@/config/ai-proxy.config';
 import { quickSanitize } from '../../security';
 import {
   clearActiveStreamId,
@@ -36,9 +37,15 @@ import {
 } from './stream-state';
 import { createUpstashResumableContext } from './upstash-resumable';
 
-// Allow streaming responses up to 60 seconds
-// Vercel Tier Limits: Free=10s, Pro=60s (current), Enterprise=900s
-export const maxDuration = 60;
+// ============================================================================
+// ⚡ maxDuration - Vercel 빌드 타임 상수
+// ============================================================================
+// Next.js가 정적 분석하므로 리터럴 값 필수. 티어 변경 시 아래 값 수동 변경:
+// - Free tier:  export const maxDuration = 10;
+// - Pro tier:   export const maxDuration = 60;
+// @see src/config/ai-proxy.config.ts (런타임 타임아웃 설정)
+// ============================================================================
+export const maxDuration = 10; // 🔧 현재: Free tier
 
 // UI Message Stream headers (AI SDK v6 standard)
 // 🎯 CRITICAL: x-vercel-ai-ui-message-stream header is REQUIRED for AI SDK v6
@@ -263,7 +270,10 @@ export const POST = withRateLimit(
       logger.info(`🆔 [SupervisorStreamV2] Stream ID: ${streamId}`);
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 55000);
+      const timeout = setTimeout(
+        () => controller.abort(),
+        getMaxTimeout('supervisor')
+      );
 
       try {
         const cloudRunResponse = await fetch(streamUrl, {

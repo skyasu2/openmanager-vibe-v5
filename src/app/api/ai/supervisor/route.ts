@@ -38,6 +38,7 @@ import {
   analyzeQueryComplexity,
   calculateDynamicTimeout,
 } from '@/lib/ai/utils/query-complexity';
+import { getMaxTimeout, getMinTimeout } from '@/config/ai-proxy.config';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
@@ -46,11 +47,15 @@ import { isStatusQuery, shouldSkipCache } from './cache-utils';
 import { requestSchema } from './schemas';
 import { quickSanitize } from './security';
 
-// Allow streaming responses up to 60 seconds
-// Vercel Tier Limits: Free=10s, Pro=60s (current), Enterprise=900s
-// 🎯 Note: Requires Vercel Pro plan. Free tier users should set to 10.
-// Cloud Run AI Engine handles heavy processing, Vercel just proxies.
-export const maxDuration = 60;
+// ============================================================================
+// ⚡ maxDuration - Vercel 빌드 타임 상수
+// ============================================================================
+// Next.js가 정적 분석하므로 리터럴 값 필수. 티어 변경 시 아래 값 수동 변경:
+// - Free tier:  export const maxDuration = 10;
+// - Pro tier:   export const maxDuration = 60;
+// @see src/config/ai-proxy.config.ts (런타임 타임아웃 설정)
+// ============================================================================
+export const maxDuration = 10; // 🔧 현재: Free tier
 
 // ============================================================================
 // 🧠 Main Handler - Cloud Run Multi-Agent System
@@ -115,11 +120,11 @@ export const POST = withRateLimit(
       // 2. 세션 ID 생성/사용
       const sessionId = clientSessionId || `session_${Date.now()}`;
 
-      // 3. 동적 타임아웃 계산 (2025-12-30 추가)
+      // 3. 동적 타임아웃 계산 (티어별 자동 조정)
       const dynamicTimeout = calculateDynamicTimeout(userQuery, {
         messageCount: messages.length,
-        minTimeout: 15000, // 최소 15초
-        maxTimeout: 55000, // Vercel 60초 제한 (5초 안전 마진)
+        minTimeout: getMinTimeout('supervisor'),
+        maxTimeout: getMaxTimeout('supervisor'),
       });
 
       logger.info(`🚀 [Supervisor] Query: "${userQuery.slice(0, 50)}..."`);
