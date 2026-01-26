@@ -1861,6 +1861,9 @@ async function* executeAgentStream(
   // Langfuse timeout span
   const timeoutSpan = createTimeoutSpan(sessionId, `${agentName}_stream`, ORCHESTRATOR_CONFIG.timeout);
 
+  // 🎯 P0 Fix: AbortController for proper stream cancellation on timeout
+  const abortController = new AbortController();
+
   try {
     // AI SDK v6 Best Practice: Use hasToolCall('finalAnswer') + stepCountIs(N) for graceful termination
     const streamResult = streamText({
@@ -1873,6 +1876,7 @@ async function* executeAgentStream(
       stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)], // Graceful termination + safety limit
       temperature: 0.4,
       maxOutputTokens: 1536,
+      abortSignal: abortController.signal,
     });
 
     let warningEmitted = false;
@@ -1905,13 +1909,8 @@ async function* executeAgentStream(
           },
         };
 
-        // 🎯 P0 Fix: Graceful stream abort to prevent resource leak
-        try {
-          const iterator = streamResult.textStream[Symbol.asyncIterator]();
-          await iterator.return?.();
-        } catch {
-          // Silent - best effort cleanup
-        }
+        // 🎯 P0 Fix: Abort stream to prevent resource leak
+        abortController.abort();
 
         return;
       }

@@ -762,11 +762,15 @@ async function* streamSingleAgent(
     // 🎯 P2 Fix: Track stream errors for warning emission
     let streamError: Error | null = null;
 
+    // 🎯 P0 Fix: AbortController for proper stream cancellation on timeout
+    const abortController = new AbortController();
+
     // Execute streamText with multi-step tool calling
     // AI SDK v6 Best Practice:
     // - prepareStep: Runtime tool filtering based on query intent
     // - hasToolCall('finalAnswer'): Graceful loop termination
     // - stepCountIs(3): Safety limit
+    // - abortSignal: Proper cancellation support
     const result = streamText({
       model,
       messages: modelMessages,
@@ -775,9 +779,12 @@ async function* streamSingleAgent(
       stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)],
       temperature: 0.4,
       maxOutputTokens: 1536,
+      abortSignal: abortController.signal,
       // 🎯 Phase 3: AI SDK v6 권장 - onError 콜백 추가
       // 스트림 에러 발생 시 로깅 및 추적 (Cloud Run에서 디버깅용)
       onError: ({ error }) => {
+        // Ignore abort errors - they're expected on timeout
+        if (error instanceof Error && error.name === 'AbortError') return;
         console.error('❌ [SingleAgent] streamText error:', {
           error: error instanceof Error ? error.message : String(error),
           model: modelId,
@@ -844,15 +851,9 @@ async function* streamSingleAgent(
           },
         };
 
-        // 🎯 P0 Fix: Graceful stream abort to prevent resource leak
-        // Without this, streamText continues running in background consuming resources
-        try {
-          // Access the underlying AsyncIterator to call return()
-          const iterator = result.textStream[Symbol.asyncIterator]();
-          await iterator.return?.();
-        } catch {
-          // Silent - best effort cleanup, stream may already be closed
-        }
+        // 🎯 P0 Fix: Abort stream to prevent resource leak
+        // AbortController properly signals streamText to stop underlying fetch/processing
+        abortController.abort();
 
         return;
       }
