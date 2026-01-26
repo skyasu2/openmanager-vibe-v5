@@ -6,10 +6,19 @@ name: Simple Deploy
 # - CI가 main 브랜치 품질 보장
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # 🚫 비활성화: Vercel이 이미 Full Build 수행
+  # GitHub Actions 비용 절감 (Private repo 전환 대비)
+  # 필요 시 수동 실행: workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: '수동 빌드 사유'
+        required: false
+        default: 'Manual verification'
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
 
 jobs:
   deploy:

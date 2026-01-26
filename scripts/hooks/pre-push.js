@@ -20,8 +20,11 @@ const cwd = process.cwd();
 const isWindowsFS = cwd.startsWith('/mnt/');
 
 // Environment flags
+// 🎯 2025 Best Practice: Pre-push는 빠르게, Full Build는 CI/Vercel에서
+// - QUICK_PUSH=true (기본): TypeScript만 (~20초)
+// - QUICK_PUSH=false: Full Build (~3분, 릴리스 전 검증용)
 const SKIP_RELEASE_CHECK = process.env.SKIP_RELEASE_CHECK === 'true';
-const QUICK_PUSH = process.env.QUICK_PUSH === 'true';
+const QUICK_PUSH = process.env.QUICK_PUSH !== 'false'; // 기본값: true (빠른 푸시)
 const SKIP_TESTS = process.env.SKIP_TESTS === 'true';
 const SKIP_BUILD = process.env.SKIP_BUILD === 'true';
 const SKIP_NODE_CHECK = process.env.SKIP_NODE_CHECK === 'true';
@@ -148,10 +151,9 @@ function checkRelease() {
 function checkWSLPerformance() {
   if (isWSL && isWindowsFS) {
     console.log('');
-    console.log('⚠️  WSL + Windows filesystem detected (/mnt/...)');
-    console.log('   Validation may be slow. Quick options:');
-    console.log('   • QUICK_PUSH=true git push  (TypeScript only)');
-    console.log('   • HUSKY=0 git push          (Skip all hooks)');
+    console.log('ℹ️  WSL + Windows filesystem detected');
+    console.log('   기본: TypeScript 검증만 (~20초)');
+    console.log('   Full Build 필요 시: QUICK_PUSH=false git push');
     console.log('');
   }
 }
@@ -226,29 +228,28 @@ function runBuildValidation() {
   }
 
   if (QUICK_PUSH) {
-    console.log('⚡ Running optimized validation (TypeScript only)...');
+    console.log('⚡ TypeScript 검증 (기본 모드)...');
     const success = runNpm(['run', 'hook:validate']);
     if (!success) {
-      console.log('❌ Validation failed - push blocked');
+      console.log('❌ TypeScript 에러 - push blocked');
       console.log('');
-      console.log('💡 Fix errors or run "npm run build" locally');
+      console.log('💡 Fix: npm run type-check');
       console.log('');
       console.log('⚠️  Bypass: HUSKY=0 git push');
       process.exit(1);
     }
-    console.log('ℹ️  Note: Full build skipped (QUICK_PUSH=true)');
+    console.log('✅ TypeScript 검증 통과');
+    console.log('ℹ️  Full build는 GitHub CI + Vercel에서 실행됨');
   } else {
-    console.log('🐢 Running FULL build validation...');
-    console.log('   (Use QUICK_PUSH=true git push for faster validation)');
+    console.log('🐢 Full Build 검증 (QUICK_PUSH=false)...');
+    console.log('   일반적으로 불필요 - Vercel이 빌드 담당');
     const success = runNpm(['run', 'build']);
     if (!success) {
       console.log('❌ Build failed - push blocked');
       console.log('');
       console.log('💡 Fix: npm run build');
       console.log('');
-      console.log('⚠️  Bypass options:');
-      console.log('   • QUICK_PUSH=true git push  (TypeScript only)');
-      console.log('   • HUSKY=0 git push          (Skip all hooks)');
+      console.log('⚠️  Bypass: HUSKY=0 git push');
       process.exit(1);
     }
   }
@@ -299,15 +300,18 @@ function printSummary(duration) {
   console.log('');
   console.log('📊 Summary:');
   if (isLimitedMode) {
-    console.log('  🔧 Mode: Windows Limited (TypeScript only)');
+    console.log('  🔧 Mode: Windows Limited');
+  } else if (QUICK_PUSH) {
+    console.log('  ⚡ Mode: Quick (TypeScript only)');
+  } else {
+    console.log('  🐢 Mode: Full Build');
   }
   console.log(`  ${testStatus === 'passed' ? '✅' : '⚪'} Tests ${testStatus}`);
-  if (isLimitedMode) {
-    console.log('  ✅ TypeScript check passed');
-    console.log('  ⚪ Lint skipped (pre-commit)');
-    console.log('  ⚪ Full build skipped');
+  console.log('  ✅ TypeScript check passed');
+  if (!QUICK_PUSH && !isLimitedMode) {
+    console.log('  ✅ Full build passed');
   } else {
-    console.log('  ✅ Build/validation succeeded');
+    console.log('  ⚪ Full build → GitHub CI + Vercel');
   }
   console.log('  ✅ Environment validated');
   console.log('');
