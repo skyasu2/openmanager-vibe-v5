@@ -1,0 +1,92 @@
+name: Dependabot Auto-Merge
+
+# 🤖 Dependabot 패치 버전 자동 병합
+# - 패치(patch) 업데이트만 자동 병합
+# - 마이너/메이저는 수동 승인 필요
+# - CI 통과 필수
+#
+# 보안 참고: dependabot/fetch-metadata의 outputs만 사용
+# (외부 입력인 PR title/body 등 사용하지 않음)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot-auto-merge:
+    name: 🤖 Auto-Merge Patch Updates
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check update type
+        id: check
+        env:
+          DEP_NAMES: ${{ steps.metadata.outputs.dependency-names }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          NEW_VERSION: ${{ steps.metadata.outputs.new-version }}
+        run: |
+          echo "📦 Package: $DEP_NAMES"
+          echo "📊 Update type: $UPDATE_TYPE"
+          echo "🔢 New version: $NEW_VERSION"
+
+          if [ "$UPDATE_TYPE" = "version-update:semver-patch" ]; then
+            echo "✅ Patch update - eligible for auto-merge"
+            echo "should_merge=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ $UPDATE_TYPE - requires manual review"
+            echo "should_merge=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Wait for CI
+        if: steps.check.outputs.should_merge == 'true'
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          running-workflow-name: 'Auto-Merge Patch Updates'
+          allowed-conclusions: success,skipped
+
+      - name: Auto-merge patch updates
+        if: steps.check.outputs.should_merge == 'true'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEP_NAMES: ${{ steps.metadata.outputs.dependency-names }}
+        run: |
+          echo "🔀 Auto-merging: $DEP_NAMES"
+          gh pr merge --auto --squash "$PR_URL"
+
+      - name: Add label for manual review
+        if: steps.check.outputs.should_merge == 'false'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          DEP_NAMES: ${{ steps.metadata.outputs.dependency-names }}
+          NEW_VERSION: ${{ steps.metadata.outputs.new-version }}
+        run: |
+          gh pr edit "$PR_URL" --add-label "needs-review"
+
+          # Compose message safely
+          MESSAGE="⚠️ **Manual review required**
+
+          This is a **$UPDATE_TYPE** update.
+
+          - Package: \`$DEP_NAMES\`
+          - Version: \`$NEW_VERSION\`
+
+          Please review the changelog before merging."
+
+          gh pr comment "$PR_URL" --body "$MESSAGE"

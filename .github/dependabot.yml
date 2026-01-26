@@ -4,7 +4,7 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly' # 1인 개발: 주 1회가 적절
-    open-pull-requests-limit: 3 # 부담 줄이기
+    open-pull-requests-limit: 5
     labels:
       - 'dependencies'
       - 'automated'
@@ -16,3 +16,40 @@ updates:
     allow:
       - dependency-type: production
       - dependency-type: development
+
+    # 🔀 관련 패키지 그룹화 (PR 수 감소)
+    groups:
+      # TypeScript & Types - 항상 함께 업데이트
+      typescript-types:
+        patterns:
+          - 'typescript'
+          - '@types/*'
+
+      # Testing tools
+      testing:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+          - '@testing-library/*'
+          - 'playwright'
+          - '@playwright/*'
+
+      # Linting & Formatting
+      linting:
+        patterns:
+          - '@biomejs/*'
+          - 'eslint*'
+          - 'prettier*'
+
+      # React ecosystem
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react*'
+
+      # AI SDK
+      ai-sdk:
+        patterns:
+          - 'ai'
+          - '@ai-sdk/*'
