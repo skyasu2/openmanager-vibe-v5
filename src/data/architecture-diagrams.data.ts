@@ -53,7 +53,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
     id: 'ai-assistant-pro',
     title: 'Multi-Agent Architecture (AI SDK v6)',
     description:
-      'Vercel AI SDK v6 + @ai-sdk-tools/agents 기반 멀티 에이전트. UIMessageStream 네이티브 프로토콜, Resumable Stream v2, finalAnswer 패턴 적용.',
+      'Vercel AI SDK v6 + @ai-sdk-tools/agents 기반 6-Agent 멀티 에이전트. Vision Agent(Gemini)로 스크린샷/로그 분석 지원. UIMessageStream 네이티브 프로토콜, Resumable Stream v2 적용.',
     layers: [
       {
         title: 'Client',
@@ -126,6 +126,13 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             type: 'secondary',
             icon: '💡',
           },
+          {
+            id: 'vision',
+            label: 'Vision Agent',
+            sublabel: 'Gemini Flash-Lite',
+            type: 'highlight',
+            icon: '👁️',
+          },
         ],
       },
       {
@@ -169,10 +176,12 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
       { from: 'orchestrator', to: 'analyst', label: 'Handoff' },
       { from: 'orchestrator', to: 'reporter', label: 'Handoff' },
       { from: 'orchestrator', to: 'advisor', label: 'Handoff' },
+      { from: 'orchestrator', to: 'vision', label: 'Handoff' },
       { from: 'nlq', to: 'verifier', type: 'dashed' },
       { from: 'analyst', to: 'verifier', type: 'dashed' },
       { from: 'reporter', to: 'verifier', type: 'dashed' },
       { from: 'advisor', to: 'verifier', type: 'dashed' },
+      { from: 'vision', to: 'verifier', type: 'dashed' },
       { from: 'verifier', to: 'uimessagestream', label: 'Stream' },
       { from: 'uimessagestream', to: 'resumable', type: 'dashed' },
       { from: 'uimessagestream', to: 'user', label: 'Response' },

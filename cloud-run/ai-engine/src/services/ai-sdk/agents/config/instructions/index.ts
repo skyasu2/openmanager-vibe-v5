@@ -3,7 +3,7 @@
  *
  * Central export point for all agent instructions.
  *
- * @version 1.1.0 - 공통 템플릿 추가
+ * @version 1.2.0 - Vision Agent 추가
  */
 
 // 공통 템플릿
@@ -18,3 +18,4 @@ export { NLQ_INSTRUCTIONS } from './nlq';
 export { ANALYST_INSTRUCTIONS } from './analyst';
 export { REPORTER_INSTRUCTIONS } from './reporter';
 export { ADVISOR_INSTRUCTIONS } from './advisor';
+export { VISION_INSTRUCTIONS } from './vision';

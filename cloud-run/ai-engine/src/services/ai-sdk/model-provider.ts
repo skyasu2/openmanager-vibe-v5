@@ -1,18 +1,21 @@
 /**
  * AI SDK Model Provider
  *
- * Vercel AI SDK 6 based model provider with tri-provider architecture:
+ * Vercel AI SDK 6 based model provider with quad-provider architecture:
  * - Primary: Cerebras (llama-3.3-70b, 24M tokens/day)
  * - Fallback: Groq (llama-3.3-70b-versatile, 100K tokens/day)
  * - Verifier: Mistral (mistral-small-2506, 24B params)
+ * - Vision: Gemini Flash-Lite (1M context, Vision, Search Grounding)
  *
- * @version 2.0.0
+ * @version 3.0.0
  * @updated 2026-01-12 - Removed OpenRouter (free tier tool calling unreliable)
+ * @updated 2026-01-27 - Added Gemini Flash-Lite for Vision Agent
  */
 
 import { createCerebras } from '@ai-sdk/cerebras';
 import { createMistral } from '@ai-sdk/mistral';
 import { createGroq } from '@ai-sdk/groq';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import type { LanguageModel } from 'ai';
 
 // Use centralized config getters (supports AI_PROVIDERS_CONFIG JSON format)
@@ -20,18 +23,20 @@ import {
   getCerebrasApiKey,
   getMistralApiKey,
   getGroqApiKey,
+  getGeminiApiKey,
 } from '../../lib/config-parser';
 
 // ============================================================================
 // 1. Types
 // ============================================================================
 
-export type ProviderName = 'cerebras' | 'groq' | 'mistral';
+export type ProviderName = 'cerebras' | 'groq' | 'mistral' | 'gemini';
 
 export interface ProviderStatus {
   cerebras: boolean;
   groq: boolean;
   mistral: boolean;
+  gemini: boolean;
 }
 
 // ============================================================================
@@ -46,6 +51,7 @@ const providerToggleState: Record<ProviderName, boolean> = {
   cerebras: true,
   groq: true,
   mistral: true,
+  gemini: true,
 };
 
 /**
@@ -92,6 +98,7 @@ export function checkProviderStatus(): ProviderStatus {
     cerebras: !!getCerebrasApiKey() && isProviderEnabled('cerebras'),
     groq: !!getGroqApiKey() && isProviderEnabled('groq'),
     mistral: !!getMistralApiKey() && isProviderEnabled('mistral'),
+    gemini: !!getGeminiApiKey() && isProviderEnabled('gemini'),
   };
 
   return cachedProviderStatus;
@@ -156,6 +163,23 @@ function createMistralProvider() {
   }
 
   return createMistral({
+    apiKey,
+  });
+}
+
+/**
+ * Create Gemini provider instance
+ * Uses Google Generative AI (Gemini 2.5 Flash-Lite)
+ *
+ * @added 2026-01-27 Vision Agent
+ */
+function createGeminiProvider() {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY not configured');
+  }
+
+  return createGoogleGenerativeAI({
     apiKey,
   });
 }
@@ -225,6 +249,28 @@ export function getMistralModel(
 ): LanguageModel {
   const mistral = createMistralProvider();
   return asLanguageModel(mistral(modelId));
+}
+
+/**
+ * Get Gemini Flash-Lite model (Vision Agent)
+ *
+ * Features:
+ * - 1M token context window
+ * - Vision (Image/PDF/Video/Audio)
+ * - Google Search Grounding
+ * - URL Context
+ *
+ * Free Tier (2026-01):
+ * - 1,000 RPD, 15 RPM, 250K TPM
+ *
+ * @param modelId - 'gemini-2.5-flash-lite' (default) or 'gemini-2.5-flash-preview-04-17'
+ * @added 2026-01-27
+ */
+export function getGeminiFlashLiteModel(
+  modelId: string = 'gemini-2.5-flash-lite'
+): LanguageModel {
+  const gemini = createGeminiProvider();
+  return asLanguageModel(gemini(modelId));
 }
 
 // ============================================================================
@@ -388,6 +434,56 @@ export function getAdvisorModel(): {
   throw new Error('No provider available for advisor model (all 3 providers down).');
 }
 
+/**
+ * Get Vision Agent model (Gemini Flash-Lite Only - Graceful Degradation)
+ *
+ * NO FALLBACK: Vision Agent uses Gemini exclusively due to unique features:
+ * - 1M token context (vs 128K for others)
+ * - Vision/PDF/Video/Audio multimodal
+ * - Google Search Grounding
+ * - URL Context
+ *
+ * When Gemini is unavailable:
+ * - Returns null
+ * - Vision Agent will be disabled
+ * - Text-based agents continue to function normally
+ *
+ * @returns Model info or null (graceful degradation)
+ * @added 2026-01-27
+ */
+export function getVisionAgentModel(): {
+  model: LanguageModel;
+  provider: 'gemini';
+  modelId: string;
+} | null {
+  const status = checkProviderStatus();
+
+  if (!status.gemini) {
+    console.warn('⚠️ [Vision Agent] Gemini unavailable - Vision features disabled');
+    return null;
+  }
+
+  try {
+    return {
+      model: getGeminiFlashLiteModel('gemini-2.5-flash-lite'),
+      provider: 'gemini',
+      modelId: 'gemini-2.5-flash-lite',
+    };
+  } catch (error) {
+    console.error('❌ [Vision Agent] Gemini initialization failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Check if Vision Agent is available
+ * @returns true if Gemini provider is configured and enabled
+ */
+export function isVisionAgentAvailable(): boolean {
+  const status = checkProviderStatus();
+  return status.gemini;
+}
+
 // ============================================================================
 // 6. Health Check
 // ============================================================================
@@ -417,6 +513,9 @@ export async function testProviderHealth(
         break;
       case 'mistral':
         getMistralModel();
+        break;
+      case 'gemini':
+        getGeminiFlashLiteModel();
         break;
     }
 
@@ -450,6 +549,9 @@ export async function checkAllProvidersHealth(): Promise<ProviderHealth[]> {
   if (status.mistral) {
     results.push(await testProviderHealth('mistral'));
   }
+  if (status.gemini) {
+    results.push(await testProviderHealth('gemini'));
+  }
 
   return results;
 }
@@ -463,6 +565,7 @@ export function logProviderStatus(): void {
     Cerebras: status.cerebras ? '✅' : '❌',
     Groq: status.groq ? '✅' : '❌',
     Mistral: status.mistral ? '✅' : '❌',
+    Gemini: status.gemini ? '✅ (Vision)' : '❌',
   });
 }
 

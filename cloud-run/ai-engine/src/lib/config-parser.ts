@@ -40,12 +40,14 @@ export interface SupabaseConfig {
  * Contains API keys for multiple AI providers
  *
  * @updated 2026-01-12 - Removed OpenRouter (free tier tool calling unreliable)
+ * @updated 2026-01-27 - Added Gemini Flash-Lite for Vision Agent
  */
 export interface AIProvidersConfig {
   groq: string;
   mistral: string;
   cerebras: string;
   tavily: string;
+  gemini?: string; // Vision Agent - Gemini 2.5 Flash-Lite
 }
 
 /**
@@ -296,6 +298,25 @@ export function getTavilyApiKeyBackup(): string | null {
 }
 
 /**
+ * Get Gemini API Key (Vision Agent - Gemini 2.5 Flash-Lite)
+ * Uses AI_PROVIDERS_CONFIG or falls back to individual env var
+ *
+ * Free Tier Limits (2026-01):
+ * - 1,000 RPD (requests per day)
+ * - 15 RPM (requests per minute)
+ * - 250K TPM (tokens per minute)
+ * - 1M context window
+ *
+ * @added 2026-01-27
+ * @see https://ai.google.dev/gemini-api/docs/models/gemini
+ */
+export function getGeminiApiKey(): string | null {
+  const providersConfig = getAIProvidersConfig();
+  if (providersConfig?.gemini) return providersConfig.gemini;
+  return process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY_PRIMARY || null;
+}
+
+/**
  * Get Upstash Redis configuration
  * Priority order:
  * 1. KV_CONFIG (grouped secret - preferred)
@@ -343,6 +364,7 @@ export function getConfigStatus(): {
   mistral: boolean;
   cerebras: boolean;
   tavily: boolean;
+  gemini: boolean;
   langfuse: boolean;
   cloudRunApi: boolean;
 } {
@@ -353,6 +375,7 @@ export function getConfigStatus(): {
     mistral: getMistralApiKey() !== null,
     cerebras: getCerebrasApiKey() !== null,
     tavily: getTavilyApiKey() !== null,
+    gemini: getGeminiApiKey() !== null,
     langfuse: getLangfuseConfig() !== null,
     cloudRunApi: getCloudRunApiSecret() !== null,
   };

@@ -3,7 +3,7 @@
 이 문서는 OpenManager Vibe의 AI 아키텍처를 정리합니다.
 현재 AI 처리는 **Cloud Run 기반 LLM 멀티 에이전트 시스템 (Vercel AI SDK v6 Native)** 으로 구성되어 있습니다.
 
-> **최종 업데이트**: 2026-01-25 (AI SDK v6 Native 패턴, Reporter Pipeline 문서화)
+> **최종 업데이트**: 2026-01-27 (Vision Agent 추가, Quad-provider 아키텍처)
 
 ---
 
@@ -15,8 +15,8 @@
 | 구분 | 내용 |
 |------|------|
 | **NLP 엔진** | 자체 구현 없음 (외부 LLM API 사용) |
-| **기반 모델** | Meta Llama 3.3 70B (오픈소스) |
-| **호스팅** | Cerebras, Groq, Mistral, OpenRouter 인프라 |
+| **기반 모델** | Meta Llama 3.3 70B (오픈소스), Gemini 2.5 Flash-Lite (Vision) |
+| **호스팅** | Cerebras, Groq, Mistral, **Google AI (Gemini)** 인프라 |
 | **비용** | 모두 무료 tier 한도 내 운영 |
 
 ### 배치 위치
@@ -31,7 +31,8 @@ Cloud Run AI Engine (asia-northeast1)
 │       ├── analyst-agent.ts  # 분석, 이상 탐지
 │       ├── reporter-agent.ts # 보고서 생성
 │       ├── reporter-pipeline.ts  # Evaluator-Optimizer 패턴
-│       └── advisor-agent.ts  # RAG 기반 조언
+│       ├── advisor-agent.ts  # RAG 기반 조언
+│       └── vision-agent.ts   # Vision Agent (Gemini Flash-Lite)
 ```
 
 ### 기술 스택
@@ -39,7 +40,8 @@ Cloud Run AI Engine (asia-northeast1)
 Vercel AI SDK 6 (@ai-sdk)
 ├── @ai-sdk/cerebras     # Cerebras 통합 (Primary)
 ├── @ai-sdk/groq         # Groq 통합 (NLQ Agent)
-└── @ai-sdk/mistral      # Mistral 통합 (Verifier)
+├── @ai-sdk/mistral      # Mistral 통합 (Verifier)
+└── @ai-sdk/google       # Gemini 통합 (Vision Agent)
 ```
 
 ### 의도 분류 (Intent Classification)
@@ -73,6 +75,7 @@ Vercel AI SDK 6 (@ai-sdk)
 | **Analyst Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | 이상 탐지, 트렌드 예측, 패턴 분석 |
 | **Reporter Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | 장애 보고서, 타임라인, GraphRAG |
 | **Advisor Agent** | Mistral mistral-small-2506 | Groq llama-3.3-70b-versatile | 트러블슈팅 가이드, 명령어 추천 |
+| **Vision Agent** | Gemini 2.5 Flash-Lite | ❌ (Graceful Degradation) | 스크린샷 분석, 대용량 로그, Search Grounding |
 | **Verifier** | Mistral mistral-small-2506 | Cerebras llama-3.3-70b | 응답 검증 |
 
 ### Embedding (Cloud Run)
@@ -198,6 +201,52 @@ TAVILY_API_KEY_BACKUP (Backup)
 
 ---
 
+## 👁️ Vision Agent (Gemini Flash-Lite)
+
+Vision Agent는 **Gemini 2.5 Flash-Lite**를 사용하여 멀티모달 분석 기능을 제공합니다.
+
+### 주요 기능
+| 기능 | 설명 |
+|------|------|
+| **스크린샷 분석** | Grafana/CloudWatch/Datadog 대시보드 이미지 분석 |
+| **대용량 로그 분석** | 1M 토큰 컨텍스트로 전체 로그 파일 분석 |
+| **Google Search Grounding** | 실시간 기술 문서, 보안 취약점 검색 |
+| **URL 콘텐츠 분석** | 외부 문서/문제 해결 가이드 직접 참조 |
+
+### Vision 도구
+| 도구 | 설명 |
+|------|------|
+| `analyzeScreenshot` | 대시보드 스크린샷 분석 (이상 패턴, 알림, 시각적 이슈 식별) |
+| `analyzeLargeLog` | 대용량 로그 분석 (에러 패턴, 타임라인, 근본 원인) |
+| `searchWithGrounding` | Google Search Grounding 실시간 검색 |
+| `analyzeUrlContent` | URL 콘텐츠 추출 및 분석 |
+
+### Fallback 전략: Graceful Degradation
+
+Vision Agent는 **Fallback 없이 Graceful Degradation**으로 동작합니다:
+
+```
+Gemini 정상 시:
+  Vision Agent → 모든 멀티모달 기능 사용 가능
+
+Gemini 장애 시:
+  Vision Agent → null 반환 (비활성화)
+  기존 에이전트 (NLQ/Analyst/Reporter/Advisor) → 100% 정상 동작
+  사용자에게 안내 메시지: "Vision 기능이 일시적으로 비활성화되었습니다"
+```
+
+> **Fallback 미적용 사유**: OpenRouter 무료 모델은 PDF, Google Search Grounding, 1M Context 미지원으로 핵심 기능 대체 불가
+
+### Gemini 무료 티어 (2026-01 기준)
+| 항목 | 제한 |
+|------|------|
+| RPD (Requests/Day) | 1,000 |
+| RPM (Requests/Minute) | 15 |
+| TPM (Tokens/Minute) | 250,000 |
+| Context Window | 1M tokens |
+
+---
+
 ## 🚨 아키텍처 변경 배경 (2025.12)
 
 ### Google AI → LLM 멀티 에이전트 마이그레이션
@@ -212,8 +261,9 @@ TAVILY_API_KEY_BACKUP (Backup)
 | Provider | 무료 할당량 | 용도 | 모델 |
 |----------|-------------|------|------|
 | **Cerebras** | 24M tokens/day | Primary (Supervisor, NLQ) | llama-3.3-70b |
-| **Groq** | 100K tokens/day | NLQ Agent 전용 | llama-3.3-70b-versatile |
+| **Groq** | 100K tokens/day | Analyst, Reporter | llama-3.3-70b-versatile |
 | **Mistral** | 1M tokens/mo | Verifier, Advisor | mistral-small-2506 |
+| **Gemini** | 1K RPD, 250K TPM | Vision Agent | gemini-2.5-flash-lite |
 
 ### Fallback 체인
 
@@ -240,6 +290,7 @@ CLOUD_RUN_AI_ENABLED=true
 CEREBRAS_API_KEY=xxx
 GROQ_API_KEY=xxx
 MISTRAL_API_KEY=xxx
+GEMINI_API_KEY=xxx   # Vision Agent 전용
 
 # Note: Vercel에서는 Cloud Run URL만 필요
 # API 키는 Cloud Run 환경에서 관리
@@ -254,7 +305,8 @@ MISTRAL_API_KEY=xxx
 - **Orchestrator**: Cerebras (빠른 라우팅)
 - **Analysis**: Groq (이상 탐지, 리포팅)
 - **RAG/Embedding**: Mistral (1024d)
+- **Vision**: Gemini Flash-Lite (스크린샷, 대용량 로그, Search Grounding)
 - **Vector DB**: Supabase pgvector
 - **Vercel**: Proxy + Cache only
 
-_Last Updated: 2026-01-25_
+_Last Updated: 2026-01-27_

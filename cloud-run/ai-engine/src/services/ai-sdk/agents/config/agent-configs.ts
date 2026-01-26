@@ -24,6 +24,7 @@ import {
   ANALYST_INSTRUCTIONS,
   REPORTER_INSTRUCTIONS,
   ADVISOR_INSTRUCTIONS,
+  VISION_INSTRUCTIONS,
 } from './instructions';
 
 // Model providers
@@ -31,6 +32,7 @@ import {
   getCerebrasModel,
   getGroqModel,
   getMistralModel,
+  getGeminiFlashLiteModel,
   checkProviderStatus,
 } from '../../model-provider';
 
@@ -64,6 +66,11 @@ import {
   extendServerCorrelation,
   // Final answer (AI SDK v6 Best Practice)
   finalAnswer,
+  // Vision tools (Gemini Flash-Lite)
+  analyzeScreenshot,
+  analyzeLargeLog,
+  searchWithGrounding,
+  analyzeUrlContent,
 } from '../../../../tools-ai-sdk';
 
 // ============================================================================
@@ -300,6 +307,40 @@ function getAdvisorModel(): ModelResult | null {
 
   console.warn('⚠️ [Advisor Agent] No model available (all 3 providers down)');
   return null;
+}
+
+/**
+ * Get Vision model: Gemini Flash-Lite only (Graceful Degradation)
+ *
+ * NO FALLBACK - Vision Agent uses Gemini exclusively due to unique features:
+ * - 1M token context window
+ * - Vision/PDF/Video/Audio multimodal
+ * - Google Search Grounding
+ * - URL Context
+ *
+ * When Gemini is unavailable, returns null (feature disabled)
+ *
+ * @added 2026-01-27
+ */
+function getVisionModel(): ModelResult | null {
+  const status = checkProviderStatus();
+
+  // Gemini only - no fallback
+  if (!status.gemini) {
+    console.warn('⚠️ [Vision Agent] Gemini unavailable - Vision features disabled');
+    return null;
+  }
+
+  try {
+    return {
+      model: getGeminiFlashLiteModel('gemini-2.5-flash-lite'),
+      provider: 'gemini',
+      modelId: 'gemini-2.5-flash-lite',
+    };
+  } catch (error) {
+    console.error('❌ [Vision Agent] Gemini initialization failed:', error);
+    return null;
+  }
 }
 
 // ============================================================================
@@ -570,6 +611,62 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
       correlateMetrics,
     },
     matchPatterns: [], // 오케스트레이터에서 직접 호출만
+  },
+
+  // =========================================================================
+  // Vision Agent (Gemini Flash-Lite - Graceful Degradation)
+  // =========================================================================
+
+  'Vision Agent': {
+    name: 'Vision Agent',
+    description:
+      '대시보드 스크린샷 분석, 대용량 로그 분석(1M 컨텍스트), Google Search Grounding, URL 문서 분석을 수행합니다. 이미지 첨부, 로그 분석, 최신 문서 검색 요청에 적합합니다.',
+    getModel: getVisionModel, // Gemini Flash-Lite only - no fallback
+    instructions: VISION_INSTRUCTIONS,
+    tools: {
+      // Vision-specific tools (Gemini Flash-Lite)
+      analyzeScreenshot,
+      analyzeLargeLog,
+      searchWithGrounding,
+      analyzeUrlContent,
+      finalAnswer, // AI SDK v6 Best Practice: graceful loop termination
+    },
+    matchPatterns: [
+      // Screenshot/Image keywords
+      '스크린샷',
+      'screenshot',
+      '이미지',
+      'image',
+      '사진',
+      '그래프',
+      '차트',
+      // Dashboard keywords
+      '대시보드',
+      'dashboard',
+      'grafana',
+      'cloudwatch',
+      'datadog',
+      // Large log keywords
+      '로그 분석',
+      '대용량',
+      'log',
+      '전체 로그',
+      // Google Search Grounding
+      '최신',
+      '문서',
+      'documentation',
+      '공식',
+      'official',
+      // URL context
+      'url',
+      '링크',
+      '페이지',
+      // Patterns
+      /스크린샷.*분석|분석.*스크린샷/i,
+      /이미지.*보여|첨부.*분석/i,
+      /로그.*전체|대용량.*로그/i,
+      /최신.*문서|공식.*가이드/i,
+    ],
   },
 };
 

@@ -82,6 +82,25 @@ export {
 export { finalAnswer, type FinalAnswerResult } from './final-answer';
 
 // ============================================================================
+// Vision Tools (Gemini Flash-Lite - Vision Agent)
+// ============================================================================
+export {
+  analyzeScreenshot,
+  analyzeLargeLog,
+  searchWithGrounding,
+  analyzeUrlContent,
+  visionTools,
+  visionToolDescriptions,
+} from './vision-tools';
+
+export type {
+  ScreenshotAnalysisResult,
+  LogAnalysisResult,
+  SearchGroundingResult,
+  UrlContentResult,
+} from './vision-tools';
+
+// ============================================================================
 // Tool Collections (for Supervisor)
 // ============================================================================
 import { getServerMetrics, getServerMetricsAdvanced, filterServers, getServerByGroup, getServerByGroupAdvanced } from './server-metrics';
@@ -90,6 +109,7 @@ import { detectAnomalies, detectAnomaliesAllServers, predictTrends, analyzePatte
 import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-tools';
 import { evaluateIncidentReport, validateReportStructure, scoreRootCauseConfidence, refineRootCauseAnalysis, enhanceSuggestedActions, extendServerCorrelation } from './incident-evaluation-tools';
 import { finalAnswer } from './final-answer';
+import { analyzeScreenshot, analyzeLargeLog, searchWithGrounding, analyzeUrlContent } from './vision-tools';
 
 /**
  * All available tools for the AI SDK Supervisor
@@ -128,6 +148,12 @@ export const allTools = {
 
   // Final Answer (AI SDK v6 Best Practice - terminates tool loop)
   finalAnswer,
+
+  // Vision Tools (Gemini Flash-Lite)
+  analyzeScreenshot,
+  analyzeLargeLog,
+  searchWithGrounding,
+  analyzeUrlContent,
 };
 
 /**
@@ -168,6 +194,12 @@ export const toolCategories = {
   control: {
     finalAnswer,
   },
+  vision: {
+    analyzeScreenshot,
+    analyzeLargeLog,
+    searchWithGrounding,
+    analyzeUrlContent,
+  },
 };
 
 /**
@@ -198,6 +230,11 @@ export const toolDescriptions = {
   extendServerCorrelation: '서버 간 연관성 분석 확장',
   // Control
   finalAnswer: '최종 응답 제출 (도구 루프 종료 신호)',
+  // Vision (Gemini Flash-Lite)
+  analyzeScreenshot: '대시보드 스크린샷 분석 (Grafana, CloudWatch, Datadog)',
+  analyzeLargeLog: '대용량 로그 파일 분석 (1M 컨텍스트)',
+  searchWithGrounding: 'Google Search Grounding 실시간 검색',
+  analyzeUrlContent: 'URL 콘텐츠 추출 및 분석',
 };
 
 export type ToolName = keyof typeof allTools;

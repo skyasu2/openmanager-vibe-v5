@@ -61,6 +61,20 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       tags: ['SLM', '24B', '오픈웨이트'],
       type: 'commercial',
     },
+    {
+      name: 'Gemini 2.5 Flash-Lite',
+      category: 'ai',
+      importance: 'high',
+      description:
+        'Google의 멀티모달 AI 모델. 1M 토큰 컨텍스트, 이미지/PDF/비디오 분석, Google Search Grounding으로 실시간 웹 검색 지원',
+      implementation:
+        '→ Vision Agent 전용. 대시보드 스크린샷 분석, 대용량 로그 분석(1M 컨텍스트), URL 문서 분석 담당. Graceful Degradation으로 장애 시 기존 에이전트 정상 동작 보장',
+      version: 'gemini-2.5-flash-lite',
+      status: 'active',
+      icon: '👁️',
+      tags: ['Vision', '1M-Context', 'Multimodal', 'Search-Grounding'],
+      type: 'commercial',
+    },
 
     // ========== Framework & SDK ==========
     {
@@ -84,7 +98,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
       description:
         'Vercel AI SDK 확장 패키지. Agent 클래스로 전문 에이전트 정의, matchOn으로 패턴 매칭, handoffs로 에이전트 간 작업 위임 지원',
       implementation:
-        'Orchestrator + NLQ + Analyst + Reporter + Advisor 5개 에이전트 정의. 질문 유형별 자동 라우팅 구현',
+        'Orchestrator + NLQ + Analyst + Reporter + Advisor + Vision 6개 에이전트 정의. 질문 유형별 자동 라우팅 구현',
       version: '1.2',
       status: 'active',
       icon: '🤖',

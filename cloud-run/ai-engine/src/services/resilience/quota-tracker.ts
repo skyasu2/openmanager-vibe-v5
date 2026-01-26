@@ -9,8 +9,9 @@
  * @see src/lib/ai/quota/provider-quota-tracker.ts (Vercel 버전)
  * @note 두 파일은 동일한 로직, 다른 Redis 클라이언트 사용 (ioredis vs @upstash/redis)
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @created 2026-01-04
+ * @updated 2026-01-27 - Gemini Vision Agent 쿼터 추가
  */
 
 import { getRedisClient } from '../../lib/redis-client';
@@ -19,7 +20,7 @@ import { getRedisClient } from '../../lib/redis-client';
 // Types
 // ============================================================================
 
-export type ProviderName = 'cerebras' | 'groq' | 'mistral';
+export type ProviderName = 'cerebras' | 'groq' | 'mistral' | 'gemini';
 
 export interface ProviderQuota {
   dailyTokenLimit: number;
@@ -49,7 +50,7 @@ export interface QuotaStatus {
 }
 
 // ============================================================================
-// Provider Quota 설정 (2026-01-04 기준)
+// Provider Quota 설정 (2026-01-27 기준)
 // ============================================================================
 
 export const PROVIDER_QUOTAS: Record<ProviderName, ProviderQuota> = {
@@ -70,6 +71,23 @@ export const PROVIDER_QUOTAS: Record<ProviderName, ProviderQuota> = {
     requestsPerMinute: 30,
     tokensPerMinute: 30_000,
     requestsPerDay: 500,
+  },
+  /**
+   * Gemini Flash-Lite (Vision Agent)
+   * @see https://ai.google.dev/gemini-api/docs/models/gemini
+   * @added 2026-01-27
+   *
+   * Free Tier Limits:
+   * - 1,000 RPD (requests per day)
+   * - 15 RPM (requests per minute)
+   * - 250,000 TPM (tokens per minute)
+   * - 1M context window
+   */
+  gemini: {
+    dailyTokenLimit: 250_000 * 60 * 24, // TPM * 60min * 24h (theoretical max)
+    requestsPerMinute: 15,
+    tokensPerMinute: 250_000,
+    requestsPerDay: 1_000,
   },
 };
 
@@ -300,6 +318,7 @@ export async function getQuotaSummary(): Promise<{
     'cerebras',
     'groq',
     'mistral',
+    'gemini',
   ];
   const statuses = await Promise.all(providers.map(getQuotaStatus));
 

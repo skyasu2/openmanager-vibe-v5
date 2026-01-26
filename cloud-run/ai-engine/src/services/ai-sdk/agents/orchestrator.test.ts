@@ -15,10 +15,17 @@ vi.mock('../model-provider', () => ({
     cerebras: true,
     groq: true,
     mistral: true,
+    gemini: true,
   })),
   getCerebrasModel: vi.fn(() => ({ modelId: 'llama-3.3-70b' })),
   getGroqModel: vi.fn(() => ({ modelId: 'llama-3.3-70b-versatile' })),
   getMistralModel: vi.fn(() => ({ modelId: 'mistral-small-2506' })),
+  getGeminiFlashLiteModel: vi.fn(() => ({ modelId: 'gemini-2.5-flash-lite' })),
+  getVisionAgentModel: vi.fn(() => ({
+    model: { modelId: 'gemini-2.5-flash-lite' },
+    provider: 'gemini',
+    modelId: 'gemini-2.5-flash-lite',
+  })),
   logProviderStatus: vi.fn(),
 }));
 
@@ -84,6 +91,13 @@ vi.mock('../../../tools-ai-sdk', () => ({
   enhanceSuggestedActions: { execute: vi.fn() },
   extendServerCorrelation: { execute: vi.fn() },
   incidentEvaluationTools: {},
+  // Vision tools (Gemini Flash-Lite)
+  analyzeScreenshot: { execute: vi.fn() },
+  analyzeLargeLog: { execute: vi.fn() },
+  searchWithGrounding: { execute: vi.fn() },
+  analyzeUrlContent: { execute: vi.fn() },
+  visionTools: {},
+  visionToolDescriptions: {},
 }));
 
 // ============================================================================

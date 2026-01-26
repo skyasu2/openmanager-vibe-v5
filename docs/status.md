@@ -1,10 +1,16 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-26
+**마지막 업데이트**: 2026-01-27
 
 ---
 
-## 🔄 Recent Changes (v7.0.1)
+## 🔄 Recent Changes (v7.1.0)
+
+- **v7.1.0** (2026-01-27)
+  - **Vision Agent 추가**: Gemini 2.5 Flash-Lite 기반 멀티모달 에이전트
+  - Quad-provider 아키텍처로 확장 (Cerebras/Groq/Mistral + Gemini)
+  - 4개 Vision 도구: analyzeScreenshot, analyzeLargeLog, searchWithGrounding, analyzeUrlContent
+  - Graceful Degradation: Gemini 장애 시 Vision 기능만 비활성화, 기존 에이전트 정상 동작
 
 - **v7.0.1** (2026-01-26)
   - **Job Queue Redis Only 전환**: Supabase ai_jobs 테이블 제거, Redis 단일 저장소
@@ -26,7 +32,7 @@
 
 ---
 
-## 🏗️ Technical Stack (v7.0.1)
+## 🏗️ Technical Stack (v7.1.0)
 
 **Core Frameworks** (2025 Standard)
 - **Next.js**: `v16.1.1` (App Router, Server Components)
@@ -78,12 +84,13 @@
   - `UIMessageStream`: 네이티브 스트리밍 프로토콜
   - `Resumable Stream v2`: Upstash Redis 기반 자동 재연결
   - `prepareStep`: 에이전트 라우팅 순서 최적화
-- **Models**: Tri-provider 전략 (Rate limit 최적화, 2026-01-16)
+- **Models**: Quad-provider 전략 (Rate limit 최적화, 2026-01-27)
   - Cerebras llama-3.3-70b: Orchestrator, NLQ (1M tokens/day, 60K TPM)
   - Groq llama-3.3-70b: Analyst, Reporter (~1K requests/day, 12K TPM)
   - Mistral Small 2506 (24B): Advisor, Verifier (Limited free tier)
-- **Agents**: 5개 Multi-Agent (Orchestrator → NLQ/Analyst/Reporter/Advisor)
-- **Tools**: 22개 도구 Registry (Metrics 5, RCA 3, Analyst 3, Reporter 4, Evaluation 6, Control 1)
+  - **Gemini 2.5 Flash-Lite**: Vision Agent (1000 RPD, 15 RPM, 1M context)
+- **Agents**: 6개 Multi-Agent (Orchestrator → NLQ/Analyst/Reporter/Advisor/Vision)
+- **Tools**: 26개 도구 Registry (Metrics 5, RCA 3, Analyst 4, Reporter 4, Evaluation 6, Control 1, Vision 4)
 - **Reporter Pipeline**: Evaluator-Optimizer 패턴 (0.75 품질 임계값, 최대 2회 반복)
 - **MCP**: 8/8 Server Connected (Serena, Context7, Supabase, Vercel, Playwright, GitHub, Tavily, Sequential-Thinking)
 - **Web Search**: Tavily API (10s timeout, 2 retries, 30 cache entries)
