@@ -512,6 +512,12 @@ git revert <commit-hash>
 - ✅ P1-1: AbortController for fetch (useAsyncAIQuery.ts:106) - signal 전달
 - ✅ P1-2: Subtask timeout logging (orchestrator.ts:968) - 상세 로깅 추가
 
+### Round 3 (2026-01-27) - commit d036d95b9
+**P0 Stream Resource Leak 완전 수정**:
+- ✅ P0: Graceful stream abort (supervisor.ts, orchestrator.ts) - AsyncIterator.return() 추가
+  - timeout 시 streamText가 백그라운드에서 계속 실행되는 문제 해결
+  - Cloud Run 메모리/CPU 리소스 누수 방지
+
 ---
 
-**승인 후 Phase 1부터 순차 진행**
+**✅ 모든 P0/P1/P2 이슈 해결 완료**

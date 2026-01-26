@@ -14,7 +14,7 @@ _(현재 활성 작업 없음 - 모든 코드 작업 완료)_
 ### 활성 계획서 (Active Plans)
 | 파일 | 상태 | 비고 |
 |------|------|------|
-| `ai-codebase-improvement-plan.md` | P0 대기 | Resource/Memory Leak 수정 필요 |
+| `ai-codebase-improvement-plan.md` | ✅ 완료 | P0/P1/P2 모든 이슈 해결 (2026-01-27) |
 | `incident-report-and-anomaly-improvement-plan.md` | 참조 | 구현 가이드 |
 | `landing-card-diagrams.md` | 참조 | 다이어그램 데이터 |
 
