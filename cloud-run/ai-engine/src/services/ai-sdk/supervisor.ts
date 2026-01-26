@@ -843,7 +843,18 @@ async function* streamSingleAgent(
               : '쿼리를 간단하게 나눠서 다시 시도해주세요.',
           },
         };
-        return; // Exit generator - AI SDK handles cleanup internally
+
+        // 🎯 P0 Fix: Graceful stream abort to prevent resource leak
+        // Without this, streamText continues running in background consuming resources
+        try {
+          // Access the underlying AsyncIterator to call return()
+          const iterator = result.textStream[Symbol.asyncIterator]();
+          await iterator.return?.();
+        } catch {
+          // Silent - best effort cleanup, stream may already be closed
+        }
+
+        return;
       }
 
       fullText += textPart;

@@ -1904,6 +1904,15 @@ async function* executeAgentStream(
             elapsed,
           },
         };
+
+        // 🎯 P0 Fix: Graceful stream abort to prevent resource leak
+        try {
+          const iterator = streamResult.textStream[Symbol.asyncIterator]();
+          await iterator.return?.();
+        } catch {
+          // Silent - best effort cleanup
+        }
+
         return;
       }
 
