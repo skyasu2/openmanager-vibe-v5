@@ -2,11 +2,11 @@
  * AI 엔진 웜업 유틸리티
  *
  * Cloud Run cold start 대응을 위한 조기 웜업 기능
- * - 세션 내 중복 호출 방지 (60초 쿨다운)
+ * - 세션 내 중복 호출 방지 (5분 쿨다운)
  * - Fire-and-forget 패턴 (실패해도 사용자 경험 미영향)
  */
 
-const WARMUP_COOLDOWN_MS = 60_000; // 60초 쿨다운
+const WARMUP_COOLDOWN_MS = 5 * 60 * 1000; // 5분 쿨다운 (Cloud Run 무료 티어 최적화)
 const WARMUP_STORAGE_KEY = 'ai_warmup_timestamp';
 
 // sessionStorage 비활성 환경을 위한 메모리 fallback
@@ -62,7 +62,7 @@ function needsWarmup(): boolean {
 /**
  * AI 엔진 웜업 트리거
  *
- * - 60초 쿨다운 내에는 중복 호출하지 않음
+ * - 5분 쿨다운 내에는 중복 호출하지 않음
  * - Fire-and-forget: 결과 무시, 실패해도 사용자 경험 미영향
  *
  * @param source 호출 위치 (로깅용)

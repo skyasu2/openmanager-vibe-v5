@@ -30,6 +30,7 @@ import { systemInactivityService } from '@/services/system/SystemInactivityServi
 import { useAISidebarStore } from '@/stores/useAISidebarStore'; // AI 사이드바 상태
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 // 🔧 레거시 정리 (2026-01-17): Server 타입 import 제거 - AnimatedServerModal 제거됨
+import { triggerAIWarmup } from '@/utils/ai-warmup';
 import debug from '@/utils/debug';
 import DashboardContent from '../../components/dashboard/DashboardContent';
 // --- Static Imports for Core Components (SSR bailout 해결) ---
@@ -409,11 +410,8 @@ function DashboardPageContent() {
 
   // 🔥 AI Engine Cold Start 방지 - 대시보드 진입 시 미리 깨우기
   useEffect(() => {
-    // Fire-and-forget: 응답을 기다리지 않고 백그라운드에서 실행
-    fetch('/api/ai/wake-up', { method: 'POST' }).catch(() => {
-      // Ignore errors - this is a best-effort warmup
-    });
-    debug.log('🔥 AI Engine warmup 신호 전송');
+    // triggerAIWarmup은 5분 쿨다운으로 중복 호출 방지
+    void triggerAIWarmup('dashboard-mount');
   }, []);
 
   // 🚀 시스템 자동 시작 로직 - "시스템 종료됨" 문제 해결
@@ -429,29 +427,15 @@ function DashboardPageContent() {
     ? formatTime(systemRemainingTime)
     : '00:00';
 
-  // 🔥 Cloud Run warmup 쿨다운 (5분)
-  const lastWarmupAtRef = useRef(0);
-  const WARMUP_COOLDOWN_MS = 5 * 60 * 1000; // 5분
-
   const toggleAgent = useCallback(() => {
     // 🔒 AI 기능은 권한이 있는 사용자 또는 게스트 전체 접근 모드에서 사용 가능
     if (!permissions.canToggleAI && !isGuestFullAccessEnabled()) {
-      // 토스트 메시지로 안내 (선택사항)
       return;
     }
 
-    // 🔥 AI 사이드바 열릴 때 Cloud Run warmup 호출 (Cold Start 방지, 5분 쿨다운)
+    // 🔥 AI 사이드바 열릴 때 웜업 (5분 쿨다운은 triggerAIWarmup에서 관리)
     if (!isAgentOpen) {
-      const now = Date.now();
-      if (now - lastWarmupAtRef.current > WARMUP_COOLDOWN_MS) {
-        lastWarmupAtRef.current = now;
-        fetch('/api/ai/wake-up', { method: 'POST' }).catch(() => {
-          // Ignore errors - this is a best-effort warmup
-        });
-        debug.log('🔥 AI 어시스턴트 열기 - Cloud Run warmup 신호 전송');
-      } else {
-        debug.log('⏳ AI warmup 쿨다운 중 - 스킵');
-      }
+      void triggerAIWarmup('ai-sidebar-open');
     }
 
     setIsAgentOpen(!isAgentOpen);
