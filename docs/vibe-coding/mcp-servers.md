@@ -15,13 +15,14 @@
 
 ---
 
-## 현재 사용 중인 MCP 서버 (8개)
+## 현재 사용 중인 MCP 서버 (9개)
 
 | MCP | 용도 | 패키지 | 우선순위 |
 |-----|------|--------|:--------:|
 | **serena** | 코드 검색, 심볼 분석, 메모리 | `serena-mcp-server` (uvx) | 높음 |
 | **context7** | 라이브러리 공식 문서 | `@upstash/context7-mcp` | 높음 |
 | **sequential-thinking** | 복잡한 추론, 아키텍처 설계 | `@modelcontextprotocol/server-sequential-thinking` | 높음 |
+| **stitch** | Google Stitch AI UI 디자인 | `@_davideast/stitch-mcp` | 중간 |
 | **supabase** | PostgreSQL 관리 | `@supabase/mcp-server-supabase` | 중간 |
 | **vercel** | 배포 상태 확인 | `vercel-mcp` | 중간 |
 | **playwright** | E2E 테스트, 브라우저 자동화 | `@playwright/mcp` | 중간 |
@@ -63,7 +64,7 @@
 
 ---
 
-## 현재 설정 백업 (2026-01-27)
+## 현재 설정 백업 (2026-01-27 Updated)
 
 ### .mcp.json 구조
 
@@ -124,6 +125,14 @@
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "stitch": {
+      "command": "npx",
+      "args": ["-y", "@_davideast/stitch-mcp", "proxy"],
+      "env": {
+        "STITCH_USE_SYSTEM_GCLOUD": "1",
+        "STITCH_PROJECT_ID": "<your-gcp-project-id>"
+      }
     }
   }
 }
@@ -142,13 +151,14 @@
       "mcp__playwright__*",
       "mcp__github__*",
       "mcp__tavily__*",
-      "mcp__sequential-thinking__*"
+      "mcp__sequential-thinking__*",
+      "mcp__stitch__*"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "vercel", "serena", "supabase", "context7",
-    "playwright", "github", "tavily", "sequential-thinking"
+    "playwright", "github", "tavily", "sequential-thinking", "stitch"
   ]
 }
 ```
@@ -228,6 +238,35 @@ Claude: [sequential-thinking으로 단계별 분석]
         → Step 2: 경계 식별
         → Step 3: 분리 계획
 ```
+
+---
+
+### Stitch (UI 디자인) - 우선순위: 중간
+
+Google Stitch AI로 UI 디자인 생성, Figma 연동.
+
+**사전 요구사항**:
+- gcloud CLI 설치 및 인증
+- GCP 프로젝트에 Stitch API 활성화
+
+**설치**:
+```bash
+# Stitch API 활성화
+gcloud services enable stitch.googleapis.com --project=YOUR_PROJECT_ID
+
+# 상태 확인
+npx @_davideast/stitch-mcp doctor
+```
+
+**사용 예시**:
+```
+You: "로그인 페이지 UI 디자인해줘"
+Claude: [stitch로 UI 생성] → Figma로 복사 가능
+```
+
+**환경변수**:
+- `STITCH_USE_SYSTEM_GCLOUD`: 시스템 gcloud 사용 (1)
+- `STITCH_PROJECT_ID`: GCP 프로젝트 ID
 
 ---
 
@@ -323,13 +362,14 @@ cat > .claude/settings.local.json << 'EOF'
       "mcp__playwright__*",
       "mcp__github__*",
       "mcp__tavily__*",
-      "mcp__sequential-thinking__*"
+      "mcp__sequential-thinking__*",
+      "mcp__stitch__*"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "vercel", "serena", "supabase", "context7",
-    "playwright", "github", "tavily", "sequential-thinking"
+    "playwright", "github", "tavily", "sequential-thinking", "stitch"
   ]
 }
 EOF
