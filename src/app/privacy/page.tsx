@@ -79,7 +79,7 @@ export default function PrivacyPage() {
         {/* Footer */}
         <div className="mt-12 pt-6 border-t border-white/10 text-center">
           <p className="text-xs text-white/40">
-            OpenManager Vibe v{process.env.NEXT_PUBLIC_APP_VERSION || '5.87.0'}
+            OpenManager Vibe v{process.env.NEXT_PUBLIC_APP_VERSION || '7.0.1'}
           </p>
         </div>
       </div>

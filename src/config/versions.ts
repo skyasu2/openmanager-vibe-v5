@@ -193,7 +193,7 @@ export class VersionManager {
     return {
       ai_engines: AI_ENGINE_VERSIONS,
       data_generators: DATA_GENERATOR_VERSIONS,
-      system_version: '5.87.0', // 메인 시스템 버전
+      system_version: '7.0.1', // 메인 시스템 버전
       last_updated: new Date().toISOString(),
     };
   }
