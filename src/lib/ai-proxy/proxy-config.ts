@@ -7,35 +7,32 @@
  * @see src/config/ai-proxy.config.ts
  */
 
+// Legacy aliases for backward compatibility
 export {
-  // Types
-  type VercelTier,
-  type TimeoutConfig,
   type AIProxyConfig,
-  type ProxyEndpoint,
   type CacheEndpoint,
+  clampTimeout,
+  createStandardError,
+  // Error helpers
+  ERROR_CODES,
   type ErrorCode,
-  type StandardErrorResponse,
   // Config getters
   getAIProxyConfig,
-  getVercelTier,
+  getCacheTTL,
   getCurrentMaxDuration,
+  getCurrentMaxDuration as CURRENT_MAX_DURATION,
   getDefaultTimeout,
   getMaxTimeout,
   getMinTimeout,
-  clampTimeout,
-  getCacheTTL,
-  // Error helpers
-  ERROR_CODES,
-  createStandardError,
   // Headers
   getProxyHeaders,
-} from '@/config/ai-proxy.config';
-
-// Legacy aliases for backward compatibility
-export {
+  getVercelTier,
   getVercelTier as VERCEL_TIER,
-  getCurrentMaxDuration as CURRENT_MAX_DURATION,
+  type ProxyEndpoint,
+  type StandardErrorResponse,
+  type TimeoutConfig,
+  // Types
+  type VercelTier,
 } from '@/config/ai-proxy.config';
 
 // Re-export PROXY_TIMEOUTS as a getter for backward compatibility

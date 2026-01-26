@@ -1,255 +1,135 @@
 # 🔧 MCP 설정 가이드
 
-**OpenManager VIBE v5** - CLI-only 방식 완전 설정 가이드
-
-## ⚠️ 중요 사항
-
-Claude Code v1.0.119에서 .mcp.json 파서 제한으로 **CLI-only 방식**만 권장합니다.
-
-## 1️⃣ 기본 MCP 서버 CLI 설정
-
-### 간단한 서버들
-
-```bash
-# 기본 서버들 - CLI로 추가
-claude mcp add memory -s local -- npx -y @modelcontextprotocol/server-memory
-claude mcp add sequential-thinking -s local -- npx -y @modelcontextprotocol/server-sequential-thinking@latest
-claude mcp add playwright -s local -- npx -y @executeautomation/playwright-mcp-server
-```
-
-> **Note**: `shadcn-ui` MCP는 Context7로 대체되어 제거됨 (2026-01)
-
-**🎭 Playwright MCP 상세 설정**: WSL 환경에서 윈도우 크롬 브라우저 연동이 필요한 경우 [WSL 최적화 가이드](../environment/wsl/wsl-optimization.md)를 참조하세요.
-
-### 환경변수가 필요한 서버
-
-```bash
-# Time 서버
-claude mcp add time -s local -e TERM=dumb -e NO_COLOR=1 -e PYTHONUNBUFFERED=1 -- $HOME/.local/bin/uvx mcp-server-time
-```
-
-### 복잡한 설정이 필요한 서버
-
-```bash
-# Serena 서버 (메모리 최적화 포함)
-claude mcp add serena -s local \
-  -e TERM=dumb \
-  -e NO_COLOR=1 \
-  -e PYTHONUNBUFFERED=1 \
-  -e PYTHONIOENCODING=utf-8 \
-  -e PYTHONHASHSEED=0 \
-  -e MALLOC_TRIM_THRESHOLD_=100000 \
-  -- $HOME/.local/bin/serena-mcp-server \
-  --project /mnt/d/cursor/openmanager-vibe-v5 \
-  --log-level ERROR \
-  --tool-timeout 180 \
-  --enable-web-dashboard false \
-  --enable-gui-log-window false
-```
-
-## 2️⃣ 토큰 기반 MCP 서버 설정
-
-### Context7 MCP (API 키 필요)
-
-```bash
-# API 키를 .env.local에 저장 후 사용
-claude mcp add context7 -s local -- npx -y @upstash/context7-mcp --api-key $CONTEXT7_API_KEY
-```
-
-### Supabase MCP (Access Token 필요)
-
-```bash
-# CLI 로컬 스코프 - 유일한 작동 방법
-claude mcp add supabase -s local \
-  -e SUPABASE_ACCESS_TOKEN=$SUPABASE_ACCESS_TOKEN \
-  -- npx -y @supabase/mcp-server-supabase@latest \
-  --read-only \
-  --project-ref=$SUPABASE_PROJECT_REF
-```
-
-### Vercel MCP (HTTP 방식, OAuth 인증)
-
-```bash
-# HTTP transport 방식으로 추가
-claude mcp add --transport http vercel https://mcp.vercel.com
-```
-
-## 3️⃣ 환경변수 보안 관리
-
-### .env.local 설정
-
-```bash
-# .env.local 파일 예시
-CONTEXT7_API_KEY=ctx7sk-your-api-key-here
-SUPABASE_ACCESS_TOKEN=sbp_your-access-token-here
-SUPABASE_PROJECT_REF=your-project-ref-here
-```
-
-### 보안 설정
-
-```bash
-# 파일 권한 설정
-chmod 600 .env.local
-
-# 환경변수 로드
-source .env.local
-
-# 또는 자동화 스크립트 사용
-./scripts/setup-mcp-env.sh
-```
-
-## 4️⃣ MCP 상태 확인 및 관리
-
-### 기본 명령어
-
-```bash
-# 전체 MCP 서버 상태 확인
-claude mcp list
-
-# 특정 서버 제거
-claude mcp remove SERVER_NAME -s local
-
-# 특정 서버 재추가
-claude mcp add SERVER_NAME -s local -- COMMAND
-
-# 환경변수 로드 후 Claude Code 재시작
-source ./scripts/setup-mcp-env.sh
-```
-
-## 5️⃣ 트러블슈팅 가이드
-
-### Supabase MCP 문제 해결
-
-| 증상                         | 원인                      | 해결방법                 |
-| ---------------------------- | ------------------------- | ------------------------ |
-| 🔗 연결 성공, 도구 사용 불가 | Claude Code MCP 런처 버그 | CLI 로컬 스코프 + 재시작 |
-| 📋 MCP 목록에서 사라짐       | 프로젝트 스코프 설정 오류 | CLI 로컬 스코프로 변경   |
-| ⚠️ "Connected" 허위 표시     | 좀비 프로세스 남아있음    | 완전 재시작 필요         |
-
-### 성공 보장 절차
-
-```bash
-# 1단계: 기존 설정 완전 제거
-claude mcp remove supabase -s project
-claude mcp remove supabase -s local
-
-# 2단계: CLI 로컬 스코프로 재설정
-claude mcp add supabase -s local \
-  -e SUPABASE_ACCESS_TOKEN=$SUPABASE_ACCESS_TOKEN \
-  -- npx -y @supabase/mcp-server-supabase@latest \
-  --read-only \
-  --project-ref=$SUPABASE_PROJECT_REF
-
-# 3단계: Claude Code 완전 재시작
-
-# 4단계: 연결 상태 확인
-claude mcp list | grep supabase
-
-# 5단계: 실제 도구 테스트
-# Claude Code에서: mcp__supabase__list_tables 실행
-```
-
-### 일반 MCP 트러블슈팅
-
-- **연결 실패**: `claude mcp remove` 후 재추가
-- **Serena "No active project"**: Claude Code에서 `mcp__serena__activate_project openmanager-vibe-v5` 실행 ⭐ **신규**
-- **권한 오류**: `--read-only` 플래그 추가
-- **버전 충돌**: `@latest` 제거하고 고정 버전 사용
-- **WSL 경로 문제**: 절대 경로 사용 (`$HOME/.local/bin/...`)
-- **종합 진단**: `./scripts/mcp-health-check.sh`로 Serena 프로젝트 상태 포함 전체 체크 ⭐ **개선됨**
-
-## 6️⃣ 성능 최적화
-
-### Serena MCP 메모리 최적화
-
-**50% 메모리 절약 달성**:
-
-- 메모리 사용량: 1.5GB → 0.7GB (50% 절약)
-- 응답 시간: 180초 타임아웃으로 안정성 확보
-- 프로세스 안정성: 99.9% 가동률 유지
-
-### 자동화 건강 체크
-
-```bash
-# MCP 서버 자동 모니터링
-./scripts/mcp-health-check.sh
-
-# 주요 기능:
-# - 8개 MCP 서버 연결 상태 실시간 체크
-# - Serena 프로젝트 활성화 상태 체크 (신규) ⭐
-# - 메모리 사용량 모니터링
-# - 자동 문제 진단 및 복구 제안
-# - Serena 전용 복구 명령어 제안 (신규) ⭐
-# - 컬러 출력 및 로그 파일 생성
-```
-
-### 보안 검사 및 서버 상태 체크
-
-```bash
-# 토큰 보안 검사 + 8개 MCP 서버 상태 종합 체크
-./scripts/setup-mcp-env.sh --security-check
-
-# 주요 기능:
-# - API 키 노출 검사
-# - 8개 MCP 서버별 연결 상태 개별 확인 (개선됨) ⭐
-# - 백업 파일 보안 검사
-# - 환경변수 파일 권한 검사
-```
-
-## 7️⃣ WSL/Claude Code 재설치 후 복구
-
-### 원클릭 완전 복구
-
-```bash
-# 1단계: 전체 자동 복구 (5-10분)
-./scripts/mcp-complete-recovery.sh
-
-# 2단계: 토큰 관리 (대화형)
-./scripts/setup-mcp-env.sh --interactive
-
-# 3단계: 검증
-./scripts/setup-mcp-env.sh --validate
-```
-
-### 단계별 수동 복구
-
-```bash
-# 환경변수 토큰 관리
-./scripts/setup-mcp-env.sh --interactive    # 새 토큰 설정
-./scripts/setup-mcp-env.sh --validate       # 토큰 검증
-./scripts/setup-mcp-env.sh --backup         # 백업 생성
-./scripts/setup-mcp-env.sh --restore        # 백업 복원
-
-# MCP 서버 상태 확인
-./scripts/mcp-health-check.sh               # 전체 상태 체크
-claude mcp list                             # Claude Code 연결 확인
-
-# 문제 해결
-./scripts/mcp-complete-recovery.sh          # 완전 복구
-```
-
-## 🛡️ 보안 검사
-
-### 정기 보안 검사
-
-```bash
-# 토큰 노출 검사
-./scripts/setup-mcp-env.sh --security-check
-
-# 프로세스 목록에서 API 키 노출 검사
-# 백업 파일에서 API 키 노출 검사
-# 환경변수 파일 권한 검사
-# MCP 설정에서 보안 문제 검사
-```
-
-## 📊 복구 스크립트 검증 완료
-
-| 스크립트                   | 기능                  | 실행 시간 | 성공률 |
-| -------------------------- | --------------------- | --------- | ------ |
-| `mcp-complete-recovery.sh` | 전체 MCP 환경 복구    | 5-10분    | 99.9%  |
-| `setup-mcp-env.sh`         | 토큰 관리 자동화      | 2-3분     | 100%   |
-| `mcp-health-check.sh`      | 상태 진단 및 모니터링 | 30초      | 100%   |
+**OpenManager VIBE v5** - 현실적 구현(Pragmatic)과 모범 사례(Best Practice) 비교
 
 ---
 
-**📋 마지막 업데이트**: 2025-09-21 | **지원 버전**: Claude Code v1.0.119+
+## 🎯 개요: 현실 vs 이상
+
+이 문서는 MCP(Model Context Protocol) 서버를 설정하는 두 가지 접근 방식을 설명합니다.
+**현재 이 프로젝트는 개발 생산성과 관리 편의성을 위해 "현실적 구현(.mcp.json 직접 관리)" 방식을 채택하여 사용 중입니다.**
+
+| 비교 항목 | 🏗️ 현실적 구현 (Current Project) | 🛡️ 모범 사례 (Best Practice) |
+| :--- | :--- | :--- |
+| **설정 방식** | `.mcp.json` 파일 직접 수정 | `claude mcp add` CLI 명령어 사용 |
+| **토큰 관리** | 파일 내 **하드코딩** (간편함) | **환경변수** 사용 (보안성) |
+| **보안 전략** | `.gitignore`로 파일 자체를 숨김 | 변수 분리를 통해 코드/설정 분리 |
+| **경로 설정** | 절대 경로 하드코딩 (`/home/user/...`) | `$HOME` 변수 및 동적 경로 사용 |
+| **장점** | 설정이 한눈에 보임, 즉시 적용 가능 | 보안이 강력함, 이식성이 높음 |
+| **단점** | 파일 유출 시 보안 위험, 사용자 종속적 | 설정 과정이 복잡하고 번거로움 |
+
+---
+
+## 1️⃣ 현재 적용된 방식 (Implementation Detail)
+
+### 📄 `.mcp.json` 구성 (Single Source of Truth)
+
+현재 프로젝트는 루트 디렉토리의 `.mcp.json` 파일을 통해 모든 MCP 서버를 관리합니다.
+
+**실제 설정 파일 예시:**
+
+```json
+{
+  "mcpServers": {
+    "vercel": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "vercel-mcp",
+        "VERCEL_API_KEY=ACTUAL_KEY_HERE" 
+      ]
+    },
+    "serena": {
+      "command": "/home/sky-note/.local/bin/uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena-mcp-server",
+        "--enable-web-dashboard",
+        "false",
+        "--project",
+        "/mnt/d/cursor/openmanager-vibe-v5" 
+      ],
+      "env": {
+        "TERM": "dumb",
+        "NO_COLOR": "1"
+      }
+    }
+    // ... 기타 서버들
+  }
+}
+```
+
+### 💡 왜 이렇게 설정했는가? (Design Decisions)
+
+1.  **관리의 직관성**:
+    *   여러 파일 (`.env`, `global config` 등)을 오가며 설정하는 대신, `.mcp.json` 파일 하나만 열면 현재 연결된 모든 도구와 설정을 즉시 파악하고 수정할 수 있습니다.
+
+2.  **WSL 환경의 특수성**:
+    *   Windows/WSL 환경에서는 환경 변수가 쉘 세션 간에 제대로 전파되지 않거나, `npx` 실행 컨텍스트에서 누락되는 경우가 잦습니다.
+    *   파일에 값을 명시함으로써 "환경 변수 누락"으로 인한 디버깅 시간을 제거했습니다.
+
+3.  **성능과 호환성 (Serena MCP)**:
+    *   `uvx`가 매번 가상환경을 생성하는 오버헤드를 줄이기 위해, 설치된 바이너리 경로를 직접 지정하거나 절대 경로를 사용합니다.
+    *   `--project` 경로를 명시하여 WSL 파일 시스템 상의 정확한 위치를 타겟팅합니다.
+
+### 🔒 보안 대책 (Security Mitigation)
+
+이 방식의 가장 큰 약점은 보안(하드코딩된 토큰)입니다. 이를 보완하기 위해 다음과 같은 조치를 취합니다:
+
+1.  **Git 추적 제외 (필수)**:
+    *   `.gitignore`에 `.mcp.json`이 반드시 포함되어야 합니다.
+    *   백업 파일 `*.mcp.json.backup` 등도 무시되도록 설정합니다.
+
+2.  **개인화된 로컬 설정**:
+    *   이 파일은 '공유되는 설정'이 아니라 개발자 개인의 '로컬 설정'으로 취급합니다.
+
+---
+
+## 2️⃣ 모범 사례 참조 (Reference: Best Practice)
+
+> **참고**: 아래 방식은 보안과 이식성이 중요할 때 권장되는 이론적 표준(Best Practice)입니다.
+
+### CLI 및 환경변수 기반 설정
+
+표준 가이드에서는 보안을 위해 API 키를 소스 코드나 설정 파일에서 분리할 것을 권장합니다.
+
+```bash
+# 1. 환경변수로 키 설정
+export VERCEL_API_KEY="my-secret-key"
+
+# 2. CLI를 사용하여 서버 추가 (하드코딩 방지)
+claude mcp add vercel -s local -- \
+  npx -y vercel-mcp VERCEL_API_KEY=$VERCEL_API_KEY
+```
+
+### 이 방식의 장점
+*   `.mcp.json` 파일을 실수로 Git에 올리더라도 비밀 키는 노출되지 않습니다.
+*   다른 개발자(또는 다른 OS 사용자)가 자신의 환경 변수만 설정하면 동일한 명령어로 셋업할 수 있습니다.
+
+---
+
+## 3️⃣ 트러블슈팅 및 관리
+
+### 주요 문제 해결
+
+1.  **WSL 실행 오류 (`command not found`)**:
+    *   원인: `.mcp.json` 내의 절대 경로(`/home/user...`)가 현재 사용자의 경로와 다름.
+    *   해결: `.mcp.json`을 열어 `command` 경로를 자신의 환경(`$HOME`)에 맞게 수정합니다.
+
+2.  **연결 끊김 (Timeout)**:
+    *   대규모 코드베이스 분석 시 Serena 서버가 응답하지 않을 수 있습니다.
+    *   해결: `.mcp.json`의 `args`에 `"--tool-timeout", "180"` 등을 추가하여 타임아웃을 늘립니다.
+
+### 관리 스크립트
+
+현재 프로젝트는 편의를 위해 상태를 점검하는 스크립트를 제공합니다:
+
+```bash
+# MCP 서버 연결 상태 및 메모리 확인
+./scripts/mcp-health-check.sh
+```
+
+---
+
+**결론**: 우리는 보안(Best Practice)과 편의성(Pragmatic) 사이에서 **편의성**을 선택했으며, `.gitignore`를 통한 철저한 파일 관리로 보안 리스크를 통제하고 있습니다.

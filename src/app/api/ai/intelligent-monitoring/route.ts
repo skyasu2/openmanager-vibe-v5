@@ -9,13 +9,13 @@
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
+import { getDefaultTimeout } from '@/config/ai-proxy.config';
 import {
   type CacheableAIResponse,
   withAICache,
 } from '@/lib/ai/cache/ai-response-cache';
 import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
 import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
-import { getDefaultTimeout } from '@/config/ai-proxy.config';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';

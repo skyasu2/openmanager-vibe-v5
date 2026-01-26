@@ -18,6 +18,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { getMaxTimeout, getMinTimeout } from '@/config/ai-proxy.config';
 import {
   type AIEndpoint,
   getAICache,
@@ -38,7 +39,6 @@ import {
   analyzeQueryComplexity,
   calculateDynamicTimeout,
 } from '@/lib/ai/utils/query-complexity';
-import { getMaxTimeout, getMinTimeout } from '@/config/ai-proxy.config';
 import { isCloudRunEnabled, proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';

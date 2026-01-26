@@ -20,6 +20,7 @@ import { generateId } from 'ai';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getMaxTimeout } from '@/config/ai-proxy.config';
 import {
   extractLastUserQuery,
   type HybridMessage,
@@ -28,7 +29,6 @@ import {
 import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
-import { getMaxTimeout } from '@/config/ai-proxy.config';
 import { quickSanitize } from '../../security';
 import {
   clearActiveStreamId,
