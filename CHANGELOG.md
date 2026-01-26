@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.0.2](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.0.1...v7.0.2) (2026-01-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* **jobs:** Supabase ai_jobs table no longer used
+
+Architecture changes:
+- Remove Supabase dependency for Job Queue
+- Redis as single source of truth (SSOT)
+- Delete /api/ai/jobs/:id/progress endpoint (unused)
+- Add migration script for ai_jobs table cleanup
+
+Redis key structure:
+- job:{jobId} → Job data (24h TTL)
+- job:progress:{jobId} → Progress info (10min TTL)
+- job:list:{sessionId} → Job ID list (1h TTL)
+
+Benefits:
+- Simplified architecture (single data store)
+- No synchronization issues between Supabase/Redis
+- Faster response times (~5ms vs ~50ms)
+
+Files changed:
+- src/app/api/ai/jobs/route.ts (Redis create/list)
+- src/app/api/ai/jobs/[id]/route.ts (Redis get/delete)
+- src/app/api/ai/jobs/[id]/progress/route.ts (deleted)
+- sql/migrations/006_drop_ai_jobs_table.sql (cleanup)
+- docs/status.md (architecture update)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Bug Fixes
+
+* **version:** sync hardcoded version to 7.0.1 ([571748b](https://github.com/skyasu2/openmanager-vibe-v5/commit/571748bd94f36f4723acec74efe2ad6bee308ce1))
+
+
+* **jobs:** migrate Job Queue from Supabase to Redis Only ([05700cf](https://github.com/skyasu2/openmanager-vibe-v5/commit/05700cfd463a75b370748804599d175a81ee0a8d))
+
 ### [7.0.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.0.0...v7.0.1) (2026-01-26)
 
 
