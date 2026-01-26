@@ -9,7 +9,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logging';
-import { redisGet, redisSet, redisDel } from '@/lib/redis';
+import { redisDel, redisGet, redisSet } from '@/lib/redis';
 import type { JobStatus, JobStatusResponse, JobType } from '@/types/ai-jobs';
 
 // ============================================

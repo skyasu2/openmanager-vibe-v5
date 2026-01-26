@@ -15,7 +15,7 @@ import {
   inferJobType,
 } from '@/lib/ai/job-queue/complexity-analyzer';
 import { logger } from '@/lib/logging';
-import { redisGet, redisSet, getRedisClient } from '@/lib/redis';
+import { getRedisClient, redisGet, redisSet } from '@/lib/redis';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import type {
   CreateJobRequest,
