@@ -89,6 +89,10 @@ yarn-error.log*
 !src/app/api/auth/revoke-github-token/
 !src/app/api/dev/get-test-token/
 
+# Allow pre-commit secret scanner scripts (they detect secrets, not contain them)
+!scripts/env/*secret*.cjs
+!scripts/env/*secret*.js
+
 # 테스트 파일 (API 키가 포함될 수 있음)
 test-gemini*.js
 test-*-direct.js
