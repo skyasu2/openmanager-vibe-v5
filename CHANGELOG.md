@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.0.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.0.0...v7.0.1) (2026-01-26)
+
+
+### Features
+
+* **ai-engine:** implement advanced RAG pipeline improvements ([a1f3914](https://github.com/skyasu2/openmanager-vibe-v5/commit/a1f39140d71d847801b01eb5360733e0433c1422))
+* **ai-engine:** implement multi-agent context sharing and timeout centralization ([0473889](https://github.com/skyasu2/openmanager-vibe-v5/commit/047388966e6516ce0a408072c231a7f498815baa))
+* **circuit-breaker:** add Redis distributed state store ([a6ef871](https://github.com/skyasu2/openmanager-vibe-v5/commit/a6ef871f10e83413bd7f1c6effa6a78a92011bdd))
+* **devops:** add Vercel environment variable sync automation ([d4ca813](https://github.com/skyasu2/openmanager-vibe-v5/commit/d4ca813d9841ce643e0dd0ef085640f90171e33e))
+
+
+### Bug Fixes
+
+* **ai-chat:** add message sanitization before AI SDK sendMessage ([4a8ea63](https://github.com/skyasu2/openmanager-vibe-v5/commit/4a8ea630d084112d9cf30369fcca6bb35a56e85b))
+* **ai-chat:** add null check for message parts in useChat hook ([a377606](https://github.com/skyasu2/openmanager-vibe-v5/commit/a377606ac4c83b48266f56b1b6c0b79cc4bce243))
+* **ai-chat:** add null checks for message parts in useAIChatCore and useHybridAIQuery ([66c240f](https://github.com/skyasu2/openmanager-vibe-v5/commit/66c240fd50f0d85314df8ce6755ed7c007a4d6de))
+* **ai-chat:** add null checks in message-normalizer.ts ([27ea203](https://github.com/skyasu2/openmanager-vibe-v5/commit/27ea20383c32e25806034548ed18a4efe76fea0b))
+* **ai-chat:** add useEffect to proactively sanitize messages ([b88d043](https://github.com/skyasu2/openmanager-vibe-v5/commit/b88d043080747581e65ba932456b4b1a8ba76009))
+* **ai-chat:** correct sendMessage format for AI SDK v6 ([da012ac](https://github.com/skyasu2/openmanager-vibe-v5/commit/da012ac18a4c62a5d495ba4c266ead6bb2887118))
+* **ai-chat:** disable resume option to fix clarification flow error ([4ee6ffd](https://github.com/skyasu2/openmanager-vibe-v5/commit/4ee6ffdccae2fd992f4e5433d973c3faf0dff40e))
+* **ai-chat:** filter out empty content messages from localStorage ([7b47fa9](https://github.com/skyasu2/openmanager-vibe-v5/commit/7b47fa989732def4d160172151e5a84edba9c085))
+* **ai-chat:** pre-sanitize messages before sendMessage to prevent AI SDK internal error ([1984b74](https://github.com/skyasu2/openmanager-vibe-v5/commit/1984b74658ca071209f1b51cd03014be71309c42))
+* **ai-chat:** use flushSync for message sanitization before sendMessage ([5a909ed](https://github.com/skyasu2/openmanager-vibe-v5/commit/5a909ed81136c215d8ece2aa1305b6cc565a70cd))
+* **ai-chat:** use SanitizingChatTransport for message serialization ([9a6beda](https://github.com/skyasu2/openmanager-vibe-v5/commit/9a6bedabaaede8fd84adbbf994bb9ba29d2f6bc0))
+* **ai-chat:** use setTimeout(0) to ensure state sync before sendMessage ([34b2022](https://github.com/skyasu2/openmanager-vibe-v5/commit/34b202271bd67315157f3cabbf88c676b951fe44))
+* **ai-engine:** add UIMessageStream protocol compliance ([0aed63b](https://github.com/skyasu2/openmanager-vibe-v5/commit/0aed63bce9eef0330bf2c5c04edeaecfd681dcd3))
+* **ai-sdk:** apply CODEX R3 review improvements ([c0efe02](https://github.com/skyasu2/openmanager-vibe-v5/commit/c0efe0261454a57fc8aa3ff9a78770bdc55b7cd2))
+* **ai-stream:** add required x-vercel-ai-ui-message-stream header for AI SDK v6 ([aa50517](https://github.com/skyasu2/openmanager-vibe-v5/commit/aa5051767ad00a1780d91f8de8301dc30d23d28b))
+* **ai:** apply AI SDK best practice for stream resume URL ([62d43fb](https://github.com/skyasu2/openmanager-vibe-v5/commit/62d43fb60a058fe6c388ed242b06f5c8d145e87c))
+* **ai:** apply CODEX code review findings ([3a53a2f](https://github.com/skyasu2/openmanager-vibe-v5/commit/3a53a2ff058b98860d40db31ac729ec5e02566b8))
+* **ai:** P0-P1 round 2 fixes - listener tracking, abort signal, logging ([0b922d7](https://github.com/skyasu2/openmanager-vibe-v5/commit/0b922d7c6156985a49f9e2e48b9542a1fda304a8))
+* **ai:** P0-P2 code quality improvements from comprehensive analysis ([6902c41](https://github.com/skyasu2/openmanager-vibe-v5/commit/6902c41599e0b9504dfe0c91c086cb1057e6ad9e))
+* **hooks:** address AI code review findings ([b27d879](https://github.com/skyasu2/openmanager-vibe-v5/commit/b27d879193743adfc5bf01ec96abb4eeea5a8737))
+* **hooks:** resolve type mismatch in useChatHistory with BaseMessage ([b44249c](https://github.com/skyasu2/openmanager-vibe-v5/commit/b44249c8ff191ac26af8c9c3994b506e188efd3e))
+* **incident-report:** correct system summary data in failure reports ([f3ca177](https://github.com/skyasu2/openmanager-vibe-v5/commit/f3ca1774da326fcd544c544d617f50deccbd2ba5))
+* **orchestrator:** align extractAnomalies/extractMetrics with context-store types ([c3d46d6](https://github.com/skyasu2/openmanager-vibe-v5/commit/c3d46d6b4854ca243ad7af492dc10b8c148bfd68))
+* **stream-v2:** correct Cloud Run URL environment variable name ([4de92a5](https://github.com/skyasu2/openmanager-vibe-v5/commit/4de92a505b65268d934014ea89b44869e4badd8d))
+* **supervisor:** add recordModelUsage to multi-agent mode ([7e40414](https://github.com/skyasu2/openmanager-vibe-v5/commit/7e40414781812e45e4e83ef21ddcafdf5dc28313))
+
 ## [7.0.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v6.1.0...v7.0.0) (2026-01-24)
 
 
