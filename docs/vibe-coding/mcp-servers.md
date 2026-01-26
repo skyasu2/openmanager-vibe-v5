@@ -1,10 +1,10 @@
 # MCP 서버 가이드
 
-> Model Context Protocol로 AI 능력 확장
+> Model Context Protocol로 AI 능력 확장 - 설치, 설정, 사용법 통합 가이드
 
-## MCP란?
+## 개요
 
-**MCP (Model Context Protocol)**는 AI 모델에 외부 도구와 데이터를 연결하는 프로토콜입니다.
+**MCP (Model Context Protocol)**는 Claude Code에 외부 도구와 데이터를 연결하는 프로토콜입니다.
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
@@ -13,84 +13,214 @@
 └─────────────┘     └─────────────┘     └─────────────┘
 ```
 
-## 설정된 MCP 서버 (8개)
+---
 
-| MCP | 용도 | 우선순위 |
-|-----|------|:--------:|
-| **serena** | 코드 검색, 심볼 분석 | 높음 |
-| **context7** | 라이브러리 문서 | 높음 |
-| **sequential-thinking** | 복잡한 추론 | 높음 |
-| **supabase** | PostgreSQL 관리 | 중간 |
-| **vercel** | 배포 상태 | 중간 |
-| **playwright** | E2E 테스트 | 중간 |
-| **github** | 저장소/PR 관리 | 중간 |
-| **tavily** | 웹 검색/리서치 | 낮음 |
+## 현재 사용 중인 MCP 서버 (8개)
 
-## Serena (코드 분석)
+| MCP | 용도 | 패키지 | 우선순위 |
+|-----|------|--------|:--------:|
+| **serena** | 코드 검색, 심볼 분석, 메모리 | `serena-mcp-server` (uvx) | 높음 |
+| **context7** | 라이브러리 공식 문서 | `@upstash/context7-mcp` | 높음 |
+| **sequential-thinking** | 복잡한 추론, 아키텍처 설계 | `@modelcontextprotocol/server-sequential-thinking` | 높음 |
+| **supabase** | PostgreSQL 관리 | `@supabase/mcp-server-supabase` | 중간 |
+| **vercel** | 배포 상태 확인 | `vercel-mcp` | 중간 |
+| **playwright** | E2E 테스트, 브라우저 자동화 | `@playwright/mcp` | 중간 |
+| **github** | 저장소/PR 관리 | `@modelcontextprotocol/server-github` | 중간 |
+| **tavily** | 심층 웹 검색, 리서치 | `tavily-mcp` | 낮음 |
 
-### 기능
-- 심볼 기반 코드 검색
-- 참조 추적
-- 메모리 (프로젝트 지식)
+---
 
-### 주요 도구
+## 설정 파일 구조
 
-```bash
-# 심볼 찾기
-mcp__serena__find_symbol("useServerStatus")
+### 파일 위치 및 우선순위
 
-# 참조 찾기
-mcp__serena__find_referencing_symbols("MetricData")
-
-# 파일 개요
-mcp__serena__get_symbols_overview("src/hooks/useMetrics.ts")
-
-# 패턴 검색
-mcp__serena__search_for_pattern("TODO|FIXME")
+```
+~/.claude/settings.json           # 글로벌 설정 (모든 프로젝트)
+.claude/settings.json             # 프로젝트 공용 설정 (Git 추적)
+.claude/settings.local.json       # 프로젝트 로컬 설정 (Git 제외) ← 권한
+.mcp.json                         # MCP 서버 실제 구성 (Git 제외) ← 토큰
 ```
 
-### 사용 예시
+| 파일 | 용도 | Git 추적 |
+|------|------|:--------:|
+| `.claude/settings.json` | Hooks, 출력 스타일 | ✅ |
+| `.claude/settings.local.json` | 권한, MCP 활성화 목록 | ❌ |
+| `.mcp.json` | MCP 서버 실제 토큰/경로 | ❌ |
 
+### 현재 적용된 설정 방식
+
+**Pragmatic 방식** (현재 프로젝트):
+- `.mcp.json` 파일에 직접 토큰 저장
+- `.gitignore`로 파일 보호
+- 장점: 한눈에 설정 파악, WSL 환경변수 문제 해결
+- 단점: 파일 유출 시 보안 위험
+
+**Best Practice** (참고용):
+- 환경변수로 토큰 분리
+- `claude mcp add` CLI 사용
+- 장점: 보안성, 이식성
+- 단점: 설정 복잡, WSL 환경변수 누락 이슈
+
+---
+
+## 현재 설정 백업 (2026-01-27)
+
+### .mcp.json 구조
+
+```json
+{
+  "mcpServers": {
+    "vercel": {
+      "command": "npx",
+      "args": ["-y", "vercel-mcp", "VERCEL_API_KEY=<your-token>"]
+    },
+    "serena": {
+      "command": "/home/<user>/.local/bin/uvx",
+      "args": [
+        "--from", "git+https://github.com/oraios/serena",
+        "serena-mcp-server",
+        "--enable-web-dashboard", "false",
+        "--enable-gui-log-window", "false",
+        "--log-level", "ERROR",
+        "--tool-timeout", "30"
+      ],
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "TERM": "dumb",
+        "NO_COLOR": "1",
+        "SERENA_LOG_LEVEL": "ERROR"
+      }
+    },
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase@latest"],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "<your-token>"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "<your-token>"
+      }
+    },
+    "tavily": {
+      "command": "npx",
+      "args": ["-y", "tavily-mcp"],
+      "env": {
+        "TAVILY_API_KEY": "<your-token>"
+      }
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    }
+  }
+}
+```
+
+### .claude/settings.local.json 권한 설정
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__*",
+      "mcp__context7__*",
+      "mcp__supabase__*",
+      "mcp__vercel__*",
+      "mcp__playwright__*",
+      "mcp__github__*",
+      "mcp__tavily__*",
+      "mcp__sequential-thinking__*"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "vercel", "serena", "supabase", "context7",
+    "playwright", "github", "tavily", "sequential-thinking"
+  ]
+}
+```
+
+---
+
+## 토큰 발급 URL
+
+| 서비스 | 발급 URL | 필요 권한 |
+|--------|---------|----------|
+| **Vercel** | https://vercel.com/account/tokens | - |
+| **Supabase** | https://supabase.com/dashboard/account/tokens | - |
+| **GitHub** | https://github.com/settings/tokens | `repo`, `read:org` |
+| **Tavily** | https://tavily.com | API Key |
+
+---
+
+## 각 서버별 상세
+
+### Serena (코드 분석) - 우선순위: 높음
+
+심볼 기반 코드 검색, 참조 추적, 프로젝트 메모리 기능.
+
+**설치 (uvx 필요)**:
+```bash
+pip3 install uvx
+```
+
+**주요 도구**:
+```bash
+mcp__serena__find_symbol("useServerStatus")      # 심볼 찾기
+mcp__serena__find_referencing_symbols("MetricData")  # 참조 찾기
+mcp__serena__get_symbols_overview("src/hooks/useMetrics.ts")  # 파일 개요
+mcp__serena__search_for_pattern("TODO|FIXME")    # 패턴 검색
+```
+
+**사용 예시**:
 ```
 You: "useServerStatus 훅을 사용하는 곳 찾아줘"
-Claude: [serena로 참조 검색]
-        → 5개 파일에서 사용 중
+Claude: [serena로 참조 검색] → 5개 파일에서 사용 중
 ```
 
-## Context7 (문서 검색)
+**WSL 최적화 옵션**:
+- `--enable-web-dashboard false` - 웹 대시보드 비활성화
+- `--log-level ERROR` - 로그 최소화
+- `--tool-timeout 30` - 타임아웃 설정
 
-### 기능
-- 라이브러리 공식 문서 검색
-- 최신 API 레퍼런스
-- 코드 예제
+---
 
-### 사용법
+### Context7 (문서 검색) - 우선순위: 높음
 
+라이브러리 공식 문서 검색, 최신 API 레퍼런스.
+
+**주요 도구**:
 ```bash
-# 라이브러리 ID 조회
-mcp__context7__resolve-library-id("next.js")
-
-# 문서 검색
-mcp__context7__query-docs("/vercel/next.js", "App Router data fetching")
+mcp__context7__resolve-library-id("next.js")     # 라이브러리 ID 조회
+mcp__context7__query-docs("/vercel/next.js", "App Router")  # 문서 검색
 ```
 
-### 사용 예시
-
+**사용 예시**:
 ```
 You: "Next.js 16 Server Actions 문서 확인해줘"
-Claude: [context7로 최신 문서 검색]
-        → 공식 문서 기반 답변
+Claude: [context7로 최신 문서 검색] → 공식 문서 기반 답변
 ```
 
-## Sequential Thinking (추론)
+---
 
-### 기능
-- 단계별 문제 해결
-- 복잡한 리팩토링 계획
-- 아키텍처 설계
+### Sequential Thinking (추론) - 우선순위: 높음
 
-### 사용 예시
+단계별 문제 해결, 복잡한 리팩토링 계획, 아키텍처 설계.
 
+**사용 예시**:
 ```
 You: "이 모듈을 마이크로서비스로 분리하는 방법 분석해줘"
 Claude: [sequential-thinking으로 단계별 분석]
@@ -99,147 +229,129 @@ Claude: [sequential-thinking으로 단계별 분석]
         → Step 3: 분리 계획
 ```
 
-## Supabase (데이터베이스)
+---
 
-### 기능
-- SQL 실행
-- 마이그레이션 관리
-- 테이블 조회
+### Supabase (데이터베이스) - 우선순위: 중간
 
-### 주요 도구
+SQL 실행, 마이그레이션 관리, 테이블 조회.
 
+**주요 도구**:
 ```bash
-# SQL 실행
 mcp__supabase__execute_sql("SELECT * FROM servers LIMIT 10")
-
-# 테이블 목록
 mcp__supabase__list_tables()
-
-# 마이그레이션 적용
 mcp__supabase__apply_migration("add_index", "CREATE INDEX...")
 ```
 
-## Vercel (배포)
+---
 
-### 기능
-- 배포 상태 확인
-- 프로젝트 관리
-- 로그 조회
+### Vercel (배포) - 우선순위: 중간
 
-### 주요 도구
+배포 상태 확인, 프로젝트 관리, 로그 조회.
 
+**주요 도구**:
 ```bash
-# 프로젝트 목록
-mcp__vercel__list_projects()
-
-# 배포 상태
-mcp__vercel__list_deployments("project-id")
-
-# 빌드 로그
-mcp__vercel__get_deployment_build_logs("deployment-id")
+mcp__vercel__getDeployments()
+mcp__vercel__getDeployment("deployment-id")
 ```
 
-## Playwright (E2E)
+---
 
-### 기능
-- 브라우저 자동화
-- 스크린샷 캡처
-- 테스트 실행
+### Playwright (E2E) - 우선순위: 중간
 
-### 주요 도구
+브라우저 자동화, 스크린샷 캡처, 테스트 실행.
 
+**주요 도구**:
 ```bash
-# 페이지 이동
 mcp__playwright__browser_navigate("http://localhost:3000")
-
-# 스냅샷 (접근성 트리)
-mcp__playwright__browser_snapshot()
-
-# 클릭
+mcp__playwright__browser_snapshot()      # 접근성 트리
 mcp__playwright__browser_click("Login button", "ref123")
+mcp__playwright__browser_take_screenshot()
 ```
 
-## GitHub (저장소)
+---
 
-### 기능
-- PR 생성/관리
-- 이슈 관리
-- 파일 조회
+### GitHub (저장소) - 우선순위: 중간
 
-### 주요 도구
+PR 생성/관리, 이슈 관리, 파일 조회.
 
+**주요 도구**:
 ```bash
-# PR 생성
 mcp__github__create_pull_request(...)
-
-# 이슈 목록
 mcp__github__list_issues("owner", "repo")
-
-# 파일 내용
+mcp__github__list_pull_requests("owner", "repo")
 mcp__github__get_file_contents("owner", "repo", "path")
 ```
 
-## Tavily (웹 검색)
+---
 
-### 기능
-- 심층 웹 검색
-- 콘텐츠 추출
-- 사이트 크롤링
+### Tavily (웹 검색) - 우선순위: 낮음
 
-### 주요 도구
+심층 웹 검색, 콘텐츠 추출, 사이트 크롤링.
 
+**주요 도구**:
 ```bash
-# 검색
 mcp__tavily__tavily-search("React 19 new features 2026")
-
-# URL 추출
 mcp__tavily__tavily-extract(["https://example.com"])
 ```
 
-## MCP 설정
+---
 
-### 설정 파일 위치
+## 신규 설정 가이드
+
+### 1. uvx 설치 (Serena용)
 
 ```bash
-~/.claude/settings.json
-# 또는
-.claude/settings.local.json (프로젝트별)
+pip3 install uvx
 ```
 
-### 설정 예시
+### 2. .mcp.json 생성
 
-```json
-{
-  "mcpServers": {
-    "serena": {
-      "command": "uvx",
-      "args": ["serena-mcp"]
-    },
-    "supabase": {
-      "command": "npx",
-      "args": ["-y", "@supabase/mcp-server"]
-    }
-  }
-}
-```
+프로젝트 루트에 `.mcp.json` 파일 생성 후 위의 설정 백업 내용을 복사하고 토큰 입력.
 
-## 권한 설정
+### 3. .claude/settings.local.json 생성
 
-```json
+```bash
+mkdir -p .claude
+cat > .claude/settings.local.json << 'EOF'
 {
   "permissions": {
     "allow": [
       "mcp__serena__*",
       "mcp__context7__*",
-      "mcp__supabase__execute_sql",
-      "mcp__supabase__list_tables"
-    ],
-    "deny": [
-      "mcp__supabase__apply_migration"
+      "mcp__supabase__*",
+      "mcp__vercel__*",
+      "mcp__playwright__*",
+      "mcp__github__*",
+      "mcp__tavily__*",
+      "mcp__sequential-thinking__*"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "vercel", "serena", "supabase", "context7",
+    "playwright", "github", "tavily", "sequential-thinking"
+  ]
 }
+EOF
 ```
+
+### 4. .gitignore 확인
+
+```gitignore
+.mcp.json
+.mcp.json.backup*
+.claude/settings.local.json
+```
+
+### 5. 확인
+
+Claude Code 실행 후:
+```
+You: "MCP 서버 상태 확인해줘"
+Claude: [serena, context7, supabase 등 사용 가능 여부 표시]
+```
+
+---
 
 ## 트러블슈팅
 
@@ -248,9 +360,29 @@ mcp__tavily__tavily-extract(["https://example.com"])
 ```
 증상: "MCP server not available"
 해결:
-1. 서버 프로세스 확인
-2. 설정 파일 경로 확인
-3. 의존성 설치 확인
+1. .mcp.json 파일 존재 및 JSON 구문 확인
+2. 토큰 값 확인
+3. 의존성 설치: npm install / pip3 install uvx
+4. claude --debug로 로그 확인
+```
+
+### Serena 타임아웃
+
+```
+증상: 대규모 코드베이스에서 응답 없음
+해결:
+1. --tool-timeout 값 증가 (기본 30초)
+2. --log-level ERROR로 로그 최소화
+3. 쿼리 범위 축소
+```
+
+### WSL 환경변수 누락
+
+```
+증상: 환경변수 기반 설정 동작 안 함
+해결:
+1. .mcp.json에 직접 토큰 입력 (Pragmatic 방식)
+2. 또는 .bashrc에 export 추가 후 source ~/.bashrc
 ```
 
 ### 느린 응답
@@ -259,12 +391,19 @@ mcp__tavily__tavily-extract(["https://example.com"])
 증상: MCP 호출이 10초 이상
 해결:
 1. 쿼리 범위 축소
-2. 캐시 활용
-3. 불필요한 MCP 비활성화
+2. 불필요한 MCP 비활성화 (enabledMcpjsonServers 수정)
+3. Serena: --enable-web-dashboard false
 ```
+
+---
 
 ## 관련 문서
 
 - [Claude Code](./claude-code.md)
+- [AI 도구 설치](./setup.md) - Claude Code, Codex, Gemini 설치
 - [Skills](./skills.md)
 - [워크플로우](./workflows.md)
+
+---
+
+_Last Updated: 2026-01-27_

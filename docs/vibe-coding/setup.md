@@ -1,10 +1,10 @@
 # AI 도구 설치 가이드
 
-> Claude Code, Codex, Gemini 및 MCP 서버 설치/설정
+> Claude Code, Codex, Gemini 설치 가이드
 
 ## 개요
 
-Vibe Coding에 필요한 AI 도구들의 설치 및 설정 방법입니다.
+Vibe Coding에 필요한 AI CLI 도구들의 설치 방법입니다.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -14,6 +14,8 @@ Vibe Coding에 필요한 AI 도구들의 설치 및 설정 방법입니다.
 │     (메인 AI)         (확장 기능)      (코드 리뷰)       │
 └─────────────────────────────────────────────────────────┘
 ```
+
+> **MCP 서버 설정**은 [MCP 서버 가이드](./mcp-servers.md)를 참조하세요.
 
 ---
 
@@ -62,114 +64,31 @@ claude  # 대화형 모드 시작
 
 ## 2. MCP 서버 설치
 
-### 설정 파일 위치
+> **상세 가이드**: [MCP 서버 가이드](./mcp-servers.md) 참조
 
-```bash
-# 글로벌 설정
-~/.claude/settings.json
+### 빠른 설정
 
-# 프로젝트별 설정 (우선)
-.claude/settings.local.json
-```
+1. **uvx 설치** (Serena용):
+   ```bash
+   pip3 install uvx
+   ```
 
-### 전체 MCP 서버 설정
+2. **`.mcp.json` 생성**: [MCP 서버 가이드 - 설정 백업](./mcp-servers.md#현재-설정-백업-2026-01-27) 참조
 
-```json
-{
-  "mcpServers": {
-    "serena": {
-      "command": "uvx",
-      "args": ["serena-mcp"],
-      "env": {}
-    },
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@context7/mcp-server"]
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@anthropic/sequential-thinking-mcp"]
-    },
-    "supabase": {
-      "command": "npx",
-      "args": ["-y", "@supabase/mcp-server"],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
-      }
-    },
-    "vercel": {
-      "command": "npx",
-      "args": ["-y", "@vercel/mcp"],
-      "env": {
-        "VERCEL_TOKEN": "${VERCEL_TOKEN}"
-      }
-    },
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@anthropic/playwright-mcp"]
-    },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@anthropic/github-mcp"],
-      "env": {
-        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
-      }
-    },
-    "tavily": {
-      "command": "npx",
-      "args": ["-y", "@tavily/mcp-server"],
-      "env": {
-        "TAVILY_API_KEY": "${TAVILY_API_KEY}"
-      }
-    }
-  }
-}
-```
+3. **권한 설정**: `.claude/settings.local.json` 생성
 
-### 개별 MCP 서버 설치
+### 현재 사용 중인 MCP 서버 (8개)
 
-#### Serena (코드 분석)
-
-```bash
-# Python 환경 필요
-pip install uvx
-uvx serena-mcp --help
-```
-
-#### Context7 (문서 검색)
-
-```bash
-npx -y @context7/mcp-server --help
-```
-
-#### Supabase
-
-```bash
-# 토큰 발급: https://supabase.com/dashboard/account/tokens
-export SUPABASE_ACCESS_TOKEN=sbp_...
-```
-
-#### Vercel
-
-```bash
-# 토큰 발급: https://vercel.com/account/tokens
-export VERCEL_TOKEN=...
-```
-
-#### GitHub
-
-```bash
-# 토큰 발급: https://github.com/settings/tokens
-# 필요 권한: repo, read:org
-export GITHUB_TOKEN=ghp_...
-```
-
-#### Tavily (웹 검색)
-
-```bash
-# API 키 발급: https://tavily.com
-export TAVILY_API_KEY=tvly-...
-```
+| MCP | 용도 |
+|-----|------|
+| serena | 코드 검색, 심볼 분석 |
+| context7 | 라이브러리 문서 |
+| sequential-thinking | 복잡한 추론 |
+| supabase | PostgreSQL 관리 |
+| vercel | 배포 상태 |
+| playwright | E2E 테스트 |
+| github | 저장소/PR 관리 |
+| tavily | 웹 검색 |
 
 ---
 
@@ -253,44 +172,7 @@ npx husky init
 
 ---
 
-## 6. 환경변수 (MCP 서버용)
-
-MCP 서버 중 일부는 토큰이 필요합니다.
-
-### .env.local 예시
-
-```bash
-# ===========================================
-# MCP Server Tokens (토큰 필요한 것만)
-# ===========================================
-
-# Supabase MCP
-SUPABASE_ACCESS_TOKEN=sbp_...
-
-# Vercel MCP
-VERCEL_TOKEN=...
-
-# GitHub MCP
-GITHUB_TOKEN=ghp_...
-
-# Tavily MCP
-TAVILY_API_KEY=tvly-...
-```
-
-### 환경변수 로드
-
-```bash
-# .bashrc 또는 .zshrc에 추가
-if [ -f .env.local ]; then
-  set -a
-  source .env.local
-  set +a
-fi
-```
-
----
-
-## 7. 설치 확인
+## 6. 설치 확인
 
 ### 로그인 상태 확인
 
