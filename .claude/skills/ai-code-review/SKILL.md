@@ -1,7 +1,9 @@
 ---
 name: ai-code-review
-version: v3.1.0
 description: AI 코드 리뷰 결과 분석 및 개선 실행. pending 리뷰를 읽고, 개선 필요사항을 분석하여 실제 코드 수정까지 진행. 평가는 부산물.
+version: v3.1.0
+user-invocable: true
+allowed-tools: Bash, Read, Grep, Edit
 ---
 
 # AI Code Review Analysis & Action

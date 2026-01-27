@@ -1,7 +1,9 @@
 ---
 name: mermaid-diagram
-version: v1.0.0
 description: Generate and validate Mermaid architecture diagrams. Triggers when user requests diagram generation, Mermaid validation, or architecture visualization. Uses mmdc CLI (mermaid-cli v11.12.0).
+version: v1.0.0
+user-invocable: true
+allowed-tools: Bash, Read, Write
 ---
 
 # Mermaid Diagram Skill

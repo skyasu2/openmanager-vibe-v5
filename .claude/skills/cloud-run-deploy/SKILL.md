@@ -1,7 +1,9 @@
 ---
 name: cloud-run-deploy
-version: v1.0.0
 description: Cloud Run AI Engine deployment workflow with free tier optimization. Triggers when user requests Cloud Run deployment, AI engine deploy, or production release. Use for deploying AI Engine to Google Cloud Run.
+version: v1.0.0
+user-invocable: true
+allowed-tools: Bash, Read, Grep
 ---
 
 # Cloud Run Deployment Skill
@@ -144,33 +146,21 @@ Tokens: ~120 (65% reduction)
 
 ## Edge Cases
 
-**Case 1: Build Failure**
-- Check: Dockerfile syntax
-- Check: npm dependencies
-- Action: Review build logs in Cloud Console
+배포 문제 해결: [references/edge-cases.md](references/edge-cases.md)
 
-**Case 2: Deployment Timeout**
-- Default timeout: 600s for build
-- Action: Check Cloud Build logs
-- Verify: Image size < 500MB
-
-**Case 3: Health Check Failure**
-- May still be starting (cold start ~10-20s)
-- Wait 30s and retry
-- Check: `/health` endpoint logs
-
-**Case 4: Permission Denied**
-- Verify: `gcloud auth login`
-- Verify: Project access rights
-- Action: Re-authenticate
+- Build Failure
+- Deployment Timeout
+- Health Check Failure
+- Permission Denied
+- Free Tier 초과
 
 ## Rollback
 
-```bash
-# List recent revisions
-gcloud run revisions list --service ai-engine --region asia-northeast1
+롤백 절차: [references/rollback.md](references/rollback.md)
 
-# Rollback to previous revision
+**빠른 롤백**:
+```bash
+# 이전 리비전으로 트래픽 전환
 gcloud run services update-traffic ai-engine \
   --region asia-northeast1 \
   --to-revisions REVISION_NAME=100

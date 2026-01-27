@@ -1,7 +1,9 @@
 ---
-name: commit
-version: v1.0.0
+name: commit-commands
 description: Create a git commit with automatic AI code review (Codex/Gemini rotation). Triggers on /commit.
+version: v1.0.0
+user-invocable: true
+allowed-tools: Bash, Read, Grep, Edit
 ---
 
 # Git Commit with AI Review

@@ -1,7 +1,9 @@
 ---
-name: checking-code-quality
+name: lint-smoke
+description: Automated lint and test smoke check. Use when verifying code quality before commit or deployment.
 version: v1.1.0
-description: Automated lint and test smoke check workflow for code quality verification. Triggers when user requests code quality checks, lint execution, test validation, or smoke testing. Use for pre-commit checks or quality gates.
+user-invocable: true
+allowed-tools: Bash, Read, Grep
 ---
 
 # Lint & Test Smoke Check

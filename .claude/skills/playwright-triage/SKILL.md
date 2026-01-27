@@ -1,7 +1,9 @@
 ---
-name: triaging-playwright-failures
+name: playwright-triage
+description: Automated E2E test failure classification and diagnosis. Use for Playwright timeout, selector, network, or assertion failures.
 version: v1.2.0
-description: Automated E2E test failure classification and diagnosis workflow for Playwright tests. Triggers when user reports Playwright failures, E2E test errors, or requests test triage. Use for timeout, selector, network, assertion, or page crash analysis.
+user-invocable: true
+allowed-tools: Bash, Read, Grep
 ---
 
 # Playwright E2E Failure Triage

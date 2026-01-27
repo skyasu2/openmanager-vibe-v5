@@ -1,7 +1,9 @@
 ---
 name: validation-analysis
-version: v1.3.0
 description: Automated validation results analysis for post-commit workflow. Triggers when user requests validation analysis, code review summary, or checking background validation results. Analyzes Biome, TypeScript, and AI review reports.
+version: v1.3.0
+user-invocable: true
+allowed-tools: Bash, Read, Grep
 ---
 
 # Post-Commit Validation Analysis

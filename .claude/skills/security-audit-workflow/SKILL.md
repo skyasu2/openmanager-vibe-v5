@@ -1,7 +1,9 @@
 ---
-name: security-audit-check
+name: security-audit-workflow
+description: Automated security audit for pre-deployment. Use for OWASP Top 10, RLS policies, and secrets exposure checks.
 version: v1.1.0
-description: Automated security audit workflow for pre-deployment verification. Triggers when user requests security checks, vulnerability scanning, or pre-deployment audits. Use for identifying OWASP Top 10 vulnerabilities, RLS policy gaps, and exposed secrets.
+user-invocable: true
+allowed-tools: Bash, Read, Grep
 ---
 
 # Security Audit Workflow

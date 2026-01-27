@@ -1,7 +1,9 @@
 ---
-name: diagnosing-nextjs-performance
+name: next-router-bottleneck
+description: Next.js Router performance analysis. Use for identifying FCP/LCP/CLS bottlenecks and Server Actions blocking.
 version: v1.1.0
-description: Next.js Router performance analysis and bottleneck identification workflow. Triggers when user reports performance issues, slow routing, or requests Next.js optimization analysis. Use for identifying FCP/LCP/CLS bottlenecks and Server Actions blocking.
+user-invocable: true
+allowed-tools: Bash, Read, Grep
 ---
 
 # Next.js Router Performance Diagnosis

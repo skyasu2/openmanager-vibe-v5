@@ -1,7 +1,9 @@
 ---
 name: ai-report-export
-version: v2.0.0
 description: Automated 2-AI verification result documentation and export workflow. Triggers when user requests AI verification report export, documentation of findings, or saving cross-validation results. Use after completing Codex/Gemini analysis.
+version: v2.0.0
+user-invocable: true
+allowed-tools: Bash, Read, Write
 ---
 
 # AI Verification Report Export
