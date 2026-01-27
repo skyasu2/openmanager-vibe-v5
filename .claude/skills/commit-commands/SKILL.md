@@ -49,21 +49,15 @@ EOF
 
 ### 4. AI Code Review (Automatic)
 
-After successful commit, run AI review:
+After successful commit, run AI review using modular scripts:
 
 ```bash
-# Get AI engine for review (alternating Codex/Gemini)
-LAST_ENGINE=$(cat reports/ai-review/.last-engine 2>/dev/null || echo "gemini")
-if [ "$LAST_ENGINE" = "codex" ]; then
-  REVIEW_ENGINE="gemini"
-else
-  REVIEW_ENGINE="codex"
-fi
+# 1. Get next AI engine (Codex/Gemini rotation)
+REVIEW_ENGINE=$(bash .claude/skills/commit-commands/scripts/rotate-ai-reviewer.sh)
 
-# Run review based on engine
-if [ "$REVIEW_ENGINE" = "codex" ]; then
-  DIFF=$(git diff HEAD~1 | head -300)
-  echo "커밋: $(git log -1 --oneline)
+# 2. Run review based on engine
+DIFF=$(git diff HEAD~1 | head -300)
+PROMPT="커밋: $(git log -1 --oneline)
 변경 파일: $(git diff HEAD~1 --name-only | wc -l)개
 
 다음 변경사항을 리뷰해주세요:
@@ -72,21 +66,16 @@ if [ "$REVIEW_ENGINE" = "codex" ]; then
 3. 개선사항
 4. 결론: 승인/거부
 
-$DIFF" | codex --json 2>&1 | head -100
-else
-  DIFF=$(git diff HEAD~1 | head -300)
-  gemini -m gemini-2.5-flash "커밋: $(git log -1 --oneline)
-다음 변경사항을 리뷰해주세요. 한국어로 답변.
-1. 점수 (1-10)
-2. 보안 이슈
-3. 개선사항
-4. 결론: 승인/거부
+$DIFF"
 
-$DIFF" 2>&1 | head -100
+if [ "$REVIEW_ENGINE" = "codex" ]; then
+  echo "$PROMPT" | codex --json 2>&1 | head -100
+else
+  gemini -m gemini-2.5-flash "$PROMPT" 2>&1 | head -100
 fi
 
-# Save last engine
-echo "$REVIEW_ENGINE" > reports/ai-review/.last-engine
+# 3. Save review result
+bash .claude/skills/commit-commands/scripts/save-review-result.sh "$REVIEW_ENGINE"
 ```
 
 ### 5. Summary
