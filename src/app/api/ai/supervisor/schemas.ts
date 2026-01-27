@@ -124,6 +124,28 @@ export const requestSchema = z.object({
   sessionId: z.string().optional(),
 });
 
+/**
+ * 프록시 모드용 느슨한 스키마 (V2 전용)
+ * Cloud Run에서 최종 검증이 이루어지므로 Vercel 단에서는 최소 검증만 수행
+ * @see stream/v2/route.ts
+ */
+export const requestSchemaLoose = z.object({
+  messages: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        role: z.enum(['user', 'assistant', 'system']),
+        parts: z.array(z.object({ type: z.string() }).passthrough()).optional(),
+        content: z.string().optional(),
+        createdAt: z.union([z.string(), z.date()]).optional(),
+      })
+    )
+    .min(1)
+    .max(50),
+  sessionId: z.string().optional(),
+});
+
 // Export types for external use
 export type MessageSchema = z.infer<typeof messageSchema>;
 export type RequestSchema = z.infer<typeof requestSchema>;
+export type RequestSchemaLoose = z.infer<typeof requestSchemaLoose>;

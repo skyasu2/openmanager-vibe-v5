@@ -259,6 +259,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     selectClarification,
     submitCustomClarification,
     skipClarification,
+    dismissClarification,
     // 🎯 실시간 Agent 상태
     currentAgentStatus,
     currentHandoff,
@@ -353,6 +354,7 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           onSelectClarification={selectClarification}
           onSubmitCustomClarification={submitCustomClarification}
           onSkipClarification={skipClarification}
+          onDismissClarification={dismissClarification}
           currentAgentStatus={currentAgentStatus}
           currentHandoff={currentHandoff}
         />

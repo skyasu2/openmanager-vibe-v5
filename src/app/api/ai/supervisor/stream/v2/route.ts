@@ -29,6 +29,7 @@ import {
 import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
+import { requestSchemaLoose } from '../../schemas';
 import { quickSanitize } from '../../security';
 import {
   clearActiveStreamId,
@@ -58,40 +59,6 @@ const UI_MESSAGE_STREAM_HEADERS = {
   Connection: 'keep-alive',
   'x-vercel-ai-ui-message-stream': 'v1',
 };
-
-// ============================================================================
-// 📋 Request Schema
-// ============================================================================
-
-const textPartSchema = z.object({
-  type: z.literal('text'),
-  text: z.string(),
-});
-
-const partSchema = z.union([
-  textPartSchema,
-  z.object({ type: z.literal('tool-invocation') }).passthrough(),
-  z.object({ type: z.literal('tool-result') }).passthrough(),
-  z.object({ type: z.literal('file') }).passthrough(),
-  z.object({ type: z.literal('reasoning') }).passthrough(),
-  z.object({ type: z.literal('source') }).passthrough(),
-  z.object({ type: z.literal('step-start') }).passthrough(),
-  z.object({ type: z.literal('step-finish') }).passthrough(),
-  z.object({ type: z.string() }).passthrough(),
-]);
-
-const messageSchema = z.object({
-  id: z.string().optional(),
-  role: z.enum(['user', 'assistant', 'system']),
-  parts: z.array(partSchema).optional(),
-  content: z.string().optional(),
-  createdAt: z.union([z.string(), z.date()]).optional(),
-});
-
-const requestSchema = z.object({
-  messages: z.array(messageSchema).min(1).max(50),
-  sessionId: z.string().optional(),
-});
 
 // ============================================================================
 // 🔁 GET - Resume Stream (Upstash-compatible polling)
@@ -203,9 +170,9 @@ export const POST = withRateLimit(
   rateLimiters.aiAnalysis,
   withAuth(async (req: NextRequest) => {
     try {
-      // 1. Validate request
+      // 1. Validate request (using loose schema - Cloud Run does full validation)
       const body = await req.json();
-      const parseResult = requestSchema.safeParse(body);
+      const parseResult = requestSchemaLoose.safeParse(body);
 
       if (!parseResult.success) {
         logger.warn(

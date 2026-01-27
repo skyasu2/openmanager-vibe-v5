@@ -18,7 +18,10 @@ interface ClarificationDialogProps {
   clarification: ClarificationRequest;
   onSelectOption: (option: ClarificationOption) => void;
   onSubmitCustom: (customInput: string) => void;
+  /** 명확화 건너뛰기 (원본 쿼리 그대로 실행) */
   onSkip: () => void;
+  /** 명확화 취소 (쿼리 미실행, 상태 정리만) */
+  onDismiss?: () => void;
 }
 
 const categoryIcons: Record<ClarificationOption['category'], string> = {
@@ -40,7 +43,7 @@ const categoryColors: Record<ClarificationOption['category'], string> = {
 };
 
 export const ClarificationDialog: FC<ClarificationDialogProps> = memo(
-  ({ clarification, onSelectOption, onSubmitCustom, onSkip }) => {
+  ({ clarification, onSelectOption, onSubmitCustom, onSkip, onDismiss }) => {
     const [customInput, setCustomInput] = useState('');
     const [showCustomInput, setShowCustomInput] = useState(false);
 
@@ -71,10 +74,10 @@ export const ClarificationDialog: FC<ClarificationDialogProps> = memo(
           </div>
           <button
             type="button"
-            onClick={onSkip}
+            onClick={onDismiss ?? onSkip}
             className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-            aria-label="건너뛰기"
-            data-testid="clarification-skip"
+            aria-label="명확화 취소"
+            data-testid="clarification-dismiss"
           >
             <X className="h-4 w-4" />
           </button>
@@ -138,9 +141,9 @@ export const ClarificationDialog: FC<ClarificationDialogProps> = memo(
           </div>
         )}
 
-        {/* 건너뛰기 힌트 */}
+        {/* 취소 힌트 */}
         <p className="mt-2 text-center text-xs text-gray-400">
-          X를 누르면 원래 질문으로 진행합니다
+          X를 누르면 질문을 취소합니다
         </p>
       </div>
     );

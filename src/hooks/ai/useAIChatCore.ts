@@ -99,6 +99,8 @@ export interface UseAIChatCoreReturn {
   selectClarification: (option: ClarificationOption) => void;
   submitCustomClarification: (customInput: string) => void;
   skipClarification: () => void;
+  /** 명확화 취소 (쿼리 미실행, 상태 정리만) */
+  dismissClarification: () => void;
 
   // 🎯 실시간 Agent 상태 (스트리밍 중 표시)
   currentAgentStatus: AgentStatusEventData | null;
@@ -155,6 +157,7 @@ export function useAIChatCore(
     selectClarification,
     submitCustomClarification,
     skipClarification,
+    dismissClarification,
   } = useHybridAIQuery({
     sessionId: sessionId,
     onStreamFinish: () => {
@@ -351,6 +354,7 @@ export function useAIChatCore(
     selectClarification,
     submitCustomClarification,
     skipClarification,
+    dismissClarification,
     // 🎯 실시간 Agent 상태
     currentAgentStatus,
     currentHandoff,

@@ -111,6 +111,8 @@ interface EnhancedAIChatProps {
   onSubmitCustomClarification?: (customInput: string) => void;
   /** 명확화 건너뛰기 핸들러 */
   onSkipClarification?: () => void;
+  /** 명확화 취소 핸들러 (쿼리 미실행, 상태 정리만) */
+  onDismissClarification?: () => void;
   /** 🎯 실시간 Agent 상태 (스트리밍 중 표시) */
   currentAgentStatus?: AgentStatusEventData | null;
   /** 🔄 현재 Handoff 정보 */
@@ -323,6 +325,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   onSelectClarification,
   onSubmitCustomClarification,
   onSkipClarification,
+  onDismissClarification,
   currentAgentStatus,
   currentHandoff,
 }: EnhancedAIChatProps) {
@@ -496,6 +499,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             onSelectOption={onSelectClarification}
             onSubmitCustom={onSubmitCustomClarification}
             onSkip={onSkipClarification}
+            onDismiss={onDismissClarification}
           />
         )}
 
