@@ -791,6 +791,10 @@ const handoffCleanupTimer = setInterval(() => {
   }
 }, HANDOFF_EVENTS_CONFIG.cleanupInterval);
 
+// 🎯 Fix: Prevent timer from keeping process alive (Codex review feedback)
+// unref() allows Node.js to exit if this is the only active timer
+handoffCleanupTimer.unref();
+
 // Cleanup timer on process exit (Cloud Run graceful shutdown)
 process.on('beforeExit', () => {
   clearInterval(handoffCleanupTimer);

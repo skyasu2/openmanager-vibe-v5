@@ -220,6 +220,8 @@ export abstract class BaseAgent {
         messages: [{ role: 'user', content: query }],
         tools: filteredTools,
         maxRetries: 1,
+        // 🎯 Fix: Apply timeout configuration (AI SDK v6.0.50)
+        timeout: { totalMs: opts.timeoutMs },
         // AI SDK v6 Best Practice: Graceful termination conditions
         stopWhen: [hasToolCall('finalAnswer'), stepCountIs(opts.maxSteps)],
         temperature: opts.temperature,
@@ -339,6 +341,8 @@ export abstract class BaseAgent {
         system: config.instructions,
         messages: [{ role: 'user', content: query }],
         tools: filteredTools,
+        // 🎯 Fix: Apply timeout configuration (AI SDK v6.0.50)
+        timeout: { totalMs: opts.timeoutMs, chunkMs: 30_000 },
         stopWhen: [hasToolCall('finalAnswer'), stepCountIs(opts.maxSteps)],
         temperature: opts.temperature,
         maxOutputTokens: opts.maxOutputTokens,
@@ -349,11 +353,13 @@ export abstract class BaseAgent {
       });
 
       const toolsCalled: string[] = [];
+      let hasTextContent = false;
 
       // Stream text deltas
       for await (const textChunk of streamResult.textStream) {
         const sanitized = sanitizeChineseCharacters(textChunk);
         if (sanitized) {
+          hasTextContent = true;
           yield { type: 'text_delta', data: sanitized };
         }
       }
@@ -361,7 +367,8 @@ export abstract class BaseAgent {
       // Gather metadata after streaming completes
       const [steps, usage] = await Promise.all([streamResult.steps, streamResult.usage]);
 
-      // Extract tool calls
+      // Extract tool calls and finalAnswer result
+      let finalAnswerText: string | null = null;
       if (steps) {
         for (const step of steps) {
           if (step.toolCalls) {
@@ -370,6 +377,22 @@ export abstract class BaseAgent {
               yield { type: 'tool_call', data: { name: tc.toolName } };
             }
           }
+          // 🎯 Fix: Extract finalAnswer from toolResults (Codex review feedback)
+          if (step.toolResults) {
+            for (const tr of step.toolResults) {
+              if ('result' in tr && tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
+                finalAnswerText = (tr.result as { answer: string }).answer;
+              }
+            }
+          }
+        }
+      }
+
+      // 🎯 Fix: If no text was streamed but finalAnswer exists, emit it
+      if (!hasTextContent && finalAnswerText) {
+        const sanitized = sanitizeChineseCharacters(finalAnswerText);
+        if (sanitized) {
+          yield { type: 'text_delta', data: sanitized };
         }
       }
 
