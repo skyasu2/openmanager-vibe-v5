@@ -294,7 +294,11 @@ export function useAIChatCore(
 
   const handleSendInput = useCallback(
     (attachments?: FileAttachment[]) => {
-      if (!input.trim()) return;
+      // 🎯 Fix: 텍스트 또는 첨부 중 하나는 있어야 전송
+      const hasText = input.trim().length > 0;
+      const hasAttachments = attachments && attachments.length > 0;
+
+      if (!hasText && !hasAttachments) return;
 
       if (!disableSessionLimit && sessionState.isLimitReached) {
         logger.warn(
@@ -304,12 +308,14 @@ export function useAIChatCore(
       }
 
       setError(null);
-      lastQueryRef.current = input;
-      pendingQueryRef.current = input;
+      // 🎯 Fix: 첨부만 있을 경우 기본 텍스트 설정
+      const effectiveText = hasText ? input : '[이미지/파일 분석 요청]';
+      lastQueryRef.current = effectiveText;
+      pendingQueryRef.current = effectiveText;
       setInput('');
 
       // 🎯 파일 첨부와 함께 전송
-      sendQuery(input, attachments);
+      sendQuery(effectiveText, attachments);
     },
     [input, disableSessionLimit, sessionState, sendQuery]
   );

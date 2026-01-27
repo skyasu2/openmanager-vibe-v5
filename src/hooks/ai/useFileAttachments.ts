@@ -244,6 +244,7 @@ export function useFileAttachments(
       // 유효한 파일 처리
       if (validFiles.length > 0) {
         const newAttachments: FileAttachment[] = [];
+        const processingErrors: FileValidationError[] = [];
 
         for (const file of validFiles) {
           try {
@@ -261,12 +262,17 @@ export function useFileAttachments(
             });
           } catch (error) {
             console.error('File processing error:', error);
-            newErrors.push({
+            processingErrors.push({
               file,
               reason: 'type',
               message: `파일 처리 실패: ${file.name}`,
             });
           }
+        }
+
+        // 🎯 Fix: 파일 처리 중 발생한 에러도 사용자에게 노출
+        if (processingErrors.length > 0) {
+          setErrors((prev) => [...prev, ...processingErrors]);
         }
 
         setAttachments((prev) => [...prev, ...newAttachments]);

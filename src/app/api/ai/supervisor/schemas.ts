@@ -21,28 +21,50 @@ const textPartSchema = z.object({
 });
 
 /**
- * 파일 파트 스키마 (PDF, audio, documents)
- * AI SDK FilePart uses 'mediaType' not 'mimeType'
+ * 파일 파트 스키마 (PDF, audio, documents, images via file type)
+ * 🎯 Fix: url/mediaType (클라이언트) + data/mimeType (서버) 모두 지원
  * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#file-parts
+ * @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#files
  */
-const filePartSchema = z.object({
-  type: z.literal('file'),
-  // Base64 data URL 또는 URL
-  data: z.string().max(50 * 1024 * 1024, '파일 크기가 50MB를 초과합니다'),
-  // AI SDK uses 'mediaType' for FilePart
-  mediaType: z
-    .enum([
-      'application/pdf',
-      'text/plain',
-      'text/markdown',
-      'audio/mpeg',
-      'audio/wav',
-      'audio/ogg',
-    ])
-    .optional(),
-  // 선택적 메타데이터
-  filename: z.string().max(255).optional(),
-});
+const filePartSchema = z
+  .object({
+    type: z.literal('file'),
+    // 파일 데이터 (서버 측, Base64 또는 data URL)
+    data: z
+      .string()
+      .max(50 * 1024 * 1024, '파일 크기가 50MB를 초과합니다')
+      .optional(),
+    // 파일 URL (클라이언트 측, data URL 포함)
+    url: z
+      .string()
+      .max(50 * 1024 * 1024, '파일 크기가 50MB를 초과합니다')
+      .optional(),
+    // AI SDK uses 'mediaType' for FilePart (클라이언트 측)
+    mediaType: z
+      .enum([
+        'application/pdf',
+        'text/plain',
+        'text/markdown',
+        'audio/mpeg',
+        'audio/wav',
+        'audio/ogg',
+        // 이미지 타입도 file 파트로 전송될 수 있음
+        'image/png',
+        'image/jpeg',
+        'image/gif',
+        'image/webp',
+      ])
+      .optional(),
+    // 서버 측 mimeType 필드도 허용
+    mimeType: z.string().optional(),
+    // 선택적 파일명 (두 가지 필드명 모두 지원)
+    filename: z.string().max(255).optional(),
+    name: z.string().max(255).optional(),
+  })
+  .refine(
+    (part) => typeof part.data === 'string' || typeof part.url === 'string',
+    { message: 'File part must include either data or url field' }
+  );
 
 /**
  * 이미지 파트 스키마

@@ -75,16 +75,27 @@ interface ImagePart {
 
 /**
  * AI SDK v6 FilePart 타입
+ * 🎯 Fix: url/mediaType (클라이언트) + data/mimeType (서버) 모두 지원
+ * @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#files
  */
 interface FilePart {
   type: 'file';
-  data: string;
-  mimeType: string;
+  /** 파일 데이터 (서버 측 사용) */
+  data?: string;
+  /** 파일 URL (클라이언트 측 사용, data URL 포함) */
+  url?: string;
+  /** MIME 타입 (서버 측) */
+  mimeType?: string;
+  /** Media 타입 (클라이언트 측) */
+  mediaType?: string;
+  /** 파일명 (다양한 필드명 지원) */
   name?: string;
+  filename?: string;
 }
 
 /**
  * 하이브리드 메시지 타입 (parts + content 모두 지원, 멀티모달 포함)
+ * 🎯 Fix: url/mediaType/filename 필드 추가 (AI SDK v6 FileUIPart 호환)
  */
 export interface HybridMessage {
   id?: string;
@@ -93,9 +104,17 @@ export interface HybridMessage {
     type: string;
     text?: string;
     image?: string;
+    /** 파일 데이터 (서버 측) */
     data?: string;
+    /** 파일 URL (클라이언트 측, data URL 포함) */
+    url?: string;
+    /** MIME 타입 (서버 측) */
     mimeType?: string;
+    /** Media 타입 (클라이언트 측) */
+    mediaType?: string;
+    /** 파일명 */
     name?: string;
+    filename?: string;
   }>;
   content?: string;
   createdAt?: Date | string;
@@ -197,6 +216,8 @@ export function extractImagesFromHybridMessage(
 
 /**
  * 하이브리드 메시지에서 파일 첨부 추출
+ * 🎯 Fix: url/mediaType + data/mimeType 모두 지원
+ * 🎯 Fix: 이미지 MIME 타입의 file 파트는 제외 (images로 승격됨)
  *
  * @param message - HybridMessage 객체
  * @returns FileAttachment 배열
@@ -209,17 +230,60 @@ export function extractFilesFromHybridMessage(
   }
 
   return message.parts
-    .filter(
-      (part): part is FilePart =>
-        part != null &&
-        part.type === 'file' &&
-        typeof part.data === 'string' &&
-        typeof part.mimeType === 'string'
-    )
+    .filter((part): part is FilePart => {
+      if (part == null || part.type !== 'file') return false;
+
+      // data 또는 url 중 하나 필요
+      const fileData = part.data ?? part.url;
+      if (typeof fileData !== 'string') return false;
+
+      // mimeType 또는 mediaType 중 하나 필요
+      const fileMime = part.mimeType ?? part.mediaType;
+      if (typeof fileMime !== 'string') return false;
+
+      // 이미지 MIME 타입은 제외 (images로 승격됨)
+      if (fileMime.startsWith('image/')) return false;
+
+      return true;
+    })
     .map((part) => ({
-      data: part.data,
-      mimeType: part.mimeType,
-      name: part.name,
+      data: part.data ?? part.url!,
+      mimeType: part.mimeType ?? part.mediaType!,
+      name: part.name ?? part.filename,
+    }));
+}
+
+/**
+ * file 타입 파트에서 이미지 추출 (이미지 MIME 타입인 경우)
+ * 🎯 Fix: type='file'이지만 mimeType이 image/*인 경우 이미지로 승격
+ *
+ * @param message - HybridMessage 객체
+ * @returns ImageAttachment 배열
+ */
+export function extractImagesFromFileParts(
+  message: HybridMessage
+): ImageAttachment[] {
+  if (!message.parts || !Array.isArray(message.parts)) {
+    return [];
+  }
+
+  return message.parts
+    .filter((part) => {
+      if (part == null || part.type !== 'file') return false;
+
+      const fileData = part.data ?? part.url;
+      if (typeof fileData !== 'string') return false;
+
+      const fileMime = part.mimeType ?? part.mediaType;
+      if (typeof fileMime !== 'string') return false;
+
+      // 이미지 MIME 타입만 선택
+      return fileMime.startsWith('image/');
+    })
+    .map((part) => ({
+      data: part.data ?? part.url!,
+      mimeType: part.mimeType ?? part.mediaType ?? 'image/png',
+      name: part.name ?? part.filename,
     }));
 }
 
@@ -253,7 +317,12 @@ export function normalizeMessagesForCloudRun(
 ): NormalizedMessage[] {
   return messages.map((msg) => {
     const content = extractTextFromHybridMessage(msg);
-    const images = extractImagesFromHybridMessage(msg);
+
+    // 🎯 Fix: type='image' 파트 + type='file' 파트 중 이미지 MIME 타입 모두 수집
+    const imagesFromImageParts = extractImagesFromHybridMessage(msg);
+    const imagesFromFileParts = extractImagesFromFileParts(msg);
+    const allImages = [...imagesFromImageParts, ...imagesFromFileParts];
+
     const files = extractFilesFromHybridMessage(msg);
 
     // 기본 메시지 구성
@@ -262,12 +331,12 @@ export function normalizeMessagesForCloudRun(
       content: content || '[Non-text content]',
     };
 
-    // 이미지가 있으면 추가
-    if (images.length > 0) {
-      normalizedMessage.images = images;
+    // 이미지가 있으면 추가 (image 파트 + file 파트에서 승격된 이미지)
+    if (allImages.length > 0) {
+      normalizedMessage.images = allImages;
     }
 
-    // 파일이 있으면 추가
+    // 파일이 있으면 추가 (이미지 제외)
     if (files.length > 0) {
       normalizedMessage.files = files;
     }

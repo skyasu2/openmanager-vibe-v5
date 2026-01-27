@@ -868,18 +868,20 @@ export function useHybridAIQuery(
 
   /**
    * 명확화 옵션 선택
+   * 🎯 Fix: pendingAttachmentsRef를 전달하여 파일 첨부 유실 방지
    */
   const selectClarification = useCallback(
     (option: ClarificationOption) => {
       const clarifiedQuery = applyClarification(option);
       setState((prev) => ({ ...prev, clarification: null }));
-      executeQuery(clarifiedQuery);
+      executeQuery(clarifiedQuery, pendingAttachmentsRef.current || undefined);
     },
     [executeQuery]
   );
 
   /**
    * 커스텀 명확화 입력
+   * 🎯 Fix: pendingAttachmentsRef를 전달하여 파일 첨부 유실 방지
    */
   const submitCustomClarification = useCallback(
     (customInput: string) => {
@@ -892,7 +894,7 @@ export function useHybridAIQuery(
 
       // 명확화 상태 초기화 후 쿼리 실행
       setState((prev) => ({ ...prev, clarification: null }));
-      executeQuery(clarifiedQuery);
+      executeQuery(clarifiedQuery, pendingAttachmentsRef.current || undefined);
     },
     [executeQuery]
   );
