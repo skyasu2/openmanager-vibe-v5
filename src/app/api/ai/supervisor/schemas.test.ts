@@ -165,3 +165,179 @@ describe('filePartSchema validation', () => {
     });
   });
 });
+
+/**
+ * requestSchemaLoose Tests (V2 Proxy)
+ *
+ * V2 프록시 모드에서 사용하는 느슨한 스키마 검증 테스트
+ * Cloud Run에서 최종 검증이 이루어지므로 Vercel 단에서는 최소 검증만 수행
+ */
+import { requestSchemaLoose } from './schemas';
+
+describe('requestSchemaLoose (V2 Proxy)', () => {
+  describe('유효한 요청', () => {
+    it('should accept minimal message structure', () => {
+      const input = {
+        messages: [{ role: 'user', content: 'test' }],
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept message with parts array', () => {
+      const input = {
+        messages: [
+          {
+            role: 'user',
+            parts: [{ type: 'text', text: 'Hello' }],
+          },
+        ],
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept unknown part types (passthrough)', () => {
+      const input = {
+        messages: [
+          {
+            role: 'user',
+            parts: [{ type: 'unknown-future-type', data: 'test' }],
+          },
+        ],
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept message with optional sessionId', () => {
+      const input = {
+        messages: [{ role: 'user', content: 'test' }],
+        sessionId: 'session-123',
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept message with createdAt as string', () => {
+      const input = {
+        messages: [
+          {
+            role: 'user',
+            content: 'test',
+            createdAt: '2026-01-27T10:00:00Z',
+          },
+        ],
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept message with createdAt as Date', () => {
+      const input = {
+        messages: [
+          {
+            role: 'user',
+            content: 'test',
+            createdAt: new Date(),
+          },
+        ],
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('유효하지 않은 요청', () => {
+    it('should reject empty messages array', () => {
+      const input = { messages: [] };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject messages exceeding max limit (50)', () => {
+      const input = {
+        messages: Array(51).fill({ role: 'user', content: 'x' }),
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject message without role', () => {
+      const input = {
+        messages: [{ content: 'test' }],
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject invalid role value', () => {
+      const input = {
+        messages: [{ role: 'invalid-role', content: 'test' }],
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject missing messages field', () => {
+      const input = { sessionId: 'session-123' };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('should accept exactly 50 messages (boundary)', () => {
+      const input = {
+        messages: Array(50).fill({ role: 'user', content: 'x' }),
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept all valid roles', () => {
+      const roles = ['user', 'assistant', 'system'] as const;
+
+      for (const role of roles) {
+        const input = {
+          messages: [{ role, content: 'test' }],
+        };
+
+        const result = requestSchemaLoose.safeParse(input);
+        expect(result.success).toBe(true);
+      }
+    });
+
+    it('should accept parts with extra fields (passthrough)', () => {
+      const input = {
+        messages: [
+          {
+            role: 'user',
+            parts: [
+              {
+                type: 'file',
+                url: 'data:image/png;base64,abc',
+                customField: 'extra-data',
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = requestSchemaLoose.safeParse(input);
+      expect(result.success).toBe(true);
+    });
+  });
+});

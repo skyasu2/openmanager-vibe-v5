@@ -902,7 +902,24 @@ export function useHybridAIQuery(
   );
 
   /**
-   * 명확화 건너뛰기 (원본 쿼리 그대로 전송)
+   * 명확화 건너뛰기 - 원본 쿼리 그대로 실행
+   *
+   * @description
+   * 사용자가 명확화 옵션을 선택하지 않고 원본 쿼리를 실행하고 싶을 때 사용.
+   * 대기 중인 쿼리와 첨부 파일을 그대로 전송합니다.
+   *
+   * 동작:
+   * 1. pendingQueryRef에 저장된 원본 쿼리 가져오기
+   * 2. pendingAttachmentsRef에 저장된 첨부 파일 가져오기
+   * 3. clarification 상태 null로 초기화
+   * 4. executeQuery로 원본 쿼리 실행 (첨부 파일 포함)
+   *
+   * @example
+   * // ClarificationDialog에서 "원래 질문으로 진행" 버튼 클릭 시
+   * <button onClick={skipClarification}>원래 질문으로 진행</button>
+   *
+   * @see dismissClarification - 쿼리 미실행 시 사용
+   * @see selectClarification - 명확화 옵션 선택 시 사용
    */
   const skipClarification = useCallback(() => {
     const query = pendingQueryRef.current;
@@ -924,8 +941,27 @@ export function useHybridAIQuery(
   }, [executeQuery]);
 
   /**
-   * 명확화 취소 (쿼리 미실행, 상태 정리만)
-   * 🎯 P0 Fix: 명확화를 취소하고 쿼리 실행하지 않을 때 메모리 정리
+   * 명확화 취소 - 쿼리 미실행, 상태 정리만
+   *
+   * @description
+   * 사용자가 명확화 다이얼로그를 닫고 쿼리를 실행하지 않을 때 사용.
+   * 모든 대기 상태(clarification, pendingQuery, pendingAttachments)를 정리합니다.
+   *
+   * skipClarification과의 차이점:
+   * - skipClarification: 원본 쿼리 실행 O, 대기 상태 소비
+   * - dismissClarification: 쿼리 실행 X, 대기 상태 정리만
+   *
+   * 동작:
+   * 1. clarification 상태 null로 초기화
+   * 2. pendingQueryRef null로 정리 (원본 쿼리 삭제)
+   * 3. pendingAttachmentsRef null로 정리 (첨부 파일 참조 해제, 메모리 누수 방지)
+   *
+   * @example
+   * // ClarificationDialog X 버튼 또는 "취소" 버튼 클릭 시
+   * <button onClick={dismissClarification}>취소</button>
+   *
+   * @see skipClarification - 원본 쿼리 실행 시 사용
+   * @see selectClarification - 명확화 옵션 선택 시 사용
    */
   const dismissClarification = useCallback(() => {
     // 명확화 상태 및 pending refs 정리
