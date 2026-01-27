@@ -2,13 +2,13 @@
  * Multi-Agent Orchestrator
  *
  * Routes user queries to specialized agents using pattern matching.
- * Removed @ai-sdk-tools/agents dependency for AI SDK v6 compatibility.
+ * Uses AI SDK v6 native generateText/streamText with stopWhen conditions.
  *
  * Architecture:
- * Orchestrator (Rule-based + LLM fallback) → NLQ/Analyst/Reporter/Advisor
+ * Orchestrator (Rule-based + LLM fallback) → NLQ/Analyst/Reporter/Advisor/Vision
  *
- * @version 3.1.0 - Added Context Store for agent communication
- * @updated 2026-01-25 - P1-2: Session context sharing, P2-1: Centralized timeouts
+ * @version 4.0.0 - Integrated BaseAgent/AgentFactory pattern
+ * @updated 2026-01-27 - Added Vision Agent routing, AgentFactory integration
  */
 
 import { generateText, generateObject, streamText, stepCountIs, hasToolCall, type ModelMessage } from 'ai';
@@ -26,6 +26,10 @@ import { routingSchema, taskDecomposeSchema, getAgentFromRouting, type RoutingDe
 
 // Import Reporter Pipeline for Evaluator-Optimizer pattern
 import { executeReporterPipeline, type PipelineResult } from './reporter-pipeline';
+
+// 🎯 v4.0.0: Import AgentFactory for new BaseAgent pattern
+import { AgentFactory, type AgentType } from './agent-factory';
+import { isVisionQuery } from './vision-agent';
 
 // 🎯 P1-2: Import Context Store for agent communication
 import {
@@ -563,6 +567,9 @@ const SERVER_KEYWORDS = [
   '평균', '최대', '최소', '지난', '시간', '전체',
   // 추가: 장애 사례, 이력 관련 키워드
   '사례', '이력', '과거', '유사', '인시던트', 'incident',
+  // 🎯 v4.0.0: Vision Agent 키워드
+  '스크린샷', 'screenshot', '이미지', 'image', '대시보드', 'dashboard',
+  '로그 분석', '대용량', '최신 문서', 'grafana', 'cloudwatch',
 ];
 
 /**
@@ -650,7 +657,11 @@ export function preFilterQuery(query: string): PreFilterResult {
   if (hasServerKeyword) {
     // Suggest agent based on keywords
     let suggestedAgent = 'NLQ Agent';
-    if (/이상|분석|예측|트렌드|패턴|원인|왜/.test(query)) {
+
+    // 🎯 v4.0.0: Vision Agent takes priority for visual/large log queries
+    if (isVisionQuery(query)) {
+      suggestedAgent = 'Vision Agent';
+    } else if (/이상|분석|예측|트렌드|패턴|원인|왜/.test(query)) {
       suggestedAgent = 'Analyst Agent';
     } else if (/보고서|리포트|타임라인|인시던트/.test(query)) {
       suggestedAgent = 'Reporter Agent';
@@ -751,14 +762,39 @@ if (availableAgentNames.length === 0) {
  * Handoff events configuration
  * - maxSize: 50 entries (Cloud Run 256MB memory constraint)
  * - cleanupAge: 1 hour TTL for automatic cleanup
+ * - cleanupInterval: 60 seconds for periodic cleanup
  */
 const HANDOFF_EVENTS_CONFIG = {
   maxSize: 50,
   cleanupAge: 3600000, // 1 hour in ms
+  cleanupInterval: 60000, // 60 seconds
 } as const;
 
 // Track handoff events for debugging (bounded array)
 const handoffEvents: Array<{ from: string; to: string; reason?: string; timestamp: Date }> = [];
+
+// 🎯 v4.0.0 Fix: Periodic cleanup to prevent memory leaks in idle sessions
+// Runs every 60 seconds regardless of handoff activity
+const handoffCleanupTimer = setInterval(() => {
+  if (handoffEvents.length === 0) return;
+
+  const cutoff = Date.now() - HANDOFF_EVENTS_CONFIG.cleanupAge;
+  let removed = 0;
+
+  while (handoffEvents.length > 0 && handoffEvents[0].timestamp.getTime() < cutoff) {
+    handoffEvents.shift();
+    removed++;
+  }
+
+  if (removed > 0) {
+    console.log(`🧹 [Handoff] Periodic cleanup: removed ${removed} stale events, ${handoffEvents.length} remaining`);
+  }
+}, HANDOFF_EVENTS_CONFIG.cleanupInterval);
+
+// Cleanup timer on process exit (Cloud Run graceful shutdown)
+process.on('beforeExit', () => {
+  clearInterval(handoffCleanupTimer);
+});
 
 /**
  * Record a handoff event for debugging/observability
@@ -1060,6 +1096,117 @@ async function executeForcedRouting(
 }
 
 // ============================================================================
+// 🎯 v4.0.0: AgentFactory-based Execution (New Pattern)
+// ============================================================================
+
+/**
+ * Map agent config key to AgentType
+ */
+function getAgentTypeFromName(agentName: string): AgentType | null {
+  const mapping: Record<string, AgentType> = {
+    'NLQ Agent': 'nlq',
+    'Analyst Agent': 'analyst',
+    'Reporter Agent': 'reporter',
+    'Advisor Agent': 'advisor',
+    'Vision Agent': 'vision',
+    'Evaluator Agent': 'evaluator',
+    'Optimizer Agent': 'optimizer',
+  };
+  return mapping[agentName] ?? null;
+}
+
+/**
+ * Execute agent using AgentFactory pattern
+ *
+ * This is the new recommended way to execute agents. It uses the BaseAgent
+ * class for a cleaner, more testable execution path.
+ *
+ * Currently used for:
+ * - Vision Agent (Gemini-only, no fallback chain)
+ *
+ * For agents with provider fallback chains, use executeForcedRouting instead.
+ *
+ * @param query - User query to process
+ * @param agentType - Agent type to use
+ * @param startTime - Execution start time for duration tracking
+ * @param webSearchEnabled - Whether web search is enabled
+ * @returns MultiAgentResponse or null if agent unavailable
+ */
+async function executeWithAgentFactory(
+  query: string,
+  agentType: AgentType,
+  startTime: number,
+  webSearchEnabled = true
+): Promise<MultiAgentResponse | null> {
+  const agent = AgentFactory.create(agentType);
+
+  if (!agent) {
+    console.warn(`⚠️ [AgentFactory] Agent ${agentType} not available (no model configured)`);
+    return null;
+  }
+
+  const agentName = agent.getName();
+  console.log(`🤖 [AgentFactory] Executing ${agentName}...`);
+
+  try {
+    const result = await agent.run(query, {
+      webSearchEnabled,
+      maxSteps: 5,
+      timeoutMs: TIMEOUT_CONFIG.agent.hard, // Use centralized config
+    });
+
+    if (!result.success) {
+      console.error(`❌ [AgentFactory] ${agentName} failed: ${result.error}`);
+      // Return structured error response instead of null
+      return {
+        success: false,
+        response: `에이전트 실행 실패: ${result.error}`,
+        handoffs: [{
+          from: 'Orchestrator',
+          to: agentName,
+          reason: `AgentFactory routing - failed: ${result.error}`,
+        }],
+        finalAgent: agentName,
+        toolsCalled: result.toolsCalled,
+        usage: result.usage,
+        metadata: {
+          provider: result.metadata.provider,
+          modelId: result.metadata.modelId,
+          totalRounds: result.metadata.steps,
+          durationMs: Date.now() - startTime,
+        },
+      };
+    }
+
+    const durationMs = Date.now() - startTime;
+    recordHandoff('Orchestrator', agentName, 'AgentFactory routing');
+
+    return {
+      success: true,
+      response: result.text,
+      handoffs: [{
+        from: 'Orchestrator',
+        to: agentName,
+        reason: 'AgentFactory routing',
+      }],
+      finalAgent: agentName,
+      toolsCalled: result.toolsCalled,
+      usage: result.usage,
+      metadata: {
+        provider: result.metadata.provider,
+        modelId: result.metadata.modelId,
+        totalRounds: result.metadata.steps,
+        durationMs,
+      },
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [AgentFactory] ${agentName} exception:`, errorMessage);
+    return null;
+  }
+}
+
+// ============================================================================
 // Orchestrator-Worker Pattern (Priority 3)
 // ============================================================================
 
@@ -1112,6 +1259,7 @@ async function decomposeTask(query: string): Promise<TaskDecomposition | null> {
 - Analyst Agent: 이상 탐지, 트렌드 예측, 근본 원인 분석
 - Reporter Agent: 장애 보고서, 인시던트 타임라인
 - Advisor Agent: 해결 방법, CLI 명령어, 과거 사례
+- Vision Agent: 스크린샷 분석, 대용량 로그, 최신 문서 검색 (Gemini)
 
 ## 사용자 질문
 ${query}
@@ -1119,7 +1267,8 @@ ${query}
 ## 분해 가이드라인
 - 각 서브태스크는 하나의 에이전트가 독립적으로 처리할 수 있어야 함
 - 의존성이 있으면 requiresSequential=true
-- 최대 4개의 서브태스크로 제한`;
+- 최대 4개의 서브태스크로 제한
+- Vision Agent는 이미지/스크린샷이 필요한 경우에만 할당`;
 
     const result = await generateObject({
       model,
@@ -1460,17 +1609,45 @@ export async function executeMultiAgent(
   console.log(`🔍 [Orchestrator] Forced routing check: suggestedAgent=${preFilterResult.suggestedAgent}, confidence=${preFilterResult.confidence}`);
 
   if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.8) {
-    console.log(`🚀 [Orchestrator] Triggering forced routing to ${preFilterResult.suggestedAgent}`);
-    const forcedResult = await executeForcedRouting(
-      query,
-      preFilterResult.suggestedAgent,
-      startTime,
-      webSearchEnabled
-    );
+    const suggestedAgentName = preFilterResult.suggestedAgent;
+    console.log(`🚀 [Orchestrator] Triggering forced routing to ${suggestedAgentName}`);
+
+    let forcedResult: MultiAgentResponse | null = null;
+
+    // 🎯 v4.0.0: Vision Agent uses AgentFactory (Gemini-only, no fallback chain)
+    if (suggestedAgentName === 'Vision Agent') {
+      console.log(`🔭 [Vision] Using AgentFactory for Vision Agent`);
+      forcedResult = await executeWithAgentFactory(
+        query,
+        'vision',
+        startTime,
+        webSearchEnabled
+      );
+
+      // Vision Agent fallback: If Gemini unavailable, route to Analyst
+      if (!forcedResult) {
+        console.warn(`⚠️ [Vision] Gemini unavailable, falling back to Analyst Agent`);
+        forcedResult = await executeForcedRouting(
+          query,
+          'Analyst Agent',
+          startTime,
+          webSearchEnabled
+        );
+      }
+    } else {
+      // Standard agents use executeForcedRouting with provider fallback chain
+      forcedResult = await executeForcedRouting(
+        query,
+        suggestedAgentName,
+        startTime,
+        webSearchEnabled
+      );
+    }
+
     if (forcedResult) {
       console.log(`✅ [Orchestrator] Forced routing succeeded`);
       // 🎯 P1-2: Save agent findings to session context
-      await saveAgentFindingsToContext(request.sessionId, preFilterResult.suggestedAgent, forcedResult.response);
+      await saveAgentFindingsToContext(request.sessionId, suggestedAgentName, forcedResult.response);
       return forcedResult;
     }
     // If forced routing fails, fall through to LLM routing
@@ -1507,12 +1684,14 @@ export async function executeMultiAgent(
 - Analyst Agent: 이상 탐지, 트렌드 예측, 패턴 분석, 근본 원인 분석
 - Reporter Agent: 장애 보고서 생성, 인시던트 타임라인
 - Advisor Agent: 문제 해결 방법, CLI 명령어 추천, 과거 사례 검색
+- Vision Agent: 스크린샷/이미지 분석, 대용량 로그, 최신 공식 문서 검색
 
 ## 사용자 질문
 ${query}
 
 ## 판단 기준
 - 서버/모니터링 관련 질문 → 적절한 에이전트 선택
+- 이미지/스크린샷/대시보드 분석 → Vision Agent
 - 일반 대화(인사, 날씨, 시간 등) → NONE`;
 
     // 🎯 P2-5 Fix: Properly initialized timeout variables to avoid undefined issues
@@ -1561,7 +1740,20 @@ ${query}
       // 🎯 P1-2: Record handoff to session context for agent communication
       await recordHandoffEvent(request.sessionId, 'Orchestrator', selectedAgent, 'LLM routing');
 
-      const agentResult = await executeForcedRouting(query, selectedAgent, startTime, webSearchEnabled);
+      let agentResult: MultiAgentResponse | null = null;
+
+      // 🎯 v4.0.0: Vision Agent uses AgentFactory (Gemini-only, no fallback chain)
+      if (selectedAgent === 'Vision Agent') {
+        agentResult = await executeWithAgentFactory(query, 'vision', startTime, webSearchEnabled);
+
+        // Fallback to Analyst if Gemini unavailable
+        if (!agentResult) {
+          console.warn(`⚠️ [LLM Routing] Vision Agent unavailable, falling back to Analyst`);
+          agentResult = await executeForcedRouting(query, 'Analyst Agent', startTime, webSearchEnabled);
+        }
+      } else {
+        agentResult = await executeForcedRouting(query, selectedAgent, startTime, webSearchEnabled);
+      }
 
       if (agentResult) {
         // 🎯 P1-2: Save agent findings to session context
@@ -1751,12 +1943,14 @@ export async function* executeMultiAgentStream(
 - Analyst Agent: 이상 탐지, 트렌드 예측, 패턴 분석, 근본 원인 분석
 - Reporter Agent: 장애 보고서 생성, 인시던트 타임라인
 - Advisor Agent: 문제 해결 방법, CLI 명령어 추천, 과거 사례 검색
+- Vision Agent: 스크린샷/이미지 분석, 대용량 로그, 최신 공식 문서 검색
 
 ## 사용자 질문
 ${query}
 
 ## 판단 기준
 - 서버/모니터링 관련 질문 → 적절한 에이전트 선택
+- 이미지/스크린샷/대시보드 분석 → Vision Agent
 - 일반 대화(인사, 날씨, 시간 등) → NONE`;
 
     const routingResult = await generateObject({
@@ -1865,7 +2059,9 @@ async function* executeAgentStream(
   const abortController = new AbortController();
 
   try {
-    // AI SDK v6 Best Practice: Use hasToolCall('finalAnswer') + stepCountIs(N) for graceful termination
+    // AI SDK v6.0.50 Best Practice: Use hasToolCall('finalAnswer') + stepCountIs(N) for graceful termination
+    // 🎯 P1-1: Added onStepFinish for real-time step monitoring
+    // 🎯 P2-2: Added native timeout configuration
     const streamResult = streamText({
       model,
       messages: [
@@ -1876,7 +2072,18 @@ async function* executeAgentStream(
       stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)], // Graceful termination + safety limit
       temperature: 0.4,
       maxOutputTokens: 1536,
-      abortSignal: abortController.signal,
+      // 🎯 P2-2: Native timeout configuration
+      timeout: {
+        totalMs: TIMEOUT_CONFIG.agent.hard, // 45,000ms total
+        stepMs: TIMEOUT_CONFIG.subtask.hard, // 30,000ms per step
+        chunkMs: 25_000, // 25s chunk timeout for stalled stream detection
+      },
+      abortSignal: abortController.signal, // Keep for graceful manual cancellation
+      // 🎯 P1-1: Step-by-step monitoring callback
+      onStepFinish: ({ finishReason, toolCalls }) => {
+        const toolNames = toolCalls?.map((tc) => tc.toolName) || [];
+        console.log(`📍 [${agentName} Step] reason=${finishReason}, tools=[${toolNames.join(',')}]`);
+      },
     });
 
     let warningEmitted = false;

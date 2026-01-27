@@ -16,8 +16,9 @@ import { z } from 'zod';
 
 /**
  * Available agent names as a const array for type safety
+ * @updated 2026-01-27 - Added Vision Agent
  */
-export const AGENT_NAMES = ['NLQ Agent', 'Analyst Agent', 'Reporter Agent', 'Advisor Agent'] as const;
+export const AGENT_NAMES = ['NLQ Agent', 'Analyst Agent', 'Reporter Agent', 'Advisor Agent', 'Vision Agent'] as const;
 export type AgentName = (typeof AGENT_NAMES)[number];
 
 /**
@@ -25,7 +26,7 @@ export type AgentName = (typeof AGENT_NAMES)[number];
  * Used with generateObject for type-safe agent selection
  */
 export const routingSchema = z.object({
-  selectedAgent: z.enum(['NLQ Agent', 'Analyst Agent', 'Reporter Agent', 'Advisor Agent', 'NONE']),
+  selectedAgent: z.enum(['NLQ Agent', 'Analyst Agent', 'Reporter Agent', 'Advisor Agent', 'Vision Agent', 'NONE']),
   confidence: z.number().min(0).max(1).describe('Routing confidence score (0-1)'),
   reasoning: z.string().describe('Brief explanation for the routing decision'),
 });
@@ -38,10 +39,11 @@ export type RoutingDecision = z.infer<typeof routingSchema>;
 
 /**
  * Subtask definition for complex query decomposition
+ * @updated 2026-01-27 - Added Vision Agent
  */
 export const subtaskSchema = z.object({
   task: z.string().describe('Specific subtask description'),
-  agent: z.enum(['NLQ Agent', 'Analyst Agent', 'Reporter Agent', 'Advisor Agent']),
+  agent: z.enum(['NLQ Agent', 'Analyst Agent', 'Reporter Agent', 'Advisor Agent', 'Vision Agent']),
   priority: z.number().min(1).max(5).optional().describe('Priority (1=highest)'),
 });
 

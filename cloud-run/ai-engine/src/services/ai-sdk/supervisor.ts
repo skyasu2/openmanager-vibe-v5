@@ -495,10 +495,13 @@ async function executeSupervisorAttempt(
       ];
 
       // Execute with multi-step tool calling
-      // AI SDK v6 Best Practice:
+      // AI SDK v6.0.50 Best Practice:
       // - prepareStep: Runtime tool filtering based on query intent
       // - hasToolCall('finalAnswer'): Graceful loop termination
       // - stepCountIs(3): Safety limit
+      // - timeout: Native timeout configuration (P2-2)
+      // - maxRetries: Network-level retry delegation (P3-1)
+      // - onStepFinish: Real-time step monitoring (P1-1)
       const result = await generateText({
         model,
         messages: modelMessages,
@@ -507,6 +510,27 @@ async function executeSupervisorAttempt(
         stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)],
         temperature: 0.4,
         maxOutputTokens: 1536,
+        // 🎯 P2-2: Native timeout configuration
+        timeout: {
+          totalMs: TIMEOUT_CONFIG.supervisor.hard, // 50,000ms total
+          stepMs: TIMEOUT_CONFIG.agent.hard, // 45,000ms per step
+        },
+        // 🎯 P3-1: Delegate network-level retry to AI SDK
+        maxRetries: 1,
+        // 🎯 P1-1: Step-by-step monitoring callback
+        onStepFinish: ({ finishReason, toolCalls, toolResults, usage }) => {
+          const toolNames = toolCalls?.map((tc) => tc.toolName) || [];
+          console.log(`📍 [Step] reason=${finishReason}, tools=[${toolNames.join(',')}]`);
+
+          // Langfuse span for each tool call
+          if (trace && toolCalls?.length) {
+            for (const tc of toolCalls) {
+              const tr = toolResults?.find((r) => r.toolCallId === tc.toolCallId);
+              // Use 'input' (AI SDK v6) instead of 'args', 'output' instead of 'result'
+              logToolCall(trace, tc.toolName, tc.input, tr?.output, 0);
+            }
+          }
+        },
       });
 
       // Extract tool call information with Langfuse logging
@@ -766,11 +790,14 @@ async function* streamSingleAgent(
     const abortController = new AbortController();
 
     // Execute streamText with multi-step tool calling
-    // AI SDK v6 Best Practice:
+    // AI SDK v6.0.50 Best Practice:
     // - prepareStep: Runtime tool filtering based on query intent
     // - hasToolCall('finalAnswer'): Graceful loop termination
     // - stepCountIs(3): Safety limit
-    // - abortSignal: Proper cancellation support
+    // - timeout: Native timeout configuration (P2-2)
+    // - abortSignal: Proper cancellation support (graceful shutdown)
+    // - onStepFinish: Real-time step monitoring (P1-1)
+    // - onFinish: Completion callback (P1-2)
     const result = streamText({
       model,
       messages: modelMessages,
@@ -779,7 +806,13 @@ async function* streamSingleAgent(
       stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)],
       temperature: 0.4,
       maxOutputTokens: 1536,
-      abortSignal: abortController.signal,
+      // 🎯 P2-2: Native timeout configuration
+      timeout: {
+        totalMs: TIMEOUT_CONFIG.supervisor.hard, // 50,000ms total
+        stepMs: TIMEOUT_CONFIG.agent.hard, // 45,000ms per step
+        chunkMs: 30_000, // 30s chunk timeout for stalled stream detection
+      },
+      abortSignal: abortController.signal, // Keep for graceful manual cancellation
       // 🎯 Phase 3: AI SDK v6 권장 - onError 콜백 추가
       // 스트림 에러 발생 시 로깅 및 추적 (Cloud Run에서 디버깅용)
       onError: ({ error }) => {
@@ -793,6 +826,38 @@ async function* streamSingleAgent(
         });
         // 🎯 P2 Fix: Track error for later warning emission
         streamError = error instanceof Error ? error : new Error(String(error));
+      },
+      // 🎯 P1-1: Step-by-step monitoring callback
+      onStepFinish: ({ finishReason, toolCalls, toolResults: stepToolResults }) => {
+        const toolNames = toolCalls?.map((tc) => tc.toolName) || [];
+        console.log(`📍 [Stream Step] reason=${finishReason}, tools=[${toolNames.join(',')}]`);
+
+        // Langfuse span for each tool call
+        if (trace && toolCalls?.length) {
+          for (const tc of toolCalls) {
+            const tr = stepToolResults?.find((r) => r.toolCallId === tc.toolCallId);
+            // Use 'input' (AI SDK v6) instead of 'args', 'output' instead of 'result'
+            logToolCall(trace, tc.toolName, tc.input, tr?.output, 0);
+          }
+        }
+      },
+      // 🎯 P1-2: Completion callback for final logging
+      onFinish: ({ text, usage: finishUsage, finishReason, steps: finishSteps }) => {
+        const durationMs = Date.now() - startTime;
+        const allToolsCalled = finishSteps.flatMap((s) => s.toolCalls?.map((tc) => tc.toolName) || []);
+        console.log(
+          `✅ [Stream Finish] reason=${finishReason}, steps=${finishSteps.length}, tools=[${allToolsCalled.join(',')}], duration=${durationMs}ms`
+        );
+
+        // Langfuse finalization (backup - main finalization is in the generator)
+        if (trace && finishReason !== 'error') {
+          finalizeTrace(trace, text, true, {
+            toolsCalled: allToolsCalled,
+            stepsExecuted: finishSteps.length,
+            durationMs,
+            finishReason,
+          });
+        }
       },
     });
 
@@ -1029,13 +1094,23 @@ function getIntentCategory(query: string): IntentCategory {
 }
 
 /**
- * Create prepareStep function for runtime tool filtering
- * AI SDK v6 Best Practice: Filter tools dynamically based on query intent
+ * Patterns for simple conversational queries that don't need tool calls
+ * AI SDK v6 Best Practice: Use toolChoice: 'none' for greetings/thanks
+ */
+const SIMPLE_CONVERSATION_PATTERNS = /^(안녕|감사|고마워|잘했어|hi|hello|thanks|thank you|bye|잘가)[\s!?.]*$/i;
+
+/**
+ * Create prepareStep function for runtime tool filtering and tool choice control
+ * AI SDK v6 Best Practice:
+ * - Filter tools dynamically based on query intent
+ * - Use toolChoice for fine-grained control over tool usage
  *
  * Benefits:
  * - Reduces token usage by limiting tool descriptions sent to LLM
- * - First step uses filtered tools, subsequent steps allow all tools
- * - More flexible than static pre-filtering
+ * - First step uses filtered tools + toolChoice, subsequent steps allow all tools
+ * - toolChoice: 'required' forces tool usage for analysis queries
+ * - toolChoice: 'none' prevents tool usage for simple conversations
+ * - toolChoice: 'auto' lets model decide (default)
  *
  * @param query User's query text
  * @returns PrepareStep function for generateText/streamText
@@ -1044,50 +1119,66 @@ function createPrepareStep(query: string) {
   const q = query.toLowerCase();
 
   return async ({ stepNumber }: { stepNumber: number }) => {
-    // After first step, allow all tools for flexibility
+    // After first step, allow all tools with auto choice for flexibility
     if (stepNumber > 0) return {};
+
+    // 🎯 P2-1: Simple conversations - disable tool usage entirely
+    // Greetings, thanks, etc. don't need tools
+    if (SIMPLE_CONVERSATION_PATTERNS.test(query.trim())) {
+      console.log(`🎯 [PrepareStep] Simple conversation detected, toolChoice: none`);
+      return {
+        toolChoice: 'none' as const,
+      };
+    }
 
     // AI SDK v6 Best Practice: Order patterns from specific to general
     // 우선순위: 명시적 이상탐지 → 예측/트렌드 → RCA → Reporter → Server Group → Default
 
     // 1. 명시적 이상탐지 요청 (최우선 - Analyst)
+    // 🎯 P2-1: Force tool usage for analysis queries
     if (TOOL_ROUTING_PATTERNS.anomaly.test(q)) {
       return {
-        activeTools: ['detectAnomalies', 'predictTrends', 'analyzePattern', 'getServerMetrics', 'finalAnswer'] as ToolName[]
+        activeTools: ['detectAnomalies', 'predictTrends', 'analyzePattern', 'getServerMetrics', 'finalAnswer'] as ToolName[],
+        toolChoice: 'required' as const, // 🎯 P2-1: Force tool usage
       };
     }
 
     // 2. 예측/트렌드 분석 요청 (Analyst)
     if (TOOL_ROUTING_PATTERNS.prediction.test(q)) {
       return {
-        activeTools: ['predictTrends', 'analyzePattern', 'detectAnomalies', 'correlateMetrics', 'finalAnswer'] as ToolName[]
+        activeTools: ['predictTrends', 'analyzePattern', 'detectAnomalies', 'correlateMetrics', 'finalAnswer'] as ToolName[],
+        toolChoice: 'required' as const, // 🎯 P2-1: Force tool usage
       };
     }
 
     // 3. RCA: 근본 원인 분석 (장애, 원인, 왜 등)
     if (TOOL_ROUTING_PATTERNS.rca.test(q)) {
       return {
-        activeTools: ['findRootCause', 'buildIncidentTimeline', 'correlateMetrics', 'getServerMetrics', 'detectAnomalies', 'finalAnswer'] as ToolName[]
+        activeTools: ['findRootCause', 'buildIncidentTimeline', 'correlateMetrics', 'getServerMetrics', 'detectAnomalies', 'finalAnswer'] as ToolName[],
+        toolChoice: 'required' as const, // 🎯 P2-1: Force tool usage
       };
     }
 
     // 4. Reporter/Advisor: RAG + commands
     if (TOOL_ROUTING_PATTERNS.advisor.test(q)) {
       return {
-        activeTools: ['searchKnowledgeBase', 'recommendCommands', 'searchWeb', 'finalAnswer'] as ToolName[]
+        activeTools: ['searchKnowledgeBase', 'recommendCommands', 'searchWeb', 'finalAnswer'] as ToolName[],
+        toolChoice: 'auto' as const, // Let model decide for advisory queries
       };
     }
 
     // 5. Server group queries
     if (TOOL_ROUTING_PATTERNS.serverGroup.test(q)) {
       return {
-        activeTools: ['getServerByGroup', 'getServerByGroupAdvanced', 'filterServers', 'finalAnswer'] as ToolName[]
+        activeTools: ['getServerByGroup', 'getServerByGroupAdvanced', 'filterServers', 'finalAnswer'] as ToolName[],
+        toolChoice: 'auto' as const,
       };
     }
 
-    // 6. Default: NLQ metrics tools
+    // 6. Default: NLQ metrics tools with auto choice
     return {
-      activeTools: ['getServerMetrics', 'getServerMetricsAdvanced', 'filterServers', 'getServerByGroup', 'finalAnswer'] as ToolName[]
+      activeTools: ['getServerMetrics', 'getServerMetricsAdvanced', 'filterServers', 'getServerByGroup', 'finalAnswer'] as ToolName[],
+      toolChoice: 'auto' as const,
     };
   };
 }

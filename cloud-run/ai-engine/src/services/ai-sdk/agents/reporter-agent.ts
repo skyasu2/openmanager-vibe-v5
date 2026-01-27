@@ -4,27 +4,36 @@
  * Specializes in generating incident reports and timelines.
  * Creates structured documentation for incidents and events.
  *
- * Model: Groq llama-3.3-70b (primary) / Cerebras (fallback)
+ * Model: Groq llama-3.3-70b (primary) / Cerebras (fallback) / Mistral
  *
  * Usage:
- * - getReporterAgentConfig: Get config for orchestrator routing
- * - generateHighQualityReport: Pipeline with Evaluator-Optimizer (thorough)
+ * - createReporterAgent(): Create agent for direct use
+ * - generateHighQualityReport(): Pipeline with Evaluator-Optimizer (thorough)
  *
- * @version 3.0.0 - Migrated to AI SDK v6 native (no Agent class)
+ * @version 4.0.0 - Migrated to BaseAgent pattern
  * @created 2025-12-01
- * @updated 2026-01-24 - Removed @ai-sdk-tools/agents dependency
+ * @updated 2026-01-27 - BaseAgent/AgentFactory migration
  */
 
 import { AGENT_CONFIGS, type AgentConfig } from './config';
+import { ReporterAgent, AgentFactory } from './agent-factory';
 import { executeReporterPipeline, type PipelineConfig, type PipelineResult } from './reporter-pipeline';
 
 // ============================================================================
-// Agent Config Export (for use with generateText/streamText)
+// Agent Class Export
+// ============================================================================
+
+export { ReporterAgent };
+
+// ============================================================================
+// Factory Functions (Backward Compatibility)
 // ============================================================================
 
 /**
  * Get Reporter Agent configuration
  * Use with orchestrator's executeForcedRouting or executeAgentStream
+ *
+ * @deprecated Use AgentFactory.create('reporter') instead
  */
 export function getReporterAgentConfig(): AgentConfig | null {
   const config = AGENT_CONFIGS['Reporter Agent'];
@@ -37,12 +46,28 @@ export function getReporterAgentConfig(): AgentConfig | null {
 
 /**
  * Check if Reporter Agent is available (has valid model)
+ *
+ * @deprecated Use AgentFactory.isAvailable('reporter') instead
  */
 export function isReporterAgentAvailable(): boolean {
-  const config = getReporterAgentConfig();
-  return config?.getModel() !== null;
+  return AgentFactory.isAvailable('reporter');
 }
 
+/**
+ * Create a new Reporter Agent instance
+ *
+ * @example
+ * ```typescript
+ * const agent = createReporterAgent();
+ * if (agent) {
+ *   const result = await agent.run('장애 보고서 만들어줘');
+ *   console.log(result.text);
+ * }
+ * ```
+ */
+export function createReporterAgent(): ReporterAgent | null {
+  return AgentFactory.create('reporter') as ReporterAgent | null;
+}
 
 // ============================================================================
 // High-Quality Report Generation (Evaluator-Optimizer Pipeline)

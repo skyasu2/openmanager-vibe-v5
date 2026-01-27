@@ -280,6 +280,10 @@ export async function generateTextWithRetry(
         });
 
         // Execute with timeout
+        // 🎯 P3-1: AI SDK v6.0.50 Best Practice - delegate network-level retries to SDK
+        // maxRetries: 1 handles transient network errors automatically
+        // Provider-level fallback is still managed by our custom logic
+        // 🎯 P2-2: Native timeout as primary + Promise.race as backup for full control
         const result = await Promise.race([
           generateText({
             model,
@@ -287,9 +291,11 @@ export async function generateTextWithRetry(
             tools: options.tools,
             temperature: options.temperature ?? 0.2,
             maxOutputTokens: options.maxOutputTokens ?? 2048,
+            maxRetries: 1, // 🎯 P3-1: Delegate network retry to AI SDK
+            timeout: { totalMs: fullConfig.timeoutMs }, // 🎯 P2-2: Native timeout
             ...(options.stopWhen && { stopWhen: options.stopWhen }),
           }),
-          timeoutPromise,
+          timeoutPromise, // Backup timeout via Promise.race
         ]);
 
         const durationMs = Date.now() - attemptStart;
