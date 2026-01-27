@@ -1,6 +1,6 @@
 # AI Engine Architecture
 
-> **v6.1.0** | Updated 2026-01-25
+> **v7.1.0** | Updated 2026-01-27
 
 ## Overview
 
@@ -34,13 +34,16 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 | Agent | Primary Provider | Fallback | Role | Tools |
 |-------|------------------|----------|------|-------|
 | **Orchestrator** | Cerebras llama-3.3-70b | Mistral mistral-small-2506 | Fast intent routing (~200ms) | Agent handoffs |
-| **NLQ Agent** | Cerebras llama-3.3-70b | Groq llama-3.3-70b-versatile | Server metrics queries (simple + complex) | `getServerMetrics`, `getServerMetricsAdvanced`, `filterServers` |
-| **Analyst Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | Anomaly detection, trend prediction | `detectAnomalies`, `predictTrends`, `analyzePattern`, `correlateMetrics`, `findRootCause` |
-| **Reporter Agent** | Groq llama-3.3-70b-versatile | Cerebras llama-3.3-70b | Incident reports, timeline | `buildIncidentTimeline`, `findRootCause`, `correlateMetrics`, `searchKnowledgeBase` |
-| **Advisor Agent** | Mistral mistral-small-2506 | Groq llama-3.3-70b-versatile | Troubleshooting, knowledge search | `searchKnowledgeBase` (GraphRAG), `recommendCommands` |
+| **NLQ Agent** | Cerebras llama-3.3-70b | Groq → Mistral | Server metrics queries (simple + complex) | `getServerMetrics`, `getServerMetricsAdvanced`, `filterServers` |
+| **Analyst Agent** | Groq llama-3.3-70b-versatile | Cerebras → Mistral | Anomaly detection, trend prediction | `detectAnomalies`, `predictTrends`, `analyzePattern`, `correlateMetrics`, `findRootCause` |
+| **Reporter Agent** | Groq llama-3.3-70b-versatile | Cerebras → Mistral | Incident reports, timeline | `buildIncidentTimeline`, `findRootCause`, `correlateMetrics`, `searchKnowledgeBase` |
+| **Advisor Agent** | Mistral mistral-small-2506 | Groq → Cerebras | Troubleshooting, knowledge search | `searchKnowledgeBase` (GraphRAG), `recommendCommands` |
+| **Vision Agent** | Gemini 2.5-flash-lite | **(No Fallback)** | Screenshot/log analysis, Google Search Grounding | `analyzeScreenshot`, `analyzeLargeLog`, `searchWithGrounding` |
+| **Evaluator Agent** | Cerebras llama-3.3-70b | - | Report quality evaluation (internal) | `evaluateIncidentReport`, `validateReportStructure` |
+| **Optimizer Agent** | Mistral mistral-small-2506 | - | Report quality improvement (internal) | `refineRootCauseAnalysis`, `enhanceSuggestedActions` |
 | **Verifier** | Mistral mistral-small-2506 | Cerebras llama-3.3-70b | Response validation | N/A |
 
-> **Note**: 실제 export되는 Agent는 4개 (NLQ, Analyst, Reporter, Advisor)입니다. Verifier는 별도의 검증 컴포넌트로, 응답 품질 검증을 담당하며 Agent handoff 대상이 아닙니다.
+> **Note**: 외부 라우팅 대상 Agent는 5개 (NLQ, Analyst, Reporter, Advisor, Vision)입니다. Evaluator/Optimizer는 Reporter Pipeline 내부에서만 사용되며, Verifier는 별도의 검증 컴포넌트입니다.
 
 > **Dual-Mode Strategy**: Single-agent mode for simple queries (low latency), Multi-agent mode for complex queries (specialized handling). Cerebras for fast routing/NLQ, Groq for analysis/reporting stability.
 
@@ -75,6 +78,15 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 - **GraphRAG Integration**: Advisor agent uses hybrid vector + graph search
 - **Protocol Adaptation**: UIMessageStream native protocol (v6)
 - **Response Verification**: Verifier agent validates outputs before response
+
+#### New in v7.1.0 (2026-01-27)
+
+- **BaseAgent Abstract Class**: 모든 에이전트의 공통 실행 로직 캡슐화
+- **AgentFactory Pattern**: 중앙화된 에이전트 생성 및 가용성 관리
+- **Vision Agent**: Gemini Flash-Lite 전용 (1M context, multimodal, Google Search Grounding)
+- **AI SDK v6.0.50**: `timeout: { totalMs, chunkMs }` 설정 지원
+- **3-Way Fallback**: 각 에이전트별 3중 프로바이더 폴백 체인
+- **Graceful Degradation**: Vision Agent 미가용 시 Analyst Agent로 자동 폴백
 
 #### New in v6.1.0 (2026-01-25)
 
@@ -118,6 +130,70 @@ The AI Engine for OpenManager Vibe is a **Multi-Agent System** built on **Vercel
 - GraphRAG Hybrid Search, Redis L2 Caching
 
 </details>
+
+### Agent Lifecycle (v7.1.0)
+
+#### BaseAgent & AgentFactory Pattern
+
+모든 에이전트는 `BaseAgent` 추상 클래스를 상속받아 통합된 실행 인터페이스를 제공합니다.
+
+```typescript
+// BaseAgent 인터페이스
+abstract class BaseAgent {
+  abstract getName(): string;
+  abstract getConfig(): AgentConfig | null;
+
+  // 동기 실행
+  async run(query: string, options?: AgentRunOptions): Promise<AgentResult>;
+
+  // 스트리밍 실행
+  async *stream(query: string, options?: AgentRunOptions): AsyncGenerator<AgentStreamEvent>;
+
+  // 가용성 확인
+  isAvailable(): boolean;
+}
+
+// AgentRunOptions
+interface AgentRunOptions {
+  timeoutMs?: number;      // 최대 실행 시간 (default: 45000)
+  maxSteps?: number;       // 최대 LLM 호출 횟수 (default: 5)
+  temperature?: number;    // 응답 다양성 (default: 0.4)
+  webSearchEnabled?: boolean;  // 웹 검색 허용 (default: true)
+}
+```
+
+#### AgentFactory 사용법
+
+```typescript
+import { AgentFactory, runAgent, streamAgent } from './agent-factory';
+
+// 에이전트 생성
+const nlq = AgentFactory.create('nlq');
+const vision = AgentFactory.create('vision');
+
+// 가용성 확인
+const available = AgentFactory.isAvailable('vision');
+const status = AgentFactory.getAvailabilityStatus();
+
+// 편의 함수
+const result = await runAgent('nlq', '서버 상태 알려줘');
+for await (const event of streamAgent('analyst', '이상 탐지')) {
+  console.log(event);
+}
+```
+
+#### 실행 흐름
+
+```
+1. Orchestrator가 쿼리 분석
+2. preFilterQuery()로 패턴 매칭
+3. AgentFactory.create()로 적절한 에이전트 생성
+4. BaseAgent.run() 또는 stream()으로 실행
+5. stopWhen 조건 충족 시 종료:
+   - hasToolCall('finalAnswer')
+   - stepCountIs(maxSteps)
+6. 결과 반환 (toolsCalled, usage, metadata)
+```
 
 ### Resilience & Performance
 
@@ -207,6 +283,42 @@ Reporter Agent는 고품질 보고서를 위해 3단계 파이프라인을 실�
 | **Parallel** | 독립적 작업 | "모든 서버 CPU와 메모리 현황" |
 | **Sequential** | 의존적 작업 | "장애 원인 분석 후 해결책 제시" |
 | **Hybrid** | 혼합 | 병렬 수집 → 순차 분석 |
+
+#### Vision Agent (Gemini Flash-Lite)
+
+Vision Agent는 Gemini Flash-Lite 전용으로, 다른 프로바이더로 폴백하지 않습니다 (Graceful Degradation).
+
+| Feature | Capability |
+|---------|------------|
+| **Context Window** | 1M tokens |
+| **Multimodal** | Image/PDF/Video/Audio |
+| **Google Search** | Grounding 지원 |
+| **URL Context** | 웹 페이지 분석 |
+
+**사용 사례:**
+- 대시보드 스크린샷 분석 (Grafana, CloudWatch, Datadog)
+- 대용량 로그 파일 분석
+- 최신 공식 문서 검색 (Google Search Grounding)
+- URL 콘텐츠 분석
+
+**Graceful Degradation:**
+```typescript
+import { getVisionAgentOrFallback, isVisionQuery } from './vision-agent';
+
+// Vision 쿼리 감지
+if (isVisionQuery(query)) {
+  const { agent, isFallback, fallbackReason } = getVisionAgentOrFallback(query);
+
+  if (isFallback) {
+    // Gemini 미구성 → Analyst Agent로 폴백
+    console.warn(fallbackReason);
+  }
+
+  if (agent) {
+    const result = await agent.run(query);
+  }
+}
+```
 
 #### Observability (Langfuse)
 

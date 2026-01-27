@@ -1,6 +1,6 @@
 # AI Engine - Cloud Run Service
 
-Vercel AI SDK Multi-Agent Supervisor for OpenManager VIBE v5
+Vercel AI SDK Multi-Agent Supervisor for OpenManager VIBE v7.1.0
 
 ## Quick Start
 
@@ -17,11 +17,14 @@ npm run build
 # Type check
 npm run type-check
 
+# Run tests
+npm run test
+
 # Deploy to Cloud Run
 gcloud run deploy ai-engine --source . --region asia-northeast1
 ```
 
-## Architecture (v5.84.0)
+## Architecture (v7.1.0)
 
 ```
 src/
@@ -32,6 +35,11 @@ src/
 │   │   ├── supervisor.ts          # Vercel AI SDK Supervisor
 │   │   ├── model-provider.ts      # Multi-provider failover
 │   │   └── agents/                # Agent definitions
+│   │       ├── base-agent.ts      # Abstract base class (NEW v7.1.0)
+│   │       ├── agent-factory.ts   # Factory pattern (NEW v7.1.0)
+│   │       ├── vision-agent.ts    # Gemini Vision (NEW v7.1.0)
+│   │       ├── orchestrator.ts    # Multi-agent orchestration
+│   │       └── config/            # Agent configurations
 │   ├── observability/
 │   │   └── langfuse.ts            # LLM Observability (FREE)
 │   └── resilience/
@@ -44,16 +52,79 @@ src/
     └── redis-client.ts            # Upstash Redis cache
 ```
 
+## Agent Implementation Pattern (v7.1.0)
+
+### BaseAgent Abstract Class
+
+모든 에이전트의 기반 클래스로 통합된 실행 인터페이스 제공:
+
+- `run(query, options)`: 동기 실행 - 결과를 기다림
+- `stream(query, options)`: 스트리밍 실행 - 실시간 응답
+- `isAvailable()`: 에이전트 가용성 확인
+
+**AI SDK v6 통합 기능:**
+- `timeout: { totalMs, chunkMs }` - 실행 시간 제한
+- `stopWhen: [hasToolCall('finalAnswer'), stepCountIs(N)]` - 종료 조건
+- `onStepFinish` - 단계별 모니터링
+
+### AgentFactory Pattern
+
+중앙화된 에이전트 생성:
+
+```typescript
+// 타입 기반 생성
+const nlq = AgentFactory.create('nlq');
+const analyst = AgentFactory.create('analyst');
+const vision = AgentFactory.create('vision');
+
+// 가용성 확인
+if (AgentFactory.isAvailable('vision')) {
+  const agent = AgentFactory.create('vision');
+  const result = await agent.run('스크린샷 분석해줘');
+}
+
+// 전체 상태 조회
+const status = AgentFactory.getAvailabilityStatus();
+// { nlq: true, analyst: true, vision: false, ... }
+```
+
+### Vision Agent (NEW v7.1.0)
+
+Gemini Flash-Lite 전용 에이전트 (No Fallback - Graceful Degradation):
+
+| Feature | Capability |
+|---------|------------|
+| **Context Window** | 1M tokens |
+| **Multimodal** | Image/PDF/Video/Audio |
+| **Google Search** | Grounding 지원 |
+| **URL Context** | 웹 페이지 분석 |
+
+**Graceful Degradation**: Gemini 미구성 시 → Analyst Agent로 폴백 (제한된 분석)
+
+```typescript
+import { getVisionAgentOrFallback, isVisionQuery } from './vision-agent';
+
+if (isVisionQuery(query)) {
+  const { agent, isFallback, fallbackReason } = getVisionAgentOrFallback(query);
+  if (agent) {
+    const result = await agent.run(query);
+  }
+}
+```
+
 ## LLM Providers (Role-Based Assignment)
 
 | Agent | Primary | Fallback | Free Tier |
 |-------|---------|----------|-----------|
 | Supervisor | Cerebras `llama-3.3-70b` | Groq → Mistral | 1M tokens/day, 60K TPM |
 | Orchestrator | Cerebras `llama-3.3-70b` | Groq | 1M tokens/day, 60K TPM |
-| NLQ Agent | Cerebras `llama-3.3-70b` | Groq | 1M tokens/day, 60K TPM |
-| Analyst Agent | Groq `llama-3.3-70b-versatile` | Cerebras | ~1K RPD, 12K TPM |
-| Reporter Agent | Groq `llama-3.3-70b-versatile` | Cerebras | ~1K RPD, 12K TPM |
-| Advisor Agent | Mistral `mistral-small-2506` | Groq | Limited (may require paid) |
+| NLQ Agent | Cerebras `llama-3.3-70b` | Groq → Mistral | 1M tokens/day, 60K TPM |
+| Analyst Agent | Groq `llama-3.3-70b-versatile` | Cerebras → Mistral | ~1K RPD, 12K TPM |
+| Reporter Agent | Groq `llama-3.3-70b-versatile` | Cerebras → Mistral | ~1K RPD, 12K TPM |
+| Advisor Agent | Mistral `mistral-small-2506` | Groq → Cerebras | Limited (may require paid) |
+| **Vision Agent** | **Gemini `2.5-flash-lite`** | **(No Fallback)** | **Free tier available** |
+| Evaluator Agent | Cerebras `llama-3.3-70b` | (internal use) | - |
+| Optimizer Agent | Mistral `mistral-small-2506` | (internal use) | - |
 
 ### Agent Usage by Feature
 
@@ -191,9 +262,17 @@ docker run -p 8080:8080 --env-file .env ai-engine:local
 
 ## Version
 
-Current: `5.83.14`
+Current: `7.1.0`
 
 ## Changelog
+
+### v7.1.0 (2026-01-27)
+- **BaseAgent 추상 클래스 도입** - 통합 실행 인터페이스 (`run()`, `stream()`)
+- **AgentFactory 패턴 적용** - 중앙화된 에이전트 생성 및 가용성 관리
+- **Vision Agent 추가** - Gemini Flash-Lite 전용 (1M context, multimodal)
+- **AI SDK v6.0.50** - `timeout`, `stopWhen` 설정 적용
+- **Codex/Gemini 코드 리뷰 반영** - type guard, edge case 처리
+- **7-Agent 시스템** - NLQ, Analyst, Reporter, Advisor, Vision, Evaluator, Optimizer
 
 ### v5.88.0 (2026-01-16)
 - Summarizer Agent 제거 (NLQ Agent로 통합)

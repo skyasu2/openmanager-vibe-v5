@@ -4,7 +4,7 @@
  * Unit tests for multi-agent orchestration system.
  * Tests mode selection, fallback chains, and response handling.
  *
- * @version 3.0.0 - Updated for AI SDK v6 native architecture
+ * @version 4.0.0 - Updated for BaseAgent/AgentFactory pattern (v7.1.0)
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -442,5 +442,35 @@ describe('Agent Config Exports', () => {
     expect(getAnalystAgentConfig()).toBeDefined();
     expect(getReporterAgentConfig()).toBeDefined();
     expect(getAdvisorAgentConfig()).toBeDefined();
+  });
+});
+
+// ============================================================================
+// Vision Agent Config Integration Tests (v7.1.0)
+// Note: Detailed isVisionQuery tests are in vision-agent.test.ts
+// Note: Detailed AgentFactory tests are in agent-factory.test.ts
+// ============================================================================
+
+describe('Vision Agent Config Integration', () => {
+  it('should have Vision Agent config in AGENT_CONFIGS', async () => {
+    const { AGENT_CONFIGS } = await import('./config');
+
+    expect(AGENT_CONFIGS['Vision Agent']).toBeDefined();
+    expect(AGENT_CONFIGS['Vision Agent'].name).toBe('Vision Agent');
+    expect(AGENT_CONFIGS['Vision Agent'].tools).toHaveProperty('analyzeScreenshot');
+  });
+
+  it('should have all 7 agent types in AGENT_CONFIGS', async () => {
+    const { AGENT_CONFIGS } = await import('./config');
+
+    expect(Object.keys(AGENT_CONFIGS)).toEqual([
+      'NLQ Agent',
+      'Analyst Agent',
+      'Reporter Agent',
+      'Advisor Agent',
+      'Evaluator Agent',
+      'Optimizer Agent',
+      'Vision Agent',
+    ]);
   });
 });
