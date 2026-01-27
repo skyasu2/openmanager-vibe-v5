@@ -255,6 +255,10 @@ function Home() {
               <span className="rounded-full bg-pink-500/20 px-3 py-1 text-pink-300">
                 Mistral
               </span>
+              <span className="text-white/40">+</span>
+              <span className="rounded-full bg-green-500/20 px-3 py-1 text-green-300">
+                Gemini
+              </span>
             </span>
           </p>
         </div>
@@ -306,7 +310,7 @@ function Home() {
                 <span>v{process.env.NEXT_PUBLIC_APP_VERSION || '5.83.14'}</span>
               </span>
               <span>Next.js 16 + React 19</span>
-              <span className="hidden sm:inline">Triple-Provider AI</span>
+              <span className="hidden sm:inline">Quad-Provider AI</span>
             </div>
           </div>
         </footer>

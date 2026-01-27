@@ -464,7 +464,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
         ],
       },
       {
-        title: 'MCP Servers (8개)',
+        title: 'MCP Servers (9개)',
         color: 'from-cyan-500 to-teal-600',
         nodes: [
           {
@@ -523,6 +523,13 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
             type: 'tertiary',
             icon: '🔗', // Chain of thought
           },
+          {
+            id: 'stitch-mcp',
+            label: 'Stitch',
+            sublabel: 'Google UI Design',
+            type: 'tertiary',
+            icon: '🎨',
+          },
         ],
       },
     ],
@@ -530,7 +537,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
       { from: 'antigravity', to: 'claude-code', label: 'Terminal' },
       { from: 'claude-code', to: 'codex', label: '2-AI Review' },
       { from: 'claude-code', to: 'gemini', label: '2-AI Review' },
-      // MCP Servers (8개 전체)
+      // MCP Servers (9개 전체)
       { from: 'claude-code', to: 'serena', label: 'MCP' },
       { from: 'claude-code', to: 'context7', label: 'MCP' },
       { from: 'claude-code', to: 'supabase-mcp', label: 'MCP' },
@@ -539,6 +546,7 @@ export const ARCHITECTURE_DIAGRAMS: Record<string, ArchitectureDiagram> = {
       { from: 'claude-code', to: 'github-mcp', label: 'MCP' },
       { from: 'claude-code', to: 'tavily-mcp', label: 'MCP' },
       { from: 'claude-code', to: 'seq-think', label: 'MCP' },
+      { from: 'claude-code', to: 'stitch-mcp', label: 'MCP' },
     ],
   },
 };

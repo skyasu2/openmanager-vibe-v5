@@ -79,7 +79,7 @@ docs/
 ### Vibe Coding (NEW)
 - [Claude Code](./vibe-coding/claude-code.md) - AI 페어 프로그래밍
 - [AI 도구들](./vibe-coding/ai-tools.md) - Codex, Gemini 활용
-- [MCP 서버](./vibe-coding/mcp-servers.md) - 8개 MCP 서버
+- [MCP 서버](./vibe-coding/mcp-servers.md) - 9개 MCP 서버
 - [Skills](./vibe-coding/skills.md) - 11개 커스텀 스킬
 - [워크플로우](./vibe-coding/workflows.md) - 일일 개발 사이클
 

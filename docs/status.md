@@ -92,7 +92,7 @@
 - **Agents**: 6개 Multi-Agent (Orchestrator → NLQ/Analyst/Reporter/Advisor/Vision)
 - **Tools**: 26개 도구 Registry (Metrics 5, RCA 3, Analyst 4, Reporter 4, Evaluation 6, Control 1, Vision 4)
 - **Reporter Pipeline**: Evaluator-Optimizer 패턴 (0.75 품질 임계값, 최대 2회 반복)
-- **MCP**: 8/8 Server Connected (Serena, Context7, Supabase, Vercel, Playwright, GitHub, Tavily, Sequential-Thinking)
+- **MCP**: 9/9 Server Connected (Serena, Context7, Stitch, Supabase, Vercel, Playwright, GitHub, Tavily, Sequential-Thinking)
 - **Web Search**: Tavily API (10s timeout, 2 retries, 30 cache entries)
 - **Resilience**:
   - Circuit Breaker: CLOSED → OPEN (5 failures) → HALF_OPEN (30s)
@@ -282,7 +282,7 @@
 | **Test** | ✅ 100% | 228/228 Tests Passing (12 test files) |
 | **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
 | **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
-| **MCP** | ✅ 8/8 | 모든 MCP 서버 정상 연결 |
+| **MCP** | ✅ 9/9 | 모든 MCP 서버 정상 연결 |
 | **Vercel** | ✅ Deployed | Production 배포 정상 |
 | **Sentry** | ✅ Active | Vercel + Cloud Run 에러 트래킹 |
 
@@ -378,6 +378,6 @@
 **개발 도구 체인**:
 - **Primary**: Claude Code (Interactive Development)
 - **Code Review**: Codex + Gemini 2-AI Rotation
-- **MCP**: 8개 서버 연동 (Serena, Context7, Playwright 등)
+- **MCP**: 9개 서버 연동 (Serena, Context7, Stitch 등)
 
 **총 코드량**: ~169,000 Lines (Frontend 50K+ / Backend 18K+ / Config & Tests)

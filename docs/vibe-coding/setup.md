@@ -88,13 +88,14 @@ claude             # 대화형 모드 시작
 
 3. **권한 설정**: `.claude/settings.local.json` 생성
 
-### 현재 사용 중인 MCP 서버 (8개)
+### 현재 사용 중인 MCP 서버 (9개)
 
 | MCP | 용도 |
 |-----|------|
 | serena | 코드 검색, 심볼 분석 |
 | context7 | 라이브러리 문서 |
 | sequential-thinking | 복잡한 추론 |
+| stitch | Google UI 디자인 |
 | supabase | PostgreSQL 관리 |
 | vercel | 배포 상태 |
 | playwright | E2E 테스트 |

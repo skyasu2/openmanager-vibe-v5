@@ -225,7 +225,7 @@ export const ENVIRONMENT = {
 // 🔌 MCP 서버 설정 (SSOT - registry-core.yaml 기준)
 // 참조: config/ai/registry-core.yaml mcp-servers.development
 export const MCP_SERVERS = {
-  // 활성화된 MCP 서버 목록 (8/8, 2026-01-18 동기화)
+  // 활성화된 MCP 서버 목록 (9/9, 2026-01-27 동기화)
   ACTIVE: [
     'vercel', // 배포 관리
     'supabase', // DB 관리
@@ -235,6 +235,7 @@ export const MCP_SERVERS = {
     'github', // 저장소 관리
     'tavily', // 웹 검색 - 심층 리서치
     'sequential-thinking', // 복잡한 추론
+    'stitch', // Google Stitch AI UI Design (2026-01-27)
   ] as const,
 
   // 제거된 MCP 서버 (2026-01-18)
@@ -248,7 +249,7 @@ export const MCP_SERVERS = {
   ] as const,
 
   // 서버 수
-  TOTAL_ACTIVE: 8,
+  TOTAL_ACTIVE: 9,
 } as const;
 
 // MCP 서버 목록 타입 (타입 안전성)

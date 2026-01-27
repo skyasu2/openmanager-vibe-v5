@@ -86,12 +86,13 @@ subagents:
 # 3. MCP Servers (개발 vs 프로덕션 구분)
 # ============================================================================
 mcp-servers:
-  # 개발 환경 (Claude Code에서 사용) - 8/8 연결
+  # 개발 환경 (Claude Code에서 사용) - 9/9 연결
   development:
     - vercel              # @vercel/mcp, 배포 관리 (무제한)
     - supabase            # @supabase/mcp-server-supabase, DB 관리 (무제한)
     - serena              # 코드 검색/메모리 (심볼, 구조 분석) (무제한)
     - context7            # @upstash/context7-mcp, 라이브러리 문서 (무제한)
+    - stitch              # @anthropic-ai/stitch-mcp, Google Stitch AI UI 디자인 (무제한)
     - playwright          # @playwright/mcp, E2E 테스트 자동화 (무제한)
     - github              # @modelcontextprotocol/server-github, 저장소 관리 (무제한)
     - tavily              # tavily-mcp, 웹 검색 - 심층 리서치 (1,000/월)
@@ -110,7 +111,7 @@ mcp-servers:
     - brave-search    # Tavily로 통합
 
 # 환경 구분:
-#   - Development: Claude Code 작업 시 8개 MCP 사용
+#   - Development: Claude Code 작업 시 9개 MCP 사용
 #   - Production: Cloud Run AI 엔진에서 Supabase MCP만 사용
 # 상세 정보: .mcp.json 참조
 
