@@ -250,7 +250,11 @@ export abstract class BaseAgent {
         if (step.toolResults) {
           for (const tr of step.toolResults) {
             if ('result' in tr && tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
-              finalAnswerResult = tr.result as { answer: string };
+              // 🎯 Fix: Type guard for consistency with stream() method (Gemini review feedback)
+              const result = tr.result as Record<string, unknown>;
+              if ('answer' in result && typeof result.answer === 'string') {
+                finalAnswerResult = { answer: result.answer };
+              }
             }
           }
         }
