@@ -221,7 +221,8 @@ export abstract class BaseAgent {
         tools: filteredTools,
         maxRetries: 1,
         // 🎯 Fix: Apply timeout configuration (AI SDK v6.0.50)
-        timeout: { totalMs: opts.timeoutMs },
+        // Defensive: use default if undefined to avoid SDK validation errors
+        timeout: { totalMs: opts.timeoutMs ?? DEFAULT_OPTIONS.timeoutMs },
         // AI SDK v6 Best Practice: Graceful termination conditions
         stopWhen: [hasToolCall('finalAnswer'), stepCountIs(opts.maxSteps)],
         temperature: opts.temperature,
@@ -342,7 +343,8 @@ export abstract class BaseAgent {
         messages: [{ role: 'user', content: query }],
         tools: filteredTools,
         // 🎯 Fix: Apply timeout configuration (AI SDK v6.0.50)
-        timeout: { totalMs: opts.timeoutMs, chunkMs: 30_000 },
+        // Defensive: use default if undefined to avoid SDK validation errors
+        timeout: { totalMs: opts.timeoutMs ?? DEFAULT_OPTIONS.timeoutMs, chunkMs: 30_000 },
         stopWhen: [hasToolCall('finalAnswer'), stepCountIs(opts.maxSteps)],
         temperature: opts.temperature,
         maxOutputTokens: opts.maxOutputTokens,
@@ -358,7 +360,9 @@ export abstract class BaseAgent {
       // Stream text deltas
       for await (const textChunk of streamResult.textStream) {
         const sanitized = sanitizeChineseCharacters(textChunk);
-        if (sanitized) {
+        // 🎯 Fix: Only set hasTextContent for non-whitespace content (Codex review feedback)
+        // This ensures finalAnswer fallback works when stream is empty/whitespace-only
+        if (sanitized && sanitized.trim().length > 0) {
           hasTextContent = true;
           yield { type: 'text_delta', data: sanitized };
         }
@@ -381,7 +385,11 @@ export abstract class BaseAgent {
           if (step.toolResults) {
             for (const tr of step.toolResults) {
               if ('result' in tr && tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
-                finalAnswerText = (tr.result as { answer: string }).answer;
+                const result = tr.result as Record<string, unknown>;
+                // 🎯 Fix: Type guard to ensure answer is a string (Codex review feedback)
+                if ('answer' in result && typeof result.answer === 'string') {
+                  finalAnswerText = result.answer;
+                }
               }
             }
           }
