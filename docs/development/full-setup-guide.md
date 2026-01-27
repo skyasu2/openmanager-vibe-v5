@@ -207,14 +207,30 @@ pip3 install uvx
 
 ## Phase 4: AI 도구 설치
 
-### 4.1 Claude Code 설치
+### 4.1 Claude Code 설치 (Native Installer 권장)
+
+> **Note**: NPM 설치 방식은 **Deprecated** 되었습니다. Native Installer를 사용하세요.
 
 ```bash
-# npm으로 설치
-npm install -g @anthropic-ai/claude-code
+# Native Installer (권장)
+curl -fsSL https://claude.ai/install.sh | sh
 
-# 확인
+# 설치 확인
 claude --version
+claude doctor      # 설치 유형 및 상태 점검
+```
+
+**Native Installer 특징**:
+- Node.js 불필요 (독립 실행형 바이너리)
+- **자동 백그라운드 업데이트** (수동 업그레이드 불필요)
+- WSL2 샌드박싱 지원
+
+```bash
+# ⚠️ NPM 설치 (Deprecated) - 기존 사용자만
+# npm install -g @anthropic-ai/claude-code
+
+# NPM → Native 마이그레이션
+# claude install
 ```
 
 ### 4.2 Claude Code 로그인

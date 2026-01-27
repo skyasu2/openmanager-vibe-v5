@@ -77,10 +77,10 @@ vi.mock('@/hooks/ai/useAsyncAIQuery', () => ({
   })),
 }));
 
+import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
 // Import after mocks
 import type { ClarificationRequest } from '@/lib/ai/clarification-generator';
 import { generateClarification } from '@/lib/ai/clarification-generator';
-import { useHybridAIQuery } from '@/hooks/ai/useHybridAIQuery';
 
 describe('Clarification Functions', () => {
   beforeEach(() => {

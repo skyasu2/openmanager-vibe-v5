@@ -21,24 +21,34 @@ Vibe Coding에 필요한 AI CLI 도구들의 설치 방법입니다.
 
 ## 1. Claude Code 설치
 
-### macOS
+### Native Installer (권장)
+
+> **Note**: NPM 설치 방식은 **Deprecated** 되었습니다. Native Installer를 사용하세요.
 
 ```bash
-# Homebrew로 설치 (권장)
-brew install anthropic/tap/claude-code
-
-# 또는 npm으로 설치
-npm install -g @anthropic-ai/claude-code
+# macOS / Linux (WSL 포함)
+curl -fsSL https://claude.ai/install.sh | sh
 ```
 
-### Linux (WSL 포함)
+**Native Installer 특징**:
+- Node.js 불필요 (독립 실행형 바이너리)
+- **자동 백그라운드 업데이트**
+- WSL2 샌드박싱 지원
+
+### Homebrew (macOS 대안)
 
 ```bash
-# npm으로 설치
+brew install anthropic/tap/claude-code
+```
+
+### NPM (Deprecated)
+
+```bash
+# ⚠️ Deprecated - 기존 설치자만 사용
 npm install -g @anthropic-ai/claude-code
 
-# 또는 직접 다운로드
-curl -fsSL https://claude.ai/install.sh | sh
+# NPM → Native 마이그레이션
+claude install
 ```
 
 ### 로그인 (OAuth)
@@ -56,8 +66,9 @@ claude
 ### 확인
 
 ```bash
-claude --version
-claude  # 대화형 모드 시작
+claude --version   # 버전 확인
+claude doctor      # 설치 유형(Native/NPM), 상태 점검
+claude             # 대화형 모드 시작
 ```
 
 ---
