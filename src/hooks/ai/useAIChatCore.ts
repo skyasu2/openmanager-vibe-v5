@@ -31,6 +31,7 @@ import {
   type SessionState,
   useChatSessionState,
 } from './core/useChatSessionState';
+import type { FileAttachment } from './useFileAttachments';
 import {
   convertThinkingStepsToUI,
   transformMessages,
@@ -90,8 +91,8 @@ export interface UseAIChatCoreReturn {
   stop: () => void;
   cancel: () => void;
 
-  // 입력 처리
-  handleSendInput: () => void;
+  // 입력 처리 (파일 첨부 지원)
+  handleSendInput: (attachments?: FileAttachment[]) => void;
 
   // 명확화 기능
   clarification: ClarificationRequest | null;
@@ -291,20 +292,27 @@ export function useAIChatCore(
   // Input Handler
   // ============================================================================
 
-  const handleSendInput = useCallback(() => {
-    if (!input.trim()) return;
+  const handleSendInput = useCallback(
+    (attachments?: FileAttachment[]) => {
+      if (!input.trim()) return;
 
-    if (!disableSessionLimit && sessionState.isLimitReached) {
-      logger.warn(`⚠️ [Session] Limit reached (${sessionState.count} messages)`);
-      return;
-    }
+      if (!disableSessionLimit && sessionState.isLimitReached) {
+        logger.warn(
+          `⚠️ [Session] Limit reached (${sessionState.count} messages)`
+        );
+        return;
+      }
 
-    setError(null);
-    lastQueryRef.current = input;
-    pendingQueryRef.current = input;
-    setInput('');
-    sendQuery(input);
-  }, [input, disableSessionLimit, sessionState, sendQuery]);
+      setError(null);
+      lastQueryRef.current = input;
+      pendingQueryRef.current = input;
+      setInput('');
+
+      // 🎯 파일 첨부와 함께 전송
+      sendQuery(input, attachments);
+    },
+    [input, disableSessionLimit, sessionState, sendQuery]
+  );
 
   // ============================================================================
   // Return

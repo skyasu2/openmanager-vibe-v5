@@ -50,6 +50,7 @@ import {
   type AsyncQueryResult,
   useAsyncAIQuery,
 } from './useAsyncAIQuery';
+import type { FileAttachment } from './useFileAttachments';
 
 // ============================================================================
 // Types
@@ -220,8 +221,8 @@ export interface UseHybridAIQueryOptions {
 }
 
 export interface UseHybridAIQueryReturn {
-  /** 쿼리 전송 (자동 라우팅) */
-  sendQuery: (query: string) => void;
+  /** 쿼리 전송 (자동 라우팅), 파일 첨부 지원 */
+  sendQuery: (query: string, attachments?: FileAttachment[]) => void;
   /** 현재 상태 */
   state: HybridQueryState;
   /** 메시지 목록 (스트리밍 모드) */
@@ -372,6 +373,9 @@ export function useHybridAIQuery(
 
   // 명확화 건너뛰기 시 원본 쿼리 저장
   const pendingQueryRef = useRef<string | null>(null);
+
+  // 🎯 파일 첨부 저장 (명확화 플로우에서 사용)
+  const pendingAttachmentsRef = useRef<FileAttachment[] | null>(null);
 
   // Redirect 이벤트 처리를 위한 쿼리 저장
   const currentQueryRef = useRef<string | null>(null);
@@ -649,9 +653,11 @@ export function useHybridAIQuery(
 
   /**
    * 실제 쿼리 전송 로직 (명확화 완료 후 호출)
+   * @param query - 텍스트 쿼리
+   * @param attachments - 선택적 파일 첨부 (이미지, PDF, MD)
    */
   const executeQuery = useCallback(
-    (query: string) => {
+    (query: string, attachments?: FileAttachment[]) => {
       // 빈 쿼리 방어
       if (!query || !query.trim()) {
         if (process.env.NODE_ENV === 'development') {
@@ -672,19 +678,43 @@ export function useHybridAIQuery(
       // 1. 복잡도 분석 + 의도 기반 Job Queue 강제 라우팅
       const analysis = analyzeQueryComplexity(trimmedQuery);
       const forceJobQueue = shouldForceJobQueue(trimmedQuery);
+      // 🎯 파일 첨부 시 Vision Agent가 필요하므로 스트리밍 모드 선호
+      const hasAttachments = attachments && attachments.length > 0;
       const isComplex =
-        analysis.score > complexityThreshold || forceJobQueue.force;
+        !hasAttachments &&
+        (analysis.score > complexityThreshold || forceJobQueue.force);
 
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
         logger.info(
           `[HybridAI] Query complexity: ${analysis.level} (score: ${analysis.score}), ` +
             `Force Job Queue: ${forceJobQueue.force}${forceJobQueue.matchedKeyword ? ` (keyword: "${forceJobQueue.matchedKeyword}")` : ''}, ` +
+            `Attachments: ${hasAttachments ? attachments!.length : 0}, ` +
             `Mode: ${isComplex ? 'job-queue' : 'streaming'}`
         );
       }
 
-      // 사용자 메시지 생성 (공통) - AI SDK v5 UIMessage 형식
+      // 🎯 AI SDK v6 sendMessage: { text, files } 형식 사용
+      // FileUIPart = { type: 'file', mediaType, url (data URL), filename? }
+      // @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#files
+      type FileUIPart = {
+        type: 'file';
+        mediaType: string;
+        url: string;
+        filename?: string;
+      };
+
+      // 파일 첨부를 FileUIPart[]로 변환
+      const fileUIParts: FileUIPart[] = hasAttachments
+        ? attachments!.map((att) => ({
+            type: 'file' as const,
+            mediaType: att.mimeType,
+            url: att.data, // data URL 형식 (base64)
+            filename: att.name,
+          }))
+        : [];
+
+      // 사용자 메시지 생성 (UI 표시용) - 텍스트만 포함
       const userMessage: UIMessage = {
         id: generateMessageId('user'),
         role: 'user' as const,
@@ -745,12 +775,15 @@ export function useHybridAIQuery(
           setMessages((prev) => sanitizeMessages(prev));
         });
 
-        // 🎯 AI SDK v6: sendMessage는 { text: string } 또는 { parts: [...] } 형식
-        // @see node_modules/ai/dist/index.d.ts line 3260-3275
+        // 🎯 AI SDK v6: sendMessage({ text, files? }) 형식
+        // 파일 첨부 시 files 배열로 전달 (FileUIPart[])
+        // @see node_modules/ai/dist/index.d.ts line 3314-3328
+        const messagePayload = hasAttachments
+          ? { text: trimmedQuery, files: fileUIParts }
+          : { text: trimmedQuery };
+
         Promise.resolve(
-          sendMessage({ text: trimmedQuery } as Parameters<
-            typeof sendMessage
-          >[0])
+          sendMessage(messagePayload as Parameters<typeof sendMessage>[0])
         ).catch((error) => {
           logger.error('[HybridAI] Streaming send failed:', error);
           setState((prev) => ({
@@ -766,16 +799,28 @@ export function useHybridAIQuery(
   );
 
   const sendQuery = useCallback(
-    async (query: string) => {
+    async (query: string, attachments?: FileAttachment[]) => {
       if (!query.trim()) return;
 
-      // 원본 쿼리 저장
+      // 원본 쿼리 및 첨부 파일 저장 (명확화 플로우에서 사용)
       pendingQueryRef.current = query;
+      pendingAttachmentsRef.current = attachments || null;
 
       // 0. 초기화
       setState((prev) => ({ ...prev, error: null }));
 
       try {
+        // 🎯 파일 첨부가 있으면 명확화 스킵 (Vision Agent 직접 호출)
+        if (attachments && attachments.length > 0) {
+          if (process.env.NODE_ENV === 'development') {
+            logger.info(
+              `[HybridAI] Skipping clarification: ${attachments.length} attachment(s) detected`
+            );
+          }
+          executeQuery(query, attachments);
+          return;
+        }
+
         // 1. 쿼리 분류 (Groq LLM 사용)
         const classification = await classifyQuery(query);
 
@@ -801,7 +846,7 @@ export function useHybridAIQuery(
         }
 
         // 3. 명확화 불필요: 바로 실행
-        executeQuery(query);
+        executeQuery(query, attachments);
       } catch (error) {
         logger.error('[HybridAI] sendQuery error:', error);
         setState((prev) => ({
@@ -857,6 +902,7 @@ export function useHybridAIQuery(
    */
   const skipClarification = useCallback(() => {
     const query = pendingQueryRef.current;
+    const attachments = pendingAttachmentsRef.current;
 
     // 빈 쿼리 방어
     if (!query || !query.trim()) {
@@ -868,9 +914,9 @@ export function useHybridAIQuery(
       return;
     }
 
-    // 명확화 상태 초기화 후 원본 쿼리 실행
+    // 명확화 상태 초기화 후 원본 쿼리 실행 (첨부 파일 포함)
     setState((prev) => ({ ...prev, clarification: null }));
-    executeQuery(query);
+    executeQuery(query, attachments || undefined);
   }, [executeQuery]);
 
   // ============================================================================

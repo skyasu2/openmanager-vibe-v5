@@ -1,14 +1,23 @@
 /**
- * Vision Tools (AI SDK Format)
+ * Vision Tools (AI SDK Format) - Structuring Only
  *
- * Gemini Flash-Lite powered tools for visual and large-context analysis:
- * - analyzeScreenshot: Dashboard image analysis (Grafana, CloudWatch, etc.)
+ * These tools structure and validate the LLM's visual analysis output.
+ * Images are passed via message content (AI SDK best practice), NOT tool parameters.
+ *
+ * Pattern (Option C - Hybrid):
+ * 1. User uploads image → message content [{ type: 'image', image: base64 }]
+ * 2. Gemini analyzes image directly via multimodal input
+ * 3. These tools structure the analysis results
+ *
+ * Tools:
+ * - structureScreenshotAnalysis: Structure dashboard analysis output
  * - analyzeLargeLog: Large log file analysis (1M context)
  * - searchWithGrounding: Google Search Grounding for real-time docs
  * - analyzeUrlContent: URL content extraction and analysis
  *
- * @version 1.0.0
+ * @version 2.0.0 - Refactored to structuring-only pattern
  * @created 2026-01-27
+ * @updated 2026-01-27 - Option C Hybrid implementation
  */
 
 import { tool } from 'ai';
@@ -91,148 +100,173 @@ type LogType = 'syslog' | 'application' | 'access' | 'error' | 'security' | 'cus
 type SearchType = 'technical' | 'security' | 'documentation' | 'troubleshooting' | 'general';
 
 // ============================================================================
-// 3. Screenshot Analysis Tool
+// 3. Screenshot Analysis Tool (Structuring Only)
 // ============================================================================
 
 /**
- * Analyze dashboard screenshots (Grafana, CloudWatch, Datadog, etc.)
+ * Structure the LLM's visual analysis of dashboard screenshots
  *
- * Detects:
- * - Metric spikes and drops
- * - Threshold breaches (red/yellow zones)
- * - Time-based patterns
- * - Cross-metric correlations
+ * IMPORTANT: This tool does NOT receive image data. Images are passed via
+ * message content array (AI SDK best practice). This tool structures the
+ * analysis output from the LLM's visual analysis.
+ *
+ * Flow:
+ * 1. User message includes image: [{ type: 'image', image: base64 }]
+ * 2. LLM analyzes image and calls this tool with findings
+ * 3. This tool structures and validates the findings
  */
 export const analyzeScreenshot = tool({
-  description: `대시보드 스크린샷을 분석합니다. Grafana, CloudWatch, Datadog 등의 모니터링 대시보드 이미지를 분석하여 이상 징후, 트렌드, 임계값 초과 등을 감지합니다.
+  description: `대시보드 스크린샷 분석 결과를 구조화합니다.
 
-사용 예시:
-- "이 Grafana 스크린샷 분석해줘"
-- "CloudWatch 대시보드에서 문제점 찾아줘"
-- "CPU 차트 이미지 분석"`,
+중요: 이미지는 메시지 content로 전달됩니다. 이 도구는 시각적 분석 결과를 구조화하는 데 사용됩니다.
+
+이 도구를 호출하기 전에:
+1. 사용자가 보낸 이미지를 먼저 분석하세요
+2. 발견한 이상 징후, 트렌드, 문제점을 파악하세요
+3. 그 결과를 이 도구의 파라미터로 전달하세요`,
 
   inputSchema: z.object({
-    imageData: z
-      .string()
-      .describe('Base64 인코딩된 이미지 데이터 또는 이미지 URL'),
     dashboardType: z
       .enum(['grafana', 'cloudwatch', 'datadog', 'prometheus', 'newrelic', 'custom', 'unknown'])
       .optional()
       .default('unknown')
-      .describe('대시보드 유형 (자동 감지 시 unknown)'),
+      .describe('감지된 대시보드 유형'),
     focusArea: z
       .enum(['cpu', 'memory', 'disk', 'network', 'latency', 'errors', 'all'])
       .optional()
       .default('all')
-      .describe('분석 집중 영역'),
-    timeContext: z
+      .describe('주요 분석 영역'),
+    timeRange: z
       .string()
       .optional()
-      .describe('시간 컨텍스트 (예: "지난 1시간", "오늘 오후")'),
+      .describe('대시보드에 표시된 시간 범위'),
+    anomalies: z
+      .array(z.string())
+      .describe('발견된 이상 징후 목록'),
+    trends: z
+      .array(z.string())
+      .optional()
+      .default([])
+      .describe('관찰된 트렌드'),
+    thresholdBreaches: z
+      .array(z.string())
+      .optional()
+      .default([])
+      .describe('임계값 초과 항목 (빨간/노란 영역)'),
+    metrics: z
+      .array(z.object({
+        name: z.string().describe('메트릭 이름'),
+        currentValue: z.string().describe('현재 값'),
+        status: z.enum(['normal', 'warning', 'critical']).describe('상태'),
+        trend: z.enum(['up', 'down', 'stable']).describe('추세'),
+      }))
+      .optional()
+      .default([])
+      .describe('감지된 메트릭 목록'),
+    recommendations: z
+      .array(z.string())
+      .optional()
+      .default([])
+      .describe('권장 조치'),
+    summary: z
+      .string()
+      .describe('분석 요약 (1-2문장)'),
   }),
 
   execute: async ({
-    imageData,
     dashboardType,
     focusArea,
-    timeContext,
+    timeRange,
+    anomalies,
+    trends,
+    thresholdBreaches,
+    metrics,
+    recommendations,
+    summary,
   }: {
-    imageData: string;
     dashboardType?: DashboardType;
     focusArea?: FocusArea;
-    timeContext?: string;
+    timeRange?: string;
+    anomalies: string[];
+    trends?: string[];
+    thresholdBreaches?: string[];
+    metrics?: { name: string; currentValue: string; status: 'normal' | 'warning' | 'critical'; trend: 'up' | 'down' | 'stable' }[];
+    recommendations?: string[];
+    summary: string;
   }) => {
-    // Note: Actual image analysis will be performed by Gemini model
-    // This tool structures the request and provides analysis framework
+    // Validate that we have meaningful analysis
+    if (!anomalies || anomalies.length === 0) {
+      // No anomalies might be valid (healthy dashboard)
+      if (!summary) {
+        return {
+          success: false,
+          error: '분석 결과가 제공되지 않았습니다. 이미지를 먼저 분석한 후 결과를 전달해주세요.',
+          dashboardType: dashboardType || 'unknown',
+          findings: { anomalies: [], trends: [], thresholdBreaches: [], recommendations: [] },
+          metrics: [],
+          summary: '분석 실패: 결과 없음',
+        };
+      }
+    }
 
     const result: ScreenshotAnalysisResult = {
       success: true,
       dashboardType: dashboardType || 'unknown',
       findings: {
-        anomalies: [],
-        trends: [],
-        thresholdBreaches: [],
-        recommendations: [],
+        anomalies: anomalies || [],
+        trends: trends || [],
+        thresholdBreaches: thresholdBreaches || [],
+        recommendations: recommendations || [],
       },
-      metrics: [],
-      timeRange: timeContext,
-      summary: '',
+      metrics: metrics || [],
+      timeRange,
+      summary,
     };
 
-    // Validate image data
-    if (!imageData || imageData.length < 100) {
-      return {
-        success: false,
-        error: '유효한 이미지 데이터가 필요합니다. Base64 인코딩된 이미지 또는 URL을 제공해주세요.',
-        dashboardType: dashboardType || 'unknown',
-        findings: { anomalies: [], trends: [], thresholdBreaches: [], recommendations: [] },
-        metrics: [],
-        summary: '이미지 분석 실패: 유효하지 않은 이미지 데이터',
-      };
-    }
+    // Determine severity based on findings
+    const hasCritical = metrics?.some(m => m.status === 'critical') ||
+                       (thresholdBreaches && thresholdBreaches.length > 0);
+    const hasWarning = metrics?.some(m => m.status === 'warning') ||
+                      (anomalies && anomalies.length > 0);
 
-    // Determine if URL or Base64
-    const isUrl = imageData.startsWith('http://') || imageData.startsWith('https://');
-    const imageType = isUrl ? 'url' : 'base64';
-
-    // Return structured analysis request for Gemini
-    const actualDashboardType = dashboardType || 'unknown';
-    const actualFocusArea = focusArea || 'all';
-
-    result.summary = `${actualDashboardType} 대시보드 스크린샷 분석 준비 완료. 이미지 유형: ${imageType}, 집중 영역: ${actualFocusArea}`;
-
-    // Add analysis context for Gemini
-    const analysisContext = {
-      imageType,
-      dashboardType: actualDashboardType,
-      focusArea: actualFocusArea,
-      timeContext,
-      analysisInstructions: `
-이 ${actualDashboardType} 대시보드 스크린샷을 분석하세요:
-
-1. **이상 징후 탐지**: 스파이크, 드랍, 비정상적 패턴
-2. **임계값 확인**: 빨간색/노란색 영역, 경고 표시
-3. **트렌드 분석**: 상승/하락 추세, 주기적 패턴
-4. **메트릭 상관관계**: 여러 차트 간 연관성
-${actualFocusArea !== 'all' ? `5. **집중 분석**: ${actualFocusArea} 관련 메트릭 우선` : ''}
-
-분석 결과를 구조화된 형식으로 제공하세요.
-      `.trim(),
-    };
+    const severity = hasCritical ? 'critical' : hasWarning ? 'warning' : 'normal';
 
     return {
       ...result,
-      analysisContext,
-      _imageData: imageData, // Pass through for Gemini
+      severity,
+      analysisComplete: true,
     };
   },
 });
 
 // ============================================================================
-// 4. Large Log Analysis Tool
+// 4. Large Log Analysis Tool (Pre-processing + Structuring)
 // ============================================================================
 
 /**
- * Analyze large log files using Gemini's 1M context window
+ * Pre-process and structure log analysis
  *
- * Capabilities:
- * - Error clustering and frequency analysis
- * - Timeline reconstruction
- * - Pattern detection
- * - Root cause hypothesis generation
+ * For very large logs (>100K lines):
+ * - Pass log content via message for Gemini's 1M context
+ * - This tool provides quick pre-analysis stats
+ * - LLM does deep analysis, then calls this to structure findings
+ *
+ * For normal logs:
+ * - Tool receives log content and provides basic stats
+ * - LLM performs analysis using both the stats and raw content
  */
 export const analyzeLargeLog = tool({
   description: `대용량 로그 파일을 분석합니다. Gemini의 1M 토큰 컨텍스트를 활용하여 전체 로그를 분석하고 에러 패턴, 타임라인, 근본 원인을 추론합니다.
 
-사용 예시:
-- "이 로그 파일 전체 분석해줘"
-- "에러 로그에서 패턴 찾아줘"
-- "장애 시점 타임라인 재구성"`,
+두 가지 모드:
+1. **전처리 모드**: logContent 제공 시 → 기본 통계 + 에러 클러스터링
+2. **구조화 모드**: analysisResult 제공 시 → LLM 분석 결과 구조화`,
 
   inputSchema: z.object({
     logContent: z
       .string()
-      .describe('분석할 로그 텍스트 (최대 1M 토큰)'),
+      .optional()
+      .describe('분석할 로그 텍스트 (전처리 모드)'),
     logType: z
       .enum(['syslog', 'application', 'access', 'error', 'security', 'custom'])
       .optional()
@@ -241,16 +275,36 @@ export const analyzeLargeLog = tool({
     timeRange: z
       .string()
       .optional()
-      .describe('분석 시간 범위 (예: "last1h", "2024-01-01 ~ 2024-01-02")'),
+      .describe('분석 시간 범위'),
     focusPattern: z
       .string()
       .optional()
-      .describe('집중 분석할 패턴 (예: "ERROR", "OOM", "timeout")'),
-    maxLines: z
-      .number()
+      .describe('집중 분석할 패턴'),
+    // Structuring mode inputs
+    analysisResult: z
+      .object({
+        topErrors: z.array(z.object({
+          message: z.string(),
+          count: z.number(),
+          firstSeen: z.string().optional(),
+          lastSeen: z.string().optional(),
+        })).optional(),
+        patterns: z.array(z.object({
+          pattern: z.string(),
+          frequency: z.number(),
+          severity: z.string(),
+        })).optional(),
+        timeline: z.array(z.object({
+          timestamp: z.string(),
+          event: z.string(),
+          severity: z.string(),
+        })).optional(),
+        rootCauseHypothesis: z.string().optional(),
+        recommendations: z.array(z.string()).optional(),
+        summary: z.string(),
+      })
       .optional()
-      .default(100000)
-      .describe('최대 분석 라인 수'),
+      .describe('LLM 분석 결과 (구조화 모드)'),
   }),
 
   execute: async ({
@@ -258,18 +312,73 @@ export const analyzeLargeLog = tool({
     logType,
     timeRange,
     focusPattern,
-    maxLines,
+    analysisResult,
   }: {
-    logContent: string;
+    logContent?: string;
     logType?: LogType;
     timeRange?: string;
     focusPattern?: string;
-    maxLines?: number;
+    analysisResult?: {
+      topErrors?: { message: string; count: number; firstSeen?: string; lastSeen?: string }[];
+      patterns?: { pattern: string; frequency: number; severity: string }[];
+      timeline?: { timestamp: string; event: string; severity: string }[];
+      rootCauseHypothesis?: string;
+      recommendations?: string[];
+      summary: string;
+    };
   }) => {
+    const actualLogType = logType || 'application';
+
+    // Structuring mode: LLM has already analyzed, just structure the result
+    if (analysisResult) {
+      // Map topErrors to ensure required fields have values
+      const mappedTopErrors = (analysisResult.topErrors || []).map(e => ({
+        message: e.message,
+        count: e.count,
+        firstSeen: e.firstSeen || 'N/A',
+        lastSeen: e.lastSeen || 'N/A',
+      }));
+
+      const result: LogAnalysisResult = {
+        success: true,
+        logType: actualLogType,
+        totalLines: 0,
+        analyzedLines: 0,
+        findings: {
+          errorCount: analysisResult.topErrors?.reduce((sum, e) => sum + e.count, 0) || 0,
+          warnCount: 0,
+          topErrors: mappedTopErrors,
+          patterns: analysisResult.patterns || [],
+          timeline: analysisResult.timeline || [],
+        },
+        rootCauseHypothesis: analysisResult.rootCauseHypothesis,
+        recommendations: analysisResult.recommendations || [],
+        summary: analysisResult.summary,
+      };
+
+      return {
+        ...result,
+        mode: 'structuring',
+        analysisComplete: true,
+      };
+    }
+
+    // Pre-processing mode: analyze log content
+    if (!logContent || logContent.trim().length === 0) {
+      return {
+        success: false,
+        error: 'logContent 또는 analysisResult 중 하나가 필요합니다.',
+        logType: actualLogType,
+        totalLines: 0,
+        analyzedLines: 0,
+        findings: { errorCount: 0, warnCount: 0, topErrors: [], patterns: [], timeline: [] },
+        recommendations: [],
+        summary: '분석 실패: 입력 데이터 없음',
+      };
+    }
+
     const lines = logContent.split('\n');
     const totalLines = lines.length;
-    const effectiveMaxLines = maxLines || 100000;
-    const analyzedLines = Math.min(totalLines, effectiveMaxLines);
 
     // Quick pre-analysis for structure
     const errorLines = lines.filter((l: string) =>
@@ -279,28 +388,9 @@ export const analyzeLargeLog = tool({
       /warn|warning/i.test(l)
     );
 
-    const actualLogType = logType || 'application';
-
-    const result: LogAnalysisResult = {
-      success: true,
-      logType: actualLogType,
-      totalLines,
-      analyzedLines,
-      findings: {
-        errorCount: errorLines.length,
-        warnCount: warnLines.length,
-        topErrors: [],
-        patterns: [],
-        timeline: [],
-      },
-      recommendations: [],
-      summary: '',
-    };
-
     // Quick error frequency analysis
     const errorCounts = new Map<string, number>();
     for (const line of errorLines.slice(0, 1000)) {
-      // Normalize error messages
       const normalized = line
         .replace(/\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}/g, '[TIMESTAMP]')
         .replace(/\d+\.\d+\.\d+\.\d+/g, '[IP]')
@@ -310,48 +400,42 @@ export const analyzeLargeLog = tool({
       errorCounts.set(normalized, (errorCounts.get(normalized) || 0) + 1);
     }
 
-    // Get top errors
     const sortedErrors = [...errorCounts.entries()]
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10);
 
-    result.findings.topErrors = sortedErrors.map(([message, count]) => ({
-      message,
-      count,
-      firstSeen: 'N/A',
-      lastSeen: 'N/A',
-    }));
-
-    result.summary = `${actualLogType} 로그 분석: ${totalLines}줄 중 ${analyzedLines}줄 분석. ERROR: ${errorLines.length}건, WARN: ${warnLines.length}건`;
-
-    // Add analysis context for Gemini
-    const analysisContext = {
+    const result: LogAnalysisResult = {
+      success: true,
       logType: actualLogType,
-      timeRange,
-      focusPattern,
-      preAnalysis: {
-        totalLines,
+      totalLines,
+      analyzedLines: totalLines,
+      findings: {
         errorCount: errorLines.length,
         warnCount: warnLines.length,
-        topErrorPatterns: sortedErrors.slice(0, 5),
+        topErrors: sortedErrors.map(([message, count]) => ({
+          message,
+          count,
+          firstSeen: 'N/A',
+          lastSeen: 'N/A',
+        })),
+        patterns: [],
+        timeline: [],
       },
-      analysisInstructions: `
-이 ${actualLogType} 로그를 심층 분석하세요:
-
-1. **에러 클러스터링**: 유사한 에러 그룹화, 빈도 분석
-2. **타임라인 재구성**: 주요 이벤트 시간순 정렬
-3. **패턴 탐지**: 반복 패턴, 주기적 발생, 연쇄 에러
-4. **근본 원인 추론**: 첫 번째 에러, 연관 시스템, 가능한 원인
-${focusPattern ? `5. **집중 분석**: "${focusPattern}" 관련 로그 우선` : ''}
-
-분석 결과를 구조화된 형식으로 제공하세요.
-      `.trim(),
+      recommendations: [],
+      summary: `${actualLogType} 로그 전처리 완료: ${totalLines}줄, ERROR: ${errorLines.length}건, WARN: ${warnLines.length}건`,
     };
 
     return {
       ...result,
-      analysisContext,
-      _logSample: logContent.substring(0, 50000), // First 50K chars for context
+      mode: 'preprocessing',
+      focusPattern,
+      timeRange,
+      // Provide hints for LLM's deep analysis
+      analysisHints: {
+        highErrorCount: errorLines.length > 100,
+        commonPatterns: sortedErrors.slice(0, 3).map(([msg]) => msg),
+        suggestedFocus: focusPattern || (errorLines.length > 0 ? 'ERROR' : 'WARN'),
+      },
     };
   },
 });
@@ -575,6 +659,27 @@ ${extractSections?.length ? `**추출 섹션**: ${extractSections.join(', ')}` :
 
 /**
  * All vision tools for Vision Agent
+ *
+ * Usage Pattern (Option C - Hybrid):
+ * 1. Images are passed via message content: [{ type: 'image', image: base64 }]
+ * 2. LLM analyzes images directly using multimodal capability
+ * 3. These tools structure the analysis output for consistent response format
+ *
+ * @example
+ * // In BaseAgent.buildUserContent():
+ * messages: [{
+ *   role: 'user',
+ *   content: [
+ *     { type: 'text', text: '이 대시보드 분석해줘' },
+ *     { type: 'image', image: 'base64...', mimeType: 'image/png' }
+ *   ]
+ * }]
+ *
+ * // Then LLM calls analyzeScreenshot with findings:
+ * analyzeScreenshot({
+ *   anomalies: ['CPU 95% 스파이크'],
+ *   summary: 'CPU 과부하 감지'
+ * })
  */
 export const visionTools = {
   analyzeScreenshot,
@@ -585,10 +690,13 @@ export const visionTools = {
 
 /**
  * Vision tool descriptions for routing
+ *
+ * Note: These are "structuring tools" - they format the LLM's analysis,
+ * not perform the actual visual analysis.
  */
 export const visionToolDescriptions = {
-  analyzeScreenshot: '대시보드 스크린샷 분석 (Grafana, CloudWatch, Datadog)',
-  analyzeLargeLog: '대용량 로그 파일 분석 (1M 컨텍스트)',
+  analyzeScreenshot: '스크린샷 분석 결과 구조화 (이미지는 message content로 전달)',
+  analyzeLargeLog: '로그 분석 전처리 + 결과 구조화',
   searchWithGrounding: 'Google Search Grounding 실시간 검색',
   analyzeUrlContent: 'URL 콘텐츠 추출 및 분석',
 };

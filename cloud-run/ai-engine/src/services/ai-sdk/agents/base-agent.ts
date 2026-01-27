@@ -15,13 +15,54 @@
  * @created 2026-01-27
  */
 
-import { generateText, streamText, hasToolCall, stepCountIs, type LanguageModel, type Tool } from 'ai';
+import {
+  generateText,
+  streamText,
+  hasToolCall,
+  stepCountIs,
+  type LanguageModel,
+  type Tool,
+  type TextPart,
+  type ImagePart,
+  type FilePart,
+  type UserContent,
+} from 'ai';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
 import type { AgentConfig, ModelResult } from './config';
 
 // ============================================================================
 // Types
 // ============================================================================
+
+/**
+ * Image attachment for multimodal messages
+ * Supports Base64, Data URL, HTTP(S) URL formats
+ *
+ * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#image-parts
+ */
+export interface ImageAttachment {
+  /** Image data: Base64 string, Data URL, or HTTP(S) URL */
+  data: string;
+  /** MIME type (e.g., 'image/png', 'image/jpeg') */
+  mimeType: string;
+  /** Optional filename for display */
+  name?: string;
+}
+
+/**
+ * File attachment for multimodal messages
+ * Supports PDF, audio, and other file types
+ *
+ * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#file-parts
+ */
+export interface FileAttachment {
+  /** File data: Base64 string or HTTP(S) URL */
+  data: string;
+  /** MIME type (e.g., 'application/pdf', 'text/plain') */
+  mimeType: string;
+  /** Optional filename */
+  name?: string;
+}
 
 /**
  * Result returned by agent execution
@@ -67,6 +108,17 @@ export interface AgentRunOptions {
   webSearchEnabled?: boolean;
   /** Session ID for context tracking */
   sessionId?: string;
+  /**
+   * Image attachments for multimodal queries (Vision Agent)
+   * Images are passed directly to the model via message content
+   * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#image-parts
+   */
+  images?: ImageAttachment[];
+  /**
+   * File attachments for multimodal queries (PDF, audio, etc.)
+   * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#file-parts
+   */
+  files?: FileAttachment[];
 }
 
 /**
@@ -81,7 +133,7 @@ export interface AgentStreamEvent {
 // Default Configuration
 // ============================================================================
 
-const DEFAULT_OPTIONS: Required<Omit<AgentRunOptions, 'sessionId'>> = {
+const DEFAULT_OPTIONS: Required<Omit<AgentRunOptions, 'sessionId' | 'images' | 'files'>> = {
   timeoutMs: 45_000,
   maxSteps: 5,
   temperature: 0.4,
@@ -155,6 +207,61 @@ export abstract class BaseAgent {
   }
 
   /**
+   * Build multimodal user message content
+   *
+   * AI SDK v6 Best Practice: Include images/files directly in message content
+   * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#image-parts
+   *
+   * @param query - Text query
+   * @param options - Options with images/files
+   * @returns Content array or string (for text-only)
+   */
+  protected buildUserContent(
+    query: string,
+    options: AgentRunOptions
+  ): UserContent {
+    const hasImages = options.images && options.images.length > 0;
+    const hasFiles = options.files && options.files.length > 0;
+
+    // Text-only: return simple string (most common case)
+    if (!hasImages && !hasFiles) {
+      return query;
+    }
+
+    // Multimodal: build content array with AI SDK-compatible types
+    const content: Array<TextPart | ImagePart | FilePart> = [
+      { type: 'text', text: query } as TextPart,
+    ];
+
+    // Add images (Vision Agent)
+    if (hasImages) {
+      for (const img of options.images!) {
+        content.push({
+          type: 'image',
+          image: img.data,
+          mimeType: img.mimeType,
+        } as ImagePart);
+      }
+      console.log(`📷 [${this.getName()}] Added ${options.images!.length} image(s) to message`);
+    }
+
+    // Add files (PDF, audio, etc.)
+    // Note: AI SDK FilePart uses 'mediaType' not 'mimeType'
+    if (hasFiles) {
+      for (const file of options.files!) {
+        content.push({
+          type: 'file',
+          data: file.data,
+          mediaType: file.mimeType, // AI SDK uses 'mediaType'
+        } as FilePart);
+      }
+      console.log(`📎 [${this.getName()}] Added ${options.files!.length} file(s) to message`);
+    }
+
+    return content;
+  }
+
+  /**
    * Execute agent with query and return complete result
    *
    * Uses AI SDK v6 generateText with stopWhen conditions:
@@ -213,11 +320,14 @@ export abstract class BaseAgent {
     console.log(`🎯 [${agentName}] Using ${provider}/${modelId}`);
 
     try {
+      // Build multimodal user content (text + images + files)
+      const userContent = this.buildUserContent(query, opts);
+
       // Execute with AI SDK v6 native pattern
       const result = await generateText({
         model,
         system: config.instructions,
-        messages: [{ role: 'user', content: query }],
+        messages: [{ role: 'user', content: userContent }],
         tools: filteredTools,
         maxRetries: 1,
         // 🎯 Fix: Apply timeout configuration (AI SDK v6.0.50)
@@ -341,10 +451,13 @@ export abstract class BaseAgent {
     console.log(`🎯 [${agentName}] Streaming with ${provider}/${modelId}`);
 
     try {
+      // Build multimodal user content (text + images + files)
+      const userContent = this.buildUserContent(query, opts);
+
       const streamResult = streamText({
         model,
         system: config.instructions,
-        messages: [{ role: 'user', content: query }],
+        messages: [{ role: 'user', content: userContent }],
         tools: filteredTools,
         // 🎯 Fix: Apply timeout configuration (AI SDK v6.0.50)
         // Defensive: use default if undefined to avoid SDK validation errors

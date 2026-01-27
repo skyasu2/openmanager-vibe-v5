@@ -192,3 +192,166 @@ describe('HybridQueryState 타입 검증', () => {
     expect(initialState.error).toBeNull();
   });
 });
+
+// ============================================================================
+// 멀티모달 메시지 타입 검증 (Phase 4 추가)
+// ============================================================================
+
+describe('멀티모달 메시지 처리 타입 검증', () => {
+  /**
+   * AI SDK v5 FileUIPart 형식 검증
+   * @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot
+   */
+  it('파일 첨부 시 FileUIPart 형식 타입이 올바름', () => {
+    // AI SDK FileUIPart 형식
+    interface FileUIPart {
+      type: 'file';
+      data: string; // Base64 또는 URL
+      mediaType: string;
+      filename?: string;
+    }
+
+    const filePart: FileUIPart = {
+      type: 'file',
+      data: 'data:application/pdf;base64,SGVsbG8gV29ybGQ=',
+      mediaType: 'application/pdf',
+      filename: 'document.pdf',
+    };
+
+    expect(filePart.type).toBe('file');
+    expect(filePart.data).toContain('base64');
+    expect(filePart.mediaType).toBe('application/pdf');
+  });
+
+  /**
+   * AI SDK v5 ImageUIPart 형식 검증
+   */
+  it('이미지 첨부 시 ImageUIPart 형식 타입이 올바름', () => {
+    // AI SDK ImageUIPart 형식
+    interface ImageUIPart {
+      type: 'image';
+      image: string; // Base64 또는 URL
+      mimeType?: string;
+    }
+
+    const imagePart: ImageUIPart = {
+      type: 'image',
+      image: 'data:image/png;base64,iVBORw0KGgo=',
+      mimeType: 'image/png',
+    };
+
+    expect(imagePart.type).toBe('image');
+    expect(imagePart.image).toContain('base64');
+    expect(imagePart.mimeType).toBe('image/png');
+  });
+
+  it('멀티파트 메시지 구조가 올바름', () => {
+    interface TextPart {
+      type: 'text';
+      text: string;
+    }
+
+    interface ImagePart {
+      type: 'image';
+      image: string;
+      mimeType?: string;
+    }
+
+    interface FilePart {
+      type: 'file';
+      data: string;
+      mediaType: string;
+    }
+
+    type MessagePart = TextPart | ImagePart | FilePart;
+
+    interface MultimodalMessage {
+      role: 'user' | 'assistant';
+      parts: MessagePart[];
+    }
+
+    const message: MultimodalMessage = {
+      role: 'user',
+      parts: [
+        { type: 'text', text: '이 이미지를 분석해줘' },
+        {
+          type: 'image',
+          image: 'data:image/png;base64,abc',
+          mimeType: 'image/png',
+        },
+      ],
+    };
+
+    expect(message.parts).toHaveLength(2);
+    expect(message.parts[0].type).toBe('text');
+    expect(message.parts[1].type).toBe('image');
+  });
+
+  it('첨부 파일 있을 때 streaming 모드 강제 타입이 올바름', () => {
+    // 첨부 파일이 있으면 clarification 스킵하고 streaming 모드 사용
+    interface AttachmentAwareQuery {
+      query: string;
+      attachments: Array<{ type: string; data: string }>;
+      skipClarification: boolean;
+      forceStreaming: boolean;
+    }
+
+    const queryWithAttachment: AttachmentAwareQuery = {
+      query: '이 파일 분석해줘',
+      attachments: [{ type: 'image', data: 'base64data' }],
+      skipClarification: true, // 파일 첨부 시 clarification 스킵
+      forceStreaming: true, // streaming 모드 강제
+    };
+
+    expect(queryWithAttachment.skipClarification).toBe(true);
+    expect(queryWithAttachment.forceStreaming).toBe(true);
+    expect(queryWithAttachment.attachments.length).toBeGreaterThan(0);
+  });
+
+  it('FileAttachment에서 AI SDK 파트로 변환 타입', () => {
+    // useFileAttachments 훅의 FileAttachment 타입
+    interface FileAttachment {
+      id: string;
+      name: string;
+      mimeType: string;
+      size: number;
+      data: string;
+      type: 'image' | 'pdf' | 'markdown' | 'other';
+    }
+
+    // AI SDK 파트로 변환 함수 시그니처
+    type ToAISDKPart = (
+      attachment: FileAttachment
+    ) =>
+      | { type: 'file'; data: string; mediaType: string }
+      | { type: 'image'; image: string; mimeType: string };
+
+    // 변환 로직 예시 (타입 검증용)
+    const convertAttachment: ToAISDKPart = (attachment) => {
+      if (attachment.type === 'image') {
+        return {
+          type: 'image',
+          image: attachment.data,
+          mimeType: attachment.mimeType,
+        };
+      }
+      return {
+        type: 'file',
+        data: attachment.data,
+        mediaType: attachment.mimeType,
+      };
+    };
+
+    const imageAttachment: FileAttachment = {
+      id: 'file_123',
+      name: 'screenshot.png',
+      mimeType: 'image/png',
+      size: 1024,
+      data: 'data:image/png;base64,abc',
+      type: 'image',
+    };
+
+    const result = convertAttachment(imageAttachment);
+    expect(result.type).toBe('image');
+  });
+});

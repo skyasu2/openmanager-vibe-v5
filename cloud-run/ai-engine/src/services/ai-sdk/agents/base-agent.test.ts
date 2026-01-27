@@ -870,4 +870,172 @@ describe('BaseAgent', () => {
       expect(agent.isAvailable()).toBe(false);
     });
   });
+
+  // ==========================================================================
+  // buildUserContent() Tests (Phase 4 추가 - 멀티모달)
+  // ==========================================================================
+
+  describe('buildUserContent()', () => {
+    it('should return string for text-only query', async () => {
+      const { BaseAgent } = await import('./base-agent');
+      const mockConfig = createMockConfig();
+
+      class TestAgent extends BaseAgent {
+        getName(): string {
+          return 'Test Agent';
+        }
+        getConfig() {
+          return mockConfig;
+        }
+        // Expose protected method for testing
+        testBuildUserContent(query: string, options: Parameters<typeof this.buildUserContent>[1]) {
+          return this.buildUserContent(query, options);
+        }
+      }
+
+      const agent = new TestAgent();
+      const result = agent.testBuildUserContent('Hello, analyze this server', {});
+
+      // Text-only should return simple string
+      expect(typeof result).toBe('string');
+      expect(result).toBe('Hello, analyze this server');
+    });
+
+    it('should return array with ImagePart when images provided', async () => {
+      const { BaseAgent } = await import('./base-agent');
+      const mockConfig = createMockConfig();
+
+      class TestAgent extends BaseAgent {
+        getName(): string {
+          return 'Test Agent';
+        }
+        getConfig() {
+          return mockConfig;
+        }
+        testBuildUserContent(query: string, options: Parameters<typeof this.buildUserContent>[1]) {
+          return this.buildUserContent(query, options);
+        }
+      }
+
+      const agent = new TestAgent();
+      const result = agent.testBuildUserContent('Analyze this image', {
+        images: [
+          { data: 'data:image/png;base64,abc123', mimeType: 'image/png', name: 'test.png' },
+        ],
+      });
+
+      // Multimodal should return array
+      expect(Array.isArray(result)).toBe(true);
+      const parts = result as Array<{ type: string }>;
+      expect(parts).toHaveLength(2);
+      expect(parts[0].type).toBe('text');
+      expect(parts[1].type).toBe('image');
+
+      // Check ImagePart structure
+      const imagePart = parts[1] as { type: string; image: string; mimeType: string };
+      expect(imagePart.image).toBe('data:image/png;base64,abc123');
+      expect(imagePart.mimeType).toBe('image/png');
+    });
+
+    it('should return array with FilePart when files provided (uses mediaType)', async () => {
+      const { BaseAgent } = await import('./base-agent');
+      const mockConfig = createMockConfig();
+
+      class TestAgent extends BaseAgent {
+        getName(): string {
+          return 'Test Agent';
+        }
+        getConfig() {
+          return mockConfig;
+        }
+        testBuildUserContent(query: string, options: Parameters<typeof this.buildUserContent>[1]) {
+          return this.buildUserContent(query, options);
+        }
+      }
+
+      const agent = new TestAgent();
+      const result = agent.testBuildUserContent('Analyze this PDF', {
+        files: [
+          { data: 'data:application/pdf;base64,xyz789', mimeType: 'application/pdf', name: 'doc.pdf' },
+        ],
+      });
+
+      // Multimodal should return array
+      expect(Array.isArray(result)).toBe(true);
+      const parts = result as Array<{ type: string }>;
+      expect(parts).toHaveLength(2);
+      expect(parts[0].type).toBe('text');
+      expect(parts[1].type).toBe('file');
+
+      // Check FilePart structure - AI SDK uses 'mediaType' not 'mimeType'
+      const filePart = parts[1] as { type: string; data: string; mediaType: string };
+      expect(filePart.data).toBe('data:application/pdf;base64,xyz789');
+      expect(filePart.mediaType).toBe('application/pdf'); // AI SDK uses mediaType
+    });
+
+    it('should return array with mixed content (text + images + files)', async () => {
+      const { BaseAgent } = await import('./base-agent');
+      const mockConfig = createMockConfig();
+
+      class TestAgent extends BaseAgent {
+        getName(): string {
+          return 'Test Agent';
+        }
+        getConfig() {
+          return mockConfig;
+        }
+        testBuildUserContent(query: string, options: Parameters<typeof this.buildUserContent>[1]) {
+          return this.buildUserContent(query, options);
+        }
+      }
+
+      const agent = new TestAgent();
+      const result = agent.testBuildUserContent('Analyze these files', {
+        images: [
+          { data: 'data:image/jpeg;base64,img1', mimeType: 'image/jpeg' },
+          { data: 'data:image/png;base64,img2', mimeType: 'image/png' },
+        ],
+        files: [
+          { data: 'data:text/plain;base64,txt1', mimeType: 'text/plain' },
+        ],
+      });
+
+      expect(Array.isArray(result)).toBe(true);
+      const parts = result as Array<{ type: string }>;
+
+      // 1 text + 2 images + 1 file = 4 parts
+      expect(parts).toHaveLength(4);
+      expect(parts[0].type).toBe('text');
+      expect(parts[1].type).toBe('image');
+      expect(parts[2].type).toBe('image');
+      expect(parts[3].type).toBe('file');
+    });
+
+    it('should handle empty images array as text-only', async () => {
+      const { BaseAgent } = await import('./base-agent');
+      const mockConfig = createMockConfig();
+
+      class TestAgent extends BaseAgent {
+        getName(): string {
+          return 'Test Agent';
+        }
+        getConfig() {
+          return mockConfig;
+        }
+        testBuildUserContent(query: string, options: Parameters<typeof this.buildUserContent>[1]) {
+          return this.buildUserContent(query, options);
+        }
+      }
+
+      const agent = new TestAgent();
+      const result = agent.testBuildUserContent('Just text', {
+        images: [],
+        files: [],
+      });
+
+      // Empty arrays should result in text-only
+      expect(typeof result).toBe('string');
+      expect(result).toBe('Just text');
+    });
+  });
 });

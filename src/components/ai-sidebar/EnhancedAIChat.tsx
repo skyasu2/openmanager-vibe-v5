@@ -3,13 +3,18 @@
 import {
   AlertCircle,
   Bot,
+  File,
   FileText,
+  Image as ImageIcon,
+  Paperclip,
   RefreshCw,
   Send,
   Square,
+  Upload,
   X,
   Zap,
 } from 'lucide-react';
+import Image from 'next/image';
 import React, {
   memo,
   type RefObject,
@@ -23,6 +28,11 @@ import { AgentStatusIndicator } from '@/components/ai/AgentStatusIndicator';
 import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 import type { AsyncQueryProgress } from '@/hooks/ai/useAsyncAIQuery';
+import {
+  type FileAttachment,
+  formatFileSize,
+  useFileAttachments,
+} from '@/hooks/ai/useFileAttachments';
 import type {
   AgentStatusEventData,
   ClarificationOption,
@@ -63,8 +73,8 @@ interface EnhancedAIChatProps {
   inputValue: string;
   /** 입력 값 변경 핸들러 */
   setInputValue: (value: string) => void;
-  /** 메시지 전송 핸들러 */
-  handleSendInput: () => void;
+  /** 메시지 전송 핸들러 (파일 첨부 지원) */
+  handleSendInput: (attachments?: FileAttachment[]) => void;
   /** 생성 중 여부 */
   isGenerating: boolean;
   /** 응답 재생성 핸들러 */
@@ -320,6 +330,45 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   // 🎯 입력창 ref (자동 포커스용)
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // 🎯 파일 입력 ref (숨겨진 input)
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 🎯 파일 첨부 훅 (드래그앤드롭, 이미지/PDF/MD 지원)
+  const {
+    attachments,
+    isDragging,
+    errors: fileErrors,
+    addFiles,
+    removeFile,
+    clearFiles,
+    clearErrors: clearFileErrors,
+    dragHandlers,
+    canAddMore,
+  } = useFileAttachments({ maxFiles: 3 });
+
+  // 🎯 전송 시 파일 첨부 포함
+  const handleSendWithAttachments = useCallback(() => {
+    handleSendInput(attachments.length > 0 ? attachments : undefined);
+    clearFiles(); // 전송 후 첨부 파일 초기화
+  }, [handleSendInput, attachments, clearFiles]);
+
+  // 🎯 파일 선택 다이얼로그 열기
+  const openFileDialog = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  // 🎯 파일 선택 핸들러
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        addFiles(files);
+      }
+      // input 초기화 (같은 파일 재선택 가능)
+      e.target.value = '';
+    },
+    [addFiles]
+  );
 
   // 🎯 Best Practice: 메시지 추가 시 자동 스크롤
   // - 사용자가 하단 근처에 있을 때만 스크롤 (읽는 중 방해 방지)
@@ -549,22 +598,132 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         </div>
       )}
 
-      {/* 🎯 입력 영역 (ChatGPT 스타일 - 중앙 정렬) */}
-      <div className="shrink-0 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+      {/* 🎯 입력 영역 (ChatGPT 스타일 - 중앙 정렬 + 드래그앤드롭) */}
+      <div
+        className="relative shrink-0 border-t border-gray-200 bg-white/80 backdrop-blur-sm"
+        {...dragHandlers}
+      >
+        {/* 🎯 드래그앤드롭 오버레이 */}
+        {isDragging && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center rounded-lg border-2 border-dashed border-blue-400 bg-blue-50/90">
+            <div className="flex flex-col items-center gap-2 text-blue-600">
+              <Upload className="h-8 w-8" />
+              <p className="text-sm font-medium">파일을 여기에 놓으세요</p>
+              <p className="text-xs text-blue-500">
+                이미지, PDF, MD (최대 3개)
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="mx-auto max-w-3xl px-4 py-4">
+          {/* 🎯 파일 에러 토스트 */}
+          {fileErrors.length > 0 && (
+            <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                  <div className="space-y-1">
+                    {fileErrors.map((err, idx) => (
+                      <p key={idx} className="text-xs text-red-600">
+                        {err.message}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearFileErrors}
+                  className="text-red-400 hover:text-red-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 🎯 파일 미리보기 칩 */}
+          {attachments.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {attachments.map((file) => (
+                <div
+                  key={file.id}
+                  className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
+                >
+                  {/* 아이콘 */}
+                  {file.type === 'image' ? (
+                    file.previewUrl ? (
+                      <Image
+                        src={file.previewUrl}
+                        alt={file.name}
+                        width={32}
+                        height={32}
+                        className="rounded object-cover"
+                        unoptimized // Base64 data URLs don't need optimization
+                      />
+                    ) : (
+                      <ImageIcon className="h-5 w-5 text-blue-500" />
+                    )
+                  ) : file.type === 'pdf' ? (
+                    <FileText className="h-5 w-5 text-red-500" />
+                  ) : (
+                    <File className="h-5 w-5 text-gray-500" />
+                  )}
+                  {/* 파일 정보 */}
+                  <div className="max-w-[120px]">
+                    <p className="truncate text-xs font-medium text-gray-700">
+                      {file.name}
+                    </p>
+                    <p className="text-[10px] text-gray-400">
+                      {formatFileSize(file.size)}
+                    </p>
+                  </div>
+                  {/* 삭제 버튼 */}
+                  <button
+                    type="button"
+                    onClick={() => removeFile(file.id)}
+                    className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* 메인 입력 컨테이너 */}
           <div className="relative flex items-end rounded-2xl border border-gray-200 bg-white shadow-sm transition-all focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
+            {/* 🎯 파일 첨부 버튼 (좌측) */}
+            <div className="flex items-center pl-2">
+              <button
+                type="button"
+                onClick={openFileDialog}
+                disabled={
+                  !canAddMore || isGenerating || sessionState?.isLimitReached
+                }
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-40"
+                title={
+                  canAddMore ? '파일 첨부 (이미지, PDF, MD)' : '최대 3개 파일'
+                }
+                aria-label="파일 첨부"
+              >
+                <Paperclip className="h-5 w-5" />
+              </button>
+            </div>
+
             <AutoResizeTextarea
               ref={textareaRef}
               value={inputValue}
               onValueChange={setInputValue}
-              onKeyboardShortcut={() => handleSendInput()}
+              onKeyboardShortcut={handleSendWithAttachments}
               placeholder={
                 sessionState?.isLimitReached
                   ? '새 대화를 시작해주세요'
-                  : '메시지를 입력하세요...'
+                  : attachments.length > 0
+                    ? '이미지/파일과 함께 질문하세요...'
+                    : '메시지를 입력하세요...'
               }
-              className="flex-1 resize-none border-none bg-transparent px-4 py-3 pr-14 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-hidden focus:ring-0"
+              className="flex-1 resize-none border-none bg-transparent px-2 py-3 pr-14 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-hidden focus:ring-0"
               minHeight={48}
               maxHeight={200}
               maxHeightVh={30}
@@ -587,11 +746,9 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               ) : (
                 <button
                   type="button"
-                  onClick={() => {
-                    void handleSendInput();
-                  }}
+                  onClick={handleSendWithAttachments}
                   disabled={
-                    !inputValue.trim() ||
+                    (!inputValue.trim() && attachments.length === 0) ||
                     isGenerating ||
                     sessionState?.isLimitReached
                   }
@@ -605,11 +762,27 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             </div>
           </div>
 
+          {/* 🎯 숨겨진 파일 입력 */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.pdf,.md,text/markdown,text/plain"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+            tabIndex={-1}
+          />
+
           {/* 하단 힌트 */}
           <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
             <div className="flex items-center gap-2">
               {sessionState && !sessionState.isWarning && (
                 <span>대화 {sessionState.count}/20</span>
+              )}
+              {attachments.length > 0 && (
+                <span className="text-blue-500">
+                  📎 {attachments.length}/3 파일
+                </span>
               )}
             </div>
             <span>Enter로 전송, Shift+Enter로 줄바꿈</span>
