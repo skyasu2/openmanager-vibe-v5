@@ -2,19 +2,31 @@
 
 /**
  * Cross-platform Post-commit Hook
- * v3.0.0 - Auto AI Review + Claude Code Integration
+ * v3.1.0 - Auto AI Review + Claude Code Integration
  *
  * 워크플로우:
  * 1. 커밋 완료 → 이 훅 실행
  * 2. WSL에서 auto-ai-review.sh 백그라운드 실행
  * 3. 리뷰 결과 → reports/ai-review/pending/
  * 4. Claude Code가 /ai-code-review로 평가
+ *
+ * 토글:
+ * - AUTO_AI_REVIEW=false: 자동 리뷰 비활성화
+ * - 환경변수 또는 아래 설정값으로 제어
  */
 
 const { spawn, execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+
+// ============================================
+// 🔧 AUTO AI REVIEW TOGGLE
+// ============================================
+// false로 설정하면 커밋 시 자동 AI 리뷰 비활성화
+// 수동 실행: bash scripts/code-review/auto-ai-review.sh
+const AUTO_AI_REVIEW_ENABLED = process.env.AUTO_AI_REVIEW !== 'false' && false;
+// ============================================
 
 const isWindows = os.platform() === 'win32';
 const cwd = process.cwd();
@@ -36,6 +48,16 @@ const commitMsg = tryGit(['log', '-1', '--format=%s']) || 'unknown';
 
 console.log('');
 console.log(`✅ 커밋 완료: ${commitHash} ${commitMsg.substring(0, 50)}`);
+
+// 자동 AI 리뷰 비활성화 체크
+if (!AUTO_AI_REVIEW_ENABLED) {
+  console.log('');
+  console.log('ℹ️  자동 AI 리뷰: 비활성화됨');
+  console.log('   수동 실행: bash scripts/code-review/auto-ai-review.sh');
+  console.log('   활성화: scripts/hooks/post-commit.js에서 AUTO_AI_REVIEW_ENABLED=true');
+  console.log('');
+  process.exit(0);
+}
 
 // Windows에서는 WSL로 리다이렉트
 if (isWindows) {
