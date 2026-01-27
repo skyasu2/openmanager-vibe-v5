@@ -27,6 +27,7 @@ import { AgentHandoffBadge } from '@/components/ai/AgentHandoffBadge';
 import { AgentStatusIndicator } from '@/components/ai/AgentStatusIndicator';
 import { WelcomePromptCards } from '@/components/ai/WelcomePromptCards';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
+import { ImagePreviewModal } from '@/components/ui/ImagePreviewModal';
 import type { AsyncQueryProgress } from '@/hooks/ai/useAsyncAIQuery';
 import {
   type FileAttachment,
@@ -349,6 +350,12 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
     canAddMore,
   } = useFileAttachments({ maxFiles: 3 });
 
+  // 🎯 이미지 미리보기 모달 상태
+  const [previewImage, setPreviewImage] = useState<{
+    url: string;
+    name: string;
+  } | null>(null);
+
   // 🎯 전송 시 파일 첨부 포함
   const handleSendWithAttachments = useCallback(() => {
     handleSendInput(attachments.length > 0 ? attachments : undefined);
@@ -371,6 +378,65 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
       e.target.value = '';
     },
     [addFiles]
+  );
+
+  // 🎯 이미지 썸네일 클릭 핸들러 (확대 미리보기)
+  const handleImageClick = useCallback((file: FileAttachment) => {
+    if (file.type === 'image' && file.previewUrl) {
+      setPreviewImage({ url: file.previewUrl, name: file.name });
+    }
+  }, []);
+
+  // 🎯 이미지 미리보기 모달 닫기
+  const closePreviewModal = useCallback(() => {
+    setPreviewImage(null);
+  }, []);
+
+  // 🎯 클립보드 붙여넣기 핸들러 (Ctrl+V로 이미지+텍스트 혼합 지원)
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const imageFiles: File[] = [];
+      // 현재 입력값 캡처 (클로저에서 사용)
+      const currentInput = inputValue;
+
+      // 1. 클립보드 아이템 분류
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            // 클립보드 이미지는 이름이 없으므로 기본 이름 생성
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const extension = item.type.split('/')[1] || 'png';
+            // 이름이 없는 클립보드 이미지에 이름 부여
+            Object.defineProperty(file, 'name', {
+              writable: true,
+              value: `clipboard-${timestamp}.${extension}`,
+            });
+            imageFiles.push(file);
+          }
+        } else if (item.type === 'text/plain') {
+          // 이미지와 함께 붙여넣기된 텍스트 처리 (비동기)
+          item.getAsString((text) => {
+            if (text?.trim() && imageFiles.length > 0) {
+              // 이미지+텍스트 혼합: 텍스트도 입력창에 추가
+              const newValue = currentInput ? `${currentInput}\n${text}` : text;
+              setInputValue(newValue);
+            }
+          });
+        }
+      }
+
+      // 2. 이미지가 있으면 파일 첨부 (텍스트는 위에서 비동기로 처리됨)
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        addFiles(imageFiles);
+      }
+      // 이미지 없으면 기본 동작 (텍스트만 붙여넣기)
+    },
+    [addFiles, setInputValue, inputValue]
   );
 
   // 🎯 Best Practice: 메시지 추가 시 자동 스크롤
@@ -654,17 +720,25 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
                   key={file.id}
                   className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
                 >
-                  {/* 아이콘 */}
+                  {/* 아이콘 (이미지는 클릭하여 확대) */}
                   {file.type === 'image' ? (
                     file.previewUrl ? (
-                      <Image
-                        src={file.previewUrl}
-                        alt={file.name}
-                        width={32}
-                        height={32}
-                        className="rounded object-cover"
-                        unoptimized // Base64 data URLs don't need optimization
-                      />
+                      <button
+                        type="button"
+                        onClick={() => handleImageClick(file)}
+                        className="shrink-0 cursor-pointer overflow-hidden rounded transition-opacity hover:opacity-80"
+                        title="클릭하여 확대"
+                        aria-label={`이미지 확대: ${file.name}`}
+                      >
+                        <Image
+                          src={file.previewUrl}
+                          alt={file.name}
+                          width={32}
+                          height={32}
+                          className="rounded object-cover"
+                          unoptimized // Base64 data URLs don't need optimization
+                        />
+                      </button>
                     ) : (
                       <ImageIcon className="h-5 w-5 text-blue-500" />
                     )
@@ -695,8 +769,11 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             </div>
           )}
 
-          {/* 메인 입력 컨테이너 */}
-          <div className="relative flex items-end rounded-2xl border border-gray-200 bg-white shadow-sm transition-all focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
+          {/* 메인 입력 컨테이너 (onPaste로 클립보드 이미지 지원) */}
+          <div
+            className="relative flex items-end rounded-2xl border border-gray-200 bg-white shadow-sm transition-all focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100"
+            onPaste={handlePaste}
+          >
             {/* 🎯 파일 첨부 버튼 (좌측) */}
             <div className="flex items-center pl-2">
               <button
@@ -793,6 +870,16 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
           </div>
         </div>
       </div>
+
+      {/* 🖼️ 이미지 확대 미리보기 모달 */}
+      {previewImage && (
+        <ImagePreviewModal
+          isOpen={!!previewImage}
+          onClose={closePreviewModal}
+          imageUrl={previewImage.url}
+          imageName={previewImage.name}
+        />
+      )}
     </div>
   );
 });
