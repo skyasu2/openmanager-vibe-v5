@@ -306,6 +306,57 @@ describe('message-normalizer', () => {
     });
   });
 
+  describe('normalizeMessagesForCloudRun image deduplication', () => {
+    it('type:image와 type:file 파트에서 동일 이미지 중복을 제거한다', () => {
+      const messages: HybridMessage[] = [
+        {
+          role: 'user',
+          parts: [
+            { type: 'text', text: '이 이미지 분석해줘' },
+            // type:'image' 파트
+            { type: 'image', image: 'data:image/png;base64,abc123' },
+            // type:'file' 파트 (동일 이미지 데이터)
+            {
+              type: 'file',
+              url: 'data:image/png;base64,abc123',
+              mediaType: 'image/png',
+            },
+          ],
+        },
+      ];
+
+      const result = normalizeMessagesForCloudRun(messages);
+
+      // 이미지가 1개만 있어야 함 (중복 제거됨)
+      expect(result[0].images).toHaveLength(1);
+      expect(result[0].images![0].data).toBe('data:image/png;base64,abc123');
+    });
+
+    it('서로 다른 이미지는 모두 보존한다', () => {
+      const messages: HybridMessage[] = [
+        {
+          role: 'user',
+          parts: [
+            { type: 'text', text: '두 이미지 비교해줘' },
+            { type: 'image', image: 'data:image/png;base64,image1' },
+            {
+              type: 'file',
+              url: 'data:image/png;base64,image2',
+              mediaType: 'image/png',
+            },
+          ],
+        },
+      ];
+
+      const result = normalizeMessagesForCloudRun(messages);
+
+      // 서로 다른 이미지이므로 2개 모두 보존
+      expect(result[0].images).toHaveLength(2);
+      expect(result[0].images![0].data).toBe('data:image/png;base64,image1');
+      expect(result[0].images![1].data).toBe('data:image/png;base64,image2');
+    });
+  });
+
   describe('extractLastUserQuery', () => {
     it('마지막 사용자 메시지를 추출한다', () => {
       const messages: HybridMessage[] = [

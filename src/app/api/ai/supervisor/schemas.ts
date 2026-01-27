@@ -62,8 +62,10 @@ const filePartSchema = z
     name: z.string().max(255).optional(),
   })
   .refine(
-    (part) => typeof part.data === 'string' || typeof part.url === 'string',
-    { message: 'File part must include either data or url field' }
+    (part) =>
+      (typeof part.data === 'string' && part.data.length > 0) ||
+      (typeof part.url === 'string' && part.url.length > 0),
+    { message: 'File part must include non-empty data or url field' }
   );
 
 /**

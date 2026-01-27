@@ -319,9 +319,16 @@ export function normalizeMessagesForCloudRun(
     const content = extractTextFromHybridMessage(msg);
 
     // 🎯 Fix: type='image' 파트 + type='file' 파트 중 이미지 MIME 타입 모두 수집
+    // 🎯 P0 Fix: data 기준 중복 제거 (동일 이미지가 image/file 파트 모두에 있을 수 있음)
     const imagesFromImageParts = extractImagesFromHybridMessage(msg);
     const imagesFromFileParts = extractImagesFromFileParts(msg);
-    const allImages = [...imagesFromImageParts, ...imagesFromFileParts];
+
+    // data 필드 기준 중복 제거
+    const seenData = new Set(imagesFromImageParts.map((img) => img.data));
+    const uniqueFileParts = imagesFromFileParts.filter(
+      (img) => !seenData.has(img.data)
+    );
+    const allImages = [...imagesFromImageParts, ...uniqueFileParts];
 
     const files = extractFilesFromHybridMessage(msg);
 

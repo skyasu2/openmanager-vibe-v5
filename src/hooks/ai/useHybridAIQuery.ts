@@ -251,6 +251,8 @@ export interface UseHybridAIQueryReturn {
   submitCustomClarification: (customInput: string) => void;
   /** 명확화 건너뛰기 (원본 쿼리 그대로 전송) */
   skipClarification: () => void;
+  /** 명확화 취소 (쿼리 미실행, 상태 정리만) */
+  dismissClarification: () => void;
 }
 
 // ============================================================================
@@ -921,6 +923,17 @@ export function useHybridAIQuery(
     executeQuery(query, attachments || undefined);
   }, [executeQuery]);
 
+  /**
+   * 명확화 취소 (쿼리 미실행, 상태 정리만)
+   * 🎯 P0 Fix: 명확화를 취소하고 쿼리 실행하지 않을 때 메모리 정리
+   */
+  const dismissClarification = useCallback(() => {
+    // 명확화 상태 및 pending refs 정리
+    setState((prev) => ({ ...prev, clarification: null }));
+    pendingQueryRef.current = null;
+    pendingAttachmentsRef.current = null;
+  }, []);
+
   // ============================================================================
   // Control Functions
   // ============================================================================
@@ -952,6 +965,7 @@ export function useHybridAIQuery(
     asyncQuery.reset();
     setMessages([]);
     pendingQueryRef.current = null;
+    pendingAttachmentsRef.current = null; // 🎯 P0 Fix: 첨부 파일 참조 정리
     currentQueryRef.current = null;
     setState({
       mode: 'streaming',
@@ -1004,6 +1018,7 @@ export function useHybridAIQuery(
     selectClarification,
     submitCustomClarification,
     skipClarification,
+    dismissClarification,
   };
 }
 
