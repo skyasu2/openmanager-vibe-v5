@@ -10,7 +10,7 @@
 // 🧠 AI 엔진 버전 정보
 import { logger } from '@/lib/logging';
 export const AI_ENGINE_VERSIONS = {
-  master: '4.0.0',
+  master: '7.1.0',
 
   // 오픈소스 엔진 (6개)
   opensource: {
@@ -193,7 +193,7 @@ export class VersionManager {
     return {
       ai_engines: AI_ENGINE_VERSIONS,
       data_generators: DATA_GENERATOR_VERSIONS,
-      system_version: '7.0.1', // 메인 시스템 버전
+      system_version: '7.1.0', // 메인 시스템 버전
       last_updated: new Date().toISOString(),
     };
   }
