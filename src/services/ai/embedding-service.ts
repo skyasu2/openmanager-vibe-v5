@@ -35,7 +35,7 @@ interface CloudRunEmbeddingResult {
 class EmbeddingService {
   private cache = new Map<string, EmbeddingCache>();
   private readonly CACHE_TTL = 10800000; // 3시간
-  private readonly MAX_CACHE_SIZE = 1000;
+  private readonly MAX_CACHE_SIZE = 5000; // v7.1.0: 1000 → 5000 (반복 API 호출 감소)
   private readonly DEFAULT_DIMENSION = 1024; // Mistral mistral-embed
 
   // 캐시 히트율 추적

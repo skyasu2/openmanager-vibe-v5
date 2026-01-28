@@ -125,7 +125,7 @@ export type SWRPresetKey = keyof typeof SWRPreset;
 export class UnifiedCacheService {
   private cache = new Map<string, CacheItem<unknown>>();
   private patterns = new Map<string, QueryPattern>();
-  private maxSize = 1000; // 통합 후 최대 1000개
+  private maxSize = 5000; // v7.1.0: 1000 → 5000 (반복 API 호출 감소)
   private stats = {
     hits: 0,
     misses: 0,
