@@ -12,12 +12,7 @@
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import {
-  type KeyboardEvent as ReactKeyboardEvent,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSystemChecklist } from '../../../hooks/useSystemChecklist';
 import type {
   DebugInfo,
@@ -27,11 +22,8 @@ import type {
   WindowWithDebug,
 } from '../../../types/system-checklist';
 import debug from '../../../utils/debug';
-import {
-  getComponentIcon,
-  getPriorityBorder,
-  getStatusIcon,
-} from '../../../utils/system-checklist-icons';
+import { ChecklistItem } from './ChecklistItem';
+import { CompletionOverlay } from './CompletionOverlay';
 import { DebugPanel } from './DebugPanel';
 
 export default function SystemChecklist({
@@ -471,87 +463,16 @@ export default function SystemChecklist({
 
         {/* 컴팩트한 체크리스트 */}
         <div className="space-y-2">
-          {componentDefinitions.map((component, _index) => {
+          {componentDefinitions.map((component) => {
             const status = components[component.id];
             if (!status) return null;
 
-            const isDiagnosticAvailable =
-              status.status === 'failed' &&
-              (process.env.NEXT_PUBLIC_NODE_ENV ||
-                process.env.NODE_ENV === 'development');
-
-            const handleCardActivate = () => {
-              if (isDiagnosticAvailable) {
-                (
-                  window as unknown as WindowWithDebug
-                ).systemChecklistDebug?.analyzeComponent(component.id);
-              }
-            };
-
             return (
-              <button
-                type="button"
+              <ChecklistItem
                 key={component.id}
-                className={`w-full text-left flex items-center rounded-xl border p-3 backdrop-blur-sm ${getPriorityBorder(component.priority)} ${
-                  status.status === 'completed'
-                    ? 'bg-green-500/10'
-                    : status.status === 'failed'
-                      ? 'bg-red-500/10'
-                      : status.status === 'loading'
-                        ? 'bg-blue-500/10'
-                        : 'bg-gray-500/10'
-                } transition-all duration-300 ${isDiagnosticAvailable ? 'cursor-pointer hover:bg-red-500/20' : ''} `}
-                disabled={!isDiagnosticAvailable}
-                onClick={handleCardActivate}
-                onKeyDown={(event: ReactKeyboardEvent<HTMLButtonElement>) => {
-                  if (!isDiagnosticAvailable) return;
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    handleCardActivate();
-                  }
-                }}
-                title={
-                  status.status === 'failed'
-                    ? `클릭하여 에러 분석 (에러: ${status.error})`
-                    : component.description
-                }
-              >
-                {/* 컴포넌트 아이콘 */}
-                <span className="mr-3 text-2xl">
-                  {getComponentIcon(component.name)}
-                </span>
-
-                {/* 상태 정보 */}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="truncate text-sm font-medium text-white">
-                      {component.name}
-                    </span>
-                    {getStatusIcon(status)}
-                  </div>
-
-                  {/* 진행률 바 (로딩 중일 때만) */}
-                  {status.status === 'loading' && (
-                    <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-gray-600/30">
-                      <div
-                        className="h-full animate-pulse rounded-full bg-blue-400 transition-all duration-300"
-                        style={{
-                          width: status.progress
-                            ? `${status.progress}%`
-                            : '60%',
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* 에러 메시지 (실패 시) */}
-                  {status.status === 'failed' && status.error && (
-                    <div className="mt-1 truncate text-xs text-red-300">
-                      {status.error}
-                    </div>
-                  )}
-                </div>
-              </button>
+                component={component}
+                status={status}
+              />
             );
           })}
         </div>
@@ -602,65 +523,12 @@ export default function SystemChecklist({
 
         {/* 완료 상태 표시 */}
         {showCompleted && (
-          <button
-            type="button"
-            className="absolute inset-0 flex items-center justify-center rounded-2xl border border-green-500/50 bg-green-500/20 backdrop-blur-sm duration-500 animate-in fade-in zoom-in"
-            tabIndex={0}
-            aria-label="체크리스트 완료 후 다음 단계로 이동"
-            onClick={() => {
+          <CompletionOverlay
+            onProceed={() => {
               setShouldProceed(true);
               setTimeout(() => onComplete(), 100);
             }}
-            onKeyDown={(event: ReactKeyboardEvent<HTMLButtonElement>) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                setShouldProceed(true);
-                setTimeout(() => onComplete(), 100);
-              }
-            }}
-          >
-            <div className="text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500">
-                <svg
-                  className="h-8 w-8 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h3 className="mb-2 text-xl font-bold text-white">
-                시스템 초기화 완료
-              </h3>
-              <p className="mb-3 text-sm text-gray-300">
-                다음 단계로 진행합니다...
-              </p>
-              <div className="inline-flex items-center space-x-2 rounded-lg border border-green-400/50 bg-green-500/30 px-4 py-2">
-                <span className="text-sm text-green-200">클릭하여 계속</span>
-                <svg
-                  className="h-4 w-4 text-green-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                  />
-                </svg>
-              </div>
-            </div>
-          </button>
+          />
         )}
 
         {/* 스킵 버튼 (3초 후 표시) */}

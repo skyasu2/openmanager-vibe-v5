@@ -41,8 +41,8 @@ import type {
 } from '@/hooks/ai/useHybridAIQuery';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 import type { SessionState } from '@/types/session';
-import { ColdStartErrorBanner } from './chat/ColdStartErrorBanner';
 import { ClarificationDialog } from './ClarificationDialog';
+import { ColdStartErrorBanner } from './chat/ColdStartErrorBanner';
 import { JobProgressIndicator } from './JobProgressIndicator';
 
 /**

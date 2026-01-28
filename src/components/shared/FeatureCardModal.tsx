@@ -6,23 +6,16 @@ import dynamic from 'next/dynamic';
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { getDiagramByCardId } from '@/data/architecture-diagrams.data';
-import {
-  CATEGORY_STYLES,
-  IMPORTANCE_STYLES,
-  TECH_STACKS_DATA,
-  type VibeCodeData,
-} from '@/data/tech-stacks.data';
+import { TECH_STACKS_DATA, type VibeCodeData } from '@/data/tech-stacks.data';
 import { logger } from '@/lib/logging';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import type {
-  CategoryStyle,
   FeatureCardModalProps,
-  ImportanceLevel,
-  ImportanceStyle,
-  TechCategory,
   TechItem,
 } from '@/types/feature-card.types';
 import type { ReactFlowDiagramProps } from './ReactFlowDiagram';
+import { TechStackSection } from './TechStackSection';
+import { VibeHistorySection } from './VibeHistorySection';
 
 // React Flow는 클라이언트 사이드에서만 렌더링 (SSR 비활성화)
 const ReactFlowDiagram = dynamic<ReactFlowDiagramProps>(
@@ -178,110 +171,6 @@ export default function FeatureCardModal({
     if (!cardData.id) return null;
     return getDiagramByCardId(cardData.id);
   }, [cardData.id]);
-
-  // 중요도별 스타일 가져오기
-  const getImportanceStyle = (importance: ImportanceLevel): ImportanceStyle => {
-    return IMPORTANCE_STYLES[importance];
-  };
-
-  // 카테고리별 스타일 가져오기
-  const getCategoryStyle = (category: TechCategory): CategoryStyle => {
-    return CATEGORY_STYLES[category];
-  };
-
-  // 기술 카드 컴포넌트 (과거 구현 참조)
-  const TechCard = React.memo(({ tech }: { tech: TechItem }) => {
-    const importanceStyle = getImportanceStyle(tech.importance);
-    const categoryStyle = getCategoryStyle(tech.category);
-
-    return (
-      <div
-        className={`rounded-lg border p-4 ${importanceStyle.bg} transition-all duration-300 hover:scale-105`}
-      >
-        <div className="mb-3 flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">{tech.icon}</span>
-            <div>
-              <h4 className="text-sm font-semibold text-white">
-                {sanitizeText(tech.name)}
-              </h4>
-              {tech.version && (
-                <span className="text-xs text-gray-400">
-                  v{sanitizeText(tech.version)}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span
-              className={`rounded-full px-2 py-1 text-xs font-medium ${importanceStyle.badge}`}
-            >
-              {importanceStyle.label}
-            </span>
-            <span
-              className={`rounded-full px-2 py-1 text-xs ${categoryStyle.bg} ${categoryStyle.color}`}
-            >
-              {tech.category}
-            </span>
-          </div>
-        </div>
-
-        <p className="mb-2 text-xs leading-relaxed text-gray-300">
-          {sanitizeText(tech.description)}
-        </p>
-
-        <div className="mb-3 rounded bg-gray-800/50 p-2 text-xs text-gray-400">
-          <strong className="text-gray-300">구현:</strong>{' '}
-          {sanitizeText(tech.implementation)}
-        </div>
-
-        {/* 제품 타입 및 AI 엔진 타입 배지 */}
-        <div className="mb-2 flex flex-wrap gap-2">
-          {tech.type && (
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                tech.type === 'custom'
-                  ? 'border border-blue-500/30 bg-blue-500/20 text-blue-300'
-                  : tech.type === 'opensource'
-                    ? 'border border-green-500/30 bg-green-500/20 text-green-300'
-                    : 'border border-purple-500/30 bg-purple-500/20 text-purple-300'
-              }`}
-            >
-              {tech.type === 'custom'
-                ? '🏭 커스텀'
-                : tech.type === 'opensource'
-                  ? '🔓 오픈소스'
-                  : '📦 상용'}
-            </span>
-          )}
-          {tech.aiType && (
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                tech.aiType === 'google-api'
-                  ? 'border border-green-500/30 bg-green-500/20 text-green-300'
-                  : 'border border-yellow-500/30 bg-yellow-500/20 text-yellow-300'
-              }`}
-            >
-              {tech.aiType === 'google-api' ? '🌐 Cloud AI' : '💻 로컬 AI'}
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-1">
-          {tech.tags?.map((tag, tagIndex) => (
-            <span
-              key={tagIndex}
-              className="rounded bg-gray-700/50 px-2 py-1 text-xs text-gray-300"
-            >
-              {sanitizeText(tag)}
-            </span>
-          )) || null}
-        </div>
-      </div>
-    );
-  });
-
-  TechCard.displayName = 'TechCard';
 
   // 🎯 Qwen 제안: 메모리 효율성 개선 - 단일 순회로 모든 중요도별 분류 처리
   const categorizedTechData = React.useMemo(() => {
@@ -499,183 +388,14 @@ export default function FeatureCardModal({
           {cardData.id === 'vibe-coding' &&
           isHistoryView &&
           vibeHistoryStages ? (
-            <div className="space-y-10">
-              {/* 1단계: 초기 */}
-              <div className="space-y-4">
-                <div className="mb-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
-                  <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-emerald-300">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-300">
-                      1
-                    </div>
-                    초기 단계
-                    <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-sm text-emerald-300">
-                      {vibeHistoryStages.stage1?.length || 0}개 도구
-                    </span>
-                  </h4>
-                  <p className="mb-3 text-sm text-emerald-200/80">
-                    ChatGPT로 개별 페이지 생성 → GitHub 수동 업로드 → Netlify
-                    배포 → 데모용 목업 수준
-                  </p>
-                  <a
-                    href="https://openmanager-vibe-v2.netlify.app/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-600/80 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:bg-emerald-500"
-                  >
-                    <span>🔗</span>
-                    <span>v2 버전 확인하기</span>
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                      />
-                    </svg>
-                  </a>
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {vibeHistoryStages.stage1?.map(
-                    (tech: TechItem, _index: number) => (
-                      <TechCard key={tech.name} tech={tech} />
-                    )
-                  ) || null}
-                </div>
-              </div>
-
-              {/* 2단계: 중기 */}
-              <div className="space-y-4">
-                <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
-                  <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-amber-300">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-sm font-bold text-amber-300">
-                      2
-                    </div>
-                    중기 단계
-                    <span className="rounded-full bg-amber-500/20 px-3 py-1 text-sm text-amber-300">
-                      {vibeHistoryStages.stage2?.length || 0}개 도구
-                    </span>
-                  </h4>
-                  <p className="text-sm text-amber-200/80">
-                    Cursor 도입 → GitHub 연동 → Vercel 배포 → Supabase CRUD 웹앱
-                    완성
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {vibeHistoryStages.stage2?.map(
-                    (tech: TechItem, _index: number) => (
-                      <TechCard key={tech.name} tech={tech} />
-                    )
-                  ) || null}
-                </div>
-              </div>
-
-              {/* 3단계: 후기 */}
-              <div className="space-y-4">
-                <div className="mb-6 rounded-lg border border-purple-500/30 bg-purple-500/10 p-4">
-                  <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-purple-300">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/20 text-sm font-bold text-purple-300">
-                      3
-                    </div>
-                    후기 단계
-                    <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">
-                      {vibeHistoryStages.stage3?.length || 0}개 도구
-                    </span>
-                  </h4>
-                  <p className="text-sm text-purple-200/80">
-                    Claude Code 전환 → WSL 최적화 → 멀티 AI CLI 협업 → GCP
-                    Functions 활용
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {vibeHistoryStages.stage3?.map(
-                    (tech: TechItem, _index: number) => (
-                      <TechCard key={tech.name} tech={tech} />
-                    )
-                  ) || null}
-                </div>
-              </div>
-            </div>
+            <VibeHistorySection historyStages={vibeHistoryStages} />
           ) : (
-            // 기존 중요도별 분류 방식
-            <div className="space-y-8">
-              {/* 필수 기술 (Critical) */}
-              {criticalTech.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="flex items-center gap-2 text-lg font-semibold text-red-300">
-                    <div className="h-3 w-3 rounded-full bg-red-400"></div>
-                    필수 기술 (Critical)
-                    <span className="rounded-full bg-red-500/20 px-2 py-1 text-xs text-red-300">
-                      {criticalTech.length}개
-                    </span>
-                  </h4>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {criticalTech.map((tech, _index) => (
-                      <TechCard key={tech.name} tech={tech} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 중요 기술 (High) */}
-              {highTech.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="flex items-center gap-2 text-lg font-semibold text-orange-300">
-                    <div className="h-3 w-3 rounded-full bg-orange-400"></div>
-                    중요 기술 (High)
-                    <span className="rounded-full bg-orange-500/20 px-2 py-1 text-xs text-orange-300">
-                      {highTech.length}개
-                    </span>
-                  </h4>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {highTech.map((tech, _index) => (
-                      <TechCard key={tech.name} tech={tech} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 보통 기술 (Medium) */}
-              {mediumTech.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="flex items-center gap-2 text-lg font-semibold text-blue-300">
-                    <div className="h-3 w-3 rounded-full bg-blue-400"></div>
-                    보통 기술 (Medium)
-                    <span className="rounded-full bg-blue-500/20 px-2 py-1 text-xs text-blue-300">
-                      {mediumTech.length}개
-                    </span>
-                  </h4>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {mediumTech.map((tech, _index) => (
-                      <TechCard key={tech.name} tech={tech} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 낮은 우선순위 기술 (Low) */}
-              {lowTech.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-300">
-                    <div className="h-3 w-3 rounded-full bg-gray-400"></div>
-                    보조 기술 (Low)
-                    <span className="rounded-full bg-gray-500/20 px-2 py-1 text-xs text-gray-300">
-                      {lowTech.length}개
-                    </span>
-                  </h4>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {lowTech.map((tech, _index) => (
-                      <TechCard key={tech.name} tech={tech} />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <TechStackSection
+              criticalTech={criticalTech}
+              highTech={highTech}
+              mediumTech={mediumTech}
+              lowTech={lowTech}
+            />
           )}
         </>
       )}
