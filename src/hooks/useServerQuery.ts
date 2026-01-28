@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type { EnhancedServerMetrics } from '@/types/server';
-import type { Server } from '@/types/server';
+import type { EnhancedServerMetrics, Server } from '@/types/server';
 import { mapServerToEnhanced } from '@/utils/serverUtils';
 
 const fetchServers = async (): Promise<EnhancedServerMetrics[]> => {
