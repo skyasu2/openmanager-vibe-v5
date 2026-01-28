@@ -263,11 +263,12 @@ export function getMistralModel(
  * Free Tier (2026-01):
  * - 1,000 RPD, 15 RPM, 250K TPM
  *
- * @param modelId - 'gemini-2.5-flash-lite' (default) or 'gemini-2.5-flash-preview-04-17'
+ * @param modelId - 'gemini-2.5-flash' (default, stable) - Vision/PDF/Audio support
  * @added 2026-01-27
+ * @updated 2026-01-28 - Changed to gemini-2.5-flash (lite has v1 spec issue, 2.0 deprecated Mar 2026)
  */
 export function getGeminiFlashLiteModel(
-  modelId: string = 'gemini-2.5-flash-lite'
+  modelId: string = 'gemini-2.5-flash'
 ): LanguageModel {
   const gemini = createGeminiProvider();
   return asLanguageModel(gemini(modelId));
@@ -465,9 +466,9 @@ export function getVisionAgentModel(): {
 
   try {
     return {
-      model: getGeminiFlashLiteModel('gemini-2.5-flash-lite'),
+      model: getGeminiFlashLiteModel('gemini-2.5-flash'),
       provider: 'gemini',
-      modelId: 'gemini-2.5-flash-lite',
+      modelId: 'gemini-2.5-flash',
     };
   } catch (error) {
     console.error('❌ [Vision Agent] Gemini initialization failed:', error);
