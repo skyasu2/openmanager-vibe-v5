@@ -133,6 +133,7 @@ export function useAIChatCore(
 
   // Refs
   const lastQueryRef = useRef<string>('');
+  const lastAttachmentsRef = useRef<FileAttachment[] | null>(null);
   const pendingQueryRef = useRef<string>('');
 
   // 🧩 Composed Hooks
@@ -255,6 +256,7 @@ export function useAIChatCore(
     setInput('');
     setError(null);
     pendingQueryRef.current = '';
+    lastAttachmentsRef.current = null;
     clearHistory();
   }, [resetHybridQuery, refreshSessionId, clearHistory]);
 
@@ -288,7 +290,8 @@ export function useAIChatCore(
   const retryLastQuery = useCallback(() => {
     if (!lastQueryRef.current) return;
     setError(null);
-    sendQuery(lastQueryRef.current);
+    // 🎯 Fix: 재시도 시 파일 첨부도 함께 전달
+    sendQuery(lastQueryRef.current, lastAttachmentsRef.current || undefined);
   }, [sendQuery]);
 
   // ============================================================================
@@ -314,6 +317,7 @@ export function useAIChatCore(
       // 🎯 Fix: 첨부만 있을 경우 기본 텍스트 설정
       const effectiveText = hasText ? input : '[이미지/파일 분석 요청]';
       lastQueryRef.current = effectiveText;
+      lastAttachmentsRef.current = attachments || null;
       pendingQueryRef.current = effectiveText;
       setInput('');
 
