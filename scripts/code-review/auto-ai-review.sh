@@ -227,10 +227,11 @@ SINGLE_COMMIT_MODE=${SINGLE_COMMIT_MODE:-true}   # true: 마지막 커밋만 리
 CODE_FILES_ONLY=${CODE_FILES_ONLY:-true}          # true: 코드 파일만 리뷰 (docs 제외)
 
 # ===== v9.2.0: 리뷰 모드 설정 =====
-# - codex-gemini: 기존 Codex ↔ Gemini 순환
-# - claude: Claude Code 단독 리뷰 (기본값)
+# - codex-gemini: 기존 Codex ↔ Gemini 순환 (기본값)
+# - claude: Claude Code 단독 리뷰 (별도 프로세스 - 수동 사용 권장)
 # - all: Codex/Gemini + Claude 교차 검증 (2개 리포트 생성)
-REVIEW_MODE=${REVIEW_MODE:-claude}
+# Note: claude 모드는 현재 세션과 별개로 실행되어 컨텍스트 공유 안 됨
+REVIEW_MODE=${REVIEW_MODE:-codex-gemini}
 
 # 코드 파일 패턴 (CODE_FILES_ONLY=true 시 적용)
 CODE_FILE_PATTERNS="src/ lib/ scripts/ hooks/ components/ app/ pages/ api/ tests/ __tests__"

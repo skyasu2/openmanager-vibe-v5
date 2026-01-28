@@ -16,17 +16,20 @@ allowed-tools: Bash, Read, Grep, Edit
 
 | Mode | 설명 |
 |------|------|
-| `claude` | Claude Code 단독 리뷰 (기본값) |
-| `codex-gemini` | Codex ↔ Gemini 순환 |
+| `codex-gemini` | Codex ↔ Gemini 순환 (기본값) |
+| `claude` | Claude Code 단독 (별도 프로세스, 수동 권장) |
 | `all` | Codex/Gemini + Claude 교차 검증 |
 
 ```bash
-# 기본값: Claude Code 리뷰
+# 기본값: Codex/Gemini 순환
 bash scripts/code-review/auto-ai-review.sh
 
-# Codex/Gemini 순환으로 변경
-REVIEW_MODE=codex-gemini bash scripts/code-review/auto-ai-review.sh
+# Claude로 변경 (수동 실행 권장)
+REVIEW_MODE=claude bash scripts/code-review/auto-ai-review.sh
 ```
+
+> **Note**: `claude` 모드는 별도 프로세스로 실행되어 현재 세션 컨텍스트를 공유하지 않습니다.
+> Claude Code 세션 내에서 직접 리뷰 요청하는 것이 더 효과적입니다.
 
 ## Trigger Keywords
 
