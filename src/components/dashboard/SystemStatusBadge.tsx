@@ -1,7 +1,3 @@
-'use client';
-
-import { memo } from 'react';
-
 /**
  * 시스템 상태 배지 Props
  */
@@ -15,7 +11,7 @@ interface SystemStatusBadgeProps {
 }
 
 /**
- * 시스템 상태 배지 컴포넌트
+ * 시스템 상태 배지 컴포넌트 (Server Component)
  *
  * @description
  * - 시스템 자동 종료 타이머 표시
@@ -32,7 +28,7 @@ interface SystemStatusBadgeProps {
  * />
  * ```
  */
-export const SystemStatusBadge = memo(function SystemStatusBadge({
+export function SystemStatusBadge({
   isActive,
   remainingTimeFormatted,
   remainingTime,
@@ -70,6 +66,4 @@ export const SystemStatusBadge = memo(function SystemStatusBadge({
 
   // 상태 없음 (표시하지 않음)
   return null;
-});
-
-SystemStatusBadge.displayName = 'SystemStatusBadge';
+}

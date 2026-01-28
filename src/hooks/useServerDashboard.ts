@@ -31,14 +31,14 @@ import { useServerMetrics } from './useServerMetrics';
 
 // 🎯 기존 useServerDashboard 훅 (하위 호환성 유지 + 성능 최적화)
 export function useServerDashboard(options: UseServerDashboardOptions = {}) {
-  const { onStatsUpdate } = options;
+  const { initialServers, onStatsUpdate } = options;
 
-  // React Query로 데이터 가져오기
+  // React Query로 데이터 가져오기 (Phase 2: SSR 초기 데이터 지원)
   const {
     data: rawServers = [],
     isLoading,
     error: queryError,
-  } = useServerQuery();
+  } = useServerQuery({ initialData: initialServers });
 
   const error = queryError ? queryError.message : null;
 

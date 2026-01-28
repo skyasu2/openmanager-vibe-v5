@@ -110,6 +110,8 @@ export type ViewMode = 'grid' | 'list';
 
 // 🎯 기존 useServerDashboard 인터페이스 유지 (v5.83.13: critical 추가)
 export interface UseServerDashboardOptions {
+  /** Pre-fetched servers from Server Component (Phase 2: SSR) */
+  initialServers?: Server[];
   onStatsUpdate?: (stats: {
     total: number;
     online: number;

@@ -1,10 +1,10 @@
 'use client';
 
 /**
- * 🚀 Dashboard Client Component - 클라이언트 사이드 로직 v5.1.0
+ * Dashboard Client Component v5.2.0
  *
- * 서버 컴포넌트에서 전달받은 데이터로 UI를 렌더링
- * 🔧 Fixed: TypeError w is not a function (usePerformanceGuard disabled)
+ * Receives pre-fetched data from Server Component.
+ * Handles client-side interactivity (auth, AI sidebar, real-time updates).
  */
 
 import dynamic from 'next/dynamic';
@@ -16,25 +16,30 @@ import UnauthorizedAccessUI from '@/components/shared/UnauthorizedAccessUI';
 import { NotificationToast } from '@/components/system/NotificationToast';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { useToast } from '@/hooks/use-toast';
-// AISidebarV2는 필요시에만 동적 로드
 import { useAutoLogout } from '@/hooks/useAutoLogout';
-// import { usePerformanceGuard } from '@/hooks/usePerformanceGuard'; // 🛡️ 성능 모니터링 - 임시 비활성화
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import type { DashboardStats } from '@/lib/dashboard/server-data';
 import { logger } from '@/lib/logging';
 import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
-// Admin mode removed - Phase 2: Admin removal complete
-import { useAISidebarStore } from '@/stores/useAISidebarStore'; // AI 사이드바 상태
+import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-// 🔧 레거시 정리 (2026-01-17): Server 타입 import 제거 - AnimatedServerModal 제거됨
+import type { Server } from '@/types/server';
 import { triggerAIWarmup } from '@/utils/ai-warmup';
 import debug from '@/utils/debug';
 import DashboardContent from '../../components/dashboard/DashboardContent';
-// --- Static Imports for Core Components (SSR bailout 해결) ---
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
+
+/** Props for DashboardClient (Phase 2: SSR data) */
+type DashboardClientProps = {
+  /** Pre-fetched servers from Server Component */
+  initialServers?: Server[];
+  /** Pre-calculated stats from Server Component */
+  initialStats?: DashboardStats;
+};
 
 const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl'),
@@ -155,7 +160,10 @@ function checkTestMode(): boolean {
   return false;
 }
 
-function DashboardPageContent() {
+function DashboardPageContent({
+  initialServers,
+  initialStats,
+}: DashboardClientProps) {
   // 🔍 DIAGNOSTIC: Render cycle tracking for E2E investigation
   const renderCountRef = useRef(0);
 
@@ -393,11 +401,10 @@ function DashboardPageContent() {
 
   // ✅ useSystemStatusStore 제거 - useUnifiedAdminStore로 직접 접근
 
-  // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
-  // 🔧 레거시 정리 (2026-01-17):
-  // - selectedServer, handleServerSelect, handleModalClose 제거
-  // - ServerDashboard 내부에서 EnhancedServerModal로 직접 관리
-  const { paginatedServers: realServers } = useServerDashboard({});
+  // 🎯 서버 데이터 (Phase 2: SSR 초기 데이터 지원)
+  const { paginatedServers: realServers } = useServerDashboard({
+    initialServers,
+  });
 
   // 🕐 Supabase에서 24시간 데이터를 직접 가져오므로 시간 회전 시스템 제거됨
   // API가 30초마다 다른 시간대 데이터를 자동으로 반환
@@ -595,11 +602,16 @@ function DashboardPageContent() {
   );
 }
 
-// 🎯 대시보드 클라이언트 컴포넌트
-export default function DashboardClient() {
+export default function DashboardClient({
+  initialServers,
+  initialStats,
+}: DashboardClientProps) {
   return (
     <Suspense fallback={<ContentLoadingSkeleton />}>
-      <DashboardPageContent />
+      <DashboardPageContent
+        initialServers={initialServers}
+        initialStats={initialStats}
+      />
     </Suspense>
   );
 }

@@ -1,5 +1,3 @@
-'use client';
-
 import { ArrowDown, ArrowRight, ArrowUp } from 'lucide-react';
 
 export function TrendIcon({ trend }: { trend: string }) {

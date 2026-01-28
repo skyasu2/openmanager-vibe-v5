@@ -1,5 +1,3 @@
-'use client';
-
 import { AlertTriangle, CheckCircle, Cpu } from 'lucide-react';
 import type { MetricAnomalyResult } from '@/types/intelligent-monitoring.types';
 import { metricIcons, metricLabels, severityColors } from './constants';

@@ -1,0 +1,57 @@
+/**
+ * Dashboard Server Data Functions
+ *
+ * Server-side data fetching for Dashboard page.
+ * Used by page.tsx Server Component to pre-fetch data.
+ *
+ * @created 2026-01-28
+ */
+
+import { getServersFromUnifiedSource } from '@/services/data/UnifiedServerDataSource';
+import type { Server } from '@/types/server';
+
+const STATUS_PRIORITY: Record<string, number> = {
+  critical: 0,
+  offline: 0,
+  warning: 1,
+  online: 2,
+};
+
+export type DashboardStats = {
+  total: number;
+  online: number;
+  warning: number;
+  critical: number;
+  offline: number;
+};
+
+export type DashboardInitialData = {
+  servers: Server[];
+  stats: DashboardStats;
+};
+
+/**
+ * Fetch dashboard data on the server side.
+ *
+ * @returns Pre-sorted servers and calculated stats
+ */
+export async function getDashboardData(): Promise<DashboardInitialData> {
+  const servers = await getServersFromUnifiedSource();
+
+  // Sort by status priority (critical/offline first)
+  const sortedServers = [...servers].sort((a, b) => {
+    const priorityA = STATUS_PRIORITY[a.status] ?? 3;
+    const priorityB = STATUS_PRIORITY[b.status] ?? 3;
+    return priorityA - priorityB;
+  });
+
+  const stats: DashboardStats = {
+    total: servers.length,
+    online: servers.filter((s) => s.status === 'online').length,
+    warning: servers.filter((s) => s.status === 'warning').length,
+    critical: servers.filter((s) => s.status === 'critical').length,
+    offline: servers.filter((s) => s.status === 'offline').length,
+  };
+
+  return { servers: sortedServers, stats };
+}

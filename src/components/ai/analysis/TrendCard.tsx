@@ -1,5 +1,3 @@
-'use client';
-
 import { ArrowRight, Cpu } from 'lucide-react';
 import type { MetricTrendResult } from '@/types/intelligent-monitoring.types';
 import { metricIcons, metricLabels } from './constants';
