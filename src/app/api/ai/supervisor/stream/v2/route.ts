@@ -198,25 +198,28 @@ export const POST = withRateLimit(
         | { parts?: Array<{ type: string; mediaType?: string; url?: string }> }
         | undefined;
 
-      if (lastUserMsg) {
-        const debugInfo = {
-          hasParts: !!lastUserMsg.parts,
-          partsCount: lastUserMsg.parts?.length ?? 0,
-          partTypes: lastUserMsg.parts?.map((p) => p.type) ?? [],
-          hasFileParts:
-            lastUserMsg.parts?.some((p) => p.type === 'file') ?? false,
-          filePartDetails: lastUserMsg.parts
-            ?.filter((p) => p.type === 'file')
-            .map((p) => ({
-              mediaType: p.mediaType,
-              hasUrl: !!p.url,
-              urlPrefix: p.url?.slice(0, 50),
-            })),
-        };
-        logger.info(
-          `🔍 [DEBUG-FILE-ATTACH] Raw message structure: ${JSON.stringify(debugInfo)}`
-        );
-      }
+      // 디버그 정보 수집 (응답 헤더로 반환)
+      const debugInfo = lastUserMsg
+        ? {
+            hasParts: !!lastUserMsg.parts,
+            partsCount: lastUserMsg.parts?.length ?? 0,
+            partTypes: lastUserMsg.parts?.map((p) => p.type) ?? [],
+            hasFileParts:
+              lastUserMsg.parts?.some((p) => p.type === 'file') ?? false,
+          }
+        : {
+            hasParts: false,
+            partsCount: 0,
+            partTypes: [],
+            hasFileParts: false,
+          };
+
+      logger.info(
+        `🔍 [DEBUG-FILE-ATTACH] Raw message structure: ${JSON.stringify(debugInfo)}`
+      );
+
+      // 🎯 DEBUG: 디버그 정보를 문자열로 저장 (응답 헤더용)
+      const debugHeaderValue = JSON.stringify(debugInfo);
 
       // 2. Extract session ID
       const url = new URL(req.url);
@@ -247,18 +250,27 @@ export const POST = withRateLimit(
       const lastNormalized = normalizedMessages
         .filter((m) => m.role === 'user')
         .pop();
-      if (lastNormalized) {
-        const normalizedDebug = {
-          hasImages: !!lastNormalized.images,
-          imagesCount: lastNormalized.images?.length ?? 0,
-          hasFiles: !!lastNormalized.files,
-          filesCount: lastNormalized.files?.length ?? 0,
-          imagesMimeTypes: lastNormalized.images?.map((img) => img.mimeType),
-        };
-        logger.info(
-          `🔍 [DEBUG-FILE-ATTACH] After normalization: ${JSON.stringify(normalizedDebug)}`
-        );
-      }
+      const normalizedDebug = lastNormalized
+        ? {
+            hasImages: !!lastNormalized.images,
+            imagesCount: lastNormalized.images?.length ?? 0,
+            hasFiles: !!lastNormalized.files,
+            filesCount: lastNormalized.files?.length ?? 0,
+            imagesMimeTypes: lastNormalized.images?.map((img) => img.mimeType),
+          }
+        : {
+            hasImages: false,
+            imagesCount: 0,
+            hasFiles: false,
+            filesCount: 0,
+            imagesMimeTypes: [],
+          };
+      logger.info(
+        `🔍 [DEBUG-FILE-ATTACH] After normalization: ${JSON.stringify(normalizedDebug)}`
+      );
+
+      // 🎯 DEBUG: 정규화 후 디버그 정보 (응답 헤더용)
+      const normalizedDebugHeaderValue = JSON.stringify(normalizedDebug);
 
       // 5. Get Cloud Run URL
       const cloudRunUrl = process.env.CLOUD_RUN_AI_URL;
@@ -344,6 +356,9 @@ export const POST = withRateLimit(
             'X-Backend': 'cloud-run-stream-v2',
             'X-Stream-Protocol': 'ui-message-stream',
             'X-Resumable': 'true',
+            // 🔍 DEBUG: 파일 첨부 디버그 정보 (2026-01-28)
+            'X-Debug-File-Attach': debugHeaderValue,
+            'X-Debug-Normalized': normalizedDebugHeaderValue,
           },
         });
       } catch (error) {
