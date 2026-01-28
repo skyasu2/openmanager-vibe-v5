@@ -162,7 +162,7 @@ function checkTestMode(): boolean {
 
 function DashboardPageContent({
   initialServers,
-  initialStats,
+  initialStats: _initialStats, // Reserved for future SSR stats optimization
 }: DashboardClientProps) {
   // 🔍 DIAGNOSTIC: Render cycle tracking for E2E investigation
   const renderCountRef = useRef(0);

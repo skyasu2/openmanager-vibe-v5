@@ -81,7 +81,7 @@ export default function ServerDashboard({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  onStatsUpdate,
+  onStatsUpdate: _onStatsUpdate, // Reserved for future stats callback
 }: ServerDashboardProps) {
   // 🚀 성능 추적 활성화
   const performanceStats = usePerformanceTracking('ServerDashboard');
