@@ -7,6 +7,8 @@
  * - POST: Circuit Breaker 수동 리셋 (관리자 전용)
  */
 
+export const maxDuration = 10; // Vercel Free Tier
+
 import { type NextRequest, NextResponse } from 'next/server';
 import {
   aiCircuitBreaker,

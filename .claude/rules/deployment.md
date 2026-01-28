@@ -21,6 +21,18 @@ git push --follow-tags      # 태그 푸시 → 배포 트리거
 | Trigger | `git push` 자동 배포 |
 | Branch | `main` → Production |
 | URL | `openmanager-vibe-v5.vercel.app` |
+| Plan | Hobby (Free Tier) |
+
+#### Free Tier 제한사항 (v7.1.0)
+
+| 항목 | 제한 | 비고 |
+|------|------|------|
+| `maxDuration` | 10초 | Pro 플랜은 60초 |
+| `memory` | 1024MB | 512MB 권장 |
+| Cron Jobs | 비활성화 | `DISABLE_CRON_JOBS=true` |
+| Background Jobs | 비활성화 | `DISABLE_BACKGROUND_JOBS=true` |
+
+> **참고**: `vercel.json`의 모든 `maxDuration`은 10초로 설정됨
 
 ### AI Engine (Cloud Run)
 

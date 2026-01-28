@@ -1,3 +1,5 @@
+export const maxDuration = 10; // Vercel Free Tier
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { type NextRequest, NextResponse } from 'next/server';

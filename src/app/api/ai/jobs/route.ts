@@ -8,6 +8,8 @@
  * @description Supabase 제거, Redis를 단일 저장소로 사용
  */
 
+export const maxDuration = 10; // Vercel Free Tier
+
 import { randomUUID } from 'crypto';
 import { after, type NextRequest, NextResponse } from 'next/server';
 import {

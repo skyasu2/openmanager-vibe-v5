@@ -16,6 +16,8 @@
  * @version 1.0.0
  */
 
+export const maxDuration = 10; // Vercel Free Tier
+
 import type { NextRequest } from 'next/server';
 import { logger } from '@/lib/logging';
 import { getRedisClient, redisGet } from '@/lib/redis';
