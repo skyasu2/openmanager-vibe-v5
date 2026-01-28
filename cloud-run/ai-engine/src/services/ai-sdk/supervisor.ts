@@ -788,13 +788,64 @@ async function* streamSingleAgent(
       query: queryText,
     });
 
-    // Convert messages to ModelMessage format
+    // Convert messages to ModelMessage format with multimodal support
+    // 🎯 Fix: Include images/files in the last user message content
+    type ContentPart =
+      | { type: 'text'; text: string }
+      | { type: 'image'; image: string; mimeType?: string }
+      | { type: 'file'; data: string; mimeType: string };
+
     const modelMessages: ModelMessage[] = [
       { role: 'system', content: SYSTEM_PROMPT },
-      ...request.messages.map((m) => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      })),
+      ...request.messages.map((m, idx) => {
+        // Check if this is the last user message and has images/files
+        const isLastUserMessage =
+          m.role === 'user' &&
+          idx === request.messages.length - 1;
+        const hasMultimodal =
+          isLastUserMessage &&
+          ((request.images && request.images.length > 0) ||
+            (request.files && request.files.length > 0));
+
+        if (hasMultimodal) {
+          // Build multimodal content (text + images + files)
+          const contentParts: ContentPart[] = [{ type: 'text', text: m.content }];
+
+          if (request.images && request.images.length > 0) {
+            for (const img of request.images) {
+              contentParts.push({
+                type: 'image',
+                image: img.data,
+                mimeType: img.mimeType,
+              });
+            }
+            console.log(`📷 [SingleAgent] Added ${request.images.length} image(s) to message`);
+          }
+
+          if (request.files && request.files.length > 0) {
+            for (const file of request.files) {
+              contentParts.push({
+                type: 'file',
+                data: file.data,
+                mimeType: file.mimeType,
+              });
+            }
+            console.log(`📎 [SingleAgent] Added ${request.files.length} file(s) to message`);
+          }
+
+          return {
+            role: m.role as 'user' | 'assistant',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            content: contentParts as any,
+          };
+        }
+
+        // Regular text message
+        return {
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+        };
+      }),
     ];
 
     const toolsCalled: string[] = [];
