@@ -1,10 +1,15 @@
 #!/bin/bash
 
-# Auto AI Code Review Script (2-AI 순환) with Smart Verification
-# 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 9.1.0
-# 날짜: 2026-01-17
-# 전략: 2-AI 순환 (Codex ↔ Gemini) 1:1 비율 + pending/history 구조
+# Auto AI Code Review Script (Claude Code) with Smart Verification
+# 목적: 커밋 시 변경사항을 Claude Code가 자동 리뷰하고 리포트 생성
+# 버전: 10.0.0
+# 날짜: 2026-01-28
+# 전략: Claude Code 단독 리뷰 + pending/history 구조
+#
+# v10.0.0 (2026-01-28): Claude Code 단독 리뷰 시스템으로 전환
+# - ✨ 변경: Codex/Gemini 제거 → Claude Code CLI만 사용
+# - ✨ 효과: 외부 AI 의존성 제거, 일관된 리뷰 품질
+# - 🎯 단순화: 2-AI 로테이션 → 단일 AI 시스템
 #
 # v9.1.0 (2026-01-17): 사이드 이펙트 수정
 # - 🐛 수정: 누적 리뷰에서 전체 범위 검증 (is_delete_only_range 추가)
