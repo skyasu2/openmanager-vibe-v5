@@ -333,9 +333,9 @@ function getVisionModel(): ModelResult | null {
 
   try {
     return {
-      model: getGeminiFlashLiteModel('gemini-2.5-flash-lite'),
+      model: getGeminiFlashLiteModel('gemini-2.5-flash'),
       provider: 'gemini',
-      modelId: 'gemini-2.5-flash-lite',
+      modelId: 'gemini-2.5-flash',
     };
   } catch (error) {
     console.error('❌ [Vision Agent] Gemini initialization failed:', error);
