@@ -27,9 +27,39 @@ import { logger } from '../lib/logger';
 // 📋 Stream Request Schema
 // ============================================================================
 
+/**
+ * Image attachment schema for multimodal messages
+ * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#image-parts
+ */
+const imageAttachmentSchema = z.object({
+  /** Image data: Base64, Data URL, or HTTP(S) URL */
+  data: z.string(),
+  /** MIME type (e.g., 'image/png', 'image/jpeg') */
+  mimeType: z.string(),
+  /** Optional filename */
+  name: z.string().optional(),
+});
+
+/**
+ * File attachment schema for multimodal messages
+ * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#file-parts
+ */
+const fileAttachmentSchema = z.object({
+  /** File data: Base64 or HTTP(S) URL */
+  data: z.string(),
+  /** MIME type (e.g., 'application/pdf', 'text/plain') */
+  mimeType: z.string(),
+  /** Optional filename */
+  name: z.string().optional(),
+});
+
 const streamMessageSchema = z.object({
   role: z.enum(['user', 'assistant', 'system']),
   content: z.string().min(1, 'Message content required'),
+  /** Image attachments for Vision Agent */
+  images: z.array(imageAttachmentSchema).optional(),
+  /** File attachments (PDF, audio, etc.) */
+  files: z.array(fileAttachmentSchema).optional(),
 });
 
 const streamRequestSchema = z.object({
@@ -61,12 +91,26 @@ supervisorRouter.post('/', async (c: Context) => {
     logger.info({ sessionId }, 'Supervisor processing request');
     logProviderStatus();
 
+    // Extract images/files from the last user message for multimodal support
+    const lastUserMessage = messages.filter((m: { role: string }) => m.role === 'user').pop();
+    const images = lastUserMessage?.images;
+    const files = lastUserMessage?.files;
+
+    if (images?.length) {
+      logger.info({ count: images.length }, 'Supervisor: images attached');
+    }
+    if (files?.length) {
+      logger.info({ count: files.length }, 'Supervisor: files attached');
+    }
+
     const result = await executeSupervisor({
       messages: messages.map((m: { role: string; content: string }) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
       })),
       sessionId: sessionId || 'default',
+      images,
+      files,
     });
 
     if (!result.success) {
@@ -128,7 +172,19 @@ supervisorRouter.post('/stream', async (c: Context) => {
     logger.info({ sessionId: sessionId || 'default', query: query.slice(0, 50) }, 'SupervisorStream starting');
     logProviderStatus();
 
-    // 3. Stream response using SSE
+    // 3. Extract images/files from the last user message for multimodal support
+    const lastUserMessage = messages.filter((m) => m.role === 'user').pop();
+    const images = lastUserMessage?.images;
+    const files = lastUserMessage?.files;
+
+    if (images?.length) {
+      logger.info({ count: images.length }, 'SupervisorStream: images attached');
+    }
+    if (files?.length) {
+      logger.info({ count: files.length }, 'SupervisorStream: files attached');
+    }
+
+    // 4. Stream response using SSE
     return streamSSE(c, async (stream) => {
       let messageId = 0;
 
@@ -139,6 +195,8 @@ supervisorRouter.post('/stream', async (c: Context) => {
             content: m.content,
           })),
           sessionId: sessionId || 'default',
+          images,
+          files,
         };
 
         for await (const event of executeSupervisorStream(request)) {
@@ -219,13 +277,27 @@ supervisorRouter.post('/stream/v2', async (c: Context) => {
     );
     logProviderStatus();
 
-    // 3. Create and return UIMessageStream response
+    // 3. Extract images/files from the last user message for multimodal support
+    const lastUserMessage = messages.filter((m) => m.role === 'user').pop();
+    const images = lastUserMessage?.images;
+    const files = lastUserMessage?.files;
+
+    if (images?.length) {
+      logger.info({ count: images.length }, 'SupervisorStreamV2: images attached');
+    }
+    if (files?.length) {
+      logger.info({ count: files.length }, 'SupervisorStreamV2: files attached');
+    }
+
+    // 4. Create and return UIMessageStream response
     const response = createSupervisorStreamResponse({
       messages: messages.map((m) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
       })),
       sessionId: sessionId || 'default',
+      images,
+      files,
     });
 
     logger.info('SupervisorStreamV2 response created');

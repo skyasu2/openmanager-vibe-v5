@@ -30,6 +30,8 @@ import { executeReporterPipeline, type PipelineResult } from './reporter-pipelin
 // 🎯 v4.0.0: Import AgentFactory for new BaseAgent pattern
 import { AgentFactory, type AgentType } from './agent-factory';
 import { isVisionQuery } from './vision-agent';
+// Import multimodal types from base-agent
+import type { ImageAttachment, FileAttachment } from './base-agent';
 
 // 🎯 P1-2: Import Context Store for agent communication
 import {
@@ -82,6 +84,16 @@ export interface MultiAgentRequest {
    * - undefined/'auto': Auto-detect based on query content
    */
   enableWebSearch?: boolean | 'auto';
+  /**
+   * Image attachments for multimodal queries (Vision Agent)
+   * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#image-parts
+   */
+  images?: ImageAttachment[];
+  /**
+   * File attachments for multimodal queries (PDF, audio, etc.)
+   * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#file-parts
+   */
+  files?: FileAttachment[];
 }
 
 export interface MultiAgentResponse {
@@ -977,7 +989,9 @@ async function executeForcedRouting(
   query: string,
   suggestedAgentName: string,
   startTime: number,
-  webSearchEnabled = true
+  webSearchEnabled = true,
+  images?: ImageAttachment[],
+  files?: FileAttachment[]
 ): Promise<MultiAgentResponse | null> {
   console.log(`🔍 [Forced Routing] Looking up agent config: "${suggestedAgentName}"`);
 
@@ -1140,7 +1154,9 @@ async function executeWithAgentFactory(
   query: string,
   agentType: AgentType,
   startTime: number,
-  webSearchEnabled = true
+  webSearchEnabled = true,
+  images?: ImageAttachment[],
+  files?: FileAttachment[]
 ): Promise<MultiAgentResponse | null> {
   const agent = AgentFactory.create(agentType);
 
@@ -1157,6 +1173,8 @@ async function executeWithAgentFactory(
       webSearchEnabled,
       maxSteps: 5,
       timeoutMs: TIMEOUT_CONFIG.agent.hard, // Use centralized config
+      images,
+      files,
     });
 
     if (!result.success) {
@@ -1576,7 +1594,7 @@ export async function executeMultiAgent(
       let lastResult: MultiAgentResponse | null = null;
 
       for (const subtask of decomposition.subtasks) {
-        lastResult = await executeForcedRouting(subtask.task, subtask.agent, startTime, webSearchEnabled);
+        lastResult = await executeForcedRouting(subtask.task, subtask.agent, startTime, webSearchEnabled, request.images, request.files);
         if (!lastResult) {
           console.warn(`⚠️ [Orchestrator] Sequential subtask failed: ${subtask.agent}`);
           break;
@@ -1625,7 +1643,9 @@ export async function executeMultiAgent(
         query,
         'vision',
         startTime,
-        webSearchEnabled
+        webSearchEnabled,
+        request.images,
+        request.files
       );
 
       // Vision Agent fallback: If Gemini unavailable, route to Analyst
@@ -1635,7 +1655,9 @@ export async function executeMultiAgent(
           query,
           'Analyst Agent',
           startTime,
-          webSearchEnabled
+          webSearchEnabled,
+          request.images,
+          request.files
         );
       }
     } else {
@@ -1644,7 +1666,9 @@ export async function executeMultiAgent(
         query,
         suggestedAgentName,
         startTime,
-        webSearchEnabled
+        webSearchEnabled,
+        request.images,
+        request.files
       );
     }
 
@@ -1748,15 +1772,15 @@ ${query}
 
       // 🎯 v4.0.0: Vision Agent uses AgentFactory (Gemini-only, no fallback chain)
       if (selectedAgent === 'Vision Agent') {
-        agentResult = await executeWithAgentFactory(query, 'vision', startTime, webSearchEnabled);
+        agentResult = await executeWithAgentFactory(query, 'vision', startTime, webSearchEnabled, request.images, request.files);
 
         // Fallback to Analyst if Gemini unavailable
         if (!agentResult) {
           console.warn(`⚠️ [LLM Routing] Vision Agent unavailable, falling back to Analyst`);
-          agentResult = await executeForcedRouting(query, 'Analyst Agent', startTime, webSearchEnabled);
+          agentResult = await executeForcedRouting(query, 'Analyst Agent', startTime, webSearchEnabled, request.images, request.files);
         }
       } else {
-        agentResult = await executeForcedRouting(query, selectedAgent, startTime, webSearchEnabled);
+        agentResult = await executeForcedRouting(query, selectedAgent, startTime, webSearchEnabled, request.images, request.files);
       }
 
       if (agentResult) {
@@ -1779,7 +1803,7 @@ ${query}
     if (suggestedAgent && preFilterResult.confidence >= 0.5) {
       console.log(`🔄 [Orchestrator] LLM routing inconclusive, falling back to ${suggestedAgent}`);
 
-      const fallbackResult = await executeForcedRouting(query, suggestedAgent, startTime, webSearchEnabled);
+      const fallbackResult = await executeForcedRouting(query, suggestedAgent, startTime, webSearchEnabled, request.images, request.files);
 
       if (fallbackResult) {
         // 🎯 P1-2: Save agent findings to session context
@@ -1917,7 +1941,9 @@ export async function* executeMultiAgentStream(
       preFilterResult.suggestedAgent,
       startTime,
       request.sessionId,
-      webSearchEnabled
+      webSearchEnabled,
+      request.images,
+      request.files
     );
     return;
   }
@@ -1977,7 +2003,7 @@ ${query}
       await recordHandoffEvent(request.sessionId, 'Orchestrator', selectedAgent, 'LLM routing');
       yield { type: 'handoff', data: { from: 'Orchestrator', to: selectedAgent, reason: 'LLM routing' } };
 
-      yield* executeAgentStream(query, selectedAgent, startTime, request.sessionId, webSearchEnabled);
+      yield* executeAgentStream(query, selectedAgent, startTime, request.sessionId, webSearchEnabled, request.images, request.files);
       return;
     }
 
@@ -1990,7 +2016,7 @@ ${query}
       await recordHandoffEvent(request.sessionId, 'Orchestrator', suggestedAgent, 'Fallback routing');
       yield { type: 'handoff', data: { from: 'Orchestrator', to: suggestedAgent, reason: 'Fallback' } };
 
-      yield* executeAgentStream(query, suggestedAgent, startTime, request.sessionId, webSearchEnabled);
+      yield* executeAgentStream(query, suggestedAgent, startTime, request.sessionId, webSearchEnabled, request.images, request.files);
       return;
     }
 
@@ -2035,7 +2061,9 @@ async function* executeAgentStream(
   agentName: string,
   startTime: number,
   sessionId: string,
-  webSearchEnabled = true
+  webSearchEnabled = true,
+  images?: ImageAttachment[],
+  files?: FileAttachment[]
 ): AsyncGenerator<StreamEvent> {
   const agentConfig = getAgentConfig(agentName);
 
@@ -2063,6 +2091,41 @@ async function* executeAgentStream(
   const abortController = new AbortController();
 
   try {
+    // Build multimodal user content (text + images + files)
+    // AI SDK v6 Best Practice: Include images/files directly in message content
+    type ContentPart = { type: 'text'; text: string } | { type: 'image'; image: string; mimeType?: string } | { type: 'file'; data: string; mediaType: string };
+    let userContent: string | ContentPart[] = query;
+
+    if ((images && images.length > 0) || (files && files.length > 0)) {
+      const contentParts: ContentPart[] = [
+        { type: 'text', text: query },
+      ];
+
+      if (images && images.length > 0) {
+        for (const img of images) {
+          contentParts.push({
+            type: 'image',
+            image: img.data,
+            mimeType: img.mimeType,
+          });
+        }
+        console.log(`📷 [Stream ${agentName}] Added ${images.length} image(s) to message`);
+      }
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          contentParts.push({
+            type: 'file',
+            data: file.data,
+            mediaType: file.mimeType, // AI SDK uses 'mediaType'
+          });
+        }
+        console.log(`📎 [Stream ${agentName}] Added ${files.length} file(s) to message`);
+      }
+
+      userContent = contentParts;
+    }
+
     // AI SDK v6.0.50 Best Practice: Use hasToolCall('finalAnswer') + stepCountIs(N) for graceful termination
     // 🎯 P1-1: Added onStepFinish for real-time step monitoring
     // 🎯 P2-2: Added native timeout configuration
@@ -2070,7 +2133,8 @@ async function* executeAgentStream(
       model,
       messages: [
         { role: 'system', content: agentConfig.instructions },
-        { role: 'user', content: query },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { role: 'user', content: userContent as any },
       ],
       tools: filteredTools as Parameters<typeof generateText>[0]['tools'],
       stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)], // Graceful termination + safety limit

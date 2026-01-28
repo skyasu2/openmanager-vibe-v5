@@ -54,6 +54,9 @@ import { getCircuitBreaker, CircuitOpenError } from '../resilience/circuit-break
 
 export type SupervisorMode = 'single' | 'multi' | 'auto';
 
+// Import multimodal types from base-agent
+import type { ImageAttachment, FileAttachment } from './agents/base-agent';
+
 export interface SupervisorRequest {
   messages: Array<{ role: 'user' | 'assistant'; content: string }>;
   sessionId: string;
@@ -65,6 +68,16 @@ export interface SupervisorRequest {
    * - 'auto': Automatically select based on query complexity
    */
   mode?: SupervisorMode;
+  /**
+   * Image attachments for multimodal queries (Vision Agent)
+   * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#image-parts
+   */
+  images?: ImageAttachment[];
+  /**
+   * File attachments for multimodal queries (PDF, audio, etc.)
+   * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#file-parts
+   */
+  files?: FileAttachment[];
 }
 
 export interface SupervisorResponse {
@@ -328,6 +341,8 @@ async function executeMultiAgentMode(
       messages: request.messages,
       sessionId: request.sessionId,
       enableTracing: request.enableTracing,
+      images: request.images,
+      files: request.files,
     };
 
     const result = await executeMultiAgent(multiAgentRequest);
@@ -711,6 +726,8 @@ export async function* executeSupervisorStream(
       messages: request.messages,
       sessionId: request.sessionId,
       enableTracing: request.enableTracing,
+      images: request.images,
+      files: request.files,
     });
     return;
   }
