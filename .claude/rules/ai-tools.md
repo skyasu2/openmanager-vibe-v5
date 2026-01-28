@@ -14,7 +14,7 @@
 | `github` | 저장소/PR 관리 | 중간 |
 | `tavily` | 심층 리서치, 팩트체크 | 낮음 |
 
-## Skills (11개)
+## Skills (12개)
 
 ### 코드 품질
 | Skill | 설명 |
@@ -30,6 +30,7 @@
 | `security-audit-workflow` | OWASP Top 10 보안 감사 |
 | `playwright-triage` | E2E 테스트 실패 분류 |
 | `next-router-bottleneck` | 라우터 성능 분석 |
+| `observability-check` | AI 모니터링 (Langfuse + Sentry) |
 
 ### 배포/Git
 | Skill | 설명 |
