@@ -8,9 +8,10 @@
  * - 세션 제한
  * - 피드백
  * - 메시지 변환
+ * - 파일 첨부 재시도 지원
  *
  * @note 유틸리티는 utils/ 폴더로 분리됨
- * @updated 2026-01-12 - 책임 분리 리팩토링
+ * @updated 2026-01-28 - 재시도 시 파일 첨부 보존 (lastAttachmentsRef)
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -87,6 +88,7 @@ export interface UseAIChatCoreReturn {
     type: 'positive' | 'negative'
   ) => Promise<void>;
   regenerateLastResponse: () => void;
+  /** 마지막 쿼리 재시도 (파일 첨부 포함) */
   retryLastQuery: () => void;
   stop: () => void;
   cancel: () => void;
@@ -287,6 +289,14 @@ export function useAIChatCore(
     }
   }, [messages, setMessages, sendQuery]);
 
+  /**
+   * 마지막 쿼리 재시도
+   *
+   * 에러 발생 후 동일한 쿼리를 다시 전송합니다.
+   * 파일 첨부가 있었던 경우 함께 재전송됩니다.
+   *
+   * @see lastAttachmentsRef - 첨부 파일 보존용 ref
+   */
   const retryLastQuery = useCallback(() => {
     if (!lastQueryRef.current) return;
     setError(null);
