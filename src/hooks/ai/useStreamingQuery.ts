@@ -12,14 +12,14 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { flushSync } from 'react-dom';
-import { logger } from '@/lib/logging';
 import { extractStreamError } from '@/lib/ai/constants/stream-errors';
 import type { QueryComplexity } from '@/lib/ai/utils/query-complexity';
+import { logger } from '@/lib/logging';
 import type { FileAttachment } from './useFileAttachments';
 import type {
+  RedirectEventData,
   StreamDataPart,
   WarningEventData,
-  RedirectEventData,
 } from './useHybridAIQuery';
 
 // ============================================================================
