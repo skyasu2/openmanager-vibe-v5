@@ -1,5 +1,3 @@
-'use client';
-
 import type { FC } from 'react';
 /**
  * ⚙️ Enhanced Server Modal Services Tab (v2.0 간소화)

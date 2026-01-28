@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * 📊 Enhanced Server Modal Overview Tab
  *

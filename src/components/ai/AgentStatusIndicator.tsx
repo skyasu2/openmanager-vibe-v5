@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Agent Status Indicator
  *

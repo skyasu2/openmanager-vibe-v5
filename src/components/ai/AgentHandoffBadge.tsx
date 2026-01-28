@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Agent Handoff Badge
  *
