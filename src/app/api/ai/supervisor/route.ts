@@ -44,7 +44,7 @@ import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { isStatusQuery, shouldSkipCache } from './cache-utils';
-import { requestSchema } from './schemas';
+import { cloudRunResponseSchema, requestSchema } from './schemas';
 import { quickSanitize } from './security';
 
 // ============================================================================
@@ -270,11 +270,18 @@ export const POST = withRateLimit(
                 );
               }
 
-              const data = proxyResult.data as {
-                success?: boolean;
-                response?: string;
-                error?: string;
-              };
+              // 🔧 Zod 검증으로 타입 단언 제거 (2026-01-28)
+              const parseResult = cloudRunResponseSchema.safeParse(
+                proxyResult.data
+              );
+
+              if (!parseResult.success) {
+                throw new Error(
+                  `Invalid Cloud Run response: ${parseResult.error.message}`
+                );
+              }
+
+              const data = parseResult.data;
 
               if (data.success && data.response) {
                 // ================================================================

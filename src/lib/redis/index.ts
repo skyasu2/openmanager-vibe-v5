@@ -31,6 +31,7 @@ export {
   reconnectRedis,
   redisDel,
   redisGet,
+  redisMGet,
   redisSet,
   safeRedisOp,
 } from './client';

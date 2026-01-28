@@ -15,7 +15,7 @@ import {
   inferJobType,
 } from '@/lib/ai/job-queue/complexity-analyzer';
 import { logger } from '@/lib/logging';
-import { getRedisClient, redisGet, redisSet } from '@/lib/redis';
+import { getRedisClient, redisGet, redisMGet, redisSet } from '@/lib/redis';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import type {
   CreateJobRequest,
@@ -216,14 +216,14 @@ async function handleGET(request: NextRequest) {
     const listKey = `job:list:${sessionId}`;
     const jobIds = (await redisGet<string[]>(listKey)) || [];
 
-    // 각 Job 상세 조회
-    const jobs: JobStatusResponse[] = [];
-    for (const jobId of jobIds.slice(0, limit)) {
-      const job = await redisGet<RedisJob>(`job:${jobId}`);
-      if (job) {
-        jobs.push(mapJobToResponse(job));
-      }
-    }
+    // 🔧 N+1 쿼리 방지: MGET으로 일괄 조회
+    const limitedJobIds = jobIds.slice(0, limit);
+    const jobKeys = limitedJobIds.map((id) => `job:${id}`);
+    const rawJobs = await redisMGet<RedisJob>(jobKeys);
+
+    const jobs: JobStatusResponse[] = rawJobs
+      .filter((job): job is RedisJob => job !== null)
+      .map(mapJobToResponse);
 
     const response: JobListResponse = {
       jobs,

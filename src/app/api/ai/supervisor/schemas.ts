@@ -145,6 +145,22 @@ export const requestSchemaLoose = z.object({
   sessionId: z.string().optional(),
 });
 
+// ============================================================================
+// Response Schemas
+// ============================================================================
+
+/**
+ * Cloud Run AI 응답 스키마 (타입 단언 제거)
+ * @created 2026-01-28
+ */
+export const cloudRunResponseSchema = z.object({
+  success: z.boolean().optional(),
+  response: z.string().optional(),
+  error: z.string().optional(),
+});
+
+export type CloudRunResponse = z.infer<typeof cloudRunResponseSchema>;
+
 // Export types for external use
 export type FilePartSchema = z.infer<typeof filePartSchema>;
 export type MessageSchema = z.infer<typeof messageSchema>;

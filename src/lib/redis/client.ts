@@ -242,3 +242,23 @@ export async function redisDel(key: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Safe Redis MGET for batch retrieval (N+1 query prevention)
+ * @param keys - Array of keys to fetch
+ * @returns Array of values (null for missing keys)
+ */
+export async function redisMGet<T>(keys: string[]): Promise<(T | null)[]> {
+  const client = getRedisClient();
+  if (!client || !isRedisAvailable || keys.length === 0) {
+    return keys.map(() => null);
+  }
+
+  try {
+    const values = await client.mget<(T | null)[]>(...keys);
+    return values;
+  } catch (e) {
+    logger.warn(`[Redis] MGET failed for ${keys.length} keys:`, e);
+    return keys.map(() => null);
+  }
+}
