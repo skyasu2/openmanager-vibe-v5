@@ -26,6 +26,7 @@ import {
 import {
   getSupervisorModel,
   getSupervisorModelWithQuota,
+  getVisionAgentModel,
   recordModelUsage,
   logProviderStatus,
   type ProviderName,
@@ -749,12 +750,33 @@ async function* streamSingleAgent(
   let modelId: string;
   let model;
 
+  // 🎯 Vision Agent Route: Use Gemini when images are present
+  const hasImages = request.images && request.images.length > 0;
+
   try {
     logProviderStatus();
-    const modelResult = getSupervisorModel();
-    model = modelResult.model;
-    provider = modelResult.provider;
-    modelId = modelResult.modelId;
+
+    if (hasImages) {
+      // Route to Vision Agent (Gemini) for image analysis
+      const visionModel = getVisionAgentModel();
+      if (!visionModel) {
+        yield {
+          type: 'error',
+          data: { code: 'NO_VISION_PROVIDER', message: 'Gemini unavailable for image analysis. Vision features disabled.' },
+        };
+        return;
+      }
+      model = visionModel.model;
+      provider = visionModel.provider;
+      modelId = visionModel.modelId;
+      console.log(`👁️ [SingleAgent] Using Vision Agent (Gemini) for ${request.images!.length} image(s)`);
+    } else {
+      // Default: Use Supervisor model
+      const modelResult = getSupervisorModel();
+      model = modelResult.model;
+      provider = modelResult.provider;
+      modelId = modelResult.modelId;
+    }
   } catch (error) {
     yield {
       type: 'error',
