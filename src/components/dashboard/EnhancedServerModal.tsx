@@ -9,17 +9,7 @@
  * - Professional Light Mode (가독성 향상)
  */
 
-import {
-  Activity,
-  BarChart3,
-  Cpu,
-  FileText,
-  Network,
-  Pause,
-  Play,
-  Server as ServerIcon,
-  X,
-} from 'lucide-react';
+import { Activity, BarChart3, Cpu, FileText, Network } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import { logger } from '@/lib/logging';
@@ -29,7 +19,6 @@ import { MetricsTab } from './EnhancedServerModal.MetricsTab';
 import { NetworkTab } from './EnhancedServerModal.NetworkTab';
 import { OverviewTab } from './EnhancedServerModal.OverviewTab';
 import { ProcessesTab } from './EnhancedServerModal.ProcessesTab';
-// 모듈화된 컴포넌트 및 타입 임포트
 import type {
   EnhancedServerModalProps,
   RealtimeData,
@@ -38,6 +27,8 @@ import type {
   TabInfo,
 } from './EnhancedServerModal.types';
 import { getStatusTheme } from './EnhancedServerModal.utils';
+import { ServerModalHeader } from './ServerModalHeader';
+import { ServerModalTabNav } from './ServerModalTabNav';
 
 export default function EnhancedServerModal({
   server,
@@ -396,121 +387,18 @@ export default function EnhancedServerModal({
       >
         {/* 헤더 - Light Mode Style */}
         <div className="bg-linear-to-r from-slate-50 to-gray-100 border-b border-gray-200 p-4 sm:p-6">
-          <div className="flex items-center justify-between">
-            {/* 💡 핵심 정보 통합 */}
-            <div className="flex items-center gap-2 sm:gap-4">
-              <div
-                className={`rounded-xl p-2 shadow-md sm:p-3 bg-white ${
-                  safeServer.status === 'online'
-                    ? 'text-emerald-600'
-                    : safeServer.status === 'warning'
-                      ? 'text-amber-600'
-                      : 'text-red-600'
-                }`}
-              >
-                <ServerIcon className="h-5 w-5 sm:h-7 sm:w-7" />
-              </div>
-              <div className="min-w-0 flex-1">
-                {/* 1️⃣ 서버명 (헬스점수 배지 제거 - FIX-002) */}
-                <h2
-                  id="modal-title"
-                  className="text-lg font-bold sm:text-2xl text-gray-900"
-                >
-                  <span className="truncate">{safeServer.name}</span>
-                </h2>
+          <ServerModalHeader
+            server={safeServer}
+            isRealtime={isRealtime}
+            onToggleRealtime={handleToggleRealtime}
+            onClose={onClose}
+          />
 
-                {/* 2️⃣ 서버 정보 */}
-                <div className="mt-1 flex items-center gap-2 text-sm text-gray-500 sm:gap-3 sm:text-base">
-                  <span className="font-medium">{safeServer.type}</span>
-                  <span className="hidden sm:inline text-gray-300">•</span>
-                  <span className="hidden sm:inline">
-                    {safeServer.location}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* 💡 핵심 액션 */}
-            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-              {/* 3️⃣ 실시간 모니터링 토글 */}
-              <button
-                type="button"
-                onClick={handleToggleRealtime}
-                className={`flex items-center gap-1 rounded-xl px-2 py-2 text-sm font-medium transition-all duration-300 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-base ${
-                  isRealtime
-                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 shadow-sm'
-                    : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
-                }`}
-              >
-                {isRealtime ? (
-                  <>
-                    <Play className="h-4 w-4" />
-                    <span className="hidden sm:inline">Live</span>
-                    <span className="animate-pulse text-emerald-500">●</span>
-                  </>
-                ) : (
-                  <>
-                    <Pause className="h-4 w-4" />
-                    <span className="hidden sm:inline">Paused</span>
-                  </>
-                )}
-              </button>
-
-              {/* 4️⃣ 모달 닫기 */}
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl bg-gray-100 p-2 transition-all duration-300 hover:rotate-90 hover:scale-110 hover:bg-gray-200 border border-gray-200 sm:p-2.5 text-gray-500 hover:text-gray-700"
-                title="모달 닫기"
-              >
-                <X className="h-4 w-4 sm:h-5 sm:w-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* 탭 네비게이션 - WAI-ARIA 탭 패턴 */}
-          <div
-            role="tablist"
-            aria-label="서버 상세 정보 탭"
-            className="mt-4 flex gap-1 overflow-x-auto pb-1 sm:mt-6 sm:gap-2 no-scrollbar"
-          >
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = selectedTab === tab.id;
-
-              return (
-                <button
-                  type="button"
-                  key={tab.id}
-                  role="tab"
-                  id={`tab-${tab.id}`}
-                  aria-selected={isActive}
-                  aria-controls={`panel-${tab.id}`}
-                  tabIndex={isActive ? 0 : -1}
-                  onClick={() => handleTabSelect(tab.id)}
-                  className={`relative flex items-center gap-1 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 sm:gap-2 sm:px-5 sm:py-2.5 sm:text-base ${
-                    isActive
-                      ? 'bg-white text-gray-900 shadow-md border border-gray-200'
-                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-                  }`}
-                >
-                  <Icon
-                    className={`h-4 w-4 shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-400'}`}
-                    aria-hidden="true"
-                  />
-                  <span>{tab.label}</span>
-
-                  {/* 활성 탭 하이라이트 (Bottom Bar) */}
-                  {isActive && (
-                    <div
-                      className="absolute bottom-0 left-1/2 h-0.5 w-1/2 -translate-x-1/2 bg-blue-600"
-                      aria-hidden="true"
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          <ServerModalTabNav
+            tabs={tabs}
+            selectedTab={selectedTab}
+            onTabSelect={handleTabSelect}
+          />
         </div>
 
         {/* 콘텐츠 영역 */}
