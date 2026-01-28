@@ -8,7 +8,22 @@ allowed-tools: Bash, Read, Grep, Edit
 
 # Git Commit with AI Review
 
-커밋 생성 후 자동으로 Codex 또는 Gemini로 코드 리뷰를 실행합니다.
+커밋 생성 후 자동으로 AI 코드 리뷰를 실행합니다.
+
+## Review Mode (v9.2.0)
+
+환경변수 `REVIEW_MODE`로 리뷰 엔진을 선택할 수 있습니다:
+
+| Mode | 설명 |
+|------|------|
+| `codex-gemini` | Codex ↔ Gemini 순환 (기본값) |
+| `claude` | Claude Code 단독 리뷰 |
+| `all` | Codex/Gemini + Claude 교차 검증 |
+
+```bash
+# 환경변수로 모드 선택
+REVIEW_MODE=claude bash scripts/code-review/auto-ai-review.sh
+```
 
 ## Trigger Keywords
 

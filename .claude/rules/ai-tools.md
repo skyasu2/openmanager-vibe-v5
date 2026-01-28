@@ -48,12 +48,25 @@
 
 | CLI | 용도 | 비고 |
 |-----|------|------|
-| `claude` | 코드 생성/수정 | 현재 세션 |
-| `codex` | 코드 리뷰 | 2-AI 로테이션 |
-| `gemini` | 로직 검증 | 2-AI 로테이션 |
+| `claude` | 코드 생성/수정/리뷰 | 현재 세션, `REVIEW_MODE=claude` |
+| `codex` | 코드 리뷰 | 2-AI 로테이션 (기본값) |
+| `gemini` | 로직 검증 | 2-AI 로테이션 (기본값) |
 | `kiro` | 터미널 멀티에이전트 | 수동 사용 (chat/agent/doctor) |
 
 > Note: Qwen 제거됨 (2026-01-07) - 평균 201초, 실패율 13.3%
+
+### AI Review Mode (v9.2.0)
+
+```bash
+# 기본값: Codex ↔ Gemini 순환
+REVIEW_MODE=codex-gemini bash scripts/code-review/auto-ai-review.sh
+
+# Claude Code 단독
+REVIEW_MODE=claude bash scripts/code-review/auto-ai-review.sh
+
+# 교차 검증 (Codex/Gemini + Claude)
+REVIEW_MODE=all bash scripts/code-review/auto-ai-review.sh
+```
 
 ## Built-in Subagents (5개)
 

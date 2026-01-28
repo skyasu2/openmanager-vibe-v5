@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# AI Review Core Functions - v7.2.1
-# AI 리뷰 실행 함수들 (Codex, Gemini - 2-AI 시스템)
+# AI Review Core Functions - v8.0.0
+# AI 리뷰 실행 함수들 (Codex, Gemini, Claude - 선택 가능)
+#
+# v8.0.0 (2026-01-28): REVIEW_MODE 옵션 추가
+#   - codex-gemini: 기존 Codex ↔ Gemini 순환 (기본값)
+#   - claude: Claude Code 단독 리뷰
+#   - all: Codex/Gemini + Claude 교차 검증
 #
 # v7.2.1 (2026-01-15): 오탐 방지 규칙 범위 조정
 # - .json/.yaml 보안/동작 이슈는 계속 리뷰 (스타일만 제외)
@@ -372,15 +377,53 @@ handle_review_success() {
     echo "$output"
 }
 
-# v7.0.0: 2-AI 1:1 순환 + 상호 폴백
-# - 순번: codex ↔ gemini (2-AI 순환)
-# - 실패 시 폴백: codex ↔ gemini
+# v8.0.0: REVIEW_MODE에 따른 리뷰 실행
+# - codex-gemini: 2-AI 1:1 순환 + 상호 폴백 (기본값)
+# - claude: Claude Code 단독 리뷰
+# - all: Codex/Gemini + Claude 교차 검증 (2개 리포트)
 run_ai_review() {
     local changes="$1"
     local review_output=""
+    local mode="${REVIEW_MODE:-codex-gemini}"
 
     # 임시 파일 초기화
     rm -f /tmp/ai_engine_auto_review
+
+    log_info "📋 리뷰 모드: ${mode^^}"
+
+    case "$mode" in
+        claude)
+            # Claude Code 단독 리뷰
+            run_ai_review_claude "$changes"
+            return $?
+            ;;
+        all)
+            # Codex/Gemini + Claude 교차 검증
+            run_ai_review_codex_gemini "$changes"
+            local cg_result=$?
+
+            log_info "🔄 Claude 교차 검증 시작..."
+            run_ai_review_claude "$changes" "cross-validation"
+            local claude_result=$?
+
+            # 하나라도 성공하면 OK
+            if [ $cg_result -eq 0 ] || [ $claude_result -eq 0 ]; then
+                return 0
+            fi
+            return 1
+            ;;
+        codex-gemini|*)
+            # 기본값: Codex ↔ Gemini 순환
+            run_ai_review_codex_gemini "$changes"
+            return $?
+            ;;
+    esac
+}
+
+# v8.0.0: Codex/Gemini 순환 리뷰 (기존 로직)
+run_ai_review_codex_gemini() {
+    local changes="$1"
+    local review_output=""
 
     # 1단계: 순서 기반으로 Primary AI 선택 (codex ↔ gemini 2-AI 순환)
     local primary_ai=$(select_primary_ai)
@@ -411,5 +454,33 @@ run_ai_review() {
 
     log_error "❌ 모든 AI 리뷰 실패 (${primary_ai^^}→${fallback_ai^^}) - 다음 커밋 때 보상 리뷰 예정"
     rm -f /tmp/ai_engine_auto_review
+    return 1
+}
+
+# v8.0.0: Claude Code 단독 리뷰
+run_ai_review_claude() {
+    local changes="$1"
+    local mode="${2:-primary}"  # primary 또는 cross-validation
+    local review_output=""
+
+    log_info "🟢 Claude Code 리뷰 시작 (${mode})"
+
+    if review_output=$(try_claude_review "$changes"); then
+        if [ "$mode" = "cross-validation" ]; then
+            log_success "✅ Claude 교차 검증 완료!"
+        else
+            handle_review_success "claude" "$review_output" "리뷰 성공"
+        fi
+        return 0
+    fi
+
+    log_error "❌ Claude Code 리뷰 실패"
+
+    # Claude 단독 모드에서 실패 시 지연 보상
+    if [ "$mode" = "primary" ]; then
+        local current_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%h 2>/dev/null || echo "unknown")
+        save_pending_review "$current_commit"
+    fi
+
     return 1
 }

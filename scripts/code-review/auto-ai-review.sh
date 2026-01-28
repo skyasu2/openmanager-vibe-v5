@@ -2,9 +2,14 @@
 
 # Auto AI Code Review Script (2-AI 순환) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 9.1.0
-# 날짜: 2026-01-17
-# 전략: 2-AI 순환 (Codex ↔ Gemini) 1:1 비율 + pending/history 구조
+# 버전: 9.2.0
+# 날짜: 2026-01-28
+# 전략: 2-AI 순환 (Codex ↔ Gemini) 또는 Claude Code 선택 가능
+#
+# v9.2.0 (2026-01-28): REVIEW_MODE 옵션 추가
+#   - codex-gemini (기본값): 기존 Codex ↔ Gemini 순환
+#   - claude: Claude Code 단독 리뷰
+#   - all: Codex/Gemini + Claude 교차 검증
 #
 # v9.1.0 (2026-01-17): 사이드 이펙트 수정
 # - 🐛 수정: 누적 리뷰에서 전체 범위 검증 (is_delete_only_range 추가)
@@ -220,6 +225,12 @@ SKIP_MIN_LINES=${SKIP_MIN_LINES:-3}       # 최소 변경 라인 수 (미달 시
 # ===== v8.0.0: 러프 리뷰 모드 설정 =====
 SINGLE_COMMIT_MODE=${SINGLE_COMMIT_MODE:-true}   # true: 마지막 커밋만 리뷰 (누적 X)
 CODE_FILES_ONLY=${CODE_FILES_ONLY:-true}          # true: 코드 파일만 리뷰 (docs 제외)
+
+# ===== v9.2.0: 리뷰 모드 설정 =====
+# - codex-gemini: 기존 Codex ↔ Gemini 순환 (기본값)
+# - claude: Claude Code 단독 리뷰
+# - all: Codex/Gemini + Claude 교차 검증 (2개 리포트 생성)
+REVIEW_MODE=${REVIEW_MODE:-codex-gemini}
 
 # 코드 파일 패턴 (CODE_FILES_ONLY=true 시 적용)
 CODE_FILE_PATTERNS="src/ lib/ scripts/ hooks/ components/ app/ pages/ api/ tests/ __tests__"

@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# AI Review Utilities - v7.3.0
+# AI Review Utilities - v8.0.0
 # 유틸리티 함수 모음 (로그, 카운터, 변경사항 수집 등)
+#
+# v8.0.0 (2026-01-28): REVIEW_MODE 옵션 지원
+#   - Claude 카운터 추가 (REVIEW_MODE=claude 또는 all)
+#   - 기존 codex-gemini 순환 유지 (기본값)
 #
 # v7.3.0 (2026-01-07): Qwen 제거 - 2-AI 시스템 (codex ↔ gemini)
 #   - Qwen 제거 사유: 평균 201초 (Gemini 89초의 2.3배), 실패율 13.3%
@@ -39,26 +43,30 @@ log_ai_engine() {
     echo -e "${MAGENTA}🤖 $1${NC}" >&2
 }
 
-# AI 사용 카운터 초기화 (v6.9.1: claude 제거, 3-AI만)
+# AI 사용 카운터 초기화 (v8.0.0: claude 재추가 - REVIEW_MODE 옵션용)
 init_ai_counter() {
     if [ ! -f "$STATE_FILE" ]; then
         echo "codex_count=0" > "$STATE_FILE"
         echo "gemini_count=0" >> "$STATE_FILE"
+        echo "claude_count=0" >> "$STATE_FILE"  # v8.0.0: claude 재추가
         echo "qwen_count=0" >> "$STATE_FILE"
-        echo "last_ai=qwen" >> "$STATE_FILE"  # v6.9.1: qwen → 첫 실행 시 codex 선택
+        echo "last_ai=qwen" >> "$STATE_FILE"  # 첫 실행 시 codex 선택
         log_info "상태 파일 초기화: $STATE_FILE"
     fi
 
-    # 🆕 마이그레이션: qwen_count, last_ai 없으면 추가 (claude_count 제거됨)
+    # 마이그레이션: 누락된 필드 추가
     if ! grep -q "^qwen_count=" "$STATE_FILE"; then
         echo "qwen_count=0" >> "$STATE_FILE"
         log_info "qwen_count 마이그레이션 완료"
     fi
+    if ! grep -q "^claude_count=" "$STATE_FILE"; then
+        echo "claude_count=0" >> "$STATE_FILE"  # v8.0.0: claude 마이그레이션
+        log_info "claude_count 마이그레이션 완료"
+    fi
     if ! grep -q "^last_ai=" "$STATE_FILE"; then
-        echo "last_ai=qwen" >> "$STATE_FILE"  # v6.9.1: qwen → 첫 선택 codex
+        echo "last_ai=qwen" >> "$STATE_FILE"
         log_info "last_ai 마이그레이션 완료"
     fi
-    # v6.9.1: claude_count는 더 이상 추가하지 않음 (기존 파일에는 유지)
 }
 
 # 마지막 사용 AI 읽기
