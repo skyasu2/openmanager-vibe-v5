@@ -16,13 +16,16 @@ allowed-tools: Bash, Read, Grep, Edit
 
 | Mode | 설명 |
 |------|------|
-| `codex-gemini` | Codex ↔ Gemini 순환 (기본값) |
-| `claude` | Claude Code 단독 리뷰 |
+| `claude` | Claude Code 단독 리뷰 (기본값) |
+| `codex-gemini` | Codex ↔ Gemini 순환 |
 | `all` | Codex/Gemini + Claude 교차 검증 |
 
 ```bash
-# 환경변수로 모드 선택
-REVIEW_MODE=claude bash scripts/code-review/auto-ai-review.sh
+# 기본값: Claude Code 리뷰
+bash scripts/code-review/auto-ai-review.sh
+
+# Codex/Gemini 순환으로 변경
+REVIEW_MODE=codex-gemini bash scripts/code-review/auto-ai-review.sh
 ```
 
 ## Trigger Keywords
