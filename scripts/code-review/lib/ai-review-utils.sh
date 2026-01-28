@@ -1,12 +1,7 @@
 #!/bin/bash
 
-# AI Review Utilities - v8.0.0
+# AI Review Utilities - v7.3.0
 # 유틸리티 함수 모음 (로그, 카운터, 변경사항 수집 등)
-#
-# v8.0.0 (2026-01-28): Claude Code 단독 리뷰 시스템으로 전환
-#   - Codex/Gemini 제거 → Claude Code CLI만 사용
-#   - 단순화된 AI 선택 로직 (항상 claude)
-#   - 외부 AI 의존성 제거
 #
 # v7.3.0 (2026-01-07): Qwen 제거 - 2-AI 시스템 (codex ↔ gemini)
 #   - Qwen 제거 사유: 평균 201초 (Gemini 89초의 2.3배), 실패율 13.3%
@@ -44,23 +39,26 @@ log_ai_engine() {
     echo -e "${MAGENTA}🤖 $1${NC}" >&2
 }
 
-# AI 사용 카운터 초기화 (v8.0.0: claude 단독)
+# AI 사용 카운터 초기화 (v6.9.1: claude 제거, 3-AI만)
 init_ai_counter() {
     if [ ! -f "$STATE_FILE" ]; then
-        echo "claude_count=0" > "$STATE_FILE"
-        echo "last_ai=claude" >> "$STATE_FILE"
+        echo "codex_count=0" > "$STATE_FILE"
+        echo "gemini_count=0" >> "$STATE_FILE"
+        echo "qwen_count=0" >> "$STATE_FILE"
+        echo "last_ai=qwen" >> "$STATE_FILE"  # v6.9.1: qwen → 첫 실행 시 codex 선택
         log_info "상태 파일 초기화: $STATE_FILE"
     fi
 
-    # 마이그레이션: claude_count 없으면 추가
-    if ! grep -q "^claude_count=" "$STATE_FILE"; then
-        echo "claude_count=0" >> "$STATE_FILE"
-        log_info "claude_count 마이그레이션 완료"
+    # 🆕 마이그레이션: qwen_count, last_ai 없으면 추가 (claude_count 제거됨)
+    if ! grep -q "^qwen_count=" "$STATE_FILE"; then
+        echo "qwen_count=0" >> "$STATE_FILE"
+        log_info "qwen_count 마이그레이션 완료"
     fi
     if ! grep -q "^last_ai=" "$STATE_FILE"; then
-        echo "last_ai=claude" >> "$STATE_FILE"
+        echo "last_ai=qwen" >> "$STATE_FILE"  # v6.9.1: qwen → 첫 선택 codex
         log_info "last_ai 마이그레이션 완료"
     fi
+    # v6.9.1: claude_count는 더 이상 추가하지 않음 (기존 파일에는 유지)
 }
 
 # 마지막 사용 AI 읽기
@@ -76,27 +74,48 @@ set_last_ai() {
     sed -i "s/^last_ai=.*/last_ai=$ai_name/" "$STATE_FILE"
 }
 
-# AI 사용 카운터 읽기 (v8.0.0: claude 단독)
+# AI 사용 카운터 읽기 (v5.0.0: qwen, claude 추가)
 get_ai_counter() {
     local engine="$1"
     init_ai_counter
 
     case "$engine" in
+        codex)
+            grep "^codex_count=" "$STATE_FILE" | cut -d'=' -f2
+            ;;
+        gemini)
+            grep "^gemini_count=" "$STATE_FILE" | cut -d'=' -f2
+            ;;
+        qwen)
+            grep "^qwen_count=" "$STATE_FILE" | cut -d'=' -f2
+            ;;
         claude)
             grep "^claude_count=" "$STATE_FILE" | cut -d'=' -f2
-            ;;
-        *)
-            echo "0"
             ;;
     esac
 }
 
-# AI 사용 카운터 증가 (v8.0.0: claude 단독)
+# AI 사용 카운터 증가 (v5.0.0: qwen, claude 추가)
 increment_ai_counter() {
     local engine="$1"
     init_ai_counter
 
     case "$engine" in
+        codex)
+            local count=$(get_ai_counter "codex")
+            count=$((count + 1))
+            sed -i "s/^codex_count=.*/codex_count=$count/" "$STATE_FILE"
+            ;;
+        gemini)
+            local count=$(get_ai_counter "gemini")
+            count=$((count + 1))
+            sed -i "s/^gemini_count=.*/gemini_count=$count/" "$STATE_FILE"
+            ;;
+        qwen)
+            local count=$(get_ai_counter "qwen")
+            count=$((count + 1))
+            sed -i "s/^qwen_count=.*/qwen_count=$count/" "$STATE_FILE"
+            ;;
         claude)
             local count=$(get_ai_counter "claude")
             count=$((count + 1))
@@ -105,10 +124,26 @@ increment_ai_counter() {
     esac
 }
 
-# v8.0.0: Claude Code 단독 선택 (항상 claude 반환)
+# 순서 기반 AI 선택 (v7.3.0: codex ↔ gemini 2-AI 순환)
+# - 이전 AI가 codex → 이번에 gemini
+# - 이전 AI가 gemini → 이번에 codex
+# - v7.3.0 (2026-01-07): Qwen 제거, 2-AI 1:1 순환
+#   → 실패 시 상호 폴백 (codex ↔ gemini)
 select_primary_ai() {
     init_ai_counter
-    echo "claude"
+
+    local last_ai=$(get_last_ai)
+
+    # 순서 기반 선택: codex → gemini → codex (2-AI 순환)
+    case "$last_ai" in
+        codex)
+            echo "gemini"
+            ;;
+        gemini|*)
+            # gemini 이후 또는 기타 모든 경우 → codex
+            echo "codex"
+            ;;
+    esac
 }
 
 # 변경사항 수집
@@ -208,8 +243,32 @@ collect_changes_for_files() {
     echo -e "$changes_summary"
 }
 
-# [REMOVED v8.0.0] Codex/Gemini rate limit 감지 함수 - 외부 AI 제거됨
-# detect_codex_rate_limit, detect_gemini_rate_limit
+# Codex 사용량 제한 감지
+detect_codex_rate_limit() {
+    local output="$1"
+
+    # Rate limit 또는 quota exceeded 패턴 감지
+    if echo "$output" | grep -qi "rate limit\|quota exceeded\|too many requests\|429"; then
+        return 0  # True: Rate limit 감지됨
+    fi
+
+    return 1  # False: 정상
+}
+
+# 🆕 v6.3.0: Gemini 사용량 제한 감지
+detect_gemini_rate_limit() {
+    local output="$1"
+
+    # Gemini API Rate limit 패턴 감지
+    if echo "$output" | grep -qiE "(429|rate.*limit|quota.*exceeded|too.*many.*requests|resource.*exhausted)"; then
+        return 0  # True: Rate limit 감지됨
+    fi
+
+    return 1  # False: 정상
+}
+
+# [REMOVED v7.3.0] detect_qwen_rate_limit - Qwen 제거됨
+# 제거 사유: 평균 201초, 실패율 13.3%로 인해 2-AI 시스템으로 전환
 
 # 검증 실행 함수는 별도 스크립트로 분리되었으므로 여기서는 제외
 # 버전 추천 기능은 standard-version 사용으로 대체됨 (v7.2.0)

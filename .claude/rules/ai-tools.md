@@ -20,7 +20,7 @@
 | Skill | 설명 |
 |-------|------|
 | `review` | 검증 결과 요약 확인 |
-| `ai-code-review` | Claude Code 직접 코드 리뷰 |
+| `ai-code-review` | 멀티 AI 코드 리뷰 (Codex + Gemini) |
 | `lint-smoke` | Lint + 테스트 스모크 |
 | `validation-analysis` | 검증 결과 상세 분석 |
 
@@ -36,22 +36,24 @@
 | Skill | 설명 |
 |-------|------|
 | `cloud-run-deploy` | Cloud Run AI Engine 배포 |
-| `commit-commands` | Git 커밋 + Claude Code 리뷰 |
+| `commit-commands` | Git 커밋 워크플로우 (commit, commit-push-pr, clean_gone) |
 
 ### 문서/리포트
 | Skill | 설명 |
 |-------|------|
-| `ai-report-export` | AI 검증 리포트 생성 |
+| `ai-report-export` | 2-AI 검증 리포트 생성 |
 | `mermaid-diagram` | 다이어그램 생성 |
 
 ## CLI Tools (WSL)
 
 | CLI | 용도 | 비고 |
 |-----|------|------|
-| `claude` | 코드 생성/수정/리뷰 | 현재 세션 (Primary) |
+| `claude` | 코드 생성/수정 | 현재 세션 |
+| `codex` | 코드 리뷰 | 2-AI 로테이션 |
+| `gemini` | 로직 검증 | 2-AI 로테이션 |
 | `kiro` | 터미널 멀티에이전트 | 수동 사용 (chat/agent/doctor) |
 
-> Note: Codex/Gemini 제거됨 (2026-01-28) - Claude Code 단독 리뷰 시스템으로 전환
+> Note: Qwen 제거됨 (2026-01-07) - 평균 201초, 실패율 13.3%
 
 ## Built-in Subagents (5개)
 
