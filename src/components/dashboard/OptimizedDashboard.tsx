@@ -20,7 +20,7 @@ import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { RealtimeClock } from '@/components/shared/RealtimeClock';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
-// ⚠️ useServerDashboard 제거 - ServerDashboard에서 호출하므로 중복 제거
+import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { signOut, useSession } from '@/hooks/useSupabaseSession';
 import { useSystemIntegration } from '@/hooks/useSystemIntegration';
 import type { Server } from '@/types/server';
@@ -56,9 +56,16 @@ export default function OptimizedDashboard({
   const _healthStatus =
     systemStatus.systemStatus === 'running' ? 'healthy' : 'critical';
 
-  // ⚠️ 수정: useServerDashboard 중복 호출 제거 (ServerDashboard에서 이미 호출)
-  // ServerDashboard가 서버 데이터를 직접 관리하므로 여기서는 props만 사용
-  const _servers = propServers;
+  // 🔧 Phase 4: useServerDashboard에서 pagination 상태 가져오기
+  const {
+    paginatedServers,
+    servers: allServers,
+    currentPage,
+    totalPages,
+    pageSize,
+    setCurrentPage,
+    changePageSize,
+  } = useServerDashboard({ initialServers: propServers });
   const _isLoading = propIsLoading;
   const _error = propError;
 
@@ -216,11 +223,20 @@ export default function OptimizedDashboard({
           <main className="flex-1 p-6">
             <div>
               <ServerDashboard
+                servers={paginatedServers}
+                totalServers={allServers.length}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={changePageSize}
                 onStatsUpdate={(_stats: {
                   total: number;
                   online: number;
                   warning: number;
+                  critical: number;
                   offline: number;
+                  unknown: number;
                 }) => {}}
               />
             </div>

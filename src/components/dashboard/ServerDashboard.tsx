@@ -1,7 +1,7 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
 import ImprovedServerCard from '@/components/dashboard/ImprovedServerCard';
 import VirtualizedServerList from '@/components/dashboard/VirtualizedServerList';
@@ -22,8 +22,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { DashboardTab } from '@/hooks/useServerDashboard';
-import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { logger } from '@/lib/logging';
+import type { Server } from '@/types/server';
 // react-window Grid는 사용하지 않음 (VirtualizedServerList에서 List 사용)
 import { usePerformanceTracking } from '@/utils/performance';
 
@@ -42,37 +42,67 @@ const getAlertsCountOptimized = (alerts: unknown): number => {
   return 0;
 };
 
+/**
+ * ServerDashboard Props (Phase 4: Props 기반 데이터 흐름)
+ * - 중복 fetch 제거: DashboardClient → DashboardContent → ServerDashboard로 props 전달
+ * - useServerDashboard() 호출 제거
+ */
 interface ServerDashboardProps {
+  /** 페이지네이션된 서버 목록 (DashboardClient에서 전달) */
+  servers: Server[];
+  /** 전체 서버 수 (페이지네이션 계산용) */
+  totalServers: number;
+  /** 현재 페이지 */
+  currentPage: number;
+  /** 총 페이지 수 */
+  totalPages: number;
+  /** 페이지당 항목 수 */
+  pageSize: number;
+  /** 페이지 변경 핸들러 */
+  onPageChange: (page: number) => void;
+  /** 페이지 크기 변경 핸들러 */
+  onPageSizeChange: (size: number) => void;
+  /** 통계 업데이트 콜백 */
   onStatsUpdate?: (stats: {
     total: number;
     online: number;
     warning: number;
-    critical: number; // 🚨 위험 상태 (v5.83.13 추가)
+    critical: number;
     offline: number;
     unknown: number;
   }) => void;
 }
 
 export default function ServerDashboard({
+  servers,
+  totalServers,
+  currentPage,
+  totalPages,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
   onStatsUpdate,
 }: ServerDashboardProps) {
   // 🚀 성능 추적 활성화
   const performanceStats = usePerformanceTracking('ServerDashboard');
 
   const [activeTab] = useState<DashboardTab>('servers');
-  const {
-    paginatedServers,
-    servers,
-    currentPage,
-    totalPages,
-    pageSize,
-    setCurrentPage,
-    changePageSize,
-    handleServerSelect,
-    selectedServer,
-    // selectedServerMetrics,
-    handleModalClose,
-  } = useServerDashboard({ onStatsUpdate });
+
+  // 🔧 Phase 4: useServerDashboard() 제거 - props로 데이터 받음
+  // 모달 상태만 로컬로 관리
+  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
+
+  const handleServerSelect = useCallback((server: Server) => {
+    setSelectedServer(server);
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    setSelectedServer(null);
+  }, []);
+
+  // paginatedServers → servers (props)
+  // onPageChange → onPageChange (props)
+  // changePageSize → onPageSizeChange (props)
 
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
@@ -80,26 +110,27 @@ export default function ServerDashboard({
   }, []);
 
   // 🚀 서버 정렬 최적화: 외부 상수와 최적화된 함수 사용
+  // 🔧 Phase 4: paginatedServers → servers (props로 전달받음)
   const sortedServers = useMemo(() => {
-    // 🛡️ AI 교차검증: paginatedServers 다층 안전성 검증 (Codex 94.1% 개선)
-    if (!paginatedServers) {
-      logger.warn('⚠️ ServerDashboard: paginatedServers가 undefined입니다.');
+    // 🛡️ AI 교차검증: servers 다층 안전성 검증 (Codex 94.1% 개선)
+    if (!servers) {
+      logger.warn('⚠️ ServerDashboard: servers가 undefined입니다.');
       return [];
     }
-    if (!Array.isArray(paginatedServers)) {
+    if (!Array.isArray(servers)) {
       logger.error(
-        '⚠️ ServerDashboard: paginatedServers가 배열이 아닙니다:',
-        typeof paginatedServers
+        '⚠️ ServerDashboard: servers가 배열이 아닙니다:',
+        typeof servers
       );
       return [];
     }
-    if (paginatedServers.length === 0) {
+    if (servers.length === 0) {
       logger.info('ℹ️ ServerDashboard: 표시할 서버가 없습니다.');
       return [];
     }
 
     // 🛡️ Codex 권장: 각 서버 객체 유효성 검증
-    const validatedServers = paginatedServers.filter((server, index) => {
+    const validatedServers = servers.filter((server, index) => {
       if (!server || typeof server !== 'object') {
         logger.warn(
           `⚠️ ServerDashboard: 서버[${index}]가 유효하지 않음:`,
@@ -117,9 +148,9 @@ export default function ServerDashboard({
       return true;
     });
 
-    if (validatedServers.length !== paginatedServers.length) {
+    if (validatedServers.length !== servers.length) {
       logger.warn(
-        `⚠️ ServerDashboard: ${paginatedServers.length - validatedServers.length}개 서버가 유효하지 않아 제외되었습니다.`
+        `⚠️ ServerDashboard: ${servers.length - validatedServers.length}개 서버가 유효하지 않아 제외되었습니다.`
       );
     }
 
@@ -144,33 +175,19 @@ export default function ServerDashboard({
 
       return alertsB - alertsA;
     });
-  }, [paginatedServers]);
+  }, [servers]);
 
   // 페이지네이션 정보 계산 (메모이제이션으로 최적화)
+  // 🔧 Phase 4: totalServers props 사용 (전체 서버 수)
   const paginationInfo = useMemo(() => {
-    // 🛡️ AI 교차검증: servers 다층 안전성 검증 (Gemini 70→90점 개선)
-    let safeServersLength = 0;
-
-    if (!servers) {
-      logger.warn('⚠️ ServerDashboard: servers가 undefined입니다.');
-    } else if (!Array.isArray(servers)) {
-      logger.error(
-        '⚠️ ServerDashboard: servers가 배열이 아닙니다:',
-        typeof servers
-      );
-    } else {
-      safeServersLength = servers.length;
-    }
-
     // 🛡️ Codex 권장: 안전한 수치 계산
+    const safeServersLength = Math.max(0, totalServers || 0);
     const safeTotalPages = Math.max(1, totalPages || 1);
     const safeCurrentPage = Math.max(
       1,
       Math.min(currentPage || 1, safeTotalPages)
     );
-    const calculatedPageSize =
-      safeServersLength > 0 ? Math.ceil(safeServersLength / safeTotalPages) : 8;
-    const safePageSize = Math.max(1, calculatedPageSize);
+    const safePageSize = Math.max(1, pageSize || 6);
 
     const startIndex = Math.max(1, (safeCurrentPage - 1) * safePageSize + 1);
     const endIndex = Math.min(
@@ -195,7 +212,7 @@ export default function ServerDashboard({
       endIndex: Math.max(0, endIndex),
       totalServers: safeServersLength,
     };
-  }, [servers, totalPages, currentPage]);
+  }, [totalServers, totalPages, currentPage, pageSize]);
 
   if (!isClient) {
     return (
@@ -323,8 +340,8 @@ export default function ServerDashboard({
               <Select
                 value={String(pageSize)}
                 onValueChange={(value) => {
-                  changePageSize(Number(value));
-                  setCurrentPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
+                  onPageSizeChange(Number(value));
+                  onPageChange(1); // 페이지 크기 변경 시 첫 페이지로 이동
                 }}
               >
                 <SelectTrigger className="w-[90px]">
@@ -350,7 +367,7 @@ export default function ServerDashboard({
                     onClick={(e) => {
                       e.preventDefault();
                       if (currentPage > 1) {
-                        setCurrentPage(currentPage - 1);
+                        onPageChange(currentPage - 1);
                       }
                     }}
                     className={
@@ -387,7 +404,7 @@ export default function ServerDashboard({
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            setCurrentPage(1);
+                            onPageChange(1);
                           }}
                         >
                           1
@@ -412,7 +429,7 @@ export default function ServerDashboard({
                           isActive={currentPage === i}
                           onClick={(e) => {
                             e.preventDefault();
-                            setCurrentPage(i);
+                            onPageChange(i);
                           }}
                         >
                           {i}
@@ -436,7 +453,7 @@ export default function ServerDashboard({
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            setCurrentPage(totalPages);
+                            onPageChange(totalPages);
                           }}
                         >
                           {totalPages}
@@ -454,7 +471,7 @@ export default function ServerDashboard({
                     onClick={(e) => {
                       e.preventDefault();
                       if (currentPage < totalPages) {
-                        setCurrentPage(currentPage + 1);
+                        onPageChange(currentPage + 1);
                       }
                     }}
                     className={
@@ -470,8 +487,8 @@ export default function ServerDashboard({
 
           {/* 현재 페이지 정보 */}
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-            {servers?.length || 0}개 서버 중 {(currentPage - 1) * pageSize + 1}-
-            {Math.min(currentPage * pageSize, servers?.length || 0)}번째 표시 중
+            {totalServers}개 서버 중 {(currentPage - 1) * pageSize + 1}-
+            {Math.min(currentPage * pageSize, totalServers)}번째 표시 중
           </div>
         </div>
       )}

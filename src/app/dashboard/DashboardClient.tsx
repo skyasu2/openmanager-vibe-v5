@@ -401,8 +401,16 @@ function DashboardPageContent({
 
   // ✅ useSystemStatusStore 제거 - useUnifiedAdminStore로 직접 접근
 
-  // 🎯 서버 데이터 (Phase 2: SSR 초기 데이터 지원)
-  const { paginatedServers: realServers } = useServerDashboard({
+  // 🎯 서버 데이터 (Phase 2: SSR 초기 데이터 지원, Phase 4: 전체 pagination 상태)
+  const {
+    paginatedServers: realServers,
+    servers: allServers,
+    currentPage,
+    totalPages,
+    pageSize,
+    setCurrentPage,
+    changePageSize,
+  } = useServerDashboard({
     initialServers,
   });
 
@@ -548,12 +556,18 @@ function DashboardPageContent({
 
         <div className="flex-1 overflow-hidden">
           <Suspense fallback={<ContentLoadingSkeleton />}>
-            {/* 🔧 레거시 props 정리 (2026-01-17):
-                - 제거됨: actions, selectedServer, onServerClick, onServerModalClose
-                - ServerDashboard가 useServerDashboard hook으로 직접 데이터 관리 */}
+            {/* 🔧 Phase 4 (2026-01-28): Props 기반 데이터 흐름
+                - DashboardClient → DashboardContent → ServerDashboard로 전달
+                - 중복 fetch 제거 (useServerDashboard 호출 1회로 최적화) */}
             <DashboardContent
               showSequentialGeneration={false}
               servers={realServers}
+              totalServers={allServers.length}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={changePageSize}
               status={{ type: 'idle' }}
               onStatsUpdate={handleStatsUpdate}
               onShowSequentialChange={() => {}}

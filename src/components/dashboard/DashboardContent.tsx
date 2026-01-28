@@ -27,13 +27,26 @@ interface DashboardStatus {
 
 /**
  * DashboardContent Props
- * 🔧 레거시 정리 (2026-01-17):
- * - 제거됨: actions, selectedServer, onServerClick, onServerModalClose
- * - ServerDashboard가 useServerDashboard hook으로 직접 데이터 관리
+ * 🔧 Phase 4 (2026-01-28): Props 기반 데이터 흐름
+ * - DashboardClient → DashboardContent → ServerDashboard로 props 전달
+ * - 중복 fetch 제거 (useServerDashboard 호출 최소화)
  */
 interface DashboardContentProps {
   showSequentialGeneration: boolean;
+  /** 페이지네이션된 서버 목록 */
   servers: Server[];
+  /** 전체 서버 수 (페이지네이션 계산용) */
+  totalServers: number;
+  /** 현재 페이지 */
+  currentPage: number;
+  /** 총 페이지 수 */
+  totalPages: number;
+  /** 페이지당 항목 수 */
+  pageSize: number;
+  /** 페이지 변경 핸들러 */
+  onPageChange: (page: number) => void;
+  /** 페이지 크기 변경 핸들러 */
+  onPageSizeChange: (size: number) => void;
   status: DashboardStatus;
   onStatsUpdate: (stats: DashboardStats) => void;
   onShowSequentialChange: (show: boolean) => void;
@@ -52,6 +65,12 @@ const ServerDashboardDynamic = dynamic(() => import('./ServerDashboard'), {
 export default function DashboardContent({
   showSequentialGeneration,
   servers,
+  totalServers,
+  currentPage,
+  totalPages,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
   status,
   onStatsUpdate,
   onShowSequentialChange,
@@ -318,11 +337,19 @@ export default function DashboardContent({
                   </div>
                 }
               >
-                {/* 🔧 레거시 props 정리 (2026-01-17):
-                    - servers, onServerClick, showModal, onClose, selectedServerId 제거
-                    - ServerDashboard는 useServerDashboard hook에서 직접 데이터 관리
-                    - onStatsUpdate만 유일하게 사용됨 */}
-                <ServerDashboardDynamic onStatsUpdate={onStatsUpdate} />
+                {/* 🔧 Phase 4 (2026-01-28): Props 기반 데이터 흐름
+                    - DashboardClient → DashboardContent → ServerDashboard로 전달
+                    - 중복 fetch 제거 (useServerDashboard 호출 1회로 최적화) */}
+                <ServerDashboardDynamic
+                  servers={servers}
+                  totalServers={totalServers}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  pageSize={pageSize}
+                  onPageChange={onPageChange}
+                  onPageSizeChange={onPageSizeChange}
+                  onStatsUpdate={onStatsUpdate}
+                />
               </Suspense>
             </>
           ) : (
