@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
+import { logger } from '@/lib/logging';
 import { getErrorMessage } from './type-utils';
 import { formatZodErrors, validateData } from './zod-utils';
 
@@ -109,8 +110,8 @@ export function validateResponse<T extends z.ZodTypeAny>(
     const result = validateData(schema, data);
 
     if (!result.success) {
-      console.error('Response validation failed:', result.error);
-      console.error('Details:', result.details);
+      logger.error('Response validation failed:', result.error);
+      logger.error('Details:', result.details);
 
       return NextResponse.json(
         {
@@ -173,11 +174,11 @@ export function validateEnv<T extends z.ZodRawShape>(
 
   if (!result.success) {
     const formatted = formatZodErrors(result.error);
-    console.error('환경변수 검증 실패:');
-    console.error(formatted.message);
+    logger.error('환경변수 검증 실패:');
+    logger.error(formatted.message);
 
     if (process.env.NODE_ENV === 'development') {
-      console.error('상세 오류:', formatted.details);
+      logger.error('상세 오류:', formatted.details);
     }
 
     throw new Error(`환경변수 검증 실패: ${formatted.message}`);

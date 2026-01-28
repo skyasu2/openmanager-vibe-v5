@@ -36,7 +36,11 @@ import debug from '@/utils/debug';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic'; // 캐시는 응답 레벨에서 처리
 
-/** 헬스체크 캐시 (60초 TTL) */
+/** 헬스체크 캐시 (60초 TTL)
+ * Note: Module-level cache is per-serverless-instance. This is acceptable
+ * for health checks since each instance independently validates its own state,
+ * and the 60s TTL ensures staleness is bounded.
+ */
 interface HealthCache {
   data: HealthCheckResponse | null;
   timestamp: number;

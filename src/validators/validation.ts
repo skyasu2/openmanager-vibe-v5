@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import * as z from 'zod';
+import { logger } from '@/lib/logging';
 import type { ApiError } from '@/types/common-replacements';
 import {
   validateQueryParams,
@@ -87,13 +88,10 @@ export function withValidation<
           const validationResult = schemas.response.safeParse(responseData);
 
           if (!validationResult.success) {
-            console.error(
-              'Response validation failed:',
-              validationResult.error
-            );
+            logger.error('Response validation failed:', validationResult.error);
           }
         } catch (error) {
-          console.error('Failed to validate response:', error);
+          logger.error('Failed to validate response:', error);
         }
       }
 
@@ -110,7 +108,7 @@ export function withValidation<
  * API 에러를 처리하고 적절한 응답 반환
  */
 export function handleApiError(error: unknown): NextResponse {
-  console.error('API Error:', error);
+  logger.error('API Error:', error);
 
   // Zod 검증 에러
   if (error instanceof z.ZodError) {

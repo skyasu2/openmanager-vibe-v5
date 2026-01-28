@@ -4,6 +4,7 @@
  * Blocks access to development/testing APIs in production environment
  */
 
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 /**
@@ -35,10 +36,12 @@ export function blockInProduction(): NextResponse | null {
 }
 
 /**
- * Generic function type for route handlers
+ * Route handler function type for Next.js API routes
  */
-// biome-ignore lint/suspicious/noExplicitAny: Route handlers have varied signatures
-type RouteHandler = (...args: any[]) => any;
+type RouteHandler = (
+  request: NextRequest,
+  context?: { params: Promise<Record<string, string>> }
+) => NextResponse | Promise<NextResponse>;
 
 /**
  * Wrapper for development-only route handlers
@@ -51,11 +54,14 @@ type RouteHandler = (...args: any[]) => any;
  * ```
  */
 export function developmentOnly<T extends RouteHandler>(handler: T): T {
-  return ((...args: Parameters<T>) => {
+  return ((
+    request: NextRequest,
+    context?: { params: Promise<Record<string, string>> }
+  ) => {
     const blockResponse = blockInProduction();
     if (blockResponse) {
       return blockResponse;
     }
-    return handler(...args);
+    return handler(request, context);
   }) as T;
 }

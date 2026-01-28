@@ -22,6 +22,11 @@ import debug from '@/utils/debug';
  * E2E 테스트 시 인증 우회를 위한 헬퍼 함수
  */
 function isTestMode(request: NextRequest): boolean {
+  // Only allow test mode in non-production environments
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
+
   // Check for test mode header
   const testHeader = request.headers.get('X-Test-Mode');
   if (testHeader === 'enabled') {

@@ -13,15 +13,15 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import { useCallback, useEffect, useState } from 'react';
-import { useSystemChecklist } from '../../../hooks/useSystemChecklist';
+import { useSystemChecklist } from '@/hooks/useSystemChecklist';
 import type {
   DebugInfo,
   ErrorInfo,
   NetworkRequest,
   SystemChecklistProps,
   WindowWithDebug,
-} from '../../../types/system-checklist';
-import debug from '../../../utils/debug';
+} from '@/types/system-checklist';
+import debug from '@/utils/debug';
 import { ChecklistItem } from './ChecklistItem';
 import { CompletionOverlay } from './CompletionOverlay';
 import { DebugPanel } from './DebugPanel';

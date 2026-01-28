@@ -19,8 +19,8 @@ import {
   useEffect,
   useState,
 } from 'react';
-import type { Server } from '../../../types/server';
-import debug from '../../../utils/debug';
+import type { Server } from '@/types/server';
+import debug from '@/utils/debug';
 
 interface SystemBootSequenceProps {
   servers: Server[];

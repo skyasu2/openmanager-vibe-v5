@@ -12,13 +12,13 @@
 // export { default as DashboardLoader } from './DashboardLoader';
 
 // 🎬 순차적 로딩 관련 hooks (백업용)
-export { useSequentialLoadingTime } from '../../../hooks/useSequentialLoadingTime';
+export { useSequentialLoadingTime } from '@/hooks/useSequentialLoadingTime';
 export type {
   ComponentStatus,
   SystemComponent,
-} from '../../../hooks/useSystemChecklist';
+} from '@/hooks/useSystemChecklist';
 // 🔧 시스템 체크리스트 관련 hooks
-export { useSystemChecklist } from '../../../hooks/useSystemChecklist';
+export { useSystemChecklist } from '@/hooks/useSystemChecklist';
 // 🗑️ ServerCardSpawner 제거됨 - 미사용
 // 🗑️ SequentialLoader 제거됨 - 백업으로 이동
 // export { default as SequentialLoader } from './SequentialLoader';

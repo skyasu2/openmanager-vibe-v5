@@ -3,12 +3,12 @@ import type {
   ComponentStatus,
   SystemComponent,
   WindowWithDebug,
-} from '../../../types/system-checklist';
+} from '@/types/system-checklist';
 import {
   getComponentIcon,
   getPriorityBorder,
   getStatusIcon,
-} from '../../../utils/system-checklist-icons';
+} from '@/utils/system-checklist-icons';
 
 export type ChecklistItemProps = {
   component: SystemComponent;

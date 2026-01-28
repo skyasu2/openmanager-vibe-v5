@@ -18,7 +18,7 @@
  * 📅 생성일: 2025.06.14 (ServerDashboard 1522줄 분리 작업)
  */
 
-import type { Server } from '../../../types/server';
+import type { Server } from '@/types/server';
 
 // 🎯 탭 타입 정의
 export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';

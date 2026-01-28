@@ -1,7 +1,7 @@
 'use client';
 
-import type { MetricsStats } from '../../../hooks/useServerMetrics';
-import type { MetricsHistory } from '../../../types/server';
+import type { MetricsStats } from '@/hooks/useServerMetrics';
+import type { MetricsHistory } from '@/types/server';
 import { ServerModalGauge } from '../../shared/UnifiedCircularGauge';
 
 interface ServerDetailMetricsProps {

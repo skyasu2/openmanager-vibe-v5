@@ -15,7 +15,7 @@ import {
   Wifi,
   XCircle,
 } from 'lucide-react';
-import type { Server } from '../../../types/server';
+import type { Server } from '@/types/server';
 
 interface ServerDetailOverviewProps {
   server: Server;

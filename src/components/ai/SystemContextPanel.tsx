@@ -5,146 +5,62 @@
  *
  * @description
  * - AI Provider 상태 실시간 표시 (config/ai-providers.ts 기반)
- * - 시스템 상태 모니터링
+ * - 시스템 상태 모니터링 (useHealthCheck 훅 사용)
  * - 빠른 명령 힌트
  * - AI 디버그 패널
+ *
+ * @since v7.1.0 - useHealthCheck 통합으로 중복 폴링 제거
  */
 
 import { Activity, AlertCircle, Layout, RefreshCw, Server } from 'lucide-react';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useMemo } from 'react';
 import { AIDebugPanel } from '@/components/ai-sidebar/AIDebugPanel';
-import {
-  type AIProviderConfig,
-  getDefaultProviderStatus,
-} from '@/config/ai-providers';
+import { AI_PROVIDERS, type AIProviderConfig } from '@/config/ai-providers';
+import { useHealthCheck } from '@/hooks/system/useHealthCheck';
 
 /**
  * AI Provider 상태 타입 - AIProviderConfig 기반 확장
  * @see config/ai-providers.ts
  */
-interface AIProviderStatus
-  extends Pick<AIProviderConfig, 'name' | 'role' | 'color'> {
+type AIProviderStatus = Pick<AIProviderConfig, 'name' | 'role' | 'color'> & {
   status: 'active' | 'inactive' | 'error';
-}
+};
 
-interface SystemContextPanelProps {
+type SystemContextPanelProps = {
   className?: string;
-}
+};
 
 const SystemContextPanel = memo(function SystemContextPanel({
   className = '',
 }: SystemContextPanelProps) {
-  // AI Provider 목록: config/ai-providers.ts에서 가져옴 (Single Source of Truth)
-  const [providers, setProviders] = useState<AIProviderStatus[]>(
-    getDefaultProviderStatus
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const [systemOnline, setSystemOnline] = useState(true);
+  // useHealthCheck 훅으로 통합 (5초 폴링 → 30초로 최적화)
+  const {
+    providers: healthProviders,
+    isSystemOnline,
+    lastChecked,
+    isChecking,
+    check,
+  } = useHealthCheck({
+    pollingInterval: 30000, // 30초 (Vercel 비용 최적화)
+    pauseWhenHidden: true,
+    service: 'ai',
+  });
 
-  // AbortController ref for request cancellation (폴링 중복 방지)
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const isRequestInFlightRef = useRef(false);
+  // Provider 상태 매핑 (config + health 병합)
+  const providers: AIProviderStatus[] = useMemo(() => {
+    return AI_PROVIDERS.map((configProvider) => {
+      const healthProvider = healthProviders.find(
+        (hp) => hp.name.toLowerCase() === configProvider.name.toLowerCase()
+      );
 
-  // Provider 상태 강등 (실패 시)
-  const markProvidersInactive = useCallback(() => {
-    setProviders((prev) => prev.map((p) => ({ ...p, status: 'inactive' })));
-  }, []);
-
-  // AI Engine Health Check (5초 폴링) - AbortController 적용
-  const fetchHealthStatus = useCallback(async () => {
-    // 이미 요청 중이면 스킵 (중복 방지)
-    if (isRequestInFlightRef.current) return;
-    isRequestInFlightRef.current = true;
-
-    // 이전 요청 취소
-    abortControllerRef.current?.abort();
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/health?service=ai', {
-        method: 'GET',
-        cache: 'no-store',
-        signal: controller.signal,
-      });
-
-      if (response.ok) {
-        const data = (await response.json()) as {
-          providers?: Array<{
-            name: string;
-            status: string;
-            role?: string;
-          }>;
-          status?: string;
-        };
-
-        // Provider 상태 업데이트
-        if (data.providers && Array.isArray(data.providers)) {
-          setProviders((prev) =>
-            prev.map((p) => {
-              const found = data.providers?.find(
-                (dp: { name: string; status: string }) =>
-                  dp.name.toLowerCase() === p.name.toLowerCase()
-              );
-              if (found) {
-                return {
-                  ...p,
-                  status:
-                    found.status === 'healthy' || found.status === 'online'
-                      ? 'active'
-                      : found.status === 'error'
-                        ? 'error'
-                        : 'inactive',
-                };
-              }
-              return p;
-            })
-          );
-        }
-
-        setSystemOnline(
-          data.status === 'ok' ||
-            data.status === 'healthy' ||
-            data.status === 'online'
-        );
-        setLastUpdated(new Date());
-      } else {
-        // API 실패 시 상태 강등
-        setSystemOnline(false);
-        markProvidersInactive();
-      }
-    } catch (error) {
-      // AbortError는 정상적인 취소이므로 무시
-      if ((error as DOMException).name !== 'AbortError') {
-        setSystemOnline(false);
-        markProvidersInactive();
-      }
-    } finally {
-      // 현재 controller가 여전히 활성 상태일 때만 정리
-      if (abortControllerRef.current === controller) {
-        abortControllerRef.current = null;
-      }
-      isRequestInFlightRef.current = false;
-      setIsLoading(false);
-    }
-  }, [markProvidersInactive]);
-
-  // 초기 로드 및 5초 폴링
-  useEffect(() => {
-    void fetchHealthStatus();
-
-    const interval = setInterval(() => {
-      void fetchHealthStatus();
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-      // 언마운트 시 진행 중인 요청 취소
-      abortControllerRef.current?.abort();
-    };
-  }, [fetchHealthStatus]);
+      return {
+        name: configProvider.name,
+        role: configProvider.role,
+        color: configProvider.color,
+        status: healthProvider?.status ?? 'inactive',
+      };
+    });
+  }, [healthProviders]);
 
   const getStatusBadge = (status: AIProviderStatus['status']) => {
     switch (status) {
@@ -181,12 +97,14 @@ const SystemContextPanel = memo(function SystemContextPanel({
         </h3>
         <button
           type="button"
-          onClick={() => void fetchHealthStatus()}
-          disabled={isLoading}
+          onClick={() => void check()}
+          disabled={isChecking}
           className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 disabled:opacity-50"
           title="새로고침"
         >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`h-4 w-4 ${isChecking ? 'animate-spin' : ''}`}
+          />
         </button>
       </div>
 
@@ -214,7 +132,7 @@ const SystemContextPanel = memo(function SystemContextPanel({
             ))}
           </div>
           <p className="text-right text-[10px] text-gray-400">
-            Updated: {lastUpdated.toLocaleTimeString()}
+            Updated: {lastChecked?.toLocaleTimeString() ?? '-'}
           </p>
         </div>
 
@@ -229,7 +147,7 @@ const SystemContextPanel = memo(function SystemContextPanel({
                 <Server className="h-3.5 w-3.5 text-blue-500" />
                 AI Engine
               </span>
-              {systemOnline ? (
+              {isSystemOnline ? (
                 <span className="text-sm font-bold text-emerald-600">
                   Online
                 </span>
