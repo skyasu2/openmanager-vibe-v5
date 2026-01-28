@@ -3,47 +3,13 @@
  *
  * @description Zod 스키마 검증 테스트 (파일 파트 빈 문자열 검증 포함)
  * @created 2026-01-27
+ * @updated 2026-01-28 - Import actual schema instead of local copy (Codex review fix)
  */
 
 import { describe, expect, it } from 'vitest';
-import { z } from 'zod';
 
-// filePartSchema를 테스트하기 위해 별도 정의 (내부 스키마이므로)
-const filePartSchema = z
-  .object({
-    type: z.literal('file'),
-    data: z
-      .string()
-      .max(50 * 1024 * 1024, '파일 크기가 50MB를 초과합니다')
-      .optional(),
-    url: z
-      .string()
-      .max(50 * 1024 * 1024, '파일 크기가 50MB를 초과합니다')
-      .optional(),
-    mediaType: z
-      .enum([
-        'application/pdf',
-        'text/plain',
-        'text/markdown',
-        'audio/mpeg',
-        'audio/wav',
-        'audio/ogg',
-        'image/png',
-        'image/jpeg',
-        'image/gif',
-        'image/webp',
-      ])
-      .optional(),
-    mimeType: z.string().optional(),
-    filename: z.string().max(255).optional(),
-    name: z.string().max(255).optional(),
-  })
-  .refine(
-    (part) =>
-      (typeof part.data === 'string' && part.data.length > 0) ||
-      (typeof part.url === 'string' && part.url.length > 0),
-    { message: 'File part must include non-empty data or url field' }
-  );
+// 🎯 Fix: Import actual schema to prevent drift between test and production
+import { filePartSchema, requestSchemaLoose } from './schemas';
 
 describe('filePartSchema validation', () => {
   describe('빈 문자열 검증', () => {
@@ -142,16 +108,15 @@ describe('filePartSchema validation', () => {
   });
 
   describe('Edge cases', () => {
-    it('공백만 있는 data는 허용한다 (길이 > 0)', () => {
-      // 공백만 있는 경우는 기술적으로 유효하지만
-      // 실제 파일 데이터로서는 의미가 없음 (상위 검증 필요)
+    it('공백만 있는 data는 거부한다 (trim 후 길이 0)', () => {
+      // 🎯 Fix: 공백만 있는 경우는 이제 거부됨 (trim 검증 추가)
       const edgeCasePart = {
         type: 'file' as const,
         data: '   ',
       };
 
       const result = filePartSchema.safeParse(edgeCasePart);
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
     });
 
     it('단일 문자 data는 허용한다', () => {
@@ -163,6 +128,16 @@ describe('filePartSchema validation', () => {
       const result = filePartSchema.safeParse(minimalPart);
       expect(result.success).toBe(true);
     });
+
+    it('공백만 있는 url도 거부한다', () => {
+      const edgeCasePart = {
+        type: 'file' as const,
+        url: '   ',
+      };
+
+      const result = filePartSchema.safeParse(edgeCasePart);
+      expect(result.success).toBe(false);
+    });
   });
 });
 
@@ -172,8 +147,6 @@ describe('filePartSchema validation', () => {
  * V2 프록시 모드에서 사용하는 느슨한 스키마 검증 테스트
  * Cloud Run에서 최종 검증이 이루어지므로 Vercel 단에서는 최소 검증만 수행
  */
-import { requestSchemaLoose } from './schemas';
-
 describe('requestSchemaLoose (V2 Proxy)', () => {
   describe('유효한 요청', () => {
     it('should accept minimal message structure', () => {

@@ -26,7 +26,7 @@ const textPartSchema = z.object({
  * @see https://ai-sdk.dev/docs/ai-sdk-core/prompts#file-parts
  * @see https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#files
  */
-const filePartSchema = z
+export const filePartSchema = z
   .object({
     type: z.literal('file'),
     // 파일 데이터 (서버 측, Base64 또는 data URL)
@@ -63,8 +63,8 @@ const filePartSchema = z
   })
   .refine(
     (part) =>
-      (typeof part.data === 'string' && part.data.length > 0) ||
-      (typeof part.url === 'string' && part.url.length > 0),
+      (typeof part.data === 'string' && part.data.trim().length > 0) ||
+      (typeof part.url === 'string' && part.url.trim().length > 0),
     { message: 'File part must include non-empty data or url field' }
   );
 
@@ -146,6 +146,7 @@ export const requestSchemaLoose = z.object({
 });
 
 // Export types for external use
+export type FilePartSchema = z.infer<typeof filePartSchema>;
 export type MessageSchema = z.infer<typeof messageSchema>;
 export type RequestSchema = z.infer<typeof requestSchema>;
 export type RequestSchemaLoose = z.infer<typeof requestSchemaLoose>;
