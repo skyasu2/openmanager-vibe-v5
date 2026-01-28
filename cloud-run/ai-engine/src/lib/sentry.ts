@@ -30,8 +30,8 @@ export function initSentry(): void {
     environment: isProd ? 'production' : 'development',
     release: `ai-engine@${version}`,
 
-    // 🎯 무료 티어: 샘플링 10%
-    tracesSampleRate: isProd ? 0.1 : 0,
+    // 🎯 무료 티어: 샘플링 30% (월 10,000 트랜잭션 제한, ~70% 사용)
+    tracesSampleRate: isProd ? 0.3 : 0,
 
     // Production에서만 활성화
     enabled: isProd,
