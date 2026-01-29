@@ -1,8 +1,4 @@
 {
-  "outputStyle": "color",
-  "env": {
-    "FORCE_COLOR": "1"
-  },
   "hooks": {
     "PostToolUse": [
       {
