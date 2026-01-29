@@ -63,7 +63,11 @@ export class QueryClassifier {
     if (query.length < 10) confidence -= 20; // 짧은 쿼리는 모호
 
     // 서버 이름이 명시된 경우 신뢰도 상승
-    if (/[a-z]+-[a-z]+-\d+|server-?\d+/i.test(query)) {
+    if (
+      /[a-z]+-[a-z]+-\d+|server-?\d+|mysql|nginx|redis|haproxy|postgres|mariadb|apache|kafka|elasticsearch|mongo|tomcat/i.test(
+        query
+      )
+    ) {
       confidence += 15;
     }
 

@@ -24,14 +24,14 @@ export interface ClarificationRequest {
 // 서버 관련 명확화 패턴
 const SERVER_PATTERNS = {
   missing: /서버|server|상태|status|확인|check/i,
-  hasSpecific: /[a-z]+-[a-z]+-\d+|server-?\d+|web-\d+|db-\d+|api-\d+/i,
+  hasSpecific:
+    /[a-z]+-[a-z]+-\d+|server-?\d+|web-\d+|db-\d+|api-\d+|mysql|nginx|redis|haproxy|postgres|mariadb|apache|kafka|elasticsearch|mongo|tomcat/i,
 };
 
 // 구체적 조건 패턴 (숫자 조건, 정렬, 필터링이 있으면 이미 구체적)
 const SPECIFIC_CONDITION_PATTERNS = {
   // 숫자 조건: "80% 이상", "50% 초과", "70% 미만", "3개", "TOP 5"
-  numericCondition:
-    /\d+%\s*(이상|초과|미만|이하|넘는|넘어|보다)|top\s*\d+|\d+개|상위\s*\d+|하위\s*\d+/i,
+  numericCondition: /\d+%|top\s*\d+|\d+개|상위\s*\d+|하위\s*\d+/i,
   // 상태 조건: "경고 상태인", "정상인", "오프라인"
   statusCondition:
     /경고\s*(상태)?인|정상인|오프라인|critical|warning|online|offline/i,
