@@ -586,7 +586,9 @@ async function executeSupervisorAttempt(
             // Extract RAG sources from searchKnowledgeBase results
             if (tr.toolName === 'searchKnowledgeBase' && 'result' in tr) {
               const kbResult = tr.result as Record<string, unknown>;
+              console.log(`🔍 [Supervisor] searchKnowledgeBase result keys: ${Object.keys(kbResult).join(', ')}`);
               const similarCases = (kbResult.similarCases ?? kbResult.results) as Array<Record<string, unknown>> | undefined;
+              console.log(`🔍 [Supervisor] RAG similarCases found: ${Array.isArray(similarCases) ? similarCases.length : 'none'}`);
               if (Array.isArray(similarCases)) {
                 for (const doc of similarCases) {
                   ragSources.push({
@@ -645,7 +647,7 @@ async function executeSupervisorAttempt(
       });
 
       console.log(
-        `✅ [Supervisor] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]${finalAnswerResult ? ' (via finalAnswer)' : ''}`
+        `✅ [Supervisor] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]${finalAnswerResult ? ' (via finalAnswer)' : ''}, ragSources: ${ragSources.length}`
       );
 
       // 🎯 P1-1: Record token usage for quota tracking (pre-emptive fallback)
