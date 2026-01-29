@@ -132,8 +132,8 @@ export const searchKnowledgeBase = tool({
       .describe('GraphRAG 하이브리드 검색 사용 여부'),
     fastMode: z
       .boolean()
-      .default(false)
-      .describe('Fast mode: HyDE expansion과 LLM reranking을 스킵하여 1-2초 내 응답 (Vercel proxy 타임아웃 대응)'),
+      .default(true)
+      .describe('Fast mode (default: true): HyDE expansion과 LLM reranking을 스킵하여 1-2초 내 응답. 과거 장애 이력 심층 분석 등 정밀도가 필요한 경우에만 false로 설정'),
     includeWebSearch: z
       .boolean()
       .default(false)
@@ -144,7 +144,7 @@ export const searchKnowledgeBase = tool({
     category,
     severity,
     useGraphRAG = true,
-    fastMode = false,
+    fastMode = true,
     includeWebSearch = false,
   }: {
     query: string;
