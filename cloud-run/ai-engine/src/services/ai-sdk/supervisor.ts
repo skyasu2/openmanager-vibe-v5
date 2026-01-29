@@ -578,18 +578,19 @@ async function executeSupervisorAttempt(
         // AI SDK v6 호환: 여러 toolResult 구조 대응
         if (step.toolResults) {
           for (const tr of step.toolResults) {
-            if ('result' in tr) {
-              toolResults.push(tr.result as Record<string, unknown>);
+              // AI SDK v6: toolResult uses 'output' (not 'result')
+            const trAny = tr as Record<string, unknown>;
+            const trOutput = trAny.result ?? trAny.output;
+            if (trOutput) {
+              toolResults.push(trOutput as Record<string, unknown>);
               // Log tool call to Langfuse
-              logToolCall(trace, tr.toolName, {}, tr.result, 0);
+              logToolCall(trace, tr.toolName, {}, trOutput, 0);
             }
 
             // Extract RAG sources from searchKnowledgeBase results
-            if (tr.toolName === 'searchKnowledgeBase' && 'result' in tr) {
-              const kbResult = tr.result as Record<string, unknown>;
-              console.log(`🔍 [Supervisor] searchKnowledgeBase result keys: ${Object.keys(kbResult).join(', ')}`);
+            if (tr.toolName === 'searchKnowledgeBase' && trOutput && typeof trOutput === 'object') {
+              const kbResult = trOutput as Record<string, unknown>;
               const similarCases = (kbResult.similarCases ?? kbResult.results) as Array<Record<string, unknown>> | undefined;
-              console.log(`🔍 [Supervisor] RAG similarCases found: ${Array.isArray(similarCases) ? similarCases.length : 'none'}`);
               if (Array.isArray(similarCases)) {
                 for (const doc of similarCases) {
                   ragSources.push({
@@ -602,17 +603,11 @@ async function executeSupervisorAttempt(
               }
             }
 
-            // Check for finalAnswer tool result (AI SDK v6 Best Practice)
-            // Case 1: result 프로퍼티에 answer가 있는 경우
-            // Case 2: toolResult 자체에 answer가 있는 경우
-            if (tr.toolName === 'finalAnswer') {
-              if ('result' in tr && tr.result && typeof tr.result === 'object') {
-                const result = tr.result as Record<string, unknown>;
-                if ('answer' in result && typeof result.answer === 'string') {
-                  finalAnswerResult = { answer: result.answer };
-                }
-              } else if ('answer' in tr && typeof (tr as Record<string, unknown>).answer === 'string') {
-                finalAnswerResult = { answer: (tr as Record<string, unknown>).answer as string };
+            // Check for finalAnswer tool result
+            if (tr.toolName === 'finalAnswer' && trOutput && typeof trOutput === 'object') {
+              const finalResult = trOutput as Record<string, unknown>;
+              if ('answer' in finalResult && typeof finalResult.answer === 'string') {
+                finalAnswerResult = { answer: finalResult.answer };
               }
             }
           }

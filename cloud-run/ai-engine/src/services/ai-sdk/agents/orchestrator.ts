@@ -1073,14 +1073,17 @@ async function executeForcedRouting(
       }
       if (step.toolResults) {
         for (const tr of step.toolResults) {
-          // AI SDK v6 Best Practice: Extract finalAnswer result if called
-          if ('result' in tr && tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
-            finalAnswerResult = tr.result as { answer: string };
+          // AI SDK v6: toolResult uses 'output' (not 'result')
+          const trAny = tr as Record<string, unknown>;
+          const trOutput = trAny.result ?? trAny.output;
+
+          if (tr.toolName === 'finalAnswer' && trOutput && typeof trOutput === 'object') {
+            finalAnswerResult = trOutput as { answer: string };
           }
 
           // Extract RAG sources from searchKnowledgeBase results
-          if (tr.toolName === 'searchKnowledgeBase' && 'result' in tr) {
-            const kbResult = tr.result as Record<string, unknown>;
+          if (tr.toolName === 'searchKnowledgeBase' && trOutput && typeof trOutput === 'object') {
+            const kbResult = trOutput as Record<string, unknown>;
             const similarCases = (kbResult.similarCases ?? kbResult.results) as Array<Record<string, unknown>> | undefined;
             if (Array.isArray(similarCases)) {
               for (const doc of similarCases) {
