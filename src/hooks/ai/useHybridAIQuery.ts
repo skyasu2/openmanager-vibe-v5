@@ -31,17 +31,14 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import {
-  applyClarification,
-  applyCustomClarification,
-  generateClarification,
-} from '@/lib/ai/clarification-generator';
+import { generateClarification } from '@/lib/ai/clarification-generator';
 import { classifyQuery } from '@/lib/ai/query-classifier';
 import {
   analyzeQueryComplexity,
   shouldForceJobQueue,
 } from '@/lib/ai/utils/query-complexity';
 import { logger } from '@/lib/logging';
+import { useClarificationHandlers } from './core/useClarificationHandlers';
 import { useAsyncAIQuery } from './useAsyncAIQuery';
 
 // ============================================================================
@@ -76,9 +73,7 @@ import {
 } from '@/lib/ai/constants/stream-errors';
 import type { QueryComplexity } from '@/lib/ai/utils/query-complexity';
 import type {
-  ClarificationOption,
   HybridQueryState,
-  QueryMode,
   RedirectEventData,
   StreamDataPart,
   UseHybridAIQueryOptions,
@@ -707,110 +702,20 @@ export function useHybridAIQuery(
   );
 
   // ============================================================================
-  // Clarification Functions
+  // Clarification Functions (extracted to core/useClarificationHandlers.ts)
   // ============================================================================
 
-  /**
-   * 명확화 옵션 선택
-   * 🎯 Fix: pendingAttachmentsRef를 전달하여 파일 첨부 유실 방지
-   */
-  const selectClarification = useCallback(
-    (option: ClarificationOption) => {
-      const clarifiedQuery = applyClarification(option);
-      setState((prev) => ({ ...prev, clarification: null }));
-      executeQuery(clarifiedQuery, pendingAttachmentsRef.current || undefined);
-    },
-    [executeQuery]
-  );
-
-  /**
-   * 커스텀 명확화 입력
-   * 🎯 Fix: pendingAttachmentsRef를 전달하여 파일 첨부 유실 방지
-   */
-  const submitCustomClarification = useCallback(
-    (customInput: string) => {
-      if (!pendingQueryRef.current) return;
-
-      const clarifiedQuery = applyCustomClarification(
-        pendingQueryRef.current,
-        customInput
-      );
-
-      // 명확화 상태 초기화 후 쿼리 실행
-      setState((prev) => ({ ...prev, clarification: null }));
-      executeQuery(clarifiedQuery, pendingAttachmentsRef.current || undefined);
-    },
-    [executeQuery]
-  );
-
-  /**
-   * 명확화 건너뛰기 - 원본 쿼리 그대로 실행
-   *
-   * @description
-   * 사용자가 명확화 옵션을 선택하지 않고 원본 쿼리를 실행하고 싶을 때 사용.
-   * 대기 중인 쿼리와 첨부 파일을 그대로 전송합니다.
-   *
-   * 동작:
-   * 1. pendingQueryRef에 저장된 원본 쿼리 가져오기
-   * 2. pendingAttachmentsRef에 저장된 첨부 파일 가져오기
-   * 3. clarification 상태 null로 초기화
-   * 4. executeQuery로 원본 쿼리 실행 (첨부 파일 포함)
-   *
-   * @example
-   * // ClarificationDialog에서 "원래 질문으로 진행" 버튼 클릭 시
-   * <button onClick={skipClarification}>원래 질문으로 진행</button>
-   *
-   * @see dismissClarification - 쿼리 미실행 시 사용
-   * @see selectClarification - 명확화 옵션 선택 시 사용
-   */
-  const skipClarification = useCallback(() => {
-    const query = pendingQueryRef.current;
-    const attachments = pendingAttachmentsRef.current;
-
-    // 빈 쿼리 방어
-    if (!query || !query.trim()) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        logger.warn('[HybridAI] skipClarification: No pending query to send');
-      }
-      setState((prev) => ({ ...prev, clarification: null }));
-      return;
-    }
-
-    // 명확화 상태 초기화 후 원본 쿼리 실행 (첨부 파일 포함)
-    setState((prev) => ({ ...prev, clarification: null }));
-    executeQuery(query, attachments || undefined);
-  }, [executeQuery]);
-
-  /**
-   * 명확화 취소 - 쿼리 미실행, 상태 정리만
-   *
-   * @description
-   * 사용자가 명확화 다이얼로그를 닫고 쿼리를 실행하지 않을 때 사용.
-   * 모든 대기 상태(clarification, pendingQuery, pendingAttachments)를 정리합니다.
-   *
-   * skipClarification과의 차이점:
-   * - skipClarification: 원본 쿼리 실행 O, 대기 상태 소비
-   * - dismissClarification: 쿼리 실행 X, 대기 상태 정리만
-   *
-   * 동작:
-   * 1. clarification 상태 null로 초기화
-   * 2. pendingQueryRef null로 정리 (원본 쿼리 삭제)
-   * 3. pendingAttachmentsRef null로 정리 (첨부 파일 참조 해제, 메모리 누수 방지)
-   *
-   * @example
-   * // ClarificationDialog X 버튼 또는 "취소" 버튼 클릭 시
-   * <button onClick={dismissClarification}>취소</button>
-   *
-   * @see skipClarification - 원본 쿼리 실행 시 사용
-   * @see selectClarification - 명확화 옵션 선택 시 사용
-   */
-  const dismissClarification = useCallback(() => {
-    // 명확화 상태 및 pending refs 정리
-    setState((prev) => ({ ...prev, clarification: null }));
-    pendingQueryRef.current = null;
-    pendingAttachmentsRef.current = null;
-  }, []);
+  const {
+    selectClarification,
+    submitCustomClarification,
+    skipClarification,
+    dismissClarification,
+  } = useClarificationHandlers({
+    pendingQueryRef,
+    pendingAttachmentsRef,
+    executeQuery,
+    setState,
+  });
 
   // ============================================================================
   // Control Functions

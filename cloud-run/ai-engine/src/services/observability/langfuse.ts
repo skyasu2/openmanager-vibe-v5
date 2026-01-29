@@ -262,10 +262,9 @@ async function loadLangfuse(): Promise<LangfuseConstructor | null> {
   loadAttempted = true;
 
   try {
-    // Dynamic import with type assertion
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const module = (await import('langfuse' as string)) as any;
-    LangfuseClass = module.Langfuse as LangfuseConstructor;
+    // Dynamic import with typed module shape
+    const module = (await import('langfuse' as string)) as { Langfuse: LangfuseConstructor };
+    LangfuseClass = module.Langfuse;
     return LangfuseClass;
   } catch {
     console.warn('⚠️ [Langfuse] Module not installed, observability disabled');
