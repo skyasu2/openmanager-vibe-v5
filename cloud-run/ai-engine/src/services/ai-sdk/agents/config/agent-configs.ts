@@ -360,6 +360,7 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
       filterServers,
       getServerByGroup,
       getServerByGroupAdvanced,
+      searchKnowledgeBase, // RAG: 트러블슈팅/장애 관련 지식 검색
       searchWeb,
       finalAnswer, // AI SDK v6 Best Practice: graceful loop termination
     },
@@ -426,6 +427,7 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
       analyzePattern,
       correlateMetrics,
       findRootCause,
+      searchKnowledgeBase, // RAG: 과거 유사 장애 사례 조회
       finalAnswer, // AI SDK v6 Best Practice: graceful loop termination
     },
     matchPatterns: [

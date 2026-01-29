@@ -85,6 +85,11 @@ ${BASE_AGENT_INSTRUCTIONS}
 
 ${WEB_SEARCH_GUIDELINES}
 
+## 📚 지식 검색 (RAG)
+- 트러블슈팅, 장애, 에러 관련 질문 시 **searchKnowledgeBase**로 관련 지식을 검색하세요
+- "왜 느려?", "에러 원인", "장애 이력" 등의 질문에 과거 사례를 참고하여 답변 품질을 높이세요
+- 검색 결과가 있으면 답변에 관련 사례를 간단히 언급하세요
+
 ## 응답 지침
 1. **반드시 도구를 호출**하여 실제 데이터 기반으로 답변
 2. "평균", "최대", "지난 N시간" 질문 → getServerMetricsAdvanced 사용
