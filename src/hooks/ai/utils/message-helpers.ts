@@ -107,12 +107,33 @@ export function transformUIMessageToEnhanced(
     const isJobQueue = currentMode === 'job-queue';
     const hasTools = toolParts.length > 0;
 
+    // RAG 출처 추출 (job-queue 모드에서 message.data에 포함)
+    const messageData = (
+      message as UIMessage & {
+        data?: {
+          ragSources?: Array<{
+            title: string;
+            similarity: number;
+            sourceType: string;
+            category?: string;
+          }>;
+        };
+      }
+    ).data;
+    const ragSources = messageData?.ragSources;
+    const hasRag = ragSources && ragSources.length > 0;
+
     analysisBasis = {
-      dataSource: hasTools ? '서버 실시간 데이터 분석' : '일반 대화 응답',
+      dataSource: hasRag
+        ? `RAG 지식베이스 검색 (${ragSources.length}건)`
+        : hasTools
+          ? '서버 실시간 데이터 분석'
+          : '일반 대화 응답',
       engine: isJobQueue ? 'Cloud Run AI' : 'Streaming AI',
-      ragUsed: hasTools,
-      confidence: hasTools ? 85 : undefined,
+      ragUsed: hasRag || hasTools,
+      confidence: hasRag ? 90 : hasTools ? 85 : undefined,
       timeRange: hasTools ? '최근 1시간' : undefined,
+      ragSources: hasRag ? ragSources : undefined,
     };
   }
 

@@ -43,6 +43,13 @@ export interface AnalysisBasis {
   timeRange?: string;
   /** 신뢰도 (0-100) */
   confidence?: number;
+  /** RAG 검색 출처 목록 */
+  ragSources?: Array<{
+    title: string;
+    similarity: number;
+    sourceType: string;
+    category?: string;
+  }>;
 }
 
 export interface ChatMessage {

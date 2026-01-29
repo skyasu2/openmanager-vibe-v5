@@ -50,6 +50,12 @@ export interface AsyncQueryResult {
   response?: string;
   targetAgent?: string;
   toolResults?: unknown[];
+  ragSources?: Array<{
+    title: string;
+    similarity: number;
+    sourceType: string;
+    category?: string;
+  }>;
   processingTimeMs?: number;
   error?: string;
   /** Job ID (Stale Closure 방지용) */
@@ -288,6 +294,7 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
                 response: resultData.response,
                 targetAgent: resultData.targetAgent,
                 toolResults: resultData.toolResults,
+                ragSources: resultData.ragSources,
                 processingTimeMs: resultData.processingTimeMs,
               });
             } catch (e) {

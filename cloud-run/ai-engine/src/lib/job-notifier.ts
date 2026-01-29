@@ -21,6 +21,12 @@ export interface JobResult {
   error?: string;
   targetAgent?: string;
   toolResults?: unknown[];
+  ragSources?: Array<{
+    title: string;
+    similarity: number;
+    sourceType: string;
+    category?: string;
+  }>;
   startedAt: string;
   completedAt?: string;
   processingTimeMs?: number;
@@ -77,6 +83,12 @@ export async function storeJobResult(
   options?: {
     targetAgent?: string;
     toolResults?: unknown[];
+    ragSources?: Array<{
+      title: string;
+      similarity: number;
+      sourceType: string;
+      category?: string;
+    }>;
     startedAt?: string;
     // AI SDK metadata
     toolsCalled?: string[];
@@ -97,6 +109,7 @@ export async function storeJobResult(
     result: response,
     targetAgent: options?.targetAgent,
     toolResults: options?.toolResults,
+    ragSources: options?.ragSources,
     startedAt,
     completedAt,
     processingTimeMs,

@@ -556,6 +556,14 @@ async function executeSupervisorAttempt(
       // AI SDK v6 Best Practice: Extract finalAnswer response if called
       let finalAnswerResult: { answer: string } | null = null;
 
+      // RAG 출처 메타데이터 수집
+      const ragSources: Array<{
+        title: string;
+        similarity: number;
+        sourceType: string;
+        category?: string;
+      }> = [];
+
       for (const step of result.steps) {
         for (const toolCall of step.toolCalls) {
           toolsCalled.push(toolCall.toolName);
@@ -568,6 +576,22 @@ async function executeSupervisorAttempt(
               toolResults.push(tr.result as Record<string, unknown>);
               // Log tool call to Langfuse
               logToolCall(trace, tr.toolName, {}, tr.result, 0);
+            }
+
+            // Extract RAG sources from searchKnowledgeBase results
+            if (tr.toolName === 'searchKnowledgeBase' && 'result' in tr) {
+              const kbResult = tr.result as Record<string, unknown>;
+              const similarCases = (kbResult.similarCases ?? kbResult.results) as Array<Record<string, unknown>> | undefined;
+              if (Array.isArray(similarCases)) {
+                for (const doc of similarCases) {
+                  ragSources.push({
+                    title: String(doc.title ?? doc.name ?? 'Unknown'),
+                    similarity: Number(doc.similarity ?? doc.score ?? 0),
+                    sourceType: String(doc.sourceType ?? doc.type ?? 'vector'),
+                    category: doc.category ? String(doc.category) : undefined,
+                  });
+                }
+              }
             }
 
             // Check for finalAnswer tool result (AI SDK v6 Best Practice)
@@ -630,6 +654,7 @@ async function executeSupervisorAttempt(
         response,
         toolsCalled,
         toolResults,
+        ragSources: ragSources.length > 0 ? ragSources : undefined,
         usage: {
           promptTokens: result.usage?.inputTokens ?? 0,
           completionTokens: result.usage?.outputTokens ?? 0,

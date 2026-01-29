@@ -462,16 +462,17 @@ export function useHybridAIQuery(
       // Job 결과를 메시지로 변환하여 추가
       // crypto.randomUUID 기반 ID로 충돌 방지
       if (result.success && result.response) {
-        // 메시지에 추가 (assistant 메시지로)
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: generateMessageId('assistant'),
-            role: 'assistant' as const,
-            content: result.response,
-            parts: [{ type: 'text' as const, text: result.response }],
-          } as UIMessage,
-        ]);
+        // 메시지에 추가 (assistant 메시지로, ragSources 포함)
+        const messageWithRag = {
+          id: generateMessageId('assistant'),
+          role: 'assistant' as const,
+          content: result.response,
+          parts: [{ type: 'text' as const, text: result.response }],
+          data: result.ragSources
+            ? { ragSources: result.ragSources }
+            : undefined,
+        } as UIMessage;
+        setMessages((prev) => [...prev, messageWithRag]);
       }
     },
     onError: (error) => {

@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BookOpen,
   ChevronDown,
   ChevronUp,
   Clock,
@@ -140,6 +141,44 @@ export const AnalysisBasisBadge: FC<AnalysisBasisBadgeProps> = ({
             <div className="flex items-center gap-2">
               <span className="ml-5 text-gray-500">분석 서버:</span>
               <span className="text-gray-700">{basis.serverCount}개</span>
+            </div>
+          )}
+
+          {/* RAG 출처 목록 */}
+          {basis.ragSources && basis.ragSources.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-gray-200">
+              <div className="flex items-center gap-2 mb-1.5">
+                <BookOpen className="h-3.5 w-3.5 text-purple-500" />
+                <span className="text-gray-600 font-medium text-xs">
+                  RAG 참조 문서
+                </span>
+              </div>
+              <div className="space-y-1 ml-5">
+                {basis.ragSources.map((source, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-xs">
+                    <span
+                      className="text-gray-700 truncate max-w-[180px]"
+                      title={source.title}
+                    >
+                      {source.title}
+                    </span>
+                    <span
+                      className={`px-1 py-0.5 rounded text-[10px] font-medium ${
+                        source.similarity >= 0.8
+                          ? 'bg-green-100 text-green-700'
+                          : source.similarity >= 0.6
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {Math.round(source.similarity * 100)}%
+                    </span>
+                    <span className="px-1 py-0.5 rounded bg-purple-50 text-purple-600 text-[10px]">
+                      {source.sourceType}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

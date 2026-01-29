@@ -32,6 +32,12 @@ interface JobResult {
   error?: string;
   targetAgent?: string;
   toolResults?: unknown[];
+  ragSources?: Array<{
+    title: string;
+    similarity: number;
+    sourceType: string;
+    category?: string;
+  }>;
   startedAt: string;
   completedAt?: string;
   processingTimeMs?: number;
@@ -127,6 +133,7 @@ export async function GET(
                 response: result.result,
                 targetAgent: result.targetAgent,
                 toolResults: result.toolResults,
+                ragSources: result.ragSources,
                 processingTimeMs: result.processingTimeMs,
                 timestamp: result.completedAt,
               });

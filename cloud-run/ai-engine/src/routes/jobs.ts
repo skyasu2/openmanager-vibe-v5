@@ -138,6 +138,7 @@ jobsRouter.post('/process', async (c: Context) => {
         // Store result in Redis
         await storeJobResult(jobId, result.response, {
           toolsCalled: result.toolsCalled,
+          ragSources: result.ragSources,
           provider: result.metadata.provider,
           modelId: result.metadata.modelId,
           startedAt,
