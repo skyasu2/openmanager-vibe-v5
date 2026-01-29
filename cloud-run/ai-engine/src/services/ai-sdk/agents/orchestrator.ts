@@ -15,6 +15,7 @@ import { generateText, generateObject, streamText, stepCountIs, hasToolCall, typ
 import { getCerebrasModel, getGroqModel, getMistralModel, checkProviderStatus, type ProviderName } from '../model-provider';
 import { generateTextWithRetry } from '../../resilience/retry-with-fallback';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
+import { extractToolResultOutput } from '../../../lib/ai-sdk-utils';
 import type { StreamEvent } from '../supervisor';
 import { logTimeoutEvent, createTimeoutSpan } from '../../observability/langfuse';
 
@@ -1073,9 +1074,7 @@ async function executeForcedRouting(
       }
       if (step.toolResults) {
         for (const tr of step.toolResults) {
-          // AI SDK v6: toolResult uses 'output' (not 'result')
-          const trAny = tr as Record<string, unknown>;
-          const trOutput = trAny.result ?? trAny.output;
+          const trOutput = extractToolResultOutput(tr);
 
           if (tr.toolName === 'finalAnswer' && trOutput && typeof trOutput === 'object') {
             finalAnswerResult = trOutput as { answer: string };
@@ -2272,8 +2271,9 @@ async function* executeAgentStream(
         // AI SDK v6 Best Practice: Extract finalAnswer result if called
         if (step.toolResults) {
           for (const tr of step.toolResults) {
-            if ('result' in tr && tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
-              finalAnswerResult = tr.result as { answer: string };
+            const trOutput = extractToolResultOutput(tr);
+            if (tr.toolName === 'finalAnswer' && trOutput && typeof trOutput === 'object') {
+              finalAnswerResult = trOutput as { answer: string };
             }
           }
         }

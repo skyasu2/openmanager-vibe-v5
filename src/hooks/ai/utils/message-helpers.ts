@@ -107,10 +107,10 @@ export function transformUIMessageToEnhanced(
     const isJobQueue = currentMode === 'job-queue';
     const hasTools = toolParts.length > 0;
 
-    // RAG 출처 추출 (job-queue 모드에서 message.data에 포함)
+    // RAG 출처 추출 (job-queue 모드에서 message.metadata에 포함)
     const messageData = (
       message as UIMessage & {
-        data?: {
+        metadata?: {
           ragSources?: Array<{
             title: string;
             similarity: number;
@@ -119,7 +119,7 @@ export function transformUIMessageToEnhanced(
           }>;
         };
       }
-    ).data;
+    ).metadata;
     const ragSources = messageData?.ragSources;
     const hasRag = ragSources && ragSources.length > 0;
 

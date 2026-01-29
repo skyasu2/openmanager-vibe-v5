@@ -468,7 +468,7 @@ export function useHybridAIQuery(
           role: 'assistant' as const,
           content: result.response,
           parts: [{ type: 'text' as const, text: result.response }],
-          data: result.ragSources
+          metadata: result.ragSources
             ? { ragSources: result.ragSources }
             : undefined,
         } as UIMessage;

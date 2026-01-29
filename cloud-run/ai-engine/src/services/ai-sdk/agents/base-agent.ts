@@ -28,6 +28,7 @@ import {
   type UserContent,
 } from 'ai';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
+import { extractToolResultOutput } from '../../../lib/ai-sdk-utils';
 import type { AgentConfig, ModelResult } from './config';
 
 // ============================================================================
@@ -359,9 +360,9 @@ export abstract class BaseAgent {
         // Extract finalAnswer result if called
         if (step.toolResults) {
           for (const tr of step.toolResults) {
-            if ('result' in tr && tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
-              // 🎯 Fix: Type guard for consistency with stream() method (Gemini review feedback)
-              const result = tr.result as Record<string, unknown>;
+            const trOutput = extractToolResultOutput(tr);
+            if (tr.toolName === 'finalAnswer' && trOutput && typeof trOutput === 'object') {
+              const result = trOutput as Record<string, unknown>;
               if ('answer' in result && typeof result.answer === 'string') {
                 finalAnswerResult = { answer: result.answer };
               }
@@ -501,9 +502,9 @@ export abstract class BaseAgent {
           // 🎯 Fix: Extract finalAnswer from toolResults (Codex review feedback)
           if (step.toolResults) {
             for (const tr of step.toolResults) {
-              if ('result' in tr && tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
-                const result = tr.result as Record<string, unknown>;
-                // 🎯 Fix: Type guard to ensure answer is a string (Codex review feedback)
+              const trOutput = extractToolResultOutput(tr);
+              if (tr.toolName === 'finalAnswer' && trOutput && typeof trOutput === 'object') {
+                const result = trOutput as Record<string, unknown>;
                 if ('answer' in result && typeof result.answer === 'string') {
                   finalAnswerText = result.answer;
                 }

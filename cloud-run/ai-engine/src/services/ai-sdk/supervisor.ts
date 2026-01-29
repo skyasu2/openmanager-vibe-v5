@@ -48,6 +48,7 @@ import {
   type TraceMetadata,
 } from '../observability/langfuse';
 import { getCircuitBreaker, CircuitOpenError } from '../resilience/circuit-breaker';
+import { extractToolResultOutput } from '../../lib/ai-sdk-utils';
 
 // ============================================================================
 // 1. Types
@@ -578,9 +579,7 @@ async function executeSupervisorAttempt(
         // AI SDK v6 호환: 여러 toolResult 구조 대응
         if (step.toolResults) {
           for (const tr of step.toolResults) {
-              // AI SDK v6: toolResult uses 'output' (not 'result')
-            const trAny = tr as Record<string, unknown>;
-            const trOutput = trAny.result ?? trAny.output;
+            const trOutput = extractToolResultOutput(tr);
             if (trOutput) {
               toolResults.push(trOutput as Record<string, unknown>);
               // Log tool call to Langfuse
@@ -1068,10 +1067,11 @@ async function* streamSingleAgent(
       }
       if (step.toolResults) {
         for (const tr of step.toolResults) {
-          if ('result' in tr) {
-            yield { type: 'tool_result', data: { toolName: tr.toolName, result: tr.result } };
+          const trOutput = extractToolResultOutput(tr);
+          if (trOutput !== undefined) {
+            yield { type: 'tool_result', data: { toolName: tr.toolName, result: trOutput } };
             // Log tool call to Langfuse
-            logToolCall(trace, tr.toolName, {}, tr.result, 0);
+            logToolCall(trace, tr.toolName, {}, trOutput, 0);
           }
         }
       }
