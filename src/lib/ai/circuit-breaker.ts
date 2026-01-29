@@ -584,6 +584,8 @@ export async function executeWithCircuitBreakerAndFallback<T>(
   }
 
   // Primary 함수 실행 시도
+  // Timeout/AbortError는 circuit breaker failure 카운트에서 제외
+  // 네트워크 타임아웃은 서비스 장애가 아닌 Vercel proxy 제한이므로
   try {
     const result = await breaker.execute(primaryFn);
     return {
@@ -593,6 +595,21 @@ export async function executeWithCircuitBreakerAndFallback<T>(
   } catch (error) {
     const errorInstance =
       error instanceof Error ? error : new Error(String(error));
+
+    // 타임아웃/AbortError 감지: circuit breaker에서 이미 failure로 카운트되었으므로 되돌림
+    const isTimeoutError =
+      errorInstance.name === 'AbortError' ||
+      errorInstance.message.includes('timeout') ||
+      errorInstance.message.includes('TIMEOUT') ||
+      errorInstance.message.includes('aborted');
+
+    if (isTimeoutError) {
+      // 타임아웃은 서비스 장애가 아니므로 circuit breaker failure 카운트 되돌림
+      logger.info(
+        `[CircuitBreaker] ${serviceName}: 타임아웃 감지, circuit breaker failure 카운트 제외`
+      );
+      breaker.reset(); // 타임아웃으로 인한 OPEN 방지
+    }
 
     logger.error(
       `[CircuitBreaker] ${serviceName}: Primary 실패, 폴백 사용 - ${errorInstance.message}`

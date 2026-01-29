@@ -122,6 +122,17 @@ const COMPLEXITY_KEYWORDS = {
     '진단',
     'diagnose',
   ],
+  // RAG 검색 (복잡도 +25) - KB 기반 검색은 HyDE + Rerank으로 지연 발생
+  ragSearch: [
+    '과거 장애',
+    '장애 이력',
+    '유사 사례',
+    '이전 사례',
+    '해결 사례',
+    'past incident',
+    'similar case',
+    'knowledge base',
+  ],
 };
 
 /**
@@ -184,6 +195,7 @@ export function analyzeQueryComplexity(query: string): ComplexityAnalysis {
           multiServer: 15,
           report: 20,
           rootCause: 30,
+          ragSearch: 25,
         };
         score += categoryScores[category] || 10;
         factors.push(`keyword_${category}`);
@@ -303,6 +315,9 @@ const JOB_QUEUE_FORCE_KEYWORDS = [
   '종합 분석',
   '전체 분석',
   '심층 분석',
+  // RAG 심층 검색 관련 (HyDE + Rerank으로 14초+ 소요)
+  '과거 장애 이력 분석',
+  '유사 사례 비교',
 ] as const;
 
 /**

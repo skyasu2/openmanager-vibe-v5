@@ -339,6 +339,7 @@ export const POST = withRateLimit(
               return new NextResponse(fallbackText, {
                 headers: {
                   'Content-Type': 'text/plain; charset=utf-8',
+                  'Cache-Control': 'no-store, no-cache, must-revalidate',
                   'X-Session-Id': sessionId,
                   'X-Backend': 'fallback',
                   'X-Fallback-Response': 'true',
@@ -393,6 +394,7 @@ export const POST = withRateLimit(
             logger.info('⚠️ [Supervisor] Using fallback response (json mode)');
             return NextResponse.json(result.data, {
               headers: {
+                'Cache-Control': 'no-store, no-cache, must-revalidate',
                 'X-Session-Id': sessionId,
                 'X-Fallback-Response': 'true',
                 'X-Retry-After': '30000',
@@ -442,6 +444,7 @@ export const POST = withRateLimit(
         },
         {
           headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
             'X-Session-Id': sessionId,
             'Retry-After': '30',
           },

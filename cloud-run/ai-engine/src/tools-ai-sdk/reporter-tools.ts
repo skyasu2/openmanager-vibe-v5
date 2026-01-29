@@ -130,6 +130,10 @@ export const searchKnowledgeBase = tool({
       .boolean()
       .default(true)
       .describe('GraphRAG 하이브리드 검색 사용 여부'),
+    fastMode: z
+      .boolean()
+      .default(false)
+      .describe('Fast mode: HyDE expansion과 LLM reranking을 스킵하여 1-2초 내 응답 (Vercel proxy 타임아웃 대응)'),
     includeWebSearch: z
       .boolean()
       .default(false)
@@ -140,22 +144,25 @@ export const searchKnowledgeBase = tool({
     category,
     severity,
     useGraphRAG = true,
+    fastMode = false,
     includeWebSearch = false,
   }: {
     query: string;
     category?: 'troubleshooting' | 'security' | 'performance' | 'incident' | 'best_practice';
     severity?: 'low' | 'medium' | 'high' | 'critical';
     useGraphRAG?: boolean;
+    fastMode?: boolean;
     includeWebSearch?: boolean;
   }) => {
     // Dynamic threshold based on query context
     const initialThreshold = getDynamicThreshold(query, category);
 
     // HyDE Query Expansion for short/ambiguous queries
+    // Fast mode: Skip HyDE expansion (-5s latency saving)
     let searchQuery = query;
     let hydeApplied = false;
 
-    if (shouldUseHyDE(query)) {
+    if (!fastMode && shouldUseHyDE(query)) {
       try {
         searchQuery = await expandQueryWithHyDE(query);
         hydeApplied = searchQuery !== query;
@@ -167,8 +174,12 @@ export const searchKnowledgeBase = tool({
       }
     }
 
+    if (fastMode) {
+      console.log(`⚡ [Reporter Tools] Fast mode enabled: skipping HyDE + reranking`);
+    }
+
     console.log(
-      `🔍 [Reporter Tools] GraphRAG search: ${query} (graph: ${useGraphRAG}, threshold: ${initialThreshold}, hyde: ${hydeApplied})`
+      `🔍 [Reporter Tools] GraphRAG search: ${query} (graph: ${useGraphRAG}, threshold: ${initialThreshold}, hyde: ${hydeApplied}, fast: ${fastMode})`
     );
 
     const supabase = await getSupabaseClient();
@@ -200,12 +211,17 @@ export const searchKnowledgeBase = tool({
 
       // 2. Use hybrid GraphRAG search if enabled
       if (useGraphRAG) {
+        // Fast mode: Reduced search scope for lower latency
+        const maxVectorResults = fastMode ? 3 : 5;
+        const maxGraphHops = fastMode ? 1 : 2;
+        const maxTotalResults = fastMode ? 5 : 10;
+
         // First attempt with dynamic threshold
         let hybridResults = await hybridGraphSearch(queryEmbedding, {
           similarityThreshold: initialThreshold,
-          maxVectorResults: 5,
-          maxGraphHops: 2,
-          maxTotalResults: 10,
+          maxVectorResults,
+          maxGraphHops,
+          maxTotalResults,
         });
 
         // Retry with lower threshold if no results (adaptive fallback)
@@ -213,9 +229,9 @@ export const searchKnowledgeBase = tool({
           console.log(`🔄 [Reporter Tools] No results, retrying with lower threshold (0.2)`);
           hybridResults = await hybridGraphSearch(queryEmbedding, {
             similarityThreshold: 0.2,
-            maxVectorResults: 5,
-            maxGraphHops: 2,
-            maxTotalResults: 10,
+            maxVectorResults,
+            maxGraphHops,
+            maxTotalResults,
           });
         }
 
@@ -242,10 +258,11 @@ export const searchKnowledgeBase = tool({
           );
 
           // Apply LLM reranking for improved relevance
+          // Fast mode: Skip LLM reranking (-8s latency saving)
           let finalResults = graphEnhanced;
           let reranked = false;
 
-          if (isRerankerAvailable() && graphEnhanced.length > 2) {
+          if (!fastMode && isRerankerAvailable() && graphEnhanced.length > 2) {
             try {
               const rerankedResults = await rerankDocuments(
                 query, // Use original query for reranking
@@ -329,6 +346,7 @@ export const searchKnowledgeBase = tool({
             graphStats: { vectorResults: vectorCount, graphResults: graphCount, webResults: webResultsCount },
             hydeApplied,
             reranked,
+            fastMode,
             webSearchTriggered,
           };
         }
