@@ -30,7 +30,7 @@ const SERVER_PATTERNS = {
 
 // 구체적 조건 패턴 (숫자 조건, 정렬, 필터링이 있으면 이미 구체적)
 const SPECIFIC_CONDITION_PATTERNS = {
-  // 숫자 조건: "80% 이상", "50% 초과", "70% 미만", "3개", "TOP 5"
+  // 숫자 조건: "92%", "3개", "TOP 5" (퍼센트 단독으로도 구체적 조건으로 인정)
   numericCondition: /\d+%|top\s*\d+|\d+개|상위\s*\d+|하위\s*\d+/i,
   // 상태 조건: "경고 상태인", "정상인", "오프라인"
   statusCondition:
@@ -49,7 +49,8 @@ const TIME_PATTERNS = {
 // 메트릭 관련 명확화 패턴
 const METRIC_PATTERNS = {
   missing: /성능|문제|이상|느려|slow|issue|problem/i,
-  hasSpecific: /cpu|memory|메모리|disk|디스크|network|네트워크|latency|응답/i,
+  hasSpecific:
+    /cpu|memory|메모리|disk|디스크|network|네트워크|latency|응답|mysql|nginx|redis|haproxy|postgres|mariadb|apache|kafka|elasticsearch|mongo|tomcat/i,
 };
 
 /**
