@@ -106,6 +106,12 @@ export interface MultiAgentResponse {
   }>;
   finalAgent: string;
   toolsCalled: string[];
+  ragSources?: Array<{
+    title: string;
+    similarity: number;
+    sourceType: string;
+    category?: string;
+  }>;
   usage: {
     promptTokens: number;
     completionTokens: number;
@@ -1051,19 +1057,41 @@ async function executeForcedRouting(
     const { result, provider, modelId, usedFallback, attempts } = retryResult;
     const durationMs = Date.now() - startTime;
 
-    // Extract tool calls from steps and check for finalAnswer
+    // Extract tool calls, RAG sources, and check for finalAnswer
     const toolsCalled: string[] = [];
     let finalAnswerResult: { answer: string } | null = null;
+    const ragSources: Array<{
+      title: string;
+      similarity: number;
+      sourceType: string;
+      category?: string;
+    }> = [];
 
     for (const step of result.steps) {
       for (const toolCall of step.toolCalls) {
         toolsCalled.push(toolCall.toolName);
       }
-      // AI SDK v6 Best Practice: Extract finalAnswer result if called
       if (step.toolResults) {
         for (const tr of step.toolResults) {
+          // AI SDK v6 Best Practice: Extract finalAnswer result if called
           if ('result' in tr && tr.toolName === 'finalAnswer' && tr.result && typeof tr.result === 'object') {
             finalAnswerResult = tr.result as { answer: string };
+          }
+
+          // Extract RAG sources from searchKnowledgeBase results
+          if (tr.toolName === 'searchKnowledgeBase' && 'result' in tr) {
+            const kbResult = tr.result as Record<string, unknown>;
+            const similarCases = (kbResult.similarCases ?? kbResult.results) as Array<Record<string, unknown>> | undefined;
+            if (Array.isArray(similarCases)) {
+              for (const doc of similarCases) {
+                ragSources.push({
+                  title: String(doc.title ?? doc.name ?? 'Unknown'),
+                  similarity: Number(doc.similarity ?? doc.score ?? 0),
+                  sourceType: String(doc.sourceType ?? doc.type ?? 'vector'),
+                  category: doc.category ? String(doc.category) : undefined,
+                });
+              }
+            }
           }
         }
       }
@@ -1079,12 +1107,13 @@ async function executeForcedRouting(
     }
 
     console.log(
-      `✅ [Forced Routing] ${suggestedAgentName} completed in ${durationMs}ms via ${provider}, tools: [${toolsCalled.join(', ')}]`
+      `✅ [Forced Routing] ${suggestedAgentName} completed in ${durationMs}ms via ${provider}, tools: [${toolsCalled.join(', ')}], ragSources: ${ragSources.length}`
     );
 
     return {
       success: true,
       response: sanitizedResponse,
+      ragSources: ragSources.length > 0 ? ragSources : undefined,
       handoffs: [{
         from: 'Orchestrator',
         to: suggestedAgentName,

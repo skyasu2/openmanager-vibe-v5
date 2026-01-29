@@ -374,6 +374,7 @@ async function executeMultiAgentMode(
       response: multiResult.response,
       toolsCalled: multiResult.toolsCalled,
       toolResults: [], // Multi-agent doesn't expose individual tool results
+      ragSources: multiResult.ragSources,
       usage: multiResult.usage,
       metadata: {
         provider: multiResult.metadata.provider,
