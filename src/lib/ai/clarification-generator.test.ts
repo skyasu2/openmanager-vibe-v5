@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  generateClarification,
   applyClarification,
   applyCustomClarification,
+  generateClarification,
 } from './clarification-generator';
 import type { QueryClassification } from './query-classifier';
 
