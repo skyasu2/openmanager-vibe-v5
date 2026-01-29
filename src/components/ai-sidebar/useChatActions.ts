@@ -7,7 +7,6 @@ import {
 } from '@/hooks/ai/useFileAttachments';
 
 interface UseChatActionsOptions {
-  inputValue: string;
   setInputValue: (value: string) => void;
   handleSendInput: (attachments?: FileAttachment[]) => void;
   isGenerating: boolean;
@@ -17,7 +16,6 @@ interface UseChatActionsOptions {
 }
 
 export function useChatActions({
-  inputValue,
   setInputValue,
   handleSendInput,
   isGenerating,
@@ -82,7 +80,6 @@ export function useChatActions({
       if (!items) return;
 
       const imageFiles: File[] = [];
-      const currentInput = inputValue;
 
       for (const item of Array.from(items)) {
         if (item.type.startsWith('image/')) {
@@ -99,8 +96,7 @@ export function useChatActions({
         } else if (item.type === 'text/plain') {
           item.getAsString((text) => {
             if (text?.trim() && imageFiles.length > 0) {
-              const newValue = currentInput ? `${currentInput}\n${text}` : text;
-              setInputValue(newValue);
+              setInputValue(text);
             }
           });
         }
@@ -111,7 +107,7 @@ export function useChatActions({
         addFiles(imageFiles);
       }
     },
-    [addFiles, setInputValue, inputValue]
+    [addFiles, setInputValue]
   );
 
   // Auto-scroll on new messages

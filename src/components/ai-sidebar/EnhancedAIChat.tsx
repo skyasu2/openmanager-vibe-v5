@@ -120,7 +120,6 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
     closePreviewModal,
     handlePaste,
   } = useChatActions({
-    inputValue,
     setInputValue,
     handleSendInput,
     isGenerating,

@@ -186,7 +186,7 @@ async function performHealthCheck(service: 'ai' | 'all' = 'ai'): Promise<void> {
     }
   } catch (error) {
     // AbortError는 정상적인 취소
-    if ((error as DOMException).name === 'AbortError') {
+    if (error instanceof DOMException && error.name === 'AbortError') {
       return;
     }
 
@@ -232,8 +232,11 @@ export function useHealthCheck(options: UseHealthCheckOptions = {}) {
   // 체크 함수
   const check = useCallback(async () => {
     setIsChecking(true);
-    await performHealthCheck(service);
-    setIsChecking(false);
+    try {
+      await performHealthCheck(service);
+    } finally {
+      setIsChecking(false);
+    }
   }, [service]);
 
   // 폴링 설정
