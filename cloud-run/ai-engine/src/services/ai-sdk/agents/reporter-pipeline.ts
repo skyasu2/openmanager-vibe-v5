@@ -13,6 +13,7 @@
 // Data sources for direct tool execution
 import { getCurrentState } from '../../../data/precomputed-state';
 import { FIXED_24H_DATASETS } from '../../../data/fixed-24h-metrics';
+import { searchKnowledgeBase } from '../../../lib/llamaindex-rag-service';
 
 // ============================================================================
 // Types
@@ -65,6 +66,7 @@ interface ReportForEvaluation {
     suggestedFix: string;
   } | null;
   suggestedActions: string[];
+  similarCases?: string[];
   sla?: {
     targetUptime: number;
     actualUptime: number;
@@ -130,6 +132,23 @@ export async function executeReporterPipeline(
     agentsUsed.push('Reporter Agent');
 
     const initialReport = generateInitialReport();
+
+    // RAG: Search for similar past incidents
+    if (initialReport) {
+      try {
+        const ragResults = await searchKnowledgeBase(query, {
+          category: 'incident',
+          maxResults: 3,
+        });
+        initialReport.similarCases = ragResults.map(
+          (r) => `[${r.sourceType}] ${r.title || r.content.substring(0, 200)}`
+        );
+        console.log(`📚 [RAG] Found ${initialReport.similarCases.length} similar cases`);
+      } catch (ragError) {
+        console.warn('⚠️ [RAG] Knowledge base search failed, continuing without similar cases:', ragError);
+        initialReport.similarCases = [];
+      }
+    }
 
     if (!initialReport) {
       return {
@@ -414,12 +433,21 @@ function optimizeReport(
     optimizations.push('근본원인 분석 심화');
   }
 
+  // Enrich with similar past cases from RAG
+  if (report.similarCases && report.similarCases.length > 0) {
+    optimizedReport.suggestedActions = [
+      ...report.suggestedActions,
+      ...report.similarCases.map(c => `과거 유사 사례: ${c}`),
+    ];
+    optimizations.push('과거 유사 사례 추가');
+  }
+
   // Enhance suggested actions if too generic
   if (evaluation.issues.includes('권장 조치가 너무 일반적')) {
     const focusArea = determineFocusArea(report);
     const commands = COMMAND_TEMPLATES[focusArea] || COMMAND_TEMPLATES.general;
 
-    optimizedReport.suggestedActions = report.suggestedActions.map((action, i) => {
+    optimizedReport.suggestedActions = optimizedReport.suggestedActions.map((action, i) => {
       const cmd = commands[i % commands.length];
       return `${action}\n   명령어: \`${cmd}\``;
     });

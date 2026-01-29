@@ -1156,7 +1156,7 @@ const TOOL_ROUTING_PATTERNS = {
   /** RCA: 근본 원인 분석, 장애, 인시던트 */
   rca: /장애|rca|타임라인|상관관계|원인|왜|근본|incident/i,
   /** Advisor: 해결 방법, 명령어, 과거 사례 */
-  advisor: /해결|방법|명령어|가이드|이력|과거|사례|검색/i,
+  advisor: /해결|방법|명령어|가이드|이력|과거|사례|검색|보안|강화|백업|최적화|best.?practice|권장|추천/i,
   /** Server Group: DB/Web/Cache/LB 등 */
   serverGroup: /(db|web|cache|lb|api|storage|로드\s*밸런서|캐시|스토리지)\s*(서버)?/i,
   /** Metrics: 기본 서버/CPU/메모리 상태 (NLQ) */
