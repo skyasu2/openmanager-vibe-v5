@@ -86,6 +86,11 @@ export interface SupervisorResponse {
   response: string;
   toolsCalled: string[];
   toolResults: Record<string, unknown>[];
+  ragSources?: Array<{
+    title: string;
+    similarity: number;
+    sourceType: string;
+  }>;
   usage: {
     promptTokens: number;
     completionTokens: number;
