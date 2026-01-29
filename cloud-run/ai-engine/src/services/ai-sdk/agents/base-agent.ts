@@ -332,7 +332,7 @@ export abstract class BaseAgent {
         maxRetries: 1,
         // 🎯 Fix: Apply timeout configuration (AI SDK v6.0.50)
         // Defensive: use default if undefined to avoid SDK validation errors
-        timeout: { totalMs: opts.timeoutMs ?? DEFAULT_OPTIONS.timeoutMs },
+        timeout: { totalMs: opts.timeoutMs ?? DEFAULT_OPTIONS.timeoutMs, stepMs: (opts.timeoutMs ?? DEFAULT_OPTIONS.timeoutMs) - 5_000 },
         // AI SDK v6 Best Practice: Graceful termination conditions
         stopWhen: [hasToolCall('finalAnswer'), stepCountIs(opts.maxSteps)],
         temperature: opts.temperature,

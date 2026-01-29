@@ -13,7 +13,6 @@
 // Data sources for direct tool execution
 import { getCurrentState } from '../../../data/precomputed-state';
 import { FIXED_24H_DATASETS } from '../../../data/fixed-24h-metrics';
-import { searchKnowledgeBase } from '../../../lib/llamaindex-rag-service';
 
 // ============================================================================
 // Types
@@ -133,22 +132,8 @@ export async function executeReporterPipeline(
 
     const initialReport = generateInitialReport();
 
-    // RAG: Search for similar past incidents
-    if (initialReport) {
-      try {
-        const ragResults = await searchKnowledgeBase(query, {
-          category: 'incident',
-          maxResults: 3,
-        });
-        initialReport.similarCases = ragResults.map(
-          (r) => `[${r.sourceType}] ${r.title || r.content.substring(0, 200)}`
-        );
-        console.log(`📚 [RAG] Found ${initialReport.similarCases.length} similar cases`);
-      } catch (ragError) {
-        console.warn('⚠️ [RAG] Knowledge base search failed, continuing without similar cases:', ragError);
-        initialReport.similarCases = [];
-      }
-    }
+    // RAG is now handled by Reporter Agent via searchKnowledgeBase tool
+    // (AI SDK v6 best practice: LLM calls tools directly for context inclusion)
 
     if (!initialReport) {
       return {
