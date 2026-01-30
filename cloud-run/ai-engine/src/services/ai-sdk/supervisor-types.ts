@@ -34,6 +34,13 @@ export interface SupervisorRequest {
    * File attachments for multimodal queries (PDF, audio, etc.)
    */
   files?: FileAttachment[];
+  /**
+   * Web search control:
+   * - true: Always enable web search
+   * - false: Disable web search
+   * - 'auto': Auto-detect based on query keywords (default)
+   */
+  enableWebSearch?: boolean | 'auto';
 }
 
 export interface SupervisorResponse {

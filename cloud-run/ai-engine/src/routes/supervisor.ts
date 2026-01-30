@@ -65,6 +65,7 @@ const streamMessageSchema = z.object({
 const streamRequestSchema = z.object({
   messages: z.array(streamMessageSchema).min(1, 'At least one message required'),
   sessionId: z.string().optional(),
+  enableWebSearch: z.union([z.boolean(), z.literal('auto')]).optional(),
 });
 
 export const supervisorRouter = new Hono();
@@ -78,7 +79,7 @@ export const supervisorRouter = new Hono();
  */
 supervisorRouter.post('/', async (c: Context) => {
   try {
-    const { messages, sessionId } = await c.req.json();
+    const { messages, sessionId, enableWebSearch } = await c.req.json();
 
     // Validate input
     const lastMessage = messages?.[messages.length - 1];
@@ -109,6 +110,7 @@ supervisorRouter.post('/', async (c: Context) => {
         content: m.content,
       })),
       sessionId: sessionId || 'default',
+      enableWebSearch,
       images,
       files,
     });
@@ -163,7 +165,7 @@ supervisorRouter.post('/stream', async (c: Context) => {
       return handleValidationError(c, `Invalid request: ${errorDetails}`);
     }
 
-    const { messages, sessionId } = parseResult.data;
+    const { messages, sessionId, enableWebSearch } = parseResult.data;
 
     // 2. Get last user query for logging
     const lastMessage = messages[messages.length - 1];
@@ -195,6 +197,7 @@ supervisorRouter.post('/stream', async (c: Context) => {
             content: m.content,
           })),
           sessionId: sessionId || 'default',
+          enableWebSearch,
           images,
           files,
         };
@@ -265,7 +268,7 @@ supervisorRouter.post('/stream/v2', async (c: Context) => {
       return handleValidationError(c, `Invalid request: ${errorDetails}`);
     }
 
-    const { messages, sessionId } = parseResult.data;
+    const { messages, sessionId, enableWebSearch } = parseResult.data;
 
     // 2. Get last user query for logging
     const lastMessage = messages[messages.length - 1];
@@ -296,6 +299,7 @@ supervisorRouter.post('/stream/v2', async (c: Context) => {
         content: m.content,
       })),
       sessionId: sessionId || 'default',
+      enableWebSearch,
       images,
       files,
     });
