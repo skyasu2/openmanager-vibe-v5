@@ -54,7 +54,6 @@ const nextConfig = {
       'recharts',
       'd3',
       // Phase 4.1: 번들 크기 최적화 (2025-12-08)
-      'zod',
       '@ai-sdk/react',
       '@ai-sdk/ui-utils',
       'date-fns',
