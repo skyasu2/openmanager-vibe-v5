@@ -21,24 +21,32 @@ import { TIMEOUTS } from './helpers/timeouts';
  */
 async function handleClarificationIfPresent(
   page: import('@playwright/test').Page
-): Promise<void> {
-  // data-testid 또는 텍스트 기반으로 Clarification Dialog 감지
-  const clarificationDialog = page.locator(
-    '[data-testid="clarification-dialog"], :has-text("조금 더 구체적으로 알려주세요")'
-  );
-  const isVisible = await clarificationDialog
-    .first()
-    .isVisible({ timeout: 3000 })
+): Promise<boolean> {
+  // Production에서는 data-testid가 strip됨 → aria-label 기반 감지
+  const dismissBtn = page.locator('button[aria-label="명확화 취소"]').first();
+  const hasClarification = await dismissBtn
+    .isVisible({ timeout: 5000 })
     .catch(() => false);
 
-  if (isVisible) {
-    // 건너뛰기 버튼 클릭 (data-testid 또는 aria-label 또는 텍스트 기반)
-    const skipButton = page.locator(
-      '[data-testid="clarification-skip"], button[aria-label="건너뛰기"], button:has-text("건너뛰기")'
-    );
-    await skipButton.first().click();
+  if (!hasClarification) return false;
+
+  // X 버튼은 취소(dismiss)이므로, 옵션 버튼을 클릭해야 쿼리가 진행됨
+  const clarificationContainer = dismissBtn.locator('..').locator('..');
+  const optionButtons = clarificationContainer.locator(
+    'button:not([aria-label="명확화 취소"]):not(:has-text("직접 입력하기"))'
+  );
+  const optionCount = await optionButtons.count();
+
+  if (optionCount > 0) {
+    await optionButtons.first().click();
     await page.waitForTimeout(500);
+    return true;
   }
+
+  // 옵션 없으면 dismiss (쿼리 취소됨)
+  await dismissBtn.click();
+  await page.waitForTimeout(500);
+  return false;
 }
 
 /**
@@ -82,49 +90,49 @@ test.describe('AI 스트리밍 Handoff 마커 테스트', () => {
   });
 
   test('AI 사이드바에서 메시지 전송 후 응답 확인', async ({ page }) => {
+    test.setTimeout(TIMEOUTS.AI_QUERY);
+
     // AI 사이드바 열기
     await openAiSidebar(page);
 
-    // 입력 필드 찾기
-    const input = page
-      .locator(
-        'textarea[placeholder*="메시지"], textarea[placeholder*="질문"], input[type="text"][placeholder*="AI"]'
-      )
-      .first();
-
+    // 입력 필드 찾기 (production에서는 role 기반)
+    const input = page.getByRole('textbox', { name: 'AI 질문 입력' });
     await expect(input).toBeVisible({ timeout: TIMEOUTS.DOM_UPDATE });
 
-    // 테스트 메시지 입력 (구체적인 질문으로 clarification 회피)
-    await input.fill('전체 서버 상태를 요약해줘');
+    // React controlled textarea에 native setter로 값 설정
+    await input.click();
+    await input.evaluate((el, msg) => {
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLTextAreaElement.prototype,
+        'value'
+      )?.set;
+      if (nativeSetter) nativeSetter.call(el, msg);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }, 'MySQL 서버 CPU 사용률 확인해줘');
+    await page.waitForTimeout(500);
 
-    // 전송 버튼 찾기 및 클릭
-    const sendButton = page
-      .locator('button[type="submit"], button:has-text("전송")')
-      .first();
-
-    // 버튼이 없으면 Enter 키로 전송
-    const hasSendButton = await sendButton
-      .isVisible({ timeout: 2000 })
-      .catch(() => false);
-
-    if (hasSendButton) {
+    // 전송 버튼 클릭
+    const sendButton = page.getByRole('button', { name: '메시지 전송' });
+    const isEnabled = await sendButton.isEnabled().catch(() => false);
+    if (isEnabled) {
       await sendButton.click();
     } else {
+      await input.fill('MySQL 서버 CPU 사용률 확인해줘');
+      await page.waitForTimeout(300);
       await input.press('Enter');
     }
 
-    // Clarification 다이얼로그 처리 (나타나면 건너뛰기)
+    // Clarification 다이얼로그 처리 (옵션 선택)
     await handleClarificationIfPresent(page);
 
-    // 응답 영역이 나타날 때까지 대기
-    // data-testid 또는 role="log" 내의 응답 텍스트로 확인
-    const responseArea = page
-      .locator(
-        '[data-testid="ai-response"], [data-testid="ai-message"], [role="log"] p'
-      )
-      .first();
+    // 응답 영역 확인 (production: .justify-start 클래스 기반)
+    const logArea = page.locator('[role="log"]');
+    await expect(logArea).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
 
-    await expect(responseArea).toBeVisible({ timeout: TIMEOUTS.AI_RESPONSE });
+    const assistantMessage = logArea.locator('.justify-start').last();
+    await expect(assistantMessage).toBeVisible({
+      timeout: TIMEOUTS.AI_RESPONSE,
+    });
   });
 
   test('풀스크린에서 AI 채팅 응답 확인', async ({ page }) => {
@@ -201,27 +209,45 @@ test.describe('AI 스트리밍 Handoff 마커 테스트', () => {
   });
 
   test('채팅 히스토리에 사용자 메시지 표시', async ({ page }) => {
+    test.setTimeout(TIMEOUTS.AI_QUERY);
+
     // beforeEach에서 대시보드 이동 완료됨, AI 사이드바 열기
     await openAiSidebar(page);
 
-    const chatInput = page
-      .locator('textarea[placeholder*="메시지"], textarea[placeholder*="질문"]')
-      .first();
-
+    const chatInput = page.getByRole('textbox', { name: 'AI 질문 입력' });
     await expect(chatInput).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
 
-    // 메시지 전송 (구체적인 질문)
-    const testMessage = '전체 서버 메트릭을 조회해줘';
-    await chatInput.fill(testMessage);
-    await chatInput.press('Enter');
+    // React controlled textarea에 native setter로 값 설정
+    const testMessage = 'nginx 서버 상태 알려줘';
+    await chatInput.click();
+    await chatInput.evaluate((el, msg) => {
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLTextAreaElement.prototype,
+        'value'
+      )?.set;
+      if (nativeSetter) nativeSetter.call(el, msg);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }, testMessage);
+    await page.waitForTimeout(500);
 
-    // Clarification 다이얼로그 처리 (나타나면 건너뛰기)
+    // 전송
+    const sendButton = page.getByRole('button', { name: '메시지 전송' });
+    const isEnabled = await sendButton.isEnabled().catch(() => false);
+    if (isEnabled) {
+      await sendButton.click();
+    } else {
+      await chatInput.fill(testMessage);
+      await page.waitForTimeout(300);
+      await chatInput.press('Enter');
+    }
+
+    // Clarification 다이얼로그 처리
     await handleClarificationIfPresent(page);
 
-    // 사용자 메시지가 히스토리에 표시되는지 확인
-    // data-testid (최신 배포) 또는 role="log" 내 텍스트 (기존 배포)로 검증
-    const userMessage = page
-      .locator('[data-testid="user-message"], [role="log"]')
+    // 사용자 메시지가 히스토리에 표시되는지 확인 (role="log" 내 .justify-end)
+    const logArea = page.locator('[role="log"]');
+    const userMessage = logArea
+      .locator('.justify-end')
       .filter({ hasText: testMessage })
       .first();
 
