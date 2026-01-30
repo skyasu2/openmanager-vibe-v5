@@ -182,7 +182,7 @@ export const ChatInputArea = memo(function ChatInputArea({
                   type="button"
                   onClick={onToggleWebSearch}
                   disabled={isGenerating || sessionState?.isLimitReached}
-                  className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                  className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                     webSearchEnabled
                       ? 'bg-blue-500/20 text-blue-400'
                       : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
@@ -201,7 +201,7 @@ export const ChatInputArea = memo(function ChatInputArea({
                 disabled={
                   !canAddMore || isGenerating || sessionState?.isLimitReached
                 }
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-40"
                 title={
                   canAddMore ? '파일 첨부 (이미지, PDF, MD)' : '최대 3개 파일'
                 }
