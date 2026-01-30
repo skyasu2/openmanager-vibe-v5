@@ -64,6 +64,8 @@ interface EnhancedAIChatProps {
   onDismissClarification?: () => void;
   currentAgentStatus?: AgentStatusEventData | null;
   currentHandoff?: HandoffEventData | null;
+  webSearchEnabled?: boolean;
+  onToggleWebSearch?: () => void;
 }
 
 /**
@@ -100,6 +102,8 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   onDismissClarification,
   currentAgentStatus,
   currentHandoff,
+  webSearchEnabled,
+  onToggleWebSearch,
 }: EnhancedAIChatProps) {
   const {
     scrollContainerRef,
@@ -293,6 +297,8 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         onClearFileErrors={clearFileErrors}
         onPaste={handlePaste}
         onStopGeneration={onStopGeneration}
+        webSearchEnabled={webSearchEnabled}
+        onToggleWebSearch={onToggleWebSearch}
       />
     </div>
   );

@@ -143,6 +143,7 @@ export const requestSchemaLoose = z.object({
     .min(1)
     .max(50),
   sessionId: z.string().optional(),
+  enableWebSearch: z.boolean().optional(),
 });
 
 // ============================================================================

@@ -24,7 +24,10 @@ import {
   useHybridAIQuery,
 } from '@/hooks/ai/useHybridAIQuery';
 import { logger } from '@/lib/logging';
-import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
+import {
+  type EnhancedChatMessage,
+  useAISidebarStore,
+} from '@/stores/useAISidebarStore';
 import { useChatFeedback } from './core/useChatFeedback';
 import { useChatHistory } from './core/useChatHistory';
 import { useChatSession } from './core/useChatSession';
@@ -133,6 +136,9 @@ export function useAIChatCore(
     null
   );
 
+  // 웹 검색 토글 상태 (Store에서 읽기)
+  const webSearchEnabled = useAISidebarStore((s) => s.webSearchEnabled);
+
   // Refs
   const lastQueryRef = useRef<string>('');
   const lastAttachmentsRef = useRef<FileAttachment[] | null>(null);
@@ -163,6 +169,7 @@ export function useAIChatCore(
     dismissClarification,
   } = useHybridAIQuery({
     sessionId: sessionId,
+    webSearchEnabled,
     onStreamFinish: () => {
       onMessageSend?.(pendingQueryRef.current);
       setError(null);

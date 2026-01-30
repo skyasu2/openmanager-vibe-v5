@@ -2,7 +2,7 @@
 
 // Icons
 import { Bot, User } from 'lucide-react';
-import { type FC, memo, useEffect, useRef, useState } from 'react';
+import { type FC, memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
 import { AnalysisBasisBadge } from '@/components/ai/AnalysisBasisBadge';
@@ -198,6 +198,14 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   // 📐 사이드바 너비 상태 (Zustand Store)
   const sidebarWidth = useAISidebarStore((state) => state.sidebarWidth);
   const setSidebarWidth = useAISidebarStore((state) => state.setSidebarWidth);
+  const webSearchEnabled = useAISidebarStore((state) => state.webSearchEnabled);
+  const setWebSearchEnabled = useAISidebarStore(
+    (state) => state.setWebSearchEnabled
+  );
+
+  const toggleWebSearch = useCallback(() => {
+    setWebSearchEnabled(!webSearchEnabled);
+  }, [webSearchEnabled, setWebSearchEnabled]);
 
   // 📐 드래그 리사이즈 훅
   const { width, isResizing, handleMouseDown, handleTouchStart } = useResizable(
@@ -357,6 +365,8 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           onDismissClarification={dismissClarification}
           currentAgentStatus={currentAgentStatus}
           currentHandoff={currentHandoff}
+          webSearchEnabled={webSearchEnabled}
+          onToggleWebSearch={toggleWebSearch}
         />
       );
     }

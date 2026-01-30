@@ -189,7 +189,11 @@ export const POST = withRateLimit(
         );
       }
 
-      const { messages, sessionId: bodySessionId } = parseResult.data;
+      const {
+        messages,
+        sessionId: bodySessionId,
+        enableWebSearch,
+      } = parseResult.data;
 
       // 🔍 DEBUG: 파일 첨부 데이터 흐름 추적 (2026-01-28)
       const lastUserMsg = messages
@@ -309,6 +313,7 @@ export const POST = withRateLimit(
           body: JSON.stringify({
             messages: normalizedMessages,
             sessionId,
+            enableWebSearch,
           }),
           signal: controller.signal,
         });

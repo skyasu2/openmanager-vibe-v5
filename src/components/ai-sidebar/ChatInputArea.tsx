@@ -4,6 +4,7 @@ import {
   AlertCircle,
   File,
   FileText,
+  Globe,
   Image as ImageIcon,
   Paperclip,
   Send,
@@ -41,6 +42,8 @@ interface ChatInputAreaProps {
   onClearFileErrors: () => void;
   onPaste: (e: React.ClipboardEvent) => void;
   onStopGeneration?: () => void;
+  webSearchEnabled?: boolean;
+  onToggleWebSearch?: () => void;
 }
 
 export const ChatInputArea = memo(function ChatInputArea({
@@ -65,6 +68,8 @@ export const ChatInputArea = memo(function ChatInputArea({
   onClearFileErrors,
   onPaste,
   onStopGeneration,
+  webSearchEnabled,
+  onToggleWebSearch,
 }: ChatInputAreaProps) {
   return (
     <>
@@ -170,8 +175,26 @@ export const ChatInputArea = memo(function ChatInputArea({
             className="relative flex items-end rounded-2xl border border-gray-200 bg-white shadow-sm transition-all focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100"
             onPaste={onPaste}
           >
-            {/* 파일 첨부 버튼 */}
+            {/* 웹 검색 토글 + 파일 첨부 버튼 */}
             <div className="flex items-center pl-2">
+              {onToggleWebSearch && (
+                <button
+                  type="button"
+                  onClick={onToggleWebSearch}
+                  disabled={isGenerating || sessionState?.isLimitReached}
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                    webSearchEnabled
+                      ? 'bg-blue-500/20 text-blue-400'
+                      : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                  }`}
+                  title={webSearchEnabled ? '웹 검색 끄기' : '웹 검색 켜기'}
+                  aria-label={
+                    webSearchEnabled ? '웹 검색 끄기' : '웹 검색 켜기'
+                  }
+                >
+                  <Globe className="h-5 w-5" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onOpenFileDialog}

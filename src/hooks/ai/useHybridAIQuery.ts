@@ -185,6 +185,7 @@ export function useHybridAIQuery(
     onJobResult,
     onProgress,
     onData,
+    webSearchEnabled,
   } = options;
 
   // Determine API endpoint (v2 only - v1 deprecated and removed)
@@ -242,12 +243,13 @@ export function useHybridAIQuery(
     () =>
       new DefaultChatTransport({
         api: apiEndpoint,
+        body: { enableWebSearch: webSearchEnabled ?? false },
         // Resume stream URL customization (fixes 404 error)
         prepareReconnectToStreamRequest: ({ id }) => ({
           api: `${apiEndpoint}?sessionId=${id}`,
         }),
       }),
-    [apiEndpoint]
+    [apiEndpoint, webSearchEnabled]
   );
 
   const {

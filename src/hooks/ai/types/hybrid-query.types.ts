@@ -140,6 +140,8 @@ export interface UseHybridAIQueryOptions {
   onJobResult?: (result: AsyncQueryResult) => void;
   /** 진행률 업데이트 콜백 */
   onProgress?: (progress: AsyncQueryProgress) => void;
+  /** 웹 검색 활성화 여부 (Tavily) */
+  webSearchEnabled?: boolean;
   /**
    * 스트리밍 데이터 콜백 (AI SDK v6 베스트 프랙티스)
    * 실시간으로 데이터 파트를 받아 처리

@@ -28,7 +28,10 @@ import { EnhancedAIChat } from '@/components/ai-sidebar/EnhancedAIChat';
 import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
 import { useAIChatCore } from '@/hooks/ai/useAIChatCore';
 import type { AIThinkingStep } from '@/types/ai-sidebar/ai-sidebar-types';
-import type { EnhancedChatMessage } from '../../stores/useAISidebarStore';
+import {
+  type EnhancedChatMessage,
+  useAISidebarStore,
+} from '../../stores/useAISidebarStore';
 import { RealTimeDisplay } from '../dashboard/RealTimeDisplay';
 import { OpenManagerLogo } from '../shared/OpenManagerLogo';
 import UnifiedProfileHeader from '../shared/UnifiedProfileHeader';
@@ -201,6 +204,13 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
     setIsRightPanelOpen((prev) => !prev);
   }, []);
 
+  // 웹 검색 토글
+  const webSearchEnabled = useAISidebarStore((s) => s.webSearchEnabled);
+  const setWebSearchEnabled = useAISidebarStore((s) => s.setWebSearchEnabled);
+  const toggleWebSearch = useCallback(() => {
+    setWebSearchEnabled(!webSearchEnabled);
+  }, [webSearchEnabled, setWebSearchEnabled]);
+
   // ============================================================================
   // 🎯 공통 AI 채팅 로직 (useAIChatCore 훅 사용)
   // 전체화면에서는 세션 제한 비활성화 (더 큰 화면에서 더 많은 대화 가능)
@@ -291,6 +301,8 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               error={error}
               onClearError={clearError}
               onRetry={retryLastQuery}
+              webSearchEnabled={webSearchEnabled}
+              onToggleWebSearch={toggleWebSearch}
             />
           ) : (
             <AIFunctionPages
@@ -560,6 +572,8 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                   error={error}
                   onClearError={clearError}
                   onRetry={retryLastQuery}
+                  webSearchEnabled={webSearchEnabled}
+                  onToggleWebSearch={toggleWebSearch}
                 />
               ) : (
                 <div className="h-full p-0">

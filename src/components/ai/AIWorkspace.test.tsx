@@ -65,6 +65,8 @@ vi.mock('@/stores/useAISidebarStore', () => ({
       setIsOpen: vi.fn(),
       messages: [],
       addMessage: vi.fn(),
+      webSearchEnabled: false,
+      setWebSearchEnabled: vi.fn(),
     };
     return selector ? selector(state) : state;
   }),
