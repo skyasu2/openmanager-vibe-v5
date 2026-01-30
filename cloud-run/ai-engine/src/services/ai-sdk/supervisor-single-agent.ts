@@ -26,6 +26,7 @@ import {
 } from '../../config/timeout-config';
 import { allTools } from '../../tools-ai-sdk';
 import { executeMultiAgent, executeMultiAgentStream, type MultiAgentRequest, type MultiAgentResponse } from './agents';
+import { resolveWebSearchSetting, filterToolsByWebSearch } from './agents/orchestrator-web-search';
 import {
   createSupervisorTrace,
   logGeneration,
@@ -226,6 +227,10 @@ async function executeSupervisorAttempt(
       const queryText = lastUserMessage?.content || '';
       const intentCategory = getIntentCategory(queryText);
 
+      const webSearchEnabled = resolveWebSearchSetting(request.enableWebSearch, queryText);
+      console.log(`🔍 [Single WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
+      const filteredTools = filterToolsByWebSearch(allTools, webSearchEnabled);
+
       const modelMessages: ModelMessage[] = [
         { role: 'system', content: SYSTEM_PROMPT },
         ...request.messages.map((m) => ({
@@ -237,7 +242,7 @@ async function executeSupervisorAttempt(
       const result = await generateText({
         model,
         messages: modelMessages,
-        tools: allTools,
+        tools: filteredTools,
         prepareStep: createPrepareStep(queryText),
         stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)],
         temperature: 0.4,
@@ -540,6 +545,10 @@ async function* streamSingleAgent(
       }),
     ];
 
+    const webSearchEnabled = resolveWebSearchSetting(request.enableWebSearch, queryText);
+    console.log(`🔍 [Stream Single WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
+    const filteredTools = filterToolsByWebSearch(allTools, webSearchEnabled);
+
     const toolsCalled: string[] = [];
     let fullText = '';
 
@@ -550,7 +559,7 @@ async function* streamSingleAgent(
     const result = streamText({
       model,
       messages: modelMessages,
-      tools: allTools,
+      tools: filteredTools,
       prepareStep: createPrepareStep(queryText),
       stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)],
       temperature: 0.4,

@@ -101,10 +101,10 @@ export function resolveWebSearchSetting(
  * Filter tools based on web search setting
  * Removes searchWeb tool when web search is disabled
  */
-export function filterToolsByWebSearch(
-  tools: Record<string, unknown>,
+export function filterToolsByWebSearch<T extends Record<string, unknown>>(
+  tools: T,
   webSearchEnabled: boolean
-): Record<string, unknown> {
+): T {
   if (webSearchEnabled) {
     return tools;
   }
