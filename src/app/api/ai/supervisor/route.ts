@@ -45,7 +45,7 @@ import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { isStatusQuery, shouldSkipCache } from './cache-utils';
 import { cloudRunResponseSchema, requestSchema } from './schemas';
-import { quickSanitize } from './security';
+import { securityCheck } from './security';
 
 // ============================================================================
 // ⚡ maxDuration - Vercel 빌드 타임 상수
@@ -115,7 +115,23 @@ export const POST = withRateLimit(
         );
       }
 
-      const userQuery = quickSanitize(rawQuery);
+      // 🛡️ Prompt Injection 방어 (securityCheck 업그레이드)
+      const { sanitizedInput, shouldBlock, inputCheck } =
+        securityCheck(rawQuery);
+      if (shouldBlock) {
+        logger.warn(
+          `🛡️ [Supervisor] Blocked injection attempt: ${inputCheck.patterns.join(', ')}`
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Security: blocked input',
+            message: '보안 정책에 의해 차단된 요청입니다.',
+          },
+          { status: 400 }
+        );
+      }
+      const userQuery = sanitizedInput;
 
       // 2. 세션 ID 생성/사용
       const sessionId = clientSessionId || `session_${Date.now()}`;

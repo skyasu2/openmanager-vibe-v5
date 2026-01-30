@@ -21,6 +21,7 @@ import {
 } from '../services/ai-sdk';
 import { handleApiError, handleValidationError, jsonSuccess } from '../lib/error-handler';
 import { sanitizeChineseCharacters } from '../lib/text-sanitizer';
+import { guardInput, filterMaliciousOutput } from '../lib/prompt-guard';
 import { logger } from '../lib/logger';
 
 // ============================================================================
@@ -89,6 +90,13 @@ supervisorRouter.post('/', async (c: Context) => {
       return handleValidationError(c, 'No query provided');
     }
 
+    // 🛡️ Prompt Injection 방어
+    const guard = guardInput(query);
+    if (guard.shouldBlock) {
+      logger.warn({ patterns: guard.patterns }, 'Supervisor: blocked injection attempt');
+      return c.json({ success: false, error: 'Security: blocked input', code: 'PROMPT_INJECTION' }, 400);
+    }
+
     logger.info({ sessionId }, 'Supervisor processing request');
     logProviderStatus();
 
@@ -124,8 +132,8 @@ supervisorRouter.post('/', async (c: Context) => {
       }, 500);
     }
 
-    // Sanitize Chinese characters from LLM output
-    const sanitizedResponse = sanitizeChineseCharacters(result.response);
+    // Sanitize Chinese characters + malicious output filter
+    const sanitizedResponse = filterMaliciousOutput(sanitizeChineseCharacters(result.response));
 
     return jsonSuccess(c, {
       response: sanitizedResponse,
@@ -171,6 +179,13 @@ supervisorRouter.post('/stream', async (c: Context) => {
     const lastMessage = messages[messages.length - 1];
     const query = lastMessage.content;
 
+    // 🛡️ Prompt Injection 방어
+    const guard = guardInput(query);
+    if (guard.shouldBlock) {
+      logger.warn({ patterns: guard.patterns }, 'SupervisorStream: blocked injection attempt');
+      return handleValidationError(c, 'Security: blocked input');
+    }
+
     logger.info({ sessionId: sessionId || 'default', query: query.slice(0, 50) }, 'SupervisorStream starting');
     logProviderStatus();
 
@@ -206,7 +221,7 @@ supervisorRouter.post('/stream', async (c: Context) => {
           const eventData = JSON.stringify({
             type: event.type,
             data: event.type === 'text_delta'
-              ? sanitizeChineseCharacters(event.data as string)
+              ? filterMaliciousOutput(sanitizeChineseCharacters(event.data as string))
               : event.data,
           });
 
@@ -273,6 +288,13 @@ supervisorRouter.post('/stream/v2', async (c: Context) => {
     // 2. Get last user query for logging
     const lastMessage = messages[messages.length - 1];
     const query = lastMessage.content;
+
+    // 🛡️ Prompt Injection 방어
+    const guardV2 = guardInput(query);
+    if (guardV2.shouldBlock) {
+      logger.warn({ patterns: guardV2.patterns }, 'SupervisorStreamV2: blocked injection attempt');
+      return handleValidationError(c, 'Security: blocked input');
+    }
 
     logger.info(
       { sessionId: sessionId || 'default', query: query.slice(0, 50) },
