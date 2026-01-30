@@ -88,6 +88,7 @@ async function executeMultiAgentMode(
       messages: request.messages,
       sessionId: request.sessionId,
       enableTracing: request.enableTracing,
+      enableWebSearch: request.enableWebSearch,
       images: request.images,
       files: request.files,
     };
@@ -407,6 +408,7 @@ export async function* executeSupervisorStream(
       messages: request.messages,
       sessionId: request.sessionId,
       enableTracing: request.enableTracing,
+      enableWebSearch: request.enableWebSearch,
       images: request.images,
       files: request.files,
     });
