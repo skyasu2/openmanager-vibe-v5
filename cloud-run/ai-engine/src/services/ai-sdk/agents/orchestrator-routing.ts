@@ -1,0 +1,465 @@
+/**
+ * Orchestrator Routing Logic
+ *
+ * Model selection, Reporter Pipeline, Agent config/forced routing,
+ * and AgentFactory-based execution.
+ *
+ * @version 4.0.0
+ */
+
+import { generateText, hasToolCall, stepCountIs } from 'ai';
+import { getCerebrasModel, getGroqModel, getMistralModel, checkProviderStatus, type ProviderName } from '../model-provider';
+import { generateTextWithRetry } from '../../resilience/retry-with-fallback';
+import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
+import { extractToolResultOutput } from '../../../lib/ai-sdk-utils';
+import { AGENT_CONFIGS, type AgentConfig } from './config';
+import { executeReporterPipeline } from './reporter-pipeline';
+import { AgentFactory, type AgentType } from './agent-factory';
+import type { ImageAttachment, FileAttachment } from './base-agent';
+import { TIMEOUT_CONFIG } from '../../../config/timeout-config';
+
+import type { MultiAgentResponse } from './orchestrator-types';
+import { filterToolsByWebSearch } from './orchestrator-web-search';
+// ============================================================================
+// Handoff Event Tracking (Bounded for Cloud Run Memory Safety)
+// ============================================================================
+
+const HANDOFF_EVENTS_CONFIG = {
+  maxSize: 50,
+  cleanupAge: 3600000,
+  cleanupInterval: 60000,
+} as const;
+
+const handoffEvents: Array<{ from: string; to: string; reason?: string; timestamp: Date }> = [];
+
+const handoffCleanupTimer = setInterval(() => {
+  if (handoffEvents.length === 0) return;
+
+  const cutoff = Date.now() - HANDOFF_EVENTS_CONFIG.cleanupAge;
+  let removed = 0;
+
+  while (handoffEvents.length > 0 && handoffEvents[0].timestamp.getTime() < cutoff) {
+    handoffEvents.shift();
+    removed++;
+  }
+
+  if (removed > 0) {
+    console.log(`🧹 [Handoff] Periodic cleanup: removed ${removed} stale events, ${handoffEvents.length} remaining`);
+  }
+}, HANDOFF_EVENTS_CONFIG.cleanupInterval);
+
+handoffCleanupTimer.unref();
+
+process.on('beforeExit', () => {
+  clearInterval(handoffCleanupTimer);
+});
+
+export function recordHandoff(from: string, to: string, reason?: string) {
+  const now = new Date();
+
+  const cutoff = now.getTime() - HANDOFF_EVENTS_CONFIG.cleanupAge;
+  while (handoffEvents.length > 0 && handoffEvents[0].timestamp.getTime() < cutoff) {
+    handoffEvents.shift();
+  }
+
+  if (handoffEvents.length >= HANDOFF_EVENTS_CONFIG.maxSize) {
+    handoffEvents.shift();
+  }
+
+  handoffEvents.push({ from, to, reason, timestamp: now });
+  console.log(`🔀 [Handoff] ${from} → ${to} (${reason || 'no reason'}) [${handoffEvents.length}/${HANDOFF_EVENTS_CONFIG.maxSize}]`);
+}
+
+export function getRecentHandoffs() {
+  return handoffEvents.slice(-10);
+}
+
+// ============================================================================
+// Orchestrator Model (3-way fallback)
+// ============================================================================
+
+export function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasModel>; provider: string; modelId: string } | null {
+  const status = checkProviderStatus();
+
+  if (status.cerebras) {
+    try {
+      return { model: getCerebrasModel('llama-3.3-70b'), provider: 'cerebras', modelId: 'llama-3.3-70b' };
+    } catch {
+      console.warn('⚠️ [Orchestrator] Cerebras unavailable, trying Groq');
+    }
+  }
+
+  if (status.groq) {
+    try {
+      return { model: getGroqModel('llama-3.3-70b-versatile'), provider: 'groq', modelId: 'llama-3.3-70b-versatile' };
+    } catch {
+      console.warn('⚠️ [Orchestrator] Groq unavailable, trying Mistral');
+    }
+  }
+
+  if (status.mistral) {
+    try {
+      return { model: getMistralModel('mistral-small-2506'), provider: 'mistral', modelId: 'mistral-small-2506' };
+    } catch {
+      console.warn('⚠️ [Orchestrator] Mistral unavailable');
+    }
+  }
+
+  console.warn('⚠️ [Orchestrator] No model available (all 3 providers down)');
+  return null;
+}
+
+// Log available agents from AGENT_CONFIGS
+const availableAgentNames = Object.keys(AGENT_CONFIGS).filter(name => {
+  const config = AGENT_CONFIGS[name];
+  return config && config.getModel() !== null;
+});
+
+if (availableAgentNames.length === 0) {
+  console.error('❌ [CRITICAL] No agents available! Check API keys: CEREBRAS_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY');
+} else {
+  console.log(`📋 [Orchestrator] Available agents: ${availableAgentNames.length} - [${availableAgentNames.join(', ')}]`);
+}
+
+// ============================================================================
+// Reporter Pipeline Execution
+// ============================================================================
+
+export async function executeReporterWithPipeline(
+  query: string,
+  startTime: number
+): Promise<MultiAgentResponse | null> {
+  console.log(`📋 [ReporterPipeline] Starting pipeline for query: "${query.substring(0, 50)}..."`);
+
+  try {
+    const pipelineResult = await executeReporterPipeline(query, {
+      qualityThreshold: 0.75,
+      maxIterations: 2,
+      timeout: 45_000,
+    });
+
+    if (!pipelineResult.success || !pipelineResult.report) {
+      console.warn(`⚠️ [ReporterPipeline] Pipeline failed: ${pipelineResult.error || 'No report generated'}`);
+      return null;
+    }
+
+    const durationMs = Date.now() - startTime;
+
+    let responseText = pipelineResult.report.markdown ?? '';
+
+    if (!responseText) {
+      responseText = `# ${pipelineResult.report.title}\n\n`;
+      responseText += `## 요약\n${pipelineResult.report.summary}\n\n`;
+
+      if (pipelineResult.report.affectedServers.length > 0) {
+        responseText += `## 영향받은 서버 (${pipelineResult.report.affectedServers.length}대)\n`;
+        for (const server of pipelineResult.report.affectedServers) {
+          responseText += `- **${server.name}** (${server.status}): ${server.primaryIssue}\n`;
+        }
+        responseText += '\n';
+      }
+
+      if (pipelineResult.report.rootCause) {
+        responseText += `## 근본 원인 분석\n`;
+        responseText += `- **원인**: ${pipelineResult.report.rootCause.cause}\n`;
+        responseText += `- **신뢰도**: ${(pipelineResult.report.rootCause.confidence * 100).toFixed(0)}%\n`;
+        responseText += `- **제안**: ${pipelineResult.report.rootCause.suggestedFix}\n\n`;
+      }
+
+      if (pipelineResult.report.suggestedActions.length > 0) {
+        responseText += `## 권장 조치\n`;
+        for (const action of pipelineResult.report.suggestedActions) {
+          responseText += `- ${action}\n`;
+        }
+      }
+    }
+
+    const sanitizedResponse = sanitizeChineseCharacters(responseText);
+
+    console.log(
+      `✅ [ReporterPipeline] Completed in ${durationMs}ms, ` +
+      `Quality: ${(pipelineResult.quality.initialScore * 100).toFixed(0)}% → ${(pipelineResult.quality.finalScore * 100).toFixed(0)}%, ` +
+      `Iterations: ${pipelineResult.quality.iterations}`
+    );
+
+    return {
+      success: true,
+      response: sanitizedResponse,
+      handoffs: [{
+        from: 'Orchestrator',
+        to: 'Reporter Agent',
+        reason: `Pipeline execution (quality: ${(pipelineResult.quality.finalScore * 100).toFixed(0)}%)`,
+      }],
+      finalAgent: 'Reporter Agent',
+      toolsCalled: ['executeReporterPipeline'],
+      usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+      metadata: {
+        provider: 'pipeline',
+        modelId: 'reporter-pipeline',
+        totalRounds: pipelineResult.quality.iterations,
+        durationMs,
+        qualityScore: pipelineResult.quality.finalScore,
+      },
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [ReporterPipeline] Error: ${errorMessage}`);
+    return null;
+  }
+}
+
+// ============================================================================
+// Agent Execution (AI SDK v6 Native)
+// ============================================================================
+
+export function getAgentConfig(name: string): AgentConfig | null {
+  return AGENT_CONFIGS[name] ?? null;
+}
+
+function getAgentProviderOrder(agentName: string): ProviderName[] {
+  switch (agentName) {
+    case 'NLQ Agent':
+      return ['cerebras', 'groq', 'mistral'];
+    case 'Analyst Agent':
+    case 'Reporter Agent':
+      return ['groq', 'cerebras', 'mistral'];
+    case 'Advisor Agent':
+      return ['mistral', 'groq', 'cerebras'];
+    default:
+      return ['cerebras', 'groq', 'mistral'];
+  }
+}
+
+export async function executeForcedRouting(
+  query: string,
+  suggestedAgentName: string,
+  startTime: number,
+  webSearchEnabled = true,
+  images?: ImageAttachment[],
+  files?: FileAttachment[]
+): Promise<MultiAgentResponse | null> {
+  console.log(`🔍 [Forced Routing] Looking up agent config: "${suggestedAgentName}"`);
+
+  if (suggestedAgentName === 'Reporter Agent') {
+    console.log(`📋 [Forced Routing] Routing to Reporter Pipeline`);
+    const pipelineResult = await executeReporterWithPipeline(query, startTime);
+    if (pipelineResult) {
+      return pipelineResult;
+    }
+    console.log(`🔄 [Forced Routing] Pipeline failed, falling back to direct Reporter Agent`);
+  }
+
+  const agentConfig = AGENT_CONFIGS[suggestedAgentName];
+
+  if (!agentConfig) {
+    console.warn(`⚠️ [Forced Routing] No config for "${suggestedAgentName}"`);
+    return null;
+  }
+
+  const providerOrder = getAgentProviderOrder(suggestedAgentName);
+  console.log(`🎯 [Forced Routing] Using retry with fallback: [${providerOrder.join(' → ')}]`);
+
+  const filteredTools = filterToolsByWebSearch(agentConfig.tools, webSearchEnabled);
+
+  try {
+    const retryResult = await generateTextWithRetry(
+      {
+        messages: [
+          { role: 'system', content: agentConfig.instructions },
+          { role: 'user', content: query },
+        ],
+        tools: filteredTools as Parameters<typeof generateText>[0]['tools'],
+        stopWhen: [hasToolCall('finalAnswer'), stepCountIs(5)],
+        temperature: 0.4,
+        maxOutputTokens: 2048,
+      },
+      providerOrder,
+      { timeoutMs: 60000 }
+    );
+
+    if (!retryResult.success || !retryResult.result) {
+      console.warn(`⚠️ [Forced Routing] All providers failed for ${suggestedAgentName}`);
+      for (const attempt of retryResult.attempts) {
+        console.log(`   - ${attempt.provider}: ${attempt.error || 'unknown error'}`);
+      }
+      return null;
+    }
+
+    const { result, provider, modelId, usedFallback, attempts } = retryResult;
+    const durationMs = Date.now() - startTime;
+
+    const toolsCalled: string[] = [];
+    let finalAnswerResult: { answer: string } | null = null;
+    const ragSources: Array<{
+      title: string;
+      similarity: number;
+      sourceType: string;
+      category?: string;
+    }> = [];
+
+    for (const step of result.steps) {
+      for (const toolCall of step.toolCalls) {
+        toolsCalled.push(toolCall.toolName);
+      }
+      if (step.toolResults) {
+        for (const tr of step.toolResults) {
+          const trOutput = extractToolResultOutput(tr);
+
+          if (tr.toolName === 'finalAnswer' && trOutput && typeof trOutput === 'object') {
+            finalAnswerResult = trOutput as { answer: string };
+          }
+
+          if (tr.toolName === 'searchKnowledgeBase' && trOutput && typeof trOutput === 'object') {
+            const kbResult = trOutput as Record<string, unknown>;
+            const similarCases = (kbResult.similarCases ?? kbResult.results) as Array<Record<string, unknown>> | undefined;
+            if (Array.isArray(similarCases)) {
+              for (const doc of similarCases) {
+                ragSources.push({
+                  title: String(doc.title ?? doc.name ?? 'Unknown'),
+                  similarity: Number(doc.similarity ?? doc.score ?? 0),
+                  sourceType: String(doc.sourceType ?? doc.type ?? 'vector'),
+                  category: doc.category ? String(doc.category) : undefined,
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const response = finalAnswerResult?.answer ?? result.text;
+    const sanitizedResponse = sanitizeChineseCharacters(response);
+
+    if (usedFallback) {
+      console.log(`🔀 [Forced Routing] Used fallback: ${attempts.map(a => a.provider).join(' → ')}`);
+    }
+
+    console.log(
+      `✅ [Forced Routing] ${suggestedAgentName} completed in ${durationMs}ms via ${provider}, tools: [${toolsCalled.join(', ')}], ragSources: ${ragSources.length}`
+    );
+
+    return {
+      success: true,
+      response: sanitizedResponse,
+      ragSources: ragSources.length > 0 ? ragSources : undefined,
+      handoffs: [{
+        from: 'Orchestrator',
+        to: suggestedAgentName,
+        reason: usedFallback
+          ? `Forced routing with fallback (${attempts.length} attempts)`
+          : 'Forced routing (high confidence pre-filter)',
+      }],
+      finalAgent: suggestedAgentName,
+      toolsCalled,
+      usage: {
+        promptTokens: result.usage?.inputTokens ?? 0,
+        completionTokens: result.usage?.outputTokens ?? 0,
+        totalTokens: result.usage?.totalTokens ?? 0,
+      },
+      metadata: {
+        provider,
+        modelId,
+        totalRounds: attempts.length,
+        durationMs,
+      },
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [Forced Routing] ${suggestedAgentName} failed:`, errorMessage);
+    return null;
+  }
+}
+
+// ============================================================================
+// AgentFactory-based Execution
+// ============================================================================
+
+export function getAgentTypeFromName(agentName: string): AgentType | null {
+  const mapping: Record<string, AgentType> = {
+    'NLQ Agent': 'nlq',
+    'Analyst Agent': 'analyst',
+    'Reporter Agent': 'reporter',
+    'Advisor Agent': 'advisor',
+    'Vision Agent': 'vision',
+    'Evaluator Agent': 'evaluator',
+    'Optimizer Agent': 'optimizer',
+  };
+  return mapping[agentName] ?? null;
+}
+
+export async function executeWithAgentFactory(
+  query: string,
+  agentType: AgentType,
+  startTime: number,
+  webSearchEnabled = true,
+  images?: ImageAttachment[],
+  files?: FileAttachment[]
+): Promise<MultiAgentResponse | null> {
+  const agent = AgentFactory.create(agentType);
+
+  if (!agent) {
+    console.warn(`⚠️ [AgentFactory] Agent ${agentType} not available (no model configured)`);
+    return null;
+  }
+
+  const agentName = agent.getName();
+  console.log(`🤖 [AgentFactory] Executing ${agentName}...`);
+
+  try {
+    const result = await agent.run(query, {
+      webSearchEnabled,
+      maxSteps: 5,
+      timeoutMs: TIMEOUT_CONFIG.agent.hard,
+      images,
+      files,
+    });
+
+    if (!result.success) {
+      console.error(`❌ [AgentFactory] ${agentName} failed: ${result.error}`);
+      return {
+        success: false,
+        response: `에이전트 실행 실패: ${result.error}`,
+        handoffs: [{
+          from: 'Orchestrator',
+          to: agentName,
+          reason: `AgentFactory routing - failed: ${result.error}`,
+        }],
+        finalAgent: agentName,
+        toolsCalled: result.toolsCalled,
+        usage: result.usage,
+        metadata: {
+          provider: result.metadata.provider,
+          modelId: result.metadata.modelId,
+          totalRounds: result.metadata.steps,
+          durationMs: Date.now() - startTime,
+        },
+      };
+    }
+
+    const durationMs = Date.now() - startTime;
+    recordHandoff('Orchestrator', agentName, 'AgentFactory routing');
+
+    return {
+      success: true,
+      response: result.text,
+      handoffs: [{
+        from: 'Orchestrator',
+        to: agentName,
+        reason: 'AgentFactory routing',
+      }],
+      finalAgent: agentName,
+      toolsCalled: result.toolsCalled,
+      usage: result.usage,
+      metadata: {
+        provider: result.metadata.provider,
+        modelId: result.metadata.modelId,
+        totalRounds: result.metadata.steps,
+        durationMs,
+      },
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [AgentFactory] ${agentName} exception:`, errorMessage);
+    return null;
+  }
+}
