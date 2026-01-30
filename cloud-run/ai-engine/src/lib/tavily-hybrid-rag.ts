@@ -33,7 +33,7 @@ export interface HybridRAGDocument {
 export interface HybridRAGOptions {
   /** Minimum KB results before triggering web search (default: 2) */
   minKBResults?: number;
-  /** Minimum KB score before triggering web search (default: 0.4) */
+  /** Minimum KB score before triggering web search (default: 0.6) */
   minKBScore?: number;
   /** Maximum web results to fetch (default: 3) */
   maxWebResults?: number;
@@ -63,7 +63,7 @@ export interface WebSearchResult {
 const TAVILY_TIMEOUT_MS = 8000;
 const TAVILY_MAX_RETRIES = 1;
 const DEFAULT_MIN_KB_RESULTS = 2;
-const DEFAULT_MIN_KB_SCORE = 0.4;
+const DEFAULT_MIN_KB_SCORE = 0.6;
 const DEFAULT_MAX_WEB_RESULTS = 3;
 
 // Server monitoring focused domains
