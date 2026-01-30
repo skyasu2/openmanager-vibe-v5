@@ -1,10 +1,19 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-27
+**마지막 업데이트**: 2026-01-31
 
 ---
 
 ## 🔄 Recent Changes (v7.1.0)
+
+- **v7.1.0** (2026-01-31)
+  - **Prompt Injection 방어 레이어**: Cloud Run + Vercel 양쪽 적용
+    - OWASP LLM Top 10 기반 17개 입력 패턴 (EN/KO), 9개 출력 패턴
+    - medium 이상 위험도 즉시 400 차단 (sanitize가 아닌 block)
+    - Cloud Run 3개 엔드포인트 (POST /, /stream, /stream/v2) 입력/출력 가드
+    - Vercel `quickSanitize` → `securityCheck` 업그레이드
+  - **Web Search Toggle**: AI Sidebar에 Globe 아이콘 웹 검색 토글 추가
+  - **enableWebSearch 전파 수정**: Supervisor → Multi-Agent 경로 전파 누락 해결
 
 - **v7.1.0** (2026-01-27)
   - **Vision Agent 추가**: Gemini 2.5 Flash-Lite 기반 멀티모달 에이전트
@@ -321,7 +330,7 @@
 
 **Cloud Run AI Engine**
 - **Service URL**: `https://ai-engine-490817238363.asia-northeast1.run.app`
-- **Active Revision**: `ai-engine-00118-96v` (최신 배포)
+- **Active Revision**: `ai-engine-00187-lzn` (최신 배포, Prompt Injection Guard)
 - **Health**: ✅ All providers connected (Supabase, Upstash, Groq, Mistral, Cerebras, Tavily, OpenRouter, Langfuse)
 - **Observability**:
   - Langfuse (10% sampling, 무료 티어 보호)
