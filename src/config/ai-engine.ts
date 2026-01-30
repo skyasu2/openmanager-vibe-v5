@@ -18,6 +18,7 @@
  * @date 2025-12-31
  */
 
+import 'server-only';
 import { env, isDevelopment, isProduction as _isProduction } from '@/env';
 import { logger } from '@/lib/logging';
 

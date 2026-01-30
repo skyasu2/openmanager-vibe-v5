@@ -4,6 +4,7 @@
  * 각 환경(development, test, production)에 맞는 API 설정 제공
  */
 
+import 'server-only';
 import { env, isDevelopment, isProduction, isTest } from '@/env';
 import { logger } from '@/lib/logging';
 

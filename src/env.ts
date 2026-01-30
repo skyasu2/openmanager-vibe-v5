@@ -12,6 +12,7 @@
  * - 새로운 환경변수 추가 시, 반드시 이 파일의 `envSchema`에 정의해야 합니다.
  */
 
+import 'server-only';
 import * as z from 'zod';
 
 // 환경변수 스키마 정의

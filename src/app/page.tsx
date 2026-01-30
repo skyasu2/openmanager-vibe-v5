@@ -28,7 +28,7 @@ import {
   isGuestFullAccessEnabled,
   isGuestSystemStartEnabled,
 } from '@/config/guestMode';
-import { isVercel } from '@/env';
+import { isVercel } from '@/env-client';
 import { useInitialAuth } from '@/hooks/useInitialAuth';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { PAGE_BACKGROUNDS } from '@/styles/design-constants';

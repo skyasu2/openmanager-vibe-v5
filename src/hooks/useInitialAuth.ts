@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { isVercel } from '@/env';
+import { isVercel } from '@/env-client';
 import { type AuthUser, getAuthState } from '@/lib/auth/auth-state-manager';
 import { logger } from '@/lib/logging';
 

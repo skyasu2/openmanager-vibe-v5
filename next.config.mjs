@@ -39,11 +39,6 @@ const nextConfig = {
     'http://host.docker.internal:3000',
   ],
 
-  // 🔧 Zod v4 ESM 모듈 번들링 문제 해결
-  // Zod v4의 schemas.js에서 inst.int = (params) => inst.check(int(params)) 패턴이
-  // webpack 번들링 시 함수 참조 순서 문제로 'int is not defined' 오류 발생
-  transpilePackages: ['zod'],
-
   // 실험적 기능 (Next.js 16 호환)
   experimental: {
     optimizePackageImports: [

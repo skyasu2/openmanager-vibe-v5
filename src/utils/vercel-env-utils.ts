@@ -7,7 +7,7 @@
  * - src/app/main/page.tsx (lines 41-46)
  */
 
-import { isVercel } from '@/env';
+import { isVercel } from '@/env-client';
 
 /**
  * Component mount delay (ms)

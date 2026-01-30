@@ -2,10 +2,8 @@
  * 🐛 디버그 유틸리티 - 프로덕션에서는 로그 비활성화
  */
 
-import { env, isDevelopment } from '@/env';
+import { isDebugEnabled } from '@/env-client';
 import { logger } from '@/lib/logging';
-
-const isDebugEnabled = isDevelopment || env.NEXT_PUBLIC_DEBUG === 'true';
 
 interface DebugLogger {
   log: (...args: unknown[]) => void;
