@@ -35,25 +35,12 @@ const COOKIE_MAX_AGE_SECONDS = 2 * 60 * 60; // 쿠키 만료 시간 (2시간)
 const PAGE_REDIRECT_DELAY_MS = 500; // 페이지 이동 지연
 const PULSE_ANIMATION_DURATION_MS = 600; // 펄스 애니메이션 시간
 
-// 🎨 스플래시 스크린 컴포넌트 (SSR 로딩 상태)
-const SplashScreen = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-[#0f172a] z-50">
-    <div className="relative flex flex-col items-center">
-      {/* 로딩 스피너 */}
-      <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-      {/* 로딩 텍스트 */}
-      <p className="mt-4 text-sm text-gray-400">로딩 중...</p>
-    </div>
-  </div>
-);
-
 export default function LoginClient() {
   const _router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingType, setLoadingType] = useState<
     'github' | 'guest' | 'google' | null
   >(null);
-  const [isClient, setIsClient] = useState(false);
   const [guestSession, setGuestSession] = useState<GuestSessionData | null>(
     null
   );
@@ -123,8 +110,6 @@ export default function LoginClient() {
   }, [isLoading]);
 
   useEffect(() => {
-    setIsClient(true);
-
     // URL 파라미터에서 에러 메시지와 리다이렉트 URL 확인
     const searchParams = new URLSearchParams(window.location.search);
     const error = searchParams.get('error');
@@ -377,11 +362,6 @@ export default function LoginClient() {
       setLoadingType(null);
     }
   };
-
-  // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
-  if (!isClient) {
-    return <SplashScreen />;
-  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 font-sans selection:bg-white/20">
