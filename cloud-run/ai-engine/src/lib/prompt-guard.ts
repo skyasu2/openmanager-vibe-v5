@@ -185,7 +185,7 @@ interface GuardResult {
 export function guardInput(query: string): GuardResult {
   const detection = detectPromptInjection(query);
   const sanitizedQuery = sanitizeForPrompt(query);
-  const shouldBlock = detection.riskLevel === 'high' || detection.patterns.length >= 3;
+  const shouldBlock = detection.riskLevel === 'high' || detection.riskLevel === 'medium' || detection.patterns.length >= 3;
 
   if (detection.isInjection) {
     logger.warn(

@@ -564,9 +564,11 @@ export function securityCheck(input: string): {
   const inputCheck = detectPromptInjection(input);
   const sanitizedInput = sanitizeForPrompt(input);
 
-  // high 위험도 또는 3개 이상 패턴 감지 시 차단
+  // medium 이상 위험도 또는 3개 이상 패턴 감지 시 차단
   const shouldBlock =
-    inputCheck.riskLevel === 'high' || inputCheck.patterns.length >= 3;
+    inputCheck.riskLevel === 'high' ||
+    inputCheck.riskLevel === 'medium' ||
+    inputCheck.patterns.length >= 3;
 
   return {
     inputCheck,
