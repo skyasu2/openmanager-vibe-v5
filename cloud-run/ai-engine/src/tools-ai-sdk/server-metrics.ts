@@ -183,6 +183,7 @@ import {
   FIXED_24H_DATASETS,
   getDataAtMinute,
   getRecentData,
+  get24hTrendSummaries,
   type Server24hDataset,
   type Fixed10MinMetric,
 } from '../data/fixed-24h-metrics';
@@ -302,10 +303,11 @@ export const getServerMetrics = tool({
 2. 특정 서버: { "serverId": "web-nginx-icn-01" }
 
 ## 출력 형식
-{ "success": true, "servers": [{ "id": "...", "name": "...", "cpu": 45, "memory": 67, "disk": 55 }], "summary": { "total": 15 } }
+{ "success": true, "servers": [{ "id": "...", "name": "...", "cpu": 45, "memory": 67, "disk": 55, "dailyTrend": { "cpu": { "avg": 38, "max": 72, "min": 12 }, "memory": { "avg": 54, "max": 78, "min": 30 }, "disk": { "avg": 60, "max": 62, "min": 58 } } }], "summary": { "total": 15 } }
 
 ## 사용 시나리오
 - "서버 상태" / "현재 CPU" → 이 도구
+- "이 서버 오늘 어땠어?" → 이 도구 (dailyTrend 필드에 24시간 avg/max/min 포함)
 - "지난 6시간 평균" / "최근 1시간 최대값" → getServerMetricsAdvanced 사용`,
   inputSchema: z.object({
     serverId: z
@@ -337,16 +339,30 @@ export const getServerMetrics = tool({
 
       console.log(`📊 [getServerMetrics] Computing for ${cacheKey} (cache miss)`);
 
+      // Build daily trend lookup for requested servers
+      const trendSummaries = get24hTrendSummaries();
+      const trendMap = new Map(trendSummaries.map((t) => [t.serverId, t]));
+
       return {
         success: true,
-        servers: servers.map((s) => ({
-          id: s.id,
-          name: s.name,
-          status: s.status,
-          cpu: s.cpu,
-          memory: s.memory,
-          disk: s.disk,
-        })),
+        servers: servers.map((s) => {
+          const trend = trendMap.get(s.id);
+          return {
+            id: s.id,
+            name: s.name,
+            status: s.status,
+            cpu: s.cpu,
+            memory: s.memory,
+            disk: s.disk,
+            ...(trend && {
+              dailyTrend: {
+                cpu: trend.cpu,
+                memory: trend.memory,
+                disk: trend.disk,
+              },
+            }),
+          };
+        }),
         summary: {
           total: servers.length,
           alertCount: servers.filter(
