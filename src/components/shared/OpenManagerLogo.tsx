@@ -49,16 +49,18 @@ export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
   const subtitleColor = variant === 'dark' ? 'text-white/90' : 'text-gray-500';
 
   const content = (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex min-w-0 items-center gap-3 ${className}`}>
       {/* 아이콘 영역 (아이콘 제거됨 - 그라데이션 스퀘어 컨셉) */}
       <div
-        className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg"
+        className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg shadow-lg"
         style={backgroundStyle}
       />
 
       {/* 텍스트 영역 - suppressHydrationWarning for dynamic subtitle */}
-      <div className="text-left" suppressHydrationWarning>
-        <h1 className={`text-xl font-bold ${titleColor}`}>OpenManager</h1>
+      <div className="min-w-0 text-left" suppressHydrationWarning>
+        <h1 className={`truncate text-xl font-bold ${titleColor}`}>
+          OpenManager
+        </h1>
         {(() => {
           const subtitleText =
             aiAgent.isEnabled && isSystemStarted

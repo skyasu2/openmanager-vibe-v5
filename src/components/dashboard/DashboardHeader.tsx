@@ -107,9 +107,9 @@ const DashboardHeader = memo(function DashboardHeader({
       suppressHydrationWarning
       className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-xs"
     >
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center justify-between px-4 py-4 sm:px-6">
         {/* 왼쪽: 브랜드 로고 */}
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 items-center gap-4">
           <OpenManagerLogo variant="light" href="/" />
         </div>
 
@@ -120,7 +120,7 @@ const DashboardHeader = memo(function DashboardHeader({
         </div>
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           {/* 🔐 AI 어시스턴트 토글 버튼 - 항상 표시, 클릭 시 인증 체크 */}
           <AIAssistantButton
             isOpen={isSidebarOpen}
