@@ -16,6 +16,7 @@
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 
+import { logger } from '../lib/logger';
 import { logAPIKeyStatus, validateAPIKeys } from '../lib/model-config';
 import {
   markJobProcessing,
@@ -71,7 +72,7 @@ jobsRouter.post('/process', async (c: Context) => {
 
     // Check Redis availability
     if (!isJobNotifierAvailable()) {
-      console.warn('⚠️ [Jobs] Redis not available, falling back to sync mode');
+      logger.warn('[Jobs] Redis not available, falling back to sync mode');
       // In sync mode, we still process but can't store result
       // This is a degraded mode, client should use direct API
       return c.json(
@@ -94,7 +95,7 @@ jobsRouter.post('/process', async (c: Context) => {
     await markJobProcessing(jobId);
     await updateJobProgress(jobId, 'initializing', 10, 'AI 에이전트 초기화 중...');
 
-    console.log(`🚀 [Jobs] Processing job ${jobId}`);
+    logger.info(`[Jobs] Processing job ${jobId}`);
 
     // Extract query from last user message
     const lastMessage = messages[messages.length - 1];
@@ -145,9 +146,9 @@ jobsRouter.post('/process', async (c: Context) => {
         });
 
         const processingTime = Date.now() - startTime;
-        console.log(`✅ [Jobs] Job ${jobId} completed in ${processingTime}ms (provider: ${result.metadata.provider})`);
+        logger.info(`[Jobs] Job ${jobId} completed in ${processingTime}ms (provider: ${result.metadata.provider})`);
       } catch (error) {
-        console.error(`❌ [Jobs] Job ${jobId} failed:`, error);
+        logger.error({ err: error }, `[Jobs] Job ${jobId} failed`);
         await storeJobError(jobId, String(error), startedAt);
       }
     });
@@ -160,7 +161,7 @@ jobsRouter.post('/process', async (c: Context) => {
       message: 'Job started, poll /api/jobs/:id for result',
     });
   } catch (error) {
-    console.error('❌ [Jobs] Process error:', error);
+    logger.error({ err: error }, '[Jobs] Process error');
     return c.json({ success: false, error: String(error) }, 500);
   }
 });

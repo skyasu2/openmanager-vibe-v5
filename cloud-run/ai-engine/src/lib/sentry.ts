@@ -8,10 +8,8 @@
 import * as Sentry from '@sentry/node';
 import { version } from '../../package.json';
 
-// Sentry DSN (Public Key - 전송만 가능)
-const SENTRY_DSN =
-  process.env.SENTRY_DSN ||
-  'https://c4cfe13cdda790d1d9a6c3f92c593f39@o4509732473667584.ingest.de.sentry.io/4510731369119824';
+// Sentry DSN — must be set via SENTRY_DSN env var
+const SENTRY_DSN = process.env.SENTRY_DSN || '';
 
 let isInitialized = false;
 
@@ -20,6 +18,12 @@ let isInitialized = false;
  */
 export function initSentry(): void {
   if (isInitialized) return;
+
+  if (!SENTRY_DSN) {
+    console.log('⚠️ Sentry DSN not configured — error tracking disabled');
+    isInitialized = true;
+    return;
+  }
 
   const isProd = process.env.NODE_ENV === 'production';
 

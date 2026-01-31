@@ -55,15 +55,21 @@ const app = new Hono();
 // ============================================================================
 
 app.use('*', honoLogger());
-app.use('*', cors());
+app.use('*', cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['https://openmanager-vibe-v5.vercel.app'],
+}));
 
-// Security Middleware (Skip for health/warmup)
+// Security Middleware (Skip for health/warmup) — fail-closed
 app.use('/api/*', async (c: Context, next: Next) => {
   const apiKey = c.req.header('X-API-Key');
   const validKey = process.env.CLOUD_RUN_API_SECRET;
 
-  // Only enforce if secret is set in env
-  if (validKey && apiKey !== validKey) {
+  if (!validKey) {
+    logger.error('[Security] CLOUD_RUN_API_SECRET is not configured — blocking request');
+    return handleUnauthorizedError(c);
+  }
+
+  if (apiKey !== validKey) {
     return handleUnauthorizedError(c);
   }
   await next();
@@ -233,6 +239,41 @@ app.get('/monitoring/traces', async (c: Context) => {
       message: error instanceof Error ? error.message : 'Unknown error',
     }, 500);
   }
+});
+
+// Debug/Admin endpoint authentication middleware
+// Production: requires API key, Non-production: open access for development
+app.use('/debug/*', async (c: Context, next: Next) => {
+  if (process.env.NODE_ENV === 'production') {
+    const apiKey = c.req.header('X-API-Key');
+    const validKey = process.env.CLOUD_RUN_API_SECRET;
+    if (!validKey || apiKey !== validKey) {
+      return c.json({ error: 'Debug endpoints require authentication in production' }, 403);
+    }
+  }
+  await next();
+});
+
+app.use('/monitoring/reset', async (c: Context, next: Next) => {
+  if (process.env.NODE_ENV === 'production') {
+    const apiKey = c.req.header('X-API-Key');
+    const validKey = process.env.CLOUD_RUN_API_SECRET;
+    if (!validKey || apiKey !== validKey) {
+      return c.json({ error: 'Admin endpoints require authentication in production' }, 403);
+    }
+  }
+  await next();
+});
+
+app.use('/monitoring/traces', async (c: Context, next: Next) => {
+  if (process.env.NODE_ENV === 'production') {
+    const apiKey = c.req.header('X-API-Key');
+    const validKey = process.env.CLOUD_RUN_API_SECRET;
+    if (!validKey || apiKey !== validKey) {
+      return c.json({ error: 'Admin endpoints require authentication in production' }, 403);
+    }
+  }
+  await next();
 });
 
 /**

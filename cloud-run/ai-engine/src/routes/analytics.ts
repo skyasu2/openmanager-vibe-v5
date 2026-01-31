@@ -13,6 +13,7 @@ import { Hono } from 'hono';
 import type { Context } from 'hono';
 import { randomUUID } from 'crypto';
 import { generateText } from 'ai';
+import { logger } from '../lib/logger';
 import {
   detectAnomalies,
   detectAnomaliesAllServers,
@@ -43,7 +44,7 @@ analyticsRouter.post('/analyze-server', async (c: Context) => {
   try {
     const { serverId, analysisType = 'full', options = {} } = await c.req.json();
 
-    console.log(`🔬 [Analyze Server] serverId=${serverId}, type=${analysisType}`);
+    logger.info(`[Analyze Server] serverId=${serverId}, type=${analysisType}`);
 
     // Type for metricType
     type MetricType = 'cpu' | 'memory' | 'disk' | 'all';
@@ -142,7 +143,7 @@ JSON 형식으로 응답하세요:
           }
         }
       } catch (agentError) {
-        console.warn('⚠️ [Analyze Server] Agent insight generation failed:', agentError);
+        logger.warn({ err: agentError }, '[Analyze Server] Agent insight generation failed');
         // Continue without agent insights
       }
     }
@@ -150,7 +151,7 @@ JSON 형식으로 응답하세요:
     const durationMs = Date.now() - startTime;
     results._durationMs = durationMs;
 
-    console.log(`✅ [Analyze Server] Completed in ${durationMs}ms`);
+    logger.info(`[Analyze Server] Completed in ${durationMs}ms`);
     return jsonSuccess(c, results);
   } catch (error) {
     return handleApiError(c, error, 'Analyze Server');
@@ -172,7 +173,7 @@ analyticsRouter.post('/incident-report', async (c: Context) => {
   try {
     const { serverId, query, severity, category, metrics, action } = await c.req.json();
 
-    console.log(`📋 [Incident Report] action=${action}, serverId=${serverId}`);
+    logger.info(`[Incident Report] action=${action}, serverId=${serverId}`);
 
     const startTime = Date.now();
 
@@ -204,7 +205,7 @@ analyticsRouter.post('/incident-report', async (c: Context) => {
     const reporterConfig = getReporterAgentConfig();
     const reporterModelResult = reporterConfig?.getModel();
     if (!reporterConfig || !reporterModelResult || !isReporterAgentAvailable()) {
-      console.warn('⚠️ [Incident Report] Reporter Agent unavailable, using tool-based fallback');
+      logger.warn('[Incident Report] Reporter Agent unavailable, using tool-based fallback');
       return jsonSuccess(c, {
         ...toolBasedData,
         created_at: new Date().toISOString(),
@@ -255,7 +256,7 @@ ${metricsContext}
 
 위 형식의 JSON만 출력하세요. 다른 텍스트는 포함하지 마세요.`;
 
-    console.log(`🤖 [Incident Report] Invoking Reporter Agent with JSON output...`);
+    logger.info('[Incident Report] Invoking Reporter Agent with JSON output...');
 
     const result = await generateText({
       model: reporterModelResult.model,
@@ -268,7 +269,7 @@ ${metricsContext}
     });
 
     const durationMs = Date.now() - startTime;
-    console.log(`✅ [Incident Report] Agent completed in ${durationMs}ms`);
+    logger.info(`[Incident Report] Agent completed in ${durationMs}ms`);
 
     // 4. Sanitize Chinese characters and parse JSON from agent response
     const sanitizedText = sanitizeChineseCharacters(result.text);
@@ -447,7 +448,7 @@ function parseAgentJsonResponse(
         pattern: parsed.pattern || fallback.pattern,
       };
     } catch (e) {
-      console.warn('⚠️ [Incident Report] JSON parse failed, using regex extraction');
+      logger.warn('[Incident Report] JSON parse failed, using regex extraction');
     }
   }
 
@@ -577,7 +578,7 @@ async function incidentReportFallback(
     metricType: 'all',
   }, { toolCallId: 'incident-report-anomaly', messages: [] });
 
-  console.log(`✅ [Incident Report Fallback] Generated for ${serverId || 'general'}`);
+  logger.info(`[Incident Report Fallback] Generated for ${serverId || 'general'}`);
 
   return jsonSuccess(c, {
     id: randomUUID(),

@@ -100,7 +100,7 @@ function shouldSample(): boolean {
   if (testModeEnabled) {
     return true;
   }
-  // 프로덕션: 10% 샘플링
+  // 프로덕션: 100% 샘플링 (사용량 낮아 안전)
   return Math.random() < DEFAULT_SAMPLE_RATE;
 }
 
@@ -366,7 +366,7 @@ export async function enableLangfuseTestMode(): Promise<void> {
 /** 테스트 모드 비활성화 */
 export async function disableLangfuseTestMode(): Promise<void> {
   testModeEnabled = false;
-  console.log('🔒 [Langfuse] 테스트 모드 비활성화 - 10% 샘플링, 배치 플러시 복귀');
+  console.log('🔒 [Langfuse] 테스트 모드 비활성화 - 100% 샘플링, 배치 플러시 복귀');
 
   // 클라이언트 재초기화 (배치 플러시 설정 적용)
   await reinitializeLangfuse();
