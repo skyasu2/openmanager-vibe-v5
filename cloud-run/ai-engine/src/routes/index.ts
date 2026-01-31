@@ -14,3 +14,4 @@ export { approvalRouter } from './approval';
 export { analyticsRouter } from './analytics';
 export { graphragRouter } from './graphrag';
 export { jobsRouter } from './jobs';
+export { feedbackRouter } from './feedback';

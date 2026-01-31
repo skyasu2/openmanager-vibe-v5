@@ -18,10 +18,18 @@ interface ChatMessageListProps {
   MessageComponent: React.ComponentType<{
     message: EnhancedChatMessage;
     onRegenerateResponse?: (messageId: string) => void;
-    onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
+    onFeedback?: (
+      messageId: string,
+      type: 'positive' | 'negative',
+      traceId?: string
+    ) => void;
     isLastMessage?: boolean;
   }>;
-  onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
+  onFeedback?: (
+    messageId: string,
+    type: 'positive' | 'negative',
+    traceId?: string
+  ) => void;
   isGenerating: boolean;
   regenerateResponse: (messageId: string) => void;
   setInputValue: (value: string) => void;

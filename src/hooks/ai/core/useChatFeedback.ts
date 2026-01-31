@@ -11,7 +11,11 @@ import { logger } from '@/lib/logging';
  */
 export function useChatFeedback(sessionIdRef: MutableRefObject<string>) {
   const handleFeedback = useCallback(
-    async (messageId: string, type: 'positive' | 'negative') => {
+    async (
+      messageId: string,
+      type: 'positive' | 'negative',
+      traceId?: string
+    ) => {
       try {
         const response = await fetch('/api/ai/feedback', {
           method: 'POST',
@@ -19,8 +23,9 @@ export function useChatFeedback(sessionIdRef: MutableRefObject<string>) {
           body: JSON.stringify({
             messageId,
             type,
-            sessionId: sessionIdRef.current, // ref에서 최신 값 참조
+            sessionId: sessionIdRef.current,
             timestamp: new Date().toISOString(),
+            ...(traceId && { traceId }),
           }),
         });
         if (!response.ok) {

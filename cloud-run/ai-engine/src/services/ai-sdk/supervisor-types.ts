@@ -66,6 +66,7 @@ export interface SupervisorResponse {
     stepsExecuted: number;
     durationMs: number;
     mode?: SupervisorMode;
+    traceId?: string;
     handoffs?: Array<{ from: string; to: string; reason?: string }>;
     finalAgent?: string;
   };

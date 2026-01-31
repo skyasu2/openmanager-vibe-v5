@@ -40,6 +40,7 @@ import {
   analyticsRouter,
   graphragRouter,
   jobsRouter,
+  feedbackRouter,
 } from './routes';
 import { providersRouter } from './routes/providers';
 
@@ -360,6 +361,9 @@ app.route('/api/ai/graphrag', graphragRouter);
 
 // Async Job Processing
 app.route('/api/jobs', jobsRouter);
+
+// Human Feedback → Langfuse
+app.route('/api/ai/feedback', feedbackRouter);
 
 // Provider Management (testing/debugging)
 app.route('/api/ai/providers', providersRouter);

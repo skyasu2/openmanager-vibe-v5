@@ -14,6 +14,7 @@ import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
 import { extractToolResultOutput } from '../../../lib/ai-sdk-utils';
 import { AGENT_CONFIGS, type AgentConfig } from './config';
 import { executeReporterPipeline } from './reporter-pipeline';
+import { createSupervisorTrace } from '../../observability/langfuse';
 import { AgentFactory, type AgentType } from './agent-factory';
 import type { ImageAttachment, FileAttachment } from './base-agent';
 import { TIMEOUT_CONFIG } from '../../../config/timeout-config';
@@ -175,6 +176,16 @@ export async function executeReporterWithPipeline(
     }
 
     const sanitizedResponse = sanitizeChineseCharacters(responseText);
+
+    // Record quality scores to Langfuse for quantitative evaluation
+    const trace = createSupervisorTrace({
+      sessionId: `reporter-pipeline-${Date.now()}`,
+      mode: 'multi',
+      query,
+    });
+    trace.score({ name: 'report-initial-score', value: pipelineResult.quality.initialScore });
+    trace.score({ name: 'report-final-score', value: pipelineResult.quality.finalScore });
+    trace.score({ name: 'report-correction-rate', value: pipelineResult.quality.finalScore - pipelineResult.quality.initialScore });
 
     console.log(
       `✅ [ReporterPipeline] Completed in ${durationMs}ms, ` +

@@ -62,6 +62,8 @@ export interface ChatMessage {
     processingTime?: number;
     confidence?: number;
     error?: string;
+    /** Langfuse trace ID for feedback scoring */
+    traceId?: string;
     /** 분석 근거 정보 */
     analysisBasis?: AnalysisBasis;
   };

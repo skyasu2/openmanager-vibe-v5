@@ -101,6 +101,11 @@ export function transformUIMessageToEnhanced(
     };
   });
 
+  // Extract traceId from message metadata (available for all roles)
+  const traceId = (
+    message as UIMessage & { metadata?: { traceId?: string } }
+  ).metadata?.traceId;
+
   // 분석 근거 생성 (assistant 메시지에만)
   let analysisBasis: AnalysisBasis | undefined;
   if (message.role === 'assistant') {
@@ -111,6 +116,7 @@ export function transformUIMessageToEnhanced(
     const messageData = (
       message as UIMessage & {
         metadata?: {
+          traceId?: string;
           ragSources?: Array<{
             title: string;
             similarity: number;
@@ -144,7 +150,13 @@ export function transformUIMessageToEnhanced(
     timestamp: new Date(),
     isStreaming: isLoading && isLastMessage,
     thinkingSteps: thinkingSteps.length > 0 ? thinkingSteps : undefined,
-    metadata: analysisBasis ? { analysisBasis } : undefined,
+    metadata:
+      analysisBasis || traceId
+        ? {
+            ...(analysisBasis && { analysisBasis }),
+            ...(traceId && { traceId }),
+          }
+        : undefined,
   };
 }
 

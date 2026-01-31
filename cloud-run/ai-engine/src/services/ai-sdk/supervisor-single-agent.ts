@@ -380,6 +380,7 @@ async function executeSupervisorAttempt(
           modelId,
           stepsExecuted: result.steps.length,
           durationMs,
+          traceId: trace.id,
         },
       };
     });
@@ -759,6 +760,7 @@ async function* streamSingleAgent(
           stepsExecuted: steps.length,
           durationMs,
           mode: 'single',
+          traceId: trace.id,
         },
         ...(capturedError && {
           warning: {

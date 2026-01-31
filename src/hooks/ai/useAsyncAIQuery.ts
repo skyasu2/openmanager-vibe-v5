@@ -58,6 +58,8 @@ export interface AsyncQueryResult {
   }>;
   processingTimeMs?: number;
   error?: string;
+  /** Langfuse trace ID for feedback scoring */
+  traceId?: string;
   /** Job ID (Stale Closure 방지용) */
   jobId?: string;
 }
@@ -296,6 +298,7 @@ export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
                 toolResults: resultData.toolResults,
                 ragSources: resultData.ragSources,
                 processingTimeMs: resultData.processingTimeMs,
+                traceId: resultData.metadata?.traceId,
               });
             } catch (e) {
               handleError(`Failed to parse result: ${e}`);

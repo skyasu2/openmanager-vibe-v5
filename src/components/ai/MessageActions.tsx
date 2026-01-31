@@ -9,7 +9,13 @@ interface MessageActionsProps {
   content: string;
   role: 'user' | 'assistant' | 'system' | 'thinking';
   onRegenerate?: (messageId: string) => void;
-  onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
+  onFeedback?: (
+    messageId: string,
+    type: 'positive' | 'negative',
+    traceId?: string
+  ) => void;
+  /** Langfuse trace ID for feedback scoring */
+  traceId?: string;
   showRegenerate?: boolean;
   className?: string;
 }
@@ -26,6 +32,7 @@ export const MessageActions = memo(function MessageActions({
   role,
   onRegenerate,
   onFeedback,
+  traceId,
   showRegenerate = false,
   className = '',
 }: MessageActionsProps) {
@@ -50,7 +57,7 @@ export const MessageActions = memo(function MessageActions({
       setFeedback(null);
     } else {
       setFeedback(type);
-      onFeedback?.(messageId, type);
+      onFeedback?.(messageId, type, traceId);
     }
   };
 

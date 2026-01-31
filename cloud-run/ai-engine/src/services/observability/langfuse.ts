@@ -219,6 +219,7 @@ interface LangfuseConfig {
 }
 
 interface LangfuseTrace {
+  id?: string;
   generation: (params: {
     name: string;
     model: string;
@@ -246,6 +247,11 @@ interface LangfuseClient {
     metadata?: Record<string, unknown>;
     input?: string;
   }) => LangfuseTrace;
+  score: (params: {
+    traceId: string;
+    name: string;
+    value: number;
+  }) => void;
   flushAsync: () => Promise<void>;
   shutdownAsync: () => Promise<void>;
 }
@@ -426,12 +432,18 @@ export function createSupervisorTrace(metadata: TraceMetadata): LangfuseTrace {
     input: metadata.query,
   });
 
+  // Expose trace id if the underlying Langfuse SDK provides it
+  const traceWithId = trace as LangfuseTrace & { id?: string };
+  if (traceWithId.id) {
+    return traceWithId;
+  }
   return trace;
 }
 
 /** No-Op 트레이스 (샘플링 제외 또는 한도 초과 시) */
 function createNoOpTrace(): LangfuseTrace {
   return {
+    id: undefined,
     generation: () => ({}),
     span: () => ({}),
     event: () => ({}),
@@ -531,6 +543,17 @@ export function finalizeTrace(
 }
 
 /**
+ * Record a score for an existing trace by its ID
+ * Used for delayed scoring (e.g., user feedback)
+ */
+export function scoreByTraceId(traceId: string, name: string, value: number): void {
+  if (!incrementUsage(1)) return;
+
+  const langfuse = getLangfuse();
+  langfuse.score({ traceId, name, value });
+}
+
+/**
  * Flush pending traces (call before shutdown)
  */
 export async function flushLangfuse(): Promise<void> {
@@ -556,6 +579,7 @@ export async function shutdownLangfuse(): Promise<void> {
 function createNoOpLangfuse(): LangfuseClient {
   // Create a mock that does nothing
   const noOpTrace: LangfuseTrace = {
+    id: undefined,
     generation: () => ({}),
     span: () => ({}),
     event: () => ({}),
@@ -565,6 +589,7 @@ function createNoOpLangfuse(): LangfuseClient {
 
   return {
     trace: () => noOpTrace,
+    score: () => {},
     flushAsync: async () => {},
     shutdownAsync: async () => {},
   };

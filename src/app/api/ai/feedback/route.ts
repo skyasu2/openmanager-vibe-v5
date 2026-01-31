@@ -20,6 +20,7 @@ interface FeedbackRequest {
   type: 'positive' | 'negative';
   timestamp?: string;
   sessionId?: string;
+  traceId?: string;
 }
 
 interface FeedbackLog {
@@ -68,6 +69,30 @@ async function handlePOST(request: NextRequest) {
     // 최근 100개만 유지 (메모리 관리)
     if (feedbackStore.length > 100) {
       feedbackStore.shift();
+    }
+
+    // Forward to Cloud Run Langfuse if traceId is present
+    if (
+      body.traceId &&
+      process.env.CLOUD_RUN_AI_URL &&
+      process.env.CLOUD_RUN_API_SECRET
+    ) {
+      try {
+        await fetch(`${process.env.CLOUD_RUN_AI_URL}/api/ai/feedback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': process.env.CLOUD_RUN_API_SECRET,
+          },
+          body: JSON.stringify({
+            traceId: body.traceId,
+            score: body.type,
+          }),
+          signal: AbortSignal.timeout(5000),
+        });
+      } catch (err) {
+        aiLogger.warn('Failed to forward feedback to Cloud Run', err);
+      }
     }
 
     return NextResponse.json({

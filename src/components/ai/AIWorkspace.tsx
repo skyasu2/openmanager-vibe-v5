@@ -52,7 +52,11 @@ const MemoizedThinkingProcessVisualizer = memo(ThinkingProcessVisualizer);
 const MessageComponent = memo<{
   message: EnhancedChatMessage;
   onRegenerateResponse?: (messageId: string) => void;
-  onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
+  onFeedback?: (
+    messageId: string,
+    type: 'positive' | 'negative',
+    traceId?: string
+  ) => void;
   isLastMessage?: boolean;
 }>(({ message, onRegenerateResponse, onFeedback, isLastMessage = false }) => {
   if (message.role === 'thinking' && message.thinkingSteps) {
@@ -149,6 +153,7 @@ const MessageComponent = memo<{
               role={message.role}
               onRegenerate={onRegenerateResponse}
               onFeedback={onFeedback}
+              traceId={message.metadata?.traceId}
               showRegenerate={isLastMessage && message.role === 'assistant'}
             />
           </div>

@@ -48,7 +48,11 @@ function convertToAgentSteps(thinkingSteps?: AIThinkingStep[]): AgentStep[] {
 const MessageComponent = memo<{
   message: EnhancedChatMessage;
   onRegenerateResponse?: (messageId: string) => void;
-  onFeedback?: (messageId: string, type: 'positive' | 'negative') => void;
+  onFeedback?: (
+    messageId: string,
+    type: 'positive' | 'negative',
+    traceId?: string
+  ) => void;
   isLastMessage?: boolean;
 }>(({ message, onRegenerateResponse, onFeedback, isLastMessage }) => {
   // thinking 메시지일 경우 간소화된 인라인 상태 표시
@@ -162,6 +166,7 @@ const MessageComponent = memo<{
               role={message.role}
               onRegenerate={onRegenerateResponse}
               onFeedback={onFeedback}
+              traceId={message.metadata?.traceId}
               showRegenerate={isLastMessage && message.role === 'assistant'}
               className="mt-2"
             />
