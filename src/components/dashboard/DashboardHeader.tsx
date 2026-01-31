@@ -114,7 +114,7 @@ const DashboardHeader = memo(function DashboardHeader({
         </div>
 
         {/* 중앙: 실시간 정보 + 세션 카운트다운 */}
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center gap-4 lg:flex">
           <RealTimeDisplay />
           <SessionCountdown />
         </div>
@@ -140,7 +140,7 @@ const DashboardHeader = memo(function DashboardHeader({
       />
 
       {/* 모바일용 실시간 정보 + 세션 카운트다운 */}
-      <div className="border-t border-gray-200 bg-gray-50 px-6 py-2 md:hidden">
+      <div className="border-t border-gray-200 bg-gray-50 px-6 py-2 lg:hidden">
         <div className="flex items-center justify-center gap-3">
           <RealTimeDisplay />
           <SessionCountdown />
