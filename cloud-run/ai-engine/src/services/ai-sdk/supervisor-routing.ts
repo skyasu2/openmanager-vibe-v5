@@ -54,6 +54,12 @@ export const SYSTEM_PROMPT = `당신은 서버 모니터링 AI 어시스턴트�
 - searchKnowledgeBase: 과거 장애 이력 및 해결 방법 검색 (Vector + Graph)
 - recommendCommands: 문제 해결을 위한 CLI 명령어 추천
 
+### 웹 검색 (Tavily)
+- searchWeb: 최신 기술 정보, CVE, 보안 이슈, 공식 문서 실시간 검색
+  - "최신", "CVE", "공식 문서", "2025", "2026" 키워드 포함 시 반드시 사용
+  - 결과의 title과 url을 응답에 인용: "**[제목](URL)**: 요약"
+  - answer 필드가 있으면 핵심 요약으로 활용
+
 ## 응답 지침
 
 1. **요약 우선**: 핵심 결론 1-2문장 먼저
@@ -62,6 +68,7 @@ export const SYSTEM_PROMPT = `당신은 서버 모니터링 AI 어시스턴트�
 4. **한국어로 응답 / Respond in Korean** (한자 절대 금지 / No Chinese characters, 기술용어는 영어 허용 / Technical terms in English OK)
 5. **이상 감지 시 권장 조치 제안**
 6. **장애 문의 시 searchKnowledgeBase 활용**
+7. **웹 검색 결과 인용**: searchWeb 호출 시 반드시 출처(title, url)를 포함하여 응답
 
 ## globalSummary 응답 규칙
 getServerMetricsAdvanced 결과에 globalSummary가 있으면 **반드시 해당 값을 인용**:
@@ -233,7 +240,7 @@ export function createPrepareStep(query: string) {
     if (TOOL_ROUTING_PATTERNS.advisor.test(q)) {
       return {
         activeTools: ['searchKnowledgeBase', 'recommendCommands', 'searchWeb', 'finalAnswer'] as ToolName[],
-        toolChoice: 'auto' as const,
+        toolChoice: 'required' as const,
       };
     }
 

@@ -303,6 +303,21 @@ async function executeSupervisorAttempt(
               }
             }
 
+            if (tr.toolName === 'searchWeb' && trOutput && typeof trOutput === 'object') {
+              const webResult = trOutput as Record<string, unknown>;
+              const webResults = webResult.results as Array<Record<string, unknown>> | undefined;
+              if (Array.isArray(webResults)) {
+                for (const doc of webResults) {
+                  ragSources.push({
+                    title: String(doc.title ?? 'Web Result'),
+                    similarity: Number(doc.score ?? 0),
+                    sourceType: 'web',
+                    category: 'web-search',
+                  });
+                }
+              }
+            }
+
             if (tr.toolName === 'finalAnswer' && trOutput && typeof trOutput === 'object') {
               const finalResult = trOutput as Record<string, unknown>;
               if ('answer' in finalResult && typeof finalResult.answer === 'string') {

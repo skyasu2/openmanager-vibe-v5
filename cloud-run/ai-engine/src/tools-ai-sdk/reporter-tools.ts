@@ -239,7 +239,7 @@ export const searchKnowledgeBase = tool({
           const graphEnhanced: RAGResultItem[] = hybridResults.map((r) => ({
             id: r.id,
             title: r.title,
-            content: r.content.substring(0, 500),
+            content: r.content.substring(0, 1500),
             category: category || 'auto',
             similarity: r.score,
             sourceType: r.sourceType as 'vector' | 'graph',
@@ -652,7 +652,7 @@ async function executeTavilySearch(
     const results: WebSearchResult[] = response.results.map((r) => ({
       title: r.title,
       url: r.url,
-      content: r.content.substring(0, 500),
+      content: r.content.substring(0, 1500),
       score: r.score,
     }));
 
