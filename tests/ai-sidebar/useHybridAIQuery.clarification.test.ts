@@ -24,11 +24,7 @@ vi.mock('@ai-sdk/react', () => ({
 }));
 
 vi.mock('ai', () => ({
-  DefaultChatTransport: class MockDefaultChatTransport {
-    constructor() {
-      // Mock constructor
-    }
-  },
+  DefaultChatTransport: class MockDefaultChatTransport {},
 }));
 
 vi.mock('@/lib/ai/query-classifier', () => ({
