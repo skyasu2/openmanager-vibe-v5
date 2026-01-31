@@ -234,9 +234,8 @@ function Home() {
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-3xl font-bold md:text-5xl">
             <span className="bg-linear-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              {renderTextWithAIGradient('AI', isMounted)}
+              {renderTextWithAIGradient('OpenManager AI', isMounted)}
             </span>{' '}
-            <span className="font-semibold text-white">기반</span>{' '}
             <span className="text-white">서버 모니터링</span>
           </h1>
           <p className="mx-auto max-w-3xl text-base leading-relaxed text-white/85 md:text-lg">
