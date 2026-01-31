@@ -102,9 +102,8 @@ export function transformUIMessageToEnhanced(
   });
 
   // Extract traceId from message metadata (available for all roles)
-  const traceId = (
-    message as UIMessage & { metadata?: { traceId?: string } }
-  ).metadata?.traceId;
+  const traceId = (message as UIMessage & { metadata?: { traceId?: string } })
+    .metadata?.traceId;
 
   // 분석 근거 생성 (assistant 메시지에만)
   let analysisBasis: AnalysisBasis | undefined;
