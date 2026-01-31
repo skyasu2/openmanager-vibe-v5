@@ -233,8 +233,9 @@ function Home() {
         {/* 타이틀 */}
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-3xl font-bold md:text-5xl">
+            <span className="text-white">OpenManager</span>{' '}
             <span className="bg-linear-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              {renderTextWithAIGradient('OpenManager AI', isMounted)}
+              {renderTextWithAIGradient('AI', isMounted)}
             </span>{' '}
             <span className="text-white">서버 모니터링</span>
           </h1>
