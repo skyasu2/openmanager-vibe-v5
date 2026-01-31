@@ -72,26 +72,37 @@ async function handlePOST(request: NextRequest) {
     }
 
     // Forward to Cloud Run Langfuse if traceId is present
+    let langfuseStatus: 'skipped' | 'success' | 'error' = 'skipped';
     if (
       body.traceId &&
       process.env.CLOUD_RUN_AI_URL &&
       process.env.CLOUD_RUN_API_SECRET
     ) {
       try {
-        await fetch(`${process.env.CLOUD_RUN_AI_URL}/api/ai/feedback`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': process.env.CLOUD_RUN_API_SECRET,
-          },
-          body: JSON.stringify({
-            traceId: body.traceId,
-            score: body.type,
-          }),
-          signal: AbortSignal.timeout(5000),
-        });
+        const res = await fetch(
+          `${process.env.CLOUD_RUN_AI_URL}/api/ai/feedback`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': process.env.CLOUD_RUN_API_SECRET,
+            },
+            body: JSON.stringify({
+              traceId: body.traceId,
+              score: body.type,
+            }),
+            signal: AbortSignal.timeout(5000),
+          }
+        );
+        langfuseStatus = res.ok ? 'success' : 'error';
+        if (!res.ok) {
+          aiLogger.error(
+            `Cloud Run feedback proxy failed: ${res.status} ${res.statusText}`
+          );
+        }
       } catch (err) {
-        aiLogger.warn('Failed to forward feedback to Cloud Run', err);
+        langfuseStatus = 'error';
+        aiLogger.error('Failed to forward feedback to Cloud Run', err);
       }
     }
 
@@ -99,6 +110,7 @@ async function handlePOST(request: NextRequest) {
       success: true,
       message: 'Feedback recorded',
       feedbackId: `fb_${Date.now()}`,
+      langfuseStatus,
     });
   } catch (error) {
     aiLogger.error('Feedback processing failed', error);

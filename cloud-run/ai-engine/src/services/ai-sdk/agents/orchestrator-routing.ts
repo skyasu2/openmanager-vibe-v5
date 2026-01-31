@@ -177,15 +177,19 @@ export async function executeReporterWithPipeline(
 
     const sanitizedResponse = sanitizeChineseCharacters(responseText);
 
-    // Record quality scores to Langfuse for quantitative evaluation
-    const trace = createSupervisorTrace({
-      sessionId: `reporter-pipeline-${Date.now()}`,
-      mode: 'multi',
-      query,
-    });
-    trace.score({ name: 'report-initial-score', value: pipelineResult.quality.initialScore });
-    trace.score({ name: 'report-final-score', value: pipelineResult.quality.finalScore });
-    trace.score({ name: 'report-correction-rate', value: pipelineResult.quality.finalScore - pipelineResult.quality.initialScore });
+    // Record quality scores to Langfuse for quantitative evaluation (non-blocking)
+    try {
+      const trace = createSupervisorTrace({
+        sessionId: `reporter-pipeline-${Date.now()}`,
+        mode: 'multi',
+        query,
+      });
+      trace.score({ name: 'report-initial-score', value: pipelineResult.quality.initialScore });
+      trace.score({ name: 'report-final-score', value: pipelineResult.quality.finalScore });
+      trace.score({ name: 'report-correction-rate', value: pipelineResult.quality.finalScore - pipelineResult.quality.initialScore });
+    } catch (error) {
+      console.warn(`⚠️ [ReporterPipeline] Langfuse score recording failed (non-blocking):`, error instanceof Error ? error.message : error);
+    }
 
     console.log(
       `✅ [ReporterPipeline] Completed in ${durationMs}ms, ` +

@@ -15,7 +15,10 @@ import { handleValidationError, jsonSuccess } from '../lib/error-handler';
 import { logger } from '../lib/logger';
 
 const feedbackSchema = z.object({
-  traceId: z.string().min(1, 'traceId is required'),
+  traceId: z
+    .string()
+    .min(1, 'traceId is required')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'traceId contains invalid characters'),
   score: z.enum(['positive', 'negative']),
 });
 

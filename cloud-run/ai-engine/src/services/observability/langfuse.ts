@@ -546,11 +546,18 @@ export function finalizeTrace(
  * Record a score for an existing trace by its ID
  * Used for delayed scoring (e.g., user feedback)
  */
-export function scoreByTraceId(traceId: string, name: string, value: number): void {
-  if (!incrementUsage(1)) return;
+export function scoreByTraceId(traceId: string, name: string, value: number): boolean {
+  if (!incrementUsage(1)) return false;
 
-  const langfuse = getLangfuse();
-  langfuse.score({ traceId, name, value });
+  try {
+    const langfuse = getLangfuse();
+    langfuse.score({ traceId, name, value });
+    return true;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ [Langfuse] scoreByTraceId failed for trace ${traceId}: ${errorMessage}`);
+    return false;
+  }
 }
 
 /**
