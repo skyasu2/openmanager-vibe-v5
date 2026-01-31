@@ -60,8 +60,9 @@ export interface WebSearchResult {
 // Constants
 // ============================================================================
 
-const TAVILY_TIMEOUT_MS = 8000;
-const TAVILY_MAX_RETRIES = 1;
+const TAVILY_TIMEOUT_MS = 10000;
+const TAVILY_MAX_RETRIES = 2;
+const TAVILY_RETRY_DELAY_MS = 1000;
 const DEFAULT_MIN_KB_RESULTS = 2;
 const DEFAULT_MIN_KB_SCORE = 0.6;
 const DEFAULT_MAX_WEB_RESULTS = 3;
@@ -105,35 +106,43 @@ async function executeTavilySearch(
     return [];
   }
 
-  try {
-    const { tavily } = await import('@tavily/core');
-    const client = tavily({ apiKey });
+  const { tavily } = await import('@tavily/core');
+  const client = tavily({ apiKey });
 
-    // Timeout wrapper
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Tavily timeout')), TAVILY_TIMEOUT_MS);
-    });
+  for (let attempt = 0; attempt <= TAVILY_MAX_RETRIES; attempt++) {
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error(`Tavily timeout after ${TAVILY_TIMEOUT_MS}ms`)), TAVILY_TIMEOUT_MS);
+      });
 
-    const searchPromise = client.search(query, {
-      maxResults: options.maxResults,
-      searchDepth: options.searchDepth,
-      includeDomains: options.includeDomains.length > 0 ? options.includeDomains : undefined,
-      excludeDomains: options.excludeDomains.length > 0 ? options.excludeDomains : undefined,
-    });
+      const searchPromise = client.search(query, {
+        maxResults: options.maxResults,
+        searchDepth: options.searchDepth,
+        includeDomains: options.includeDomains.length > 0 ? options.includeDomains : undefined,
+        excludeDomains: options.excludeDomains.length > 0 ? options.excludeDomains : undefined,
+      });
 
-    const response = await Promise.race([searchPromise, timeoutPromise]);
+      const response = await Promise.race([searchPromise, timeoutPromise]);
 
-    return response.results.map((r) => ({
-      title: r.title,
-      url: r.url,
-      content: r.content.substring(0, 500),
-      score: r.score,
-    }));
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.warn(`[TavilyHybrid] Web search failed: ${errorMsg}`);
-    return [];
+      return response.results.map((r) => ({
+        title: r.title,
+        url: r.url,
+        content: r.content.substring(0, 500),
+        score: r.score,
+      }));
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      if (attempt < TAVILY_MAX_RETRIES) {
+        console.log(`🔄 [TavilyHybrid] Retry ${attempt + 1}/${TAVILY_MAX_RETRIES} after error: ${errorMsg}`);
+        await new Promise((resolve) => setTimeout(resolve, TAVILY_RETRY_DELAY_MS));
+      } else {
+        console.warn(`[TavilyHybrid] Web search failed after ${TAVILY_MAX_RETRIES + 1} attempts: ${errorMsg}`);
+        return [];
+      }
+    }
   }
+
+  return [];
 }
 
 // ============================================================================
