@@ -242,23 +242,6 @@ function Home() {
             <span className="block text-white/60">
               AI SDK 기반 멀티 에이전트 엔진
             </span>
-            <span className="mt-1 inline-flex flex-wrap items-center justify-center gap-2 text-sm md:text-base">
-              <span className="rounded-full bg-blue-500/20 px-3 py-1 text-blue-300">
-                Groq
-              </span>
-              <span className="text-white/40">+</span>
-              <span className="rounded-full bg-purple-500/20 px-3 py-1 text-purple-300">
-                Cerebras
-              </span>
-              <span className="text-white/40">+</span>
-              <span className="rounded-full bg-pink-500/20 px-3 py-1 text-pink-300">
-                Mistral
-              </span>
-              <span className="text-white/40">+</span>
-              <span className="rounded-full bg-green-500/20 px-3 py-1 text-green-300">
-                Gemini
-              </span>
-            </span>
           </p>
         </div>
 
