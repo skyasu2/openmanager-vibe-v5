@@ -52,6 +52,8 @@ export interface SupervisorResponse {
     title: string;
     similarity: number;
     sourceType: string;
+    category?: string;
+    url?: string;
   }>;
   usage: {
     promptTokens: number;

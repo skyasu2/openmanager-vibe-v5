@@ -295,6 +295,7 @@ export async function executeForcedRouting(
       similarity: number;
       sourceType: string;
       category?: string;
+      url?: string;
     }> = [];
 
     for (const step of result.steps) {
@@ -319,6 +320,22 @@ export async function executeForcedRouting(
                   similarity: Number(doc.similarity ?? doc.score ?? 0),
                   sourceType: String(doc.sourceType ?? doc.type ?? 'vector'),
                   category: doc.category ? String(doc.category) : undefined,
+                });
+              }
+            }
+          }
+
+          if (tr.toolName === 'searchWeb' && trOutput && typeof trOutput === 'object') {
+            const webResult = trOutput as Record<string, unknown>;
+            const webResults = webResult.results as Array<Record<string, unknown>> | undefined;
+            if (Array.isArray(webResults)) {
+              for (const doc of webResults) {
+                ragSources.push({
+                  title: String(doc.title ?? 'Web Result'),
+                  similarity: Number(doc.score ?? 0),
+                  sourceType: 'web',
+                  category: 'web-search',
+                  url: doc.url ? String(doc.url) : undefined,
                 });
               }
             }

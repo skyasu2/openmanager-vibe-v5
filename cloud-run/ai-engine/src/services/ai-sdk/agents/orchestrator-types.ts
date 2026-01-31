@@ -62,6 +62,7 @@ export interface MultiAgentResponse {
     similarity: number;
     sourceType: string;
     category?: string;
+    url?: string;
   }>;
   usage: {
     promptTokens: number;

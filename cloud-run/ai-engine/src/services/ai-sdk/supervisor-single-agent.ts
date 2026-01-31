@@ -274,6 +274,7 @@ async function executeSupervisorAttempt(
         similarity: number;
         sourceType: string;
         category?: string;
+        url?: string;
       }> = [];
 
       for (const step of result.steps) {
@@ -313,6 +314,7 @@ async function executeSupervisorAttempt(
                     similarity: Number(doc.score ?? 0),
                     sourceType: 'web',
                     category: 'web-search',
+                    url: doc.url ? String(doc.url) : undefined,
                   });
                 }
               }

@@ -133,11 +133,22 @@ supervisorRouter.post('/', async (c: Context) => {
     }
 
     // Sanitize Chinese characters + malicious output filter
-    const sanitizedResponse = filterMaliciousOutput(sanitizeChineseCharacters(result.response));
+    let sanitizedResponse = filterMaliciousOutput(sanitizeChineseCharacters(result.response));
+
+    // Append web search sources as citations if LLM omitted them
+    const webSources = result.ragSources?.filter((s) => s.sourceType === 'web' && s.url);
+    if (webSources?.length && !sanitizedResponse.includes('](http')) {
+      const citations = webSources
+        .slice(0, 5)
+        .map((s) => `- **[${s.title}](${s.url})**`)
+        .join('\n');
+      sanitizedResponse += `\n\n📎 **참고 출처**\n${citations}`;
+    }
 
     return jsonSuccess(c, {
       response: sanitizedResponse,
       toolsCalled: result.toolsCalled,
+      ragSources: result.ragSources,
       usage: result.usage,
       metadata: result.metadata,
     });
