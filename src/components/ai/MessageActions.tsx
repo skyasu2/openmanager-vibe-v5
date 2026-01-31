@@ -13,7 +13,7 @@ interface MessageActionsProps {
     messageId: string,
     type: 'positive' | 'negative',
     traceId?: string
-  ) => void;
+  ) => Promise<boolean> | void;
   /** Langfuse trace ID for feedback scoring */
   traceId?: string;
   showRegenerate?: boolean;
@@ -40,6 +40,7 @@ export const MessageActions = memo(function MessageActions({
   const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(
     null
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCopy = async () => {
     try {
@@ -51,13 +52,21 @@ export const MessageActions = memo(function MessageActions({
     }
   };
 
-  const handleFeedback = (type: 'positive' | 'negative') => {
+  const handleFeedback = async (type: 'positive' | 'negative') => {
+    if (isSubmitting) return;
     if (feedback === type) {
-      // 같은 피드백 다시 클릭하면 취소
       setFeedback(null);
     } else {
       setFeedback(type);
-      onFeedback?.(messageId, type, traceId);
+      setIsSubmitting(true);
+      try {
+        const result = await onFeedback?.(messageId, type, traceId);
+        if (result === false) {
+          setFeedback(null);
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -98,11 +107,12 @@ export const MessageActions = memo(function MessageActions({
           <button
             type="button"
             onClick={() => handleFeedback('positive')}
+            disabled={isSubmitting}
             className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 ${
               feedback === 'positive'
                 ? 'bg-green-100 text-green-600'
                 : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-            }`}
+            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             title="도움이 됐어요"
           >
             <ThumbsUp className="h-3.5 w-3.5" />
@@ -112,11 +122,12 @@ export const MessageActions = memo(function MessageActions({
           <button
             type="button"
             onClick={() => handleFeedback('negative')}
+            disabled={isSubmitting}
             className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1 ${
               feedback === 'negative'
                 ? 'bg-red-100 text-red-600'
                 : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-            }`}
+            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             title="개선이 필요해요"
           >
             <ThumbsDown className="h-3.5 w-3.5" />

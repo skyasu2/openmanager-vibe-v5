@@ -12,6 +12,29 @@ import type {
 } from '@/stores/useAISidebarStore';
 import type { AIThinkingStep } from '@/types/ai-sidebar/ai-sidebar-types';
 
+type RagSource = {
+  title: string;
+  similarity: number;
+  sourceType: string;
+  category?: string;
+};
+
+type MessageMetadata = {
+  traceId?: string;
+  ragSources?: RagSource[];
+};
+
+function getMessageMetadata(message: UIMessage): MessageMetadata | undefined {
+  if (
+    'metadata' in message &&
+    message.metadata != null &&
+    typeof message.metadata === 'object'
+  ) {
+    return message.metadata as MessageMetadata;
+  }
+  return undefined;
+}
+
 // ============================================================================
 // ThinkingSteps 변환
 // ============================================================================
@@ -102,8 +125,8 @@ export function transformUIMessageToEnhanced(
   });
 
   // Extract traceId from message metadata (available for all roles)
-  const traceId = (message as UIMessage & { metadata?: { traceId?: string } })
-    .metadata?.traceId;
+  const metadata = getMessageMetadata(message);
+  const traceId = metadata?.traceId;
 
   // 분석 근거 생성 (assistant 메시지에만)
   let analysisBasis: AnalysisBasis | undefined;
@@ -112,20 +135,7 @@ export function transformUIMessageToEnhanced(
     const hasTools = toolParts.length > 0;
 
     // RAG 출처 추출 (job-queue 모드에서 message.metadata에 포함)
-    const messageData = (
-      message as UIMessage & {
-        metadata?: {
-          traceId?: string;
-          ragSources?: Array<{
-            title: string;
-            similarity: number;
-            sourceType: string;
-            category?: string;
-          }>;
-        };
-      }
-    ).metadata;
-    const ragSources = messageData?.ragSources;
+    const ragSources = metadata?.ragSources;
     const hasRag = ragSources && ragSources.length > 0;
 
     analysisBasis = {

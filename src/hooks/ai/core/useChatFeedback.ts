@@ -15,7 +15,7 @@ export function useChatFeedback(sessionIdRef: MutableRefObject<string>) {
       messageId: string,
       type: 'positive' | 'negative',
       traceId?: string
-    ) => {
+    ): Promise<boolean> => {
       try {
         const response = await fetch('/api/ai/feedback', {
           method: 'POST',
@@ -30,9 +30,12 @@ export function useChatFeedback(sessionIdRef: MutableRefObject<string>) {
         });
         if (!response.ok) {
           logger.error('[AIChatCore] Feedback API error:', response.status);
+          return false;
         }
+        return true;
       } catch (err) {
         logger.error('[AIChatCore] Feedback error:', err);
+        return false;
       }
     },
     [sessionIdRef]
