@@ -86,6 +86,13 @@ export interface CompactContext {
   critical: Array<{ server: string; issue: string }>;
   warning: Array<{ server: string; issue: string }>;
   patterns: string[];
+  thresholds: {
+    cpu: { warning: number; critical: number };
+    memory: { warning: number; critical: number };
+    disk: { warning: number; critical: number };
+    network: { warning: number; critical: number };
+  };
+  serverRoles: Array<{ id: string; name: string; type: string }>;
 }
 
 // ============================================================================
@@ -512,6 +519,12 @@ export function getCompactContext(): CompactContext {
     (p) => `${p.metric.toUpperCase()} ${p.pattern} (${p.severity})`
   );
 
+  const serverRoles = state.servers.map((s) => ({
+    id: s.id,
+    name: s.name,
+    type: s.type,
+  }));
+
   return {
     date: state.dateLabel,
     time: state.timeLabel,
@@ -520,6 +533,13 @@ export function getCompactContext(): CompactContext {
     critical,
     warning,
     patterns,
+    thresholds: {
+      cpu: { warning: THRESHOLDS.cpu.warning, critical: THRESHOLDS.cpu.critical },
+      memory: { warning: THRESHOLDS.memory.warning, critical: THRESHOLDS.memory.critical },
+      disk: { warning: THRESHOLDS.disk.warning, critical: THRESHOLDS.disk.critical },
+      network: { warning: THRESHOLDS.network.warning, critical: THRESHOLDS.network.critical },
+    },
+    serverRoles,
   };
 }
 
@@ -736,7 +756,24 @@ export function getLLMContext(): string {
 
   // 헤더 (날짜 포함)
   let context = `## 현재 서버 상태 [${dateLabel} ${timeLabel} KST]\n`;
-  context += `총 ${summary.total}대: ✓${summary.healthy} ⚠${summary.warning} ✗${summary.critical}\n\n`;
+  context += `총 ${summary.total}대: ✓${summary.healthy}정상 ⚠${summary.warning}경고 ✗${summary.critical}위험\n`;
+  context += `임계값: CPU ${THRESHOLDS.cpu.warning}%/${THRESHOLDS.cpu.critical}%, Memory ${THRESHOLDS.memory.warning}%/${THRESHOLDS.memory.critical}%, Disk ${THRESHOLDS.disk.warning}%/${THRESHOLDS.disk.critical}%\n\n`;
+
+  // 서버 역할별 현황
+  const typeGroups = new Map<string, { total: number; warning: number; critical: number }>();
+  for (const server of state.servers) {
+    const group = typeGroups.get(server.type) ?? { total: 0, warning: 0, critical: 0 };
+    group.total++;
+    if (server.status === 'warning') group.warning++;
+    if (server.status === 'critical') group.critical++;
+    typeGroups.set(server.type, group);
+  }
+  context += `### 서버 역할별 현황\n`;
+  for (const [type, group] of typeGroups) {
+    const statusNote = group.critical > 0 ? ` (✗${group.critical})` : group.warning > 0 ? ` (⚠${group.warning})` : '';
+    context += `- ${type}: ${group.total}대${statusNote}\n`;
+  }
+  context += '\n';
 
   // Critical 알림
   const criticalAlerts = alerts.filter((a) => a.severity === 'critical');

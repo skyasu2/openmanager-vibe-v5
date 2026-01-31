@@ -582,6 +582,62 @@ export function getInfrastructureSummary(): {
 }
 
 /**
+ * 서버별 24시간 메트릭 트렌드 요약
+ */
+export interface ServerTrendSummary {
+  serverId: string;
+  serverType: Server24hDataset['serverType'];
+  cpu: { avg: number; max: number; min: number };
+  memory: { avg: number; max: number; min: number };
+  disk: { avg: number; max: number; min: number };
+  network: { avg: number; max: number; min: number };
+}
+
+/**
+ * 전체 서버의 24시간 트렌드 요약 생성
+ * AI가 "오늘 전체 트렌드" 질문에 정확하게 답변하기 위한 함수
+ */
+export function get24hTrendSummaries(): ServerTrendSummary[] {
+  return FIXED_24H_DATASETS.map((dataset) => {
+    const metrics = ['cpu', 'memory', 'disk', 'network'] as const;
+    const result: Record<string, { avg: number; max: number; min: number }> = {};
+
+    for (const metric of metrics) {
+      const values = dataset.data.map((d) => d[metric]);
+      const sum = values.reduce((a, b) => a + b, 0);
+      result[metric] = {
+        avg: Math.round((sum / values.length) * 10) / 10,
+        max: Math.round(Math.max(...values) * 10) / 10,
+        min: Math.round(Math.min(...values) * 10) / 10,
+      };
+    }
+
+    return {
+      serverId: dataset.serverId,
+      serverType: dataset.serverType,
+      cpu: result.cpu,
+      memory: result.memory,
+      disk: result.disk,
+      network: result.network,
+    };
+  });
+}
+
+/**
+ * 24시간 트렌드 요약을 LLM 컨텍스트 텍스트로 변환
+ */
+export function get24hTrendLLMContext(): string {
+  const summaries = get24hTrendSummaries();
+  let context = '## 24시간 서버 트렌드 요약\n';
+
+  for (const s of summaries) {
+    context += `- ${s.serverId} (${s.serverType}): CPU avg ${s.cpu.avg}%/max ${s.cpu.max}%, Mem avg ${s.memory.avg}%/max ${s.memory.max}%, Disk avg ${s.disk.avg}%/max ${s.disk.max}%\n`;
+  }
+
+  return context;
+}
+
+/**
  * 캐시 초기화 (테스트용)
  */
 export function clearMetricsCache(): void {
