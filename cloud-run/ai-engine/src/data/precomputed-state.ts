@@ -11,6 +11,7 @@
 
 import { readFileSync, existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { get24hTrendLLMContext } from './fixed-24h-metrics';
 
 // ============================================================================
 // Types
@@ -794,6 +795,9 @@ export function getLLMContext(): string {
       context += `- ${alert.serverId}: ${alert.metric.toUpperCase()} ${alert.value}%\n`;
     }
   }
+
+  // 24시간 트렌드 요약 추가
+  context += '\n' + get24hTrendLLMContext();
 
   return context;
 }
