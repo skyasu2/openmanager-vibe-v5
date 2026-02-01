@@ -214,4 +214,12 @@ describe('LoginForm', () => {
 
 ---
 
-_Last Updated: 2026-01-22 (React 19, Next.js 16, Tailwind 4 대응)_
+## Infrastructure Code (비용 가드레일)
+
+- 클라우드 리소스 설정 변경 시 Free Tier 한도 초과 여부 확인 필수
+- `deploy.sh`, `cloudbuild.yaml`, `vercel.json` 수정 시 `.claude/rules/deployment.md`의 Free Tier 테이블 참조
+- "최적화" 목적이라도 머신 타입, GPU, 고사양 인스턴스 추가 금지
+
+---
+
+_Last Updated: 2026-02-02 (Free Tier 가드레일 추가)_

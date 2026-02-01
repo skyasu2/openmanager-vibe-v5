@@ -14,7 +14,7 @@
 | `github` | 저장소/PR 관리 | 중간 |
 | `tavily` | 심층 리서치, 팩트체크 | 낮음 |
 
-## Skills (12개)
+## Skills (13개)
 
 ### 코드 품질
 | Skill | 설명 |
@@ -32,10 +32,11 @@
 | `next-router-bottleneck` | 라우터 성능 분석 |
 | `observability-check` | AI 모니터링 (Langfuse + Sentry) |
 
-### 배포/Git
+### 배포/Git/비용
 | Skill | 설명 |
 |-------|------|
 | `cloud-run-deploy` | Cloud Run AI Engine 배포 |
+| `gcp-cost-check` | GCP 비용 조회, Free Tier 사용량 분석 |
 | `commit-commands` | Git 커밋 워크플로우 (commit, commit-push-pr, clean_gone) |
 
 ### 문서/리포트

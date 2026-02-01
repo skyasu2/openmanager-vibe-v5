@@ -3,6 +3,16 @@
 # ==============================================================================
 # Cloud Run Deployment Script (AI Engine)
 #
+# v7.0 - 2026-02-02 (Cloud Run ₩0 Cost Optimization)
+#   - Added --cpu-throttling (CPU only billed during requests)
+#   - Added --no-session-affinity (reduce instance stickiness)
+#   - Ensures live service matches deploy.sh settings
+#
+# v6.0 - 2026-02-02 (Cloud Build Free Tier Optimization)
+#   - Removed --machine-type=e2-highcpu-8 (not covered by free tier)
+#   - Uses default e2-medium (free: 120 min/day)
+#   - ⚠️ FREE TIER RULE: Do NOT add --machine-type option
+#
 # v5.0 - 2026-01-08 (Artifact Registry Migration)
 #   - gcr.io → Artifact Registry (asia-northeast1-docker.pkg.dev)
 #   - Auto-create Artifact Registry repository if not exists
@@ -92,9 +102,10 @@ echo "   Using BuildKit for cache optimization..."
 echo "   Target: Artifact Registry"
 
 # Use Cloud Build with BuildKit enabled
+# ⚠️ FREE TIER: Do NOT add --machine-type (default e2-medium = free 120 min/day)
+#    e2-highcpu-8 등 커스텀 머신은 무료 대상 아님!
 gcloud builds submit \
   --tag "$IMAGE_URI" \
-  --machine-type=e2-highcpu-8 \
   --timeout=600s \
   .
 
@@ -121,13 +132,14 @@ gcloud run deploy "$SERVICE_NAME" \
   --execution-environment gen2 \
   --allow-unauthenticated \
   --min-instances 0 \
-  --max-instances 3 \
+  --max-instances 1 \
   --concurrency 80 \
   --cpu 1 \
   --memory 512Mi \
   --timeout 300 \
   --cpu-boost \
-  --session-affinity \
+  --cpu-throttling \
+  --no-session-affinity \
   --set-env-vars "NODE_ENV=production,BUILD_SHA=${SHORT_SHA}" \
   --set-secrets "SUPABASE_CONFIG=supabase-config:latest,AI_PROVIDERS_CONFIG=ai-providers-config:latest,KV_CONFIG=kv-config:latest,CLOUD_RUN_API_SECRET=cloud-run-api-secret:latest,LANGFUSE_CONFIG=langfuse-config:latest" \
   --update-labels "version=${SHORT_SHA},framework=ai-sdk-v6,tier=free,registry=artifact"
@@ -214,8 +226,8 @@ if [ $? -eq 0 ]; then
     echo "   Registry:   Artifact Registry (${REGION})"
     echo "   Memory:     512Mi (Free: ~200 hours/month)"
     echo "   CPU:        1 vCPU (Free: ~50 hours/month)"
-    echo "   Max:        3 instances"
-    echo "   Features:   cpu-boost, session-affinity, gen2"
+    echo "   Max:        1 instance"
+    echo "   Features:   cpu-boost, cpu-throttling, no-session-affinity, gen2"
     echo "=============================================================================="
 else
     echo ""

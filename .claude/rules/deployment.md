@@ -42,12 +42,38 @@ git push --follow-tags      # 태그 푸시 → 배포 트리거
 | Region | `asia-northeast1` (Seoul) |
 | URL | `ai-engine-*.asia-northeast1.run.app` |
 | Script | `cloud-run/ai-engine/deploy.sh` |
+| Plan | Free Tier |
 
 ```bash
 # Cloud Run 수동 배포
 cd cloud-run/ai-engine
 ./deploy.sh
 ```
+
+#### Cloud Run / Cloud Build Free Tier 제한사항
+
+| 항목 | 무료 한도 | 규칙 |
+|------|----------|------|
+| Cloud Build 머신 | `e2-medium` (기본값)만 무료 | `--machine-type` 옵션 **사용 금지** |
+| Cloud Build 시간 | 120분/일 | 기본 머신만 해당 |
+| Cloud Run vCPU | 180,000 vCPU-sec/월 (~50hr) | CPU: 1 vCPU |
+| Cloud Run Memory | 360,000 GB-sec/월 (~200hr) | Memory: 512Mi |
+| Cloud Run Requests | 2M/월 | - |
+
+> **⚠️ 중요**: `E2_HIGHCPU_8`, `N1_HIGHCPU_8` 등 커스텀 머신 타입은 무료 대상이 아닙니다.
+> `cloudbuild.yaml`에 `machineType` 추가하거나 `deploy.sh`에 `--machine-type` 옵션을 추가하지 마세요.
+
+## Free Tier Guard Rules (AI 필독)
+
+> **실제 사고**: 2026-01 Cloud Build `E2_HIGHCPU_8` + Cloud Run 과금으로 약 **20,000 KRW** 청구됨.
+> AI가 "optimize" 명목으로 유료 머신을 추가한 것이 원인. (`/gcp-cost-check`로 비용 조회 가능)
+
+AI가 인프라/배포 설정을 변경할 때 반드시 준수:
+
+1. **비용 발생 옵션 추가 금지**: machine-type, GPU, 고사양 인스턴스 등
+2. **리소스 증가 시 무료 한도 확인 필수**: vCPU, Memory, instances 변경 전 위의 Free Tier 테이블 참조
+3. **"최적화" ≠ 스펙 업그레이드**: 성능 최적화는 캐시, 병렬화, 코드 개선으로 해결. 머신 스펙 올리는 건 최적화가 아님
+4. **비용 변경 커밋에 [COST] 태그**: 인프라 비용에 영향을 주는 변경은 커밋 메시지에 명시
 
 ## Environment Variables
 

@@ -37,6 +37,7 @@ Automate Cloud Run AI Engine deployment with free tier optimized configuration, 
 
 ## Configuration (Free Tier)
 
+### Cloud Run
 | Resource | Value | Free Hours/Month |
 |----------|-------|------------------|
 | CPU | 1 vCPU | ~50 hours |
@@ -44,6 +45,17 @@ Automate Cloud Run AI Engine deployment with free tier optimized configuration, 
 | Max Instances | 3 | - |
 | Concurrency | 80 | - |
 | Timeout | 300s | - |
+
+### Cloud Build
+| Resource | Value | Free Limit |
+|----------|-------|------------|
+| Machine | default (e2-medium) | 120 min/day |
+
+> **⚠️ FREE TIER RULES (절대 위반 금지)**:
+> - `deploy.sh`에 `--machine-type` 옵션 추가 금지
+> - `cloudbuild.yaml`에 `machineType` 설정 추가 금지
+> - `E2_HIGHCPU_8`, `N1_HIGHCPU_8` 등 커스텀 머신은 **무료 대상 아님**
+> - 기본 머신(e2-medium)만 일 120분 무료 빌드 제공
 
 ## Workflow
 
@@ -188,6 +200,10 @@ gcloud run services update-traffic ai-engine \
 
 ## Changelog
 
+- 2026-02-02: v1.1.0 - Cloud Build free tier optimization
+  - Removed machineType: E2_HIGHCPU_8 from cloudbuild.yaml
+  - Removed --machine-type=e2-highcpu-8 from deploy.sh
+  - Added free tier guard rules to prevent recurrence
 - 2026-01-06: v1.0.0 - Initial implementation
   - Free tier optimized configuration
   - 1 vCPU, 512Mi memory, 3 max instances
