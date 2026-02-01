@@ -180,12 +180,13 @@ interface GuardResult {
   shouldBlock: boolean;
   riskLevel: RiskLevel;
   patterns: string[];
+  warning?: string;
 }
 
 export function guardInput(query: string): GuardResult {
   const detection = detectPromptInjection(query);
   const sanitizedQuery = sanitizeForPrompt(query);
-  const shouldBlock = detection.riskLevel === 'high' || detection.riskLevel === 'medium' || detection.patterns.length >= 3;
+  const shouldBlock = detection.riskLevel === 'high';
 
   if (detection.isInjection) {
     logger.warn(
@@ -194,10 +195,16 @@ export function guardInput(query: string): GuardResult {
     );
   }
 
+  const warning =
+    detection.riskLevel === 'medium'
+      ? `보안 경고: 의심스러운 패턴이 감지되었습니다 (${detection.patterns.join(', ')}). 서버 모니터링 관련 질문을 권장합니다.`
+      : undefined;
+
   return {
     sanitizedQuery,
     shouldBlock,
     riskLevel: detection.riskLevel,
     patterns: detection.patterns,
+    warning,
   };
 }

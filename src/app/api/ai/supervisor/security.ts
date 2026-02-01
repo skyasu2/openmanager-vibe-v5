@@ -560,19 +560,23 @@ export function securityCheck(input: string): {
   inputCheck: InjectionDetectionResult;
   sanitizedInput: string;
   shouldBlock: boolean;
+  warning?: string;
 } {
   const inputCheck = detectPromptInjection(input);
   const sanitizedInput = sanitizeForPrompt(input);
 
-  // medium 이상 위험도 또는 3개 이상 패턴 감지 시 차단
-  const shouldBlock =
-    inputCheck.riskLevel === 'high' ||
-    inputCheck.riskLevel === 'medium' ||
-    inputCheck.patterns.length >= 3;
+  // high 위험도만 차단, medium은 경고만
+  const shouldBlock = inputCheck.riskLevel === 'high';
+
+  const warning =
+    inputCheck.riskLevel === 'medium'
+      ? `보안 경고: 의심스러운 패턴이 감지되었습니다 (${inputCheck.patterns.join(', ')}). 서버 모니터링 관련 질문을 권장합니다.`
+      : undefined;
 
   return {
     inputCheck,
     sanitizedInput,
     shouldBlock,
+    warning,
   };
 }
