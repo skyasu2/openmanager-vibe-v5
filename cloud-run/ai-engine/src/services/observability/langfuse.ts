@@ -9,6 +9,8 @@
  * @see https://langfuse.com/docs
  */
 
+import { redisGet, redisSet } from '../../lib/redis-client';
+
 // ============================================================================
 // 0. 무료 티어 보호 시스템
 // ============================================================================
@@ -29,7 +31,14 @@ interface UsageState {
   lastWarning: string | null;
 }
 
-// 메모리 내 사용량 추적 (서버 재시작 시 리셋 - 보수적 접근)
+// Redis 영속화 키 (월별)
+const REDIS_KEY_PREFIX = 'langfuse:usage:';
+function getUsageRedisKey(): string {
+  return `${REDIS_KEY_PREFIX}${getCurrentMonthKey()}`;
+}
+const REDIS_TTL_SECONDS = 35 * 24 * 3600; // 35일
+
+// 메모리 내 사용량 추적 (Redis 영속화로 재시작 시 복원)
 let usageState: UsageState = {
   eventCount: 0,
   monthKey: getCurrentMonthKey(),
@@ -73,6 +82,7 @@ function incrementUsage(count: number = 1): boolean {
       `🚨 [Langfuse] 무료 티어 한도 90% 도달! 자동 비활성화됨 ` +
         `(${usageState.eventCount.toLocaleString()}/${FREE_TIER_LIMIT.toLocaleString()} events)`
     );
+    redisSet(getUsageRedisKey(), usageState, REDIS_TTL_SECONDS).catch(() => {});
     return false;
   }
 
@@ -91,6 +101,9 @@ function incrementUsage(count: number = 1): boolean {
       );
     }
   }
+
+  // Redis에 비동기 저장 (fire-and-forget)
+  redisSet(getUsageRedisKey(), usageState, REDIS_TTL_SECONDS).catch(() => {});
 
   return true;
 }
@@ -185,6 +198,22 @@ function shouldSampleWithContext(sessionId?: string): boolean {
 
   // sessionId 없으면 독립 샘플링
   return shouldSample();
+}
+
+/** 서버 시작 시 Redis에서 사용량 복원 */
+export async function restoreUsageFromRedis(): Promise<void> {
+  try {
+    const saved = await redisGet<UsageState>(getUsageRedisKey());
+    if (saved && saved.monthKey === getCurrentMonthKey()) {
+      usageState = saved;
+      console.log(
+        `♻️ [Langfuse] Redis에서 사용량 복원: ${saved.eventCount.toLocaleString()} events (${saved.monthKey})`
+      );
+    }
+  } catch {
+    // Redis 실패 시 인메모리 기본값 유지
+    console.warn('⚠️ [Langfuse] Redis 복원 실패, 인메모리 카운터 사용');
+  }
 }
 
 /** 현재 사용량 상태 조회 */

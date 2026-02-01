@@ -27,7 +27,7 @@ import { getCurrentState } from './data/precomputed-state';
 import { handleUnauthorizedError, jsonSuccess } from './lib/error-handler';
 
 // Observability & Resilience
-import { flushLangfuse, shutdownLangfuse, getLangfuseUsageStatus } from './services/observability/langfuse';
+import { flushLangfuse, shutdownLangfuse, getLangfuseUsageStatus, restoreUsageFromRedis } from './services/observability/langfuse';
 import { getAllCircuitStats, resetAllCircuitBreakers } from './services/resilience/circuit-breaker';
 import { getAvailableAgentsStatus, preFilterQuery, executeMultiAgent, type MultiAgentRequest } from './services/ai-sdk/agents';
 
@@ -424,6 +424,9 @@ if (langfuseConfig) {
 } else {
   logger.warn('Langfuse not configured - observability disabled');
 }
+
+// Langfuse 사용량 Redis 복원 (fire-and-forget)
+restoreUsageFromRedis().catch(() => {});
 
 serve(
   {
