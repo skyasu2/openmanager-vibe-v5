@@ -13,9 +13,9 @@ import { NextResponse } from 'next/server';
 import { type AIEndpoint, setAICache } from '@/lib/ai/cache/ai-response-cache';
 import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
 import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
+import type { NormalizedMessage } from '@/lib/ai/utils/message-normalizer';
 import { proxyToCloudRun } from '@/lib/ai-proxy/proxy';
 import { logger } from '@/lib/logging';
-import type { NormalizedMessage } from '@/lib/ai/utils/message-normalizer';
 import { cloudRunResponseSchema } from './schemas';
 
 interface CloudRunHandlerParams {

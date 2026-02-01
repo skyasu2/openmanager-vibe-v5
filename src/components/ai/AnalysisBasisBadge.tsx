@@ -8,10 +8,17 @@ import {
   Cpu,
   Database,
   ExternalLink,
-  Gauge,
 } from 'lucide-react';
 import { type FC, useState } from 'react';
 import type { AnalysisBasis } from '@/stores/useAISidebarStore';
+
+function extractDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+}
 
 interface AnalysisBasisBadgeProps {
   basis: AnalysisBasis;
@@ -43,14 +50,6 @@ export const AnalysisBasisBadge: FC<AnalysisBasisBadgeProps> = ({
     return 'text-gray-600';
   };
 
-  // 신뢰도에 따른 색상
-  const getConfidenceColor = (confidence?: number) => {
-    if (!confidence) return 'text-gray-500';
-    if (confidence >= 80) return 'text-green-600';
-    if (confidence >= 60) return 'text-yellow-600';
-    return 'text-red-500';
-  };
-
   return (
     <div
       className={`mt-2 rounded-lg border border-gray-200 bg-gray-50 text-sm ${className}`}
@@ -66,13 +65,6 @@ export const AnalysisBasisBadge: FC<AnalysisBasisBadgeProps> = ({
         <span className="flex items-center gap-2 text-gray-600">
           <Database className="h-4 w-4" />
           <span className="font-medium">분석 근거</span>
-          {basis.confidence && (
-            <span
-              className={`text-xs px-1.5 py-0.5 rounded-full bg-white border ${getConfidenceColor(basis.confidence)}`}
-            >
-              {basis.confidence}%
-            </span>
-          )}
         </span>
         {isExpanded ? (
           <ChevronUp className="h-4 w-4 text-gray-400" />
@@ -103,31 +95,6 @@ export const AnalysisBasisBadge: FC<AnalysisBasisBadgeProps> = ({
             )}
           </div>
 
-          {/* 신뢰도 */}
-          {basis.confidence && (
-            <div className="flex items-center gap-2">
-              <Gauge className="h-3.5 w-3.5 text-gray-400" />
-              <span className="text-gray-500">신뢰도:</span>
-              <div className="flex items-center gap-1">
-                <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${
-                      basis.confidence >= 80
-                        ? 'bg-green-500'
-                        : basis.confidence >= 60
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                    }`}
-                    style={{ width: `${basis.confidence}%` }}
-                  />
-                </div>
-                <span className={getConfidenceColor(basis.confidence)}>
-                  {basis.confidence}%
-                </span>
-              </div>
-            </div>
-          )}
-
           {/* 시간 범위 */}
           {basis.timeRange && (
             <div className="flex items-center gap-2">
@@ -157,19 +124,20 @@ export const AnalysisBasisBadge: FC<AnalysisBasisBadgeProps> = ({
               <div className="space-y-1 ml-5">
                 {basis.ragSources.map((source, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-xs">
+                    <span className="text-gray-400 shrink-0">[{idx + 1}]</span>
                     {source.url ? (
                       <a
                         href={source.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline truncate max-w-[180px]"
+                        className="text-blue-600 hover:text-blue-800 hover:underline truncate flex-1 min-w-0"
                         title={source.url}
                       >
                         {source.title}
                       </a>
                     ) : (
                       <span
-                        className="text-gray-700 truncate max-w-[180px]"
+                        className="text-gray-700 truncate flex-1 min-w-0"
                         title={source.title}
                       >
                         {source.title}
@@ -178,19 +146,23 @@ export const AnalysisBasisBadge: FC<AnalysisBasisBadgeProps> = ({
                     {source.url && (
                       <ExternalLink className="h-3 w-3 shrink-0 text-blue-400" />
                     )}
-                    <span
-                      className={`px-1 py-0.5 rounded text-[10px] font-medium ${
-                        source.similarity >= 0.8
-                          ? 'bg-green-100 text-green-700'
-                          : source.similarity >= 0.6
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {Math.round(source.similarity * 100)}%
-                    </span>
-                    <span className="px-1 py-0.5 rounded bg-purple-50 text-purple-600 text-[10px]">
-                      {source.sourceType}
+                    {source.sourceType !== 'web' && (
+                      <span
+                        className={`px-1 py-0.5 rounded text-[10px] font-medium shrink-0 ${
+                          source.similarity >= 0.8
+                            ? 'bg-green-100 text-green-700'
+                            : source.similarity >= 0.6
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {Math.round(source.similarity * 100)}%
+                      </span>
+                    )}
+                    <span className="px-1 py-0.5 rounded bg-purple-50 text-purple-600 text-[10px] shrink-0">
+                      {source.sourceType === 'web' && source.url
+                        ? extractDomain(source.url)
+                        : source.sourceType}
                     </span>
                   </div>
                 ))}

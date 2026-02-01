@@ -14,20 +14,23 @@ import { logger } from '../lib/logger';
 // ============================================================================
 
 /**
- * Vercel Edge Function limits
- * - Hobby: 10s
+ * Vercel Function limits
+ * - Hobby (current): 10s (maxDuration)
  * - Pro: 60s
  * - Enterprise: 900s
  *
- * We target Pro tier (60s) with 5s safety margin
+ * ⚠️ Current plan: Hobby (10s limit)
+ * Streaming responses bypass maxDuration (only first byte must arrive within 10s).
+ * Non-streaming (supervisor/route.ts) must complete within 10s.
+ * Cloud Run internal timeouts below apply to Cloud Run's own 300s limit.
  */
 export const VERCEL_CONSTRAINTS = {
-  /** Hard limit imposed by Vercel proxy */
-  hardLimit: 60_000,
+  /** Hard limit imposed by Vercel proxy (Hobby tier) */
+  hardLimit: 10_000,
   /** Safety margin before proxy timeout */
-  margin: 5_000,
-  /** Effective timeout to use in code */
-  effective: 55_000,
+  margin: 2_000,
+  /** Effective timeout for non-streaming Vercel routes */
+  effective: 8_000,
 } as const;
 
 /**

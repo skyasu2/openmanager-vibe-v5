@@ -309,6 +309,12 @@ export function extractImagesFromFileParts(
  *
  * @note 빈 content는 '[Non-text content]'로 대체하여 대화 맥락 보존
  *
+ * @note 다음 part 타입은 Cloud Run 전송 시 의도적으로 제거됩니다:
+ *   - `tool-invocation`, `tool-result`: Cloud Run이 자체 tool 실행을 관리
+ *   - `reasoning`, `step-start`, `step-finish`: UI 전용 메타데이터 (AI 응답 생성에 불필요)
+ *   - `source`: RAG 소스 참조 (UI 표시용)
+ *   Cloud Run에는 사용자 의도(text) + 첨부(image/file)만 전달하면 충분합니다.
+ *
  * @param messages - HybridMessage 배열
  * @returns NormalizedMessage 배열 (멀티모달 포함)
  */

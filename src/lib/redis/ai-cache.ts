@@ -16,7 +16,8 @@ import { getRedisClient, isRedisDisabled, isRedisEnabled } from './client';
 // 🎯 타입 정의
 // ==============================================
 
-export interface AIResponse {
+/** Redis 캐시용 AI 응답 (경량 구조) */
+export interface CachedAIResponse {
   content: string;
   model?: string;
   usage?: {
@@ -25,6 +26,9 @@ export interface AIResponse {
   };
   metadata?: Record<string, unknown>;
 }
+
+/** @deprecated Use CachedAIResponse instead */
+export type AIResponse = CachedAIResponse;
 
 export interface CacheResult<T> {
   hit: boolean;

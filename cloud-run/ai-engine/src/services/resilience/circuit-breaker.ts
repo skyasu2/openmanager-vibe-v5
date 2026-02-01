@@ -61,8 +61,10 @@ export class CircuitBreaker {
       failureThreshold: 5,
       successThreshold: 2,
       openDuration: 30000, // 30초
-      // 타임아웃 체인: Tavily(10s) → Reporter(25s) → Orchestrator(50s) → CB(55s) → Vercel(60s)
-      timeout: 55000, // 55초 (Orchestrator 50s + 5s 마진, Vercel 60초 제한 내)
+      // 타임아웃 체인: Tool(25s) → Agent(45s) → Orchestrator(50s) → CB(55s) → Cloud Run(300s)
+      // Note: Vercel Hobby는 10s 제한이지만 streaming 응답은 first byte만 10s 내 도달하면 됨
+      // 비-streaming 호출 시에는 Vercel 측에서 8s 타임아웃을 별도 적용
+      timeout: 55000, // 55초 (Cloud Run 내부 실행 기준, Orchestrator 50s + 5s 마진)
       ...config,
     };
   }

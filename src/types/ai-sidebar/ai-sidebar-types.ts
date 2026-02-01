@@ -56,9 +56,9 @@ export interface SystemAlert {
 }
 
 /**
- * AI 쿼리 응답
+ * AI 쿼리 응답 (UI 표시용)
  */
-export interface AIResponse {
+export interface AIQueryResponse {
   id?: string;
   query?: string;
   content: string;

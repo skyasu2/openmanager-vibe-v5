@@ -5,7 +5,7 @@
 
 export type {
   AIEngineInfo,
-  AIResponse,
+  AIQueryResponse,
   AISidebarHandlers,
   AISidebarProps,
   AISidebarState,

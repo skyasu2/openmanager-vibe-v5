@@ -30,14 +30,16 @@ export const filePartSchema = z
   .object({
     type: z.literal('file'),
     // 파일 데이터 (서버 측, Base64 또는 data URL)
+    // Base64 문자열 길이 제한: 실제 바이너리 ≈ string.length * 0.75
+    // 10MB 바이너리 ≈ 13.3MB Base64 문자열
     data: z
       .string()
-      .max(50 * 1024 * 1024, '파일 크기가 50MB를 초과합니다')
+      .max(14 * 1024 * 1024, '파일 크기가 10MB를 초과합니다')
       .optional(),
     // 파일 URL (클라이언트 측, data URL 포함)
     url: z
       .string()
-      .max(50 * 1024 * 1024, '파일 크기가 50MB를 초과합니다')
+      .max(14 * 1024 * 1024, '파일 크기가 10MB를 초과합니다')
       .optional(),
     // AI SDK uses 'mediaType' for FilePart (클라이언트 측)
     mediaType: z
@@ -75,7 +77,8 @@ export const filePartSchema = z
 const imagePartSchema = z.object({
   type: z.literal('image'),
   // Base64 data URL 또는 HTTP(S) URL
-  image: z.string().max(50 * 1024 * 1024, '이미지 크기가 50MB를 초과합니다'),
+  // 10MB 바이너리 ≈ 13.3MB Base64 문자열
+  image: z.string().max(14 * 1024 * 1024, '이미지 크기가 10MB를 초과합니다'),
   // 선택적 MIME 타입 (이미지는 AI SDK가 자동 감지 가능)
   mimeType: z
     .enum(['image/png', 'image/jpeg', 'image/gif', 'image/webp'])

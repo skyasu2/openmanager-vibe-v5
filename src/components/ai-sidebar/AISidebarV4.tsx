@@ -2,11 +2,20 @@
 
 // Icons
 import { Bot, User } from 'lucide-react';
-import { type FC, memo, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type FC,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
 import { AnalysisBasisBadge } from '@/components/ai/AnalysisBasisBadge';
 import { MessageActions } from '@/components/ai/MessageActions';
+import { WebSourceCards } from '@/components/ai/WebSourceCards';
 // Components
 import { AIErrorBoundary } from '@/components/error/AIErrorBoundary';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
@@ -55,9 +64,13 @@ const MessageComponent = memo<{
   ) => Promise<boolean>;
   isLastMessage?: boolean;
 }>(({ message, onRegenerateResponse, onFeedback, isLastMessage }) => {
+  const agentSteps = useMemo(
+    () => convertToAgentSteps(message.thinkingSteps),
+    [message.thinkingSteps]
+  );
+
   // thinking 메시지일 경우 간소화된 인라인 상태 표시
   if (message.role === 'thinking' && message.thinkingSteps) {
-    const agentSteps = convertToAgentSteps(message.thinkingSteps);
     return (
       <InlineAgentStatus steps={agentSteps} isComplete={!message.isStreaming} />
     );
@@ -96,10 +109,7 @@ const MessageComponent = memo<{
             message.isStreaming &&
             message.thinkingSteps &&
             message.thinkingSteps.length > 0 && (
-              <InlineAgentStatus
-                steps={convertToAgentSteps(message.thinkingSteps)}
-                isComplete={false}
-              />
+              <InlineAgentStatus steps={agentSteps} isComplete={false} />
             )}
 
           {/* 메시지 내용 (콘텐츠가 있을 때만 표시) */}
@@ -151,11 +161,21 @@ const MessageComponent = memo<{
               )}
           </div>
 
-          {/* 📊 분석 근거 뱃지 (assistant 메시지 + 스트리밍 완료 시) */}
+          {/* 📎 웹 출처 카드 + 📊 분석 근거 뱃지 (assistant 메시지 + 스트리밍 완료 시) */}
           {message.role === 'assistant' &&
             !message.isStreaming &&
             message.metadata?.analysisBasis && (
-              <AnalysisBasisBadge basis={message.metadata.analysisBasis} />
+              <>
+                <WebSourceCards
+                  sources={(
+                    message.metadata.analysisBasis.ragSources ?? []
+                  ).filter(
+                    (s): s is typeof s & { url: string } =>
+                      s.sourceType === 'web' && !!s.url
+                  )}
+                />
+                <AnalysisBasisBadge basis={message.metadata.analysisBasis} />
+              </>
             )}
 
           {/* 메시지 액션 (복사, 피드백, 재생성) */}
@@ -353,7 +373,6 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           onNewSession={handleNewSession}
           isGenerating={isLoading}
           regenerateResponse={regenerateLastResponse}
-          currentEngine="Vercel AI SDK"
           onFeedback={handleFeedback}
           onStopGeneration={stop}
           jobProgress={hybridState.progress}

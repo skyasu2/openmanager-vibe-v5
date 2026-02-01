@@ -296,7 +296,6 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
               onNewSession={handleNewSession}
               isGenerating={isLoading}
               regenerateResponse={regenerateLastResponse}
-              currentEngine="Hybrid AI Query"
               onStopGeneration={stop}
               onFeedback={handleFeedback}
               jobProgress={hybridState.progress}
@@ -567,7 +566,6 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
                   onNewSession={handleNewSession}
                   isGenerating={isLoading}
                   regenerateResponse={regenerateLastResponse}
-                  currentEngine="Hybrid AI Query"
                   onStopGeneration={stop}
                   onFeedback={handleFeedback}
                   jobProgress={hybridState.progress}

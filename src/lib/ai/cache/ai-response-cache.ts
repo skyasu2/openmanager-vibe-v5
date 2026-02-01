@@ -23,7 +23,7 @@ import { logger } from '@/lib/logging';
 import {
   type CacheResult,
   getAIResponseCache,
-  type AIResponse as RedisAIResponse,
+  type CachedAIResponse as RedisAIResponse,
   setAIResponseCache,
 } from '@/lib/redis/ai-cache';
 

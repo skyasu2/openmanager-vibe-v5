@@ -53,8 +53,6 @@ interface EnhancedAIChatProps {
   handleSendInput: (attachments?: FileAttachment[]) => void;
   isGenerating: boolean;
   regenerateResponse: (messageId: string) => void;
-  currentEngine?: string;
-  routingReason?: string;
   sessionState?: SessionState;
   onNewSession?: () => void;
   onStopGeneration?: () => void;
@@ -90,8 +88,6 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   handleSendInput,
   isGenerating,
   regenerateResponse,
-  currentEngine: _currentEngine,
-  routingReason: _routingReason,
   sessionState,
   onNewSession,
   onStopGeneration,

@@ -77,11 +77,15 @@ export interface EnhancedChatMessage extends ChatMessage {
   parentMessageId?: string; // thinking 메시지가 속한 원본 메시지 ID
 }
 
-export interface AIResponse {
+/** Store 상태용 AI 응답 (최소 구조) */
+export interface SidebarAIResponse {
   content: string;
   thinkingSteps?: AIThinkingStep[];
   metadata?: Record<string, unknown>;
 }
+
+/** @deprecated Use SidebarAIResponse instead */
+export type AIResponse = SidebarAIResponse;
 
 export interface ChatHookOptions {
   autoScroll?: boolean;
