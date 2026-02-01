@@ -58,7 +58,7 @@ function getUserId(req: NextRequest): string {
   if (hasAuthSession) {
     // 세션 토큰의 해시 prefix를 userId 대용으로 사용
     const sessionMatch = cookieHeader.match(
-      /(?:__Secure-)?next-auth\.session-token=([^;]{8})/
+      /(?:__Secure-)?next-auth\.session-token=([^;]{16})/
     );
     return sessionMatch ? `user_${sessionMatch[1]}` : 'user_authenticated';
   }

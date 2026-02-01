@@ -18,7 +18,7 @@ function extractDomain(url: string): string {
 }
 
 export const WebSourceCards: FC<{ sources: WebSource[] }> = ({ sources }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   if (sources.length === 0) return null;
 
