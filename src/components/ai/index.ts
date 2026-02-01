@@ -16,7 +16,6 @@ export { default as AIContentArea } from './AIContentArea';
 // Main AI Workspace
 export { default as AIWorkspace } from './AIWorkspace';
 export { AnalysisBasisBadge } from './AnalysisBasisBadge';
-export { WebSourceCards } from './WebSourceCards';
 // Analysis & Results
 export { default as AnalysisResultsCard } from './AnalysisResultsCard';
 // Code Execution
@@ -35,6 +34,7 @@ export { default as IntelligentMonitoringPage } from './pages/IntelligentMonitor
 export { default as SystemContextPanel } from './SystemContextPanel';
 // Visualization
 export { ThinkingProcessVisualizer } from './ThinkingProcessVisualizer';
+export { WebSourceCards } from './WebSourceCards';
 export {
   STARTER_PROMPTS,
   type StarterPrompt,
