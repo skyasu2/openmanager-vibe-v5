@@ -7,6 +7,7 @@ import {
   Clock,
   Cpu,
   Database,
+  ExternalLink,
   Gauge,
 } from 'lucide-react';
 import { type FC, useState } from 'react';
@@ -156,12 +157,27 @@ export const AnalysisBasisBadge: FC<AnalysisBasisBadgeProps> = ({
               <div className="space-y-1 ml-5">
                 {basis.ragSources.map((source, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-xs">
-                    <span
-                      className="text-gray-700 truncate max-w-[180px]"
-                      title={source.title}
-                    >
-                      {source.title}
-                    </span>
+                    {source.url ? (
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 hover:underline truncate max-w-[180px]"
+                        title={source.url}
+                      >
+                        {source.title}
+                      </a>
+                    ) : (
+                      <span
+                        className="text-gray-700 truncate max-w-[180px]"
+                        title={source.title}
+                      >
+                        {source.title}
+                      </span>
+                    )}
+                    {source.url && (
+                      <ExternalLink className="h-3 w-3 shrink-0 text-blue-400" />
+                    )}
                     <span
                       className={`px-1 py-0.5 rounded text-[10px] font-medium ${
                         source.similarity >= 0.8

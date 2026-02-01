@@ -49,6 +49,7 @@ export interface AnalysisBasis {
     similarity: number;
     sourceType: string;
     category?: string;
+    url?: string;
   }>;
 }
 
