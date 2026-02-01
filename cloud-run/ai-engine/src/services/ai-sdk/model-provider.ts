@@ -579,7 +579,7 @@ import {
   selectAvailableProvider,
   recordProviderUsage,
   getQuotaSummary,
-  type ProviderName as QuotaProviderName,
+  type LLMProviderName as QuotaProviderName,
 } from '../resilience/quota-tracker';
 
 /**

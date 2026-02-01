@@ -16,6 +16,7 @@
 
 import { getTavilyApiKey, getTavilyApiKeyBackup } from './config-parser';
 import { logger } from './logger';
+import { TIMEOUT_CONFIG } from '../config/timeout-config';
 
 // ============================================================================
 // Types
@@ -61,7 +62,7 @@ export interface WebSearchResult {
 // Constants
 // ============================================================================
 
-const TAVILY_TIMEOUT_MS = 10000;
+const TAVILY_TIMEOUT_MS = TIMEOUT_CONFIG.external.tavily; // 15초 (timeout-config.ts SSOT)
 const TAVILY_MAX_RETRIES = 2;
 const TAVILY_RETRY_DELAY_MS = 1000;
 const DEFAULT_MIN_KB_RESULTS = 2;

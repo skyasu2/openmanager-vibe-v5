@@ -21,7 +21,11 @@ import { logger } from '../../lib/logger';
 // Types
 // ============================================================================
 
-export type ProviderName = 'cerebras' | 'groq' | 'mistral' | 'gemini';
+/** LLM Provider 이름 (모델 선택용) */
+export type LLMProviderName = 'cerebras' | 'groq' | 'mistral' | 'gemini';
+
+/** 전체 Provider 이름 (LLM + 외부 API) */
+export type ProviderName = LLMProviderName | 'tavily';
 
 export interface ProviderQuota {
   dailyTokenLimit: number;
@@ -89,6 +93,22 @@ export const PROVIDER_QUOTAS: Record<ProviderName, ProviderQuota> = {
     requestsPerMinute: 15,
     tokensPerMinute: 250_000,
     requestsPerDay: 1_000,
+  },
+  /**
+   * Tavily Web Search API
+   * @see https://tavily.com/#pricing
+   * @added 2026-02-01
+   *
+   * Free Tier Limits:
+   * - 1,000 requests/month
+   * - No RPM limit (but Circuit Breaker로 보호)
+   * - Token 개념 없음 (request 단위 과금)
+   */
+  tavily: {
+    dailyTokenLimit: Number.MAX_SAFE_INTEGER, // 토큰 기반 아님
+    requestsPerMinute: 30, // soft limit (Circuit Breaker로 보호)
+    tokensPerMinute: Number.MAX_SAFE_INTEGER,
+    requestsPerDay: 33, // 1,000/month ≈ 33/day
   },
 };
 
@@ -274,9 +294,9 @@ export async function getQuotaStatus(
  * 사용 가능한 최적 Provider 선택 (Pre-emptive Fallback)
  */
 export async function selectAvailableProvider(
-  preferredOrder: ProviderName[] = ['cerebras', 'mistral', 'groq']
+  preferredOrder: LLMProviderName[] = ['cerebras', 'mistral', 'groq']
 ): Promise<{
-  provider: ProviderName;
+  provider: LLMProviderName;
   status: QuotaStatus;
   isPreemptiveFallback: boolean;
 } | null> {
@@ -320,6 +340,7 @@ export async function getQuotaSummary(): Promise<{
     'groq',
     'mistral',
     'gemini',
+    'tavily',
   ];
   const statuses = await Promise.all(providers.map(getQuotaStatus));
 

@@ -19,6 +19,8 @@ import { shouldUseHyDE, expandQueryWithHyDE } from '../lib/query-expansion';
 import { rerankDocuments, isRerankerAvailable } from '../lib/reranker';
 import { enhanceWithWebSearch, isTavilyAvailable, type HybridRAGDocument } from '../lib/tavily-hybrid-rag';
 import { logger } from '../lib/logger';
+import { TIMEOUT_CONFIG } from '../config/timeout-config';
+import { recordProviderUsage, getQuotaStatus } from '../services/resilience/quota-tracker';
 
 // ============================================================================
 // 1. Types
@@ -524,7 +526,7 @@ interface WebSearchResult {
 // ============================================================================
 // Tavily Best Practices Constants
 // ============================================================================
-const TAVILY_TIMEOUT_MS = 10000; // 10초 타임아웃 (베스트 프랙티스: 1-5초, 여유있게 10초)
+const TAVILY_TIMEOUT_MS = TIMEOUT_CONFIG.external.tavily; // 15초 (timeout-config.ts SSOT)
 const TAVILY_MAX_RETRIES = 2; // 최대 재시도 횟수 (베스트 프랙티스: 2회)
 const TAVILY_RETRY_DELAY_MS = 1000; // 재시도 간 대기 시간
 /**
@@ -552,8 +554,15 @@ const searchCache = new Map<string, CacheEntry>();
  * Get cached result if valid
  * LRU 방식: 조회 시 TTL 만료 항목 정리
  */
-function getCachedResult(query: string): { results: WebSearchResult[]; answer: string | null } | null {
-  const key = query.toLowerCase().trim();
+function buildCacheKey(query: string, searchDepth?: string, includeDomains?: string[]): string {
+  const parts = [query.toLowerCase().trim()];
+  if (searchDepth && searchDepth !== 'basic') parts.push(`depth:${searchDepth}`);
+  if (includeDomains && includeDomains.length > 0) parts.push(`domains:${includeDomains.sort().join(',')}`);
+  return parts.join('|');
+}
+
+function getCachedResult(query: string, searchDepth?: string, includeDomains?: string[]): { results: WebSearchResult[]; answer: string | null } | null {
+  const key = buildCacheKey(query, searchDepth, includeDomains);
   const cached = searchCache.get(key);
   const now = Date.now();
 
@@ -573,7 +582,7 @@ function getCachedResult(query: string): { results: WebSearchResult[]; answer: s
  * Store result in cache with LRU eviction
  * Cloud Run Free Tier 메모리 제한 대응
  */
-function setCacheResult(query: string, results: WebSearchResult[], answer: string | null): void {
+function setCacheResult(query: string, results: WebSearchResult[], answer: string | null, searchDepth?: string, includeDomains?: string[]): void {
   const now = Date.now();
 
   // 1. TTL 만료 항목 먼저 정리
@@ -590,7 +599,7 @@ function setCacheResult(query: string, results: WebSearchResult[], answer: strin
     console.log(`🗑️ [Tavily] Cache evicted ${keysToDelete.length} entries (LRU)`);
   }
 
-  searchCache.set(query.toLowerCase().trim(), { results, answer, timestamp: now });
+  searchCache.set(buildCacheKey(query, searchDepth, includeDomains), { results, answer, timestamp: now });
 }
 
 /**
@@ -686,8 +695,8 @@ export const searchWeb = tool({
     query: z.string().describe('검색 쿼리'),
     maxResults: z
       .number()
-      .default(5)
-      .describe('반환할 결과 수 (기본: 5)'),
+      .default(3)
+      .describe('반환할 결과 수 (기본: 3, 최대: 5)'),
     searchDepth: z
       .enum(['basic', 'advanced'])
       .default('basic')
@@ -703,7 +712,7 @@ export const searchWeb = tool({
   }),
   execute: async ({
     query,
-    maxResults = 5,
+    maxResults = 3,
     searchDepth = 'basic',
     includeDomains,
     excludeDomains,
@@ -716,8 +725,24 @@ export const searchWeb = tool({
   }) => {
     console.log(`🌐 [Reporter Tools] Web search: ${query}`);
 
+    // Tavily 월간 quota 확인 (Free Tier: 1,000 req/month ≈ 33/day)
+    try {
+      const quotaStatus = await getQuotaStatus('tavily');
+      if (quotaStatus.shouldPreemptiveFallback) {
+        logger.warn(`⚠️ [Tavily] Daily quota approaching limit (${quotaStatus.usage.minuteRequests} requests today). Skipping web search.`);
+        return {
+          success: false,
+          error: 'Tavily daily quota approaching limit',
+          results: [],
+          _source: 'Tavily (Quota Exceeded)',
+        };
+      }
+    } catch {
+      // quota 확인 실패 시 검색은 계속 진행
+    }
+
     // Best Practice: Check cache first to reduce API calls
-    const cached = getCachedResult(query);
+    const cached = getCachedResult(query, searchDepth, includeDomains);
     if (cached) {
       return {
         success: true,
@@ -756,7 +781,10 @@ export const searchWeb = tool({
         console.log(`📊 [Reporter Tools] Web search (primary): ${results.length} results`);
 
         // Cache successful results (Best Practice)
-        setCacheResult(query, results, answer);
+        setCacheResult(query, results, answer, searchDepth, includeDomains);
+
+        // Tavily quota 기록 (1 request = 1 token 단위로 추적)
+        recordProviderUsage('tavily', 1).catch(() => {});
 
         return {
           success: true,
@@ -778,7 +806,10 @@ export const searchWeb = tool({
             console.log(`📊 [Reporter Tools] Web search (backup): ${results.length} results`);
 
             // Cache successful results (Best Practice)
-            setCacheResult(query, results, answer);
+            setCacheResult(query, results, answer, searchDepth, includeDomains);
+
+            // Tavily quota 기록
+            recordProviderUsage('tavily', 1).catch(() => {});
 
             return {
               success: true,
@@ -815,7 +846,10 @@ export const searchWeb = tool({
       console.log(`📊 [Reporter Tools] Web search (backup only): ${results.length} results`);
 
       // Cache successful results (Best Practice)
-      setCacheResult(query, results, answer);
+      setCacheResult(query, results, answer, searchDepth, includeDomains);
+
+      // Tavily quota 기록
+      recordProviderUsage('tavily', 1).catch(() => {});
 
       return {
         success: true,
