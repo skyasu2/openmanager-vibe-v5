@@ -695,6 +695,8 @@ async function* streamSingleAgent(
 
     const [steps, usage] = await Promise.all([result.steps, result.usage]);
 
+    const ragSources: Array<{ title: string; similarity: number; sourceType: string; category?: string; url?: string }> = [];
+
     for (const step of steps) {
       for (const toolCall of step.toolCalls) {
         const toolName = toolCall.toolName;
@@ -707,6 +709,38 @@ async function* streamSingleAgent(
           if (trOutput !== undefined) {
             yield { type: 'tool_result', data: { toolName: tr.toolName, result: trOutput } };
             logToolCall(trace, tr.toolName, {}, trOutput, 0);
+          }
+
+          // ragSources 수집 (비스트리밍 모드와 동일 로직)
+          if (tr.toolName === 'searchKnowledgeBase' && trOutput && typeof trOutput === 'object') {
+            const kbResult = trOutput as Record<string, unknown>;
+            const similarCases = (kbResult.similarCases ?? kbResult.results) as Array<Record<string, unknown>> | undefined;
+            if (Array.isArray(similarCases)) {
+              for (const doc of similarCases) {
+                ragSources.push({
+                  title: String(doc.title ?? doc.name ?? 'Unknown'),
+                  similarity: Number(doc.similarity ?? doc.score ?? 0),
+                  sourceType: String(doc.sourceType ?? doc.type ?? 'vector'),
+                  category: doc.category ? String(doc.category) : undefined,
+                });
+              }
+            }
+          }
+
+          if (tr.toolName === 'searchWeb' && trOutput && typeof trOutput === 'object') {
+            const webResult = trOutput as Record<string, unknown>;
+            const webResults = webResult.results as Array<Record<string, unknown>> | undefined;
+            if (Array.isArray(webResults)) {
+              for (const doc of webResults) {
+                ragSources.push({
+                  title: String(doc.title ?? 'Web Result'),
+                  similarity: Number(doc.score ?? 0),
+                  sourceType: 'web',
+                  category: 'web-search',
+                  url: doc.url ? String(doc.url) : undefined,
+                });
+              }
+            }
           }
         }
       }
@@ -763,6 +797,7 @@ async function* streamSingleAgent(
           mode: 'single',
           traceId: trace.id,
         },
+        ...(ragSources.length > 0 && { ragSources }),
         ...(capturedError && {
           warning: {
             code: 'STREAM_ERROR_OCCURRED',

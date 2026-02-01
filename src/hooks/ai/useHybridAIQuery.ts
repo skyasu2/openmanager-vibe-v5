@@ -322,7 +322,8 @@ export function useHybridAIQuery(
 
       // Warning 이벤트 처리 (처리 지연 또는 스트림 에러 경고)
       // 🎯 CODEX Review Fix: SLOW_PROCESSING과 STREAM_ERROR_OCCURRED 분기 처리
-      if (part.type === 'warning' && part.data) {
+      // AI SDK v6: custom data parts는 'data-' prefix 포함
+      if (part.type === 'data-warning' && part.data) {
         const warningData = part.data as WarningEventData;
 
         if (warningData.code === 'SLOW_PROCESSING') {
@@ -352,7 +353,7 @@ export function useHybridAIQuery(
       }
 
       // Redirect 이벤트 내부 처리 (Job Queue 모드 전환)
-      if (part.type === 'redirect' && part.data) {
+      if (part.type === 'data-redirect' && part.data) {
         const redirectData = part.data as RedirectEventData;
         logger.info(
           `🔀 [HybridAI] Redirect received: switching to job-queue (${redirectData.complexity})`

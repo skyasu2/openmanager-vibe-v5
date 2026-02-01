@@ -139,6 +139,17 @@ export function useAIChatCore(
   // 웹 검색 토글 상태 (Store에서 읽기)
   const webSearchEnabled = useAISidebarStore((s) => s.webSearchEnabled);
 
+  // 스트리밍 done 이벤트에서 수신한 ragSources (웹 검색 결과 등)
+  const [streamRagSources, setStreamRagSources] = useState<
+    Array<{
+      title: string;
+      similarity: number;
+      sourceType: string;
+      category?: string;
+      url?: string;
+    }>
+  >([]);
+
   // Refs
   const lastQueryRef = useRef<string>('');
   const lastAttachmentsRef = useRef<FileAttachment[] | null>(null);
@@ -199,24 +210,32 @@ export function useAIChatCore(
     },
     // 🎯 실시간 SSE 이벤트 처리 (agent_status, handoff)
     onData: (dataPart: StreamDataPart) => {
-      if (dataPart.type === 'agent_status' && dataPart.agentStatus) {
-        setCurrentAgentStatus(dataPart.agentStatus);
+      // AI SDK v6: custom data parts는 'data-' prefix 포함 (data-agent-status, data-done 등)
+      const partType = dataPart.type;
+      if (partType === 'data-agent-status' && dataPart.data) {
+        const agentStatus = dataPart.data as AgentStatusEventData;
+        setCurrentAgentStatus(agentStatus);
         if (process.env.NODE_ENV === 'development') {
           logger.info(
-            `🤖 [Agent Status] ${dataPart.agentStatus.agent}: ${dataPart.agentStatus.status}`
+            `🤖 [Agent Status] ${agentStatus.agent}: ${agentStatus.status}`
           );
         }
-      } else if (dataPart.type === 'handoff' && dataPart.handoff) {
-        setCurrentHandoff(dataPart.handoff);
+      } else if (partType === 'data-handoff' && dataPart.data) {
+        const handoff = dataPart.data as HandoffEventData;
+        setCurrentHandoff(handoff);
         if (process.env.NODE_ENV === 'development') {
-          logger.info(
-            `🔄 [Handoff] ${dataPart.handoff.from} → ${dataPart.handoff.to}`
-          );
+          logger.info(`🔄 [Handoff] ${handoff.from} → ${handoff.to}`);
         }
-      } else if (dataPart.type === 'done') {
+      } else if (partType === 'data-done') {
         // 완료 시 상태 초기화
         setCurrentAgentStatus(null);
         setCurrentHandoff(null);
+
+        // done 이벤트에서 ragSources 추출 (스트리밍 모드 웹 검색 결과)
+        const doneData = dataPart.data as Record<string, unknown> | undefined;
+        if (doneData?.ragSources && Array.isArray(doneData.ragSources)) {
+          setStreamRagSources(doneData.ragSources as typeof streamRagSources);
+        }
       }
     },
   });
@@ -229,8 +248,10 @@ export function useAIChatCore(
     return transformMessages(messages, {
       isLoading: hybridIsLoading,
       currentMode: currentMode ?? undefined,
+      streamRagSources:
+        streamRagSources.length > 0 ? streamRagSources : undefined,
     });
-  }, [messages, hybridIsLoading, currentMode]);
+  }, [messages, hybridIsLoading, currentMode, streamRagSources]);
 
   // 🧩 History Hook (Needs messages from hybrid query)
   const { clearHistory } = useChatHistory({
@@ -331,6 +352,7 @@ export function useAIChatCore(
       }
 
       setError(null);
+      setStreamRagSources([]);
       // 🎯 Fix: 첨부만 있을 경우 기본 텍스트 설정
       const effectiveText = hasText ? input : '[이미지/파일 분석 요청]';
       lastQueryRef.current = effectiveText;

@@ -17,6 +17,7 @@ type RagSource = {
   similarity: number;
   sourceType: string;
   category?: string;
+  url?: string;
 };
 
 type MessageMetadata = {
@@ -75,6 +76,8 @@ export function convertThinkingStepsToUI(thinkingSteps?: AIThinkingStep[]) {
 interface TransformOptions {
   isLoading: boolean;
   currentMode?: 'streaming' | 'job-queue';
+  /** 스트리밍 done 이벤트에서 수신한 ragSources (웹 검색 결과 등) */
+  streamRagSources?: RagSource[];
 }
 
 /**
@@ -85,7 +88,7 @@ export function transformUIMessageToEnhanced(
   options: TransformOptions,
   isLastMessage: boolean
 ): EnhancedChatMessage {
-  const { isLoading, currentMode } = options;
+  const { isLoading, currentMode, streamRagSources } = options;
   const textContent = extractTextFromUIMessage(message);
 
   // Tool parts 추출 (null/undefined 방어 코드 추가)
@@ -134,19 +137,25 @@ export function transformUIMessageToEnhanced(
     const isJobQueue = currentMode === 'job-queue';
     const hasTools = toolParts.length > 0;
 
-    // RAG 출처 추출 (job-queue 모드에서 message.metadata에 포함)
-    const ragSources = metadata?.ragSources;
+    // RAG 출처 추출 (job-queue: metadata, streaming: streamRagSources fallback)
+    const ragSources =
+      metadata?.ragSources ?? (isLastMessage ? streamRagSources : undefined);
     const hasRag = ragSources && ragSources.length > 0;
 
+    const webSources = ragSources?.filter((s) => s.sourceType === 'web') ?? [];
+    const hasWebSearch = webSources.length > 0;
+
     analysisBasis = {
-      dataSource: hasRag
-        ? `RAG 지식베이스 검색 (${ragSources.length}건)`
-        : hasTools
-          ? '서버 실시간 데이터 분석'
-          : '일반 대화 응답',
+      dataSource: hasWebSearch
+        ? `웹 검색 (${webSources.length}건)`
+        : hasRag
+          ? `RAG 지식베이스 검색 (${ragSources.length}건)`
+          : hasTools
+            ? '서버 실시간 데이터 분석'
+            : '일반 대화 응답',
       engine: isJobQueue ? 'Cloud Run AI' : 'Streaming AI',
-      ragUsed: hasRag || hasTools,
-      confidence: hasRag ? 90 : hasTools ? 85 : undefined,
+      ragUsed: hasRag || hasTools || hasWebSearch,
+      confidence: hasWebSearch ? 88 : hasRag ? 90 : hasTools ? 85 : undefined,
       timeRange: hasTools ? '최근 1시간' : undefined,
       ragSources: hasRag ? ragSources : undefined,
     };
