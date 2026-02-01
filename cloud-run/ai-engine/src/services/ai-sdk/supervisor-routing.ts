@@ -217,7 +217,7 @@ export function createPrepareStep(query: string, options?: { enableWebSearch?: b
       const baseTools: ToolName[] = ['getServerMetrics', 'getServerMetricsAdvanced', 'filterServers', 'searchWeb', 'finalAnswer'];
       return {
         activeTools: baseTools,
-        toolChoice: 'required' as const,
+        toolChoice: { type: 'tool', toolName: 'searchWeb' } as const,
       };
     }
 
