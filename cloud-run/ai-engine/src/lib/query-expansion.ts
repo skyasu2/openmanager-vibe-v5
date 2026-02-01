@@ -13,6 +13,7 @@
 import { generateText } from 'ai';
 import { createMistral } from '@ai-sdk/mistral';
 import { getMistralApiKey } from './config-parser';
+import { logger } from './logger';
 
 // ============================================================================
 // Constants
@@ -55,7 +56,7 @@ function getMistralProvider(): ReturnType<typeof createMistral> | null {
 
   const apiKey = getMistralApiKey();
   if (!apiKey) {
-    console.warn('[HyDE] Mistral API key not configured');
+    logger.warn('[HyDE] Mistral API key not configured');
     return null;
   }
 
@@ -138,7 +139,7 @@ export async function expandQueryWithHyDE(query: string): Promise<string> {
   const mistral = getMistralProvider();
 
   if (!mistral) {
-    console.warn('[HyDE] Mistral provider unavailable, returning original query');
+    logger.warn('[HyDE] Mistral provider unavailable, returning original query');
     return query;
   }
 
@@ -165,14 +166,14 @@ export async function expandQueryWithHyDE(query: string): Promise<string> {
 
     // Validate expansion result
     if (!expandedText || expandedText.length < 10) {
-      console.warn('[HyDE] Expansion result too short, using original query');
+      logger.warn('[HyDE] Expansion result too short, using original query');
       return query;
     }
 
     return expandedText;
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.warn(`[HyDE] Expansion failed (${errorMsg}), using original query`);
+    logger.warn(`[HyDE] Expansion failed (${errorMsg}), using original query`);
     return query;
   }
 }

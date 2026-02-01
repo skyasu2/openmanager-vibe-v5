@@ -20,6 +20,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseConfig } from './config-parser';
 import { embedText, toVectorString } from './embedding';
+import { logger } from './logger';
 
 // ============================================================================
 // Types
@@ -82,7 +83,7 @@ function getSupabaseClient(): SupabaseClient | null {
   const config = getSupabaseConfig();
   if (!config) {
     initFailed = true;
-    console.warn('⚠️ [IncidentRAG] Supabase config missing');
+    logger.warn('⚠️ [IncidentRAG] Supabase config missing');
     return null;
   }
 
@@ -92,7 +93,7 @@ function getSupabaseClient(): SupabaseClient | null {
     return supabaseClient;
   } catch (e) {
     initFailed = true;
-    console.error('❌ [IncidentRAG] Supabase init failed:', e);
+    logger.error('❌ [IncidentRAG] Supabase init failed:', e);
     return null;
   }
 }
@@ -229,7 +230,7 @@ async function isAlreadySynced(
     .limit(1);
 
   if (error) {
-    console.warn('⚠️ [IncidentRAG] Dedup check failed:', error);
+    logger.warn('⚠️ [IncidentRAG] Dedup check failed:', error);
     return false;
   }
 
@@ -256,13 +257,13 @@ async function insertToKnowledgeBase(
     });
 
     if (error) {
-      console.error('❌ [IncidentRAG] Insert failed:', error);
+      logger.error('❌ [IncidentRAG] Insert failed:', error);
       return false;
     }
 
     return true;
   } catch (e) {
-    console.error('❌ [IncidentRAG] Insert error:', e);
+    logger.error('❌ [IncidentRAG] Insert error:', e);
     return false;
   }
 }
@@ -334,7 +335,7 @@ export async function syncIncidentsToRAG(
 
   // Log validation warnings
   if (warnings.length > 0) {
-    console.warn(`⚠️ [IncidentRAG] Input validation warnings: ${warnings.join('; ')}`);
+    logger.warn(`⚠️ [IncidentRAG] Input validation warnings: ${warnings.join('; ')}`);
   }
 
   console.log(
@@ -388,7 +389,7 @@ export async function syncIncidentsToRAG(
         const extracted = extractIncidentContent(incident);
 
         if (!extracted.content || extracted.content.length < SYNC_LIMITS.MIN_CONTENT_LENGTH) {
-          console.warn(`⚠️ [IncidentRAG] Insufficient content for: ${incident.session_id}`);
+          logger.warn(`⚠️ [IncidentRAG] Insufficient content for: ${incident.session_id}`);
           result.skipped++;
           continue;
         }
@@ -420,7 +421,7 @@ export async function syncIncidentsToRAG(
           result.failed++;
         }
       } catch (e) {
-        console.error(`❌ [IncidentRAG] Error processing ${incident.session_id}:`, e);
+        logger.error(`❌ [IncidentRAG] Error processing ${incident.session_id}:`, e);
         result.errors.push(`${incident.session_id}: ${String(e)}`);
         result.failed++;
       }
@@ -433,7 +434,7 @@ export async function syncIncidentsToRAG(
 
     return result;
   } catch (e) {
-    console.error('❌ [IncidentRAG] Sync failed:', e);
+    logger.error('❌ [IncidentRAG] Sync failed:', e);
     result.errors.push(String(e));
     return result;
   }
@@ -475,7 +476,7 @@ export async function getRAGInjectionStats(): Promise<{
       pendingSync: Math.max(0, (totalCount || 0) - (syncedCount || 0)),
     };
   } catch (e) {
-    console.error('❌ [IncidentRAG] Stats error:', e);
+    logger.error('❌ [IncidentRAG] Stats error:', e);
     return null;
   }
 }

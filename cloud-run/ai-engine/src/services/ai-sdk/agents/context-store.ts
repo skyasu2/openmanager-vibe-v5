@@ -14,6 +14,7 @@
  */
 
 import { getRedisClient } from '../../../lib/redis-client';
+import { logger } from '../../../lib/logger';
 
 // ============================================================================
 // Types
@@ -189,7 +190,7 @@ export async function getSessionContext(sessionId: string): Promise<AgentContext
         return context as AgentContext;
       }
     } catch (error) {
-      console.warn(`[ContextStore] Redis get error for ${sessionId}:`, error);
+      logger.warn(`[ContextStore] Redis get error for ${sessionId}:`, error);
     }
   }
 
@@ -221,7 +222,7 @@ export async function saveSessionContext(context: AgentContext): Promise<void> {
       await redis.set(key, JSON.stringify(context));
       await redis.expire(key, CONTEXT_CONFIG.ttlSeconds);
     } catch (error) {
-      console.warn(`[ContextStore] Redis save error for ${context.sessionId}:`, error);
+      logger.warn(`[ContextStore] Redis save error for ${context.sessionId}:`, error);
     }
   }
 
@@ -543,7 +544,7 @@ export async function deleteSessionContext(sessionId: string): Promise<void> {
     try {
       await redis.del(key);
     } catch (error) {
-      console.warn(`[ContextStore] Redis delete error for ${sessionId}:`, error);
+      logger.warn(`[ContextStore] Redis delete error for ${sessionId}:`, error);
     }
   }
 

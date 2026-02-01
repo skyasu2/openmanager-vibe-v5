@@ -14,6 +14,7 @@ import { TIMEOUT_CONFIG } from '../../../config/timeout-config';
 import type { MultiAgentResponse } from './orchestrator-types';
 import { getOrchestratorModel, getAgentConfig, executeForcedRouting } from './orchestrator-routing';
 import { saveAgentFindingsToContext } from './orchestrator-context';
+import { logger } from '../../../lib/logger';
 
 // ============================================================================
 // Task Decomposition (Orchestrator-Worker Pattern)
@@ -39,7 +40,7 @@ export async function decomposeTask(query: string): Promise<TaskDecomposition | 
 
   const modelConfig = getOrchestratorModel();
   if (!modelConfig) {
-    console.warn('⚠️ [Decompose] No model available');
+    logger.warn('⚠️ [Decompose] No model available');
     return null;
   }
 
@@ -81,13 +82,13 @@ ${query}
       const agentConfig = getAgentConfig(subtask.agent);
 
       if (!agentConfig) {
-        console.warn(`⚠️ [Decompose] Agent "${subtask.agent}" not found, removing subtask: "${subtask.task.substring(0, 40)}..."`);
+        logger.warn(`⚠️ [Decompose] Agent "${subtask.agent}" not found, removing subtask: "${subtask.task.substring(0, 40)}..."`);
         return false;
       }
 
       const modelResult = agentConfig.getModel();
       if (!modelResult) {
-        console.warn(`⚠️ [Decompose] Agent "${subtask.agent}" model unavailable, removing subtask: "${subtask.task.substring(0, 40)}..."`);
+        logger.warn(`⚠️ [Decompose] Agent "${subtask.agent}" model unavailable, removing subtask: "${subtask.task.substring(0, 40)}..."`);
         return false;
       }
 
@@ -95,7 +96,7 @@ ${query}
     });
 
     if (validSubtasks.length === 0) {
-      console.warn('⚠️ [Decompose] No valid subtasks after validation, falling back to single-agent');
+      logger.warn('⚠️ [Decompose] No valid subtasks after validation, falling back to single-agent');
       return null;
     }
 
@@ -108,7 +109,7 @@ ${query}
       subtasks: validSubtasks,
     };
   } catch (error) {
-    console.error('❌ [Decompose] Task decomposition failed:', error);
+    logger.error('❌ [Decompose] Task decomposition failed:', error);
     return null;
   }
 }
@@ -137,7 +138,7 @@ export async function executeParallelSubtasks(
     const timeoutPromise = new Promise<null>((resolve) => {
       timeoutId = setTimeout(() => {
         isTimedOut = true;
-        console.warn(
+        logger.warn(
           `⏱️ [Parallel] Subtask ${index + 1}/${subtasks.length} timeout after ${SUBTASK_TIMEOUT_MS}ms\n` +
           `   Agent: ${subtask.agent}\n` +
           `   Task: "${subtask.task.substring(0, 80)}${subtask.task.length > 80 ? '...' : ''}"`
@@ -165,7 +166,7 @@ export async function executeParallelSubtasks(
       if (timeoutId !== null && !isTimedOut) {
         clearTimeout(timeoutId);
       }
-      console.error(`❌ [Parallel] Subtask ${index + 1} error:`, error);
+      logger.error(`❌ [Parallel] Subtask ${index + 1} error:`, error);
       return { subtask, result: null, index };
     }
   });
@@ -176,14 +177,14 @@ export async function executeParallelSubtasks(
   const failedResults = results.filter(r => r.result === null);
 
   if (failedResults.length > 0) {
-    console.warn(
+    logger.warn(
       `⚠️ [Parallel] ${failedResults.length}/${results.length} subtasks failed:\n` +
       failedResults.map(r => `   - [${r.index + 1}] ${r.subtask.agent}: "${r.subtask.task.substring(0, 50)}..."`).join('\n')
     );
   }
 
   if (successfulResults.length === 0) {
-    console.error('❌ [Parallel] All subtasks failed - no results to aggregate');
+    logger.error('❌ [Parallel] All subtasks failed - no results to aggregate');
     return null;
   }
 

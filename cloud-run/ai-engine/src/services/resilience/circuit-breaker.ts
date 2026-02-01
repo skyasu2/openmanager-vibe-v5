@@ -1,3 +1,4 @@
+import { logger } from '../../lib/logger';
 /**
  * Circuit Breaker Pattern
  *
@@ -154,7 +155,7 @@ export class CircuitBreaker {
     this.totalFailures++;
     this.lastFailure = new Date();
 
-    console.warn(
+    logger.warn(
       `⚠️ [CircuitBreaker:${this.config.name}] Failure ${this.failures}/${this.config.failureThreshold}:`,
       error instanceof Error ? error.message : String(error)
     );

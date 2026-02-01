@@ -13,6 +13,7 @@
 // Data sources for direct tool execution
 import { getCurrentState } from '../../../data/precomputed-state';
 import { FIXED_24H_DATASETS } from '../../../data/fixed-24h-metrics';
+import { logger } from '../../../lib/logger';
 
 // ============================================================================
 // Types
@@ -161,7 +162,7 @@ export async function executeReporterPipeline(
     for (let iteration = 0; iteration < finalConfig.maxIterations; iteration++) {
       // Check timeout
       if (Date.now() - startTime > finalConfig.timeout) {
-        console.warn(`⏱️ [ReporterPipeline] Timeout reached at iteration ${iteration + 1}`);
+        logger.warn(`⏱️ [ReporterPipeline] Timeout reached at iteration ${iteration + 1}`);
         break;
       }
 
@@ -218,7 +219,7 @@ export async function executeReporterPipeline(
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`❌ [ReporterPipeline] Error:`, errorMessage);
+    logger.error(`❌ [ReporterPipeline] Error:`, errorMessage);
 
     return {
       success: false,
@@ -336,7 +337,7 @@ function generateInitialReport(): ReportForEvaluation | null {
     };
 
   } catch (error) {
-    console.error('❌ [generateInitialReport] Error:', error);
+    logger.error('❌ [generateInitialReport] Error:', error);
     return null;
   }
 }

@@ -10,6 +10,7 @@
 import type { Context } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { createErrorResponse, ErrorCodes, type ErrorCode } from '../types/api-response';
+import { logger } from './logger';
 
 // ============================================================================
 // 1. Error Classification
@@ -74,7 +75,7 @@ export function handleApiError(
   const errorMessage = error instanceof Error ? error.message : String(error);
 
   // Log error with prefix
-  console.error(`❌ [${logPrefix}] Error:`, errorMessage);
+  logger.error(`❌ [${logPrefix}] Error:`, errorMessage);
 
   // Return standardized error response
   return c.json(createErrorResponse(errorMessage, code), status);
@@ -88,7 +89,7 @@ export function handleValidationError(
   message: string,
   details?: unknown
 ): Response {
-  console.warn(`⚠️ [Validation] ${message}`);
+  logger.warn(`⚠️ [Validation] ${message}`);
   return c.json(createErrorResponse(message, ErrorCodes.VALIDATION_ERROR, details), 400 as ContentfulStatusCode);
 }
 
@@ -100,7 +101,7 @@ export function handleNotFoundError(
   resource: string
 ): Response {
   const message = `${resource} not found`;
-  console.warn(`⚠️ [NotFound] ${message}`);
+  logger.warn(`⚠️ [NotFound] ${message}`);
   return c.json(createErrorResponse(message, ErrorCodes.NOT_FOUND), 404 as ContentfulStatusCode);
 }
 
@@ -108,7 +109,7 @@ export function handleNotFoundError(
  * Handle unauthorized errors (401)
  */
 export function handleUnauthorizedError(c: Context): Response {
-  console.warn(`⚠️ [Auth] Unauthorized request`);
+  logger.warn(`⚠️ [Auth] Unauthorized request`);
   return c.json(createErrorResponse('Unauthorized', ErrorCodes.UNAUTHORIZED), 401 as ContentfulStatusCode);
 }
 

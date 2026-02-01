@@ -15,6 +15,7 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseConfig } from './config-parser';
+import { logger } from './logger';
 
 // ============================================================================
 // Types
@@ -73,7 +74,7 @@ function getSupabaseClient(): SupabaseClient | null {
 
   const config = getSupabaseConfig();
   if (!config) {
-    console.warn('[HybridTextSearch] Supabase config missing');
+    logger.warn('[HybridTextSearch] Supabase config missing');
     return null;
   }
 
@@ -117,7 +118,7 @@ export async function hybridTextVectorSearch(
   const supabase = getSupabaseClient();
 
   if (!supabase) {
-    console.warn('[HybridTextSearch] Supabase not available, returning empty');
+    logger.warn('[HybridTextSearch] Supabase not available, returning empty');
     return [];
   }
 
@@ -152,7 +153,7 @@ export async function hybridTextVectorSearch(
     });
 
     if (error) {
-      console.error('[HybridTextSearch] RPC error:', error);
+      logger.error('[HybridTextSearch] RPC error:', error);
       throw error;
     }
 
@@ -181,7 +182,7 @@ export async function hybridTextVectorSearch(
 
     return results;
   } catch (error) {
-    console.error('[HybridTextSearch] Search failed:', error);
+    logger.error('[HybridTextSearch] Search failed:', error);
     return [];
   }
 }
@@ -212,7 +213,7 @@ export async function textOnlySearch(
   const supabase = getSupabaseClient();
 
   if (!supabase) {
-    console.warn('[HybridTextSearch] Supabase not available');
+    logger.warn('[HybridTextSearch] Supabase not available');
     return [];
   }
 
@@ -226,7 +227,7 @@ export async function textOnlySearch(
     });
 
     if (error) {
-      console.error('[HybridTextSearch] Text search RPC error:', error);
+      logger.error('[HybridTextSearch] Text search RPC error:', error);
       throw error;
     }
 
@@ -239,7 +240,7 @@ export async function textOnlySearch(
       textRank: Number(row.text_rank || 0),
     }));
   } catch (error) {
-    console.error('[HybridTextSearch] Text-only search failed:', error);
+    logger.error('[HybridTextSearch] Text-only search failed:', error);
     return [];
   }
 }
@@ -269,7 +270,7 @@ export async function isBM25Available(): Promise<boolean> {
       .not('search_vector', 'is', null);
 
     if (error) {
-      console.warn('[HybridTextSearch] BM25 availability check failed:', error);
+      logger.warn('[HybridTextSearch] BM25 availability check failed:', error);
       return false;
     }
 

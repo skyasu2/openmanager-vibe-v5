@@ -13,6 +13,7 @@ import {
 } from './context-store';
 import { isVisionQuery } from './vision-agent';
 import type { PreFilterResult } from './orchestrator-types';
+import { logger } from '../../../lib/logger';
 
 // ============================================================================
 // Context Store Integration - Parse and Save Agent Findings
@@ -88,7 +89,7 @@ export async function saveAgentFindingsToContext(
     }
   } catch (error) {
     // Non-critical: log but don't throw
-    console.warn(`⚠️ [Context] Failed to save findings for ${agentName}:`, error);
+    logger.warn(`⚠️ [Context] Failed to save findings for ${agentName}:`, error);
   }
 }
 

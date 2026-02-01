@@ -15,6 +15,7 @@
  */
 
 import { getRedisClient } from '../../lib/redis-client';
+import { logger } from '../../lib/logger';
 
 // ============================================================================
 // Types
@@ -173,7 +174,7 @@ export async function getProviderUsage(
       await redis.expire(key, 86400);
       return usage;
     } catch (error) {
-      console.warn(`[QuotaTracker] Redis error for ${provider}:`, error);
+      logger.warn(`[QuotaTracker] Redis error for ${provider}:`, error);
     }
   }
 
@@ -215,7 +216,7 @@ export async function recordProviderUsage(
       await redis.set(key, JSON.stringify(usage));
       await redis.expire(key, 86400);
     } catch (error) {
-      console.warn(`[QuotaTracker] Redis save error for ${provider}:`, error);
+      logger.warn(`[QuotaTracker] Redis save error for ${provider}:`, error);
     }
   }
 
@@ -301,7 +302,7 @@ export async function selectAvailableProvider(
     }
   }
 
-  console.warn('[QuotaTracker] All providers at capacity');
+  logger.warn('[QuotaTracker] All providers at capacity');
   return null;
 }
 

@@ -10,6 +10,7 @@
 
 import { generateText, type LanguageModel } from 'ai';
 import type { ProviderName } from '../ai-sdk/model-provider';
+import { logger } from '../../lib/logger';
 import {
   getCerebrasModel,
   getGroqModel,
@@ -248,7 +249,7 @@ export async function generateTextWithRetry(
 
     if (availableProviders.length === 0) {
       // All providers exhausted
-      console.error('❌ [RetryWithFallback] All providers exhausted');
+      logger.error('❌ [RetryWithFallback] All providers exhausted');
       return {
         success: false,
         provider: preferredOrder[0],
@@ -332,7 +333,7 @@ export async function generateTextWithRetry(
           durationMs,
         });
 
-        console.warn(
+        logger.warn(
           `⚠️ [RetryWithFallback] ${provider} failed (attempt ${retryCount + 1}): ${errorMessage}`
         );
 

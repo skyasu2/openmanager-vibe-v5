@@ -18,6 +18,7 @@ import { hybridGraphSearch } from '../lib/llamaindex-rag-service';
 import { shouldUseHyDE, expandQueryWithHyDE } from '../lib/query-expansion';
 import { rerankDocuments, isRerankerAvailable } from '../lib/reranker';
 import { enhanceWithWebSearch, isTavilyAvailable, type HybridRAGDocument } from '../lib/tavily-hybrid-rag';
+import { logger } from '../lib/logger';
 
 // ============================================================================
 // 1. Types
@@ -60,7 +61,7 @@ async function getSupabaseClient(): Promise<SupabaseClientLike | null> {
 
   const config = getSupabaseConfig();
   if (!config) {
-    console.warn('⚠️ [Reporter Tools] Supabase config missing');
+    logger.warn('⚠️ [Reporter Tools] Supabase config missing');
     return null;
   }
 
@@ -72,7 +73,7 @@ async function getSupabaseClient(): Promise<SupabaseClientLike | null> {
     ) as unknown as SupabaseClientLike;
     return supabaseInstance;
   } catch (err) {
-    console.error('⚠️ [Reporter Tools] Supabase client init failed:', err);
+    logger.error('⚠️ [Reporter Tools] Supabase client init failed:', err);
     return null;
   }
 }
@@ -170,7 +171,7 @@ export const searchKnowledgeBase = tool({
           console.log(`🧠 [Reporter Tools] HyDE applied: "${query}" → "${searchQuery.substring(0, 50)}..."`);
         }
       } catch (err) {
-        console.warn(`⚠️ [Reporter Tools] HyDE expansion failed, using original query:`, err);
+        logger.warn(`⚠️ [Reporter Tools] HyDE expansion failed, using original query:`, err);
       }
     }
 
@@ -185,7 +186,7 @@ export const searchKnowledgeBase = tool({
     const supabase = await getSupabaseClient();
 
     if (!supabase) {
-      console.warn('⚠️ [Reporter Tools] Supabase unavailable, using fallback');
+      logger.warn('⚠️ [Reporter Tools] Supabase unavailable, using fallback');
       return {
         success: true,
         results: [
@@ -288,7 +289,7 @@ export const searchKnowledgeBase = tool({
               reranked = true;
               console.log(`🎯 [Reporter Tools] Reranked ${graphEnhanced.length} → ${finalResults.length} results`);
             } catch (rerankError) {
-              console.warn('⚠️ [Reporter Tools] Reranking failed, using original order:', rerankError);
+              logger.warn('⚠️ [Reporter Tools] Reranking failed, using original order:', rerankError);
             }
           }
 
@@ -330,7 +331,7 @@ export const searchKnowledgeBase = tool({
                 console.log(`🌐 [Reporter Tools] Web search added ${webResultsCount} results`);
               }
             } catch (webError) {
-              console.warn('⚠️ [Reporter Tools] Web search enhancement failed:', webError);
+              logger.warn('⚠️ [Reporter Tools] Web search enhancement failed:', webError);
             }
           }
 
@@ -376,7 +377,7 @@ export const searchKnowledgeBase = tool({
         hydeApplied,
       };
     } catch (error) {
-      console.error('❌ [Reporter Tools] RAG search error:', error);
+      logger.error('❌ [Reporter Tools] RAG search error:', error);
 
       return {
         success: true,
@@ -732,7 +733,7 @@ export const searchWeb = tool({
     const backupKey = getTavilyApiKeyBackup();
 
     if (!primaryKey && !backupKey) {
-      console.warn('⚠️ [Reporter Tools] No Tavily API keys configured');
+      logger.warn('⚠️ [Reporter Tools] No Tavily API keys configured');
       return {
         success: false,
         error: 'Tavily API key not configured',
@@ -767,7 +768,7 @@ export const searchWeb = tool({
         };
       } catch (primaryError) {
         const errorMsg = primaryError instanceof Error ? primaryError.message : String(primaryError);
-        console.warn(`⚠️ [Reporter Tools] Primary key failed: ${errorMsg}`);
+        logger.warn(`⚠️ [Reporter Tools] Primary key failed: ${errorMsg}`);
 
         // Failover to backup key
         if (backupKey) {
@@ -788,7 +789,7 @@ export const searchWeb = tool({
               answer,
             };
           } catch (backupError) {
-            console.error('❌ [Reporter Tools] Backup key also failed:', backupError);
+            logger.error('❌ [Reporter Tools] Backup key also failed:', backupError);
             return {
               success: false,
               error: `Primary: ${errorMsg}, Backup: ${backupError instanceof Error ? backupError.message : String(backupError)}`,
@@ -825,7 +826,7 @@ export const searchWeb = tool({
         answer,
       };
     } catch (error) {
-      console.error('❌ [Reporter Tools] Backup key error:', error);
+      logger.error('❌ [Reporter Tools] Backup key error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),

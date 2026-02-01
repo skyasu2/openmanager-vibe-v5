@@ -13,6 +13,7 @@
 
 import { AGENT_CONFIGS, type AgentConfig } from './config';
 import { AnalystAgent, AgentFactory } from './agent-factory';
+import { logger } from '../../../lib/logger';
 
 // ============================================================================
 // Agent Class Export
@@ -33,7 +34,7 @@ export { AnalystAgent };
 export function getAnalystAgentConfig(): AgentConfig | null {
   const config = AGENT_CONFIGS['Analyst Agent'];
   if (!config) {
-    console.error('❌ [Analyst Agent] Config not found in AGENT_CONFIGS');
+    logger.error('❌ [Analyst Agent] Config not found in AGENT_CONFIGS');
     return null;
   }
   return config;

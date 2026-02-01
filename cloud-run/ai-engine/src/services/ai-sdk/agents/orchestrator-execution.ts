@@ -38,6 +38,7 @@ import {
   recordHandoff,
   getRecentHandoffs,
 } from './orchestrator-routing';
+import { logger } from '../../../lib/logger';
 import {
   decomposeTask,
   executeParallelSubtasks,
@@ -102,7 +103,7 @@ export async function executeMultiAgent(
       for (const subtask of decomposition.subtasks) {
         lastResult = await executeForcedRouting(subtask.task, subtask.agent, startTime, webSearchEnabled, request.images, request.files);
         if (!lastResult) {
-          console.warn(`⚠️ [Orchestrator] Sequential subtask failed: ${subtask.agent}`);
+          logger.warn(`⚠️ [Orchestrator] Sequential subtask failed: ${subtask.agent}`);
           break;
         }
         await saveAgentFindingsToContext(request.sessionId, subtask.agent, lastResult.response);
@@ -138,7 +139,7 @@ export async function executeMultiAgent(
       forcedResult = await executeWithAgentFactory(query, 'vision', startTime, webSearchEnabled, request.images, request.files);
 
       if (!forcedResult) {
-        console.warn(`⚠️ [Vision] Gemini unavailable, falling back to Analyst Agent`);
+        logger.warn(`⚠️ [Vision] Gemini unavailable, falling back to Analyst Agent`);
         forcedResult = await executeForcedRouting(query, 'Analyst Agent', startTime, webSearchEnabled, request.images, request.files);
       }
     } else {
@@ -194,7 +195,7 @@ ${query}
     });
 
     warnTimer = setTimeout(() => {
-      console.warn(`⚠️ [Orchestrator] Execution exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms threshold`);
+      logger.warn(`⚠️ [Orchestrator] Execution exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms threshold`);
     }, ORCHESTRATOR_CONFIG.warnThreshold);
 
     let routingDecision: RoutingDecision;
@@ -229,7 +230,7 @@ ${query}
         agentResult = await executeWithAgentFactory(query, 'vision', startTime, webSearchEnabled, request.images, request.files);
 
         if (!agentResult) {
-          console.warn(`⚠️ [LLM Routing] Vision Agent unavailable, falling back to Analyst`);
+          logger.warn(`⚠️ [LLM Routing] Vision Agent unavailable, falling back to Analyst`);
           agentResult = await executeForcedRouting(query, 'Analyst Agent', startTime, webSearchEnabled, request.images, request.files);
         }
       } else {
@@ -286,7 +287,7 @@ ${query}
     const durationMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    console.error(`❌ [Orchestrator] Error after ${durationMs}ms:`, errorMessage);
+    logger.error(`❌ [Orchestrator] Error after ${durationMs}ms:`, errorMessage);
 
     let code = 'UNKNOWN_ERROR';
     if (errorMessage.includes('API key')) code = 'AUTH_ERROR';
@@ -438,7 +439,7 @@ ${query}
     const durationMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    console.error(`❌ [Stream Orchestrator] Error after ${durationMs}ms:`, errorMessage);
+    logger.error(`❌ [Stream Orchestrator] Error after ${durationMs}ms:`, errorMessage);
 
     let code = 'UNKNOWN_ERROR';
     if (errorMessage.includes('API key')) code = 'AUTH_ERROR';
@@ -555,7 +556,7 @@ async function* executeAgentStream(
 
       if (elapsed >= ORCHESTRATOR_CONFIG.hardTimeout) {
         hardTimeoutReached = true;
-        console.error(`🛑 [Stream ${agentName}] Hard timeout at ${elapsed}ms`);
+        logger.error(`🛑 [Stream ${agentName}] Hard timeout at ${elapsed}ms`);
 
         logTimeoutEvent('error', {
           operation: `${agentName}_stream_hard_timeout`,
@@ -580,7 +581,7 @@ async function* executeAgentStream(
 
       if (!warningEmitted && elapsed >= ORCHESTRATOR_CONFIG.warnThreshold) {
         warningEmitted = true;
-        console.warn(`⚠️ [Stream ${agentName}] Exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms`);
+        logger.warn(`⚠️ [Stream ${agentName}] Exceeding ${ORCHESTRATOR_CONFIG.warnThreshold}ms`);
 
         yield {
           type: 'warning',
@@ -660,7 +661,7 @@ async function* executeAgentStream(
   } catch (error) {
     const durationMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`❌ [Stream ${agentName}] Error after ${durationMs}ms:`, errorMessage);
+    logger.error(`❌ [Stream ${agentName}] Error after ${durationMs}ms:`, errorMessage);
 
     yield { type: 'error', data: { code: 'STREAM_ERROR', error: errorMessage } };
   }

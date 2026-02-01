@@ -23,6 +23,7 @@
 
 import { AGENT_CONFIGS, type AgentConfig } from './config';
 import { VisionAgent, AgentFactory } from './agent-factory';
+import { logger } from '../../../lib/logger';
 
 // ============================================================================
 // Agent Class Export
@@ -43,7 +44,7 @@ export { VisionAgent };
 export function getVisionAgentConfig(): AgentConfig | null {
   const config = AGENT_CONFIGS['Vision Agent'];
   if (!config) {
-    console.warn('⚠️ [Vision Agent] Config not found in AGENT_CONFIGS');
+    logger.warn('⚠️ [Vision Agent] Config not found in AGENT_CONFIGS');
     return null;
   }
   return config;
@@ -156,7 +157,7 @@ export function getVisionAgentOrFallback(query: string): {
 
   // Vision unavailable - check if query needs vision
   if (isVisionQuery(query)) {
-    console.warn('⚠️ [Vision Agent] Vision features requested but Gemini unavailable, falling back to Analyst Agent');
+    logger.warn('⚠️ [Vision Agent] Vision features requested but Gemini unavailable, falling back to Analyst Agent');
     return {
       agent: AgentFactory.create('analyst'),
       isFallback: true,

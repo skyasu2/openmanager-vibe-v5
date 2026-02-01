@@ -15,6 +15,7 @@ import crypto from 'crypto';
 import { createMistral } from '@ai-sdk/mistral';
 import { embed, embedMany } from 'ai';
 import { getMistralApiKey } from '../../lib/config-parser';
+import { logger } from '../../lib/logger';
 
 interface EmbeddingOptions {
   dimension?: number; // Ignored for Mistral (fixed 1024d)
@@ -103,7 +104,7 @@ class CloudRunEmbeddingService {
     // Mistral API 호출 시도
     const mistral = this.getMistralProvider();
     if (!mistral) {
-      console.warn('⚠️ [Embedding] No Mistral API key, using local fallback');
+      logger.warn('⚠️ [Embedding] No Mistral API key, using local fallback');
       this.stats.localFallbacks++;
       const localEmbedding = this.generateLocalEmbedding(
         truncatedText,
@@ -130,7 +131,7 @@ class CloudRunEmbeddingService {
 
       return { success: true, embedding: resultEmbedding, source: 'mistral' };
     } catch (error) {
-      console.error('❌ [Embedding] Mistral AI failed, using fallback:', error);
+      logger.error('❌ [Embedding] Mistral AI failed, using fallback:', error);
       this.stats.errors++;
       this.stats.localFallbacks++;
 
@@ -196,7 +197,7 @@ class CloudRunEmbeddingService {
 
       if (!mistral) {
         // 로컬 fallback
-        console.warn('⚠️ [Embedding] No Mistral API key, batch using local fallback');
+        logger.warn('⚠️ [Embedding] No Mistral API key, batch using local fallback');
         this.stats.localFallbacks++;
 
         toProcess.forEach((item) => {
@@ -227,7 +228,7 @@ class CloudRunEmbeddingService {
             results[item.index] = embedding;
           });
         } catch (error) {
-          console.error('❌ [Embedding] Batch API failed:', error);
+          logger.error('❌ [Embedding] Batch API failed:', error);
           this.stats.errors++;
           this.stats.localFallbacks++;
 

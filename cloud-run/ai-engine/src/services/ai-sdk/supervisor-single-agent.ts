@@ -44,6 +44,7 @@ import type {
   SupervisorHealth,
   StreamEvent,
 } from './supervisor-types';
+import { logger } from '../../lib/logger';
 import {
   SYSTEM_PROMPT,
   RETRY_CONFIG,
@@ -131,7 +132,7 @@ async function executeMultiAgentMode(
     const durationMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    console.error(`❌ [Supervisor] Multi-agent error after ${durationMs}ms:`, errorMessage);
+    logger.error(`❌ [Supervisor] Multi-agent error after ${durationMs}ms:`, errorMessage);
 
     console.log(`🔄 [Supervisor] Falling back to single-agent mode`);
     return executeSingleAgentMode(request, startTime);
@@ -202,7 +203,7 @@ async function executeSupervisorAttempt(
     modelId = modelResult.modelId;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('❌ [Supervisor] No available providers:', errorMessage);
+    logger.error('❌ [Supervisor] No available providers:', errorMessage);
     return { success: false, error: errorMessage, code: 'NO_PROVIDER' };
   }
 
@@ -388,7 +389,7 @@ async function executeSupervisorAttempt(
     const durationMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    console.error(`❌ [Supervisor] Error after ${durationMs}ms:`, errorMessage);
+    logger.error(`❌ [Supervisor] Error after ${durationMs}ms:`, errorMessage);
 
     finalizeTrace(trace, errorMessage, false, { durationMs });
 
@@ -590,7 +591,7 @@ async function* streamSingleAgent(
       abortSignal: abortController.signal,
       onError: ({ error }) => {
         if (error instanceof Error && error.name === 'AbortError') return;
-        console.error('❌ [SingleAgent] streamText error:', {
+        logger.error('❌ [SingleAgent] streamText error:', {
           error: error instanceof Error ? error.message : String(error),
           model: modelId,
           provider,
@@ -636,7 +637,7 @@ async function* streamSingleAgent(
 
       if (!warningEmitted && elapsed >= TIMEOUT_WARNING_THRESHOLD) {
         warningEmitted = true;
-        console.warn(`⚠️ [SingleAgent] Approaching timeout at ${elapsed}ms`);
+        logger.warn(`⚠️ [SingleAgent] Approaching timeout at ${elapsed}ms`);
         yield {
           type: 'warning',
           data: {
@@ -649,7 +650,7 @@ async function* streamSingleAgent(
       }
 
       if (elapsed >= SINGLE_AGENT_HARD_TIMEOUT) {
-        console.error(
+        logger.error(
           `🛑 [SingleAgent] Hard timeout reached at ${elapsed}ms (limit: ${SINGLE_AGENT_HARD_TIMEOUT}ms)`
         );
 
@@ -774,7 +775,7 @@ async function* streamSingleAgent(
     const durationMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    console.error(`❌ [SupervisorStream] Error after ${durationMs}ms:`, errorMessage);
+    logger.error(`❌ [SupervisorStream] Error after ${durationMs}ms:`, errorMessage);
 
     yield {
       type: 'error',

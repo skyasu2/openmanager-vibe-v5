@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger';
 /**
  * Centralized Timeout Configuration
  *
@@ -261,7 +262,7 @@ export function logTimeoutWarning(
   operation: string,
   elapsedMs: number
 ): void {
-  console.warn(
+  logger.warn(
     `⚠️ [Timeout:${layer}] ${operation} approaching timeout: ${elapsedMs}ms / ${getHardTimeout(layer)}ms ` +
       `(${((elapsedMs / getHardTimeout(layer)) * 100).toFixed(0)}%)`
   );
@@ -275,7 +276,7 @@ export function logTimeoutError(
   operation: string,
   elapsedMs: number
 ): void {
-  console.error(
+  logger.error(
     `🛑 [Timeout:${layer}] ${operation} TIMEOUT: ${elapsedMs}ms exceeded ${getHardTimeout(layer)}ms limit`
   );
 }

@@ -16,6 +16,7 @@ import {
 import type { SupervisorRequest, SupervisorMode } from './supervisor-types';
 import { selectExecutionMode } from './supervisor-routing';
 import { executeSupervisorStream } from './supervisor-single-agent';
+import { logger } from '../../lib/logger';
 
 // ============================================================================
 // UIMessageStream Response
@@ -168,7 +169,7 @@ export function createSupervisorStreamResponse(
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`❌ [UIMessageStream] Error:`, errorMessage);
+        logger.error(`❌ [UIMessageStream] Error:`, errorMessage);
 
         if (textPartStarted) {
           writer.write({

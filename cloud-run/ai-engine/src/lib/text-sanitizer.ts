@@ -1,3 +1,4 @@
+import { logger } from './logger';
 /**
  * Text Sanitizer for AI Responses
  *
@@ -162,7 +163,7 @@ export function sanitizeChineseCharacters(text: string): string {
   if (containsChineseCharacters(result)) {
     const remaining = result.match(/[\u4E00-\u9FFF]+/g);
     if (remaining) {
-      console.warn(
+      logger.warn(
         `⚠️ [TextSanitizer] Unknown Chinese phrases detected: ${remaining.join(', ')}. Consider adding to mapping.`
       );
     }
@@ -173,7 +174,7 @@ export function sanitizeChineseCharacters(text: string): string {
   if (containsForeignCharacters(result)) {
     const remaining = result.match(/[\u0400-\u04FF\u3040-\u309F\u30A0-\u30FF\u0E00-\u0E7F\u0600-\u06FF]+/g);
     if (remaining) {
-      console.warn(
+      logger.warn(
         `⚠️ [TextSanitizer] Unknown foreign characters detected: ${remaining.join(', ')}. Consider adding to mapping.`
       );
     }

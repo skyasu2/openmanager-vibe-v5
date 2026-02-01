@@ -12,6 +12,7 @@
 import { readFileSync, existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { get24hTrendLLMContext } from './fixed-24h-metrics';
+import { logger } from '../lib/logger';
 
 // ============================================================================
 // Types
@@ -147,7 +148,7 @@ function loadThresholdsFromSystemRules(): SystemRulesThresholds | null {
           };
         }
       } catch (e) {
-        console.warn(`[PrecomputedState] system-rules.json 파싱 실패: ${filePath}`, e);
+        logger.warn(`[PrecomputedState] system-rules.json 파싱 실패: ${filePath}`, e);
       }
     }
   }
@@ -333,7 +334,7 @@ export function buildPrecomputedStates(): PrecomputedSlot[] {
   for (let hour = 0; hour < 24; hour++) {
     const hourlyData = loadHourlyJson(hour);
     if (!hourlyData) {
-      console.warn(`[PrecomputedState] hour-${hour} 데이터 없음, 스킵`);
+      logger.warn(`[PrecomputedState] hour-${hour} 데이터 없음, 스킵`);
       continue;
     }
 
@@ -348,7 +349,7 @@ export function buildPrecomputedStates(): PrecomputedSlot[] {
       const dataPoint = hourlyData.dataPoints[Math.min(dataPointIndex, hourlyData.dataPoints.length - 1)];
 
       if (!dataPoint?.servers) {
-        console.warn(`[PrecomputedState] slot ${slotIndex} 데이터 없음`);
+        logger.warn(`[PrecomputedState] slot ${slotIndex} 데이터 없음`);
         continue;
       }
 
@@ -426,7 +427,7 @@ function loadPrebuiltStates(): PrecomputedSlot[] | null {
         console.log(`[PrecomputedState] Pre-built JSON 로드: ${filePath} (${slots.length}개 슬롯)`);
         return slots;
       } catch (e) {
-        console.warn(`[PrecomputedState] JSON 파싱 실패: ${filePath}`, e);
+        logger.warn(`[PrecomputedState] JSON 파싱 실패: ${filePath}`, e);
       }
     }
   }

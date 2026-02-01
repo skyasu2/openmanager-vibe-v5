@@ -21,6 +21,7 @@ import { TIMEOUT_CONFIG } from '../../../config/timeout-config';
 
 import type { MultiAgentResponse } from './orchestrator-types';
 import { filterToolsByWebSearch } from './orchestrator-web-search';
+import { logger } from '../../../lib/logger';
 // ============================================================================
 // Handoff Event Tracking (Bounded for Cloud Run Memory Safety)
 // ============================================================================
@@ -86,7 +87,7 @@ export function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasMo
     try {
       return { model: getCerebrasModel('llama-3.3-70b'), provider: 'cerebras', modelId: 'llama-3.3-70b' };
     } catch {
-      console.warn('⚠️ [Orchestrator] Cerebras unavailable, trying Groq');
+      logger.warn('⚠️ [Orchestrator] Cerebras unavailable, trying Groq');
     }
   }
 
@@ -94,7 +95,7 @@ export function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasMo
     try {
       return { model: getGroqModel('llama-3.3-70b-versatile'), provider: 'groq', modelId: 'llama-3.3-70b-versatile' };
     } catch {
-      console.warn('⚠️ [Orchestrator] Groq unavailable, trying Mistral');
+      logger.warn('⚠️ [Orchestrator] Groq unavailable, trying Mistral');
     }
   }
 
@@ -102,11 +103,11 @@ export function getOrchestratorModel(): { model: ReturnType<typeof getCerebrasMo
     try {
       return { model: getMistralModel('mistral-small-2506'), provider: 'mistral', modelId: 'mistral-small-2506' };
     } catch {
-      console.warn('⚠️ [Orchestrator] Mistral unavailable');
+      logger.warn('⚠️ [Orchestrator] Mistral unavailable');
     }
   }
 
-  console.warn('⚠️ [Orchestrator] No model available (all 3 providers down)');
+  logger.warn('⚠️ [Orchestrator] No model available (all 3 providers down)');
   return null;
 }
 
@@ -117,7 +118,7 @@ const availableAgentNames = Object.keys(AGENT_CONFIGS).filter(name => {
 });
 
 if (availableAgentNames.length === 0) {
-  console.error('❌ [CRITICAL] No agents available! Check API keys: CEREBRAS_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY');
+  logger.error('❌ [CRITICAL] No agents available! Check API keys: CEREBRAS_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY');
 } else {
   console.log(`📋 [Orchestrator] Available agents: ${availableAgentNames.length} - [${availableAgentNames.join(', ')}]`);
 }
@@ -140,7 +141,7 @@ export async function executeReporterWithPipeline(
     });
 
     if (!pipelineResult.success || !pipelineResult.report) {
-      console.warn(`⚠️ [ReporterPipeline] Pipeline failed: ${pipelineResult.error || 'No report generated'}`);
+      logger.warn(`⚠️ [ReporterPipeline] Pipeline failed: ${pipelineResult.error || 'No report generated'}`);
       return null;
     }
 
@@ -188,7 +189,7 @@ export async function executeReporterWithPipeline(
       trace.score({ name: 'report-final-score', value: pipelineResult.quality.finalScore });
       trace.score({ name: 'report-correction-rate', value: pipelineResult.quality.finalScore - pipelineResult.quality.initialScore });
     } catch (error) {
-      console.warn(`⚠️ [ReporterPipeline] Langfuse score recording failed (non-blocking):`, error instanceof Error ? error.message : error);
+      logger.warn(`⚠️ [ReporterPipeline] Langfuse score recording failed (non-blocking):`, error instanceof Error ? error.message : error);
     }
 
     console.log(
@@ -218,7 +219,7 @@ export async function executeReporterWithPipeline(
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`❌ [ReporterPipeline] Error: ${errorMessage}`);
+    logger.error(`❌ [ReporterPipeline] Error: ${errorMessage}`);
     return null;
   }
 }
@@ -267,7 +268,7 @@ export async function executeForcedRouting(
   const agentConfig = AGENT_CONFIGS[suggestedAgentName];
 
   if (!agentConfig) {
-    console.warn(`⚠️ [Forced Routing] No config for "${suggestedAgentName}"`);
+    logger.warn(`⚠️ [Forced Routing] No config for "${suggestedAgentName}"`);
     return null;
   }
 
@@ -293,7 +294,7 @@ export async function executeForcedRouting(
     );
 
     if (!retryResult.success || !retryResult.result) {
-      console.warn(`⚠️ [Forced Routing] All providers failed for ${suggestedAgentName}`);
+      logger.warn(`⚠️ [Forced Routing] All providers failed for ${suggestedAgentName}`);
       for (const attempt of retryResult.attempts) {
         console.log(`   - ${attempt.provider}: ${attempt.error || 'unknown error'}`);
       }
@@ -397,7 +398,7 @@ export async function executeForcedRouting(
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`❌ [Forced Routing] ${suggestedAgentName} failed:`, errorMessage);
+    logger.error(`❌ [Forced Routing] ${suggestedAgentName} failed:`, errorMessage);
     return null;
   }
 }
@@ -430,7 +431,7 @@ export async function executeWithAgentFactory(
   const agent = AgentFactory.create(agentType);
 
   if (!agent) {
-    console.warn(`⚠️ [AgentFactory] Agent ${agentType} not available (no model configured)`);
+    logger.warn(`⚠️ [AgentFactory] Agent ${agentType} not available (no model configured)`);
     return null;
   }
 
@@ -447,7 +448,7 @@ export async function executeWithAgentFactory(
     });
 
     if (!result.success) {
-      console.error(`❌ [AgentFactory] ${agentName} failed: ${result.error}`);
+      logger.error(`❌ [AgentFactory] ${agentName} failed: ${result.error}`);
       return {
         success: false,
         response: `에이전트 실행 실패: ${result.error}`,
@@ -491,7 +492,7 @@ export async function executeWithAgentFactory(
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`❌ [AgentFactory] ${agentName} exception:`, errorMessage);
+    logger.error(`❌ [AgentFactory] ${agentName} exception:`, errorMessage);
     return null;
   }
 }

@@ -20,6 +20,7 @@ import { createHash } from 'crypto';
 import { createMistral } from '@ai-sdk/mistral';
 import { embed, embedMany } from 'ai';
 import { getMistralConfig } from './config-parser';
+import { logger } from './logger';
 
 // Lazy-initialized Mistral provider
 let mistralProvider: ReturnType<typeof createMistral> | null = null;
@@ -248,7 +249,7 @@ export async function searchWithEmbedding(
       results,
     };
   } catch (e) {
-    console.error('❌ [Embedding] Search failed:', e);
+    logger.error('❌ [Embedding] Search failed:', e);
     return {
       success: false,
       results: [],

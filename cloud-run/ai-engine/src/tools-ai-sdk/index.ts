@@ -110,6 +110,7 @@ import { searchKnowledgeBase, recommendCommands, searchWeb } from './reporter-to
 import { evaluateIncidentReport, validateReportStructure, scoreRootCauseConfidence, refineRootCauseAnalysis, enhanceSuggestedActions, extendServerCorrelation } from './incident-evaluation-tools';
 import { finalAnswer } from './final-answer';
 import { analyzeScreenshot, analyzeLargeLog, searchWithGrounding, analyzeUrlContent } from './vision-tools';
+import { logger } from '../lib/logger';
 
 /**
  * All available tools for the AI SDK Supervisor
@@ -287,7 +288,7 @@ export function validateTools(): ToolValidationResult {
     // Check if tool has execute function (AI SDK tool interface)
     if (typeof tool !== 'object' || !('execute' in tool || 'generate' in tool)) {
       // Some tools might be wrapped differently, just warn
-      console.warn(`⚠️ [ToolValidation] Tool "${name}" may not have standard structure`);
+      logger.warn(`⚠️ [ToolValidation] Tool "${name}" may not have standard structure`);
     }
 
     // Check if tool has description
@@ -327,15 +328,15 @@ export function logToolValidation(): void {
     console.log(`✅ [ToolValidation] ${result.totalTools} tools validated successfully`);
     console.log(`   Tools: [${result.validTools.join(', ')}]`);
   } else {
-    console.error(`❌ [ToolValidation] Validation failed!`);
-    console.error(`   Invalid tools: [${result.invalidTools.join(', ')}]`);
+    logger.error(`❌ [ToolValidation] Validation failed!`);
+    logger.error(`   Invalid tools: [${result.invalidTools.join(', ')}]`);
     for (const error of result.errors) {
-      console.error(`   - ${error}`);
+      logger.error(`   - ${error}`);
     }
   }
 
   if (result.missingDescriptions.length > 0) {
-    console.warn(`⚠️ [ToolValidation] Missing descriptions: [${result.missingDescriptions.join(', ')}]`);
+    logger.warn(`⚠️ [ToolValidation] Missing descriptions: [${result.missingDescriptions.join(', ')}]`);
   }
 }
 

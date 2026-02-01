@@ -10,6 +10,7 @@
  */
 
 import { redisGet, redisSet } from '../../lib/redis-client';
+import { logger } from '../../lib/logger';
 
 // ============================================================================
 // 0. 무료 티어 보호 시스템
@@ -78,7 +79,7 @@ function incrementUsage(count: number = 1): boolean {
   // 90% 도달 시 차단
   if (usageState.eventCount >= FREE_TIER_LIMIT * SAFETY_THRESHOLD) {
     usageState.isDisabled = true;
-    console.error(
+    logger.error(
       `🚨 [Langfuse] 무료 티어 한도 90% 도달! 자동 비활성화됨 ` +
         `(${usageState.eventCount.toLocaleString()}/${FREE_TIER_LIMIT.toLocaleString()} events)`
     );
@@ -95,7 +96,7 @@ function incrementUsage(count: number = 1): boolean {
       usageState.lastWarning !== thresholdKey
     ) {
       usageState.lastWarning = thresholdKey;
-      console.warn(
+      logger.warn(
         `⚠️ [Langfuse] 무료 티어 ${thresholdKey} 사용 중 ` +
           `(${usageState.eventCount.toLocaleString()}/${FREE_TIER_LIMIT.toLocaleString()} events)`
       );
@@ -212,7 +213,7 @@ export async function restoreUsageFromRedis(): Promise<void> {
     }
   } catch {
     // Redis 실패 시 인메모리 기본값 유지
-    console.warn('⚠️ [Langfuse] Redis 복원 실패, 인메모리 카운터 사용');
+    logger.warn('⚠️ [Langfuse] Redis 복원 실패, 인메모리 카운터 사용');
   }
 }
 
@@ -302,7 +303,7 @@ async function loadLangfuse(): Promise<LangfuseConstructor | null> {
     LangfuseClass = module.Langfuse;
     return LangfuseClass;
   } catch {
-    console.warn('⚠️ [Langfuse] Module not installed, observability disabled');
+    logger.warn('⚠️ [Langfuse] Module not installed, observability disabled');
     return null;
   }
 }
@@ -326,7 +327,7 @@ async function initLangfuse(): Promise<LangfuseClient> {
   const baseUrl = process.env.LANGFUSE_BASE_URL || 'https://us.cloud.langfuse.com';
 
   if (!secretKey || !publicKey) {
-    console.warn('⚠️ [Langfuse] Missing API keys, observability disabled');
+    logger.warn('⚠️ [Langfuse] Missing API keys, observability disabled');
     return createNoOpLangfuse();
   }
 
@@ -584,7 +585,7 @@ export function scoreByTraceId(traceId: string, name: string, value: number): bo
     return true;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`❌ [Langfuse] scoreByTraceId failed for trace ${traceId}: ${errorMessage}`);
+    logger.error(`❌ [Langfuse] scoreByTraceId failed for trace ${traceId}: ${errorMessage}`);
     return false;
   }
 }
@@ -697,12 +698,13 @@ export function logTimeoutEvent(
     }),
   });
 
-  // 콘솔에도 로그 (디버깅용)
-  const logFn = type === 'error' ? console.error : console.warn;
-  logFn(
-    `⏱️ [Langfuse] Timeout ${type}: ${context.operation} ` +
-      `(${context.elapsed}ms / ${context.threshold}ms threshold)`
-  );
+  // 구조화 로그 (GCP Cloud Logging severity 매핑)
+  const msg = `[Langfuse] Timeout ${type}: ${context.operation} (${context.elapsed}ms / ${context.threshold}ms threshold)`;
+  if (type === 'error') {
+    logger.error(msg);
+  } else {
+    logger.warn(msg);
+  }
 }
 
 /**

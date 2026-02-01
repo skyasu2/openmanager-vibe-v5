@@ -30,6 +30,7 @@ import {
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
 import { extractToolResultOutput } from '../../../lib/ai-sdk-utils';
 import type { AgentConfig, ModelResult } from './config';
+import { logger } from '../../../lib/logger';
 
 // ============================================================================
 // Types
@@ -399,7 +400,7 @@ export abstract class BaseAgent {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const durationMs = Date.now() - startTime;
 
-      console.error(`❌ [${agentName}] Error after ${durationMs}ms:`, errorMessage);
+      logger.error(`❌ [${agentName}] Error after ${durationMs}ms:`, errorMessage);
 
       return {
         text: '',
@@ -542,7 +543,7 @@ export abstract class BaseAgent {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const durationMs = Date.now() - startTime;
 
-      console.error(`❌ [${agentName}] Stream error after ${durationMs}ms:`, errorMessage);
+      logger.error(`❌ [${agentName}] Stream error after ${durationMs}ms:`, errorMessage);
       yield { type: 'error', data: { code: 'STREAM_ERROR', error: errorMessage } };
     }
   }

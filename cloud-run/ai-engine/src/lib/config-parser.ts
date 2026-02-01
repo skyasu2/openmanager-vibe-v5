@@ -1,3 +1,4 @@
+import { logger } from './logger';
 /**
  * Secret Configuration Parser
  * Parses JSON-based consolidated secrets from environment variables
@@ -75,14 +76,14 @@ export interface LangfuseConfig {
 function parseJsonSecret<T>(envVar: string, secretName: string): T | null {
   const value = process.env[envVar];
   if (!value) {
-    console.warn(`⚠️ [Config] ${secretName} not found in environment`);
+    logger.warn(`⚠️ [Config] ${secretName} not found in environment`);
     return null;
   }
 
   try {
     return JSON.parse(value) as T;
   } catch (err) {
-    console.error(`❌ [Config] Failed to parse ${secretName}:`, err);
+    logger.error(`❌ [Config] Failed to parse ${secretName}:`, err);
     return null;
   }
 }

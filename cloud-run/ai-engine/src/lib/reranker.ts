@@ -16,6 +16,7 @@
 import { generateText } from 'ai';
 import { createMistral } from '@ai-sdk/mistral';
 import { getMistralApiKey } from './config-parser';
+import { logger } from './logger';
 
 // ============================================================================
 // Types
@@ -86,7 +87,7 @@ function getMistralProvider(): ReturnType<typeof createMistral> | null {
 
   const apiKey = getMistralApiKey();
   if (!apiKey) {
-    console.warn('[Reranker] Mistral API key not configured');
+    logger.warn('[Reranker] Mistral API key not configured');
     return null;
   }
 
@@ -138,7 +139,7 @@ export async function rerankDocuments(
 
   const mistral = getMistralProvider();
   if (!mistral) {
-    console.warn('[Reranker] Mistral unavailable, returning original order');
+    logger.warn('[Reranker] Mistral unavailable, returning original order');
     return documents.map((doc) => ({
       ...doc,
       rerankScore: doc.originalScore,
@@ -208,7 +209,7 @@ Rate relevance (0-1) for each document.`;
     return filteredDocs;
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.warn(`[Reranker] Reranking failed (${errorMsg}), using original scores`);
+    logger.warn(`[Reranker] Reranking failed (${errorMsg}), using original scores`);
 
     // Fallback: return original order with original scores
     return documents
@@ -231,7 +232,7 @@ function parseRerankScores(
     // Extract JSON array from response
     const jsonMatch = response.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      console.warn('[Reranker] No JSON array found in response');
+      logger.warn('[Reranker] No JSON array found in response');
       return [];
     }
 
@@ -250,7 +251,7 @@ function parseRerankScores(
         reason: item.reason,
       }));
   } catch (error) {
-    console.warn('[Reranker] Failed to parse scores:', error);
+    logger.warn('[Reranker] Failed to parse scores:', error);
     return [];
   }
 }

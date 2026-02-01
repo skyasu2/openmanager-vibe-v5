@@ -37,6 +37,7 @@ import {
 } from '../../model-provider';
 
 // Tools (AI SDK tools)
+import { logger } from '../../../../lib/logger';
 import {
   // Server metrics tools
   getServerMetrics,
@@ -124,7 +125,7 @@ function getNlqModel(): ModelResult | null {
         modelId: 'llama-3.3-70b',
       };
     } catch {
-      console.warn('⚠️ [NLQ Agent] Cerebras unavailable, trying Groq');
+      logger.warn('⚠️ [NLQ Agent] Cerebras unavailable, trying Groq');
     }
   }
 
@@ -137,7 +138,7 @@ function getNlqModel(): ModelResult | null {
         modelId: 'llama-3.3-70b-versatile',
       };
     } catch {
-      console.warn('⚠️ [NLQ Agent] Groq unavailable, trying Mistral');
+      logger.warn('⚠️ [NLQ Agent] Groq unavailable, trying Mistral');
     }
   }
 
@@ -150,11 +151,11 @@ function getNlqModel(): ModelResult | null {
         modelId: 'mistral-small-2506',
       };
     } catch {
-      console.warn('⚠️ [NLQ Agent] Mistral unavailable');
+      logger.warn('⚠️ [NLQ Agent] Mistral unavailable');
     }
   }
 
-  console.warn('⚠️ [NLQ Agent] No model available (all 3 providers down)');
+  logger.warn('⚠️ [NLQ Agent] No model available (all 3 providers down)');
   return null;
 }
 
@@ -174,7 +175,7 @@ function getAnalystModel(): ModelResult | null {
         modelId: 'llama-3.3-70b-versatile',
       };
     } catch {
-      console.warn('⚠️ [Analyst Agent] Groq unavailable, trying Cerebras');
+      logger.warn('⚠️ [Analyst Agent] Groq unavailable, trying Cerebras');
     }
   }
 
@@ -187,7 +188,7 @@ function getAnalystModel(): ModelResult | null {
         modelId: 'llama-3.3-70b',
       };
     } catch {
-      console.warn('⚠️ [Analyst Agent] Cerebras unavailable, trying Mistral');
+      logger.warn('⚠️ [Analyst Agent] Cerebras unavailable, trying Mistral');
     }
   }
 
@@ -200,11 +201,11 @@ function getAnalystModel(): ModelResult | null {
         modelId: 'mistral-small-2506',
       };
     } catch {
-      console.warn('⚠️ [Analyst Agent] Mistral unavailable');
+      logger.warn('⚠️ [Analyst Agent] Mistral unavailable');
     }
   }
 
-  console.warn('⚠️ [Analyst Agent] No model available (all 3 providers down)');
+  logger.warn('⚠️ [Analyst Agent] No model available (all 3 providers down)');
   return null;
 }
 
@@ -224,7 +225,7 @@ function getReporterModel(): ModelResult | null {
         modelId: 'llama-3.3-70b-versatile',
       };
     } catch {
-      console.warn('⚠️ [Reporter Agent] Groq unavailable, trying Cerebras');
+      logger.warn('⚠️ [Reporter Agent] Groq unavailable, trying Cerebras');
     }
   }
 
@@ -237,7 +238,7 @@ function getReporterModel(): ModelResult | null {
         modelId: 'llama-3.3-70b',
       };
     } catch {
-      console.warn('⚠️ [Reporter Agent] Cerebras unavailable, trying Mistral');
+      logger.warn('⚠️ [Reporter Agent] Cerebras unavailable, trying Mistral');
     }
   }
 
@@ -250,11 +251,11 @@ function getReporterModel(): ModelResult | null {
         modelId: 'mistral-small-2506',
       };
     } catch {
-      console.warn('⚠️ [Reporter Agent] Mistral unavailable');
+      logger.warn('⚠️ [Reporter Agent] Mistral unavailable');
     }
   }
 
-  console.warn('⚠️ [Reporter Agent] No model available (all 3 providers down)');
+  logger.warn('⚠️ [Reporter Agent] No model available (all 3 providers down)');
   return null;
 }
 
@@ -275,7 +276,7 @@ function getAdvisorModel(): ModelResult | null {
         modelId: 'mistral-small-2506',
       };
     } catch {
-      console.warn('⚠️ [Advisor Agent] Mistral unavailable, trying Groq');
+      logger.warn('⚠️ [Advisor Agent] Mistral unavailable, trying Groq');
     }
   }
 
@@ -288,7 +289,7 @@ function getAdvisorModel(): ModelResult | null {
         modelId: 'llama-3.3-70b-versatile',
       };
     } catch {
-      console.warn('⚠️ [Advisor Agent] Groq unavailable, trying Cerebras');
+      logger.warn('⚠️ [Advisor Agent] Groq unavailable, trying Cerebras');
     }
   }
 
@@ -301,11 +302,11 @@ function getAdvisorModel(): ModelResult | null {
         modelId: 'llama-3.3-70b',
       };
     } catch {
-      console.warn('⚠️ [Advisor Agent] Cerebras unavailable');
+      logger.warn('⚠️ [Advisor Agent] Cerebras unavailable');
     }
   }
 
-  console.warn('⚠️ [Advisor Agent] No model available (all 3 providers down)');
+  logger.warn('⚠️ [Advisor Agent] No model available (all 3 providers down)');
   return null;
 }
 
@@ -327,7 +328,7 @@ function getVisionModel(): ModelResult | null {
 
   // Gemini only - no fallback
   if (!status.gemini) {
-    console.warn('⚠️ [Vision Agent] Gemini unavailable - Vision features disabled');
+    logger.warn('⚠️ [Vision Agent] Gemini unavailable - Vision features disabled');
     return null;
   }
 
@@ -338,7 +339,7 @@ function getVisionModel(): ModelResult | null {
       modelId: 'gemini-2.5-flash',
     };
   } catch (error) {
-    console.error('❌ [Vision Agent] Gemini initialization failed:', error);
+    logger.error('❌ [Vision Agent] Gemini initialization failed:', error);
     return null;
   }
 }

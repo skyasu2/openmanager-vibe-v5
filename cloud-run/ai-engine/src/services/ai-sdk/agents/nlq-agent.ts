@@ -15,6 +15,7 @@
 
 import { AGENT_CONFIGS, type AgentConfig } from './config';
 import { NLQAgent, AgentFactory } from './agent-factory';
+import { logger } from '../../../lib/logger';
 
 // ============================================================================
 // Agent Class Export
@@ -35,7 +36,7 @@ export { NLQAgent };
 export function getNlqAgentConfig(): AgentConfig | null {
   const config = AGENT_CONFIGS['NLQ Agent'];
   if (!config) {
-    console.error('❌ [NLQ Agent] Config not found in AGENT_CONFIGS');
+    logger.error('❌ [NLQ Agent] Config not found in AGENT_CONFIGS');
     return null;
   }
   return config;

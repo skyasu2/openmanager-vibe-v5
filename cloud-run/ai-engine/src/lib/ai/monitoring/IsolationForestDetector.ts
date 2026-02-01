@@ -24,6 +24,7 @@
 
 import { IsolationForest } from 'isolation-forest';
 import type { AnomalyDetectionResult } from './SimpleAnomalyDetector';
+import { logger } from '../../logger';
 
 // ============================================================================
 // Types
@@ -120,7 +121,7 @@ export class IsolationForestDetector {
    */
   public fit(historicalData: MultiMetricDataPoint[]): boolean {
     if (historicalData.length < this.config.minTrainingPoints) {
-      console.warn(
+      logger.warn(
         `[IsolationForest] Insufficient data for training: ${historicalData.length}/${this.config.minTrainingPoints}`
       );
       return false;
@@ -145,7 +146,7 @@ export class IsolationForestDetector {
       );
       return true;
     } catch (error) {
-      console.error('[IsolationForest] Training failed:', error);
+      logger.error('[IsolationForest] Training failed:', error);
       return false;
     }
   }
@@ -200,7 +201,7 @@ export class IsolationForestDetector {
         timestamp,
       };
     } catch (error) {
-      console.error('[IsolationForest] Detection failed:', error);
+      logger.error('[IsolationForest] Detection failed:', error);
       return this.createDefaultResult(current, timestamp);
     }
   }
@@ -251,7 +252,7 @@ export class IsolationForestDetector {
         };
       });
     } catch (error) {
-      console.error('[IsolationForest] Batch detection failed:', error);
+      logger.error('[IsolationForest] Batch detection failed:', error);
       return dataPoints.map((d) => this.createDefaultResult(d, Date.now()));
     }
   }

@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import type { EnhancedServerMetrics } from '../../types/server-metrics';
 import { determineServerStatus } from '../../config/status-thresholds';
+import { logger } from '../../lib/logger';
 
 /**
  * JSON 데이터 구조 타입 정의
@@ -72,12 +73,12 @@ function loadHourlyJsonFile(hour: number): HourlyJsonData | null {
         console.log(`[ScenarioLoader] JSON 로드 성공: hour-${paddedHour}.json`);
         return data;
       } catch (error) {
-        console.error(`[ScenarioLoader] JSON 파싱 오류: ${filePath}`, error);
+        logger.error(`[ScenarioLoader] JSON 파싱 오류: ${filePath}`, error);
       }
     }
   }
 
-  console.warn(`[ScenarioLoader] JSON 파일 없음: hour-${paddedHour}.json`);
+  logger.warn(`[ScenarioLoader] JSON 파일 없음: hour-${paddedHour}.json`);
   return null;
 }
 
@@ -102,7 +103,7 @@ export async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]>
     // JSON 파일 로드
     const hourlyData = loadHourlyJsonFile(currentHour);
     if (!hourlyData) {
-      console.error(`[ScenarioLoader] hour-${currentHour} 데이터 없음, 빈 배열 반환`);
+      logger.error(`[ScenarioLoader] hour-${currentHour} 데이터 없음, 빈 배열 반환`);
       return [];
     }
 
@@ -112,7 +113,7 @@ export async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]>
     const dataPoint = hourlyData.dataPoints[clampedIndex];
 
     if (!dataPoint || !dataPoint.servers) {
-      console.error(`[ScenarioLoader] dataPoint[${clampedIndex}] 없음`);
+      logger.error(`[ScenarioLoader] dataPoint[${clampedIndex}] 없음`);
       return [];
     }
 
@@ -174,7 +175,7 @@ export async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]>
       } as EnhancedServerMetrics;
     });
   } catch (error) {
-    console.error('[ScenarioLoader] 데이터 로드 오류:', error);
+    logger.error('[ScenarioLoader] 데이터 로드 오류:', error);
     return [];
   }
 }
@@ -244,7 +245,7 @@ export async function loadHistoricalContext(
     // 시간순 정렬 (과거 → 현재)
     return history.sort((a, b) => a.timestamp - b.timestamp);
   } catch (error) {
-    console.error('[ScenarioLoader] 히스토리 로드 오류:', error);
+    logger.error('[ScenarioLoader] 히스토리 로드 오류:', error);
     return [];
   }
 }

@@ -18,6 +18,7 @@
 import { AGENT_CONFIGS, type AgentConfig } from './config';
 import { ReporterAgent, AgentFactory } from './agent-factory';
 import { executeReporterPipeline, type PipelineConfig, type PipelineResult } from './reporter-pipeline';
+import { logger } from '../../../lib/logger';
 
 // ============================================================================
 // Agent Class Export
@@ -38,7 +39,7 @@ export { ReporterAgent };
 export function getReporterAgentConfig(): AgentConfig | null {
   const config = AGENT_CONFIGS['Reporter Agent'];
   if (!config) {
-    console.error('❌ [Reporter Agent] Config not found in AGENT_CONFIGS');
+    logger.error('❌ [Reporter Agent] Config not found in AGENT_CONFIGS');
     return null;
   }
   return config;

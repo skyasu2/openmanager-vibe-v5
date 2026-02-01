@@ -11,6 +11,7 @@
 
 import { generateText, streamText } from 'ai';
 import { createMistral } from '@ai-sdk/mistral';
+import { logger } from '../../lib/logger';
 
 interface GenerateOptions {
   model?: string;
@@ -53,7 +54,7 @@ class CloudRunGenerateService {
 
     const apiKey = process.env.MISTRAL_API_KEY;
     if (!apiKey) {
-      console.error('❌ [Generate] MISTRAL_API_KEY not configured');
+      logger.error('❌ [Generate] MISTRAL_API_KEY not configured');
       return null;
     }
 
@@ -117,7 +118,7 @@ class CloudRunGenerateService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('❌ [Generate] Error:', errorMessage);
+      logger.error('❌ [Generate] Error:', errorMessage);
 
       this.stats.errors++;
       return {
@@ -139,7 +140,7 @@ class CloudRunGenerateService {
 
     const mistral = this.getMistral();
     if (!mistral) {
-      console.error('❌ [Generate Stream] No API key available');
+      logger.error('❌ [Generate Stream] No API key available');
       return null;
     }
 
@@ -171,7 +172,7 @@ class CloudRunGenerateService {
         },
       });
     } catch (error) {
-      console.error('❌ [Generate Stream] Error:', error);
+      logger.error('❌ [Generate Stream] Error:', error);
       return null;
     }
   }

@@ -19,6 +19,7 @@
 
 import { BaseAgent, type AgentResult, type AgentRunOptions, type AgentStreamEvent } from './base-agent';
 import { AGENT_CONFIGS, type AgentConfig } from './config';
+import { logger } from '../../../lib/logger';
 
 // ============================================================================
 // Agent Type Definitions
@@ -238,13 +239,13 @@ export class AgentFactory {
         agent = new OptimizerAgent();
         break;
       default:
-        console.warn(`⚠️ [AgentFactory] Unknown agent type: ${type}`);
+        logger.warn(`⚠️ [AgentFactory] Unknown agent type: ${type}`);
         return null;
     }
 
     // Check availability
     if (!agent.isAvailable()) {
-      console.warn(`⚠️ [AgentFactory] Agent ${agent.getName()} not available (no model)`);
+      logger.warn(`⚠️ [AgentFactory] Agent ${agent.getName()} not available (no model)`);
       return null;
     }
 
@@ -268,13 +269,13 @@ export class AgentFactory {
       // Fallback to generic config-based agent
       const config = AGENT_CONFIGS[configKey];
       if (!config) {
-        console.warn(`⚠️ [AgentFactory] Unknown config key: ${configKey}`);
+        logger.warn(`⚠️ [AgentFactory] Unknown config key: ${configKey}`);
         return null;
       }
 
       const agent = new ConfigBasedAgent(configKey);
       if (!agent.isAvailable()) {
-        console.warn(`⚠️ [AgentFactory] Agent ${configKey} not available (no model)`);
+        logger.warn(`⚠️ [AgentFactory] Agent ${configKey} not available (no model)`);
         return null;
       }
       return agent;

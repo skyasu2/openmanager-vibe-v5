@@ -26,6 +26,7 @@ import {
   isRedisAvailable,
 } from '../../lib/redis-client';
 import { syncIncidentsToRAG } from '../../lib/incident-rag-injector';
+import { logger } from '../../lib/logger';
 
 export type ApprovalActionType =
   | 'incident_report'
@@ -73,7 +74,7 @@ function getSupabaseClient(): SupabaseClient | null {
   const config = getSupabaseConfig();
   if (!config) {
     supabaseInitFailed = true;
-    console.warn('⚠️ [Approval] Supabase config missing, history persistence disabled');
+    logger.warn('⚠️ [Approval] Supabase config missing, history persistence disabled');
     return null;
   }
 
@@ -83,7 +84,7 @@ function getSupabaseClient(): SupabaseClient | null {
     return supabaseClient;
   } catch (e) {
     supabaseInitFailed = true;
-    console.error('❌ [Approval] Supabase init failed:', e);
+    logger.error('❌ [Approval] Supabase init failed:', e);
     return null;
   }
 }
@@ -165,7 +166,7 @@ class ApprovalStore {
         });
         console.log(`💾 [Approval] Persisted to PostgreSQL: ${approval.sessionId}`);
       } catch (e) {
-        console.error('⚠️ [Approval] PostgreSQL persist failed:', e);
+        logger.error('⚠️ [Approval] PostgreSQL persist failed:', e);
         // Don't fail the operation - Redis/Memory still work
       }
     }
@@ -253,7 +254,7 @@ class ApprovalStore {
     }
 
     if (!entry || entry.decision) {
-      console.warn(`⚠️ [Approval] No pending request for: ${sessionId}`);
+      logger.warn(`⚠️ [Approval] No pending request for: ${sessionId}`);
       return false;
     }
 
@@ -305,7 +306,7 @@ class ApprovalStore {
           .eq('status', 'pending'); // Only update if still pending
         console.log(`💾 [Approval] Decision persisted: ${sessionId}`);
       } catch (e) {
-        console.error('⚠️ [Approval] PostgreSQL decision update failed:', e);
+        logger.error('⚠️ [Approval] PostgreSQL decision update failed:', e);
       }
     }
 
@@ -326,7 +327,7 @@ class ApprovalStore {
           console.log(`📚 [Approval] Auto-synced incident to RAG: ${sessionId}`);
         }
       }).catch((e) => {
-        console.warn(`⚠️ [Approval] RAG auto-sync failed for ${sessionId}:`, e);
+        logger.warn(`⚠️ [Approval] RAG auto-sync failed for ${sessionId}:`, e);
       });
     }
 
@@ -414,7 +415,7 @@ class ApprovalStore {
     // L2: Delete from Redis
     if (isRedisAvailable()) {
       await redisDel(`${REDIS_PREFIX}${sessionId}`).catch((e) => {
-        console.warn(`⚠️ [Approval] Redis cleanup failed for ${sessionId}:`, e);
+        logger.warn(`⚠️ [Approval] Redis cleanup failed for ${sessionId}:`, e);
       });
     }
 
@@ -428,7 +429,7 @@ class ApprovalStore {
           .eq('session_id', sessionId)
           .eq('status', 'pending'); // Only update if still pending
       } catch (e) {
-        console.warn(`⚠️ [Approval] PostgreSQL expiry update failed for ${sessionId}:`, e);
+        logger.warn(`⚠️ [Approval] PostgreSQL expiry update failed for ${sessionId}:`, e);
       }
     }
 
@@ -480,7 +481,7 @@ class ApprovalStore {
   }> | null> {
     const supabase = getSupabaseClient();
     if (!supabase) {
-      console.warn('⚠️ [Approval] PostgreSQL not available for history query');
+      logger.warn('⚠️ [Approval] PostgreSQL not available for history query');
       return null;
     }
 
@@ -495,7 +496,7 @@ class ApprovalStore {
       });
 
       if (error) {
-        console.error('❌ [Approval] History query failed:', error);
+        logger.error('❌ [Approval] History query failed:', error);
         return null;
       }
 
@@ -512,7 +513,7 @@ class ApprovalStore {
         reason: row.reason ? String(row.reason) : null,
       }));
     } catch (e) {
-      console.error('❌ [Approval] History query error:', e);
+      logger.error('❌ [Approval] History query error:', e);
       return null;
     }
   }
@@ -538,7 +539,7 @@ class ApprovalStore {
       });
 
       if (error || !data || data.length === 0) {
-        console.error('❌ [Approval] Stats query failed:', error);
+        logger.error('❌ [Approval] Stats query failed:', error);
         return null;
       }
 
@@ -553,7 +554,7 @@ class ApprovalStore {
         avgDecisionTimeSeconds: Number(stats.avg_decision_time_seconds || 0),
       };
     } catch (e) {
-      console.error('❌ [Approval] Stats query error:', e);
+      logger.error('❌ [Approval] Stats query error:', e);
       return null;
     }
   }

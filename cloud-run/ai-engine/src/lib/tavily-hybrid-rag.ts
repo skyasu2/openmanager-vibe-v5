@@ -15,6 +15,7 @@
  */
 
 import { getTavilyApiKey, getTavilyApiKeyBackup } from './config-parser';
+import { logger } from './logger';
 
 // ============================================================================
 // Types
@@ -102,7 +103,7 @@ async function executeTavilySearch(
   const apiKey = primaryKey || backupKey;
 
   if (!apiKey) {
-    console.warn('[TavilyHybrid] No Tavily API key configured');
+    logger.warn('[TavilyHybrid] No Tavily API key configured');
     return [];
   }
 
@@ -136,7 +137,7 @@ async function executeTavilySearch(
         console.log(`🔄 [TavilyHybrid] Retry ${attempt + 1}/${TAVILY_MAX_RETRIES} after error: ${errorMsg}`);
         await new Promise((resolve) => setTimeout(resolve, TAVILY_RETRY_DELAY_MS));
       } else {
-        console.warn(`[TavilyHybrid] Web search failed after ${TAVILY_MAX_RETRIES + 1} attempts: ${errorMsg}`);
+        logger.warn(`[TavilyHybrid] Web search failed after ${TAVILY_MAX_RETRIES + 1} attempts: ${errorMsg}`);
         return [];
       }
     }

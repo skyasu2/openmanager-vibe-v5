@@ -16,6 +16,7 @@ import {
 } from 'llamaindex';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseConfig, getMistralApiKey } from './config-parser';
+import { logger } from './logger';
 import {
   hybridTextVectorSearch,
   type HybridSearchResult as TextSearchResult,
@@ -64,7 +65,7 @@ export async function initializeLlamaIndex(): Promise<boolean> {
   try {
     const mistralApiKey = getMistralApiKey();
     if (!mistralApiKey) {
-      console.warn('⚠️ [LlamaIndex] Mistral API key missing, using fallback');
+      logger.warn('⚠️ [LlamaIndex] Mistral API key missing, using fallback');
       return false;
     }
 
@@ -87,7 +88,7 @@ export async function initializeLlamaIndex(): Promise<boolean> {
     console.log('✅ [LlamaIndex] Initialized with Mistral AI');
     return true;
   } catch (error) {
-    console.error('❌ [LlamaIndex] Initialization failed:', error);
+    logger.error('❌ [LlamaIndex] Initialization failed:', error);
     return false;
   }
 }
@@ -107,7 +108,7 @@ export async function extractTriplets(
   await initializeLlamaIndex();
 
   if (!Settings.llm) {
-    console.warn('⚠️ [LlamaIndex] LLM not configured');
+    logger.warn('⚠️ [LlamaIndex] LLM not configured');
     return [];
   }
 
@@ -131,7 +132,7 @@ Only output the JSON array, no other text.
     // Parse JSON response
     const jsonMatch = responseText.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      console.warn('⚠️ [LlamaIndex] Failed to parse triplets JSON');
+      logger.warn('⚠️ [LlamaIndex] Failed to parse triplets JSON');
       return [];
     }
 
@@ -139,7 +140,7 @@ Only output the JSON array, no other text.
     console.log(`📊 [LlamaIndex] Extracted ${triplets.length} triplets`);
     return triplets;
   } catch (error) {
-    console.error('❌ [LlamaIndex] Triplet extraction failed:', error);
+    logger.error('❌ [LlamaIndex] Triplet extraction failed:', error);
     return [];
   }
 }
@@ -169,7 +170,7 @@ export async function searchKnowledgeBase(
   } = options;
 
   if (!supabaseClient) {
-    console.warn('⚠️ [LlamaIndex] Supabase not available');
+    logger.warn('⚠️ [LlamaIndex] Supabase not available');
     return [];
   }
 
@@ -193,7 +194,7 @@ export async function searchKnowledgeBase(
       metadata: row.metadata as Record<string, unknown>,
     }));
   } catch (error) {
-    console.error('❌ [LlamaIndex] Search failed:', error);
+    logger.error('❌ [LlamaIndex] Search failed:', error);
     return [];
   }
 }
@@ -225,7 +226,7 @@ export async function hybridSearch(
   } = options;
 
   if (!supabaseClient) {
-    console.warn('⚠️ [LlamaIndex] Supabase not available');
+    logger.warn('⚠️ [LlamaIndex] Supabase not available');
     return [];
   }
 
@@ -309,7 +310,7 @@ export async function hybridSearch(
       .sort((a, b) => b.score - a.score)
       .slice(0, maxTotalResults);
   } catch (error) {
-    console.error('❌ [LlamaIndex] Hybrid search failed:', error);
+    logger.error('❌ [LlamaIndex] Hybrid search failed:', error);
     return [];
   }
 }
@@ -364,7 +365,7 @@ export async function indexDocuments(
     console.log(`✅ [LlamaIndex] Indexed ${indexed}/${documents.length} documents`);
     return { success: true, indexed };
   } catch (error) {
-    console.error('❌ [LlamaIndex] Indexing failed:', error);
+    logger.error('❌ [LlamaIndex] Indexing failed:', error);
     return { success: false, indexed: 0 };
   }
 }
@@ -391,7 +392,7 @@ export async function getStats(): Promise<LlamaIndexStats | null> {
       lastIndexed: relsResult.data?.[0]?.created_at || null,
     };
   } catch (error) {
-    console.error('❌ [LlamaIndex] Stats fetch failed:', error);
+    logger.error('❌ [LlamaIndex] Stats fetch failed:', error);
     return null;
   }
 }
@@ -463,13 +464,13 @@ export async function hybridGraphSearch(
         },
       }));
     } catch (error) {
-      console.warn('[LlamaIndex] BM25 search failed, falling back to vector-only:', error);
+      logger.warn('[LlamaIndex] BM25 search failed, falling back to vector-only:', error);
       // Fall through to vector-only search
     }
   }
 
   if (!supabaseClient) {
-    console.warn('⚠️ [LlamaIndex] Supabase not available');
+    logger.warn('⚠️ [LlamaIndex] Supabase not available');
     return [];
   }
 
@@ -565,7 +566,7 @@ export async function hybridGraphSearch(
       .sort((a, b) => b.score - a.score)
       .slice(0, maxTotalResults);
   } catch (error) {
-    console.error('❌ [LlamaIndex] Hybrid graph search failed:', error);
+    logger.error('❌ [LlamaIndex] Hybrid graph search failed:', error);
     return [];
   }
 }
@@ -589,7 +590,7 @@ export const extractRelationships = async (options: {
   const { batchSize = 50, onlyUnprocessed = true } = options;
 
   if (!supabaseClient) {
-    console.warn('⚠️ [LlamaIndex] Supabase not available');
+    logger.warn('⚠️ [LlamaIndex] Supabase not available');
     return [];
   }
 
@@ -643,7 +644,7 @@ export const extractRelationships = async (options: {
     console.log(`✅ [LlamaIndex] Extracted relationships from ${results.length} entries`);
     return results;
   } catch (error) {
-    console.error('❌ [LlamaIndex] Relationship extraction failed:', error);
+    logger.error('❌ [LlamaIndex] Relationship extraction failed:', error);
     return [];
   }
 };
@@ -690,7 +691,7 @@ export const getRelatedKnowledge = async (
       };
     });
   } catch (error) {
-    console.error('❌ [LlamaIndex] Related knowledge fetch error:', error);
+    logger.error('❌ [LlamaIndex] Related knowledge fetch error:', error);
     return [];
   }
 };

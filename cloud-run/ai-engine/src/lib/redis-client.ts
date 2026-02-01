@@ -11,6 +11,7 @@
 
 import { Redis } from '@upstash/redis';
 import { getUpstashConfig, type UpstashConfig } from './config-parser';
+import { logger } from './logger';
 
 // Re-export for convenience
 export type { UpstashConfig };
@@ -60,7 +61,7 @@ export function getRedisClient(): Redis | null {
     console.log('✅ [Redis] Client initialized');
     return redisInstance;
   } catch (e) {
-    console.error('❌ [Redis] Client initialization failed:', e);
+    logger.error('❌ [Redis] Client initialization failed:', e);
     connectionFailed = true;
     return null;
   }
@@ -88,7 +89,7 @@ export async function redisGet<T>(key: string): Promise<T | null> {
     const value = await client.get<T>(key);
     return value;
   } catch (e) {
-    console.warn(`⚠️ [Redis] GET failed for ${key}:`, e);
+    logger.warn(`⚠️ [Redis] GET failed for ${key}:`, e);
     return null;
   }
 }
@@ -109,7 +110,7 @@ export async function redisSet<T>(
     await client.set(key, value, { ex: ttlSeconds });
     return true;
   } catch (e) {
-    console.warn(`⚠️ [Redis] SET failed for ${key}:`, e);
+    logger.warn(`⚠️ [Redis] SET failed for ${key}:`, e);
     return false;
   }
 }
@@ -125,7 +126,7 @@ export async function redisDel(key: string): Promise<boolean> {
     await client.del(key);
     return true;
   } catch (e) {
-    console.warn(`⚠️ [Redis] DEL failed for ${key}:`, e);
+    logger.warn(`⚠️ [Redis] DEL failed for ${key}:`, e);
     return false;
   }
 }
@@ -156,7 +157,7 @@ export async function redisDelByPattern(pattern: string): Promise<number> {
 
     return deletedCount;
   } catch (e) {
-    console.warn(`⚠️ [Redis] DEL pattern failed for ${pattern}:`, e);
+    logger.warn(`⚠️ [Redis] DEL pattern failed for ${pattern}:`, e);
     return 0;
   }
 }

@@ -69,25 +69,85 @@ function createLogger() {
   });
 }
 
-export const logger = createLogger();
+const pinoLogger = createLogger();
+
+/**
+ * Console-compatible logger wrapper
+ *
+ * Pino의 시그니처는 (obj, msg) | (msg) 형태이지만,
+ * console.warn/error('msg', extra) 패턴을 지원하기 위해 래핑합니다.
+ * 두 번째 이후 인자는 structured context로 변환됩니다.
+ */
+function createWrappedLogger(pino: pino.Logger): WrappedLogger {
+  function wrapMethod(method: 'warn' | 'error' | 'info' | 'debug' | 'fatal') {
+    return (msgOrObj: unknown, ...args: unknown[]) => {
+      // Pino 표준 호출: logger.error({ err, url }, 'msg')
+      if (typeof msgOrObj === 'object' && msgOrObj !== null && args.length > 0 && typeof args[0] === 'string') {
+        return pino[method](msgOrObj as Record<string, unknown>, args[0]);
+      }
+
+      // console-style 호출: logger.error('msg', error)
+      if (typeof msgOrObj === 'string' && args.length > 0) {
+        const extra = args[0];
+        if (extra instanceof Error) {
+          return pino[method]({ err: extra }, msgOrObj);
+        }
+        return pino[method]({ extra }, msgOrObj);
+      }
+
+      // 단순 문자열: logger.error('msg')
+      if (typeof msgOrObj === 'string') {
+        return pino[method](msgOrObj);
+      }
+
+      // 객체만: logger.error({ err })
+      return pino[method](msgOrObj as Record<string, unknown>);
+    };
+  }
+
+  return {
+    warn: wrapMethod('warn'),
+    error: wrapMethod('error'),
+    info: wrapMethod('info'),
+    debug: wrapMethod('debug'),
+    fatal: wrapMethod('fatal'),
+    child: (bindings: Record<string, unknown>) => createWrappedLogger(pino.child(bindings)),
+    get level() { return pino.level; },
+    set level(val: string) { pino.level = val; },
+  };
+}
+
+type LogMethod = (msgOrObj: unknown, ...args: unknown[]) => void;
+
+type WrappedLogger = {
+  warn: LogMethod;
+  error: LogMethod;
+  info: LogMethod;
+  debug: LogMethod;
+  fatal: LogMethod;
+  child: (bindings: Record<string, unknown>) => WrappedLogger;
+  level: string;
+};
+
+export const logger: WrappedLogger = createWrappedLogger(pinoLogger);
 
 /**
  * Create a child logger with additional context
  */
 export function createChildLogger(
   context: Record<string, string | number | boolean>
-) {
-  return logger.child(context);
+): WrappedLogger {
+  return createWrappedLogger(pinoLogger.child(context));
 }
 
 /**
  * Request-scoped logger factory
  */
-export function createRequestLogger(requestId: string, path: string) {
-  return logger.child({
+export function createRequestLogger(requestId: string, path: string): WrappedLogger {
+  return createWrappedLogger(pinoLogger.child({
     requestId,
     path,
-  });
+  }));
 }
 
-export type Logger = typeof logger;
+export type Logger = WrappedLogger;

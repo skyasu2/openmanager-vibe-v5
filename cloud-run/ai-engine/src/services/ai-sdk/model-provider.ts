@@ -305,7 +305,7 @@ export function getSupervisorModel(excludeProviders: ProviderName[] = []): {
         modelId: 'llama-3.3-70b',
       };
     } catch (error) {
-      console.warn('⚠️ [Supervisor] Cerebras initialization failed:', error);
+      logger.warn('⚠️ [Supervisor] Cerebras initialization failed:', error);
     }
   }
 
@@ -352,7 +352,7 @@ export function getVerifierModel(): {
         modelId: 'mistral-small-2506',
       };
     } catch (error) {
-      console.warn('⚠️ [Verifier] Mistral initialization failed, trying Cerebras:', error);
+      logger.warn('⚠️ [Verifier] Mistral initialization failed, trying Cerebras:', error);
     }
   }
 
@@ -366,7 +366,7 @@ export function getVerifierModel(): {
         modelId: 'llama-3.3-70b',
       };
     } catch (error) {
-      console.warn('⚠️ [Verifier] Cerebras initialization failed, trying Groq:', error);
+      logger.warn('⚠️ [Verifier] Cerebras initialization failed, trying Groq:', error);
     }
   }
 
@@ -404,7 +404,7 @@ export function getAdvisorModel(): {
         modelId: 'mistral-small-2506',
       };
     } catch (error) {
-      console.warn('⚠️ [Advisor] Mistral initialization failed, trying Groq:', error);
+      logger.warn('⚠️ [Advisor] Mistral initialization failed, trying Groq:', error);
     }
   }
 
@@ -418,7 +418,7 @@ export function getAdvisorModel(): {
         modelId: 'llama-3.3-70b-versatile',
       };
     } catch (error) {
-      console.warn('⚠️ [Advisor] Groq initialization failed, trying Cerebras:', error);
+      logger.warn('⚠️ [Advisor] Groq initialization failed, trying Cerebras:', error);
     }
   }
 
@@ -460,7 +460,7 @@ export function getVisionAgentModel(): {
   const status = checkProviderStatus();
 
   if (!status.gemini) {
-    console.warn('⚠️ [Vision Agent] Gemini unavailable - Vision features disabled');
+    logger.warn('⚠️ [Vision Agent] Gemini unavailable - Vision features disabled');
     return null;
   }
 
@@ -471,7 +471,7 @@ export function getVisionAgentModel(): {
       modelId: 'gemini-2.5-flash',
     };
   } catch (error) {
-    console.error('❌ [Vision Agent] Gemini initialization failed:', error);
+    logger.error('❌ [Vision Agent] Gemini initialization failed:', error);
     return null;
   }
 }
@@ -574,6 +574,7 @@ export function logProviderStatus(): void {
 // 7. Pre-emptive Fallback with Quota Tracking
 // ============================================================================
 
+import { logger } from '../../lib/logger';
 import {
   selectAvailableProvider,
   recordProviderUsage,
@@ -643,7 +644,7 @@ export async function getSupervisorModelWithQuota(
   }
 
   // Quota 초과 시 기존 로직으로 폴백
-  console.warn('⚠️ [Supervisor] All providers at quota limit, using fallback logic');
+  logger.warn('⚠️ [Supervisor] All providers at quota limit, using fallback logic');
   const fallback = getSupervisorModel(excludeProviders);
   return { ...fallback, isPreemptiveFallback: false };
 }
