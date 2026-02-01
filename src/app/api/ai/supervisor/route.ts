@@ -268,7 +268,9 @@ export const POST = withRateLimit(
             maxTotalMessages: 6,
             maxCharsPerMessage: 800,
           });
-          messagesToSend = compression.messages;
+          messagesToSend = contextMessage
+            ? [contextMessage, ...compression.messages]
+            : compression.messages;
           logger.info(
             `🗜️ [Supervisor] Context compressed: ${compression.originalCount} → ${compression.compressedCount} messages (${compression.compressionRatio}% saved)`
           );

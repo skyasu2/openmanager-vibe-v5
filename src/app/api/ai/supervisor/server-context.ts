@@ -19,7 +19,7 @@ export function buildServerContextMessage(): NormalizedMessage | null {
     const alertLines = alerts
       .map(
         (s) =>
-          `- ${s.name}(${s.serverId}): CPU ${s.cpu}%, Memory ${s.memory}%, Disk ${s.disk}% [${s.status}]`
+          `- ${s.serverId}: CPU ${s.cpu}%, Memory ${s.memory}%, Disk ${s.disk}% [${s.status}]`
       )
       .join('\n');
 

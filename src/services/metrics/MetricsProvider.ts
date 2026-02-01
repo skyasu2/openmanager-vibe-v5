@@ -512,7 +512,6 @@ export class MetricsProvider {
    */
   public getAlertServers(): Array<{
     serverId: string;
-    name: string;
     cpu: number;
     memory: number;
     disk: number;
@@ -523,7 +522,6 @@ export class MetricsProvider {
       .filter((s) => s.status === 'warning' || s.status === 'critical')
       .map((s) => ({
         serverId: s.serverId,
-        name: s.serverId,
         cpu: s.cpu,
         memory: s.memory,
         disk: s.disk,
