@@ -2,6 +2,103 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.1.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.1.0...v7.1.1) (2026-02-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **code-review:** Remove Codex/Gemini rotation, use Claude Code exclusively
+
+- Update ai-review-core.sh: Remove Codex/Gemini functions, keep only Claude
+- Update ai-review-utils.sh: Simplify AI selection (always claude)
+- Update auto-ai-review.sh: Bump to v10.0.0
+- Update commit-commands skill: Claude Code review documentation
+- Update ai-tools.md: Remove Codex/Gemini CLI tools
+
+Benefits:
+- No external AI dependencies
+- Consistent review quality
+- Simpler maintenance
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Features
+
+* **ai-chat:** add mixed paste support for image+text clipboard content ([0120f9c](https://github.com/skyasu2/openmanager-vibe-v5/commit/0120f9c52a3b7f76553fc5f9d31cc9dbdebb8ff8))
+* **ai-engine:** add dailyTrend to getServerMetrics and expand Korean internal keywords ([5acc370](https://github.com/skyasu2/openmanager-vibe-v5/commit/5acc370798745778e7d62db1c6bfa9d673fd1ab4))
+* **ai-engine:** add ragSources to API response and web citation fallback ([859d556](https://github.com/skyasu2/openmanager-vibe-v5/commit/859d5564eab9d1af7fa2bc09f8cd3a1483b025df))
+* **ai-engine:** add Vision Agent with AgentFactory pattern ([2696897](https://github.com/skyasu2/openmanager-vibe-v5/commit/2696897e2f8ccaab67d500ae7e0a843dea9159df))
+* **ai-engine:** add Vision Agent with Gemini Flash-Lite ([1ba6fcf](https://github.com/skyasu2/openmanager-vibe-v5/commit/1ba6fcf51d7d370bdde449916893a127e52fd5f8))
+* **ai-engine:** enrich RAG context with thresholds, server roles, and 24h trend summaries ([6a678df](https://github.com/skyasu2/openmanager-vibe-v5/commit/6a678dfdc62fd82be11c8cc180bd19e408144898))
+* **ai-engine:** expand RAG usage to Analyst and NLQ agents ([a1ba863](https://github.com/skyasu2/openmanager-vibe-v5/commit/a1ba8632e85c7892742f9484a55248117f80b25e))
+* **ai-engine:** integrate 24h trend into LLM context and add KB seed docs ([25c51e2](https://github.com/skyasu2/openmanager-vibe-v5/commit/25c51e2ab38b951ea0bc0342fe57f05cdf6f0972))
+* **ai-sidebar:** add web search toggle with Globe icon ([a25e407](https://github.com/skyasu2/openmanager-vibe-v5/commit/a25e4079774b15443f2063b3481cd0a3e56a2e6f))
+* **ai:** add multimodal support with Vision Agent and file attachments ([57294b5](https://github.com/skyasu2/openmanager-vibe-v5/commit/57294b591aa47d3cd5d41043566b4357ca76b51f))
+* **ai:** display RAG source metadata in analysis basis panel ([34e8dcb](https://github.com/skyasu2/openmanager-vibe-v5/commit/34e8dcb1d206f4741a4ac71eeed59ceeeffffb3a))
+* **code-review:** add REVIEW_MODE option for Claude Code review ([d625347](https://github.com/skyasu2/openmanager-vibe-v5/commit/d625347100ee6ae9bdab949272290beae80b4d1f))
+* **landing:** rebrand Hero to OpenManager AI and add rationale to feature cards ([e57e293](https://github.com/skyasu2/openmanager-vibe-v5/commit/e57e29315a0f3bd66b1f82411c07ce33d53039e5))
+* **observability:** add quantitative evaluation scores and human feedback loop to Langfuse ([54f85ab](https://github.com/skyasu2/openmanager-vibe-v5/commit/54f85ab542eb474007878da2f0ffcdb06e6b44dd))
+* **security:** add comprehensive secret detection to pre-commit ([7e8ac08](https://github.com/skyasu2/openmanager-vibe-v5/commit/7e8ac0828b5e46023c30fce878e5b95912c0d947))
+* **security:** add prompt injection guard to Cloud Run AI Engine ([d72c783](https://github.com/skyasu2/openmanager-vibe-v5/commit/d72c783db8b95776b4b75a8d89cdd17a38ce8e60))
+* **skills:** add observability-check skill for Langfuse/Sentry monitoring ([563bfdb](https://github.com/skyasu2/openmanager-vibe-v5/commit/563bfdb0d3f39ec7778c42c7c6373862bcf9c2ef))
+
+
+### Bug Fixes
+
+* **ai-chat:** preserve file attachments on retry ([4eca5da](https://github.com/skyasu2/openmanager-vibe-v5/commit/4eca5dad2931dde9d00195bb3bfed6ea02a876be))
+* **ai-engine:** add images/files schema support for multimodal file attachments ([ed86b03](https://github.com/skyasu2/openmanager-vibe-v5/commit/ed86b03314b49409b437c50aac7f739d24937bcb))
+* **ai-engine:** add ragSources to SupervisorResponse type ([4c1c9e8](https://github.com/skyasu2/openmanager-vibe-v5/commit/4c1c9e894498c112877116cb6cd37446a1e7470b))
+* **ai-engine:** address Codex review feedback for BaseAgent ([6d68187](https://github.com/skyasu2/openmanager-vibe-v5/commit/6d6818720532f1b5c1ff413971c4cbd6c472f294))
+* **ai-engine:** address follow-up Codex review edge cases ([fd7e96f](https://github.com/skyasu2/openmanager-vibe-v5/commit/fd7e96fac291c8868ef9cf55b7fa7c5e9bc130c5))
+* **ai-engine:** align Tavily timeout/retry settings across RAG paths ([9b7f956](https://github.com/skyasu2/openmanager-vibe-v5/commit/9b7f956559404f77a32be4ad9af7862730ac88e8))
+* **ai-engine:** apply enableWebSearch filter in single-agent path ([985dbf8](https://github.com/skyasu2/openmanager-vibe-v5/commit/985dbf8bc62cef41c0f6cae8c51ffc6b9bb3ddf5))
+* **ai-engine:** apply same type guard to run() for consistency ([6d3894f](https://github.com/skyasu2/openmanager-vibe-v5/commit/6d3894f2e3cd6536befa4fb3db93235fbf8e10fe))
+* **ai-engine:** default fastMode to true for searchKnowledgeBase ([db71db1](https://github.com/skyasu2/openmanager-vibe-v5/commit/db71db1d344cdd02dc68a8601c8ad58cd3c312b5))
+* **ai-engine:** enforce mandatory tool usage in Advisor and Analyst instructions ([30f270c](https://github.com/skyasu2/openmanager-vibe-v5/commit/30f270c1c556b40576d3b4ba74df8a83eaaeb95b))
+* **ai-engine:** extract ragSources in forced routing path ([9a73740](https://github.com/skyasu2/openmanager-vibe-v5/commit/9a737405a079a7172397307e439a7306b456c0f9))
+* **ai-engine:** improve Tavily web search response quality ([c8d4066](https://github.com/skyasu2/openmanager-vibe-v5/commit/c8d40662e3e3eafd87705d10565e0a8e0b43ab3e))
+* **ai-engine:** pass enableWebSearch from route to orchestrator ([401a9c0](https://github.com/skyasu2/openmanager-vibe-v5/commit/401a9c0e24faa5d5b323fc2c500a2d3e4b481c16))
+* **ai-engine:** prevent RAG similarCases from being overwritten in optimizeReport ([a7432bb](https://github.com/skyasu2/openmanager-vibe-v5/commit/a7432bb631357ac87321e5392fc8ddce3c717bc1))
+* **ai-engine:** propagate enableWebSearch through supervisor to multi-agent ([9db3a11](https://github.com/skyasu2/openmanager-vibe-v5/commit/9db3a111c554e3eb7fbde0561693417c81194a21))
+* **ai-engine:** raise Tavily web search threshold from 0.4 to 0.6 ([634b28c](https://github.com/skyasu2/openmanager-vibe-v5/commit/634b28cf19d900aea9dab175b6b155735475b5cb))
+* **ai-engine:** regenerate package-lock.json for @ai-sdk/google ([fc5cb1a](https://github.com/skyasu2/openmanager-vibe-v5/commit/fc5cb1abde554b4032904b02bbe8db930a5900d2))
+* **ai-engine:** remove manual RAG call from Reporter and add stepMs timeout ([369001a](https://github.com/skyasu2/openmanager-vibe-v5/commit/369001af7b248489ff38fba93488ee4ed93c364c))
+* **ai-engine:** use 'output' instead of 'result' for AI SDK v6 toolResult extraction ([cf36969](https://github.com/skyasu2/openmanager-vibe-v5/commit/cf369697ea42618e0a3f83983c504c60d9e13706))
+* **ai-sidebar:** add cursor-pointer to web search and file attach buttons ([e4a0fcd](https://github.com/skyasu2/openmanager-vibe-v5/commit/e4a0fcd323e2769ad23b8b95c259f63d3d00c023))
+* **ai-sidebar:** async feedback handling and message metadata cleanup ([46ee7e9](https://github.com/skyasu2/openmanager-vibe-v5/commit/46ee7e90ffad39280ac78b2b625bff075dedc87d))
+* **ai:** resolve multimodal file attachment critical bugs ([971b022](https://github.com/skyasu2/openmanager-vibe-v5/commit/971b022ae798edee56bb38eaf860b9d74f1a8144))
+* **ai:** resolve P0 multimodal side effects ([6ce1562](https://github.com/skyasu2/openmanager-vibe-v5/commit/6ce1562543669ef4a43c5abe86c0b1a704ab43e1))
+* **ai:** resolve RAG timeout causing fallback cache and circuit breaker lockout ([1061e11](https://github.com/skyasu2/openmanager-vibe-v5/commit/1061e11535db4cfe989772d86ad9824d645fc417))
+* **ai:** skip clarification when server product name or percentage is present ([95de479](https://github.com/skyasu2/openmanager-vibe-v5/commit/95de479e4890756da578ceb33c9a29b45a63546d))
+* **ai:** update clarification comments and add product names to METRIC_PATTERNS ([ab85e48](https://github.com/skyasu2/openmanager-vibe-v5/commit/ab85e48ee9a0ec7061cadd017f92b279eb8dbf94))
+* **chat:** clear previous session chat history on system boot ([a4c8dc2](https://github.com/skyasu2/openmanager-vibe-v5/commit/a4c8dc27738471a4541f2c644efe47eee7851540))
+* **cloud-run:** add multimodal support to single-agent streaming ([12947d3](https://github.com/skyasu2/openmanager-vibe-v5/commit/12947d3bc61a2b64281e0a9aea157781bc50822d))
+* **cloud-run:** route image requests to Vision Agent (Gemini) ([c7d362c](https://github.com/skyasu2/openmanager-vibe-v5/commit/c7d362c3b7c4825e256e2d6fd3a3f2ebae38d2ae))
+* **cloud-run:** unify Vision Agent model ID to gemini-2.5-flash ([afb693e](https://github.com/skyasu2/openmanager-vibe-v5/commit/afb693e309f1a24bbb90e3eee502893b96976450))
+* **cloud-run:** use gemini-2.5-flash for Vision Agent ([6e2b312](https://github.com/skyasu2/openmanager-vibe-v5/commit/6e2b312d6876a88b2d90c0ad8314be7b55677789))
+* **config:** sync AI_ENGINE_VERSIONS.master to v7.1.0 ([651db4b](https://github.com/skyasu2/openmanager-vibe-v5/commit/651db4b122e5621635f90c3a03ec69a96df97c2f))
+* **deps:** pin ai@6.0.39, remove zod from optimizePackageImports, patch lodash ([ba5b595](https://github.com/skyasu2/openmanager-vibe-v5/commit/ba5b5957927a9c58ea39459272e373dac40398be))
+* **deps:** rollback ai@6.0.57 → 6.0.39 to fix Zod bundling crash ([f3e8515](https://github.com/skyasu2/openmanager-vibe-v5/commit/f3e8515cde3f00659e15d90152a42cce7b80b9dc))
+* **e2e:** fix ai-streaming-handoff tests for production selectors ([055d7f4](https://github.com/skyasu2/openmanager-vibe-v5/commit/055d7f41bdbecb5e02d00615691e0b6621c44fb1))
+* **hooks:** resolve race condition in useHealthCheck and stale closure in useChatActions ([f336da1](https://github.com/skyasu2/openmanager-vibe-v5/commit/f336da199e13a7cee6704f00b89a9706920740fa))
+* **langfuse:** persist eventCount to Redis for free tier protection across restarts ([610c640](https://github.com/skyasu2/openmanager-vibe-v5/commit/610c6407b0f054bf939624ab011aeaccdd2554fd))
+* **login:** remove isClient hydration guard to fix E2E 48 failures ([c6be63e](https://github.com/skyasu2/openmanager-vibe-v5/commit/c6be63e636f043c4be8ba10493ade6af4ae9037f))
+* **schema:** export filePartSchema and add trim validation ([417c9b1](https://github.com/skyasu2/openmanager-vibe-v5/commit/417c9b109dfdb35061fe78a5a1a52abbf479616c))
+* **security:** block medium risk prompt injection attempts ([f64ffba](https://github.com/skyasu2/openmanager-vibe-v5/commit/f64ffba22288c080d12a023c12a03e4d25d71366))
+* **security:** harden AI engine CORS, debug auth, and logging hygiene ([e15d7ac](https://github.com/skyasu2/openmanager-vibe-v5/commit/e15d7ac210f0a41f3f53840feaf8fbd7cdfd1e80))
+* **security:** harden feedback route input validation and error handling ([baa5b8e](https://github.com/skyasu2/openmanager-vibe-v5/commit/baa5b8e145bf001336812f28cd41dca836252da6))
+* **settings:** remove outputStyle/FORCE_COLOR blocking prompt suggestions ([48f31c2](https://github.com/skyasu2/openmanager-vibe-v5/commit/48f31c2f64c4af316b05b55e99ffcdcc49ab8591))
+* **skills:** add executable permissions to scripts ([7e12247](https://github.com/skyasu2/openmanager-vibe-v5/commit/7e12247e4a6a6f509bd5895bbfb44c94c0347b13))
+* **skills:** use modular scripts in commit-commands workflow ([ba7674c](https://github.com/skyasu2/openmanager-vibe-v5/commit/ba7674ccb7b82e925fa076f795ff95257d55a83b))
+* **ui:** move header center content breakpoint from md to lg ([d612d27](https://github.com/skyasu2/openmanager-vibe-v5/commit/d612d277fac09d06e26940106a76e98543a9fab8))
+* **ui:** prevent mobile header overlap between logo and AI button ([fa4f101](https://github.com/skyasu2/openmanager-vibe-v5/commit/fa4f1018027dae9cf0d41b7133578f31cc136342))
+* **vercel:** apply Free Tier maxDuration limits inline ([38f7f6b](https://github.com/skyasu2/openmanager-vibe-v5/commit/38f7f6be6de124cfd1d73328bf8166b7a626ea0e))
+* **warmup:** correct cooldown comment (60s → 5min) ([29fb5fa](https://github.com/skyasu2/openmanager-vibe-v5/commit/29fb5fa73974b2e49ac4c1f18bd0943c9f186291))
+* **zod:** isolate Zod v4 to server-only, prevent client bundle crash ([d6985e5](https://github.com/skyasu2/openmanager-vibe-v5/commit/d6985e530c8b2dcc69559b103d31279066172034))
+
+
+* **code-review:** switch to Claude Code-only review system ([85c4712](https://github.com/skyasu2/openmanager-vibe-v5/commit/85c4712c3c2c4fafb4124df4545edaf44596ebcf))
+
 ## [7.1.0](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.0.2...v7.1.0) (2026-01-26)
 
 
