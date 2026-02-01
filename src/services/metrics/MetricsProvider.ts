@@ -508,6 +508,30 @@ export class MetricsProvider {
   }
 
   /**
+   * 경고/위험 상태 서버만 반환 (AI 컨텍스트 주입용)
+   */
+  public getAlertServers(): Array<{
+    serverId: string;
+    name: string;
+    cpu: number;
+    memory: number;
+    disk: number;
+    status: string;
+  }> {
+    const allMetrics = this.getAllServerMetrics();
+    return allMetrics
+      .filter((s) => s.status === 'warning' || s.status === 'critical')
+      .map((s) => ({
+        serverId: s.serverId,
+        name: s.serverId,
+        cpu: s.cpu,
+        memory: s.memory,
+        disk: s.disk,
+        status: s.status,
+      }));
+  }
+
+  /**
    * 특정 시간대 메트릭 조회 (히스토리용)
    */
   public getMetricsAtTime(

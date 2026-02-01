@@ -43,6 +43,7 @@ import { handleCloudRunJson, handleCloudRunStream } from './cloud-run-handler';
 import { handleSupervisorError } from './error-handler';
 import { requestSchema } from './schemas';
 import { securityCheck } from './security';
+import { buildServerContextMessage } from './server-context';
 
 // ============================================================================
 // 🔐 사용자 식별 헬퍼
@@ -254,7 +255,13 @@ export const POST = withRateLimit(
 
         const normalizedMessages = normalizeMessagesForCloudRun(messages);
 
-        let messagesToSend = normalizedMessages;
+        // 서버 메트릭 컨텍스트 주입 (alert 서버만, ~100-200 토큰)
+        const contextMessage = buildServerContextMessage();
+        const messagesWithContext = contextMessage
+          ? [contextMessage, ...normalizedMessages]
+          : normalizedMessages;
+
+        let messagesToSend = messagesWithContext;
         if (shouldCompress(normalizedMessages.length, 4)) {
           const compression = compressContext(normalizedMessages, {
             keepRecentCount: 3,
