@@ -188,6 +188,13 @@ export function useHybridAIQuery(
     webSearchEnabled,
   } = options;
 
+  // webSearchEnabled를 ref로 추적: DefaultChatTransport의 body는 ChatStore 생성 시
+  // readonly로 고정되므로, Resolvable<object> 함수를 사용해 호출 시점의 최신 값을 반환
+  const webSearchEnabledRef = useRef(webSearchEnabled ?? false);
+  useEffect(() => {
+    webSearchEnabledRef.current = webSearchEnabled ?? false;
+  }, [webSearchEnabled]);
+
   // Determine API endpoint (v2 only - v1 deprecated and removed)
   // v2 uses AI SDK native UIMessageStream protocol with resumable streams
   const apiEndpoint = customEndpoint ?? '/api/ai/supervisor/stream/v2';
@@ -243,13 +250,16 @@ export function useHybridAIQuery(
     () =>
       new DefaultChatTransport({
         api: apiEndpoint,
-        body: { enableWebSearch: webSearchEnabled ?? false },
+        // Resolvable<object> 함수: sendMessages() 호출 시점에 최신 webSearchEnabled 반환
+        // ChatStore.transport가 readonly이므로 정적 값 대신 함수로 전달해야
+        // 토글 변경이 실시간 반영됨
+        body: () => ({ enableWebSearch: webSearchEnabledRef.current }),
         // Resume stream URL customization (fixes 404 error)
         prepareReconnectToStreamRequest: ({ id }) => ({
           api: `${apiEndpoint}?sessionId=${id}`,
         }),
       }),
-    [apiEndpoint, webSearchEnabled]
+    [apiEndpoint]
   );
 
   const {
