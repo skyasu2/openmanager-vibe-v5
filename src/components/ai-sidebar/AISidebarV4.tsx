@@ -52,7 +52,7 @@ const MessageComponent = memo<{
     messageId: string,
     type: 'positive' | 'negative',
     traceId?: string
-  ) => void;
+  ) => Promise<boolean>;
   isLastMessage?: boolean;
 }>(({ message, onRegenerateResponse, onFeedback, isLastMessage }) => {
   // thinking 메시지일 경우 간소화된 인라인 상태 표시

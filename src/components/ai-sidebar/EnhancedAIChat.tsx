@@ -40,14 +40,14 @@ interface EnhancedAIChatProps {
       messageId: string,
       type: 'positive' | 'negative',
       traceId?: string
-    ) => void;
+    ) => Promise<boolean>;
     isLastMessage?: boolean;
   }>;
   onFeedback?: (
     messageId: string,
     type: 'positive' | 'negative',
     traceId?: string
-  ) => void;
+  ) => Promise<boolean>;
   inputValue: string;
   setInputValue: (value: string) => void;
   handleSendInput: (attachments?: FileAttachment[]) => void;

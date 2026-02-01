@@ -56,7 +56,7 @@ const MessageComponent = memo<{
     messageId: string,
     type: 'positive' | 'negative',
     traceId?: string
-  ) => void;
+  ) => Promise<boolean>;
   isLastMessage?: boolean;
 }>(({ message, onRegenerateResponse, onFeedback, isLastMessage = false }) => {
   if (message.role === 'thinking' && message.thinkingSteps) {

@@ -22,14 +22,14 @@ interface ChatMessageListProps {
       messageId: string,
       type: 'positive' | 'negative',
       traceId?: string
-    ) => void;
+    ) => Promise<boolean>;
     isLastMessage?: boolean;
   }>;
   onFeedback?: (
     messageId: string,
     type: 'positive' | 'negative',
     traceId?: string
-  ) => void;
+  ) => Promise<boolean>;
   isGenerating: boolean;
   regenerateResponse: (messageId: string) => void;
   setInputValue: (value: string) => void;
