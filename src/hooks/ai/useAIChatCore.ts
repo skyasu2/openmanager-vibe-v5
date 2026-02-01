@@ -89,7 +89,7 @@ export interface UseAIChatCoreReturn {
   handleFeedback: (
     messageId: string,
     type: 'positive' | 'negative'
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   regenerateLastResponse: () => void;
   /** 마지막 쿼리 재시도 (파일 첨부 포함) */
   retryLastQuery: () => void;

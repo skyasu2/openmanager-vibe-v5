@@ -205,11 +205,21 @@ export function getIntentCategory(query: string): IntentCategory {
 
 const SIMPLE_CONVERSATION_PATTERNS = /^(안녕|감사|고마워|잘했어|hi|hello|thanks|thank you|bye|잘가)[\s!?.]*$/i;
 
-export function createPrepareStep(query: string) {
+export function createPrepareStep(query: string, options?: { enableWebSearch?: boolean }) {
   const q = query.toLowerCase();
 
   return async ({ stepNumber }: { stepNumber: number }) => {
     if (stepNumber > 0) return {};
+
+    // 웹 검색 강제: 사용자가 토글 ON → 첫 스텝에서 searchWeb 강제 호출
+    if (options?.enableWebSearch) {
+      // 기존 라우팅 결과의 activeTools에 searchWeb 추가
+      const baseTools: ToolName[] = ['getServerMetrics', 'getServerMetricsAdvanced', 'filterServers', 'searchWeb', 'finalAnswer'];
+      return {
+        activeTools: baseTools,
+        toolChoice: 'required' as const,
+      };
+    }
 
     if (SIMPLE_CONVERSATION_PATTERNS.test(query.trim())) {
       console.log(`🎯 [PrepareStep] Simple conversation detected, toolChoice: none`);

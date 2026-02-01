@@ -17,15 +17,21 @@ import { CloudRunStatusIndicator } from './CloudRunStatusIndicator';
 
 interface AISidebarHeaderProps {
   onClose: () => void;
+  onNewSession?: () => void;
 }
 
 export const AISidebarHeader: FC<AISidebarHeaderProps> = ({
   onClose,
+  onNewSession,
 }: AISidebarHeaderProps) => {
   const clearMessages = useAISidebarStore((state) => state.clearMessages);
 
   const handleNewChat = () => {
-    clearMessages();
+    if (onNewSession) {
+      onNewSession();
+    } else {
+      clearMessages();
+    }
   };
 
   return (

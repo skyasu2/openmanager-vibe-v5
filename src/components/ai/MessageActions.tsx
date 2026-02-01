@@ -13,7 +13,7 @@ interface MessageActionsProps {
     messageId: string,
     type: 'positive' | 'negative',
     traceId?: string
-  ) => Promise<boolean> | undefined;
+  ) => Promise<boolean | undefined> | undefined;
   /** Langfuse trace ID for feedback scoring */
   traceId?: string;
   showRegenerate?: boolean;
