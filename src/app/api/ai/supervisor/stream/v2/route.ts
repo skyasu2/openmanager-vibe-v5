@@ -30,7 +30,7 @@ import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { requestSchemaLoose } from '../../schemas';
-import { quickSanitize } from '../../security';
+import { quickSanitize, securityCheck } from '../../security';
 import {
   clearActiveStreamId,
   getActiveStreamId,
@@ -240,7 +240,23 @@ export const POST = withRateLimit(
           { status: 400 }
         );
       }
-      const userQuery = quickSanitize(rawQuery);
+      // Security check: block prompt injection attempts
+      const { shouldBlock, inputCheck, sanitizedInput } =
+        securityCheck(rawQuery);
+      if (shouldBlock) {
+        logger.warn(
+          `🛡️ [SupervisorStreamV2] Blocked injection: ${inputCheck.patterns.join(', ')}`
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Security: blocked input',
+            message: '보안 정책에 의해 차단된 요청입니다.',
+          },
+          { status: 400 }
+        );
+      }
+      const userQuery = sanitizedInput;
 
       logger.info(
         `🌊 [SupervisorStreamV2] Query: "${userQuery.slice(0, 50)}..."`
