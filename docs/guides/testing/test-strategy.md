@@ -118,7 +118,7 @@ OpenManager VIBE의 테스트 전략은 **클라우드 네이티브 우선** 원
 | **커스텀 훅** | `useAIEngine.test.ts` | Hook 테스트 패턴 증명 |
 | **유틸리티** | `metricValidation.test.ts` | 단위 테스트 스킬 증명 |
 | **E2E** | `smoke.spec.ts` | 앱 동작 시연 가능 |
-| **통합** | `ai-unified-mode.test.ts` | 복잡한 통합 시나리오 증명 |
+| **통합** | `query-complexity.test.ts` | Job Queue 복잡도 분석 검증 |
 
 ### 테스트 원칙별 평가
 

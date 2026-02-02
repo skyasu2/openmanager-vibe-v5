@@ -7,9 +7,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  analyzeJobQueryComplexity,
   analyzeQueryComplexity,
   calculateDynamicTimeout,
   getTimeoutGuidance,
+  inferJobType,
 } from './query-complexity';
 
 describe('query-complexity', () => {
@@ -218,6 +220,73 @@ describe('query-complexity', () => {
       const analysis = analyzeQueryComplexity('안녕');
       const guidance = getTimeoutGuidance(analysis);
       expect(guidance).toMatch(/\d+초/);
+    });
+  });
+
+  describe('analyzeJobQueryComplexity', () => {
+    it('should classify simple status query as simple', () => {
+      const result = analyzeJobQueryComplexity('현재 상태 알려줘');
+      expect(result.level).toBe('simple');
+      expect(result.useJobQueue).toBe(false);
+    });
+
+    it('should classify complex analysis query as complex', () => {
+      const result = analyzeJobQueryComplexity(
+        '전체 서버 분석하고 최적화 방안 추천해줘 보고서도 작성'
+      );
+      expect(result.level).toBe('complex');
+      expect(result.useJobQueue).toBe(true);
+      expect(result.factors.analysisDepth).toBe('deep');
+    });
+
+    it('should classify medium complexity query', () => {
+      const result = analyzeJobQueryComplexity('서버 비교 분석해줘');
+      expect(['medium', 'complex']).toContain(result.level);
+      expect(result.estimatedTime).toBeGreaterThan(5);
+    });
+
+    it('should detect multi-step queries', () => {
+      const result = analyzeJobQueryComplexity(
+        '먼저 분석하고 그리고 최적화 추천해줘'
+      );
+      expect(result.factors.multiStep).toBe(true);
+    });
+
+    it('should detect data-heavy queries', () => {
+      const result = analyzeJobQueryComplexity('30일간 전체 서버 이력 분석');
+      expect(result.factors.dataVolume).not.toBe('low');
+    });
+
+    it('should upgrade long simple queries to medium', () => {
+      const longSimple = '상태 확인해줘 ' + 'a'.repeat(100);
+      const result = analyzeJobQueryComplexity(longSimple);
+      expect(result.level).not.toBe('simple');
+    });
+  });
+
+  describe('inferJobType', () => {
+    it('should infer report type', () => {
+      expect(inferJobType('서버 보고서 작성해줘')).toBe('report');
+      expect(inferJobType('리포트 생성')).toBe('report');
+    });
+
+    it('should infer optimization type', () => {
+      expect(inferJobType('성능 최적화 방안')).toBe('optimization');
+      expect(inferJobType('서버 개선 추천')).toBe('optimization');
+    });
+
+    it('should infer prediction type', () => {
+      expect(inferJobType('리소스 예측해줘')).toBe('prediction');
+      expect(inferJobType('forecast CPU usage')).toBe('prediction');
+    });
+
+    it('should infer analysis type', () => {
+      expect(inferJobType('CPU 사용률 분석해줘')).toBe('analysis');
+    });
+
+    it('should default to general', () => {
+      expect(inferJobType('안녕하세요')).toBe('general');
+      expect(inferJobType('서버 상태 알려줘')).toBe('general');
     });
   });
 
