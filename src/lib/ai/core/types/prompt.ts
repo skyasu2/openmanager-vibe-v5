@@ -24,11 +24,6 @@ export interface AIPrompt {
 }
 
 /**
- * @deprecated Use AIPrompt instead. Will be removed in v6.0
- */
-export type GoogleAIPrompt = AIPrompt;
-
-/**
  * 프롬프트 템플릿
  */
 export interface PromptTemplate {

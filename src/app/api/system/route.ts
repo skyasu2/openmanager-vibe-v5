@@ -34,7 +34,6 @@ import {
 } from '@/lib/core/system/process-configs';
 import { systemLogger } from '@/lib/logger';
 import debug from '@/utils/debug';
-import { memoryOptimizer } from '@/utils/MemoryOptimizer';
 
 // ============================================================================
 // ProcessManager Singleton
@@ -167,27 +166,27 @@ export async function GET(request: NextRequest) {
       }
 
       case 'memory': {
-        const memorySummary = memoryOptimizer.getMemorySummary();
-        const optimizationHistory = memoryOptimizer.getOptimizationHistory();
-
+        const mem = process.memoryUsage();
         return NextResponse.json({
           success: true,
           data: {
-            status: memorySummary.status,
-            current: memorySummary.current,
-            monitoring: {
-              enabled: true,
-              lastOptimization: memorySummary.lastOptimization,
-              totalOptimizations: memorySummary.totalOptimizations,
+            status: 'optimal',
+            current: {
+              heapUsed: mem.heapUsed,
+              heapTotal: mem.heapTotal,
+              rss: mem.rss,
+              external: mem.external,
+              usagePercent: Math.round((mem.heapUsed / mem.heapTotal) * 100),
+              timestamp: Date.now(),
             },
-            history: optimizationHistory.slice(-5).map((result) => ({
-              timestamp: new Date(result.before.timestamp).toISOString(),
-              improvement: {
-                before: `${result.before.usagePercent}%`,
-                after: `${result.after.usagePercent}%`,
-                freedMB: result.freedMB,
-              },
-            })),
+            monitoring: {
+              enabled: false,
+              lastOptimization: null,
+              totalOptimizations: 0,
+            },
+            serverless: true,
+            message: 'Vercel 서버리스 환경에서는 플랫폼이 자동 관리합니다.',
+            history: [],
           },
           timestamp: new Date().toISOString(),
         });
@@ -248,7 +247,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, options, level } = body;
+    const { action, options } = body;
 
     debug.log('🔧 System POST action:', action);
 
@@ -347,45 +346,27 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Memory Optimize Action (from optimize)
+      // Memory Optimize Action (serverless - platform managed)
       case 'optimize': {
-        debug.log('🧠 메모리 최적화 API 호출');
+        debug.log('🧠 메모리 최적화 API 호출 (서버리스)');
 
-        const beforeStats = memoryOptimizer.getCurrentMemoryStats();
-
-        let optimizationResult: Awaited<
-          ReturnType<typeof memoryOptimizer.performAggressiveOptimization>
-        >;
-
-        if (level === 'aggressive' || beforeStats.usagePercent > 80) {
-          optimizationResult =
-            await memoryOptimizer.performAggressiveOptimization();
-        } else {
-          optimizationResult = await memoryOptimizer.optimizeMemoryNow();
-        }
-
-        const afterStats = memoryOptimizer.getCurrentMemoryStats();
-        const targetAchieved = afterStats.usagePercent <= 75;
+        const mem = process.memoryUsage();
+        const usagePercent = Math.round((mem.heapUsed / mem.heapTotal) * 100);
 
         return NextResponse.json({
           success: true,
           action: 'optimize',
-          message: `메모리 최적화 완료 - ${afterStats.usagePercent}%`,
+          message: `서버리스 환경 - Vercel이 자동 관리 (현재 ${usagePercent}%)`,
           data: {
-            level: level === 'aggressive' ? '극한 최적화' : '일반 최적화',
-            duration: optimizationResult.duration,
-            targetAchieved,
+            level: '서버리스 (자동 관리)',
+            duration: 0,
+            targetAchieved: true,
             memory: {
-              before: {
-                usagePercent: optimizationResult.before.usagePercent,
-                heapUsed: optimizationResult.before.heapUsed,
-              },
-              after: {
-                usagePercent: optimizationResult.after.usagePercent,
-                heapUsed: optimizationResult.after.heapUsed,
-              },
-              freedMB: optimizationResult.freedMB,
+              before: { usagePercent, heapUsed: mem.heapUsed },
+              after: { usagePercent, heapUsed: mem.heapUsed },
+              freedMB: 0,
             },
+            serverless: true,
           },
           timestamp: new Date().toISOString(),
         });

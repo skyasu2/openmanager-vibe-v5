@@ -19,7 +19,7 @@ export type {
   RuleProviderConfig,
 } from './config';
 // Data types
-export type { MLData, RAGData, RAGDocument, RuleData, RuleHint } from './data';
+export type { MLData, RAGData, RAGDocument, RuleData } from './data';
 // Engine types
 export type { EngineHealthStatus, IUnifiedEngine } from './engine';
 // Enum types
@@ -27,7 +27,6 @@ export type { AIScenario, ContextPriority, ProviderType } from './enums';
 // Error classes
 export {
   CloudRunAIError,
-  GoogleAIError,
   ProviderError,
   UnifiedEngineError,
 } from './errors';
@@ -37,7 +36,6 @@ export { isMLData, isRAGData, isRuleData, isValidScenario } from './guards';
 // Prompt types
 export type {
   AIPrompt,
-  GoogleAIPrompt,
   PromptParams,
   PromptTemplate,
 } from './prompt';

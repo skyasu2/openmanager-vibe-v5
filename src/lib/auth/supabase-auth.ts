@@ -465,60 +465,6 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
 }
 
 /**
- * 인증 상태 확인 (AuthStateManager 사용)
- * @deprecated - 새로운 코드에서는 authStateManager.getAuthState() 사용 권장
- */
-export async function isAuthenticated(): Promise<boolean> {
-  try {
-    // AuthStateManager를 통한 통합 상태 확인
-    // authStateManager는 이미 import됨
-    const authState = await authStateManager.getAuthState();
-
-    logger.info('🔄 isAuthenticated -> AuthStateManager 위임:', {
-      type: authState.type,
-      isAuthenticated: authState.isAuthenticated,
-    });
-
-    return authState.isAuthenticated;
-  } catch (error) {
-    logger.error(
-      '❌ isAuthenticated 에러 (AuthStateManager 위임 실패):',
-      error
-    );
-
-    // Fallback: getCurrentUser 사용 (레거시 호환성)
-    const user = await getCurrentUser();
-    return !!user;
-  }
-}
-
-/**
- * GitHub 인증 사용자인지 확인 (AuthStateManager 사용)
- * @deprecated - 새로운 코드에서는 authStateManager.isGitHubAuthenticated() 사용 권장
- */
-export async function isGitHubAuthenticated(): Promise<boolean> {
-  try {
-    // AuthStateManager를 통한 GitHub 인증 확인
-    // authStateManager는 이미 import됨
-    const isGitHub = await authStateManager.isGitHubAuthenticated();
-
-    logger.info('🔄 isGitHubAuthenticated -> AuthStateManager 위임:', {
-      isGitHub,
-    });
-
-    return isGitHub;
-  } catch (error) {
-    logger.error(
-      '❌ isGitHubAuthenticated 에러 (AuthStateManager 위임 실패):',
-      error
-    );
-
-    // Fallback: 레거시 로직 사용
-    return await isGitHubAuthenticatedLegacy();
-  }
-}
-
-/**
  * 게스트 사용자인지 확인 (AuthStateManager 사용)
  * @deprecated - 새로운 코드에서는 authStateManager.getAuthState() 사용 권장
  */
@@ -545,23 +491,6 @@ export function isGuestUser(): boolean {
     logger.error('❌ isGuestUser 에러:', error);
     return false;
   }
-}
-
-/**
- * 레거시 GitHub 인증 확인 (하위 호환성용)
- */
-async function isGitHubAuthenticatedLegacy(): Promise<boolean> {
-  logger.warn(
-    '⚠️ 레거시 isGitHubAuthenticated 사용 중 - AuthStateManager로 마이그레이션 권장'
-  );
-
-  const session = await getSession();
-  // GitHub OAuth 로그인 확인: 세션이 있고 GitHub 프로바이더인지 확인
-  return !!(
-    session?.user &&
-    (session.user.app_metadata?.provider === 'github' ||
-      session.user.user_metadata?.provider === 'github')
-  );
 }
 
 /**

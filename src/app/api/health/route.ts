@@ -24,7 +24,7 @@ import { env, isDevelopment } from '@/env';
 import { checkCloudRunHealth } from '@/lib/ai-proxy/proxy';
 import { getApiConfig } from '@/lib/api/api-config';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { getCacheStats } from '@/lib/cache/cache-helper';
+import { getCacheStats } from '@/lib/cache/unified-cache';
 import { createClient } from '@/lib/supabase/server';
 import {
   type HealthCheckResponse,

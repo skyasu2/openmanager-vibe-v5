@@ -2,7 +2,7 @@
  * 🚀 통합 캐시 시스템 v3.1
  *
  * 3개의 중복 캐시 시스템을 하나로 통합
- * - Memory 기반 LRU 캐시 (cache-helper.ts)
+ * - Memory 기반 LRU 캐시
  * - AI 쿼리 패턴 캐시 (query-cache-manager.ts)
  * - AI 응답 캐시 (CacheManager.ts)
  *

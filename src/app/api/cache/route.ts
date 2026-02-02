@@ -20,11 +20,10 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getMockSystem } from '@/__mocks__/data';
 import {
-  getCacheService,
   getCacheStats,
   invalidateCache,
-  warmupCache,
-} from '@/lib/cache/cache-helper';
+  unifiedCache,
+} from '@/lib/cache/unified-cache';
 import type {
   CacheInvalidateResponse,
   CacheOptimizeResponse,
@@ -253,7 +252,12 @@ async function handleWarmup(options?: {
     });
   }
 
-  await warmupCache(warmupItems);
+  await Promise.allSettled(
+    warmupItems.map(async (item) => {
+      const data = await item.fetcher();
+      await unifiedCache.set(item.key, data, { ttlSeconds: item.ttl });
+    })
+  );
 
   return {
     success: true,
@@ -277,7 +281,7 @@ async function handleInvalidate(options?: {
 }
 
 async function handleOptimize(): Promise<CacheOptimizeResponse> {
-  const cache = getCacheService();
+  const cache = unifiedCache;
   const stats = cache.getStats();
   const optimizations: string[] = [];
 
@@ -314,8 +318,8 @@ async function handleOptimize(): Promise<CacheOptimizeResponse> {
 }
 
 async function handleResetStats(): Promise<CacheResetStatsResponse> {
-  const cache = getCacheService();
-  await cache.invalidateCache('*');
+  const cache = unifiedCache;
+  await unifiedCache.invalidate('*');
 
   const rawStats = cache.getStats();
   const memoryUsageKB =

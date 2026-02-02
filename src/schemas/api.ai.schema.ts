@@ -284,18 +284,6 @@ export const CloudRunAIStatusResponseSchema = z.object({
   timestamp: z.string(),
 });
 
-// Legacy aliases for backward compatibility (deprecated)
-/** @deprecated Use CloudRunAIGenerateRequestSchema instead */
-export const GoogleAIGenerateRequestSchema = CloudRunAIGenerateRequestSchema;
-/** @deprecated Use CloudRunAIUsageMetadataSchema instead */
-export const GoogleAIUsageMetadataSchema = CloudRunAIUsageMetadataSchema;
-/** @deprecated Use CloudRunAIGenerateResponseSchema instead */
-export const GoogleAIGenerateResponseSchema = CloudRunAIGenerateResponseSchema;
-/** @deprecated Use CloudRunAIErrorResponseSchema instead */
-export const GoogleAIErrorResponseSchema = CloudRunAIErrorResponseSchema;
-/** @deprecated Use CloudRunAIStatusResponseSchema instead */
-export const GoogleAIStatusResponseSchema = CloudRunAIStatusResponseSchema;
-
 // ===== 타입 내보내기 =====
 
 // AI 로그 타입
@@ -342,15 +330,3 @@ export type CloudRunAIErrorResponse = z.infer<
 export type CloudRunAIStatusResponse = z.infer<
   typeof CloudRunAIStatusResponseSchema
 >;
-
-// Legacy type aliases (deprecated)
-/** @deprecated Use CloudRunAIGenerateRequest instead */
-export type GoogleAIGenerateRequest = CloudRunAIGenerateRequest;
-/** @deprecated Use CloudRunAIUsageMetadata instead */
-export type GoogleAIUsageMetadata = CloudRunAIUsageMetadata;
-/** @deprecated Use CloudRunAIGenerateResponse instead */
-export type GoogleAIGenerateResponse = CloudRunAIGenerateResponse;
-/** @deprecated Use CloudRunAIErrorResponse instead */
-export type GoogleAIErrorResponse = CloudRunAIErrorResponse;
-/** @deprecated Use CloudRunAIStatusResponse instead */
-export type GoogleAIStatusResponse = CloudRunAIStatusResponse;

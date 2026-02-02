@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { timerManager } from '../utils/TimerManager';
 
 export interface RealTimeMetrics {
   processes: number;
@@ -44,17 +43,11 @@ export function useRealTimeMetrics(serverId: string | null) {
 
     updateRealTimeMetrics();
 
-    // TimerManager를 사용한 실시간 메트릭 업데이트 - 🎯 데이터 생성기와 동기화 (3초 → 20초)
-    timerManager.register({
-      id: `server-detail-metrics-${serverId}`,
-      callback: updateRealTimeMetrics,
-      interval: 20000, // 20초 (데이터 생성기와 동기화)
-      priority: 'medium',
-      enabled: true,
-    });
+    // 20초 간격 실시간 메트릭 업데이트 (데이터 생성기와 동기화)
+    const intervalId = setInterval(updateRealTimeMetrics, 20000);
 
     return () => {
-      timerManager.unregister(`server-detail-metrics-${serverId}`);
+      clearInterval(intervalId);
     };
   }, [serverId]);
 

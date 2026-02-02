@@ -53,13 +53,6 @@ export interface EngineHealthStatus {
     error?: string;
   };
 
-  /** @deprecated Use cloudRunAIStatus instead */
-  googleAIStatus?: {
-    available: boolean;
-    latency?: number;
-    error?: string;
-  };
-
   /** 캐시 상태 */
   cacheStatus: {
     hitRate: number;

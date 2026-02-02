@@ -70,15 +70,6 @@ export interface SupabaseEnvConfig {
   isConfigured: boolean;
 }
 
-/** @deprecated Use CloudRunAIEnvConfig instead */
-export interface GoogleAIEnvConfig {
-  apiKey: string;
-  enabled: boolean;
-  quotaProtection: boolean;
-  forceMock: boolean;
-  isConfigured: boolean;
-}
-
 export interface CloudRunAIEnvConfig {
   enabled: boolean;
   quotaProtection: boolean;

@@ -100,21 +100,3 @@ export interface RuleData {
   /** 정규화된 쿼리 */
   normalizedQuery: string;
 }
-
-/**
- * 규칙 힌트 (레거시 - 사용되지 않음)
- * @deprecated Use RuleData properties directly
- */
-export interface RuleHint {
-  /** 카테고리 */
-  category: string;
-
-  /** 제안 사항 */
-  suggestion: string;
-
-  /** 우선순위 */
-  priority: 'high' | 'medium' | 'low';
-
-  /** 신뢰도 (0.0 ~ 1.0) */
-  confidence?: number;
-}

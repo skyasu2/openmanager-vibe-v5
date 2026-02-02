@@ -49,8 +49,3 @@ export class CloudRunAIError extends Error {
     this.name = 'CloudRunAIError';
   }
 }
-
-/**
- * @deprecated Use CloudRunAIError instead. Will be removed in v6.0
- */
-export const GoogleAIError = CloudRunAIError;

@@ -12,20 +12,18 @@ export const maxDuration = 10; // Vercel Free Tier
 
 import { randomUUID } from 'crypto';
 import { after, type NextRequest, NextResponse } from 'next/server';
-import {
-  analyzeQueryComplexity,
-  inferJobType,
-} from '@/lib/ai/job-queue/complexity-analyzer';
 import { logger } from '@/lib/logging';
 import { getRedisClient, redisGet, redisMGet, redisSet } from '@/lib/redis';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import type {
+  ComplexityAnalysis,
   CreateJobRequest,
   CreateJobResponse,
   JobListResponse,
   JobStatus,
   JobStatusResponse,
   JobType,
+  QueryComplexity,
   TriggerStatus,
 } from '@/types/ai-jobs';
 
@@ -44,6 +42,103 @@ const JOB_LIST_TTL_SECONDS = 3600;
 
 /** Progress TTL (10분) */
 const PROGRESS_TTL_SECONDS = 600;
+
+// ============================================
+// 복잡도 분석 (인라인)
+// ============================================
+
+const SIMPLE_KEYWORDS = [
+  '상태',
+  '현재',
+  '알려줘',
+  '보여줘',
+  '뭐야',
+  '어때',
+  '몇',
+  '있어',
+  '확인',
+];
+const COMPLEX_KEYWORDS = [
+  '분석',
+  '최적화',
+  '리포트',
+  '보고서',
+  '전체',
+  '모든',
+  '비교',
+  '예측',
+  '추천',
+  '개선',
+  '원인',
+  '패턴',
+  '트렌드',
+  '상관관계',
+  '종합',
+];
+const MULTI_STEP_KEYWORDS = [
+  '그리고',
+  '후에',
+  '다음에',
+  '기반으로',
+  '먼저',
+  '마지막으로',
+  '추가로',
+];
+const DATA_HEAVY_KEYWORDS = [
+  '7일',
+  '30일',
+  '일주일',
+  '한달',
+  '기간',
+  '히스토리',
+  '이력',
+  '기록',
+  '전체 서버',
+  '모든 서버',
+];
+const ESTIMATED_TIMES: Record<QueryComplexity, number> = {
+  simple: 5,
+  medium: 30,
+  complex: 55,
+};
+
+function countMatches(text: string, keywords: string[]): number {
+  return keywords.reduce((n, kw) => n + (text.includes(kw) ? 1 : 0), 0);
+}
+
+function analyzeQueryComplexity(query: string): ComplexityAnalysis {
+  const q = query.toLowerCase().trim();
+  const s = countMatches(q, SIMPLE_KEYWORDS);
+  const c = countMatches(q, COMPLEX_KEYWORDS);
+  const m = countMatches(q, MULTI_STEP_KEYWORDS);
+  const d = countMatches(q, DATA_HEAVY_KEYWORDS);
+  const score = c * 2 + m * 1.5 + d * 1.5 - s * 0.5;
+  let level: QueryComplexity =
+    score <= 0 ? 'simple' : score <= 3 ? 'medium' : 'complex';
+  if (q.length > 100 && level === 'simple') level = 'medium';
+  return {
+    level,
+    estimatedTime: ESTIMATED_TIMES[level],
+    factors: {
+      dataVolume: d >= 2 ? 'high' : d >= 1 || c >= 2 ? 'medium' : 'low',
+      analysisDepth: c >= 2 || d >= 1 ? 'deep' : 'shallow',
+      multiStep: m > 0,
+      keywordCount: c + m,
+    },
+    useJobQueue: level !== 'simple',
+  };
+}
+
+function inferJobType(
+  query: string
+): 'analysis' | 'report' | 'optimization' | 'prediction' | 'general' {
+  const q = query.toLowerCase();
+  if (/리포트|보고서|report/i.test(q)) return 'report';
+  if (/최적화|개선|optimize/i.test(q)) return 'optimization';
+  if (/예측|forecast|predict/i.test(q)) return 'prediction';
+  if (/분석|분석해|analyze/i.test(q)) return 'analysis';
+  return 'general';
+}
 
 // ============================================
 // Redis Job 타입

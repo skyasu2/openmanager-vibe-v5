@@ -8,7 +8,7 @@
  */
 
 import { ConfigLoader } from '@/config';
-import { getCacheService } from '@/lib/cache/cache-helper';
+import { unifiedCache } from '@/lib/cache/unified-cache';
 import type { IConfigLoader, ILogger } from '@/lib/interfaces/services';
 import { logger } from '@/lib/logging';
 import { LoggingService } from '@/services/LoggingService';
@@ -107,13 +107,10 @@ export class ServiceRegistry {
    * 추가 서비스 등록
    */
   private registerAdditionalServices(): void {
-    // Memory Cache Service (Redis 제거 후 메모리 기반 캐시 사용)
+    // Memory Cache Service (unified-cache 사용)
     registerFactory(
       SERVICE_TOKENS.CACHE_SERVICE,
-      () => {
-        // MemoryCacheService 인스턴스 반환
-        return getCacheService();
-      },
+      () => unifiedCache,
       'singleton'
     );
 
