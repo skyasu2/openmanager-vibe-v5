@@ -91,6 +91,10 @@ const MALICIOUS_OUTPUT_PATTERNS: Array<{ pattern: RegExp; name: string }> = [
   { pattern: /i\s*am\s*(now|acting\s*as)\s*(?!서버|AI|assistant|모니터링)/gi, name: 'confirm_role_change_en' },
   { pattern: /as\s*DAN|developer\s*mode\s*enabled|admin\s*mode\s*activated/gi, name: 'confirm_special_mode' },
   { pattern: /sure,?\s*i('ll|\s*will)\s*(help\s*you\s*)?(bypass|ignore|break)/gi, name: 'confirm_bypass' },
+  // 시스템 프롬프트 본문 유출 감지
+  { pattern: /당신은 서버 모니터링 AI 어시스턴트/g, name: 'leak_system_prompt_ko' },
+  { pattern: /You are a server monitoring AI assistant/gi, name: 'leak_system_prompt_en' },
+  { pattern: /getServerMetrics.*filterServers.*buildIncidentTimeline/gs, name: 'leak_tool_list' },
 ];
 
 // ============================================================================
@@ -186,7 +190,9 @@ interface GuardResult {
 export function guardInput(query: string): GuardResult {
   const detection = detectPromptInjection(query);
   const sanitizedQuery = sanitizeForPrompt(query);
-  const shouldBlock = detection.riskLevel === 'high';
+  // medium 이상 차단 (prompt injection 방어 강화)
+  const shouldBlock =
+    detection.riskLevel === 'high' || detection.riskLevel === 'medium';
 
   if (detection.isInjection) {
     logger.warn(
@@ -195,10 +201,9 @@ export function guardInput(query: string): GuardResult {
     );
   }
 
-  const warning =
-    detection.riskLevel === 'medium'
-      ? `보안 경고: 의심스러운 패턴이 감지되었습니다 (${detection.patterns.join(', ')}). 서버 모니터링 관련 질문을 권장합니다.`
-      : undefined;
+  const warning = detection.isInjection
+    ? `보안 경고: Prompt Injection 시도가 감지되어 차단되었습니다 (${detection.patterns.join(', ')}).`
+    : undefined;
 
   return {
     sanitizedQuery,

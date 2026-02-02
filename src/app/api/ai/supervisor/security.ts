@@ -208,6 +208,20 @@ const MALICIOUS_OUTPUT_PATTERNS: Array<{ pattern: RegExp; name: string }> = [
       /sure,?\s*i('ll|\s*will)\s*(help\s*you\s*)?(bypass|ignore|break)/gi,
     name: 'confirm_bypass',
   },
+
+  // 시스템 프롬프트 본문 유출 감지
+  {
+    pattern: /당신은 서버 모니터링 AI 어시스턴트/g,
+    name: 'leak_system_prompt_ko',
+  },
+  {
+    pattern: /You are a server monitoring AI assistant/gi,
+    name: 'leak_system_prompt_en',
+  },
+  {
+    pattern: /getServerMetrics.*filterServers.*buildIncidentTimeline/gs,
+    name: 'leak_tool_list',
+  },
 ];
 
 /**
@@ -565,13 +579,13 @@ export function securityCheck(input: string): {
   const inputCheck = detectPromptInjection(input);
   const sanitizedInput = sanitizeForPrompt(input);
 
-  // high 위험도만 차단, medium은 경고만
-  const shouldBlock = inputCheck.riskLevel === 'high';
+  // medium 이상 차단 (prompt injection 방어 강화)
+  const shouldBlock =
+    inputCheck.riskLevel === 'high' || inputCheck.riskLevel === 'medium';
 
-  const warning =
-    inputCheck.riskLevel === 'medium'
-      ? `보안 경고: 의심스러운 패턴이 감지되었습니다 (${inputCheck.patterns.join(', ')}). 서버 모니터링 관련 질문을 권장합니다.`
-      : undefined;
+  const warning = inputCheck.isInjection
+    ? `보안 경고: Prompt Injection 시도가 감지되어 차단되었습니다 (${inputCheck.patterns.join(', ')}).`
+    : undefined;
 
   return {
     inputCheck,
