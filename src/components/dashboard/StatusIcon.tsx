@@ -56,7 +56,7 @@ const StatusIcon: FC<StatusIconProps> = ({
       Globe, // 🌐 네트워크
       Brain, // 🤖 AI 엔진
       Activity, // 📈 Prometheus
-      RotateCcw, // 🔄 TimerManager
+      RotateCcw, // 🔄 Timer
       Zap, // ⚡ 성능 최적화
       Shield, // 🛡️ 보안
       CheckSquare, // ✅ 검증

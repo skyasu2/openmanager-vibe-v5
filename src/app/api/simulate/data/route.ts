@@ -98,7 +98,7 @@ function getStepDescription(step: number): string {
     '🌐 네트워크 인터페이스 구성',
     '🤖 AI 추론 엔진 워밍업',
     '📈 Prometheus 스크래핑 설정',
-    '🔄 TimerManager 통합 시작',
+    '🔄 타이머 시스템 초기화',
     '⚡ 성능 최적화 알고리즘 적용',
     '🛡️ 보안 정책 및 방화벽 설정',
     '✅ 종합 헬스체크 및 검증',
