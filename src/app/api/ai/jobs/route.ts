@@ -12,13 +12,13 @@ export const maxDuration = 10; // Vercel Free Tier
 
 import { randomUUID } from 'crypto';
 import { after, type NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/logging';
-import { getRedisClient, redisGet, redisMGet, redisSet } from '@/lib/redis';
-import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import {
   analyzeJobQueryComplexity,
   inferJobType,
 } from '@/lib/ai/utils/query-complexity';
+import { logger } from '@/lib/logging';
+import { getRedisClient, redisGet, redisMGet, redisSet } from '@/lib/redis';
+import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import type {
   CreateJobRequest,
   CreateJobResponse,
