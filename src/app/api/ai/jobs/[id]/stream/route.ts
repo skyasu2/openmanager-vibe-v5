@@ -55,7 +55,7 @@ interface JobProgress {
 // ============================================================================
 
 const POLL_INTERVAL_MS = 100; // Redis 폴링 간격
-const MAX_WAIT_TIME_MS = 120_000; // 최대 대기 시간 (2분)
+const MAX_WAIT_TIME_MS = 9_000; // 최대 대기 시간 (Vercel Hobby 10초 제한 대비)
 const PROGRESS_INTERVAL_MS = 2000; // 진행 상황 업데이트 간격
 
 // ============================================================================
