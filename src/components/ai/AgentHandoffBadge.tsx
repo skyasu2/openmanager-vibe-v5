@@ -157,7 +157,7 @@ export const AgentHandoffBadge = memo<AgentHandoffBadgeProps>(
           {reason && (
             <>
               <span className="text-xs text-gray-400">:</span>
-              <span className="max-w-[200px] truncate text-xs text-gray-500">
+              <span className="max-w-tooltip truncate text-xs text-gray-500">
                 {reason}
               </span>
             </>

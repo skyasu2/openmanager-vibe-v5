@@ -16,7 +16,7 @@ export const CustomNode = memo(({ data }: NodeProps<Node<CustomNodeData>>) => {
   const styles = NODE_STYLES[data.nodeType];
 
   const tooltipContent = (
-    <div className="max-w-[200px] space-y-1">
+    <div className="max-w-tooltip space-y-1">
       <div className="flex items-center gap-2">
         {data.icon && <span className="text-base">{data.icon}</span>}
         <span className="font-semibold text-white">{data.label}</span>
@@ -25,8 +25,8 @@ export const CustomNode = memo(({ data }: NodeProps<Node<CustomNodeData>>) => {
         <p className="text-xs leading-relaxed text-gray-300">{data.sublabel}</p>
       )}
       <div className="mt-1.5 flex items-center gap-1.5 border-t border-white/10 pt-1.5">
-        <span className="text-[10px] text-gray-400">Layer:</span>
-        <span className="text-[10px] text-gray-300">{data.layerTitle}</span>
+        <span className="text-2xs text-gray-400">Layer:</span>
+        <span className="text-2xs text-gray-300">{data.layerTitle}</span>
       </div>
     </div>
   );

@@ -118,11 +118,11 @@ const MessageComponent = memo<{
               ) : (
                 <MarkdownRenderer
                   content={message.content}
-                  className="text-[15px] leading-relaxed"
+                  className="text-chat leading-relaxed"
                 />
               )
             ) : (
-              <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
+              <div className="whitespace-pre-wrap wrap-break-word text-chat leading-relaxed">
                 {message.content}
               </div>
             )}
@@ -343,13 +343,13 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
         <div className="flex-1 px-3 overflow-y-auto">
           <div className="mb-4">
             <div className="mb-2 flex items-center justify-between px-1">
-              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              <span className="text-2xs font-semibold text-gray-500 uppercase tracking-wider">
                 현재 세션
               </span>
               <button
                 type="button"
                 onClick={handleNewSession}
-                className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
+                className="flex items-center gap-1 rounded px-1.5 py-0.5 text-2xs text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
                 title="새 대화 시작"
               >
                 <Plus className="h-3 w-3" />
@@ -381,7 +381,7 @@ export default function AIWorkspace({ mode, onClose }: AIWorkspaceProps) {
 
         {/* Features Section (하단) - Fullscreen용 리스트 레이아웃 */}
         <div className="shrink-0 border-t border-gray-200 px-3 py-3">
-          <div className="mb-2 px-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+          <div className="mb-2 px-1 text-2xs font-semibold text-gray-500 uppercase tracking-wider">
             AI 기능
           </div>
           <div className="space-y-1">

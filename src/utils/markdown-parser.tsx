@@ -120,7 +120,7 @@ export function RenderMarkdownContent({
         return (
           <div
             key={index}
-            className="whitespace-pre-wrap break-words text-[15px] leading-relaxed"
+            className="whitespace-pre-wrap break-words text-chat leading-relaxed"
           >
             {renderFormattedText(block.content)}
           </div>

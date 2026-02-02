@@ -64,6 +64,17 @@
 
   --backdrop-blur-xs: 2px;
 
+  /* Custom text sizes */
+  --text-2xs: 10px;
+  --text-xs-plus: 11px;
+  --text-chat: 15px;
+
+  /* Custom heights */
+  --height-card-lg: 400px;
+
+  /* Custom max-widths */
+  --max-width-tooltip: 200px;
+
   /* 폰트: Inter(영문) + Noto Sans KR(한글) - layout.tsx에서 로드 */
   /* Tailwind v4: --font-family-sans가 font-sans 유틸리티와 연결됨 */
   /* 주의: @theme 블록은 컴파일 타임 - var(--font-inter) 사용 불가, 직접 폰트명 지정 */

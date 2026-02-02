@@ -361,7 +361,7 @@ export function PortMonitor({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[400px]">
+          <ScrollArea className="h-card-lg">
             <div className="space-y-3">
               {Array.from(portStates.values())
                 .sort((a, b) => a.port - b.port)

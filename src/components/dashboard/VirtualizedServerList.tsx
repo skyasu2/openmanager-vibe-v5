@@ -99,7 +99,7 @@ export default function VirtualizedServerList({
             <p className="text-xs font-medium text-gray-900">
               반응형 그리드 ({servers.length}개 서버)
             </p>
-            <p className="text-[10px] text-gray-600">
+            <p className="text-2xs text-gray-600">
               현재 {cardsPerRow}개/줄 배치
             </p>
           </div>

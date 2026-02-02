@@ -306,7 +306,7 @@ function renderStepIndicators(progress: number): React.ReactNode {
           {isCompleted ? '✓' : index + 1}
         </div>
         <span
-          className={`text-[10px] ${
+          className={`text-2xs ${
             isCompleted
               ? 'font-medium text-green-600'
               : isActive

@@ -58,7 +58,7 @@ export const TypewriterMarkdown = memo(function TypewriterMarkdown({
     <div className={`relative ${className}`}>
       <MarkdownRenderer
         content={textToRender}
-        className="text-[15px] leading-relaxed"
+        className="text-chat leading-relaxed"
       />
       {/* 타이핑 중 커서 표시 */}
       {enableTypewriter && !isComplete && (

@@ -128,7 +128,7 @@ const MessageComponent = memo<{
                 <div className="relative">
                   <RenderMarkdownContent
                     content={message.content}
-                    className="text-[15px] leading-relaxed"
+                    className="text-chat leading-relaxed"
                   />
                   {/* 🎯 스트리밍 중 타이핑 커서 */}
                   {message.isStreaming && (
@@ -136,7 +136,7 @@ const MessageComponent = memo<{
                   )}
                 </div>
               ) : (
-                <div className="whitespace-pre-wrap wrap-break-word text-[15px] leading-relaxed">
+                <div className="whitespace-pre-wrap wrap-break-word text-chat leading-relaxed">
                   {message.content}
                 </div>
               )}

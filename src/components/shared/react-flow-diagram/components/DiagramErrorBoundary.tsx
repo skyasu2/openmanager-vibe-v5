@@ -46,7 +46,7 @@ export class DiagramErrorBoundary extends Component<
       }
 
       return (
-        <div className="flex h-[400px] flex-col items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 p-8">
+        <div className="flex h-card-lg flex-col items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 p-8">
           <div className="mb-4 text-4xl">⚠️</div>
           <h3 className="mb-2 text-lg font-semibold text-red-400">
             다이어그램 로드 실패

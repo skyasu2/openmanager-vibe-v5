@@ -162,7 +162,7 @@ const IconButton = memo(function IconButton({
       )}
       {/* 호버 툴팁 - 왼쪽으로 위치 변경 (화이트 모드) */}
       <div
-        className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-60 min-w-max max-w-[200px] whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
+        className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-60 min-w-max max-w-tooltip whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
       >
         <div className="font-medium">{item.label}</div>
         <div className="mt-1 text-xs text-gray-300">{item.description}</div>

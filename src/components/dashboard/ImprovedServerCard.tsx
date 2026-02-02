@@ -264,7 +264,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               {/* 서버 타입 + OS 정보 표시 (WCAG AA Color Contrast) */}
               <div className="flex items-center gap-2 text-xs">
                 <span
-                  className="inline-flex items-center gap-1 rounded bg-blue-600 px-1.5 py-0.5 text-[11px] font-medium text-white"
+                  className="inline-flex items-center gap-1 rounded bg-blue-600 px-1.5 py-0.5 text-xs-plus font-medium text-white"
                   title={`서버 타입: ${serverTypeLabel}`}
                 >
                   {serverTypeLabel}
@@ -274,7 +274,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   title={`운영체제: ${osShortName}`}
                 >
                   <span aria-hidden="true">{osIcon}</span>
-                  <span className="text-[11px] font-medium">{osShortName}</span>
+                  <span className="text-xs-plus font-medium">
+                    {osShortName}
+                  </span>
                 </span>
               </div>
               {/* 위치 정보 */}
@@ -314,7 +316,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               <div
                 className={`h-1.5 w-1.5 rounded-full bg-linear-to-r ${currentGradient.gradient}`}
               />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              <span className="text-2xs font-semibold uppercase tracking-wider text-gray-400">
                 Live Metrics
               </span>
             </div>
@@ -376,7 +378,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   <ServiceChip key={i} service={s} />
                 ))}
               {safeServer.services.length > variantStyles.maxServices && (
-                <span className="px-1.5 py-0.5 text-[10px] text-gray-500">
+                <span className="px-1.5 py-0.5 text-2xs text-gray-500">
                   +{safeServer.services.length - variantStyles.maxServices}
                 </span>
               )}
@@ -425,7 +427,7 @@ const MetricItem = ({
     <div className="flex flex-col">
       {/* Header: Label + Value */}
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[11px] font-medium text-gray-500 tracking-wide">
+        <span className="text-xs-plus font-medium text-gray-500 tracking-wide">
           {labels[type]}
         </span>
         <span
@@ -461,7 +463,7 @@ const DetailRow = ({ icon, label, value }: DetailRowProps) => (
   <div className="flex items-center gap-1.5 rounded-md bg-black/5 px-2 py-1.5 border border-gray-200/50">
     <div className="text-gray-500">{icon}</div>
     <div className="min-w-0">
-      <div className="text-[10px] uppercase text-gray-500 font-semibold tracking-wide">
+      <div className="text-2xs uppercase text-gray-500 font-semibold tracking-wide">
         {label}
       </div>
       <div className="font-medium text-gray-700 truncate text-xs">{value}</div>
@@ -486,7 +488,7 @@ const ServiceChip = ({ service }: { service: Service }) => {
 
   return (
     <div
-      className={`flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium backdrop-blur-sm ${statusColors}`}
+      className={`flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs-plus font-medium backdrop-blur-sm ${statusColors}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />
       <span>{service.name}</span>

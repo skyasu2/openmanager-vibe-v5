@@ -231,7 +231,7 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
               )}
             </div>
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-0.5">
+              <div className="text-2xs font-bold uppercase tracking-wider text-gray-400 mb-0.5">
                 시스템 상태
               </div>
               <div className={`text-sm font-bold ${systemHealthGradient.text}`}>

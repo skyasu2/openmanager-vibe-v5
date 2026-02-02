@@ -148,7 +148,7 @@ export const AnalysisBasisBadge: FC<AnalysisBasisBadgeProps> = ({
                     )}
                     {source.sourceType !== 'web' && (
                       <span
-                        className={`px-1 py-0.5 rounded text-[10px] font-medium shrink-0 ${
+                        className={`px-1 py-0.5 rounded text-2xs font-medium shrink-0 ${
                           source.similarity >= 0.8
                             ? 'bg-green-100 text-green-700'
                             : source.similarity >= 0.6
@@ -159,7 +159,7 @@ export const AnalysisBasisBadge: FC<AnalysisBasisBadgeProps> = ({
                         {Math.round(source.similarity * 100)}%
                       </span>
                     )}
-                    <span className="px-1 py-0.5 rounded bg-purple-50 text-purple-600 text-[10px] shrink-0">
+                    <span className="px-1 py-0.5 rounded bg-purple-50 text-purple-600 text-2xs shrink-0">
                       {source.sourceType === 'web' && source.url
                         ? extractDomain(source.url)
                         : source.sourceType}

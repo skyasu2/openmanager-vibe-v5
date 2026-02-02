@@ -131,7 +131,7 @@ const SystemContextPanel = memo(function SystemContextPanel({
               </div>
             ))}
           </div>
-          <p className="text-right text-[10px] text-gray-400">
+          <p className="text-right text-2xs text-gray-400">
             Updated: {lastChecked?.toLocaleTimeString() ?? '-'}
           </p>
         </div>

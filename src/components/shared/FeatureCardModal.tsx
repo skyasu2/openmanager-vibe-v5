@@ -23,7 +23,7 @@ const ReactFlowDiagram = dynamic<ReactFlowDiagramProps>(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-[400px] items-center justify-center">
+      <div className="flex h-card-lg items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-purple-500" />
       </div>
     ),

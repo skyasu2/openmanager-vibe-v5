@@ -154,7 +154,7 @@ export const ChatInputArea = memo(function ChatInputArea({
                     <p className="truncate text-xs font-medium text-gray-700">
                       {file.name}
                     </p>
-                    <p className="text-[10px] text-gray-400">
+                    <p className="text-2xs text-gray-400">
                       {formatFileSize(file.size)}
                     </p>
                   </div>
@@ -223,7 +223,7 @@ export const ChatInputArea = memo(function ChatInputArea({
                     ? '이미지/파일과 함께 질문하세요...'
                     : '메시지를 입력하세요...'
               }
-              className="flex-1 resize-none border-none bg-transparent px-2 py-3 pr-14 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-hidden focus:ring-0"
+              className="flex-1 resize-none border-none bg-transparent px-2 py-3 pr-14 text-chat text-gray-900 placeholder:text-gray-400 focus:outline-hidden focus:ring-0"
               minHeight={48}
               maxHeight={200}
               maxHeightVh={30}

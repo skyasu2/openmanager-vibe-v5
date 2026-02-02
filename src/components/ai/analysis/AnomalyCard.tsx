@@ -60,7 +60,7 @@ export function AnomalyCard({ metric, data }: AnomalyCardProps) {
               style={{ left: `${valuePosition}%` }}
             />
           </div>
-          <div className="mt-1 flex justify-between text-[10px] opacity-60">
+          <div className="mt-1 flex justify-between text-2xs opacity-60">
             <span>{Math.round(lower)}%</span>
             <span>{Math.round(upper)}%</span>
           </div>

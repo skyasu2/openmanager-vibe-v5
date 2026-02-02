@@ -139,7 +139,7 @@ export const MiniLineChart: React.FC<MiniLineChartProps> = ({
     <div className="relative flex items-center gap-1">
       {/* 시작 값 레이블 */}
       {showLabels && (
-        <span className="text-[10px] font-bold tabular-nums text-gray-500 shrink-0">
+        <span className="text-2xs font-bold tabular-nums text-gray-500 shrink-0">
           {Math.round(firstValue)}
         </span>
       )}
@@ -178,7 +178,7 @@ export const MiniLineChart: React.FC<MiniLineChartProps> = ({
 
       {/* 끝 값 레이블 */}
       {showLabels && (
-        <span className="text-[10px] font-bold tabular-nums text-gray-500 shrink-0">
+        <span className="text-2xs font-bold tabular-nums text-gray-500 shrink-0">
           {Math.round(lastValue)}
         </span>
       )}
