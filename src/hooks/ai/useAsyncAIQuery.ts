@@ -93,7 +93,7 @@ export interface UseAsyncAIQueryOptions {
 export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
   const {
     sessionId,
-    timeout = 120000,
+    timeout = 15000,
     onProgress,
     onResult,
     onError,
