@@ -91,13 +91,7 @@ export interface UseAsyncAIQueryOptions {
 // ============================================================================
 
 export function useAsyncAIQuery(options: UseAsyncAIQueryOptions = {}) {
-  const {
-    sessionId,
-    timeout = 15000,
-    onProgress,
-    onResult,
-    onError,
-  } = options;
+  const { sessionId, timeout = 15000, onProgress, onResult, onError } = options;
 
   // State
   const [state, setState] = useState<AsyncQueryState>({
