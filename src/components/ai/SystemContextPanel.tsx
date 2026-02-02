@@ -132,7 +132,7 @@ const SystemContextPanel = memo(function SystemContextPanel({
             ))}
           </div>
           <p className="text-right text-2xs text-gray-400">
-            Updated: {lastChecked?.toLocaleTimeString() ?? '-'}
+            Updated: {lastChecked ? lastChecked.toLocaleTimeString() : '-'}
           </p>
         </div>
 
