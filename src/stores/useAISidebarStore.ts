@@ -369,9 +369,10 @@ export const useAISidebarStore = create<AISidebarState>()(
         functionTab: 'qa',
         selectedContext: 'basic',
         messages: [],
-        sessionId: crypto.randomUUID
-          ? crypto.randomUUID()
-          : `session-${Date.now()}`,
+        sessionId:
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `session-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         // currentEngine 제거 - v4.0: UNIFIED 모드로 자동 선택
 
         // UI 액션들
@@ -422,9 +423,10 @@ export const useAISidebarStore = create<AISidebarState>()(
             functionTab: 'qa',
             selectedContext: 'basic',
             messages: [],
-            sessionId: crypto.randomUUID
-              ? crypto.randomUUID()
-              : `session-${Date.now()}`,
+            sessionId:
+              typeof crypto !== 'undefined' && crypto.randomUUID
+                ? crypto.randomUUID()
+                : `session-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
             // currentEngine 제거 - v4.0: UNIFIED 모드로 자동 선택
           }),
       }),
