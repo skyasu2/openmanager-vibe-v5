@@ -168,13 +168,11 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 // 🆕 새로운 Enhanced 서버 대시보드 훅 (세로 2줄 + UI/UX 개선)
 export function useEnhancedServerDashboard({
   servers,
-  _initialViewMode = 'grid',
-  _initialDisplayMode = 'SHOW_TWO_ROWS',
 }: UseEnhancedServerDashboardProps): UseEnhancedServerDashboardReturn {
   // 🎨 뷰 상태
-  const [viewMode, setViewMode] = useState<ViewMode>(_initialViewMode);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [displayMode, setDisplayMode] =
-    useState<ServerDisplayMode>(_initialDisplayMode);
+    useState<ServerDisplayMode>('SHOW_TWO_ROWS');
 
   // 🏗️ Clean Architecture: 필터링 훅 사용
   const {

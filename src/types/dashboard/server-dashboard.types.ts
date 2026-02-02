@@ -124,16 +124,9 @@ export interface UseServerDashboardOptions {
 
 /**
  * 🆕 Enhanced 서버 대시보드 훅 Props
- *
- * @deprecated `_initialViewMode`와 `_initialDisplayMode`는 향후 제거 예정
- * 현재는 기본값을 사용하며, 사용자 설정은 localStorage에 저장됨
  */
 export interface UseEnhancedServerDashboardProps {
   servers: Server[];
-  /** @deprecated 미사용 - 향후 제거 예정 */
-  _initialViewMode?: ViewMode;
-  /** @deprecated 미사용 - 향후 제거 예정 */
-  _initialDisplayMode?: ServerDisplayMode;
 }
 
 export interface UseEnhancedServerDashboardReturn {

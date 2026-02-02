@@ -84,9 +84,6 @@ export interface SidebarAIResponse {
   metadata?: Record<string, unknown>;
 }
 
-/** @deprecated Use SidebarAIResponse instead */
-export type AIResponse = SidebarAIResponse;
-
 export interface ChatHookOptions {
   autoScroll?: boolean;
   maxMessages?: number;
