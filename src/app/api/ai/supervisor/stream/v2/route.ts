@@ -30,7 +30,7 @@ import { withAuth } from '@/lib/auth/api-auth';
 import { logger } from '@/lib/logging';
 import { rateLimiters, withRateLimit } from '@/lib/security/rate-limiter';
 import { requestSchemaLoose } from '../../schemas';
-import { quickSanitize, securityCheck } from '../../security';
+import { securityCheck } from '../../security';
 import {
   clearActiveStreamId,
   getActiveStreamId,
