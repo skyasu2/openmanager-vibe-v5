@@ -367,6 +367,116 @@ export function shouldForceJobQueue(query: string): {
  * @param analysis - 복잡도 분석 결과
  * @returns 사용자 안내 메시지
  */
+// ============================================================================
+// Job Queue용 복잡도 분석 (ai-jobs 타입 호환)
+// ============================================================================
+
+import type {
+  ComplexityAnalysis as JobComplexityAnalysis,
+  QueryComplexity as JobQueryComplexity,
+} from '@/types/ai-jobs';
+
+const JOB_SIMPLE_KEYWORDS = [
+  '상태',
+  '현재',
+  '알려줘',
+  '보여줘',
+  '뭐야',
+  '어때',
+  '몇',
+  '있어',
+  '확인',
+];
+const JOB_COMPLEX_KEYWORDS = [
+  '분석',
+  '최적화',
+  '리포트',
+  '보고서',
+  '전체',
+  '모든',
+  '비교',
+  '예측',
+  '추천',
+  '개선',
+  '원인',
+  '패턴',
+  '트렌드',
+  '상관관계',
+  '종합',
+];
+const JOB_MULTI_STEP_KEYWORDS = [
+  '그리고',
+  '후에',
+  '다음에',
+  '기반으로',
+  '먼저',
+  '마지막으로',
+  '추가로',
+];
+const JOB_DATA_HEAVY_KEYWORDS = [
+  '7일',
+  '30일',
+  '일주일',
+  '한달',
+  '기간',
+  '히스토리',
+  '이력',
+  '기록',
+  '전체 서버',
+  '모든 서버',
+];
+const JOB_ESTIMATED_TIMES: Record<JobQueryComplexity, number> = {
+  simple: 5,
+  medium: 30,
+  complex: 55,
+};
+
+function countKeywordMatches(text: string, keywords: string[]): number {
+  return keywords.reduce((n, kw) => n + (text.includes(kw) ? 1 : 0), 0);
+}
+
+/**
+ * Job Queue용 쿼리 복잡도 분석 (ai-jobs 타입 호환)
+ */
+export function analyzeJobQueryComplexity(
+  query: string
+): JobComplexityAnalysis {
+  const q = query.toLowerCase().trim();
+  const s = countKeywordMatches(q, JOB_SIMPLE_KEYWORDS);
+  const c = countKeywordMatches(q, JOB_COMPLEX_KEYWORDS);
+  const m = countKeywordMatches(q, JOB_MULTI_STEP_KEYWORDS);
+  const d = countKeywordMatches(q, JOB_DATA_HEAVY_KEYWORDS);
+  const score = c * 2 + m * 1.5 + d * 1.5 - s * 0.5;
+  let level: JobQueryComplexity =
+    score <= 0 ? 'simple' : score <= 3 ? 'medium' : 'complex';
+  if (q.length > 100 && level === 'simple') level = 'medium';
+  return {
+    level,
+    estimatedTime: JOB_ESTIMATED_TIMES[level],
+    factors: {
+      dataVolume: d >= 2 ? 'high' : d >= 1 || c >= 2 ? 'medium' : 'low',
+      analysisDepth: c >= 2 || d >= 1 ? 'deep' : 'shallow',
+      multiStep: m > 0,
+      keywordCount: c + m,
+    },
+    useJobQueue: level !== 'simple',
+  };
+}
+
+/**
+ * 쿼리에서 Job 타입 자동 추론
+ */
+export function inferJobType(
+  query: string
+): 'analysis' | 'report' | 'optimization' | 'prediction' | 'general' {
+  const q = query.toLowerCase();
+  if (/리포트|보고서|report/i.test(q)) return 'report';
+  if (/최적화|개선|optimize/i.test(q)) return 'optimization';
+  if (/예측|forecast|predict/i.test(q)) return 'prediction';
+  if (/분석|분석해|analyze/i.test(q)) return 'analysis';
+  return 'general';
+}
+
 export function getTimeoutGuidance(analysis: ComplexityAnalysis): string {
   const timeoutSec = Math.round(analysis.recommendedTimeout / 1000);
 
