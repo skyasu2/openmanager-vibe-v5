@@ -23,6 +23,7 @@ import {
 } from 'react';
 import { useHealthCheck } from '@/hooks/system/useHealthCheck';
 import { logger } from '@/lib/logging';
+import { triggerAIWarmup } from '@/utils/ai-warmup';
 
 type CloudRunStatus = 'unknown' | 'checking' | 'ready' | 'cold' | 'error';
 
@@ -82,10 +83,8 @@ export function CloudRunStatusIndicator({
     const startTime = Date.now();
 
     try {
-      // 먼저 wake-up 신호 전송
-      await fetch('/api/ai/wake-up', {
-        method: 'POST',
-      });
+      // 쿨다운 통합된 wake-up 신호 전송
+      await triggerAIWarmup('cloud-run-indicator');
 
       // 실제 준비 완료까지 폴링 (최대 60초)
       const maxWaitTime = 60000;
