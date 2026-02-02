@@ -1,10 +1,21 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2026-01-31
+**마지막 업데이트**: 2026-02-03
 
 ---
 
-## 🔄 Recent Changes (v7.1.0)
+## 🔄 Recent Changes (v7.1.1)
+
+- **v7.1.1** (2026-02-03)
+  - **React #419 SSR Suspense 에러 수정**: `crypto.randomUUID()` SSR 가드 추가
+    - `useAISidebarStore.ts`의 sessionId 생성에 `typeof crypto !== 'undefined'` 가드
+    - fallback에 `Math.random()` suffix 추가 (멀티탭 충돌 방지)
+    - Vercel Production QA 완료: 콘솔 error/warning 0건
+  - **React 19 ref-as-prop 마이그레이션**: AutoResizeTextarea 컴포넌트
+  - **SWC _ref 컴파일 버그 회피**: SystemContextPanel 구조 수정
+  - **AI 중복 메시지 방지**: cold start retry 시 duplicate user message 방지
+  - **Tailwind 커스텀 토큰**: 반복 arbitrary value를 @theme 토큰으로 교체
+  - **비즈니스 로직 분리**: API route → service module 리팩토링
 
 - **v7.1.0** (2026-01-31)
   - **Prompt Injection 방어 레이어**: Cloud Run + Vercel 양쪽 적용
@@ -288,7 +299,7 @@
 | Metric | Status | Detail |
 |:---:|:---:|---|
 | **Build** | ✅ Passing | `npm run build` (Next.js 16.1.1) 성공 |
-| **Test** | ✅ 100% | 228/228 Tests Passing (12 test files) |
+| **Test** | ✅ 100% | 239/239 Tests Passing (12 test files) |
 | **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
 | **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
 | **MCP** | ✅ 9/9 | 모든 MCP 서버 정상 연결 |
