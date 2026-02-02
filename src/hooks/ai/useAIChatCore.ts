@@ -166,6 +166,7 @@ export function useAIChatCore(
 
   const {
     sendQuery,
+    executeQuery,
     messages,
     setMessages,
     state: hybridState,
@@ -328,9 +329,23 @@ export function useAIChatCore(
   const retryLastQuery = useCallback(() => {
     if (!lastQueryRef.current) return;
     setError(null);
-    // 🎯 Fix: 재시도 시 파일 첨부도 함께 전달
-    sendQuery(lastQueryRef.current, lastAttachmentsRef.current || undefined);
-  }, [sendQuery]);
+    // 🎯 Fix: 재시도 시 executeQuery 사용 (재분류/재명확화 건너뛰기)
+    // Cold Start 타임아웃 → 자동 재시도 시 동일 쿼리에 대해 명확화가 재트리거되는 문제 방지
+    executeQuery(lastQueryRef.current, lastAttachmentsRef.current || undefined);
+  }, [executeQuery]);
+
+  /**
+   * 명확화 선택 래퍼 - lastQueryRef를 명확화된 쿼리로 업데이트
+   * 재시도 시 명확화된 쿼리가 사용되도록 보장
+   */
+  const wrappedSelectClarification = useCallback(
+    (option: ClarificationOption) => {
+      // lastQueryRef를 명확화된 쿼리로 업데이트 (재시도 대비)
+      lastQueryRef.current = option.suggestedQuery;
+      selectClarification(option);
+    },
+    [selectClarification]
+  );
 
   // ============================================================================
   // Input Handler
@@ -394,7 +409,7 @@ export function useAIChatCore(
     cancel,
     handleSendInput,
     clarification: hybridState.clarification ?? null,
-    selectClarification,
+    selectClarification: wrappedSelectClarification,
     submitCustomClarification,
     skipClarification,
     dismissClarification,

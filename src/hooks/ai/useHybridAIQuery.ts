@@ -805,6 +805,7 @@ export function useHybridAIQuery(
   // ============================================================================
   return {
     sendQuery,
+    executeQuery,
     state,
     messages,
     setMessages,
