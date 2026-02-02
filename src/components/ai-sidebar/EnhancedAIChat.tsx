@@ -146,7 +146,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               <Bot className="h-4 w-4 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-800">자연어 질의</h3>
+              <h3 className="text-sm font-bold text-gray-800">AI Chat</h3>
               <p className="text-xs text-gray-600">AI 기반 대화형 인터페이스</p>
             </div>
           </div>
@@ -193,7 +193,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
 
       {/* 실시간 Agent 상태 */}
       {queryMode === 'streaming' && isGenerating && (
-        <div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white px-4 py-2">
+        <div className="border-t border-gray-200 bg-linear-to-r from-gray-50 to-white px-4 py-2">
           <div className="mx-auto max-w-3xl">
             {currentAgentStatus && (
               <AgentStatusIndicator

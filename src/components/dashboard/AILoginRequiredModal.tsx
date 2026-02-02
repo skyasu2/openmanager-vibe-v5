@@ -63,7 +63,7 @@ export function AILoginRequiredModal({
             </li>
             <li className="flex items-center gap-2">
               <span className="text-purple-400">✦</span>
-              자연어 질의 응답
+              AI Chat
             </li>
             <li className="flex items-center gap-2">
               <span className="text-purple-400">✦</span>

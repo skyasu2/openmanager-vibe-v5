@@ -2,7 +2,7 @@
  * 🤖 AI 어시스턴트 기능 아이콘 패널 v3.1
  *
  * 사이드바 오른쪽에 세로로 배치되는 AI 기능 아이콘들
- * - AI 채팅: 자연어로 시스템 질의 및 대화 (NLQ Agent + Advisor Agent)
+ * - AI Chat: 자연어로 시스템 질의 및 대화 (NLQ Agent + Advisor Agent)
  * - 자동 장애 보고서: AI 기반 장애 분석 보고서 생성 (Reporter Agent)
  * - 이상감지/예측: AI Supervisor 분석 + 예측 분석 (Analyst Agent)
  *
@@ -48,7 +48,7 @@ const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
   {
     id: 'chat',
     icon: MessageSquare,
-    label: '자연어 질의',
+    label: 'AI Chat',
     description: '💬 서버 질의 + 트러블슈팅 + 명령어 추천',
     color: 'text-blue-600',
     bgColor: 'bg-blue-50 hover:bg-blue-100',
@@ -131,7 +131,7 @@ const IconButton = memo(function IconButton({
       >
         <Icon className="mx-auto h-5 w-5" aria-hidden="true" />
         {/* 모바일 툴팁 (상단 표시) - 화이트 모드 */}
-        <div className="pointer-events-none absolute bottom-full left-1/2 z-[60] mb-2 -translate-x-1/2 transform whitespace-nowrap rounded-lg bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+        <div className="pointer-events-none absolute bottom-full left-1/2 z-60 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded-lg bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
           {item.label}
           <div className="absolute left-1/2 top-full -translate-x-1/2 transform">
             <div className="border-2 border-transparent border-t-gray-800"></div>
@@ -162,7 +162,7 @@ const IconButton = memo(function IconButton({
       )}
       {/* 호버 툴팁 - 왼쪽으로 위치 변경 (화이트 모드) */}
       <div
-        className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-[60] min-w-max max-w-[200px] whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
+        className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-60 min-w-max max-w-[200px] whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
       >
         <div className="font-medium">{item.label}</div>
         <div className="mt-1 text-xs text-gray-300">{item.description}</div>
@@ -265,7 +265,7 @@ export default function AIAssistantIconPanel({
           <Maximize className="mx-auto h-5 w-5" aria-hidden="true" />
 
           {/* 툴팁 */}
-          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 pointer-events-none z-[60] min-w-max whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 pointer-events-none z-60 min-w-max whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
             전체 화면으로 보기
             <div className="absolute left-full top-1/2 -translate-y-1/2 transform">
               <div className="border-4 border-transparent border-l-gray-800"></div>
