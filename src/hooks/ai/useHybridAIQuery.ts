@@ -464,6 +464,7 @@ export function useHybridAIQuery(
         ...prev,
         isLoading: false,
         progress: null,
+        clarification: null,
       }));
       onJobResult?.(result);
 
@@ -492,6 +493,7 @@ export function useHybridAIQuery(
         ...prev,
         isLoading: false,
         error,
+        clarification: null,
       }));
     },
   });

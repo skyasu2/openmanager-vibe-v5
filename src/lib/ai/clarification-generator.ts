@@ -38,6 +38,9 @@ const SPECIFIC_CONDITION_PATTERNS = {
   // 비교 조건: "가장 높은", "가장 낮은", "최대", "최소"
   comparisonCondition:
     /가장\s*(높|낮|많|적)|최대|최소|highest|lowest|most|least/i,
+  // 명확화 선택으로 생성된 쿼리 접미사 (재명확화 방지)
+  clarifiedSuffix:
+    /\(전체 서버\)|\(web-server 그룹\)|\(db-server 그룹\)|\(loadbalancer 그룹\)|\(cache 그룹\)|\(최근 \d+시간\)|\(최근 24시간\)|\(지난 7일\)/i,
 };
 
 // 시간 관련 명확화 패턴
@@ -60,7 +63,8 @@ function hasSpecificConditions(query: string): boolean {
   return (
     SPECIFIC_CONDITION_PATTERNS.numericCondition.test(query) ||
     SPECIFIC_CONDITION_PATTERNS.statusCondition.test(query) ||
-    SPECIFIC_CONDITION_PATTERNS.comparisonCondition.test(query)
+    SPECIFIC_CONDITION_PATTERNS.comparisonCondition.test(query) ||
+    SPECIFIC_CONDITION_PATTERNS.clarifiedSuffix.test(query)
   );
 }
 
