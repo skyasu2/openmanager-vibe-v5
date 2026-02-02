@@ -515,7 +515,7 @@ export function useHybridAIQuery(
    * @param attachments - 선택적 파일 첨부 (이미지, PDF, MD)
    */
   const executeQuery = useCallback(
-    (query: string, attachments?: FileAttachment[]) => {
+    (query: string, attachments?: FileAttachment[], isRetry = false) => {
       // 빈 쿼리 방어
       if (!query || !query.trim()) {
         if (process.env.NODE_ENV === 'development') {
@@ -573,16 +573,21 @@ export function useHybridAIQuery(
         : [];
 
       // 사용자 메시지 생성 (UI 표시용) - 텍스트만 포함
-      const userMessage: UIMessage = {
-        id: generateMessageId('user'),
-        role: 'user' as const,
-        parts: [{ type: 'text' as const, text: trimmedQuery }],
-      };
+      // isRetry=true일 때는 이미 메시지 목록에 있으므로 생성 건너뛰기
+      const userMessage: UIMessage | null = isRetry
+        ? null
+        : {
+            id: generateMessageId('user'),
+            role: 'user' as const,
+            parts: [{ type: 'text' as const, text: trimmedQuery }],
+          };
 
       // 2. 모드별 처리
       if (isComplex) {
         // Job Queue 모드: 긴 작업, 진행률 표시
-        setMessages((prev) => [...prev, userMessage]);
+        if (userMessage) {
+          setMessages((prev) => [...prev, userMessage]);
+        }
 
         setState((prev) => ({
           ...prev,
@@ -630,7 +635,25 @@ export function useHybridAIQuery(
         // flushSync로 동기적 상태 업데이트 보장 후 sendMessage 호출
         // 🎯 Fix: "Cannot read properties of undefined (reading 'text')" 에러 방지
         flushSync(() => {
-          setMessages((prev) => sanitizeMessages(prev));
+          setMessages((prev) => {
+            let cleaned = sanitizeMessages(prev);
+            // 🎯 Retry Fix: 재시도 시 이전 실패한 user+assistant 메시지 제거
+            // sendMessage가 자동으로 새 user 메시지를 추가하므로 중복 방지
+            if (isRetry && cleaned.length >= 1) {
+              // 마지막 메시지부터 역순으로 탐색하여 마지막 user 메시지와 이후 assistant 메시지 제거
+              let lastUserIdx = -1;
+              for (let i = cleaned.length - 1; i >= 0; i--) {
+                if (cleaned[i]?.role === 'user') {
+                  lastUserIdx = i;
+                  break;
+                }
+              }
+              if (lastUserIdx !== -1) {
+                cleaned = cleaned.slice(0, lastUserIdx);
+              }
+            }
+            return cleaned;
+          });
         });
 
         // 🎯 AI SDK v6: sendMessage({ text, files? }) 형식

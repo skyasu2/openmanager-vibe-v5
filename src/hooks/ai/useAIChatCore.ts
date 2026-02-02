@@ -331,7 +331,11 @@ export function useAIChatCore(
     setError(null);
     // 🎯 Fix: 재시도 시 executeQuery 사용 (재분류/재명확화 건너뛰기)
     // Cold Start 타임아웃 → 자동 재시도 시 동일 쿼리에 대해 명확화가 재트리거되는 문제 방지
-    executeQuery(lastQueryRef.current, lastAttachmentsRef.current || undefined);
+    executeQuery(
+      lastQueryRef.current,
+      lastAttachmentsRef.current || undefined,
+      true
+    );
   }, [executeQuery]);
 
   /**

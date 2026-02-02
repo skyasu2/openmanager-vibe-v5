@@ -24,7 +24,11 @@ type StateSetter = React.Dispatch<React.SetStateAction<HybridQueryState>>;
 interface ClarificationDeps {
   pendingQueryRef: MutableRefObject<string | null>;
   pendingAttachmentsRef: MutableRefObject<FileAttachment[] | null>;
-  executeQuery: (query: string, attachments?: FileAttachment[]) => void;
+  executeQuery: (
+    query: string,
+    attachments?: FileAttachment[],
+    isRetry?: boolean
+  ) => void;
   setState: StateSetter;
 }
 

@@ -183,7 +183,11 @@ export interface UseHybridAIQueryReturn {
   /** 복잡도 미리 분석 (UI에서 힌트 표시용) */
   previewComplexity: (query: string) => QueryComplexity;
   /** 쿼리 직접 실행 (분류/명확화 건너뛰기, 재시도용) */
-  executeQuery: (query: string, attachments?: FileAttachment[]) => void;
+  executeQuery: (
+    query: string,
+    attachments?: FileAttachment[],
+    isRetry?: boolean
+  ) => void;
   /** 명확화 옵션 선택 */
   selectClarification: (option: ClarificationOption) => void;
   /** 커스텀 명확화 입력 */
