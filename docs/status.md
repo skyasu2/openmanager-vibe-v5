@@ -7,6 +7,18 @@
 ## 🔄 Recent Changes (v7.1.1)
 
 - **v7.1.1** (2026-02-03)
+  - **Cloud Run 상태 인디케이터 시스템 연동** (신규)
+    - `CloudRunStatusIndicator`에 `enabled` prop 추가 → 시스템 시작/중지와 연동
+    - 시스템 중지 시: 모든 폴링/웜업 즉시 취소, "Off - 시스템 중지" 상태 표시
+    - AbortController 추가로 컴포넌트 언마운트 시 메모리 누수 방지
+    - 폴링 간격: 30초 → 5분 (Free Tier 최적화, 2,880회/일 → 288회/일)
+  - **Vercel Production QA (2026-02-03 18:50)**: Playwright MCP 전체 기능 검증
+    - 랜딩 페이지 → 시스템 시작 → 대시보드 → AI 사이드바 전체 플로우 정상
+    - **Cloud Run 상태 인디케이터**: "Ready" 상태 정상 표시 (시스템 활성 시)
+    - **AI Chat Agent**: 서버 상태 요약 (명확화 UI → 전체 서버 현황)
+    - **AI 응답 품질**: "15대 서버 중 13대 정상, 1대 경고, 1대 임계" (정확)
+    - **Cold Start 처리**: 자동 재시도 UI 정상 작동 (5초 후 자동 재시도 → 성공)
+    - 콘솔 error/warning: 0건
   - **Gemini API 키 유출 복구**: Google 자동 스캐너 감지 → 키 재발급 및 적용
     - 유출 원인: `reports/planning/vision-agent-implementation-plan.md`에 하드코딩
     - 복구 작업: 문서에서 키 제거, .env.local/Vercel/GCP Secret Manager 모두 업데이트
