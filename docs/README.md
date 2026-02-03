@@ -1,6 +1,6 @@
 # OpenManager VIBE Documentation
 
-> **프로젝트 버전**: v7.0.1 | **Updated**: 2026-01-26
+> **프로젝트 버전**: v7.1.1 | **Updated**: 2026-02-03
 
 ---
 
@@ -37,8 +37,7 @@ docs/
 ├── guides/                  # How-to 가이드
 │   ├── ai/                  # AI 관련
 │   ├── testing/             # 테스트
-│   ├── standards/           # 코딩 표준
-│   └── database/            # 데이터베이스
+│   └── standards/           # 코딩 표준
 ├── reference/               # 기술 레퍼런스
 │   ├── architecture/        # 아키텍처
 │   └── api/                 # API 문서
@@ -80,7 +79,7 @@ docs/
 - [Claude Code](./vibe-coding/claude-code.md) - AI 페어 프로그래밍
 - [AI 도구들](./vibe-coding/ai-tools.md) - Codex, Gemini 활용
 - [MCP 서버](./vibe-coding/mcp-servers.md) - 9개 MCP 서버
-- [Skills](./vibe-coding/skills.md) - 11개 커스텀 스킬
+- [Skills](./vibe-coding/skills.md) - 13개 커스텀 스킬
 - [워크플로우](./vibe-coding/workflows.md) - 일일 개발 사이클
 
 ### Architecture
