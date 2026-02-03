@@ -7,6 +7,16 @@
 ## 🔄 Recent Changes (v7.1.1)
 
 - **v7.1.1** (2026-02-03)
+  - **AI 설정 외부화 및 Observability 강화** (신규)
+    - **P0 Magic Number 설정화**: `DEFAULT_COMPLEXITY_THRESHOLD = 19` → `ai-proxy.config.ts`로 이동
+    - 환경변수 `AI_COMPLEXITY_THRESHOLD`로 런타임 조정 가능
+    - **P1 스트리밍 재시도 로직**: Exponential backoff 구현 (최대 3회, 1초→2초→4초)
+    - 재시도 가능한 에러 패턴 설정 (`AI_STREAM_MAX_RETRIES`, `AI_STREAM_INITIAL_DELAY` 등)
+    - **P1 Trace ID 전파 강화**: 모든 AI 요청/응답에 `X-Trace-Id` 헤더 추가
+    - verbose 로깅 옵션 (`AI_VERBOSE_LOGGING=true`)
+    - **P2 RAG 가중치 외부화**: `AI_RAG_WEIGHT_VECTOR/GRAPH/WEB` 환경변수
+    - **P2 혼합 로깅 정리**: `console.log` → `logger` 통일
+    - 변경 파일: `ai-proxy.config.ts`, `useHybridAIQuery.ts`, `cloud-run-handler.ts`, `useFileAttachments.ts`
   - **Cloud Run 상태 인디케이터 시스템 연동** (신규)
     - `CloudRunStatusIndicator`에 `enabled` prop 추가 → 시스템 시작/중지와 연동
     - 시스템 중지 시: 모든 폴링/웜업 즉시 취소, "Off - 시스템 중지" 상태 표시
