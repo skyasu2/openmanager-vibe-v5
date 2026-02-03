@@ -4,10 +4,19 @@
 
 ---
 
-## 🔄 Recent Changes (v7.1.1)
+## 🔄 Recent Changes (v7.1.2)
 
 - **v7.1.2** (2026-02-03)
-  - **AI 베스트 프랙티스 완성 - 캐시 정규화 및 가중치 외부화** (신규)
+  - **AI 베스트 프랙티스 95% 달성 - P1 이슈 완료**
+    - **P1 메시지 제한 상수 통일**: 스토어 100개 vs SESSION 50개 불일치 해결
+      - `useAISidebarStore.ts`: `.slice(-100)` → `.slice(-SESSION_LIMITS.MESSAGE_LIMIT)`
+      - 보안 강화 목적 50개 제한으로 통일 (악의적 사용/폭주 방지)
+    - **P1 캐시 시스템 통합**: 이원화된 정규화 로직 단일화
+      - `ai-response-cache.ts`: 자체 정규화 → `unified-cache.ts`의 `normalizeQueryForCache()` 사용
+      - 캐시 히트율 일관성 확보 (구두점 제거, 공백 정규화, 대소문자 통일)
+    - **분석 문서 생성**: `reports/planning/ai-assistant-best-practice-analysis-v713.md`
+    - 변경 파일: `useAISidebarStore.ts`, `ai-response-cache.ts`
+  - **이전 개선사항 (v7.1.1 → v7.1.2 초반)**
     - **P1 캐시 쿼리 정규화**: "상태?", "상태!", "상태" → 동일 캐시 키로 매핑
     - `normalizeQueryForCache()` 메서드 추가 (구두점 제거, 공백 정규화, 대소문자 통일)
     - `getAIQueryCache()`, `setAIQueryCache()`, `getOrFetchAIQuery()` 헬퍼 함수
@@ -15,7 +24,6 @@
     - 8개 환경변수로 가중치 조정 가능: `AI_COMPLEXITY_WEIGHT_{ANALYSIS|PREDICTION|AGGREGATION|...}`
     - `getComplexityCategoryWeights()`, `getComplexityCategoryWeight()` getter 함수
     - 변경 파일: `unified-cache.ts`, `ai-proxy.config.ts`, `query-complexity.ts`
-    - **기존 구현 확인**: 메시지 100개 제한, 분산 Circuit Breaker, Jitter 모두 이미 구현됨
 
 - **v7.1.1** (2026-02-03)
   - **AI 설정 외부화 및 Observability 강화** (신규)
