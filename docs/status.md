@@ -17,6 +17,16 @@
     - **P2 RAG 가중치 외부화**: `AI_RAG_WEIGHT_VECTOR/GRAPH/WEB` 환경변수
     - **P2 혼합 로깅 정리**: `console.log` → `logger` 통일
     - 변경 파일: `ai-proxy.config.ts`, `useHybridAIQuery.ts`, `cloud-run-handler.ts`, `useFileAttachments.ts`
+  - **Observability 완성: Trace ID Upstream 추출 및 Jitter** (신규)
+    - **P0 Trace ID Upstream 추출**: 클라이언트 `X-Trace-Id` 헤더 추출 → 없으면 서버에서 신규 생성
+    - 모든 로그 메시지에 trace ID 포함 (보안, 캐시, 에러)
+    - 모든 응답 헤더/body에 `traceId` 전파
+    - **P0 Retry Jitter 추가**: `jitterFactor` 설정 (기본값 ±10%)로 Thundering herd 방지
+    - 새 환경변수: `AI_STREAM_JITTER_FACTOR=0.1`
+    - **P1 Error Handler Trace**: `handleSupervisorError(error, traceId?)` 파라미터 추가
+    - **P1 Security 감사 추적**: 프롬프트 인젝션 차단 로그에 trace ID 포함
+    - **P1 Cache 로그 Trace**: 캐시 HIT/MISS/SKIP 로그에 trace ID 포함
+    - 변경 파일: `route.ts`, `error-handler.ts`, `ai-proxy.config.ts`
   - **Cloud Run 상태 인디케이터 시스템 연동** (신규)
     - `CloudRunStatusIndicator`에 `enabled` prop 추가 → 시스템 시작/중지와 연동
     - 시스템 중지 시: 모든 폴링/웜업 즉시 취소, "Off - 시스템 중지" 상태 표시
