@@ -50,8 +50,17 @@ export const AutoResizeTextarea = memo(
     ...props
   }: AutoResizeTextareaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const combinedRef = (ref ||
-      textareaRef) as React.RefObject<HTMLTextAreaElement>;
+
+    // 외부 ref 동기화
+    useEffect(() => {
+      if (!ref) return;
+      if (typeof ref === 'function') {
+        ref(textareaRef.current);
+      } else {
+        (ref as React.MutableRefObject<HTMLTextAreaElement | null>).current =
+          textareaRef.current;
+      }
+    }, [ref]);
 
     // 동적 높이 계산
     const calculateMaxHeight = useCallback(() => {
@@ -61,7 +70,7 @@ export const AutoResizeTextarea = memo(
 
     // 자동 리사이즈 함수
     const autoResize = useCallback(() => {
-      const textarea = combinedRef.current;
+      const textarea = textareaRef.current;
       if (!textarea) return;
 
       const dynamicMaxHeight = calculateMaxHeight();
@@ -80,7 +89,7 @@ export const AutoResizeTextarea = memo(
       // 스크롤이 필요한 경우 스크롤 표시
       textarea.style.overflowY =
         newHeight >= dynamicMaxHeight ? 'auto' : 'hidden';
-    }, [minHeight, calculateMaxHeight, combinedRef]);
+    }, [minHeight, calculateMaxHeight]);
 
     // 입력 이벤트 핸들러
     const handleInput = useCallback(
@@ -131,7 +140,7 @@ export const AutoResizeTextarea = memo(
 
     return (
       <textarea
-        ref={combinedRef}
+        ref={textareaRef}
         className={`
           resize-none 
           transition-all duration-200 ease-out
