@@ -17,6 +17,7 @@ import { devtools, persist } from 'zustand/middleware';
 
 // AI Thinking Step 타입 import (ai-sidebar에서 제공)
 import type { AIThinkingStep } from '../types/ai-sidebar';
+import { SESSION_LIMITS } from '../types/session';
 
 export interface AgentLog {
   id: string;
@@ -399,7 +400,9 @@ export const useAISidebarStore = create<AISidebarState>()(
         // 채팅 관련 액션들
         addMessage: (message) =>
           set((state) => ({
-            messages: [...state.messages, message].slice(-100), // 최대 100개만 유지 (메모리 누수 방지)
+            messages: [...state.messages, message].slice(
+              -SESSION_LIMITS.MESSAGE_LIMIT
+            ), // SESSION_LIMITS 상수 사용 (50개, 보안 강화)
           })),
 
         updateMessage: (messageId, updates) =>

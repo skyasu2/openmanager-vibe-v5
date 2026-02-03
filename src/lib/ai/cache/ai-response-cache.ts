@@ -17,6 +17,7 @@
 import {
   CacheNamespace,
   CacheTTL,
+  normalizeQueryForCache,
   unifiedCache,
 } from '@/lib/cache/unified-cache';
 import { logger } from '@/lib/logging';
@@ -86,6 +87,10 @@ function hashString(str: string): string {
 /**
  * AI 응답 캐시 키 생성
  *
+ * @description
+ * unified-cache.ts의 normalizeQueryForCache 함수를 사용하여
+ * 쿼리 정규화 로직을 통일합니다. (v7.1.3)
+ *
  * @param sessionId - 세션 ID
  * @param query - 사용자 쿼리
  * @param endpoint - AI 엔드포인트 (선택)
@@ -96,7 +101,8 @@ export function generateCacheKey(
   query: string,
   endpoint?: AIEndpoint
 ): string {
-  const normalizedQuery = query.toLowerCase().trim();
+  // unified-cache.ts의 정규화 함수 사용 (구두점 제거, 다중 공백 정규화 등)
+  const normalizedQuery = normalizeQueryForCache(query);
   const endpointPrefix = endpoint ? `${endpoint}:` : '';
   return `${endpointPrefix}${hashString(sessionId)}:${hashString(normalizedQuery)}`;
 }
