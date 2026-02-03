@@ -4,22 +4,40 @@
  * supervisor/route.ts에서 분리된 에러 분류 및 응답 로직
  *
  * @created 2026-02-01 (route.ts SRP 분리)
+ * @updated 2026-02-03 (P1: traceId 파라미터 추가)
  */
 
 import { NextResponse } from 'next/server';
+import { getObservabilityConfig } from '@/config/ai-proxy.config';
 import { logger } from '@/lib/logging';
 
 /**
  * Supervisor 에러를 분류하고 적절한 HTTP 응답 생성
+ *
+ * @param error - 발생한 에러
+ * @param traceId - 요청 추적 ID (선택적)
  */
-export function handleSupervisorError(error: unknown): NextResponse {
-  logger.error('❌ AI 스트리밍 처리 실패:', error);
+export function handleSupervisorError(
+  error: unknown,
+  traceId?: string
+): NextResponse {
+  const observabilityConfig = getObservabilityConfig();
+  const traceInfo = traceId ? ` (trace: ${traceId})` : '';
+
+  logger.error(`❌ AI 스트리밍 처리 실패${traceInfo}:`, error);
+
+  // 공통 헤더 생성
+  const baseHeaders: Record<string, string> = {};
+  if (traceId && observabilityConfig.enableTraceId) {
+    baseHeaders[observabilityConfig.traceIdHeader] = traceId;
+  }
 
   if (error instanceof Error) {
     logger.error('Error details:', {
       name: error.name,
       message: error.message,
       stack: error.stack?.slice(0, 500),
+      traceId,
     });
 
     // Circuit Breaker Open
@@ -33,10 +51,11 @@ export function handleSupervisorError(error: unknown): NextResponse {
           error: 'AI service circuit open',
           message: error.message,
           retryAfter: parseInt(retryAfter, 10),
+          traceId,
         },
         {
           status: 503,
-          headers: { 'Retry-After': retryAfter },
+          headers: { 'Retry-After': retryAfter, ...baseHeaders },
         }
       );
     }
@@ -52,8 +71,9 @@ export function handleSupervisorError(error: unknown): NextResponse {
           error: 'Request timeout',
           message:
             'AI 분석이 시간 내에 완료되지 않았습니다. 더 간단한 질문으로 시도해주세요.',
+          traceId,
         },
-        { status: 504 }
+        { status: 504, headers: baseHeaders }
       );
     }
   }
@@ -64,7 +84,8 @@ export function handleSupervisorError(error: unknown): NextResponse {
       error: 'AI processing failed',
       message:
         error instanceof Error ? error.message : 'Unknown error occurred',
+      traceId,
     },
-    { status: 500 }
+    { status: 500, headers: baseHeaders }
   );
 }

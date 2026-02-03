@@ -63,6 +63,8 @@ const StreamRetryConfigSchema = z.object({
   backoffMultiplier: z.number().min(1).max(5).default(2),
   /** 최대 대기 시간 (ms) */
   maxDelayMs: z.number().min(1000).max(30000).default(10000),
+  /** 🎯 P0: Jitter 범위 (0.0 ~ 1.0, Thundering herd 방지) */
+  jitterFactor: z.number().min(0).max(1).default(0.1),
   /** 재시도 가능한 에러 패턴 */
   retryableErrors: z.array(z.string()).default([
     'timeout', 'ETIMEDOUT', 'ECONNRESET', 'fetch failed',
@@ -211,6 +213,7 @@ function loadAIProxyConfig(): AIProxyConfig {
       initialDelayMs: Number(process.env.AI_STREAM_INITIAL_DELAY) || 1000,
       backoffMultiplier: Number(process.env.AI_STREAM_BACKOFF_MULTIPLIER) || 2,
       maxDelayMs: Number(process.env.AI_STREAM_MAX_DELAY) || 10000,
+      jitterFactor: Number(process.env.AI_STREAM_JITTER_FACTOR) || 0.1,
       retryableErrors: [
         'timeout', 'ETIMEDOUT', 'ECONNRESET', 'fetch failed',
         'socket hang up', '504', '503', 'Stream error',
@@ -362,13 +365,27 @@ export function isRetryableError(errorMessage: string): boolean {
 }
 
 /**
- * 재시도 대기 시간 계산 (지수 백오프)
+ * 재시도 대기 시간 계산 (지수 백오프 + Jitter)
+ *
+ * @description
+ * Thundering herd 문제 방지를 위해 ±jitterFactor% 랜덤 지터 추가
+ * 예: jitterFactor=0.1이면 ±10% 범위의 랜덤 변동
+ *
  * @param attempt - 현재 시도 횟수 (0부터 시작)
+ * @returns 지터가 적용된 대기 시간 (ms)
  */
 export function calculateRetryDelay(attempt: number): number {
   const config = getStreamRetryConfig();
-  const delay = config.initialDelayMs * Math.pow(config.backoffMultiplier, attempt);
-  return Math.min(delay, config.maxDelayMs);
+  const baseDelay =
+    config.initialDelayMs * Math.pow(config.backoffMultiplier, attempt);
+  const cappedDelay = Math.min(baseDelay, config.maxDelayMs);
+
+  // 🎯 P0: Jitter 적용 (±jitterFactor% 범위)
+  // Math.random()은 [0, 1) 범위이므로 (Math.random() * 2 - 1)은 [-1, 1) 범위
+  const jitter = cappedDelay * config.jitterFactor * (Math.random() * 2 - 1);
+
+  // 최소 100ms 보장 (음수 방지)
+  return Math.max(100, Math.round(cappedDelay + jitter));
 }
 
 // ============================================================================

@@ -18,7 +18,12 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMaxTimeout, getMinTimeout } from '@/config/ai-proxy.config';
+import {
+  generateTraceId,
+  getMaxTimeout,
+  getMinTimeout,
+  getObservabilityConfig,
+} from '@/config/ai-proxy.config';
 import { type AIEndpoint, getAICache } from '@/lib/ai/cache/ai-response-cache';
 import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
 import {
@@ -90,6 +95,17 @@ export const maxDuration = 10; // 🔧 현재: Free tier
 export const POST = withRateLimit(
   rateLimiters.aiAnalysis,
   withAuth(async (req: NextRequest) => {
+    // 🎯 P0: Trace ID Upstream 추출 - 클라이언트 헤더에서 추출 또는 신규 생성
+    const observabilityConfig = getObservabilityConfig();
+    const upstreamTraceId = req.headers.get(observabilityConfig.traceIdHeader);
+    const traceId = upstreamTraceId || generateTraceId();
+
+    if (observabilityConfig.verboseLogging) {
+      logger.info(
+        `[Supervisor] Request started (trace: ${traceId}, upstream: ${upstreamTraceId ? 'yes' : 'no'})`
+      );
+    }
+
     try {
       // 1. Zod 스키마 검증
       const body = await req.json();
@@ -143,20 +159,24 @@ export const POST = withRateLimit(
       } = securityCheck(rawQuery);
       if (shouldBlock) {
         logger.warn(
-          `🛡️ [Supervisor] Blocked injection attempt: ${inputCheck.patterns.join(', ')}`
+          `🛡️ [Supervisor] Blocked injection attempt (trace: ${traceId}): ${inputCheck.patterns.join(', ')}`
         );
         return NextResponse.json(
           {
             success: false,
             error: 'Security: blocked input',
             message: '보안 정책에 의해 차단된 요청입니다.',
+            traceId,
           },
-          { status: 400 }
+          {
+            status: 400,
+            headers: { [observabilityConfig.traceIdHeader]: traceId },
+          }
         );
       }
       if (securityWarning) {
         logger.warn(
-          `🛡️ [Supervisor] Security warning (medium): ${securityWarning}`
+          `🛡️ [Supervisor] Security warning (trace: ${traceId}): ${securityWarning}`
         );
       }
       const userQuery = sanitizedInput;
@@ -172,8 +192,10 @@ export const POST = withRateLimit(
         maxTimeout: getMaxTimeout('supervisor'),
       });
 
-      logger.info(`🚀 [Supervisor] Query: "${userQuery.slice(0, 50)}..."`);
-      logger.info(`📡 [Supervisor] Session: ${sessionId}`);
+      logger.info(
+        `🚀 [Supervisor] Query: "${userQuery.slice(0, 50)}..." (trace: ${traceId})`
+      );
+      logger.info(`📡 [Supervisor] Session: ${sessionId}, Trace: ${traceId}`);
       logger.info(`⏱️ [Supervisor] Dynamic timeout: ${dynamicTimeout}ms`);
 
       // 5. 복잡도 기반 Job Queue 리다이렉트
@@ -185,7 +207,7 @@ export const POST = withRateLimit(
 
       if (shouldUseJobQueue) {
         logger.info(
-          `🔀 [Supervisor] Redirecting to Job Queue (complexity: ${complexity.level})`
+          `🔀 [Supervisor] Redirecting to Job Queue (complexity: ${complexity.level}, trace: ${traceId})`
         );
         return NextResponse.json(
           {
@@ -194,12 +216,14 @@ export const POST = withRateLimit(
             complexity: complexity.level,
             estimatedTime: Math.round(complexity.recommendedTimeout / 1000),
             message: '복잡한 분석 요청입니다. 비동기 처리로 전환합니다.',
+            traceId,
           },
           {
             status: 202,
             headers: {
               'X-Session-Id': sessionId,
               'X-Redirect-Mode': 'job-queue',
+              [observabilityConfig.traceIdHeader]: traceId,
             },
           }
         );
@@ -219,15 +243,21 @@ export const POST = withRateLimit(
         );
         if (cacheResult.hit && cacheResult.data?.response) {
           logger.info(
-            `📦 [Supervisor] Cache HIT (${cacheResult.source}, ${cacheResult.latencyMs}ms)`
+            `📦 [Supervisor] Cache HIT (${cacheResult.source}, ${cacheResult.latencyMs}ms, trace: ${traceId})`
           );
           const acceptHeader = req.headers.get('accept') || '';
           const wantsJsonOnly = acceptHeader === 'application/json';
 
           if (wantsJsonOnly) {
             return NextResponse.json(
-              { ...cacheResult.data, _cached: true },
-              { headers: { 'X-Session-Id': sessionId, 'X-Cache': 'HIT' } }
+              { ...cacheResult.data, _cached: true, traceId },
+              {
+                headers: {
+                  'X-Session-Id': sessionId,
+                  'X-Cache': 'HIT',
+                  [observabilityConfig.traceIdHeader]: traceId,
+                },
+              }
             );
           }
           return new NextResponse(cacheResult.data.response, {
@@ -237,12 +267,15 @@ export const POST = withRateLimit(
               'X-Session-Id': sessionId,
               'X-Cache': 'HIT',
               'X-Backend': 'cache',
+              [observabilityConfig.traceIdHeader]: traceId,
             },
           });
         }
-        logger.info(`📦 [Supervisor] Cache MISS`);
+        logger.info(`📦 [Supervisor] Cache MISS (trace: ${traceId})`);
       } else {
-        logger.info(`📦 [Supervisor] Cache SKIP (context or realtime query)`);
+        logger.info(
+          `📦 [Supervisor] Cache SKIP (context or realtime query, trace: ${traceId})`
+        );
       }
 
       // 7. Accept 헤더 → stream/json 분기
@@ -288,6 +321,7 @@ export const POST = withRateLimit(
           skipCache,
           cacheEndpoint,
           securityWarning,
+          traceId, // 🎯 P0: Pass trace ID to Cloud Run handler
         };
 
         return wantsStream
@@ -296,23 +330,26 @@ export const POST = withRateLimit(
       }
 
       // 9. Fallback: Cloud Run 비활성화
-      logger.warn('⚠️ [Supervisor] Cloud Run disabled, returning fallback');
+      logger.warn(
+        `⚠️ [Supervisor] Cloud Run disabled, returning fallback (trace: ${traceId})`
+      );
       const fallback = createFallbackResponse('supervisor', {
         query: userQuery,
       });
 
       return NextResponse.json(
-        { ...fallback, sessionId, _backend: 'fallback' },
+        { ...fallback, sessionId, _backend: 'fallback', traceId },
         {
           headers: {
             'Cache-Control': 'no-store, no-cache, must-revalidate',
             'X-Session-Id': sessionId,
             'Retry-After': '30',
+            [observabilityConfig.traceIdHeader]: traceId,
           },
         }
       );
     } catch (error) {
-      return handleSupervisorError(error);
+      return handleSupervisorError(error, traceId);
     }
   })
 );
