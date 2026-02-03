@@ -7,6 +7,17 @@
 ## 🔄 Recent Changes (v7.1.1)
 
 - **v7.1.1** (2026-02-03)
+  - **Gemini API 키 유출 복구**: Google 자동 스캐너 감지 → 키 재발급 및 적용
+    - 유출 원인: `reports/planning/vision-agent-implementation-plan.md`에 하드코딩
+    - 복구 작업: 문서에서 키 제거, .env.local/Vercel/GCP Secret Manager 모두 업데이트
+    - Cloud Run 재배포: `ai-engine-00201-b5p` 리비전 (새 키 적용)
+    - Vision Agent 테스트 성공: Gemini 2.5 Flash 정상 작동 (3.7초 응답)
+  - **Vercel Production QA (2026-02-03 15:25)**: Playwright MCP 전체 기능 검증
+    - 랜딩 페이지 → 대시보드 → AI 사이드바 전체 플로우 정상
+    - **AI Chat Agent**: 서버 상태 요약 (Cerebras/llama-3.3-70b, ~1초 응답)
+    - **응답 품질**: 15대 서버 현황 정확 분석 (정상 12, 경고 2, 임계 1)
+    - **Cold Start 처리**: 자동 재시도 UI 정상 작동 (5초 후 자동 재시도)
+    - 스크린샷 7장 생성: qa-01~qa-07
   - **Coverage Threshold 현실화**: 80% → 10%로 조정 (실제 커버리지 ~11% 기준)
     - `vitest.config.main.ts`: lines/branches/functions/statements 모두 10%
     - `.claude/rules/testing.md`: 문서 동기화
@@ -358,8 +369,8 @@
 
 **Cloud Run AI Engine**
 - **Service URL**: `https://ai-engine-490817238363.asia-northeast1.run.app`
-- **Active Revision**: `ai-engine-00187-lzn` (최신 배포, Prompt Injection Guard)
-- **Health**: ✅ All providers connected (Supabase, Upstash, Groq, Mistral, Cerebras, Tavily, OpenRouter, Langfuse)
+- **Active Revision**: `ai-engine-00201-b5p` (2026-02-03, Gemini API 키 복구)
+- **Health**: ✅ All providers connected (Supabase, Upstash, Groq, Mistral, Cerebras, Tavily, **Gemini**, Langfuse)
 - **Observability**:
   - Langfuse (10% sampling, 무료 티어 보호)
   - Sentry (Node.js SDK, 글로벌 에러 핸들링)
