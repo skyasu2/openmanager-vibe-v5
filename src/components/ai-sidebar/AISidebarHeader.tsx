@@ -4,6 +4,7 @@
  * ✅ 모바일/노트북/데스크톱 대응
  * ✅ 시맨틱 HTML 적용
  * ✅ 키보드 네비게이션 지원
+ * ✅ 시스템 시작/중지와 Cloud Run 상태 연동
  */
 
 'use client';
@@ -13,6 +14,7 @@ import { Brain, Plus, X } from 'lucide-react';
 import type { FC } from 'react';
 import BasicTyping from '@/components/ui/BasicTyping';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { CloudRunStatusIndicator } from './CloudRunStatusIndicator';
 
 interface AISidebarHeaderProps {
@@ -25,6 +27,10 @@ export const AISidebarHeader: FC<AISidebarHeaderProps> = ({
   onNewSession,
 }: AISidebarHeaderProps) => {
   const clearMessages = useAISidebarStore((state) => state.clearMessages);
+  // 시스템 상태와 Cloud Run 상태 연동
+  const isSystemStarted = useUnifiedAdminStore(
+    (state) => state.isSystemStarted
+  );
 
   const handleNewChat = () => {
     if (onNewSession) {
@@ -56,9 +62,13 @@ export const AISidebarHeader: FC<AISidebarHeaderProps> = ({
         </div>
       </div>
 
-      {/* Cloud Run 상태 인디케이터 - 웜업 버튼 포함 */}
+      {/* Cloud Run 상태 인디케이터 - 시스템 상태와 연동 */}
       <div className="mx-2 shrink-0">
-        <CloudRunStatusIndicator compact autoCheckInterval={30000} />
+        <CloudRunStatusIndicator
+          compact
+          autoCheckInterval={300000}
+          enabled={isSystemStarted}
+        />
       </div>
 
       {/* 새 대화 버튼 */}
