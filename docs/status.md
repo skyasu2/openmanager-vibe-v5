@@ -16,6 +16,11 @@
   - **AI 중복 메시지 방지**: cold start retry 시 duplicate user message 방지
   - **Tailwind 커스텀 토큰**: 반복 arbitrary value를 @theme 토큰으로 교체
   - **비즈니스 로직 분리**: API route → service module 리팩토링
+  - **테스트 수정 (4건)**:
+    - AIWorkspace.test: `getAllByText` 패턴으로 중복 텍스트 대응
+    - ReactFlowDiagram snapshot: `text-[10px]` → `text-2xs` 토큰 반영
+    - retry.test: `Promise.allSettled`로 Unhandled Rejection 수정
+    - vercel-optimization.test: assertion 수정
 
 - **v7.1.0** (2026-01-31)
   - **Prompt Injection 방어 레이어**: Cloud Run + Vercel 양쪽 적용
@@ -294,12 +299,12 @@
 
 ---
 
-## 📊 품질 지표 (2026-01-20 기준)
+## 📊 품질 지표 (2026-02-03 기준)
 
 | Metric | Status | Detail |
 |:---:|:---:|---|
 | **Build** | ✅ Passing | `npm run build` (Next.js 16.1.1) 성공 |
-| **Test** | ✅ 100% | 239/239 Tests Passing (12 test files) |
+| **Test** | ✅ 100% | 1434/1434 Tests Passing (71 test files) |
 | **Lint** | ✅ Clean | Biome Check Pass (No Errors) |
 | **E2E** | ✅ 100% | 30/30 Scenarios Passing (Playwright) |
 | **MCP** | ✅ 9/9 | 모든 MCP 서버 정상 연결 |
