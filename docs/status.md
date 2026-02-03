@@ -21,6 +21,10 @@
     - ReactFlowDiagram snapshot: `text-[10px]` → `text-2xs` 토큰 반영
     - retry.test: `Promise.allSettled`로 Unhandled Rejection 수정
     - vercel-optimization.test: assertion 수정
+  - **Vercel Production QA (2026-02-03)**: Playwright MCP 검증
+    - 대시보드: 15개 서버 그리드, 상태 배지(Stable/Unusual/Rising) 정상
+    - AI 어시스턴트: Cold Start 자동 재시도 → 응답 수신 성공
+    - 콘솔 error/warning: 0건
 
 - **v7.1.0** (2026-01-31)
   - **Prompt Injection 방어 레이어**: Cloud Run + Vercel 양쪽 적용
