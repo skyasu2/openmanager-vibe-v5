@@ -38,6 +38,65 @@ const TimeoutConfigSchema = z.object({
 });
 
 /**
+ * 쿼리 라우팅 설정 스키마
+ * @description 복잡도 기반 스트리밍/Job Queue 라우팅 임계값
+ */
+const QueryRoutingConfigSchema = z.object({
+  /** 복잡도 임계값: 이 점수 초과시 Job Queue 사용 (기본값: 19) */
+  complexityThreshold: z.number().min(1).max(100).default(19),
+  /** Job Queue 강제 사용 키워드 */
+  forceJobQueueKeywords: z.array(z.string()).default([
+    '보고서', '리포트', '근본 원인', '장애 분석', '전체 분석',
+  ]),
+});
+
+/**
+ * 스트리밍 재시도 설정 스키마
+ * @description P1: Exponential backoff 재시도 설정
+ */
+const StreamRetryConfigSchema = z.object({
+  /** 최대 재시도 횟수 */
+  maxRetries: z.number().min(0).max(5).default(3),
+  /** 초기 대기 시간 (ms) */
+  initialDelayMs: z.number().min(100).max(5000).default(1000),
+  /** 백오프 배수 */
+  backoffMultiplier: z.number().min(1).max(5).default(2),
+  /** 최대 대기 시간 (ms) */
+  maxDelayMs: z.number().min(1000).max(30000).default(10000),
+  /** 재시도 가능한 에러 패턴 */
+  retryableErrors: z.array(z.string()).default([
+    'timeout', 'ETIMEDOUT', 'ECONNRESET', 'fetch failed',
+    'socket hang up', '504', '503', 'Stream error',
+  ]),
+});
+
+/**
+ * RAG 검색 가중치 설정 스키마
+ * @description P2: RAG 하이브리드 검색 가중치 외부화
+ */
+const RAGWeightsConfigSchema = z.object({
+  /** 벡터 검색 가중치 (pgVector) */
+  vector: z.number().min(0).max(1).default(0.5),
+  /** 그래프 검색 가중치 (Knowledge Graph) */
+  graph: z.number().min(0).max(1).default(0.3),
+  /** 웹 검색 가중치 (Tavily) */
+  web: z.number().min(0).max(1).default(0.2),
+});
+
+/**
+ * Observability 설정 스키마
+ * @description P1: Trace ID 전파 및 로깅 설정
+ */
+const ObservabilityConfigSchema = z.object({
+  /** Trace ID 전파 활성화 */
+  enableTraceId: z.boolean().default(true),
+  /** Trace ID 헤더 이름 */
+  traceIdHeader: z.string().default('X-Trace-Id'),
+  /** 상세 로깅 활성화 (개발 환경) */
+  verboseLogging: z.boolean().default(false),
+});
+
+/**
  * AI Proxy 설정 스키마
  */
 const AIProxyConfigSchema = z.object({
@@ -65,6 +124,18 @@ const AIProxyConfigSchema = z.object({
     'incident-report': z.number().default(3600),
     'intelligent-monitoring': z.number().default(600),
   }),
+
+  /** 쿼리 라우팅 설정 */
+  queryRouting: QueryRoutingConfigSchema,
+
+  /** 스트리밍 재시도 설정 */
+  streamRetry: StreamRetryConfigSchema,
+
+  /** RAG 검색 가중치 */
+  ragWeights: RAGWeightsConfigSchema,
+
+  /** Observability 설정 */
+  observability: ObservabilityConfigSchema,
 });
 
 // ============================================================================
@@ -76,6 +147,10 @@ export type TimeoutConfig = z.infer<typeof TimeoutConfigSchema>;
 export type AIProxyConfig = z.infer<typeof AIProxyConfigSchema>;
 export type ProxyEndpoint = keyof AIProxyConfig['timeouts'];
 export type CacheEndpoint = keyof AIProxyConfig['cacheTTL'];
+export type QueryRoutingConfig = z.infer<typeof QueryRoutingConfigSchema>;
+export type StreamRetryConfig = z.infer<typeof StreamRetryConfigSchema>;
+export type RAGWeightsConfig = z.infer<typeof RAGWeightsConfigSchema>;
+export type ObservabilityConfig = z.infer<typeof ObservabilityConfigSchema>;
 
 // ============================================================================
 // Tier-specific Timeout Presets
@@ -124,6 +199,32 @@ function loadAIProxyConfig(): AIProxyConfig {
       supervisor: 1800,
       'incident-report': 3600,
       'intelligent-monitoring': 600,
+    },
+    queryRouting: {
+      complexityThreshold: Number(process.env.AI_COMPLEXITY_THRESHOLD) || 19,
+      forceJobQueueKeywords: process.env.AI_FORCE_JOB_QUEUE_KEYWORDS?.split(',') || [
+        '보고서', '리포트', '근본 원인', '장애 분석', '전체 분석',
+      ],
+    },
+    streamRetry: {
+      maxRetries: Number(process.env.AI_STREAM_MAX_RETRIES) || 3,
+      initialDelayMs: Number(process.env.AI_STREAM_INITIAL_DELAY) || 1000,
+      backoffMultiplier: Number(process.env.AI_STREAM_BACKOFF_MULTIPLIER) || 2,
+      maxDelayMs: Number(process.env.AI_STREAM_MAX_DELAY) || 10000,
+      retryableErrors: [
+        'timeout', 'ETIMEDOUT', 'ECONNRESET', 'fetch failed',
+        'socket hang up', '504', '503', 'Stream error',
+      ],
+    },
+    ragWeights: {
+      vector: Number(process.env.AI_RAG_WEIGHT_VECTOR) || 0.5,
+      graph: Number(process.env.AI_RAG_WEIGHT_GRAPH) || 0.3,
+      web: Number(process.env.AI_RAG_WEIGHT_WEB) || 0.2,
+    },
+    observability: {
+      enableTraceId: process.env.AI_ENABLE_TRACE_ID !== 'false',
+      traceIdHeader: process.env.AI_TRACE_ID_HEADER || 'X-Trace-Id',
+      verboseLogging: process.env.AI_VERBOSE_LOGGING === 'true',
     },
   };
 
@@ -218,6 +319,89 @@ export function clampTimeout(endpoint: ProxyEndpoint, timeout: number): number {
  */
 export function getCacheTTL(endpoint: CacheEndpoint): number {
   return getAIProxyConfig().cacheTTL[endpoint];
+}
+
+// ============================================================================
+// Query Routing Getters
+// ============================================================================
+
+/**
+ * 복잡도 임계값 가져오기
+ * @description 이 점수 초과시 Job Queue 사용
+ */
+export function getComplexityThreshold(): number {
+  return getAIProxyConfig().queryRouting.complexityThreshold;
+}
+
+/**
+ * Job Queue 강제 사용 키워드 목록
+ */
+export function getForceJobQueueKeywords(): string[] {
+  return getAIProxyConfig().queryRouting.forceJobQueueKeywords;
+}
+
+// ============================================================================
+// Stream Retry Getters
+// ============================================================================
+
+/**
+ * 스트리밍 재시도 설정 전체 가져오기
+ */
+export function getStreamRetryConfig(): StreamRetryConfig {
+  return getAIProxyConfig().streamRetry;
+}
+
+/**
+ * 재시도 가능한 에러인지 확인
+ */
+export function isRetryableError(errorMessage: string): boolean {
+  const config = getStreamRetryConfig();
+  return config.retryableErrors.some(pattern =>
+    errorMessage.toLowerCase().includes(pattern.toLowerCase())
+  );
+}
+
+/**
+ * 재시도 대기 시간 계산 (지수 백오프)
+ * @param attempt - 현재 시도 횟수 (0부터 시작)
+ */
+export function calculateRetryDelay(attempt: number): number {
+  const config = getStreamRetryConfig();
+  const delay = config.initialDelayMs * Math.pow(config.backoffMultiplier, attempt);
+  return Math.min(delay, config.maxDelayMs);
+}
+
+// ============================================================================
+// RAG Weights Getters
+// ============================================================================
+
+/**
+ * RAG 검색 가중치 전체 가져오기
+ */
+export function getRAGWeights(): RAGWeightsConfig {
+  return getAIProxyConfig().ragWeights;
+}
+
+// ============================================================================
+// Observability Getters
+// ============================================================================
+
+/**
+ * Observability 설정 전체 가져오기
+ */
+export function getObservabilityConfig(): ObservabilityConfig {
+  return getAIProxyConfig().observability;
+}
+
+/**
+ * Trace ID 생성
+ * @description UUID v4 형식의 trace ID 생성
+ */
+export function generateTraceId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `trace-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
 // ============================================================================

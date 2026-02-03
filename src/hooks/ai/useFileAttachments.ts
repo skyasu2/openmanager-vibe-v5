@@ -15,6 +15,7 @@
  */
 
 import { useCallback, useState } from 'react';
+import { logger } from '@/lib/logging';
 
 // ============================================================================
 // Types
@@ -261,7 +262,7 @@ export function useFileAttachments(
               previewUrl: fileType === 'image' ? data : undefined,
             });
           } catch (error) {
-            console.error('File processing error:', error);
+            logger.error('File processing error:', error);
             processingErrors.push({
               file,
               reason: 'type',

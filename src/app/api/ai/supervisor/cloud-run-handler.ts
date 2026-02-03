@@ -10,6 +10,10 @@
  */
 
 import { NextResponse } from 'next/server';
+import {
+  generateTraceId,
+  getObservabilityConfig,
+} from '@/config/ai-proxy.config';
 import { type AIEndpoint, setAICache } from '@/lib/ai/cache/ai-response-cache';
 import { executeWithCircuitBreakerAndFallback } from '@/lib/ai/circuit-breaker';
 import { createFallbackResponse } from '@/lib/ai/fallback/ai-fallback-handler';
@@ -26,6 +30,8 @@ interface CloudRunHandlerParams {
   skipCache: boolean;
   cacheEndpoint: AIEndpoint;
   securityWarning?: string;
+  /** 🎯 P1: Trace ID for observability */
+  traceId?: string;
 }
 
 /**
@@ -43,11 +49,23 @@ export async function handleCloudRunStream(
     skipCache,
     cacheEndpoint,
     securityWarning,
+    traceId: providedTraceId,
   } = params;
 
-  const warningHeaders: Record<string, string> = securityWarning
-    ? { 'X-Security-Warning': securityWarning }
-    : {};
+  // 🎯 P1: Observability - Generate or use provided trace ID
+  const observability = getObservabilityConfig();
+  const traceId = providedTraceId || generateTraceId();
+
+  const baseHeaders: Record<string, string> = {
+    ...(securityWarning ? { 'X-Security-Warning': securityWarning } : {}),
+    ...(observability.enableTraceId
+      ? { [observability.traceIdHeader]: traceId }
+      : {}),
+  };
+
+  if (observability.verboseLogging) {
+    logger.info(`[CloudRun/Stream] Starting request (trace: ${traceId})`);
+  }
 
   const result = await executeWithCircuitBreakerAndFallback<
     NextResponse<unknown>
@@ -56,8 +74,11 @@ export async function handleCloudRunStream(
     async () => {
       const proxyResult = await proxyToCloudRun({
         path: '/api/ai/supervisor',
-        body: { messages: messagesToSend, sessionId },
+        body: { messages: messagesToSend, sessionId, traceId },
         timeout: dynamicTimeout,
+        headers: observability.enableTraceId
+          ? { [observability.traceIdHeader]: traceId }
+          : undefined,
       });
 
       if (!proxyResult.success || !proxyResult.data) {
@@ -90,16 +111,20 @@ export async function handleCloudRunStream(
             'X-Session-Id': sessionId,
             'X-Backend': 'cloud-run',
             'X-Cache': 'MISS',
-            ...warningHeaders,
+            ...baseHeaders,
           },
         });
       } else if (data.error) {
         const errorMessage = `⚠️ AI 오류: ${data.error}`;
+        logger.warn(
+          `[CloudRun/Stream] Error response (trace: ${traceId}): ${data.error}`
+        );
         return new NextResponse(errorMessage, {
           headers: {
             'Content-Type': 'text/plain; charset=utf-8',
             'X-Session-Id': sessionId,
             'X-Backend': 'cloud-run',
+            ...baseHeaders,
           },
         });
       }
@@ -112,6 +137,8 @@ export async function handleCloudRunStream(
       });
       const fallbackText = fallback.data?.response ?? fallback.message;
 
+      logger.info(`⚠️ [CloudRun/Stream] Fallback triggered (trace: ${traceId})`);
+
       return new NextResponse(fallbackText, {
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
@@ -120,13 +147,16 @@ export async function handleCloudRunStream(
           'X-Backend': 'fallback',
           'X-Fallback-Response': 'true',
           'X-Retry-After': '30000',
+          ...baseHeaders,
         },
       });
     }
   );
 
   if (result.source === 'fallback') {
-    logger.info('⚠️ [Supervisor] Using fallback response (stream mode)');
+    logger.info(
+      `⚠️ [Supervisor] Using fallback response (stream mode, trace: ${traceId})`
+    );
   }
 
   return result.data;
@@ -147,11 +177,23 @@ export async function handleCloudRunJson(
     skipCache,
     cacheEndpoint,
     securityWarning,
+    traceId: providedTraceId,
   } = params;
 
-  const warningHeaders: Record<string, string> = securityWarning
-    ? { 'X-Security-Warning': securityWarning }
-    : {};
+  // 🎯 P1: Observability - Generate or use provided trace ID
+  const observability = getObservabilityConfig();
+  const traceId = providedTraceId || generateTraceId();
+
+  const baseHeaders: Record<string, string> = {
+    ...(securityWarning ? { 'X-Security-Warning': securityWarning } : {}),
+    ...(observability.enableTraceId
+      ? { [observability.traceIdHeader]: traceId }
+      : {}),
+  };
+
+  if (observability.verboseLogging) {
+    logger.info(`[CloudRun/JSON] Starting request (trace: ${traceId})`);
+  }
 
   const result = await executeWithCircuitBreakerAndFallback<
     Record<string, unknown>
@@ -160,8 +202,11 @@ export async function handleCloudRunJson(
     async () => {
       const proxyResult = await proxyToCloudRun({
         path: '/api/ai/supervisor',
-        body: { messages: messagesToSend, sessionId },
+        body: { messages: messagesToSend, sessionId, traceId },
         timeout: dynamicTimeout,
+        headers: observability.enableTraceId
+          ? { [observability.traceIdHeader]: traceId }
+          : undefined,
       });
 
       if (!proxyResult.success || !proxyResult.data) {
@@ -171,24 +216,31 @@ export async function handleCloudRunJson(
       return {
         ...(proxyResult.data as Record<string, unknown>),
         _backend: 'cloud-run',
+        _traceId: traceId,
       };
     },
-    () =>
-      ({
+    () => {
+      logger.info(`⚠️ [CloudRun/JSON] Fallback triggered (trace: ${traceId})`);
+      return {
         ...createFallbackResponse('supervisor', { query: userQuery }),
         sessionId,
         _backend: 'fallback',
-      }) as Record<string, unknown>
+        _traceId: traceId,
+      } as Record<string, unknown>;
+    }
   );
 
   if (result.source === 'fallback') {
-    logger.info('⚠️ [Supervisor] Using fallback response (json mode)');
+    logger.info(
+      `⚠️ [Supervisor] Using fallback response (json mode, trace: ${traceId})`
+    );
     return NextResponse.json(result.data, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate',
         'X-Session-Id': sessionId,
         'X-Fallback-Response': 'true',
         'X-Retry-After': '30000',
+        ...baseHeaders,
       },
     });
   }
@@ -204,7 +256,9 @@ export async function handleCloudRunJson(
         userQuery,
         { success: true, response: responseData.response, source: 'cloud-run' },
         cacheEndpoint
-      ).catch((err) => logger.warn('[Supervisor] Cache set failed:', err));
+      ).catch((err) =>
+        logger.warn(`[Supervisor] Cache set failed (trace: ${traceId}):`, err)
+      );
     }
   }
 
@@ -212,7 +266,7 @@ export async function handleCloudRunJson(
     headers: {
       'X-Session-Id': sessionId,
       'X-Cache': 'MISS',
-      ...warningHeaders,
+      ...baseHeaders,
     },
   });
 }

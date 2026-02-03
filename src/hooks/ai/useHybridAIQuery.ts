@@ -31,6 +31,14 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
+import {
+  calculateRetryDelay,
+  generateTraceId,
+  getComplexityThreshold,
+  getObservabilityConfig,
+  getStreamRetryConfig,
+  isRetryableError,
+} from '@/config/ai-proxy.config';
 import { generateClarification } from '@/lib/ai/clarification-generator';
 import { classifyQuery } from '@/lib/ai/query-classifier';
 import {
@@ -92,20 +100,10 @@ export {
 };
 
 // ============================================================================
-// Constants
+// Constants (moved to config/ai-proxy.config.ts)
 // ============================================================================
-
-/**
- * 복잡도 임계값: 이 점수 초과시 Job Queue 사용
- *
- * @note 45 → 30으로 하향 조정 (2026-01-21)
- *   - moderate 레벨 (21-45점) 쿼리가 스트리밍 모드에서 타임아웃 발생
- *   - "전체 서버 상태 요약" (35점) 같은 쿼리가 Vercel 55s 타임아웃에 걸림
- *   - 19점 초과 시 Job Queue로 라우팅 (보고서=20점 포함)
- *
- * @updated 2026-01-21 - 25 → 19로 재조정 (보고서 키워드 20점이 Job Queue로 라우팅되도록)
- */
-const DEFAULT_COMPLEXITY_THRESHOLD = 19;
+// Note: DEFAULT_COMPLEXITY_THRESHOLD has been moved to ai-proxy.config.ts
+// Use getComplexityThreshold() to access the configurable value
 
 // ============================================================================
 // Utilities
@@ -180,13 +178,22 @@ export function useHybridAIQuery(
     // 🎯 Real-time streaming endpoint (2026-01-09)
     // Cloud Run SSE streaming → Vercel proxy → Frontend
     apiEndpoint: customEndpoint,
-    complexityThreshold = DEFAULT_COMPLEXITY_THRESHOLD,
+    // 🎯 P0 Fix: Use config value as default instead of hardcoded magic number
+    complexityThreshold = getComplexityThreshold(),
     onStreamFinish,
     onJobResult,
     onProgress,
     onData,
     webSearchEnabled,
   } = options;
+
+  // 🎯 P1: Trace ID for observability
+  const traceIdRef = useRef<string>(generateTraceId());
+  const observabilityConfig = getObservabilityConfig();
+
+  // 🎯 P1: Stream retry state
+  const retryCountRef = useRef<number>(0);
+  const streamRetryConfig = getStreamRetryConfig();
 
   // webSearchEnabled를 ref로 추적: DefaultChatTransport의 body는 ChatStore 생성 시
   // readonly로 고정되므로, Resolvable<object> 함수를 사용해 호출 시점의 최신 값을 반환
@@ -301,17 +308,26 @@ export function useHybridAIQuery(
         .join('');
 
       // 🎯 개선된 에러 추출 (false positive 방지)
-      const errorMessage = extractStreamError(content);
+      const streamError = extractStreamError(content);
 
-      if (errorMessage) {
-        logger.warn(`[HybridAI] Stream error detected: ${errorMessage}`);
+      if (streamError) {
+        logger.warn(
+          `[HybridAI] Stream error detected (trace: ${traceIdRef.current}): ${streamError}`
+        );
         errorHandledRef.current = true;
         setState((prev) => ({
           ...prev,
           isLoading: false,
-          error: errorMessage,
+          error: streamError,
         }));
       } else {
+        // 🎯 P1: Reset retry count on successful completion
+        retryCountRef.current = 0;
+        if (observabilityConfig.verboseLogging) {
+          logger.info(
+            `[HybridAI] Stream completed successfully (trace: ${traceIdRef.current})`
+          );
+        }
         setState((prev) => ({ ...prev, isLoading: false }));
       }
       onStreamFinish?.();
@@ -424,7 +440,11 @@ export function useHybridAIQuery(
       onData?.(part);
     },
     onError: async (error) => {
-      logger.error('[HybridAI] useChat error:', error);
+      const errorMessage = error.message || 'Unknown error';
+      logger.error(
+        `[HybridAI] useChat error (trace: ${traceIdRef.current}):`,
+        errorMessage
+      );
 
       // 🎯 P1-4 Fix: Atomic check-and-set pattern to prevent double handling
       // Check FIRST, then set immediately to prevent race with onFinish
@@ -436,14 +456,48 @@ export function useHybridAIQuery(
       }
       errorHandledRef.current = true; // Set immediately after check (atomic pattern)
 
-      // v2: Automatic stream recovery via useChat({ resume: true })
-      // Manual recovery code removed - AI SDK v6 handles reconnection natively
+      // 🎯 P1: Streaming retry with exponential backoff
+      const canRetry =
+        isRetryableError(errorMessage) &&
+        retryCountRef.current < streamRetryConfig.maxRetries;
+
+      if (canRetry && currentQueryRef.current) {
+        retryCountRef.current += 1;
+        const delay = calculateRetryDelay(retryCountRef.current - 1);
+
+        logger.info(
+          `[HybridAI] Retrying stream (${retryCountRef.current}/${streamRetryConfig.maxRetries}) ` +
+            `after ${delay}ms (trace: ${traceIdRef.current})`
+        );
+
+        // Show retry warning to user
+        setState((prev) => ({
+          ...prev,
+          warning: `재연결 중... (${retryCountRef.current}/${streamRetryConfig.maxRetries})`,
+        }));
+
+        // Wait and retry
+        setTimeout(() => {
+          errorHandledRef.current = false; // Reset for retry
+          const query = currentQueryRef.current;
+          const attachments = pendingAttachmentsRef.current;
+          if (query) {
+            // Re-execute with isRetry=true to skip clarification
+            executeQuery(query, attachments || undefined, true);
+          }
+        }, delay);
+
+        return;
+      }
+
+      // 🎯 Reset retry count on final failure
+      retryCountRef.current = 0;
 
       // 복구 실패 시 기존 에러 처리
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error.message || 'AI 응답 중 오류가 발생했습니다.',
+        error: errorMessage || 'AI 응답 중 오류가 발생했습니다.',
         warning: null,
         processingTime: 0,
       }));
@@ -786,6 +840,10 @@ export function useHybridAIQuery(
     // 🎯 Phase 2: AbortController cleanup on reset
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
+
+    // 🎯 P1: Reset retry count and generate new trace ID
+    retryCountRef.current = 0;
+    traceIdRef.current = generateTraceId();
 
     asyncQuery.reset();
     setMessages([]);
