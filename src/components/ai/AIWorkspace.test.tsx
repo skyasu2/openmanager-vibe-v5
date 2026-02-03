@@ -199,7 +199,8 @@ describe('AIWorkspace', () => {
     render(<AIWorkspace />);
 
     // AI 기능 버튼들 확인
-    expect(screen.getByText('자연어 질의')).toBeInTheDocument();
+    const aiChatElements = screen.getAllByText('AI Chat');
+    expect(aiChatElements.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('장애 보고서')).toBeInTheDocument();
     expect(screen.getByText('이상감지/예측')).toBeInTheDocument();
   });

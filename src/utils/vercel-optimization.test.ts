@@ -50,15 +50,20 @@ describe('Vercel Optimization Utilities', () => {
       // localhost에서는 Vercel이 아님
       expect(result.isVercel).toBe(false);
       expect(result.environment).toBe('development');
-      expect(result.region).toBe('client-side');
+      // node 환경에서는 window가 없으므로 'unknown', jsdom에서는 'client-side'
+      const expectedRegion =
+        typeof window === 'undefined' ? 'unknown' : 'client-side';
+      expect(result.region).toBe(expectedRegion);
     });
 
     it('should return environment with region as client-side', async () => {
       const { getVercelEnvironment } = await import('./vercel-optimization');
       const result = getVercelEnvironment();
 
-      // 클라이언트에서는 항상 region이 'client-side'
-      expect(result.region).toBe('client-side');
+      // node 환경에서는 window가 없으므로 'unknown', jsdom에서는 'client-side'
+      const expectedRegion =
+        typeof window === 'undefined' ? 'unknown' : 'client-side';
+      expect(result.region).toBe(expectedRegion);
     });
 
     it('should have correct interface structure', async () => {

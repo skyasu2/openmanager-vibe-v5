@@ -208,9 +208,15 @@ describe('withRetry', () => {
       shouldRetry: defaultShouldRetry,
     });
 
-    // Then - 타이머 실행과 rejection 처리를 병렬로 수행
-    await vi.runAllTimersAsync();
-    await expect(resultPromise).rejects.toEqual(serverError);
+    // Then - 타이머 실행과 rejection 처리를 안전하게 수행
+    const [, result] = await Promise.allSettled([
+      vi.runAllTimersAsync(),
+      resultPromise,
+    ]);
+    expect(result.status).toBe('rejected');
+    if (result.status === 'rejected') {
+      expect(result.reason).toEqual(serverError);
+    }
     expect(fn).toHaveBeenCalledTimes(3); // 초기 시도 + 2회 재시도
   });
 
