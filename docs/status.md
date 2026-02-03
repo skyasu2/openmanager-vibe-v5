@@ -21,6 +21,9 @@
     - ReactFlowDiagram snapshot: `text-[10px]` → `text-2xs` 토큰 반영
     - retry.test: `Promise.allSettled`로 Unhandled Rejection 수정
     - vercel-optimization.test: assertion 수정
+  - **AutoResizeTextarea ref 타입 안전성 개선**: unsafe `as RefObject` 캐스팅 제거
+    - `useEffect` 기반 외부 ref 동기화 (RefCallback/RefObject 모두 지원)
+    - 내부 `textareaRef`만 사용하도록 변경, `combinedRef` 제거
   - **Vercel Production QA (2026-02-03)**: Playwright MCP 검증
     - 대시보드: 15개 서버 그리드, 상태 배지(Stable/Unusual/Rising) 정상
     - AI 어시스턴트: Cold Start 자동 재시도 → 응답 수신 성공
