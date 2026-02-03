@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.1.2](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.1.1...v7.1.2) (2026-02-03)
+
+
+### Features
+
+* **ai-sidebar:** integrate Cloud Run status with system start/stop ([05af7c6](https://github.com/skyasu2/openmanager-vibe-v5/commit/05af7c6872dd2ac3dce4140f54462699e0c91377))
+* **ai:** add cache query normalization and complexity weights externalization ([9ae7581](https://github.com/skyasu2/openmanager-vibe-v5/commit/9ae758142b5f2115dc5a72fd0731bac1c2f372e0))
+* **ai:** add configurable settings and streaming retry with observability ([2af1b5e](https://github.com/skyasu2/openmanager-vibe-v5/commit/2af1b5e0a3c895ecaa179895bc7a22eccfadea15))
+* **ai:** expose RAG source URLs as clickable links in AnalysisBasisBadge ([f8061fb](https://github.com/skyasu2/openmanager-vibe-v5/commit/f8061fbf937fabe7aa66d9e730a80211f0d42a67))
+* **ai:** inject server context into AI supervisor for targeted analysis ([b34acfa](https://github.com/skyasu2/openmanager-vibe-v5/commit/b34acfa89cbb54f50033c1121a35bbc6e365df73))
+* **observability:** add trace ID upstream extraction and retry jitter ([bf66387](https://github.com/skyasu2/openmanager-vibe-v5/commit/bf663876a0877e0e28b2dbfe035d15b30e342fc4))
+
+
+### Bug Fixes
+
+* add securityCheck to stream/v2 route (prompt injection bypass) ([5e8ca21](https://github.com/skyasu2/openmanager-vibe-v5/commit/5e8ca218d4053a6b16c1d44397a2ef7919fd598e))
+* **ai-engine:** force searchWeb tool call when web search toggle is ON ([e219389](https://github.com/skyasu2/openmanager-vibe-v5/commit/e219389e0aa56059da455ed15a94bac5c0f5509e))
+* **ai-engine:** unify console→logger + remove Sentry from Cloud Run ([4537bc7](https://github.com/skyasu2/openmanager-vibe-v5/commit/4537bc70d1aac0a40d69026b96f159d57c190dd6))
+* **ai:** add web search ragSources to streaming mode and fix data- prefix ([6e8bc36](https://github.com/skyasu2/openmanager-vibe-v5/commit/6e8bc36179b324b6d841251b4f5b49526242d31c))
+* **ai:** correct onFeedback type, wire handleNewSession, enforce web search toggle ([db9abb1](https://github.com/skyasu2/openmanager-vibe-v5/commit/db9abb156c6a5bd38d6a533bd1d402f33842e750))
+* **ai:** increase session token prefix length and collapse web sources by default ([25ee256](https://github.com/skyasu2/openmanager-vibe-v5/commit/25ee256c7a9b0ffe5d47f66b4ba8d19d3cfadd52))
+* **ai:** preserve server context on compression and remove duplicate name field ([c2adac2](https://github.com/skyasu2/openmanager-vibe-v5/commit/c2adac2731f31b441316a56f1a9d69ec54f56d61))
+* **ai:** prevent duplicate user messages on cold start retry ([b5c4a97](https://github.com/skyasu2/openmanager-vibe-v5/commit/b5c4a9763f5c0ab7786ed1405b6c10656bef98c8))
+* **ai:** prevent re-clarification loop on clarified queries ([f48cc94](https://github.com/skyasu2/openmanager-vibe-v5/commit/f48cc943bc138e073d1fc0f8ba04173b32a3a07d))
+* **ai:** prevent re-clarification on Cold Start auto-retry ([71cfc3d](https://github.com/skyasu2/openmanager-vibe-v5/commit/71cfc3dcfde7d3c2ff57901d2feacf59926c52d1))
+* **ai:** reduce client async query timeout from 120s to 15s ([16fc11b](https://github.com/skyasu2/openmanager-vibe-v5/commit/16fc11b56b9047fa4189527800343149000d2174))
+* **ai:** unify onFeedback type chain to Promise<boolean> across all components ([5ff936f](https://github.com/skyasu2/openmanager-vibe-v5/commit/5ff936f54e40958784a89bc41a76d09a02430a29))
+* **ai:** use Resolvable function for webSearchEnabled in transport body ([0f8df50](https://github.com/skyasu2/openmanager-vibe-v5/commit/0f8df5089f6c442ee6515bad8f469da4fb417243))
+* avoid SWC _ref compilation bug in SystemContextPanel ([f192ed6](https://github.com/skyasu2/openmanager-vibe-v5/commit/f192ed602bb95803c9291ad4e4feefcdf986815c))
+* block medium-risk prompt injection and add system prompt leak detection ([9af05f7](https://github.com/skyasu2/openmanager-vibe-v5/commit/9af05f7f56750c5f8ebde9524379feba2682ac1e))
+* guard crypto.randomUUID for SSR (React [#419](https://github.com/skyasu2/openmanager-vibe-v5/issues/419)) ([7a09dfa](https://github.com/skyasu2/openmanager-vibe-v5/commit/7a09dfada85ad4c340cc30c723971962c1a7148e))
+* migrate AutoResizeTextarea to React 19 ref-as-prop pattern ([84a0a71](https://github.com/skyasu2/openmanager-vibe-v5/commit/84a0a711b13b0937667dd54e211a72dd93c92141))
+* replace unsafe ref cast with proper ref synchronization in AutoResizeTextarea ([eb86938](https://github.com/skyasu2/openmanager-vibe-v5/commit/eb869385a2dc36a4206e3078133ec38eebfd719b))
+* **security:** reduce prompt guard false positives and bind userId to sessionId ([f59419e](https://github.com/skyasu2/openmanager-vibe-v5/commit/f59419e17fd93fbe06d77378f5ac8e874d96c07f))
+* **tavily:** add monthly quota tracking, unify timeout, improve cache key ([a4af5ca](https://github.com/skyasu2/openmanager-vibe-v5/commit/a4af5caec7bc8b8028858982136ef03771533090))
+* **test:** adjust coverage thresholds to realistic levels (10%) ([0629efb](https://github.com/skyasu2/openmanager-vibe-v5/commit/0629efb9bb0b5c9c31aab9aa55694778b2125d93))
+* **test:** resolve test failures in AIWorkspace, ReactFlowDiagram, retry, and vercel-optimization ([7aa5469](https://github.com/skyasu2/openmanager-vibe-v5/commit/7aa5469b0a7ac3c70a3d23c806811d577571ddd0))
+* **warmup:** unify CloudRunStatusIndicator to use triggerAIWarmup with cooldown ([62c7648](https://github.com/skyasu2/openmanager-vibe-v5/commit/62c76489f02bae50393462d0f32ed4788f4cb5ff))
+
 ### [7.1.1](https://github.com/skyasu2/openmanager-vibe-v5/compare/v7.1.0...v7.1.1) (2026-02-01)
 
 
