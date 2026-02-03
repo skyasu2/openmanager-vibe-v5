@@ -27,9 +27,10 @@
   - **AutoResizeTextarea ref 타입 안전성 개선**: unsafe `as RefObject` 캐스팅 제거
     - `useEffect` 기반 외부 ref 동기화 (RefCallback/RefObject 모두 지원)
     - 내부 `textareaRef`만 사용하도록 변경, `combinedRef` 제거
-  - **Vercel Production QA (2026-02-03)**: Playwright MCP 검증
+  - **Vercel Production QA (2026-02-03 14:36)**: Playwright MCP 검증
     - 대시보드: 15개 서버 그리드, 상태 배지(Stable/Unusual/Rising) 정상
-    - AI 어시스턴트: Cold Start 자동 재시도 → 응답 수신 성공
+    - AI 어시스턴트: Clarification UI → 전체 서버 현황 응답 성공
+    - AI 응답 품질: 15대 서버 요약 (정상 12, 경고 2, 임계 1) 정확
     - 콘솔 error/warning: 0건
 
 - **v7.1.0** (2026-01-31)
