@@ -91,7 +91,7 @@ export const analyzeLargeLog = tool({...});       // 대용량 로그 분석
 
 ```bash
 # .env.local (이미 존재)
-GEMINI_API_KEY_PRIMARY=AIzaSyDNScOvhPSgD3zVdNmHATgfVJewqj4BK-k
+GEMINI_API_KEY_PRIMARY=<your-gemini-api-key>
 
 # Cloud Run 환경변수 추가 필요
 GEMINI_API_KEY=${GEMINI_API_KEY_PRIMARY}
