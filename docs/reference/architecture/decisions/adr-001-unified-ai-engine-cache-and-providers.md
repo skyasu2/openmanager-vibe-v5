@@ -1,10 +1,12 @@
-# ADR-001: Google AI Unified Engine v1.1.0 Architecture Verification
+# [ARCHIVED] ADR-001: Google AI Unified Engine v1.1.0 Architecture Verification
+
+> ⚠️ **ARCHIVED (2026-02-03)**: 이 ADR은 역사적 기록으로 보존됩니다.
+> - **아카이브 사유**: 3-AI 리뷰 시스템에서 2-AI (Codex + Gemini)로 전환됨 (Qwen 제거, 2026-01-07)
+> - **현재 AI 리뷰**: `.claude/rules/ai-tools.md` 참조
 
 **Date**: 2025-11-16
-**Status**: Decided
+**Status**: Archived (was: Decided)
 **Context**: This document records the architectural review of the `GoogleAiUnifiedEngine` (commit 47f920c9) using a 3-AI cross-verification process. The goal was to verify the quality of the architecture after its initial implementation.
-
-> **Note (2026-01-08)**: Qwen 제거됨. 현재 시스템은 2-AI (Codex + Gemini) 구조로 운영됩니다. 이 문서는 당시 3-AI 리뷰 히스토리를 기록한 것입니다.
 
 ---
 
