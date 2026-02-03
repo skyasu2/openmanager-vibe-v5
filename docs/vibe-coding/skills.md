@@ -13,7 +13,7 @@
 └─────────────┘     └─────────────┘     └─────────────┘
 ```
 
-## 등록된 Skills (11개)
+## 등록된 Skills (13개)
 
 ### 코드 품질
 
@@ -31,8 +31,9 @@
 | security-audit-workflow | `/security-audit-workflow` | OWASP Top 10 보안 감사 |
 | playwright-triage | `/playwright-triage` | E2E 실패 분류 |
 | next-router-bottleneck | `/next-router-bottleneck` | 라우터 성능 분석 |
+| observability-check | `/observability-check` | AI 모니터링 (Langfuse + Sentry) |
 
-### 배포/Git
+### 배포/Git/비용
 
 | Skill | 명령어 | 설명 |
 |-------|--------|------|
@@ -40,6 +41,7 @@
 | commit-push-pr | `/commit-push-pr` | 커밋 → 푸시 → PR |
 | clean_gone | `/clean_gone` | [gone] 브랜치 정리 |
 | cloud-run-deploy | `/cloud-run-deploy` | AI Engine 배포 |
+| gcp-cost-check | `/gcp-cost-check` | GCP 비용 조회, Free Tier 분석 |
 
 ### 문서/리포트
 

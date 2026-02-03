@@ -18,11 +18,11 @@ docs/guides/ai/
 
 ## 도구별 가이드
 
-| 도구 | 버전 | 역할 | 가이드 |
-|------|------|------|--------|
-| Claude Code | v2.1.7 | Lead + MCP + 스킬 | [.claude/rules/ai-tools.md](../../../.claude/rules/ai-tools.md) |
-| Codex | v0.85.0 | 2-AI 순환 (Primary) | [ai-standards.md](./common/ai-standards.md) |
-| Gemini | v0.24.0 | 2-AI 순환 (Secondary) | [ai-standards.md](./common/ai-standards.md) |
+| 도구 | 역할 | 가이드 |
+|------|------|--------|
+| Claude Code | Lead + MCP + 스킬 | [.claude/rules/ai-tools.md](../../../.claude/rules/ai-tools.md) |
+| Codex | 2-AI 순환 (Primary) | [ai-standards.md](./common/ai-standards.md) |
+| Gemini | 2-AI 순환 (Secondary) | [ai-standards.md](./common/ai-standards.md) |
 
 ## 빠른 참조
 

@@ -14,7 +14,7 @@
 | **MCP** | MCP 서버 설정 | [→ mcp/](./mcp/) |
 | **Environment** | WSL 환경 설정 | [→ environment/](./environment/) |
 | **Standards** | 코딩 표준, 컨벤션 | [→ standards/](./standards/) |
-| **Database** | DB 스키마 | [→ database/](./database/) |
+| **Database** | DB 설계 | [→ ../reference/architecture/infrastructure/database.md](../reference/architecture/infrastructure/database.md) |
 
 ---
 
@@ -41,7 +41,6 @@ guides/
 │
 ├── testing/             # 테스트 가이드
 ├── mcp/                 # MCP 서버 설정
-├── database/            # DB 스키마
 ├── environment/         # 환경 설정
 │   └── wsl/             # WSL 가이드
 │

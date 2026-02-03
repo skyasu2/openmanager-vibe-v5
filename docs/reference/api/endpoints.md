@@ -228,8 +228,8 @@ OpenManager Vibe v5 현재 **75개의 API 엔드포인트**를 제공합니다.
 
 ---
 
-**Generated**: 2025-12-29
-**Total Endpoints**: 75
+**Last Updated**: 2026-02-03
+**Total Endpoints**: 75+
 **Framework**: Next.js 16.1.1 App Router
 
 ## API 아키텍처
