@@ -333,6 +333,33 @@ export class UnifiedCacheService {
   }
 
   /**
+   * AI 쿼리 캐시 키 정규화 (v3.2)
+   *
+   * @description
+   * 유사한 쿼리를 동일한 캐시 키로 매핑하여 캐시 히트율 향상
+   * - 구두점 제거 ("상태?", "상태!", "상태" → "상태")
+   * - 공백 정규화 ("CPU  사용률" → "cpu 사용률")
+   * - 대소문자 통일 ("Status" → "status")
+   * - 후행/선행 공백 제거
+   *
+   * @param query - 원본 쿼리 문자열
+   * @returns 정규화된 캐시 키
+   *
+   * @example
+   * normalizeQueryForCache("상태?") // "상태"
+   * normalizeQueryForCache("CPU 사용률은?") // "cpu 사용률은"
+   * normalizeQueryForCache("  서버  상태  ") // "서버 상태"
+   */
+  normalizeQueryForCache(query: string): string {
+    return query
+      .toLowerCase()
+      .trim()
+      .replace(/[?!.,;:'"()[\]{}]+/g, '') // 구두점 제거
+      .replace(/\s+/g, ' ') // 다중 공백 → 단일 공백
+      .trim();
+  }
+
+  /**
    * 캐시 무효화
    */
   async invalidate(
@@ -427,6 +454,57 @@ export class UnifiedCacheService {
   }
 
   /**
+   * AI 쿼리 캐시 조회 (정규화된 키 사용) - v3.2
+   *
+   * @description
+   * 쿼리를 정규화하여 캐시 히트율 향상
+   * "상태?", "상태!", "상태" 모두 동일한 캐시 응답 반환
+   */
+  async getAIQueryCache<T>(query: string): Promise<T | null> {
+    const normalizedKey = this.normalizeQueryForCache(query);
+    return this.get<T>(normalizedKey, CacheNamespace.AI_QUERY);
+  }
+
+  /**
+   * AI 쿼리 캐시 저장 (정규화된 키 사용) - v3.2
+   */
+  async setAIQueryCache<T>(
+    query: string,
+    value: T,
+    options: {
+      ttlSeconds?: number;
+      metadata?: Record<string, unknown>;
+    } = {}
+  ): Promise<void> {
+    const normalizedKey = this.normalizeQueryForCache(query);
+    await this.set(normalizedKey, value, {
+      ttlSeconds: options.ttlSeconds ?? 300,
+      namespace: CacheNamespace.AI_QUERY,
+      pattern: query, // 원본 쿼리는 패턴 학습용으로 보존
+      metadata: options.metadata,
+    });
+  }
+
+  /**
+   * AI 쿼리 캐시 또는 페칭 (정규화된 키 사용) - v3.2
+   */
+  async getOrFetchAIQuery<T>(
+    query: string,
+    fetcher: () => Promise<T>,
+    options: {
+      ttlSeconds?: number;
+      force?: boolean;
+    } = {}
+  ): Promise<T> {
+    const normalizedKey = this.normalizeQueryForCache(query);
+    return this.getOrFetch(normalizedKey, fetcher, {
+      ttlSeconds: options.ttlSeconds ?? 300,
+      namespace: CacheNamespace.AI_QUERY,
+      force: options.force,
+    });
+  }
+
+  /**
    * 통계 정보 가져오기
    */
   getStats(): CacheStats {
@@ -514,6 +592,50 @@ export async function invalidateCache(pattern?: string): Promise<void> {
 export function getCacheStats(): CacheStats {
   const cache = UnifiedCacheService.getInstance();
   return cache.getStats();
+}
+
+/**
+ * AI 쿼리 캐시 조회 (정규화된 키 사용) - v3.2
+ *
+ * @description
+ * 유사 쿼리를 동일 캐시로 처리하여 히트율 향상
+ * "상태?", "상태!", "상태" → 동일 응답
+ */
+export async function getAIQueryCache<T>(query: string): Promise<T | null> {
+  const cache = UnifiedCacheService.getInstance();
+  return cache.getAIQueryCache<T>(query);
+}
+
+/**
+ * AI 쿼리 캐시 저장 (정규화된 키 사용) - v3.2
+ */
+export async function setAIQueryCache<T>(
+  query: string,
+  value: T,
+  options?: { ttlSeconds?: number; metadata?: Record<string, unknown> }
+): Promise<void> {
+  const cache = UnifiedCacheService.getInstance();
+  return cache.setAIQueryCache(query, value, options);
+}
+
+/**
+ * AI 쿼리 캐시 또는 페칭 (정규화된 키 사용) - v3.2
+ */
+export async function getOrFetchAIQuery<T>(
+  query: string,
+  fetcher: () => Promise<T>,
+  options?: { ttlSeconds?: number; force?: boolean }
+): Promise<T> {
+  const cache = UnifiedCacheService.getInstance();
+  return cache.getOrFetchAIQuery(query, fetcher, options);
+}
+
+/**
+ * 쿼리 정규화 유틸리티 (캐시 키 미리보기용) - v3.2
+ */
+export function normalizeQueryForCache(query: string): string {
+  const cache = UnifiedCacheService.getInstance();
+  return cache.normalizeQueryForCache(query);
 }
 
 export async function getCachedDataWithFallback<T>(

@@ -4,7 +4,10 @@
  * @description 사용자 쿼리의 복잡도를 분석하여 동적 타임아웃 계산
  *
  * @created 2025-12-30
+ * @updated 2026-02-03 - P1: 카테고리 가중치 설정 외부화
  */
+
+import { getComplexityCategoryWeights } from '@/config/ai-proxy.config';
 
 // ============================================================================
 // 타입 정의
@@ -183,21 +186,15 @@ export function analyzeQueryComplexity(query: string): ComplexityAnalysis {
     factors.push('medium_query');
   }
 
-  // 3. 복잡도 키워드 체크
+  // 3. 복잡도 키워드 체크 (v7.1.1: 가중치 설정 외부화)
+  const categoryWeights = getComplexityCategoryWeights();
   for (const [category, keywords] of Object.entries(COMPLEXITY_KEYWORDS)) {
     for (const keyword of keywords) {
       if (normalizedQuery.includes(keyword.toLowerCase())) {
-        const categoryScores: Record<string, number> = {
-          analysis: 20,
-          prediction: 25,
-          aggregation: 15,
-          timeRange: 15,
-          multiServer: 15,
-          report: 20,
-          rootCause: 30,
-          ragSearch: 25,
-        };
-        score += categoryScores[category] || 10;
+        // 설정된 가중치 사용 (미설정 시 기본값 10)
+        const weight =
+          categoryWeights[category as keyof typeof categoryWeights] ?? 10;
+        score += weight;
         factors.push(`keyword_${category}`);
         break; // 카테고리당 한 번만 카운트
       }

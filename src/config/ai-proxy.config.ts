@@ -99,6 +99,30 @@ const ObservabilityConfigSchema = z.object({
 });
 
 /**
+ * 쿼리 복잡도 카테고리 가중치 스키마
+ * @description P1: 복잡도 분석 가중치 외부화
+ * @see src/lib/ai/utils/query-complexity.ts
+ */
+const ComplexityCategoryWeightsSchema = z.object({
+  /** 분석 관련 키워드 가중치 */
+  analysis: z.number().min(0).max(50).default(20),
+  /** 예측 관련 키워드 가중치 */
+  prediction: z.number().min(0).max(50).default(25),
+  /** 집계 관련 키워드 가중치 */
+  aggregation: z.number().min(0).max(50).default(15),
+  /** 시간 범위 관련 키워드 가중치 */
+  timeRange: z.number().min(0).max(50).default(15),
+  /** 다중 서버 관련 키워드 가중치 */
+  multiServer: z.number().min(0).max(50).default(15),
+  /** 보고서 관련 키워드 가중치 */
+  report: z.number().min(0).max(50).default(20),
+  /** 원인 분석 관련 키워드 가중치 */
+  rootCause: z.number().min(0).max(50).default(30),
+  /** RAG 검색 관련 키워드 가중치 */
+  ragSearch: z.number().min(0).max(50).default(25),
+});
+
+/**
  * AI Proxy 설정 스키마
  */
 const AIProxyConfigSchema = z.object({
@@ -138,6 +162,9 @@ const AIProxyConfigSchema = z.object({
 
   /** Observability 설정 */
   observability: ObservabilityConfigSchema,
+
+  /** 복잡도 카테고리 가중치 */
+  complexityWeights: ComplexityCategoryWeightsSchema,
 });
 
 // ============================================================================
@@ -153,6 +180,7 @@ export type QueryRoutingConfig = z.infer<typeof QueryRoutingConfigSchema>;
 export type StreamRetryConfig = z.infer<typeof StreamRetryConfigSchema>;
 export type RAGWeightsConfig = z.infer<typeof RAGWeightsConfigSchema>;
 export type ObservabilityConfig = z.infer<typeof ObservabilityConfigSchema>;
+export type ComplexityCategoryWeights = z.infer<typeof ComplexityCategoryWeightsSchema>;
 
 // ============================================================================
 // Tier-specific Timeout Presets
@@ -228,6 +256,16 @@ function loadAIProxyConfig(): AIProxyConfig {
       enableTraceId: process.env.AI_ENABLE_TRACE_ID !== 'false',
       traceIdHeader: process.env.AI_TRACE_ID_HEADER || 'X-Trace-Id',
       verboseLogging: process.env.AI_VERBOSE_LOGGING === 'true',
+    },
+    complexityWeights: {
+      analysis: Number(process.env.AI_COMPLEXITY_WEIGHT_ANALYSIS) || 20,
+      prediction: Number(process.env.AI_COMPLEXITY_WEIGHT_PREDICTION) || 25,
+      aggregation: Number(process.env.AI_COMPLEXITY_WEIGHT_AGGREGATION) || 15,
+      timeRange: Number(process.env.AI_COMPLEXITY_WEIGHT_TIME_RANGE) || 15,
+      multiServer: Number(process.env.AI_COMPLEXITY_WEIGHT_MULTI_SERVER) || 15,
+      report: Number(process.env.AI_COMPLEXITY_WEIGHT_REPORT) || 20,
+      rootCause: Number(process.env.AI_COMPLEXITY_WEIGHT_ROOT_CAUSE) || 30,
+      ragSearch: Number(process.env.AI_COMPLEXITY_WEIGHT_RAG_SEARCH) || 25,
     },
   };
 
@@ -408,6 +446,27 @@ export function getRAGWeights(): RAGWeightsConfig {
  */
 export function getObservabilityConfig(): ObservabilityConfig {
   return getAIProxyConfig().observability;
+}
+
+// ============================================================================
+// Complexity Weights Getters
+// ============================================================================
+
+/**
+ * 복잡도 카테고리 가중치 전체 가져오기
+ * @description P1: query-complexity.ts에서 사용
+ */
+export function getComplexityCategoryWeights(): ComplexityCategoryWeights {
+  return getAIProxyConfig().complexityWeights;
+}
+
+/**
+ * 특정 카테고리 가중치 가져오기
+ */
+export function getComplexityCategoryWeight(
+  category: keyof ComplexityCategoryWeights
+): number {
+  return getAIProxyConfig().complexityWeights[category];
 }
 
 /**

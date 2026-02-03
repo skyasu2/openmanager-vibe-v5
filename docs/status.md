@@ -6,6 +6,17 @@
 
 ## 🔄 Recent Changes (v7.1.1)
 
+- **v7.1.2** (2026-02-03)
+  - **AI 베스트 프랙티스 완성 - 캐시 정규화 및 가중치 외부화** (신규)
+    - **P1 캐시 쿼리 정규화**: "상태?", "상태!", "상태" → 동일 캐시 키로 매핑
+    - `normalizeQueryForCache()` 메서드 추가 (구두점 제거, 공백 정규화, 대소문자 통일)
+    - `getAIQueryCache()`, `setAIQueryCache()`, `getOrFetchAIQuery()` 헬퍼 함수
+    - **P1 Complexity 카테고리 가중치 외부화**: `query-complexity.ts` 하드코딩 제거
+    - 8개 환경변수로 가중치 조정 가능: `AI_COMPLEXITY_WEIGHT_{ANALYSIS|PREDICTION|AGGREGATION|...}`
+    - `getComplexityCategoryWeights()`, `getComplexityCategoryWeight()` getter 함수
+    - 변경 파일: `unified-cache.ts`, `ai-proxy.config.ts`, `query-complexity.ts`
+    - **기존 구현 확인**: 메시지 100개 제한, 분산 Circuit Breaker, Jitter 모두 이미 구현됨
+
 - **v7.1.1** (2026-02-03)
   - **AI 설정 외부화 및 Observability 강화** (신규)
     - **P0 Magic Number 설정화**: `DEFAULT_COMPLEXITY_THRESHOLD = 19` → `ai-proxy.config.ts`로 이동
