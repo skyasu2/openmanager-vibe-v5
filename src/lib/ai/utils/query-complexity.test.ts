@@ -258,7 +258,7 @@ describe('query-complexity', () => {
     });
 
     it('should upgrade long simple queries to medium', () => {
-      const longSimple = '상태 확인해줘 ' + 'a'.repeat(100);
+      const longSimple = `상태 확인해줘 ${'a'.repeat(100)}`;
       const result = analyzeJobQueryComplexity(longSimple);
       expect(result.level).not.toBe('simple');
     });
