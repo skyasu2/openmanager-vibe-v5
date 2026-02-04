@@ -9,6 +9,7 @@
  * @created 2026-02-04
  */
 
+import { getAllThresholds } from '@/config/rules/loader';
 import type { ServerMetrics } from '@/services/metrics/MetricsProvider';
 
 export type AlertSeverity = 'warning' | 'critical';
@@ -29,12 +30,18 @@ export type Alert = {
   duration: number;
 };
 
-const THRESHOLDS: Record<string, { warning: number; critical: number }> = {
-  cpu: { warning: 80, critical: 90 },
-  memory: { warning: 80, critical: 90 },
-  disk: { warning: 80, critical: 90 },
-  network: { warning: 70, critical: 85 },
-};
+function loadThresholds(): Record<
+  string,
+  { warning: number; critical: number }
+> {
+  const t = getAllThresholds();
+  return {
+    cpu: { warning: t.cpu.warning, critical: t.cpu.critical },
+    memory: { warning: t.memory.warning, critical: t.memory.critical },
+    disk: { warning: t.disk.warning, critical: t.disk.critical },
+    network: { warning: t.network.warning, critical: t.network.critical },
+  };
+}
 
 const MAX_HISTORY = 50;
 
@@ -43,6 +50,7 @@ export class AlertManager {
   private history: Alert[] = [];
 
   evaluate(allMetrics: ServerMetrics[], timestamp: string): Alert[] {
+    const thresholds = loadThresholds();
     const currentAlertIds = new Set<string>();
 
     for (const server of allMetrics) {
@@ -54,7 +62,7 @@ export class AlertManager {
       ];
 
       for (const { key, value } of metricPairs) {
-        const threshold = THRESHOLDS[key];
+        const threshold = thresholds[key];
         if (!threshold) continue;
 
         let severity: AlertSeverity | null = null;

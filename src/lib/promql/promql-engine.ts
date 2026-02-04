@@ -21,6 +21,7 @@ import type {
   PrometheusLabels,
   PrometheusTarget,
 } from '@/data/hourly-data';
+import { logger } from '@/lib/logging';
 import type { PromQLResult, PromQLSample } from '@/types/processed-metrics';
 
 // ============================================================================
@@ -142,7 +143,12 @@ function parsePromQL(query: string): ParsedQuery {
     };
   }
 
-  // Fallback: treat as metric name
+  // Fallback: treat as metric name — log unrecognized pattern
+  if (trimmed.includes('(') || trimmed.includes('[') || trimmed.includes('{')) {
+    logger.warn(
+      `[PromQL] Unrecognized query pattern, falling back to instant selector: "${trimmed}"`
+    );
+  }
   return {
     type: 'instant',
     metricName: trimmed,
@@ -192,7 +198,10 @@ function extractSamples(
   if (!dataPoint) return [];
 
   const fieldKey = METRIC_FIELD_MAP[parsed.metricName];
-  if (!fieldKey) return [];
+  if (!fieldKey) {
+    logger.debug(`[PromQL] Unknown metric name: "${parsed.metricName}"`);
+    return [];
+  }
 
   const samples: PromQLSample[] = [];
 

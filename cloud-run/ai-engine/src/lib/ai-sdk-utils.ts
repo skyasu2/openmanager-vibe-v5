@@ -26,7 +26,7 @@ export function extractRagSources(
   toolName: string,
   toolOutput: unknown
 ): RagSource[] {
-  if (!toolOutput || typeof toolOutput !== 'object') return [];
+  if (toolOutput === null || toolOutput === undefined || typeof toolOutput !== 'object') return [];
 
   const output = toolOutput as Record<string, unknown>;
 
