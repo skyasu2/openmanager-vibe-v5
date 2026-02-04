@@ -152,10 +152,16 @@ export function getTargetsAtTime(
 
   // 10분 단위 슬롯 인덱스 (0-5)
   const slotIndex = Math.floor(minute / 10);
-  const dataPoint =
-    hourlyData.dataPoints[slotIndex] || hourlyData.dataPoints[0];
+  const dataPoint = hourlyData.dataPoints[slotIndex];
 
-  return dataPoint?.targets || null;
+  if (!dataPoint) {
+    console.warn(
+      `[hourly-data] slot ${slotIndex} not found for hour-${hour} minute-${minute}, returning null`
+    );
+    return null;
+  }
+
+  return dataPoint.targets || null;
 }
 
 /**

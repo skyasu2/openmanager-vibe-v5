@@ -42,8 +42,8 @@ interface PrometheusMetricResult {
 }
 
 /**
- * 🎯 표준 Prometheus /metrics 엔드포인트
- * 실제 Prometheus 서버와 100% 호환
+ * @deprecated 소비자 0개 확인됨 - /api/metrics/current 사용 권장
+ * 표준 Prometheus /metrics 엔드포인트 (레거시)
  */
 export function GET() {
   try {

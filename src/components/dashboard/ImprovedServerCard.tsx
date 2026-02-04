@@ -121,6 +121,16 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       [currentMetrics, safeServer]
     );
 
+    // 📊 메트릭별 히스토리 배열 캐싱 (매 렌더 재생성 방지)
+    const cpuHistory = useMemo(
+      () => historyData?.map((h) => h.cpu),
+      [historyData]
+    );
+    const memoryHistory = useMemo(
+      () => historyData?.map((h) => h.memory),
+      [historyData]
+    );
+
     // UI Variants - 높이 증가 (그래프 영역 확대)
     const variantStyles = useMemo(() => {
       const styles = {
@@ -329,14 +339,14 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               type="cpu"
               value={realtimeMetrics.cpu}
               status={safeServer.status}
-              history={historyData?.map((h) => h.cpu)}
+              history={cpuHistory}
               color={statusTheme.graphColor}
             />
             <MetricItem
               type="memory"
               value={realtimeMetrics.memory}
               status={safeServer.status}
-              history={historyData?.map((h) => h.memory)}
+              history={memoryHistory}
               color={statusTheme.graphColor}
             />
           </div>
@@ -498,10 +508,13 @@ const ServiceChip = ({ service }: { service: Service }) => {
 
 ImprovedServerCardInner.displayName = 'ImprovedServerCardInner';
 
-const ImprovedServerCard: FC<ImprovedServerCardProps> = (props) => (
+// memo()를 ErrorBoundary 바깥에 적용하여 props 변경 없으면 재렌더 방지
+const ImprovedServerCard: FC<ImprovedServerCardProps> = memo((props) => (
   <ServerCardErrorBoundary>
     <ImprovedServerCardInner {...props} />
   </ServerCardErrorBoundary>
-);
+));
+
+ImprovedServerCard.displayName = 'ImprovedServerCard';
 
 export default ImprovedServerCard;

@@ -206,25 +206,37 @@ class RulesLoader implements IRulesLoader {
     disk?: number;
     network?: number;
   }): 'online' | 'warning' | 'critical' {
-    const statuses: ('normal' | 'warning' | 'critical')[] = [];
+    const statuses: Record<string, 'normal' | 'warning' | 'critical'> = {};
 
     if (metrics.cpu !== undefined) {
-      statuses.push(this.getStatus('cpu', metrics.cpu));
+      statuses['cpu'] = this.getStatus('cpu', metrics.cpu);
     }
     if (metrics.memory !== undefined) {
-      statuses.push(this.getStatus('memory', metrics.memory));
+      statuses['memory'] = this.getStatus('memory', metrics.memory);
     }
     if (metrics.disk !== undefined) {
-      statuses.push(this.getStatus('disk', metrics.disk));
+      statuses['disk'] = this.getStatus('disk', metrics.disk);
     }
     if (metrics.network !== undefined) {
-      statuses.push(this.getStatus('network', metrics.network));
+      statuses['network'] = this.getStatus('network', metrics.network);
     }
 
-    // 하나라도 critical이면 critical
-    if (statuses.includes('critical')) return 'critical';
-    // 하나라도 warning이면 warning
-    if (statuses.includes('warning')) return 'warning';
+    const values = Object.values(statuses);
+    const criticalCount = values.filter((s) => s === 'critical').length;
+    const warningCount = values.filter((s) => s === 'warning').length;
+
+    // statusRules 기반 판정 (system-rules.json priority 순서)
+    // P1: CPU >= critical AND Memory >= critical
+    if (statuses['cpu'] === 'critical' && statuses['memory'] === 'critical') {
+      return 'critical';
+    }
+    // P2: ANY metric >= critical
+    if (criticalCount > 0) return 'critical';
+    // P3: 2+ metrics >= warning
+    if (warningCount >= 2) return 'warning';
+    // P4: ANY metric >= warning
+    if (warningCount > 0) return 'warning';
+    // P99: ALL metrics < warning
     return 'online';
   }
 

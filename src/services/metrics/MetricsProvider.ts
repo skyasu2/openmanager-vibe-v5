@@ -14,7 +14,6 @@
 
 import { getServerStatus as getRulesServerStatus } from '@/config/rules/loader';
 import {
-  calculateAverageMetrics,
   FIXED_24H_DATASETS,
   type Fixed10MinMetric,
   getDataAtMinute,
@@ -73,6 +72,12 @@ export interface ServerMetrics {
   network: number;
   logs: string[];
   status: 'online' | 'warning' | 'critical' | 'offline';
+  /** nodeInfo - Prometheus target에서 추출한 하드웨어 정보 */
+  nodeInfo?: {
+    cpuCores: number;
+    memoryTotalBytes: number;
+    diskTotalBytes: number;
+  };
 }
 
 /**
@@ -207,11 +212,20 @@ function targetToServerMetrics(
   const disk = target.metrics.node_filesystem_usage_percent;
   const network = target.metrics.node_network_transmit_bytes_rate;
 
-  // up=0이면 offline, 그 외는 메트릭 기반 판별
-  const status: ServerMetrics['status'] =
-    target.metrics.up === 0
-      ? 'offline'
-      : determineStatus(cpu, memory, disk, network);
+  // up=0일 때도 메트릭 기반 상태를 먼저 평가하여 critical 정보 보존
+  const metricsStatus = determineStatus(cpu, memory, disk, network);
+  let status: ServerMetrics['status'];
+  if (target.metrics.up === 0) {
+    // 서버 다운 직전 critical/warning 상태였으면 해당 상태 유지 (진단 정보 보존)
+    status = metricsStatus === 'critical' ? 'critical' : 'offline';
+    if (metricsStatus === 'critical' || metricsStatus === 'warning') {
+      logger.warn(
+        `[MetricsProvider] ${serverId}: up=0 but metrics indicate ${metricsStatus} (cpu=${cpu}%, mem=${memory}%)`
+      );
+    }
+  } else {
+    status = metricsStatus;
+  }
 
   return {
     serverId,
@@ -225,6 +239,13 @@ function targetToServerMetrics(
     network,
     logs: target.logs || [],
     status,
+    nodeInfo: target.nodeInfo
+      ? {
+          cpuCores: target.nodeInfo.cpu_cores,
+          memoryTotalBytes: target.nodeInfo.memory_total_bytes,
+          diskTotalBytes: target.nodeInfo.disk_total_bytes,
+        }
+      : undefined,
   };
 }
 
@@ -368,8 +389,13 @@ export class MetricsProvider {
     const hourlyData = loadHourlyData(hour);
     if (hourlyData) {
       const slotIndex = Math.floor(minute / 10);
-      const dataPoint =
-        hourlyData.dataPoints[slotIndex] || hourlyData.dataPoints[0];
+      const dataPoint = hourlyData.dataPoints[slotIndex];
+
+      if (!dataPoint) {
+        logger.warn(
+          `[MetricsProvider] slot ${slotIndex} not found for hour-${hour}, using fallback`
+        );
+      }
 
       if (dataPoint?.targets) {
         // Prometheus instance 키: "serverId:9100"
@@ -422,8 +448,13 @@ export class MetricsProvider {
     const hourlyData = loadHourlyData(hour);
     if (hourlyData) {
       const slotIndex = Math.floor(minute / 10);
-      const dataPoint =
-        hourlyData.dataPoints[slotIndex] || hourlyData.dataPoints[0];
+      const dataPoint = hourlyData.dataPoints[slotIndex];
+
+      if (!dataPoint) {
+        logger.warn(
+          `[MetricsProvider] slot ${slotIndex} not found for hour-${hour} in getAllServerMetrics, using fallback`
+        );
+      }
 
       if (dataPoint?.targets) {
         return Object.values(dataPoint.targets).map((target) =>
@@ -480,7 +511,6 @@ export class MetricsProvider {
    */
   public getSystemSummary(): SystemSummary {
     const minuteOfDay = getKSTMinuteOfDay();
-    const averages = calculateAverageMetrics(minuteOfDay);
     const allMetrics = this.getAllServerMetrics();
 
     const statusCounts = allMetrics.reduce(
@@ -491,6 +521,24 @@ export class MetricsProvider {
       { online: 0, warning: 0, critical: 0, offline: 0 }
     );
 
+    // allMetrics에서 직접 평균 계산 (데이터 소스 일관성 보장)
+    const count = allMetrics.length || 1;
+    const avgCpu =
+      Math.round((allMetrics.reduce((sum, m) => sum + m.cpu, 0) / count) * 10) /
+      10;
+    const avgMemory =
+      Math.round(
+        (allMetrics.reduce((sum, m) => sum + m.memory, 0) / count) * 10
+      ) / 10;
+    const avgDisk =
+      Math.round(
+        (allMetrics.reduce((sum, m) => sum + m.disk, 0) / count) * 10
+      ) / 10;
+    const avgNetwork =
+      Math.round(
+        (allMetrics.reduce((sum, m) => sum + m.network, 0) / count) * 10
+      ) / 10;
+
     return {
       timestamp: getKSTTimestamp(),
       minuteOfDay,
@@ -498,10 +546,10 @@ export class MetricsProvider {
       onlineServers: statusCounts.online,
       warningServers: statusCounts.warning,
       criticalServers: statusCounts.critical,
-      averageCpu: averages.avgCpu,
-      averageMemory: averages.avgMemory,
-      averageDisk: averages.avgDisk,
-      averageNetwork: averages.avgNetwork,
+      averageCpu: avgCpu,
+      averageMemory: avgMemory,
+      averageDisk: avgDisk,
+      averageNetwork: avgNetwork,
     };
   }
 

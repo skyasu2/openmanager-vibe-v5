@@ -1,18 +1,5 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import { withAuth } from '@/lib/auth/api-auth';
-import debug from '@/utils/debug';
+// /api/servers/all과 동일한 핸들러 재사용 (308 redirect 제거 → round-trip 절감)
+// @deprecated /api/servers/all 직접 사용 권장
+export { GET } from './all/route';
 
-// 이 라우트는 /api/servers/all로 리다이렉트
 export const dynamic = 'force-dynamic';
-
-/**
- * 🔄 /api/servers/all로 리다이렉트
- * 모든 서버 데이터는 통합된 엔드포인트 사용
- */
-export const GET = withAuth(async (request: NextRequest) => {
-  debug.log('🔄 /api/servers -> /api/servers/all 리다이렉트');
-
-  // /api/servers/all로 영구 리다이렉트
-  return NextResponse.redirect(new URL('/api/servers/all', request.url), 308);
-});

@@ -9,14 +9,7 @@
 
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import AuthLoadingUI from '@/components/shared/AuthLoadingUI';
 import UnauthorizedAccessUI from '@/components/shared/UnauthorizedAccessUI';
@@ -26,10 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
-import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import type { DashboardStats } from '@/lib/dashboard/server-data';
-import { logger } from '@/lib/logging';
 import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
@@ -171,80 +162,14 @@ function DashboardPageContent({
   initialServers,
   initialStats: _initialStats, // Reserved for future SSR stats optimization
 }: DashboardClientProps) {
-  // 🔍 DIAGNOSTIC: Render cycle tracking for E2E investigation
-  const renderCountRef = useRef(0);
-
-  useEffect(() => {
-    renderCountRef.current++;
-  });
-
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = useState(false);
 
-  // 🧪 테스트 모드 감지 - 즉시 동기적으로 체크 (useEffect 타이밍 이슈 해결)
-  // FIX: Check BOTH cookie methods synchronously for E2E test reliability
+  // 🧪 테스트 모드 감지 - SSR에서는 false, hydration 후 단일 체크
   const [testModeDetected, setTestModeDetected] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-
-    // Check for test mode cookies first (works in all environments)
-    // 🔒 FIX: Safe access pattern for document.cookie to prevent undefined errors
-    const cookieString =
-      typeof document !== 'undefined' && typeof document.cookie === 'string'
-        ? document.cookie
-        : '';
-    const hasTestModeCookie = cookieString.includes('test_mode=enabled');
-    const hasTestToken = cookieString.includes('vercel_test_token=');
-
-    // 🔒 Production: Require BOTH cookies for security while allowing E2E tests
-    if (process.env.NODE_ENV === 'production') {
-      const isTestMode = hasTestModeCookie && hasTestToken;
-      return isTestMode;
-    }
-
-    // Development mode: use full detection logic with additional checks
-    const functionBasedDetection = (() => {
-      try {
-        const cookies = document.cookie.split(';').map((c) => c.trim());
-        return cookies.some(
-          (c) =>
-            c.startsWith('test_mode=enabled') ||
-            c.startsWith('vercel_test_token=')
-        );
-      } catch {
-        return false;
-      }
-    })();
-
-    // 💾 localStorage check (with exception handling)
-    let hasLocalStorageTestMode = false;
-    try {
-      const localStorageTestMode = localStorage.getItem('test_mode');
-      hasLocalStorageTestMode = localStorageTestMode === 'enabled';
-    } catch (error) {
-      logger.error('❌ [Security] localStorage 접근 실패:', error);
-    }
-
-    const isTestMode =
-      hasTestModeCookie ||
-      hasTestToken ||
-      functionBasedDetection ||
-      hasLocalStorageTestMode;
-
-    return isTestMode;
+    if (typeof window === 'undefined') return false;
+    return checkTestMode();
   });
-  // 🔧 FIX: Re-evaluate test mode after client-side mount
-  // Problem: useState initializer runs during SSR (before cookies available)
-  // Solution: Check again after hydration when cookies are guaranteed present
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isTestMode = checkTestMode();
-      if (isTestMode !== testModeDetected) {
-        setTestModeDetected(isTestMode);
-      }
-    }
-  }, [testModeDetected]); // testModeDetected 의존성 추가
 
   // 🔧 레거시 정리 (2026-01-17): selectedServer, isServerModalOpen 제거
   // - ServerDashboard 내부에서 EnhancedServerModal로 직접 관리
@@ -267,31 +192,16 @@ function DashboardPageContent({
     return true;
   });
 
+  // hydration 완료 + 테스트 모드 재검출 (단일 useEffect)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 마운트 1회만 실행 (testModeDetected 변경 시 재실행 불필요)
   useEffect(() => {
     setIsMounted(true);
+    // hydration 후 쿠키 접근 가능 → 테스트 모드 재확인
+    const isTestMode = checkTestMode();
+    if (isTestMode !== testModeDetected) {
+      setTestModeDetected(isTestMode);
+    }
   }, []);
-
-  // 🧪 Post-hydration test mode detection (E2E 테스트용)
-  useEffect(() => {
-    if (!isMounted) return;
-
-    // 쿠키가 hydration 후 접근 가능한지 확인
-    const detectTestMode = () => {
-      if (typeof document === 'undefined') return;
-
-      // 🔒 FIX: Safe access pattern for document.cookie
-      const cookieStr =
-        typeof document.cookie === 'string' ? document.cookie : '';
-      const hasTestModeCookie = cookieStr.includes('test_mode=enabled');
-      const hasTestToken = cookieStr.includes('vercel_test_token=');
-
-      if (hasTestModeCookie || hasTestToken) {
-        setTestModeDetected(true);
-      }
-    };
-
-    detectTestMode();
-  }, [isMounted]);
 
   // 🔥 강화된 권한 체크 (비동기 인증 상태 타이밍 문제 해결)
   useEffect(() => {
@@ -346,10 +256,6 @@ function DashboardPageContent({
     warning: 0,
     offline: 0,
   });
-
-  // 🔄 실제 시스템 상태 확인
-  // 🔧 useSystemStatus 반환값 미사용 - 향후 시스템 상태 표시용으로 보존
-  useSystemStatus();
 
   // 🛑 시스템 제어 함수들
   const { isSystemStarted, startSystem } = useUnifiedAdminStore();

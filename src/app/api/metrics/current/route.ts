@@ -269,7 +269,7 @@ export async function GET(_request: NextRequest) {
     const headers = new Headers({
       'Content-Type': 'application/json',
       'Cache-Control':
-        'private, max-age=0, s-maxage=30, stale-while-revalidate=0',
+        'public, max-age=0, s-maxage=30, stale-while-revalidate=0',
       'CDN-Cache-Control': 'public, s-maxage=30',
       'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
       'X-Timestamp-Normalized': normalizedTime.toString(),

@@ -124,9 +124,17 @@ export async function ensureRedisStateStore(): Promise<boolean> {
     const { initializeRedisCircuitBreaker } = await import(
       '@/lib/redis/circuit-breaker-store'
     );
-    return await initializeRedisCircuitBreaker();
-  } catch {
-    // Redis 모듈 로드 실패 시 InMemory 유지
+    const result = await initializeRedisCircuitBreaker();
+    if (result) {
+      logger.info('[CircuitBreaker] Redis 분산 상태 저장소 초기화 성공');
+    }
+    return result;
+  } catch (error) {
+    // Redis 실패 시 InMemory fallback - 서버리스 인스턴스별 독립 상태
+    logger.warn(
+      '[CircuitBreaker] Redis 초기화 실패, InMemory fallback 사용 (서버리스 인스턴스 간 상태 미공유)',
+      error instanceof Error ? error.message : error
+    );
     return false;
   }
 }
@@ -646,6 +654,7 @@ export function getAIStatusSummary(): {
     ReturnType<AIServiceCircuitBreaker['getStatus']>
   >;
   recentEvents: CircuitBreakerEvent[];
+  stateStore: 'redis' | 'in-memory';
   stats: {
     totalBreakers: number;
     openBreakers: number;
@@ -664,6 +673,7 @@ export function getAIStatusSummary(): {
   return {
     circuitBreakers,
     recentEvents,
+    stateStore: redisInitialized ? 'redis' : 'in-memory',
     stats: {
       totalBreakers: breakerValues.length,
       openBreakers: breakerValues.filter((b) => b.state === 'OPEN').length,
