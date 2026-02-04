@@ -1,7 +1,7 @@
 ---
 name: commit-commands
-description: Create a git commit with automatic AI code review (Codex/Gemini rotation). Triggers on /commit.
-version: v1.0.0
+description: Create a git commit with automatic AI code review (Claude Code default). Triggers on /commit.
+version: v2.0.0
 user-invocable: true
 allowed-tools: Bash, Read, Grep, Edit
 ---
@@ -10,26 +10,23 @@ allowed-tools: Bash, Read, Grep, Edit
 
 커밋 생성 후 자동으로 AI 코드 리뷰를 실행합니다.
 
-## Review Mode (v9.2.0)
+## Review Mode (v10.0.0)
 
 환경변수 `REVIEW_MODE`로 리뷰 엔진을 선택할 수 있습니다:
 
 | Mode | 설명 |
 |------|------|
-| `codex-gemini` | Codex ↔ Gemini 순환 (기본값) |
-| `claude` | Claude Code 단독 (별도 프로세스, 수동 권장) |
+| `claude` | Claude Code 리뷰 (기본값) |
+| `codex-gemini` | Codex ↔ Gemini 순환 (대체) |
 | `all` | Codex/Gemini + Claude 교차 검증 |
 
 ```bash
-# 기본값: Codex/Gemini 순환
+# 기본값: Claude Code 리뷰
 bash scripts/code-review/auto-ai-review.sh
 
-# Claude로 변경 (수동 실행 권장)
-REVIEW_MODE=claude bash scripts/code-review/auto-ai-review.sh
+# Codex/Gemini 순환으로 변경
+REVIEW_MODE=codex-gemini bash scripts/code-review/auto-ai-review.sh
 ```
-
-> **Note**: `claude` 모드는 별도 프로세스로 실행되어 현재 세션 컨텍스트를 공유하지 않습니다.
-> Claude Code 세션 내에서 직접 리뷰 요청하는 것이 더 효과적입니다.
 
 ## Trigger Keywords
 
@@ -73,7 +70,7 @@ EOF
 After successful commit, run AI review using modular scripts:
 
 ```bash
-# 1. Get next AI engine (Codex/Gemini rotation)
+# 1. Get review engine (default: claude)
 REVIEW_ENGINE=$(bash .claude/skills/commit-commands/scripts/rotate-ai-reviewer.sh)
 
 # 2. Run review based on engine
@@ -89,11 +86,8 @@ PROMPT="커밋: $(git log -1 --oneline)
 
 $DIFF"
 
-if [ "$REVIEW_ENGINE" = "codex" ]; then
-  echo "$PROMPT" | codex --json 2>&1 | head -100
-else
-  gemini -m gemini-2.5-flash "$PROMPT" 2>&1 | head -100
-fi
+# Claude Code 기본 리뷰
+claude -p "$PROMPT" 2>&1 | head -100
 
 # 3. Save review result
 bash .claude/skills/commit-commands/scripts/save-review-result.sh "$REVIEW_ENGINE"
@@ -111,7 +105,7 @@ Display:
 ```
 ✅ 커밋 완료: abc1234 feat: add new feature
 
-🤖 AI 리뷰 (Codex/Gemini):
+🤖 AI 리뷰 (Claude):
 - 점수: 8/10
 - 보안: 이슈 없음
 - 결론: 승인
@@ -123,5 +117,5 @@ Display:
 ## Notes
 
 - AI 리뷰는 백그라운드가 아닌 실시간으로 실행됩니다
-- Codex와 Gemini가 번갈아가며 리뷰합니다 (Cross-model validation)
+- 기본값은 Claude Code가 리뷰합니다 (`REVIEW_MODE=codex-gemini`으로 Codex/Gemini 순환 사용 가능)
 - 리뷰 결과는 `reports/ai-review/` 디렉토리에 저장됩니다

@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# AI Review Core Functions - v8.0.0
-# AI 리뷰 실행 함수들 (Codex, Gemini, Claude - 선택 가능)
+# AI Review Core Functions - v9.0.0
+# AI 리뷰 실행 함수들 (Claude 기본, Codex/Gemini 선택 가능)
 #
-# v8.0.0 (2026-01-28): REVIEW_MODE 옵션 추가
-#   - codex-gemini: 기존 Codex ↔ Gemini 순환 (기본값)
-#   - claude: Claude Code 단독 리뷰
+# v9.0.0 (2026-02-04): Claude Code 기본 리뷰 엔진으로 전환
+#   - claude: Claude Code 단독 리뷰 (기본값)
+#   - codex-gemini: 기존 Codex ↔ Gemini 순환 (폴백/대체)
 #   - all: Codex/Gemini + Claude 교차 검증
 #
 # v7.2.1 (2026-01-15): 오탐 방지 규칙 범위 조정
@@ -269,8 +269,8 @@ $changes
     local claude_output
     local claude_exit_code=0
 
-    # 타임아웃 120초 (Claude는 빠르므로 Codex/Gemini보다 짧게)
-    if claude_output=$(timeout 120 claude -p "$query" 2>&1); then
+    # 타임아웃 180초 (메인 리뷰 엔진이므로 여유 확보)
+    if claude_output=$(timeout 180 claude -p "$query" 2>&1); then
         echo "claude" > /tmp/ai_engine_auto_review
         echo "$claude_output"
         return 0
@@ -377,14 +377,14 @@ handle_review_success() {
     echo "$output"
 }
 
-# v8.0.0: REVIEW_MODE에 따른 리뷰 실행
-# - codex-gemini: 2-AI 1:1 순환 + 상호 폴백 (기본값)
-# - claude: Claude Code 단독 리뷰
+# v9.0.0: REVIEW_MODE에 따른 리뷰 실행
+# - claude: Claude Code 단독 리뷰 (기본값)
+# - codex-gemini: 2-AI 1:1 순환 + 상호 폴백
 # - all: Codex/Gemini + Claude 교차 검증 (2개 리포트)
 run_ai_review() {
     local changes="$1"
     local review_output=""
-    local mode="${REVIEW_MODE:-codex-gemini}"
+    local mode="${REVIEW_MODE:-claude}"
 
     # 임시 파일 초기화
     rm -f /tmp/ai_engine_auto_review
@@ -392,9 +392,9 @@ run_ai_review() {
     log_info "📋 리뷰 모드: ${mode^^}"
 
     case "$mode" in
-        claude)
-            # Claude Code 단독 리뷰
-            run_ai_review_claude "$changes"
+        codex-gemini)
+            # Codex ↔ Gemini 순환 (폴백/대체)
+            run_ai_review_codex_gemini "$changes"
             return $?
             ;;
         all)
@@ -412,9 +412,9 @@ run_ai_review() {
             fi
             return 1
             ;;
-        codex-gemini|*)
-            # 기본값: Codex ↔ Gemini 순환
-            run_ai_review_codex_gemini "$changes"
+        claude|*)
+            # 기본값: Claude Code 단독 리뷰
+            run_ai_review_claude "$changes"
             return $?
             ;;
     esac

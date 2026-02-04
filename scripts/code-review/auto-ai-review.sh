@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Auto AI Code Review Script (2-AI 순환) with Smart Verification
+# Auto AI Code Review Script with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 9.2.0
-# 날짜: 2026-01-28
-# 전략: 2-AI 순환 (Codex ↔ Gemini) 또는 Claude Code 선택 가능
+# 버전: 10.0.0
+# 날짜: 2026-02-04
+# 전략: Claude Code 기본, Codex/Gemini 선택 가능
 #
-# v9.2.0 (2026-01-28): REVIEW_MODE 옵션 추가
-#   - codex-gemini (기본값): 기존 Codex ↔ Gemini 순환
-#   - claude: Claude Code 단독 리뷰
+# v10.0.0 (2026-02-04): Claude Code 기본 리뷰 엔진으로 전환
+#   - claude (기본값): Claude Code 단독 리뷰
+#   - codex-gemini: 기존 Codex ↔ Gemini 순환 (폴백/대체)
 #   - all: Codex/Gemini + Claude 교차 검증
 #
 # v9.1.0 (2026-01-17): 사이드 이펙트 수정
@@ -226,12 +226,11 @@ SKIP_MIN_LINES=${SKIP_MIN_LINES:-3}       # 최소 변경 라인 수 (미달 시
 SINGLE_COMMIT_MODE=${SINGLE_COMMIT_MODE:-true}   # true: 마지막 커밋만 리뷰 (누적 X)
 CODE_FILES_ONLY=${CODE_FILES_ONLY:-true}          # true: 코드 파일만 리뷰 (docs 제외)
 
-# ===== v9.2.0: 리뷰 모드 설정 =====
-# - codex-gemini: 기존 Codex ↔ Gemini 순환 (기본값)
-# - claude: Claude Code 단독 리뷰 (별도 프로세스 - 수동 사용 권장)
+# ===== v10.0.0: 리뷰 모드 설정 =====
+# - claude: Claude Code 단독 리뷰 (기본값)
+# - codex-gemini: 기존 Codex ↔ Gemini 순환 (폴백/대체)
 # - all: Codex/Gemini + Claude 교차 검증 (2개 리포트 생성)
-# Note: claude 모드는 현재 세션과 별개로 실행되어 컨텍스트 공유 안 됨
-REVIEW_MODE=${REVIEW_MODE:-codex-gemini}
+REVIEW_MODE=${REVIEW_MODE:-claude}
 
 # 코드 파일 패턴 (CODE_FILES_ONLY=true 시 적용)
 CODE_FILE_PATTERNS="src/ lib/ scripts/ hooks/ components/ app/ pages/ api/ tests/ __tests__"

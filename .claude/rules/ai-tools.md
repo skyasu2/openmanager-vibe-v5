@@ -20,7 +20,7 @@
 | Skill | 설명 |
 |-------|------|
 | `review` | 검증 결과 요약 확인 |
-| `ai-code-review` | 멀티 AI 코드 리뷰 (Codex + Gemini) |
+| `ai-code-review` | AI 코드 리뷰 (Claude 기본, Codex/Gemini 대체) |
 | `lint-smoke` | Lint + 테스트 스모크 |
 | `validation-analysis` | 검증 결과 상세 분석 |
 
@@ -49,21 +49,20 @@
 
 | CLI | 용도 | 비고 |
 |-----|------|------|
-| `claude` | 코드 생성/수정/리뷰 | 현재 세션, `REVIEW_MODE=claude` |
-| `codex` | 코드 리뷰 | 2-AI 로테이션 (기본값) |
-| `gemini` | 로직 검증 | 2-AI 로테이션 (기본값) |
-| `kiro` | 터미널 멀티에이전트 | 수동 사용 (chat/agent/doctor) |
+| `claude` | 코드 생성/수정/리뷰 | 현재 세션, 기본 리뷰 엔진 |
+| `codex` | 코드 리뷰 | `REVIEW_MODE=codex-gemini`시 사용 |
+| `gemini` | 로직 검증 | `REVIEW_MODE=codex-gemini`시 사용 |
 
-> Note: Qwen 제거됨 (2026-01-07) - 평균 201초, 실패율 13.3%
+> Note: Qwen 제거됨 (2026-01-07), Kiro 제거됨 (2026-02-04)
 
-### AI Review Mode (v9.2.0)
+### AI Review Mode (v10.0.0)
 
 ```bash
-# 기본값: Codex ↔ Gemini 순환
-REVIEW_MODE=codex-gemini bash scripts/code-review/auto-ai-review.sh
+# 기본값: Claude Code 리뷰
+bash scripts/code-review/auto-ai-review.sh
 
-# Claude Code 단독
-REVIEW_MODE=claude bash scripts/code-review/auto-ai-review.sh
+# Codex ↔ Gemini 순환 (대체)
+REVIEW_MODE=codex-gemini bash scripts/code-review/auto-ai-review.sh
 
 # 교차 검증 (Codex/Gemini + Claude)
 REVIEW_MODE=all bash scripts/code-review/auto-ai-review.sh

@@ -1,6 +1,6 @@
 ---
 name: ai-code-review
-description: AI 코드 리뷰 결과 분석 및 개선 실행. pending 리뷰를 읽고, 개선 필요사항을 분석하여 실제 코드 수정까지 진행. 평가는 부산물.
+description: AI 코드 리뷰 결과 분석 및 개선 실행. pending 리뷰(Claude 기본)를 읽고, 개선 필요사항을 분석하여 실제 코드 수정까지 진행. 평가는 부산물.
 version: v3.1.0
 user-invocable: true
 allowed-tools: Bash, Read, Grep, Edit
@@ -61,11 +61,11 @@ cat reports/ai-review/pending/review-*.md
 
 ```bash
 # 1. 조치 결과 기록
-echo "2026-01-15 | abc1234 | 8/10 | codex | Critical 1건 수정" >> reports/ai-review/.evaluation-log
+echo "2026-01-15 | abc1234 | 8/10 | claude | Critical 1건 수정" >> reports/ai-review/.evaluation-log
 
 # 2. 해당 리뷰만 즉시 이동 (와일드카드 금지!)
 mkdir -p reports/ai-review/history/$(date +%Y-%m)
-mv reports/ai-review/pending/review-codex-2026-01-15-XXX.md reports/ai-review/history/$(date +%Y-%m)/
+mv reports/ai-review/pending/review-claude-2026-01-15-XXX.md reports/ai-review/history/$(date +%Y-%m)/
 ```
 
 **절대 금지**: `mv review-*.md` 와일드카드 사용 → 미분석 파일까지 이동됨
