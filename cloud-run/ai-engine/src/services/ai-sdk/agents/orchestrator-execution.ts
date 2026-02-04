@@ -68,18 +68,18 @@ export async function executeMultiAgent(
   const query = lastUserMessage.content;
 
   const webSearchEnabled = resolveWebSearchSetting(request.enableWebSearch, query);
-  console.log(`🔍 [WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
+  logger.debug(`[WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
 
   const sessionContext = await getOrCreateSessionContext(request.sessionId, query);
-  console.log(`📋 [Context] Session ${request.sessionId}: ${sessionContext.handoffs.length} previous handoffs`);
+  logger.debug(`[Context] Session ${request.sessionId}: ${sessionContext.handoffs.length} previous handoffs`);
 
   // Fast Path
   const preFilterResult = preFilterQuery(query);
-  console.log(`📋 [PreFilter] Query: "${query.substring(0, 50)}..." → Suggested: ${preFilterResult.suggestedAgent || 'none'} (confidence: ${preFilterResult.confidence})`);
+  logger.debug(`[PreFilter] Query: "${query.substring(0, 50)}..." → Suggested: ${preFilterResult.suggestedAgent || 'none'} (confidence: ${preFilterResult.confidence})`);
 
   if (!preFilterResult.shouldHandoff && preFilterResult.directResponse) {
     const durationMs = Date.now() - startTime;
-    console.log(`⚡ [Fast Path] Direct response in ${durationMs}ms (confidence: ${preFilterResult.confidence})`);
+    logger.info(`[Fast Path] Direct response in ${durationMs}ms (confidence: ${preFilterResult.confidence})`);
 
     return {
       success: true,
@@ -96,10 +96,10 @@ export async function executeMultiAgent(
   const decomposition = await decomposeTask(query);
 
   if (decomposition && decomposition.subtasks.length > 1) {
-    console.log(`🔀 [Orchestrator] Complex query detected, using Orchestrator-Worker pattern`);
+    logger.info(`[Orchestrator] Complex query detected, using Orchestrator-Worker pattern`);
 
     if (decomposition.requiresSequential) {
-      console.log('📋 [Orchestrator] Executing subtasks sequentially (dependencies detected)');
+      logger.info('[Orchestrator] Executing subtasks sequentially (dependencies detected)');
       let lastResult: MultiAgentResponse | null = null;
 
       for (const subtask of decomposition.subtasks) {
@@ -124,20 +124,20 @@ export async function executeMultiAgent(
       }
     }
 
-    console.log('🔄 [Orchestrator] Task decomposition failed, falling back to single-agent routing');
+    logger.warn('[Orchestrator] Task decomposition failed, falling back to single-agent routing');
   }
 
   // Forced Routing
-  console.log(`🔍 [Orchestrator] Forced routing check: suggestedAgent=${preFilterResult.suggestedAgent}, confidence=${preFilterResult.confidence}`);
+  logger.debug(`[Orchestrator] Forced routing check: suggestedAgent=${preFilterResult.suggestedAgent}, confidence=${preFilterResult.confidence}`);
 
   if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.8) {
     const suggestedAgentName = preFilterResult.suggestedAgent;
-    console.log(`🚀 [Orchestrator] Triggering forced routing to ${suggestedAgentName}`);
+    logger.info(`[Orchestrator] Triggering forced routing to ${suggestedAgentName}`);
 
     let forcedResult: MultiAgentResponse | null = null;
 
     if (suggestedAgentName === 'Vision Agent') {
-      console.log(`🔭 [Vision] Using AgentFactory for Vision Agent`);
+      logger.info(`[Vision] Using AgentFactory for Vision Agent`);
       forcedResult = await executeWithAgentFactory(query, 'vision', startTime, webSearchEnabled, request.images, request.files);
 
       if (!forcedResult) {
@@ -149,13 +149,13 @@ export async function executeMultiAgent(
     }
 
     if (forcedResult) {
-      console.log(`✅ [Orchestrator] Forced routing succeeded`);
+      logger.info(`[Orchestrator] Forced routing succeeded`);
       await saveAgentFindingsToContext(request.sessionId, suggestedAgentName, forcedResult.response);
       return forcedResult;
     }
-    console.log('🔄 [Orchestrator] Forced routing failed, falling back to LLM routing');
+    logger.warn('[Orchestrator] Forced routing failed, falling back to LLM routing');
   } else {
-    console.log(`⏭️ [Orchestrator] Skipping forced routing (conditions not met)`);
+    logger.debug(`[Orchestrator] Skipping forced routing (conditions not met)`);
   }
 
   // LLM-based routing
@@ -168,7 +168,7 @@ export async function executeMultiAgent(
   try {
     const { model, provider, modelId } = orchestratorModelConfig;
 
-    console.log(`🎯 [Orchestrator] LLM routing with ${provider}/${modelId} (suggested: ${preFilterResult.suggestedAgent || 'none'})`);
+    logger.info(`[Orchestrator] LLM routing with ${provider}/${modelId} (suggested: ${preFilterResult.suggestedAgent || 'none'})`);
 
     const routingPrompt = buildRoutingPrompt(query);
 
@@ -203,7 +203,7 @@ export async function executeMultiAgent(
       if (warnTimer) clearTimeout(warnTimer);
     }
 
-    console.log(`🎯 [Orchestrator] LLM routing decision: ${routingDecision.selectedAgent} (confidence: ${routingDecision.confidence.toFixed(2)}, reason: ${routingDecision.reasoning})`);
+    logger.debug(`[Orchestrator] LLM routing decision: ${routingDecision.selectedAgent} (confidence: ${routingDecision.confidence.toFixed(2)}, reason: ${routingDecision.reasoning})`);
 
     const selectedAgent = getAgentFromRouting(routingDecision);
 
@@ -240,7 +240,7 @@ export async function executeMultiAgent(
 
     const suggestedAgent = preFilterResult.suggestedAgent;
     if (suggestedAgent && preFilterResult.confidence >= 0.5) {
-      console.log(`🔄 [Orchestrator] LLM routing inconclusive, falling back to ${suggestedAgent}`);
+      logger.debug(`[Orchestrator] LLM routing inconclusive, falling back to ${suggestedAgent}`);
 
       const fallbackResult = await executeForcedRouting(query, suggestedAgent, startTime, webSearchEnabled, request.images, request.files);
 
@@ -307,18 +307,18 @@ export async function* executeMultiAgentStream(
   const query = lastUserMessage.content;
 
   const webSearchEnabled = resolveWebSearchSetting(request.enableWebSearch, query);
-  console.log(`🔍 [Stream WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
+  logger.debug(`[Stream WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
 
   const sessionContext = await getOrCreateSessionContext(request.sessionId, query);
-  console.log(`📋 [Stream Context] Session ${request.sessionId}: ${sessionContext.handoffs.length} previous handoffs`);
+  logger.debug(`[Stream Context] Session ${request.sessionId}: ${sessionContext.handoffs.length} previous handoffs`);
 
   // Fast Path
   const preFilterResult = preFilterQuery(query);
-  console.log(`📋 [Stream PreFilter] Query: "${query.substring(0, 50)}..." → Suggested: ${preFilterResult.suggestedAgent || 'none'} (confidence: ${preFilterResult.confidence})`);
+  logger.debug(`[Stream PreFilter] Query: "${query.substring(0, 50)}..." → Suggested: ${preFilterResult.suggestedAgent || 'none'} (confidence: ${preFilterResult.confidence})`);
 
   if (!preFilterResult.shouldHandoff && preFilterResult.directResponse) {
     const durationMs = Date.now() - startTime;
-    console.log(`⚡ [Stream Fast Path] Direct response in ${durationMs}ms`);
+    logger.info(`[Stream Fast Path] Direct response in ${durationMs}ms`);
 
     yield { type: 'text_delta', data: preFilterResult.directResponse };
     yield {
@@ -336,7 +336,7 @@ export async function* executeMultiAgentStream(
 
   // Forced Routing
   if (preFilterResult.suggestedAgent && preFilterResult.confidence >= 0.8) {
-    console.log(`🚀 [Stream] Forced routing to ${preFilterResult.suggestedAgent}`);
+    logger.info(`[Stream] Forced routing to ${preFilterResult.suggestedAgent}`);
     yield* executeAgentStream(
       query, preFilterResult.suggestedAgent, startTime, request.sessionId, webSearchEnabled, request.images, request.files
     );
@@ -354,7 +354,7 @@ export async function* executeMultiAgentStream(
   try {
     const { model, provider, modelId } = orchestratorModelConfig;
 
-    console.log(`🎯 [Stream Orchestrator] Starting with ${provider}/${modelId}`);
+    logger.info(`[Stream Orchestrator] Starting with ${provider}/${modelId}`);
 
     const routingPrompt = buildRoutingPrompt(query);
 
@@ -367,7 +367,7 @@ export async function* executeMultiAgentStream(
     });
 
     const routingDecision = routingResult.object;
-    console.log(`🎯 [Stream] LLM routing decision: ${routingDecision.selectedAgent} (confidence: ${routingDecision.confidence.toFixed(2)})`);
+    logger.debug(`[Stream] LLM routing decision: ${routingDecision.selectedAgent} (confidence: ${routingDecision.confidence.toFixed(2)})`);
 
     const selectedAgent = getAgentFromRouting(routingDecision);
 
@@ -382,7 +382,7 @@ export async function* executeMultiAgentStream(
 
     const suggestedAgent = preFilterResult.suggestedAgent;
     if (suggestedAgent && preFilterResult.confidence >= 0.5) {
-      console.log(`🔄 [Stream] Fallback to ${suggestedAgent}`);
+      logger.debug(`[Stream] Fallback to ${suggestedAgent}`);
       recordHandoff('Orchestrator', suggestedAgent, 'Fallback routing');
       await recordHandoffEvent(request.sessionId, 'Orchestrator', suggestedAgent, 'Fallback routing');
       yield { type: 'handoff', data: { from: 'Orchestrator', to: suggestedAgent, reason: 'Fallback' } };
@@ -458,7 +458,7 @@ async function* executeAgentStream(
     return;
   }
 
-  console.log(`🤖 [Stream ${agentName}] Using ${provider}/${modelId}`);
+  logger.debug(`[Stream ${agentName}] Using ${provider}/${modelId}`);
 
   const filteredTools = filterToolsByWebSearch(agentConfig.tools, webSearchEnabled);
 
@@ -487,7 +487,7 @@ async function* executeAgentStream(
       abortSignal: abortController.signal,
       onStepFinish: ({ finishReason, toolCalls }) => {
         const toolNames = toolCalls?.map((tc) => tc.toolName) || [];
-        console.log(`📍 [${agentName} Step] reason=${finishReason}, tools=[${toolNames.join(',')}]`);
+        logger.debug(`[${agentName} Step] reason=${finishReason}, tools=[${toolNames.join(',')}]`);
       },
     });
 
@@ -587,7 +587,7 @@ async function* executeAgentStream(
     }
 
     const durationMs = Date.now() - startTime;
-    console.log(`✅ [Stream ${agentName}] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`);
+    logger.info(`[Stream ${agentName}] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`);
 
     yield {
       type: 'done',
