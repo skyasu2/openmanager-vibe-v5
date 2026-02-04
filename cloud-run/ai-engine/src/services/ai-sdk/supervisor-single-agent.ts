@@ -13,6 +13,7 @@ import {
   stepCountIs,
   hasToolCall,
   type ModelMessage,
+  type UserContent,
 } from 'ai';
 import {
   getSupervisorModel,
@@ -551,9 +552,8 @@ async function* streamSingleAgent(
 
           return {
             role: m.role as 'user' | 'assistant',
-            // AI SDK v6 multimodal content - runtime compatible but type mismatch
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            content: contentParts as any,
+            // AI SDK v6 multimodal content
+            content: contentParts as UserContent,
           };
         }
 

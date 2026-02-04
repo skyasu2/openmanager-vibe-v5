@@ -6,7 +6,7 @@
  * @version 4.0.0
  */
 
-import { generateObject, generateText, streamText, hasToolCall, stepCountIs } from 'ai';
+import { generateObject, generateText, streamText, hasToolCall, stepCountIs, type UserContent } from 'ai';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
 import { extractToolResultOutput } from '../../../lib/ai-sdk-utils';
 import { logTimeoutEvent, createTimeoutSpan } from '../../observability/langfuse';
@@ -39,6 +39,7 @@ import {
   getRecentHandoffs,
 } from './orchestrator-routing';
 import { logger } from '../../../lib/logger';
+import { getCircuitBreaker } from '../../resilience/circuit-breaker';
 import {
   decomposeTask,
   executeParallelSubtasks,
@@ -477,6 +478,15 @@ async function* executeAgentStream(
   }
 
   const { model, provider, modelId } = modelResult;
+
+  // CB 사전 체크: OPEN 상태이면 즉시 에러 반환
+  const cb = getCircuitBreaker(`orchestrator-${provider}`);
+  if (!cb.isAllowed()) {
+    logger.warn(`🔌 [Stream ${agentName}] CB OPEN for ${provider}, skipping`);
+    yield { type: 'error', data: { code: 'CIRCUIT_OPEN', error: `Circuit breaker open for ${provider}` } };
+    return;
+  }
+
   console.log(`🤖 [Stream ${agentName}] Using ${provider}/${modelId}`);
 
   const filteredTools = filterToolsByWebSearch(agentConfig.tools, webSearchEnabled);
@@ -521,14 +531,12 @@ async function* executeAgentStream(
     }
 
     // AI SDK v6 multimodal content type assertion
-    // The AI SDK UserContent type doesn't expose the union directly,
-    // but accepts string | Array<TextPart | ImagePart | FilePart> at runtime
+    // UserContent = string | Array<TextPart | ImagePart | FilePart>
     const streamResult = streamText({
       model,
       messages: [
         { role: 'system', content: agentConfig.instructions },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { role: 'user', content: userContent as any },
+        { role: 'user', content: userContent as UserContent },
       ],
       tools: filteredTools as Parameters<typeof generateText>[0]['tools'],
       stopWhen: [hasToolCall('finalAnswer'), stepCountIs(3)],
@@ -662,6 +670,14 @@ async function* executeAgentStream(
     const durationMs = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`❌ [Stream ${agentName}] Error after ${durationMs}ms:`, errorMessage);
+
+    // CB에 failure 기록 (provider 장애 감지)
+    try {
+      const agentCb = getCircuitBreaker(`orchestrator-${provider}`);
+      agentCb.execute(() => Promise.reject(error)).catch(() => {});
+    } catch {
+      // CB 기록 실패는 무시
+    }
 
     yield { type: 'error', data: { code: 'STREAM_ERROR', error: errorMessage } };
   }

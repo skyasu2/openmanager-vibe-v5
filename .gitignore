@@ -376,6 +376,7 @@ tsconfig.*.temp.json
 coverage/
 playwright-report/
 test-results/
+cloud-run/ai-engine/results/
 .nyc_output/
 dist/
 build/

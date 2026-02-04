@@ -1,8 +1,7 @@
 /**
  * Server Metrics Tools (AI SDK Format)
  *
- * Converted from LangChain tools to Vercel AI SDK format.
- * Used by the new AI SDK Supervisor.
+ * All 5 tool definitions for server metrics querying.
  *
  * @version 1.0.0
  * @updated 2025-12-28
@@ -11,277 +10,21 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import {
-  SERVER_TYPE_MAP,
-  SERVER_TYPE_DESCRIPTIONS,
+  stableStringify,
+  calculateAggregation,
+  getTimeRangeData,
+  getCurrentState,
+  FIXED_24H_DATASETS,
+  get24hTrendSummaries,
+  getDataCache,
   SERVER_GROUP_INPUT_DESCRIPTION,
   SERVER_GROUP_DESCRIPTION_LIST,
   normalizeServerType,
-} from '../config/server-types';
-
-// ============================================================================
-// Cache Key Utilities
-// ============================================================================
-
-/**
- * Create stable cache key from filter array
- * Ensures consistent key order in objects and sorted array items
- */
-function stableStringify(filters: Array<Record<string, unknown>> | undefined): string {
-  if (!filters || filters.length === 0) return '[]';
-
-  // Sort each object's keys and stringify, then sort array by resulting strings
-  const normalized = filters.map(filter => {
-    const sortedKeys = Object.keys(filter).sort();
-    const sortedObj: Record<string, unknown> = {};
-    for (const key of sortedKeys) {
-      sortedObj[key] = filter[key];
-    }
-    return JSON.stringify(sortedObj);
-  }).sort();
-
-  return `[${normalized.join(',')}]`;
-}
-
-// ============================================================================
-// Response Schemas (Best Practice: Structured Output Documentation)
-// ============================================================================
-
-/**
- * Server info in response
- */
-export const serverInfoSchema = z.object({
-  id: z.string().describe('서버 고유 ID'),
-  name: z.string().describe('서버 이름'),
-  status: z.enum(['online', 'offline', 'warning', 'critical']).describe('서버 상태'),
-  cpu: z.number().describe('CPU 사용률 (%)'),
-  memory: z.number().describe('메모리 사용률 (%)'),
-  disk: z.number().describe('디스크 사용률 (%)'),
-});
-
-/**
- * getServerMetrics response schema
- */
-export const getServerMetricsResponseSchema = z.object({
-  success: z.boolean(),
-  servers: z.array(serverInfoSchema),
-  summary: z.object({
-    total: z.number().describe('전체 서버 수'),
-    alertCount: z.number().describe('경고/위험 상태 서버 수'),
-  }),
-  timestamp: z.string().describe('조회 시간 (ISO 8601)'),
-});
-
-/**
- * getServerMetricsAdvanced response schema
- */
-export const getServerMetricsAdvancedResponseSchema = z.object({
-  success: z.boolean(),
-  answer: z.string().describe('⚠️ 사용자에게 이 값을 그대로 전달하세요'),
-  globalSummary: z.record(z.number()).describe('전체 서버 집계: cpu_avg, cpu_max, cpu_min 등'),
-  serverCount: z.number().describe('조회된 서버 수'),
-  query: z.object({
-    timeRange: z.string().optional(),
-    metric: z.string().optional(),
-    aggregation: z.string().optional(),
-    sortBy: z.string().optional(),
-    limit: z.number().optional(),
-  }),
-  servers: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    type: z.string(),
-    location: z.string(),
-    metrics: z.record(z.number()),
-    dataPoints: z.number().optional(),
-  })).describe('상위 5개 서버 샘플'),
-  hasMore: z.boolean().describe('5개 이상일 때 true'),
-  timestamp: z.string(),
-});
-
-/**
- * filterServers response schema
- */
-export const filterServersResponseSchema = z.object({
-  success: z.boolean(),
-  condition: z.string().describe('적용된 필터 조건'),
-  servers: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    status: z.string(),
-  }).passthrough()), // Allow additional fields
-  summary: z.object({
-    matched: z.number().describe('조건에 맞는 서버 수'),
-    returned: z.number().describe('반환된 서버 수'),
-    total: z.number().describe('전체 서버 수'),
-  }),
-  timestamp: z.string(),
-});
-
-/**
- * getServerByGroup response schema
- */
-export const getServerByGroupAdvancedResponseSchema = z.object({
-  success: z.boolean(),
-  group: z.string(),
-  servers: z.array(serverInfoSchema),
-  summary: z.object({
-    total: z.number().describe('Total servers in group before filters'),
-    online: z.number().describe('Online servers after filters (before limit)'),
-    warning: z.number().describe('Warning servers after filters (before limit)'),
-    critical: z.number().describe('Critical servers after filters (before limit)'),
-    filtered: z.number().describe('Total servers after filters (before limit)'),
-    returned: z.number().describe('Actual returned servers (after limit)'),
-  }),
-  appliedFilters: z.object({
-    cpuMin: z.number().optional(),
-    cpuMax: z.number().optional(),
-    memoryMin: z.number().optional(),
-    memoryMax: z.number().optional(),
-    status: z.string().optional(),
-  }).optional(),
-  appliedSort: z.object({
-    by: z.string(),
-    order: z.string(),
-  }).optional(),
-  timestamp: z.string(),
-});
-
-export const getServerByGroupResponseSchema = z.object({
-  success: z.boolean(),
-  group: z.string().describe('조회된 서버 그룹/타입'),
-  servers: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    type: z.string(),
-    status: z.enum(['online', 'warning', 'critical']),
-    cpu: z.number(),
-    memory: z.number(),
-    disk: z.number(),
-  })),
-  summary: z.object({
-    total: z.number().describe('해당 그룹 서버 총 수'),
-    online: z.number().describe('온라인 상태 수'),
-    warning: z.number().describe('경고 상태 수'),
-    critical: z.number().describe('위험 상태 수'),
-  }),
-  timestamp: z.string(),
-});
-
-// Export types for external use
-export type ServerInfo = z.infer<typeof serverInfoSchema>;
-export type GetServerMetricsResponse = z.infer<typeof getServerMetricsResponseSchema>;
-export type GetServerMetricsAdvancedResponse = z.infer<typeof getServerMetricsAdvancedResponseSchema>;
-export type FilterServersResponse = z.infer<typeof filterServersResponseSchema>;
-export type GetServerByGroupResponse = z.infer<typeof getServerByGroupResponseSchema>;
-
-// Data sources
-import {
-  getCurrentState,
   type ServerSnapshot,
-} from '../data/precomputed-state';
-import {
-  FIXED_24H_DATASETS,
-  getDataAtMinute,
-  getRecentData,
-  get24hTrendSummaries,
-  type Server24hDataset,
-  type Fixed10MinMetric,
-} from '../data/fixed-24h-metrics';
-
-// Caching
-import { getDataCache } from '../lib/cache-layer';
+} from './data';
 
 // ============================================================================
-// 1. Helper Functions
-// ============================================================================
-
-/**
- * Get current minute of day (KST)
- */
-function getCurrentMinuteOfDay(): number {
-  const koreaTime = new Date().toLocaleString('en-US', {
-    timeZone: 'Asia/Seoul',
-  });
-  const koreaDate = new Date(koreaTime);
-  return koreaDate.getHours() * 60 + koreaDate.getMinutes();
-}
-
-/**
- * Calculate aggregation over time series data
- */
-function calculateAggregation(
-  dataPoints: Array<{ cpu: number; memory: number; disk: number }>,
-  metric: 'cpu' | 'memory' | 'disk' | 'network' | 'all',
-  func: 'avg' | 'max' | 'min' | 'count'
-): Record<string, number> {
-  if (func === 'count') {
-    return { count: dataPoints.length };
-  }
-
-  const metrics = metric === 'all' ? ['cpu', 'memory', 'disk'] : [metric];
-  const result: Record<string, number> = {};
-
-  for (const m of metrics) {
-    const values = dataPoints
-      .map((d) => d[m as keyof typeof d] as number)
-      .filter((v) => v !== undefined);
-
-    if (values.length === 0) {
-      result[m] = 0;
-      continue;
-    }
-
-    switch (func) {
-      case 'avg':
-        result[m] =
-          Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) /
-          10;
-        break;
-      case 'max':
-        result[m] = Math.max(...values);
-        break;
-      case 'min':
-        result[m] = Math.min(...values);
-        break;
-    }
-  }
-
-  return result;
-}
-
-/**
- * Get time range data points for a server
- */
-function getTimeRangeData(
-  dataset: Server24hDataset,
-  timeRange: string
-): Fixed10MinMetric[] {
-  const currentMinute = getCurrentMinuteOfDay();
-
-  let hoursBack = 0;
-  switch (timeRange) {
-    case 'last1h':
-      hoursBack = 1;
-      break;
-    case 'last6h':
-      hoursBack = 6;
-      break;
-    case 'last24h':
-      hoursBack = 24;
-      break;
-    case 'current':
-    default:
-      return [getDataAtMinute(dataset, currentMinute)].filter(
-        Boolean
-      ) as Fixed10MinMetric[];
-  }
-
-  const pointsNeeded = hoursBack * 6;
-  return getRecentData(dataset, currentMinute, pointsNeeded);
-}
-
-// ============================================================================
-// 2. AI SDK Tools
+// AI SDK Tools
 // ============================================================================
 
 /**

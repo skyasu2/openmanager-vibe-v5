@@ -173,18 +173,18 @@ describe('useAISidebarStore', () => {
       expect(result.current.messages[2].content).toBe('Third');
     });
 
-    it('최대 100개 메시지만 유지해야 함', () => {
+    it('최대 50개 메시지만 유지해야 함', () => {
       const { result } = renderHook(() => useAISidebarStore());
 
-      // 105개 메시지 추가
+      // 55개 메시지 추가
       act(() => {
-        for (let i = 0; i < 105; i++) {
+        for (let i = 0; i < 55; i++) {
           result.current.addMessage(createMockMessage(`msg-${i}`, `Msg ${i}`));
         }
       });
 
-      // 최대 100개만 유지
-      expect(result.current.messages).toHaveLength(100);
+      // 최대 50개만 유지 (SESSION_LIMITS.MESSAGE_LIMIT: 50)
+      expect(result.current.messages).toHaveLength(50);
       // 오래된 메시지가 삭제됨 (msg-0 ~ msg-4 삭제)
       expect(result.current.messages[0].id).toBe('msg-5');
     });

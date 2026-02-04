@@ -26,6 +26,8 @@ import {
   getGeminiApiKey,
 } from '../../lib/config-parser';
 
+import { getCircuitBreaker } from '../resilience/circuit-breaker';
+
 // ============================================================================
 // 1. Types
 // ============================================================================
@@ -292,8 +294,20 @@ export function getSupervisorModel(excludeProviders: ProviderName[] = []): {
   const status = checkProviderStatus();
   const excluded = new Set(excludeProviders);
 
+  // CB 사전 체크: OPEN 상태인 provider를 자동으로 exclude
+  const cbProviders: ProviderName[] = ['cerebras', 'mistral', 'groq'];
+  for (const provider of cbProviders) {
+    if (!excluded.has(provider)) {
+      const cb = getCircuitBreaker(`supervisor-${provider}`);
+      if (!cb.isAllowed()) {
+        excluded.add(provider);
+        console.log(`🔌 [Supervisor] CB OPEN: auto-excluding ${provider}`);
+      }
+    }
+  }
+
   if (excluded.size > 0) {
-    console.log(`🔄 [Supervisor] Excluding providers: [${excludeProviders.join(', ')}]`);
+    console.log(`🔄 [Supervisor] Excluding providers: [${[...excluded].join(', ')}]`);
   }
 
   // Try Cerebras first (24M tokens/day, fastest)

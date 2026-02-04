@@ -1,5 +1,6 @@
 'use client';
 
+import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
 import { logger } from '@/lib/logging';
 
@@ -13,6 +14,9 @@ export default function Error({
 }) {
   useEffect(() => {
     logger.error(error);
+    Sentry.captureException(error, {
+      tags: { boundary: 'global-error', digest: error.digest },
+    });
   }, [error]);
 
   return (

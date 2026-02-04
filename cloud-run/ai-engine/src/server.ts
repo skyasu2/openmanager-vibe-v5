@@ -22,6 +22,9 @@ import { getCurrentState } from './data/precomputed-state';
 // Error handling
 import { handleUnauthorizedError, jsonSuccess } from './lib/error-handler';
 
+// Rate limiting
+import { rateLimitMiddleware } from './middleware/rate-limiter';
+
 // Observability & Resilience
 import { flushLangfuse, shutdownLangfuse, getLangfuseUsageStatus, restoreUsageFromRedis } from './services/observability/langfuse';
 import { getAllCircuitStats, resetAllCircuitBreakers } from './services/resilience/circuit-breaker';
@@ -70,6 +73,9 @@ app.use('/api/*', async (c: Context, next: Next) => {
   }
   await next();
 });
+
+// Rate limiting (after auth - only applies to authenticated requests)
+app.use('/api/*', rateLimitMiddleware);
 
 // 🎯 Global Error Handler (GCP Cloud Logging)
 app.onError((err, c) => {
