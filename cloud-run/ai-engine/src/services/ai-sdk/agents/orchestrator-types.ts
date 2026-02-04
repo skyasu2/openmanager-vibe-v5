@@ -96,6 +96,28 @@ export interface PreFilterResult {
   confidence: number;
 }
 
+/**
+ * 라우팅 프롬프트 생성 (에이전트 선택용)
+ */
+export function buildRoutingPrompt(query: string): string {
+  return `사용자 질문을 분석하고 적절한 에이전트를 선택하세요.
+
+## 사용 가능한 에이전트
+- NLQ Agent: 서버 상태 조회, CPU/메모리/디스크 메트릭, 필터링, 요약
+- Analyst Agent: 이상 탐지, 트렌드 예측, 패턴 분석, 근본 원인 분석
+- Reporter Agent: 장애 보고서 생성, 인시던트 타임라인
+- Advisor Agent: 문제 해결 방법, CLI 명령어 추천, 과거 사례 검색
+- Vision Agent: 스크린샷/이미지 분석, 대용량 로그, 최신 공식 문서 검색
+
+## 사용자 질문
+${query}
+
+## 판단 기준
+- 서버/모니터링 관련 질문 → 적절한 에이전트 선택
+- 이미지/스크린샷/대시보드 분석 → Vision Agent
+- 일반 대화(인사, 날씨, 시간 등) → NONE`;
+}
+
 export const ORCHESTRATOR_INSTRUCTIONS = `당신은 **서버 모니터링 플랫폼 (OpenManager)** 의 AI 오케스트레이터입니다.
 
 ## ⚠️ 중요 컨텍스트

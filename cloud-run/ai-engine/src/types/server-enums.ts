@@ -84,6 +84,7 @@ export function isValidServerRole(role: string): role is ServerRole {
     'load-balancer',
     'queue',
     'storage',
+    'log',
     'app',
     'fallback',
   ].includes(role);
@@ -121,6 +122,7 @@ export const SERVER_ROLES: ServerRole[] = [
   'load-balancer',
   'queue',
   'storage',
+  'log',
   'app',
   'fallback',
 ];

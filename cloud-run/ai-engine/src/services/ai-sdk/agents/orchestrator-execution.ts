@@ -8,7 +8,7 @@
 
 import { generateObject, generateText, streamText, hasToolCall, stepCountIs, type UserContent } from 'ai';
 import { sanitizeChineseCharacters } from '../../../lib/text-sanitizer';
-import { extractToolResultOutput } from '../../../lib/ai-sdk-utils';
+import { extractToolResultOutput, buildMultimodalContent } from '../../../lib/ai-sdk-utils';
 import { logTimeoutEvent, createTimeoutSpan } from '../../observability/langfuse';
 import type { StreamEvent } from '../supervisor';
 
@@ -23,6 +23,7 @@ import {
 import {
   ORCHESTRATOR_CONFIG,
   ORCHESTRATOR_INSTRUCTIONS,
+  buildRoutingPrompt,
   type MultiAgentRequest,
   type MultiAgentResponse,
   type MultiAgentError,
@@ -169,22 +170,7 @@ export async function executeMultiAgent(
 
     console.log(`🎯 [Orchestrator] LLM routing with ${provider}/${modelId} (suggested: ${preFilterResult.suggestedAgent || 'none'})`);
 
-    const routingPrompt = `사용자 질문을 분석하고 적절한 에이전트를 선택하세요.
-
-## 사용 가능한 에이전트
-- NLQ Agent: 서버 상태 조회, CPU/메모리/디스크 메트릭, 필터링, 요약
-- Analyst Agent: 이상 탐지, 트렌드 예측, 패턴 분석, 근본 원인 분석
-- Reporter Agent: 장애 보고서 생성, 인시던트 타임라인
-- Advisor Agent: 문제 해결 방법, CLI 명령어 추천, 과거 사례 검색
-- Vision Agent: 스크린샷/이미지 분석, 대용량 로그, 최신 공식 문서 검색
-
-## 사용자 질문
-${query}
-
-## 판단 기준
-- 서버/모니터링 관련 질문 → 적절한 에이전트 선택
-- 이미지/스크린샷/대시보드 분석 → Vision Agent
-- 일반 대화(인사, 날씨, 시간 등) → NONE`;
+    const routingPrompt = buildRoutingPrompt(query);
 
     let timeoutId: NodeJS.Timeout | null = null;
     let warnTimer: NodeJS.Timeout | null = null;
@@ -370,22 +356,7 @@ export async function* executeMultiAgentStream(
 
     console.log(`🎯 [Stream Orchestrator] Starting with ${provider}/${modelId}`);
 
-    const routingPrompt = `사용자 질문을 분석하고 적절한 에이전트를 선택하세요.
-
-## 사용 가능한 에이전트
-- NLQ Agent: 서버 상태 조회, CPU/메모리/디스크 메트릭, 필터링, 요약
-- Analyst Agent: 이상 탐지, 트렌드 예측, 패턴 분석, 근본 원인 분석
-- Reporter Agent: 장애 보고서 생성, 인시던트 타임라인
-- Advisor Agent: 문제 해결 방법, CLI 명령어 추천, 과거 사례 검색
-- Vision Agent: 스크린샷/이미지 분석, 대용량 로그, 최신 공식 문서 검색
-
-## 사용자 질문
-${query}
-
-## 판단 기준
-- 서버/모니터링 관련 질문 → 적절한 에이전트 선택
-- 이미지/스크린샷/대시보드 분석 → Vision Agent
-- 일반 대화(인사, 날씨, 시간 등) → NONE`;
+    const routingPrompt = buildRoutingPrompt(query);
 
     const routingResult = await generateObject({
       model,
@@ -496,42 +467,8 @@ async function* executeAgentStream(
   const abortController = new AbortController();
 
   try {
-    // Build multimodal user content
-    type ContentPart = { type: 'text'; text: string } | { type: 'image'; image: string; mimeType?: string } | { type: 'file'; data: string; mediaType: string };
-    let userContent: string | ContentPart[] = query;
+    const userContent = buildMultimodalContent(query, images, files);
 
-    if ((images && images.length > 0) || (files && files.length > 0)) {
-      const contentParts: ContentPart[] = [
-        { type: 'text', text: query },
-      ];
-
-      if (images && images.length > 0) {
-        for (const img of images) {
-          contentParts.push({
-            type: 'image',
-            image: img.data,
-            mimeType: img.mimeType,
-          });
-        }
-        console.log(`📷 [Stream ${agentName}] Added ${images.length} image(s) to message`);
-      }
-
-      if (files && files.length > 0) {
-        for (const file of files) {
-          contentParts.push({
-            type: 'file',
-            data: file.data,
-            mediaType: file.mimeType,
-          });
-        }
-        console.log(`📎 [Stream ${agentName}] Added ${files.length} file(s) to message`);
-      }
-
-      userContent = contentParts;
-    }
-
-    // AI SDK v6 multimodal content type assertion
-    // UserContent = string | Array<TextPart | ImagePart | FilePart>
     const streamResult = streamText({
       model,
       messages: [

@@ -215,7 +215,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
       )}
 
       {/* 에러 표시 */}
-      {error && !isGenerating && (
+      {error && (
         <ColdStartErrorBanner
           error={error}
           onRetry={onRetry}

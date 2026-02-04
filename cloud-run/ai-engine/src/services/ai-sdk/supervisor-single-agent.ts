@@ -35,7 +35,7 @@ import {
   finalizeTrace,
 } from '../observability/langfuse';
 import { getCircuitBreaker, CircuitOpenError } from '../resilience/circuit-breaker';
-import { extractToolResultOutput } from '../../lib/ai-sdk-utils';
+import { extractToolResultOutput, extractRagSources, buildMultimodalContent, type RagSource } from '../../lib/ai-sdk-utils';
 
 import type {
   SupervisorRequest,
@@ -69,7 +69,7 @@ export async function executeSupervisor(
     mode = lastUserMessage ? selectExecutionMode(lastUserMessage.content) : 'single';
   }
 
-  console.log(`🎯 [Supervisor] Mode: ${mode}`);
+  logger.info(`[Supervisor] Mode: ${mode}`);
 
   if (mode === 'multi') {
     return executeMultiAgentMode(request, startTime);
@@ -135,7 +135,7 @@ async function executeMultiAgentMode(
 
     logger.error(`❌ [Supervisor] Multi-agent error after ${durationMs}ms:`, errorMessage);
 
-    console.log(`🔄 [Supervisor] Falling back to single-agent mode`);
+    logger.info(`[Supervisor] Falling back to single-agent mode`);
     return executeSingleAgentMode(request, startTime);
   }
 }
@@ -153,7 +153,7 @@ async function executeSingleAgentMode(
 
   for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
     if (attempt > 0) {
-      console.log(`🔄 [Supervisor] Retry attempt ${attempt}/${RETRY_CONFIG.maxRetries}, excluding: [${failedProviders.join(', ')}]`);
+      logger.info(`[Supervisor] Retry attempt ${attempt}/${RETRY_CONFIG.maxRetries}, excluding: [${failedProviders.join(', ')}]`);
       await new Promise((r) => setTimeout(r, RETRY_CONFIG.retryDelayMs * attempt));
     }
 
@@ -169,11 +169,11 @@ async function executeSingleAgentMode(
     const failedProvider = (lastError as unknown as { provider?: ProviderName }).provider;
     if (failedProvider && !failedProviders.includes(failedProvider)) {
       failedProviders.push(failedProvider);
-      console.log(`📍 [Supervisor] Marking ${failedProvider} as failed for retry`);
+      logger.debug(`[Supervisor] Marking ${failedProvider} as failed for retry`);
     }
 
     if (!RETRY_CONFIG.retryableErrors.includes(lastError.code)) {
-      console.log(`❌ [Supervisor] Non-retryable error: ${lastError.code}`);
+      logger.warn(`[Supervisor] Non-retryable error: ${lastError.code}`);
       return lastError;
     }
   }
@@ -211,7 +211,7 @@ async function executeSupervisorAttempt(
   const circuitBreaker = getCircuitBreaker(`supervisor-${provider}`);
 
   if (!circuitBreaker.isAllowed()) {
-    console.log(`⚡ [Supervisor] Circuit OPEN for ${provider}, will try next provider on retry`);
+    logger.warn(`[Supervisor] Circuit OPEN for ${provider}, will try next provider on retry`);
     return {
       success: false,
       error: `Provider ${provider} circuit breaker is OPEN`,
@@ -224,13 +224,13 @@ async function executeSupervisorAttempt(
     return await circuitBreaker.execute(async () => {
       logProviderStatus();
 
-      console.log(`🤖 [Supervisor] Using ${provider}/${modelId}`);
+      logger.info(`[Supervisor] Using ${provider}/${modelId}`);
 
       const queryText = lastUserMessage?.content || '';
       const intentCategory = getIntentCategory(queryText);
 
       const webSearchEnabled = resolveWebSearchSetting(request.enableWebSearch, queryText);
-      console.log(`🔍 [Single WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
+      logger.debug(`[Single WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
       const filteredTools = filterToolsByWebSearch(allTools, webSearchEnabled);
 
       const modelMessages: ModelMessage[] = [
@@ -256,7 +256,7 @@ async function executeSupervisorAttempt(
         maxRetries: 1,
         onStepFinish: ({ finishReason, toolCalls, toolResults, usage }) => {
           const toolNames = toolCalls?.map((tc) => tc.toolName) || [];
-          console.log(`📍 [Step] reason=${finishReason}, tools=[${toolNames.join(',')}]`);
+          logger.debug(`[Step] reason=${finishReason}, tools=[${toolNames.join(',')}]`);
 
           if (trace && toolCalls?.length) {
             for (const tc of toolCalls) {
@@ -271,13 +271,7 @@ async function executeSupervisorAttempt(
       const toolResults: Record<string, unknown>[] = [];
       let finalAnswerResult: { answer: string } | null = null;
 
-      const ragSources: Array<{
-        title: string;
-        similarity: number;
-        sourceType: string;
-        category?: string;
-        url?: string;
-      }> = [];
+      const ragSources: RagSource[] = [];
 
       for (const step of result.steps) {
         for (const toolCall of step.toolCalls) {
@@ -291,36 +285,7 @@ async function executeSupervisorAttempt(
               logToolCall(trace, tr.toolName, {}, trOutput, 0);
             }
 
-            if (tr.toolName === 'searchKnowledgeBase' && trOutput && typeof trOutput === 'object') {
-              const kbResult = trOutput as Record<string, unknown>;
-              const similarCases = (kbResult.similarCases ?? kbResult.results) as Array<Record<string, unknown>> | undefined;
-              if (Array.isArray(similarCases)) {
-                for (const doc of similarCases) {
-                  ragSources.push({
-                    title: String(doc.title ?? doc.name ?? 'Unknown'),
-                    similarity: Number(doc.similarity ?? doc.score ?? 0),
-                    sourceType: String(doc.sourceType ?? doc.type ?? 'vector'),
-                    category: doc.category ? String(doc.category) : undefined,
-                  });
-                }
-              }
-            }
-
-            if (tr.toolName === 'searchWeb' && trOutput && typeof trOutput === 'object') {
-              const webResult = trOutput as Record<string, unknown>;
-              const webResults = webResult.results as Array<Record<string, unknown>> | undefined;
-              if (Array.isArray(webResults)) {
-                for (const doc of webResults) {
-                  ragSources.push({
-                    title: String(doc.title ?? 'Web Result'),
-                    similarity: Number(doc.score ?? 0),
-                    sourceType: 'web',
-                    category: 'web-search',
-                    url: doc.url ? String(doc.url) : undefined,
-                  });
-                }
-              }
-            }
+            ragSources.push(...extractRagSources(tr.toolName, trOutput));
 
             if (tr.toolName === 'finalAnswer' && trOutput && typeof trOutput === 'object') {
               const finalResult = trOutput as Record<string, unknown>;
@@ -357,8 +322,8 @@ async function executeSupervisorAttempt(
         intent: intentCategory,
       });
 
-      console.log(
-        `✅ [Supervisor] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]${finalAnswerResult ? ' (via finalAnswer)' : ''}, ragSources: ${ragSources.length}`
+      logger.info(
+        `[Supervisor] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]${finalAnswerResult ? ' (via finalAnswer)' : ''}, ragSources: ${ragSources.length}`
       );
 
       const totalTokens = result.usage?.totalTokens ?? 0;
@@ -426,7 +391,7 @@ export async function* executeSupervisorStream(
     mode = lastUserMessage ? selectExecutionMode(lastUserMessage.content) : 'single';
   }
 
-  console.log(`🎯 [SupervisorStream] Mode: ${mode}`);
+  logger.info(`[SupervisorStream] Mode: ${mode}`);
 
   if (mode === 'multi') {
     yield* executeMultiAgentStream({
@@ -472,7 +437,7 @@ async function* streamSingleAgent(
       model = visionModel.model;
       provider = visionModel.provider;
       modelId = visionModel.modelId;
-      console.log(`👁️ [SingleAgent] Using Vision Agent (Gemini) for ${request.images!.length} image(s)`);
+      logger.info(`[SingleAgent] Using Vision Agent (Gemini) for ${request.images!.length} image(s)`);
     } else {
       const modelResult = getSupervisorModel();
       model = modelResult.model;
@@ -498,7 +463,7 @@ async function* streamSingleAgent(
   }
 
   try {
-    console.log(`🤖 [SupervisorStream] Using ${provider}/${modelId}`);
+    logger.info(`[SupervisorStream] Using ${provider}/${modelId}`);
 
     const lastUserMessage = request.messages.filter((m) => m.role === 'user').pop();
     const queryText = lastUserMessage?.content || '';
@@ -509,51 +474,17 @@ async function* streamSingleAgent(
     });
 
     // Build multimodal messages
-    type ContentPart =
-      | { type: 'text'; text: string }
-      | { type: 'image'; image: string; mimeType?: string }
-      | { type: 'file'; data: string; mimeType: string };
-
     const modelMessages: ModelMessage[] = [
       { role: 'system', content: SYSTEM_PROMPT },
-      ...request.messages.map((m, idx) => {
+      ...request.messages.map((m, idx): ModelMessage => {
         const isLastUserMessage =
           m.role === 'user' &&
           idx === request.messages.length - 1;
-        const hasMultimodal =
-          isLastUserMessage &&
-          ((request.images && request.images.length > 0) ||
-            (request.files && request.files.length > 0));
 
-        if (hasMultimodal) {
-          const contentParts: ContentPart[] = [{ type: 'text', text: m.content }];
-
-          if (request.images && request.images.length > 0) {
-            for (const img of request.images) {
-              contentParts.push({
-                type: 'image',
-                image: img.data,
-                mimeType: img.mimeType,
-              });
-            }
-            console.log(`📷 [SingleAgent] Added ${request.images.length} image(s) to message`);
-          }
-
-          if (request.files && request.files.length > 0) {
-            for (const file of request.files) {
-              contentParts.push({
-                type: 'file',
-                data: file.data,
-                mimeType: file.mimeType,
-              });
-            }
-            console.log(`📎 [SingleAgent] Added ${request.files.length} file(s) to message`);
-          }
-
+        if (isLastUserMessage) {
           return {
-            role: m.role as 'user' | 'assistant',
-            // AI SDK v6 multimodal content
-            content: contentParts as UserContent,
+            role: m.role as 'user',
+            content: buildMultimodalContent(m.content, request.images, request.files) as UserContent,
           };
         }
 
@@ -565,7 +496,7 @@ async function* streamSingleAgent(
     ];
 
     const webSearchEnabled = resolveWebSearchSetting(request.enableWebSearch, queryText);
-    console.log(`🔍 [Stream Single WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
+    logger.debug(`[Stream Single WebSearch] Setting resolved: ${webSearchEnabled} (request: ${request.enableWebSearch})`);
     const filteredTools = filterToolsByWebSearch(allTools, webSearchEnabled);
 
     const toolsCalled: string[] = [];
@@ -601,7 +532,7 @@ async function* streamSingleAgent(
       },
       onStepFinish: ({ finishReason, toolCalls, toolResults: stepToolResults }) => {
         const toolNames = toolCalls?.map((tc) => tc.toolName) || [];
-        console.log(`📍 [Stream Step] reason=${finishReason}, tools=[${toolNames.join(',')}]`);
+        logger.debug(`[Stream Step] reason=${finishReason}, tools=[${toolNames.join(',')}]`);
 
         if (trace && toolCalls?.length) {
           for (const tc of toolCalls) {
@@ -613,8 +544,8 @@ async function* streamSingleAgent(
       onFinish: ({ text, usage: finishUsage, finishReason, steps: finishSteps }) => {
         const durationMs = Date.now() - startTime;
         const allToolsCalled = finishSteps.flatMap((s) => s.toolCalls?.map((tc) => tc.toolName) || []);
-        console.log(
-          `✅ [Stream Finish] reason=${finishReason}, steps=${finishSteps.length}, tools=[${allToolsCalled.join(',')}], duration=${durationMs}ms`
+        logger.info(
+          `[Stream Finish] reason=${finishReason}, steps=${finishSteps.length}, tools=[${allToolsCalled.join(',')}], duration=${durationMs}ms`
         );
 
         if (trace && finishReason !== 'error') {
@@ -695,7 +626,7 @@ async function* streamSingleAgent(
 
     const [steps, usage] = await Promise.all([result.steps, result.usage]);
 
-    const ragSources: Array<{ title: string; similarity: number; sourceType: string; category?: string; url?: string }> = [];
+    const ragSources: RagSource[] = [];
 
     for (const step of steps) {
       for (const toolCall of step.toolCalls) {
@@ -711,37 +642,7 @@ async function* streamSingleAgent(
             logToolCall(trace, tr.toolName, {}, trOutput, 0);
           }
 
-          // ragSources 수집 (비스트리밍 모드와 동일 로직)
-          if (tr.toolName === 'searchKnowledgeBase' && trOutput && typeof trOutput === 'object') {
-            const kbResult = trOutput as Record<string, unknown>;
-            const similarCases = (kbResult.similarCases ?? kbResult.results) as Array<Record<string, unknown>> | undefined;
-            if (Array.isArray(similarCases)) {
-              for (const doc of similarCases) {
-                ragSources.push({
-                  title: String(doc.title ?? doc.name ?? 'Unknown'),
-                  similarity: Number(doc.similarity ?? doc.score ?? 0),
-                  sourceType: String(doc.sourceType ?? doc.type ?? 'vector'),
-                  category: doc.category ? String(doc.category) : undefined,
-                });
-              }
-            }
-          }
-
-          if (tr.toolName === 'searchWeb' && trOutput && typeof trOutput === 'object') {
-            const webResult = trOutput as Record<string, unknown>;
-            const webResults = webResult.results as Array<Record<string, unknown>> | undefined;
-            if (Array.isArray(webResults)) {
-              for (const doc of webResults) {
-                ragSources.push({
-                  title: String(doc.title ?? 'Web Result'),
-                  similarity: Number(doc.score ?? 0),
-                  sourceType: 'web',
-                  category: 'web-search',
-                  url: doc.url ? String(doc.url) : undefined,
-                });
-              }
-            }
-          }
+          ragSources.push(...extractRagSources(tr.toolName, trOutput));
         }
       }
     }
@@ -770,8 +671,8 @@ async function* streamSingleAgent(
       ...(capturedError && { error: capturedError.message }),
     });
 
-    console.log(
-      `✅ [SupervisorStream] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`
+    logger.info(
+      `[SupervisorStream] Completed in ${durationMs}ms, tools: [${toolsCalled.join(', ')}]`
     );
 
     const totalTokensUsed = usage?.totalTokens ?? 0;
