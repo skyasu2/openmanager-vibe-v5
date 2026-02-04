@@ -299,7 +299,7 @@ describe('executePromQL - Instant Selectors', () => {
       TEST_HOURLY_DATA
     );
     expect(result.result).toHaveLength(2);
-    expect(result.result.every((s) => s.labels['server_type'] === 'web')).toBe(
+    expect(result.result.every((s) => s.labels.server_type === 'web')).toBe(
       true
     );
   });
@@ -310,7 +310,7 @@ describe('executePromQL - Instant Selectors', () => {
       TEST_HOURLY_DATA
     );
     expect(result.result).toHaveLength(2);
-    expect(result.result.every((s) => s.labels['server_type'] !== 'web')).toBe(
+    expect(result.result.every((s) => s.labels.server_type !== 'web')).toBe(
       true
     );
   });
@@ -354,9 +354,9 @@ describe('executePromQL - Instant Selectors', () => {
     );
     expect(result.result).toHaveLength(1);
     const sample = result.result[0]!;
-    expect(sample.labels['instance']).toBe('192.168.1.10:9100');
-    expect(sample.labels['job']).toBe('node-exporter');
-    expect(sample.labels['server_type']).toBe('database');
+    expect(sample.labels.instance).toBe('192.168.1.10:9100');
+    expect(sample.labels.job).toBe('node-exporter');
+    expect(sample.labels.server_type).toBe('database');
     expect(sample.value).toBe(45);
   });
 
@@ -364,7 +364,7 @@ describe('executePromQL - Instant Selectors', () => {
     const result = executePromQL('up', TEST_HOURLY_DATA);
     expect(result.result).toHaveLength(4);
     const offlineServer = result.result.find(
-      (s) => s.labels['instance'] === '192.168.1.20:9100'
+      (s) => s.labels.instance === '192.168.1.20:9100'
     );
     expect(offlineServer?.value).toBe(0);
   });
@@ -445,18 +445,16 @@ describe('executePromQL - Aggregation', () => {
     // 3 groups: web, database, cache
     expect(result.result).toHaveLength(3);
 
-    const webGroup = result.result.find(
-      (s) => s.labels['server_type'] === 'web'
-    );
+    const webGroup = result.result.find((s) => s.labels.server_type === 'web');
     expect(webGroup?.value).toBe(80); // (75 + 85) / 2 = 80
 
     const dbGroup = result.result.find(
-      (s) => s.labels['server_type'] === 'database'
+      (s) => s.labels.server_type === 'database'
     );
     expect(dbGroup?.value).toBe(45);
 
     const cacheGroup = result.result.find(
-      (s) => s.labels['server_type'] === 'cache'
+      (s) => s.labels.server_type === 'cache'
     );
     expect(cacheGroup?.value).toBe(0);
   });
@@ -468,13 +466,11 @@ describe('executePromQL - Aggregation', () => {
     );
     expect(result.result).toHaveLength(2); // icn, busan
 
-    const icnGroup = result.result.find(
-      (s) => s.labels['datacenter'] === 'icn'
-    );
+    const icnGroup = result.result.find((s) => s.labels.datacenter === 'icn');
     expect(icnGroup?.value).toBe(85);
 
     const busanGroup = result.result.find(
-      (s) => s.labels['datacenter'] === 'busan'
+      (s) => s.labels.datacenter === 'busan'
     );
     expect(busanGroup?.value).toBe(0);
   });
@@ -503,7 +499,7 @@ describe('executePromQL - Comparison', () => {
   it('up == 0 (오프라인 서버)', () => {
     const result = executePromQL('up == 0', TEST_HOURLY_DATA);
     expect(result.result).toHaveLength(1);
-    expect(result.result[0]!.labels['instance']).toBe('192.168.1.20:9100');
+    expect(result.result[0]!.labels.instance).toBe('192.168.1.20:9100');
   });
 
   it('up == 1 (온라인 서버)', () => {
